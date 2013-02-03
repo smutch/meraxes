@@ -2,4 +2,6 @@
 *.pyc
 .deps
 wiki
+.sconsign.dblite
+.DS_Store
 
