@@ -4,6 +4,7 @@ comiler = 'mpicc'
 sources = ['test_read', 'test_propogate', 'test_walk',]
 flags = '-Wall -O2 -std=gnu99 -DDEBUG'.split()
 # flags = '-Wall -O2'.split()
+ctags_exec = '/usr/local/bin/ctags'
 
 packages = {
     "cn_exceptions" : {
@@ -26,8 +27,11 @@ def debug():
     cflags.append('-O0')
     build()
 
+def test_walk():
+    sources = ['test_walk',]
+    build(sources)
 
-def build():
+def build(sources=sources):
     for source in sources:
         run(comiler, '-o', source, 
             'read_trees.c', source+'.c',
@@ -37,6 +41,6 @@ def clean():
     autoclean()
 
 def ctags():
-    run("ctags -R --c++-kinds=+p --fields=+iaS --extra=+q")
+    run(ctags_exec+" -R --c++-kinds=+p --fields=+iaS --extra=+q")
 
 main(parallel_ok=True)

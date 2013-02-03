@@ -9,7 +9,7 @@ int main(int argc, char* argv[])
     printf("Usage:\n\t%s sim total_sim_snaps n_every_snaps n_scan_snaps snapshot_first snapshot_last\n", argv[0]);
     return EXIT_FAILURE;
   }
-  char *sim             = argv[1];
+  char *sim                   = argv[1];
   const int   total_sim_snaps = atoi(argv[2]);
   const int   n_every_snaps   = atoi(argv[3]);
   const int   n_scan_snaps    = atoi(argv[4]);
@@ -38,17 +38,49 @@ int main(int argc, char* argv[])
   
   // Now loop through each snapshot and try connecting the halos
   // TODO: Fix this for when we have multiple large file_offset values.
+  /*
+     FILE *temp_fout = fopen("test_dump_walk.txt", "w");
+     int test_halo_id = 0;
+     Halo chalo;
+     for(int snapshot=snapshot_first, i_snap=0, i_roll=0; snapshot<=snapshot_last; snapshot++, i_roll=(i_roll+1)%(n_scan_snaps+1)){
+     chalo = halos[i_snap+i_roll][test_halo_id];
+     fprintf(temp_fout, "%d    %d    %d    %d    %.3e\n", snapshot, chalo.id, chalo.desc_id, chalo.file_offset, chalo.M_vir);
+     test_halo_id = chalo.desc_id;
+     if(halos[i_snap+i_roll]!=NULL)
+     free_trees(&(halos[i_snap+i_roll]));
+     headers[i_snap+i_roll] = read_trees(sim, total_sim_snaps, n_every_snaps, n_scan_snaps, snapshot, &(halos[i_snap+i_roll]));
+     i_snap = chalo.file_offset-1;
+     }
+     fclose(temp_fout);
+     */
+
   FILE *temp_fout = fopen("test_dump_walk.txt", "w");
-  int test_halo_id = 0;
+  int halo_id = 0;
   Halo chalo;
-  for(int snapshot=snapshot_first, i_snap=0, i_roll=0; snapshot<=snapshot_last; snapshot++, i_roll=(i_roll+1)%(n_scan_snaps+1)){
-    chalo = halos[i_snap+i_roll][test_halo_id];
+  for(int snapshot=snapshot_first, i_roll=0; snapshot<=snapshot_last; snapshot++, i_roll=(i_roll+1)%(n_scan_snaps+1)){
+    chalo = halos[i_roll][halo_id];
     fprintf(temp_fout, "%d    %d    %d    %d    %.3e\n", snapshot, chalo.id, chalo.desc_id, chalo.file_offset, chalo.M_vir);
-    test_halo_id = chalo.desc_id;
-    if(halos[i_snap+i_roll]!=NULL)
-      free_trees(&(halos[i_snap+i_roll]));
-    headers[i_snap+i_roll] = read_trees(sim, total_sim_snaps, n_every_snaps, n_scan_snaps, snapshot, &(halos[i_snap+i_roll]));
-    i_snap = chalo.file_offset-1;
+    halo_id = chalo.desc_id;
+
+    // If the halo skips snapshots then interpolate...
+    if (chalo.file_offset > 1)
+    {
+      double M_vir = chalo.M_vir;
+      double M_vir_step = (halos[i_roll][halo_id].M_vir - M_vir)/(double)chalo.file_offset; 
+      for(int i_skip=0; i_skip<(chalo.file_offset+1); i_skip++)
+      {
+        snapshot++;
+        i_roll=(i_roll+1)%(n_scan_snaps+1);
+        M_vir+=(M_vir+M_vir_step); 
+        fprintf(temp_fout, "%d    %d    %d    %d    %.3e\n", snapshot, -1, -1, chalo.file_offset-i_skip, M_vir);
+        if(halos[i_roll]!=NULL)
+          free_trees(&(halos[i_roll]));
+        headers[i_roll] = read_trees(sim, total_sim_snaps, n_every_snaps, n_scan_snaps, snapshot, &(halos[i_roll]));
+      }
+    }
+    if(halos[i_roll]!=NULL)
+      free_trees(&(halos[i_roll]));
+    headers[i_roll] = read_trees(sim, total_sim_snaps, n_every_snaps, n_scan_snaps, snapshot, &(halos[i_roll]));
   }
   fclose(temp_fout);
 
