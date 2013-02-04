@@ -46,7 +46,8 @@ libs = ['-l'+p for p in packages.keys()]
 def debug():
     flags.remove('-O2')
     flags.append('-DDEBUG -O0 -g'.split())
-    test_walk()
+    sources = ['test_walk', 'test_read',]
+    build(sources)
 
 def test_walk():
     sources = ['test_walk',]

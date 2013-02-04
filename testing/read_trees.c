@@ -209,11 +209,9 @@ TreesHeader read_trees(char *sim, int total_sim_snaps, int n_every_snaps, int n_
 
   // Loop through the groups and subgroups and read them in
   int n_subgroups = 0;
-  // int running_count = 0;
   for (int i_group=0; i_group<header.n_groups; i_group++){
     read_group(fin_trees, *halos, halo_count);
     n_subgroups = (*halos)[halo_count].n_subgroups;
-    // running_count += 1+n_subgroups;
     read_halo(&fin_group_halos, "data", sim, corrected_snapshot, "groups", &catalog_groups_flayout, 
               &i_group_file, &N_halos_groups_file, &group_count_infile, *halos, N_groups_files, &halo_count);
     for (int i_subgroup=0; i_subgroup<n_subgroups; i_subgroup++){

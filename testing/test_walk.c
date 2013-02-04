@@ -35,20 +35,23 @@ int main(int argc, char* argv[])
   int last_read_snap = snapshot_first;
   for(int i_snap=0, snapshot=snapshot_first; (snapshot<=snapshot_last) && (i_snap<(n_scan_snaps+1)); snapshot++, i_snap++){
     headers[snapshot%(n_scan_snaps+1)] = read_trees(sim, total_sim_snaps, n_every_snaps, n_scan_snaps, snapshot, &(halos[snapshot%(n_scan_snaps+1)]));
-    last_read_snap = snapshot;
-  }
 
-  // DEBUG - Quick check
-  for(int i=0; i<(n_scan_snaps+1); i++)
-  {
-    for(int j=0; j<(headers[i].n_groups+headers[i].n_subgroups); j++)
+    SID_log("DEBUG: snapshot%(n_scan_snaps+1)=%d", SID_LOG_COMMENT, snapshot%(n_scan_snaps+1));
+    
+    // DEBUG - Quick check
+    for(int j=0; j<(headers[snapshot%(n_scan_snaps+1)].n_groups+headers[snapshot%(n_scan_snaps+1)].n_subgroups); j++)
     {
-      if(halos[i][j].id!=j+1)
+      if(halos[snapshot%(n_scan_snaps+1)][j].id!=j)
       {
-        SID_log("Epic fail! -> halos[%d][%d].id=%d !!!", SID_LOG_COMMENT, i, j, halos[i][j].id);
+        SID_log("Epic fail! -> halos[%d][%d].id=%d , n_subgroups=%d !!!", SID_LOG_COMMENT, snapshot%(n_scan_snaps+1), j, halos[snapshot%(n_scan_snaps+1)][j].id, halos[snapshot%(n_scan_snaps+1)][j].n_subgroups);
+        SID_log("Epic fail! -> halos[%d][%d].id=%d , n_subgroups=%d !!!", SID_LOG_COMMENT, snapshot%(n_scan_snaps+1), j+1, halos[snapshot%(n_scan_snaps+1)][j+1].id, halos[snapshot%(n_scan_snaps+1)][j+1].n_subgroups);
+        SID_log("Epic fail! -> halos[%d][%d].id=%d , n_subgroups=%d !!!", SID_LOG_COMMENT, snapshot%(n_scan_snaps+1), j+2, halos[snapshot%(n_scan_snaps+1)][j+2].id, halos[snapshot%(n_scan_snaps+1)][j+2].n_subgroups);
+        SID_log("Epic fail! -> halos[%d][%d].id=%d , n_subgroups=%d !!!", SID_LOG_COMMENT, snapshot%(n_scan_snaps+1), j+3, halos[snapshot%(n_scan_snaps+1)][j+3].id, halos[snapshot%(n_scan_snaps+1)][j+3].n_subgroups);
+        SID_log("...", SID_LOG_COMMENT);
         ABORT(34494);
       }
     }
+    last_read_snap = snapshot;
   }
 
   
