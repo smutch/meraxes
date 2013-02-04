@@ -2,23 +2,23 @@
 
 typedef struct RawHalo RawHalo;
 struct RawHalo{
-  long long id_MBP;                    // ID of most bound particle in structure
-  double    M_vir;                     // Bryan & Norman (ApJ 495, 80, 1998) virial mass [M_sol/h]
-  int       n_particles;               // Number of particles in the structure
-  float     position_COM[3];           // Centre-of-mass position      [Mpc/h]
-  float     position_MBP[3];           // Most bound particle position [Mpc/h]
-  float     velocity_COM[3];           // Centre-of-mass velocity      [km/s]
-  float     velocity_MBP[3];           // Most bound particle velocity [km/s]
-  float     R_vir;                     // Virial radius [Mpc/h]
-  float     R_halo;                    // Distance of last halo particle from MBP [Mpc/h]
-  float     R_max;                     // Radius of maximum circular velocity     [Mpc/h]
-  float     V_max;                     // Maximum circular velocity               [km/s]
-  float     sigma_v;                   // Total 3D velocity dispersion            [km/s]
-  float     spin[3];                   // Specific angular momentum vector        [Mpc/h*km/s]
-  float     q_triaxial;                // Triaxial shape parameter q=b/a
-  float     s_triaxial;                // Triaxial shape parameter s=c/a
-  float     shape_eigen_vectors[3][3]; // Normalized triaxial shape eigenvectors
-  char      padding[8];                // Alignment padding
+  long long id_MBP;                    //!< ID of most bound particle in structure
+  double    M_vir;                     //!< Bryan & Norman (ApJ 495, 80, 1998) virial mass [M_sol/h]
+  int       n_particles;               //!< Number of particles in the structure
+  float     position_COM[3];           //!< Centre-of-mass position      [Mpc/h]
+  float     position_MBP[3];           //!< Most bound particle position [Mpc/h]
+  float     velocity_COM[3];           //!< Centre-of-mass velocity      [km/s]
+  float     velocity_MBP[3];           //!< Most bound particle velocity [km/s]
+  float     R_vir;                     //!< Virial radius [Mpc/h]
+  float     R_halo;                    //!< Distance of last halo particle from MBP [Mpc/h]
+  float     R_max;                     //!< Radius of maximum circular velocity     [Mpc/h]
+  float     V_max;                     //!< Maximum circular velocity               [km/s]
+  float     sigma_v;                   //!< Total 3D velocity dispersion            [km/s]
+  float     spin[3];                   //!< Specific angular momentum vector        [Mpc/h*km/s]
+  float     q_triaxial;                //!< Triaxial shape parameter q=b/a
+  float     s_triaxial;                //!< Triaxial shape parameter s=c/a
+  float     shape_eigen_vectors[3][3]; //!< Normalized triaxial shape eigenvectors
+  char      padding[8];                //!< Alignment padding
 };
 
 
@@ -124,6 +124,7 @@ static void inline read_trees_header(FILE *fin, TreesHeader *header)
 static void inline read_group(FILE *fin, Halo *halos, int i_halo)
 {
   fread(&(halos[i_halo].id)         , sizeof(int), 1, fin);
+  fread(&(halos[i_halo].type)       , sizeof(int), 1, fin);
   fread(&(halos[i_halo].desc_id)    , sizeof(int), 1, fin);
   fread(&(halos[i_halo].tree_id)    , sizeof(int), 1, fin);
   fread(&(halos[i_halo].file_offset), sizeof(int), 1, fin);
@@ -133,6 +134,7 @@ static void inline read_group(FILE *fin, Halo *halos, int i_halo)
 static void inline read_subgroup(FILE *fin, Halo *halos, int i_halo)
 {
   fread(&(halos[i_halo].id)         , sizeof(int), 1, fin);
+  fread(&(halos[i_halo].type)       , sizeof(int), 1, fin);
   fread(&(halos[i_halo].desc_id)    , sizeof(int), 1, fin);
   fread(&(halos[i_halo].tree_id)    , sizeof(int), 1, fin);
   fread(&(halos[i_halo].file_offset), sizeof(int), 1, fin);
@@ -148,8 +150,8 @@ TreesHeader read_trees(char *sim, int total_sim_snaps, int n_every_snaps, int n_
  
   // TODO: Sanity checks should go here...
 
-  char sim_variant[7];
-  sprintf(sim_variant, "%02d_%03d", n_every_snaps, n_scan_snaps);
+  char sim_variant[18];
+  sprintf(sim_variant, "step_%03d_scan_%03d", n_every_snaps, n_scan_snaps);
   SID_log("Reading snapshot %d (%s:%s) trees and halos...", SID_LOG_OPEN|SID_LOG_TIMER, snapshot, sim, sim_variant);
 
 
@@ -167,6 +169,7 @@ TreesHeader read_trees(char *sim, int total_sim_snaps, int n_every_snaps, int n_
   int catalog_groups_flayout = -1;
   int catalog_subgroups_flayout = -1;
   halo_catalog_filename("data", sim, corrected_snapshot, "groups", 0, &catalog_groups_flayout, fname);
+  // SID_log("DEBUG: fname = %s", SID_LOG_COMMENT, fname);
   fin = fopen(fname, "rb");
   read_catalogs_header(fin, &dummy, &N_groups_files, &dummy, &N_halos_groups);
   fclose(fin);
@@ -186,6 +189,7 @@ TreesHeader read_trees(char *sim, int total_sim_snaps, int n_every_snaps, int n_
   // TREES
   SID_log("Reading in trees...", SID_LOG_COMMENT);
   sprintf(fname, "data/%s/trees/%s_%s/horizontal/trees/%s_%s.trees_horizontal_%d", sim, sim, sim_variant, sim, sim_variant, corrected_snapshot);
+  // SID_log("DEBUG: fname = %s", SID_LOG_COMMENT, fname);
   fin_trees = fopen(fname, "rb");
 
   // Read the header info
@@ -205,9 +209,11 @@ TreesHeader read_trees(char *sim, int total_sim_snaps, int n_every_snaps, int n_
 
   // Loop through the groups and subgroups and read them in
   int n_subgroups = 0;
+  // int running_count = 0;
   for (int i_group=0; i_group<header.n_groups; i_group++){
     read_group(fin_trees, *halos, halo_count);
     n_subgroups = (*halos)[halo_count].n_subgroups;
+    // running_count += 1+n_subgroups;
     read_halo(&fin_group_halos, "data", sim, corrected_snapshot, "groups", &catalog_groups_flayout, 
               &i_group_file, &N_halos_groups_file, &group_count_infile, *halos, N_groups_files, &halo_count);
     for (int i_subgroup=0; i_subgroup<n_subgroups; i_subgroup++){
@@ -234,6 +240,6 @@ TreesHeader read_trees(char *sim, int total_sim_snaps, int n_every_snaps, int n_
 
 void free_trees(Halo **halos){
   // Free allocated arrays
-  free(*halos);
+  SID_free(SID_FARG *halos);
 }
 
