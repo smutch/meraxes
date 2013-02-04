@@ -9,7 +9,6 @@ comiler = 'gcc'
 sources = ['test_read', 'test_propogate', 'test_walk',]
 flags = '-Wall -O2 -std=gnu99'.split()
 # flags = '-Wall -O2'.split()
-ctags_exec = '/usr/local/bin/ctags'
 
 extra_opts = [optparse.make_option('-o','--options', type='string',
                                    help='Build options',
@@ -26,6 +25,7 @@ if sys.platform == 'linux2':
             "libpath" : "/home/smutch/3rd_party/gbpCode/myLib",
         },
     }
+    ctags_exec = '/usr/bin/ctags'
 else:
     packages = {
         "cn_exceptions" : {
@@ -37,6 +37,7 @@ else:
             "libpath" : "/Users/smutch/3rd_party/gbpCode/myLib",
         },
     }
+    ctags_exec = '/usr/local/bin/ctags'
 
 incpaths = ['-I'+packages[p]["incpath"] for p in packages.keys()]
 libpaths = ['-L'+packages[p]["libpath"] for p in packages.keys()]
@@ -60,6 +61,6 @@ def clean():
     autoclean()
 
 def ctags():
-    run(ctags_exec+" -R --c++-kinds=+p --fields=+iaS --extra=+q".split())
+    run(ctags_exec, glob("*.[ch]"), "-R --c++-kinds=+p --fields=+iaS --extra=+q".split())
 
 main(parallel_ok=True, extra_options=extra_opts, jobs=3)
