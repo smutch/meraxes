@@ -180,7 +180,8 @@ TreesHeader read_trees(char *sim, int total_sim_snaps, int n_every_snaps, int n_
   fclose(fin);
 
   // Allocate the halo array
-  N_halos = N_halos_groups + N_halos_subgroups;
+  // N_halos = N_halos_groups + N_halos_subgroups;
+  N_halos = N_halos_subgroups;
   SID_log("N_halos_groups = %d", SID_LOG_COMMENT, N_halos_groups);
   SID_log("N_halos_subgroups = %d", SID_LOG_COMMENT, N_halos_subgroups);
   SID_log("N_halos = %d", SID_LOG_COMMENT, N_halos);
@@ -206,15 +207,36 @@ TreesHeader read_trees(char *sim, int total_sim_snaps, int n_every_snaps, int n_
   int   N_halos_subgroups_file = 0;
   int   group_count_infile     = 0;
   int   subgroup_count_infile  = 0;
+  int   n_subgroups            = 0;
+  int   group_count            = 0;
 
   // Loop through the groups and subgroups and read them in
-  int n_subgroups = 0;
+  Halo group_halos[1];
   for (int i_group=0; i_group<header.n_groups; i_group++){
-    read_group(fin_trees, *halos, halo_count);
-    n_subgroups = (*halos)[halo_count].n_subgroups;
+    read_group(fin_trees, group_halos, group_count);
+    n_subgroups = group_halos[group_count].n_subgroups;
     read_halo(&fin_group_halos, "data", sim, corrected_snapshot, "groups", &catalog_groups_flayout, 
-              &i_group_file, &N_halos_groups_file, &group_count_infile, *halos, N_groups_files, &halo_count);
-    for (int i_subgroup=0; i_subgroup<n_subgroups; i_subgroup++){
+              &i_group_file, &N_halos_groups_file, &group_count_infile, group_halos, N_groups_files, &group_count);
+    group_count=0; // Reset this after every group read as we are using a dummy 1 element array for group_halos
+
+    if(group_halos[0].n_subgroups == 1)
+      SID_log_warning("Just read in a group with n_subgroups=1... Group ID=%d, Descendent ID=%d", SID_LOG_COMMENT, 
+          group_halos[0].id, group_halos[0].desc_id);
+
+    // The first subhalo is actually the FOF halo but with the substructure
+    // removed.  We want to restore this to be just the FOF halo with no
+    // alterations.
+    if(group_halos[0].n_subgroups > 0)
+    {
+      read_subgroup(fin_trees, *halos, halo_count);
+      read_halo(&fin_subgroup_halos, "data", sim, corrected_snapshot, "subgroups", &catalog_subgroups_flayout, 
+                &i_subgroup_file, &N_halos_subgroups_file, &subgroup_count_infile, *halos, N_subgroups_files, &halo_count);
+      // Copy the relevant FOF group data over the top...
+      memcpy(&((*halos)[halo_count-1].id_MBP), &(group_halos[0].id_MBP), sizeof(Halo)-offsetof(Halo, id_MBP)); 
+    }
+
+    // Deal with the remaining subhalos
+    for (int i_subgroup=1; i_subgroup<n_subgroups; i_subgroup++){
       read_subgroup(fin_trees, *halos, halo_count);
       read_halo(&fin_subgroup_halos, "data", sim, corrected_snapshot, "subgroups", &catalog_subgroups_flayout, 
                 &i_subgroup_file, &N_halos_subgroups_file, &subgroup_count_infile, *halos, N_subgroups_files, &halo_count);
