@@ -4,4 +4,6 @@
 wiki
 .sconsign.dblite
 .DS_Store
+tags
+.tags
 

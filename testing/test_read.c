@@ -45,7 +45,6 @@ int main(int argc, char *argv[])
   }
 
   fclose(fout);
-
 #endif
 
   // Free allocated arrays
