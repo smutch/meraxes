@@ -42,6 +42,9 @@ else:
 incpaths = ['-I'+packages[p]["incpath"] for p in packages.keys()]
 libpaths = ['-L'+packages[p]["libpath"] for p in packages.keys()]
 libs = ['-l'+p for p in packages.keys()]
+
+# HDF5 libs
+libs.extend(['-lhdf5_hl', '-lhdf5'])
     
 def debug():
     flags.remove('-O2')
@@ -51,6 +54,10 @@ def debug():
 
 def test_walk():
     sources = ['test_walk',]
+    build(sources)
+
+def test_read():
+    sources = ['test_read',]
     build(sources)
 
 def build(sources=sources):
