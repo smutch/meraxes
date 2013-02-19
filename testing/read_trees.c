@@ -90,6 +90,11 @@ static void inline read_halo(FILE** fin, char *root, char *sim, int snapshot, ch
   if((*fin)==NULL){
     halo_catalog_filename(root, sim, snapshot, group_type, *i_file, flayout_switch, fname);
     *fin = fopen(fname, "rb");
+    if (*fin==NULL)
+    {
+      SID_log("Failed to open file %s", SID_LOG_COMMENT, fname);
+      ABORT(34494);
+    }
     read_catalogs_header(*fin, &dummy, &dummy, N_halos_file, &dummy);
   }
 
@@ -101,6 +106,11 @@ static void inline read_halo(FILE** fin, char *root, char *sim, int snapshot, ch
     (*i_halo) = 0;
     halo_catalog_filename(root, sim, snapshot, group_type, *i_file, flayout_switch, fname);
     *fin = fopen(fname, "rb");
+    if (*fin==NULL)
+    {
+      SID_log("Failed to open file %s", SID_LOG_COMMENT, fname);
+      ABORT(34494);
+    }
     read_catalogs_header(*fin, &dummy, &dummy, N_halos_file, &dummy);
   }
 
@@ -129,6 +139,16 @@ static void inline read_group(FILE *fin, Halo *halos, int i_halo)
   fread(&(halos[i_halo].tree_id)    , sizeof(int), 1, fin);
   fread(&(halos[i_halo].file_offset), sizeof(int), 1, fin);
   fread(&(halos[i_halo].n_subgroups), sizeof(int), 1, fin);
+
+// #ifdef DEBUG
+//   printf("INDEX %d - Group:\n", i_halo);
+//   printf("\tid: %d\n", halos[i_halo].id);
+//   printf("\ttype: %d\n", halos[i_halo].type);
+//   printf("\tdesc_id: %d\n", halos[i_halo].desc_id);
+//   printf("\ttree_id: %d\n", halos[i_halo].tree_id);
+//   printf("\tfile_offset: %d\n", halos[i_halo].file_offset);
+//   printf("\tn_subgroups: %d\n", halos[i_halo].n_subgroups);
+// #endif
 }
 
 static void inline read_subgroup(FILE *fin, Halo *halos, int i_halo)
@@ -139,6 +159,15 @@ static void inline read_subgroup(FILE *fin, Halo *halos, int i_halo)
   fread(&(halos[i_halo].tree_id)    , sizeof(int), 1, fin);
   fread(&(halos[i_halo].file_offset), sizeof(int), 1, fin);
   halos[i_halo].n_subgroups = -1;
+
+// #ifdef DEBUG
+//   printf("INDEX %d - Subgroup:\n", i_halo);
+//   printf("\tid: %d\n", halos[i_halo].id);
+//   printf("\ttype: %d\n", halos[i_halo].type);
+//   printf("\tdesc_id: %d\n", halos[i_halo].desc_id);
+//   printf("\ttree_id: %d\n", halos[i_halo].tree_id);
+//   printf("\tfile_offset: %d\n", halos[i_halo].file_offset);
+// #endif
 }
 
 
@@ -147,6 +176,7 @@ TreesHeader read_trees(char *sim, int total_sim_snaps, int n_every_snaps, int n_
 {
 
   int N_halos, N_halos_groups, N_halos_subgroups, N_groups_files, N_subgroups_files, dummy;
+  TreesHeader header;
  
   // TODO: Sanity checks should go here...
 
@@ -171,11 +201,21 @@ TreesHeader read_trees(char *sim, int total_sim_snaps, int n_every_snaps, int n_
   halo_catalog_filename("data", sim, corrected_snapshot, "groups", 0, &catalog_groups_flayout, fname);
   // SID_log("DEBUG: fname = %s", SID_LOG_COMMENT, fname);
   fin = fopen(fname, "rb");
+  if (fin==NULL)
+  {
+    SID_log("Failed to open file %s", SID_LOG_COMMENT, fname);
+    ABORT(34494);
+  }
   read_catalogs_header(fin, &dummy, &N_groups_files, &dummy, &N_halos_groups);
   fclose(fin);
 
   halo_catalog_filename("data", sim, corrected_snapshot, "subgroups", 0, &catalog_subgroups_flayout, fname);
   fin = fopen(fname, "rb");
+  if (fin==NULL)
+  {
+    SID_log("Failed to open file %s", SID_LOG_COMMENT, fname);
+    ABORT(34494);
+  }
   read_catalogs_header(fin, &dummy, &N_subgroups_files, &dummy, &N_halos_subgroups);
   fclose(fin);
 
@@ -185,17 +225,27 @@ TreesHeader read_trees(char *sim, int total_sim_snaps, int n_every_snaps, int n_
   SID_log("N_halos_groups = %d", SID_LOG_COMMENT, N_halos_groups);
   SID_log("N_halos_subgroups = %d", SID_LOG_COMMENT, N_halos_subgroups);
   SID_log("N_halos = %d", SID_LOG_COMMENT, N_halos);
-  *halos = malloc(sizeof(Halo) * N_halos);
+  if (N_halos>0)
+    *halos = malloc(sizeof(Halo) * N_halos);
 
   // TREES
   SID_log("Reading in trees...", SID_LOG_COMMENT);
   sprintf(fname, "data/%s/trees/%s_%s/horizontal/trees/%s_%s.trees_horizontal_%d", sim, sim, sim_variant, sim, sim_variant, corrected_snapshot);
   // SID_log("DEBUG: fname = %s", SID_LOG_COMMENT, fname);
   fin_trees = fopen(fname, "rb");
+  if (fin_trees==NULL)
+  {
+    SID_log("Failed to open file %s", SID_LOG_COMMENT, fname);
+    ABORT(34494);
+  }
 
   // Read the header info
-  TreesHeader header;
   read_trees_header(fin_trees, &header);
+  if (N_halos<1)
+  {
+    SID_log("No halos in this file... skipping...", SID_LOG_COMMENT);
+    return header;
+  }
 
   // Initialise everything we need to read the halos in
   FILE *fin_group_halos        = NULL;
@@ -219,12 +269,12 @@ TreesHeader read_trees(char *sim, int total_sim_snaps, int n_every_snaps, int n_
               &i_group_file, &N_halos_groups_file, &group_count_infile, group_halos, N_groups_files, &group_count);
     group_count=0; // Reset this after every group read as we are using a dummy 1 element array for group_halos
 
-    // if(group_halos[0].n_subgroups == 0)
-    //   SID_log_warning("Just read in a group with n_subgroups=0... Group ID=%d, Descendent ID=%d", SID_LOG_COMMENT, 
-    //       group_halos[0].id, group_halos[0].desc_id);
+    if(n_subgroups <= 0)
+      SID_log_warning("Just read in a group with n_subgroups=%d... Group ID=%d, Descendent ID=%d", SID_LOG_COMMENT, 
+          n_subgroups, group_halos[0].id, group_halos[0].desc_id);
 
     // Groups with n_subgroups=0 are spurious halos identified by the halo finder which should be ignored...
-    if(group_halos[0].n_subgroups > 0)
+    if(n_subgroups > 0)
     {
       // The first subhalo is actually the FOF halo but with the substructure
       // removed.  We want to restore this to be just the FOF halo with no
@@ -233,14 +283,16 @@ TreesHeader read_trees(char *sim, int total_sim_snaps, int n_every_snaps, int n_
       read_halo(&fin_subgroup_halos, "data", sim, corrected_snapshot, "subgroups", &catalog_subgroups_flayout, 
           &i_subgroup_file, &N_halos_subgroups_file, &subgroup_count_infile, *halos, N_subgroups_files, &halo_count);
       // Copy the relevant FOF group data over the top...
-      memcpy(&((*halos)[halo_count-1].n_subgroups), &(group_halos[0].n_subgroups), sizeof(Halo)-offsetof(Halo, n_subgroups)); 
-      (*halos)[halo_count-1].type = group_halos[0].type;
+      memcpy(&((*halos)[halo_count-1].id_MBP), &(group_halos[0].id_MBP), sizeof(Halo)-offsetof(Halo, id_MBP)); 
+      (*halos)[halo_count-1].n_subgroups = group_halos[0].n_subgroups-1;
+      (*halos)[halo_count-1].type = 0;
 
       // Deal with any remaining subhalos
       for (int i_subgroup=1; i_subgroup<n_subgroups; i_subgroup++){
         read_subgroup(fin_trees, *halos, halo_count);
         read_halo(&fin_subgroup_halos, "data", sim, corrected_snapshot, "subgroups", &catalog_subgroups_flayout, 
             &i_subgroup_file, &N_halos_subgroups_file, &subgroup_count_infile, *halos, N_subgroups_files, &halo_count);
+        (*halos)[halo_count-1].type = 1;
       }
     }
   }

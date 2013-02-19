@@ -18,11 +18,15 @@ int main(int argc, char *argv[])
 
   Halo *halos;
   TreesHeader header = read_trees(argv[1], atoi(argv[2]), atoi(argv[3]), atoi(argv[4]), snapshot_last, &halos);
+  if (header.n_subgroups==0)
+    SID_exit(ERROR_NONE);
 
 #ifdef DEBUG
   // Dump the results as an ascii table
   FILE *fout;
-  fout = fopen("test_dump_trees.txt", "w");
+  char fname[STR_LEN];
+  sprintf(fname, "snap%03d.txt", atoi(argv[6]));
+  fout = fopen(fname, "w");
 
   fprintf(fout, "# n_groups : %d\n"        , header.n_groups);
   fprintf(fout, "# n_subgroups : %d\n"     , header.n_subgroups);
@@ -30,17 +34,12 @@ int main(int argc, char *argv[])
   fprintf(fout, "# n_trees_subgroup : %d\n", header.n_trees_subgroup);
   fprintf(fout, "# n_trees_group : %d\n"   , header.n_trees_group);
 
-  fprintf(fout, "# index:    type    id    desc_id    tree_id    file_offset    n_subgroups    M_vir    n_particles    V_max\n");
+  fprintf(fout, "index    type    id    desc_id    tree_id    file_offset    n_subgroups    M_vir    n_particles    V_max\n");
 
   Halo *this_halo;
-  int type;
-  for (int i=0; i<100; i++){
+  for (int i=0; i<header.n_subgroups; i++){
     this_halo = &(halos[i]);
-    if(this_halo->n_subgroups>-1)
-      type = 0;
-    else
-      type = 1;
-    fprintf(fout, "%03d:    %d    %d    %d    %d    %d    %d    %.3e    %d    %.3e\n", i, type, this_halo->id, this_halo->desc_id,
+    fprintf(fout, "%03d:    %d    %d    %d    %d    %d    %d    %.3e    %d    %.3e\n", i, this_halo->type, this_halo->id, this_halo->desc_id,
         this_halo->tree_id, this_halo->file_offset, this_halo->n_subgroups, this_halo->M_vir, this_halo->n_particles, this_halo->V_max);
   }
 
