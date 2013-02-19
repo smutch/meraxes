@@ -138,6 +138,7 @@ static void inline read_group(FILE *fin, Halo *halos, int i_halo)
   fread(&(halos[i_halo].desc_id)    , sizeof(int), 1, fin);
   fread(&(halos[i_halo].tree_id)    , sizeof(int), 1, fin);
   fread(&(halos[i_halo].file_offset), sizeof(int), 1, fin);
+  fread(&(halos[i_halo].file_index), sizeof(int), 1, fin);
   fread(&(halos[i_halo].n_subgroups), sizeof(int), 1, fin);
 
 // #ifdef DEBUG
@@ -158,6 +159,7 @@ static void inline read_subgroup(FILE *fin, Halo *halos, int i_halo)
   fread(&(halos[i_halo].desc_id)    , sizeof(int), 1, fin);
   fread(&(halos[i_halo].tree_id)    , sizeof(int), 1, fin);
   fread(&(halos[i_halo].file_offset), sizeof(int), 1, fin);
+  fread(&(halos[i_halo].file_index), sizeof(int), 1, fin);
   halos[i_halo].n_subgroups = -1;
 
 // #ifdef DEBUG
