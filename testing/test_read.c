@@ -34,13 +34,17 @@ int main(int argc, char *argv[])
   fprintf(fout, "# n_trees_subgroup : %d\n", header.n_trees_subgroup);
   fprintf(fout, "# n_trees_group : %d\n"   , header.n_trees_group);
 
-  fprintf(fout, "index    type    id    desc_id    tree_id    file_offset    file_index    n_subgroups    M_vir    n_particles    V_max\n");
+  fprintf(fout, "index    type    id    desc_id    tree_id    file_offset    file_index    n_subgroups    M_vir    n_particles    V_max    R_vir    R_halo\n");
 
   Halo *this_halo;
   for (int i=0; i<header.n_subgroups; i++){
     this_halo = &(halos[i]);
-    fprintf(fout, "%04d    %d    %d    %d    %d    %d    %d    %d    %.3e    %d    %.3e\n", i, this_halo->type, this_halo->id, this_halo->desc_id,
-        this_halo->tree_id, this_halo->file_offset, this_halo->file_index, this_halo->n_subgroups, this_halo->M_vir, this_halo->n_particles, this_halo->V_max);
+    fprintf(fout, "%04d    %d    %d    %d    %d    %d    %d    %d    %.3e    %d    %.3e    %.3e    %.3e\n", 
+        i, this_halo->type, this_halo->id,
+        this_halo->desc_id, this_halo->tree_id, this_halo->file_offset,
+        this_halo->file_index, this_halo->n_subgroups, this_halo->M_vir,
+        this_halo->n_particles, this_halo->V_max, this_halo->R_vir,
+        this_halo->R_halo);
   }
 
   fclose(fout);
