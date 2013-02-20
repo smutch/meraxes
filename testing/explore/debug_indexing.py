@@ -44,7 +44,7 @@ def gen_plotset(sorted_ids, step):
 
     with ProgressBar(len(sorted_ids)) as bar:
 
-        for id in sorted_ids:
+        for count, id in enumerate(sorted_ids):
             init_id = id.copy()
             snapshot = []
             halo = []
@@ -86,7 +86,7 @@ def gen_plotset(sorted_ids, step):
             ax.semilogy(snapshot, halo['R_halo'], label='R_halo')
             ax.semilogy(snapshot, halo['R_vir'], label='R_vir')
             ax.set_ylabel('R')
-            leg = ax.legend(loc='lower right')
+            leg = ax.legend(loc='upper left')
             plt.setp(leg.get_texts(), size='small')
             ax.set_xlim((30,116))
             ax.set_ylim((0.01,100))
@@ -140,7 +140,7 @@ def gen_plotset(sorted_ids, step):
                  verticalalignment='center',
                  transform=fig.transFigure)
 
-            fname = 'plots/id_%04d.png'%init_id
+            fname = 'plots/id_%04d.png'%count
             plt.savefig(fname)
 
             bar.update()
@@ -175,7 +175,7 @@ if __name__ == '__main__':
         z0_M_vir[id_init] = last_mvir[0]
         
     #do a sort on the ids by z0_M_vir mass
-    sorted_ids = np.argsort(z0_M_vir)
+    sorted_ids = np.argsort(z0_M_vir)[::-1]
 
     gen_plotset(sorted_ids, step)
 
