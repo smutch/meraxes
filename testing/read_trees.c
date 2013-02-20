@@ -100,7 +100,7 @@ static void inline read_halo(FILE** fin, char *root, char *sim, int snapshot, ch
 
   // Have we already read all the halos in this file?
   if((*i_halo)>=(*N_halos_file)){
-    fprintf(stderr, "i_halo = %d, N_halos_file = %d\n", (*i_halo), (*N_halos_file));
+    // SID_log("***i_halo = %d, N_halos_file = %d", SID_LOG_COMMENT, (*i_halo), (*N_halos_file));
     fclose(*fin);
     (*i_file)++;
     (*i_halo) = 0;
@@ -120,6 +120,7 @@ static void inline read_halo(FILE** fin, char *root, char *sim, int snapshot, ch
   
   // Update the halo counters
   (*halo_count)++;
+  (*i_halo)++;
 }
 
 static void inline read_trees_header(FILE *fin, TreesHeader *header)
@@ -209,6 +210,7 @@ TreesHeader read_trees(char *sim, int total_sim_snaps, int n_every_snaps, int n_
     ABORT(34494);
   }
   read_catalogs_header(fin, &dummy, &N_groups_files, &dummy, &N_halos_groups);
+  SID_log("N_groups_files = %d", SID_LOG_COMMENT, N_groups_files);
   fclose(fin);
 
   halo_catalog_filename("data", sim, corrected_snapshot, "subgroups", 0, &catalog_subgroups_flayout, fname);
@@ -219,6 +221,7 @@ TreesHeader read_trees(char *sim, int total_sim_snaps, int n_every_snaps, int n_
     ABORT(34494);
   }
   read_catalogs_header(fin, &dummy, &N_subgroups_files, &dummy, &N_halos_subgroups);
+  SID_log("N_subgroups_files = %d", SID_LOG_COMMENT, N_subgroups_files);
   fclose(fin);
 
   // Allocate the halo array
