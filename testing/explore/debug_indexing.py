@@ -6,7 +6,9 @@ mpl_use('Agg')
 from matplotlib import pyplot as plt
 from glob import glob
 import h5py as h5
-from astropy.utils.console import ProgressBar
+# from astropy.utils.console import ProgressBar
+from multiprocessing import Pool
+from functools import partial
 
 def read_snap(fname, props=None):
     
@@ -38,112 +40,108 @@ def read_snap(fname, props=None):
         
     return halo
 
-def gen_plotset(sorted_ids, step):
+def gen_plotset(init_id, step=[]):
 
-    print "Generating plots!"
+    print init_id
 
-    with ProgressBar(len(sorted_ids)) as bar:
+    snapshot = []
+    halo = []
+    id = init_id
 
-        for count, id in enumerate(sorted_ids):
-            init_id = id.copy()
-            snapshot = []
-            halo = []
+    for s in xrange(n_steps-1,-1,-1):
+        boolarr = (step[s]['id']==id)
+        if any(boolarr==True):
+            id = step[s]['desc_id'][boolarr]
+            halo.append(step[s][boolarr][0])
+            snapshot.append(int(snap_files[s][14:-5]))
 
-            for s in xrange(n_steps-1,-1,-1):
-                boolarr = (step[s]['id']==id)
-                if any(boolarr==True):
-                    id = step[s]['desc_id'][boolarr]
-                    halo.append(step[s][boolarr][0])
-                    snapshot.append(int(snap_files[s][14:-5]))
+    snapshot = np.array(snapshot)
+    halo = np.array(halo)
+    
+    fig = plt.figure(0, figsize=(12,12))
 
-            snapshot = np.array(snapshot)
-            halo = np.array(halo)
-            
-            fig = plt.figure(figsize=(12,12))
+    type0 = np.ma.masked_array(halo, mask=(halo['type']==0))
+    type0_snap = np.ma.masked_array(snapshot, mask=(halo['type']==0))
+    type1 = np.ma.masked_array(halo, mask=(halo['type']==1))
+    type1_snap = np.ma.masked_array(snapshot, mask=(halo['type']==1))
+    
+    ax = plt.subplot(321)
+    ax.semilogy(snapshot, halo['V_max'], color='0.5')
+    ax.semilogy(type0_snap, type0['V_max'])
+    ax.semilogy(type1_snap, type1['V_max'])
+    ax.set_ylabel('V_max')
+    ax.set_xlim((30,116))
+    ax.set_ylim((100,5000))
+    
+    ax = plt.subplot(322)
+    ax.semilogy(snapshot, halo['M_vir'], color='0.5')
+    ax.semilogy(type0_snap, type0['M_vir'])
+    ax.semilogy(type1_snap, type1['M_vir'])
+    ax.set_ylabel('M_vir')
+    ax.set_xlim((30,116))
+    ax.set_ylim((1e10, 1e15))
+    
+    ax = plt.subplot(323)
+    ax.semilogy(snapshot, halo['R_halo'], label='R_halo')
+    ax.semilogy(snapshot, halo['R_vir'], label='R_vir')
+    ax.set_ylabel('R')
+    leg = ax.legend(loc='upper left')
+    plt.setp(leg.get_texts(), size='small')
+    ax.set_xlim((30,116))
+    ax.set_ylim((0.01,100))
+    
+    ax = plt.subplot(324)
+    spin = np.array([np.linalg.norm(v) for v in halo['spin']])
+    spin0 = np.ma.masked_array(spin, mask=(halo['type']==0))
+    spin1 = np.ma.masked_array(spin, mask=(halo['type']==1))
+    ax.semilogy(snapshot, spin, color='0.5')
+    ax.semilogy(type0_snap, spin0)
+    ax.semilogy(type1_snap, spin1)
+    ax.set_ylabel('spin magnitude')
+    ax.set_xlim((30,116))
+    ax.set_ylim((1,1e3))
+    
+    #Fix the positions
+    initial = halo['position_MBP'][0,:]
+    final = halo['position_MBP'][-1,:]
+    diff = halo['position_MBP']-final
+    wbool = diff<-(box_size/2.)
+    halo['position_MBP'][wbool]+=box_size
+    wbool = diff>(box_size/2.)
+    halo['position_MBP'][wbool]-=box_size
+    
+    ax = plt.subplot(325)
+    ax.plot(halo['position_MBP'][:,0], halo['position_MBP'][:,1], color='0.5')
+    ax.plot(type0['position_MBP'][:,0], type0['position_MBP'][:,1])
+    ax.plot(type1['position_MBP'][:,0], type1['position_MBP'][:,1])
+    ax.set_xlabel('x (MBP)')
+    ax.set_ylabel('y (MBP)')
+    ax.grid(True)
+    labels = ax.get_xticklabels()
+    plt.setp(labels, rotation=90)
+    # ax.set_xlim((-125,125))
+    # ax.set_ylim((-125,125))
+    
+    ax = plt.subplot(326)
+    ax.plot(halo['position_MBP'][:,0], halo['position_MBP'][:,2], color='0.5')
+    ax.plot(type0['position_MBP'][:,0], type0['position_MBP'][:,2])
+    ax.plot(type1['position_MBP'][:,0], type1['position_MBP'][:,2])
+    ax.set_xlabel('x (MBP)')
+    ax.set_ylabel('z (MBP)')
+    ax.grid(True)
+    labels = ax.get_xticklabels()
+    plt.setp(labels, rotation=90)
+    # ax.set_xlim((-125,125))
+    # ax.set_ylim((-125,125))
 
-            type0 = np.ma.masked_array(halo, mask=(halo['type']==0))
-            type0_snap = np.ma.masked_array(snapshot, mask=(halo['type']==0))
-            type1 = np.ma.masked_array(halo, mask=(halo['type']==1))
-            type1_snap = np.ma.masked_array(snapshot, mask=(halo['type']==1))
-            
-            ax = plt.subplot(321)
-            ax.semilogy(snapshot, halo['V_max'], color='0.5')
-            ax.semilogy(type0_snap, type0['V_max'])
-            ax.semilogy(type1_snap, type1['V_max'])
-            ax.set_ylabel('V_max')
-            ax.set_xlim((30,116))
-            ax.set_ylim((100,5000))
-            
-            ax = plt.subplot(322)
-            ax.semilogy(snapshot, halo['M_vir'], color='0.5')
-            ax.semilogy(type0_snap, type0['M_vir'])
-            ax.semilogy(type1_snap, type1['M_vir'])
-            ax.set_ylabel('M_vir')
-            ax.set_xlim((30,116))
-            ax.set_ylim((1e10, 1e15))
-            
-            ax = plt.subplot(323)
-            ax.semilogy(snapshot, halo['R_halo'], label='R_halo')
-            ax.semilogy(snapshot, halo['R_vir'], label='R_vir')
-            ax.set_ylabel('R')
-            leg = ax.legend(loc='upper left')
-            plt.setp(leg.get_texts(), size='small')
-            ax.set_xlim((30,116))
-            ax.set_ylim((0.01,100))
-            
-            ax = plt.subplot(324)
-            spin = np.array([np.linalg.norm(v) for v in halo['spin']])
-            spin0 = np.ma.masked_array(spin, mask=(halo['type']==0))
-            spin1 = np.ma.masked_array(spin, mask=(halo['type']==1))
-            ax.semilogy(snapshot, spin, color='0.5')
-            ax.semilogy(type0_snap, spin0)
-            ax.semilogy(type1_snap, spin1)
-            ax.set_ylabel('spin magnitude')
-            ax.set_xlim((30,116))
-            ax.set_ylim((1,1e3))
-            
-            #Fix the positions
-            initial = halo['position_MBP'][0,:]
-            final = halo['position_MBP'][-1,:]
-            diff = halo['position_MBP']-final
-            wbool = diff<-(box_size/2.)
-            halo['position_MBP'][wbool]+=box_size
-            wbool = diff>(box_size/2.)
-            halo['position_MBP'][wbool]-=box_size
-            
-            ax = plt.subplot(325)
-            ax.plot(halo['position_MBP'][:,0], halo['position_MBP'][:,1], color='0.5')
-            ax.plot(type0['position_MBP'][:,0], type0['position_MBP'][:,1])
-            ax.plot(type1['position_MBP'][:,0], type1['position_MBP'][:,1])
-            ax.set_xlabel('x (MBP)')
-            ax.set_ylabel('y (MBP)')
-            ax.grid(True)
-            labels = ax.get_xticklabels()
-            plt.setp(labels, rotation=90)
-            # ax.set_xlim((-125,125))
-            # ax.set_ylim((-125,125))
-            
-            ax = plt.subplot(326)
-            ax.plot(halo['position_MBP'][:,0], halo['position_MBP'][:,2], color='0.5')
-            ax.plot(type0['position_MBP'][:,0], type0['position_MBP'][:,2])
-            ax.plot(type1['position_MBP'][:,0], type1['position_MBP'][:,2])
-            ax.set_xlabel('x (MBP)')
-            ax.set_ylabel('z (MBP)')
-            ax.grid(True)
-            labels = ax.get_xticklabels()
-            plt.setp(labels, rotation=90)
-            # ax.set_xlim((-125,125))
-            # ax.set_ylim((-125,125))
+    plt.text(0.5, 0.95, "last M_vir = %.2e; id = %04d"%(z0_M_vir[init_id], init_id), 
+         horizontalalignment='center',
+         verticalalignment='center',
+         transform=fig.transFigure)
 
-            plt.text(0.5, 0.95, "last M_vir = %.2e"%z0_M_vir[init_id], 
-                 horizontalalignment='center',
-                 verticalalignment='center',
-                 transform=fig.transFigure)
-
-            fname = 'plots/id_%04d.png'%count
-            plt.savefig(fname)
-
-            bar.update()
+    fname = 'plots/Mvir_%.3e.png'%z0_M_vir[init_id]
+    plt.savefig(fname)
+    del(fig)
 
 
 if __name__ == '__main__':
@@ -177,6 +175,7 @@ if __name__ == '__main__':
     #do a sort on the ids by z0_M_vir mass
     sorted_ids = np.argsort(z0_M_vir)[::-1]
 
-    gen_plotset(sorted_ids, step)
+    mapfunc = partial(gen_plotset, step=step)    
+    worker_pool = Pool(6)
+    worker_pool.map(mapfunc, sorted_ids)
 
-    
