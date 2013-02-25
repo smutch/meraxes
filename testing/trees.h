@@ -52,6 +52,7 @@ struct Halo{
   int tree_id;
   int file_offset;
   int file_index;
+  int tree_flags;
   int n_subgroups;
   long long id_MBP;                    // ID of most bound particle in structure
   double    M_vir;                     // Bryan & Norman (ApJ 495, 80, 1998) virial mass [M_sol/h]

@@ -28,7 +28,7 @@ int main(int argc, char *argv[])
   hsize_t dims[1] = {header.n_subgroups};
   hsize_t dims_2d[2] = {header.n_subgroups, 3};
   herr_t status;
-  sprintf(fname, "snap%03d.hdf5", atoi(argv[5]));
+  sprintf(fname, "output/snap%03d.hdf5", atoi(argv[5]));
   file_id = H5Fcreate(fname, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
 
   // fprintf(fout, "# n_groups : %d\n"        , header.n_groups);
@@ -81,6 +81,12 @@ int main(int argc, char *argv[])
   for(int i=0; i<header.n_subgroups; i++)
     data_int[i] = halos[i].file_index;
   status = H5LTmake_dataset(file_id,"/file_index",1,dims,ds_type,data_int);
+
+  // tree_flags
+  ds_type = H5T_NATIVE_INT;
+  for(int i=0; i<header.n_subgroups; i++)
+    data_int[i] = halos[i].tree_flags;
+  status = H5LTmake_dataset(file_id,"/tree_flags",1,dims,ds_type,data_int);
 
   // n_subgroups
   ds_type = H5T_NATIVE_INT;
