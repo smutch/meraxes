@@ -1,18 +1,20 @@
 # -*- coding: utf-8 -*-
-# imports
+import sys
 import numpy as np
-from matplotlib import use as mpl_use
-mpl_use('Agg')
+import matplotlib
+matplotlib.use('Agg')
 from matplotlib import pyplot as plt
 from glob import glob
 import h5py as h5
-# from astropy.utils.console import ProgressBar
+from astropy.utils.console import ProgressBar
 from multiprocessing import Pool
 from functools import partial
 
+colors = plt.rcParams['axes.color_cycle']
+
 # bitwise flags for the merger trees
 tree_flags = {
-    'simple'                        : 1,
+    # 'simple'                        : 1,
     'strayed'                       : 2,
     'sputtered'                     : 4,
     'dropped'                       : 8,
@@ -20,13 +22,13 @@ tree_flags = {
     'bridged'                       : 32,
     'emerged'                       : 64,
     'bridge_progenitor'             : 128,
-    'bridge_progenitor_unprocessed' : 256,
-    'bridge_finalize'               : 512,
-    'bridge_default'                : 1024,
-    'found'                         : 2048,
-    'main_progenitor'               : 4096,
-    'unprocessed'                   : 8192,
-    'invalid'                       : 16384,
+    # 'bridge_progenitor_unprocessed' : 256,
+    # 'bridge_finalize'               : 512,
+    # 'bridge_default'                : 1024,
+    # 'found'                         : 2048,
+    # 'main_progenitor'               : 4096,
+    # 'unprocessed'                   : 8192,
+    # 'invalid'                       : 16384,
 }
 
 def get_flags(value):
@@ -34,10 +36,34 @@ def get_flags(value):
     flag_list = []
 
     for name, flag in tree_flags.iteritems():
-        if value & flag:
+        if (value & flag) == flag:
             flag_list.append(name)
 
     return flag_list
+
+
+def check_main_progenitor_flag(value):
+
+    if (value & 4096)==4096:
+        return True
+    else:
+        return False
+
+
+def plot_events(ax, halo, snapshot):
+
+    trans = matplotlib.transforms.blended_transform_factory(ax.transData, ax.transAxes)
+    flags = []
+    for s in xrange(snapshot.size):
+        halo_flags = get_flags(halo[s]['tree_flags'])
+        if len(halo_flags)>0:
+            flags.extend([(f, snapshot[s]) for f in halo_flags])
+
+    for f in flags:
+        ax.axvline(f[1], ls='--', color=colors[2])
+        t = ax.text(f[1], 1.02, f[0], horizontalalignment='center',
+                    verticalalignment='bottom', size='xx-small', rotation=90,
+                    transform=trans)
 
 
 def read_snap(fname, props=None):
@@ -72,8 +98,6 @@ def read_snap(fname, props=None):
 
 def gen_plotset(init_id, step=[], last_M_vir=[], dead_halos=[]):
 
-    print init_id
-
     snapshot = []
     halo = []
     id = init_id
@@ -81,11 +105,13 @@ def gen_plotset(init_id, step=[], last_M_vir=[], dead_halos=[]):
     for s in xrange(n_steps-1,-1,-1):
         boolarr = (step[s]['id']==id)
         if any(boolarr==True):
-            id = step[s]['desc_id'][boolarr]
             halo.append(step[s][boolarr][0])
             snapshot.append(int(snap_files[s][14:-5]))
             if any(dead_halos[s][boolarr]):
                 break
+            if not check_main_progenitor_flag(step[s][boolarr][0]['tree_flags']):
+                sys.stderr.write("ID=%d, step=%d :: Not the main progenitor by score..." % (id, s))
+            id = step[s]['desc_id'][boolarr]
 
     snapshot = np.array(snapshot)
     halo = np.array(halo)
@@ -103,19 +129,21 @@ def gen_plotset(init_id, step=[], last_M_vir=[], dead_halos=[]):
     type1_snap = np.ma.masked_array(snapshot, mask=(halo['type']!=1))
     
     ax = plt.subplot(321)
+    ax.set_xlim((30,116))
+    ax.set_ylim((100,5000))
     ax.semilogy(snapshot, halo['V_max'], color='0.5')
     ax.semilogy(type0_snap, type0['V_max'], label='type 0')
     ax.semilogy(type1_snap, type1['V_max'], label='type 1')
+    plot_events(ax, halo, snapshot)
     ax.set_ylabel('V_max')
     leg = ax.legend(loc='upper left', labelspacing=0.2)
     plt.setp(leg.get_texts(), size='x-small')
-    ax.set_xlim((30,116))
-    ax.set_ylim((100,5000))
     
     ax = plt.subplot(322)
     ax.semilogy(snapshot, halo['M_vir'], color='0.5')
     ax.semilogy(type0_snap, type0['M_vir'], label='type 0')
     ax.semilogy(type1_snap, type1['M_vir'], label='type 1')
+    plot_events(ax, halo, snapshot)
     ax.set_ylabel('M_vir')
     leg = ax.legend(loc='upper left', labelspacing=0.2)
     plt.setp(leg.get_texts(), size='x-small')
@@ -125,6 +153,7 @@ def gen_plotset(init_id, step=[], last_M_vir=[], dead_halos=[]):
     ax = plt.subplot(323)
     ax.semilogy(snapshot, halo['R_halo'], label='R_halo')
     ax.semilogy(snapshot, halo['R_vir'], label='R_vir')
+    plot_events(ax, halo, snapshot)
     ax.set_ylabel('R')
     leg = ax.legend(loc='upper left', labelspacing=0.2)
     plt.setp(leg.get_texts(), size='x-small')
@@ -138,6 +167,7 @@ def gen_plotset(init_id, step=[], last_M_vir=[], dead_halos=[]):
     ax.semilogy(snapshot, spin, color='0.5')
     ax.semilogy(type0_snap, spin0, label='type 0')
     ax.semilogy(type1_snap, spin1, label='type 1')
+    plot_events(ax, halo, snapshot)
     ax.set_ylabel('spin magnitude')
     leg = ax.legend(loc='upper left', labelspacing=0.2)
     plt.setp(leg.get_texts(), size='x-small')
@@ -199,8 +229,6 @@ if __name__ == '__main__':
     print "Reading snapshots..."
     step = [read_snap(snap) for snap in snap_files]
 
-    # loop through each halo, find it's final descendant and record it's M_vir value
-    print "Sorting by final M_vir value..."
     id_max =0
     for s in xrange(0, n_steps):
         local_max = np.max(step[s]['id'])
@@ -208,34 +236,43 @@ if __name__ == '__main__':
             id_max =local_max
 
     
+    # identify dead halos
+    print "Identifying 'dead' halos..."
     dead_halos = []
-    for s in xrange(0,n_steps):
-        dead_halos.append(np.zeros(step[s].shape[0], np.bool))
-        for i in xrange(step[s].shape[0]):
-            if not dead_halos[s][i]:
-                family_members = np.where(step[s]['desc_id']==step[s][i]['desc_id'])[0]
-                if family_members.size>1:
-                    sorted_ind = np.argsort(step[s][family_members], order='M_vir')[::-1]
-                    dead_halos[s][family_members[sorted_ind[0]]] = False
-                    dead_halos[s][family_members[sorted_ind[1:]]] = True
+    with ProgressBar(n_steps) as bar:
+        for s in xrange(0,n_steps):
+            dead_halos.append(np.zeros(step[s].shape[0], np.bool))
+            for i in xrange(step[s].shape[0]):
+                if not dead_halos[s][i]:
+                    family_members = np.where(step[s]['desc_id']==step[s][i]['desc_id'])[0]
+                    if family_members.size>1:
+                        sorted_ind = np.argsort(step[s][family_members], order='M_vir')[::-1]
+                        dead_halos[s][family_members[sorted_ind[0]]] = False
+                        dead_halos[s][family_members[sorted_ind[1:]]] = True
+            bar.update()
 
 
+    # loop through each halo, find it's final descendant and record it's M_vir value
+    print "Finding final halo masses..."
     last_M_vir = np.zeros(id_max+1)
-    for id_init in xrange(id_max+1):
-        id = id_init
-        for s in xrange(n_steps-1,-1,-1):
-            boolarr = (step[s]['id']==id)
-            if any(boolarr):
-                id = step[s]['desc_id'][boolarr]
-                last_mass = step[s]['M_vir'][boolarr] 
-            if any(dead_halos[s][boolarr]):
-                break
-        last_M_vir[id_init] = last_mass[0]
+    with ProgressBar(id_max+1) as bar:
+        for id_init in xrange(id_max+1):
+            id = id_init
+            for s in xrange(n_steps-1,-1,-1):
+                boolarr = (step[s]['id']==id)
+                if any(boolarr):
+                    id = step[s]['desc_id'][boolarr]
+                    last_mass = step[s]['M_vir'][boolarr] 
+                if any(dead_halos[s][boolarr]):
+                    break
+            last_M_vir[id_init] = last_mass[0]
+            bar.update()
 
     # do a sort on the ids by last_M_vir mass
+    print "Sorting by final M_vir value..."
     sorted_ids = np.argsort(last_M_vir)[::-1]
 
+    print "Generating plots..."
     mapfunc = partial(gen_plotset, step=step, last_M_vir=last_M_vir, dead_halos=dead_halos)    
-    # worker_pool = Pool(6)
-    # worker_pool.map(mapfunc, sorted_ids)
-    mapfunc(5327)
+    worker_pool = Pool(6)
+    worker_pool.map(mapfunc, sorted_ids)
