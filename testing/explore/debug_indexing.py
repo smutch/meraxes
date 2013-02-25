@@ -57,7 +57,12 @@ def gen_plotset(init_id, step=[]):
 
     snapshot = np.array(snapshot)
     halo = np.array(halo)
-    
+
+    # with h5.File('tree.hdf5', 'w') as fout:
+    #     fout['id'] = init_id
+    #     fout.create_dataset('tree', data=halo)
+    #     fout.create_dataset('snapshot', data=snapshot)
+
     fig = plt.figure(0, figsize=(12,12))
 
     type0 = np.ma.masked_array(halo, mask=(halo['type']==0))
@@ -114,6 +119,7 @@ def gen_plotset(init_id, step=[]):
     ax.plot(halo['position_MBP'][:,0], halo['position_MBP'][:,1], color='0.5')
     ax.plot(type0['position_MBP'][:,0], type0['position_MBP'][:,1])
     ax.plot(type1['position_MBP'][:,0], type1['position_MBP'][:,1])
+    ax.scatter(halo['position_MBP'][0,0], halo['position_MBP'][0,1], marker='o')
     ax.set_xlabel('x (MBP)')
     ax.set_ylabel('y (MBP)')
     ax.grid(True)
@@ -126,6 +132,7 @@ def gen_plotset(init_id, step=[]):
     ax.plot(halo['position_MBP'][:,0], halo['position_MBP'][:,2], color='0.5')
     ax.plot(type0['position_MBP'][:,0], type0['position_MBP'][:,2])
     ax.plot(type1['position_MBP'][:,0], type1['position_MBP'][:,2])
+    ax.scatter(halo['position_MBP'][0,0], halo['position_MBP'][0,2], marker='o')
     ax.set_xlabel('x (MBP)')
     ax.set_ylabel('z (MBP)')
     ax.grid(True)
@@ -178,4 +185,3 @@ if __name__ == '__main__':
     mapfunc = partial(gen_plotset, step=step)    
     worker_pool = Pool(6)
     worker_pool.map(mapfunc, sorted_ids)
-
