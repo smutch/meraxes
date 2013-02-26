@@ -110,7 +110,7 @@ def gen_plotset(init_id, step=[], last_M_vir=[], dead_halos=[]):
             if any(dead_halos[s][boolarr]):
                 break
             if not check_main_progenitor_flag(step[s][boolarr][0]['tree_flags']):
-                sys.stderr.write("ID=%d, step=%d :: Not the main progenitor by score..." % (id, s))
+                sys.stderr.write("ID=%d, step=%d :: Not the main progenitor by score...\n" % (id, s))
             id = step[s]['desc_id'][boolarr]
 
     snapshot = np.array(snapshot)
@@ -122,6 +122,7 @@ def gen_plotset(init_id, step=[], last_M_vir=[], dead_halos=[]):
     #     fout.create_dataset('snapshot', data=snapshot)
 
     fig = plt.figure(0, figsize=(12,12))
+    fig.clf()
 
     type0 = np.ma.masked_array(halo, mask=(halo['type']!=0))
     type0_snap = np.ma.masked_array(snapshot, mask=(halo['type']!=0))
@@ -174,7 +175,7 @@ def gen_plotset(init_id, step=[], last_M_vir=[], dead_halos=[]):
     ax.set_xlim((30,116))
     ax.set_ylim((1,1e3))
     
-    #Fix the positions
+    # Fix the positions
     initial = halo['position_MBP'][0,:]
     final = halo['position_MBP'][-1,:]
     diff = halo['position_MBP']-final
@@ -216,7 +217,6 @@ def gen_plotset(init_id, step=[], last_M_vir=[], dead_halos=[]):
 
     fname = 'plots/Mvir_%.3e.png'%last_M_vir[init_id]
     plt.savefig(fname)
-    del(fig)
 
 
 if __name__ == '__main__':
@@ -255,7 +255,8 @@ if __name__ == '__main__':
     # loop through each halo, find it's final descendant and record it's M_vir value
     print "Finding final halo masses..."
     last_M_vir = np.zeros(id_max+1)
-    with ProgressBar(id_max+1) as bar:
+    update_every = int((id_max+1)/100)
+    with ProgressBar(100) as bar:
         for id_init in xrange(id_max+1):
             id = id_init
             for s in xrange(n_steps-1,-1,-1):
@@ -266,7 +267,8 @@ if __name__ == '__main__':
                 if any(dead_halos[s][boolarr]):
                     break
             last_M_vir[id_init] = last_mass[0]
-            bar.update()
+            if ((id_init+1)%update_every)==0:
+                bar.update()
 
     # do a sort on the ids by last_M_vir mass
     print "Sorting by final M_vir value..."
