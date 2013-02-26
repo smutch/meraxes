@@ -21,7 +21,7 @@ tree_flags = {
     'merger'                        : 16,
     'bridged'                       : 32,
     'emerged'                       : 64,
-    'bridge_progenitor'             : 128,
+    # 'bridge_progenitor'             : 128,
     # 'bridge_progenitor_unprocessed' : 256,
     # 'bridge_finalize'               : 512,
     # 'bridge_default'                : 1024,
