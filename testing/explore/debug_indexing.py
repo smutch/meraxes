@@ -1,4 +1,12 @@
 # -*- coding: utf-8 -*-
+#!/usr/bin/env python
+
+"""Generate a series of diagnostic plots for the horizontal merger trees.
+
+Note - This code is rather brute force and certainly will not scale well with
+high temporal or spatial resolution runs...
+"""
+
 import sys
 import numpy as np
 import matplotlib
@@ -10,6 +18,10 @@ from astropy.utils.console import ProgressBar
 from multiprocessing import Pool
 from functools import partial
 
+__author__ = "Simon Mutch"
+__date__   = "26 Feb 2013"
+
+# store the default colors being used
 colors = plt.rcParams['axes.color_cycle']
 
 # bitwise flags for the merger trees
@@ -32,6 +44,14 @@ tree_flags = {
 }
 
 def get_flags(value):
+    """Given a tree_flags value, work out what actual flags are set.
+    
+    Args:
+        value  -  the tree_flags value
+
+    Returns:
+        flag_list  -  a list of strings with the set flag names
+    """
 
     flag_list = []
 
@@ -43,6 +63,14 @@ def get_flags(value):
 
 
 def check_main_progenitor_flag(value):
+    """Check if the main_progenitor flag is set.
+
+    Args:
+        value  -  the tree_flags value
+
+    Return:
+        bool representing whether or not the main_progenitor flag is set
+    """
 
     if (value & 4096)==4096:
         return True
@@ -51,6 +79,13 @@ def check_main_progenitor_flag(value):
 
 
 def plot_events(ax, halo, snapshot):
+    """Plot events marked by tree_flags value.
+    
+    Args:
+        ax       - the plot axis
+        halo     - halo history array
+        snapshot - array of snapshots corresponding to each entry of `halo`
+    """
 
     trans = matplotlib.transforms.blended_transform_factory(ax.transData, ax.transAxes)
     flags = []
@@ -67,6 +102,15 @@ def plot_events(ax, halo, snapshot):
 
 
 def read_snap(fname, props=None):
+    """Read in a snapshot from a simple hdf5 file.
+
+    Args:
+        fname  -  input filename
+        props  -  requested properties (=None for all)
+
+    Returns:
+        halo  -  the halos from the input file
+    """
     
     fin = h5.File(fname, 'r')
     
@@ -97,11 +141,13 @@ def read_snap(fname, props=None):
     return halo
 
 def gen_plotset(init_id, step=[], last_M_vir=[], dead_halos=[]):
+    """Generate a plot for a given halo ID."""
 
     snapshot = []
     halo = []
     id = init_id
 
+    # trace the history of the halo with id=init_id
     for s in xrange(n_steps-1,-1,-1):
         boolarr = (step[s]['id']==id)
         if any(boolarr==True):
@@ -112,23 +158,20 @@ def gen_plotset(init_id, step=[], last_M_vir=[], dead_halos=[]):
             if not check_main_progenitor_flag(step[s][boolarr][0]['tree_flags']):
                 sys.stderr.write("ID=%d, step=%d :: Not the main progenitor by score...\n" % (id, s))
             id = step[s]['desc_id'][boolarr]
-
     snapshot = np.array(snapshot)
     halo = np.array(halo)
 
-    # with h5.File('tree.hdf5', 'w') as fout:
-    #     fout['id'] = init_id
-    #     fout.create_dataset('tree', data=halo)
-    #     fout.create_dataset('snapshot', data=snapshot)
-
+    # select/create the figure and clear it
     fig = plt.figure(0, figsize=(12,12))
     fig.clf()
 
+    # work out the masks to select only type=0 and type=1 halos
     type0 = np.ma.masked_array(halo, mask=(halo['type']!=0))
     type0_snap = np.ma.masked_array(snapshot, mask=(halo['type']!=0))
     type1 = np.ma.masked_array(halo, mask=(halo['type']!=1))
     type1_snap = np.ma.masked_array(snapshot, mask=(halo['type']!=1))
     
+    # V_max
     ax = plt.subplot(321)
     ax.set_xlim((30,116))
     ax.set_ylim((100,5000))
@@ -140,6 +183,7 @@ def gen_plotset(init_id, step=[], last_M_vir=[], dead_halos=[]):
     leg = ax.legend(loc='upper left', labelspacing=0.2)
     plt.setp(leg.get_texts(), size='x-small')
     
+    # M_vir
     ax = plt.subplot(322)
     ax.semilogy(snapshot, halo['M_vir'], color='0.5')
     ax.semilogy(type0_snap, type0['M_vir'], label='type 0')
@@ -151,6 +195,7 @@ def gen_plotset(init_id, step=[], last_M_vir=[], dead_halos=[]):
     ax.set_xlim((30,116))
     ax.set_ylim((1e10, 1e15))
     
+    # R_halo and R_vir
     ax = plt.subplot(323)
     ax.semilogy(snapshot, halo['R_halo'], label='R_halo')
     ax.semilogy(snapshot, halo['R_vir'], label='R_vir')
@@ -161,6 +206,7 @@ def gen_plotset(init_id, step=[], last_M_vir=[], dead_halos=[]):
     ax.set_xlim((30,116))
     ax.set_ylim((0.01,100))
     
+    # spin (specific angular momentum) magnitude
     ax = plt.subplot(324)
     spin = np.array([np.linalg.norm(v) for v in halo['spin']])
     spin0 = np.ma.masked_array(spin, mask=(halo['type']!=0))
@@ -175,7 +221,7 @@ def gen_plotset(init_id, step=[], last_M_vir=[], dead_halos=[]):
     ax.set_xlim((30,116))
     ax.set_ylim((1,1e3))
     
-    # Fix the positions
+    # fix the positions for periodic boundaries
     initial = halo['position_MBP'][0,:]
     final = halo['position_MBP'][-1,:]
     diff = halo['position_MBP']-final
@@ -184,6 +230,7 @@ def gen_plotset(init_id, step=[], last_M_vir=[], dead_halos=[]):
     wbool = diff>(box_size/2.)
     halo['position_MBP'][wbool]-=box_size
     
+    # positions
     ax = plt.subplot(325)
     ax.plot(halo['position_MBP'][:,0], halo['position_MBP'][:,1], color='0.5')
     l, = ax.plot(type0['position_MBP'][:,0], type0['position_MBP'][:,1])
@@ -194,9 +241,8 @@ def gen_plotset(init_id, step=[], last_M_vir=[], dead_halos=[]):
     ax.grid(True)
     labels = ax.get_xticklabels()
     plt.setp(labels, rotation=90)
-    # ax.set_xlim((-125,125))
-    # ax.set_ylim((-125,125))
     
+    # positions
     ax = plt.subplot(326)
     ax.plot(halo['position_MBP'][:,0], halo['position_MBP'][:,2], color='0.5')
     ax.plot(type0['position_MBP'][:,0], type0['position_MBP'][:,2])
@@ -207,14 +253,14 @@ def gen_plotset(init_id, step=[], last_M_vir=[], dead_halos=[]):
     ax.grid(True)
     labels = ax.get_xticklabels()
     plt.setp(labels, rotation=90)
-    # ax.set_xlim((-125,125))
-    # ax.set_ylim((-125,125))
 
+    # label the plot
     plt.text(0.5, 0.95, "last M_vir = %.2e; id = %04d"%(last_M_vir[init_id], init_id), 
          horizontalalignment='center',
          verticalalignment='center',
          transform=fig.transFigure)
 
+    # save
     fname = 'plots/Mvir_%.3e.png'%last_M_vir[init_id]
     plt.savefig(fname)
 
@@ -229,6 +275,7 @@ if __name__ == '__main__':
     print "Reading snapshots..."
     step = [read_snap(snap) for snap in snap_files]
 
+    # find out how many unique ids there are
     id_max =0
     for s in xrange(0, n_steps):
         local_max = np.max(step[s]['id'])
@@ -274,6 +321,7 @@ if __name__ == '__main__':
     print "Sorting by final M_vir value..."
     sorted_ids = np.argsort(last_M_vir)[::-1]
 
+    # use python's built in multiprocessing module to generate the plots
     print "Generating plots..."
     mapfunc = partial(gen_plotset, step=step, last_M_vir=last_M_vir, dead_halos=dead_halos)    
     worker_pool = Pool(6)
