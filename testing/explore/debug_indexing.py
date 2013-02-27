@@ -5,6 +5,8 @@
 
 Note - This code is rather brute force and certainly will not scale well with
 high temporal or spatial resolution runs...
+
+TODO - Try using Numba to speed this code up...
 """
 
 import sys
@@ -17,6 +19,7 @@ import h5py as h5
 from astropy.utils.console import ProgressBar
 from multiprocessing import Pool
 from functools import partial
+from docopt import docopt
 
 __author__ = "Simon Mutch"
 __date__   = "26 Feb 2013"
@@ -148,16 +151,23 @@ def gen_plotset(init_id, step=[], last_M_vir=[], dead_halos=[]):
     id = init_id
 
     # trace the history of the halo with id=init_id
-    for s in xrange(n_steps-1,-1,-1):
-        boolarr = (step[s]['id']==id)
-        if any(boolarr==True):
-            halo.append(step[s][boolarr][0])
-            snapshot.append(int(snap_files[s][14:-5]))
-            if any(dead_halos[s][boolarr]):
-                break
-            if not check_main_progenitor_flag(step[s][boolarr][0]['tree_flags']):
-                sys.stderr.write("ID=%d, step=%d :: Not the main progenitor by score...\n" % (id, s))
-            id = step[s]['desc_id'][boolarr]
+    if dead_halos!=None:
+        for s in xrange(n_steps-1,-1,-1):
+            boolarr = (step[s]['id']==id)
+            if any(boolarr==True):
+                halo.append(step[s][boolarr][0])
+                snapshot.append(int(snap_files[s][14:-5]))
+                if any(dead_halos[s][boolarr]):
+                    break
+                if not check_main_progenitor_flag(step[s][boolarr][0]['tree_flags']):
+                    sys.stderr.write("ID=%d, step=%d :: Not the main progenitor by score...\n" % (id, s))
+                id = step[s]['desc_id'][boolarr]
+    else:
+        for s in xrange(n_steps-1,-1,-1):
+            boolarr = (step[s]['id']==id)
+            if any(boolarr==True):
+                halo.append(step[s][boolarr][0])
+                snapshot.append(int(snap_files[s][14:-5]))
     snapshot = np.array(snapshot)
     halo = np.array(halo)
 
@@ -266,7 +276,16 @@ def gen_plotset(init_id, step=[], last_M_vir=[], dead_halos=[]):
 
 
 if __name__ == '__main__':
-    
+
+    docopt_str = """debug_indexing
+
+    Usage: debug_indexing.py [--most_massive]
+
+    --most_massive  walk the most massive progenitor line
+    """
+    args = docopt(docopt_str, help=True)
+    most_massive_flag = args['--most_massive'] 
+
     # read in the snapshots
     box_size = 125.
     snap_files = sorted(glob('../output/snap*.hdf5'))[::-1]
@@ -282,40 +301,55 @@ if __name__ == '__main__':
         if local_max>id_max:
             id_max =local_max
 
-    
-    # identify dead halos
-    print "Identifying 'dead' halos..."
-    dead_halos = []
-    with ProgressBar(n_steps) as bar:
-        for s in xrange(0,n_steps):
-            dead_halos.append(np.zeros(step[s].shape[0], np.bool))
-            for i in xrange(step[s].shape[0]):
-                if not dead_halos[s][i]:
-                    family_members = np.where(step[s]['desc_id']==step[s][i]['desc_id'])[0]
-                    if family_members.size>1:
-                        sorted_ind = np.argsort(step[s][family_members], order='M_vir')[::-1]
-                        dead_halos[s][family_members[sorted_ind[0]]] = False
-                        dead_halos[s][family_members[sorted_ind[1:]]] = True
-            bar.update()
-
-
-    # loop through each halo, find it's final descendant and record it's M_vir value
-    print "Finding final halo masses..."
-    last_M_vir = np.zeros(id_max+1)
-    update_every = int((id_max+1)/100)
-    with ProgressBar(100) as bar:
-        for id_init in xrange(id_max+1):
-            id = id_init
-            for s in xrange(n_steps-1,-1,-1):
-                boolarr = (step[s]['id']==id)
-                if any(boolarr):
-                    id = step[s]['desc_id'][boolarr]
-                    last_mass = step[s]['M_vir'][boolarr] 
-                if any(dead_halos[s][boolarr]):
-                    break
-            last_M_vir[id_init] = last_mass[0]
-            if ((id_init+1)%update_every)==0:
+    if most_massive_flag:
+        # identify dead halos
+        print "Identifying 'dead' halos..."
+        dead_halos = []
+        with ProgressBar(n_steps) as bar:
+            for s in xrange(0,n_steps):
+                dead_halos.append(np.zeros(step[s].shape[0], np.bool))
+                for i in xrange(step[s].shape[0]):
+                    if not dead_halos[s][i]:
+                        family_members = np.where(step[s]['desc_id']==step[s][i]['desc_id'])[0]
+                        if family_members.size>1:
+                            sorted_ind = np.argsort(step[s][family_members], order='M_vir')[::-1]
+                            dead_halos[s][family_members[sorted_ind[0]]] = False
+                            dead_halos[s][family_members[sorted_ind[1:]]] = True
                 bar.update()
+
+
+        # loop through each halo, find it's final descendant and record it's M_vir value
+        print "Finding final halo masses..."
+        last_M_vir = np.zeros(id_max+1)
+        update_every = int((id_max+1)/100)
+        with ProgressBar(100) as bar:
+            for id_init in xrange(id_max+1):
+                id = id_init
+                for s in xrange(n_steps-1,-1,-1):
+                    boolarr = (step[s]['id']==id)
+                    if any(boolarr):
+                        id = step[s]['desc_id'][boolarr]
+                        last_mass = step[s]['M_vir'][boolarr] 
+                    if any(dead_halos[s][boolarr]):
+                        break
+                last_M_vir[id_init] = last_mass[0]
+                if ((id_init+1)%update_every)==0:
+                    bar.update()
+
+    else:
+        # loop through each halo, find it's final descendant and record it's M_vir value
+        dead_halos = None
+        print "Finding final halo masses..."
+        last_M_vir = np.zeros(id_max+1)
+        update_every = int((id_max+1)/100)
+        with ProgressBar(100) as bar:
+            for id_init in xrange(id_max+1):
+                for s in xrange(n_steps-1,-1,-1):
+                    boolarr = (step[s]['id']==id_init)
+                    if any(boolarr):
+                        last_M_vir[id_init] = step[s]['M_vir'][boolarr][0] 
+                if ((id_init+1)%update_every)==0:
+                    bar.update()
 
     # do a sort on the ids by last_M_vir mass
     print "Sorting by final M_vir value..."
