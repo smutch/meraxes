@@ -335,10 +335,11 @@ if __name__ == '__main__':
 
     docopt_str = """debug_indexing
 
-    Usage: debug_indexing.py [--most_massive] [--id=<id>]
+    Usage: debug_indexing.py [-h | --help] [--most_massive] [--id=<id>]
 
     --most_massive  walk the most massive progenitor line
     --id=<id>       plot history of id=<id>
+    -h --help       show this doc string
 
     """+__doc__
     args = docopt(docopt_str, help=True)
