@@ -327,7 +327,7 @@ def gen_plotset(init_id, step=[], last_M_vir=[], dead_halos=[]):
 
     # save
     # fname = 'plots/Mvir_%d.png'%last_M_vir[init_id]
-    fname = 'plots/id_%d.png'%init_id
+    fname = 'plots/id_%05d.png'%init_id
     plt.savefig(fname)
 
 
