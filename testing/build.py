@@ -49,7 +49,7 @@ libs.extend(['-lhdf5_hl', '-lhdf5'])
 def debug():
     flags.remove('-O2')
     flags.append('-DDEBUG -O0 -g'.split())
-    sources = ['test_walk', 'test_read',]
+    sources = ['test_walk',]
     build(sources)
 
 def test_walk():

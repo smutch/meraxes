@@ -170,7 +170,7 @@ def gen_plotset(init_id, step=[], last_M_vir=[], dead_halos=[]):
             if any(boolarr==True):
                 halo.append(step[s][boolarr][0])
                 descendant = halo[-1]['desc_id']
-                snapshot.append(int(snap_files[s][14:-5]))
+                snapshot.append(int(snap_files[s][23:-5]))
     snapshot = np.array(snapshot)
     halo = np.array(halo)
 
@@ -212,9 +212,9 @@ def gen_plotset(init_id, step=[], last_M_vir=[], dead_halos=[]):
 
     # R_halo, R_vir and R_max
     ax = plt.subplot(333)
-    ax.semilogy(snapshot, halo['R_halo'], label='R_halo')
+    # ax.semilogy(snapshot, halo['R_halo'], label='R_halo')
     ax.semilogy(snapshot, halo['R_vir'], label='R_vir')
-    ax.semilogy(snapshot, halo['R_max'], label='R_max')
+    # ax.semilogy(snapshot, halo['R_max'], label='R_max')
     plot_events(ax, halo, snapshot)
     ax.set_ylabel('R')
     ax.set_xlabel('snapshot')
@@ -239,17 +239,17 @@ def gen_plotset(init_id, step=[], last_M_vir=[], dead_halos=[]):
     ax.set_xlim((30,116))
     ax.set_ylim((1,1e3))
 
-    # shapes
-    ax = plt.subplot(335)
-    ax.plot(snapshot, halo['q_triaxial'], label='q')
-    ax.plot(snapshot, halo['s_triaxial'], color=colors[2], label='s')
-    plot_events(ax, halo, snapshot)
-    ax.set_ylabel('triaxial shape')
-    ax.set_xlabel('snapshot')
-    leg = ax.legend(loc='upper left', labelspacing=0.1)
-    plt.setp(leg.get_texts(), size='x-small')
-    ax.set_xlim((30,116))
-    ax.set_ylim((0, 1))
+    # # shapes
+    # ax = plt.subplot(335)
+    # ax.plot(snapshot, halo['q_triaxial'], label='q')
+    # ax.plot(snapshot, halo['s_triaxial'], color=colors[2], label='s')
+    # plot_events(ax, halo, snapshot)
+    # ax.set_ylabel('triaxial shape')
+    # ax.set_xlabel('snapshot')
+    # leg = ax.legend(loc='upper left', labelspacing=0.1)
+    # plt.setp(leg.get_texts(), size='x-small')
+    # ax.set_xlim((30,116))
+    # ax.set_ylim((0, 1))
 
     # velocities
     ax = plt.subplot(336)
@@ -348,11 +348,16 @@ if __name__ == '__main__':
 
     # read in the snapshots
     box_size = 125.
-    snap_files = sorted(glob('../output/snap*.hdf5'))[::-1]
+    snap_files = sorted(glob('../output/vertical/snap*.hdf5'))[::-1]
     n_steps = len(snap_files)
 
     print "Reading snapshots..."
     step = [read_snap(snap) for snap in snap_files]
+
+    # Fix masses in vertical trees
+    if snap_files[0].find('vertical'):
+        for s in xrange(len(step)):
+            step[s]['M_vir']*=1.e10
 
     if requested_id == None:
         n_workers = 6

@@ -1,6 +1,10 @@
 #define _MAIN
 #include "trees.h"
 
+int check_for_merger(int flag)
+{
+  return (flag&TREE_CASE_MERGER)==TREE_CASE_MERGER;
+}
 
 int main(int argc, char* argv[])
 {
@@ -33,63 +37,49 @@ int main(int argc, char* argv[])
 
   // Read the first n_scan_snaps+1 snapshots in...
   int last_read_snap = snapshot_first;
-  for(int i_snap=0, snapshot=snapshot_first; (snapshot<=snapshot_last) && (i_snap<(n_scan_snaps+1)); snapshot++, i_snap++){
+  for(int i_snap=0, snapshot=snapshot_first; (snapshot<=snapshot_last) && (i_snap<(n_scan_snaps+1)); snapshot++, i_snap++)
+  {
     headers[snapshot%(n_scan_snaps+1)] = read_trees(sim, total_sim_snaps, n_every_snaps, n_scan_snaps, snapshot, &(halos[snapshot%(n_scan_snaps+1)]));
-
     SID_log("DEBUG: snapshot%(n_scan_snaps+1)=%d", SID_LOG_COMMENT, snapshot%(n_scan_snaps+1));
-    
-    // DEBUG - Quick check
-    for(int j=0; j<(headers[snapshot%(n_scan_snaps+1)].n_groups+headers[snapshot%(n_scan_snaps+1)].n_subgroups); j++)
-    {
-      if(halos[snapshot%(n_scan_snaps+1)][j].id!=j)
-      {
-        SID_log("Epic fail! -> halos[%d][%d].id=%d , n_subgroups=%d !!!", SID_LOG_COMMENT, snapshot%(n_scan_snaps+1), j, halos[snapshot%(n_scan_snaps+1)][j].id, halos[snapshot%(n_scan_snaps+1)][j].n_subgroups);
-        SID_log("Epic fail! -> halos[%d][%d].id=%d , n_subgroups=%d !!!", SID_LOG_COMMENT, snapshot%(n_scan_snaps+1), j+1, halos[snapshot%(n_scan_snaps+1)][j+1].id, halos[snapshot%(n_scan_snaps+1)][j+1].n_subgroups);
-        SID_log("Epic fail! -> halos[%d][%d].id=%d , n_subgroups=%d !!!", SID_LOG_COMMENT, snapshot%(n_scan_snaps+1), j+2, halos[snapshot%(n_scan_snaps+1)][j+2].id, halos[snapshot%(n_scan_snaps+1)][j+2].n_subgroups);
-        SID_log("Epic fail! -> halos[%d][%d].id=%d , n_subgroups=%d !!!", SID_LOG_COMMENT, snapshot%(n_scan_snaps+1), j+3, halos[snapshot%(n_scan_snaps+1)][j+3].id, halos[snapshot%(n_scan_snaps+1)][j+3].n_subgroups);
-        SID_log("...", SID_LOG_COMMENT);
-        ABORT(34494);
-      }
-    }
     last_read_snap = snapshot;
   }
 
   
   // Now loop through each snapshot and try connecting the halos
-  // TODO: Fix this for when we have multiple large file_offset values.
-  /*
-     FILE *temp_fout = fopen("test_dump_walk.txt", "w");
-     int test_halo_id = 0;
-     Halo chalo;
-     for(int snapshot=snapshot_first, i_snap=0, i_roll=0; snapshot<=snapshot_last; snapshot++, i_roll=(i_roll+1)%(n_scan_snaps+1)){
-     chalo = halos[i_snap+i_roll][test_halo_id];
-     fprintf(temp_fout, "%d    %d    %d    %d    %.3e\n", snapshot, chalo.id, chalo.desc_id, chalo.file_offset, chalo.M_vir);
-     test_halo_id = chalo.desc_id;
-     if(halos[i_snap+i_roll]!=NULL)
-     free_trees(&(halos[i_snap+i_roll]));
-     headers[i_snap+i_roll] = read_trees(sim, total_sim_snaps, n_every_snaps, n_scan_snaps, snapshot, &(halos[i_snap+i_roll]));
-     i_snap = chalo.file_offset-1;
-     }
-     fclose(temp_fout);
-     */
-
   FILE *temp_fout = fopen("test_dump_walk.txt", "w");
-  fprintf(temp_fout, "# snapshot  ID  desc_ID  file_offset  type  M_vir\n");
+  fprintf(temp_fout, "# snapshot  ID  desc_ID  file_offset  type  M_vir  interpolated?\n");
   int halo_id = 0;
+  int i_roll = 0;
   Halo chalo;
   for(int snapshot=snapshot_first; snapshot<=snapshot_last; snapshot++){
-    chalo = halos[snapshot%(n_scan_snaps+1)][halo_id];
-    fprintf(temp_fout, "%d    %d    %d    %d    %d    %.3e\n", snapshot, chalo.id, chalo.desc_id, chalo.file_offset, chalo.type, chalo.M_vir);
-    halo_id = chalo.desc_id;
+    i_roll = snapshot%(n_scan_snaps+1);
+
+    // Make sure we have some halos in this snapshot!
+    if (headers[i_roll].n_subgroups<1)
+    {
+      if(halos[i_roll]!=NULL)
+        free_trees(&(halos[i_roll]));
+      last_read_snap++;
+      if (last_read_snap<=snapshot_last)
+        headers[i_roll] = read_trees(sim, total_sim_snaps, n_every_snaps, n_scan_snaps, last_read_snap, &(halos[snapshot%(n_scan_snaps+1)]));
+      continue;
+    }
+
+    chalo = halos[i_roll][halo_id];
+    fprintf(temp_fout, "%d    %d    %d    %d    %d    %.3e    0\n", snapshot, chalo.id, chalo.desc_id, chalo.file_offset, chalo.type, chalo.M_vir);
+    halo_id = chalo.file_index;
 
     if (halo_id<0)
       break;
 
-    if(halos[snapshot%(n_scan_snaps+1)]!=NULL)
-      free_trees(&(halos[snapshot%(n_scan_snaps+1)]));
+    if (check_for_merger(chalo.tree_flags))
+      break;
+
+    if(halos[i_roll]!=NULL)
+      free_trees(&(halos[i_roll]));
     last_read_snap++;
     if (last_read_snap<=snapshot_last)
-      headers[snapshot%(n_scan_snaps+1)] = read_trees(sim, total_sim_snaps, n_every_snaps, n_scan_snaps, last_read_snap, &(halos[snapshot%(n_scan_snaps+1)]));
+      headers[i_roll] = read_trees(sim, total_sim_snaps, n_every_snaps, n_scan_snaps, last_read_snap, &(halos[snapshot%(n_scan_snaps+1)]));
 
     // If the halo skips snapshots then interpolate...
     if (chalo.file_offset > 1)
@@ -99,27 +89,18 @@ int main(int argc, char* argv[])
       for(int i_skip=1; i_skip<(chalo.file_offset+1); i_skip++)
       {
         snapshot++;
+        i_roll = snapshot%(n_scan_snaps+1);
         M_vir+=(M_vir+M_vir_step); 
-        fprintf(temp_fout, "%d    %d    %d    %d    %d    %.3e\n", snapshot+1, -1, -1, chalo.file_offset-i_skip, -999, M_vir);
-        if(halos[snapshot%(n_scan_snaps+1)]!=NULL)
-          free_trees(&(halos[snapshot%(n_scan_snaps+1)]));
+        fprintf(temp_fout, "%d    %d    %d    %d    %d    %.3e    1\n", snapshot+1, -1, -1, chalo.file_offset-i_skip, -999, M_vir);
+        if(halos[i_roll]!=NULL)
+          free_trees(&(halos[i_roll]));
         last_read_snap++;
         if (last_read_snap<=snapshot_last)
-          headers[snapshot%(n_scan_snaps+1)] = read_trees(sim, total_sim_snaps, n_every_snaps, n_scan_snaps, last_read_snap, &(halos[last_read_snap%(n_scan_snaps+1)]));
+          headers[i_roll] = read_trees(sim, total_sim_snaps, n_every_snaps, n_scan_snaps, last_read_snap, &(halos[last_read_snap%(n_scan_snaps+1)]));
       }
     }
   }
   fclose(temp_fout);
-
-  // // Take the first central halo as a test and connect the history
-  // int idx = 0;
-  // for(int i_snap=0, snapshot=snapshot_first; snapshot<=snapshot_last; snapshot++, i_snap++){
-  //   printf("snap %d => id=%d, Mvir=%.3e, n_subgroups=%d, desc_id=%d\n", 
-  //       i_snap, groups[i_snap][idx].id, groups[i_snap][idx].halo->M_vir, groups[i_snap][idx].n_subgroups, groups[i_snap][idx].desc_id); 
-  //   idx = groups[i_snap][idx].desc_id;
-  //   if(idx<0)
-  //     break;
-  // }
 
   // Free arrays
   for(int i_snap=0; i_snap<n_scan_snaps; i_snap++)
