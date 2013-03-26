@@ -85,7 +85,6 @@ int main(int argc, char* argv[])
       headers[i_roll] = read_trees(sim, total_sim_snaps, n_every_snaps, n_scan_snaps, last_read_snap, &(halos[snapshot%(n_scan_snaps+1)]));
 
     // If the halo skips snapshots then interpolate...
-    // TODO - This needs debugged...
     if (chalo.file_offset > 1)
     {
       double M_vir = chalo.M_vir;
