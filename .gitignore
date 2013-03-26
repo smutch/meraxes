@@ -4,4 +4,7 @@
 wiki
 .sconsign.dblite
 .DS_Store
-
+tags
+.tags
+testing/*.txt
+*.hdf5
