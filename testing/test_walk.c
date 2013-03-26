@@ -9,8 +9,8 @@ int check_for_merger(int flag)
 int main(int argc, char* argv[])
 {
   // Quick argument parsing test
-  if(argc!=7){
-    printf("Usage:\n\t%s sim total_sim_snaps n_every_snaps n_scan_snaps snapshot_first snapshot_last\n", argv[0]);
+  if(argc!=8){
+    printf("Usage:\n\t%s sim total_sim_snaps n_every_snaps n_scan_snaps snapshot_first snapshot_last init_index\n", argv[0]);
     return EXIT_FAILURE;
   }
   char *sim                   = argv[1];
@@ -19,6 +19,7 @@ int main(int argc, char* argv[])
   const int   n_scan_snaps    = atoi(argv[4]);
   const int   snapshot_first  = atoi(argv[5]);
   const int   snapshot_last   = atoi(argv[6]);
+  const int   init_index      = atoi(argv[6]);
 
   // Initialise gbpSID
   SID_init(&argc, &argv, NULL);
@@ -47,15 +48,15 @@ int main(int argc, char* argv[])
   
   // Now loop through each snapshot and try connecting the halos
   FILE *temp_fout = fopen("test_dump_walk.txt", "w");
-  fprintf(temp_fout, "# snapshot  ID  desc_ID  file_offset  type  M_vir  interpolated?\n");
-  int halo_id = 0;
+  fprintf(temp_fout, "# snapshot  ID  index  desc_ID  file_index  file_offset  type  M_vir  next_M_vir  interpolated?\n");
+  int halo_index = init_index;
   int i_roll = 0;
   Halo chalo;
   for(int snapshot=snapshot_first; snapshot<=snapshot_last; snapshot++){
     i_roll = snapshot%(n_scan_snaps+1);
 
     // Make sure we have some halos in this snapshot!
-    if (headers[i_roll].n_subgroups<1)
+    if ((headers[i_roll].n_subgroups<1) || (headers[i_roll].n_subgroups<=halo_index))
     {
       if(halos[i_roll]!=NULL)
         free_trees(&(halos[i_roll]));
@@ -65,11 +66,13 @@ int main(int argc, char* argv[])
       continue;
     }
 
-    chalo = halos[i_roll][halo_id];
-    fprintf(temp_fout, "%d    %d    %d    %d    %d    %.3e    0\n", snapshot, chalo.id, chalo.desc_id, chalo.file_offset, chalo.type, chalo.M_vir);
-    halo_id = chalo.file_index;
+    chalo = halos[i_roll][halo_index];
+    halo_index = chalo.file_index;
+    fprintf(temp_fout, "%d    %d    %d    %d    %d    %d    %d    %.3e    %.3e    0\n", snapshot, chalo.id, halo_index, chalo.desc_id, chalo.file_index, 
+        chalo.file_offset, chalo.type, 
+        chalo.M_vir, halos[(snapshot+chalo.file_offset)%(n_scan_snaps+1)][halo_index].M_vir);
 
-    if (halo_id<0)
+    if (chalo.id<0)
       break;
 
     if (check_for_merger(chalo.tree_flags))
@@ -82,16 +85,26 @@ int main(int argc, char* argv[])
       headers[i_roll] = read_trees(sim, total_sim_snaps, n_every_snaps, n_scan_snaps, last_read_snap, &(halos[snapshot%(n_scan_snaps+1)]));
 
     // If the halo skips snapshots then interpolate...
+    // TODO - This needs debugged...
     if (chalo.file_offset > 1)
     {
       double M_vir = chalo.M_vir;
-      double M_vir_step = (halos[(snapshot+chalo.file_offset)%(n_scan_snaps+1)][halo_id].M_vir - M_vir)/(double)chalo.file_offset; 
-      for(int i_skip=1; i_skip<(chalo.file_offset+1); i_skip++)
+      double M_vir_step = (halos[(snapshot+chalo.file_offset)%(n_scan_snaps+1)][halo_index].M_vir - M_vir)/(double)chalo.file_offset; 
+
+      // DEBUG
+      printf("INTERPOLATION:\n");
+      printf("snapshot = %d\n", snapshot);
+      printf("cur Mvir = %.2e\n", M_vir);
+      printf("future Mvir = %.2e\n", halos[(snapshot+chalo.file_offset)%(n_scan_snaps+1)][halo_index].M_vir);
+      printf("skipped snaps = %d\n", chalo.file_offset);
+      printf("Mvir step = %.2e\n\n", M_vir_step);
+
+      for(int i_skip=1; i_skip<chalo.file_offset; i_skip++)
       {
         snapshot++;
         i_roll = snapshot%(n_scan_snaps+1);
-        M_vir+=(M_vir+M_vir_step); 
-        fprintf(temp_fout, "%d    %d    %d    %d    %d    %.3e    1\n", snapshot+1, -1, -1, chalo.file_offset-i_skip, -999, M_vir);
+        M_vir+=M_vir_step; 
+        fprintf(temp_fout, "%d    %d    %d    %d    %d    %d    %d    %.3e    %d   1\n", snapshot, -1, -1, -1, -1, chalo.file_offset-i_skip, -999, M_vir, -1);
         if(halos[i_roll]!=NULL)
           free_trees(&(halos[i_roll]));
         last_read_snap++;

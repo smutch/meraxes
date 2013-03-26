@@ -264,7 +264,7 @@ TreesHeader read_trees(char *sim, int total_sim_snaps, int n_every_snaps, int n_
   int   subgroup_count_infile  = 0;
   int   n_subgroups            = 0;
   int   group_count            = 0;
-  int   ghost_group_count      = 0;
+  int   phantom_group_count      = 0;
 
   // Loop through the groups and subgroups and read them in
   Halo group_halos[1];
@@ -276,7 +276,7 @@ TreesHeader read_trees(char *sim, int total_sim_snaps, int n_every_snaps, int n_
     group_count=0; // Reset this after every group read as we are using a dummy 1 element array for group_halos
 
     if(n_subgroups <= 0)
-      ghost_group_count++;
+      phantom_group_count++;
 
     // Groups with n_subgroups=0 are spurious halos identified by the halo finder which should be ignored...
     if(n_subgroups > 0)
@@ -303,7 +303,7 @@ TreesHeader read_trees(char *sim, int total_sim_snaps, int n_every_snaps, int n_
   }
 
 
-  SID_log_warning("Skipped %d ghost groups...", SID_LOG_COMMENT, ghost_group_count);
+  SID_log_warning("Skipped %d phantom groups...", SID_LOG_COMMENT, phantom_group_count);
   
   // Close the files
   fclose(fin_group_halos);
