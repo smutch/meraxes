@@ -2,9 +2,9 @@ MERAXIS CODE TODO LIST
 ======================
 
 setup basic structures:
-☐ halos
-☐ galaxies
-☐ output galaxies
+✔ halos @done (2013-04-10 09:06)
+✔ galaxies @done (2013-04-10 09:06)
+✔ output galaxies @done (2013-04-10 09:06)
 
 fix reading:
 ☐ only read halo properties we actually want
