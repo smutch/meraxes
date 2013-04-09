@@ -1,0 +1,13 @@
+MERAXIS CODE TODO LIST
+======================
+
+setup basic structures:
+☐ halos
+☐ galaxies
+☐ output galaxies
+
+fix reading:
+☐ only read halo properties we actually want
+
+document the code:
+☐ Use Doxygen style comments where appropriate

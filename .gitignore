@@ -8,3 +8,4 @@ tags
 .tags
 testing/*.txt
 *.hdf5
+Session.vim
