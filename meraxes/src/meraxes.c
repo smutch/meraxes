@@ -7,26 +7,28 @@ void myexit(int signum)
   exit(signum);
 }
 
-static void set_physics_params(double *vals, int n_params)
+static void set_physics_params(run_globals_struct *run_globals, double *vals, int n_params)
 {
 
+  struct physics_params *phys_par = &(run_globals->physics);
+
   if ((n_params==3) || (n_params==6)){
-    run_params.physics.peak            = vals[0];
-    run_params.physics.sigma           = vals[1];
-    run_params.physics.stellarfrac     = vals[2];
+    phys_par->peak            = vals[0];
+    phys_par->sigma           = vals[1];
+    phys_par->stellarfrac     = vals[2];
     if (n_params==6){
-      run_params.physics.peak_evo        = vals[3];
-      run_params.physics.sigma_evo       = vals[4];
-      run_params.physics.stellarfrac_evo = vals[5];
+      phys_par->peak_evo        = vals[3];
+      phys_par->sigma_evo       = vals[4];
+      phys_par->stellarfrac_evo = vals[5];
     }
     if (ThisTask==0){
-      printf("Changed physics_peak to %g\n"        , run_params.physics.peak);
-      printf("Changed physics_sigma to %g\n"       , run_params.physics.sigma);
-      printf("Changed physics_stellarfrac to %g\n" , run_params.physics.stellarfrac);
+      printf("Changed physics_peak to %g\n"        , phys_par->peak);
+      printf("Changed physics_sigma to %g\n"       , phys_par->sigma);
+      printf("Changed physics_stellarfrac to %g\n" , phys_par->stellarfrac);
       if (n_params==6){
-        printf("Changed physics_peak_evo to %g\n"        , run_params.physics.peak_evo);
-        printf("Changed physics_sigma_evo to %g\n"       , run_params.physics.sigma_evo);
-        printf("Changed physics_stellarfrac_evo to %g\n" , run_params.physics.stellarfrac_evo);
+        printf("Changed physics_peak_evo to %g\n"        , phys_par->peak_evo);
+        printf("Changed physics_sigma_evo to %g\n"       , phys_par->sigma_evo);
+        printf("Changed physics_stellarfrac_evo to %g\n" , phys_par->stellarfrac_evo);
       }
     }
   }
@@ -38,6 +40,8 @@ int main(int argc, char **argv)
 {
   
   SID_init(argc, &argv,NULL);
+  
+  run_globals_struct run_globals;
   
   int opt_paramsval_list = 0;
   if( (argc!=8) && (argc!=4) && (argc!=2) ) 
@@ -65,9 +69,9 @@ int main(int argc, char **argv)
   }
 
   if(argc==4)
-    read_parameter_file(argv[3]);
+    read_parameter_file(&run_globals, argv[3]);
   else
-    read_parameter_file(argv[1]);
+    read_parameter_file(&run_globals, argv[1]);
   
   // Check to see if the output directory exists and if not, create it
   if (stat(run_params.OutputDir, &filestatus) != 0)
@@ -75,12 +79,14 @@ int main(int argc, char **argv)
   
   // Deal with any command line parameter values
   if (argc==8){
-    double *physics_param_vals = malloc(sizeof(double) * (argc-2));
+    double *physics_param_vals = SID_malloc(sizeof(double) * (argc-2));
     for(int i=0; i<argc-2; i++)
       physics_param_vals[i] = atof(argv[i+2]);
-    set_physics_params(physics_param_vals, argc-2);
-    free(physics_param_vals);
+    set_physics_params(&run_globals, physics_param_vals, argc-2);
+    SID_free(SID_FARG physics_param_vals);
   }
 
-  return 0;
+  init_meraxis(&run_globals);
+
+  SID_exit();
 }

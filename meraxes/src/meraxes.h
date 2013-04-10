@@ -9,6 +9,9 @@
 #define STRLEN  256  //!< Default string length
 #define MAXTAGS 50   //!< Maximum number of allowed tags in input file
 
+// TODO: This should not be hard coded!
+#define MAXSNAPS 10  //!< Maximum number of snapshots
+
 #define ABORT(sigterm)                                                                 \
 do {                                                                                   \
   printf("Error in file: %s\tfunc: %s\tline: %i\n", __FILE__, __FUNCTION__, __LINE__); \
@@ -77,14 +80,16 @@ struct run_params_struct{
   double                OmegaLambda;
   double                PartMass;
   double                MergerTimeFactor;
+  int                   SnaplistLength;
   struct physics_params physics;
 };
 
-#ifdef _MAIN
-struct run_params_struct run_params;
-#else
-extern struct run_params_struct run_params;
-#endif
+struct run_globals_struct{
+  double                AA[MAXSNAPS];
+  double                ZZ[MAXSNAPS];
+  double                Age[MAXSNAPS];
+  run_params_struct params;
+};
 
 //! The header from the input tree files.
 struct trees_header_struct{
@@ -193,4 +198,5 @@ typedef struct galaxy_output_struct galaxy_output_struct;
  */
 
 void myexit(int signum);
-
+void read_parameter_file(run_globals_struct *run_globals, char *fname);
+void init_meraxis(run_globals_struct *run_globals);

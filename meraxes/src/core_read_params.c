@@ -72,13 +72,15 @@ static void parse_param_file(char *fname, char tag[MAXTAGS][50], int n_param, in
 }
 
 
-void read_parameter_file(char *fname)
+void read_parameter_file(run_globals_struct *run_globals, char *fname)
 {
   int i;
   int user_used_tag[MAXTAGS], defaults_used_tag[MAXTAGS], required_tag[MAXTAGS];
   int errorFlag = 0;
   char defaults_file[STRLEN];
   char *bp, tmp[50];
+
+  struct run_params_struct *run_params = &(run_globals->params);
 
   // Initialise values and arrays
   n_param = 0;
@@ -97,179 +99,179 @@ void read_parameter_file(char *fname)
   params_id[n_param++] = STRING;
 
   strcpy(params_tag[n_param], "OutputDir");
-  params_addr[n_param] = run_params.OutputDir;
+  params_addr[n_param] = run_params->OutputDir;
   required_tag[n_param] = 1;
   params_id[n_param++] = STRING;
 
   strcpy(params_tag[n_param], "FileNameGalaxies");
-  params_addr[n_param] = run_params.FileNameGalaxies;
+  params_addr[n_param] = run_params->FileNameGalaxies;
   required_tag[n_param] = 1;
   params_id[n_param++] = STRING;
 
   strcpy(params_tag[n_param], "SimulationDir");
-  params_addr[n_param] = run_params.SimulationDir;
+  params_addr[n_param] = run_params->SimulationDir;
   required_tag[n_param] = 1;
   params_id[n_param++] = STRING;
 
   strcpy(params_tag[n_param], "PhotometricTabsDir");
-  params_addr[n_param] = run_params.PhotometricTabsDir;
+  params_addr[n_param] = run_params->PhotometricTabsDir;
   required_tag[n_param] = 1;
   params_id[n_param++] = STRING;
 
   strcpy(params_tag[n_param], "CoolFunctionsDir");
-  params_addr[n_param] = run_params.CoolFunctionsDir;
+  params_addr[n_param] = run_params->CoolFunctionsDir;
   required_tag[n_param] = 1;
   params_id[n_param++] = STRING;
 
   strcpy(params_tag[n_param], "SimulationFilePrefix");
-  params_addr[n_param] = run_params.SimulationFilePrefix;
+  params_addr[n_param] = run_params->SimulationFilePrefix;
   required_tag[n_param] = 1;
   params_id[n_param++] = STRING;
 
   strcpy(params_tag[n_param], "FileWithOutputSnaps");
-  params_addr[n_param] = run_params.FileWithOutputSnaps;
+  params_addr[n_param] = run_params->FileWithOutputSnaps;
   required_tag[n_param] = 1;
   params_id[n_param++] = STRING;
 
   strcpy(params_tag[n_param], "FileWithSnapList");
-  params_addr[n_param] = run_params.FileWithSnapList;
+  params_addr[n_param] = run_params->FileWithSnapList;
   required_tag[n_param] = 1;
   params_id[n_param++] = STRING;
 
   strcpy(params_tag[n_param], "FilesPerSnapshot");
-  params_addr[n_param] = &run_params.FilesPerSnapshot;
+  params_addr[n_param] = &(run_params->FilesPerSnapshot);
   required_tag[n_param] = 1;
   params_id[n_param++] = INT;
 
   strcpy(params_tag[n_param], "LastSnapShotNr");
-  params_addr[n_param] = &run_params.LastSnapShotNr;
+  params_addr[n_param] = &(run_params->LastSnapShotNr);
   required_tag[n_param] = 1;
   params_id[n_param++] = INT;
 
   strcpy(params_tag[n_param], "FirstFile");
-  params_addr[n_param] = &run_params.FirstFile;
+  params_addr[n_param] = &(run_params->FirstFile);
   required_tag[n_param] = 1;
   params_id[n_param++] = INT;
 
   strcpy(params_tag[n_param], "LastFile");
-  params_addr[n_param] = &run_params.LastFile;
+  params_addr[n_param] = &(run_params->LastFile);
   required_tag[n_param] = 1;
   params_id[n_param++] = INT;
   
   strcpy(params_tag[n_param], "BoxSize");
-  params_addr[n_param] = &run_params.BoxSize;
+  params_addr[n_param] = &(run_params->BoxSize);
   required_tag[n_param] = 1;
   params_id[n_param++] = DOUBLE;
 
   strcpy(params_tag[n_param], "VolumeFactor");
-  params_addr[n_param] = &run_params.VolumeFactor;
+  params_addr[n_param] = &(run_params->VolumeFactor);
   required_tag[n_param] = 1;
   params_id[n_param++] = DOUBLE;
 
   strcpy(params_tag[n_param], "ThreshMajorMerger");
-  params_addr[n_param] = &run_params.ThreshMajorMerger;
+  params_addr[n_param] = &(run_params->ThreshMajorMerger);
   required_tag[n_param] = 1;
   params_id[n_param++] = DOUBLE;
 
   strcpy(params_tag[n_param], "RecycleFraction");
-  params_addr[n_param] = &run_params.RecycleFraction;
+  params_addr[n_param] = &(run_params->RecycleFraction);
   required_tag[n_param] = 1;
   params_id[n_param++] = DOUBLE;
 
   strcpy(params_tag[n_param], "UnitVelocity_in_cm_per_s");
-  params_addr[n_param] = &run_params.UnitVelocity_in_cm_per_s;
+  params_addr[n_param] = &(run_params->UnitVelocity_in_cm_per_s);
   required_tag[n_param] = 1;
   params_id[n_param++] = DOUBLE;
 
   strcpy(params_tag[n_param], "UnitLength_in_cm");
-  params_addr[n_param] = &run_params.UnitLength_in_cm;
+  params_addr[n_param] = &(run_params->UnitLength_in_cm);
   required_tag[n_param] = 1;
   params_id[n_param++] = DOUBLE;
 
   strcpy(params_tag[n_param], "UnitMass_in_g");
-  params_addr[n_param] = &run_params.UnitMass_in_g;
+  params_addr[n_param] = &(run_params->UnitMass_in_g);
   required_tag[n_param] = 1;
   params_id[n_param++] = DOUBLE;
 
   strcpy(params_tag[n_param], "SimHubble_h");
-  params_addr[n_param] = &run_params.SimHubble_h;
+  params_addr[n_param] = &(run_params->SimHubble_h);
   required_tag[n_param] = 1;
   params_id[n_param++] = DOUBLE;
 
   strcpy(params_tag[n_param], "ObsHubble_h");
-  params_addr[n_param] = &run_params.ObsHubble_h;
+  params_addr[n_param] = &(run_params->ObsHubble_h);
   required_tag[n_param] = 1;
   params_id[n_param++] = DOUBLE;
 
   strcpy(params_tag[n_param], "DiskInstabilityOn");
-  params_addr[n_param] = &run_params.DiskInstabilityOn;
+  params_addr[n_param] = &(run_params->DiskInstabilityOn);
   required_tag[n_param] = 1;
   params_id[n_param++] = INT;
 
   strcpy(params_tag[n_param], "BaryonFrac");
-  params_addr[n_param] = &run_params.BaryonFrac;
+  params_addr[n_param] = &(run_params->BaryonFrac);
   required_tag[n_param] = 1;
   params_id[n_param++] = DOUBLE;
 
   strcpy(params_tag[n_param], "Omega");
-  params_addr[n_param] = &run_params.Omega;
+  params_addr[n_param] = &(run_params->Omega);
   required_tag[n_param] = 1;
   params_id[n_param++] = DOUBLE;
 
   strcpy(params_tag[n_param], "OmegaLambda");
-  params_addr[n_param] = &run_params.OmegaLambda;
+  params_addr[n_param] = &(run_params->OmegaLambda);
   required_tag[n_param] = 1;
   params_id[n_param++] = DOUBLE;
 
   strcpy(params_tag[n_param], "PartMass");
-  params_addr[n_param] = &run_params.PartMass;
+  params_addr[n_param] = &(run_params->PartMass);
   required_tag[n_param] = 1;
   params_id[n_param++] = DOUBLE;
 
   strcpy(params_tag[n_param], "MergerTimeFactor");
-  params_addr[n_param] = &run_params.MergerTimeFactor;
+  params_addr[n_param] = &(run_params->MergerTimeFactor);
   required_tag[n_param] = 1;
   params_id[n_param++] = DOUBLE;
 
   // Physics params
 
   strcpy(params_tag[n_param], "funcprop");
-  params_addr[n_param] = &run_params.physics.funcprop;
+  params_addr[n_param] = &(run_params->physics).funcprop;
   required_tag[n_param] = 1;
   params_id[n_param++] = INT;
 
   strcpy(params_tag[n_param], "peak");
-  params_addr[n_param] = &run_params.physics.peak;
+  params_addr[n_param] = &(run_params->physics).peak;
   required_tag[n_param] = 1;
   params_id[n_param++] = DOUBLE;
 
   strcpy(params_tag[n_param], "peak_evo");
-  params_addr[n_param] = &run_params.physics.peak_evo;
+  params_addr[n_param] = &(run_params->physics).peak_evo;
   required_tag[n_param] = 1;
   params_id[n_param++] = DOUBLE;
 
   strcpy(params_tag[n_param], "sigma");
-  params_addr[n_param] = &run_params.physics.sigma;
+  params_addr[n_param] = &(run_params->physics).sigma;
   required_tag[n_param] = 1;
   params_id[n_param++] = DOUBLE;
   
   strcpy(params_tag[n_param], "sigma_evo");
-  params_addr[n_param] = &run_params.physics.sigma_evo;
+  params_addr[n_param] = &(run_params->physics).sigma_evo;
   required_tag[n_param] = 1;
   params_id[n_param++] = DOUBLE;
   
   strcpy(params_tag[n_param], "stellarfrac");
-  params_addr[n_param] = &run_params.physics.stellarfrac;
+  params_addr[n_param] = &(run_params->physics).stellarfrac;
   required_tag[n_param] = 1;
   params_id[n_param++] = DOUBLE;
   
   strcpy(params_tag[n_param], "stellarfrac_evo");
-  params_addr[n_param] = &run_params.physics.stellarfrac_evo;
+  params_addr[n_param] = &(run_params->physics).stellarfrac_evo;
   required_tag[n_param] = 1;
   params_id[n_param++] = DOUBLE;
   
   strcpy(params_tag[n_param], "bhgrowthfactor");
-  params_addr[n_param] = &run_params.physics.bhgrowthfactor;
+  params_addr[n_param] = &(run_params->physics).bhgrowthfactor;
   required_tag[n_param] = 1;
   params_id[n_param++] = DOUBLE;
   
