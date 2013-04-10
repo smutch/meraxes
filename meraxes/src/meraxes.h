@@ -38,52 +38,46 @@ do {                                                                            
 
 //! Physics parameter values
 struct physics_params{
+  int    funcprop;
   double peak;
   double sigma;
   double stellarfrac;
   double peak_evo;
   double sigma_evo;
   double stellarfrac_evo;
+  double bhgrowthfactor;
 };
 
 //! Run params
 struct run_params_struct{
-  char OutputDir[STRLEN];
-  char FileNameGalaxies[STRLEN];
-  char SimulationDir[STRLEN];
-  char PhotometricTabsDir[STRLEN];
-  char CoolFunctionsDir[STRLEN];
-  char SimulationFilePrefix[STRLEN];
-  char FileWithOutputSnaps[STRLEN];
-  char FileWithSnapList[STRLEN];
-  int FilesPerSnapshot;
-  int LastSnapShotNr;
-  int FirstFile;
-  int LastFile;
-  double BoxSize;
-  double VolumeFactor;
-  double ThreshMajorMerger;
-  double RecycleFraction;
-  double UnitVelocity_in_cm_per_s;
-  double UnitLength_in_cm;
-  double UnitMass_in_g;
-  double SimHubble_h;
-  double ObsHubble_h;
-  int DiskInstabilityOn;
-  double BaryonFrac;
-  double Omega;
-  double OmegaLambda;
-  double PartMass;
-  double MergerTimeFactor;
-  int funcprop;
-  double peak;
-  double peak_evo;
-  double sigma;
-  double sigma_evo;
-  double stellarfrac;
-  double stellarfrac_evo;
-  double bhgrowthfactor;
-  struct physics_params physics; 
+  char                  OutputDir[STRLEN];
+  char                  FileNameGalaxies[STRLEN];
+  char                  SimulationDir[STRLEN];
+  char                  PhotometricTabsDir[STRLEN];
+  char                  CoolFunctionsDir[STRLEN];
+  char                  SimulationFilePrefix[STRLEN];
+  char                  FileWithOutputSnaps[STRLEN];
+  char                  FileWithSnapList[STRLEN];
+  int                   FilesPerSnapshot;
+  int                   LastSnapShotNr;
+  int                   FirstFile;
+  int                   LastFile;
+  double                BoxSize;
+  double                VolumeFactor;
+  double                ThreshMajorMerger;
+  double                RecycleFraction;
+  double                UnitVelocity_in_cm_per_s;
+  double                UnitLength_in_cm;
+  double                UnitMass_in_g;
+  double                SimHubble_h;
+  double                ObsHubble_h;
+  int                   DiskInstabilityOn;
+  double                BaryonFrac;
+  double                Omega;
+  double                OmegaLambda;
+  double                PartMass;
+  double                MergerTimeFactor;
+  struct physics_params physics;
 };
 
 #ifdef _MAIN
