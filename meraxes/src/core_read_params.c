@@ -80,7 +80,7 @@ void read_parameter_file(run_globals_struct *run_globals, char *fname)
   char defaults_file[STRLEN];
   char *bp, tmp[50];
 
-  struct run_params_struct *run_params = &(run_globals->params);
+  run_params_struct *run_params = &(run_globals->params);
 
   // Initialise values and arrays
   n_param = 0;

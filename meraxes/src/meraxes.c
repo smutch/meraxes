@@ -10,7 +10,7 @@ void myexit(int signum)
 static void set_physics_params(run_globals_struct *run_globals, double *vals, int n_params)
 {
 
-  struct physics_params *phys_par = &(run_globals->physics);
+  physics_params_struct *phys_par = &(run_globals->physics);
 
   if ((n_params==3) || (n_params==6)){
     phys_par->peak            = vals[0];
@@ -74,8 +74,8 @@ int main(int argc, char **argv)
     read_parameter_file(&run_globals, argv[1]);
   
   // Check to see if the output directory exists and if not, create it
-  if (stat(run_params.OutputDir, &filestatus) != 0)
-    mkdir(run_params.OutputDir, 02755);
+  if (stat(run_globals.OutputDir, &filestatus) != 0)
+    mkdir(run_globals.OutputDir, 02755);
   
   // Deal with any command line parameter values
   if (argc==8){

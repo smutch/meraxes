@@ -40,7 +40,7 @@ do {                                                                            
  */
 
 //! Physics parameter values
-struct physics_params{
+struct physics_params_struct{
   int    funcprop;
   double peak;
   double sigma;
@@ -50,6 +50,7 @@ struct physics_params{
   double stellarfrac_evo;
   double bhgrowthfactor;
 };
+typedef struct physics_params_struct physics_params_struct;
 
 //! Run params
 struct run_params_struct{
@@ -81,8 +82,9 @@ struct run_params_struct{
   double                PartMass;
   double                MergerTimeFactor;
   int                   SnaplistLength;
-  struct physics_params physics;
+  physics_params_struct physics;
 };
+typedef struct run_params_struct run_params_struct;
 
 struct run_globals_struct{
   double                AA[MAXSNAPS];
@@ -90,6 +92,7 @@ struct run_globals_struct{
   double                Age[MAXSNAPS];
   run_params_struct params;
 };
+typedef struct run_globals_struct run_globals_struct;
 
 //! The header from the input tree files.
 struct trees_header_struct{
