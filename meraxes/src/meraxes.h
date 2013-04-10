@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <gbpLib.h>
+#include <gsl/gsl_rng.h>
 
 /*
  * Definitions
@@ -28,7 +30,6 @@ do {                                                                            
 #define GAS_CONST        8.31425e7
 #define C                2.9979e10
 #define PLANCK           6.6262e-27
-#define CM_PER_MPC       3.085678e24
 #define PROTONMASS       1.6726e-24
 #define HUBBLE           3.2407789e-18 //! [h/sec]
 #define SEC_PER_MEGAYEAR 3.155e13
@@ -54,6 +55,7 @@ typedef struct physics_params_struct physics_params_struct;
 
 //! Run params
 struct run_params_struct{
+  char                  filename[STRLEN];
   char                  OutputDir[STRLEN];
   char                  FileNameGalaxies[STRLEN];
   char                  SimulationDir[STRLEN];
@@ -86,7 +88,9 @@ struct run_params_struct{
 };
 typedef struct run_params_struct run_params_struct;
 
+//! Global variables which will will be passed around
 struct run_globals_struct{
+  gsl_rng               *random_generator;
   double                AA[MAXSNAPS];
   double                ZZ[MAXSNAPS];
   double                Age[MAXSNAPS];

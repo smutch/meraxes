@@ -1,16 +1,17 @@
 #define _MAIN
 #include "meraxes.h"
+#include <sys/stat.h>
 
 void myexit(int signum)
 {
-  printf("Task: %d\tnode: %s\tis exiting.\n\n\n", ThisTask, ThisNode);
+  printf("Task: %d\tnode: %s\tis exiting.\n\n\n", SID.My_rank, SID.My_node);
   exit(signum);
 }
 
 static void set_physics_params(run_globals_struct *run_globals, double *vals, int n_params)
 {
 
-  physics_params_struct *phys_par = &(run_globals->physics);
+  physics_params_struct *phys_par = &(run_globals->params.physics);
 
   if ((n_params==3) || (n_params==6)){
     phys_par->peak            = vals[0];
@@ -21,7 +22,7 @@ static void set_physics_params(run_globals_struct *run_globals, double *vals, in
       phys_par->sigma_evo       = vals[4];
       phys_par->stellarfrac_evo = vals[5];
     }
-    if (ThisTask==0){
+    if (SID.My_rank==0){
       printf("Changed physics_peak to %g\n"        , phys_par->peak);
       printf("Changed physics_sigma to %g\n"       , phys_par->sigma);
       printf("Changed physics_stellarfrac to %g\n" , phys_par->stellarfrac);
@@ -39,14 +40,16 @@ static void set_physics_params(run_globals_struct *run_globals, double *vals, in
 int main(int argc, char **argv)
 {
   
-  SID_init(argc, &argv,NULL);
+  struct stat filestatus;
+
+  SID_init(&argc, &argv,NULL);
   
   run_globals_struct run_globals;
   
   int opt_paramsval_list = 0;
   if( (argc!=8) && (argc!=4) && (argc!=2) ) 
   {
-    if(ThisTask==0){
+    if(SID.My_rank==0){
       printf("\n  usage: %s [ -p <paramvals.file> ] <parameterfile> [ <physics.peak> <physics.sigma> <physics.stellarfrac> <physics.peak_evo> <physics.sigma_evo> <physics.stellarfrac_evo> ]\n\n", argv[0]);
       ABORT(1);
     }
@@ -56,10 +59,10 @@ int main(int argc, char **argv)
       switch (argv[i][1]){
         case 'p':
           opt_paramsval_list = 1;
-          strcpy(paramvals_file, argv[i+1]);
+          strcpy(run_globals.params.filename, argv[i+1]);
           break;
         default:
-          if(ThisTask==0){
+          if(SID.My_rank==0){
             printf("Unrecognised command line argument...\n");
             SID_exit(ERROR_SYNTAX);
           }
@@ -74,8 +77,8 @@ int main(int argc, char **argv)
     read_parameter_file(&run_globals, argv[1]);
   
   // Check to see if the output directory exists and if not, create it
-  if (stat(run_globals.OutputDir, &filestatus) != 0)
-    mkdir(run_globals.OutputDir, 02755);
+  if (stat(run_globals.params.OutputDir, &filestatus) != 0)
+    mkdir(run_globals.params.OutputDir, 02755);
   
   // Deal with any command line parameter values
   if (argc==8){
@@ -88,5 +91,5 @@ int main(int argc, char **argv)
 
   init_meraxis(&run_globals);
 
-  SID_exit();
+  SID_exit(EXIT_SUCCESS);
 }

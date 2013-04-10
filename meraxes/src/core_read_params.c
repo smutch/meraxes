@@ -4,7 +4,8 @@
 #define INT    102
 #define DOUBLE 103
 
-static void parse_param_file(char *fname, char tag[MAXTAGS][50], int n_param, int used_tag[MAXTAGS], int *errorFlag)
+static void parse_param_file(char *fname, char tag[MAXTAGS][50], int n_param, int used_tag[MAXTAGS], int *errorFlag,
+                             int params_id[MAXTAGS], void *params_addr[MAXTAGS], char OutputDir[STRLEN])
 {
 
   /*
@@ -74,11 +75,14 @@ static void parse_param_file(char *fname, char tag[MAXTAGS][50], int n_param, in
 
 void read_parameter_file(run_globals_struct *run_globals, char *fname)
 {
-  int i;
+  int i, n_param;
   int user_used_tag[MAXTAGS], defaults_used_tag[MAXTAGS], required_tag[MAXTAGS];
   int errorFlag = 0;
   char defaults_file[STRLEN];
   char *bp, tmp[50];
+  int    params_id[MAXTAGS];
+  void   *params_addr[MAXTAGS];
+  char   params_tag[MAXTAGS][50];
 
   run_params_struct *run_params = &(run_globals->params);
 
@@ -90,7 +94,7 @@ void read_parameter_file(run_globals_struct *run_globals, char *fname)
     required_tag[i] = 0;
   }
 
-  if(ThisTask == 0)
+  if(SID.My_rank == 0)
     printf("\nreading parameter file:\n\n");
 
   strcpy(params_tag[n_param], "DefaultsFile");
@@ -278,17 +282,17 @@ void read_parameter_file(run_globals_struct *run_globals, char *fname)
   // N.B. This part of the code is wasteful and should be updated!!! 
 
   // Parse the user parameter file first to get the default parameters file.
-  parse_param_file(fname, params_tag, n_param, user_used_tag, &errorFlag);
+  parse_param_file(fname, params_tag, n_param, user_used_tag, &errorFlag, params_id, params_addr, run_params->OutputDir);
 
   // Reset the user defined tags flags
   for (i = 0; i < MAXTAGS; i++)
     user_used_tag[i] = 0;
 
   // Now parse the default parameter file
-  parse_param_file(defaults_file, params_tag, n_param, defaults_used_tag, &errorFlag);
+  parse_param_file(defaults_file, params_tag, n_param, defaults_used_tag, &errorFlag, params_id, params_addr, run_params->OutputDir);
   
   // Finally - parse the user file again to override any defaults.
-  parse_param_file(fname, params_tag, n_param, user_used_tag, &errorFlag);
+  parse_param_file(fname, params_tag, n_param, user_used_tag, &errorFlag, params_id, params_addr, run_params->OutputDir);
 
   for(i = 0; i < n_param; i++)
   {
@@ -303,7 +307,7 @@ void read_parameter_file(run_globals_struct *run_globals, char *fname)
     ABORT(EXIT_FAILURE);
 
 
-  if(ThisTask == 0)
+  if(SID.My_rank == 0)
   {
     for (i = 0; i < n_param; i++) {
       printf("%35s\t", params_tag[i]);
