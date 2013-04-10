@@ -70,8 +70,8 @@ int main(int argc, char **argv)
     read_parameter_file(argv[1]);
   
   // Check to see if the output directory exists and if not, create it
-  if (stat(run_params.output_dir, &filestatus) != 0)
-    mkdir(run_params.output_dir, 02755);
+  if (stat(run_params.OutputDir, &filestatus) != 0)
+    mkdir(run_params.OutputDir, 02755);
   
   // Deal with any command line parameter values
   if (argc==8){
