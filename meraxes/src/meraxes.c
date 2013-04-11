@@ -2,10 +2,15 @@
 #include "meraxes.h"
 #include <sys/stat.h>
 
+static void cleanup(run_globals_struct *run_globals)
+{
+  gsl_rng_free(run_globals->random_generator);
+}
+
 void myexit(int signum)
 {
   printf("Task: %d\tnode: %s\tis exiting.\n\n\n", SID.My_rank, SID.My_node);
-  exit(signum);
+  SID_exit(signum);
 }
 
 static void set_physics_params(run_globals_struct *run_globals, double *vals, int n_params)
@@ -90,6 +95,14 @@ int main(int argc, char **argv)
   }
 
   init_meraxis(&run_globals);
+
+  // TODO: Calculate the HDF5 file data types and sizes etc.
+  // calc_hdf5_props();
+
+  // Run the model!
+  dracarys(&run_globals);
+
+  cleanup(&run_globals);
 
   SID_exit(EXIT_SUCCESS);
 }

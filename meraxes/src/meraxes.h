@@ -54,6 +54,7 @@ struct physics_params_struct{
 typedef struct physics_params_struct physics_params_struct;
 
 //! Run params
+//! Everything in this structure is supplied by the user...
 struct run_params_struct{
   char                  filename[STRLEN];
   char                  OutputDir[STRLEN];
@@ -207,3 +208,4 @@ typedef struct galaxy_output_struct galaxy_output_struct;
 void myexit(int signum);
 void read_parameter_file(run_globals_struct *run_globals, char *fname);
 void init_meraxis(run_globals_struct *run_globals);
+void dracarys(run_globals_struct *run_globals);
