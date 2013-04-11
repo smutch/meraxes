@@ -4,8 +4,15 @@
 #define INT    102
 #define DOUBLE 103
 
-static void parse_param_file(char *fname, char tag[MAXTAGS][50], int n_param, int used_tag[MAXTAGS], int *errorFlag,
-                             int params_id[MAXTAGS], void *params_addr[MAXTAGS], char OutputDir[STRLEN])
+static void parse_param_file(
+  char *fname,               
+  char  tag[MAXTAGS][50],    
+  int   n_param,             
+  int   used_tag[MAXTAGS],   
+  int  *errorFlag,           
+  int   params_id[MAXTAGS],  
+  void *params_addr[MAXTAGS],
+  char  OutputDir[STRLEN])   
 {
 
   /*

@@ -13,7 +13,10 @@ void myexit(int signum)
   SID_exit(signum);
 }
 
-static void set_physics_params(run_globals_struct *run_globals, double *vals, int n_params)
+static void set_physics_params(
+  run_globals_struct *run_globals,
+  double             *vals,       
+  int                 n_params)   
 {
 
   physics_params_struct *phys_par = &(run_globals->params.physics);

@@ -109,8 +109,30 @@ struct trees_header_struct{
 };
 typedef struct trees_header_struct trees_header_struct;
 
+//! This is the structure for a halo in the catalog files
+struct catalog_halo_struct{
+  long long id_MBP;                    //!< ID of most bound particle in structure
+  double    M_vir;                     //!< Bryan & Norman (ApJ 495, 80, 1998) virial mass [M_sol/h]
+  int       n_particles;               //!< Number of particles in the structure
+  float     position_COM[3];           //!< Centre-of-mass position      [Mpc/h]
+  float     position_MBP[3];           //!< Most bound particle position [Mpc/h]
+  float     velocity_COM[3];           //!< Centre-of-mass velocity      [km/s]
+  float     velocity_MBP[3];           //!< Most bound particle velocity [km/s]
+  float     R_vir;                     //!< Virial radius [Mpc/h]
+  float     R_halo;                    //!< Distance of last halo particle from MBP [Mpc/h]
+  float     R_max;                     //!< Radius of maximum circular velocity     [Mpc/h]
+  float     V_max;                     //!< Maximum circular velocity               [km/s]
+  float     sigma_v;                   //!< Total 3D velocity dispersion            [km/s]
+  float     spin[3];                   //!< Specific angular momentum vector        [Mpc/h*km/s]
+  float     q_triaxial;                //!< Triaxial shape parameter q=b/a
+  float     s_triaxial;                //!< Triaxial shape parameter s=c/a
+  float     shape_eigen_vectors[3][3]; //!< Normalized triaxial shape eigenvectors
+  char      padding[8];                //!< Alignment padding
+};
+typedef struct catalog_halo_struct catalog_halo_struct;
 
-//! The halo structure
+
+//! The meraxis halo structure
 struct halo_struct{
   int    id;             //!< Halo ID
   int    type;           //!< Type (0 for central, 1 for satellite)
