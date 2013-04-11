@@ -10,3 +10,6 @@ testing/*.txt
 *.hdf5
 Session.vim
 Project.vim
+config.py
+*.sublime-project
+*.sublime.workspace
