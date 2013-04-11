@@ -124,10 +124,61 @@ static void inline read_catalog_halo(
   fread(&halo_in, sizeof(RawHalo), 1, *fin);
   cur_model_halo = &(halos[*halo_count]);
 
-  // TODO: Copy over the properties from halo_in to cur_model_halo
-  // ...
+  // Copy over the properties we want to keep
+  cur_model_halo->id          = *halo_count;
+  cur_model_halo->Mvir        = halo_in.M_vir;
+  cur_model_halo->len         = halo_in.n_particles;
+  cur_model_halo->position[0] = halo_in.position_MBP[0];
+  cur_model_halo->position[1] = halo_in.position_MBP[1];
+  cur_model_halo->position[2] = halo_in.position_MBP[2];
+  cur_model_halo->velocity[0] = halo_in.velocity_COM[0];
+  cur_model_halo->velocity[1] = halo_in.velocity_COM[1];
+  cur_model_halo->velocity[2] = halo_in.velocity_COM[2];
+  cur_model_halo->Rvir        = halo_in.R_vir;
+  cur_model_halo->Rhalo       = halo_in.R_halo;
+  cur_model_halo->Rmax        = halo_in.R_max;
+  cur_model_halo->Vmax        = halo_in.V_max;
+  cur_model_halo->sigma_v     = halo_in.VelDisp;
+  cur_model_halo->spin[0]     = halo_in.spin[0];
+  cur_model_halo->spin[1]     = halo_in.spin[1];
+  cur_model_halo->spin[2]     = halo_in.spin[2];
+
   
   // Update the halo counters
   (*halo_count)++;
   (*i_halo)++;
 }
+
+
+static void inline read_trees_header(FILE *fin, TreesHeader *header)
+{
+  fread(&(header->n_groups)        , sizeof(int), 1, fin);
+  fread(&(header->n_subgroups)     , sizeof(int), 1, fin);
+  fread(&(header->n_halos_max)     , sizeof(int), 1, fin);
+  fread(&(header->n_trees_subgroup), sizeof(int), 1, fin);
+  fread(&(header->n_trees_group)   , sizeof(int), 1, fin);
+}
+
+static void inline read_group(FILE *fin, Halo *halos, int i_halo)
+{
+  fread(&(halos[i_halo].id)         , sizeof(int), 1, fin);
+  fread(&(halos[i_halo].tree_flags) , sizeof(int), 1, fin);
+  fread(&(halos[i_halo].desc_id)    , sizeof(int), 1, fin);
+  fread(&(halos[i_halo].tree_id)    , sizeof(int), 1, fin);
+  fread(&(halos[i_halo].file_offset), sizeof(int), 1, fin);
+  fread(&(halos[i_halo].file_index) , sizeof(int), 1, fin);
+  fread(&(halos[i_halo].n_subgroups), sizeof(int), 1, fin);
+}
+
+static void inline read_subgroup(FILE *fin, Halo *halos, int i_halo)
+{
+  fread(&(halos[i_halo].id)         , sizeof(int), 1, fin);
+  fread(&(halos[i_halo].tree_flags) , sizeof(int), 1, fin);
+  fread(&(halos[i_halo].desc_id)    , sizeof(int), 1, fin);
+  fread(&(halos[i_halo].tree_id)    , sizeof(int), 1, fin);
+  fread(&(halos[i_halo].file_offset), sizeof(int), 1, fin);
+  fread(&(halos[i_halo].file_index) , sizeof(int), 1, fin);
+  halos[i_halo].n_subgroups = -1;
+}
+
+

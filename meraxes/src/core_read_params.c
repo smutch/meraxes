@@ -60,7 +60,7 @@ static void parse_param_file(
       }
       else
       {
-        SID_log_error("Error in file %s:   Tag '%s' not allowed or multiple defined.", fname, buf1);
+        SID_log_error("in file %s:   Tag '%s' not allowed or multiple defined.", fname, buf1);
         *errorFlag = 1;
       }
     }
