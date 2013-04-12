@@ -143,8 +143,7 @@ static void inline read_catalog_halo(
   cur_model_halo->spin[1]     = halo_in.spin[1];
   cur_model_halo->spin[2]     = halo_in.spin[2];
 
-  
-  // Update the halo counters
+  // Update the counters
   (*halo_count)++;
   (*i_halo)++;
 }
@@ -189,7 +188,6 @@ trees_header_struct read_halos(
   halo_struct        **halo)      
 {
 
-  char                sim[STRLEN];
   int                 N_halos;
   int                 N_halos_groups;
   int                 N_halos_subgroups;
@@ -202,13 +200,11 @@ trees_header_struct read_halos(
   int  n_every_snaps   = run_globals->params.NEverySnap;
   int  n_scan_snaps    = run_globals->params.NScanSnap;
 
-  strcpy(sim, run_globals->params.SimName);
-
   // TODO: Sanity checks should go here...
 
   char sim_variant[18];
   sprintf(sim_variant, "step_%03d_scan_%03d", n_every_snaps, n_scan_snaps);
-  SID_log("Reading snapshot %d (%s:%s) trees and halos...", SID_LOG_OPEN|SID_LOG_TIMER, snapshot, sim, sim_variant);
+  SID_log("Reading snapshot %d (%s:%s) trees and halos...", SID_LOG_OPEN|SID_LOG_TIMER, snapshot, run_globals->params.SimName, sim_variant);
 
   // Calculate the actual (unsampled) simulation snapshot.
   int corrected_snapshot;
@@ -224,7 +220,7 @@ trees_header_struct read_halos(
   FILE *fin_trees;
   int   catalog_groups_flayout    = -1;
   int   catalog_subgroups_flayout = -1;
-  halo_catalog_filename("data", sim, corrected_snapshot, "groups", 0, &catalog_groups_flayout, fname);
+  halo_catalog_filename(run_globals->params.SimulationDir, run_globals->params.SimName, corrected_snapshot, "groups", 0, &catalog_groups_flayout, fname);
   fin = fopen(fname, "rb");
   if (fin==NULL)
   {
@@ -235,7 +231,7 @@ trees_header_struct read_halos(
   SID_log("N_groups_files = %d", SID_LOG_COMMENT, N_groups_files);
   fclose(fin);
 
-  halo_catalog_filename("data", sim, corrected_snapshot, "subgroups", 0, &catalog_subgroups_flayout, fname);
+  halo_catalog_filename(run_globals->params.SimulationDir, run_globals->params.SimName, corrected_snapshot, "subgroups", 0, &catalog_subgroups_flayout, fname);
   fin = fopen(fname, "rb");
   if (fin==NULL)
   {
@@ -256,7 +252,8 @@ trees_header_struct read_halos(
 
   // TREES
   SID_log("Reading in trees...", SID_LOG_COMMENT);
-  sprintf(fname, "data/%s/trees/%s_%s/horizontal/trees/%s_%s.trees_horizontal_%d", sim, sim, sim_variant, sim, sim_variant, corrected_snapshot);
+  sprintf(fname, "%s/%s/trees/horizontal/trees/%s_%s.trees_horizontal_%d",
+      run_globals->params.SimulationDir, run_globals->params.SimName, run_globals->params.SimName, sim_variant, corrected_snapshot);
   fin_trees = fopen(fname, "rb");
   if (fin_trees==NULL)
   {
@@ -291,7 +288,7 @@ trees_header_struct read_halos(
   for (int i_group=0; i_group<header.n_groups; i_group++){
     read_group(fin_trees, group_halos, group_count);
     n_subgroups = group_halos[group_count].n_subgroups;
-    read_catalog_halo(&fin_group_halos, "data", sim, corrected_snapshot, "groups", &catalog_groups_flayout, 
+    read_catalog_halo(&fin_group_halos, "data", run_globals->params.SimName, corrected_snapshot, "groups", &catalog_groups_flayout, 
         &i_group_file, &N_halos_groups_file, &group_count_infile, group_halos, N_groups_files, &group_count);
     group_count=0; // Reset this after every group read as we are using a dummy 1 element array for group_halos
 
@@ -305,7 +302,7 @@ trees_header_struct read_halos(
       // removed.  We want to restore this to be just the FOF halo with no
       // alterations.
       read_subgroup(fin_trees, *halo, halo_count);
-      read_catalog_halo(&fin_subgroup_halos, "data", sim, corrected_snapshot, "subgroups", &catalog_subgroups_flayout, 
+      read_catalog_halo(&fin_subgroup_halos, "data", run_globals->params.SimName, corrected_snapshot, "subgroups", &catalog_subgroups_flayout, 
           &i_subgroup_file, &N_halos_subgroups_file, &subgroup_count_infile, *halo, N_subgroups_files, &halo_count);
       // Copy the relevant FOF group data over the top...
       memcpy(&((*halo)[halo_count-1].Mvir), &(group_halos[0].Mvir), sizeof(halo_struct)-offsetof(halo_struct, Mvir)); 
@@ -315,7 +312,7 @@ trees_header_struct read_halos(
       // Deal with any remaining subhalos
       for (int i_subgroup=1; i_subgroup<n_subgroups; i_subgroup++){
         read_subgroup(fin_trees, *halo, halo_count);
-        read_catalog_halo(&fin_subgroup_halos, "data", sim, corrected_snapshot, "subgroups", &catalog_subgroups_flayout, 
+        read_catalog_halo(&fin_subgroup_halos, "data", run_globals->params.SimName, corrected_snapshot, "subgroups", &catalog_subgroups_flayout, 
             &i_subgroup_file, &N_halos_subgroups_file, &subgroup_count_infile, *halo, N_subgroups_files, &halo_count);
         (*halo)[halo_count-1].type = 1;
       }
@@ -323,8 +320,6 @@ trees_header_struct read_halos(
   }
 
 
-  // SID_log_warning("Skipped %d phantom groups...", SID_LOG_COMMENT, phantom_group_count);
-  
   // Close the files
   fclose(fin_group_halos);
   fclose(fin_subgroup_halos);
