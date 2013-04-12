@@ -12,9 +12,10 @@ LastFile					0
 #----- Simulation input files  ------------
 #------------------------------------------
 
-SimulationDir				/home/gpoole/GiggleZ/GiggleZ_NR/trees/GiggleZ_NR_step_008_scan_016/vertical/subgroups
-SimulationFilePrefix        GiggleZ_NR_step_008_scan_016.subgroup_trees
-FileWithSnapList			/home/gpoole/GiggleZ/GiggleZ_NR/trees/GiggleZ_NR_step_008_scan_016/GiggleZ_NR_step_008_scan_016.a_list
+SimName                     GiggleZ_NR
+SimulationDir				/home/gpoole/GiggleZ
+NEverySnap                  8
+NScanSnap                   16
 LastSnapShotNr              116
 FilesPerSnapshot            1
 BoxSize                     125

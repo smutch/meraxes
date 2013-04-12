@@ -3,6 +3,7 @@
 #include <string.h>
 #include <gbpLib.h>
 #include <gsl/gsl_rng.h>
+#include <stdbool.h>
 
 /*
  * Definitions
@@ -59,12 +60,12 @@ struct run_params_struct{
   char                  filename[STRLEN];
   char                  OutputDir[STRLEN];
   char                  FileNameGalaxies[STRLEN];
+  char                  SimName[STRLEN];
   char                  SimulationDir[STRLEN];
-  char                  PhotometricTabsDir[STRLEN];
   char                  CoolFunctionsDir[STRLEN];
-  char                  SimulationFilePrefix[STRLEN];
   char                  FileWithOutputSnaps[STRLEN];
-  char                  FileWithSnapList[STRLEN];
+  int                   NEverySnap;
+  int                   NScanSnap;
   int                   FilesPerSnapshot;
   int                   LastSnapShotNr;
   int                   FirstFile;
@@ -232,3 +233,5 @@ void myexit(int signum);
 void read_parameter_file(run_globals_struct *run_globals, char *fname);
 void init_meraxis(run_globals_struct *run_globals);
 void dracarys(run_globals_struct *run_globals);
+trees_header_struct read_halos(run_globals_struct *run_globals, int snapshot, halo_struct **halos);
+void free_halos(halo_struct **halo);
