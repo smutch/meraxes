@@ -140,6 +140,7 @@ struct halo_struct{
   int    file_offset;    //!< Number of snapshots until the descendant of this halo reappears
   int    file_index;     //!< Index of descendant in next relevant snapshot
   int    tree_flags;     //!< Bitwise flag indicating the type of match in the trees
+  int    n_subgroups;    //!< Number of subgroups belonging to this type 0 (=-1 if type=1)
   int    len;            //!< Number of satellites belonging to this halo (-1 if halo is satellite itself)
   double Mvir;           //!< Bryan &Norman (ApJ 495, 80, 1998) virial mass [M_sol/h]
   int    n_particles;    //!< Number of particles in the structure
