@@ -288,7 +288,7 @@ trees_header_struct read_halos(
   for (int i_group=0; i_group<header.n_groups; i_group++){
     read_group(fin_trees, group_halos, group_count);
     n_subgroups = group_halos[group_count].n_subgroups;
-    read_catalog_halo(&fin_group_halos, "data", run_globals->params.SimName, corrected_snapshot, "groups", &catalog_groups_flayout, 
+    read_catalog_halo(&fin_group_halos, run_globals->params.SimulationDir, run_globals->params.SimName, corrected_snapshot, "groups", &catalog_groups_flayout, 
         &i_group_file, &N_halos_groups_file, &group_count_infile, group_halos, N_groups_files, &group_count);
     group_count=0; // Reset this after every group read as we are using a dummy 1 element array for group_halos
 
@@ -302,7 +302,7 @@ trees_header_struct read_halos(
       // removed.  We want to restore this to be just the FOF halo with no
       // alterations.
       read_subgroup(fin_trees, *halo, halo_count);
-      read_catalog_halo(&fin_subgroup_halos, "data", run_globals->params.SimName, corrected_snapshot, "subgroups", &catalog_subgroups_flayout, 
+      read_catalog_halo(&fin_subgroup_halos, run_globals->params.SimulationDir, run_globals->params.SimName, corrected_snapshot, "subgroups", &catalog_subgroups_flayout, 
           &i_subgroup_file, &N_halos_subgroups_file, &subgroup_count_infile, *halo, N_subgroups_files, &halo_count);
       // Copy the relevant FOF group data over the top...
       memcpy(&((*halo)[halo_count-1].Mvir), &(group_halos[0].Mvir), sizeof(halo_struct)-offsetof(halo_struct, Mvir)); 
@@ -312,7 +312,7 @@ trees_header_struct read_halos(
       // Deal with any remaining subhalos
       for (int i_subgroup=1; i_subgroup<n_subgroups; i_subgroup++){
         read_subgroup(fin_trees, *halo, halo_count);
-        read_catalog_halo(&fin_subgroup_halos, "data", run_globals->params.SimName, corrected_snapshot, "subgroups", &catalog_subgroups_flayout, 
+        read_catalog_halo(&fin_subgroup_halos, run_globals->params.SimulationDir, run_globals->params.SimName, corrected_snapshot, "subgroups", &catalog_subgroups_flayout, 
             &i_subgroup_file, &N_halos_subgroups_file, &subgroup_count_infile, *halo, N_subgroups_files, &halo_count);
         (*halo)[halo_count-1].type = 1;
       }

@@ -2,6 +2,7 @@
 #---------- Required parameters -----------
 #------------------------------------------
 
+FileNameGalaxies            test
 DefaultsFile                ../input/GiggleZ_NR_step_008_scan_016.par
 FileWithOutputSnaps			../input/desired_outputsnaps.txt
 OutputDir                   /nfs/cluster/darren/simon/results/fhmodel/temp_test
@@ -14,7 +15,14 @@ ObsHubble_h                 0.7
 #----- Simulation input files  ------------
 #------------------------------------------
 
-# Override defaults here...
+SimName                     test
+SimulationDir				../../testing/halos
+NEverySnap                  1
+NScanSnap                   1
+LastSnapShotNr              2
+FilesPerSnapshot            1
+BoxSize                     125
+VolumeFactor                1.0
 
 #------------------------------------------
 #----- Code options -----------------------

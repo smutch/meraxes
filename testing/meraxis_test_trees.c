@@ -130,7 +130,7 @@ int main(int argc, char const* argv[])
 {
 
   int snapshot;
-  char trees_fname_base[STRLEN] = "test_step001_scan001.trees_horizontal";
+  char trees_fname_base[STRLEN] = "halos/test/trees/horizontal/trees/test_step001_scan001.trees_horizontal";
   char fname[STRLEN];
   FILE *fout;
   FILE *fout_groups;
@@ -142,7 +142,7 @@ int main(int argc, char const* argv[])
   snapshot = 0;
 
   // Start with the trees
-  sprintf(fname, "%s.%d", trees_fname_base, snapshot);
+  sprintf(fname, "%s_%d", trees_fname_base, snapshot);
   fout = fopen(fname, "wb");
 
   write_trees_header(fout, 3, 3, 6, 3, 3);
@@ -155,9 +155,9 @@ int main(int argc, char const* argv[])
   fclose(fout);
 
   // now deal with the catalogs
-  sprintf(fname, "subfind_%03d.catalog_group_properties", snapshot);
+  sprintf(fname, "halos/test/catalogs/subfind_%03d.catalog_groups_properties", snapshot);
   fout_groups = fopen(fname, "wb");
-  sprintf(fname, "subfind_%03d.catalog_subgroup_properties", snapshot);
+  sprintf(fname, "halos/test/catalogs/subfind_%03d.catalog_subgroups_properties", snapshot);
   fout_subgroups = fopen(fname, "wb");
 
   write_catalog_entry(fout_groups   , 100 , 6e9, 600, 1, 80);
@@ -175,7 +175,7 @@ int main(int argc, char const* argv[])
   snapshot = 1;
 
   // Start with the trees
-  sprintf(fname, "%s.%d", trees_fname_base, snapshot);
+  sprintf(fname, "%s_%d", trees_fname_base, snapshot);
   fout = fopen(fname, "wb");
 
   write_trees_header(fout, 2, 3  , 6, 3, 3);
@@ -187,9 +187,9 @@ int main(int argc, char const* argv[])
   fclose(fout);
 
   // now deal with the catalogs
-  sprintf(fname, "subfind_%03d.catalog_group_properties", snapshot);
+  sprintf(fname, "halos/test/catalogs/subfind_%03d.catalog_groups_properties", snapshot);
   fout_groups = fopen(fname, "wb");
-  sprintf(fname, "subfind_%03d.catalog_subgroup_properties", snapshot);
+  sprintf(fname, "halos/test/catalogs/subfind_%03d.catalog_subgroups_properties", snapshot);
   fout_subgroups = fopen(fname, "wb");
 
   write_catalog_entry(fout_groups   , 100 , 6e9   , 600 , 1, 80);
@@ -206,7 +206,7 @@ int main(int argc, char const* argv[])
   snapshot = 2;
 
   // Start with the trees
-  sprintf(fname, "%s.%d", trees_fname_base, snapshot);
+  sprintf(fname, "%s_%d", trees_fname_base, snapshot);
   fout = fopen(fname, "wb");
 
   write_trees_header(fout, 2, 2, 6, 3, 3);
@@ -217,9 +217,9 @@ int main(int argc, char const* argv[])
   fclose(fout);
 
   // now deal with the catalogs
-  sprintf(fname, "subfind_%03d.catalog_group_properties", snapshot);
+  sprintf(fname, "halos/test/catalogs/subfind_%03d.catalog_groups_properties", snapshot);
   fout_groups = fopen(fname, "wb");
-  sprintf(fname, "subfind_%03d.catalog_subgroup_properties", snapshot);
+  sprintf(fname, "halos/test/catalogs/subfind_%03d.catalog_subgroups_properties", snapshot);
   fout_subgroups = fopen(fname, "wb");
 
   write_catalog_entry(fout_groups   , 100 , 6e9   , 600 , 1, 80);
