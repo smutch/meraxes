@@ -33,11 +33,11 @@ static void write_trees_header(
   int   n_trees_subgroup,
   int   n_trees_group)   
 {
-  fwrite(n_groups         , 1, sizeof(int), fout);
-  fwrite(n_subgroups      , 1, sizeof(int), fout);
-  fwrite(n_halos_max      , 1, sizeof(int), fout);
-  fwrite(n_trees_subgroups, 1, sizeof(int), fout);
-  fwrite(n_trees_group    , 1, sizeof(int), fout);
+  fwrite(&n_groups         , 1, sizeof(int), fout);
+  fwrite(&n_subgroups      , 1, sizeof(int), fout);
+  fwrite(&n_halos_max      , 1, sizeof(int), fout);
+  fwrite(&n_trees_subgroup , 1, sizeof(int), fout);
+  fwrite(&n_trees_group    , 1, sizeof(int), fout);
 }
 
 static void write_group(
@@ -49,13 +49,15 @@ static void write_group(
     int file_index,
     int n_subgroups)
 {
-  fwrite(id         , 1, sizeof(int), fout);
-  fwrite(tree_flags , 1, sizeof(int), fout);
-  fwrite(desc_id    , 1, sizeof(int), fout);
-  fwrite(1          , 1, sizeof(int), fout);
-  fwrite(file_offset, 1, sizeof(int), fout);
-  fwrite(file_index , 1, sizeof(int), fout);
-  fwrite(n_subgroups, 1, sizeof(int), fout);
+  int dummy = 0;
+
+  fwrite(&id         , 1, sizeof(int), fout);
+  fwrite(&tree_flags , 1, sizeof(int), fout);
+  fwrite(&desc_id    , 1, sizeof(int), fout);
+  fwrite(&dummy      , 1, sizeof(int), fout);
+  fwrite(&file_offset, 1, sizeof(int), fout);
+  fwrite(&file_index , 1, sizeof(int), fout);
+  fwrite(&n_subgroups, 1, sizeof(int), fout);
 }
 
 static void write_subgroup(
@@ -66,12 +68,14 @@ static void write_subgroup(
     int file_offset,
     int file_index)
 {
-  fwrite(id         , 1, sizeof(int), fout);
-  fwrite(tree_flags , 1, sizeof(int), fout);
-  fwrite(desc_id    , 1, sizeof(int), fout);
-  fwrite(1          , 1, sizeof(int), fout);
-  fwrite(file_offset, 1, sizeof(int), fout);
-  fwrite(file_index , 1, sizeof(int), fout);
+  int dummy = 0;
+
+  fwrite(&id         , 1, sizeof(int), fout);
+  fwrite(&tree_flags , 1, sizeof(int), fout);
+  fwrite(&desc_id    , 1, sizeof(int), fout);
+  fwrite(&dummy      , 1, sizeof(int), fout);
+  fwrite(&file_offset, 1, sizeof(int), fout);
+  fwrite(&file_index , 1, sizeof(int), fout);
 }
 
 static void write_catalog_entry(
@@ -101,7 +105,7 @@ static void write_catalog_entry(
   entry.velocity_MBP[2]           = 2;
   entry.R_vir                     = R_vir;
   entry.R_halo                    = R_vir;
-  entry.R_max                     = R_max;
+  entry.R_max                     = R_vir;
   entry.V_max                     = V_max;
   entry.sigma_v                   = 100.0;
   entry.spin[0]                   = 0;
@@ -119,14 +123,18 @@ static void write_catalog_entry(
   entry.shape_eigen_vectors[2][1] = 0;
   entry.shape_eigen_vectors[2][2] = 0;
 
-  fwrite(entry, 1, sizeof(catalog_halo_struct), fout);
+  fwrite(&entry, 1, sizeof(catalog_halo_struct), fout);
 }
 
 int main(int argc, char const* argv[])
 {
 
   int snapshot;
-  char trees_fname_base[STRLEN] = "test_step001_scan001.trees_horizontal"
+  char trees_fname_base[STRLEN] = "test_step001_scan001.trees_horizontal";
+  char fname[STRLEN];
+  FILE *fout;
+  FILE *fout_groups;
+  FILE *fout_subgroups;
 
   /*
    * Snapshot 0
@@ -134,9 +142,8 @@ int main(int argc, char const* argv[])
   snapshot = 0;
 
   // Start with the trees
-  char fname[STRLEN];
   sprintf(fname, "%s.%d", trees_fname_base, snapshot);
-  FILE *fout = fopen(fname, "wb");
+  fout = fopen(fname, "wb");
 
   write_trees_header(fout, 3, 3, 6, 3, 3);
   write_group(fout   , 0, 1, 0, 1, 0  , 1);
@@ -149,9 +156,9 @@ int main(int argc, char const* argv[])
 
   // now deal with the catalogs
   sprintf(fname, "subfind_%03d.catalog_group_properties", snapshot);
-  FILE *fout_groups = fopen(fname, "wb");
+  fout_groups = fopen(fname, "wb");
   sprintf(fname, "subfind_%03d.catalog_subgroup_properties", snapshot);
-  FILE *fout_subgroups = fopen(fname, "wb");
+  fout_subgroups = fopen(fname, "wb");
 
   write_catalog_entry(fout_groups   , 100 , 6e9, 600, 1, 80);
   write_catalog_entry(fout_subgroups, 100 , 5e9, 500, 1, 80);
@@ -168,9 +175,8 @@ int main(int argc, char const* argv[])
   snapshot = 1;
 
   // Start with the trees
-  char fname[STRLEN];
   sprintf(fname, "%s.%d", trees_fname_base, snapshot);
-  FILE *fout = fopen(fname, "wb");
+  fout = fopen(fname, "wb");
 
   write_trees_header(fout, 2, 3  , 6, 3, 3);
   write_group(fout       , 0, 1  , 0, 1, 0  , 1);
@@ -182,9 +188,9 @@ int main(int argc, char const* argv[])
 
   // now deal with the catalogs
   sprintf(fname, "subfind_%03d.catalog_group_properties", snapshot);
-  FILE *fout_groups = fopen(fname, "wb");
+  fout_groups = fopen(fname, "wb");
   sprintf(fname, "subfind_%03d.catalog_subgroup_properties", snapshot);
-  FILE *fout_subgroups = fopen(fname, "wb");
+  fout_subgroups = fopen(fname, "wb");
 
   write_catalog_entry(fout_groups   , 100 , 6e9   , 600 , 1, 80);
   write_catalog_entry(fout_subgroups, 100 , 5e9   , 500 , 1, 80);
@@ -200,9 +206,8 @@ int main(int argc, char const* argv[])
   snapshot = 2;
 
   // Start with the trees
-  char fname[STRLEN];
   sprintf(fname, "%s.%d", trees_fname_base, snapshot);
-  FILE *fout = fopen(fname, "wb");
+  fout = fopen(fname, "wb");
 
   write_trees_header(fout, 2, 2, 6, 3, 3);
   write_group(fout   , 0, 1, 0, 1, 0  , 1);
@@ -213,9 +218,9 @@ int main(int argc, char const* argv[])
 
   // now deal with the catalogs
   sprintf(fname, "subfind_%03d.catalog_group_properties", snapshot);
-  FILE *fout_groups = fopen(fname, "wb");
+  fout_groups = fopen(fname, "wb");
   sprintf(fname, "subfind_%03d.catalog_subgroup_properties", snapshot);
-  FILE *fout_subgroups = fopen(fname, "wb");
+  fout_subgroups = fopen(fname, "wb");
 
   write_catalog_entry(fout_groups   , 100 , 6e9   , 600 , 1, 80);
   write_catalog_entry(fout_subgroups, 100 , 5e9   , 500 , 1, 80);
