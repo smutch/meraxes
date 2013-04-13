@@ -40,6 +40,19 @@ static void write_trees_header(
   fwrite(&n_trees_group    , 1, sizeof(int), fout);
 }
 
+static void write_catalogs_header(
+    FILE *fout,
+    int i_file,
+    int N_files,
+    int N_halos_file,
+    int N_halos_total)
+{
+  fwrite(&i_file       , 1, sizeof(int), fout);
+  fwrite(&N_files      , 1, sizeof(int), fout);
+  fwrite(&N_halos_file , 1, sizeof(int), fout);
+  fwrite(&N_halos_total, 1, sizeof(int), fout);
+}
+
 static void write_group(
     FILE *fout,
     int id,
@@ -160,6 +173,8 @@ int main(int argc, char const* argv[])
   sprintf(fname, "halos/test/catalogs/subfind_%03d.catalog_subgroups_properties", snapshot);
   fout_subgroups = fopen(fname, "wb");
 
+  write_catalogs_header(fout_groups   , 0, 1, 3, 3);
+  write_catalogs_header(fout_subgroups, 0, 1, 3, 3);
   write_catalog_entry(fout_groups   , 100 , 6e9, 600, 1, 80);
   write_catalog_entry(fout_subgroups, 100 , 5e9, 500, 1, 80);
   write_catalog_entry(fout_groups   , 1300, 8e9, 800, 1, 90);
@@ -192,6 +207,8 @@ int main(int argc, char const* argv[])
   sprintf(fname, "halos/test/catalogs/subfind_%03d.catalog_subgroups_properties", snapshot);
   fout_subgroups = fopen(fname, "wb");
 
+  write_catalogs_header(fout_groups   , 0, 1, 2, 2);
+  write_catalogs_header(fout_subgroups, 0, 1, 3, 3);
   write_catalog_entry(fout_groups   , 100 , 6e9   , 600 , 1, 80);
   write_catalog_entry(fout_subgroups, 100 , 5e9   , 500 , 1, 80);
   write_catalog_entry(fout_groups   , 1300, 1.7e10, 1800, 1, 120);
@@ -222,6 +239,8 @@ int main(int argc, char const* argv[])
   sprintf(fname, "halos/test/catalogs/subfind_%03d.catalog_subgroups_properties", snapshot);
   fout_subgroups = fopen(fname, "wb");
 
+  write_catalogs_header(fout_groups   , 0, 1, 2, 2);
+  write_catalogs_header(fout_subgroups, 0, 1, 2, 2);
   write_catalog_entry(fout_groups   , 100 , 6e9   , 600 , 1, 80);
   write_catalog_entry(fout_subgroups, 100 , 5e9   , 500 , 1, 80);
   write_catalog_entry(fout_groups   , 1300, 1.7e10, 1800, 1, 120);

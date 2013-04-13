@@ -13,7 +13,7 @@ void dracarys(run_globals_struct *run_globals)
   snapshot = 0;
   trees_header = read_halos(run_globals, snapshot, &halo);
 
-  int i_halo = 10;
+  int i_halo = 0;
   printf("n_subgroups = %d\n"    , trees_header.n_subgroups);
   printf("halo[%d].id = %d\n"    , i_halo, halo[i_halo].id);
   printf("halo[%d].type = %d\n"  , i_halo, halo[i_halo].type);
