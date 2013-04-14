@@ -1,0 +1,69 @@
+#------------------------------------------
+#----- SA model output files --------------
+#------------------------------------------
+
+FileNameGalaxies			GiggleZ_NR_step_008_scan_016
+
+FirstFile					0
+LastFile					0
+
+
+#------------------------------------------
+#----- Simulation input files  ------------
+#------------------------------------------
+
+SimName                     GiggleZ_LR
+SimulationDir				/Users/smutch/data_temp/GiggleZ
+NEverySnap                  8
+NScanSnap                   16
+LastSnapShotNr              116
+FilesPerSnapshot            1
+BoxSize                     125
+VolumeFactor                1.0
+
+#------------------------------------------
+#----- Code options -----------------------
+#------------------------------------------
+
+DiskInstabilityOn			1		;0: switch off; 1: bulge growth through instabilities
+
+#------------------------------------------
+#----- Parameters of physical model -------
+#------------------------------------------
+
+funcprop            1       ;physics function property (Mvir=1, Vmax=2)
+
+peak                11.5    ;peak of star formation efficiency (units: log10(mvir/h))
+peak_evo            0.0     ;evolution variable
+sigma               0.75    ;width of star formation efficiency function (units: log10(mvir/h))
+sigma_evo           0.0     ;evolution variable
+stellarfrac         0.571   ;fraction of halo mass growth available to form stars
+stellarfrac_evo     0.0     ;evolution variable
+# peak                2.12    ;peak of star formation efficiency (units: log10(mvir/h))
+# peak_evo            0.0     ;evolution variable
+# sigma               0.23    ;width of star formation efficiency function (units: log10(mvir/h))
+# sigma_evo           0.0     ;evolution variable
+# stellarfrac         0.571   ;fraction of halo mass growth available to form stars
+# stellarfrac_evo     0.0     ;evolution variable
+
+bhgrowthfactor      0.6e-3  ;BH growth rate factor (dM_BH/dt = factor*dM_star/dt) 
+
+ThreshMajorMerger			0.3		;major merger when mass ratio greater than this
+MergerTimeFactor            1.0     ;Multiplicitive fator for the merger timescales (2.0->DeLucia+; 1.0->Croton+)
+RecycleFraction				0.3		;fraction of SF mass assumed to instantaneously go nova 
+
+
+#------------------------------------------
+#----- Cosmological parameters and more ----
+#------------------------------------------
+
+Omega                       0.273 
+OmegaLambda                 0.727
+BaryonFrac                  0.167
+SimHubble_h                    0.705
+PartMass                    0.7516436
+
+UnitLength_in_cm			3.08568e+24		;WATCH OUT: Mpc/h
+UnitMass_in_g				1.989e+43		;WATCH OUT: 10^10Msun
+UnitVelocity_in_cm_per_s	100000			;WATCH OUT: km/s
+
