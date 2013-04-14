@@ -72,24 +72,65 @@ static double time_to_present(run_globals_struct *run_globals, double z)
 
 static void set_units(run_globals_struct *run_globals)
 {
-  run_units_struct *units = &(run_globals->units);
+  run_units_struct *units       = &(run_globals->units);
 
-  units->UnitTime_in_s = units->UnitLength_in_cm / units->UnitVelocity_in_cm_per_s;
-  units->UnitTime_in_Megayears = units->UnitTime_in_s / SEC_PER_MEGAYEAR;
+  units->UnitTime_in_s          = units->UnitLength_in_cm / units->UnitVelocity_in_cm_per_s;
+  units->UnitTime_in_Megayears  = units->UnitTime_in_s / SEC_PER_MEGAYEAR;
 
-  run_globals->G = GRAVITY / pow(units->UnitLength_in_cm, 3) * units->UnitMass_in_g * pow(units->UnitTime_in_s, 2);
+  run_globals->G                = GRAVITY / pow(units->UnitLength_in_cm, 3) * units->UnitMass_in_g * pow(units->UnitTime_in_s, 2);
 
-  units->UnitDensity_in_cgs = units->UnitMass_in_g / pow(units->UnitLength_in_cm, 3);
-  units->UnitPressure_in_cgs = units->UnitMass_in_g / units->UnitLength_in_cm / pow(units->UnitTime_in_s, 2);
+  units->UnitDensity_in_cgs     = units->UnitMass_in_g / pow(units->UnitLength_in_cm, 3);
+  units->UnitPressure_in_cgs    = units->UnitMass_in_g / units->UnitLength_in_cm / pow(units->UnitTime_in_s, 2);
   units->UnitCoolingRate_in_cgs = units->UnitPressure_in_cgs / units->UnitTime_in_s;
 
-  units->UnitEnergy_in_cgs = units->UnitMass_in_g * pow(units->UnitLength_in_cm, 2) / pow(units->UnitTime_in_s, 2);
+  units->UnitEnergy_in_cgs      = units->UnitMass_in_g * pow(units->UnitLength_in_cm, 2) / pow(units->UnitTime_in_s, 2);
 
   // convert some physical input parameters to internal units 
-  run_globals->Hubble = HUBBLE * units->UnitTime_in_s;
+  run_globals->Hubble           = HUBBLE * units->UnitTime_in_s;
 
   // compute a few quantitites 
-  run_globals->RhoCrit = 3 * run_globals->Hubble * run_globals->Hubble / (8 * M_PI * run_globals->G);
+  run_globals->RhoCrit          = 3 * run_globals->Hubble * run_globals->Hubble / (8 * M_PI * run_globals->G);
+}
+
+static void read_output_snaps(run_globals_struct *run_globals)
+{
+  int i;
+
+  char fname[STRLEN];
+  int  *ListOutputSnaps = run_globals->ListOutputSnaps;
+  int  *LastOutputSnap  = &(run_globals->LastOutputSnap);
+  FILE *fd;
+
+  strcpy(fname, run_globals->params.FileWithOutputSnaps);
+
+  if(!(fd = fopen(fname, "r")))
+  {
+    SID_log_error("file `%s' not found.", fname);
+    exit(EXIT_FAILURE);
+  }
+
+  for(i = 0; i < NOUT; i++)
+  {
+    if(fscanf(fd, " %d ", &ListOutputSnaps[i]) != 1)
+    {
+      SID_log_error("I/O error in file '%s'\n", fname);
+      exit(EXIT_FAILURE);
+    }
+  }
+  fclose(fd);
+
+  // Loop through the read in snapshot numbers and convert any negative
+  // values to positive ones ala python indexing conventions...
+  // e.g. -1 -> MAXSNAPS-1 and so on...
+  // Also store the last requested output snapnum
+  *LastOutputSnap = 0;
+  for (i = 0; i < NOUT; i++) {
+    if(ListOutputSnaps[i]<0)
+      ListOutputSnaps[i] += MAXSNAPS;
+    if(ListOutputSnaps[i]>*LastOutputSnap)
+      *LastOutputSnap=ListOutputSnaps[i];
+  }
+
 }
 
 void init_meraxis(run_globals_struct *run_globals)
@@ -103,7 +144,7 @@ void init_meraxis(run_globals_struct *run_globals)
   set_units(run_globals);
   srand((unsigned) time(NULL));
 
-  // read_output_snaps();
+  read_output_snaps(run_globals);
   snaplist_len = read_snap_list(run_globals);
 
   for(i = 0; i < snaplist_len; i++)

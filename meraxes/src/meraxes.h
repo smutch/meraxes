@@ -106,13 +106,15 @@ typedef struct run_units_struct run_units_struct;
 
 //! Global variables which will will be passed around
 struct run_globals_struct{
-  gsl_rng           *random_generator;
+  int                LastOutputSnap;
+  int                ListOutputSnaps[NOUT];
   double             AA[MAXSNAPS];
   double             ZZ[MAXSNAPS];
   double             Age[MAXSNAPS];
   double             Hubble;
   double             RhoCrit;
   double             G;
+  gsl_rng           *random_generator;
   run_params_struct  params;
   run_units_struct   units;
 };
