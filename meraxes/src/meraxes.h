@@ -15,6 +15,10 @@
 // TODO: This should not be hard coded!
 #define MAXSNAPS 10  //!< Maximum number of snapshots
 
+#ifndef NOUT
+#define NOUT 1
+#endif
+
 #define ABORT(sigterm)                                                                 \
 do {                                                                                   \
   SID_log_error("in file: %s\tfunc: %s\tline: %i", __FILE__, __FUNCTION__, __LINE__); \
@@ -74,9 +78,6 @@ struct run_params_struct{
   double                VolumeFactor;
   double                ThreshMajorMerger;
   double                RecycleFraction;
-  double                UnitVelocity_in_cm_per_s;
-  double                UnitLength_in_cm;
-  double                UnitMass_in_g;
   double                SimHubble_h;
   double                ObsHubble_h;
   int                   DiskInstabilityOn;
@@ -90,13 +91,30 @@ struct run_params_struct{
 };
 typedef struct run_params_struct run_params_struct;
 
+struct run_units_struct{
+  double UnitTime_in_s;
+  double UnitLength_in_cm;
+  double UnitVelocity_in_cm_per_s;
+  double UnitTime_in_Megayears;
+  double UnitMass_in_g;
+  double UnitDensity_in_cgs;
+  double UnitPressure_in_cgs;
+  double UnitCoolingRate_in_cgs;
+  double UnitEnergy_in_cgs;
+};
+typedef struct run_units_struct run_units_struct;
+
 //! Global variables which will will be passed around
 struct run_globals_struct{
-  gsl_rng               *random_generator;
-  double                AA[MAXSNAPS];
-  double                ZZ[MAXSNAPS];
-  double                Age[MAXSNAPS];
-  run_params_struct params;
+  gsl_rng           *random_generator;
+  double             AA[MAXSNAPS];
+  double             ZZ[MAXSNAPS];
+  double             Age[MAXSNAPS];
+  double             Hubble;
+  double             RhoCrit;
+  double             G;
+  run_params_struct  params;
+  run_units_struct   units;
 };
 typedef struct run_globals_struct run_globals_struct;
 

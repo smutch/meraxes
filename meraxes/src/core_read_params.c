@@ -190,17 +190,17 @@ void read_parameter_file(run_globals_struct *run_globals, char *fname)
   params_id[n_param++] = DOUBLE;
 
   strcpy(params_tag[n_param], "UnitVelocity_in_cm_per_s");
-  params_addr[n_param] = &(run_params->UnitVelocity_in_cm_per_s);
+  params_addr[n_param] = &(run_globals->units.UnitVelocity_in_cm_per_s);
   required_tag[n_param] = 1;
   params_id[n_param++] = DOUBLE;
 
   strcpy(params_tag[n_param], "UnitLength_in_cm");
-  params_addr[n_param] = &(run_params->UnitLength_in_cm);
+  params_addr[n_param] = &(run_globals->units.UnitLength_in_cm);
   required_tag[n_param] = 1;
   params_id[n_param++] = DOUBLE;
 
   strcpy(params_tag[n_param], "UnitMass_in_g");
-  params_addr[n_param] = &(run_params->UnitMass_in_g);
+  params_addr[n_param] = &(run_globals->units.UnitMass_in_g);
   required_tag[n_param] = 1;
   params_id[n_param++] = DOUBLE;
 

@@ -248,5 +248,14 @@ int main(int argc, char const* argv[])
   fclose(fout_groups);
   fclose(fout_subgroups);
 
+
+  /*
+   * Dummy up an expansion factor list
+   */
+
+  fout = fopen("halos/test/trees/test.a_list", "w");
+  fprintf(fout, "0.200\n0.750\n0.999");
+  fclose(fout);
+
   return 0;
 }
