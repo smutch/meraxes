@@ -254,7 +254,7 @@ int main(int argc, char const* argv[])
    */
 
   fout = fopen("halos/test/trees/test.a_list", "w");
-  fprintf(fout, "0.200\n0.750\n0.999");
+  fprintf(fout, "0.200\n0.750\n0.999\n");
   fclose(fout);
 
   return 0;

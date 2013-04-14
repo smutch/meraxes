@@ -15,7 +15,7 @@ static int read_snap_list(run_globals_struct *run_globals)
       params.SimName,
       params.SimName);
   
-  if(!(fin - fopen(fname, "r")))
+  if(!(fin = fopen(fname, "r")))
   {
     SID_log_error("failed to read snaplist in file '%s'", fname);
     ABORT(EXIT_FAILURE);
@@ -33,8 +33,8 @@ static int read_snap_list(run_globals_struct *run_globals)
   fclose(fin);
 
   if(SID.My_rank == 0){
+    printf("NOUT = %d\n\n", NOUT);
     printf("found %d defined times in snaplist.\n", snaplist_len);
-    printf("NOUT = %d\n", NOUT);
   }
 
   return snaplist_len;

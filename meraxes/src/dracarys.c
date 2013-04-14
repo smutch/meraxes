@@ -20,6 +20,8 @@ void dracarys(run_globals_struct *run_globals)
   printf("halo[%d].Mvir = %.2e\n", i_halo, halo[i_halo].Mvir);
   printf("halo[%d].Rvir = %.2e\n", i_halo, halo[i_halo].Rvir);
 
+  printf("ListOutputSnaps[0] = %d\n", run_globals->ListOutputSnaps[0]);
+
   free_halos(&halo);
 
 }
