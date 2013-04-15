@@ -157,24 +157,21 @@ typedef struct catalog_halo_struct catalog_halo_struct;
 
 //! The meraxis halo structure
 struct halo_struct{
-  int    id;             //!< Halo ID
-  int    type;           //!< Type (0 for central, 1 for satellite)
-  int    desc_id;        //!< Descendant ID
-  int    file_offset;    //!< Number of snapshots until the descendant of this halo reappears
-  int    file_index;     //!< Index of descendant in next relevant snapshot
-  int    tree_flags;     //!< Bitwise flag indicating the type of match in the trees
-  int    n_subgroups;    //!< Number of subgroups belonging to this type 0 (=-1 if type=1)
-  int    len;            //!< Number of satellites belonging to this halo (-1 if halo is satellite itself)
+  int    ID;             //!< Halo ID
+  int    Type;           //!< Type (0 for central, 1 for satellite)
+  int    DescIndex;      //!< Index of descendant in next relevant snapshot
+  int    TreeFlags;      //!< Bitwise flag indicating the type of match in the trees
+  int    NSubgroups;     //!< Number of subgroups belonging to this type 0 (=-1 if type=1)
   double Mvir;           //!< Bryan &Norman (ApJ 495, 80, 1998) virial mass [M_sol/h]
-  int    n_particles;    //!< Number of particles in the structure
-  float  position[3];    //!< Most bound particle position [Mpc/h]
-  float  velocity[3];    //!< Centre-of-mass velocity [km/s]
+  int    Len;            //!< Number of particles in the structure
+  float  Pos[3];         //!< Most bound particle position [Mpc/h]
+  float  Vel[3];         //!< Centre-of-mass velocity [km/s]
   float  Rvir;           //!< Virial radius [Mpc/h]
   float  Rhalo;          //!< Distance of last halo particle from MBP [Mpc/h]
   float  Rmax;           //!< Radius of maximum circular velocity [Mpc/h]
   float  Vmax;           //!< Maximum circular velocity [km/s]
   float  VelDisp;        //!< Total 3D velocity dispersion [km/s]
-  float  spin[3];        //!< Specific angular momentum vector [Mpc/h *km/s]
+  float  Spin[3];        //!< Specific angular momentum vector [Mpc/h *km/s]
   int    NGalaxies;      //!< Total number of galaxies in this halo
 };
 typedef struct halo_struct halo_struct;
@@ -258,4 +255,5 @@ void dracarys(run_globals_struct *run_globals);
 trees_header_struct read_halos(run_globals_struct *run_globals, int snapshot, halo_struct **halos);
 void free_halos(halo_struct **halo);
 void init_galaxies(galaxy_struct *Gal, int n_halos_max);
+void copy_halo_to_galaxy(run_globals_struct *run_globals, halo_struct *halo, galaxy_struct *gal);
 

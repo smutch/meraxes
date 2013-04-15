@@ -8,14 +8,10 @@ void dracarys(run_globals_struct *run_globals)
   int                  snapshot;
   int                  i_gal;
   int                  i_newhalo;
+  int                  NGal         = 0;
   double               dt;
- 
-  run_params_struct  params = run_globals->params;
-  galaxy_struct     *Gal;
-
-  // Initialise galaxy pointers and counters
-  Gal = NULL;
-  run_globals->NGal = 0;
+  run_params_struct    params       = run_globals->params;
+  galaxy_struct       *Gal          = NULL;
 
   for (snapshot=0; snapshot<MAXSNAPS; snapshot++)
   {
@@ -26,11 +22,10 @@ void dracarys(run_globals_struct *run_globals)
       init_galaxies(Gal, trees_header.n_halos_max);
     else
     {
-      // TODO: Copy over progenitor galaxy properties 
-      for(i_gal=0; i_gal<run_globals->NGal; i_gal++)
+      for(i_gal=0; i_gal<NGal; i_gal++)
       {
         i_newhalo = Gal[i_gal].HaloDescIndex;
-        dt = (Age[snapshot-1]-Age[snapshot]);
+        dt = run_globals->Age[snapshot-1]-run_globals->Age[snapshot];
 
         if(i_newhalo==-1)
         {
@@ -40,16 +35,12 @@ void dracarys(run_globals_struct *run_globals)
           // TODO: Start the merger clock etc.
         } else
         {
-          Halo[i_newhalo].NGalaxies = Gal[i_gal].HaloNGal;
+          copy_halo_to_galaxy(run_globals, &(Halo[i_newhalo]), &(Gal[i_gal]));
+          
+          Halo[i_newhalo].NGalaxies  = Gal[i_gal].HaloNGal;
+          Gal[i_gal].CentralMvir     = Gal[Gal[i_gal].CentralGal].Mvir;
+          Gal[i_gal].MergTime       -= dt;
 
-          Gal[i_gal].Type = Halo[i_newhalo].Type;
-          Gal[i_gal].HaloDescIndex = Halo[i_newhalo].file_index;
-          Gal[i_gal].CentralMvir   = Gal[Gal[i_gal].CentralGal].Mvir;
-          Gal[i_gal].Mvir = Halo[i_newhalo].Mvir;
-          Gal[i_gal].Rvir          = Halo[i_newhalo].Rvir;
-          Gal[i_gal].Vvir          = Halo[i_newhalo].Vvir;
-          Gal[i_gal].Vmax          = Halo[i_newhalo].Vmax;
-          Gal[i_gal].MergTime      -= dt;
           if ((Halo[i_newhalo].Mvir-Gal[i_gal].Mvir) >0.0)
           {
             Gal[i_gal].dM            = Halo[i_newhalo].Mvir-Gal[i_gal].Mvir;
@@ -60,7 +51,19 @@ void dracarys(run_globals_struct *run_globals)
     }
 
     // Create new galaxies in type 0 halos
-    
+    for(int i_halo=0; i_halo<trees_header.n_subgroups; i_halo++)
+    {
+      if ( (Halo[i_halo].Type==0) && (Halo[i_halo].NGalaxies==0) )
+      {
+        copy_halo_to_galaxy(run_globals, &(Halo[i_halo]), &(Gal[NGal]));
+        Gal[NGal].CentralGal = NGal;
+        Gal[NGal].CentralMvir = Halo[i_halo].Mvir;
+
+        // Increment galaxy number counters
+        Halo[i_halo].NGalaxies++;
+        NGal++; 
+      }
+    }
     
     // TODO: Call physics
 
