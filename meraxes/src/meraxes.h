@@ -11,7 +11,7 @@
 
 #define STRLEN  256  //!< Default string length
 #define MAXTAGS 50   //!< Maximum number of allowed tags in input file
-#define ALLOCFACTOR 3  //!< Size of galaxy array is ALLOCFACTOR*n_halos_max
+#define ALLOCFACTOR 2  //!< Size of galaxy array is ALLOCFACTOR*n_halos_max
 
 // TODO: This should not be hard coded if at all possible...
 #define MAXSNAPS 3  //!< Maximum number of snapshots

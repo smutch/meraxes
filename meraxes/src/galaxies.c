@@ -42,8 +42,7 @@ void init_galaxies(galaxy_struct *Gal, int n_halos_max)
 
 static double calculate_Vvir(run_globals_struct *run_globals, halo_struct *halo)
 {
-  // TODO: Fix the units here!
-  return sqrt(run_globals->G * halo->Mvir / halo->Rvir);
+  return sqrt(run_globals->G * halo->Mvir/1.0e10 / halo->Rvir);
 }
 
 void copy_halo_to_galaxy(run_globals_struct *run_globals, halo_struct *halo, galaxy_struct *gal)
@@ -51,7 +50,7 @@ void copy_halo_to_galaxy(run_globals_struct *run_globals, halo_struct *halo, gal
   gal->Type            = halo->Type;
   gal->CentralGal      = halo->CentralIndex;
   gal->HaloDesc        = halo->DescIndex;
-  gal->Mvir            = halo->Mvir;
+  gal->Mvir            = halo->Mvir/1.0e10;
   gal->Rvir            = halo->Rvir;
   gal->Vvir            = calculate_Vvir(run_globals, halo);
   gal->Vmax            = halo->Vmax;

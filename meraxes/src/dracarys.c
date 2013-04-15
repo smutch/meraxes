@@ -6,7 +6,6 @@ void dracarys(run_globals_struct *run_globals)
   trees_header_struct  trees_header;
   halo_struct         *Halo;
   int                  snapshot;
-  int                  i_gal;
   int                  i_newhalo;
   int                  NGal         = 0;
   double               dt;
@@ -23,7 +22,7 @@ void dracarys(run_globals_struct *run_globals)
     else
     {
       // otherwise, loop through each existing galaxy and update the properties appropriately.
-      for(i_gal=0; i_gal<NGal; i_gal++)
+      for(int i_gal=0; i_gal<NGal; i_gal++)
       {
         i_newhalo = Gal[i_gal].HaloDesc;
         dt = run_globals->Age[snapshot-1]-run_globals->Age[snapshot];
