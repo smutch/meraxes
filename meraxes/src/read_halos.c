@@ -221,6 +221,7 @@ trees_header_struct read_halos(
   FILE *fin_trees;
   int   catalog_groups_flayout    = -1;
   int   catalog_subgroups_flayout = -1;
+  int   central_index;  //!< Index of the central halo associated with this one
   halo_catalog_filename(run_globals->params.SimulationDir, run_globals->params.SimName, corrected_snapshot, "groups", 0, &catalog_groups_flayout, fname);
   fin = fopen(fname, "rb");
   if (fin==NULL)
@@ -309,6 +310,8 @@ trees_header_struct read_halos(
       memcpy(&((*halo)[halo_count-1].Mvir), &(group_halos[0].Mvir), sizeof(halo_struct)-offsetof(halo_struct, Mvir)); 
       (*halo)[halo_count-1].NSubgroups = group_halos[0].NSubgroups-1;
       (*halo)[halo_count-1].Type = 0;
+      central_index = halo_count-1;
+      (*halo)[halo_count-1].CentralIndex = central_index;
 
       // Deal with any remaining subhalos
       for (int i_subgroup=1; i_subgroup<n_subgroups; i_subgroup++){
@@ -316,6 +319,7 @@ trees_header_struct read_halos(
         read_catalog_halo(&fin_subgroup_halos, run_globals->params.SimulationDir, run_globals->params.SimName, corrected_snapshot, "subgroups", &catalog_subgroups_flayout, 
             &i_subgroup_file, &N_halos_subgroups_file, &subgroup_count_infile, *halo, N_subgroups_files, &halo_count);
         (*halo)[halo_count-1].Type = 1;
+        (*halo)[halo_count-1].CentralIndex = central_index;
       }
     }
   }

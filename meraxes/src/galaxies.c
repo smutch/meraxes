@@ -13,7 +13,8 @@ void init_galaxies(galaxy_struct *Gal, int n_halos_max)
   for(int i_gal=0; i_gal<n_total_galaxies; i_gal++)
   {
     Gal[i_gal].Type          = 0;
-    Gal[i_gal].HaloDescIndex = -1;
+    Gal[i_gal].CentralGal    = -1;
+    Gal[i_gal].HaloDesc      = -1;
     Gal[i_gal].HaloNGal      = 0;
     Gal[i_gal].CentralGal    = -1;
     Gal[i_gal].CentralMvir   = 0.0;
@@ -48,7 +49,8 @@ static double calculate_Vvir(run_globals_struct *run_globals, halo_struct *halo)
 void copy_halo_to_galaxy(run_globals_struct *run_globals, halo_struct *halo, galaxy_struct *gal)
 {
   gal->Type            = halo->Type;
-  gal->HaloDescIndex   = halo->DescIndex;
+  gal->CentralGal      = halo->CentralIndex;
+  gal->HaloDesc        = halo->DescIndex;
   gal->Mvir            = halo->Mvir;
   gal->Rvir            = halo->Rvir;
   gal->Vvir            = calculate_Vvir(run_globals, halo);

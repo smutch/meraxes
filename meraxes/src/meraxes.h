@@ -160,6 +160,7 @@ struct halo_struct{
   int    ID;             //!< Halo ID
   int    Type;           //!< Type (0 for central, 1 for satellite)
   int    DescIndex;      //!< Index of descendant in next relevant snapshot
+  int    CentralIndex;   //!< Index of this halo's central (itself if type=0)
   int    TreeFlags;      //!< Bitwise flag indicating the type of match in the trees
   int    NSubgroups;     //!< Number of subgroups belonging to this type 0 (=-1 if type=1)
   double Mvir;           //!< Bryan &Norman (ApJ 495, 80, 1998) virial mass [M_sol/h]
@@ -180,7 +181,7 @@ typedef struct halo_struct halo_struct;
 struct galaxy_struct
 {
   int    Type;
-  int    HaloDescIndex;
+  int    HaloDesc;
   int    HaloNGal;
   int    CentralGal;
   double CentralMvir;

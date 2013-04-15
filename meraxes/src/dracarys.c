@@ -17,26 +17,27 @@ void dracarys(run_globals_struct *run_globals)
   {
     trees_header = read_halos(run_globals, snapshot, &Halo);
 
-    // If this is the first read then use the n_halos_max parameter of the trees_header to malloc the galaxy array
+    // If this is the first read then use the n_halos_max parameter of the trees_header to malloc the galaxy array...
     if (Gal==NULL)
       init_galaxies(Gal, trees_header.n_halos_max);
     else
     {
+      // otherwise, loop through each existing galaxy and update the properties appropriately.
       for(i_gal=0; i_gal<NGal; i_gal++)
       {
-        i_newhalo = Gal[i_gal].HaloDescIndex;
+        i_newhalo = Gal[i_gal].HaloDesc;
         dt = run_globals->Age[snapshot-1]-run_globals->Age[snapshot];
 
         if(i_newhalo==-1)
         {
-          // Here we have a halo where we have lost tracking so we make the corresponding galaxy a type 2...
+          // Here we have a halo where we have lost tracking so we make the corresponding galaxy a type 2
           Gal[i_gal].Type = 2;
 
           // TODO: Start the merger clock etc.
         } else
         {
           copy_halo_to_galaxy(run_globals, &(Halo[i_newhalo]), &(Gal[i_gal]));
-          
+
           Halo[i_newhalo].NGalaxies  = Gal[i_gal].HaloNGal;
           Gal[i_gal].CentralMvir     = Gal[Gal[i_gal].CentralGal].Mvir;
           Gal[i_gal].MergTime       -= dt;
@@ -50,13 +51,13 @@ void dracarys(run_globals_struct *run_globals)
       }
     }
 
-    // Create new galaxies in type 0 halos
+    // Create new galaxies in empty type 0 halos
     for(int i_halo=0; i_halo<trees_header.n_subgroups; i_halo++)
     {
       if ( (Halo[i_halo].Type==0) && (Halo[i_halo].NGalaxies==0) )
       {
         copy_halo_to_galaxy(run_globals, &(Halo[i_halo]), &(Gal[NGal]));
-        Gal[NGal].CentralGal = NGal;
+        Gal[NGal].CentralGal  = NGal;
         Gal[NGal].CentralMvir = Halo[i_halo].Mvir;
 
         // Increment galaxy number counters
