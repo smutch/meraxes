@@ -11,6 +11,7 @@
 
 #define STRLEN  256  //!< Default string length
 #define MAXTAGS 50   //!< Maximum number of allowed tags in input file
+#define ALLOCFACTOR 3  //!< Size of galaxy array is ALLOCFACTOR*n_halos_max
 
 // TODO: This should not be hard coded if at all possible...
 #define MAXSNAPS 3  //!< Maximum number of snapshots
@@ -108,6 +109,7 @@ typedef struct run_units_struct run_units_struct;
 struct run_globals_struct{
   int                LastOutputSnap;
   int                ListOutputSnaps[NOUT];
+  int                Ngal;
   double             AA[MAXSNAPS];
   double             ZZ[MAXSNAPS];
   double             Age[MAXSNAPS];
@@ -179,32 +181,30 @@ typedef struct halo_struct halo_struct;
 
 struct galaxy_struct
 {
-  int   Type;
-  int   CentralGal;
-  float CentralMvir;
+  int    Type;
+  int    CentralGal;
+  double CentralMvir;
 
   // properties of subhalo at the last time this galaxy was a central galaxy
-  float Pos[3];
-  float Vel[3];
-  int   Len;
-  float Mvir;
-  float dM;
-  float dMdt;
-  float Rvir;
-  float Vvir;
-  float Vmax;
+  double Pos[3];
+  double Vel[3];
+  int    Len;
+  double Mvir;
+  double dM;
+  double dMdt;
+  double Rvir;
+  double Vvir;
+  double Vmax;
 
   // baryonic reservoirs
-  float StellarMass;
-  float BulgeMass;
-  float BlackHoleMass;
+  double StellarMass;
+  double BlackHoleMass;
 
   // misc
-  float Sfr[NOUT];
-  float SfrBulge[NOUT];
-  float DiskRadius;
-  float Cos_Inc;
-  float MergTime;
+  double Sfr[NOUT];
+  double DiskRadius;
+  double Cos_Inc;
+  double MergTime;
 };
 typedef struct galaxy_struct galaxy_struct;
 
@@ -255,3 +255,5 @@ void init_meraxis(run_globals_struct *run_globals);
 void dracarys(run_globals_struct *run_globals);
 trees_header_struct read_halos(run_globals_struct *run_globals, int snapshot, halo_struct **halos);
 void free_halos(halo_struct **halo);
+void init_galaxies(galaxy_struct *Gal, int n_halos_max);
+

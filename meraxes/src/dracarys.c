@@ -7,21 +7,34 @@ void dracarys(run_globals_struct *run_globals)
   halo_struct         *halo;
   int                  snapshot;
  
-  run_params_struct params = run_globals->params;
+  run_params_struct  params = run_globals->params;
+  galaxy_struct     *Gal;
 
-  // Simple debug test - read in the first snapshot
-  snapshot = 0;
-  trees_header = read_halos(run_globals, snapshot, &halo);
+  // Initialise galaxy pointers and counters
+  Gal = NULL;
+  run_globals->Ngal = 0;
 
-  int i_halo = 0;
-  printf("n_subgroups = %d\n"    , trees_header.n_subgroups);
-  printf("halo[%d].id = %d\n"    , i_halo, halo[i_halo].id);
-  printf("halo[%d].type = %d\n"  , i_halo, halo[i_halo].type);
-  printf("halo[%d].Mvir = %.2e\n", i_halo, halo[i_halo].Mvir);
-  printf("halo[%d].Rvir = %.2e\n", i_halo, halo[i_halo].Rvir);
+  for (snapshot=0; snapshot<MAXSNAPS; snapshot++)
+  {
+    trees_header = read_halos(run_globals, snapshot, &halo);
 
-  printf("ListOutputSnaps[0] = %d\n", run_globals->ListOutputSnaps[0]);
+    // If this is the first read then use the n_halos_max parameter of the trees_header to malloc the galaxy array
+    if (Gal==NULL)
+      init_galaxies(Gal, trees_header.n_halos_max);
+    else
+    {
+      // TODO: Copy over current halo properties to all galaxies
+    }
 
-  free_halos(&halo);
+    // TODO: Create new galaxies in type 0 halos
+    
+    // TODO: Call physics
+
+    // TODO: Save galaxies if this is an output snapshot
+    
+    free_halos(&halo);
+  }
+
+  SID_free(SID_FARG Gal);
 
 }
