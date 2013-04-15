@@ -12,6 +12,9 @@ void init_galaxies(galaxy_struct *Gal, int n_halos_max)
   for(int i_gal=0; i_gal<n_total_galaxies; i_gal++)
   {
     Gal[i_gal].Type          = 0;
+    Gal[i_gal].HaloIndex     = -1;
+    Gal[i_gal].HaloDescIndex = -1;
+    Gal[i_gal].HaloNGal      = 0;
     Gal[i_gal].CentralGal    = -1;
     Gal[i_gal].CentralMvir   = 0.0;
     Gal[i_gal].Len           = 0;

@@ -175,6 +175,7 @@ struct halo_struct{
   float  Vmax;           //!< Maximum circular velocity [km/s]
   float  VelDisp;        //!< Total 3D velocity dispersion [km/s]
   float  spin[3];        //!< Specific angular momentum vector [Mpc/h *km/s]
+  int    NGalaxies;      //!< Total number of galaxies in this halo
 };
 typedef struct halo_struct halo_struct;
 
@@ -182,13 +183,14 @@ typedef struct halo_struct halo_struct;
 struct galaxy_struct
 {
   int    Type;
+  int    HaloDescIndex;
+  int    HaloNGal;
   int    CentralGal;
   double CentralMvir;
 
   // properties of subhalo at the last time this galaxy was a central galaxy
   double Pos[3];
   double Vel[3];
-  int    Len;
   double Mvir;
   double dM;
   double dMdt;
