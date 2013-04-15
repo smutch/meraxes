@@ -254,7 +254,7 @@ typedef struct galaxy_output_struct galaxy_output_struct;
 
 void myexit(int signum);
 void read_parameter_file(run_globals_struct *run_globals, char *fname);
-void init_meraxis(run_globals_struct *run_globals);
+void init_meraxes(run_globals_struct *run_globals);
 void dracarys(run_globals_struct *run_globals);
 trees_header_struct read_halos(run_globals_struct *run_globals, int snapshot, halo_struct **halos);
 void free_halos(halo_struct **halo);

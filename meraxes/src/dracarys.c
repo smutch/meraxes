@@ -57,6 +57,9 @@ static void evolve_galaxies(run_globals_struct *run_globals, galaxy_struct *Gal,
     Gal[i_gal].StellarMass += (1.0-RecycleFraction)*sfr*dt;
   }
 
+  // TODO: Merger physics
+
+  // TODO: Updating of any final galaxy properties / indices
 }
 
 //! Actually run the model

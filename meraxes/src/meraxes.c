@@ -52,6 +52,12 @@ int main(int argc, char **argv)
 
   SID_init(&argc, &argv,NULL);
   
+  if(SID.n_proc!=1)
+  {
+    SID_log_error("Current version of code must be run with ONE CORE (sorry!).");
+    ABORT(EXIT_FAILURE);
+  }
+  
   run_globals_struct run_globals;
   
   int opt_paramsval_list = 0;
@@ -97,7 +103,7 @@ int main(int argc, char **argv)
     SID_free(SID_FARG physics_param_vals);
   }
 
-  init_meraxis(&run_globals);
+  init_meraxes(&run_globals);
 
   // TODO: Calculate the HDF5 file data types and sizes etc.
   // calc_hdf5_props();

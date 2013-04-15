@@ -27,6 +27,10 @@ logic:
 ☐ Do physics
 ✔ Fix units in calculate_Vvir @high @done (2013-04-15 16:55)
 
+output:
+☐ Use HDF5 output
+☐ Single file just now as we are just running in serial
+
 document the code:
 ☐ Use Doxygen style comments where appropriate
 

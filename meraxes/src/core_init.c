@@ -133,7 +133,7 @@ static void read_output_snaps(run_globals_struct *run_globals)
 
 }
 
-void init_meraxis(run_globals_struct *run_globals)
+void init_meraxes(run_globals_struct *run_globals)
 {
   int i;
   int snaplist_len;
