@@ -20,6 +20,9 @@
 #define NOUT 1
 #endif
 
+#define MVIR_PROP 1
+#define VMAX_PROP 2
+
 #define ABORT(sigterm)                                                                 \
 do {                                                                                   \
   SID_log_error("in file: %s\tfunc: %s\tline: %i", __FILE__, __FUNCTION__, __LINE__); \
