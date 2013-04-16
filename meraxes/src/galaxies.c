@@ -17,6 +17,7 @@ void init_galaxies(galaxy_struct *Gal, int n_halos_max)
     Gal[i_gal].HaloDesc      = -1;
     Gal[i_gal].HaloNGal      = 0;
     Gal[i_gal].CentralGal    = -1;
+    Gal[i_gal].Len           = 0;
     Gal[i_gal].CentralMvir   = 0.0;
     Gal[i_gal].Mvir          = 0.0;
     Gal[i_gal].dM            = 0.0;
@@ -49,6 +50,7 @@ void copy_halo_to_galaxy(run_globals_struct *run_globals, halo_struct *halo, gal
 {
   gal->Type            = halo->Type;
   gal->CentralGal      = halo->CentralIndex;
+  gal->Len             = halo->Len;
   gal->HaloDesc        = halo->DescIndex;
   gal->Mvir            = halo->Mvir/1.0e10;
   gal->Rvir            = halo->Rvir;

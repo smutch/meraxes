@@ -187,6 +187,7 @@ struct galaxy_struct
   int    HaloDesc;
   int    HaloNGal;
   int    CentralGal;
+  int    Len;
   double CentralMvir;
 
   // properties of subhalo at the last time this galaxy was a central galaxy
@@ -260,4 +261,5 @@ trees_header_struct read_halos(run_globals_struct *run_globals, int snapshot, ha
 void free_halos(halo_struct **halo);
 void init_galaxies(galaxy_struct *Gal, int n_halos_max);
 void copy_halo_to_galaxy(run_globals_struct *run_globals, halo_struct *halo, galaxy_struct *gal);
+double calculate_merging_time(run_globals_struct *run_globals, galaxy_struct *Gal, int i_sat, int snapshot);
 

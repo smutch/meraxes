@@ -62,6 +62,7 @@ static void evolve_galaxies(run_globals_struct *run_globals, galaxy_struct *Gal,
   // TODO: Updating of any final galaxy properties / indices
 }
 
+
 //! Actually run the model
 void dracarys(run_globals_struct *run_globals)
 {
@@ -93,7 +94,9 @@ void dracarys(run_globals_struct *run_globals)
           // Here we have a halo where we have lost tracking so we make the corresponding galaxy a type 2
           Gal[i_gal].Type = 2;
 
-          // TODO: Start the merger clock etc.
+          // Gal[i_gal].MergTime = 0.1; // DEBUG
+          Gal[i_gal].MergTime = calculate_merging_time(run_globals, Gal, i_gal, snapshot);
+
         } else
         {
           copy_halo_to_galaxy(run_globals, &(Halo[i_newhalo]), &(Gal[i_gal]));
