@@ -1,7 +1,7 @@
 #include "meraxes.h"
 #include <math.h>
 
-void init_galaxies(galaxy_struct *Gal, int n_halos_max)
+int init_galaxies(galaxy_struct *Gal, int n_halos_max)
 {
 
   int n_total_galaxies = n_halos_max*ALLOCFACTOR;
@@ -12,8 +12,9 @@ void init_galaxies(galaxy_struct *Gal, int n_halos_max)
   // Initialise the properties
   for(int i_gal=0; i_gal<n_total_galaxies; i_gal++)
   {
-    Gal[i_gal].Type          = 0;
-    Gal[i_gal].CentralGal    = -1;
+    Gal[i_gal].Type          = -1;
+    Gal[i_gal].CentralGal    = NULL;
+    Gal[i_gal].NextGal       = NULL;
     Gal[i_gal].HaloDesc      = -1;
     Gal[i_gal].HaloNGal      = 0;
     Gal[i_gal].CentralGal    = -1;
@@ -38,6 +39,8 @@ void init_galaxies(galaxy_struct *Gal, int n_halos_max)
     for(int ii=0; ii<NOUT; ii++)
       Gal[i_gal].Sfr[ii] = -99999.9;
   }
+
+  return n_total_galaxies;
   
 }
 
@@ -49,7 +52,6 @@ static double calculate_Vvir(run_globals_struct *run_globals, halo_struct *halo)
 void copy_halo_to_galaxy(run_globals_struct *run_globals, halo_struct *halo, galaxy_struct *gal)
 {
   gal->Type            = halo->Type;
-  gal->CentralGal      = halo->CentralIndex;  // <--- THIS IS TOO SIMPLISTIC AND WONT WORK!!!
   gal->Len             = halo->Len;
   gal->HaloDesc        = halo->DescIndex;
   gal->Mvir            = halo->Mvir/1.0e10;

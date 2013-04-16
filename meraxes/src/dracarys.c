@@ -113,6 +113,7 @@ void dracarys(run_globals_struct *run_globals)
   double               dt;
   run_params_struct    params       = run_globals->params;
   galaxy_struct       *Gal          = NULL;
+  int                  n_storage_gal;
 
   for(int snapshot=0; snapshot<MAXSNAPS; snapshot++)
   {
@@ -120,8 +121,10 @@ void dracarys(run_globals_struct *run_globals)
 
     // If this is the first read then use the n_halos_max parameter of the trees_header to malloc the galaxy array...
     if (Gal==NULL)
-      init_galaxies(Gal, trees_header.n_halos_max);
-    else
+    {
+      n_storage_gal = init_galaxies(Gal, trees_header.n_halos_max);
+      run_globals->LastGal = &(Gal[0]);
+    } else
     {
       // otherwise, loop through each existing galaxy and update the properties appropriately.
       for(int i_gal=0; i_gal<NGal; i_gal++)
@@ -133,6 +136,7 @@ void dracarys(run_globals_struct *run_globals)
         {
           // Here we have a halo where we have lost tracking so we make the corresponding galaxy a type 2
           Gal[i_gal].Type = 2;
+          Gal[Gal[i_gal].CentralGal].HaloNGal++;
 
           // Gal[i_gal].MergTime = 0.1; // DEBUG
           Gal[i_gal].MergTime  = calculate_merging_time(run_globals, Gal, i_gal, snapshot);
@@ -143,8 +147,8 @@ void dracarys(run_globals_struct *run_globals)
           copy_halo_to_galaxy(run_globals, &(Halo[i_newhalo]), &(Gal[i_gal]));
 
           Halo[i_newhalo].NGalaxies  = Gal[i_gal].HaloNGal;
+          Halo[i_newhalo].HaloGal    = &(Gal[i_gal]);
           Gal[i_gal].CentralMvir     = Gal[Gal[i_gal].CentralGal].Mvir;
-          Gal[i_gal].MergTime       -= dt;
 
           if ((Halo[i_newhalo].Mvir-Gal[i_gal].Mvir) >0.0)
           {
@@ -156,17 +160,36 @@ void dracarys(run_globals_struct *run_globals)
     }
 
     // Create new galaxies in empty type 0 halos
+    galaxy_struct *new_gal;
     for(int i_halo=0; i_halo<trees_header.n_subgroups; i_halo++)
     {
       if ( (Halo[i_halo].Type==0) && (Halo[i_halo].NGalaxies==0) )
       {
-        copy_halo_to_galaxy(run_globals, &(Halo[i_halo]), &(Gal[NGal]));
-        Gal[NGal].CentralGal  = NGal;
-        Gal[NGal].CentralMvir = Halo[i_halo].Mvir;
+        // Check that we have enough room for a new galaxy
+        if(NGal+1 > n_storage_gal)
+        {
+          SID_log_error("Out of storage space for galaxies! Try increasing ALLOCFACTOR...");
+          ABORT(EXIT_FAILURE);
+        }
+        // Loop through the galaxies list and find the first free space
+        for(int i_gal; i<n_storage_gal; i_gal++)
+        {
+          if (Gal[i_gal].Type==-1)
+          {
+            copy_halo_to_galaxy(run_globals, &(Halo[i_halo]), &(Gal[i_gal]));
+            Gal[i_gal].Type        = 0;
+            Gal[i_gal].CentralGal  = &(Gal[i_gal]);
+            Gal[i_gal].CentralMvir = Halo[i_halo].Mvir;
+            Gal[i_gal].NextGal     = NULL;
+            break;
+          }
+        }
 
-        // Increment galaxy number counters
-        Halo[i_halo].NGalaxies++;
+        // Increment galaxy number counters and pointers
+        Gal[i_gal].HaloNGal++;
         NGal++; 
+        run_globals->LastGal->NextGal = &(Gal[i_gal]);
+        run_globals->LastGal = &(Gal[i_gal]);
       }
     }
     

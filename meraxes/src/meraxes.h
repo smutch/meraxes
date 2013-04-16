@@ -119,6 +119,7 @@ struct run_globals_struct{
   double             Hubble;
   double             RhoCrit;
   double             G;
+  galaxy_struct     *LastGal;
   gsl_rng           *random_generator;
   run_params_struct  params;
   run_units_struct   units;
@@ -164,6 +165,7 @@ struct halo_struct{
   int    Type;           //!< Type (0 for central, 1 for satellite)
   int    DescIndex;      //!< Index of descendant in next relevant snapshot
   int    CentralIndex;   //!< Index of this halo's central (itself if type=0)
+  galaxy_struct *HaloGal;
   int    TreeFlags;      //!< Bitwise flag indicating the type of match in the trees
   int    NSubgroups;     //!< Number of subgroups belonging to this type 0 (=-1 if type=1)
   double Mvir;           //!< Bryan &Norman (ApJ 495, 80, 1998) virial mass [M_sol/h]
@@ -186,7 +188,9 @@ struct galaxy_struct
   int    Type;
   int    HaloDesc;
   int    HaloNGal;
-  int    CentralGal;
+  galaxy_struct    *CentralGal;
+  galaxy_struct    *PrevGal;
+  galaxy_struct    *NextGal;
   int    Len;
   double CentralMvir;
 
