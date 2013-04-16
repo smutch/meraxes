@@ -18,9 +18,10 @@ init:
 
 logic:
 ☐ Deal with mergers
-    ☐ Start the clock
+    ✔ Start the clock @done (2013-04-16 10:30)
     ✔ Increment the clock @done (2013-04-15 14:47)
-    ☐ Check for clock <=0 and merge
+    ✔ Check for clock <=0 and merge @done (2013-04-16 12:56)
+    ☐ How do we deal with galaxies that have merged and left holes in Gal array?
 ✘ Connect galaxies to progenitors @cancelled (2013-04-15 14:46)
 ✔ Create galaxies in empty type 0s @done (2013-04-15 15:23)
 ✔ Copy necessary halo properties into galaxy @done (2013-04-15 14:46)

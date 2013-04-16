@@ -202,7 +202,6 @@ struct galaxy_struct
 
   // baryonic reservoirs
   double StellarMass;
-  double BlackHoleMass;
 
   // misc
   double Sfr[NOUT];
@@ -236,12 +235,9 @@ struct galaxy_output_struct
 
   // baryonic reservoirs
   float StellarMass;
-  float BulgeMass;
-  float BlackHoleMass;
 
   // misc
   float Sfr;
-  float SfrBulge;
   float DiskRadius;
   float Cos_Inc;
   float MergTime;

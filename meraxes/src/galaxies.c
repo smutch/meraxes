@@ -49,7 +49,7 @@ static double calculate_Vvir(run_globals_struct *run_globals, halo_struct *halo)
 void copy_halo_to_galaxy(run_globals_struct *run_globals, halo_struct *halo, galaxy_struct *gal)
 {
   gal->Type            = halo->Type;
-  gal->CentralGal      = halo->CentralIndex;
+  gal->CentralGal      = halo->CentralIndex;  // <--- THIS IS TOO SIMPLISTIC AND WONT WORK!!!
   gal->Len             = halo->Len;
   gal->HaloDesc        = halo->DescIndex;
   gal->Mvir            = halo->Mvir/1.0e10;

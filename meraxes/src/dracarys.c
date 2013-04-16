@@ -57,7 +57,47 @@ static void evolve_galaxies(run_globals_struct *run_globals, galaxy_struct *Gal,
     Gal[i_gal].StellarMass += (1.0-RecycleFraction)*sfr*dt;
   }
 
-  // TODO: Merger physics
+  // Check for mergers
+  int i_central;
+  double mi, ma, mass_ratio;
+  for(int i_gal=0; i_gal<NGal; i_gal++)
+  {
+    if(Gal[i_gal].Type == 2)
+    {
+      Gal[gal_id].MergTime -= dt;
+
+      if(Gal[gal_id].MergTime <0)
+      {
+        // Merger baby!
+        i_central = Gal[i_gal].CentralGal;
+        
+        // calculate mass ratio of merging galaxies 
+        if(Gal[i_gal].StellarMass < Gal[i_central].StellarMass)
+        {
+          mi = Gal[i_gal].StellarMass;
+          ma = Gal[i_central].StellarMass;
+        }
+        else
+        {
+          mi = Gal[i_central].StellarMass;
+          ma = Gal[i_gal].StellarMass;
+        }
+        if(ma > 0)
+          mass_ratio = mi / ma;
+        else
+          mass_ratio = 1.0;
+
+        // Add galaxies together
+        Gal[i_gal].Type = 3;
+        Gal[i_central].StellarMass += Gal[i_gal].StellarMass;
+        Gal[i_central].BulgeMass += Gal[i_gal].StellarMass;
+
+        for(int outputbin = 0; outputbin < NOUT; outputbin++)
+          Gal[i_central].Sfr[outputbin] += Gal[i_gal].Sfr[outputbin];
+
+      }
+    }
+  }
 
   // TODO: Updating of any final galaxy properties / indices
 }
@@ -95,7 +135,8 @@ void dracarys(run_globals_struct *run_globals)
           Gal[i_gal].Type = 2;
 
           // Gal[i_gal].MergTime = 0.1; // DEBUG
-          Gal[i_gal].MergTime = calculate_merging_time(run_globals, Gal, i_gal, snapshot);
+          Gal[i_gal].MergTime  = calculate_merging_time(run_globals, Gal, i_gal, snapshot);
+          // Gal[i_gal].MergTime -= dt; 
 
         } else
         {
