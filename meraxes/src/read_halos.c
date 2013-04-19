@@ -351,6 +351,9 @@ trees_header_struct read_halos(
     ABORT(EXIT_FAILURE);
   }
 
+  // Update the header n_groups to take into account phantoms
+  header.n_groups -= phantom_group_count;
+
   SID_log("...done", SID_LOG_CLOSE);
 
   return header;

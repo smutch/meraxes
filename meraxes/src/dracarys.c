@@ -108,9 +108,9 @@ void dracarys(run_globals_struct *run_globals)
 {
 
   trees_header_struct trees_header;
-  halo_struct **halo;
+  halo_struct **halo, *cur_halo;
   fof_group_struct **fof_group
-  galaxy_struct *gal, *prev_gal;
+  galaxy_struct *gal, *prev_gal, *cur_gal;
   int i_newhalo;
   double dt;
 
@@ -169,10 +169,21 @@ void dracarys(run_globals_struct *run_globals)
       }
     }
 
+    // Loop through each FOF group and connect the pointers
+    for(int i_group=0; i_group<header.n_groups; i_group++)
+    {
+      cur_halo = FOFGroup[i_group].FirstHalo;
+      cur_gal = FOFGroup[i_group].CentralGal;
+      do {
+        cur_gal->NextGalInFOFGroup = cur_gal->NextHaloInFOFGroup
+
+      } while ();
+    }
+
     // Loop through all galaxies again and connect the FOF group members and deal with mergers
   
-  SID_free(SID_FARG *halo);
-  SID_free(SID_FARG *fof_group);
+    SID_free(SID_FARG *halo);
+    SID_free(SID_FARG *fof_group);
   }
 
 }
