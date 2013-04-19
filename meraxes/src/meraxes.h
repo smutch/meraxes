@@ -119,7 +119,7 @@ struct run_globals_struct{
   double             Hubble;
   double             RhoCrit;
   double             G;
-  galaxy_struct     *LastGal;
+  fof_group_struct  *FirstFOFGroup;
   gsl_rng           *random_generator;
   run_params_struct  params;
   run_units_struct   units;
@@ -168,6 +168,7 @@ struct halo_struct{
   int    NSubgroups;     //!< Number of subgroups belonging to this type 0 (=-1 if type=1)
   fof_group_struct   *FOFGroup;
   halo_struct        *NextHaloInFOFGroup;
+  galaxy_struct      *Galaxy;
   double Mvir;           //!< Bryan &Norman (ApJ 495, 80, 1998) virial mass [M_sol/h]
   int    Len;            //!< Number of particles in the structure
   float  Pos[3];         //!< Most bound particle position [Mpc/h]
@@ -192,8 +193,8 @@ struct galaxy_struct
   int    Type;
   int    HaloDesc;
   int    HaloNGal;
-  galaxy_struct    *CentralGal;
-  galaxy_struct    *NextGalInFOFGroup;
+  fof_group_struct    *FOFGroup;
+  galaxy_struct       *NextGalInFOFGroup;
   int    Len;
   double CentralMvir;
 

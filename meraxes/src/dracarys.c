@@ -106,101 +106,17 @@ static void evolve_galaxies(run_globals_struct *run_globals, galaxy_struct *Gal,
 //! Actually run the model
 void dracarys(run_globals_struct *run_globals)
 {
-  trees_header_struct  trees_header;
-  halo_struct         *Halo;
-  int                  i_newhalo;
-  int                  NGal         = 0;
-  double               dt;
-  run_params_struct    params       = run_globals->params;
-  galaxy_struct       *Gal          = NULL;
-  int                  n_storage_gal;
 
   for(int snapshot=0; snapshot<MAXSNAPS; snapshot++)
   {
-    trees_header = read_halos(run_globals, snapshot, &Halo);
+    // Loop through each FOFGroup in order to get each galaxy.
+    // Ensure that we have actually processed every galaxy by keeping count
 
-    // If this is the first read then use the n_halos_max parameter of the trees_header to malloc the galaxy array...
-    if (Gal==NULL)
-    {
-      n_storage_gal = init_galaxies(Gal, trees_header.n_halos_max);
-      run_globals->LastGal = &(Gal[0]);
-    } else
-    {
-      // otherwise, loop through each existing galaxy and update the properties appropriately.
-      for(int i_gal=0; i_gal<NGal; i_gal++)
-      {
-        i_newhalo = Gal[i_gal].HaloDesc;
-        dt = run_globals->Age[snapshot-1]-run_globals->Age[snapshot];
-
-        if(i_newhalo==-1)
-        {
-          // Here we have a halo where we have lost tracking so we make the corresponding galaxy a type 2
-          Gal[i_gal].Type = 2;
-          Gal[Gal[i_gal].CentralGal].HaloNGal++;
-
-          // Gal[i_gal].MergTime = 0.1; // DEBUG
-          Gal[i_gal].MergTime  = calculate_merging_time(run_globals, Gal, i_gal, snapshot);
-          // Gal[i_gal].MergTime -= dt; 
-
-        } else
-        {
-          copy_halo_to_galaxy(run_globals, &(Halo[i_newhalo]), &(Gal[i_gal]));
-
-          Halo[i_newhalo].NGalaxies  = Gal[i_gal].HaloNGal;
-          Halo[i_newhalo].HaloGal    = &(Gal[i_gal]);
-          Gal[i_gal].CentralMvir     = Gal[Gal[i_gal].CentralGal].Mvir;
-
-          if ((Halo[i_newhalo].Mvir-Gal[i_gal].Mvir) >0.0)
-          {
-            Gal[i_gal].dM            = Halo[i_newhalo].Mvir-Gal[i_gal].Mvir;
-            Gal[i_gal].dMdt          = Gal[i_gal].dM / dt;
-          }
-        }
-      }
-    }
-
-    // Create new galaxies in empty type 0 halos
-    galaxy_struct *new_gal;
-    for(int i_halo=0; i_halo<trees_header.n_subgroups; i_halo++)
-    {
-      if ( (Halo[i_halo].Type==0) && (Halo[i_halo].NGalaxies==0) )
-      {
-        // Check that we have enough room for a new galaxy
-        if(NGal+1 > n_storage_gal)
-        {
-          SID_log_error("Out of storage space for galaxies! Try increasing ALLOCFACTOR...");
-          ABORT(EXIT_FAILURE);
-        }
-        // Loop through the galaxies list and find the first free space
-        for(int i_gal; i<n_storage_gal; i_gal++)
-        {
-          if (Gal[i_gal].Type==-1)
-          {
-            copy_halo_to_galaxy(run_globals, &(Halo[i_halo]), &(Gal[i_gal]));
-            Gal[i_gal].Type        = 0;
-            Gal[i_gal].CentralGal  = &(Gal[i_gal]);
-            Gal[i_gal].CentralMvir = Halo[i_halo].Mvir;
-            Gal[i_gal].NextGal     = NULL;
-            break;
-          }
-        }
-
-        // Increment galaxy number counters and pointers
-        Gal[i_gal].HaloNGal++;
-        NGal++; 
-        run_globals->LastGal->NextGal = &(Gal[i_gal]);
-        run_globals->LastGal = &(Gal[i_gal]);
-      }
-    }
+    // If the merger flag is on and the the halo ID has changed then we have a new type 2
+    // which we must deal with appropriately
     
-    evolve_galaxies(run_globals, Gal, snapshot, NGal);
-
-    // TODO: Save galaxies if this is an output snapshot
-    
-    free_halos(&Halo);
+    // 
   }
-
-  SID_free(SID_FARG Gal);
 
 }
 
