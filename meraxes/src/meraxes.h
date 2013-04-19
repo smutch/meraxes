@@ -119,7 +119,8 @@ struct run_globals_struct{
   double             Hubble;
   double             RhoCrit;
   double             G;
-  fof_group_struct  *FirstFOFGroup;
+  galaxy_struct     *FirstGal;
+  galaxy_struct     *LastGal;
   gsl_rng           *random_generator;
   run_params_struct  params;
   run_units_struct   units;
@@ -191,10 +192,12 @@ typedef struct fof_group_struct fof_group_struct;
 struct galaxy_struct
 {
   int    Type;
-  int    HaloDesc;
-  int    HaloNGal;
+  int    HaloDescIndex;
+  int    TreeFlags;
   fof_group_struct    *FOFGroup;
   galaxy_struct       *NextGalInFOFGroup;
+  galaxy_struct       *Next;
+  galaxy_struct       *MergerTarget;
   int    Len;
   double CentralMvir;
 

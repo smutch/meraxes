@@ -107,15 +107,72 @@ static void evolve_galaxies(run_globals_struct *run_globals, galaxy_struct *Gal,
 void dracarys(run_globals_struct *run_globals)
 {
 
+  trees_header_struct trees_header;
+  halo_struct **halo;
+  fof_group_struct **fof_group
+  galaxy_struct *gal, *prev_gal;
+  int i_newhalo;
+  double dt;
+
   for(int snapshot=0; snapshot<MAXSNAPS; snapshot++)
   {
-    // Loop through each FOFGroup in order to get each galaxy.
-    // Ensure that we have actually processed every galaxy by keeping count
 
-    // If the merger flag is on and the the halo ID has changed then we have a new type 2
-    // which we must deal with appropriately
+    trees_header = read_halos(run_globals, snapshot, halo, fof_group);
+
+    gal = run_globals->FirstGal;
+    prev_gal = NULL;
+    dt = run_globals->Age[snapshot-1]-run_globals->Age[snapshot];
     
-    // 
+    do {
+      i_newhalo = gal->HaloDescIndex;
+
+      if(i_new_halo>-1)
+      {
+        if( ((gal->TreeFlags & TREE_CASE_MERGER)==TREE_CASE_MERGER)
+            && ((gal->TreeFlags & TREE_CASE_MAIN_PROGENITOR)!=TREE_CASE_MAIN_PROGENITOR) )
+        {
+          // Here we have a merger...  Mark it and deal with it below.
+          gal->Type = 2;
+        } else
+        {
+          copy_halo_to_galaxy(run_globals, &(halo[i_new_halo]), gal);
+          halo[i_new_halo].Galaxy = gal;
+          if(halo[i_new_halo].Type == 0)
+            halo[i_new_halo].CentralGal = gal;
+        }
+      } else
+      {
+        // This galaxy is done (merged, lost, whatever...) so get rid of it
+        if(prev_gal!=NULL)
+          prev_gal.Next = gal.Next;
+        else
+          run_globals->FirstGal = gal.Next;
+        SID_free(SID_FARG gal);
+      }
+
+      prev_gal = gal;
+      gal = gal.Next;
+    } while (gal != NULL);
+
+    // Incase we ended up removing the last galaxy, update the LastGal pointer
+    run_globals->LastGal = prev_gal;
+
+    // Find empty type 0 halos and place new galaxies in them
+    for(int i_halo=0; i_halo<trees_header.n_subgroups; i_halo++)
+    {
+      if((*halo[i_halo].Type == 0) && (*halo[i_halo].Galaxy == NULL))
+      {
+        gal = SID_malloc(sizeof(galaxy_struct));
+        copy_halo_to_galaxy(run_globals, &(halo[i_halo]), gal);
+        run_globals->LastGal->Next = gal;
+        run_globals->LastGal = gal;
+      }
+    }
+
+    // Loop through all galaxies again and connect the FOF group members and deal with mergers
+  
+  SID_free(SID_FARG *halo);
+  SID_free(SID_FARG *fof_group);
   }
 
 }
