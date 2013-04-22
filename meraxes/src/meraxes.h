@@ -119,6 +119,8 @@ struct run_globals_struct{
   double             Hubble;
   double             RhoCrit;
   double             G;
+  struct galaxy_struct     *FirstGal;
+  struct galaxy_struct     *LastGal;
   gsl_rng           *random_generator;
   run_params_struct  params;
   run_units_struct   units;
@@ -163,9 +165,10 @@ struct halo_struct{
   int    ID;             //!< Halo ID
   int    Type;           //!< Type (0 for central, 1 for satellite)
   int    DescIndex;      //!< Index of descendant in next relevant snapshot
-  int    CentralIndex;   //!< Index of this halo's central (itself if type=0)
   int    TreeFlags;      //!< Bitwise flag indicating the type of match in the trees
   int    NSubgroups;     //!< Number of subgroups belonging to this type 0 (=-1 if type=1)
+  struct halo_struct        *NextHaloInFOFGroup;
+  struct galaxy_struct      *Galaxy;
   double Mvir;           //!< Bryan &Norman (ApJ 495, 80, 1998) virial mass [M_sol/h]
   int    Len;            //!< Number of particles in the structure
   float  Pos[3];         //!< Most bound particle position [Mpc/h]
@@ -176,19 +179,24 @@ struct halo_struct{
   float  Vmax;           //!< Maximum circular velocity [km/s]
   float  VelDisp;        //!< Total 3D velocity dispersion [km/s]
   float  Spin[3];        //!< Specific angular momentum vector [Mpc/h *km/s]
-  int    NGalaxies;      //!< Total number of galaxies in this halo
 };
 typedef struct halo_struct halo_struct;
 
+struct fof_group_struct{
+  halo_struct *FirstHalo;
+};
+typedef struct fof_group_struct fof_group_struct;
 
 struct galaxy_struct
 {
   int    Type;
-  int    HaloDesc;
-  int    HaloNGal;
-  int    CentralGal;
+  int    HaloDescIndex;
+  int    TreeFlags;
+  struct halo_struct         *Halo;
+  struct galaxy_struct       *NextGalInHalo;
+  struct galaxy_struct       *Next;
+  struct galaxy_struct       *MergerTarget;
   int    Len;
-  double CentralMvir;
 
   // properties of subhalo at the last time this galaxy was a central galaxy
   double Pos[3];
@@ -253,9 +261,9 @@ void myexit(int signum);
 void read_parameter_file(run_globals_struct *run_globals, char *fname);
 void init_meraxes(run_globals_struct *run_globals);
 void dracarys(run_globals_struct *run_globals);
-trees_header_struct read_halos(run_globals_struct *run_globals, int snapshot, halo_struct **halos);
+trees_header_struct read_halos(run_globals_struct *run_globals, int snapshot, halo_struct **halo, fof_group_struct **fof_group);
 void free_halos(halo_struct **halo);
 void init_galaxies(galaxy_struct *Gal, int n_halos_max);
 void copy_halo_to_galaxy(run_globals_struct *run_globals, halo_struct *halo, galaxy_struct *gal);
-double calculate_merging_time(run_globals_struct *run_globals, galaxy_struct *Gal, int i_sat, int snapshot);
+double calculate_merging_time(run_globals_struct *run_globals, galaxy_struct *gal, int snapshot);
 

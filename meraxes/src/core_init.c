@@ -153,5 +153,9 @@ void init_meraxes(run_globals_struct *run_globals)
     run_globals->Age[i] = time_to_present(run_globals, run_globals->ZZ[i]);
   }
 
+  // Initialise galaxy pointers
+  run_globals->FirstGal = NULL;
+  run_globals->LastGal = NULL;
+
 }
 
