@@ -142,9 +142,8 @@ static void inline read_catalog_halo(
   cur_model_halo->Spin[0]            = halo_in.spin[0];
   cur_model_halo->Spin[1]            = halo_in.spin[1];
   cur_model_halo->Spin[2]            = halo_in.spin[2];
-  cur_model_halo->Galaxy             = NULL;
-  cur_model_halo->FOFGroup           = NULL;
   cur_model_halo->NextHaloInFOFGroup = NULL;
+  cur_model_halo->Galaxy             = NULL;
 
   // Update the counters
   (*halo_count)++;
@@ -261,7 +260,6 @@ trees_header_struct read_halos(
     *fof_group = SID_malloc(sizeof(fof_group_struct) * N_halos_groups);
     for(int ii=0; ii<N_halos_groups; ii++)
     {
-      (*fof_group)[ii].CentralGal = NULL;
       (*fof_group)[ii].FirstHalo  = NULL;
     }
   }
@@ -326,7 +324,6 @@ trees_header_struct read_halos(
       (*halo)[halo_count-1].Type = 0;
       central_index = halo_count-1;
       (*fof_group)[group_count].FirstHalo = &((*halo)[central_index]);
-      (*halo)[halo_count-1].FOFGroup = &((*fof_group)[group_count]);
 
       // Deal with any remaining subhalos
       for (int i_subgroup=1; i_subgroup<n_subgroups; i_subgroup++){
@@ -334,7 +331,6 @@ trees_header_struct read_halos(
         read_catalog_halo(&fin_subgroup_halos, run_globals->params.SimulationDir, run_globals->params.SimName, corrected_snapshot, "subgroups", &catalog_subgroups_flayout, 
             &i_subgroup_file, &N_halos_subgroups_file, &subgroup_count_infile, *halo, N_subgroups_files, &halo_count);
         (*halo)[halo_count-1].Type = 1;
-        (*halo)[halo_count-1].FOFGroup = &((*fof_group)[group_count]);
         (*halo)[halo_count-2].NextHaloInFOFGroup = &((*halo)[halo_count-1]);
       }
     }

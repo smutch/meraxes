@@ -4,12 +4,16 @@
 double calculate_merging_time(run_globals_struct *run_globals, galaxy_struct *sat, int snapshot)
 {
   galaxy_struct *parent;
-  double coulomb, mergtime, sat_mass, sat_rad, parent_rvir;
+  double         coulomb;
+  double         mergtime;
+  double         sat_mass;
+  double         sat_rad;
+  double         parent_rvir;
 
-  parent = sat->Halo->Galaxy;
-  gal->MergerTarget = parent;
+  parent            = sat->Halo->Galaxy;
+  sat->MergerTarget = parent;
 
-  if(parent == gal)
+  if(parent == sat)
   {
     SID_log_error("Invalid merger...!");
     ABORT(EXIT_FAILURE);

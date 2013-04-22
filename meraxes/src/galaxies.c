@@ -6,15 +6,13 @@ void init_galaxy(galaxy_struct *gal)
 
   // Initialise the properties
   gal->Type              = -1;
+  gal->HaloDescIndex     = -1;
+  gal->TreeFlags         = -1;
   gal->Halo              = NULL;
   gal->NextGalInHalo     = NULL;
   gal->Next              = NULL;
   gal->MergerTarget      = NULL;
-  gal->HaloDesc          = -1;
-  gal->HaloNGal          = 0;
-  gal->CentralGal        = -1;
   gal->Len               = 0;
-  gal->CentralMvir       = 0.0;
   gal->Mvir              = 0.0;
   gal->dM                = 0.0;
   gal->dMdt              = 0.0;
@@ -22,7 +20,6 @@ void init_galaxy(galaxy_struct *gal)
   gal->Vvir              = 0.0;
   gal->Vmax              = 0.0;
   gal->StellarMass       = 0.0;
-  gal->BlackHoleMass     = 0.0;
   gal->Cos_Inc           = 0.0;
   gal->MergTime          = 99999.9;
 

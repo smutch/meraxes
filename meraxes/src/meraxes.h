@@ -119,8 +119,8 @@ struct run_globals_struct{
   double             Hubble;
   double             RhoCrit;
   double             G;
-  galaxy_struct     *FirstGal;
-  galaxy_struct     *LastGal;
+  struct galaxy_struct     *FirstGal;
+  struct galaxy_struct     *LastGal;
   gsl_rng           *random_generator;
   run_params_struct  params;
   run_units_struct   units;
@@ -167,9 +167,8 @@ struct halo_struct{
   int    DescIndex;      //!< Index of descendant in next relevant snapshot
   int    TreeFlags;      //!< Bitwise flag indicating the type of match in the trees
   int    NSubgroups;     //!< Number of subgroups belonging to this type 0 (=-1 if type=1)
-  fof_group_struct   *FOFGroup;
-  halo_struct        *NextHaloInFOFGroup;
-  galaxy_struct      *Galaxy;
+  struct halo_struct        *NextHaloInFOFGroup;
+  struct galaxy_struct      *Galaxy;
   double Mvir;           //!< Bryan &Norman (ApJ 495, 80, 1998) virial mass [M_sol/h]
   int    Len;            //!< Number of particles in the structure
   float  Pos[3];         //!< Most bound particle position [Mpc/h]
@@ -193,12 +192,11 @@ struct galaxy_struct
   int    Type;
   int    HaloDescIndex;
   int    TreeFlags;
-  halo_struct         *Halo;
-  galaxy_struct       *NextGalInHalo;
-  galaxy_struct       *Next;
-  galaxy_struct       *MergerTarget;
+  struct halo_struct         *Halo;
+  struct galaxy_struct       *NextGalInHalo;
+  struct galaxy_struct       *Next;
+  struct galaxy_struct       *MergerTarget;
   int    Len;
-  double CentralMvir;
 
   // properties of subhalo at the last time this galaxy was a central galaxy
   double Pos[3];
@@ -267,5 +265,5 @@ trees_header_struct read_halos(run_globals_struct *run_globals, int snapshot, ha
 void free_halos(halo_struct **halo);
 void init_galaxies(galaxy_struct *Gal, int n_halos_max);
 void copy_halo_to_galaxy(run_globals_struct *run_globals, halo_struct *halo, galaxy_struct *gal);
-double calculate_merging_time(run_globals_struct *run_globals, galaxy_struct *Gal, int i_sat, int snapshot);
+double calculate_merging_time(run_globals_struct *run_globals, galaxy_struct *gal, int snapshot);
 
