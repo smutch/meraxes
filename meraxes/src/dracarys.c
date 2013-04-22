@@ -180,6 +180,10 @@ void dracarys(run_globals_struct *run_globals)
           gal->Halo = &(*halo[i_newhalo]);
         } else if(gal->Type < 2)
         {
+
+          gal->dM = (*halo[i_newhalo]).Mvir - gal->Mvir;
+          gal->dMdt = (gal->dM)/dt;
+
           copy_halo_to_galaxy(run_globals, &(*halo[i_newhalo]), gal);
           (*halo[i_newhalo]).Galaxy = gal;
         }

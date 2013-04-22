@@ -224,9 +224,7 @@ struct galaxy_output_struct
 {
   int   Type;
   int   HaloIndex;
-  int   SnapNum;
   int   CentralGal;
-  float CentralMvir;
 
   // properties of subhalo at the last time this galaxy was a central galaxy
   float Pos[3];
