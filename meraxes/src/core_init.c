@@ -133,7 +133,7 @@ static void read_output_snaps(run_globals_struct *run_globals)
 
 }
 
-void init_meraxis(run_globals_struct *run_globals)
+void init_meraxes(run_globals_struct *run_globals)
 {
   int i;
   int snaplist_len;
@@ -152,6 +152,10 @@ void init_meraxis(run_globals_struct *run_globals)
     run_globals->ZZ[i] = 1 / run_globals->AA[i] - 1;
     run_globals->Age[i] = time_to_present(run_globals, run_globals->ZZ[i]);
   }
+
+  // Initialise galaxy pointers
+  run_globals->FirstGal = NULL;
+  run_globals->LastGal = NULL;
 
 }
 

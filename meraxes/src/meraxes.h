@@ -11,7 +11,7 @@
 
 #define STRLEN  256  //!< Default string length
 #define MAXTAGS 50   //!< Maximum number of allowed tags in input file
-#define ALLOCFACTOR 3  //!< Size of galaxy array is ALLOCFACTOR*n_halos_max
+#define ALLOCFACTOR 2  //!< Size of galaxy array is ALLOCFACTOR*n_halos_max
 
 // TODO: This should not be hard coded if at all possible...
 #define MAXSNAPS 3  //!< Maximum number of snapshots
@@ -19,6 +19,9 @@
 #ifndef NOUT
 #define NOUT 1
 #endif
+
+#define MVIR_PROP 1
+#define VMAX_PROP 2
 
 #define ABORT(sigterm)                                                                 \
 do {                                                                                   \
@@ -116,6 +119,8 @@ struct run_globals_struct{
   double             Hubble;
   double             RhoCrit;
   double             G;
+  struct galaxy_struct     *FirstGal;
+  struct galaxy_struct     *LastGal;
   gsl_rng           *random_generator;
   run_params_struct  params;
   run_units_struct   units;
@@ -157,38 +162,45 @@ typedef struct catalog_halo_struct catalog_halo_struct;
 
 //! The meraxis halo structure
 struct halo_struct{
-  int    id;             //!< Halo ID
-  int    type;           //!< Type (0 for central, 1 for satellite)
-  int    desc_id;        //!< Descendant ID
-  int    file_offset;    //!< Number of snapshots until the descendant of this halo reappears
-  int    file_index;     //!< Index of descendant in next relevant snapshot
-  int    tree_flags;     //!< Bitwise flag indicating the type of match in the trees
-  int    n_subgroups;    //!< Number of subgroups belonging to this type 0 (=-1 if type=1)
-  int    len;            //!< Number of satellites belonging to this halo (-1 if halo is satellite itself)
+  int    ID;             //!< Halo ID
+  int    Type;           //!< Type (0 for central, 1 for satellite)
+  int    DescIndex;      //!< Index of descendant in next relevant snapshot
+  int    TreeFlags;      //!< Bitwise flag indicating the type of match in the trees
+  int    NSubgroups;     //!< Number of subgroups belonging to this type 0 (=-1 if type=1)
+  struct halo_struct        *NextHaloInFOFGroup;
+  struct galaxy_struct      *Galaxy;
   double Mvir;           //!< Bryan &Norman (ApJ 495, 80, 1998) virial mass [M_sol/h]
-  int    n_particles;    //!< Number of particles in the structure
-  float  position[3];    //!< Most bound particle position [Mpc/h]
-  float  velocity[3];    //!< Centre-of-mass velocity [km/s]
+  int    Len;            //!< Number of particles in the structure
+  float  Pos[3];         //!< Most bound particle position [Mpc/h]
+  float  Vel[3];         //!< Centre-of-mass velocity [km/s]
   float  Rvir;           //!< Virial radius [Mpc/h]
   float  Rhalo;          //!< Distance of last halo particle from MBP [Mpc/h]
   float  Rmax;           //!< Radius of maximum circular velocity [Mpc/h]
   float  Vmax;           //!< Maximum circular velocity [km/s]
   float  VelDisp;        //!< Total 3D velocity dispersion [km/s]
-  float  spin[3];        //!< Specific angular momentum vector [Mpc/h *km/s]
+  float  Spin[3];        //!< Specific angular momentum vector [Mpc/h *km/s]
 };
 typedef struct halo_struct halo_struct;
 
+struct fof_group_struct{
+  halo_struct *FirstHalo;
+};
+typedef struct fof_group_struct fof_group_struct;
 
 struct galaxy_struct
 {
   int    Type;
-  int    CentralGal;
-  double CentralMvir;
+  int    HaloDescIndex;
+  int    TreeFlags;
+  struct halo_struct         *Halo;
+  struct galaxy_struct       *NextGalInHalo;
+  struct galaxy_struct       *Next;
+  struct galaxy_struct       *MergerTarget;
+  int    Len;
 
   // properties of subhalo at the last time this galaxy was a central galaxy
   double Pos[3];
   double Vel[3];
-  int    Len;
   double Mvir;
   double dM;
   double dMdt;
@@ -198,7 +210,6 @@ struct galaxy_struct
 
   // baryonic reservoirs
   double StellarMass;
-  double BlackHoleMass;
 
   // misc
   double Sfr[NOUT];
@@ -232,12 +243,9 @@ struct galaxy_output_struct
 
   // baryonic reservoirs
   float StellarMass;
-  float BulgeMass;
-  float BlackHoleMass;
 
   // misc
   float Sfr;
-  float SfrBulge;
   float DiskRadius;
   float Cos_Inc;
   float MergTime;
@@ -251,9 +259,11 @@ typedef struct galaxy_output_struct galaxy_output_struct;
 
 void myexit(int signum);
 void read_parameter_file(run_globals_struct *run_globals, char *fname);
-void init_meraxis(run_globals_struct *run_globals);
+void init_meraxes(run_globals_struct *run_globals);
 void dracarys(run_globals_struct *run_globals);
-trees_header_struct read_halos(run_globals_struct *run_globals, int snapshot, halo_struct **halos);
+trees_header_struct read_halos(run_globals_struct *run_globals, int snapshot, halo_struct **halo, fof_group_struct **fof_group);
 void free_halos(halo_struct **halo);
 void init_galaxies(galaxy_struct *Gal, int n_halos_max);
+void copy_halo_to_galaxy(run_globals_struct *run_globals, halo_struct *halo, galaxy_struct *gal);
+double calculate_merging_time(run_globals_struct *run_globals, galaxy_struct *gal, int snapshot);
 
