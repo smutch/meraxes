@@ -132,8 +132,9 @@ void dracarys(run_globals_struct *run_globals)
             && ((gal->TreeFlags & TREE_CASE_MAIN_PROGENITOR)!=TREE_CASE_MAIN_PROGENITOR) )
         {
           // Here we have a merger...  Mark it and deal with it below.
-          gal->Type = 2;
-        } else
+          gal->Type = 999;
+          gal->Halo = &(halo[i_new_halo]);
+        } else if(gal->Type < 2)
         {
           copy_halo_to_galaxy(run_globals, &(halo[i_new_halo]), gal);
           halo[i_new_halo].Galaxy = gal;
@@ -148,6 +149,7 @@ void dracarys(run_globals_struct *run_globals)
         else
           run_globals->FirstGal = gal.Next;
         SID_free(SID_FARG gal);
+        gal = prev_gal;
       }
 
       prev_gal = gal;
@@ -169,18 +171,24 @@ void dracarys(run_globals_struct *run_globals)
       }
     }
 
-    // Loop through each FOF group and connect the pointers
-    for(int i_group=0; i_group<header.n_groups; i_group++)
-    {
-      cur_halo = FOFGroup[i_group].FirstHalo;
-      cur_gal = FOFGroup[i_group].CentralGal;
-      do {
-        cur_gal->NextGalInFOFGroup = cur_gal->NextHaloInFOFGroup
-
-      } while ();
-    }
-
-    // Loop through all galaxies again and connect the FOF group members and deal with mergers
+    // Loop through each galaxy and deal with mergers now that all other galaxies have been 
+    // correctly propogated forwards
+    gal = run_globals->FirstGal;
+    do {
+      if(gal->Type == 999)
+      {
+        gal->Type = 2;
+        cur_gal = gal->Halo->Galaxy;
+        do {
+          prev_gal = cur_gal;
+          cur_gal = cur_gal->NextGalInHalo;
+        } while (cur_gal!=NULL);
+        prev_gal->NextGalInHalo = gal;
+        
+        gal->MergTime = calculate_merging_time(run_globals, gal, snapshot);
+      }
+      gal = gal->Next;
+    } while (gal!=NULL);
   
     SID_free(SID_FARG *halo);
     SID_free(SID_FARG *fof_group);

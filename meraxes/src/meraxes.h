@@ -184,7 +184,6 @@ struct halo_struct{
 typedef struct halo_struct halo_struct;
 
 struct fof_group_struct{
-  galaxy_struct *CentralGal;
   halo_struct *FirstHalo;
 };
 typedef struct fof_group_struct fof_group_struct;
@@ -194,8 +193,8 @@ struct galaxy_struct
   int    Type;
   int    HaloDescIndex;
   int    TreeFlags;
-  fof_group_struct    *FOFGroup;
-  galaxy_struct       *NextGalInFOFGroup;
+  halo_struct         *Halo;
+  galaxy_struct       *NextGalInHalo;
   galaxy_struct       *Next;
   galaxy_struct       *MergerTarget;
   int    Len;

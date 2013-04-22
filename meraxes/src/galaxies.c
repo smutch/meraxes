@@ -6,8 +6,8 @@ void init_galaxy(galaxy_struct *gal)
 
   // Initialise the properties
   gal->Type              = -1;
-  gal->FOFGroup          = NULL;
-  gal->NextGalInFOFGroup = NULL;
+  gal->Halo              = NULL;
+  gal->NextGalInHalo     = NULL;
   gal->Next              = NULL;
   gal->MergerTarget      = NULL;
   gal->HaloDesc          = -1;
@@ -43,6 +43,7 @@ static double calculate_Vvir(run_globals_struct *run_globals, halo_struct *halo)
 
 void copy_halo_to_galaxy(run_globals_struct *run_globals, halo_struct *halo, galaxy_struct *gal)
 {
+  gal->Halo            = halo;
   gal->Type            = halo->Type;
   gal->Len             = halo->Len;
   gal->HaloDescIndex   = halo->DescIndex;
@@ -51,5 +52,4 @@ void copy_halo_to_galaxy(run_globals_struct *run_globals, halo_struct *halo, gal
   gal->Vvir            = calculate_Vvir(run_globals, halo);
   gal->Vmax            = halo->Vmax;
   gal->TreeFlags       = halo->TreeFlags;
-  gal->FOFGroup        = halo->FOFGroup;
 }
