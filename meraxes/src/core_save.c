@@ -3,7 +3,7 @@
 #include <hdf5_hl.h>
 
 
-void calc_hdf5_props()
+void calc_hdf5_props(run_globals_struct *run_globals)
 {
 
   /*
@@ -11,6 +11,7 @@ void calc_hdf5_props()
    * Here we store the data in an hdf5 table for easily appending new data.
    */
 
+  hdf5_output_struct     *h5props = &(run_globals->hdf5props);
   galaxy_output_struct   galout;
   hid_t                  array_nmag_f_tid;
 
@@ -18,117 +19,117 @@ void calc_hdf5_props()
 
   // If we are calculating any magnitudes then increment the number of
   // output properties appropriately.
-  HDF5_n_props = 18;  // not inc. magnitudes
+  h5props->n_props = 18;  // not inc. magnitudes
 
   // Size of a single galaxy entry.
-  HDF5_dst_size = sizeof(galaxy_output_struct);
+  h5props->dst_size = sizeof(galaxy_output_struct);
 
   // Create datatypes for different size arrays
   hid_t array3f_tid = H5Tarray_create(H5T_NATIVE_FLOAT, 1, (hsize_t[]){3});
 
   // Calculate the offsets of our struct members in memory
-  HDF5_dst_offsets     = mymalloc(sizeof(size_t)*HDF5_n_props);
+  h5props->dst_offsets     = SID_malloc(sizeof(size_t)*h5props->n_props);
   // Calculate the sizes of our struct members in memory.
-  HDF5_dst_sizes       = mymalloc(sizeof(size_t)*HDF5_n_props);
+  h5props->dst_sizes       = SID_malloc(sizeof(size_t)*h5props->n_props);
   // Give each galaxy property a field name in the table
-  HDF5_field_names     = mymalloc(sizeof(const char*)*HDF5_n_props);
+  h5props->field_names     = SID_malloc(sizeof(const char*)*h5props->n_props);
   // Assign a type to each galaxy property field in the table.
-  HDF5_field_types     = mymalloc(sizeof(hid_t)*HDF5_n_props);
+  h5props->field_types     = SID_malloc(sizeof(hid_t)*h5props->n_props);
 
   i=0;
 
-  HDF5_dst_offsets[i]  = HOFFSET(struct GALAXY_OUTPUT, Type);
-  HDF5_dst_sizes[i]    = sizeof(galout.Type);
-  HDF5_field_names[i]  = "Type";
-  HDF5_field_types[i++]  = H5T_NATIVE_INT;
+  h5props->dst_offsets[i]  = HOFFSET(galaxy_output_struct, Type);
+  h5props->dst_sizes[i]    = sizeof(galout.Type);
+  h5props->field_names[i]  = "Type";
+  h5props->field_types[i++]  = H5T_NATIVE_INT;
 
-  HDF5_dst_offsets[i]  = HOFFSET(struct GALAXY_OUTPUT, HaloIndex);
-  HDF5_dst_sizes[i]    = sizeof(galout.HaloIndex);
-  HDF5_field_names[i]  = "HaloIndex";
-  HDF5_field_types[i++]  = H5T_NATIVE_INT;
+  h5props->dst_offsets[i]  = HOFFSET(galaxy_output_struct, HaloIndex);
+  h5props->dst_sizes[i]    = sizeof(galout.HaloIndex);
+  h5props->field_names[i]  = "HaloIndex";
+  h5props->field_types[i++]  = H5T_NATIVE_INT;
 
-  HDF5_dst_offsets[i]  = HOFFSET(struct GALAXY_OUTPUT, CentralGal);
-  HDF5_dst_sizes[i]    = sizeof(galout.CentralGal);
-  HDF5_field_names[i]  = "CentralGal";
-  HDF5_field_types[i++]  = H5T_NATIVE_INT;
+  h5props->dst_offsets[i]  = HOFFSET(galaxy_output_struct, CentralGal);
+  h5props->dst_sizes[i]    = sizeof(galout.CentralGal);
+  h5props->field_names[i]  = "CentralGal";
+  h5props->field_types[i++]  = H5T_NATIVE_INT;
 
-  HDF5_dst_offsets[i]  = HOFFSET(struct GALAXY_OUTPUT, Pos);
-  HDF5_dst_sizes[i]    = sizeof(galout.Pos);
-  HDF5_field_names[i]  = "Pos";
-  HDF5_field_types[i++]  = array3f_tid;
+  h5props->dst_offsets[i]  = HOFFSET(galaxy_output_struct, Pos);
+  h5props->dst_sizes[i]    = sizeof(galout.Pos);
+  h5props->field_names[i]  = "Pos";
+  h5props->field_types[i++]  = array3f_tid;
 
-  HDF5_dst_offsets[i]  = HOFFSET(struct GALAXY_OUTPUT, Vel);
-  HDF5_dst_sizes[i]    = sizeof(galout.Vel);
-  HDF5_field_names[i]  = "Vel";
-  HDF5_field_types[i++]  = array3f_tid;
+  h5props->dst_offsets[i]  = HOFFSET(galaxy_output_struct, Vel);
+  h5props->dst_sizes[i]    = sizeof(galout.Vel);
+  h5props->field_names[i]  = "Vel";
+  h5props->field_types[i++]  = array3f_tid;
 
-  HDF5_dst_offsets[i]  = HOFFSET(struct GALAXY_OUTPUT, Spin);
-  HDF5_dst_sizes[i]    = sizeof(galout.Spin);
-  HDF5_field_names[i]  = "Spin";
-  HDF5_field_types[i++]  = array3f_tid;
+  h5props->dst_offsets[i]  = HOFFSET(galaxy_output_struct, Spin);
+  h5props->dst_sizes[i]    = sizeof(galout.Spin);
+  h5props->field_names[i]  = "Spin";
+  h5props->field_types[i++]  = array3f_tid;
 
-  HDF5_dst_offsets[i] = HOFFSET(struct GALAXY_OUTPUT, Len);
-  HDF5_dst_sizes[i]   = sizeof(galout.Len);
-  HDF5_field_names[i] = "Len";
-  HDF5_field_types[i++] = H5T_NATIVE_INT;
+  h5props->dst_offsets[i] = HOFFSET(galaxy_output_struct, Len);
+  h5props->dst_sizes[i]   = sizeof(galout.Len);
+  h5props->field_names[i] = "Len";
+  h5props->field_types[i++] = H5T_NATIVE_INT;
 
-  HDF5_dst_offsets[i] = HOFFSET(struct GALAXY_OUTPUT, Mvir);
-  HDF5_dst_sizes[i]   = sizeof(galout.Mvir);
-  HDF5_field_names[i] = "Mvir";
-  HDF5_field_types[i++] = H5T_NATIVE_FLOAT;
+  h5props->dst_offsets[i] = HOFFSET(galaxy_output_struct, Mvir);
+  h5props->dst_sizes[i]   = sizeof(galout.Mvir);
+  h5props->field_names[i] = "Mvir";
+  h5props->field_types[i++] = H5T_NATIVE_FLOAT;
 
-  HDF5_dst_offsets[i] = HOFFSET(struct GALAXY_OUTPUT, dM);
-  HDF5_dst_sizes[i]   = sizeof(galout.dM);
-  HDF5_field_names[i] = "dM";
-  HDF5_field_types[i++] = H5T_NATIVE_FLOAT;
+  h5props->dst_offsets[i] = HOFFSET(galaxy_output_struct, dM);
+  h5props->dst_sizes[i]   = sizeof(galout.dM);
+  h5props->field_names[i] = "dM";
+  h5props->field_types[i++] = H5T_NATIVE_FLOAT;
 
-  HDF5_dst_offsets[i] = HOFFSET(struct GALAXY_OUTPUT, dMdt);
-  HDF5_dst_sizes[i]   = sizeof(galout.dMdt);
-  HDF5_field_names[i] = "dMdt";
-  HDF5_field_types[i++] = H5T_NATIVE_FLOAT;
+  h5props->dst_offsets[i] = HOFFSET(galaxy_output_struct, dMdt);
+  h5props->dst_sizes[i]   = sizeof(galout.dMdt);
+  h5props->field_names[i] = "dMdt";
+  h5props->field_types[i++] = H5T_NATIVE_FLOAT;
 
-  HDF5_dst_offsets[i] = HOFFSET(struct GALAXY_OUTPUT, Rvir);
-  HDF5_dst_sizes[i]   = sizeof(galout.Rvir);
-  HDF5_field_names[i] = "Rvir";
-  HDF5_field_types[i++] = H5T_NATIVE_FLOAT;
+  h5props->dst_offsets[i] = HOFFSET(galaxy_output_struct, Rvir);
+  h5props->dst_sizes[i]   = sizeof(galout.Rvir);
+  h5props->field_names[i] = "Rvir";
+  h5props->field_types[i++] = H5T_NATIVE_FLOAT;
 
-  HDF5_dst_offsets[i] = HOFFSET(struct GALAXY_OUTPUT, Vvir);
-  HDF5_dst_sizes[i]   = sizeof(galout.Vvir);
-  HDF5_field_names[i] = "Vvir";
-  HDF5_field_types[i++] = H5T_NATIVE_FLOAT;
+  h5props->dst_offsets[i] = HOFFSET(galaxy_output_struct, Vvir);
+  h5props->dst_sizes[i]   = sizeof(galout.Vvir);
+  h5props->field_names[i] = "Vvir";
+  h5props->field_types[i++] = H5T_NATIVE_FLOAT;
 
-  HDF5_dst_offsets[i] = HOFFSET(struct GALAXY_OUTPUT, Vmax);
-  HDF5_dst_sizes[i]   = sizeof(galout.Vmax);
-  HDF5_field_names[i] = "Vmax";
-  HDF5_field_types[i++] = H5T_NATIVE_FLOAT;
+  h5props->dst_offsets[i] = HOFFSET(galaxy_output_struct, Vmax);
+  h5props->dst_sizes[i]   = sizeof(galout.Vmax);
+  h5props->field_names[i] = "Vmax";
+  h5props->field_types[i++] = H5T_NATIVE_FLOAT;
 
-  HDF5_dst_offsets[i] = HOFFSET(struct GALAXY_OUTPUT, VelDisp);
-  HDF5_dst_sizes[i]   = sizeof(galout.VelDisp);
-  HDF5_field_names[i] = "VelDisp";
-  HDF5_field_types[i++] = H5T_NATIVE_FLOAT;
+  h5props->dst_offsets[i] = HOFFSET(galaxy_output_struct, VelDisp);
+  h5props->dst_sizes[i]   = sizeof(galout.VelDisp);
+  h5props->field_names[i] = "VelDisp";
+  h5props->field_types[i++] = H5T_NATIVE_FLOAT;
 
-  HDF5_dst_offsets[i] = HOFFSET(struct GALAXY_OUTPUT, StellarMass);
-  HDF5_dst_sizes[i]   = sizeof(galout.StellarMass);
-  HDF5_field_names[i] = "StellarMass";
-  HDF5_field_types[i++] = H5T_NATIVE_FLOAT;
+  h5props->dst_offsets[i] = HOFFSET(galaxy_output_struct, StellarMass);
+  h5props->dst_sizes[i]   = sizeof(galout.StellarMass);
+  h5props->field_names[i] = "StellarMass";
+  h5props->field_types[i++] = H5T_NATIVE_FLOAT;
 
-  HDF5_dst_offsets[i] = HOFFSET(struct GALAXY_OUTPUT, Sfr);
-  HDF5_dst_sizes[i]   = sizeof(galout.Sfr);
-  HDF5_field_names[i] = "Sfr";
-  HDF5_field_types[i++] = H5T_NATIVE_FLOAT;
+  h5props->dst_offsets[i] = HOFFSET(galaxy_output_struct, Sfr);
+  h5props->dst_sizes[i]   = sizeof(galout.Sfr);
+  h5props->field_names[i] = "Sfr";
+  h5props->field_types[i++] = H5T_NATIVE_FLOAT;
 
-  HDF5_dst_offsets[i] = HOFFSET(struct GALAXY_OUTPUT, Cos_Inc);
-  HDF5_dst_sizes[i]   = sizeof(galout.Cos_Inc);
-  HDF5_field_names[i] = "Cos_Inc";
-  HDF5_field_types[i++] = H5T_NATIVE_FLOAT;
+  h5props->dst_offsets[i] = HOFFSET(galaxy_output_struct, Cos_Inc);
+  h5props->dst_sizes[i]   = sizeof(galout.Cos_Inc);
+  h5props->field_names[i] = "Cos_Inc";
+  h5props->field_types[i++] = H5T_NATIVE_FLOAT;
 
-  HDF5_dst_offsets[i] = HOFFSET(struct GALAXY_OUTPUT, MergTime);
-  HDF5_dst_sizes[i]   = sizeof(galout.MergTime);
-  HDF5_field_names[i] = "MergTime";
-  HDF5_field_types[i++] = H5T_NATIVE_FLOAT;
+  h5props->dst_offsets[i] = HOFFSET(galaxy_output_struct, MergTime);
+  h5props->dst_sizes[i]   = sizeof(galout.MergTime);
+  h5props->field_names[i] = "MergTime";
+  h5props->field_types[i++] = H5T_NATIVE_FLOAT;
 
   // DEBUG
-  if(i != HDF5_n_props){
+  if(i != h5props->n_props){
     SID_log_error("Incorrect number of galaxy properties in HDF5 file.");
     ABORT(EXIT_FAILURE);
   }
@@ -136,7 +137,7 @@ void calc_hdf5_props()
 }
 
 
-void prep_hdf5_file(char *fname)
+void prep_hdf5_file(run_globals_struct *run_globals, char fname[STRLEN])
 {
 
   hsize_t  chunk_size        = 10;
@@ -147,22 +148,24 @@ void prep_hdf5_file(char *fname)
   char     target_group[100];
   int      filenr;                   // dummy
   hid_t    status;
+  hdf5_output_struct h5props = run_globals->hdf5props;
 
   // Create a new file
   file_id = H5Fcreate( fname, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT );
 
   // Create a group for each output file and snapshot
-  for (filenr = FirstFile; filenr <= LastFile; filenr++) {
+  for (filenr = run_globals->params.FirstFile; filenr <= run_globals->params.LastFile; filenr++) {
 
     for (int i_snap=0; i_snap<NOUT; i_snap++) {
 
-      sprintf(target_group, "Snap%03d", ListOutputSnaps[i_snap]);
+      sprintf(target_group, "Snap%03d", run_globals->ListOutputSnaps[i_snap]);
       snap_group_id = H5Gcreate(file_id, target_group, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
 
       // Make the table
-      status=H5TBmake_table( "Galaxy Table", snap_group_id, "Galaxies", HDF5_n_props,0,
-          HDF5_dst_size,HDF5_field_names, HDF5_dst_offsets, HDF5_field_types,
-          chunk_size, fill_data, 0, NULL );
+      status=H5TBmake_table( "Galaxy Table", snap_group_id, "Galaxies",
+          h5props.n_props,0, h5props.dst_size, h5props.field_names,
+          h5props.dst_offsets, h5props.field_types, chunk_size, fill_data, 0,
+          NULL );
 
       H5Gclose(snap_group_id);
 
@@ -176,7 +179,7 @@ void prep_hdf5_file(char *fname)
 }
 
 
-void write_galaxy(galaxy_struct *gal, int i_out)
+void write_galaxy(run_globals_struct *run_globals, galaxy_struct *gal, int i_out, char fname[STRLEN])
 {
 
   /*
@@ -186,23 +189,20 @@ void write_galaxy(galaxy_struct *gal, int i_out)
   herr_t status;
   hid_t  file_id, group_id;
   char   target_group[100];
-  char   fname[1000];
   galaxy_output_struct galout;
-
-  // Generate the filename to be opened.
-  sprintf(fname, "%s/%s.hdf5", OutputDir, FileNameGalaxies);
+  hdf5_output_struct h5props = run_globals->hdf5props;
 
   // Open the file.
   file_id = H5Fopen(fname, H5F_ACC_RDWR, H5P_DEFAULT);
 
   // Open the relevant group.
-  sprintf(target_group, "Snap%03d", ListOutputSnaps[i_out]);
+  sprintf(target_group, "Snap%03d", run_globals->ListOutputSnaps[i_out]);
   group_id = H5Gopen(file_id, target_group, H5P_DEFAULT);
 
   // Write the galaxy.
   prepare_galaxy_for_output(gal, &galout, i_out);
-  status = H5TBappend_records(group_id, "Galaxies", 1, HDF5_dst_size, HDF5_dst_offsets, HDF5_dst_sizes,
-      galout);
+  status = H5TBappend_records(group_id, "Galaxies", 1, h5props.dst_size, h5props.dst_offsets, h5props.dst_sizes,
+      &galout);
 
   // Close the group
   status = H5Gclose(group_id);
@@ -213,7 +213,7 @@ void write_galaxy(galaxy_struct *gal, int i_out)
 }
 
 
-void write_snapshot(run_globals_struct *run_globals, int NGal, int i_out)
+void write_snapshot(run_globals_struct *run_globals, int NGal, int i_out, char fname[STRLEN])
 {
 
   /*
@@ -224,18 +224,15 @@ void write_snapshot(run_globals_struct *run_globals, int NGal, int i_out)
   hid_t  file_id;
   hid_t  group_id;
   char   target_group[100];
-  char   fname[1000];
   galaxy_output_struct galout;
   galaxy_struct *gal = NULL;
-
-  // Generate the filename to be opened.
-  sprintf(fname, "%s/%s.hdf5", OutputDir, FileNameGalaxies, filenr);
+  hdf5_output_struct h5props = run_globals->hdf5props;
 
   // Open the file.
   file_id = H5Fopen(fname, H5F_ACC_RDWR, H5P_DEFAULT);
 
   // Open the relevant group.
-  sprintf(target_group, "Snap%03d", ListOutputSnaps[i_out]);
+  sprintf(target_group, "Snap%03d", run_globals->ListOutputSnaps[i_out]);
   group_id = H5Gopen(file_id, target_group, H5P_DEFAULT);
 
   // Write the galaxies.
@@ -243,8 +240,8 @@ void write_snapshot(run_globals_struct *run_globals, int NGal, int i_out)
   do {
     prepare_galaxy_for_output(gal, &galout, i_out);
 
-    status=H5TBappend_records(group_id, "Galaxies", 1, HDF5_dst_size,
-        HDF5_dst_offsets, HDF5_dst_sizes, galout);
+    status=H5TBappend_records(group_id, "Galaxies", 1, h5props.dst_size,
+        h5props.dst_offsets, h5props.dst_sizes, &galout);
 
     gal = gal->Next;
   } while (gal!=NULL);
@@ -258,7 +255,7 @@ void write_snapshot(run_globals_struct *run_globals, int NGal, int i_out)
 }
 
 
-void write_hdf5_attrs(int NGal, int i_out, int filenr)
+void write_hdf5_attrs(run_globals_struct *run_globals, int NGal, int i_out, char fname[STRLEN])
 {
 
   /*
@@ -273,16 +270,12 @@ void write_hdf5_attrs(int NGal, int i_out, int filenr)
   hid_t   group_id;
   hsize_t dims;
   char    target_group[100];
-  char    fname[1000];
-
-  // Generate the filename to be opened.
-  sprintf(fname, "%s/%s.hdf5", OutputDir, FileNameGalaxies, filenr);
 
   // Open the output file and galaxy dataset.
   file_id = H5Fopen(fname, H5F_ACC_RDWR, H5P_DEFAULT);
 
   // Open the relevant group.
-  sprintf(target_group, "Snap%03d", ListOutputSnaps[i_out]);
+  sprintf(target_group, "Snap%03d", run_globals->ListOutputSnaps[i_out]);
   group_id = H5Gopen(file_id, target_group, H5P_DEFAULT);
 
   dataset_id = H5Dopen(group_id, "Galaxies", H5P_DEFAULT);

@@ -104,9 +104,7 @@ int main(int argc, char **argv)
   }
 
   init_meraxes(&run_globals);
-
-  // TODO: Calculate the HDF5 file data types and sizes etc.
-  // calc_hdf5_props();
+  calc_hdf5_props(&run_globals);
 
   // Run the model!
   dracarys(&run_globals);

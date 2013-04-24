@@ -157,11 +157,17 @@ void dracarys(run_globals_struct *run_globals)
   int                   i_newhalo;
   int                   NGal         = 0;
   double                dt;
+  char                  fname_out[STRLEN];
 
   for(int snapshot=0; snapshot<MAXSNAPS; snapshot++)
   {
 
+    // Read in the halos for this snapshot
     trees_header = read_halos(run_globals, snapshot, halo, fof_group);
+
+    // Prep the output file
+    sprintf(fname_out, "%s/%s_%03d.hdf5", run_globals->params.OutputDir, run_globals->params.FileNameGalaxies, snapshot);
+    prep_hdf5_file(run_globals, fname_out);
 
     gal      = run_globals->FirstGal;
     prev_gal = NULL;
@@ -239,6 +245,11 @@ void dracarys(run_globals_struct *run_globals)
     } while (gal!=NULL);
 
     evolve_galaxies(run_globals, *fof_group, snapshot, NGal);
+
+    // Write the results if this is a requested snapshot
+    for(int i_out = 0; i_out < NOUT; i_out++)
+      if(snapshot == run_globals->ListOutputSnaps[i_out])
+        write_snapshot(run_globals, NGal, i_out, fname_out);
   
     SID_free(SID_FARG *halo);
     SID_free(SID_FARG *fof_group);

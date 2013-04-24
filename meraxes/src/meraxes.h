@@ -4,6 +4,7 @@
 #include <gbpLib.h>
 #include <gsl/gsl_rng.h>
 #include <stdbool.h>
+#include <hdf5.h>
 
 /*
  * Definitions
@@ -108,22 +109,34 @@ struct run_units_struct{
 };
 typedef struct run_units_struct run_units_struct;
 
+struct hdf5_output_struct
+{
+  size_t         dst_size;
+  size_t        *dst_offsets;
+  size_t        *dst_sizes;
+  const char   **field_names;
+  hid_t         *field_types;
+  int            n_props;
+};
+typedef struct hdf5_output_struct hdf5_output_struct;
+
 //! Global variables which will will be passed around
 struct run_globals_struct{
-  int                LastOutputSnap;
-  int                ListOutputSnaps[NOUT];
-  int                Ngal;
-  double             AA[MAXSNAPS];
-  double             ZZ[MAXSNAPS];
-  double             Age[MAXSNAPS];
-  double             Hubble;
-  double             RhoCrit;
-  double             G;
-  struct galaxy_struct     *FirstGal;
-  struct galaxy_struct     *LastGal;
-  gsl_rng           *random_generator;
-  run_params_struct  params;
-  run_units_struct   units;
+  int                        LastOutputSnap;
+  int                        ListOutputSnaps[NOUT];
+  int                        Ngal;
+  double                     AA[MAXSNAPS];
+  double                     ZZ[MAXSNAPS];
+  double                     Age[MAXSNAPS];
+  double                     Hubble;
+  double                     RhoCrit;
+  double                     G;
+  struct galaxy_struct      *FirstGal;
+  struct galaxy_struct      *LastGal;
+  gsl_rng                   *random_generator;
+  run_params_struct          params;
+  run_units_struct           units;
+  hdf5_output_struct         hdf5props;
 };
 typedef struct run_globals_struct run_globals_struct;
 
@@ -218,7 +231,6 @@ struct galaxy_struct
   double MergTime;
 };
 typedef struct galaxy_struct galaxy_struct;
-
 
 struct galaxy_output_struct
 {
