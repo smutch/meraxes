@@ -1,35 +1,37 @@
 #include "meraxes.h"
 #include <math.h>
 
-void init_galaxy(galaxy_struct *gal)
+void new_galaxy(galaxy_struct **gal)
 {
+  
+  *gal = SID_malloc(sizeof(galaxy_struct));
 
   // Initialise the properties
-  gal->Type              = -1;
-  gal->HaloDescIndex     = -1;
-  gal->TreeFlags         = -1;
-  gal->Halo              = NULL;
-  gal->NextGalInHalo     = NULL;
-  gal->Next              = NULL;
-  gal->MergerTarget      = NULL;
-  gal->Len               = 0;
-  gal->Mvir              = 0.0;
-  gal->dM                = 0.0;
-  gal->dMdt              = 0.0;
-  gal->Rvir              = 0.0;
-  gal->Vvir              = 0.0;
-  gal->Vmax              = 0.0;
-  gal->StellarMass       = 0.0;
-  gal->Cos_Inc           = 0.0;
-  gal->MergTime          = 99999.9;
+  (*gal)->Type              = -1;
+  (*gal)->HaloDescIndex     = -1;
+  (*gal)->TreeFlags         = -1;
+  (*gal)->Halo              = NULL;
+  (*gal)->NextGalInHalo     = NULL;
+  (*gal)->Next              = NULL;
+  (*gal)->MergerTarget      = NULL;
+  (*gal)->Len               = 0;
+  (*gal)->Mvir              = 0.0;
+  (*gal)->dM                = 0.0;
+  (*gal)->dMdt              = 0.0;
+  (*gal)->Rvir              = 0.0;
+  (*gal)->Vvir              = 0.0;
+  (*gal)->Vmax              = 0.0;
+  (*gal)->StellarMass       = 0.0;
+  (*gal)->Cos_Inc           = 0.0;
+  (*gal)->MergTime          = 99999.9;
 
   for(int ii=0; ii<3; ii++)
   {
-    gal->Pos[ii] = -99999.9;
-    gal->Vel[ii] = -99999.9;
+    (*gal)->Pos[ii] = -99999.9;
+    (*gal)->Vel[ii] = -99999.9;
   }
   for(int ii=0; ii<NOUT; ii++)
-    gal->Sfr[ii] = -99999.9;
+    (*gal)->Sfr[ii] = -99999.9;
 
 }
 

@@ -323,7 +323,7 @@ trees_header_struct read_halos(
       (*halo)[halo_count-1].NSubgroups = group_halos[0].NSubgroups-1;
       (*halo)[halo_count-1].Type = 0;
       central_index = halo_count-1;
-      (*fof_group)[group_count].FirstHalo = &((*halo)[central_index]);
+      (*fof_group)[i_group].FirstHalo = &((*halo)[central_index]);
 
       // Deal with any remaining subhalos
       for (int i_subgroup=1; i_subgroup<n_subgroups; i_subgroup++){

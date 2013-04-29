@@ -135,6 +135,7 @@ static void evolve_galaxies(run_globals_struct *run_globals, fof_group_struct *f
   if(gal_counter!=NGal)
   {
     SID_log_error("We have not processed the expected number of galaxies...");
+    SID_log("gal_counter = %d but NGal = %d", SID_LOG_COMMENT, gal_counter, NGal);
     ABORT(EXIT_FAILURE);
   }
 
@@ -213,14 +214,15 @@ void dracarys(run_globals_struct *run_globals)
     // Find empty type 0 halos and place new galaxies in them
     for(int i_halo=0; i_halo<trees_header.n_subgroups; i_halo++)
     {
-      if(((halo[i_halo]).Type == 0) && ((halo[i_halo]).Galaxy == NULL))
+      if((halo[i_halo].Type == 0) && (halo[i_halo].Galaxy == NULL))
       {
-        gal = SID_malloc(sizeof(galaxy_struct));
+        new_galaxy(&gal);
         copy_halo_to_galaxy(run_globals, &(halo[i_halo]), gal);
         if (run_globals->LastGal != NULL)
           run_globals->LastGal->Next = gal;
         run_globals->LastGal = gal;
         halo[i_halo].Galaxy = gal;
+        SID_log("Assigned galaxy to i_halo=%d", SID_LOG_COMMENT, i_halo);
         NGal++;
       }
     }
