@@ -147,8 +147,8 @@ void dracarys(run_globals_struct *run_globals)
 {
 
   trees_header_struct   trees_header;
-  halo_struct         **halo;
-  fof_group_struct    **fof_group;
+  halo_struct          *halo;
+  fof_group_struct     *fof_group;
   galaxy_struct        *gal;
   galaxy_struct        *prev_gal;
   galaxy_struct        *cur_gal;
@@ -161,7 +161,7 @@ void dracarys(run_globals_struct *run_globals)
   {
 
     // Read in the halos for this snapshot
-    trees_header = read_halos(run_globals, snapshot, halo, fof_group);
+    trees_header = read_halos(run_globals, snapshot, &halo, &fof_group);
 
     // Prep the output file
     sprintf(fname_out, "%s/%s_%03d.hdf5", run_globals->params.OutputDir, run_globals->params.FileNameGalaxies, snapshot);
@@ -181,15 +181,15 @@ void dracarys(run_globals_struct *run_globals)
         {
           // Here we have a merger...  Mark it and deal with it below.
           gal->Type = 999;
-          gal->Halo = &(*halo[i_newhalo]);
+          gal->Halo = &(halo[i_newhalo]);
         } else if(gal->Type < 2)
         {
 
-          gal->dM = (*halo[i_newhalo]).Mvir - gal->Mvir;
+          gal->dM = (halo[i_newhalo]).Mvir - gal->Mvir;
           gal->dMdt = (gal->dM)/dt;
 
-          copy_halo_to_galaxy(run_globals, &(*halo[i_newhalo]), gal);
-          (*halo[i_newhalo]).Galaxy = gal;
+          copy_halo_to_galaxy(run_globals, &(halo[i_newhalo]), gal);
+          (halo[i_newhalo]).Galaxy = gal;
         }
       } else
       {
@@ -213,10 +213,10 @@ void dracarys(run_globals_struct *run_globals)
     // Find empty type 0 halos and place new galaxies in them
     for(int i_halo=0; i_halo<trees_header.n_subgroups; i_halo++)
     {
-      if(((*halo[i_halo]).Type == 0) && ((*halo[i_halo]).Galaxy == NULL))
+      if(((halo[i_halo]).Type == 0) && ((halo[i_halo]).Galaxy == NULL))
       {
         gal = SID_malloc(sizeof(galaxy_struct));
-        copy_halo_to_galaxy(run_globals, &(*halo[i_halo]), gal);
+        copy_halo_to_galaxy(run_globals, &(halo[i_halo]), gal);
         run_globals->LastGal->Next = gal;
         run_globals->LastGal = gal;
         NGal++;
@@ -243,15 +243,15 @@ void dracarys(run_globals_struct *run_globals)
     } while (gal!=NULL);
 
     // Do the physics
-    evolve_galaxies(run_globals, *fof_group, snapshot, NGal);
+    evolve_galaxies(run_globals, fof_group, snapshot, NGal);
 
     // Write the results if this is a requested snapshot
     for(int i_out = 0; i_out < NOUT; i_out++)
       if(snapshot == run_globals->ListOutputSnaps[i_out])
         write_snapshot(run_globals, NGal, i_out, fname_out);
   
-    SID_free(SID_FARG *halo);
-    SID_free(SID_FARG *fof_group);
+    SID_free(SID_FARG halo);
+    SID_free(SID_FARG fof_group);
   }
 
 
