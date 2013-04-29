@@ -18,7 +18,7 @@ static double physics_func(run_globals_struct *run_globals, double prop, int sna
 }
 
 //! Evolve existing galaxies forward in time
-static void evolve_galaxies(run_globals_struct *run_globals, fof_group_struct *fof_group, int snapshot, int NGal)
+static void evolve_galaxies(run_globals_struct *run_globals, fof_group_struct *fof_group, int snapshot, int NGal, int NFof)
 {
 
   double         sfr;
@@ -34,13 +34,13 @@ static void evolve_galaxies(run_globals_struct *run_globals, fof_group_struct *f
   double         mass_ratio;
   
   
-  for(int i_fof=0; i_fof<NGal; i_fof++)
+  for(int i_fof=0; i_fof<NFof; i_fof++)
   {
     halo = fof_group[i_fof].FirstHalo;
-    do {
+    while (halo!=NULL) {
       gal = halo->Galaxy;
 
-      do {
+      while(gal!=NULL){
         if((gal->Mvir>0.0) && (gal->Type==0))
           switch (run_globals->params.physics.funcprop){
             case VMAX_PROP:
@@ -77,14 +77,14 @@ static void evolve_galaxies(run_globals_struct *run_globals, fof_group_struct *f
 
         gal_counter++;
         gal = gal->NextGalInHalo;
-      } while(gal!=NULL);
+      }
 
       halo = halo->NextHaloInFOFGroup;
-    } while (halo!=NULL);
+    }
 
     // Check for mergers
     gal = fof_group[i_fof].FirstHalo->Galaxy;
-    do {
+    while(gal!=NULL) {
       if(gal->Type == 2)
       {
         if(gal->MergTime <0)
@@ -129,7 +129,7 @@ static void evolve_galaxies(run_globals_struct *run_globals, fof_group_struct *f
         }
       }
       gal = gal->NextGalInHalo;
-    } while(gal!=NULL);
+    }
   }
     
   if(gal_counter!=NGal)
@@ -171,7 +171,7 @@ void dracarys(run_globals_struct *run_globals)
     prev_gal = NULL;
     dt       = run_globals->Age[snapshot-1]-run_globals->Age[snapshot];
     
-    do {
+    while (gal != NULL) {
       i_newhalo = gal->HaloDescIndex;
 
       if(i_newhalo>-1)
@@ -205,7 +205,7 @@ void dracarys(run_globals_struct *run_globals)
 
       prev_gal = gal;
       gal = gal->Next;
-    } while (gal != NULL);
+    }
 
     // Incase we ended up removing the last galaxy, update the LastGal pointer
     run_globals->LastGal = prev_gal;
@@ -217,8 +217,10 @@ void dracarys(run_globals_struct *run_globals)
       {
         gal = SID_malloc(sizeof(galaxy_struct));
         copy_halo_to_galaxy(run_globals, &(halo[i_halo]), gal);
-        run_globals->LastGal->Next = gal;
+        if (run_globals->LastGal != NULL)
+          run_globals->LastGal->Next = gal;
         run_globals->LastGal = gal;
+        halo[i_halo].Galaxy = gal;
         NGal++;
       }
     }
@@ -226,24 +228,24 @@ void dracarys(run_globals_struct *run_globals)
     // Loop through each galaxy and deal with mergers now that all other galaxies have been 
     // correctly propogated forwards
     gal = run_globals->FirstGal;
-    do {
+    while (gal != NULL) {
       if(gal->Type == 999)
       {
         gal->Type = 2;
         cur_gal = gal->Halo->Galaxy;
-        do {
+        while (cur_gal!=NULL) {
           prev_gal = cur_gal;
           cur_gal = cur_gal->NextGalInHalo;
-        } while (cur_gal!=NULL);
+        }
         prev_gal->NextGalInHalo = gal;
         
         gal->MergTime = calculate_merging_time(run_globals, gal, snapshot);
       }
       gal = gal->Next;
-    } while (gal!=NULL);
+    }
 
     // Do the physics
-    evolve_galaxies(run_globals, fof_group, snapshot, NGal);
+    evolve_galaxies(run_globals, fof_group, snapshot, NGal, trees_header.n_groups);
 
     // Write the results if this is a requested snapshot
     for(int i_out = 0; i_out < NOUT; i_out++)
