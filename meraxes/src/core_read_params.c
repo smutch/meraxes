@@ -86,7 +86,6 @@ void read_parameter_file(run_globals_struct *run_globals, char *fname)
   int user_used_tag[MAXTAGS], defaults_used_tag[MAXTAGS], required_tag[MAXTAGS];
   int errorFlag = 0;
   char defaults_file[STRLEN];
-  char *bp, tmp[50];
   int    params_id[MAXTAGS];
   void   *params_addr[MAXTAGS];
   char   params_tag[MAXTAGS][50];

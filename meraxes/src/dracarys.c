@@ -28,7 +28,6 @@ static void evolve_galaxies(run_globals_struct *run_globals, fof_group_struct *f
   galaxy_struct *gal             = NULL;
   galaxy_struct *parent          = NULL;
   halo_struct   *halo            = NULL;
-  int            i_fof;
   int            gal_counter     = 0;
   double         mi;
   double         ma;
@@ -149,7 +148,6 @@ void dracarys(run_globals_struct *run_globals)
 
   trees_header_struct   trees_header;
   halo_struct         **halo;
-  halo_struct          *cur_halo;
   fof_group_struct    **fof_group;
   galaxy_struct        *gal;
   galaxy_struct        *prev_gal;

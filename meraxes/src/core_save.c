@@ -42,7 +42,6 @@ void calc_hdf5_props(run_globals_struct *run_globals)
 
   hdf5_output_struct     *h5props = &(run_globals->hdf5props);
   galaxy_output_struct   galout;
-  hid_t                  array_nmag_f_tid;
 
 	int                    i;  // dummy
 
@@ -152,7 +151,6 @@ void prep_hdf5_file(run_globals_struct *run_globals, char fname[STRLEN])
   hsize_t  chunk_size        = 10;
   int     *fill_data         = NULL;
   hid_t    file_id;
-  hid_t    file_group_id;
   hid_t    snap_group_id;
   char     target_group[100];
   int      filenr;                   // dummy
