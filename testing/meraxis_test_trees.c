@@ -143,7 +143,7 @@ int main(int argc, char const* argv[])
 {
 
   int snapshot;
-  char trees_fname_base[STRLEN] = "halos/test/trees/horizontal/trees/test_step001_scan001.trees_horizontal";
+  char trees_fname_base[STRLEN] = "halos/test/trees/horizontal/trees/test_step_001_scan_001.trees_horizontal";
   char fname[STRLEN];
   FILE *fout;
   FILE *fout_groups;
@@ -229,7 +229,7 @@ int main(int argc, char const* argv[])
   write_trees_header(fout, 2, 2, 6, 3, 3);
   write_group(fout   , 0, 1, 0, 1, 0  , 1);
   write_subgroup(fout, 0, 1, 0, 1, 0);
-  write_group(fout   , 1, 1, 1, 1, 1  , 2);
+  write_group(fout   , 1, 1, 1, 1, 1  , 1);
   write_subgroup(fout, 1, 1, 1, 1, 1);
   fclose(fout);
 
