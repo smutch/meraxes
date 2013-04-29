@@ -244,6 +244,7 @@ void dracarys(run_globals_struct *run_globals)
       gal = gal->Next;
     } while (gal!=NULL);
 
+    // Do the physics
     evolve_galaxies(run_globals, *fof_group, snapshot, NGal);
 
     // Write the results if this is a requested snapshot

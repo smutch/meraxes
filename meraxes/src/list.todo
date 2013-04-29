@@ -21,7 +21,7 @@ logic:
     ✔ Start the clock @done (2013-04-16 10:30)
     ✔ Increment the clock @done (2013-04-15 14:47)
     ✔ Check for clock <=0 and merge @done (2013-04-16 12:56)
-    ☐ How do we deal with galaxies that have merged and left holes in Gal array?
+    ✔ How do we deal with galaxies that have merged and left holes in Gal array? @done (2013-04-29 10:34)
 ✘ Connect galaxies to progenitors @cancelled (2013-04-15 14:46)
 ✔ Create galaxies in empty type 0s @done (2013-04-15 15:23)
 ✔ Copy necessary halo properties into galaxy @done (2013-04-15 14:46)
@@ -29,8 +29,9 @@ logic:
 ✔ Fix units in calculate_Vvir @high @done (2013-04-15 16:55)
 
 output:
-☐ Use HDF5 output
-☐ Single file just now as we are just running in serial
+✔ Use HDF5 output @done (2013-04-29 10:34)
+✔ Single file just now as we are just running in serial @done (2013-04-29 10:34)
+☐ Pre-calculate indices for write so can point to centrals etc.
 
 document the code:
 ☐ Use Doxygen style comments where appropriate

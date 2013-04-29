@@ -235,8 +235,6 @@ typedef struct galaxy_struct galaxy_struct;
 struct galaxy_output_struct
 {
   int   Type;
-  int   HaloIndex;
-  int   CentralGal;
 
   // properties of subhalo at the last time this galaxy was a central galaxy
   float Pos[3];
@@ -249,7 +247,6 @@ struct galaxy_output_struct
   float Rvir;
   float Vvir;
   float Vmax;
-  float VelDisp;
 
   // baryonic reservoirs
   float StellarMass;
@@ -276,4 +273,7 @@ void free_halos(halo_struct **halo);
 void init_galaxies(galaxy_struct *Gal, int n_halos_max);
 void copy_halo_to_galaxy(run_globals_struct *run_globals, halo_struct *halo, galaxy_struct *gal);
 double calculate_merging_time(run_globals_struct *run_globals, galaxy_struct *gal, int snapshot);
-
+void prep_hdf5_file(run_globals_struct *run_globals, char fname[STRLEN]);
+void write_snapshot(run_globals_struct *run_globals, int NGal, int i_out, char fname[STRLEN]);
+void calc_hdf5_props(run_globals_struct *run_globals);
+void prepare_galaxy_for_output(run_globals_struct *run_globals, galaxy_struct gal, galaxy_output_struct *galout, int i_snap);

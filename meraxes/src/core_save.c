@@ -2,6 +2,35 @@
 #include <hdf5.h>
 #include <hdf5_hl.h>
 
+void prepare_galaxy_for_output(
+  run_globals_struct   *run_globals,
+  galaxy_struct         gal,        
+  galaxy_output_struct *galout,     
+  int                   i_snap)     
+{
+
+  galout->Type = (int)gal.Type;
+
+  for(int ii=0; ii<3; ii++)
+  {
+    galout->Pos[ii]  = (float)gal.Pos[ii];
+    galout->Vel[ii]  = (float)gal.Vel[ii];
+  }
+
+  galout->Len         = (int)gal.Len;
+  galout->Mvir        = (float)gal.Mvir;
+  galout->dM          = (float)gal.dM;
+  galout->dMdt        = (float)gal.dMdt;
+  galout->Rvir        = (float)gal.Rvir;
+  galout->Vvir        = (float)gal.Vvir;
+  galout->Vmax        = (float)gal.Vmax;
+  galout->StellarMass = (float)gal.StellarMass;
+  galout->Sfr         = (float)gal.Sfr[i_snap];
+  galout->DiskRadius  = (float)gal.DiskRadius;
+  galout->Cos_Inc     = (float)gal.Cos_Inc;
+  galout->MergTime    = (float)gal.MergTime;
+
+}
 
 void calc_hdf5_props(run_globals_struct *run_globals)
 {
@@ -19,7 +48,7 @@ void calc_hdf5_props(run_globals_struct *run_globals)
 
   // If we are calculating any magnitudes then increment the number of
   // output properties appropriately.
-  h5props->n_props = 18;  // not inc. magnitudes
+  h5props->n_props = 14;  // not inc. magnitudes
 
   // Size of a single galaxy entry.
   h5props->dst_size = sizeof(galaxy_output_struct);
@@ -43,16 +72,6 @@ void calc_hdf5_props(run_globals_struct *run_globals)
   h5props->field_names[i]  = "Type";
   h5props->field_types[i++]  = H5T_NATIVE_INT;
 
-  h5props->dst_offsets[i]  = HOFFSET(galaxy_output_struct, HaloIndex);
-  h5props->dst_sizes[i]    = sizeof(galout.HaloIndex);
-  h5props->field_names[i]  = "HaloIndex";
-  h5props->field_types[i++]  = H5T_NATIVE_INT;
-
-  h5props->dst_offsets[i]  = HOFFSET(galaxy_output_struct, CentralGal);
-  h5props->dst_sizes[i]    = sizeof(galout.CentralGal);
-  h5props->field_names[i]  = "CentralGal";
-  h5props->field_types[i++]  = H5T_NATIVE_INT;
-
   h5props->dst_offsets[i]  = HOFFSET(galaxy_output_struct, Pos);
   h5props->dst_sizes[i]    = sizeof(galout.Pos);
   h5props->field_names[i]  = "Pos";
@@ -61,11 +80,6 @@ void calc_hdf5_props(run_globals_struct *run_globals)
   h5props->dst_offsets[i]  = HOFFSET(galaxy_output_struct, Vel);
   h5props->dst_sizes[i]    = sizeof(galout.Vel);
   h5props->field_names[i]  = "Vel";
-  h5props->field_types[i++]  = array3f_tid;
-
-  h5props->dst_offsets[i]  = HOFFSET(galaxy_output_struct, Spin);
-  h5props->dst_sizes[i]    = sizeof(galout.Spin);
-  h5props->field_names[i]  = "Spin";
   h5props->field_types[i++]  = array3f_tid;
 
   h5props->dst_offsets[i] = HOFFSET(galaxy_output_struct, Len);
@@ -101,11 +115,6 @@ void calc_hdf5_props(run_globals_struct *run_globals)
   h5props->dst_offsets[i] = HOFFSET(galaxy_output_struct, Vmax);
   h5props->dst_sizes[i]   = sizeof(galout.Vmax);
   h5props->field_names[i] = "Vmax";
-  h5props->field_types[i++] = H5T_NATIVE_FLOAT;
-
-  h5props->dst_offsets[i] = HOFFSET(galaxy_output_struct, VelDisp);
-  h5props->dst_sizes[i]   = sizeof(galout.VelDisp);
-  h5props->field_names[i] = "VelDisp";
   h5props->field_types[i++] = H5T_NATIVE_FLOAT;
 
   h5props->dst_offsets[i] = HOFFSET(galaxy_output_struct, StellarMass);
@@ -162,6 +171,7 @@ void prep_hdf5_file(run_globals_struct *run_globals, char fname[STRLEN])
       snap_group_id = H5Gcreate(file_id, target_group, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
 
       // Make the table
+
       status=H5TBmake_table( "Galaxy Table", snap_group_id, "Galaxies",
           h5props.n_props,0, h5props.dst_size, h5props.field_names,
           h5props.dst_offsets, h5props.field_types, chunk_size, fill_data, 0,
@@ -200,7 +210,7 @@ void write_galaxy(run_globals_struct *run_globals, galaxy_struct *gal, int i_out
   group_id = H5Gopen(file_id, target_group, H5P_DEFAULT);
 
   // Write the galaxy.
-  prepare_galaxy_for_output(gal, &galout, i_out);
+  prepare_galaxy_for_output(run_globals, *gal, &galout, i_out);
   status = H5TBappend_records(group_id, "Galaxies", 1, h5props.dst_size, h5props.dst_offsets, h5props.dst_sizes,
       &galout);
 
@@ -238,7 +248,7 @@ void write_snapshot(run_globals_struct *run_globals, int NGal, int i_out, char f
   // Write the galaxies.
   gal = run_globals->FirstGal; 
   do {
-    prepare_galaxy_for_output(gal, &galout, i_out);
+    prepare_galaxy_for_output(run_globals, *gal, &galout, i_out);
 
     status=H5TBappend_records(group_id, "Galaxies", 1, h5props.dst_size,
         h5props.dst_offsets, h5props.dst_sizes, &galout);
