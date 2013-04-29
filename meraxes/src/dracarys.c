@@ -190,7 +190,8 @@ void dracarys(run_globals_struct *run_globals)
           gal->dMdt = (gal->dM)/dt;
 
           copy_halo_to_galaxy(run_globals, &(halo[i_newhalo]), gal);
-          (halo[i_newhalo]).Galaxy = gal;
+          halo[i_newhalo].Galaxy = gal;
+          SID_log("Assigned existing galaxy to halo %d", SID_LOG_COMMENT, i_newhalo);
         }
       } else
       {
@@ -220,9 +221,11 @@ void dracarys(run_globals_struct *run_globals)
         copy_halo_to_galaxy(run_globals, &(halo[i_halo]), gal);
         if (run_globals->LastGal != NULL)
           run_globals->LastGal->Next = gal;
+        else
+          run_globals->FirstGal = gal;
         run_globals->LastGal = gal;
         halo[i_halo].Galaxy = gal;
-        SID_log("Assigned galaxy to i_halo=%d", SID_LOG_COMMENT, i_halo);
+        SID_log("Created new galaxy in i_halo=%d", SID_LOG_COMMENT, i_halo);
         NGal++;
       }
     }
