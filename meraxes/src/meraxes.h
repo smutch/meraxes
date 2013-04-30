@@ -180,8 +180,9 @@ struct halo_struct{
   int    DescIndex;      //!< Index of descendant in next relevant snapshot
   int    TreeFlags;      //!< Bitwise flag indicating the type of match in the trees
   int    NSubgroups;     //!< Number of subgroups belonging to this type 0 (=-1 if type=1)
-  struct halo_struct        *NextHaloInFOFGroup;
-  struct galaxy_struct      *Galaxy;
+  struct fof_group_struct *FOFGroup;
+  struct halo_struct      *NextHaloInFOFGroup;
+  struct galaxy_struct    *Galaxy;
   double Mvir;           //!< Bryan &Norman (ApJ 495, 80, 1998) virial mass [M_sol/h]
   int    Len;            //!< Number of particles in the structure
   float  Pos[3];         //!< Most bound particle position [Mpc/h]
@@ -228,12 +229,16 @@ struct galaxy_struct
   double Sfr[NOUT];
   double Cos_Inc;
   double MergTime;
+
+  // write index
+  int output_index;
 };
 typedef struct galaxy_struct galaxy_struct;
 
 struct galaxy_output_struct
 {
   int   Type;
+  int   CentralGal;
 
   // properties of subhalo at the last time this galaxy was a central galaxy
   float Pos[3];

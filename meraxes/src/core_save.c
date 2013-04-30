@@ -13,6 +13,7 @@ void prepare_galaxy_for_output(
   run_units_struct *units = &(run_globals->units);
 
   galout->Type = (int)gal.Type;
+  galout->CentralGal = (int)gal.Halo->FOFGroup->FirstHalo->Galaxy->output_index;
 
   for(int ii=0; ii<3; ii++)
   {
@@ -49,7 +50,7 @@ void calc_hdf5_props(run_globals_struct *run_globals)
 
   // If we are calculating any magnitudes then increment the number of
   // output properties appropriately.
-  h5props->n_props = 14;  // not inc. magnitudes
+  h5props->n_props = 15;  // not inc. magnitudes
 
   // Size of a single galaxy entry.
   h5props->dst_size = sizeof(galaxy_output_struct);
@@ -71,6 +72,11 @@ void calc_hdf5_props(run_globals_struct *run_globals)
   h5props->dst_offsets[i]  = HOFFSET(galaxy_output_struct, Type);
   h5props->dst_field_sizes[i]    = sizeof(galout.Type);
   h5props->field_names[i]  = "Type";
+  h5props->field_types[i++]  = H5T_NATIVE_INT;
+
+  h5props->dst_offsets[i]  = HOFFSET(galaxy_output_struct, CentralGal);
+  h5props->dst_field_sizes[i]    = sizeof(galout.CentralGal);
+  h5props->field_names[i]  = "CentralGal";
   h5props->field_types[i++]  = H5T_NATIVE_INT;
 
   h5props->dst_offsets[i]  = HOFFSET(galaxy_output_struct, Pos);
@@ -339,7 +345,16 @@ void write_snapshot(run_globals_struct *run_globals, int n_write, int i_out)
       h5props.dst_offsets, h5props.field_types, chunk_size, fill_data, 0,
       NULL );
 
-  // // Write the galaxies.
+  // Assign the write order indices to each galaxy
+  gal_count = 0;
+  gal = run_globals->FirstGal;
+  while (gal!=NULL) {
+    gal->output_index = gal_count++;
+    gal = gal->Next;
+  }
+
+  // Write the galaxies.
+  gal_count = 0;
   gal = run_globals->FirstGal; 
   while (gal!=NULL) {
     // Don't output galaxies which merged at this timestep

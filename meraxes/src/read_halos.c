@@ -331,6 +331,7 @@ trees_header_struct read_halos(
       convert_input_halo_units(&((*halo)[halo_count-1]));
       central_index = halo_count-1;
       (*fof_group)[i_group].FirstHalo = &((*halo)[central_index]);
+      (*halo)[halo_count-1].FOFGroup = &((*fof_group)[i_group]);
 
       // Deal with any remaining subhalos
       for (int i_subgroup=1; i_subgroup<n_subgroups; i_subgroup++){
@@ -339,6 +340,7 @@ trees_header_struct read_halos(
             &i_subgroup_file, &N_halos_subgroups_file, &subgroup_count_infile, *halo, N_subgroups_files, &halo_count);
         (*halo)[halo_count-1].Type = 1;
         convert_input_halo_units(&((*halo)[halo_count-1]));
+        (*halo)[halo_count-1].FOFGroup = &((*fof_group)[i_group]);
         (*halo)[halo_count-2].NextHaloInFOFGroup = &((*halo)[halo_count-1]);
       }
     }

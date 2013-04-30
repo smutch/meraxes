@@ -33,6 +33,7 @@ void new_galaxy(galaxy_struct **gal)
   for(int ii=0; ii<NOUT; ii++)
     (*gal)->Sfr[ii] = -99999.9;
 
+  (*gal)->output_index = -1;
 }
 
 static double calculate_Vvir(run_globals_struct *run_globals, halo_struct *halo)
@@ -51,4 +52,9 @@ void copy_halo_to_galaxy(run_globals_struct *run_globals, halo_struct *halo, gal
   gal->Vvir            = calculate_Vvir(run_globals, halo);
   gal->Vmax            = halo->Vmax;
   gal->TreeFlags       = halo->TreeFlags;
+  for (int ii=0; ii<3; ii++)
+  {
+    gal->Pos[ii]       = halo->Pos[ii];
+    gal->Vel[ii]       = halo->Vel[ii];
+  }
 }
