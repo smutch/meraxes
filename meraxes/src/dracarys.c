@@ -84,53 +84,56 @@ static int evolve_galaxies(run_globals_struct *run_globals, fof_group_struct *fo
     }
 
     // Check for mergers
-    gal = fof_group[i_fof].FirstHalo->Galaxy;
-    while(gal!=NULL) {
-      if(gal->Type == 2)
-      {
-        if(gal->MergTime <0)
+    halo = fof_group[i_fof].FirstHalo;
+    while(halo!=NULL) {
+      gal = halo->Galaxy;
+      while(gal!=NULL) {
+        if(gal->Type == 2)
         {
-          // Merger!
-          parent = gal->MergerTarget;
-
-          // What if the parent (or the parent of the parent!?!) itself merges in this timestep?
-          if((parent->Type ==2) && (parent->MergTime <0))
+          // If the merger clock has run out or our target halo has already
+          // merged then process a merger event.  Note that this relies on the
+          // merger target coming before this galaxy in the linked list of halo
+          // members.  This should be the case but I should confirm that it is
+          // always true...
+          if((gal->MergTime <0) || (gal->MergerTarget->Type==3))
           {
-            do{
+            // Merger!
+            parent = gal->MergerTarget;
+
+            while (parent->Type==3)
               parent = parent->MergerTarget;
-            } while ((parent->Type ==2) && (parent->MergTime <0));
+
+            // calculate mass ratio of merging galaxies 
+            if(gal->StellarMass < parent->StellarMass)
+            {
+              mi = gal->StellarMass;
+              ma = parent->StellarMass;
+            }
+            else
+            {
+              mi = parent->StellarMass;
+              ma = gal->StellarMass;
+            }
+            if(ma > 0)
+              mass_ratio = mi / ma;
+            else
+              mass_ratio = 1.0;
+
+            // Add galaxies together
+            parent->StellarMass += gal->StellarMass;
+
+            for(int outputbin = 0; outputbin < NOUT; outputbin++)
+              parent->Sfr[outputbin] += gal->Sfr[outputbin];
+
+            // Mark the merged galaxy as dead
+            gal->Type          = 3;
+            gal->HaloDescIndex = -1;
+            dead_gals++;
           }
-
-          // calculate mass ratio of merging galaxies 
-          if(gal->StellarMass < parent->StellarMass)
-          {
-            mi = gal->StellarMass;
-            ma = parent->StellarMass;
-          }
-          else
-          {
-            mi = parent->StellarMass;
-            ma = gal->StellarMass;
-          }
-          if(ma > 0)
-            mass_ratio = mi / ma;
-          else
-            mass_ratio = 1.0;
-
-          // Add galaxies together
-          parent->StellarMass += gal->StellarMass;
-
-          for(int outputbin = 0; outputbin < NOUT; outputbin++)
-            parent->Sfr[outputbin] += gal->Sfr[outputbin];
-
-          // Mark the merged galaxy as dead
-          gal->Type          = 3;
-          gal->HaloDescIndex = -1;
-          dead_gals++;
-
         }
+        gal = gal->NextGalInHalo;
       }
-      gal = gal->NextGalInHalo;
+      halo = halo->NextHaloInFOFGroup;
     }
   }
     
