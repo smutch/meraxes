@@ -17,7 +17,7 @@ init:
 ✔ init of z list @done (2013-04-14 19:27)
 
 logic:
-☐ Deal with mergers
+✔ Deal with mergers @done (2013-04-30 20:14)
     ✔ Start the clock @done (2013-04-16 10:30)
     ✔ Increment the clock @done (2013-04-15 14:47)
     ✔ Check for clock <=0 and merge @done (2013-04-16 12:56)
@@ -31,7 +31,12 @@ logic:
 output:
 ✔ Use HDF5 output @done (2013-04-29 10:34)
 ✔ Single file just now as we are just running in serial @done (2013-04-29 10:34)
-☐ Pre-calculate indices for write so can point to centrals etc.
+✔ Pre-calculate indices for write so can point to centrals etc. @done (2013-04-30 20:14)
+
+tests:
+☐ Ensure that satellite merger targets always follow the assumed rules
+    1. They are in the same halo as the satellite
+    2. They appear before the satellite in the halo member linked list
 
 document the code:
 ☐ Use Doxygen style comments where appropriate
