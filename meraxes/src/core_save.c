@@ -150,11 +150,146 @@ void calc_hdf5_props(run_globals_struct *run_globals)
 void prep_hdf5_file(run_globals_struct *run_globals)
 {
 
-  hid_t    file_id;
-  hid_t    status;
+  hid_t    file_id, str_t, ds_id, group_id, attr_id;
+  herr_t   status;
+  hsize_t  dims = 1;
+  const char     **names;
+  void    *addresses[10];
+  int ii;
 
   // Create a new file
   file_id = H5Fcreate(run_globals->FNameOut, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT );
+  
+  // Set up reusable dataspaces and types
+  ds_id = H5Screate_simple(1, &dims, NULL);
+  str_t = H5Tcopy(H5T_C_S1);
+  status = H5Tset_size(str_t, STRLEN);
+  names = SID_malloc(sizeof(const char *) * 10);
+
+  // Open the group
+  group_id = H5Gcreate(file_id, "InputParams", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+
+  ii=0;
+  addresses[ii] = &(run_globals->params.filename);
+  names[ii++] = "filename";
+  addresses[ii] = &(run_globals->params.OutputDir);
+  names[ii++] = "OutputDir";
+  addresses[ii] = &(run_globals->params.FileNameGalaxies);
+  names[ii++] = "FileNameGalaxies";
+  addresses[ii] = &(run_globals->params.SimName);
+  names[ii++] = "SimName";
+  addresses[ii] = &(run_globals->params.SimulationDir);
+  names[ii++] = "SimulationDir";
+  addresses[ii] = &(run_globals->params.CoolFunctionsDir);
+  names[ii++] = "CoolFunctionsDir";
+  addresses[ii] = &(run_globals->params.FileWithOutputSnaps);
+  names[ii]   = "FileWithOutputSnaps";
+
+  for(int jj=0; jj<ii; jj++)
+  {
+    attr_id = H5Acreate(group_id, names[jj], str_t, ds_id, H5P_DEFAULT, H5P_DEFAULT);
+    status = H5Awrite(attr_id, str_t, addresses[jj]);
+    status = H5Aclose(attr_id);
+  }
+
+  ii=0;
+  addresses[ii] = &(run_globals->params.NEverySnap);
+  names[ii++] = "NEverySnap";
+  addresses[ii] = &(run_globals->params.NScanSnap);
+  names[ii++] = "NScanSnap";
+  addresses[ii] = &(run_globals->params.FilesPerSnapshot);
+  names[ii++] = "FilesPerSnapshot";
+  addresses[ii] = &(run_globals->params.LastSnapShotNr);
+  names[ii++] = "LastSnapShotNr";
+  addresses[ii] = &(run_globals->params.FirstFile);
+  names[ii++] = "FirstFile";
+  addresses[ii] = &(run_globals->params.LastFile);
+  names[ii++] = "LastFile";
+  addresses[ii] = &(run_globals->params.DiskInstabilityOn);
+  names[ii++] = "DiskInstabilityOn";
+  addresses[ii] = &(run_globals->params.SnaplistLength);
+  names[ii++] = "SnaplistLength";
+
+  for(int jj=0; jj<ii; jj++)
+  {
+    attr_id = H5Acreate(group_id, names[jj], H5T_NATIVE_INT, ds_id, H5P_DEFAULT, H5P_DEFAULT);
+    status = H5Awrite(attr_id, H5T_NATIVE_INT, addresses[jj]);
+    status = H5Aclose(attr_id);
+  }
+
+  ii=0;
+  addresses[ii] = &(run_globals->params.BoxSize);
+  names[ii++] = "BoxSize";
+  addresses[ii] = &(run_globals->params.VolumeFactor);
+  names[ii++] = "VolumeFactor";
+  addresses[ii] = &(run_globals->params.ThreshMajorMerger);
+  names[ii++] = "ThreshMajorMerger";
+  addresses[ii] = &(run_globals->params.RecycleFraction);
+  names[ii++] = "RecycleFraction";
+  addresses[ii] = &(run_globals->params.Hubble_h);
+  names[ii++] = "Hubble_h";
+  addresses[ii] = &(run_globals->params.BaryonFrac);
+  names[ii++] = "BaryonFrac";
+  addresses[ii] = &(run_globals->params.Omega);
+  names[ii++] = "Omega";
+  addresses[ii] = &(run_globals->params.OmegaLambda);
+  names[ii++] = "OmegaLambda";
+  addresses[ii] = &(run_globals->params.PartMass);
+  names[ii++] = "PartMass";
+  addresses[ii] = &(run_globals->params.MergerTimeFactor);
+  names[ii++] = "MergerTimeFactor";
+
+  for(int jj=0; jj<ii; jj++)
+  {
+    attr_id = H5Acreate(group_id, names[jj], H5T_NATIVE_DOUBLE, ds_id, H5P_DEFAULT, H5P_DEFAULT);
+    status = H5Awrite(attr_id, H5T_NATIVE_DOUBLE, addresses[jj]);
+    status = H5Aclose(attr_id);
+  }
+
+  // Close the group
+  status = H5Gclose(group_id);
+
+  // Open the group
+  group_id = H5Gcreate(file_id, "InputParams/physics", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+
+  ii=0;
+  addresses[ii] = &(run_globals->params.physics.peak);
+  names[ii++] = "peak";
+  addresses[ii] = &(run_globals->params.physics.sigma);
+  names[ii++] = "sigma";
+  addresses[ii] = &(run_globals->params.physics.stellarfrac);
+  names[ii++] = "stellarfrac";
+  addresses[ii] = &(run_globals->params.physics.peak_evo);
+  names[ii++] = "peak_evo";
+  addresses[ii] = &(run_globals->params.physics.sigma_evo);
+  names[ii++] = "sigma_evo";
+  addresses[ii] = &(run_globals->params.physics.stellarfrac_evo);
+  names[ii++] = "stellarfrac_evo";
+  addresses[ii] = &(run_globals->params.physics.bhgrowthfactor);
+  names[ii++] = "bhgrowthfactor";
+
+  for(int jj=0; jj<ii; jj++)
+  {
+    attr_id = H5Acreate(group_id, names[jj], H5T_NATIVE_DOUBLE, ds_id, H5P_DEFAULT, H5P_DEFAULT);
+    status = H5Awrite(attr_id, H5T_NATIVE_DOUBLE, addresses[jj]);
+    status = H5Aclose(attr_id);
+  }
+
+  ii=0;
+  addresses[ii] = &(run_globals->params.physics.funcprop);
+  names[ii++] = "funcprop";
+
+  for(int jj=0; jj<ii; jj++)
+  {
+    attr_id = H5Acreate(group_id, names[jj], H5T_NATIVE_INT, ds_id, H5P_DEFAULT, H5P_DEFAULT);
+    status = H5Awrite(attr_id, H5T_NATIVE_INT, addresses[jj]);
+    status = H5Aclose(attr_id);
+  }
+ 
+  // Close the group
+  status = H5Gclose(group_id);
+
+  SID_free(SID_FARG names);
 
   // Close the HDF5 file.
   status = H5Fclose(file_id);
