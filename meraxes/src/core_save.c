@@ -289,6 +289,17 @@ void prep_hdf5_file(run_globals_struct *run_globals)
   // Close the group
   status = H5Gclose(group_id);
 
+#ifdef GITREF_STR
+  // Save the git ref if requested
+  char tempstr[45];
+
+  sprintf(tempstr, GITREF_STR);
+  attr_id = H5Acreate(file_id, "GitRef", str_t, ds_id, H5P_DEFAULT, H5P_DEFAULT);
+  status = H5Awrite(attr_id, str_t, tempstr);
+  status = H5Aclose(attr_id);
+#endif
+
+  status = H5Sclose(ds_id);
   SID_free(SID_FARG names);
 
   // Close the HDF5 file.
