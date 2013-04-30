@@ -10,7 +10,7 @@
  * Definitions
  */
 
-#define STRLEN  256  //!< Default string length
+#define STRLEN  128  //!< Default string length
 #define MAXTAGS 50   //!< Maximum number of allowed tags in input file
 #define ALLOCFACTOR 2  //!< Size of galaxy array is ALLOCFACTOR*n_halos_max
 
@@ -113,7 +113,7 @@ struct hdf5_output_struct
 {
   size_t         dst_size;
   size_t        *dst_offsets;
-  size_t        *dst_sizes;
+  size_t        *dst_field_sizes;
   const char   **field_names;
   hid_t         *field_types;
   int            n_props;
@@ -131,11 +131,12 @@ struct run_globals_struct{
   double                     Hubble;
   double                     RhoCrit;
   double                     G;
+  char                       FNameOut[STRLEN];
   struct galaxy_struct      *FirstGal;
   struct galaxy_struct      *LastGal;
   gsl_rng                   *random_generator;
-  run_params_struct          params;
-  run_units_struct           units;
+  struct run_params_struct   params;
+  struct run_units_struct    units;
   hdf5_output_struct         hdf5props;
 };
 typedef struct run_globals_struct run_globals_struct;
@@ -273,7 +274,7 @@ void free_halos(halo_struct **halo);
 void new_galaxy(galaxy_struct **gal);
 void copy_halo_to_galaxy(run_globals_struct *run_globals, halo_struct *halo, galaxy_struct *gal);
 double calculate_merging_time(run_globals_struct *run_globals, galaxy_struct *gal, int snapshot);
-void prep_hdf5_file(run_globals_struct *run_globals, char fname[STRLEN]);
-void write_snapshot(run_globals_struct *run_globals, int NGal, int i_out, char fname[STRLEN]);
+void prep_hdf5_file(run_globals_struct *run_globals);
+void write_snapshot(run_globals_struct *run_globals, int n_write, int i_out);
 void calc_hdf5_props(run_globals_struct *run_globals);
 void prepare_galaxy_for_output(run_globals_struct *run_globals, galaxy_struct gal, galaxy_output_struct *galout, int i_snap);

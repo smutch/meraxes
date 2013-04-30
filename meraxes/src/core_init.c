@@ -156,6 +156,10 @@ void init_meraxes(run_globals_struct *run_globals)
   // Initialise galaxy pointers
   run_globals->FirstGal = NULL;
   run_globals->LastGal = NULL;
+  
+  // Prep the output file
+  sprintf(run_globals->FNameOut, "%s/%s.hdf5", run_globals->params.OutputDir, run_globals->params.FileNameGalaxies);
+  prep_hdf5_file(run_globals);
 
 }
 

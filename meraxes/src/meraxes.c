@@ -4,6 +4,10 @@
 
 static void cleanup(run_globals_struct *run_globals)
 {
+  SID_free(SID_FARG run_globals->hdf5props.field_types);
+  SID_free(SID_FARG run_globals->hdf5props.field_names);
+  SID_free(SID_FARG run_globals->hdf5props.dst_field_sizes);
+  SID_free(SID_FARG run_globals->hdf5props.dst_offsets);
   gsl_rng_free(run_globals->random_generator);
 }
 
