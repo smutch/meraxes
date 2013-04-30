@@ -184,6 +184,12 @@ static void inline read_subgroup(FILE *fin, halo_struct *halo, int i_halo)
   halo[i_halo].NSubgroups = -1;
 }
 
+
+static void convert_input_halo_units(halo_struct *halo)
+{
+  halo->Mvir /= 1.0e10;
+}
+
 trees_header_struct read_halos(
   run_globals_struct  *run_globals,
   int                  snapshot,   
@@ -322,6 +328,7 @@ trees_header_struct read_halos(
       memcpy(&((*halo)[halo_count-1].Mvir), &(group_halos[0].Mvir), sizeof(halo_struct)-offsetof(halo_struct, Mvir)); 
       (*halo)[halo_count-1].NSubgroups = group_halos[0].NSubgroups-1;
       (*halo)[halo_count-1].Type = 0;
+      convert_input_halo_units(&((*halo)[halo_count-1]));
       central_index = halo_count-1;
       (*fof_group)[i_group].FirstHalo = &((*halo)[central_index]);
 
@@ -331,6 +338,7 @@ trees_header_struct read_halos(
         read_catalog_halo(&fin_subgroup_halos, run_globals->params.SimulationDir, run_globals->params.SimName, corrected_snapshot, "subgroups", &catalog_subgroups_flayout, 
             &i_subgroup_file, &N_halos_subgroups_file, &subgroup_count_infile, *halo, N_subgroups_files, &halo_count);
         (*halo)[halo_count-1].Type = 1;
+        convert_input_halo_units(&((*halo)[halo_count-1]));
         (*halo)[halo_count-2].NextHaloInFOFGroup = &((*halo)[halo_count-1]);
       }
     }

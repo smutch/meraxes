@@ -203,13 +203,8 @@ void read_parameter_file(run_globals_struct *run_globals, char *fname)
   required_tag[n_param] = 1;
   params_id[n_param++] = DOUBLE;
 
-  strcpy(params_tag[n_param], "SimHubble_h");
-  params_addr[n_param] = &(run_params->SimHubble_h);
-  required_tag[n_param] = 1;
-  params_id[n_param++] = DOUBLE;
-
-  strcpy(params_tag[n_param], "ObsHubble_h");
-  params_addr[n_param] = &(run_params->ObsHubble_h);
+  strcpy(params_tag[n_param], "Hubble_h");
+  params_addr[n_param] = &(run_params->Hubble_h);
   required_tag[n_param] = 1;
   params_id[n_param++] = DOUBLE;
 

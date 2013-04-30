@@ -9,26 +9,28 @@ void prepare_galaxy_for_output(
   int                   i_snap)     
 {
 
+  double Hubble_h = run_globals->params.Hubble_h;
+  run_units_struct *units = &(run_globals->units);
+
   galout->Type = (int)gal.Type;
 
   for(int ii=0; ii<3; ii++)
   {
-    galout->Pos[ii]  = (float)gal.Pos[ii];
-    galout->Vel[ii]  = (float)gal.Vel[ii];
+    galout->Pos[ii]  = (float)(gal.Pos[ii] / Hubble_h);
+    galout->Vel[ii]  = (float)(gal.Vel[ii]);
   }
 
-  galout->Len         = (int)gal.Len;
-  galout->Mvir        = (float)gal.Mvir;
-  galout->dM          = (float)gal.dM;
-  galout->dMdt        = (float)gal.dMdt;
-  galout->Rvir        = (float)gal.Rvir;
-  galout->Vvir        = (float)gal.Vvir;
-  galout->Vmax        = (float)gal.Vmax;
-  galout->StellarMass = (float)gal.StellarMass;
-  galout->Sfr         = (float)gal.Sfr[i_snap];
-  galout->DiskRadius  = (float)gal.DiskRadius;
-  galout->Cos_Inc     = (float)gal.Cos_Inc;
-  galout->MergTime    = (float)gal.MergTime;
+  galout->Len         = (int)(gal.Len);
+  galout->Mvir        = (float)(gal.Mvir / Hubble_h);
+  galout->dM          = (float)(gal.dM / Hubble_h);
+  galout->dMdt        = (float)(gal.dMdt * units->UnitMass_in_g / units->UnitTime_in_s * SEC_PER_YEAR / SOLAR_MASS);
+  galout->Rvir        = (float)(gal.Rvir / Hubble_h);
+  galout->Vvir        = (float)(gal.Vvir);
+  galout->Vmax        = (float)(gal.Vmax);
+  galout->StellarMass = (float)(gal.StellarMass / 1.e10 / Hubble_h);
+  galout->Sfr         = (float)(gal.Sfr[i_snap] * units->UnitMass_in_g / units->UnitTime_in_s * SEC_PER_YEAR / SOLAR_MASS);
+  galout->Cos_Inc     = (float)(gal.Cos_Inc);
+  galout->MergTime    = (float)(gal.MergTime * units->UnitLength_in_cm / units->UnitVelocity_in_cm_per_s / SEC_PER_MEGAYEAR / Hubble_h);
 
 }
 

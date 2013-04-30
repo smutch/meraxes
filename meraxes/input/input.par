@@ -9,7 +9,6 @@ OutputDir                   test
 
 CoolFunctionsDir            ../../CoolFunctions
 
-ObsHubble_h                 0.7
 
 #------------------------------------------
 #----- Simulation input files  ------------

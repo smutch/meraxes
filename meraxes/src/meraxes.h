@@ -83,8 +83,7 @@ struct run_params_struct{
   double                VolumeFactor;
   double                ThreshMajorMerger;
   double                RecycleFraction;
-  double                SimHubble_h;
-  double                ObsHubble_h;
+  double                Hubble_h;
   int                   DiskInstabilityOn;
   double                BaryonFrac;
   double                Omega;
@@ -227,7 +226,6 @@ struct galaxy_struct
 
   // misc
   double Sfr[NOUT];
-  double DiskRadius;
   double Cos_Inc;
   double MergTime;
 };
@@ -254,7 +252,6 @@ struct galaxy_output_struct
 
   // misc
   float Sfr;
-  float DiskRadius;
   float Cos_Inc;
   float MergTime;
 };
