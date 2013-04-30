@@ -11,7 +11,6 @@ double calculate_merging_time(run_globals_struct *run_globals, galaxy_struct *sa
   double         parent_rvir;
 
   parent            = sat->Halo->Galaxy;
-  sat->MergerTarget = parent;
 
   if(parent == sat)
   {
