@@ -162,6 +162,7 @@ void dracarys(run_globals_struct *run_globals)
   galaxy_struct        *cur_gal;
   int                   i_newhalo;
   int                   NGal         = 0;
+  int                   unique_ID    = 0;
   int                   nout_gals;
   double                dt;
   
@@ -222,7 +223,7 @@ void dracarys(run_globals_struct *run_globals)
     {
       if((halo[i_halo].Type == 0) && (halo[i_halo].Galaxy == NULL))
       {
-        new_galaxy(&gal);
+        new_galaxy(&gal, &unique_ID);
         copy_halo_to_galaxy(run_globals, &(halo[i_halo]), gal);
         if (run_globals->LastGal != NULL)
           run_globals->LastGal->Next = gal;

@@ -1,12 +1,13 @@
 #include "meraxes.h"
 #include <math.h>
 
-void new_galaxy(galaxy_struct **gal)
+void new_galaxy(galaxy_struct **gal, int *unique_ID)
 {
   
   *gal = SID_malloc(sizeof(galaxy_struct));
 
   // Initialise the properties
+  (*gal)->ID                = (*unique_ID)++;
   (*gal)->Type              = -1;
   (*gal)->HaloDescIndex     = -1;
   (*gal)->TreeFlags         = -1;

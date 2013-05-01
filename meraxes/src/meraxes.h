@@ -203,6 +203,7 @@ typedef struct fof_group_struct fof_group_struct;
 
 struct galaxy_struct
 {
+  int    ID;
   int    Type;
   int    HaloDescIndex;
   int    TreeFlags;
@@ -237,6 +238,7 @@ typedef struct galaxy_struct galaxy_struct;
 
 struct galaxy_output_struct
 {
+  int   ID;
   int   Type;
   int   CentralGal;
   int   MergerTarget;
@@ -274,7 +276,7 @@ void init_meraxes(run_globals_struct *run_globals);
 void dracarys(run_globals_struct *run_globals);
 trees_header_struct read_halos(run_globals_struct *run_globals, int snapshot, halo_struct **halo, fof_group_struct **fof_group);
 void free_halos(halo_struct **halo);
-void new_galaxy(galaxy_struct **gal);
+void new_galaxy(galaxy_struct **gal, int *unique_ID);
 void copy_halo_to_galaxy(run_globals_struct *run_globals, halo_struct *halo, galaxy_struct *gal);
 double calculate_merging_time(run_globals_struct *run_globals, galaxy_struct *gal, int snapshot);
 void prep_hdf5_file(run_globals_struct *run_globals);

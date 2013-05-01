@@ -32,6 +32,7 @@ void prepare_galaxy_for_output(
   double Hubble_h = run_globals->params.Hubble_h;
   run_units_struct *units = &(run_globals->units);
 
+  galout->ID = (int)gal.ID;
   galout->Type = (int)gal.Type;
   galout->CentralGal = (int)gal.Halo->FOFGroup->FirstHalo->Galaxy->output_index;
   if (gal.MergerTarget!=NULL)
@@ -74,7 +75,7 @@ void calc_hdf5_props(run_globals_struct *run_globals)
 
   // If we are calculating any magnitudes then increment the number of
   // output properties appropriately.
-  h5props->n_props = 16;  // not inc. magnitudes
+  h5props->n_props = 17;  // not inc. magnitudes
 
   // Size of a single galaxy entry.
   h5props->dst_size = sizeof(galaxy_output_struct);
@@ -92,6 +93,11 @@ void calc_hdf5_props(run_globals_struct *run_globals)
   h5props->field_types     = SID_malloc(sizeof(hid_t)*h5props->n_props);
 
   i=0;
+
+  h5props->dst_offsets[i]  = HOFFSET(galaxy_output_struct, ID);
+  h5props->dst_field_sizes[i]    = sizeof(galout.ID);
+  h5props->field_names[i]  = "ID";
+  h5props->field_types[i++]  = H5T_NATIVE_INT;
 
   h5props->dst_offsets[i]  = HOFFSET(galaxy_output_struct, Type);
   h5props->dst_field_sizes[i]    = sizeof(galout.Type);
