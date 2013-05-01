@@ -385,8 +385,8 @@ void write_snapshot(run_globals_struct *run_globals, int n_write, int i_out)
 
   h5_write_attribute(group_id, "Redshift", H5T_NATIVE_DOUBLE, ds_id, &(run_globals->ZZ[run_globals->ListOutputSnaps[i_out]]));
 
-  temp = run_globals->Age[run_globals->ListOutputSnaps[i_out]] * run_globals->units.UnitLength_in_cm / run_globals->units.UnitVelocity_in_cm_per_s / SEC_PER_MEGAYEAR / run_globals->params.Hubble_h;
-  h5_write_attribute(group_id, "Age", H5T_NATIVE_DOUBLE, ds_id, &temp);
+  temp = run_globals->LTTime[run_globals->ListOutputSnaps[i_out]] * run_globals->units.UnitLength_in_cm / run_globals->units.UnitVelocity_in_cm_per_s / SEC_PER_MEGAYEAR / run_globals->params.Hubble_h;
+  h5_write_attribute(group_id, "LTTime", H5T_NATIVE_DOUBLE, ds_id, &temp);
 
   // Close the group.
   status = H5Gclose(group_id);

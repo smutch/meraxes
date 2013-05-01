@@ -126,7 +126,7 @@ struct run_globals_struct{
   int                        Ngal;
   double                     AA[MAXSNAPS];
   double                     ZZ[MAXSNAPS];
-  double                     Age[MAXSNAPS];
+  double                     LTTime[MAXSNAPS];
   double                     Hubble;
   double                     RhoCrit;
   double                     G;

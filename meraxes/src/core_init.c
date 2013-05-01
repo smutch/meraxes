@@ -150,7 +150,7 @@ void init_meraxes(run_globals_struct *run_globals)
   for(i = 0; i < snaplist_len; i++)
   {
     run_globals->ZZ[i] = 1 / run_globals->AA[i] - 1;
-    run_globals->Age[i] = time_to_present(run_globals, run_globals->ZZ[i]);
+    run_globals->LTTime[i] = time_to_present(run_globals, run_globals->ZZ[i]);
   }
 
   // Initialise galaxy pointers

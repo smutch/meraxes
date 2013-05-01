@@ -24,7 +24,7 @@ static int evolve_galaxies(run_globals_struct *run_globals, fof_group_struct *fo
   double         sfr;
   double         BaryonFrac      = run_globals->params.BaryonFrac;
   double         RecycleFraction = run_globals->params.RecycleFraction;
-  double         dt              = run_globals->Age[snapshot-1]-run_globals->Age[snapshot];
+  double         dt              = run_globals->LTTime[snapshot-1]-run_globals->LTTime[snapshot];
   galaxy_struct *gal             = NULL;
   galaxy_struct *parent          = NULL;
   halo_struct   *halo            = NULL;
@@ -174,7 +174,7 @@ void dracarys(run_globals_struct *run_globals)
 
     gal      = run_globals->FirstGal;
     prev_gal = NULL;
-    dt       = run_globals->Age[snapshot-1]-run_globals->Age[snapshot];
+    dt       = run_globals->LTTime[snapshot-1]-run_globals->LTTime[snapshot];
     
     while (gal != NULL) {
       i_newhalo = gal->HaloDescIndex;
