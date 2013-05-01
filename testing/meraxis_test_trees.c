@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <string.h>
+#include "tree_flags.h"
 
 #define STRLEN 256
 
@@ -143,7 +144,7 @@ int main(int argc, char const* argv[])
 {
 
   int snapshot;
-  char trees_fname_base[STRLEN] = "halos/test/trees/horizontal/trees/test_step001_scan001.trees_horizontal";
+  char trees_fname_base[STRLEN] = "halos/test/trees/horizontal/trees/test_step_001_scan_001.trees_horizontal";
   char fname[STRLEN];
   FILE *fout;
   FILE *fout_groups;
@@ -159,12 +160,12 @@ int main(int argc, char const* argv[])
   fout = fopen(fname, "wb");
 
   write_trees_header(fout, 3, 3, 6, 3, 3);
-  write_group(fout   , 0, 1, 0, 1, 0  , 1);
-  write_subgroup(fout, 0, 1, 0, 1, 0);
-  write_group(fout   , 1, 1, 1, 1, 1  , 1);
-  write_subgroup(fout, 1, 1, 1, 1, 1);
-  write_group(fout   , 2, 1, 2, 1, 2  , 1);
-  write_subgroup(fout, 2, 1, 2, 1, 2);
+  write_group(fout   , 0, TREE_CASE_MAIN_PROGENITOR, 0, 1, 0  , 1);
+  write_subgroup(fout, 0, TREE_CASE_MAIN_PROGENITOR, 0, 1, 0);
+  write_group(fout   , 1, TREE_CASE_MAIN_PROGENITOR, 1, 1, 1  , 1);
+  write_subgroup(fout, 1, TREE_CASE_MAIN_PROGENITOR, 1, 1, 1);
+  write_group(fout   , 2, TREE_CASE_MAIN_PROGENITOR, 2, 1, 2  , 1);
+  write_subgroup(fout, 2, TREE_CASE_MAIN_PROGENITOR, 2, 1, 2);
   fclose(fout);
 
   // now deal with the catalogs
@@ -194,11 +195,11 @@ int main(int argc, char const* argv[])
   fout = fopen(fname, "wb");
 
   write_trees_header(fout, 2, 3  , 6, 3, 3);
-  write_group(fout       , 0, 1  , 0, 1, 0  , 1);
-  write_subgroup(fout    , 0, 1  , 0, 1, 0);
-  write_group(fout       , 1, 1  , 1, 1, 1  , 2);
-  write_subgroup(fout    , 1, 1|2, 1, 1, 1);
-  write_subgroup(fout    , 2, 1|2, 1, 1, 1);
+  write_group(fout       , 0, TREE_CASE_MAIN_PROGENITOR  , 0, 1, 0  , 1);
+  write_subgroup(fout    , 0, TREE_CASE_MAIN_PROGENITOR  , 0, 1, 0);
+  write_group(fout       , 1, TREE_CASE_MAIN_PROGENITOR  , 1, 1, 1  , 2);
+  write_subgroup(fout    , 1, TREE_CASE_MAIN_PROGENITOR  , 1, 1, 1);
+  write_subgroup(fout    , 2, TREE_CASE_MERGER           , 1, 1, 1);
   fclose(fout);
 
   // now deal with the catalogs
@@ -227,10 +228,10 @@ int main(int argc, char const* argv[])
   fout = fopen(fname, "wb");
 
   write_trees_header(fout, 2, 2, 6, 3, 3);
-  write_group(fout   , 0, 1, 0, 1, 0  , 1);
-  write_subgroup(fout, 0, 1, 0, 1, 0);
-  write_group(fout   , 1, 1, 1, 1, 1  , 2);
-  write_subgroup(fout, 1, 1, 1, 1, 1);
+  write_group(fout   , 0, TREE_CASE_MAIN_PROGENITOR, 0, 1, 0  , 1);
+  write_subgroup(fout, 0, TREE_CASE_MAIN_PROGENITOR, 0, 1, 0);
+  write_group(fout   , 1, TREE_CASE_MAIN_PROGENITOR, 1, 1, 1  , 1);
+  write_subgroup(fout, 1, TREE_CASE_MAIN_PROGENITOR, 1, 1, 1);
   fclose(fout);
 
   // now deal with the catalogs

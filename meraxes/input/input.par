@@ -5,11 +5,10 @@
 FileNameGalaxies            test
 DefaultsFile                ../input/GiggleZ_NR_step_008_scan_016.par
 FileWithOutputSnaps			../input/desired_outputsnaps.txt
-OutputDir                   /nfs/cluster/darren/simon/results/fhmodel/temp_test
+OutputDir                   test
 
 CoolFunctionsDir            ../../CoolFunctions
 
-ObsHubble_h                 0.7
 
 #------------------------------------------
 #----- Simulation input files  ------------

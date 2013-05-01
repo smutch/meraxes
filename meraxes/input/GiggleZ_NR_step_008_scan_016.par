@@ -60,7 +60,7 @@ RecycleFraction				0.3		;fraction of SF mass assumed to instantaneously go nova
 Omega                       0.273 
 OmegaLambda                 0.727
 BaryonFrac                  0.167
-SimHubble_h                    0.705
+Hubble_h                    0.705
 PartMass                    0.7516436
 
 UnitLength_in_cm			3.08568e+24		;WATCH OUT: Mpc/h

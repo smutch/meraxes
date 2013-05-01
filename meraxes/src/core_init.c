@@ -133,7 +133,7 @@ static void read_output_snaps(run_globals_struct *run_globals)
 
 }
 
-void init_meraxis(run_globals_struct *run_globals)
+void init_meraxes(run_globals_struct *run_globals)
 {
   int i;
   int snaplist_len;
@@ -150,8 +150,16 @@ void init_meraxis(run_globals_struct *run_globals)
   for(i = 0; i < snaplist_len; i++)
   {
     run_globals->ZZ[i] = 1 / run_globals->AA[i] - 1;
-    run_globals->Age[i] = time_to_present(run_globals, run_globals->ZZ[i]);
+    run_globals->LTTime[i] = time_to_present(run_globals, run_globals->ZZ[i]);
   }
+
+  // Initialise galaxy pointers
+  run_globals->FirstGal = NULL;
+  run_globals->LastGal = NULL;
+  
+  // Prep the output file
+  sprintf(run_globals->FNameOut, "%s/%s.hdf5", run_globals->params.OutputDir, run_globals->params.FileNameGalaxies);
+  prep_hdf5_file(run_globals);
 
 }
 

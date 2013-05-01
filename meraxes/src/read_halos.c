@@ -125,23 +125,25 @@ static void inline read_catalog_halo(
   cur_model_halo = &(halo[*halo_count]);
 
   // Copy over the properties we want to keep
-  cur_model_halo->id          = *halo_count;
-  cur_model_halo->Mvir        = halo_in.M_vir;
-  cur_model_halo->len         = halo_in.n_particles;
-  cur_model_halo->position[0] = halo_in.position_MBP[0];
-  cur_model_halo->position[1] = halo_in.position_MBP[1];
-  cur_model_halo->position[2] = halo_in.position_MBP[2];
-  cur_model_halo->velocity[0] = halo_in.velocity_COM[0];
-  cur_model_halo->velocity[1] = halo_in.velocity_COM[1];
-  cur_model_halo->velocity[2] = halo_in.velocity_COM[2];
-  cur_model_halo->Rvir        = halo_in.R_vir;
-  cur_model_halo->Rhalo       = halo_in.R_halo;
-  cur_model_halo->Rmax        = halo_in.R_max;
-  cur_model_halo->Vmax        = halo_in.V_max;
-  cur_model_halo->VelDisp     = halo_in.sigma_v;
-  cur_model_halo->spin[0]     = halo_in.spin[0];
-  cur_model_halo->spin[1]     = halo_in.spin[1];
-  cur_model_halo->spin[2]     = halo_in.spin[2];
+  // cur_model_halo->ID        = *halo_count;
+  cur_model_halo->Mvir               = halo_in.M_vir;
+  cur_model_halo->Len                = halo_in.n_particles;
+  cur_model_halo->Pos[0]             = halo_in.position_MBP[0];
+  cur_model_halo->Pos[1]             = halo_in.position_MBP[1];
+  cur_model_halo->Pos[2]             = halo_in.position_MBP[2];
+  cur_model_halo->Vel[0]             = halo_in.velocity_COM[0];
+  cur_model_halo->Vel[1]             = halo_in.velocity_COM[1];
+  cur_model_halo->Vel[2]             = halo_in.velocity_COM[2];
+  cur_model_halo->Rvir               = halo_in.R_vir;
+  cur_model_halo->Rhalo              = halo_in.R_halo;
+  cur_model_halo->Rmax               = halo_in.R_max;
+  cur_model_halo->Vmax               = halo_in.V_max;
+  cur_model_halo->VelDisp            = halo_in.sigma_v;
+  cur_model_halo->Spin[0]            = halo_in.spin[0];
+  cur_model_halo->Spin[1]            = halo_in.spin[1];
+  cur_model_halo->Spin[2]            = halo_in.spin[2];
+  cur_model_halo->NextHaloInFOFGroup = NULL;
+  cur_model_halo->Galaxy             = NULL;
 
   // Update the counters
   (*halo_count)++;
@@ -161,31 +163,38 @@ static void inline read_trees_header(FILE *fin, trees_header_struct *header)
 static void inline read_group(FILE *fin, halo_struct *halo, int i_halo)
 {
   int dummy;
-  fread(&(halo[i_halo].id)         , sizeof(int), 1, fin);
-  fread(&(halo[i_halo].tree_flags) , sizeof(int), 1, fin);
-  fread(&(halo[i_halo].desc_id)    , sizeof(int), 1, fin);
+  fread(&(halo[i_halo].ID)         , sizeof(int), 1, fin);
+  fread(&(halo[i_halo].TreeFlags)  , sizeof(int), 1, fin);
   fread(&dummy                     , sizeof(int), 1, fin);
-  fread(&(halo[i_halo].file_offset), sizeof(int), 1, fin);
-  fread(&(halo[i_halo].file_index) , sizeof(int), 1, fin);
-  fread(&(halo[i_halo].n_subgroups), sizeof(int), 1, fin);
+  fread(&dummy                     , sizeof(int), 1, fin);
+  fread(&dummy                     , sizeof(int), 1, fin);
+  fread(&(halo[i_halo].DescIndex)  , sizeof(int), 1, fin);
+  fread(&(halo[i_halo].NSubgroups) , sizeof(int), 1, fin);
 }
 
 static void inline read_subgroup(FILE *fin, halo_struct *halo, int i_halo)
 {
   int dummy;
-  fread(&(halo[i_halo].id)         , sizeof(int), 1, fin);
-  fread(&(halo[i_halo].tree_flags) , sizeof(int), 1, fin);
-  fread(&(halo[i_halo].desc_id)    , sizeof(int), 1, fin);
+  fread(&(halo[i_halo].ID)         , sizeof(int), 1, fin);
+  fread(&(halo[i_halo].TreeFlags)  , sizeof(int), 1, fin);
   fread(&dummy                     , sizeof(int), 1, fin);
-  fread(&(halo[i_halo].file_offset), sizeof(int), 1, fin);
-  fread(&(halo[i_halo].file_index) , sizeof(int), 1, fin);
-  halo[i_halo].n_subgroups = -1;
+  fread(&dummy                     , sizeof(int), 1, fin);
+  fread(&dummy                     , sizeof(int), 1, fin);
+  fread(&(halo[i_halo].DescIndex)  , sizeof(int), 1, fin);
+  halo[i_halo].NSubgroups = -1;
+}
+
+
+static void inline convert_input_halo_units(halo_struct *halo)
+{
+  halo->Mvir /= 1.0e10;
 }
 
 trees_header_struct read_halos(
   run_globals_struct  *run_globals,
   int                  snapshot,   
-  halo_struct        **halo)      
+  halo_struct        **halo,
+  fof_group_struct   **fof_group)      
 {
 
   int                 N_halos;
@@ -220,6 +229,7 @@ trees_header_struct read_halos(
   FILE *fin_trees;
   int   catalog_groups_flayout    = -1;
   int   catalog_subgroups_flayout = -1;
+  int   central_index;  //!< Index of the central halo associated with this one
   halo_catalog_filename(run_globals->params.SimulationDir, run_globals->params.SimName, corrected_snapshot, "groups", 0, &catalog_groups_flayout, fname);
   fin = fopen(fname, "rb");
   if (fin==NULL)
@@ -248,7 +258,17 @@ trees_header_struct read_halos(
   SID_log("N_halos_subgroups = %d", SID_LOG_COMMENT, N_halos_subgroups);
   SID_log("N_halos = %d", SID_LOG_COMMENT, N_halos);
   if (N_halos>0)
-    *halo = malloc(sizeof(halo_struct) * N_halos);
+    *halo = SID_malloc(sizeof(halo_struct) * N_halos);
+
+  // Allocate the fof_group array
+  if (N_halos_groups>0)
+  {
+    *fof_group = SID_malloc(sizeof(fof_group_struct) * N_halos_groups);
+    for(int ii=0; ii<N_halos_groups; ii++)
+    {
+      (*fof_group)[ii].FirstHalo  = NULL;
+    }
+  }
 
   // TREES
   SID_log("Reading in trees...", SID_LOG_COMMENT);
@@ -287,7 +307,7 @@ trees_header_struct read_halos(
   halo_struct group_halos[1];
   for (int i_group=0; i_group<header.n_groups; i_group++){
     read_group(fin_trees, group_halos, group_count);
-    n_subgroups = group_halos[group_count].n_subgroups;
+    n_subgroups = group_halos[group_count].NSubgroups;
     read_catalog_halo(&fin_group_halos, run_globals->params.SimulationDir, run_globals->params.SimName, corrected_snapshot, "groups", &catalog_groups_flayout, 
         &i_group_file, &N_halos_groups_file, &group_count_infile, group_halos, N_groups_files, &group_count);
     group_count=0; // Reset this after every group read as we are using a dummy 1 element array for group_halos
@@ -306,15 +326,22 @@ trees_header_struct read_halos(
           &i_subgroup_file, &N_halos_subgroups_file, &subgroup_count_infile, *halo, N_subgroups_files, &halo_count);
       // Copy the relevant FOF group data over the top...
       memcpy(&((*halo)[halo_count-1].Mvir), &(group_halos[0].Mvir), sizeof(halo_struct)-offsetof(halo_struct, Mvir)); 
-      (*halo)[halo_count-1].n_subgroups = group_halos[0].n_subgroups-1;
-      (*halo)[halo_count-1].type = 0;
+      (*halo)[halo_count-1].NSubgroups = group_halos[0].NSubgroups-1;
+      (*halo)[halo_count-1].Type = 0;
+      convert_input_halo_units(&((*halo)[halo_count-1]));
+      central_index = halo_count-1;
+      (*fof_group)[i_group].FirstHalo = &((*halo)[central_index]);
+      (*halo)[halo_count-1].FOFGroup = &((*fof_group)[i_group]);
 
       // Deal with any remaining subhalos
       for (int i_subgroup=1; i_subgroup<n_subgroups; i_subgroup++){
         read_subgroup(fin_trees, *halo, halo_count);
         read_catalog_halo(&fin_subgroup_halos, run_globals->params.SimulationDir, run_globals->params.SimName, corrected_snapshot, "subgroups", &catalog_subgroups_flayout, 
             &i_subgroup_file, &N_halos_subgroups_file, &subgroup_count_infile, *halo, N_subgroups_files, &halo_count);
-        (*halo)[halo_count-1].type = 1;
+        (*halo)[halo_count-1].Type = 1;
+        convert_input_halo_units(&((*halo)[halo_count-1]));
+        (*halo)[halo_count-1].FOFGroup = &((*fof_group)[i_group]);
+        (*halo)[halo_count-2].NextHaloInFOFGroup = &((*halo)[halo_count-1]);
       }
     }
   }
@@ -329,6 +356,9 @@ trees_header_struct read_halos(
     SID_log_error("halo_count != N_halos\n");
     ABORT(EXIT_FAILURE);
   }
+
+  // Update the header n_groups to take into account phantoms
+  header.n_groups -= phantom_group_count;
 
   SID_log("...done", SID_LOG_CLOSE);
 

@@ -8,7 +8,46 @@ setup basic structures:
 ✔ parameters @done (2013-04-10 09:58)
 
 fix reading:
-☐ only read halo properties we actually want
+✔ only read halo properties we actually want @done (2013-04-14 19:19)
+
+init:
+✔ units @done (2013-04-14 19:27)
+✔ reading of desired snaps @done (2013-04-14 19:27)
+✔ reading of a_list @done (2013-04-14 19:27)
+✔ init of z list @done (2013-04-14 19:27)
+
+logic:
+✔ Deal with mergers @done (2013-04-30 20:14)
+    ✔ Start the clock @done (2013-04-16 10:30)
+    ✔ Increment the clock @done (2013-04-15 14:47)
+    ✔ Check for clock <=0 and merge @done (2013-04-16 12:56)
+    ✔ How do we deal with galaxies that have merged and left holes in Gal array? @done (2013-04-29 10:34)
+✘ Connect galaxies to progenitors @cancelled (2013-04-15 14:46)
+✔ Create galaxies in empty type 0s @done (2013-04-15 15:23)
+✔ Copy necessary halo properties into galaxy @done (2013-04-15 14:46)
+✔ Do physics @done (2013-04-15 22:19)
+✔ Fix units in calculate_Vvir @high @done (2013-04-15 16:55)
+
+output:
+✔ Use HDF5 output @done (2013-04-29 10:34)
+✔ Single file just now as we are just running in serial @done (2013-04-29 10:34)
+✔ Pre-calculate indices for write so can point to centrals etc. @done (2013-04-30 20:14)
+✔ Add unique IDs to output so can follow histories. @done (2013-05-01 12:33)
+☐ What to do if type 0/1 merges without transition to type 2?
+    There is no merger target information in the output files in this case, so
+    how do we go about following histories?
+    - How about adding the halo index and descendant halo index?
+
+tests:
+☐ Ensure that satellite merger targets always follow the assumed rules
+    1. They are in the same halo as the satellite
+    2. They appear before the satellite in the halo member linked list
 
 document the code:
 ☐ Use Doxygen style comments where appropriate
+
+down the line:
+☐ Substeps?
+☐ Meraxis is written such that it could be called from python or an html wrapper
+  It would be nice to take advantage of this fact.
+

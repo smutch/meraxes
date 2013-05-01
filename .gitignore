@@ -13,3 +13,4 @@ Project.vim
 config.py
 *.sublime-project
 *.sublime.workspace
+bin
