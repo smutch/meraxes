@@ -251,6 +251,7 @@ void dracarys(run_globals_struct *run_globals)
         prev_gal->NextGalInHalo = gal;
         
         gal->MergerTarget = gal->Halo->Galaxy;
+        SID_log("Snap %d: Just set merger target of %d to %d...", SID_LOG_COMMENT, snapshot, gal->ID, gal->MergerTarget->ID);
         gal->MergTime = calculate_merging_time(run_globals, gal, snapshot);
       }
       gal = gal->Next;
