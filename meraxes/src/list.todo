@@ -32,6 +32,7 @@ output:
 ✔ Use HDF5 output @done (2013-04-29 10:34)
 ✔ Single file just now as we are just running in serial @done (2013-04-29 10:34)
 ✔ Pre-calculate indices for write so can point to centrals etc. @done (2013-04-30 20:14)
+☐ Add progenitor or descendant indices to output so can follow histories.
 
 tests:
 ☐ Ensure that satellite merger targets always follow the assumed rules

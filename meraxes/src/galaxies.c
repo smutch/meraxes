@@ -31,14 +31,14 @@ void new_galaxy(galaxy_struct **gal)
     (*gal)->Vel[ii] = -99999.9;
   }
   for(int ii=0; ii<NOUT; ii++)
-    (*gal)->Sfr[ii] = -99999.9;
+    (*gal)->Sfr[ii] = 0;
 
   (*gal)->output_index = -1;
 }
 
 static double calculate_Vvir(run_globals_struct *run_globals, halo_struct *halo)
 {
-  return sqrt(run_globals->G * halo->Mvir/1.0e10 / halo->Rvir);
+  return sqrt(run_globals->G * halo->Mvir / halo->Rvir);
 }
 
 void copy_halo_to_galaxy(run_globals_struct *run_globals, halo_struct *halo, galaxy_struct *gal)
@@ -47,7 +47,7 @@ void copy_halo_to_galaxy(run_globals_struct *run_globals, halo_struct *halo, gal
   gal->Type            = halo->Type;
   gal->Len             = halo->Len;
   gal->HaloDescIndex   = halo->DescIndex;
-  gal->Mvir            = halo->Mvir/1.0e10;
+  gal->Mvir            = halo->Mvir;
   gal->Rvir            = halo->Rvir;
   gal->Vvir            = calculate_Vvir(run_globals, halo);
   gal->Vmax            = halo->Vmax;

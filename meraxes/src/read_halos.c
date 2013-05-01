@@ -185,7 +185,7 @@ static void inline read_subgroup(FILE *fin, halo_struct *halo, int i_halo)
 }
 
 
-static void convert_input_halo_units(halo_struct *halo)
+static void inline convert_input_halo_units(halo_struct *halo)
 {
   halo->Mvir /= 1.0e10;
 }
