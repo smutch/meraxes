@@ -2,6 +2,26 @@
 #include <hdf5.h>
 #include <hdf5_hl.h>
 
+static void inline h5_write_attribute(hid_t loc, const char *name, hid_t datatype, hid_t dataset_id, void *data)
+{
+  herr_t status;
+  hid_t attr_id;
+
+  attr_id = H5Acreate(loc, name, datatype, dataset_id, H5P_DEFAULT, H5P_DEFAULT);
+  status = H5Awrite(attr_id, datatype, data);
+  if (status<0)
+  {
+    SID_log("Error writing attribute '%s'", SID_LOG_COMMENT, name);
+    ABORT(EXIT_FAILURE);
+  }
+  status = H5Aclose(attr_id);
+  if (status<0)
+  {
+    SID_log("Error closing attribute '%s'", SID_LOG_COMMENT, name);
+    ABORT(EXIT_FAILURE);
+  }
+}
+
 void prepare_galaxy_for_output(
   run_globals_struct   *run_globals,
   galaxy_struct         gal,        
@@ -201,11 +221,7 @@ void prep_hdf5_file(run_globals_struct *run_globals)
   names[ii]   = "FileWithOutputSnaps";
 
   for(int jj=0; jj<ii; jj++)
-  {
-    attr_id = H5Acreate(group_id, names[jj], str_t, ds_id, H5P_DEFAULT, H5P_DEFAULT);
-    status = H5Awrite(attr_id, str_t, addresses[jj]);
-    status = H5Aclose(attr_id);
-  }
+    h5_write_attribute(group_id, names[jj], str_t, ds_id, addresses[jj]);
 
   ii=0;
   addresses[ii] = &(run_globals->params.NEverySnap);
@@ -226,11 +242,7 @@ void prep_hdf5_file(run_globals_struct *run_globals)
   names[ii++] = "SnaplistLength";
 
   for(int jj=0; jj<ii; jj++)
-  {
-    attr_id = H5Acreate(group_id, names[jj], H5T_NATIVE_INT, ds_id, H5P_DEFAULT, H5P_DEFAULT);
-    status = H5Awrite(attr_id, H5T_NATIVE_INT, addresses[jj]);
-    status = H5Aclose(attr_id);
-  }
+    h5_write_attribute(group_id, names[jj], H5T_NATIVE_INT, ds_id, addresses[jj]);
 
   ii=0;
   addresses[ii] = &(run_globals->params.BoxSize);
@@ -255,11 +267,7 @@ void prep_hdf5_file(run_globals_struct *run_globals)
   names[ii++] = "MergerTimeFactor";
 
   for(int jj=0; jj<ii; jj++)
-  {
-    attr_id = H5Acreate(group_id, names[jj], H5T_NATIVE_DOUBLE, ds_id, H5P_DEFAULT, H5P_DEFAULT);
-    status = H5Awrite(attr_id, H5T_NATIVE_DOUBLE, addresses[jj]);
-    status = H5Aclose(attr_id);
-  }
+    h5_write_attribute(group_id, names[jj], H5T_NATIVE_DOUBLE, ds_id, addresses[jj]);
 
   // Close the group
   status = H5Gclose(group_id);
@@ -284,22 +292,13 @@ void prep_hdf5_file(run_globals_struct *run_globals)
   names[ii++] = "bhgrowthfactor";
 
   for(int jj=0; jj<ii; jj++)
-  {
-    attr_id = H5Acreate(group_id, names[jj], H5T_NATIVE_DOUBLE, ds_id, H5P_DEFAULT, H5P_DEFAULT);
-    status = H5Awrite(attr_id, H5T_NATIVE_DOUBLE, addresses[jj]);
-    status = H5Aclose(attr_id);
-  }
+    h5_write_attribute(group_id, names[jj], H5T_NATIVE_DOUBLE, ds_id, addresses[jj]);
 
   ii=0;
   addresses[ii] = &(run_globals->params.physics.funcprop);
-  names[ii++] = "funcprop";
+  names[ii] = "funcprop";
 
-  for(int jj=0; jj<ii; jj++)
-  {
-    attr_id = H5Acreate(group_id, names[jj], H5T_NATIVE_INT, ds_id, H5P_DEFAULT, H5P_DEFAULT);
-    status = H5Awrite(attr_id, H5T_NATIVE_INT, addresses[jj]);
-    status = H5Aclose(attr_id);
-  }
+  h5_write_attribute(group_id, names[0], H5T_NATIVE_INT, ds_id, addresses[0]);
  
   // Close the group
   status = H5Gclose(group_id);
@@ -330,16 +329,19 @@ void write_snapshot(run_globals_struct *run_globals, int n_write, int i_out)
    * Write a batch of galaxies to the output HDF5 table.
    */
 
-  herr_t status;
-  hid_t  file_id;
-  hid_t  group_id;
-  hsize_t  chunk_size        = 10;
-  int     *fill_data         = NULL;
-  char   target_group[20];
-  galaxy_output_struct galout;
-  galaxy_struct *gal = NULL;
-  hdf5_output_struct h5props = run_globals->hdf5props;
-  int gal_count = 0;
+  herr_t                status;
+  hid_t                 file_id;
+  hid_t                 group_id;
+  hid_t                 ds_id;
+  hsize_t               chunk_size       = 10;
+  int                  *fill_data        = NULL;
+  char                  target_group[20];
+  galaxy_output_struct  galout;
+  galaxy_struct        *gal              = NULL;
+  hdf5_output_struct    h5props          = run_globals->hdf5props;
+  int                   gal_count        = 0;
+  hsize_t               dims             = 1;
+  double temp;
 
   // Create the file.
   file_id = H5Fopen(run_globals->FNameOut, H5F_ACC_RDWR, H5P_DEFAULT);
@@ -377,7 +379,15 @@ void write_snapshot(run_globals_struct *run_globals, int n_write, int i_out)
 
     gal = gal->Next;
   }
- 
+
+  // Save a few useful attributes
+  ds_id = H5Screate_simple(1, &dims, NULL);
+
+  h5_write_attribute(group_id, "Redshift", H5T_NATIVE_DOUBLE, ds_id, &(run_globals->ZZ[run_globals->ListOutputSnaps[i_out]]));
+
+  temp = run_globals->Age[run_globals->ListOutputSnaps[i_out]] * run_globals->units.UnitLength_in_cm / run_globals->units.UnitVelocity_in_cm_per_s / SEC_PER_MEGAYEAR / run_globals->params.Hubble_h;
+  h5_write_attribute(group_id, "Age", H5T_NATIVE_DOUBLE, ds_id, &temp);
+
   // Close the group.
   status = H5Gclose(group_id);
 
