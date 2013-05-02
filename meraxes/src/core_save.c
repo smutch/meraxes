@@ -327,6 +327,19 @@ void prep_hdf5_file(run_globals_struct *run_globals)
 
 }
 
+static void inline save_descendant_indices(run_globals_struct *run_globals, hid_t file_id, int i_out_prev, int *descendant_index, int old_count)
+{
+
+  herr_t status;
+  hsize_t dim[1];
+  char target[50];
+  
+  sprintf(target, "Snap%03d/DescendantIndices", (run_globals->ListOutputSnaps)[i_out_prev]);
+  dim[0] = (hsize_t)old_count; 
+  status = H5LTmake_dataset(file_id,target,1,dim,H5T_NATIVE_INT,descendant_index);
+
+}
+
 
 void write_snapshot(run_globals_struct *run_globals, int n_write, int i_out)
 {
@@ -346,9 +359,11 @@ void write_snapshot(run_globals_struct *run_globals, int n_write, int i_out)
   galaxy_struct        *gal              = NULL;
   hdf5_output_struct    h5props          = run_globals->hdf5props;
   int                   gal_count        = 0;
+  int                   old_count        = 0;
   hsize_t               dims             = 1;
   double temp;
-  int                  *old_output_index;
+  int                  *descendant_index;
+  int                   prev_snapshot;
 
   // Create the file.
   file_id = H5Fopen(run_globals->FNameOut, H5F_ACC_RDWR, H5P_DEFAULT);
@@ -364,23 +379,50 @@ void write_snapshot(run_globals_struct *run_globals, int n_write, int i_out)
       NULL );
 
   // Assign the write order indices to each galaxy and store the old indices
-  old_output_index = SID_malloc(sizeof(int)*n_write);
+  descendant_index = SID_malloc(sizeof(int)*n_write);
+  for (int ii=0; ii<n_write; ii++)
+    descendant_index[ii] = -1;
   gal_count = 0;
+  old_count = 0;
   gal = run_globals->FirstGal;
   while (gal!=NULL) {
-    old_output_index = gal->output_index;
     if (gal->Type < 3)
     {
+      descendant_index[gal->output_index] = gal_count;
+      old_count++;
       gal->output_index = gal_count++;
-      gal = gal->Next;
     }
+    gal = gal->Next;
   }
   if (n_write!=gal_count)
   {
     SID_log("We don't have the expected number of galaxies in save...", SID_LOG_COMMENT);
     ABORT(EXIT_FAILURE);
   }
+  gal = run_globals->FirstGal;
+  while (gal!=NULL) {
+    if (gal->Type > 2)
+    {
+      descendant_index[gal->output_index] = gal->MergerTarget->output_index;
+      old_count++;
+    }
+    gal = gal->Next;
+  }
 
+  // If the immediately preceeding snapshot was also written, then save the
+  // descendent indices
+  prev_snapshot = run_globals->ListOutputSnaps[i_out]-1;
+  if (i_out > 0) 
+  {
+    for (int ii=0; ii<NOUT; ii++)
+    {
+      if (run_globals->ListOutputSnaps[ii] == prev_snapshot)
+      {
+        save_descendant_indices(run_globals, file_id, ii, descendant_index, old_count);
+        break;
+      }
+    }
+  }
 
   // Write the galaxies.
   gal_count = 0;
@@ -412,7 +454,7 @@ void write_snapshot(run_globals_struct *run_globals, int n_write, int i_out)
   // Close the file.
   status = H5Fclose(file_id);
 
-  SID_free(SID_FARG old_output_index);
+  SID_free(SID_FARG descendant_index);
 
 }
 
