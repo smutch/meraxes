@@ -37,6 +37,8 @@ output:
     There is no merger target information in the output files in this case, so
     how do we go about following histories?
     - How about adding the halo index and descendant halo index?
+    - Descendant index could be written in a new dataset in the previous snapshot's group
+      (assuming this snapshot is being written).
 
 tests:
 ☐ Ensure that satellite merger targets always follow the assumed rules
