@@ -348,6 +348,7 @@ void write_snapshot(run_globals_struct *run_globals, int n_write, int i_out)
   int                   gal_count        = 0;
   hsize_t               dims             = 1;
   double temp;
+  int                  *old_output_index;
 
   // Create the file.
   file_id = H5Fopen(run_globals->FNameOut, H5F_ACC_RDWR, H5P_DEFAULT);
@@ -362,16 +363,24 @@ void write_snapshot(run_globals_struct *run_globals, int n_write, int i_out)
       h5props.dst_offsets, h5props.field_types, chunk_size, fill_data, 0,
       NULL );
 
-  // Assign the write order indices to each galaxy
+  // Assign the write order indices to each galaxy and store the old indices
+  old_output_index = SID_malloc(sizeof(int)*n_write);
   gal_count = 0;
   gal = run_globals->FirstGal;
   while (gal!=NULL) {
-    if (gal->Type<3)
+    old_output_index = gal->output_index;
+    if (gal->Type < 3)
     {
       gal->output_index = gal_count++;
       gal = gal->Next;
     }
   }
+  if (n_write!=gal_count)
+  {
+    SID_log("We don't have the expected number of galaxies in save...", SID_LOG_COMMENT);
+    ABORT(EXIT_FAILURE);
+  }
+
 
   // Write the galaxies.
   gal_count = 0;
@@ -402,6 +411,8 @@ void write_snapshot(run_globals_struct *run_globals, int n_write, int i_out)
 
   // Close the file.
   status = H5Fclose(file_id);
+
+  SID_free(SID_FARG old_output_index);
 
 }
 
