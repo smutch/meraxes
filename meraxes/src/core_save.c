@@ -311,8 +311,6 @@ void prep_hdf5_file(run_globals_struct *run_globals)
   status = H5Aclose(attr_id);
 #endif
 
-  status = H5Tclose(str_t);
-  status = H5Sclose(ds_id);
   SID_free(SID_FARG names);
 
   // Close the HDF5 file.
