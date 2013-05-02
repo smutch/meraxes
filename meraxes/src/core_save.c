@@ -366,8 +366,11 @@ void write_snapshot(run_globals_struct *run_globals, int n_write, int i_out)
   gal_count = 0;
   gal = run_globals->FirstGal;
   while (gal!=NULL) {
-    gal->output_index = gal_count++;
-    gal = gal->Next;
+    if (gal->Type<3)
+    {
+      gal->output_index = gal_count++;
+      gal = gal->Next;
+    }
   }
 
   // Write the galaxies.
