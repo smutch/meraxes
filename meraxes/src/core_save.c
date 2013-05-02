@@ -35,10 +35,6 @@ void prepare_galaxy_for_output(
   galout->ID = (int)gal.ID;
   galout->Type = (int)gal.Type;
   galout->CentralGal = (int)gal.Halo->FOFGroup->FirstHalo->Galaxy->output_index;
-  if (gal.MergerTarget!=NULL)
-    galout->MergerTarget = (int)gal.MergerTarget->output_index;
-  else
-    galout->MergerTarget = -1;
 
   for(int ii=0; ii<3; ii++)
   {
@@ -75,13 +71,13 @@ void calc_hdf5_props(run_globals_struct *run_globals)
 
   // If we are calculating any magnitudes then increment the number of
   // output properties appropriately.
-  h5props->n_props = 17;  // not inc. magnitudes
+  h5props->n_props = 16;
 
   // Size of a single galaxy entry.
   h5props->dst_size = sizeof(galaxy_output_struct);
 
   // Create datatypes for different size arrays
-  hid_t array3f_tid = H5Tarray_create(H5T_NATIVE_FLOAT, 1, (hsize_t[]){3});
+  h5props->array3f_tid = H5Tarray_create(H5T_NATIVE_FLOAT, 1, (hsize_t[]){3});
 
   // Calculate the offsets of our struct members in memory
   h5props->dst_offsets     = SID_malloc(sizeof(size_t)*h5props->n_props);
@@ -109,20 +105,15 @@ void calc_hdf5_props(run_globals_struct *run_globals)
   h5props->field_names[i]  = "CentralGal";
   h5props->field_types[i++]  = H5T_NATIVE_INT;
 
-  h5props->dst_offsets[i]  = HOFFSET(galaxy_output_struct, MergerTarget);
-  h5props->dst_field_sizes[i]    = sizeof(galout.MergerTarget);
-  h5props->field_names[i]  = "MergerTarget";
-  h5props->field_types[i++]  = H5T_NATIVE_INT;
-
   h5props->dst_offsets[i]  = HOFFSET(galaxy_output_struct, Pos);
   h5props->dst_field_sizes[i]    = sizeof(galout.Pos);
   h5props->field_names[i]  = "Pos";
-  h5props->field_types[i++]  = array3f_tid;
+  h5props->field_types[i++]  = h5props->array3f_tid;
 
   h5props->dst_offsets[i]  = HOFFSET(galaxy_output_struct, Vel);
   h5props->dst_field_sizes[i]    = sizeof(galout.Vel);
   h5props->field_names[i]  = "Vel";
-  h5props->field_types[i++]  = array3f_tid;
+  h5props->field_types[i++]  = h5props->array3f_tid;
 
   h5props->dst_offsets[i] = HOFFSET(galaxy_output_struct, Len);
   h5props->dst_field_sizes[i]   = sizeof(galout.Len);
@@ -319,6 +310,7 @@ void prep_hdf5_file(run_globals_struct *run_globals)
   status = H5Aclose(attr_id);
 #endif
 
+  status = H5Tclose(str_t);
   status = H5Sclose(ds_id);
   SID_free(SID_FARG names);
 
