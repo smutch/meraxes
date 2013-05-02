@@ -111,6 +111,7 @@ typedef struct run_units_struct run_units_struct;
 struct hdf5_output_struct
 {
   size_t         dst_size;
+  hid_t          array3f_tid;
   size_t        *dst_offsets;
   size_t        *dst_field_sizes;
   const char   **field_names;
@@ -241,7 +242,6 @@ struct galaxy_output_struct
   int   ID;
   int   Type;
   int   CentralGal;
-  int   MergerTarget;
 
   // properties of subhalo at the last time this galaxy was a central galaxy
   float Pos[3];

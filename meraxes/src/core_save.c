@@ -35,10 +35,6 @@ void prepare_galaxy_for_output(
   galout->ID = (int)gal.ID;
   galout->Type = (int)gal.Type;
   galout->CentralGal = (int)gal.Halo->FOFGroup->FirstHalo->Galaxy->output_index;
-  if (gal.MergerTarget!=NULL)
-    galout->MergerTarget = (int)gal.MergerTarget->output_index;
-  else
-    galout->MergerTarget = -1;
 
   for(int ii=0; ii<3; ii++)
   {
@@ -75,13 +71,13 @@ void calc_hdf5_props(run_globals_struct *run_globals)
 
   // If we are calculating any magnitudes then increment the number of
   // output properties appropriately.
-  h5props->n_props = 17;  // not inc. magnitudes
+  h5props->n_props = 16;
 
   // Size of a single galaxy entry.
   h5props->dst_size = sizeof(galaxy_output_struct);
 
   // Create datatypes for different size arrays
-  hid_t array3f_tid = H5Tarray_create(H5T_NATIVE_FLOAT, 1, (hsize_t[]){3});
+  h5props->array3f_tid = H5Tarray_create(H5T_NATIVE_FLOAT, 1, (hsize_t[]){3});
 
   // Calculate the offsets of our struct members in memory
   h5props->dst_offsets     = SID_malloc(sizeof(size_t)*h5props->n_props);
@@ -109,20 +105,15 @@ void calc_hdf5_props(run_globals_struct *run_globals)
   h5props->field_names[i]  = "CentralGal";
   h5props->field_types[i++]  = H5T_NATIVE_INT;
 
-  h5props->dst_offsets[i]  = HOFFSET(galaxy_output_struct, MergerTarget);
-  h5props->dst_field_sizes[i]    = sizeof(galout.MergerTarget);
-  h5props->field_names[i]  = "MergerTarget";
-  h5props->field_types[i++]  = H5T_NATIVE_INT;
-
   h5props->dst_offsets[i]  = HOFFSET(galaxy_output_struct, Pos);
   h5props->dst_field_sizes[i]    = sizeof(galout.Pos);
   h5props->field_names[i]  = "Pos";
-  h5props->field_types[i++]  = array3f_tid;
+  h5props->field_types[i++]  = h5props->array3f_tid;
 
   h5props->dst_offsets[i]  = HOFFSET(galaxy_output_struct, Vel);
   h5props->dst_field_sizes[i]    = sizeof(galout.Vel);
   h5props->field_names[i]  = "Vel";
-  h5props->field_types[i++]  = array3f_tid;
+  h5props->field_types[i++]  = h5props->array3f_tid;
 
   h5props->dst_offsets[i] = HOFFSET(galaxy_output_struct, Len);
   h5props->dst_field_sizes[i]   = sizeof(galout.Len);
@@ -191,7 +182,7 @@ void calc_hdf5_props(run_globals_struct *run_globals)
 void prep_hdf5_file(run_globals_struct *run_globals)
 {
 
-  hid_t    file_id, str_t, ds_id, group_id, attr_id;
+  hid_t    file_id, str_t, ds_id, group_id;
   herr_t   status;
   hsize_t  dims = 1;
   const char     **names;
@@ -312,6 +303,7 @@ void prep_hdf5_file(run_globals_struct *run_globals)
 #ifdef GITREF_STR
   // Save the git ref if requested
   char tempstr[45];
+  hid_t attr_id;
 
   sprintf(tempstr, GITREF_STR);
   attr_id = H5Acreate(file_id, "GitRef", str_t, ds_id, H5P_DEFAULT, H5P_DEFAULT);
@@ -319,11 +311,28 @@ void prep_hdf5_file(run_globals_struct *run_globals)
   status = H5Aclose(attr_id);
 #endif
 
+  status = H5Tclose(str_t);
   status = H5Sclose(ds_id);
   SID_free(SID_FARG names);
 
   // Close the HDF5 file.
   status = H5Fclose(file_id);
+
+  status = H5Sclose(ds_id);
+  status = H5Tclose(str_t);
+
+}
+
+static void inline save_descendant_indices(run_globals_struct *run_globals, hid_t file_id, int i_out_prev, int *descendant_index, int old_count)
+{
+
+  herr_t status;
+  hsize_t dim[1];
+  char target[50];
+  
+  sprintf(target, "Snap%03d/DescendantIndices", (run_globals->ListOutputSnaps)[i_out_prev]);
+  dim[0] = (hsize_t)old_count; 
+  status = H5LTmake_dataset(file_id,target,1,dim,H5T_NATIVE_INT,descendant_index);
 
 }
 
@@ -346,8 +355,11 @@ void write_snapshot(run_globals_struct *run_globals, int n_write, int i_out)
   galaxy_struct        *gal              = NULL;
   hdf5_output_struct    h5props          = run_globals->hdf5props;
   int                   gal_count        = 0;
+  int                   old_count        = 0;
   hsize_t               dims             = 1;
   double temp;
+  int                  *descendant_index;
+  int                   prev_snapshot;
 
   // Create the file.
   file_id = H5Fopen(run_globals->FNameOut, H5F_ACC_RDWR, H5P_DEFAULT);
@@ -362,13 +374,54 @@ void write_snapshot(run_globals_struct *run_globals, int n_write, int i_out)
       h5props.dst_offsets, h5props.field_types, chunk_size, fill_data, 0,
       NULL );
 
-  // Assign the write order indices to each galaxy
+  // Assign the write order indices to each galaxy and store the old indices
+  descendant_index = SID_malloc(sizeof(int)*n_write);
+  for (int ii=0; ii<n_write; ii++)
+    descendant_index[ii] = -1;
   gal_count = 0;
+  old_count = 0;
   gal = run_globals->FirstGal;
   while (gal!=NULL) {
-    gal->output_index = gal_count++;
+    if (gal->Type < 3)
+    {
+      descendant_index[gal->output_index] = gal_count;
+      old_count++;
+      gal->output_index = gal_count++;
+    }
     gal = gal->Next;
   }
+  if (n_write!=gal_count)
+  {
+    SID_log("We don't have the expected number of galaxies in save...", SID_LOG_COMMENT);
+    ABORT(EXIT_FAILURE);
+  }
+  gal = run_globals->FirstGal;
+  while (gal!=NULL) {
+    if (gal->Type > 2)
+    {
+      descendant_index[gal->output_index] = gal->MergerTarget->output_index;
+      old_count++;
+    }
+    gal = gal->Next;
+  }
+
+  // If the immediately preceeding snapshot was also written, then save the
+  // descendent indices
+  prev_snapshot = run_globals->ListOutputSnaps[i_out]-1;
+  if (i_out > 0) 
+  {
+    for (int ii=0; ii<NOUT; ii++)
+    {
+      if (run_globals->ListOutputSnaps[ii] == prev_snapshot)
+      {
+        save_descendant_indices(run_globals, file_id, ii, descendant_index, old_count);
+        break;
+      }
+    }
+  }
+  
+  // Free the descendant_index array
+  SID_free(SID_FARG descendant_index);
 
   // Write the galaxies.
   gal_count = 0;
@@ -394,11 +447,14 @@ void write_snapshot(run_globals_struct *run_globals, int n_write, int i_out)
   temp = run_globals->LTTime[run_globals->ListOutputSnaps[i_out]] * run_globals->units.UnitLength_in_cm / run_globals->units.UnitVelocity_in_cm_per_s / SEC_PER_MEGAYEAR / run_globals->params.Hubble_h;
   h5_write_attribute(group_id, "LTTime", H5T_NATIVE_DOUBLE, ds_id, &temp);
 
+  H5Sclose(ds_id);
+
   // Close the group.
   status = H5Gclose(group_id);
 
   // Close the file.
   status = H5Fclose(file_id);
+
 
 }
 

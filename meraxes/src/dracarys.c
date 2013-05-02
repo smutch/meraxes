@@ -155,11 +155,12 @@ void dracarys(run_globals_struct *run_globals)
 {
 
   trees_header_struct   trees_header;
-  halo_struct          *halo;
-  fof_group_struct     *fof_group;
-  galaxy_struct        *gal;
-  galaxy_struct        *prev_gal;
-  galaxy_struct        *cur_gal;
+  halo_struct          *halo      = NULL;
+  fof_group_struct     *fof_group = NULL;
+  galaxy_struct        *gal       = NULL;
+  galaxy_struct        *prev_gal  = NULL;
+  galaxy_struct        *next_gal  = NULL;
+  galaxy_struct        *cur_gal   = NULL;
   int                   i_newhalo;
   int                   NGal         = 0;
   int                   unique_ID    = 0;
@@ -267,6 +268,14 @@ void dracarys(run_globals_struct *run_globals)
   
     SID_free(SID_FARG halo);
     SID_free(SID_FARG fof_group);
+  }
+
+  // Free all of the remaining allocated galaxies
+  gal = run_globals->FirstGal;
+  while (gal != NULL) {
+    next_gal = gal->Next;
+    SID_free(SID_FARG gal);
+    gal = next_gal;
   }
 
 }
