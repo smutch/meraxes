@@ -182,7 +182,7 @@ void calc_hdf5_props(run_globals_struct *run_globals)
 void prep_hdf5_file(run_globals_struct *run_globals)
 {
 
-  hid_t    file_id, str_t, ds_id, group_id, attr_id;
+  hid_t    file_id, str_t, ds_id, group_id;
   herr_t   status;
   hsize_t  dims = 1;
   const char     **names;
@@ -303,6 +303,7 @@ void prep_hdf5_file(run_globals_struct *run_globals)
 #ifdef GITREF_STR
   // Save the git ref if requested
   char tempstr[45];
+  hid_t attr_id;
 
   sprintf(tempstr, GITREF_STR);
   attr_id = H5Acreate(file_id, "GitRef", str_t, ds_id, H5P_DEFAULT, H5P_DEFAULT);
@@ -316,6 +317,9 @@ void prep_hdf5_file(run_globals_struct *run_globals)
 
   // Close the HDF5 file.
   status = H5Fclose(file_id);
+
+  status = H5Sclose(ds_id);
+  status = H5Tclose(str_t);
 
 }
 
@@ -415,6 +419,9 @@ void write_snapshot(run_globals_struct *run_globals, int n_write, int i_out)
       }
     }
   }
+  
+  // Free the descendant_index array
+  SID_free(SID_FARG descendant_index);
 
   // Write the galaxies.
   gal_count = 0;
@@ -440,13 +447,14 @@ void write_snapshot(run_globals_struct *run_globals, int n_write, int i_out)
   temp = run_globals->LTTime[run_globals->ListOutputSnaps[i_out]] * run_globals->units.UnitLength_in_cm / run_globals->units.UnitVelocity_in_cm_per_s / SEC_PER_MEGAYEAR / run_globals->params.Hubble_h;
   h5_write_attribute(group_id, "LTTime", H5T_NATIVE_DOUBLE, ds_id, &temp);
 
+  H5Sclose(ds_id);
+
   // Close the group.
   status = H5Gclose(group_id);
 
   // Close the file.
   status = H5Fclose(file_id);
 
-  SID_free(SID_FARG descendant_index);
 
 }
 
