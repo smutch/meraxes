@@ -215,7 +215,7 @@ void prep_hdf5_file(run_globals_struct *run_globals)
   addresses[ii] = &(run_globals->params.CoolFunctionsDir);
   names[ii++] = "CoolFunctionsDir";
   addresses[ii] = &(run_globals->params.FileWithOutputSnaps);
-  names[ii]   = "FileWithOutputSnaps";
+  names[ii++]   = "FileWithOutputSnaps";
 
   for(int jj=0; jj<ii; jj++)
     h5_write_attribute(group_id, names[jj], str_t, ds_id, addresses[jj]);
@@ -293,7 +293,7 @@ void prep_hdf5_file(run_globals_struct *run_globals)
 
   ii=0;
   addresses[ii] = &(run_globals->params.physics.funcprop);
-  names[ii] = "funcprop";
+  names[ii++] = "funcprop";
 
   h5_write_attribute(group_id, names[0], H5T_NATIVE_INT, ds_id, addresses[0]);
  
