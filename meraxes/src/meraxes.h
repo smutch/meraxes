@@ -26,7 +26,7 @@
 
 #define ABORT(sigterm)                                                                 \
 do {                                                                                   \
-  SID_log_error("in file: %s\tfunc: %s\tline: %i", __FILE__, __FUNCTION__, __LINE__); \
+  SID_log_error("in file: %s\tfunc: %s\tline: %i", __FILE__, __FUNCTION__, __LINE__);  \
   myexit(sigterm);                                                                     \
 } while(0)
 
@@ -280,6 +280,6 @@ void new_galaxy(galaxy_struct **gal, int *unique_ID);
 void copy_halo_to_galaxy(run_globals_struct *run_globals, halo_struct *halo, galaxy_struct *gal);
 double calculate_merging_time(run_globals_struct *run_globals, galaxy_struct *gal, int snapshot);
 void prep_hdf5_file(run_globals_struct *run_globals);
-void write_snapshot(run_globals_struct *run_globals, int n_write, int i_out);
+void write_snapshot(run_globals_struct *run_globals, int n_write, int i_out, int *last_n_write);
 void calc_hdf5_props(run_globals_struct *run_globals);
 void prepare_galaxy_for_output(run_globals_struct *run_globals, galaxy_struct gal, galaxy_output_struct *galout, int i_snap);

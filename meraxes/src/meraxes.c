@@ -66,7 +66,6 @@ int main(int argc, char **argv)
   
   run_globals_struct run_globals;
   
-  int opt_paramsval_list = 0;
   if( (argc!=8) && (argc!=4) && (argc!=2) ) 
   {
     if(SID.My_rank==0){
@@ -78,7 +77,6 @@ int main(int argc, char **argv)
     if (argv[i][0]=='-'){
       switch (argv[i][1]){
         case 'p':
-          opt_paramsval_list = 1;
           strcpy(run_globals.params.filename, argv[i+1]);
           break;
         default:

@@ -30,9 +30,6 @@ static int evolve_galaxies(run_globals_struct *run_globals, fof_group_struct *fo
   halo_struct   *halo            = NULL;
   int            gal_counter     = 0;
   int            dead_gals       = 0;
-  double         mi;
-  double         ma;
-  double         mass_ratio;
   
   
   for(int i_fof=0; i_fof<NFof; i_fof++)
@@ -103,22 +100,6 @@ static int evolve_galaxies(run_globals_struct *run_globals, fof_group_struct *fo
             while (parent->Type==3)
               parent = parent->MergerTarget;
 
-            // calculate mass ratio of merging galaxies 
-            if(gal->StellarMass < parent->StellarMass)
-            {
-              mi = gal->StellarMass;
-              ma = parent->StellarMass;
-            }
-            else
-            {
-              mi = parent->StellarMass;
-              ma = gal->StellarMass;
-            }
-            if(ma > 0)
-              mass_ratio = mi / ma;
-            else
-              mass_ratio = 1.0;
-
             // Add galaxies together
             parent->StellarMass += gal->StellarMass;
 
@@ -165,6 +146,7 @@ void dracarys(run_globals_struct *run_globals)
   int                   NGal         = 0;
   int                   unique_ID    = 0;
   int                   nout_gals;
+  int                   last_nout_gals;
   double                dt;
   
   // Loop through each snapshot
@@ -264,7 +246,7 @@ void dracarys(run_globals_struct *run_globals)
     // Write the results if this is a requested snapshot
     for(int i_out = 0; i_out < NOUT; i_out++)
       if(snapshot == run_globals->ListOutputSnaps[i_out])
-        write_snapshot(run_globals, nout_gals, i_out);
+        write_snapshot(run_globals, nout_gals, i_out, &last_nout_gals);
   
     SID_free(SID_FARG halo);
     SID_free(SID_FARG fof_group);
