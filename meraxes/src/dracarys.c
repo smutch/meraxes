@@ -155,7 +155,6 @@ void dracarys(run_globals_struct *run_globals)
 
     // Read in the halos for this snapshot
     trees_header = read_halos(run_globals, snapshot, &halo, &fof_group);
-
     gal      = run_globals->FirstGal;
     prev_gal = NULL;
     dt       = run_globals->LTTime[snapshot-1]-run_globals->LTTime[snapshot];
@@ -214,7 +213,7 @@ void dracarys(run_globals_struct *run_globals)
           run_globals->FirstGal = gal;
         run_globals->LastGal = gal;
         halo[i_halo].Galaxy = gal;
-        SID_log("Created new galaxy in i_halo=%d", SID_LOG_COMMENT, i_halo);
+        // SID_log("Created new galaxy in i_halo=%d", SID_LOG_COMMENT, i_halo);
         NGal++;
       }
     }

@@ -10,12 +10,11 @@
  * Definitions
  */
 
-#define STRLEN  128  //!< Default string length
+#define STRLEN  256  //!< Default string length
 #define MAXTAGS 50   //!< Maximum number of allowed tags in input file
-#define ALLOCFACTOR 2  //!< Size of galaxy array is ALLOCFACTOR*n_halos_max
 
 // TODO: This should not be hard coded if at all possible...
-#define MAXSNAPS 3  //!< Maximum number of snapshots
+#define MAXSNAPS 15  //!< Maximum number of snapshots
 
 #ifndef NOUT
 #define NOUT 1
@@ -143,11 +142,14 @@ typedef struct run_globals_struct run_globals_struct;
 
 //! The header from the input tree files.
 struct trees_header_struct{
+  int n_step;
+  int n_search;
   int n_groups;
   int n_subgroups;
-  int n_halos_max;
-  int n_trees_subgroup;
-  int n_trees_group;
+  int n_groups_max;
+  int n_subgroups_max;
+  int max_tree_id_subgroup;
+  int max_tree_id_group;
 };
 typedef struct trees_header_struct trees_header_struct;
 

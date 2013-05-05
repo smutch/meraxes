@@ -2,10 +2,10 @@
 #---------- Required parameters -----------
 #------------------------------------------
 
-FileNameGalaxies            test
-DefaultsFile                ../input/GiggleZ_NR_step_008_scan_016.par
+FileNameGalaxies            GiggleZ_MR_ghost_test
+DefaultsFile                ../input/GiggleZ_MR_ghost_test.par
 FileWithOutputSnaps			../input/desired_outputsnaps.txt
-OutputDir                   test
+OutputDir                   /home/smutch/data/meraxes/GiggleZ_MR_ghost_test
 
 CoolFunctionsDir            ../../CoolFunctions
 
@@ -14,14 +14,14 @@ CoolFunctionsDir            ../../CoolFunctions
 #----- Simulation input files  ------------
 #------------------------------------------
 
-SimName                     test
-SimulationDir				../../testing/halos
-NEverySnap                  1
-NScanSnap                   1
-LastSnapShotNr              2
-FilesPerSnapshot            1
-BoxSize                     125
-VolumeFactor                1.0
+# SimName                     test
+# SimulationDir				../../testing/halos
+# NEverySnap                  1
+# NScanSnap                   1
+# LastSnapShotNr              2
+# FilesPerSnapshot            1
+# BoxSize                     125
+# VolumeFactor                1.0
 
 #------------------------------------------
 #----- Code options -----------------------

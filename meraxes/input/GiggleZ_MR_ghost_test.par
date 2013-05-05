@@ -2,7 +2,7 @@
 #----- SA model output files --------------
 #------------------------------------------
 
-FileNameGalaxies			GiggleZ_NR_step_008_scan_016
+FileNameGalaxies			GiggleZ_MR_ghost_test
 
 FirstFile					0
 LastFile					0
@@ -12,11 +12,11 @@ LastFile					0
 #----- Simulation input files  ------------
 #------------------------------------------
 
-SimName                     GiggleZ_NR
-SimulationDir				/Users/smutch/data_temp/GiggleZ
-NEverySnap                  8
-NScanSnap                   16
-LastSnapShotNr              116
+SimName                     GiggleZ_MR
+SimulationDir				/lustre/projects/p004_swin/gpoole/GiggleZ
+NEverySnap                  32
+NScanSnap                   2
+LastSnapShotNr              466
 FilesPerSnapshot            1
 BoxSize                     125
 VolumeFactor                1.0
@@ -61,7 +61,7 @@ Omega                       0.273
 OmegaLambda                 0.727
 BaryonFrac                  0.167
 Hubble_h                    0.705
-PartMass                    0.7516436
+PartMass                    0.09395545
 
 UnitLength_in_cm			3.08568e+24		;WATCH OUT: Mpc/h
 UnitMass_in_g				1.989e+43		;WATCH OUT: 10^10Msun
