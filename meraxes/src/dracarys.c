@@ -168,9 +168,9 @@ void dracarys(run_globals_struct *run_globals)
       if(i_newhalo>-1)
       {
         if( ((gal->TreeFlags & TREE_CASE_MERGER)==TREE_CASE_MERGER)
-            && ((gal->TreeFlags & TREE_CASE_MAIN_PROGENITOR)!=TREE_CASE_MAIN_PROGENITOR) )
+            && (gal->Type != 2) )
         {
-          // Here we have a merger...  Mark it and deal with it below.
+          // Here we have a new merger...  Mark it and deal with it below.
           gal->Type = 999;
           gal->Halo = &(halo[i_newhalo]);
           // SID_log("Found a galaxy which now has no halo (merged into halo %d)", SID_LOG_COMMENT, i_newhalo);
@@ -184,6 +184,9 @@ void dracarys(run_globals_struct *run_globals)
           halo[i_newhalo].Galaxy = gal;
           // SID_log("Assigned existing galaxy to halo %d", SID_LOG_COMMENT, i_newhalo);
         }
+        // Note that we don't need to do anything here for galaxies that are
+        // already marked as type 2 in previous snapshots as they no longer
+        // have a halo which will appear in the trees.
       } else
       {
         // This galaxy is done (merged, lost, whatever...) so get rid of it
@@ -191,6 +194,10 @@ void dracarys(run_globals_struct *run_globals)
           prev_gal->Next = gal->Next;
         else
           run_globals->FirstGal = gal->Next;
+        cur_gal = gal->Halo->Galaxy;
+        while ((cur_gal->NextGalInHalo != gal) && (cur_gal->NextGalInHalo != NULL))
+          cur_gal = cur_gal->NextGalInHalo;
+        cur_gal->NextGalInHalo = gal->NextGalInHalo;
         SID_free(SID_FARG gal);
         gal = prev_gal;
         NGal--;
@@ -222,25 +229,37 @@ void dracarys(run_globals_struct *run_globals)
       }
     }
 
-  mpi_debug_here();
-
     // Loop through each galaxy and deal with mergers now that all other galaxies have been 
     // correctly propogated forwards
     gal = run_globals->FirstGal;
     while (gal != NULL) {
       if(gal->Type == 999)
       {
-        gal->Type = 2;
-        cur_gal = gal->Halo->Galaxy;
-        while (cur_gal!=NULL) {
-          prev_gal = cur_gal;
-          cur_gal = cur_gal->NextGalInHalo;
+        if(gal->Halo->Galaxy == NULL)
+        {
+          // Here we have a halo with a galaxy that has just merged into an
+          // empty halo.  From the point of view of the model, this isn't
+          // actually a merger and so we need to catch these cases...
+          gal->dM = gal->Halo->Mvir - gal->Mvir;
+          gal->dMdt = (gal->dM)/dt;
+          copy_halo_to_galaxy(run_globals, gal->Halo, gal);
+          gal->Halo->Galaxy = gal;
+        } else
+        {
+          // If there is a galaxy in the halo which is being merged into then
+          // we actually have a bona fide merger...
+          gal->Type = 2;
+          cur_gal = gal->Halo->Galaxy;
+          while (cur_gal!=NULL) {
+            prev_gal = cur_gal;
+            cur_gal = cur_gal->NextGalInHalo;
+          }
+          prev_gal->NextGalInHalo = gal;
+
+          gal->MergerTarget = gal->Halo->Galaxy;
+          // SID_log("Snap %d: Just set merger target of ID %d to ID %d...", SID_LOG_COMMENT, snapshot, gal->ID, gal->MergerTarget->ID);
+          gal->MergTime = calculate_merging_time(run_globals, gal, snapshot);
         }
-        prev_gal->NextGalInHalo = gal;
-        
-        gal->MergerTarget = gal->Halo->Galaxy;
-        SID_log("Snap %d: Just set merger target of ID %d to ID %d...", SID_LOG_COMMENT, snapshot, gal->ID, gal->MergerTarget->ID);
-        gal->MergTime = calculate_merging_time(run_globals, gal, snapshot);
       }
       gal = gal->Next;
     }
