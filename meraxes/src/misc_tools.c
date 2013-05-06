@@ -39,17 +39,26 @@ void check_counts(run_globals_struct *run_globals, fof_group_struct *fof_group, 
 
   counter = 0;
   halo_counter = 0;
+  int ii, jj;
   for(int i_fof=0; i_fof<NFof; i_fof++)
   {
     halo = fof_group[i_fof].FirstHalo;
+    jj=0;
     while (halo!=NULL) {
       gal = halo->Galaxy;
+      ii=0;
       while(gal!=NULL){
         gal = gal->NextGalInHalo;
         counter++;
+        ii++;
+        if(ii>1000)
+          ABORT(EXIT_FAILURE);
       }
       halo = halo->NextHaloInFOFGroup;
       halo_counter++;
+      jj++;
+      if (jj>1000)
+        ABORT(EXIT_FAILURE);
     }
   }
   SID_log("Counting using FOF groups gives %d gals in %d halos", SID_LOG_COMMENT, counter, halo_counter);
