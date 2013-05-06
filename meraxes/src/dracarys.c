@@ -30,7 +30,8 @@ static int evolve_galaxies(run_globals_struct *run_globals, fof_group_struct *fo
   halo_struct   *halo            = NULL;
   int            gal_counter     = 0;
   int            dead_gals       = 0;
-  
+
+  SID_log("Doing physics...", SID_LOG_OPEN|SID_LOG_TIMER);
   
   for(int i_fof=0; i_fof<NFof; i_fof++)
   {
@@ -125,8 +126,8 @@ static int evolve_galaxies(run_globals_struct *run_globals, fof_group_struct *fo
     ABORT(EXIT_FAILURE);
   }
 
-  // TODO: Updating of any final galaxy properties / indices
-  
+  SID_log("...done", SID_LOG_CLOSE); 
+
   return gal_counter-dead_gals;
 }
 
@@ -158,7 +159,9 @@ void dracarys(run_globals_struct *run_globals)
     gal      = run_globals->FirstGal;
     prev_gal = NULL;
     dt       = run_globals->LTTime[snapshot-1]-run_globals->LTTime[snapshot];
-    
+   
+    SID_log("Processing snapshot %d...", SID_LOG_OPEN|SID_LOG_TIMER, snapshot);
+
     while (gal != NULL) {
       i_newhalo = gal->HaloDescIndex;
 
@@ -170,7 +173,7 @@ void dracarys(run_globals_struct *run_globals)
           // Here we have a merger...  Mark it and deal with it below.
           gal->Type = 999;
           gal->Halo = &(halo[i_newhalo]);
-          SID_log("Found a galaxy which now has no halo (merged into halo %d)", SID_LOG_COMMENT, i_newhalo);
+          // SID_log("Found a galaxy which now has no halo (merged into halo %d)", SID_LOG_COMMENT, i_newhalo);
         } else if(gal->Type < 2)
         {
 
@@ -255,6 +258,8 @@ void dracarys(run_globals_struct *run_globals)
   
     SID_free(SID_FARG halo);
     SID_free(SID_FARG fof_group);
+
+    SID_log("...done", SID_LOG_CLOSE);
   }
 
   // Free all of the remaining allocated galaxies
