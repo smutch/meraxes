@@ -191,6 +191,7 @@ void dracarys(run_globals_struct *run_globals)
         SID_free(SID_FARG gal);
         gal = prev_gal;
         NGal--;
+        SID_log("Killed a galaxy and decremented the counter.", SID_LOG_COMMENT);
       }
 
       prev_gal = gal;
@@ -218,6 +219,9 @@ void dracarys(run_globals_struct *run_globals)
       }
     }
 
+    // DEBUG
+    check_counts(run_globals, fof_group, NGal, trees_header.n_groups);
+
     // Loop through each galaxy and deal with mergers now that all other galaxies have been 
     // correctly propogated forwards
     gal = run_globals->FirstGal;
@@ -233,7 +237,7 @@ void dracarys(run_globals_struct *run_globals)
         prev_gal->NextGalInHalo = gal;
         
         gal->MergerTarget = gal->Halo->Galaxy;
-        SID_log("Snap %d: Just set merger target of %d to %d...", SID_LOG_COMMENT, snapshot, gal->ID, gal->MergerTarget->ID);
+        SID_log("Snap %d: Just set merger target of ID %d to ID %d...", SID_LOG_COMMENT, snapshot, gal->ID, gal->MergerTarget->ID);
         gal->MergTime = calculate_merging_time(run_globals, gal, snapshot);
       }
       gal = gal->Next;

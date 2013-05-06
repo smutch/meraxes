@@ -285,3 +285,6 @@ void prep_hdf5_file(run_globals_struct *run_globals);
 void write_snapshot(run_globals_struct *run_globals, int n_write, int i_out, int *last_n_write);
 void calc_hdf5_props(run_globals_struct *run_globals);
 void prepare_galaxy_for_output(run_globals_struct *run_globals, galaxy_struct gal, galaxy_output_struct *galout, int i_snap);
+void mpi_debug_here();
+void check_counts(run_globals_struct *run_globals, fof_group_struct *fof_group, int NGal, int NFof);
+

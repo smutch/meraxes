@@ -1,5 +1,4 @@
 #include "meraxes.h"
-#include "unistd.h"
 
 static void halo_catalog_filename(
   char *root,      
@@ -274,14 +273,14 @@ trees_header_struct read_halos(
   // Read the header info
   read_trees_header(fin_trees, &header);
 
-  N_halos = N_halos_subgroups;
   // Temp fix for faulty input trees
-  if (header.n_subgroups>N_halos)
-    N_halos=header.n_subgroups;
+  if (header.n_subgroups>N_halos_subgroups)
+    N_halos_subgroups=header.n_subgroups;
   if (header.n_groups>N_halos_groups)
     N_halos_groups = header.n_groups;
-
+  
   // Allocate the halo array
+  N_halos = N_halos_subgroups;
   SID_log("N_halos_groups = %d", SID_LOG_COMMENT, N_halos_groups);
   SID_log("N_halos_subgroups = %d", SID_LOG_COMMENT, N_halos_subgroups);
   SID_log("N_halos = %d", SID_LOG_COMMENT, N_halos);
