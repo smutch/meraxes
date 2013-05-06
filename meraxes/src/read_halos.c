@@ -320,12 +320,15 @@ trees_header_struct read_halos(
 
   // Loop through the groups and subgroups and read them in
   halo_struct group_halos[1];
+  int subgroups_count = 0;  // DEBUG
   for (int i_group=0; i_group<header.n_groups; i_group++){
     read_group(fin_trees, group_halos, group_count);
     n_subgroups = group_halos[group_count].NSubgroups;
     read_catalog_halo(&fin_group_halos, run_globals->params.SimulationDir, run_globals->params.SimName, corrected_snapshot, "group", &catalog_groups_flayout, 
         &i_group_file, &N_halos_groups_file, &group_count_infile, group_halos, N_groups_files, &group_count);
     group_count=0; // Reset this after every group read as we are using a dummy 1 element array for group_halos
+
+    subgroups_count+=n_subgroups;
 
     if(n_subgroups <= 0)
       phantom_group_count++;
@@ -345,8 +348,8 @@ trees_header_struct read_halos(
       (*halo)[halo_count-1].Type = 0;
       convert_input_halo_units(&((*halo)[halo_count-1]));
       central_index = halo_count-1;
-      (*fof_group)[i_group].FirstHalo = &((*halo)[central_index]);
-      (*halo)[halo_count-1].FOFGroup = &((*fof_group)[i_group]);
+      (*fof_group)[i_group-phantom_group_count].FirstHalo = &((*halo)[central_index]);
+      (*halo)[halo_count-1].FOFGroup = &((*fof_group)[i_group-phantom_group_count]);
 
       // Deal with any remaining subhalos
       for (int i_subgroup=1; i_subgroup<n_subgroups; i_subgroup++){
@@ -355,7 +358,7 @@ trees_header_struct read_halos(
             &i_subgroup_file, &N_halos_subgroups_file, &subgroup_count_infile, *halo, N_subgroups_files, &halo_count);
         (*halo)[halo_count-1].Type = 1;
         convert_input_halo_units(&((*halo)[halo_count-1]));
-        (*halo)[halo_count-1].FOFGroup = &((*fof_group)[i_group]);
+        (*halo)[halo_count-1].FOFGroup = &((*fof_group)[i_group-phantom_group_count]);
         (*halo)[halo_count-2].NextHaloInFOFGroup = &((*halo)[halo_count-1]);
       }
     }
@@ -373,6 +376,8 @@ trees_header_struct read_halos(
 
   // Update the header n_groups to take into account phantoms
   header.n_groups -= phantom_group_count;
+
+  SID_log("subgroups_count = %d", SID_LOG_COMMENT, subgroups_count);
 
   SID_log("...done", SID_LOG_CLOSE);
 

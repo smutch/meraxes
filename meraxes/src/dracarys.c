@@ -179,7 +179,7 @@ void dracarys(run_globals_struct *run_globals)
 
           copy_halo_to_galaxy(run_globals, &(halo[i_newhalo]), gal);
           halo[i_newhalo].Galaxy = gal;
-          SID_log("Assigned existing galaxy to halo %d", SID_LOG_COMMENT, i_newhalo);
+          // SID_log("Assigned existing galaxy to halo %d", SID_LOG_COMMENT, i_newhalo);
         }
       } else
       {
@@ -219,8 +219,7 @@ void dracarys(run_globals_struct *run_globals)
       }
     }
 
-    // DEBUG
-    check_counts(run_globals, fof_group, NGal, trees_header.n_groups);
+  mpi_debug_here();
 
     // Loop through each galaxy and deal with mergers now that all other galaxies have been 
     // correctly propogated forwards
@@ -242,6 +241,9 @@ void dracarys(run_globals_struct *run_globals)
       }
       gal = gal->Next;
     }
+    
+    // DEBUG
+    check_counts(run_globals, fof_group, NGal, trees_header.n_groups);
 
     // Do the physics
     nout_gals = evolve_galaxies(run_globals, fof_group, snapshot, NGal, trees_header.n_groups);
