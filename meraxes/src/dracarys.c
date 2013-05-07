@@ -175,16 +175,20 @@ void dracarys(run_globals_struct *run_globals)
 
       if(i_newhalo>-1)
       {
-        if( ((gal->TreeFlags & TREE_CASE_MERGER)==TREE_CASE_MERGER)
-            && (gal->Type != 2) )
+        if((gal->TreeFlags & TREE_CASE_MERGER)==TREE_CASE_MERGER)
         {
           // Here we have a new merger...  Mark it and deal with it below.
-          gal->Type = 999;
+
+          // If we have already marked this a type two it has already been
+          // processed as a new merger and so we don't need to do this again...
+          if (gal->Type != 2) 
+            gal->Type = 999;
+
           gal->Halo = &(halo[i_newhalo]);
           // SID_log("Found a galaxy which now has no halo (merged into halo %d)", SID_LOG_COMMENT, i_newhalo);
         } else if(gal->Type < 2)
         {
-
+          // Here we have the simplest case where a galaxy continues along in it's halo...
           gal->dM = (halo[i_newhalo]).Mvir - gal->Mvir;
           gal->dMdt = (gal->dM)/dt;
 
@@ -198,9 +202,6 @@ void dracarys(run_globals_struct *run_globals)
 
           // SID_log("Assigned existing galaxy to halo %d", SID_LOG_COMMENT, i_newhalo);
         }
-        // Note that we don't need to do anything here for galaxies that are
-        // already marked as type 2 in previous snapshots as they no longer
-        // have a halo which will appear in the trees.
       } else
       {
         // This galaxy is done (merged, lost, whatever...) so get rid of it

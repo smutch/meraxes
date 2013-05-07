@@ -357,6 +357,8 @@ void write_snapshot(run_globals_struct *run_globals, int n_write, int i_out, int
   int                   prev_snapshot;
   int calc_descendants_i_out = -1;
 
+  SID_log("Writing output file...", SID_LOG_OPEN|SID_LOG_TIMER);
+
   // Create the file.
   file_id = H5Fopen(run_globals->FNameOut, H5F_ACC_RDWR, H5P_DEFAULT);
 
@@ -388,15 +390,18 @@ void write_snapshot(run_globals_struct *run_globals, int n_write, int i_out, int
   {
     descendant_index = SID_malloc(sizeof(int)* (*last_n_write));
 
-    for (int ii=0; ii<n_write; ii++)
+    for (int ii=0; ii<*last_n_write; ii++)
       descendant_index[ii] = -1;
 
     gal = run_globals->FirstGal;
     while (gal!=NULL) {
       if (gal->Type < 3)
       {
-        descendant_index[gal->output_index] = gal_count;
-        old_count++;
+        if (gal->output_index > -1)
+        {
+          descendant_index[gal->output_index] = gal_count;
+          old_count++;
+        }
         gal->output_index = gal_count++;
       }
       gal=gal->Next;
@@ -480,6 +485,8 @@ void write_snapshot(run_globals_struct *run_globals, int n_write, int i_out, int
 
   // Update the value of last_n_write
   *last_n_write = n_write;
+  
+  SID_log("...done", SID_LOG_CLOSE);
 
 }
 
