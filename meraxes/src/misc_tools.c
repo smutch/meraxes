@@ -20,6 +20,7 @@ void check_counts(run_globals_struct *run_globals, fof_group_struct *fof_group, 
 
   int counter = 0;
   int halo_counter = 0;
+  int halo_pop_count = 0;
   galaxy_struct *gal = NULL;
   halo_struct *halo = NULL;
 
@@ -37,6 +38,7 @@ void check_counts(run_globals_struct *run_globals, fof_group_struct *fof_group, 
   }
   SID_log("Counting using gal->Next gives %d gals", SID_LOG_COMMENT, counter);
 
+  halo_pop_count = 0;
   counter = 0;
   halo_counter = 0;
   int ii, jj;
@@ -46,6 +48,8 @@ void check_counts(run_globals_struct *run_globals, fof_group_struct *fof_group, 
     jj=0;
     while (halo!=NULL) {
       gal = halo->Galaxy;
+      if (gal!=NULL)
+        halo_pop_count++;
       ii=0;
       while(gal!=NULL){
         gal = gal->NextGalInHalo;
@@ -62,6 +66,7 @@ void check_counts(run_globals_struct *run_globals, fof_group_struct *fof_group, 
     }
   }
   SID_log("Counting using FOF groups gives %d gals in %d halos", SID_LOG_COMMENT, counter, halo_counter);
+  SID_log("%d halos are populated with at least one galaxy", SID_LOG_COMMENT, halo_pop_count);
 
   SID_log("...done", SID_LOG_CLOSE);
 }

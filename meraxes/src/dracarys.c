@@ -95,6 +95,8 @@ static int evolve_galaxies(run_globals_struct *run_globals, fof_group_struct *fo
           // always true...
           if((gal->MergTime <0) || (gal->MergerTarget->Type==3))
           {
+            SID_log("Gal ID=%d has MergTime < 0", SID_LOG_COMMENT, gal->ID);
+
             // Merger!
             parent = gal->MergerTarget;
 
@@ -181,7 +183,13 @@ void dracarys(run_globals_struct *run_globals)
           gal->dMdt = (gal->dM)/dt;
 
           copy_halo_to_galaxy(run_globals, &(halo[i_newhalo]), gal);
-          halo[i_newhalo].Galaxy = gal;
+          if (halo[i_newhalo].Galaxy == NULL)
+            halo[i_newhalo].Galaxy = gal;
+          else {
+            SID_log("Trying to assign first galaxy to a halo which already has a first galaxy!", SID_LOG_COMMENT);
+            ABORT(EXIT_FAILURE);
+          }
+
           // SID_log("Assigned existing galaxy to halo %d", SID_LOG_COMMENT, i_newhalo);
         }
         // Note that we don't need to do anything here for galaxies that are
