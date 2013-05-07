@@ -150,10 +150,16 @@ void dracarys(run_globals_struct *run_globals)
   int                   unique_ID    = 0;
   int                   nout_gals;
   int                   last_nout_gals;
+  int                   last_snap    = 0;
   double                dt;
-  
+ 
+  // Find what the last requested output snapshot is
+  for(int ii=0; ii<NOUT; ii++)
+    if (run_globals->ListOutputSnaps[ii] > last_snap)
+      last_snap = run_globals->ListOutputSnaps[ii];
+
   // Loop through each snapshot
-  for(int snapshot=0; snapshot<MAXSNAPS; snapshot++)
+  for(int snapshot=0; snapshot<last_snap; snapshot++)
   {
 
     // Read in the halos for this snapshot

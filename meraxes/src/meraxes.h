@@ -287,4 +287,5 @@ void calc_hdf5_props(run_globals_struct *run_globals);
 void prepare_galaxy_for_output(run_globals_struct *run_globals, galaxy_struct gal, galaxy_output_struct *galout, int i_snap);
 void mpi_debug_here();
 void check_counts(run_globals_struct *run_globals, fof_group_struct *fof_group, int NGal, int NFof);
+void cn_quote();
 

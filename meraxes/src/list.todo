@@ -44,7 +44,7 @@ tests:
 ☐ Ensure that satellite merger targets always follow the assumed rules
     1. They are in the same halo as the satellite
     2. They appear before the satellite in the halo member linked list
-☐ Loop through all halos and ensure if more than one halo shares same descendant index that at least one of them has the TREE_CASE_MERGER flag set
+✔ Loop through all halos and ensure if more than one halo shares same descendant index that at least one of them has the TREE_CASE_MERGER flag set @done (2013-05-07 12:32)
 
 document the code:
 ☐ Use Doxygen style comments where appropriate
