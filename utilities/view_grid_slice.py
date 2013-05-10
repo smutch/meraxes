@@ -1,4 +1,4 @@
-"""Usage: view_slice_grid.py <grid_file> <slice_axis> (<fps> [--bitrate=<val>] | --single=<val>)
+"""Usage: view_grid_slice.py <grid_file> <slice_axis> (<fps> [--bitrate=<val>] | --single=<val>)
 
 -h, --help        show this help
 --single=<val>    single slice at `val` h^-1 Mpc
