@@ -165,8 +165,7 @@ void dracarys(run_globals_struct *run_globals)
 
       if(i_newhalo>-1)
       {
-        if( ((gal->TreeFlags & TREE_CASE_MERGER)==TREE_CASE_MERGER)
-            && ((gal->TreeFlags & TREE_CASE_MAIN_PROGENITOR)!=TREE_CASE_MAIN_PROGENITOR) )
+        if((gal->TreeFlags & TREE_CASE_MERGER)==TREE_CASE_MERGER)
         {
           // Here we have a merger...  Mark it and deal with it below.
           gal->Type = 999;
