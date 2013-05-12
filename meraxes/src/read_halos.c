@@ -361,6 +361,8 @@ trees_header_struct read_halos(
     }
   }
 
+  mpi_debug_here();
+
   // Close the files
   fclose(fin_group_halos);
   fclose(fin_subgroup_halos);

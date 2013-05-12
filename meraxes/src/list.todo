@@ -33,12 +33,7 @@ output:
 ✔ Single file just now as we are just running in serial @done (2013-04-29 10:34)
 ✔ Pre-calculate indices for write so can point to centrals etc. @done (2013-04-30 20:14)
 ✔ Add unique IDs to output so can follow histories. @done (2013-05-01 12:33)
-☐ What to do if type 0/1 merges without transition to type 2?
-    There is no merger target information in the output files in this case, so
-    how do we go about following histories?
-    - How about adding the halo index and descendant halo index?
-    - Descendant index could be written in a new dataset in the previous snapshot's group
-      (assuming this snapshot is being written).
+✔ What to do if type 0/1 merges without transition to type 2? @done (2013-05-08 18:16)
 
 tests:
 ☐ Ensure that satellite merger targets always follow the assumed rules
