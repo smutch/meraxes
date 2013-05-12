@@ -16,6 +16,7 @@ static void cleanup(run_globals_struct *run_globals)
 void myexit(int signum)
 {
   printf("Task: %d\tnode: %s\tis exiting.\n\n\n", SID.My_rank, SID.My_node);
+  cn_quote();
   SID_exit(signum);
 }
 

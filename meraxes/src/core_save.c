@@ -1,7 +1,6 @@
 #include "meraxes.h"
 #include <hdf5.h>
 #include <hdf5_hl.h>
-#include <unistd.h>
 
 static void inline h5_write_attribute(hid_t loc, const char *name, hid_t datatype, hid_t dataset_id, void *data)
 {
@@ -184,7 +183,6 @@ void prep_hdf5_file(run_globals_struct *run_globals)
 {
 
   hid_t    file_id, str_t, ds_id, group_id;
-  herr_t   status;
   hsize_t  dims = 1;
   const char     **names;
   void    *addresses[10];
@@ -196,7 +194,7 @@ void prep_hdf5_file(run_globals_struct *run_globals)
   // Set up reusable dataspaces and types
   ds_id = H5Screate_simple(1, &dims, NULL);
   str_t = H5Tcopy(H5T_C_S1);
-  status = H5Tset_size(str_t, STRLEN);
+  H5Tset_size(str_t, STRLEN);
   names = SID_malloc(sizeof(const char *) * 10);
 
   // Open the group
@@ -268,7 +266,7 @@ void prep_hdf5_file(run_globals_struct *run_globals)
     h5_write_attribute(group_id, names[jj], H5T_NATIVE_DOUBLE, ds_id, addresses[jj]);
 
   // Close the group
-  status = H5Gclose(group_id);
+  H5Gclose(group_id);
 
   // Open the group
   group_id = H5Gcreate(file_id, "InputParams/physics", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
@@ -299,7 +297,7 @@ void prep_hdf5_file(run_globals_struct *run_globals)
   h5_write_attribute(group_id, names[0], H5T_NATIVE_INT, ds_id, addresses[0]);
  
   // Close the group
-  status = H5Gclose(group_id);
+  H5Gclose(group_id);
 
 #ifdef GITREF_STR
   // Save the git ref if requested
@@ -308,30 +306,29 @@ void prep_hdf5_file(run_globals_struct *run_globals)
 
   sprintf(tempstr, GITREF_STR);
   attr_id = H5Acreate(file_id, "GitRef", str_t, ds_id, H5P_DEFAULT, H5P_DEFAULT);
-  status = H5Awrite(attr_id, str_t, tempstr);
-  status = H5Aclose(attr_id);
+  H5Awrite(attr_id, str_t, tempstr);
+  H5Aclose(attr_id);
 #endif
 
   SID_free(SID_FARG names);
 
   // Close the HDF5 file.
-  status = H5Fclose(file_id);
+  H5Fclose(file_id);
 
-  status = H5Sclose(ds_id);
-  status = H5Tclose(str_t);
+  H5Sclose(ds_id);
+  H5Tclose(str_t);
 
 }
 
 static void inline save_descendant_indices(run_globals_struct *run_globals, hid_t file_id, int i_out_prev, int *descendant_index, int old_count)
 {
 
-  herr_t status;
   hsize_t dim[1];
   char target[50];
   
   sprintf(target, "Snap%03d/DescendantIndices", (run_globals->ListOutputSnaps)[i_out_prev]);
   dim[0] = (hsize_t)old_count; 
-  status = H5LTmake_dataset(file_id,target,1,dim,H5T_NATIVE_INT,descendant_index);
+  H5LTmake_dataset(file_id,target,1,dim,H5T_NATIVE_INT,descendant_index);
 
 }
 
@@ -343,7 +340,6 @@ void write_snapshot(run_globals_struct *run_globals, int n_write, int i_out, int
    * Write a batch of galaxies to the output HDF5 table.
    */
 
-  herr_t                status;
   hid_t                 file_id;
   hid_t                 group_id;
   hid_t                 ds_id;
@@ -361,6 +357,8 @@ void write_snapshot(run_globals_struct *run_globals, int n_write, int i_out, int
   int                   prev_snapshot;
   int calc_descendants_i_out = -1;
 
+  SID_log("Writing output file...", SID_LOG_OPEN|SID_LOG_TIMER);
+
   // Create the file.
   file_id = H5Fopen(run_globals->FNameOut, H5F_ACC_RDWR, H5P_DEFAULT);
 
@@ -369,7 +367,7 @@ void write_snapshot(run_globals_struct *run_globals, int n_write, int i_out, int
   group_id = H5Gcreate(file_id, target_group, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
 
   // Make the table
-  status=H5TBmake_table("Galaxies", group_id, "Galaxies",
+  H5TBmake_table("Galaxies", group_id, "Galaxies",
       h5props.n_props, n_write, h5props.dst_size, h5props.field_names,
       h5props.dst_offsets, h5props.field_types, chunk_size, fill_data, 0,
       NULL );
@@ -392,15 +390,18 @@ void write_snapshot(run_globals_struct *run_globals, int n_write, int i_out, int
   {
     descendant_index = SID_malloc(sizeof(int)* (*last_n_write));
 
-    for (int ii=0; ii<n_write; ii++)
+    for (int ii=0; ii<*last_n_write; ii++)
       descendant_index[ii] = -1;
 
     gal = run_globals->FirstGal;
     while (gal!=NULL) {
       if (gal->Type < 3)
       {
-        descendant_index[gal->output_index] = gal_count;
-        old_count++;
+        if (gal->output_index > -1)
+        {
+          descendant_index[gal->output_index] = gal_count;
+          old_count++;
+        }
         gal->output_index = gal_count++;
       }
       gal=gal->Next;
@@ -458,7 +459,7 @@ void write_snapshot(run_globals_struct *run_globals, int n_write, int i_out, int
     if (gal->Type < 3)
     {
       prepare_galaxy_for_output(run_globals, *gal, &galout, i_out);
-      status=H5TBwrite_records(group_id, "Galaxies", gal_count, 1, h5props.dst_size,
+      H5TBwrite_records(group_id, "Galaxies", gal_count, 1, h5props.dst_size,
           h5props.dst_offsets, h5props.dst_field_sizes, &galout);
       gal_count++;
     }
@@ -477,13 +478,15 @@ void write_snapshot(run_globals_struct *run_globals, int n_write, int i_out, int
   H5Sclose(ds_id);
 
   // Close the group.
-  status = H5Gclose(group_id);
+  H5Gclose(group_id);
 
   // Close the file.
-  status = H5Fclose(file_id);
+  H5Fclose(file_id);
 
   // Update the value of last_n_write
   *last_n_write = n_write;
+  
+  SID_log("...done", SID_LOG_CLOSE);
 
 }
 

@@ -10,12 +10,11 @@
  * Definitions
  */
 
-#define STRLEN  128  //!< Default string length
+#define STRLEN  256  //!< Default string length
 #define MAXTAGS 50   //!< Maximum number of allowed tags in input file
-#define ALLOCFACTOR 2  //!< Size of galaxy array is ALLOCFACTOR*n_halos_max
 
 // TODO: This should not be hard coded if at all possible...
-#define MAXSNAPS 3  //!< Maximum number of snapshots
+#define MAXSNAPS 15  //!< Maximum number of snapshots
 
 #ifndef NOUT
 #define NOUT 1
@@ -143,11 +142,14 @@ typedef struct run_globals_struct run_globals_struct;
 
 //! The header from the input tree files.
 struct trees_header_struct{
+  int n_step;
+  int n_search;
   int n_groups;
   int n_subgroups;
-  int n_halos_max;
-  int n_trees_subgroup;
-  int n_trees_group;
+  int n_groups_max;
+  int n_subgroups_max;
+  int max_tree_id_subgroup;
+  int max_tree_id_group;
 };
 typedef struct trees_header_struct trees_header_struct;
 
@@ -276,10 +278,14 @@ void init_meraxes(run_globals_struct *run_globals);
 void dracarys(run_globals_struct *run_globals);
 trees_header_struct read_halos(run_globals_struct *run_globals, int snapshot, halo_struct **halo, fof_group_struct **fof_group);
 void free_halos(halo_struct **halo);
-void new_galaxy(galaxy_struct **gal, int *unique_ID);
+galaxy_struct* new_galaxy(int *unique_ID);
 void copy_halo_to_galaxy(run_globals_struct *run_globals, halo_struct *halo, galaxy_struct *gal);
 double calculate_merging_time(run_globals_struct *run_globals, galaxy_struct *gal, int snapshot);
 void prep_hdf5_file(run_globals_struct *run_globals);
 void write_snapshot(run_globals_struct *run_globals, int n_write, int i_out, int *last_n_write);
 void calc_hdf5_props(run_globals_struct *run_globals);
 void prepare_galaxy_for_output(run_globals_struct *run_globals, galaxy_struct gal, galaxy_output_struct *galout, int i_snap);
+void mpi_debug_here();
+void check_counts(run_globals_struct *run_globals, fof_group_struct *fof_group, int NGal, int NFof);
+void cn_quote();
+

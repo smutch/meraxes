@@ -327,7 +327,7 @@ void read_parameter_file(run_globals_struct *run_globals, char *fname)
         }
 
       if (i==(n_param-9))
-        printf("physics parameters:\n");
+        printf("\t\t%35s\n", "--- physics parameters ---");
 
     }
     printf("\n");

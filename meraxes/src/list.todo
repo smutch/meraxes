@@ -33,17 +33,25 @@ output:
 ✔ Single file just now as we are just running in serial @done (2013-04-29 10:34)
 ✔ Pre-calculate indices for write so can point to centrals etc. @done (2013-04-30 20:14)
 ✔ Add unique IDs to output so can follow histories. @done (2013-05-01 12:33)
-☐ What to do if type 0/1 merges without transition to type 2?
-    There is no merger target information in the output files in this case, so
-    how do we go about following histories?
-    - How about adding the halo index and descendant halo index?
-    - Descendant index could be written in a new dataset in the previous snapshot's group
-      (assuming this snapshot is being written).
+✔ What to do if type 0/1 merges without transition to type 2? @done (2013-05-08 18:16)
 
 tests:
 ☐ Ensure that satellite merger targets always follow the assumed rules
     1. They are in the same halo as the satellite
     2. They appear before the satellite in the halo member linked list
+✔ Loop through all halos and ensure if more than one halo shares same descendant index that at least one of them has the TREE_CASE_MERGER flag set @done (2013-05-07 12:32)
+☐ Try calloc'ing the halo array before read
+☐ Insert gdb break point after halo read and manually check some values
+    Is the catalogue reader broken?
+    Has Greg pushed to gdbcode?  If so then I can compare the write code to my read code.
+
+metal dependant cooling:
+☐ Implement a copy of C06 to start with
+☐ Maybe try new cooling tables @low
+
+photometric tables:
+☐ Start with just the Johnson BVRIK tables from C06 to get things started
+☐ Implement Chiara's new table using C06 tables as fiducial comparison
 
 document the code:
 ☐ Use Doxygen style comments where appropriate
