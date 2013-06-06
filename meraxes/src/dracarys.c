@@ -209,7 +209,7 @@ void dracarys(run_globals_struct *run_globals)
           prev_gal->Next = gal->Next;
         else
           run_globals->FirstGal = gal->Next;
-        cur_gal = gal->Halo->Galaxy;
+        cur_gal = gal->FirstGalInHalo;
         while ((cur_gal->NextGalInHalo != gal) && (cur_gal->NextGalInHalo != NULL))
           cur_gal = cur_gal->NextGalInHalo;
         cur_gal->NextGalInHalo = gal->NextGalInHalo;
@@ -239,6 +239,7 @@ void dracarys(run_globals_struct *run_globals)
           run_globals->FirstGal = gal;
         run_globals->LastGal = gal;
         halo[i_halo].Galaxy = gal;
+        gal->FirstGalInHalo = gal;
         // SID_log("Created new galaxy in i_halo=%d", SID_LOG_COMMENT, i_halo);
         NGal++;
       }

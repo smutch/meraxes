@@ -210,6 +210,7 @@ struct galaxy_struct
   int    HaloDescIndex;
   int    TreeFlags;
   struct halo_struct         *Halo;
+  struct galaxy_struct       *FirstGalInHalo;
   struct galaxy_struct       *NextGalInHalo;
   struct galaxy_struct       *Next;
   struct galaxy_struct       *MergerTarget;
