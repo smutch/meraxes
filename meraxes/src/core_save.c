@@ -211,8 +211,6 @@ void prep_hdf5_file(run_globals_struct *run_globals)
   names[ii++] = "SimName";
   addresses[ii] = &(run_globals->params.SimulationDir);
   names[ii++] = "SimulationDir";
-  addresses[ii] = &(run_globals->params.CoolFunctionsDir);
-  names[ii++] = "CoolFunctionsDir";
   addresses[ii] = &(run_globals->params.FileWithOutputSnaps);
   names[ii++]   = "FileWithOutputSnaps";
 

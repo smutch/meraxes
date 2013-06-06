@@ -70,7 +70,6 @@ struct run_params_struct{
   char                  FileNameGalaxies[STRLEN];
   char                  SimName[STRLEN];
   char                  SimulationDir[STRLEN];
-  char                  CoolFunctionsDir[STRLEN];
   char                  FileWithOutputSnaps[STRLEN];
   int                   NEverySnap;
   int                   NScanSnap;

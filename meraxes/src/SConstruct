@@ -138,5 +138,8 @@ if not GetOption('help'):
 
     node_list = files('*.c')
     target = env.Program(target='../bin/meraxes', source=node_list)
-
     Default(target)
+
+    # Testing alias
+    test = env.Command('test', [target], """cp $SOURCE /home/smutch/data/meraxes/GiggleZ_MR_step1_test
+            rm -f /home/smutch/data/meraxes/GiggleZ_MR_step1_test/output/GiggleZ_MR_no_ghost_test.hdf5""")
