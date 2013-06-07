@@ -12,9 +12,7 @@ static inline bool check_for_merger(int flags)
 
 static inline bool check_if_valid_host(int flags)
 {
-  int invalid_flags = (TREE_CASE_FRAGMENTED_EXCHANGED 
-      | TREE_CASE_FRAGMENTED_LOST
-      | TREE_CASE_FRAGMENTED_RETURNED
+  int invalid_flags = (TREE_CASE_FRAGMENTED_RETURNED
       | TREE_CASE_STRAYED
       | TREE_CASE_SPUTTERED);
   if ((flags & invalid_flags)==0)
@@ -81,6 +79,7 @@ void dracarys(run_globals_struct *run_globals)
             halo[i_newhalo].Galaxy = gal;
           else {
             SID_log("Trying to assign first galaxy to a halo which already has a first galaxy!", SID_LOG_COMMENT);
+            mpi_debug_here();
             ABORT(EXIT_FAILURE);
           }
           
