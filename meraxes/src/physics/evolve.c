@@ -95,7 +95,7 @@ int evolve_galaxies(run_globals_struct *run_globals, fof_group_struct *fof_group
           // always true...
           if((gal->MergTime <0) || (gal->MergerTarget->Type==3))
           {
-            SID_log("Gal ID=%d has MergTime < 0", SID_LOG_COMMENT, gal->ID);
+            // SID_log("Gal ID=%d has MergTime < 0", SID_LOG_COMMENT, gal->ID);
 
             // Merger!
             parent = gal->MergerTarget;
