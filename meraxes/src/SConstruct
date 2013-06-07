@@ -136,7 +136,7 @@ if not GetOption('help'):
     if 'VIRTUAL_ENV' in os.environ:
         python = os.environ['VIRTUAL_ENV']+'/bin/python'
 
-    node_list = files('*.c')
+    node_list = files('**/*.c')
     target = env.Program(target='../bin/meraxes', source=node_list)
     Default(target)
 

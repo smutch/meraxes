@@ -276,6 +276,7 @@ void myexit(int signum);
 void read_parameter_file(run_globals_struct *run_globals, char *fname);
 void init_meraxes(run_globals_struct *run_globals);
 void dracarys(run_globals_struct *run_globals);
+int evolve_galaxies(run_globals_struct *run_globals, fof_group_struct *fof_group, int snapshot, int NGal, int NFof);
 trees_header_struct read_halos(run_globals_struct *run_globals, int snapshot, halo_struct **halo, fof_group_struct **fof_group);
 void free_halos(halo_struct **halo);
 galaxy_struct* new_galaxy(int *unique_ID);

@@ -111,8 +111,6 @@ int main(int argc, char **argv)
   init_meraxes(&run_globals);
   calc_hdf5_props(&run_globals);
 
-  mpi_debug_here();
-
   // Run the model!
   dracarys(&run_globals);
 
