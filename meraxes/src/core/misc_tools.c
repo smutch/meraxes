@@ -24,6 +24,8 @@ static void find_missing_gals(run_globals_struct *run_globals, fof_group_struct 
   bool *gal_found;
   galaxy_struct **missing_pointers;
 
+  SID_log("Running `find_missing_galaxies`...", SID_LOG_OPEN);
+
   // Count the number of galaxies
   gal = run_globals->FirstGal;
   while (gal!=NULL)
@@ -34,7 +36,7 @@ static void find_missing_gals(run_globals_struct *run_globals, fof_group_struct 
 
   gal_found = SID_calloc(sizeof(bool)*counter);
 
-  // Loop through each FOF halo and mark of each galaxy
+  // Loop through each FOF halo and mark off each galaxy
   for(int i_fof=0; i_fof<NFof; i_fof++)
   {
     halo = fof_group[i_fof].FirstHalo;
@@ -60,7 +62,7 @@ static void find_missing_gals(run_globals_struct *run_globals, fof_group_struct 
   counter = 0;
   while (gal!=NULL)
   {
-    if(gal_found[gal->output_index])
+    if(!gal_found[gal->output_index])
       missing_pointers[counter++] = gal;
     gal = gal->Next;
   }
@@ -70,6 +72,8 @@ static void find_missing_gals(run_globals_struct *run_globals, fof_group_struct 
 
   SID_free(SID_FARG missing_pointers);
   SID_free(SID_FARG gal_found);
+
+  SID_log("...done", SID_LOG_CLOSE);
 }
 
 
