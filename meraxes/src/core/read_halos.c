@@ -19,15 +19,13 @@ static void halo_catalog_filename(
     for (*i_layout=0; (*i_layout<4) && (flag_success==false); (*i_layout)++)
     {
       if (*i_layout==0)
-        // sprintf(fname, "%s/%s/catalogs/subfind_%03d.catalog_%s_properties/subfind_%03d.catalog_%s_properties.%d", root, sim, snapshot, group_type, snapshot, group_type, sub);
-        sprintf(fname, "%s/%s/trees/%s_ghost_test/horizontal/ghost_catalogs/ghosts_%03d.%s_properties.%d", root, sim, sim, snapshot, group_type, sub);
+        sprintf(fname, "%s/%s/trees/%s_test_ghosts/horizontal/ghost_catalogs/ghosts_%03d.catalog_%s_properties/ghosts_%03d.catalog_%s_properties.%d", root, sim, sim, snapshot, group_type, snapshot, group_type, sub);
       else if (*i_layout==1)
-        // sprintf(fname, "%s/%s/catalogs/subfind_%03d.catalog_%s_properties/subfind_%03d.catalog_%s_properties", root, sim, snapshot, group_type, snapshot, group_type);
-        sprintf(fname, "%s/%s/trees/%s_ghost_test/horizontal/ghost_catalogs/ghosts_%03d.%s_properties", root, sim, sim, snapshot, group_type);
-      // else if (*i_layout==2)
-      //   sprintf(fname, "%s/%s/catalogs/subfind_%03d.catalog_%s_properties.%d", root, sim, snapshot, group_type, sub);
-      // else if (*i_layout==3)
-      //   sprintf(fname, "%s/%s/catalogs/subfind_%03d.catalog_%s_properties", root, sim, snapshot, group_type);
+        sprintf(fname, "%s/%s/trees/%s_test_ghosts/horizontal/ghost_catalogs/ghosts_%03d.catalog_%s_properties/ghosts_%03d.catalog_%s_properties", root, sim, sim, snapshot, group_type, snapshot, group_type);
+      else if (*i_layout==2)
+        sprintf(fname, "%s/%s/trees/%s_test_ghosts/horizontal/ghost_catalogs/ghosts_%03d.catalog_%s_properties.%d", root, sim, sim, snapshot, group_type, sub);
+      else if (*i_layout==3)
+        sprintf(fname, "%s/%s/trees/%s_test_ghosts/horizontal/ghost_catalogs/ghosts_%03d.catalog_%s_properties", root, sim, sim, snapshot, group_type);
       
       if ((fin = fopen(fname, "rb"))!=NULL)
       {
@@ -47,15 +45,14 @@ static void halo_catalog_filename(
    
   // provide the correct filename
   if (*i_layout==0)
-    // sprintf(fname, "%s/%s/catalogs/subfind_%03d.catalog_%s_properties/subfind_%03d.catalog_%s_properties.%d", root, sim, snapshot, group_type, snapshot, group_type, sub);
-    sprintf(fname, "%s/%s/trees/%s_ghost_test/horizontal/ghost_catalogs/ghosts_%03d.%s_properties.%d", root, sim, sim, snapshot, group_type, sub);
+    sprintf(fname, "%s/%s/trees/%s_test_ghosts/horizontal/ghost_catalogs/ghosts_%03d.catalog_%s_properties/ghosts_%03d.catalog_%s_properties.%d", root, sim, sim, snapshot, group_type, snapshot, group_type, sub);
   else if (*i_layout==1)
-    // sprintf(fname, "%s/%s/catalogs/subfind_%03d.catalog_%s_properties/subfind_%03d.catalog_%s_properties", root, sim, snapshot, group_type, snapshot, group_type);
-    sprintf(fname, "%s/%s/trees/%s_ghost_test/horizontal/ghost_catalogs/ghosts_%03d.%s_properties", root, sim, sim, snapshot, group_type);
-  // else if (*i_layout==2)
-  //   sprintf(fname, "%s/%s/catalogs/subfind_%03d.catalog_%s_properties.%d", root, sim, snapshot, group_type, sub);
-  // else if (*i_layout==3)
-  //   sprintf(fname, "%s/%s/catalogs/subfind_%03d.catalog_%s_properties", root, sim, snapshot, group_type);
+    sprintf(fname, "%s/%s/trees/%s_test_ghosts/horizontal/ghost_catalogs/ghosts_%03d.catalog_%s_properties/ghosts_%03d.catalog_%s_properties", root, sim, sim, snapshot, group_type, snapshot, group_type);
+  else if (*i_layout==2)
+    sprintf(fname, "%s/%s/trees/%s_test_ghosts/horizontal/ghost_catalogs/ghosts_%03d.catalog_%s_properties.%d", root, sim, sim, snapshot, group_type, sub);
+  else if (*i_layout==3)
+    sprintf(fname, "%s/%s/trees/%s_test_ghosts/horizontal/ghost_catalogs/ghosts_%03d.catalog_%s_properties", root, sim, sim, snapshot, group_type);
+
 
 }
 
@@ -235,7 +232,7 @@ trees_header_struct read_halos(
   int   catalog_groups_flayout    = -1;
   int   catalog_subgroups_flayout = -1;
   int   central_index;  //!< Index of the central halo associated with this one
-  halo_catalog_filename(run_globals->params.SimulationDir, run_globals->params.SimName, corrected_snapshot, "group", 0, &catalog_groups_flayout, fname);
+  halo_catalog_filename(run_globals->params.SimulationDir, run_globals->params.SimName, corrected_snapshot, "groups", 0, &catalog_groups_flayout, fname);
   fin = fopen(fname, "rb");
   if (fin==NULL)
   {
@@ -246,7 +243,7 @@ trees_header_struct read_halos(
   SID_log("N_groups_files = %d", SID_LOG_COMMENT, N_groups_files);
   fclose(fin);
 
-  halo_catalog_filename(run_globals->params.SimulationDir, run_globals->params.SimName, corrected_snapshot, "subgroup", 0, &catalog_subgroups_flayout, fname);
+  halo_catalog_filename(run_globals->params.SimulationDir, run_globals->params.SimName, corrected_snapshot, "subgroups", 0, &catalog_subgroups_flayout, fname);
   fin = fopen(fname, "rb");
   if (fin==NULL)
   {
@@ -261,7 +258,7 @@ trees_header_struct read_halos(
   SID_log("Reading in trees...", SID_LOG_COMMENT);
   // sprintf(fname, "%s/%s/trees/horizontal/trees/%s_%s.trees_horizontal_%d",
       // run_globals->params.SimulationDir, run_globals->params.SimName, run_globals->params.SimName, sim_variant, corrected_snapshot);
-  sprintf(fname, "%s/%s/trees/%s_ghost_test/horizontal/trees/horizontal_trees_ghosts_%03d.dat",
+  sprintf(fname, "%s/%s/trees/%s_test_ghosts/horizontal/trees/horizontal_trees_ghosts_%03d.dat",
       run_globals->params.SimulationDir, run_globals->params.SimName, run_globals->params.SimName, corrected_snapshot);
   fin_trees = fopen(fname, "rb");
   if (fin_trees==NULL)
@@ -323,7 +320,7 @@ trees_header_struct read_halos(
   for (int i_group=0; i_group<header.n_groups; i_group++){
     read_group(fin_trees, group_halos, group_count);
     n_subgroups = group_halos[group_count].NSubgroups;
-    read_catalog_halo(&fin_group_halos, run_globals->params.SimulationDir, run_globals->params.SimName, corrected_snapshot, "group", &catalog_groups_flayout, 
+    read_catalog_halo(&fin_group_halos, run_globals->params.SimulationDir, run_globals->params.SimName, corrected_snapshot, "groups", &catalog_groups_flayout, 
         &i_group_file, &N_halos_groups_file, &group_count_infile, group_halos, N_groups_files, &group_count);
     group_count=0; // Reset this after every group read as we are using a dummy 1 element array for group_halos
 
@@ -337,7 +334,7 @@ trees_header_struct read_halos(
       // removed.  We want to restore this to be just the FOF halo with no
       // alterations.
       read_subgroup(fin_trees, *halo, halo_count);
-      read_catalog_halo(&fin_subgroup_halos, run_globals->params.SimulationDir, run_globals->params.SimName, corrected_snapshot, "subgroup", &catalog_subgroups_flayout, 
+      read_catalog_halo(&fin_subgroup_halos, run_globals->params.SimulationDir, run_globals->params.SimName, corrected_snapshot, "subgroups", &catalog_subgroups_flayout, 
           &i_subgroup_file, &N_halos_subgroups_file, &subgroup_count_infile, *halo, N_subgroups_files, &halo_count);
       // Copy the relevant FOF group data over the top...
       memcpy(&((*halo)[halo_count-1].Mvir), &(group_halos[0].Mvir), sizeof(halo_struct)-offsetof(halo_struct, Mvir)); 
@@ -351,7 +348,7 @@ trees_header_struct read_halos(
       // Deal with any remaining subhalos
       for (int i_subgroup=1; i_subgroup<n_subgroups; i_subgroup++){
         read_subgroup(fin_trees, *halo, halo_count);
-        read_catalog_halo(&fin_subgroup_halos, run_globals->params.SimulationDir, run_globals->params.SimName, corrected_snapshot, "subgroup", &catalog_subgroups_flayout, 
+        read_catalog_halo(&fin_subgroup_halos, run_globals->params.SimulationDir, run_globals->params.SimName, corrected_snapshot, "subgroups", &catalog_subgroups_flayout, 
             &i_subgroup_file, &N_halos_subgroups_file, &subgroup_count_infile, *halo, N_subgroups_files, &halo_count);
         (*halo)[halo_count-1].Type = 1;
         convert_input_halo_units(&((*halo)[halo_count-1]));
@@ -360,8 +357,6 @@ trees_header_struct read_halos(
       }
     }
   }
-
-  mpi_debug_here();
 
   // Close the files
   fclose(fin_group_halos);

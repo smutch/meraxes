@@ -138,11 +138,6 @@ void read_parameter_file(run_globals_struct *run_globals, char *fname)
   required_tag[n_param] = 1;
   params_id[n_param++] = INT;
 
-  strcpy(params_tag[n_param], "CoolFunctionsDir");
-  params_addr[n_param] = run_params->CoolFunctionsDir;
-  required_tag[n_param] = 1;
-  params_id[n_param++] = STRING;
-
   strcpy(params_tag[n_param], "FileWithOutputSnaps");
   params_addr[n_param] = run_params->FileWithOutputSnaps;
   required_tag[n_param] = 1;

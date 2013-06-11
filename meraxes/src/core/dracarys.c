@@ -1,138 +1,25 @@
+#include <math.h>
 #include "meraxes.h"
 #include "tree_flags.h"
-#include <math.h>
 
-static double physics_func(run_globals_struct *run_globals, double prop, int snapshot)
+static inline bool check_for_merger(int flags)
 {
-
-  double *ZZ = run_globals->ZZ;
-  
-  double log_prop = log10(prop);
-
-  double cur_peak        = run_globals->params.physics.peak * pow(1.0+ZZ[snapshot], run_globals->params.physics.peak_evo);
-  double cur_stellarfrac = run_globals->params.physics.stellarfrac * pow(1.0+ZZ[snapshot], run_globals->params.physics.stellarfrac_evo);
-  double cur_sigma       = run_globals->params.physics.sigma * pow(1.0+ZZ[snapshot], run_globals->params.physics.sigma_evo);
-
-  return cur_stellarfrac * exp( -pow((log_prop-cur_peak)/cur_sigma ,2.) );
-
+ if ((flags & TREE_CASE_MERGER)==TREE_CASE_MERGER)
+   return true;
+ else
+   return false;
 }
 
-//! Evolve existing galaxies forward in time
-static int evolve_galaxies(run_globals_struct *run_globals, fof_group_struct *fof_group, int snapshot, int NGal, int NFof)
+static inline bool check_if_valid_host(int flags)
 {
-
-  double         sfr;
-  double         BaryonFrac      = run_globals->params.BaryonFrac;
-  double         RecycleFraction = run_globals->params.RecycleFraction;
-  double         dt              = run_globals->LTTime[snapshot-1]-run_globals->LTTime[snapshot];
-  galaxy_struct *gal             = NULL;
-  galaxy_struct *parent          = NULL;
-  halo_struct   *halo            = NULL;
-  int            gal_counter     = 0;
-  int            dead_gals       = 0;
-
-  SID_log("Doing physics...", SID_LOG_OPEN|SID_LOG_TIMER);
-  
-  for(int i_fof=0; i_fof<NFof; i_fof++)
-  {
-    halo = fof_group[i_fof].FirstHalo;
-    while (halo!=NULL) {
-      gal = halo->Galaxy;
-
-      while(gal!=NULL){
-        if((gal->Mvir>0.0) && (gal->Type==0))
-          switch (run_globals->params.physics.funcprop){
-            case VMAX_PROP:
-              sfr = BaryonFrac*gal->dMdt * physics_func(run_globals, gal->Vmax, snapshot);
-              break;
-            case MVIR_PROP:
-              sfr = BaryonFrac*gal->dMdt * physics_func(run_globals, gal->Mvir*1.e10, snapshot);
-              break;
-            default:
-              SID_log_error("Did not recognise physics_funcprop value!");
-              ABORT(EXIT_FAILURE);
-              break;
-          }
-        else
-          sfr = 0.0;
-      
-        // update the star formation rate in the galaxy structure 
-        for(int outputbin = 0; outputbin < NOUT; outputbin++)
-        {
-          if(snapshot == run_globals->ListOutputSnaps[outputbin])
-          {
-            gal->Sfr[outputbin] += sfr;
-            break;
-          }
-        }
-
-        // Instantaneous recycling approximation
-        gal->StellarMass += (1.0-RecycleFraction)*sfr*dt;
-
-
-        // If this is a type 2 then increment the merger clock
-        if(gal->Type == 2)
-          gal->MergTime -= dt;
-
-        gal_counter++;
-        gal = gal->NextGalInHalo;
-      }
-
-      halo = halo->NextHaloInFOFGroup;
-    }
-
-    // Check for mergers
-    halo = fof_group[i_fof].FirstHalo;
-    while(halo!=NULL) {
-      gal = halo->Galaxy;
-      while(gal!=NULL) {
-        if(gal->Type == 2)
-        {
-          // If the merger clock has run out or our target halo has already
-          // merged then process a merger event.  Note that this relies on the
-          // merger target coming before this galaxy in the linked list of halo
-          // members.  This should be the case but I should confirm that it is
-          // always true...
-          if((gal->MergTime <0) || (gal->MergerTarget->Type==3))
-          {
-            SID_log("Gal ID=%d has MergTime < 0", SID_LOG_COMMENT, gal->ID);
-
-            // Merger!
-            parent = gal->MergerTarget;
-
-            while (parent->Type==3)
-              parent = parent->MergerTarget;
-
-            // Add galaxies together
-            parent->StellarMass += gal->StellarMass;
-
-            for(int outputbin = 0; outputbin < NOUT; outputbin++)
-              parent->Sfr[outputbin] += gal->Sfr[outputbin];
-
-            // Mark the merged galaxy as dead
-            gal->Type          = 3;
-            gal->HaloDescIndex = -1;
-            dead_gals++;
-          }
-        }
-        gal = gal->NextGalInHalo;
-      }
-      halo = halo->NextHaloInFOFGroup;
-    }
-  }
-    
-  if(gal_counter!=NGal)
-  {
-    SID_log_error("We have not processed the expected number of galaxies...");
-    SID_log("gal_counter = %d but NGal = %d", SID_LOG_COMMENT, gal_counter, NGal);
-    ABORT(EXIT_FAILURE);
-  }
-
-  SID_log("...done", SID_LOG_CLOSE); 
-
-  return gal_counter-dead_gals;
+  int invalid_flags = (TREE_CASE_FRAGMENTED_RETURNED
+      | TREE_CASE_STRAYED
+      | TREE_CASE_SPUTTERED);
+  if ((flags & invalid_flags)==0)
+    return true;
+  else
+    return false;
 }
-
 
 //! Actually run the model
 void dracarys(run_globals_struct *run_globals)
@@ -175,7 +62,7 @@ void dracarys(run_globals_struct *run_globals)
 
       if(i_newhalo>-1)
       {
-        if((gal->TreeFlags & TREE_CASE_MERGER)==TREE_CASE_MERGER)
+        if(check_for_merger(gal->TreeFlags))
         {
           // Here we have a new merger...  Mark it and deal with it below.
 
@@ -188,17 +75,18 @@ void dracarys(run_globals_struct *run_globals)
           // SID_log("Found a galaxy which now has no halo (merged into halo %d)", SID_LOG_COMMENT, i_newhalo);
         } else if(gal->Type < 2)
         {
-          // Here we have the simplest case where a galaxy continues along in it's halo...
-          gal->dM = (halo[i_newhalo]).Mvir - gal->Mvir;
-          gal->dMdt = (gal->dM)/dt;
-
-          copy_halo_to_galaxy(run_globals, &(halo[i_newhalo]), gal);
           if (halo[i_newhalo].Galaxy == NULL)
             halo[i_newhalo].Galaxy = gal;
           else {
             SID_log("Trying to assign first galaxy to a halo which already has a first galaxy!", SID_LOG_COMMENT);
             ABORT(EXIT_FAILURE);
           }
+          
+          // Here we have the simplest case where a galaxy continues along in it's halo...
+          gal->dM = (halo[i_newhalo]).Mvir - gal->Mvir;
+          gal->dMdt = (gal->dM)/dt;
+
+          copy_halo_to_galaxy(run_globals, &(halo[i_newhalo]), gal);
 
           // SID_log("Assigned existing galaxy to halo %d", SID_LOG_COMMENT, i_newhalo);
         }
@@ -209,27 +97,32 @@ void dracarys(run_globals_struct *run_globals)
           prev_gal->Next = gal->Next;
         else
           run_globals->FirstGal = gal->Next;
-        cur_gal = gal->Halo->Galaxy;
+        cur_gal = gal->FirstGalInHalo;
         while ((cur_gal->NextGalInHalo != gal) && (cur_gal->NextGalInHalo != NULL))
           cur_gal = cur_gal->NextGalInHalo;
         cur_gal->NextGalInHalo = gal->NextGalInHalo;
         SID_free(SID_FARG gal);
         gal = prev_gal;
         NGal--;
-        SID_log("Killed a galaxy and decremented the counter.", SID_LOG_COMMENT);
+        // SID_log("Killed a galaxy and decremented the counter.", SID_LOG_COMMENT);
       }
 
-      prev_gal = gal;
-      gal = gal->Next;
+      // gal may be NULL if we just killed the first galaxy
+      if (gal!=NULL)
+      {
+        prev_gal = gal;
+        gal = gal->Next;
+      } else
+        gal = run_globals->FirstGal;
     }
 
     // Incase we ended up removing the last galaxy, update the LastGal pointer
     run_globals->LastGal = prev_gal;
 
-    // Find empty type 0 halos and place new galaxies in them
+    // Find empty (valid) type 0 halos and place new galaxies in them
     for(int i_halo=0; i_halo<trees_header.n_subgroups; i_halo++)
     {
-      if((halo[i_halo].Type == 0) && (halo[i_halo].Galaxy == NULL))
+      if((halo[i_halo].Type == 0) && (halo[i_halo].Galaxy == NULL) && check_if_valid_host(halo[i_halo].TreeFlags))
       {
         gal = new_galaxy(&unique_ID);
         copy_halo_to_galaxy(run_globals, &(halo[i_halo]), gal);
@@ -239,6 +132,7 @@ void dracarys(run_globals_struct *run_globals)
           run_globals->FirstGal = gal;
         run_globals->LastGal = gal;
         halo[i_halo].Galaxy = gal;
+        gal->FirstGalInHalo = gal;
         // SID_log("Created new galaxy in i_halo=%d", SID_LOG_COMMENT, i_halo);
         NGal++;
       }
@@ -259,6 +153,7 @@ void dracarys(run_globals_struct *run_globals)
           gal->dMdt = (gal->dM)/dt;
           copy_halo_to_galaxy(run_globals, gal->Halo, gal);
           gal->Halo->Galaxy = gal;
+          gal->FirstGalInHalo = gal;
         } else
         {
           // If there is a galaxy in the halo which is being merged into then
@@ -271,7 +166,8 @@ void dracarys(run_globals_struct *run_globals)
           }
           prev_gal->NextGalInHalo = gal;
 
-          gal->MergerTarget = gal->Halo->Galaxy;
+          gal->FirstGalInHalo = gal->Halo->Galaxy;
+          gal->MergerTarget = gal->FirstGalInHalo;
           // SID_log("Snap %d: Just set merger target of ID %d to ID %d...", SID_LOG_COMMENT, snapshot, gal->ID, gal->MergerTarget->ID);
           gal->MergTime = calculate_merging_time(run_globals, gal, snapshot);
         }

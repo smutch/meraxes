@@ -2,7 +2,7 @@
 #----- SA model output files --------------
 #------------------------------------------
 
-FileNameGalaxies			GiggleZ_MR_ghost_test
+FileNameGalaxies			GiggleZ_MR_no_ghost_test
 
 FirstFile					0
 LastFile					0
@@ -15,7 +15,7 @@ LastFile					0
 SimName                     GiggleZ_MR
 SimulationDir				/lustre/projects/p004_swin/gpoole/GiggleZ
 NEverySnap                  8
-NScanSnap                   4
+NScanSnap                   1
 LastSnapShotNr              466
 FilesPerSnapshot            1
 BoxSize                     125

@@ -14,6 +14,7 @@ galaxy_struct* new_galaxy(int *unique_ID)
   gal->HaloDescIndex     = -1;
   gal->TreeFlags         = -1;
   gal->Halo              = NULL;
+  gal->FirstGalInHalo    = NULL;
   gal->NextGalInHalo     = NULL;
   gal->Next              = NULL;
   gal->MergerTarget      = NULL;
