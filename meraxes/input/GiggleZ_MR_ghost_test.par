@@ -14,8 +14,8 @@ LastFile					0
 
 SimName                     GiggleZ_MR
 SimulationDir				/lustre/projects/p004_swin/gpoole/GiggleZ
-NEverySnap                  32
-NScanSnap                   2
+NEverySnap                  8
+NScanSnap                   4
 LastSnapShotNr              466
 FilesPerSnapshot            1
 BoxSize                     125

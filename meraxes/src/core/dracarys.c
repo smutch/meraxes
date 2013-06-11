@@ -79,7 +79,6 @@ void dracarys(run_globals_struct *run_globals)
             halo[i_newhalo].Galaxy = gal;
           else {
             SID_log("Trying to assign first galaxy to a halo which already has a first galaxy!", SID_LOG_COMMENT);
-            mpi_debug_here();
             ABORT(EXIT_FAILURE);
           }
           
@@ -105,7 +104,7 @@ void dracarys(run_globals_struct *run_globals)
         SID_free(SID_FARG gal);
         gal = prev_gal;
         NGal--;
-        SID_log("Killed a galaxy and decremented the counter.", SID_LOG_COMMENT);
+        // SID_log("Killed a galaxy and decremented the counter.", SID_LOG_COMMENT);
       }
 
       // gal may be NULL if we just killed the first galaxy
