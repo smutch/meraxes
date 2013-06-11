@@ -39,6 +39,9 @@ void dracarys(run_globals_struct *run_globals)
   int                   last_nout_gals;
   int                   last_snap    = 0;
   double                dt;
+  int                   kill_counter = 0;
+  int                   merger_counter = 0;
+  int                   new_gal_counter = 0;
  
   // Find what the last requested output snapshot is
   for(int ii=0; ii<NOUT; ii++)
@@ -48,6 +51,11 @@ void dracarys(run_globals_struct *run_globals)
   // Loop through each snapshot
   for(int snapshot=0; snapshot<last_snap; snapshot++)
   {
+
+    // Reset book keeping counters
+    kill_counter = 0;
+    merger_counter = 0;
+    new_gal_counter = 0;
 
     // Read in the halos for this snapshot
     trees_header = read_halos(run_globals, snapshot, &halo, &fof_group);
@@ -69,7 +77,10 @@ void dracarys(run_globals_struct *run_globals)
           // If we have already marked this a type two it has already been
           // processed as a new merger and so we don't need to do this again...
           if (gal->Type != 2) 
+          {
             gal->Type = 999;
+            merger_counter++;
+          }
 
           gal->Halo = &(halo[i_newhalo]);
           // SID_log("Found a galaxy which now has no halo (merged into halo %d)", SID_LOG_COMMENT, i_newhalo);
@@ -98,13 +109,39 @@ void dracarys(run_globals_struct *run_globals)
         else
           run_globals->FirstGal = gal->Next;
         cur_gal = gal->FirstGalInHalo;
-        while ((cur_gal->NextGalInHalo != gal) && (cur_gal->NextGalInHalo != NULL))
-          cur_gal = cur_gal->NextGalInHalo;
-        cur_gal->NextGalInHalo = gal->NextGalInHalo;
+
+        if (cur_gal == gal)
+        {
+          // DEBUG
+          SID_log("We have just killed the first galaxy in a halo...", SID_LOG_COMMENT);
+          
+          // We have just killed the first galaxy in the halo. If there are any
+          // other galaxies left then we must update their FirstGalInHalo
+          // pointers.
+          while (cur_gal->NextGalInHalo != NULL)
+            if(cur_gal->FirstGalInHalo == gal)
+              cur_gal->FirstGalInHalo = gal->NextGalInHalo;
+          // We also need to update the halo->Galaxy pointer in this case as well...
+          if(gal->Halo->Galaxy != gal)
+          {
+            SID_log("Uhh.. Ok... I wasn't expecting this to happen...", SID_LOG_COMMENT);
+            ABORT(EXIT_FAILURE);
+          }
+          gal->Halo->Galaxy = gal->NextGalInHalo;
+        } else
+        {
+          while ((cur_gal->NextGalInHalo != gal) && (cur_gal->NextGalInHalo != NULL))
+            cur_gal = cur_gal->NextGalInHalo;
+          cur_gal->NextGalInHalo = gal->NextGalInHalo;
+        }
+
+        if (prev_gal == NULL)
+          run_globals->FirstGal = gal->Next;
+
         SID_free(SID_FARG gal);
         gal = prev_gal;
         NGal--;
-        // SID_log("Killed a galaxy and decremented the counter.", SID_LOG_COMMENT);
+        kill_counter++;
       }
 
       // gal may be NULL if we just killed the first galaxy
@@ -113,7 +150,12 @@ void dracarys(run_globals_struct *run_globals)
         prev_gal = gal;
         gal = gal->Next;
       } else
+      {
+        //DEBUG
+        SID_log("We just killed the first galaxy in the global linked list...", SID_LOG_COMMENT);
+
         gal = run_globals->FirstGal;
+      }
     }
 
     // Incase we ended up removing the last galaxy, update the LastGal pointer
@@ -133,10 +175,14 @@ void dracarys(run_globals_struct *run_globals)
         run_globals->LastGal = gal;
         halo[i_halo].Galaxy = gal;
         gal->FirstGalInHalo = gal;
-        // SID_log("Created new galaxy in i_halo=%d", SID_LOG_COMMENT, i_halo);
         NGal++;
+        new_gal_counter++;
       }
     }
+
+    SID_log("Identified %d new merger events.", SID_LOG_COMMENT, merger_counter);
+    SID_log("Killed %d galaxies.", SID_LOG_COMMENT, kill_counter);
+    SID_log("Created %d new galaxies.", SID_LOG_COMMENT, new_gal_counter);
 
     // Loop through each galaxy and deal with mergers now that all other galaxies have been 
     // correctly propogated forwards
@@ -153,7 +199,6 @@ void dracarys(run_globals_struct *run_globals)
           gal->dMdt = (gal->dM)/dt;
           copy_halo_to_galaxy(run_globals, gal->Halo, gal);
           gal->Halo->Galaxy = gal;
-          gal->FirstGalInHalo = gal;
         } else
         {
           // If there is a galaxy in the halo which is being merged into then
@@ -167,8 +212,12 @@ void dracarys(run_globals_struct *run_globals)
           prev_gal->NextGalInHalo = gal;
 
           gal->FirstGalInHalo = gal->Halo->Galaxy;
+
+          // DEBUG
+          if (gal->FirstGalInHalo == NULL)
+            SID_log("Just set gal->FirstGalInHalo = NULL!", SID_LOG_COMMENT);
+
           gal->MergerTarget = gal->FirstGalInHalo;
-          // SID_log("Snap %d: Just set merger target of ID %d to ID %d...", SID_LOG_COMMENT, snapshot, gal->ID, gal->MergerTarget->ID);
           gal->MergTime = calculate_merging_time(run_globals, gal, snapshot);
         }
       }
