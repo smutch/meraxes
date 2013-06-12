@@ -471,9 +471,9 @@ trees_header_struct read_halos(
       (*halo)[i_halo].FOFGroup = &((*fof_group)[i_group-phantom_group_count]);
 
       // DEBUG
-      if((*halo)[i_halo].Mvir <= 1.e-9)
+      if((*halo)[i_halo].TreeFlags == 0)
       {
-        SID_log("Just read a type 0 subhalo with Mvir=%.2e", SID_LOG_OPEN, (*halo)[i_halo].Mvir);
+        SID_log("Just read a type 0 subhalo with TreeFlags=0", SID_LOG_OPEN);
         SID_log("i_group = %d", SID_LOG_COMMENT, i_group);
         SID_log("i_subgroup = %d", SID_LOG_COMMENT, i_halo);
         SID_log("DescIndex = %d", SID_LOG_COMMENT, (*halo)[i_halo].DescIndex);
@@ -494,17 +494,22 @@ trees_header_struct read_halos(
         (*halo)[i_halo].Type = 1;
         convert_input_halo_units(&((*halo)[i_halo]));
         (*halo)[i_halo].FOFGroup = &((*fof_group)[i_group-phantom_group_count]);
-        (*halo)[halo_count-2].NextHaloInFOFGroup = &((*halo)[i_halo]);
+        (*halo)[i_halo-1].NextHaloInFOFGroup = &((*halo)[i_halo]);
       }
     }
   }
 
   // Close the files
-  fclose(fin_group_halos);
-  fclose(fin_group_ghosts);
-  fclose(fin_subgroup_halos);
-  fclose(fin_subgroup_ghosts);
-  fclose(fin_trees);
+  if(fin_group_halos!=NULL)
+    fclose(fin_group_halos);
+  if(fin_group_ghosts!=NULL)
+    fclose(fin_group_ghosts);
+  if(fin_subgroup_halos!=NULL)
+    fclose(fin_subgroup_halos);
+  if(fin_subgroup_ghosts!=NULL)
+    fclose(fin_subgroup_ghosts);
+  if(fin_trees!=NULL)
+    fclose(fin_trees);
 
   if (halo_count!=N_halos){
     SID_log_error("halo_count != N_halos\n");
