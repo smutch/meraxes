@@ -10,10 +10,9 @@ import subprocess
 def files(pattern, exclude=''): 
     """All files matching a pattern, excluding
     directories and any specified patterns.""" 
-    return [file for file in
-            glob.glob(pattern) if 
-            (os.path.isfile(file) and file not in
-             glob.glob(exclude))]
+    return [file for file in glob.glob(pattern) if (os.path.isfile(file)
+            and file not in glob.glob(exclude))]
+
 
 # ============================
 # = Command line definitions =
