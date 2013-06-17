@@ -67,9 +67,6 @@ static void find_missing_gals(run_globals_struct *run_globals, fof_group_struct 
     gal = gal->Next;
   }
 
-  // Drop us in here with gdb
-  mpi_debug_here();
-
   SID_free(SID_FARG missing_pointers);
   SID_free(SID_FARG gal_found);
 
