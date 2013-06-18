@@ -74,7 +74,8 @@ struct run_params_struct{
   int                   NEverySnap;
   int                   NScanSnap;
   int                   FilesPerSnapshot;
-  int                   LastSnapShotNr;
+  int                   TotalSimSnaps;
+  int                   LastSnapshotNr;
   int                   FirstFile;
   int                   LastFile;
   double                BoxSize;

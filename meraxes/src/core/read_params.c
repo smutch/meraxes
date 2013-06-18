@@ -148,8 +148,8 @@ void read_parameter_file(run_globals_struct *run_globals, char *fname)
   required_tag[n_param] = 1;
   params_id[n_param++] = INT;
 
-  strcpy(params_tag[n_param], "LastSnapShotNr");
-  params_addr[n_param] = &(run_params->LastSnapShotNr);
+  strcpy(params_tag[n_param], "TotalSimSnaps");
+  params_addr[n_param] = &(run_params->TotalSimSnaps);
   required_tag[n_param] = 1;
   params_id[n_param++] = INT;
 

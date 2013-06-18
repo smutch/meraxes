@@ -43,6 +43,7 @@ def read_gals(fname, firstfile=None, lastfile=None, snapshot=None,
     if snapshot==None: snapshot=-1
     MaxSnaps = fin['InputParams'].attrs['LastSnapShotNr'][0]+1
     if snapshot<0: snapshot+=MaxSnaps
+    print "Reading snapshot %d" % snapshot
 
     # Select the group for the requested snapshot.
     snap_group = fin['Snap%03d'%(snapshot)]
