@@ -201,8 +201,6 @@ void prep_hdf5_file(run_globals_struct *run_globals)
   group_id = H5Gcreate(file_id, "InputParams", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
 
   ii=0;
-  addresses[ii] = &(run_globals->params.filename);
-  names[ii++] = "filename";
   addresses[ii] = &(run_globals->params.OutputDir);
   names[ii++] = "OutputDir";
   addresses[ii] = &(run_globals->params.FileNameGalaxies);
@@ -224,8 +222,10 @@ void prep_hdf5_file(run_globals_struct *run_globals)
   names[ii++] = "NScanSnap";
   addresses[ii] = &(run_globals->params.FilesPerSnapshot);
   names[ii++] = "FilesPerSnapshot";
-  addresses[ii] = &(run_globals->params.LastSnapShotNr);
-  names[ii++] = "LastSnapShotNr";
+  addresses[ii] = &(run_globals->params.TotalSimSnaps);
+  names[ii++] = "TotalSimSnaps";
+  addresses[ii] = &(run_globals->params.LastSnapshotNr);
+  names[ii++] = "LastSnapshotNr";
   addresses[ii] = &(run_globals->params.FirstFile);
   names[ii++] = "FirstFile";
   addresses[ii] = &(run_globals->params.LastFile);
