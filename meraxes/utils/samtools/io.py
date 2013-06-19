@@ -40,9 +40,15 @@ def read_gals(fname, firstfile=None, lastfile=None, snapshot=None,
     fin = h5.File(fname, 'r')
 
     # Set the snapshot correctly
-    if snapshot==None: snapshot=-1
-    MaxSnaps = fin['InputParams'].attrs['LastSnapShotNr'][0]+1
-    if snapshot<0: snapshot+=MaxSnaps
+    if snapshot==None:
+        present_snaps = np.asarray(sorted(fin.keys()))
+        selection = [(p.find('Snap')==0) for p in present_snaps]
+        present_snaps = present_snaps[selection]
+        snapshot = int(present_snaps[-1][4:])
+    elif snapshot<0:
+        MaxSnaps = fin['InputParams'].attrs['LastSnapshotNr'][0]+1
+        snapshot+=MaxSnaps
+    print "Reading snapshot %d" % snapshot
 
     # Select the group for the requested snapshot.
     snap_group = fin['Snap%03d'%(snapshot)]

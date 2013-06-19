@@ -286,7 +286,7 @@ trees_header_struct read_halos(
   int                  corrected_snapshot;
   char                 sim_variant[18];
 
-  int  total_sim_snaps = run_globals->params.LastSnapShotNr +1;
+  int  total_sim_snaps = run_globals->params.TotalSimSnaps +1;
   int  n_every_snaps   = run_globals->params.NEverySnap;
   int  n_scan_snaps    = run_globals->params.NScanSnap;
 

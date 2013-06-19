@@ -156,6 +156,9 @@ void init_meraxes(run_globals_struct *run_globals)
   // Initialise galaxy pointers
   run_globals->FirstGal = NULL;
   run_globals->LastGal = NULL;
+
+  // Calculate the sampled LastSnapshotNr value
+  run_globals->params.LastSnapshotNr = (int)(run_globals->params.TotalSimSnaps/run_globals->params.NEverySnap);
   
   // Prep the output file
   sprintf(run_globals->FNameOut, "%s/%s.hdf5", run_globals->params.OutputDir, run_globals->params.FileNameGalaxies);
