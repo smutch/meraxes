@@ -3,7 +3,7 @@
 #include <gsl/gsl_math.h>
 #include <gsl/gsl_integration.h>
 
-static int read_snap_list(run_globals_struct *run_globals)
+static void read_snap_list(run_globals_struct *run_globals)
 {
   FILE *fin;
   int snaplist_len;
@@ -37,7 +37,7 @@ static int read_snap_list(run_globals_struct *run_globals)
     printf("found %d defined times in snaplist.\n", snaplist_len);
   }
 
-  return snaplist_len;
+  run_globals->params.SnaplistLength = snaplist_len;
 
 }
 
@@ -145,7 +145,8 @@ void init_meraxes(run_globals_struct *run_globals)
   srand((unsigned) time(NULL));
 
   read_output_snaps(run_globals);
-  snaplist_len = read_snap_list(run_globals);
+  read_snap_list(run_globals);
+  snaplist_len = run_globals->params.SnaplistLength;
 
   for(i = 0; i < snaplist_len; i++)
   {

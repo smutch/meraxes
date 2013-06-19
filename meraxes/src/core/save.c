@@ -201,8 +201,6 @@ void prep_hdf5_file(run_globals_struct *run_globals)
   group_id = H5Gcreate(file_id, "InputParams", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
 
   ii=0;
-  addresses[ii] = &(run_globals->params.filename);
-  names[ii++] = "filename";
   addresses[ii] = &(run_globals->params.OutputDir);
   names[ii++] = "OutputDir";
   addresses[ii] = &(run_globals->params.FileNameGalaxies);
