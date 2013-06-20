@@ -17,10 +17,12 @@ sys.path.append(os.path.join(__script_dir__, "../utils"))
 
 import numpy as np
 import matplotlib.pyplot as plt
-from samtools.io import read_gals
-from samtools.plots import *
+import h5py as h5
 from docopt import docopt
 from astropy import log
+
+from samtools.io import read_gals
+from samtools.plots import *
 
 __author__ = "Simon Mutch"
 __date__   = "2013/06/19"
@@ -36,11 +38,31 @@ def allresults(master_file, snapshot=None, output_dir='./plots/',
 
     # Read in the galaxies
     gals, sim_props = read_gals(master_file, snapshot=snapshot, sim_props=True)
+    redshift = sim_props['Redshift']
+    hubble_h = sim_props['Hubble_h']
 
     # Start with the SMF
     fig, ax = plt.subplots(1,1)
-    print fig.get_facecolor()
     smf(gals, sim_props, ax)
+
+    # Overplot relevant observational data
+    # PG08
+    if ((redshift>0.8) & (redshift<=1.0)):
+        with h5.File(os.path.join(observations_dir, "SMFs-PG08.hdf5"), "r") as fin:
+            obs = fin["Table"][:]
+        obs["logM"] += 2.*np.log10(0.7) - 2.*np.log10(hubble_h) 
+        for col in ("logIRAC", "E_logIRAC", "e_logIRAC"):
+            obs[col] += 3.*np.log10(hubble_h) - 3.*np.log10(0.7)
+        m_err = 10.**obs["logIRAC"] - 10.**(obs["logIRAC"]-obs["e_logIRAC"])
+        p_err = 10.**(obs["E_logIRAC"]+obs["logIRAC"]) - 10.**obs["logIRAC"]
+
+        sel = (obs["Range"]=="0.8<z<1.0")
+        ax.errorbar(obs[sel]["logM"], 10.**obs[sel]["logIRAC"], yerr=(m_err[sel], p_err[sel]),
+                    ls='none', marker='s', capthick=2, mec='none',
+                    label="PG08", zorder=0)
+
+
+    plt.legend(loc='lower left', numpoints=1, fontsize='small', frameon=False)
     plt.tight_layout()
     plt.savefig(os.path.join(output_dir, "smf."+fig_format))
 
