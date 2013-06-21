@@ -48,6 +48,7 @@ def allresults(master_file, snapshot=None, output_dir='./plots/',
     # Overplot relevant observational data
     # PG08
     if ((redshift>0.8) & (redshift<=1.0)):
+        # Read in and prepare the data
         with h5.File(os.path.join(observations_dir, "SMFs-PG08.hdf5"), "r") as fin:
             obs = fin["Table"][:]
         obs["logM"] += 2.*np.log10(0.7) - 2.*np.log10(hubble_h) 
@@ -56,6 +57,7 @@ def allresults(master_file, snapshot=None, output_dir='./plots/',
         m_err = 10.**obs["logIRAC"] - 10.**(obs["logIRAC"]-obs["e_logIRAC"])
         p_err = 10.**(obs["E_logIRAC"]+obs["logIRAC"]) - 10.**obs["logIRAC"]
 
+        # Plot it
         sel = (obs["Range"]=="0.8<z<1.0")
         ax.errorbar(obs[sel]["logM"], 10.**obs[sel]["logIRAC"], yerr=(m_err[sel], p_err[sel]),
                     ls='none', marker='s', capthick=2, mec='none',
@@ -65,6 +67,14 @@ def allresults(master_file, snapshot=None, output_dir='./plots/',
     plt.legend(loc='lower left', numpoints=1, fontsize='small', frameon=False)
     plt.tight_layout()
     plt.savefig(os.path.join(output_dir, "smf."+fig_format))
+
+    # Plot the halo mass function
+    fig, ax = plt.subplots(1,1)
+    halo_mf(gals, sim_props, ax)
+
+    plt.legend(loc='lower left', numpoints=1, fontsize='small', frameon=False)
+    plt.tight_layout()
+    plt.savefig(os.path.join(output_dir, "halo_mf."+fig_format))
 
 
 if __name__ == '__main__':
