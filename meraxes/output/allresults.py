@@ -72,9 +72,28 @@ def allresults(master_file, snapshot=None, output_dir='./plots/',
     fig, ax = plt.subplots(1,1)
     halo_mf(gals, sim_props, ax)
 
+    # Add some theoretical data
+    data = np.loadtxt(os.path.join(__script_dir__, "data/z0.9055_WMAP7_ST_HMF.txt")) 
+    plt.plot(np.log10(data[:,0]), data[:,1], ls='--', color='0.5', zorder=0,
+             label="Sheth Tormen MF")
+    ax.set_ylim((1.e-5, 1))
+
     plt.legend(loc='lower left', numpoints=1, fontsize='small', frameon=False)
     plt.tight_layout()
     plt.savefig(os.path.join(output_dir, "halo_mf."+fig_format))
+
+    # Plot the distribution of dMvir/dt for the FHmodel
+    fig, ax = plt.subplots(1,1)
+    dmvirdt(gals, sim_props, ax, ylim=(1e-6, 1e-1))
+    plt.legend(loc='upper right', numpoints=1, fontsize='small', frameon=False)
+    plt.tight_layout()
+    plt.savefig(os.path.join(output_dir, "fhmodel_dmvirdt."+fig_format))
+    fig, ax = plt.subplots(1,1)
+    dmvirdt_vs_mvir(gals, sim_props, ax)
+    plt.legend(loc='upper left', numpoints=1, fontsize='small', frameon=False)
+    plt.tight_layout()
+    plt.savefig(os.path.join(output_dir, "fhmodel_dmvirdt_vs_mvir."+fig_format))
+    
 
 
 if __name__ == '__main__':
