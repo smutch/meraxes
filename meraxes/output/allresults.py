@@ -84,10 +84,15 @@ def allresults(master_file, snapshot=None, output_dir='./plots/',
 
     # Plot the distribution of dMvir/dt for the FHmodel
     fig, ax = plt.subplots(1,1)
-    fhmodel_dmvirdt(gals, sim_props, ax)
+    dmvirdt(gals, sim_props, ax, ylim=(1e-6, 1e-1))
     plt.legend(loc='upper right', numpoints=1, fontsize='small', frameon=False)
     plt.tight_layout()
     plt.savefig(os.path.join(output_dir, "fhmodel_dmvirdt."+fig_format))
+    fig, ax = plt.subplots(1,1)
+    dmvirdt_vs_mvir(gals, sim_props, ax)
+    plt.legend(loc='upper left', numpoints=1, fontsize='small', frameon=False)
+    plt.tight_layout()
+    plt.savefig(os.path.join(output_dir, "fhmodel_dmvirdt_vs_mvir."+fig_format))
     
 
 
