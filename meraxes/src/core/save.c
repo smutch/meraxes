@@ -414,7 +414,7 @@ void write_snapshot(run_globals_struct *run_globals, int n_write, int i_out, int
     }
   }
 
-  if (n_write!=gal_count)
+  if (n_write+(run_globals->NGhosts) != gal_count)
   {
     SID_log("We don't have the expected number of galaxies in save...", SID_LOG_COMMENT);
     SID_log("gal_count=%d, n_write=%d", SID_LOG_COMMENT, gal_count, n_write);

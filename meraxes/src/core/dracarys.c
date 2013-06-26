@@ -167,6 +167,9 @@ void dracarys(run_globals_struct *run_globals)
       }
     }
 
+    // Store the number of ghost galaxies present at this snapshot
+    run_globals->NGhosts = ghost_counter;
+
     // Incase we ended up removing the last galaxy, update the LastGal pointer
     run_globals->LastGal = prev_gal;
 

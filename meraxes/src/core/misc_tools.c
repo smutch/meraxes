@@ -87,7 +87,8 @@ void check_counts(run_globals_struct *run_globals, fof_group_struct *fof_group, 
   SID_log("Running counts check...", SID_LOG_OPEN|SID_LOG_TIMER);
 
   SID_log("NFof = %d", SID_LOG_COMMENT, NFof);
-  SID_log("Ngal = %d", SID_LOG_COMMENT, NGal);
+  SID_log("NGal = %d", SID_LOG_COMMENT, NGal);
+  SID_log("NGhosts = %d", SID_LOG_COMMENT, run_globals->NGhosts);
 
   counter=0;
   gal = run_globals->FirstGal;
@@ -129,7 +130,7 @@ void check_counts(run_globals_struct *run_globals, fof_group_struct *fof_group, 
   SID_log("Counting using FOF groups gives %d gals in %d halos", SID_LOG_COMMENT, counter, halo_counter);
   SID_log("%d halos are populated with at least one galaxy", SID_LOG_COMMENT, halo_pop_count);
 
-  if(gal_next_counter!=counter)
+  if(gal_next_counter-(run_globals->NGhosts) != counter)
   {
     find_missing_gals(run_globals, fof_group, NFof);
     ABORT(EXIT_FAILURE);

@@ -121,7 +121,7 @@ int evolve_galaxies(run_globals_struct *run_globals, fof_group_struct *fof_group
     }
   }
     
-  if(gal_counter!=NGal)
+  if(gal_counter+(run_globals->NGhosts) != NGal)
   {
     SID_log_error("We have not processed the expected number of galaxies...");
     SID_log("gal_counter = %d but NGal = %d", SID_LOG_COMMENT, gal_counter, NGal);

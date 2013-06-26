@@ -123,7 +123,7 @@ typedef struct hdf5_output_struct hdf5_output_struct;
 struct run_globals_struct{
   int                        LastOutputSnap;
   int                        ListOutputSnaps[NOUT];
-  int                        Ngal;
+  int                        NGhosts;
   double                     AA[MAXSNAPS];
   double                     ZZ[MAXSNAPS];
   double                     LTTime[MAXSNAPS];
