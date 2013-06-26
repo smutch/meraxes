@@ -236,6 +236,7 @@ static void inline read_group(FILE *fin, halo_struct *halo, int i_halo)
   fread(&dummy                     , sizeof(int), 1, fin);
   fread(&dummy                     , sizeof(int), 1, fin);
   fread(&(halo[i_halo].DescIndex)  , sizeof(int), 1, fin);
+  fread(&(halo[i_halo].SnapOffset) , sizeof(int), 1, fin);
   fread(&(halo[i_halo].NSubgroups) , sizeof(int), 1, fin);
 }
 
@@ -246,6 +247,7 @@ static void inline read_subgroup(FILE *fin, halo_struct *halo, int i_halo)
   fread(&(halo[i_halo].TreeFlags)  , sizeof(int), 1, fin);
   fread(&dummy                     , sizeof(int), 1, fin);
   fread(&dummy                     , sizeof(int), 1, fin);
+  fread(&(halo[i_halo].SnapOffset) , sizeof(int), 1, fin);
   fread(&(halo[i_halo].DescIndex)  , sizeof(int), 1, fin);
   halo[i_halo].NSubgroups = -1;
 }

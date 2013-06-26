@@ -180,6 +180,7 @@ typedef struct catalog_halo_struct catalog_halo_struct;
 struct halo_struct{
   int    ID;             //!< Halo ID
   int    Type;           //!< Type (0 for central, 1 for satellite)
+  int    SnapOffset;     //!< Number of snapshots this halo skips before reappearing
   int    DescIndex;      //!< Index of descendant in next relevant snapshot
   int    TreeFlags;      //!< Bitwise flag indicating the type of match in the trees
   int    NSubgroups;     //!< Number of subgroups belonging to this type 0 (=-1 if type=1)
@@ -208,6 +209,7 @@ struct galaxy_struct
 {
   int    ID;
   int    Type;
+  int    SnapSkipCounter;
   int    HaloDescIndex;
   int    TreeFlags;
   struct halo_struct         *Halo;

@@ -11,6 +11,7 @@ galaxy_struct* new_galaxy(int *unique_ID)
   // Initialise the properties
   gal->ID                = (*unique_ID)++;
   gal->Type              = -1;
+  gal->SnapSkipCounter   = 0;
   gal->HaloDescIndex     = -1;
   gal->TreeFlags         = -1;
   gal->Halo              = NULL;
@@ -52,6 +53,7 @@ void copy_halo_to_galaxy(run_globals_struct *run_globals, halo_struct *halo, gal
   gal->Halo            = halo;
   gal->Type            = halo->Type;
   gal->Len             = halo->Len;
+  gal->SnapSkipCounter = halo->SnapOffset;
   gal->HaloDescIndex   = halo->DescIndex;
   gal->Mvir            = halo->Mvir;
   gal->Rvir            = halo->Rvir;
