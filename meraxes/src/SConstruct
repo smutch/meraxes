@@ -137,6 +137,7 @@ if not GetOption('help'):
 
     node_list = files('**/*.c')
     target = env.Program(target='../bin/meraxes', source=node_list)
+    env.NoClean(target)
     Default(target)
 
     # Testing alias
