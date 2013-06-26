@@ -19,6 +19,8 @@ def read_gals(fname, firstfile=None, lastfile=None, snapshot=None,
                  default = True
         sim_props: (optional) Output some simulation properties as well.
                    default = False
+        descendant_inds: (optional) Output the descendant indices if available
+                         default = False
 
     Returns:
         A ndarray with the requested galaxies and properties.
@@ -35,6 +37,7 @@ def read_gals(fname, firstfile=None, lastfile=None, snapshot=None,
 
     verbose = kwargs.get('verbose', True)
     output_sim_props_flag = kwargs.get('sim_props', False)
+    descendant_inds = kwargs.get('descendant_inds', False)
 
     # Open the file for reading
     fin = h5.File(fname, 'r')
@@ -48,7 +51,9 @@ def read_gals(fname, firstfile=None, lastfile=None, snapshot=None,
     elif snapshot<0:
         MaxSnaps = fin['InputParams'].attrs['LastSnapshotNr'][0]+1
         snapshot+=MaxSnaps
-    print "Reading snapshot %d" % snapshot
+
+    if verbose:
+        print "Reading snapshot %d" % snapshot
 
     # Select the group for the requested snapshot.
     snap_group = fin['Snap%03d'%(snapshot)]
@@ -72,6 +77,8 @@ def read_gals(fname, firstfile=None, lastfile=None, snapshot=None,
     if verbose:
         print 'Read in %d galaxies.' % len(G)
 
+    output = [G,]
+
     # Set some run properties
     if output_sim_props_flag:
         Hubble_h     = fin['InputParams'].attrs['Hubble_h'][0]
@@ -80,16 +87,29 @@ def read_gals(fname, firstfile=None, lastfile=None, snapshot=None,
         VolumeFactor = fin['InputParams'].attrs['VolumeFactor'][0]
         Volume       = BoxSize**3.0 
         Redshift     = snap_group.attrs['Redshift']
-        fin.close()
-        return G, {'BoxSize':BoxSize, 
-                   'MaxTreeFiles':MaxTreeFiles, 
-                   'Hubble_h':Hubble_h, 
-                   'Volume':Volume,
-                   'Redshift':Redshift}
+        output.append(
+            {'BoxSize':BoxSize, 
+             'MaxTreeFiles':MaxTreeFiles, 
+             'Hubble_h':Hubble_h, 
+             'Volume':Volume,
+             'Redshift':Redshift})
 
+    if descendant_inds:
+        if G.size>0:
+            try:
+                inds = snap_group['DescendantIndices'][:]
+            except KeyError:
+                inds = None
+        else:
+            inds = None
+        output.append(inds)
+
+    fin.close()
+
+    if len(output)==1:
+        return output[0]
     else:
-        fin.close()
-        return G
+        return output
 
 
 def read_input_params(fname, props=None):

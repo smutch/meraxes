@@ -429,7 +429,6 @@ void write_snapshot(run_globals_struct *run_globals, int n_write, int i_out, int
     while (gal!=NULL) {
       if (gal->Type > 2)
       {
-        SID_log("gal->output_index = %d", SID_LOG_COMMENT, gal->output_index);
         descendant_index[gal->output_index] = gal->MergerTarget->output_index;
         old_count++;
       }
