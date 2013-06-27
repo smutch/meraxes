@@ -105,7 +105,9 @@ void dracarys(run_globals_struct *run_globals)
             if (halo[i_newhalo].Galaxy == NULL)
               halo[i_newhalo].Galaxy = gal;
             else {
+#ifdef DEBUG
               mpi_debug_here();
+#endif
               SID_log("Trying to assign first galaxy to a halo which already has a first galaxy!", SID_LOG_COMMENT);
               ABORT(EXIT_FAILURE);
             }
@@ -263,8 +265,9 @@ void dracarys(run_globals_struct *run_globals)
       gal = gal->Next;
     }
     
-    // DEBUG
+#ifdef DEBUG
     check_counts(run_globals, fof_group, NGal, trees_header.n_groups);
+#endif
 
     // Do the physics
     nout_gals = evolve_galaxies(run_globals, fof_group, snapshot, NGal, trees_header.n_groups);
