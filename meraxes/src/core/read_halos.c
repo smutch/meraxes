@@ -64,61 +64,63 @@ static void halo_catalog_filename(
 
 }
 
-static void ghost_catalog_filename(
-  char *root,      
-  char *sim,       
-  int   snapshot,  
-  char *group_type,
-  int   sub,       
-  int  *i_layout,  
-  char *fname)     
-{
-
-  bool flag_success = false;
-  FILE *fin;
-
-  // if we need to determine the filename structure...
-  if (*i_layout==-1)
-  {
-    for (*i_layout=0; (*i_layout<4) && (flag_success==false); (*i_layout)++)
-    {
-      if (*i_layout==0)
-        sprintf(fname, "%s/%s/trees/%s_test_ghosts/horizontal/ghost_catalogs/ghosts_%03d.catalog_%s_properties/ghosts_%03d.catalog_%s_properties.%d", root, sim, sim, snapshot, group_type, snapshot, group_type, sub);
-      else if (*i_layout==1)
-        sprintf(fname, "%s/%s/trees/%s_test_ghosts/horizontal/ghost_catalogs/ghosts_%03d.catalog_%s_properties/ghosts_%03d.catalog_%s_properties", root, sim, sim, snapshot, group_type, snapshot, group_type);
-      else if (*i_layout==2)
-        sprintf(fname, "%s/%s/trees/%s_test_ghosts/horizontal/ghost_catalogs/ghosts_%03d.catalog_%s_properties.%d", root, sim, sim, snapshot, group_type, sub);
-      else if (*i_layout==3)
-        sprintf(fname, "%s/%s/trees/%s_test_ghosts/horizontal/ghost_catalogs/ghosts_%03d.catalog_%s_properties", root, sim, sim, snapshot, group_type);
-      
-      if ((fin = fopen(fname, "rb"))!=NULL)
-      {
-        flag_success = true;
-        fclose(fin);
-        break;
-      }
-    }
-  } 
-
-  // ensure we have a valid i_layout value.
-  if (*i_layout<0 && *i_layout>3)
-  {
-    fprintf(stderr, "cannot resolve catalogue filename.\n");
-    ABORT(EXIT_FAILURE);
-  }
-   
-  // provide the correct filename
-  if (*i_layout==0)
-    sprintf(fname, "%s/%s/trees/%s_test_ghosts/horizontal/ghost_catalogs/ghosts_%03d.catalog_%s_properties/ghosts_%03d.catalog_%s_properties.%d", root, sim, sim, snapshot, group_type, snapshot, group_type, sub);
-  else if (*i_layout==1)
-    sprintf(fname, "%s/%s/trees/%s_test_ghosts/horizontal/ghost_catalogs/ghosts_%03d.catalog_%s_properties/ghosts_%03d.catalog_%s_properties", root, sim, sim, snapshot, group_type, snapshot, group_type);
-  else if (*i_layout==2)
-    sprintf(fname, "%s/%s/trees/%s_test_ghosts/horizontal/ghost_catalogs/ghosts_%03d.catalog_%s_properties.%d", root, sim, sim, snapshot, group_type, sub);
-  else if (*i_layout==3)
-    sprintf(fname, "%s/%s/trees/%s_test_ghosts/horizontal/ghost_catalogs/ghosts_%03d.catalog_%s_properties", root, sim, sim, snapshot, group_type);
-
-
-}
+/*
+ * static void ghost_catalog_filename(
+ *   char *root,      
+ *   char *sim,       
+ *   int   snapshot,  
+ *   char *group_type,
+ *   int   sub,       
+ *   int  *i_layout,  
+ *   char *fname)     
+ * {
+ * 
+ *   bool flag_success = false;
+ *   FILE *fin;
+ * 
+ *   // if we need to determine the filename structure...
+ *   if (*i_layout==-1)
+ *   {
+ *     for (*i_layout=0; (*i_layout<4) && (flag_success==false); (*i_layout)++)
+ *     {
+ *       if (*i_layout==0)
+ *         sprintf(fname, "%s/%s/trees/%s_test_ghosts/horizontal/ghost_catalogs/ghosts_%03d.catalog_%s_properties/ghosts_%03d.catalog_%s_properties.%d", root, sim, sim, snapshot, group_type, snapshot, group_type, sub);
+ *       else if (*i_layout==1)
+ *         sprintf(fname, "%s/%s/trees/%s_test_ghosts/horizontal/ghost_catalogs/ghosts_%03d.catalog_%s_properties/ghosts_%03d.catalog_%s_properties", root, sim, sim, snapshot, group_type, snapshot, group_type);
+ *       else if (*i_layout==2)
+ *         sprintf(fname, "%s/%s/trees/%s_test_ghosts/horizontal/ghost_catalogs/ghosts_%03d.catalog_%s_properties.%d", root, sim, sim, snapshot, group_type, sub);
+ *       else if (*i_layout==3)
+ *         sprintf(fname, "%s/%s/trees/%s_test_ghosts/horizontal/ghost_catalogs/ghosts_%03d.catalog_%s_properties", root, sim, sim, snapshot, group_type);
+ *       
+ *       if ((fin = fopen(fname, "rb"))!=NULL)
+ *       {
+ *         flag_success = true;
+ *         fclose(fin);
+ *         break;
+ *       }
+ *     }
+ *   } 
+ * 
+ *   // ensure we have a valid i_layout value.
+ *   if (*i_layout<0 && *i_layout>3)
+ *   {
+ *     fprintf(stderr, "cannot resolve catalogue filename.\n");
+ *     ABORT(EXIT_FAILURE);
+ *   }
+ *    
+ *   // provide the correct filename
+ *   if (*i_layout==0)
+ *     sprintf(fname, "%s/%s/trees/%s_test_ghosts/horizontal/ghost_catalogs/ghosts_%03d.catalog_%s_properties/ghosts_%03d.catalog_%s_properties.%d", root, sim, sim, snapshot, group_type, snapshot, group_type, sub);
+ *   else if (*i_layout==1)
+ *     sprintf(fname, "%s/%s/trees/%s_test_ghosts/horizontal/ghost_catalogs/ghosts_%03d.catalog_%s_properties/ghosts_%03d.catalog_%s_properties", root, sim, sim, snapshot, group_type, snapshot, group_type);
+ *   else if (*i_layout==2)
+ *     sprintf(fname, "%s/%s/trees/%s_test_ghosts/horizontal/ghost_catalogs/ghosts_%03d.catalog_%s_properties.%d", root, sim, sim, snapshot, group_type, sub);
+ *   else if (*i_layout==3)
+ *     sprintf(fname, "%s/%s/trees/%s_test_ghosts/horizontal/ghost_catalogs/ghosts_%03d.catalog_%s_properties", root, sim, sim, snapshot, group_type);
+ * 
+ * 
+ * }
+ */
 
 
 static void inline read_catalogs_header(

@@ -126,7 +126,7 @@ static void read_output_snaps(run_globals_struct *run_globals)
   *LastOutputSnap = 0;
   for (i = 0; i < NOUT; i++) {
     if(ListOutputSnaps[i]<0)
-      ListOutputSnaps[i] += MAXSNAPS;
+      ListOutputSnaps[i] += run_globals->params.SnaplistLength;
     if(ListOutputSnaps[i]>*LastOutputSnap)
       *LastOutputSnap=ListOutputSnaps[i];
   }

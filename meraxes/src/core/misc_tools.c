@@ -62,10 +62,13 @@ static void find_missing_gals(run_globals_struct *run_globals, fof_group_struct 
   counter = 0;
   while (gal!=NULL)
   {
-    if(!gal_found[gal->output_index])
+    // Note that we only store non-ghost missing pointers here...
+    if((!gal_found[gal->output_index]) && (gal->SnapSkipCounter<=0))
       missing_pointers[counter++] = gal;
     gal = gal->Next;
   }
+
+  mpi_debug_here();
 
   SID_free(SID_FARG missing_pointers);
   SID_free(SID_FARG gal_found);
@@ -97,7 +100,9 @@ void check_counts(run_globals_struct *run_globals, fof_group_struct *fof_group, 
     counter++;
     gal = gal->Next;
   }
-  SID_log("Counting using gal->Next gives %d gals", SID_LOG_COMMENT, counter);
+  SID_log("Counting using gal->Next gives %d gals (-%d ghosts = %d gals)",
+      SID_LOG_COMMENT, counter, run_globals->NGhosts,
+      counter-run_globals->NGhosts);
   gal_next_counter = counter;
 
   halo_pop_count = 0;
@@ -132,7 +137,9 @@ void check_counts(run_globals_struct *run_globals, fof_group_struct *fof_group, 
 
   if(gal_next_counter-(run_globals->NGhosts) != counter)
   {
+#ifdef DEBUG
     find_missing_gals(run_globals, fof_group, NFof);
+#endif
     ABORT(EXIT_FAILURE);
   }
 

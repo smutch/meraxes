@@ -2,6 +2,14 @@
 #include "meraxes.h"
 #include "tree_flags.h"
 
+static inline bool check_for_flag(int flag, int tree_flags)
+{
+  if ((tree_flags & flag)==flag)
+    return true;
+  else
+    return false;
+}
+
 static inline bool check_for_merger(int flags)
 {
  if ((flags & TREE_CASE_MERGER)==TREE_CASE_MERGER)
@@ -73,7 +81,7 @@ void dracarys(run_globals_struct *run_globals)
       i_newhalo = gal->HaloDescIndex;
       gal->SnapSkipCounter--;  // Decrement the skip counter
 
-      if(gal->SnapSkipCounter==0)
+      if(gal->SnapSkipCounter<=0)
       {
         if(i_newhalo>-1)
         {
@@ -93,9 +101,11 @@ void dracarys(run_globals_struct *run_globals)
             // SID_log("Found a galaxy which now has no halo (merged into halo %d)", SID_LOG_COMMENT, i_newhalo);
           } else if(gal->Type < 2)
           {
+            // DEBUG
             if (halo[i_newhalo].Galaxy == NULL)
               halo[i_newhalo].Galaxy = gal;
             else {
+              mpi_debug_here();
               SID_log("Trying to assign first galaxy to a halo which already has a first galaxy!", SID_LOG_COMMENT);
               ABORT(EXIT_FAILURE);
             }
@@ -151,7 +161,19 @@ void dracarys(run_globals_struct *run_globals)
           kill_counter++;
         }
       } else
+      {
+        // This is a ghost galaxy for this snapshot
         ghost_counter++;
+        // We need to count all the other galaxies in this halo as ghosts as
+        // well since they won't be reachable by traversing the FOF groups
+        cur_gal = gal->NextGalInHalo;
+        while (cur_gal!=NULL)
+        {
+          ghost_counter++;
+          cur_gal = cur_gal->NextGalInHalo;
+        }
+      }
+
 
       // gal may be NULL if we just killed the first galaxy
       if (gal!=NULL)
@@ -232,6 +254,10 @@ void dracarys(run_globals_struct *run_globals)
 
           gal->MergerTarget = gal->FirstGalInHalo;
           gal->MergTime = calculate_merging_time(run_globals, gal, snapshot);
+
+          // Set the halo pointer to NULL for this galaxy now since after this
+          // snapshot it has no meaning anyway...
+          gal->Halo = NULL;
         }
       }
       gal = gal->Next;
