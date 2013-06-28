@@ -39,6 +39,10 @@ galaxy_struct* new_galaxy(int *unique_ID)
     gal->Sfr[ii] = 0;
 
   gal->output_index = -1;
+  gal->ghost_flag = false;
+
+  // if(*unique_ID==470+1) 
+  //   mpi_debug_here();   
 
   return gal;
 }

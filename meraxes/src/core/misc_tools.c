@@ -20,6 +20,7 @@ static void find_missing_gals(run_globals_struct *run_globals, fof_group_struct 
   galaxy_struct *gal = NULL;
   halo_struct *halo = NULL;
   int counter = 0;
+  int master_counter = 0;
   int missing_counter = 0;
   bool *gal_found;
   galaxy_struct **missing_pointers;
@@ -64,6 +65,8 @@ static void find_missing_gals(run_globals_struct *run_globals, fof_group_struct 
       while (halo!=NULL) {
         gal = halo->Galaxy;
         while(gal!=NULL){
+          if((counter==98) || (counter==99))
+            mpi_debug_here();
           gal->output_index = counter++;
           gal = gal->NextGalInHalo;
         }
@@ -77,7 +80,8 @@ static void find_missing_gals(run_globals_struct *run_globals, fof_group_struct 
     gal = run_globals->FirstGal;
     while (gal!=NULL)
     {
-      gal_found[gal->output_index] = true;
+      if(!gal->ghost_flag)
+        gal_found[gal->output_index] = true;
       gal = gal->Next;
     }
 
@@ -87,6 +91,8 @@ static void find_missing_gals(run_globals_struct *run_globals, fof_group_struct 
   for(int ii=0; ii<counter; ii++)
     if(!gal_found[ii])
       missing_counter++;
+
+  master_counter = counter;
 
   missing_pointers = SID_calloc(sizeof(galaxy_struct *)*missing_counter);
 
@@ -104,21 +110,26 @@ static void find_missing_gals(run_globals_struct *run_globals, fof_group_struct 
     }
   } else if(flag==1)
   {
-    for(int i_fof=0; i_fof<NFof; i_fof++)
-    {
-      halo = fof_group[i_fof].FirstHalo;
-      while (halo!=NULL) {
-        gal = halo->Galaxy;
-        while(gal!=NULL){
-          if(!(gal_found[gal->output_index]))
-            missing_pointers[counter++] = gal;
-          gal = gal->NextGalInHalo;
+    for(int ii=0; ii<master_counter; ii++)
+      if(!gal_found[ii])
+      {
+        mpi_debug_here();
+        for(int i_fof=0; i_fof<NFof; i_fof++)
+        {
+          halo = fof_group[i_fof].FirstHalo;
+          while (halo!=NULL) {
+            gal = halo->Galaxy;
+            while(gal!=NULL){
+              if(gal->output_index==ii)
+                missing_pointers[counter++] = gal;
+              gal = gal->NextGalInHalo;
+            }
+            halo = halo->NextHaloInFOFGroup;
+          }
         }
-        halo = halo->NextHaloInFOFGroup;
       }
-    }
   }
-
+  
   mpi_debug_here();
 
   SID_free(SID_FARG missing_pointers);

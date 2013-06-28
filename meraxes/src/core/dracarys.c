@@ -69,14 +69,22 @@ void dracarys(run_globals_struct *run_globals)
 
     // Read in the halos for this snapshot
     trees_header = read_halos(run_globals, snapshot, &halo, &fof_group);
-    gal      = run_globals->FirstGal;
-    prev_gal = NULL;
 
     // TODO: This should be dependant on the number of snapshots which the galaxy's halo has skipped
     dt       = run_globals->LTTime[snapshot-1]-run_globals->LTTime[snapshot];
    
     SID_log("Processing snapshot %d...", SID_LOG_OPEN|SID_LOG_TIMER, snapshot);
 
+    // Reset the shost flag on all galaxies
+    gal      = run_globals->FirstGal;
+    while(gal!=NULL)
+    {
+      gal->ghost_flag = false;
+      gal = gal->Next;
+    }
+
+    gal      = run_globals->FirstGal;
+    prev_gal = NULL;
     while (gal != NULL) {
       i_newhalo = gal->HaloDescIndex;
       gal->SnapSkipCounter--;  // Decrement the skip counter
@@ -95,9 +103,11 @@ void dracarys(run_globals_struct *run_globals)
             {
               gal->Type = 999;
               merger_counter++;
+              gal->Halo = &(halo[i_newhalo]);
             }
 
-            gal->Halo = &(halo[i_newhalo]);
+            // TODO: Would be better just to turn off the gal->TreeFlags MERGER flag at this point...
+
             // SID_log("Found a galaxy which now has no halo (merged into halo %d)", SID_LOG_COMMENT, i_newhalo);
           } else if(gal->Type < 2)
           {
@@ -170,6 +180,7 @@ void dracarys(run_globals_struct *run_globals)
         while (cur_gal!=NULL)
         {
           ghost_counter++;
+          cur_gal->ghost_flag = true;
           cur_gal = cur_gal->NextGalInHalo;
         }
       }
@@ -247,6 +258,15 @@ void dracarys(run_globals_struct *run_globals)
           prev_gal->NextGalInHalo = gal;
 
           gal->FirstGalInHalo = gal->Halo->Galaxy;
+          
+          // Loop through and update the FirstGalInHalo pointers of any other
+          // galaxies that are attached to this merged halo
+          cur_gal = gal->NextGalInHalo;
+          while(cur_gal!=NULL)
+          {
+            cur_gal->FirstGalInHalo = gal->FirstGalInHalo;
+            cur_gal = cur_gal->NextGalInHalo;
+          }
 
           // DEBUG
           if (gal->FirstGalInHalo == NULL)

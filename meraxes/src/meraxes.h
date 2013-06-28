@@ -239,6 +239,9 @@ struct galaxy_struct
 
   // write index
   int output_index;
+
+  // temporary debug flag
+  bool ghost_flag;
 };
 typedef struct galaxy_struct galaxy_struct;
 
