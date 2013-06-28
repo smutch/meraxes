@@ -101,7 +101,6 @@ void dracarys(run_globals_struct *run_globals)
             // SID_log("Found a galaxy which now has no halo (merged into halo %d)", SID_LOG_COMMENT, i_newhalo);
           } else if(gal->Type < 2)
           {
-            // DEBUG
             if (halo[i_newhalo].Galaxy == NULL)
               halo[i_newhalo].Galaxy = gal;
             else {
@@ -165,10 +164,9 @@ void dracarys(run_globals_struct *run_globals)
       } else
       {
         // This is a ghost galaxy for this snapshot
-        ghost_counter++;
         // We need to count all the other galaxies in this halo as ghosts as
         // well since they won't be reachable by traversing the FOF groups
-        cur_gal = gal->NextGalInHalo;
+        cur_gal = gal;
         while (cur_gal!=NULL)
         {
           ghost_counter++;
