@@ -144,8 +144,8 @@ void init_meraxes(run_globals_struct *run_globals)
   set_units(run_globals);
   srand((unsigned) time(NULL));
 
-  read_output_snaps(run_globals);
   read_snap_list(run_globals);
+  read_output_snaps(run_globals);
   snaplist_len = run_globals->params.SnaplistLength;
 
   for(i = 0; i < snaplist_len; i++)
