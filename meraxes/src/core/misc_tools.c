@@ -5,6 +5,7 @@
 
 void mpi_debug_here()
 {
+#ifdef DEBUG
   int i = 0;
   char hostname[256];
   gethostname(hostname, sizeof(hostname));
@@ -13,6 +14,7 @@ void mpi_debug_here()
   fflush(stdout);
   while (0 == i)
     sleep(5);
+#endif
 }
 
 static void find_missing_gals(run_globals_struct *run_globals, fof_group_struct *fof_group, int NFof, int flag)

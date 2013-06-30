@@ -138,29 +138,30 @@ void dracarys(run_globals_struct *run_globals)
             run_globals->FirstGal = gal->Next;
           cur_gal = gal->FirstGalInHalo;
 
-          if (cur_gal == gal)
-          {
-            // DEBUG
-            SID_log("We have just killed the first galaxy in a halo...", SID_LOG_COMMENT);
-
-            // We have just killed the first galaxy in the halo. If there are any
-            // other galaxies left then we must update their FirstGalInHalo
-            // pointers.
-            while (cur_gal->NextGalInHalo != NULL)
-              if(cur_gal->FirstGalInHalo == gal)
-                cur_gal->FirstGalInHalo = gal->NextGalInHalo;
-            // We also need to update the halo->Galaxy pointer in this case as well...
-            if(gal->Halo->Galaxy != gal)
-            {
-              SID_log("Uhh.. Ok... I wasn't expecting this to happen...", SID_LOG_COMMENT);
-              ABORT(EXIT_FAILURE);
-            }
-            gal->Halo->Galaxy = gal->NextGalInHalo;
-          } else
+          if (cur_gal != gal)
           {
             while ((cur_gal->NextGalInHalo != gal) && (cur_gal->NextGalInHalo != NULL))
               cur_gal = cur_gal->NextGalInHalo;
             cur_gal->NextGalInHalo = gal->NextGalInHalo;
+          } else
+          {
+            // DEBUG
+            SID_log("We have just killed the first galaxy in a halo...(TreeFlags=%d)", SID_LOG_COMMENT, gal->TreeFlags);
+
+            // We have just killed the first galaxy in the halo. If there are any
+            // other galaxies left then we must kill them as well...
+            // Unfortunately, we don't know if we have alrady processed these
+            // remaining galaxies, so we have to just mark them for the moment
+            // and then do a check below...
+            cur_gal = cur_gal->NextGalInHalo;
+            while(cur_gal!=NULL)
+            {
+              // Note that we mark these galaxies using HaloDescIndex=-999 here.
+              // When we check for this below, we want to be able to ignore
+              // halos which have no descendant at snapshot = snapshot+1
+              cur_gal->HaloDescIndex = -999;
+              cur_gal = cur_gal->NextGalInHalo;
+            }
           }
 
           if (prev_gal == NULL)
@@ -188,7 +189,6 @@ void dracarys(run_globals_struct *run_globals)
         }
       }
 
-
       // gal may be NULL if we just killed the first galaxy
       if (gal!=NULL)
       {
@@ -201,6 +201,24 @@ void dracarys(run_globals_struct *run_globals)
 
         gal = run_globals->FirstGal;
       }
+    }
+
+    // Do one more check to make sure that we have killed all galaxies which we
+    // should have (i.e. satellites in strayed halos etc.)
+    prev_gal = NULL;
+    gal = run_globals->FirstGal;
+    while(gal!=NULL)
+    {
+      if(gal->HaloDescIndex == -999)
+      {
+        // This galaxy is done (merged, lost, whatever...) so get rid of it
+        if(prev_gal!=NULL)
+          prev_gal->Next = gal->Next;
+        else
+          run_globals->FirstGal = gal->Next;
+      }
+      prev_gal = gal;
+      gal = gal->Next;
     }
 
     // Store the number of ghost galaxies present at this snapshot
