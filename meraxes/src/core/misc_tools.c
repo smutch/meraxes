@@ -65,8 +65,6 @@ static void find_missing_gals(run_globals_struct *run_globals, fof_group_struct 
       while (halo!=NULL) {
         gal = halo->Galaxy;
         while(gal!=NULL){
-          if((counter==98) || (counter==99))
-            mpi_debug_here();
           gal->output_index = counter++;
           gal = gal->NextGalInHalo;
         }
@@ -74,25 +72,61 @@ static void find_missing_gals(run_globals_struct *run_globals, fof_group_struct 
       }
     }
 
-    gal_found = SID_calloc(sizeof(bool)*counter);
+    SID_log("I find counter=%d using FOF traversal...", SID_LOG_COMMENT, counter);
+
+    gal_found = SID_malloc(sizeof(bool)*counter);
+    for(int ii=0; ii<counter; ii++)
+      gal_found[ii] = false;
 
     // Traverse the global linked list and mark off each galaxy
     gal = run_globals->FirstGal;
+    master_counter = 0;
     while (gal!=NULL)
     {
       if(!gal->ghost_flag)
         gal_found[gal->output_index] = true;
+      master_counter++;
       gal = gal->Next;
     }
+    SID_log("I find %d gals traversing global list...", SID_LOG_COMMENT, master_counter);
 
   }
  
   // Now create an array which holds pointers to the missing galaxies
   for(int ii=0; ii<counter; ii++)
     if(!gal_found[ii])
+    {
+      SID_log("ii = %d", SID_LOG_COMMENT, ii);
       missing_counter++;
+    }
 
   master_counter = counter;
+
+  // Check the number of gals with ghost_flag=true
+  gal = run_globals->FirstGal;
+  counter = 0;
+  while(gal!=NULL)
+  {
+    if(gal->ghost_flag)
+      counter++;
+  gal = gal->Next;
+  }
+  SID_log("I find %d gals with ghost_flag=true", SID_LOG_COMMENT, counter);
+  counter = 0;
+  for(int i_fof=0; i_fof<NFof; i_fof++)
+  {
+    halo = fof_group[i_fof].FirstHalo;
+    while (halo!=NULL) {
+      gal = halo->Galaxy;
+      while(gal!=NULL){
+        if(gal->ghost_flag)
+          counter++;
+        gal = gal->NextGalInHalo;
+      }
+      halo = halo->NextHaloInFOFGroup;
+    }
+  }
+  SID_log("I find %d gals with ghost_flag=true (FOF traversal)", SID_LOG_COMMENT, counter);
 
   missing_pointers = SID_calloc(sizeof(galaxy_struct *)*missing_counter);
 
@@ -113,7 +147,6 @@ static void find_missing_gals(run_globals_struct *run_globals, fof_group_struct 
     for(int ii=0; ii<master_counter; ii++)
       if(!gal_found[ii])
       {
-        mpi_debug_here();
         for(int i_fof=0; i_fof<NFof; i_fof++)
         {
           halo = fof_group[i_fof].FirstHalo;

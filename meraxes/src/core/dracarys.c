@@ -179,8 +179,11 @@ void dracarys(run_globals_struct *run_globals)
         cur_gal = gal;
         while (cur_gal!=NULL)
         {
-          ghost_counter++;
-          cur_gal->ghost_flag = true;
+          if(cur_gal->HaloDescIndex > -1)
+          {
+            ghost_counter++;
+            cur_gal->ghost_flag = true;
+          }
           cur_gal = cur_gal->NextGalInHalo;
         }
       }
