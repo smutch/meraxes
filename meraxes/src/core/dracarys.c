@@ -75,7 +75,7 @@ void dracarys(run_globals_struct *run_globals)
    
     SID_log("Processing snapshot %d...", SID_LOG_OPEN|SID_LOG_TIMER, snapshot);
 
-    // Reset the shost flag on all galaxies
+    // Reset the ghost flag on all galaxies
     gal      = run_globals->FirstGal;
     while(gal!=NULL)
     {
@@ -126,6 +126,20 @@ void dracarys(run_globals_struct *run_globals)
             gal->dMdt = (gal->dM)/dt;
 
             copy_halo_to_galaxy(run_globals, &(halo[i_newhalo]), gal);
+
+            // Loop through all of the other galaxies in this halo and set their Halo pointer
+            cur_gal = gal->NextGalInHalo;
+            while(cur_gal!=NULL)
+            {
+              cur_gal->Halo = &(halo[i_newhalo]);
+              // DEBUG
+              if(cur_gal->ID==85)
+              {
+                SID_log("Just set Halo of gal[ID=85] to Halo[ID=%d]...", SID_LOG_COMMENT, cur_gal->Halo->ID);
+              }
+              
+              cur_gal = cur_gal->NextGalInHalo;
+            }
 
             // SID_log("Assigned existing galaxy to halo %d", SID_LOG_COMMENT, i_newhalo);
           }
@@ -286,6 +300,7 @@ void dracarys(run_globals_struct *run_globals)
           while(cur_gal!=NULL)
           {
             cur_gal->FirstGalInHalo = gal->FirstGalInHalo;
+            cur_gal->Halo = gal->Halo;
             cur_gal = cur_gal->NextGalInHalo;
           }
 
@@ -296,9 +311,6 @@ void dracarys(run_globals_struct *run_globals)
           gal->MergerTarget = gal->FirstGalInHalo;
           gal->MergTime = calculate_merging_time(run_globals, gal, snapshot);
 
-          // Set the halo pointer to NULL for this galaxy now since after this
-          // snapshot it has no meaning anyway...
-          gal->Halo = NULL;
         }
       }
       gal = gal->Next;
