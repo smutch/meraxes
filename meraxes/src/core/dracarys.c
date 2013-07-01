@@ -111,16 +111,6 @@ void dracarys(run_globals_struct *run_globals)
             // SID_log("Found a galaxy which now has no halo (merged into halo %d)", SID_LOG_COMMENT, i_newhalo);
           } else if(gal->Type < 2)
           {
-            if (halo[i_newhalo].Galaxy == NULL)
-              halo[i_newhalo].Galaxy = gal;
-            else {
-#ifdef DEBUG
-              mpi_debug_here();
-#endif
-              SID_log("Trying to assign first galaxy to a halo which already has a first galaxy!", SID_LOG_COMMENT);
-              ABORT(EXIT_FAILURE);
-            }
-
             // Here we have the simplest case where a galaxy continues along in it's halo...
             gal->dM = (halo[i_newhalo]).Mvir - gal->Mvir;
             gal->dMdt = (gal->dM)/dt;
@@ -132,12 +122,6 @@ void dracarys(run_globals_struct *run_globals)
             while(cur_gal!=NULL)
             {
               cur_gal->Halo = &(halo[i_newhalo]);
-              // DEBUG
-              if(cur_gal->ID==85)
-              {
-                SID_log("Just set Halo of gal[ID=85] to Halo[ID=%d]...", SID_LOG_COMMENT, cur_gal->Halo->ID);
-              }
-              
               cur_gal = cur_gal->NextGalInHalo;
             }
 
@@ -253,7 +237,6 @@ void dracarys(run_globals_struct *run_globals)
         else
           run_globals->FirstGal = gal;
         run_globals->LastGal = gal;
-        halo[i_halo].Galaxy = gal;
         gal->FirstGalInHalo = gal;
         NGal++;
         new_gal_counter++;
@@ -279,7 +262,6 @@ void dracarys(run_globals_struct *run_globals)
           gal->dM = gal->Halo->Mvir - gal->Mvir;
           gal->dMdt = (gal->dM)/dt;
           copy_halo_to_galaxy(run_globals, gal->Halo, gal);
-          gal->Halo->Galaxy = gal;
         } else
         {
           // If there is a galaxy in the halo which is being merged into then

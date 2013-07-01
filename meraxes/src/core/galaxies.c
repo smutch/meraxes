@@ -41,9 +41,6 @@ galaxy_struct* new_galaxy(int *unique_ID)
   gal->output_index = -1;
   gal->ghost_flag = false;
 
-  // if(*unique_ID==470+1) 
-  //   mpi_debug_here();   
-
   return gal;
 }
 
@@ -68,5 +65,14 @@ void copy_halo_to_galaxy(run_globals_struct *run_globals, halo_struct *halo, gal
   {
     gal->Pos[ii]       = halo->Pos[ii];
     gal->Vel[ii]       = halo->Vel[ii];
+  }
+  if (halo->Galaxy == NULL)
+    halo->Galaxy = gal;
+  else {
+#ifdef DEBUG
+    mpi_debug_here();
+#endif
+    SID_log("Trying to assign first galaxy to a halo which already has a first galaxy!", SID_LOG_COMMENT);
+    ABORT(EXIT_FAILURE);
   }
 }
