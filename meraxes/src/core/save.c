@@ -34,7 +34,7 @@ void prepare_galaxy_for_output(
 
   galout->ID = (int)gal.ID;
   galout->Type = (int)gal.Type;
-  if(!gal.ghost_flag)
+  if((!gal.ghost_flag) && (gal.Halo->FOFGroup->FirstHalo->Galaxy!=NULL))
     galout->CentralGal = (int)gal.Halo->FOFGroup->FirstHalo->Galaxy->output_index;
   else
     galout->CentralGal = -1;
