@@ -262,6 +262,12 @@ void dracarys(run_globals_struct *run_globals)
           gal->dM = gal->Halo->Mvir - gal->Mvir;
           gal->dMdt = (gal->dM)/dt;
           copy_halo_to_galaxy(run_globals, gal->Halo, gal);
+          cur_gal = gal->NextGalInHalo;
+          while(cur_gal!=NULL)
+          {
+            cur_gal->Halo = gal->Halo;
+            cur_gal = cur_gal->NextGalInHalo;
+          }
         } else
         {
           // If there is a galaxy in the halo which is being merged into then
