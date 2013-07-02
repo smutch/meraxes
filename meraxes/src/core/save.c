@@ -34,7 +34,11 @@ void prepare_galaxy_for_output(
 
   galout->ID = (int)gal.ID;
   galout->Type = (int)gal.Type;
-  galout->CentralGal = (int)gal.Halo->FOFGroup->FirstHalo->Galaxy->output_index;
+  if((!gal.ghost_flag) && (gal.Halo->FOFGroup->FirstHalo->Galaxy!=NULL))
+    galout->CentralGal = (int)gal.Halo->FOFGroup->FirstHalo->Galaxy->output_index;
+  else
+    galout->CentralGal = -1;
+  galout->GhostFlag = (int)gal.ghost_flag;
 
   for(int ii=0; ii<3; ii++)
   {
@@ -71,7 +75,7 @@ void calc_hdf5_props(run_globals_struct *run_globals)
 
   // If we are calculating any magnitudes then increment the number of
   // output properties appropriately.
-  h5props->n_props = 16;
+  h5props->n_props = 17;
 
   // Size of a single galaxy entry.
   h5props->dst_size = sizeof(galaxy_output_struct);
@@ -104,6 +108,11 @@ void calc_hdf5_props(run_globals_struct *run_globals)
   h5props->dst_field_sizes[i]    = sizeof(galout.CentralGal);
   h5props->field_names[i]  = "CentralGal";
   h5props->field_types[i++]  = H5T_NATIVE_INT;
+
+  h5props->dst_offsets[i] = HOFFSET(galaxy_output_struct, GhostFlag);
+  h5props->dst_field_sizes[i]   = sizeof(galout.GhostFlag);
+  h5props->field_names[i] = "GhostFlag";
+  h5props->field_types[i++] = H5T_NATIVE_INT;
 
   h5props->dst_offsets[i]  = HOFFSET(galaxy_output_struct, Pos);
   h5props->dst_field_sizes[i]    = sizeof(galout.Pos);

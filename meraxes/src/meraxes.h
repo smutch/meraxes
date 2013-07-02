@@ -239,6 +239,9 @@ struct galaxy_struct
 
   // write index
   int output_index;
+
+  // temporary debug flag
+  bool ghost_flag;
 };
 typedef struct galaxy_struct galaxy_struct;
 
@@ -247,6 +250,7 @@ struct galaxy_output_struct
   int   ID;
   int   Type;
   int   CentralGal;
+  int   GhostFlag;
 
   // properties of subhalo at the last time this galaxy was a central galaxy
   float Pos[3];

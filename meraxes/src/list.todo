@@ -1,6 +1,10 @@
 MERAXIS CODE TODO LIST
 ======================
 
+NEXT:
+☐ move some Halo pointer resets (and FirstGal resets) to `copy_halo_to_galaxy` func
+☐ check for galaxies with stellar mass < 0
+
 setup basic structures:
 ✔ halos @done (2013-04-10 09:06)
 ✔ galaxies @done (2013-04-10 09:06)
@@ -40,10 +44,6 @@ tests:
     1. They are in the same halo as the satellite
     2. They appear before the satellite in the halo member linked list
 ✔ Loop through all halos and ensure if more than one halo shares same descendant index that at least one of them has the TREE_CASE_MERGER flag set @done (2013-05-07 12:32)
-☐ Try calloc'ing the halo array before read
-☐ Insert gdb break point after halo read and manually check some values
-    Is the catalogue reader broken?
-    Has Greg pushed to gdbcode?  If so then I can compare the write code to my read code.
 
 metal dependant cooling:
 ☐ Implement a copy of C06 to start with
