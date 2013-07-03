@@ -154,35 +154,39 @@ void dracarys(run_globals_struct *run_globals)
       {
         if(i_newhalo>-1)
         {
-          if(check_for_merger(gal->TreeFlags))
-          {
-            
-            // Here we have a new merger...  Mark it and deal with it below.
-            gal->Type = 999;
-            merger_counter++;
-            gal->Halo = &(halo[i_newhalo]);
-            turn_off_merger_flag(gal);
-
-          } else if(gal->Type < 2)
+          if(gal->Type < 2)
           {
 
-            // Here we have the simplest case where a galaxy continues along in it's halo...
-            gal->dM = (halo[i_newhalo]).Mvir - gal->Mvir;
-            gal->dMdt = (gal->dM)/dt;
-
-            gal->Halo = &(Halo[i_newhalo]);
-            assign_galaxy_to_halo(gal, &(Halo[i_newhalo]));
-
-            // Loop through all of the other galaxies in this halo and set their Halo pointer
-            cur_gal = gal->NextGalInHalo;
-            while(cur_gal!=NULL)
+            if(check_for_merger(gal->TreeFlags))
             {
-              cur_gal->Halo = &(halo[i_newhalo]);
-              cur_gal = cur_gal->NextGalInHalo;
-            }
 
+              // Here we have a new merger...  Mark it and deal with it below.
+              gal->Type = 999;
+              merger_counter++;
+              gal->Halo = &(halo[i_newhalo]);
+              turn_off_merger_flag(gal);
+
+            } else
+            {
+
+              // Here we have the simplest case where a galaxy continues along in it's halo...
+              gal->dM = (halo[i_newhalo]).Mvir - gal->Mvir;
+              gal->dMdt = (gal->dM)/dt;
+
+              gal->Halo = &(Halo[i_newhalo]);
+              assign_galaxy_to_halo(gal, &(Halo[i_newhalo]));
+
+              // Loop through all of the other galaxies in this halo and set their Halo pointer
+              cur_gal = gal->NextGalInHalo;
+              while(cur_gal!=NULL)
+              {
+                cur_gal->Halo = &(halo[i_newhalo]);
+                cur_gal = cur_gal->NextGalInHalo;
+              }
+
+            }
           }
-        } else
+        } else  // this galaxy has been marked for death
         {
 
           if(gal->FirstGalInHalo==gal)
@@ -203,7 +207,7 @@ void dracarys(run_globals_struct *run_globals)
           gal = prev_gal;
 
         }
-      } else
+      } else  // this galaxy's halo has skipped this snapshot
       {
 
         // This is a ghost galaxy for this snapshot.
@@ -265,31 +269,38 @@ void dracarys(run_globals_struct *run_globals)
     SID_log("Created %d new galaxies.", SID_LOG_COMMENT, new_gal_counter);
     SID_log("There are %d galaxies in ghost halos (which are not being evolved).", SID_LOG_COMMENT, ghost_counter);
 
-    // Loop through each galaxy and deal with mergers now that all other
+    // Loop through each galaxy and deal with HALO mergers now that all other
     // galaxies have been processed and their halo pointers updated...
     gal = run_globals->FirstGal;
-    while (gal != NULL) {
-      if((gal->SnapSkipCounter <=0) && (check_for_merger(gal->TreeFlags)))
+    while (gal != NULL) 
+    {
+      if(gal->Type == 999)
       {
         if(gal->Halo->Galaxy == NULL)
         {
+
           // Here we have a halo with a galaxy that has just merged into an
           // empty halo.  From the point of view of the model, this isn't
           // actually a merger and so we need to catch these cases...
           gal->dM = gal->Halo->Mvir - gal->Mvir;
           gal->dMdt = (gal->dM)/dt;
-          copy_halo_to_galaxy(run_globals, gal->Halo, gal);
+          gal->Halo->Galaxy = gal;
           cur_gal = gal->NextGalInHalo;
           while(cur_gal!=NULL)
           {
             cur_gal->Halo = gal->Halo;
             cur_gal = cur_gal->NextGalInHalo;
           }
-        } else
+
+        } else  // there are galaxies in the halo being merged into
         {
-          // If there is a galaxy in the halo which is being merged into then
-          // we actually have a bona fide merger...
+
+          // Remember that we have already set the galaxy's halo pointer so we
+          // don't need to do that here.
+
           gal->Type = 2;
+
+          // Add the incoming galaxy to the end of the halo's linked list
           cur_gal = gal->Halo->Galaxy;
           while (cur_gal!=NULL) {
             prev_gal = cur_gal;
@@ -297,10 +308,11 @@ void dracarys(run_globals_struct *run_globals)
           }
           prev_gal->NextGalInHalo = gal;
 
+          // Update the FirstGalInHalo pointer.
           gal->FirstGalInHalo = gal->Halo->Galaxy;
           
-          // Loop through and update the FirstGalInHalo pointers of any other
-          // galaxies that are attached to this merged halo
+          // Loop through and update the FirstGalInHalo and Halo pointers of any other
+          // galaxies that are attached to the incoming galaxy
           cur_gal = gal->NextGalInHalo;
           while(cur_gal!=NULL)
           {
@@ -311,15 +323,21 @@ void dracarys(run_globals_struct *run_globals)
 
           // DEBUG
           if (gal->FirstGalInHalo == NULL)
-            SID_log("Just set gal->FirstGalInHalo = NULL!", SID_LOG_COMMENT);
+            SID_log_warning("Just set gal->FirstGalInHalo = NULL!", SID_LOG_COMMENT);
 
+          // Set the merger target of the incoming galaxy and initialise the merger clock
           gal->MergerTarget = gal->FirstGalInHalo;
           gal->MergTime = calculate_merging_time(run_globals, gal, snapshot);
 
         }
       }
+
       gal = gal->Next;
     }
+
+    // TODO: One last loop through the linked list.
+    // This time we want to copy the halo properties into the galaxy structure
+    // of all galaxies with type<2.
     
 #ifdef DEBUG
     check_counts(run_globals, fof_group, NGal, trees_header.n_groups);
@@ -333,6 +351,7 @@ void dracarys(run_globals_struct *run_globals)
       if(snapshot == run_globals->ListOutputSnaps[i_out])
         write_snapshot(run_globals, nout_gals, i_out, &last_nout_gals);
   
+    // Free the halo and fof_group arrays
     SID_free(SID_FARG halo);
     SID_free(SID_FARG fof_group);
 
