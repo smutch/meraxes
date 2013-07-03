@@ -2,6 +2,23 @@
 #include "meraxes.h"
 #include "tree_flags.h"
 
+static void inline create_new_galaxy(run_globals_struct *run_globals, halo_struct *halo, int *NGal, int *new_gal_counter)
+{
+  galaxy_struct *gal;
+
+  gal = new_galaxy(&unique_ID);
+  gal->Halo = halo;
+  assign_galaxy_to_halo(gal, halo);
+  if (run_globals->LastGal != NULL)
+    run_globals->LastGal->Next = gal;
+  else
+    run_globals->FirstGal = gal;
+  run_globals->LastGal = gal;
+  gal->FirstGalInHalo = gal;
+  *NGal++;
+  *new_gal_counter++;
+}
+
 static void inline turn_off_merger_flag(galaxy_struct *gal)
 {
   gal->TreeFlags = gal->TreeFlags & (~TREE_CASE_MERGER);
@@ -240,19 +257,7 @@ void dracarys(run_globals_struct *run_globals)
     for(int i_halo=0; i_halo<trees_header.n_subgroups; i_halo++)
     {
       if(check_if_valid_host(&(halo[i_halo])))
-      {
-        gal = new_galaxy(&unique_ID);
-        gal->Halo = &(Halo[i_halo]);
-        assign_galaxy_to_halo(gal, &(Halo[i_halo]));
-        if (run_globals->LastGal != NULL)
-          run_globals->LastGal->Next = gal;
-        else
-          run_globals->FirstGal = gal;
-        run_globals->LastGal = gal;
-        gal->FirstGalInHalo = gal;
-        NGal++;
-        new_gal_counter++;
-      }
+        create_new_galaxy(run_globals, &(Halo[i_halo]), &NGal, &new_gal_counter);
     }
 
     SID_log("Identified %d new merger events.", SID_LOG_COMMENT, merger_counter);
