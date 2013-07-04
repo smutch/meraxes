@@ -123,10 +123,10 @@ void dracarys(run_globals_struct *run_globals)
   {
 
     // Reset book keeping counters
-    kill_counter = 0;
-    merger_counter = 0;
+    kill_counter    = 0;
+    merger_counter  = 0;
     new_gal_counter = 0;
-    ghost_counter = 0;
+    ghost_counter   = 0;
 
     // Read in the halos for this snapshot
     trees_header = read_halos(run_globals, snapshot, &halo, &fof_group);
@@ -170,7 +170,7 @@ void dracarys(run_globals_struct *run_globals)
             {
 
               // Here we have the simplest case where a galaxy continues along in it's halo...
-              gal->dM = (halo[i_newhalo]).Mvir - gal->Mvir;
+              gal->dM   = (halo[i_newhalo]).Mvir - gal->Mvir;
               gal->dMdt = (gal->dM)/dt;
 
               gal->Halo = &(Halo[i_newhalo]);
@@ -181,7 +181,7 @@ void dracarys(run_globals_struct *run_globals)
               while(cur_gal!=NULL)
               {
                 cur_gal->Halo = &(halo[i_newhalo]);
-                cur_gal = cur_gal->NextGalInHalo;
+                cur_gal       = cur_gal->NextGalInHalo;
               }
 
             }
@@ -230,7 +230,7 @@ void dracarys(run_globals_struct *run_globals)
       if (gal!=NULL)
       {
         prev_gal = gal;
-        gal = gal->Next;
+        gal      = gal->Next;
       } else
         gal = run_globals->FirstGal;
 
@@ -248,7 +248,7 @@ void dracarys(run_globals_struct *run_globals)
         gal = prev_gal;
       }
       prev_gal = gal;
-      gal = gal->Next;
+      gal      = gal->Next;
     }
 
     // Store the number of ghost galaxies present at this snapshot
@@ -282,14 +282,14 @@ void dracarys(run_globals_struct *run_globals)
           // Here we have a halo with a galaxy that has just merged into an
           // empty halo.  From the point of view of the model, this isn't
           // actually a merger and so we need to catch these cases...
-          gal->dM = gal->Halo->Mvir - gal->Mvir;
-          gal->dMdt = (gal->dM)/dt;
+          gal->dM           = gal->Halo->Mvir - gal->Mvir;
+          gal->dMdt         = (gal->dM)/dt;
           gal->Halo->Galaxy = gal;
-          cur_gal = gal->NextGalInHalo;
+          cur_gal           = gal->NextGalInHalo;
           while(cur_gal!=NULL)
           {
             cur_gal->Halo = gal->Halo;
-            cur_gal = cur_gal->NextGalInHalo;
+            cur_gal       = cur_gal->NextGalInHalo;
           }
 
         } else  // there are galaxies in the halo being merged into
@@ -304,7 +304,7 @@ void dracarys(run_globals_struct *run_globals)
           cur_gal = gal->Halo->Galaxy;
           while (cur_gal!=NULL) {
             prev_gal = cur_gal;
-            cur_gal = cur_gal->NextGalInHalo;
+            cur_gal  = cur_gal->NextGalInHalo;
           }
           prev_gal->NextGalInHalo = gal;
 
@@ -317,8 +317,8 @@ void dracarys(run_globals_struct *run_globals)
           while(cur_gal!=NULL)
           {
             cur_gal->FirstGalInHalo = gal->FirstGalInHalo;
-            cur_gal->Halo = gal->Halo;
-            cur_gal = cur_gal->NextGalInHalo;
+            cur_gal->Halo           = gal->Halo;
+            cur_gal                 = cur_gal->NextGalInHalo;
           }
 
           // DEBUG
@@ -327,7 +327,7 @@ void dracarys(run_globals_struct *run_globals)
 
           // Set the merger target of the incoming galaxy and initialise the merger clock
           gal->MergerTarget = gal->FirstGalInHalo;
-          gal->MergTime = calculate_merging_time(run_globals, gal, snapshot);
+          gal->MergTime     = calculate_merging_time(run_globals, gal, snapshot);
 
         }
       }
@@ -335,9 +335,15 @@ void dracarys(run_globals_struct *run_globals)
       gal = gal->Next;
     }
 
-    // TODO: One last loop through the linked list.
-    // This time we want to copy the halo properties into the galaxy structure
+    // We finish by copying the halo properties into the galaxy structure
     // of all galaxies with type<2.
+    gal = run_globals->FirstGal;
+    while(gal!=NULL)
+    {
+      if(gal->Type<2)
+        copy_halo_to_galaxy(run_globals, gal->Halo, gal);
+      gal = gal->Next;
+    }
     
 #ifdef DEBUG
     check_counts(run_globals, fof_group, NGal, trees_header.n_groups);
