@@ -292,6 +292,7 @@ void dracarys(run_globals_struct *run_globals)
           gal->dM           = gal->Halo->Mvir - gal->Mvir;
           gal->dMdt         = (gal->dM)/dt;
           gal->Halo->Galaxy = gal;
+          gal->Type         = gal->Halo->Type;
           cur_gal           = gal->NextGalInHalo;
           while(cur_gal!=NULL)
           {
