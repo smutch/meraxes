@@ -108,6 +108,7 @@ void dracarys(run_globals_struct *run_globals)
   int                  last_nout_gals;
   int                  last_snap       = 0;
   double               dt;
+  double               last_dt         = 0;
   int                  kill_counter    = 0;
   int                  merger_counter  = 0;
   int                  new_gal_counter = 0;
@@ -132,7 +133,10 @@ void dracarys(run_globals_struct *run_globals)
     trees_header = read_halos(run_globals, snapshot, &halo, &fof_group);
 
     // TODO: This should be dependant on the number of snapshots which the galaxy's halo has skipped
-    dt       = run_globals->LTTime[snapshot-1]-run_globals->LTTime[snapshot];
+    if(snapshot>0)
+      dt = run_globals->LTTime[snapshot-1]-run_globals->LTTime[snapshot];
+    else
+      dt = 0.;
    
     SID_log("Processing snapshot %d...", SID_LOG_OPEN|SID_LOG_TIMER, snapshot);
 
@@ -328,7 +332,7 @@ void dracarys(run_globals_struct *run_globals)
           // Set the merger target of the incoming galaxy and initialise the merger clock
           gal->MergerTarget = gal->FirstGalInHalo;
           gal->MergTime     = calculate_merging_time(run_globals, gal, snapshot);
-
+          
         }
       }
 

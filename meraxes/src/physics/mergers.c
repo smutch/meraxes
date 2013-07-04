@@ -10,7 +10,13 @@ double calculate_merging_time(run_globals_struct *run_globals, galaxy_struct *sa
   double         sat_rad;
   double         parent_rvir;
 
-  parent            = sat->Halo->Galaxy;
+  // Note that we are assuming in this function that the halo properties
+  // attached to the galaxies still correspond to the relevant values at the
+  // last snapshot the two merging halos were last identified.  i.e. We are
+  // assuming that the halo properties of the galaxies have *not* yet been
+  // updated to the current snapshot (where the halos have already merged).
+
+  parent = sat->MergerTarget;
 
   if(parent == sat)
   {
