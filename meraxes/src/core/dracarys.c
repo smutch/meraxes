@@ -7,10 +7,10 @@ static void inline assign_galaxy_to_halo(galaxy_struct *gal, halo_struct *halo)
   if (halo->Galaxy == NULL)
     halo->Galaxy = gal;
   else {
+    SID_log_error("Trying to assign first galaxy to a halo which already has a first galaxy!");
 #ifdef DEBUG
     mpi_debug_here();
 #endif
-    SID_log("Trying to assign first galaxy to a halo which already has a first galaxy!", SID_LOG_COMMENT);
     ABORT(EXIT_FAILURE);
   }
 }
@@ -141,10 +141,12 @@ void dracarys(run_globals_struct *run_globals)
    
     SID_log("Processing snapshot %d...", SID_LOG_OPEN|SID_LOG_TIMER, snapshot);
 
-    // Reset the ghost flag on all galaxies and decrement the snapskip counter
+    // Reset the halo pointers and ghost flags for all galaxies and decrement
+    // the snapskip counter
     gal      = run_globals->FirstGal;
     while(gal!=NULL)
     {
+      gal->Halo = NULL;
       gal->ghost_flag = false;
       gal->SnapSkipCounter--;
       gal = gal->Next;
@@ -345,7 +347,15 @@ void dracarys(run_globals_struct *run_globals)
     gal = run_globals->FirstGal;
     while(gal!=NULL)
     {
-      if(gal->Type<2)
+      if((gal->Halo==NULL) && (!gal->ghost_flag))
+      {
+        SID_log_error("We missed a galaxy during processing!");
+#ifdef DEBUG
+        mpi_debug_here();
+#endif
+        ABORT(EXIT_FAILURE);
+      }
+      if((gal->Type<2) && (!gal->ghost_flag))
         copy_halo_to_galaxy(run_globals, gal->Halo, gal);
       gal = gal->Next;
     }
