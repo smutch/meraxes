@@ -2,7 +2,7 @@ MERAXIS CODE TODO LIST
 ======================
 
 NEXT:
-☐ move some Halo pointer resets (and FirstGal resets) to `copy_halo_to_galaxy` func
+✔ move some Halo pointer resets (and FirstGal resets) to `copy_halo_to_galaxy` func @done (2013-07-03 11:54)
 ☐ check for galaxies with stellar mass < 0
 
 setup basic structures:

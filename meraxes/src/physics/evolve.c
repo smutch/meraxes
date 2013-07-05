@@ -40,7 +40,7 @@ int evolve_galaxies(run_globals_struct *run_globals, fof_group_struct *fof_group
       gal = halo->Galaxy;
 
       while(gal!=NULL){
-        if((gal->Mvir>0.0) && (gal->Type==0))
+        if((gal->Mvir>0.0) && (gal->Type==0) && (gal->dMdt>0.0))
           switch (run_globals->params.physics.funcprop){
             case VMAX_PROP:
               sfr = BaryonFrac*gal->dMdt * physics_func(run_globals, gal->Vmax, snapshot);
