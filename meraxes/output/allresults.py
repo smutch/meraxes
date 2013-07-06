@@ -27,7 +27,7 @@ from samtools.plots import *
 __author__ = "Simon Mutch"
 __date__   = "2013/06/19"
 
-def allresults(master_file, snapshot=None, output_dir='./plots/',
+def allresults(master_file, snapshot=-1, output_dir='./plots/',
                fig_format='png'):
 
     set_custom_rcParams(plt.rcParams)
@@ -94,6 +94,12 @@ def allresults(master_file, snapshot=None, output_dir='./plots/',
     plt.tight_layout()
     plt.savefig(os.path.join(output_dir, "fhmodel_dmvirdt_vs_mvir."+fig_format))
     
+    # Plot the distribution of galaxy merger time clocks
+    fig, ax = plt.subplots(1,1)
+    time_distribution(gals, sim_props, ax, xlim=(-1,5), ylim=(1e-6,1e-2))
+    plt.legend(loc='upper left', numpoints=1, fontsize='small', frameon=False)
+    plt.tight_layout()
+    plt.savefig(os.path.join(output_dir, "merger_clocks."+fig_format))
 
 
 if __name__ == '__main__':
