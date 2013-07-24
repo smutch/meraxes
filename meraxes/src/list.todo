@@ -2,8 +2,15 @@ MERAXIS CODE TODO LIST
 ======================
 
 NEXT:
+☐ Fix timesteping for ghosts
+☐ Try vertical trees on FHmodel (published) and compare
+☐ Try ghost trees
+☐ Start adding physics ala SAGE
+☐ Use model to provide stellar mass fraction to 21cmfast
+
+misc:
 ✔ move some Halo pointer resets (and FirstGal resets) to `copy_halo_to_galaxy` func @done (2013-07-03 11:54)
-☐ check for galaxies with stellar mass < 0
+✔ check for galaxies with stellar mass < 0 @done (2013-07-24 10:18)
 
 setup basic structures:
 ✔ halos @done (2013-04-10 09:06)
