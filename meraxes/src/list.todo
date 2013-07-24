@@ -45,6 +45,7 @@ output:
 ✔ Pre-calculate indices for write so can point to centrals etc. @done (2013-04-30 20:14)
 ✔ Add unique IDs to output so can follow histories. @done (2013-05-01 12:33)
 ✔ What to do if type 0/1 merges without transition to type 2? @done (2013-05-08 18:16)
+☐ Add mergers output file for debugging @next
 
 tests:
 ☐ Ensure that satellite merger targets always follow the assumed rules
