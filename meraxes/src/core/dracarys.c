@@ -15,12 +15,13 @@ static void inline assign_galaxy_to_halo(galaxy_struct *gal, halo_struct *halo)
   }
 }
 
-static void inline create_new_galaxy(run_globals_struct *run_globals, halo_struct *halo, int *NGal, int *new_gal_counter, int *unique_ID)
+static void inline create_new_galaxy(run_globals_struct *run_globals, int snapshot, halo_struct *halo, int *NGal, int *new_gal_counter, int *unique_ID)
 {
   galaxy_struct *gal;
 
   gal = new_galaxy(unique_ID);
   gal->Halo = halo;
+  gal->LTTime = run_globals->LTTime[snapshot];
   assign_galaxy_to_halo(gal, halo);
   if (run_globals->LastGal != NULL)
     run_globals->LastGal->Next = gal;
@@ -133,12 +134,6 @@ void dracarys(run_globals_struct *run_globals)
     // Read in the halos for this snapshot
     trees_header = read_halos(run_globals, snapshot, &halo, &fof_group);
 
-    // TODO: This should be dependant on the number of snapshots which the galaxy's halo has skipped
-    if(snapshot>0)
-      dt = run_globals->LTTime[snapshot-1]-run_globals->LTTime[snapshot];
-    else
-      dt = 0.;
-   
     SID_log("Processing snapshot %d...", SID_LOG_OPEN|SID_LOG_TIMER, snapshot);
 
     // Reset the halo pointers and ghost flags for all galaxies and decrement
@@ -177,6 +172,7 @@ void dracarys(run_globals_struct *run_globals)
             {
 
               // Here we have the simplest case where a galaxy continues along in it's halo...
+              dt = gal->LTTime - run_globals->LTTime[snapshot];
               gal->dM   = (halo[i_newhalo]).Mvir - gal->Mvir;
               gal->dMdt = (gal->dM)/dt;
 
@@ -268,7 +264,7 @@ void dracarys(run_globals_struct *run_globals)
     for(int i_halo=0; i_halo<trees_header.n_subgroups; i_halo++)
     {
       if(check_if_valid_host(&(halo[i_halo])))
-        create_new_galaxy(run_globals, &(halo[i_halo]), &NGal, &new_gal_counter, &unique_ID);
+        create_new_galaxy(run_globals, snapshot, &(halo[i_halo]), &NGal, &new_gal_counter, &unique_ID);
     }
 
     SID_log("Identified %d new merger events.", SID_LOG_COMMENT, merger_counter);
@@ -289,6 +285,7 @@ void dracarys(run_globals_struct *run_globals)
           // Here we have a halo with a galaxy that has just merged into an
           // empty halo.  From the point of view of the model, this isn't
           // actually a merger and so we need to catch these cases...
+          dt = gal->LTTime - run_globals->LTTime[snapshot];
           gal->dM           = gal->Halo->Mvir - gal->Mvir;
           gal->dMdt         = (gal->dM)/dt;
           gal->Halo->Galaxy = gal;
@@ -343,8 +340,9 @@ void dracarys(run_globals_struct *run_globals)
       gal = gal->Next;
     }
 
-    // We finish by copying the halo properties into the galaxy structure
-    // of all galaxies with type<2.
+    // We finish by copying the halo properties into the galaxy structure of
+    // all galaxies with type<2 and updating the lookback time values for
+    // non-ghosts.
     gal = run_globals->FirstGal;
     while(gal!=NULL)
     {
@@ -356,6 +354,8 @@ void dracarys(run_globals_struct *run_globals)
 #endif
         ABORT(EXIT_FAILURE);
       }
+      if(!gal->ghost_flag)
+        gal->LTTime = run_globals->LTTime[snapshot];
       if((gal->Type<2) && (!gal->ghost_flag))
         copy_halo_to_galaxy(run_globals, gal->Halo, gal);
       gal = gal->Next;

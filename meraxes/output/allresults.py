@@ -2,11 +2,12 @@
 
 """Plot all results...
 
-Usage: allresults.py <master_file> [--output=<dir_path> --format=<ext>]
+Usage: allresults.py <master_file> [--snapshot=<snap> --output=<dir_path> --format=<ext>]
 
 Options:
     --output=<dir_path>   Target directory for output figures [default: ./plots]
     --format=<ext>        Image format (e.g. png, pdf) [default: png]
+    --snapshot=<snap>     Snapshot to read in [default: -1]
 
 """
 
@@ -104,5 +105,5 @@ def allresults(master_file, snapshot=-1, output_dir='./plots/',
 
 if __name__ == '__main__':
     args = docopt(__doc__)
-    allresults(args['<master_file>'], output_dir=args['--output'],
-               fig_format=args['--format'])
+    allresults(args['<master_file>'], snapshot=int(args['--snapshot']),
+               output_dir=args['--output'], fig_format=args['--format'])

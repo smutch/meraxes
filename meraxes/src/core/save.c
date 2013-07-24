@@ -57,6 +57,7 @@ void prepare_galaxy_for_output(
   galout->Sfr         = (float)(gal.Sfr[i_snap] * units->UnitMass_in_g / units->UnitTime_in_s * SEC_PER_YEAR / SOLAR_MASS);
   galout->Cos_Inc     = (float)(gal.Cos_Inc);
   galout->MergTime    = (float)(gal.MergTime * units->UnitLength_in_cm / units->UnitVelocity_in_cm_per_s / SEC_PER_MEGAYEAR / Hubble_h);
+  galout->LTTime      = (float)(gal.LTTime * units->UnitLength_in_cm / units->UnitVelocity_in_cm_per_s / SEC_PER_MEGAYEAR / Hubble_h);
 
 }
 
@@ -75,7 +76,7 @@ void calc_hdf5_props(run_globals_struct *run_globals)
 
   // If we are calculating any magnitudes then increment the number of
   // output properties appropriately.
-  h5props->n_props = 17;
+  h5props->n_props = 18;
 
   // Size of a single galaxy entry.
   h5props->dst_size = sizeof(galaxy_output_struct);
@@ -177,6 +178,11 @@ void calc_hdf5_props(run_globals_struct *run_globals)
   h5props->dst_offsets[i] = HOFFSET(galaxy_output_struct, MergTime);
   h5props->dst_field_sizes[i]   = sizeof(galout.MergTime);
   h5props->field_names[i] = "MergTime";
+  h5props->field_types[i++] = H5T_NATIVE_FLOAT;
+
+  h5props->dst_offsets[i] = HOFFSET(galaxy_output_struct, LTTime);
+  h5props->dst_field_sizes[i]   = sizeof(galout.LTTime);
+  h5props->field_names[i] = "LTTime";
   h5props->field_types[i++] = H5T_NATIVE_FLOAT;
 
   // DEBUG

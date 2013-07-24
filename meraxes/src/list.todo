@@ -2,7 +2,7 @@ MERAXIS CODE TODO LIST
 ======================
 
 NEXT:
-☐ Fix timesteping for ghosts
+✔ Fix timesteping for ghosts @done (2013-07-24 14:03)
 ☐ Try vertical trees on FHmodel (published) and compare
 ☐ Try ghost trees
 ☐ Start adding physics ala SAGE

@@ -20,6 +20,7 @@ galaxy_struct* new_galaxy(int *unique_ID)
   gal->Next              = NULL;
   gal->MergerTarget      = NULL;
   gal->Len               = 0;
+  gal->LTTime            = 0.0;
   gal->Mvir              = 0.0;
   gal->dM                = 0.0;
   gal->dMdt              = 0.0;

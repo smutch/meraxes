@@ -218,6 +218,7 @@ struct galaxy_struct
   struct galaxy_struct       *Next;
   struct galaxy_struct       *MergerTarget;
   int    Len;
+  double LTTime;  //!< Lookback time at the last time this galaxy was identified
 
   // properties of subhalo at the last time this galaxy was a central galaxy
   double Pos[3];
@@ -271,6 +272,7 @@ struct galaxy_output_struct
   float Sfr;
   float Cos_Inc;
   float MergTime;
+  float LTTime;
 };
 typedef struct galaxy_output_struct galaxy_output_struct;
 

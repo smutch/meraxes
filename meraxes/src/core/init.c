@@ -10,7 +10,7 @@ static void read_snap_list(run_globals_struct *run_globals)
   char fname[STRLEN];
   run_params_struct params = run_globals->params;
 
-  sprintf(fname, "%s/%s/trees/%s_test_ghosts/a_list.txt",
+  sprintf(fname, "%s/%s/trees/%s_no_ghost_test/a_list.txt",
       params.SimulationDir,
       params.SimName,
       params.SimName);
