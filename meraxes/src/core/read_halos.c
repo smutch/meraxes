@@ -193,6 +193,7 @@ static void inline read_catalog_halo(
 
   // Copy over the properties we want to keep
   // cur_model_halo->ID        = *halo_count;
+  cur_model_halo->id_MBP             = halo_in.id_MBP;
   cur_model_halo->Mvir               = halo_in.M_vir;
   cur_model_halo->Len                = halo_in.n_particles;
   cur_model_halo->Pos[0]             = halo_in.position_MBP[0];

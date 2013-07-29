@@ -9,6 +9,7 @@ galaxy_struct* new_galaxy(int *unique_ID)
   gal = SID_malloc(sizeof(galaxy_struct));
 
   // Initialise the properties
+  gal->id_MBP            = 0;
   gal->ID                = (*unique_ID)++;
   gal->Type              = -1;
   gal->SnapSkipCounter   = 0;
@@ -52,6 +53,7 @@ static double calculate_Vvir(run_globals_struct *run_globals, halo_struct *halo)
 
 void copy_halo_to_galaxy(run_globals_struct *run_globals, halo_struct *halo, galaxy_struct *gal)
 {
+  gal->id_MBP          = halo->id_MBP;
   gal->Type            = halo->Type;
   gal->Len             = halo->Len;
   gal->SnapSkipCounter = halo->SnapOffset;

@@ -178,6 +178,7 @@ typedef struct catalog_halo_struct catalog_halo_struct;
 
 //! The meraxis halo structure
 struct halo_struct{
+  long long id_MBP;      //!< ID of most bound particle
   int    ID;             //!< Halo ID
   int    Type;           //!< Type (0 for central, 1 for satellite)
   int    SnapOffset;     //!< Number of snapshots this halo skips before reappearing
@@ -207,6 +208,7 @@ typedef struct fof_group_struct fof_group_struct;
 
 struct galaxy_struct
 {
+  long long id_MBP;
   int    ID;
   int    Type;
   int    SnapSkipCounter;
@@ -248,6 +250,7 @@ typedef struct galaxy_struct galaxy_struct;
 
 struct galaxy_output_struct
 {
+  long long id_MBP;
   int   ID;
   int   Type;
   int   CentralGal;

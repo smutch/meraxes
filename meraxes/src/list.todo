@@ -3,8 +3,8 @@ MERAXIS CODE TODO LIST
 
 NEXT:
 ✔ Fix timesteping for ghosts @done (2013-07-24 14:03)
-☐ Try vertical trees on FHmodel (published) and compare
-☐ Try ghost trees
+☐ Try vertical trees on FHmodel (published) and compare @HIGH
+☐ Try ghost trees @HIGH
 ☐ Start adding physics ala SAGE
 ☐ Use model to provide stellar mass fraction to 21cmfast
 
