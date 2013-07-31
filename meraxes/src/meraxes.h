@@ -220,6 +220,7 @@ struct galaxy_struct
   struct galaxy_struct       *Next;
   struct galaxy_struct       *MergerTarget;
   int    Len;
+  double dt;      //!< Time between current snapshot and last identification
   double LTTime;  //!< Lookback time at the last time this galaxy was identified
 
   // properties of subhalo at the last time this galaxy was a central galaxy

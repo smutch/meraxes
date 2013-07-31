@@ -99,6 +99,7 @@ void dracarys(run_globals_struct *run_globals)
 
   trees_header_struct  trees_header;
   halo_struct         *halo            = NULL;
+  halo_struct         *old_halo        = NULL;
   fof_group_struct    *fof_group       = NULL;
   galaxy_struct       *gal             = NULL;
   galaxy_struct       *prev_gal        = NULL;
@@ -110,7 +111,6 @@ void dracarys(run_globals_struct *run_globals)
   int                  nout_gals;
   int                  last_nout_gals;
   int                  last_snap       = 0;
-  double               dt;
   int                  kill_counter    = 0;
   int                  merger_counter  = 0;
   int                  new_gal_counter = 0;
@@ -172,9 +172,9 @@ void dracarys(run_globals_struct *run_globals)
             {
 
               // Here we have the simplest case where a galaxy continues along in it's halo...
-              dt = gal->LTTime - run_globals->LTTime[snapshot];
+              gal->dt   = gal->LTTime - run_globals->LTTime[snapshot];
               gal->dM   = (halo[i_newhalo]).Mvir - gal->Mvir;
-              gal->dMdt = (gal->dM)/dt;
+              gal->dMdt = (gal->dM)/(gal->dt);
 
               gal->Halo = &(halo[i_newhalo]);
               assign_galaxy_to_halo(gal, &(halo[i_newhalo]));
@@ -285,9 +285,9 @@ void dracarys(run_globals_struct *run_globals)
           // Here we have a halo with a galaxy that has just merged into an
           // empty halo.  From the point of view of the model, this isn't
           // actually a merger and so we need to catch these cases...
-          dt = gal->LTTime - run_globals->LTTime[snapshot];
+          gal->dt           = gal->LTTime - run_globals->LTTime[snapshot];
           gal->dM           = gal->Halo->Mvir - gal->Mvir;
-          gal->dMdt         = (gal->dM)/dt;
+          gal->dMdt         = (gal->dM)/(gal->dt);
           gal->Halo->Galaxy = gal;
           gal->Type         = gal->Halo->Type;
           cur_gal           = gal->NextGalInHalo;
@@ -380,7 +380,8 @@ void dracarys(run_globals_struct *run_globals)
     SID_log("...done", SID_LOG_CLOSE);
   }
 
-  // Free all of the remaining allocated galaxies
+  // Free all of the remaining allocated galaxies and halos
+  SID_free(SID_FARG halo);
   gal = run_globals->FirstGal;
   while (gal != NULL) {
     next_gal = gal->Next;
