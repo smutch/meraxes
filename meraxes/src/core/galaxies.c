@@ -48,21 +48,48 @@ galaxy_struct* new_galaxy(int *unique_ID)
   return gal;
 }
 
-static double calculate_Vvir(run_globals_struct *run_globals, halo_struct *halo)
+static double calculate_Mvir(run_globals_struct *run_globals, halo_struct *halo)
 {
-  return sqrt(run_globals->G * halo->Mvir / halo->Rvir);
+  if(halo->Type==0 && halo->Mvir)
+    return halo->Mvir;
+  else
+    return (double)halo->Len * run_globals->params.PartMass;
 }
 
-void copy_halo_to_galaxy(run_globals_struct *run_globals, halo_struct *halo, galaxy_struct *gal)
+static double calculate_Rvir(run_globals_struct *run_globals, double Mvir, int snapshot)
+{
+
+	double zplus1, hubble_of_z_sq, rhocrit, fac;
+  double Hubble      = run_globals->Hubble;
+  double Omega       = run_globals->params.Omega;
+  double OmegaLambda = run_globals->params.OmegaLambda;
+	
+	zplus1 = 1 + run_globals->ZZ[snapshot];
+	hubble_of_z_sq =
+	  Hubble * Hubble *(Omega * zplus1 * zplus1 * zplus1 + (1 - Omega - OmegaLambda) * zplus1 * zplus1 +
+	  OmegaLambda);
+	
+	rhocrit = 3 * hubble_of_z_sq / (8 * M_PI * run_globals->G);
+	fac = 1 / (200 * 4 * M_PI / 3.0 * rhocrit);
+	
+	return cbrt(Mvir * fac);
+}
+
+static double calculate_Vvir(run_globals_struct *run_globals, double Mvir, double Rvir)
+{
+  return sqrt(run_globals->G * Mvir / Rvir);
+}
+
+void copy_halo_to_galaxy(run_globals_struct *run_globals, halo_struct *halo, galaxy_struct *gal, int snapshot)
 {
   gal->id_MBP          = halo->id_MBP;
   gal->Type            = halo->Type;
   gal->Len             = halo->Len;
   gal->SnapSkipCounter = halo->SnapOffset;
   gal->HaloDescIndex   = halo->DescIndex;
-  gal->Mvir            = halo->Mvir;
-  gal->Rvir            = halo->Rvir;
-  gal->Vvir            = calculate_Vvir(run_globals, halo);
+  gal->Mvir            = calculate_Mvir(run_globals, halo);
+  gal->Rvir            = calculate_Rvir(run_globals, gal->Mvir, snapshot);
+  gal->Vvir            = calculate_Vvir(run_globals, gal->Mvir, gal->Rvir);
   gal->Vmax            = halo->Vmax;
   gal->TreeFlags       = halo->TreeFlags;
   for (int ii=0; ii<3; ii++)

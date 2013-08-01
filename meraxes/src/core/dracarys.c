@@ -358,7 +358,7 @@ void dracarys(run_globals_struct *run_globals)
       if(!gal->ghost_flag)
         gal->LTTime = run_globals->LTTime[snapshot];
       if((gal->Type<2) && (!gal->ghost_flag))
-        copy_halo_to_galaxy(run_globals, gal->Halo, gal);
+        copy_halo_to_galaxy(run_globals, gal->Halo, gal, snapshot);
       gal = gal->Next;
     }
     

@@ -472,8 +472,11 @@ trees_header_struct read_halos(
         read_catalog_halo(&fin_subgroup_halos, run_globals->params.SimulationDir, run_globals->params.SimName, corrected_snapshot, "subgroups", &catalog_subgroups_flayout, 
             &i_subgroup_file, &N_halos_subgroups_file, &subgroup_count_infile, *halo, N_subgroups_files, &halo_count);
       i_halo = halo_count-1;
+
       // Copy the relevant FOF group data over the top...
-      memcpy(&((*halo)[i_halo].Mvir), &(group_halos[0].Mvir), sizeof(halo_struct)-offsetof(halo_struct, Mvir)); 
+      // memcpy(&((*halo)[i_halo].Mvir), &(group_halos[0].Mvir), sizeof(halo_struct)-offsetof(halo_struct, Mvir)); 
+      (*halo)[i_halo].Mvir = group_halos[0].Mvir;
+
       (*halo)[i_halo].NSubgroups = group_halos[0].NSubgroups-1;
       (*halo)[i_halo].Type = 0;
       convert_input_halo_units(&((*halo)[i_halo]));
