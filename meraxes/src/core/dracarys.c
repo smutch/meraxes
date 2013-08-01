@@ -156,6 +156,7 @@ void dracarys(run_globals_struct *run_globals)
       {
         if(i_newhalo>-1)
         {
+          gal->OldType = gal->Type;
           if(gal->Type < 2)
           {
 

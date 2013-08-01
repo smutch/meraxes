@@ -211,6 +211,7 @@ struct galaxy_struct
   long long id_MBP;
   int    ID;
   int    Type;
+  int    OldType;
   int    SnapSkipCounter;
   int    HaloDescIndex;
   int    TreeFlags;

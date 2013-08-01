@@ -12,6 +12,7 @@ galaxy_struct* new_galaxy(int *unique_ID)
   gal->id_MBP            = 0;
   gal->ID                = (*unique_ID)++;
   gal->Type              = -1;
+  gal->OldType           = -1;
   gal->SnapSkipCounter   = 0;
   gal->HaloDescIndex     = -1;
   gal->TreeFlags         = -1;
