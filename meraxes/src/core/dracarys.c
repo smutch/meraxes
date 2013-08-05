@@ -157,6 +157,7 @@ void dracarys(run_globals_struct *run_globals)
         if(i_newhalo>-1)
         {
           gal->OldType = gal->Type;
+          gal->dt      = gal->LTTime - run_globals->LTTime[snapshot];
           if(gal->Type < 2)
           {
 
@@ -173,7 +174,6 @@ void dracarys(run_globals_struct *run_globals)
             {
 
               // Here we have the simplest case where a galaxy continues along in it's halo...
-              gal->dt   = gal->LTTime - run_globals->LTTime[snapshot];
               gal->dM   = (halo[i_newhalo]).Mvir - gal->Mvir;
               gal->dMdt = (gal->dM)/(gal->dt);
 
@@ -286,7 +286,6 @@ void dracarys(run_globals_struct *run_globals)
           // Here we have a halo with a galaxy that has just merged into an
           // empty halo.  From the point of view of the model, this isn't
           // actually a merger and so we need to catch these cases...
-          gal->dt           = gal->LTTime - run_globals->LTTime[snapshot];
           gal->dM           = gal->Halo->Mvir - gal->Mvir;
           gal->dMdt         = (gal->dM)/(gal->dt);
           gal->Halo->Galaxy = gal;
@@ -334,6 +333,7 @@ void dracarys(run_globals_struct *run_globals)
           // Set the merger target of the incoming galaxy and initialise the merger clock
           gal->MergerTarget = gal->FirstGalInHalo;
           gal->MergTime     = calculate_merging_time(run_globals, gal, snapshot);
+          gal->MergTime    -= gal->dt; // I'm not convinced this should be here, but this is what C06 does...
           
         }
       }
