@@ -24,12 +24,12 @@ int evolve_galaxies(run_globals_struct *run_globals, fof_group_struct *fof_group
   double         sfr;
   double         BaryonFrac      = run_globals->params.BaryonFrac;
   double         RecycleFraction = run_globals->params.RecycleFraction;
-  double         dt              = run_globals->LTTime[snapshot-1]-run_globals->LTTime[snapshot];
   galaxy_struct *gal             = NULL;
   galaxy_struct *parent          = NULL;
   halo_struct   *halo            = NULL;
   int            gal_counter     = 0;
   int            dead_gals       = 0;
+  double         dMdt            = 0.0;
 
   SID_log("Doing physics...", SID_LOG_OPEN|SID_LOG_TIMER);
   
@@ -38,15 +38,16 @@ int evolve_galaxies(run_globals_struct *run_globals, fof_group_struct *fof_group
     halo = fof_group[i_fof].FirstHalo;
     while (halo!=NULL) {
       gal = halo->Galaxy;
+      dMdt = (gal->dM)/(gal->dt);
 
       while(gal!=NULL){
-        if((gal->Mvir>0.0) && (gal->Type==0))
+        if((gal->Mvir>0.0) && (gal->Type==0) && (dMdt>0.0))
           switch (run_globals->params.physics.funcprop){
             case VMAX_PROP:
-              sfr = BaryonFrac*gal->dMdt * physics_func(run_globals, gal->Vmax, snapshot);
+              sfr = BaryonFrac*dMdt * physics_func(run_globals, gal->Vmax, snapshot);
               break;
             case MVIR_PROP:
-              sfr = BaryonFrac*gal->dMdt * physics_func(run_globals, gal->Mvir*1.e10, snapshot);
+              sfr = BaryonFrac*dMdt * physics_func(run_globals, gal->Mvir*1.e10, snapshot);
               break;
             default:
               SID_log_error("Did not recognise physics_funcprop value!");
@@ -67,12 +68,12 @@ int evolve_galaxies(run_globals_struct *run_globals, fof_group_struct *fof_group
         }
 
         // Instantaneous recycling approximation
-        gal->StellarMass += (1.0-RecycleFraction)*sfr*dt;
+        gal->StellarMass += (1.0-RecycleFraction)*sfr*gal->dt;
 
 
         // If this is a type 2 then increment the merger clock
         if(gal->Type == 2)
-          gal->MergTime -= dt;
+          gal->MergTime -= gal->dt;
 
         gal_counter++;
         gal = gal->NextGalInHalo;
@@ -121,7 +122,7 @@ int evolve_galaxies(run_globals_struct *run_globals, fof_group_struct *fof_group
     }
   }
     
-  if(gal_counter!=NGal)
+  if(gal_counter+(run_globals->NGhosts) != NGal)
   {
     SID_log_error("We have not processed the expected number of galaxies...");
     SID_log("gal_counter = %d but NGal = %d", SID_LOG_COMMENT, gal_counter, NGal);

@@ -10,7 +10,7 @@ static void read_snap_list(run_globals_struct *run_globals)
   char fname[STRLEN];
   run_params_struct params = run_globals->params;
 
-  sprintf(fname, "%s/%s/trees/%s_test_ghosts/a_list.txt",
+  sprintf(fname, "%s/%s/trees/%s_no_ghost_test/a_list.txt",
       params.SimulationDir,
       params.SimName,
       params.SimName);
@@ -126,7 +126,7 @@ static void read_output_snaps(run_globals_struct *run_globals)
   *LastOutputSnap = 0;
   for (i = 0; i < NOUT; i++) {
     if(ListOutputSnaps[i]<0)
-      ListOutputSnaps[i] += MAXSNAPS;
+      ListOutputSnaps[i] += run_globals->params.SnaplistLength;
     if(ListOutputSnaps[i]>*LastOutputSnap)
       *LastOutputSnap=ListOutputSnaps[i];
   }
@@ -144,8 +144,8 @@ void init_meraxes(run_globals_struct *run_globals)
   set_units(run_globals);
   srand((unsigned) time(NULL));
 
-  read_output_snaps(run_globals);
   read_snap_list(run_globals);
+  read_output_snaps(run_globals);
   snaplist_len = run_globals->params.SnaplistLength;
 
   for(i = 0; i < snaplist_len; i++)

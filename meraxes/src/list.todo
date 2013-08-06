@@ -1,6 +1,17 @@
 MERAXIS CODE TODO LIST
 ======================
 
+NEXT:
+✔ Fix timesteping for ghosts @done (2013-07-24 14:03)
+☐ Try vertical trees on FHmodel (published) and compare @HIGH
+☐ Try ghost trees @HIGH
+☐ Start adding physics ala SAGE
+☐ Use model to provide stellar mass fraction to 21cmfast
+
+misc:
+✔ move some Halo pointer resets (and FirstGal resets) to `copy_halo_to_galaxy` func @done (2013-07-03 11:54)
+✔ check for galaxies with stellar mass < 0 @done (2013-07-24 10:18)
+
 setup basic structures:
 ✔ halos @done (2013-04-10 09:06)
 ✔ galaxies @done (2013-04-10 09:06)
@@ -34,16 +45,13 @@ output:
 ✔ Pre-calculate indices for write so can point to centrals etc. @done (2013-04-30 20:14)
 ✔ Add unique IDs to output so can follow histories. @done (2013-05-01 12:33)
 ✔ What to do if type 0/1 merges without transition to type 2? @done (2013-05-08 18:16)
+☐ Add mergers output file for debugging @next
 
 tests:
 ☐ Ensure that satellite merger targets always follow the assumed rules
     1. They are in the same halo as the satellite
     2. They appear before the satellite in the halo member linked list
 ✔ Loop through all halos and ensure if more than one halo shares same descendant index that at least one of them has the TREE_CASE_MERGER flag set @done (2013-05-07 12:32)
-☐ Try calloc'ing the halo array before read
-☐ Insert gdb break point after halo read and manually check some values
-    Is the catalogue reader broken?
-    Has Greg pushed to gdbcode?  If so then I can compare the write code to my read code.
 
 metal dependant cooling:
 ☐ Implement a copy of C06 to start with

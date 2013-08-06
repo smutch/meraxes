@@ -14,7 +14,7 @@
 #define MAXTAGS 50   //!< Maximum number of allowed tags in input file
 
 // TODO: This should not be hard coded if at all possible...
-#define MAXSNAPS 59  //!< Maximum number of snapshots
+#define MAXSNAPS 467  //!< Maximum number of snapshots
 
 #ifndef NOUT
 #define NOUT 1
@@ -123,7 +123,7 @@ typedef struct hdf5_output_struct hdf5_output_struct;
 struct run_globals_struct{
   int                        LastOutputSnap;
   int                        ListOutputSnaps[NOUT];
-  int                        Ngal;
+  int                        NGhosts;
   double                     AA[MAXSNAPS];
   double                     ZZ[MAXSNAPS];
   double                     LTTime[MAXSNAPS];
@@ -178,8 +178,10 @@ typedef struct catalog_halo_struct catalog_halo_struct;
 
 //! The meraxis halo structure
 struct halo_struct{
+  long long id_MBP;      //!< ID of most bound particle
   int    ID;             //!< Halo ID
   int    Type;           //!< Type (0 for central, 1 for satellite)
+  int    SnapOffset;     //!< Number of snapshots this halo skips before reappearing
   int    DescIndex;      //!< Index of descendant in next relevant snapshot
   int    TreeFlags;      //!< Bitwise flag indicating the type of match in the trees
   int    NSubgroups;     //!< Number of subgroups belonging to this type 0 (=-1 if type=1)
@@ -206,8 +208,11 @@ typedef struct fof_group_struct fof_group_struct;
 
 struct galaxy_struct
 {
+  long long id_MBP;
   int    ID;
   int    Type;
+  int    OldType;
+  int    SnapSkipCounter;
   int    HaloDescIndex;
   int    TreeFlags;
   struct halo_struct         *Halo;
@@ -216,13 +221,14 @@ struct galaxy_struct
   struct galaxy_struct       *Next;
   struct galaxy_struct       *MergerTarget;
   int    Len;
+  double dt;      //!< Time between current snapshot and last identification
+  double LTTime;  //!< Lookback time at the last time this galaxy was identified
 
   // properties of subhalo at the last time this galaxy was a central galaxy
   double Pos[3];
   double Vel[3];
   double Mvir;
   double dM;
-  double dMdt;
   double Rvir;
   double Vvir;
   double Vmax;
@@ -237,16 +243,20 @@ struct galaxy_struct
 
   // write index
   int output_index;
+
+  // temporary debug flag
+  bool ghost_flag;
 };
 typedef struct galaxy_struct galaxy_struct;
 
 struct galaxy_output_struct
 {
+  long long id_MBP;
   int   ID;
   int   Type;
   int   CentralGal;
+  int   GhostFlag;
 
-  // properties of subhalo at the last time this galaxy was a central galaxy
   float Pos[3];
   float Vel[3];
   float Spin[3];
@@ -265,6 +275,7 @@ struct galaxy_output_struct
   float Sfr;
   float Cos_Inc;
   float MergTime;
+  float LTTime;
 };
 typedef struct galaxy_output_struct galaxy_output_struct;
 
@@ -281,7 +292,7 @@ int evolve_galaxies(run_globals_struct *run_globals, fof_group_struct *fof_group
 trees_header_struct read_halos(run_globals_struct *run_globals, int snapshot, halo_struct **halo, fof_group_struct **fof_group);
 void free_halos(halo_struct **halo);
 galaxy_struct* new_galaxy(int *unique_ID);
-void copy_halo_to_galaxy(run_globals_struct *run_globals, halo_struct *halo, galaxy_struct *gal);
+void copy_halo_to_galaxy(run_globals_struct *run_globals, halo_struct *halo, galaxy_struct *gal, int snapshot);
 double calculate_merging_time(run_globals_struct *run_globals, galaxy_struct *gal, int snapshot);
 void prep_hdf5_file(run_globals_struct *run_globals);
 void write_snapshot(run_globals_struct *run_globals, int n_write, int i_out, int *last_n_write);

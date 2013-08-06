@@ -14,3 +14,4 @@ config.py
 *.sublime-project
 *.sublime.workspace
 bin
+testing/notebooks

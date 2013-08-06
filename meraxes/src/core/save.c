@@ -32,9 +32,14 @@ void prepare_galaxy_for_output(
   double Hubble_h = run_globals->params.Hubble_h;
   run_units_struct *units = &(run_globals->units);
 
+  galout->id_MBP = (long long)gal.id_MBP;
   galout->ID = (int)gal.ID;
   galout->Type = (int)gal.Type;
-  galout->CentralGal = (int)gal.Halo->FOFGroup->FirstHalo->Galaxy->output_index;
+  if((!gal.ghost_flag) && (gal.Halo->FOFGroup->FirstHalo->Galaxy!=NULL))
+    galout->CentralGal = (int)gal.Halo->FOFGroup->FirstHalo->Galaxy->output_index;
+  else
+    galout->CentralGal = -1;
+  galout->GhostFlag = (int)gal.ghost_flag;
 
   for(int ii=0; ii<3; ii++)
   {
@@ -45,7 +50,7 @@ void prepare_galaxy_for_output(
   galout->Len         = (int)(gal.Len);
   galout->Mvir        = (float)(gal.Mvir / Hubble_h);
   galout->dM          = (float)(gal.dM / Hubble_h);
-  galout->dMdt        = (float)(gal.dMdt * units->UnitMass_in_g / units->UnitTime_in_s * SEC_PER_YEAR / SOLAR_MASS);
+  galout->dMdt        = (float)(gal.dM/gal.dt * units->UnitMass_in_g / units->UnitTime_in_s * SEC_PER_YEAR / SOLAR_MASS);
   galout->Rvir        = (float)(gal.Rvir / Hubble_h);
   galout->Vvir        = (float)(gal.Vvir);
   galout->Vmax        = (float)(gal.Vmax);
@@ -53,6 +58,7 @@ void prepare_galaxy_for_output(
   galout->Sfr         = (float)(gal.Sfr[i_snap] * units->UnitMass_in_g / units->UnitTime_in_s * SEC_PER_YEAR / SOLAR_MASS);
   galout->Cos_Inc     = (float)(gal.Cos_Inc);
   galout->MergTime    = (float)(gal.MergTime * units->UnitLength_in_cm / units->UnitVelocity_in_cm_per_s / SEC_PER_MEGAYEAR / Hubble_h);
+  galout->LTTime      = (float)(gal.LTTime * units->UnitLength_in_cm / units->UnitVelocity_in_cm_per_s / SEC_PER_MEGAYEAR / Hubble_h);
 
 }
 
@@ -71,7 +77,7 @@ void calc_hdf5_props(run_globals_struct *run_globals)
 
   // If we are calculating any magnitudes then increment the number of
   // output properties appropriately.
-  h5props->n_props = 16;
+  h5props->n_props = 19;
 
   // Size of a single galaxy entry.
   h5props->dst_size = sizeof(galaxy_output_struct);
@@ -90,6 +96,11 @@ void calc_hdf5_props(run_globals_struct *run_globals)
 
   i=0;
 
+  h5props->dst_offsets[i]  = HOFFSET(galaxy_output_struct, id_MBP);
+  h5props->dst_field_sizes[i]    = sizeof(galout.id_MBP);
+  h5props->field_names[i]  = "id_MBP";
+  h5props->field_types[i++]  = H5T_NATIVE_LLONG;
+
   h5props->dst_offsets[i]  = HOFFSET(galaxy_output_struct, ID);
   h5props->dst_field_sizes[i]    = sizeof(galout.ID);
   h5props->field_names[i]  = "ID";
@@ -104,6 +115,11 @@ void calc_hdf5_props(run_globals_struct *run_globals)
   h5props->dst_field_sizes[i]    = sizeof(galout.CentralGal);
   h5props->field_names[i]  = "CentralGal";
   h5props->field_types[i++]  = H5T_NATIVE_INT;
+
+  h5props->dst_offsets[i] = HOFFSET(galaxy_output_struct, GhostFlag);
+  h5props->dst_field_sizes[i]   = sizeof(galout.GhostFlag);
+  h5props->field_names[i] = "GhostFlag";
+  h5props->field_types[i++] = H5T_NATIVE_INT;
 
   h5props->dst_offsets[i]  = HOFFSET(galaxy_output_struct, Pos);
   h5props->dst_field_sizes[i]    = sizeof(galout.Pos);
@@ -168,6 +184,11 @@ void calc_hdf5_props(run_globals_struct *run_globals)
   h5props->dst_offsets[i] = HOFFSET(galaxy_output_struct, MergTime);
   h5props->dst_field_sizes[i]   = sizeof(galout.MergTime);
   h5props->field_names[i] = "MergTime";
+  h5props->field_types[i++] = H5T_NATIVE_FLOAT;
+
+  h5props->dst_offsets[i] = HOFFSET(galaxy_output_struct, LTTime);
+  h5props->dst_field_sizes[i]   = sizeof(galout.LTTime);
+  h5props->field_names[i] = "LTTime";
   h5props->field_types[i++] = H5T_NATIVE_FLOAT;
 
   // DEBUG
@@ -341,7 +362,7 @@ void write_snapshot(run_globals_struct *run_globals, int n_write, int i_out, int
   hid_t                 file_id;
   hid_t                 group_id;
   hid_t                 ds_id;
-  hsize_t               chunk_size       = 10;
+  hsize_t               chunk_size       = 10000;
   int                  *fill_data        = NULL;
   char                  target_group[20];
   galaxy_output_struct  galout;
@@ -370,16 +391,20 @@ void write_snapshot(run_globals_struct *run_globals, int n_write, int i_out, int
       h5props.dst_offsets, h5props.field_types, chunk_size, fill_data, 0,
       NULL );
 
-  // If the immediately preceeding snapshot was also written, then save the
-  // descendent indices
-  prev_snapshot = run_globals->ListOutputSnaps[i_out]-1;
-  if (i_out > 0) 
-    for (int ii=0; ii<NOUT; ii++)
-      if (run_globals->ListOutputSnaps[ii] == prev_snapshot)
-      {
-        calc_descendants_i_out = ii;
-        break;
-      }
+  // This is more complicated when using trees that have halos with skipped
+  // snapshots.  For the moment, lets just ignore this...
+  //
+  // // If the immediately preceeding snapshot was also written, then save the
+  // // descendent indices
+  // prev_snapshot = run_globals->ListOutputSnaps[i_out]-1;
+  // if (i_out > 0) 
+  //   for (int ii=0; ii<NOUT; ii++)
+  //     if (run_globals->ListOutputSnaps[ii] == prev_snapshot)
+  //     {
+  //       calc_descendants_i_out = ii;
+  //       break;
+  //     }
+  calc_descendants_i_out = -1;
 
   // Assign the write order indices to each galaxy and store the old indices if required
   gal_count = 0;
@@ -414,7 +439,7 @@ void write_snapshot(run_globals_struct *run_globals, int n_write, int i_out, int
     }
   }
 
-  if (n_write!=gal_count)
+  if (n_write+(run_globals->NGhosts) != gal_count)
   {
     SID_log("We don't have the expected number of galaxies in save...", SID_LOG_COMMENT);
     SID_log("gal_count=%d, n_write=%d", SID_LOG_COMMENT, gal_count, n_write);
