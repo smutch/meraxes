@@ -48,7 +48,13 @@ double calculate_merging_time(run_globals_struct *run_globals, galaxy_struct *sa
     pow(parent->Pos[2] - sat->Pos[2], 2.0) );
 
   // convert to physical length 
-  sat_rad /= (1 + run_globals->ZZ[snapshot]);
+  // Note that we want to use the redshift corresponding to the previous
+  // snapshot (i.e. before the halo merged).  For cases where the halo has
+  // skipped snapshots and then next been identified as having merged,
+  // `snapshot-1` may not be correct.  However, we don't actually know when
+  // during the time the skipped halo is missing from the trees that it last
+  // existed unmerged, so `snapshot-1` is as good a time as any to pick.
+  sat_rad /= (1 + run_globals->ZZ[snapshot-1]);
 
   if(sat_rad > mother->Rvir)
     sat_rad = mother->Rvir;

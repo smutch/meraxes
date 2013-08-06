@@ -330,11 +330,13 @@ void dracarys(run_globals_struct *run_globals)
           if (gal->FirstGalInHalo == NULL)
             SID_log_warning("Just set gal->FirstGalInHalo = NULL!", SID_LOG_COMMENT);
 
-          // Set the merger target of the incoming galaxy and initialise the merger clock
+          // Set the merger target of the incoming galaxy and initialise the
+          // merger clock.  Note that we *increment* the clock imemdiately
+          // after calculating it. This is because we will decrement the clock
+          // (by the same amount) when checking for mergers in evolve.c
           gal->MergerTarget = gal->FirstGalInHalo;
           gal->MergTime     = calculate_merging_time(run_globals, gal, snapshot);
-          gal->MergTime    -= gal->dt; // I'm not convinced this should be here, but this is what C06 does...
-          
+          gal->MergTime    += gal->dt;
         }
       }
 
