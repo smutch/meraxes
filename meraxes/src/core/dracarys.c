@@ -175,7 +175,6 @@ void dracarys(run_globals_struct *run_globals)
 
               // Here we have the simplest case where a galaxy continues along in it's halo...
               gal->dM   = (halo[i_newhalo]).Mvir - gal->Mvir;
-              gal->dMdt = (gal->dM)/(gal->dt);
 
               gal->Halo = &(halo[i_newhalo]);
               assign_galaxy_to_halo(gal, &(halo[i_newhalo]));
@@ -287,7 +286,6 @@ void dracarys(run_globals_struct *run_globals)
           // empty halo.  From the point of view of the model, this isn't
           // actually a merger and so we need to catch these cases...
           gal->dM           = gal->Halo->Mvir - gal->Mvir;
-          gal->dMdt         = (gal->dM)/(gal->dt);
           gal->Halo->Galaxy = gal;
           gal->Type         = gal->Halo->Type;
           cur_gal           = gal->NextGalInHalo;

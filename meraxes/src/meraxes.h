@@ -229,7 +229,6 @@ struct galaxy_struct
   double Vel[3];
   double Mvir;
   double dM;
-  double dMdt;
   double Rvir;
   double Vvir;
   double Vmax;
@@ -258,7 +257,6 @@ struct galaxy_output_struct
   int   CentralGal;
   int   GhostFlag;
 
-  // properties of subhalo at the last time this galaxy was a central galaxy
   float Pos[3];
   float Vel[3];
   float Spin[3];

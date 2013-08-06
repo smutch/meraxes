@@ -50,7 +50,7 @@ void prepare_galaxy_for_output(
   galout->Len         = (int)(gal.Len);
   galout->Mvir        = (float)(gal.Mvir / Hubble_h);
   galout->dM          = (float)(gal.dM / Hubble_h);
-  galout->dMdt        = (float)(gal.dMdt * units->UnitMass_in_g / units->UnitTime_in_s * SEC_PER_YEAR / SOLAR_MASS);
+  galout->dMdt        = (float)(gal.dM/gal.dt * units->UnitMass_in_g / units->UnitTime_in_s * SEC_PER_YEAR / SOLAR_MASS);
   galout->Rvir        = (float)(gal.Rvir / Hubble_h);
   galout->Vvir        = (float)(gal.Vvir);
   galout->Vmax        = (float)(gal.Vmax);
