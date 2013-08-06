@@ -314,7 +314,7 @@ trees_header_struct read_halos(
     ABORT(EXIT_FAILURE);
   }
   read_catalogs_header(fin, &dummy, &N_groups_files, &dummy, &N_halos_groups);
-  SID_log("N_groups_files = %d", SID_LOG_COMMENT, N_groups_files);
+  SID_log("N_groups_files                    :: %d", SID_LOG_COMMENT, N_groups_files);
   fclose(fin);
 
   // ghost_catalog_filename(run_globals->params.SimulationDir, run_globals->params.SimName, corrected_snapshot, "groups", 0, &catalog_ghosts_groups_flayout, fname);
@@ -338,7 +338,7 @@ trees_header_struct read_halos(
     ABORT(EXIT_FAILURE);
   }
   read_catalogs_header(fin, &dummy, &N_subgroups_files, &dummy, &N_halos_subgroups);
-  SID_log("N_subgroups_files = %d", SID_LOG_COMMENT, N_subgroups_files);
+  SID_log("N_subgroups_files                 :: %d", SID_LOG_COMMENT, N_subgroups_files);
   fclose(fin);
 
   // ghost_catalog_filename(run_globals->params.SimulationDir, run_globals->params.SimName, corrected_snapshot, "subgroups", 0, &catalog_ghosts_subgroups_flayout, fname);
@@ -355,7 +355,6 @@ trees_header_struct read_halos(
   N_ghosts_subgroups = 0;
 
   // TREES
-  SID_log("Reading in trees...", SID_LOG_COMMENT);
   sprintf(fname, "%s/%s/trees/%s_%s/horizontal/trees/horizontal_trees_%03d.dat",
       run_globals->params.SimulationDir, run_globals->params.SimName, run_globals->params.SimName, sim_variant, corrected_snapshot);
   // sprintf(fname, "%s/%s/trees/%s_test_ghosts/horizontal/trees/horizontal_trees_ghosts_%03d.dat",
@@ -390,11 +389,11 @@ trees_header_struct read_halos(
     ABORT(EXIT_FAILURE);
   }
 
-  SID_log("N_halos_groups = %d"    , SID_LOG_COMMENT, N_halos_groups);
-  SID_log("N_ghosts_groups = %d"   , SID_LOG_COMMENT, N_ghosts_groups);
-  SID_log("N_halos_subgroups = %d" , SID_LOG_COMMENT, N_halos_subgroups);
-  SID_log("N_ghosts_subgroups = %d", SID_LOG_COMMENT, N_ghosts_subgroups);
-  SID_log("N_halos = %d"           , SID_LOG_COMMENT, N_halos);
+  SID_log("N_halos_groups                    :: %d" , SID_LOG_COMMENT, N_halos_groups);
+  SID_log("N_ghosts_groups                   :: %d" , SID_LOG_COMMENT, N_ghosts_groups);
+  SID_log("N_halos_subgroups                 :: %d" , SID_LOG_COMMENT, N_halos_subgroups);
+  SID_log("N_ghosts_subgroups                :: %d" , SID_LOG_COMMENT, N_ghosts_subgroups);
+  SID_log("N_halos                           :: %d" , SID_LOG_COMMENT, N_halos);
 
   // Allocate the halo array
   if (N_halos>0)

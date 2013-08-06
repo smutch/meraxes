@@ -266,10 +266,10 @@ void dracarys(run_globals_struct *run_globals)
         create_new_galaxy(run_globals, snapshot, &(halo[i_halo]), &NGal, &new_gal_counter, &unique_ID);
     }
 
-    SID_log("Identified %d new merger events.", SID_LOG_COMMENT, merger_counter);
-    SID_log("Killed %d galaxies.", SID_LOG_COMMENT, kill_counter);
-    SID_log("Created %d new galaxies.", SID_LOG_COMMENT, new_gal_counter);
-    SID_log("There are %d galaxies in ghost halos (which are not being evolved).", SID_LOG_COMMENT, ghost_counter);
+    SID_log("Newly identified merger events    :: %d", SID_LOG_COMMENT, merger_counter);
+    SID_log("Killed galaxies                   :: %d", SID_LOG_COMMENT, kill_counter);
+    SID_log("Newly created galaxies            :: %d", SID_LOG_COMMENT, new_gal_counter);
+    SID_log("Galaxies in ghost halos           :: %d", SID_LOG_COMMENT, ghost_counter);
 
     // Loop through each galaxy and deal with HALO mergers now that all other
     // galaxies have been processed and their halo pointers updated...
