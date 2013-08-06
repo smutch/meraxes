@@ -55,9 +55,11 @@ def smf_z0(gals, sim_props, output_dir, fig_format):
     # Baldry+ 2008
     obs = Table.read(os.path.join(__script_dir__,"../utils/obs_datasets/smf/Baldry2008-total.txt"), format='ascii')
     obs_mass  = obs['col1']-np.log10(0.7) # IMF correction to Salpeter
-    obs_phi   = obs['col3']
-    obs_merr  = obs['col3']-obs['col5']
-    obs_perr  = obs['col6']-obs['col3']
+    obs_mass  = obs_mass+(2.*np.log10(0.7))-(2.*np.log10(hubble_h))  # hubble conversion
+    hubble_cor = 1./(0.7**3)*(hubble_h**3) # hubble conversion
+    obs_phi   = obs['col3']*hubble_cor
+    obs_merr  = (obs['col3']-obs['col5'])*hubble_cor
+    obs_perr  = (obs['col6']-obs['col3'])*hubble_cor
     l, _, _ = ax.errorbar(obs_mass, obs_phi, yerr=(obs_merr, obs_perr), ls="--", marker='s', label="Baldry 2008")
     l.set_dashes([8,2])
 
