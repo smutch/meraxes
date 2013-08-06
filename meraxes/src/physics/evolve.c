@@ -38,9 +38,10 @@ int evolve_galaxies(run_globals_struct *run_globals, fof_group_struct *fof_group
     halo = fof_group[i_fof].FirstHalo;
     while (halo!=NULL) {
       gal = halo->Galaxy;
-      dMdt = (gal->dM)/(gal->dt);
 
       while(gal!=NULL){
+        dMdt = (gal->dM)/(gal->dt);
+
         if((gal->Mvir>0.0) && (gal->Type==0) && (dMdt>0.0))
           switch (run_globals->params.physics.funcprop){
             case VMAX_PROP:

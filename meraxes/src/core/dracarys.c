@@ -99,7 +99,6 @@ void dracarys(run_globals_struct *run_globals)
 
   trees_header_struct  trees_header;
   halo_struct         *halo            = NULL;
-  halo_struct         *old_halo        = NULL;
   fof_group_struct    *fof_group       = NULL;
   galaxy_struct       *gal             = NULL;
   galaxy_struct       *prev_gal        = NULL;

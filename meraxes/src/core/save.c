@@ -373,7 +373,6 @@ void write_snapshot(run_globals_struct *run_globals, int n_write, int i_out, int
   hsize_t               dims             = 1;
   double temp;
   int                  *descendant_index;
-  int                   prev_snapshot;
   int calc_descendants_i_out = -1;
 
   SID_log("Writing output file...", SID_LOG_OPEN|SID_LOG_TIMER);
