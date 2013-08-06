@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 """Plot all results...
 
 Usage: allresults.py <master_file> [--snapshot=<snap> --output=<dir_path> --format=<ext>]
@@ -18,92 +16,85 @@ sys.path.append(os.path.join(__script_dir__, "../utils"))
 
 import numpy as np
 import matplotlib.pyplot as plt
-import h5py as h5
+import matplotlib
+matplotlib.rc_file(__script_dir__+"/matplotlibrc")
 from docopt import docopt
 from astropy import log
+from astropy.table import Table
 
 from samtools.io import read_gals
-from samtools.plots import *
+from samtools import munge
 
 __author__ = "Simon Mutch"
-__date__   = "2013/06/19"
+__date__   = "2013/08/06"
 
-def allresults(master_file, snapshot=-1, output_dir='./plots/',
-               fig_format='png'):
+def smf_z0(gals, sim_props, output_dir, fig_format):
+    """Plot the redshift 0 stellar mass function against observational data."""
 
-    set_custom_rcParams(plt.rcParams)
+    hubble_h = sim_props["Hubble_h"]
 
-    # If the target directory doesn't exist then create it
-    if not os.path.exists(output_dir):
-        os.makedirs(output_dir)
+    # xlim = (9.4,12)
+    # ylim = (1e-5,2e-2)
+    xlim = (8,12)
+    ylim = (1e-6,1e-1)
+    dashes = [8,2]
+
+    # Generate the model mass function
+    stars = np.log10(gals["StellarMass"][gals["StellarMass"]>0]*1.e10)
+    mf = munge.mass_function(stars, sim_props["Volume"], range=(xlim[0]-0.1,xlim[1]+0.1), bins=25)
+
+    # Setup the plot
+    fig, ax = plt.subplots(1,1)
+    ax.set_yscale('log', nonposy='clip')
+    ax.set_xlabel(r"$\log_{10}(M_*/{\rm M_{\odot}})$")
+    ax.set_ylabel(r"$\phi\ [{\rm dex^{-1}\,Mpc^{-3}}]$")
+    ax.set_xlim(xlim)
+    ax.set_ylim(ylim)
+
+    # Read in, munge and plot the observational data one by one
+    # Baldry+ 2008
+    obs = Table.read(os.path.join(__script_dir__,"../utils/obs_datasets/smf/Baldry2008-total.txt"), format='ascii')
+    obs_mass  = obs['col1']-np.log10(0.7) # IMF correction to Salpeter
+    obs_phi   = obs['col3']
+    obs_merr  = obs['col3']-obs['col5']
+    obs_perr  = obs['col6']-obs['col3']
+    l, _, _ = ax.errorbar(obs_mass, obs_phi, yerr=(obs_merr, obs_perr), ls="--", marker='s', label="Baldry 2008")
+    l.set_dashes([8,2])
+
+    # Bell+ 2003
+    obs = Table.read(os.path.join(__script_dir__,"../utils/obs_datasets/smf/Bell2003-total.txt"), format='ascii')
+    obs_mass = obs['col1']-np.log10(0.7)-2.*np.log10(hubble_h) # -log10(0.7) -> IMF correction to Salpeter
+    obs_phi  = obs['col2']*(hubble_h**3)
+    obs_merr = (obs['col2']-obs['col3'])*(hubble_h**3)
+    obs_perr = (obs['col4']-obs['col2'])*(hubble_h**3)
+    l, _, _ = ax.errorbar(obs_mass, obs_phi, yerr=(obs_merr, obs_perr), ls="--", marker='s', label="Bell 2003")
+    l.set_dashes([8,2])
+
+    # Plot the model
+    ax.plot(mf[:,0], mf[:,1], lw=4, label="Meraxes")
+
+    # Last few plotting bits and pieces
+    ax.legend(loc="lower left", numpoints=1)
+    plt.tight_layout()
+
+    # Save the plot
+    plt.savefig(os.path.join(output_dir, "smf_z0.")+fig_format)
+
+
+
+if __name__ == '__main__':
+
+    # deal with the command line arguments
+    args        = docopt(__doc__)
+    master_file = args['<master_file>']
+    snapshot    = int(args['--snapshot'])
+    output_dir  = args['--output']
+    fig_format  = args['--format']
 
     # Read in the galaxies
     gals, sim_props = read_gals(master_file, snapshot=snapshot, sim_props=True)
     redshift = sim_props['Redshift']
-    hubble_h = sim_props['Hubble_h']
 
-    # Start with the SMF
-    fig, ax = plt.subplots(1,1)
-    smf(gals, sim_props, ax)
-
-    # Overplot relevant observational data
-    # PG08
-    if ((redshift>0.8) & (redshift<=1.0)):
-        # Read in and prepare the data
-        with h5.File(os.path.join(observations_dir, "SMFs-PG08.hdf5"), "r") as fin:
-            obs = fin["Table"][:]
-        obs["logM"] += 2.*np.log10(0.7) - 2.*np.log10(hubble_h) 
-        for col in ("logIRAC", "E_logIRAC", "e_logIRAC"):
-            obs[col] += 3.*np.log10(hubble_h) - 3.*np.log10(0.7)
-        m_err = 10.**obs["logIRAC"] - 10.**(obs["logIRAC"]-obs["e_logIRAC"])
-        p_err = 10.**(obs["E_logIRAC"]+obs["logIRAC"]) - 10.**obs["logIRAC"]
-
-        # Plot it
-        sel = (obs["Range"]=="0.8<z<1.0")
-        ax.errorbar(obs[sel]["logM"], 10.**obs[sel]["logIRAC"], yerr=(m_err[sel], p_err[sel]),
-                    ls='none', marker='s', capthick=2, mec='none',
-                    label="PG08", zorder=0)
-
-
-    plt.legend(loc='lower left', numpoints=1, fontsize='small', frameon=False)
-    plt.tight_layout()
-    plt.savefig(os.path.join(output_dir, "smf."+fig_format))
-
-    # Plot the halo mass function
-    fig, ax = plt.subplots(1,1)
-    halo_mf(gals, sim_props, ax)
-
-    # Add some theoretical data
-    data = np.loadtxt(os.path.join(__script_dir__, "data/z0.9055_WMAP7_ST_HMF.txt")) 
-    plt.plot(np.log10(data[:,0]), data[:,1], ls='--', color='0.5', zorder=0,
-             label="Sheth Tormen MF")
-    ax.set_ylim((1.e-5, 1))
-
-    plt.legend(loc='lower left', numpoints=1, fontsize='small', frameon=False)
-    plt.tight_layout()
-    plt.savefig(os.path.join(output_dir, "halo_mf."+fig_format))
-
-    # Plot the distribution of dMvir/dt for the FHmodel
-    fig, ax = plt.subplots(1,1)
-    dmvirdt(gals, sim_props, ax, ylim=(1e-6, 1e-1))
-    plt.legend(loc='upper right', numpoints=1, fontsize='small', frameon=False)
-    plt.tight_layout()
-    plt.savefig(os.path.join(output_dir, "fhmodel_dmvirdt."+fig_format))
-    fig, ax = plt.subplots(1,1)
-    dmvirdt_vs_mvir(gals, sim_props, ax)
-    plt.legend(loc='upper left', numpoints=1, fontsize='small', frameon=False)
-    plt.tight_layout()
-    plt.savefig(os.path.join(output_dir, "fhmodel_dmvirdt_vs_mvir."+fig_format))
-    
-    # Plot the distribution of galaxy merger time clocks
-    fig, ax = plt.subplots(1,1)
-    time_distribution(gals, sim_props, ax, xlim=(-1,5), ylim=(1e-6,1e-2))
-    plt.legend(loc='upper left', numpoints=1, fontsize='small', frameon=False)
-    plt.tight_layout()
-    plt.savefig(os.path.join(output_dir, "merger_clocks."+fig_format))
-
-
-if __name__ == '__main__':
-    args = docopt(__doc__)
-    allresults(args['<master_file>'], snapshot=int(args['--snapshot']),
-               output_dir=args['--output'], fig_format=args['--format'])
+    # Generate all of the plots which we can for this redshift
+    if redshift<=0.1:
+        smf_z0(gals, sim_props, output_dir, fig_format)
