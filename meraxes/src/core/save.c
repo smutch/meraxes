@@ -362,7 +362,7 @@ void write_snapshot(run_globals_struct *run_globals, int n_write, int i_out, int
   hid_t                 file_id;
   hid_t                 group_id;
   hid_t                 ds_id;
-  hsize_t               chunk_size       = 1000;
+  hsize_t               chunk_size       = 10000;
   int                  *fill_data        = NULL;
   char                  target_group[20];
   galaxy_output_struct  galout;
