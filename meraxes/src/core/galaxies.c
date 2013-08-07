@@ -47,6 +47,49 @@ galaxy_struct* new_galaxy(int *unique_ID)
   return gal;
 }
 
+static inline double E_z(double z, double OmegaM, double OmegaK, double OmegaLambda)
+{
+  // Function stolen and adapted from gbpCosmo
+  double one_plus_z;
+  double one_plus_z_sq;
+  double one_plus_z_cu;
+  double result;
+
+  one_plus_z    = 1.+z;
+  one_plus_z_sq = one_plus_z*one_plus_z;
+  one_plus_z_cu = one_plus_z_sq*one_plus_z;
+  result        = sqrt(OmegaM*one_plus_z_cu+OmegaK*one_plus_z_sq+OmegaLambda);
+
+  return result;
+}
+
+static inline double Omega_z(double redshift, double OmegaM, double OmegaK, double OmegaLambda)
+{
+  // Function stolen and adapted from gbpCosmo
+  double Ez;
+  double one_plus_z_cube;
+
+  Ez              = E_z(redshift, OmegaM, OmegaK, OmegaLambda);
+  one_plus_z_cube = (1.+redshift)*(1.+redshift)*(1.+redshift);
+
+  return OmegaM*one_plus_z_cube/(Ez*Ez);
+}
+
+static inline double Delta_vir(double redshift, run_globals_struct *run_globals)
+{
+  // Function stolen and adapted from gbpCosmo
+  double x;
+  double Omega;
+  double OmegaM      = run_globals->params.OmegaM;
+  double OmegaK      = run_globals->params.OmegaK;
+  double OmegaLambda = run_globals->params.OmegaLambda;
+
+  Omega = Omega_z(redshift, OmegaM, OmegaK, OmegaLambda);
+  x     = Omega-1.;
+
+  return (18.*PI*PI+82*x-39*x*x)/Omega;
+}
+
 static double calculate_Mvir(run_globals_struct *run_globals, halo_struct *halo)
 {
   if(halo->Type==0 && halo->Mvir)
@@ -55,23 +98,36 @@ static double calculate_Mvir(run_globals_struct *run_globals, halo_struct *halo)
     return (double)halo->Len * run_globals->params.PartMass;
 }
 
-static double calculate_Rvir(run_globals_struct *run_globals, double Mvir, int snapshot)
+static double calculate_Rvir(run_globals_struct *run_globals, halo_struct *halo, double Mvir, int snapshot)
 {
 
-	double zplus1, hubble_of_z_sq, rhocrit, fac;
-  double Hubble      = run_globals->Hubble;
-  double Omega       = run_globals->params.Omega;
-  double OmegaLambda = run_globals->params.OmegaLambda;
-	
-	zplus1 = 1 + run_globals->ZZ[snapshot];
-	hubble_of_z_sq =
-	  Hubble * Hubble *(Omega * zplus1 * zplus1 * zplus1 + (1 - Omega - OmegaLambda) * zplus1 * zplus1 +
-	  OmegaLambda);
-	
-	rhocrit = 3 * hubble_of_z_sq / (8 * M_PI * run_globals->G);
-	fac = 1 / (200 * 4 * M_PI / 3.0 * rhocrit);
-	
-	return cbrt(Mvir * fac);
+  if(halo->Type==0 && halo->Rvir)
+    return halo->Rvir;
+  else
+  {
+    double zplus1;
+    double hubble_of_z_sq;
+    double rhocrit;
+    double fac;
+    double Delta;
+    double Hubble      = run_globals->Hubble;
+    double OmegaM      = run_globals->params.OmegaM;
+    double OmegaK      = run_globals->params.OmegaK;
+    double OmegaLambda = run_globals->params.OmegaLambda;
+
+    zplus1 = 1 + run_globals->ZZ[snapshot];
+    hubble_of_z_sq = Hubble * Hubble *(OmegaM * zplus1 * zplus1 * zplus1 + OmegaK * zplus1 * zplus1 + OmegaLambda);
+
+    rhocrit = 3 * hubble_of_z_sq / (8 * M_PI * run_globals->G);
+
+    Delta = Delta_vir(run_globals->ZZ[snapshot], run_globals);
+    // Delta = 200.;
+
+    fac = 1 / (Delta * 4 * M_PI / 3.0 * rhocrit);
+
+    return cbrt(Mvir * fac);
+  }
+
 }
 
 static double calculate_Vvir(run_globals_struct *run_globals, double Mvir, double Rvir)
@@ -87,7 +143,7 @@ void copy_halo_to_galaxy(run_globals_struct *run_globals, halo_struct *halo, gal
   gal->SnapSkipCounter = halo->SnapOffset;
   gal->HaloDescIndex   = halo->DescIndex;
   gal->Mvir            = calculate_Mvir(run_globals, halo);
-  gal->Rvir            = calculate_Rvir(run_globals, gal->Mvir, snapshot);
+  gal->Rvir            = calculate_Rvir(run_globals, halo, gal->Mvir, snapshot);
   gal->Vvir            = calculate_Vvir(run_globals, gal->Mvir, gal->Rvir);
   gal->Vmax            = halo->Vmax;
   gal->TreeFlags       = halo->TreeFlags;

@@ -102,6 +102,10 @@ if __name__ == '__main__':
     gals, sim_props = read_gals(master_file, snapshot=snapshot, sim_props=True)
     redshift = sim_props['Redshift']
 
+    # Make the output directory if it doesn't already exist
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
+
     # Generate all of the plots which we can for this redshift
     if redshift<=0.1:
         smf_z0(gals, sim_props, output_dir, fig_format)

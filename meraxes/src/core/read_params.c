@@ -213,8 +213,13 @@ void read_parameter_file(run_globals_struct *run_globals, char *fname)
   required_tag[n_param] = 1;
   params_id[n_param++] = DOUBLE;
 
-  strcpy(params_tag[n_param], "Omega");
-  params_addr[n_param] = &(run_params->Omega);
+  strcpy(params_tag[n_param], "OmegaM");
+  params_addr[n_param] = &(run_params->OmegaM);
+  required_tag[n_param] = 1;
+  params_id[n_param++] = DOUBLE;
+
+  strcpy(params_tag[n_param], "OmegaK");
+  params_addr[n_param] = &(run_params->OmegaK);
   required_tag[n_param] = 1;
   params_id[n_param++] = DOUBLE;
 

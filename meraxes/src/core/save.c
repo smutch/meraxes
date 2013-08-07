@@ -272,8 +272,10 @@ void prep_hdf5_file(run_globals_struct *run_globals)
   names[ii++] = "Hubble_h";
   addresses[ii] = &(run_globals->params.BaryonFrac);
   names[ii++] = "BaryonFrac";
-  addresses[ii] = &(run_globals->params.Omega);
-  names[ii++] = "Omega";
+  addresses[ii] = &(run_globals->params.OmegaM);
+  names[ii++] = "OmegaM";
+  addresses[ii] = &(run_globals->params.OmegaK);
+  names[ii++] = "OmegaK";
   addresses[ii] = &(run_globals->params.OmegaLambda);
   names[ii++] = "OmegaLambda";
   addresses[ii] = &(run_globals->params.PartMass);

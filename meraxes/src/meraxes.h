@@ -85,7 +85,8 @@ struct run_params_struct{
   double                Hubble_h;
   int                   DiskInstabilityOn;
   double                BaryonFrac;
-  double                Omega;
+  double                OmegaM;
+  double                OmegaK;
   double                OmegaLambda;
   double                PartMass;
   double                MergerTimeFactor;

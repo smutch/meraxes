@@ -43,9 +43,11 @@ static void read_snap_list(run_globals_struct *run_globals)
 
 double integrand_time_to_present(double a, void *params)
 {
-  double omega = ((run_params_struct *)params)->Omega;
+  double omega_m      = ((run_params_struct *)params)->OmegaM;
+  double omega_k      = ((run_params_struct *)params)->OmegaK;
   double omega_lambda = ((run_params_struct *)params)->OmegaLambda;
-  return 1 / sqrt(omega / a + (1 - omega - omega_lambda) + omega_lambda * a * a);
+
+  return 1 / sqrt(omega_m / a + omega_k + omega_lambda * a * a);
 }
 
 static double time_to_present(run_globals_struct *run_globals, double z)
@@ -53,7 +55,9 @@ static double time_to_present(run_globals_struct *run_globals, double z)
 #define WORKSIZE 1000
   gsl_function F;
   gsl_integration_workspace *workspace;
-  double time, result, abserr;
+  double time;
+  double result;
+  double abserr;
 
   workspace = gsl_integration_workspace_alloc(WORKSIZE);
   F.function = &integrand_time_to_present;

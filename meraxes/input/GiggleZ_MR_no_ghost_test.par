@@ -57,7 +57,8 @@ RecycleFraction				0.3		;fraction of SF mass assumed to instantaneously go nova
 #----- Cosmological parameters and more ----
 #------------------------------------------
 
-Omega                       0.273 
+OmegaM                      0.273 
+OmegaK                      0.000
 OmegaLambda                 0.727
 BaryonFrac                  0.167
 Hubble_h                    0.705
