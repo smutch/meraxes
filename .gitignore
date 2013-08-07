@@ -16,3 +16,7 @@ config.py
 *.sublime.workspace
 bin
 testing/notebooks
+plots
+bu
+data
+testing

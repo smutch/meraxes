@@ -77,6 +77,11 @@ def smf_z0(gals, sim_props, output_dir, fig_format):
 
     # Last few plotting bits and pieces
     ax.legend(loc="lower left", numpoints=1)
+    ax.text(0.96,0.95, 
+            "z=0\nAssumed Salpeter IMF\nh={:.3f}".format(hubble_h),
+            horizontalalignment='right',
+            verticalalignment='top',
+            transform=ax.transAxes)
     plt.tight_layout()
 
     # Save the plot
