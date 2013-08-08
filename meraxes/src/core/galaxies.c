@@ -87,7 +87,7 @@ static inline double Delta_vir(double redshift, run_globals_struct *run_globals)
   Omega = Omega_z(redshift, OmegaM, OmegaK, OmegaLambda);
   x     = Omega-1.;
 
-  return (18.*PI*PI+82*x-39*x*x)/Omega;
+  return (18.*M_PI*M_PI+82*x-39*x*x)/Omega;
 }
 
 static double calculate_Mvir(run_globals_struct *run_globals, halo_struct *halo)
