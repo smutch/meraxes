@@ -368,7 +368,6 @@ void write_snapshot(run_globals_struct *run_globals, int n_write, int i_out, int
   galaxy_output_struct *output_buffer;
   int                  *fill_data        = NULL;
   char                  target_group[20];
-  galaxy_output_struct  galout;
   galaxy_struct        *gal              = NULL;
   hdf5_output_struct    h5props          = run_globals->hdf5props;
   int                   gal_count        = 0;
@@ -441,7 +440,7 @@ void write_snapshot(run_globals_struct *run_globals, int n_write, int i_out, int
     }
   }
 
-  if (n_write+(run_globals->NGhosts) != gal_count)
+  if (n_write != gal_count)
   {
     SID_log("We don't have the expected number of galaxies in save...", SID_LOG_COMMENT);
     SID_log("gal_count=%d, n_write=%d", SID_LOG_COMMENT, gal_count, n_write);
@@ -487,13 +486,13 @@ void write_snapshot(run_globals_struct *run_globals, int n_write, int i_out, int
     if (gal->Type < 3)
     {
       prepare_galaxy_for_output(run_globals, *gal, &(output_buffer[buffer_count]), i_out);
-      gal_count++;
       buffer_count++;
     }
     if(buffer_count==chunk_size)
     {
       H5TBwrite_records(group_id, "Galaxies", gal_count, buffer_count, h5props.dst_size,
           h5props.dst_offsets, h5props.dst_field_sizes, output_buffer);
+      gal_count += buffer_count;
       buffer_count = 0;
     }
     gal = gal->Next;
@@ -501,8 +500,18 @@ void write_snapshot(run_globals_struct *run_globals, int n_write, int i_out, int
 
   // Write any remaining galaxies in the buffer
   if(buffer_count>0)
+  {
     H5TBwrite_records(group_id, "Galaxies", gal_count, buffer_count, h5props.dst_size,
         h5props.dst_offsets, h5props.dst_field_sizes, output_buffer);
+    gal_count += buffer_count;
+  }
+
+  if (n_write != gal_count)
+  {
+    SID_log("We don't have the expected number of galaxies in save...", SID_LOG_COMMENT);
+    SID_log("gal_count=%d, n_write=%d", SID_LOG_COMMENT, gal_count, n_write);
+    ABORT(EXIT_FAILURE);
+  }
 
   // Free the output buffer
   SID_free(SID_FARG output_buffer);

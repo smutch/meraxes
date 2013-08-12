@@ -261,10 +261,8 @@ void dracarys(run_globals_struct *run_globals)
 
     // Find empty (valid) type 0 halos and place new galaxies in them
     for(int i_halo=0; i_halo<trees_header.n_subgroups; i_halo++)
-    {
       if(check_if_valid_host(&(halo[i_halo])))
         create_new_galaxy(run_globals, snapshot, &(halo[i_halo]), &NGal, &new_gal_counter, &unique_ID);
-    }
 
     SID_log("Newly identified merger events    :: %d", SID_LOG_COMMENT, merger_counter);
     SID_log("Killed galaxies                   :: %d", SID_LOG_COMMENT, kill_counter);
@@ -367,6 +365,9 @@ void dracarys(run_globals_struct *run_globals)
 
     // Do the physics
     nout_gals = evolve_galaxies(run_globals, fof_group, snapshot, NGal, trees_header.n_groups);
+
+    // Add the ghost galaxies into the nout_gals count
+    nout_gals+=ghost_counter;
 
     // Write the results if this is a requested snapshot
     for(int i_out = 0; i_out < NOUT; i_out++)
