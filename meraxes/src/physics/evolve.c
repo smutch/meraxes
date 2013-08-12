@@ -40,7 +40,10 @@ int evolve_galaxies(run_globals_struct *run_globals, fof_group_struct *fof_group
       gal = halo->Galaxy;
 
       while(gal!=NULL){
-        dMdt = (gal->dM)/(gal->dt);
+        if(gal->dM > 0)
+          dMdt = (gal->dM)/(gal->dt);
+        else
+          dMdt = 0.;
 
         if((gal->Mvir>0.0) && (gal->Type==0) && (dMdt>0.0))
           switch (run_globals->params.physics.funcprop){

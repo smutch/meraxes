@@ -364,18 +364,19 @@ void write_snapshot(run_globals_struct *run_globals, int n_write, int i_out, int
   hid_t                 file_id;
   hid_t                 group_id;
   hid_t                 ds_id;
-  hsize_t               chunk_size       = 10000;
+  hsize_t               chunk_size             = 10000;
   galaxy_output_struct *output_buffer;
-  int                  *fill_data        = NULL;
+  int                  *fill_data              = NULL;
   char                  target_group[20];
-  galaxy_struct        *gal              = NULL;
-  hdf5_output_struct    h5props          = run_globals->hdf5props;
-  int                   gal_count        = 0;
-  int                   old_count        = 0;
-  hsize_t               dims             = 1;
-  double temp;
+  galaxy_struct        *gal                    = NULL;
+  hdf5_output_struct    h5props                = run_globals->hdf5props;
+  int                   gal_count              = 0;
+  int                   old_count              = 0;
+  hsize_t               dims                   = 1;
+  double                temp;
   int                  *descendant_index;
-  int calc_descendants_i_out = -1;
+  int                   calc_descendants_i_out = -1;
+  int                   prev_snapshot          = -1;
 
   SID_log("Writing output file...", SID_LOG_OPEN|SID_LOG_TIMER);
 
@@ -392,20 +393,16 @@ void write_snapshot(run_globals_struct *run_globals, int n_write, int i_out, int
       h5props.dst_offsets, h5props.field_types, chunk_size, fill_data, 0,
       NULL );
 
-  // This is more complicated when using trees that have halos with skipped
-  // snapshots.  For the moment, lets just ignore this...
-  //
-  // // If the immediately preceeding snapshot was also written, then save the
-  // // descendent indices
-  // prev_snapshot = run_globals->ListOutputSnaps[i_out]-1;
-  // if (i_out > 0) 
-  //   for (int ii=0; ii<NOUT; ii++)
-  //     if (run_globals->ListOutputSnaps[ii] == prev_snapshot)
-  //     {
-  //       calc_descendants_i_out = ii;
-  //       break;
-  //     }
-  calc_descendants_i_out = -1;
+  // If the immediately preceeding snapshot was also written, then save the
+  // descendent indices
+  prev_snapshot = run_globals->ListOutputSnaps[i_out]-1;
+  if (i_out > 0) 
+    for (int ii=0; ii<NOUT; ii++)
+      if (run_globals->ListOutputSnaps[ii] == prev_snapshot)
+      {
+        calc_descendants_i_out = ii;
+        break;
+      }
 
   // Assign the write order indices to each galaxy and store the old indices if required
   gal_count = 0;
