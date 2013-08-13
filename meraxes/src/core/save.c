@@ -341,15 +341,30 @@ void prep_hdf5_file(run_globals_struct *run_globals)
 
 }
 
-static void inline save_descendant_indices(run_globals_struct *run_globals, hid_t file_id, int i_out_prev, int *descendant_index, int old_count)
+static void inline save_walk_indices(
+  run_globals_struct *run_globals,           
+  hid_t               file_id,               
+  int                 i_out,            
+  int                 prev_i_out,            
+  int                *descendant_index,      
+  int                *first_progenitor_index,
+  int                *next_progenitor_index, 
+  int                 old_count,             
+  int                 n_write)               
 {
 
   hsize_t dim[1];
   char target[50];
   
-  sprintf(target, "Snap%03d/DescendantIndices", (run_globals->ListOutputSnaps)[i_out_prev]);
   dim[0] = (hsize_t)old_count; 
+  sprintf(target, "Snap%03d/DescendantIndices", (run_globals->ListOutputSnaps)[prev_i_out]);
   H5LTmake_dataset(file_id,target,1,dim,H5T_NATIVE_INT,descendant_index);
+  sprintf(target, "Snap%03d/NextProgenitorIndices", (run_globals->ListOutputSnaps)[prev_i_out]);
+  H5LTmake_dataset(file_id,target,1,dim,H5T_NATIVE_INT,next_progenitor_index);
+
+  dim[0] = (hsize_t)n_write; 
+  sprintf(target, "Snap%03d/FirstProgenitorIndices", (run_globals->ListOutputSnaps)[i_out]);
+  H5LTmake_dataset(file_id,target,1,dim,H5T_NATIVE_INT,first_progenitor_index);
 
 }
 
@@ -365,7 +380,7 @@ void write_snapshot(run_globals_struct *run_globals, int n_write, int i_out, int
   hid_t                 group_id;
   hid_t                 ds_id;
   hsize_t               chunk_size             = 10000;
-  galaxy_output_struct *output_buffer;
+  galaxy_output_struct *output_buffer          = NULL;
   int                  *fill_data              = NULL;
   char                  target_group[20];
   galaxy_struct        *gal                    = NULL;
@@ -374,9 +389,12 @@ void write_snapshot(run_globals_struct *run_globals, int n_write, int i_out, int
   int                   old_count              = 0;
   hsize_t               dims                   = 1;
   double                temp;
-  int                  *descendant_index;
+  int                  *descendant_index       = NULL;
+  int                  *first_progenitor_index = NULL; 
+  int                  *next_progenitor_index  = NULL; 
   int                   calc_descendants_i_out = -1;
   int                   prev_snapshot          = -1;
+  int                   index                  = -1;
 
   SID_log("Writing output file...", SID_LOG_OPEN|SID_LOG_TIMER);
 
@@ -409,10 +427,17 @@ void write_snapshot(run_globals_struct *run_globals, int n_write, int i_out, int
   old_count = 0;
   if (calc_descendants_i_out>-1)
   {
-    descendant_index = SID_malloc(sizeof(int)* (*last_n_write));
+    descendant_index       = SID_malloc(sizeof(int)* (*last_n_write));
+    next_progenitor_index  = SID_malloc(sizeof(int)* (*last_n_write));
+    first_progenitor_index = SID_malloc(sizeof(int)* n_write);
 
     for (int ii=0; ii<*last_n_write; ii++)
+    {
       descendant_index[ii] = -1;
+      next_progenitor_index[ii] = -1;
+    }
+    for (int ii=0; ii<n_write; ii++)
+      first_progenitor_index[ii] = -1;
 
     gal = run_globals->FirstGal;
     while (gal!=NULL) {
@@ -420,6 +445,7 @@ void write_snapshot(run_globals_struct *run_globals, int n_write, int i_out, int
       {
         if (gal->output_index > -1)
         {
+          first_progenitor_index[gal_count] = gal->output_index;
           descendant_index[gal->output_index] = gal_count;
           old_count++;
         }
@@ -427,6 +453,35 @@ void write_snapshot(run_globals_struct *run_globals, int n_write, int i_out, int
       }
       gal=gal->Next;
     }
+  
+    // Here we want to walk the progenitor indices to tag on galaxies which
+    // have merged in this timestep and also set their descendant_index.
+    gal = run_globals->FirstGal;
+    while (gal!=NULL) {
+      if (gal->Type == 3)
+      {
+        descendant_index[gal->output_index] = gal->MergerTarget->output_index;
+        old_count++;
+        index = first_progenitor_index[gal->MergerTarget->output_index];
+        if (index>-1)
+        {
+          while(next_progenitor_index[index]>-1)
+            index = next_progenitor_index[index];
+          next_progenitor_index[index] = gal->output_index;
+        }
+      }
+      gal = gal->Next;
+    }
+
+    save_walk_indices(run_globals, file_id, i_out, calc_descendants_i_out,
+        descendant_index, first_progenitor_index, next_progenitor_index,
+        *last_n_write, n_write);
+
+    // Free the allocated arrays
+    SID_free(SID_FARG first_progenitor_index);
+    SID_free(SID_FARG next_progenitor_index);
+    SID_free(SID_FARG descendant_index);
+
   } else
   {
     gal = run_globals->FirstGal;
@@ -443,33 +498,6 @@ void write_snapshot(run_globals_struct *run_globals, int n_write, int i_out, int
     SID_log("gal_count=%d, n_write=%d", SID_LOG_COMMENT, gal_count, n_write);
     ABORT(EXIT_FAILURE);
   }
-
-  // These galaxies merged during this time step so their descendant_index
-  // values should point to their MergerTarget
-  if (calc_descendants_i_out>-1)
-  {
-    gal = run_globals->FirstGal;
-    while (gal!=NULL) {
-      if (gal->Type > 2)
-      {
-        descendant_index[gal->output_index] = gal->MergerTarget->output_index;
-        old_count++;
-      }
-      gal = gal->Next;
-    }
-    if (n_write!=gal_count)
-    {
-      SID_log("We don't have the expected number of galaxies in descendant_index...", SID_LOG_COMMENT);
-      SID_log("old_count=%d, last_n_write=%d", SID_LOG_COMMENT, old_count, *last_n_write);
-      ABORT(EXIT_FAILURE);
-    }
-
-    save_descendant_indices(run_globals, file_id, calc_descendants_i_out, descendant_index, old_count);
-
-    // Free the descendant_index array
-    SID_free(SID_FARG descendant_index);
-  }
-  
 
   // Write the galaxies.
   // In order to speed things up, we will chunk our write.
@@ -531,7 +559,7 @@ void write_snapshot(run_globals_struct *run_globals, int n_write, int i_out, int
 
   // Update the value of last_n_write
   *last_n_write = n_write;
-  
+
   SID_log("...done", SID_LOG_CLOSE);
 
 }
