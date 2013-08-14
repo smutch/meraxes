@@ -204,3 +204,39 @@ def read_snaplist(fname):
     return np.array(snaplist, dtype=float), np.array(zlist, dtype=float)\
             , np.array(lt_times, dtype=float)
 
+
+def read_firstprogenitor_indices(fname, snapshot):
+
+    """ Read the FirstProgenitor indices from the Meraxes HDF5 file.
+
+    Args:
+        fname  -  Full path to input hdf5 master file
+
+    Returns:
+        fp_ind  -  FirstProgenitor indices corresponding to the elements of the
+                   previous snapshot (i.e. snapshot-1)
+    """
+
+    with h5.File(fname, 'r') as fin:
+        fp_ind = fin["Snap{:03d}/FirstProgenitorIndices".format(snapshot)][:] 
+    
+    return fp_ind
+
+
+def read_nextprogenitor_indices(fname, snapshot):
+
+    """ Read the NextProgenitor indices from the Meraxes HDF5 file.
+
+    Args:
+        fname  -  Full path to input hdf5 master file
+
+    Returns:
+        np_ind  -  NextProgenitor indices corresponding to the elements of the
+                   previous snapshot (i.e. snapshot-1)
+    """
+
+    with h5.File(fname, 'r') as fin:
+        np_ind = fin["Snap{:03d}/NextProgenitorIndices".format(snapshot)][:] 
+    
+    return np_ind
+
