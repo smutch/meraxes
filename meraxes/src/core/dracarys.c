@@ -15,7 +15,13 @@ static void inline assign_galaxy_to_halo(galaxy_struct *gal, halo_struct *halo)
   }
 }
 
-static void inline create_new_galaxy(run_globals_struct *run_globals, int snapshot, halo_struct *halo, int *NGal, int *new_gal_counter, int *unique_ID)
+static void inline create_new_galaxy(
+  run_globals_struct *run_globals,    
+  int                 snapshot,       
+  halo_struct        *halo,           
+  int                *NGal,           
+  int                *new_gal_counter,
+  int                *unique_ID)      
 {
   galaxy_struct *gal;
 
@@ -29,6 +35,8 @@ static void inline create_new_galaxy(run_globals_struct *run_globals, int snapsh
     run_globals->FirstGal = gal;
   run_globals->LastGal = gal;
   gal->FirstGalInHalo = gal;
+  gal->dt = run_globals->LTTime[0] - gal->LTTime;
+  gal->dM = halo->Mvir;
   *NGal = *NGal+1;
   *new_gal_counter = *new_gal_counter+1;
 }
@@ -38,7 +46,12 @@ static void inline turn_off_merger_flag(galaxy_struct *gal)
   gal->TreeFlags = gal->TreeFlags & (~TREE_CASE_MERGER);
 }
 
-static void inline kill_galaxy(run_globals_struct *run_globals, galaxy_struct *gal, galaxy_struct *prev_gal, int *NGal, int *kill_counter)
+static void inline kill_galaxy(
+  run_globals_struct *run_globals, 
+  galaxy_struct      *gal,         
+  galaxy_struct      *prev_gal,    
+  int                *NGal,        
+  int                *kill_counter)
 {
   galaxy_struct *cur_gal;
 
