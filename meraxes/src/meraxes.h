@@ -71,6 +71,7 @@ struct run_params_struct{
   char                  SimName[STRLEN];
   char                  SimulationDir[STRLEN];
   char                  FileWithOutputSnaps[STRLEN];
+  char                  PhotometricTablesDir[STRLEN];
   int                   NEverySnap;
   int                   NScanSnap;
   int                   FilesPerSnapshot;
@@ -91,6 +92,7 @@ struct run_params_struct{
   double                PartMass;
   double                MergerTimeFactor;
   int                   SnaplistLength;
+  int                   CalcMags;
   physics_params_struct physics;
 };
 typedef struct run_params_struct run_params_struct;
