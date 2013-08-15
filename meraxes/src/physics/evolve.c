@@ -21,7 +21,7 @@ static double physics_func(run_globals_struct *run_globals, double prop, int sna
 int evolve_galaxies(run_globals_struct *run_globals, fof_group_struct *fof_group, int snapshot, int NGal, int NFof)
 {
 
-  double         sfr;
+  double         sfr             = 0.0;
   double         BaryonFrac      = run_globals->params.BaryonFrac;
   double         RecycleFraction = run_globals->params.RecycleFraction;
   galaxy_struct *gal             = NULL;
@@ -30,6 +30,8 @@ int evolve_galaxies(run_globals_struct *run_globals, fof_group_struct *fof_group
   int            gal_counter     = 0;
   int            dead_gals       = 0;
   double         dMdt            = 0.0;
+  double         burst_time      = 0.0;
+  double         burst_mass      = 0.0;
 
   SID_log("Doing physics...", SID_LOG_OPEN|SID_LOG_TIMER);
   
@@ -72,8 +74,12 @@ int evolve_galaxies(run_globals_struct *run_globals, fof_group_struct *fof_group
         }
 
         // Instantaneous recycling approximation
-        gal->StellarMass += (1.0-RecycleFraction)*sfr*gal->dt;
+        burst_mass = (1.0-RecycleFraction)*sfr*gal->dt;
+        gal->StellarMass += burst_mass;
 
+        // Add to the luminosities due to this stellar mass burst
+        burst_time   = run_globals->LTTime[snapshot] + (0.5 * gal->dt);
+        add_to_luminosities(run_globals, gal, burst_mass, 0.02, burst_time);
 
         // If this is a type 2 then increment the merger clock
         if(gal->Type == 2)
@@ -112,7 +118,11 @@ int evolve_galaxies(run_globals_struct *run_globals, fof_group_struct *fof_group
             parent->StellarMass += gal->StellarMass;
 
             for(int outputbin = 0; outputbin < NOUT; outputbin++)
+            {
               parent->Sfr[outputbin] += gal->Sfr[outputbin];
+              for(int ii=0; ii < N_PHOTO_BANDS; ii++)
+                parent->Lum[ii][outputbin] += gal->Lum[ii][outputbin];
+            }
 
             // Mark the merged galaxy as dead
             gal->Type          = 3;

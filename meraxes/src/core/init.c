@@ -152,8 +152,7 @@ void init_meraxes(run_globals_struct *run_globals)
   read_output_snaps(run_globals);
   snaplist_len = run_globals->params.SnaplistLength;
 
-  if(run_globals->params.CalcMags)
-    read_photometric_tables(run_globals);
+  read_photometric_tables(run_globals);
 
   for(i = 0; i < snaplist_len; i++)
   {

@@ -60,6 +60,9 @@ void prepare_galaxy_for_output(
   galout->MergTime    = (float)(gal.MergTime * units->UnitLength_in_cm / units->UnitVelocity_in_cm_per_s / SEC_PER_MEGAYEAR / Hubble_h);
   galout->LTTime      = (float)(gal.LTTime * units->UnitLength_in_cm / units->UnitVelocity_in_cm_per_s / SEC_PER_MEGAYEAR / Hubble_h);
 
+  for(int ii=0; ii<N_PHOTO_BANDS; ii++)
+    galout->Mag[ii] = (float)(lum_to_mag(gal.Lum[ii][i_snap]));
+
 }
 
 void calc_hdf5_props(run_globals_struct *run_globals)
