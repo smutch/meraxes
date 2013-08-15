@@ -62,13 +62,14 @@ class Graph:
     
     def calc_positions(self):
         pos = np.zeros((self.__counter__, 2), float)
-        max_count = float(self.snap_count.max())
         x_i = 0
         for i, node in enumerate(self.iter_nodes()):
             pos[i,1] = node["snapshot"]
             if node["type"]=="NextProgenitor":
                 x_i+=1
-            pos[i,0] = 100./max_count*x_i
+            pos[i,0] = x_i
+        for i, node in enumerate(self.iter_nodes()):
+            pos[i,0] =  pos[i,0]/x_i*100.0
             node["plot_pos"] = pos[i]
             
         # now loop back through by following edges
@@ -221,6 +222,7 @@ if __name__ == '__main__':
     ax.grid(True, axis='y', color='0.9')
     ax.grid(False, axis='x')
     ax.set_ylim((np.argwhere(G.snap_count==0)[-1], G.snap_count.size+1))
+    ax.set_xlim((-5, 101))
     ax.set_frame_on(False)
 
     # TODO: Add the redshift axis
