@@ -101,7 +101,7 @@ if __name__ == '__main__':
     output_dir = args["--output"]
     
     # Check that we can construct the tree
-    snaplist = samio.read_snaplist(fname_gals)[0]
+    snaplist, zlist, _ = samio.read_snaplist(fname_gals)
     if last_snapnum not in snaplist:
         raise ValueError("last_snapnum not present in meraxes_file")
     if (np.diff(snaplist)!=1).any():
@@ -142,6 +142,7 @@ if __name__ == '__main__':
                            figsize=np.array(plt.rcParams['figure.figsize'])*2,
                            facecolor=None)
     ax.set_ylabel("Snapshot")
+    plt.rcParams['font.size']=18
 
     # start by drawing the edges
     pos = G.calc_positions()
@@ -155,26 +156,65 @@ if __name__ == '__main__':
     mstar = np.log10(mstar*1.e10)*10
     sel = (~np.isinf(mstar))
     mstar = mstar[sel]**5
-    mstar = (mstar/mstar.max())*100
+    mstar = (mstar/mstar.max())*300
+
     mvir = np.array([n["galaxy"]["Mvir"] for n in G.iter_nodes()])
-    mvir = np.log10(mvir*1.e10)
-    mvir = mvir[sel]
+    mvir = np.log10(mvir[sel]*1.e10)
+    mvir_max = mvir.max()
+    mvir_min = mvir.min()
+
     pos = pos[sel]
-    # color the nodes corresponding to ghosts differently
+
     ghost_flag = np.array([n["galaxy"]["GhostFlag"] for n in G.iter_nodes()])
     ghost_sel = (ghost_flag[sel]==1) 
-    sc = ax.scatter(pos[~ghost_sel,0], pos[~ghost_sel,1], marker='o', c=mvir[~ghost_sel], s=mstar[~ghost_sel], cmap=plt.cm.RdYlBu)
-    ax.scatter(pos[ghost_sel,0], pos[ghost_sel,1], marker='o', facecolor='0.5', edgecolor='k', linewidths=1, s=mstar[ghost_sel])
+    gal_type = np.array([n["galaxy"]["Type"] for n in G.iter_nodes()])
 
+    type1_sel = (gal_type[sel]==1) & ~ghost_sel
+    type2_sel = (gal_type[sel]==2) & ~ghost_sel
+    type0_sel = (~type1_sel & ~type2_sel)
+
+    cmap = plt.cm.winter
+    sc = ax.scatter(pos[type0_sel,0], pos[type0_sel,1], vmin=mvir_min,
+                    vmax=mvir_max, marker='o', c=mvir[type0_sel],
+                    s=mstar[type0_sel], cmap=cmap, label="Type 0")
+    ax.scatter(pos[type1_sel,0], pos[type1_sel,1], vmin=mvir_min,
+               vmax=mvir_max, marker='^', c=mvir[type1_sel],
+               s=mstar[type1_sel], cmap=cmap, label="Type 1")
+    ax.scatter(pos[type2_sel,0], pos[type2_sel,1], vmin=mvir_min,
+               vmax=mvir_max, marker='v', c=mvir[type2_sel],
+               s=mstar[type2_sel], cmap=cmap, label="Type 2")
+    ax.scatter(pos[ghost_sel,0], pos[ghost_sel,1], vmin=mvir_min,
+               vmax=mvir_max, marker='s', facecolor='0.5', s=mstar[ghost_sel],
+               label="Ghosts")
+
+    # add labels for each branch ID
+    for n in G.iter_nodes():
+        if (n["type"]==G.type_next) or (n==G.nodes[first_node]):
+            plot_pos = n["plot_pos"]
+            ax.text(plot_pos[0], plot_pos[1]+1,
+                    "{:d}".format(n["galaxy"]["ID"]),
+                    horizontalalignment="center",
+                    verticalalignment="bottom",
+                    size="x-small",
+                    rotation='vertical',
+                    color='0.5')
 
     # add a color bar
+    # import IPython; IPython.embed()
     cb = fig.colorbar(sc)
-    cb.set_label(r"$\log_{10}(M_*/{\rm M_{\odot}})$")
+    cb.set_clim(mvir.min(), mvir.max())
+    cb.set_label(r"$\log_{10}(M_{\rm vir}/{\rm M_{\odot}})$")
     # labels = cb.ax.get_yticklabels()
     # for i, t in enumerate(labels):
-        #     labels[i] = "{:.1f}".format(float(t.get_text())/5.)
-        # cb.ax.set_yticklabels(labels)
+    #         labels[i] = "{:.1f}".format(float(t.get_text())/5.)
+    #     cb.ax.set_yticklabels(labels)
 
+    # add a legend
+    leg = ax.legend(loc='upper right', ncol=4)
+    for t in leg.get_texts():
+        t.set_size("medium")
+
+    # tidy up
     plt.setp(ax.get_xticklabels(), visible=False)
     plt.setp(ax.get_xticklines(), visible=False)
     plt.setp(ax.get_yticklines(), visible=False)
@@ -182,6 +222,23 @@ if __name__ == '__main__':
     ax.grid(False, axis='x')
     ax.set_ylim((np.argwhere(G.snap_count==0)[-1], G.snap_count.size+1))
     ax.set_frame_on(False)
+
+    # TODO: Add the redshift axis
+    # # add the redshift y-axis
+    # axz = ax.twinx()
+    # axz.set_ylim(ax.get_ylim())
+    # axz_labels = [l.get_text() for l in axz.get_yticklabels()]
+    # snaplist_max = snaplist.max()
+    # snaplist_min = snaplist.min()
+    # # for i, t in enumerate(axz_labels):
+    # #     if len(t)>0:
+    # #         if (int(t)<=snaplist_max) & (int(t)>=snaplist_min):
+    # #             axz_labels = "{:.1f}".format(zlist[int(t)])
+    # #         else:
+    # #             axz_labels = ""
+    # # axz.set_yticklabels(axz_labels)
+
+    # save
     plt.tight_layout()
     plt.savefig("{:s}/merger_tree_ID{:d}.{:s}".format(output_dir, galaxy_ID, fig_format))
 
