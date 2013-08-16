@@ -16,24 +16,37 @@ static void init_jump_index(run_globals_struct *run_globals)
   // the nearest AgeTab index for any given age.  The larger the NJumps, the
   // more accurate we can be...
 
-  float age;
-  int i, idx;
+  float  age;
+  int    idx;
   int   *jumptab = run_globals->photo.JumpTable;
   float  jumpfac;
   float *AgeTab  = run_globals->photo.Ages;
 
   jumpfac = N_PHOTO_JUMPS / (AgeTab[N_PHOTO_AGES - 1] - AgeTab[1]);
 
-  for(i = 0; i < N_PHOTO_JUMPS; i++)
+  for(int ii = 0; ii < N_PHOTO_JUMPS; ii++)
   {
-    age = AgeTab[1] + i / jumpfac;
+    age = AgeTab[1] + ii / jumpfac;
     idx = 1;
     while(AgeTab[idx + 1] < age)
       idx++;
-    jumptab[i] = idx;
+    jumptab[ii] = idx;
   }
 
   run_globals->photo.JumpFactor = jumpfac;
+
+  // DEBUG
+  // SID_log("=================", SID_LOG_COMMENT);
+  // SID_log("Jump index table:", SID_LOG_COMMENT);
+  // for(int ii=0; ii<N_PHOTO_JUMPS; ii++)
+  // {
+  //   age = AgeTab[1] + ii / jumpfac;
+  //   idx = 1;
+  //   while(AgeTab[idx + 1] < age)
+  //     idx++;
+  //   SID_log("%.3f  ->  %d (%.3f)", SID_LOG_COMMENT, age, idx, AgeTab[idx]);
+  // }
+  // SID_log("=================", SID_LOG_COMMENT);
 }
 
 void read_photometric_tables(run_globals_struct *run_globals)
@@ -59,7 +72,7 @@ void read_photometric_tables(run_globals_struct *run_globals)
 
   for (int i_Z=0; i_Z<N_PHOTO_METALS; i_Z++)
   {
-    sprintf(filename, "%s/%1.f_salp.bc03", run_globals->params.PhotometricTablesDir, Metals[i_Z]);
+    sprintf(filename, "%s/Z%.4f_salp.bc03", run_globals->params.PhotometricTablesDir, Metals[i_Z]);
 
     if(!(fin = fopen(filename, "r")))
     {
@@ -94,7 +107,24 @@ void read_photometric_tables(run_globals_struct *run_globals)
     fclose(fin);
   }
 
+  // DEBUG
+  // SID_log("=============================", SID_LOG_COMMENT);
+  // SID_log("Checking input table (Z0.02):", SID_LOG_COMMENT);
+  // for(int ii=0; ii<N_PHOTO_AGES; ii++)
+  //   SID_log("%.3f  %.3f  %.3f  %.3f  %.3f :: %.3e", SID_LOG_COMMENT,
+  //         PhotoTab[phototab_index(0, 4, ii)],
+  //         PhotoTab[phototab_index(1, 4, ii)],
+  //         PhotoTab[phototab_index(2, 4, ii)],
+  //         PhotoTab[phototab_index(3, 4, ii)],
+  //         PhotoTab[phototab_index(4, 4, ii)],
+  //         pow(10.0, AgeTab[ii])/Hubble_h * UnitTime_in_Megayears);
+  // SID_log("=============================", SID_LOG_COMMENT);
+
   init_jump_index(run_globals);
+
+  // Lastly - convert the metallicities into log10 values for interpolation purposes
+  for(int ii=0; ii<N_PHOTO_METALS; ii++)
+    Metals[ii] = log10(Metals[ii]);
 
   SID_log(" ...done", SID_LOG_CLOSE);
 }
@@ -165,10 +195,6 @@ static void find_interpolated_lum(
   }
 
   // Now interpolate also for the metallicity 
-  for(i = 0; i < N_PHOTO_METALS; i++)
-  {
-    Metals[i] = log10(Metals[i]);
-  }
   metallicity = log10(metallicity);
 
   if(metallicity > Metals[N_PHOTO_METALS - 1])	 // beyond table, take latest entry 
@@ -227,6 +253,10 @@ void add_to_luminosities(
 
     find_interpolated_lum(run_globals, burst_time, run_globals->LTTime[run_globals->ListOutputSnaps[outputbin]], metallicity,
         &metals_ind, &age_ind, &f1, &f2, &fmet1, &fmet2);
+
+    // DEBUG
+    // SID_log("burst_time = %.2f; burst_mass = %.2f; metals_ind=%d; age_ind=%d; f1=%.2f; f2=%.2f; fmet1=%.2f; fmet2=%.2f", SID_LOG_COMMENT, 
+    //     burst_time, burst_mass, metals_ind, age_ind, f1, f2, fmet1, fmet2);
 
     // NB - tables give luminosities for a 1.0e^11 M_sun burst 
     for(int i_band = 0; i_band < N_PHOTO_BANDS; i_band++)

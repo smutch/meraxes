@@ -79,7 +79,11 @@ int evolve_galaxies(run_globals_struct *run_globals, fof_group_struct *fof_group
 
         // Add to the luminosities due to this stellar mass burst
         burst_time   = run_globals->LTTime[snapshot] + (0.5 * gal->dt);
+        // double old_lum = gal->Lum[0][0];
         add_to_luminosities(run_globals, gal, burst_mass, 0.02, burst_time);
+
+        // DEBUG
+        // SID_log("z=%.2f :: burst_mass=%.2f :: Lum[0][0] %.2f", SID_LOG_COMMENT, run_globals->ZZ[snapshot], burst_mass, gal->Lum[0][0]-old_lum);
 
         // If this is a type 2 then increment the merger clock
         if(gal->Type == 2)

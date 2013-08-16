@@ -30,7 +30,7 @@
 #define N_PHOTO_METALS 6
 #endif
 #ifndef N_PHOTO_JUMPS
-#define N_PHOTO_JUMPS 64
+#define N_PHOTO_JUMPS (N_PHOTO_AGES*10)
 #endif
 
 #define MVIR_PROP 1
@@ -126,6 +126,7 @@ struct hdf5_output_struct
 {
   size_t         dst_size;
   hid_t          array3f_tid;
+  hid_t          array_nmag_f_tid;
   size_t        *dst_offsets;
   size_t        *dst_field_sizes;
   const char   **field_names;
