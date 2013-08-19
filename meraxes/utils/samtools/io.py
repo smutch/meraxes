@@ -1,5 +1,6 @@
 import numpy as np
 import h5py as h5
+from astropy import log
 
 def read_gals(fname, firstfile=None, lastfile=None, snapshot=None, 
                       props=None, **kwargs):
@@ -53,7 +54,7 @@ def read_gals(fname, firstfile=None, lastfile=None, snapshot=None,
         snapshot+=MaxSnaps
 
     if verbose:
-        print "Reading snapshot %d" % snapshot
+        log.info("Reading snapshot %d" % snapshot)
 
     # Select the group for the requested snapshot.
     snap_group = fin['Snap%03d'%(snapshot)]
@@ -67,7 +68,7 @@ def read_gals(fname, firstfile=None, lastfile=None, snapshot=None,
 
     G = np.empty(ngals, dtype=gal_dtype)
     if verbose:
-        print "Allocated %.1f MB" % (G.itemsize*ngals/1024./1024.)
+        log.info("Allocated %.1f MB" % (G.itemsize*ngals/1024./1024.))
 
     # Loop through each of the requested groups and read in the galaxies
     if ngals>0:
@@ -75,7 +76,7 @@ def read_gals(fname, firstfile=None, lastfile=None, snapshot=None,
 
     # Print some checking statistics
     if verbose:
-        print 'Read in %d galaxies.' % len(G)
+        log.info('Read in %d galaxies.' % len(G))
 
     output = [G,]
 
@@ -151,7 +152,7 @@ def read_input_params(fname, props=None):
         try:
             props_dict[p] = group.attrs[p][0]
         except (KeyError):
-            print "Property '%s' doesn't exist in the InputParams group." % p
+            log.error("Property '%s' doesn't exist in the InputParams group." % p)
 
     fin.close()
 

@@ -30,7 +30,7 @@
 #define N_PHOTO_METALS 6
 #endif
 #ifndef N_PHOTO_JUMPS
-#define N_PHOTO_JUMPS (N_PHOTO_AGES*10)
+#define N_PHOTO_JUMPS ((int)(N_PHOTO_AGES/2))
 #endif
 
 #define MVIR_PROP 1
