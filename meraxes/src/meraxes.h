@@ -32,6 +32,7 @@
 #ifndef N_PHOTO_JUMPS
 #define N_PHOTO_JUMPS ((int)(N_PHOTO_AGES/2))
 #endif
+#define N_PHOTO_TABSIZE ((int)(N_PHOTO_AGES*N_PHOTO_BANDS*N_PHOTO_METALS))
 
 #define MVIR_PROP 1
 #define VMAX_PROP 2
@@ -138,7 +139,7 @@ typedef struct hdf5_output_struct hdf5_output_struct;
 struct phototabs_struct{
   int   JumpTable[N_PHOTO_JUMPS];
   float JumpFactor;
-  float Table[N_PHOTO_AGES *N_PHOTO_BANDS*N_PHOTO_METALS];
+  float Table[N_PHOTO_TABSIZE];
   float Ages[N_PHOTO_AGES];
   float Metals[N_PHOTO_METALS];
 };

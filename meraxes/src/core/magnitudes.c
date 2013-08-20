@@ -1,12 +1,12 @@
 #include <math.h>
 #include "meraxes.h"
 
-static unsigned long long inline phototab_index(
+static int inline phototab_index(
   int                 i_band,       
   int                 i_metal,
   int                 i_age)        
 {
-  return (unsigned long long)((i_age)+N_PHOTO_METALS*((i_metal)+N_PHOTO_BANDS*(i_band)));
+  return (int)((i_age)+N_PHOTO_METALS*((i_metal)+N_PHOTO_BANDS*(i_band)));
 }
 
 static void init_jump_index(run_globals_struct *run_globals)
@@ -102,8 +102,8 @@ void read_photometric_tables(run_globals_struct *run_globals)
           PhotoTab[phototab_index(ii, i_Z, i_age)] = 70.0;
 
       i_age++;
-
     }
+    SID_log("Read %d ages from %s", SID_LOG_COMMENT, i_age, filename);
     fclose(fin);
   }
 
@@ -248,6 +248,30 @@ void add_to_luminosities(
   X1 = burst_mass * 0.1 / Hubble_h;
   X2 = -0.4 * M_LN10;
 
+  // DEBUG
+  // float  *AgeTab     = run_globals->photo.Ages;
+  // float  *Metals     = run_globals->photo.Metals;
+  // SID_log("=============================", SID_LOG_COMMENT);
+  // find_interpolated_lum(run_globals, burst_time, run_globals->LTTime[run_globals->ListOutputSnaps[0]], metallicity,
+  //     &metals_ind, &age_ind, &f1, &f2, &fmet1, &fmet2);
+  // SID_log("lum[0] before = %.3e", SID_LOG_COMMENT, gal->Lum[0][0]);
+  // SID_log("lum[1] before = %.3e", SID_LOG_COMMENT, gal->Lum[1][0]);
+  // SID_log("target_time = %.3e", SID_LOG_COMMENT, run_globals->LTTime[run_globals->ListOutputSnaps[0]]);
+  // SID_log("burst_time = %.3e", SID_LOG_COMMENT, burst_time);
+  // SID_log("burst_mass = %.3e", SID_LOG_COMMENT, burst_mass);
+  // SID_log("metallicity = %.3e", SID_LOG_COMMENT, metallicity);
+  // SID_log("age = %.3e", SID_LOG_COMMENT, (burst_time-run_globals->LTTime[run_globals->ListOutputSnaps[0]])/Hubble_h*run_globals->units.UnitTime_in_Megayears);
+  // SID_log("Checking input table (Z%.5f):", SID_LOG_COMMENT, pow(10., Metals[metals_ind]));
+  // for(int ii=0; ii<N_PHOTO_AGES; ii++)
+  //   SID_log("%.3f  %.3f  %.3f  %.3f  %.3f :: %.3e", SID_LOG_COMMENT,
+  //         PhotoTab[phototab_index(0, metals_ind, ii)],
+  //         PhotoTab[phototab_index(1, metals_ind, ii)],
+  //         PhotoTab[phototab_index(2, metals_ind, ii)],
+  //         PhotoTab[phototab_index(3, metals_ind, ii)],
+  //         PhotoTab[phototab_index(4, metals_ind, ii)],
+  //         pow(10.0, AgeTab[ii])/Hubble_h * run_globals->units.UnitTime_in_Megayears);
+  // SID_log("=============================", SID_LOG_COMMENT);
+  
   for(int outputbin = 0; outputbin < NOUT; outputbin++)
   {
 
@@ -268,6 +292,13 @@ void add_to_luminosities(
                     f2 * PhotoTab[phototab_index(i_band, metals_ind+1,
                       age_ind+1)])));
   }
+
+  // DEBUG
+  // SID_log("lum[0] after = %.3e (mag = %.2f)", SID_LOG_COMMENT, gal->Lum[0][0], lum_to_mag(gal->Lum[0][0]));
+  // SID_log("lum[1] after = %.3e (mag = %.2f)", SID_LOG_COMMENT, gal->Lum[1][0], lum_to_mag(gal->Lum[1][0]));
+  // if(gal->ID==0)
+  //   ABORT(EXIT_SUCCESS);
+
 }
 
 double lum_to_mag(double lum)
