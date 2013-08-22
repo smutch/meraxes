@@ -152,7 +152,7 @@ def smf_colorsplit_z0(gals, sim_props, output_dir, fig_format):
     # Last few plotting bits and pieces
     ax.legend(loc="lower left", numpoints=1)
     ax.text(0.96,0.95, 
-            "z=0\nAssumed Salpeter IMF\nh={:.3f}".format(hubble_h),
+            "z=0\nAssumed Salpeter IMF\nh={:.3f}\nNO DUST IN MODEL".format(hubble_h),
             horizontalalignment='right',
             verticalalignment='top',
             transform=ax.transAxes)
@@ -172,8 +172,8 @@ def bJ_LF_z0(gals, sim_props, output_dir, fig_format):
 
     # xlim = (9.4,12)
     # ylim = (1e-5,2e-2)
-    xlim = (-23,-12)
-    ylim = (1e-6,1e-1)
+    xlim = (-24,-13)
+    ylim = (1e-8,1e-1)
     dashes = [8,2]
 
     # Generate the model mass function
@@ -221,7 +221,7 @@ def bJ_LF_z0(gals, sim_props, output_dir, fig_format):
                -19.87500, -20.15000, -20.42500, -20.699999999999999,
                -20.97500, -21.25000, -21.52500, -21.80000, -22.07500,
                -22.35000, -22.62500, -22.90000,])
-    obs_mag -= 5.*np.log10(hubble_h)
+    obs_mag += 5.*np.log10(hubble_h)
 
     # Plot the observations
     plt.errorbar(obs_mag, obs_phi, yerr=obs_err_phi, color=line_colors[1],
@@ -251,7 +251,7 @@ def K_LF_z0(gals, sim_props, output_dir, fig_format):
 
     hubble_h = sim_props["Hubble_h"]
 
-    xlim = (-26,-17)
+    xlim = (-28,-18)
     ylim = (1e-8,1e-1)
     dashes = [8,2]
 
@@ -305,7 +305,7 @@ def K_LF_z0(gals, sim_props, output_dir, fig_format):
                           -23.50000, -23.75000, -24.0, -24.25000, -24.50000,
                           -24.75000, -25.00000, -25.25000, -25.5, -25.75000,
                           -26.00000, -26.25000, ])
-    obs_mag = obs_mag - 5.*np.log10(hubble_h)
+    obs_mag += 5.*np.log10(hubble_h)
 
     # Plot the observations
     plt.errorbar(obs_mag, obs_phi, yerr=obs_err_phi, color=line_colors[1],
