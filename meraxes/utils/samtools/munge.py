@@ -11,7 +11,7 @@ from astroML.density_estimation import scotts_bin_width, freedman_bin_width,\
 __author__ = "Simon Mutch"
 __date__   = "2013/08/06"
 
-def mass_function(mass, volume, bins, range, return_edges=False, **kwargs):
+def mass_function(mass, volume, bins, range=None, return_edges=False, **kwargs):
     """Generate a mass function.
    
     The code to generate the bin_widths is taken from astroML.hist
