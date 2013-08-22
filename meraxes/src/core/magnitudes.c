@@ -6,7 +6,7 @@ static int inline phototab_index(
   int                 i_metal,
   int                 i_age)        
 {
-  return (int)((i_age)+N_PHOTO_METALS*((i_metal)+N_PHOTO_BANDS*(i_band)));
+  return (int)((i_age)+N_PHOTO_AGES*((i_metal)+N_PHOTO_METALS*(i_band)));
 }
 
 static void init_jump_index(run_globals_struct *run_globals)
