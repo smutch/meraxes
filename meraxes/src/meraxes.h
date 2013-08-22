@@ -20,6 +20,20 @@
 #define NOUT 1
 #endif
 
+#ifndef N_PHOTO_BANDS
+#define N_PHOTO_BANDS 5
+#endif
+#ifndef N_PHOTO_AGES
+#define N_PHOTO_AGES 220
+#endif
+#ifndef N_PHOTO_METALS
+#define N_PHOTO_METALS 6
+#endif
+#ifndef N_PHOTO_JUMPS
+#define N_PHOTO_JUMPS ((int)(N_PHOTO_AGES/2))
+#endif
+#define N_PHOTO_TABSIZE ((int)(N_PHOTO_AGES*N_PHOTO_BANDS*N_PHOTO_METALS))
+
 #define MVIR_PROP 1
 #define VMAX_PROP 2
 
@@ -71,6 +85,7 @@ struct run_params_struct{
   char                  SimName[STRLEN];
   char                  SimulationDir[STRLEN];
   char                  FileWithOutputSnaps[STRLEN];
+  char                  PhotometricTablesDir[STRLEN];
   int                   NEverySnap;
   int                   NScanSnap;
   int                   FilesPerSnapshot;
@@ -112,6 +127,7 @@ struct hdf5_output_struct
 {
   size_t         dst_size;
   hid_t          array3f_tid;
+  hid_t          array_nmag_f_tid;
   size_t        *dst_offsets;
   size_t        *dst_field_sizes;
   const char   **field_names;
@@ -119,6 +135,15 @@ struct hdf5_output_struct
   int            n_props;
 };
 typedef struct hdf5_output_struct hdf5_output_struct;
+
+struct phototabs_struct{
+  int   JumpTable[N_PHOTO_JUMPS];
+  float JumpFactor;
+  float Table[N_PHOTO_TABSIZE];
+  float Ages[N_PHOTO_AGES];
+  float Metals[N_PHOTO_METALS];
+};
+typedef struct phototabs_struct phototabs_struct;
 
 //! Global variables which will will be passed around
 struct run_globals_struct{
@@ -138,6 +163,7 @@ struct run_globals_struct{
   struct run_params_struct   params;
   struct run_units_struct    units;
   hdf5_output_struct         hdf5props;
+  phototabs_struct           photo;
 };
 typedef struct run_globals_struct run_globals_struct;
 
@@ -216,6 +242,7 @@ struct galaxy_struct
   int    SnapSkipCounter;
   int    HaloDescIndex;
   int    TreeFlags;
+  bool   ghost_flag;
   struct halo_struct         *Halo;
   struct galaxy_struct       *FirstGalInHalo;
   struct galaxy_struct       *NextGalInHalo;
@@ -242,11 +269,12 @@ struct galaxy_struct
   double Cos_Inc;
   double MergTime;
 
+  // Luminosities
+  double Lum[N_PHOTO_BANDS][NOUT];
+
   // write index
   int output_index;
 
-  // temporary debug flag
-  bool ghost_flag;
 };
 typedef struct galaxy_struct galaxy_struct;
 
@@ -277,6 +305,9 @@ struct galaxy_output_struct
   float Cos_Inc;
   float MergTime;
   float LTTime;
+
+  // Magnitudes
+  float Mag[N_PHOTO_BANDS];
 };
 typedef struct galaxy_output_struct galaxy_output_struct;
 
@@ -285,21 +316,24 @@ typedef struct galaxy_output_struct galaxy_output_struct;
  * Functions
  */
 
-void myexit(int signum);
-void read_parameter_file(run_globals_struct *run_globals, char *fname);
-void init_meraxes(run_globals_struct *run_globals);
-void dracarys(run_globals_struct *run_globals);
-int evolve_galaxies(run_globals_struct *run_globals, fof_group_struct *fof_group, int snapshot, int NGal, int NFof);
+void    myexit(int signum);
+void    read_parameter_file(run_globals_struct *run_globals, char *fname);
+void    init_meraxes(run_globals_struct *run_globals);
+void    dracarys(run_globals_struct *run_globals);
+int     evolve_galaxies(run_globals_struct *run_globals, fof_group_struct *fof_group, int snapshot, int NGal, int NFof);
 trees_header_struct read_halos(run_globals_struct *run_globals, int snapshot, halo_struct **halo, fof_group_struct **fof_group);
-void free_halos(halo_struct **halo);
+void    free_halos(halo_struct **halo);
 galaxy_struct* new_galaxy(int *unique_ID);
-void copy_halo_to_galaxy(run_globals_struct *run_globals, halo_struct *halo, galaxy_struct *gal, int snapshot);
-double calculate_merging_time(run_globals_struct *run_globals, galaxy_struct *gal, int snapshot);
-void prep_hdf5_file(run_globals_struct *run_globals);
-void write_snapshot(run_globals_struct *run_globals, int n_write, int i_out, int *last_n_write);
-void calc_hdf5_props(run_globals_struct *run_globals);
-void prepare_galaxy_for_output(run_globals_struct *run_globals, galaxy_struct gal, galaxy_output_struct *galout, int i_snap);
-void mpi_debug_here();
-void check_counts(run_globals_struct *run_globals, fof_group_struct *fof_group, int NGal, int NFof);
-void cn_quote();
+void    copy_halo_to_galaxy(run_globals_struct *run_globals, halo_struct *halo, galaxy_struct *gal, int snapshot);
+double  calculate_merging_time(run_globals_struct *run_globals, galaxy_struct *gal, int snapshot);
+void    prep_hdf5_file(run_globals_struct *run_globals);
+void    write_snapshot(run_globals_struct *run_globals, int n_write, int i_out, int *last_n_write);
+void    calc_hdf5_props(run_globals_struct *run_globals);
+void    prepare_galaxy_for_output(run_globals_struct *run_globals, galaxy_struct gal, galaxy_output_struct *galout, int i_snap);
+void    read_photometric_tables(run_globals_struct *run_globals);
+void    add_to_luminosities(run_globals_struct *run_globals, galaxy_struct *gal, double burst_mass, double metallicity, double burst_time);
+double  lum_to_mag(double lum);
+void    mpi_debug_here();
+void    check_counts(run_globals_struct *run_globals, fof_group_struct *fof_group, int NGal, int NFof);
+void    cn_quote();
 

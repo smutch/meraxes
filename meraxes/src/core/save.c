@@ -60,6 +60,9 @@ void prepare_galaxy_for_output(
   galout->MergTime    = (float)(gal.MergTime * units->UnitLength_in_cm / units->UnitVelocity_in_cm_per_s / SEC_PER_MEGAYEAR / Hubble_h);
   galout->LTTime      = (float)(gal.LTTime * units->UnitLength_in_cm / units->UnitVelocity_in_cm_per_s / SEC_PER_MEGAYEAR / Hubble_h);
 
+  for(int ii=0; ii<N_PHOTO_BANDS; ii++)
+    galout->Mag[ii] = (float)(lum_to_mag(gal.Lum[ii][i_snap]));
+
 }
 
 void calc_hdf5_props(run_globals_struct *run_globals)
@@ -77,13 +80,14 @@ void calc_hdf5_props(run_globals_struct *run_globals)
 
   // If we are calculating any magnitudes then increment the number of
   // output properties appropriately.
-  h5props->n_props = 19;
+  h5props->n_props = 20;
 
   // Size of a single galaxy entry.
   h5props->dst_size = sizeof(galaxy_output_struct);
 
   // Create datatypes for different size arrays
-  h5props->array3f_tid = H5Tarray_create(H5T_NATIVE_FLOAT, 1, (hsize_t[]){3});
+  h5props->array3f_tid      = H5Tarray_create(H5T_NATIVE_FLOAT, 1, (hsize_t[]){3});
+  h5props->array_nmag_f_tid = H5Tarray_create(H5T_NATIVE_FLOAT, 1, (hsize_t[]){N_PHOTO_BANDS});
 
   // Calculate the offsets of our struct members in memory
   h5props->dst_offsets     = SID_malloc(sizeof(size_t)*h5props->n_props);
@@ -190,6 +194,11 @@ void calc_hdf5_props(run_globals_struct *run_globals)
   h5props->dst_field_sizes[i]   = sizeof(galout.LTTime);
   h5props->field_names[i] = "LTTime";
   h5props->field_types[i++] = H5T_NATIVE_FLOAT;
+
+  h5props->dst_offsets[i] = HOFFSET(galaxy_output_struct, Mag);
+  h5props->dst_field_sizes[i]   = sizeof(float) * N_PHOTO_BANDS;
+  h5props->field_names[i] = "Mag";
+  h5props->field_types[i++] = h5props->array_nmag_f_tid;
 
   // DEBUG
   if(i != h5props->n_props){
