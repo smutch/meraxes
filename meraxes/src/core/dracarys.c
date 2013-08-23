@@ -25,7 +25,7 @@ static void inline create_new_galaxy(
 {
   galaxy_struct *gal;
 
-  gal = new_galaxy(unique_ID);
+  gal = new_galaxy(run_globals, unique_ID);
   gal->Halo = halo;
   gal->LTTime = run_globals->LTTime[snapshot];
   assign_galaxy_to_halo(gal, halo);

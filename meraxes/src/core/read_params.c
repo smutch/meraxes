@@ -178,6 +178,11 @@ void read_parameter_file(run_globals_struct *run_globals, char *fname)
   required_tag[n_param] = 1;
   params_id[n_param++] = DOUBLE;
 
+  strcpy(params_tag[n_param], "RandomSeed");
+  params_addr[n_param] = &(run_params->RandomSeed);
+  required_tag[n_param] = 1;
+  params_id[n_param++] = INT;
+
   strcpy(params_tag[n_param], "ThreshMajorMerger");
   params_addr[n_param] = &(run_params->ThreshMajorMerger);
   required_tag[n_param] = 1;
@@ -207,11 +212,6 @@ void read_parameter_file(run_globals_struct *run_globals, char *fname)
   params_addr[n_param] = &(run_params->Hubble_h);
   required_tag[n_param] = 1;
   params_id[n_param++] = DOUBLE;
-
-  strcpy(params_tag[n_param], "DiskInstabilityOn");
-  params_addr[n_param] = &(run_params->DiskInstabilityOn);
-  required_tag[n_param] = 1;
-  params_id[n_param++] = INT;
 
   strcpy(params_tag[n_param], "BaryonFrac");
   params_addr[n_param] = &(run_params->BaryonFrac);
