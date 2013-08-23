@@ -269,8 +269,10 @@ struct galaxy_struct
   double Cos_Inc;
   double MergTime;
 
+#ifdef CALC_MAGS
   // Luminosities
   double Lum[N_PHOTO_BANDS][NOUT];
+#endif
 
   // write index
   int output_index;
@@ -306,8 +308,10 @@ struct galaxy_output_struct
   float MergTime;
   float LTTime;
 
+#ifdef CALC_MAGS
   // Magnitudes
   float Mag[N_PHOTO_BANDS];
+#endif
 };
 typedef struct galaxy_output_struct galaxy_output_struct;
 
@@ -331,9 +335,13 @@ void    write_snapshot(run_globals_struct *run_globals, int n_write, int i_out, 
 void    calc_hdf5_props(run_globals_struct *run_globals);
 void    prepare_galaxy_for_output(run_globals_struct *run_globals, galaxy_struct gal, galaxy_output_struct *galout, int i_snap);
 void    read_photometric_tables(run_globals_struct *run_globals);
-void    add_to_luminosities(run_globals_struct *run_globals, galaxy_struct *gal, double burst_mass, double metallicity, double burst_time);
-double  lum_to_mag(double lum);
 void    mpi_debug_here();
 void    check_counts(run_globals_struct *run_globals, fof_group_struct *fof_group, int NGal, int NFof);
 void    cn_quote();
 
+// Magnitude related
+void    init_luminosities(galaxy_struct *gal);
+void    add_to_luminosities(run_globals_struct *run_globals, galaxy_struct *gal, double burst_mass, double metallicity, double burst_time);
+double  lum_to_mag(double lum);
+void    sum_luminosities(galaxy_struct *parent, galaxy_struct *gal);
+void    prepare_magnitudes_for_output(galaxy_struct gal, galaxy_output_struct *galout, int i_snap);

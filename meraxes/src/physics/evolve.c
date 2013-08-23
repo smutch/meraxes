@@ -134,8 +134,7 @@ int evolve_galaxies(run_globals_struct *run_globals, fof_group_struct *fof_group
             for(int outputbin = 0; outputbin < NOUT; outputbin++)
             {
               parent->Sfr[outputbin] += gal->Sfr[outputbin];
-              for(int ii=0; ii < N_PHOTO_BANDS; ii++)
-                parent->Lum[ii][outputbin] += gal->Lum[ii][outputbin];
+              sum_luminosities(parent, gal);
             }
 
             // Mark the merged galaxy as dead

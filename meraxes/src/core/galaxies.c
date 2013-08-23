@@ -44,10 +44,7 @@ galaxy_struct* new_galaxy(int *unique_ID)
   gal->output_index = -1;
   gal->ghost_flag = false;
 
-  for(int ii=0; ii<NOUT; ii++)
-    for(int jj=0; jj<N_PHOTO_BANDS; jj++)
-      gal->Lum[jj][ii] = 0.0;
-
+  init_luminosities(gal);
   return gal;
 }
 

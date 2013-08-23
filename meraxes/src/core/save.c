@@ -60,8 +60,7 @@ void prepare_galaxy_for_output(
   galout->MergTime    = (float)(gal.MergTime * units->UnitLength_in_cm / units->UnitVelocity_in_cm_per_s / SEC_PER_MEGAYEAR / Hubble_h);
   galout->LTTime      = (float)(gal.LTTime * units->UnitLength_in_cm / units->UnitVelocity_in_cm_per_s / SEC_PER_MEGAYEAR / Hubble_h);
 
-  for(int ii=0; ii<N_PHOTO_BANDS; ii++)
-    galout->Mag[ii] = (float)(lum_to_mag(gal.Lum[ii][i_snap]));
+  prepare_magnitudes_for_output(gal, galout, i_snap);
 
 }
 
@@ -195,10 +194,12 @@ void calc_hdf5_props(run_globals_struct *run_globals)
   h5props->field_names[i] = "LTTime";
   h5props->field_types[i++] = H5T_NATIVE_FLOAT;
 
+#ifdef CALC_MAGS
   h5props->dst_offsets[i] = HOFFSET(galaxy_output_struct, Mag);
   h5props->dst_field_sizes[i]   = sizeof(float) * N_PHOTO_BANDS;
   h5props->field_names[i] = "Mag";
   h5props->field_types[i++] = h5props->array_nmag_f_tid;
+#endif
 
   // DEBUG
   if(i != h5props->n_props){
