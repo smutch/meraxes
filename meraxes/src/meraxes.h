@@ -98,7 +98,6 @@ struct run_params_struct{
   double                ThreshMajorMerger;
   double                RecycleFraction;
   double                Hubble_h;
-  int                   DiskInstabilityOn;
   double                BaryonFrac;
   double                OmegaM;
   double                OmegaK;
@@ -106,6 +105,7 @@ struct run_params_struct{
   double                PartMass;
   double                MergerTimeFactor;
   int                   SnaplistLength;
+  int                   RandomSeed;
   physics_params_struct physics;
 };
 typedef struct run_params_struct run_params_struct;
@@ -311,6 +311,7 @@ struct galaxy_output_struct
 #ifdef CALC_MAGS
   // Magnitudes
   float Mag[N_PHOTO_BANDS];
+  float MagDust[N_PHOTO_BANDS];
 #endif
 };
 typedef struct galaxy_output_struct galaxy_output_struct;
@@ -327,7 +328,7 @@ void    dracarys(run_globals_struct *run_globals);
 int     evolve_galaxies(run_globals_struct *run_globals, fof_group_struct *fof_group, int snapshot, int NGal, int NFof);
 trees_header_struct read_halos(run_globals_struct *run_globals, int snapshot, halo_struct **halo, fof_group_struct **fof_group);
 void    free_halos(halo_struct **halo);
-galaxy_struct* new_galaxy(int *unique_ID);
+galaxy_struct* new_galaxy(run_globals_struct *run_globals, int *unique_ID);
 void    copy_halo_to_galaxy(run_globals_struct *run_globals, halo_struct *halo, galaxy_struct *gal, int snapshot);
 double  calculate_merging_time(run_globals_struct *run_globals, galaxy_struct *gal, int snapshot);
 void    prep_hdf5_file(run_globals_struct *run_globals);
@@ -343,5 +344,6 @@ void    cn_quote();
 void    init_luminosities(galaxy_struct *gal);
 void    add_to_luminosities(run_globals_struct *run_globals, galaxy_struct *gal, double burst_mass, double metallicity, double burst_time);
 double  lum_to_mag(double lum);
-void    sum_luminosities(galaxy_struct *parent, galaxy_struct *gal);
+void    sum_luminosities(galaxy_struct *parent, galaxy_struct *gal, int outputbin);
 void    prepare_magnitudes_for_output(galaxy_struct gal, galaxy_output_struct *galout, int i_snap);
+void    apply_dust(galaxy_struct gal, double *LumDust, int outputbin);

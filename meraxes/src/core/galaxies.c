@@ -1,7 +1,7 @@
 #include "meraxes.h"
 #include <math.h>
 
-galaxy_struct* new_galaxy(int *unique_ID)
+galaxy_struct* new_galaxy(run_globals_struct *run_globals, int *unique_ID)
 {
  
   galaxy_struct *gal = NULL;
@@ -30,7 +30,7 @@ galaxy_struct* new_galaxy(int *unique_ID)
   gal->Vvir              = 0.0;
   gal->Vmax              = 0.0;
   gal->StellarMass       = 0.0;
-  gal->Cos_Inc           = 0.0;
+  gal->Cos_Inc           = gsl_rng_uniform(run_globals->random_generator);
   gal->MergTime          = 99999.9;
 
   for(int ii=0; ii<3; ii++)

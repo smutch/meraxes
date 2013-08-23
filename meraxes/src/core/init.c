@@ -143,7 +143,7 @@ void init_meraxes(run_globals_struct *run_globals)
   int snaplist_len;
 
   run_globals->random_generator = gsl_rng_alloc(gsl_rng_ranlxd1);
-  gsl_rng_set(run_globals->random_generator, 42);	 // start-up seed 
+  gsl_rng_set(run_globals->random_generator, run_globals->params.RandomSeed);
 
   set_units(run_globals);
   srand((unsigned) time(NULL));

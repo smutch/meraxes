@@ -261,8 +261,6 @@ void prep_hdf5_file(run_globals_struct *run_globals)
   names[ii++] = "FirstFile";
   addresses[ii] = &(run_globals->params.LastFile);
   names[ii++] = "LastFile";
-  addresses[ii] = &(run_globals->params.DiskInstabilityOn);
-  names[ii++] = "DiskInstabilityOn";
   addresses[ii] = &(run_globals->params.SnaplistLength);
   names[ii++] = "SnaplistLength";
 

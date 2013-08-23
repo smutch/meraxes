@@ -6,17 +6,17 @@ void init_luminosities(galaxy_struct *gal)
 #ifdef CALC_MAGS
   for(int ii=0; ii<NOUT; ii++)
     for(int jj=0; jj<N_PHOTO_BANDS; jj++)
-      gal->Lum[jj][ii] = 0.0;
+      gal->Lum[jj][ii]     = 0.0;
 #else
   return;
 #endif
 }
 
-void sum_luminosities(galaxy_struct *parent, galaxy_struct *gal)
+void sum_luminosities(galaxy_struct *parent, galaxy_struct *gal, int outputbin)
 {
 #ifdef CALC_MAGS
   for(int ii=0; ii < N_PHOTO_BANDS; ii++)
-    parent->Lum[ii][outputbin] += gal->Lum[ii][outputbin];
+    parent->Lum[ii][outputbin]     += gal->Lum[ii][outputbin];
 #else
   return;
 #endif
@@ -25,8 +25,13 @@ void sum_luminosities(galaxy_struct *parent, galaxy_struct *gal)
 void prepare_magnitudes_for_output(galaxy_struct gal, galaxy_output_struct *galout, int i_snap)
 {
 #ifdef CALC_MAGS
+  double LumDust[N_PHOTO_BANDS];
   for(int ii=0; ii<N_PHOTO_BANDS; ii++)
+  {
     galout->Mag[ii] = (float)(lum_to_mag(gal.Lum[ii][i_snap]));
+    apply_dust(gal, LumDust, i_snap);
+    galout->MagDust[ii] = (float)(lum_to_mag(LumDust[ii]));
+  }
 #else
   return;
 #endif
