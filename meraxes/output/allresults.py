@@ -105,7 +105,7 @@ def smf_colorsplit_z0(gals, sim_props, output_dir, fig_format):
     # Generate the model mass function
     sel = (gals["StellarMass"]>0)
     stars = np.log10(gals["StellarMass"][sel]*1.e10)
-    colors = gals["Mag"][sel,0]-gals["Mag"][sel,1]
+    colors = gals["MagDust"][sel,0]-gals["MagDust"][sel,1]
     red_sel = (colors>=0.8)
     blue_sel = (colors<0.8)
     mf, edges = munge.mass_function(stars, sim_props["Volume"], range=(xlim[0]-0.1,xlim[1]+0.1), bins='knuth', return_edges=True)
@@ -152,7 +152,7 @@ def smf_colorsplit_z0(gals, sim_props, output_dir, fig_format):
     # Last few plotting bits and pieces
     ax.legend(loc="lower left", numpoints=1)
     ax.text(0.96,0.95, 
-            "z=0\nAssumed Salpeter IMF\nh={:.3f}\nNO DUST IN MODEL".format(hubble_h),
+            "z=0\nAssumed Salpeter IMF\nh={:.3f}".format(hubble_h),
             horizontalalignment='right',
             verticalalignment='top',
             transform=ax.transAxes)
@@ -177,7 +177,7 @@ def bJ_LF_z0(gals, sim_props, output_dir, fig_format):
     dashes = [8,2]
 
     # Generate the model mass function
-    mag = gals["Mag"][:, 0] - 0.28 * (gals["Mag"][:, 0] - gals["Mag"][:,1])
+    mag = gals["MagDust"][:, 0] - 0.28 * (gals["MagDust"][:, 0] - gals["MagDust"][:,1])
     mf = munge.mass_function(mag, sim_props["Volume"], range=(xlim[0]-0.1,xlim[1]+0.1), bins='knuth')
 
     # Setup the plot
@@ -234,7 +234,7 @@ def bJ_LF_z0(gals, sim_props, output_dir, fig_format):
     # Last few plotting bits and pieces
     ax.legend(loc="lower left", numpoints=1)
     ax.text(0.96,0.95, 
-            "z=0\nAssumed Salpeter IMF\nh={:.3f}\nNO DUST IN MODEL".format(hubble_h),
+            "z=0\nAssumed Salpeter IMF\nh={:.3f}".format(hubble_h),
             horizontalalignment='right',
             verticalalignment='top',
             transform=ax.transAxes)
@@ -256,7 +256,7 @@ def K_LF_z0(gals, sim_props, output_dir, fig_format):
     dashes = [8,2]
 
     # Generate the model mass function
-    mag = gals["Mag"][:, 4]
+    mag = gals["MagDust"][:, 4]
     print mag[(mag>(xlim[0]-0.1)) & (mag<(xlim[1]+0.1))].shape
     mf = munge.mass_function(mag, sim_props["Volume"], range=(xlim[0]-0.1,xlim[1]+0.1), bins='knuth')
 
@@ -318,7 +318,7 @@ def K_LF_z0(gals, sim_props, output_dir, fig_format):
     # Last few plotting bits and pieces
     ax.legend(loc="lower left", numpoints=1)
     ax.text(0.96,0.95, 
-            "z=0\nAssumed Salpeter IMF\nh={:.3f}\nNO DUST IN MODEL".format(hubble_h),
+            "z=0\nAssumed Salpeter IMF\nh={:.3f}".format(hubble_h),
             horizontalalignment='right',
             verticalalignment='top',
             transform=ax.transAxes)
