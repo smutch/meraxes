@@ -79,7 +79,11 @@ void calc_hdf5_props(run_globals_struct *run_globals)
 
   // If we are calculating any magnitudes then increment the number of
   // output properties appropriately.
-  h5props->n_props = 20;
+  h5props->n_props = 19;
+
+#ifdef CALC_MAGS
+  h5props->n_props +=2;
+#endif
 
   // Size of a single galaxy entry.
   h5props->dst_size = sizeof(galaxy_output_struct);
@@ -198,6 +202,11 @@ void calc_hdf5_props(run_globals_struct *run_globals)
   h5props->dst_offsets[i] = HOFFSET(galaxy_output_struct, Mag);
   h5props->dst_field_sizes[i]   = sizeof(float) * N_PHOTO_BANDS;
   h5props->field_names[i] = "Mag";
+  h5props->field_types[i++] = h5props->array_nmag_f_tid;
+
+  h5props->dst_offsets[i] = HOFFSET(galaxy_output_struct, MagDust);
+  h5props->dst_field_sizes[i]   = sizeof(float) * N_PHOTO_BANDS;
+  h5props->field_names[i] = "MagDust";
   h5props->field_types[i++] = h5props->array_nmag_f_tid;
 #endif
 
