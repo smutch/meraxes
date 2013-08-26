@@ -143,5 +143,8 @@ if not GetOption('help'):
     env.NoClean(target)
     Default(target)
 
+    lib = env.StaticLibrary(target='../lib/meraxes', source=node_list)
+    env.Alias('lib', lib)
+
     # Testing alias
     test = env.Command('test', [target], """cp $SOURCE /home/smutch/data/meraxes/GiggleZ_MR_no_ghost_test/debug""")
