@@ -42,7 +42,7 @@ int read_nbody_grid(
   float mean = 0.;
   float cell_volume = 0.;
 
-  float resample_factor;
+  float resample_factor = 1.;
 
 #ifdef DEBUG
   float *input_grid;
@@ -50,7 +50,7 @@ int read_nbody_grid(
 #endif
 
   // Construct the input filename 
-  sprintf(fname, ROOT_PATH "/" SIM_NAME "/grids/grid_nompi_%d_1024_dark_grid.dat", snapshot);
+  sprintf(fname, ROOT_PATH "/" SIM_NAME "/grids/snapshot_%03d_dark_grid.dat", snapshot);
   // ... and open
   fin = fopen(fname, "rb");
   if (fin==NULL)
@@ -148,7 +148,7 @@ int read_nbody_grid(
   hid_t fout, group;
   if((fout = H5Fopen("../Boxes/grids.hdf5", H5F_ACC_RDWR, H5P_DEFAULT))<0)
     fout = H5Fcreate("../Boxes/grids.hdf5", H5F_ACC_EXCL, H5P_DEFAULT, H5P_DEFAULT);
-  sprintf(name, "/snap%04d", snapshot);
+  sprintf(name, "/snap%03d", snapshot);
   if((group = H5Gcreate(fout, name, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT))<0)
     fprintf(stderr, "Group already exists in ../Boxes/grids.hdf5... Skipping...\n");
   else

@@ -7,11 +7,11 @@ do {                                                                            
   exit(sigterm);                                                                         \
 } while(0)
 
-#define MAXSNAPS 100
+#define MAXSNAPS 59
 #define FIRSTSNAP 0
-#define LASTSNAP 99
+#define LASTSNAP 58
 
-#define ROOT_PATH "/home/smutch/Tiamat/"
-#define SIM_NAME "Tiamat_full"
+#define ROOT_PATH "/home/gpoole/GiggleZ/"
+#define SIM_NAME "GiggleZ_MR"
 
 #endif

@@ -97,6 +97,7 @@ int main(int argc, char ** argv)
   gsl_rng            *r;
   float               zlist[MAXSNAPS];
   int                 snapshot;
+  int                 corrected_snapshot;
   int                 status;
   char               *meraxes_file;
 
@@ -150,11 +151,19 @@ int main(int argc, char ** argv)
   T = gsl_rng_default;
   r = gsl_rng_alloc(T);
 
-  read_zlist(zlist);
+  // read_zlist(zlist);
   snapshot = atof(argv[arg_offset+1]);
   meraxes_file = argv[arg_offset+2];
-  REDSHIFT = zlist[snapshot];
-  printf("Snapshot = %d -> redshift = %.2f\n", snapshot, REDSHIFT);
+  // REDSHIFT = zlist[snapshot];
+
+  fprintf(stderr, "meraxes_file = %s\n", meraxes_file);
+  file_id = H5Fopen(meraxes_file, H5F_ACC_RDONLY, H5P_DEFAULT);
+  sprintf(target_group, "Snap%03d", snapshot);
+  H5LTget_attribute_float(file_id, target_group, "Redshift", &REDSHIFT);
+  H5LTget_attribute_int(file_id, target_group, "CorrectedSnap", &corrected_snapshot);
+  H5Fclose(file_id);
+
+  printf("Snapshot = %d (%d)-> redshift = %.2f\n", snapshot, corrected_snapshot, REDSHIFT);
 
   growth_factor = dicke(REDSHIFT);
   pixel_volume = pow(BOX_LEN/(float)HII_DIM, 3);
@@ -418,7 +427,7 @@ int main(int argc, char ** argv)
   // }
   // fclose(F);
   
-  status = read_nbody_grid(snapshot, 0, (float *)deltax_unfiltered);
+  status = read_nbody_grid(corrected_snapshot, 0, (float *)deltax_unfiltered);
   if(status!=0)
   {
     fprintf(LOG, "find_HII_bubbles: Read error occured while reading n_body grid.\n");
@@ -524,7 +533,7 @@ int main(int argc, char ** argv)
       // }
       // fclose(F);
 
-      status = read_nbody_grid(snapshot, 0, (float *)deltax_unfiltered);
+      status = read_nbody_grid(corrected_snapshot, 0, (float *)deltax_unfiltered);
       if(status!=0)
       {
         fprintf(LOG, "find_HII_bubbles: Read error occured while reading n_body grid.\n");
