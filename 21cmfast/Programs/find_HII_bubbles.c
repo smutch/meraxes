@@ -100,6 +100,12 @@ int main(int argc, char ** argv)
   int                 status;
   char               *meraxes_file;
 
+  hid_t file_id, group_id;
+  hsize_t ds_dims[1];
+  char target_group[256];
+  int tmp_int;
+  float tmp_float;
+
   // check arguments
   if ((argc>2) && (argv[1][0]=='-') && ((argv[1][1]=='p') || (argv[1][1]=='P'))){
     // user specified num proc
@@ -745,35 +751,46 @@ int main(int argc, char ** argv)
   }
   global_xH /= (float)HII_TOT_NUM_PIXELS;
 
-  // print out the xH box
-  switch(FIND_BUBBLE_ALGORITHM){
-    case 2:
-      if (USE_HALO_FIELD)
-        sprintf(filename, "../Boxes/xH_z%06.2f_nf%f_eff%.1f_HIIfilter%i_Mmin%.1e_RHIImax%.0f_%i_%.0fMpc", REDSHIFT, global_xH, ION_EFF_FACTOR, HII_FILTER, M_MIN, MFP, HII_DIM, BOX_LEN);
-      else
-        sprintf(filename, "../Boxes/xH_nohalos_z%06.2f_nf%f_eff%.1f_HIIfilter%i_Mmin%.1e_RHIImax%.0f_%i_%.0fMpc", REDSHIFT, global_xH, ION_EFF_FACTOR, HII_FILTER, M_MIN, MFP, HII_DIM, BOX_LEN);
-      break;
-    default:
-      if (USE_HALO_FIELD)
-        sprintf(filename, "../Boxes/sphere_xH_z%06.2f_nf%f_eff%.1f_HIIfilter%i_Mmin%.1e_RHIImax%.0f_%i_%.0fMpc", REDSHIFT, global_xH, ION_EFF_FACTOR, HII_FILTER, M_MIN, MFP, HII_DIM, BOX_LEN);
-      else
-        sprintf(filename, "../Boxes/sphere_xH_nohalos_z%06.2f_nf%f_eff%.1f_HIIfilter%i_Mmin%.1e_RHIImax%.0f_%i_%.0fMpc", REDSHIFT, global_xH, ION_EFF_FACTOR, HII_FILTER, M_MIN, MFP, HII_DIM, BOX_LEN);
-  }
-  if (!(F = fopen(filename, "wb"))){
-    fprintf(stderr, "find_HII_bubbles: ERROR: unable to open file %s for writting!\n", filename);
-    fprintf(LOG, "find_HII_bubbles: ERROR: unable to open file %s for writting!\n", filename);
+  // save the xH box
+  if (!(file_id = H5Fopen(meraxes_file, H5F_ACC_RDWR, H5P_DEFAULT))){
+    fprintf(stderr, "find_HII_bubbles: ERROR: unable to open file %s for writting!\n", meraxes_file);
+    fprintf(LOG, "find_HII_bubbles: ERROR: unable to open file %s for writting!\n", meraxes_file);
     global_xH = -1;
-  }
-  else {
-    fprintf(LOG, "Neutral fraction is %f\nNow writting xH box at %s\n", global_xH, filename);
-    fprintf(stderr, "Neutral fraction is %f\nNow writting xH box at %s\n", global_xH, filename);
+  }else 
+  {
+    fprintf(LOG, "Neutral fraction is %f\nNow writting xH box at %s\n", global_xH, meraxes_file);
+    fprintf(stderr, "Neutral fraction is %f\nNow writting xH box at %s\n", global_xH, meraxes_file);
     fflush(LOG);
-    if (mod_fwrite(xH, sizeof(float)*HII_TOT_NUM_PIXELS, 1, F)!=1){
-      fprintf(stderr, "find_HII_bubbles.c: Write error occured while writting xH box.\n");
-      fprintf(LOG, "find_HII_bubbles.c: Write error occured while writting xH box.\n");
-      global_xH = -1;
+
+    sprintf(target_group, "Snap%03d", snapshot);
+    group_id = H5Gopen(file_id, target_group, H5P_DEFAULT);
+    ds_dims[0] = HII_TOT_NUM_PIXELS;
+    H5LTmake_dataset(group_id, "xH_grid", 1, ds_dims, H5T_NATIVE_FLOAT, xH);
+    H5LTset_attribute_double(group_id, "xH_grid", "global_xH", &global_xH, 1);
+    tmp_float = ION_EFF_FACTOR;
+    H5LTset_attribute_float(group_id, "xH_grid", "ion_eff_factor", &tmp_float, 1);
+    tmp_float = M_MIN;
+    H5LTset_attribute_float(group_id, "xH_grid", "Mvir_min", &tmp_float, 1);
+    tmp_float = MFP;
+    H5LTset_attribute_float(group_id, "xH_grid", "MFP", &tmp_float, 1);
+    tmp_float = BOX_LEN;
+    H5LTset_attribute_float(group_id, "xH_grid", "box_len", &tmp_float, 1);
+    tmp_int = HII_FILTER;
+    H5LTset_attribute_int(group_id, "xH_grid", "HII_filter", &tmp_int, 1);
+    tmp_int = HII_DIM;
+    H5LTset_attribute_int(group_id, "xH_grid", "HII_dim", &tmp_int, 1);
+
+    switch(FIND_BUBBLE_ALGORITHM)
+    {
+      case 2:
+        H5LTset_attribute_string(group_id, "xH_grid", "bubble_algorithm", "center");
+        break;
+      default:
+        H5LTset_attribute_string(group_id, "xH_grid", "bubble_algorithm", "sphere");
     }
-    fclose(F);
+
+    H5Gclose(group_id);
+    H5Fclose(file_id);
   }
 
   // deallocate
