@@ -412,6 +412,7 @@ void write_snapshot(run_globals_struct *run_globals, int n_write, int i_out, int
   int                   calc_descendants_i_out = -1;
   int                   prev_snapshot          = -1;
   int                   index                  = -1;
+  int                   corrected_snapshot;
 
   SID_log("Writing output file...", SID_LOG_OPEN|SID_LOG_TIMER);
 
@@ -561,7 +562,9 @@ void write_snapshot(run_globals_struct *run_globals, int n_write, int i_out, int
   // Save a few useful attributes
   ds_id = H5Screate_simple(1, &dims, NULL);
 
+  corrected_snapshot = get_corrected_snapshot(run_globals, run_globals->ListOutputSnaps[i_out]);
   h5_write_attribute(group_id, "Redshift", H5T_NATIVE_DOUBLE, ds_id, &(run_globals->ZZ[run_globals->ListOutputSnaps[i_out]]));
+  h5_write_attribute(group_id, "CorrectedSnap", H5T_NATIVE_INT, ds_id, &corrected_snapshot);
 
   temp = run_globals->LTTime[run_globals->ListOutputSnaps[i_out]] * run_globals->units.UnitLength_in_cm / run_globals->units.UnitVelocity_in_cm_per_s / SEC_PER_MEGAYEAR / run_globals->params.Hubble_h;
   h5_write_attribute(group_id, "LTTime", H5T_NATIVE_DOUBLE, ds_id, &temp);

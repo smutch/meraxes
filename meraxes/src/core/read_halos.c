@@ -1,6 +1,19 @@
 #include "meraxes.h"
 #include "tree_flags.h"
 
+int get_corrected_snapshot(run_globals_struct *run_globals, int snapshot)
+{
+  int  total_sim_snaps = run_globals->params.TotalSimSnaps;
+  int  n_every_snaps   = run_globals->params.NEverySnap;
+  int  n_scan_snaps    = run_globals->params.NScanSnap;
+
+  // Calculate the actual (unsampled) simulation snapshot.
+  if (n_every_snaps>1)
+    return total_sim_snaps - ((int)((total_sim_snaps+1)/n_every_snaps))*n_every_snaps + snapshot*n_every_snaps;
+  else
+    return snapshot;
+}
+
 static inline bool is_ghost(int flags)
 {
  if ((flags & TREE_CASE_GHOST)==TREE_CASE_GHOST)
@@ -298,11 +311,7 @@ trees_header_struct read_halos(
   sprintf(sim_variant, "step_%03d_scan_%03d", n_every_snaps, n_scan_snaps);
   SID_log("Reading snapshot %d (%s:%s) trees and halos...", SID_LOG_OPEN|SID_LOG_TIMER, snapshot, run_globals->params.SimName, sim_variant);
 
-  // Calculate the actual (unsampled) simulation snapshot.
-  if (n_every_snaps>1)
-    corrected_snapshot = total_sim_snaps-1 - ((int)(total_sim_snaps/n_every_snaps))*n_every_snaps + snapshot*n_every_snaps;
-  else
-    corrected_snapshot = snapshot;
+  corrected_snapshot = get_corrected_snapshot(run_globals, snapshot);
 
   // HALOS
   // Read the header info

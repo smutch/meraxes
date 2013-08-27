@@ -339,6 +339,7 @@ void    read_photometric_tables(run_globals_struct *run_globals);
 void    mpi_debug_here();
 void    check_counts(run_globals_struct *run_globals, fof_group_struct *fof_group, int NGal, int NFof);
 void    cn_quote();
+int     get_corrected_snapshot(run_globals_struct *run_globals, int snapshot);
 
 // Magnitude related
 void    init_luminosities(galaxy_struct *gal);
