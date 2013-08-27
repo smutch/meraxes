@@ -98,6 +98,7 @@ int main(int argc, char ** argv)
   float               zlist[MAXSNAPS];
   int                 snapshot;
   int                 status;
+  char               *meraxes_file;
 
   // check arguments
   if ((argc>2) && (argv[1][0]=='-') && ((argv[1][1]=='p') || (argv[1][1]=='P'))){
@@ -111,24 +112,24 @@ int main(int argc, char ** argv)
     fprintf(stderr, "find_HII_bubbles: threading with default %i threads\n", num_th);
     arg_offset = 0;
   }
-  if (argc == (arg_offset+2)){
+  if (argc == (arg_offset+3)){
     ION_EFF_FACTOR = HII_EFF_FACTOR; // use default from ANAL_PARAMS.H
     TVIR_MIN = ION_Tvir_MIN;
     MFP = R_BUBBLE_MAX;
   }
-  else if (argc == (arg_offset+3)){ // just use parameter efficiency
+  else if (argc == (arg_offset+4)){ // just use parameter efficiency
     ION_EFF_FACTOR = atof(argv[arg_offset+2]); // use command line parameter
     TVIR_MIN = ION_Tvir_MIN;
     MFP = R_BUBBLE_MAX;
   }
-  else if (argc == (arg_offset+5)){ // use all reionization command line parameters
-    ION_EFF_FACTOR = atof(argv[arg_offset+2]);
-    TVIR_MIN = atof(argv[arg_offset+3]);
-    MFP = atof(argv[arg_offset+4]);
+  else if (argc == (arg_offset+6)){ // use all reionization command line parameters
+    ION_EFF_FACTOR = atof(argv[arg_offset+3]);
+    TVIR_MIN = atof(argv[arg_offset+4]);
+    MFP = atof(argv[arg_offset+5]);
   }
   else{
-    fprintf(stderr, "argc=%d ; arg_offset=%d\n", argc, arg_offset);
-    fprintf(stderr, "USAGE: find_HII_bubbles <snapshot> [<ionization efficiency factor zeta>] [<Tvir_min> <ionizing mfp in ionized IGM>]\nAborting...\n");
+    // fprintf(stderr, "argc=%d ; arg_offset=%d\n", argc, arg_offset);
+    fprintf(stderr, "USAGE: find_HII_bubbles <snapshot> <meraxes_file> [<ionization efficiency factor zeta>] [<Tvir_min> <ionizing mfp in ionized IGM>]\nAborting...\n");
     return -1;
   }
 
@@ -145,13 +146,21 @@ int main(int argc, char ** argv)
 
   read_zlist(zlist);
   snapshot = atof(argv[arg_offset+1]);
+  meraxes_file = argv[arg_offset+2];
   REDSHIFT = zlist[snapshot];
   printf("Snapshot = %d -> redshift = %.2f\n", snapshot, REDSHIFT);
 
   growth_factor = dicke(REDSHIFT);
   pixel_volume = pow(BOX_LEN/(float)HII_DIM, 3);
   pixel_mass = RtoM(L_FACTOR*BOX_LEN/(float)HII_DIM); 
-  f_coll_crit = 1/ION_EFF_FACTOR;
+
+  // This is for DM only:
+  // f_coll_crit = 1/ION_EFF_FACTOR;
+
+  // if we feed stellar mass instead of halo mass to the program then:
+  f_coll_crit = 0.1/ION_EFF_FACTOR;
+  // assuming that the star formation efficiency (f_* of eqn. 83 Furlanetto+ 2006) was previously assumed to be 10%
+
   cell_length_factor = L_FACTOR;
   // this parameter choice is sensitive to noise on the cell size, at least for the typical
   // cell sizes in RT simulations.  it probably doesn't matter for larger cell sizes.
@@ -343,7 +352,16 @@ int main(int argc, char ** argv)
     // fclose(F);
     
     // read in the halo list
-    status = read_groups_field(snapshot, (float *)M_coll_unfiltered, M_MIN);
+    // status = read_groups_field(snapshot, (float *)M_coll_unfiltered, M_MIN);
+    // if (status!=0)
+    // {
+    //   fftwf_free(xH); fftwf_free(M_coll_unfiltered); fftwf_free(M_coll_filtered); fclose(LOG);
+    //   fftwf_cleanup_threads();
+    //   free_ps(); if (USE_TS_IN_21CM){ fftwf_free(xe_filtered); fftwf_free(xe_unfiltered);} return -1;
+    // }
+    
+    // read in the galaxy stellar mass field
+    status = generate_stellarmass_field(meraxes_file, snapshot, M_MIN, (float *)M_coll_unfiltered);
     if (status!=0)
     {
       fftwf_free(xH); fftwf_free(M_coll_unfiltered); fftwf_free(M_coll_filtered); fclose(LOG);
@@ -523,7 +541,16 @@ int main(int argc, char ** argv)
         // fclose(F);
         
         // read in the halo list
-        status = read_groups_field(snapshot, (float *)M_coll_unfiltered, M_MIN);
+        // status = read_groups_field(snapshot, (float *)M_coll_unfiltered, M_MIN);
+        // if (status!=0)
+        // {
+        //   fftwf_free(xH); fftwf_free(M_coll_unfiltered); fftwf_free(M_coll_filtered); fclose(LOG);
+        //   fftwf_cleanup_threads();
+        //   free_ps(); if (USE_TS_IN_21CM){ fftwf_free(xe_filtered); fftwf_free(xe_unfiltered);} return -1;
+        // }
+
+        // read in the galaxy stellar mass field
+        status = generate_stellarmass_field(meraxes_file, snapshot, M_MIN, (float *)M_coll_unfiltered);
         if (status!=0)
         {
           fftwf_free(xH); fftwf_free(M_coll_unfiltered); fftwf_free(M_coll_filtered); fclose(LOG);

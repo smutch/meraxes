@@ -1,6 +1,7 @@
 #include "../Parameter_files/INIT_PARAMS.H"
 #include "../Parameter_files/ANAL_PARAMS.H"
 #include <sys/types.h>
+#include <sys/wait.h>
 
 /*
   Program DRIVE_ZSCROLL_REION_PARAM.C scrolls through the redshifts defined below,
