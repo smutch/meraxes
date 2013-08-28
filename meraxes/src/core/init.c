@@ -171,5 +171,8 @@ void init_meraxes(run_globals_struct *run_globals)
   sprintf(run_globals->FNameOut, "%s/%s.hdf5", run_globals->params.OutputDir, run_globals->params.FileNameGalaxies);
   prep_hdf5_file(run_globals);
 
+  // Set up reionization related stuff
+  init_reionization(run_globals);
+
 }
 

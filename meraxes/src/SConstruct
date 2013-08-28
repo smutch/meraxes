@@ -82,7 +82,8 @@ if not GetOption('help'):
         SYSTEM = 'gstar'
         # SYSTEM = 'green'
 
-    env.AppendUnique(LIBS=['gbpMath','gbpLib','gsl', 'gslcblas','m'])
+    env.AppendUnique(LIBS=['gbpMath','gbpLib','gsl', 'gslcblas', 'm',
+            '21cmfast', 'fftw3f_omp', 'fftw3f', 'gomp'])
     HDF5_LIBS = ['z', 'libhdf5_hl', 'libhdf5']
 
     if SYSTEM=='green':
@@ -92,8 +93,6 @@ if not GetOption('help'):
         LEVMAR_LIBS = ['/home/ssi/smutch/Packages/src/levmar']
         GBP_INCL    = ['/home/ssi/smutch/Work/3rd_party/libs/gbpCode/myInclude']
         GBP_LIBS    = ['/home/ssi/smutch/Work/3rd_party/libs/gbpCode/myLib/mpi']
-        FFTW_INCL   = ['/home/ssi/smutch/Work/3rd_party/libs/fftw-2.1.5/include']
-        FFTW_LIBS   = ['/home/ssi/smutch/Work/3rd_party/libs/fftw-2.1.5/lib']
         FITSIO_INCL = ['/home/ssi/smutch/Work/3rd_party/libs/cfitsio/include']
         FITSIO_LIBS = ['/home/ssi/smutch/Work/3rd_party/libs/cfitsio/lib']
         SPRNG_INCL  = ['/home/ssi/smutch/Work/3rd_party/libs/sprng/include']
@@ -109,7 +108,11 @@ if not GetOption('help'):
         LEVMAR_LIBS = ['/home/smutch/3rd_party/levmar']
         GBP_INCL    = ['/home/smutch/3rd_party/gbpCode/myInclude']
         GBP_LIBS    = ['/home/smutch/3rd_party/gbpCode/myLib/mpi']
-        CC          = ['/usr/local/x86_64/gnu/openmpi-1.6.1/bin/mpicc']
+        CC          = ['/usr/local/x86_64/gnu/openmpi-1.6.1/bin/mpicc', '-openmp']
+        TOCF_INCL   = ['../../21cmfast/include']
+        TOCF_LIBS   = ['../../21cmfast/lib']
+        FFTW_INCL   = ['/home/smutch/3rd_party/fftw-3.3.3/include']
+        FFTW_LIBS   = ['/home/smutch/3rd_party/fftw-3.3.3/lib']
 
     elif SYSTEM=='mac':
         GSL_INCL    = ['/usr/local/include']
@@ -118,8 +121,6 @@ if not GetOption('help'):
         LEVMAR_LIBS = ['/Users/smutch/3rd_party/levmar-2.6']
         GBP_INCL    = ['/Users/smutch/3rd_party/gbpCode/myInclude']
         GBP_LIBS    = ['/Users/smutch/3rd_party/gbpCode/myLib/mpi']
-        FFTW_INCL   = ['/Users/smutch/3rd_party/fftw-2.1.5/include']
-        FFTW_LIBS   = ['/Users/smutch/3rd_party/fftw-2.1.5/lib']
         # FITSIO_INCL = ['/Users/smutch/Work/3rd_party/libs/cfitsio/include']
         # FITSIO_LIBS = ['/Users/smutch/Work/3rd_party/libs/cfitsio/lib']
         # SPRNG_INCL  = ['/Users/smutch/Work/3rd_party/libs/sprng/include']
@@ -130,8 +131,8 @@ if not GetOption('help'):
 
     env.Replace(CC = CC)
     env.AppendUnique(CPPPATH = ["./"])
-    env.AppendUnique(CPPPATH = [GSL_INCL, GBP_INCL])
-    env.AppendUnique(LIBPATH = [GSL_LIBS, GBP_LIBS])
+    env.AppendUnique(CPPPATH = [GSL_INCL, GBP_INCL, TOCF_INCL, FFTW_INCL])
+    env.AppendUnique(LIBPATH = [GSL_LIBS, GBP_LIBS, TOCF_LIBS, FFTW_LIBS])
     env.AppendUnique(LIBS = HDF5_LIBS)
     env.AppendUnique(CPPFLAGS = '-std=gnu99')
 

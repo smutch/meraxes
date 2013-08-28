@@ -1,7 +1,5 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include "parameter_files/INIT_PARAMS.H"
-#include "parameter_files/ANAL_PARAMS.H"
+#ifndef _21CMFAST
+#define _21CMFAST
 
 /*
  * Structures
@@ -26,3 +24,5 @@ struct tocf_params_struct{
  */
 
 int find_HII_bubbles(tocf_params_struct *params);
+
+#endif

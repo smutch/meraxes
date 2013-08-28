@@ -35,7 +35,7 @@ ctags = env.Command('ctags', tagsources, "ctags -R --c++-kinds=+p --fields=+iaS 
 # = System specific build options =
 # =================================
 
-env.AppendUnique(LIBS=['gsl', 'gslcblas', 'm', 'fftw3f'])
+env.AppendUnique(LIBS=['gsl', 'gslcblas', 'm', 'fftw3f', 'gomp'])
 HDF5_LIBS = ['z', 'libhdf5_hl', 'libhdf5']
 
 GIT         = ['/usr/bin/git']
@@ -47,7 +47,7 @@ GBP_INCL    = ['/home/smutch/3rd_party/gbpCode/myInclude']
 GBP_LIBS    = ['/home/smutch/3rd_party/gbpCode/myLib/mpi']
 FFTW_INCL   = ['/home/smutch/3rd_party/fftw-3.3.3/include']
 FFTW_LIBS   = ['/home/smutch/3rd_party/fftw-3.3.3/lib']
-CC          = ['/usr/local/x86_64/gnu/openmpi-1.6.1/bin/mpicc']
+CC          = ['/usr/local/x86_64/gnu/openmpi-1.6.1/bin/mpicc', '-openmp']
 
 env.Replace(CC = CC)
 env.AppendUnique(CPPPATH = ["./"])

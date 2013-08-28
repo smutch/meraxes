@@ -284,6 +284,16 @@ void read_parameter_file(run_globals_struct *run_globals, char *fname)
   params_addr[n_param] = &(run_params->physics).bhgrowthfactor;
   required_tag[n_param] = 1;
   params_id[n_param++] = DOUBLE;
+
+  strcpy(params_tag[n_param], "TOCF_LogFileDir");
+  params_addr[n_param] = &(run_params->TOCF_LogFileDir);
+  required_tag[n_param] = 1;
+  params_id[n_param++] = STRING;
+
+  strcpy(params_tag[n_param], "TOCF_NThreads");
+  params_addr[n_param] = &(run_params->TOCF_NThreads);
+  required_tag[n_param] = 1;
+  params_id[n_param++] = STRING;
   
   // N.B. This part of the code is wasteful and should be updated!!! 
 

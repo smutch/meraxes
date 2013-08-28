@@ -110,8 +110,17 @@ int find_HII_bubbles(tocf_params_struct *params)
   fprintf(stderr, "find_HII_bubbles: threading with %d threads\n", num_th);
 
   ION_EFF_FACTOR = params->ion_eff_factor;
+  if (ION_EFF_FACTOR<0)
+    ION_EFF_FACTOR = HII_EFF_FACTOR;
+
   TVIR_MIN       = params->tvir_min;
+  if (TVIR_MIN<0)
+    TVIR_MIN = ION_Tvir_MIN;
+
   MFP            = params->mean_free_path;
+  if (MFP<0)
+    MFP = R_BUBBLE_MAX;
+
   snapshot       = params->snapshot;
   meraxes_fname  = params->meraxes_fname;
 

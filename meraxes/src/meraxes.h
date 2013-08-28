@@ -5,6 +5,7 @@
 #include <gsl/gsl_rng.h>
 #include <stdbool.h>
 #include <hdf5.h>
+#include <21cmfast.h>
 
 /*
  * Definitions
@@ -107,6 +108,8 @@ struct run_params_struct{
   int                   SnaplistLength;
   int                   RandomSeed;
   physics_params_struct physics;
+  char                  TOCF_LogFileDir[STRLEN];
+  int                   TOCF_NThreads;
 };
 typedef struct run_params_struct run_params_struct;
 
@@ -164,6 +167,7 @@ struct run_globals_struct{
   struct run_units_struct    units;
   hdf5_output_struct         hdf5props;
   phototabs_struct           photo;
+  tocf_params_struct         tocf_params;
 };
 typedef struct run_globals_struct run_globals_struct;
 
@@ -348,3 +352,7 @@ double  lum_to_mag(double lum);
 void    sum_luminosities(galaxy_struct *parent, galaxy_struct *gal, int outputbin);
 void    prepare_magnitudes_for_output(galaxy_struct gal, galaxy_output_struct *galout, int i_snap);
 void    apply_dust(galaxy_struct gal, double *LumDust, int outputbin);
+
+// Reionization related
+void init_reionization(run_globals_struct *run_globals);
+void do_reionization(run_globals_struct *run_globals, int i_out);
