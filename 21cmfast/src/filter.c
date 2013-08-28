@@ -1,7 +1,7 @@
 #ifndef _FILTER_
 #define _FILTER_
 
-#include "../Parameter_files/INIT_PARAMS.H"
+#include "parameter_files/INIT_PARAMS.H"
 
 /*
   Function FILTER filters the k-space box, <box>, using filter type

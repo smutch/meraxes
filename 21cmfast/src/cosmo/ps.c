@@ -7,8 +7,8 @@
 #include <ctype.h>
 #include <math.h>
 #include <unistd.h>
-#include "../Parameter_files/COSMOLOGY.H"
-#include "../Parameter_files/INIT_PARAMS.H"
+#include "../parameter_files/COSMOLOGY.H"
+#include "../parameter_files/INIT_PARAMS.H"
 #include <gsl/gsl_interp.h>
 #include <gsl/gsl_spline.h>
 #include "cosmo_progs.c"
@@ -152,7 +152,7 @@ double lindeltodel(float lindel, float z){
 
 /* R in Mpc, M in Msun */
 double RtoM(double R){
-  // set M according to M<->R conversion defined by the filter type in ../Parameter_files/COSMOLOGY.H
+  // set M according to M<->R conversion defined by the filter type in ../parameter_files/COSMOLOGY.H
   if (FILTER == 0) //top hat M = (4/3) PI <rho> R^3
     return (4.0/3.0)*PI*pow(R,3)*(OMm*RHOcrit);
   else if (FILTER == 1) //gaussian: M = (2PI)^1.5 <rho> R^3

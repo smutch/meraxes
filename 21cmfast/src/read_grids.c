@@ -1,15 +1,10 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdbool.h>
-#include "nbody.h"
-#include "../Parameter_files/COSMOLOGY.H"
-#include "../Parameter_files/INIT_PARAMS.H"
-#include "../Parameter_files/ANAL_PARAMS.H"
-
-#ifdef DEBUG
-#include <hdf5.h>
-#include <hdf5_hl.h>
-#endif
+#include "parameter_files/COSMOLOGY.H"
+#include "parameter_files/INIT_PARAMS.H"
+#include "parameter_files/ANAL_PARAMS.H"
+#include "21cmfast.h"
 
 // This file should contain a function that will read a GiggleZ/Tiamat grid and
 // complain if the number of cells doesn't equal the resolution set in
@@ -26,9 +21,10 @@ static inline void read_identifier(FILE *fin, bool skip_flag)
 }
 
 int read_nbody_grid(
-    int   snapshot, 
-    int   i_grid,
-    float *grid)
+  tocf_params_struct *params,  
+  int                 snapshot,
+  int                 i_grid,  
+  float              *grid)    
 {
 
   char fname[512];
@@ -44,19 +40,14 @@ int read_nbody_grid(
 
   float resample_factor = 1.;
 
-#ifdef DEBUG
-  float *input_grid;
-  input_grid = malloc(sizeof(float) * HII_TOT_NUM_PIXELS);
-#endif
-
   // Construct the input filename 
-  sprintf(fname, ROOT_PATH "/" SIM_NAME "/grids/snapshot_%03d_dark_grid.dat", snapshot);
+  sprintf(fname,  "%s/%s/grids/snapshot_%03d_dark_grid.dat", params->sim_dir, params->sim_name, snapshot);
   // ... and open
   fin = fopen(fname, "rb");
   if (fin==NULL)
   {
     fprintf(stderr, "Failed to open %s\n", fname);
-    ABORT(EXIT_FAILURE);
+    return(EXIT_FAILURE);
   }
 
   // Read the header
@@ -115,10 +106,6 @@ int read_nbody_grid(
         val *= cell_volume; // now we have the mass in the cell
         mean += val;
         *(grid + HII_R_FFT_INDEX((int)(i*resample_factor),(int)(j*resample_factor),(int)(k*resample_factor))) += val;
-
-#ifdef DEBUG
-        *(input_grid + HII_R_INDEX(rs_i,rs_j,rs_k)) = *(grid + HII_R_FFT_INDEX(rs_i,rs_j,rs_k));
-#endif
       }
 
   // In order to calculate the mean density we must actually take the mean of
@@ -138,28 +125,6 @@ int read_nbody_grid(
 
   // Close the file
   fclose(fin);
-
-#ifdef DEBUG
-  // Turn off error reporting in hdf5
-  H5Eset_auto(H5P_DEFAULT, NULL, NULL);
-
-  // Save the halo data
-  char name[256];
-  hid_t fout, group;
-  if((fout = H5Fopen("../Boxes/grids.hdf5", H5F_ACC_RDWR, H5P_DEFAULT))<0)
-    fout = H5Fcreate("../Boxes/grids.hdf5", H5F_ACC_EXCL, H5P_DEFAULT, H5P_DEFAULT);
-  sprintf(name, "/snap%03d", snapshot);
-  if((group = H5Gcreate(fout, name, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT))<0)
-    fprintf(stderr, "Group already exists in ../Boxes/grids.hdf5... Skipping...\n");
-  else
-  {
-    hsize_t dims[1] = {HII_TOT_NUM_PIXELS};
-    H5LTmake_dataset(group, "density", 1, dims, H5T_NATIVE_FLOAT, input_grid);
-    H5Gclose(group);
-  }
-  free(input_grid);
-  H5Fclose(fout);
-#endif
 
   return 0;
 }

@@ -10,7 +10,7 @@ CAUTION:  many of these assume standard cosmology (k=0, etc.), so check them bef
 #include <stdlib.h>
 #include <ctype.h>
 #include <math.h>
-#include "../Parameter_files/COSMOLOGY.H"
+#include "../parameter_files/COSMOLOGY.H"
 
 double avoigt, cvoigt[31];
 int VOIGT_INIT;

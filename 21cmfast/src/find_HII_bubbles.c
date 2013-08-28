@@ -1,10 +1,7 @@
 #include "bubble_helper_progs.c"
 #include "heating_helper_progs.c"
-#include "misc_nbody.c"
 #include "read_grids.c"
-#include "read_halos.c"
 #include "read_galaxies.c"
-#include "nbody.h"
 
 /*
 USAGE: find_HII_bubbles [-p <NUM THREADS>] <snapshot> [<ionization efficiency factor zeta>]
@@ -35,10 +32,7 @@ Date: 01/10/07
 */
 
 
-FILE *LOG;
-unsigned long long SAMPLING_INTERVAL = (((unsigned long long)(HII_TOT_NUM_PIXELS/1.0e6)) + 1); //used to sample density field to compute mean collapsed fraction
-
-int main(int argc, char ** argv)
+int find_HII_bubbles(tocf_params_struct *params)
 {
 
   char                filename[300];
@@ -95,50 +89,31 @@ int main(int argc, char ** argv)
   double              ave_fcoll;
   const gsl_rng_type *T;
   gsl_rng            *r;
-  float               zlist[MAXSNAPS];
   int                 snapshot;
   int                 corrected_snapshot;
   int                 status;
-  char               *meraxes_file;
+  char               *meraxes_fname;
 
-  hid_t file_id, group_id;
+  hid_t   file_id;
+  hid_t   group_id;
   hsize_t ds_dims[1];
-  char target_group[256];
-  int tmp_int;
-  float tmp_float;
+  char    target_group[256];
+  int     tmp_int;
+  float   tmp_float;
 
-  // check arguments
-  if ((argc>2) && (argv[1][0]=='-') && ((argv[1][1]=='p') || (argv[1][1]=='P'))){
-    // user specified num proc
-    num_th = atoi(argv[2]);
-    fprintf(stderr, "find_HII_bubbles: threading with user-specified %i threads\n", num_th);
-    arg_offset = 2;
-  }
-  else{
+  FILE               *LOG;
+  unsigned long long  SAMPLING_INTERVAL = (((unsigned long long)(HII_TOT_NUM_PIXELS/1.0e6)) + 1); //used to sample density field to compute mean collapsed fraction
+
+  num_th = params->num_th;
+  if (num_th<0)
     num_th = NUMCORES;
-    fprintf(stderr, "find_HII_bubbles: threading with default %i threads\n", num_th);
-    arg_offset = 0;
-  }
-  if (argc == (arg_offset+3)){
-    ION_EFF_FACTOR = HII_EFF_FACTOR; // use default from ANAL_PARAMS.H
-    TVIR_MIN = ION_Tvir_MIN;
-    MFP = R_BUBBLE_MAX;
-  }
-  else if (argc == (arg_offset+4)){ // just use parameter efficiency
-    ION_EFF_FACTOR = atof(argv[arg_offset+2]); // use command line parameter
-    TVIR_MIN = ION_Tvir_MIN;
-    MFP = R_BUBBLE_MAX;
-  }
-  else if (argc == (arg_offset+6)){ // use all reionization command line parameters
-    ION_EFF_FACTOR = atof(argv[arg_offset+3]);
-    TVIR_MIN = atof(argv[arg_offset+4]);
-    MFP = atof(argv[arg_offset+5]);
-  }
-  else{
-    // fprintf(stderr, "argc=%d ; arg_offset=%d\n", argc, arg_offset);
-    fprintf(stderr, "USAGE: find_HII_bubbles <snapshot> <meraxes_file> [<ionization efficiency factor zeta>] [<Tvir_min> <ionizing mfp in ionized IGM>]\nAborting...\n");
-    return -1;
-  }
+  fprintf(stderr, "find_HII_bubbles: threading with %d threads\n", num_th);
+
+  ION_EFF_FACTOR = params->ion_eff_factor;
+  TVIR_MIN       = params->tvir_min;
+  MFP            = params->mean_free_path;
+  snapshot       = params->snapshot;
+  meraxes_fname  = params->meraxes_fname;
 
   if (fftwf_init_threads()==0){
     fprintf(stderr, "find_HII_bubbles: ERROR: problem initializing fftwf threads\nAborting\n.");
@@ -151,19 +126,13 @@ int main(int argc, char ** argv)
   T = gsl_rng_default;
   r = gsl_rng_alloc(T);
 
-  // read_zlist(zlist);
-  snapshot = atof(argv[arg_offset+1]);
-  meraxes_file = argv[arg_offset+2];
-  // REDSHIFT = zlist[snapshot];
-
-  fprintf(stderr, "meraxes_file = %s\n", meraxes_file);
-  file_id = H5Fopen(meraxes_file, H5F_ACC_RDONLY, H5P_DEFAULT);
+  // Get the corrected (unsampled) snapshot number
+  file_id = H5Fopen(meraxes_fname, H5F_ACC_RDONLY, H5P_DEFAULT);
   sprintf(target_group, "Snap%03d", snapshot);
   H5LTget_attribute_float(file_id, target_group, "Redshift", &REDSHIFT);
   H5LTget_attribute_int(file_id, target_group, "CorrectedSnap", &corrected_snapshot);
   H5Fclose(file_id);
-
-  printf("Snapshot = %d (%d)-> redshift = %.2f\n", snapshot, corrected_snapshot, REDSHIFT);
+  fprintf(stderr, "Snapshot = %d (%d)-> redshift = %.2f\n", snapshot, corrected_snapshot, REDSHIFT);
 
   growth_factor = dicke(REDSHIFT);
   pixel_volume = pow(BOX_LEN/(float)HII_DIM, 3);
@@ -171,7 +140,6 @@ int main(int argc, char ** argv)
 
   // This is for DM only:
   // f_coll_crit = 1/ION_EFF_FACTOR;
-
   // if we feed stellar mass instead of halo mass to the program then:
   f_coll_crit = 0.1/ION_EFF_FACTOR;
   // assuming that the star formation efficiency (f_* of eqn. 83 Furlanetto+ 2006) was previously assumed to be 10%
@@ -185,7 +153,7 @@ int main(int argc, char ** argv)
   }
 
   //set the minimum source mass
-  if ( (TVIR_MIN > 0) && (ION_M_MIN > 0) && (argc < 5)){
+  if ((TVIR_MIN > 0) && (ION_M_MIN > 0)){
     fprintf(stderr, "You have to \"turn-off\" either the ION_M_MIN or \
         the ION_Tvir_MIN option in ANAL_PARAMS.H\nAborting...\n");
     free_ps(); return -1;
@@ -208,8 +176,7 @@ int main(int argc, char ** argv)
 
 
   // open log file
-  system("mkdir ../Log_files");
-  sprintf(filename, "../Log_files/HII_bubble_log_file_%d", getpid());
+  sprintf(filename, "%s/HII_bubble_log_file_%03d.log", params->logfile_dir, snapshot);
   LOG = fopen(filename, "w");
   if (!LOG){
     fprintf(stderr, "find_HII_bubbles.c: Error opening log file\nAborting...\n");
@@ -265,6 +232,7 @@ int main(int argc, char ** argv)
       }
     }
 
+    // TODO
     // print out the xH box
     switch(FIND_BUBBLE_ALGORITHM){
       case 2:
@@ -302,14 +270,6 @@ int main(int argc, char ** argv)
       free_ps(); return -1;
     }
 
-    // and read-in
-    /*
-       sprintf(filename, "ls ../Boxes/Ts_evolution/xeneutral_zprime%06.2f_zetaX%.1e_alphaX%.1f_TvirminX%.1e_avexHI*atz*_Pop%i_%i_%.0fMpc",
-       REDSHIFT, ZETA_X, X_RAY_SPEC_INDEX, X_RAY_Tvir_MIN, Pop, HII_DIM, BOX_LEN);
-       pPipe = popen(filename, "r");
-       fscanf(pPipe, "%s", filename);
-       pclose(pPipe);
-       */
     sprintf(filename, "../Boxes/Ts_evolution/xeneutral_zprime%06.2f_zetaX%.1e_alphaX%.1f_TvirminX%.1e_zetaIon%.2f_Pop%i_%i_%.0fMpc", REDSHIFT, ZETA_X, X_RAY_SPEC_INDEX, X_RAY_Tvir_MIN, HII_EFF_FACTOR, Pop, HII_DIM, BOX_LEN);
     if (!(F = fopen(filename, "rb"))){
       fprintf(stderr, "find_HII_bubbles: Unable to open x_e file at %s\nAborting...\n", filename);
@@ -346,37 +306,8 @@ int main(int argc, char ** argv)
     }
     for (ct=0; ct<HII_TOT_FFT_NUM_PIXELS; ct++){    *((float *)M_coll_unfiltered + ct) = 0;  }
 
-    // read in the halo list
-    // sprintf(filename, "../Output_files/Halo_lists/updated_halos_z%06.2f_%i_%.0fMpc", REDSHIFT, DIM, BOX_LEN);
-    // F = fopen(filename, "r");
-    // if (!F){
-    //   fprintf(stderr, "find_HII_bubbles.c: Unable to open halo list file: %s\nAborting...\n", filename);
-    //   fftwf_free(xH); fftwf_free(M_coll_unfiltered); fftwf_free(M_coll_filtered); fclose(LOG);
-    //   fftwf_cleanup_threads();
-    //   free_ps(); if (USE_TS_IN_21CM){ fftwf_free(xe_filtered); fftwf_free(xe_unfiltered);} return -1;
-    // }
-    // // now read in all halos above our threshold into the smoothed halo field
-    // fscanf(F, "%e %f %f %f", &mass, &xf, &yf, &zf);
-    // while (!feof(F) && (mass>=M_MIN)){
-    //   x = xf*HII_DIM;
-    //   y = yf*HII_DIM;
-    //   z = zf*HII_DIM;
-    //   *((float *)M_coll_unfiltered + HII_R_FFT_INDEX(x, y, z)) += mass;
-    //   fscanf(F, "%e %f %f %f", &mass, &xf, &yf, &zf);
-    // }
-    // fclose(F);
-    
-    // read in the halo list
-    // status = read_groups_field(snapshot, (float *)M_coll_unfiltered, M_MIN);
-    // if (status!=0)
-    // {
-    //   fftwf_free(xH); fftwf_free(M_coll_unfiltered); fftwf_free(M_coll_filtered); fclose(LOG);
-    //   fftwf_cleanup_threads();
-    //   free_ps(); if (USE_TS_IN_21CM){ fftwf_free(xe_filtered); fftwf_free(xe_unfiltered);} return -1;
-    // }
-    
     // read in the galaxy stellar mass field
-    status = generate_stellarmass_field(meraxes_file, snapshot, M_MIN, (float *)M_coll_unfiltered);
+    status = generate_stellarmass_field(meraxes_fname, snapshot, M_MIN, (float *)M_coll_unfiltered);
     if (status!=0)
     {
       fftwf_free(xH); fftwf_free(M_coll_unfiltered); fftwf_free(M_coll_filtered); fclose(LOG);
@@ -397,37 +328,8 @@ int main(int argc, char ** argv)
     fftwf_cleanup_threads();
     free_ps(); if (USE_TS_IN_21CM){ fftwf_free(xe_filtered); fftwf_free(xe_unfiltered);} return -1;
   }
-  // fprintf(stderr, "Reading in deltax box\n");
-  // fprintf(LOG, "Reading in deltax box\n");
 
-  // sprintf(filename, "../Boxes/updated_smoothed_deltax_z%06.2f_%i_%.0fMpc", REDSHIFT, HII_DIM, BOX_LEN);
-  // F = fopen(filename, "rb");
-  // if (!F){
-  //   fprintf(stderr, "find_HII_bubbles: Unable to open file: %s\n", filename);
-  //   fprintf(LOG, "find_HII_bubbles: Unable to open file: %s\n", filename);
-  //   fftwf_free(xH); fclose(LOG); fftwf_free(deltax_unfiltered); fftwf_free(deltax_filtered);
-  //   if (USE_HALO_FIELD){ fftwf_free(M_coll_unfiltered); fftwf_free(M_coll_filtered); }
-  //   fftwf_cleanup_threads();
-  //   free_ps(); if (USE_TS_IN_21CM){ fftwf_free(xe_filtered); fftwf_free(xe_unfiltered);} return -1;
-  // }
-  // for (i=0; i<HII_DIM; i++){
-  //   for (j=0; j<HII_DIM; j++){
-  //     for (k=0; k<HII_DIM; k++){
-  //       if (fread((float *)deltax_unfiltered + HII_R_FFT_INDEX(i,j,k), sizeof(float), 1, F)!=1){
-  //         fprintf(stderr, "find_HII_bubbles: Read error occured while reading deltax box.\n");
-  //         fprintf(LOG, "find_HII_bubbles: Read error occured while reading deltax box.\n");
-  //         fftwf_free(xH); fclose(LOG); fftwf_free(deltax_unfiltered); fftwf_free(deltax_filtered);
-  //         if (USE_HALO_FIELD){ fftwf_free(M_coll_unfiltered); fftwf_free(M_coll_filtered); }
-  //         fftwf_cleanup_threads(); fclose(F);
-  //         free_ps(); if (USE_TS_IN_21CM){ fftwf_free(xe_filtered); fftwf_free(xe_unfiltered);} return -1;
-
-  //       }
-  //     }
-  //   }
-  // }
-  // fclose(F);
-  
-  status = read_nbody_grid(corrected_snapshot, 0, (float *)deltax_unfiltered);
+  status = read_nbody_grid(params, corrected_snapshot, 0, (float *)deltax_unfiltered);
   if(status!=0)
   {
     fprintf(LOG, "find_HII_bubbles: Read error occured while reading n_body grid.\n");
@@ -511,29 +413,8 @@ int main(int argc, char ** argv)
        neutral fraction */
     ST_over_PS = 0;
     f_coll = 0;
-    if (LAST_FILTER_STEP){  // {{{1
-      // sprintf(filename, "../Boxes/updated_smoothed_deltax_z%06.2f_%i_%.0fMpc", REDSHIFT, HII_DIM, BOX_LEN);
-      // if (!(F = fopen(filename, "rb"))){
-      //   fprintf(stderr, "find_HII_bubbles: ERROR: unable to open file %s\n", filename);
-      //   fprintf(LOG, "find_HII_bubbles: ERROR: unable to open file %s\n", filename);
-      //   fftwf_free(xH); fclose(LOG); fftwf_free(deltax_unfiltered); fftwf_free(deltax_filtered); fftwf_free(M_coll_unfiltered); fftwf_free(M_coll_filtered);  fftwf_cleanup_threads();
-      //   free_ps(); if (USE_TS_IN_21CM){ fftwf_free(xe_filtered); fftwf_free(xe_unfiltered);} return -1;
-      // }
-      // for (i=0; i<HII_DIM; i++){
-      //   for (j=0; j<HII_DIM; j++){
-      //     for (k=0; k<HII_DIM; k++){
-      //       if (fread((float *)deltax_unfiltered + HII_R_FFT_INDEX(i,j,k), sizeof(float), 1, F)!=1){
-      //         fprintf(stderr, "find_HII_bubbles: Read error occured while reading deltax box.\n");
-      //         fprintf(LOG, "find_HII_bubbles: Read error occured while reading deltax box.\n");
-      //         fftwf_free(xH); fclose(LOG); fftwf_free(deltax_unfiltered); fftwf_free(deltax_filtered); fftwf_free(M_coll_unfiltered); fftwf_free(M_coll_filtered);  fftwf_cleanup_threads(); fclose(F);
-      //         free_ps(); if (USE_TS_IN_21CM){ fftwf_free(xe_filtered); fftwf_free(xe_unfiltered);} return -1;
-      //       }
-      //     }
-      //   }
-      // }
-      // fclose(F);
-
-      status = read_nbody_grid(corrected_snapshot, 0, (float *)deltax_unfiltered);
+    if (LAST_FILTER_STEP){
+      status = read_nbody_grid(params, corrected_snapshot, 0, (float *)deltax_unfiltered);
       if(status!=0)
       {
         fprintf(LOG, "find_HII_bubbles: Read error occured while reading n_body grid.\n");
@@ -544,28 +425,9 @@ int main(int argc, char ** argv)
 
       if (USE_HALO_FIELD){
         for (ct=0; ct<HII_TOT_FFT_NUM_PIXELS; ct++){    *((float *)M_coll_unfiltered + ct) = 0;  }
-        // sprintf(filename, "../Output_files/Halo_lists/updated_halos_z%06.2f_%i_%.0fMpc", REDSHIFT, DIM, BOX_LEN);
-        // F = fopen(filename, "r");
-        // while (!feof(F) && (mass>=M_MIN)){
-        //   x = xf*HII_DIM;
-        //   y = yf*HII_DIM;
-        //   z = zf*HII_DIM;
-        //   *((float *)M_coll_unfiltered + HII_R_FFT_INDEX(x, y, z)) += mass;
-        //   fscanf(F, "%e %f %f %f", &mass, &xf, &yf, &zf);
-        // }
-        // fclose(F);
-        
-        // read in the halo list
-        // status = read_groups_field(snapshot, (float *)M_coll_unfiltered, M_MIN);
-        // if (status!=0)
-        // {
-        //   fftwf_free(xH); fftwf_free(M_coll_unfiltered); fftwf_free(M_coll_filtered); fclose(LOG);
-        //   fftwf_cleanup_threads();
-        //   free_ps(); if (USE_TS_IN_21CM){ fftwf_free(xe_filtered); fftwf_free(xe_unfiltered);} return -1;
-        // }
 
         // read in the galaxy stellar mass field
-        status = generate_stellarmass_field(meraxes_file, snapshot, M_MIN, (float *)M_coll_unfiltered);
+        status = generate_stellarmass_field(meraxes_fname, snapshot, M_MIN, (float *)M_coll_unfiltered);
         if (status!=0)
         {
           fftwf_free(xH); fftwf_free(M_coll_unfiltered); fftwf_free(M_coll_filtered); fclose(LOG);
@@ -607,7 +469,6 @@ int main(int argc, char ** argv)
         fclose(F);
       } // end re-reading the x_e box
     } // end if last filter step conditional statement
-    // 1}}}
 
     // not the last filter step, and we operating on the density field
     else if (!USE_HALO_FIELD){
@@ -732,24 +593,10 @@ int main(int argc, char ** argv)
                xH[HII_R_INDEX(x, y, z)] = res_xH;
              } // end partial ionizations at last filtering step
 
-             /** Debugging below **/
-             /*	  ave_fcoll += f_coll;
-                  ave_xHI_xrays += xHI_from_xrays;
-                  std_xrays += pow(xHI_from_xrays - 0.205, 2);
-                  ave_den += density_over_mean;
-                  if (xH[HII_R_INDEX(x, y, z)] > 0.5)
-                  ion_ct++;
-                  */
         } // k
       } // j
     } // i
 
-    /* Debugging */
-    /*    fprintf(stderr, "Mean x-ray neutral fraction is %f, density is %f, %f of all pixels are neutral, <fcoll>=%f\n\n", 
-          ave_xHI_xrays/(double)HII_TOT_NUM_PIXELS, ave_den/(double)HII_TOT_NUM_PIXELS, ion_ct/(double)HII_TOT_NUM_PIXELS, ave_fcoll/(double)HII_TOT_NUM_PIXELS);
-          fprintf(LOG, "end of main loop scroll, clock=%06.2f\n", (double)clock()/CLOCKS_PER_SEC);
-          fflush(LOG);
-          */
     R /= DELTA_R_HII_FACTOR;
   }
 
@@ -761,14 +608,14 @@ int main(int argc, char ** argv)
   global_xH /= (float)HII_TOT_NUM_PIXELS;
 
   // save the xH box
-  if (!(file_id = H5Fopen(meraxes_file, H5F_ACC_RDWR, H5P_DEFAULT))){
-    fprintf(stderr, "find_HII_bubbles: ERROR: unable to open file %s for writting!\n", meraxes_file);
-    fprintf(LOG, "find_HII_bubbles: ERROR: unable to open file %s for writting!\n", meraxes_file);
+  if (!(file_id = H5Fopen(meraxes_fname, H5F_ACC_RDWR, H5P_DEFAULT))){
+    fprintf(stderr, "find_HII_bubbles: ERROR: unable to open file %s for writting!\n", meraxes_fname);
+    fprintf(LOG, "find_HII_bubbles: ERROR: unable to open file %s for writting!\n", meraxes_fname);
     global_xH = -1;
   }else 
   {
-    fprintf(LOG, "Neutral fraction is %f\nNow writting xH box at %s\n", global_xH, meraxes_file);
-    fprintf(stderr, "Neutral fraction is %f\nNow writting xH box at %s\n", global_xH, meraxes_file);
+    fprintf(LOG, "Neutral fraction is %f\nNow writting xH box at %s\n", global_xH, meraxes_fname);
+    fprintf(stderr, "Neutral fraction is %f\nNow writting xH box at %s\n", global_xH, meraxes_fname);
     fflush(LOG);
 
     sprintf(target_group, "Snap%03d", snapshot);

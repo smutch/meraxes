@@ -1,5 +1,8 @@
 #include <hdf5.h>
 #include <hdf5_hl.h>
+#include <stdlib.h>
+#include "parameter_files/ANAL_PARAMS.H"
+#include "parameter_files/INIT_PARAMS.H"
 
 typedef struct gal_struct gal_struct;
 struct gal_struct{

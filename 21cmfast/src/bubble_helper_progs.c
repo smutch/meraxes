@@ -1,8 +1,8 @@
 #ifndef _BUBBLE_HELPERS_
 #define _BUBBLE_HELPERS_
 
-#include "../Parameter_files/INIT_PARAMS.H"
-#include "../Parameter_files/ANAL_PARAMS.H"
+#include "parameter_files/INIT_PARAMS.H"
+#include "parameter_files/ANAL_PARAMS.H"
 
 
 void HII_filter(fftwf_complex *box, int filter_type, float R){

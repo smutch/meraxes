@@ -1,6 +1,6 @@
-#include "../Parameter_files/INIT_PARAMS.H"
-#include "../Parameter_files/ANAL_PARAMS.H"
-#include "../Parameter_files/HEAT_PARAMS.H"
+#include "parameter_files/INIT_PARAMS.H"
+#include "parameter_files/ANAL_PARAMS.H"
+#include "parameter_files/HEAT_PARAMS.H"
 #include "bubble_helper_progs.c"
 #include "elec_interp.c"
 
