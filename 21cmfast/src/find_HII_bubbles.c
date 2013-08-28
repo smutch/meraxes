@@ -521,7 +521,7 @@ int find_HII_bubbles(tocf_params_struct *params)
           /* check for aliasing which can occur for small R and small cell sizes,
              since we are using the analytic form of the window function for speed and simplicity */
           if (density_over_mean <= 0){
-            fprintf(LOG, "WARNING: aliasing during filtering step produced density n/<n> of %06.2f at cell (%i, %i, %i)\n Setting to 0\n", density_over_mean, x,y,z);
+            // fprintf(LOG, "WARNING: aliasing during filtering step produced density n/<n> of %06.2f at cell (%i, %i, %i)\n Setting to 0\n", density_over_mean, x,y,z);
             density_over_mean = FRACT_FLOAT_ERR;
           }
 
