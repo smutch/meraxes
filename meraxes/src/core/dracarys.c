@@ -387,7 +387,7 @@ void dracarys(run_globals_struct *run_globals)
       if(snapshot == run_globals->ListOutputSnaps[i_out])
       {
         write_snapshot(run_globals, nout_gals, i_out, &last_nout_gals);
-        do_reionization(run_globals, i_out);
+        do_reionization(run_globals, snapshot);
       }
   
     // Free the halo and fof_group arrays
