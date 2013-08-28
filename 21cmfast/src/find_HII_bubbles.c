@@ -41,13 +41,13 @@ static int write_xH(char *meraxes_fname, int snapshot, float *xH, double global_
   float   tmp_float;
 
   if (!(file_id = H5Fopen(meraxes_fname, H5F_ACC_RDWR, H5P_DEFAULT))){
-    fprintf(stderr, "find_HII_bubbles: ERROR: unable to open file %s for writting!\n", meraxes_fname);
-    fprintf(LOG, "find_HII_bubbles: ERROR: unable to open file %s for writting!\n", meraxes_fname);
+    fprintf(stderr, "find_HII_bubbles:: ERROR: unable to open file %s for writting!\n", meraxes_fname);
+    fprintf(LOG, "find_HII_bubbles:: ERROR: unable to open file %s for writting!\n", meraxes_fname);
     global_xH = -1;
   }else 
   {
-    fprintf(LOG, "Neutral fraction is %f\nNow writting xH box at %s\n", global_xH, meraxes_fname);
-    fprintf(stderr, "Neutral fraction is %f\nNow writting xH box at %s\n", global_xH, meraxes_fname);
+    fprintf(LOG, "find_HII_bubbles:: Neutral fraction is %f\nNow writting xH box at %s\n", global_xH, meraxes_fname);
+    fprintf(stderr, "find_HII_bubbles:: Neutral fraction is %f\nNow writting xH box at %s\n", global_xH, meraxes_fname);
     fflush(LOG);
 
     sprintf(target_group, "Snap%03d", snapshot);
@@ -157,7 +157,7 @@ int find_HII_bubbles(tocf_params_struct *params)
   num_th = params->num_th;
   if (num_th<0)
     num_th = NUMCORES;
-  fprintf(stderr, "find_HII_bubbles: threading with %d threads\n", num_th);
+  fprintf(stderr, "find_HII_bubbles:: threading with %d threads\n", num_th);
 
   ION_EFF_FACTOR = params->ion_eff_factor;
   if (ION_EFF_FACTOR<0)
@@ -175,7 +175,7 @@ int find_HII_bubbles(tocf_params_struct *params)
   meraxes_fname  = params->meraxes_fname;
 
   if (fftwf_init_threads()==0){
-    fprintf(stderr, "find_HII_bubbles: ERROR: problem initializing fftwf threads\nAborting\n.");
+    fprintf(stderr, "find_HII_bubbles:: ERROR: problem initializing fftwf threads\nAborting\n.");
     return -1;
   }
   omp_set_num_threads(num_th);
@@ -191,7 +191,7 @@ int find_HII_bubbles(tocf_params_struct *params)
   H5LTget_attribute_float(file_id, target_group, "Redshift", &REDSHIFT);
   H5LTget_attribute_int(file_id, target_group, "CorrectedSnap", &corrected_snapshot);
   H5Fclose(file_id);
-  fprintf(stderr, "Snapshot = %d (%d)-> redshift = %.2f\n", snapshot, corrected_snapshot, REDSHIFT);
+  fprintf(stderr, "find_HII_bubbles:: Snapshot = %d (%d)-> redshift = %.2f\n", snapshot, corrected_snapshot, REDSHIFT);
 
   growth_factor = dicke(REDSHIFT);
   pixel_volume = pow(BOX_LEN/(float)HII_DIM, 3);
@@ -213,7 +213,7 @@ int find_HII_bubbles(tocf_params_struct *params)
 
   //set the minimum source mass
   if ((TVIR_MIN > 0) && (ION_M_MIN > 0)){
-    fprintf(stderr, "You have to \"turn-off\" either the ION_M_MIN or \
+    fprintf(stderr, "find_HII_bubbles:: You have to \"turn-off\" either the ION_M_MIN or \
         the ION_Tvir_MIN option in ANAL_PARAMS.H\nAborting...\n");
     free_ps(); return -1;
   }
@@ -228,9 +228,9 @@ int find_HII_bubbles(tocf_params_struct *params)
   }
   // check for WDM
   if (P_CUTOFF && ( M_MIN < M_J_WDM())){
-    fprintf(stderr, "The default Jeans mass of %e Msun is smaller than the scale supressed by the effective pressure of WDM.\n", M_MIN);
+    fprintf(stderr, "find_HII_bubbles:: The default Jeans mass of %e Msun is smaller than the scale supressed by the effective pressure of WDM.\n", M_MIN);
     M_MIN = M_J_WDM();
-    fprintf(stderr, "Setting a new effective Jeans mass from WDM pressure supression of %e Msun\n", M_MIN);
+    fprintf(stderr, "find_HII_bubbles:: Setting a new effective Jeans mass from WDM pressure supression of %e Msun\n", M_MIN);
   }
 
 
@@ -238,7 +238,7 @@ int find_HII_bubbles(tocf_params_struct *params)
   sprintf(filename, "%s/HII_bubble_log_file_%03d.log", params->logfile_dir, snapshot);
   LOG = fopen(filename, "w");
   if (!LOG){
-    fprintf(stderr, "find_HII_bubbles.c: Error opening log file\nAborting...\n");
+    fprintf(stderr, "find_HII_bubbles:: Error opening log file\nAborting...\n");
     fftwf_cleanup_threads();
     free_ps(); return -1;
   }
@@ -246,8 +246,8 @@ int find_HII_bubbles(tocf_params_struct *params)
   // allocate memory for the neutral fraction box
   xH = (float *) fftwf_malloc(sizeof(float)*HII_TOT_NUM_PIXELS);
   if (!xH){
-    fprintf(stderr, "find_HII_bubbles.c: Error allocating memory for xH box\nAborting...\n");
-    fprintf(LOG, "find_HII_bubbles.c: Error allocating memory for xH box\nAborting...\n");
+    fprintf(stderr, "find_HII_bubbles:: Error allocating memory for xH box\nAborting...\n");
+    fprintf(LOG, "find_HII_bubbles:: Error allocating memory for xH box\nAborting...\n");
     fclose(LOG); fftwf_cleanup_threads();
     free_ps(); return -1;
   }
@@ -257,21 +257,21 @@ int find_HII_bubbles(tocf_params_struct *params)
   mean_f_coll_st = FgtrM_st(REDSHIFT, M_MIN);
   mean_f_coll_ps = FgtrM(REDSHIFT, M_MIN);
   if ((mean_f_coll_st/f_coll_crit < HII_ROUND_ERR) || (REDSHIFT > Z_HEAT_MAX)){ // way too small to ionize anything...
-    fprintf(stderr, "The ST mean collapse fraction is %e, which is much smaller than the effective critical collapse fraction of %e\n I will just declare everything to be neutral\n", mean_f_coll_st, f_coll_crit);
-    fprintf(LOG, "The ST mean collapse fraction is %e, which is much smaller than the effective critical collapse fraction of %e\n I will just declare everything to be neutral\n", mean_f_coll_st, f_coll_crit);
+    fprintf(stderr, "find_HII_bubbles:: The ST mean collapse fraction is %e, which is much smaller than the effective critical collapse fraction of %e\n I will just declare everything to be neutral\n", mean_f_coll_st, f_coll_crit);
+    fprintf(LOG, "find_HII_bubbles:: The ST mean collapse fraction is %e, which is much smaller than the effective critical collapse fraction of %e\n I will just declare everything to be neutral\n", mean_f_coll_st, f_coll_crit);
 
     if (USE_TS_IN_21CM  && (REDSHIFT < Z_HEAT_MAX)){ // use the x_e box
       sprintf(filename, "../Boxes/Ts_evolution/xeneutral_zprime%06.2f_zetaX%.1e_alphaX%.1f_TvirminX%.1e_zetaIon%.2f_Pop%i_%i_%.0fMpc", REDSHIFT, ZETA_X, X_RAY_SPEC_INDEX, X_RAY_Tvir_MIN, HII_EFF_FACTOR, Pop, HII_DIM, BOX_LEN);
       if (!(F = fopen(filename, "rb"))){
-        fprintf(stderr, "find_HII_bubbles: Unable to open x_e file at %s\nAborting...\n", filename);
-        fprintf(LOG, "find_HII_bubbles: Unable to open x_e file at %s\nAborting...\n", filename);
+        fprintf(stderr, "find_HII_bubbles:: find_HII_bubbles: Unable to open x_e file at %s\nAborting...\n", filename);
+        fprintf(LOG, "find_HII_bubbles:: Unable to open x_e file at %s\nAborting...\n", filename);
         fclose(LOG); fftwf_free(xH);  fftwf_cleanup_threads();
         free_ps(); return -1;
       }
       for (ct=0; ct<HII_TOT_NUM_PIXELS; ct++){
         if (fread(&xH[ct], sizeof(float), 1, F)!=1){
-          fprintf(stderr, "find_HII_bubbles: Read error occured while reading xe box.\nAborting...\n");
-          fprintf(LOG, "find_HII_bubbles: Read error occured while reading xe box.\nAborting\n");
+          fprintf(stderr, "find_HII_bubbles:: Read error occured while reading xe box.\nAborting...\n");
+          fprintf(LOG, "find_HII_bubbles:: Read error occured while reading xe box.\nAborting\n");
           fclose(LOG); fftwf_free(xH);  fftwf_cleanup_threads();
           free_ps(); fftwf_free(xe_filtered); fftwf_free(xe_unfiltered); return -1;
         }
@@ -303,16 +303,16 @@ int find_HII_bubbles(tocf_params_struct *params)
     xe_unfiltered = (fftwf_complex *) fftwf_malloc(sizeof(fftwf_complex)*HII_KSPACE_NUM_PIXELS);
     xe_filtered = (fftwf_complex *) fftwf_malloc(sizeof(fftwf_complex)*HII_KSPACE_NUM_PIXELS);
     if (!xe_filtered || !xe_unfiltered){
-      fprintf(stderr, "find_HII_bubbles.c: Error allocating memory for xe boxes\nAborting...\n");
-      fprintf(LOG, "find_HII_bubbles.c: Error allocating memory for xe boxes\nAborting...\n");
+      fprintf(stderr, "find_HII_bubbles:: Error allocating memory for xe boxes\nAborting...\n");
+      fprintf(LOG, "find_HII_bubbles:: Error allocating memory for xe boxes\nAborting...\n");
       fclose(LOG); fftwf_free(xH);  fftwf_cleanup_threads();
       free_ps(); return -1;
     }
 
     sprintf(filename, "../Boxes/Ts_evolution/xeneutral_zprime%06.2f_zetaX%.1e_alphaX%.1f_TvirminX%.1e_zetaIon%.2f_Pop%i_%i_%.0fMpc", REDSHIFT, ZETA_X, X_RAY_SPEC_INDEX, X_RAY_Tvir_MIN, HII_EFF_FACTOR, Pop, HII_DIM, BOX_LEN);
     if (!(F = fopen(filename, "rb"))){
-      fprintf(stderr, "find_HII_bubbles: Unable to open x_e file at %s\nAborting...\n", filename);
-      fprintf(LOG, "find_HII_bubbles: Unable to open x_e file at %s\nAborting...\n", filename);
+      fprintf(stderr, "find_HII_bubbles:: Unable to open x_e file at %s\nAborting...\n", filename);
+      fprintf(LOG, "find_HII_bubbles:: Unable to open x_e file at %s\nAborting...\n", filename);
       fclose(LOG); fftwf_free(xH);  fftwf_cleanup_threads();
       free_ps(); fftwf_free(xe_filtered); fftwf_free(xe_unfiltered); return -1;
     }
@@ -320,8 +320,8 @@ int find_HII_bubbles(tocf_params_struct *params)
       for (j=0; j<HII_DIM; j++){
         for (k=0; k<HII_DIM; k++){
           if (fread((float *)xe_unfiltered + HII_R_FFT_INDEX(i,j,k), sizeof(float), 1, F)!=1){
-            fprintf(stderr, "find_HII_bubbles: Read error occured while reading xe box.\nAborting...\n");
-            fprintf(LOG, "find_HII_bubbles: Read error occured while reading xe box.\nAborting\n");
+            fprintf(stderr, "find_HII_bubbles:: Read error occured while reading xe box.\nAborting...\n");
+            fprintf(LOG, "find_HII_bubbles:: Read error occured while reading xe box.\nAborting\n");
             fclose(LOG); fftwf_free(xH);  fftwf_cleanup_threads();
             free_ps(); fftwf_free(xe_filtered); fftwf_free(xe_unfiltered); return -1;
           }
@@ -338,8 +338,8 @@ int find_HII_bubbles(tocf_params_struct *params)
     M_coll_unfiltered = (fftwf_complex *) fftwf_malloc(sizeof(fftwf_complex)*HII_KSPACE_NUM_PIXELS);
     M_coll_filtered = (fftwf_complex *) fftwf_malloc(sizeof(fftwf_complex)*HII_KSPACE_NUM_PIXELS);
     if (!M_coll_unfiltered || !M_coll_filtered){
-      fprintf(stderr, "find_HII_bubbles.c: Error allocating memory for M_coll boxes\nAborting...\n");
-      fprintf(LOG, "find_HII_bubbles.c: Error allocating memory for M_coll boxes\nAborting...\n");
+      fprintf(stderr, "find_HII_bubbles:: Error allocating memory for M_coll boxes\nAborting...\n");
+      fprintf(LOG, "find_HII_bubbles.c:: Error allocating memory for M_coll boxes\nAborting...\n");
       fclose(LOG); fftwf_free(xH);  fftwf_cleanup_threads();
       free_ps(); if (USE_TS_IN_21CM){ fftwf_free(xe_filtered); fftwf_free(xe_unfiltered);} return -1;
     }
@@ -360,8 +360,8 @@ int find_HII_bubbles(tocf_params_struct *params)
   deltax_unfiltered = (fftwf_complex *) fftwf_malloc(sizeof(fftwf_complex)*HII_KSPACE_NUM_PIXELS);
   deltax_filtered = (fftwf_complex *) fftwf_malloc(sizeof(fftwf_complex)*HII_KSPACE_NUM_PIXELS);
   if (!deltax_unfiltered || !deltax_filtered){
-    fprintf(stderr, "find_HII_bubbles: Error allocating memory for deltax boxes\nAborting...\n");
-    fprintf(LOG, "find_HII_bubbles: Error allocating memory for deltax boxes\nAborting...\n");
+    fprintf(stderr, "find_HII_bubbles:: Error allocating memory for deltax boxes\nAborting...\n");
+    fprintf(LOG, "find_HII_bubbles:: Error allocating memory for deltax boxes\nAborting...\n");
     fftwf_free(xH); fclose(LOG);
     if (USE_HALO_FIELD){ fftwf_free(M_coll_unfiltered); fftwf_free(M_coll_filtered); }
     fftwf_cleanup_threads();
@@ -371,7 +371,7 @@ int find_HII_bubbles(tocf_params_struct *params)
   status = read_nbody_grid(params, corrected_snapshot, 0, (float *)deltax_unfiltered);
   if(status!=0)
   {
-    fprintf(LOG, "find_HII_bubbles: Read error occured while reading n_body grid.\n");
+    fprintf(LOG, "find_HII_bubbles:: Read error occured while reading n_body grid.\n");
     fftwf_free(xH); fclose(LOG); fftwf_free(deltax_unfiltered); fftwf_free(deltax_filtered);
     if (USE_HALO_FIELD){ fftwf_free(M_coll_unfiltered); fftwf_free(M_coll_filtered); }
     fftwf_cleanup_threads(); fclose(F);
@@ -380,7 +380,7 @@ int find_HII_bubbles(tocf_params_struct *params)
 
 
   // do the fft to get the k-space M_coll field and deltax field
-  fprintf(LOG, "begin initial ffts, clock=%06.2f\n", (double)clock()/CLOCKS_PER_SEC);
+  fprintf(LOG, "find_HII_bubbles:: begin initial ffts, clock=%06.2f\n", (double)clock()/CLOCKS_PER_SEC);
   fflush(LOG);
   if (USE_HALO_FIELD){
     plan = fftwf_plan_dft_r2c_3d(HII_DIM, HII_DIM, HII_DIM, (float *)M_coll_unfiltered, (fftwf_complex *)M_coll_unfiltered, FFTW_ESTIMATE);
@@ -402,7 +402,7 @@ int find_HII_bubbles(tocf_params_struct *params)
     if (USE_TS_IN_21CM){ xe_unfiltered[ct] /= (float)HII_TOT_NUM_PIXELS;}
     deltax_unfiltered[ct] /= (HII_TOT_NUM_PIXELS+0.0);
   }
-  fprintf(LOG, "end initial ffts, clock=%06.2f\n", (double)clock()/CLOCKS_PER_SEC);
+  fprintf(LOG, "find_HII_bubbles:: end initial ffts, clock=%06.2f\n", (double)clock()/CLOCKS_PER_SEC);
   fflush(LOG);
 
 
@@ -415,21 +415,21 @@ int find_HII_bubbles(tocf_params_struct *params)
       LAST_FILTER_STEP = 1;
     }
 
-    fprintf(LOG, "before memcpy, clock=%06.2f\n", (double)clock()/CLOCKS_PER_SEC);
+    fprintf(LOG, "find_HII_bubbles:: before memcpy, clock=%06.2f\n", (double)clock()/CLOCKS_PER_SEC);
     fflush(LOG);
     if (USE_HALO_FIELD){    memcpy(M_coll_filtered, M_coll_unfiltered, sizeof(fftwf_complex)*HII_KSPACE_NUM_PIXELS);}
     if (USE_TS_IN_21CM){    memcpy(xe_filtered, xe_unfiltered, sizeof(fftwf_complex)*HII_KSPACE_NUM_PIXELS);}
     memcpy(deltax_filtered, deltax_unfiltered, sizeof(fftwf_complex)*HII_KSPACE_NUM_PIXELS);
-    fprintf(LOG, "begin filter, clock=%06.2f\n", (double)clock()/CLOCKS_PER_SEC);
+    fprintf(LOG, "find_HII_bubbles:: begin filter, clock=%06.2f\n", (double)clock()/CLOCKS_PER_SEC);
     fflush(LOG);
     if (USE_HALO_FIELD) { HII_filter(M_coll_filtered, HII_FILTER, R);}
     if (USE_TS_IN_21CM) { HII_filter(xe_filtered, HII_FILTER, R);}
     HII_filter(deltax_filtered, HII_FILTER, R);
-    fprintf(LOG, "end filter, clock=%06.2f\n", (double)clock()/CLOCKS_PER_SEC);
+    fprintf(LOG, "find_HII_bubbles:: end filter, clock=%06.2f\n", (double)clock()/CLOCKS_PER_SEC);
     fflush(LOG);
 
     // do the FFT to get the M_coll
-    fprintf(LOG, "begin fft with R=%f, clock=%06.2f\n", R, (double)clock()/CLOCKS_PER_SEC);
+    fprintf(LOG, "find_HII_bubbles:: begin fft with R=%f, clock=%06.2f\n", R, (double)clock()/CLOCKS_PER_SEC);
     fflush(LOG);
     if (USE_HALO_FIELD) {
       plan = fftwf_plan_dft_c2r_3d(HII_DIM, HII_DIM, HII_DIM, (fftwf_complex *)M_coll_filtered, (float *)M_coll_filtered, FFTW_ESTIMATE);
@@ -443,7 +443,7 @@ int find_HII_bubbles(tocf_params_struct *params)
     fftwf_execute(plan);
     fftwf_destroy_plan(plan);
     fftwf_cleanup();
-    fprintf(LOG, "end fft with R=%f, clock=%06.2f\n", R, (double)clock()/CLOCKS_PER_SEC);
+    fprintf(LOG, "find_HII_bubbles:: end fft with R=%f, clock=%06.2f\n", R, (double)clock()/CLOCKS_PER_SEC);
     fflush(LOG);
 
 
@@ -456,7 +456,7 @@ int find_HII_bubbles(tocf_params_struct *params)
       status = read_nbody_grid(params, corrected_snapshot, 0, (float *)deltax_unfiltered);
       if(status!=0)
       {
-        fprintf(LOG, "find_HII_bubbles: Read error occured while reading n_body grid.\n");
+        fprintf(LOG, "find_HII_bubbles:: Read error occured while reading n_body grid.\n");
         fftwf_free(xH); fclose(LOG); fftwf_free(deltax_unfiltered); fftwf_free(deltax_filtered); fftwf_free(M_coll_unfiltered); fftwf_free(M_coll_filtered);  fftwf_cleanup_threads(); fclose(F);
         free_ps(); if (USE_TS_IN_21CM){ fftwf_free(xe_filtered); fftwf_free(xe_unfiltered);} return -1;
       }
@@ -511,7 +511,7 @@ int find_HII_bubbles(tocf_params_struct *params)
 
     // not the last filter step, and we operating on the density field
     else if (!USE_HALO_FIELD){
-      fprintf(LOG, "begin f_coll normalization if, clock=%06.2f\n", (double)clock()/CLOCKS_PER_SEC);
+      fprintf(LOG, "find_HII_bubbles:: begin f_coll normalization if, clock=%06.2f\n", (double)clock()/CLOCKS_PER_SEC);
       fflush(LOG);
       erfc_denom = sqrt( 2*(pow(sigma_z0(M_MIN), 2) - pow(sigma_z0(RtoM(R)), 2) ) );
       if (erfc_denom < 0){  // our filtering scale has become too small
@@ -529,13 +529,14 @@ int find_HII_bubbles(tocf_params_struct *params)
       }      
       f_coll /= (double) sample_ct;
       ST_over_PS = mean_f_coll_st/f_coll;
-      fprintf(LOG, "end f_coll normalization if, clock=%06.2f\n", (double)clock()/CLOCKS_PER_SEC);
+      fprintf(LOG, "find_HII_bubbles:: end f_coll normalization if, clock=%06.2f\n", (double)clock()/CLOCKS_PER_SEC);
       fflush(LOG);
     }
     // fprintf(stderr, "Last filter %i, R_filter=%f, fcoll=%f, ST_over_PS=%f, mean normalized fcoll=%f\n", LAST_FILTER_STEP, R, f_coll, ST_over_PS, f_coll*ST_over_PS);
 
     /************  MAIN LOOP THROUGH THE BOX **************/
-    fprintf(LOG, "start of main lopp scroll, clock=%06.2f\n", (double)clock()/CLOCKS_PER_SEC);
+    fprintf(LOG, "find_HII_bubbles:: start of main loop scroll, clock=%06.2f\n", (double)clock()/CLOCKS_PER_SEC);
+    fprintf(stderr, "find_HII_bubbles:: start of main loop scroll, clock=%06.2f\n", (double)clock()/CLOCKS_PER_SEC);
     fflush(LOG);
     // now lets scroll through the filtered box
     ave_xHI_xrays = ave_den = ave_fcoll = std_xrays = 0;
@@ -598,8 +599,8 @@ int find_HII_bubbles(tocf_params_struct *params)
               update_in_sphere(xH, HII_DIM, R/BOX_LEN, x/(HII_DIM+0.0), y/(HII_DIM+0.0), z/(HII_DIM+0.0));
 
             else{
-              fprintf(stderr, "Incorrect choice of find bubble algorithm: %i\nAborting...", FIND_BUBBLE_ALGORITHM);
-              fprintf(LOG, "Incorrect choice of find bubble algorithm: %i\nAborting...", FIND_BUBBLE_ALGORITHM);
+              fprintf(stderr, "find_HII_bubbles:: Incorrect choice of find bubble algorithm: %i\nAborting...", FIND_BUBBLE_ALGORITHM);
+              fprintf(LOG, "find_HII_bubbles:: Incorrect choice of find bubble algorithm: %i\nAborting...", FIND_BUBBLE_ALGORITHM);
               fflush(NULL);
               z=HII_DIM;y=HII_DIM,x=HII_DIM;R=0;
             }
@@ -638,6 +639,7 @@ int find_HII_bubbles(tocf_params_struct *params)
 
     R /= DELTA_R_HII_FACTOR;
   }
+  fprintf(stderr, "find_HII_bubbles:: finished main loop scroll, clock=%06.2f\n", (double)clock()/CLOCKS_PER_SEC);
 
   // find the neutral fraction
   global_xH = 0;

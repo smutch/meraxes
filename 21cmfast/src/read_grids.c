@@ -15,9 +15,9 @@ static inline void read_identifier(FILE *fin, bool skip_flag)
   char identifier[32];
   fread(identifier, sizeof(identifier), 1, fin);
   if (skip_flag)
-    printf("Skipping grid: %s...\n", identifier);
+    fprintf(stderr, "find_HII_bubbles:: Skipping grid: %s...\n", identifier);
   else
-    printf("Reading grid: %s...\n", identifier);
+    fprintf(stderr, "find_HII_bubbles:: Reading grid: %s...\n", identifier);
 }
 
 int read_nbody_grid(
@@ -46,7 +46,7 @@ int read_nbody_grid(
   fin = fopen(fname, "rb");
   if (fin==NULL)
   {
-    fprintf(stderr, "Failed to open %s\n", fname);
+    fprintf(stderr, "find_HII_bubbles:: Failed to open %s\n", fname);
     return(EXIT_FAILURE);
   }
 
@@ -56,24 +56,24 @@ int read_nbody_grid(
   fread(&n_grids, sizeof(int), 1, fin);
   fread(&ma_scheme, sizeof(int), 1, fin);
 
-  printf("Reading grid for snapshot %d\n", snapshot);
-  printf("n_cell = [%d, %d, %d]\n", n_cell[0], n_cell[1], n_cell[2]);
-  printf("box_size = [%.2f, %.2f, %.2f]\n", box_size[0], box_size[1], box_size[2]);
-  printf("ma_scheme = %d\n", ma_scheme);
+  fprintf(stderr, "find_HII_bubbles:: Reading grid for snapshot %d\n", snapshot);
+  fprintf(stderr, "find_HII_bubbles:: n_cell = [%d, %d, %d]\n", n_cell[0], n_cell[1], n_cell[2]);
+  fprintf(stderr, "find_HII_bubbles:: box_size = [%.2f, %.2f, %.2f]\n", box_size[0], box_size[1], box_size[2]);
+  fprintf(stderr, "find_HII_bubbles:: ma_scheme = %d\n", ma_scheme);
 
   if (n_grids != 4)
   {
-    fprintf(stderr, "n_grids != 3 as expected...\n");
+    fprintf(stderr, "find_HII_bubbles:: n_grids != 3 as expected...\n");
     fclose(fin);
     return -1;
   }
   if ((n_cell[0]!=HII_DIM) || (n_cell[1]!=HII_DIM) || (n_cell[2]!=HII_DIM))
   {
-    fprintf(stderr, "At least one n_cell axis != INIT_PARAMS.h HII_DIM value...\n");
+    fprintf(stderr, "find_HII_bubbles:: At least one n_cell axis != INIT_PARAMS.h HII_DIM value...\n");
     // fclose(fin);
     // return -1;
     resample_factor = (float)HII_DIM/(float)n_cell[0];
-    fprintf(stderr, "Using resample factor = %.3f\n", resample_factor);
+    fprintf(stderr, "find_HII_bubbles:: Using resample factor = %.3f\n", resample_factor);
   }
 
   // Compute the total number of elements in each grid
@@ -111,7 +111,7 @@ int read_nbody_grid(
   // In order to calculate the mean density we must actually take the mean of
   // the mass in each cell and then renormalise by the total volume.
   mean /= powf(box_size[0], 3);
-  printf("Calculated mean = %.2e :: theory = %.2e\n", mean*1.e10*hlittle*hlittle, OMm*RHOcrit);
+  fprintf(stderr, "find_HII_bubbles:: Calculated mean = %.2e :: theory = %.2e\n", mean*1.e10*hlittle*hlittle, OMm*RHOcrit);
 
   // Loop through again and calculate the overdensity
   // i.e. (rho - rho_mean)/rho_mean
@@ -121,7 +121,7 @@ int read_nbody_grid(
       for (int k=0; k<HII_DIM; k++)
         *(grid + HII_R_FFT_INDEX(i,j,k)) = (*(grid + HII_R_FFT_INDEX(i,j,k))/(cell_volume * mean))-1.;
  
-  printf("...done\n");
+  fprintf(stderr, "find_HII_bubbles:: ...done\n");
 
   // Close the file
   fclose(fin);
