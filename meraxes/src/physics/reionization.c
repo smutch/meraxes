@@ -7,6 +7,10 @@ void init_reionization(run_globals_struct *run_globals)
   //! Initialize the 21cmfast parameters structure
   tocf_params_struct *params = &(run_globals->tocf_params);
 
+  // N.B. Currently BOX_LEN and HII_DIM must be set in the INIT_PARAMS.H file
+  // of 21cmFAST before it's compilation.  All cosmological parameters must
+  // also be set in COSMOLOGY.H.  This should be fixed in future.
+
   params->meraxes_fname  = run_globals->FNameOut;
   params->logfile_dir    = run_globals->params.TOCF_LogFileDir;
   params->snapshot       = -1;  // Will be updated later
@@ -48,28 +52,9 @@ void do_reionization(run_globals_struct *run_globals, int snapshot)
 {
   tocf_params_struct *params = &(run_globals->tocf_params);
   bool found_flag = false;
-  // float *xH_grid;
 
-  // snapshot -=1;
   params->snapshot = snapshot;
 
-  // for(int ii=0; ii<NOUT; ii++)
-  //   if(run_globals->ListOutputSnaps[ii]==(snapshot))
-  //   {
-  //     found_flag = true;
-  //     break;
-  //   }
-
-  // if(found_flag == false)
-  // {
-  //   SID_log("The previous snapshot was not output so we can't do reionization calculation here!", SID_LOG_COMMENT);
-  //   ABORT(EXIT_FAILURE);
-  // }
-
   find_HII_bubbles(params);
-
-  // read_xH_grid(run_globals, snapshot, xH_grid);
-
-  // SID_free(SID_FARG xH_grid);
 }
 
