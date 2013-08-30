@@ -31,7 +31,7 @@ Author: Andrei Mesinger
 Date: 01/10/07
 */
 
-static int write_xH(char *meraxes_fname, int snapshot, float *xH, double global_xH, float ION_EFF_FACTOR, float M_MIN, float MFP)
+static int write_xH(char *meraxes_fname, int snapshot, float *xH, double global_xH, float ION_EFF_FACTOR, float M_MIN, float MFP, FILE *LOG)
 {
   hid_t   file_id;
   hid_t   group_id;
@@ -43,6 +43,7 @@ static int write_xH(char *meraxes_fname, int snapshot, float *xH, double global_
   if (!(file_id = H5Fopen(meraxes_fname, H5F_ACC_RDWR, H5P_DEFAULT))){
     fprintf(stderr, "find_HII_bubbles:: ERROR: unable to open file %s for writting!\n", meraxes_fname);
     fprintf(LOG, "find_HII_bubbles:: ERROR: unable to open file %s for writting!\n", meraxes_fname);
+    fflush(LOG);
     global_xH = -1;
   }else 
   {
@@ -90,7 +91,7 @@ int find_HII_bubbles(tocf_params_struct *params)
 {
 
   char                filename[300];
-  FILE               *F;
+  FILE               *F = NULL;
   FILE               *pPipe;
   float               REDSHIFT;
   float               mass;
@@ -292,7 +293,7 @@ int find_HII_bubbles(tocf_params_struct *params)
     }
 
     // print out the xH box
-    global_xH = write_xH(meraxes_fname, snapshot, xH, global_xH, ION_EFF_FACTOR, M_MIN, MFP);
+    global_xH = write_xH(meraxes_fname, snapshot, xH, global_xH, ION_EFF_FACTOR, M_MIN, MFP, LOG);
     fclose(F); fclose(LOG); fftwf_free(xH); fftwf_cleanup_threads();
     free_ps(); return (int) (global_xH * 100);
   }
@@ -410,10 +411,13 @@ int find_HII_bubbles(tocf_params_struct *params)
   erfc_denom_cell=1; //dummy value
   R=fmin(MFP, L_FACTOR*BOX_LEN);
   LAST_FILTER_STEP = 0;
-  while (!LAST_FILTER_STEP){//(R > (cell_length_factor*BOX_LEN/(HII_DIM+0.0))){
+  fprintf(stderr, "find_HII_bubbles:: Performing filtering... ");
+  while (!LAST_FILTER_STEP){
     if ((R/DELTA_R_HII_FACTOR) <= (cell_length_factor*BOX_LEN/(float)HII_DIM)){
       LAST_FILTER_STEP = 1;
     }
+
+    fprintf(stderr, "%.2e ", R);
 
     fprintf(LOG, "find_HII_bubbles:: before memcpy, clock=%06.2f\n", (double)clock()/CLOCKS_PER_SEC);
     fflush(LOG);
@@ -453,6 +457,7 @@ int find_HII_bubbles(tocf_params_struct *params)
     ST_over_PS = 0;
     f_coll = 0;
     if (LAST_FILTER_STEP){
+      fprintf(stderr, "\n");
       status = read_nbody_grid(params, corrected_snapshot, 0, (float *)deltax_unfiltered);
       if(status!=0)
       {
@@ -536,7 +541,6 @@ int find_HII_bubbles(tocf_params_struct *params)
 
     /************  MAIN LOOP THROUGH THE BOX **************/
     fprintf(LOG, "find_HII_bubbles:: start of main loop scroll, clock=%06.2f\n", (double)clock()/CLOCKS_PER_SEC);
-    fprintf(stderr, "find_HII_bubbles:: start of main loop scroll, clock=%06.2f\n", (double)clock()/CLOCKS_PER_SEC);
     fflush(LOG);
     // now lets scroll through the filtered box
     ave_xHI_xrays = ave_den = ave_fcoll = std_xrays = 0;
@@ -601,7 +605,7 @@ int find_HII_bubbles(tocf_params_struct *params)
             else{
               fprintf(stderr, "find_HII_bubbles:: Incorrect choice of find bubble algorithm: %i\nAborting...", FIND_BUBBLE_ALGORITHM);
               fprintf(LOG, "find_HII_bubbles:: Incorrect choice of find bubble algorithm: %i\nAborting...", FIND_BUBBLE_ALGORITHM);
-              fflush(NULL);
+              fflush(LOG);
               z=HII_DIM;y=HII_DIM,x=HII_DIM;R=0;
             }
           }
@@ -639,7 +643,6 @@ int find_HII_bubbles(tocf_params_struct *params)
 
     R /= DELTA_R_HII_FACTOR;
   }
-  fprintf(stderr, "find_HII_bubbles:: finished main loop scroll, clock=%06.2f\n", (double)clock()/CLOCKS_PER_SEC);
 
   // find the neutral fraction
   global_xH = 0;
@@ -649,7 +652,7 @@ int find_HII_bubbles(tocf_params_struct *params)
   global_xH /= (float)HII_TOT_NUM_PIXELS;
 
   // save the xH box
-  global_xH = write_xH(meraxes_fname, snapshot, xH, global_xH, ION_EFF_FACTOR, M_MIN, MFP);
+  global_xH = write_xH(meraxes_fname, snapshot, xH, global_xH, ION_EFF_FACTOR, M_MIN, MFP, LOG);
 
   // deallocate
   fftwf_cleanup_threads();

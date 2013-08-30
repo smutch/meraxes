@@ -33,7 +33,7 @@ int read_galaxies(char *fname, int snapshot, gal_struct **gals)
 
   // Get the table info
   status = H5TBget_table_info(group_id, "Galaxies", &nfields, &nrecords);
-  fprintf(stderr, "find_HII_bubbles:: Reading in %d galaxies... \n", (int)nrecords);
+  fprintf(stderr, "find_HII_bubbles:: Reading in %d galaxies... ", (int)nrecords);
 
   // Setup the offsets and sizes and buffer for the read
   *gals = malloc(sizeof(gal_struct) * (size_t)nrecords);
