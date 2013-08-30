@@ -293,7 +293,7 @@ void read_parameter_file(run_globals_struct *run_globals, char *fname)
   strcpy(params_tag[n_param], "TOCF_NThreads");
   params_addr[n_param] = &(run_params->TOCF_NThreads);
   required_tag[n_param] = 1;
-  params_id[n_param++] = STRING;
+  params_id[n_param++] = INT;
   
   // N.B. This part of the code is wasteful and should be updated!!! 
 
