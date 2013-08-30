@@ -1,11 +1,12 @@
 #!/usr/bin/env python
 
 """ Usage: 
-        show_xH_slice.py <input_file> <snapshot> <output_file> <slice> [--color_bar] [--cmap=<name>]
+        show_xH_slice.py <input_file> <snapshot> <output_file> <slice> [--color_bar] [--cmap=<name>] [--galaxies]
 
     Options:
         --color_bar           Show color bar.
         --cmap=<name>         Colormap name [default: BuPu]
+        --galaxies            Overplot the galaxies
 
     Args:
         input_file            Input filename
@@ -23,15 +24,16 @@ from docopt import docopt
 
 from ssimpl import meraxes, nbody
 
-def setup_fig(redshift, neutral_fraction, slice_str):
+def setup_fig(redshift, neutral_fraction, slice_str, slice_axis):
 
     fig, ax = plt.subplots(1,1, facecolor='w')
     ax.grid('off')
     # ax.grid(color='0.8', alpha=0.5)
 
     axis_names = np.array(('x','y','z'))
-    s = np.array(parse_slice(slice_str))
-    labels = axis_names[s==slice(None, None, None)]
+    sel = np.ones(3, bool)
+    sel[slice_axis] = False
+    labels = np.array(['x', 'y', 'z'])[sel]
     ax.set_xlabel(labels[0]+' (Mpc)')
     ax.set_ylabel(labels[1]+' (Mpc)')
     plt.title('z=%.2f; nf=%.3f; slice=[%s]' % (redshift, neutral_fraction,
@@ -39,7 +41,7 @@ def setup_fig(redshift, neutral_fraction, slice_str):
     return fig, ax
 
 
-def plot_slice(slice_img, ax, dim, box_size, galaxies=None, color_bar=False, cmap='jet'):
+def plot_slice(slice_img, ax, dim, slice_axis, box_size, galaxies=False, color_bar=False, cmap='jet'):
    
     final_size = (slice_img.shape[0]/dim)*box_size
     extent = (0,final_size,0,final_size)
@@ -56,25 +58,51 @@ def plot_slice(slice_img, ax, dim, box_size, galaxies=None, color_bar=False, cma
         cbar = fig.colorbar(cax)
         cbar.set_label(r'${\rm x_H}$')
 
+    if galaxies is not False:
+        i_axis = np.arange(3, dtype=int)
+        plot_axis = np.argwhere(i_axis!=slice_axis).squeeze()
+        ax.scatter(galaxies["Pos"][:,plot_axis[0]],
+                   galaxies["Pos"][:,plot_axis[1]],
+                   s=np.log10(galaxies['StellarMass']*1.e10)**5/1000,
+                   c=np.log10(galaxies['StellarMass']*1.e10), 
+                   cmap=plt.cm.Blues,
+                   marker='o',
+                   zorder=3)
 
-def parse_slice(slice_str):
+    ax.set_xlim(0,final_size)
+    ax.set_ylim(0,final_size)
 
-    pattern = r'(?P<sx>.+?),(?P<sy>.+?),(?P<sz>.+?)'
+def parse_slice(slice_str, max_dim):
+
+    pattern = r'(?P<sx>.+),(?P<sy>.+),(?P<sz>.+)'
+    axis_pattern = r'(?P<from>[0-9]+)?:?(?P<to>[0-9]+)?'
     slice_dict = re.match(pattern, slice_str).groupdict()
 
-    default = [None,None,None]
+    default = [0,max_dim,None]
     for ii, k in enumerate(slice_dict.iterkeys()):
         if slice_dict[k]==':':
             slice_dict[k]=default[:]
         else:
-            tmp = int(slice_dict[k])
+            axis_dict = re.match(axis_pattern, slice_dict[k]).groupdict()
             slice_dict[k]=default[:]
-            slice_dict[k][0]=tmp
-            slice_dict[k][1]=tmp+1
+            if axis_dict['from'] is not None:
+                slice_dict[k][0]=int(axis_dict['from'])
+            else:
+                slice_dict[k][0]=0
+            if axis_dict['to'] is not None:
+                slice_dict[k][1]=int(axis_dict['to'])
+            else:
+                slice_dict[k][1]=slice_dict[k][0]+1
 
-    s = (slice(*slice_dict['sx']),
+    # for i in range(3):
+    #     if slice_sel[i].start is None:
+    #         slice_sel[i]=slice(0,slice_sel[i].stop,None)
+    #     if slice_sel[i].stop is None:
+    #         slice_sel[i]=slice(slice_sel[i].start,slice_dim,None)
+
+    s = [slice(*slice_dict['sx']),
          slice(*slice_dict['sy']),
-         slice(*slice_dict['sz']))
+         slice(*slice_dict['sz'])]
 
     return s
 
@@ -85,23 +113,34 @@ if __name__ == '__main__':
     input_file = args['<input_file>']
     snapshot = int(args['<snapshot>'])
     output_file = args['<output_file>']
-    slice_sel = parse_slice(args['<slice>'])
     redshift = meraxes.io.grab_redshift(input_file, snapshot)
 
     # read the grid
     grid, grid_props = meraxes.io.read_xH_grid(input_file, snapshot)
-    grid_slice = grid[slice_sel].squeeze()
-    slice_dim = grid_slice.shape[0]
+    slice_dim = grid_props['HII_dim']
+    slice_sel = parse_slice(args['<slice>'], slice_dim)
+    grid_slice = grid[slice_sel]
+    slice_axis = np.argmin(grid_slice.shape)
+    grid_slice = grid_slice.squeeze()
 
-    # if requested also read in the galaxies
-    # if(args['--galaxies']):
-    #     gals = meraxes.io.read_gals(input_file, snapshot)
-    # else:
-    gals = None
+    if grid_slice.ndim==3:
+        grid_slice = grid_slice.mean(axis=slice_axis)
+    box_len = grid_props['box_len'][0]
+
+    # if requested also read in the galaxies and select those within our slice
+    if(args['--galaxies']):
+        gals = meraxes.io.read_gals(input_file, snapshot)
+        edges = np.linspace(0, box_len, slice_dim+1)
+        sel = np.prod([((gals["Pos"][:,i] <= edges[slice_sel[i].stop]) & 
+                     (gals["Pos"][:,i] > edges[slice_sel[i].start]))
+                    for i in range(3) ], axis=0)
+        gals = gals[np.nonzero(sel)]
+    else:
+        gals = False
     
 
-    fig, ax = setup_fig(redshift, grid_props['global_xH'], args['<slice>'])
-    plot_slice(grid_slice, ax, slice_dim, grid_props['box_len'],
+    fig, ax = setup_fig(redshift, grid_props['global_xH'], args['<slice>'], slice_axis)
+    plot_slice(grid_slice, ax, slice_dim, slice_axis, box_len,
                galaxies=gals,
                color_bar=args['--color_bar'],
                cmap=args['--cmap'])
