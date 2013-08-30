@@ -24,40 +24,73 @@ SConsEnvironment.CopyFiles = lambda env, file_list, dest: copy_files(file_list, 
 # = Command line definitions =
 # ============================
 
+vars = Variables()
+
+vars = Variables('config.py') # Persistent storage.
+vars.AddVariables(
+    EnumVariable('build', 'Set the build type.', 'optimised', allowed_values=('debug', 'optimised')),
+    BoolVariable('prof', 'Enable profiling.', False)
+)
+
 # Create the environment
-env = Environment(ENV=os.environ)
+env = Environment(variables = vars, ENV=os.environ)
+
+# Check if there were any unkown variables on the command line.
+unknown = vars.UnknownVariables()
+if unknown:
+    print 'Unknown variables:', unknown.keys()
+    env.Exit(1)
+
+# Take a snapshot of provided options before we continue.
+vars.Save('config.py', env)
+
+# Generate a help line later use.
+Help(vars.GenerateHelpText(env))
 
 # Define the command for building a tags file
 tagsources = Glob("*.[ch]")
 ctags = env.Command('ctags', tagsources, "ctags -R --c++-kinds=+p --fields=+iaS --extra=+q") 
 
-# =================================
-# = System specific build options =
-# =================================
+# If the user requested help don't bother continuing with the build.
+if not GetOption('help'):
 
-env.AppendUnique(LIBS=['gsl', 'gslcblas', 'm', 'fftw3f', 'gomp'])
-HDF5_LIBS = ['z', 'libhdf5_hl', 'libhdf5']
+    # Modify the environment based on any of our variables.
+    if env['build'] == 'debug':
+        env.MergeFlags('-g -O0 -Wall -Wno-unused -Wno-unknown-pragmas')
+        env.AppendUnique(CPPDEFINES=['DEBUG'])
+    elif env['build'] == 'optimised':
+        env.MergeFlags('-O2')
+    if env['prof']:
+        env.MergeFlags('-g -pg')
+        env.AppendUnique(LINKFLAGS=['-pg'])
 
-GIT         = ['/usr/bin/git']
-GSL_INCL    = ['/usr/local/x86_64/gnu/gsl-1.9/include']
-GSL_LIBS    = ['/usr/local/x86_64/gnu/gsl-1.9/lib']
-LEVMAR_INCL = ['/home/smutch/3rd_party/levmar']
-LEVMAR_LIBS = ['/home/smutch/3rd_party/levmar']
-GBP_INCL    = ['/home/smutch/3rd_party/gbpCode/myInclude']
-GBP_LIBS    = ['/home/smutch/3rd_party/gbpCode/myLib/mpi']
-FFTW_INCL   = ['/home/smutch/3rd_party/fftw-3.3.3/include']
-FFTW_LIBS   = ['/home/smutch/3rd_party/fftw-3.3.3/lib']
-CC          = ['/usr/local/x86_64/gnu/openmpi-1.6.1/bin/mpicc', '-openmp']
+    # =================================
+    # = System specific build options =
+    # =================================
 
-env.Replace(CC = CC)
-env.AppendUnique(CPPPATH = ["./"])
-env.AppendUnique(CPPPATH = [GSL_INCL, GBP_INCL, FFTW_INCL])
-env.AppendUnique(LIBPATH = [GSL_LIBS, GBP_LIBS, FFTW_LIBS])
-env.AppendUnique(LIBS = HDF5_LIBS)
-env.AppendUnique(CPPFLAGS = '-std=gnu99')
+    env.AppendUnique(LIBS=['gsl', 'gslcblas', 'm', 'fftw3f', 'gomp'])
+    HDF5_LIBS = ['z', 'libhdf5_hl', 'libhdf5']
 
-node_list = files('*.c')
-target = env.StaticLibrary(target='../lib/21cmfast', source=node_list)
-headers_target = env.CopyFiles(files('*.h'), '../include')
-Depends(headers_target, target)
-Default(target)
+    GIT         = ['/usr/bin/git']
+    GSL_INCL    = ['/usr/local/x86_64/gnu/gsl-1.9/include']
+    GSL_LIBS    = ['/usr/local/x86_64/gnu/gsl-1.9/lib']
+    LEVMAR_INCL = ['/home/smutch/3rd_party/levmar']
+    LEVMAR_LIBS = ['/home/smutch/3rd_party/levmar']
+    GBP_INCL    = ['/home/smutch/3rd_party/gbpCode/myInclude']
+    GBP_LIBS    = ['/home/smutch/3rd_party/gbpCode/myLib/mpi']
+    FFTW_INCL   = ['/home/smutch/3rd_party/fftw-3.3.3/include']
+    FFTW_LIBS   = ['/home/smutch/3rd_party/fftw-3.3.3/lib']
+    CC          = ['/usr/local/x86_64/gnu/openmpi-1.6.1/bin/mpicc', '-openmp']
+
+    env.Replace(CC = CC)
+    env.AppendUnique(CPPPATH = ["./"])
+    env.AppendUnique(CPPPATH = [GSL_INCL, GBP_INCL, FFTW_INCL])
+    env.AppendUnique(LIBPATH = [GSL_LIBS, GBP_LIBS, FFTW_LIBS])
+    env.AppendUnique(LIBS = HDF5_LIBS)
+    env.AppendUnique(CPPFLAGS = '-std=gnu99')
+
+    node_list = files('*.c')
+    target = env.StaticLibrary(target='../lib/21cmfast', source=node_list)
+    headers_target = env.CopyFiles(files('*.h'), '../include')
+    Depends(headers_target, target)
+    Default(target)
