@@ -24,7 +24,7 @@ from docopt import docopt
 
 __script_dir__ = os.path.dirname(os.path.realpath( __file__ ))
 sys.path.append(os.path.join(__script_dir__, "../utils"))
-from samtools import io as samio
+from samtools.meraxes import io as samio
 
 __author__ = "Simon Mutch"
 __date__   = "2013/08/14"
