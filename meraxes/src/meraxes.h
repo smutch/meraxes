@@ -5,7 +5,10 @@
 #include <gsl/gsl_rng.h>
 #include <stdbool.h>
 #include <hdf5.h>
+
+#ifdef USE_TOCF
 #include <21cmfast.h>
+#endif
 
 /*
  * Definitions
@@ -108,6 +111,7 @@ struct run_params_struct{
   int                   SnaplistLength;
   int                   RandomSeed;
   physics_params_struct physics;
+  int                   TOCF_Flag;
   char                  TOCF_LogFileDir[STRLEN];
   int                   TOCF_NThreads;
 };
@@ -167,7 +171,9 @@ struct run_globals_struct{
   struct run_units_struct    units;
   hdf5_output_struct         hdf5props;
   phototabs_struct           photo;
+#ifdef USE_TOCF
   tocf_params_struct         tocf_params;
+#endif
 };
 typedef struct run_globals_struct run_globals_struct;
 

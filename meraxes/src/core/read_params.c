@@ -285,6 +285,11 @@ void read_parameter_file(run_globals_struct *run_globals, char *fname)
   required_tag[n_param] = 1;
   params_id[n_param++] = DOUBLE;
 
+  strcpy(params_tag[n_param], "TOCF_Flag");
+  params_addr[n_param] = &(run_params->TOCF_Flag);
+  required_tag[n_param] = 1;
+  params_id[n_param++] = INT;
+
   strcpy(params_tag[n_param], "TOCF_LogFileDir");
   params_addr[n_param] = &(run_params->TOCF_LogFileDir);
   required_tag[n_param] = 1;
@@ -294,6 +299,8 @@ void read_parameter_file(run_globals_struct *run_globals, char *fname)
   params_addr[n_param] = &(run_params->TOCF_NThreads);
   required_tag[n_param] = 1;
   params_id[n_param++] = INT;
+
+
   
   // N.B. This part of the code is wasteful and should be updated!!! 
 

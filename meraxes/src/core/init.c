@@ -172,7 +172,8 @@ void init_meraxes(run_globals_struct *run_globals)
   prep_hdf5_file(run_globals);
 
   // Set up reionization related stuff
-  init_reionization(run_globals);
+  if(run_globals->params.TOCF_Flag)
+    init_reionization(run_globals);
 
 }
 

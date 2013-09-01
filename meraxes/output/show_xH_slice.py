@@ -67,6 +67,7 @@ def plot_slice(slice_img, ax, dim, slice_axis, box_size, galaxies=False, color_b
                    c=np.log10(galaxies['StellarMass']*1.e10), 
                    cmap=plt.cm.Blues,
                    marker='o',
+                   alpha=0.5,
                    zorder=3)
 
     ax.set_xlim(0,final_size)

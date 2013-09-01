@@ -4,6 +4,7 @@
 
 void init_reionization(run_globals_struct *run_globals)
 {
+#ifdef USE_TOCF
   //! Initialize the 21cmfast parameters structure
   tocf_params_struct *params = &(run_globals->tocf_params);
 
@@ -21,10 +22,15 @@ void init_reionization(run_globals_struct *run_globals)
   params->zlist          = run_globals->ZZ;
   params->sim_dir        = run_globals->params.SimulationDir;
   params->sim_name       = run_globals->params.SimName;
+#else
+  SID_log_error("TOCF_Flag = 1, but Meraxes has not been compiled with 21cmFAST...", SID_LOG_COMMENT);
+  ABORT(EXIT_FAILURE);
+#endif
 }
 
 static int read_xH_grid(run_globals_struct *run_globals, int snapshot, float *xH_grid)
 {
+#ifdef USE_TOCF
   herr_t status;
   hid_t file_id;
   hid_t group_id;
@@ -46,15 +52,18 @@ static int read_xH_grid(run_globals_struct *run_globals, int snapshot, float *xH
   H5Fclose(file_id);
 
   return (int)(dims[0]);
+#endif
 }
 
 void do_reionization(run_globals_struct *run_globals, int snapshot)
 {
+#ifdef USE_TOCF
   tocf_params_struct *params = &(run_globals->tocf_params);
   bool found_flag = false;
 
   params->snapshot = snapshot;
 
   find_HII_bubbles(params);
+#endif
 }
 
