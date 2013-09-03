@@ -53,13 +53,14 @@ static void init_jump_index(run_globals_struct *run_globals)
   // the nearest AgeTab index for any given age.  The larger the NJumps, the
   // more accurate we can be...
 
-  float  age;
-  int    idx;
-  int   *jumptab = run_globals->photo.JumpTable;
-  float  jumpfac;
-  float *AgeTab  = run_globals->photo.Ages;
+  float             age;
+  int               idx;
+  float             jumpfac;
+  phototabs_struct *photo   = &(run_globals->photo);
+  int              *jumptab = photo->JumpTable;
+  float            *AgeTab  = photo->Ages;
 
-  jumpfac = N_PHOTO_JUMPS / (AgeTab[N_PHOTO_AGES - 1] - AgeTab[1]);
+  jumpfac = N_PHOTO_JUMPS / (AgeTab[photo->NAges - 1] - AgeTab[1]);
 
   for(int ii = 0; ii < N_PHOTO_JUMPS; ii++)
   {
@@ -70,7 +71,7 @@ static void init_jump_index(run_globals_struct *run_globals)
     jumptab[ii] = idx;
   }
 
-  run_globals->photo.JumpFactor = jumpfac;
+  photo->JumpFactor = jumpfac;
 
 }
 
