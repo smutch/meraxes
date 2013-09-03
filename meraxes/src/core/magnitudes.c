@@ -1,32 +1,32 @@
 #include <math.h>
 #include "meraxes.h"
 
-void init_luminosities(galaxy_struct *gal)
+void init_luminosities(run_globals_struct *run_globals, galaxy_struct *gal)
 {
 #ifdef CALC_MAGS
   for(int ii=0; ii<NOUT; ii++)
-    for(int jj=0; jj<N_PHOTO_BANDS; jj++)
+    for(int jj=0; jj<run_globals->photo.NBands; jj++)
       gal->Lum[jj][ii]     = 0.0;
 #else
   return;
 #endif
 }
 
-void sum_luminosities(galaxy_struct *parent, galaxy_struct *gal, int outputbin)
+void sum_luminosities(int n_bands, galaxy_struct *parent, galaxy_struct *gal, int outputbin)
 {
 #ifdef CALC_MAGS
-  for(int ii=0; ii < N_PHOTO_BANDS; ii++)
+  for(int ii=0; ii < n_bands; ii++)
     parent->Lum[ii][outputbin]     += gal->Lum[ii][outputbin];
 #else
   return;
 #endif
 }
 
-void prepare_magnitudes_for_output(galaxy_struct gal, galaxy_output_struct *galout, int i_snap)
+void prepare_magnitudes_for_output(int n_bands, galaxy_struct gal, galaxy_output_struct *galout, int i_snap)
 {
 #ifdef CALC_MAGS
-  double LumDust[N_PHOTO_BANDS];
-  for(int ii=0; ii<N_PHOTO_BANDS; ii++)
+  double LumDust[n_bands];
+  for(int ii=0; ii<n_bands; ii++)
   {
     galout->Mag[ii] = (float)(lum_to_mag(gal.Lum[ii][i_snap]));
     apply_dust(gal, LumDust, i_snap);
@@ -84,16 +84,16 @@ void read_photometric_tables(run_globals_struct *run_globals)
   h5id_t              group;
   hsize_t             dims[1];
   char                name[STRLEN];
-  run_params_struct  *run_params   = &(run_globals->params);
-  phototabs_struct   *photo        = &(run_globals->photo);
-  float              *Metals       = photo->Metals;
-  float              *AgeTab       = photo->Ages;
-  char              *(MagBands[5]    ) = photo->MagBands;
-  float              *PhotoTab     = photo->Table;
+  run_params_struct  *run_params      = &(run_globals->params);
+  phototabs_struct   *photo           = &(run_globals->photo);
+  float              *Metals          = photo->Metals;
+  float              *AgeTab          = photo->Ages;
+  char              *(MagBands[5]       ) = photo->MagBands;
+  float              *PhotoTab        = photo->Table;
   char               *bp;
-  int                 i_group      = 0;
+  int                 i_group         = 0;
   float              *table_ds;
-  int                 start_ind    = 0;
+  int                 start_ind       = 0;
   int                 n_table_entries = 0;
 
 
@@ -208,16 +208,19 @@ static void find_interpolated_lum(
   double             *fmet2)      
 {
 
-  // TODO: There is a lot of float/double caclulations here. I should tidy this up...
+  // TODO: There is a lot of float/double calculations here. I should tidy this up...
 
   int k, i, idx;
   float age, frac;
   float fa1, fa2, fm1, fm2;
 
-  float *Metals     = run_globals->photo.Metals;
-  float *AgeTab     = run_globals->photo.Ages;
-  int   *JumpTable  = run_globals->photo.JumpTable;
-  float  JumpFactor = run_globals->photo.JumpFactor;
+  phototabs_struct *photo      = &(run_globals->photo);
+  float            *Metals     = photo->Metals;
+  float            *AgeTab     = photo->Ages;
+  int              *JumpTable  = photo->JumpTable;
+  float             JumpFactor = photo->JumpFactor;
+  int               n_ages     = photo->NAges;
+  int               n_metals   = photo->NMetals;
 
   age = (float)(timenow - timetarget);
 
@@ -225,9 +228,9 @@ static void find_interpolated_lum(
   {
     age = log10(age);
 
-    if(age > AgeTab[N_PHOTO_AGES - 1])	 // beyond table, take latest entry 
+    if(age > AgeTab[n_ages - 1])	 // beyond table, take latest entry 
     {
-      k = N_PHOTO_AGES - 2;
+      k = n_ages - 2;
       fa1 = 0;
       fa2 = 1;
     }
@@ -258,9 +261,9 @@ static void find_interpolated_lum(
   // Now interpolate also for the metallicity 
   metallicity = log10(metallicity);
 
-  if(metallicity > Metals[N_PHOTO_METALS - 1])	 // beyond table, take latest entry 
+  if(metallicity > Metals[n_metals - 1])	 // beyond table, take latest entry 
   {
-    i = N_PHOTO_METALS - 2;
+    i = n_metals - 2;
     fm1 = 0;
     fm2 = 1;
   }
@@ -302,12 +305,13 @@ void add_to_luminosities(
   double  X1             , X2;
   double  Hubble_h     = run_globals->params.Hubble_h;
   float  *PhotoTab     = run_globals->photo.Table;
+  int     n_bands      = run_globals->photo.NBands;
   int     metals_ind;
   int     age_ind;
   double  f1, f2, fmet1, fmet2;
 
-  // Convert burst_mass into 1e11 Msol/(h=Hubble_h) units
-  X1 = burst_mass * 0.1 / Hubble_h;
+  // Convert burst_mass into 1e6 Msol/(h=Hubble_h) units
+  X1 = burst_mass * 1e4 / Hubble_h;
   X2 = -0.4 * M_LN10;
 
   for(int outputbin = 0; outputbin < NOUT; outputbin++)
@@ -316,8 +320,7 @@ void add_to_luminosities(
     find_interpolated_lum(run_globals, burst_time, run_globals->LTTime[run_globals->ListOutputSnaps[outputbin]], metallicity,
         &metals_ind, &age_ind, &f1, &f2, &fmet1, &fmet2);
 
-    // NB - tables give luminosities for a 1.0e^11 M_sun burst 
-    for(int i_band = 0; i_band < N_PHOTO_BANDS; i_band++)
+    for(int i_band = 0; i_band < n_bands; i_band++)
       gal->Lum[i_band][outputbin] +=
         X1 * exp(X2 * (fmet1 * (f1 *  PhotoTab[phototab_index(i_band,
                   metals_ind, age_ind)]+ f2 * PhotoTab[phototab_index(i_band,

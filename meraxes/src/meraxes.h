@@ -363,8 +363,8 @@ int     get_corrected_snapshot(run_globals_struct *run_globals, int snapshot);
 void    init_luminosities(galaxy_struct *gal);
 void    add_to_luminosities(run_globals_struct *run_globals, galaxy_struct *gal, double burst_mass, double metallicity, double burst_time);
 double  lum_to_mag(double lum);
-void    sum_luminosities(galaxy_struct *parent, galaxy_struct *gal, int outputbin);
-void    prepare_magnitudes_for_output(galaxy_struct gal, galaxy_output_struct *galout, int i_snap);
+void    sum_luminosities(int n_bands, galaxy_struct *parent, galaxy_struct *gal, int outputbin);
+void    prepare_magnitudes_for_output(int n_bands, galaxy_struct gal, galaxy_output_struct *galout, int i_snap);
 void    apply_dust(galaxy_struct gal, double *LumDust, int outputbin);
 void    cleanup_mags(run_globals_struct *run_globals);
 
