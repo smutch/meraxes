@@ -14,13 +14,18 @@ LastFile					0
 
 SimName                     GiggleZ_MR
 SimulationDir				/lustre/projects/p004_swin/gpoole/GiggleZ
-PhotometricTablesDir        /home/smutch/models/21cm_sam/meraxes/input/photometric_tables
+
 NEverySnap                  8
 NScanSnap                   32
 TotalSimSnaps               466
 FilesPerSnapshot            1
 BoxSize                     125
 VolumeFactor                1.0
+
+PhotometricTablesDir        /home/smutch/models/21cm_sam/meraxes/input/photometric_tables
+SSPModel                    bc03
+IMF                         salpeter
+MagSystem                   vega
 
 #------------------------------------------
 #----- Code options -----------------------

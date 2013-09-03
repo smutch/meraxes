@@ -38,11 +38,12 @@ void prepare_magnitudes_for_output(galaxy_struct gal, galaxy_output_struct *galo
 }
 
 static int inline phototab_index(
-  int                 i_band,       
-  int                 i_metal,
-  int                 i_age)        
+  phototabs_struct   *photo,
+  int                 i_band,     
+  int                 i_metal,    
+  int                 i_age)      
 {
-  return (int)((i_age)+N_PHOTO_AGES*((i_metal)+N_PHOTO_METALS*(i_band)));
+  return (int)((i_age)+photo->NAges*((i_metal)+photo->NMetals*(i_band)));
 }
 
 static void init_jump_index(run_globals_struct *run_globals)
@@ -73,77 +74,119 @@ static void init_jump_index(run_globals_struct *run_globals)
 
 }
 
+
 void read_photometric_tables(run_globals_struct *run_globals)
 {
 #ifdef CALC_MAGS
-  FILE  *fin;
-  char   filename[STRLEN];
-  int    i_age;
-  float *Metals                = run_globals->photo.Metals;
-  float *PhotoTab              = run_globals->photo.Table;
-  float *AgeTab                = run_globals->photo.Ages;
-  float  dummy;
-  float  Hubble_h              = run_globals->params.Hubble_h;
-  float  UnitTime_in_Megayears = run_globals->units.UnitTime_in_Megayears;
+
+  h5id_t              fin;
+  h5id_t              group;
+  hsize_t             dims[1];
+  char                name[STRLEN];
+  run_params_struct  *run_params   = &(run_globals->params);
+  phototabs_struct   *photo        = &(run_globals->photo);
+  float              *Metals       = photo->Metals;
+  float              *AgeTab       = photo->Ages;
+  char              *(MagBands[5]    ) = photo->MagBands;
+  float              *PhotoTab     = photo->Table;
+  char               *bp;
+  int                 i_group      = 0;
+  float              *table_ds;
+  int                 start_ind    = 0;
+  int                 n_table_entries = 0;
+
 
   SID_log("Reading photometric tables...", SID_LOG_OPEN);
 
-  Metals[0] = 0.0001;  // TODO: This shouldn't be hard coded
-  Metals[1] = 0.0004;  // TODO: This shouldn't be hard coded
-  Metals[2] = 0.004;  // TODO: This shouldn't be hard coded
-  Metals[3] = 0.008;  // TODO: This shouldn't be hard coded
-  Metals[4] = 0.02;  // TODO: This shouldn't be hard coded
-  Metals[5] = 0.05;  // TODO: This shouldn't be hard coded
+  // Open the file
+  sprintf(name, "%s/%s/%s/%s.hdf5", run_params->PhotometricTablesDir, run_params->SSPModel, run_params->IMF, run_params->MagSystem);
+  fin = H5Fopen(name, H5F_ACC_RDONLY, H5P_DEFAULT);
 
-  for (int i_Z=0; i_Z<N_PHOTO_METALS; i_Z++)
-  {
-    sprintf(filename, "%s/Z%.4f_salp.bc03", run_globals->params.PhotometricTablesDir, Metals[i_Z]);
+  // Read the list of metallicities
+  H5LTget_dataset_info(fin, "metallicities", dims, NULL, NULL);
+  photo->NMetals = (int)(dim[0]);
+  Metals = (float *)SID_malloc(sizeof(float) * (size_t)(dims[0]));
+  H5LTread_dataset_float(fin, "metallicities", Metals);
 
-    if(!(fin = fopen(filename, "r")))
+  // Read the list of ages
+  bp = strtok(run_params->MagBands, ",");
+  group = H5Gopen(fin, bp, H5P_DEFAULT);
+  sprintf(name, "%0.4f", Metals[0]);
+  H5LTget_dataset_info(group, name, dims, NULL, NULL);
+  H5Gclose(group);
+  photo->NAges = (int)(dim[0]);
+  H5LTread_dataset_float(fin, "ages", AgeTab);
+
+  // Convert the ages from Myr to log10(internal time units)
+  for(int ii=0; ii<photo->NAges; ii++)
+    AgeTab[ii] = log10(AgeTab[ii] / UnitTime_in_Megayears * Hubble_h);
+
+  // Parse the requested magnitude bands string and count the number of bands
+  // we are going to use
+  i_group = 0;
+  bp = strtok(run_params->MagBands, ",");
+  while (bp!=NULL){
+
+    if(group = H5Gopen(fin, bp, H5P_DEFAULT))
     {
-      SID_log("file `%s' not found.", SID_LOG_COMMENT, filename);
-      ABORT(EXIT_FAILURE);
-    }
+      i_group++;
+      H5Gclose(group);
+    } else
+      SID_log_warning("Requested magnitude band %s not preset in input photometric tables - skipping...", SID_LOG_COMMENT);
 
-    i_age = 0;
-    while(fscanf(fin, " %f %f %f %f %f %f %f ", 
-          &dummy,
-          &PhotoTab[phototab_index(0, i_Z, i_age)],
-          &PhotoTab[phototab_index(1, i_Z, i_age)],
-          &PhotoTab[phototab_index(2, i_Z, i_age)],
-          &PhotoTab[phototab_index(3, i_Z, i_age)],
-          &PhotoTab[phototab_index(4, i_Z, i_age)],
-          &AgeTab[i_age])
-        !=EOF)
-    {
-
-      // convert AgeTab from log10(Gyr) to log10(internal time units) 
-      AgeTab[i_age] = pow(10.0, AgeTab[i_age]) / 1.0e6 /
-        UnitTime_in_Megayears * Hubble_h;
-      AgeTab[i_age] = log10(AgeTab[i_age]);
-
-      for(int ii=0; ii<N_PHOTO_BANDS; ii++)
-        if(PhotoTab[phototab_index(ii, i_Z, i_age)] == 0)
-          PhotoTab[phototab_index(ii, i_Z, i_age)] = 70.0;
-
-      i_age++;
-    }
-    SID_log("Read %d ages from %s", SID_LOG_COMMENT, i_age, filename);
-    fclose(fin);
+    bp = strtok(NULL, " ,\n");
   }
+  photo->NMagBands = i_group;
 
-  init_jump_index(run_globals);
+  // Now we have the number of magnitude bands, metallicities and ages so we
+  // can malloc the photometric table itself.
+  n_table_entries = photo->NMagBands * photo->NMetals * photo->NAges;
+  PhotoTab = (float *)SID_malloc(sizeof(float) * (size_t)n_entries);
 
-  // Lastly - convert the metallicities into log10 values for interpolation purposes
-  for(int ii=0; ii<N_PHOTO_METALS; ii++)
+  // Finally - loop through the requested bands string one more time, save the
+  // band name and store the potometric table data
+  MagBands = (char[5] *)SID_malloc(sizeof(char[5]), (size_t)i_group);
+  table_ds = SID_malloc(sizeof(float) * (size_t)(photo->NAges));
+  bp = strtok(run_params->MagBands, ",");
+  while (bp!=NULL){
+    if(group = H5Gopen(fin, bp, H5P_DEFAULT))
+    {
+
+      sprintf(&(MagBands[i_group]), "%s", bp);
+      for(int i_metal=0; i_metal<photo->NMetals; i_metal++)
+      {
+      sprintf(name, "%0.4f", Metals[i_metal]);
+      H5LTread_dataset_float(group, name, table_ds);
+
+      start_ind = phototab_index(photo, i_group, i_metal, 0);
+      for(int ii=0; ii<(photo->NAges); ii++)
+        PhotoTab[ii] = table_ds[ii+start_ind];
+
+      }
+      H5Gclose(group);
+      i_group++;
+    }
+    bp = strtok(NULL, " ,\n");
+  }
+  SID_free(SID_FARG table_ds);
+
+  // Deal with any zeros
+  for(int ii=0; ii<n_table_entries; ii++)
+    if(PhotoTab[ii] == 0)
+      PhotoTab[ii] = 70.0;
+
+  // Convert metallicities to log10 for interpolation  
+  for(int ii=0; ii<photo->NMetals; ii++)
     Metals[ii] = log10(Metals[ii]);
+
+  // Close the file
+  H5Fclose(fin);
 
   SID_log(" ...done", SID_LOG_CLOSE);
 
 #else
   return;
 #endif // CALC_MAGS
-
 }
 
 static int inline get_jump_index(double age, float *AgeTab, int *jumptab, float jumpfac)
@@ -295,4 +338,16 @@ double lum_to_mag(double lum)
     return -2.5 * log10(lum);
   else
     return 99.0;
+}
+
+void cleanup_mags(run_globals_struct *run_globals)
+{
+#ifdef CALC_MAGS
+  SID_free(SID_FARG run_globals->photo.PhotoTab);
+  SID_free(SID_FARG run_globals->photo.MagBands);
+  SID_free(SID_FARG run_globals->photo.Ages);
+  SID_free(SID_FARG run_globals->photo.Metals);
+#else
+  return
+#endif
 }

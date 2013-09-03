@@ -5,6 +5,7 @@
 
 static void cleanup(run_globals_struct *run_globals)
 {
+  cleanup_mags(run_globals);
   H5Tclose(run_globals->hdf5props.array3f_tid);
   SID_free(SID_FARG run_globals->hdf5props.field_types);
   SID_free(SID_FARG run_globals->hdf5props.field_names);

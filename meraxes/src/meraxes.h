@@ -90,6 +90,10 @@ struct run_params_struct{
   char                  SimulationDir[STRLEN];
   char                  FileWithOutputSnaps[STRLEN];
   char                  PhotometricTablesDir[STRLEN];
+  char                  SSPModel[STRLEN];
+  char                  IMF[STRLEN];
+  char                  MagSystem[STRLEN];
+  char                  MagBands[STRLEN];
   int                   NEverySnap;
   int                   NScanSnap;
   int                   FilesPerSnapshot;
@@ -145,10 +149,14 @@ typedef struct hdf5_output_struct hdf5_output_struct;
 
 struct phototabs_struct{
   int   JumpTable[N_PHOTO_JUMPS];
+  int   NAges;
+  int   NMagBands;
+  int   NMetals;
   float JumpFactor;
-  float Table[N_PHOTO_TABSIZE];
-  float Ages[N_PHOTO_AGES];
-  float Metals[N_PHOTO_METALS];
+  float *Table;
+  float *Ages;
+  float *Metals;
+  char  *(MagBands[5]);
 };
 typedef struct phototabs_struct phototabs_struct;
 
@@ -358,6 +366,7 @@ double  lum_to_mag(double lum);
 void    sum_luminosities(galaxy_struct *parent, galaxy_struct *gal, int outputbin);
 void    prepare_magnitudes_for_output(galaxy_struct gal, galaxy_output_struct *galout, int i_snap);
 void    apply_dust(galaxy_struct gal, double *LumDust, int outputbin);
+void    cleanup_mags(run_globals_struct *run_globals);
 
 // Reionization related
 void init_reionization(run_globals_struct *run_globals);
