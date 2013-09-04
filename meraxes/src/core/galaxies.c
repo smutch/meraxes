@@ -44,7 +44,7 @@ galaxy_struct* new_galaxy(run_globals_struct *run_globals, int *unique_ID)
   gal->output_index = -1;
   gal->ghost_flag = false;
 
-  init_luminosities(gal);
+  init_luminosities(run_globals, gal);
   return gal;
 }
 

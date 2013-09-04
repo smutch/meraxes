@@ -38,7 +38,7 @@ static double slab_model(float tau, float costheta)
 }
 
 
-void apply_dust(galaxy_struct gal, double *LumDust, int outputbin)
+void apply_dust(int n_photo_bands, galaxy_struct gal, double *LumDust, int outputbin)
 {
   double tauB, tauV, tauR, tauI, tauK;
   double Lum, Lum_corr, incl;
@@ -48,7 +48,7 @@ void apply_dust(galaxy_struct gal, double *LumDust, int outputbin)
   // note the inclination angle 
   incl = gal.Cos_Inc;
 
-  for(int ii=0; ii<N_PHOTO_BANDS; ii++)
+  for(int ii=0; ii<n_photo_bands; ii++)
     LumDust[ii] = 0.0;
 
   // Correction for B magnitude

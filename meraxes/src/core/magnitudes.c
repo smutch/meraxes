@@ -1,4 +1,6 @@
 #include <math.h>
+#include <hdf5.h>
+#include <hdf5_hl.h>
 #include "meraxes.h"
 
 void init_luminosities(run_globals_struct *run_globals, galaxy_struct *gal)
@@ -12,9 +14,10 @@ void init_luminosities(run_globals_struct *run_globals, galaxy_struct *gal)
 #endif
 }
 
-void sum_luminosities(int n_bands, galaxy_struct *parent, galaxy_struct *gal, int outputbin)
+void sum_luminosities(run_globals_struct *run_globals, galaxy_struct *parent, galaxy_struct *gal, int outputbin)
 {
 #ifdef CALC_MAGS
+  int n_bands = run_globals->photo.NBands;
   for(int ii=0; ii < n_bands; ii++)
     parent->Lum[ii][outputbin]     += gal->Lum[ii][outputbin];
 #else
@@ -22,14 +25,15 @@ void sum_luminosities(int n_bands, galaxy_struct *parent, galaxy_struct *gal, in
 #endif
 }
 
-void prepare_magnitudes_for_output(int n_bands, galaxy_struct gal, galaxy_output_struct *galout, int i_snap)
+void prepare_magnitudes_for_output(run_globals_struct *run_globals, galaxy_struct gal, galaxy_output_struct *galout, int i_snap)
 {
 #ifdef CALC_MAGS
+  int n_bands = run_globals->photo.NBands;
   double LumDust[n_bands];
   for(int ii=0; ii<n_bands; ii++)
   {
     galout->Mag[ii] = (float)(lum_to_mag(gal.Lum[ii][i_snap]));
-    apply_dust(gal, LumDust, i_snap);
+    apply_dust(n_bands, gal, LumDust, i_snap);
     galout->MagDust[ii] = (float)(lum_to_mag(LumDust[ii]));
   }
 #else
@@ -80,22 +84,23 @@ void read_photometric_tables(run_globals_struct *run_globals)
 {
 #ifdef CALC_MAGS
 
-  h5id_t              fin;
-  h5id_t              group;
+  hid_t              fin;
+  hid_t              group;
   hsize_t             dims[1];
   char                name[STRLEN];
   run_params_struct  *run_params      = &(run_globals->params);
   phototabs_struct   *photo           = &(run_globals->photo);
   float              *Metals          = photo->Metals;
   float              *AgeTab          = photo->Ages;
-  char              *(MagBands[5]       ) = photo->MagBands;
+  char               (*MagBands)[5]   = photo->MagBands;
   float              *PhotoTab        = photo->Table;
   char               *bp;
   int                 i_group         = 0;
   float              *table_ds;
   int                 start_ind       = 0;
   int                 n_table_entries = 0;
-
+  double              UnitTime_in_Megayears =  run_globals->units.UnitTime_in_Megayears;
+  double              Hubble_h =  run_params->Hubble_h;
 
   SID_log("Reading photometric tables...", SID_LOG_OPEN);
 
@@ -105,7 +110,7 @@ void read_photometric_tables(run_globals_struct *run_globals)
 
   // Read the list of metallicities
   H5LTget_dataset_info(fin, "metallicities", dims, NULL, NULL);
-  photo->NMetals = (int)(dim[0]);
+  photo->NMetals = (int)(dims[0]);
   Metals = (float *)SID_malloc(sizeof(float) * (size_t)(dims[0]));
   H5LTread_dataset_float(fin, "metallicities", Metals);
 
@@ -115,7 +120,7 @@ void read_photometric_tables(run_globals_struct *run_globals)
   sprintf(name, "%0.4f", Metals[0]);
   H5LTget_dataset_info(group, name, dims, NULL, NULL);
   H5Gclose(group);
-  photo->NAges = (int)(dim[0]);
+  photo->NAges = (int)(dims[0]);
   H5LTread_dataset_float(fin, "ages", AgeTab);
 
   // Convert the ages from Myr to log10(internal time units)
@@ -137,23 +142,30 @@ void read_photometric_tables(run_globals_struct *run_globals)
 
     bp = strtok(NULL, " ,\n");
   }
-  photo->NMagBands = i_group;
+
+  photo->NBands = i_group;
+
+  if(i_group>MAX_PHOTO_NBANDS)
+  {
+    SID_log_error("Requested number of magnitude bands exceeds maximum (%d > %d)!", SID_LOG_COMMENT, i_group, MAX_PHOTO_NBANDS);
+    ABORT(EXIT_FAILURE);
+  }
 
   // Now we have the number of magnitude bands, metallicities and ages so we
   // can malloc the photometric table itself.
-  n_table_entries = photo->NMagBands * photo->NMetals * photo->NAges;
-  PhotoTab = (float *)SID_malloc(sizeof(float) * (size_t)n_entries);
+  n_table_entries = photo->NBands * photo->NMetals * photo->NAges;
+  PhotoTab = (float *)SID_malloc(sizeof(float) * (size_t)n_table_entries);
 
   // Finally - loop through the requested bands string one more time, save the
   // band name and store the potometric table data
-  MagBands = (char[5] *)SID_malloc(sizeof(char[5]), (size_t)i_group);
+  MagBands = SID_malloc(sizeof(char[5]) * (size_t)i_group);
   table_ds = SID_malloc(sizeof(float) * (size_t)(photo->NAges));
   bp = strtok(run_params->MagBands, ",");
   while (bp!=NULL){
     if(group = H5Gopen(fin, bp, H5P_DEFAULT))
     {
 
-      sprintf(&(MagBands[i_group]), "%s", bp);
+      sprintf(&(MagBands[0][i_group]), "%s", bp);
       for(int i_metal=0; i_metal<photo->NMetals; i_metal++)
       {
       sprintf(name, "%0.4f", Metals[i_metal]);
@@ -302,6 +314,7 @@ void add_to_luminosities(
   double              burst_time) 
 {
 #ifdef CALC_MAGS
+  phototabs_struct *photo = &(run_globals->photo);
   double  X1             , X2;
   double  Hubble_h     = run_globals->params.Hubble_h;
   float  *PhotoTab     = run_globals->photo.Table;
@@ -322,12 +335,15 @@ void add_to_luminosities(
 
     for(int i_band = 0; i_band < n_bands; i_band++)
       gal->Lum[i_band][outputbin] +=
-        X1 * exp(X2 * (fmet1 * (f1 *  PhotoTab[phototab_index(i_band,
-                  metals_ind, age_ind)]+ f2 * PhotoTab[phototab_index(i_band,
-                    metals_ind, age_ind+1)]) + fmet2 * (f1 *
-                    PhotoTab[phototab_index(i_band, metals_ind+1, age_ind)] +
-                    f2 * PhotoTab[phototab_index(i_band, metals_ind+1,
-                      age_ind+1)])));
+        X1 * exp(X2 * (fmet1 * (f1 *
+                PhotoTab[phototab_index(photo, i_band, metals_ind, age_ind)]
+                + f2 * 
+                PhotoTab[phototab_index(photo, i_band, metals_ind, age_ind+1)]
+                ) + fmet2 * (f1 *
+                  PhotoTab[phototab_index(photo, i_band, metals_ind+1, age_ind)]
+                  + f2 *
+                  PhotoTab[phototab_index(photo, i_band, metals_ind+1, age_ind+1)]
+                  )));
   }
 
 #else
@@ -347,7 +363,7 @@ double lum_to_mag(double lum)
 void cleanup_mags(run_globals_struct *run_globals)
 {
 #ifdef CALC_MAGS
-  SID_free(SID_FARG run_globals->photo.PhotoTab);
+  SID_free(SID_FARG run_globals->photo.Table);
   SID_free(SID_FARG run_globals->photo.MagBands);
   SID_free(SID_FARG run_globals->photo.Ages);
   SID_free(SID_FARG run_globals->photo.Metals);

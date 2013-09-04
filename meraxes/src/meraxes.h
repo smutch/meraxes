@@ -24,22 +24,15 @@
 #define NOUT 1
 #endif
 
-#ifndef N_PHOTO_BANDS
-#define N_PHOTO_BANDS 5
-#endif
-#ifndef N_PHOTO_AGES
-#define N_PHOTO_AGES 220
-#endif
-#ifndef N_PHOTO_METALS
-#define N_PHOTO_METALS 6
+#ifndef MAX_PHOTO_NBANDS
+#define MAX_PHOTO_NBANDS 5
 #endif
 #ifndef N_PHOTO_JUMPS
-#define N_PHOTO_JUMPS ((int)(N_PHOTO_AGES/2))
+#define N_PHOTO_JUMPS 1000
 #endif
-#define N_PHOTO_TABSIZE ((int)(N_PHOTO_AGES*N_PHOTO_BANDS*N_PHOTO_METALS))
 
-#define MVIR_PROP 1
-#define VMAX_PROP 2
+#define MVIR_PROP 101
+#define VMAX_PROP 202
 
 #define ABORT(sigterm)                                                                 \
 do {                                                                                   \
@@ -150,13 +143,13 @@ typedef struct hdf5_output_struct hdf5_output_struct;
 struct phototabs_struct{
   int   JumpTable[N_PHOTO_JUMPS];
   int   NAges;
-  int   NMagBands;
+  int   NBands;
   int   NMetals;
   float JumpFactor;
   float *Table;
   float *Ages;
   float *Metals;
-  char  *(MagBands[5]);
+  char  (*MagBands)[5];
 };
 typedef struct phototabs_struct phototabs_struct;
 
@@ -287,13 +280,12 @@ struct galaxy_struct
   double Cos_Inc;
   double MergTime;
 
-#ifdef CALC_MAGS
-  // Luminosities
-  double Lum[N_PHOTO_BANDS][NOUT];
-#endif
-
   // write index
   int output_index;
+
+#ifdef CALC_MAGS
+  double Lum[MAX_PHOTO_NBANDS][NOUT];
+#endif
 
 };
 typedef struct galaxy_struct galaxy_struct;
@@ -327,9 +319,8 @@ struct galaxy_output_struct
   float LTTime;
 
 #ifdef CALC_MAGS
-  // Magnitudes
-  float Mag[N_PHOTO_BANDS];
-  float MagDust[N_PHOTO_BANDS];
+  float Mag[MAX_PHOTO_NBANDS];
+  float MagDust[MAX_PHOTO_NBANDS];
 #endif
 };
 typedef struct galaxy_output_struct galaxy_output_struct;
@@ -360,14 +351,14 @@ void    cn_quote();
 int     get_corrected_snapshot(run_globals_struct *run_globals, int snapshot);
 
 // Magnitude related
-void    init_luminosities(galaxy_struct *gal);
+void    init_luminosities(run_globals_struct *run_globals, galaxy_struct *gal);
 void    add_to_luminosities(run_globals_struct *run_globals, galaxy_struct *gal, double burst_mass, double metallicity, double burst_time);
 double  lum_to_mag(double lum);
-void    sum_luminosities(int n_bands, galaxy_struct *parent, galaxy_struct *gal, int outputbin);
-void    prepare_magnitudes_for_output(int n_bands, galaxy_struct gal, galaxy_output_struct *galout, int i_snap);
-void    apply_dust(galaxy_struct gal, double *LumDust, int outputbin);
+void    sum_luminosities(run_globals_struct *run_globals, galaxy_struct *parent, galaxy_struct *gal, int outputbin);
+void    prepare_magnitudes_for_output(run_globals_struct *run_globals, galaxy_struct gal, galaxy_output_struct *galout, int i_snap);
+void    apply_dust(int n_photo_bands, galaxy_struct gal, double *LumDust, int outputbin);
 void    cleanup_mags(run_globals_struct *run_globals);
 
 // Reionization related
-void init_reionization(run_globals_struct *run_globals);
-void do_reionization(run_globals_struct *run_globals, int i_out);
+void    init_reionization(run_globals_struct *run_globals);
+void    do_reionization(run_globals_struct *run_globals, int i_out);

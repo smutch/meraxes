@@ -26,6 +26,7 @@ PhotometricTablesDir        /home/smutch/models/21cm_sam/meraxes/input/photometr
 SSPModel                    bc03
 IMF                         salpeter
 MagSystem                   vega
+MagBands                    Bbv,V,Rc,Ic,K
 
 #------------------------------------------
 #----- Code options -----------------------
