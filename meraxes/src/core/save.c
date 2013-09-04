@@ -236,7 +236,7 @@ void prep_hdf5_file(run_globals_struct *run_globals)
   ds_id = H5Screate_simple(1, &dims, NULL);
   str_t = H5Tcopy(H5T_C_S1);
   H5Tset_size(str_t, STRLEN);
-  names = SID_malloc(sizeof(const char *) * 10);
+  names = SID_malloc(sizeof(const char *) * 15);
 
   // Open the group
   group_id = H5Gcreate(file_id, "InputParams", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
@@ -306,6 +306,27 @@ void prep_hdf5_file(run_globals_struct *run_globals)
 
   // Close the group
   H5Gclose(group_id);
+
+#ifdef CALC_MAGS
+  // Open the group
+  group_id = H5Gcreate(file_id, "InputParams/photo", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+
+  ii=0;
+  addresses[ii] = &(run_globals->params.SSPModel);
+  names[ii++] = "SSPModel";
+  addresses[ii] = &(run_globals->params.IMF);
+  names[ii++] = "IMF";
+  addresses[ii] = &(run_globals->params.MagSystem);
+  names[ii++] = "MagSystem";
+  addresses[ii] = &(run_globals->params.MagSystem);
+  names[ii++] = "MagBands";
+
+  for(int jj=0; jj<ii; jj++)
+    h5_write_attribute(group_id, names[jj], str_t, ds_id, addresses[jj]);
+
+  // Close the group
+  H5Gclose(group_id);
+#endif
 
   // Open the group
   group_id = H5Gcreate(file_id, "InputParams/physics", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);

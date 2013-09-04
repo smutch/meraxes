@@ -109,6 +109,8 @@ int main(int argc, char **argv)
     SID_free(SID_FARG physics_param_vals);
   }
 
+  mpi_debug_here();
+
   init_meraxes(&run_globals);
   calc_hdf5_props(&run_globals);
 

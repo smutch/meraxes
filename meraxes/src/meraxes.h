@@ -31,8 +31,8 @@
 #define N_PHOTO_JUMPS 1000
 #endif
 
-#define MVIR_PROP 101
-#define VMAX_PROP 202
+#define MVIR_PROP 1
+#define VMAX_PROP 2
 
 #define ABORT(sigterm)                                                                 \
 do {                                                                                   \

@@ -135,7 +135,7 @@ void read_parameter_file(run_globals_struct *run_globals, char *fname)
 
   strcpy(params_tag[n_param], "MagBands");
   params_addr[n_param] = run_params->MagBands;
-  required_tag[n_param] = TRUE;
+  required_tag[n_param] = 1;
   params_id[n_param++] = STRING;
 
   strcpy(params_tag[n_param], "FileNameGalaxies");
