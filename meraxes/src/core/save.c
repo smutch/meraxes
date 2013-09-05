@@ -225,8 +225,8 @@ void prep_hdf5_file(run_globals_struct *run_globals)
 
   hid_t    file_id, str_t, ds_id, group_id;
   hsize_t  dims = 1;
-  char     names[20][STRLEN];
-  void    *addresses[10];
+  char     names[50][STRLEN];
+  void    *addresses[50];
   int ii;
 
   // Create a new file
@@ -274,7 +274,7 @@ void prep_hdf5_file(run_globals_struct *run_globals)
   sprintf(names[ii++],  "SnaplistLength");
 
   for(int jj=0; jj<ii; jj++)
-    h5_write_attribute(group_id, names[jj], H5T_NATIVE_INT, ds_id, addresses[jj]);
+    h5_write_attribute(group_id, (const char *)(names[jj]), H5T_NATIVE_INT, ds_id, addresses[jj]);
 
   ii=0;
   addresses[ii] = &(run_globals->params.BoxSize);
@@ -317,7 +317,7 @@ void prep_hdf5_file(run_globals_struct *run_globals)
   sprintf(names[ii++],  "IMF");
   addresses[ii] = &(run_globals->params.MagSystem);
   sprintf(names[ii++],  "MagSystem");
-  addresses[ii] = &(run_globals->params.MagSystem);
+  addresses[ii] = &(run_globals->params.MagBands);
   sprintf(names[ii++],  "MagBands");
 
   for(int jj=0; jj<ii; jj++)

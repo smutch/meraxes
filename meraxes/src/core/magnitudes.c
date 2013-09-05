@@ -79,6 +79,25 @@ static void init_jump_index(run_globals_struct *run_globals)
 
 }
 
+#ifdef DEBUG
+static void print_phototab(run_globals_struct *run_globals, int i_metal)
+{
+  phototabs_struct *photo    = &(run_globals->photo);
+  float            *phototab = photo->Table;
+  int               n_ages   = photo->NAges;
+  int               n_bands  = photo->NBands;
+  
+  printf("--------------------\n");
+  printf("PHOTOTAB i_metal=%d\n", i_metal);
+  for(int i_age=0; i_age<n_ages; i_age++)
+  {
+    for(int i_band=0; i_band<n_bands; i_band++)
+      printf("    %.2f", phototab[phototab_index(photo, i_band, i_metal, i_age)]);
+    printf("\n");
+  }
+  printf("--------------------\n");
+}
+#endif
 
 void read_photometric_tables(run_globals_struct *run_globals)
 {
@@ -168,6 +187,7 @@ void read_photometric_tables(run_globals_struct *run_globals)
   // Now we have the number of magnitude bands, metallicities and ages so we
   // can malloc the photometric table itself.
   n_table_entries = photo->NBands * photo->NMetals * photo->NAges;
+  SID_log("N table entries = %d", SID_LOG_COMMENT, n_table_entries);
   *PhotoTab = (float *)SID_malloc(sizeof(float) * (size_t)n_table_entries);
 
   // Finally - loop through the requested bands string one more time, save the
@@ -175,28 +195,28 @@ void read_photometric_tables(run_globals_struct *run_globals)
   *MagBands = SID_malloc(sizeof(char[5]) * (size_t)i_group);
   table_ds = SID_malloc(sizeof(float) * (size_t)(photo->NAges));
   bp = strtok(run_params->MagBands, ",");
+  SID_log("Reading in photometric table...", SID_LOG_COMMENT);
+  i_group = 0;
   while (bp!=NULL){
     group = H5Gopen(fin, bp, H5P_DEFAULT);
     if(group>0)
     {
 
       sprintf(&((*MagBands)[0][i_group]), "%s", bp);
-      for(int i_metal=0; i_metal<photo->NMetals; i_metal++)
+      for(int i_metal=0; i_metal<(photo->NMetals); i_metal++)
       {
-      sprintf(name, "%0.4f", (*Metals)[i_metal]);
-      H5LTread_dataset_float(group, name, table_ds);
+        sprintf(name, "%0.4f", (*Metals)[i_metal]);
+        H5LTread_dataset_float(group, name, table_ds);
 
-      start_ind = phototab_index(photo, i_group, i_metal, 0);
-      for(int ii=0; ii<(photo->NAges); ii++)
-        (*PhotoTab)[ii] = table_ds[ii+start_ind];
-
+        start_ind = phototab_index(photo, i_group, i_metal, 0);
+        for(int ii=0; ii<(photo->NAges); ii++)      
+          (*PhotoTab)[ii+start_ind] = table_ds[ii]; 
       }
       H5Gclose(group);
       i_group++;
     }
     bp = strtok(NULL, " ,\n");
   }
-  SID_free(SID_FARG table_ds);
 
   // Restore hdf5 error handling
   H5Eset_auto(error_stack, old_func, old_client_data);
@@ -212,6 +232,10 @@ void read_photometric_tables(run_globals_struct *run_globals)
 
   // Close the file
   H5Fclose(fin);
+
+#ifdef DEBUG
+  print_phototab(run_globals, 0);
+#endif
 
   init_jump_index(run_globals);
 
