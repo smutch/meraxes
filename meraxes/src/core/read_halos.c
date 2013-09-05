@@ -5,7 +5,6 @@ int get_corrected_snapshot(run_globals_struct *run_globals, int snapshot)
 {
   int  total_sim_snaps = run_globals->params.TotalSimSnaps;
   int  n_every_snaps   = run_globals->params.NEverySnap;
-  int  n_scan_snaps    = run_globals->params.NScanSnap;
 
   // Calculate the actual (unsampled) simulation snapshot.
   if (n_every_snaps>1)
@@ -41,13 +40,13 @@ static void halo_catalog_filename(
     for (*i_layout=0; (*i_layout<4) && (flag_success==false); (*i_layout)++)
     {
       if (*i_layout==0)
-        sprintf(fname, "%s/%s/catalogs/subfind_%03d.catalog_%s_properties/subfind_%03d.catalog_%s_properties.%d", root, sim, snapshot, group_type, snapshot, group_type, sub);
+        sprintf(fname, "%s/%s/catalogs.bad_spins/subfind_%03d.catalog_%s_properties/subfind_%03d.catalog_%s_properties.%d", root, sim, snapshot, group_type, snapshot, group_type, sub);
       else if (*i_layout==1)
-        sprintf(fname, "%s/%s/catalogs/subfind_%03d.catalog_%s_properties/subfind_%03d.catalog_%s_properties", root, sim, snapshot, group_type, snapshot, group_type);
+        sprintf(fname, "%s/%s/catalogs.bad_spins/subfind_%03d.catalog_%s_properties/subfind_%03d.catalog_%s_properties", root, sim, snapshot, group_type, snapshot, group_type);
       else if (*i_layout==2)
-        sprintf(fname, "%s/%s/catalogs/subfind_%03d.catalog_%s_properties.%d", root, sim, snapshot, group_type, sub);
+        sprintf(fname, "%s/%s/catalogs.bad_spins/subfind_%03d.catalog_%s_properties.%d", root, sim, snapshot, group_type, sub);
       else if (*i_layout==3)
-        sprintf(fname, "%s/%s/catalogs/subfind_%03d.catalog_%s_properties", root, sim, snapshot, group_type);
+        sprintf(fname, "%s/%s/catalogs.bad_spins/subfind_%03d.catalog_%s_properties", root, sim, snapshot, group_type);
 
       if ((fin = fopen(fname, "rb"))!=NULL)
       {
@@ -67,13 +66,13 @@ static void halo_catalog_filename(
 
   // provide the correct filename
   if (*i_layout==0)
-    sprintf(fname, "%s/%s/catalogs/subfind_%03d.catalog_%s_properties/subfind_%03d.catalog_%s_properties.%d", root, sim, snapshot, group_type, snapshot, group_type, sub);
+    sprintf(fname, "%s/%s/catalogs.bad_spins/subfind_%03d.catalog_%s_properties/subfind_%03d.catalog_%s_properties.%d", root, sim, snapshot, group_type, snapshot, group_type, sub);
   else if (*i_layout==1)
-    sprintf(fname, "%s/%s/catalogs/subfind_%03d.catalog_%s_properties/subfind_%03d.catalog_%s_properties", root, sim, snapshot, group_type, snapshot, group_type);
+    sprintf(fname, "%s/%s/catalogs.bad_spins/subfind_%03d.catalog_%s_properties/subfind_%03d.catalog_%s_properties", root, sim, snapshot, group_type, snapshot, group_type);
   else if (*i_layout==2)
-    sprintf(fname, "%s/%s/catalogs/subfind_%03d.catalog_%s_properties.%d", root, sim, snapshot, group_type, sub);
+    sprintf(fname, "%s/%s/catalogs.bad_spins/subfind_%03d.catalog_%s_properties.%d", root, sim, snapshot, group_type, sub);
   else if (*i_layout==3)
-    sprintf(fname, "%s/%s/catalogs/subfind_%03d.catalog_%s_properties", root, sim, snapshot, group_type);
+    sprintf(fname, "%s/%s/catalogs.bad_spins/subfind_%03d.catalog_%s_properties", root, sim, snapshot, group_type);
 
 }
 
@@ -304,7 +303,6 @@ trees_header_struct read_halos(
   int                  corrected_snapshot;
   char                 sim_variant[18];
 
-  int  total_sim_snaps = run_globals->params.TotalSimSnaps +1;
   int  n_every_snaps   = run_globals->params.NEverySnap;
   int  n_scan_snaps    = run_globals->params.NScanSnap;
 

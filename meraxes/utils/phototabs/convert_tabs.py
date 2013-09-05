@@ -36,6 +36,7 @@ for imf in ("salpeter", "kroupa", "chabrier"):
                    # print "%s::%s -> %.4f"%(imf, mag_system, name)
                    group_out.create_dataset("%.04f"%name, data=g[b], dtype='f4')
            fout.create_dataset("age", data=ages.values[:,0], dtype='f4')
+           fout.create_dataset("metallicities", data=metal_vals, dtype='f4')
            fout["age"].attrs["units"] = "Myr" 
            fout.attrs["burst_mass"] = np.array(1.e6, 'f4')
            fout.attrs["burst_mass_units"] = "Msol"
@@ -66,6 +67,7 @@ with h5.File("../../input/photometric_tables/bc03/salpeter/vega.hdf5", "w") as f
            group_out.create_dataset("%.04f"%name, data=g[b], dtype='f4')
    ages = (10.**ages)*1.e-6  # convert to Myr
    fout.create_dataset("age", data=ages.values, dtype='f4')
+   fout.create_dataset("metallicities", data=metal_vals, dtype='f4')
    fout["age"].attrs["units"] = "Myr" 
    fout.attrs["burst_mass"] = np.array(1.e6, 'f4')
    fout.attrs["burst_mass_units"] = "Msol"

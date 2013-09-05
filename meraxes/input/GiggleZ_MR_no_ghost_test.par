@@ -14,7 +14,7 @@ LastFile					0
 
 SimName                     GiggleZ_MR
 SimulationDir				/lustre/projects/p004_swin/gpoole/GiggleZ
-PhotometricTablesDir        /home/smutch/models/21cm_sam/meraxes/input/photometric_tables
+
 NEverySnap                  8
 NScanSnap                   32
 TotalSimSnaps               466
@@ -22,11 +22,18 @@ FilesPerSnapshot            1
 BoxSize                     125
 VolumeFactor                1.0
 
+PhotometricTablesDir        /home/smutch/models/21cm_sam/meraxes/input/photometric_tables
+SSPModel                    bc03
+IMF                         salpeter
+MagSystem                   vega
+MagBands                    Bbv,V,Rc,Ic,K
+
 #------------------------------------------
 #----- Code options -----------------------
 #------------------------------------------
 
 RandomSeed                  1809            # Seed for random number generator
+TOCF_Flag                   0               # Use 21cmfast for reionisation?
 TOCF_NThreads               4               # Number of OpenMP threads to run 21cmFAST with
 TOCF_LogFileDir             tocf_logs       # Number of OpenMP threads to run 21cmFAST with
 

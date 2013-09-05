@@ -60,7 +60,7 @@ void prepare_galaxy_for_output(
   galout->MergTime    = (float)(gal.MergTime * units->UnitLength_in_cm / units->UnitVelocity_in_cm_per_s / SEC_PER_MEGAYEAR / Hubble_h);
   galout->LTTime      = (float)(gal.LTTime * units->UnitLength_in_cm / units->UnitVelocity_in_cm_per_s / SEC_PER_MEGAYEAR / Hubble_h);
 
-  prepare_magnitudes_for_output(gal, galout, i_snap);
+  prepare_magnitudes_for_output(run_globals, gal, galout, i_snap);
 
 }
 
@@ -74,6 +74,7 @@ void calc_hdf5_props(run_globals_struct *run_globals)
 
   hdf5_output_struct     *h5props = &(run_globals->hdf5props);
   galaxy_output_struct   galout;
+  int                    n_photo_bands = run_globals->photo.NBands;
 
 	int                    i;  // dummy
 
@@ -90,7 +91,7 @@ void calc_hdf5_props(run_globals_struct *run_globals)
 
   // Create datatypes for different size arrays
   h5props->array3f_tid      = H5Tarray_create(H5T_NATIVE_FLOAT, 1, (hsize_t[]){3});
-  h5props->array_nmag_f_tid = H5Tarray_create(H5T_NATIVE_FLOAT, 1, (hsize_t[]){N_PHOTO_BANDS});
+  h5props->array_nmag_f_tid = H5Tarray_create(H5T_NATIVE_FLOAT, 1, (hsize_t[]){n_photo_bands});
 
   // Calculate the offsets of our struct members in memory
   h5props->dst_offsets     = SID_malloc(sizeof(size_t)*h5props->n_props);
@@ -200,12 +201,12 @@ void calc_hdf5_props(run_globals_struct *run_globals)
 
 #ifdef CALC_MAGS
   h5props->dst_offsets[i] = HOFFSET(galaxy_output_struct, Mag);
-  h5props->dst_field_sizes[i]   = sizeof(float) * N_PHOTO_BANDS;
+  h5props->dst_field_sizes[i]   = sizeof(float) * n_photo_bands;
   h5props->field_names[i] = "Mag";
   h5props->field_types[i++] = h5props->array_nmag_f_tid;
 
   h5props->dst_offsets[i] = HOFFSET(galaxy_output_struct, MagDust);
-  h5props->dst_field_sizes[i]   = sizeof(float) * N_PHOTO_BANDS;
+  h5props->dst_field_sizes[i]   = sizeof(float) * n_photo_bands;
   h5props->field_names[i] = "MagDust";
   h5props->field_types[i++] = h5props->array_nmag_f_tid;
 #endif
@@ -224,8 +225,8 @@ void prep_hdf5_file(run_globals_struct *run_globals)
 
   hid_t    file_id, str_t, ds_id, group_id;
   hsize_t  dims = 1;
-  const char     **names;
-  void    *addresses[10];
+  char     names[50][STRLEN];
+  void    *addresses[50];
   int ii;
 
   // Create a new file
@@ -235,70 +236,69 @@ void prep_hdf5_file(run_globals_struct *run_globals)
   ds_id = H5Screate_simple(1, &dims, NULL);
   str_t = H5Tcopy(H5T_C_S1);
   H5Tset_size(str_t, STRLEN);
-  names = SID_malloc(sizeof(const char *) * 10);
 
   // Open the group
   group_id = H5Gcreate(file_id, "InputParams", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
 
   ii=0;
   addresses[ii] = &(run_globals->params.OutputDir);
-  names[ii++] = "OutputDir";
+  sprintf(names[ii++],  "OutputDir");
   addresses[ii] = &(run_globals->params.FileNameGalaxies);
-  names[ii++] = "FileNameGalaxies";
+  sprintf(names[ii++],  "FileNameGalaxies");
   addresses[ii] = &(run_globals->params.SimName);
-  names[ii++] = "SimName";
+  sprintf(names[ii++],  "SimName");
   addresses[ii] = &(run_globals->params.SimulationDir);
-  names[ii++] = "SimulationDir";
+  sprintf(names[ii++],  "SimulationDir");
   addresses[ii] = &(run_globals->params.FileWithOutputSnaps);
-  names[ii++]   = "FileWithOutputSnaps";
+  sprintf(names[ii++],  "FileWithOutputSnaps");
 
   for(int jj=0; jj<ii; jj++)
     h5_write_attribute(group_id, names[jj], str_t, ds_id, addresses[jj]);
 
   ii=0;
   addresses[ii] = &(run_globals->params.NEverySnap);
-  names[ii++] = "NEverySnap";
+  sprintf(names[ii++],  "NEverySnap");
   addresses[ii] = &(run_globals->params.NScanSnap);
-  names[ii++] = "NScanSnap";
+  sprintf(names[ii++],  "NScanSnap");
   addresses[ii] = &(run_globals->params.FilesPerSnapshot);
-  names[ii++] = "FilesPerSnapshot";
+  sprintf(names[ii++],  "FilesPerSnapshot");
   addresses[ii] = &(run_globals->params.TotalSimSnaps);
-  names[ii++] = "TotalSimSnaps";
+  sprintf(names[ii++],  "TotalSimSnaps");
   addresses[ii] = &(run_globals->params.LastSnapshotNr);
-  names[ii++] = "LastSnapshotNr";
+  sprintf(names[ii++],  "LastSnapshotNr");
   addresses[ii] = &(run_globals->params.FirstFile);
-  names[ii++] = "FirstFile";
+  sprintf(names[ii++],  "FirstFile");
   addresses[ii] = &(run_globals->params.LastFile);
-  names[ii++] = "LastFile";
+  sprintf(names[ii++],  "LastFile");
   addresses[ii] = &(run_globals->params.SnaplistLength);
-  names[ii++] = "SnaplistLength";
+  sprintf(names[ii++],  "SnaplistLength");
 
   for(int jj=0; jj<ii; jj++)
-    h5_write_attribute(group_id, names[jj], H5T_NATIVE_INT, ds_id, addresses[jj]);
+    h5_write_attribute(group_id, (const char *)(names[jj]), H5T_NATIVE_INT, ds_id, addresses[jj]);
 
   ii=0;
   addresses[ii] = &(run_globals->params.BoxSize);
-  names[ii++] = "BoxSize";
+  sprintf(names[ii++],  "BoxSize");
   addresses[ii] = &(run_globals->params.VolumeFactor);
-  names[ii++] = "VolumeFactor";
+  sprintf(names[ii++],  "VolumeFactor");
   addresses[ii] = &(run_globals->params.ThreshMajorMerger);
-  names[ii++] = "ThreshMajorMerger";
+  sprintf(names[ii++],  "ThreshMajorMerger");
   addresses[ii] = &(run_globals->params.RecycleFraction);
-  names[ii++] = "RecycleFraction";
+  sprintf(names[ii++],  "RecycleFraction");
   addresses[ii] = &(run_globals->params.Hubble_h);
-  names[ii++] = "Hubble_h";
+  sprintf(names[ii++],  "Hubble_h");
   addresses[ii] = &(run_globals->params.BaryonFrac);
-  names[ii++] = "BaryonFrac";
+  sprintf(names[ii++],  "BaryonFrac");
   addresses[ii] = &(run_globals->params.OmegaM);
-  names[ii++] = "OmegaM";
+  sprintf(names[ii++],  "OmegaM");
   addresses[ii] = &(run_globals->params.OmegaK);
-  names[ii++] = "OmegaK";
+  sprintf(names[ii++],  "OmegaK");
   addresses[ii] = &(run_globals->params.OmegaLambda);
-  names[ii++] = "OmegaLambda";
+  sprintf(names[ii++],  "OmegaLambda");
   addresses[ii] = &(run_globals->params.PartMass);
-  names[ii++] = "PartMass";
+  sprintf(names[ii++],  "PartMass");
   addresses[ii] = &(run_globals->params.MergerTimeFactor);
-  names[ii++] = "MergerTimeFactor";
+  sprintf(names[ii++],  "MergerTimeFactor");
 
   for(int jj=0; jj<ii; jj++)
     h5_write_attribute(group_id, names[jj], H5T_NATIVE_DOUBLE, ds_id, addresses[jj]);
@@ -306,31 +306,52 @@ void prep_hdf5_file(run_globals_struct *run_globals)
   // Close the group
   H5Gclose(group_id);
 
+#ifdef CALC_MAGS
+  // Open the group
+  group_id = H5Gcreate(file_id, "InputParams/photo", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+
+  ii=0;
+  addresses[ii] = &(run_globals->params.SSPModel);
+  sprintf(names[ii++],  "SSPModel");
+  addresses[ii] = &(run_globals->params.IMF);
+  sprintf(names[ii++],  "IMF");
+  addresses[ii] = &(run_globals->params.MagSystem);
+  sprintf(names[ii++],  "MagSystem");
+  addresses[ii] = &(run_globals->params.MagBands);
+  sprintf(names[ii++],  "MagBands");
+
+  for(int jj=0; jj<ii; jj++)
+    h5_write_attribute(group_id, names[jj], str_t, ds_id, addresses[jj]);
+
+  // Close the group
+  H5Gclose(group_id);
+#endif
+
   // Open the group
   group_id = H5Gcreate(file_id, "InputParams/physics", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
 
   ii=0;
   addresses[ii] = &(run_globals->params.physics.peak);
-  names[ii++] = "peak";
+  sprintf(names[ii++],  "peak");
   addresses[ii] = &(run_globals->params.physics.sigma);
-  names[ii++] = "sigma";
+  sprintf(names[ii++],  "sigma");
   addresses[ii] = &(run_globals->params.physics.stellarfrac);
-  names[ii++] = "stellarfrac";
+  sprintf(names[ii++],  "stellarfrac");
   addresses[ii] = &(run_globals->params.physics.peak_evo);
-  names[ii++] = "peak_evo";
+  sprintf(names[ii++],  "peak_evo");
   addresses[ii] = &(run_globals->params.physics.sigma_evo);
-  names[ii++] = "sigma_evo";
+  sprintf(names[ii++],  "sigma_evo");
   addresses[ii] = &(run_globals->params.physics.stellarfrac_evo);
-  names[ii++] = "stellarfrac_evo";
+  sprintf(names[ii++],  "stellarfrac_evo");
   addresses[ii] = &(run_globals->params.physics.bhgrowthfactor);
-  names[ii++] = "bhgrowthfactor";
+  sprintf(names[ii++],  "bhgrowthfactor");
 
   for(int jj=0; jj<ii; jj++)
     h5_write_attribute(group_id, names[jj], H5T_NATIVE_DOUBLE, ds_id, addresses[jj]);
 
   ii=0;
   addresses[ii] = &(run_globals->params.physics.funcprop);
-  names[ii++] = "funcprop";
+  sprintf(names[ii++],  "funcprop");
 
   h5_write_attribute(group_id, names[0], H5T_NATIVE_INT, ds_id, addresses[0]);
  
@@ -347,8 +368,6 @@ void prep_hdf5_file(run_globals_struct *run_globals)
   H5Awrite(attr_id, str_t, tempstr);
   H5Aclose(attr_id);
 #endif
-
-  SID_free(SID_FARG names);
 
   // Close the HDF5 file.
   H5Fclose(file_id);
