@@ -127,6 +127,11 @@ void dracarys(run_globals_struct *run_globals)
   int                  merger_counter  = 0;
   int                  new_gal_counter = 0;
   int                  ghost_counter   = 0;
+
+#ifdef USE_TOCF
+  float               *xH_grid         = NULL;
+  int                  xH_dim;
+#endif
  
   // Find what the last requested output snapshot is
   for(int ii=0; ii<NOUT; ii++)
@@ -376,6 +381,26 @@ void dracarys(run_globals_struct *run_globals)
     check_counts(run_globals, fof_group, NGal, trees_header.n_groups);
 #endif
 
+#ifdef USE_TOCF
+    // Read in the xH_grid from the previous snapshot
+    if((run_globals->params.TOCF_Flag) && (snapshot>0) && (last_nout_gals>0))
+    {
+      // If the xH_grid is not yet malloc'd - do so
+      if(xH_grid==NULL)
+        xH_dim = malloc_xH_grid(run_globals, snapshot-1, &xH_grid);
+
+      // Read in the grid
+      read_xH_grid(run_globals, snapshot-1, xH_grid);
+
+      // Assign local ionization values to each galaxy
+      assign_ionization_to_galaxies(run_globals, xH_grid, xH_dim);
+
+      // If this is the last snapshot then free the xH_grid
+      if(snapshot == last_snap)
+        SID_free(SID_FARG xH_grid);
+    }
+#endif
+
     // Do the physics
     nout_gals = evolve_galaxies(run_globals, fof_group, snapshot, NGal, trees_header.n_groups);
 
@@ -387,8 +412,14 @@ void dracarys(run_globals_struct *run_globals)
       if(snapshot == run_globals->ListOutputSnaps[i_out])
       {
         write_snapshot(run_globals, nout_gals, i_out, &last_nout_gals);
+#ifdef USE_TOCF
         if(run_globals->params.TOCF_Flag)
-          do_reionization(run_globals, snapshot);
+        {
+          run_globals->tocf_params.snapshot = snapshot;
+          SID_log("Running find HII_bubbles with snapshot = %d", SID_LOG_COMMENT, run_globals->tocf_params.snapshot);
+          find_HII_bubbles(&(run_globals->tocf_params));
+        }
+#endif
       }
   
     // Free the halo and fof_group arrays

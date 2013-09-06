@@ -85,6 +85,9 @@ void calc_hdf5_props(run_globals_struct *run_globals)
 #ifdef CALC_MAGS
   h5props->n_props +=2;
 #endif
+#ifdef USE_TOCF
+  h5props->n_props +=1;
+#endif
 
   // Size of a single galaxy entry.
   h5props->dst_size = sizeof(galaxy_output_struct);
@@ -198,6 +201,13 @@ void calc_hdf5_props(run_globals_struct *run_globals)
   h5props->dst_field_sizes[i]   = sizeof(galout.LTTime);
   h5props->field_names[i] = "LTTime";
   h5props->field_types[i++] = H5T_NATIVE_FLOAT;
+
+#ifdef USE_TOCF
+  h5props->dst_offsets[i] = HOFFSET(galaxy_output_struct, CellIonization);
+  h5props->dst_field_sizes[i]   = sizeof(galout.CellIonization);
+  h5props->field_names[i] = "CellIonization";
+  h5props->field_types[i++] = H5T_NATIVE_FLOAT;
+#endif
 
 #ifdef CALC_MAGS
   h5props->dst_offsets[i] = HOFFSET(galaxy_output_struct, Mag);

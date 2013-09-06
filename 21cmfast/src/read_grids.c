@@ -69,7 +69,7 @@ int read_nbody_grid(
   }
   if ((n_cell[0]!=HII_DIM) || (n_cell[1]!=HII_DIM) || (n_cell[2]!=HII_DIM))
   {
-    fprintf(stderr, "find_HII_bubbles:: At least one n_cell axis != INIT_PARAMS.h HII_DIM value...\n");
+    // fprintf(stderr, "find_HII_bubbles:: At least one n_cell axis != INIT_PARAMS.h HII_DIM value...\n");
     // fclose(fin);
     // return -1;
     resample_factor = (float)HII_DIM/(float)n_cell[0];

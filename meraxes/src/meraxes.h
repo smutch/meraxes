@@ -283,6 +283,11 @@ struct galaxy_struct
   // write index
   int output_index;
 
+  // reionization
+#ifdef USE_TOCF
+  double CellIonization;
+#endif
+
 #ifdef CALC_MAGS
   double Lum[MAX_PHOTO_NBANDS][NOUT];
 #endif
@@ -317,6 +322,11 @@ struct galaxy_output_struct
   float Cos_Inc;
   float MergTime;
   float LTTime;
+
+  // reionization
+#ifdef USE_TOCF
+  float CellIonization;
+#endif
 
 #ifdef CALC_MAGS
   float Mag[MAX_PHOTO_NBANDS];
@@ -361,4 +371,6 @@ void    cleanup_mags(run_globals_struct *run_globals);
 
 // Reionization related
 void    init_reionization(run_globals_struct *run_globals);
-void    do_reionization(run_globals_struct *run_globals, int i_out);
+int     malloc_xH_grid(run_globals_struct *run_globals, int snapshot, float **xH_grid);
+void    assign_ionization_to_galaxies(run_globals_struct *run_globals, float *xH_grid, int xH_dim);
+void    read_xH_grid(run_globals_struct *run_globals, int snapshot, float *xH_grid);

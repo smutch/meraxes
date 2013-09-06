@@ -50,6 +50,7 @@ static int inline phototab_index(
   return (int)((i_age)+photo->NAges*((i_metal)+photo->NMetals*(i_band)));
 }
 
+#ifdef CALC_MAGS
 static void init_jump_index(run_globals_struct *run_globals)
 {
 
@@ -78,8 +79,9 @@ static void init_jump_index(run_globals_struct *run_globals)
   photo->JumpFactor = jumpfac;
 
 }
+#endif
 
-#ifdef DEBUG
+#if defined(DEBUG) && defined(CALC_MAGS)
 static void print_phototab(run_globals_struct *run_globals, int i_metal)
 {
   phototabs_struct *photo    = &(run_globals->photo);
@@ -251,6 +253,7 @@ static int inline get_jump_index(double age, float *AgeTab, int *jumptab, float 
   return jumptab[(int) ((age - AgeTab[1]) * jumpfac)];
 }
 
+#ifdef CALC_MAGS
 static void find_interpolated_lum(
   run_globals_struct *run_globals,
   double              timenow,    
@@ -348,6 +351,7 @@ static void find_interpolated_lum(
   *fmet1 = (double)fm1;
   *fmet2 = (double)fm2;
 }
+#endif
 
 
 void add_to_luminosities(
@@ -412,6 +416,6 @@ void cleanup_mags(run_globals_struct *run_globals)
   SID_free(SID_FARG run_globals->photo.Ages);
   SID_free(SID_FARG run_globals->photo.Metals);
 #else
-  return
+  return;
 #endif
 }
