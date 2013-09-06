@@ -81,19 +81,19 @@ void read_xH_grid(run_globals_struct *run_globals, int snapshot, float *xH_grid)
 
 static inline int find_cell(double pos, int xH_dim, double box_size)
 {
-  return (int)((pos/box_size)/(double)xH_dim);
+  return (int)((pos/box_size)*(double)xH_dim);
 }
 
 static inline int xH_grid_index(int i, int j, int k, int xH_dim)
 {
-  return i+xH_dim*(j+xH_dim*k);
+  return k+xH_dim*(j+xH_dim*i);
 }
 
 void assign_ionization_to_galaxies(run_globals_struct *run_globals, float *xH_grid, int xH_dim)
 {
 
   galaxy_struct *gal = run_globals->FirstGal;
-  double box_size = run_globals->params.BoxSize;
+  double box_size = (double)(run_globals->params.BoxSize);
   int i, j, k;
 
   SID_log("Assigning cell ionization values to galaxies...", SID_LOG_OPEN|SID_LOG_TIMER);

@@ -32,6 +32,7 @@ galaxy_struct* new_galaxy(run_globals_struct *run_globals, int *unique_ID)
   gal->StellarMass       = 0.0;
   gal->Cos_Inc           = gsl_rng_uniform(run_globals->random_generator);
   gal->MergTime          = 99999.9;
+  gal->CellIonization    = 0.0;
 
   for(int ii=0; ii<3; ii++)
   {

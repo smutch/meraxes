@@ -59,6 +59,7 @@ void prepare_galaxy_for_output(
   galout->Cos_Inc     = (float)(gal.Cos_Inc);
   galout->MergTime    = (float)(gal.MergTime * units->UnitLength_in_cm / units->UnitVelocity_in_cm_per_s / SEC_PER_MEGAYEAR / Hubble_h);
   galout->LTTime      = (float)(gal.LTTime * units->UnitLength_in_cm / units->UnitVelocity_in_cm_per_s / SEC_PER_MEGAYEAR / Hubble_h);
+  galout->CellIonization = (float)(gal.CellIonization);
 
   prepare_magnitudes_for_output(run_globals, gal, galout, i_snap);
 
