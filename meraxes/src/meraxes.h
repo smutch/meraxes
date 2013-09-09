@@ -374,3 +374,4 @@ void    init_reionization(run_globals_struct *run_globals);
 int     malloc_xH_grid(run_globals_struct *run_globals, int snapshot, float **xH_grid);
 void    assign_ionization_to_galaxies(run_globals_struct *run_globals, float *xH_grid, int xH_dim);
 void    read_xH_grid(run_globals_struct *run_globals, int snapshot, float *xH_grid);
+bool    check_reionization_cooling(galaxy_struct *gal);

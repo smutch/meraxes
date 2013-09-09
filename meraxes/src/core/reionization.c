@@ -98,7 +98,7 @@ void assign_ionization_to_galaxies(run_globals_struct *run_globals, float *xH_gr
 
   SID_log("Assigning cell ionization values to galaxies...", SID_LOG_OPEN|SID_LOG_TIMER);
   SID_log("xH_dim = %d", SID_LOG_COMMENT, xH_dim);
-  
+
   while(gal != NULL)
   {
     i = find_cell(gal->Pos[0], xH_dim, box_size);

@@ -32,6 +32,11 @@ int evolve_galaxies(run_globals_struct *run_globals, fof_group_struct *fof_group
   double         dMdt            = 0.0;
   double         burst_time      = 0.0;
   double         burst_mass      = 0.0;
+  bool           cooling_flag    = true;
+
+#ifdef DEBUG
+  int            suppressed_cooling_count = 0;
+#endif
 
   SID_log("Doing physics...", SID_LOG_OPEN|SID_LOG_TIMER);
   
@@ -47,7 +52,13 @@ int evolve_galaxies(run_globals_struct *run_globals, fof_group_struct *fof_group
         else
           dMdt = 0.;
 
-        if((gal->Mvir>0.0) && (gal->Type==0) && (dMdt>0.0))
+        cooling_flag = check_reionization_cooling(gal);
+#ifdef DEBUG
+        if((!cooling_flag) && (gal->Type==0))
+          suppressed_cooling_count++;
+#endif
+
+        if((gal->Mvir>0.0) && (gal->Type==0) && (dMdt>0.0) && (cooling_flag))
           switch (run_globals->params.physics.funcprop){
             case VMAX_PROP:
               sfr = BaryonFrac*dMdt * physics_func(run_globals, gal->Vmax, snapshot);
@@ -155,6 +166,10 @@ int evolve_galaxies(run_globals_struct *run_globals, fof_group_struct *fof_group
     SID_log("gal_counter = %d but NGal = %d", SID_LOG_COMMENT, gal_counter, NGal);
     ABORT(EXIT_FAILURE);
   }
+
+#ifdef DEBUG
+  SID_log("Suppressed cooling count = %d", SID_LOG_COMMENT, suppressed_cooling_count);
+#endif
 
   SID_log("...done", SID_LOG_CLOSE); 
 
