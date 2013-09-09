@@ -41,34 +41,45 @@ def setup_fig(redshift, neutral_fraction, slice_str, slice_axis):
     return fig, ax
 
 
-def plot_slice(slice_img, ax, dim, slice_axis, box_size, galaxies=False, color_bar=False, cmap='jet'):
+def plot_slice(slice_img, ax, dim, slice_axis, box_size, galaxies=False, cooling_flag=False, color_bar=False, cmap='jet'):
    
     final_size = (slice_img.shape[0]/dim)*box_size
     extent = (0,final_size,0,final_size)
 
-    cax = ax.imshow(slice_img.T, interpolation='nearest',
+    cax = ax.imshow(slice_img.T, interpolation='bilinear',
                     cmap=getattr(plt.cm, cmap),
                     extent = extent,
-                    origin='lower')
+                    origin='lower',
+                    vmin=0,
+                    vmax=1)
 
-    ax.contour(slice_img.T, extent=extent, extend='both',
-               linewidths=1, alpha=0.5, cmap=getattr(plt.cm, cmap+'_r'))
+    # ax.contour(slice_img.T, extent=extent, extend='both',
+    #            linewidths=0.5, alpha=0.5, cmap=getattr(plt.cm, cmap+'_r'))
 
     if color_bar:
-        cbar = fig.colorbar(cax)
+        cbar = fig.colorbar(cax,)
         cbar.set_label(r'${\rm x_H}$')
 
     if galaxies is not False:
         i_axis = np.arange(3, dtype=int)
         plot_axis = np.argwhere(i_axis!=slice_axis).squeeze()
-        ax.scatter(galaxies["Pos"][:,plot_axis[0]],
-                   galaxies["Pos"][:,plot_axis[1]],
-                   s=np.log10(galaxies['StellarMass']*1.e10)**5/1000,
-                   c=np.log10(galaxies['StellarMass']*1.e10), 
+        if cooling_flag is False:
+            cooling_flag = np.ones(galaxies.size)
+        ax.scatter(galaxies["Pos"][cooling_flag,plot_axis[0]],
+                   galaxies["Pos"][cooling_flag,plot_axis[1]],
+                   s=np.log10(galaxies[cooling_flag]['StellarMass']*1.e10)**9*1e-7,
+                   c=np.log10(galaxies[cooling_flag]['StellarMass']*1.e10), 
                    cmap=plt.cm.Blues,
                    marker='o',
                    alpha=0.5,
                    zorder=3)
+        ax.scatter(galaxies["Pos"][~cooling_flag,plot_axis[0]],
+                   galaxies["Pos"][~cooling_flag,plot_axis[1]],
+                   s=np.log10(galaxies[~cooling_flag]['StellarMass']*1.e10)**9*1e-7,
+                   color='r',
+                   marker='o',
+                   alpha=0.5,
+                   zorder=4)
 
     ax.set_xlim(0,final_size)
     ax.set_ylim(0,final_size)
@@ -107,6 +118,22 @@ def parse_slice(slice_str, max_dim):
 
     return s
 
+def calc_cooling_flag(gals, grid, box_len, Tvir_thresh):
+    cooling_flag = np.ones(gals.size, bool)
+    ncells = grid.shape[0]
+
+    ind = lambda x: np.array(x/box_len*ncells, int)
+    ionization = 1.-grid[ind(gals['Pos'][:,0]),
+                         ind(gals['Pos'][:,1]),
+                         ind(gals['Pos'][:,2])]
+    
+    Tvir = 35.9 * gals['Vvir']**2
+    sel = (ionization>0.995) & (Tvir<Tvir_thresh) & (gals["Type"]==0)
+    cooling_flag[sel] = False
+
+    return cooling_flag
+
+
 if __name__ == '__main__':
    
     # deal with the input args
@@ -116,19 +143,13 @@ if __name__ == '__main__':
     output_file = args['<output_file>']
     redshift = meraxes.io.grab_redshift(input_file, snapshot)
 
-    # read the grid
+    # read the grid and parse the requested slice
     grid, grid_props = meraxes.io.read_xH_grid(input_file, snapshot)
     slice_dim = grid_props['HII_dim']
     slice_sel = parse_slice(args['<slice>'], slice_dim)
-    grid_slice = grid[slice_sel]
-    slice_axis = np.argmin(grid_slice.shape)
-    grid_slice = grid_slice.squeeze()
-
-    if grid_slice.ndim==3:
-        grid_slice = grid_slice.mean(axis=slice_axis)
     box_len = grid_props['box_len'][0]
 
-    # if requested also read in the galaxies and select those within our slice
+    # if requested read in the galaxies and select those within our slice
     if(args['--galaxies']):
         gals = meraxes.io.read_gals(input_file, snapshot)
         edges = np.linspace(0, box_len, slice_dim+1)
@@ -136,15 +157,22 @@ if __name__ == '__main__':
                      (gals["Pos"][:,i] > edges[slice_sel[i].start]))
                     for i in range(3) ], axis=0)
         gals = gals[np.nonzero(sel)]
+        cooling_flag = calc_cooling_flag(gals, grid, box_len, 1e5)
     else:
         gals = False
-    
+
+    # Select out the grid slice
+    grid_slice = grid[slice_sel]
+    slice_axis = np.argmin(grid_slice.shape)
+    grid_slice = grid_slice.squeeze()
+    if grid_slice.ndim==3:
+        grid_slice = grid_slice.mean(axis=slice_axis)
 
     fig, ax = setup_fig(redshift, grid_props['global_xH'], args['<slice>'], slice_axis)
     plot_slice(grid_slice, ax, slice_dim, slice_axis, box_len,
-               galaxies=gals,
+               galaxies=gals, cooling_flag=cooling_flag,
                color_bar=args['--color_bar'],
                cmap=args['--cmap'])
 
     plt.tight_layout()
-    plt.savefig(args['<output_file>'])
+    plt.savefig(args['<output_file>'], dpi=200)
