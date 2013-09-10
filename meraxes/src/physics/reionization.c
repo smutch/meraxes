@@ -1,15 +1,14 @@
 #include "meraxes.h"
 
-bool check_reionization_cooling(galaxy_struct *gal)
+bool check_reionization_cooling(float cell_ionization, float Vvir)
 {
 
-  double Tvir;
-  double cell_ionization = gal->CellIonization;
+  float Tvir;
   bool   flag;
 
   if(cell_ionization>0.995)
   {
-    Tvir = 35.9 * (gal->Vvir*gal->Vvir); 
+    Tvir = 35.9 * (Vvir*Vvir); 
     flag = (Tvir < 1e5) ? false : true;
   } else
     flag = true;

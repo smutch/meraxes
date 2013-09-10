@@ -89,23 +89,21 @@ static inline int xH_grid_index(int i, int j, int k, int xH_dim)
   return k+xH_dim*(j+xH_dim*i);
 }
 
-void assign_ionization_to_galaxies(run_globals_struct *run_globals, float *xH_grid, int xH_dim)
+void assign_ionization_to_halos(run_globals_struct *run_globals, halo_struct *halo, int n_halos, float *xH_grid, int xH_dim)
 {
 
-  galaxy_struct *gal = run_globals->FirstGal;
   double box_size = (double)(run_globals->params.BoxSize);
   int i, j, k;
 
-  SID_log("Assigning cell ionization values to galaxies...", SID_LOG_OPEN|SID_LOG_TIMER);
+  SID_log("Assigning cell ionization values to halos...", SID_LOG_OPEN|SID_LOG_TIMER);
   SID_log("xH_dim = %d", SID_LOG_COMMENT, xH_dim);
 
-  while(gal != NULL)
+  for(int i_halo=0; i_halo<n_halos; i_halo++)
   {
-    i = find_cell(gal->Pos[0], xH_dim, box_size);
-    j = find_cell(gal->Pos[1], xH_dim, box_size);
-    k = find_cell(gal->Pos[2], xH_dim, box_size);
-    gal->CellIonization = 1.0 - xH_grid[xH_grid_index(i,j,k, xH_dim)];
-    gal = gal->Next;
+    i = find_cell(halo[i_halo].Pos[0], xH_dim, box_size);
+    j = find_cell(halo[i_halo].Pos[1], xH_dim, box_size);
+    k = find_cell(halo[i_halo].Pos[2], xH_dim, box_size);
+    halo[i_halo].CellIonization = 1.0 - xH_grid[xH_grid_index(i,j,k, xH_dim)];
   }
 
   SID_log("...done", SID_LOG_CLOSE);

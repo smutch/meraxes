@@ -64,7 +64,7 @@ def plot_slice(slice_img, ax, dim, slice_axis, box_size, galaxies=False, cooling
         i_axis = np.arange(3, dtype=int)
         plot_axis = np.argwhere(i_axis!=slice_axis).squeeze()
         if cooling_flag is False:
-            cooling_flag = np.ones(galaxies.size)
+            cooling_flag = np.ones(galaxies.size, bool)
         ax.scatter(galaxies["Pos"][cooling_flag,plot_axis[0]],
                    galaxies["Pos"][cooling_flag,plot_axis[1]],
                    s=np.log10(galaxies[cooling_flag]['StellarMass']*1.e10)**9*1e-7,

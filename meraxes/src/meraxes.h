@@ -226,16 +226,20 @@ struct halo_struct{
   struct fof_group_struct *FOFGroup;
   struct halo_struct      *NextHaloInFOFGroup;
   struct galaxy_struct    *Galaxy;
-  double Mvir;           //!< Bryan &Norman (ApJ 495, 80, 1998) virial mass [M_sol/h]
+  double Mvir;           //!< virial mass [M_sol/h]
   int    Len;            //!< Number of particles in the structure
   float  Pos[3];         //!< Most bound particle position [Mpc/h]
   float  Vel[3];         //!< Centre-of-mass velocity [km/s]
   float  Rvir;           //!< Virial radius [Mpc/h]
   float  Rhalo;          //!< Distance of last halo particle from MBP [Mpc/h]
   float  Rmax;           //!< Radius of maximum circular velocity [Mpc/h]
+  float  Vvir;           //!< Virial velocity [km/s]
   float  Vmax;           //!< Maximum circular velocity [km/s]
   float  VelDisp;        //!< Total 3D velocity dispersion [km/s]
   float  Spin[3];        //!< Specific angular momentum vector [Mpc/h *km/s]
+#ifdef USE_TOCF
+  float  CellIonization; //!< IGM ionization fraction of host cell
+#endif
 };
 typedef struct halo_struct halo_struct;
 
@@ -282,11 +286,6 @@ struct galaxy_struct
 
   // write index
   int output_index;
-
-  // reionization
-#ifdef USE_TOCF
-  double CellIonization;
-#endif
 
 #ifdef CALC_MAGS
   double Lum[MAX_PHOTO_NBANDS][NOUT];
@@ -348,7 +347,7 @@ int     evolve_galaxies(run_globals_struct *run_globals, fof_group_struct *fof_g
 trees_header_struct read_halos(run_globals_struct *run_globals, int snapshot, halo_struct **halo, fof_group_struct **fof_group);
 void    free_halos(halo_struct **halo);
 galaxy_struct* new_galaxy(run_globals_struct *run_globals, int *unique_ID);
-void    copy_halo_to_galaxy(run_globals_struct *run_globals, halo_struct *halo, galaxy_struct *gal, int snapshot);
+void    copy_halo_to_galaxy(halo_struct *halo, galaxy_struct *gal, int snapshot);
 double  calculate_merging_time(run_globals_struct *run_globals, galaxy_struct *gal, int snapshot);
 void    prep_hdf5_file(run_globals_struct *run_globals);
 void    write_snapshot(run_globals_struct *run_globals, int n_write, int i_out, int *last_n_write);
@@ -359,6 +358,9 @@ void    mpi_debug_here();
 void    check_counts(run_globals_struct *run_globals, fof_group_struct *fof_group, int NGal, int NFof);
 void    cn_quote();
 int     get_corrected_snapshot(run_globals_struct *run_globals, int snapshot);
+double  calculate_Mvir(run_globals_struct *run_globals, halo_struct *halo);
+float   calculate_Rvir(run_globals_struct *run_globals, halo_struct *halo, double Mvir, int snapshot);
+float   calculate_Vvir(run_globals_struct *run_globals, double Mvir, float Rvir);
 
 // Magnitude related
 void    init_luminosities(run_globals_struct *run_globals, galaxy_struct *gal);
@@ -372,6 +374,6 @@ void    cleanup_mags(run_globals_struct *run_globals);
 // Reionization related
 void    init_reionization(run_globals_struct *run_globals);
 int     malloc_xH_grid(run_globals_struct *run_globals, int snapshot, float **xH_grid);
-void    assign_ionization_to_galaxies(run_globals_struct *run_globals, float *xH_grid, int xH_dim);
+void    assign_ionization_to_halos(run_globals_struct *run_globals, halo_struct *halo, int n_halos, float *xH_grid, int xH_dim);
 void    read_xH_grid(run_globals_struct *run_globals, int snapshot, float *xH_grid);
-bool    check_reionization_cooling(galaxy_struct *gal);
+bool    check_reionization_cooling(float cell_ionization, float Vvir);

@@ -101,7 +101,16 @@ static inline bool check_if_valid_host(halo_struct *halo)
   if((halo->Type == 0) 
       && (halo->Galaxy == NULL)
       && (halo->TreeFlags & invalid_flags)==0)
+  {
+#ifdef USE_TOCF
+    if(check_reionization_cooling(halo->CellIonization, halo->Vvir))
+      return true;
+    else
+      return false;
+#else
     return true;
+#endif
+  }
   else
     return false;
 }
@@ -152,6 +161,22 @@ void dracarys(run_globals_struct *run_globals)
     trees_header = read_halos(run_globals, snapshot, &halo, &fof_group);
 
     SID_log("Processing snapshot %d...", SID_LOG_OPEN|SID_LOG_TIMER, snapshot);
+
+#ifdef USE_TOCF
+    // Read in the xH_grid from the previous snapshot
+    if((run_globals->params.TOCF_Flag) && (snapshot>0) && (last_nout_gals>0))
+    {
+      // If the xH_grid is not yet malloc'd - do so
+      if(xH_grid==NULL)
+        xH_dim = malloc_xH_grid(run_globals, snapshot-1, &xH_grid);
+
+      // Read in the grid
+      read_xH_grid(run_globals, snapshot-1, xH_grid);
+
+      // Assign local ionization fractions to each halo
+      assign_ionization_to_halos(run_globals, halo, trees_header.n_subgroups, xH_grid, xH_dim);
+    }
+#endif
 
     // Reset the halo pointers and ghost flags for all galaxies and decrement
     // the snapskip counter
@@ -373,32 +398,12 @@ void dracarys(run_globals_struct *run_globals)
       if(!gal->ghost_flag)
         gal->LTTime = run_globals->LTTime[snapshot];
       if((gal->Type<2) && (!gal->ghost_flag))
-        copy_halo_to_galaxy(run_globals, gal->Halo, gal, snapshot);
+        copy_halo_to_galaxy(gal->Halo, gal, snapshot);
       gal = gal->Next;
     }
     
 #ifdef DEBUG
     check_counts(run_globals, fof_group, NGal, trees_header.n_groups);
-#endif
-
-#ifdef USE_TOCF
-    // Read in the xH_grid from the previous snapshot
-    if((run_globals->params.TOCF_Flag) && (snapshot>0) && (last_nout_gals>0))
-    {
-      // If the xH_grid is not yet malloc'd - do so
-      if(xH_grid==NULL)
-        xH_dim = malloc_xH_grid(run_globals, snapshot-1, &xH_grid);
-
-      // Read in the grid
-      read_xH_grid(run_globals, snapshot-1, xH_grid);
-
-      // Assign local ionization values to each galaxy
-      assign_ionization_to_galaxies(run_globals, xH_grid, xH_dim);
-
-      // If this is the last snapshot then free the xH_grid
-      if(snapshot == last_snap)
-        SID_free(SID_FARG xH_grid);
-    }
 #endif
 
     // Do the physics
@@ -437,6 +442,11 @@ void dracarys(run_globals_struct *run_globals)
     SID_free(SID_FARG gal);
     gal = next_gal;
   }
+
+#ifdef USE_TOCF
+  if(run_globals->params.TOCF_Flag)
+    SID_free(SID_FARG xH_grid);
+#endif
 
 }
 

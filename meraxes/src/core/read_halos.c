@@ -222,6 +222,9 @@ static void inline read_catalog_halo(
   cur_model_halo->Spin[0]            = halo_in.spin[0];
   cur_model_halo->Spin[1]            = halo_in.spin[1];
   cur_model_halo->Spin[2]            = halo_in.spin[2];
+#ifdef USE_TOCF
+  cur_model_halo->CellIonization     = 0.0;
+#endif
   cur_model_halo->NextHaloInFOFGroup = NULL;
   cur_model_halo->Galaxy             = NULL;
 
@@ -268,9 +271,14 @@ static void inline read_subgroup(FILE *fin, halo_struct *halo, int i_halo)
 }
 
 
-static void inline convert_input_halo_units(halo_struct *halo)
+static void inline convert_input_halo_units(run_globals_struct *run_globals, halo_struct *halo, int snapshot)
 {
   halo->Mvir /= 1.0e10;
+
+  // Update the virial properties
+  halo->Mvir = calculate_Mvir(run_globals, halo);
+  halo->Rvir = calculate_Rvir(run_globals, halo, halo->Mvir, snapshot);
+  halo->Vvir = calculate_Vvir(run_globals, halo->Mvir, halo->Rvir);
 }
 
 trees_header_struct read_halos(
@@ -485,7 +493,7 @@ trees_header_struct read_halos(
 
       (*halo)[i_halo].NSubgroups = group_halos[0].NSubgroups-1;
       (*halo)[i_halo].Type = 0;
-      convert_input_halo_units(&((*halo)[i_halo]));
+      convert_input_halo_units(run_globals, &((*halo)[i_halo]), snapshot);
       central_index = i_halo;
       (*fof_group)[i_group-phantom_group_count].FirstHalo = &((*halo)[central_index]);
       (*halo)[i_halo].FOFGroup = &((*fof_group)[i_group-phantom_group_count]);
@@ -512,7 +520,7 @@ trees_header_struct read_halos(
               &i_subgroup_file, &N_halos_subgroups_file, &subgroup_count_infile, *halo, N_subgroups_files, &halo_count);
         i_halo = halo_count-1;
         (*halo)[i_halo].Type = 1;
-        convert_input_halo_units(&((*halo)[i_halo]));
+        convert_input_halo_units(run_globals, &((*halo)[i_halo]), snapshot);
         (*halo)[i_halo].FOFGroup = &((*fof_group)[i_group-phantom_group_count]);
         (*halo)[i_halo-1].NextHaloInFOFGroup = &((*halo)[i_halo]);
       }

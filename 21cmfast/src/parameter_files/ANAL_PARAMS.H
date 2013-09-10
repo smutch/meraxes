@@ -49,7 +49,7 @@
    greater than 1/HII_EFF_FACTOR
 */
 // #define HII_EFF_FACTOR (float) 31.5
-#define HII_EFF_FACTOR (float) 50.0
+#define HII_EFF_FACTOR (float) 75.0
 
 
 

@@ -52,7 +52,11 @@ int evolve_galaxies(run_globals_struct *run_globals, fof_group_struct *fof_group
         else
           dMdt = 0.;
 
-        cooling_flag = check_reionization_cooling(gal);
+#ifdef USE_TOCF
+        if(run_globals->params.TOCF_Flag)
+          cooling_flag = check_reionization_cooling(halo->CellIonization, halo->Vvir);
+#endif
+
 #ifdef DEBUG
         if((!cooling_flag) && (gal->Type==0))
           suppressed_cooling_count++;
@@ -168,7 +172,7 @@ int evolve_galaxies(run_globals_struct *run_globals, fof_group_struct *fof_group
   }
 
 #ifdef DEBUG
-  SID_log("Suppressed cooling count = %d", SID_LOG_COMMENT, suppressed_cooling_count);
+  SID_log("Suppressed cooling in %d already present galaxies.", SID_LOG_COMMENT, suppressed_cooling_count);
 #endif
 
   SID_log("...done", SID_LOG_CLOSE); 
