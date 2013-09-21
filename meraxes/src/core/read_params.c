@@ -1,81 +1,114 @@
 #include "meraxes.h"
+#include "yaml.h"
 
 #define STRING 101
 #define INT    102
 #define DOUBLE 103
 
-static void parse_param_file(
-  char *fname,               
-  char  tag[MAXTAGS][50],    
-  int   n_param,             
-  int   used_tag[MAXTAGS],   
-  int  *errorFlag,           
+static void inline store_param(
+  yaml_event_t event,
+  int   used_tag[MAXTAGS],
   int   params_id[MAXTAGS],  
   void *params_addr[MAXTAGS],
-  char  OutputDir[STRLEN])   
+  int  *value_index)
+{
+  switch(params_id[*value_index])
+  {
+    case DOUBLE:
+      *((double *) params_addr[*value_index]) = atof((char *)event.data.scalar.value);
+      break;
+    case STRING:
+      strcpy(params_addr[*value_index], (char *)event.data.scalar.value);
+      break;
+    case INT:
+      *((int *) params_addr[*value_index]) = atoi((char *)event.data.scalar.value);
+      break;
+  }
+  used_tag[*value_index] = 1;
+  *value_index=-1;
+}
+
+
+static void inline get_value_index(int *value_index, int n_param, yaml_event_t event, char tag[MAXTAGS][50])
+{
+  *value_index=-1;
+  for(int i=0; i<n_param; i++)
+  {
+    if(strcmp((char *)event.data.scalar.value, tag[i])==0)
+    {
+      *value_index = i;
+      break;
+    }
+  }
+}
+
+
+static void parse_param_file(
+    char *fname,               
+    char  tag[MAXTAGS][50],    
+    int   n_param,             
+    int   used_tag[MAXTAGS],   
+    int   params_id[MAXTAGS],  
+    void *params_addr[MAXTAGS])
 {
 
   /*
    * Parse an input parameter file.
    */
 
-  FILE *fd;
-  char buf[400], buf1[400], buf2[400], buf3[400];
-  int i, j;  // dummy
+  yaml_parser_t parser;
+  yaml_event_t event;
+  int value_index = -2;
+  int done = 0;
 
-  if((fd = fopen(fname, "r")))
-  {
-    while(!feof(fd))
+  // Create the Parser object. 
+  yaml_parser_initialize(&parser);
+
+  // Set a file input. 
+  FILE *fd = fopen(fname, "rb");
+  yaml_parser_set_input_file(&parser, fd);
+
+  // Read the event sequence. 
+  while (!done) {
+
+    // Get the next event. 
+    if (!yaml_parser_parse(&parser, &event))
     {
-      *buf = 0;
-      fgets(buf, 200, fd);
-      if(sscanf(buf, "%s%s%s", buf1, buf2, buf3) < 2)
-        continue;
-
-      if(buf1[0] == '#')
-        continue;
-
-      for(i = 0, j = -1; i < n_param; i++)
-        if((used_tag[i] == 0) && (strcmp(buf1, tag[i])==0))
-      {
-        j = i;
-        used_tag[i] = 1;
-        break;
-      }
-
-      if(j >= 0)
-      {
-        switch (params_id[j])
-        {
-          case DOUBLE:
-          *((double *) params_addr[j]) = atof(buf2);
-          break;
-          case STRING:
-          strcpy(params_addr[j], buf2);
-          break;
-          case INT:
-          *((int *) params_addr[j]) = atoi(buf2);
-          break;
-        }
-      }
+      SID_log_error("Failed to parse parameter file %s", fname);
+      yaml_parser_delete(&parser);
+      fclose(fd);
+      ABORT(EXIT_FAILURE);
+    }
+    if(event.type==YAML_SCALAR_EVENT)
+    {
+      if(value_index>-1)
+        store_param(event, used_tag, params_id, params_addr, &value_index);
       else
       {
-        SID_log_error("in file %s:   Tag '%s' not allowed or multiple defined.", fname, buf1);
-        *errorFlag = 1;
+        get_value_index(&value_index, n_param, event, tag);
+        if(value_index<0)
+        {
+          SID_log_error("in file %s:   Tag '%s' not allowed or multiple defined.", fname, event.data.scalar.value);
+          yaml_event_delete(&event);
+          yaml_parser_delete(&parser);
+          fclose(fd);
+          ABORT(EXIT_FAILURE);
+        }
       }
     }
-    fclose(fd);
 
-    i = strlen(OutputDir);
-    if((i > 0) && (OutputDir[i - 1] != '/'))
-        strcat(OutputDir, "/");
-  }
-  else
-  {
-    SID_log_error("Parameter file %s not found.", fname);
-    *errorFlag = 1;
+    // Are we finished? 
+    done = (event.type == YAML_STREAM_END_EVENT);
+
+    // The application is responsible for destroying the event object. 
+    yaml_event_delete(&event);
   }
 
+  // Destroy the Parser object. 
+  yaml_parser_delete(&parser);
+
+  // Close the file
+  fclose(fd);
 
 }
 
@@ -84,7 +117,6 @@ void read_parameter_file(run_globals_struct *run_globals, char *fname)
 {
   int i, n_param;
   int user_used_tag[MAXTAGS], defaults_used_tag[MAXTAGS], required_tag[MAXTAGS];
-  int errorFlag = 0;
   char defaults_file[STRLEN];
   int    params_id[MAXTAGS];
   void   *params_addr[MAXTAGS];
@@ -325,29 +357,25 @@ void read_parameter_file(run_globals_struct *run_globals, char *fname)
   // N.B. This part of the code is wasteful and should be updated!!! 
 
   // Parse the user parameter file first to get the default parameters file.
-  parse_param_file(fname, params_tag, n_param, user_used_tag, &errorFlag, params_id, params_addr, run_params->OutputDir);
+  parse_param_file(fname, params_tag, n_param, user_used_tag, params_id, params_addr);
 
   // Reset the user defined tags flags
   for (i = 0; i < MAXTAGS; i++)
     user_used_tag[i] = 0;
 
   // Now parse the default parameter file
-  parse_param_file(defaults_file, params_tag, n_param, defaults_used_tag, &errorFlag, params_id, params_addr, run_params->OutputDir);
+  parse_param_file(defaults_file, params_tag, n_param, defaults_used_tag, params_id, params_addr);
   
   // Finally - parse the user file again to override any defaults.
-  parse_param_file(fname, params_tag, n_param, user_used_tag, &errorFlag, params_id, params_addr, run_params->OutputDir);
+  parse_param_file(fname, params_tag, n_param, user_used_tag, params_id, params_addr);
 
   for(i = 0; i < n_param; i++)
   {
     if((user_used_tag[i]==0) && (defaults_used_tag[i]==0) && (required_tag[i]==1))
     {
       SID_log_error("I miss a value for tag '%s' in parameter file '%s'.", params_tag[i], fname);
-      errorFlag = 1;
     }
   }
-
-  if(errorFlag)
-    ABORT(EXIT_FAILURE);
 
   if(SID.My_rank == 0)
   {
@@ -373,6 +401,11 @@ void read_parameter_file(run_globals_struct *run_globals, char *fname)
     }
     printf("\n");
   }
+
+  i = strlen(run_params->OutputDir);
+  if(i > 0)
+    if(run_params->OutputDir[i-1] != '/')
+      strcat(run_params->OutputDir, "/");
 
 
 }
