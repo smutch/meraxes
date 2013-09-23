@@ -6,37 +6,41 @@
 #define DOUBLE 103
 
 static void inline store_param(
-  yaml_event_t event,
+  char *value,
   int   used_tag[MAXTAGS],
   int   params_id[MAXTAGS],  
   void *params_addr[MAXTAGS],
-  int  *value_index)
+  int  *tag_index)
 {
-  switch(params_id[*value_index])
+  switch(params_id[*tag_index])
   {
     case DOUBLE:
-      *((double *) params_addr[*value_index]) = atof((char *)event.data.scalar.value);
+      *((double *) params_addr[*tag_index]) = atof(value);
       break;
     case STRING:
-      strcpy(params_addr[*value_index], (char *)event.data.scalar.value);
+      strcpy(params_addr[*tag_index], value);
       break;
     case INT:
-      *((int *) params_addr[*value_index]) = atoi((char *)event.data.scalar.value);
+      *((int *) params_addr[*tag_index]) = atoi(value);
       break;
   }
-  used_tag[*value_index] = 1;
-  *value_index=-1;
+  used_tag[*tag_index] = 1;
+  *tag_index=-1;
 }
 
 
-static void inline get_value_index(int *value_index, int n_param, yaml_event_t event, char tag[MAXTAGS][50])
+static void inline get_tag_index(
+  int  *tag_index,       
+  int   n_param,         
+  char *value,           
+  char  tag[MAXTAGS][50])
 {
-  *value_index=-1;
+  *tag_index=-1;
   for(int i=0; i<n_param; i++)
   {
-    if(strcmp((char *)event.data.scalar.value, tag[i])==0)
+    if(strcmp(value, tag[i])==0)
     {
-      *value_index = i;
+      *tag_index = i;
       break;
     }
   }
@@ -57,9 +61,10 @@ static void parse_param_file(
    */
 
   yaml_parser_t parser;
-  yaml_event_t event;
-  int value_index = -2;
-  int done = 0;
+  yaml_document_t document;
+  yaml_node_t *node;
+  int node_index = 1;
+  int tag_index = -2;
 
   // Create the Parser object. 
   yaml_parser_initialize(&parser);
@@ -68,43 +73,50 @@ static void parse_param_file(
   FILE *fd = fopen(fname, "rb");
   yaml_parser_set_input_file(&parser, fd);
 
-  // Read the event sequence. 
-  while (!done) {
+  // Load the document
+  yaml_parser_load(&parser, &document);
 
-    // Get the next event. 
-    if (!yaml_parser_parse(&parser, &event))
+  while((node = yaml_document_get_node(&document, node_index))!=NULL)
+  {
+    switch(node->type)
     {
-      SID_log_error("Failed to parse parameter file %s", fname);
-      yaml_parser_delete(&parser);
-      fclose(fd);
-      ABORT(EXIT_FAILURE);
-    }
-    if(event.type==YAML_SCALAR_EVENT)
-    {
-      if(value_index>-1)
-        store_param(event, used_tag, params_id, params_addr, &value_index);
-      else
-      {
-        get_value_index(&value_index, n_param, event, tag);
-        if(value_index<0)
+      case YAML_SCALAR_NODE:
+        get_tag_index(&tag_index, n_param, (char *)node->data.scalar.value, tag);
+        if(tag_index<0)
         {
-          SID_log_error("in file %s:   Tag '%s' not allowed or multiple defined.", fname, event.data.scalar.value);
-          yaml_event_delete(&event);
+          SID_log_error("in file %s:   Tag '%s' not allowed or multiple defined.", fname, node->data.scalar.value);
+          yaml_document_delete(&document);
           yaml_parser_delete(&parser);
           fclose(fd);
           ABORT(EXIT_FAILURE);
         }
-      }
+        node_index++;
+        node = yaml_document_get_node(&document, node_index);
+        if(node==NULL)
+          break;
+        else if(node->type == YAML_SCALAR_NODE)
+        {
+          store_param((char *)node->data.scalar.value, used_tag, params_id, params_addr, &tag_index);
+        } else
+          node_index--;
+        break;
+
+      case YAML_SEQUENCE_NODE:
+        break;
+
+      case YAML_NO_EVENT:
+        break;
+
+      case YAML_MAPPING_NODE:
+        break;
     }
-
-    // Are we finished? 
-    done = (event.type == YAML_STREAM_END_EVENT);
-
-    // The application is responsible for destroying the event object. 
-    yaml_event_delete(&event);
+    node_index++;
   }
 
-  // Destroy the Parser object. 
+  // Delete the document
+  yaml_document_delete(&document);
+
+  // Delete the parser
   yaml_parser_delete(&parser);
 
   // Close the file
