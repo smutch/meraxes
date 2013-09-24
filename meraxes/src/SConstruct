@@ -85,7 +85,7 @@ if not GetOption('help'):
         SYSTEM = 'gstar'
         # SYSTEM = 'green'
 
-    env.AppendUnique(LIBS=['gbpMath','gbpLib','gsl', 'gslcblas', 'm', 'yaml'])
+    env.AppendUnique(LIBS=['gbpMath','gbpLib','gsl', 'gslcblas', 'm'])
     HDF5_LIBS = ['z', 'libhdf5_hl', 'libhdf5']
 
     if SYSTEM=='green':
@@ -115,8 +115,6 @@ if not GetOption('help'):
         FFTW_LIBS   = ['/home/smutch/3rd_party/fftw-3.3.3/lib']
         TOCF_INCL   = ['../../21cmfast/include']
         TOCF_LIBS   = ['../../21cmfast/lib']
-        YAML_INCL   = ['/home/smutch/3rd_party/yaml-0.1.4/include']
-        YAML_LIBS   = ['/home/smutch/3rd_party/yaml-0.1.4/lib']
 
     elif SYSTEM=='mac':
         GSL_INCL    = ['/usr/local/include']
@@ -135,8 +133,8 @@ if not GetOption('help'):
 
     env.Replace(CC = CC)
     env.AppendUnique(CPPPATH = ["./"])
-    env.AppendUnique(CPPPATH = [GSL_INCL, GBP_INCL, YAML_INCL])
-    env.AppendUnique(LIBPATH = [GSL_LIBS, GBP_LIBS, YAML_LIBS])
+    env.AppendUnique(CPPPATH = [GSL_INCL, GBP_INCL])
+    env.AppendUnique(LIBPATH = [GSL_LIBS, GBP_LIBS])
     env.AppendUnique(LIBS = HDF5_LIBS)
     env.AppendUnique(CPPFLAGS = '-std=gnu99')
 

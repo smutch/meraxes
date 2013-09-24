@@ -15,7 +15,6 @@
  */
 
 #define STRLEN  256  //!< Default string length
-#define MAXTAGS 50   //!< Maximum number of allowed tags in input file
 
 // TODO: This should not be hard coded if at all possible...
 #define MAXSNAPS 467  //!< Maximum number of snapshots
