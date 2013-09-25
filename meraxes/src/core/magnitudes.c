@@ -3,7 +3,7 @@
 #include <hdf5_hl.h>
 #include "meraxes.h"
 
-void init_luminosities(run_globals_struct *run_globals, galaxy_struct *gal)
+void init_luminosities(run_globals_t *run_globals, galaxy_t *gal)
 {
 #ifdef CALC_MAGS
   for(int ii=0; ii<NOUT; ii++)
@@ -14,7 +14,7 @@ void init_luminosities(run_globals_struct *run_globals, galaxy_struct *gal)
 #endif
 }
 
-void sum_luminosities(run_globals_struct *run_globals, galaxy_struct *parent, galaxy_struct *gal, int outputbin)
+void sum_luminosities(run_globals_t *run_globals, galaxy_t *parent, galaxy_t *gal, int outputbin)
 {
 #ifdef CALC_MAGS
   int n_bands = run_globals->photo.NBands;
@@ -25,7 +25,7 @@ void sum_luminosities(run_globals_struct *run_globals, galaxy_struct *parent, ga
 #endif
 }
 
-void prepare_magnitudes_for_output(run_globals_struct *run_globals, galaxy_struct gal, galaxy_output_struct *galout, int i_snap)
+void prepare_magnitudes_for_output(run_globals_t *run_globals, galaxy_t gal, galaxy_output_t *galout, int i_snap)
 {
 #ifdef CALC_MAGS
   int n_bands = run_globals->photo.NBands;
@@ -42,7 +42,7 @@ void prepare_magnitudes_for_output(run_globals_struct *run_globals, galaxy_struc
 }
 
 static int inline phototab_index(
-  phototabs_struct   *photo,
+  phototabs_t   *photo,
   int                 i_band,     
   int                 i_metal,    
   int                 i_age)      
@@ -51,7 +51,7 @@ static int inline phototab_index(
 }
 
 #ifdef CALC_MAGS
-static void init_jump_index(run_globals_struct *run_globals)
+static void init_jump_index(run_globals_t *run_globals)
 {
 
   // This function precomputes a jump table that allows us to quickly jump to
@@ -61,7 +61,7 @@ static void init_jump_index(run_globals_struct *run_globals)
   float             age;
   int               idx;
   float             jumpfac;
-  phototabs_struct *photo   = &(run_globals->photo);
+  phototabs_t *photo   = &(run_globals->photo);
   int              *jumptab = photo->JumpTable;
   float            *AgeTab  = photo->Ages;
 
@@ -82,9 +82,9 @@ static void init_jump_index(run_globals_struct *run_globals)
 #endif
 
 #if defined(DEBUG) && defined(CALC_MAGS)
-static void print_phototab(run_globals_struct *run_globals, int i_metal)
+static void print_phototab(run_globals_t *run_globals, int i_metal)
 {
-  phototabs_struct *photo    = &(run_globals->photo);
+  phototabs_t *photo    = &(run_globals->photo);
   float            *phototab = photo->Table;
   int               n_ages   = photo->NAges;
   int               n_bands  = photo->NBands;
@@ -101,7 +101,7 @@ static void print_phototab(run_globals_struct *run_globals, int i_metal)
 }
 #endif
 
-void read_photometric_tables(run_globals_struct *run_globals)
+void read_photometric_tables(run_globals_t *run_globals)
 {
 #ifdef CALC_MAGS
 
@@ -109,8 +109,8 @@ void read_photometric_tables(run_globals_struct *run_globals)
   hid_t                group;
   hsize_t              dims[1];
   char                 name[STRLEN];
-  run_params_struct   *run_params            = &(run_globals->params);
-  phototabs_struct    *photo                 = &(run_globals->photo);
+  run_params_t   *run_params            = &(run_globals->params);
+  phototabs_t    *photo                 = &(run_globals->photo);
   float              **Metals                = &(photo->Metals);
   float              **AgeTab                = &(photo->Ages);
   char              (**MagBands)[5]          = &(photo->MagBands);
@@ -255,7 +255,7 @@ static int inline get_jump_index(double age, float *AgeTab, int *jumptab, float 
 
 #ifdef CALC_MAGS
 static void find_interpolated_lum(
-  run_globals_struct *run_globals,
+  run_globals_t *run_globals,
   double              timenow,    
   double              timetarget, 
   double              metallicity,
@@ -273,7 +273,7 @@ static void find_interpolated_lum(
   float age, frac;
   float fa1, fa2, fm1, fm2;
 
-  phototabs_struct *photo      = &(run_globals->photo);
+  phototabs_t *photo      = &(run_globals->photo);
   float            *Metals     = photo->Metals;
   float            *AgeTab     = photo->Ages;
   int              *JumpTable  = photo->JumpTable;
@@ -355,14 +355,14 @@ static void find_interpolated_lum(
 
 
 void add_to_luminosities(
-  run_globals_struct *run_globals,
-  galaxy_struct      *gal,        
+  run_globals_t *run_globals,
+  galaxy_t      *gal,        
   double              burst_mass, 
   double              metallicity,
   double              burst_time) 
 {
 #ifdef CALC_MAGS
-  phototabs_struct *photo      = &(run_globals->photo);
+  phototabs_t *photo      = &(run_globals->photo);
   double            Hubble_h   = run_globals->params.Hubble_h;
   float            *PhotoTab   = run_globals->photo.Table;
   int               n_bands    = run_globals->photo.NBands;
@@ -408,7 +408,7 @@ double lum_to_mag(double lum)
     return 99.0;
 }
 
-void cleanup_mags(run_globals_struct *run_globals)
+void cleanup_mags(run_globals_t *run_globals)
 {
 #ifdef CALC_MAGS
   SID_free(SID_FARG run_globals->photo.Table);

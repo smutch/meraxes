@@ -2,7 +2,7 @@
 #include <hdf5.h>
 #include <hdf5_hl.h>
 
-void init_reionization(run_globals_struct *run_globals)
+void init_reionization(run_globals_t *run_globals)
 {
 #ifdef USE_TOCF
   //! Initialize the 21cmfast parameters structure
@@ -28,7 +28,7 @@ void init_reionization(run_globals_struct *run_globals)
 #endif
 }
 
-int malloc_xH_grid(run_globals_struct *run_globals, int snapshot, float **xH_grid)
+int malloc_xH_grid(run_globals_t *run_globals, int snapshot, float **xH_grid)
 {
 
   herr_t status;
@@ -58,7 +58,7 @@ int malloc_xH_grid(run_globals_struct *run_globals, int snapshot, float **xH_gri
   return xH_grid_dim;
 }
 
-void read_xH_grid(run_globals_struct *run_globals, int snapshot, float *xH_grid)
+void read_xH_grid(run_globals_t *run_globals, int snapshot, float *xH_grid)
 {
 #ifdef USE_TOCF
   hid_t file_id;
@@ -89,7 +89,7 @@ static inline int xH_grid_index(int i, int j, int k, int xH_dim)
   return k+xH_dim*(j+xH_dim*i);
 }
 
-void assign_ionization_to_halos(run_globals_struct *run_globals, halo_struct *halo, int n_halos, float *xH_grid, int xH_dim)
+void assign_ionization_to_halos(run_globals_t *run_globals, halo_t *halo, int n_halos, float *xH_grid, int xH_dim)
 {
 
   double box_size = (double)(run_globals->params.BoxSize);

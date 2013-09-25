@@ -2,7 +2,7 @@
 #include "meraxes.h"
 
 //! The formation history model physics function
-static double physics_func(run_globals_struct *run_globals, double prop, int snapshot)
+static double physics_func(run_globals_t *run_globals, double prop, int snapshot)
 {
 
   double *ZZ = run_globals->ZZ;
@@ -18,15 +18,15 @@ static double physics_func(run_globals_struct *run_globals, double prop, int sna
 }
 
 //! Evolve existing galaxies forward in time
-int evolve_galaxies(run_globals_struct *run_globals, fof_group_struct *fof_group, int snapshot, int NGal, int NFof)
+int evolve_galaxies(run_globals_t *run_globals, fof_group_t *fof_group, int snapshot, int NGal, int NFof)
 {
 
   double         sfr             = 0.0;
   double         BaryonFrac      = run_globals->params.BaryonFrac;
   double         RecycleFraction = run_globals->params.RecycleFraction;
-  galaxy_struct *gal             = NULL;
-  galaxy_struct *parent          = NULL;
-  halo_struct   *halo            = NULL;
+  galaxy_t *gal             = NULL;
+  galaxy_t *parent          = NULL;
+  halo_t   *halo            = NULL;
   int            gal_counter     = 0;
   int            dead_gals       = 0;
   double         dMdt            = 0.0;

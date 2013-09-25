@@ -2,7 +2,7 @@
 #include "meraxes.h"
 #include "tree_flags.h"
 
-static void inline assign_galaxy_to_halo(galaxy_struct *gal, halo_struct *halo)
+static void inline assign_galaxy_to_halo(galaxy_t *gal, halo_t *halo)
 {
   if (halo->Galaxy == NULL)
     halo->Galaxy = gal;
@@ -16,14 +16,14 @@ static void inline assign_galaxy_to_halo(galaxy_struct *gal, halo_struct *halo)
 }
 
 static void inline create_new_galaxy(
-  run_globals_struct *run_globals,    
+  run_globals_t *run_globals,    
   int                 snapshot,       
-  halo_struct        *halo,           
+  halo_t        *halo,           
   int                *NGal,           
   int                *new_gal_counter,
   int                *unique_ID)      
 {
-  galaxy_struct *gal;
+  galaxy_t *gal;
 
   gal = new_galaxy(run_globals, unique_ID);
   gal->Halo = halo;
@@ -41,19 +41,19 @@ static void inline create_new_galaxy(
   *new_gal_counter = *new_gal_counter+1;
 }
 
-static void inline turn_off_merger_flag(galaxy_struct *gal)
+static void inline turn_off_merger_flag(galaxy_t *gal)
 {
   gal->TreeFlags = gal->TreeFlags & (~TREE_CASE_MERGER);
 }
 
 static void inline kill_galaxy(
-  run_globals_struct *run_globals, 
-  galaxy_struct      *gal,         
-  galaxy_struct      *prev_gal,    
+  run_globals_t *run_globals, 
+  galaxy_t      *gal,         
+  galaxy_t      *prev_gal,    
   int                *NGal,        
   int                *kill_counter)
 {
-  galaxy_struct *cur_gal;
+  galaxy_t *cur_gal;
 
   // Remove it from the global linked list
   if(prev_gal!=NULL)
@@ -92,7 +92,7 @@ static inline bool check_for_merger(int flags)
    return false;
 }
 
-static inline bool check_if_valid_host(halo_struct *halo)
+static inline bool check_if_valid_host(halo_t *halo)
 {
   int invalid_flags = (TREE_CASE_FRAGMENTED_RETURNED
       | TREE_CASE_STRAYED
@@ -116,16 +116,16 @@ static inline bool check_if_valid_host(halo_struct *halo)
 }
 
 //! Actually run the model
-void dracarys(run_globals_struct *run_globals)
+void dracarys(run_globals_t *run_globals)
 {
 
-  trees_header_struct  trees_header;
-  halo_struct         *halo            = NULL;
-  fof_group_struct    *fof_group       = NULL;
-  galaxy_struct       *gal             = NULL;
-  galaxy_struct       *prev_gal        = NULL;
-  galaxy_struct       *next_gal        = NULL;
-  galaxy_struct       *cur_gal         = NULL;
+  trees_header_t  trees_header;
+  halo_t         *halo            = NULL;
+  fof_group_t    *fof_group       = NULL;
+  galaxy_t       *gal             = NULL;
+  galaxy_t       *prev_gal        = NULL;
+  galaxy_t       *next_gal        = NULL;
+  galaxy_t       *cur_gal         = NULL;
   int                  i_newhalo;
   int                  NGal            = 0;
   int                  unique_ID       = 0;

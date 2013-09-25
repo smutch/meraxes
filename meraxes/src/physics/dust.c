@@ -38,7 +38,7 @@ static double slab_model(float tau, float costheta)
 }
 
 
-void apply_dust(int n_photo_bands, galaxy_struct gal, double *LumDust, int outputbin)
+void apply_dust(int n_photo_bands, galaxy_t gal, double *LumDust, int outputbin)
 {
   double tauB, tauV, tauR, tauI, tauK;
   double Lum, Lum_corr, incl;

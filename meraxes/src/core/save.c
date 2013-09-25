@@ -23,14 +23,14 @@ static void inline h5_write_attribute(hid_t loc, const char *name, hid_t datatyp
 }
 
 void prepare_galaxy_for_output(
-  run_globals_struct   *run_globals,
-  galaxy_struct         gal,        
-  galaxy_output_struct *galout,     
+  run_globals_t   *run_globals,
+  galaxy_t         gal,        
+  galaxy_output_t *galout,     
   int                   i_snap)     
 {
 
   double Hubble_h = run_globals->params.Hubble_h;
-  run_units_struct *units = &(run_globals->units);
+  run_units_t *units = &(run_globals->units);
 
   galout->id_MBP = (long long)gal.id_MBP;
   galout->ID = (int)gal.ID;
@@ -69,7 +69,7 @@ void prepare_galaxy_for_output(
 
 }
 
-void calc_hdf5_props(run_globals_struct *run_globals)
+void calc_hdf5_props(run_globals_t *run_globals)
 {
 
   /*
@@ -77,8 +77,8 @@ void calc_hdf5_props(run_globals_struct *run_globals)
    * Here we store the data in an hdf5 table for easily appending new data.
    */
 
-  hdf5_output_struct     *h5props = &(run_globals->hdf5props);
-  galaxy_output_struct   galout;
+  hdf5_output_t     *h5props = &(run_globals->hdf5props);
+  galaxy_output_t   galout;
   int                    n_photo_bands = run_globals->photo.NBands;
 
 	int                    i;  // dummy
@@ -95,7 +95,7 @@ void calc_hdf5_props(run_globals_struct *run_globals)
 #endif
 
   // Size of a single galaxy entry.
-  h5props->dst_size = sizeof(galaxy_output_struct);
+  h5props->dst_size = sizeof(galaxy_output_t);
 
   // Create datatypes for different size arrays
   h5props->array3f_tid      = H5Tarray_create(H5T_NATIVE_FLOAT, 1, (hsize_t[]){3});
@@ -112,115 +112,115 @@ void calc_hdf5_props(run_globals_struct *run_globals)
 
   i=0;
 
-  h5props->dst_offsets[i]  = HOFFSET(galaxy_output_struct, id_MBP);
+  h5props->dst_offsets[i]  = HOFFSET(galaxy_output_t, id_MBP);
   h5props->dst_field_sizes[i]    = sizeof(galout.id_MBP);
   h5props->field_names[i]  = "id_MBP";
   h5props->field_types[i++]  = H5T_NATIVE_LLONG;
 
-  h5props->dst_offsets[i]  = HOFFSET(galaxy_output_struct, ID);
+  h5props->dst_offsets[i]  = HOFFSET(galaxy_output_t, ID);
   h5props->dst_field_sizes[i]    = sizeof(galout.ID);
   h5props->field_names[i]  = "ID";
   h5props->field_types[i++]  = H5T_NATIVE_INT;
 
-  h5props->dst_offsets[i]  = HOFFSET(galaxy_output_struct, Type);
+  h5props->dst_offsets[i]  = HOFFSET(galaxy_output_t, Type);
   h5props->dst_field_sizes[i]    = sizeof(galout.Type);
   h5props->field_names[i]  = "Type";
   h5props->field_types[i++]  = H5T_NATIVE_INT;
 
-  h5props->dst_offsets[i]  = HOFFSET(galaxy_output_struct, CentralGal);
+  h5props->dst_offsets[i]  = HOFFSET(galaxy_output_t, CentralGal);
   h5props->dst_field_sizes[i]    = sizeof(galout.CentralGal);
   h5props->field_names[i]  = "CentralGal";
   h5props->field_types[i++]  = H5T_NATIVE_INT;
 
-  h5props->dst_offsets[i] = HOFFSET(galaxy_output_struct, GhostFlag);
+  h5props->dst_offsets[i] = HOFFSET(galaxy_output_t, GhostFlag);
   h5props->dst_field_sizes[i]   = sizeof(galout.GhostFlag);
   h5props->field_names[i] = "GhostFlag";
   h5props->field_types[i++] = H5T_NATIVE_INT;
 
-  h5props->dst_offsets[i]  = HOFFSET(galaxy_output_struct, Pos);
+  h5props->dst_offsets[i]  = HOFFSET(galaxy_output_t, Pos);
   h5props->dst_field_sizes[i]    = sizeof(galout.Pos);
   h5props->field_names[i]  = "Pos";
   h5props->field_types[i++]  = h5props->array3f_tid;
 
-  h5props->dst_offsets[i]  = HOFFSET(galaxy_output_struct, Vel);
+  h5props->dst_offsets[i]  = HOFFSET(galaxy_output_t, Vel);
   h5props->dst_field_sizes[i]    = sizeof(galout.Vel);
   h5props->field_names[i]  = "Vel";
   h5props->field_types[i++]  = h5props->array3f_tid;
 
-  h5props->dst_offsets[i] = HOFFSET(galaxy_output_struct, Len);
+  h5props->dst_offsets[i] = HOFFSET(galaxy_output_t, Len);
   h5props->dst_field_sizes[i]   = sizeof(galout.Len);
   h5props->field_names[i] = "Len";
   h5props->field_types[i++] = H5T_NATIVE_INT;
 
-  h5props->dst_offsets[i] = HOFFSET(galaxy_output_struct, Mvir);
+  h5props->dst_offsets[i] = HOFFSET(galaxy_output_t, Mvir);
   h5props->dst_field_sizes[i]   = sizeof(galout.Mvir);
   h5props->field_names[i] = "Mvir";
   h5props->field_types[i++] = H5T_NATIVE_FLOAT;
 
-  h5props->dst_offsets[i] = HOFFSET(galaxy_output_struct, dM);
+  h5props->dst_offsets[i] = HOFFSET(galaxy_output_t, dM);
   h5props->dst_field_sizes[i]   = sizeof(galout.dM);
   h5props->field_names[i] = "dM";
   h5props->field_types[i++] = H5T_NATIVE_FLOAT;
 
-  h5props->dst_offsets[i] = HOFFSET(galaxy_output_struct, dMdt);
+  h5props->dst_offsets[i] = HOFFSET(galaxy_output_t, dMdt);
   h5props->dst_field_sizes[i]   = sizeof(galout.dMdt);
   h5props->field_names[i] = "dMdt";
   h5props->field_types[i++] = H5T_NATIVE_FLOAT;
 
-  h5props->dst_offsets[i] = HOFFSET(galaxy_output_struct, Rvir);
+  h5props->dst_offsets[i] = HOFFSET(galaxy_output_t, Rvir);
   h5props->dst_field_sizes[i]   = sizeof(galout.Rvir);
   h5props->field_names[i] = "Rvir";
   h5props->field_types[i++] = H5T_NATIVE_FLOAT;
 
-  h5props->dst_offsets[i] = HOFFSET(galaxy_output_struct, Vvir);
+  h5props->dst_offsets[i] = HOFFSET(galaxy_output_t, Vvir);
   h5props->dst_field_sizes[i]   = sizeof(galout.Vvir);
   h5props->field_names[i] = "Vvir";
   h5props->field_types[i++] = H5T_NATIVE_FLOAT;
 
-  h5props->dst_offsets[i] = HOFFSET(galaxy_output_struct, Vmax);
+  h5props->dst_offsets[i] = HOFFSET(galaxy_output_t, Vmax);
   h5props->dst_field_sizes[i]   = sizeof(galout.Vmax);
   h5props->field_names[i] = "Vmax";
   h5props->field_types[i++] = H5T_NATIVE_FLOAT;
 
-  h5props->dst_offsets[i] = HOFFSET(galaxy_output_struct, StellarMass);
+  h5props->dst_offsets[i] = HOFFSET(galaxy_output_t, StellarMass);
   h5props->dst_field_sizes[i]   = sizeof(galout.StellarMass);
   h5props->field_names[i] = "StellarMass";
   h5props->field_types[i++] = H5T_NATIVE_FLOAT;
 
-  h5props->dst_offsets[i] = HOFFSET(galaxy_output_struct, Sfr);
+  h5props->dst_offsets[i] = HOFFSET(galaxy_output_t, Sfr);
   h5props->dst_field_sizes[i]   = sizeof(galout.Sfr);
   h5props->field_names[i] = "Sfr";
   h5props->field_types[i++] = H5T_NATIVE_FLOAT;
 
-  h5props->dst_offsets[i] = HOFFSET(galaxy_output_struct, Cos_Inc);
+  h5props->dst_offsets[i] = HOFFSET(galaxy_output_t, Cos_Inc);
   h5props->dst_field_sizes[i]   = sizeof(galout.Cos_Inc);
   h5props->field_names[i] = "Cos_Inc";
   h5props->field_types[i++] = H5T_NATIVE_FLOAT;
 
-  h5props->dst_offsets[i] = HOFFSET(galaxy_output_struct, MergTime);
+  h5props->dst_offsets[i] = HOFFSET(galaxy_output_t, MergTime);
   h5props->dst_field_sizes[i]   = sizeof(galout.MergTime);
   h5props->field_names[i] = "MergTime";
   h5props->field_types[i++] = H5T_NATIVE_FLOAT;
 
-  h5props->dst_offsets[i] = HOFFSET(galaxy_output_struct, LTTime);
+  h5props->dst_offsets[i] = HOFFSET(galaxy_output_t, LTTime);
   h5props->dst_field_sizes[i]   = sizeof(galout.LTTime);
   h5props->field_names[i] = "LTTime";
   h5props->field_types[i++] = H5T_NATIVE_FLOAT;
 
 #ifdef USE_TOCF
-  h5props->dst_offsets[i] = HOFFSET(galaxy_output_struct, CellIonization);
+  h5props->dst_offsets[i] = HOFFSET(galaxy_output_t, CellIonization);
   h5props->dst_field_sizes[i]   = sizeof(galout.CellIonization);
   h5props->field_names[i] = "CellIonization";
   h5props->field_types[i++] = H5T_NATIVE_FLOAT;
 #endif
 
 #ifdef CALC_MAGS
-  h5props->dst_offsets[i] = HOFFSET(galaxy_output_struct, Mag);
+  h5props->dst_offsets[i] = HOFFSET(galaxy_output_t, Mag);
   h5props->dst_field_sizes[i]   = sizeof(float) * n_photo_bands;
   h5props->field_names[i] = "Mag";
   h5props->field_types[i++] = h5props->array_nmag_f_tid;
 
-  h5props->dst_offsets[i] = HOFFSET(galaxy_output_struct, MagDust);
+  h5props->dst_offsets[i] = HOFFSET(galaxy_output_t, MagDust);
   h5props->dst_field_sizes[i]   = sizeof(float) * n_photo_bands;
   h5props->field_names[i] = "MagDust";
   h5props->field_types[i++] = h5props->array_nmag_f_tid;
@@ -235,7 +235,7 @@ void calc_hdf5_props(run_globals_struct *run_globals)
 }
 
 
-void prep_hdf5_file(run_globals_struct *run_globals)
+void prep_hdf5_file(run_globals_t *run_globals)
 {
 
   hid_t    file_id, str_t, ds_id, group_id;
@@ -393,7 +393,7 @@ void prep_hdf5_file(run_globals_struct *run_globals)
 }
 
 static void inline save_walk_indices(
-  run_globals_struct *run_globals,           
+  run_globals_t *run_globals,           
   hid_t               file_id,               
   int                 i_out,            
   int                 prev_i_out,            
@@ -420,7 +420,7 @@ static void inline save_walk_indices(
 }
 
 
-void write_snapshot(run_globals_struct *run_globals, int n_write, int i_out, int *last_n_write)
+void write_snapshot(run_globals_t *run_globals, int n_write, int i_out, int *last_n_write)
 {
 
   /*
@@ -431,11 +431,11 @@ void write_snapshot(run_globals_struct *run_globals, int n_write, int i_out, int
   hid_t                 group_id;
   hid_t                 ds_id;
   hsize_t               chunk_size             = 10000;
-  galaxy_output_struct *output_buffer          = NULL;
+  galaxy_output_t *output_buffer          = NULL;
   int                  *fill_data              = NULL;
   char                  target_group[20];
-  galaxy_struct        *gal                    = NULL;
-  hdf5_output_struct    h5props                = run_globals->hdf5props;
+  galaxy_t        *gal                    = NULL;
+  hdf5_output_t    h5props                = run_globals->hdf5props;
   int                   gal_count              = 0;
   int                   old_count              = 0;
   hsize_t               dims                   = 1;
@@ -556,7 +556,7 @@ void write_snapshot(run_globals_struct *run_globals, int n_write, int i_out, int
   // This can cause significant memory overhead if `chunk_size` is large.
   gal_count = 0;
   gal = run_globals->FirstGal;
-  output_buffer = SID_malloc(sizeof(galaxy_output_struct)*chunk_size);
+  output_buffer = SID_malloc(sizeof(galaxy_output_t)*chunk_size);
   int buffer_count = 0;
   while (gal!=NULL) {
     // Don't output galaxies which merged at this timestep

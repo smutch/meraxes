@@ -9,7 +9,7 @@ static void inline store_params(
   int   used_tag[PARAM_MAX_ENTRIES],
   int   params_type[PARAM_MAX_ENTRIES],  
   void *params_addr[PARAM_MAX_ENTRIES],
-  run_params_struct *run_params)
+  run_params_t *run_params)
 {
   int tag_index;
   int temp;
@@ -66,7 +66,7 @@ static void inline store_params(
 }
 
 
-void read_parameter_file(run_globals_struct *run_globals, char *fname)
+void read_parameter_file(run_globals_t *run_globals, char *fname)
 {
   int i, n_param;
   int used_tag[PARAM_MAX_ENTRIES], required_tag[PARAM_MAX_ENTRIES];
@@ -79,7 +79,7 @@ void read_parameter_file(run_globals_struct *run_globals, char *fname)
 
   mpi_debug_here();
 
-  run_params_struct *run_params = &(run_globals->params);
+  run_params_t *run_params = &(run_globals->params);
 
   // Initialise values and arrays
   n_param = 0;

@@ -1,11 +1,11 @@
 #include "meraxes.h"
 #include <math.h>
 
-double calculate_merging_time(run_globals_struct *run_globals, galaxy_struct *sat, int snapshot)
+double calculate_merging_time(run_globals_t *run_globals, galaxy_t *sat, int snapshot)
 {
-  galaxy_struct *parent;
-  galaxy_struct *mother;
-  galaxy_struct *cur_gal;
+  galaxy_t *parent;
+  galaxy_t *mother;
+  galaxy_t *cur_gal;
   double         coulomb;
   double         mergtime;
   double         sat_mass;

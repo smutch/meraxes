@@ -1,7 +1,7 @@
 #include "meraxes.h"
 #include "tree_flags.h"
 
-int get_corrected_snapshot(run_globals_struct *run_globals, int snapshot)
+int get_corrected_snapshot(run_globals_t *run_globals, int snapshot)
 {
   int  total_sim_snaps = run_globals->params.TotalSimSnaps;
   int  n_every_snaps   = run_globals->params.NEverySnap;
@@ -159,15 +159,15 @@ static void inline read_catalog_halo(
   int          *i_file,        
   int          *N_halos_file,  
   int          *i_halo,        
-  halo_struct  *halo,         
+  halo_t  *halo,         
   int           N_files,       
   int          *halo_count)    
 {
 
   char                 fname[STRLEN];
   int                  dummy;
-  catalog_halo_struct  halo_in;
-  halo_struct         *cur_model_halo;
+  catalog_halo_t  halo_in;
+  halo_t         *cur_model_halo;
 
   // Is this the first read?
   if((*fin)==NULL)
@@ -200,7 +200,7 @@ static void inline read_catalog_halo(
   }
 
   // Read in a halo and then paste it into our storage array appropriately
-  fread(&halo_in, sizeof(catalog_halo_struct), 1, *fin);
+  fread(&halo_in, sizeof(catalog_halo_t), 1, *fin);
   cur_model_halo = &(halo[*halo_count]);
 
   // Copy over the properties we want to keep
@@ -234,7 +234,7 @@ static void inline read_catalog_halo(
 }
 
 
-static void inline read_trees_header(FILE *fin, trees_header_struct *header)
+static void inline read_trees_header(FILE *fin, trees_header_t *header)
 {
   fread(&(header->n_step)              , sizeof(int), 1, fin);
   fread(&(header->n_search)            , sizeof(int), 1, fin);
@@ -246,7 +246,7 @@ static void inline read_trees_header(FILE *fin, trees_header_struct *header)
   fread(&(header->max_tree_id_group)   , sizeof(int), 1, fin);
 }
 
-static void inline read_group(FILE *fin, halo_struct *halo, int i_halo)
+static void inline read_group(FILE *fin, halo_t *halo, int i_halo)
 {
   int dummy;
   fread(&(halo[i_halo].ID)         , sizeof(int), 1, fin);
@@ -258,7 +258,7 @@ static void inline read_group(FILE *fin, halo_struct *halo, int i_halo)
   fread(&(halo[i_halo].NSubgroups) , sizeof(int), 1, fin);
 }
 
-static void inline read_subgroup(FILE *fin, halo_struct *halo, int i_halo)
+static void inline read_subgroup(FILE *fin, halo_t *halo, int i_halo)
 {
   int dummy;
   fread(&(halo[i_halo].ID)         , sizeof(int), 1, fin);
@@ -271,7 +271,7 @@ static void inline read_subgroup(FILE *fin, halo_struct *halo, int i_halo)
 }
 
 
-static void inline convert_input_halo_units(run_globals_struct *run_globals, halo_struct *halo, int snapshot)
+static void inline convert_input_halo_units(run_globals_t *run_globals, halo_t *halo, int snapshot)
 {
   halo->Mvir /= 1.0e10;
 
@@ -281,11 +281,11 @@ static void inline convert_input_halo_units(run_globals_struct *run_globals, hal
   halo->Vvir = calculate_Vvir(run_globals, halo->Mvir, halo->Rvir);
 }
 
-trees_header_struct read_halos(
-  run_globals_struct  *run_globals,
+trees_header_t read_halos(
+  run_globals_t  *run_globals,
   int                  snapshot,   
-  halo_struct        **halo,
-  fof_group_struct   **fof_group)      
+  halo_t        **halo,
+  fof_group_t   **fof_group)      
 {
 
   int                  N_halos;                               //!< Number of halos including ghosts
@@ -299,7 +299,7 @@ trees_header_struct read_halos(
   int                  N_ghosts_groups_files;                 //!< Number of ghost group files
   int                  N_ghosts_subgroups_files;              //!< Number of ghost subgroup files
   int                  dummy;
-  trees_header_struct  header;
+  trees_header_t  header;
   char                 fname[STRLEN];
   FILE                *fin;
   FILE                *fin_trees;
@@ -412,12 +412,12 @@ trees_header_struct read_halos(
 
   // Allocate the halo array
   if (N_halos>0)
-    *halo = SID_malloc(sizeof(halo_struct) * N_halos);
+    *halo = SID_malloc(sizeof(halo_t) * N_halos);
 
   // Allocate the fof_group array
   if (N_groups>0)
   {
-    *fof_group = SID_malloc(sizeof(fof_group_struct) * N_groups);
+    *fof_group = SID_malloc(sizeof(fof_group_t) * N_groups);
     for(int ii=0; ii<N_groups; ii++)
     {
       (*fof_group)[ii].FirstHalo  = NULL;
@@ -455,7 +455,7 @@ trees_header_struct read_halos(
   int   phantom_group_count          = 0;
 
   // Loop through the groups and subgroups and read them in
-  halo_struct group_halos[1];
+  halo_t group_halos[1];
   for (int i_group=0; i_group<header.n_groups; i_group++){
     read_group(fin_trees, group_halos, group_count);
     n_subgroups = group_halos[group_count].NSubgroups;
@@ -488,7 +488,7 @@ trees_header_struct read_halos(
       i_halo = halo_count-1;
 
       // Copy the relevant FOF group data over the top...
-      // memcpy(&((*halo)[i_halo].Mvir), &(group_halos[0].Mvir), sizeof(halo_struct)-offsetof(halo_struct, Mvir)); 
+      // memcpy(&((*halo)[i_halo].Mvir), &(group_halos[0].Mvir), sizeof(halo_t)-offsetof(halo_t, Mvir)); 
       (*halo)[i_halo].Mvir = group_halos[0].Mvir;
 
       (*halo)[i_halo].NSubgroups = group_halos[0].NSubgroups-1;
@@ -552,7 +552,7 @@ trees_header_struct read_halos(
   return header;
 }
 
-void free_halos(halo_struct **halo){
+void free_halos(halo_t **halo){
   // Free allocated arrays
   SID_free(SID_FARG *halo);
 }

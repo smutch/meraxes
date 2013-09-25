@@ -1,12 +1,12 @@
 #include "meraxes.h"
 #include <math.h>
 
-galaxy_struct* new_galaxy(run_globals_struct *run_globals, int *unique_ID)
+galaxy_t* new_galaxy(run_globals_t *run_globals, int *unique_ID)
 {
  
-  galaxy_struct *gal = NULL;
+  galaxy_t *gal = NULL;
 
-  gal = SID_malloc(sizeof(galaxy_struct));
+  gal = SID_malloc(sizeof(galaxy_t));
 
   // Initialise the properties
   gal->id_MBP            = 0;
@@ -49,7 +49,7 @@ galaxy_struct* new_galaxy(run_globals_struct *run_globals, int *unique_ID)
 }
 
 
-void copy_halo_to_galaxy(halo_struct *halo, galaxy_struct *gal, int snapshot)
+void copy_halo_to_galaxy(halo_t *halo, galaxy_t *gal, int snapshot)
 {
   gal->id_MBP          = halo->id_MBP;
   gal->Type            = halo->Type;

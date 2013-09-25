@@ -29,7 +29,7 @@ static inline double Omega_z(double redshift, double OmegaM, double OmegaK, doub
   return OmegaM*one_plus_z_cube/(Ez*Ez);
 }
 
-static inline double Delta_vir(double redshift, run_globals_struct *run_globals)
+static inline double Delta_vir(double redshift, run_globals_t *run_globals)
 {
   // Function stolen and adapted from gbpCosmo
   double x;
@@ -44,7 +44,7 @@ static inline double Delta_vir(double redshift, run_globals_struct *run_globals)
   return (18.*M_PI*M_PI+82*x-39*x*x)/Omega;
 }
 
-double calculate_Mvir(run_globals_struct *run_globals, halo_struct *halo)
+double calculate_Mvir(run_globals_t *run_globals, halo_t *halo)
 {
   if(halo->Type==0 && halo->Mvir)
     return halo->Mvir;
@@ -52,7 +52,7 @@ double calculate_Mvir(run_globals_struct *run_globals, halo_struct *halo)
     return (double)halo->Len * run_globals->params.PartMass;
 }
 
-float calculate_Rvir(run_globals_struct *run_globals, halo_struct *halo, double Mvir, int snapshot)
+float calculate_Rvir(run_globals_t *run_globals, halo_t *halo, double Mvir, int snapshot)
 {
 
   if(halo->Type==0 && halo->Rvir)
@@ -83,7 +83,7 @@ float calculate_Rvir(run_globals_struct *run_globals, halo_struct *halo, double 
 
 }
 
-float calculate_Vvir(run_globals_struct *run_globals, double Mvir, float Rvir)
+float calculate_Vvir(run_globals_t *run_globals, double Mvir, float Rvir)
 {
   return sqrt((float)(run_globals->G) * (float)Mvir / Rvir);
 }

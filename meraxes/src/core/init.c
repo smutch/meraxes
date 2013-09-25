@@ -3,12 +3,12 @@
 #include <gsl/gsl_math.h>
 #include <gsl/gsl_integration.h>
 
-static void read_snap_list(run_globals_struct *run_globals)
+static void read_snap_list(run_globals_t *run_globals)
 {
   FILE *fin;
   int snaplist_len;
   char fname[STRLEN];
-  run_params_struct params = run_globals->params;
+  run_params_t params = run_globals->params;
 
   sprintf(fname, "%s/%s/trees/%s_no_ghost_test/a_list.txt",
       params.SimulationDir,
@@ -43,14 +43,14 @@ static void read_snap_list(run_globals_struct *run_globals)
 
 double integrand_time_to_present(double a, void *params)
 {
-  double omega_m      = ((run_params_struct *)params)->OmegaM;
-  double omega_k      = ((run_params_struct *)params)->OmegaK;
-  double omega_lambda = ((run_params_struct *)params)->OmegaLambda;
+  double omega_m      = ((run_params_t *)params)->OmegaM;
+  double omega_k      = ((run_params_t *)params)->OmegaK;
+  double omega_lambda = ((run_params_t *)params)->OmegaLambda;
 
   return 1 / sqrt(omega_m / a + omega_k + omega_lambda * a * a);
 }
 
-static double time_to_present(run_globals_struct *run_globals, double z)
+static double time_to_present(run_globals_t *run_globals, double z)
 {
 #define WORKSIZE 1000
   gsl_function F;
@@ -74,9 +74,9 @@ static double time_to_present(run_globals_struct *run_globals, double z)
   return time;
 }
 
-static void set_units(run_globals_struct *run_globals)
+static void set_units(run_globals_t *run_globals)
 {
-  run_units_struct *units       = &(run_globals->units);
+  run_units_t *units       = &(run_globals->units);
 
   units->UnitTime_in_s          = units->UnitLength_in_cm / units->UnitVelocity_in_cm_per_s;
   units->UnitTime_in_Megayears  = units->UnitTime_in_s / SEC_PER_MEGAYEAR;
@@ -96,7 +96,7 @@ static void set_units(run_globals_struct *run_globals)
   run_globals->RhoCrit          = 3 * run_globals->Hubble * run_globals->Hubble / (8 * M_PI * run_globals->G);
 }
 
-static void read_output_snaps(run_globals_struct *run_globals)
+static void read_output_snaps(run_globals_t *run_globals)
 {
   int i;
 
@@ -137,7 +137,7 @@ static void read_output_snaps(run_globals_struct *run_globals)
 
 }
 
-void init_meraxes(run_globals_struct *run_globals)
+void init_meraxes(run_globals_t *run_globals)
 {
   int i;
   int snaplist_len;
