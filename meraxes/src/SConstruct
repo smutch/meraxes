@@ -2,6 +2,8 @@ import os
 import glob
 import sys
 import subprocess
+import shutil
+from SCons.Script.SConscript import SConsEnvironment
 
 # =====================
 # = Utility functions =
@@ -13,6 +15,11 @@ def files(pattern, exclude=''):
     return [file for file in glob.glob(pattern) if (os.path.isfile(file)
             and file not in glob.glob(exclude))]
 
+def copy_files(file_list, dest):
+    for f in file_list:
+        shutil.copy(f, dest)
+SConsEnvironment.CopyFiles = lambda env, file_list, dest: copy_files(file_list, dest)
+
 
 # ============================
 # = Command line definitions =
@@ -23,6 +30,7 @@ vars = Variables('config.py') # Persistent storage.
 vars.AddVariables(
     ('nout', 'Set the number of output snapshots.', 1),
     BoolVariable('calc_mags', 'Calculate magnitudes.', False),
+    BoolVariable('tocf', 'Calculate xH structure with 21cmFAST.', True),
     BoolVariable('git_tag', 'Tag the binary and output files with the current git ref.', True),
     ('allocparameter', 'Set the ALLOCPARAM value.', 5.0),
     EnumVariable('build', 'Set the build type.', 'optimised', allowed_values=('debug', 'optimised')),
@@ -55,6 +63,8 @@ if not GetOption('help'):
     env.AppendUnique(CPPDEFINES=['NOUT=${nout}'])
     if env['calc_mags']:
         env.AppendUnique(CPPDEFINES=['CALC_MAGS'])
+    if env['tocf']:
+        env.AppendUnique(CPPDEFINES=['USE_TOCF'])
     env.AppendUnique(CPPDEFINES=['${input_sim}', 'USE_MPI=1'])
     if env['build'] == 'debug':
         env.MergeFlags('-g -O0 -Wall')
@@ -75,7 +85,7 @@ if not GetOption('help'):
         SYSTEM = 'gstar'
         # SYSTEM = 'green'
 
-    env.AppendUnique(LIBS=['gbpMath','gbpLib','gsl', 'gslcblas','m'])
+    env.AppendUnique(LIBS=['gbpMath','gbpLib','gsl', 'gslcblas', 'm'])
     HDF5_LIBS = ['z', 'libhdf5_hl', 'libhdf5']
 
     if SYSTEM=='green':
@@ -85,8 +95,6 @@ if not GetOption('help'):
         LEVMAR_LIBS = ['/home/ssi/smutch/Packages/src/levmar']
         GBP_INCL    = ['/home/ssi/smutch/Work/3rd_party/libs/gbpCode/myInclude']
         GBP_LIBS    = ['/home/ssi/smutch/Work/3rd_party/libs/gbpCode/myLib/mpi']
-        FFTW_INCL   = ['/home/ssi/smutch/Work/3rd_party/libs/fftw-2.1.5/include']
-        FFTW_LIBS   = ['/home/ssi/smutch/Work/3rd_party/libs/fftw-2.1.5/lib']
         FITSIO_INCL = ['/home/ssi/smutch/Work/3rd_party/libs/cfitsio/include']
         FITSIO_LIBS = ['/home/ssi/smutch/Work/3rd_party/libs/cfitsio/lib']
         SPRNG_INCL  = ['/home/ssi/smutch/Work/3rd_party/libs/sprng/include']
@@ -103,6 +111,10 @@ if not GetOption('help'):
         GBP_INCL    = ['/home/smutch/3rd_party/gbpCode/myInclude']
         GBP_LIBS    = ['/home/smutch/3rd_party/gbpCode/myLib/mpi']
         CC          = ['/usr/local/x86_64/gnu/openmpi-1.6.1/bin/mpicc']
+        FFTW_INCL   = ['/home/smutch/3rd_party/fftw-3.3.3/include']
+        FFTW_LIBS   = ['/home/smutch/3rd_party/fftw-3.3.3/lib']
+        TOCF_INCL   = ['../../21cmfast/include']
+        TOCF_LIBS   = ['../../21cmfast/lib']
 
     elif SYSTEM=='mac':
         GSL_INCL    = ['/usr/local/include']
@@ -111,8 +123,6 @@ if not GetOption('help'):
         LEVMAR_LIBS = ['/Users/smutch/3rd_party/levmar-2.6']
         GBP_INCL    = ['/Users/smutch/3rd_party/gbpCode/myInclude']
         GBP_LIBS    = ['/Users/smutch/3rd_party/gbpCode/myLib/mpi']
-        FFTW_INCL   = ['/Users/smutch/3rd_party/fftw-2.1.5/include']
-        FFTW_LIBS   = ['/Users/smutch/3rd_party/fftw-2.1.5/lib']
         # FITSIO_INCL = ['/Users/smutch/Work/3rd_party/libs/cfitsio/include']
         # FITSIO_LIBS = ['/Users/smutch/Work/3rd_party/libs/cfitsio/lib']
         # SPRNG_INCL  = ['/Users/smutch/Work/3rd_party/libs/sprng/include']
@@ -133,6 +143,12 @@ if not GetOption('help'):
                             cwd = Dir('.').path,
                             shell = True).rstrip('\n')
         env.AppendUnique(CPPDEFINES=['GITREF_STR=\'"%s"\'' % gitref])
+    if env['tocf']:
+        env.AppendUnique(CPPPATH = [TOCF_INCL, FFTW_INCL])
+        env.AppendUnique(LIBPATH = [TOCF_LIBS, FFTW_LIBS])
+        env.AppendUnique(LIBS = ['21cmfast', 'fftw3f_omp', 'fftw3f', 'gomp'])
+        env.AppendUnique(CC = ['-openmp',])
+        
 
     # Set the python environment to use in any python scripts.
     if 'VIRTUAL_ENV' in os.environ:
@@ -144,6 +160,8 @@ if not GetOption('help'):
     Default(target)
 
     lib = env.StaticLibrary(target='../lib/meraxes', source=node_list)
+    incl = env.CopyFiles(files('*.h'), '../include')
+    Depends(lib, incl)
     env.Alias('lib', lib)
 
     # Testing alias

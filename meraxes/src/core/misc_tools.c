@@ -17,15 +17,15 @@ void mpi_debug_here()
 #endif
 }
 
-static void find_missing_gals(run_globals_struct *run_globals, fof_group_struct *fof_group, int NFof, int flag)
+static void find_missing_gals(run_globals_t *run_globals, fof_group_t *fof_group, int NFof, int flag)
 {
-  galaxy_struct *gal = NULL;
-  halo_struct *halo = NULL;
+  galaxy_t *gal = NULL;
+  halo_t *halo = NULL;
   int counter = 0;
   int master_counter = 0;
   int missing_counter = 0;
   bool *gal_found;
-  galaxy_struct **missing_pointers;
+  galaxy_t **missing_pointers;
 
   SID_log("Running `find_missing_galaxies`...", SID_LOG_OPEN);
 
@@ -130,7 +130,7 @@ static void find_missing_gals(run_globals_struct *run_globals, fof_group_struct 
   }
   SID_log("I find %d gals with ghost_flag=true (FOF traversal)", SID_LOG_COMMENT, counter);
 
-  missing_pointers = SID_calloc(sizeof(galaxy_struct *)*missing_counter);
+  missing_pointers = SID_calloc(sizeof(galaxy_t *)*missing_counter);
 
   // Loop through the galaxies and store the pointers of the missing ones
   counter = 0;
@@ -174,15 +174,15 @@ static void find_missing_gals(run_globals_struct *run_globals, fof_group_struct 
 }
 
 
-void check_counts(run_globals_struct *run_globals, fof_group_struct *fof_group, int NGal, int NFof)
+void check_counts(run_globals_t *run_globals, fof_group_t *fof_group, int NGal, int NFof)
 {
 
   int counter = 0;
   int gal_next_counter = 0;
   int halo_counter = 0;
   int halo_pop_count = 0;
-  galaxy_struct *gal = NULL;
-  halo_struct *halo = NULL;
+  galaxy_t *gal = NULL;
+  halo_t *halo = NULL;
 
   SID_log("Running counts check...", SID_LOG_OPEN|SID_LOG_TIMER);
 

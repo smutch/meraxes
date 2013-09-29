@@ -23,8 +23,7 @@ from astropy import log
 from astropy.utils.console import ProgressBar
 import random
 
-from samtools.io import read_gals
-from samtools import plots
+from ssimpl.meraxes.io import read_gals
 
 __author__ = "Simon Mutch"
 __date__   = "2013/06/25"

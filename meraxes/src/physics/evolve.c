@@ -2,7 +2,7 @@
 #include "meraxes.h"
 
 //! The formation history model physics function
-static double physics_func(run_globals_struct *run_globals, double prop, int snapshot)
+static double physics_func(run_globals_t *run_globals, double prop, int snapshot)
 {
 
   double *ZZ = run_globals->ZZ;
@@ -18,20 +18,25 @@ static double physics_func(run_globals_struct *run_globals, double prop, int sna
 }
 
 //! Evolve existing galaxies forward in time
-int evolve_galaxies(run_globals_struct *run_globals, fof_group_struct *fof_group, int snapshot, int NGal, int NFof)
+int evolve_galaxies(run_globals_t *run_globals, fof_group_t *fof_group, int snapshot, int NGal, int NFof)
 {
 
   double         sfr             = 0.0;
   double         BaryonFrac      = run_globals->params.BaryonFrac;
   double         RecycleFraction = run_globals->params.RecycleFraction;
-  galaxy_struct *gal             = NULL;
-  galaxy_struct *parent          = NULL;
-  halo_struct   *halo            = NULL;
+  galaxy_t *gal             = NULL;
+  galaxy_t *parent          = NULL;
+  halo_t   *halo            = NULL;
   int            gal_counter     = 0;
   int            dead_gals       = 0;
   double         dMdt            = 0.0;
   double         burst_time      = 0.0;
   double         burst_mass      = 0.0;
+  bool           cooling_flag    = true;
+
+#ifdef DEBUG
+  int            suppressed_cooling_count = 0;
+#endif
 
   SID_log("Doing physics...", SID_LOG_OPEN|SID_LOG_TIMER);
   
@@ -47,7 +52,17 @@ int evolve_galaxies(run_globals_struct *run_globals, fof_group_struct *fof_group
         else
           dMdt = 0.;
 
-        if((gal->Mvir>0.0) && (gal->Type==0) && (dMdt>0.0))
+#ifdef USE_TOCF
+        if(run_globals->params.TOCF_Flag)
+          cooling_flag = check_reionization_cooling(halo->CellIonization, halo->Vvir);
+#endif
+
+#ifdef DEBUG
+        if((!cooling_flag) && (gal->Type==0))
+          suppressed_cooling_count++;
+#endif
+
+        if((gal->Mvir>0.0) && (gal->Type==0) && (dMdt>0.0) && (cooling_flag))
           switch (run_globals->params.physics.funcprop){
             case VMAX_PROP:
               sfr = BaryonFrac*dMdt * physics_func(run_globals, gal->Vmax, snapshot);
@@ -134,7 +149,7 @@ int evolve_galaxies(run_globals_struct *run_globals, fof_group_struct *fof_group
             for(int outputbin = 0; outputbin < NOUT; outputbin++)
             {
               parent->Sfr[outputbin] += gal->Sfr[outputbin];
-              sum_luminosities(parent, gal, outputbin);
+              sum_luminosities(run_globals, parent, gal, outputbin);
             }
 
             // Mark the merged galaxy as dead
@@ -155,6 +170,10 @@ int evolve_galaxies(run_globals_struct *run_globals, fof_group_struct *fof_group
     SID_log("gal_counter = %d but NGal = %d", SID_LOG_COMMENT, gal_counter, NGal);
     ABORT(EXIT_FAILURE);
   }
+
+#ifdef DEBUG
+  SID_log("Suppressed cooling in %d already present galaxies.", SID_LOG_COMMENT, suppressed_cooling_count);
+#endif
 
   SID_log("...done", SID_LOG_CLOSE); 
 

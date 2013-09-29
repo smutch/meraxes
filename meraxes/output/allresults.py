@@ -22,8 +22,8 @@ from docopt import docopt
 from astropy import log
 from astropy.table import Table
 
-from samtools.io import read_gals
-from samtools import munge
+from ssimpl.meraxes.io import read_gals
+from ssimpl import munge
 
 __author__ = "Simon Mutch"
 __date__   = "2013/08/06"

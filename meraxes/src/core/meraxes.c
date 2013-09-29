@@ -3,8 +3,9 @@
 #include <sys/stat.h>
 #include <hdf5.h>
 
-static void cleanup(run_globals_struct *run_globals)
+static void cleanup(run_globals_t *run_globals)
 {
+  cleanup_mags(run_globals);
   H5Tclose(run_globals->hdf5props.array3f_tid);
   SID_free(SID_FARG run_globals->hdf5props.field_types);
   SID_free(SID_FARG run_globals->hdf5props.field_names);
@@ -21,12 +22,12 @@ void myexit(int signum)
 }
 
 static void set_physics_params(
-  run_globals_struct *run_globals,
+  run_globals_t *run_globals,
   double             *vals,       
   int                 n_params)   
 {
 
-  physics_params_struct *phys_par = &(run_globals->params.physics);
+  physics_params_t *phys_par = &(run_globals->params.physics);
 
   if ((n_params==3) || (n_params==6)){
     phys_par->peak            = vals[0];
@@ -65,7 +66,7 @@ int main(int argc, char **argv)
     ABORT(EXIT_FAILURE);
   }
   
-  run_globals_struct run_globals;
+  run_globals_t run_globals;
   
   if( (argc!=8) && (argc!=4) && (argc!=2) ) 
   {
@@ -107,6 +108,8 @@ int main(int argc, char **argv)
     set_physics_params(&run_globals, physics_param_vals, argc-2);
     SID_free(SID_FARG physics_param_vals);
   }
+
+  // mpi_debug_here();
 
   init_meraxes(&run_globals);
   calc_hdf5_props(&run_globals);

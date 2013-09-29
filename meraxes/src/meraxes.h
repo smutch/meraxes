@@ -6,12 +6,15 @@
 #include <stdbool.h>
 #include <hdf5.h>
 
+#ifdef USE_TOCF
+#include <21cmfast.h>
+#endif
+
 /*
  * Definitions
  */
 
 #define STRLEN  256  //!< Default string length
-#define MAXTAGS 50   //!< Maximum number of allowed tags in input file
 
 // TODO: This should not be hard coded if at all possible...
 #define MAXSNAPS 467  //!< Maximum number of snapshots
@@ -20,19 +23,12 @@
 #define NOUT 1
 #endif
 
-#ifndef N_PHOTO_BANDS
-#define N_PHOTO_BANDS 5
-#endif
-#ifndef N_PHOTO_AGES
-#define N_PHOTO_AGES 220
-#endif
-#ifndef N_PHOTO_METALS
-#define N_PHOTO_METALS 6
+#ifndef MAX_PHOTO_NBANDS
+#define MAX_PHOTO_NBANDS 5
 #endif
 #ifndef N_PHOTO_JUMPS
-#define N_PHOTO_JUMPS ((int)(N_PHOTO_AGES/2))
+#define N_PHOTO_JUMPS 1000
 #endif
-#define N_PHOTO_TABSIZE ((int)(N_PHOTO_AGES*N_PHOTO_BANDS*N_PHOTO_METALS))
 
 #define MVIR_PROP 1
 #define VMAX_PROP 2
@@ -64,7 +60,7 @@ do {                                                                            
  */
 
 //! Physics parameter values
-struct physics_params_struct{
+struct physics_params_t{
   int    funcprop;
   double peak;
   double sigma;
@@ -74,11 +70,11 @@ struct physics_params_struct{
   double stellarfrac_evo;
   double bhgrowthfactor;
 };
-typedef struct physics_params_struct physics_params_struct;
+typedef struct physics_params_t physics_params_t;
 
 //! Run params
 //! Everything in this structure is supplied by the user...
-struct run_params_struct{
+struct run_params_t{
   char                  filename[STRLEN];
   char                  OutputDir[STRLEN];
   char                  FileNameGalaxies[STRLEN];
@@ -86,6 +82,10 @@ struct run_params_struct{
   char                  SimulationDir[STRLEN];
   char                  FileWithOutputSnaps[STRLEN];
   char                  PhotometricTablesDir[STRLEN];
+  char                  SSPModel[STRLEN];
+  char                  IMF[STRLEN];
+  char                  MagSystem[STRLEN];
+  char                  MagBands[STRLEN];
   int                   NEverySnap;
   int                   NScanSnap;
   int                   FilesPerSnapshot;
@@ -106,11 +106,14 @@ struct run_params_struct{
   double                MergerTimeFactor;
   int                   SnaplistLength;
   int                   RandomSeed;
-  physics_params_struct physics;
+  physics_params_t physics;
+  int                   TOCF_Flag;
+  char                  TOCF_LogFileDir[STRLEN];
+  int                   TOCF_NThreads;
 };
-typedef struct run_params_struct run_params_struct;
+typedef struct run_params_t run_params_t;
 
-struct run_units_struct{
+struct run_units_t{
   double UnitTime_in_s;
   double UnitLength_in_cm;
   double UnitVelocity_in_cm_per_s;
@@ -121,9 +124,9 @@ struct run_units_struct{
   double UnitCoolingRate_in_cgs;
   double UnitEnergy_in_cgs;
 };
-typedef struct run_units_struct run_units_struct;
+typedef struct run_units_t run_units_t;
 
-struct hdf5_output_struct
+struct hdf5_output_t
 {
   size_t         dst_size;
   hid_t          array3f_tid;
@@ -134,19 +137,23 @@ struct hdf5_output_struct
   hid_t         *field_types;
   int            n_props;
 };
-typedef struct hdf5_output_struct hdf5_output_struct;
+typedef struct hdf5_output_t hdf5_output_t;
 
-struct phototabs_struct{
+struct phototabs_t{
   int   JumpTable[N_PHOTO_JUMPS];
+  int   NAges;
+  int   NBands;
+  int   NMetals;
   float JumpFactor;
-  float Table[N_PHOTO_TABSIZE];
-  float Ages[N_PHOTO_AGES];
-  float Metals[N_PHOTO_METALS];
+  float *Table;
+  float *Ages;
+  float *Metals;
+  char  (*MagBands)[5];
 };
-typedef struct phototabs_struct phototabs_struct;
+typedef struct phototabs_t phototabs_t;
 
 //! Global variables which will will be passed around
-struct run_globals_struct{
+struct run_globals_t{
   int                        LastOutputSnap;
   int                        ListOutputSnaps[NOUT];
   int                        NGhosts;
@@ -157,18 +164,21 @@ struct run_globals_struct{
   double                     RhoCrit;
   double                     G;
   char                       FNameOut[STRLEN];
-  struct galaxy_struct      *FirstGal;
-  struct galaxy_struct      *LastGal;
+  struct galaxy_t      *FirstGal;
+  struct galaxy_t      *LastGal;
   gsl_rng                   *random_generator;
-  struct run_params_struct   params;
-  struct run_units_struct    units;
-  hdf5_output_struct         hdf5props;
-  phototabs_struct           photo;
+  struct run_params_t   params;
+  struct run_units_t    units;
+  hdf5_output_t         hdf5props;
+  phototabs_t           photo;
+#ifdef USE_TOCF
+  tocf_params_struct         tocf_params;
+#endif
 };
-typedef struct run_globals_struct run_globals_struct;
+typedef struct run_globals_t run_globals_t;
 
 //! The header from the input tree files.
-struct trees_header_struct{
+struct trees_header_t{
   int n_step;
   int n_search;
   int n_groups;
@@ -178,10 +188,10 @@ struct trees_header_struct{
   int max_tree_id_subgroup;
   int max_tree_id_group;
 };
-typedef struct trees_header_struct trees_header_struct;
+typedef struct trees_header_t trees_header_t;
 
 //! This is the structure for a halo in the catalog files
-struct catalog_halo_struct{
+struct catalog_halo_t{
   long long id_MBP;                    //!< ID of most bound particle in structure
   double    M_vir;                     //!< Bryan & Norman (ApJ 495, 80, 1998) virial mass [M_sol/h]
   int       n_particles;               //!< Number of particles in the structure
@@ -200,11 +210,11 @@ struct catalog_halo_struct{
   float     shape_eigen_vectors[3][3]; //!< Normalized triaxial shape eigenvectors
   char      padding[8];                //!< Alignment padding
 };
-typedef struct catalog_halo_struct catalog_halo_struct;
+typedef struct catalog_halo_t catalog_halo_t;
 
 
 //! The meraxis halo structure
-struct halo_struct{
+struct halo_t{
   long long id_MBP;      //!< ID of most bound particle
   int    ID;             //!< Halo ID
   int    Type;           //!< Type (0 for central, 1 for satellite)
@@ -212,28 +222,32 @@ struct halo_struct{
   int    DescIndex;      //!< Index of descendant in next relevant snapshot
   int    TreeFlags;      //!< Bitwise flag indicating the type of match in the trees
   int    NSubgroups;     //!< Number of subgroups belonging to this type 0 (=-1 if type=1)
-  struct fof_group_struct *FOFGroup;
-  struct halo_struct      *NextHaloInFOFGroup;
-  struct galaxy_struct    *Galaxy;
-  double Mvir;           //!< Bryan &Norman (ApJ 495, 80, 1998) virial mass [M_sol/h]
+  struct fof_group_t *FOFGroup;
+  struct halo_t      *NextHaloInFOFGroup;
+  struct galaxy_t    *Galaxy;
+  double Mvir;           //!< virial mass [M_sol/h]
   int    Len;            //!< Number of particles in the structure
   float  Pos[3];         //!< Most bound particle position [Mpc/h]
   float  Vel[3];         //!< Centre-of-mass velocity [km/s]
   float  Rvir;           //!< Virial radius [Mpc/h]
   float  Rhalo;          //!< Distance of last halo particle from MBP [Mpc/h]
   float  Rmax;           //!< Radius of maximum circular velocity [Mpc/h]
+  float  Vvir;           //!< Virial velocity [km/s]
   float  Vmax;           //!< Maximum circular velocity [km/s]
   float  VelDisp;        //!< Total 3D velocity dispersion [km/s]
   float  Spin[3];        //!< Specific angular momentum vector [Mpc/h *km/s]
+#ifdef USE_TOCF
+  float  CellIonization; //!< IGM ionization fraction of host cell
+#endif
 };
-typedef struct halo_struct halo_struct;
+typedef struct halo_t halo_t;
 
-struct fof_group_struct{
-  halo_struct *FirstHalo;
+struct fof_group_t{
+  halo_t *FirstHalo;
 };
-typedef struct fof_group_struct fof_group_struct;
+typedef struct fof_group_t fof_group_t;
 
-struct galaxy_struct
+struct galaxy_t
 {
   long long id_MBP;
   int    ID;
@@ -243,11 +257,11 @@ struct galaxy_struct
   int    HaloDescIndex;
   int    TreeFlags;
   bool   ghost_flag;
-  struct halo_struct         *Halo;
-  struct galaxy_struct       *FirstGalInHalo;
-  struct galaxy_struct       *NextGalInHalo;
-  struct galaxy_struct       *Next;
-  struct galaxy_struct       *MergerTarget;
+  struct halo_t         *Halo;
+  struct galaxy_t       *FirstGalInHalo;
+  struct galaxy_t       *NextGalInHalo;
+  struct galaxy_t       *Next;
+  struct galaxy_t       *MergerTarget;
   int    Len;
   double dt;      //!< Time between current snapshot and last identification
   double LTTime;  //!< Lookback time at the last time this galaxy was identified
@@ -269,18 +283,17 @@ struct galaxy_struct
   double Cos_Inc;
   double MergTime;
 
-#ifdef CALC_MAGS
-  // Luminosities
-  double Lum[N_PHOTO_BANDS][NOUT];
-#endif
-
   // write index
   int output_index;
 
-};
-typedef struct galaxy_struct galaxy_struct;
+#ifdef CALC_MAGS
+  double Lum[MAX_PHOTO_NBANDS][NOUT];
+#endif
 
-struct galaxy_output_struct
+};
+typedef struct galaxy_t galaxy_t;
+
+struct galaxy_output_t
 {
   long long id_MBP;
   int   ID;
@@ -308,13 +321,17 @@ struct galaxy_output_struct
   float MergTime;
   float LTTime;
 
+  // reionization
+#ifdef USE_TOCF
+  float CellIonization;
+#endif
+
 #ifdef CALC_MAGS
-  // Magnitudes
-  float Mag[N_PHOTO_BANDS];
-  float MagDust[N_PHOTO_BANDS];
+  float Mag[MAX_PHOTO_NBANDS];
+  float MagDust[MAX_PHOTO_NBANDS];
 #endif
 };
-typedef struct galaxy_output_struct galaxy_output_struct;
+typedef struct galaxy_output_t galaxy_output_t;
 
 
 /*
@@ -322,28 +339,40 @@ typedef struct galaxy_output_struct galaxy_output_struct;
  */
 
 void    myexit(int signum);
-void    read_parameter_file(run_globals_struct *run_globals, char *fname);
-void    init_meraxes(run_globals_struct *run_globals);
-void    dracarys(run_globals_struct *run_globals);
-int     evolve_galaxies(run_globals_struct *run_globals, fof_group_struct *fof_group, int snapshot, int NGal, int NFof);
-trees_header_struct read_halos(run_globals_struct *run_globals, int snapshot, halo_struct **halo, fof_group_struct **fof_group);
-void    free_halos(halo_struct **halo);
-galaxy_struct* new_galaxy(run_globals_struct *run_globals, int *unique_ID);
-void    copy_halo_to_galaxy(run_globals_struct *run_globals, halo_struct *halo, galaxy_struct *gal, int snapshot);
-double  calculate_merging_time(run_globals_struct *run_globals, galaxy_struct *gal, int snapshot);
-void    prep_hdf5_file(run_globals_struct *run_globals);
-void    write_snapshot(run_globals_struct *run_globals, int n_write, int i_out, int *last_n_write);
-void    calc_hdf5_props(run_globals_struct *run_globals);
-void    prepare_galaxy_for_output(run_globals_struct *run_globals, galaxy_struct gal, galaxy_output_struct *galout, int i_snap);
-void    read_photometric_tables(run_globals_struct *run_globals);
+void    read_parameter_file(run_globals_t *run_globals, char *fname);
+void    init_meraxes(run_globals_t *run_globals);
+void    dracarys(run_globals_t *run_globals);
+int     evolve_galaxies(run_globals_t *run_globals, fof_group_t *fof_group, int snapshot, int NGal, int NFof);
+trees_header_t read_halos(run_globals_t *run_globals, int snapshot, halo_t **halo, fof_group_t **fof_group);
+void    free_halos(halo_t **halo);
+galaxy_t* new_galaxy(run_globals_t *run_globals, int *unique_ID);
+void    copy_halo_to_galaxy(halo_t *halo, galaxy_t *gal, int snapshot);
+double  calculate_merging_time(run_globals_t *run_globals, galaxy_t *gal, int snapshot);
+void    prep_hdf5_file(run_globals_t *run_globals);
+void    write_snapshot(run_globals_t *run_globals, int n_write, int i_out, int *last_n_write);
+void    calc_hdf5_props(run_globals_t *run_globals);
+void    prepare_galaxy_for_output(run_globals_t *run_globals, galaxy_t gal, galaxy_output_t *galout, int i_snap);
+void    read_photometric_tables(run_globals_t *run_globals);
 void    mpi_debug_here();
-void    check_counts(run_globals_struct *run_globals, fof_group_struct *fof_group, int NGal, int NFof);
+void    check_counts(run_globals_t *run_globals, fof_group_t *fof_group, int NGal, int NFof);
 void    cn_quote();
+int     get_corrected_snapshot(run_globals_t *run_globals, int snapshot);
+double  calculate_Mvir(run_globals_t *run_globals, halo_t *halo);
+float   calculate_Rvir(run_globals_t *run_globals, halo_t *halo, double Mvir, int snapshot);
+float   calculate_Vvir(run_globals_t *run_globals, double Mvir, float Rvir);
 
 // Magnitude related
-void    init_luminosities(galaxy_struct *gal);
-void    add_to_luminosities(run_globals_struct *run_globals, galaxy_struct *gal, double burst_mass, double metallicity, double burst_time);
+void    init_luminosities(run_globals_t *run_globals, galaxy_t *gal);
+void    add_to_luminosities(run_globals_t *run_globals, galaxy_t *gal, double burst_mass, double metallicity, double burst_time);
 double  lum_to_mag(double lum);
-void    sum_luminosities(galaxy_struct *parent, galaxy_struct *gal, int outputbin);
-void    prepare_magnitudes_for_output(galaxy_struct gal, galaxy_output_struct *galout, int i_snap);
-void    apply_dust(galaxy_struct gal, double *LumDust, int outputbin);
+void    sum_luminosities(run_globals_t *run_globals, galaxy_t *parent, galaxy_t *gal, int outputbin);
+void    prepare_magnitudes_for_output(run_globals_t *run_globals, galaxy_t gal, galaxy_output_t *galout, int i_snap);
+void    apply_dust(int n_photo_bands, galaxy_t gal, double *LumDust, int outputbin);
+void    cleanup_mags(run_globals_t *run_globals);
+
+// Reionization related
+void    init_reionization(run_globals_t *run_globals);
+int     malloc_xH_grid(run_globals_t *run_globals, int snapshot, float **xH_grid);
+void    assign_ionization_to_halos(run_globals_t *run_globals, halo_t *halo, int n_halos, float *xH_grid, int xH_dim);
+void    read_xH_grid(run_globals_t *run_globals, int snapshot, float *xH_grid);
+bool    check_reionization_cooling(float cell_ionization, float Vvir);

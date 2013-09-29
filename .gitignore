@@ -1,3 +1,5 @@
+Log_files
+find_HII_bubbles
 lib
 ._*
 *.o
@@ -9,7 +11,6 @@ wiki
 tags
 .tags
 testing/*.txt
-*.hdf5
 Session.vim
 Project.vim
 config.py
@@ -21,3 +22,5 @@ plots
 bu
 data
 testing
+21cmfast/include
+meraxes/include

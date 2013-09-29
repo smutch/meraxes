@@ -2,7 +2,7 @@
 #include "meraxes.h"
 #include "tree_flags.h"
 
-static void inline assign_galaxy_to_halo(galaxy_struct *gal, halo_struct *halo)
+static void inline assign_galaxy_to_halo(galaxy_t *gal, halo_t *halo)
 {
   if (halo->Galaxy == NULL)
     halo->Galaxy = gal;
@@ -16,14 +16,14 @@ static void inline assign_galaxy_to_halo(galaxy_struct *gal, halo_struct *halo)
 }
 
 static void inline create_new_galaxy(
-  run_globals_struct *run_globals,    
+  run_globals_t *run_globals,    
   int                 snapshot,       
-  halo_struct        *halo,           
+  halo_t        *halo,           
   int                *NGal,           
   int                *new_gal_counter,
   int                *unique_ID)      
 {
-  galaxy_struct *gal;
+  galaxy_t *gal;
 
   gal = new_galaxy(run_globals, unique_ID);
   gal->Halo = halo;
@@ -41,19 +41,19 @@ static void inline create_new_galaxy(
   *new_gal_counter = *new_gal_counter+1;
 }
 
-static void inline turn_off_merger_flag(galaxy_struct *gal)
+static void inline turn_off_merger_flag(galaxy_t *gal)
 {
   gal->TreeFlags = gal->TreeFlags & (~TREE_CASE_MERGER);
 }
 
 static void inline kill_galaxy(
-  run_globals_struct *run_globals, 
-  galaxy_struct      *gal,         
-  galaxy_struct      *prev_gal,    
+  run_globals_t *run_globals, 
+  galaxy_t      *gal,         
+  galaxy_t      *prev_gal,    
   int                *NGal,        
   int                *kill_counter)
 {
-  galaxy_struct *cur_gal;
+  galaxy_t *cur_gal;
 
   // Remove it from the global linked list
   if(prev_gal!=NULL)
@@ -92,7 +92,7 @@ static inline bool check_for_merger(int flags)
    return false;
 }
 
-static inline bool check_if_valid_host(halo_struct *halo)
+static inline bool check_if_valid_host(halo_t *halo)
 {
   int invalid_flags = (TREE_CASE_FRAGMENTED_RETURNED
       | TREE_CASE_STRAYED
@@ -101,22 +101,31 @@ static inline bool check_if_valid_host(halo_struct *halo)
   if((halo->Type == 0) 
       && (halo->Galaxy == NULL)
       && (halo->TreeFlags & invalid_flags)==0)
+  {
+#ifdef USE_TOCF
+    if(check_reionization_cooling(halo->CellIonization, halo->Vvir))
+      return true;
+    else
+      return false;
+#else
     return true;
+#endif
+  }
   else
     return false;
 }
 
 //! Actually run the model
-void dracarys(run_globals_struct *run_globals)
+void dracarys(run_globals_t *run_globals)
 {
 
-  trees_header_struct  trees_header;
-  halo_struct         *halo            = NULL;
-  fof_group_struct    *fof_group       = NULL;
-  galaxy_struct       *gal             = NULL;
-  galaxy_struct       *prev_gal        = NULL;
-  galaxy_struct       *next_gal        = NULL;
-  galaxy_struct       *cur_gal         = NULL;
+  trees_header_t  trees_header;
+  halo_t         *halo            = NULL;
+  fof_group_t    *fof_group       = NULL;
+  galaxy_t       *gal             = NULL;
+  galaxy_t       *prev_gal        = NULL;
+  galaxy_t       *next_gal        = NULL;
+  galaxy_t       *cur_gal         = NULL;
   int                  i_newhalo;
   int                  NGal            = 0;
   int                  unique_ID       = 0;
@@ -127,6 +136,11 @@ void dracarys(run_globals_struct *run_globals)
   int                  merger_counter  = 0;
   int                  new_gal_counter = 0;
   int                  ghost_counter   = 0;
+
+#ifdef USE_TOCF
+  float               *xH_grid         = NULL;
+  int                  xH_dim;
+#endif
  
   // Find what the last requested output snapshot is
   for(int ii=0; ii<NOUT; ii++)
@@ -147,6 +161,22 @@ void dracarys(run_globals_struct *run_globals)
     trees_header = read_halos(run_globals, snapshot, &halo, &fof_group);
 
     SID_log("Processing snapshot %d...", SID_LOG_OPEN|SID_LOG_TIMER, snapshot);
+
+#ifdef USE_TOCF
+    // Read in the xH_grid from the previous snapshot
+    if((run_globals->params.TOCF_Flag) && (snapshot>0) && (last_nout_gals>0))
+    {
+      // If the xH_grid is not yet malloc'd - do so
+      if(xH_grid==NULL)
+        xH_dim = malloc_xH_grid(run_globals, snapshot-1, &xH_grid);
+
+      // Read in the grid
+      read_xH_grid(run_globals, snapshot-1, xH_grid);
+
+      // Assign local ionization fractions to each halo
+      assign_ionization_to_halos(run_globals, halo, trees_header.n_subgroups, xH_grid, xH_dim);
+    }
+#endif
 
     // Reset the halo pointers and ghost flags for all galaxies and decrement
     // the snapskip counter
@@ -368,7 +398,7 @@ void dracarys(run_globals_struct *run_globals)
       if(!gal->ghost_flag)
         gal->LTTime = run_globals->LTTime[snapshot];
       if((gal->Type<2) && (!gal->ghost_flag))
-        copy_halo_to_galaxy(run_globals, gal->Halo, gal, snapshot);
+        copy_halo_to_galaxy(gal->Halo, gal, snapshot);
       gal = gal->Next;
     }
     
@@ -385,7 +415,17 @@ void dracarys(run_globals_struct *run_globals)
     // Write the results if this is a requested snapshot
     for(int i_out = 0; i_out < NOUT; i_out++)
       if(snapshot == run_globals->ListOutputSnaps[i_out])
+      {
         write_snapshot(run_globals, nout_gals, i_out, &last_nout_gals);
+#ifdef USE_TOCF
+        if(run_globals->params.TOCF_Flag)
+        {
+          run_globals->tocf_params.snapshot = snapshot;
+          SID_log("Running find HII_bubbles with snapshot = %d", SID_LOG_COMMENT, run_globals->tocf_params.snapshot);
+          find_HII_bubbles(&(run_globals->tocf_params));
+        }
+#endif
+      }
   
     // Free the halo and fof_group arrays
     SID_free(SID_FARG halo);
@@ -402,6 +442,11 @@ void dracarys(run_globals_struct *run_globals)
     SID_free(SID_FARG gal);
     gal = next_gal;
   }
+
+#ifdef USE_TOCF
+  if(run_globals->params.TOCF_Flag)
+    SID_free(SID_FARG xH_grid);
+#endif
 
 }
 
