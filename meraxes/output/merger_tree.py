@@ -22,9 +22,7 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 from docopt import docopt
 
-__script_dir__ = os.path.dirname(os.path.realpath( __file__ ))
-sys.path.append(os.path.join(__script_dir__, "../utils"))
-from samtools.meraxes import io as samio
+from ssimpl.meraxes import io as samio
 
 __author__ = "Simon Mutch"
 __date__   = "2013/08/14"
@@ -123,7 +121,7 @@ if __name__ == '__main__':
             np_ind.append([])
  
     # Find the index of our requested galaxy
-    gal = samio.read_gals(fname_gals, snapshot=last_snapnum, verbose=False)
+    gal = samio.read_gals(fname_gals, snapshot=last_snapnum, quiet=True)
     ind = np.argwhere(gal["ID"]==galaxy_ID)[0][0]
 
     # Walk the fp and np indices and construct the graph
@@ -132,7 +130,7 @@ if __name__ == '__main__':
 
     # Attach the galaxies to the graph
     for snap in snaplist:
-        gal = samio.read_gals(fname_gals, snapshot=snap, verbose=False)
+        gal = samio.read_gals(fname_gals, snapshot=snap, quiet=True)
         for node in G.iter_nodes():
             if node["snapshot"] == snap:
                 node["galaxy"] = gal[node["index"]]
