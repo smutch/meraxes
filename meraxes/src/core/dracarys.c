@@ -420,9 +420,8 @@ void dracarys(run_globals_t *run_globals)
 #ifdef USE_TOCF
         if(run_globals->params.TOCF_Flag)
         {
-          run_globals->tocf_params.snapshot = snapshot;
-          SID_log("Running find HII_bubbles with snapshot = %d", SID_LOG_COMMENT, run_globals->tocf_params.snapshot);
-          find_HII_bubbles(&(run_globals->tocf_params));
+          SID_log("Running find HII_bubbles with z = %.2f", SID_LOG_COMMENT, run_globals->ZZ[snapshot]);
+          find_HII_bubbles(run_globals->ZZ[snapshot], tocf_params.HII_eff_factor, tocf_params.ion_tvir_min, tocf_params.r_bubble_max, tocf_params.numcores);
         }
 #endif
       }

@@ -298,15 +298,17 @@ void read_parameter_file(run_globals_t *run_globals, char *fname)
   required_tag[n_param] = 1;
   params_type[n_param++] = PARAM_TYPE_INT;
 
+#ifdef USE_TOCF
   strcpy(params_tag[n_param], "TOCF_LogFileDir");
-  params_addr[n_param] = &(run_params->TOCF_LogFileDir);
-  required_tag[n_param] = 1;
+  params_addr[n_param] = &(tocf_params.logfile_dir);
+  required_tag[n_param] = 0;
   params_type[n_param++] = PARAM_TYPE_STRING;
 
-  strcpy(params_tag[n_param], "TOCF_NThreads");
-  params_addr[n_param] = &(run_params->TOCF_NThreads);
-  required_tag[n_param] = 1;
+  strcpy(params_tag[n_param], "TOCF_NumCores");
+  params_addr[n_param] = &(tocf_params.numcores);
+  required_tag[n_param] = 0;
   params_type[n_param++] = PARAM_TYPE_INT;
+#endif
 
 
   // Parse the user parameter file first

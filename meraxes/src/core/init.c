@@ -171,9 +171,11 @@ void init_meraxes(run_globals_t *run_globals)
   sprintf(run_globals->FNameOut, "%s/%s.hdf5", run_globals->params.OutputDir, run_globals->params.FileNameGalaxies);
   prep_hdf5_file(run_globals);
 
-  // Set up reionization related stuff
+#ifndef USE_TOCF
+  // Check if we want to use 21cmFAST
   if(run_globals->params.TOCF_Flag)
-    init_reionization(run_globals);
+    SID_log_warning("TOCF_Flag is set but Meraxes has not been compiled against 21cmFAST!", SID_LOG_COMMENT);
+#endif
 
 }
 

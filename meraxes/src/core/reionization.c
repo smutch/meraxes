@@ -2,32 +2,6 @@
 #include <hdf5.h>
 #include <hdf5_hl.h>
 
-void init_reionization(run_globals_t *run_globals)
-{
-#ifdef USE_TOCF
-  //! Initialize the 21cmfast parameters structure
-  tocf_params_struct *params = &(run_globals->tocf_params);
-
-  // N.B. Currently BOX_LEN and HII_DIM must be set in the INIT_PARAMS.H file
-  // of 21cmFAST before it's compilation.  All cosmological parameters must
-  // also be set in COSMOLOGY.H.  This should be fixed in future.
-
-  params->meraxes_fname  = run_globals->FNameOut;
-  params->logfile_dir    = run_globals->params.TOCF_LogFileDir;
-  params->snapshot       = -1;  // Will be updated later
-  params->num_th         = run_globals->params.TOCF_NThreads;
-  params->ion_eff_factor = -1;  // default
-  params->tvir_min       = -1;  // default
-  params->mean_free_path = -1;  // default
-  params->zlist          = run_globals->ZZ;
-  params->sim_dir        = run_globals->params.SimulationDir;
-  params->sim_name       = run_globals->params.SimName;
-#else
-  SID_log_error("TOCF_Flag = 1, but Meraxes has not been compiled with 21cmFAST...", SID_LOG_COMMENT);
-  ABORT(EXIT_FAILURE);
-#endif
-}
-
 int malloc_xH_grid(run_globals_t *run_globals, int snapshot, float **xH_grid)
 {
 

@@ -129,6 +129,8 @@ if not GetOption('help'):
         # SPRNG_LIBS  = ['/Users/smutch/Work/3rd_party/libs/sprng/lib']
         CC          = ['/usr/local/bin/mpicc']
         GIT         = ['/usr/bin/git']
+        TOCF_INCL   = ['../../21cmfast/include']
+        TOCF_LIBS   = ['../../21cmfast/lib']
 
 
     env.Replace(CC = CC)

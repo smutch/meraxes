@@ -108,8 +108,6 @@ struct run_params_t{
   int                   RandomSeed;
   physics_params_t physics;
   int                   TOCF_Flag;
-  char                  TOCF_LogFileDir[STRLEN];
-  int                   TOCF_NThreads;
 };
 typedef struct run_params_t run_params_t;
 
@@ -171,9 +169,6 @@ struct run_globals_t{
   struct run_units_t    units;
   hdf5_output_t         hdf5props;
   phototabs_t           photo;
-#ifdef USE_TOCF
-  tocf_params_struct         tocf_params;
-#endif
 };
 typedef struct run_globals_t run_globals_t;
 
@@ -371,7 +366,6 @@ void    apply_dust(int n_photo_bands, galaxy_t gal, double *LumDust, int outputb
 void    cleanup_mags(run_globals_t *run_globals);
 
 // Reionization related
-void    init_reionization(run_globals_t *run_globals);
 int     malloc_xH_grid(run_globals_t *run_globals, int snapshot, float **xH_grid);
 void    assign_ionization_to_halos(run_globals_t *run_globals, halo_t *halo, int n_halos, float *xH_grid, int xH_dim);
 void    read_xH_grid(run_globals_t *run_globals, int snapshot, float *xH_grid);
