@@ -29,14 +29,15 @@ MagBands             : Bbv,V,Rc,Ic,K
 #------------------------------------------
 #----- Code options -----------------------
 #------------------------------------------
-RandomSeed: 1809  # Seed for random number generator
+RandomSeed: 1809  # seed for random number generator
 
 #------------------------------------------
 #----- 21cmFAST ---------------------------
 #------------------------------------------
-TOCF_Flag       : 0          # Use 21cmfast for reionisation?
-TOCF_NThreads   : 4          # Number of OpenMP threads to run 21cmFAST with
-TOCF_LogFileDir : tocf_logs  # Number of OpenMP threads to run 21cmFAST with
+TOCF_Flag : 1 {  # use 21cmfast for reionization?
+    NumCores   : 4          # number of OpenMP threads to run 21cmFAST with
+    LogFileDir : tocf_logs  # directory for log files
+}
 
 #------------------------------------------
 #----- Parameters of physical model -------

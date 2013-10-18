@@ -11,13 +11,25 @@ static void inline store_params(
   void *params_addr[PARAM_MAX_ENTRIES],
   run_params_t *run_params)
 {
+  int level;
   int tag_index;
   int temp;
+  char prefix[16] = "\0";
+  char key[STRLEN];
 
   for(int i_entry=0; i_entry<n_entries; i_entry++)
   {
     SID_log("Checking %s", SID_LOG_COMMENT, entry[i_entry].key);
-    if(strcmp(entry[i_entry].key, "funcprop_params")==0)
+
+    // reset prefix if we have descended an indentation level
+    if (entry[i_entry].level < level)
+      sprintf(prefix, "");
+
+    strcpy(key, prefix);
+    strcat(key, entry[i_entry].key);
+    level = entry[i_entry].level;
+
+    if(strcmp(key, "funcprop_params")==0)
     {
       temp = atoi(entry[i_entry].value);
       if(temp!=run_params->physics.funcprop)
@@ -32,11 +44,24 @@ static void inline store_params(
       tag_index=-1;
       for(int ii=0; ii<n_param; ii++)
       {
-        if(strcmp(entry[i_entry].key, params_tag[ii])==0)
+        if(strcmp(key, params_tag[ii])==0)
         {
           tag_index = ii;
           break;
         }
+      }
+
+      if(strcmp(key, "TOCF_Flag")==0)
+      {
+        temp = atoi(entry[i_entry].value);
+        if(temp!=1)
+        {
+          SID_log("Skipping TOCF params block...", SID_LOG_COMMENT);
+          temp = entry[i_entry++].level;
+          while(entry[i_entry++].level>temp);
+          i_entry-=2;
+        } else
+          sprintf(prefix, "TOCF_");
       }
 
       if (tag_index<0)
