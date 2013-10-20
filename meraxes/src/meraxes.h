@@ -106,7 +106,7 @@ struct run_params_t{
   double                MergerTimeFactor;
   int                   SnaplistLength;
   int                   RandomSeed;
-  physics_params_t physics;
+  physics_params_t      physics;
   int                   TOCF_Flag;
 };
 typedef struct run_params_t run_params_t;
@@ -369,4 +369,5 @@ void    cleanup_mags(run_globals_t *run_globals);
 int     malloc_xH_grid(run_globals_t *run_globals, int snapshot, float **xH_grid);
 void    assign_ionization_to_halos(run_globals_t *run_globals, halo_t *halo, int n_halos, float *xH_grid, int xH_dim);
 void    read_xH_grid(run_globals_t *run_globals, int snapshot, float *xH_grid);
+int     read_dm_grid(run_globals_t *run_globals, int snapshot, int i_grid, float *grid);
 bool    check_reionization_cooling(float cell_ionization, float Vvir);
