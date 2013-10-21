@@ -79,14 +79,7 @@ int evolve_galaxies(run_globals_t *run_globals, fof_group_t *fof_group, int snap
           sfr = 0.0;
       
         // update the star formation rate in the galaxy structure 
-        for(int outputbin = 0; outputbin < NOUT; outputbin++)
-        {
-          if(snapshot == run_globals->ListOutputSnaps[outputbin])
-          {
-            gal->Sfr[outputbin] += sfr;
-            break;
-          }
-        }
+        gal->Sfr = sfr;
 
         // Instantaneous recycling approximation
         burst_mass = (1.0-RecycleFraction)*sfr*gal->dt;
@@ -145,10 +138,10 @@ int evolve_galaxies(run_globals_t *run_globals, fof_group_t *fof_group, int snap
 
             // Add galaxies together
             parent->StellarMass += gal->StellarMass;
+            parent->Sfr += gal->Sfr;
 
             for(int outputbin = 0; outputbin < NOUT; outputbin++)
             {
-              parent->Sfr[outputbin] += gal->Sfr[outputbin];
               sum_luminosities(run_globals, parent, gal, outputbin);
             }
 

@@ -275,9 +275,9 @@ struct galaxy_t
 
   // baryonic reservoirs
   double StellarMass;
+  double Sfr;
 
   // misc
-  double Sfr[NOUT];
   double Cos_Inc;
   double MergTime;
 
@@ -312,9 +312,9 @@ struct galaxy_output_t
 
   // baryonic reservoirs
   float StellarMass;
+  float Sfr;
 
   // misc
-  float Sfr;
   float Cos_Inc;
   float MergTime;
   float LTTime;

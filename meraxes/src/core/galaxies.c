@@ -30,6 +30,7 @@ galaxy_t* new_galaxy(run_globals_t *run_globals, int *unique_ID)
   gal->Vvir              = 0.0;
   gal->Vmax              = 0.0;
   gal->StellarMass       = 0.0;
+  gal->Sfr               = 0.0;
   gal->Cos_Inc           = gsl_rng_uniform(run_globals->random_generator);
   gal->MergTime          = 99999.9;
 
@@ -38,8 +39,6 @@ galaxy_t* new_galaxy(run_globals_t *run_globals, int *unique_ID)
     gal->Pos[ii] = -99999.9;
     gal->Vel[ii] = -99999.9;
   }
-  for(int ii=0; ii<NOUT; ii++)
-    gal->Sfr[ii] = 0;
 
   gal->output_index = -1;
   gal->ghost_flag = false;

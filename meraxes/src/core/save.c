@@ -55,7 +55,7 @@ void prepare_galaxy_for_output(
   galout->Vvir        = (float)(gal.Vvir);
   galout->Vmax        = (float)(gal.Vmax);
   galout->StellarMass = (float)(gal.StellarMass / Hubble_h);
-  galout->Sfr         = (float)(gal.Sfr[i_snap] * units->UnitMass_in_g / units->UnitTime_in_s * SEC_PER_YEAR / SOLAR_MASS);
+  galout->Sfr         = (float)(gal.Sfr * units->UnitMass_in_g / units->UnitTime_in_s * SEC_PER_YEAR / SOLAR_MASS);
   galout->Cos_Inc     = (float)(gal.Cos_Inc);
   galout->MergTime    = (float)(gal.MergTime * units->UnitLength_in_cm / units->UnitVelocity_in_cm_per_s / SEC_PER_MEGAYEAR / Hubble_h);
   galout->LTTime      = (float)(gal.LTTime * units->UnitLength_in_cm / units->UnitVelocity_in_cm_per_s / SEC_PER_MEGAYEAR / Hubble_h);
