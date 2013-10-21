@@ -166,15 +166,15 @@ void dracarys(run_globals_t *run_globals)
     // Read in the xH_grid from the previous snapshot
     if((run_globals->params.TOCF_Flag) && (snapshot>0) && (last_nout_gals>0))
     {
-      // If the xH_grid is not yet malloc'd - do so
-      if(xH_grid==NULL)
-        xH_dim = malloc_xH_grid(run_globals, snapshot-1, &xH_grid);
+      // // If the xH_grid is not yet malloc'd - do so
+      // if(xH_grid==NULL)
+      //   xH_dim = malloc_xH_grid(run_globals, snapshot-1, &xH_grid);
 
-      // Read in the grid
-      read_xH_grid(run_globals, snapshot-1, xH_grid);
+      // // Read in the grid
+      // read_xH_grid(run_globals, snapshot-1, xH_grid);
 
-      // Assign local ionization fractions to each halo
-      assign_ionization_to_halos(run_globals, halo, trees_header.n_subgroups, xH_grid, xH_dim);
+      // // Assign local ionization fractions to each halo
+      // assign_ionization_to_halos(run_globals, halo, trees_header.n_subgroups, xH_grid, xH_dim);
     }
 #endif
 

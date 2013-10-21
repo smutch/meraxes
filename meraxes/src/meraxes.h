@@ -6,6 +6,9 @@
 #include <stdbool.h>
 #include <hdf5.h>
 
+#ifndef _INIT_MERAXES
+#define _INIT_MERAXES
+
 #ifdef USE_TOCF
 #include <21cmfast.h>
 #endif
@@ -366,8 +369,11 @@ void    apply_dust(int n_photo_bands, galaxy_t gal, double *LumDust, int outputb
 void    cleanup_mags(run_globals_t *run_globals);
 
 // Reionization related
-int     malloc_xH_grid(run_globals_t *run_globals, int snapshot, float **xH_grid);
+void    malloc_reionization_grids(float **xH_grid, float **stellar_grid, float **z_at_ionization, float **J_at_ionization, float **Mvir_crit);
+void    free_reionization_grids(float *xH_grid, float *stellar_grid, float *z_at_ionization, float *J_at_ionization, float *Mvir_crit);
+void    construct_stellar_grid(run_globals_t *run_globals, float *stellar_grid);
 void    assign_ionization_to_halos(run_globals_t *run_globals, halo_t *halo, int n_halos, float *xH_grid, int xH_dim);
-void    read_xH_grid(run_globals_t *run_globals, int snapshot, float *xH_grid);
 int     read_dm_grid(run_globals_t *run_globals, int snapshot, int i_grid, float *grid);
 bool    check_reionization_cooling(float cell_ionization, float Vvir);
+
+#endif // _INIT_MERAXES
