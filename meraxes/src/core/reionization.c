@@ -5,6 +5,7 @@
 void malloc_reionization_grids(
   float         **xH_grid,        
   float         **stellar_grid,   
+  float         **sfr_grid,   
   float         **z_at_ionization,
   float         **J_at_ionization,
   float         **Mvir_crit)
@@ -12,11 +13,12 @@ void malloc_reionization_grids(
 #ifdef USE_TOCF
   int n_cell = pow(tocf_params.HII_dim, 3);
 
-  SID_log("Mallocing %.2f GB for required 21cmFAST grids...", SID_LOG_OPEN,
-      (float)n_cell * (float)(sizeof(float)) * 5./(1024*1024*1024));
+  SID_log("Mallocing %.1f GB for required 21cmFAST grids...", SID_LOG_OPEN,
+      (float)n_cell * (float)(sizeof(float)) * 6./(1024*1024*1024));
 
   *xH_grid         = (float *)fftwf_malloc(sizeof(float) * (size_t)n_cell);
   *stellar_grid    = (float *)fftwf_malloc(sizeof(float) * (size_t)n_cell);
+  *sfr_grid        = (float *)fftwf_malloc(sizeof(float) * (size_t)n_cell);
   *z_at_ionization = (float *)fftwf_malloc(sizeof(float) * (size_t)n_cell);
   *J_at_ionization = (float *)fftwf_malloc(sizeof(float) * (size_t)n_cell);
   *Mvir_crit       = (float *)fftwf_malloc(sizeof(float) * (size_t)n_cell);
@@ -28,6 +30,7 @@ void malloc_reionization_grids(
 void free_reionization_grids(
   float         *xH_grid,        
   float         *stellar_grid,   
+  float         *sfr_grid,   
   float         *z_at_ionization,
   float         *J_at_ionization,
   float         *Mvir_crit)
@@ -36,6 +39,7 @@ void free_reionization_grids(
   fftwf_free(Mvir_crit);
   fftwf_free(J_at_ionization);
   fftwf_free(z_at_ionization);
+  fftwf_free(sfr_grid);
   fftwf_free(stellar_grid);
   fftwf_free(xH_grid);
 #endif
@@ -46,7 +50,7 @@ static inline int find_cell(double pos, int xH_dim, double box_size)
   return (int)((pos/box_size)*(double)xH_dim);
 }
 
-void construct_stellar_grid(run_globals_t *run_globals, float *stellar_grid)
+void construct_stellar_grids(run_globals_t *run_globals, float *stellar_grid, float *sfr_grid)
 {
 #ifdef USE_TOCF
   galaxy_t *gal;
@@ -55,10 +59,15 @@ void construct_stellar_grid(run_globals_t *run_globals, float *stellar_grid)
   int n_cell = pow(xH_dim,3);
   double box_size = (double)(run_globals->params.BoxSize);
   double Hubble_h = run_globals->params.Hubble_h;
+  double UnitMass_in_g = run_globals->units.UnitMass_in_g;
+  double UnitTime_in_s = run_globals->units.UnitTime_in_s;
 
   // init the grid
   for(int ii=0; ii<n_cell; ii++)
+  {
     stellar_grid[ii] = 0.0;
+    sfr_grid[ii] = 0.0;
+  }
 
   // Loop through each valid galaxy and add its stellar mass to the appropriate cell
   gal = run_globals->FirstGal;
@@ -70,13 +79,17 @@ void construct_stellar_grid(run_globals_t *run_globals, float *stellar_grid)
       j = find_cell(gal->Pos[1], xH_dim, box_size);
       k = find_cell(gal->Pos[2], xH_dim, box_size);
       stellar_grid[HII_R_FFT_INDEX(i,j,k)] += gal->StellarMass;
+      sfr_grid[HII_R_FFT_INDEX(i,j,k)] += gal->Sfr;
     }
     gal = gal->Next;
   }
 
-  // Do one final pass to put the grid in the correct units (Msol)
+  // Do one final pass to put the grid in the correct units (Msol or Msol/yr)
   for(int ii=0; ii<n_cell; ii++)
+  {
     stellar_grid[ii] *= 1.e10/Hubble_h;
+    sfr_grid[ii] = sfr_grid[ii] * UnitMass_in_g / UnitTime_in_s * SEC_PER_YEAR / SOLAR_MASS;
+  }
 #endif
 }
 

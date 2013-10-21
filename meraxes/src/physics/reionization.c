@@ -31,7 +31,7 @@ void calculate_Mvir_crit(run_globals_t *run_globals, double redshift, float *z_a
         if(z_at_ionization[HII_R_INDEX(ii,jj,kk)] > redshift)
           cell_Mvir_crit = m_0_sm*pow((1.0+redshift)/10.0, a_sm) * pow(J_at_ionization[HII_R_INDEX(ii,jj,kk)], b_sm)*
             pow((1.0-pow((1.0+redshift)/(1.0+z_at_ionization[HII_R_INDEX(ii,jj,kk)]), c_sm)), d_sm);
-        Mvir_crit[HII_R_INDEX(ii,jj,kk)] = (Mvir_atomic > cell_Mvir_crit ? Mvir_atomic : cell_Mvir_crit);
+        Mvir_crit[HII_R_INDEX(ii,jj,kk)] = (Mvir_atomic > cell_Mvir_crit) ? Mvir_atomic : cell_Mvir_crit;
       }
     }
   }
