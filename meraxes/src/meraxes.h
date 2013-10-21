@@ -375,5 +375,6 @@ void    construct_stellar_grid(run_globals_t *run_globals, float *stellar_grid);
 void    assign_ionization_to_halos(run_globals_t *run_globals, halo_t *halo, int n_halos, float *xH_grid, int xH_dim);
 int     read_dm_grid(run_globals_t *run_globals, int snapshot, int i_grid, float *grid);
 bool    check_reionization_cooling(float cell_ionization, float Vvir);
+void    calculate_Mvir_crit(run_globals_t *run_globals, double redshift, float *z_at_ionization, float *J_at_ionization, float *Mvir_crit);
 
 #endif // _INIT_MERAXES
