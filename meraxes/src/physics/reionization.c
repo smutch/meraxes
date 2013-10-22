@@ -1,7 +1,7 @@
 #include "meraxes.h"
 #include <math.h>
 
-void calculate_Mvir_crit(run_globals_t *run_globals, double redshift, float *z_at_ionization, float *J_at_ionization, float *Mvir_crit)
+void calculate_Mvir_crit(run_globals_t *run_globals, double redshift)
 {
 #ifdef USE_TOCF
   // Calculate the critical Mvir value in each grid cell (ala Sobacchi & Mesinger 2013b)
@@ -16,6 +16,10 @@ void calculate_Mvir_crit(run_globals_t *run_globals, double redshift, float *z_a
   float b_sm = tocf_params.b_sm;
   float c_sm = tocf_params.c_sm;
   float d_sm = tocf_params.d_sm;
+
+  float *Mvir_crit = run_globals->tocf_grids.Mvir_crit;
+  float *J_at_ionization = run_globals->tocf_grids.J_at_ionization;
+  float *z_at_ionization = run_globals->tocf_grids.z_at_ionization;
 
   // init
   for(int ii=0; ii<n_cell; ii++)

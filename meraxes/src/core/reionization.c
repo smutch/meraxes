@@ -2,46 +2,37 @@
 #include <fftw3.h>
 #include <math.h>
 
-void malloc_reionization_grids(
-  float         **xH_grid,        
-  float         **stellar_grid,   
-  float         **sfr_grid,   
-  float         **z_at_ionization,
-  float         **J_at_ionization,
-  float         **Mvir_crit)
+void malloc_reionization_grids(run_globals_t *run_globals)
 {
 #ifdef USE_TOCF
+  tocf_grids_t *grids = &(run_globals->tocf_grids);
   int n_cell = pow(tocf_params.HII_dim, 3);
 
   SID_log("Mallocing %.1f GB for required 21cmFAST grids...", SID_LOG_OPEN,
       (float)n_cell * (float)(sizeof(float)) * 6./(1024*1024*1024));
 
-  *xH_grid         = (float *)fftwf_malloc(sizeof(float) * (size_t)n_cell);
-  *stellar_grid    = (float *)fftwf_malloc(sizeof(float) * (size_t)n_cell);
-  *sfr_grid        = (float *)fftwf_malloc(sizeof(float) * (size_t)n_cell);
-  *z_at_ionization = (float *)fftwf_malloc(sizeof(float) * (size_t)n_cell);
-  *J_at_ionization = (float *)fftwf_malloc(sizeof(float) * (size_t)n_cell);
-  *Mvir_crit       = (float *)fftwf_malloc(sizeof(float) * (size_t)n_cell);
+  grids->xH_grid         = (float *)fftwf_malloc(sizeof(float) * (size_t)n_cell);
+  grids->stellar_grid    = (float *)fftwf_malloc(sizeof(float) * (size_t)n_cell);
+  grids->sfr_grid        = (float *)fftwf_malloc(sizeof(float) * (size_t)n_cell);
+  grids->z_at_ionization = (float *)fftwf_malloc(sizeof(float) * (size_t)n_cell);
+  grids->J_at_ionization = (float *)fftwf_malloc(sizeof(float) * (size_t)n_cell);
+  grids->Mvir_crit       = (float *)fftwf_malloc(sizeof(float) * (size_t)n_cell);
 
   SID_log(" ...done", SID_LOG_CLOSE);
 #endif
 }
 
-void free_reionization_grids(
-  float         *xH_grid,        
-  float         *stellar_grid,   
-  float         *sfr_grid,   
-  float         *z_at_ionization,
-  float         *J_at_ionization,
-  float         *Mvir_crit)
+void free_reionization_grids(run_globals_t *run_globals)
 {
 #ifdef USE_TOCF
-  fftwf_free(Mvir_crit);
-  fftwf_free(J_at_ionization);
-  fftwf_free(z_at_ionization);
-  fftwf_free(sfr_grid);
-  fftwf_free(stellar_grid);
-  fftwf_free(xH_grid);
+  tocf_grids_t *grids = &(run_globals->tocf_grids);
+
+  fftwf_free(grids->Mvir_crit);
+  fftwf_free(grids->J_at_ionization);
+  fftwf_free(grids->z_at_ionization);
+  fftwf_free(grids->sfr_grid);
+  fftwf_free(grids->stellar_grid);
+  fftwf_free(grids->xH_grid);
 #endif
 }
 
@@ -50,7 +41,7 @@ static inline int find_cell(double pos, int xH_dim, double box_size)
   return (int)((pos/box_size)*(double)xH_dim);
 }
 
-void construct_stellar_grids(run_globals_t *run_globals, float *stellar_grid, float *sfr_grid)
+void construct_stellar_grids(run_globals_t *run_globals)
 {
 #ifdef USE_TOCF
   galaxy_t *gal;
@@ -61,6 +52,8 @@ void construct_stellar_grids(run_globals_t *run_globals, float *stellar_grid, fl
   double Hubble_h = run_globals->params.Hubble_h;
   double UnitMass_in_g = run_globals->units.UnitMass_in_g;
   double UnitTime_in_s = run_globals->units.UnitTime_in_s;
+  float *stellar_grid = run_globals->tocf_grids.stellar_grid;
+  float *sfr_grid = run_globals->tocf_grids.sfr_grid;
 
   // init the grid
   for(int ii=0; ii<n_cell; ii++)

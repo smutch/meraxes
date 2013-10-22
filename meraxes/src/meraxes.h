@@ -153,6 +153,19 @@ struct phototabs_t{
 };
 typedef struct phototabs_t phototabs_t;
 
+#ifdef USE_TOCF
+struct tocf_grids_t
+{
+  float *xH_grid;
+  float *stellar_grid;
+  float *sfr_grid;
+  float *z_at_ionization;
+  float *J_at_ionization;
+  float *Mvir_crit;
+};
+typedef struct tocf_grids_t tocf_grids_t;
+#endif
+
 //! Global variables which will will be passed around
 struct run_globals_t{
   int                        LastOutputSnap;
@@ -172,6 +185,9 @@ struct run_globals_t{
   struct run_units_t    units;
   hdf5_output_t         hdf5props;
   phototabs_t           photo;
+#ifdef USE_TOCF
+  tocf_grids_t          tocf_grids;
+#endif
 };
 typedef struct run_globals_t run_globals_t;
 
@@ -369,12 +385,12 @@ void    apply_dust(int n_photo_bands, galaxy_t gal, double *LumDust, int outputb
 void    cleanup_mags(run_globals_t *run_globals);
 
 // Reionization related
-void    malloc_reionization_grids(float **xH_grid, float **stellar_grid, float **sfr_grid, float **z_at_ionization, float **J_at_ionization, float **Mvir_crit);
-void    free_reionization_grids(float *xH_grid, float *stellar_grid, float *sfr_grid, float *z_at_ionization, float *J_at_ionization, float *Mvir_crit);
-void    construct_stellar_grids(run_globals_t *run_globals, float *stellar_grid, float *sfr_grid);
+void    malloc_reionization_grids(run_globals_t *run_globals);
+void    free_reionization_grids(run_globals_t *run_globals);
+void    construct_stellar_grids(run_globals_t *run_globals);
 void    assign_ionization_to_halos(run_globals_t *run_globals, halo_t *halo, int n_halos, float *xH_grid, int xH_dim);
 int     read_dm_grid(run_globals_t *run_globals, int snapshot, int i_grid, float *grid);
 bool    check_reionization_cooling(float cell_ionization, float Vvir);
-void    calculate_Mvir_crit(run_globals_t *run_globals, double redshift, float *z_at_ionization, float *J_at_ionization, float *Mvir_crit);
+void    calculate_Mvir_crit(run_globals_t *run_globals, double redshift);
 
 #endif // _INIT_MERAXES
