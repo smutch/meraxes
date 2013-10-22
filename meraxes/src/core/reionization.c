@@ -36,7 +36,7 @@ void free_reionization_grids(run_globals_t *run_globals)
 #endif
 }
 
-static inline int find_cell(double pos, int xH_dim, double box_size)
+int find_cell(double pos, int xH_dim, double box_size)
 {
   return (int)((pos/box_size)*(double)xH_dim);
 }

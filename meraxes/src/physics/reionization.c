@@ -42,19 +42,21 @@ void calculate_Mvir_crit(run_globals_t *run_globals, double redshift)
 #endif
 }
 
-bool check_reionization_cooling(float cell_ionization, float Vvir)
+bool check_reionization_cooling(run_globals_t *run_globals, halo_t *halo)
 {
-
-  float Tvir;
+#ifdef USE_TOCF
   bool   flag;
+  float M_crit;
+  int HII_dim = tocf_params.HII_dim;
+  double box_size = run_globals->params.BoxSize;
+  float *M_crit_grid = run_globals->tocf_grids.Mvir_crit;
 
-  if(cell_ionization>0.995)
-  {
-    Tvir = 35.9 * (Vvir*Vvir); 
-    flag = (Tvir < 1e5) ? false : true;
-  } else
-    flag = true;
+  int i = find_cell((halo->Pos)[0], HII_dim, box_size);
+  int j = find_cell((halo->Pos)[1], HII_dim, box_size);
+  int k = find_cell((halo->Pos)[2], HII_dim, box_size);
+
+  flag = (halo->Mvir < M_crit_grid[HII_R_INDEX(i,j,k)]) ? false : true;
 
   return flag;
-
+#endif
 }

@@ -92,7 +92,7 @@ static inline bool check_for_merger(int flags)
    return false;
 }
 
-static inline bool check_if_valid_host(halo_t *halo)
+static inline bool check_if_valid_host(run_globals_t *run_globals, halo_t *halo)
 {
   int invalid_flags = (TREE_CASE_FRAGMENTED_RETURNED
       | TREE_CASE_STRAYED
@@ -103,7 +103,7 @@ static inline bool check_if_valid_host(halo_t *halo)
       && (halo->TreeFlags & invalid_flags)==0)
   {
 #ifdef USE_TOCF
-    if(check_reionization_cooling(halo->CellIonization, halo->Vvir))
+    if(check_reionization_cooling(run_globals, halo))
       return true;
     else
       return false;
@@ -304,7 +304,7 @@ void dracarys(run_globals_t *run_globals)
 
     // Find empty (valid) type 0 halos and place new galaxies in them
     for(int i_halo=0; i_halo<trees_header.n_subgroups; i_halo++)
-      if(check_if_valid_host(&(halo[i_halo])))
+      if(check_if_valid_host(run_globals, &(halo[i_halo])))
         create_new_galaxy(run_globals, snapshot, &(halo[i_halo]), &NGal, &new_gal_counter, &unique_ID);
 
     SID_log("Newly identified merger events    :: %d", SID_LOG_COMMENT, merger_counter);
