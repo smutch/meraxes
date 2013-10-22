@@ -385,13 +385,15 @@ void    apply_dust(int n_photo_bands, galaxy_t gal, double *LumDust, int outputb
 void    cleanup_mags(run_globals_t *run_globals);
 
 // Reionization related
+bool    check_reionization_cooling(run_globals_t *run_globals, halo_t *halo);
+#ifdef USE_TOCF
 int     find_cell(double pos, int xH_dim, double box_size);
 void    malloc_reionization_grids(run_globals_t *run_globals);
 void    free_reionization_grids(run_globals_t *run_globals);
 void    construct_stellar_grids(run_globals_t *run_globals);
 void    assign_ionization_to_halos(run_globals_t *run_globals, halo_t *halo, int n_halos, float *xH_grid, int xH_dim);
 int     read_dm_grid(run_globals_t *run_globals, int snapshot, int i_grid, float *grid);
-bool    check_reionization_cooling(run_globals_t *run_globals, halo_t *halo);
 void    calculate_Mvir_crit(run_globals_t *run_globals, double redshift);
+#endif
 
 #endif // _INIT_MERAXES

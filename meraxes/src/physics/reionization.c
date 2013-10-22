@@ -1,9 +1,10 @@
+#ifdef USE_TOCF
+
 #include "meraxes.h"
 #include <math.h>
 
 void calculate_Mvir_crit(run_globals_t *run_globals, double redshift)
 {
-#ifdef USE_TOCF
   // Calculate the critical Mvir value in each grid cell (ala Sobacchi & Mesinger 2013b)
   
   int HII_dim = tocf_params.HII_dim;
@@ -39,12 +40,10 @@ void calculate_Mvir_crit(run_globals_t *run_globals, double redshift)
       }
     }
   }
-#endif
 }
 
 bool check_reionization_cooling(run_globals_t *run_globals, halo_t *halo)
 {
-#ifdef USE_TOCF
   bool   flag;
   float M_crit;
   int HII_dim = tocf_params.HII_dim;
@@ -58,5 +57,6 @@ bool check_reionization_cooling(run_globals_t *run_globals, halo_t *halo)
   flag = (halo->Mvir < M_crit_grid[HII_R_INDEX(i,j,k)]) ? false : true;
 
   return flag;
-#endif
 }
+
+#endif

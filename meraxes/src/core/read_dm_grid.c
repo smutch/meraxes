@@ -1,3 +1,5 @@
+#ifdef USE_TOCF
+
 #include "meraxes.h"
 #include <math.h>
 
@@ -117,3 +119,5 @@ int read_dm_grid(
 
   return 0;
 }
+
+#endif

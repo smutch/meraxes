@@ -60,10 +60,12 @@ void prepare_galaxy_for_output(
   galout->MergTime    = (float)(gal.MergTime * units->UnitLength_in_cm / units->UnitVelocity_in_cm_per_s / SEC_PER_MEGAYEAR / Hubble_h);
   galout->LTTime      = (float)(gal.LTTime * units->UnitLength_in_cm / units->UnitVelocity_in_cm_per_s / SEC_PER_MEGAYEAR / Hubble_h);
 
+#ifdef USE_TOCF
   if(!gal.ghost_flag)
     galout->CellIonization = (float)((gal.Halo)->CellIonization);
   else
     galout->CellIonization = (float)-1;
+#endif
 
   prepare_magnitudes_for_output(run_globals, gal, galout, i_snap);
 

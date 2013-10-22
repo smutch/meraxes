@@ -1,10 +1,11 @@
+#ifdef USE_TOCF
+
 #include "meraxes.h"
 #include <fftw3.h>
 #include <math.h>
 
 void malloc_reionization_grids(run_globals_t *run_globals)
 {
-#ifdef USE_TOCF
   tocf_grids_t *grids = &(run_globals->tocf_grids);
   int n_cell = pow(tocf_params.HII_dim, 3);
 
@@ -19,12 +20,10 @@ void malloc_reionization_grids(run_globals_t *run_globals)
   grids->Mvir_crit       = (float *)fftwf_malloc(sizeof(float) * (size_t)n_cell);
 
   SID_log(" ...done", SID_LOG_CLOSE);
-#endif
 }
 
 void free_reionization_grids(run_globals_t *run_globals)
 {
-#ifdef USE_TOCF
   tocf_grids_t *grids = &(run_globals->tocf_grids);
 
   fftwf_free(grids->Mvir_crit);
@@ -33,7 +32,6 @@ void free_reionization_grids(run_globals_t *run_globals)
   fftwf_free(grids->sfr_grid);
   fftwf_free(grids->stellar_grid);
   fftwf_free(grids->xH_grid);
-#endif
 }
 
 int find_cell(double pos, int xH_dim, double box_size)
@@ -43,7 +41,6 @@ int find_cell(double pos, int xH_dim, double box_size)
 
 void construct_stellar_grids(run_globals_t *run_globals)
 {
-#ifdef USE_TOCF
   galaxy_t *gal;
   int i, j, k;
   int xH_dim = tocf_params.HII_dim;
@@ -83,12 +80,10 @@ void construct_stellar_grids(run_globals_t *run_globals)
     stellar_grid[ii] *= 1.e10/Hubble_h;
     sfr_grid[ii] = sfr_grid[ii] * UnitMass_in_g / UnitTime_in_s * SEC_PER_YEAR / SOLAR_MASS;
   }
-#endif
 }
 
 void assign_ionization_to_halos(run_globals_t *run_globals, halo_t *halo, int n_halos, float *xH_grid, int xH_dim)
 {
-#ifdef USE_TOCF
   double box_size = (double)(run_globals->params.BoxSize);
   int i, j, k;
 
@@ -104,6 +99,6 @@ void assign_ionization_to_halos(run_globals_t *run_globals, halo_t *halo, int n_
   }
 
   SID_log("...done", SID_LOG_CLOSE);
-#endif
 }
 
+#endif

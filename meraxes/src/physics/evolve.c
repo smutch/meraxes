@@ -55,11 +55,10 @@ int evolve_galaxies(run_globals_t *run_globals, fof_group_t *fof_group, int snap
 #ifdef USE_TOCF
         if(run_globals->params.TOCF_Flag)
           cooling_flag = check_reionization_cooling(run_globals, halo);
-#endif
-
 #ifdef DEBUG
         if((!cooling_flag) && (gal->Type==0))
           suppressed_cooling_count++;
+#endif
 #endif
 
         if((gal->Mvir>0.0) && (gal->Type==0) && (dMdt>0.0) && (cooling_flag))

@@ -103,15 +103,11 @@ static inline bool check_if_valid_host(run_globals_t *run_globals, halo_t *halo)
       && (halo->TreeFlags & invalid_flags)==0)
   {
 #ifdef USE_TOCF
-    if(check_reionization_cooling(run_globals, halo))
-      return true;
-    else
-      return false;
+    return check_reionization_cooling(run_globals, halo);
 #else
     return true;
 #endif
-  }
-  else
+  } else
     return false;
 }
 
