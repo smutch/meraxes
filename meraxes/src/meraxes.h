@@ -156,12 +156,16 @@ typedef struct phototabs_t phototabs_t;
 #ifdef USE_TOCF
 struct tocf_grids_t
 {
-  float *xH_grid;
-  float *stellar_grid;
-  float *sfr_grid;
+  float *xH;
+  fftwf_complex *stars;
+  fftwf_complex *stars_filtered;
+  fftwf_complex *deltax;
+  fftwf_complex *deltax_filtered;
   float *z_at_ionization;
-  float *J_at_ionization;
-  float *Mvir_crit;
+  float *J_21_at_ionization;
+  float *J_21;
+  fftwf_complex *Mvir_crit;
+  fftwf_complex *Mvir_crit_filtered;
 };
 typedef struct tocf_grids_t tocf_grids_t;
 #endif

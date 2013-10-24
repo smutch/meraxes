@@ -7,17 +7,40 @@
 void malloc_reionization_grids(run_globals_t *run_globals)
 {
   tocf_grids_t *grids = &(run_globals->tocf_grids);
-  int n_cell = pow(tocf_params.HII_dim, 3);
 
   SID_log("Mallocing %.1f GB for required 21cmFAST grids...", SID_LOG_OPEN,
-      (float)n_cell * (float)(sizeof(float)) * 6./(1024*1024*1024));
+      (HII_TOT_NUM_PIXELS * sizeof(float) * 4) +
+      (HII_TOT_FFT_NUM_PIXELS * sizeof(fftwf_complex) * 6)
+      /(1024*1024*1024));
 
-  grids->xH_grid         = (float *)fftwf_malloc(sizeof(float) * (size_t)n_cell);
-  grids->stellar_grid    = (float *)fftwf_malloc(sizeof(float) * (size_t)n_cell);
-  grids->sfr_grid        = (float *)fftwf_malloc(sizeof(float) * (size_t)n_cell);
-  grids->z_at_ionization = (float *)fftwf_malloc(sizeof(float) * (size_t)n_cell);
-  grids->J_at_ionization = (float *)fftwf_malloc(sizeof(float) * (size_t)n_cell);
-  grids->Mvir_crit       = (float *)fftwf_malloc(sizeof(float) * (size_t)n_cell);
+  grids->xH                 = (float *)fftwf_malloc(sizeof(float) * (size_t)n_cell);
+  grids->stars              = (fftwf_complex *)fftwf_malloc(sizeof(float) * (size_t)n_cell);
+  grids->stars_filtered     = (fftwf_complex *)fftwf_malloc(sizeof(float) * (size_t)n_cell);
+  grids->deltax             = (fftwf_complex *)fftwf_malloc(sizeof(float) * (size_t)n_cell);
+  grids->deltax_filtered    = (fftwf_complex *)fftwf_malloc(sizeof(float) * (size_t)n_cell);
+  grids->z_at_ionization    = (float *)fftwf_malloc(sizeof(float) * (size_t)n_cell);
+  grids->J_21_at_ionization = (float *)fftwf_malloc(sizeof(float) * (size_t)n_cell);
+  grids->J_21               = (float *)fftwf_malloc(sizeof(float) * (size_t)n_cell);
+  grids->Mvir_crit          = (fftwf_complex *)fftwf_malloc(sizeof(float) * (size_t)n_cell);
+  grids->Mvir_crit_filtered = (fftwf_complex *)fftwf_malloc(sizeof(float) * (size_t)n_cell);
+
+  SID_log("Initialising grids...", SID_LOG_COMMENT);
+  for(int ii=0; ii<HII_TOT_NUM_PIXELS; ii++)
+  {
+    grids->xH[ii] = 1.0;
+    grids->z_at_ionization[ii] = -1;
+    grids->J_21_at_ionization[ii] = 0.;
+    grids->J_21[ii] = 0.;
+  }
+  for(int ii=0; ii<HII_TOT_FFT_NUM_PIXELS; ii++)
+  {
+    grids->stars[ii] = 0.;
+    grids->stars_filtered = 0.;
+    grids->deltax[ii] = 0.;
+    grids->deltax_filtered[ii] = 0.;
+    grids->Mvir_crit[ii] = 0.;
+    grids->Mvir_crit_filtered[ii] = 0.;
+  }
 
   SID_log(" ...done", SID_LOG_CLOSE);
 }
@@ -26,12 +49,16 @@ void free_reionization_grids(run_globals_t *run_globals)
 {
   tocf_grids_t *grids = &(run_globals->tocf_grids);
 
+  fftwf_free(grids->Mvir_crit_filtered);
   fftwf_free(grids->Mvir_crit);
-  fftwf_free(grids->J_at_ionization);
+  fftwf_free(grids->J_21);
+  fftwf_free(grids->J_21_at_ionization);
   fftwf_free(grids->z_at_ionization);
-  fftwf_free(grids->sfr_grid);
-  fftwf_free(grids->stellar_grid);
-  fftwf_free(grids->xH_grid);
+  fftwf_free(grids->deltax_filtered);
+  fftwf_free(grids->deltax);
+  fftwf_free(grids->stars_filtered);
+  fftwf_free(grids->stars);
+  fftwf_free(grids->xH);
 }
 
 int find_cell(double pos, int xH_dim, double box_size)
