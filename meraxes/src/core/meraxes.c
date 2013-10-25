@@ -6,6 +6,10 @@
 static void cleanup(run_globals_t *run_globals)
 {
   cleanup_mags(run_globals);
+#ifdef USE_TOCF
+  if(run_globals->params.TOCF_Flag)
+    free_reionization_grids(run_globals);
+#endif
   H5Tclose(run_globals->hdf5props.array3f_tid);
   SID_free(SID_FARG run_globals->hdf5props.field_types);
   SID_free(SID_FARG run_globals->hdf5props.field_names);
@@ -110,7 +114,6 @@ int main(int argc, char **argv)
   }
 
   // mpi_debug_here();
-
   init_meraxes(&run_globals);
   calc_hdf5_props(&run_globals);
 

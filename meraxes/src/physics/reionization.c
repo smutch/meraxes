@@ -23,7 +23,7 @@ void calculate_Mvir_crit(run_globals_t *run_globals, double redshift)
 
   // init
   for(int ii=0; ii<HII_TOT_FFT_NUM_PIXELS; ii++)
-    Mvir_crit[ii] = 0;
+    *((float *) Mvir_crit + ii) = 0;
 
   // Loop through each cell and calculate the value of Mvir_crit
   for(int ii=0; ii<HII_dim; ii++)
@@ -43,7 +43,7 @@ void calculate_Mvir_crit(run_globals_t *run_globals, double redshift)
             pow((1.0-pow((1.0+redshift)/(1.0+z_at_ionization[HII_R_INDEX(ii,jj,kk)]), c_sm)), d_sm);
 
         // Save the critical mass to the FFTW grid ready for the filtering in 21cmFAST...
-        *(Mvir_crit + HII_R_FFT_INDEX(ii,jj,kk)) = (Mvir_atomic > cell_Mvir_crit) ? Mvir_atomic : cell_Mvir_crit;
+        *((float *)Mvir_crit + HII_R_FFT_INDEX(ii,jj,kk)) = (Mvir_atomic > cell_Mvir_crit) ? Mvir_atomic : cell_Mvir_crit;
       }
     }
   }
@@ -54,13 +54,16 @@ bool check_reionization_cooling(run_globals_t *run_globals, halo_t *halo)
   bool    flag;
   float   M_crit;
   double  box_size    = run_globals->params.BoxSize;
-  float  *M_crit_grid = run_globals->tocf_grids.Mvir_crit;
+  fftw_complex *M_crit_grid = run_globals->tocf_grids.Mvir_crit;
 
+  // Find which cell this halo lies in
   int i = find_cell((halo->Pos)[0], box_size);
   int j = find_cell((halo->Pos)[1], box_size);
   int k = find_cell((halo->Pos)[2], box_size);
 
-  flag = (halo->Mvir < M_crit_grid[HII_R_INDEX(i,j,k)]) ? false : true;
+  // If the halo virial mass is below the critical for this cell then set the
+  // cooling flag to false, else set it to true
+  flag = (halo->Mvir < *((float *)M_crit_grid + HII_R_FFT_INDEX(i,j,k))) ? false : true;
 
   return flag;
 }

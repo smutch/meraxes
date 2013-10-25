@@ -4,25 +4,31 @@
 #include <fftw3.h>
 #include <math.h>
 
+// NOTE: I am following the indexing conventions off 21cmFAST here.  I have no
+// idea what the hell the unsigned long long memory offset stuff is all about
+// with the fftwf_complex arrays that have been cast as floats.  Why not still
+// just use common indexing in square brackets? 
+// i.e. ((float *)deltax)[k+(2*(HII_dim/2+1))*(j+HII_dim*i)]
+
 void malloc_reionization_grids(run_globals_t *run_globals)
 {
   tocf_grids_t *grids = &(run_globals->tocf_grids);
 
   SID_log("Mallocing %.1f GB for required 21cmFAST grids...", SID_LOG_OPEN,
-      (HII_TOT_NUM_PIXELS * sizeof(float) * 4) +
-      (HII_TOT_FFT_NUM_PIXELS * sizeof(fftwf_complex) * 6)
+      ((HII_TOT_NUM_PIXELS * sizeof(float) * 4) +
+      (HII_KSPACE_NUM_PIXELS * sizeof(fftwf_complex) * 6))
       /(1024*1024*1024));
 
-  grids->xH                 = (float *)fftwf_malloc(sizeof(float) * (size_t)n_cell);
-  grids->stars              = (fftwf_complex *)fftwf_malloc(sizeof(float) * (size_t)n_cell);
-  grids->stars_filtered     = (fftwf_complex *)fftwf_malloc(sizeof(float) * (size_t)n_cell);
-  grids->deltax             = (fftwf_complex *)fftwf_malloc(sizeof(float) * (size_t)n_cell);
-  grids->deltax_filtered    = (fftwf_complex *)fftwf_malloc(sizeof(float) * (size_t)n_cell);
-  grids->z_at_ionization    = (float *)fftwf_malloc(sizeof(float) * (size_t)n_cell);
-  grids->J_21_at_ionization = (float *)fftwf_malloc(sizeof(float) * (size_t)n_cell);
-  grids->J_21               = (float *)fftwf_malloc(sizeof(float) * (size_t)n_cell);
-  grids->Mvir_crit          = (fftwf_complex *)fftwf_malloc(sizeof(float) * (size_t)n_cell);
-  grids->Mvir_crit_filtered = (fftwf_complex *)fftwf_malloc(sizeof(float) * (size_t)n_cell);
+  grids->xH                 = (float *)         fftwf_malloc(sizeof(float)        * HII_TOT_NUM_PIXELS);
+  grids->stars              = (fftwf_complex *) fftwf_malloc(sizeof(fftw_complex) * HII_KSPACE_NUM_PIXELS);
+  grids->stars_filtered     = (fftwf_complex *) fftwf_malloc(sizeof(fftw_complex) * HII_KSPACE_NUM_PIXELS);
+  grids->deltax             = (fftwf_complex *) fftwf_malloc(sizeof(fftw_complex) * HII_KSPACE_NUM_PIXELS);
+  grids->deltax_filtered    = (fftwf_complex *) fftwf_malloc(sizeof(fftw_complex) * HII_KSPACE_NUM_PIXELS);
+  grids->z_at_ionization    = (float *)         fftwf_malloc(sizeof(float)        * HII_TOT_NUM_PIXELS);
+  grids->J_21_at_ionization = (float *)         fftwf_malloc(sizeof(float)        * HII_TOT_NUM_PIXELS);
+  grids->J_21               = (float *)         fftwf_malloc(sizeof(float)        * HII_TOT_NUM_PIXELS);
+  grids->Mvir_crit          = (fftwf_complex *) fftwf_malloc(sizeof(fftw_complex) * HII_KSPACE_NUM_PIXELS);
+  grids->Mvir_crit_filtered = (fftwf_complex *) fftwf_malloc(sizeof(fftw_complex) * HII_KSPACE_NUM_PIXELS);
 
   SID_log("Initialising grids...", SID_LOG_COMMENT);
   for(int ii=0; ii<HII_TOT_NUM_PIXELS; ii++)
@@ -32,14 +38,14 @@ void malloc_reionization_grids(run_globals_t *run_globals)
     grids->J_21_at_ionization[ii] = 0.;
     grids->J_21[ii] = 0.;
   }
-  for(int ii=0; ii<HII_TOT_FFT_NUM_PIXELS; ii++)
+  for(unsigned long long ii=0; ii<HII_TOT_FFT_NUM_PIXELS; ii++)
   {
-    grids->stars[ii] = 0.;
-    grids->stars_filtered = 0.;
-    grids->deltax[ii] = 0.;
-    grids->deltax_filtered[ii] = 0.;
-    grids->Mvir_crit[ii] = 0.;
-    grids->Mvir_crit_filtered[ii] = 0.;
+    *((float *)grids->stars + ii) = 0.;
+    *((float *)grids->stars_filtered + ii) = 0.;
+    *((float *)grids->deltax + ii) = 0.;
+    *((float *)grids->deltax_filtered + ii) = 0.;
+    *((float *)grids->Mvir_crit + ii) = 0.;
+    *((float *)grids->Mvir_crit_filtered + ii) = 0.;
   }
 
   SID_log(" ...done", SID_LOG_CLOSE);
@@ -82,8 +88,8 @@ void construct_stellar_grids(run_globals_t *run_globals)
   int HII_dim = tocf_params.HII_dim;
 
   // init the grid
-  for(int ii=0; ii<n_cell; ii++)
-    stellar_grid[ii] = 0.0;
+  for(int ii=0; ii<HII_TOT_FFT_NUM_PIXELS; ii++)
+    *((float *)stellar_grid + ii) = 0.0;
 
   // Loop through each valid galaxy and add its stellar mass to the appropriate cell
   gal = run_globals->FirstGal;

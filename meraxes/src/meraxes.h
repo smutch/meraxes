@@ -391,7 +391,7 @@ void    cleanup_mags(run_globals_t *run_globals);
 // Reionization related
 bool    check_reionization_cooling(run_globals_t *run_globals, halo_t *halo);
 #ifdef USE_TOCF
-int     find_cell(double pos, int xH_dim, double box_size);
+int     find_cell(double pos, double box_size);
 void    malloc_reionization_grids(run_globals_t *run_globals);
 void    free_reionization_grids(run_globals_t *run_globals);
 void    construct_stellar_grids(run_globals_t *run_globals);
