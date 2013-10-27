@@ -399,7 +399,7 @@ void dracarys(run_globals_t *run_globals)
 
 #ifdef USE_TOCF
     if(run_globals->params.TOCF_Flag)
-      call_find_HII_bubbles(run_globals, snapshot);
+      call_find_HII_bubbles(run_globals, snapshot, nout_gals);
 #endif
 
     // Write the results if this is a requested snapshot

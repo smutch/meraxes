@@ -29,6 +29,8 @@ static void inline store_params(
     strcat(key, entry[i_entry].key);
     level = entry[i_entry].level;
 
+    SID_log("level = %d :: prefix = %s", SID_LOG_COMMENT, level, prefix);
+
     if(strcmp(key, "funcprop_params")==0)
     {
       temp = atoi(entry[i_entry].value);
@@ -54,6 +56,8 @@ static void inline store_params(
       if(strcmp(key, "TOCF_Flag")==0)
       {
         temp = atoi(entry[i_entry].value);
+        *((int *) params_addr[tag_index]) = atoi(entry[i_entry].value);
+        used_tag[tag_index] = 1;
         if(temp!=1)
         {
           SID_log("Skipping TOCF params block...", SID_LOG_COMMENT);
@@ -332,11 +336,6 @@ void read_parameter_file(run_globals_t *run_globals, char *fname)
   required_tag[n_param] = 0;
   params_type[n_param++] = PARAM_TYPE_STRING;
 
-  strcpy(params_tag[n_param], "TOCF_box_len");
-  params_addr[n_param] = &(tocf_params.box_len);
-  required_tag[n_param] = 0;
-  params_type[n_param++] = PARAM_TYPE_FLOAT;
-
   strcpy(params_tag[n_param], "TOCF_dim");
   params_addr[n_param] = &(tocf_params.dim);
   required_tag[n_param] = 0;
@@ -444,29 +443,31 @@ void read_parameter_file(run_globals_t *run_globals, char *fname)
   if(SID.My_rank == 0)
   {
     for (i = 0; i < n_param; i++) {
-      printf("%35s\t", params_tag[i]);
-      
-      switch (params_type[i])
+
+      if(used_tag[i]==1)
+      {
+        printf("%35s\t", params_tag[i]);
+
+        switch (params_type[i])
         {
           case PARAM_TYPE_DOUBLE:
-          printf("%g\n", *((double *) (params_addr[i])));
-          break;
+            printf("%g\n", *((double *) (params_addr[i])));
+            break;
           case PARAM_TYPE_STRING:
-          printf("%s\n", (char *) params_addr[i]);
-          break;
+            printf("%s\n", (char *) params_addr[i]);
+            break;
           case PARAM_TYPE_INT:
-          printf("%d\n", *((int *) (params_addr[i])));
-          break;
+            printf("%d\n", *((int *) (params_addr[i])));
+            break;
         }
 
-      if (i==(n_param-12))
-        printf("\t\t%35s\n", "--- physics parameters ---");
+        // if (i==(n_param-12))
+        //   printf("\t\t%35s\n", "--- physics parameters ---");
 
-      if (i==(n_param-4))
-        printf("\t\t%35s\n", "--- TOCF parameters ---");
-
+        // if (i==(n_param-4))
+        //   printf("\t\t%35s\n", "--- TOCF parameters ---");
+      }
     }
-    printf("\n");
   }
 
   i = strlen(run_params->OutputDir);

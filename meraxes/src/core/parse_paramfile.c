@@ -89,7 +89,7 @@ int parse_paramfile(char *fname, entry_t entry[PARAM_MAX_ENTRIES])
     entry[counter].key[0] = '\0';
     entry[counter].value[0] = '\0';
     entry[counter].level += level_change;
-    level_change = 0;
+    // level_change = 0;
 
     for (int ii=0; buffer[ii]; ii++)
     {

@@ -1,5 +1,6 @@
 #define _MAIN
 #include "meraxes.h"
+#include <21cmfast.h>
 #include <sys/stat.h>
 #include <hdf5.h>
 
@@ -94,6 +95,12 @@ int main(int argc, char **argv)
       }
     }
   }
+
+#ifdef USE_TOCF
+  // Note that this must be done *before* we read the parameter file as we may
+  // want to overwrite some of the set defaults.
+  init_default_tocf_params();
+#endif
 
   if(argc==4)
     read_parameter_file(&run_globals, argv[3]);

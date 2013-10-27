@@ -12,17 +12,28 @@
 // just use common indexing in square brackets? 
 // i.e. ((float *)deltax)[k+(2*(HII_dim/2+1))*(j+HII_dim*i)]
 
-void call_find_HII_bubbles(run_globals_t *run_globals, int snapshot)
+void call_find_HII_bubbles(run_globals_t *run_globals, int snapshot, int nout_gals)
 {
   // Thin wrapper round find_HII_bubbles
   tocf_grids_t *grids = &(run_globals->tocf_grids);
 
+  SID_log("Getting ready to call find_HII_bubbles...", SID_LOG_OPEN);
+
   // Construct the stellar mass grid
-  construct_stellar_grids(run_globals);
+  if(nout_gals>0)
+    construct_stellar_grids(run_globals);
+  else
+  {
+    SID_log("No galaxies present - skipping...", SID_LOG_CLOSE);
+    return;
+  }
 
   // Read in the dark matter density grid
   read_dm_grid(run_globals, snapshot, 0, (float *)(grids->deltax));
 
+  SID_log("...done", SID_LOG_CLOSE);
+
+  SID_log("Calling find_HII_bubbles...", SID_LOG_OPEN);
   // TODO: Fix if snapshot==0
   find_HII_bubbles(run_globals->ZZ[snapshot], run_globals->ZZ[snapshot-1],
       tocf_params.HII_eff_factor, tocf_params.ion_tvir_min, tocf_params.r_bubble_max, tocf_params.numcores,
@@ -40,6 +51,7 @@ void call_find_HII_bubbles(run_globals_t *run_globals, int snapshot)
       NULL,
       NULL
       );
+  SID_log("...done", SID_LOG_CLOSE);
 }
 
 void malloc_reionization_grids(run_globals_t *run_globals)
@@ -47,9 +59,9 @@ void malloc_reionization_grids(run_globals_t *run_globals)
   tocf_grids_t *grids = &(run_globals->tocf_grids);
 
   SID_log("Mallocing %.1f GB for required 21cmFAST grids...", SID_LOG_OPEN,
-      ((HII_TOT_NUM_PIXELS * sizeof(float) * 4) +
-      (HII_KSPACE_NUM_PIXELS * sizeof(fftwf_complex) * 6))
-      /(1024*1024*1024));
+      ((float)(HII_TOT_NUM_PIXELS * sizeof(float) * 4) +
+      (float)(HII_KSPACE_NUM_PIXELS * sizeof(fftwf_complex) * 6))
+      /(1024.*1024.*1024.));
 
   grids->xH                 = (float *)         fftwf_malloc(sizeof(float)        * HII_TOT_NUM_PIXELS);
   grids->stars              = (fftwf_complex *) fftwf_malloc(sizeof(fftw_complex) * HII_KSPACE_NUM_PIXELS);
@@ -63,22 +75,15 @@ void malloc_reionization_grids(run_globals_t *run_globals)
   grids->Mvir_crit_filtered = (fftwf_complex *) fftwf_malloc(sizeof(fftw_complex) * HII_KSPACE_NUM_PIXELS);
 
   SID_log("Initialising grids...", SID_LOG_COMMENT);
-  for(int ii=0; ii<HII_TOT_NUM_PIXELS; ii++)
-  {
-    grids->xH[ii] = 1.0;
-    grids->z_at_ionization[ii] = -1;
-    grids->J_21_at_ionization[ii] = 0.;
-    grids->J_21[ii] = 0.;
-  }
-  for(unsigned long long ii=0; ii<HII_TOT_FFT_NUM_PIXELS; ii++)
-  {
-    *((float *)grids->stars + ii) = 0.;
-    *((float *)grids->stars_filtered + ii) = 0.;
-    *((float *)grids->deltax + ii) = 0.;
-    *((float *)grids->deltax_filtered + ii) = 0.;
-    *((float *)grids->Mvir_crit + ii) = 0.;
-    *((float *)grids->Mvir_crit_filtered + ii) = 0.;
-  }
+
+  memset(grids->xH, 1.0, sizeof(float)*HII_TOT_NUM_PIXELS);
+  memset(grids->z_at_ionization , -1, sizeof(float)*HII_TOT_NUM_PIXELS);
+  memset(grids->J_21_at_ionization, 0., sizeof(float)*HII_TOT_NUM_PIXELS);
+  memset(grids->J_21, 0., sizeof(float)*HII_TOT_NUM_PIXELS);
+
+  memset(grids->stars, 0., sizeof(fftw_complex) * HII_KSPACE_NUM_PIXELS);
+  memset(grids->deltax, 0., sizeof(fftw_complex) * HII_KSPACE_NUM_PIXELS);
+  memset(grids->Mvir_crit, 0., sizeof(fftw_complex) * HII_KSPACE_NUM_PIXELS);
 
   SID_log(" ...done", SID_LOG_CLOSE);
 }
@@ -119,6 +124,8 @@ void construct_stellar_grids(run_globals_t *run_globals)
   float *stellar_grid = (float *)(run_globals->tocf_grids.stars);
   int HII_dim = tocf_params.HII_dim;
 
+  SID_log("Constructing stellar mass grid...", SID_LOG_OPEN);
+
   // init the grid
   for(int ii=0; ii<HII_TOT_FFT_NUM_PIXELS; ii++)
     *((float *)stellar_grid + ii) = 0.0;
@@ -142,6 +149,9 @@ void construct_stellar_grids(run_globals_t *run_globals)
     for(int j=0; j<HII_dim; j++)
       for(int k=0; k<HII_dim; k++)
         *(stellar_grid + HII_R_FFT_INDEX(i,j,k)) *= 1.e10/Hubble_h;
+
+  SID_log("done", SID_LOG_CLOSE);
+
 }
 
 

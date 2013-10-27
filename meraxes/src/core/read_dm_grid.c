@@ -69,6 +69,7 @@ int read_dm_grid(
   if ((n_cell[0]!=HII_dim) || (n_cell[1]!=HII_dim) || (n_cell[2]!=HII_dim))
   {
     resample_factor = (float)HII_dim/(float)n_cell[0];
+    // fprintf(stderr, "resample_factor = %.5f, n_cell[0] = %d, HII_dim = %d\n", resample_factor, n_cell[0], HII_dim);
     if(resample_factor > 1.0001)
     {
       SID_log_error("The dark matter density grid in this file has a resolution less than that required! Aborting!");
@@ -83,7 +84,7 @@ int read_dm_grid(
 
   // Read the grids
   // Note that we are expecting them to be in a particular order here
-  for (int ii=0; ii<=i_grid; ii++)
+  for (int ii=0; ii<i_grid; ii++)
   {
     read_identifier(fin, true);
     fseek(fin, sizeof(float)*n_elem, SEEK_CUR);

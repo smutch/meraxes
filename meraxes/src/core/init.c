@@ -3,6 +3,10 @@
 #include <gsl/gsl_math.h>
 #include <gsl/gsl_integration.h>
 
+#ifdef USE_TOCF
+#include <21cmfast.h>
+#endif
+
 static void read_snap_list(run_globals_t *run_globals)
 {
   FILE *fin;
@@ -10,10 +14,12 @@ static void read_snap_list(run_globals_t *run_globals)
   char fname[STRLEN];
   run_params_t params = run_globals->params;
 
-  sprintf(fname, "%s/%s/trees/%s_no_ghost_test/a_list.txt",
+  sprintf(fname, "%s/%s/trees/%s_step_%03d_scan_%03d/a_list.txt",
       params.SimulationDir,
       params.SimName,
-      params.SimName);
+      params.SimName,
+      params.NEverySnap,
+      params.NScanSnap);
   
   if(!(fin = fopen(fname, "r")))
   {
@@ -173,7 +179,10 @@ void init_meraxes(run_globals_t *run_globals)
 
 #ifdef USE_TOCF
   if(run_globals->params.TOCF_Flag)
+  {
     malloc_reionization_grids(run_globals);
+    tocf_params.box_len = run_globals->params.BoxSize;
+  }
 #else
   // Check if we want to use 21cmFAST
   if(run_globals->params.TOCF_Flag)
