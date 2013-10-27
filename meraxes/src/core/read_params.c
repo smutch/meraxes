@@ -19,7 +19,8 @@ static void inline store_params(
 
   for(int i_entry=0; i_entry<n_entries; i_entry++)
   {
-    SID_log("Checking %s", SID_LOG_COMMENT, entry[i_entry].key);
+    // DEBUG
+    // SID_log("Checking %s", SID_LOG_COMMENT, entry[i_entry].key);
 
     // reset prefix if we have descended an indentation level
     if (entry[i_entry].level < level)
@@ -29,7 +30,8 @@ static void inline store_params(
     strcat(key, entry[i_entry].key);
     level = entry[i_entry].level;
 
-    SID_log("level = %d :: prefix = %s", SID_LOG_COMMENT, level, prefix);
+    // DEBUG
+    // SID_log("level = %d :: prefix = %s", SID_LOG_COMMENT, level, prefix);
 
     if(strcmp(key, "funcprop_params")==0)
     {

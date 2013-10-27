@@ -68,6 +68,7 @@ int parse_paramfile(char *fname, entry_t entry[PARAM_MAX_ENTRIES])
   char buffer[PARAM_MAX_LINE_LEN];
   FILE *fin;
   int level_change;
+  int last_level;
   int counter;
   regex_t reg;
   const char *regex_text =  "[[:space:]]*([^[:space:]^#]+)[[:space:]]*:[[:space:]]*([^#]*)"; 
@@ -84,13 +85,19 @@ int parse_paramfile(char *fname, entry_t entry[PARAM_MAX_ENTRIES])
 
   counter = 0;
   level_change = 0;
+  last_level = 0;
   while(fgets(buffer, PARAM_MAX_LINE_LEN, fin) != NULL)
   {
     entry[counter].key[0] = '\0';
     entry[counter].value[0] = '\0';
+    entry[counter].level = last_level;
     entry[counter].level += level_change;
-    // level_change = 0;
+    last_level = entry[counter].level;
 
+    // DEBUG
+    // fprintf(stderr, "buffer = %s :: level_change = %d :: level = %d\n", buffer, level_change, entry[counter].level);
+
+    level_change = 0;
     for (int ii=0; buffer[ii]; ii++)
     {
       level_change += (buffer[ii] == '{');
