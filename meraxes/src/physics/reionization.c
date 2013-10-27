@@ -19,7 +19,7 @@ void calculate_Mvir_crit(run_globals_t *run_globals, double redshift)
 
   fftwf_complex *Mvir_crit      = run_globals->tocf_grids.Mvir_crit;
   float         *J_21_at_ion    = run_globals->tocf_grids.J_21_at_ionization;
-  float         *z_21_at_ion    = run_globals->tocf_grids.z_21_at_ionization;
+  float         *z_at_ion    = run_globals->tocf_grids.z_at_ionization;
 
   // init
   for(int ii=0; ii<HII_TOT_FFT_NUM_PIXELS; ii++)
@@ -38,9 +38,9 @@ void calculate_Mvir_crit(run_globals_t *run_globals, double redshift)
         // If this cell was ionized in the past then calculate the critical
         // mass using the UVB feedback prescription of Sobacchi & Mesinger
         // 2013b
-        if(z_at_ionization[HII_R_INDEX(ii,jj,kk)] > redshift)
-          cell_Mvir_crit = m_0_sm*pow((1.0+redshift)/10.0, a_sm) * pow(J_at_ionization[HII_R_INDEX(ii,jj,kk)], b_sm)*
-            pow((1.0-pow((1.0+redshift)/(1.0+z_at_ionization[HII_R_INDEX(ii,jj,kk)]), c_sm)), d_sm);
+        if(z_at_ion[HII_R_INDEX(ii,jj,kk)] > redshift)
+          cell_Mvir_crit = m_0_sm*pow((1.0+redshift)/10.0, a_sm) * pow(J_21_at_ion[HII_R_INDEX(ii,jj,kk)], b_sm)*
+            pow((1.0-pow((1.0+redshift)/(1.0+z_at_ion[HII_R_INDEX(ii,jj,kk)]), c_sm)), d_sm);
 
         // Save the critical mass to the FFTW grid ready for the filtering in 21cmFAST...
         *((float *)Mvir_crit + HII_R_FFT_INDEX(ii,jj,kk)) = (Mvir_atomic > cell_Mvir_crit) ? Mvir_atomic : cell_Mvir_crit;
@@ -54,7 +54,7 @@ bool check_reionization_cooling(run_globals_t *run_globals, halo_t *halo)
   bool    flag;
   float   M_crit;
   double  box_size    = run_globals->params.BoxSize;
-  fftw_complex *M_crit_grid = run_globals->tocf_grids.Mvir_crit;
+  fftwf_complex *M_crit_grid = run_globals->tocf_grids.Mvir_crit;
 
   // Find which cell this halo lies in
   int i = find_cell((halo->Pos)[0], box_size);

@@ -159,19 +159,8 @@ void dracarys(run_globals_t *run_globals)
     SID_log("Processing snapshot %d...", SID_LOG_OPEN|SID_LOG_TIMER, snapshot);
 
 #ifdef USE_TOCF
-    // Read in the xH_grid from the previous snapshot
-    if((run_globals->params.TOCF_Flag) && (snapshot>0) && (last_nout_gals>0))
-    {
-      // // If the xH_grid is not yet malloc'd - do so
-      // if(xH_grid==NULL)
-      //   xH_dim = malloc_xH_grid(run_globals, snapshot-1, &xH_grid);
-
-      // // Read in the grid
-      // read_xH_grid(run_globals, snapshot-1, xH_grid);
-
-      // // Assign local ionization fractions to each halo
-      // assign_ionization_to_halos(run_globals, halo, trees_header.n_subgroups, xH_grid, xH_dim);
-    }
+    // Calculate the critical halo mass for cooling
+    calculate_Mvir_crit(run_globals, run_globals->ZZ[snapshot]);
 #endif
 
     // Reset the halo pointers and ghost flags for all galaxies and decrement
@@ -408,19 +397,15 @@ void dracarys(run_globals_t *run_globals)
     // Add the ghost galaxies into the nout_gals count
     nout_gals+=ghost_counter;
 
+#ifdef USE_TOCF
+    if(run_globals->params.TOCF_Flag)
+      call_find_HII_bubbles(run_globals, snapshot);
+#endif
+
     // Write the results if this is a requested snapshot
     for(int i_out = 0; i_out < NOUT; i_out++)
       if(snapshot == run_globals->ListOutputSnaps[i_out])
-      {
         write_snapshot(run_globals, nout_gals, i_out, &last_nout_gals);
-#ifdef USE_TOCF
-        if(run_globals->params.TOCF_Flag)
-        {
-          SID_log("Running find HII_bubbles with z = %.2f", SID_LOG_COMMENT, run_globals->ZZ[snapshot]);
-          find_HII_bubbles(run_globals->ZZ[snapshot], tocf_params.HII_eff_factor, tocf_params.ion_tvir_min, tocf_params.r_bubble_max, tocf_params.numcores);
-        }
-#endif
-      }
   
     // Free the halo and fof_group arrays
     SID_free(SID_FARG halo);
@@ -437,11 +422,6 @@ void dracarys(run_globals_t *run_globals)
     SID_free(SID_FARG gal);
     gal = next_gal;
   }
-
-#ifdef USE_TOCF
-  if(run_globals->params.TOCF_Flag)
-    SID_free(SID_FARG xH_grid);
-#endif
 
 }
 

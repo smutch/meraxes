@@ -3,12 +3,44 @@
 #include "meraxes.h"
 #include <fftw3.h>
 #include <math.h>
+#include <hdf5.h>
+#include <hdf5_hl.h>
 
 // NOTE: I am following the indexing conventions off 21cmFAST here.  I have no
 // idea what the hell the unsigned long long memory offset stuff is all about
 // with the fftwf_complex arrays that have been cast as floats.  Why not still
 // just use common indexing in square brackets? 
 // i.e. ((float *)deltax)[k+(2*(HII_dim/2+1))*(j+HII_dim*i)]
+
+void call_find_HII_bubbles(run_globals_t *run_globals, int snapshot)
+{
+  // Thin wrapper round find_HII_bubbles
+  tocf_grids_t *grids = &(run_globals->tocf_grids);
+
+  // Construct the stellar mass grid
+  construct_stellar_grids(run_globals);
+
+  // Read in the dark matter density grid
+  read_dm_grid(run_globals, snapshot, 0, (float *)(grids->deltax));
+
+  // TODO: Fix if snapshot==0
+  find_HII_bubbles(run_globals->ZZ[snapshot], run_globals->ZZ[snapshot-1],
+      tocf_params.HII_eff_factor, tocf_params.ion_tvir_min, tocf_params.r_bubble_max, tocf_params.numcores,
+      grids->xH,
+      grids->stars,
+      grids->stars_filtered,
+      grids->deltax,
+      grids->deltax_filtered,
+      grids->z_at_ionization,
+      grids->J_21_at_ionization,
+      grids->J_21,
+      grids->Mvir_crit,
+      grids->Mvir_crit_filtered,
+      NULL,
+      NULL,
+      NULL
+      );
+}
 
 void malloc_reionization_grids(run_globals_t *run_globals)
 {
@@ -84,7 +116,7 @@ void construct_stellar_grids(run_globals_t *run_globals)
   double Hubble_h = run_globals->params.Hubble_h;
   double UnitMass_in_g = run_globals->units.UnitMass_in_g;
   double UnitTime_in_s = run_globals->units.UnitTime_in_s;
-  float *stellar_grid = run_globals->tocf_grids.stellar_grid;
+  float *stellar_grid = (float *)(run_globals->tocf_grids.stars);
   int HII_dim = tocf_params.HII_dim;
 
   // init the grid
@@ -100,7 +132,7 @@ void construct_stellar_grids(run_globals_t *run_globals)
       i = find_cell(gal->Pos[0], box_size);
       j = find_cell(gal->Pos[1], box_size);
       k = find_cell(gal->Pos[2], box_size);
-      *((float *) stellar_grid + HII_R_FFT_INDEX(i,j,k)) += gal->StellarMass;
+      *(stellar_grid + HII_R_FFT_INDEX(i,j,k)) += gal->StellarMass;
     }
     gal = gal->Next;
   }
@@ -109,26 +141,36 @@ void construct_stellar_grids(run_globals_t *run_globals)
   for(int i=0; i<HII_dim; i++)
     for(int j=0; j<HII_dim; j++)
       for(int k=0; k<HII_dim; k++)
-        *((float *) stellar_grid + HII_R_FFT_INDEX(i,j,k)) *= 1.e10/Hubble_h;
+        *(stellar_grid + HII_R_FFT_INDEX(i,j,k)) *= 1.e10/Hubble_h;
 }
 
 
-void assign_ionization_to_halos(run_globals_t *run_globals, halo_t *halo, int n_halos)
+void save_tocf_grids(run_globals_t *run_globals, hid_t group_id)
 {
-  double box_size = (double)(run_globals->params.BoxSize);
-  int i, j, k;
+  tocf_grids_t *grids = &(run_globals->tocf_grids);
+  hsize_t dims = 1;
 
-  SID_log("Assigning cell ionization values to halos...", SID_LOG_OPEN|SID_LOG_TIMER);
-
-  for(int i_halo=0; i_halo<n_halos; i_halo++)
-  {
-    i = find_cell(halo[i_halo].Pos[0], box_size);
-    j = find_cell(halo[i_halo].Pos[1], box_size);
-    k = find_cell(halo[i_halo].Pos[2], box_size);
-    halo[i_halo].CellIonization = 1.0 - xH_grid[HII_R_INDEX(i,j,k)];
-  }
-
-  SID_log("...done", SID_LOG_CLOSE);
+  H5LTmake_dataset_float(group_id, "xH", 1, &dims, grids->xH);
+  H5LTmake_dataset_float(group_id, "J_21", 1, &dims, grids->J_21);
 }
+
+
+// void assign_ionization_to_halos(run_globals_t *run_globals, halo_t *halo, int n_halos)
+// {
+//   double box_size = (double)(run_globals->params.BoxSize);
+//   int i, j, k;
+
+//   SID_log("Assigning cell ionization values to halos...", SID_LOG_OPEN|SID_LOG_TIMER);
+
+//   for(int i_halo=0; i_halo<n_halos; i_halo++)
+//   {
+//     i = find_cell(halo[i_halo].Pos[0], box_size);
+//     j = find_cell(halo[i_halo].Pos[1], box_size);
+//     k = find_cell(halo[i_halo].Pos[2], box_size);
+//     halo[i_halo].CellIonization = 1.0 - xH_grid[HII_R_INDEX(i,j,k)];
+//   }
+
+//   SID_log("...done", SID_LOG_CLOSE);
+// }
 
 #endif

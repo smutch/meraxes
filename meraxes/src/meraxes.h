@@ -395,9 +395,11 @@ int     find_cell(double pos, double box_size);
 void    malloc_reionization_grids(run_globals_t *run_globals);
 void    free_reionization_grids(run_globals_t *run_globals);
 void    construct_stellar_grids(run_globals_t *run_globals);
-void    assign_ionization_to_halos(run_globals_t *run_globals, halo_t *halo, int n_halos, float *xH_grid, int xH_dim);
+// void    assign_ionization_to_halos(run_globals_t *run_globals, halo_t *halo, int n_halos, float *xH_grid, int xH_dim);
 int     read_dm_grid(run_globals_t *run_globals, int snapshot, int i_grid, float *grid);
 void    calculate_Mvir_crit(run_globals_t *run_globals, double redshift);
+void    call_find_HII_bubbles(run_globals_t *run_globals, int snapshot);
+void    save_tocf_grids(run_globals_t *run_globals, hid_t group_id);
 #endif
 
 #endif // _INIT_MERAXES
