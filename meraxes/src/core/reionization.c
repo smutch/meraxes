@@ -54,6 +54,7 @@ void call_find_HII_bubbles(run_globals_t *run_globals, int snapshot, int nout_ga
   SID_log("...done", SID_LOG_CLOSE);
 }
 
+
 void malloc_reionization_grids(run_globals_t *run_globals)
 {
   tocf_grids_t *grids = &(run_globals->tocf_grids);
@@ -81,9 +82,9 @@ void malloc_reionization_grids(run_globals_t *run_globals)
   memset(grids->J_21_at_ionization, 0., sizeof(float)*HII_TOT_NUM_PIXELS);
   memset(grids->J_21, 0., sizeof(float)*HII_TOT_NUM_PIXELS);
 
-  memset(grids->stars, 0., sizeof(fftw_complex) * HII_KSPACE_NUM_PIXELS);
-  memset(grids->deltax, 0., sizeof(fftw_complex) * HII_KSPACE_NUM_PIXELS);
-  memset(grids->Mvir_crit, 0., sizeof(fftw_complex) * HII_KSPACE_NUM_PIXELS);
+  memset(grids->stars, 0, sizeof(fftw_complex) * HII_KSPACE_NUM_PIXELS);
+  memset(grids->deltax, 0, sizeof(fftw_complex) * HII_KSPACE_NUM_PIXELS);
+  memset(grids->Mvir_crit, 0, sizeof(fftw_complex) * HII_KSPACE_NUM_PIXELS);
 
   SID_log(" ...done", SID_LOG_CLOSE);
 }

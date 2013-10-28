@@ -40,13 +40,13 @@ static void halo_catalog_filename(
     for (*i_layout=0; (*i_layout<4) && (flag_success==false); (*i_layout)++)
     {
       if (*i_layout==0)
-        sprintf(fname, "%s/%s/catalogs.bad_spins/subfind_%03d.catalog_%s_properties/subfind_%03d.catalog_%s_properties.%d", root, sim, snapshot, group_type, snapshot, group_type, sub);
+        sprintf(fname, "%s/%s/catalogs/subfind_%03d.catalog_%s_properties/subfind_%03d.catalog_%s_properties.%d", root, sim, snapshot, group_type, snapshot, group_type, sub);
       else if (*i_layout==1)
-        sprintf(fname, "%s/%s/catalogs.bad_spins/subfind_%03d.catalog_%s_properties/subfind_%03d.catalog_%s_properties", root, sim, snapshot, group_type, snapshot, group_type);
+        sprintf(fname, "%s/%s/catalogs/subfind_%03d.catalog_%s_properties/subfind_%03d.catalog_%s_properties", root, sim, snapshot, group_type, snapshot, group_type);
       else if (*i_layout==2)
-        sprintf(fname, "%s/%s/catalogs.bad_spins/subfind_%03d.catalog_%s_properties.%d", root, sim, snapshot, group_type, sub);
+        sprintf(fname, "%s/%s/catalogs/subfind_%03d.catalog_%s_properties.%d", root, sim, snapshot, group_type, sub);
       else if (*i_layout==3)
-        sprintf(fname, "%s/%s/catalogs.bad_spins/subfind_%03d.catalog_%s_properties", root, sim, snapshot, group_type);
+        sprintf(fname, "%s/%s/catalogs/subfind_%03d.catalog_%s_properties", root, sim, snapshot, group_type);
 
       if ((fin = fopen(fname, "rb"))!=NULL)
       {
@@ -66,13 +66,13 @@ static void halo_catalog_filename(
 
   // provide the correct filename
   if (*i_layout==0)
-    sprintf(fname, "%s/%s/catalogs.bad_spins/subfind_%03d.catalog_%s_properties/subfind_%03d.catalog_%s_properties.%d", root, sim, snapshot, group_type, snapshot, group_type, sub);
+    sprintf(fname, "%s/%s/catalogs/subfind_%03d.catalog_%s_properties/subfind_%03d.catalog_%s_properties.%d", root, sim, snapshot, group_type, snapshot, group_type, sub);
   else if (*i_layout==1)
-    sprintf(fname, "%s/%s/catalogs.bad_spins/subfind_%03d.catalog_%s_properties/subfind_%03d.catalog_%s_properties", root, sim, snapshot, group_type, snapshot, group_type);
+    sprintf(fname, "%s/%s/catalogs/subfind_%03d.catalog_%s_properties/subfind_%03d.catalog_%s_properties", root, sim, snapshot, group_type, snapshot, group_type);
   else if (*i_layout==2)
-    sprintf(fname, "%s/%s/catalogs.bad_spins/subfind_%03d.catalog_%s_properties.%d", root, sim, snapshot, group_type, sub);
+    sprintf(fname, "%s/%s/catalogs/subfind_%03d.catalog_%s_properties.%d", root, sim, snapshot, group_type, sub);
   else if (*i_layout==3)
-    sprintf(fname, "%s/%s/catalogs.bad_spins/subfind_%03d.catalog_%s_properties", root, sim, snapshot, group_type);
+    sprintf(fname, "%s/%s/catalogs/subfind_%03d.catalog_%s_properties", root, sim, snapshot, group_type);
 
 }
 
