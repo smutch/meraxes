@@ -65,7 +65,7 @@ if not GetOption('help'):
         env.AppendUnique(CPPDEFINES=['CALC_MAGS'])
     if env['tocf']:
         env.AppendUnique(CPPDEFINES=['USE_TOCF'])
-    env.AppendUnique(CPPDEFINES=['${input_sim}', 'USE_MPI=1'])
+    # env.AppendUnique(CPPDEFINES=['${input_sim}', 'USE_MPI=1'])
     if env['build'] == 'debug':
         env.MergeFlags('-g -O0 -Wall')
         env.AppendUnique(CPPDEFINES=['DEBUG'])
@@ -109,12 +109,13 @@ if not GetOption('help'):
         LEVMAR_INCL = ['/home/smutch/3rd_party/levmar']
         LEVMAR_LIBS = ['/home/smutch/3rd_party/levmar']
         GBP_INCL    = ['/home/smutch/3rd_party/gbpCode/myInclude']
-        GBP_LIBS    = ['/home/smutch/3rd_party/gbpCode/myLib/mpi']
-        CC          = ['/usr/local/x86_64/gnu/openmpi-1.6.1/bin/mpicc']
+        GBP_LIBS    = ['/home/smutch/3rd_party/gbpCode/myLib']
         FFTW_INCL   = ['/home/smutch/3rd_party/fftw-3.3.3/include']
         FFTW_LIBS   = ['/home/smutch/3rd_party/fftw-3.3.3/lib']
         TOCF_INCL   = ['../../21cmfast/include']
         TOCF_LIBS   = ['../../21cmfast/lib']
+        # CC          = ['/usr/local/x86_64/gnu/openmpi-1.6.1/bin/mpicc']
+        CC          = ['cc']
 
     elif SYSTEM=='mac':
         GSL_INCL    = ['/usr/local/include']
@@ -149,7 +150,7 @@ if not GetOption('help'):
         env.AppendUnique(CPPPATH = [TOCF_INCL, FFTW_INCL])
         env.AppendUnique(LIBPATH = [TOCF_LIBS, FFTW_LIBS])
         env.AppendUnique(LIBS = ['21cmfast', 'fftw3f_omp', 'fftw3f', 'gomp'])
-        env.AppendUnique(CC = ['-openmp',])
+        env.AppendUnique(CC = ['-fopenmp',])
         
 
     # Set the python environment to use in any python scripts.
