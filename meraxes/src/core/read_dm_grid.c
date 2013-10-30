@@ -78,6 +78,8 @@ int read_dm_grid(
     }
     SID_log("Using resample factor = %.3f", SID_LOG_COMMENT, resample_factor);
   }
+  else
+    resample_factor = 1;
 
   // Compute the total number of elements in each grid
   n_elem = n_cell[0]*n_cell[1]*n_cell[2];

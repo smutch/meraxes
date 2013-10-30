@@ -51,6 +51,7 @@ void call_find_HII_bubbles(run_globals_t *run_globals, int snapshot, int nout_ga
       NULL,
       NULL
       );
+
   SID_log("...done", SID_LOG_CLOSE);
 }
 
@@ -83,8 +84,11 @@ void malloc_reionization_grids(run_globals_t *run_globals)
   memset(grids->J_21, 0., sizeof(float)*HII_TOT_NUM_PIXELS);
 
   memset(grids->stars, 0, sizeof(fftw_complex) * HII_KSPACE_NUM_PIXELS);
+  memset(grids->stars_filtered, 0, sizeof(fftw_complex) * HII_KSPACE_NUM_PIXELS);
   memset(grids->deltax, 0, sizeof(fftw_complex) * HII_KSPACE_NUM_PIXELS);
+  memset(grids->deltax_filtered, 0, sizeof(fftw_complex) * HII_KSPACE_NUM_PIXELS);
   memset(grids->Mvir_crit, 0, sizeof(fftw_complex) * HII_KSPACE_NUM_PIXELS);
+  memset(grids->Mvir_crit_filtered, 0, sizeof(fftw_complex) * HII_KSPACE_NUM_PIXELS);
 
   SID_log(" ...done", SID_LOG_CLOSE);
 }
@@ -159,10 +163,42 @@ void construct_stellar_grids(run_globals_t *run_globals)
 void save_tocf_grids(run_globals_t *run_globals, hid_t group_id)
 {
   tocf_grids_t *grids = &(run_globals->tocf_grids);
-  hsize_t dims = 1;
+  hsize_t dims = HII_TOT_NUM_PIXELS;
+  int HII_dim = tocf_params.HII_dim;
+  float *grid;
 
+  SID_log("Saving tocf grids...", SID_LOG_OPEN);
+
+  // float grids
   H5LTmake_dataset_float(group_id, "xH", 1, &dims, grids->xH);
   H5LTmake_dataset_float(group_id, "J_21", 1, &dims, grids->J_21);
+
+  // fftw padded grids
+  grid = (float *)SID_calloc(HII_TOT_NUM_PIXELS * sizeof(float));
+
+  for(int ii=0; ii<HII_dim; ii++)
+    for(int jj=0; jj<HII_dim; jj++)
+      for(int kk=0; kk<HII_dim; kk++)
+        grid[HII_R_INDEX(ii,jj,kk)] = *((float *)(grids->stars) + HII_R_FFT_INDEX(ii,jj,kk));
+  H5LTmake_dataset_float(group_id, "stars", 1, &dims, grid);
+
+  memset((void *)grid, 0, sizeof(float)*HII_TOT_NUM_PIXELS);
+  for(int ii=0; ii<HII_dim; ii++)
+    for(int jj=0; jj<HII_dim; jj++)
+      for(int kk=0; kk<HII_dim; kk++)
+        grid[HII_R_INDEX(ii,jj,kk)] = *((float *)(grids->Mvir_crit) + HII_R_FFT_INDEX(ii,jj,kk));
+  H5LTmake_dataset_float(group_id, "Mvir_crit", 1, &dims, grid);
+
+  memset((void *)grid, 0, sizeof(float)*HII_TOT_NUM_PIXELS);
+  for(int ii=0; ii<HII_dim; ii++)
+    for(int jj=0; jj<HII_dim; jj++)
+      for(int kk=0; kk<HII_dim; kk++)
+        grid[HII_R_INDEX(ii,jj,kk)] = *((float *)(grids->deltax) + HII_R_FFT_INDEX(ii,jj,kk));
+  H5LTmake_dataset_float(group_id, "deltax", 1, &dims, grid);
+
+  SID_free(SID_FARG grid);
+
+  SID_log(" done", SID_LOG_CLOSE);
 }
 
 
