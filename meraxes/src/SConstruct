@@ -159,7 +159,7 @@ if not GetOption('help'):
 
     node_list = files('**/*.c')
     target = env.Program(target='../bin/meraxes', source=node_list)
-    env.NoClean(target)
+    # env.NoClean(target)
     Default(target)
 
     lib = env.StaticLibrary(target='../lib/meraxes', source=node_list)
