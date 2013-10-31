@@ -181,7 +181,7 @@ void init_meraxes(run_globals_t *run_globals)
   if(run_globals->params.TOCF_Flag)
   {
     malloc_reionization_grids(run_globals);
-    tocf_params.box_len = run_globals->params.BoxSize;
+    tocf_params.box_len = run_globals->params.BoxSize/run_globals->params.Hubble_h;
   }
 #else
   // Check if we want to use 21cmFAST
