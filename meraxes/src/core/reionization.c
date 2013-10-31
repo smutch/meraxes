@@ -134,7 +134,7 @@ void construct_stellar_grids(run_globals_t *run_globals)
   gal = run_globals->FirstGal;
   while(gal!=NULL)
   {
-    if((gal->Type < 3) && (!gal->ghost_flag))
+    if(gal->Type < 3)
     {
       i = find_cell(gal->Pos[0], box_size);
       j = find_cell(gal->Pos[1], box_size);
@@ -167,6 +167,8 @@ void save_tocf_grids(run_globals_t *run_globals, hid_t group_id)
   // float grids
   H5LTmake_dataset_float(group_id, "xH", 1, &dims, grids->xH);
   H5LTmake_dataset_float(group_id, "J_21", 1, &dims, grids->J_21);
+  H5LTmake_dataset_float(group_id, "J_21_at_ionization", 1, &dims, grids->J_21_at_ionization);
+  H5LTmake_dataset_float(group_id, "z_at_ionization", 1, &dims, grids->z_at_ionization);
   H5LTmake_dataset_float(group_id, "Mvir_crit", 1, &dims, grids->Mvir_crit);
 
   // fftw padded grids
