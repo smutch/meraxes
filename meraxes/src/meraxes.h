@@ -164,8 +164,7 @@ struct tocf_grids_t
   float *z_at_ionization;
   float *J_21_at_ionization;
   float *J_21;
-  fftwf_complex *Mvir_crit;
-  fftwf_complex *Mvir_crit_filtered;
+  float *Mvir_crit;
 };
 typedef struct tocf_grids_t tocf_grids_t;
 #endif
