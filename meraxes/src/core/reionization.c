@@ -75,11 +75,14 @@ void malloc_reionization_grids(run_globals_t *run_globals)
 
   SID_log("Initialising grids...", SID_LOG_COMMENT);
 
-  memset(grids->xH, 1.0, sizeof(float)*HII_TOT_NUM_PIXELS);
-  memset(grids->z_at_ionization , -1, sizeof(float)*HII_TOT_NUM_PIXELS);
   memset(grids->J_21_at_ionization, 0., sizeof(float)*HII_TOT_NUM_PIXELS);
   memset(grids->J_21, 0., sizeof(float)*HII_TOT_NUM_PIXELS);
   memset(grids->Mvir_crit, 0, sizeof(float) * HII_TOT_NUM_PIXELS);
+  for(int ii=0; ii<HII_TOT_NUM_PIXELS; ii++)
+  {
+    grids->z_at_ionization[ii] = -1;
+    grids->xH[ii] = 1.0;
+  }
 
   memset(grids->stars, 0, sizeof(fftw_complex) * HII_KSPACE_NUM_PIXELS);
   memset(grids->stars_filtered, 0, sizeof(fftw_complex) * HII_KSPACE_NUM_PIXELS);
