@@ -109,7 +109,7 @@ void free_reionization_grids(run_globals_t *run_globals)
 int find_cell(double pos, double box_size)
 {
   int HII_dim = tocf_params.HII_dim;
-  return (int)((pos/box_size)*(double)HII_dim);
+  return (int)(round(pos/box_size)*(double)HII_dim);
 }
 
 
