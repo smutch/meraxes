@@ -386,6 +386,68 @@ void prep_hdf5_file(run_globals_t *run_globals)
   H5Aclose(attr_id);
 #endif
 
+#ifdef USE_TOCF
+  if(run_globals->params.TOCF_Flag)
+  {
+    // Open the group
+    group_id = H5Gcreate(file_id, "InputParams/tocf", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+
+    ii=0;
+    addresses[ii] = &(tocf_params.dim);
+    sprintf(names[ii++],  "dim");
+    addresses[ii] = &(tocf_params.HII_dim);
+    sprintf(names[ii++],  "HII_dim");
+    addresses[ii] = &(tocf_params.numcores);
+    sprintf(names[ii++],  "numcores");
+    addresses[ii] = &(tocf_params.HII_filter);
+    sprintf(names[ii++],  "HII_filter");
+    addresses[ii] = &(tocf_params.uvb_feedback);
+    sprintf(names[ii++],  "uvb_feedback");
+    addresses[ii] = &(tocf_params.compute_mfp);
+    sprintf(names[ii++],  "compute_mfp");
+
+    for(int jj=0; jj<ii; jj++)
+      h5_write_attribute(group_id, names[jj], H5T_NATIVE_INT, ds_id, addresses[jj]);
+
+    ii=0;
+    addresses[ii] = &(tocf_params.ram);
+    sprintf(names[ii++],  "ram");
+    addresses[ii] = &(tocf_params.HII_eff_factor);
+    sprintf(names[ii++],  "HII_eff_factor");
+    addresses[ii] = &(tocf_params.r_bubble_min);
+    sprintf(names[ii++],  "r_bubble_min");
+    addresses[ii] = &(tocf_params.r_bubble_max);
+    sprintf(names[ii++],  "r_bubble_max");
+    addresses[ii] = &(tocf_params.gamma_halo_bias);
+    sprintf(names[ii++],  "gamma_halo_bias");
+    addresses[ii] = &(tocf_params.delta_r_HII_factor);
+    sprintf(names[ii++],  "delta_r_HII_factor");
+    addresses[ii] = &(tocf_params.m_0_sm);
+    sprintf(names[ii++],  "m_0_sm");
+    addresses[ii] = &(tocf_params.a_sm);
+    sprintf(names[ii++],  "a_sm");
+    addresses[ii] = &(tocf_params.b_sm);
+    sprintf(names[ii++],  "b_sm");
+    addresses[ii] = &(tocf_params.c_sm);
+    sprintf(names[ii++],  "c_sm");
+    addresses[ii] = &(tocf_params.d_sm);
+    sprintf(names[ii++],  "d_sm");
+
+    for(int jj=0; jj<ii; jj++)
+      h5_write_attribute(group_id, names[jj], H5T_NATIVE_FLOAT, ds_id, addresses[jj]);
+
+    ii=0;
+    addresses[ii] = &(tocf_params.ion_tvir_min);
+    sprintf(names[ii++],  "ion_tvir_min");
+
+    for(int jj=0; jj<ii; jj++)
+      h5_write_attribute(group_id, names[jj], H5T_NATIVE_DOUBLE, ds_id, addresses[jj]);
+
+    // Close the group
+    H5Gclose(group_id);
+  }
+#endif
+ 
   // Close the HDF5 file.
   H5Fclose(file_id);
 
