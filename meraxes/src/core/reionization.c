@@ -112,7 +112,7 @@ void free_reionization_grids(run_globals_t *run_globals)
 int find_cell(double pos, double box_size)
 {
   int HII_dim = tocf_params.HII_dim;
-  return (int)(round(pos/box_size)*(double)HII_dim);
+  return (int)round(pos/box_size*(double)HII_dim);
 }
 
 
@@ -131,7 +131,7 @@ void construct_stellar_grids(run_globals_t *run_globals)
 
   // init the grid
   for(int ii=0; ii<HII_TOT_FFT_NUM_PIXELS; ii++)
-    *((float *)stellar_grid + ii) = 0.0;
+    *(stellar_grid + ii) = 0.0;
 
   // Loop through each valid galaxy and add its stellar mass to the appropriate cell
   gal = run_globals->FirstGal;
