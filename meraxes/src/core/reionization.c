@@ -35,7 +35,7 @@ void call_find_HII_bubbles(run_globals_t *run_globals, int snapshot, int nout_ga
 
   SID_log("Calling find_HII_bubbles...", SID_LOG_OPEN);
   // TODO: Fix if snapshot==0
-  find_HII_bubbles(run_globals->ZZ[snapshot], run_globals->ZZ[snapshot-1],
+  grids->global_xH = find_HII_bubbles(run_globals->ZZ[snapshot], run_globals->ZZ[snapshot-1],
       tocf_params.HII_eff_factor, tocf_params.ion_tvir_min, tocf_params.r_bubble_max, tocf_params.numcores,
       grids->xH,
       grids->stars,
@@ -88,6 +88,8 @@ void malloc_reionization_grids(run_globals_t *run_globals)
   memset(grids->stars_filtered, 0, sizeof(fftw_complex) * HII_KSPACE_NUM_PIXELS);
   memset(grids->deltax, 0, sizeof(fftw_complex) * HII_KSPACE_NUM_PIXELS);
   memset(grids->deltax_filtered, 0, sizeof(fftw_complex) * HII_KSPACE_NUM_PIXELS);
+
+  grids->global_xH = 0;
 
   SID_log(" ...done", SID_LOG_CLOSE);
 }
@@ -166,6 +168,8 @@ void save_tocf_grids(run_globals_t *run_globals, hid_t group_id)
   float *grid;
 
   SID_log("Saving tocf grids...", SID_LOG_OPEN);
+
+  H5LTset_attribute_int(group_id, "/", "global_xH", &(grids->global_xH), 1);
 
   // float grids
   H5LTmake_dataset_float(group_id, "xH", 1, &dims, grids->xH);

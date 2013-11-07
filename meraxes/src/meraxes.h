@@ -165,6 +165,7 @@ struct tocf_grids_t
   float *J_21_at_ionization;
   float *J_21;
   float *Mvir_crit;
+  int    global_xH;
 };
 typedef struct tocf_grids_t tocf_grids_t;
 #endif
