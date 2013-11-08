@@ -73,9 +73,13 @@ RecycleFraction   : 0.3     # fraction of SF mass assumed to instantaneously go 
 OmegaM: 0.273 
 OmegaK: 0.000
 OmegaLambda: 0.727
+OmegaR: 0.0
 BaryonFrac: 0.167
 Hubble_h: 0.705
+SpectralIndex: 0.960
+Sigma8: 0.812
 PartMass: 0.09395545
+wLambda: -1.0
 
 UnitLength_in_cm         : 3.08568e+24       # WATCH OUT : Mpc/h
 UnitMass_in_g            : 1.989e+43         # WATCH OUT : 10^10Msun

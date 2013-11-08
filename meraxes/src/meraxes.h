@@ -104,7 +104,11 @@ struct run_params_t{
   double                BaryonFrac;
   double                OmegaM;
   double                OmegaK;
+  double                OmegaR;
   double                OmegaLambda;
+  double                Sigma8;
+  double                wLambda;
+  double                SpectralIndex;
   double                PartMass;
   double                MergerTimeFactor;
   int                   SnaplistLength;

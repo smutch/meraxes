@@ -182,6 +182,19 @@ void init_meraxes(run_globals_t *run_globals)
   {
     malloc_reionization_grids(run_globals);
     tocf_params.box_len = run_globals->params.BoxSize/run_globals->params.Hubble_h;
+
+    // Set the cosmology parameters of 21cmFAST to match those of Meraxes
+    tocf_params.sigma8 = run_globals->params.Sigma8;
+    tocf_params.hlittle = run_globals->params.Hubble_h;
+    tocf_params.OMm = run_globals->params.OmegaM;
+    tocf_params.OMl = run_globals->params.OmegaLambda;
+    tocf_params.OMb = run_globals->params.BaryonFrac * tocf_params.OMm;
+    tocf_params.OMn = 0.0;
+    tocf_params.OMk = run_globals->params.OmegaK;
+    tocf_params.OMr = run_globals->params.OmegaR;
+    tocf_params.power_index = run_globals->params.SpectralIndex;
+    tocf_params.wl = run_globals->params.wLambda;
+
   }
 #else
   // Check if we want to use 21cmFAST

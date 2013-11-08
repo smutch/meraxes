@@ -270,8 +270,28 @@ void read_parameter_file(run_globals_t *run_globals, char *fname)
   required_tag[n_param] = 1;
   params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
+  strcpy(params_tag[n_param], "OmegaR");
+  params_addr[n_param] = &(run_params->OmegaR);
+  required_tag[n_param] = 1;
+  params_type[n_param++] = PARAM_TYPE_DOUBLE;
+
   strcpy(params_tag[n_param], "OmegaLambda");
   params_addr[n_param] = &(run_params->OmegaLambda);
+  required_tag[n_param] = 1;
+  params_type[n_param++] = PARAM_TYPE_DOUBLE;
+
+  strcpy(params_tag[n_param], "Sigma8");
+  params_addr[n_param] = &(run_params->Sigma8);
+  required_tag[n_param] = 1;
+  params_type[n_param++] = PARAM_TYPE_DOUBLE;
+
+  strcpy(params_tag[n_param], "wLambda");
+  params_addr[n_param] = &(run_params->wLambda);
+  required_tag[n_param] = 1;
+  params_type[n_param++] = PARAM_TYPE_DOUBLE;
+
+  strcpy(params_tag[n_param], "SpectralIndex");
+  params_addr[n_param] = &(run_params->SpectralIndex);
   required_tag[n_param] = 1;
   params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
