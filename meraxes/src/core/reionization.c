@@ -166,10 +166,10 @@ void save_tocf_grids(run_globals_t *run_globals, hid_t group_id, int snapshot)
   float *grid;
   float *ps;
   int ps_nbins;
+  float average_temp;
+  char name[125];
 
   SID_log("Saving tocf grids...", SID_LOG_OPEN);
-
-  H5LTset_attribute_int(group_id, "/", "global_xH", &(grids->global_xH), 1);
 
   // float grids
   H5LTmake_dataset_float(group_id, "xH", 1, &dims, grids->xH);
@@ -177,6 +177,8 @@ void save_tocf_grids(run_globals_t *run_globals, hid_t group_id, int snapshot)
   H5LTmake_dataset_float(group_id, "J_21_at_ionization", 1, &dims, grids->J_21_at_ionization);
   H5LTmake_dataset_float(group_id, "z_at_ionization", 1, &dims, grids->z_at_ionization);
   H5LTmake_dataset_float(group_id, "Mvir_crit", 1, &dims, grids->Mvir_crit);
+
+  H5LTset_attribute_int(group_id, "xH", "global_xH", &(grids->global_xH), 1);
 
   // fftw padded grids
   grid = (float *)SID_calloc(HII_TOT_NUM_PIXELS * sizeof(float));
@@ -203,11 +205,14 @@ void save_tocf_grids(run_globals_t *run_globals, hid_t group_id, int snapshot)
     (float *)(grids->deltax),
     NULL,
     NULL,
+    &average_temp,
     &ps,
     &ps_nbins);
 
   dims = ps_nbins*3;
   H5LTmake_dataset_float(group_id, "power_spectrum", 1, &dims, ps);
+  H5LTset_attribute_int(group_id, "power_spectrum", "nbins", &ps_nbins, 1);
+  H5LTset_attribute_float(group_id, "power_spectrum", "average_temp", &average_temp, 1);
   free(ps);
 
   SID_log(" done", SID_LOG_CLOSE);
