@@ -124,8 +124,6 @@ void construct_stellar_grids(run_globals_t *run_globals)
   int i, j, k;
   double box_size = (double)(run_globals->params.BoxSize);
   double Hubble_h = run_globals->params.Hubble_h;
-  double UnitMass_in_g = run_globals->units.UnitMass_in_g;
-  double UnitTime_in_s = run_globals->units.UnitTime_in_s;
   float *stellar_grid = (float *)(run_globals->tocf_grids.stars);
   int HII_dim = tocf_params.HII_dim;
 
@@ -160,12 +158,14 @@ void construct_stellar_grids(run_globals_t *run_globals)
 }
 
 
-void save_tocf_grids(run_globals_t *run_globals, hid_t group_id)
+void save_tocf_grids(run_globals_t *run_globals, hid_t group_id, int snapshot)
 {
   tocf_grids_t *grids = &(run_globals->tocf_grids);
   hsize_t dims = HII_TOT_NUM_PIXELS;
   int HII_dim = tocf_params.HII_dim;
   float *grid;
+  float *ps;
+  int ps_nbins;
 
   SID_log("Saving tocf grids...", SID_LOG_OPEN);
 
@@ -195,6 +195,22 @@ void save_tocf_grids(run_globals_t *run_globals, hid_t group_id)
   H5LTmake_dataset_float(group_id, "deltax", 1, &dims, grid);
 
   SID_free(SID_FARG grid);
+
+  SID_log("Calculating delta_T power spectrum...", SID_LOG_OPEN);
+
+  delta_T_ps(run_globals->ZZ[snapshot], tocf_params.numcores,
+    grids->xH,
+    (float *)(grids->deltax),
+    NULL,
+    NULL,
+    &ps,
+    &ps_nbins);
+
+  dims = ps_nbins*3;
+  H5LTmake_dataset_float(group_id, "power_spectrum", 1, &dims, ps);
+  free(ps);
+
+  SID_log(" done", SID_LOG_CLOSE);
 
   SID_log(" done", SID_LOG_CLOSE);
 }

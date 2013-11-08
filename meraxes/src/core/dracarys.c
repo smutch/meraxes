@@ -133,11 +133,6 @@ void dracarys(run_globals_t *run_globals)
   int                  new_gal_counter = 0;
   int                  ghost_counter   = 0;
 
-#ifdef USE_TOCF
-  float               *xH_grid         = NULL;
-  int                  xH_dim;
-#endif
- 
   // Find what the last requested output snapshot is
   for(int ii=0; ii<NOUT; ii++)
     if (run_globals->ListOutputSnaps[ii] > last_snap)

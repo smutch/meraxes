@@ -9,7 +9,7 @@ void calculate_Mvir_crit(run_globals_t *run_globals, double redshift)
   
   int            HII_dim        = tocf_params.HII_dim;
   float          Mvir_atomic;
-  int            cell_Mvir_crit = Mvir_atomic;
+  int            cell_Mvir_crit;
 
   float          m_0_sm         = tocf_params.m_0_sm;
   float          a_sm           = tocf_params.a_sm;
@@ -52,7 +52,6 @@ void calculate_Mvir_crit(run_globals_t *run_globals, double redshift)
 bool check_reionization_cooling(run_globals_t *run_globals, halo_t *halo)
 {
   bool    flag;
-  float   M_crit;
   float   Mvir;
   double  box_size    = run_globals->params.BoxSize;
   float  *M_crit_grid = run_globals->tocf_grids.Mvir_crit;

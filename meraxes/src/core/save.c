@@ -671,7 +671,7 @@ void write_snapshot(run_globals_t *run_globals, int n_write, int i_out, int *las
 
 #ifdef USE_TOCF
   if(run_globals->params.TOCF_Flag)
-    save_tocf_grids(run_globals, group_id);
+    save_tocf_grids(run_globals, group_id, run_globals->ListOutputSnaps[i_out]);
 #endif
 
   // Close the group.
