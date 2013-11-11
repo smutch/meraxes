@@ -165,6 +165,8 @@ struct tocf_grids_t
   fftwf_complex *stars_filtered;
   fftwf_complex *deltax;
   fftwf_complex *deltax_filtered;
+  fftwf_complex *sfr;
+  fftwf_complex *sfr_filtered;
   float *z_at_ionization;
   float *J_21_at_ionization;
   float *J_21;
