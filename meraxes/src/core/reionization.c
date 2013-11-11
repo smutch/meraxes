@@ -167,8 +167,17 @@ void construct_stellar_grids(run_globals_t *run_globals)
     for(int j=0; j<HII_dim; j++)
       for(int k=0; k<HII_dim; k++)
       {
-        *(stellar_grid + HII_R_FFT_INDEX(i,j,k)) *= 1.e10/Hubble_h;
-        *(sfr_grid + HII_R_FFT_INDEX(i,j,k)) *= UnitMass_in_g / UnitTime_in_s * SEC_PER_YEAR / SOLAR_MASS;
+        if(*(stellar_grid + HII_R_FFT_INDEX(i,j,k))>0)
+          *(stellar_grid + HII_R_FFT_INDEX(i,j,k)) *= (1.e10/Hubble_h);
+        if(*(sfr_grid + HII_R_FFT_INDEX(i,j,k))>0)
+          *(sfr_grid + HII_R_FFT_INDEX(i,j,k)) *= (1.e10/UnitTime_in_s);
+
+        // Check for under/overflow
+        if(*(stellar_grid + HII_R_FFT_INDEX(i,j,k))<0)
+          *(stellar_grid + HII_R_FFT_INDEX(i,j,k)) = 0;
+        if(*(sfr_grid + HII_R_FFT_INDEX(i,j,k))<0)
+          *(sfr_grid + HII_R_FFT_INDEX(i,j,k)) = 0;
+
       }
 
   SID_log("done", SID_LOG_CLOSE);
