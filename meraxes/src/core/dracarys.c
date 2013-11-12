@@ -155,7 +155,8 @@ void dracarys(run_globals_t *run_globals)
 
 #ifdef USE_TOCF
     // Calculate the critical halo mass for cooling
-    calculate_Mvir_crit(run_globals, run_globals->ZZ[snapshot]);
+    if((run_globals->params.TOCF_Flag) && (tocf_params.uvb_feedback))
+      calculate_Mvir_crit(run_globals, run_globals->ZZ[snapshot]);
 #endif
 
     // Reset the halo pointers and ghost flags for all galaxies and decrement
