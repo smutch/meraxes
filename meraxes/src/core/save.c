@@ -60,13 +60,6 @@ void prepare_galaxy_for_output(
   galout->MergTime    = (float)(gal.MergTime * units->UnitLength_in_cm / units->UnitVelocity_in_cm_per_s / SEC_PER_MEGAYEAR / Hubble_h);
   galout->LTTime      = (float)(gal.LTTime * units->UnitLength_in_cm / units->UnitVelocity_in_cm_per_s / SEC_PER_MEGAYEAR / Hubble_h);
 
-#ifdef USE_TOCF
-  if(!gal.ghost_flag)
-    galout->CellIonization = (float)((gal.Halo)->CellIonization);
-  else
-    galout->CellIonization = (float)-1;
-#endif
-
   prepare_magnitudes_for_output(run_globals, gal, galout, i_snap);
 
 }
@@ -205,13 +198,6 @@ void calc_hdf5_props(run_globals_t *run_globals)
   h5props->dst_field_sizes[i]   = sizeof(galout.LTTime);
   h5props->field_names[i] = "LTTime";
   h5props->field_types[i++] = H5T_NATIVE_FLOAT;
-
-#ifdef USE_TOCF
-  h5props->dst_offsets[i] = HOFFSET(galaxy_output_t, CellIonization);
-  h5props->dst_field_sizes[i]   = sizeof(galout.CellIonization);
-  h5props->field_names[i] = "CellIonization";
-  h5props->field_types[i++] = H5T_NATIVE_FLOAT;
-#endif
 
 #ifdef CALC_MAGS
   h5props->dst_offsets[i] = HOFFSET(galaxy_output_t, Mag);

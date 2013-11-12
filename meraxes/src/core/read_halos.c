@@ -222,9 +222,6 @@ static void inline read_catalog_halo(
   cur_model_halo->Spin[0]            = halo_in.spin[0];
   cur_model_halo->Spin[1]            = halo_in.spin[1];
   cur_model_halo->Spin[2]            = halo_in.spin[2];
-#ifdef USE_TOCF
-  cur_model_halo->CellIonization     = 0.0;
-#endif
   cur_model_halo->NextHaloInFOFGroup = NULL;
   cur_model_halo->Galaxy             = NULL;
 

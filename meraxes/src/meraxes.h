@@ -263,9 +263,6 @@ struct halo_t{
   float  Vmax;           //!< Maximum circular velocity [km/s]
   float  VelDisp;        //!< Total 3D velocity dispersion [km/s]
   float  Spin[3];        //!< Specific angular momentum vector [Mpc/h *km/s]
-#ifdef USE_TOCF
-  float  CellIonization; //!< IGM ionization fraction of host cell
-#endif
 };
 typedef struct halo_t halo_t;
 
@@ -347,11 +344,6 @@ struct galaxy_output_t
   float Cos_Inc;
   float MergTime;
   float LTTime;
-
-  // reionization
-#ifdef USE_TOCF
-  float CellIonization;
-#endif
 
 #ifdef CALC_MAGS
   float Mag[MAX_PHOTO_NBANDS];
