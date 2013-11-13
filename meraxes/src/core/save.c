@@ -80,7 +80,7 @@ void calc_hdf5_props(run_globals_t *run_globals)
 
   // If we are calculating any magnitudes then increment the number of
   // output properties appropriately.
-  h5props->n_props = 18;
+  h5props->n_props = 19;
 
 #ifdef CALC_MAGS
   h5props->n_props +=2;

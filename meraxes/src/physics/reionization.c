@@ -51,25 +51,30 @@ void calculate_Mvir_crit(run_globals_t *run_globals, double redshift)
 
 bool check_reionization_cooling(run_globals_t *run_globals, halo_t *halo)
 {
-  bool    flag;
-  float   Mvir;
-  double  box_size    = run_globals->params.BoxSize;
-  float  *M_crit_grid = run_globals->tocf_grids.Mvir_crit;
 
-  // debug
-  // return true;
+  if(tocf_params.uvb_feedback)
+  {
+    bool    flag;
+    float   Mvir;
+    double  box_size    = run_globals->params.BoxSize;
+    float  *M_crit_grid = run_globals->tocf_grids.Mvir_crit;
 
-  // Find which cell this halo lies in
-  int i = find_cell((halo->Pos)[0], box_size);
-  int j = find_cell((halo->Pos)[1], box_size);
-  int k = find_cell((halo->Pos)[2], box_size);
+    // Find which cell this halo lies in
+    int i = find_cell((halo->Pos)[0], box_size);
+    int j = find_cell((halo->Pos)[1], box_size);
+    int k = find_cell((halo->Pos)[2], box_size);
 
-  // If the halo virial mass is below the critical for this cell then set the
-  // cooling flag to false, else set it to true
-  Mvir = halo->Mvir*1.e10/run_globals->params.Hubble_h;
-  flag = (Mvir < M_crit_grid[HII_R_INDEX(i,j,k)]) ? false : true;
+    // If the halo virial mass is below the critical for this cell then set the
+    // cooling flag to false, else set it to true
+    Mvir = halo->Mvir*1.e10/run_globals->params.Hubble_h;
+    flag = (Mvir < M_crit_grid[HII_R_INDEX(i,j,k)]) ? false : true;
 
-  return flag;
+    return flag;
+  } else
+  {
+    return true;
+  }
+
 }
 
 #endif
