@@ -103,7 +103,10 @@ static inline bool check_if_valid_host(run_globals_t *run_globals, halo_t *halo)
       && (halo->TreeFlags & invalid_flags)==0)
   {
 #ifdef USE_TOCF
-    return check_reionization_cooling(run_globals, halo);
+    if(run_globals->params.TOCF_Flag)
+      return check_reionization_cooling(run_globals, halo);
+    else
+      return true;
 #else
     return true;
 #endif
@@ -406,6 +409,11 @@ void dracarys(run_globals_t *run_globals)
     // Free the halo and fof_group arrays
     SID_free(SID_FARG halo);
     SID_free(SID_FARG fof_group);
+
+#ifdef USE_TOCF
+    if(run_globals->params.TOCF_Flag)
+      check_if_reionization_complete(run_globals);
+#endif
 
     SID_log("...done", SID_LOG_CLOSE);
   }

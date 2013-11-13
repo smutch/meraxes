@@ -87,13 +87,10 @@ void calc_hdf5_props(run_globals_t *run_globals)
 
   // If we are calculating any magnitudes then increment the number of
   // output properties appropriately.
-  h5props->n_props = 19;
+  h5props->n_props = 18;
 
 #ifdef CALC_MAGS
   h5props->n_props +=2;
-#endif
-#ifdef USE_TOCF
-  h5props->n_props +=1;
 #endif
 
   // Size of a single galaxy entry.

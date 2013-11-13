@@ -24,7 +24,7 @@ void call_find_HII_bubbles(run_globals_t *run_globals, int snapshot, int nout_ga
     construct_stellar_grids(run_globals);
   else
   {
-    SID_log("No galaxies present - skipping...", SID_LOG_CLOSE);
+    SID_log("No galaxies present - skipping...", SID_LOG_COMMENT|SID_LOG_CLOSE);
     return;
   }
 
@@ -60,76 +60,83 @@ void malloc_reionization_grids(run_globals_t *run_globals)
 {
   tocf_grids_t *grids = &(run_globals->tocf_grids);
 
-  // TODO: Update depending on tocf_params flags
-  SID_log("Mallocing %.1f GB for required 21cmFAST grids...", SID_LOG_OPEN,
-      ((float)(HII_TOT_NUM_PIXELS * sizeof(float) * 5) +
-      (float)(HII_KSPACE_NUM_PIXELS * sizeof(fftwf_complex) * 4))
-      /(1024.*1024.*1024.));
+  grids->xH                 = NULL;
+  grids->stars              = NULL;
+  grids->stars_filtered     = NULL;
+  grids->deltax             = NULL;
+  grids->deltax_filtered    = NULL;
+  grids->sfr                = NULL;
+  grids->sfr_filtered       = NULL;
+  grids->z_at_ionization    = NULL;
+  grids->J_21_at_ionization = NULL;
+  grids->J_21               = NULL;
+  grids->mfp                = NULL;
+  grids->N_rec              = NULL;
+  grids->N_rec_filtered     = NULL;
 
-  grids->xH                 = (float *)         fftwf_malloc(sizeof(float)        * HII_TOT_NUM_PIXELS);
-  grids->stars              = (fftwf_complex *) fftwf_malloc(sizeof(fftw_complex) * HII_KSPACE_NUM_PIXELS);
-  grids->stars_filtered     = (fftwf_complex *) fftwf_malloc(sizeof(fftw_complex) * HII_KSPACE_NUM_PIXELS);
-  grids->deltax             = (fftwf_complex *) fftwf_malloc(sizeof(fftw_complex) * HII_KSPACE_NUM_PIXELS);
-  grids->deltax_filtered    = (fftwf_complex *) fftwf_malloc(sizeof(fftw_complex) * HII_KSPACE_NUM_PIXELS);
-  grids->sfr                = (fftwf_complex *) fftwf_malloc(sizeof(fftw_complex) * HII_KSPACE_NUM_PIXELS);
-  grids->sfr_filtered       = (fftwf_complex *) fftwf_malloc(sizeof(fftw_complex) * HII_KSPACE_NUM_PIXELS);
+  grids->global_xH = 1.0;
 
-  if(tocf_params.uvb_feedback)
+  if(run_globals->params.TOCF_Flag)
   {
-    grids->Mvir_crit          = (float *)         fftwf_malloc(sizeof(float)        * HII_TOT_NUM_PIXELS);
-    grids->z_at_ionization    = (float *)         fftwf_malloc(sizeof(float)        * HII_TOT_NUM_PIXELS);
-    grids->J_21_at_ionization = (float *)         fftwf_malloc(sizeof(float)        * HII_TOT_NUM_PIXELS);
-    grids->J_21               = (float *)         fftwf_malloc(sizeof(float)        * HII_TOT_NUM_PIXELS);
-  } else
-  {
-    grids->z_at_ionization    = NULL;
-    grids->J_21_at_ionization = NULL;
-    grids->J_21               = NULL;
-  }
+    // TODO: Update depending on tocf_params flags
+    SID_log("Mallocing %.1f GB for required 21cmFAST grids...", SID_LOG_OPEN,
+        ((float)(HII_TOT_NUM_PIXELS * sizeof(float) * 5) +
+         (float)(HII_KSPACE_NUM_PIXELS * sizeof(fftwf_complex) * 4))
+        /(1024.*1024.*1024.));
 
-  if(tocf_params.compute_mfp)
-  {
-    grids->mfp                = (float *)         fftwf_malloc(sizeof(float)        * HII_TOT_NUM_PIXELS);
-    grids->N_rec              = (fftwf_complex *) fftwf_malloc(sizeof(fftw_complex) * HII_KSPACE_NUM_PIXELS);
-    grids->N_rec_filtered     = (fftwf_complex *) fftwf_malloc(sizeof(fftw_complex) * HII_KSPACE_NUM_PIXELS);
-  } else
-  {
-    grids->mfp                = NULL;
-    grids->N_rec              = NULL;
-    grids->N_rec_filtered     = NULL;
-  }
+    grids->xH                 = (float *)         fftwf_malloc(sizeof(float)        * HII_TOT_NUM_PIXELS);
+    grids->stars              = (fftwf_complex *) fftwf_malloc(sizeof(fftw_complex) * HII_KSPACE_NUM_PIXELS);
+    grids->stars_filtered     = (fftwf_complex *) fftwf_malloc(sizeof(fftw_complex) * HII_KSPACE_NUM_PIXELS);
+    grids->deltax             = (fftwf_complex *) fftwf_malloc(sizeof(fftw_complex) * HII_KSPACE_NUM_PIXELS);
+    grids->deltax_filtered    = (fftwf_complex *) fftwf_malloc(sizeof(fftw_complex) * HII_KSPACE_NUM_PIXELS);
+    grids->sfr                = (fftwf_complex *) fftwf_malloc(sizeof(fftw_complex) * HII_KSPACE_NUM_PIXELS);
+    grids->sfr_filtered       = (fftwf_complex *) fftwf_malloc(sizeof(fftw_complex) * HII_KSPACE_NUM_PIXELS);
 
-  SID_log("Initialising grids...", SID_LOG_COMMENT);
+    if(tocf_params.uvb_feedback)
+    {
+      grids->Mvir_crit          = (float *)         fftwf_malloc(sizeof(float)        * HII_TOT_NUM_PIXELS);
+      grids->z_at_ionization    = (float *)         fftwf_malloc(sizeof(float)        * HII_TOT_NUM_PIXELS);
+      grids->J_21_at_ionization = (float *)         fftwf_malloc(sizeof(float)        * HII_TOT_NUM_PIXELS);
+      grids->J_21               = (float *)         fftwf_malloc(sizeof(float)        * HII_TOT_NUM_PIXELS);
+    }
 
-  for(int ii=0; ii<HII_TOT_NUM_PIXELS; ii++)
-    grids->xH[ii] = 1.0;
+    if(tocf_params.compute_mfp)
+    {
+      grids->mfp                = (float *)         fftwf_malloc(sizeof(float)        * HII_TOT_NUM_PIXELS);
+      grids->N_rec              = (fftwf_complex *) fftwf_malloc(sizeof(fftw_complex) * HII_KSPACE_NUM_PIXELS);
+      grids->N_rec_filtered     = (fftwf_complex *) fftwf_malloc(sizeof(fftw_complex) * HII_KSPACE_NUM_PIXELS);
+    }
 
-  if(tocf_params.uvb_feedback)
-  {
-    memset(grids->J_21_at_ionization, 0., sizeof(float)*HII_TOT_NUM_PIXELS);
-    memset(grids->J_21, 0., sizeof(float)*HII_TOT_NUM_PIXELS);
-    memset(grids->Mvir_crit, 0, sizeof(float) * HII_TOT_NUM_PIXELS);
+    SID_log("Initialising grids...", SID_LOG_COMMENT);
+
     for(int ii=0; ii<HII_TOT_NUM_PIXELS; ii++)
-      grids->z_at_ionization[ii] = -1;
+      grids->xH[ii] = 1.0;
+
+    if(tocf_params.uvb_feedback)
+    {
+      memset(grids->J_21_at_ionization, 0., sizeof(float)*HII_TOT_NUM_PIXELS);
+      memset(grids->J_21, 0., sizeof(float)*HII_TOT_NUM_PIXELS);
+      memset(grids->Mvir_crit, 0, sizeof(float) * HII_TOT_NUM_PIXELS);
+      for(int ii=0; ii<HII_TOT_NUM_PIXELS; ii++)
+        grids->z_at_ionization[ii] = -1;
+    }
+
+    memset(grids->stars, 0, sizeof(fftw_complex) * HII_KSPACE_NUM_PIXELS);
+    memset(grids->stars_filtered, 0, sizeof(fftw_complex) * HII_KSPACE_NUM_PIXELS);
+    memset(grids->deltax, 0, sizeof(fftw_complex) * HII_KSPACE_NUM_PIXELS);
+    memset(grids->deltax_filtered, 0, sizeof(fftw_complex) * HII_KSPACE_NUM_PIXELS);
+    memset(grids->sfr, 0, sizeof(fftw_complex) * HII_KSPACE_NUM_PIXELS);
+    memset(grids->sfr_filtered, 0, sizeof(fftw_complex) * HII_KSPACE_NUM_PIXELS);
+
+    if(tocf_params.compute_mfp)
+    {
+      memset(grids->mfp, 0., sizeof(float) * HII_TOT_NUM_PIXELS);
+      memset(grids->N_rec, 0, sizeof(fftw_complex) * HII_KSPACE_NUM_PIXELS);
+      memset(grids->N_rec_filtered, 0, sizeof(fftw_complex) * HII_KSPACE_NUM_PIXELS);
+    }
+
+    SID_log(" ...done", SID_LOG_CLOSE);
   }
-
-  memset(grids->stars, 0, sizeof(fftw_complex) * HII_KSPACE_NUM_PIXELS);
-  memset(grids->stars_filtered, 0, sizeof(fftw_complex) * HII_KSPACE_NUM_PIXELS);
-  memset(grids->deltax, 0, sizeof(fftw_complex) * HII_KSPACE_NUM_PIXELS);
-  memset(grids->deltax_filtered, 0, sizeof(fftw_complex) * HII_KSPACE_NUM_PIXELS);
-  memset(grids->sfr, 0, sizeof(fftw_complex) * HII_KSPACE_NUM_PIXELS);
-  memset(grids->sfr_filtered, 0, sizeof(fftw_complex) * HII_KSPACE_NUM_PIXELS);
-
-  if(tocf_params.compute_mfp)
-  {
-    memset(grids->mfp, 0., sizeof(float) * HII_TOT_NUM_PIXELS);
-    memset(grids->N_rec, 0, sizeof(fftw_complex) * HII_KSPACE_NUM_PIXELS);
-    memset(grids->N_rec_filtered, 0, sizeof(fftw_complex) * HII_KSPACE_NUM_PIXELS);
-  }
-
-  grids->global_xH = 0;
-
-  SID_log(" ...done", SID_LOG_CLOSE);
 }
 
 
@@ -234,7 +241,7 @@ void save_tocf_grids(run_globals_t *run_globals, hid_t group_id, int snapshot)
   float *grid;
   float *ps;
   int ps_nbins;
-  float average_temp;
+  float average_deltaT;
   char name[125];
 
   SID_log("Saving tocf grids...", SID_LOG_OPEN);
@@ -252,7 +259,7 @@ void save_tocf_grids(run_globals_t *run_globals, hid_t group_id, int snapshot)
   if(tocf_params.compute_mfp)
     H5LTmake_dataset_float(group_id, "mfp", 1, &dims, grids->mfp);
 
-  H5LTset_attribute_int(group_id, "xH", "global_xH", &(grids->global_xH), 1);
+  H5LTset_attribute_float(group_id, "xH", "global_xH", &(grids->global_xH), 1);
 
   // fftw padded grids
   grid = (float *)SID_calloc(HII_TOT_NUM_PIXELS * sizeof(float));
@@ -296,19 +303,28 @@ void save_tocf_grids(run_globals_t *run_globals, hid_t group_id, int snapshot)
     (float *)(grids->deltax),
     NULL,
     NULL,
-    &average_temp,
+    &average_deltaT,
     &ps,
     &ps_nbins);
 
   dims = ps_nbins*3;
   H5LTmake_dataset_float(group_id,  "power_spectrum", 1, &dims, ps);
   H5LTset_attribute_int(group_id,   "power_spectrum", "nbins", &ps_nbins, 1);
-  H5LTset_attribute_float(group_id, "power_spectrum", "average_temp", &average_temp, 1);
+  H5LTset_attribute_float(group_id, "power_spectrum", "average_deltaT", &average_deltaT, 1);
   free(ps);
 
   SID_log(" done", SID_LOG_CLOSE);
 
   SID_log(" done", SID_LOG_CLOSE);
+
+}
+
+void check_if_reionization_complete(run_globals_t *run_globals)
+{
+  SID_log("Checking if reionization complete... (global_xH=%.2f)", SID_LOG_COMMENT, run_globals->tocf_grids.global_xH);
+  // if the global_xH value is less than 1%, stop doing reionisation
+  if(run_globals->tocf_grids.global_xH < 0.01)
+    run_globals->params.TOCF_Flag = 0;
 }
 
 

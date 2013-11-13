@@ -174,7 +174,7 @@ struct tocf_grids_t
   float *J_21;
   float *Mvir_crit;
   float *mfp;
-  int    global_xH;
+  float  global_xH;
 };
 typedef struct tocf_grids_t tocf_grids_t;
 #endif
@@ -409,6 +409,7 @@ int     read_dm_grid(run_globals_t *run_globals, int snapshot, int i_grid, float
 void    calculate_Mvir_crit(run_globals_t *run_globals, double redshift);
 void    call_find_HII_bubbles(run_globals_t *run_globals, int snapshot, int nout_gals);
 void    save_tocf_grids(run_globals_t *run_globals, hid_t group_id, int snapshot);
+void    check_if_reionization_complete(run_globals_t *run_globals);
 #endif
 
 #endif // _INIT_MERAXES
