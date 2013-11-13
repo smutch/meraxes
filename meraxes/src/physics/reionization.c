@@ -9,7 +9,7 @@ void calculate_Mvir_crit(run_globals_t *run_globals, double redshift)
   
   int            HII_dim        = tocf_params.HII_dim;
   float          Mvir_atomic;
-  int            cell_Mvir_crit;
+  float          cell_Mvir_crit;
 
   float          m_0_sm         = tocf_params.m_0_sm;
   float          a_sm           = tocf_params.a_sm;
@@ -39,8 +39,15 @@ void calculate_Mvir_crit(run_globals_t *run_globals, double redshift)
         // mass using the UVB feedback prescription of Sobacchi & Mesinger
         // 2013b
         if(z_at_ion[HII_R_INDEX(ii,jj,kk)] > redshift)
+        {
           cell_Mvir_crit = m_0_sm*pow((1.0+redshift)/10.0, a_sm) * pow(J_21_at_ion[HII_R_INDEX(ii,jj,kk)], b_sm)*
             pow((1.0-pow((1.0+redshift)/(1.0+z_at_ion[HII_R_INDEX(ii,jj,kk)]), c_sm)), d_sm);
+
+          // DEBUG
+          // SID_log("Cell was ionized in past -> Mvir_atomic=%.2e, cell_Mvir_crit=%.2e", SID_LOG_COMMENT, Mvir_atomic, cell_Mvir_crit);
+          // SID_log("\tJ_21_at_ion=%.2e, z_at_ion=%.2e, redshift=%.2e, m_0_sm=%.2e, a_sm=%.2e, b_sm=%.2e, c_sm=%.2e, d_sm=%.2e", SID_LOG_COMMENT, 
+          //     J_21_at_ion[HII_R_INDEX(ii,jj,kk)], z_at_ion[HII_R_INDEX(ii,jj,kk)], redshift, m_0_sm, a_sm, b_sm, c_sm, d_sm);
+        }
 
         // Save the critical mass to the grid
         Mvir_crit[HII_R_INDEX(ii,jj,kk)] = (Mvir_atomic > cell_Mvir_crit) ? Mvir_atomic : cell_Mvir_crit;
@@ -68,6 +75,9 @@ bool check_reionization_cooling(run_globals_t *run_globals, halo_t *halo)
     // cooling flag to false, else set it to true
     Mvir = halo->Mvir*1.e10/run_globals->params.Hubble_h;
     flag = (Mvir < M_crit_grid[HII_R_INDEX(i,j,k)]) ? false : true;
+
+    // DEBUG
+    // SID_log("Mvir=%.2e, M_crit_grid=%.2e, cooling_flag=%d", SID_LOG_COMMENT, Mvir, M_crit_grid[HII_R_INDEX(i,j,k)], flag);
 
     return flag;
   } else
