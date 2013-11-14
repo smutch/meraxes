@@ -1,8 +1,11 @@
 #define _MAIN
 #include "meraxes.h"
-#include <21cmfast.h>
 #include <sys/stat.h>
 #include <hdf5.h>
+
+#ifdef USE_TOCF
+#include <21cmfast.h>
+#endif
 
 static void cleanup(run_globals_t *run_globals)
 {

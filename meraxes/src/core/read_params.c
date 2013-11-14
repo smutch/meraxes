@@ -58,8 +58,11 @@ static void inline store_params(
       if(strcmp(key, "TOCF_Flag")==0)
       {
         temp = atoi(entry[i_entry].value);
-        *((int *) params_addr[tag_index]) = atoi(entry[i_entry].value);
-        used_tag[tag_index] = 1;
+        if(used_tag[tag_index]==0)
+        {
+          *((int *) params_addr[tag_index]) = atoi(entry[i_entry].value);
+          used_tag[tag_index] = 1;
+        }
         if(temp!=1)
         {
           SID_log("Skipping TOCF params block...", SID_LOG_COMMENT);

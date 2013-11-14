@@ -20,7 +20,7 @@
 #define STRLEN  256  //!< Default string length
 
 // TODO: This should not be hard coded if at all possible...
-#define MAXSNAPS 467  //!< Maximum number of snapshots
+#define MAXSNAPS 235  //!< Maximum number of snapshots
 
 #ifndef NOUT
 #define NOUT 1
