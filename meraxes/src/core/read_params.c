@@ -446,7 +446,7 @@ void read_parameter_file(run_globals_t *run_globals, char *fname)
   required_tag[n_param] = 0;
   params_type[n_param++] = PARAM_TYPE_INT;
 
-  strcpy(params_tag[n_param], "HII_filter");
+  strcpy(params_tag[n_param], "TOCF_HII_filter");
   params_addr[n_param] = &(tocf_params.HII_filter);
   required_tag[n_param] = 0;
   params_type[n_param++] = PARAM_TYPE_INT;
@@ -482,6 +482,9 @@ void read_parameter_file(run_globals_t *run_globals, char *fname)
         {
           case PARAM_TYPE_DOUBLE:
             printf("%g\n", *((double *) (params_addr[i])));
+            break;
+          case PARAM_TYPE_FLOAT:
+            printf("%g\n", *((float *) (params_addr[i])));
             break;
           case PARAM_TYPE_STRING:
             printf("%s\n", (char *) params_addr[i]);
