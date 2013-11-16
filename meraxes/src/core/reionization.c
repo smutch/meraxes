@@ -15,6 +15,7 @@
 void call_find_HII_bubbles(run_globals_t *run_globals, int snapshot, int nout_gals)
 {
   // Thin wrapper round find_HII_bubbles
+
   tocf_grids_t *grids = &(run_globals->tocf_grids);
 
   SID_log("Getting ready to call find_HII_bubbles...", SID_LOG_OPEN);
@@ -30,6 +31,13 @@ void call_find_HII_bubbles(run_globals_t *run_globals, int snapshot, int nout_ga
 
   // Read in the dark matter density grid
   read_dm_grid(run_globals, snapshot, 0, (float *)(grids->deltax));
+
+  // Make copies of the stellar and deltax grids before sending them to
+  // 21cmfast.  This is because the floating precision fft--ifft introduces
+  // rounding error that we don't want to store...
+  memcpy(grids->stars_copy, grids->stars, sizeof(fftwf_complex)*HII_KSPACE_NUM_PIXELS);
+  memcpy(grids->sfr_copy, grids->sfr, sizeof(fftwf_complex)*HII_KSPACE_NUM_PIXELS);
+  memcpy(grids->deltax_copy, grids->deltax, sizeof(fftwf_complex)*HII_KSPACE_NUM_PIXELS);
 
   SID_log("...done", SID_LOG_CLOSE);
 
@@ -51,6 +59,11 @@ void call_find_HII_bubbles(run_globals_t *run_globals, int snapshot, int nout_ga
       grids->N_rec,
       grids->N_rec_filtered
       );
+
+  // copy the original (non fourier transformed) grids back into place
+  memcpy(grids->stars, grids->stars_copy, sizeof(fftwf_complex)*HII_KSPACE_NUM_PIXELS);
+  memcpy(grids->sfr, grids->sfr_copy, sizeof(fftwf_complex)*HII_KSPACE_NUM_PIXELS);
+  memcpy(grids->deltax, grids->deltax_copy, sizeof(fftwf_complex)*HII_KSPACE_NUM_PIXELS);
 
   SID_log("...done", SID_LOG_CLOSE);
 }
@@ -85,12 +98,15 @@ void malloc_reionization_grids(run_globals_t *run_globals)
         /(1024.*1024.*1024.));
 
     grids->xH                 = (float *)         fftwf_malloc(sizeof(float)        * HII_TOT_NUM_PIXELS);
-    grids->stars              = (fftwf_complex *) fftwf_malloc(sizeof(fftw_complex) * HII_KSPACE_NUM_PIXELS);
-    grids->stars_filtered     = (fftwf_complex *) fftwf_malloc(sizeof(fftw_complex) * HII_KSPACE_NUM_PIXELS);
-    grids->deltax             = (fftwf_complex *) fftwf_malloc(sizeof(fftw_complex) * HII_KSPACE_NUM_PIXELS);
-    grids->deltax_filtered    = (fftwf_complex *) fftwf_malloc(sizeof(fftw_complex) * HII_KSPACE_NUM_PIXELS);
-    grids->sfr                = (fftwf_complex *) fftwf_malloc(sizeof(fftw_complex) * HII_KSPACE_NUM_PIXELS);
-    grids->sfr_filtered       = (fftwf_complex *) fftwf_malloc(sizeof(fftw_complex) * HII_KSPACE_NUM_PIXELS);
+    grids->stars              = (fftwf_complex *) fftwf_malloc(sizeof(fftwf_complex) * HII_KSPACE_NUM_PIXELS);
+    grids->stars_filtered     = (fftwf_complex *) fftwf_malloc(sizeof(fftwf_complex) * HII_KSPACE_NUM_PIXELS);
+    grids->stars_copy         = (fftwf_complex *) fftwf_malloc(sizeof(fftwf_complex) * HII_KSPACE_NUM_PIXELS);
+    grids->deltax             = (fftwf_complex *) fftwf_malloc(sizeof(fftwf_complex) * HII_KSPACE_NUM_PIXELS);
+    grids->deltax_filtered    = (fftwf_complex *) fftwf_malloc(sizeof(fftwf_complex) * HII_KSPACE_NUM_PIXELS);
+    grids->deltax_copy        = (fftwf_complex *) fftwf_malloc(sizeof(fftwf_complex) * HII_KSPACE_NUM_PIXELS);
+    grids->sfr                = (fftwf_complex *) fftwf_malloc(sizeof(fftwf_complex) * HII_KSPACE_NUM_PIXELS);
+    grids->sfr_filtered       = (fftwf_complex *) fftwf_malloc(sizeof(fftwf_complex) * HII_KSPACE_NUM_PIXELS);
+    grids->sfr_copy           = (fftwf_complex *) fftwf_malloc(sizeof(fftwf_complex) * HII_KSPACE_NUM_PIXELS);
 
     if(tocf_params.uvb_feedback)
     {
@@ -103,8 +119,8 @@ void malloc_reionization_grids(run_globals_t *run_globals)
     if(tocf_params.compute_mfp)
     {
       grids->mfp                = (float *)         fftwf_malloc(sizeof(float)        * HII_TOT_NUM_PIXELS);
-      grids->N_rec              = (fftwf_complex *) fftwf_malloc(sizeof(fftw_complex) * HII_KSPACE_NUM_PIXELS);
-      grids->N_rec_filtered     = (fftwf_complex *) fftwf_malloc(sizeof(fftw_complex) * HII_KSPACE_NUM_PIXELS);
+      grids->N_rec              = (fftwf_complex *) fftwf_malloc(sizeof(fftwf_complex) * HII_KSPACE_NUM_PIXELS);
+      grids->N_rec_filtered     = (fftwf_complex *) fftwf_malloc(sizeof(fftwf_complex) * HII_KSPACE_NUM_PIXELS);
     }
 
     SID_log("Initialising grids...", SID_LOG_COMMENT);
@@ -121,18 +137,21 @@ void malloc_reionization_grids(run_globals_t *run_globals)
         grids->z_at_ionization[ii] = -1;
     }
 
-    memset(grids->stars, 0, sizeof(fftw_complex) * HII_KSPACE_NUM_PIXELS);
-    memset(grids->stars_filtered, 0, sizeof(fftw_complex) * HII_KSPACE_NUM_PIXELS);
-    memset(grids->deltax, 0, sizeof(fftw_complex) * HII_KSPACE_NUM_PIXELS);
-    memset(grids->deltax_filtered, 0, sizeof(fftw_complex) * HII_KSPACE_NUM_PIXELS);
-    memset(grids->sfr, 0, sizeof(fftw_complex) * HII_KSPACE_NUM_PIXELS);
-    memset(grids->sfr_filtered, 0, sizeof(fftw_complex) * HII_KSPACE_NUM_PIXELS);
+    memset(grids->stars, 0, sizeof(fftwf_complex) * HII_KSPACE_NUM_PIXELS);
+    memset(grids->stars_filtered, 0, sizeof(fftwf_complex) * HII_KSPACE_NUM_PIXELS);
+    memset(grids->stars_copy, 0, sizeof(fftwf_complex) * HII_KSPACE_NUM_PIXELS);
+    memset(grids->deltax, 0, sizeof(fftwf_complex) * HII_KSPACE_NUM_PIXELS);
+    memset(grids->deltax_filtered, 0, sizeof(fftwf_complex) * HII_KSPACE_NUM_PIXELS);
+    memset(grids->deltax_copy, 0, sizeof(fftwf_complex) * HII_KSPACE_NUM_PIXELS);
+    memset(grids->sfr, 0, sizeof(fftwf_complex) * HII_KSPACE_NUM_PIXELS);
+    memset(grids->sfr_filtered, 0, sizeof(fftwf_complex) * HII_KSPACE_NUM_PIXELS);
+    memset(grids->sfr_copy, 0, sizeof(fftwf_complex) * HII_KSPACE_NUM_PIXELS);
 
     if(tocf_params.compute_mfp)
     {
       memset(grids->mfp, 0., sizeof(float) * HII_TOT_NUM_PIXELS);
-      memset(grids->N_rec, 0, sizeof(fftw_complex) * HII_KSPACE_NUM_PIXELS);
-      memset(grids->N_rec_filtered, 0, sizeof(fftw_complex) * HII_KSPACE_NUM_PIXELS);
+      memset(grids->N_rec, 0, sizeof(fftwf_complex) * HII_KSPACE_NUM_PIXELS);
+      memset(grids->N_rec_filtered, 0, sizeof(fftwf_complex) * HII_KSPACE_NUM_PIXELS);
     }
 
     SID_log(" ...done", SID_LOG_CLOSE);

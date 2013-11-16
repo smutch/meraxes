@@ -163,10 +163,13 @@ struct tocf_grids_t
   float *xH;
   fftwf_complex *stars;
   fftwf_complex *stars_filtered;
+  fftwf_complex *stars_copy;
   fftwf_complex *deltax;
   fftwf_complex *deltax_filtered;
+  fftwf_complex *deltax_copy;
   fftwf_complex *sfr;
   fftwf_complex *sfr_filtered;
+  fftwf_complex *sfr_copy;
   fftwf_complex *N_rec;
   fftwf_complex *N_rec_filtered;
   float *z_at_ionization;
