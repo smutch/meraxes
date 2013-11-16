@@ -84,6 +84,7 @@ void calc_hdf5_props(run_globals_t *run_globals)
 
 #ifdef CALC_MAGS
   h5props->n_props +=2;
+  h5props->array_nmag_f_tid = H5Tarray_create(H5T_NATIVE_FLOAT, 1, (hsize_t[]){n_photo_bands});
 #endif
 
   // Size of a single galaxy entry.
@@ -91,7 +92,6 @@ void calc_hdf5_props(run_globals_t *run_globals)
 
   // Create datatypes for different size arrays
   h5props->array3f_tid      = H5Tarray_create(H5T_NATIVE_FLOAT, 1, (hsize_t[]){3});
-  h5props->array_nmag_f_tid = H5Tarray_create(H5T_NATIVE_FLOAT, 1, (hsize_t[]){n_photo_bands});
 
   // Calculate the offsets of our struct members in memory
   h5props->dst_offsets     = SID_malloc(sizeof(size_t)*h5props->n_props);
