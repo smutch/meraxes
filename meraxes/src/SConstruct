@@ -123,15 +123,13 @@ if not GetOption('help'):
         LEVMAR_INCL = ['/Users/smutch/3rd_party/levmar-2.6']
         LEVMAR_LIBS = ['/Users/smutch/3rd_party/levmar-2.6']
         GBP_INCL    = ['/Users/smutch/3rd_party/gbpCode/myInclude']
-        GBP_LIBS    = ['/Users/smutch/3rd_party/gbpCode/myLib/mpi']
-        # FITSIO_INCL = ['/Users/smutch/Work/3rd_party/libs/cfitsio/include']
-        # FITSIO_LIBS = ['/Users/smutch/Work/3rd_party/libs/cfitsio/lib']
-        # SPRNG_INCL  = ['/Users/smutch/Work/3rd_party/libs/sprng/include']
-        # SPRNG_LIBS  = ['/Users/smutch/Work/3rd_party/libs/sprng/lib']
-        CC          = ['/usr/local/bin/mpicc']
+        GBP_LIBS    = ['/Users/smutch/3rd_party/gbpCode/myLib']
+        CC          = ['gcc']
         GIT         = ['/usr/bin/git']
         TOCF_INCL   = ['../../21cmfast/include']
         TOCF_LIBS   = ['../../21cmfast/lib']
+        FFTW_INCL   = ['/Users/smutch/3rd_party/fftw-3.3.3/include']
+        FFTW_LIBS   = ['/Users/smutch/3rd_party/fftw-3.3.3/lib']
 
 
     env.Replace(CC = CC)

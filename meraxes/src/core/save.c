@@ -260,8 +260,6 @@ void prep_hdf5_file(run_globals_t *run_globals)
   sprintf(names[ii++],  "NEverySnap");
   addresses[ii] = &(run_globals->params.NScanSnap);
   sprintf(names[ii++],  "NScanSnap");
-  addresses[ii] = &(run_globals->params.FilesPerSnapshot);
-  sprintf(names[ii++],  "FilesPerSnapshot");
   addresses[ii] = &(run_globals->params.TotalSimSnaps);
   sprintf(names[ii++],  "TotalSimSnaps");
   addresses[ii] = &(run_globals->params.LastSnapshotNr);

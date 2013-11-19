@@ -91,7 +91,6 @@ struct run_params_t{
   char                  MagBands[STRLEN];
   int                   NEverySnap;
   int                   NScanSnap;
-  int                   FilesPerSnapshot;
   int                   TotalSimSnaps;
   int                   LastSnapshotNr;
   int                   FirstFile;

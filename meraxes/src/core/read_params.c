@@ -193,11 +193,6 @@ void read_parameter_file(run_globals_t *run_globals, char *fname)
   required_tag[n_param] = 1;
   params_type[n_param++] = PARAM_TYPE_STRING;
 
-  strcpy(params_tag[n_param], "FilesPerSnapshot");
-  params_addr[n_param] = &(run_params->FilesPerSnapshot);
-  required_tag[n_param] = 1;
-  params_type[n_param++] = PARAM_TYPE_INT;
-
   strcpy(params_tag[n_param], "TotalSimSnaps");
   params_addr[n_param] = &(run_params->TotalSimSnaps);
   required_tag[n_param] = 1;

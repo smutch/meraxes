@@ -202,7 +202,6 @@ void construct_stellar_grids(run_globals_t *run_globals)
   float *stellar_grid = (float *)(run_globals->tocf_grids.stars);
   float *sfr_grid = (float *)(run_globals->tocf_grids.sfr);
   int HII_dim = tocf_params.HII_dim;
-  double UnitMass_in_g = run_globals->units.UnitMass_in_g;
   double UnitTime_in_s = run_globals->units.UnitTime_in_s;
 
   SID_log("Constructing stellar mass and sfr grids...", SID_LOG_OPEN);
@@ -261,7 +260,6 @@ void save_tocf_grids(run_globals_t *run_globals, hid_t group_id, int snapshot)
   float *ps;
   int ps_nbins;
   float average_deltaT;
-  char name[125];
 
   SID_log("Saving tocf grids...", SID_LOG_OPEN);
 
