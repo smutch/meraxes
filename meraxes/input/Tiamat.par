@@ -10,6 +10,7 @@ LastFile         : 0
 #------------------------------------------
 SimName          : Tiamat
 SimulationDir    : /lustre/home/gpoole/SSimPL/simulations/DRAGONS
+CatalogFilePrefix: rockstar_fixed
 NEverySnap       : 1
 NScanSnap        : 16
 TotalSimSnaps    : 100

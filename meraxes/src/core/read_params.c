@@ -178,6 +178,11 @@ void read_parameter_file(run_globals_t *run_globals, char *fname)
   required_tag[n_param] = 1;
   params_type[n_param++] = PARAM_TYPE_STRING;
 
+  strcpy(params_tag[n_param], "CatalogFilePrefix");
+  params_addr[n_param] = run_params->CatalogFilePrefix;
+  required_tag[n_param] = 1;
+  params_type[n_param++] = PARAM_TYPE_STRING;
+
   strcpy(params_tag[n_param], "NEverySnap");
   params_addr[n_param] = &(run_params->NEverySnap);
   required_tag[n_param] = 1;

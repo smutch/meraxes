@@ -85,6 +85,7 @@ struct run_params_t{
   char                  FileNameGalaxies[STRLEN];
   char                  SimName[STRLEN];
   char                  SimulationDir[STRLEN];
+  char                  CatalogFilePrefix[STRLEN];
   char                  FileWithOutputSnaps[STRLEN];
   char                  PhotometricTablesDir[STRLEN];
   char                  SSPModel[STRLEN];
