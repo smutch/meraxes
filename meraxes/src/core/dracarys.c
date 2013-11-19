@@ -37,6 +37,7 @@ static void inline create_new_galaxy(
   gal->FirstGalInHalo = gal;
   gal->dt = run_globals->LTTime[0] - gal->LTTime;
   gal->dM = halo->Mvir;
+  // gal->dM = 0.;
   *NGal = *NGal+1;
   *new_gal_counter = *new_gal_counter+1;
 }
@@ -101,16 +102,8 @@ static inline bool check_if_valid_host(run_globals_t *run_globals, halo_t *halo)
   if((halo->Type == 0) 
       && (halo->Galaxy == NULL)
       && (halo->TreeFlags & invalid_flags)==0)
-  {
-#ifdef USE_TOCF
-    if(run_globals->params.TOCF_Flag)
-      return check_reionization_cooling(run_globals, halo);
-    else
-      return true;
-#else
     return true;
-#endif
-  } else
+  else
     return false;
 }
 

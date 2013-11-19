@@ -29,6 +29,7 @@ vars = Variables()
 vars = Variables('config.py') # Persistent storage.
 vars.AddVariables(
     ('nout', 'Set the number of output snapshots.', 1),
+    ('maxsnaps', 'Set the hardcoded maximum number of snapshots (will be removed in future).', 235),
     BoolVariable('calc_mags', 'Calculate magnitudes.', False),
     BoolVariable('tocf', 'Calculate xH structure with 21cmFAST.', True),
     BoolVariable('git_tag', 'Tag the binary and output files with the current git ref.', True),
@@ -61,6 +62,7 @@ if not GetOption('help'):
 
     # Modify the environment based on any of our variables.
     env.AppendUnique(CPPDEFINES=['NOUT=${nout}'])
+    env.AppendUnique(CPPDEFINES=['MAXSNAPS=${maxsnaps}'])
     if env['calc_mags']:
         env.AppendUnique(CPPDEFINES=['CALC_MAGS'])
     if env['tocf']:
