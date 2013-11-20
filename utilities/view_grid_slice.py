@@ -11,6 +11,8 @@ mac try qt4 for the best performance.
 
 import sys
 import numpy as np
+import matplotlib
+matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 from matplotlib import animation
 from matplotlib.colors import LogNorm
@@ -67,11 +69,12 @@ def read_grids(fname):
     
     with open(fname, "rb") as fin:
         n_cell, box_size, n_grids, ma_scheme = read_grid_header(fin)
-        data_desc = '('+str(n_cell[0])+','+str(n_cell[1])+','+str(n_cell[2])+')f4'
+        n_grids = 1 # hack to only read density grid
         for i_grid in xrange(n_grids):
             ident = np.fromfile(fin, 'S32', 1)[0]
             print("Reading grid "+ident)
-            grid[ident] = np.fromfile(fin, data_desc, 1)[0]
+            grid[ident] = np.fromfile(fin, 'f4', n_cell.prod())
+            grid[ident].shape = n_cell
     
     return grid, n_cell, box_size
 
@@ -86,8 +89,8 @@ def animate(index):
 
     # update the data in the density image and quivers
     cax.set_data(grid['rho_r_dark'][s])
-    quiver.set_UVC(grid['v_'+LABELS[(AXIS-1)%3]+'_r_dark'][s],
-                   grid['v_'+LABELS[(AXIS+1)%3]+'_r_dark'][s])
+    # quiver.set_UVC(grid['v_'+LABELS[(AXIS-1)%3]+'_r_dark'][s],
+    #                grid['v_'+LABELS[(AXIS+1)%3]+'_r_dark'][s])
 
     # update the figure title
     slice_pos = index*(cell_half_width[AXIS]*2.)+cell_half_width[AXIS]
@@ -113,10 +116,11 @@ grid['rho_r_dark'] = grid['rho_r_dark']*1.e10
 min_density, max_density = grid['rho_r_dark'][grid['rho_r_dark']>0].min(), grid['rho_r_dark'].max()
 
 # set up the figure
-fig = plt.figure(0)
-ax = plt.subplot(111)
+fig, ax = plt.subplots(1,1, figsize=(8,6))
+ax.set_axis_bgcolor('white')
+ax.grid("off")
 
-# calculcate useful quantities
+# calculate useful quantities
 cell_half_width = box_size/n_cell/2.
 extent = (cell_half_width[0],box_size[0]-cell_half_width[0],cell_half_width[1],box_size[1]-cell_half_width[1])
 sliced_grid = {}
@@ -132,7 +136,8 @@ s[AXIS] = INDEX
 cax = plt.imshow(grid['rho_r_dark'][s], origin='lower', extent=extent,
                  interpolation='bicubic',
                  vmin=min_density, vmax=max_density,
-                 norm=LogNorm())
+                 norm=LogNorm(),
+                 cmap=plt.cm.binary)
 
 if not MOVIE:
     contours = plt.contour(grid['rho_r_dark'][s], origin='lower', linewidths=1, extent=extent, colors='w', alpha=0.3)
@@ -141,17 +146,17 @@ if not MOVIE:
 cb = plt.colorbar(cax)
 
 # add quivers for the velocity field
-X,Y = np.meshgrid(np.linspace(extent[0]+cell_half_width[0],extent[1]-cell_half_width[0],n_cell[0]),
-                np.linspace(extent[2]+cell_half_width[1],extent[3]-cell_half_width[1],n_cell[2]))
-quiver = ax.quiver(X,Y,grid['v_'+LABELS[(AXIS-1)%3]+'_r_dark'][s],grid['v_'+LABELS[(AXIS+1)%3]+'_r_dark'][s],
-           units='xy', scale=200,
-           color='w', alpha=0.7,
-           pivot='tail',
-           headaxislength=5,
-           headwidth=2.5)
+# X,Y = np.meshgrid(np.linspace(extent[0]+cell_half_width[0],extent[1]-cell_half_width[0],n_cell[0]),
+#                 np.linspace(extent[2]+cell_half_width[1],extent[3]-cell_half_width[1],n_cell[2]))
+# quiver = ax.quiver(X,Y,grid['v_'+LABELS[(AXIS-1)%3]+'_r_dark'][s],grid['v_'+LABELS[(AXIS+1)%3]+'_r_dark'][s],
+#            units='xy', scale=200,
+#            color='w', alpha=0.7,
+#            pivot='tail',
+#            headaxislength=5,
+#            headwidth=2.5)
 
 # add a key for the quivers that indicates the normailsation of the lengths
-quiverkey = ax.quiverkey(quiver, 0.92, 0.93, 500, r'500 ks$^{-1}$', fontproperties={'weight': 'bold'}, labelcolor='w', alpha=1, coordinates='axes')
+# quiverkey = ax.quiverkey(quiver, 0.92, 0.93, 500, r'500 ks$^{-1}$', fontproperties={'weight': 'bold'}, labelcolor='w', alpha=1, coordinates='axes')
 
 # set the axis labels and figure title
 units = r"h$^{-1}$ [Mpc]"
@@ -164,7 +169,7 @@ plt.title(LABELS[AXIS]+" = {:03.2f}".format(slice_pos)+r"h$^{-1}$ Mpc")
 
 # save the image or create a movie by recursively calling the `animate` function
 if not MOVIE:
-    plt.savefig("slice_"+LABELS[AXIS]+"_{:04d}.png".format(INDEX))
+    plt.savefig("slice_"+LABELS[AXIS]+"_{:04d}.png".format(INDEX), dpi=100)
 else:
     print "Generating movie..."
     try:
