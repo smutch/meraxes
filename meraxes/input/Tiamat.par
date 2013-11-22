@@ -76,8 +76,8 @@ OmegaLambda: 0.725
 OmegaR: 0.0
 BaryonFrac: 0.167
 Hubble_h: 0.702
-SpectralIndex: 0.960
-Sigma8: 0.812
+SpectralIndex: 0.968
+Sigma8: 0.816
 PartMass: 0.000263286
 wLambda: -1.0
 
