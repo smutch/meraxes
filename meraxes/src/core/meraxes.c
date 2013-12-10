@@ -9,6 +9,7 @@
 
 static void cleanup(run_globals_t *run_globals)
 {
+  SID_log("Running cleanup...", SID_LOG_OPEN);
   cleanup_mags(run_globals);
 #ifdef USE_TOCF
   if(run_globals->params.TOCF_Flag)
@@ -20,6 +21,7 @@ static void cleanup(run_globals_t *run_globals)
   SID_free(SID_FARG run_globals->hdf5props.dst_field_sizes);
   SID_free(SID_FARG run_globals->hdf5props.dst_offsets);
   gsl_rng_free(run_globals->random_generator);
+  SID_log(" ...done", SID_LOG_CLOSE);
 }
 
 void myexit(int signum)

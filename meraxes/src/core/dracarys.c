@@ -422,6 +422,7 @@ void dracarys(run_globals_t *run_globals)
   }
 
   // Free all of the remaining allocated galaxies and halos
+  SID_log("Freeing remaining galaxies...", SID_LOG_OPEN);
   SID_free(SID_FARG halo);
   gal = run_globals->FirstGal;
   while (gal != NULL) {
@@ -429,6 +430,7 @@ void dracarys(run_globals_t *run_globals)
     SID_free(SID_FARG gal);
     gal = next_gal;
   }
+  SID_log(" ...done", SID_LOG_CLOSE);
 
 }
 
