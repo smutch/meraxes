@@ -228,7 +228,7 @@ void construct_stellar_grids(run_globals_t *run_globals)
     gal = gal->Next;
   }
 
-  // Do one final pass to put the grid in the correct units (Msol or Msol/yr)
+  // Do one final pass to put the grid in the correct units (Msol or Msol/s)
   for(int i=0; i<HII_dim; i++)
     for(int j=0; j<HII_dim; j++)
       for(int k=0; k<HII_dim; k++)

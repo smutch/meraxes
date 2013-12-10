@@ -314,7 +314,7 @@ trees_header_t read_halos(
   int  n_scan_snaps    = run_globals->params.NScanSnap;
 
   sprintf(sim_variant, "step_%03d_scan_%03d", n_every_snaps, n_scan_snaps);
-  SID_log("Reading snapshot %d (%s:%s) trees and halos...", SID_LOG_OPEN|SID_LOG_TIMER, snapshot, run_globals->params.SimName, sim_variant);
+  SID_log("Reading snapshot %d (z=%.2f) (%s:%s) trees and halos...", SID_LOG_OPEN|SID_LOG_TIMER, snapshot, run_globals->ZZ[snapshot], run_globals->params.SimName, sim_variant);
 
   corrected_snapshot = get_corrected_snapshot(run_globals, snapshot);
 

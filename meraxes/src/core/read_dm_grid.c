@@ -39,6 +39,7 @@ int read_dm_grid(
 
   // Construct the input filename 
   sprintf(fname,  "%s/%s/grids/snapshot_%03d_dark_grid.dat", params->SimulationDir, params->SimName, snapshot);
+  // sprintf(fname,  "%s/%s/grids/grid_nompi_%d_1024_dark_grid.dat", params->SimulationDir, params->SimName, snapshot);
   // ... and open
   fin = fopen(fname, "rb");
   if (!(fin = fopen(fname, "rb")))

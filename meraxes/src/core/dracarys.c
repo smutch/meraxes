@@ -147,7 +147,7 @@ void dracarys(run_globals_t *run_globals)
     // Read in the halos for this snapshot
     trees_header = read_halos(run_globals, snapshot, &halo, &fof_group);
 
-    SID_log("Processing snapshot %d...", SID_LOG_OPEN|SID_LOG_TIMER, snapshot);
+    SID_log("Processing snapshot %d (z=%.2f)...", SID_LOG_OPEN|SID_LOG_TIMER, snapshot, run_globals->ZZ[snapshot]);
 
 #ifdef USE_TOCF
     // Calculate the critical halo mass for cooling
@@ -391,7 +391,17 @@ void dracarys(run_globals_t *run_globals)
 
 #ifdef USE_TOCF
     if(run_globals->params.TOCF_Flag)
-      call_find_HII_bubbles(run_globals, snapshot, nout_gals);
+    {
+      if(!tocf_params.uvb_feedback)
+      {
+        // We are decoupled, so no need to run 21cmFAST unless we are ouputing this snapshot
+        for(int i_out = 0; i_out < NOUT; i_out++)
+          if(snapshot == run_globals->ListOutputSnaps[i_out])
+            call_find_HII_bubbles(run_globals, snapshot, nout_gals);
+      }
+      else
+        call_find_HII_bubbles(run_globals, snapshot, nout_gals);
+    }
 #endif
 
     // Write the results if this is a requested snapshot
