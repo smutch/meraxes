@@ -29,6 +29,7 @@ galaxy_t* new_galaxy(run_globals_t *run_globals, int *unique_ID)
   gal->Rvir              = 0.0;
   gal->Vvir              = 0.0;
   gal->Vmax              = 0.0;
+  gal->Gas               = 0.0;
   gal->StellarMass       = 0.0;
   gal->Sfr               = 0.0;
   gal->Cos_Inc           = gsl_rng_uniform(run_globals->random_generator);

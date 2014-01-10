@@ -305,6 +305,7 @@ struct galaxy_t
   double Vmax;
 
   // baryonic reservoirs
+  double Gas;
   double StellarMass;
   double Sfr;
 
