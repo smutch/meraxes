@@ -72,17 +72,16 @@ void calc_hdf5_props(run_globals_t *run_globals)
    * Here we store the data in an hdf5 table for easily appending new data.
    */
 
-  hdf5_output_t     *h5props = &(run_globals->hdf5props);
-  galaxy_output_t   galout;
-  int                    n_photo_bands = run_globals->photo.NBands;
-
-	int                    i;  // dummy
+  hdf5_output_t   *h5props = &(run_globals->hdf5props);
+  galaxy_output_t  galout;
+  int              i;                                   // dummy
 
   // If we are calculating any magnitudes then increment the number of
   // output properties appropriately.
   h5props->n_props = 19;
 
 #ifdef CALC_MAGS
+  int n_photo_bands = run_globals->photo.NBands;
   h5props->n_props +=2;
   h5props->array_nmag_f_tid = H5Tarray_create(H5T_NATIVE_FLOAT, 1, (hsize_t[]){n_photo_bands});
 #endif
