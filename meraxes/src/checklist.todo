@@ -1,0 +1,19 @@
+Todo list
+=========
+
+☐ refactor merger code
+☐ conserve cold gas in merger events
+☐ refactor insitu-SF code
+☐ add gas_infall to repo and call from evolve_galaxies
+☐ change baryonic growth function to use gas instead of fb*dMvir
+    ☐ limit the SFR to cold gas reservoir
+☐ use Sobacchi baryon frac formula
+☐ global emissivity calculation
+
+
+To consider
+===========
+
+☐ merger driven star burst?
+☐ proper cooling and tracking of hot halo gas
+    ☐ this will need matalliticity tracking as well
