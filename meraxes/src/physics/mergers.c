@@ -69,3 +69,31 @@ double calculate_merging_time(run_globals_t *run_globals, galaxy_t *sat, int sna
   return mergtime;
 
 }
+
+
+void merge_with_target(run_globals_t *run_globals, galaxy_t *gal, int *dead_gals)
+{
+  
+  galaxy_t *parent = NULL;
+  
+  // Identify the parent galaxy in the merger event.
+  // Note that this relies on the merger target coming before this galaxy in
+  // the linked list of halo members.  This should be the case but I should
+  // confirm that it is always true...
+  parent = gal->MergerTarget;
+  while (parent->Type==3)
+    parent = parent->MergerTarget;
+
+  // Add galaxies together
+  parent->StellarMass += gal->StellarMass;
+  parent->Sfr += gal->Sfr;
+  parent->Gas += gal->Gas;
+
+  for(int outputbin = 0; outputbin < NOUT; outputbin++)
+    sum_luminosities(run_globals, parent, gal, outputbin);
+
+  // Mark the merged galaxy as dead
+  gal->Type          = 3;
+  gal->HaloDescIndex = -1;
+  (*dead_gals)++;
+}

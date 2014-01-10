@@ -25,7 +25,6 @@ int evolve_galaxies(run_globals_t *run_globals, fof_group_t *fof_group, int snap
   double         BaryonFrac      = run_globals->params.BaryonFrac;
   double         RecycleFraction = run_globals->params.RecycleFraction;
   galaxy_t *gal             = NULL;
-  galaxy_t *parent          = NULL;
   halo_t   *halo            = NULL;
   int            gal_counter     = 0;
   int            dead_gals       = 0;
@@ -120,35 +119,12 @@ int evolve_galaxies(run_globals_t *run_globals, fof_group_t *fof_group, int snap
       while(gal!=NULL) {
         if(gal->Type == 2)
         {
+
           // If the merger clock has run out or our target halo has already
-          // merged then process a merger event.  Note that this relies on the
-          // merger target coming before this galaxy in the linked list of halo
-          // members.  This should be the case but I should confirm that it is
-          // always true...
+          // merged then process a merger event.
           if((gal->MergTime <0) || (gal->MergerTarget->Type==3))
-          {
-            // SID_log("Gal ID=%d has MergTime < 0", SID_LOG_COMMENT, gal->ID);
+            merge_with_target(run_globals, gal, &dead_gals);
 
-            // Merger!
-            parent = gal->MergerTarget;
-
-            while (parent->Type==3)
-              parent = parent->MergerTarget;
-
-            // Add galaxies together
-            parent->StellarMass += gal->StellarMass;
-            parent->Sfr += gal->Sfr;
-
-            for(int outputbin = 0; outputbin < NOUT; outputbin++)
-            {
-              sum_luminosities(run_globals, parent, gal, outputbin);
-            }
-
-            // Mark the merged galaxy as dead
-            gal->Type          = 3;
-            gal->HaloDescIndex = -1;
-            dead_gals++;
-          }
         }
         gal = gal->NextGalInHalo;
       }

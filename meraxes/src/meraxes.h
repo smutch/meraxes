@@ -373,6 +373,7 @@ void    free_halos(halo_t **halo);
 galaxy_t* new_galaxy(run_globals_t *run_globals, int *unique_ID);
 void    copy_halo_to_galaxy(halo_t *halo, galaxy_t *gal, int snapshot);
 double  calculate_merging_time(run_globals_t *run_globals, galaxy_t *gal, int snapshot);
+void    merge_with_target(run_globals_t *run_globals, galaxy_t *gal, int *dead_gals);
 void    prep_hdf5_file(run_globals_t *run_globals);
 void    write_snapshot(run_globals_t *run_globals, int n_write, int i_out, int *last_n_write);
 void    calc_hdf5_props(run_globals_t *run_globals);
