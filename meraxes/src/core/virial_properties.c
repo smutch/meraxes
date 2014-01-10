@@ -55,31 +55,26 @@ double calculate_Mvir(run_globals_t *run_globals, halo_t *halo)
 float calculate_Rvir(run_globals_t *run_globals, halo_t *halo, double Mvir, int snapshot)
 {
 
-  if(halo->Type==0 && halo->Rvir)
-    return halo->Rvir;
-  else
-  {
-    double zplus1;
-    double hubble_of_z_sq;
-    double rhocrit;
-    double fac;
-    double Delta;
-    double Hubble      = run_globals->Hubble;
-    double OmegaM      = run_globals->params.OmegaM;
-    double OmegaK      = run_globals->params.OmegaK;
-    double OmegaLambda = run_globals->params.OmegaLambda;
+  double zplus1;
+  double hubble_of_z_sq;
+  double rhocrit;
+  double fac;
+  double Delta;
+  double Hubble      = run_globals->Hubble;
+  double OmegaM      = run_globals->params.OmegaM;
+  double OmegaK      = run_globals->params.OmegaK;
+  double OmegaLambda = run_globals->params.OmegaLambda;
 
-    zplus1 = 1 + run_globals->ZZ[snapshot];
-    hubble_of_z_sq = Hubble * Hubble *(OmegaM * zplus1 * zplus1 * zplus1 + OmegaK * zplus1 * zplus1 + OmegaLambda);
+  zplus1 = 1 + run_globals->ZZ[snapshot];
+  hubble_of_z_sq = Hubble * Hubble *(OmegaM * zplus1 * zplus1 * zplus1 + OmegaK * zplus1 * zplus1 + OmegaLambda);
 
-    rhocrit = 3 * hubble_of_z_sq / (8 * M_PI * run_globals->G);
+  rhocrit = 3 * hubble_of_z_sq / (8 * M_PI * run_globals->G);
 
-    Delta = Delta_vir(run_globals->ZZ[snapshot], run_globals);
+  Delta = Delta_vir(run_globals->ZZ[snapshot], run_globals);
 
-    fac = 1 / (Delta * 4 * M_PI / 3.0 * rhocrit);
+  fac = 1 / (Delta * 4 * M_PI / 3.0 * rhocrit);
 
-    return cbrt((float)Mvir * fac);
-  }
+  return cbrt((float)Mvir * fac);
 
 }
 
