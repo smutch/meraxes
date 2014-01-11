@@ -5,8 +5,8 @@ Todo list
 ✔ conserve cold gas in merger events @done (2014-01-10 14:34))
 ✔ refactor insitu-SF code @done (2014-01-10 15:24))
 ✔ add gas_infall to repo and call from evolve_galaxies @done (2014-01-11 14:01))
-☐ change baryonic growth function to use gas instead of fb*dMvir
-    ☐ limit the SFR to cold gas reservoir
+✔ change baryonic growth function to use gas instead of fb*dMvir @done (2014-01-11 16:31))
+    ✔ limit the SFR to cold gas reservoir @done (2014-01-11 16:31))
 ☐ use Sobacchi baryon frac formula
 ☐ global emissivity calculation
 

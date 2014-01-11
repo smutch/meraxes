@@ -9,7 +9,6 @@ int evolve_galaxies(run_globals_t *run_globals, fof_group_t *fof_group, int snap
   halo_t   *halo         = NULL;
   int       gal_counter  = 0;
   int       dead_gals    = 0;
-  bool      cooling_flag = true;
 
   SID_log("Doing physics...", SID_LOG_OPEN|SID_LOG_TIMER);
   
@@ -24,12 +23,7 @@ int evolve_galaxies(run_globals_t *run_globals, fof_group_t *fof_group, int snap
 
       while(gal!=NULL){
 
-#ifdef USE_TOCF
-        if((run_globals->params.TOCF_Flag) && (tocf_params.uvb_feedback))
-          cooling_flag = check_reionization_cooling(run_globals, halo);
-#endif
-
-        form_stars_insitu(run_globals, gal, snapshot, cooling_flag);
+        form_stars_insitu(run_globals, gal, snapshot);
 
         // If this is a type 2 then increment the merger clock
         if(gal->Type == 2)

@@ -12,6 +12,15 @@ void gas_infall(run_globals_t *run_globals, fof_group_t *FOFgroup)
   double used_mass = 0.;
   double mass = 0.;
 
+#ifdef USE_TOCF
+  bool cooling_flag = true;
+  halo = FOFgroup->FirstHalo;
+  if((run_globals->params.TOCF_Flag) && (tocf_params.uvb_feedback))
+    cooling_flag = check_reionization_cooling(run_globals, halo);
+  if (!cooling_flag)
+    return;
+#endif
+
   // Calculate the total baryon mass in the FOF group
   halo = FOFgroup->FirstHalo;
   while(halo != NULL)

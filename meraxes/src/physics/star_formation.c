@@ -18,46 +18,47 @@ static double physics_func(run_globals_t *run_globals, double prop, int snapshot
 }
 
 
-void form_stars_insitu(run_globals_t *run_globals, galaxy_t *gal, int snapshot, bool cooling_flag)
+void form_stars_insitu(run_globals_t *run_globals, galaxy_t *gal, int snapshot)
 {
 
-  double dMdt;
-  double sfr             = 0.0;
-  double BaryonFrac      = run_globals->params.BaryonFrac;
   double RecycleFraction = run_globals->params.RecycleFraction;
   double burst_time      = 0.0;
   double burst_mass      = 0.0;
 
-  if(gal->dM > 0)
-    dMdt = (gal->dM)/(gal->dt);
-  else
-    dMdt = 0.;
-
-  if((gal->Mvir>0.0) && (gal->Type==0) && (dMdt>0.0) && (cooling_flag))
+  if((gal->Type == 0) && (gal->Gas > 0.0) && (gal->Mvir > 0.0))
+  {
     switch (run_globals->params.physics.funcprop){
       case VMAX_PROP:
-        sfr = BaryonFrac*dMdt * physics_func(run_globals, gal->Vmax, snapshot);
+        burst_mass = gal->Gas * physics_func(run_globals, gal->Vmax, snapshot);
         break;
       case MVIR_PROP:
-        sfr = BaryonFrac*dMdt * physics_func(run_globals, gal->Mvir*1.e10, snapshot);
+        burst_mass = gal->Gas * physics_func(run_globals, gal->Mvir*1.e10, snapshot);
         break;
       default:
         SID_log_error("Did not recognise physics_funcprop value!");
         ABORT(EXIT_FAILURE);
         break;
     }
-  else
-    sfr = 0.0;
 
-  // update the star formation rate in the galaxy structure 
-  gal->Sfr = sfr;
+    // Double check we aren't using more gas than is available...
+    if(burst_mass > gal->Gas)
+      burst_mass = gal->Gas;
 
-  // Instantaneous recycling approximation
-  burst_mass = (1.0-RecycleFraction)*sfr*gal->dt;
-  gal->StellarMass += burst_mass;
+    // update the star formation rate in the galaxy structure 
+    gal->Sfr = burst_mass / gal->dt;
 
-  // Add to the luminosities due to this stellar mass burst
-  burst_time   = run_globals->LTTime[snapshot] + (0.5 * gal->dt);
+    // Instantaneous recycling approximation
+    burst_mass = (1.0-RecycleFraction)*burst_mass;
 
-  add_to_luminosities(run_globals, gal, burst_mass, 0.00666, burst_time);
+    // Update stellar mass and gas reservoirs
+    gal->StellarMass += burst_mass;
+    gal->Gas         -= burst_mass;
+
+    // Add to the luminosities due to this stellar mass burst
+    burst_time   = run_globals->LTTime[snapshot] + (0.5 * gal->dt);
+    add_to_luminosities(run_globals, gal, burst_mass, 0.00666, burst_time);
+
+  } else
+    gal->Sfr = 0.;
+
 }
