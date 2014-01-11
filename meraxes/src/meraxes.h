@@ -372,6 +372,7 @@ trees_header_t read_halos(run_globals_t *run_globals, int snapshot, halo_t **hal
 void    free_halos(halo_t **halo);
 galaxy_t* new_galaxy(run_globals_t *run_globals, int *unique_ID);
 void    copy_halo_to_galaxy(halo_t *halo, galaxy_t *gal, int snapshot);
+void    gas_infall(run_globals_t *run_globals, fof_group_t *FOFgroup);
 double  calculate_merging_time(run_globals_t *run_globals, galaxy_t *gal, int snapshot);
 void    merge_with_target(run_globals_t *run_globals, galaxy_t *gal, int *dead_gals);
 void    form_stars_insitu(run_globals_t *run_globals, galaxy_t *gal, int snapshot, bool cooling_flag);

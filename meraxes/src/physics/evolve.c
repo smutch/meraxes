@@ -5,16 +5,19 @@
 int evolve_galaxies(run_globals_t *run_globals, fof_group_t *fof_group, int snapshot, int NGal, int NFof)
 {
 
-  galaxy_t *gal             = NULL;
-  halo_t   *halo            = NULL;
-  int            gal_counter     = 0;
-  int            dead_gals       = 0;
-  bool           cooling_flag    = true;
+  galaxy_t *gal          = NULL;
+  halo_t   *halo         = NULL;
+  int       gal_counter  = 0;
+  int       dead_gals    = 0;
+  bool      cooling_flag = true;
 
   SID_log("Doing physics...", SID_LOG_OPEN|SID_LOG_TIMER);
   
   for(int i_fof=0; i_fof<NFof; i_fof++)
   {
+
+    gas_infall(run_globals, &(fof_group[i_fof]));
+
     halo = fof_group[i_fof].FirstHalo;
     while (halo!=NULL) {
       gal = halo->Galaxy;
