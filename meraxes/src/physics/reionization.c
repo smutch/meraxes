@@ -1,6 +1,28 @@
 #include "meraxes.h"
 #include <math.h>
 
+static double inline M0(run_globals_t *run_globals, double z)
+{
+  return Tvir_to_Mvir(run_globals, run_globals->params.physics.reion_T0, z);
+}
+
+static double inline Mcool(run_globals_t *run_globals, double z)
+{
+  return Tvir_to_Mvir(run_globals, run_globals->params.physics.reion_Tcool, z);
+}
+
+static double calculate_Mvir_min(run_globals_t *run_globals, double z)
+{
+  double current_Mcool = Mcool(run_globals, z);
+  double current_M0 = M0(run_globals, z);
+  double g_term;
+  physics_params_t *params = &(run_globals->params.physics);
+
+  g_term = 1./(1.+ exp((z-(params->reion_z_re - params->reion_delta_z_sc))/params->reion_delta_z_re));
+  return current_Mcool * pow(current_M0/current_Mcool, g_term);
+}
+
+
 #ifdef USE_TOCF
 
 void calculate_Mvir_crit(run_globals_t *run_globals, double redshift)
