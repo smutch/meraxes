@@ -11,7 +11,7 @@ void gas_infall(run_globals_t *run_globals, fof_group_t *FOFgroup, int snapshot)
   double FOF_Mvir = FOFgroup->FirstHalo->Mvir;
   double used_mass = 0.;
   double mass = 0.;
-  double reionization_modifier;
+  double fb_modifier;
   halo = FOFgroup->FirstHalo;
 
 
@@ -30,8 +30,8 @@ void gas_infall(run_globals_t *run_globals, fof_group_t *FOFgroup, int snapshot)
 
   // Calculate the amount of fresh gas required to provide the baryon
   // fraction of this halo.
-  reionization_modifier = reionization_baryon_frac_modifier(run_globals, FOFgroup->FirstHalo, snapshot);
-  infall_mass = reionization_modifier * run_globals->params.BaryonFrac * FOF_Mvir - total_baryons;
+  fb_modifier = reionization_modifier(run_globals, FOFgroup->FirstHalo, snapshot);
+  infall_mass = fb_modifier * run_globals->params.BaryonFrac * FOF_Mvir - total_baryons;
 
   // Split the infalling gas up umongst the subhalos with galaxies in them
   if(infall_mass > 1e-10)

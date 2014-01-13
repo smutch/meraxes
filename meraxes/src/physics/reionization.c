@@ -25,7 +25,7 @@ static double calculate_Mvir_min(run_globals_t *run_globals, double z)
 }
 
 
-double reionization_baryon_frac_modifier(run_globals_t *run_globals, halo_t *halo, int snapshot)
+double reionization_modifier(run_globals_t *run_globals, halo_t *halo, int snapshot)
 {
 
   double redshift;
@@ -37,9 +37,10 @@ double reionization_baryon_frac_modifier(run_globals_t *run_globals, halo_t *hal
   Mvir = halo->Mvir;
   Mvir_min = calculate_Mvir_min(run_globals, redshift);
 
-  // TODO: Should the modifier be set to zero for Mvir<Mcool or should we
-  // handle that somewhere else?
-  modifier = pow(2.0, -Mvir_min/Mvir);
+  if(Mvir > Mcool(run_globals, redshift))
+    modifier = pow(2.0, -Mvir_min/Mvir);
+  else
+    modifier = 0.0;
 
   return modifier;
 

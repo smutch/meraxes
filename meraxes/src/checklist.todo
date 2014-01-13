@@ -8,7 +8,7 @@ Todo list:
     ✔ limit the SFR to cold gas reservoir @done (2014-01-11 16:31))
 ✔ use Sobacchi baryon frac formula @done (2014-01-13 15:05))
     ✔ will need to work out the details of this @done (2014-01-13 15:05))
-☐ only allow galaxies to form in halos with Mvir>Mcool(z)
+✔ only allow galaxies to form in halos with Mvir>Mcool(z) @done (2014-01-13 20:30))
 ☐ global emissivity calculation
 
 

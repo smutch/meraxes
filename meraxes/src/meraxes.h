@@ -406,7 +406,7 @@ void    cleanup_mags(run_globals_t *run_globals);
 
 // Reionization related
 // bool    check_reionization_cooling(run_globals_t *run_globals, halo_t *halo, int snapshot);
-double  reionization_baryon_frac_modifier(run_globals_t *run_globals, halo_t *halo, int snapshot);
+double  reionization_modifier(run_globals_t *run_globals, halo_t *halo, int snapshot);
 #ifdef USE_TOCF
 int     find_cell(double pos, double box_size);
 void    malloc_reionization_grids(run_globals_t *run_globals);
