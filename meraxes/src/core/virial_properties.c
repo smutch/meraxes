@@ -17,7 +17,7 @@ static inline double E_z(double z, double OmegaM, double OmegaK, double OmegaLam
   return result;
 }
 
-static inline double Omega_z(double redshift, double OmegaM, double OmegaK, double OmegaLambda)
+inline double Omega_z(double redshift, double OmegaM, double OmegaK, double OmegaLambda)
 {
   // Function stolen and adapted from gbpCosmo
   double Ez;
@@ -29,7 +29,7 @@ static inline double Omega_z(double redshift, double OmegaM, double OmegaK, doub
   return OmegaM*one_plus_z_cube/(Ez*Ez);
 }
 
-static inline double Delta_vir(double redshift, run_globals_t *run_globals)
+inline double Delta_vir(double redshift, run_globals_t *run_globals)
 {
   // Function stolen and adapted from gbpCosmo
   double x;

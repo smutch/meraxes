@@ -74,6 +74,11 @@ struct physics_params_t{
   double sigma_evo;
   double stellarfrac_evo;
   double bhgrowthfactor;
+  double reion_z_re;
+  double reion_delta_z_re;
+  double reion_delta_z_sc;
+  double reion_T0;
+  double reion_Tcool;
 };
 typedef struct physics_params_t physics_params_t;
 
@@ -385,6 +390,8 @@ void    mpi_debug_here();
 void    check_counts(run_globals_t *run_globals, fof_group_t *fof_group, int NGal, int NFof);
 void    cn_quote();
 int     get_corrected_snapshot(run_globals_t *run_globals, int snapshot);
+inline double Omega_z(double redshift, double OmegaM, double OmegaK, double OmegaLambda);
+inline double Delta_vir(double redshift, run_globals_t *run_globals);
 double  calculate_Mvir(run_globals_t *run_globals, halo_t *halo);
 float   calculate_Rvir(run_globals_t *run_globals, halo_t *halo, double Mvir, int snapshot);
 float   calculate_Vvir(run_globals_t *run_globals, double Mvir, float Rvir);
