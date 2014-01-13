@@ -6,10 +6,12 @@ static double inline M0(run_globals_t *run_globals, double z)
   return Tvir_to_Mvir(run_globals, run_globals->params.physics.reion_T0, z);
 }
 
+
 static double inline Mcool(run_globals_t *run_globals, double z)
 {
   return Tvir_to_Mvir(run_globals, run_globals->params.physics.reion_Tcool, z);
 }
+
 
 static double calculate_Mvir_min(run_globals_t *run_globals, double z)
 {
@@ -20,6 +22,27 @@ static double calculate_Mvir_min(run_globals_t *run_globals, double z)
 
   g_term = 1./(1.+ exp((z-(params->reion_z_re - params->reion_delta_z_sc))/params->reion_delta_z_re));
   return current_Mcool * pow(current_M0/current_Mcool, g_term);
+}
+
+
+double reionization_baryon_frac_modifier(run_globals_t *run_globals, halo_t *halo, int snapshot)
+{
+
+  double redshift;
+  double Mvir_min;
+  double Mvir;
+  double modifier;
+
+  redshift = run_globals->ZZ[snapshot];
+  Mvir = halo->Mvir;
+  Mvir_min = calculate_Mvir_min(run_globals, redshift);
+
+  // TODO: Should the modifier be set to zero for Mvir<Mcool or should we
+  // handle that somewhere else?
+  modifier = pow(2.0, -Mvir_min/Mvir);
+
+  return modifier;
+
 }
 
 
@@ -78,35 +101,53 @@ void calculate_Mvir_crit(run_globals_t *run_globals, double redshift)
   }
 }
 
-bool check_reionization_cooling(run_globals_t *run_globals, halo_t *halo)
-{
-
-  if(tocf_params.uvb_feedback)
-  {
-    bool    flag;
-    float   Mvir;
-    double  box_size    = run_globals->params.BoxSize;
-    float  *M_crit_grid = run_globals->tocf_grids.Mvir_crit;
-
-    // Find which cell this halo lies in
-    int i = find_cell((halo->Pos)[0], box_size);
-    int j = find_cell((halo->Pos)[1], box_size);
-    int k = find_cell((halo->Pos)[2], box_size);
-
-    // If the halo virial mass is below the critical for this cell then set the
-    // cooling flag to false, else set it to true
-    Mvir = halo->Mvir*1.e10/run_globals->params.Hubble_h;
-    flag = (Mvir < M_crit_grid[HII_R_INDEX(i,j,k)]) ? false : true;
-
-    // DEBUG
-    // SID_log("Mvir=%.2e, M_crit_grid=%.2e, cooling_flag=%d", SID_LOG_COMMENT, Mvir, M_crit_grid[HII_R_INDEX(i,j,k)], flag);
-
-    return flag;
-  } else
-  {
-    return true;
-  }
-
-}
-
 #endif
+
+// TODO: This code needs to be adjusted to modify the baryon fraction rather than simply shut off cooling...
+//       See reionization_baryon_frac_modifier() above and change the spatially dependant code appropriately.
+
+// bool check_reionization_cooling(run_globals_t *run_globals, halo_t *halo, int snapshot)
+// {
+
+//   bool    flag;
+
+// #ifdef USE_TOCF
+
+//   if(tocf_params.uvb_feedback)
+//   {
+//     float   Mvir;
+//     double  box_size    = run_globals->params.BoxSize;
+//     float  *M_crit_grid = run_globals->tocf_grids.Mvir_crit;
+
+//     // Find which cell this halo lies in
+//     int i = find_cell((halo->Pos)[0], box_size);
+//     int j = find_cell((halo->Pos)[1], box_size);
+//     int k = find_cell((halo->Pos)[2], box_size);
+
+//     // If the halo virial mass is below the critical for this cell then set the
+//     // cooling flag to false, else set it to true
+//     Mvir = halo->Mvir*1.e10/run_globals->params.Hubble_h;
+//     flag = (Mvir < M_crit_grid[HII_R_INDEX(i,j,k)]) ? false : true;
+
+//     // DEBUG
+//     // SID_log("Mvir=%.2e, M_crit_grid=%.2e, cooling_flag=%d", SID_LOG_COMMENT, Mvir, M_crit_grid[HII_R_INDEX(i,j,k)], flag);
+
+//   } else
+//     flag = true;
+
+// #else
+
+//   double redshift;
+//   double Mvir_min;
+
+//   redshift = run_globals->ZZ[snapshot];
+//   Mvir_min = calculate_Mvir_min(run_globals, redshift);
+
+//   flag = (halo->Mvir >= Mvir_min) ? true : false;
+
+// #endif
+
+//   return flag;
+
+// }
+

@@ -377,7 +377,7 @@ trees_header_t read_halos(run_globals_t *run_globals, int snapshot, halo_t **hal
 void    free_halos(halo_t **halo);
 galaxy_t* new_galaxy(run_globals_t *run_globals, int *unique_ID);
 void    copy_halo_to_galaxy(halo_t *halo, galaxy_t *gal, int snapshot);
-void    gas_infall(run_globals_t *run_globals, fof_group_t *FOFgroup);
+void    gas_infall(run_globals_t *run_globals, fof_group_t *FOFgroup, int snapshot);
 double  calculate_merging_time(run_globals_t *run_globals, galaxy_t *gal, int snapshot);
 void    merge_with_target(run_globals_t *run_globals, galaxy_t *gal, int *dead_gals);
 void    form_stars_insitu(run_globals_t *run_globals, galaxy_t *gal, int snapshot);
@@ -405,7 +405,8 @@ void    apply_dust(int n_photo_bands, galaxy_t gal, double *LumDust, int outputb
 void    cleanup_mags(run_globals_t *run_globals);
 
 // Reionization related
-bool    check_reionization_cooling(run_globals_t *run_globals, halo_t *halo);
+// bool    check_reionization_cooling(run_globals_t *run_globals, halo_t *halo, int snapshot);
+double  reionization_baryon_frac_modifier(run_globals_t *run_globals, halo_t *halo, int snapshot);
 #ifdef USE_TOCF
 int     find_cell(double pos, double box_size);
 void    malloc_reionization_grids(run_globals_t *run_globals);
