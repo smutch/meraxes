@@ -59,7 +59,7 @@ double Tvir_to_Mvir(run_globals_t *run_globals, double T, double z)
     Delta_vir(z, run_globals)/18./pow(M_PI*M_PI, -0.5);
   double mol_term = pow(mu/0.6, -1.5);
 
-  return 0.01 * run_globals->params->Hubble_h * mol_term * cosmo_term * T_term * z_term;
+  return 0.01 * run_globals->params.Hubble_h * mol_term * cosmo_term * T_term * z_term;
 }
 
 double calculate_Mvir(run_globals_t *run_globals, halo_t *halo)
