@@ -1,4 +1,5 @@
 #include "meraxes.h"
+#include <math.h>
 #include <hdf5.h>
 #include <hdf5_hl.h>
 
@@ -646,6 +647,10 @@ void write_snapshot(run_globals_t *run_globals, int n_write, int i_out, int *las
 
   temp = run_globals->LTTime[run_globals->ListOutputSnaps[i_out]] * run_globals->units.UnitLength_in_cm / run_globals->units.UnitVelocity_in_cm_per_s / SEC_PER_MEGAYEAR / run_globals->params.Hubble_h;
   h5_write_attribute(group_id, "LTTime", H5T_NATIVE_DOUBLE, ds_id, &temp);
+
+  temp = global_ionizing_emmisivity(run_globals);
+  temp *= pow(run_globals->params.Hubble_h, 3);  // Factor out hubble constants
+  h5_write_attribute(group_id, "GlobalIonizingEmissivity", H5T_NATIVE_DOUBLE, ds_id, &temp);
 
   H5Sclose(ds_id);
 

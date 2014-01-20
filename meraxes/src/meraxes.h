@@ -79,6 +79,9 @@ struct physics_params_t{
   double reion_delta_z_sc;
   double reion_T0;
   double reion_Tcool;
+  // TODO: These parameters should be used to set the TOCF HII_EFF_FACTOR value
+  double reion_Nion_phot_per_bary;
+  double reion_escape_frac;
 };
 typedef struct physics_params_t physics_params_t;
 
@@ -407,6 +410,7 @@ void    cleanup_mags(run_globals_t *run_globals);
 // Reionization related
 // bool    check_reionization_cooling(run_globals_t *run_globals, halo_t *halo, int snapshot);
 double  reionization_modifier(run_globals_t *run_globals, halo_t *halo, int snapshot);
+double  global_ionizing_emmisivity(run_globals_t *run_globals);
 #ifdef USE_TOCF
 int     find_cell(double pos, double box_size);
 void    malloc_reionization_grids(run_globals_t *run_globals);
