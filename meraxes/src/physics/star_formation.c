@@ -25,7 +25,7 @@ void form_stars_insitu(run_globals_t *run_globals, galaxy_t *gal, int snapshot)
   double burst_time      = 0.0;
   double burst_mass      = 0.0;
 
-  if((gal->Type == 0) && (gal->Gas > 0.0) && (gal->Mvir > 0.0))
+  if((gal->Type < 2) && (gal->Gas > 0.0) && (gal->Mvir > 0.0))
   {
     switch (run_globals->params.physics.funcprop){
       case VMAX_PROP:
