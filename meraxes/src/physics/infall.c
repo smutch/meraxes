@@ -14,7 +14,6 @@ void gas_infall(run_globals_t *run_globals, fof_group_t *FOFgroup, int snapshot)
   double fb_modifier;
   halo = FOFgroup->FirstHalo;
 
-
   // Calculate the total baryon mass in the FOF group
   halo = FOFgroup->FirstHalo;
   while(halo != NULL)
@@ -52,7 +51,8 @@ void gas_infall(run_globals_t *run_globals, fof_group_t *FOFgroup, int snapshot)
 
     // The remaining gas goes to the central galaxy
     gal = FOFgroup->FirstHalo->Galaxy;
-    gal->Gas += infall_mass-used_mass;
+    if(gal != NULL)
+      gal->Gas += infall_mass-used_mass;
   }
 
 }
