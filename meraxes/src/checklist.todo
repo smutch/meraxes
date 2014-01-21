@@ -11,7 +11,7 @@ Todo list:
 ✔ only allow galaxies to form in halos with Mvir>Mcool(z) @done (2014-01-13 20:30))
 ✔ global emissivity calculation @done (2014-01-20 15:46))
     ✔ think it's best to first do this in post-processing and then port to model @done (2014-01-20 15:46))
-☐ use the fesc & Nion values etc. to calculate the HII_eff_factor for 21cmFAST
+✔ use the fesc & Nion values etc. to calculate the HII_eff_factor for 21cmFAST @done (2014-01-21 12:11))
 
 
 To consider:
