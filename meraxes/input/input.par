@@ -49,4 +49,4 @@ reion_T0                 : 5.0e4
 reion_Tcool              : 1.0e4
 reion_Nion_phot_per_bary : 4000
 reion_escape_frac        : 0.15
-
+reion_mean_n_rec         : 0.0

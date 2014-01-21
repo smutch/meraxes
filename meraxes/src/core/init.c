@@ -178,6 +178,7 @@ void init_meraxes(run_globals_t *run_globals)
   prep_hdf5_file(run_globals);
 
 #ifdef USE_TOCF
+  set_HII_eff_factor(run_globals);
   malloc_reionization_grids(run_globals);
 
   if(run_globals->params.TOCF_Flag)

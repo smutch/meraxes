@@ -82,6 +82,7 @@ struct physics_params_t{
   // TODO: These parameters should be used to set the TOCF HII_EFF_FACTOR value
   double reion_Nion_phot_per_bary;
   double reion_escape_frac;
+  double reion_mean_n_rec; // Mean number of recombinations per baryon
 };
 typedef struct physics_params_t physics_params_t;
 
@@ -412,6 +413,7 @@ void    cleanup_mags(run_globals_t *run_globals);
 double  reionization_modifier(run_globals_t *run_globals, halo_t *halo, int snapshot);
 double  global_ionizing_emmisivity(run_globals_t *run_globals);
 #ifdef USE_TOCF
+void    set_HII_eff_factor(run_globals_t *run_globals);
 int     find_cell(double pos, double box_size);
 void    malloc_reionization_grids(run_globals_t *run_globals);
 void    free_reionization_grids(run_globals_t *run_globals);

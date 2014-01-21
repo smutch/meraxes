@@ -350,6 +350,46 @@ void read_parameter_file(run_globals_t *run_globals, char *fname)
   required_tag[n_param] = 1;
   params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
+  strcpy(params_tag[n_param], "reion_z_re");
+  params_addr[n_param] = &(run_params->physics).reion_z_re;
+  required_tag[n_param] = 1;
+  params_type[n_param++] = PARAM_TYPE_DOUBLE;
+
+  strcpy(params_tag[n_param], "reion_delta_z_re");
+  params_addr[n_param] = &(run_params->physics).reion_delta_z_re;
+  required_tag[n_param] = 1;
+  params_type[n_param++] = PARAM_TYPE_DOUBLE;
+
+  strcpy(params_tag[n_param], "reion_delta_z_sc");
+  params_addr[n_param] = &(run_params->physics).reion_delta_z_sc;
+  required_tag[n_param] = 1;
+  params_type[n_param++] = PARAM_TYPE_DOUBLE;
+
+  strcpy(params_tag[n_param], "reion_T0");
+  params_addr[n_param] = &(run_params->physics).reion_T0;
+  required_tag[n_param] = 1;
+  params_type[n_param++] = PARAM_TYPE_DOUBLE;
+
+  strcpy(params_tag[n_param], "reion_Tcool");
+  params_addr[n_param] = &(run_params->physics).reion_Tcool;
+  required_tag[n_param] = 1;
+  params_type[n_param++] = PARAM_TYPE_DOUBLE;
+
+  strcpy(params_tag[n_param], "reion_Nion_phot_per_bary");
+  params_addr[n_param] = &(run_params->physics).reion_Nion_phot_per_bary;
+  required_tag[n_param] = 1;
+  params_type[n_param++] = PARAM_TYPE_DOUBLE;
+
+  strcpy(params_tag[n_param], "reion_escape_frac");
+  params_addr[n_param] = &(run_params->physics).reion_escape_frac;
+  required_tag[n_param] = 1;
+  params_type[n_param++] = PARAM_TYPE_DOUBLE;
+
+  strcpy(params_tag[n_param], "reion_mean_n_rec");
+  params_addr[n_param] = &(run_params->physics).reion_mean_n_rec;
+  required_tag[n_param] = 1;
+  params_type[n_param++] = PARAM_TYPE_DOUBLE;
+
   strcpy(params_tag[n_param], "TOCF_Flag");
   params_addr[n_param] = &(run_params->TOCF_Flag);
   required_tag[n_param] = 1;

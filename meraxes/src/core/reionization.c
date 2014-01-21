@@ -6,6 +6,14 @@
 #include <hdf5.h>
 #include <hdf5_hl.h>
 
+void set_HII_eff_factor(run_globals_t *run_globals)
+{
+  physics_params_t *params = &(run_globals->params.physics);
+  tocf_params.HII_eff_factor = (params->reion_Nion_phot_per_bary/4000.0) *
+    (params->reion_escape_frac/0.15) * (1.0/(1.0+params->reion_mean_n_rec));
+}
+
+
 // NOTE: I am following the indexing conventions off 21cmFAST here.  I have no
 // idea what the hell the unsigned long long memory offset stuff is all about
 // with the fftwf_complex arrays that have been cast as floats.  Why not still
