@@ -77,64 +77,6 @@ static void halo_catalog_filename(
 
 }
 
-/*
- * static void ghost_catalog_filename(
- *   char *root,      
- *   char *sim,       
- *   int   snapshot,  
- *   char *group_type,
- *   int   sub,       
- *   int  *i_layout,  
- *   char *fname)     
- * {
- * 
- *   bool flag_success = false;
- *   FILE *fin;
- * 
- *   // if we need to determine the filename structure...
- *   if (*i_layout==-1)
- *   {
- *     for (*i_layout=0; (*i_layout<4) && (flag_success==false); (*i_layout)++)
- *     {
- *       if (*i_layout==0)
- *         sprintf(fname, "%s/%s/trees/%s_test_ghosts/horizontal/ghost_catalogs/ghosts_%03d.catalog_%s_properties/ghosts_%03d.catalog_%s_properties.%d", root, sim, sim, snapshot, group_type, snapshot, group_type, sub);
- *       else if (*i_layout==1)
- *         sprintf(fname, "%s/%s/trees/%s_test_ghosts/horizontal/ghost_catalogs/ghosts_%03d.catalog_%s_properties/ghosts_%03d.catalog_%s_properties", root, sim, sim, snapshot, group_type, snapshot, group_type);
- *       else if (*i_layout==2)
- *         sprintf(fname, "%s/%s/trees/%s_test_ghosts/horizontal/ghost_catalogs/ghosts_%03d.catalog_%s_properties.%d", root, sim, sim, snapshot, group_type, sub);
- *       else if (*i_layout==3)
- *         sprintf(fname, "%s/%s/trees/%s_test_ghosts/horizontal/ghost_catalogs/ghosts_%03d.catalog_%s_properties", root, sim, sim, snapshot, group_type);
- *       
- *       if ((fin = fopen(fname, "rb"))!=NULL)
- *       {
- *         flag_success = true;
- *         fclose(fin);
- *         break;
- *       }
- *     }
- *   } 
- * 
- *   // ensure we have a valid i_layout value.
- *   if (*i_layout<0 && *i_layout>3)
- *   {
- *     fprintf(stderr, "cannot resolve catalogue filename.\n");
- *     ABORT(EXIT_FAILURE);
- *   }
- *    
- *   // provide the correct filename
- *   if (*i_layout==0)
- *     sprintf(fname, "%s/%s/trees/%s_test_ghosts/horizontal/ghost_catalogs/ghosts_%03d.catalog_%s_properties/ghosts_%03d.catalog_%s_properties.%d", root, sim, sim, snapshot, group_type, snapshot, group_type, sub);
- *   else if (*i_layout==1)
- *     sprintf(fname, "%s/%s/trees/%s_test_ghosts/horizontal/ghost_catalogs/ghosts_%03d.catalog_%s_properties/ghosts_%03d.catalog_%s_properties", root, sim, sim, snapshot, group_type, snapshot, group_type);
- *   else if (*i_layout==2)
- *     sprintf(fname, "%s/%s/trees/%s_test_ghosts/horizontal/ghost_catalogs/ghosts_%03d.catalog_%s_properties.%d", root, sim, sim, snapshot, group_type, sub);
- *   else if (*i_layout==3)
- *     sprintf(fname, "%s/%s/trees/%s_test_ghosts/horizontal/ghost_catalogs/ghosts_%03d.catalog_%s_properties", root, sim, sim, snapshot, group_type);
- * 
- * 
- * }
- */
-
 
 static void inline read_catalogs_header(
   FILE *fin,          
@@ -313,7 +255,8 @@ trees_header_t read_halos(
   int  n_every_snaps   = run_globals->params.NEverySnap;
   int  n_scan_snaps    = run_globals->params.NScanSnap;
 
-  sprintf(sim_variant, "step_%03d_scan_%03d", n_every_snaps, n_scan_snaps);
+  // sprintf(sim_variant, "step_%03d_scan_%03d", n_every_snaps, n_scan_snaps);
+  sprintf(sim_variant, "version_nominal_res");
   SID_log("Reading snapshot %d (z=%.2f) (%s:%s) trees and halos...", SID_LOG_OPEN|SID_LOG_TIMER, snapshot, run_globals->ZZ[snapshot], run_globals->params.SimName, sim_variant);
 
   corrected_snapshot = get_corrected_snapshot(run_globals, snapshot);
@@ -331,16 +274,6 @@ trees_header_t read_halos(
   SID_log("N_groups_files                    :: %d", SID_LOG_COMMENT, N_groups_files);
   fclose(fin);
 
-  // ghost_catalog_filename(run_globals->params.SimulationDir, run_globals->params.SimName, corrected_snapshot, "groups", 0, &catalog_ghosts_groups_flayout, fname);
-  // fin = fopen(fname, "rb");
-  // if (fin==NULL)
-  // {
-  //   SID_log("Failed to open file %s", SID_LOG_COMMENT, fname);
-  //   ABORT(EXIT_FAILURE);
-  // }
-  // read_catalogs_header(fin, &dummy, &N_ghosts_groups_files, &dummy, &N_ghosts_groups);
-  // SID_log("N_ghosts_groups_files = %d", SID_LOG_COMMENT, N_ghosts_groups_files);
-  // fclose(fin);
   N_ghosts_groups_files = 0;
   N_ghosts_groups = 0;
 
@@ -355,24 +288,14 @@ trees_header_t read_halos(
   SID_log("N_subgroups_files                 :: %d", SID_LOG_COMMENT, N_subgroups_files);
   fclose(fin);
 
-  // ghost_catalog_filename(run_globals->params.SimulationDir, run_globals->params.SimName, corrected_snapshot, "subgroups", 0, &catalog_ghosts_subgroups_flayout, fname);
-  // fin = fopen(fname, "rb");
-  // if (fin==NULL)
-  // {
-  //   SID_log("Failed to open file %s", SID_LOG_COMMENT, fname);
-  //   ABORT(EXIT_FAILURE);
-  // }
-  // read_catalogs_header(fin, &dummy, &N_ghosts_subgroups_files, &dummy, &N_ghosts_subgroups);
-  // SID_log("N_ghosts_subgroups_files = %d", SID_LOG_COMMENT, N_ghosts_subgroups_files);
-  // fclose(fin);
   N_ghosts_subgroups_files = 0;
   N_ghosts_subgroups = 0;
 
   // TREES
-  sprintf(fname, "%s/%s/trees/%s_%s/horizontal/trees/horizontal_trees_%03d.dat",
-      run_globals->params.SimulationDir, run_globals->params.SimName, run_globals->params.SimName, sim_variant, corrected_snapshot);
-  // sprintf(fname, "%s/%s/trees/%s_test_ghosts/horizontal/trees/horizontal_trees_ghosts_%03d.dat",
-  //     run_globals->params.SimulationDir, run_globals->params.SimName, run_globals->params.SimName, corrected_snapshot);
+  // sprintf(fname, "%s/%s/trees/%s_%s/horizontal/trees/horizontal_trees_%03d.dat",
+  sprintf(fname, "%s/%s/trees/%s/horizontal/trees/horizontal_trees_%03d.dat",
+      // run_globals->params.SimulationDir, run_globals->params.SimName, run_globals->params.SimName, sim_variant, corrected_snapshot);
+      run_globals->params.SimulationDir, run_globals->params.SimName, sim_variant, corrected_snapshot);
   fin_trees = fopen(fname, "rb");
   if (fin_trees==NULL)
   {
