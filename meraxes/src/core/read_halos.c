@@ -24,7 +24,7 @@ static inline bool is_ghost(int flags)
 }
 
 static void halo_catalog_filename(
-  char *catalog_dir,
+  char *simulation_dir,
   char *catalog_file_prefix,
   int   snapshot,
   char *group_type,
@@ -42,13 +42,13 @@ static void halo_catalog_filename(
     for (*i_layout=0; (*i_layout<4) && (flag_success==false); (*i_layout)++)
     {
       if (*i_layout==0)
-        sprintf(fname, "%s/%s_%03d.catalog_%s_properties/%s_%03d.catalog_%s_properties.%d", catalog_dir, catalog_file_prefix, snapshot, group_type, catalog_file_prefix, snapshot, group_type, sub);
+        sprintf(fname, "%s/trees/%s_%03d.catalog_%s_properties/%s_%03d.catalog_%s_properties.%d", simulation_dir, catalog_file_prefix, snapshot, group_type, catalog_file_prefix, snapshot, group_type, sub);
       else if (*i_layout==1)
-        sprintf(fname, "%s/%s_%03d.catalog_%s_properties/%s_%03d.catalog_%s_properties", catalog_dir, catalog_file_prefix, snapshot, group_type, catalog_file_prefix, snapshot, group_type);
+        sprintf(fname, "%s/trees/%s_%03d.catalog_%s_properties/%s_%03d.catalog_%s_properties", simulation_dir, catalog_file_prefix, snapshot, group_type, catalog_file_prefix, snapshot, group_type);
       else if (*i_layout==2)
-        sprintf(fname, "%s/%s_%03d.catalog_%s_properties.%d", catalog_dir, catalog_file_prefix, snapshot, group_type, sub);
+        sprintf(fname, "%s/trees/%s_%03d.catalog_%s_properties.%d", simulation_dir, catalog_file_prefix, snapshot, group_type, sub);
       else if (*i_layout==3)
-        sprintf(fname, "%s/%s_%03d.catalog_%s_properties", catalog_dir, catalog_file_prefix, snapshot, group_type);
+        sprintf(fname, "%s/trees/%s_%03d.catalog_%s_properties", simulation_dir, catalog_file_prefix, snapshot, group_type);
 
       if ((fin = fopen(fname, "rb"))!=NULL)
       {
@@ -68,13 +68,13 @@ static void halo_catalog_filename(
 
   // provide the correct filename
   if (*i_layout==0)
-    sprintf(fname, "%s/%s_%03d.catalog_%s_properties/%s_%03d.catalog_%s_properties.%d", catalog_dir, catalog_file_prefix, snapshot, group_type, catalog_file_prefix, snapshot, group_type, sub);
+    sprintf(fname, "%s/trees/%s_%03d.catalog_%s_properties/%s_%03d.catalog_%s_properties.%d", simulation_dir, catalog_file_prefix, snapshot, group_type, catalog_file_prefix, snapshot, group_type, sub);
   else if (*i_layout==1)
-    sprintf(fname, "%s/%s_%03d.catalog_%s_properties/%s_%03d.catalog_%s_properties", catalog_dir, catalog_file_prefix, snapshot, group_type, catalog_file_prefix, snapshot, group_type);
+    sprintf(fname, "%s/trees/%s_%03d.catalog_%s_properties/%s_%03d.catalog_%s_properties", simulation_dir, catalog_file_prefix, snapshot, group_type, catalog_file_prefix, snapshot, group_type);
   else if (*i_layout==2)
-    sprintf(fname, "%s/%s_%03d.catalog_%s_properties.%d", catalog_dir, catalog_file_prefix, snapshot, group_type, sub);
+    sprintf(fname, "%s/trees/%s_%03d.catalog_%s_properties.%d", simulation_dir, catalog_file_prefix, snapshot, group_type, sub);
   else if (*i_layout==3)
-    sprintf(fname, "%s/%s_%03d.catalog_%s_properties", catalog_dir, catalog_file_prefix, snapshot, group_type);
+    sprintf(fname, "%s/trees/%s_%03d.catalog_%s_properties", simulation_dir, catalog_file_prefix, snapshot, group_type);
 
 }
 
@@ -95,7 +95,7 @@ static void inline read_catalogs_header(
 
 static void read_catalog_halo(
   FILE        **fin,
-  char         *catalog_dir,
+  char         *simulation_dir,
   char         *catalog_file_prefix,
   int           snapshot,
   int          *flayout_switch,
@@ -103,7 +103,7 @@ static void read_catalog_halo(
   int          *N_halos_file,
   int          *i_halo,
   halo_t       *halo,
-  int          *halo_count)
+  int           halo_count)
 {
 
   char                 fname[STRLEN];
@@ -114,7 +114,7 @@ static void read_catalog_halo(
   // Is this the first read?
   if((*fin)==NULL)
   {
-    halo_catalog_filename(catalog_dir, catalog_file_prefix, snapshot, "subgroups", *i_file, flayout_switch, fname);
+    halo_catalog_filename(simulation_dir, catalog_file_prefix, snapshot, "subgroups", *i_file, flayout_switch, fname);
     *fin = fopen(fname, "rb");
     if (*fin==NULL)
     {
@@ -131,7 +131,7 @@ static void read_catalog_halo(
     fclose(*fin);
     (*i_file)++;
     (*i_halo) = 0;
-    halo_catalog_filename(catalog_dir, catalog_file_prefix, snapshot, "subgroups", *i_file, flayout_switch, fname);
+    halo_catalog_filename(simulation_dir, catalog_file_prefix, snapshot, "subgroups", *i_file, flayout_switch, fname);
     *fin = fopen(fname, "rb");
     if (*fin==NULL)
     {
@@ -143,7 +143,7 @@ static void read_catalog_halo(
 
   // Read in a halo and then paste it into our storage array appropriately
   fread(&halo_in, sizeof(catalog_halo_t), 1, *fin);
-  cur_model_halo = &(halo[*halo_count]);
+  cur_model_halo = &(halo[halo_count]);
 
   // Copy over the properties we want to keep
   // cur_model_halo->ID        = *halo_count;
@@ -168,32 +168,7 @@ static void read_catalog_halo(
   cur_model_halo->Galaxy             = NULL;
 
   // Update the counters
-  (*halo_count)++;
   (*i_halo)++;
-}
-
-
-static void inline read_catalogs(run_globals_t *run_globals, halo_t *halo, int N_halos_total, int snapshot)
-{
-
-  FILE *fin = NULL;
-  int flayout_switch = -1;
-  int i_file = 0;
-  int N_halos_in_file = 0;
-  int i_halo_in_file = 0;
-  char catalog_file_prefix[50] = run_globals->params.catalog_file_prefix;
-  char catalog_dir[STRLEN] = run_globals->params.catalog_dir;
-
-  for(int ii=0; ii<N_halos; ii++)
-  {
-    read_catalog_halo(&fin, catalog_dir, catalog_file_prefix, snapshot, &flayout_switch, &i_file, &N_halos_in_file, &i_halo_in_file, halo, ii);
-    convert_input_halo_units(run_globals, &(halo[ii]), snapshot);
-  }
-
-  // Close the file
-  if(fin!=NULL)
-    fclose(fin);
-
 }
 
 
@@ -208,13 +183,39 @@ static void inline convert_input_halo_units(run_globals_t *run_globals, halo_t *
 }
 
 
+static void inline read_catalogs(run_globals_t *run_globals, halo_t *halo, int N_halos_total, int snapshot)
+{
+
+  FILE *fin = NULL;
+  int flayout_switch = -1;
+  int i_file = 0;
+  int N_halos_in_file = 0;
+  int i_halo_in_file = 0;
+  char catalog_file_prefix[50];
+  char simulation_dir[STRLEN];
+
+  sprintf(catalog_file_prefix, "%s", run_globals->params.CatalogFilePrefix);
+  sprintf(simulation_dir, "%s", run_globals->params.SimulationDir);
+
+  for(int ii=0; ii<N_halos_total; ii++)
+  {
+    read_catalog_halo(&fin, simulation_dir, catalog_file_prefix, snapshot, &flayout_switch, &i_file, &N_halos_in_file, &i_halo_in_file, halo, ii);
+    convert_input_halo_units(run_globals, &(halo[ii]), snapshot);
+  }
+
+  // Close the file
+  if(fin!=NULL)
+    fclose(fin);
+
+}
+
+
 //! Buffered read of hdf5 trees into halo structures
 static void read_trees(hid_t fd, halo_t *halo, int N_halos, fof_group_t *fof_group, int N_fof_groups)
 {
   // I guess this should ideally be equal to the chunk size of the input hdf5 file...
   int buffer_size = 1000;
   int N_read = 0;
-  int n_fields = 9;
   int N_to_read = 0;
   int i_fof = -1;
 
@@ -222,7 +223,7 @@ static void read_trees(hid_t fd, halo_t *halo, int N_halos, fof_group_t *fof_gro
   buffer = SID_malloc(sizeof(tree_entry_t) * buffer_size);
 
   size_t dst_size = sizeof(tree_entry_t);
-  size_t dst_offsets[n_fields] = {
+  size_t dst_offsets[9] = {
     HOFFSET(tree_entry_t, id),
     HOFFSET(tree_entry_t, flags),
     HOFFSET(tree_entry_t, desc_id),
@@ -232,16 +233,16 @@ static void read_trees(hid_t fd, halo_t *halo, int N_halos, fof_group_t *fof_gro
     HOFFSET(tree_entry_t, central_index),
     HOFFSET(tree_entry_t, forest_id),
     HOFFSET(tree_entry_t, fof_mvir) };
-  size_t dst_sizes[n_fields] = {
-    sizeof(buffer.id),
-    sizeof(buffer.flags),
-    sizeof(buffer.desc_id),
-    sizeof(buffer.tree_id),
-    sizeof(buffer.file_offset),
-    sizeof(buffer.desc_index),
-    sizeof(buffer.central_index),
-    sizeof(buffer.forest_id),
-    sizeof(buffer.fof_mvir) };
+  size_t dst_sizes[9] = {
+    sizeof(buffer[0].id),
+    sizeof(buffer[0].flags),
+    sizeof(buffer[0].desc_id),
+    sizeof(buffer[0].tree_id),
+    sizeof(buffer[0].file_offset),
+    sizeof(buffer[0].desc_index),
+    sizeof(buffer[0].central_index),
+    sizeof(buffer[0].forest_id),
+    sizeof(buffer[0].fof_mvir) };
 
 
   while(N_read<N_halos)
@@ -276,7 +277,7 @@ static void read_trees(hid_t fd, halo_t *halo, int N_halos, fof_group_t *fof_gro
         halo[ii-1].NextHaloInFOFGroup = &(halo[ii]);
       }
 
-      halo[ii].FOFgroup = &(fof_group[i_fof]);
+      halo[ii].FOFGroup = &(fof_group[i_fof]);
 
     }
 
@@ -314,34 +315,18 @@ trees_info_t read_halos(
 {
 
   int             N_halos;                 //!< Number of halos
-  int             N_catalog_files;         //!< Number of catalog files
-  int             dummy;
-  trees_header_t  header;
   char            fname[STRLEN];
-  FILE           *fin;
-  int             catalog_flayout    = -1;
-  int             central_index;           //!< Index of the central halo associated with this one
   int             corrected_snapshot;
-  char            sim_variant[18];
-  int             N_halos_max;
   int             N_fof_groups;
   trees_info_t    trees_info;
-
   hid_t           fin_trees;
-  herr_t          status;
 
-  // TODO: Read these from the trees
-  int  n_every_snaps   = run_globals->params.NEverySnap;
-  int  n_scan_snaps    = run_globals->params.NScanSnap;
-
-  sprintf(sim_variant, "step_%03d_scan_%03d", n_every_snaps, n_scan_snaps);
-  SID_log("Reading snapshot %d (z=%.2f) (%s:%s) trees and halos...", SID_LOG_OPEN|SID_LOG_TIMER, snapshot, run_globals->ZZ[snapshot], run_globals->params.SimName, sim_variant);
+  SID_log("Reading snapshot %d (z=%.2f) trees and halos...", SID_LOG_OPEN|SID_LOG_TIMER, snapshot, run_globals->ZZ[snapshot]);
 
   corrected_snapshot = get_corrected_snapshot(run_globals, snapshot);
 
   // open the tree file
-  sprintf(fname, "%s/%s/trees/%s_%s/horizontal/trees/horizontal_trees_%03d.dat",
-      run_globals->params.SimulationDir, run_globals->params.SimName, run_globals->params.SimName, sim_variant, corrected_snapshot);
+  sprintf(fname, "%s/trees/horizontal_trees_%03d.hdf5", run_globals->params.SimulationDir, corrected_snapshot);
   if ((fin_trees = H5Fopen(fname, H5F_ACC_RDONLY, H5P_DEFAULT)) < 0)
   {
     SID_log("Failed to open file %s", SID_LOG_COMMENT, fname);
@@ -363,8 +348,8 @@ trees_info_t read_halos(
   if (N_halos<1)
   {
     SID_log("No halos in this file... skipping...", SID_LOG_CLOSE);
-    fclose(fin_trees);
-    return;
+    H5Fclose(fin_trees);
+    return trees_info;
   }
 
   // Allocate the fof_group array

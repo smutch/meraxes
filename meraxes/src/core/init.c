@@ -14,13 +14,8 @@ static void read_snap_list(run_globals_t *run_globals)
   char fname[STRLEN];
   run_params_t params = run_globals->params;
 
-  sprintf(fname, "%s/%s/trees/%s_step_%03d_scan_%03d/a_list.txt",
-      params.SimulationDir,
-      params.SimName,
-      params.SimName,
-      params.NEverySnap,
-      params.NScanSnap);
-  
+  sprintf(fname, "%s/a_list.txt", params.SimulationDir);
+
   if(!(fin = fopen(fname, "r")))
   {
     SID_log_error("failed to read snaplist in file '%s'", fname);
@@ -76,7 +71,7 @@ static double time_to_present(run_globals_t *run_globals, double z)
 
   gsl_integration_workspace_free(workspace);
 
-  // return time to present as a function of redshift 
+  // return time to present as a function of redshift
   return time;
 }
 
@@ -95,10 +90,10 @@ static void set_units(run_globals_t *run_globals)
 
   units->UnitEnergy_in_cgs      = units->UnitMass_in_g * pow(units->UnitLength_in_cm, 2) / pow(units->UnitTime_in_s, 2);
 
-  // convert some physical input parameters to internal units 
+  // convert some physical input parameters to internal units
   run_globals->Hubble           = HUBBLE * units->UnitTime_in_s;
 
-  // compute a few quantitites 
+  // compute a few quantitites
   run_globals->RhoCrit          = 3 * run_globals->Hubble * run_globals->Hubble / (8 * M_PI * run_globals->G);
 }
 
@@ -172,7 +167,7 @@ void init_meraxes(run_globals_t *run_globals)
 
   // Calculate the sampled LastSnapshotNr value
   run_globals->params.LastSnapshotNr = (int)(run_globals->params.TotalSimSnaps/run_globals->params.NEverySnap);
-  
+
   // Prep the output file
   sprintf(run_globals->FNameOut, "%s/%s.hdf5", run_globals->params.OutputDir, run_globals->params.FileNameGalaxies);
   prep_hdf5_file(run_globals);
