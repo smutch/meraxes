@@ -218,6 +218,16 @@ struct run_globals_t{
 };
 typedef struct run_globals_t run_globals_t;
 
+//! Tree info struct
+typedef struct trees_info_t{
+  int n_step;
+  int n_search;
+  int n_halos;
+  int n_halos_max;
+  int max_tree_id;
+  int n_fof_groups;
+} trees_info_t;
+
 //! Tree entry struct
 typedef struct tree_entry_t{
   int id;
@@ -376,7 +386,7 @@ void    read_parameter_file(run_globals_t *run_globals, char *fname);
 void    init_meraxes(run_globals_t *run_globals);
 void    dracarys(run_globals_t *run_globals);
 int     evolve_galaxies(run_globals_t *run_globals, fof_group_t *fof_group, int snapshot, int NGal, int NFof);
-trees_header_t read_halos(run_globals_t *run_globals, int snapshot, halo_t **halo, fof_group_t **fof_group);
+trees_info_t read_halos(run_globals_t *run_globals, int snapshot, halo_t **halo, fof_group_t **fof_group);
 void    free_halos(halo_t **halo);
 galaxy_t* new_galaxy(run_globals_t *run_globals, int *unique_ID);
 void    copy_halo_to_galaxy(halo_t *halo, galaxy_t *gal, int snapshot);

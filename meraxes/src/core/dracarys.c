@@ -111,23 +111,23 @@ static inline bool check_if_valid_host(run_globals_t *run_globals, halo_t *halo)
 void dracarys(run_globals_t *run_globals)
 {
 
-  trees_header_t  trees_header;
-  halo_t         *halo            = NULL;
-  fof_group_t    *fof_group       = NULL;
-  galaxy_t       *gal             = NULL;
-  galaxy_t       *prev_gal        = NULL;
-  galaxy_t       *next_gal        = NULL;
-  galaxy_t       *cur_gal         = NULL;
-  int                  i_newhalo;
-  int                  NGal            = 0;
-  int                  unique_ID       = 0;
-  int                  nout_gals;
-  int                  last_nout_gals;
-  int                  last_snap       = 0;
-  int                  kill_counter    = 0;
-  int                  merger_counter  = 0;
-  int                  new_gal_counter = 0;
-  int                  ghost_counter   = 0;
+  trees_info_t  trees_info;
+  halo_t       *halo            = NULL;
+  fof_group_t  *fof_group       = NULL;
+  galaxy_t     *gal             = NULL;
+  galaxy_t     *prev_gal        = NULL;
+  galaxy_t     *next_gal        = NULL;
+  galaxy_t     *cur_gal         = NULL;
+  int           i_newhalo;
+  int           NGal            = 0;
+  int           unique_ID       = 0;
+  int           nout_gals;
+  int           last_nout_gals;
+  int           last_snap       = 0;
+  int           kill_counter    = 0;
+  int           merger_counter  = 0;
+  int           new_gal_counter = 0;
+  int           ghost_counter   = 0;
 
   // Find what the last requested output snapshot is
   for(int ii=0; ii<NOUT; ii++)
@@ -145,7 +145,7 @@ void dracarys(run_globals_t *run_globals)
     ghost_counter   = 0;
 
     // Read in the halos for this snapshot
-    trees_header = read_halos(run_globals, snapshot, &halo, &fof_group);
+    trees_info = read_halos(run_globals, snapshot, &halo, &fof_group);
 
     SID_log("Processing snapshot %d (z=%.2f)...", SID_LOG_OPEN|SID_LOG_TIMER, snapshot, run_globals->ZZ[snapshot]);
 
@@ -280,7 +280,7 @@ void dracarys(run_globals_t *run_globals)
     run_globals->LastGal = prev_gal;
 
     // Find empty (valid) type 0 halos and place new galaxies in them
-    for(int i_halo=0; i_halo<trees_header.n_subgroups; i_halo++)
+    for(int i_halo=0; i_halo<trees_info.n_halos; i_halo++)
       if(check_if_valid_host(run_globals, &(halo[i_halo])))
         create_new_galaxy(run_globals, snapshot, &(halo[i_halo]), &NGal, &new_gal_counter, &unique_ID);
 
@@ -380,11 +380,11 @@ void dracarys(run_globals_t *run_globals)
     }
     
 #ifdef DEBUG
-    check_counts(run_globals, fof_group, NGal, trees_header.n_groups);
+    check_counts(run_globals, fof_group, NGal, trees_info.n_fof_groups);
 #endif
 
     // Do the physics
-    nout_gals = evolve_galaxies(run_globals, fof_group, snapshot, NGal, trees_header.n_groups);
+    nout_gals = evolve_galaxies(run_globals, fof_group, snapshot, NGal, trees_info.n_fof_groups);
 
     // Add the ghost galaxies into the nout_gals count
     nout_gals+=ghost_counter;
