@@ -218,18 +218,18 @@ struct run_globals_t{
 };
 typedef struct run_globals_t run_globals_t;
 
-//! The header from the input tree files.
-struct trees_header_t{
-  int n_step;
-  int n_search;
-  int n_groups;
-  int n_subgroups;
-  int n_groups_max;
-  int n_subgroups_max;
-  int max_tree_id_subgroup;
-  int max_tree_id_group;
-};
-typedef struct trees_header_t trees_header_t;
+//! Tree entry struct
+typedef struct tree_entry_t{
+  int id;
+  int flags;
+  int desc_id;
+  int tree_id;
+  int file_offset;
+  int desc_index;
+  int central_index;
+  int forest_id;
+  double fof_mvir;
+} tree_entry_t;
 
 //! This is the structure for a halo in the catalog files
 struct catalog_halo_t{
@@ -262,7 +262,6 @@ struct halo_t{
   int    SnapOffset;     //!< Number of snapshots this halo skips before reappearing
   int    DescIndex;      //!< Index of descendant in next relevant snapshot
   int    TreeFlags;      //!< Bitwise flag indicating the type of match in the trees
-  int    NSubgroups;     //!< Number of subgroups belonging to this type 0 (=-1 if type=1)
   struct fof_group_t *FOFGroup;
   struct halo_t      *NextHaloInFOFGroup;
   struct galaxy_t    *Galaxy;

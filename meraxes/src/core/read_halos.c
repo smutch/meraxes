@@ -1,5 +1,7 @@
 #include "meraxes.h"
 #include "tree_flags.h"
+#include <hdf5.h>
+#include <hdf5_hl.h>
 
 int get_corrected_snapshot(run_globals_t *run_globals, int snapshot)
 {
@@ -186,6 +188,87 @@ static void inline convert_input_halo_units(run_globals_t *run_globals, halo_t *
 }
 
 
+//! Buffered read of hdf5 trees into halo structures
+static void read_trees(hid_t fd, halo_t *halo, int N_halos, fof_group_t *fof_group, int N_fof_groups)
+{
+  // I guess this should ideally be equal to the chunk size of the input hdf5 file...
+  int buffer_size = 1000;
+  int N_read = 0;
+  int n_fields = 9;
+  int N_to_read = 0;
+  int i_fof = -1;
+
+  tree_entry_t *buffer;
+  buffer = SID_malloc(sizeof(tree_entry_t) * buffer_size);
+
+  size_t dst_size = sizeof(tree_entry_t);
+  size_t dst_offsets[n_fields] = {
+    HOFFSET(tree_entry_t, id),
+    HOFFSET(tree_entry_t, flags),
+    HOFFSET(tree_entry_t, desc_id),
+    HOFFSET(tree_entry_t, tree_id),
+    HOFFSET(tree_entry_t, file_offset),
+    HOFFSET(tree_entry_t, desc_index),
+    HOFFSET(tree_entry_t, central_index),
+    HOFFSET(tree_entry_t, forest_id),
+    HOFFSET(tree_entry_t, fof_mvir) };
+  size_t dst_sizes[n_fields] = {
+    sizeof(buffer.id),
+    sizeof(buffer.flags),
+    sizeof(buffer.desc_id),
+    sizeof(buffer.tree_id),
+    sizeof(buffer.file_offset),
+    sizeof(buffer.desc_index),
+    sizeof(buffer.central_index),
+    sizeof(buffer.forest_id),
+    sizeof(buffer.fof_mvir) };
+
+
+  while(N_read<N_halos)
+  {
+
+    if((N_halos-N_read) >= buffer_size)
+      N_to_read = buffer_size;
+    else
+      N_to_read = N_halos-N_read;
+
+    // read in a buffer
+    H5TBread_records(fd, "trees", N_read, (hsize_t)N_to_read, dst_size, dst_offsets, dst_sizes, buffer);
+
+    // paste the data into the halo structures
+    for(int ii=N_read, jj=0; jj<N_to_read; ii++, jj++)
+    {
+      halo[ii].ID = buffer[jj].id;
+      halo[ii].TreeFlags = buffer[jj].flags;
+      halo[ii].SnapOffset = buffer[jj].file_offset;
+      halo[ii].DescIndex = buffer[jj].desc_index;
+      halo[ii].Mvir = buffer[jj].fof_mvir;  // this will be overwritten for type>0 halos later
+
+      if(ii == N_read+jj)
+      {
+        i_fof++;
+        halo[ii].Type = 0;
+        fof_group[i_fof].FirstHalo = &(halo[ii]);
+      }
+      else
+      {
+        halo[ii].Type = 1;
+        halo[ii-1].NextHaloInFOFGroup = &(halo[ii]);
+      }
+
+      halo[ii].FOFgroup = &(fof_group[i_fof]);
+
+    }
+
+    N_read += N_to_read;
+
+  }
+
+  SID_free(SID_FARG buffer);
+
+}
+
+
 trees_header_t read_halos(
   run_globals_t  *run_globals,
   int                  snapshot,
@@ -194,22 +277,22 @@ trees_header_t read_halos(
 {
 
   int                  N_halos;                               //!< Number of halos
-  int                  N_groups;                              //!< Number of FOF groups
-  int                  N_halos_groups;                        //!< Number of group halos
-  int                  N_halos_subgroups;                     //!< Number of subgroup halos
-  int                  N_groups_files;                        //!< Number of (real) group files
-  int                  N_subgroups_files;                     //!< Number of (real) subgroup files
+  int                  N_catalog_files;                     //!< Number of catalog files
   int                  dummy;
   trees_header_t       header;
   char                 fname[STRLEN];
   FILE                *fin;
-  FILE                *fin_trees;
-  int                  catalog_groups_flayout           = -1;
-  int                  catalog_subgroups_flayout        = -1;
+  int                  catalog_flayout        = -1;
   int                  central_index;                         //!< Index of the central halo associated with this one
   int                  corrected_snapshot;
   char                 sim_variant[18];
+  int                  N_halos_max;
+  int                  N_fof_groups;
 
+  hid_t   fin_trees;
+  herr_t  status;
+
+  // TODO: Read these from the trees
   int  n_every_snaps   = run_globals->params.NEverySnap;
   int  n_scan_snaps    = run_globals->params.NScanSnap;
 
@@ -218,81 +301,50 @@ trees_header_t read_halos(
 
   corrected_snapshot = get_corrected_snapshot(run_globals, snapshot);
 
-  // HALOS
-  // Read the header info
-  halo_catalog_filename(run_globals->params.SimulationDir, run_globals->params.SimName, run_globals->params.CatalogFilePrefix, corrected_snapshot, "groups", 0, &catalog_groups_flayout, fname);
-  fin = fopen(fname, "rb");
-  if (fin==NULL)
-  {
-    SID_log("Failed to open file %s", SID_LOG_COMMENT, fname);
-    ABORT(EXIT_FAILURE);
-  }
-  read_catalogs_header(fin, &dummy, &N_groups_files, &dummy, &N_halos_groups);
-  SID_log("N_groups_files                    :: %d", SID_LOG_COMMENT, N_groups_files);
-  fclose(fin);
-
-  halo_catalog_filename(run_globals->params.SimulationDir, run_globals->params.SimName, run_globals->params.CatalogFilePrefix, corrected_snapshot, "subgroups", 0, &catalog_subgroups_flayout, fname);
-  fin = fopen(fname, "rb");
-  if (fin==NULL)
-  {
-    SID_log("Failed to open file %s", SID_LOG_COMMENT, fname);
-    ABORT(EXIT_FAILURE);
-  }
-  read_catalogs_header(fin, &dummy, &N_subgroups_files, &dummy, &N_halos_subgroups);
-  SID_log("N_subgroups_files                 :: %d", SID_LOG_COMMENT, N_subgroups_files);
-  fclose(fin);
-
-  // TREES
+  // open the tree file
   sprintf(fname, "%s/%s/trees/%s_%s/horizontal/trees/horizontal_trees_%03d.dat",
       run_globals->params.SimulationDir, run_globals->params.SimName, run_globals->params.SimName, sim_variant, corrected_snapshot);
-  fin_trees = fopen(fname, "rb");
-  if (fin_trees==NULL)
+  if ((fin_trees = H5Fopen(fname, H5F_ACC_RDONLY, H5P_DEFAULT)) < 0)
   {
     SID_log("Failed to open file %s", SID_LOG_COMMENT, fname);
     ABORT(EXIT_FAILURE);
   }
 
-  // Read the header info
-  read_trees_header(fin_trees, &header);
-
-  N_halos = N_halos_subgroups;
-  N_groups = N_halos_groups;
-
-  if(header.n_subgroups != N_halos)
-  {
-    SID_log_error("Trees header n_subgroups (%d) != catalog value (%d)", header.n_subgroups, N_halos);
-    ABORT(EXIT_FAILURE);
-  }
-  if(header.n_groups != N_groups)
-  {
-    SID_log_error("Trees header n_groups (%d) != catalog value (%d)", header.n_groups, N_groups);
-    ABORT(EXIT_FAILURE);
-  }
-
-  SID_log("N_halos_groups                    :: %d" , SID_LOG_COMMENT, N_halos_groups);
-  SID_log("N_halos_subgroups                 :: %d" , SID_LOG_COMMENT, N_halos_subgroups);
+  // read the number of halos in this snapshot
+  H5LTget_attribute_int(fin_trees, "trees", "n_halos", &N_halos);
   SID_log("N_halos                           :: %d" , SID_LOG_COMMENT, N_halos);
 
-  // Allocate the halo array
-  if (N_halos>0)
-    *halo = SID_malloc(sizeof(halo_t) * N_halos);
-
-  // Allocate the fof_group array
-  if (N_groups>0)
+  // If necessary, allocate the halo array
+  if(*halo == NULL)
   {
-    *fof_group = SID_malloc(sizeof(fof_group_t) * N_groups);
-    for(int ii=0; ii<N_groups; ii++)
-    {
-      (*fof_group)[ii].FirstHalo  = NULL;
-    }
+    H5LTget_attribute_int(fin_trees, "trees", "n_halos_max", &N_halos_max);
+    SID_log("Allocating halo array with %d elements...", SID_LOG_COMMENT, N_halos_max);
+    *halo = SID_malloc(sizeof(halo_t) * N_halos_max);
   }
 
   if (N_halos<1)
   {
     SID_log("No halos in this file... skipping...", SID_LOG_CLOSE);
     fclose(fin_trees);
-    return header;
+    return;
   }
+
+  // Allocate the fof_group array
+  if(*fof_group == NULL)
+  {
+    H5LTget_attribute_int(fin_trees, "trees", "n_fof_groups", &N_fof_groups);
+    SID_log("Allocating fof_group array with %d elements...", SID_LOG_COMMENT, N_fof_groups);
+    *fof_group = SID_malloc(sizeof(fof_group_t) * N_fof_groups);
+    for(int ii=0; ii<N_fof_groups; ii++)
+      (*fof_group)[ii].FirstHalo  = NULL;
+  }
+
+  // read in all of the trees
+  read_trees(fin_trees, *halo, N_halos, *fof_group, N_fof_groups);
+
+  // TODO: Read in all of the catalog halos
+
+  // ==============================
 
   // Initialise everything we need to read the halos in
   FILE *fin_group_halos              = NULL;
