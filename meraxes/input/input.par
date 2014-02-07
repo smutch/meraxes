@@ -1,9 +1,7 @@
 FileNameGalaxies    : meraxes
-DefaultsFile        : /home/smutch/models/21cm_sam/meraxes/input/Tiamat.par
+DefaultsFile        : /home/smutch/models/21cm_sam/meraxes/input/Tiny_Tiamat.par
 FileWithOutputSnaps : snaplist.txt
 OutputDir           : output
-
-SimulationDir : /home/smutch/Tiamat
 
 #------------------------------------------
 #----- 21cmFAST ---------------------------

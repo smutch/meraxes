@@ -148,7 +148,6 @@ static void read_catalog_halo(
   // Copy over the properties we want to keep
   // cur_model_halo->ID        = *halo_count;
   cur_model_halo->id_MBP             = halo_in.id_MBP;
-  cur_model_halo->Mvir               = halo_in.M_vir;
   cur_model_halo->Len                = halo_in.n_particles;
   cur_model_halo->Pos[0]             = halo_in.position_MBP[0];
   cur_model_halo->Pos[1]             = halo_in.position_MBP[1];
@@ -166,6 +165,9 @@ static void read_catalog_halo(
   cur_model_halo->Spin[2]            = halo_in.spin[2];
   cur_model_halo->NextHaloInFOFGroup = NULL;
   cur_model_halo->Galaxy             = NULL;
+  if(cur_model_halo->Type > 0)
+    cur_model_halo->Mvir             = halo_in.M_vir;
+
 
   // Update the counters
   (*i_halo)++;
@@ -265,7 +267,7 @@ static void read_trees(hid_t fd, halo_t *halo, int N_halos, fof_group_t *fof_gro
       halo[ii].DescIndex = buffer[jj].desc_index;
       halo[ii].Mvir = buffer[jj].fof_mvir;  // this will be overwritten for type>0 halos later
 
-      if(ii == N_read+jj)
+      if(ii == buffer[jj].central_index)
       {
         i_fof++;
         halo[ii].Type = 0;
@@ -345,13 +347,6 @@ trees_info_t read_halos(
     *halo = SID_malloc(sizeof(halo_t) * trees_info.n_halos_max);
   }
 
-  if (N_halos<1)
-  {
-    SID_log("No halos in this file... skipping...", SID_LOG_CLOSE);
-    H5Fclose(fin_trees);
-    return trees_info;
-  }
-
   // Allocate the fof_group array
   if(*fof_group == NULL)
   {
@@ -359,6 +354,13 @@ trees_info_t read_halos(
     *fof_group = SID_malloc(sizeof(fof_group_t) * N_fof_groups);
     for(int ii=0; ii<N_fof_groups; ii++)
       (*fof_group)[ii].FirstHalo  = NULL;
+  }
+
+  if (N_halos<1)
+  {
+    SID_log("No halos in this file... skipping...", SID_LOG_CLOSE);
+    H5Fclose(fin_trees);
+    return trees_info;
   }
 
   // read in all of the trees

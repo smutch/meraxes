@@ -16,12 +16,12 @@ static void inline assign_galaxy_to_halo(galaxy_t *gal, halo_t *halo)
 }
 
 static void inline create_new_galaxy(
-  run_globals_t *run_globals,    
-  int                 snapshot,       
-  halo_t        *halo,           
-  int                *NGal,           
+  run_globals_t *run_globals,
+  int                 snapshot,
+  halo_t        *halo,
+  int                *NGal,
   int                *new_gal_counter,
-  int                *unique_ID)      
+  int                *unique_ID)
 {
   galaxy_t *gal;
 
@@ -48,10 +48,10 @@ static void inline turn_off_merger_flag(galaxy_t *gal)
 }
 
 static void inline kill_galaxy(
-  run_globals_t *run_globals, 
-  galaxy_t      *gal,         
-  galaxy_t      *prev_gal,    
-  int                *NGal,        
+  run_globals_t *run_globals,
+  galaxy_t      *gal,
+  galaxy_t      *prev_gal,
+  int                *NGal,
   int                *kill_counter)
 {
   galaxy_t *cur_gal;
@@ -98,8 +98,8 @@ static inline bool check_if_valid_host(run_globals_t *run_globals, halo_t *halo)
   int invalid_flags = (TREE_CASE_FRAGMENTED_RETURNED
       | TREE_CASE_STRAYED
       | TREE_CASE_SPUTTERED);
-  
-  if((halo->Type == 0) 
+
+  if((halo->Type == 0)
       && (halo->Galaxy == NULL)
       && (halo->TreeFlags & invalid_flags)==0)
     return true;
@@ -292,7 +292,7 @@ void dracarys(run_globals_t *run_globals)
     // Loop through each galaxy and deal with HALO mergers now that all other
     // galaxies have been processed and their halo pointers updated...
     gal = run_globals->FirstGal;
-    while (gal != NULL) 
+    while (gal != NULL)
     {
       if(gal->Type == 999)
       {
@@ -330,7 +330,7 @@ void dracarys(run_globals_t *run_globals)
 
           // Update the FirstGalInHalo pointer.
           gal->FirstGalInHalo = gal->Halo->Galaxy;
-          
+
           // Loop through and update the FirstGalInHalo and Halo pointers of any other
           // galaxies that are attached to the incoming galaxy
           cur_gal = gal->NextGalInHalo;
@@ -378,13 +378,14 @@ void dracarys(run_globals_t *run_globals)
         copy_halo_to_galaxy(gal->Halo, gal, snapshot);
       gal = gal->Next;
     }
-    
+
 #ifdef DEBUG
     check_counts(run_globals, fof_group, NGal, trees_info.n_fof_groups);
 #endif
 
     // Do the physics
-    nout_gals = evolve_galaxies(run_globals, fof_group, snapshot, NGal, trees_info.n_fof_groups);
+    if(NGal > 0)
+      nout_gals = evolve_galaxies(run_globals, fof_group, snapshot, NGal, trees_info.n_fof_groups);
 
     // Add the ghost galaxies into the nout_gals count
     nout_gals+=ghost_counter;
@@ -408,9 +409,8 @@ void dracarys(run_globals_t *run_globals)
     for(int i_out = 0; i_out < NOUT; i_out++)
       if(snapshot == run_globals->ListOutputSnaps[i_out])
         write_snapshot(run_globals, nout_gals, i_out, &last_nout_gals);
-  
-    // Free the halo and fof_group arrays
-    SID_free(SID_FARG halo);
+
+    // Free the fof_group arrays
     SID_free(SID_FARG fof_group);
 
 #ifdef USE_TOCF
