@@ -42,13 +42,13 @@ static void halo_catalog_filename(
     for (*i_layout=0; (*i_layout<4) && (flag_success==false); (*i_layout)++)
     {
       if (*i_layout==0)
-        sprintf(fname, "%s/trees/%s_%03d.catalog_%s_properties/%s_%03d.catalog_%s_properties.%d", simulation_dir, catalog_file_prefix, snapshot, group_type, catalog_file_prefix, snapshot, group_type, sub);
+        sprintf(fname, "%s/catalogs/%s_%03d.catalog_%s_properties/%s_%03d.catalog_%s_properties.%d", simulation_dir, catalog_file_prefix, snapshot, group_type, catalog_file_prefix, snapshot, group_type, sub);
       else if (*i_layout==1)
-        sprintf(fname, "%s/trees/%s_%03d.catalog_%s_properties/%s_%03d.catalog_%s_properties", simulation_dir, catalog_file_prefix, snapshot, group_type, catalog_file_prefix, snapshot, group_type);
+        sprintf(fname, "%s/catalogs/%s_%03d.catalog_%s_properties/%s_%03d.catalog_%s_properties", simulation_dir, catalog_file_prefix, snapshot, group_type, catalog_file_prefix, snapshot, group_type);
       else if (*i_layout==2)
-        sprintf(fname, "%s/trees/%s_%03d.catalog_%s_properties.%d", simulation_dir, catalog_file_prefix, snapshot, group_type, sub);
+        sprintf(fname, "%s/catalogs/%s_%03d.catalog_%s_properties.%d", simulation_dir, catalog_file_prefix, snapshot, group_type, sub);
       else if (*i_layout==3)
-        sprintf(fname, "%s/trees/%s_%03d.catalog_%s_properties", simulation_dir, catalog_file_prefix, snapshot, group_type);
+        sprintf(fname, "%s/catalogs/%s_%03d.catalog_%s_properties", simulation_dir, catalog_file_prefix, snapshot, group_type);
 
       if ((fin = fopen(fname, "rb"))!=NULL)
       {
@@ -68,13 +68,13 @@ static void halo_catalog_filename(
 
   // provide the correct filename
   if (*i_layout==0)
-    sprintf(fname, "%s/trees/%s_%03d.catalog_%s_properties/%s_%03d.catalog_%s_properties.%d", simulation_dir, catalog_file_prefix, snapshot, group_type, catalog_file_prefix, snapshot, group_type, sub);
+    sprintf(fname, "%s/catalogs/%s_%03d.catalog_%s_properties/%s_%03d.catalog_%s_properties.%d", simulation_dir, catalog_file_prefix, snapshot, group_type, catalog_file_prefix, snapshot, group_type, sub);
   else if (*i_layout==1)
-    sprintf(fname, "%s/trees/%s_%03d.catalog_%s_properties/%s_%03d.catalog_%s_properties", simulation_dir, catalog_file_prefix, snapshot, group_type, catalog_file_prefix, snapshot, group_type);
+    sprintf(fname, "%s/catalogs/%s_%03d.catalog_%s_properties/%s_%03d.catalog_%s_properties", simulation_dir, catalog_file_prefix, snapshot, group_type, catalog_file_prefix, snapshot, group_type);
   else if (*i_layout==2)
-    sprintf(fname, "%s/trees/%s_%03d.catalog_%s_properties.%d", simulation_dir, catalog_file_prefix, snapshot, group_type, sub);
+    sprintf(fname, "%s/catalogs/%s_%03d.catalog_%s_properties.%d", simulation_dir, catalog_file_prefix, snapshot, group_type, sub);
   else if (*i_layout==3)
-    sprintf(fname, "%s/trees/%s_%03d.catalog_%s_properties", simulation_dir, catalog_file_prefix, snapshot, group_type);
+    sprintf(fname, "%s/catalogs/%s_%03d.catalog_%s_properties", simulation_dir, catalog_file_prefix, snapshot, group_type);
 
 }
 
@@ -163,7 +163,6 @@ static void read_catalog_halo(
   cur_model_halo->Spin[0]            = halo_in.spin[0];
   cur_model_halo->Spin[1]            = halo_in.spin[1];
   cur_model_halo->Spin[2]            = halo_in.spin[2];
-  cur_model_halo->NextHaloInFOFGroup = NULL;
   cur_model_halo->Galaxy             = NULL;
   if(cur_model_halo->Type > 0)
     cur_model_halo->Mvir             = halo_in.M_vir;
@@ -266,6 +265,7 @@ static void read_trees(hid_t fd, halo_t *halo, int N_halos, fof_group_t *fof_gro
       halo[ii].SnapOffset = buffer[jj].file_offset;
       halo[ii].DescIndex = buffer[jj].desc_index;
       halo[ii].Mvir = buffer[jj].fof_mvir;  // this will be overwritten for type>0 halos later
+      halo[ii].NextHaloInFOFGroup = NULL;
 
       if(ii == buffer[jj].central_index)
       {
