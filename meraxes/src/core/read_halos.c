@@ -317,7 +317,9 @@ static void read_forests_info(run_globals_t *run_globals, int *requested_forest_
   int n_forests;
   int *forest_id;
   int *max_contemp_halo;
+  int *max_contemp_fof;
   int max_halos;
+  int max_fof_groups;
 
   sprintf(fname, "%s/trees/forests_info.hdf5", run_globals->params.SimulationDir);
   if ((fin = H5Fopen(fname, H5F_ACC_RDONLY, H5P_DEFAULT)) < 0)
@@ -332,31 +334,37 @@ static void read_forests_info(run_globals_t *run_globals, int *requested_forest_
   // allocate the arrays
   forest_id = SID_malloc(sizeof(int) * n_forests);
   max_contemp_halo = SID_malloc(sizeof(int) * n_forests);
+  max_contemp_fof = SID_malloc(sizeof(int) * n_forests);
 
-  // read in the max number of contemporaneous forests and the forest ids
+  // read in the max number of contemporaneous halos and groups and the forest ids
   H5LTread_dataset_int(fin, "info/max_contemporaneous_halos", max_contemp_halo);
+  H5LTread_dataset_int(fin, "info/max_contemporaneous_fof_groups", max_contemp_fof);
   H5LTread_dataset_int(fin, "info/forest_id", forest_id);
 
   // close the file
   H5Fclose(fin);
 
-  // loop through and tot up the max number of halos we will need to allocate
+  // loop through and tot up the max number of halos and fof_groups we will need to allocate
   max_halos = 0;
+  max_fof_groups = 0;
   for(int i_forest=0, i_req=0; (i_forest<n_forests) && (i_req<N_requested_forests); i_forest++)
   {
     if(forest_id[i_forest] == requested_forest_id[i_req])
     {
       max_halos += max_contemp_halo[i_forest];
+      max_fof_groups += max_contemp_fof[i_forest];
       i_req++;
     }
   }
 
-  // store the maximum number of halos needed at any one snapshot
+  // store the maximum number of halos and fof groups needed at any one snapshot
   run_globals->N_halos_max = max_halos;
+  run_globals->N_fof_groups_max = max_fof_groups;
 
   // free the arrays
-  SID_free(SID_FARG max_contemp_halo);
   SID_free(SID_FARG forest_id);
+  SID_free(SID_FARG max_contemp_fof);
+  SID_free(SID_FARG max_contemp_halo);
 
 }
 
@@ -412,6 +420,13 @@ trees_info_t read_halos(
   // Allocate the fof_group array
   if(*fof_group == NULL)
   {
+    if(subsample_trees)
+      // here we already know the maximum number of groups we will ever have
+      N_fof_groups = run_globals->N_fof_groups_max;
+    else
+      // here we don't know how many groups we will ever have so we must reallocate this each snapshot
+      run_globals->N_fof_groups_max = N_fof_groups;
+
     SID_log("Allocating fof_group array with %d elements...", SID_LOG_COMMENT, N_fof_groups);
     *fof_group = SID_malloc(sizeof(fof_group_t) * N_fof_groups);
     for(int ii=0; ii<N_fof_groups; ii++)
