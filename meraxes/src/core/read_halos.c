@@ -338,6 +338,7 @@ static trees_info_t read_trees_info(hid_t fd)
   H5LTget_attribute_int(fd, "trees", "n_halos_max", &(trees_info.n_halos_max));
   H5LTget_attribute_int(fd, "trees", "max_tree_id", &(trees_info.max_tree_id));
   H5LTget_attribute_int(fd, "trees", "n_fof_groups", &(trees_info.n_fof_groups));
+  H5LTget_attribute_int(fd, "trees", "n_fof_groups_max", &(trees_info.n_fof_groups_max));
 
   return trees_info;
 
@@ -442,31 +443,29 @@ trees_info_t read_halos(
   // If necessary, allocate the halo array
   if(*halo == NULL)
   {
-    // if required, read the forest info and calculate the maximum number of halos
+    // if required, read the forest info and calculate the maximum number of halos and fof groups
     if(subsample_trees)
       read_forests_info(run_globals, requested_forest_id, N_requested_forests);
     else
+    {
       run_globals->N_halos_max = trees_info.n_halos_max;
+      run_globals->N_fof_groups_max = trees_info.n_fof_groups_max;
+    }
 
-    SID_log("Allocating halo array with %d elements...", SID_LOG_COMMENT, trees_info.n_halos_max);
-    *halo = SID_malloc(sizeof(halo_t) * trees_info.n_halos_max);
+    SID_log("Allocating halo array with %d elements...", SID_LOG_COMMENT, run_globals->N_halos_max);
+    *halo = SID_malloc(sizeof(halo_t) * run_globals->N_halos_max);
   }
 
-  // Allocate the fof_group array
+  // Allocate the fof_group array if necessary
   if(*fof_group == NULL)
   {
-    if(subsample_trees)
-      // here we already know the maximum number of groups we will ever have
-      N_fof_groups = run_globals->N_fof_groups_max;
-    else
-      // here we don't know how many groups we will ever have so we must reallocate this each snapshot
-      run_globals->N_fof_groups_max = N_fof_groups;
-
-    SID_log("Allocating fof_group array with %d elements...", SID_LOG_COMMENT, N_fof_groups);
-    *fof_group = SID_malloc(sizeof(fof_group_t) * N_fof_groups);
-    for(int ii=0; ii<N_fof_groups; ii++)
-      (*fof_group)[ii].FirstHalo  = NULL;
+    SID_log("Allocating fof_group array with %d elements...", SID_LOG_COMMENT, run_globals->N_fof_groups_max);
+    *fof_group = SID_malloc(sizeof(fof_group_t) * run_globals->N_fof_groups_max);
   }
+
+  // reset the fof group pointers
+  for(int ii=0; ii<trees_info.n_fof_groups_max; ii++)
+    (*fof_group)[ii].FirstHalo  = NULL;
 
   if (N_halos<1)
   {
@@ -486,9 +485,4 @@ trees_info_t read_halos(
   return trees_info;
 }
 
-
-void free_halos(halo_t **halo){
-  // Free allocated arrays
-  SID_free(SID_FARG *halo);
-}
 

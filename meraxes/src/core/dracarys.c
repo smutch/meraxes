@@ -410,9 +410,6 @@ void dracarys(run_globals_t *run_globals)
       if(snapshot == run_globals->ListOutputSnaps[i_out])
         write_snapshot(run_globals, nout_gals, i_out, &last_nout_gals);
 
-    // Free the fof_group arrays
-    SID_free(SID_FARG fof_group);
-
 #ifdef USE_TOCF
     if(run_globals->params.TOCF_Flag)
       check_if_reionization_complete(run_globals);
@@ -421,9 +418,14 @@ void dracarys(run_globals_t *run_globals)
     SID_log("...done", SID_LOG_CLOSE);
   }
 
-  // Free all of the remaining allocated galaxies and halos
-  SID_log("Freeing remaining galaxies...", SID_LOG_OPEN);
+  // Free all of the remaining allocated galaxies, halos and fof groups
+  
+  SID_log("Freeing FOF groups...", SID_LOG_COMMENT);
+  SID_free(SID_FARG fof_group);
+  SID_log("Freeing halos...", SID_LOG_COMMENT);
   SID_free(SID_FARG halo);
+
+  SID_log("Freeing remaining galaxies...", SID_LOG_OPEN);
   gal = run_globals->FirstGal;
   while (gal != NULL) {
     next_gal = gal->Next;
