@@ -311,6 +311,8 @@ static void read_trees_and_catalogs(
         if(halo[N_kept].Type > 0)
           halo[N_kept].Mvir             = catalog_buffer[jj].M_vir;
 
+        convert_input_halo_units(run_globals, &(halo[N_kept]), snapshot);
+
         N_kept++;
       }
 
