@@ -464,7 +464,7 @@ trees_info_t read_halos(
   }
 
   // reset the fof group pointers
-  for(int ii=0; ii<trees_info.n_fof_groups_max; ii++)
+  for(int ii=0; ii<run_globals->N_fof_groups_max; ii++)
     (*fof_group)[ii].FirstHalo  = NULL;
 
   if (N_halos<1)
