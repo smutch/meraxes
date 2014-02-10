@@ -206,6 +206,7 @@ struct run_globals_t{
   double                 G;
   char                   FNameOut[STRLEN];
   int                    N_halos_max;
+  int                    N_fof_groups_max;
   struct galaxy_t       *FirstGal;
   struct galaxy_t       *LastGal;
   gsl_rng               *random_generator;

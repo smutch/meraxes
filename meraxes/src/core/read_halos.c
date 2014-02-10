@@ -211,14 +211,21 @@ static void inline read_catalogs(run_globals_t *run_globals, halo_t *halo, int N
 }
 
 
+int compare_ints(const void *a, const void *b)
+{
+  return *((int *)a) - *((int *)b);
+}
+
 //! Buffered read of hdf5 trees into halo structures
-static void read_trees(hid_t fd, halo_t *halo, int N_halos, fof_group_t *fof_group, int N_fof_groups)
+static void read_trees(hid_t fd, halo_t *halo, int N_halos, fof_group_t *fof_group, int N_fof_groups, int *requested_forest_id, int N_requested_forests)
 {
   // I guess this should ideally be equal to the chunk size of the input hdf5 file...
   int buffer_size = 1000;
+  int N_kept = 0;
   int N_read = 0;
   int N_to_read = 0;
   int i_fof = -1;
+  bool read_flag;
 
   tree_entry_t *buffer;
   buffer = SID_malloc(sizeof(tree_entry_t) * buffer_size);
@@ -246,6 +253,7 @@ static void read_trees(hid_t fd, halo_t *halo, int N_halos, fof_group_t *fof_gro
     sizeof(buffer[0].fof_mvir) };
 
 
+  read_flag = true;
   while(N_read<N_halos)
   {
 
@@ -258,33 +266,47 @@ static void read_trees(hid_t fd, halo_t *halo, int N_halos, fof_group_t *fof_gro
     H5TBread_records(fd, "trees", N_read, (hsize_t)N_to_read, dst_size, dst_offsets, dst_sizes, buffer);
 
     // paste the data into the halo structures
-    for(int ii=N_read, jj=0; jj<N_to_read; ii++, jj++)
+    for(int jj=0; jj<N_to_read; jj++)
     {
-      halo[ii].ID = buffer[jj].id;
-      halo[ii].TreeFlags = buffer[jj].flags;
-      halo[ii].SnapOffset = buffer[jj].file_offset;
-      halo[ii].DescIndex = buffer[jj].desc_index;
-      halo[ii].Mvir = buffer[jj].fof_mvir;  // this will be overwritten for type>0 halos later
-      halo[ii].NextHaloInFOFGroup = NULL;
 
-      if(ii == buffer[jj].central_index)
+      if(requested_forest_id!=NULL)
       {
-        i_fof++;
-        halo[ii].Type = 0;
-        fof_group[i_fof].FirstHalo = &(halo[ii]);
-      }
-      else
-      {
-        halo[ii].Type = 1;
-        halo[ii-1].NextHaloInFOFGroup = &(halo[ii]);
+        if(bsearch(&(buffer[jj].forest_id), requested_forest_id,
+              (size_t)N_requested_forests, sizeof(int), compare_ints))
+          read_flag = true;
+        else
+          read_flag = false;
       }
 
-      halo[ii].FOFGroup = &(fof_group[i_fof]);
+      if(read_flag)
+      {
+        halo[N_kept].ID = buffer[jj].id;
+        halo[N_kept].TreeFlags = buffer[jj].flags;
+        halo[N_kept].SnapOffset = buffer[jj].file_offset;
+        halo[N_kept].DescIndex = buffer[jj].desc_index;
+        halo[N_kept].Mvir = buffer[jj].fof_mvir;  // this will be overwritten for type>0 halos later
+        halo[N_kept].NextHaloInFOFGroup = NULL;
+
+        if(N_kept == buffer[jj].central_index)
+        {
+          i_fof++;
+          halo[N_kept].Type = 0;
+          fof_group[i_fof].FirstHalo = &(halo[N_kept]);
+        }
+        else
+        {
+          halo[N_kept].Type = 1;
+          halo[N_kept-1].NextHaloInFOFGroup = &(halo[N_kept]);
+        }
+
+        halo[N_kept].FOFGroup = &(fof_group[i_fof]);
+
+        N_kept++;
+      }
 
     }
 
     N_read += N_to_read;
-
   }
 
   SID_free(SID_FARG buffer);
@@ -327,7 +349,7 @@ static void read_forests_info(run_globals_t *run_globals, int *requested_forest_
     SID_log("Failed to open file %s", SID_LOG_COMMENT, fname);
     ABORT(EXIT_FAILURE);
   }
-  
+
   // find out how many forests there are
   H5LTget_attribute_int(fin, "info", "n_forests", &n_forests);
 
@@ -440,8 +462,8 @@ trees_info_t read_halos(
     return trees_info;
   }
 
-  // read in all of the trees
-  read_trees(fin_trees, *halo, N_halos, *fof_group, N_fof_groups);
+  // read in the trees
+  read_trees(fin_trees, *halo, N_halos, *fof_group, N_fof_groups, requested_forest_id, N_requested_forests);
 
   // close the tree file
   H5Fclose(fin_trees);
