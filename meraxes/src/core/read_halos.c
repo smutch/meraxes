@@ -103,7 +103,6 @@ static void read_catalog_halos(
     int            *N_halos_file,
     int            *i_halo,
     catalog_halo_t *halo,
-    int             N_read,
     int             N_to_read)
 {
 
@@ -142,20 +141,25 @@ static void read_catalog_halos(
   }
 
   // Read in as many halos as we can from this file
-  if((N_read+N_to_read) > *N_halos_file)
+  if((*i_halo + N_to_read) <= *N_halos_file)
   {
-    fread(&halo, sizeof(catalog_halo_t), N_to_read, *fin);
+    fread(halo, sizeof(catalog_halo_t), N_to_read, *fin);
     *i_halo += N_to_read;
   }
   else
   {
     // read in as many as we can from this file and then get the rest from the next file
-    N_from_this_file = N_to_read+N_read-(*N_halos_file);
-    fread(&halo, sizeof(catalog_halo_t), N_from_this_file, *fin);
+    N_from_this_file = (*N_halos_file)- *i_halo;
+
+    // DEBUG
+    // SID_log("Spilling over to next file: i_halo = %d, N_to_read = %d,"\
+    //     "N_halos_file = %d, N_from_this_file = %d", SID_LOG_COMMENT, *i_halo,
+    //     N_to_read, *N_halos_file, N_from_this_file);
+
+    fread(halo, sizeof(catalog_halo_t), N_from_this_file, *fin);
     *i_halo += N_from_this_file;
-    N_read += N_from_this_file;
     N_to_read -= N_from_this_file;
-    read_catalog_halos(fin, simulation_dir, catalog_file_prefix, snapshot, flayout_switch, i_file, N_halos_file, i_halo, halo, N_read, N_to_read);
+    read_catalog_halos(fin, simulation_dir, catalog_file_prefix, snapshot, flayout_switch, i_file, N_halos_file, i_halo, halo, N_to_read);
   }
 
 }
@@ -217,6 +221,14 @@ static void read_trees_and_catalogs(
   *N_halos_kept = 0;
   *N_fof_groups_kept = -1;
 
+  // DEBUG
+  // SID_log("Calling read_trees_and_catalogs() with:", SID_LOG_OPEN);
+  // SID_log("snapshot = %d", SID_LOG_COMMENT, snapshot);
+  // SID_log("N_halos = %d", SID_LOG_COMMENT, N_halos);
+  // SID_log("N_fof_groups = %d", SID_LOG_COMMENT, N_fof_groups);
+  // SID_log("N_requested_forests = %d", SID_LOG_COMMENT, N_requested_forests);
+  // SID_log("---", SID_LOG_CLOSE);
+
   size_t dst_size = sizeof(tree_entry_t);
   size_t dst_offsets[9] = {
     HOFFSET(tree_entry_t, id),
@@ -255,7 +267,7 @@ static void read_trees_and_catalogs(
     // read in the corresponding catalog entrys
     read_catalog_halos(&fin_catalogs, simulation_dir, catalog_file_prefix,
         snapshot, &flayout_switch, &i_catalog_file, &N_halos_in_catalog_file,
-        &i_halo_in_catalog_file, catalog_buffer, N_read, N_to_read);
+        &i_halo_in_catalog_file, catalog_buffer, N_to_read);
 
     // paste the data into the halo structures
     for(int jj=0; jj<N_to_read; jj++)
@@ -326,6 +338,11 @@ static void read_trees_and_catalogs(
     N_read += N_to_read;
   }
 
+  // close the catalogs file
+  if(fin_catalogs)
+    fclose(fin_catalogs);
+
+  // free the buffers
   SID_free(SID_FARG catalog_buffer);
   SID_free(SID_FARG tree_buffer);
 
