@@ -188,11 +188,12 @@ static void read_trees_and_catalogs(
   fof_group_t   *fof_group,
   int            N_fof_groups,
   int           *requested_forest_id,
-  int            N_requested_forests)
+  int            N_requested_forests,
+  int           *N_halos_kept,
+  int           *N_fof_groups_kept)
 {
   // I guess this should ideally be equal to the chunk size of the input hdf5 file...
   int buffer_size = 1000;
-  int N_kept = 0;
   int N_read = 0;
   int N_to_read = 0;
   int i_fof = -1;
@@ -213,6 +214,9 @@ static void read_trees_and_catalogs(
   tree_entry_t *tree_buffer;
   tree_buffer = SID_malloc(sizeof(tree_entry_t) * buffer_size);
   catalog_buffer = SID_malloc(sizeof(catalog_halo_t) * buffer_size);
+
+  *N_halos_kept = 0;
+  *N_fof_groups_kept = 0;
 
   size_t dst_size = sizeof(tree_entry_t);
   size_t dst_offsets[9] = {
@@ -269,51 +273,54 @@ static void read_trees_and_catalogs(
 
       if(keep_flag)
       {
-        halo[N_kept].ID = tree_buffer[jj].id;
-        halo[N_kept].TreeFlags = tree_buffer[jj].flags;
-        halo[N_kept].SnapOffset = tree_buffer[jj].file_offset;
-        halo[N_kept].DescIndex = tree_buffer[jj].desc_index;
-        halo[N_kept].Mvir = tree_buffer[jj].fof_mvir;  // this will be overwritten for type>0 halos later
-        halo[N_kept].NextHaloInFOFGroup = NULL;
+        halo[*N_halos_kept].ID = tree_buffer[jj].id;
+        halo[*N_halos_kept].TreeFlags = tree_buffer[jj].flags;
+        halo[*N_halos_kept].SnapOffset = tree_buffer[jj].file_offset;
+        halo[*N_halos_kept].DescIndex = tree_buffer[jj].desc_index;
+        halo[*N_halos_kept].Mvir = tree_buffer[jj].fof_mvir;  // this will be overwritten for type>0 halos later
+        halo[*N_halos_kept].NextHaloInFOFGroup = NULL;
 
-        if(N_kept == tree_buffer[jj].central_index)
+        if((*N_halos_kept) == tree_buffer[jj].central_index)
         {
           i_fof++;
-          halo[N_kept].Type = 0;
-          fof_group[i_fof].FirstHalo = &(halo[N_kept]);
+          halo[*N_halos_kept].Type = 0;
+          fof_group[i_fof].FirstHalo = &(halo[*N_halos_kept]);
         }
         else
         {
-          halo[N_kept].Type = 1;
-          halo[N_kept-1].NextHaloInFOFGroup = &(halo[N_kept]);
+          halo[*N_halos_kept].Type = 1;
+          halo[*N_halos_kept-1].NextHaloInFOFGroup = &(halo[*N_halos_kept]);
         }
 
-        halo[N_kept].FOFGroup = &(fof_group[i_fof]);
+        halo[*N_halos_kept].FOFGroup = &(fof_group[i_fof]);
 
         // paste in the halo properties
-        halo[N_kept].id_MBP             = catalog_buffer[jj].id_MBP;
-        halo[N_kept].Len                = catalog_buffer[jj].n_particles;
-        halo[N_kept].Pos[0]             = catalog_buffer[jj].position_MBP[0];
-        halo[N_kept].Pos[1]             = catalog_buffer[jj].position_MBP[1];
-        halo[N_kept].Pos[2]             = catalog_buffer[jj].position_MBP[2];
-        halo[N_kept].Vel[0]             = catalog_buffer[jj].velocity_COM[0];
-        halo[N_kept].Vel[1]             = catalog_buffer[jj].velocity_COM[1];
-        halo[N_kept].Vel[2]             = catalog_buffer[jj].velocity_COM[2];
-        halo[N_kept].Rvir               = catalog_buffer[jj].R_vir;
-        halo[N_kept].Rhalo              = catalog_buffer[jj].R_halo;
-        halo[N_kept].Rmax               = catalog_buffer[jj].R_max;
-        halo[N_kept].Vmax               = catalog_buffer[jj].V_max;
-        halo[N_kept].VelDisp            = catalog_buffer[jj].sigma_v;
-        halo[N_kept].Spin[0]            = catalog_buffer[jj].spin[0];
-        halo[N_kept].Spin[1]            = catalog_buffer[jj].spin[1];
-        halo[N_kept].Spin[2]            = catalog_buffer[jj].spin[2];
-        halo[N_kept].Galaxy             = NULL;
-        if(halo[N_kept].Type > 0)
-          halo[N_kept].Mvir             = catalog_buffer[jj].M_vir;
+        halo[*N_halos_kept].id_MBP             = catalog_buffer[jj].id_MBP;
+        halo[*N_halos_kept].Len                = catalog_buffer[jj].n_particles;
+        halo[*N_halos_kept].Pos[0]             = catalog_buffer[jj].position_MBP[0];
+        halo[*N_halos_kept].Pos[1]             = catalog_buffer[jj].position_MBP[1];
+        halo[*N_halos_kept].Pos[2]             = catalog_buffer[jj].position_MBP[2];
+        halo[*N_halos_kept].Vel[0]             = catalog_buffer[jj].velocity_COM[0];
+        halo[*N_halos_kept].Vel[1]             = catalog_buffer[jj].velocity_COM[1];
+        halo[*N_halos_kept].Vel[2]             = catalog_buffer[jj].velocity_COM[2];
+        halo[*N_halos_kept].Rvir               = catalog_buffer[jj].R_vir;
+        halo[*N_halos_kept].Rhalo              = catalog_buffer[jj].R_halo;
+        halo[*N_halos_kept].Rmax               = catalog_buffer[jj].R_max;
+        halo[*N_halos_kept].Vmax               = catalog_buffer[jj].V_max;
+        halo[*N_halos_kept].VelDisp            = catalog_buffer[jj].sigma_v;
+        halo[*N_halos_kept].Spin[0]            = catalog_buffer[jj].spin[0];
+        halo[*N_halos_kept].Spin[1]            = catalog_buffer[jj].spin[1];
+        halo[*N_halos_kept].Spin[2]            = catalog_buffer[jj].spin[2];
+        halo[*N_halos_kept].Galaxy             = NULL;
+        if(halo[*N_halos_kept].Type > 0)
+        {
+          halo[*N_halos_kept].Mvir             = catalog_buffer[jj].M_vir;
+          (*N_fof_groups_kept)++;
+        }
 
-        convert_input_halo_units(run_globals, &(halo[N_kept]), snapshot);
+        convert_input_halo_units(run_globals, &(halo[*N_halos_kept]), snapshot);
 
-        N_kept++;
+        (*N_halos_kept)++;
       }
 
     }
@@ -419,6 +426,8 @@ trees_info_t read_halos(
   trees_info_t    trees_info;
   hid_t           fin_trees;
 
+  int             N_halos_kept;
+  int             N_fof_groups_kept;
   bool            subsample_trees = true;  // TEMPORARY FOR DEVELOPMENT
   int             N_requested_forests = 1;  // TEMPORARY FOR DEVELOPMENT
   int             requested_forest_id[1] = {10};  // TEMPORARY FOR DEVELOPMENT
@@ -475,10 +484,19 @@ trees_info_t read_halos(
   }
 
   // read in the trees
-  read_trees_and_catalogs(run_globals, snapshot, fin_trees, *halo, N_halos, *fof_group, N_fof_groups, requested_forest_id, N_requested_forests);
+  read_trees_and_catalogs(run_globals, snapshot, fin_trees, *halo, N_halos,
+      *fof_group, N_fof_groups, requested_forest_id, N_requested_forests,
+      &N_halos_kept, &N_fof_groups_kept);
 
   // close the tree file
   H5Fclose(fin_trees);
+
+  // if subsmapling the trees, then update the trees_info to reflect what we now have
+  if(subsample_trees)
+  {
+    trees_info.n_halos = N_halos_kept;
+    trees_info.n_fof_groups = N_fof_groups_kept;
+  }
 
   SID_log("...done", SID_LOG_CLOSE);
 
