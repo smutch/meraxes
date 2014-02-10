@@ -380,7 +380,8 @@ void dracarys(run_globals_t *run_globals)
     }
 
 #ifdef DEBUG
-    check_counts(run_globals, fof_group, NGal, trees_info.n_fof_groups);
+    if(NGal>0)
+      check_counts(run_globals, fof_group, NGal, trees_info.n_fof_groups);
 #endif
 
     // Do the physics

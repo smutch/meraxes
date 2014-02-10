@@ -196,7 +196,6 @@ static void read_trees_and_catalogs(
   int buffer_size = 1000;
   int N_read = 0;
   int N_to_read = 0;
-  int i_fof = -1;
   bool keep_flag;
 
   FILE *fin_catalogs = NULL;
@@ -216,7 +215,7 @@ static void read_trees_and_catalogs(
   catalog_buffer = SID_malloc(sizeof(catalog_halo_t) * buffer_size);
 
   *N_halos_kept = 0;
-  *N_fof_groups_kept = 0;
+  *N_fof_groups_kept = -1;
 
   size_t dst_size = sizeof(tree_entry_t);
   size_t dst_offsets[9] = {
@@ -282,9 +281,9 @@ static void read_trees_and_catalogs(
 
         if((*N_halos_kept) == tree_buffer[jj].central_index)
         {
-          i_fof++;
+          (*N_fof_groups_kept)++;
           halo[*N_halos_kept].Type = 0;
-          fof_group[i_fof].FirstHalo = &(halo[*N_halos_kept]);
+          fof_group[(*N_fof_groups_kept)].FirstHalo = &(halo[*N_halos_kept]);
         }
         else
         {
@@ -292,7 +291,7 @@ static void read_trees_and_catalogs(
           halo[*N_halos_kept-1].NextHaloInFOFGroup = &(halo[*N_halos_kept]);
         }
 
-        halo[*N_halos_kept].FOFGroup = &(fof_group[i_fof]);
+        halo[*N_halos_kept].FOFGroup = &(fof_group[(*N_fof_groups_kept)]);
 
         // paste in the halo properties
         halo[*N_halos_kept].id_MBP             = catalog_buffer[jj].id_MBP;
@@ -315,7 +314,6 @@ static void read_trees_and_catalogs(
         if(halo[*N_halos_kept].Type > 0)
         {
           halo[*N_halos_kept].Mvir             = catalog_buffer[jj].M_vir;
-          (*N_fof_groups_kept)++;
         }
 
         convert_input_halo_units(run_globals, &(halo[*N_halos_kept]), snapshot);
