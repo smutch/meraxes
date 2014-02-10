@@ -195,25 +195,26 @@ typedef struct tocf_grids_t tocf_grids_t;
 
 //! Global variables which will will be passed around
 struct run_globals_t{
-  int                        LastOutputSnap;
-  int                        ListOutputSnaps[NOUT];
-  int                        NGhosts;
-  double                     AA[MAXSNAPS];
-  double                     ZZ[MAXSNAPS];
-  double                     LTTime[MAXSNAPS];
-  double                     Hubble;
-  double                     RhoCrit;
-  double                     G;
-  char                       FNameOut[STRLEN];
-  struct galaxy_t      *FirstGal;
-  struct galaxy_t      *LastGal;
-  gsl_rng                   *random_generator;
-  struct run_params_t   params;
-  struct run_units_t    units;
-  hdf5_output_t         hdf5props;
-  phototabs_t           photo;
+  int                    LastOutputSnap;
+  int                    ListOutputSnaps[NOUT];
+  int                    NGhosts;
+  double                 AA[MAXSNAPS];
+  double                 ZZ[MAXSNAPS];
+  double                 LTTime[MAXSNAPS];
+  double                 Hubble;
+  double                 RhoCrit;
+  double                 G;
+  char                   FNameOut[STRLEN];
+  int                    N_halos_max;
+  struct galaxy_t       *FirstGal;
+  struct galaxy_t       *LastGal;
+  gsl_rng               *random_generator;
+  struct run_params_t    params;
+  struct run_units_t     units;
+  hdf5_output_t          hdf5props;
+  phototabs_t            photo;
 #ifdef USE_TOCF
-  tocf_grids_t          tocf_grids;
+  tocf_grids_t           tocf_grids;
 #endif
 };
 typedef struct run_globals_t run_globals_t;
