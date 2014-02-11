@@ -176,12 +176,6 @@ static void inline convert_input_halo_units(run_globals_t *run_globals, halo_t *
 }
 
 
-
-int compare_ints(const void *a, const void *b)
-{
-  return *((int *)a) - *((int *)b);
-}
-
 //! Buffered read of hdf5 trees into halo structures
 static void read_trees_and_catalogs(
   run_globals_t *run_globals,
@@ -194,7 +188,8 @@ static void read_trees_and_catalogs(
   int           *requested_forest_id,
   int            N_requested_forests,
   int           *N_halos_kept,
-  int           *N_fof_groups_kept)
+  int           *N_fof_groups_kept,
+  int           *index_lookup)
 {
   // I guess this should ideally be equal to the chunk size of the input hdf5 file...
   int buffer_size = 1000;
@@ -291,7 +286,9 @@ static void read_trees_and_catalogs(
         halo[*N_halos_kept].Mvir = tree_buffer[jj].fof_mvir;  // this will be overwritten for type>0 halos later
         halo[*N_halos_kept].NextHaloInFOFGroup = NULL;
 
-        if((N_read+jj) == tree_buffer[jj].central_index)
+        index_lookup[*N_halos_kept] = N_read+jj;
+
+        if(index_lookup[*N_halos_kept] == tree_buffer[jj].central_index)
         {
           halo[*N_halos_kept].Type = 0;
           fof_group[(*N_fof_groups_kept)++].FirstHalo = &(halo[*N_halos_kept]);
@@ -299,7 +296,7 @@ static void read_trees_and_catalogs(
         else
         {
           halo[*N_halos_kept].Type = 1;
-          halo[*N_halos_kept-1].NextHaloInFOFGroup = &(halo[*N_halos_kept]);
+          halo[(*N_halos_kept)-1].NextHaloInFOFGroup = &(halo[*N_halos_kept]);
         }
 
         halo[*N_halos_kept].FOFGroup = &(fof_group[(*N_fof_groups_kept)-1]);
@@ -326,6 +323,7 @@ static void read_trees_and_catalogs(
         {
           halo[*N_halos_kept].Mvir             = catalog_buffer[jj].M_vir;
         }
+
 
         convert_input_halo_units(run_globals, &(halo[*N_halos_kept]), snapshot);
 
@@ -430,7 +428,8 @@ trees_info_t read_halos(
   run_globals_t  *run_globals,
   int                  snapshot,
   halo_t        **halo,
-  fof_group_t   **fof_group)
+  fof_group_t   **fof_group,
+  int           **index_lookup)
 {
 
   int             N_halos;                 //!< Number of halos
@@ -468,7 +467,10 @@ trees_info_t read_halos(
   {
     // if required, read the forest info and calculate the maximum number of halos and fof groups
     if(subsample_trees)
+    {
       read_forests_info(run_globals, requested_forest_id, N_requested_forests);
+      *index_lookup = SID_malloc(sizeof(int) * trees_info.n_halos_max);
+    }
     else
     {
       run_globals->N_halos_max = trees_info.n_halos_max;
@@ -486,9 +488,12 @@ trees_info_t read_halos(
     *fof_group = SID_malloc(sizeof(fof_group_t) * run_globals->N_fof_groups_max);
   }
 
-  // reset the fof group pointers
+  // reset the fof group pointers and index lookup (if necessary)
   for(int ii=0; ii<run_globals->N_fof_groups_max; ii++)
     (*fof_group)[ii].FirstHalo  = NULL;
+  if(subsample_trees)
+    for(int ii=0; ii<trees_info.n_halos_max; ii++)
+      (*index_lookup)[ii] = -1;
 
   if (N_halos<1)
   {
@@ -500,7 +505,7 @@ trees_info_t read_halos(
   // read in the trees
   read_trees_and_catalogs(run_globals, snapshot, fin_trees, *halo, N_halos,
       *fof_group, N_fof_groups, requested_forest_id, N_requested_forests,
-      &N_halos_kept, &N_fof_groups_kept);
+      &N_halos_kept, &N_fof_groups_kept, *index_lookup);
 
   // close the tree file
   H5Fclose(fin_trees);

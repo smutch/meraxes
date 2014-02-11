@@ -3,6 +3,12 @@
 #include <unistd.h>
 #include "meraxes.h"
 
+
+int compare_ints(const void *a, const void *b)
+{
+  return *((int *)a) - *((int *)b);
+}
+
 void mpi_debug_here()
 {
 #ifdef DEBUG

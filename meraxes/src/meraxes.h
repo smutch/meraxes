@@ -389,7 +389,7 @@ void    read_parameter_file(run_globals_t *run_globals, char *fname);
 void    init_meraxes(run_globals_t *run_globals);
 void    dracarys(run_globals_t *run_globals);
 int     evolve_galaxies(run_globals_t *run_globals, fof_group_t *fof_group, int snapshot, int NGal, int NFof);
-trees_info_t read_halos(run_globals_t *run_globals, int snapshot, halo_t **halo, fof_group_t **fof_group);
+trees_info_t read_halos(run_globals_t *run_globals, int snapshot, halo_t **halo, fof_group_t **fof_group, int **index_lookup);
 galaxy_t* new_galaxy(run_globals_t *run_globals, int *unique_ID);
 void    copy_halo_to_galaxy(halo_t *halo, galaxy_t *gal, int snapshot);
 void    gas_infall(run_globals_t *run_globals, fof_group_t *FOFgroup, int snapshot);
@@ -401,6 +401,7 @@ void    write_snapshot(run_globals_t *run_globals, int n_write, int i_out, int *
 void    calc_hdf5_props(run_globals_t *run_globals);
 void    prepare_galaxy_for_output(run_globals_t *run_globals, galaxy_t gal, galaxy_output_t *galout, int i_snap);
 void    read_photometric_tables(run_globals_t *run_globals);
+int     compare_ints(const void *a, const void *b);
 void    mpi_debug_here();
 void    check_counts(run_globals_t *run_globals, fof_group_t *fof_group, int NGal, int NFof);
 void    cn_quote();

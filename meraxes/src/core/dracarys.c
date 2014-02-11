@@ -109,6 +109,24 @@ static inline bool check_if_valid_host(run_globals_t *run_globals, halo_t *halo)
   // SID_log("halo ID=%d is not a valid host (Type=%d, Treeflags=%d)", SID_LOG_COMMENT, halo->ID, halo->Type, halo->TreeFlags);
 }
 
+static int find_original_index(int index, int *lookup, int n_mappings)
+{
+  int *pointer = NULL;
+  int new_index = -1;
+
+  pointer = bsearch(&index, lookup, (size_t)n_mappings, sizeof(int), compare_ints);
+  if(pointer)
+    new_index = (int)(pointer-lookup);
+
+  // DEBUG
+  // SID_log("new_index = %d; old index = %d", SID_LOG_COMMENT, new_index, index);
+  // if(new_index == -1)
+  //   for(int ii=0; ii<n_mappings; ii++)
+  //     SID_log("lookup[%d] = %d", SID_LOG_COMMENT, ii, lookup[ii]);
+
+  return new_index;
+}
+
 //! Actually run the model
 void dracarys(run_globals_t *run_globals)
 {
@@ -120,6 +138,7 @@ void dracarys(run_globals_t *run_globals)
   galaxy_t     *prev_gal        = NULL;
   galaxy_t     *next_gal        = NULL;
   galaxy_t     *cur_gal         = NULL;
+  int          *index_lookup    = NULL;
   int           i_newhalo;
   int           NGal            = 0;
   int           unique_ID       = 0;
@@ -146,8 +165,12 @@ void dracarys(run_globals_t *run_globals)
     new_gal_counter = 0;
     ghost_counter   = 0;
 
+    // DEBUG
+    if(snapshot==9)
+      SID_log("here we go...", SID_LOG_COMMENT);
+
     // Read in the halos for this snapshot
-    trees_info = read_halos(run_globals, snapshot, &halo, &fof_group);
+    trees_info = read_halos(run_globals, snapshot, &halo, &fof_group, &index_lookup);
 
     SID_log("Processing snapshot %d (z=%.2f)...", SID_LOG_OPEN|SID_LOG_TIMER, snapshot, run_globals->ZZ[snapshot]);
 
@@ -171,7 +194,11 @@ void dracarys(run_globals_t *run_globals)
     gal      = run_globals->FirstGal;
     prev_gal = NULL;
     while (gal != NULL) {
+
       i_newhalo = gal->HaloDescIndex;
+
+      if((index_lookup) && (i_newhalo > -1) && !(gal->ghost_flag))
+        i_newhalo = find_original_index(gal->HaloDescIndex, index_lookup, trees_info.n_halos);
 
       if(gal->SnapSkipCounter<=0)
       {
@@ -422,7 +449,6 @@ void dracarys(run_globals_t *run_globals)
   }
 
   // Free all of the remaining allocated galaxies, halos and fof groups
-  
   SID_log("Freeing FOF groups...", SID_LOG_COMMENT);
   SID_free(SID_FARG fof_group);
   SID_log("Freeing halos...", SID_LOG_COMMENT);
