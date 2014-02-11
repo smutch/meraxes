@@ -286,9 +286,10 @@ static void read_trees_and_catalogs(
         halo[*N_halos_kept].Mvir = tree_buffer[jj].fof_mvir;  // this will be overwritten for type>0 halos later
         halo[*N_halos_kept].NextHaloInFOFGroup = NULL;
 
-        index_lookup[*N_halos_kept] = N_read+jj;
+        if(index_lookup)
+          index_lookup[*N_halos_kept] = N_read+jj;
 
-        if(index_lookup[*N_halos_kept] == tree_buffer[jj].central_index)
+        if(N_read+jj == tree_buffer[jj].central_index)
         {
           halo[*N_halos_kept].Type = 0;
           fof_group[(*N_fof_groups_kept)++].FirstHalo = &(halo[*N_halos_kept]);
