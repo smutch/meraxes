@@ -24,7 +24,7 @@ static void inline store_params(
 
     // reset prefix if we have descended an indentation level
     if (entry[i_entry].level < level)
-      sprintf(prefix, "");
+      *prefix = '\0';
 
     strcpy(key, prefix);
     strcat(key, entry[i_entry].key);
@@ -232,7 +232,7 @@ void read_parameter_file(run_globals_t *run_globals, char *fname)
   params_addr[n_param] = &(run_params->ForestIDFile);
   required_tag[n_param] = 0;
   params_type[n_param++] = PARAM_TYPE_STRING;
-  sprintf(run_params->ForestIDFile, "0");
+  *(run_params->ForestIDFile) = '\0';
 
   strcpy(params_tag[n_param], "ThreshMajorMerger");
   params_addr[n_param] = &(run_params->ThreshMajorMerger);

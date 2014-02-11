@@ -15,7 +15,7 @@ static void read_requested_forest_ids(run_globals_t *run_globals)
   int n_forests = -1;
   int *ids;
 
-  if(atoi(run_globals->params.ForestIDFile)==0)
+  if(strlen(run_globals->params.ForestIDFile)==0)
   {
    run_globals->N_requested_forests = -1;
    run_globals->requested_forest_id = NULL;
@@ -40,6 +40,8 @@ static void read_requested_forest_ids(run_globals_t *run_globals)
     getline(&line, &len, fin);
     ids[ii] = atoi(line);
   }
+
+  SID_log("Found %d requested halo IDs", SID_LOG_COMMENT, n_forests);
 
   fclose(fin);
 
