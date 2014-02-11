@@ -124,6 +124,7 @@ struct run_params_t{
   double                MergerTimeFactor;
   int                   SnaplistLength;
   int                   RandomSeed;
+  char                  ForestIDFile[STRLEN];
   physics_params_t      physics;
   int                   TOCF_Flag;
 };
@@ -207,6 +208,8 @@ struct run_globals_t{
   char                   FNameOut[STRLEN];
   int                    N_halos_max;
   int                    N_fof_groups_max;
+  int                    N_requested_forests;
+  int                   *requested_forest_id;
   struct galaxy_t       *FirstGal;
   struct galaxy_t       *LastGal;
   gsl_rng               *random_generator;

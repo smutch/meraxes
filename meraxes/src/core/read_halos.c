@@ -185,7 +185,6 @@ static void read_trees_and_catalogs(
   int            N_halos,
   fof_group_t   *fof_group,
   int            N_fof_groups,
-  int           *requested_forest_id,
   int            N_requested_forests,
   int           *N_halos_kept,
   int           *N_fof_groups_kept,
@@ -196,6 +195,7 @@ static void read_trees_and_catalogs(
   int N_read = 0;
   int N_to_read = 0;
   bool keep_flag;
+  int *requested_forest_id = run_globals->requested_forest_id;
 
   FILE *fin_catalogs = NULL;
   int flayout_switch = -1;
@@ -364,7 +364,7 @@ static trees_info_t read_trees_info(hid_t fd)
 }
 
 
-static void read_forests_info(run_globals_t *run_globals, int *requested_forest_id, int N_requested_forests)
+static void read_forests_info(run_globals_t *run_globals, int N_requested_forests)
 {
 
   char fname[STRLEN];
@@ -375,6 +375,7 @@ static void read_forests_info(run_globals_t *run_globals, int *requested_forest_
   int *max_contemp_fof;
   int max_halos;
   int max_fof_groups;
+  int *requested_forest_id = run_globals->requested_forest_id;
 
   sprintf(fname, "%s/trees/forests_info.hdf5", run_globals->params.SimulationDir);
   if ((fin = H5Fopen(fname, H5F_ACC_RDONLY, H5P_DEFAULT)) < 0)
@@ -441,9 +442,7 @@ trees_info_t read_halos(
 
   int             N_halos_kept;
   int             N_fof_groups_kept;
-  bool            subsample_trees = true;  // TEMPORARY FOR DEVELOPMENT
-  int             N_requested_forests = 1;  // TEMPORARY FOR DEVELOPMENT
-  int             requested_forest_id[1] = {243664};  // TEMPORARY FOR DEVELOPMENT
+  int             N_requested_forests = run_globals->N_requested_forests;
 
   SID_log("Reading snapshot %d (z=%.2f) trees and halos...", SID_LOG_OPEN|SID_LOG_TIMER, snapshot, run_globals->ZZ[snapshot]);
 
@@ -466,9 +465,9 @@ trees_info_t read_halos(
   if(*halo == NULL)
   {
     // if required, read the forest info and calculate the maximum number of halos and fof groups
-    if(subsample_trees)
+    if(N_requested_forests > -1)
     {
-      read_forests_info(run_globals, requested_forest_id, N_requested_forests);
+      read_forests_info(run_globals, N_requested_forests);
       *index_lookup = SID_malloc(sizeof(int) * trees_info.n_halos_max);
     }
     else
@@ -491,7 +490,7 @@ trees_info_t read_halos(
   // reset the fof group pointers and index lookup (if necessary)
   for(int ii=0; ii<run_globals->N_fof_groups_max; ii++)
     (*fof_group)[ii].FirstHalo  = NULL;
-  if(subsample_trees)
+  if(N_requested_forests > -1)
     for(int ii=0; ii<trees_info.n_halos_max; ii++)
       (*index_lookup)[ii] = -1;
 
@@ -504,14 +503,14 @@ trees_info_t read_halos(
 
   // read in the trees
   read_trees_and_catalogs(run_globals, snapshot, fin_trees, *halo, N_halos,
-      *fof_group, N_fof_groups, requested_forest_id, N_requested_forests,
+      *fof_group, N_fof_groups, N_requested_forests,
       &N_halos_kept, &N_fof_groups_kept, *index_lookup);
 
   // close the tree file
   H5Fclose(fin_trees);
 
   // if subsampling the trees, then update the trees_info to reflect what we now have
-  if(subsample_trees)
+  if(N_requested_forests > -1)
   {
     trees_info.n_halos = N_halos_kept;
     trees_info.n_fof_groups = N_fof_groups_kept;

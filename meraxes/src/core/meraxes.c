@@ -11,6 +11,8 @@ static void cleanup(run_globals_t *run_globals)
 {
   SID_log("Running cleanup...", SID_LOG_OPEN);
   cleanup_mags(run_globals);
+  if(run_globals->N_requested_forests > -1)
+    SID_free(SID_FARG run_globals->requested_forest_id);
 #ifdef USE_TOCF
   if(run_globals->params.TOCF_Flag)
     free_reionization_grids(run_globals);

@@ -7,6 +7,45 @@
 #include <21cmfast.h>
 #endif
 
+static void read_requested_forest_ids(run_globals_t *run_globals)
+{
+  FILE *fin;
+  char *line = NULL;
+  size_t len;
+  int n_forests = -1;
+  int *ids;
+
+  if(atoi(run_globals->params.ForestIDFile)==0)
+  {
+   run_globals->N_requested_forests = -1;
+   run_globals->requested_forest_id = NULL;
+   return;
+  }
+
+  if(!(fin = fopen(run_globals->params.ForestIDFile, "r")))
+  {
+    SID_log_error("Failed to open file: %s", run_globals->params.ForestIDFile);
+    ABORT(EXIT_FAILURE);
+  }
+
+  getline(&line, &len, fin);
+  n_forests = atoi(line);
+  run_globals->N_requested_forests = n_forests;
+
+  run_globals->requested_forest_id = SID_malloc(sizeof(int) * n_forests);
+  ids = run_globals->requested_forest_id;
+
+  for(int ii=0; ii<n_forests; ii++)
+  {
+    getline(&line, &len, fin);
+    ids[ii] = atoi(line);
+  }
+
+  fclose(fin);
+
+}
+
+
 static void read_snap_list(run_globals_t *run_globals)
 {
   FILE *fin;
@@ -152,6 +191,8 @@ void init_meraxes(run_globals_t *run_globals)
   read_snap_list(run_globals);
   read_output_snaps(run_globals);
   snaplist_len = run_globals->params.SnaplistLength;
+
+  read_requested_forest_ids(run_globals);
 
   read_photometric_tables(run_globals);
 
