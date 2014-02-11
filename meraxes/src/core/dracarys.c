@@ -105,6 +105,8 @@ static inline bool check_if_valid_host(run_globals_t *run_globals, halo_t *halo)
     return true;
   else
     return false;
+
+  // SID_log("halo ID=%d is not a valid host (Type=%d, Treeflags=%d)", SID_LOG_COMMENT, halo->ID, halo->Type, halo->TreeFlags);
 }
 
 //! Actually run the model

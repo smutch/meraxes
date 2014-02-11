@@ -219,7 +219,7 @@ static void read_trees_and_catalogs(
   catalog_buffer = SID_malloc(sizeof(catalog_halo_t) * buffer_size);
 
   *N_halos_kept = 0;
-  *N_fof_groups_kept = -1;
+  *N_fof_groups_kept = 0;
 
   // DEBUG
   // SID_log("Calling read_trees_and_catalogs() with:", SID_LOG_OPEN);
@@ -276,7 +276,7 @@ static void read_trees_and_catalogs(
       if(requested_forest_id!=NULL)
       {
         if(bsearch(&(tree_buffer[jj].forest_id), requested_forest_id,
-              (size_t)N_requested_forests, sizeof(int), compare_ints))
+              (size_t)N_requested_forests, sizeof(int), compare_ints) != NULL)
           keep_flag = true;
         else
           keep_flag = false;
@@ -291,11 +291,10 @@ static void read_trees_and_catalogs(
         halo[*N_halos_kept].Mvir = tree_buffer[jj].fof_mvir;  // this will be overwritten for type>0 halos later
         halo[*N_halos_kept].NextHaloInFOFGroup = NULL;
 
-        if((*N_halos_kept) == tree_buffer[jj].central_index)
+        if((N_read+jj) == tree_buffer[jj].central_index)
         {
-          (*N_fof_groups_kept)++;
           halo[*N_halos_kept].Type = 0;
-          fof_group[(*N_fof_groups_kept)].FirstHalo = &(halo[*N_halos_kept]);
+          fof_group[(*N_fof_groups_kept)++].FirstHalo = &(halo[*N_halos_kept]);
         }
         else
         {
@@ -303,7 +302,7 @@ static void read_trees_and_catalogs(
           halo[*N_halos_kept-1].NextHaloInFOFGroup = &(halo[*N_halos_kept]);
         }
 
-        halo[*N_halos_kept].FOFGroup = &(fof_group[(*N_fof_groups_kept)]);
+        halo[*N_halos_kept].FOFGroup = &(fof_group[(*N_fof_groups_kept)-1]);
 
         // paste in the halo properties
         halo[*N_halos_kept].id_MBP             = catalog_buffer[jj].id_MBP;
@@ -445,7 +444,7 @@ trees_info_t read_halos(
   int             N_fof_groups_kept;
   bool            subsample_trees = true;  // TEMPORARY FOR DEVELOPMENT
   int             N_requested_forests = 1;  // TEMPORARY FOR DEVELOPMENT
-  int             requested_forest_id[1] = {10};  // TEMPORARY FOR DEVELOPMENT
+  int             requested_forest_id[1] = {243664};  // TEMPORARY FOR DEVELOPMENT
 
   SID_log("Reading snapshot %d (z=%.2f) trees and halos...", SID_LOG_OPEN|SID_LOG_TIMER, snapshot, run_globals->ZZ[snapshot]);
 
@@ -506,12 +505,14 @@ trees_info_t read_halos(
   // close the tree file
   H5Fclose(fin_trees);
 
-  // if subsmapling the trees, then update the trees_info to reflect what we now have
+  // if subsampling the trees, then update the trees_info to reflect what we now have
   if(subsample_trees)
   {
     trees_info.n_halos = N_halos_kept;
     trees_info.n_fof_groups = N_fof_groups_kept;
   }
+
+  SID_log("Read %d halos in %d fof_groups.", SID_LOG_COMMENT, trees_info.n_halos, trees_info.n_fof_groups);
 
   SID_log("...done", SID_LOG_CLOSE);
 
