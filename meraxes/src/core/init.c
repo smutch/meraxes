@@ -230,6 +230,8 @@ void init_meraxes(run_globals_t *run_globals)
   // read in the requested forest IDs (if any)
   read_requested_forest_ids(run_globals);
 
+  // read in the photometric tables if required
+  // TODO: MPI this...
   read_photometric_tables(run_globals);
 
   for(i = 0; i < snaplist_len; i++)
@@ -246,6 +248,7 @@ void init_meraxes(run_globals_t *run_globals)
   run_globals->params.LastSnapshotNr = (int)(run_globals->params.TotalSimSnaps/run_globals->params.NEverySnap);
 
   // Prep the output file
+  // TODO: Create a propper parallel output file structure
   sprintf(run_globals->FNameOut, "%s/%s.hdf5", run_globals->params.OutputDir, run_globals->params.FileNameGalaxies);
   prep_hdf5_file(run_globals);
 
