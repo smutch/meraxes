@@ -3,6 +3,8 @@ DefaultsFile        : /home/smutch/models/21cm_sam/meraxes/input/Tiny_Tiamat.par
 FileWithOutputSnaps : snaplist.txt
 OutputDir           : output
 
+# ForestIDFile        : forest_ids.txt
+
 #------------------------------------------
 #----- 21cmFAST ---------------------------
 #------------------------------------------

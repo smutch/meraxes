@@ -17,8 +17,8 @@ static void read_requested_forest_ids(run_globals_t *run_globals)
 
   if(strlen(run_globals->params.ForestIDFile)==0)
   {
-   run_globals->N_requested_forests = -1;
-   run_globals->requested_forest_id = NULL;
+   run_globals->NRequestedForests = -1;
+   run_globals->RequestedForestId = NULL;
    return;
   }
 
@@ -30,10 +30,10 @@ static void read_requested_forest_ids(run_globals_t *run_globals)
 
   getline(&line, &len, fin);
   n_forests = atoi(line);
-  run_globals->N_requested_forests = n_forests;
+  run_globals->NRequestedForests = n_forests;
 
-  run_globals->requested_forest_id = SID_malloc(sizeof(int) * n_forests);
-  ids = run_globals->requested_forest_id;
+  run_globals->RequestedForestId = SID_malloc(sizeof(int) * n_forests);
+  ids = run_globals->RequestedForestId;
 
   for(int ii=0; ii<n_forests; ii++)
   {

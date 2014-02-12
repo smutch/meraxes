@@ -11,8 +11,8 @@ static void cleanup(run_globals_t *run_globals)
 {
   SID_log("Running cleanup...", SID_LOG_OPEN);
   cleanup_mags(run_globals);
-  if(run_globals->N_requested_forests > -1)
-    SID_free(SID_FARG run_globals->requested_forest_id);
+  if(run_globals->RequestedForestId)
+    SID_free(SID_FARG run_globals->RequestedForestId);
 #ifdef USE_TOCF
   if(run_globals->params.TOCF_Flag)
     free_reionization_grids(run_globals);
@@ -35,8 +35,8 @@ void myexit(int signum)
 
 static void set_physics_params(
   run_globals_t *run_globals,
-  double             *vals,       
-  int                 n_params)   
+  double             *vals,
+  int                 n_params)
 {
 
   physics_params_t *phys_par = &(run_globals->params.physics);
@@ -67,39 +67,24 @@ static void set_physics_params(
 
 int main(int argc, char **argv)
 {
-  
+
   struct stat filestatus;
 
   SID_init(&argc, &argv,NULL);
-  
+
   if(SID.n_proc!=1)
   {
     SID_log_error("Current version of code must be run with ONE CORE (sorry!).");
     ABORT(EXIT_FAILURE);
   }
-  
+
   run_globals_t run_globals;
-  
-  if( (argc!=8) && (argc!=4) && (argc!=2) ) 
+
+  if( (argc!=8) && (argc!=4) && (argc!=2) )
   {
     if(SID.My_rank==0){
-      printf("\n  usage: %s [ -p <paramvals.file> ] <parameterfile> [ <physics.peak> <physics.sigma> <physics.stellarfrac> <physics.peak_evo> <physics.sigma_evo> <physics.stellarfrac_evo> ]\n\n", argv[0]);
+      printf("\n  usage: %s <parameterfile> [ <physics.peak> <physics.sigma> <physics.stellarfrac> <physics.peak_evo> <physics.sigma_evo> <physics.stellarfrac_evo> ]\n\n", argv[0]);
       ABORT(1);
-    }
-  }
-  for(int i=1; i<argc-1; i++){
-    if (argv[i][0]=='-'){
-      switch (argv[i][1]){
-        case 'p':
-          strcpy(run_globals.params.filename, argv[i+1]);
-          break;
-        default:
-          if(SID.My_rank==0){
-            printf("Unrecognised command line argument...\n");
-            SID_exit(ERROR_SYNTAX);
-          }
-          break;
-      }
     }
   }
 
@@ -109,15 +94,12 @@ int main(int argc, char **argv)
   init_default_tocf_params();
 #endif
 
-  if(argc==4)
-    read_parameter_file(&run_globals, argv[3]);
-  else
-    read_parameter_file(&run_globals, argv[1]);
-  
+  read_parameter_file(&run_globals, argv[1]);
+
   // Check to see if the output directory exists and if not, create it
   if (stat(run_globals.params.OutputDir, &filestatus) != 0)
     mkdir(run_globals.params.OutputDir, 02755);
-  
+
   // Deal with any command line parameter values
   if (argc==8){
     double *physics_param_vals = SID_malloc(sizeof(double) * (argc-2));

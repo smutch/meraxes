@@ -7,7 +7,7 @@ static void inline store_params(
   char  params_tag[PARAM_MAX_ENTRIES][128],
   int   n_param,
   int   used_tag[PARAM_MAX_ENTRIES],
-  int   params_type[PARAM_MAX_ENTRIES],  
+  int   params_type[PARAM_MAX_ENTRIES],
   void *params_addr[PARAM_MAX_ENTRIES],
   run_params_t *run_params)
 {
@@ -212,7 +212,7 @@ void read_parameter_file(run_globals_t *run_globals, char *fname)
   params_addr[n_param] = &(run_params->LastFile);
   required_tag[n_param] = 1;
   params_type[n_param++] = PARAM_TYPE_INT;
-  
+
   strcpy(params_tag[n_param], "BoxSize");
   params_addr[n_param] = &(run_params->BoxSize);
   required_tag[n_param] = 1;
@@ -335,22 +335,22 @@ void read_parameter_file(run_globals_t *run_globals, char *fname)
   params_addr[n_param] = &(run_params->physics).sigma;
   required_tag[n_param] = 1;
   params_type[n_param++] = PARAM_TYPE_DOUBLE;
-  
+
   strcpy(params_tag[n_param], "sigma_evo");
   params_addr[n_param] = &(run_params->physics).sigma_evo;
   required_tag[n_param] = 1;
   params_type[n_param++] = PARAM_TYPE_DOUBLE;
-  
+
   strcpy(params_tag[n_param], "stellarfrac");
   params_addr[n_param] = &(run_params->physics).stellarfrac;
   required_tag[n_param] = 1;
   params_type[n_param++] = PARAM_TYPE_DOUBLE;
-  
+
   strcpy(params_tag[n_param], "stellarfrac_evo");
   params_addr[n_param] = &(run_params->physics).stellarfrac_evo;
   required_tag[n_param] = 1;
   params_type[n_param++] = PARAM_TYPE_DOUBLE;
-  
+
   strcpy(params_tag[n_param], "bhgrowthfactor");
   params_addr[n_param] = &(run_params->physics).bhgrowthfactor;
   required_tag[n_param] = 1;
@@ -506,7 +506,7 @@ void read_parameter_file(run_globals_t *run_globals, char *fname)
   // Now parse the default parameter file
   n_entries = parse_paramfile(defaults_file, entry);
   store_params(entry, n_entries, params_tag, n_param, used_tag, params_type, params_addr, run_params);
-  
+
   // Check to see if we are missing any required parameters
   for(i = 0; i < n_param; i++)
   {
