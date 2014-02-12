@@ -9,41 +9,50 @@
 
 static void read_requested_forest_ids(run_globals_t *run_globals)
 {
-  FILE *fin;
-  char *line = NULL;
-  size_t len;
-  int n_forests = -1;
-  int *ids;
 
-  if(strlen(run_globals->params.ForestIDFile)==0)
+  if(SID.My_rank == 0)
   {
-   run_globals->NRequestedForests = -1;
-   run_globals->RequestedForestId = NULL;
-   return;
-  }
+    FILE *fin;
+    char *line = NULL;
+    size_t len;
+    int n_forests = -1;
+    int *ids;
 
-  if(!(fin = fopen(run_globals->params.ForestIDFile, "r")))
-  {
-    SID_log_error("Failed to open file: %s", run_globals->params.ForestIDFile);
-    ABORT(EXIT_FAILURE);
-  }
+    if(strlen(run_globals->params.ForestIDFile)==0)
+    {
+      run_globals->NRequestedForests = -1;
+      run_globals->RequestedForestId = NULL;
+      return;
+    }
 
-  getline(&line, &len, fin);
-  n_forests = atoi(line);
-  run_globals->NRequestedForests = n_forests;
+    if(!(fin = fopen(run_globals->params.ForestIDFile, "r")))
+    {
+      SID_log_error("Failed to open file: %s", run_globals->params.ForestIDFile);
+      ABORT(EXIT_FAILURE);
+    }
 
-  run_globals->RequestedForestId = SID_malloc(sizeof(int) * n_forests);
-  ids = run_globals->RequestedForestId;
-
-  for(int ii=0; ii<n_forests; ii++)
-  {
     getline(&line, &len, fin);
-    ids[ii] = atoi(line);
+    n_forests = atoi(line);
+    run_globals->NRequestedForests = n_forests;
+
+    run_globals->RequestedForestId = SID_malloc(sizeof(int) * n_forests);
+    ids = run_globals->RequestedForestId;
+
+    for(int ii=0; ii<n_forests; ii++)
+    {
+      getline(&line, &len, fin);
+      ids[ii] = atoi(line);
+    }
+
+    SID_log("Found %d requested halo IDs", SID_LOG_COMMENT, n_forests);
+
+    fclose(fin);
   }
 
-  SID_log("Found %d requested halo IDs", SID_LOG_COMMENT, n_forests);
-
-  fclose(fin);
+  // broadcast the data to all other ranks
+  SID_Bcast(&(run_globals->NRequestedForests), sizeof(int), 0, SID.COMM_WORLD);
+  run_globals->RequestedForestId = SID_malloc(sizeof(int) * run_globals->NRequestedForests);
+  SID_Bcast(run_globals->RequestedForestId, sizeof(int) * run_globals->NRequestedForests, 0, SID.COMM_WORLD);
 
 }
 
@@ -218,6 +227,7 @@ void init_meraxes(run_globals_t *run_globals)
   read_output_snaps(run_globals);
   snaplist_len = run_globals->params.SnaplistLength;
 
+  // read in the requested forest IDs (if any)
   read_requested_forest_ids(run_globals);
 
   read_photometric_tables(run_globals);
