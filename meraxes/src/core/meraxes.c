@@ -70,7 +70,7 @@ int main(int argc, char **argv)
 
   struct stat filestatus;
 
-  SID_init(&argc, &argv,NULL);
+  SID_init(&argc, &argv, NULL);
 
   if(SID.n_proc!=1)
   {
