@@ -51,7 +51,8 @@ static void read_requested_forest_ids(run_globals_t *run_globals)
 
   // broadcast the data to all other ranks
   SID_Bcast(&(run_globals->NRequestedForests), sizeof(int), 0, SID.COMM_WORLD);
-  run_globals->RequestedForestId = SID_malloc(sizeof(int) * run_globals->NRequestedForests);
+  if(SID.My_rank > 0)
+    run_globals->RequestedForestId = SID_malloc(sizeof(int) * run_globals->NRequestedForests);
   SID_Bcast(run_globals->RequestedForestId, sizeof(int) * run_globals->NRequestedForests, 0, SID.COMM_WORLD);
 
 }
@@ -231,7 +232,6 @@ void init_meraxes(run_globals_t *run_globals)
   read_requested_forest_ids(run_globals);
 
   // read in the photometric tables if required
-  // TODO: MPI this...
   read_photometric_tables(run_globals);
 
   for(i = 0; i < snaplist_len; i++)
