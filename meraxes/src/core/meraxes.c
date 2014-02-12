@@ -69,17 +69,12 @@ int main(int argc, char **argv)
 {
 
   struct stat filestatus;
-
-  SID_init(&argc, &argv, NULL);
-
-  if(SID.n_proc!=1)
-  {
-    SID_log_error("Current version of code must be run with ONE CORE (sorry!).");
-    ABORT(EXIT_FAILURE);
-  }
-
   run_globals_t run_globals;
 
+  // init SID
+  SID_init(&argc, &argv, NULL);
+
+  // deal with any input arguments
   if( (argc!=8) && (argc!=4) && (argc!=2) )
   {
     if(SID.My_rank==0){
@@ -94,6 +89,7 @@ int main(int argc, char **argv)
   init_default_tocf_params();
 #endif
 
+  // read the input parameter file
   read_parameter_file(&run_globals, argv[1]);
 
   // Check to see if the output directory exists and if not, create it
@@ -109,13 +105,16 @@ int main(int argc, char **argv)
     SID_free(SID_FARG physics_param_vals);
   }
 
-  // mpi_debug_here();
+  // initiate meraxes
   init_meraxes(&run_globals);
+
+  // calculate the output hdf5 file properties for later use
   calc_hdf5_props(&run_globals);
 
   // Run the model!
   dracarys(&run_globals);
 
+  // cleanup
   cleanup(&run_globals);
 
   SID_exit(EXIT_SUCCESS);

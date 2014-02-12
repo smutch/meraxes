@@ -50,36 +50,44 @@ static void read_requested_forest_ids(run_globals_t *run_globals)
 
 static void read_snap_list(run_globals_t *run_globals)
 {
-  FILE *fin;
-  int snaplist_len;
-  char fname[STRLEN];
-  run_params_t params = run_globals->params;
 
-  sprintf(fname, "%s/a_list.txt", params.SimulationDir);
-
-  if(!(fin = fopen(fname, "r")))
+  if(SID.My_rank == 0)
   {
-    SID_log_error("failed to read snaplist in file '%s'", fname);
-    ABORT(EXIT_FAILURE);
+    FILE *fin;
+    int snaplist_len;
+    char fname[STRLEN];
+    run_params_t params = run_globals->params;
+
+    sprintf(fname, "%s/a_list.txt", params.SimulationDir);
+
+    if(!(fin = fopen(fname, "r")))
+    {
+      SID_log_error("failed to read snaplist in file '%s'", fname);
+      ABORT(EXIT_FAILURE);
+    }
+
+    snaplist_len = 0;
+    do
+    {
+      if(fscanf(fin, " %lg ", &(run_globals->AA[snaplist_len])) == 1)
+        snaplist_len++;
+      else
+        break;
+    } while(snaplist_len < MAXSNAPS);
+
+    fclose(fin);
+
+    if(SID.My_rank == 0){
+      printf("NOUT = %d\n\n", NOUT);
+      printf("found %d defined times in snaplist.\n", snaplist_len);
+    }
+
+    run_globals->params.SnaplistLength = snaplist_len;
   }
 
-  snaplist_len = 0;
-  do
-  {
-    if(fscanf(fin, " %lg ", &(run_globals->AA[snaplist_len])) == 1)
-      snaplist_len++;
-    else
-      break;
-  } while(snaplist_len < MAXSNAPS);
-
-  fclose(fin);
-
-  if(SID.My_rank == 0){
-    printf("NOUT = %d\n\n", NOUT);
-    printf("found %d defined times in snaplist.\n", snaplist_len);
-  }
-
-  run_globals->params.SnaplistLength = snaplist_len;
+  // broadcast the read to all other ranks
+  SID_Bcast(&(run_globals->params.SnaplistLength), sizeof(int), 0, SID.COMM_WORLD);
+  SID_Bcast(&(run_globals->AA), sizeof(int) * run_globals->params.SnaplistLength, 0, SID.COMM_WORLD);
 
 }
 
@@ -140,42 +148,51 @@ static void set_units(run_globals_t *run_globals)
 
 static void read_output_snaps(run_globals_t *run_globals)
 {
-  int i;
 
-  char fname[STRLEN];
   int  *ListOutputSnaps = run_globals->ListOutputSnaps;
   int  *LastOutputSnap  = &(run_globals->LastOutputSnap);
-  FILE *fd;
 
-  strcpy(fname, run_globals->params.FileWithOutputSnaps);
-
-  if(!(fd = fopen(fname, "r")))
+  if(SID.My_rank == 0)
   {
-    SID_log_error("file `%s' not found.", fname);
-    exit(EXIT_FAILURE);
-  }
+    int i;
+    char fname[STRLEN];
+    FILE *fd;
 
-  for(i = 0; i < NOUT; i++)
-  {
-    if(fscanf(fd, " %d ", &ListOutputSnaps[i]) != 1)
+    strcpy(fname, run_globals->params.FileWithOutputSnaps);
+
+    if(!(fd = fopen(fname, "r")))
     {
-      SID_log_error("I/O error in file '%s'\n", fname);
+      SID_log_error("file `%s' not found.", fname);
       exit(EXIT_FAILURE);
     }
-  }
-  fclose(fd);
 
-  // Loop through the read in snapshot numbers and convert any negative
-  // values to positive ones ala python indexing conventions...
-  // e.g. -1 -> MAXSNAPS-1 and so on...
-  // Also store the last requested output snapnum
-  *LastOutputSnap = 0;
-  for (i = 0; i < NOUT; i++) {
-    if(ListOutputSnaps[i]<0)
-      ListOutputSnaps[i] += run_globals->params.SnaplistLength;
-    if(ListOutputSnaps[i]>*LastOutputSnap)
-      *LastOutputSnap=ListOutputSnaps[i];
+    for(i = 0; i < NOUT; i++)
+    {
+      if(fscanf(fd, " %d ", &ListOutputSnaps[i]) != 1)
+      {
+        SID_log_error("I/O error in file '%s'\n", fname);
+        exit(EXIT_FAILURE);
+      }
+    }
+    fclose(fd);
+
+    // Loop through the read in snapshot numbers and convert any negative
+    // values to positive ones ala python indexing conventions...
+    // e.g. -1 -> MAXSNAPS-1 and so on...
+    // Also store the last requested output snapnum
+    *LastOutputSnap = 0;
+    for (i = 0; i < NOUT; i++) {
+      if(ListOutputSnaps[i]<0)
+        ListOutputSnaps[i] += run_globals->params.SnaplistLength;
+      if(ListOutputSnaps[i]>*LastOutputSnap)
+        *LastOutputSnap=ListOutputSnaps[i];
+    }
   }
+
+
+  // broadcast the data to all other ranks
+  SID_Bcast(ListOutputSnaps, sizeof(int)*NOUT, 0, SID.COMM_WORLD);
+  SID_Bcast(LastOutputSnap, sizeof(int), 0, SID.COMM_WORLD);
 
 }
 
@@ -184,13 +201,20 @@ void init_meraxes(run_globals_t *run_globals)
   int i;
   int snaplist_len;
 
+  // initialise the random number generator
   run_globals->random_generator = gsl_rng_alloc(gsl_rng_ranlxd1);
   gsl_rng_set(run_globals->random_generator, run_globals->params.RandomSeed);
 
+  // set the units
   set_units(run_globals);
+
+  // init the stdlib random number generator (for CN exceptions only)
   srand((unsigned) time(NULL));
 
+  // read the input snaps list
   read_snap_list(run_globals);
+
+  // read the output snap list
   read_output_snaps(run_globals);
   snaplist_len = run_globals->params.SnaplistLength;
 
