@@ -365,7 +365,7 @@ static trees_info_t read_trees_info(hid_t fd)
 }
 
 
-static void read_forests_info(run_globals_t *run_globals, int n_requested_forests)
+static void select_forests(run_globals_t *run_globals, int n_requested_forests)
 {
 
   char fname[STRLEN];
@@ -378,45 +378,73 @@ static void read_forests_info(run_globals_t *run_globals, int n_requested_forest
   int max_fof_groups;
   int *requested_forest_id = run_globals->RequestedForestId;
 
-  sprintf(fname, "%s/trees/forests_info.hdf5", run_globals->params.SimulationDir);
-  if ((fin = H5Fopen(fname, H5F_ACC_RDONLY, H5P_DEFAULT)) < 0)
+  if(SID.My_rank == 0)
   {
-    SID_log("Failed to open file %s", SID_LOG_COMMENT, fname);
-    ABORT(EXIT_FAILURE);
-  }
-
-  // find out how many forests there are
-  H5LTget_attribute_int(fin, "info", "n_forests", &n_forests);
-
-  // allocate the arrays
-  forest_id = SID_malloc(sizeof(int) * n_forests);
-  max_contemp_halo = SID_malloc(sizeof(int) * n_forests);
-  max_contemp_fof = SID_malloc(sizeof(int) * n_forests);
-
-  // read in the max number of contemporaneous halos and groups and the forest ids
-  H5LTread_dataset_int(fin, "info/max_contemporaneous_halos", max_contemp_halo);
-  H5LTread_dataset_int(fin, "info/max_contemporaneous_fof_groups", max_contemp_fof);
-  H5LTread_dataset_int(fin, "info/forest_id", forest_id);
-
-  // close the file
-  H5Fclose(fin);
-
-  // loop through and tot up the max number of halos and fof_groups we will need to allocate
-  max_halos = 0;
-  max_fof_groups = 0;
-  for(int i_forest=0, i_req=0; (i_forest<n_forests) && (i_req<n_requested_forests); i_forest++)
-  {
-    if(forest_id[i_forest] == requested_forest_id[i_req])
+    sprintf(fname, "%s/trees/forests_info.hdf5", run_globals->params.SimulationDir);
+    if ((fin = H5Fopen(fname, H5F_ACC_RDONLY, H5P_DEFAULT)) < 0)
     {
-      max_halos += max_contemp_halo[i_forest];
-      max_fof_groups += max_contemp_fof[i_forest];
-      i_req++;
+      SID_log("Failed to open file %s", SID_LOG_COMMENT, fname);
+      ABORT(EXIT_FAILURE);
     }
+
+    // find out how many forests there are
+    H5LTget_attribute_int(fin, "info", "n_forests", &n_forests);
+
+    // allocate the arrays
+    forest_id = SID_malloc(sizeof(int) * n_forests);
+    max_contemp_halo = SID_malloc(sizeof(int) * n_forests);
+    max_contemp_fof = SID_malloc(sizeof(int) * n_forests);
+
+    // read in the max number of contemporaneous halos and groups and the forest ids
+    H5LTread_dataset_int(fin, "info/max_contemporaneous_halos", max_contemp_halo);
+    H5LTread_dataset_int(fin, "info/max_contemporaneous_fof_groups", max_contemp_fof);
+    H5LTread_dataset_int(fin, "info/forest_id", forest_id);
+
+    // close the file
+    H5Fclose(fin);
   }
 
-  // store the maximum number of halos and fof groups needed at any one snapshot
-  run_globals->NHalosMax = max_halos;
-  run_globals->NFOFGroupsMax = max_fof_groups;
+  // broadcast the requested forest IDs info (if necessary)
+  SID_Bcast(&n_forests, sizeof(int), 0, SID.COMM_WORLD);
+  if(SID.My_rank > 0)
+  {
+    forest_id = SID_malloc(sizeof(int) * n_forests);
+    max_contemp_halo = SID_malloc(sizeof(int) * n_forests);
+    max_contemp_fof = SID_malloc(sizeof(int) * n_forests);
+  }
+  SID_Bcast(forest_id, sizeof(int) * n_forests, 0, SID.COMM_WORLD);
+  SID_Bcast(max_contemp_halo, sizeof(int) * n_forests, 0, SID.COMM_WORLD);
+  SID_Bcast(max_contemp_fof, sizeof(int) * n_forests, 0, SID.COMM_WORLD);
+
+  // if we are running the code with more than one core, let's subselect the forests on each core
+  if(SID.n_proc > 1)
+  {
+    // TODO: load balance forests
+  }
+
+  // If we now have only a subsampling of the trees and we aren't storing all
+  // snapshots then do the below.  If we are storing all snapshots there is no point
+  // in doing this, as we will allocate halo arrays of precisely the correct
+  // size at each snapshot...
+  if((requested_forest_id != NULL) && !(run_globals->StoreTrees))
+  {
+    // loop through and tot up the max number of halos and fof_groups we will need to allocate
+    max_halos = 0;
+    max_fof_groups = 0;
+    for(int i_forest=0, i_req=0; (i_forest<n_forests) && (i_req<n_requested_forests); i_forest++)
+    {
+      if(forest_id[i_forest] == requested_forest_id[i_req])
+      {
+        max_halos += max_contemp_halo[i_forest];
+        max_fof_groups += max_contemp_fof[i_forest];
+        i_req++;
+      }
+    }
+
+    // store the maximum number of halos and fof groups needed at any one snapshot
+    run_globals->NHalosMax = max_halos;
+    run_globals->NFOFGroupsMax = max_fof_groups;
+  }
 
   // free the arrays
   SID_free(SID_FARG forest_id);
@@ -450,25 +478,32 @@ trees_info_t read_halos(
   corrected_snapshot = get_corrected_snapshot(run_globals, snapshot);
 
   // open the tree file
-  sprintf(fname, "%s/trees/horizontal_trees_%03d.hdf5", run_globals->params.SimulationDir, corrected_snapshot);
-  if ((fin_trees = H5Fopen(fname, H5F_ACC_RDONLY, H5P_DEFAULT)) < 0)
+  if(SID.My_rank == 0)
   {
-    SID_log("Failed to open file %s", SID_LOG_COMMENT, fname);
-    ABORT(EXIT_FAILURE);
+    sprintf(fname, "%s/trees/horizontal_trees_%03d.hdf5", run_globals->params.SimulationDir, corrected_snapshot);
+    if ((fin_trees = H5Fopen(fname, H5F_ACC_RDONLY, H5P_DEFAULT)) < 0)
+    {
+      SID_log("Failed to open file %s", SID_LOG_COMMENT, fname);
+      ABORT(EXIT_FAILURE);
+    }
+
+    // read the info attributes
+    trees_info = read_trees_info(fin_trees);
   }
 
-  // read the info attributes
-  trees_info = read_trees_info(fin_trees);
+  // if necessary, broadcast the tree file info
+  SID_Bcast(&trees_info, sizeof(trees_info_t), 0, SID.COMM_WORLD);
+
   n_halos = trees_info.n_halos;
   n_fof_groups = trees_info.n_fof_groups;
 
   // If necessary, allocate the halo array
   if(*halo == NULL)
   {
-    // if required, read the forest info and calculate the maximum number of halos and fof groups
-    if(n_requested_forests > -1)
+    // if required, select forests and calculate the maximum number of halos and fof groups
+    if((n_requested_forests > -1) || (SID.n_proc > 1))
     {
-      read_forests_info(run_globals, n_requested_forests);
+      select_forests(run_globals, n_requested_forests);
       *index_lookup = SID_malloc(sizeof(int) * trees_info.n_halos_max);
     }
     else
@@ -477,7 +512,7 @@ trees_info_t read_halos(
       run_globals->NFOFGroupsMax = trees_info.n_fof_groups_max;
     }
 
-    SID_log("Allocating halo array with %d elements...", SID_LOG_COMMENT, run_globals->NHalosMax);
+    SID_log("rank %d: Allocating halo array with %d elements...", SID_LOG_COMMENT|SID_LOG_ALLRANKS, SID.My_rank, run_globals->NHalosMax);
     *halo = SID_malloc(sizeof(halo_t) * run_globals->NHalosMax);
   }
 

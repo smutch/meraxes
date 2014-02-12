@@ -17,11 +17,11 @@ static void inline assign_galaxy_to_halo(galaxy_t *gal, halo_t *halo)
 
 static void inline create_new_galaxy(
   run_globals_t *run_globals,
-  int                 snapshot,
+  int            snapshot,
   halo_t        *halo,
-  int                *NGal,
-  int                *new_gal_counter,
-  int                *unique_ID)
+  int           *NGal,
+  int           *new_gal_counter,
+  int           *unique_ID)
 {
   galaxy_t *gal;
 
