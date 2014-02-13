@@ -365,18 +365,26 @@ static trees_info_t read_trees_info(hid_t fd)
 }
 
 
-static void select_forests(run_globals_t *run_globals, int n_requested_forests)
+static void select_forests(run_globals_t *run_globals)
 {
 
   char fname[STRLEN];
   hid_t fin;
+  int i_forest;
+  int i_req;
   int n_forests;
+  int n_halos_tot;
+  int n_halos_unused;
+  int n_halos_used;
   int *forest_id;
   int *max_contemp_halo;
   int *max_contemp_fof;
+  int *n_halos;
   int max_halos;
   int max_fof_groups;
+  int n_requested_forests = run_globals->NRequestedForests;
   int *requested_forest_id = run_globals->RequestedForestId;
+  int *requested_ind;
 
   if(SID.My_rank == 0)
   {
@@ -390,15 +398,22 @@ static void select_forests(run_globals_t *run_globals, int n_requested_forests)
     // find out how many forests there are
     H5LTget_attribute_int(fin, "info", "n_forests", &n_forests);
 
+    // find out how many halos in the whole simulation there are
+    H5LTget_attribute_int(fin, "info", "n_subgroups", &n_halos_tot);
+    H5LTget_attribute_int(fin, "info", "n_unused", &n_halos_unused);
+    n_halos_tot += n_halos_unused;
+
     // allocate the arrays
-    forest_id = SID_malloc(sizeof(int) * n_forests);
-    max_contemp_halo = SID_malloc(sizeof(int) * n_forests);
-    max_contemp_fof = SID_malloc(sizeof(int) * n_forests);
+    forest_id        = (int *)SID_malloc(sizeof(int) * n_forests);
+    max_contemp_halo = (int *)SID_malloc(sizeof(int) * n_forests);
+    max_contemp_fof  = (int *)SID_malloc(sizeof(int) * n_forests);
+    n_halos          = (int *)SID_malloc(sizeof(int) * n_forests);
 
     // read in the max number of contemporaneous halos and groups and the forest ids
-    H5LTread_dataset_int(fin, "info/max_contemporaneous_halos", max_contemp_halo);
+    H5LTread_dataset_int(fin, "info/max_contemporaneous_halos"     , max_contemp_halo);
     H5LTread_dataset_int(fin, "info/max_contemporaneous_fof_groups", max_contemp_fof);
-    H5LTread_dataset_int(fin, "info/forest_id", forest_id);
+    H5LTread_dataset_int(fin, "info/forest_id"                     , forest_id);
+    H5LTread_dataset_int(fin, "info/n_halos"                       , n_halos);
 
     // close the file
     H5Fclose(fin);
@@ -408,45 +423,163 @@ static void select_forests(run_globals_t *run_globals, int n_requested_forests)
   SID_Bcast(&n_forests, sizeof(int), 0, SID.COMM_WORLD);
   if(SID.My_rank > 0)
   {
-    forest_id = SID_malloc(sizeof(int) * n_forests);
-    max_contemp_halo = SID_malloc(sizeof(int) * n_forests);
-    max_contemp_fof = SID_malloc(sizeof(int) * n_forests);
+    forest_id        = (int *)SID_malloc(sizeof(int) * n_forests);
+    max_contemp_halo = (int *)SID_malloc(sizeof(int) * n_forests);
+    max_contemp_fof  = (int *)SID_malloc(sizeof(int) * n_forests);
+    n_halos          = (int *)SID_malloc(sizeof(int) * n_forests);
   }
-  SID_Bcast(forest_id, sizeof(int) * n_forests, 0, SID.COMM_WORLD);
+  SID_Bcast(forest_id       , sizeof(int) * n_forests, 0, SID.COMM_WORLD);
   SID_Bcast(max_contemp_halo, sizeof(int) * n_forests, 0, SID.COMM_WORLD);
-  SID_Bcast(max_contemp_fof, sizeof(int) * n_forests, 0, SID.COMM_WORLD);
+  SID_Bcast(max_contemp_fof , sizeof(int) * n_forests, 0, SID.COMM_WORLD);
+  SID_Bcast(n_halos         , sizeof(int) * n_forests, 0, SID.COMM_WORLD);
 
-  // if we are running the code with more than one core, let's subselect the forests on each core
-  if(SID.n_proc > 1)
+  // if we have read in a list of requested forest IDs then use these to create
+  // an array of indices pointing to the elements we want
+  if(requested_forest_id ! = NULL)
   {
-    // TODO: load balance forests
-  }
-
-  // If we now have only a subsampling of the trees and we aren't storing all
-  // snapshots then do the below.  If we are storing all snapshots there is no point
-  // in doing this, as we will allocate halo arrays of precisely the correct
-  // size at each snapshot...
-  if((requested_forest_id != NULL) && !(run_globals->StoreTrees))
-  {
-    // loop through and tot up the max number of halos and fof_groups we will need to allocate
-    max_halos = 0;
-    max_fof_groups = 0;
-    for(int i_forest=0, i_req=0; (i_forest<n_forests) && (i_req<n_requested_forests); i_forest++)
+    requested_ind = (int *)SID_malloc(sizeof(int) * (*n_requested_forests));
+    for(i_forest=0, i_req=0; (i_forest<n_forests) && (i_req<(*n_requested_forests)); i_forest++)
     {
       if(forest_id[i_forest] == requested_forest_id[i_req])
       {
-        max_halos += max_contemp_halo[i_forest];
-        max_fof_groups += max_contemp_fof[i_forest];
+        requested_ind[i_req] = i_forest;
         i_req++;
       }
     }
-
-    // store the maximum number of halos and fof groups needed at any one snapshot
-    run_globals->NHalosMax = max_halos;
-    run_globals->NFOFGroupsMax = max_fof_groups;
+    n_forests = (*n_requested_forests);
+  }
+  else
+  {
+    // if we haven't asked for any specific forest IDs then just fill the
+    // requested ind array sequentially
+    requested_ind = (int *)SID_malloc(sizeof(int) * n_forests);
+    for(i_req=0; i_req<n_forests; i_req++)
+      requested_ind[i_req] = i_req;
   }
 
+  // if we are running the code with more than one core, let's subselect the forests on each one
+  if(SID.n_proc > 1)
+  {
+    if(n_forests < SID.n_proc)
+    {
+      SID_error("There are fewer processors than there are forests to be processed.  Try again with fewer cores!");
+      ABORT(EXIT_FAILURE);
+    }
+
+    int *rank_first_forest = (int *)SID_malloc(sizeof(int) * SID.n_proc);
+    int *rank_last_forest  = (int *)SID_malloc(sizeof(int) * SID.n_proc);
+    int *rank_n_forests    = (int *)SID_malloc(sizeof(int) * SID.n_proc);
+    int *rank_n_halos      = (int *)SID_malloc(sizeof(int) * SID.n_proc);
+    int i_rank;
+    int n_halos_used;
+    int n_halos_target;
+
+    for(int ii=0; ii<SID.n_proc; ii++)
+    {
+      rank_first_forest[ii] = 0;
+      rank_last_forest[ii]  = 0;
+      rank_n_forests[ii]    = 0;
+      rank_n_halos[ii]      = 0;
+    }
+
+    for(i_rank=0, n_halos_used=0, i_forest=0, n_halos_target=0; i_rank < SID.n_proc; i_rank++, i_forest++)
+    {
+      rank_first_forest[i_rank] = i_forest;
+      rank_last_forest[i_rank]  = i_forest;
+
+      if(i_forest < n_forests)
+      {
+        // add this forest to this rank's list
+        rank_n_halos[i_rank] = n_halos[requested_ind[i_forest]];
+
+        // adjust our target to smooth out variations as much as possible
+        n_halos_target = (n_halos_tot - n_halos_unused)/(SID.n_proc - i_rank);
+
+        rank_n_forests[i_rank]++;
+
+        // keep adding forests until we have reached (or exceeded) the current target
+        while((rank_n_halos[i_rank] < n_halos_target) && (i_forest < (n_forests-1)))
+        {
+          i_forest++;
+          rank_n_forests[i_rank]++;
+          rank_last_forest[i_rank] = i_forest;
+          rank_n_halos[i_rank]    += n_halos[requested_ind[i_forest]];
+        }
+
+        // updated the total number of used halos
+        n_halos_used += rank_n_halos[i_rank];
+      }
+
+      // now double back and make sure we haven't got way more halos on this rank than any previous rank
+      for(int j_rank=i_rank-1; j_rank > -1; j_rank--)
+      {
+        while((rank_n_halos[j_rank+1] > 1.05*rank_n_halos[j_rank]) && (rank_n_halos[j_rank+1] > 1))
+        {
+          rank_n_halos[j_rank+1] -= n_halos[rank_first_forest[j_rank+1]];
+          rank_n_halos[j_rank]   += n_halos[rank_first_forest[j_rank+1]];
+
+          rank_first_forest[j_rank+1]++;
+          rank_last_forest[j_rank]++;
+
+          rank_n_forests[j_rank+1]--;
+          rank_n_forests[j_rank]++;
+        }
+      }
+    }
+    // add any uncounted forests to the last process
+    for(;i_forest < (n_forests-1); i_forest++)
+    {
+      rank_last_forest[SID.n_proc-1] = i_forest;
+      rank_n_halos[SID.n_proc-1] += n_halos[requested_ind[i_forest]];
+      rank_n_forests[SID.n_proc-1]++;
+    }
+
+    // note that when we actually read in the halos, the last rank will always
+    // take any halos that have a forest_id of -1 unless we provided a list of
+    // requested forest IDs.  This fact should have been taken in to account
+    // above when we load balanced the forests.
+
+    // create our list of forest_ids for this rank
+    if(requested_forest_id == NULL)
+    {
+      *n_requested_forests = rank_n_forests[SID.My_rank];
+      if(requested_forest_id != NULL)
+        requested_forest_id = SID_realloc(requested_forest_id, *n_requested_forests * sizeof(int));
+      else
+        requested_forest_id = (int *)SID_malloc(sizeof(int) * (*n_requested_forests));
+
+      for(int ii=rank_first_forest[SID.My_rank], jj=0; ii<rank_last_forest[SID.My_rank]+1; ii++)
+      {
+        jj = ii - rank_first_forest[SID.My_rank];
+        requested_forest_id[jj] = forest_id[requested_ind[ii]];
+      }
+    }
+  }
+
+
+  // loop through and tot up the max number of halos and fof_groups we will need to allocate
+  max_halos = 0;
+  max_fof_groups = 0;
+  for(int i_forest=0, i_req=0; (i_forest<n_forests) && (i_req<(*n_requested_forests)); i_forest++)
+  {
+    if(forest_id[requested_ind[i_forest]] == requested_forest_id[i_req])
+    {
+      max_halos += max_contemp_halo[requested_ind[i_forest]];
+      max_fof_groups += max_contemp_fof[requested_ind[i_forest]];
+      i_req++;
+    }
+  }
+
+  // store the maximum number of halos and fof groups needed at any one snapshot
+  run_globals->NHalosMax = max_halos;
+  run_globals->NFOFGroupsMax = max_fof_groups;
+
   // free the arrays
+  SID_free(SID_FARG rank_n_halos);
+  SID_free(SID_FARG rank_n_forests);
+  SID_free(SID_FARG rank_last_forest);
+  SID_free(SID_FARG rank_first_forest);
+  SID_free(SID_FARG n_halos);
   SID_free(SID_FARG forest_id);
   SID_free(SID_FARG max_contemp_fof);
   SID_free(SID_FARG max_contemp_halo);
@@ -501,7 +634,7 @@ trees_info_t read_halos(
   if(*halo == NULL)
   {
     // if required, select forests and calculate the maximum number of halos and fof groups
-    if((n_requested_forests > -1) || (SID.n_proc > 1))
+    if(n_requested_forests > -1)
     {
       select_forests(run_globals, n_requested_forests);
       *index_lookup = SID_malloc(sizeof(int) * trees_info.n_halos_max);
