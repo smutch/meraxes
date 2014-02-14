@@ -44,10 +44,13 @@ static void read_requested_forest_ids(run_globals_t *run_globals)
       ids[ii] = atoi(line);
     }
 
+    free(line);
+
     SID_log("Found %d requested halo IDs", SID_LOG_COMMENT, n_forests);
 
     fclose(fin);
   }
+
 
   // broadcast the data to all other ranks
   SID_Bcast(&(run_globals->NRequestedForests), sizeof(int), 0, SID.COMM_WORLD);

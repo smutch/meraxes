@@ -454,6 +454,9 @@ void dracarys(run_globals_t *run_globals)
   SID_log("Freeing halos...", SID_LOG_COMMENT);
   SID_free(SID_FARG halo);
 
+  if(index_lookup)
+    SID_free(SID_FARG index_lookup);
+
   SID_log("Freeing remaining galaxies...", SID_LOG_OPEN);
   gal = run_globals->FirstGal;
   while (gal != NULL) {
