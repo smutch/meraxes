@@ -68,11 +68,11 @@ static void set_physics_params(
 int main(int argc, char **argv)
 {
 
-  struct stat filestatus;
-  run_globals_t run_globals;
-
   // init SID
   SID_init(&argc, &argv, NULL);
+
+  struct stat filestatus;
+  run_globals_t run_globals;
 
   // deal with any input arguments
   if( (argc!=8) && (argc!=4) && (argc!=2) )
