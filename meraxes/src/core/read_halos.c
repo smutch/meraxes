@@ -375,14 +375,13 @@ static void select_forests(run_globals_t *run_globals)
   int n_forests;
   int n_halos_tot;
   int n_halos_unused;
-  int n_halos_used;
   int *forest_id;
   int *max_contemp_halo;
   int *max_contemp_fof;
   int *n_halos;
   int max_halos;
   int max_fof_groups;
-  int n_requested_forests = run_globals->NRequestedForests;
+  int *n_requested_forests = &(run_globals->NRequestedForests);
   int *requested_forest_id = run_globals->RequestedForestId;
   int *requested_ind;
 
@@ -435,7 +434,7 @@ static void select_forests(run_globals_t *run_globals)
 
   // if we have read in a list of requested forest IDs then use these to create
   // an array of indices pointing to the elements we want
-  if(requested_forest_id ! = NULL)
+  if(requested_forest_id != NULL)
   {
     requested_ind = (int *)SID_malloc(sizeof(int) * (*n_requested_forests));
     for(i_forest=0, i_req=0; (i_forest<n_forests) && (i_req<(*n_requested_forests)); i_forest++)
@@ -462,7 +461,7 @@ static void select_forests(run_globals_t *run_globals)
   {
     if(n_forests < SID.n_proc)
     {
-      SID_error("There are fewer processors than there are forests to be processed.  Try again with fewer cores!");
+      SID_log_error("There are fewer processors than there are forests to be processed.  Try again with fewer cores!");
       ABORT(EXIT_FAILURE);
     }
 
@@ -534,15 +533,14 @@ static void select_forests(run_globals_t *run_globals)
       rank_n_forests[SID.n_proc-1]++;
     }
 
-    // note that when we actually read in the halos, the last rank will always
-    // take any halos that have a forest_id of -1 unless we provided a list of
-    // requested forest IDs.  This fact should have been taken in to account
-    // above when we load balanced the forests.
-
     // create our list of forest_ids for this rank
     if(requested_forest_id == NULL)
     {
-      *n_requested_forests = rank_n_forests[SID.My_rank];
+      if(SID.My_rank < SID.n_proc-1)
+        *n_requested_forests = rank_n_forests[SID.My_rank];
+      else
+        *n_requested_forests = rank_n_forests[SID.My_rank]+1;
+
       if(requested_forest_id != NULL)
         requested_forest_id = SID_realloc(requested_forest_id, *n_requested_forests * sizeof(int));
       else
@@ -553,7 +551,21 @@ static void select_forests(run_globals_t *run_globals)
         jj = ii - rank_first_forest[SID.My_rank];
         requested_forest_id[jj] = forest_id[requested_ind[ii]];
       }
+
+      // note that when we actually read in the halos, the last rank will always
+      // take any halos that have a forest_id of -1 unless we provided a list of
+      // requested forest IDs.  This fact should have been taken in to account
+      // above when we load balanced the forests.
+      if(SID.My_rank == SID.n_proc-1)
+        requested_forest_id[*n_requested_forests -1] = -1;
     }
+
+    // free the arrays
+    SID_free(SID_FARG rank_n_halos);
+    SID_free(SID_FARG rank_n_forests);
+    SID_free(SID_FARG rank_last_forest);
+    SID_free(SID_FARG rank_first_forest);
+
   }
 
 
@@ -575,10 +587,7 @@ static void select_forests(run_globals_t *run_globals)
   run_globals->NFOFGroupsMax = max_fof_groups;
 
   // free the arrays
-  SID_free(SID_FARG rank_n_halos);
-  SID_free(SID_FARG rank_n_forests);
-  SID_free(SID_FARG rank_last_forest);
-  SID_free(SID_FARG rank_first_forest);
+  SID_free(SID_FARG requested_ind);
   SID_free(SID_FARG n_halos);
   SID_free(SID_FARG forest_id);
   SID_free(SID_FARG max_contemp_fof);
@@ -636,8 +645,8 @@ trees_info_t read_halos(
     // if required, select forests and calculate the maximum number of halos and fof groups
     if(n_requested_forests > -1)
     {
-      select_forests(run_globals, n_requested_forests);
-      *index_lookup = SID_malloc(sizeof(int) * trees_info.n_halos_max);
+      select_forests(run_globals);
+      *index_lookup = SID_malloc(sizeof(int) * run_globals->NHalosMax);
     }
     else
     {
@@ -660,7 +669,7 @@ trees_info_t read_halos(
   for(int ii=0; ii<run_globals->NFOFGroupsMax; ii++)
     (*fof_group)[ii].FirstHalo  = NULL;
   if(n_requested_forests > -1)
-    for(int ii=0; ii<trees_info.n_halos_max; ii++)
+    for(int ii=0; ii<run_globals->NHalosMax; ii++)
       (*index_lookup)[ii] = -1;
 
   if (n_halos<1)
@@ -685,7 +694,7 @@ trees_info_t read_halos(
     trees_info.n_fof_groups = n_fof_groups_kept;
   }
 
-  SID_log("Read %d halos in %d fof_groups.", SID_LOG_COMMENT, trees_info.n_halos, trees_info.n_fof_groups);
+  SID_log("rank %d: Read %d halos in %d fof_groups.", SID_LOG_COMMENT|SID_LOG_ALLRANKS, SID.My_rank, trees_info.n_halos, trees_info.n_fof_groups);
 
   SID_log("...done", SID_LOG_CLOSE);
 
