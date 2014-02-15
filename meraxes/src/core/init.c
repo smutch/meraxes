@@ -10,6 +10,13 @@
 static void read_requested_forest_ids(run_globals_t *run_globals)
 {
 
+  if(strlen(run_globals->params.ForestIDFile)==0)
+  {
+    run_globals->NRequestedForests = -1;
+    run_globals->RequestedForestId = NULL;
+    return;
+  }
+
   if(SID.My_rank == 0)
   {
     FILE *fin;
@@ -17,13 +24,6 @@ static void read_requested_forest_ids(run_globals_t *run_globals)
     size_t len;
     int n_forests = -1;
     int *ids;
-
-    if(strlen(run_globals->params.ForestIDFile)==0)
-    {
-      run_globals->NRequestedForests = -1;
-      run_globals->RequestedForestId = NULL;
-      return;
-    }
 
     if(!(fin = fopen(run_globals->params.ForestIDFile, "r")))
     {

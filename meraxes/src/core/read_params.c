@@ -557,12 +557,6 @@ void read_parameter_file(run_globals_t *run_globals, char *fname)
   }  // END if(SID.My_rank==0)
 
   // If running mpi then broadcast the run parameters to all cores
-  // DEBUG
-  SID_log("rank %d: Reached broadcast...", SID_LOG_COMMENT|SID_LOG_ALLRANKS, SID.My_rank);
-  SID_log("rank %d: I currently have run_params->OutputDir = %s", SID_LOG_COMMENT|SID_LOG_ALLRANKS, SID.My_rank, run_params->OutputDir);
   SID_Bcast(run_params, sizeof(run_params_t), 0, SID.COMM_WORLD);
-
-  // DEBUG
-  SID_log("rank %d: GOT HERE!", SID_LOG_COMMENT|SID_LOG_ALLRANKS, SID.My_rank);
 
 }

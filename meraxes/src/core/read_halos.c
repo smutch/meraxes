@@ -257,12 +257,16 @@ static void read_trees_and_catalogs(
       n_to_read = n_halos-n_read;
 
     // read in a tree_buffer of the trees
-    H5TBread_records(fd, "trees", n_read, (hsize_t)n_to_read, dst_size, dst_offsets, dst_sizes, tree_buffer);
+    if(SID.My_rank == 0)
+      H5TBread_records(fd, "trees", n_read, (hsize_t)n_to_read, dst_size, dst_offsets, dst_sizes, tree_buffer);
+    SID_Bcast(tree_buffer, n_to_read * sizeof(tree_entry_t), 0, SID.COMM_WORLD);
 
     // read in the corresponding catalog entrys
-    read_catalog_halos(&fin_catalogs, simulation_dir, catalog_file_prefix,
-        snapshot, &flayout_switch, &i_catalog_file, &n_halos_in_catalog_file,
-        &i_halo_in_catalog_file, catalog_buffer, n_to_read);
+    if(SID.My_rank == 0)
+      read_catalog_halos(&fin_catalogs, simulation_dir, catalog_file_prefix,
+          snapshot, &flayout_switch, &i_catalog_file, &n_halos_in_catalog_file,
+          &i_halo_in_catalog_file, catalog_buffer, n_to_read);
+    SID_Bcast(catalog_buffer, n_to_read * sizeof(catalog_halo_t), 0, SID.COMM_WORLD);
 
     // paste the data into the halo structures
     for(int jj=0; jj<n_to_read; jj++)
@@ -337,8 +341,9 @@ static void read_trees_and_catalogs(
   }
 
   // close the catalogs file
-  if(fin_catalogs)
-    fclose(fin_catalogs);
+  if(SID.My_rank == 0)
+    if(fin_catalogs)
+      fclose(fin_catalogs);
 
   // free the buffers
   SID_free(SID_FARG catalog_buffer);
@@ -661,7 +666,7 @@ trees_info_t read_halos(
   // Allocate the fof_group array if necessary
   if(*fof_group == NULL)
   {
-    SID_log("Allocating fof_group array with %d elements...", SID_LOG_COMMENT, run_globals->NFOFGroupsMax);
+    SID_log("rank %d: Allocating fof_group array with %d elements...", SID_LOG_COMMENT|SID_LOG_ALLRANKS, SID.My_rank, run_globals->NFOFGroupsMax);
     *fof_group = SID_malloc(sizeof(fof_group_t) * run_globals->NFOFGroupsMax);
   }
 
@@ -675,7 +680,8 @@ trees_info_t read_halos(
   if (n_halos<1)
   {
     SID_log("No halos in this file... skipping...", SID_LOG_CLOSE);
-    H5Fclose(fin_trees);
+    if(SID.My_rank == 0)
+      H5Fclose(fin_trees);
     return trees_info;
   }
 
@@ -685,7 +691,8 @@ trees_info_t read_halos(
       &n_halos_kept, &n_fof_groups_kept, *index_lookup);
 
   // close the tree file
-  H5Fclose(fin_trees);
+  if(SID.My_rank == 0)
+    H5Fclose(fin_trees);
 
   // if subsampling the trees, then update the trees_info to reflect what we now have
   if(n_requested_forests > -1)
