@@ -67,12 +67,13 @@ static void set_physics_params(
 
 int main(int argc, char **argv)
 {
-
-  // init SID
-  SID_init(&argc, &argv, NULL);
+  // mpi_debug_here();
 
   struct stat filestatus;
   run_globals_t run_globals;
+
+  // init SID
+  SID_init(&argc, &argv, NULL);
 
   // deal with any input arguments
   if( (argc!=8) && (argc!=4) && (argc!=2) )

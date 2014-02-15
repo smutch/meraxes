@@ -31,7 +31,7 @@ vars.AddVariables(
     ('nout', 'Set the number of output snapshots.', 1),
     ('maxsnaps', 'Set the hardcoded maximum number of snapshots (will be removed in future).', 100),
     BoolVariable('calc_mags', 'Calculate magnitudes.', False),
-    BoolVariable('tocf', 'Calculate xH structure with 21cmFAST.', True),
+    BoolVariable('tocf', 'Calculate xH structure with 21cmFAST.', False),
     BoolVariable('git_tag', 'Tag the binary and output files with the current git ref.', True),
     ('allocparameter', 'Set the ALLOCPARAM value.', 5.0),
     EnumVariable('build', 'Set the build type.', 'optimised', allowed_values=('debug', 'optimised')),
@@ -68,7 +68,6 @@ if not GetOption('help'):
         env.AppendUnique(CPPDEFINES=['CALC_MAGS'])
     if env['tocf']:
         env.AppendUnique(CPPDEFINES=['USE_TOCF'])
-    # env.AppendUnique(CPPDEFINES=['${input_sim}', 'USE_MPI=1'])
     if env['build'] == 'debug':
         env.MergeFlags('-g -O0 -Wall')
         env.AppendUnique(CPPDEFINES=['DEBUG'])
@@ -77,6 +76,8 @@ if not GetOption('help'):
     if env['prof']:
         env.MergeFlags('-g -pg')
         env.AppendUnique(LINKFLAGS=['-pg'])
+    if env['mpi']:
+        env.AppendUnique(CPPDEFINES=['USE_MPI=1'])
     
     # =================================
     # = System specific build options =
