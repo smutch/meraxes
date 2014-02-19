@@ -33,7 +33,7 @@ static void find_missing_gals(run_globals_t *run_globals, fof_group_t *fof_group
   bool *gal_found;
   galaxy_t **missing_pointers;
 
-  SID_log("Running `find_missing_galaxies`...", SID_LOG_OPEN);
+  SID_log("rank %d: Running `find_missing_galaxies`...", SID_LOG_OPEN|SID_LOG_ALLRANKS, SID.My_rank);
 
   // If flag =0 then we have more galaxies in the global linked list than when
   // we traverse the FOF groups.  If flag =1 then we have the opposite
@@ -80,7 +80,7 @@ static void find_missing_gals(run_globals_t *run_globals, fof_group_t *fof_group
       }
     }
 
-    SID_log("I find counter=%d using FOF traversal...", SID_LOG_COMMENT, counter);
+    SID_log("rank %d: I find counter=%d using FOF traversal...", SID_LOG_COMMENT|SID_LOG_ALLRANKS, SID.My_rank, counter);
 
     gal_found = SID_malloc(sizeof(bool)*counter);
     for(int ii=0; ii<counter; ii++)
@@ -96,7 +96,7 @@ static void find_missing_gals(run_globals_t *run_globals, fof_group_t *fof_group
       master_counter++;
       gal = gal->Next;
     }
-    SID_log("I find %d gals traversing global list...", SID_LOG_COMMENT, master_counter);
+    SID_log("rank %d: I find %d gals traversing global list...", SID_LOG_COMMENT|SID_LOG_ALLRANKS, SID.My_rank, master_counter);
 
   }
  
@@ -104,7 +104,7 @@ static void find_missing_gals(run_globals_t *run_globals, fof_group_t *fof_group
   for(int ii=0; ii<counter; ii++)
     if(!gal_found[ii])
     {
-      SID_log("ii = %d", SID_LOG_COMMENT, ii);
+      SID_log("rank %d: ii = %d", SID_LOG_COMMENT|SID_LOG_ALLRANKS, SID.My_rank, ii);
       missing_counter++;
     }
 
@@ -119,7 +119,7 @@ static void find_missing_gals(run_globals_t *run_globals, fof_group_t *fof_group
       counter++;
   gal = gal->Next;
   }
-  SID_log("I find %d gals with ghost_flag=true", SID_LOG_COMMENT, counter);
+  SID_log("rank %d: I find %d gals with ghost_flag=true", SID_LOG_COMMENT|SID_LOG_ALLRANKS, SID.My_rank, counter);
   counter = 0;
   for(int i_fof=0; i_fof<NFof; i_fof++)
   {
@@ -134,7 +134,7 @@ static void find_missing_gals(run_globals_t *run_globals, fof_group_t *fof_group
       halo = halo->NextHaloInFOFGroup;
     }
   }
-  SID_log("I find %d gals with ghost_flag=true (FOF traversal)", SID_LOG_COMMENT, counter);
+  SID_log("rank %d: I find %d gals with ghost_flag=true (FOF traversal)", SID_LOG_COMMENT|SID_LOG_ALLRANKS, SID.My_rank, counter);
 
   missing_pointers = SID_calloc(sizeof(galaxy_t *)*missing_counter);
 
@@ -176,7 +176,7 @@ static void find_missing_gals(run_globals_t *run_globals, fof_group_t *fof_group
   SID_free(SID_FARG missing_pointers);
   SID_free(SID_FARG gal_found);
 
-  SID_log("...done", SID_LOG_CLOSE);
+  SID_log("rank %d: ...done", SID_LOG_CLOSE|SID_LOG_ALLRANKS, SID.My_rank);
 }
 
 
@@ -190,11 +190,11 @@ void check_counts(run_globals_t *run_globals, fof_group_t *fof_group, int NGal, 
   galaxy_t *gal = NULL;
   halo_t *halo = NULL;
 
-  SID_log("Running counts check...", SID_LOG_OPEN|SID_LOG_TIMER);
+  SID_log("rank %d: Running counts check...", SID_LOG_OPEN|SID_LOG_TIMER|SID_LOG_ALLRANKS, SID.My_rank);
 
-  SID_log("NFof = %d", SID_LOG_COMMENT, NFof);
-  SID_log("NGal = %d", SID_LOG_COMMENT, NGal);
-  SID_log("NGhosts = %d", SID_LOG_COMMENT, run_globals->NGhosts);
+  SID_log("rank %d: NFof = %d", SID_LOG_COMMENT|SID_LOG_ALLRANKS, SID.My_rank, NFof);
+  SID_log("rank %d: NGal = %d", SID_LOG_COMMENT|SID_LOG_ALLRANKS, SID.My_rank, NGal);
+  SID_log("rank %d: NGhosts = %d", SID_LOG_COMMENT|SID_LOG_ALLRANKS, SID.My_rank, run_globals->NGhosts);
 
   counter=0;
   gal = run_globals->FirstGal;
@@ -203,8 +203,8 @@ void check_counts(run_globals_t *run_globals, fof_group_t *fof_group, int NGal, 
     counter++;
     gal = gal->Next;
   }
-  SID_log("Counting using gal->Next gives %d gals (-%d ghosts = %d gals)",
-      SID_LOG_COMMENT, counter, run_globals->NGhosts,
+  SID_log("rank %d: Counting using gal->Next gives %d gals (-%d ghosts = %d gals)",
+      SID_LOG_COMMENT|SID_LOG_ALLRANKS, SID.My_rank, counter, run_globals->NGhosts,
       counter-run_globals->NGhosts);
   gal_next_counter = counter;
 
@@ -235,8 +235,8 @@ void check_counts(run_globals_t *run_globals, fof_group_t *fof_group, int NGal, 
         ABORT(EXIT_FAILURE);
     }
   }
-  SID_log("Counting using FOF groups gives %d gals in %d halos", SID_LOG_COMMENT, counter, halo_counter);
-  SID_log("%d halos are populated with at least one galaxy", SID_LOG_COMMENT, halo_pop_count);
+  SID_log("rank %d: Counting using FOF groups gives %d gals in %d halos", SID_LOG_COMMENT|SID_LOG_ALLRANKS, SID.My_rank, counter, halo_counter);
+  SID_log("rank %d: %d halos are populated with at least one galaxy", SID_LOG_COMMENT|SID_LOG_ALLRANKS, SID.My_rank, halo_pop_count);
 
   if(gal_next_counter-(run_globals->NGhosts) != counter)
   {
@@ -251,6 +251,6 @@ void check_counts(run_globals_t *run_globals, fof_group_t *fof_group, int NGal, 
     ABORT(EXIT_FAILURE);
   }
 
-  SID_log("...done", SID_LOG_CLOSE);
+  SID_log("rank %d: ...done", SID_LOG_CLOSE|SID_LOG_ALLRANKS, SID.My_rank);
 }
 
