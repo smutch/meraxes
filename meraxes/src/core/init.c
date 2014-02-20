@@ -100,7 +100,7 @@ static void read_snap_list(run_globals_t *run_globals)
 
   // broadcast the read to all other ranks
   SID_Bcast(&(run_globals->params.SnaplistLength), sizeof(int), 0, SID.COMM_WORLD);
-  SID_Bcast(&(run_globals->AA), sizeof(int) * run_globals->params.SnaplistLength, 0, SID.COMM_WORLD);
+  SID_Bcast(&(run_globals->AA), sizeof(double) * run_globals->params.SnaplistLength, 0, SID.COMM_WORLD);
 
 }
 
