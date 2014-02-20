@@ -505,7 +505,7 @@ void write_snapshot(run_globals_t *run_globals, int n_write, int i_out, int *las
   int                   index                  = -1;
   int                   corrected_snapshot;
 
-  SID_log("Writing output file...", SID_LOG_OPEN|SID_LOG_TIMER);
+  SID_log("rank %d: Writing output file...", SID_LOG_OPEN|SID_LOG_TIMER|SID_LOG_ALLRANKS, SID.My_rank);
 
   // Create the file.
   file_id = H5Fopen(run_globals->FNameOut, H5F_ACC_RDWR, H5P_DEFAULT);
@@ -680,6 +680,6 @@ void write_snapshot(run_globals_t *run_globals, int n_write, int i_out, int *las
   // Update the value of last_n_write
   *last_n_write = n_write;
 
-  SID_log("...done", SID_LOG_CLOSE);
+  SID_log("rank %d: ...done", SID_LOG_CLOSE|SID_LOG_ALLRANKS, SID.My_rank);
 
 }

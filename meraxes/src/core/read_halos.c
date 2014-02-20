@@ -387,8 +387,14 @@ static void select_forests(run_globals_t *run_globals)
   int max_fof_groups;
   int *n_requested_forests = &(run_globals->NRequestedForests);
   int *requested_ind;
+  bool sample_forests;
 
   SID_log("Calling select_forests()...", SID_LOG_COMMENT);
+
+  if(run_globals->RequestedForestId == NULL)
+    sample_forests = false;
+  else
+    sample_forests = true;
 
   if(SID.My_rank == 0)
   {
@@ -439,14 +445,16 @@ static void select_forests(run_globals_t *run_globals)
 
   // if we have read in a list of requested forest IDs then use these to create
   // an array of indices pointing to the elements we want
-  if(run_globals->RequestedForestId != NULL)
+  if(sample_forests)
   {
     requested_ind = (int *)SID_malloc(sizeof(int) * (*n_requested_forests));
+    n_halos_tot = 0;
     for(i_forest=0, i_req=0; (i_forest<n_forests) && (i_req<(*n_requested_forests)); i_forest++)
     {
       if(forest_id[i_forest] == run_globals->RequestedForestId[i_req])
       {
         requested_ind[i_req] = i_forest;
+        n_halos_tot+= n_halos[i_forest];
         i_req++;
       }
     }
@@ -466,7 +474,7 @@ static void select_forests(run_globals_t *run_globals)
   {
     if(n_forests < SID.n_proc)
     {
-      SID_log_error("There are fewer processors than there are forests to be processed.  Try again with fewer cores!");
+      SID_log_error("There are fewer processors than there are forests to be processed (%d).  Try again with fewer cores!", n_forests);
       ABORT(EXIT_FAILURE);
     }
 
@@ -497,7 +505,7 @@ static void select_forests(run_globals_t *run_globals)
         rank_n_halos[i_rank] = n_halos[requested_ind[i_forest]];
 
         // adjust our target to smooth out variations as much as possible
-        n_halos_target = (n_halos_tot - n_halos_unused)/(SID.n_proc - i_rank);
+        n_halos_target = (n_halos_tot - n_halos_used)/(SID.n_proc - i_rank);
 
         rank_n_forests[i_rank]++;
 
@@ -539,7 +547,7 @@ static void select_forests(run_globals_t *run_globals)
     }
 
     // create our list of forest_ids for this rank
-    if(SID.My_rank < SID.n_proc-1)
+    if((SID.My_rank < SID.n_proc-1) || sample_forests)
       *n_requested_forests = rank_n_forests[SID.My_rank];
     else
       *n_requested_forests = rank_n_forests[SID.My_rank]+1;
@@ -559,7 +567,7 @@ static void select_forests(run_globals_t *run_globals)
     // take any halos that have a forest_id of -1 unless we provided a list of
     // requested forest IDs.  This fact should have been taken in to account
     // above when we load balanced the forests.
-    if(SID.My_rank == SID.n_proc-1)
+    if((SID.My_rank == SID.n_proc-1) && !sample_forests)
       run_globals->RequestedForestId[*n_requested_forests -1] = -1;
 
     // DEBUG
