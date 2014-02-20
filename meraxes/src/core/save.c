@@ -25,9 +25,9 @@ static void inline h5_write_attribute(hid_t loc, const char *name, hid_t datatyp
 
 void prepare_galaxy_for_output(
   run_globals_t   *run_globals,
-  galaxy_t         gal,        
-  galaxy_output_t *galout,     
-  int                   i_snap)     
+  galaxy_t         gal,
+  galaxy_output_t *galout,
+  int                   i_snap)
 {
 
   double Hubble_h = run_globals->params.Hubble_h;
@@ -231,7 +231,7 @@ void prep_hdf5_file(run_globals_t *run_globals)
 
   // Create a new file
   file_id = H5Fcreate(run_globals->FNameOut, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT );
-  
+
   // Set up reusable dataspaces and types
   ds_id = H5Screate_simple(1, &dims, NULL);
   str_t = H5Tcopy(H5T_C_S1);
@@ -251,6 +251,11 @@ void prep_hdf5_file(run_globals_t *run_globals)
   sprintf(names[ii++],  "SimulationDir");
   addresses[ii] = &(run_globals->params.FileWithOutputSnaps);
   sprintf(names[ii++],  "FileWithOutputSnaps");
+  if(run_globals->NRequestedForests > 0)
+  {
+    addresses[ii] = &(run_globals->params.ForestIDFile);
+    sprintf(names[ii++], "ForestIDFile");
+  }
 
   for(int jj=0; jj<ii; jj++)
     h5_write_attribute(group_id, names[jj], str_t, ds_id, addresses[jj]);
@@ -270,6 +275,13 @@ void prep_hdf5_file(run_globals_t *run_globals)
   sprintf(names[ii++],  "LastFile");
   addresses[ii] = &(run_globals->params.SnaplistLength);
   sprintf(names[ii++],  "SnaplistLength");
+  addresses[ii] = &(run_globals->NRequestedForests);
+  sprintf(names[ii++], "NRequestedForests");
+  if(SID.n_proc>0)
+  {
+    addresses[ii] = &(SID.n_proc);
+    sprintf(names[ii++], "NOutputFiles");
+  }
 
   for(int jj=0; jj<ii; jj++)
     h5_write_attribute(group_id, (const char *)(names[jj]), H5T_NATIVE_INT, ds_id, addresses[jj]);
@@ -352,7 +364,7 @@ void prep_hdf5_file(run_globals_t *run_globals)
   sprintf(names[ii++],  "funcprop");
 
   h5_write_attribute(group_id, names[0], H5T_NATIVE_INT, ds_id, addresses[0]);
- 
+
   // Close the group
   H5Gclose(group_id);
 
@@ -428,7 +440,7 @@ void prep_hdf5_file(run_globals_t *run_globals)
     H5Gclose(group_id);
   }
 #endif
- 
+
   // Close the HDF5 file.
   H5Fclose(file_id);
 
@@ -438,27 +450,27 @@ void prep_hdf5_file(run_globals_t *run_globals)
 }
 
 static void inline save_walk_indices(
-  run_globals_t *run_globals,           
-  hid_t               file_id,               
-  int                 i_out,            
-  int                 prev_i_out,            
-  int                *descendant_index,      
+  run_globals_t *run_globals,
+  hid_t               file_id,
+  int                 i_out,
+  int                 prev_i_out,
+  int                *descendant_index,
   int                *first_progenitor_index,
-  int                *next_progenitor_index, 
-  int                 old_count,             
-  int                 n_write)               
+  int                *next_progenitor_index,
+  int                 old_count,
+  int                 n_write)
 {
 
   hsize_t dim[1];
   char target[50];
-  
-  dim[0] = (hsize_t)old_count; 
+
+  dim[0] = (hsize_t)old_count;
   sprintf(target, "Snap%03d/DescendantIndices", (run_globals->ListOutputSnaps)[prev_i_out]);
   H5LTmake_dataset(file_id,target,1,dim,H5T_NATIVE_INT,descendant_index);
   sprintf(target, "Snap%03d/NextProgenitorIndices", (run_globals->ListOutputSnaps)[prev_i_out]);
   H5LTmake_dataset(file_id,target,1,dim,H5T_NATIVE_INT,next_progenitor_index);
 
-  dim[0] = (hsize_t)n_write; 
+  dim[0] = (hsize_t)n_write;
   sprintf(target, "Snap%03d/FirstProgenitorIndices", (run_globals->ListOutputSnaps)[i_out]);
   H5LTmake_dataset(file_id,target,1,dim,H5T_NATIVE_INT,first_progenitor_index);
 
@@ -486,8 +498,8 @@ void write_snapshot(run_globals_t *run_globals, int n_write, int i_out, int *las
   hsize_t               dims                   = 1;
   double                temp;
   int                  *descendant_index       = NULL;
-  int                  *first_progenitor_index = NULL; 
-  int                  *next_progenitor_index  = NULL; 
+  int                  *first_progenitor_index = NULL;
+  int                  *next_progenitor_index  = NULL;
   int                   calc_descendants_i_out = -1;
   int                   prev_snapshot          = -1;
   int                   index                  = -1;
@@ -511,7 +523,7 @@ void write_snapshot(run_globals_t *run_globals, int n_write, int i_out, int *las
   // If the immediately preceeding snapshot was also written, then save the
   // descendent indices
   prev_snapshot = run_globals->ListOutputSnaps[i_out]-1;
-  if (i_out > 0) 
+  if (i_out > 0)
     for (int ii=0; ii<NOUT; ii++)
       if (run_globals->ListOutputSnaps[ii] == prev_snapshot)
       {
@@ -550,7 +562,7 @@ void write_snapshot(run_globals_t *run_globals, int n_write, int i_out, int *las
       }
       gal=gal->Next;
     }
-  
+
     // Here we want to walk the progenitor indices to tag on galaxies which
     // have merged in this timestep and also set their descendant_index.
     gal = run_globals->FirstGal;
@@ -671,5 +683,3 @@ void write_snapshot(run_globals_t *run_globals, int n_write, int i_out, int *las
   SID_log("...done", SID_LOG_CLOSE);
 
 }
-
-

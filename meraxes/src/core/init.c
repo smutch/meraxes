@@ -256,6 +256,7 @@ void init_meraxes(run_globals_t *run_globals)
     sprintf(run_globals->FNameOut, "%s/%s.hdf5", run_globals->params.OutputDir, run_globals->params.FileNameGalaxies);
   else
     sprintf(run_globals->FNameOut, "%s/%s_%d.hdf5", run_globals->params.OutputDir, run_globals->params.FileNameGalaxies, SID.My_rank);
+
   prep_hdf5_file(run_globals);
 
 #ifdef USE_TOCF
