@@ -26,14 +26,16 @@ static void cleanup(run_globals_t *run_globals)
   SID_log(" ...done", SID_LOG_CLOSE);
 
   // close the log file
-  if(run_globals->log_file)
-    fclose(run_globals->log_file);
+  if(SID.n_proc > 1)
+    fclose(SID.fp_log);
 }
 
 void myexit(int signum)
 {
   printf("Task: %d\tnode: %s\tis exiting.\n\n\n", SID.My_rank, SID.My_node);
   cn_quote();
+  if(SID.n_proc > 1)
+    fclose(SID.fp_log);
   SID_exit(signum);
 }
 
@@ -76,6 +78,7 @@ int main(int argc, char **argv)
   struct stat filestatus;
   run_globals_t run_globals;
   char log_fname[50];
+  FILE *log_file = NULL;
 
   // init SID
   SID_init(&argc, &argv, NULL);
@@ -83,11 +86,9 @@ int main(int argc, char **argv)
   {
     SID.flag_log_allranks = 1;
     sprintf(log_fname, "rank_%d.log", SID.My_rank);
-    run_globals.log_file = fopen(log_fname, "w");
-    SID.fp_log = run_globals.log_file;
+    log_file = fopen(log_fname, "w");
+    SID.fp_log = log_file;
   }
-  else
-    run_globals.log_file = NULL;
 
   // deal with any input arguments
   if( (argc!=8) && (argc!=4) && (argc!=2) )
