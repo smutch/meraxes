@@ -391,11 +391,13 @@ static void select_forests(run_globals_t *run_globals)
 
   SID_log("Calling select_forests()...", SID_LOG_COMMENT);
 
+  // are we sampling the forests or just dividing them amoungst cores?
   if(run_globals->RequestedForestId == NULL)
     sample_forests = false;
   else
     sample_forests = true;
 
+  // if this is the master rank then read in the forest info
   if(SID.My_rank == 0)
   {
     sprintf(fname, "%s/trees/forests_info.hdf5", run_globals->params.SimulationDir);
@@ -429,8 +431,10 @@ static void select_forests(run_globals_t *run_globals)
     H5Fclose(fin);
   }
 
-  // broadcast the requested forest IDs info (if necessary)
+  // broadcast the forest info
   SID_Bcast(&n_forests, sizeof(int), 0, SID.COMM_WORLD);
+  SID_Bcast(&n_halos_tot, sizeof(int), 0, SID.COMM_WORLD);
+  SID_Bcast(&n_halos_unused, sizeof(int), 0, SID.COMM_WORLD);
   if(SID.My_rank > 0)
   {
     forest_id        = (int *)SID_malloc(sizeof(int) * n_forests);
@@ -478,6 +482,7 @@ static void select_forests(run_globals_t *run_globals)
       ABORT(EXIT_FAILURE);
     }
 
+    // malloc the arrays we need for keeping track of the load balancing
     int *rank_first_forest = (int *)SID_malloc(sizeof(int) * SID.n_proc);
     int *rank_last_forest  = (int *)SID_malloc(sizeof(int) * SID.n_proc);
     int *rank_n_forests    = (int *)SID_malloc(sizeof(int) * SID.n_proc);
@@ -486,6 +491,7 @@ static void select_forests(run_globals_t *run_globals)
     int n_halos_used;
     int n_halos_target;
 
+    // initialise
     for(int ii=0; ii<SID.n_proc; ii++)
     {
       rank_first_forest[ii] = 0;
@@ -494,19 +500,23 @@ static void select_forests(run_globals_t *run_globals)
       rank_n_halos[ii]      = 0;
     }
 
+    // loop through each rank
     for(i_rank=0, n_halos_used=0, i_forest=0, n_halos_target=0; i_rank < SID.n_proc; i_rank++, i_forest++)
     {
+      // start with the next forest (or first forest if this is the first rank)
       rank_first_forest[i_rank] = i_forest;
       rank_last_forest[i_rank]  = i_forest;
 
+      // if we still have forests left to check from the total list of forests
       if(i_forest < n_forests)
       {
-        // add this forest to this rank's list
-        rank_n_halos[i_rank] = n_halos[requested_ind[i_forest]];
+        // add this forest's halos to this rank's total
+        rank_n_halos[i_rank] += n_halos[requested_ind[i_forest]];
 
         // adjust our target to smooth out variations as much as possible
         n_halos_target = (n_halos_tot - n_halos_used)/(SID.n_proc - i_rank);
 
+        // increment the counter of the number of forests on this rank
         rank_n_forests[i_rank]++;
 
         // keep adding forests until we have reached (or exceeded) the current target
@@ -538,8 +548,9 @@ static void select_forests(run_globals_t *run_globals)
         }
       }
     }
+
     // add any uncounted forests to the last process
-    for(;i_forest < (n_forests-1); i_forest++)
+    for(i_forest++ ;i_forest < n_forests; i_forest++)
     {
       rank_last_forest[SID.n_proc-1] = i_forest;
       rank_n_halos[SID.n_proc-1] += n_halos[requested_ind[i_forest]];
@@ -557,11 +568,8 @@ static void select_forests(run_globals_t *run_globals)
     else
       run_globals->RequestedForestId = (int *)SID_malloc(sizeof(int) * (*n_requested_forests));
 
-    for(int ii=rank_first_forest[SID.My_rank], jj=0; ii<rank_last_forest[SID.My_rank]+1; ii++)
-    {
-      jj = ii - rank_first_forest[SID.My_rank];
+    for(int ii=rank_first_forest[SID.My_rank], jj=0; ii <= rank_last_forest[SID.My_rank]; ii++, jj++)
       run_globals->RequestedForestId[jj] = forest_id[requested_ind[ii]];
-    }
 
     // note that when we actually read in the halos, the last rank will always
     // take any halos that have a forest_id of -1 unless we provided a list of
@@ -584,6 +592,11 @@ static void select_forests(run_globals_t *run_globals)
     // SID_Barrier(SID.COMM_WORLD);
     // SID_log("rank %d: rank_n_forests[%d] = %d", SID_LOG_COMMENT|SID_LOG_ALLRANKS, SID.My_rank, SID.My_rank, rank_n_forests[SID.My_rank]);
     // SID_Barrier(SID.COMM_WORLD);
+    // SID_log("rank %d: rank_first_forest = %d", SID_LOG_COMMENT|SID_LOG_ALLRANKS, SID.My_rank, rank_first_forest[SID.My_rank]);
+    // SID_Barrier(SID.COMM_WORLD);
+    // SID_log("rank %d: rank_last_forest = %d", SID_LOG_COMMENT|SID_LOG_ALLRANKS, SID.My_rank, rank_last_forest[SID.My_rank]);
+    // SID_Barrier(SID.COMM_WORLD);
+
 
     // free the arrays
     SID_free(SID_FARG rank_n_halos);
@@ -595,21 +608,39 @@ static void select_forests(run_globals_t *run_globals)
 
 
   // loop through and tot up the max number of halos and fof_groups we will need to allocate
-  max_halos = 0;
-  max_fof_groups = 0;
-  for(int i_forest=0, i_req=0; (i_forest<n_forests) && (i_req<(*n_requested_forests)); i_forest++)
+  if(sample_forests)
   {
-    if(forest_id[requested_ind[i_forest]] == run_globals->RequestedForestId[i_req])
+    max_halos = 0;
+    max_fof_groups = 0;
+    for(int i_forest=0, i_req=0; (i_forest<n_forests) && (i_req<(*n_requested_forests)); i_forest++)
     {
-      max_halos += max_contemp_halo[requested_ind[i_forest]];
-      max_fof_groups += max_contemp_fof[requested_ind[i_forest]];
-      i_req++;
+      if(forest_id[requested_ind[i_forest]] == run_globals->RequestedForestId[i_req])
+      {
+        max_halos += max_contemp_halo[requested_ind[i_forest]];
+        max_fof_groups += max_contemp_fof[requested_ind[i_forest]];
+        i_req++;
+      }
     }
+
+    // store the maximum number of halos and fof groups needed at any one snapshot
+    run_globals->NHalosMax = max_halos;
+    run_globals->NFOFGroupsMax = max_fof_groups;
   }
 
-  // store the maximum number of halos and fof groups needed at any one snapshot
-  run_globals->NHalosMax = max_halos;
-  run_globals->NFOFGroupsMax = max_fof_groups;
+  // {
+  //   // DEBUG
+  //   hid_t fd;
+  //   char fname[50];
+  //   hsize_t dims;
+  //   sprintf(fname, "debug_%d.hdf5", SID.My_rank);
+  //   fd = H5Fcreate(fname, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
+  //   dims = (hsize_t)(*n_requested_forests);
+  //   H5LTmake_dataset_int(fd, "forest_id", 1, &dims, run_globals->RequestedForestId);
+  //   dims = (hsize_t)n_forests;
+  //   H5LTmake_dataset_int(fd, "requested_ind", 1, &dims, requested_ind);
+  //   H5LTmake_dataset_int(fd, "n_halos", 1, &dims, n_halos);
+  //   H5Fclose(fd);
+  // }
 
   // free the arrays
   SID_free(SID_FARG requested_ind);
@@ -667,16 +698,14 @@ trees_info_t read_halos(
   // If necessary, allocate the halo array
   if(*halo == NULL)
   {
+    run_globals->NHalosMax = trees_info.n_halos_max;
+    run_globals->NFOFGroupsMax = trees_info.n_fof_groups_max;
+
     // if required, select forests and calculate the maximum number of halos and fof groups
     if((n_requested_forests > -1) || (SID.n_proc > 1))
     {
       select_forests(run_globals);
       *index_lookup = SID_malloc(sizeof(int) * run_globals->NHalosMax);
-    }
-    else
-    {
-      run_globals->NHalosMax = trees_info.n_halos_max;
-      run_globals->NFOFGroupsMax = trees_info.n_fof_groups_max;
     }
 
     SID_log("rank %d: Allocating halo array with %d elements...", SID_LOG_COMMENT|SID_LOG_ALLRANKS, SID.My_rank, run_globals->NHalosMax);
