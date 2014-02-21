@@ -195,6 +195,7 @@ typedef struct tocf_grids_t tocf_grids_t;
 
 //! Global variables which will will be passed around
 struct run_globals_t{
+  FILE                  *log_file;
   int                    LastOutputSnap;
   int                    ListOutputSnaps[NOUT];
   int                    NGhosts;

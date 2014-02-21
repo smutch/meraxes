@@ -168,7 +168,7 @@ void dracarys(run_globals_t *run_globals)
     // Read in the halos for this snapshot
     trees_info = read_halos(run_globals, snapshot, &halo, &fof_group, &index_lookup);
 
-    SID_log("rank %d: Processing snapshot %d (z=%.2f)...", SID_LOG_OPEN|SID_LOG_TIMER|SID_LOG_ALLRANKS, SID.My_rank, snapshot, run_globals->ZZ[snapshot]);
+    SID_log("Processing snapshot %d (z=%.2f)...", SID_LOG_OPEN|SID_LOG_TIMER, SID.My_rank, snapshot, run_globals->ZZ[snapshot]);
 
 #ifdef USE_TOCF
     // Calculate the critical halo mass for cooling
@@ -309,10 +309,10 @@ void dracarys(run_globals_t *run_globals)
       if(check_if_valid_host(run_globals, &(halo[i_halo])))
         create_new_galaxy(run_globals, snapshot, &(halo[i_halo]), &NGal, &new_gal_counter, &unique_ID);
 
-    SID_log("rank %d: Newly identified merger events    :: %d", SID_LOG_COMMENT|SID_LOG_ALLRANKS, SID.My_rank, merger_counter);
-    SID_log("rank %d: Killed galaxies                   :: %d", SID_LOG_COMMENT|SID_LOG_ALLRANKS, SID.My_rank, kill_counter);
-    SID_log("rank %d: Newly created galaxies            :: %d", SID_LOG_COMMENT|SID_LOG_ALLRANKS, SID.My_rank, new_gal_counter);
-    SID_log("rank %d: Galaxies in ghost halos           :: %d", SID_LOG_COMMENT|SID_LOG_ALLRANKS, SID.My_rank, ghost_counter);
+    SID_log("Newly identified merger events    :: %d", SID_LOG_COMMENT, SID.My_rank, merger_counter);
+    SID_log("Killed galaxies                   :: %d", SID_LOG_COMMENT, SID.My_rank, kill_counter);
+    SID_log("Newly created galaxies            :: %d", SID_LOG_COMMENT, SID.My_rank, new_gal_counter);
+    SID_log("Galaxies in ghost halos           :: %d", SID_LOG_COMMENT, SID.My_rank, ghost_counter);
 
     // Loop through each galaxy and deal with HALO mergers now that all other
     // galaxies have been processed and their halo pointers updated...
@@ -441,7 +441,7 @@ void dracarys(run_globals_t *run_globals)
       check_if_reionization_complete(run_globals);
 #endif
 
-    SID_log("rank %d: ...done", SID_LOG_CLOSE|SID_LOG_ALLRANKS, SID.My_rank);
+    SID_log("...done", SID_LOG_CLOSE, SID.My_rank);
   }
 
   // Free all of the remaining allocated galaxies, halos and fof groups

@@ -10,7 +10,7 @@ int evolve_galaxies(run_globals_t *run_globals, fof_group_t *fof_group, int snap
   int       gal_counter  = 0;
   int       dead_gals    = 0;
 
-  SID_log("rank %d: Doing physics...", SID_LOG_OPEN|SID_LOG_TIMER|SID_LOG_ALLRANKS, SID.My_rank);
+  SID_log("Doing physics...", SID_LOG_OPEN|SID_LOG_TIMER, SID.My_rank);
   
   for(int i_fof=0; i_fof<NFof; i_fof++)
   {
@@ -63,7 +63,7 @@ int evolve_galaxies(run_globals_t *run_globals, fof_group_t *fof_group, int snap
     ABORT(EXIT_FAILURE);
   }
 
-  SID_log("rank %d: ...done", SID_LOG_CLOSE|SID_LOG_ALLRANKS, SID.My_rank); 
+  SID_log("...done", SID_LOG_CLOSE, SID.My_rank); 
 
   return gal_counter-dead_gals;
 }
