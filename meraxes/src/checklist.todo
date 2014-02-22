@@ -1,18 +1,8 @@
 Todo list:
 
-✔ refactor merger code @done (2014-01-10 14:34))
-✔ conserve cold gas in merger events @done (2014-01-10 14:34))
-✔ refactor insitu-SF code @done (2014-01-10 15:24))
-✔ add gas_infall to repo and call from evolve_galaxies @done (2014-01-11 14:01))
-✔ change baryonic growth function to use gas instead of fb*dMvir @done (2014-01-11 16:31))
-    ✔ limit the SFR to cold gas reservoir @done (2014-01-11 16:31))
-✔ use Sobacchi baryon frac formula @done (2014-01-13 15:05))
-    ✔ will need to work out the details of this @done (2014-01-13 15:05))
-✔ only allow galaxies to form in halos with Mvir>Mcool(z) @done (2014-01-13 20:30))
-✔ global emissivity calculation @done (2014-01-20 15:46))
-    ✔ think it's best to first do this in post-processing and then port to model @done (2014-01-20 15:46))
-✔ use the fesc & Nion values etc. to calculate the HII_eff_factor for 21cmFAST @done (2014-01-21 12:11))
-
+☐ debug the why I get 25% fewer galaxies with MPI at snapshot=-1
+  I reckon I am either messing up the calc of the index lookup or how it's being searched
+☐ allow the halos of previous snapshots be saved and used for repeated runs
 
 To consider:
 
@@ -20,3 +10,18 @@ To consider:
 ☐ proper cooling and tracking of hot halo gas
     ☐ this will need matalliticity tracking as well
     ☐ see Garel+ paper
+
+Archive:
+＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿
+✔ refactor merger code @done (2014-01-10 14:34))
+✔ conserve cold gas in merger events @done (2014-01-10 14:34))
+✔ refactor insitu-SF code @done (2014-01-10 15:24))
+✔ add gas_infall to repo and call from evolve_galaxies @done (2014-01-11 14:01))
+✔ change baryonic growth function to use gas instead of fb*dMvir @done (2014-01-11 16:31))
+✔ limit the SFR to cold gas reservoir @done (2014-01-11 16:31))
+✔ use Sobacchi baryon frac formula @done (2014-01-13 15:05))
+✔ will need to work out the details of this @done (2014-01-13 15:05))
+✔ only allow galaxies to form in halos with Mvir>Mcool(z) @done (2014-01-13 20:30))
+✔ global emissivity calculation @done (2014-01-20 15:46))
+✔ think it's best to first do this in post-processing and then port to model @done (2014-01-20 15:46))
+✔ use the fesc & Nion values etc. to calculate the HII_eff_factor for 21cmFAST @done (2014-01-21 12:11))
