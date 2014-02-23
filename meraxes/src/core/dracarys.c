@@ -118,12 +118,6 @@ static int find_original_index(int index, int *lookup, int n_mappings)
   if(pointer)
     new_index = (int)(pointer-lookup);
 
-  // DEBUG
-  // SID_log("new_index = %d; old index = %d", SID_LOG_COMMENT, new_index, index);
-  // if(new_index == -1)
-  //   for(int ii=0; ii<n_mappings; ii++)
-  //     SID_log("lookup[%d] = %d", SID_LOG_COMMENT, ii, lookup[ii]);
-
   return new_index;
 }
 
@@ -149,6 +143,9 @@ void dracarys(run_globals_t *run_globals)
   int           merger_counter  = 0;
   int           new_gal_counter = 0;
   int           ghost_counter   = 0;
+
+  // DEBUG
+  FILE *debug_file = NULL;
 
   // Find what the last requested output snapshot is
   for(int ii=0; ii<NOUT; ii++)
@@ -187,14 +184,31 @@ void dracarys(run_globals_t *run_globals)
       gal = gal->Next;
     }
 
+    // DEBUG
+    if(snapshot == 6)
+    {
+      char fname[50];
+      sprintf(fname, "debug_indexing_%d.txt", SID.My_rank);
+      debug_file = fopen(fname, "w");
+    }
+
     gal      = run_globals->FirstGal;
     prev_gal = NULL;
     while (gal != NULL) {
 
       i_newhalo = gal->HaloDescIndex;
 
-      if((index_lookup) && (i_newhalo > -1) && !(gal->ghost_flag))
+      if((index_lookup) && (i_newhalo > -1) && (gal->SnapSkipCounter<=0))
+      {
+        //DEBUG
+        int orig_newhalo = i_newhalo;
+
         i_newhalo = find_original_index(gal->HaloDescIndex, index_lookup, trees_info.n_halos);
+
+        // DEBUG
+        if(snapshot==6)
+          fprintf(debug_file, "%d %d\n", orig_newhalo, i_newhalo);
+      }
 
       if(gal->SnapSkipCounter<=0)
       {
@@ -442,6 +456,11 @@ void dracarys(run_globals_t *run_globals)
 #endif
 
     SID_log("...done", SID_LOG_CLOSE, SID.My_rank);
+
+    // DEBUG
+    if(snapshot == 6)
+      fclose(debug_file);
+
   }
 
   // Free all of the remaining allocated galaxies, halos and fof groups

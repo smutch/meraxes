@@ -277,6 +277,7 @@ struct halo_t{
   int    SnapOffset;     //!< Number of snapshots this halo skips before reappearing
   int    DescIndex;      //!< Index of descendant in next relevant snapshot
   int    TreeFlags;      //!< Bitwise flag indicating the type of match in the trees
+  int    ForestID;
   struct fof_group_t *FOFGroup;
   struct halo_t      *NextHaloInFOFGroup;
   struct galaxy_t    *Galaxy;
