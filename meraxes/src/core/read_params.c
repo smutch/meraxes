@@ -558,5 +558,9 @@ void read_parameter_file(run_globals_t *run_globals, char *fname)
 
   // If running mpi then broadcast the run parameters to all cores
   SID_Bcast(run_params, sizeof(run_params_t), 0, SID.COMM_WORLD);
+  SID_Bcast(&(run_globals->units), sizeof(run_units_t), 0, SID.COMM_WORLD);
+#ifdef USE_TOCF
+  SID_Bcast(&tocf_params, sizeof(tocf_params_t), 0, SID.COMM_WORLD);
+#endif
 
 }

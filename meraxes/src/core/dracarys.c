@@ -144,9 +144,6 @@ void dracarys(run_globals_t *run_globals)
   int           new_gal_counter = 0;
   int           ghost_counter   = 0;
 
-  // DEBUG
-  FILE *debug_file = NULL;
-
   // Find what the last requested output snapshot is
   for(int ii=0; ii<NOUT; ii++)
     if (run_globals->ListOutputSnaps[ii] > last_snap)
@@ -184,14 +181,6 @@ void dracarys(run_globals_t *run_globals)
       gal = gal->Next;
     }
 
-    // DEBUG
-    if(snapshot == 6)
-    {
-      char fname[50];
-      sprintf(fname, "debug_indexing_%d.txt", SID.My_rank);
-      debug_file = fopen(fname, "w");
-    }
-
     gal      = run_globals->FirstGal;
     prev_gal = NULL;
     while (gal != NULL) {
@@ -200,17 +189,9 @@ void dracarys(run_globals_t *run_globals)
 
       if(gal->SnapSkipCounter<=0)
       {
-        if((index_lookup) && (i_newhalo > -1) && !(gal->ghost_flag))
-        {
-          //DEBUG
-          int orig_newhalo = i_newhalo;
 
+        if((index_lookup) && (i_newhalo > -1) && !(gal->ghost_flag) && (gal->Type < 2))
           i_newhalo = find_original_index(gal->HaloDescIndex, index_lookup, trees_info.n_halos);
-
-          // DEBUG
-          if(snapshot==6)
-            fprintf(debug_file, "%d %d\n", orig_newhalo, i_newhalo);
-        }
 
         if(i_newhalo>-1)
         {
@@ -380,7 +361,6 @@ void dracarys(run_globals_t *run_globals)
             cur_gal                 = cur_gal->NextGalInHalo;
           }
 
-          // DEBUG
           if (gal->FirstGalInHalo == NULL)
             SID_log_warning("Just set gal->FirstGalInHalo = NULL!", SID_LOG_COMMENT);
 
@@ -456,10 +436,6 @@ void dracarys(run_globals_t *run_globals)
 #endif
 
     SID_log("...done", SID_LOG_CLOSE);
-
-    // DEBUG
-    if(snapshot == 6)
-      fclose(debug_file);
 
   }
 

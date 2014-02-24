@@ -329,7 +329,6 @@ static void read_trees_and_catalogs(
           halo[*n_halos_kept].Mvir             = catalog_buffer[jj].M_vir;
         }
 
-
         convert_input_halo_units(run_globals, &(halo[*n_halos_kept]), snapshot);
 
         (*n_halos_kept)++;
@@ -749,38 +748,6 @@ trees_info_t read_halos(
   {
     trees_info.n_halos = n_halos_kept;
     trees_info.n_fof_groups = n_fof_groups_kept;
-  }
-
-  // DEBUG
-  if(snapshot == 5)
-  {
-    FILE *debug_file = NULL;
-    char debug_fname[50];
-    sprintf(debug_fname, "debug_prev_%d.txt", SID.My_rank);
-    debug_file = fopen(debug_fname, "w");
-    for(int ii=0; ii<trees_info.n_halos; ii++)
-      fprintf(debug_file, "%d %d %d\n", (*index_lookup)[ii], (*halo)[ii].DescIndex, (*halo)[ii].ForestID);
-    fclose(debug_file);
-  }
-
-  // DEBUG
-  if(snapshot == 6)
-  {
-    FILE *debug_file = NULL;
-    FILE *debug_forest_file = NULL;
-    char debug_fname[50];
-    char debug_forest_fname[50];
-    sprintf(debug_fname, "debug_lookup_%d.txt", SID.My_rank);
-    sprintf(debug_forest_fname, "debug_forest_%d.txt", SID.My_rank);
-    debug_file = fopen(debug_fname, "w");
-    debug_forest_file = fopen(debug_forest_fname, "w");
-    for(int ii=0; ii<trees_info.n_halos; ii++)
-    {
-      fprintf(debug_file, "%d\n", (*index_lookup)[ii]);
-      fprintf(debug_forest_file, "%d\n", (*halo)[ii].ForestID);
-    }
-    fclose(debug_file);
-    fclose(debug_forest_file);
   }
 
   SID_log("Read %d halos in %d fof_groups.", SID_LOG_COMMENT, trees_info.n_halos, trees_info.n_fof_groups);

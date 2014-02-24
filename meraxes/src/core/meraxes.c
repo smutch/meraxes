@@ -27,7 +27,10 @@ static void cleanup(run_globals_t *run_globals)
 
   // close the log file
   if(SID.n_proc > 1)
+  {
+    fflush(SID.fp_log);
     fclose(SID.fp_log);
+  }
 }
 
 void myexit(int signum)
@@ -35,7 +38,10 @@ void myexit(int signum)
   printf("Task: %d\tnode: %s\tis exiting.\n\n\n", SID.My_rank, SID.My_node);
   cn_quote();
   if(SID.n_proc > 1)
+  {
+    fflush(SID.fp_log);
     fclose(SID.fp_log);
+  }
   SID_exit(signum);
 }
 
