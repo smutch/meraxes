@@ -304,11 +304,6 @@ void dracarys(run_globals_t *run_globals)
       if(check_if_valid_host(run_globals, &(halo[i_halo])))
         create_new_galaxy(run_globals, snapshot, &(halo[i_halo]), &NGal, &new_gal_counter, &unique_ID);
 
-    SID_log("Newly identified merger events    :: %d", SID_LOG_COMMENT, merger_counter);
-    SID_log("Killed galaxies                   :: %d", SID_LOG_COMMENT, kill_counter);
-    SID_log("Newly created galaxies            :: %d", SID_LOG_COMMENT, new_gal_counter);
-    SID_log("Galaxies in ghost halos           :: %d", SID_LOG_COMMENT, ghost_counter);
-
     // Loop through each galaxy and deal with HALO mergers now that all other
     // galaxies have been processed and their halo pointers updated...
     gal = run_globals->FirstGal;
@@ -423,6 +418,19 @@ void dracarys(run_globals_t *run_globals)
       else
         call_find_HII_bubbles(run_globals, snapshot, nout_gals);
     }
+#endif
+
+#ifdef DEBUG
+    // print some statistics for this snapshot
+    SID_Allreduce(SID_IN_PLACE, &merger_counter , 1, SID_INT, SID_SUM, SID.COMM_WORLD);
+    SID_Allreduce(SID_IN_PLACE, &kill_counter   , 1, SID_INT, SID_SUM, SID.COMM_WORLD);
+    SID_Allreduce(SID_IN_PLACE, &new_gal_counter, 1, SID_INT, SID_SUM, SID.COMM_WORLD);
+    SID_Allreduce(SID_IN_PLACE, &ghost_counter  , 1, SID_INT, SID_SUM, SID.COMM_WORLD);
+
+    SID_log("Newly identified merger events    :: %d", SID_LOG_COMMENT, merger_counter);
+    SID_log("Killed galaxies                   :: %d", SID_LOG_COMMENT, kill_counter);
+    SID_log("Newly created galaxies            :: %d", SID_LOG_COMMENT, new_gal_counter);
+    SID_log("Galaxies in ghost halos           :: %d", SID_LOG_COMMENT, ghost_counter);
 #endif
 
     // Write the results if this is a requested snapshot

@@ -26,22 +26,22 @@ static void cleanup(run_globals_t *run_globals)
   SID_log(" ...done", SID_LOG_CLOSE);
 
   // close the log file
-  if(SID.n_proc > 1)
-  {
-    fflush(SID.fp_log);
-    fclose(SID.fp_log);
-  }
+  // if(SID.n_proc > 1)
+  // {
+  //   fflush(SID.fp_log);
+  //   fclose(SID.fp_log);
+  // }
 }
 
 void myexit(int signum)
 {
   printf("Task: %d\tnode: %s\tis exiting.\n\n\n", SID.My_rank, SID.My_node);
   cn_quote();
-  if(SID.n_proc > 1)
-  {
-    fflush(SID.fp_log);
-    fclose(SID.fp_log);
-  }
+  // if(SID.n_proc > 1)
+  // {
+  //   fflush(SID.fp_log);
+  //   fclose(SID.fp_log);
+  // }
   SID_exit(signum);
 }
 
@@ -79,22 +79,22 @@ static void set_physics_params(
 
 int main(int argc, char **argv)
 {
-  // mpi_debug_here();
-
-  struct stat filestatus;
-  run_globals_t run_globals;
-  char log_fname[50];
-  FILE *log_file = NULL;
 
   // init SID
   SID_init(&argc, &argv, NULL);
-  if(SID.n_proc > 1)
-  {
-    SID.flag_log_allranks = 1;
-    sprintf(log_fname, "rank_%d.log", SID.My_rank);
-    log_file = fopen(log_fname, "w");
-    SID.fp_log = log_file;
-  }
+
+  struct stat filestatus;
+  run_globals_t run_globals;
+
+  // char log_fname[50];
+  // FILE *log_file = NULL;
+  // if(SID.n_proc > 1)
+  // {
+  //   SID.flag_log_allranks = 1;
+  //   sprintf(log_fname, "rank_%d.log", SID.My_rank);
+  //   log_file = fopen(log_fname, "w");
+  //   SID.fp_log = log_file;
+  // }
 
   // deal with any input arguments
   if( (argc!=8) && (argc!=4) && (argc!=2) )

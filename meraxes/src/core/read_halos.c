@@ -752,13 +752,6 @@ trees_info_t read_halos(
 
   SID_log("Read %d halos in %d fof_groups.", SID_LOG_COMMENT, trees_info.n_halos, trees_info.n_fof_groups);
 
-  if(SID.n_proc > 0)
-  {
-    SID_Allreduce(SID_IN_PLACE, &n_halos_kept, 1, SID_INT, SID_SUM, SID.COMM_WORLD);
-    SID_Allreduce(SID_IN_PLACE, &n_fof_groups_kept, 1, SID_INT, SID_SUM, SID.COMM_WORLD);
-    SID_log("Read %d halos in %d fof_groups in total.", SID_LOG_COMMENT, n_halos_kept, n_fof_groups_kept);
-  }
-
   SID_log("...done", SID_LOG_CLOSE);
 
   return trees_info;

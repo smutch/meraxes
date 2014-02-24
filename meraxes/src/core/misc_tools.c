@@ -99,7 +99,7 @@ static void find_missing_gals(run_globals_t *run_globals, fof_group_t *fof_group
     SID_log("I find %d gals traversing global list...", SID_LOG_COMMENT, master_counter);
 
   }
- 
+
   // Now create an array which holds pointers to the missing galaxies
   for(int ii=0; ii<counter; ii++)
     if(!gal_found[ii])
@@ -170,7 +170,7 @@ static void find_missing_gals(run_globals_t *run_globals, fof_group_t *fof_group
         }
       }
   }
-  
+
   mpi_debug_here();
 
   SID_free(SID_FARG missing_pointers);
@@ -184,6 +184,7 @@ void check_counts(run_globals_t *run_globals, fof_group_t *fof_group, int NGal, 
 {
 
   int counter = 0;
+  int NGhosts = 0;
   int gal_next_counter = 0;
   int halo_counter = 0;
   int halo_pop_count = 0;
@@ -192,9 +193,12 @@ void check_counts(run_globals_t *run_globals, fof_group_t *fof_group, int NGal, 
 
   SID_log("Running counts check...", SID_LOG_OPEN|SID_LOG_TIMER);
 
+  SID_Allreduce(SID_IN_PLACE, &NFof, 1, SID_INT, SID_SUM, SID.COMM_WORLD);
+  SID_Allreduce(SID_IN_PLACE, &NGal, 1, SID_INT, SID_SUM, SID.COMM_WORLD);
+  SID_Allreduce(&(run_globals->NGhosts), &NGhosts, 1, SID_INT, SID_SUM, SID.COMM_WORLD);
   SID_log("NFof = %d", SID_LOG_COMMENT, NFof);
   SID_log("NGal = %d", SID_LOG_COMMENT, NGal);
-  SID_log("NGhosts = %d", SID_LOG_COMMENT, run_globals->NGhosts);
+  SID_log("NGhosts = %d", SID_LOG_COMMENT, NGhosts);
 
   counter=0;
   gal = run_globals->FirstGal;
@@ -203,9 +207,10 @@ void check_counts(run_globals_t *run_globals, fof_group_t *fof_group, int NGal, 
     counter++;
     gal = gal->Next;
   }
+  SID_Allreduce(SID_IN_PLACE, &counter, 1, SID_INT, SID_SUM, SID.COMM_WORLD);
   SID_log("Counting using gal->Next gives %d gals (-%d ghosts = %d gals)",
-      SID_LOG_COMMENT, counter, run_globals->NGhosts,
-      counter-run_globals->NGhosts);
+      SID_LOG_COMMENT, counter, NGhosts,
+      counter-NGhosts);
   gal_next_counter = counter;
 
   halo_pop_count = 0;
@@ -235,21 +240,22 @@ void check_counts(run_globals_t *run_globals, fof_group_t *fof_group, int NGal, 
         ABORT(EXIT_FAILURE);
     }
   }
+  SID_Allreduce(SID_IN_PLACE, &counter, 1, SID_INT, SID_SUM, SID.COMM_WORLD);
+  SID_Allreduce(SID_IN_PLACE, &halo_counter, 1, SID_INT, SID_SUM, SID.COMM_WORLD);
+  SID_Allreduce(SID_IN_PLACE, &halo_pop_count, 1, SID_INT, SID_SUM, SID.COMM_WORLD);
   SID_log("Counting using FOF groups gives %d gals in %d halos", SID_LOG_COMMENT, counter, halo_counter);
   SID_log("%d halos are populated with at least one galaxy", SID_LOG_COMMENT, halo_pop_count);
 
-  if(gal_next_counter-(run_globals->NGhosts) != counter)
-  {
-#ifdef DEBUG
-    int flag;
-    if(gal_next_counter-(run_globals->NGhosts) > counter)
-      flag = 0;
-    else
-      flag = 1;
-    find_missing_gals(run_globals, fof_group, NFof, flag);
-#endif
-    ABORT(EXIT_FAILURE);
-  }
+  // if((gal_next_counter - NGhosts) != counter)
+  // {
+  //   int flag;
+  //   if((gal_next_counter - NGhosts) > counter)
+  //     flag = 0;
+  //   else
+  //     flag = 1;
+  //   find_missing_gals(run_globals, fof_group, NFof, flag);
+  //   ABORT(EXIT_FAILURE);
+  // }
 
   SID_log("...done", SID_LOG_CLOSE);
 }
