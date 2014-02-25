@@ -126,12 +126,16 @@ void dracarys(run_globals_t *run_globals)
 {
 
   trees_info_t  trees_info;
+  trees_info_t *snapshot_trees_info = NULL;
+  halo_t      **snapshot_halo   = NULL;
   halo_t       *halo            = NULL;
+  fof_group_t **snapshot_fof_group       = NULL;
   fof_group_t  *fof_group       = NULL;
   galaxy_t     *gal             = NULL;
   galaxy_t     *prev_gal        = NULL;
   galaxy_t     *next_gal        = NULL;
   galaxy_t     *cur_gal         = NULL;
+  int         **snapshot_index_lookup    = NULL;
   int          *index_lookup    = NULL;
   int           i_newhalo;
   int           NGal            = 0;
@@ -143,11 +147,22 @@ void dracarys(run_globals_t *run_globals)
   int           merger_counter  = 0;
   int           new_gal_counter = 0;
   int           ghost_counter   = 0;
+  int           n_store_snapshots = 0;
+  bool          flag_multiple_runs = (bool)(run_globals->params.MultipleRuns_Flag);
 
   // Find what the last requested output snapshot is
   for(int ii=0; ii<NOUT; ii++)
     if (run_globals->ListOutputSnaps[ii] > last_snap)
       last_snap = run_globals->ListOutputSnaps[ii];
+
+  // Allocate an array of last_snap halo array pointers
+  if(flag_multiple_runs)
+    n_store_snapshots = last_snap;
+  else
+    n_store_snapshots = 1;
+  (*snapshot_halo) = (halo_t *)SID_malloc(sizeof(halo_t *) * n_store_snapshots);
+  (*snapshot_fof_group) = (fof_group_t *)SID_malloc(sizeof(fof_group_t *) * n_store_snapshots);
+  (*snapshot_index_lookup) = (int *)SID_malloc(sizeof(int *) * n_store_snapshots);
 
   // Loop through each snapshot
   for(int snapshot=0; snapshot<=last_snap; snapshot++)
@@ -159,8 +174,22 @@ void dracarys(run_globals_t *run_globals)
     new_gal_counter = 0;
     ghost_counter   = 0;
 
+    // Set the relevant pointers to this snapshot
+    if(flag_multiple_runs)
+    {
+      halo = snapshot_halo[snapshot];
+      fof_group = snapshot_fof_group[snapshot];
+      index_lookup = snapshot_index_lookup[snapshot];
+    }
+    else
+    {
+      halo = snapshot_halo[0];
+      fof_group = snapshot_fof_group[0];
+      index_lookup = snapshot_index_lookup[0];
+    }
+
     // Read in the halos for this snapshot
-    trees_info = read_halos(run_globals, snapshot, &halo, &fof_group, &index_lookup);
+    trees_info = read_halos(run_globals, snapshot, &halo, &fof_group, &index_lookup, snapshot_trees_info);
 
     SID_log("Processing snapshot %d (z=%.2f)...", SID_LOG_OPEN|SID_LOG_TIMER, snapshot, run_globals->ZZ[snapshot]);
 
@@ -455,7 +484,15 @@ void dracarys(run_globals_t *run_globals)
   SID_log("Freeing FOF groups...", SID_LOG_COMMENT);
   SID_free(SID_FARG fof_group);
   SID_log("Freeing halos...", SID_LOG_COMMENT);
-  SID_free(SID_FARG halo);
+  for(int ii=0; ii<n_store_snapshots; ii++)
+  {
+    SID_free(SID_FARG snapshot_halo[ii]);
+    SID_free(SID_FARG snapshot_fof_group[ii]);
+    SID_free(SID_FARG snapshot_index_lookup[ii]);
+  }
+  SID_free(SID_FARG snapshot_halo);
+  SID_free(SID_FARG snapshot_fof_group);
+  SID_free(SID_FARG snapshot_index_lookup);
 
   if(index_lookup)
     SID_free(SID_FARG index_lookup);

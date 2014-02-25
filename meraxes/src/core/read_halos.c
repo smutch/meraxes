@@ -657,7 +657,8 @@ trees_info_t read_halos(
   int                  snapshot,
   halo_t        **halo,
   fof_group_t   **fof_group,
-  int           **index_lookup)
+  int           **index_lookup,
+  trees_info_t   *snapshot_trees_info)
 {
 
   int             n_halos;                 //!< Number of halos
@@ -670,6 +671,11 @@ trees_info_t read_halos(
   int             n_halos_kept;
   int             n_fof_groups_kept;
   int             n_requested_forests = run_globals->NRequestedForests;
+  bool            flag_multiple_runs = (bool)(run_globals->params.MultipleRuns_Flag);
+
+  // if we are doing multiple runs and have already read in this snapshot then we don't need to do read anything else
+  if(flag_multiple_runs && (*halo != NULL) && (*fof_group !=NULL) && (*index_lookup != NULL))
+    return snapshot_trees_info[snapshot];
 
   SID_log("Reading snapshot %d (z=%.2f) trees and halos...", SID_LOG_OPEN|SID_LOG_TIMER, snapshot, run_globals->ZZ[snapshot]);
 
@@ -748,6 +754,16 @@ trees_info_t read_halos(
   {
     trees_info.n_halos = n_halos_kept;
     trees_info.n_fof_groups = n_fof_groups_kept;
+  }
+
+  // if we are doing multiple runs then resize the arrays to save space and store the trees_info
+  if(flag_multiple_runs)
+  {
+    *halo         = (halo_t *)SID_realloc(*halo, sizeof(halo_t) * n_halos_kept);
+    *index_lookup = (int *)SID_realloc(*index_lookup, sizeof(int) * n_halos_kept);
+    *fof_group    = (fof_group_t *)SID_realloc(*fof_group, sizeof(fof_group_t) * n_fof_groups_kept);
+
+    snapshot_trees_info[snapshot] = trees_info;
   }
 
   SID_log("Read %d halos in %d fof_groups.", SID_LOG_COMMENT, trees_info.n_halos, trees_info.n_fof_groups);
