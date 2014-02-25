@@ -462,6 +462,9 @@ void create_master_file(run_globals_t *run_globals)
   }
 #endif
 
+  // save the number of cores used in this run
+  h5_write_attribute(file_id, "NCores", H5T_NATIVE_INT, ds_id, &(SID.n_proc));
+
   char target_group[50];
   char source_ds[50];
   char target_ds[50];
@@ -469,12 +472,15 @@ void create_master_file(run_globals_t *run_globals)
   hid_t snap_group_id;
   hid_t source_file_id;
   hsize_t core_n_gals;
+  double temp;
+  double global_ionizing_emissivity;
+  int corrected_snapshot;
 
   // Now create soft links to all of the files and datasets that make up this run
-  for(int i_snap=0, snap_n_gals=0; i_snap < NOUT; i_snap++)
+  for(int i_out=0, snap_n_gals=0; i_out < NOUT; i_out++, snap_n_gals=0, global_ionizing_emissivity=0, temp=0)
   {
 
-    sprintf(target_group, "Snap%03d", run_globals->ListOutputSnaps[i_snap]);
+    sprintf(target_group, "Snap%03d", run_globals->ListOutputSnaps[i_out]);
     snap_group_id = H5Gcreate(file_id, target_group, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
 
     for(int i_core=0; i_core < SID.n_proc; i_core++)
@@ -483,20 +489,35 @@ void create_master_file(run_globals_t *run_globals)
       group_id = H5Gcreate(snap_group_id, target_group, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
 
       sprintf(source_file, "%s/%s_%d.hdf5", run_globals->params.OutputDir, run_globals->params.FileNameGalaxies, i_core);
-      sprintf(source_ds, "Snap%03d/Galaxies", run_globals->ListOutputSnaps[i_snap]);
+      sprintf(source_ds, "Snap%03d/Galaxies", run_globals->ListOutputSnaps[i_out]);
       sprintf(target_ds, "Galaxies");
-      SID_log("Creating external for %s/%s", SID_LOG_COMMENT, source_file, source_ds);
       H5Lcreate_external(source_file, source_ds, group_id, target_ds, H5P_DEFAULT, H5P_DEFAULT);
 
       source_file_id = H5Fopen(source_file, H5F_ACC_RDONLY, H5P_DEFAULT);
       H5TBget_table_info(source_file_id, source_ds, NULL, &core_n_gals);
+      H5LTget_attribute_double(source_file_id, source_ds, "GlobalIonizingEmissivity", &temp);
+      global_ionizing_emissivity += temp;
       H5Fclose(source_file_id);
       snap_n_gals += (int)core_n_gals;
 
       H5Gclose(group_id);
     }
 
+    // save the global ionizing emissivity at this snapshot
+    h5_write_attribute(snap_group_id, "GlobalIonizingEmissivity", H5T_NATIVE_DOUBLE, ds_id, &global_ionizing_emissivity);
+
+    // save the total number of galaxies at this snapshot
     h5_write_attribute(snap_group_id, "NGalaxies", H5T_NATIVE_INT, ds_id, &snap_n_gals);
+
+    // Save a few useful attributes
+    corrected_snapshot = get_corrected_snapshot(run_globals, run_globals->ListOutputSnaps[i_out]);
+    h5_write_attribute(snap_group_id, "Redshift", H5T_NATIVE_DOUBLE, ds_id, &(run_globals->ZZ[run_globals->ListOutputSnaps[i_out]]));
+    h5_write_attribute(snap_group_id, "CorrectedSnap", H5T_NATIVE_INT, ds_id, &corrected_snapshot);
+
+    temp = run_globals->LTTime[run_globals->ListOutputSnaps[i_out]] * run_globals->units.UnitLength_in_cm / run_globals->units.UnitVelocity_in_cm_per_s / SEC_PER_MEGAYEAR / run_globals->params.Hubble_h;
+    h5_write_attribute(snap_group_id, "LTTime", H5T_NATIVE_DOUBLE, ds_id, &temp);
+
+
     H5Gclose(snap_group_id);
 
   }
@@ -548,7 +569,6 @@ void write_snapshot(run_globals_t *run_globals, int n_write, int i_out, int *las
 
   hid_t                 file_id;
   hid_t                 group_id;
-  hid_t                 ds_id;
   hsize_t               chunk_size             = 10000;
   galaxy_output_t *output_buffer          = NULL;
   int                  *fill_data              = NULL;
@@ -557,15 +577,13 @@ void write_snapshot(run_globals_t *run_globals, int n_write, int i_out, int *las
   hdf5_output_t    h5props                = run_globals->hdf5props;
   int                   gal_count              = 0;
   int                   old_count              = 0;
-  hsize_t               dims                   = 1;
-  double                temp;
   int                  *descendant_index       = NULL;
   int                  *first_progenitor_index = NULL;
   int                  *next_progenitor_index  = NULL;
   int                   calc_descendants_i_out = -1;
   int                   prev_snapshot          = -1;
   int                   index                  = -1;
-  int                   corrected_snapshot;
+  double                temp                   = 0;
 
   SID_log("Writing output file...", SID_LOG_OPEN|SID_LOG_TIMER);
 
@@ -712,21 +730,10 @@ void write_snapshot(run_globals_t *run_globals, int n_write, int i_out, int *las
   // Free the output buffer
   SID_free(SID_FARG output_buffer);
 
-  // Save a few useful attributes
-  ds_id = H5Screate_simple(1, &dims, NULL);
-
-  corrected_snapshot = get_corrected_snapshot(run_globals, run_globals->ListOutputSnaps[i_out]);
-  h5_write_attribute(group_id, "Redshift", H5T_NATIVE_DOUBLE, ds_id, &(run_globals->ZZ[run_globals->ListOutputSnaps[i_out]]));
-  h5_write_attribute(group_id, "CorrectedSnap", H5T_NATIVE_INT, ds_id, &corrected_snapshot);
-
-  temp = run_globals->LTTime[run_globals->ListOutputSnaps[i_out]] * run_globals->units.UnitLength_in_cm / run_globals->units.UnitVelocity_in_cm_per_s / SEC_PER_MEGAYEAR / run_globals->params.Hubble_h;
-  h5_write_attribute(group_id, "LTTime", H5T_NATIVE_DOUBLE, ds_id, &temp);
-
+  // Store the global ionizing emmisivity contribution from this core
   temp = global_ionizing_emmisivity(run_globals);
   temp *= pow(run_globals->params.Hubble_h, 3);  // Factor out hubble constants
-  h5_write_attribute(group_id, "GlobalIonizingEmissivity", H5T_NATIVE_DOUBLE, ds_id, &temp);
-
-  H5Sclose(ds_id);
+  H5LTset_attribute_double(group_id, "Galaxies", "GlobalIonizingEmissivity", &temp, 1);
 
 #ifdef USE_TOCF
   if(run_globals->params.TOCF_Flag)
