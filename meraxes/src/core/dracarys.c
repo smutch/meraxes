@@ -150,8 +150,7 @@ void dracarys(run_globals_t *run_globals)
       last_snap = run_globals->ListOutputSnaps[ii];
 
   // Loop through each snapshot
-  for(int snapshot=0; snapshot<=10; snapshot++)
-  // for(int snapshot=0; snapshot<=last_snap; snapshot++)
+  for(int snapshot=0; snapshot<=last_snap; snapshot++)
   {
 
     // Reset book keeping counters

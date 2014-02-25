@@ -467,10 +467,12 @@ void create_master_file(run_globals_t *run_globals)
 
   char target_group[50];
   char source_ds[50];
+  char source_group[50];
   char target_ds[50];
   char source_file[STRLEN];
   hid_t snap_group_id;
   hid_t source_file_id;
+  hid_t source_group_id;
   hsize_t core_n_gals;
   double temp;
   double global_ionizing_emissivity;
@@ -497,8 +499,25 @@ void create_master_file(run_globals_t *run_globals)
       H5TBget_table_info(source_file_id, source_ds, NULL, &core_n_gals);
       H5LTget_attribute_double(source_file_id, source_ds, "GlobalIonizingEmissivity", &temp);
       global_ionizing_emissivity += temp;
-      H5Fclose(source_file_id);
       snap_n_gals += (int)core_n_gals;
+
+      // if they exists, then also create a link to walk indices
+      sprintf(source_group, "Snap%03d", run_globals->ListOutputSnaps[i_out]);
+      source_group_id = H5Gopen(source_file_id, source_group, H5P_DEFAULT);
+      if(H5LTfind_dataset(source_group_id, "FirstProgenitorIndices"))
+      {
+        sprintf(source_ds, "Snap%03d/FirstProgenitorIndices", run_globals->ListOutputSnaps[i_out]);
+        sprintf(target_ds, "FirstProgenitorIndices");
+        H5Lcreate_external(source_file, source_ds, group_id, target_ds, H5P_DEFAULT, H5P_DEFAULT);
+      }
+      if(H5LTfind_dataset(source_group_id, "NextProgenitorIndices"))
+      {
+        sprintf(source_ds, "Snap%03d/NextProgenitorIndices", run_globals->ListOutputSnaps[i_out]);
+        sprintf(target_ds, "NextProgenitorIndices");
+        H5Lcreate_external(source_file, source_ds, group_id, target_ds, H5P_DEFAULT, H5P_DEFAULT);
+      }
+
+      H5Fclose(source_file_id);
 
       H5Gclose(group_id);
     }

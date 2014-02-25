@@ -23,161 +23,161 @@ void mpi_debug_here()
 #endif
 }
 
-static void find_missing_gals(run_globals_t *run_globals, fof_group_t *fof_group, int NFof, int flag)
-{
-  galaxy_t *gal = NULL;
-  halo_t *halo = NULL;
-  int counter = 0;
-  int master_counter = 0;
-  int missing_counter = 0;
-  bool *gal_found;
-  galaxy_t **missing_pointers;
+// static void find_missing_gals(run_globals_t *run_globals, fof_group_t *fof_group, int NFof, int flag)
+// {
+//   galaxy_t *gal = NULL;
+//   halo_t *halo = NULL;
+//   int counter = 0;
+//   int master_counter = 0;
+//   int missing_counter = 0;
+//   bool *gal_found;
+//   galaxy_t **missing_pointers;
 
-  SID_log("Running `find_missing_galaxies`...", SID_LOG_OPEN);
+//   SID_log("Running `find_missing_galaxies`...", SID_LOG_OPEN);
 
-  // If flag =0 then we have more galaxies in the global linked list than when
-  // we traverse the FOF groups.  If flag =1 then we have the opposite
-  // situation...
+//   // If flag =0 then we have more galaxies in the global linked list than when
+//   // we traverse the FOF groups.  If flag =1 then we have the opposite
+//   // situation...
 
-  if(flag==0)
-  {
-    // Count the number of galaxies
-    gal = run_globals->FirstGal;
-    while (gal!=NULL)
-    {
-      gal->output_index = counter++;
-      gal = gal->Next;
-    }
+//   if(flag==0)
+//   {
+//     // Count the number of galaxies
+//     gal = run_globals->FirstGal;
+//     while (gal!=NULL)
+//     {
+//       gal->output_index = counter++;
+//       gal = gal->Next;
+//     }
 
-    gal_found = SID_calloc(sizeof(bool)*counter);
+//     gal_found = SID_calloc(sizeof(bool)*counter);
 
-    // Loop through each FOF halo and mark off each galaxy
-    for(int i_fof=0; i_fof<NFof; i_fof++)
-    {
-      halo = fof_group[i_fof].FirstHalo;
-      while (halo!=NULL) {
-        gal = halo->Galaxy;
-        while(gal!=NULL){
-          gal_found[gal->output_index] = true;
-          gal = gal->NextGalInHalo;
-        }
-        halo = halo->NextHaloInFOFGroup;
-      }
-    }
-  } else if(flag==1)
-  {
-    // Count the number of galaxies
-    for(int i_fof=0; i_fof<NFof; i_fof++)
-    {
-      halo = fof_group[i_fof].FirstHalo;
-      while (halo!=NULL) {
-        gal = halo->Galaxy;
-        while(gal!=NULL){
-          gal->output_index = counter++;
-          gal = gal->NextGalInHalo;
-        }
-        halo = halo->NextHaloInFOFGroup;
-      }
-    }
+//     // Loop through each FOF halo and mark off each galaxy
+//     for(int i_fof=0; i_fof<NFof; i_fof++)
+//     {
+//       halo = fof_group[i_fof].FirstHalo;
+//       while (halo!=NULL) {
+//         gal = halo->Galaxy;
+//         while(gal!=NULL){
+//           gal_found[gal->output_index] = true;
+//           gal = gal->NextGalInHalo;
+//         }
+//         halo = halo->NextHaloInFOFGroup;
+//       }
+//     }
+//   } else if(flag==1)
+//   {
+//     // Count the number of galaxies
+//     for(int i_fof=0; i_fof<NFof; i_fof++)
+//     {
+//       halo = fof_group[i_fof].FirstHalo;
+//       while (halo!=NULL) {
+//         gal = halo->Galaxy;
+//         while(gal!=NULL){
+//           gal->output_index = counter++;
+//           gal = gal->NextGalInHalo;
+//         }
+//         halo = halo->NextHaloInFOFGroup;
+//       }
+//     }
 
-    SID_log("I find counter=%d using FOF traversal...", SID_LOG_COMMENT, counter);
+//     SID_log("I find counter=%d using FOF traversal...", SID_LOG_COMMENT, counter);
 
-    gal_found = SID_malloc(sizeof(bool)*counter);
-    for(int ii=0; ii<counter; ii++)
-      gal_found[ii] = false;
+//     gal_found = SID_malloc(sizeof(bool)*counter);
+//     for(int ii=0; ii<counter; ii++)
+//       gal_found[ii] = false;
 
-    // Traverse the global linked list and mark off each galaxy
-    gal = run_globals->FirstGal;
-    master_counter = 0;
-    while (gal!=NULL)
-    {
-      if(!gal->ghost_flag)
-        gal_found[gal->output_index] = true;
-      master_counter++;
-      gal = gal->Next;
-    }
-    SID_log("I find %d gals traversing global list...", SID_LOG_COMMENT, master_counter);
+//     // Traverse the global linked list and mark off each galaxy
+//     gal = run_globals->FirstGal;
+//     master_counter = 0;
+//     while (gal!=NULL)
+//     {
+//       if(!gal->ghost_flag)
+//         gal_found[gal->output_index] = true;
+//       master_counter++;
+//       gal = gal->Next;
+//     }
+//     SID_log("I find %d gals traversing global list...", SID_LOG_COMMENT, master_counter);
 
-  }
+//   }
 
-  // Now create an array which holds pointers to the missing galaxies
-  for(int ii=0; ii<counter; ii++)
-    if(!gal_found[ii])
-    {
-      SID_log("ii = %d", SID_LOG_COMMENT, ii);
-      missing_counter++;
-    }
+//   // Now create an array which holds pointers to the missing galaxies
+//   for(int ii=0; ii<counter; ii++)
+//     if(!gal_found[ii])
+//     {
+//       SID_log("ii = %d", SID_LOG_COMMENT, ii);
+//       missing_counter++;
+//     }
 
-  master_counter = counter;
+//   master_counter = counter;
 
-  // Check the number of gals with ghost_flag=true
-  gal = run_globals->FirstGal;
-  counter = 0;
-  while(gal!=NULL)
-  {
-    if(gal->ghost_flag)
-      counter++;
-  gal = gal->Next;
-  }
-  SID_log("I find %d gals with ghost_flag=true", SID_LOG_COMMENT, counter);
-  counter = 0;
-  for(int i_fof=0; i_fof<NFof; i_fof++)
-  {
-    halo = fof_group[i_fof].FirstHalo;
-    while (halo!=NULL) {
-      gal = halo->Galaxy;
-      while(gal!=NULL){
-        if(gal->ghost_flag)
-          counter++;
-        gal = gal->NextGalInHalo;
-      }
-      halo = halo->NextHaloInFOFGroup;
-    }
-  }
-  SID_log("I find %d gals with ghost_flag=true (FOF traversal)", SID_LOG_COMMENT, counter);
+//   // Check the number of gals with ghost_flag=true
+//   gal = run_globals->FirstGal;
+//   counter = 0;
+//   while(gal!=NULL)
+//   {
+//     if(gal->ghost_flag)
+//       counter++;
+//   gal = gal->Next;
+//   }
+//   SID_log("I find %d gals with ghost_flag=true", SID_LOG_COMMENT, counter);
+//   counter = 0;
+//   for(int i_fof=0; i_fof<NFof; i_fof++)
+//   {
+//     halo = fof_group[i_fof].FirstHalo;
+//     while (halo!=NULL) {
+//       gal = halo->Galaxy;
+//       while(gal!=NULL){
+//         if(gal->ghost_flag)
+//           counter++;
+//         gal = gal->NextGalInHalo;
+//       }
+//       halo = halo->NextHaloInFOFGroup;
+//     }
+//   }
+//   SID_log("I find %d gals with ghost_flag=true (FOF traversal)", SID_LOG_COMMENT, counter);
 
-  missing_pointers = SID_calloc(sizeof(galaxy_t *)*missing_counter);
+//   missing_pointers = SID_calloc(sizeof(galaxy_t *)*missing_counter);
 
-  // Loop through the galaxies and store the pointers of the missing ones
-  counter = 0;
-  if(flag==0)
-  {
-    gal = run_globals->FirstGal;
-    while (gal!=NULL)
-    {
-      // Note that we only store non-ghost missing pointers here...
-      if((!gal_found[gal->output_index]) && (gal->SnapSkipCounter<=0))
-        missing_pointers[counter++] = gal;
-      gal = gal->Next;
-    }
-  } else if(flag==1)
-  {
-    for(int ii=0; ii<master_counter; ii++)
-      if(!gal_found[ii])
-      {
-        for(int i_fof=0; i_fof<NFof; i_fof++)
-        {
-          halo = fof_group[i_fof].FirstHalo;
-          while (halo!=NULL) {
-            gal = halo->Galaxy;
-            while(gal!=NULL){
-              if(gal->output_index==ii)
-                missing_pointers[counter++] = gal;
-              gal = gal->NextGalInHalo;
-            }
-            halo = halo->NextHaloInFOFGroup;
-          }
-        }
-      }
-  }
+//   // Loop through the galaxies and store the pointers of the missing ones
+//   counter = 0;
+//   if(flag==0)
+//   {
+//     gal = run_globals->FirstGal;
+//     while (gal!=NULL)
+//     {
+//       // Note that we only store non-ghost missing pointers here...
+//       if((!gal_found[gal->output_index]) && (gal->SnapSkipCounter<=0))
+//         missing_pointers[counter++] = gal;
+//       gal = gal->Next;
+//     }
+//   } else if(flag==1)
+//   {
+//     for(int ii=0; ii<master_counter; ii++)
+//       if(!gal_found[ii])
+//       {
+//         for(int i_fof=0; i_fof<NFof; i_fof++)
+//         {
+//           halo = fof_group[i_fof].FirstHalo;
+//           while (halo!=NULL) {
+//             gal = halo->Galaxy;
+//             while(gal!=NULL){
+//               if(gal->output_index==ii)
+//                 missing_pointers[counter++] = gal;
+//               gal = gal->NextGalInHalo;
+//             }
+//             halo = halo->NextHaloInFOFGroup;
+//           }
+//         }
+//       }
+//   }
 
-  mpi_debug_here();
+//   mpi_debug_here();
 
-  SID_free(SID_FARG missing_pointers);
-  SID_free(SID_FARG gal_found);
+//   SID_free(SID_FARG missing_pointers);
+//   SID_free(SID_FARG gal_found);
 
-  SID_log("...done", SID_LOG_CLOSE);
-}
+//   SID_log("...done", SID_LOG_CLOSE);
+// }
 
 
 void check_counts(run_globals_t *run_globals, fof_group_t *fof_group, int NGal, int NFof)
