@@ -24,12 +24,24 @@ static void cleanup(run_globals_t *run_globals)
   SID_free(SID_FARG run_globals->hdf5props.dst_offsets);
   gsl_rng_free(run_globals->random_generator);
   SID_log(" ...done", SID_LOG_CLOSE);
+
+  // close the log file
+  // if(SID.n_proc > 1)
+  // {
+  //   fflush(SID.fp_log);
+  //   fclose(SID.fp_log);
+  // }
 }
 
 void myexit(int signum)
 {
   printf("Task: %d\tnode: %s\tis exiting.\n\n\n", SID.My_rank, SID.My_node);
   cn_quote();
+  // if(SID.n_proc > 1)
+  // {
+  //   fflush(SID.fp_log);
+  //   fclose(SID.fp_log);
+  // }
   SID_exit(signum);
 }
 
@@ -68,18 +80,23 @@ static void set_physics_params(
 int main(int argc, char **argv)
 {
 
+  // init SID
+  SID_init(&argc, &argv, NULL);
+
   struct stat filestatus;
-
-  SID_init(&argc, &argv,NULL);
-
-  if(SID.n_proc!=1)
-  {
-    SID_log_error("Current version of code must be run with ONE CORE (sorry!).");
-    ABORT(EXIT_FAILURE);
-  }
-
   run_globals_t run_globals;
 
+  // char log_fname[50];
+  // FILE *log_file = NULL;
+  // if(SID.n_proc > 1)
+  // {
+  //   SID.flag_log_allranks = 1;
+  //   sprintf(log_fname, "rank_%d.log", SID.My_rank);
+  //   log_file = fopen(log_fname, "w");
+  //   SID.fp_log = log_file;
+  // }
+
+  // deal with any input arguments
   if( (argc!=8) && (argc!=4) && (argc!=2) )
   {
     if(SID.My_rank==0){
@@ -94,6 +111,7 @@ int main(int argc, char **argv)
   init_default_tocf_params();
 #endif
 
+  // read the input parameter file
   read_parameter_file(&run_globals, argv[1]);
 
   // Check to see if the output directory exists and if not, create it
@@ -109,13 +127,16 @@ int main(int argc, char **argv)
     SID_free(SID_FARG physics_param_vals);
   }
 
-  // mpi_debug_here();
+  // initiate meraxes
   init_meraxes(&run_globals);
+
+  // calculate the output hdf5 file properties for later use
   calc_hdf5_props(&run_globals);
 
   // Run the model!
   dracarys(&run_globals);
 
+  // cleanup
   cleanup(&run_globals);
 
   SID_exit(EXIT_SUCCESS);

@@ -17,11 +17,11 @@ static void inline assign_galaxy_to_halo(galaxy_t *gal, halo_t *halo)
 
 static void inline create_new_galaxy(
   run_globals_t *run_globals,
-  int                 snapshot,
+  int            snapshot,
   halo_t        *halo,
-  int                *NGal,
-  int                *new_gal_counter,
-  int                *unique_ID)
+  int           *NGal,
+  int           *new_gal_counter,
+  int           *unique_ID)
 {
   galaxy_t *gal;
 
@@ -118,12 +118,6 @@ static int find_original_index(int index, int *lookup, int n_mappings)
   if(pointer)
     new_index = (int)(pointer-lookup);
 
-  // DEBUG
-  // SID_log("new_index = %d; old index = %d", SID_LOG_COMMENT, new_index, index);
-  // if(new_index == -1)
-  //   for(int ii=0; ii<n_mappings; ii++)
-  //     SID_log("lookup[%d] = %d", SID_LOG_COMMENT, ii, lookup[ii]);
-
   return new_index;
 }
 
@@ -165,10 +159,6 @@ void dracarys(run_globals_t *run_globals)
     new_gal_counter = 0;
     ghost_counter   = 0;
 
-    // DEBUG
-    if(snapshot==9)
-      SID_log("here we go...", SID_LOG_COMMENT);
-
     // Read in the halos for this snapshot
     trees_info = read_halos(run_globals, snapshot, &halo, &fof_group, &index_lookup);
 
@@ -197,11 +187,12 @@ void dracarys(run_globals_t *run_globals)
 
       i_newhalo = gal->HaloDescIndex;
 
-      if((index_lookup) && (i_newhalo > -1) && !(gal->ghost_flag))
-        i_newhalo = find_original_index(gal->HaloDescIndex, index_lookup, trees_info.n_halos);
-
       if(gal->SnapSkipCounter<=0)
       {
+
+        if((index_lookup) && (i_newhalo > -1) && !(gal->ghost_flag) && (gal->Type < 2))
+          i_newhalo = find_original_index(gal->HaloDescIndex, index_lookup, trees_info.n_halos);
+
         if(i_newhalo>-1)
         {
           gal->OldType = gal->Type;
@@ -313,11 +304,6 @@ void dracarys(run_globals_t *run_globals)
       if(check_if_valid_host(run_globals, &(halo[i_halo])))
         create_new_galaxy(run_globals, snapshot, &(halo[i_halo]), &NGal, &new_gal_counter, &unique_ID);
 
-    SID_log("Newly identified merger events    :: %d", SID_LOG_COMMENT, merger_counter);
-    SID_log("Killed galaxies                   :: %d", SID_LOG_COMMENT, kill_counter);
-    SID_log("Newly created galaxies            :: %d", SID_LOG_COMMENT, new_gal_counter);
-    SID_log("Galaxies in ghost halos           :: %d", SID_LOG_COMMENT, ghost_counter);
-
     // Loop through each galaxy and deal with HALO mergers now that all other
     // galaxies have been processed and their halo pointers updated...
     gal = run_globals->FirstGal;
@@ -370,7 +356,6 @@ void dracarys(run_globals_t *run_globals)
             cur_gal                 = cur_gal->NextGalInHalo;
           }
 
-          // DEBUG
           if (gal->FirstGalInHalo == NULL)
             SID_log_warning("Just set gal->FirstGalInHalo = NULL!", SID_LOG_COMMENT);
 
@@ -435,6 +420,19 @@ void dracarys(run_globals_t *run_globals)
     }
 #endif
 
+#ifdef DEBUG
+    // print some statistics for this snapshot
+    SID_Allreduce(SID_IN_PLACE, &merger_counter , 1, SID_INT, SID_SUM, SID.COMM_WORLD);
+    SID_Allreduce(SID_IN_PLACE, &kill_counter   , 1, SID_INT, SID_SUM, SID.COMM_WORLD);
+    SID_Allreduce(SID_IN_PLACE, &new_gal_counter, 1, SID_INT, SID_SUM, SID.COMM_WORLD);
+    SID_Allreduce(SID_IN_PLACE, &ghost_counter  , 1, SID_INT, SID_SUM, SID.COMM_WORLD);
+
+    SID_log("Newly identified merger events    :: %d", SID_LOG_COMMENT, merger_counter);
+    SID_log("Killed galaxies                   :: %d", SID_LOG_COMMENT, kill_counter);
+    SID_log("Newly created galaxies            :: %d", SID_LOG_COMMENT, new_gal_counter);
+    SID_log("Galaxies in ghost halos           :: %d", SID_LOG_COMMENT, ghost_counter);
+#endif
+
     // Write the results if this is a requested snapshot
     for(int i_out = 0; i_out < NOUT; i_out++)
       if(snapshot == run_globals->ListOutputSnaps[i_out])
@@ -446,13 +444,21 @@ void dracarys(run_globals_t *run_globals)
 #endif
 
     SID_log("...done", SID_LOG_CLOSE);
+
   }
+
+  // Create the master file
+  if(SID.My_rank == 0)
+    create_master_file(run_globals);
 
   // Free all of the remaining allocated galaxies, halos and fof groups
   SID_log("Freeing FOF groups...", SID_LOG_COMMENT);
   SID_free(SID_FARG fof_group);
   SID_log("Freeing halos...", SID_LOG_COMMENT);
   SID_free(SID_FARG halo);
+
+  if(index_lookup)
+    SID_free(SID_FARG index_lookup);
 
   SID_log("Freeing remaining galaxies...", SID_LOG_OPEN);
   gal = run_globals->FirstGal;

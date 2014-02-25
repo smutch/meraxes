@@ -29,13 +29,14 @@ vars = Variables()
 vars = Variables('config.py') # Persistent storage.
 vars.AddVariables(
     ('nout', 'Set the number of output snapshots.', 1),
-    ('maxsnaps', 'Set the hardcoded maximum number of snapshots (will be removed in future).', 235),
+    ('maxsnaps', 'Set the hardcoded maximum number of snapshots (will be removed in future).', 100),
     BoolVariable('calc_mags', 'Calculate magnitudes.', False),
-    BoolVariable('tocf', 'Calculate xH structure with 21cmFAST.', True),
+    BoolVariable('tocf', 'Calculate xH structure with 21cmFAST.', False),
     BoolVariable('git_tag', 'Tag the binary and output files with the current git ref.', True),
     ('allocparameter', 'Set the ALLOCPARAM value.', 5.0),
     EnumVariable('build', 'Set the build type.', 'optimised', allowed_values=('debug', 'optimised')),
-    BoolVariable('prof', 'Enable profiling.', False)
+    BoolVariable('prof', 'Enable profiling.', False),
+    BoolVariable('mpi', 'Build with mpi', True),
 )
 
 # Create the environment
@@ -67,7 +68,6 @@ if not GetOption('help'):
         env.AppendUnique(CPPDEFINES=['CALC_MAGS'])
     if env['tocf']:
         env.AppendUnique(CPPDEFINES=['USE_TOCF'])
-    # env.AppendUnique(CPPDEFINES=['${input_sim}', 'USE_MPI=1'])
     if env['build'] == 'debug':
         env.MergeFlags('-g -O0 -Wall')
         env.AppendUnique(CPPDEFINES=['DEBUG'])
@@ -76,6 +76,8 @@ if not GetOption('help'):
     if env['prof']:
         env.MergeFlags('-g -pg')
         env.AppendUnique(LINKFLAGS=['-pg'])
+    if env['mpi']:
+        env.AppendUnique(CPPDEFINES=['USE_MPI=1'])
     
     # =================================
     # = System specific build options =
@@ -116,8 +118,11 @@ if not GetOption('help'):
         FFTW_LIBS   = ['/home/smutch/3rd_party/fftw-3.3.3/lib']
         TOCF_INCL   = ['../../21cmfast/include']
         TOCF_LIBS   = ['../../21cmfast/lib']
-        # CC          = ['/usr/local/x86_64/gnu/openmpi-1.6.1/bin/mpicc']
-        CC          = ['cc']
+        if env['mpi']:
+            CC        = ['/usr/local/x86_64/gnu/openmpi-1.6.1/bin/mpicc']
+            GBP_LIBS  = [GBP_LIBS[0]+'/mpi']
+        else:
+            CC      = ['cc']
 
     elif SYSTEM=='mac':
         GSL_INCL    = ['/usr/local/include']
@@ -126,12 +131,16 @@ if not GetOption('help'):
         LEVMAR_LIBS = ['/Users/smutch/3rd_party/levmar-2.6']
         GBP_INCL    = ['/Users/smutch/3rd_party/gbpCode/myInclude']
         GBP_LIBS    = ['/Users/smutch/3rd_party/gbpCode/myLib']
-        CC          = ['gcc']
         GIT         = ['/usr/bin/git']
         TOCF_INCL   = ['../../21cmfast/include']
         TOCF_LIBS   = ['../../21cmfast/lib']
         FFTW_INCL   = ['/Users/smutch/3rd_party/fftw-3.3.3/include']
         FFTW_LIBS   = ['/Users/smutch/3rd_party/fftw-3.3.3/lib']
+        if env['mpi']:
+            CC        = ['mpicc']
+            GBP_LIBS  = [GBP_LIBS[0]+'/mpi']
+        else:
+            CC      = ['gcc']
 
 
     env.Replace(CC = CC)
