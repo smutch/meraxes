@@ -251,12 +251,7 @@ void init_meraxes(run_globals_t *run_globals)
   run_globals->params.LastSnapshotNr = (int)(run_globals->params.TotalSimSnaps/run_globals->params.NEverySnap);
 
   // Prep the output file
-  // TODO: Create a propper parallel output file structure
-  if(SID.n_proc == 1)
-    sprintf(run_globals->FNameOut, "%s/%s.hdf5", run_globals->params.OutputDir, run_globals->params.FileNameGalaxies);
-  else
-    sprintf(run_globals->FNameOut, "%s/%s_%d.hdf5", run_globals->params.OutputDir, run_globals->params.FileNameGalaxies, SID.My_rank);
-
+  sprintf(run_globals->FNameOut, "%s/%s_%d.hdf5", run_globals->params.OutputDir, run_globals->params.FileNameGalaxies, SID.My_rank);
   prep_hdf5_file(run_globals);
 
 #ifdef USE_TOCF

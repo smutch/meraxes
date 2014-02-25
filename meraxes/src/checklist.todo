@@ -1,7 +1,6 @@
 Todo list:
 
-☐ debug the why I get 25% fewer galaxies with MPI at snapshot=-1
-  I reckon I am either messing up the calc of the index lookup or how it's being searched
+✔ debug the why I get 25% fewer galaxies with MPI at snapshot=-1 @done (2014-02-25 10:12))
 ☐ allow the halos of previous snapshots be saved and used for repeated runs
 
 To consider:

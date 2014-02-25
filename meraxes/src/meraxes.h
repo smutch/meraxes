@@ -400,6 +400,7 @@ double  calculate_merging_time(run_globals_t *run_globals, galaxy_t *gal, int sn
 void    merge_with_target(run_globals_t *run_globals, galaxy_t *gal, int *dead_gals);
 void    form_stars_insitu(run_globals_t *run_globals, galaxy_t *gal, int snapshot);
 void    prep_hdf5_file(run_globals_t *run_globals);
+void    create_master_file(run_globals_t *run_globals);
 void    write_snapshot(run_globals_t *run_globals, int n_write, int i_out, int *last_n_write);
 void    calc_hdf5_props(run_globals_t *run_globals);
 void    prepare_galaxy_for_output(run_globals_t *run_globals, galaxy_t gal, galaxy_output_t *galout, int i_snap);

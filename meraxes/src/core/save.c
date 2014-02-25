@@ -219,18 +219,39 @@ void calc_hdf5_props(run_globals_t *run_globals)
 
 }
 
-
 void prep_hdf5_file(run_globals_t *run_globals)
+{
+  hid_t file_id;
+  hid_t ds_id;
+  hsize_t dims = 1;
+
+  // create a new file
+  file_id = H5Fcreate(run_globals->FNameOut, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
+
+  // store the file number and total number of cores
+  ds_id = H5Screate_simple(1, &dims, NULL);
+  h5_write_attribute(file_id, "iCore", H5T_NATIVE_INT, ds_id, &(SID.My_rank));
+  h5_write_attribute(file_id, "NCores", H5T_NATIVE_INT, ds_id, &(SID.n_proc));
+
+  // close the file
+  H5Fclose(file_id);
+}
+
+void create_master_file(run_globals_t *run_globals)
 {
 
   hid_t    file_id, str_t, ds_id, group_id;
   hsize_t  dims = 1;
   char     names[50][STRLEN];
+  char     fname[STRLEN];
   void    *addresses[50];
   int ii;
 
+  SID_log("Creating master file...", SID_LOG_OPEN|SID_LOG_TIMER);
+
   // Create a new file
-  file_id = H5Fcreate(run_globals->FNameOut, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT );
+  sprintf(fname, "%s/%s.hdf5", run_globals->params.OutputDir, run_globals->params.FileNameGalaxies);
+  file_id = H5Fcreate(fname, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
 
   // Set up reusable dataspaces and types
   ds_id = H5Screate_simple(1, &dims, NULL);
@@ -441,11 +462,52 @@ void prep_hdf5_file(run_globals_t *run_globals)
   }
 #endif
 
+  char target_group[50];
+  char source_ds[50];
+  char target_ds[50];
+  char source_file[STRLEN];
+  hid_t snap_group_id;
+  hid_t source_file_id;
+  hsize_t core_n_gals;
+
+  // Now create soft links to all of the files and datasets that make up this run
+  for(int i_snap=0, snap_n_gals=0; i_snap < NOUT; i_snap++)
+  {
+
+    sprintf(target_group, "Snap%03d", run_globals->ListOutputSnaps[i_snap]);
+    snap_group_id = H5Gcreate(file_id, target_group, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+
+    for(int i_core=0; i_core < SID.n_proc; i_core++)
+    {
+      sprintf(target_group, "Core%d", i_core);
+      group_id = H5Gcreate(snap_group_id, target_group, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+
+      sprintf(source_file, "%s/%s_%d.hdf5", run_globals->params.OutputDir, run_globals->params.FileNameGalaxies, i_core);
+      sprintf(source_ds, "Snap%03d/Galaxies", run_globals->ListOutputSnaps[i_snap]);
+      sprintf(target_ds, "Galaxies");
+      SID_log("Creating external for %s/%s", SID_LOG_COMMENT, source_file, source_ds);
+      H5Lcreate_external(source_file, source_ds, group_id, target_ds, H5P_DEFAULT, H5P_DEFAULT);
+
+      source_file_id = H5Fopen(source_file, H5F_ACC_RDONLY, H5P_DEFAULT);
+      H5TBget_table_info(source_file_id, source_ds, NULL, &core_n_gals);
+      H5Fclose(source_file_id);
+      snap_n_gals += (int)core_n_gals;
+
+      H5Gclose(group_id);
+    }
+
+    h5_write_attribute(snap_group_id, "NGalaxies", H5T_NATIVE_INT, ds_id, &snap_n_gals);
+    H5Gclose(snap_group_id);
+
+  }
+
   // Close the HDF5 file.
   H5Fclose(file_id);
 
   H5Sclose(ds_id);
   H5Tclose(str_t);
+
+  SID_log(" ...done", SID_LOG_CLOSE);
 
 }
 

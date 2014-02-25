@@ -150,7 +150,8 @@ void dracarys(run_globals_t *run_globals)
       last_snap = run_globals->ListOutputSnaps[ii];
 
   // Loop through each snapshot
-  for(int snapshot=0; snapshot<=last_snap; snapshot++)
+  for(int snapshot=0; snapshot<=10; snapshot++)
+  // for(int snapshot=0; snapshot<=last_snap; snapshot++)
   {
 
     // Reset book keeping counters
@@ -446,6 +447,10 @@ void dracarys(run_globals_t *run_globals)
     SID_log("...done", SID_LOG_CLOSE);
 
   }
+
+  // Create the master file
+  if(SID.My_rank == 0)
+    create_master_file(run_globals);
 
   // Free all of the remaining allocated galaxies, halos and fof groups
   SID_log("Freeing FOF groups...", SID_LOG_COMMENT);
