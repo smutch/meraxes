@@ -13,6 +13,7 @@ static void inline assign_galaxy_to_halo(galaxy_t *gal, halo_t *halo)
 #endif
     ABORT(EXIT_FAILURE);
   }
+
 }
 
 static void inline create_new_galaxy(
@@ -29,10 +30,12 @@ static void inline create_new_galaxy(
   gal->Halo = halo;
   gal->LTTime = run_globals->LTTime[snapshot];
   assign_galaxy_to_halo(gal, halo);
+
   if (run_globals->LastGal != NULL)
     run_globals->LastGal->Next = gal;
   else
     run_globals->FirstGal = gal;
+
   run_globals->LastGal = gal;
   gal->FirstGalInHalo = gal;
   gal->dt = run_globals->LTTime[0] - gal->LTTime;
@@ -149,6 +152,7 @@ void dracarys(run_globals_t *run_globals)
   int           ghost_counter   = 0;
   int           n_store_snapshots = 0;
   bool          flag_multiple_runs = (bool)(run_globals->params.MultipleRuns_Flag);
+  int           n_runs          = run_globals->params.NMultipleRuns;
 
   // Find what the last requested output snapshot is
   for(int ii=0; ii<NOUT; ii++)
@@ -160,320 +164,328 @@ void dracarys(run_globals_t *run_globals)
     n_store_snapshots = last_snap;
   else
     n_store_snapshots = 1;
-  (*snapshot_halo) = (halo_t *)SID_malloc(sizeof(halo_t *) * n_store_snapshots);
-  (*snapshot_fof_group) = (fof_group_t *)SID_malloc(sizeof(fof_group_t *) * n_store_snapshots);
-  (*snapshot_index_lookup) = (int *)SID_malloc(sizeof(int *) * n_store_snapshots);
+  snapshot_halo = (halo_t **)SID_calloc(sizeof(halo_t *) * n_store_snapshots);
+  snapshot_fof_group = (fof_group_t **)SID_calloc(sizeof(fof_group_t *) * n_store_snapshots);
+  snapshot_index_lookup = (int **)SID_calloc(sizeof(int *) * n_store_snapshots);
+  snapshot_trees_info = (trees_info_t *)SID_calloc(sizeof(trees_info_t) * n_store_snapshots);
 
-  // Loop through each snapshot
-  for(int snapshot=0; snapshot<=last_snap; snapshot++)
+  // Loop through each model iteration
+  for(int i_run=0; i_run<n_runs; i_run++)
   {
-
-    // Reset book keeping counters
-    kill_counter    = 0;
-    merger_counter  = 0;
-    new_gal_counter = 0;
-    ghost_counter   = 0;
-
-    // Set the relevant pointers to this snapshot
-    if(flag_multiple_runs)
+    // Loop through each snapshot
+    for(int snapshot=0; snapshot<=last_snap; snapshot++)
     {
-      halo = snapshot_halo[snapshot];
-      fof_group = snapshot_fof_group[snapshot];
-      index_lookup = snapshot_index_lookup[snapshot];
-    }
-    else
-    {
-      halo = snapshot_halo[0];
-      fof_group = snapshot_fof_group[0];
-      index_lookup = snapshot_index_lookup[0];
-    }
 
-    // Read in the halos for this snapshot
-    trees_info = read_halos(run_globals, snapshot, &halo, &fof_group, &index_lookup, snapshot_trees_info);
+      // Reset book keeping counters
+      kill_counter    = 0;
+      merger_counter  = 0;
+      new_gal_counter = 0;
+      ghost_counter   = 0;
 
-    SID_log("Processing snapshot %d (z=%.2f)...", SID_LOG_OPEN|SID_LOG_TIMER, snapshot, run_globals->ZZ[snapshot]);
+      // Set the relevant pointers to this snapshot
+      if(flag_multiple_runs)
+      {
+        halo = snapshot_halo[snapshot];
+        fof_group = snapshot_fof_group[snapshot];
+        index_lookup = snapshot_index_lookup[snapshot];
+      }
+      else
+      {
+        halo = snapshot_halo[0];
+        fof_group = snapshot_fof_group[0];
+        index_lookup = snapshot_index_lookup[0];
+      }
+
+      // Read in the halos for this snapshot
+      trees_info = read_halos(run_globals, snapshot, &halo, &fof_group, &index_lookup, snapshot_trees_info);
+
+      SID_log("Processing snapshot %d (z=%.2f)...", SID_LOG_OPEN|SID_LOG_TIMER, snapshot, run_globals->ZZ[snapshot]);
 
 #ifdef USE_TOCF
-    // Calculate the critical halo mass for cooling
-    if((run_globals->params.TOCF_Flag) && (tocf_params.uvb_feedback))
-      calculate_Mvir_crit(run_globals, run_globals->ZZ[snapshot]);
+      // Calculate the critical halo mass for cooling
+      if((run_globals->params.TOCF_Flag) && (tocf_params.uvb_feedback))
+        calculate_Mvir_crit(run_globals, run_globals->ZZ[snapshot]);
 #endif
 
-    // Reset the halo pointers and ghost flags for all galaxies and decrement
-    // the snapskip counter
-    gal      = run_globals->FirstGal;
-    while(gal!=NULL)
-    {
-      gal->Halo = NULL;
-      gal->ghost_flag = false;
-      gal->SnapSkipCounter--;
-      gal = gal->Next;
-    }
-
-    gal      = run_globals->FirstGal;
-    prev_gal = NULL;
-    while (gal != NULL) {
-
-      i_newhalo = gal->HaloDescIndex;
-
-      if(gal->SnapSkipCounter<=0)
+      // Reset the halo pointers and ghost flags for all galaxies and decrement
+      // the snapskip counter
+      gal      = run_globals->FirstGal;
+      while(gal!=NULL)
       {
+        gal->Halo = NULL;
+        gal->ghost_flag = false;
+        gal->SnapSkipCounter--;
+        gal = gal->Next;
+      }
 
-        if((index_lookup) && (i_newhalo > -1) && !(gal->ghost_flag) && (gal->Type < 2))
-          i_newhalo = find_original_index(gal->HaloDescIndex, index_lookup, trees_info.n_halos);
+      gal      = run_globals->FirstGal;
+      prev_gal = NULL;
+      while (gal != NULL) {
 
-        if(i_newhalo>-1)
+        i_newhalo = gal->HaloDescIndex;
+
+        if(gal->SnapSkipCounter<=0)
         {
-          gal->OldType = gal->Type;
-          gal->dt      = gal->LTTime - run_globals->LTTime[snapshot];
-          if(gal->Type < 2)
+
+          if((index_lookup) && (i_newhalo > -1) && !(gal->ghost_flag) && (gal->Type < 2))
+            i_newhalo = find_original_index(gal->HaloDescIndex, index_lookup, trees_info.n_halos);
+
+          if(i_newhalo>-1)
+          {
+            gal->OldType = gal->Type;
+            gal->dt      = gal->LTTime - run_globals->LTTime[snapshot];
+            if(gal->Type < 2)
+            {
+
+              if(check_for_merger(gal->TreeFlags))
+              {
+
+                // Here we have a new merger...  Mark it and deal with it below.
+                gal->Type = 999;
+                merger_counter++;
+                gal->Halo = &(halo[i_newhalo]);
+                turn_off_merger_flag(gal);
+
+              } else
+              {
+
+                // Here we have the simplest case where a galaxy continues along in it's halo...
+                gal->dM   = (halo[i_newhalo]).Mvir - gal->Mvir;
+
+                gal->Halo = &(halo[i_newhalo]);
+                assign_galaxy_to_halo(gal, &(halo[i_newhalo]));
+
+                // Loop through all of the other galaxies in this halo and set their Halo pointer
+                cur_gal = gal->NextGalInHalo;
+                while(cur_gal!=NULL)
+                {
+                  cur_gal->Halo = &(halo[i_newhalo]);
+                  cur_gal       = cur_gal->NextGalInHalo;
+                }
+
+              }
+            }
+          } else  // this galaxy has been marked for death
           {
 
-            if(check_for_merger(gal->TreeFlags))
+            if(gal->FirstGalInHalo==gal)
             {
-
-              // Here we have a new merger...  Mark it and deal with it below.
-              gal->Type = 999;
-              merger_counter++;
-              gal->Halo = &(halo[i_newhalo]);
-              turn_off_merger_flag(gal);
-
-            } else
-            {
-
-              // Here we have the simplest case where a galaxy continues along in it's halo...
-              gal->dM   = (halo[i_newhalo]).Mvir - gal->Mvir;
-
-              gal->Halo = &(halo[i_newhalo]);
-              assign_galaxy_to_halo(gal, &(halo[i_newhalo]));
-
-              // Loop through all of the other galaxies in this halo and set their Halo pointer
+              // We have marked the first galaxy in the halo for death. If there are any
+              // other type 2 galaxies in this halo then we must kill them as well...
+              // Unfortunately, we don't know if we have alrady processed these
+              // remaining galaxies, so we have to just mark them for the moment
+              // and then do another check below...
               cur_gal = gal->NextGalInHalo;
               while(cur_gal!=NULL)
               {
-                cur_gal->Halo = &(halo[i_newhalo]);
-                cur_gal       = cur_gal->NextGalInHalo;
+                cur_gal->HaloDescIndex = -1;
+                cur_gal = cur_gal->NextGalInHalo;
               }
-
             }
+            kill_galaxy(run_globals, gal, prev_gal, &NGal, &kill_counter);
+            gal = prev_gal;
+
           }
-        } else  // this galaxy has been marked for death
+        } else  // this galaxy's halo has skipped this snapshot
         {
 
-          if(gal->FirstGalInHalo==gal)
+          // This is a ghost galaxy for this snapshot.
+          // We need to count all the other galaxies in this halo as ghosts as
+          // well since they won't be reachable by traversing the FOF groups
+          cur_gal = gal;
+          while (cur_gal!=NULL)
           {
-            // We have marked the first galaxy in the halo for death. If there are any
-            // other type 2 galaxies in this halo then we must kill them as well...
-            // Unfortunately, we don't know if we have alrady processed these
-            // remaining galaxies, so we have to just mark them for the moment
-            // and then do another check below...
+            if(cur_gal->HaloDescIndex > -1)
+            {
+              ghost_counter++;
+              cur_gal->ghost_flag = true;
+            }
+            cur_gal = cur_gal->NextGalInHalo;
+          }
+
+        }
+
+        // gal may be NULL if we just killed the first galaxy
+        if (gal!=NULL)
+        {
+          prev_gal = gal;
+          gal      = gal->Next;
+        } else
+          gal = run_globals->FirstGal;
+
+      }
+
+      // Do one more pass to make sure that we have killed all galaxies which we
+      // should have (i.e. satellites in strayed halos etc.)
+      prev_gal = NULL;
+      gal = run_globals->FirstGal;
+      while(gal!=NULL)
+      {
+        if(gal->HaloDescIndex < 0)
+        {
+          kill_galaxy(run_globals, gal, prev_gal, &NGal, &kill_counter);
+          gal = prev_gal;
+        }
+        prev_gal = gal;
+        gal      = gal->Next;
+      }
+
+      // Store the number of ghost galaxies present at this snapshot
+      run_globals->NGhosts = ghost_counter;
+
+      // Incase we ended up removing the last galaxy, update the LastGal pointer
+      run_globals->LastGal = prev_gal;
+
+      // Find empty (valid) type 0 halos and place new galaxies in them
+      for(int i_halo=0; i_halo<trees_info.n_halos; i_halo++)
+        if(check_if_valid_host(run_globals, &(halo[i_halo])))
+          create_new_galaxy(run_globals, snapshot, &(halo[i_halo]), &NGal, &new_gal_counter, &unique_ID);
+
+      // Loop through each galaxy and deal with HALO mergers now that all other
+      // galaxies have been processed and their halo pointers updated...
+      gal = run_globals->FirstGal;
+      while (gal != NULL)
+      {
+        if(gal->Type == 999)
+        {
+          if(gal->Halo->Galaxy == NULL)
+          {
+
+            // Here we have a halo with a galaxy that has just merged into an
+            // empty halo.  From the point of view of the model, this isn't
+            // actually a merger and so we need to catch these cases...
+            gal->dM           = gal->Halo->Mvir - gal->Mvir;
+            gal->Halo->Galaxy = gal;
+            gal->Type         = gal->Halo->Type;
+            cur_gal           = gal->NextGalInHalo;
+            while(cur_gal!=NULL)
+            {
+              cur_gal->Halo = gal->Halo;
+              cur_gal       = cur_gal->NextGalInHalo;
+            }
+
+          } else  // there are galaxies in the halo being merged into
+          {
+
+            // Remember that we have already set the galaxy's halo pointer so we
+            // don't need to do that here.
+
+            gal->Type = 2;
+
+            // Add the incoming galaxy to the end of the halo's linked list
+            cur_gal = gal->Halo->Galaxy;
+            while (cur_gal!=NULL) {
+              prev_gal = cur_gal;
+              cur_gal  = cur_gal->NextGalInHalo;
+            }
+            prev_gal->NextGalInHalo = gal;
+
+            // Update the FirstGalInHalo pointer.
+            gal->FirstGalInHalo = gal->Halo->Galaxy;
+
+            // Loop through and update the FirstGalInHalo and Halo pointers of any other
+            // galaxies that are attached to the incoming galaxy
             cur_gal = gal->NextGalInHalo;
             while(cur_gal!=NULL)
             {
-              cur_gal->HaloDescIndex = -1;
-              cur_gal = cur_gal->NextGalInHalo;
+              cur_gal->FirstGalInHalo = gal->FirstGalInHalo;
+              cur_gal->Halo           = gal->Halo;
+              cur_gal                 = cur_gal->NextGalInHalo;
             }
-          }
-          kill_galaxy(run_globals, gal, prev_gal, &NGal, &kill_counter);
-          gal = prev_gal;
 
-        }
-      } else  // this galaxy's halo has skipped this snapshot
-      {
+            if (gal->FirstGalInHalo == NULL)
+              SID_log_warning("Just set gal->FirstGalInHalo = NULL!", SID_LOG_COMMENT);
 
-        // This is a ghost galaxy for this snapshot.
-        // We need to count all the other galaxies in this halo as ghosts as
-        // well since they won't be reachable by traversing the FOF groups
-        cur_gal = gal;
-        while (cur_gal!=NULL)
-        {
-          if(cur_gal->HaloDescIndex > -1)
-          {
-            ghost_counter++;
-            cur_gal->ghost_flag = true;
+            // Set the merger target of the incoming galaxy and initialise the
+            // merger clock.  Note that we *increment* the clock imemdiately
+            // after calculating it. This is because we will decrement the clock
+            // (by the same amount) when checking for mergers in evolve.c
+            gal->MergerTarget = gal->FirstGalInHalo;
+            gal->MergTime     = calculate_merging_time(run_globals, gal, snapshot);
+            gal->MergTime    += gal->dt;
           }
-          cur_gal = cur_gal->NextGalInHalo;
         }
 
+        gal = gal->Next;
       }
 
-      // gal may be NULL if we just killed the first galaxy
-      if (gal!=NULL)
+      // We finish by copying the halo properties into the galaxy structure of
+      // all galaxies with type<2 and updating the lookback time values for
+      // non-ghosts.
+      gal = run_globals->FirstGal;
+      while(gal!=NULL)
       {
-        prev_gal = gal;
-        gal      = gal->Next;
-      } else
-        gal = run_globals->FirstGal;
-
-    }
-
-    // Do one more pass to make sure that we have killed all galaxies which we
-    // should have (i.e. satellites in strayed halos etc.)
-    prev_gal = NULL;
-    gal = run_globals->FirstGal;
-    while(gal!=NULL)
-    {
-      if(gal->HaloDescIndex < 0)
-      {
-        kill_galaxy(run_globals, gal, prev_gal, &NGal, &kill_counter);
-        gal = prev_gal;
-      }
-      prev_gal = gal;
-      gal      = gal->Next;
-    }
-
-    // Store the number of ghost galaxies present at this snapshot
-    run_globals->NGhosts = ghost_counter;
-
-    // Incase we ended up removing the last galaxy, update the LastGal pointer
-    run_globals->LastGal = prev_gal;
-
-    // Find empty (valid) type 0 halos and place new galaxies in them
-    for(int i_halo=0; i_halo<trees_info.n_halos; i_halo++)
-      if(check_if_valid_host(run_globals, &(halo[i_halo])))
-        create_new_galaxy(run_globals, snapshot, &(halo[i_halo]), &NGal, &new_gal_counter, &unique_ID);
-
-    // Loop through each galaxy and deal with HALO mergers now that all other
-    // galaxies have been processed and their halo pointers updated...
-    gal = run_globals->FirstGal;
-    while (gal != NULL)
-    {
-      if(gal->Type == 999)
-      {
-        if(gal->Halo->Galaxy == NULL)
+        if((gal->Halo==NULL) && (!gal->ghost_flag))
         {
-
-          // Here we have a halo with a galaxy that has just merged into an
-          // empty halo.  From the point of view of the model, this isn't
-          // actually a merger and so we need to catch these cases...
-          gal->dM           = gal->Halo->Mvir - gal->Mvir;
-          gal->Halo->Galaxy = gal;
-          gal->Type         = gal->Halo->Type;
-          cur_gal           = gal->NextGalInHalo;
-          while(cur_gal!=NULL)
-          {
-            cur_gal->Halo = gal->Halo;
-            cur_gal       = cur_gal->NextGalInHalo;
-          }
-
-        } else  // there are galaxies in the halo being merged into
-        {
-
-          // Remember that we have already set the galaxy's halo pointer so we
-          // don't need to do that here.
-
-          gal->Type = 2;
-
-          // Add the incoming galaxy to the end of the halo's linked list
-          cur_gal = gal->Halo->Galaxy;
-          while (cur_gal!=NULL) {
-            prev_gal = cur_gal;
-            cur_gal  = cur_gal->NextGalInHalo;
-          }
-          prev_gal->NextGalInHalo = gal;
-
-          // Update the FirstGalInHalo pointer.
-          gal->FirstGalInHalo = gal->Halo->Galaxy;
-
-          // Loop through and update the FirstGalInHalo and Halo pointers of any other
-          // galaxies that are attached to the incoming galaxy
-          cur_gal = gal->NextGalInHalo;
-          while(cur_gal!=NULL)
-          {
-            cur_gal->FirstGalInHalo = gal->FirstGalInHalo;
-            cur_gal->Halo           = gal->Halo;
-            cur_gal                 = cur_gal->NextGalInHalo;
-          }
-
-          if (gal->FirstGalInHalo == NULL)
-            SID_log_warning("Just set gal->FirstGalInHalo = NULL!", SID_LOG_COMMENT);
-
-          // Set the merger target of the incoming galaxy and initialise the
-          // merger clock.  Note that we *increment* the clock imemdiately
-          // after calculating it. This is because we will decrement the clock
-          // (by the same amount) when checking for mergers in evolve.c
-          gal->MergerTarget = gal->FirstGalInHalo;
-          gal->MergTime     = calculate_merging_time(run_globals, gal, snapshot);
-          gal->MergTime    += gal->dt;
-        }
-      }
-
-      gal = gal->Next;
-    }
-
-    // We finish by copying the halo properties into the galaxy structure of
-    // all galaxies with type<2 and updating the lookback time values for
-    // non-ghosts.
-    gal = run_globals->FirstGal;
-    while(gal!=NULL)
-    {
-      if((gal->Halo==NULL) && (!gal->ghost_flag))
-      {
-        SID_log_error("We missed a galaxy during processing!");
+          SID_log_error("We missed a galaxy during processing!");
 #ifdef DEBUG
-        mpi_debug_here();
+          mpi_debug_here();
 #endif
-        ABORT(EXIT_FAILURE);
+          ABORT(EXIT_FAILURE);
+        }
+        if(!gal->ghost_flag)
+          gal->LTTime = run_globals->LTTime[snapshot];
+        if((gal->Type<2) && (!gal->ghost_flag))
+          copy_halo_to_galaxy(gal->Halo, gal, snapshot);
+        gal = gal->Next;
       }
-      if(!gal->ghost_flag)
-        gal->LTTime = run_globals->LTTime[snapshot];
-      if((gal->Type<2) && (!gal->ghost_flag))
-        copy_halo_to_galaxy(gal->Halo, gal, snapshot);
-      gal = gal->Next;
-    }
 
 #ifdef DEBUG
-    if(NGal>0)
-      check_counts(run_globals, fof_group, NGal, trees_info.n_fof_groups);
+      if(NGal>0)
+        check_counts(run_globals, fof_group, NGal, trees_info.n_fof_groups);
 #endif
 
-    // Do the physics
-    if(NGal > 0)
-      nout_gals = evolve_galaxies(run_globals, fof_group, snapshot, NGal, trees_info.n_fof_groups);
+      // Do the physics
+      if(NGal > 0)
+        nout_gals = evolve_galaxies(run_globals, fof_group, snapshot, NGal, trees_info.n_fof_groups);
 
-    // Add the ghost galaxies into the nout_gals count
-    nout_gals+=ghost_counter;
+      // Add the ghost galaxies into the nout_gals count
+      nout_gals+=ghost_counter;
 
 #ifdef USE_TOCF
-    if(run_globals->params.TOCF_Flag)
-    {
-      if(!tocf_params.uvb_feedback)
+      if(run_globals->params.TOCF_Flag)
       {
-        // We are decoupled, so no need to run 21cmFAST unless we are ouputing this snapshot
+        if(!tocf_params.uvb_feedback)
+        {
+          // We are decoupled, so no need to run 21cmFAST unless we are ouputing this snapshot
+          for(int i_out = 0; i_out < NOUT; i_out++)
+            if(snapshot == run_globals->ListOutputSnaps[i_out])
+              call_find_HII_bubbles(run_globals, snapshot, nout_gals);
+        }
+        else
+          call_find_HII_bubbles(run_globals, snapshot, nout_gals);
+      }
+#endif
+
+#ifdef DEBUG
+      // print some statistics for this snapshot
+      SID_Allreduce(SID_IN_PLACE, &merger_counter , 1, SID_INT, SID_SUM, SID.COMM_WORLD);
+      SID_Allreduce(SID_IN_PLACE, &kill_counter   , 1, SID_INT, SID_SUM, SID.COMM_WORLD);
+      SID_Allreduce(SID_IN_PLACE, &new_gal_counter, 1, SID_INT, SID_SUM, SID.COMM_WORLD);
+      SID_Allreduce(SID_IN_PLACE, &ghost_counter  , 1, SID_INT, SID_SUM, SID.COMM_WORLD);
+
+      SID_log("Newly identified merger events    :: %d", SID_LOG_COMMENT, merger_counter);
+      SID_log("Killed galaxies                   :: %d", SID_LOG_COMMENT, kill_counter);
+      SID_log("Newly created galaxies            :: %d", SID_LOG_COMMENT, new_gal_counter);
+      SID_log("Galaxies in ghost halos           :: %d", SID_LOG_COMMENT, ghost_counter);
+#endif
+
+      // Write the results if this is a requested snapshot (and we are on our last model call)
+      if(i_run == n_runs-1)
+      {
         for(int i_out = 0; i_out < NOUT; i_out++)
           if(snapshot == run_globals->ListOutputSnaps[i_out])
-            call_find_HII_bubbles(run_globals, snapshot, nout_gals);
+            write_snapshot(run_globals, nout_gals, i_out, &last_nout_gals);
       }
-      else
-        call_find_HII_bubbles(run_globals, snapshot, nout_gals);
-    }
-#endif
-
-#ifdef DEBUG
-    // print some statistics for this snapshot
-    SID_Allreduce(SID_IN_PLACE, &merger_counter , 1, SID_INT, SID_SUM, SID.COMM_WORLD);
-    SID_Allreduce(SID_IN_PLACE, &kill_counter   , 1, SID_INT, SID_SUM, SID.COMM_WORLD);
-    SID_Allreduce(SID_IN_PLACE, &new_gal_counter, 1, SID_INT, SID_SUM, SID.COMM_WORLD);
-    SID_Allreduce(SID_IN_PLACE, &ghost_counter  , 1, SID_INT, SID_SUM, SID.COMM_WORLD);
-
-    SID_log("Newly identified merger events    :: %d", SID_LOG_COMMENT, merger_counter);
-    SID_log("Killed galaxies                   :: %d", SID_LOG_COMMENT, kill_counter);
-    SID_log("Newly created galaxies            :: %d", SID_LOG_COMMENT, new_gal_counter);
-    SID_log("Galaxies in ghost halos           :: %d", SID_LOG_COMMENT, ghost_counter);
-#endif
-
-    // Write the results if this is a requested snapshot
-    for(int i_out = 0; i_out < NOUT; i_out++)
-      if(snapshot == run_globals->ListOutputSnaps[i_out])
-        write_snapshot(run_globals, nout_gals, i_out, &last_nout_gals);
 
 #ifdef USE_TOCF
-    if(run_globals->params.TOCF_Flag)
-      check_if_reionization_complete(run_globals);
+      if(run_globals->params.TOCF_Flag)
+        check_if_reionization_complete(run_globals);
 #endif
 
-    SID_log("...done", SID_LOG_CLOSE);
+      SID_log("...done", SID_LOG_CLOSE);
 
+    }
   }
 
   // Create the master file
@@ -493,6 +505,7 @@ void dracarys(run_globals_t *run_globals)
   SID_free(SID_FARG snapshot_halo);
   SID_free(SID_FARG snapshot_fof_group);
   SID_free(SID_FARG snapshot_index_lookup);
+  SID_free(SID_FARG snapshot_trees_info);
 
   if(index_lookup)
     SID_free(SID_FARG index_lookup);

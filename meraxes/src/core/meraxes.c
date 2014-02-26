@@ -133,6 +133,12 @@ int main(int argc, char **argv)
   // calculate the output hdf5 file properties for later use
   calc_hdf5_props(&run_globals);
 
+  // DEBUG
+  run_globals.params.MultipleRuns_Flag = 1;
+  run_globals.params.NMultipleRuns = 5;
+  SID_log("****** NMultipleRuns = %d", SID_LOG_COMMENT, run_globals.params.NMultipleRuns);
+  SID_log("****** MultipleRuns_Flag = %d", SID_LOG_COMMENT, run_globals.params.MultipleRuns_Flag);
+
   // Run the model!
   dracarys(&run_globals);
 

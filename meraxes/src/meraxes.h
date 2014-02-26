@@ -124,6 +124,7 @@ struct run_params_t{
   int                   SnaplistLength;
   int                   RandomSeed;
   int                   MultipleRuns_Flag;
+  int                   NMultipleRuns;
   char                  ForestIDFile[STRLEN];
   physics_params_t      physics;
   int                   TOCF_Flag;

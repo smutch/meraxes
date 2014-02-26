@@ -245,7 +245,6 @@ static void read_trees_and_catalogs(
     sizeof(tree_buffer[0].forest_id),
     sizeof(tree_buffer[0].fof_mvir) };
 
-
   keep_flag = true;
   while(n_read<n_halos)
   {
@@ -701,6 +700,19 @@ trees_info_t read_halos(
   n_halos = trees_info.n_halos;
   n_fof_groups = trees_info.n_fof_groups;
 
+  if(flag_multiple_runs)
+  {
+    if (n_halos<1)
+    {
+      SID_log("No halos in this file... skipping...", SID_LOG_COMMENT);
+      SID_log("", SID_LOG_NOPRINT|SID_LOG_CLOSE);
+      if(SID.My_rank == 0)
+        H5Fclose(fin_trees);
+      snapshot_trees_info[snapshot] = trees_info;
+      return trees_info;
+    }
+  }
+
   // If necessary, allocate the halo array
   if(*halo == NULL)
   {
@@ -711,6 +723,7 @@ trees_info_t read_halos(
     if((n_requested_forests > -1) || (SID.n_proc > 1))
     {
       select_forests(run_globals);
+      n_requested_forests = run_globals->NRequestedForests;
       *index_lookup = SID_malloc(sizeof(int) * run_globals->NHalosMax);
     }
 
@@ -764,9 +777,13 @@ trees_info_t read_halos(
     *fof_group    = (fof_group_t *)SID_realloc(*fof_group, sizeof(fof_group_t) * n_fof_groups_kept);
 
     snapshot_trees_info[snapshot] = trees_info;
+
+    SID_log("Resized allocated arrays...", SID_LOG_COMMENT, n_halos_kept);
   }
 
-  SID_log("Read %d halos in %d fof_groups.", SID_LOG_COMMENT, trees_info.n_halos, trees_info.n_fof_groups);
+  SID_Allreduce(SID_IN_PLACE, &n_halos_kept, 1, SID_INT, SID_SUM, SID.COMM_WORLD);
+  SID_Allreduce(SID_IN_PLACE, &n_fof_groups_kept, 1, SID_INT, SID_SUM, SID.COMM_WORLD);
+  SID_log("Read %d halos in %d fof_groups.", SID_LOG_COMMENT, n_halos_kept, n_fof_groups_kept);
 
   SID_log("...done", SID_LOG_CLOSE);
 
