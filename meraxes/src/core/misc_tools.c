@@ -215,9 +215,6 @@ void check_counts(run_globals_t *run_globals, fof_group_t *fof_group, int NGal, 
       counter-total_NGhosts);
   gal_next_counter = counter;
 
-  // DEBUG
-  // SID_log("fof_group[0].FirstHalo->Galaxy->StellarMass = %.3e", SID_LOG_COMMENT, 0, fof_group[0].FirstHalo->Galaxy->StellarMass);
-
   halo_pop_count = 0;
   counter = 0;
   halo_counter = 0;

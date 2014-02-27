@@ -254,6 +254,9 @@ void init_meraxes(run_globals_t *run_globals)
   sprintf(run_globals->FNameOut, "%s/%s_%d.hdf5", run_globals->params.OutputDir, run_globals->params.FileNameGalaxies, SID.My_rank);
   prep_hdf5_file(run_globals);
 
+  // Set the SelectForestsSwitch
+  run_globals->SelectForestsSwitch = true;
+
 #ifdef USE_TOCF
   set_HII_eff_factor(run_globals);
   malloc_reionization_grids(run_globals);

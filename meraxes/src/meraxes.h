@@ -210,6 +210,7 @@ struct run_globals_t{
   int                    NHalosMax;
   int                    NFOFGroupsMax;
   int                    NRequestedForests;
+  bool                   SelectForestsSwitch;
   int                   *RequestedForestId;
   struct galaxy_t       *FirstGal;
   struct galaxy_t       *LastGal;
