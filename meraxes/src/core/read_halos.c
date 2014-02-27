@@ -673,8 +673,11 @@ trees_info_t read_halos(
   bool            flag_multiple_runs = (bool)(run_globals->params.MultipleRuns_Flag);
 
   // if we are doing multiple runs and have already read in this snapshot then we don't need to do read anything else
-  if(flag_multiple_runs && (*halo != NULL) && (*fof_group !=NULL) && (*index_lookup != NULL))
+  if(flag_multiple_runs && (snapshot_trees_info[snapshot].n_halos!=-1))
+  {
+    SID_log("Snapshot %d has alread been read in... (n_halos = %d)", SID_LOG_COMMENT, snapshot, snapshot_trees_info[snapshot].n_halos);
     return snapshot_trees_info[snapshot];
+  }
 
   SID_log("Reading snapshot %d (z=%.2f) trees and halos...", SID_LOG_OPEN|SID_LOG_TIMER, snapshot, run_globals->ZZ[snapshot]);
 
@@ -791,24 +794,35 @@ trees_info_t read_halos(
 
     // DEBUG
     // SID_log("BEFORE ***", SID_LOG_OPEN);
-    // for (int di=0; di<10; di++)
+    // for (int di=0; di < n_fof_groups_kept; di++)
     // {
     //   SID_log("fof_group[%d].FirstHalo->ID = %d", SID_LOG_COMMENT, di, (*fof_group)[di].FirstHalo->ID);
-    //   SID_log("halo[%d].FOFGroup->FirstHalo->ID = %d", SID_LOG_COMMENT, di, (*halo)[di].FOFGroup->FirstHalo->ID);
+    //   halo_t *h = (*fof_group)[di].FirstHalo;
+    //   halo_t *last_h;
+    //   while(h != NULL)
+    //   {
+    //     last_h = h;
+    //     h = h->NextHaloInFOFGroup;
+    //   }
+    //   if(last_h != (*fof_group)[di].FirstHalo)
+    //     SID_log("last halo ID = %d", SID_LOG_COMMENT, last_h->ID);
+    //   // SID_log("halo[%d].FOFGroup->FirstHalo->ID = %d", SID_LOG_COMMENT, di, (*halo)[di].FOFGroup->FirstHalo->ID);
     // }
     // SID_log("", SID_LOG_CLOSE|SID_LOG_NOPRINT);
 
     size_t *halo_FOFGroup_os = SID_malloc(sizeof(size_t) * n_halos_kept);
     size_t *halo_NextHaloInFOFGroup_os = SID_malloc(sizeof(size_t) * n_halos_kept);
+    bool   *halo_NextHaloInFOFGroup_NULL = SID_malloc(sizeof(bool) * n_halos_kept);
     size_t *fof_FirstHalo_os = SID_malloc(sizeof(size_t) * n_halos_kept);
 
     for(int ii=0; ii < n_halos_kept; ii++)
     {
       halo_FOFGroup_os[ii] = (size_t)((*halo)[ii].FOFGroup - (*fof_group));
+      halo_NextHaloInFOFGroup_NULL[ii] = false;
       if((*halo)[ii].NextHaloInFOFGroup != NULL)
         halo_NextHaloInFOFGroup_os[ii] = (size_t)((*halo)[ii].NextHaloInFOFGroup - (*halo));
       else
-        halo_NextHaloInFOFGroup_os[ii] = -1;
+        halo_NextHaloInFOFGroup_NULL[ii] = true;
     }
     for(int ii=0; ii < n_fof_groups_kept; ii++)
       fof_FirstHalo_os[ii] = (size_t)((*fof_group)[ii].FirstHalo - (*halo));
@@ -820,7 +834,7 @@ trees_info_t read_halos(
     for(int ii=0; ii < n_halos_kept; ii++)
     {
       (*halo)[ii].FOFGroup = &((*fof_group)[halo_FOFGroup_os[ii]]);
-      if(halo_NextHaloInFOFGroup_os[ii] > -1)
+      if(!halo_NextHaloInFOFGroup_NULL[ii])
         (*halo)[ii].NextHaloInFOFGroup = &((*halo)[halo_NextHaloInFOFGroup_os[ii]]);
       else
         (*halo)[ii].NextHaloInFOFGroup = NULL;
@@ -829,15 +843,25 @@ trees_info_t read_halos(
       (*fof_group)[ii].FirstHalo = &((*halo)[fof_FirstHalo_os[ii]]);
 
     SID_free(SID_FARG fof_FirstHalo_os);
+    SID_free(SID_FARG halo_NextHaloInFOFGroup_NULL);
     SID_free(SID_FARG halo_NextHaloInFOFGroup_os);
     SID_free(SID_FARG halo_FOFGroup_os);
 
     // DEBUG
     // SID_log("AFTER ***", SID_LOG_OPEN);
-    // for (int di=0; di<10; di++)
+    // for (int di=0; di < n_fof_groups_kept; di++)
     // {
     //   SID_log("fof_group[%d].FirstHalo->ID = %d", SID_LOG_COMMENT, di, (*fof_group)[di].FirstHalo->ID);
-    //   SID_log("halo[%d].FOFGroup->FirstHalo->ID = %d", SID_LOG_COMMENT, di, (*halo)[di].FOFGroup->FirstHalo->ID);
+    //   halo_t *h = (*fof_group)[di].FirstHalo;
+    //   halo_t *last_h;
+    //   while(h != NULL)
+    //   {
+    //     last_h = h;
+    //     h = h->NextHaloInFOFGroup;
+    //   }
+    //   if(last_h != (*fof_group)[di].FirstHalo)
+    //     SID_log("last halo ID = %d", SID_LOG_COMMENT, last_h->ID);
+    //   // SID_log("halo[%d].FOFGroup->FirstHalo->ID = %d", SID_LOG_COMMENT, di, (*halo)[di].FOFGroup->FirstHalo->ID);
     // }
     // SID_log("", SID_LOG_CLOSE|SID_LOG_NOPRINT);
 

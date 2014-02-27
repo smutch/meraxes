@@ -153,6 +153,7 @@ void dracarys(run_globals_t *run_globals)
   int           n_store_snapshots = 0;
   bool          flag_multiple_runs = (bool)(run_globals->params.MultipleRuns_Flag);
   int           n_runs          = run_globals->params.NMultipleRuns;
+  int           i_snap;
 
   // Find what the last requested output snapshot is
   for(int ii=0; ii<NOUT; ii++)
@@ -161,13 +162,15 @@ void dracarys(run_globals_t *run_globals)
 
   // Allocate an array of last_snap halo array pointers
   if(flag_multiple_runs)
-    n_store_snapshots = last_snap;
+    n_store_snapshots = last_snap+1;
   else
     n_store_snapshots = 1;
   snapshot_halo = (halo_t **)SID_calloc(sizeof(halo_t *) * n_store_snapshots);
   snapshot_fof_group = (fof_group_t **)SID_calloc(sizeof(fof_group_t *) * n_store_snapshots);
   snapshot_index_lookup = (int **)SID_calloc(sizeof(int *) * n_store_snapshots);
   snapshot_trees_info = (trees_info_t *)SID_calloc(sizeof(trees_info_t) * n_store_snapshots);
+  for(int ii=0; ii < n_store_snapshots; ii++)
+    snapshot_trees_info[ii].n_halos = -1;
 
   // Loop through each model iteration
   for(int i_run=0; i_run<n_runs; i_run++)
@@ -182,22 +185,17 @@ void dracarys(run_globals_t *run_globals)
       new_gal_counter = 0;
       ghost_counter   = 0;
 
-      // Set the relevant pointers to this snapshot
-      if(flag_multiple_runs)
-      {
-        halo = snapshot_halo[snapshot];
-        fof_group = snapshot_fof_group[snapshot];
-        index_lookup = snapshot_index_lookup[snapshot];
-      }
-      else
-      {
-        halo = snapshot_halo[0];
-        fof_group = snapshot_fof_group[0];
-        index_lookup = snapshot_index_lookup[0];
-      }
-
       // Read in the halos for this snapshot
-      trees_info = read_halos(run_globals, snapshot, &halo, &fof_group, &index_lookup, snapshot_trees_info);
+      if(flag_multiple_runs)
+        i_snap = snapshot;
+      else
+        i_snap = 0;
+      trees_info = read_halos(run_globals, snapshot, &(snapshot_halo[i_snap]), &(snapshot_fof_group[i_snap]), &(snapshot_index_lookup[i_snap]), snapshot_trees_info);
+
+      // Set the relevant pointers to this snapshot
+      halo = snapshot_halo[i_snap];
+      fof_group = snapshot_fof_group[i_snap];
+      index_lookup = snapshot_index_lookup[i_snap];
 
       SID_log("Processing snapshot %d (z=%.2f)...", SID_LOG_OPEN|SID_LOG_TIMER, snapshot, run_globals->ZZ[snapshot]);
 
@@ -486,6 +484,28 @@ void dracarys(run_globals_t *run_globals)
       SID_log("...done", SID_LOG_CLOSE);
 
     }
+
+    // Tidy up counters and galaxies from this iteration
+    NGal            = 0;
+    unique_ID       = 0;
+
+    SID_log("Resetting halo->galaxy pointers", SID_LOG_COMMENT);
+    for(int ii=0; ii < n_store_snapshots; ii++)
+    {
+      for(int jj=0; jj < snapshot_trees_info[ii].n_halos; jj++)
+        snapshot_halo[ii][jj].Galaxy = NULL;
+    }
+
+    SID_log("Freeing galaxies...", SID_LOG_OPEN);
+    gal = run_globals->FirstGal;
+    while (gal != NULL) {
+      next_gal = gal->Next;
+      SID_free(SID_FARG gal);
+      gal = next_gal;
+    }
+    run_globals->FirstGal = NULL;
+    SID_log(" ...done", SID_LOG_CLOSE);
+
   }
 
   // Create the master file
@@ -493,9 +513,7 @@ void dracarys(run_globals_t *run_globals)
     create_master_file(run_globals);
 
   // Free all of the remaining allocated galaxies, halos and fof groups
-  SID_log("Freeing FOF groups...", SID_LOG_COMMENT);
-  SID_free(SID_FARG fof_group);
-  SID_log("Freeing halos...", SID_LOG_COMMENT);
+  SID_log("Freeing FOF groups and halos...", SID_LOG_COMMENT);
   for(int ii=0; ii<n_store_snapshots; ii++)
   {
     SID_free(SID_FARG snapshot_halo[ii]);
@@ -506,18 +524,6 @@ void dracarys(run_globals_t *run_globals)
   SID_free(SID_FARG snapshot_fof_group);
   SID_free(SID_FARG snapshot_index_lookup);
   SID_free(SID_FARG snapshot_trees_info);
-
-  if(index_lookup)
-    SID_free(SID_FARG index_lookup);
-
-  SID_log("Freeing remaining galaxies...", SID_LOG_OPEN);
-  gal = run_globals->FirstGal;
-  while (gal != NULL) {
-    next_gal = gal->Next;
-    SID_free(SID_FARG gal);
-    gal = next_gal;
-  }
-  SID_log(" ...done", SID_LOG_CLOSE);
 
 }
 
