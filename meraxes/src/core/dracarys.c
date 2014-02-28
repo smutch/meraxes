@@ -175,6 +175,8 @@ void dracarys(run_globals_t *run_globals)
   // Loop through each model iteration
   for(int i_run=0; i_run<n_runs; i_run++)
   {
+
+    SID_log("Starting model iteration %d...", SID_LOG_OPEN|SID_LOG_TIMER, i_run);
     // Loop through each snapshot
     for(int snapshot=0; snapshot<=last_snap; snapshot++)
     {
@@ -505,6 +507,8 @@ void dracarys(run_globals_t *run_globals)
     }
     run_globals->FirstGal = NULL;
     SID_log(" ...done", SID_LOG_CLOSE);
+
+    SID_log("... finished iteration %d", SID_LOG_CLOSE, i_run);
 
   }
 

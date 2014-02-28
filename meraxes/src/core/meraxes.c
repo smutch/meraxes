@@ -135,7 +135,7 @@ int main(int argc, char **argv)
 
   // DEBUG
   run_globals.params.MultipleRuns_Flag = 1;
-  run_globals.params.NMultipleRuns = 5;
+  run_globals.params.NMultipleRuns = 10;
   SID_log("****** NMultipleRuns = %d", SID_LOG_COMMENT, run_globals.params.NMultipleRuns);
   SID_log("****** MultipleRuns_Flag = %d", SID_LOG_COMMENT, run_globals.params.MultipleRuns_Flag);
 
