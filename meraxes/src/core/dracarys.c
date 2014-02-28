@@ -99,6 +99,8 @@ static inline bool check_for_merger(int flags)
 static inline bool check_if_valid_host(run_globals_t *run_globals, halo_t *halo)
 {
   int invalid_flags = (TREE_CASE_FRAGMENTED_RETURNED
+      | TEE_CASE_FRAGMENTED_EXCHANGED
+      | TREE_CASE_FRAGMENTED_LOST
       | TREE_CASE_STRAYED
       | TREE_CASE_SPUTTERED);
 
