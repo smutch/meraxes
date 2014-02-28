@@ -604,7 +604,7 @@ void write_snapshot(run_globals_t *run_globals, int n_write, int i_out, int *las
   int                   index                  = -1;
   double                temp                   = 0;
 
-  SID_log("Writing output file...", SID_LOG_OPEN|SID_LOG_TIMER);
+  SID_log("Writing output file (n_write = %d)...", SID_LOG_OPEN|SID_LOG_TIMER, n_write);
 
   // Create the file.
   file_id = H5Fopen(run_globals->FNameOut, H5F_ACC_RDWR, H5P_DEFAULT);

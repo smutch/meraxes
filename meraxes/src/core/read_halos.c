@@ -729,6 +729,9 @@ trees_info_t read_halos(
       {
         select_forests(run_globals);
         n_requested_forests = run_globals->NRequestedForests;
+
+        // Toggle the SelectForestsSwitch so that we know we don't need to call this again
+        run_globals->SelectForestsSwitch = false;
       }
       *index_lookup = SID_malloc(sizeof(int) * run_globals->NHalosMax);
     }
@@ -874,9 +877,6 @@ trees_info_t read_halos(
   SID_Allreduce(SID_IN_PLACE, &n_halos_kept, 1, SID_INT, SID_SUM, SID.COMM_WORLD);
   SID_Allreduce(SID_IN_PLACE, &n_fof_groups_kept, 1, SID_INT, SID_SUM, SID.COMM_WORLD);
   SID_log("Read %d halos in %d fof_groups.", SID_LOG_COMMENT, n_halos_kept, n_fof_groups_kept);
-
-  // Toggle the SelectForestsSwitch so that we know we don't need to call this again
-  run_globals->SelectForestsSwitch = false;
 
   SID_log("...done", SID_LOG_CLOSE);
 

@@ -159,8 +159,8 @@ void dracarys(run_globals_t *run_globals)
   int           i_newhalo;
   int           NGal            = 0;
   int           unique_ID       = 0;
-  int           nout_gals;
-  int           last_nout_gals;
+  int           nout_gals       = 0;
+  int           last_nout_gals  = 0;
   int           last_snap       = 0;
   int           kill_counter    = 0;
   int           merger_counter  = 0;
@@ -176,7 +176,7 @@ void dracarys(run_globals_t *run_globals)
       last_snap = run_globals->ListOutputSnaps[ii];
 
   // Allocate an array of last_snap halo array pointers
-  if(n_runs > 0)
+  if(n_runs > 1)
     n_store_snapshots = last_snap+1;
   else
     n_store_snapshots = 1;
@@ -208,7 +208,7 @@ void dracarys(run_globals_t *run_globals)
       ghost_counter   = 0;
 
       // Read in the halos for this snapshot
-      if(n_runs > 0)
+      if(n_runs > 1)
         i_snap = snapshot;
       else
         i_snap = 0;
@@ -494,7 +494,7 @@ void dracarys(run_globals_t *run_globals)
       if(i_run == n_runs-1)
       {
         for(int i_out = 0; i_out < NOUT; i_out++)
-          if(snapshot == run_globals->ListOutputSnaps[i_out])
+          if((snapshot == run_globals->ListOutputSnaps[i_out]) && (nout_gals > 0))
             write_snapshot(run_globals, nout_gals, i_out, &last_nout_gals);
       }
 
@@ -510,6 +510,8 @@ void dracarys(run_globals_t *run_globals)
     // Tidy up counters and galaxies from this iteration
     NGal            = 0;
     unique_ID       = 0;
+    nout_gals       = 0;
+    last_nout_gals  = 0;
 
     SID_log("Resetting halo->galaxy pointers", SID_LOG_COMMENT);
     for(int ii=0; ii < n_store_snapshots; ii++)
