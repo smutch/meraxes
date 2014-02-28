@@ -123,8 +123,7 @@ struct run_params_t{
   double                MergerTimeFactor;
   int                   SnaplistLength;
   int                   RandomSeed;
-  int                   MultipleRuns_Flag;
-  int                   NMultipleRuns;
+  char                  MultipleRunsParamFile[STRLEN];
   char                  ForestIDFile[STRLEN];
   physics_params_t      physics;
   int                   TOCF_Flag;
@@ -212,6 +211,8 @@ struct run_globals_t{
   int                    NRequestedForests;
   bool                   SelectForestsSwitch;
   int                   *RequestedForestId;
+  int                    NRuns;
+  double               **MultipleRunsParams;
   struct galaxy_t       *FirstGal;
   struct galaxy_t       *LastGal;
   gsl_rng               *random_generator;

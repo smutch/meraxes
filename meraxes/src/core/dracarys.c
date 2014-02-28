@@ -124,6 +124,22 @@ static int find_original_index(int index, int *lookup, int n_mappings)
   return new_index;
 }
 
+static void set_multiple_runs_params(run_globals_t *run_globals, int i_run)
+{
+
+  SID_log("Setting parameters...", SID_LOG_COMMENT);
+  double *p = run_globals->MultipleRunsParams[i_run];
+  physics_params_t *params = &(run_globals->params.physics);
+
+  params->peak            = p[0];
+  params->peak_evo        = p[1];
+  params->sigma           = p[2];
+  params->sigma_evo       = p[3];
+  params->stellarfrac     = p[4];
+  params->stellarfrac_evo = p[5];
+}
+
+
 //! Actually run the model
 void dracarys(run_globals_t *run_globals)
 {
@@ -151,8 +167,7 @@ void dracarys(run_globals_t *run_globals)
   int           new_gal_counter = 0;
   int           ghost_counter   = 0;
   int           n_store_snapshots = 0;
-  bool          flag_multiple_runs = (bool)(run_globals->params.MultipleRuns_Flag);
-  int           n_runs          = run_globals->params.NMultipleRuns;
+  int           n_runs          = run_globals->NRuns;
   int           i_snap;
 
   // Find what the last requested output snapshot is
@@ -161,7 +176,7 @@ void dracarys(run_globals_t *run_globals)
       last_snap = run_globals->ListOutputSnaps[ii];
 
   // Allocate an array of last_snap halo array pointers
-  if(flag_multiple_runs)
+  if(n_runs > 0)
     n_store_snapshots = last_snap+1;
   else
     n_store_snapshots = 1;
@@ -177,6 +192,11 @@ void dracarys(run_globals_t *run_globals)
   {
 
     SID_log("Starting model iteration %d...", SID_LOG_OPEN|SID_LOG_TIMER, i_run);
+
+    // if necessary set the parameters according to those provided in run_globals->params.MultipleRunsFile
+    if(n_runs > 1)
+      set_multiple_runs_params(run_globals, i_run);
+
     // Loop through each snapshot
     for(int snapshot=0; snapshot<=last_snap; snapshot++)
     {
@@ -188,7 +208,7 @@ void dracarys(run_globals_t *run_globals)
       ghost_counter   = 0;
 
       // Read in the halos for this snapshot
-      if(flag_multiple_runs)
+      if(n_runs > 0)
         i_snap = snapshot;
       else
         i_snap = 0;
@@ -513,6 +533,7 @@ void dracarys(run_globals_t *run_globals)
   }
 
   // Create the master file
+  SID_Barrier(SID.COMM_WORLD);
   if(SID.My_rank == 0)
     create_master_file(run_globals);
 

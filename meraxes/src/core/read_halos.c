@@ -670,10 +670,10 @@ trees_info_t read_halos(
   int             n_halos_kept;
   int             n_fof_groups_kept;
   int             n_requested_forests = run_globals->NRequestedForests;
-  bool            flag_multiple_runs = (bool)(run_globals->params.MultipleRuns_Flag);
+  int             n_runs = run_globals->NRuns;
 
   // if we are doing multiple runs and have already read in this snapshot then we don't need to do read anything else
-  if(flag_multiple_runs && (snapshot_trees_info[snapshot].n_halos!=-1))
+  if((n_runs > 1) && (snapshot_trees_info[snapshot].n_halos!=-1))
   {
     SID_log("Snapshot %d has alread been read in... (n_halos = %d)", SID_LOG_COMMENT, snapshot, snapshot_trees_info[snapshot].n_halos);
     return snapshot_trees_info[snapshot];
@@ -703,7 +703,7 @@ trees_info_t read_halos(
   n_halos = trees_info.n_halos;
   n_fof_groups = trees_info.n_fof_groups;
 
-  if(flag_multiple_runs)
+  if(n_runs > 1)
   {
     if (n_halos<1)
     {
@@ -776,7 +776,7 @@ trees_info_t read_halos(
   }
 
   // if we are doing multiple runs then resize the arrays to save space and store the trees_info
-  if(flag_multiple_runs)
+  if(n_runs > 1)
   {
 
     // Ok - what follows here is hacky as hell.  By calling realloc on these
