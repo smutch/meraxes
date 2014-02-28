@@ -245,7 +245,6 @@ static void read_trees_and_catalogs(
     sizeof(tree_buffer[0].forest_id),
     sizeof(tree_buffer[0].fof_mvir) };
 
-
   keep_flag = true;
   while(n_read<n_halos)
   {
@@ -657,7 +656,8 @@ trees_info_t read_halos(
   int                  snapshot,
   halo_t        **halo,
   fof_group_t   **fof_group,
-  int           **index_lookup)
+  int           **index_lookup,
+  trees_info_t   *snapshot_trees_info)
 {
 
   int             n_halos;                 //!< Number of halos
@@ -670,6 +670,14 @@ trees_info_t read_halos(
   int             n_halos_kept;
   int             n_fof_groups_kept;
   int             n_requested_forests = run_globals->NRequestedForests;
+  int             n_runs = run_globals->NRuns;
+
+  // if we are doing multiple runs and have already read in this snapshot then we don't need to do read anything else
+  if((n_runs > 1) && (snapshot_trees_info[snapshot].n_halos!=-1))
+  {
+    SID_log("Snapshot %d has alread been read in... (n_halos = %d)", SID_LOG_COMMENT, snapshot, snapshot_trees_info[snapshot].n_halos);
+    return snapshot_trees_info[snapshot];
+  }
 
   SID_log("Reading snapshot %d (z=%.2f) trees and halos...", SID_LOG_OPEN|SID_LOG_TIMER, snapshot, run_globals->ZZ[snapshot]);
 
@@ -695,6 +703,19 @@ trees_info_t read_halos(
   n_halos = trees_info.n_halos;
   n_fof_groups = trees_info.n_fof_groups;
 
+  if(n_runs > 1)
+  {
+    if (n_halos<1)
+    {
+      SID_log("No halos in this file... skipping...", SID_LOG_COMMENT);
+      SID_log("", SID_LOG_NOPRINT|SID_LOG_CLOSE);
+      if(SID.My_rank == 0)
+        H5Fclose(fin_trees);
+      snapshot_trees_info[snapshot] = trees_info;
+      return trees_info;
+    }
+  }
+
   // If necessary, allocate the halo array
   if(*halo == NULL)
   {
@@ -704,7 +725,11 @@ trees_info_t read_halos(
     // if required, select forests and calculate the maximum number of halos and fof groups
     if((n_requested_forests > -1) || (SID.n_proc > 1))
     {
-      select_forests(run_globals);
+      if(run_globals->SelectForestsSwitch == true)
+      {
+        select_forests(run_globals);
+        n_requested_forests = run_globals->NRequestedForests;
+      }
       *index_lookup = SID_malloc(sizeof(int) * run_globals->NHalosMax);
     }
 
@@ -750,7 +775,108 @@ trees_info_t read_halos(
     trees_info.n_fof_groups = n_fof_groups_kept;
   }
 
-  SID_log("Read %d halos in %d fof_groups.", SID_LOG_COMMENT, trees_info.n_halos, trees_info.n_fof_groups);
+  // if we are doing multiple runs then resize the arrays to save space and store the trees_info
+  if(n_runs > 1)
+  {
+
+    // Ok - what follows here is hacky as hell.  By calling realloc on these
+    // arrays, there is a good chance that the actual array will be moved and
+    // there is no way to prevent this.  A side effect will be that all of the
+    // pointers that refer to any of these arrays will be broken.  The simplest
+    // way to deal with this is to calculate the array offsets which each
+    // pointer refers to, and then reset all of the pointers in the realloc'd
+    // arrays.
+    //
+    // In future, this should definitely be changed. All pointers to these
+    // array members should be made integer offsets instead.  That will require
+    // trawling through the code and making the relevant updates in a number of
+    // places (so we'll leave that till later!).
+
+    // DEBUG
+    // SID_log("BEFORE ***", SID_LOG_OPEN);
+    // for (int di=0; di < n_fof_groups_kept; di++)
+    // {
+    //   SID_log("fof_group[%d].FirstHalo->ID = %d", SID_LOG_COMMENT, di, (*fof_group)[di].FirstHalo->ID);
+    //   halo_t *h = (*fof_group)[di].FirstHalo;
+    //   halo_t *last_h;
+    //   while(h != NULL)
+    //   {
+    //     last_h = h;
+    //     h = h->NextHaloInFOFGroup;
+    //   }
+    //   if(last_h != (*fof_group)[di].FirstHalo)
+    //     SID_log("last halo ID = %d", SID_LOG_COMMENT, last_h->ID);
+    //   // SID_log("halo[%d].FOFGroup->FirstHalo->ID = %d", SID_LOG_COMMENT, di, (*halo)[di].FOFGroup->FirstHalo->ID);
+    // }
+    // SID_log("", SID_LOG_CLOSE|SID_LOG_NOPRINT);
+
+    size_t *halo_FOFGroup_os = SID_malloc(sizeof(size_t) * n_halos_kept);
+    size_t *halo_NextHaloInFOFGroup_os = SID_malloc(sizeof(size_t) * n_halos_kept);
+    bool   *halo_NextHaloInFOFGroup_NULL = SID_malloc(sizeof(bool) * n_halos_kept);
+    size_t *fof_FirstHalo_os = SID_malloc(sizeof(size_t) * n_halos_kept);
+
+    for(int ii=0; ii < n_halos_kept; ii++)
+    {
+      halo_FOFGroup_os[ii] = (size_t)((*halo)[ii].FOFGroup - (*fof_group));
+      halo_NextHaloInFOFGroup_NULL[ii] = false;
+      if((*halo)[ii].NextHaloInFOFGroup != NULL)
+        halo_NextHaloInFOFGroup_os[ii] = (size_t)((*halo)[ii].NextHaloInFOFGroup - (*halo));
+      else
+        halo_NextHaloInFOFGroup_NULL[ii] = true;
+    }
+    for(int ii=0; ii < n_fof_groups_kept; ii++)
+      fof_FirstHalo_os[ii] = (size_t)((*fof_group)[ii].FirstHalo - (*halo));
+
+    *halo         = (halo_t *)SID_realloc(*halo, sizeof(halo_t) * n_halos_kept);
+    *index_lookup = (int *)SID_realloc(*index_lookup, sizeof(int) * n_halos_kept);
+    *fof_group    = (fof_group_t *)SID_realloc(*fof_group, sizeof(fof_group_t) * n_fof_groups_kept);
+
+    for(int ii=0; ii < n_halos_kept; ii++)
+    {
+      (*halo)[ii].FOFGroup = &((*fof_group)[halo_FOFGroup_os[ii]]);
+      if(!halo_NextHaloInFOFGroup_NULL[ii])
+        (*halo)[ii].NextHaloInFOFGroup = &((*halo)[halo_NextHaloInFOFGroup_os[ii]]);
+      else
+        (*halo)[ii].NextHaloInFOFGroup = NULL;
+    }
+    for(int ii=0; ii < n_fof_groups_kept; ii++)
+      (*fof_group)[ii].FirstHalo = &((*halo)[fof_FirstHalo_os[ii]]);
+
+    SID_free(SID_FARG fof_FirstHalo_os);
+    SID_free(SID_FARG halo_NextHaloInFOFGroup_NULL);
+    SID_free(SID_FARG halo_NextHaloInFOFGroup_os);
+    SID_free(SID_FARG halo_FOFGroup_os);
+
+    // DEBUG
+    // SID_log("AFTER ***", SID_LOG_OPEN);
+    // for (int di=0; di < n_fof_groups_kept; di++)
+    // {
+    //   SID_log("fof_group[%d].FirstHalo->ID = %d", SID_LOG_COMMENT, di, (*fof_group)[di].FirstHalo->ID);
+    //   halo_t *h = (*fof_group)[di].FirstHalo;
+    //   halo_t *last_h;
+    //   while(h != NULL)
+    //   {
+    //     last_h = h;
+    //     h = h->NextHaloInFOFGroup;
+    //   }
+    //   if(last_h != (*fof_group)[di].FirstHalo)
+    //     SID_log("last halo ID = %d", SID_LOG_COMMENT, last_h->ID);
+    //   // SID_log("halo[%d].FOFGroup->FirstHalo->ID = %d", SID_LOG_COMMENT, di, (*halo)[di].FOFGroup->FirstHalo->ID);
+    // }
+    // SID_log("", SID_LOG_CLOSE|SID_LOG_NOPRINT);
+
+    // save the trees_info for this snapshot as well...
+    snapshot_trees_info[snapshot] = trees_info;
+
+    SID_log("Resized allocated arrays...", SID_LOG_COMMENT, n_halos_kept);
+  }
+
+  SID_Allreduce(SID_IN_PLACE, &n_halos_kept, 1, SID_INT, SID_SUM, SID.COMM_WORLD);
+  SID_Allreduce(SID_IN_PLACE, &n_fof_groups_kept, 1, SID_INT, SID_SUM, SID.COMM_WORLD);
+  SID_log("Read %d halos in %d fof_groups.", SID_LOG_COMMENT, n_halos_kept, n_fof_groups_kept);
+
+  // Toggle the SelectForestsSwitch so that we know we don't need to call this again
+  run_globals->SelectForestsSwitch = false;
 
   SID_log("...done", SID_LOG_CLOSE);
 

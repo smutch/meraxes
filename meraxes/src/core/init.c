@@ -60,6 +60,76 @@ static void read_requested_forest_ids(run_globals_t *run_globals)
 
 }
 
+static void read_multiple_runs_params(run_globals_t *run_globals)
+{
+
+  int n_params = 6;
+
+  if(strlen(run_globals->params.MultipleRunsParamFile)==0)
+  {
+    run_globals->NRuns = 1;
+    run_globals->MultipleRunsParams = NULL;
+    return;
+  }
+
+  if(SID.My_rank == 0)
+  {
+    FILE *fin;
+    char *line = NULL;
+    size_t len;
+    int n_runs = -1;
+    double **params;
+
+    if(!(fin = fopen(run_globals->params.MultipleRunsParamFile, "r")))
+    {
+      SID_log_error("Failed to open file: %s", run_globals->params.MultipleRunsParamFile);
+      ABORT(EXIT_FAILURE);
+    }
+
+    getline(&line, &len, fin);
+    n_runs = atoi(line);
+    run_globals->NRuns = n_runs;
+
+    run_globals->MultipleRunsParams = SID_malloc(sizeof(double *) * n_runs);
+    params = run_globals->MultipleRunsParams;
+    for(int ii=0; ii < n_runs; ii++)
+      params[ii] = SID_malloc(sizeof(double) * n_params);
+
+    for(int ii=0; ii<n_runs; ii++)
+    {
+      getline(&line, &len, fin);
+      sscanf(line, "%le %le %le %le %le %le",
+          &(params[ii][0]),
+          &(params[ii][1]),
+          &(params[ii][2]),
+          &(params[ii][3]),
+          &(params[ii][4]),
+          &(params[ii][5]));
+    }
+
+    free(line);
+
+    SID_log("Found %d parameter value sets to run.", SID_LOG_COMMENT, n_runs);
+
+    fclose(fin);
+  }
+
+
+  // broadcast the data to all other ranks
+  SID_Bcast(&(run_globals->NRuns), sizeof(int), 0, SID.COMM_WORLD);
+  if(SID.My_rank > 0)
+    run_globals->MultipleRunsParams = SID_malloc(sizeof(double *) * run_globals->NRuns);
+
+  for(int ii=0; ii < run_globals->NRuns; ii++)
+  {
+    if(SID.My_rank > 0)
+      (run_globals->MultipleRunsParams)[ii] = SID_malloc(sizeof(double) * n_params);
+
+    SID_Bcast((run_globals->MultipleRunsParams)[ii], sizeof(double) * n_params, 0, SID.COMM_WORLD);
+  }
+
+}
+
 
 static void read_snap_list(run_globals_t *run_globals)
 {
@@ -234,6 +304,9 @@ void init_meraxes(run_globals_t *run_globals)
   // read in the requested forest IDs (if any)
   read_requested_forest_ids(run_globals);
 
+  // read in the list of parameters for multiple runs (if required)
+  read_multiple_runs_params(run_globals);
+
   // read in the photometric tables if required
   read_photometric_tables(run_globals);
 
@@ -253,6 +326,9 @@ void init_meraxes(run_globals_t *run_globals)
   // Prep the output file
   sprintf(run_globals->FNameOut, "%s/%s_%d.hdf5", run_globals->params.OutputDir, run_globals->params.FileNameGalaxies, SID.My_rank);
   prep_hdf5_file(run_globals);
+
+  // Set the SelectForestsSwitch
+  run_globals->SelectForestsSwitch = true;
 
 #ifdef USE_TOCF
   set_HII_eff_factor(run_globals);
