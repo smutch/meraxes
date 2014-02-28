@@ -99,7 +99,7 @@ static inline bool check_for_merger(int flags)
 static inline bool check_if_valid_host(run_globals_t *run_globals, halo_t *halo)
 {
   int invalid_flags = (TREE_CASE_FRAGMENTED_RETURNED
-      | TEE_CASE_FRAGMENTED_EXCHANGED
+      | TREE_CASE_FRAGMENTED_EXCHANGED
       | TREE_CASE_FRAGMENTED_LOST
       | TREE_CASE_STRAYED
       | TREE_CASE_SPUTTERED);
@@ -496,7 +496,7 @@ void dracarys(run_globals_t *run_globals)
       if(i_run == n_runs-1)
       {
         for(int i_out = 0; i_out < NOUT; i_out++)
-          if((snapshot == run_globals->ListOutputSnaps[i_out]) && (nout_gals > 0))
+          if(snapshot == run_globals->ListOutputSnaps[i_out])
             write_snapshot(run_globals, nout_gals, i_out, &last_nout_gals);
       }
 
