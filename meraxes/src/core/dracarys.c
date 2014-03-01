@@ -21,12 +21,11 @@ static void inline create_new_galaxy(
   int            snapshot,
   halo_t        *halo,
   int           *NGal,
-  int           *new_gal_counter,
-  int           *unique_ID)
+  int           *new_gal_counter)
 {
   galaxy_t *gal;
 
-  gal = new_galaxy(run_globals, unique_ID);
+  gal = new_galaxy(run_globals, snapshot, halo->ID);
   gal->Halo = halo;
   gal->LTTime = run_globals->LTTime[snapshot];
   assign_galaxy_to_halo(gal, halo);
@@ -160,7 +159,6 @@ void dracarys(run_globals_t *run_globals)
   int          *index_lookup    = NULL;
   int           i_newhalo;
   int           NGal            = 0;
-  int           unique_ID       = 0;
   int           nout_gals       = 0;
   int           last_nout_gals  = 0;
   int           last_snap       = 0;
@@ -361,7 +359,7 @@ void dracarys(run_globals_t *run_globals)
       // Find empty (valid) type 0 halos and place new galaxies in them
       for(int i_halo=0; i_halo<trees_info.n_halos; i_halo++)
         if(check_if_valid_host(run_globals, &(halo[i_halo])))
-          create_new_galaxy(run_globals, snapshot, &(halo[i_halo]), &NGal, &new_gal_counter, &unique_ID);
+          create_new_galaxy(run_globals, snapshot, &(halo[i_halo]), &NGal, &new_gal_counter);
 
       // Loop through each galaxy and deal with HALO mergers now that all other
       // galaxies have been processed and their halo pointers updated...
@@ -511,7 +509,6 @@ void dracarys(run_globals_t *run_globals)
 
     // Tidy up counters and galaxies from this iteration
     NGal            = 0;
-    unique_ID       = 0;
     nout_gals       = 0;
     last_nout_gals  = 0;
 

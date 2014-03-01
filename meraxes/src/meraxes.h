@@ -397,7 +397,7 @@ void    init_meraxes(run_globals_t *run_globals);
 void    dracarys(run_globals_t *run_globals);
 int     evolve_galaxies(run_globals_t *run_globals, fof_group_t *fof_group, int snapshot, int NGal, int NFof);
 trees_info_t read_halos(run_globals_t *run_globals, int snapshot, halo_t **halo, fof_group_t **fof_group, int **index_lookup, trees_info_t *snapshot_trees_info);
-galaxy_t* new_galaxy(run_globals_t *run_globals, int *unique_ID);
+galaxy_t* new_galaxy(run_globals_t *run_globals, int snapshot, int halo_ID);
 void    copy_halo_to_galaxy(halo_t *halo, galaxy_t *gal, int snapshot);
 void    gas_infall(run_globals_t *run_globals, fof_group_t *FOFgroup, int snapshot);
 double  calculate_merging_time(run_globals_t *run_globals, galaxy_t *gal, int snapshot);
