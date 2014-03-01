@@ -470,6 +470,7 @@ void create_master_file(run_globals_t *run_globals)
   char source_group[50];
   char target_ds[50];
   char source_file[STRLEN];
+  char relative_source_file[50];
   hid_t snap_group_id;
   hid_t source_file_id;
   hid_t source_group_id;
@@ -491,9 +492,10 @@ void create_master_file(run_globals_t *run_globals)
       group_id = H5Gcreate(snap_group_id, target_group, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
 
       sprintf(source_file, "%s/%s_%d.hdf5", run_globals->params.OutputDir, run_globals->params.FileNameGalaxies, i_core);
+      sprintf(relative_source_file, "%s_%d.hdf5", run_globals->params.FileNameGalaxies, i_core);
       sprintf(source_ds, "Snap%03d/Galaxies", run_globals->ListOutputSnaps[i_out]);
       sprintf(target_ds, "Galaxies");
-      H5Lcreate_external(source_file, source_ds, group_id, target_ds, H5P_DEFAULT, H5P_DEFAULT);
+      H5Lcreate_external(relative_source_file, source_ds, group_id, target_ds, H5P_DEFAULT, H5P_DEFAULT);
 
       source_file_id = H5Fopen(source_file, H5F_ACC_RDONLY, H5P_DEFAULT);
       H5TBget_table_info(source_file_id, source_ds, NULL, &core_n_gals);
@@ -508,13 +510,13 @@ void create_master_file(run_globals_t *run_globals)
       {
         sprintf(source_ds, "Snap%03d/FirstProgenitorIndices", run_globals->ListOutputSnaps[i_out]);
         sprintf(target_ds, "FirstProgenitorIndices");
-        H5Lcreate_external(source_file, source_ds, group_id, target_ds, H5P_DEFAULT, H5P_DEFAULT);
+        H5Lcreate_external(relative_source_file, source_ds, group_id, target_ds, H5P_DEFAULT, H5P_DEFAULT);
       }
       if(H5LTfind_dataset(source_group_id, "NextProgenitorIndices"))
       {
         sprintf(source_ds, "Snap%03d/NextProgenitorIndices", run_globals->ListOutputSnaps[i_out]);
         sprintf(target_ds, "NextProgenitorIndices");
-        H5Lcreate_external(source_file, source_ds, group_id, target_ds, H5P_DEFAULT, H5P_DEFAULT);
+        H5Lcreate_external(relative_source_file, source_ds, group_id, target_ds, H5P_DEFAULT, H5P_DEFAULT);
       }
 
       H5Fclose(source_file_id);
