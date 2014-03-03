@@ -637,10 +637,12 @@ void write_snapshot(run_globals_t *run_globals, int n_write, int i_out, int *las
   old_count = 0;
   if (calc_descendants_i_out>-1)
   {
+    // malloc the arrays
     descendant_index       = SID_malloc(sizeof(int)* (*last_n_write));
     next_progenitor_index  = SID_malloc(sizeof(int)* (*last_n_write));
     first_progenitor_index = SID_malloc(sizeof(int)* n_write);
 
+    // initialise all entries to -1
     for (int ii=0; ii<*last_n_write; ii++)
     {
       descendant_index[ii] = -1;
@@ -649,6 +651,10 @@ void write_snapshot(run_globals_t *run_globals, int n_write, int i_out, int *las
     for (int ii=0; ii<n_write; ii++)
       first_progenitor_index[ii] = -1;
 
+    // loop through the current galaxies and save their first progenitor
+    // indices as their previous output_index, and the descendent indices of
+    // the last snapshot to what will be the output index when the current
+    // galaxy is written.
     gal = run_globals->FirstGal;
     while (gal!=NULL) {
       if (gal->Type < 3)
