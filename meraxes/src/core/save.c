@@ -518,6 +518,12 @@ void create_master_file(run_globals_t *run_globals)
         sprintf(target_ds, "NextProgenitorIndices");
         H5Lcreate_external(relative_source_file, source_ds, group_id, target_ds, H5P_DEFAULT, H5P_DEFAULT);
       }
+      if(H5LTfind_dataset(source_group_id, "DescendantIndices"))
+      {
+        sprintf(source_ds, "Snap%03d/DescendantIndices", run_globals->ListOutputSnaps[i_out]);
+        sprintf(target_ds, "DescendantIndices");
+        H5Lcreate_external(relative_source_file, source_ds, group_id, target_ds, H5P_DEFAULT, H5P_DEFAULT);
+      }
 
       H5Fclose(source_file_id);
 

@@ -270,8 +270,11 @@ static void read_output_snaps(run_globals_t *run_globals)
       if(ListOutputSnaps[i]>*LastOutputSnap)
         *LastOutputSnap=ListOutputSnaps[i];
     }
-  }
 
+    // sort the list from low to high snapnum
+    qsort(ListOutputSnaps, NOUT, sizeof(int), compare_ints);
+
+  }
 
   // broadcast the data to all other ranks
   SID_Bcast(ListOutputSnaps, sizeof(int)*NOUT, 0, SID.COMM_WORLD);
