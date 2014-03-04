@@ -184,21 +184,23 @@ void check_counts(run_globals_t *run_globals, fof_group_t *fof_group, int NGal, 
 {
 
   int counter = 0;
-  int NGhosts = 0;
   int gal_next_counter = 0;
   int halo_counter = 0;
   int halo_pop_count = 0;
+  int total_NGal = 0;
+  int total_NFof = 0;
+  int total_NGhosts = 0;
   galaxy_t *gal = NULL;
   halo_t *halo = NULL;
 
   SID_log("Running counts check...", SID_LOG_OPEN|SID_LOG_TIMER);
 
-  SID_Allreduce(SID_IN_PLACE, &NFof, 1, SID_INT, SID_SUM, SID.COMM_WORLD);
-  SID_Allreduce(SID_IN_PLACE, &NGal, 1, SID_INT, SID_SUM, SID.COMM_WORLD);
-  SID_Allreduce(&(run_globals->NGhosts), &NGhosts, 1, SID_INT, SID_SUM, SID.COMM_WORLD);
-  SID_log("NFof = %d", SID_LOG_COMMENT, NFof);
-  SID_log("NGal = %d", SID_LOG_COMMENT, NGal);
-  SID_log("NGhosts = %d", SID_LOG_COMMENT, NGhosts);
+  SID_Allreduce(&NFof, &total_NFof, 1, SID_INT, SID_SUM, SID.COMM_WORLD);
+  SID_Allreduce(&NGal, &total_NGal, 1, SID_INT, SID_SUM, SID.COMM_WORLD);
+  SID_Allreduce(&(run_globals->NGhosts), &total_NGhosts, 1, SID_INT, SID_SUM, SID.COMM_WORLD);
+  SID_log("NFof = %d", SID_LOG_COMMENT, total_NFof);
+  SID_log("NGal = %d", SID_LOG_COMMENT, total_NGal);
+  SID_log("NGhosts = %d", SID_LOG_COMMENT, total_NGhosts);
 
   counter=0;
   gal = run_globals->FirstGal;
@@ -209,8 +211,8 @@ void check_counts(run_globals_t *run_globals, fof_group_t *fof_group, int NGal, 
   }
   SID_Allreduce(SID_IN_PLACE, &counter, 1, SID_INT, SID_SUM, SID.COMM_WORLD);
   SID_log("Counting using gal->Next gives %d gals (-%d ghosts = %d gals)",
-      SID_LOG_COMMENT, counter, NGhosts,
-      counter-NGhosts);
+      SID_LOG_COMMENT, counter, total_NGhosts,
+      counter-total_NGhosts);
   gal_next_counter = counter;
 
   halo_pop_count = 0;

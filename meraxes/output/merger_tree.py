@@ -2,7 +2,7 @@
 
 """Plot the merger tree of galaxy with a given ID.
 
-Usage: 
+Usage:
     merger_tree.py <meraxes_file> <galaxy_ID> <last_snapnum> [--output=<dir_path> --format=<ext>]
 
 Options:
@@ -29,7 +29,7 @@ __date__   = "2013/08/14"
 
 
 class Graph:
-    
+
     def __init__(self, n_snapshots):
         self.nodes = OrderedDict()
         self.edges = OrderedDict()
@@ -37,7 +37,7 @@ class Graph:
         self.type_first = "FirstProgenitor"
         self.type_next = "NextProgenitor"
         self.__counter__ = 0
-        
+
     def add_node(self, index, snapshot, galaxy=None):
         name = str(self.__counter__)
         if galaxy!=None:
@@ -47,17 +47,17 @@ class Graph:
         self.__counter__+=1
         self.snap_count[snapshot]+=1
         return name
-        
+
     def add_edge(self, start, end, edge_type):
         self.edges["{:s}->{:s}".format(start, end)] = {"start" : start, "end" : end, "type" : edge_type}
         self.nodes[end]["type"]=edge_type
-        
+
     def iter_nodes(self):
         return self.nodes.itervalues()
-    
+
     def iter_edges(self):
         return self.edges.itervalues()
-    
+
     def calc_positions(self):
         pos = np.zeros((self.__counter__, 2), float)
         x_i = 0
@@ -69,7 +69,7 @@ class Graph:
         for i, node in enumerate(self.iter_nodes()):
             pos[i,0] =  pos[i,0]/x_i*100.0
             node["plot_pos"] = pos[i]
-            
+
         # now loop back through by following edges
         return pos
 
@@ -77,7 +77,7 @@ class Graph:
 def walk(snap, ind, fp_ind, np_ind):
     if ind>-1:
         node = G.add_node(ind, snap)
-    
+
     first_ind = fp_ind[snap][ind]
     if first_ind>-1:
         first_node = walk(snap-1, first_ind, fp_ind, np_ind)
@@ -87,7 +87,7 @@ def walk(snap, ind, fp_ind, np_ind):
             next_node = walk(snap-1, next_ind, fp_ind, np_ind)
             G.add_edge(node, next_node, G.type_next)
             next_ind = np_ind[snap-1][next_ind]
-    
+
     return node
 
 
@@ -98,7 +98,7 @@ if __name__ == '__main__':
     last_snapnum = int(args["<last_snapnum>"])
     fig_format = args["--format"]
     output_dir = args["--output"]
-    
+
     # Check that we can construct the tree
     snaplist, zlist, _ = samio.read_snaplist(fname_gals)
     if last_snapnum not in snaplist:
@@ -107,7 +107,7 @@ if __name__ == '__main__':
         raise ValueError("There are non-consecutive snapshots in meraxes_file")
     snaplist = np.arange(snaplist[0], last_snapnum+1, dtype=int)
 
-    # Read in the walk indices 
+    # Read in the walk indices
     fp_ind = []
     np_ind = []
     for snap in snaplist:
@@ -119,7 +119,7 @@ if __name__ == '__main__':
             np_ind.append(samio.read_nextprogenitor_indices(fname_gals, snap))
         except:
             np_ind.append([])
- 
+
     # Find the index of our requested galaxy
     gal = samio.read_gals(fname_gals, snapshot=last_snapnum, quiet=True)
     ind = np.argwhere(gal["ID"]==galaxy_ID)[0][0]
@@ -165,7 +165,7 @@ if __name__ == '__main__':
     pos = pos[sel]
 
     ghost_flag = np.array([n["galaxy"]["GhostFlag"] for n in G.iter_nodes()])
-    ghost_sel = (ghost_flag[sel]==1) 
+    ghost_sel = (ghost_flag[sel]==1)
     gal_type = np.array([n["galaxy"]["Type"] for n in G.iter_nodes()])
 
     type1_sel = (gal_type[sel]==1) & ~ghost_sel

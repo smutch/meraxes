@@ -470,6 +470,7 @@ void create_master_file(run_globals_t *run_globals)
   char source_group[50];
   char target_ds[50];
   char source_file[STRLEN];
+  char relative_source_file[50];
   hid_t snap_group_id;
   hid_t source_file_id;
   hid_t source_group_id;
@@ -491,9 +492,10 @@ void create_master_file(run_globals_t *run_globals)
       group_id = H5Gcreate(snap_group_id, target_group, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
 
       sprintf(source_file, "%s/%s_%d.hdf5", run_globals->params.OutputDir, run_globals->params.FileNameGalaxies, i_core);
+      sprintf(relative_source_file, "%s_%d.hdf5", run_globals->params.FileNameGalaxies, i_core);
       sprintf(source_ds, "Snap%03d/Galaxies", run_globals->ListOutputSnaps[i_out]);
       sprintf(target_ds, "Galaxies");
-      H5Lcreate_external(source_file, source_ds, group_id, target_ds, H5P_DEFAULT, H5P_DEFAULT);
+      H5Lcreate_external(relative_source_file, source_ds, group_id, target_ds, H5P_DEFAULT, H5P_DEFAULT);
 
       source_file_id = H5Fopen(source_file, H5F_ACC_RDONLY, H5P_DEFAULT);
       H5TBget_table_info(source_file_id, source_ds, NULL, &core_n_gals);
@@ -508,13 +510,19 @@ void create_master_file(run_globals_t *run_globals)
       {
         sprintf(source_ds, "Snap%03d/FirstProgenitorIndices", run_globals->ListOutputSnaps[i_out]);
         sprintf(target_ds, "FirstProgenitorIndices");
-        H5Lcreate_external(source_file, source_ds, group_id, target_ds, H5P_DEFAULT, H5P_DEFAULT);
+        H5Lcreate_external(relative_source_file, source_ds, group_id, target_ds, H5P_DEFAULT, H5P_DEFAULT);
       }
       if(H5LTfind_dataset(source_group_id, "NextProgenitorIndices"))
       {
         sprintf(source_ds, "Snap%03d/NextProgenitorIndices", run_globals->ListOutputSnaps[i_out]);
         sprintf(target_ds, "NextProgenitorIndices");
-        H5Lcreate_external(source_file, source_ds, group_id, target_ds, H5P_DEFAULT, H5P_DEFAULT);
+        H5Lcreate_external(relative_source_file, source_ds, group_id, target_ds, H5P_DEFAULT, H5P_DEFAULT);
+      }
+      if(H5LTfind_dataset(source_group_id, "DescendantIndices"))
+      {
+        sprintf(source_ds, "Snap%03d/DescendantIndices", run_globals->ListOutputSnaps[i_out]);
+        sprintf(target_ds, "DescendantIndices");
+        H5Lcreate_external(relative_source_file, source_ds, group_id, target_ds, H5P_DEFAULT, H5P_DEFAULT);
       }
 
       H5Fclose(source_file_id);
@@ -604,7 +612,7 @@ void write_snapshot(run_globals_t *run_globals, int n_write, int i_out, int *las
   int                   index                  = -1;
   double                temp                   = 0;
 
-  SID_log("Writing output file...", SID_LOG_OPEN|SID_LOG_TIMER);
+  SID_log("Writing output file (n_write = %d)...", SID_LOG_OPEN|SID_LOG_TIMER, n_write);
 
   // Create the file.
   file_id = H5Fopen(run_globals->FNameOut, H5F_ACC_RDWR, H5P_DEFAULT);
@@ -635,10 +643,12 @@ void write_snapshot(run_globals_t *run_globals, int n_write, int i_out, int *las
   old_count = 0;
   if (calc_descendants_i_out>-1)
   {
+    // malloc the arrays
     descendant_index       = SID_malloc(sizeof(int)* (*last_n_write));
     next_progenitor_index  = SID_malloc(sizeof(int)* (*last_n_write));
     first_progenitor_index = SID_malloc(sizeof(int)* n_write);
 
+    // initialise all entries to -1
     for (int ii=0; ii<*last_n_write; ii++)
     {
       descendant_index[ii] = -1;
@@ -647,6 +657,10 @@ void write_snapshot(run_globals_t *run_globals, int n_write, int i_out, int *las
     for (int ii=0; ii<n_write; ii++)
       first_progenitor_index[ii] = -1;
 
+    // loop through the current galaxies and save their first progenitor
+    // indices as their previous output_index, and the descendent indices of
+    // the last snapshot to what will be the output index when the current
+    // galaxy is written.
     gal = run_globals->FirstGal;
     while (gal!=NULL) {
       if (gal->Type < 3)

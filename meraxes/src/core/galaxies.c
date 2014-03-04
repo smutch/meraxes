@@ -1,7 +1,7 @@
 #include "meraxes.h"
 #include <math.h>
 
-galaxy_t* new_galaxy(run_globals_t *run_globals, int *unique_ID)
+galaxy_t* new_galaxy(run_globals_t *run_globals, int snapshot, int halo_ID)
 {
  
   galaxy_t *gal = NULL;
@@ -10,7 +10,7 @@ galaxy_t* new_galaxy(run_globals_t *run_globals, int *unique_ID)
 
   // Initialise the properties
   gal->id_MBP            = 0;
-  gal->ID                = (*unique_ID)++;
+  gal->ID                = snapshot * 10000000 + halo_ID;
   gal->Type              = -1;
   gal->OldType           = -1;
   gal->SnapSkipCounter   = 0;
