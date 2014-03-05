@@ -443,6 +443,7 @@ void cleanup_mags(run_globals_t *run_globals)
   SID_free(SID_FARG run_globals->photo.MagBands);
   SID_free(SID_FARG run_globals->photo.Ages);
   SID_free(SID_FARG run_globals->photo.Metals);
+  H5Tclose(run_globals->hdf5props.array_nmag_f_tid);
 #else
   return;
 #endif

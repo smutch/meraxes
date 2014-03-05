@@ -169,6 +169,8 @@ void malloc_reionization_grids(run_globals_t *run_globals)
 
 void free_reionization_grids(run_globals_t *run_globals)
 {
+  SID_log("Freeing reionization grids...", SID_LOG_OPEN);
+
   tocf_grids_t *grids = &(run_globals->tocf_grids);
 
   if(tocf_params.compute_mfp)
@@ -185,12 +187,17 @@ void free_reionization_grids(run_globals_t *run_globals)
     fftwf_free(grids->Mvir_crit);
   }
   fftwf_free(grids->sfr_filtered);
+  fftwf_free(grids->sfr_copy);
   fftwf_free(grids->sfr);
   fftwf_free(grids->deltax_filtered);
+  fftwf_free(grids->deltax_copy);
   fftwf_free(grids->deltax);
   fftwf_free(grids->stars_filtered);
+  fftwf_free(grids->stars_copy);
   fftwf_free(grids->stars);
   fftwf_free(grids->xH);
+
+  SID_log(" ...done", SID_LOG_CLOSE);
 }
 
 
