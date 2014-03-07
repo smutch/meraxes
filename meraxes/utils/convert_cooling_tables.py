@@ -11,7 +11,7 @@ import re
 __author__ = "Simon Mutch"
 __date__ = "2014/03/07"
 
-regex = re.compile('CoolFunctions/m(?P<Z>.*).cie')
+regex = re.compile('CoolFunctions/(?P<m>.*).cie')
 
 
 def read_ascii_cooling_file(fin):
@@ -23,8 +23,16 @@ def read_ascii_cooling_file(fin):
                     "log(lambda_norm)", "log(U)", "log(taucool)", "P12",
                     "rho24", "Ci", "mubar")
 
-    data = pd.read_table(fin, delim_whitespace=True, skiprows=3, header=0,
-                         names=column_names, dtype='f4')
+    data = pd.read_table(fin, delim_whitespace=True, skiprows=4,
+                         header=None, names=column_names, dtype='f4')
+
+    data = data.dropna()
+
+    # If we don't have the first row (T=1e4) then just copy the second one
+    if data.shape[0] < 90:
+        first_val = data.ix[0].copy()
+        first_val["log(T)"] = 4.0
+        data = pd.concat((pd.DataFrame(first_val).T, data), axis=0)
 
     return data
 
@@ -32,9 +40,9 @@ def read_ascii_cooling_file(fin):
 def save_data_to_hdf5(fout, data, fin):
     """Save the data to the output hdf5 file"""
 
-    metallicity = regex.search(fin).group('Z')
-    print "creating group", "Z"+metallicity
-    group = fout.create_group("Z"+metallicity)
+    metallicity = regex.search(fin).group('m')
+    print "creating group", metallicity
+    group = fout.create_group(metallicity)
 
     for col in data.columns:
         group.create_dataset(col, data=data[col])
@@ -43,15 +51,15 @@ def save_data_to_hdf5(fout, data, fin):
 def append_metadata(fout):
 
     meta = {
-        "Zzero": "cie cooling for primordial hydrogen/helium mix"
+        "mzero": "cie cooling for primordial hydrogen/helium mix"
         "log(T) = 4-8.5",
-        "Z-00": "cie cooling for solar abundances mix log(T) = 4-8.5",
-        "Z-05": "[Fe/H] = -0.5, solar/primordial average ratios",
-        "Z-10": "[Fe/H] = -1.0, primordial ratios (ie enhanced oxygen)",
-        "Z-15": "[Fe/H] = -1.5, primordial ratios",
-        "Z-20": "[Fe/H] = -2.0, primordial ratios",
-        "Z-30": "[Fe/H] = -3.0, primordial ratios",
-        "Z+05": "[Fe/H] = +0.5, solar ratios log(T) = 4.1-8.5 (due to charge"
+        "m-00": "cie cooling for solar abundances mix log(T) = 4-8.5",
+        "m-05": "[Fe/H] = -0.5, solar/primordial average ratios",
+        "m-10": "[Fe/H] = -1.0, primordial ratios (ie enhanced oxygen)",
+        "m-15": "[Fe/H] = -1.5, primordial ratios",
+        "m-20": "[Fe/H] = -2.0, primordial ratios",
+        "m-30": "[Fe/H] = -3.0, primordial ratios",
+        "m+05": "[Fe/H] = +0.5, solar ratios log(T) = 4.1-8.5 (due to charge"
         "exchange problems at log(T) = 4.0)",
     }
 

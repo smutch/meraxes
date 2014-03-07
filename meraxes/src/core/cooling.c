@@ -1,0 +1,121 @@
+#include "meraxes.h"
+#include <math.h>
+#include <hdf5.h>
+#include <hdf5_hl.h>
+
+// *** This code is taken from the model of Croton+ 2006 with minimal modifications. ***
+//
+// Future todo list:
+//  - Read in the below hard coded values from the HDF5 file itself and malloc appropriately
+//  - Set up more flexible interpolation (e.g. without assumption of fixed temp step)
+//  - Use GSL routines for interpolation
+
+#define N_METALLICITIES 8
+#define N_TEMPS 90
+#define MIN_TEMP 4.0  // log10(T/Kelvin)
+#define MAX_TEMP 8.5  // log10(T/Kelvin)
+
+
+// metallicies with repect to solar.
+// These will be converted to absolute metallicities by adding log10(Z_sun), Zsun=0.02
+static double metallicities[N_METALLICITIES] = {
+  -5.0,  // This is actually primordial in the tables but that is log10(0) = -infinity
+  -3.0,
+  -2.0,
+  -1.5,
+  -0.5,
+  0.0,
+  0.5
+};
+
+static char group_name[N_METALLICITIES][5] = {
+  "mzero",
+  "m-30",
+  "m-20",
+  "m-15",
+  "m-10",
+  "m-05",
+  "m+05"
+};
+
+static double cooling_rate[N_METALLICITIES][N_TEMPS];
+
+
+void read_cooling_functions(run_globals_t *run_globals)
+{
+  hid_t fd, group;
+  char dset_name[30];
+
+  fd = H5Fopen(run_globals->params.CoolingFuncsDir, H5F_ACC_RDONLY, H5P_DEFAULT);
+
+  for(int i_m=0; i_m < N_METALLICITIES; i_m++)
+  {
+    metallicities[i_m] += log10(0.02);     // add solar metallicity
+    sprintf(dset_name, "%s/log(lambda_norm)", group_name[i_m]);
+    H5LTread_dataset_double(fd, dset_name, cooling_rate[i_m]);
+  }
+
+  H5Fclose(fd);
+}
+
+
+static double interpolate_temp_dependant_cooling_rate(int i_m, double logTemp)
+{
+
+  int i_t;
+  double temp_step;
+  double rate, rate_below, rate_above;
+  double logT_below;
+
+  // First deal with boundary conditions
+  if(logTemp < MIN_TEMP)
+    logTemp = MIN_TEMP;
+
+  // Now find the index of the tabulated temp immediately below our value
+  temp_step = (MAX_TEMP - MIN_TEMP) / N_TEMPS;
+  i_t = (logTemp - MIN_TEMP) / temp_step;
+  if(i_t > N_TEMPS-1)
+    i_t = N_TEMPS-1;
+
+  // Now grab the cooling rates for the temp immediately above and below
+  rate_below = cooling_rate[i_m][i_t];
+  rate_above = cooling_rate[i_m][i_t+1];
+
+  // Calculate the tabulated temperature immediately below our value
+  logT_below = MIN_TEMP + temp_step * i_t;
+
+  // Now linearly interpolate the cooling rate
+  rate = rate_below + (rate_above - rate_below) / temp_step * (logTemp - logT_below);
+
+  return rate;
+
+}
+
+
+double interpolate_cooling_rate(double logTemp, double logZ)
+{
+
+  int i_m;
+  double rate_below, rate_above, rate;
+
+  // First deal with boundary conditions
+  if(logZ < metallicities[0])
+    logZ = metallicities[0];
+  if(logZ > metallicities[N_METALLICITIES-1])
+    logZ = metallicities[N_METALLICITIES-1];
+
+  // Now find the indices of the metallicity values which bound our input
+  i_m = 0;
+  while(logZ > metallicities[i_m+1])
+    i_m++;
+
+  // Get the cooling rates for this temperature value
+  rate_below = interpolate_temp_dependant_cooling_rate(i_m, logTemp);
+  rate_above = interpolate_temp_dependant_cooling_rate(i_m+1, logTemp);
+
+  // Finally, linearly interpolate the cooling rates
+  rate = rate_below + (rate_above - rate_below) / (metallicities[i_m+1] - metallicities[i_m]) * (logZ - metallicities[i_m]);
+
+  return rate;
+
+}
