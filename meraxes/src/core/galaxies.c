@@ -29,7 +29,11 @@ galaxy_t* new_galaxy(run_globals_t *run_globals, int snapshot, int halo_ID)
   gal->Rvir              = 0.0;
   gal->Vvir              = 0.0;
   gal->Vmax              = 0.0;
-  gal->Gas               = 0.0;
+  gal->HotGas            = 0.0;
+  gal->MetalsHotGas      = 0.0;
+  gal->ColdGas           = 0.0;
+  gal->MetalsColdGas     = 0.0;
+  gal->Mcool             = 0.0;
   gal->StellarMass       = 0.0;
   gal->Sfr               = 0.0;
   gal->Cos_Inc           = gsl_rng_uniform(run_globals->random_generator);

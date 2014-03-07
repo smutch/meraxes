@@ -87,7 +87,10 @@ void merge_with_target(run_globals_t *run_globals, galaxy_t *gal, int *dead_gals
   // Add galaxies together
   parent->StellarMass += gal->StellarMass;
   parent->Sfr += gal->Sfr;
-  parent->Gas += gal->Gas;
+
+  // TODO: merger driven starburst and mass ratio dependant redistribution of gas
+  parent->HotGas += gal->HotGas;
+  parent->ColdGas += gal->ColdGas;
 
   for(int outputbin = 0; outputbin < NOUT; outputbin++)
     sum_luminosities(run_globals, parent, gal, outputbin);

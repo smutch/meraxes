@@ -334,7 +334,11 @@ struct galaxy_t
   double Vmax;
 
   // baryonic reservoirs
-  double Gas;
+  double HotGas;
+  double MetalsHotGas;
+  double ColdGas;
+  double MetalsColdGas;
+  double Mcool;
   double StellarMass;
   double Sfr;
 
@@ -420,6 +424,7 @@ double  calculate_Mvir(run_globals_t *run_globals, halo_t *halo);
 float   calculate_Rvir(run_globals_t *run_globals, halo_t *halo, double Mvir, int snapshot);
 float   calculate_Vvir(run_globals_t *run_globals, double Mvir, float Rvir);
 double  interpolate_cooling_rate(double logTemp, double logZ);
+void    do_cooling(run_globals_t *run_globals, galaxy_t *gal);
 
 
 // Magnitude related

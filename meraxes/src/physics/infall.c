@@ -21,7 +21,7 @@ void gas_infall(run_globals_t *run_globals, fof_group_t *FOFgroup, int snapshot)
     gal = halo->Galaxy;
     while(gal != NULL)
     {
-      total_baryons += gal->StellarMass + gal->Gas;
+      total_baryons += gal->StellarMass + gal->HotGas + gal->ColdGas;
       gal = gal->NextGalInHalo;
     }
     halo = halo->NextHaloInFOFGroup;
@@ -42,7 +42,7 @@ void gas_infall(run_globals_t *run_globals, fof_group_t *FOFgroup, int snapshot)
       if(gal != NULL)
       {
         mass = (gal->Mvir/FOF_Mvir) * infall_mass;
-        gal->Gas += mass;
+        gal->HotGas += mass;
         used_mass += mass;
         gal = gal->NextGalInHalo;
       }
@@ -52,7 +52,7 @@ void gas_infall(run_globals_t *run_globals, fof_group_t *FOFgroup, int snapshot)
     // The remaining gas goes to the central galaxy
     gal = FOFgroup->FirstHalo->Galaxy;
     if(gal != NULL)
-      gal->Gas += infall_mass-used_mass;
+      gal->HotGas += infall_mass-used_mass;
   }
 
 }
