@@ -48,18 +48,23 @@ void prepare_galaxy_for_output(
     galout->Vel[ii]  = (float)(gal.Vel[ii]);
   }
 
-  galout->Len         = (int)(gal.Len);
-  galout->Mvir        = (float)(gal.Mvir / Hubble_h);
-  galout->dM          = (float)(gal.dM / Hubble_h);
-  galout->dMdt        = (float)(gal.dM/gal.dt * units->UnitMass_in_g / units->UnitTime_in_s * SEC_PER_YEAR / SOLAR_MASS);
-  galout->Rvir        = (float)(gal.Rvir / Hubble_h);
-  galout->Vvir        = (float)(gal.Vvir);
-  galout->Vmax        = (float)(gal.Vmax);
-  galout->StellarMass = (float)(gal.StellarMass / Hubble_h);
-  galout->Sfr         = (float)(gal.Sfr * units->UnitMass_in_g / units->UnitTime_in_s * SEC_PER_YEAR / SOLAR_MASS);
-  galout->Cos_Inc     = (float)(gal.Cos_Inc);
-  galout->MergTime    = (float)(gal.MergTime * units->UnitLength_in_cm / units->UnitVelocity_in_cm_per_s / SEC_PER_MEGAYEAR / Hubble_h);
-  galout->LTTime      = (float)(gal.LTTime * units->UnitLength_in_cm / units->UnitVelocity_in_cm_per_s / SEC_PER_MEGAYEAR / Hubble_h);
+  galout->Len           = (int)(gal.Len);
+  galout->Mvir          = (float)(gal.Mvir / Hubble_h);
+  galout->dM            = (float)(gal.dM / Hubble_h);
+  galout->dMdt          = (float)(gal.dM/gal.dt * units->UnitMass_in_g / units->UnitTime_in_s * SEC_PER_YEAR / SOLAR_MASS);
+  galout->Rvir          = (float)(gal.Rvir / Hubble_h);
+  galout->Vvir          = (float)(gal.Vvir);
+  galout->Vmax          = (float)(gal.Vmax);
+  galout->HotGas        = (float)(gal.HotGas / Hubble_h);
+  galout->MetalsHotGas  = (float)(gal.MetalsHotGas / Hubble_h);
+  galout->ColdGas       = (float)(gal.ColdGas / Hubble_h);
+  galout->MetalsColdGas = (float)(gal.MetalsColdGas / Hubble_h);
+  galout->Mcool         = (float)(gal.Mcool / Hubble_h);
+  galout->StellarMass   = (float)(gal.StellarMass / Hubble_h);
+  galout->Sfr           = (float)(gal.Sfr * units->UnitMass_in_g / units->UnitTime_in_s * SEC_PER_YEAR / SOLAR_MASS);
+  galout->Cos_Inc       = (float)(gal.Cos_Inc);
+  galout->MergTime      = (float)(gal.MergTime * units->UnitLength_in_cm / units->UnitVelocity_in_cm_per_s / SEC_PER_MEGAYEAR / Hubble_h);
+  galout->LTTime        = (float)(gal.LTTime * units->UnitLength_in_cm / units->UnitVelocity_in_cm_per_s / SEC_PER_MEGAYEAR / Hubble_h);
 
   prepare_magnitudes_for_output(run_globals, gal, galout, i_snap);
 
@@ -77,11 +82,11 @@ void calc_hdf5_props(run_globals_t *run_globals)
   galaxy_output_t  galout;
   int              i;                                   // dummy
 
-  // If we are calculating any magnitudes then increment the number of
-  // output properties appropriately.
-  h5props->n_props = 19;
+  h5props->n_props = 24;
 
 #ifdef CALC_MAGS
+  // If we are calculating any magnitudes then increment the number of
+  // output properties appropriately.
   int n_photo_bands = run_globals->photo.NBands;
   h5props->n_props +=2;
   h5props->array_nmag_f_tid = H5Tarray_create(H5T_NATIVE_FLOAT, 1, (hsize_t[]){n_photo_bands});
@@ -172,6 +177,31 @@ void calc_hdf5_props(run_globals_t *run_globals)
   h5props->dst_offsets[i] = HOFFSET(galaxy_output_t, Vmax);
   h5props->dst_field_sizes[i]   = sizeof(galout.Vmax);
   h5props->field_names[i] = "Vmax";
+  h5props->field_types[i++] = H5T_NATIVE_FLOAT;
+
+  h5props->dst_offsets[i] = HOFFSET(galaxy_output_t, HotGas);
+  h5props->dst_field_sizes[i]   = sizeof(galout.HotGas);
+  h5props->field_names[i] = "HotGas";
+  h5props->field_types[i++] = H5T_NATIVE_FLOAT;
+
+  h5props->dst_offsets[i] = HOFFSET(galaxy_output_t, MetalsHotGas);
+  h5props->dst_field_sizes[i]   = sizeof(galout.MetalsHotGas);
+  h5props->field_names[i] = "MetalsHotGas";
+  h5props->field_types[i++] = H5T_NATIVE_FLOAT;
+
+  h5props->dst_offsets[i] = HOFFSET(galaxy_output_t, ColdGas);
+  h5props->dst_field_sizes[i]   = sizeof(galout.ColdGas);
+  h5props->field_names[i] = "ColdGas";
+  h5props->field_types[i++] = H5T_NATIVE_FLOAT;
+
+  h5props->dst_offsets[i] = HOFFSET(galaxy_output_t, MetalsColdGas);
+  h5props->dst_field_sizes[i]   = sizeof(galout.MetalsColdGas);
+  h5props->field_names[i] = "MetalsColdGas";
+  h5props->field_types[i++] = H5T_NATIVE_FLOAT;
+
+  h5props->dst_offsets[i] = HOFFSET(galaxy_output_t, Mcool);
+  h5props->dst_field_sizes[i]   = sizeof(galout.Mcool);
+  h5props->field_names[i] = "Mcool";
   h5props->field_types[i++] = H5T_NATIVE_FLOAT;
 
   h5props->dst_offsets[i] = HOFFSET(galaxy_output_t, StellarMass);

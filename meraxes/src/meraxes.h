@@ -376,6 +376,11 @@ struct galaxy_output_t
   float Vmax;
 
   // baryonic reservoirs
+  float HotGas;
+  float MetalsHotGas;
+  float ColdGas;
+  float MetalsColdGas;
+  float Mcool;
   float StellarMass;
   float Sfr;
 
