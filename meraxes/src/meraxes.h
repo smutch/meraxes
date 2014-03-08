@@ -425,6 +425,7 @@ float   calculate_Rvir(run_globals_t *run_globals, halo_t *halo, double Mvir, in
 float   calculate_Vvir(run_globals_t *run_globals, double Mvir, float Rvir);
 double  interpolate_cooling_rate(double logTemp, double logZ);
 void    do_cooling(run_globals_t *run_globals, galaxy_t *gal);
+double  calc_metallicity(double total_gas, double metals);
 
 
 // Magnitude related

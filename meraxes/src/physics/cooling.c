@@ -21,7 +21,7 @@ void do_cooling(run_globals_t *run_globals, galaxy_t *gal)
 
     // get the log10(metallicity) value
     if(gal->MetalsHotGas > 0)
-      logZ = log10(gal->MetalsHotGas / gal->HotGas);
+      logZ = log10(calc_metallicity(gal->HotGas, gal->MetalsHotGas));
     else
       logZ = -10.0;
 
@@ -55,19 +55,15 @@ void do_cooling(run_globals_t *run_globals, galaxy_t *gal)
       if(cooling_mass > max_cooling_mass)
         cooling_mass = max_cooling_mass;
     }
-    cooling_metals = cooling_mass / gal->HotGas * gal->MetalsHotGas;
 
     // do one last sanity check to ensure we aren't cooling more gas than is available etc.
     if(cooling_mass > gal->HotGas)
-    {
       cooling_mass = gal->HotGas;
-      cooling_metals = 1.0;
-    }
     if(cooling_mass < 0)
-    {
       cooling_mass = 0.0;
-      cooling_metals = 0.0;
-    }
+
+    // what mass of metals is coming along with this cooling gas?
+    cooling_metals = cooling_mass * calc_metallicity(gal->HotGas, gal->MetalsHotGas);
 
     // save the cooling mass
     gal->Mcool = cooling_mass;
@@ -79,7 +75,7 @@ void do_cooling(run_globals_t *run_globals, galaxy_t *gal)
     gal->MetalsColdGas += cooling_metals;
 
   }
-  else  // if there is no not gas to cool...
+  else  // if there is no gas to cool...
     gal->Mcool = 0.0;
 
 }

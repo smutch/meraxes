@@ -51,8 +51,9 @@ void form_stars_insitu(run_globals_t *run_globals, galaxy_t *gal, int snapshot)
     burst_mass = (1.0-RecycleFraction)*burst_mass;
 
     // Update stellar mass and gas reservoirs
-    gal->StellarMass += burst_mass;
-    gal->ColdGas     -= burst_mass;
+    gal->StellarMass   += burst_mass;
+    gal->MetalsColdGas -= calc_metallicity(gal->ColdGas, gal->MetalsColdGas) * burst_mass;
+    gal->ColdGas       -= burst_mass;
 
     // Add to the luminosities due to this stellar mass burst
     burst_time   = run_globals->LTTime[snapshot] + (0.5 * gal->dt);
