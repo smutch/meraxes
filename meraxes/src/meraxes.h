@@ -328,7 +328,6 @@ struct galaxy_t
   double Pos[3];
   double Vel[3];
   double Mvir;
-  double dM;
   double Rvir;
   double Vvir;
   double Vmax;
@@ -369,8 +368,6 @@ struct galaxy_output_t
   float Spin[3];
   int   Len;
   float Mvir;
-  float dM;
-  float dMdt;
   float Rvir;
   float Vvir;
   float Vmax;

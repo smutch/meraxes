@@ -50,8 +50,6 @@ void prepare_galaxy_for_output(
 
   galout->Len           = (int)(gal.Len);
   galout->Mvir          = (float)(gal.Mvir / Hubble_h);
-  galout->dM            = (float)(gal.dM / Hubble_h);
-  galout->dMdt          = (float)(gal.dM/gal.dt * units->UnitMass_in_g / units->UnitTime_in_s * SEC_PER_YEAR / SOLAR_MASS);
   galout->Rvir          = (float)(gal.Rvir / Hubble_h);
   galout->Vvir          = (float)(gal.Vvir);
   galout->Vmax          = (float)(gal.Vmax);
@@ -82,7 +80,7 @@ void calc_hdf5_props(run_globals_t *run_globals)
   galaxy_output_t  galout;
   int              i;                                   // dummy
 
-  h5props->n_props = 24;
+  h5props->n_props = 22;
 
 #ifdef CALC_MAGS
   // If we are calculating any magnitudes then increment the number of
@@ -152,16 +150,6 @@ void calc_hdf5_props(run_globals_t *run_globals)
   h5props->dst_offsets[i] = HOFFSET(galaxy_output_t, Mvir);
   h5props->dst_field_sizes[i]   = sizeof(galout.Mvir);
   h5props->field_names[i] = "Mvir";
-  h5props->field_types[i++] = H5T_NATIVE_FLOAT;
-
-  h5props->dst_offsets[i] = HOFFSET(galaxy_output_t, dM);
-  h5props->dst_field_sizes[i]   = sizeof(galout.dM);
-  h5props->field_names[i] = "dM";
-  h5props->field_types[i++] = H5T_NATIVE_FLOAT;
-
-  h5props->dst_offsets[i] = HOFFSET(galaxy_output_t, dMdt);
-  h5props->dst_field_sizes[i]   = sizeof(galout.dMdt);
-  h5props->field_names[i] = "dMdt";
   h5props->field_types[i++] = H5T_NATIVE_FLOAT;
 
   h5props->dst_offsets[i] = HOFFSET(galaxy_output_t, Rvir);

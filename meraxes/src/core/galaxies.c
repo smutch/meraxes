@@ -25,7 +25,6 @@ galaxy_t* new_galaxy(run_globals_t *run_globals, int snapshot, int halo_ID)
   gal->dt                = 0.0;
   gal->LTTime            = 0.0;
   gal->Mvir              = 0.0;
-  gal->dM                = 0.0;
   gal->Rvir              = 0.0;
   gal->Vvir              = 0.0;
   gal->Vmax              = 0.0;
