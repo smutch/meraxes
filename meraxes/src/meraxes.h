@@ -425,6 +425,7 @@ double  Tvir_to_Mvir(run_globals_t *run_globals, double T, double z);
 double  calculate_Mvir(run_globals_t *run_globals, halo_t *halo);
 float   calculate_Rvir(run_globals_t *run_globals, halo_t *halo, double Mvir, int snapshot);
 float   calculate_Vvir(run_globals_t *run_globals, double Mvir, float Rvir);
+void    read_cooling_functions(run_globals_t *run_globals);
 double  interpolate_cooling_rate(double logTemp, double logZ);
 void    do_cooling(run_globals_t *run_globals, galaxy_t *gal);
 double  calc_metallicity(double total_gas, double metals);

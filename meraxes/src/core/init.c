@@ -313,6 +313,9 @@ void init_meraxes(run_globals_t *run_globals)
   // read in the photometric tables if required
   read_photometric_tables(run_globals);
 
+  // read in the cooling functions
+  read_cooling_functions(run_globals);
+
   for(i = 0; i < snaplist_len; i++)
   {
     run_globals->ZZ[i] = 1 / run_globals->AA[i] - 1;

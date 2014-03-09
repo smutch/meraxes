@@ -11,7 +11,7 @@
 //  - Use GSL routines for interpolation
 
 #define N_METALLICITIES 8
-#define N_TEMPS 90
+#define N_TEMPS 91
 #define MIN_TEMP 4.0  // log10(T/Kelvin)
 #define MAX_TEMP 8.5  // log10(T/Kelvin)
 
@@ -28,13 +28,14 @@ static double metallicities[N_METALLICITIES] = {
   0.5
 };
 
-static char group_name[N_METALLICITIES][5] = {
+static char group_name[N_METALLICITIES][6] = {
   "mzero",
   "m-30",
   "m-20",
   "m-15",
   "m-10",
   "m-05",
+  "m-00",
   "m+05"
 };
 
@@ -43,19 +44,33 @@ static double cooling_rate[N_METALLICITIES][N_TEMPS];
 
 void read_cooling_functions(run_globals_t *run_globals)
 {
-  hid_t fd, group;
-  char dset_name[30];
 
-  fd = H5Fopen(run_globals->params.CoolingFuncsDir, H5F_ACC_RDONLY, H5P_DEFAULT);
-
-  for(int i_m=0; i_m < N_METALLICITIES; i_m++)
+  if(SID.My_rank == 0)
   {
-    metallicities[i_m] += log10(0.02);     // add solar metallicity
-    sprintf(dset_name, "%s/log(lambda_norm)", group_name[i_m]);
-    H5LTread_dataset_double(fd, dset_name, cooling_rate[i_m]);
+    hid_t fd;
+    char dset_name[30];
+    char fname[STRLEN];
+
+    sprintf(fname, "%s/SD93.hdf5", run_globals->params.CoolingFuncsDir);
+    fd = H5Fopen(fname, H5F_ACC_RDONLY, H5P_DEFAULT);
+
+    for(int i_m=0; i_m < N_METALLICITIES; i_m++)
+    {
+      debug("group name = %s\n", group_name[i_m]);
+      sprintf(dset_name, "%s/log(lambda_norm)", group_name[i_m]);
+      H5LTread_dataset_double(fd, dset_name, cooling_rate[i_m]);
+    }
+
+    H5Fclose(fd);
   }
 
-  H5Fclose(fd);
+  // broadcast the values to all cores
+  SID_Bcast(cooling_rate, sizeof(cooling_rate), 0, SID.COMM_WORLD);
+
+  // add solar metallicity to all metallicity values
+  for(int i_m=0; i_m < N_METALLICITIES; i_m++)
+    metallicities[i_m] += log10(0.02);
+
 }
 
 
