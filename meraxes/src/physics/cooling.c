@@ -8,7 +8,7 @@ void do_cooling(run_globals_t *run_globals, galaxy_t *gal)
   if(gal->HotGas > 1e-8)
   {
 
-    double t_cool, r_ff, cooling_mass, max_cooling_mass, cooling_metals, Tvir;
+    double t_cool, cooling_mass, max_cooling_mass, cooling_metals, Tvir;
     double logZ, lambda, x, rho_r_cool, r_cool, rho_at_Rvir;
     run_units_t *units = &(run_globals->units);
 

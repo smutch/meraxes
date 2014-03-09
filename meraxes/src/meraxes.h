@@ -59,6 +59,9 @@ do {                                                                            
 #define SEC_PER_MEGAYEAR 3.155e13
 #define SEC_PER_YEAR     3.155e7
 
+#ifdef DEBUG
+FILE *meraxes_debug_file;
+#endif
 
 /*
  * Structures
@@ -419,6 +422,7 @@ void    read_photometric_tables(run_globals_t *run_globals);
 int     compare_ints(const void *a, const void *b);
 void    mpi_debug_here();
 void    check_counts(run_globals_t *run_globals, fof_group_t *fof_group, int NGal, int NFof);
+int     debug(const char * restrict format, ...);
 void    cn_quote();
 int     get_corrected_snapshot(run_globals_t *run_globals, int snapshot);
 double  Tvir_to_Mvir(run_globals_t *run_globals, double T, double z);

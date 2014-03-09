@@ -27,6 +27,11 @@ static void cleanup(run_globals_t *run_globals)
   gsl_rng_free(run_globals->random_generator);
   SID_log(" ...done", SID_LOG_CLOSE);
 
+#ifdef DEBUG
+  // close the debug file
+  fclose(meraxes_debug_file);
+#endif
+
   // close the log file
   // if(SID.n_proc > 1)
   // {
@@ -106,6 +111,13 @@ int main(int argc, char **argv)
       ABORT(1);
     }
   }
+
+#ifdef DEBUG
+  // open the debug file for this core
+  char debug_fname[50];
+  sprintf(debug_fname, "debug_%d.txt", SID.My_rank);
+  meraxes_debug_file = fopen(debug_fname, "w");
+#endif
 
 #ifdef USE_TOCF
   // Note that this must be done *before* we read the parameter file as we may
