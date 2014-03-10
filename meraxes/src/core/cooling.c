@@ -56,7 +56,6 @@ void read_cooling_functions(run_globals_t *run_globals)
 
     for(int i_m=0; i_m < N_METALLICITIES; i_m++)
     {
-      debug("group name = %s\n", group_name[i_m]);
       sprintf(dset_name, "%s/log(lambda_norm)", group_name[i_m]);
       H5LTread_dataset_double(fd, dset_name, cooling_rate[i_m]);
     }
@@ -131,6 +130,6 @@ double interpolate_cooling_rate(double logTemp, double logZ)
   // Finally, linearly interpolate the cooling rates
   rate = rate_below + (rate_above - rate_below) / (metallicities[i_m+1] - metallicities[i_m]) * (logZ - metallicities[i_m]);
 
-  return rate;
+  return pow(10, rate);
 
 }

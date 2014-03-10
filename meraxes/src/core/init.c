@@ -227,6 +227,10 @@ static void set_units(run_globals_t *run_globals)
 
   // compute a few quantitites
   run_globals->RhoCrit          = 3 * run_globals->Hubble * run_globals->Hubble / (8 * M_PI * run_globals->G);
+
+  // debug("UnitTime_in_s = %e\nUnitTime_in_Megayears = %e\nG = %e\nUnitDensity_in_cgs = %e\nUnitPressure_in_cgs = %e\nUnitCoolingRate_in_cgs = %e\nUnitEnergy_in_cgs = %e\n",
+  //     units->UnitTime_in_s, units->UnitTime_in_Megayears, units->UnitDensity_in_cgs, units->UnitPressure_in_cgs, units->UnitCoolingRate_in_cgs, units->UnitEnergy_in_cgs);
+  // ABORT(EXIT_SUCCESS);
 }
 
 static void read_output_snaps(run_globals_t *run_globals)

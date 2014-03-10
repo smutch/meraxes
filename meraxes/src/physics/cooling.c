@@ -65,6 +65,10 @@ void do_cooling(run_globals_t *run_globals, galaxy_t *gal)
     // what mass of metals is coming along with this cooling gas?
     cooling_metals = cooling_mass * calc_metallicity(gal->HotGas, gal->MetalsHotGas);
 
+    // debug("%d %.3e %.3e %.3e %.3e %.3e %.3e %.3e %.3e %.3e %.3e %.3e %.3e %.3e %.3e\n",
+    //     gal->Type, gal->dt, gal->Rvir, gal->Vvir, gal->HotGas, gal->MetalsHotGas, t_cool, logZ, Tvir,
+    //     lambda, rho_r_cool, rho_at_Rvir, r_cool, max_cooling_mass, cooling_mass);
+
     // save the cooling mass
     gal->Mcool = cooling_mass;
 
