@@ -38,8 +38,6 @@ static void inline create_new_galaxy(
   run_globals->LastGal = gal;
   gal->FirstGalInHalo = gal;
   gal->dt = run_globals->LTTime[0] - gal->LTTime;
-  gal->dM = halo->Mvir;
-  // gal->dM = 0.;
   *NGal = *NGal+1;
   *new_gal_counter = *new_gal_counter+1;
 }
@@ -270,8 +268,6 @@ void dracarys(run_globals_t *run_globals)
               {
 
                 // Here we have the simplest case where a galaxy continues along in it's halo...
-                gal->dM   = (halo[i_newhalo]).Mvir - gal->Mvir;
-
                 gal->Halo = &(halo[i_newhalo]);
                 assign_galaxy_to_halo(gal, &(halo[i_newhalo]));
 
@@ -374,7 +370,6 @@ void dracarys(run_globals_t *run_globals)
             // Here we have a halo with a galaxy that has just merged into an
             // empty halo.  From the point of view of the model, this isn't
             // actually a merger and so we need to catch these cases...
-            gal->dM           = gal->Halo->Mvir - gal->Mvir;
             gal->Halo->Galaxy = gal;
             gal->Type         = gal->Halo->Type;
             cur_gal           = gal->NextGalInHalo;

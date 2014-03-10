@@ -40,14 +40,14 @@ double calculate_merging_time(run_globals_t *run_globals, galaxy_t *sat, int sna
 
   coulomb = log((double)(mother->Len) / (double)(sat->Len) + 1);
 
-	sat_mass = sat->Mvir;
+  sat_mass = sat->Mvir;
 
   sat_rad = sqrt(
     pow(parent->Pos[0] - sat->Pos[0], 2.0) +
     pow(parent->Pos[1] - sat->Pos[1], 2.0) +
     pow(parent->Pos[2] - sat->Pos[2], 2.0) );
 
-  // convert to physical length 
+  // convert to physical length
   // Note that we want to use the redshift corresponding to the previous
   // snapshot (i.e. before the halo merged).  For cases where the halo has
   // skipped snapshots and then next been identified as having merged,
@@ -73,9 +73,9 @@ double calculate_merging_time(run_globals_t *run_globals, galaxy_t *sat, int sna
 
 void merge_with_target(run_globals_t *run_globals, galaxy_t *gal, int *dead_gals)
 {
-  
+
   galaxy_t *parent = NULL;
-  
+
   // Identify the parent galaxy in the merger event.
   // Note that this relies on the merger target coming before this galaxy in
   // the linked list of halo members.  This should be the case but I should
@@ -87,7 +87,12 @@ void merge_with_target(run_globals_t *run_globals, galaxy_t *gal, int *dead_gals
   // Add galaxies together
   parent->StellarMass += gal->StellarMass;
   parent->Sfr += gal->Sfr;
-  parent->Gas += gal->Gas;
+
+  // TODO: merger driven starburst and mass ratio dependant redistribution of gas
+  parent->HotGas += gal->HotGas;
+  parent->MetalsHotGas+= gal->MetalsHotGas;
+  parent->ColdGas += gal->ColdGas;
+  parent->MetalsColdGas += gal->MetalsColdGas;
 
   for(int outputbin = 0; outputbin < NOUT; outputbin++)
     sum_luminosities(run_globals, parent, gal, outputbin);

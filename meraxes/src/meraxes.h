@@ -59,6 +59,9 @@ do {                                                                            
 #define SEC_PER_MEGAYEAR 3.155e13
 #define SEC_PER_YEAR     3.155e7
 
+#ifdef DEBUG
+FILE *meraxes_debug_file;
+#endif
 
 /*
  * Structures
@@ -96,6 +99,7 @@ struct run_params_t{
   char                  CatalogFilePrefix[STRLEN];
   char                  FileWithOutputSnaps[STRLEN];
   char                  PhotometricTablesDir[STRLEN];
+  char                  CoolingFuncsDir[STRLEN];
   char                  SSPModel[STRLEN];
   char                  IMF[STRLEN];
   char                  MagSystem[STRLEN];
@@ -327,13 +331,16 @@ struct galaxy_t
   double Pos[3];
   double Vel[3];
   double Mvir;
-  double dM;
   double Rvir;
   double Vvir;
   double Vmax;
 
   // baryonic reservoirs
-  double Gas;
+  double HotGas;
+  double MetalsHotGas;
+  double ColdGas;
+  double MetalsColdGas;
+  double Mcool;
   double StellarMass;
   double Sfr;
 
@@ -364,13 +371,16 @@ struct galaxy_output_t
   float Spin[3];
   int   Len;
   float Mvir;
-  float dM;
-  float dMdt;
   float Rvir;
   float Vvir;
   float Vmax;
 
   // baryonic reservoirs
+  float HotGas;
+  float MetalsHotGas;
+  float ColdGas;
+  float MetalsColdGas;
+  float Mcool;
   float StellarMass;
   float Sfr;
 
@@ -412,12 +422,18 @@ void    read_photometric_tables(run_globals_t *run_globals);
 int     compare_ints(const void *a, const void *b);
 void    mpi_debug_here();
 void    check_counts(run_globals_t *run_globals, fof_group_t *fof_group, int NGal, int NFof);
+int     debug(const char * restrict format, ...);
 void    cn_quote();
 int     get_corrected_snapshot(run_globals_t *run_globals, int snapshot);
 double  Tvir_to_Mvir(run_globals_t *run_globals, double T, double z);
 double  calculate_Mvir(run_globals_t *run_globals, halo_t *halo);
 float   calculate_Rvir(run_globals_t *run_globals, halo_t *halo, double Mvir, int snapshot);
 float   calculate_Vvir(run_globals_t *run_globals, double Mvir, float Rvir);
+void    read_cooling_functions(run_globals_t *run_globals);
+double  interpolate_cooling_rate(double logTemp, double logZ);
+void    do_cooling(run_globals_t *run_globals, galaxy_t *gal);
+double  calc_metallicity(double total_gas, double metals);
+
 
 // Magnitude related
 void    init_luminosities(run_globals_t *run_globals, galaxy_t *gal);
