@@ -23,12 +23,14 @@ void form_stars_insitu(run_globals_t *run_globals, galaxy_t *gal, int snapshot)
   {
     double r_d;  // disk scale radius
     double r_crit; // radius at which gas surface density exceeds critical for SF
-    double total_sd;  // gas total surface density
+    double central_sd;  // gas central surface density
     double m_crit;
     double m_gas;
     double b;
     double m_stars;
     double r_frac;
+    gsl_sf_result result;
+    int status;
 
     double SfEfficiency = run_globals->params.physics.SfEfficiency;
     double SfRecycleFraction = run_globals->params.physics.SfRecycleFraction;
@@ -37,18 +39,22 @@ void form_stars_insitu(run_globals_t *run_globals, galaxy_t *gal, int snapshot)
     // calculate disk scalelength using Mo, Mau & White (1998) eqn. 12
     r_d = gal->Spin * gal->Rvir / sqrt_2 * 1e3;  // kpc/h
 
-    // calculate the total gas surface density
-    total_sd = gal->ColdGas * 1e10 / (2.0 * M_PI * r_d * r_d); // Msol/h (pc/h)^-2
+    // calculate the central gas surface density
+    central_sd = gal->ColdGas * 1e10 / (2.0 * M_PI * r_d * r_d); // Msol/h (pc/h)^-2
 
     // Assuming a critial surface density for star formation using the halo
     // dependant approximation of Kauffmann 1996 (eqn. 7), calculate the radius
     // out to which the cold gas surface density exceeds the critical gas surface
     // density.
-    b = gal->Vvir * 0.59 / total_sd;
-    debug("%d %d %e %e %e %e\n", snapshot, gal->ID, b, r_d, gal->ColdGas, gal->Vvir);
-    r_crit = -r_d * gsl_sf_lambert_Wm1(-b/r_d);
-    if(r_crit < 0)
+    b = gal->Vvir * 0.59 / central_sd;
+    debug("%d %d %e %e %e %e\n", snapshot, gal->ID, b, r_d, gal->ColdGas*1.e10, gal->Vvir);
+
+    status = gsl_sf_lambert_Wm1_e(-b/r_d, &result);
+    if(status == GSL_SUCCESS)
+      r_crit = -r_d * result.val;
+    else
     {
+      // here we have the situation where no gas lies above the critical surface density
       gal->Sfr = 0.0;
       return;
     }
@@ -58,7 +64,7 @@ void form_stars_insitu(run_globals_t *run_globals, galaxy_t *gal, int snapshot)
 
     // what is the cold gas mass within r_crit?
     r_frac = r_crit/r_d;
-    m_gas = total_sd * 2.0 * M_PI * r_d*r_d * ( 1.0 - exp(-r_frac)*(r_frac + 1.0) ) / 1.e10;  // 1e10 Msol/h
+    m_gas = central_sd * 2.0 * M_PI * r_d*r_d * ( 1.0 - exp(-r_frac)*(r_frac + 1.0) ) / 1.e10;  // 1e10 Msol/h
 
     // now use a Croton+ 2006 style SF law to determine the SFR
     if(m_gas > m_crit)
