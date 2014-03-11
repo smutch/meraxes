@@ -47,8 +47,7 @@ void form_stars_insitu(run_globals_t *run_globals, galaxy_t *gal, int snapshot)
     // out to which the cold gas surface density exceeds the critical gas surface
     // density.
     b = gal->Vvir * 0.59 / central_sd;
-    debug("%d %d %e %e %e %e\n", snapshot, gal->ID, b, r_d, gal->ColdGas*1.e10, gal->Vvir);
-
+    // debug("%d %d %e %e %e %e\n", snapshot, gal->ID, b, r_d, gal->ColdGas*1.e10, gal->Vvir);
     status = gsl_sf_lambert_Wm1_e(-b/r_d, &result);
     if(status == GSL_SUCCESS)
       r_crit = -r_d * result.val;
@@ -67,8 +66,13 @@ void form_stars_insitu(run_globals_t *run_globals, galaxy_t *gal, int snapshot)
     m_gas = central_sd * 2.0 * M_PI * r_d*r_d * ( 1.0 - exp(-r_frac)*(r_frac + 1.0) ) / 1.e10;  // 1e10 Msol/h
 
     // now use a Croton+ 2006 style SF law to determine the SFR
+    // The factor of 4.0 here is kind of arbitrary, but we don't want to use
+    // r_crit to calculate the dynamical time as this could be a huge radius.
+    // 4*r_d includes 90% of the mass of an exponential profile, therefore it
+    // seems a reasonable definition for the 'edge' of the disk when
+    // calculating the dynamical time.
     if(m_gas > m_crit)
-      gal->Sfr = SfEfficiency * (m_gas - m_crit) / gal->Rvir * gal->Vvir;
+      gal->Sfr = SfEfficiency * (m_gas - m_crit) / (4.0*r_d) * gal->Vvir;
     else
     {
       gal->Sfr = 0.0;
