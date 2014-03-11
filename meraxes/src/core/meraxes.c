@@ -52,12 +52,12 @@ void myexit(int signum)
   SID_exit(signum);
 }
 
+/*
 static void set_physics_params(
   run_globals_t *run_globals,
   double             *vals,
   int                 n_params)
 {
-
   physics_params_t *phys_par = &(run_globals->params.physics);
 
   if ((n_params==3) || (n_params==6)){
@@ -80,8 +80,8 @@ static void set_physics_params(
       }
     }
   }
-
 }
+*/
 
 
 int main(int argc, char **argv)
@@ -107,7 +107,7 @@ int main(int argc, char **argv)
   if( (argc!=8) && (argc!=4) && (argc!=2) )
   {
     if(SID.My_rank==0){
-      printf("\n  usage: %s <parameterfile> [ <physics.peak> <physics.sigma> <physics.stellarfrac> <physics.peak_evo> <physics.sigma_evo> <physics.stellarfrac_evo> ]\n\n", argv[0]);
+      printf("\n  usage: %s <parameterfile>\n\n", argv[0]);
       ABORT(1);
     }
   }
@@ -133,13 +133,13 @@ int main(int argc, char **argv)
     mkdir(run_globals.params.OutputDir, 02755);
 
   // Deal with any command line parameter values
-  if (argc==8){
-    double *physics_param_vals = SID_malloc(sizeof(double) * (argc-2));
-    for(int i=0; i<argc-2; i++)
-      physics_param_vals[i] = atof(argv[i+2]);
-    set_physics_params(&run_globals, physics_param_vals, argc-2);
-    SID_free(SID_FARG physics_param_vals);
-  }
+  // if (argc==8){
+  //   double *physics_param_vals = SID_malloc(sizeof(double) * (argc-2));
+  //   for(int i=0; i<argc-2; i++)
+  //     physics_param_vals[i] = atof(argv[i+2]);
+  //   set_physics_params(&run_globals, physics_param_vals, argc-2);
+  //   SID_free(SID_FARG physics_param_vals);
+  // }
 
   // initiate meraxes
   init_meraxes(&run_globals);

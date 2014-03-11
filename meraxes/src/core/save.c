@@ -48,21 +48,23 @@ void prepare_galaxy_for_output(
     galout->Vel[ii]  = (float)(gal.Vel[ii]);
   }
 
-  galout->Len           = (int)(gal.Len);
-  galout->Mvir          = (float)(gal.Mvir / Hubble_h);
-  galout->Rvir          = (float)(gal.Rvir / Hubble_h);
-  galout->Vvir          = (float)(gal.Vvir);
-  galout->Vmax          = (float)(gal.Vmax);
-  galout->HotGas        = (float)(gal.HotGas / Hubble_h);
-  galout->MetalsHotGas  = (float)(gal.MetalsHotGas / Hubble_h);
-  galout->ColdGas       = (float)(gal.ColdGas / Hubble_h);
-  galout->MetalsColdGas = (float)(gal.MetalsColdGas / Hubble_h);
-  galout->Mcool         = (float)(gal.Mcool / Hubble_h);
-  galout->StellarMass   = (float)(gal.StellarMass / Hubble_h);
-  galout->Sfr           = (float)(gal.Sfr * units->UnitMass_in_g / units->UnitTime_in_s * SEC_PER_YEAR / SOLAR_MASS);
-  galout->Cos_Inc       = (float)(gal.Cos_Inc);
-  galout->MergTime      = (float)(gal.MergTime * units->UnitLength_in_cm / units->UnitVelocity_in_cm_per_s / SEC_PER_MEGAYEAR / Hubble_h);
-  galout->LTTime        = (float)(gal.LTTime * units->UnitLength_in_cm / units->UnitVelocity_in_cm_per_s / SEC_PER_MEGAYEAR / Hubble_h);
+  galout->Len               = (int)(gal.Len);
+  galout->Mvir              = (float)(gal.Mvir / Hubble_h);
+  galout->Rvir              = (float)(gal.Rvir / Hubble_h);
+  galout->Vvir              = (float)(gal.Vvir);
+  galout->Vmax              = (float)(gal.Vmax);
+  galout->Spin              = (float)(gal.Spin);
+  galout->HotGas            = (float)(gal.HotGas / Hubble_h);
+  galout->MetalsHotGas      = (float)(gal.MetalsHotGas / Hubble_h);
+  galout->ColdGas           = (float)(gal.ColdGas / Hubble_h);
+  galout->MetalsColdGas     = (float)(gal.MetalsColdGas / Hubble_h);
+  galout->Mcool             = (float)(gal.Mcool / Hubble_h);
+  galout->StellarMass       = (float)(gal.StellarMass / Hubble_h);
+  galout->MetalsStellarMass = (float)(gal.MetalsStellarMass / Hubble_h);
+  galout->Sfr               = (float)(gal.Sfr * units->UnitMass_in_g / units->UnitTime_in_s * SEC_PER_YEAR / SOLAR_MASS);
+  galout->Cos_Inc           = (float)(gal.Cos_Inc);
+  galout->MergTime          = (float)(gal.MergTime * units->UnitLength_in_cm / units->UnitVelocity_in_cm_per_s / SEC_PER_MEGAYEAR / Hubble_h);
+  galout->LTTime            = (float)(gal.LTTime * units->UnitLength_in_cm / units->UnitVelocity_in_cm_per_s / SEC_PER_MEGAYEAR / Hubble_h);
 
   prepare_magnitudes_for_output(run_globals, gal, galout, i_snap);
 
@@ -80,7 +82,7 @@ void calc_hdf5_props(run_globals_t *run_globals)
   galaxy_output_t  galout;
   int              i;                                   // dummy
 
-  h5props->n_props = 22;
+  h5props->n_props = 23;
 
 #ifdef CALC_MAGS
   // If we are calculating any magnitudes then increment the number of
@@ -167,6 +169,11 @@ void calc_hdf5_props(run_globals_t *run_globals)
   h5props->field_names[i] = "Vmax";
   h5props->field_types[i++] = H5T_NATIVE_FLOAT;
 
+  h5props->dst_offsets[i] = HOFFSET(galaxy_output_t, Spin);
+  h5props->dst_field_sizes[i]   = sizeof(galout.Spin);
+  h5props->field_names[i] = "Spin";
+  h5props->field_types[i++] = H5T_NATIVE_FLOAT;
+
   h5props->dst_offsets[i] = HOFFSET(galaxy_output_t, HotGas);
   h5props->dst_field_sizes[i]   = sizeof(galout.HotGas);
   h5props->field_names[i] = "HotGas";
@@ -195,6 +202,11 @@ void calc_hdf5_props(run_globals_t *run_globals)
   h5props->dst_offsets[i] = HOFFSET(galaxy_output_t, StellarMass);
   h5props->dst_field_sizes[i]   = sizeof(galout.StellarMass);
   h5props->field_names[i] = "StellarMass";
+  h5props->field_types[i++] = H5T_NATIVE_FLOAT;
+
+  h5props->dst_offsets[i] = HOFFSET(galaxy_output_t, MetalsStellarMass);
+  h5props->dst_field_sizes[i]   = sizeof(galout.MetalsStellarMass);
+  h5props->field_names[i] = "MetalsStellarMass";
   h5props->field_types[i++] = H5T_NATIVE_FLOAT;
 
   h5props->dst_offsets[i] = HOFFSET(galaxy_output_t, Sfr);
@@ -290,6 +302,8 @@ void create_master_file(run_globals_t *run_globals)
   sprintf(names[ii++],  "SimulationDir");
   addresses[ii] = &(run_globals->params.FileWithOutputSnaps);
   sprintf(names[ii++],  "FileWithOutputSnaps");
+  addresses[ii] = &(run_globals->params.CoolingFuncsDir);
+  sprintf(names[ii++],  "CoolingFuncsDir");
   if(run_globals->NRequestedForests > 0)
   {
     addresses[ii] = &(run_globals->params.ForestIDFile);
@@ -380,20 +394,10 @@ void create_master_file(run_globals_t *run_globals)
   group_id = H5Gcreate(file_id, "InputParams/physics", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
 
   ii=0;
-  addresses[ii] = &(run_globals->params.physics.peak);
-  sprintf(names[ii++],  "peak");
-  addresses[ii] = &(run_globals->params.physics.sigma);
-  sprintf(names[ii++],  "sigma");
-  addresses[ii] = &(run_globals->params.physics.stellarfrac);
-  sprintf(names[ii++],  "stellarfrac");
-  addresses[ii] = &(run_globals->params.physics.peak_evo);
-  sprintf(names[ii++],  "peak_evo");
-  addresses[ii] = &(run_globals->params.physics.sigma_evo);
-  sprintf(names[ii++],  "sigma_evo");
-  addresses[ii] = &(run_globals->params.physics.stellarfrac_evo);
-  sprintf(names[ii++],  "stellarfrac_evo");
-  addresses[ii] = &(run_globals->params.physics.bhgrowthfactor);
-  sprintf(names[ii++],  "bhgrowthfactor");
+  addresses[ii] = &(run_globals->params.physics.SfEfficiency);
+  sprintf(names[ii++],  "SfEfficiency");
+  addresses[ii] = &(run_globals->params.physics.SfRecycleFraction);
+  sprintf(names[ii++],  "SfRecycleFraction");
 
   for(int jj=0; jj<ii; jj++)
     h5_write_attribute(group_id, names[jj], H5T_NATIVE_DOUBLE, ds_id, addresses[jj]);

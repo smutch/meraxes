@@ -51,8 +51,8 @@ static void inline kill_galaxy(
   run_globals_t *run_globals,
   galaxy_t      *gal,
   galaxy_t      *prev_gal,
-  int                *NGal,
-  int                *kill_counter)
+  int           *NGal,
+  int           *kill_counter)
 {
   galaxy_t *cur_gal;
 
@@ -130,12 +130,8 @@ static void set_multiple_runs_params(run_globals_t *run_globals, int i_run)
   double *p = run_globals->MultipleRunsParams[i_run];
   physics_params_t *params = &(run_globals->params.physics);
 
-  params->peak            = p[0];
-  params->peak_evo        = p[1];
-  params->sigma           = p[2];
-  params->sigma_evo       = p[3];
-  params->stellarfrac     = p[4];
-  params->stellarfrac_evo = p[5];
+  params->SfEfficiency           = p[0];
+  params->SfRecycleFraction      = p[1];
 }
 
 

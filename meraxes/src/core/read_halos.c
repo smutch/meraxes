@@ -319,9 +319,9 @@ static void read_trees_and_catalogs(
         halo[*n_halos_kept].Rmax               = catalog_buffer[jj].R_max;
         halo[*n_halos_kept].Vmax               = catalog_buffer[jj].V_max;
         halo[*n_halos_kept].VelDisp            = catalog_buffer[jj].sigma_v;
-        halo[*n_halos_kept].Spin[0]            = catalog_buffer[jj].spin[0];
-        halo[*n_halos_kept].Spin[1]            = catalog_buffer[jj].spin[1];
-        halo[*n_halos_kept].Spin[2]            = catalog_buffer[jj].spin[2];
+        halo[*n_halos_kept].AngMom[0]          = catalog_buffer[jj].ang_mom[0];
+        halo[*n_halos_kept].AngMom[1]          = catalog_buffer[jj].ang_mom[1];
+        halo[*n_halos_kept].AngMom[2]          = catalog_buffer[jj].ang_mom[2];
         halo[*n_halos_kept].Galaxy             = NULL;
         if(halo[*n_halos_kept].Type > 0)
         {
