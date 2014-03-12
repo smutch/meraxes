@@ -3,7 +3,7 @@
 
 galaxy_t* new_galaxy(run_globals_t *run_globals, int snapshot, int halo_ID)
 {
- 
+
   galaxy_t *gal = NULL;
 
   gal = SID_malloc(sizeof(galaxy_t));

@@ -21,7 +21,6 @@ void form_stars_insitu(run_globals_t *run_globals, galaxy_t *gal, int snapshot)
   // there is no point doing anything if there is no cold gas!
   if(gal->ColdGas > 1e-8)
   {
-    double r_d;
     double r_disk;
     double m_crit;
     double m_stars;
@@ -30,11 +29,10 @@ void form_stars_insitu(run_globals_t *run_globals, galaxy_t *gal, int snapshot)
     double SfRecycleFraction = run_globals->params.physics.SfRecycleFraction;
     double sqrt_2 = 1.414213562;
 
-    // calculate disk scalelength using Mo, Mau & White (1998) eqn. 12
-    r_d = gal->Spin * gal->Rvir / sqrt_2;
-
-    // assume the disk extends to 3.0 * r_d
-    r_disk = 3. * r_d;
+    // calculate disk scalelength using Mo, Mau & White (1998) eqn. 12 and
+    // multiply it by 3 to approximate the star forming region size (ala
+    // Croton+ 2006).
+    r_disk = gal->Spin * gal->Rvir / sqrt_2 * 3.0;
 
     // what is the critical mass within r_crit?
     m_crit = 0.19 * gal->Vvir * r_disk;

@@ -101,7 +101,7 @@ float calculate_Vvir(run_globals_t *run_globals, double Mvir, float Rvir)
   return sqrt((float)(run_globals->G) * (float)Mvir / Rvir);
 }
 
-float calculate_spin_param(halo_t *halo)
+double calculate_spin_param(halo_t *halo)
 {
   float spin;
 
@@ -115,5 +115,5 @@ float calculate_spin_param(halo_t *halo)
 
   spin = spin / (1.414213562 * halo->Vvir * halo->Rvir);
 
-  return spin;
+  return (double)spin;
 }
