@@ -21,58 +21,26 @@ void form_stars_insitu(run_globals_t *run_globals, galaxy_t *gal, int snapshot)
   // there is no point doing anything if there is no cold gas!
   if(gal->ColdGas > 1e-8)
   {
-    double r_d;  // disk scale radius
-    double r_crit; // radius at which gas surface density exceeds critical for SF
-    double central_sd;  // gas central surface density
+    double r_d;
+    double r_disk;
     double m_crit;
-    double m_gas;
-    double b;
     double m_stars;
-    double r_frac;
-    gsl_sf_result result;
-    int status;
 
     double SfEfficiency = run_globals->params.physics.SfEfficiency;
     double SfRecycleFraction = run_globals->params.physics.SfRecycleFraction;
     double sqrt_2 = 1.414213562;
 
     // calculate disk scalelength using Mo, Mau & White (1998) eqn. 12
-    r_d = gal->Spin * gal->Rvir / sqrt_2 * 1e3;  // kpc/h
+    r_d = gal->Spin * gal->Rvir / sqrt_2;
 
-    // calculate the central gas surface density
-    central_sd = gal->ColdGas * 1e10 / (2.0 * M_PI * r_d * r_d); // Msol/h (pc/h)^-2
-
-    // Assuming a critial surface density for star formation using the halo
-    // dependant approximation of Kauffmann 1996 (eqn. 7), calculate the radius
-    // out to which the cold gas surface density exceeds the critical gas surface
-    // density.
-    b = gal->Vvir * 0.59 / central_sd;
-    // debug("%d %d %e %e %e %e\n", snapshot, gal->ID, b, r_d, gal->ColdGas*1.e10, gal->Vvir);
-    status = gsl_sf_lambert_Wm1_e(-b/r_d, &result);
-    if(status == GSL_SUCCESS)
-      r_crit = -r_d * result.val;
-    else
-    {
-      // here we have the situation where no gas lies above the critical surface density
-      gal->Sfr = 0.0;
-      return;
-    }
+    // assume the disk extends to 3.0 * r_d
+    r_disk = 3. * r_d;
 
     // what is the critical mass within r_crit?
-    m_crit = 0.59 * 2.0 * M_PI * gal->Vvir * r_crit / 1.e10; // 1e10 Msol/h
+    m_crit = 0.19 * gal->Vvir * r_disk;
 
-    // what is the cold gas mass within r_crit?
-    r_frac = r_crit/r_d;
-    m_gas = central_sd * 2.0 * M_PI * r_d*r_d * ( 1.0 - exp(-r_frac)*(r_frac + 1.0) ) / 1.e10;  // 1e10 Msol/h
-
-    // now use a Croton+ 2006 style SF law to determine the SFR
-    // The factor of 4.0 here is kind of arbitrary, but we don't want to use
-    // r_crit to calculate the dynamical time as this could be a huge radius.
-    // 4*r_d includes 90% of the mass of an exponential profile, therefore it
-    // seems a reasonable definition for the 'edge' of the disk when
-    // calculating the dynamical time.
-    if(m_gas > m_crit)
-      gal->Sfr = SfEfficiency * (m_gas - m_crit) / (4.0*r_d) * gal->Vvir;
+    if(gal->ColdGas > m_crit)
+      gal->Sfr = SfEfficiency * (gal->ColdGas - m_crit) / r_disk * gal->Vvir;
     else
     {
       gal->Sfr = 0.0;
