@@ -173,6 +173,10 @@ static void inline convert_input_halo_units(run_globals_t *run_globals, halo_t *
   halo->Mvir = calculate_Mvir(run_globals, halo);
   halo->Rvir = calculate_Rvir(run_globals, halo, halo->Mvir, snapshot);
   halo->Vvir = calculate_Vvir(run_globals, halo->Mvir, halo->Rvir);
+
+  // WARNING - TEMPORARY FIX FOR TINY TIAMAT SPINS!
+  for(int ii=0; ii<3; ii++)
+    halo->AngMom[ii] /= (double)halo->Len;
 }
 
 
