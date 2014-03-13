@@ -438,6 +438,7 @@ void    read_cooling_functions(run_globals_t *run_globals);
 double  interpolate_cooling_rate(double logTemp, double logZ);
 void    do_cooling(run_globals_t *run_globals, galaxy_t *gal);
 double  calc_metallicity(double total_gas, double metals);
+void    reincorporate_ejected_gas(run_globals_t *run_globals, fof_group_t *fof_group, int snapshot);
 
 
 // Magnitude related
