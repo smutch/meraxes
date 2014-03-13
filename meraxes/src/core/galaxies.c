@@ -33,6 +33,8 @@ galaxy_t* new_galaxy(run_globals_t *run_globals, int snapshot, int halo_ID)
   gal->MetalsHotGas      = 0.0;
   gal->ColdGas           = 0.0;
   gal->MetalsColdGas     = 0.0;
+  gal->EjectedGas        = 0.0;
+  gal->MetalsEjectedGas  = 0.0;
   gal->Mcool             = 0.0;
   gal->StellarMass       = 0.0;
   gal->MetalsStellarMass = 0.0;
@@ -71,4 +73,11 @@ void copy_halo_to_galaxy(halo_t *halo, galaxy_t *gal, int snapshot)
     gal->Pos[ii]       = halo->Pos[ii];
     gal->Vel[ii]       = halo->Vel[ii];
   }
+
+  // This is also a good place to reinitialise any galaxy properties which get
+  // recalculated at each time step.  It's also worth remembering here that we
+  // are only going to be doing this for non-ghost galaxies.
+  gal->Mcool = 0.0;
+  gal->Sfr = 0.0;
+
 }

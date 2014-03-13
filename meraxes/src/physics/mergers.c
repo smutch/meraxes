@@ -6,10 +6,10 @@ double calculate_merging_time(run_globals_t *run_globals, galaxy_t *sat, int sna
   galaxy_t *parent;
   galaxy_t *mother;
   galaxy_t *cur_gal;
-  double         coulomb;
-  double         mergtime;
-  double         sat_mass;
-  double         sat_rad;
+  double    coulomb;
+  double    mergtime;
+  double    sat_mass;
+  double    sat_rad;
 
   // Note that we are assuming in this function that the halo properties
   // attached to the galaxies still correspond to the relevant values at the
@@ -89,10 +89,12 @@ void merge_with_target(run_globals_t *run_globals, galaxy_t *gal, int *dead_gals
   parent->Sfr += gal->Sfr;
 
   // TODO: merger driven starburst and mass ratio dependant redistribution of gas
-  parent->HotGas += gal->HotGas;
-  parent->MetalsHotGas+= gal->MetalsHotGas;
-  parent->ColdGas += gal->ColdGas;
-  parent->MetalsColdGas += gal->MetalsColdGas;
+  parent->HotGas           += gal->HotGas;
+  parent->MetalsHotGas     += gal->MetalsHotGas;
+  parent->ColdGas          += gal->ColdGas;
+  parent->MetalsColdGas    += gal->MetalsColdGas;
+  parent->EjectedGas       += gal->EjectedGas;
+  parent->MetalsEjectedGas += gal->MetalsEjectedGas;
 
   for(int outputbin = 0; outputbin < NOUT; outputbin++)
     sum_luminosities(run_globals, parent, gal, outputbin);
