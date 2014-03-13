@@ -38,7 +38,7 @@ void form_stars_insitu(run_globals_t *run_globals, galaxy_t *gal, int snapshot)
     m_crit = 0.19 * gal->Vvir * r_disk;
 
     if(gal->ColdGas > m_crit)
-      gal->Sfr = SfEfficiency * (gal->ColdGas - m_crit) / r_disk * gal->Vvir;
+      gal->Sfr = SfEfficiency * (gal->ColdGas - m_crit) / r_disk * gal->Vmax;
     else
     {
       gal->Sfr = 0.0;
