@@ -87,10 +87,7 @@ static inline bool check_for_flag(int flag, int tree_flags)
 
 static inline bool check_for_merger(int flags)
 {
- if ((flags & TREE_CASE_MERGER)==TREE_CASE_MERGER)
-   return true;
- else
-   return false;
+  return check_for_flag(flags, TREE_CASE_MERGER);
 }
 
 static inline bool check_if_valid_host(run_globals_t *run_globals, halo_t *halo)
@@ -103,7 +100,7 @@ static inline bool check_if_valid_host(run_globals_t *run_globals, halo_t *halo)
 
   if((halo->Type == 0)
       && (halo->Galaxy == NULL)
-      && (halo->TreeFlags & invalid_flags)==0)
+      && (check_for_flag(halo->TreeFlags, invalid_flags)==false))
     return true;
   else
     return false;
