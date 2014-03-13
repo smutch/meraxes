@@ -42,27 +42,9 @@ TOCF_Flag : 1 {  # use 21cmfast for reionization?
 #------------------------------------------
 #----- Parameters of physical model -------
 #------------------------------------------
-funcprop        : 1       # physics function property (Mvir=1, Vmax=2)
+SfEfficiency      : 0.1     # star formation efficiency
+SfRecycleFraction : 0.43    # instantaneous recycle fraction (IMF dependant)
 
-funcprop_params : 1 {
-    peak            : 11.5    # peak of star formation efficiency (units -> log10(mvir/h))
-    peak_evo        : 0.0     # evolution variable
-    sigma           : 0.75    # width of star formation efficiency function (units -> log10(mvir/h))
-    sigma_evo       : 0.0     # evolution variable
-    stellarfrac     : 0.571   # fraction of halo mass growth available to form stars
-    stellarfrac_evo : 0.0     # evolution variable
-}
-
-funcprop_params : 2 {
-    peak            : 2.12    # peak of star formation efficiency (units -> log10(km/s))
-    peak_evo        : 0.0     # evolution variable
-    sigma           : 0.23    # width of star formation efficiency function (units -> log10(km/s))
-    sigma_evo       : 0.0     # evolution variable
-    stellarfrac     : 0.571   # fraction of halo mass growth available to form stars
-    stellarfrac_evo : 0.0     # evolution variable
-}
-
-bhgrowthfactor    : 0.6e-3  # BH growth rate factor (dM_BH/dt = factor*dM_star/dt)
 ThreshMajorMerger : 0.3     # major merger when mass ratio greater than this
 MergerTimeFactor  : 1.0     # Multiplicitive fator for the merger timescales (2.0->DeLucia+; 1.0->Croton+)
 RecycleFraction   : 0.3     # fraction of SF mass assumed to instantaneously go nova

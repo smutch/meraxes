@@ -70,13 +70,8 @@ FILE *meraxes_debug_file;
 //! Physics parameter values
 struct physics_params_t{
   int    funcprop;
-  double peak;
-  double sigma;
-  double stellarfrac;
-  double peak_evo;
-  double sigma_evo;
-  double stellarfrac_evo;
-  double bhgrowthfactor;
+  double SfEfficiency;
+  double SfRecycleFraction;
   double reion_z_re;
   double reion_delta_z_re;
   double reion_delta_z_sc;
@@ -268,7 +263,7 @@ struct catalog_halo_t{
   float     R_max;                     //!< Radius of maximum circular velocity     [Mpc/h]
   float     V_max;                     //!< Maximum circular velocity               [km/s]
   float     sigma_v;                   //!< Total 3D velocity dispersion            [km/s]
-  float     spin[3];                   //!< Specific angular momentum vector        [Mpc/h*km/s]
+  float     ang_mom[3];                //!< Specific angular momentum vector        [Mpc/h*km/s]
   float     q_triaxial;                //!< Triaxial shape parameter q=b/a
   float     s_triaxial;                //!< Triaxial shape parameter s=c/a
   float     shape_eigen_vectors[3][3]; //!< Normalized triaxial shape eigenvectors
@@ -299,7 +294,7 @@ struct halo_t{
   float  Vvir;           //!< Virial velocity [km/s]
   float  Vmax;           //!< Maximum circular velocity [km/s]
   float  VelDisp;        //!< Total 3D velocity dispersion [km/s]
-  float  Spin[3];        //!< Specific angular momentum vector [Mpc/h *km/s]
+  float  AngMom[3];      //!< Specific angular momentum vector [Mpc/h *km/s]
 };
 typedef struct halo_t halo_t;
 
@@ -334,6 +329,7 @@ struct galaxy_t
   double Rvir;
   double Vvir;
   double Vmax;
+  double Spin;
 
   // baryonic reservoirs
   double HotGas;
@@ -342,6 +338,7 @@ struct galaxy_t
   double MetalsColdGas;
   double Mcool;
   double StellarMass;
+  double MetalsStellarMass;
   double Sfr;
 
   // misc
@@ -368,7 +365,7 @@ struct galaxy_output_t
 
   float Pos[3];
   float Vel[3];
-  float Spin[3];
+  float Spin;
   int   Len;
   float Mvir;
   float Rvir;
@@ -382,6 +379,7 @@ struct galaxy_output_t
   float MetalsColdGas;
   float Mcool;
   float StellarMass;
+  float MetalsStellarMass;
   float Sfr;
 
   // misc
@@ -429,6 +427,7 @@ double  Tvir_to_Mvir(run_globals_t *run_globals, double T, double z);
 double  calculate_Mvir(run_globals_t *run_globals, halo_t *halo);
 float   calculate_Rvir(run_globals_t *run_globals, halo_t *halo, double Mvir, int snapshot);
 float   calculate_Vvir(run_globals_t *run_globals, double Mvir, float Rvir);
+double  calculate_spin_param(halo_t *halo);
 void    read_cooling_functions(run_globals_t *run_globals);
 double  interpolate_cooling_rate(double logTemp, double logZ);
 void    do_cooling(run_globals_t *run_globals, galaxy_t *gal);

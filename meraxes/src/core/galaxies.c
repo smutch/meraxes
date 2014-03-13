@@ -3,7 +3,7 @@
 
 galaxy_t* new_galaxy(run_globals_t *run_globals, int snapshot, int halo_ID)
 {
- 
+
   galaxy_t *gal = NULL;
 
   gal = SID_malloc(sizeof(galaxy_t));
@@ -28,12 +28,14 @@ galaxy_t* new_galaxy(run_globals_t *run_globals, int snapshot, int halo_ID)
   gal->Rvir              = 0.0;
   gal->Vvir              = 0.0;
   gal->Vmax              = 0.0;
+  gal->Spin              = 0.0;
   gal->HotGas            = 0.0;
   gal->MetalsHotGas      = 0.0;
   gal->ColdGas           = 0.0;
   gal->MetalsColdGas     = 0.0;
   gal->Mcool             = 0.0;
   gal->StellarMass       = 0.0;
+  gal->MetalsStellarMass = 0.0;
   gal->Sfr               = 0.0;
   gal->Cos_Inc           = gsl_rng_uniform(run_globals->random_generator);
   gal->MergTime          = 99999.9;
@@ -51,7 +53,6 @@ galaxy_t* new_galaxy(run_globals_t *run_globals, int snapshot, int halo_ID)
   return gal;
 }
 
-
 void copy_halo_to_galaxy(halo_t *halo, galaxy_t *gal, int snapshot)
 {
   gal->id_MBP          = halo->id_MBP;
@@ -64,6 +65,7 @@ void copy_halo_to_galaxy(halo_t *halo, galaxy_t *gal, int snapshot)
   gal->Vvir            = (double)(halo->Vvir);
   gal->Vmax            = halo->Vmax;
   gal->TreeFlags       = halo->TreeFlags;
+  gal->Spin            = calculate_spin_param(halo);
   for (int ii=0; ii<3; ii++)
   {
     gal->Pos[ii]       = halo->Pos[ii];

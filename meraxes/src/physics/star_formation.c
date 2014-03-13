@@ -1,65 +1,63 @@
 #include <math.h>
 #include "meraxes.h"
+#include <gsl/gsl_sf_lambert.h>
 
-//! The formation history model physics function
-static double physics_func(run_globals_t *run_globals, double prop, int snapshot)
+static void update_reservoirs_from_sf(galaxy_t *gal, double new_stars)
 {
-
-  double *ZZ = run_globals->ZZ;
-
-  double log_prop = log10(prop);
-
-  double cur_peak        = run_globals->params.physics.peak * pow(1.0+ZZ[snapshot], run_globals->params.physics.peak_evo);
-  double cur_stellarfrac = run_globals->params.physics.stellarfrac * pow(1.0+ZZ[snapshot], run_globals->params.physics.stellarfrac_evo);
-  double cur_sigma       = run_globals->params.physics.sigma * pow(1.0+ZZ[snapshot], run_globals->params.physics.sigma_evo);
-
-  return cur_stellarfrac * exp( -pow((log_prop-cur_peak)/cur_sigma ,2.) );
-
+  double metals = calc_metallicity(gal->ColdGas, gal->MetalsColdGas) * new_stars;
+  gal->ColdGas -= new_stars;
+  gal->MetalsColdGas -= metals;
+  gal->StellarMass += new_stars;
+  gal->MetalsStellarMass += metals;
 }
-
 
 void form_stars_insitu(run_globals_t *run_globals, galaxy_t *gal, int snapshot)
 {
 
-  double RecycleFraction = run_globals->params.RecycleFraction;
-  double burst_time      = 0.0;
-  double burst_mass      = 0.0;
+  // This is a new SF prescription which is based on Croton+ 2006, but is more
+  // self consistent with the idea of a critical surface density threshold for
+  // star formation.
 
-  if((gal->Type < 2) && (gal->ColdGas > 0.0) && (gal->Mvir > 0.0))
+  // there is no point doing anything if there is no cold gas!
+  if(gal->ColdGas > 1e-8)
   {
-    switch (run_globals->params.physics.funcprop){
-      case VMAX_PROP:
-        burst_mass = gal->ColdGas * physics_func(run_globals, gal->Vmax, snapshot);
-        break;
-      case MVIR_PROP:
-        burst_mass = gal->ColdGas * physics_func(run_globals, gal->Mvir*1.e10, snapshot);
-        break;
-      default:
-        SID_log_error("Did not recognise physics_funcprop value!");
-        ABORT(EXIT_FAILURE);
-        break;
+    double r_disk;
+    double m_crit;
+    double m_stars;
+
+    double SfEfficiency = run_globals->params.physics.SfEfficiency;
+    double SfRecycleFraction = run_globals->params.physics.SfRecycleFraction;
+    double sqrt_2 = 1.414213562;
+
+    // calculate disk scalelength using Mo, Mau & White (1998) eqn. 12 and
+    // multiply it by 3 to approximate the star forming region size (ala
+    // Croton+ 2006).
+    r_disk = gal->Spin * gal->Rvir / sqrt_2 * 3.0;
+
+    // what is the critical mass within r_crit?
+    m_crit = 0.19 * gal->Vvir * r_disk;
+
+    if(gal->ColdGas > m_crit)
+      gal->Sfr = SfEfficiency * (gal->ColdGas - m_crit) / r_disk * gal->Vvir;
+    else
+    {
+      gal->Sfr = 0.0;
+      return;
     }
 
-    // Double check we aren't using more gas than is available...
-    if(burst_mass > gal->ColdGas)
-      burst_mass = gal->ColdGas;
+    // make sure we aren't trying to create more stars than we have cold gas...
+    m_stars = gal->Sfr * gal->dt;
+    if (m_stars > gal->ColdGas)
+    {
+      gal->Sfr = (gal->ColdGas / m_stars) * gal->Sfr;
+      m_stars = gal->ColdGas;
+    }
 
-    // update the star formation rate in the galaxy structure
-    gal->Sfr = burst_mass / gal->dt;
+    // instantaneous recycling approximation
+    m_stars = (1 - SfRecycleFraction) * m_stars;
 
-    // Instantaneous recycling approximation
-    burst_mass = (1.0-RecycleFraction)*burst_mass;
+    // update the galaxy reservoirs
+    update_reservoirs_from_sf(gal, m_stars);
 
-    // Update stellar mass and gas reservoirs
-    gal->StellarMass   += burst_mass;
-    gal->MetalsColdGas -= calc_metallicity(gal->ColdGas, gal->MetalsColdGas) * burst_mass;
-    gal->ColdGas       -= burst_mass;
-
-    // Add to the luminosities due to this stellar mass burst
-    burst_time   = run_globals->LTTime[snapshot] + (0.5 * gal->dt);
-    add_to_luminosities(run_globals, gal, burst_mass, 0.00666, burst_time);
-
-  } else
-    gal->Sfr = 0.;
-
+  }
 }

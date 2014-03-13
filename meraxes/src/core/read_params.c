@@ -33,72 +33,59 @@ static void inline store_params(
     // DEBUG
     // SID_log("level = %d :: prefix = %s", SID_LOG_COMMENT, level, prefix);
 
-    if(strcmp(key, "funcprop_params")==0)
+    tag_index=-1;
+    for(int ii=0; ii<n_param; ii++)
+    {
+      if(strcmp(key, params_tag[ii])==0)
+      {
+        tag_index = ii;
+        break;
+      }
+    }
+
+    if(strcmp(key, "TOCF_Flag")==0)
     {
       temp = atoi(entry[i_entry].value);
-      if(temp!=run_params->physics.funcprop)
+      if(used_tag[tag_index]==0)
       {
-        SID_log("Skipping funcprop_params = %d block...", SID_LOG_COMMENT, temp);
+        *((int *) params_addr[tag_index]) = atoi(entry[i_entry].value);
+        used_tag[tag_index] = 1;
+      }
+      if(temp!=1)
+      {
+        SID_log("Skipping TOCF params block...", SID_LOG_COMMENT);
         temp = entry[i_entry++].level;
         while(entry[i_entry++].level>temp);
         i_entry-=2;
-      }
-    } else
-    {
-      tag_index=-1;
-      for(int ii=0; ii<n_param; ii++)
-      {
-        if(strcmp(key, params_tag[ii])==0)
-        {
-          tag_index = ii;
-          break;
-        }
-      }
-
-      if(strcmp(key, "TOCF_Flag")==0)
-      {
-        temp = atoi(entry[i_entry].value);
-        if(used_tag[tag_index]==0)
-        {
-          *((int *) params_addr[tag_index]) = atoi(entry[i_entry].value);
-          used_tag[tag_index] = 1;
-        }
-        if(temp!=1)
-        {
-          SID_log("Skipping TOCF params block...", SID_LOG_COMMENT);
-          temp = entry[i_entry++].level;
-          while(entry[i_entry++].level>temp);
-          i_entry-=2;
-        } else
-          sprintf(prefix, "TOCF_");
-      }
-
-      if (tag_index<0)
-      {
-        SID_log_warning("%s is an unrecognised parameter. Ignoring...", SID_LOG_COMMENT, entry[i_entry].key);
-        continue;
-      }
-
-      if(used_tag[tag_index]==1)
-        continue;
-
-      switch(params_type[tag_index])
-      {
-        case PARAM_TYPE_DOUBLE:
-          *((double *) params_addr[tag_index]) = atof(entry[i_entry].value);
-          break;
-        case PARAM_TYPE_FLOAT:
-          *((float *) params_addr[tag_index]) = atof(entry[i_entry].value);
-          break;
-        case PARAM_TYPE_STRING:
-          strcpy(params_addr[tag_index], entry[i_entry].value);
-          break;
-        case PARAM_TYPE_INT:
-          *((int *) params_addr[tag_index]) = atoi(entry[i_entry].value);
-          break;
-      }
-      used_tag[tag_index] = 1;
+      } else
+        sprintf(prefix, "TOCF_");
     }
+
+    if (tag_index<0)
+    {
+      SID_log_warning("%s is an unrecognised parameter. Ignoring...", SID_LOG_COMMENT, entry[i_entry].key);
+      continue;
+    }
+
+    if(used_tag[tag_index]==1)
+      continue;
+
+    switch(params_type[tag_index])
+    {
+      case PARAM_TYPE_DOUBLE:
+        *((double *) params_addr[tag_index]) = atof(entry[i_entry].value);
+        break;
+      case PARAM_TYPE_FLOAT:
+        *((float *) params_addr[tag_index]) = atof(entry[i_entry].value);
+        break;
+      case PARAM_TYPE_STRING:
+        strcpy(params_addr[tag_index], entry[i_entry].value);
+        break;
+      case PARAM_TYPE_INT:
+        *((int *) params_addr[tag_index]) = atoi(entry[i_entry].value);
+        break;
+    }
+    used_tag[tag_index] = 1;
   }
 }
 
@@ -332,43 +319,13 @@ void read_parameter_file(run_globals_t *run_globals, char *fname)
 
     // Physics params
 
-    strcpy(params_tag[n_param], "funcprop");
-    params_addr[n_param] = &(run_params->physics).funcprop;
-    required_tag[n_param] = 1;
-    params_type[n_param++] = PARAM_TYPE_INT;
-
-    strcpy(params_tag[n_param], "peak");
-    params_addr[n_param] = &(run_params->physics).peak;
+    strcpy(params_tag[n_param], "SfEfficiency");
+    params_addr[n_param] = &(run_params->physics).SfEfficiency;
     required_tag[n_param] = 1;
     params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
-    strcpy(params_tag[n_param], "peak_evo");
-    params_addr[n_param] = &(run_params->physics).peak_evo;
-    required_tag[n_param] = 1;
-    params_type[n_param++] = PARAM_TYPE_DOUBLE;
-
-    strcpy(params_tag[n_param], "sigma");
-    params_addr[n_param] = &(run_params->physics).sigma;
-    required_tag[n_param] = 1;
-    params_type[n_param++] = PARAM_TYPE_DOUBLE;
-
-    strcpy(params_tag[n_param], "sigma_evo");
-    params_addr[n_param] = &(run_params->physics).sigma_evo;
-    required_tag[n_param] = 1;
-    params_type[n_param++] = PARAM_TYPE_DOUBLE;
-
-    strcpy(params_tag[n_param], "stellarfrac");
-    params_addr[n_param] = &(run_params->physics).stellarfrac;
-    required_tag[n_param] = 1;
-    params_type[n_param++] = PARAM_TYPE_DOUBLE;
-
-    strcpy(params_tag[n_param], "stellarfrac_evo");
-    params_addr[n_param] = &(run_params->physics).stellarfrac_evo;
-    required_tag[n_param] = 1;
-    params_type[n_param++] = PARAM_TYPE_DOUBLE;
-
-    strcpy(params_tag[n_param], "bhgrowthfactor");
-    params_addr[n_param] = &(run_params->physics).bhgrowthfactor;
+    strcpy(params_tag[n_param], "SfRecycleFraction");
+    params_addr[n_param] = &(run_params->physics).SfRecycleFraction;
     required_tag[n_param] = 1;
     params_type[n_param++] = PARAM_TYPE_DOUBLE;
 

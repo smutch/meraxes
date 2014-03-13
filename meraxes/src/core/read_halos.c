@@ -173,6 +173,10 @@ static void inline convert_input_halo_units(run_globals_t *run_globals, halo_t *
   halo->Mvir = calculate_Mvir(run_globals, halo);
   halo->Rvir = calculate_Rvir(run_globals, halo, halo->Mvir, snapshot);
   halo->Vvir = calculate_Vvir(run_globals, halo->Mvir, halo->Rvir);
+
+  // WARNING - TEMPORARY FIX FOR TINY TIAMAT SPINS!
+  for(int ii=0; ii<3; ii++)
+    halo->AngMom[ii] /= (double)halo->Len;
 }
 
 
@@ -319,9 +323,9 @@ static void read_trees_and_catalogs(
         halo[*n_halos_kept].Rmax               = catalog_buffer[jj].R_max;
         halo[*n_halos_kept].Vmax               = catalog_buffer[jj].V_max;
         halo[*n_halos_kept].VelDisp            = catalog_buffer[jj].sigma_v;
-        halo[*n_halos_kept].Spin[0]            = catalog_buffer[jj].spin[0];
-        halo[*n_halos_kept].Spin[1]            = catalog_buffer[jj].spin[1];
-        halo[*n_halos_kept].Spin[2]            = catalog_buffer[jj].spin[2];
+        halo[*n_halos_kept].AngMom[0]          = catalog_buffer[jj].ang_mom[0];
+        halo[*n_halos_kept].AngMom[1]          = catalog_buffer[jj].ang_mom[1];
+        halo[*n_halos_kept].AngMom[2]          = catalog_buffer[jj].ang_mom[2];
         halo[*n_halos_kept].Galaxy             = NULL;
         if(halo[*n_halos_kept].Type > 0)
         {

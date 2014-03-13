@@ -100,3 +100,20 @@ float calculate_Vvir(run_globals_t *run_globals, double Mvir, float Rvir)
 {
   return sqrt((float)(run_globals->G) * (float)Mvir / Rvir);
 }
+
+double calculate_spin_param(halo_t *halo)
+{
+  float spin;
+
+  spin = sqrt(halo->AngMom[0] * halo->AngMom[0] +
+      halo->AngMom[1] * halo->AngMom[1] +
+      halo->AngMom[2] * halo->AngMom[2]);
+
+  // This limit is used in the SAGE semi-analytic model
+  if(spin > 1.2)
+    spin = 1.2;
+
+  spin = spin / (1.414213562 * halo->Vvir * halo->Rvir);
+
+  return (double)spin;
+}

@@ -11,7 +11,7 @@ int evolve_galaxies(run_globals_t *run_globals, fof_group_t *fof_group, int snap
   int       dead_gals    = 0;
 
   SID_log("Doing physics...", SID_LOG_OPEN|SID_LOG_TIMER);
-  
+
   for(int i_fof=0; i_fof<NFof; i_fof++)
   {
 
@@ -56,7 +56,7 @@ int evolve_galaxies(run_globals_t *run_globals, fof_group_t *fof_group, int snap
       halo = halo->NextHaloInFOFGroup;
     }
   }
-    
+
   if(gal_counter+(run_globals->NGhosts) != NGal)
   {
     SID_log_error("We have not processed the expected number of galaxies...");
@@ -64,7 +64,7 @@ int evolve_galaxies(run_globals_t *run_globals, fof_group_t *fof_group, int snap
     ABORT(EXIT_FAILURE);
   }
 
-  SID_log("...done", SID_LOG_CLOSE); 
+  SID_log("...done", SID_LOG_CLOSE);
 
   return gal_counter-dead_gals;
 }
