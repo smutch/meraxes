@@ -74,6 +74,7 @@ struct physics_params_t{
   double SfRecycleFraction;
   double SnReheatEff;
   double SnEjectionEff;
+  double ReincorporationEff;
   double reion_z_re;
   double reion_delta_z_re;
   double reion_delta_z_sc;

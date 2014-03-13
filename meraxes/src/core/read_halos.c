@@ -15,13 +15,15 @@ int get_corrected_snapshot(run_globals_t *run_globals, int snapshot)
     return snapshot;
 }
 
-static inline bool is_ghost(int flags)
-{
- if ((flags & TREE_CASE_GHOST)==TREE_CASE_GHOST)
-   return true;
- else
-   return false;
-}
+// This function will only be used when the ghosts are actually reinserted back
+// into the input merger trees...
+// static inline bool is_ghost(int flags)
+// {
+//  if ((flags & TREE_CASE_GHOST)==TREE_CASE_GHOST)
+//    return true;
+//  else
+//    return false;
+// }
 
 static void halo_catalog_filename(
   char *simulation_dir,
