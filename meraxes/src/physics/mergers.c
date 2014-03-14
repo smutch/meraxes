@@ -71,10 +71,46 @@ double calculate_merging_time(run_globals_t *run_globals, galaxy_t *sat, int sna
 }
 
 
+static void update_reservoirs_from_merger_burst(galaxy_t *parent, double burst_mass)
+{
+
+  double metals = calc_metallicity(parent->ColdGas, parent->MetalsColdGas) * burst_mass;
+
+  parent->StellarMass += burst_mass;
+  parent->MetalsStellarMass += metals;
+  parent->ColdGas -= burst_mass;
+  parent->MetalsColdGas -= metals;
+
+  parent->Sfr += burst_mass / parent->dt;
+
+}
+
+
+static void merger_driven_starburst(galaxy_t *parent, double merger_ratio)
+{
+
+  // Calculate a merger driven starburst following Guo+ 2010
+  double burst_mass;
+
+  burst_mass = 0.56 * pow(merger_ratio, 0.7) * parent->ColdGas;
+
+  if(burst_mass > parent->ColdGas)
+    burst_mass = parent->ColdGas;
+  if(burst_mass < 0)
+    burst_mass = 0.0;
+
+  update_reservoirs_from_merger_burst(parent, burst_mass);
+
+}
+
+
 void merge_with_target(run_globals_t *run_globals, galaxy_t *gal, int *dead_gals)
 {
 
   galaxy_t *parent = NULL;
+  double merger_ratio;
+  double parent_baryons;
+  double gal_baryons;
 
   // Identify the parent galaxy in the merger event.
   // Note that this relies on the merger target coming before this galaxy in
@@ -84,17 +120,27 @@ void merge_with_target(run_globals_t *run_globals, galaxy_t *gal, int *dead_gals
   while (parent->Type==3)
     parent = parent->MergerTarget;
 
+  // use the **baryonic** mass to calculate the merger ratio
+  parent_baryons = parent->StellarMass + parent->ColdGas;
+  gal_baryons    = gal->StellarMass + gal->ColdGas;
+  if(parent_baryons > gal_baryons)
+    merger_ratio = gal_baryons/parent_baryons;
+  else
+    merger_ratio = parent_baryons/gal_baryons;
+
   // Add galaxies together
   parent->StellarMass += gal->StellarMass;
   parent->Sfr += gal->Sfr;
 
-  // TODO: merger driven starburst and mass ratio dependant redistribution of gas
   parent->HotGas           += gal->HotGas;
   parent->MetalsHotGas     += gal->MetalsHotGas;
   parent->ColdGas          += gal->ColdGas;
   parent->MetalsColdGas    += gal->MetalsColdGas;
   parent->EjectedGas       += gal->EjectedGas;
   parent->MetalsEjectedGas += gal->MetalsEjectedGas;
+
+  // merger driven starburst prescription
+  merger_driven_starburst(parent, merger_ratio);
 
   for(int outputbin = 0; outputbin < NOUT; outputbin++)
     sum_luminosities(run_globals, parent, gal, outputbin);
@@ -103,4 +149,5 @@ void merge_with_target(run_globals_t *run_globals, galaxy_t *gal, int *dead_gals
   gal->Type          = 3;
   gal->HaloDescIndex = -1;
   (*dead_gals)++;
+
 }
