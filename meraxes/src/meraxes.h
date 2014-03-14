@@ -72,6 +72,9 @@ struct physics_params_t{
   int    funcprop;
   double SfEfficiency;
   double SfRecycleFraction;
+  double SnReheatEff;
+  double SnEjectionEff;
+  double ReincorporationEff;
   double reion_z_re;
   double reion_delta_z_re;
   double reion_delta_z_sc;
@@ -340,6 +343,8 @@ struct galaxy_t
   double StellarMass;
   double MetalsStellarMass;
   double Sfr;
+  double EjectedGas;
+  double MetalsEjectedGas;
 
   // misc
   double Cos_Inc;
@@ -381,6 +386,8 @@ struct galaxy_output_t
   float StellarMass;
   float MetalsStellarMass;
   float Sfr;
+  float EjectedGas;
+  float MetalsEjectedGas;
 
   // misc
   float Cos_Inc;
@@ -410,7 +417,7 @@ void    copy_halo_to_galaxy(halo_t *halo, galaxy_t *gal, int snapshot);
 void    gas_infall(run_globals_t *run_globals, fof_group_t *FOFgroup, int snapshot);
 double  calculate_merging_time(run_globals_t *run_globals, galaxy_t *gal, int snapshot);
 void    merge_with_target(run_globals_t *run_globals, galaxy_t *gal, int *dead_gals);
-void    form_stars_insitu(run_globals_t *run_globals, galaxy_t *gal, int snapshot);
+void    insitu_star_formation_and_feedback(run_globals_t *run_globals, galaxy_t *gal, int snapshot);
 void    prep_hdf5_file(run_globals_t *run_globals);
 void    create_master_file(run_globals_t *run_globals);
 void    write_snapshot(run_globals_t *run_globals, int n_write, int i_out, int *last_n_write);
@@ -432,6 +439,7 @@ void    read_cooling_functions(run_globals_t *run_globals);
 double  interpolate_cooling_rate(double logTemp, double logZ);
 void    do_cooling(run_globals_t *run_globals, galaxy_t *gal);
 double  calc_metallicity(double total_gas, double metals);
+void    reincorporate_ejected_gas(run_globals_t *run_globals, fof_group_t *fof_group, int snapshot);
 
 
 // Magnitude related

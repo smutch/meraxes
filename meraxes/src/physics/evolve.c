@@ -15,6 +15,7 @@ int evolve_galaxies(run_globals_t *run_globals, fof_group_t *fof_group, int snap
   for(int i_fof=0; i_fof<NFof; i_fof++)
   {
 
+    reincorporate_ejected_gas(run_globals, &(fof_group[i_fof]), snapshot);
     gas_infall(run_globals, &(fof_group[i_fof]), snapshot);
 
     halo = fof_group[i_fof].FirstHalo;
@@ -24,7 +25,7 @@ int evolve_galaxies(run_globals_t *run_globals, fof_group_t *fof_group, int snap
       while(gal!=NULL){
 
         do_cooling(run_globals, gal);
-        form_stars_insitu(run_globals, gal, snapshot);
+        insitu_star_formation_and_feedback(run_globals, gal, snapshot);
 
         // If this is a type 2 then increment the merger clock
         if(gal->Type == 2)
