@@ -25,7 +25,7 @@ int evolve_galaxies(run_globals_t *run_globals, fof_group_t *fof_group, int snap
       while(gal!=NULL){
 
         do_cooling(run_globals, gal);
-        insitu_star_formation_and_feedback(run_globals, gal, snapshot);
+        insitu_star_formation(run_globals, gal, snapshot);
 
         // If this is a type 2 then increment the merger clock
         if(gal->Type == 2)
