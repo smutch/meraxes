@@ -406,6 +406,13 @@ void create_master_file(run_globals_t *run_globals)
   group_id = H5Gcreate(file_id, "InputParams/physics", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
 
   ii=0;
+  addresses[ii] = &(run_globals->params.physics.ReionizationModifier);
+  sprintf(names[ii++],  "ReionizationModifier");
+
+  for(int jj=0; jj<ii; jj++)
+    h5_write_attribute(group_id, names[jj], H5T_NATIVE_INT, ds_id, addresses[jj]);
+
+  ii=0;
   addresses[ii] = &(run_globals->params.physics.SfEfficiency);
   sprintf(names[ii++],  "SfEfficiency");
   addresses[ii] = &(run_globals->params.physics.SfRecycleFraction);
@@ -419,12 +426,6 @@ void create_master_file(run_globals_t *run_globals)
 
   for(int jj=0; jj<ii; jj++)
     h5_write_attribute(group_id, names[jj], H5T_NATIVE_DOUBLE, ds_id, addresses[jj]);
-
-  ii=0;
-  addresses[ii] = &(run_globals->params.physics.funcprop);
-  sprintf(names[ii++],  "funcprop");
-
-  h5_write_attribute(group_id, names[0], H5T_NATIVE_INT, ds_id, addresses[0]);
 
   // Close the group
   H5Gclose(group_id);

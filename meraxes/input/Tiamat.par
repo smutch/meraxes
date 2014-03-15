@@ -42,6 +42,8 @@ TOCF_Flag : 1 {  # use 21cmfast for reionization?
 #------------------------------------------
 #----- Parameters of physical model -------
 #------------------------------------------
+ReionizationModifier : 1    # use halo mass dependant infall modifier of Sobacchi & Mesinger (2013)
+
 SfEfficiency      : 0.1     # star formation efficiency
 SfRecycleFraction : 0.43    # instantaneous recycle fraction (IMF dependant)
 SnEjectionEff     : 3.5     # mass loading factor for SN feedback

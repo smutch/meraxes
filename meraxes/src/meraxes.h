@@ -69,7 +69,7 @@ FILE *meraxes_debug_file;
 
 //! Physics parameter values
 struct physics_params_t{
-  int    funcprop;
+  int    ReionizationModifier;
   double SfEfficiency;
   double SfRecycleFraction;
   double SnReheatEff;
