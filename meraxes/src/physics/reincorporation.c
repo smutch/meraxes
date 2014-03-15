@@ -3,7 +3,7 @@
 static void update_reservoirs_from_reincorporation(galaxy_t *gal, double reincorporated)
 {
 
-  double metals = reincorporated * calc_metallicity(gal->EjectedGas, gal->MetalsEjectedGas); 
+  double metals = reincorporated * calc_metallicity(gal->EjectedGas, gal->MetalsEjectedGas);
 
   gal->EjectedGas -= reincorporated;
   gal->MetalsEjectedGas -= metals;
@@ -50,16 +50,21 @@ void reincorporate_ejected_gas(run_globals_t *run_globals, fof_group_t *fof_grou
         gal->EjectedGas        = 0;
         gal->MetalsEjectedGas  = 0;
       }
+      gal = gal->NextGalInHalo;
     }
+    halo = halo->NextHaloInFOFGroup;
   }
 
-  // now allow some of the ejected gas associated with the central to be
-  // reincorporated following the prescription of Guo 2010 (which is actually
-  // almost identical to SAGE).
-  t_dyn = central->Rvir / central->Vvir;
-  reincorporated = ReincorporationEff * central->Vvir / 220.0 * central->EjectedGas * (gal->dt / t_dyn);
+  if(central->EjectedGas > 0)
+  {
+    // now allow some of the ejected gas associated with the central to be
+    // reincorporated following the prescription of Guo 2010 (which is actually
+    // almost identical to SAGE).
+    t_dyn = central->Rvir / central->Vvir;
+    reincorporated = ReincorporationEff * central->Vvir / 220.0 * central->EjectedGas * (gal->dt / t_dyn);
 
-  // update the baryonic reservoirs
-  update_reservoirs_from_reincorporation(central, reincorporated);
+    // update the baryonic reservoirs
+    update_reservoirs_from_reincorporation(central, reincorporated);
+  }
 
 }
