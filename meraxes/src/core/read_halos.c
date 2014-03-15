@@ -15,15 +15,6 @@ int get_corrected_snapshot(run_globals_t *run_globals, int snapshot)
     return snapshot;
 }
 
-// This function will only be used when the ghosts are actually reinserted back
-// into the input merger trees...
-// static inline bool is_ghost(int flags)
-// {
-//  if ((flags & TREE_CASE_GHOST)==TREE_CASE_GHOST)
-//    return true;
-//  else
-//    return false;
-// }
 
 static void halo_catalog_filename(
   char *simulation_dir,
@@ -128,7 +119,6 @@ static void read_catalog_halos(
   // Have we already read all the halos in this file?
   if((*i_halo)>=(*n_halos_file))
   {
-    // SID_log("***i_halo = %d, n_halos_file = %d", SID_LOG_COMMENT, (*i_halo), (*n_halos_file));
     fclose(*fin);
     (*i_file)++;
     (*i_halo) = 0;
@@ -152,11 +142,6 @@ static void read_catalog_halos(
   {
     // read in as many as we can from this file and then get the rest from the next file
     n_from_this_file = (*n_halos_file)- *i_halo;
-
-    // DEBUG
-    // SID_log("Spilling over to next file: i_halo = %d, n_to_read = %d,"\
-    //     "n_halos_file = %d, n_from_this_file = %d", SID_LOG_COMMENT, *i_halo,
-    //     n_to_read, *n_halos_file, n_from_this_file);
 
     fread(halo, sizeof(catalog_halo_t), n_from_this_file, *fin);
     *i_halo += n_from_this_file;
@@ -220,14 +205,6 @@ static void read_trees_and_catalogs(
 
   *n_halos_kept = 0;
   *n_fof_groups_kept = 0;
-
-  // DEBUG
-  // SID_log("Calling read_trees_and_catalogs() with:", SID_LOG_OPEN);
-  // SID_log("snapshot = %d", SID_LOG_COMMENT, snapshot);
-  // SID_log("n_halos = %d", SID_LOG_COMMENT, n_halos);
-  // SID_log("n_fof_groups = %d", SID_LOG_COMMENT, n_fof_groups);
-  // SID_log("n_requested_forests = %d", SID_LOG_COMMENT, n_requested_forests);
-  // SID_log("---", SID_LOG_CLOSE);
 
   size_t dst_size = sizeof(tree_entry_t);
   size_t dst_offsets[9] = {
@@ -801,24 +778,6 @@ trees_info_t read_halos(
     // trawling through the code and making the relevant updates in a number of
     // places (so we'll leave that till later!).
 
-    // DEBUG
-    // SID_log("BEFORE ***", SID_LOG_OPEN);
-    // for (int di=0; di < n_fof_groups_kept; di++)
-    // {
-    //   SID_log("fof_group[%d].FirstHalo->ID = %d", SID_LOG_COMMENT, di, (*fof_group)[di].FirstHalo->ID);
-    //   halo_t *h = (*fof_group)[di].FirstHalo;
-    //   halo_t *last_h;
-    //   while(h != NULL)
-    //   {
-    //     last_h = h;
-    //     h = h->NextHaloInFOFGroup;
-    //   }
-    //   if(last_h != (*fof_group)[di].FirstHalo)
-    //     SID_log("last halo ID = %d", SID_LOG_COMMENT, last_h->ID);
-    //   // SID_log("halo[%d].FOFGroup->FirstHalo->ID = %d", SID_LOG_COMMENT, di, (*halo)[di].FOFGroup->FirstHalo->ID);
-    // }
-    // SID_log("", SID_LOG_CLOSE|SID_LOG_NOPRINT);
-
     size_t *halo_FOFGroup_os = SID_malloc(sizeof(size_t) * n_halos_kept);
     size_t *halo_NextHaloInFOFGroup_os = SID_malloc(sizeof(size_t) * n_halos_kept);
     bool   *halo_NextHaloInFOFGroup_NULL = SID_malloc(sizeof(bool) * n_halos_kept);
@@ -855,24 +814,6 @@ trees_info_t read_halos(
     SID_free(SID_FARG halo_NextHaloInFOFGroup_NULL);
     SID_free(SID_FARG halo_NextHaloInFOFGroup_os);
     SID_free(SID_FARG halo_FOFGroup_os);
-
-    // DEBUG
-    // SID_log("AFTER ***", SID_LOG_OPEN);
-    // for (int di=0; di < n_fof_groups_kept; di++)
-    // {
-    //   SID_log("fof_group[%d].FirstHalo->ID = %d", SID_LOG_COMMENT, di, (*fof_group)[di].FirstHalo->ID);
-    //   halo_t *h = (*fof_group)[di].FirstHalo;
-    //   halo_t *last_h;
-    //   while(h != NULL)
-    //   {
-    //     last_h = h;
-    //     h = h->NextHaloInFOFGroup;
-    //   }
-    //   if(last_h != (*fof_group)[di].FirstHalo)
-    //     SID_log("last halo ID = %d", SID_LOG_COMMENT, last_h->ID);
-    //   // SID_log("halo[%d].FOFGroup->FirstHalo->ID = %d", SID_LOG_COMMENT, di, (*halo)[di].FOFGroup->FirstHalo->ID);
-    // }
-    // SID_log("", SID_LOG_CLOSE|SID_LOG_NOPRINT);
 
     // save the trees_info for this snapshot as well...
     snapshot_trees_info[snapshot] = trees_info;

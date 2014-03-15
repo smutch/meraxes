@@ -44,6 +44,8 @@ TOCF_Flag : 1 {  # use 21cmfast for reionization?
 #------------------------------------------
 SfEfficiency      : 0.1     # star formation efficiency
 SfRecycleFraction : 0.43    # instantaneous recycle fraction (IMF dependant)
+SnEjectionEff     : 3.5     # mass loading factor for SN feedback
+SnReheatEff       : 0.35    # SN feedback gas reheating efficiency
 
 ThreshMajorMerger : 0.3     # major merger when mass ratio greater than this
 MergerTimeFactor  : 1.0     # Multiplicitive fator for the merger timescales (2.0->DeLucia+; 1.0->Croton+)
@@ -52,7 +54,7 @@ RecycleFraction   : 0.3     # fraction of SF mass assumed to instantaneously go 
 #------------------------------------------------
 #----- Cosmological and nbody sim parameters ----
 #------------------------------------------------
-OmegaM: 0.275 
+OmegaM: 0.275
 OmegaK: 0.000
 OmegaLambda: 0.725
 OmegaR: 0.0
