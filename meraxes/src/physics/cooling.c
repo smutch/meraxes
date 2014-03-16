@@ -5,7 +5,7 @@ void do_cooling(run_globals_t *run_globals, galaxy_t *gal)
 {
 
   // we only need to do cooling if there is anything to cool!
-  if(gal->HotGas > 1e-8)
+  if(gal->HotGas > 1e-10)
   {
 
     double t_cool, cooling_mass, max_cooling_mass, cooling_metals, Tvir;

@@ -42,7 +42,7 @@ void insitu_star_formation(run_globals_t *run_globals, galaxy_t *gal, int snapsh
   // from Croton+ 2006
 
   // there is no point doing anything if there is no cold gas!
-  if(gal->ColdGas > 1e-8)
+  if(gal->ColdGas > 1e-10)
   {
     double r_disk;
     double m_crit;
