@@ -39,6 +39,8 @@ void reincorporate_ejected_gas(run_globals_t *run_globals, fof_group_t *fof_grou
   while(halo != NULL)
   {
     gal = halo->Galaxy;
+    if(gal == central)
+      gal = gal->NextGalInHalo;
     while(gal != NULL)
     {
       if((gal->Type > 0) && (gal->EjectedGas > 0))
@@ -61,7 +63,7 @@ void reincorporate_ejected_gas(run_globals_t *run_globals, fof_group_t *fof_grou
     // reincorporated following the prescription of Guo 2010 (which is actually
     // almost identical to SAGE).
     t_dyn = central->Rvir / central->Vvir;
-    reincorporated = ReincorporationEff * central->Vvir / 220.0 * central->EjectedGas * (gal->dt / t_dyn);
+    reincorporated = ReincorporationEff * central->Vvir / 220.0 * central->EjectedGas * (central->dt / t_dyn);
 
     // update the baryonic reservoirs
     update_reservoirs_from_reincorporation(central, reincorporated);
