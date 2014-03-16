@@ -432,7 +432,10 @@ void dracarys(run_globals_t *run_globals)
           ABORT(EXIT_FAILURE);
         }
         if(!gal->ghost_flag)
+        {
           gal->LTTime = run_globals->LTTime[snapshot];
+          reset_galaxy_properties(gal);
+        }
         if((gal->Type<2) && (!gal->ghost_flag))
           copy_halo_to_galaxy(gal->Halo, gal, snapshot);
         gal = gal->Next;

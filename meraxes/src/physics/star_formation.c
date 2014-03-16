@@ -12,7 +12,7 @@ void update_reservoirs_from_sf(run_globals_t *run_globals, galaxy_t *gal, double
   current_time = run_globals->LTTime[snapshot] - 0.5 * gal->dt;
 
   // update the galaxy's SFR value
-  gal->Sfr = new_stars / gal->dt;
+  gal->Sfr += new_stars / gal->dt;
 
   // update the luminosities
   metallicity = calc_metallicity(gal->ColdGas, gal->MetalsColdGas);

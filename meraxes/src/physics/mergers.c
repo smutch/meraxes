@@ -84,9 +84,6 @@ static void merger_driven_starburst(run_globals_t *run_globals, galaxy_t *parent
   if(burst_mass < 0)
     burst_mass = 0.0;
 
-  // add to the, already calculated, quiescent insitu star formation
-  parent->Sfr += burst_mass / parent->dt;
-
   // apply the supernova feedback scheme and update the baryonic reservoirs
   supernova_feedback(run_globals, parent, burst_mass, snapshot);
 

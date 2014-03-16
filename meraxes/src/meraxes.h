@@ -415,6 +415,7 @@ int     evolve_galaxies(run_globals_t *run_globals, fof_group_t *fof_group, int 
 trees_info_t read_halos(run_globals_t *run_globals, int snapshot, halo_t **halo, fof_group_t **fof_group, int **index_lookup, trees_info_t *snapshot_trees_info);
 galaxy_t* new_galaxy(run_globals_t *run_globals, int snapshot, int halo_ID);
 void    copy_halo_to_galaxy(halo_t *halo, galaxy_t *gal, int snapshot);
+void    reset_galaxy_properties(galaxy_t *gal);
 void    gas_infall(run_globals_t *run_globals, fof_group_t *FOFgroup, int snapshot);
 double  calculate_merging_time(run_globals_t *run_globals, galaxy_t *gal, int snapshot);
 void    merge_with_target(run_globals_t *run_globals, galaxy_t *gal, int *dead_gals, int snapshot);
