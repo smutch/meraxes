@@ -2,21 +2,36 @@
 #include "meraxes.h"
 #include <gsl/gsl_sf_lambert.h>
 
-void update_reservoirs_from_sf(run_globals_t *run_globals, galaxy_t *gal, double new_stars)
+void update_reservoirs_from_sf(run_globals_t *run_globals, galaxy_t *gal, double new_stars, int snapshot)
 {
-  double metals;
+  double cold_metals;
+  double new_metals;
+  double metallicity;
+  double current_time;
 
+  current_time = run_globals->LTTime[snapshot] - 0.5 * gal->dt;
+
+  // update the galaxy's SFR value
   gal->Sfr = new_stars / gal->dt;
 
-  // instantaneous recycling approximation
+  // update the luminosities
+  metallicity = calc_metallicity(gal->ColdGas, gal->MetalsColdGas);
+  cold_metals = metallicity * new_stars;
+  add_to_luminosities(run_globals, gal, new_stars, metallicity, current_time);
+
+  // assuming instantaneous recycling approximation and enrichment from SNII
+  // only, work out the mass of metals returned to the ISM by this SF burst
+  new_metals = run_globals->params.physics.Yield * new_stars;
+  gal->MetalsColdGas     += new_metals;
+
+  // instantaneous recycling approximation of stellar mass
   new_stars = (1.0 - run_globals->params.physics.SfRecycleFraction) * new_stars;
 
-  metals = calc_metallicity(gal->ColdGas, gal->MetalsColdGas) * new_stars;
-
   gal->ColdGas           -= new_stars;
-  gal->MetalsColdGas     -= metals;
+  gal->MetalsColdGas     -= cold_metals;
   gal->StellarMass       += new_stars;
-  gal->MetalsStellarMass += metals;
+  gal->MetalsStellarMass += cold_metals;
+
 }
 
 
@@ -51,6 +66,6 @@ void insitu_star_formation(run_globals_t *run_globals, galaxy_t *gal, int snapsh
       return;
 
     // apply supernova feedback and update baryonic reservoirs
-    supernova_feedback(run_globals, gal, m_stars);
+    supernova_feedback(run_globals, gal, m_stars, snapshot);
   }
 }

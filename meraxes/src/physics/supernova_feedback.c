@@ -13,15 +13,18 @@ static void update_reservoirs_from_sn_feedback(galaxy_t *gal, double m_reheat, d
 
   gal->HotGas           += m_to_hot;
   gal->MetalsHotGas     += m_to_hot * metallicity;
-  gal->EjectedGas       += m_eject;
-  gal->MetalsEjectedGas += m_eject * metallicity;
   gal->ColdGas          -= m_reheat;
   gal->MetalsColdGas    -= m_reheat * metallicity;
+
+  metallicity = calc_metallicity(gal->HotGas, gal->MetalsHotGas);
+
+  gal->EjectedGas       += m_eject;
+  gal->MetalsEjectedGas += m_eject * metallicity;
 
 }
 
 
-void supernova_feedback(run_globals_t *run_globals, galaxy_t *gal, double m_stars)
+void supernova_feedback(run_globals_t *run_globals, galaxy_t *gal, double m_stars, int snapshot)
 {
 
     // NOTE: m_stars should be mass of stars formed **before** instantaneous
@@ -40,9 +43,9 @@ void supernova_feedback(run_globals_t *run_globals, galaxy_t *gal, double m_star
     m_reheat = SnReheatEff * m_stars;
 
     // make sure we aren't trying to use more cold gas than is available...
-    if (m_stars + m_reheat > gal->ColdGas)
+    if ((m_stars + m_reheat) > gal->ColdGas)
     {
-      factor = gal->ColdGas / (m_stars+ m_reheat);
+      factor = gal->ColdGas / (m_stars + m_reheat);
       m_stars *= factor;
       m_reheat *= factor;
     }
@@ -57,7 +60,7 @@ void supernova_feedback(run_globals_t *run_globals, galaxy_t *gal, double m_star
       m_eject = 0.0;
 
     // update the baryonic reservoirs (note the order makes a difference here!)
-    update_reservoirs_from_sf(run_globals, gal, m_stars);
+    update_reservoirs_from_sf(run_globals, gal, m_stars, snapshot);
     update_reservoirs_from_sn_feedback(gal, m_reheat, m_eject);
 
 }

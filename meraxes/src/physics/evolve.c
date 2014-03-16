@@ -12,6 +12,7 @@ int evolve_galaxies(run_globals_t *run_globals, fof_group_t *fof_group, int snap
 
   SID_log("Doing physics...", SID_LOG_OPEN|SID_LOG_TIMER);
 
+
   for(int i_fof=0; i_fof<NFof; i_fof++)
   {
 
@@ -49,7 +50,7 @@ int evolve_galaxies(run_globals_t *run_globals, fof_group_t *fof_group, int snap
           // If the merger clock has run out or our target halo has already
           // merged then process a merger event.
           if((gal->MergTime <0) || (gal->MergerTarget->Type==3))
-            merge_with_target(run_globals, gal, &dead_gals);
+            merge_with_target(run_globals, gal, &dead_gals, snapshot);
 
         }
         gal = gal->NextGalInHalo;

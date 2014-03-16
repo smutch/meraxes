@@ -349,6 +349,11 @@ void read_parameter_file(run_globals_t *run_globals, char *fname)
     required_tag[n_param] = 1;
     params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
+    strcpy(params_tag[n_param], "Yield");
+    params_addr[n_param] = &(run_params->physics).Yield;
+    required_tag[n_param] = 1;
+    params_type[n_param++] = PARAM_TYPE_DOUBLE;
+
     strcpy(params_tag[n_param], "reion_z_re");
     params_addr[n_param] = &(run_params->physics).reion_z_re;
     required_tag[n_param] = 1;
