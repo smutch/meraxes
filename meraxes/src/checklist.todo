@@ -1,17 +1,19 @@
 Todo list:
-
-✔ debug the why I get 25% fewer galaxies with MPI at snapshot=-1 @done (2014-02-25 10:12))
-☐ allow the halos of previous snapshots be saved and used for repeated runs
+☐ bulge--disk decomposition
+☐ Blitz & Rosolowsky (Lagos/Dutton style) star formation law
+☐ dust law (De Lucia 2007?)
 
 To consider:
-
-☐ merger driven star burst?
-☐ proper cooling and tracking of hot halo gas
-    ☐ this will need matalliticity tracking as well
-    ☐ see Garel+ paper
+☐ what disk size to use in C06 SF law?
+☐ ICL component?
 
 Archive:
 ＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿
+✔ debug the why I get 25% fewer galaxies with MPI at snapshot=-1 @done (2014-02-25 10:12))
+✔ allow the halos of previous snapshots be saved and used for repeated runs @done (2014-03-18 09:09))
+✔ merger driven star burst? @done (2014-03-18 09:09))
+✔ proper cooling and tracking of hot halo gas @done (2014-03-18 09:09))
+    ✔ this will need matalliticity tracking as well @done (2014-03-18 09:09))
 ✔ refactor merger code @done (2014-01-10 14:34))
 ✔ conserve cold gas in merger events @done (2014-01-10 14:34))
 ✔ refactor insitu-SF code @done (2014-01-10 15:24))
