@@ -232,11 +232,6 @@ void read_parameter_file(run_globals_t *run_globals, char *fname)
     params_type[n_param++] = PARAM_TYPE_STRING;
     *(run_params->MultipleRunsParamFile) = '\0';
 
-    strcpy(params_tag[n_param], "RandomSeed");
-    params_addr[n_param] = &(run_params->RandomSeed);
-    required_tag[n_param] = 1;
-    params_type[n_param++] = PARAM_TYPE_INT;
-
     strcpy(params_tag[n_param], "ThreshMajorMerger");
     params_addr[n_param] = &(run_params->ThreshMajorMerger);
     required_tag[n_param] = 1;

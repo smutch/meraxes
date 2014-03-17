@@ -84,5 +84,5 @@ void reset_galaxy_properties(galaxy_t *gal)
   // snapshot basis.
   gal->Mcool = 0.0;
   gal->Sfr = 0.0;
-  
+
 }
