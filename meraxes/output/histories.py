@@ -2,7 +2,7 @@
 
 """Plot histories...
 
-Usage: histories.py <master_file> <id_list> ... [--output=<dir_path> --format=<ext>]
+Usage: histories.py <master_file> <gal_id> <last_snapshot> [--output=<dir_path> --format=<ext>]
 
 Options:
     --output=<dir_path>   Target directory for output figures [default: ./plots]
@@ -10,89 +10,106 @@ Options:
 
 """
 
-import os
-import sys
-__script_dir__ = os.path.dirname(os.path.realpath( __file__ ))
-sys.path.append(os.path.join(__script_dir__, "../utils"))
-
+from os import path
 import numpy as np
 import matplotlib.pyplot as plt
-import h5py as h5
 from docopt import docopt
-from astropy import log
-from astropy.utils.console import ProgressBar
-import random
 
-from ssimpl.meraxes.io import read_gals
+from ssimpl import meraxes, munge, plotutils
 
 __author__ = "Simon Mutch"
-__date__   = "2013/06/25"
+__date__   = "2014-03-17"
 
-def histories(master_file, id_list, snapshot=None, output_dir='./plots/',
-               fig_format='png'):
 
-    plots.set_custom_rcParams(plt.rcParams)
+def plot_histories(fname, gal_id, last_snapshot, output_dir, fig_format):
 
-    # If the target directory doesn't exist then create it
-    if not os.path.exists(output_dir):
-        os.makedirs(output_dir)
+    # read in the galaxy history
+    gal_hist = meraxes.galaxy_history(fname, gal_id, last_snapshot, pandas=True)
 
-    # Get a list of available snapshots
-    with h5.File(master_file, "r") as fin:
-        groups = np.array(fin.keys())
-        sel = np.array([v.find("Snap") for v in groups])>=0
-        snaplist = np.array([g[-3:] for g in groups[sel]], 'i4')
+    # initialise the ssimpl plotting style
+    plotutils.init_style(context='inline')
 
-        # Grab the datatype for a galaxy
-        gal_dtype = fin['Snap%03d/Galaxies'%(snaplist[0])].dtype
+    # create the figure & axes
+    n_axes = 7
+    fig, axes = plt.subplots(n_axes, 1, figsize=(16,3*n_axes))
 
-        if id_list[0] == -1:
-            # Grab the size of the lowest redshift snapshot
-            last_snap_size = fin['Snap%03d/Galaxies'%(snaplist[-1])].size
-            id_list = random.sample(fin['Snap%03d/Galaxies'%(snaplist[-1])]['ID'], 10)
+    snapshots = np.arange(last_snapshot+1)
 
-    # Allocate necessary arrays
-    zlist = np.zeros(snaplist.size)
-    gals = np.zeros((len(id_list), snaplist.size), dtype=gal_dtype)
-    gals[:]['Type'] = -1
+    # baryonic total mass components
+    ax = axes[0]
+    ax.plot(snapshots, np.log10(1e10 * gal_hist.StellarMass), label="stellar")
+    ax.plot(snapshots, np.log10(1e10 * gal_hist.ColdGas), label="cold")
+    ax.plot(snapshots, np.log10(1e10 * gal_hist.HotGas), label="hot")
+    ax.plot(snapshots, np.log10(1e10 * gal_hist.EjectedGas), label="ejected")
+    ax.set_xlim(0, last_snapshot)
+    ax.set_xlabel("snapshot")
+    ax.set_ylabel(r"$\log_{10}(M/{\rm M_{\odot}})$")
+    ax.legend(loc="upper left", frameon=True)
 
-    # Read in the galaxies
-    print "Constructing histories..."
-    with ProgressBar(snaplist.size) as bar:
-        for ii, snap in enumerate(snaplist[::-1]):
-            snap_gals, sim_props, descendant_inds = read_gals(master_file,
-                                                              snapshot=snap,
-                                                              sim_props=True,
-                                                              descendant_inds=True,
-                                                              verbose=False)
-            zlist[ii] = sim_props['Redshift']
-            if snap_gals.size<1:
-                continue
-            for jj, g in enumerate(gals):
-                sel = [snap_gals['ID']==id_list[jj],]
-                if np.any(sel):
-                    g[ii] = snap_gals[sel]
-                else:
-                    g[ii]['Type'] = -1
-            bar.update()
+    # metallicity
+    ax = axes[1]
+    ax.plot(snapshots, gal_hist.MetalsStellarMass/gal_hist.StellarMass, label="stellar")
+    ax.plot(snapshots, gal_hist.MetalsColdGas/gal_hist.ColdGas, label="cold")
+    ax.plot(snapshots, gal_hist.MetalsHotGas/gal_hist.HotGas, label="hot")
+    ax.plot(snapshots, gal_hist.MetalsEjectedGas/gal_hist.EjectedGas, label="ejected")
+    ax.axhline(0.02, color="SlateGrey", ls="--", label="solar")
+    ax.set_xlim(0, last_snapshot)
+    ax.set_xlabel("snapshot")
+    ax.set_ylabel(r"$Z_{\rm total}$")
+    ax.legend(loc="upper left", frameon=True)
 
-    # Plot the halo mass accretion histories
-    print "Plotting..."
-    fig, ax = plt.subplots(1,1)
-    plots.histories.mvir(gals, zlist, sim_props, ax, ylim=(8,15), xlim=None, bins=20, ls='-', lw=1, color='k', alpha=0.5)
-    # plt.legend(loc='lower left', numpoints=1, fontsize='small', frameon=False)
+    # sfr
+    ax = axes[2]
+    ax.plot(snapshots, gal_hist.Sfr)
+    ax.set_xlim(0, last_snapshot)
+    ax.set_xlabel("snapshot")
+    ax.set_ylabel(r"${\rm SFR\ (M_{\odot}/yr^{-1})}$")
+
+    # cooling mass
+    ax = axes[3]
+    ax.plot(snapshots, np.log10(1.e10 * gal_hist.Mcool))
+    ax.set_xlim(0, last_snapshot)
+    ax.set_xlabel("snapshot")
+    ax.set_ylabel(r"$\log_{10}(M_{\rm cool}/{\rm M_{\odot}})$")
+
+    # Mvir
+    ax = axes[4]
+    ax.plot(snapshots, np.log10(1.e10 * gal_hist.Mvir))
+    ax.set_xlim(0, last_snapshot)
+    ax.set_xlabel("snapshot")
+    ax.set_ylabel(r"$\log_{10}(M_{\rm vir}/{\rm M_{\odot}})$")
+
+    # Type / ghost flag
+    ax = axes[5]
+    ax.plot(snapshots, gal_hist.Type, alpha=0.6, label="type")
+    ax.plot(snapshots, gal_hist.GhostFlag, alpha=0.6, label="ghost flag")
+    ax.set_xlim(0, last_snapshot)
+    ax.set_ylim(-1, 3)
+    ax.set_xlabel("snapshot")
+    ax.set_ylabel("value")
+    ax.legend(loc="upper right", frameon=True)
+
+    # gas metallicity [O/H]
+    ax = axes[6]
+    s = ax.scatter(np.log10(1.e10*gal_hist.StellarMass),
+                   np.log10(gal_hist.MetalsColdGas/gal_hist.ColdGas/0.02)+9.0, alpha=0.8,
+                   s=60, edgecolors='none', cmap=plt.cm.Blues,
+                   c=np.arange(100))
+    cax = plt.colorbar(s, ax=ax)
+    cax.set_label("snapshot")
+    ax.set_xlabel(r"$\log_{10}(M_*/{\rm M_{\odot}})$")
+    ax.set_ylabel(r"$\log_{10}[{\rm O/H}] + 12$")
+
+    # save
     plt.tight_layout()
-    plt.savefig(os.path.join(output_dir, "mvir_histories."+fig_format))
+    plt.savefig(path.join(output_dir,
+                          "galaxy_history_ID{:d}.{:s}".format(gal_id,
+                                                             fig_format)))
 
-    # import IPython; IPython.embed()
 
 if __name__ == '__main__':
     args = docopt(__doc__)
-    if args['<id_list>'][0]=='random':
-        np.random.seed(789379)
-        args['<id_list>'] = np.array([-1,],'i4')
-    else:
-        args['<id_list>'] = np.asarray(args['<id_list>'], 'i4')
 
-    histories(args['<master_file>'], args['<id_list>'], output_dir=args['--output'],
-               fig_format=args['--format'])
+    plot_histories(args['<master_file>'], int(args['<gal_id>']),
+                   int(args['<last_snapshot>']), args['--output'],
+                   args['--format'])
