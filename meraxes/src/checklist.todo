@@ -1,7 +1,8 @@
 Todo list:
+☐ start merger clock when Mstar < param*Mvir
+☐ Blitz & Rosolowsky (Lagos/Dutton style) star formation law @discuss
 ☐ bulge--disk decomposition
-☐ Blitz & Rosolowsky (Lagos/Dutton style) star formation law
-☐ dust law (De Lucia 2007?)
+☐ dust law (De Lucia 2007?) @discuss
 
 To consider:
 ☐ what disk size to use in C06 SF law?
