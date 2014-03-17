@@ -9,9 +9,9 @@ from SCons.Script.SConscript import SConsEnvironment
 # = Utility functions =
 # =====================
 
-def files(pattern, exclude=''): 
+def files(pattern, exclude=''):
     """All files matching a pattern, excluding
-    directories and any specified patterns.""" 
+    directories and any specified patterns."""
     return [file for file in glob.glob(pattern) if (os.path.isfile(file)
             and file not in glob.glob(exclude))]
 
@@ -56,7 +56,7 @@ Help(vars.GenerateHelpText(env))
 
 # Define the command for building a tags file
 tagsources = Glob("*.[ch]")
-ctags = env.Command('ctags', tagsources, "ctags -R --c++-kinds=+p --fields=+iaS --extra=+q") 
+ctags = env.Command('ctags', tagsources, "ctags -R --c++-kinds=+p --fields=+iaS --extra=+q")
 
 # If the user requested help don't bother continuing with the build.
 if not GetOption('help'):
@@ -78,7 +78,7 @@ if not GetOption('help'):
         env.AppendUnique(LINKFLAGS=['-pg'])
     if env['mpi']:
         env.AppendUnique(CPPDEFINES=['USE_MPI=1'])
-    
+
     # =================================
     # = System specific build options =
     # =================================
@@ -151,7 +151,7 @@ if not GetOption('help'):
     env.AppendUnique(CPPFLAGS = '-std=gnu99')
 
     if env['git_tag']:
-        gitref = subprocess.check_output( GIT[0]+' show-ref --head | head -n 1 | cut -d " " -f 1', 
+        gitref = subprocess.check_output( GIT[0]+' show-ref --head | head -n 1 | cut -d " " -f 1',
                             cwd = Dir('.').path,
                             shell = True).rstrip('\n')
         env.AppendUnique(CPPDEFINES=['GITREF_STR=\'"%s"\'' % gitref])
@@ -160,7 +160,7 @@ if not GetOption('help'):
         env.AppendUnique(LIBPATH = [TOCF_LIBS, FFTW_LIBS])
         env.AppendUnique(LIBS = ['21cmfast', 'fftw3f_omp', 'fftw3f', 'gomp'])
         env.AppendUnique(CC = ['-fopenmp',])
-        
+
 
     # Set the python environment to use in any python scripts.
     if 'VIRTUAL_ENV' in os.environ:
