@@ -548,6 +548,11 @@ void dracarys(run_globals_t *run_globals)
     run_globals->FirstGal = NULL;
     SID_log(" ...done", SID_LOG_CLOSE);
 
+    // Create the master file
+    SID_Barrier(SID.COMM_WORLD);
+    if(SID.My_rank == 0)
+      create_master_file(run_globals);
+
     SID_log("... finished iteration %d", SID_LOG_CLOSE, i_run);
 
     if(SID.My_rank == 0)
@@ -581,11 +586,6 @@ void dracarys(run_globals_t *run_globals)
       SID_Bcast(&(run_globals->params.physics.ReincorporationEff), sizeof(double), 0, SID.COMM_WORLD);
       SID_Bcast(&(run_globals->params.physics.Yield)             , sizeof(double), 0, SID.COMM_WORLD);
     }
-
-  // Create the master file
-  SID_Barrier(SID.COMM_WORLD);
-  if(SID.My_rank == 0)
-    create_master_file(run_globals);
 
   }
 
