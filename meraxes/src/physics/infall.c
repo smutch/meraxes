@@ -35,27 +35,12 @@ void gas_infall(run_globals_t *run_globals, fof_group_t *FOFgroup, int snapshot)
     fb_modifier = 1.0;
   infall_mass = fb_modifier * run_globals->params.BaryonFrac * FOF_Mvir - total_baryons;
 
-  // Split the infalling gas up umongst the subhalos with galaxies in them
+  // Give this mass to the central
   if(infall_mass > 1e-10)
   {
-    halo = FOFgroup->FirstHalo->NextHaloInFOFGroup;
-    while(halo != NULL)
-    {
-      gal = halo->Galaxy;
-      if(gal != NULL)
-      {
-        mass = (gal->Mvir/FOF_Mvir) * infall_mass;
-        gal->HotGas += mass;
-        used_mass += mass;
-        gal = gal->NextGalInHalo;
-      }
-      halo = halo->NextHaloInFOFGroup;
-    }
-
-    // The remaining gas goes to the central galaxy
     gal = FOFgroup->FirstHalo->Galaxy;
     if(gal != NULL)
-      gal->HotGas += infall_mass-used_mass;
+      gal->HotGas += infall_mass;
   }
 
 }
