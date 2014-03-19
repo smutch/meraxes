@@ -356,10 +356,6 @@ void create_master_file(run_globals_t *run_globals)
   sprintf(names[ii++],  "BoxSize");
   addresses[ii] = &(run_globals->params.VolumeFactor);
   sprintf(names[ii++],  "VolumeFactor");
-  addresses[ii] = &(run_globals->params.ThreshMajorMerger);
-  sprintf(names[ii++],  "ThreshMajorMerger");
-  addresses[ii] = &(run_globals->params.RecycleFraction);
-  sprintf(names[ii++],  "RecycleFraction");
   addresses[ii] = &(run_globals->params.Hubble_h);
   sprintf(names[ii++],  "Hubble_h");
   addresses[ii] = &(run_globals->params.BaryonFrac);
@@ -425,6 +421,8 @@ void create_master_file(run_globals_t *run_globals)
   sprintf(names[ii++],  "ReincorporationEff");
   addresses[ii] = &(run_globals->params.physics.Yield);
   sprintf(names[ii++],  "Yield");
+  addresses[ii] = &(run_globals->params.physics.ThreshMajorMerger);
+  sprintf(names[ii++],  "ThreshMajorMerger");
 
   for(int jj=0; jj<ii; jj++)
     h5_write_attribute(group_id, names[jj], H5T_NATIVE_DOUBLE, ds_id, addresses[jj]);

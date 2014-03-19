@@ -76,6 +76,7 @@ struct physics_params_t{
   double SnEjectionEff;
   double ReincorporationEff;
   double Yield;
+  double ThreshMajorMerger;
   double reion_z_re;
   double reion_delta_z_re;
   double reion_delta_z_sc;
@@ -111,8 +112,6 @@ struct run_params_t{
   int                   LastFile;
   double                BoxSize;
   double                VolumeFactor;
-  double                ThreshMajorMerger;
-  double                RecycleFraction;
   double                Hubble_h;
   double                BaryonFrac;
   double                OmegaM;
