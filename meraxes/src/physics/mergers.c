@@ -40,7 +40,9 @@ double calculate_merging_time(run_globals_t *run_globals, galaxy_t *sat, int sna
 
   coulomb = log((double)(mother->Len) / (double)(sat->Len) + 1);
 
-  sat_mass = sat->Mvir;
+  // Include the baryonic mass in the calculation of the dynamical friction
+  // timescale ala Guo+ 2010
+  sat_mass = sat->Mvir + sat->ColdGas + sat->StellarMass;
 
   sat_rad = sqrt(
     pow(parent->Pos[0] - sat->Pos[0], 2.0) +
