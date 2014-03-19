@@ -137,6 +137,7 @@ static void set_multiple_runs_params(run_globals_t *run_globals, int i_run)
   params->SnEjectionEff          = p[2];
   params->SnReheatEff            = p[3];
   params->ReincorporationEff     = p[4];
+  params->Yield                  = p[5];
 }
 
 
@@ -169,6 +170,8 @@ void dracarys(run_globals_t *run_globals)
   int           n_runs          = run_globals->NRuns;
   int           i_snap;
 
+  int           set_par;
+
   // Find what the last requested output snapshot is
   for(int ii=0; ii<NOUT; ii++)
     if (run_globals->ListOutputSnaps[ii] > last_snap)
@@ -193,8 +196,15 @@ void dracarys(run_globals_t *run_globals)
     SID_log("Starting model iteration %d...", SID_LOG_OPEN|SID_LOG_TIMER, i_run);
 
     // if necessary set the parameters according to those provided in run_globals->params.MultipleRunsFile
-    if(n_runs > 1)
-      set_multiple_runs_params(run_globals, i_run);
+    // if(n_runs > 1)
+    //   set_multiple_runs_params(run_globals, i_run);
+
+    if(i_run > 0)
+    {
+      // Prep the output file
+      sprintf(run_globals->FNameOut, "%s/%s_%d.hdf5", run_globals->params.OutputDir, run_globals->params.FileNameGalaxies, SID.My_rank);
+      prep_hdf5_file(run_globals);
+    }
 
     // Loop through each snapshot
     for(int snapshot=0; snapshot<=last_snap; snapshot++)
@@ -500,12 +510,12 @@ void dracarys(run_globals_t *run_globals)
 #endif
 
       // Write the results if this is a requested snapshot (and we are on our last model call)
-      if(i_run == n_runs-1)
-      {
+      // if(i_run == n_runs-1)
+      // {
         for(int i_out = 0; i_out < NOUT; i_out++)
           if(snapshot == run_globals->ListOutputSnaps[i_out])
             write_snapshot(run_globals, nout_gals, i_out, &last_nout_gals);
-      }
+      // }
 
 #ifdef USE_TOCF
       if(run_globals->params.TOCF_Flag)
@@ -540,12 +550,45 @@ void dracarys(run_globals_t *run_globals)
 
     SID_log("... finished iteration %d", SID_LOG_CLOSE, i_run);
 
-  }
+    if(SID.My_rank == 0)
+    {
+      printf("Previous run parameters:\n");
+      printf("%.3e %.3e %.3e %.3e %.3e %.3e\n",
+            (run_globals->params.physics.SfEfficiency),
+            (run_globals->params.physics.SfRecycleFraction),
+            (run_globals->params.physics.SnEjectionEff),
+            (run_globals->params.physics.SnReheatEff),
+            (run_globals->params.physics.ReincorporationEff),
+            (run_globals->params.physics.Yield));
+      printf("Next run parameters:\n");
+      fflush(stdout);
+      set_par = fscanf(stdin, "%le %le %le %le %le %le",
+          &(run_globals->params.physics.SfEfficiency),
+          &(run_globals->params.physics.SfRecycleFraction),
+          &(run_globals->params.physics.SnEjectionEff),
+          &(run_globals->params.physics.SnReheatEff),
+          &(run_globals->params.physics.ReincorporationEff),
+          &(run_globals->params.physics.Yield));
+    }
+    SID_Bcast(&set_par, sizeof(char *), 0, SID.COMM_WORLD);
+    if(set_par != 6)
+    {
+      n_runs = i_run+1;
+      SID_Bcast(&(run_globals->params.physics.SfEfficiency)      , sizeof(double), 0, SID.COMM_WORLD);
+      SID_Bcast(&(run_globals->params.physics.SfRecycleFraction) , sizeof(double), 0, SID.COMM_WORLD);
+      SID_Bcast(&(run_globals->params.physics.SnEjectionEff)     , sizeof(double), 0, SID.COMM_WORLD);
+      SID_Bcast(&(run_globals->params.physics.SnReheatEff)       , sizeof(double), 0, SID.COMM_WORLD);
+      SID_Bcast(&(run_globals->params.physics.ReincorporationEff), sizeof(double), 0, SID.COMM_WORLD);
+      SID_Bcast(&(run_globals->params.physics.Yield)             , sizeof(double), 0, SID.COMM_WORLD);
+    }
 
   // Create the master file
   SID_Barrier(SID.COMM_WORLD);
   if(SID.My_rank == 0)
     create_master_file(run_globals);
+
+  }
+
 
   // Free all of the remaining allocated galaxies, halos and fof groups
   SID_log("Freeing FOF groups and halos...", SID_LOG_COMMENT);

@@ -1,4 +1,5 @@
 #include "meraxes.h"
+#include <unistd.h>
 #include <math.h>
 #include <hdf5.h>
 #include <hdf5_hl.h>
@@ -268,6 +269,8 @@ void prep_hdf5_file(run_globals_t *run_globals)
   hsize_t dims = 1;
 
   // create a new file
+  if( access(run_globals->FNameOut, F_OK ) != -1 )
+    remove(run_globals->FNameOut);
   file_id = H5Fcreate(run_globals->FNameOut, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
 
   // store the file number and total number of cores
@@ -293,6 +296,8 @@ void create_master_file(run_globals_t *run_globals)
 
   // Create a new file
   sprintf(fname, "%s/%s.hdf5", run_globals->params.OutputDir, run_globals->params.FileNameGalaxies);
+  if( access(fname, F_OK ) != -1 )
+    remove(fname);
   file_id = H5Fcreate(fname, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
 
   // Set up reusable dataspaces and types
