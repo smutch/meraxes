@@ -134,6 +134,9 @@ static void set_multiple_runs_params(run_globals_t *run_globals, int i_run)
 
   params->SfEfficiency           = p[0];
   params->SfRecycleFraction      = p[1];
+  params->SnEjectionEff          = p[2];
+  params->SnReheatEff            = p[3];
+  params->ReincorporationEff     = p[4];
 }
 
 
