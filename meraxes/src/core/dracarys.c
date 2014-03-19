@@ -85,9 +85,14 @@ static inline bool check_for_flag(int flag, int tree_flags)
     return false;
 }
 
-static inline bool check_for_merger(int flags)
+static inline bool check_for_merger(galaxy_t *gal, halo_t *new_halo)
 {
-  return check_for_flag(TREE_CASE_MERGER, flags);
+  // if this is marked as a merger in the trees OR the galaxy stellar mass is
+  // now greater than the host halo mass, then mark this as a merger
+  if( check_for_flag(TREE_CASE_MERGER, gal->TreeFlags) || (gal->StellarMass > new_halo->Mvir) )
+    return true;
+  else
+    return false;
 }
 
 static inline bool check_if_valid_host(run_globals_t *run_globals, halo_t *halo)
@@ -248,14 +253,24 @@ void dracarys(run_globals_t *run_globals)
             if(gal->Type < 2)
             {
 
-              if(check_for_merger(gal->TreeFlags))
+              if(check_for_merger(gal, &(halo[i_newhalo])))
               {
 
                 // Here we have a new merger...  Mark it and deal with it below.
                 gal->Type = 999;
                 merger_counter++;
-                gal->Halo = &(halo[i_newhalo]);
-                turn_off_merger_flag(gal);
+
+                // if this was marked as a halo merger in the input trees then
+                // update the halo pointer correspondingly and turn off the
+                // merger flag
+                if(check_for_flag(TREE_CASE_MERGER, gal->TreeFlags))
+                {
+                  gal->Halo = &(halo[i_newhalo]);
+                  turn_off_merger_flag(gal);
+                }
+                // otherwise, set the new halo to be the central halo of the corresponding FOF group
+                else
+                  gal->Halo = halo[i_newhalo].FOFGroup->FirstHalo;
 
               } else
               {
