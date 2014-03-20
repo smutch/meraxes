@@ -191,9 +191,12 @@ static void read_trees_and_catalogs(
   char catalog_file_prefix[50];
   char simulation_dir[STRLEN];
   catalog_halo_t *catalog_buffer;
+  int corrected_snapshot;
 
   sprintf(catalog_file_prefix, "%s", run_globals->params.CatalogFilePrefix);
   sprintf(simulation_dir, "%s", run_globals->params.SimulationDir);
+
+  corrected_snapshot = get_corrected_snapshot(run_globals, snapshot);
 
   tree_entry_t *tree_buffer;
   tree_buffer = SID_malloc(sizeof(tree_entry_t) * buffer_size);
@@ -241,7 +244,7 @@ static void read_trees_and_catalogs(
     // read in the corresponding catalog entrys
     if(SID.My_rank == 0)
       read_catalog_halos(&fin_catalogs, simulation_dir, catalog_file_prefix,
-          snapshot, &flayout_switch, &i_catalog_file, &n_halos_in_catalog_file,
+          corrected_snapshot, &flayout_switch, &i_catalog_file, &n_halos_in_catalog_file,
           &i_halo_in_catalog_file, catalog_buffer, n_to_read);
     SID_Bcast(catalog_buffer, n_to_read * sizeof(catalog_halo_t), 0, SID.COMM_WORLD);
 
