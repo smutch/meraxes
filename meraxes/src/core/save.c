@@ -61,6 +61,7 @@ void prepare_galaxy_for_output(
   galout->MetalsColdGas     = (float)(gal.MetalsColdGas / Hubble_h);
   galout->Mcool             = (float)(gal.Mcool / Hubble_h);
   galout->StellarMass       = (float)(gal.StellarMass / Hubble_h);
+  galout->DiskScaleLength   = (float)(gal.DiskScaleLength / Hubble_h);
   galout->MetalsStellarMass = (float)(gal.MetalsStellarMass / Hubble_h);
   galout->Sfr               = (float)(gal.Sfr * units->UnitMass_in_g / units->UnitTime_in_s * SEC_PER_YEAR / SOLAR_MASS);
   galout->EjectedGas        = (float)(gal.EjectedGas / Hubble_h);
@@ -85,7 +86,7 @@ void calc_hdf5_props(run_globals_t *run_globals)
   galaxy_output_t  galout;
   int              i;                                   // dummy
 
-  h5props->n_props = 26;
+  h5props->n_props = 27;
 
 #ifdef CALC_MAGS
   // If we are calculating any magnitudes then increment the number of
@@ -210,6 +211,11 @@ void calc_hdf5_props(run_globals_t *run_globals)
   h5props->dst_offsets[i] = HOFFSET(galaxy_output_t, MetalsStellarMass);
   h5props->dst_field_sizes[i]   = sizeof(galout.MetalsStellarMass);
   h5props->field_names[i] = "MetalsStellarMass";
+  h5props->field_types[i++] = H5T_NATIVE_FLOAT;
+
+  h5props->dst_offsets[i] = HOFFSET(galaxy_output_t, DiskScaleLength);
+  h5props->dst_field_sizes[i]   = sizeof(galout.DiskScaleLength);
+  h5props->field_names[i] = "DiskScaleLength";
   h5props->field_types[i++] = H5T_NATIVE_FLOAT;
 
   h5props->dst_offsets[i] = HOFFSET(galaxy_output_t, Sfr);

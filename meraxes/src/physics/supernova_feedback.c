@@ -7,14 +7,15 @@ static void update_reservoirs_from_sn_feedback(galaxy_t *gal, double m_reheat, d
 
   metallicity = calc_metallicity(gal->ColdGas, gal->MetalsColdGas);
 
-  // debug("%d %.3e %.3e\n", gal->ID, m_eject, metallicity);
-
   gal->HotGas           += m_reheat;
   gal->MetalsHotGas     += m_reheat * metallicity;
   gal->ColdGas          -= m_reheat;
   gal->MetalsColdGas    -= m_reheat * metallicity;
 
   metallicity = calc_metallicity(gal->HotGas, gal->MetalsHotGas);
+
+  if(m_eject > gal->HotGas)
+    m_eject = gal->HotGas;
 
   gal->EjectedGas       += m_eject;
   gal->MetalsEjectedGas += m_eject * metallicity;
@@ -56,8 +57,6 @@ void supernova_feedback(run_globals_t *run_globals, galaxy_t *gal, double m_star
     // make sure we are being consistent
     if(m_eject < 0)
       m_eject = 0.0;
-    else if(m_eject > (gal->HotGas + m_reheat))
-      m_eject = gal->HotGas + m_reheat;
 
     // update the baryonic reservoirs (note the order makes a difference here!)
     update_reservoirs_from_sf(run_globals, gal, m_stars, snapshot);

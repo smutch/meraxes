@@ -29,6 +29,7 @@ galaxy_t* new_galaxy(run_globals_t *run_globals, int snapshot, int halo_ID)
   gal->Vvir              = 0.0;
   gal->Vmax              = 0.0;
   gal->Spin              = 0.0;
+  gal->DiskScaleLength   = 0.0;
   gal->HotGas            = 0.0;
   gal->MetalsHotGas      = 0.0;
   gal->ColdGas           = 0.0;
@@ -57,6 +58,7 @@ galaxy_t* new_galaxy(run_globals_t *run_globals, int snapshot, int halo_ID)
 
 void copy_halo_to_galaxy(halo_t *halo, galaxy_t *gal, int snapshot)
 {
+  double sqrt_2 = 1.414213562;
 
   gal->id_MBP          = halo->id_MBP;
   gal->Type            = halo->Type;
@@ -69,6 +71,7 @@ void copy_halo_to_galaxy(halo_t *halo, galaxy_t *gal, int snapshot)
   gal->Vmax            = halo->Vmax;
   gal->TreeFlags       = halo->TreeFlags;
   gal->Spin            = calculate_spin_param(halo);
+  gal->DiskScaleLength = gal->Spin * gal->Rvir / sqrt_2;
   for (int ii=0; ii<3; ii++)
   {
     gal->Pos[ii]       = halo->Pos[ii];

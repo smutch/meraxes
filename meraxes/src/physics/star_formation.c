@@ -4,33 +4,29 @@
 
 void update_reservoirs_from_sf(run_globals_t *run_globals, galaxy_t *gal, double new_stars, int snapshot)
 {
-  double cold_metals;
-  double new_metals;
   double metallicity;
   double current_time;
-
-  current_time = run_globals->LTTime[snapshot] - 0.5 * gal->dt;
+  double remaining_stars;
 
   // update the galaxy's SFR value
   gal->Sfr += new_stars / gal->dt;
 
-  // update the luminosities
+  // instantaneous recycling approximation of stellar mass
   metallicity = calc_metallicity(gal->ColdGas, gal->MetalsColdGas);
-  cold_metals = metallicity * new_stars;
+  remaining_stars = (1.0 - run_globals->params.physics.SfRecycleFraction) * new_stars;
+
+  gal->ColdGas           -= remaining_stars;
+  gal->MetalsColdGas     -= remaining_stars * metallicity;
+  gal->StellarMass       += remaining_stars;
+  gal->MetalsStellarMass += remaining_stars * metallicity;
+
+  // update the luminosities
+  current_time = run_globals->LTTime[snapshot] - 0.5 * gal->dt;
   add_to_luminosities(run_globals, gal, new_stars, metallicity, current_time);
 
   // assuming instantaneous recycling approximation and enrichment from SNII
   // only, work out the mass of metals returned to the ISM by this SF burst
-  new_metals = run_globals->params.physics.Yield * new_stars;
-  gal->MetalsColdGas     += new_metals;
-
-  // instantaneous recycling approximation of stellar mass
-  new_stars = (1.0 - run_globals->params.physics.SfRecycleFraction) * new_stars;
-
-  gal->ColdGas           -= new_stars;
-  gal->MetalsColdGas     -= cold_metals;
-  gal->StellarMass       += new_stars;
-  gal->MetalsStellarMass += cold_metals;
+  gal->MetalsColdGas  += run_globals->params.physics.Yield * new_stars;
 
 }
 
@@ -49,12 +45,11 @@ void insitu_star_formation(run_globals_t *run_globals, galaxy_t *gal, int snapsh
     double m_stars;
 
     double SfEfficiency = run_globals->params.physics.SfEfficiency;
-    double sqrt_2 = 1.414213562;
 
     // calculate disk scalelength using Mo, Mau & White (1998) eqn. 12 and
     // multiply it by 3 to approximate the star forming region size (ala
     // Croton+ 2006).
-    r_disk = gal->Spin * gal->Rvir / sqrt_2 * 3.0;
+    r_disk =  gal->DiskScaleLength * 3.0;
 
     // what is the critical mass within r_crit?
     m_crit = 0.19 * gal->Vvir * r_disk;
