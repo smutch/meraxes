@@ -47,8 +47,8 @@ void reincorporate_ejected_gas(run_globals_t *run_globals, fof_group_t *fof_grou
       {
         // This galaxy is in a halo which has just infallen into this FOF group.
         // Give its ejected mass to the central...
-        central->HotGas       += gal->EjectedGas;
-        central->MetalsHotGas += gal->MetalsEjectedGas;
+        central->EjectedGas       += gal->EjectedGas;
+        central->MetalsEjectedGas += gal->MetalsEjectedGas;
         gal->EjectedGas        = 0;
         gal->MetalsEjectedGas  = 0;
       }
