@@ -125,20 +125,20 @@ static int find_original_index(int index, int *lookup, int n_mappings)
   return new_index;
 }
 
-static void set_multiple_runs_params(run_globals_t *run_globals, int i_run)
-{
+// static void set_multiple_runs_params(run_globals_t *run_globals, int i_run)
+// {
 
-  SID_log("Setting parameters...", SID_LOG_COMMENT);
-  double *p = run_globals->MultipleRunsParams[i_run];
-  physics_params_t *params = &(run_globals->params.physics);
+//   SID_log("Setting parameters...", SID_LOG_COMMENT);
+//   double *p = run_globals->MultipleRunsParams[i_run];
+//   physics_params_t *params = &(run_globals->params.physics);
 
-  params->SfEfficiency           = p[0];
-  params->SfRecycleFraction      = p[1];
-  params->SnEjectionEff          = p[2];
-  params->SnReheatEff            = p[3];
-  params->ReincorporationEff     = p[4];
-  params->Yield                  = p[5];
-}
+//   params->SfEfficiency           = p[0];
+//   params->SfRecycleFraction      = p[1];
+//   params->SnEjectionEff          = p[2];
+//   params->SnReheatEff            = p[3];
+//   params->ReincorporationEff     = p[4];
+//   params->Yield                  = p[5];
+// }
 
 
 //! Actually run the model
@@ -470,13 +470,14 @@ void dracarys(run_globals_t *run_globals)
       }
 
 #ifdef DEBUG
-      if(NGal>0)
-        check_counts(run_globals, fof_group, NGal, trees_info.n_fof_groups);
+      check_counts(run_globals, fof_group, NGal, trees_info.n_fof_groups);
 #endif
 
       // Do the physics
       if(NGal > 0)
         nout_gals = evolve_galaxies(run_globals, fof_group, snapshot, NGal, trees_info.n_fof_groups);
+      else
+        nout_gals = 0;
 
       // Add the ghost galaxies into the nout_gals count
       nout_gals+=ghost_counter;
