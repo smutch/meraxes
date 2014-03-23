@@ -560,25 +560,23 @@ void dracarys(run_globals_t *run_globals)
       if(SID.My_rank == 0)
       {
         printf("Previous run parameters:\n");
-        printf("%.3e %.3e %.3e %.3e %.3e %.3e\n",
+        printf("%.3e %.3e %.3e %.3e %.3e\n",
             (run_globals->params.physics.SfEfficiency),
             (run_globals->params.physics.SfRecycleFraction),
             (run_globals->params.physics.SnEjectionEff),
             (run_globals->params.physics.SnReheatEff),
-            (run_globals->params.physics.ReincorporationEff),
-            (run_globals->params.physics.Yield));
+            (run_globals->params.physics.ReincorporationEff));
         printf("Next run parameters:\n");
         fflush(stdout);
-        set_par = fscanf(stdin, "%le %le %le %le %le %le",
+        set_par = fscanf(stdin, "%le %le %le %le %le",
             &(run_globals->params.physics.SfEfficiency),
             &(run_globals->params.physics.SfRecycleFraction),
             &(run_globals->params.physics.SnEjectionEff),
             &(run_globals->params.physics.SnReheatEff),
-            &(run_globals->params.physics.ReincorporationEff),
-            &(run_globals->params.physics.Yield));
+            &(run_globals->params.physics.ReincorporationEff));
       }
       SID_Bcast(&set_par, sizeof(char *), 0, SID.COMM_WORLD);
-      if(set_par == 6)
+      if(set_par == 5)
       {
         n_runs++;
         SID_Bcast(&(run_globals->params.physics.SfEfficiency)      , sizeof(double), 0, SID.COMM_WORLD);
@@ -586,7 +584,6 @@ void dracarys(run_globals_t *run_globals)
         SID_Bcast(&(run_globals->params.physics.SnEjectionEff)     , sizeof(double), 0, SID.COMM_WORLD);
         SID_Bcast(&(run_globals->params.physics.SnReheatEff)       , sizeof(double), 0, SID.COMM_WORLD);
         SID_Bcast(&(run_globals->params.physics.ReincorporationEff), sizeof(double), 0, SID.COMM_WORLD);
-        SID_Bcast(&(run_globals->params.physics.Yield)             , sizeof(double), 0, SID.COMM_WORLD);
       }
     }
 
