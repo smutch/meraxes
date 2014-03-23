@@ -589,24 +589,21 @@ static void select_forests(run_globals_t *run_globals)
 
 
   // loop through and tot up the max number of halos and fof_groups we will need to allocate
-  if(sample_forests)
+  max_halos = 0;
+  max_fof_groups = 0;
+  for(int i_forest=0, i_req=0; (i_forest<n_forests) && (i_req<(*n_requested_forests)); i_forest++)
   {
-    max_halos = 0;
-    max_fof_groups = 0;
-    for(int i_forest=0, i_req=0; (i_forest<n_forests) && (i_req<(*n_requested_forests)); i_forest++)
+    if(forest_id[requested_ind[i_forest]] == run_globals->RequestedForestId[i_req])
     {
-      if(forest_id[requested_ind[i_forest]] == run_globals->RequestedForestId[i_req])
-      {
-        max_halos += max_contemp_halo[requested_ind[i_forest]];
-        max_fof_groups += max_contemp_fof[requested_ind[i_forest]];
-        i_req++;
-      }
+      max_halos += max_contemp_halo[requested_ind[i_forest]];
+      max_fof_groups += max_contemp_fof[requested_ind[i_forest]];
+      i_req++;
     }
-
-    // store the maximum number of halos and fof groups needed at any one snapshot
-    run_globals->NHalosMax = max_halos;
-    run_globals->NFOFGroupsMax = max_fof_groups;
   }
+
+  // store the maximum number of halos and fof groups needed at any one snapshot
+  run_globals->NHalosMax = max_halos;
+  run_globals->NFOFGroupsMax = max_fof_groups;
 
   // {
   //   // DEBUG
@@ -701,9 +698,6 @@ trees_info_t read_halos(
   // If necessary, allocate the halo array
   if(*halo == NULL)
   {
-    run_globals->NHalosMax = trees_info.n_halos_max;
-    run_globals->NFOFGroupsMax = trees_info.n_fof_groups_max;
-
     // if required, select forests and calculate the maximum number of halos and fof groups
     if((n_requested_forests > -1) || (SID.n_proc > 1))
     {
@@ -716,6 +710,11 @@ trees_info_t read_halos(
         run_globals->SelectForestsSwitch = false;
       }
       *index_lookup = SID_malloc(sizeof(int) * run_globals->NHalosMax);
+    }
+    else
+    {
+      run_globals->NHalosMax = trees_info.n_halos_max;
+      run_globals->NFOFGroupsMax = trees_info.n_fof_groups_max;
     }
 
     SID_log("Allocating halo array with %d elements...", SID_LOG_COMMENT, run_globals->NHalosMax);
