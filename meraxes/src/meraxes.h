@@ -40,7 +40,7 @@
 
 #define ABORT(sigterm)                                                                 \
 do {                                                                                   \
-  SID_log_error("in file: %s\tfunc: %s\tline: %i", __FILE__, __FUNCTION__, __LINE__);  \
+  fprintf(stderr, "\nIn file: %s\tfunc: %s\tline: %i\n", __FILE__, __FUNCTION__, __LINE__);  \
   myexit(sigterm);                                                                     \
 } while(0)
 

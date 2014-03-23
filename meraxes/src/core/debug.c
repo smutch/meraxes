@@ -10,7 +10,7 @@ void mpi_debug_here()
   int i = 0;
   char hostname[256];
   gethostname(hostname, sizeof(hostname));
-  printf("PID %d on %s ready for attach\n", getpid(), hostname);
+  printf("Task %d, PID %d on %s ready for attach\n", SID.My_rank, getpid(), hostname);
   printf("Once connected go up stack to 'sleep(5)' and 'set var i=7'\n");
   fflush(stdout);
   while (0 == i)
@@ -216,27 +216,30 @@ void check_counts(run_globals_t *run_globals, fof_group_t *fof_group, int NGal, 
   counter = 0;
   halo_counter = 0;
   int ii, jj;
-  for(int i_fof=0; i_fof<NFof; i_fof++)
+  if(NGal > 0)
   {
-    halo = fof_group[i_fof].FirstHalo;
-    jj=0;
-    while (halo!=NULL) {
-      gal = halo->Galaxy;
-      if (gal!=NULL)
-        halo_pop_count++;
-      ii=0;
-      while(gal!=NULL){
-        gal = gal->NextGalInHalo;
-        counter++;
-        ii++;
-        if(ii>1000)
+    for(int i_fof=0; i_fof<NFof; i_fof++)
+    {
+      halo = fof_group[i_fof].FirstHalo;
+      jj=0;
+      while (halo!=NULL) {
+        gal = halo->Galaxy;
+        if (gal!=NULL)
+          halo_pop_count++;
+        ii=0;
+        while(gal!=NULL){
+          gal = gal->NextGalInHalo;
+          counter++;
+          ii++;
+          if(ii>1000)
+            ABORT(EXIT_FAILURE);
+        }
+        halo = halo->NextHaloInFOFGroup;
+        halo_counter++;
+        jj++;
+        if (jj>1000)
           ABORT(EXIT_FAILURE);
       }
-      halo = halo->NextHaloInFOFGroup;
-      halo_counter++;
-      jj++;
-      if (jj>1000)
-        ABORT(EXIT_FAILURE);
     }
   }
   SID_Allreduce(SID_IN_PLACE, &counter, 1, SID_INT, SID_SUM, SID.COMM_WORLD);

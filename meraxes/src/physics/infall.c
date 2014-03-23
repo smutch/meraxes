@@ -9,8 +9,6 @@ void gas_infall(run_globals_t *run_globals, fof_group_t *FOFgroup, int snapshot)
   double total_baryons = 0.;
   double infall_mass = 0.;
   double FOF_Mvir = FOFgroup->FirstHalo->Mvir;
-  double used_mass = 0.;
-  double mass = 0.;
   double fb_modifier;
   halo = FOFgroup->FirstHalo;
 

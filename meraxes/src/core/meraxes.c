@@ -42,7 +42,7 @@ static void cleanup(run_globals_t *run_globals)
 
 void myexit(int signum)
 {
-  printf("Task: %d\tnode: %s\tis exiting.\n\n\n", SID.My_rank, SID.My_node);
+  fprintf(stderr, "Task: %d\tnode: %s\tis exiting.\n\n\n", SID.My_rank, SID.My_node);
   cn_quote();
   // if(SID.n_proc > 1)
   // {

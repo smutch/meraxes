@@ -768,8 +768,8 @@ void write_snapshot(run_globals_t *run_globals, int n_write, int i_out, int *las
 
   if (n_write != gal_count)
   {
-    SID_log("We don't have the expected number of galaxies in save...", SID_LOG_COMMENT);
-    SID_log("gal_count=%d, n_write=%d", SID_LOG_COMMENT, gal_count, n_write);
+    fprintf(stderr, "We don't have the expected number of galaxies in save...");
+    fprintf(stderr, "gal_count=%d, n_write=%d", gal_count, n_write);
     ABORT(EXIT_FAILURE);
   }
 
