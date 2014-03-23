@@ -99,9 +99,9 @@ static inline bool check_if_valid_host(run_globals_t *run_globals, halo_t *halo)
 {
   int invalid_flags = (TREE_CASE_FRAGMENTED_RETURNED
       | TREE_CASE_FRAGMENTED_EXCHANGED
-      | TREE_CASE_FRAGMENTED_LOST
-      | TREE_CASE_STRAYED
-      | TREE_CASE_SPUTTERED);
+      | TREE_CASE_FRAGMENTED_STRAYED);
+      // | TREE_CASE_STRAYED);
+      // | TREE_CASE_SPUTTERED);
 
   if((halo->Type == 0)
       && (halo->Galaxy == NULL)
