@@ -65,6 +65,10 @@ void reincorporate_ejected_gas(run_globals_t *run_globals, fof_group_t *fof_grou
     t_dyn = central->Rvir / central->Vvir;
     reincorporated = ReincorporationEff * central->Vvir / 220.0 * central->EjectedGas * (central->dt / t_dyn);
 
+    // ensure consistency
+    if(reincorporated > central->EjectedGas)
+      reincorporated = central->EjectedGas;
+
     // update the baryonic reservoirs
     update_reservoirs_from_reincorporation(central, reincorporated);
   }
