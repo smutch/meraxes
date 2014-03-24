@@ -53,6 +53,7 @@ galaxy_t* new_galaxy(run_globals_t *run_globals, int snapshot, int halo_ID)
   gal->ghost_flag = false;
 
   init_luminosities(run_globals, gal);
+
   return gal;
 }
 

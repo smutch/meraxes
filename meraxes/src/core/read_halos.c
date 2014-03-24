@@ -83,6 +83,14 @@ static void inline read_catalogs_header(
   fread(n_files      , sizeof(int), 1, fin);
   fread(n_halos_file , sizeof(int), 1, fin);
   fread(n_halos_total, sizeof(int), 1, fin);
+
+  // SID_log("Catalogs header:", SID_LOG_OPEN);
+  // SID_log("i_file = %d", SID_LOG_COMMENT, *i_file);
+  // SID_log("n_files = %d", SID_LOG_COMMENT, *n_files);
+  // SID_log("n_halos_file = %d", SID_LOG_COMMENT, *n_halos_file);
+  // SID_log("n_halos_total = %d", SID_LOG_COMMENT, *n_halos_total);
+  // SID_log("", SID_LOG_NOPRINT|SID_LOG_CLOSE);
+
 }
 
 
@@ -94,6 +102,7 @@ static void read_catalog_halos(
     int            *flayout_switch,
     int            *i_file,
     int            *n_halos_file,
+    int            *i_halo_in_file,
     int            *i_halo,
     catalog_halo_t *halo,
     int             n_to_read)
@@ -102,6 +111,20 @@ static void read_catalog_halos(
   char                 fname[STRLEN];
   int                  dummy;
   int                  n_from_this_file;
+
+  // SID_log("Called read_catalog_halos with:", SID_LOG_OPEN);
+  // SID_log("simulation_dir = %s", SID_LOG_COMMENT, simulation_dir);
+  // SID_log("catalog_file_prefix = %s", SID_LOG_COMMENT, catalog_file_prefix);
+  // SID_log("snapshot = %d", SID_LOG_COMMENT, snapshot);
+  // SID_log("flayout_switch = %d", SID_LOG_COMMENT, *flayout_switch);
+  // SID_log("i_file = %d", SID_LOG_COMMENT, *i_file);
+  // SID_log("n_halos_file = %d", SID_LOG_COMMENT, *n_halos_file);
+  // SID_log("i_halo_in_file = %d", SID_LOG_COMMENT, *i_halo_in_file);
+  // SID_log("i_halo = %d", SID_LOG_COMMENT, *i_halo);
+  // SID_log("halo[0].position_MBP[0] = %.3f", SID_LOG_COMMENT, halo[0].position_MBP[0]);
+  // SID_log("halo[1].position_MBP[0] = %.3f", SID_LOG_COMMENT, halo[1].position_MBP[0]);
+  // SID_log("n_to_read = %d", SID_LOG_COMMENT, n_to_read);
+  // SID_log("", SID_LOG_CLOSE|SID_LOG_NOPRINT);
 
   // Is this the first read?
   if((*fin)==NULL)
@@ -117,11 +140,11 @@ static void read_catalog_halos(
   }
 
   // Have we already read all the halos in this file?
-  if((*i_halo)>=(*n_halos_file))
+  if((*i_halo_in_file)>=(*n_halos_file))
   {
     fclose(*fin);
     (*i_file)++;
-    (*i_halo) = 0;
+    (*i_halo_in_file) = 0;
     halo_catalog_filename(simulation_dir, catalog_file_prefix, snapshot, "subgroups", *i_file, flayout_switch, fname);
     *fin = fopen(fname, "rb");
     if (*fin==NULL)
@@ -133,20 +156,22 @@ static void read_catalog_halos(
   }
 
   // Read in as many halos as we can from this file
-  if((*i_halo + n_to_read) <= *n_halos_file)
+  if((*i_halo_in_file + n_to_read) <= *n_halos_file)
   {
-    fread(halo, sizeof(catalog_halo_t), n_to_read, *fin);
+    fread(&(halo[*i_halo]), sizeof(catalog_halo_t), n_to_read, *fin);
     *i_halo += n_to_read;
+    *i_halo_in_file += n_to_read;
   }
   else
   {
     // read in as many as we can from this file and then get the rest from the next file
-    n_from_this_file = (*n_halos_file)- *i_halo;
+    n_from_this_file = (*n_halos_file)- *i_halo_in_file;
 
-    fread(halo, sizeof(catalog_halo_t), n_from_this_file, *fin);
+    fread(&(halo[*i_halo]), sizeof(catalog_halo_t), n_from_this_file, *fin);
     *i_halo += n_from_this_file;
+    *i_halo_in_file += n_from_this_file;
     n_to_read -= n_from_this_file;
-    read_catalog_halos(fin, simulation_dir, catalog_file_prefix, snapshot, flayout_switch, i_file, n_halos_file, i_halo, halo, n_to_read);
+    read_catalog_halos(fin, simulation_dir, catalog_file_prefix, snapshot, flayout_switch, i_file, n_halos_file, i_halo_in_file, i_halo, halo, n_to_read);
   }
 
 }
@@ -188,6 +213,7 @@ static void read_trees_and_catalogs(
   int i_catalog_file = 0;
   int n_halos_in_catalog_file = 0;
   int i_halo_in_catalog_file = 0;
+  int i_halo = 0;
   char catalog_file_prefix[50];
   char simulation_dir[STRLEN];
   catalog_halo_t *catalog_buffer;
@@ -243,9 +269,12 @@ static void read_trees_and_catalogs(
 
     // read in the corresponding catalog entrys
     if(SID.My_rank == 0)
+    {
+      i_halo = 0;
       read_catalog_halos(&fin_catalogs, simulation_dir, catalog_file_prefix,
           corrected_snapshot, &flayout_switch, &i_catalog_file, &n_halos_in_catalog_file,
-          &i_halo_in_catalog_file, catalog_buffer, n_to_read);
+          &i_halo_in_catalog_file, &i_halo, catalog_buffer, n_to_read);
+    }
     SID_Bcast(catalog_buffer, n_to_read * sizeof(catalog_halo_t), 0, SID.COMM_WORLD);
 
     // paste the data into the halo structures

@@ -26,4 +26,4 @@
 #define TREE_CASE_BRIDGE_FINALIZE               131072  // For internal use.  This should never be seen in the output.
 #define TREE_CASE_UNPROCESSED                   262144  // For internal use.  This should never be seen in the output.
 #define TREE_CASE_INVALID                       524288  // For internal use.  This should never be seen in the output.
-#define TREE_CASE_FRAGMENTED_NEW                (TREE_CASE_EMERGED_CANDIDATE+TREE_CASE_NO_PROGENITORS)
+// #define TREE_CASE_FRAGMENTED_NEW                (TREE_CASE_EMERGED_CANDIDATE+TREE_CASE_NO_PROGENITORS)
