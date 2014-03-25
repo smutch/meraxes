@@ -350,6 +350,7 @@ struct galaxy_t
   // misc
   double Cos_Inc;
   double MergTime;
+  double BaryonFracModifier;
 
   // write index
   int output_index;
@@ -395,6 +396,7 @@ struct galaxy_output_t
   float Cos_Inc;
   float MergTime;
   float LTTime;
+  float BaryonFracModifier;
 
 #ifdef CALC_MAGS
   float Mag[MAX_PHOTO_NBANDS];

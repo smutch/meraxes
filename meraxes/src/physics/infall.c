@@ -33,12 +33,13 @@ void gas_infall(run_globals_t *run_globals, fof_group_t *FOFgroup, int snapshot)
     fb_modifier = 1.0;
   infall_mass = fb_modifier * run_globals->params.BaryonFrac * FOF_Mvir - total_baryons;
 
+  // record the infall modifier
+  gal = FOFgroup->FirstHalo->Galaxy;
+  gal->BaryonFracModifier = fb_modifier;
+
   // Give this mass to the central
   if(infall_mass > 1e-10)
-  {
-    gal = FOFgroup->FirstHalo->Galaxy;
     if(gal != NULL)
       gal->HotGas += infall_mass;
-  }
 
 }

@@ -9,39 +9,40 @@ galaxy_t* new_galaxy(run_globals_t *run_globals, int snapshot, int halo_ID)
   gal = SID_malloc(sizeof(galaxy_t));
 
   // Initialise the properties
-  gal->id_MBP            = 0;
-  gal->ID                = snapshot * 10000000 + halo_ID;
-  gal->Type              = -1;
-  gal->OldType           = -1;
-  gal->SnapSkipCounter   = 0;
-  gal->HaloDescIndex     = -1;
-  gal->TreeFlags         = -1;
-  gal->Halo              = NULL;
-  gal->FirstGalInHalo    = NULL;
-  gal->NextGalInHalo     = NULL;
-  gal->Next              = NULL;
-  gal->MergerTarget      = NULL;
-  gal->Len               = 0;
-  gal->dt                = 0.0;
-  gal->LTTime            = 0.0;
-  gal->Mvir              = 0.0;
-  gal->Rvir              = 0.0;
-  gal->Vvir              = 0.0;
-  gal->Vmax              = 0.0;
-  gal->Spin              = 0.0;
-  gal->DiskScaleLength   = 0.0;
-  gal->HotGas            = 0.0;
-  gal->MetalsHotGas      = 0.0;
-  gal->ColdGas           = 0.0;
-  gal->MetalsColdGas     = 0.0;
-  gal->EjectedGas        = 0.0;
-  gal->MetalsEjectedGas  = 0.0;
-  gal->Mcool             = 0.0;
-  gal->StellarMass       = 0.0;
-  gal->MetalsStellarMass = 0.0;
-  gal->Sfr               = 0.0;
-  gal->Cos_Inc           = gsl_rng_uniform(run_globals->random_generator);
-  gal->MergTime          = 99999.9;
+  gal->id_MBP             = 0;
+  gal->ID                 = snapshot * 10000000 + halo_ID;
+  gal->Type               = -1;
+  gal->OldType            = -1;
+  gal->SnapSkipCounter    = 0;
+  gal->HaloDescIndex      = -1;
+  gal->TreeFlags          = -1;
+  gal->Halo               = NULL;
+  gal->FirstGalInHalo     = NULL;
+  gal->NextGalInHalo      = NULL;
+  gal->Next               = NULL;
+  gal->MergerTarget       = NULL;
+  gal->Len                = 0;
+  gal->dt                 = 0.0;
+  gal->LTTime             = 0.0;
+  gal->Mvir               = 0.0;
+  gal->Rvir               = 0.0;
+  gal->Vvir               = 0.0;
+  gal->Vmax               = 0.0;
+  gal->Spin               = 0.0;
+  gal->DiskScaleLength    = 0.0;
+  gal->HotGas             = 0.0;
+  gal->MetalsHotGas       = 0.0;
+  gal->ColdGas            = 0.0;
+  gal->MetalsColdGas      = 0.0;
+  gal->EjectedGas         = 0.0;
+  gal->MetalsEjectedGas   = 0.0;
+  gal->Mcool              = 0.0;
+  gal->StellarMass        = 0.0;
+  gal->MetalsStellarMass  = 0.0;
+  gal->Sfr                = 0.0;
+  gal->Cos_Inc            = gsl_rng_uniform(run_globals->random_generator);
+  gal->MergTime           = 99999.9;
+  gal->BaryonFracModifier = 0.0;
 
   for(int ii=0; ii<3; ii++)
   {
@@ -88,5 +89,6 @@ void reset_galaxy_properties(galaxy_t *gal)
   // snapshot basis.
   gal->Mcool = 0.0;
   gal->Sfr = 0.0;
+  gal->BaryonFracModifier = 0.0;
 
 }

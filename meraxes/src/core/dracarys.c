@@ -579,6 +579,7 @@ void dracarys(run_globals_t *run_globals)
       SID_Bcast(&set_par, sizeof(char *), 0, SID.COMM_WORLD);
       if(set_par == 5)
       {
+        SID_log("n_params read = %d", SID_LOG_COMMENT, set_par);
         n_runs++;
         SID_Bcast(&(run_globals->params.physics.SfEfficiency)      , sizeof(double), 0, SID.COMM_WORLD);
         SID_Bcast(&(run_globals->params.physics.SfRecycleFraction) , sizeof(double), 0, SID.COMM_WORLD);
