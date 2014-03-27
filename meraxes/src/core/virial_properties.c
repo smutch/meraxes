@@ -88,7 +88,8 @@ float calculate_Rvir(run_globals_t *run_globals, halo_t *halo, double Mvir, int 
 
   rhocrit = 3 * hubble_of_z_sq / (8 * M_PI * run_globals->G);
 
-  Delta = Delta_vir(run_globals->ZZ[snapshot], run_globals);
+  // Delta = Delta_vir(run_globals->ZZ[snapshot], run_globals);
+  Delta = 200.0;
 
   fac = 1 / (Delta * 4 * M_PI / 3.0 * rhocrit);
 

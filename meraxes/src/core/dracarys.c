@@ -104,8 +104,8 @@ static inline bool check_if_valid_host(run_globals_t *run_globals, halo_t *halo)
       // | TREE_CASE_SPUTTERED);
 
   if((halo->Type == 0)
-      && (halo->Galaxy == NULL)
-      && (check_for_flag(invalid_flags, halo->TreeFlags)==false))
+      && (halo->Galaxy == NULL))
+      // && (check_for_flag(invalid_flags, halo->TreeFlags)==false))
     return true;
   else
     return false;

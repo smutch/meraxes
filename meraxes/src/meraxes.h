@@ -419,7 +419,8 @@ trees_info_t read_halos(run_globals_t *run_globals, int snapshot, halo_t **halo,
 galaxy_t* new_galaxy(run_globals_t *run_globals, int snapshot, int halo_ID);
 void    copy_halo_to_galaxy(halo_t *halo, galaxy_t *gal, int snapshot);
 void    reset_galaxy_properties(galaxy_t *gal);
-void    gas_infall(run_globals_t *run_globals, fof_group_t *FOFgroup, int snapshot);
+double  gas_infall(run_globals_t *run_globals, fof_group_t *FOFgroup, int snapshot);
+void    add_infall_to_hot(galaxy_t *central, double infall_mass);
 double  calculate_merging_time(run_globals_t *run_globals, galaxy_t *gal, int snapshot);
 void    merge_with_target(run_globals_t *run_globals, galaxy_t *gal, int *dead_gals, int snapshot);
 void    insitu_star_formation(run_globals_t *run_globals, galaxy_t *gal, int snapshot);
@@ -444,7 +445,7 @@ float   calculate_Vvir(run_globals_t *run_globals, double Mvir, float Rvir);
 double  calculate_spin_param(halo_t *halo);
 void    read_cooling_functions(run_globals_t *run_globals);
 double  interpolate_cooling_rate(double logTemp, double logZ);
-void    do_cooling(run_globals_t *run_globals, galaxy_t *gal);
+void    do_cooling(run_globals_t *run_globals, galaxy_t *gal, int snapshot);
 double  calc_metallicity(double total_gas, double metals);
 void    reincorporate_ejected_gas(run_globals_t *run_globals, fof_group_t *fof_group, int snapshot);
 

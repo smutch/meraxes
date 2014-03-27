@@ -1,7 +1,7 @@
 #include "meraxes.h"
 #include <math.h>
 
-void do_cooling(run_globals_t *run_globals, galaxy_t *gal)
+void do_cooling(run_globals_t *run_globals, galaxy_t *gal, int snapshot)
 {
 
   // we only need to do cooling if there is anything to cool!
@@ -47,7 +47,8 @@ void do_cooling(run_globals_t *run_globals, galaxy_t *gal)
     if(r_cool > gal->Rvir)
       // here we are in the rapid cooling regime and we accrete all gas within
       // the free-fall radius
-      cooling_mass = max_cooling_mass;
+      // cooling_mass = max_cooling_mass;
+      cooling_mass = gal->HotGas;
     else
     {
       // here we are in the hot halo regime (but still limited by what's inside the free-fall radius)
@@ -55,6 +56,21 @@ void do_cooling(run_globals_t *run_globals, galaxy_t *gal)
       if(cooling_mass > max_cooling_mass)
         cooling_mass = max_cooling_mass;
     }
+
+    // DEBUG
+    // if(gal->id_MBP == 112778782)
+    // {
+    //   fprintf(stderr, "COOLING DEBUG: (%d)\n", snapshot);
+    //   fprintf(stderr, "r_cool = %.3e\n", r_cool);
+    //   fprintf(stderr, "rho_at_Rvir = %.3e\n", rho_at_Rvir);
+    //   fprintf(stderr, "HotGas = %.3e\n", gal->HotGas);
+    //   fprintf(stderr, "Rvir = %.3e\n", gal->Rvir);
+    //   fprintf(stderr, "Tvir = %.3e\n", Tvir);
+    //   fprintf(stderr, "lambda = %.3e\n", lambda);
+    //   fprintf(stderr, "x = %.3e\n", x);
+    //   fprintf(stderr, "logZ = %.3e\n", logZ);
+    //   fprintf(stderr, "dt = %.3e\n", gal->dt);
+    // }
 
     // do one last sanity check to ensure we aren't cooling more gas than is available etc.
     if(cooling_mass > gal->HotGas)

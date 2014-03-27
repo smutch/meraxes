@@ -26,7 +26,7 @@ void update_reservoirs_from_sf(run_globals_t *run_globals, galaxy_t *gal, double
 
   // assuming instantaneous recycling approximation and enrichment from SNII
   // only, work out the mass of metals returned to the ISM by this SF burst
-  gal->MetalsColdGas  += run_globals->params.physics.Yield * new_stars;
+  // gal->MetalsColdGas  += run_globals->params.physics.Yield * new_stars;
 
 }
 

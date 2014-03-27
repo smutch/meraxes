@@ -151,16 +151,21 @@ if __name__ == '__main__':
         ax.plot([start_pos[0], end_pos[0]], [start_pos[1], end_pos[1]], 'k-', lw=2, alpha=0.3, zorder=0)
 
     # now draw the nodes
-    mstar = np.array([n["galaxy"]["StellarMass"] for n in G.iter_nodes()])
-    mstar = np.log10(mstar*1.e10)*10
-    sel = (~np.isinf(mstar))
-    mstar = mstar[sel]**5
-    mstar = (mstar/mstar.max())*300
+    # mstar = np.array([n["galaxy"]["StellarMass"] for n in G.iter_nodes()])
+    # mstar = np.log10(mstar*1.e10)*10
+    # sel = (~np.isinf(mstar))
+    # mstar = mstar[sel]**5
+    # mstar = (mstar/mstar.max())*300
 
     mvir = np.array([n["galaxy"]["Mvir"] for n in G.iter_nodes()])
-    mvir = np.log10(mvir[sel]*1.e10)
-    mvir_max = mvir.max()
-    mvir_min = mvir.min()
+    mvir = np.log10(mvir*1.e10)
+    sel = (~np.isinf(mvir))
+    mvir = mvir[sel]
+    true_mvir = mvir.copy()
+    mvir = mvir**20
+    mvir = (mvir/mvir.max())*80
+    mvir_max = true_mvir.max()
+    mvir_min = true_mvir.min()
 
     pos = pos[sel]
 
@@ -174,34 +179,35 @@ if __name__ == '__main__':
 
     cmap = plt.cm.winter
     sc = ax.scatter(pos[type0_sel,0], pos[type0_sel,1], vmin=mvir_min,
-                    vmax=mvir_max, marker='o', c=mvir[type0_sel],
-                    s=mstar[type0_sel], cmap=cmap, label="Type 0")
+                    vmax=mvir_max, marker='o', c=true_mvir[type0_sel],
+                    s=mvir[type0_sel], cmap=cmap, label="Type 0")
     ax.scatter(pos[type1_sel,0], pos[type1_sel,1], vmin=mvir_min,
-               vmax=mvir_max, marker='^', c=mvir[type1_sel],
-               s=mstar[type1_sel], cmap=cmap, label="Type 1")
+               vmax=mvir_max, marker='^', c=true_mvir[type1_sel],
+               s=mvir[type1_sel], cmap=cmap, label="Type 1")
     ax.scatter(pos[type2_sel,0], pos[type2_sel,1], vmin=mvir_min,
-               vmax=mvir_max, marker='v', c=mvir[type2_sel],
-               s=mstar[type2_sel], cmap=cmap, label="Type 2")
+               vmax=mvir_max, marker='v', c=true_mvir[type2_sel],
+               s=mvir[type2_sel], cmap=cmap, label="Type 2")
     ax.scatter(pos[ghost_sel,0], pos[ghost_sel,1], vmin=mvir_min,
-               vmax=mvir_max, marker='s', facecolor='0.5', s=mstar[ghost_sel],
+               vmax=mvir_max, marker='s', facecolor='0.5', s=mvir[ghost_sel],
                label="Ghosts")
 
     # add labels for each branch ID
-    for n in G.iter_nodes():
-        if (n["type"]==G.type_next) or (n==G.nodes[first_node]):
-            plot_pos = n["plot_pos"]
-            ax.text(plot_pos[0], plot_pos[1]+1,
-                    "{:d}".format(n["galaxy"]["ID"]),
-                    horizontalalignment="center",
-                    verticalalignment="bottom",
-                    size="x-small",
-                    rotation='vertical',
-                    color='0.5')
+    # for n in G.iter_nodes():
+    #     if (n["type"]==G.type_next) or (n==G.nodes[first_node]):
+    #         plot_pos = n["plot_pos"]
+    #         ax.text(plot_pos[0], plot_pos[1]+1,
+    #                 "{:d}".format(n["galaxy"]["ID"]),
+    #                 horizontalalignment="center",
+    #                 verticalalignment="bottom",
+    #                 size="x-small",
+    #                 rotation='vertical',
+    #                 color='0.5')
 
     # add a color bar
     # import IPython; IPython.embed()
     cb = fig.colorbar(sc)
-    cb.set_clim(mvir.min(), mvir.max())
+    print true_mvir
+    cb.set_clim(true_mvir.min(), true_mvir.max())
     cb.set_label(r"$\log_{10}(M_{\rm vir}/{\rm M_{\odot}})$")
     # labels = cb.ax.get_yticklabels()
     # for i, t in enumerate(labels):
@@ -209,9 +215,9 @@ if __name__ == '__main__':
     #     cb.ax.set_yticklabels(labels)
 
     # add a legend
-    leg = ax.legend(loc='upper right', ncol=4)
-    for t in leg.get_texts():
-        t.set_size("medium")
+    # leg = ax.legend(loc='upper right', ncol=3)
+    # for t in leg.get_texts():
+    #     t.set_size("medium")
 
     # tidy up
     plt.setp(ax.get_xticklabels(), visible=False)

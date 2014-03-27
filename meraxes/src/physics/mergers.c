@@ -61,13 +61,13 @@ double calculate_merging_time(run_globals_t *run_globals, galaxy_t *sat, int sna
   if(sat_rad > mother->Rvir)
     sat_rad = mother->Rvir;
 
-  if(sat->StellarMass > 1e-9)
-    mergtime =
-    run_globals->params.MergerTimeFactor *
-    1.17 * sat_rad * sat_rad * mother->Vvir / (coulomb * run_globals->G * sat_mass);
-  else
-    // if this is just a gas cloud (i.e. the infalling satellite has no stellar
-    // mass), then instantly merge
+  // if(sat->StellarMass > 1e-9)
+  //   mergtime =
+  //   run_globals->params.MergerTimeFactor *
+  //   1.17 * sat_rad * sat_rad * mother->Vvir / (coulomb * run_globals->G * sat_mass);
+  // else
+  //   // if this is just a gas cloud (i.e. the infalling satellite has no stellar
+  //   // mass), then instantly merge
     mergtime = -9999.9;
 
   return mergtime;
@@ -83,8 +83,8 @@ static void merger_driven_starburst(run_globals_t *run_globals, galaxy_t *parent
 
   burst_mass = 0.56 * pow(merger_ratio, 0.7) * parent->ColdGas;
 
-  if(burst_mass > parent->ColdGas)
-    burst_mass = parent->ColdGas;
+  // if(burst_mass > parent->ColdGas)
+  //   burst_mass = parent->ColdGas;
   if(burst_mass < 0)
     burst_mass = 0.0;
 
@@ -117,6 +117,16 @@ void merge_with_target(run_globals_t *run_globals, galaxy_t *gal, int *dead_gals
     merger_ratio = gal_baryons/parent_baryons;
   else
     merger_ratio = parent_baryons/gal_baryons;
+
+  // DEBUG
+  if(parent->id_MBP == 112778825)
+  {
+    fprintf(stderr, "DEBUG MERGER\n");
+    fprintf(stderr, "sat cold = %.3e\n", gal->ColdGas);
+    fprintf(stderr, "sat hot = %.3e\n", gal->HotGas);
+    fprintf(stderr, "central cold = %.3e\n", parent->ColdGas);
+    fprintf(stderr, "central hot = %.3e\n", parent->HotGas);
+  }
 
   // Add galaxies together
   parent->StellarMass      += gal->StellarMass;

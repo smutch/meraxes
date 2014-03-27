@@ -86,9 +86,9 @@ static double interpolate_temp_dependant_cooling_rate(int i_m, double logTemp)
     logTemp = MIN_TEMP;
 
   // Now find the index of the tabulated temp immediately below our value
-  temp_step = (MAX_TEMP - MIN_TEMP) / N_TEMPS;
+  temp_step = (MAX_TEMP - MIN_TEMP) / (N_TEMPS-1);
   i_t = (logTemp - MIN_TEMP) / temp_step;
-  if(i_t > N_TEMPS-1)
+  if(i_t >= (N_TEMPS-1))  // POTERR
     i_t = N_TEMPS-1;
 
   // Now grab the cooling rates for the temp immediately above and below
