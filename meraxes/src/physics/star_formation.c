@@ -2,11 +2,12 @@
 #include "meraxes.h"
 #include <gsl/gsl_sf_lambert.h>
 
-void update_reservoirs_from_sf(run_globals_t *run_globals, galaxy_t *gal, double new_stars, int snapshot)
+void update_reservoirs_from_sf(run_globals_t *run_globals, galaxy_t *gal, double new_stars, double merger_mass_ratio, int snapshot)
 {
   double metallicity;
   double current_time;
   double remaining_stars;
+  double new_metals;
 
   // update the galaxy's SFR value
   gal->Sfr += new_stars / gal->dt;
@@ -26,7 +27,11 @@ void update_reservoirs_from_sf(run_globals_t *run_globals, galaxy_t *gal, double
 
   // assuming instantaneous recycling approximation and enrichment from SNII
   // only, work out the mass of metals returned to the ISM by this SF burst
-  // gal->MetalsColdGas  += run_globals->params.physics.Yield * new_stars;
+  new_metals = run_globals->params.physics.Yield * new_stars;
+  if((merger_mass_ratio < run_globals->params.physics.ThreshMajorMerger) && (gal->ColdGas > 1e-10))
+    gal->MetalsColdGas  += new_metals;
+  else
+    gal->Halo->FOFGroup->FirstHalo->Galaxy->MetalsHotGas += new_metals;
 
 }
 
@@ -62,7 +67,7 @@ void insitu_star_formation(run_globals_t *run_globals, galaxy_t *gal, int snapsh
 
 
     // debug
-    if(gal->id_MBP == 98993113)
+    if(gal->id_MBP == DEBUG_MBP)
     {
       fprintf(stderr, "DEBUG STAR FORMATION (%d)\n", snapshot);
       fprintf(stderr, "r_disk = %.3e\n", r_disk);
@@ -72,6 +77,6 @@ void insitu_star_formation(run_globals_t *run_globals, galaxy_t *gal, int snapsh
     }
 
     // apply supernova feedback and update baryonic reservoirs
-    supernova_feedback(run_globals, gal, m_stars, snapshot);
+    supernova_feedback(run_globals, gal, m_stars, -999, snapshot);
   }
 }

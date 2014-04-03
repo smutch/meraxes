@@ -192,16 +192,16 @@ if __name__ == '__main__':
                label="Ghosts")
 
     # add labels for each branch ID
-    for n in G.iter_nodes():
-        if (n["type"]==G.type_next) or (n==G.nodes[first_node]):
-            plot_pos = n["plot_pos"]
-            ax.text(plot_pos[0], plot_pos[1]+1,
-                    "{:d}".format(n["galaxy"]["ID"]),
-                    horizontalalignment="center",
-                    verticalalignment="bottom",
-                    size="x-small",
-                    rotation='vertical',
-                    color='0.5')
+    # for n in G.iter_nodes():
+    #     if (n["type"]==G.type_next) or (n==G.nodes[first_node]):
+    #         plot_pos = n["plot_pos"]
+    #         ax.text(plot_pos[0], plot_pos[1]+1,
+    #                 "{:d}".format(n["galaxy"]["ID"]),
+    #                 horizontalalignment="center",
+    #                 verticalalignment="bottom",
+    #                 size="x-small",
+    #                 rotation='vertical',
+    #                 color='0.5')
 
     # add a color bar
     # import IPython; IPython.embed()

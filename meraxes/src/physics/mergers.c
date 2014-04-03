@@ -89,7 +89,7 @@ static void merger_driven_starburst(run_globals_t *run_globals, galaxy_t *parent
     burst_mass = 0.0;
 
   // apply the supernova feedback scheme and update the baryonic reservoirs
-  supernova_feedback(run_globals, parent, burst_mass, snapshot);
+  supernova_feedback(run_globals, parent, burst_mass, merger_ratio, snapshot);
 
 }
 
@@ -119,7 +119,7 @@ void merge_with_target(run_globals_t *run_globals, galaxy_t *gal, int *dead_gals
     merger_ratio = parent_baryons/gal_baryons;
 
   // DEBUG
-  if(parent->id_MBP == 98993113)
+  if(parent->id_MBP == DEBUG_MBP)
   {
     fprintf(stderr, "DEBUG MERGER\n");
     fprintf(stderr, "sat cold = %.3e\n", gal->ColdGas);
@@ -128,17 +128,19 @@ void merge_with_target(run_globals_t *run_globals, galaxy_t *gal, int *dead_gals
     fprintf(stderr, "central cold = %.3e\n", parent->ColdGas);
     fprintf(stderr, "central hot = %.3e\n", parent->HotGas);
     fprintf(stderr, "central stellar = %.3e\n", parent->StellarMass);
+    fprintf(stderr, "sat MBP = %d\n", gal->id_MBP);
   }
 
   // Add galaxies together
-  parent->StellarMass      += gal->StellarMass;
-  parent->Sfr              += gal->Sfr;
-  parent->HotGas           += gal->HotGas;
-  parent->MetalsHotGas     += gal->MetalsHotGas;
-  parent->ColdGas          += gal->ColdGas;
-  parent->MetalsColdGas    += gal->MetalsColdGas;
-  parent->EjectedGas       += gal->EjectedGas;
-  parent->MetalsEjectedGas += gal->MetalsEjectedGas;
+  parent->StellarMass       += gal->StellarMass;
+  parent->MetalsStellarMass += gal->MetalsStellarMass;
+  parent->Sfr               += gal->Sfr;
+  parent->HotGas            += gal->HotGas;
+  parent->MetalsHotGas      += gal->MetalsHotGas;
+  parent->ColdGas           += gal->ColdGas;
+  parent->MetalsColdGas     += gal->MetalsColdGas;
+  parent->EjectedGas        += gal->EjectedGas;
+  parent->MetalsEjectedGas  += gal->MetalsEjectedGas;
 
   for(int outputbin = 0; outputbin < NOUT; outputbin++)
     sum_luminosities(run_globals, parent, gal, outputbin);

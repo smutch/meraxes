@@ -17,6 +17,8 @@
  * Definitions
  */
 
+#define DEBUG_MBP 45272213
+
 #define STRLEN  256  //!< Default string length
 
 // TODO: This should not be hard coded if at all possible...
@@ -424,8 +426,8 @@ void    add_infall_to_hot(galaxy_t *central, double infall_mass);
 double  calculate_merging_time(run_globals_t *run_globals, galaxy_t *gal, int snapshot);
 void    merge_with_target(run_globals_t *run_globals, galaxy_t *gal, int *dead_gals, int snapshot);
 void    insitu_star_formation(run_globals_t *run_globals, galaxy_t *gal, int snapshot);
-void    update_reservoirs_from_sf(run_globals_t *run_globals, galaxy_t *gal, double new_stars, int snapshot);
-void    supernova_feedback(run_globals_t *run_globals, galaxy_t *gal, double m_star, int snapshots);
+void    update_reservoirs_from_sf(run_globals_t *run_globals, galaxy_t *gal, double new_stars, double merger_mass_ratio, int snapshot);
+void    supernova_feedback(run_globals_t *run_globals, galaxy_t *gal, double m_star, double merger_mass_ratio, int snapshots);
 void    prep_hdf5_file(run_globals_t *run_globals);
 void    create_master_file(run_globals_t *run_globals);
 void    write_snapshot(run_globals_t *run_globals, int n_write, int i_out, int *last_n_write);
@@ -444,7 +446,7 @@ float   calculate_Rvir(run_globals_t *run_globals, halo_t *halo, double Mvir, in
 float   calculate_Vvir(run_globals_t *run_globals, double Mvir, float Rvir);
 double  calculate_spin_param(halo_t *halo);
 void    read_cooling_functions(run_globals_t *run_globals);
-double  interpolate_cooling_rate(double logTemp, double logZ);
+double  interpolate_cooling_rate(double logTemp, double logZ, int flag_debug);
 double  gas_cooling(run_globals_t *run_globals, galaxy_t *gal, int snapshot);
 void    cool_gas_onto_galaxy(galaxy_t *gal, double cooling_mass);
 double  calc_metallicity(double total_gas, double metals);

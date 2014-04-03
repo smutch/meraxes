@@ -89,7 +89,8 @@ static inline bool check_for_merger(galaxy_t *gal, halo_t *new_halo)
 {
   // if this is marked as a merger in the trees OR the galaxy stellar mass is
   // now greater than the host halo mass, then mark this as a merger
-  if( check_for_flag(TREE_CASE_MERGER, gal->TreeFlags) || (gal->StellarMass > new_halo->Mvir) )
+  // if( check_for_flag(TREE_CASE_MERGER, gal->TreeFlags) || (gal->StellarMass > new_halo->Mvir) )
+  if( check_for_flag(TREE_CASE_MERGER, gal->TreeFlags) )
     return true;
   else
     return false;

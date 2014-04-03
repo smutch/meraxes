@@ -28,10 +28,13 @@ def read_ascii_cooling_file(fin):
 
     data = data.dropna()
 
-    # If we don't have the first row (T=1e4) then just copy the second one
+    # If we don't have the first two rows (T=1e4) then just copy the first
+    # present one
     if data.shape[0] < 90:
         first_val = data.ix[0].copy()
         first_val["log(T)"] = 4.0
+        data = pd.concat((pd.DataFrame(first_val).T, data), axis=0)
+        first_val["log(T)"] = 4.5
         data = pd.concat((pd.DataFrame(first_val).T, data), axis=0)
 
     return data
@@ -98,7 +101,7 @@ mubar: mean molecular weight grams times 10^24"""
 
 if __name__ == '__main__':
 
-    input_dir = "/Users/smutch/Work/models/clean_C06/CoolFunctions"
+    input_dir = "/home/smutch/models/CoolFunctions"
     input_flist = ("m+05.cie", "m-00.cie", "m-05.cie", "m-10.cie", "m-15.cie",
                    "m-20.cie", "m-30.cie", "mzero.cie")
 

@@ -28,7 +28,10 @@ double gas_cooling(run_globals_t *run_globals, galaxy_t *gal, int snapshot)
       logZ = -10.0;
 
     // interpolate the temperature and metallicity dependant cooling rate (lambda)
-    lambda = interpolate_cooling_rate(log10(Tvir), logZ);
+    if(gal->id_MBP == DEBUG_MBP)
+      lambda = interpolate_cooling_rate(log10(Tvir), logZ, 1);
+    else
+      lambda = interpolate_cooling_rate(log10(Tvir), logZ, 0);
 
     // following equation (3) of Croton+ 2006, calculate the hot gas density at
     // the radius r_cool (i.e. where the cooling time is equal to `t_cool`
@@ -54,13 +57,13 @@ double gas_cooling(run_globals_t *run_globals, galaxy_t *gal, int snapshot)
     else
     {
       // here we are in the hot halo regime (but still limited by what's inside the free-fall radius)
-      cooling_mass = 0.5 * gal->HotGas * r_cool * gal->Vvir / (gal->Rvir*gal->Rvir) * gal->dt;
-      if(cooling_mass > max_cooling_mass)
-        cooling_mass = max_cooling_mass;
+      cooling_mass = 0.5 * gal->HotGas / gal->Rvir * r_cool / t_cool * gal->dt;
+      // if(cooling_mass > max_cooling_mass)
+      //   cooling_mass = max_cooling_mass;
     }
 
     // DEBUG
-    if(gal->id_MBP == 98993113)
+    if(gal->id_MBP == DEBUG_MBP)
     {
       fprintf(stderr, "COOLING DEBUG: (%d)\n", snapshot);
       fprintf(stderr, "r_cool = %.3e\n", r_cool);
@@ -71,7 +74,9 @@ double gas_cooling(run_globals_t *run_globals, galaxy_t *gal, int snapshot)
       fprintf(stderr, "lambda = %.3e\n", lambda);
       fprintf(stderr, "x = %.3e\n", x);
       fprintf(stderr, "logZ = %.3e\n", logZ);
+      fprintf(stderr, "t_cool = %.3e\n", t_cool);
       fprintf(stderr, "dt = %.3e\n", gal->dt);
+      fprintf(stderr, "cooling_mass = %.3e\n", cooling_mass);
     }
 
     // do one last sanity check to ensure we aren't cooling more gas than is available etc.

@@ -49,7 +49,7 @@ double gas_infall(run_globals_t *run_globals, fof_group_t *FOFgroup, int snapsho
   // record the infall modifier
   central->BaryonFracModifier = fb_modifier;
 
-  if(central->id_MBP == 98993113)
+  if(central->id_MBP == DEBUG_MBP)
   {
     fprintf(stderr, "DEBUG INFALL (%d)\n", snapshot);
     fprintf(stderr, "infall_mass = %.3e\n", infall_mass);
@@ -96,8 +96,8 @@ void add_infall_to_hot(galaxy_t *central, double infall_mass)
         central->HotGas = 0.0;
         central->MetalsHotGas = 0.0;
       }
-      else
-        central->MetalsHotGas += calc_metallicity(central->HotGas, central->MetalsHotGas) * infall_mass;
+      // else
+      //   central->MetalsHotGas += calc_metallicity(central->HotGas, central->MetalsHotGas) * infall_mass;
     }
   }
 
