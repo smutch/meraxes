@@ -1,14 +1,16 @@
 #include "meraxes.h"
 #include <math.h>
 
-void do_cooling(run_globals_t *run_globals, galaxy_t *gal, int snapshot)
+double gas_cooling(run_globals_t *run_globals, galaxy_t *gal, int snapshot)
 {
+
+  double cooling_mass;
 
   // we only need to do cooling if there is anything to cool!
   if(gal->HotGas > 1e-10)
   {
 
-    double t_cool, cooling_mass, max_cooling_mass, cooling_metals, Tvir;
+    double t_cool, max_cooling_mass, cooling_metals, Tvir;
     double logZ, lambda, x, rho_r_cool, r_cool, rho_at_Rvir;
     run_units_t *units = &(run_globals->units);
 
@@ -58,19 +60,19 @@ void do_cooling(run_globals_t *run_globals, galaxy_t *gal, int snapshot)
     }
 
     // DEBUG
-    // if(gal->id_MBP == 112778782)
-    // {
-    //   fprintf(stderr, "COOLING DEBUG: (%d)\n", snapshot);
-    //   fprintf(stderr, "r_cool = %.3e\n", r_cool);
-    //   fprintf(stderr, "rho_at_Rvir = %.3e\n", rho_at_Rvir);
-    //   fprintf(stderr, "HotGas = %.3e\n", gal->HotGas);
-    //   fprintf(stderr, "Rvir = %.3e\n", gal->Rvir);
-    //   fprintf(stderr, "Tvir = %.3e\n", Tvir);
-    //   fprintf(stderr, "lambda = %.3e\n", lambda);
-    //   fprintf(stderr, "x = %.3e\n", x);
-    //   fprintf(stderr, "logZ = %.3e\n", logZ);
-    //   fprintf(stderr, "dt = %.3e\n", gal->dt);
-    // }
+    if(gal->id_MBP == 98993113)
+    {
+      fprintf(stderr, "COOLING DEBUG: (%d)\n", snapshot);
+      fprintf(stderr, "r_cool = %.3e\n", r_cool);
+      fprintf(stderr, "rho_at_Rvir = %.3e\n", rho_at_Rvir);
+      fprintf(stderr, "HotGas = %.3e\n", gal->HotGas);
+      fprintf(stderr, "Rvir = %.3e\n", gal->Rvir);
+      fprintf(stderr, "Tvir = %.3e\n", Tvir);
+      fprintf(stderr, "lambda = %.3e\n", lambda);
+      fprintf(stderr, "x = %.3e\n", x);
+      fprintf(stderr, "logZ = %.3e\n", logZ);
+      fprintf(stderr, "dt = %.3e\n", gal->dt);
+    }
 
     // do one last sanity check to ensure we aren't cooling more gas than is available etc.
     if(cooling_mass > gal->HotGas)
@@ -78,24 +80,36 @@ void do_cooling(run_globals_t *run_globals, galaxy_t *gal, int snapshot)
     if(cooling_mass < 0)
       cooling_mass = 0.0;
 
-    // what mass of metals is coming along with this cooling gas?
-    cooling_metals = cooling_mass * calc_metallicity(gal->HotGas, gal->MetalsHotGas);
-
-    // debug("%d %.3e %.3e %.3e %.3e %.3e %.3e %.3e %.3e %.3e %.3e %.3e %.3e %.3e %.3e\n",
-    //     gal->Type, gal->dt, gal->Rvir, gal->Vvir, gal->HotGas, gal->MetalsHotGas, t_cool, logZ, Tvir,
-    //     lambda, rho_r_cool, rho_at_Rvir, r_cool, max_cooling_mass, cooling_mass);
-
-    // save the cooling mass
-    gal->Mcool = cooling_mass;
-
-    // update the galaxy reservoirs
-    gal->HotGas -= cooling_mass;
-    gal->MetalsHotGas -= cooling_metals;
-    gal->ColdGas += cooling_mass;
-    gal->MetalsColdGas += cooling_metals;
-
   }
   else  // if there is no gas to cool...
-    gal->Mcool = 0.0;
+    cooling_mass = 0.0;
 
+  return cooling_mass;
+
+}
+
+
+void cool_gas_onto_galaxy(galaxy_t *gal, double cooling_mass)
+{
+
+  double cooling_metals;
+
+  if(cooling_mass > gal->HotGas)
+    cooling_mass = gal->HotGas;
+
+  // what mass of metals is coming along with this cooling gas?
+  cooling_metals = cooling_mass * calc_metallicity(gal->HotGas, gal->MetalsHotGas);
+
+  // debug("%d %.3e %.3e %.3e %.3e %.3e %.3e %.3e %.3e %.3e %.3e %.3e %.3e %.3e %.3e\n",
+  //     gal->Type, gal->dt, gal->Rvir, gal->Vvir, gal->HotGas, gal->MetalsHotGas, t_cool, logZ, Tvir,
+  //     lambda, rho_r_cool, rho_at_Rvir, r_cool, max_cooling_mass, cooling_mass);
+
+  // save the cooling mass
+  gal->Mcool = cooling_mass;
+
+  // update the galaxy reservoirs
+  gal->HotGas -= cooling_mass;
+  gal->MetalsHotGas -= cooling_metals;
+  gal->ColdGas += cooling_mass;
+  gal->MetalsColdGas += cooling_metals;
 }

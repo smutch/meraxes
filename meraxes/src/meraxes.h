@@ -445,7 +445,8 @@ float   calculate_Vvir(run_globals_t *run_globals, double Mvir, float Rvir);
 double  calculate_spin_param(halo_t *halo);
 void    read_cooling_functions(run_globals_t *run_globals);
 double  interpolate_cooling_rate(double logTemp, double logZ);
-void    do_cooling(run_globals_t *run_globals, galaxy_t *gal, int snapshot);
+double  gas_cooling(run_globals_t *run_globals, galaxy_t *gal, int snapshot);
+void    cool_gas_onto_galaxy(galaxy_t *gal, double cooling_mass);
 double  calc_metallicity(double total_gas, double metals);
 void    reincorporate_ejected_gas(run_globals_t *run_globals, fof_group_t *fof_group, int snapshot);
 

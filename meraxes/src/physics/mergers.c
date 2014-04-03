@@ -119,13 +119,15 @@ void merge_with_target(run_globals_t *run_globals, galaxy_t *gal, int *dead_gals
     merger_ratio = parent_baryons/gal_baryons;
 
   // DEBUG
-  if(parent->id_MBP == 112778825)
+  if(parent->id_MBP == 98993113)
   {
     fprintf(stderr, "DEBUG MERGER\n");
     fprintf(stderr, "sat cold = %.3e\n", gal->ColdGas);
     fprintf(stderr, "sat hot = %.3e\n", gal->HotGas);
+    fprintf(stderr, "sat stellar = %.3e\n", gal->StellarMass);
     fprintf(stderr, "central cold = %.3e\n", parent->ColdGas);
     fprintf(stderr, "central hot = %.3e\n", parent->HotGas);
+    fprintf(stderr, "central stellar = %.3e\n", parent->StellarMass);
   }
 
   // Add galaxies together

@@ -60,6 +60,17 @@ void insitu_star_formation(run_globals_t *run_globals, galaxy_t *gal, int snapsh
       // no star formation
       return;
 
+
+    // debug
+    if(gal->id_MBP == 98993113)
+    {
+      fprintf(stderr, "DEBUG STAR FORMATION (%d)\n", snapshot);
+      fprintf(stderr, "r_disk = %.3e\n", r_disk);
+      fprintf(stderr, "m_crit = %.3e\n", m_crit);
+      fprintf(stderr, "cold_gas = %.3e\n", gal->ColdGas);
+      fprintf(stderr, "m_stars = %.3e\n", m_stars);
+    }
+
     // apply supernova feedback and update baryonic reservoirs
     supernova_feedback(run_globals, gal, m_stars, snapshot);
   }

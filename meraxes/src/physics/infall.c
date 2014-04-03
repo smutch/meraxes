@@ -25,8 +25,12 @@ double gas_infall(run_globals_t *run_globals, fof_group_t *FOFgroup, int snapsho
 
       if(gal != central)
       {
-        central->HotGas += gal->HotGas;
+        central->HotGas += gal->HotGas + gal->EjectedGas;
+        central->MetalsHotGas += gal->MetalsHotGas + gal->MetalsEjectedGas;
         gal->HotGas = 0.0;
+        gal->MetalsHotGas = 0.0;
+        gal->EjectedGas = 0.0;
+        gal->MetalsEjectedGas = 0.0;
       }
 
       gal = gal->NextGalInHalo;
@@ -45,6 +49,13 @@ double gas_infall(run_globals_t *run_globals, fof_group_t *FOFgroup, int snapsho
   // record the infall modifier
   central->BaryonFracModifier = fb_modifier;
 
+  if(central->id_MBP == 98993113)
+  {
+    fprintf(stderr, "DEBUG INFALL (%d)\n", snapshot);
+    fprintf(stderr, "infall_mass = %.3e\n", infall_mass);
+    fprintf(stderr, "m_eject = %.3e\n", central->EjectedGas);
+  }
+
   return infall_mass;
 
 }
@@ -58,22 +69,22 @@ void add_infall_to_hot(galaxy_t *central, double infall_mass)
     central->HotGas += infall_mass;
   else
   {
-    // otherwise, strip the mass from the ejected
-    if(central->EjectedGas > 0)
-    {
-      central->EjectedGas += infall_mass;
-      if(central->EjectedGas < 0)
-      {
-        infall_mass -= central->EjectedGas;
-        central->EjectedGas = 0.0;
-        central->MetalsEjectedGas = 0.0;
-      }
-      else
-      {
-        central->MetalsEjectedGas += calc_metallicity(central->EjectedGas, central->MetalsEjectedGas) * infall_mass;
-        infall_mass = 0.0;
-      }
-    }
+    // // otherwise, strip the mass from the ejected
+    // if(central->EjectedGas > 0)
+    // {
+    //   central->EjectedGas += infall_mass;
+    //   if(central->EjectedGas < 0)
+    //   {
+    //     infall_mass -= central->EjectedGas;
+    //     central->EjectedGas = 0.0;
+    //     central->MetalsEjectedGas = 0.0;
+    //   }
+    //   else
+    //   {
+    //     central->MetalsEjectedGas += calc_metallicity(central->EjectedGas, central->MetalsEjectedGas) * infall_mass;
+    //     infall_mass = 0.0;
+    //   }
+    // }
 
     // if we still have mass left to remove after exhausting the mass of
     // the ejected component, the remove as much as we can from the hot gas

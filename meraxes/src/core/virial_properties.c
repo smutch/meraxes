@@ -111,8 +111,8 @@ double calculate_spin_param(halo_t *halo)
       halo->AngMom[2] * halo->AngMom[2]);
 
   // This limit is used in the SAGE semi-analytic model
-  if(spin > 1.2)
-    spin = 1.2;
+  // if(spin > 1.2)
+  //   spin = 1.2;
 
   spin = spin / (1.414213562 * halo->Vvir * halo->Rvir);
 

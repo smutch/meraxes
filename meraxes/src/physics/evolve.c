@@ -10,6 +10,7 @@ int evolve_galaxies(run_globals_t *run_globals, fof_group_t *fof_group, int snap
   int       gal_counter  = 0;
   int       dead_gals    = 0;
   double    infalling_gas = 0;
+  double    cooling_mass   = 0;
 
   SID_log("Doing physics...", SID_LOG_OPEN|SID_LOG_TIMER);
 
@@ -24,12 +25,17 @@ int evolve_galaxies(run_globals_t *run_globals, fof_group_t *fof_group, int snap
     while (halo!=NULL) {
       gal = halo->Galaxy;
 
+      if(gal!=NULL)
+        cooling_mass = gas_cooling(run_globals, gal, snapshot);
+
       while(gal!=NULL){
 
-        do_cooling(run_globals, gal, snapshot);
         
         if(gal->Type == 0)
+        {
           add_infall_to_hot(gal, infalling_gas);
+          cool_gas_onto_galaxy(gal, cooling_mass);
+        }
 
         insitu_star_formation(run_globals, gal, snapshot);
 
