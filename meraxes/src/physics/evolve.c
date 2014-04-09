@@ -38,7 +38,6 @@ int evolve_galaxies(run_globals_t *run_globals, fof_group_t *fof_group, int snap
   for(int i_fof=0; i_fof<NFof; i_fof++)
   {
 
-    // reincorporate_ejected_gas(run_globals, &(fof_group[i_fof]), snapshot);
     if((fof_group[i_fof].FirstHalo->Galaxy != NULL) && (fof_group[i_fof].FirstHalo->Galaxy->id_MBP == DEBUG_MBP))
     {
       fprintf(stderr, "\nBefore infall calc:\n");
@@ -83,6 +82,17 @@ int evolve_galaxies(run_globals_t *run_globals, fof_group_t *fof_group, int snap
           if(gal->id_MBP == DEBUG_MBP)
           {
             fprintf(stderr, "After add infall:\n");
+            print_galaxy(gal);
+          }
+          if(gal->id_MBP == DEBUG_MBP)
+          {
+            fprintf(stderr, "Before reincorporation:\n");
+            print_galaxy(gal);
+          }
+          reincorporate_ejected_gas(run_globals, gal);
+          if(gal->id_MBP == DEBUG_MBP)
+          {
+            fprintf(stderr, "After reincorporation:\n");
             print_galaxy(gal);
           }
           if(gal->id_MBP == DEBUG_MBP)
