@@ -120,7 +120,7 @@ int evolve_galaxies(run_globals_t *run_globals, fof_group_t *fof_group, int snap
           print_galaxy(gal);
         }
 
-        // If this is a type 2 then increment the merger clock
+        // If this is a type 2 then decrement the merger clock
         if(gal->Type == 2)
           gal->MergTime -= gal->dt;
 

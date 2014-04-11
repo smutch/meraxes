@@ -62,14 +62,19 @@ static void inline kill_galaxy(
   else
     run_globals->FirstGal = gal->Next;
 
-  // If it is a type 2 then also remove it from the linked list of galaxies in its halo
   cur_gal = gal->FirstGalInHalo;
   if (cur_gal != gal)
   {
-    while ((cur_gal->NextGalInHalo != gal) && (cur_gal->NextGalInHalo != NULL))
+    // If it is a type 2 then also remove it from the linked list of galaxies in its halo
+    while ((cur_gal->NextGalInHalo != NULL) && (cur_gal->NextGalInHalo != gal))
       cur_gal = cur_gal->NextGalInHalo;
     cur_gal->NextGalInHalo = gal->NextGalInHalo;
   }
+  else if(gal->NextGalInHalo != NULL)
+    // If it is a type 0 or 1 (i.e. first galaxy in it's halo) and there are
+    // other galaxies in this halo, reset the FirstGalInHalo pointer so that
+    // the satellites can be killed later
+    gal->NextGalInHalo->FirstGalInHalo = gal->NextGalInHalo;
 
   // Finally deallocated the galaxy and decrement any necessary counters
   SID_free(SID_FARG gal);
@@ -98,9 +103,9 @@ static inline bool check_for_merger(galaxy_t *gal, halo_t *new_halo)
 
 static inline bool check_if_valid_host(run_globals_t *run_globals, halo_t *halo)
 {
-  int invalid_flags = (TREE_CASE_FRAGMENTED_RETURNED
-      | TREE_CASE_FRAGMENTED_EXCHANGED
-      | TREE_CASE_FRAGMENTED_STRAYED);
+  // int invalid_flags = (TREE_CASE_FRAGMENTED_RETURNED
+  //     | TREE_CASE_FRAGMENTED_EXCHANGED
+  //     | TREE_CASE_FRAGMENTED_STRAYED);
       // | TREE_CASE_STRAYED);
       // | TREE_CASE_SPUTTERED);
 

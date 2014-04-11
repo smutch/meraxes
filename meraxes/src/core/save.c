@@ -784,7 +784,7 @@ void write_snapshot(run_globals_t *run_globals, int n_write, int i_out, int *las
   // This can cause significant memory overhead if `chunk_size` is large.
   gal_count = 0;
   gal = run_globals->FirstGal;
-  output_buffer = SID_malloc(sizeof(galaxy_output_t)*chunk_size);
+  output_buffer = SID_calloc(sizeof(galaxy_output_t)*(int)chunk_size);
   int buffer_count = 0;
   while (gal!=NULL) {
     // Don't output galaxies which merged at this timestep
@@ -793,7 +793,7 @@ void write_snapshot(run_globals_t *run_globals, int n_write, int i_out, int *las
       prepare_galaxy_for_output(run_globals, *gal, &(output_buffer[buffer_count]), i_out);
       buffer_count++;
     }
-    if(buffer_count==chunk_size)
+    if(buffer_count==(int)chunk_size)
     {
       H5TBwrite_records(group_id, "Galaxies", gal_count, buffer_count, h5props.dst_size,
           h5props.dst_offsets, h5props.dst_field_sizes, output_buffer);

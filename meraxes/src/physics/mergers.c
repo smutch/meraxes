@@ -61,14 +61,27 @@ double calculate_merging_time(run_globals_t *run_globals, galaxy_t *sat, int sna
   if(sat_rad > mother->Rvir)
     sat_rad = mother->Rvir;
 
-  // if(sat->StellarMass > 1e-9)
-  //   mergtime =
-  //   run_globals->params.MergerTimeFactor *
-  //   1.17 * sat_rad * sat_rad * mother->Vvir / (coulomb * run_globals->G * sat_mass);
-  // else
-  //   // if this is just a gas cloud (i.e. the infalling satellite has no stellar
-  //   // mass), then instantly merge
+  if(sat_mass > 1e-9)
+    mergtime =
+    run_globals->params.MergerTimeFactor *
+    1.17 * sat_rad * sat_rad * mother->Vvir / (coulomb * run_globals->G * sat_mass);
+  else
+    // if this is just a gas cloud (i.e. the infalling satellite has no stellar
+    // mass), then instantly merge
     mergtime = -9999.9;
+
+  if(sat->id_MBP == DEBUG_MBP)
+  {
+    fprintf(stderr, "MERGER TIMESCALES (%d)\n", snapshot);
+    fprintf(stderr, "parent MBP = %d\n", (int)(parent->id_MBP));
+    fprintf(stderr, "mother MBP = %d\n", (int)(mother->id_MBP));
+    fprintf(stderr, "mother Vvir = %.3e\n", mother->Vvir);
+    fprintf(stderr, "mother Len = %d\n", mother->Len);
+    fprintf(stderr, "sat_rad = %.3e\n", sat_rad);
+    fprintf(stderr, "sat_mass = %.3e\n", sat_mass);
+    fprintf(stderr, "sat Len = %d\n", sat->Len);
+    fprintf(stderr, "mergtime = %.3e\n", mergtime);
+  }
 
   return mergtime;
 
@@ -109,6 +122,7 @@ void merge_with_target(run_globals_t *run_globals, galaxy_t *gal, int *dead_gals
   parent = gal->MergerTarget;
   while (parent->Type==3)
     parent = parent->MergerTarget;
+  gal->MergerTarget = parent;
 
   // use the **baryonic** mass to calculate the merger ratio
   parent_baryons = parent->StellarMass + parent->ColdGas;
@@ -128,7 +142,7 @@ void merge_with_target(run_globals_t *run_globals, galaxy_t *gal, int *dead_gals
     fprintf(stderr, "central cold = %.3e\n", parent->ColdGas);
     fprintf(stderr, "central hot = %.3e\n", parent->HotGas);
     fprintf(stderr, "central stellar = %.3e\n", parent->StellarMass);
-    fprintf(stderr, "sat MBP = %d\n", gal->id_MBP);
+    fprintf(stderr, "sat MBP = %d\n", (int)(gal->id_MBP));
   }
 
   // Add galaxies together

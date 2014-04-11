@@ -17,7 +17,7 @@
  * Definitions
  */
 
-#define DEBUG_MBP 45272213
+#define DEBUG_MBP 80601842
 
 #define STRLEN  256  //!< Default string length
 
