@@ -71,7 +71,8 @@ FILE *meraxes_debug_file;
 
 //! Physics parameter values
 struct physics_params_t{
-  int    ReionizationModifier;
+  int    Flag_ReionizationModifier;
+  int    Flag_BHFeedback;
   double SfEfficiency;
   double SfRecycleFraction;
   double SnReheatEff;
@@ -79,6 +80,7 @@ struct physics_params_t{
   double ReincorporationEff;
   double Yield;
   double ThreshMajorMerger;
+  double RadioModeEff;
   double reion_z_re;
   double reion_delta_z_re;
   double reion_delta_z_sc;
@@ -348,6 +350,7 @@ struct galaxy_t
   double Sfr;
   double EjectedGas;
   double MetalsEjectedGas;
+  double BlackHoleMass;
 
   // misc
   double Cos_Inc;
@@ -393,6 +396,7 @@ struct galaxy_output_t
   float Sfr;
   float EjectedGas;
   float MetalsEjectedGas;
+  float BlackHoleMass;
 
   // misc
   float Cos_Inc;
@@ -451,6 +455,7 @@ double  gas_cooling(run_globals_t *run_globals, galaxy_t *gal, int snapshot);
 void    cool_gas_onto_galaxy(galaxy_t *gal, double cooling_mass);
 double  calc_metallicity(double total_gas, double metals);
 void    reincorporate_ejected_gas(run_globals_t *run_globals, galaxy_t *gal);
+double  radio_mode_BH_heating(run_globals_t *run_globals, galaxy_t *gal, double cooling_mass);
 
 
 // Magnitude related

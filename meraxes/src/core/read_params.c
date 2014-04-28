@@ -304,8 +304,13 @@ void read_parameter_file(run_globals_t *run_globals, char *fname)
 
     // Physics params
 
-    strcpy(params_tag[n_param], "ReionizationModifier");
-    params_addr[n_param] = &(run_params->physics).ReionizationModifier;
+    strcpy(params_tag[n_param], "Flag_ReionizationModifier");
+    params_addr[n_param] = &(run_params->physics).Flag_ReionizationModifier;
+    required_tag[n_param] = 1;
+    params_type[n_param++] = PARAM_TYPE_INT;
+
+    strcpy(params_tag[n_param], "Flag_BHFeedback");
+    params_addr[n_param] = &(run_params->physics).Flag_BHFeedback;
     required_tag[n_param] = 1;
     params_type[n_param++] = PARAM_TYPE_INT;
 
@@ -341,6 +346,11 @@ void read_parameter_file(run_globals_t *run_globals, char *fname)
 
     strcpy(params_tag[n_param], "ThreshMajorMerger");
     params_addr[n_param] = &((run_params->physics).ThreshMajorMerger);
+    required_tag[n_param] = 1;
+    params_type[n_param++] = PARAM_TYPE_DOUBLE;
+
+    strcpy(params_tag[n_param], "RadioModeEff");
+    params_addr[n_param] = &(run_params->physics).RadioModeEff;
     required_tag[n_param] = 1;
     params_type[n_param++] = PARAM_TYPE_DOUBLE;
 

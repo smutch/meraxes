@@ -61,6 +61,7 @@ void prepare_galaxy_for_output(
   galout->MetalsColdGas      = (float)(gal.MetalsColdGas / Hubble_h);
   galout->Mcool              = (float)(gal.Mcool / Hubble_h);
   galout->StellarMass        = (float)(gal.StellarMass / Hubble_h);
+  galout->BlackHoleMass      = (float)(gal.BlackHoleMass / Hubble_h);
   galout->DiskScaleLength    = (float)(gal.DiskScaleLength / Hubble_h);
   galout->MetalsStellarMass  = (float)(gal.MetalsStellarMass / Hubble_h);
   galout->Sfr                = (float)(gal.Sfr * units->UnitMass_in_g / units->UnitTime_in_s * SEC_PER_YEAR / SOLAR_MASS);
@@ -212,6 +213,11 @@ void calc_hdf5_props(run_globals_t *run_globals)
   h5props->dst_offsets[i] = HOFFSET(galaxy_output_t, MetalsStellarMass);
   h5props->dst_field_sizes[i]   = sizeof(galout.MetalsStellarMass);
   h5props->field_names[i] = "MetalsStellarMass";
+  h5props->field_types[i++] = H5T_NATIVE_FLOAT;
+
+  h5props->dst_offsets[i] = HOFFSET(galaxy_output_t, BlackHoleMass);
+  h5props->dst_field_sizes[i]   = sizeof(galout.BlackHoleMass);
+  h5props->field_names[i] = "BlackHoleMass";
   h5props->field_types[i++] = H5T_NATIVE_FLOAT;
 
   h5props->dst_offsets[i] = HOFFSET(galaxy_output_t, DiskScaleLength);
@@ -419,8 +425,10 @@ void create_master_file(run_globals_t *run_globals)
   group_id = H5Gcreate(file_id, "InputParams/physics", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
 
   ii=0;
-  addresses[ii] = &(run_globals->params.physics.ReionizationModifier);
-  sprintf(names[ii++],  "ReionizationModifier");
+  addresses[ii] = &(run_globals->params.physics.Flag_ReionizationModifier);
+  sprintf(names[ii++],  "Flag_ReionizationModifier");
+  addresses[ii] = &(run_globals->params.physics.Flag_BHFeedback);
+  sprintf(names[ii++],  "Flag_BHFeedback");
 
   for(int jj=0; jj<ii; jj++)
     h5_write_attribute(group_id, names[jj], H5T_NATIVE_INT, ds_id, addresses[jj]);
@@ -440,6 +448,8 @@ void create_master_file(run_globals_t *run_globals)
   sprintf(names[ii++],  "Yield");
   addresses[ii] = &(run_globals->params.physics.ThreshMajorMerger);
   sprintf(names[ii++],  "ThreshMajorMerger");
+  addresses[ii] = &(run_globals->params.physics.RadioModeEff);
+  sprintf(names[ii++],  "RadioModeEff");
 
   for(int jj=0; jj<ii; jj++)
     h5_write_attribute(group_id, names[jj], H5T_NATIVE_DOUBLE, ds_id, addresses[jj]);
