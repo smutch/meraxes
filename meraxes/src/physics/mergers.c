@@ -91,18 +91,21 @@ double calculate_merging_time(run_globals_t *run_globals, galaxy_t *sat, int sna
 static void merger_driven_starburst(run_globals_t *run_globals, galaxy_t *parent, double merger_ratio, int snapshot)
 {
 
-  // Calculate a merger driven starburst following Guo+ 2010
-  double burst_mass;
+  if(parent->ColdGas > 0)
+  {
+    // Calculate a merger driven starburst following Guo+ 2010
+    double burst_mass;
 
-  burst_mass = 0.56 * pow(merger_ratio, 0.7) * parent->ColdGas;
+    burst_mass = 0.56 * pow(merger_ratio, 0.7) * parent->ColdGas;
 
-  // if(burst_mass > parent->ColdGas)
-  //   burst_mass = parent->ColdGas;
-  if(burst_mass < 0)
-    burst_mass = 0.0;
+    // if(burst_mass > parent->ColdGas)
+    //   burst_mass = parent->ColdGas;
+    if(burst_mass < 0)
+      burst_mass = 0.0;
 
-  // apply the supernova feedback scheme and update the baryonic reservoirs
-  supernova_feedback(run_globals, parent, burst_mass, merger_ratio, snapshot);
+    // apply the supernova feedback scheme and update the baryonic reservoirs
+    supernova_feedback(run_globals, parent, burst_mass, merger_ratio, snapshot);
+  }
 
 }
 
