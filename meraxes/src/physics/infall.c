@@ -21,7 +21,7 @@ double gas_infall(run_globals_t *run_globals, fof_group_t *FOFgroup, int snapsho
     gal = halo->Galaxy;
     while(gal != NULL)
     {
-      total_baryons += gal->StellarMass + gal->HotGas + gal->ColdGas + gal->EjectedGas;
+      total_baryons += gal->StellarMass + gal->HotGas + gal->ColdGas + gal->EjectedGas + gal->BlackHoleMass;
 
       if(gal != central)
       {

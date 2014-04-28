@@ -155,6 +155,7 @@ void merge_with_target(run_globals_t *run_globals, galaxy_t *gal, int *dead_gals
   parent->MetalsColdGas     += gal->MetalsColdGas;
   parent->EjectedGas        += gal->EjectedGas;
   parent->MetalsEjectedGas  += gal->MetalsEjectedGas;
+  parent->BlackHoleMass     += gal->BlackHoleMass;
 
   for(int outputbin = 0; outputbin < NOUT; outputbin++)
     sum_luminosities(run_globals, parent, gal, outputbin);

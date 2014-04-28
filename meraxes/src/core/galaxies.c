@@ -39,6 +39,7 @@ galaxy_t* new_galaxy(run_globals_t *run_globals, int snapshot, int halo_ID)
   gal->Mcool              = 0.0;
   gal->StellarMass        = 0.0;
   gal->MetalsStellarMass  = 0.0;
+  gal->BlackHoleMass      = 0.0;
   gal->Sfr                = 0.0;
   gal->Cos_Inc            = gsl_rng_uniform(run_globals->random_generator);
   gal->MergTime           = 99999.9;
