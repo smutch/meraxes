@@ -27,7 +27,10 @@ static void inline create_new_galaxy(
 
   gal = new_galaxy(run_globals, snapshot, halo->ID);
   gal->Halo = halo;
-  gal->LTTime = run_globals->LTTime[0];
+  if(snapshot > 0)
+    gal->LTTime = run_globals->LTTime[snapshot-1];
+  else
+    gal->LTTime = run_globals->LTTime[snapshot];
   assign_galaxy_to_halo(gal, halo);
 
   if (run_globals->LastGal != NULL)

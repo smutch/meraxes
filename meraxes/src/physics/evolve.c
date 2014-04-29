@@ -79,7 +79,7 @@ int evolve_galaxies(run_globals_t *run_globals, fof_group_t *fof_group, int snap
               fprintf(stderr, "Before add infall:\n");
               print_galaxy(gal);
             }
-            add_infall_to_hot(gal, infalling_gas);
+            add_infall_to_hot(gal, infalling_gas/((double)NSteps));
             if(gal->id_MBP == DEBUG_MBP)
             {
               fprintf(stderr, "After add infall:\n");
