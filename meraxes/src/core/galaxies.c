@@ -93,3 +93,83 @@ void reset_galaxy_properties(galaxy_t *gal)
   gal->BaryonFracModifier = 0.0;
 
 }
+
+
+void assign_galaxy_to_halo(galaxy_t *gal, halo_t *halo)
+{
+  if (halo->Galaxy == NULL)
+    halo->Galaxy = gal;
+  else {
+    SID_log_error("Trying to assign first galaxy to a halo which already has a first galaxy!");
+#ifdef DEBUG
+    mpi_debug_here();
+#endif
+    ABORT(EXIT_FAILURE);
+  }
+}
+
+
+void create_new_galaxy(
+  run_globals_t *run_globals,
+  int            snapshot,
+  halo_t        *halo,
+  int           *NGal,
+  int           *new_gal_counter)
+{
+  galaxy_t *gal;
+
+  gal = new_galaxy(run_globals, snapshot, halo->ID);
+  gal->Halo = halo;
+  if(snapshot > 0)
+    gal->LTTime = run_globals->LTTime[snapshot-1];
+  else
+    gal->LTTime = run_globals->LTTime[snapshot];
+  assign_galaxy_to_halo(gal, halo);
+
+  if (run_globals->LastGal != NULL)
+    run_globals->LastGal->Next = gal;
+  else
+    run_globals->FirstGal = gal;
+
+  run_globals->LastGal = gal;
+  gal->FirstGalInHalo = gal;
+  gal->dt = gal->LTTime - run_globals->LTTime[snapshot];
+  *NGal = *NGal+1;
+  *new_gal_counter = *new_gal_counter+1;
+}
+
+void kill_galaxy(
+  run_globals_t *run_globals,
+  galaxy_t      *gal,
+  galaxy_t      *prev_gal,
+  int           *NGal,
+  int           *kill_counter)
+{
+  galaxy_t *cur_gal;
+
+  // Remove it from the global linked list
+  if(prev_gal!=NULL)
+    prev_gal->Next = gal->Next;
+  else
+    run_globals->FirstGal = gal->Next;
+
+  cur_gal = gal->FirstGalInHalo;
+  if (cur_gal != gal)
+  {
+    // If it is a type 2 then also remove it from the linked list of galaxies in its halo
+    while ((cur_gal->NextGalInHalo != NULL) && (cur_gal->NextGalInHalo != gal))
+      cur_gal = cur_gal->NextGalInHalo;
+    cur_gal->NextGalInHalo = gal->NextGalInHalo;
+  }
+  else if(gal->NextGalInHalo != NULL)
+    // If it is a type 0 or 1 (i.e. first galaxy in it's halo) and there are
+    // other galaxies in this halo, reset the FirstGalInHalo pointer so that
+    // the satellites can be killed later
+    gal->NextGalInHalo->FirstGalInHalo = gal->NextGalInHalo;
+
+  // Finally deallocated the galaxy and decrement any necessary counters
+  SID_free(SID_FARG gal);
+  *NGal = *NGal-1;
+  *kill_counter = *kill_counter+1;
+}
+
