@@ -31,6 +31,7 @@ int evolve_galaxies(run_globals_t *run_globals, fof_group_t *fof_group, int snap
   int       dead_gals    = 0;
   double    infalling_gas = 0;
   double    cooling_mass   = 0;
+  int       NSteps       = run_globals->params.NSteps;
 
   SID_log("Doing physics...", SID_LOG_OPEN|SID_LOG_TIMER);
 
@@ -50,116 +51,122 @@ int evolve_galaxies(run_globals_t *run_globals, fof_group_t *fof_group, int snap
       print_galaxy(fof_group[i_fof].FirstHalo->Galaxy);
     }
 
-    halo = fof_group[i_fof].FirstHalo;
-    while (halo!=NULL) {
-      gal = halo->Galaxy;
+    for(int i_step=0; i_step<NSteps; i_step++)
+    {
+      halo = fof_group[i_fof].FirstHalo;
+      while (halo!=NULL) {
+        gal = halo->Galaxy;
 
-      if(gal!=NULL)
-      {
-        if(gal->id_MBP == DEBUG_MBP)
-        {
-          fprintf(stderr, "Before cooling calc:\n");
-          print_galaxy(gal);
-        }
-        cooling_mass = gas_cooling(run_globals, gal, snapshot);
-        if(gal->id_MBP == DEBUG_MBP)
-        {
-          fprintf(stderr, "After cooling calc:\n");
-          print_galaxy(gal);
-        }
-      }
+        while(gal!=NULL){
 
-      while(gal!=NULL){
+          gal->LTTime -= gal->dt;
 
-        if(gal->Type == 0)
-        {
-          if(gal->id_MBP == DEBUG_MBP)
+          if(gal->Type == 0)
           {
-            fprintf(stderr, "Before add infall:\n");
-            print_galaxy(gal);
-          }
-          add_infall_to_hot(gal, infalling_gas);
-          if(gal->id_MBP == DEBUG_MBP)
-          {
-            fprintf(stderr, "After add infall:\n");
-            print_galaxy(gal);
-          }
-          if(gal->id_MBP == DEBUG_MBP)
-          {
-            fprintf(stderr, "Before reincorporation:\n");
-            print_galaxy(gal);
-          }
-          reincorporate_ejected_gas(run_globals, gal);
-          if(gal->id_MBP == DEBUG_MBP)
-          {
-            fprintf(stderr, "After reincorporation:\n");
-            print_galaxy(gal);
-          }
-          if(gal->id_MBP == DEBUG_MBP)
-          {
-            fprintf(stderr, "Before cooling gas:\n");
-            print_galaxy(gal);
-          }
-          cool_gas_onto_galaxy(gal, cooling_mass);
-          if(gal->id_MBP == DEBUG_MBP)
-          {
-            fprintf(stderr, "After cooling gas:\n");
-            print_galaxy(gal);
-          }
-        }
-
-        if(gal->id_MBP == DEBUG_MBP)
-        {
-          fprintf(stderr, "Before insitu SF:\n");
-          print_galaxy(gal);
-        }
-        insitu_star_formation(run_globals, gal, snapshot);
-        if(gal->id_MBP == DEBUG_MBP)
-        {
-          fprintf(stderr, "After insitu SF:\n");
-          print_galaxy(gal);
-        }
-
-        // If this is a type 2 then decrement the merger clock
-        if(gal->Type == 2)
-          gal->MergTime -= gal->dt;
-
-        gal_counter++;
-        gal = gal->NextGalInHalo;
-      }
-
-      halo = halo->NextHaloInFOFGroup;
-    }
-
-    // Check for mergers
-    halo = fof_group[i_fof].FirstHalo;
-    while(halo!=NULL) {
-      gal = halo->Galaxy;
-      while(gal!=NULL) {
-        if(gal->Type == 2)
-        {
-
-          // If the merger clock has run out or our target halo has already
-          // merged then process a merger event.
-          if((gal->MergTime <0) || (gal->MergerTarget->Type==3))
-          {
-            if(gal->MergerTarget->id_MBP == DEBUG_MBP)
+            if(gal->id_MBP == DEBUG_MBP)
             {
-              fprintf(stderr, "Before merging:\n");
-              print_galaxy(gal->MergerTarget);
+              fprintf(stderr, "Before cooling calc:\n");
+              print_galaxy(gal);
             }
-            merge_with_target(run_globals, gal, &dead_gals, snapshot);
-            if(gal->MergerTarget->id_MBP == DEBUG_MBP)
+            cooling_mass = gas_cooling(run_globals, gal, snapshot);
+            if(gal->id_MBP == DEBUG_MBP)
             {
-              fprintf(stderr, "After merging:\n");
-              print_galaxy(gal->MergerTarget);
+              fprintf(stderr, "After cooling calc:\n");
+              print_galaxy(gal);
+            }
+            if(gal->id_MBP == DEBUG_MBP)
+            {
+              fprintf(stderr, "Before add infall:\n");
+              print_galaxy(gal);
+            }
+            add_infall_to_hot(gal, infalling_gas);
+            if(gal->id_MBP == DEBUG_MBP)
+            {
+              fprintf(stderr, "After add infall:\n");
+              print_galaxy(gal);
+            }
+            if(gal->id_MBP == DEBUG_MBP)
+            {
+              fprintf(stderr, "Before reincorporation:\n");
+              print_galaxy(gal);
+            }
+            reincorporate_ejected_gas(run_globals, gal);
+            if(gal->id_MBP == DEBUG_MBP)
+            {
+              fprintf(stderr, "After reincorporation:\n");
+              print_galaxy(gal);
+            }
+            if(gal->id_MBP == DEBUG_MBP)
+            {
+              fprintf(stderr, "Before cooling gas:\n");
+              print_galaxy(gal);
+            }
+            cool_gas_onto_galaxy(gal, cooling_mass);
+            if(gal->id_MBP == DEBUG_MBP)
+            {
+              fprintf(stderr, "After cooling gas:\n");
+              print_galaxy(gal);
             }
           }
 
+          if(gal->Type < 3)
+          {
+            if(gal->id_MBP == DEBUG_MBP)
+            {
+              fprintf(stderr, "Before insitu SF:\n");
+              print_galaxy(gal);
+            }
+            insitu_star_formation(run_globals, gal, snapshot);
+            if(gal->id_MBP == DEBUG_MBP)
+            {
+              fprintf(stderr, "After insitu SF:\n");
+              print_galaxy(gal);
+            }
+
+            // If this is a type 2 then decrement the merger clock
+            if(gal->Type == 2)
+              gal->MergTime -= gal->dt;
+          }
+
+          if(i_step == NSteps-1)
+            gal_counter++;
+
+          gal = gal->NextGalInHalo;
         }
-        gal = gal->NextGalInHalo;
+
+        halo = halo->NextHaloInFOFGroup;
       }
-      halo = halo->NextHaloInFOFGroup;
+
+      // Check for mergers
+      halo = fof_group[i_fof].FirstHalo;
+      while(halo!=NULL) {
+        gal = halo->Galaxy;
+        while(gal!=NULL) {
+          if(gal->Type == 2)
+          {
+
+            // If the merger clock has run out or our target halo has already
+            // merged then process a merger event.
+            if((gal->MergTime <0) || (gal->MergerTarget->Type==3))
+            {
+              if(gal->MergerTarget->id_MBP == DEBUG_MBP)
+              {
+                fprintf(stderr, "Before merging:\n");
+                print_galaxy(gal->MergerTarget);
+              }
+              merge_with_target(run_globals, gal, &dead_gals, snapshot);
+              if(gal->MergerTarget->id_MBP == DEBUG_MBP)
+              {
+                fprintf(stderr, "After merging:\n");
+                print_galaxy(gal->MergerTarget);
+              }
+            }
+
+          }
+          gal = gal->NextGalInHalo;
+        }
+        halo = halo->NextHaloInFOFGroup;
+      }
     }
   }
 

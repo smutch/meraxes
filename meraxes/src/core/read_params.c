@@ -205,6 +205,11 @@ void read_parameter_file(run_globals_t *run_globals, char *fname)
     required_tag[n_param] = 1;
     params_type[n_param++] = PARAM_TYPE_INT;
 
+    strcpy(params_tag[n_param], "NSteps");
+    params_addr[n_param] = &(run_params->NSteps);
+    required_tag[n_param] = 1;
+    params_type[n_param++] = PARAM_TYPE_INT;
+
     strcpy(params_tag[n_param], "BoxSize");
     params_addr[n_param] = &(run_params->BoxSize);
     required_tag[n_param] = 1;

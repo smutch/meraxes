@@ -116,6 +116,7 @@ struct run_params_t{
   int                   LastSnapshotNr;
   int                   FirstFile;
   int                   LastFile;
+  int                   NSteps;
   double                BoxSize;
   double                VolumeFactor;
   double                Hubble_h;

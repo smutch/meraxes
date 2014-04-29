@@ -361,6 +361,8 @@ void create_master_file(run_globals_t *run_globals)
   sprintf(names[ii++],  "FirstFile");
   addresses[ii] = &(run_globals->params.LastFile);
   sprintf(names[ii++],  "LastFile");
+  addresses[ii] = &(run_globals->params.NSteps);
+  sprintf(names[ii++],  "NSteps");
   addresses[ii] = &(run_globals->params.SnaplistLength);
   sprintf(names[ii++],  "SnaplistLength");
   addresses[ii] = &(run_globals->NRequestedForests);

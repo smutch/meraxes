@@ -27,7 +27,7 @@ static void inline create_new_galaxy(
 
   gal = new_galaxy(run_globals, snapshot, halo->ID);
   gal->Halo = halo;
-  gal->LTTime = run_globals->LTTime[snapshot];
+  gal->LTTime = run_globals->LTTime[0];
   assign_galaxy_to_halo(gal, halo);
 
   if (run_globals->LastGal != NULL)
@@ -37,7 +37,7 @@ static void inline create_new_galaxy(
 
   run_globals->LastGal = gal;
   gal->FirstGalInHalo = gal;
-  gal->dt = run_globals->LTTime[0] - gal->LTTime;
+  gal->dt = gal->LTTime - run_globals->LTTime[snapshot];
   *NGal = *NGal+1;
   *new_gal_counter = *new_gal_counter+1;
 }
@@ -175,6 +175,7 @@ void dracarys(run_globals_t *run_globals)
   int           n_store_snapshots = 0;
   int           n_runs          = run_globals->NRuns;
   int           i_snap;
+  int           NSteps          = run_globals->params.NSteps;
 
   int           set_par;
 
@@ -452,7 +453,7 @@ void dracarys(run_globals_t *run_globals)
       }
 
       // We finish by copying the halo properties into the galaxy structure of
-      // all galaxies with type<2 and updating the lookback time values for
+      // all galaxies with type<2 and updating the dt values for
       // non-ghosts.
       gal = run_globals->FirstGal;
       while(gal!=NULL)
@@ -467,7 +468,7 @@ void dracarys(run_globals_t *run_globals)
         }
         if(!gal->ghost_flag)
         {
-          gal->LTTime = run_globals->LTTime[snapshot];
+          gal->dt /= (double)NSteps;
           reset_galaxy_properties(gal);
         }
         if((gal->Type<2) && (!gal->ghost_flag))
