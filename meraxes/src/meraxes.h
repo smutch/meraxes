@@ -17,7 +17,8 @@
  * Definitions
  */
 
-#define DEBUG_MBP 80601842
+// #define DEBUG_MBP 130043866
+#define DEBUG_MBP 119679738
 
 #define STRLEN  256  //!< Default string length
 
@@ -81,6 +82,7 @@ struct physics_params_t{
   double Yield;
   double ThreshMajorMerger;
   double RadioModeEff;
+  double BlackHoleGrowthRate;
   double reion_z_re;
   double reion_delta_z_re;
   double reion_delta_z_sc;
@@ -456,6 +458,7 @@ void    cool_gas_onto_galaxy(galaxy_t *gal, double cooling_mass);
 double  calc_metallicity(double total_gas, double metals);
 void    reincorporate_ejected_gas(run_globals_t *run_globals, galaxy_t *gal);
 double  radio_mode_BH_heating(run_globals_t *run_globals, galaxy_t *gal, double cooling_mass);
+void    merger_driven_BH_growth(run_globals_t *run_globals, galaxy_t *gal, double merger_ratio);
 
 
 // Magnitude related

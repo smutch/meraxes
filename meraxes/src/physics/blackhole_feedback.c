@@ -62,3 +62,30 @@ double radio_mode_BH_heating(run_globals_t *run_globals, galaxy_t *gal, double c
   return heated_mass;
 
 }
+
+
+void merger_driven_BH_growth(run_globals_t *run_globals, galaxy_t *gal, double merger_ratio)
+{
+
+  double accreted_mass;
+  double accreted_metals;
+
+  if(gal->ColdGas > 0)
+  {
+    // If there is any cold gas to feed the black hole...
+
+    accreted_mass = run_globals->params.physics.BlackHoleGrowthRate * merger_ratio /
+      (1.0 + (280.0 * 280.0 / gal->Vvir / gal->Vvir)) * gal->ColdGas;
+
+    // limit accretion to what is available
+    if(accreted_mass > gal->ColdGas)
+      accreted_mass = gal->ColdGas;
+
+    accreted_metals = calc_metallicity(gal->ColdGas, gal->MetalsColdGas) * accreted_mass;
+    gal->BlackHoleMass += accreted_mass;
+    gal->ColdGas       -= accreted_mass;
+    gal->MetalsColdGas -= accreted_metals;
+
+  }
+
+}

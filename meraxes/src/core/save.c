@@ -450,6 +450,8 @@ void create_master_file(run_globals_t *run_globals)
   sprintf(names[ii++],  "ThreshMajorMerger");
   addresses[ii] = &(run_globals->params.physics.RadioModeEff);
   sprintf(names[ii++],  "RadioModeEff");
+  addresses[ii] = &(run_globals->params.physics.BlackHoleGrowthRate);
+  sprintf(names[ii++],  "BlackHoleGrowthRate");
 
   for(int jj=0; jj<ii; jj++)
     h5_write_attribute(group_id, names[jj], H5T_NATIVE_DOUBLE, ds_id, addresses[jj]);

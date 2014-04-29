@@ -163,6 +163,9 @@ void merge_with_target(run_globals_t *run_globals, galaxy_t *gal, int *dead_gals
   for(int outputbin = 0; outputbin < NOUT; outputbin++)
     sum_luminosities(run_globals, parent, gal, outputbin);
 
+  if(run_globals->params.physics.Flag_BHFeedback)
+    merger_driven_BH_growth(run_globals, parent, merger_ratio);
+
   // merger driven starburst prescription
   merger_driven_starburst(run_globals, parent, merger_ratio, snapshot);
 
