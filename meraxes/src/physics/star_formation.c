@@ -2,7 +2,7 @@
 #include "meraxes.h"
 #include <gsl/gsl_sf_lambert.h>
 
-void update_reservoirs_from_sf(run_globals_t *run_globals, galaxy_t *gal, double new_stars, double merger_mass_ratio, int snapshot)
+void update_reservoirs_from_sf(run_globals_t *run_globals, galaxy_t *gal, double new_stars, double merger_mass_ratio)
 {
   double metallicity;
   double current_time;
@@ -22,7 +22,7 @@ void update_reservoirs_from_sf(run_globals_t *run_globals, galaxy_t *gal, double
   gal->MetalsStellarMass += remaining_stars * metallicity;
 
   // update the luminosities
-  current_time = run_globals->LTTime[snapshot] - 0.5 * gal->dt;
+  current_time = gal->LTTime + 0.5 * gal->dt;
   add_to_luminosities(run_globals, gal, new_stars, metallicity, current_time);
 
   // assuming instantaneous recycling approximation and enrichment from SNII
@@ -36,7 +36,7 @@ void update_reservoirs_from_sf(run_globals_t *run_globals, galaxy_t *gal, double
 }
 
 
-void insitu_star_formation(run_globals_t *run_globals, galaxy_t *gal, int snapshot)
+void insitu_star_formation(run_globals_t *run_globals, galaxy_t *gal)
 {
 
   // These star formation & supernova feedback prescriptions are taken directly
@@ -66,6 +66,6 @@ void insitu_star_formation(run_globals_t *run_globals, galaxy_t *gal, int snapsh
       return;
 
     // apply supernova feedback and update baryonic reservoirs
-    supernova_feedback(run_globals, gal, m_stars, -999, snapshot);
+    supernova_feedback(run_globals, gal, m_stars, -999);
   }
 }

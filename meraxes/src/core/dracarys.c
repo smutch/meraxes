@@ -41,8 +41,6 @@ static inline bool check_if_valid_host(run_globals_t *run_globals, halo_t *halo)
     return true;
   else
     return false;
-
-  // SID_log("halo ID=%d is not a valid host (Type=%d, Treeflags=%d)", SID_LOG_COMMENT, halo->ID, halo->Type, halo->TreeFlags);
 }
 
 static int find_original_index(int index, int *lookup, int n_mappings)
@@ -57,20 +55,19 @@ static int find_original_index(int index, int *lookup, int n_mappings)
   return new_index;
 }
 
-// static void set_multiple_runs_params(run_globals_t *run_globals, int i_run)
-// {
+static void set_multiple_runs_params(run_globals_t *run_globals, int i_run)
+{
+  SID_log("Setting parameters...", SID_LOG_COMMENT);
+  double *p = run_globals->MultipleRunsParams[i_run];
+  physics_params_t *params = &(run_globals->params.physics);
 
-//   SID_log("Setting parameters...", SID_LOG_COMMENT);
-//   double *p = run_globals->MultipleRunsParams[i_run];
-//   physics_params_t *params = &(run_globals->params.physics);
-
-//   params->SfEfficiency           = p[0];
-//   params->SfRecycleFraction      = p[1];
-//   params->SnEjectionEff          = p[2];
-//   params->SnReheatEff            = p[3];
-//   params->ReincorporationEff     = p[4];
-//   params->Yield                  = p[5];
-// }
+  params->SfEfficiency           = p[0];
+  params->SfRecycleFraction      = p[1];
+  params->SnEjectionEff          = p[2];
+  params->SnReheatEff            = p[3];
+  params->ReincorporationEff     = p[4];
+  params->Yield                  = p[5];
+}
 
 
 //! Actually run the model
@@ -115,10 +112,12 @@ void dracarys(run_globals_t *run_globals)
     n_store_snapshots = last_snap+1;
   else
     n_store_snapshots = 1;
-  snapshot_halo = (halo_t **)SID_calloc(sizeof(halo_t *) * n_store_snapshots);
-  snapshot_fof_group = (fof_group_t **)SID_calloc(sizeof(fof_group_t *) * n_store_snapshots);
+
+  snapshot_halo         = (halo_t **)SID_calloc(sizeof(halo_t *) * n_store_snapshots);
+  snapshot_fof_group    = (fof_group_t **)SID_calloc(sizeof(fof_group_t *) * n_store_snapshots);
   snapshot_index_lookup = (int **)SID_calloc(sizeof(int *) * n_store_snapshots);
-  snapshot_trees_info = (trees_info_t *)SID_calloc(sizeof(trees_info_t) * n_store_snapshots);
+  snapshot_trees_info   = (trees_info_t *)SID_calloc(sizeof(trees_info_t) * n_store_snapshots);
+
   for(int ii=0; ii < n_store_snapshots; ii++)
     snapshot_trees_info[ii].n_halos = -1;
 
@@ -129,8 +128,8 @@ void dracarys(run_globals_t *run_globals)
     SID_log("Starting model iteration %d...", SID_LOG_OPEN|SID_LOG_TIMER, i_run);
 
     // if necessary set the parameters according to those provided in run_globals->params.MultipleRunsFile
-    // if(n_runs > 1)
-    //   set_multiple_runs_params(run_globals, i_run);
+    if(n_runs > 1)
+      set_multiple_runs_params(run_globals, i_run);
 
     if(i_run > 0)
     {
@@ -444,12 +443,12 @@ void dracarys(run_globals_t *run_globals)
 #endif
 
       // Write the results if this is a requested snapshot (and we are on our last model call)
-      // if(i_run == n_runs-1)
-      // {
+      if(i_run == n_runs-1)
+      {
         for(int i_out = 0; i_out < NOUT; i_out++)
           if(snapshot == run_globals->ListOutputSnaps[i_out])
             write_snapshot(run_globals, nout_gals, i_out, &last_nout_gals);
-      // }
+      }
 
 #ifdef USE_TOCF
       if(run_globals->params.TOCF_Flag)
@@ -523,7 +522,6 @@ void dracarys(run_globals_t *run_globals)
     }
 
   }
-
 
   // Free all of the remaining allocated galaxies, halos and fof groups
   SID_log("Freeing FOF groups and halos...", SID_LOG_COMMENT);

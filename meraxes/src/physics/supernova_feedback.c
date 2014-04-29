@@ -26,7 +26,7 @@ static void update_reservoirs_from_sn_feedback(galaxy_t *gal, double m_reheat, d
 }
 
 
-void supernova_feedback(run_globals_t *run_globals, galaxy_t *gal, double m_stars, double merger_mass_ratio, int snapshot)
+void supernova_feedback(run_globals_t *run_globals, galaxy_t *gal, double m_stars, double merger_mass_ratio)
 {
 
     // NOTE: m_stars should be mass of stars formed **before** instantaneous
@@ -61,7 +61,7 @@ void supernova_feedback(run_globals_t *run_globals, galaxy_t *gal, double m_star
       m_eject = 0.0;
 
     // update the baryonic reservoirs (note the order makes a difference here!)
-    update_reservoirs_from_sf(run_globals, gal, m_stars, merger_mass_ratio, snapshot);
+    update_reservoirs_from_sf(run_globals, gal, m_stars, merger_mass_ratio);
     update_reservoirs_from_sn_feedback(gal, m_reheat, m_eject);
 
 }

@@ -1,7 +1,7 @@
 #include "meraxes.h"
 #include <math.h>
 
-double gas_cooling(run_globals_t *run_globals, galaxy_t *gal, int snapshot)
+double gas_cooling(run_globals_t *run_globals, galaxy_t *gal)
 {
 
   double cooling_mass;

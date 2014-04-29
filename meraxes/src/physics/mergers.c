@@ -75,7 +75,7 @@ double calculate_merging_time(run_globals_t *run_globals, galaxy_t *sat, int sna
 }
 
 
-static void merger_driven_starburst(run_globals_t *run_globals, galaxy_t *parent, double merger_ratio, int snapshot)
+static void merger_driven_starburst(run_globals_t *run_globals, galaxy_t *parent, double merger_ratio)
 {
 
   if(parent->ColdGas > 0)
@@ -91,13 +91,13 @@ static void merger_driven_starburst(run_globals_t *run_globals, galaxy_t *parent
       burst_mass = 0.0;
 
     // apply the supernova feedback scheme and update the baryonic reservoirs
-    supernova_feedback(run_globals, parent, burst_mass, merger_ratio, snapshot);
+    supernova_feedback(run_globals, parent, burst_mass, merger_ratio);
   }
 
 }
 
 
-void merge_with_target(run_globals_t *run_globals, galaxy_t *gal, int *dead_gals, int snapshot)
+void merge_with_target(run_globals_t *run_globals, galaxy_t *gal, int *dead_gals)
 {
 
   galaxy_t *parent         = NULL;
@@ -141,7 +141,7 @@ void merge_with_target(run_globals_t *run_globals, galaxy_t *gal, int *dead_gals
     merger_driven_BH_growth(run_globals, parent, merger_ratio);
 
   // merger driven starburst prescription
-  merger_driven_starburst(run_globals, parent, merger_ratio, snapshot);
+  merger_driven_starburst(run_globals, parent, merger_ratio);
 
   // Mark the merged galaxy as dead
   gal->Type          = 3;
