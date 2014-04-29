@@ -33,27 +33,6 @@ double gas_infall(run_globals_t *run_globals, fof_group_t *FOFgroup, int snapsho
       total_ejectedgas += gal->EjectedGas;
       total_blackholemass += gal->BlackHoleMass;
 
-      if(central->id_MBP == DEBUG_MBP)
-      {
-        fprintf(stderr, "SM = %.3e\n", total_stellarmass);
-        fprintf(stderr, "HG = %.3e\n", total_hotgas);
-        fprintf(stderr, "CG = %.3e\n", total_coldgas);
-        fprintf(stderr, "EG = %.3e\n", total_ejectedgas);
-        fprintf(stderr, "BH = %.3e\n", total_blackholemass);
-        fprintf(stderr, "Type = %d\n", gal->Type);
-        fprintf(stderr, "MBP = %d\n", gal->id_MBP);
-
-        if(gal->id_MBP == 119891797)
-        {
-          fprintf(stderr, "stellar = %.3e\n", gal->StellarMass);
-          fprintf(stderr, "hot = %.3e\n", gal->HotGas);
-          fprintf(stderr, "cold = %.3e\n", gal->ColdGas);
-          fprintf(stderr, "ejected = %.3e\n", gal->EjectedGas);
-          fprintf(stderr, "blackholemass = %.3e\n", gal->BlackHoleMass);
-
-        }
-      }
-
       if(gal != central)
       {
         central->HotGas += gal->HotGas + gal->EjectedGas;
@@ -81,14 +60,6 @@ double gas_infall(run_globals_t *run_globals, fof_group_t *FOFgroup, int snapsho
 
   // record the infall modifier
   central->BaryonFracModifier = fb_modifier;
-
-  if(central->id_MBP == DEBUG_MBP)
-  {
-    fprintf(stderr, "DEBUG INFALL (%d)\n", snapshot);
-    fprintf(stderr, "total_baryons = %.3e\n", total_baryons);
-    fprintf(stderr, "infall_mass = %.3e\n", infall_mass);
-    fprintf(stderr, "m_eject = %.3e\n", central->EjectedGas);
-  }
 
   return infall_mass;
 

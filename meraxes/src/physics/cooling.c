@@ -10,7 +10,7 @@ double gas_cooling(run_globals_t *run_globals, galaxy_t *gal, int snapshot)
   if(gal->HotGas > 1e-10)
   {
 
-    double t_cool, max_cooling_mass, cooling_metals, Tvir;
+    double t_cool, max_cooling_mass, Tvir;
     double logZ, lambda, x, rho_r_cool, r_cool, rho_at_Rvir;
     run_units_t *units = &(run_globals->units);
 
@@ -28,10 +28,7 @@ double gas_cooling(run_globals_t *run_globals, galaxy_t *gal, int snapshot)
       logZ = -10.0;
 
     // interpolate the temperature and metallicity dependant cooling rate (lambda)
-    if(gal->id_MBP == DEBUG_MBP)
-      lambda = interpolate_cooling_rate(log10(Tvir), logZ, 1);
-    else
-      lambda = interpolate_cooling_rate(log10(Tvir), logZ, 0);
+    lambda = interpolate_cooling_rate(log10(Tvir), logZ);
 
     // following equation (3) of Croton+ 2006, calculate the hot gas density at
     // the radius r_cool (i.e. where the cooling time is equal to `t_cool`
@@ -60,23 +57,6 @@ double gas_cooling(run_globals_t *run_globals, galaxy_t *gal, int snapshot)
       cooling_mass = 0.5 * gal->HotGas / gal->Rvir * r_cool / t_cool * gal->dt;
       // if(cooling_mass > max_cooling_mass)
       //   cooling_mass = max_cooling_mass;
-    }
-
-    // DEBUG
-    if(gal->id_MBP == DEBUG_MBP)
-    {
-      fprintf(stderr, "COOLING DEBUG: (%d)\n", snapshot);
-      fprintf(stderr, "r_cool = %.3e\n", r_cool);
-      fprintf(stderr, "rho_at_Rvir = %.3e\n", rho_at_Rvir);
-      fprintf(stderr, "HotGas = %.3e\n", gal->HotGas);
-      fprintf(stderr, "Rvir = %.3e\n", gal->Rvir);
-      fprintf(stderr, "Tvir = %.3e\n", Tvir);
-      fprintf(stderr, "lambda = %.3e\n", lambda);
-      fprintf(stderr, "x = %.3e\n", x);
-      fprintf(stderr, "logZ = %.3e\n", logZ);
-      fprintf(stderr, "t_cool = %.3e\n", t_cool);
-      fprintf(stderr, "dt = %.3e\n", gal->dt);
-      fprintf(stderr, "cooling_mass = %.3e\n", cooling_mass);
     }
 
     // do one last sanity check to ensure we aren't cooling more gas than is available etc.

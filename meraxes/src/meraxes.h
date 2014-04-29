@@ -17,9 +17,6 @@
  * Definitions
  */
 
-// #define DEBUG_MBP 130043866
-#define DEBUG_MBP 119679738
-
 #define STRLEN  256  //!< Default string length
 
 // TODO: This should not be hard coded if at all possible...
@@ -453,7 +450,7 @@ float   calculate_Rvir(run_globals_t *run_globals, halo_t *halo, double Mvir, in
 float   calculate_Vvir(run_globals_t *run_globals, double Mvir, float Rvir);
 double  calculate_spin_param(halo_t *halo);
 void    read_cooling_functions(run_globals_t *run_globals);
-double  interpolate_cooling_rate(double logTemp, double logZ, int flag_debug);
+double  interpolate_cooling_rate(double logTemp, double logZ);
 double  gas_cooling(run_globals_t *run_globals, galaxy_t *gal, int snapshot);
 void    cool_gas_onto_galaxy(galaxy_t *gal, double cooling_mass);
 double  calc_metallicity(double total_gas, double metals);

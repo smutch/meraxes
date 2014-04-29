@@ -23,9 +23,6 @@ static void update_reservoirs_from_sn_feedback(galaxy_t *gal, double m_reheat, d
   central->HotGas           -= m_eject;
   central->MetalsHotGas     -= m_eject * metallicity;
 
-  if(central->id_MBP == DEBUG_MBP)
-    fprintf(stderr, "gal->ID %d just ejected %.3e worth of gas into id_MBP = %d\n", gal->ID, m_eject, DEBUG_MBP);
-
 }
 
 
@@ -62,15 +59,6 @@ void supernova_feedback(run_globals_t *run_globals, galaxy_t *gal, double m_star
     // make sure we are being consistent
     if(m_eject < 0)
       m_eject = 0.0;
-
-    if(gal->id_MBP == DEBUG_MBP)
-    {
-      fprintf(stderr, "DEBUG SN FEEDBACK (%d)\n", snapshot);
-      fprintf(stderr, "m_stars = %.3e\n", m_stars);
-      fprintf(stderr, "m_reheat = %.3e\n", m_reheat);
-      fprintf(stderr, "m_eject = %.3e\n", m_eject);
-      fprintf(stderr, "m_cold = %.3e\n", gal->ColdGas);
-    }
 
     // update the baryonic reservoirs (note the order makes a difference here!)
     update_reservoirs_from_sf(run_globals, gal, m_stars, merger_mass_ratio, snapshot);

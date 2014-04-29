@@ -74,7 +74,7 @@ void read_cooling_functions(run_globals_t *run_globals)
 }
 
 
-static double interpolate_temp_dependant_cooling_rate(int i_m, double logTemp, int flag_debug)
+static double interpolate_temp_dependant_cooling_rate(int i_m, double logTemp)
 {
 
   int i_t;
@@ -102,30 +102,16 @@ static double interpolate_temp_dependant_cooling_rate(int i_m, double logTemp, i
   // Now linearly interpolate the cooling rate
   rate = rate_below + (rate_above - rate_below) / temp_step * (logTemp - logT_below);
 
-  if(flag_debug)
-  {
-    fprintf(stderr, "INTERP_TEMP\n");
-    fprintf(stderr, "logTemp = %.3e\n", logTemp);
-    fprintf(stderr, "i_t  = %d\n", i_t);
-    fprintf(stderr, "cooling_rate[%d][0]  = %.3e\n", i_m, cooling_rate[i_m][0]);
-    fprintf(stderr, "cooling_rate[%d][-1]  = %.3e\n", i_m, cooling_rate[i_m][N_TEMPS-1]);
-    fprintf(stderr, "rate_above  = %.3e\n", rate_above);
-    fprintf(stderr, "rate_below  = %.3e\n", rate_below);
-    fprintf(stderr, "logT_below  = %.3e\n", logT_below);
-    fprintf(stderr, "rate  = %.3e\n", rate);
-  }
-
   return rate;
 
 }
 
 
-double interpolate_cooling_rate(double logTemp, double logZ, int flag_debug)
+double interpolate_cooling_rate(double logTemp, double logZ)
 {
 
   int i_m;
   double rate_below, rate_above, rate;
-  double logZ_before = logZ;
 
   // First deal with boundary conditions
   if(logZ < metallicities[0])
@@ -139,24 +125,11 @@ double interpolate_cooling_rate(double logTemp, double logZ, int flag_debug)
     i_m++;
 
   // Get the cooling rates for this temperature value
-  rate_below = interpolate_temp_dependant_cooling_rate(i_m, logTemp, flag_debug);
-  rate_above = interpolate_temp_dependant_cooling_rate(i_m+1, logTemp, flag_debug);
+  rate_below = interpolate_temp_dependant_cooling_rate(i_m, logTemp);
+  rate_above = interpolate_temp_dependant_cooling_rate(i_m+1, logTemp);
 
   // Finally, linearly interpolate the cooling rates
   rate = rate_below + (rate_above - rate_below) / (metallicities[i_m+1] - metallicities[i_m]) * (logZ - metallicities[i_m]);
-
-  if(flag_debug)
-  {
-    fprintf(stderr, "logZ_before = %.3e\n", logZ_before);
-    fprintf(stderr, "logZ = %.3e\n", logZ);
-    fprintf(stderr, "i_m  = %d\n", i_m);
-    fprintf(stderr, "metallicities[0]  = %.3e\n", metallicities[0]);
-    fprintf(stderr, "metallicities[-1]  = %.3e\n", metallicities[N_METALLICITIES-1]);
-    fprintf(stderr, "metallicities[i_m]  = %.3e\n", metallicities[i_m]);
-    fprintf(stderr, "metallicities[i_m+1]  = %.3e\n", metallicities[i_m+1]);
-    fprintf(stderr, "rate_above  = %.3e\n", rate_above);
-    fprintf(stderr, "rate_below  = %.3e\n", rate_below);
-  }
 
   return pow(10, rate);
 

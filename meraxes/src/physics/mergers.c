@@ -70,19 +70,6 @@ double calculate_merging_time(run_globals_t *run_globals, galaxy_t *sat, int sna
     // mass), then instantly merge
     mergtime = -9999.9;
 
-  if(sat->id_MBP == DEBUG_MBP)
-  {
-    fprintf(stderr, "MERGER TIMESCALES (%d)\n", snapshot);
-    fprintf(stderr, "parent MBP = %d\n", (int)(parent->id_MBP));
-    fprintf(stderr, "mother MBP = %d\n", (int)(mother->id_MBP));
-    fprintf(stderr, "mother Vvir = %.3e\n", mother->Vvir);
-    fprintf(stderr, "mother Len = %d\n", mother->Len);
-    fprintf(stderr, "sat_rad = %.3e\n", sat_rad);
-    fprintf(stderr, "sat_mass = %.3e\n", sat_mass);
-    fprintf(stderr, "sat Len = %d\n", sat->Len);
-    fprintf(stderr, "mergtime = %.3e\n", mergtime);
-  }
-
   return mergtime;
 
 }
@@ -134,19 +121,6 @@ void merge_with_target(run_globals_t *run_globals, galaxy_t *gal, int *dead_gals
     merger_ratio = gal_baryons/parent_baryons;
   else
     merger_ratio = parent_baryons/gal_baryons;
-
-  // DEBUG
-  if(parent->id_MBP == DEBUG_MBP)
-  {
-    fprintf(stderr, "DEBUG MERGER\n");
-    fprintf(stderr, "sat cold = %.3e\n", gal->ColdGas);
-    fprintf(stderr, "sat hot = %.3e\n", gal->HotGas);
-    fprintf(stderr, "sat stellar = %.3e\n", gal->StellarMass);
-    fprintf(stderr, "central cold = %.3e\n", parent->ColdGas);
-    fprintf(stderr, "central hot = %.3e\n", parent->HotGas);
-    fprintf(stderr, "central stellar = %.3e\n", parent->StellarMass);
-    fprintf(stderr, "sat MBP = %d\n", (int)(gal->id_MBP));
-  }
 
   // Add galaxies together
   parent->StellarMass       += gal->StellarMass;
