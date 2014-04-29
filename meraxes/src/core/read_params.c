@@ -364,43 +364,43 @@ void read_parameter_file(run_globals_t *run_globals, char *fname)
     required_tag[n_param] = 1;
     params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
-    strcpy(params_tag[n_param], "reion_z_re");
-    params_addr[n_param] = &(run_params->physics).reion_z_re;
+    strcpy(params_tag[n_param], "ReionZre");
+    params_addr[n_param] = &(run_params->physics).ReionZre;
     required_tag[n_param] = 1;
     params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
-    strcpy(params_tag[n_param], "reion_delta_z_re");
-    params_addr[n_param] = &(run_params->physics).reion_delta_z_re;
+    strcpy(params_tag[n_param], "ReionDeltaZre");
+    params_addr[n_param] = &(run_params->physics).ReionDeltaZre;
     required_tag[n_param] = 1;
     params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
-    strcpy(params_tag[n_param], "reion_delta_z_sc");
-    params_addr[n_param] = &(run_params->physics).reion_delta_z_sc;
+    strcpy(params_tag[n_param], "ReionDeltaZsc");
+    params_addr[n_param] = &(run_params->physics).ReionDeltaZsc;
     required_tag[n_param] = 1;
     params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
-    strcpy(params_tag[n_param], "reion_T0");
-    params_addr[n_param] = &(run_params->physics).reion_T0;
+    strcpy(params_tag[n_param], "ReionT0");
+    params_addr[n_param] = &(run_params->physics).ReionT0;
     required_tag[n_param] = 1;
     params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
-    strcpy(params_tag[n_param], "reion_Tcool");
-    params_addr[n_param] = &(run_params->physics).reion_Tcool;
+    strcpy(params_tag[n_param], "ReionTcool");
+    params_addr[n_param] = &(run_params->physics).ReionTcool;
     required_tag[n_param] = 1;
     params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
-    strcpy(params_tag[n_param], "reion_Nion_phot_per_bary");
-    params_addr[n_param] = &(run_params->physics).reion_Nion_phot_per_bary;
+    strcpy(params_tag[n_param], "ReionNionPhotPerBary");
+    params_addr[n_param] = &(run_params->physics).ReionNionPhotPerBary;
     required_tag[n_param] = 1;
     params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
-    strcpy(params_tag[n_param], "reion_escape_frac");
-    params_addr[n_param] = &(run_params->physics).reion_escape_frac;
+    strcpy(params_tag[n_param], "ReionEscapeFrac");
+    params_addr[n_param] = &(run_params->physics).ReionEscapeFrac;
     required_tag[n_param] = 1;
     params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
-    strcpy(params_tag[n_param], "reion_mean_n_rec");
-    params_addr[n_param] = &(run_params->physics).reion_mean_n_rec;
+    strcpy(params_tag[n_param], "ReionMeanNRec");
+    params_addr[n_param] = &(run_params->physics).ReionMeanNRec;
     required_tag[n_param] = 1;
     params_type[n_param++] = PARAM_TYPE_DOUBLE;
 

@@ -9,44 +9,39 @@ OutputDir           : output
 #----- 21cmFAST ---------------------------
 #------------------------------------------
 TOCF_Flag : 0 {  # use 21cmfast for reionization?
-    numcores   : 16         # number of OpenMP threads to run 21cmFAST with
-    LogFileDir : tocf_logs  # directory for log files
-    uvb_feedback : 0
-    compute_mfp : 0
-    HII_dim : 128
-    ram : 64
-    HII_filter : 0
-#     HII_eff_factor : 4000
+    numcores         : 16         # number of OpenMP threads to run 21cmFAST with
+    LogFileDir       : tocf_logs  # directory for log files
+    uvb_feedback     : 0
+    compute_mfp      : 0
+    HII_dim          : 128
+    ram              : 64
+    HII_filter       : 0
+    # HII_eff_factor : 4000
 }
 
 #------------------------------------------
 #----- Parameters of physical model -------
 #------------------------------------------
-funcprop        : 1       # physics function property (Mvir=1, Vmax=2)
+Flag_ReionizationModifier : 1       # use halo mass dependant infall modifier of Sobacchi & Mesinger (2013)
+Flag_BHFeedback           : 1       # use black hole feedback
 
-funcprop_params : 1 {
-    peak            : 11.4    # peak of star formation efficiency (units -> log10(mvir/h))
-    peak_evo        : 0.0     # evolution variable
-    sigma           : 0.75    # width of star formation efficiency function (units -> log10(mvir/h))
-    sigma_evo       : 0.0     # evolution variable
-    stellarfrac     : 0.05    # fraction of halo mass growth available to form stars
-    stellarfrac_evo : 0.0     # evolution variable
-}
+SfEfficiency              : 0.1     # star formation efficiency
+SfRecycleFraction         : 0.43    # instantaneous recycle fraction (IMF dependant)
+SnEjectionEff             : 0.35    # mass loading factor for SN feedback
+SnReheatEff               : 3.5     # SN feedback gas reheating efficiency
+ReincorporationEff        : 0.3     # gas reincorporation efficiency from ejected component
+Yield                     : 0.03    # mass of metals injected into ISM per unit star formation
+RadioModeEff              : 6e-4    # radio mode feedback efficiency
+BlackHoleGrowthRate       : 0.03    # black hole growth efficiency through merger driven gas inflow
 
-funcprop_params : 2 {
-    peak            : 2.12    # peak of star formation efficiency (units -> log10(km/s))
-    peak_evo        : 0.0     # evolution variable
-    sigma           : 0.23    # width of star formation efficiency function (units -> log10(km/s))
-    sigma_evo       : 0.0     # evolution variable
-    stellarfrac     : 0.571   # fraction of halo mass growth available to form stars
-    stellarfrac_evo : 0.0     # evolution variable
-}
+ThreshMajorMerger         : 0.3     # major merger when mass ratio greater than this
+MergerTimeFactor          : 1.0     # Multiplicitive fator for the merger timescales (2.0->DeLucia+; 1.0->Croton+)
 
-reion_z_re               : 9.3
-reion_delta_z_re         : 1.0
-reion_delta_z_sc         : 2.0
-reion_T0                 : 5.0e4
-reion_Tcool              : 1.0e4
-reion_Nion_phot_per_bary : 4000
-reion_escape_frac        : 0.15
-reion_mean_n_rec         : 0.0
+ReionZ_re                 : 9.3
+ReionDeltaZ_re            : 1.0
+ReionDeltaZ_sc            : 2.0
+ReionT0                   : 5.0e4
+ReionTcool                : 1.0e4
+ReionNionPhotPerBary      : 4000
+ReionEscapeFrac           : 0.15
+ReionMeanNRec             : 0.0

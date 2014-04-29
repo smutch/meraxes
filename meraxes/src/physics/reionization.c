@@ -3,13 +3,13 @@
 
 static double inline M0(run_globals_t *run_globals, double z)
 {
-  return Tvir_to_Mvir(run_globals, run_globals->params.physics.reion_T0, z);
+  return Tvir_to_Mvir(run_globals, run_globals->params.physics.ReionT0, z);
 }
 
 
 static double inline Mcool(run_globals_t *run_globals, double z)
 {
-  return Tvir_to_Mvir(run_globals, run_globals->params.physics.reion_Tcool, z);
+  return Tvir_to_Mvir(run_globals, run_globals->params.physics.ReionTcool, z);
 }
 
 
@@ -20,7 +20,7 @@ static double calculate_Mvir_min(run_globals_t *run_globals, double z)
   double g_term;
   physics_params_t *params = &(run_globals->params.physics);
 
-  g_term = 1./(1.+ exp((z-(params->reion_z_re - params->reion_delta_z_sc))/params->reion_delta_z_re));
+  g_term = 1./(1.+ exp((z-(params->ReionZre - params->ReionDeltaZsc))/params->ReionDeltaZre));
   return current_Mcool * pow(current_M0/current_Mcool, g_term);
 }
 
@@ -31,7 +31,7 @@ double global_ionizing_emmisivity(run_globals_t *run_globals)
   galaxy_t *gal;
   run_params_t *params = &(run_globals->params);
   double unit_conversion = 0.0628063641739;  // Converts internal SFR units to 1e51 baryons per second (mu=0.6)
-  double factor = unit_conversion * params->physics.reion_Nion_phot_per_bary * params->physics.reion_escape_frac;
+  double factor = unit_conversion * params->physics.ReionNionPhotPerBary * params->physics.ReionEscapeFrac;
   double global_emissivity = 0.0;
   double volume = params->VolumeFactor * pow(params->BoxSize, 3);
 

@@ -71,6 +71,7 @@ FILE *meraxes_debug_file;
 struct physics_params_t{
   int    Flag_ReionizationModifier;
   int    Flag_BHFeedback;
+
   double SfEfficiency;
   double SfRecycleFraction;
   double SnReheatEff;
@@ -80,15 +81,16 @@ struct physics_params_t{
   double ThreshMajorMerger;
   double RadioModeEff;
   double BlackHoleGrowthRate;
-  double reion_z_re;
-  double reion_delta_z_re;
-  double reion_delta_z_sc;
-  double reion_T0;
-  double reion_Tcool;
+
+  double ReionZre;
+  double ReionDeltaZre;
+  double ReionDeltaZsc;
+  double ReionT0;
+  double ReionTcool;
   // TODO: These parameters should be used to set the TOCF HII_EFF_FACTOR value
-  double reion_Nion_phot_per_bary;
-  double reion_escape_frac;
-  double reion_mean_n_rec; // Mean number of recombinations per baryon
+  double ReionNionPhotPerBary;
+  double ReionEscapeFrac;
+  double ReionMeanNRec; // Mean number of recombinations per baryon
 };
 typedef struct physics_params_t physics_params_t;
 
