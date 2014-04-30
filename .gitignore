@@ -24,3 +24,4 @@ data
 testing
 21cmfast/include
 meraxes/include
+meraxes/src/git.h
