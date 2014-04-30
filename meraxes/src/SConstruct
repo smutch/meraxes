@@ -21,6 +21,33 @@ def copy_files(file_list, dest):
 SConsEnvironment.CopyFiles = lambda env, file_list, dest: copy_files(file_list, dest)
 
 
+def create_git_header():
+    header = """/*
+* This file has been automatically generated.  Any modifications will be
+* overwritten during compilation.
+*/
+"""
+
+    ref = subprocess.check_output('/usr/local/bin/git show-ref --head | head -n 1 | cut -d " " -f 1',
+            cwd = Dir('.').path,
+            shell = True).rstrip('\n')
+
+    diff = subprocess.check_output('/usr/local/bin/git diff --no-color',
+            cwd = Dir('.').path,
+            shell = True)
+
+    diff_defn = ""
+    for l in diff.splitlines():
+       diff_defn += '"'+l.replace('\\', '\\\\').replace('"', '\\"')+'\\n"\\\n'
+
+    with open("git.h", "w") as fd:
+        fd.write(header+"\n")
+        fd.write('#define GITREF_STR "%s"\n\n' % ref)
+        fd.write('#define GITDIFF_STR %s\n' % diff_defn)
+
+SConsEnvironment.CreateGitHeader = lambda env: create_git_header()
+
+
 # ============================
 # = Command line definitions =
 # ============================
@@ -32,7 +59,6 @@ vars.AddVariables(
     ('maxsnaps', 'Set the hardcoded maximum number of snapshots (will be removed in future).', 100),
     BoolVariable('calc_mags', 'Calculate magnitudes.', False),
     BoolVariable('tocf', 'Calculate xH structure with 21cmFAST.', False),
-    BoolVariable('git_tag', 'Tag the binary and output files with the current git ref.', True),
     ('allocparameter', 'Set the ALLOCPARAM value.', 5.0),
     EnumVariable('build', 'Set the build type.', 'optimised', allowed_values=('debug', 'optimised')),
     BoolVariable('prof', 'Enable profiling.', False),
@@ -150,11 +176,6 @@ if not GetOption('help'):
     env.AppendUnique(LIBS = HDF5_LIBS)
     env.AppendUnique(CPPFLAGS = '-std=gnu99')
 
-    if env['git_tag']:
-        gitref = subprocess.check_output( GIT[0]+' show-ref --head | head -n 1 | cut -d " " -f 1',
-                            cwd = Dir('.').path,
-                            shell = True).rstrip('\n')
-        env.AppendUnique(CPPDEFINES=['GITREF_STR=\'"%s"\'' % gitref])
     if env['tocf']:
         env.AppendUnique(CPPPATH = [TOCF_INCL, FFTW_INCL])
         env.AppendUnique(LIBPATH = [TOCF_LIBS, FFTW_LIBS])
@@ -168,11 +189,14 @@ if not GetOption('help'):
 
     node_list = files('**/*.c')
     target = env.Program(target='../bin/meraxes', source=node_list)
+    git_header = env.CreateGitHeader()
+    Depends(target, git_header)
     # env.NoClean(target)
     Default(target)
 
     lib = env.StaticLibrary(target='../lib/meraxes', source=node_list)
     incl = env.CopyFiles(files('*.h'), '../include')
+    Depends(incl, git_header)
     Depends(lib, incl)
     env.Alias('lib', lib)
 

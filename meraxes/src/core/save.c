@@ -458,14 +458,9 @@ void create_master_file(run_globals_t *run_globals)
   H5Gclose(group_id);
 
 #ifdef GITREF_STR
-  // Save the git ref if requested
-  char tempstr[45];
-  hid_t attr_id;
-
-  sprintf(tempstr, GITREF_STR);
-  attr_id = H5Acreate(file_id, "GitRef", str_t, ds_id, H5P_DEFAULT, H5P_DEFAULT);
-  H5Awrite(attr_id, str_t, tempstr);
-  H5Aclose(attr_id);
+  // Save the git ref and diff if requested
+  H5LTmake_dataset_string(file_id, "gitdiff", GITDIFF_STR);
+  H5LTset_attribute_string(file_id, "gitdiff", "gitref", GITREF_STR);
 #endif
 
 #ifdef USE_TOCF
