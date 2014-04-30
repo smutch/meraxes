@@ -1,4 +1,5 @@
 #include "meraxes.h"
+#include "git.h"
 #include <unistd.h>
 #include <math.h>
 #include <hdf5.h>
