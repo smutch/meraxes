@@ -18,8 +18,6 @@ static double sobacchi_Mvir_min(run_globals_t *run_globals, double z)
   // Calculate the minimum halo mass capable of hosting star forming galaxies
   // following Sobacchi & Mesinger 2013b.
 
-  // TODO: Ensure calculated value is always greater than Mcool.
-
   double current_Mcool = Mcool(run_globals, z);
   double current_M0    = M0(run_globals, z);
   double g_term;
@@ -30,31 +28,26 @@ static double sobacchi_Mvir_min(run_globals_t *run_globals, double z)
 }
 
 
-double global_ionizing_emmisivity(run_globals_t *run_globals)
+static double sobacchi2013_modifier(run_globals_t *run_globals, halo_t *halo, double redshift)
 {
-  galaxy_t *gal;
-  run_params_t *params     = &(run_globals->params);
-  double unit_conversion   = 0.0628063641739; // Converts internal SFR units to 1e51 baryons per second (mu=0.6)
-  double factor            = unit_conversion * params->physics.ReionNionPhotPerBary * params->physics.ReionEscapeFrac;
-  double global_emissivity = 0.0;
-  double volume            = params->VolumeFactor * pow(params->BoxSize, 3);
+  double Mvir_min;
+  double Mvir;
+  double modifier;
 
-  gal = run_globals->FirstGal;
-  while (gal != NULL)
-  {
-    // Orphans can't form stars in this model
-    if (gal->Type < 2)
-      global_emissivity += gal->Sfr;
+  // redshift = run_globals->ZZ[snapshot];
+  Mvir     = halo->Mvir;
+  Mvir_min = sobacchi_Mvir_min(run_globals, redshift);
 
-    gal = gal->Next;
-  }
-  global_emissivity *= factor / volume;  // Units: 1e51 ionising photons per second per (h^-3 Mpc)
+  if (Mvir > Mcool(run_globals, redshift))
+    modifier = pow(2.0, -Mvir_min / Mvir);
+  else
+    modifier = 0.0;
 
-  return global_emissivity;
+  return modifier;
 }
 
 
-double gnedin2000_reionization(run_globals_t *run_globals, galaxy_t *gal, double redshift)
+static double gnedin2000_modifer(run_globals_t *run_globals, halo_t *halo, double redshift)
 {
   // NOTE THAT PART OF THIS CODE IS COPIED VERBATIM FROM THE CROTON ET AL. 2006 SEMI-ANALYTIC MODEL.
 
@@ -97,7 +90,7 @@ double gnedin2000_reionization(run_globals_t *run_globals, galaxy_t *gal, double
 
   // we use the maximum of Mfiltering and Mchar
   mass_to_use = (Mfiltering > Mchar) ? Mfiltering : Mchar;
-  modifier    = 1.0 / pow(1.0 + 0.26 * (mass_to_use / gal->Mvir), 3.0);
+  modifier    = 1.0 / pow(1.0 + 0.26 * (mass_to_use / halo->Mvir), 3.0);
 
   return modifier;
 }
@@ -106,19 +99,52 @@ double gnedin2000_reionization(run_globals_t *run_globals, galaxy_t *gal, double
 double reionization_modifier(run_globals_t *run_globals, halo_t *halo, int snapshot)
 {
   double redshift;
-  double Mvir_min;
-  double Mvir;
   double modifier;
 
   redshift = run_globals->ZZ[snapshot];
-  Mvir     = halo->Mvir;
-  Mvir_min = sobacchi_Mvir_min(run_globals, redshift);
 
-  if (Mvir > Mcool(run_globals, redshift))
-    modifier = pow(2.0, -Mvir_min / Mvir);
-  else
-    modifier = 0.0;
+  switch (run_globals->params.physics.Flag_ReionizationModifier)
+  {
+  case 1:
+    // Sobacchi & Mesinger 2013 global reionization scheme
+    modifier = sobacchi2013_modifier(run_globals, halo, redshift);
+    break;
+
+  case 2:
+    // Gnedin 2000 global reionization modifier
+    modifier = gnedin2000_modifer(run_globals, halo, redshift);
+    break;
+
+  default:
+    modifier = 1.0;
+    break;
+  }
 
   return modifier;
 }
+
+
+double global_ionizing_emmisivity(run_globals_t *run_globals)
+{
+  galaxy_t *gal;
+  run_params_t *params     = &(run_globals->params);
+  double unit_conversion   = 0.0628063641739; // Converts internal SFR units to 1e51 baryons per second (mu=0.6)
+  double factor            = unit_conversion * params->physics.ReionNionPhotPerBary * params->physics.ReionEscapeFrac;
+  double global_emissivity = 0.0;
+  double volume            = params->VolumeFactor * pow(params->BoxSize, 3);
+
+  gal = run_globals->FirstGal;
+  while (gal != NULL)
+  {
+    // Orphans can't form stars in this model
+    if (gal->Type < 2)
+      global_emissivity += gal->Sfr;
+
+    gal = gal->Next;
+  }
+  global_emissivity *= factor / volume;  // Units: 1e51 ionising photons per second per (h^-3 Mpc)
+
+  return global_emissivity;
+}
+
 
