@@ -1,5 +1,7 @@
 Todo list:
-✔ start merger clock when Mstar < param*Mvir @done (2014-03-19 14:18)
+☐ Add flag for BH physics
+☐ Add Gnedin reionization model
+☐ Add Sobachi reionization model
 ☐ Blitz & Rosolowsky (Lagos/Dutton style) star formation law @discuss
 ☐ bulge--disk decomposition
 ☐ dust law (De Lucia 2007?) @discuss
@@ -11,6 +13,7 @@ To consider:
 Archive:
 ＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿
 ✔ debug the why I get 25% fewer galaxies with MPI at snapshot=-1 @done (2014-02-25 10:12)
+✔ start merger clock when Mstar < param*Mvir @done (2014-04-30 12:53)
 ✔ allow the halos of previous snapshots be saved and used for repeated runs @done (2014-03-18 09:09)
 ✔ merger driven star burst? @done (2014-03-18 09:09)
 ✔ proper cooling and tracking of hot halo gas @done (2014-03-18 09:09)
