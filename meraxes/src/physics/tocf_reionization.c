@@ -1,75 +1,7 @@
+#ifdef USE_TOCF
+
 #include "meraxes.h"
 #include <math.h>
-
-static double inline M0(run_globals_t *run_globals, double z)
-{
-  return Tvir_to_Mvir(run_globals, run_globals->params.physics.ReionT0, z);
-}
-
-
-static double inline Mcool(run_globals_t *run_globals, double z)
-{
-  return Tvir_to_Mvir(run_globals, run_globals->params.physics.ReionTcool, z);
-}
-
-
-static double calculate_Mvir_min(run_globals_t *run_globals, double z)
-{
-  double current_Mcool = Mcool(run_globals, z);
-  double current_M0    = M0(run_globals, z);
-  double g_term;
-  physics_params_t *params = &(run_globals->params.physics);
-
-  g_term = 1. / (1. + exp((z - (params->ReionZre - params->ReionDeltaZsc)) / params->ReionDeltaZre));
-  return current_Mcool * pow(current_M0 / current_Mcool, g_term);
-}
-
-
-double global_ionizing_emmisivity(run_globals_t *run_globals)
-{
-  galaxy_t *gal;
-  run_params_t *params     = &(run_globals->params);
-  double unit_conversion   = 0.0628063641739; // Converts internal SFR units to 1e51 baryons per second (mu=0.6)
-  double factor            = unit_conversion * params->physics.ReionNionPhotPerBary * params->physics.ReionEscapeFrac;
-  double global_emissivity = 0.0;
-  double volume            = params->VolumeFactor * pow(params->BoxSize, 3);
-
-  gal = run_globals->FirstGal;
-  while (gal != NULL)
-  {
-    // Orphans can't form stars in this model
-    if (gal->Type < 2)
-      global_emissivity += gal->Sfr;
-
-    gal = gal->Next;
-  }
-  global_emissivity *= factor / volume;  // Units: 1e51 ionising photons per second per (h^-3 Mpc)
-
-  return global_emissivity;
-}
-
-
-double reionization_modifier(run_globals_t *run_globals, halo_t *halo, int snapshot)
-{
-  double redshift;
-  double Mvir_min;
-  double Mvir;
-  double modifier;
-
-  redshift = run_globals->ZZ[snapshot];
-  Mvir     = halo->Mvir;
-  Mvir_min = calculate_Mvir_min(run_globals, redshift);
-
-  if (Mvir > Mcool(run_globals, redshift))
-    modifier = pow(2.0, -Mvir_min / Mvir);
-  else
-    modifier = 0.0;
-
-  return modifier;
-}
-
-
-#ifdef USE_TOCF
 
 void calculate_Mvir_crit(run_globals_t *run_globals, double redshift)
 {
@@ -123,7 +55,6 @@ void calculate_Mvir_crit(run_globals_t *run_globals, double redshift)
     }
   }
 }
-#endif
 
 // TODO: This code needs to be adjusted to modify the baryon fraction rather than simply shut off cooling...
 //       See reionization_baryon_frac_modifier() above and change the spatially dependant code appropriately.
@@ -172,4 +103,4 @@ void calculate_Mvir_crit(run_globals_t *run_globals, double redshift)
 //   return flag;
 
 // }
-
+#endif

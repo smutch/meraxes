@@ -82,15 +82,19 @@ struct physics_params_t {
   double RadioModeEff;
   double BlackHoleGrowthRate;
 
-  double ReionZre;
-  double ReionDeltaZre;
-  double ReionDeltaZsc;
-  double ReionT0;
-  double ReionTcool;
   // TODO: These parameters should be used to set the TOCF HII_EFF_FACTOR value
   double ReionNionPhotPerBary;
   double ReionEscapeFrac;
   double ReionMeanNRec; // Mean number of recombinations per baryon
+  double ReionTcool;
+
+  double ReionSobacchi_Zre;
+  double ReionSobacchi_DeltaZre;
+  double ReionSobacchi_DeltaZsc;
+  double ReionSobacchi_T0;
+
+  double ReionGnedin_z0;
+  double ReionGnedin_zr;
 };
 typedef struct physics_params_t physics_params_t;
 

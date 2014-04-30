@@ -452,6 +452,27 @@ void create_master_file(run_globals_t *run_globals)
   addresses[ii] = &(run_globals->params.physics.BlackHoleGrowthRate);
   sprintf(names[ii++], "BlackHoleGrowthRate");
 
+  if (run_globals->params.physics.Flag_ReionizationModifier == 1)
+  {
+    // Sobacchi & Mesinger 2013b global reionization model
+    addresses[ii] = &(run_globals->params.physics.ReionSobacchi_Zre);
+    sprintf(names[ii++], "ReionSobacchi_Zre");
+    addresses[ii] = &(run_globals->params.physics.ReionSobacchi_DeltaZre);
+    sprintf(names[ii++], "ReionSobacchi_DeltaZre");
+    addresses[ii] = &(run_globals->params.physics.ReionSobacchi_DeltaZsc);
+    sprintf(names[ii++], "ReionSobacchi_DeltaZsc");
+    addresses[ii] = &(run_globals->params.physics.ReionSobacchi_T0);
+    sprintf(names[ii++], "ReionSobacchi_T0");
+  }
+  else if (run_globals->params.physics.Flag_ReionizationModifier == 2)
+  {
+    // Gnedin 2000 global reionization model
+    addresses[ii] = &(run_globals->params.physics.ReionGnedin_z0);
+    sprintf(names[ii++], "ReionGnedin_z0");
+    addresses[ii] = &(run_globals->params.physics.ReionGnedin_zr);
+    sprintf(names[ii++], "ReionGnedin_zr");
+  }
+
   for (int jj = 0; jj < ii; jj++)
     h5_write_attribute(group_id, names[jj], H5T_NATIVE_DOUBLE, ds_id, addresses[jj]);
 

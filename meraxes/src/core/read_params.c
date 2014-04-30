@@ -370,23 +370,23 @@ void read_parameter_file(run_globals_t *run_globals, char *fname)
     required_tag[n_param]  = 1;
     params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
-    strcpy(params_tag[n_param], "ReionZre");
-    params_addr[n_param]   = &(run_params->physics).ReionZre;
+    strcpy(params_tag[n_param], "ReionSobacchi_Zre");
+    params_addr[n_param]   = &(run_params->physics).ReionSobacchi_Zre;
     required_tag[n_param]  = 1;
     params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
-    strcpy(params_tag[n_param], "ReionDeltaZre");
-    params_addr[n_param]   = &(run_params->physics).ReionDeltaZre;
+    strcpy(params_tag[n_param], "ReionSobacchi_DeltaZre");
+    params_addr[n_param]   = &(run_params->physics).ReionSobacchi_DeltaZre;
     required_tag[n_param]  = 1;
     params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
-    strcpy(params_tag[n_param], "ReionDeltaZsc");
-    params_addr[n_param]   = &(run_params->physics).ReionDeltaZsc;
+    strcpy(params_tag[n_param], "ReionSobacchi_DeltaZsc");
+    params_addr[n_param]   = &(run_params->physics).ReionSobacchi_DeltaZsc;
     required_tag[n_param]  = 1;
     params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
-    strcpy(params_tag[n_param], "ReionT0");
-    params_addr[n_param]   = &(run_params->physics).ReionT0;
+    strcpy(params_tag[n_param], "ReionSobacchi_T0");
+    params_addr[n_param]   = &(run_params->physics).ReionSobacchi_T0;
     required_tag[n_param]  = 1;
     params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
@@ -407,6 +407,16 @@ void read_parameter_file(run_globals_t *run_globals, char *fname)
 
     strcpy(params_tag[n_param], "ReionMeanNRec");
     params_addr[n_param]   = &(run_params->physics).ReionMeanNRec;
+    required_tag[n_param]  = 1;
+    params_type[n_param++] = PARAM_TYPE_DOUBLE;
+
+    strcpy(params_tag[n_param], "ReionGnedin_z0");
+    params_addr[n_param]   = &(run_params->physics).ReionGnedin_z0;
+    required_tag[n_param]  = 1;
+    params_type[n_param++] = PARAM_TYPE_DOUBLE;
+
+    strcpy(params_tag[n_param], "ReionGnedin_zr");
+    params_addr[n_param]   = &(run_params->physics).ReionGnedin_zr;
     required_tag[n_param]  = 1;
     params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
