@@ -3,7 +3,6 @@
 
 galaxy_t* new_galaxy(run_globals_t *run_globals, int snapshot, int halo_ID)
 {
-
   galaxy_t *gal = NULL;
 
   gal = SID_malloc(sizeof(galaxy_t));
@@ -45,14 +44,14 @@ galaxy_t* new_galaxy(run_globals_t *run_globals, int snapshot, int halo_ID)
   gal->MergTime           = 99999.9;
   gal->BaryonFracModifier = 0.0;
 
-  for(int ii=0; ii<3; ii++)
+  for (int ii = 0; ii < 3; ii++)
   {
     gal->Pos[ii] = -99999.9;
     gal->Vel[ii] = -99999.9;
   }
 
   gal->output_index = -1;
-  gal->ghost_flag = false;
+  gal->ghost_flag   = false;
 
   init_luminosities(run_globals, gal);
 
@@ -75,23 +74,20 @@ void copy_halo_to_galaxy(halo_t *halo, galaxy_t *gal, int snapshot)
   gal->TreeFlags       = halo->TreeFlags;
   gal->Spin            = calculate_spin_param(halo);
   gal->DiskScaleLength = gal->Spin * gal->Rvir / sqrt_2;
-  for (int ii=0; ii<3; ii++)
+  for (int ii = 0; ii < 3; ii++)
   {
-    gal->Pos[ii]       = halo->Pos[ii];
-    gal->Vel[ii]       = halo->Vel[ii];
+    gal->Pos[ii] = halo->Pos[ii];
+    gal->Vel[ii] = halo->Vel[ii];
   }
-
 }
 
 void reset_galaxy_properties(galaxy_t *gal)
 {
-
   // Here we reset any galaxy properties which are calculated on a snapshot by
   // snapshot basis.
-  gal->Mcool = 0.0;
-  gal->Sfr = 0.0;
+  gal->Mcool              = 0.0;
+  gal->Sfr                = 0.0;
   gal->BaryonFracModifier = 0.0;
-
 }
 
 
@@ -99,7 +95,8 @@ void assign_galaxy_to_halo(galaxy_t *gal, halo_t *halo)
 {
   if (halo->Galaxy == NULL)
     halo->Galaxy = gal;
-  else {
+  else
+  {
     SID_log_error("Trying to assign first galaxy to a halo which already has a first galaxy!");
 #ifdef DEBUG
     mpi_debug_here();
@@ -118,10 +115,10 @@ void create_new_galaxy(
 {
   galaxy_t *gal;
 
-  gal = new_galaxy(run_globals, snapshot, halo->ID);
+  gal       = new_galaxy(run_globals, snapshot, halo->ID);
   gal->Halo = halo;
-  if(snapshot > 0)
-    gal->LTTime = run_globals->LTTime[snapshot-1];
+  if (snapshot > 0)
+    gal->LTTime = run_globals->LTTime[snapshot - 1];
   else
     gal->LTTime = run_globals->LTTime[snapshot];
   assign_galaxy_to_halo(gal, halo);
@@ -132,10 +129,10 @@ void create_new_galaxy(
     run_globals->FirstGal = gal;
 
   run_globals->LastGal = gal;
-  gal->FirstGalInHalo = gal;
-  gal->dt = gal->LTTime - run_globals->LTTime[snapshot];
-  *NGal = *NGal+1;
-  *new_gal_counter = *new_gal_counter+1;
+  gal->FirstGalInHalo  = gal;
+  gal->dt              = gal->LTTime - run_globals->LTTime[snapshot];
+  *NGal                = *NGal + 1;
+  *new_gal_counter     = *new_gal_counter + 1;
 }
 
 void kill_galaxy(
@@ -148,7 +145,7 @@ void kill_galaxy(
   galaxy_t *cur_gal;
 
   // Remove it from the global linked list
-  if(prev_gal!=NULL)
+  if (prev_gal != NULL)
     prev_gal->Next = gal->Next;
   else
     run_globals->FirstGal = gal->Next;
@@ -161,7 +158,7 @@ void kill_galaxy(
       cur_gal = cur_gal->NextGalInHalo;
     cur_gal->NextGalInHalo = gal->NextGalInHalo;
   }
-  else if(gal->NextGalInHalo != NULL)
+  else if (gal->NextGalInHalo != NULL)
     // If it is a type 0 or 1 (i.e. first galaxy in it's halo) and there are
     // other galaxies in this halo, reset the FirstGalInHalo pointer so that
     // the satellites can be killed later
@@ -169,7 +166,7 @@ void kill_galaxy(
 
   // Finally deallocated the galaxy and decrement any necessary counters
   SID_free(SID_FARG gal);
-  *NGal = *NGal-1;
-  *kill_counter = *kill_counter+1;
+  *NGal         = *NGal - 1;
+  *kill_counter = *kill_counter + 1;
 }
 

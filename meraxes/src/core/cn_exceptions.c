@@ -3,8 +3,8 @@
 #include <string.h>
 #include <time.h>
 
-void cn_quote(){
-
+void cn_quote()
+{
   char quote_list[28][512];
   int ind;
 
@@ -39,10 +39,9 @@ void cn_quote(){
   strcpy(quote_list[26], "CHUCK_NORRIS_EXCEPTION: Chuck Norris wrote Hello World once... it was called Unix.");
   strcpy(quote_list[27], "CHUCK_NORRIS_EXCEPTION: Chuck Norris will asynchronously KICK YOUR ASS.");
 
-  ind = (int)( (double)rand() * (28.0 + 1.0) / RAND_MAX );
+  ind = (int)((double)rand() * (28.0 + 1.0) / RAND_MAX);
 
   fprintf(stderr, "%s\n", quote_list[ind]);
   fflush(stderr);
-
 }
 

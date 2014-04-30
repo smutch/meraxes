@@ -3,44 +3,44 @@
 
 double gas_infall(run_globals_t *run_globals, fof_group_t *FOFgroup, int snapshot)
 {
-
   halo_t *halo;
   galaxy_t *gal;
   galaxy_t *central;
   double total_baryons = 0.;
-  double infall_mass = 0.;
-  double FOF_Mvir = FOFgroup->FirstHalo->Mvir;
+  double infall_mass   = 0.;
+  double FOF_Mvir      = FOFgroup->FirstHalo->Mvir;
   double fb_modifier;
+
   halo = FOFgroup->FirstHalo;
 
-  double total_stellarmass = 0.0;
-  double total_hotgas = 0.0;
-  double total_coldgas = 0.0;
-  double total_ejectedgas = 0.0;
+  double total_stellarmass   = 0.0;
+  double total_hotgas        = 0.0;
+  double total_coldgas       = 0.0;
+  double total_ejectedgas    = 0.0;
   double total_blackholemass = 0.0;
 
   // Calculate the total baryon mass in the FOF group
-  halo = FOFgroup->FirstHalo;
+  halo    = FOFgroup->FirstHalo;
   central = halo->Galaxy;
-  while(halo != NULL)
+  while (halo != NULL)
   {
     gal = halo->Galaxy;
-    while(gal != NULL)
+    while (gal != NULL)
     {
-      total_stellarmass += gal->StellarMass;
-      total_hotgas += gal->HotGas;
-      total_coldgas += gal->ColdGas;
-      total_ejectedgas += gal->EjectedGas;
+      total_stellarmass   += gal->StellarMass;
+      total_hotgas        += gal->HotGas;
+      total_coldgas       += gal->ColdGas;
+      total_ejectedgas    += gal->EjectedGas;
       total_blackholemass += gal->BlackHoleMass;
 
-      if(gal != central)
+      if (gal != central)
       {
-        central->HotGas += gal->HotGas + gal->EjectedGas;
+        central->HotGas       += gal->HotGas + gal->EjectedGas;
         central->MetalsHotGas += gal->MetalsHotGas + gal->MetalsEjectedGas;
-        gal->HotGas = 0.0;
-        gal->MetalsHotGas = 0.0;
-        gal->EjectedGas = 0.0;
-        gal->MetalsEjectedGas = 0.0;
+        gal->HotGas            = 0.0;
+        gal->MetalsHotGas      = 0.0;
+        gal->EjectedGas        = 0.0;
+        gal->MetalsEjectedGas  = 0.0;
       }
 
       gal = gal->NextGalInHalo;
@@ -52,7 +52,7 @@ double gas_infall(run_globals_t *run_globals, fof_group_t *FOFgroup, int snapsho
 
   // Calculate the amount of fresh gas required to provide the baryon
   // fraction of this halo.
-  if(run_globals->params.physics.Flag_ReionizationModifier)
+  if (run_globals->params.physics.Flag_ReionizationModifier)
     fb_modifier = reionization_modifier(run_globals, FOFgroup->FirstHalo, snapshot);
   else
     fb_modifier = 1.0;
@@ -62,15 +62,13 @@ double gas_infall(run_globals_t *run_globals, fof_group_t *FOFgroup, int snapsho
   central->BaryonFracModifier = fb_modifier;
 
   return infall_mass;
-
 }
 
 
 void add_infall_to_hot(galaxy_t *central, double infall_mass)
 {
-
   // if we have mass to add then give it to the central
-  if(infall_mass > 0)
+  if (infall_mass > 0)
     central->HotGas += infall_mass;
   else
   {
@@ -93,17 +91,16 @@ void add_infall_to_hot(galaxy_t *central, double infall_mass)
 
     // if we still have mass left to remove after exhausting the mass of
     // the ejected component, the remove as much as we can from the hot gas
-    if(infall_mass < 0)
+    if (infall_mass < 0)
     {
       central->HotGas += infall_mass;
-      if(central->HotGas < 0)
+      if (central->HotGas < 0)
       {
-        central->HotGas = 0.0;
+        central->HotGas       = 0.0;
         central->MetalsHotGas = 0.0;
       }
       // else
       //   central->MetalsHotGas += calc_metallicity(central->HotGas, central->MetalsHotGas) * infall_mass;
     }
   }
-
 }

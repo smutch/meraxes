@@ -6,9 +6,8 @@
 #define PARAM_TYPE_STRING        804
 
 typedef struct entry_t entry_t;
-struct entry_t
-{
-  int level;
+struct entry_t {
+  int  level;
   char key[64];
   char value[256];
 };

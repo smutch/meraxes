@@ -6,6 +6,7 @@
 static inline void read_identifier(FILE *fin, bool skip_flag)
 {
   char identifier[32];
+
   fread(identifier, sizeof(identifier), 1, fin);
   if (skip_flag)
     SID_log_error("Skipping grid: %s...", identifier);
@@ -15,11 +16,10 @@ static inline void read_identifier(FILE *fin, bool skip_flag)
 
 int read_dm_grid(
   run_globals_t *run_globals,
-  int            snapshot,   
-  int            i_grid,     
-  float         *grid)       
+  int            snapshot,
+  int            i_grid,
+  float         *grid)
 {
-
   // N.B. We assume in this function that the grid has the fftw3 inplace
   // complex dft padding.
 
@@ -31,14 +31,14 @@ int read_dm_grid(
   int ma_scheme;
   int n_elem;
   float val;
-  float mean = 0.;
-  float cell_volume = 0.;
+  float mean            = 0.;
+  float cell_volume     = 0.;
   float resample_factor = 1.;
-  run_params_t *params = &(run_globals->params);
-  int HII_dim = tocf_params.HII_dim;
+  run_params_t *params  = &(run_globals->params);
+  int HII_dim           = tocf_params.HII_dim;
 
-  // Construct the input filename 
-  sprintf(fname,  "%s/%s/grids/snapshot_%03d_dark_grid.dat", params->SimulationDir, params->SimName, snapshot);
+  // Construct the input filename
+  sprintf(fname, "%s/%s/grids/snapshot_%03d_dark_grid.dat", params->SimulationDir, params->SimName, snapshot);
   // sprintf(fname,  "%s/%s/grids/grid_nompi_%d_1024_dark_grid.dat", params->SimulationDir, params->SimName, snapshot);
   // ... and open
   fin = fopen(fname, "rb");
@@ -67,10 +67,10 @@ int read_dm_grid(
   }
 
   // Check if the grid in the file is higher resolution than we require
-  if ((n_cell[0]!=HII_dim) || (n_cell[1]!=HII_dim) || (n_cell[2]!=HII_dim))
+  if ((n_cell[0] != HII_dim) || (n_cell[1] != HII_dim) || (n_cell[2] != HII_dim))
   {
-    resample_factor = (float)HII_dim/(float)n_cell[0];
-    if(resample_factor > 1.0001)
+    resample_factor = (float)HII_dim / (float)n_cell[0];
+    if (resample_factor > 1.0001)
     {
       SID_log_error("The dark matter density grid in this file has a resolution less than that required! Aborting!");
       fclose(fin);
@@ -82,37 +82,37 @@ int read_dm_grid(
     resample_factor = 1;
 
   // Compute the total number of elements in each grid
-  n_elem = n_cell[0]*n_cell[1]*n_cell[2];
+  n_elem = n_cell[0] * n_cell[1] * n_cell[2];
 
   // Read the grids
   // Note that we are expecting them to be in a particular order here
-  for (int ii=0; ii<i_grid; ii++)
+  for (int ii = 0; ii < i_grid; ii++)
   {
     read_identifier(fin, true);
-    fseek(fin, sizeof(float)*n_elem, SEEK_CUR);
+    fseek(fin, sizeof(float) * n_elem, SEEK_CUR);
   }
   read_identifier(fin, false);
 
   // init the grid
-  for (int i=0; i<HII_dim; i++)
-    for (int j=0; j<HII_dim; j++)
-      for (int k=0; k<HII_dim; k++)
-        *(grid + HII_R_FFT_INDEX(i,j,k)) = 0.;
+  for (int i = 0; i < HII_dim; i++)
+    for (int j = 0; j < HII_dim; j++)
+      for (int k = 0; k < HII_dim; k++)
+        *(grid + HII_R_FFT_INDEX(i, j, k)) = 0.;
 
-  if(i_grid == 0)  // density grid
+  if (i_grid == 0)  // density grid
   {
     // calculate the volume of a single cell
-    cell_volume = powf(box_size[0]/(float)n_cell[0], 3);
-  
+    cell_volume = powf(box_size[0] / (float)n_cell[0], 3);
+
     // Read in the grid
-    for (int i=0; i<n_cell[0]; i++)
-      for (int j=0; j<n_cell[1]; j++)
-        for (int k=0; k<n_cell[2]; k++)
+    for (int i = 0; i < n_cell[0]; i++)
+      for (int j = 0; j < n_cell[1]; j++)
+        for (int k = 0; k < n_cell[2]; k++)
         {
           fread(&val, sizeof(float), 1, fin);
-          val *= cell_volume; // now we have the mass in the cell
-          mean += val;
-          *(grid + HII_R_FFT_INDEX((int)(i*resample_factor),(int)(j*resample_factor),(int)(k*resample_factor))) += val;
+          val                                                                                                           *= cell_volume; // now we have the mass in the cell
+          mean                                                                                                          += val;
+          *(grid + HII_R_FFT_INDEX((int)(i * resample_factor), (int)(j * resample_factor), (int)(k * resample_factor))) += val;
         }
 
     // In order to calculate the mean density we must actually take the mean of
@@ -122,24 +122,24 @@ int read_dm_grid(
 
     // Loop through again and calculate the overdensity
     // i.e. (rho - rho_mean)/rho_mean
-    cell_volume = powf(box_size[0]/(float)HII_dim, 3);
-    for (int i=0; i<HII_dim; i++)
-      for (int j=0; j<HII_dim; j++)
-        for (int k=0; k<HII_dim; k++)
-          *(grid + HII_R_FFT_INDEX(i,j,k)) = (*(grid + HII_R_FFT_INDEX(i,j,k))/(cell_volume * mean))-1.;
-  } 
+    cell_volume = powf(box_size[0] / (float)HII_dim, 3);
+    for (int i = 0; i < HII_dim; i++)
+      for (int j = 0; j < HII_dim; j++)
+        for (int k = 0; k < HII_dim; k++)
+          *(grid + HII_R_FFT_INDEX(i, j, k)) = (*(grid + HII_R_FFT_INDEX(i, j, k)) / (cell_volume * mean)) - 1.;
+  }
   else // velocity component grid
   {
-  // Read in the grid
-  for (int i=0; i<n_cell[0]; i++)
-    for (int j=0; j<n_cell[1]; j++)
-      for (int k=0; k<n_cell[2]; k++)
-      {
-        fread(&val, sizeof(float), 1, fin);
-        *(grid + HII_R_FFT_INDEX((int)(i*resample_factor),(int)(j*resample_factor),(int)(k*resample_factor))) += val;
-      }
+    // Read in the grid
+    for (int i = 0; i < n_cell[0]; i++)
+      for (int j = 0; j < n_cell[1]; j++)
+        for (int k = 0; k < n_cell[2]; k++)
+        {
+          fread(&val, sizeof(float), 1, fin);
+          *(grid + HII_R_FFT_INDEX((int)(i * resample_factor), (int)(j * resample_factor), (int)(k * resample_factor))) += val;
+        }
   }
- 
+
   SID_log("...done", SID_LOG_CLOSE);
 
   // Close the file
@@ -147,5 +147,4 @@ int read_dm_grid(
 
   return 0;
 }
-
 #endif

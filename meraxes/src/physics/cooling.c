@@ -3,13 +3,11 @@
 
 double gas_cooling(run_globals_t *run_globals, galaxy_t *gal)
 {
-
   double cooling_mass;
 
   // we only need to do cooling if there is anything to cool!
-  if(gal->HotGas > 1e-10)
+  if (gal->HotGas > 1e-10)
   {
-
     double t_cool, max_cooling_mass, Tvir;
     double logZ, lambda, x, rho_r_cool, r_cool, rho_at_Rvir;
     run_units_t *units = &(run_globals->units);
@@ -22,7 +20,7 @@ double gas_cooling(run_globals_t *run_globals, galaxy_t *gal)
     Tvir = 35.9 * gal->Vvir * gal->Vvir;  // internal units (Kelvin)
 
     // get the log10(metallicity) value
-    if(gal->MetalsHotGas > 0)
+    if (gal->MetalsHotGas > 0)
       logZ = log10(calc_metallicity(gal->HotGas, gal->MetalsHotGas));
     else
       logZ = -10.0;
@@ -33,20 +31,20 @@ double gas_cooling(run_globals_t *run_globals, galaxy_t *gal)
     // following equation (3) of Croton+ 2006, calculate the hot gas density at
     // the radius r_cool (i.e. where the cooling time is equal to `t_cool`
     // above)
-    x = PROTONMASS * BOLTZMANN * Tvir / lambda;              // now this has units sec g/cm^3
-    x /= (units->UnitDensity_in_cgs * units->UnitTime_in_s); // now in internal units
+    x          = PROTONMASS * BOLTZMANN * Tvir / lambda;     // now this has units sec g/cm^3
+    x         /= (units->UnitDensity_in_cgs * units->UnitTime_in_s); // now in internal units
     rho_r_cool = x / t_cool * 0.885;                         // 0.885 = 3/2 * mu, mu=0.59 for a fully ionized gas
 
     // under the assumption of an isothermal density profile extending to Rvir,
     // now calculate the cooling radius
     rho_at_Rvir = gal->HotGas / (4. * M_PI * gal->Rvir);
-    r_cool = sqrt(rho_at_Rvir / rho_r_cool);
+    r_cool      = sqrt(rho_at_Rvir / rho_r_cool);
 
     // the maximum amount of gas we can possibly cool is limited by the amount
     // of mass within the free fall radius
     max_cooling_mass = gal->HotGas / t_cool * gal->dt;
 
-    if(r_cool > gal->Rvir)
+    if (r_cool > gal->Rvir)
       // here we are in the rapid cooling regime and we accrete all gas within
       // the free-fall radius
       // cooling_mass = max_cooling_mass;
@@ -60,30 +58,27 @@ double gas_cooling(run_globals_t *run_globals, galaxy_t *gal)
     }
 
     // do one last sanity check to ensure we aren't cooling more gas than is available etc.
-    if(cooling_mass > gal->HotGas)
+    if (cooling_mass > gal->HotGas)
       cooling_mass = gal->HotGas;
 
-    if(run_globals->params.physics.Flag_BHFeedback)
+    if (run_globals->params.physics.Flag_BHFeedback)
       cooling_mass -= radio_mode_BH_heating(run_globals, gal, cooling_mass);
 
-    if(cooling_mass < 0)
+    if (cooling_mass < 0)
       cooling_mass = 0.0;
-
   }
   else  // if there is no gas to cool...
     cooling_mass = 0.0;
 
   return cooling_mass;
-
 }
 
 
 void cool_gas_onto_galaxy(galaxy_t *gal, double cooling_mass)
 {
-
   double cooling_metals;
 
-  if(cooling_mass > gal->HotGas)
+  if (cooling_mass > gal->HotGas)
     cooling_mass = gal->HotGas;
 
   // what mass of metals is coming along with this cooling gas?
@@ -97,8 +92,8 @@ void cool_gas_onto_galaxy(galaxy_t *gal, double cooling_mass)
   gal->Mcool = cooling_mass;
 
   // update the galaxy reservoirs
-  gal->HotGas -= cooling_mass;
-  gal->MetalsHotGas -= cooling_metals;
-  gal->ColdGas += cooling_mass;
+  gal->HotGas        -= cooling_mass;
+  gal->MetalsHotGas  -= cooling_metals;
+  gal->ColdGas       += cooling_mass;
   gal->MetalsColdGas += cooling_metals;
 }

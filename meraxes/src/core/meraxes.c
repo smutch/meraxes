@@ -11,10 +11,10 @@ static void cleanup(run_globals_t *run_globals)
 {
   SID_log("Running cleanup...", SID_LOG_OPEN);
   cleanup_mags(run_globals);
-  if(run_globals->RequestedForestId)
+  if (run_globals->RequestedForestId)
     SID_free(SID_FARG run_globals->RequestedForestId);
 #ifdef USE_TOCF
-  if(run_globals->params.TOCF_Flag)
+  if (run_globals->params.TOCF_Flag)
     free_reionization_grids(run_globals);
 #endif
   SID_log("Freeing hdf5 related stuff...", SID_LOG_OPEN);
@@ -53,14 +53,14 @@ void myexit(int signum)
 }
 
 /*
-static void set_physics_params(
-  run_globals_t *run_globals,
-  double             *vals,
-  int                 n_params)
-{
-  physics_params_t *phys_par = &(run_globals->params.physics);
+   static void set_physics_params(
+   run_globals_t *run_globals,
+   double             *vals,
+   int                 n_params)
+   {
+   physics_params_t *phys_par = &(run_globals->params.physics);
 
-  if ((n_params==3) || (n_params==6)){
+   if ((n_params==3) || (n_params==6)){
     phys_par->peak            = vals[0];
     phys_par->sigma           = vals[1];
     phys_par->stellarfrac     = vals[2];
@@ -79,14 +79,13 @@ static void set_physics_params(
         printf("Changed physics_stellarfrac_evo to %g\n" , phys_par->stellarfrac_evo);
       }
     }
-  }
-}
-*/
+   }
+   }
+ */
 
 
 int main(int argc, char **argv)
 {
-
   // init SID
   SID_init(&argc, &argv, NULL);
 
@@ -104,9 +103,10 @@ int main(int argc, char **argv)
   // }
 
   // deal with any input arguments
-  if( (argc!=8) && (argc!=4) && (argc!=2) )
+  if ((argc != 8) && (argc != 4) && (argc != 2))
   {
-    if(SID.My_rank==0){
+    if (SID.My_rank == 0)
+    {
       printf("\n  usage: %s <parameterfile>\n\n", argv[0]);
       ABORT(1);
     }

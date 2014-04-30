@@ -13,7 +13,7 @@ void update_reservoirs_from_sf(run_globals_t *run_globals, galaxy_t *gal, double
   gal->Sfr += new_stars / gal->dt;
 
   // instantaneous recycling approximation of stellar mass
-  metallicity = calc_metallicity(gal->ColdGas, gal->MetalsColdGas);
+  metallicity     = calc_metallicity(gal->ColdGas, gal->MetalsColdGas);
   remaining_stars = (1.0 - run_globals->params.physics.SfRecycleFraction) * new_stars;
 
   gal->ColdGas           -= remaining_stars;
@@ -28,22 +28,20 @@ void update_reservoirs_from_sf(run_globals_t *run_globals, galaxy_t *gal, double
   // assuming instantaneous recycling approximation and enrichment from SNII
   // only, work out the mass of metals returned to the ISM by this SF burst
   new_metals = run_globals->params.physics.Yield * new_stars;
-  if((merger_mass_ratio < run_globals->params.physics.ThreshMajorMerger) && (gal->ColdGas > 1e-10))
-    gal->MetalsColdGas  += new_metals;
+  if ((merger_mass_ratio < run_globals->params.physics.ThreshMajorMerger) && (gal->ColdGas > 1e-10))
+    gal->MetalsColdGas += new_metals;
   else
     gal->Halo->FOFGroup->FirstHalo->Galaxy->MetalsHotGas += new_metals;
-
 }
 
 
 void insitu_star_formation(run_globals_t *run_globals, galaxy_t *gal)
 {
-
   // These star formation & supernova feedback prescriptions are taken directly
   // from Croton+ 2006
 
   // there is no point doing anything if there is no cold gas!
-  if(gal->ColdGas > 1e-10)
+  if (gal->ColdGas > 1e-10)
   {
     double r_disk;
     double m_crit;
@@ -54,12 +52,12 @@ void insitu_star_formation(run_globals_t *run_globals, galaxy_t *gal)
     // calculate disk scalelength using Mo, Mau & White (1998) eqn. 12 and
     // multiply it by 3 to approximate the star forming region size (ala
     // Croton+ 2006).
-    r_disk =  gal->DiskScaleLength * 3.0;
+    r_disk = gal->DiskScaleLength * 3.0;
 
     // what is the critical mass within r_crit?
     m_crit = 0.19 * gal->Vvir * r_disk;
 
-    if(gal->ColdGas > m_crit)
+    if (gal->ColdGas > m_crit)
       m_stars = SfEfficiency * (gal->ColdGas - m_crit) / r_disk * gal->Vmax * gal->dt;
     else
       // no star formation
