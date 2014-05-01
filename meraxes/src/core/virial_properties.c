@@ -44,7 +44,8 @@ static inline double Delta_vir(double redshift, run_globals_t *run_globals)
   return (18. * M_PI * M_PI + 82 * x - 39 * x * x) / Omega;
 }
 
-//! Calculates Mvir in internal units (1.e10 h^{-1}Msol), given Tvir and a redshift (z)
+
+//! Calculates Mvir in internal units (1.e10 h^{-1}Msol), given Tvir (in K) and a redshift (z)
 double Tvir_to_Mvir(run_globals_t *run_globals, double T, double z)
 {
   double OmegaM      = run_globals->params.OmegaM;
@@ -61,6 +62,7 @@ double Tvir_to_Mvir(run_globals_t *run_globals, double T, double z)
   return 0.01 * run_globals->params.Hubble_h * mol_term * cosmo_term * T_term * z_term;
 }
 
+
 double calculate_Mvir(run_globals_t *run_globals, halo_t *halo)
 {
   if (halo->Type == 0 && halo->Mvir)
@@ -68,6 +70,7 @@ double calculate_Mvir(run_globals_t *run_globals, halo_t *halo)
   else
     return (double)halo->Len * run_globals->params.PartMass;
 }
+
 
 float calculate_Rvir(run_globals_t *run_globals, halo_t *halo, double Mvir, int snapshot)
 {

@@ -260,18 +260,18 @@ static void read_trees_and_catalogs(
 
     // read in a tree_buffer of the trees
     if (SID.My_rank == 0)
-      H5TBread_records(fd,               "trees", n_read, (hsize_t)n_to_read, dst_size, dst_offsets, dst_sizes, tree_buffer);
-    SID_Bcast(tree_buffer,               n_to_read * sizeof(tree_entry_t), 0, SID.COMM_WORLD);
+      H5TBread_records(fd, "trees", n_read, (hsize_t)n_to_read, dst_size, dst_offsets, dst_sizes, tree_buffer);
+    SID_Bcast(tree_buffer, n_to_read * sizeof(tree_entry_t), 0, SID.COMM_WORLD);
 
     // read in the corresponding catalog entrys
     if (SID.My_rank == 0)
     {
       i_halo = 0;
-      read_catalog_halos(&fin_catalogs,  simulation_dir, catalog_file_prefix,
-                         corrected_snapshot,&flayout_switch, &i_catalog_file, &n_halos_in_catalog_file,
-                         &i_halo_in_catalog_file,&i_halo, catalog_buffer, n_to_read);
+      read_catalog_halos(&fin_catalogs, simulation_dir, catalog_file_prefix,
+                         corrected_snapshot, &flayout_switch, &i_catalog_file, &n_halos_in_catalog_file,
+                         &i_halo_in_catalog_file, &i_halo, catalog_buffer, n_to_read);
     }
-    SID_Bcast(catalog_buffer,            n_to_read * sizeof(catalog_halo_t), 0, SID.COMM_WORLD);
+    SID_Bcast(catalog_buffer, n_to_read * sizeof(catalog_halo_t), 0, SID.COMM_WORLD);
 
     // paste the data into the halo structures
     for (int jj = 0; jj < n_to_read; jj++)

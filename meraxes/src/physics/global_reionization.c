@@ -31,15 +31,12 @@ static double sobacchi_Mvir_min(run_globals_t *run_globals, double z)
 static double sobacchi2013_modifier(run_globals_t *run_globals, halo_t *halo, double redshift)
 {
   double Mvir_min;
-  double Mvir;
   double modifier;
 
-  // redshift = run_globals->ZZ[snapshot];
-  Mvir     = halo->Mvir;
   Mvir_min = sobacchi_Mvir_min(run_globals, redshift);
 
-  if (Mvir > Mcool(run_globals, redshift))
-    modifier = pow(2.0, -Mvir_min / Mvir);
+  if (halo->Mvir > Mcool(run_globals, redshift))
+    modifier = pow(2.0, -Mvir_min / halo->Mvir);
   else
     modifier = 0.0;
 
@@ -51,8 +48,18 @@ static double gnedin2000_modifer(run_globals_t *run_globals, halo_t *halo, doubl
 {
   // NOTE THAT PART OF THIS CODE IS COPIED VERBATIM FROM THE CROTON ET AL. 2006 SEMI-ANALYTIC MODEL.
 
-  double a0, ar;
-  double alpha, a, f_of_a, a_on_a0, a_on_ar, Mfiltering, Mjeans, Mchar, mass_to_use, modifier;
+  double a0;
+  double ar;
+  double alpha;
+  double a;
+  double f_of_a;
+  double a_on_a0;
+  double a_on_ar;
+  double Mfiltering;
+  double Mjeans;
+  double Mchar;
+  double mass_to_use;
+  double modifier;
 
   a0 = 1.0 / (1.0 + run_globals->params.physics.ReionGnedin_z0);
   ar = 1.0 / (1.0 + run_globals->params.physics.ReionGnedin_zr);
@@ -85,8 +92,8 @@ static double gnedin2000_modifer(run_globals_t *run_globals, halo_t *halo, doubl
   Mjeans     = 25.0 * pow(run_globals->params.OmegaM, -0.5) * 2.21;
   Mfiltering = Mjeans * pow(f_of_a, 1.5);
 
-  // calculate the characteristic mass coresponding to a halo temperature of 10^4K
-  Mchar = Tvir_to_Mvir(run_globals, run_globals->params.physics.ReionTcool, redshift);
+  // calculate the characteristic atomic cooling mass coresponding to a halo temperature of 10^4K
+  Mchar = Mcool(run_globals, redshift);
 
   // we use the maximum of Mfiltering and Mchar
   mass_to_use = (Mfiltering > Mchar) ? Mfiltering : Mchar;

@@ -537,6 +537,7 @@ void read_parameter_file(run_globals_t *run_globals, char *fname)
       if ((used_tag[i] == 0) && (required_tag[i] == 1))
       {
         SID_log_error("I miss a value for tag '%s' in parameter file '%s'.", params_tag[i], fname);
+        ABORT(EXIT_FAILURE);
       }
     }
 

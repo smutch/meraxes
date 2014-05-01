@@ -452,6 +452,15 @@ void create_master_file(run_globals_t *run_globals)
   addresses[ii] = &(run_globals->params.physics.BlackHoleGrowthRate);
   sprintf(names[ii++], "BlackHoleGrowthRate");
 
+  addresses[ii] = &(run_globals->params.physics.ReionNionPhotPerBary);
+  sprintf(names[ii++], "ReionNionPhotPerBary");
+  addresses[ii] = &(run_globals->params.physics.ReionEscapeFrac);
+  sprintf(names[ii++], "ReionEscapeFrac");
+  addresses[ii] = &(run_globals->params.physics.ReionMeanNRec);
+  sprintf(names[ii++], "ReionMeanNRec");
+  addresses[ii] = &(run_globals->params.physics.ReionTcool);
+  sprintf(names[ii++], "ReionTcool");
+
   if (run_globals->params.physics.Flag_ReionizationModifier == 1)
   {
     // Sobacchi & Mesinger 2013b global reionization model

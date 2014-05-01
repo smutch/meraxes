@@ -179,15 +179,15 @@ void mpi_debug_here()
 
 void check_counts(run_globals_t *run_globals, fof_group_t *fof_group, int NGal, int NFof)
 {
-  int counter          = 0;
-  int gal_next_counter = 0;
-  int halo_counter     = 0;
-  int halo_pop_count   = 0;
-  int total_NGal       = 0;
-  int total_NFof       = 0;
-  int total_NGhosts    = 0;
-  galaxy_t *gal        = NULL;
-  halo_t *halo         = NULL;
+  int counter = 0;
+  // int gal_next_counter = 0;
+  int halo_counter   = 0;
+  int halo_pop_count = 0;
+  int total_NGal     = 0;
+  int total_NFof     = 0;
+  int total_NGhosts  = 0;
+  galaxy_t *gal      = NULL;
+  halo_t *halo       = NULL;
 
   SID_log("Running counts check...", SID_LOG_OPEN | SID_LOG_TIMER);
 
@@ -209,7 +209,7 @@ void check_counts(run_globals_t *run_globals, fof_group_t *fof_group, int NGal, 
   SID_log("Counting using gal->Next gives %d gals (-%d ghosts = %d gals)",
           SID_LOG_COMMENT, counter, total_NGhosts,
           counter - total_NGhosts);
-  gal_next_counter = counter;
+  // gal_next_counter = counter;
 
   halo_pop_count = 0;
   counter        = 0;
