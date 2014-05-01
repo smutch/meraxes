@@ -133,6 +133,7 @@ static void read_snap_list(run_globals_t *run_globals)
   {
     FILE *fin;
     int snaplist_len;
+    double dummy;
     char fname[STRLEN];
     run_params_t params = run_globals->params;
 
@@ -144,6 +145,32 @@ static void read_snap_list(run_globals_t *run_globals)
       ABORT(EXIT_FAILURE);
     }
 
+    // Count the number of snapshot list entries
+    snaplist_len = 0;
+    do
+    {
+      if (fscanf(fin, " %lg ", &dummy) == 1)
+        snaplist_len++;
+      else
+        break;
+    } while (true);
+
+    run_globals->params.SnaplistLength = snaplist_len;
+    if (SID.My_rank == 0)
+    {
+      printf("NOUT = %d\n\n", NOUT);
+      printf("found %d defined times in snaplist.\n", snaplist_len);
+    }
+
+    // malloc the relevant arrays
+    run_globals->AA     = SID_malloc(sizeof(double) * snaplist_len);
+    run_globals->ZZ     = SID_malloc(sizeof(double) * snaplist_len);
+    run_globals->LTTime = SID_malloc(sizeof(double) * snaplist_len);
+
+    // seek back to the start of the file
+    rewind(fin);
+
+    // actually read in the expansion factors
     snaplist_len = 0;
     do
     {
@@ -151,22 +178,21 @@ static void read_snap_list(run_globals_t *run_globals)
         snaplist_len++;
       else
         break;
-    } while (snaplist_len < MAXSNAPS);
+    } while (true);
 
+    // close the file
     fclose(fin);
-
-    if (SID.My_rank == 0)
-    {
-      printf("NOUT = %d\n\n", NOUT);
-      printf("found %d defined times in snaplist.\n", snaplist_len);
-    }
-
-    run_globals->params.SnaplistLength = snaplist_len;
   }
 
-  // broadcast the read to all other ranks
+  // broadcast the read to all other ranks and malloc the necessary arrays
   SID_Bcast(&(run_globals->params.SnaplistLength), sizeof(int), 0, SID.COMM_WORLD);
-  SID_Bcast(&(run_globals->AA), sizeof(double) * run_globals->params.SnaplistLength, 0, SID.COMM_WORLD);
+  if (SID.My_rank > 0)
+  {
+    run_globals->AA     = SID_malloc(sizeof(double) * run_globals->params.SnaplistLength);
+    run_globals->ZZ     = SID_malloc(sizeof(double) * run_globals->params.SnaplistLength);
+    run_globals->LTTime = SID_malloc(sizeof(double) * run_globals->params.SnaplistLength);
+  }
+  SID_Bcast(run_globals->AA, sizeof(double) * run_globals->params.SnaplistLength, 0, SID.COMM_WORLD);
 }
 
 double integrand_time_to_present(double a, void *params)

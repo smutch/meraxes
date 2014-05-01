@@ -19,11 +19,6 @@
 
 #define STRLEN  256  //!< Default string length
 
-// TODO: This should not be hard coded if at all possible...
-#ifndef MAXSNAPS
-#define MAXSNAPS 235  //!< Maximum number of snapshots
-#endif
-
 #ifndef NOUT
 #define NOUT 1
 #endif
@@ -209,9 +204,9 @@ struct run_globals_t {
   int                 LastOutputSnap;
   int                 ListOutputSnaps[NOUT];
   int                 NGhosts;
-  double              AA[MAXSNAPS];
-  double              ZZ[MAXSNAPS];
-  double              LTTime[MAXSNAPS];
+  double             *AA;
+  double             *ZZ;
+  double             *LTTime;
   double              Hubble;
   double              RhoCrit;
   double              G;
