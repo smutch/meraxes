@@ -236,9 +236,10 @@ void construct_stellar_grids(run_globals_t *run_globals)
   {
     if (gal->Type < 3)
     {
-      i                                           = find_cell(gal->Pos[0], box_size);
-      j                                           = find_cell(gal->Pos[1], box_size);
-      k                                           = find_cell(gal->Pos[2], box_size);
+      i = find_cell(gal->Pos[0], box_size);
+      j = find_cell(gal->Pos[1], box_size);
+      k = find_cell(gal->Pos[2], box_size);
+
       *(stellar_grid + HII_R_FFT_INDEX(i, j, k)) += gal->StellarMass;
       *(sfr_grid + HII_R_FFT_INDEX(i, j, k))     += gal->Sfr;
     }

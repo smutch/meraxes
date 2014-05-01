@@ -21,18 +21,18 @@ def copy_files(file_list, dest):
 SConsEnvironment.CopyFiles = lambda env, file_list, dest: copy_files(file_list, dest)
 
 
-def create_git_header():
+def create_git_header(git_executable):
     header = """/*
 * This file has been automatically generated.  Any modifications will be
 * overwritten during compilation.
 */
 """
 
-    ref = subprocess.check_output('/usr/local/bin/git show-ref --head | head -n 1 | cut -d " " -f 1',
+    ref = subprocess.check_output(git_executable[0]+' show-ref --head | head -n 1 | cut -d " " -f 1',
             cwd = Dir('.').path,
             shell = True).rstrip('\n')
 
-    diff = subprocess.check_output('/usr/local/bin/git diff --no-color',
+    diff = subprocess.check_output(git_executable[0]+' diff --no-color',
             cwd = Dir('.').path,
             shell = True)
 
@@ -45,7 +45,7 @@ def create_git_header():
         fd.write('#define GITREF_STR "%s"\n\n' % ref)
         fd.write('#define GITDIFF_STR %s\n' % diff_defn)
 
-SConsEnvironment.CreateGitHeader = lambda env: create_git_header()
+SConsEnvironment.CreateGitHeader = lambda env, git_executable: create_git_header(git_executable)
 
 
 # ============================
@@ -189,7 +189,7 @@ if not GetOption('help'):
 
     node_list = files('**/*.c')
     target = env.Program(target='../bin/meraxes', source=node_list)
-    git_header = env.CreateGitHeader()
+    git_header = env.CreateGitHeader(GIT)
     Depends(target, git_header)
     # env.NoClean(target)
     Default(target)
