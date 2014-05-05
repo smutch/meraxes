@@ -237,12 +237,6 @@ void read_parameter_file(run_globals_t *run_globals, char *fname)
     params_type[n_param++]      = PARAM_TYPE_STRING;
     *(run_params->ForestIDFile) = '\0';
 
-    strcpy(params_tag[n_param], "MultipleRunsParamFile");
-    params_addr[n_param]                 = &(run_params->MultipleRunsParamFile);
-    required_tag[n_param]                = 0;
-    params_type[n_param++]               = PARAM_TYPE_STRING;
-    *(run_params->MultipleRunsParamFile) = '\0';
-
     strcpy(params_tag[n_param], "UnitVelocity_in_cm_per_s");
     params_addr[n_param]   = &(run_globals->units.UnitVelocity_in_cm_per_s);
     required_tag[n_param]  = 1;
@@ -312,6 +306,12 @@ void read_parameter_file(run_globals_t *run_globals, char *fname)
     params_addr[n_param]   = &(run_params->MergerTimeFactor);
     required_tag[n_param]  = 1;
     params_type[n_param++] = PARAM_TYPE_DOUBLE;
+
+    strcpy(params_tag[n_param], "FlagInteractive");
+    params_addr[n_param]   = &(run_params->FlagInteractive);
+    required_tag[n_param]  = 1;
+    params_type[n_param++] = PARAM_TYPE_INT;
+
 
     // Physics params
 
