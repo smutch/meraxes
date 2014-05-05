@@ -45,7 +45,7 @@ static void read_requested_forest_ids(run_globals_t *run_globals)
 
     free(line);
 
-    SID_log("Found %d requested halo IDs", SID_LOG_COMMENT, n_forests);
+    SID_log("Found %d requested forest IDs", SID_LOG_COMMENT, n_forests);
 
     fclose(fin);
   }

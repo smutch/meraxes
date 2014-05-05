@@ -597,7 +597,6 @@ static void select_forests(run_globals_t *run_globals)
     // SID_log("rank_last_forest = %d", SID_LOG_COMMENT, rank_last_forest[SID.My_rank]);
     // SID_Barrier(SID.COMM_WORLD);
 
-
     // free the arrays
     SID_free(SID_FARG rank_n_halos);
     SID_free(SID_FARG rank_n_forests);

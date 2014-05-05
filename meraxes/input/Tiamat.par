@@ -9,7 +9,7 @@ LastFile         : 0
 #----- Simulation input files  ------------
 #------------------------------------------
 SimName          : Tiamat
-SimulationDir    : /lustre/home/gpoole/SSimPL/simulations/DRAGONS
+SimulationDir    : /home/smutch/data/input_trees/Tiamat
 CatalogFilePrefix: rockstar_fixed
 NEverySnap       : 1
 NScanSnap        : 16
@@ -42,16 +42,35 @@ TOCF_Flag : 1 {  # use 21cmfast for reionization?
 #------------------------------------------
 #----- Parameters of physical model -------
 #------------------------------------------
-ReionizationModifier : 1    # use halo mass dependant infall modifier of Sobacchi & Mesinger (2013)
+Flag_ReionizationModifier : 1    # use halo mass dependant infall modifier of Sobacchi & Mesinger (2013)
+Flag_BHFeedback           : 1    # use black hole feedback
 
-SfEfficiency      : 0.1     # star formation efficiency
-SfRecycleFraction : 0.43    # instantaneous recycle fraction (IMF dependant)
-SnEjectionEff     : 3.5     # mass loading factor for SN feedback
-SnReheatEff       : 0.35    # SN feedback gas reheating efficiency
+SfEfficiency        : 0.1     # star formation efficiency
+SfRecycleFraction   : 0.43    # instantaneous recycle fraction (IMF dependant)
+SnEjectionEff       : 0.35    # mass loading factor for SN feedback
+SnReheatEff         : 3.5     # SN feedback gas reheating efficiency
+ReincorporationEff  : 0.3     # gas reincorporation efficiency from ejected component
+Yield               : 0.03    # mass of metals injected into ISM per unit star formation
+RadioModeEff        : 6e-4    # radio mode feedback efficiency
+BlackHoleGrowthRate : 0.03    # black hole growth efficiency through merger driven gas inflow
 
 ThreshMajorMerger : 0.3     # major merger when mass ratio greater than this
 MergerTimeFactor  : 1.0     # Multiplicitive fator for the merger timescales (2.0->DeLucia+; 1.0->Croton+)
-RecycleFraction   : 0.3     # fraction of SF mass assumed to instantaneously go nova
+
+# Reionization
+ReionTcool             : 1.0e4
+ReionNionPhotPerBary   : 4000
+ReionEscapeFrac        : 0.15
+ReionMeanNRec          : 0.0
+
+ReionSobacchi_Zre      : 9.3
+ReionSobacchi_DeltaZre : 1.0
+ReionSobacchi_DeltaZsc : 2.0
+ReionSobacchi_T0       : 5.0e4
+
+ReionGnedin_z0         : 8
+ReionGnedin_zr         : 7
+
 
 #------------------------------------------------
 #----- Cosmological and nbody sim parameters ----
