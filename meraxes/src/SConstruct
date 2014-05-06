@@ -194,8 +194,10 @@ if not GetOption('help'):
 
     lib = env.StaticLibrary(target='../lib/meraxes', source=node_list)
     incl = env.CopyFiles(files('*.h'), '../include')
+    pic = env.AppendUnique(CPPFLAGS = ['-fPIC',])
     Depends(incl, git_header)
     Depends(lib, incl)
+    Depends(lib, pic)
     env.Alias('lib', lib)
 
     # Testing alias

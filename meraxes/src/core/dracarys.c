@@ -59,30 +59,30 @@ static int find_original_index(int index, int *lookup, int n_mappings)
 //! Actually run the model
 void dracarys(run_globals_t *run_globals)
 {
-  trees_info_t   trees_info;
-  halo_t        *halo                  = NULL;
-  fof_group_t   *fof_group             = NULL;
-  galaxy_t      *gal                   = NULL;
-  galaxy_t      *prev_gal              = NULL;
-  galaxy_t      *next_gal              = NULL;
-  galaxy_t      *cur_gal               = NULL;
-  int           *index_lookup          = NULL;
-  int            i_newhalo;
-  int            NGal                  = 0;
-  int            nout_gals             = 0;
-  int            last_nout_gals        = 0;
-  int            last_snap             = 0;
-  int            kill_counter          = 0;
-  int            merger_counter        = 0;
-  int            new_gal_counter       = 0;
-  int            ghost_counter         = 0;
-  int            i_snap;
-  int            NSteps                = run_globals->params.NSteps;
-  int            n_store_snapshots     = run_globals->NStoreSnapshots;
-  halo_t       **snapshot_halo         = run_globals->SnapshotHalo;
-  fof_group_t  **snapshot_fof_group    = run_globals->SnapshotFOFGroup;
-  int          **snapshot_index_lookup = run_globals->SnapshotIndexLookup;
-  trees_info_t  *snapshot_trees_info   = run_globals->SnapshotTreesInfo;
+  trees_info_t trees_info;
+  halo_t *halo           = NULL;
+  fof_group_t *fof_group = NULL;
+  galaxy_t *gal          = NULL;
+  galaxy_t *prev_gal     = NULL;
+  galaxy_t *next_gal     = NULL;
+  galaxy_t *cur_gal      = NULL;
+  int *index_lookup      = NULL;
+  int i_newhalo;
+  int NGal            = 0;
+  int nout_gals       = 0;
+  int last_nout_gals  = 0;
+  int last_snap       = 0;
+  int kill_counter    = 0;
+  int merger_counter  = 0;
+  int new_gal_counter = 0;
+  int ghost_counter   = 0;
+  int i_snap;
+  int NSteps                        = run_globals->params.NSteps;
+  int n_store_snapshots             = run_globals->NStoreSnapshots;
+  halo_t **snapshot_halo            = run_globals->SnapshotHalo;
+  fof_group_t **snapshot_fof_group  = run_globals->SnapshotFOFGroup;
+  int **snapshot_index_lookup       = run_globals->SnapshotIndexLookup;
+  trees_info_t *snapshot_trees_info = run_globals->SnapshotTreesInfo;
 
   // Find what the last requested output snapshot is
   for (int ii = 0; ii < NOUT; ii++)
@@ -430,7 +430,6 @@ void dracarys(run_globals_t *run_globals)
   SID_Barrier(SID.COMM_WORLD);
   if (SID.My_rank == 0)
     create_master_file(run_globals);
-
 }
 
 

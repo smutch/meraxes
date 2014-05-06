@@ -106,7 +106,7 @@ int main(int argc, char **argv)
 #endif
 
   // read the input parameter file
-  read_parameter_file(&run_globals, argv[1]);
+  read_parameter_file(&run_globals, argv[1], 0);
 
   // Check to see if the output directory exists and if not, create it
   if (stat(run_globals.params.OutputDir, &filestatus) != 0)
@@ -119,7 +119,16 @@ int main(int argc, char **argv)
   calc_hdf5_props(&run_globals);
 
   // Run the model!
-  dracarys(&run_globals);
+  if (!run_globals.params.FlagInteractive)
+    dracarys(&run_globals);
+  else
+  {
+    while (run_globals.params.FlagInteractive)
+    {
+      dracarys(&run_globals);
+      continue_prompt(&run_globals, argv[1]);
+    }
+  }
 
   // cleanup
   cleanup(&run_globals);

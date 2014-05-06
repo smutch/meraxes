@@ -200,7 +200,7 @@ typedef struct tocf_grids_t tocf_grids_t;
 #endif
 
 //! The meraxis halo structure
-typedef struct halo_t{
+typedef struct halo_t {
   long long           id_MBP; //!< ID of most bound particle
   int                 ID; //!< Halo ID
   int                 Type; //!< Type (0 for central, 1 for satellite)
@@ -390,11 +390,11 @@ typedef struct run_globals_t {
   int                 NRequestedForests;
   bool                SelectForestsSwitch;
   int                *RequestedForestId;
-  int              NStoreSnapshots;
-  halo_t         **SnapshotHalo;
-  fof_group_t    **SnapshotFOFGroup;
-  int            **SnapshotIndexLookup;
-  trees_info_t    *SnapshotTreesInfo;
+  int                 NStoreSnapshots;
+  halo_t            **SnapshotHalo;
+  fof_group_t       **SnapshotFOFGroup;
+  int               **SnapshotIndexLookup;
+  trees_info_t       *SnapshotTreesInfo;
   struct galaxy_t    *FirstGal;
   struct galaxy_t    *LastGal;
   gsl_rng            *random_generator;
@@ -413,8 +413,9 @@ typedef struct run_globals_t {
  */
 
 void         myexit(int signum);
-void         read_parameter_file(run_globals_t *run_globals, char *fname);
+void         read_parameter_file(run_globals_t *run_globals, char *fname, int mode);
 void         init_meraxes(run_globals_t *run_globals);
+void         continue_prompt(run_globals_t *run_globals, char *param_file);
 void         free_halo_storage(run_globals_t *run_globals);
 void         initialize_halo_storage(run_globals_t *run_globals);
 void         dracarys(run_globals_t *run_globals);
@@ -440,10 +441,9 @@ void         calc_hdf5_props(run_globals_t *run_globals);
 void         prepare_galaxy_for_output(run_globals_t *run_globals, galaxy_t gal, galaxy_output_t *galout, int i_snap);
 void         read_photometric_tables(run_globals_t *run_globals);
 int          compare_ints(const void *a, const void *b);
-void         mpi_debug_here();
+void         mpi_debug_here(void);
 void         check_counts(run_globals_t *run_globals, fof_group_t *fof_group, int NGal, int NFof);
-int          debug(const char * restrict format, ...);
-void         cn_quote();
+void         cn_quote(void);
 int          get_corrected_snapshot(run_globals_t *run_globals, int snapshot);
 double       Tvir_to_Mvir(run_globals_t *run_globals, double T, double z);
 double       calculate_Mvir(run_globals_t *run_globals, halo_t *halo);
@@ -485,5 +485,9 @@ void calculate_Mvir_crit(run_globals_t *run_globals, double redshift);
 void call_find_HII_bubbles(run_globals_t *run_globals, int snapshot, int nout_gals);
 void save_tocf_grids(run_globals_t *run_globals, hid_t group_id, int snapshot);
 void check_if_reionization_complete(run_globals_t *run_globals);
+#endif
+
+#ifdef DEBUG
+int debug(const char * restrict format, ...);
 #endif
 #endif // _INIT_MERAXES

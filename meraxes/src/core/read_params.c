@@ -95,8 +95,11 @@ static void inline store_params(
 }
 
 
-void read_parameter_file(run_globals_t *run_globals, char *fname)
+void read_parameter_file(run_globals_t *run_globals, char *fname, int mode)
 {
+  // mode = 0 : standard read of both defaults and user param files
+  // mode = 1 : for interactive runs - reads only user params file
+
   run_params_t *run_params = &(run_globals->params);
 
   if (SID.My_rank == 0)
@@ -527,17 +530,20 @@ void read_parameter_file(run_globals_t *run_globals, char *fname)
     n_entries = parse_paramfile(fname, entry);
     store_params(entry, n_entries, params_tag, n_param, used_tag, params_type, params_addr, run_params);
 
-    // Now parse the default parameter file
-    n_entries = parse_paramfile(defaults_file, entry);
-    store_params(entry, n_entries, params_tag, n_param, used_tag, params_type, params_addr, run_params);
-
-    // Check to see if we are missing any required parameters
-    for (i = 0; i < n_param; i++)
+    if (mode == 0)
     {
-      if ((used_tag[i] == 0) && (required_tag[i] == 1))
+      // Now parse the default parameter file
+      n_entries = parse_paramfile(defaults_file, entry);
+      store_params(entry, n_entries, params_tag, n_param, used_tag, params_type, params_addr, run_params);
+
+      // Check to see if we are missing any required parameters
+      for (i = 0; i < n_param; i++)
       {
-        SID_log_error("I miss a value for tag '%s' in parameter file '%s'.", params_tag[i], fname);
-        ABORT(EXIT_FAILURE);
+        if ((used_tag[i] == 0) && (required_tag[i] == 1))
+        {
+          SID_log_error("I miss a value for tag '%s' in parameter file '%s'.", params_tag[i], fname);
+          ABORT(EXIT_FAILURE);
+        }
       }
     }
 
