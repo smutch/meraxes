@@ -11,6 +11,8 @@ static void cleanup(run_globals_t *run_globals)
 {
   SID_log("Running cleanup...", SID_LOG_OPEN);
 
+  free_halo_storage(run_globals);
+
   cleanup_mags(run_globals);
 
   if (run_globals->RequestedForestId)
@@ -62,37 +64,6 @@ void myexit(int signum)
   SID_exit(signum);
 }
 
-/*
-   static void set_physics_params(
-   run_globals_t *run_globals,
-   double             *vals,
-   int                 n_params)
-   {
-   physics_params_t *phys_par = &(run_globals->params.physics);
-
-   if ((n_params==3) || (n_params==6)){
-    phys_par->peak            = vals[0];
-    phys_par->sigma           = vals[1];
-    phys_par->stellarfrac     = vals[2];
-    if (n_params==6){
-      phys_par->peak_evo        = vals[3];
-      phys_par->sigma_evo       = vals[4];
-      phys_par->stellarfrac_evo = vals[5];
-    }
-    if (SID.My_rank==0){
-      printf("Changed physics_peak to %g\n"        , phys_par->peak);
-      printf("Changed physics_sigma to %g\n"       , phys_par->sigma);
-      printf("Changed physics_stellarfrac to %g\n" , phys_par->stellarfrac);
-      if (n_params==6){
-        printf("Changed physics_peak_evo to %g\n"        , phys_par->peak_evo);
-        printf("Changed physics_sigma_evo to %g\n"       , phys_par->sigma_evo);
-        printf("Changed physics_stellarfrac_evo to %g\n" , phys_par->stellarfrac_evo);
-      }
-    }
-   }
-   }
- */
-
 
 int main(int argc, char **argv)
 {
@@ -113,13 +84,10 @@ int main(int argc, char **argv)
   // }
 
   // deal with any input arguments
-  if ((argc != 8) && (argc != 4) && (argc != 2))
+  if (argc != 2)
   {
-    if (SID.My_rank == 0)
-    {
-      printf("\n  usage: %s <parameterfile>\n\n", argv[0]);
-      ABORT(1);
-    }
+    SID_log("\n  usage: %s <parameterfile>\n\n", SID_LOG_COMMENT, argv[0]);
+    ABORT(1);
   }
 
 #ifdef DEBUG
@@ -138,20 +106,11 @@ int main(int argc, char **argv)
 #endif
 
   // read the input parameter file
-  read_parameter_file(&run_globals, argv[1]);
+  read_parameter_file(&run_globals, argv[1], 0);
 
   // Check to see if the output directory exists and if not, create it
   if (stat(run_globals.params.OutputDir, &filestatus) != 0)
     mkdir(run_globals.params.OutputDir, 02755);
-
-  // Deal with any command line parameter values
-  // if (argc==8){
-  //   double *physics_param_vals = SID_malloc(sizeof(double) * (argc-2));
-  //   for(int i=0; i<argc-2; i++)
-  //     physics_param_vals[i] = atof(argv[i+2]);
-  //   set_physics_params(&run_globals, physics_param_vals, argc-2);
-  //   SID_free(SID_FARG physics_param_vals);
-  // }
 
   // initiate meraxes
   init_meraxes(&run_globals);
@@ -160,7 +119,16 @@ int main(int argc, char **argv)
   calc_hdf5_props(&run_globals);
 
   // Run the model!
-  dracarys(&run_globals);
+  if (!run_globals.params.FlagInteractive)
+    dracarys(&run_globals);
+  else
+  {
+    while (run_globals.params.FlagInteractive)
+    {
+      dracarys(&run_globals);
+      continue_prompt(&run_globals, argv[1]);
+    }
+  }
 
   // cleanup
   cleanup(&run_globals);

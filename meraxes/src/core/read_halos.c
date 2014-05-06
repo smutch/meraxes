@@ -214,6 +214,8 @@ static void read_trees_and_catalogs(
   catalog_halo_t *catalog_buffer;
   int corrected_snapshot;
 
+  SID_log("Doing read...", SID_LOG_OPEN);
+
   sprintf(catalog_file_prefix, "%s", run_globals->params.CatalogFilePrefix);
   sprintf(simulation_dir, "%s", run_globals->params.SimulationDir);
 
@@ -351,6 +353,8 @@ static void read_trees_and_catalogs(
   // free the buffers
   SID_free(SID_FARG catalog_buffer);
   SID_free(SID_FARG tree_buffer);
+
+  SID_log(" ...done", SID_LOG_CLOSE);
 }
 
 
@@ -664,10 +668,9 @@ trees_info_t read_halos(
   int n_halos_kept;
   int n_fof_groups_kept;
   int n_requested_forests = run_globals->NRequestedForests;
-  int n_runs              = run_globals->NRuns;
 
   // if we are doing multiple runs and have already read in this snapshot then we don't need to do read anything else
-  if ((n_runs > 1) && (snapshot_trees_info[snapshot].n_halos != -1))
+  if ((run_globals->params.FlagInteractive) && (snapshot_trees_info[snapshot].n_halos != -1))
   {
     SID_log("Snapshot %d has alread been read in... (n_halos = %d)", SID_LOG_COMMENT, snapshot, snapshot_trees_info[snapshot].n_halos);
     return snapshot_trees_info[snapshot];
@@ -697,7 +700,7 @@ trees_info_t read_halos(
   n_halos      = trees_info.n_halos;
   n_fof_groups = trees_info.n_fof_groups;
 
-  if (n_runs > 1)
+  if (run_globals->params.FlagInteractive)
   {
     if (n_halos < 1)
     {
@@ -775,7 +778,7 @@ trees_info_t read_halos(
   }
 
   // if we are doing multiple runs then resize the arrays to save space and store the trees_info
-  if (n_runs > 1)
+  if (run_globals->params.FlagInteractive)
   {
     // Ok - what follows here is hacky as hell.  By calling realloc on these
     // arrays, there is a good chance that the actual array will be moved and
@@ -789,6 +792,8 @@ trees_info_t read_halos(
     // array members should be made integer offsets instead.  That will require
     // trawling through the code and making the relevant updates in a number of
     // places (so we'll leave that till later!).
+
+    SID_log("Reallocing halo storage arrays...", SID_LOG_OPEN);
 
     size_t *halo_FOFGroup_os           = SID_malloc(sizeof(size_t) * n_halos_kept);
     size_t *halo_NextHaloInFOFGroup_os = SID_malloc(sizeof(size_t) * n_halos_kept);
@@ -830,7 +835,7 @@ trees_info_t read_halos(
     // save the trees_info for this snapshot as well...
     snapshot_trees_info[snapshot] = trees_info;
 
-    SID_log("Resized allocated arrays...", SID_LOG_COMMENT, n_halos_kept);
+    SID_log(" ...done (resized to %d halos)", SID_LOG_CLOSE, n_halos_kept);
   }
 
   SID_Allreduce(SID_IN_PLACE, &n_halos_kept, 1, SID_INT, SID_SUM, SID.COMM_WORLD);
@@ -842,4 +847,68 @@ trees_info_t read_halos(
   return trees_info;
 }
 
+void initialize_halo_storage(run_globals_t *run_globals)
+{
+  int *n_store_snapshots             = &(run_globals->NStoreSnapshots);
+  halo_t ***snapshot_halo            = &(run_globals->SnapshotHalo);
+  fof_group_t ***snapshot_fof_group  = &(run_globals->SnapshotFOFGroup);
+  int ***snapshot_index_lookup       = &(run_globals->SnapshotIndexLookup);
+  trees_info_t **snapshot_trees_info = &(run_globals->SnapshotTreesInfo);
 
+  int last_snap = 0;
+  trees_info_t trees_info;
+
+  SID_log("Initializing halo storage arrays...", SID_LOG_COMMENT);
+
+  // Find what the last requested output snapshot is
+  for (int ii = 0; ii < NOUT; ii++)
+    if (run_globals->ListOutputSnaps[ii] > last_snap)
+      last_snap = run_globals->ListOutputSnaps[ii];
+
+  // Allocate an array of last_snap halo array pointers
+  if (run_globals->params.FlagInteractive)
+    *n_store_snapshots = last_snap + 1;
+  else
+    *n_store_snapshots = 1;
+
+  *snapshot_halo         = (halo_t**)SID_calloc(sizeof(halo_t *) * (*n_store_snapshots));
+  *snapshot_fof_group    = (fof_group_t**)SID_calloc(sizeof(fof_group_t *) * (*n_store_snapshots));
+  *snapshot_index_lookup = (int**)SID_calloc(sizeof(int *) * (*n_store_snapshots));
+  *snapshot_trees_info   = (trees_info_t*)SID_calloc(sizeof(trees_info_t) * (*n_store_snapshots));
+
+  for (int ii = 0; ii < *n_store_snapshots; ii++)
+    (*snapshot_trees_info)[ii].n_halos = -1;
+
+  // loop through and read all snapshots
+  if (run_globals->params.FlagInteractive)
+  {
+    SID_log("Preloading input trees and halos...", SID_LOG_OPEN);
+    for (int i_snap = 0; i_snap <= last_snap; i_snap++)
+      trees_info = read_halos(run_globals, i_snap, &((*snapshot_halo)[i_snap]), &((*snapshot_fof_group)[i_snap]), &((*snapshot_index_lookup)[i_snap]), *snapshot_trees_info);
+    SID_log("...done", SID_LOG_CLOSE);
+  }
+
+  SID_log("...done", SID_LOG_CLOSE);
+}
+
+void free_halo_storage(run_globals_t *run_globals)
+{
+  int n_store_snapshots             = run_globals->NStoreSnapshots;
+  halo_t **snapshot_halo            = run_globals->SnapshotHalo;
+  fof_group_t **snapshot_fof_group  = run_globals->SnapshotFOFGroup;
+  int **snapshot_index_lookup       = run_globals->SnapshotIndexLookup;
+  trees_info_t *snapshot_trees_info = run_globals->SnapshotTreesInfo;
+
+  // Free all of the remaining allocated galaxies, halos and fof groups
+  SID_log("Freeing FOF groups and halos...", SID_LOG_COMMENT);
+  for (int ii = 0; ii < n_store_snapshots; ii++)
+  {
+    SID_free(SID_FARG snapshot_halo[ii]);
+    SID_free(SID_FARG snapshot_fof_group[ii]);
+    SID_free(SID_FARG snapshot_index_lookup[ii]);
+  }
+  SID_free(SID_FARG snapshot_halo);
+  SID_free(SID_FARG snapshot_fof_group);
+  SID_free(SID_FARG snapshot_index_lookup);
+  SID_free(SID_FARG snapshot_trees_info);
+}

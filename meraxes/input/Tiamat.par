@@ -29,6 +29,7 @@ MagBands             : Bbv,V,Rc,Ic,K
 #------------------------------------------
 #----- Code options -----------------------
 #------------------------------------------
+FlagInteractive: 0
 RandomSeed: 1809  # seed for random number generator
 
 #------------------------------------------

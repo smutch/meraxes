@@ -130,9 +130,9 @@ struct run_params_t {
   double           MergerTimeFactor;
   int              SnaplistLength;
   int              RandomSeed;
-  char             MultipleRunsParamFile[STRLEN];
   char             ForestIDFile[STRLEN];
   physics_params_t physics;
+  int              FlagInteractive;
   int              TOCF_Flag;
 };
 typedef struct run_params_t run_params_t;
@@ -199,87 +199,8 @@ struct tocf_grids_t {
 typedef struct tocf_grids_t tocf_grids_t;
 #endif
 
-//! Global variables which will will be passed around
-struct run_globals_t {
-  int                 LastOutputSnap;
-  int                 ListOutputSnaps[NOUT];
-  int                 NGhosts;
-  double             *AA;
-  double             *ZZ;
-  double             *LTTime;
-  double              Hubble;
-  double              RhoCrit;
-  double              G;
-  char                FNameOut[STRLEN];
-  int                 NHalosMax;
-  int                 NFOFGroupsMax;
-  int                 NRequestedForests;
-  bool                SelectForestsSwitch;
-  int                *RequestedForestId;
-  int                 NRuns;
-  double            **MultipleRunsParams;
-  struct galaxy_t    *FirstGal;
-  struct galaxy_t    *LastGal;
-  gsl_rng            *random_generator;
-  struct run_params_t params;
-  struct run_units_t  units;
-  hdf5_output_t       hdf5props;
-  phototabs_t         photo;
-#ifdef USE_TOCF
-  tocf_grids_t tocf_grids;
-#endif
-};
-typedef struct run_globals_t run_globals_t;
-
-//! Tree info struct
-typedef struct trees_info_t {
-  int n_step;
-  int n_search;
-  int n_halos;
-  int n_halos_max;
-  int max_tree_id;
-  int n_fof_groups;
-  int n_fof_groups_max;
-} trees_info_t;
-
-//! Tree entry struct
-typedef struct tree_entry_t {
-  int    id;
-  int    flags;
-  int    desc_id;
-  int    tree_id;
-  int    file_offset;
-  int    desc_index;
-  int    central_index;
-  int    forest_id;
-  double fof_mvir;
-} tree_entry_t;
-
-//! This is the structure for a halo in the catalog files
-struct catalog_halo_t {
-  long long id_MBP;                    //!< ID of most bound particle in structure
-  double    M_vir;                     //!< Bryan & Norman (ApJ 495, 80, 1998) virial mass [M_sol/h]
-  int       n_particles;               //!< Number of particles in the structure
-  float     position_COM[3];           //!< Centre-of-mass position      [Mpc/h]
-  float     position_MBP[3];           //!< Most bound particle position [Mpc/h]
-  float     velocity_COM[3];           //!< Centre-of-mass velocity      [km/s]
-  float     velocity_MBP[3];           //!< Most bound particle velocity [km/s]
-  float     R_vir;                     //!< Virial radius [Mpc/h]
-  float     R_halo;                    //!< Distance of last halo particle from MBP [Mpc/h]
-  float     R_max;                     //!< Radius of maximum circular velocity     [Mpc/h]
-  float     V_max;                     //!< Maximum circular velocity               [km/s]
-  float     sigma_v;                   //!< Total 3D velocity dispersion            [km/s]
-  float     ang_mom[3];                //!< Specific angular momentum vector        [Mpc/h*km/s]
-  float     q_triaxial;                //!< Triaxial shape parameter q=b/a
-  float     s_triaxial;                //!< Triaxial shape parameter s=c/a
-  float     shape_eigen_vectors[3][3]; //!< Normalized triaxial shape eigenvectors
-  char      padding[8];                //!< Alignment padding
-};
-typedef struct catalog_halo_t catalog_halo_t;
-
-
 //! The meraxis halo structure
-struct halo_t {
+typedef struct halo_t {
   long long           id_MBP; //!< ID of most bound particle
   int                 ID; //!< Halo ID
   int                 Type; //!< Type (0 for central, 1 for satellite)
@@ -301,8 +222,7 @@ struct halo_t {
   float               Vmax; //!< Maximum circular velocity [km/s]
   float               VelDisp; //!< Total 3D velocity dispersion [km/s]
   float               AngMom[3]; //!< Specific angular momentum vector [Mpc/h *km/s]
-};
-typedef struct halo_t halo_t;
+} halo_t;
 
 struct fof_group_t {
   halo_t *FirstHalo;
@@ -408,13 +328,96 @@ struct galaxy_output_t {
 typedef struct galaxy_output_t galaxy_output_t;
 
 
+//! Tree info struct
+typedef struct trees_info_t {
+  int n_step;
+  int n_search;
+  int n_halos;
+  int n_halos_max;
+  int max_tree_id;
+  int n_fof_groups;
+  int n_fof_groups_max;
+} trees_info_t;
+
+//! Tree entry struct
+typedef struct tree_entry_t {
+  int    id;
+  int    flags;
+  int    desc_id;
+  int    tree_id;
+  int    file_offset;
+  int    desc_index;
+  int    central_index;
+  int    forest_id;
+  double fof_mvir;
+} tree_entry_t;
+
+//! This is the structure for a halo in the catalog files
+typedef struct catalog_halo_t {
+  long long id_MBP;                    //!< ID of most bound particle in structure
+  double    M_vir;                     //!< Bryan & Norman (ApJ 495, 80, 1998) virial mass [M_sol/h]
+  int       n_particles;               //!< Number of particles in the structure
+  float     position_COM[3];           //!< Centre-of-mass position      [Mpc/h]
+  float     position_MBP[3];           //!< Most bound particle position [Mpc/h]
+  float     velocity_COM[3];           //!< Centre-of-mass velocity      [km/s]
+  float     velocity_MBP[3];           //!< Most bound particle velocity [km/s]
+  float     R_vir;                     //!< Virial radius [Mpc/h]
+  float     R_halo;                    //!< Distance of last halo particle from MBP [Mpc/h]
+  float     R_max;                     //!< Radius of maximum circular velocity     [Mpc/h]
+  float     V_max;                     //!< Maximum circular velocity               [km/s]
+  float     sigma_v;                   //!< Total 3D velocity dispersion            [km/s]
+  float     ang_mom[3];                //!< Specific angular momentum vector        [Mpc/h*km/s]
+  float     q_triaxial;                //!< Triaxial shape parameter q=b/a
+  float     s_triaxial;                //!< Triaxial shape parameter s=c/a
+  float     shape_eigen_vectors[3][3]; //!< Normalized triaxial shape eigenvectors
+  char      padding[8];                //!< Alignment padding
+} catalog_halo_t;
+
+//! Global variables which will will be passed around
+typedef struct run_globals_t {
+  int                 LastOutputSnap;
+  int                 ListOutputSnaps[NOUT];
+  int                 NGhosts;
+  double             *AA;
+  double             *ZZ;
+  double             *LTTime;
+  double              Hubble;
+  double              RhoCrit;
+  double              G;
+  char                FNameOut[STRLEN];
+  int                 NHalosMax;
+  int                 NFOFGroupsMax;
+  int                 NRequestedForests;
+  bool                SelectForestsSwitch;
+  int                *RequestedForestId;
+  int                 NStoreSnapshots;
+  halo_t            **SnapshotHalo;
+  fof_group_t       **SnapshotFOFGroup;
+  int               **SnapshotIndexLookup;
+  trees_info_t       *SnapshotTreesInfo;
+  struct galaxy_t    *FirstGal;
+  struct galaxy_t    *LastGal;
+  gsl_rng            *random_generator;
+  struct run_params_t params;
+  struct run_units_t  units;
+  hdf5_output_t       hdf5props;
+  phototabs_t         photo;
+#ifdef USE_TOCF
+  tocf_grids_t tocf_grids;
+#endif
+} run_globals_t;
+
+
 /*
  * Functions
  */
 
 void         myexit(int signum);
-void         read_parameter_file(run_globals_t *run_globals, char *fname);
+void         read_parameter_file(run_globals_t *run_globals, char *fname, int mode);
 void         init_meraxes(run_globals_t *run_globals);
+void         continue_prompt(run_globals_t *run_globals, char *param_file);
+void         free_halo_storage(run_globals_t *run_globals);
+void         initialize_halo_storage(run_globals_t *run_globals);
 void         dracarys(run_globals_t *run_globals);
 int          evolve_galaxies(run_globals_t *run_globals, fof_group_t *fof_group, int snapshot, int NGal, int NFof);
 trees_info_t read_halos(run_globals_t *run_globals, int snapshot, halo_t **halo, fof_group_t **fof_group, int **index_lookup, trees_info_t *snapshot_trees_info);
@@ -438,10 +441,9 @@ void         calc_hdf5_props(run_globals_t *run_globals);
 void         prepare_galaxy_for_output(run_globals_t *run_globals, galaxy_t gal, galaxy_output_t *galout, int i_snap);
 void         read_photometric_tables(run_globals_t *run_globals);
 int          compare_ints(const void *a, const void *b);
-void         mpi_debug_here();
+void         mpi_debug_here(void);
 void         check_counts(run_globals_t *run_globals, fof_group_t *fof_group, int NGal, int NFof);
-int          debug(const char * restrict format, ...);
-void         cn_quote();
+void         cn_quote(void);
 int          get_corrected_snapshot(run_globals_t *run_globals, int snapshot);
 double       Tvir_to_Mvir(run_globals_t *run_globals, double T, double z);
 double       calculate_Mvir(run_globals_t *run_globals, halo_t *halo);
@@ -483,5 +485,9 @@ void calculate_Mvir_crit(run_globals_t *run_globals, double redshift);
 void call_find_HII_bubbles(run_globals_t *run_globals, int snapshot, int nout_gals);
 void save_tocf_grids(run_globals_t *run_globals, hid_t group_id, int snapshot);
 void check_if_reionization_complete(run_globals_t *run_globals);
+#endif
+
+#ifdef DEBUG
+int debug(const char * restrict format, ...);
 #endif
 #endif // _INIT_MERAXES
