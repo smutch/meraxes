@@ -1,7 +1,5 @@
 Todo list:
-✔ Add flag for BH physics @done (2014-05-01 11:42))
-✔ Add Gnedin reionization model @done (2014-05-01 11:42))
-✔ Add Sobachi reionization model @done (2014-05-01 11:42))
+☐ Merger driven SN burst free normalization parameter
 ☐ Blitz & Rosolowsky (Lagos/Dutton style) star formation law @discuss
 ☐ bulge--disk decomposition
 ☐ dust law (De Lucia 2007?) @discuss
@@ -12,6 +10,9 @@ To consider:
 
 Archive:
 ＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿
+✔ Add flag for BH physics @done (2014-05-01 11:42))
+✔ Add Gnedin reionization model @done (2014-05-01 11:42))
+✔ Add Sobachi reionization model @done (2014-05-01 11:42))
 ✔ debug the why I get 25% fewer galaxies with MPI at snapshot=-1 @done (2014-02-25 10:12)
 ✔ start merger clock when Mstar < param*Mvir @done (2014-04-30 12:53)
 ✔ allow the halos of previous snapshots be saved and used for repeated runs @done (2014-03-18 09:09)

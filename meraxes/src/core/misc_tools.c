@@ -1,5 +1,18 @@
 #include "meraxes.h"
 
+void myexit(int signum)
+{
+  fprintf(stderr, "Task: %d\tnode: %s\tis exiting.\n\n\n", SID.My_rank, SID.My_node);
+  cn_quote();
+  // if(SID.n_proc > 1)
+  // {
+  //   fflush(SID.fp_log);
+  //   fclose(SID.fp_log);
+  // }
+  SID_exit(signum);
+}
+
+
 double calc_metallicity(double total_gas, double metals)
 {
   double Z;

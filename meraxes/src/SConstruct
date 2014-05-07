@@ -173,6 +173,7 @@ if not GetOption('help'):
     env.AppendUnique(LIBPATH = [GSL_LIBS, GBP_LIBS])
     env.AppendUnique(LIBS = HDF5_LIBS)
     env.AppendUnique(CPPFLAGS = '-std=gnu99')
+    # env.AppendUnique(CPPFLAGS = ['-fPIC',])
 
     if env['tocf']:
         env.AppendUnique(CPPPATH = [TOCF_INCL, FFTW_INCL])
@@ -192,12 +193,11 @@ if not GetOption('help'):
     # env.NoClean(target)
     Default(target)
 
+    node_list.remove("core/meraxes.c")
     lib = env.StaticLibrary(target='../lib/meraxes', source=node_list)
     incl = env.CopyFiles(files('*.h'), '../include')
-    pic = env.AppendUnique(CPPFLAGS = ['-fPIC',])
     Depends(incl, git_header)
     Depends(lib, incl)
-    Depends(lib, pic)
     env.Alias('lib', lib)
 
     # Testing alias
