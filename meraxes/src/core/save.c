@@ -445,12 +445,16 @@ void create_master_file(run_globals_t *run_globals)
   sprintf(names[ii++], "ReincorporationEff");
   addresses[ii] = &(run_globals->params.physics.Yield);
   sprintf(names[ii++], "Yield");
-  addresses[ii] = &(run_globals->params.physics.ThreshMajorMerger);
-  sprintf(names[ii++], "ThreshMajorMerger");
   addresses[ii] = &(run_globals->params.physics.RadioModeEff);
   sprintf(names[ii++], "RadioModeEff");
   addresses[ii] = &(run_globals->params.physics.BlackHoleGrowthRate);
   sprintf(names[ii++], "BlackHoleGrowthRate");
+  addresses[ii] = &(run_globals->params.physics.ThreshMajorMerger);
+  sprintf(names[ii++], "ThreshMajorMerger");
+  addresses[ii] = &(run_globals->params.physics.MinMergerRatioForBurst);
+  sprintf(names[ii++], "MinMergerRatioForBurst");
+  addresses[ii] = &(run_globals->params.physics.MergerBurstFactor);
+  sprintf(names[ii++], "MergerBurstFactor");
 
   addresses[ii] = &(run_globals->params.physics.ReionNionPhotPerBary);
   sprintf(names[ii++], "ReionNionPhotPerBary");

@@ -73,9 +73,12 @@ struct physics_params_t {
   double SnEjectionEff;
   double ReincorporationEff;
   double Yield;
-  double ThreshMajorMerger;
   double RadioModeEff;
   double BlackHoleGrowthRate;
+
+  double ThreshMajorMerger;
+  double MinMergerRatioForBurst;
+  double MergerBurstFactor;
 
   // TODO: These parameters should be used to set the TOCF HII_EFF_FACTOR value
   double ReionNionPhotPerBary;

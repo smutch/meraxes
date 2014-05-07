@@ -57,6 +57,8 @@ BlackHoleGrowthRate : 0.03    # black hole growth efficiency through merger driv
 
 ThreshMajorMerger : 0.3     # major merger when mass ratio greater than this
 MergerTimeFactor  : 1.0     # Multiplicitive fator for the merger timescales (2.0->DeLucia+; 1.0->Croton+)
+MinMergerRatioForBurst : 0
+MergerBurstFactor : 0.56
 
 # Reionization
 ReionTcool             : 1.0e4

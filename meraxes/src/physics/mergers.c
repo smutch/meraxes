@@ -76,12 +76,13 @@ double calculate_merging_time(run_globals_t *run_globals, galaxy_t *sat, int sna
 
 static void merger_driven_starburst(run_globals_t *run_globals, galaxy_t *parent, double merger_ratio)
 {
-  if (parent->ColdGas > 0)
+  if ((parent->ColdGas > 0) && (merger_ratio > run_globals->params.physics.MinMergerRatioForBurst))
   {
     // Calculate a merger driven starburst following Guo+ 2010
     double burst_mass;
 
-    burst_mass = 0.56 * pow(merger_ratio, 0.7) * parent->ColdGas;
+    // burst_mass = 0.56 * pow(merger_ratio, 0.7) * parent->ColdGas;
+    burst_mass = run_globals->params.physics.MergerBurstFactor * pow(merger_ratio, 0.7) * parent->ColdGas;
 
     // if(burst_mass > parent->ColdGas)
     //   burst_mass = parent->ColdGas;
