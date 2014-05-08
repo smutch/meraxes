@@ -17,6 +17,12 @@ double calculate_merging_time(run_globals_t *run_globals, galaxy_t *sat, int sna
   // assuming that the halo properties of the galaxies have *not* yet been
   // updated to the current snapshot (where the halos have already merged).
 
+  // First check to see if the baryonic mass of the satellite is zero (this can
+  // happen due to reionization).  If true, then just set the merger clock to
+  // zero.
+  if ((sat->StellarMass + sat->ColdGas) < 2e-10)
+    return 0.0;
+
   // Find the merger "mother halo".  This is the most massive halo associated
   // with the merger event.  It's possible that there are >2 halos
   // participating in this merger but we want to use the most massive one in
