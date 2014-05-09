@@ -17,9 +17,8 @@ import os
 __author__ = "Simon Mutch"
 __date__   = "2014-05-01"
 
-args = docopt(__doc__)
-
 __script_dir__ = os.path.dirname(os.path.realpath( __file__ ))
+
 
 def plot_smf_z5(gals, simprops, ax):
 
@@ -47,6 +46,11 @@ def plot_smf_z5(gals, simprops, ax):
     # plot the model
     ax.plot(smf[:,0], np.log10(smf[:,1]), label="Meraxes")
 
+    # plot the hmf
+    hm = np.log10(gals.Mvir[gals.Type == 0] * 1.0e10)
+    hmf = munge.mass_function(hm, simprops["Volume"], 50)
+    ax.plot(np.log10(0.05*0.17)+hmf[:,0], np.log10(hmf[:,1]), label="HMF (Mvir*0.05*0.17)", ls='--', color='k')
+
     # plot the observations
     ax.errorbar(obs.sm, obs.log_phi, yerr=[obs.m_err, obs.p_err],
             label="Gonzalez et al. 2011",
@@ -60,10 +64,11 @@ def plot_smf_z5(gals, simprops, ax):
 
 if __name__ == '__main__':
 
+    args = docopt(__doc__)
     fname = args['<fname>']
     snap, redshift = meraxes.io.check_for_redshift(fname, 5.0, tol=0.1)
 
-    props = ("StellarMass", )
+    props = ("StellarMass", "Mvir", "Type")
     gals, simprops = meraxes.io.read_gals(fname, snapshot=snap, props=props,
             sim_props=True)
     gals = gals.view(np.recarray)

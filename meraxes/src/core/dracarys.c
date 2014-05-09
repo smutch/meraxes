@@ -43,6 +43,7 @@ static inline bool check_if_valid_host(run_globals_t *run_globals, halo_t *halo)
     return false;
 }
 
+
 static int find_original_index(int index, int *lookup, int n_mappings)
 {
   int *pointer  = NULL;

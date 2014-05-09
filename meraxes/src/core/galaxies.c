@@ -135,6 +135,7 @@ void create_new_galaxy(
   *new_gal_counter     = *new_gal_counter + 1;
 }
 
+
 void kill_galaxy(
   run_globals_t *run_globals,
   galaxy_t      *gal,
