@@ -58,7 +58,7 @@ void insitu_star_formation(run_globals_t *run_globals, galaxy_t *gal)
     m_crit = 0.19 * gal->Vvir * r_disk;
 
     if (gal->ColdGas > m_crit)
-      m_stars = SfEfficiency * (gal->ColdGas - m_crit) / r_disk * gal->Vmax * gal->dt;
+      m_stars = SfEfficiency * (gal->ColdGas - m_crit) / r_disk * gal->Vvir * gal->dt;
     else
       // no star formation
       return;
