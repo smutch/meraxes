@@ -2,3 +2,4 @@
 	path = 21cmfast
 	url = git@bitbucket.org:smutch/21cmfastv2-meraxes.git
     branch = develop
+    ignore = dirty
