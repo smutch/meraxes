@@ -8,6 +8,9 @@
 
 void set_HII_eff_factor(run_globals_t *run_globals)
 {
+  // Use the params passed to Meraxes via the input file to set the HII
+  // ionizing efficiency factor.
+
   physics_params_t *params = &(run_globals->params.physics);
 
   tocf_params.HII_eff_factor = (params->reion_Nion_phot_per_bary / 4000.0) *
@@ -44,8 +47,8 @@ void call_find_HII_bubbles(run_globals_t *run_globals, int snapshot, int nout_ga
   // Make copies of the stellar and deltax grids before sending them to
   // 21cmfast.  This is because the floating precision fft--ifft introduces
   // rounding error that we don't want to store...
-  memcpy(grids->stars_copy, grids->stars, sizeof(fftwf_complex) * HII_KSPACE_NUM_PIXELS);
-  memcpy(grids->sfr_copy, grids->sfr, sizeof(fftwf_complex) * HII_KSPACE_NUM_PIXELS);
+  memcpy(grids->stars_copy , grids->stars , sizeof(fftwf_complex) * HII_KSPACE_NUM_PIXELS);
+  memcpy(grids->sfr_copy   , grids->sfr   , sizeof(fftwf_complex) * HII_KSPACE_NUM_PIXELS);
   memcpy(grids->deltax_copy, grids->deltax, sizeof(fftwf_complex) * HII_KSPACE_NUM_PIXELS);
 
   SID_log("...done", SID_LOG_CLOSE);
@@ -70,8 +73,8 @@ void call_find_HII_bubbles(run_globals_t *run_globals, int snapshot, int nout_ga
                                       );
 
   // copy the original (non fourier transformed) grids back into place
-  memcpy(grids->stars, grids->stars_copy, sizeof(fftwf_complex) * HII_KSPACE_NUM_PIXELS);
-  memcpy(grids->sfr, grids->sfr_copy, sizeof(fftwf_complex) * HII_KSPACE_NUM_PIXELS);
+  memcpy(grids->stars , grids->stars_copy , sizeof(fftwf_complex) * HII_KSPACE_NUM_PIXELS);
+  memcpy(grids->sfr   , grids->sfr_copy   , sizeof(fftwf_complex) * HII_KSPACE_NUM_PIXELS);
   memcpy(grids->deltax, grids->deltax_copy, sizeof(fftwf_complex) * HII_KSPACE_NUM_PIXELS);
 
   SID_log("...done", SID_LOG_CLOSE);
@@ -100,12 +103,6 @@ void malloc_reionization_grids(run_globals_t *run_globals)
 
   if (run_globals->params.TOCF_Flag)
   {
-    // TODO: Update depending on tocf_params flags
-    SID_log("Mallocing %.1f GB for required 21cmFAST grids...", SID_LOG_OPEN,
-            ((float)(HII_TOT_NUM_PIXELS * sizeof(float) * 5) +
-             (float)(HII_KSPACE_NUM_PIXELS * sizeof(fftwf_complex) * 4))
-            / (1024. * 1024. * 1024.));
-
     grids->xH              = (float*)fftwf_malloc(sizeof(float) * HII_TOT_NUM_PIXELS);
     grids->stars           = (fftwf_complex*)fftwf_malloc(sizeof(fftwf_complex) * HII_KSPACE_NUM_PIXELS);
     grids->stars_filtered  = (fftwf_complex*)fftwf_malloc(sizeof(fftwf_complex) * HII_KSPACE_NUM_PIXELS);
@@ -140,27 +137,27 @@ void malloc_reionization_grids(run_globals_t *run_globals)
     if (tocf_params.uvb_feedback)
     {
       memset(grids->J_21_at_ionization, 0., sizeof(float) * HII_TOT_NUM_PIXELS);
-      memset(grids->J_21, 0., sizeof(float) * HII_TOT_NUM_PIXELS);
-      memset(grids->Mvir_crit, 0, sizeof(float) * HII_TOT_NUM_PIXELS);
+      memset(grids->J_21              , 0., sizeof(float) * HII_TOT_NUM_PIXELS);
+      memset(grids->Mvir_crit         , 0 , sizeof(float) * HII_TOT_NUM_PIXELS);
       for (int ii = 0; ii < HII_TOT_NUM_PIXELS; ii++)
         grids->z_at_ionization[ii] = -1;
     }
 
-    memset(grids->stars, 0, sizeof(fftwf_complex) * HII_KSPACE_NUM_PIXELS);
-    memset(grids->stars_filtered, 0, sizeof(fftwf_complex) * HII_KSPACE_NUM_PIXELS);
-    memset(grids->stars_copy, 0, sizeof(fftwf_complex) * HII_KSPACE_NUM_PIXELS);
-    memset(grids->deltax, 0, sizeof(fftwf_complex) * HII_KSPACE_NUM_PIXELS);
+    memset(grids->stars          , 0, sizeof(fftwf_complex) * HII_KSPACE_NUM_PIXELS);
+    memset(grids->stars_filtered , 0, sizeof(fftwf_complex) * HII_KSPACE_NUM_PIXELS);
+    memset(grids->stars_copy     , 0, sizeof(fftwf_complex) * HII_KSPACE_NUM_PIXELS);
+    memset(grids->deltax         , 0, sizeof(fftwf_complex) * HII_KSPACE_NUM_PIXELS);
     memset(grids->deltax_filtered, 0, sizeof(fftwf_complex) * HII_KSPACE_NUM_PIXELS);
-    memset(grids->deltax_copy, 0, sizeof(fftwf_complex) * HII_KSPACE_NUM_PIXELS);
-    memset(grids->sfr, 0, sizeof(fftwf_complex) * HII_KSPACE_NUM_PIXELS);
-    memset(grids->sfr_filtered, 0, sizeof(fftwf_complex) * HII_KSPACE_NUM_PIXELS);
-    memset(grids->sfr_copy, 0, sizeof(fftwf_complex) * HII_KSPACE_NUM_PIXELS);
+    memset(grids->deltax_copy    , 0, sizeof(fftwf_complex) * HII_KSPACE_NUM_PIXELS);
+    memset(grids->sfr            , 0, sizeof(fftwf_complex) * HII_KSPACE_NUM_PIXELS);
+    memset(grids->sfr_filtered   , 0, sizeof(fftwf_complex) * HII_KSPACE_NUM_PIXELS);
+    memset(grids->sfr_copy       , 0, sizeof(fftwf_complex) * HII_KSPACE_NUM_PIXELS);
 
     if (tocf_params.compute_mfp)
     {
-      memset(grids->mfp, 0., sizeof(float) * HII_TOT_NUM_PIXELS);
-      memset(grids->N_rec, 0, sizeof(fftwf_complex) * HII_KSPACE_NUM_PIXELS);
-      memset(grids->N_rec_filtered, 0, sizeof(fftwf_complex) * HII_KSPACE_NUM_PIXELS);
+      memset(grids->mfp           , 0., sizeof(float) * HII_TOT_NUM_PIXELS);
+      memset(grids->N_rec         , 0 , sizeof(fftwf_complex) * HII_KSPACE_NUM_PIXELS);
+      memset(grids->N_rec_filtered, 0 , sizeof(fftwf_complex) * HII_KSPACE_NUM_PIXELS);
     }
 
     SID_log(" ...done", SID_LOG_CLOSE);
@@ -234,8 +231,18 @@ void construct_stellar_grids(run_globals_t *run_globals)
   gal = run_globals->FirstGal;
   while (gal != NULL)
   {
+    // TODO: Note that I am including ghosts here.  We will need to check the
+    // validity of this.  By definition, if they are ghosts then their host
+    // halo hasn't been identified at this time step and hence they haven't
+    // been evolved.  Their properties (Sfr, StellarMass, etc.) will all have
+    // been set when they were last identified.
     if (gal->Type < 3)
     {
+      // TODO: for type 2 galaxies these positions will be set from the last
+      // time they were identified.  If their host halo has moved significantly
+      // since then, these positions won't reflect that and the satellites will
+      // be spatially disconnected from their hosts.  We will need to fix this
+      // at some point.
       i = find_cell(gal->Pos[0], box_size);
       j = find_cell(gal->Pos[1], box_size);
       k = find_cell(gal->Pos[2], box_size);
@@ -246,7 +253,7 @@ void construct_stellar_grids(run_globals_t *run_globals)
     gal = gal->Next;
   }
 
-  // Do one final pass to put the grid in the correct units (Msol or Msol/s)
+  // Do one final pass to put the grid in the correct (real) units (Msol or Msol/s)
   for (int i = 0; i < HII_dim; i++)
     for (int j = 0; j < HII_dim; j++)
       for (int k = 0; k < HII_dim; k++)
@@ -350,6 +357,7 @@ void save_tocf_grids(run_globals_t *run_globals, hid_t group_id, int snapshot)
 
   SID_log(" done", SID_LOG_CLOSE);
 }
+
 
 void check_if_reionization_complete(run_globals_t *run_globals)
 {
