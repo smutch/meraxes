@@ -39,6 +39,7 @@ double gas_cooling(run_globals_t *run_globals, galaxy_t *gal)
     // now calculate the cooling radius
     rho_at_Rvir = gal->HotGas / (4. * M_PI * gal->Rvir);
     r_cool      = sqrt(rho_at_Rvir / rho_r_cool);
+    gal->Rcool  = r_cool;
 
     // the maximum amount of gas we can possibly cool is limited by the amount
     // of mass within the free fall radius

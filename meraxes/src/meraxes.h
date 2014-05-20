@@ -274,6 +274,7 @@ struct galaxy_t {
   double BlackHoleMass;
 
   // misc
+  double Rcool;
   double Cos_Inc;
   double MergTime;
   double BaryonFracModifier;
@@ -318,6 +319,7 @@ struct galaxy_output_t {
   float BlackHoleMass;
 
   // misc
+  float Rcool;
   float Cos_Inc;
   float MergTime;
   float LTTime;
