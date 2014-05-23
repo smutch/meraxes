@@ -27,19 +27,23 @@ void set_HII_eff_factor(run_globals_t *run_globals)
 void call_find_HII_bubbles(run_globals_t *run_globals, int snapshot, int nout_gals)
 {
   // Thin wrapper round find_HII_bubbles
+  
+  int total_n_out_gals = 0;
 
   tocf_grids_t *grids = &(run_globals->tocf_grids);
 
   SID_log("Getting ready to call find_HII_bubbles...", SID_LOG_OPEN);
 
-  // Construct the stellar mass grid
-  if (nout_gals > 0)
-    construct_stellar_grids(run_globals);
-  else
+  // Check to see if there are actually any galaxies at this snapshot
+  SID_Allreduce(&nout_gals, &total_n_out_gals, SID_INT, 1, SID_SUM, SID.COMM_WORLD);
+  if (total_n_out_gals == 0)
   {
-    SID_log("No galaxies present - skipping...", SID_LOG_COMMENT | SID_LOG_CLOSE);
+    SID_log("No galaxies in the simulation - skipping...", SID_LOG_COMMENT);
     return;
   }
+
+  // Construct the stellar mass grid
+  construct_stellar_grids(run_globals);
 
   // Read in the dark matter density grid
   read_dm_grid(run_globals, snapshot, 0, (float*)(grids->deltax));
@@ -274,22 +278,29 @@ void construct_stellar_grids(run_globals_t *run_globals)
     gal = gal->Next;
   }
 
-  // Do one final pass to put the grid in the correct (real) units (Msol or Msol/s)
-  for (int i = 0; i < HII_dim; i++)
-    for (int j = 0; j < HII_dim; j++)
-      for (int k = 0; k < HII_dim; k++)
-      {
-        if (*(stellar_grid + HII_R_FFT_INDEX(i, j, k)) > 0)
-          *(stellar_grid + HII_R_FFT_INDEX(i, j, k)) *= (1.e10 / Hubble_h);
-        if (*(sfr_grid + HII_R_FFT_INDEX(i, j, k)) > 0)
-          *(sfr_grid + HII_R_FFT_INDEX(i, j, k)) *= (1.e10 / UnitTime_in_s);
+  // Collect all grid cell values onto rank 0 which will actually call 21cmFAST
+  SID_Reduce(stellar_grid, stellar_grid, HII_TOT_NUM_PIXELS, SID_FLOAT, SID_SUM, 0, SID.COMM_WORLD);
+  SID_Reduce(sfr_grid, sfr_grid, HII_TOT_NUM_PIXELS, SID_FLOAT, SID_SUM, 0, SID.COMM_WORLD);
 
-        // Check for under/overflow
-        if (*(stellar_grid + HII_R_FFT_INDEX(i, j, k)) < 0)
-          *(stellar_grid + HII_R_FFT_INDEX(i, j, k)) = 0;
-        if (*(sfr_grid + HII_R_FFT_INDEX(i, j, k)) < 0)
-          *(sfr_grid + HII_R_FFT_INDEX(i, j, k)) = 0;
-      }
+  if (SID.My_rank == 0)
+  {
+    // Do one final pass to put the grid in the correct (real) units (Msol or Msol/s)
+    for (int i = 0; i < HII_dim; i++)
+      for (int j = 0; j < HII_dim; j++)
+        for (int k = 0; k < HII_dim; k++)
+        {
+          if (*(stellar_grid + HII_R_FFT_INDEX(i, j, k)) > 0)
+            *(stellar_grid + HII_R_FFT_INDEX(i, j, k)) *= (1.e10 / Hubble_h);
+          if (*(sfr_grid + HII_R_FFT_INDEX(i, j, k)) > 0)
+            *(sfr_grid + HII_R_FFT_INDEX(i, j, k)) *= (1.e10 / UnitTime_in_s);
+
+          // Check for under/overflow
+          if (*(stellar_grid + HII_R_FFT_INDEX(i, j, k)) < 0)
+            *(stellar_grid + HII_R_FFT_INDEX(i, j, k)) = 0;
+          if (*(sfr_grid + HII_R_FFT_INDEX(i, j, k)) < 0)
+            *(sfr_grid + HII_R_FFT_INDEX(i, j, k)) = 0;
+        }
+  }
 
   SID_log("done", SID_LOG_CLOSE);
 }
