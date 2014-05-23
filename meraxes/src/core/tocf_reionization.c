@@ -45,41 +45,44 @@ void call_find_HII_bubbles(run_globals_t *run_globals, int snapshot, int nout_ga
   // Construct the stellar mass grid
   construct_stellar_grids(run_globals);
 
-  // Read in the dark matter density grid
-  read_dm_grid(run_globals, snapshot, 0, (float*)(grids->deltax));
-
-  // Make copies of the stellar and deltax grids before sending them to
-  // 21cmfast.  This is because the floating precision fft--ifft introduces
-  // rounding error that we don't want to store...
-  memcpy(grids->stars_copy , grids->stars , sizeof(fftwf_complex) * HII_KSPACE_NUM_PIXELS);
-  memcpy(grids->sfr_copy   , grids->sfr   , sizeof(fftwf_complex) * HII_KSPACE_NUM_PIXELS);
-  memcpy(grids->deltax_copy, grids->deltax, sizeof(fftwf_complex) * HII_KSPACE_NUM_PIXELS);
-
   SID_log("...done", SID_LOG_CLOSE);
 
-  SID_log("Calling find_HII_bubbles...", SID_LOG_OPEN);
-  // TODO: Fix if snapshot==0
-  grids->global_xH = find_HII_bubbles(run_globals->ZZ[snapshot], run_globals->ZZ[snapshot - 1],
-                                      tocf_params.HII_eff_factor, tocf_params.ion_tvir_min, tocf_params.r_bubble_max, tocf_params.numcores,
-                                      grids->xH,
-                                      grids->stars,
-                                      grids->stars_filtered,
-                                      grids->deltax,
-                                      grids->deltax_filtered,
-                                      grids->sfr,
-                                      grids->sfr_filtered,
-                                      grids->z_at_ionization,
-                                      grids->J_21_at_ionization,
-                                      grids->J_21,
-                                      grids->mfp,
-                                      grids->N_rec,
-                                      grids->N_rec_filtered
-                                      );
+  if (SID.My_rank == 0)
+  {
+    // Read in the dark matter density grid
+    read_dm_grid(run_globals, snapshot, 0, (float*)(grids->deltax));
 
-  // copy the original (non fourier transformed) grids back into place
-  memcpy(grids->stars , grids->stars_copy , sizeof(fftwf_complex) * HII_KSPACE_NUM_PIXELS);
-  memcpy(grids->sfr   , grids->sfr_copy   , sizeof(fftwf_complex) * HII_KSPACE_NUM_PIXELS);
-  memcpy(grids->deltax, grids->deltax_copy, sizeof(fftwf_complex) * HII_KSPACE_NUM_PIXELS);
+    // Make copies of the stellar and deltax grids before sending them to
+    // 21cmfast.  This is because the floating precision fft--ifft introduces
+    // rounding error that we don't want to store...
+    memcpy(grids->stars_copy , grids->stars , sizeof(fftwf_complex) * HII_KSPACE_NUM_PIXELS);
+    memcpy(grids->sfr_copy   , grids->sfr   , sizeof(fftwf_complex) * HII_KSPACE_NUM_PIXELS);
+    memcpy(grids->deltax_copy, grids->deltax, sizeof(fftwf_complex) * HII_KSPACE_NUM_PIXELS);
+
+    SID_log("Calling find_HII_bubbles...", SID_LOG_OPEN);
+    // TODO: Fix if snapshot==0
+    grids->global_xH = find_HII_bubbles(run_globals->ZZ[snapshot], run_globals->ZZ[snapshot - 1],
+        tocf_params.HII_eff_factor, tocf_params.ion_tvir_min, tocf_params.r_bubble_max, tocf_params.numcores,
+        grids->xH,
+        grids->stars,
+        grids->stars_filtered,
+        grids->deltax,
+        grids->deltax_filtered,
+        grids->sfr,
+        grids->sfr_filtered,
+        grids->z_at_ionization,
+        grids->J_21_at_ionization,
+        grids->J_21,
+        grids->mfp,
+        grids->N_rec,
+        grids->N_rec_filtered
+        );
+
+    // copy the original (non fourier transformed) grids back into place
+    memcpy(grids->stars , grids->stars_copy , sizeof(fftwf_complex) * HII_KSPACE_NUM_PIXELS);
+    memcpy(grids->sfr   , grids->sfr_copy   , sizeof(fftwf_complex) * HII_KSPACE_NUM_PIXELS);
+    memcpy(grids->deltax, grids->deltax_copy, sizeof(fftwf_complex) * HII_KSPACE_NUM_PIXELS);
+  }
 
   SID_log("...done", SID_LOG_CLOSE);
 }
