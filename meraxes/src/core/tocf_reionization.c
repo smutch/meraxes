@@ -27,7 +27,7 @@ void set_HII_eff_factor(run_globals_t *run_globals)
 void call_find_HII_bubbles(run_globals_t *run_globals, int snapshot, int nout_gals)
 {
   // Thin wrapper round find_HII_bubbles
-  
+
   int total_n_out_gals = 0;
 
   tocf_grids_t *grids = &(run_globals->tocf_grids);
@@ -83,6 +83,9 @@ void call_find_HII_bubbles(run_globals_t *run_globals, int snapshot, int nout_ga
     memcpy(grids->sfr   , grids->sfr_copy   , sizeof(fftwf_complex) * HII_KSPACE_NUM_PIXELS);
     memcpy(grids->deltax, grids->deltax_copy, sizeof(fftwf_complex) * HII_KSPACE_NUM_PIXELS);
   }
+
+  // send the global_xH value to all cores
+  SID_Bcast(&(grids->xH), sizeof(float), 0, SID.COMM_WORLD);
 
   SID_log("...done", SID_LOG_CLOSE);
 }
@@ -199,29 +202,35 @@ void free_reionization_grids(run_globals_t *run_globals)
 
   tocf_grids_t *grids = &(run_globals->tocf_grids);
 
-  if (tocf_params.compute_mfp)
+  if (SID.My_rank == 0)
   {
-    fftwf_free(grids->N_rec_filtered);
-    fftwf_free(grids->N_rec);
-    fftwf_free(grids->mfp);
+    if (tocf_params.compute_mfp)
+    {
+      fftwf_free(grids->N_rec_filtered);
+      fftwf_free(grids->N_rec);
+      fftwf_free(grids->mfp);
+    }
+    if (tocf_params.uvb_feedback)
+    {
+      fftwf_free(grids->J_21);
+      fftwf_free(grids->J_21_at_ionization);
+      fftwf_free(grids->z_at_ionization);
+    }
+    fftwf_free(grids->sfr_filtered);
+    fftwf_free(grids->sfr_copy);
+    fftwf_free(grids->deltax_filtered);
+    fftwf_free(grids->deltax_copy);
+    fftwf_free(grids->deltax);
+    fftwf_free(grids->stars_filtered);
+    fftwf_free(grids->stars_copy);
+    fftwf_free(grids->xH);
   }
+
   if (tocf_params.uvb_feedback)
-  {
-    fftwf_free(grids->J_21);
-    fftwf_free(grids->J_21_at_ionization);
-    fftwf_free(grids->z_at_ionization);
     fftwf_free(grids->Mvir_crit);
-  }
-  fftwf_free(grids->sfr_filtered);
-  fftwf_free(grids->sfr_copy);
-  fftwf_free(grids->sfr);
-  fftwf_free(grids->deltax_filtered);
-  fftwf_free(grids->deltax_copy);
-  fftwf_free(grids->deltax);
-  fftwf_free(grids->stars_filtered);
-  fftwf_free(grids->stars_copy);
+
   fftwf_free(grids->stars);
-  fftwf_free(grids->xH);
+  fftwf_free(grids->sfr);
 
   SID_log(" ...done", SID_LOG_CLOSE);
 }
@@ -311,86 +320,91 @@ void construct_stellar_grids(run_globals_t *run_globals)
 
 void save_tocf_grids(run_globals_t *run_globals, hid_t group_id, int snapshot)
 {
-  tocf_grids_t *grids = &(run_globals->tocf_grids);
-  hsize_t dims        = HII_TOT_NUM_PIXELS;
-  int HII_dim         = tocf_params.HII_dim;
-  float *grid;
-  float *ps;
-  int ps_nbins;
-  float average_deltaT;
 
-  SID_log("Saving tocf grids...", SID_LOG_OPEN);
-
-  // float grids
-  H5LTmake_dataset_float(group_id, "xH", 1, &dims, grids->xH);
-
-  if (tocf_params.uvb_feedback)
+  if (SID.My_rank == 0)
   {
-    H5LTmake_dataset_float(group_id, "J_21", 1, &dims, grids->J_21);
-    H5LTmake_dataset_float(group_id, "J_21_at_ionization", 1, &dims, grids->J_21_at_ionization);
-    H5LTmake_dataset_float(group_id, "z_at_ionization", 1, &dims, grids->z_at_ionization);
-    H5LTmake_dataset_float(group_id, "Mvir_crit", 1, &dims, grids->Mvir_crit);
-  }
-  if (tocf_params.compute_mfp)
-    H5LTmake_dataset_float(group_id, "mfp", 1, &dims, grids->mfp);
+    tocf_grids_t *grids = &(run_globals->tocf_grids);
+    hsize_t dims        = HII_TOT_NUM_PIXELS;
+    int HII_dim         = tocf_params.HII_dim;
+    float *grid;
+    float *ps;
+    int ps_nbins;
+    float average_deltaT;
 
-  H5LTset_attribute_float(group_id, "xH", "global_xH", &(grids->global_xH), 1);
+    SID_log("Saving tocf grids...", SID_LOG_OPEN);
 
-  // fftw padded grids
-  grid = (float*)SID_calloc(HII_TOT_NUM_PIXELS * sizeof(float));
+    // float grids
+    H5LTmake_dataset_float(group_id, "xH", 1, &dims, grids->xH);
 
-  for (int ii = 0; ii < HII_dim; ii++)
-    for (int jj = 0; jj < HII_dim; jj++)
-      for (int kk = 0; kk < HII_dim; kk++)
-        grid[HII_R_INDEX(ii, jj, kk)] = *((float*)(grids->stars) + HII_R_FFT_INDEX(ii, jj, kk));
-  H5LTmake_dataset_float(group_id, "stars", 1, &dims, grid);
+    if (tocf_params.uvb_feedback)
+    {
+      H5LTmake_dataset_float(group_id, "J_21", 1, &dims, grids->J_21);
+      H5LTmake_dataset_float(group_id, "J_21_at_ionization", 1, &dims, grids->J_21_at_ionization);
+      H5LTmake_dataset_float(group_id, "z_at_ionization", 1, &dims, grids->z_at_ionization);
+      H5LTmake_dataset_float(group_id, "Mvir_crit", 1, &dims, grids->Mvir_crit);
+    }
+    if (tocf_params.compute_mfp)
+      H5LTmake_dataset_float(group_id, "mfp", 1, &dims, grids->mfp);
 
-  memset((void*)grid, 0, sizeof(float) * HII_TOT_NUM_PIXELS);
-  for (int ii = 0; ii < HII_dim; ii++)
-    for (int jj = 0; jj < HII_dim; jj++)
-      for (int kk = 0; kk < HII_dim; kk++)
-        grid[HII_R_INDEX(ii, jj, kk)] = *((float*)(grids->sfr) + HII_R_FFT_INDEX(ii, jj, kk));
-  H5LTmake_dataset_float(group_id, "sfr", 1, &dims, grid);
+    H5LTset_attribute_float(group_id, "xH", "global_xH", &(grids->global_xH), 1);
 
-  memset((void*)grid, 0, sizeof(float) * HII_TOT_NUM_PIXELS);
-  for (int ii = 0; ii < HII_dim; ii++)
-    for (int jj = 0; jj < HII_dim; jj++)
-      for (int kk = 0; kk < HII_dim; kk++)
-        grid[HII_R_INDEX(ii, jj, kk)] = *((float*)(grids->deltax) + HII_R_FFT_INDEX(ii, jj, kk));
-  H5LTmake_dataset_float(group_id, "deltax", 1, &dims, grid);
+    // fftw padded grids
+    grid = (float*)SID_calloc(HII_TOT_NUM_PIXELS * sizeof(float));
 
-  if (tocf_params.compute_mfp)
-  {
+    for (int ii = 0; ii < HII_dim; ii++)
+      for (int jj = 0; jj < HII_dim; jj++)
+        for (int kk = 0; kk < HII_dim; kk++)
+          grid[HII_R_INDEX(ii, jj, kk)] = *((float*)(grids->stars) + HII_R_FFT_INDEX(ii, jj, kk));
+    H5LTmake_dataset_float(group_id, "stars", 1, &dims, grid);
+
     memset((void*)grid, 0, sizeof(float) * HII_TOT_NUM_PIXELS);
     for (int ii = 0; ii < HII_dim; ii++)
       for (int jj = 0; jj < HII_dim; jj++)
         for (int kk = 0; kk < HII_dim; kk++)
-          grid[HII_R_INDEX(ii, jj, kk)] = *((float*)(grids->N_rec) + HII_R_FFT_INDEX(ii, jj, kk));
-    H5LTmake_dataset_float(group_id, "N_rec", 1, &dims, grid);
+          grid[HII_R_INDEX(ii, jj, kk)] = *((float*)(grids->sfr) + HII_R_FFT_INDEX(ii, jj, kk));
+    H5LTmake_dataset_float(group_id, "sfr", 1, &dims, grid);
+
+    memset((void*)grid, 0, sizeof(float) * HII_TOT_NUM_PIXELS);
+    for (int ii = 0; ii < HII_dim; ii++)
+      for (int jj = 0; jj < HII_dim; jj++)
+        for (int kk = 0; kk < HII_dim; kk++)
+          grid[HII_R_INDEX(ii, jj, kk)] = *((float*)(grids->deltax) + HII_R_FFT_INDEX(ii, jj, kk));
+    H5LTmake_dataset_float(group_id, "deltax", 1, &dims, grid);
+
+    if (tocf_params.compute_mfp)
+    {
+      memset((void*)grid, 0, sizeof(float) * HII_TOT_NUM_PIXELS);
+      for (int ii = 0; ii < HII_dim; ii++)
+        for (int jj = 0; jj < HII_dim; jj++)
+          for (int kk = 0; kk < HII_dim; kk++)
+            grid[HII_R_INDEX(ii, jj, kk)] = *((float*)(grids->N_rec) + HII_R_FFT_INDEX(ii, jj, kk));
+      H5LTmake_dataset_float(group_id, "N_rec", 1, &dims, grid);
+    }
+
+    SID_free(SID_FARG grid);
+
+    SID_log("Calculating delta_T power spectrum...", SID_LOG_OPEN);
+
+    delta_T_ps(run_globals->ZZ[snapshot], tocf_params.numcores,
+        grids->xH,
+        (float*)(grids->deltax),
+        NULL,
+        NULL,
+        &average_deltaT,
+        &ps,
+        &ps_nbins);
+
+    dims = ps_nbins * 3;
+    H5LTmake_dataset_float(group_id , "power_spectrum", 1               , &dims          , ps);
+    H5LTset_attribute_int(group_id  , "power_spectrum", "nbins"         , &ps_nbins      , 1);
+    H5LTset_attribute_float(group_id, "power_spectrum", "average_deltaT", &average_deltaT, 1);
+    free(ps);
+
+    SID_log(" done", SID_LOG_CLOSE);
+
+    SID_log(" done", SID_LOG_CLOSE);
   }
 
-  SID_free(SID_FARG grid);
-
-  SID_log("Calculating delta_T power spectrum...", SID_LOG_OPEN);
-
-  delta_T_ps(run_globals->ZZ[snapshot], tocf_params.numcores,
-             grids->xH,
-             (float*)(grids->deltax),
-             NULL,
-             NULL,
-             &average_deltaT,
-             &ps,
-             &ps_nbins);
-
-  dims = ps_nbins * 3;
-  H5LTmake_dataset_float(group_id, "power_spectrum", 1, &dims, ps);
-  H5LTset_attribute_int(group_id, "power_spectrum", "nbins", &ps_nbins, 1);
-  H5LTset_attribute_float(group_id, "power_spectrum", "average_deltaT", &average_deltaT, 1);
-  free(ps);
-
-  SID_log(" done", SID_LOG_CLOSE);
-
-  SID_log(" done", SID_LOG_CLOSE);
 }
 
 
