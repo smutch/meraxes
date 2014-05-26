@@ -856,7 +856,6 @@ void initialize_halo_storage(run_globals_t *run_globals)
   trees_info_t **snapshot_trees_info = &(run_globals->SnapshotTreesInfo);
 
   int last_snap = 0;
-  trees_info_t trees_info;
 
   SID_log("Initializing halo storage arrays...", SID_LOG_COMMENT);
 
@@ -884,7 +883,7 @@ void initialize_halo_storage(run_globals_t *run_globals)
   {
     SID_log("Preloading input trees and halos...", SID_LOG_OPEN);
     for (int i_snap = 0; i_snap <= last_snap; i_snap++)
-      trees_info = read_halos(run_globals, i_snap, &((*snapshot_halo)[i_snap]), &((*snapshot_fof_group)[i_snap]), &((*snapshot_index_lookup)[i_snap]), *snapshot_trees_info);
+      read_halos(run_globals, i_snap, &((*snapshot_halo)[i_snap]), &((*snapshot_fof_group)[i_snap]), &((*snapshot_index_lookup)[i_snap]), *snapshot_trees_info);
     SID_log("...done", SID_LOG_CLOSE);
   }
 

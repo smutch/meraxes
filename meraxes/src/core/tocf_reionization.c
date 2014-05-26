@@ -13,8 +13,8 @@ void set_HII_eff_factor(run_globals_t *run_globals)
 
   physics_params_t *params = &(run_globals->params.physics);
 
-  tocf_params.HII_eff_factor = (params->reion_Nion_phot_per_bary / 4000.0) *
-                               (params->reion_escape_frac / 0.15) * (1.0 / (1.0 + params->reion_mean_n_rec));
+  tocf_params.HII_eff_factor = (params->ReionNionPhotPerBary / 4000.0) *
+                               (params->ReionEscapeFrac / 0.15) * (1.0 / (1.0 + params->ReionMeanNRec));
 }
 
 
@@ -35,7 +35,7 @@ void call_find_HII_bubbles(run_globals_t *run_globals, int snapshot, int nout_ga
   SID_log("Getting ready to call find_HII_bubbles...", SID_LOG_OPEN);
 
   // Check to see if there are actually any galaxies at this snapshot
-  SID_Allreduce(&nout_gals, &total_n_out_gals, SID_INT, 1, SID_SUM, SID.COMM_WORLD);
+  SID_Allreduce(&nout_gals, &total_n_out_gals, 1, SID_INT, SID_SUM, SID.COMM_WORLD);
   if (total_n_out_gals == 0)
   {
     SID_log("No galaxies in the simulation - skipping...", SID_LOG_COMMENT);
@@ -416,22 +416,4 @@ void check_if_reionization_complete(run_globals_t *run_globals)
     run_globals->params.TOCF_Flag = 0;
 }
 
-
-// void assign_ionization_to_halos(run_globals_t *run_globals, halo_t *halo, int n_halos)
-// {
-//   double box_size = (double)(run_globals->params.BoxSize);
-//   int i, j, k;
-
-//   SID_log("Assigning cell ionization values to halos...", SID_LOG_OPEN|SID_LOG_TIMER);
-
-//   for(int i_halo=0; i_halo<n_halos; i_halo++)
-//   {
-//     i = find_cell(halo[i_halo].Pos[0], box_size);
-//     j = find_cell(halo[i_halo].Pos[1], box_size);
-//     k = find_cell(halo[i_halo].Pos[2], box_size);
-//     halo[i_halo].CellIonization = 1.0 - xH_grid[HII_R_INDEX(i,j,k)];
-//   }
-
-//   SID_log("...done", SID_LOG_CLOSE);
-// }
 #endif

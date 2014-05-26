@@ -475,10 +475,12 @@ void   apply_dust(int n_photo_bands, galaxy_t gal, double *LumDust, int outputbi
 void   cleanup_mags(run_globals_t *run_globals);
 
 // Reionization related
-// bool    check_reionization_cooling(run_globals_t *run_globals, halo_t *halo, int snapshot);
 double reionization_modifier(run_globals_t *run_globals, halo_t *halo, int snapshot);
+double sobacchi2013_modifier(run_globals_t *run_globals, halo_t *halo, double redshift);
+double gnedin2000_modifer(run_globals_t *run_globals, halo_t *halo, double redshift);
 double global_ionizing_emmisivity(run_globals_t *run_globals);
 #ifdef USE_TOCF
+double tocf_modifer(run_globals_t *run_globals, halo_t *halo, int snapshot);
 void set_HII_eff_factor(run_globals_t *run_globals);
 int  find_cell(double pos, double box_size);
 void malloc_reionization_grids(run_globals_t *run_globals);
