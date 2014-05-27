@@ -85,7 +85,7 @@ void call_find_HII_bubbles(run_globals_t *run_globals, int snapshot, int nout_ga
   }
 
   // send the global_xH value to all cores
-  SID_Bcast(&(grids->xH), sizeof(float), 0, SID.COMM_WORLD);
+  SID_Bcast(&(grids->global_xH), sizeof(float), 0, SID.COMM_WORLD);
 
   SID_log("...done", SID_LOG_CLOSE);
 }
@@ -291,8 +291,8 @@ void construct_stellar_grids(run_globals_t *run_globals)
   }
 
   // Collect all grid cell values onto rank 0 which will actually call 21cmFAST
-  SID_Reduce(stellar_grid, stellar_grid, HII_TOT_NUM_PIXELS, SID_FLOAT, SID_SUM, 0, SID.COMM_WORLD);
-  SID_Reduce(sfr_grid, sfr_grid, HII_TOT_NUM_PIXELS, SID_FLOAT, SID_SUM, 0, SID.COMM_WORLD);
+  SID_Allreduce(SID_IN_PLACE, stellar_grid, HII_TOT_FFT_NUM_PIXELS, SID_FLOAT, SID_SUM, SID.COMM_WORLD);
+  SID_Allreduce(SID_IN_PLACE, sfr_grid, HII_TOT_FFT_NUM_PIXELS, SID_FLOAT, SID_SUM, SID.COMM_WORLD);
 
   if (SID.My_rank == 0)
   {
