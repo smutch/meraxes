@@ -38,7 +38,7 @@ void call_find_HII_bubbles(run_globals_t *run_globals, int snapshot, int nout_ga
   SID_Allreduce(&nout_gals, &total_n_out_gals, 1, SID_INT, SID_SUM, SID.COMM_WORLD);
   if (total_n_out_gals == 0)
   {
-    SID_log("No galaxies in the simulation - skipping...", SID_LOG_COMMENT);
+    SID_log("No galaxies in the simulation - skipping...", SID_LOG_CLOSE);
     return;
   }
 
