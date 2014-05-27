@@ -132,6 +132,7 @@ void dracarys(run_globals_t *run_globals)
       gal->Halo       = NULL;
       gal->ghost_flag = false;
       gal->SnapSkipCounter--;
+      reset_galaxy_properties(gal);
       gal = gal->Next;
     }
 
@@ -340,10 +341,7 @@ void dracarys(run_globals_t *run_globals)
         ABORT(EXIT_FAILURE);
       }
       if (!gal->ghost_flag)
-      {
         gal->dt /= (double)NSteps;
-        reset_galaxy_properties(gal);
-      }
       if ((gal->Type < 2) && (!gal->ghost_flag))
         copy_halo_to_galaxy(gal->Halo, gal, snapshot);
       gal = gal->Next;
