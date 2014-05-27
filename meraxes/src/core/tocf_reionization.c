@@ -240,7 +240,7 @@ int find_cell(double pos, double box_size)
 {
   int HII_dim = tocf_params.HII_dim;
 
-  return (int)round(pos / box_size * (double)HII_dim);
+  return (int)floor(pos / box_size * (double)HII_dim);
 }
 
 
