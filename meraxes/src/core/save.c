@@ -628,9 +628,64 @@ void create_master_file(run_globals_t *run_globals)
         H5Lcreate_external(relative_source_file, source_ds, group_id, target_ds, H5P_DEFAULT, H5P_DEFAULT);
       }
 
-      H5Fclose(source_file_id);
+      H5Gclose(group_id);
+
+#ifdef USE_TOCF
+
+    if(i_core == 0)
+    {
+      // create links to the 21cmFAST grids
+      sprintf(target_group, "Grids", i_core);
+      group_id = H5Gcreate(snap_group_id, target_group, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+
+      sprintf(source_ds, "Snap%03d/Grids/xH", run_globals->ListOutputSnaps[i_out]);
+      sprintf(target_ds, "xH");
+      H5Lcreate_external(relative_source_file, source_ds, group_id, target_ds, H5P_DEFAULT, H5P_DEFAULT);
+
+      sprintf(source_ds, "Snap%03d/Grids/deltax", run_globals->ListOutputSnaps[i_out]);
+      sprintf(target_ds, "deltax");
+      H5Lcreate_external(relative_source_file, source_ds, group_id, target_ds, H5P_DEFAULT, H5P_DEFAULT);
+
+      sprintf(source_ds, "Snap%03d/Grids/Sfr", run_globals->ListOutputSnaps[i_out]);
+      sprintf(target_ds, "Sfr");
+      H5Lcreate_external(relative_source_file, source_ds, group_id, target_ds, H5P_DEFAULT, H5P_DEFAULT);
+
+      sprintf(source_ds, "Snap%03d/Grids/StellarMass", run_globals->ListOutputSnaps[i_out]);
+      sprintf(target_ds, "StellarMass");
+      H5Lcreate_external(relative_source_file, source_ds, group_id, target_ds, H5P_DEFAULT, H5P_DEFAULT);
+
+      if (tocf_params.uvb_feedback)
+      {
+        sprintf(source_ds, "Snap%03d/Grids/J_21", run_globals->ListOutputSnaps[i_out]);
+        sprintf(target_ds, "J_21");
+        H5Lcreate_external(relative_source_file, source_ds, group_id, target_ds, H5P_DEFAULT, H5P_DEFAULT);
+
+        sprintf(source_ds, "Snap%03d/Grids/J_21_at_ionization", run_globals->ListOutputSnaps[i_out]);
+        sprintf(target_ds, "J_21_at_ionization");
+        H5Lcreate_external(relative_source_file, source_ds, group_id, target_ds, H5P_DEFAULT, H5P_DEFAULT);
+
+        sprintf(source_ds, "Snap%03d/Grids/z_at_ionization", run_globals->ListOutputSnaps[i_out]);
+        sprintf(target_ds, "z_at_ionization");
+        H5Lcreate_external(relative_source_file, source_ds, group_id, target_ds, H5P_DEFAULT, H5P_DEFAULT);
+
+        sprintf(source_ds, "Snap%03d/Grids/Mvir_crit", run_globals->ListOutputSnaps[i_out]);
+        sprintf(target_ds, "Mvir_crit");
+        H5Lcreate_external(relative_source_file, source_ds, group_id, target_ds, H5P_DEFAULT, H5P_DEFAULT);
+
+      }
 
       H5Gclose(group_id);
+
+
+      sprintf(source_ds, "Snap%03d/PowerSpectrum", run_globals->ListOutputSnaps[i_out]);
+      sprintf(target_ds, "PowerSpectrum");
+      H5Lcreate_external(relative_source_file, source_ds, snap_group_id, target_ds, H5P_DEFAULT, H5P_DEFAULT);
+    }
+
+#endif
+
+      H5Fclose(source_file_id);
+
     }
 
     // save the global ionizing emissivity at this snapshot

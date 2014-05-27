@@ -237,6 +237,7 @@ static void read_output_snaps(run_globals_t *run_globals)
   SID_Bcast(LastOutputSnap, sizeof(int), 0, SID.COMM_WORLD);
 }
 
+
 void init_meraxes(run_globals_t *run_globals)
 {
   int i;

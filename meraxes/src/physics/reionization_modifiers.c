@@ -28,7 +28,7 @@ static double sobacchi_Mvir_min(run_globals_t *run_globals, double z)
 }
 
 
-static double sobacchi2013_modifier(run_globals_t *run_globals, halo_t *halo, double redshift)
+double sobacchi2013_modifier(run_globals_t *run_globals, halo_t *halo, double redshift)
 {
   double Mvir_min;
   double modifier;
@@ -44,7 +44,7 @@ static double sobacchi2013_modifier(run_globals_t *run_globals, halo_t *halo, do
 }
 
 
-static double gnedin2000_modifer(run_globals_t *run_globals, halo_t *halo, double redshift)
+double gnedin2000_modifer(run_globals_t *run_globals, halo_t *halo, double redshift)
 {
   // NOTE THAT PART OF THIS CODE IS COPIED VERBATIM FROM THE CROTON ET AL. 2006 SEMI-ANALYTIC MODEL.
 
@@ -103,34 +103,6 @@ static double gnedin2000_modifer(run_globals_t *run_globals, halo_t *halo, doubl
 }
 
 
-double reionization_modifier(run_globals_t *run_globals, halo_t *halo, int snapshot)
-{
-  double redshift;
-  double modifier;
-
-  redshift = run_globals->ZZ[snapshot];
-
-  switch (run_globals->params.physics.Flag_ReionizationModifier)
-  {
-  case 1:
-    // Sobacchi & Mesinger 2013 global reionization scheme
-    modifier = sobacchi2013_modifier(run_globals, halo, redshift);
-    break;
-
-  case 2:
-    // Gnedin 2000 global reionization modifier
-    modifier = gnedin2000_modifer(run_globals, halo, redshift);
-    break;
-
-  default:
-    modifier = 1.0;
-    break;
-  }
-
-  return modifier;
-}
-
-
 double global_ionizing_emmisivity(run_globals_t *run_globals)
 {
   galaxy_t *gal;
@@ -152,6 +124,42 @@ double global_ionizing_emmisivity(run_globals_t *run_globals)
   global_emissivity *= factor / volume;  // Units: 1e51 ionising photons per second per (h^-3 Mpc)
 
   return global_emissivity;
+}
+
+
+double reionization_modifier(run_globals_t *run_globals, halo_t *halo, int snapshot)
+{
+  double redshift;
+  double modifier;
+
+  redshift = run_globals->ZZ[snapshot];
+
+#ifdef TOCF_Flag
+  if (tocf_params.uvb_feedback)
+  {
+    modifier = tocf_modifier(run_globals, halo, redshift);
+    return modifier;
+  }
+#endif
+
+  switch (run_globals->params.physics.Flag_ReionizationModifier)
+  {
+  case 1:
+    // Sobacchi & Mesinger 2013 global reionization scheme
+    modifier = sobacchi2013_modifier(run_globals, halo, redshift);
+    break;
+
+  case 2:
+    // Gnedin 2000 global reionization modifier
+    modifier = gnedin2000_modifer(run_globals, halo, redshift);
+    break;
+
+  default:
+    modifier = 1.0;
+    break;
+  }
+
+  return modifier;
 }
 
 

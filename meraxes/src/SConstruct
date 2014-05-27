@@ -181,7 +181,6 @@ if not GetOption('help'):
         env.AppendUnique(LIBS = ['21cmfast', 'fftw3f_omp', 'fftw3f', 'gomp'])
         env.AppendUnique(CC = ['-fopenmp',])
 
-
     # Set the python environment to use in any python scripts.
     if 'VIRTUAL_ENV' in os.environ:
         python = os.environ['VIRTUAL_ENV']+'/bin/python'
