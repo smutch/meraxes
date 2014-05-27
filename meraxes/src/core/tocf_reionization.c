@@ -253,7 +253,7 @@ void construct_stellar_grids(run_globals_t *run_globals)
   float *stellar_grid  = (float*)(run_globals->tocf_grids.stars);
   float *sfr_grid      = (float*)(run_globals->tocf_grids.sfr);
   int HII_dim          = tocf_params.HII_dim;
-  double UnitTime_in_s = run_globals->units.UnitTime_in_s;
+  run_units_t *units   = &(run_globals->units);
 
   SID_log("Constructing stellar mass and sfr grids...", SID_LOG_OPEN);
 
@@ -304,7 +304,7 @@ void construct_stellar_grids(run_globals_t *run_globals)
           if (*(stellar_grid + HII_R_FFT_INDEX(i, j, k)) > 0)
             *(stellar_grid + HII_R_FFT_INDEX(i, j, k)) *= (1.e10 / Hubble_h);
           if (*(sfr_grid + HII_R_FFT_INDEX(i, j, k)) > 0)
-            *(sfr_grid + HII_R_FFT_INDEX(i, j, k)) *= (1.e10 / UnitTime_in_s);
+            *(sfr_grid + HII_R_FFT_INDEX(i, j, k)) *= (units->UnitMass_in_g / units->UnitTime_in_s / SOLAR_MASS);
 
           // Check for under/overflow
           if (*(stellar_grid + HII_R_FFT_INDEX(i, j, k)) < 0)
@@ -326,6 +326,7 @@ void save_tocf_grids(run_globals_t *run_globals, hid_t parent_group_id, int snap
     tocf_grids_t *grids = &(run_globals->tocf_grids);
     hsize_t dims        = HII_TOT_NUM_PIXELS;
     int HII_dim         = tocf_params.HII_dim;
+    double UnitTime_in_s = run_globals->units.UnitTime_in_s;
     float *grid;
     float *ps;
     int ps_nbins;
@@ -364,7 +365,7 @@ void save_tocf_grids(run_globals_t *run_globals, hid_t parent_group_id, int snap
     for (int ii = 0; ii < HII_dim; ii++)
       for (int jj = 0; jj < HII_dim; jj++)
         for (int kk = 0; kk < HII_dim; kk++)
-          grid[HII_R_INDEX(ii, jj, kk)] = *((float*)(grids->sfr) + HII_R_FFT_INDEX(ii, jj, kk));
+          grid[HII_R_INDEX(ii, jj, kk)] = *((float*)(grids->sfr) + HII_R_FFT_INDEX(ii, jj, kk)) * SEC_PER_YEAR;
     H5LTmake_dataset_float(group_id, "Sfr", 1, &dims, grid);
 
     memset((void*)grid, 0, sizeof(float) * HII_TOT_NUM_PIXELS);
