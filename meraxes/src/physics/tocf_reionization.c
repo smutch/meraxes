@@ -63,7 +63,7 @@ void calculate_Mvir_crit(run_globals_t *run_globals, double redshift)
 }
 
 
-double tocf_modifer(run_globals_t *run_globals, halo_t *halo, int snapshot)
+double tocf_modifier(run_globals_t *run_globals, halo_t *halo, int snapshot)
 {
 
   double  box_size    = run_globals->params.BoxSize;

@@ -480,7 +480,7 @@ double sobacchi2013_modifier(run_globals_t *run_globals, halo_t *halo, double re
 double gnedin2000_modifer(run_globals_t *run_globals, halo_t *halo, double redshift);
 double global_ionizing_emmisivity(run_globals_t *run_globals);
 #ifdef USE_TOCF
-double tocf_modifer(run_globals_t *run_globals, halo_t *halo, int snapshot);
+double tocf_modifier(run_globals_t *run_globals, halo_t *halo, int snapshot);
 void set_HII_eff_factor(run_globals_t *run_globals);
 int  find_cell(double pos, double box_size);
 void malloc_reionization_grids(run_globals_t *run_globals);

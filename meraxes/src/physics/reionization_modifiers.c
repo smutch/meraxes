@@ -134,8 +134,8 @@ double reionization_modifier(run_globals_t *run_globals, halo_t *halo, int snaps
 
   redshift = run_globals->ZZ[snapshot];
 
-#ifdef TOCF_Flag
-  if (tocf_params.uvb_feedback)
+#ifdef USE_TOCF
+  if ((tocf_params.uvb_feedback) && (run_globals->params.TOCF_Flag))
   {
     modifier = tocf_modifier(run_globals, halo, redshift);
     return modifier;

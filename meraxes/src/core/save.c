@@ -632,7 +632,7 @@ void create_master_file(run_globals_t *run_globals)
 
 #ifdef USE_TOCF
 
-    if(i_core == 0)
+    if((i_core == 0) && (run_globals->params.TOCF_Flag))
     {
       // create links to the 21cmFAST grids
       sprintf(target_group, "Grids", i_core);
