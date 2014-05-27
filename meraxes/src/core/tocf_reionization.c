@@ -318,7 +318,7 @@ void construct_stellar_grids(run_globals_t *run_globals)
 }
 
 
-void save_tocf_grids(run_globals_t *run_globals, hid_t group_id, int snapshot)
+void save_tocf_grids(run_globals_t *run_globals, hid_t parent_group_id, int snapshot)
 {
 
   if (SID.My_rank == 0)
@@ -330,8 +330,11 @@ void save_tocf_grids(run_globals_t *run_globals, hid_t group_id, int snapshot)
     float *ps;
     int ps_nbins;
     float average_deltaT;
+    hid_t group_id;
 
     SID_log("Saving tocf grids...", SID_LOG_OPEN);
+
+    group_id = H5Gcreate(parent_group_id, "Grids", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
 
     // float grids
     H5LTmake_dataset_float(group_id, "xH", 1, &dims, grids->xH);
@@ -344,7 +347,7 @@ void save_tocf_grids(run_globals_t *run_globals, hid_t group_id, int snapshot)
       H5LTmake_dataset_float(group_id, "Mvir_crit", 1, &dims, grids->Mvir_crit);
     }
     if (tocf_params.compute_mfp)
-      H5LTmake_dataset_float(group_id, "mfp", 1, &dims, grids->mfp);
+      H5LTmake_dataset_float(group_id, "MFP", 1, &dims, grids->mfp);
 
     H5LTset_attribute_float(group_id, "xH", "global_xH", &(grids->global_xH), 1);
 
@@ -355,14 +358,14 @@ void save_tocf_grids(run_globals_t *run_globals, hid_t group_id, int snapshot)
       for (int jj = 0; jj < HII_dim; jj++)
         for (int kk = 0; kk < HII_dim; kk++)
           grid[HII_R_INDEX(ii, jj, kk)] = *((float*)(grids->stars) + HII_R_FFT_INDEX(ii, jj, kk));
-    H5LTmake_dataset_float(group_id, "stars", 1, &dims, grid);
+    H5LTmake_dataset_float(group_id, "StellarMass", 1, &dims, grid);
 
     memset((void*)grid, 0, sizeof(float) * HII_TOT_NUM_PIXELS);
     for (int ii = 0; ii < HII_dim; ii++)
       for (int jj = 0; jj < HII_dim; jj++)
         for (int kk = 0; kk < HII_dim; kk++)
           grid[HII_R_INDEX(ii, jj, kk)] = *((float*)(grids->sfr) + HII_R_FFT_INDEX(ii, jj, kk));
-    H5LTmake_dataset_float(group_id, "sfr", 1, &dims, grid);
+    H5LTmake_dataset_float(group_id, "Sfr", 1, &dims, grid);
 
     memset((void*)grid, 0, sizeof(float) * HII_TOT_NUM_PIXELS);
     for (int ii = 0; ii < HII_dim; ii++)
@@ -383,6 +386,8 @@ void save_tocf_grids(run_globals_t *run_globals, hid_t group_id, int snapshot)
 
     SID_free(SID_FARG grid);
 
+    H5Gclose(group_id);
+
     SID_log("Calculating delta_T power spectrum...", SID_LOG_OPEN);
 
     delta_T_ps(run_globals->ZZ[snapshot], tocf_params.numcores,
@@ -395,9 +400,9 @@ void save_tocf_grids(run_globals_t *run_globals, hid_t group_id, int snapshot)
         &ps_nbins);
 
     dims = ps_nbins * 3;
-    H5LTmake_dataset_float(group_id , "power_spectrum", 1               , &dims          , ps);
-    H5LTset_attribute_int(group_id  , "power_spectrum", "nbins"         , &ps_nbins      , 1);
-    H5LTset_attribute_float(group_id, "power_spectrum", "average_deltaT", &average_deltaT, 1);
+    H5LTmake_dataset_float(parent_group_id , "PowerSpectrum", 1               , &dims          , ps);
+    H5LTset_attribute_int(parent_group_id  , "PowerSpectrum", "nbins"         , &ps_nbins      , 1);
+    H5LTset_attribute_float(parent_group_id, "PowerSpectrum", "average_deltaT", &average_deltaT, 1);
     free(ps);
 
     SID_log(" done", SID_LOG_CLOSE);
