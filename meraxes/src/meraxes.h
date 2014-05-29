@@ -111,10 +111,6 @@ struct run_params_t {
   char             IMF[STRLEN];
   char             MagSystem[STRLEN];
   char             MagBands[STRLEN];
-  int              NEverySnap;
-  int              NScanSnap;
-  int              TotalSimSnaps;
-  int              LastSnapshotNr;
   int              FirstFile;
   int              LastFile;
   int              NSteps;
@@ -342,6 +338,7 @@ typedef struct trees_info_t {
   int max_tree_id;
   int n_fof_groups;
   int n_fof_groups_max;
+  int unsampled_snapshot;
 } trees_info_t;
 
 //! Tree entry struct
@@ -393,6 +390,8 @@ typedef struct run_globals_t {
   int                 NHalosMax;
   int                 NFOFGroupsMax;
   int                 NRequestedForests;
+  int                 TreesStep;
+  int                 TreesScan;
   bool                SelectForestsSwitch;
   int                *RequestedForestId;
   int                 NStoreSnapshots;
@@ -441,7 +440,7 @@ void         update_reservoirs_from_sf(run_globals_t *run_globals, galaxy_t *gal
 void         supernova_feedback(run_globals_t *run_globals, galaxy_t *gal, double m_star, double merger_mass_ratio);
 void         prep_hdf5_file(run_globals_t *run_globals);
 void         create_master_file(run_globals_t *run_globals);
-void         write_snapshot(run_globals_t *run_globals, int n_write, int i_out, int *last_n_write);
+void         write_snapshot(run_globals_t *run_globals, int n_write, int i_out, int *last_n_write, trees_info_t *trees_info);
 void         calc_hdf5_props(run_globals_t *run_globals);
 void         prepare_galaxy_for_output(run_globals_t *run_globals, galaxy_t gal, galaxy_output_t *galout, int i_snap);
 void         read_photometric_tables(run_globals_t *run_globals);
@@ -449,7 +448,6 @@ int          compare_ints(const void *a, const void *b);
 void         mpi_debug_here(void);
 void         check_counts(run_globals_t *run_globals, fof_group_t *fof_group, int NGal, int NFof);
 void         cn_quote(void);
-int          get_corrected_snapshot(run_globals_t *run_globals, int snapshot);
 double       Tvir_to_Mvir(run_globals_t *run_globals, double T, double z);
 double       calculate_Mvir(run_globals_t *run_globals, halo_t *halo);
 float        calculate_Rvir(run_globals_t *run_globals, halo_t *halo, double Mvir, int snapshot);

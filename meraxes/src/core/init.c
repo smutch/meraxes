@@ -279,8 +279,9 @@ void init_meraxes(run_globals_t *run_globals)
   run_globals->FirstGal = NULL;
   run_globals->LastGal  = NULL;
 
-  // Calculate the sampled LastSnapshotNr value
-  run_globals->params.LastSnapshotNr = (int)(run_globals->params.TotalSimSnaps / run_globals->params.NEverySnap);
+  // Initialise some book keeping parameters for the input trees
+  run_globals->TreesStep = -1;
+  run_globals->TreesScan = -1;
 
   // Set the SelectForestsSwitch
   run_globals->SelectForestsSwitch = true;

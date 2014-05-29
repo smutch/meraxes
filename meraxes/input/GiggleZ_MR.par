@@ -10,7 +10,7 @@ NSteps           : 1
 #----- Simulation input files  ------------
 #------------------------------------------
 SimName          : GiggleZ_MR
-SimulationDir    : /home/smutch/data/input_trees/GiggleZ/GiggleZ_MR
+SimulationDir    : /home/smutch/data/input_trees/GiggleZ/GiggleZ_MR_new
 CoolingFuncsDir  : /home/smutch/models/21cm_sam/meraxes/input/cooling_functions
 CatalogFilePrefix: subfind
 NEverySnap       : 4

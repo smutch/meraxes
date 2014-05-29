@@ -113,7 +113,7 @@ if not GetOption('help'):
         SYSTEM = 'gstar'
         # SYSTEM = 'green'
 
-    env.AppendUnique(LIBS=['gbpMath','gbpLib','gsl', 'gslcblas', 'm'])
+    env.AppendUnique(LIBS=['gbpLib','gsl', 'gslcblas', 'm'])
     HDF5_LIBS = ['z', 'libhdf5_hl', 'libhdf5']
 
     if SYSTEM=='green':

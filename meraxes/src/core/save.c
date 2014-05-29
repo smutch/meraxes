@@ -352,18 +352,10 @@ void create_master_file(run_globals_t *run_globals)
     h5_write_attribute(group_id, names[jj], str_t, ds_id, addresses[jj]);
 
   ii            = 0;
-  addresses[ii] = &(run_globals->params.NEverySnap);
-  sprintf(names[ii++], "NEverySnap");
-  addresses[ii] = &(run_globals->params.NScanSnap);
-  sprintf(names[ii++], "NScanSnap");
-  addresses[ii] = &(run_globals->params.TotalSimSnaps);
-  sprintf(names[ii++], "TotalSimSnaps");
-  addresses[ii] = &(run_globals->params.LastSnapshotNr);
-  sprintf(names[ii++], "LastSnapshotNr");
-  addresses[ii] = &(run_globals->params.FirstFile);
-  sprintf(names[ii++], "FirstFile");
-  addresses[ii] = &(run_globals->params.LastFile);
-  sprintf(names[ii++], "LastFile");
+  addresses[ii] = &(run_globals->TreesStep);
+  sprintf(names[ii++], "TreesStep");
+  addresses[ii] = &(run_globals->TreesScan);
+  sprintf(names[ii++], "TreesScan");
   addresses[ii] = &(run_globals->params.NSteps);
   sprintf(names[ii++], "NSteps");
   addresses[ii] = &(run_globals->params.SnaplistLength);
@@ -581,7 +573,7 @@ void create_master_file(run_globals_t *run_globals)
   hsize_t core_n_gals;
   double temp;
   double global_ionizing_emissivity;
-  int corrected_snapshot;
+  int unsampled_snapshot;
 
   // Now create soft links to all of the files and datasets that make up this run
   for (int i_out = 0, snap_n_gals = 0; i_out < NOUT; i_out++, snap_n_gals = 0, global_ionizing_emissivity = 0, temp = 0)
@@ -605,6 +597,9 @@ void create_master_file(run_globals_t *run_globals)
       H5LTget_attribute_double(source_file_id, source_ds, "GlobalIonizingEmissivity", &temp);
       global_ionizing_emissivity += temp;
       snap_n_gals                += (int)core_n_gals;
+
+      if (i_core == 0)
+        H5LTget_attribute_int(source_file_id, source_ds, "unsampled_snapshot", &unsampled_snapshot);
 
       // if they exists, then also create a link to walk indices
       sprintf(source_group, "Snap%03d", run_globals->ListOutputSnaps[i_out]);
@@ -695,9 +690,8 @@ void create_master_file(run_globals_t *run_globals)
     h5_write_attribute(snap_group_id, "NGalaxies", H5T_NATIVE_INT, ds_id, &snap_n_gals);
 
     // Save a few useful attributes
-    corrected_snapshot = get_corrected_snapshot(run_globals, run_globals->ListOutputSnaps[i_out]);
     h5_write_attribute(snap_group_id, "Redshift", H5T_NATIVE_DOUBLE, ds_id, &(run_globals->ZZ[run_globals->ListOutputSnaps[i_out]]));
-    h5_write_attribute(snap_group_id, "CorrectedSnap", H5T_NATIVE_INT, ds_id, &corrected_snapshot);
+    h5_write_attribute(snap_group_id, "UnsampledSnapshot", H5T_NATIVE_INT, ds_id, &unsampled_snapshot);
 
     temp = run_globals->LTTime[run_globals->ListOutputSnaps[i_out]] * run_globals->units.UnitLength_in_cm / run_globals->units.UnitVelocity_in_cm_per_s / SEC_PER_MEGAYEAR / run_globals->params.Hubble_h;
     h5_write_attribute(snap_group_id, "LTTime", H5T_NATIVE_DOUBLE, ds_id, &temp);
@@ -741,7 +735,12 @@ static void inline save_walk_indices(
 }
 
 
-void write_snapshot(run_globals_t *run_globals, int n_write, int i_out, int *last_n_write)
+void write_snapshot(
+  run_globals_t *run_globals, 
+  int            n_write,     
+  int            i_out,       
+  int           *last_n_write,
+  trees_info_t  *trees_info)  
 {
   /*
    * Write a batch of galaxies to the output HDF5 table.
@@ -779,6 +778,9 @@ void write_snapshot(run_globals_t *run_globals, int n_write, int i_out, int *las
                  h5props.n_props, n_write, h5props.dst_size, h5props.field_names,
                  h5props.dst_offsets, h5props.field_types, chunk_size, fill_data, 0,
                  NULL);
+
+  // Store the unsampled snapshot number
+  H5LTset_attribute_int(group_id, "Galaxies", "unsampled_snapshot", &(trees_info->unsampled_snapshot), 1);
 
   // If the immediately preceeding snapshot was also written, then save the
   // descendent indices

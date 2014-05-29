@@ -3,19 +3,6 @@
 #include <hdf5.h>
 #include <hdf5_hl.h>
 
-int get_corrected_snapshot(run_globals_t *run_globals, int snapshot)
-{
-  int total_sim_snaps = run_globals->params.TotalSimSnaps;
-  int n_every_snaps   = run_globals->params.NEverySnap;
-
-  // Calculate the actual (unsampled) simulation snapshot.
-  if (n_every_snaps > 1)
-    return total_sim_snaps - ((int)((total_sim_snaps + 1) / n_every_snaps)) * n_every_snaps + snapshot * n_every_snaps;
-  else
-    return snapshot;
-}
-
-
 static void halo_catalog_filename(
   char *simulation_dir,
   char *catalog_file_prefix,
@@ -187,6 +174,7 @@ static void inline convert_input_halo_units(run_globals_t *run_globals, halo_t *
 static void read_trees_and_catalogs(
   run_globals_t *run_globals,
   int            snapshot,
+  int            unsampled_snapshot,
   hid_t          fd,
   halo_t        *halo,
   int            n_halos,
@@ -212,14 +200,11 @@ static void read_trees_and_catalogs(
   char catalog_file_prefix[50];
   char simulation_dir[STRLEN];
   catalog_halo_t *catalog_buffer;
-  int corrected_snapshot;
 
   SID_log("Doing read...", SID_LOG_OPEN);
 
   sprintf(catalog_file_prefix, "%s", run_globals->params.CatalogFilePrefix);
   sprintf(simulation_dir, "%s", run_globals->params.SimulationDir);
-
-  corrected_snapshot = get_corrected_snapshot(run_globals, snapshot);
 
   tree_entry_t *tree_buffer;
   tree_buffer    = SID_malloc(sizeof(tree_entry_t) * buffer_size);
@@ -270,7 +255,7 @@ static void read_trees_and_catalogs(
     {
       i_halo = 0;
       read_catalog_halos(&fin_catalogs, simulation_dir, catalog_file_prefix,
-                         corrected_snapshot, &flayout_switch, &i_catalog_file, &n_halos_in_catalog_file,
+                         unsampled_snapshot, &flayout_switch, &i_catalog_file, &n_halos_in_catalog_file,
                          &i_halo_in_catalog_file, &i_halo, catalog_buffer, n_to_read);
     }
     SID_Bcast(catalog_buffer, n_to_read * sizeof(catalog_halo_t), 0, SID.COMM_WORLD);
@@ -369,6 +354,7 @@ static trees_info_t read_trees_info(hid_t fd)
   H5LTget_attribute_int(fd, "trees", "max_tree_id", &(trees_info.max_tree_id));
   H5LTget_attribute_int(fd, "trees", "n_fof_groups", &(trees_info.n_fof_groups));
   H5LTget_attribute_int(fd, "trees", "n_fof_groups_max", &(trees_info.n_fof_groups_max));
+  H5LTget_attribute_int(fd, "trees", "unsampled_snapshot", &(trees_info.unsampled_snapshot));
 
   return trees_info;
 }
@@ -660,7 +646,6 @@ trees_info_t read_halos(
 {
   int n_halos;                             //!< Number of halos
   char fname[STRLEN];
-  int corrected_snapshot;
   int n_fof_groups;
   trees_info_t trees_info;
   hid_t fin_trees;
@@ -678,12 +663,11 @@ trees_info_t read_halos(
 
   SID_log("Reading snapshot %d (z=%.2f) trees and halos...", SID_LOG_OPEN | SID_LOG_TIMER, snapshot, run_globals->ZZ[snapshot]);
 
-  corrected_snapshot = get_corrected_snapshot(run_globals, snapshot);
 
   // open the tree file
   if (SID.My_rank == 0)
   {
-    sprintf(fname, "%s/trees/horizontal_trees_%03d.hdf5", run_globals->params.SimulationDir, corrected_snapshot);
+    sprintf(fname, "%s/trees/horizontal_trees_%03d.hdf5", run_globals->params.SimulationDir, snapshot);
     if ((fin_trees = H5Fopen(fname, H5F_ACC_RDONLY, H5P_DEFAULT)) < 0)
     {
       SID_log("Failed to open file %s", SID_LOG_COMMENT, fname);
@@ -699,6 +683,12 @@ trees_info_t read_halos(
 
   n_halos      = trees_info.n_halos;
   n_fof_groups = trees_info.n_fof_groups;
+
+  // if we haven't already, store the TreesStep & TreesScan parameters
+  if(run_globals->TreesStep == -1)
+    run_globals->TreesStep = trees_info.n_step;
+  if(run_globals->TreesScan == -1)
+    run_globals->TreesScan = trees_info.n_search;
 
   if (run_globals->params.FlagInteractive)
   {
@@ -762,9 +752,9 @@ trees_info_t read_halos(
   }
 
   // read in the trees
-  read_trees_and_catalogs(run_globals, snapshot, fin_trees, *halo, n_halos,
-                          *fof_group, n_fof_groups, n_requested_forests,
-                          &n_halos_kept, &n_fof_groups_kept, *index_lookup);
+  read_trees_and_catalogs(run_globals, snapshot, trees_info.unsampled_snapshot,
+      fin_trees, *halo, n_halos, *fof_group, n_fof_groups, n_requested_forests,
+      &n_halos_kept, &n_fof_groups_kept, *index_lookup);
 
   // close the tree file
   if (SID.My_rank == 0)

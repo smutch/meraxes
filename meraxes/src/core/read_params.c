@@ -184,35 +184,10 @@ void read_parameter_file(run_globals_t *run_globals, char *fname, int mode)
     required_tag[n_param]  = 1;
     params_type[n_param++] = PARAM_TYPE_STRING;
 
-    strcpy(params_tag[n_param], "NEverySnap");
-    params_addr[n_param]   = &(run_params->NEverySnap);
-    required_tag[n_param]  = 1;
-    params_type[n_param++] = PARAM_TYPE_INT;
-
-    strcpy(params_tag[n_param], "NScanSnap");
-    params_addr[n_param]   = &(run_params->NScanSnap);
-    required_tag[n_param]  = 1;
-    params_type[n_param++] = PARAM_TYPE_INT;
-
     strcpy(params_tag[n_param], "FileWithOutputSnaps");
     params_addr[n_param]   = run_params->FileWithOutputSnaps;
     required_tag[n_param]  = 1;
     params_type[n_param++] = PARAM_TYPE_STRING;
-
-    strcpy(params_tag[n_param], "TotalSimSnaps");
-    params_addr[n_param]   = &(run_params->TotalSimSnaps);
-    required_tag[n_param]  = 1;
-    params_type[n_param++] = PARAM_TYPE_INT;
-
-    strcpy(params_tag[n_param], "FirstFile");
-    params_addr[n_param]   = &(run_params->FirstFile);
-    required_tag[n_param]  = 1;
-    params_type[n_param++] = PARAM_TYPE_INT;
-
-    strcpy(params_tag[n_param], "LastFile");
-    params_addr[n_param]   = &(run_params->LastFile);
-    required_tag[n_param]  = 1;
-    params_type[n_param++] = PARAM_TYPE_INT;
 
     strcpy(params_tag[n_param], "NSteps");
     params_addr[n_param]   = &(run_params->NSteps);

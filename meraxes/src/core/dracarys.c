@@ -391,7 +391,7 @@ void dracarys(run_globals_t *run_globals)
     // Write the results if this is a requested snapshot
     for (int i_out = 0; i_out < NOUT; i_out++)
       if (snapshot == run_globals->ListOutputSnaps[i_out])
-        write_snapshot(run_globals, nout_gals, i_out, &last_nout_gals);
+        write_snapshot(run_globals, nout_gals, i_out, &last_nout_gals, &trees_info);
 
 #ifdef USE_TOCF
     if (run_globals->params.TOCF_Flag)
