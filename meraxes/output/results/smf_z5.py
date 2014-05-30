@@ -32,6 +32,11 @@ def plot_smf_z5(gals, simprops, ax):
         skiprows = 3,
         names = ["sm", "log_phi", "m_err", "p_err"])
 
+    # convert obs to same hubble value
+    obs.sm += np.log10(0.7/simprops["Hubble_h"])
+    for col in ["log_phi", "m_err", "p_err"]:
+        obs[col] += 3.0*np.log10(0.7/simprops["Hubble_h"])
+
     # generate the model smf
     # sm = stellar mass
     sm = np.log10(gals.StellarMass[gals.StellarMass > 0] * 1.0e10)
@@ -47,19 +52,24 @@ def plot_smf_z5(gals, simprops, ax):
     ax.plot(smf[:,0], np.log10(smf[:,1]), label="Meraxes")
 
     # plot the hmf
-    hm = np.log10(gals.Mvir[gals.Type == 0] * 1.0e10)
-    hmf = munge.mass_function(hm, simprops["Volume"], 50)
-    ax.plot(np.log10(0.05*0.17)+hmf[:,0], np.log10(hmf[:,1]), label="HMF (Mvir*0.05*0.17)", ls='--', color='k')
+    # hm = np.log10(gals.Mvir[gals.Type == 0] * 1.0e10)
+    # hmf = munge.mass_function(hm, simprops["Volume"], 50)
+    # ax.plot(np.log10(0.05*0.17)+hmf[:,0], np.log10(hmf[:,1]), label="HMF (Mvir*0.05*0.17)", ls='--', color='k')
 
     # plot the observations
     ax.errorbar(obs.sm, obs.log_phi, yerr=[obs.m_err, obs.p_err],
-            label="Gonzalez et al. 2011",
-            ls="none")
+                label="Gonzalez et al. 2011", ls="none", capsize=0)
+
+    # add some text
+    ax.text(0.05,0.05, "z=5\nh={:.2f}\nChabrier IMF".format(simprops["Hubble_h"]),
+           horizontalalignment="left",
+           verticalalignment="bottom",
+           transform=ax.transAxes)
 
     ax.set_xlim([7,11])
 
-    ax.set_xlabel(r"$\log_{10}(h_{%.2f}\,M_* / {\rm M_{\odot}})$" % simprops["Hubble_h"])
-    ax.set_ylabel(r"$\log_{10}(h_{%.2f}^3\,\phi / ({\rm dex^{-1}\,Mpc^{-3}}))$" % simprops["Hubble_h"])
+    ax.set_xlabel(r"$\log_{10}(M_* / {\rm M_{\odot}})$")
+    ax.set_ylabel(r"$\log_{10}(\phi / ({\rm dex^{-1}\,Mpc^{-3}}))$")
 
 
 if __name__ == '__main__':
