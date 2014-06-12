@@ -65,7 +65,7 @@ double Tvir_to_Mvir(run_globals_t *run_globals, double T, double z)
 
 double calculate_Mvir(run_globals_t *run_globals, double Mvir, int len)
 {
-  if ((len > 0) && (Mvir > 0))
+  if ((len < 0) && (Mvir > 0))
     return Mvir;
   else
     return (double)len * run_globals->params.PartMass;
