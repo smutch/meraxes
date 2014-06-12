@@ -39,7 +39,7 @@ static void halo_catalog_filename(
   }
 
   // ensure we have a valid i_layout value.
-  if (*i_layout < 0 && *i_layout > 3)
+  if (*i_layout < 0 || *i_layout > 3)
   {
     fprintf(stderr, "cannot resolve catalogue filename.\n");
     ABORT(EXIT_FAILURE);

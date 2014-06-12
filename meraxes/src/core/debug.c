@@ -214,13 +214,13 @@ void check_counts(run_globals_t *run_globals, fof_group_t *fof_group, int NGal, 
   halo_pop_count = 0;
   counter        = 0;
   halo_counter   = 0;
-  int ii, jj;
   if (NGal > 0)
   {
+    int ii;
     for (int i_fof = 0; i_fof < NFof; i_fof++)
     {
+      int jj = 0;
       halo = fof_group[i_fof].FirstHalo;
-      jj   = 0;
       while (halo != NULL)
       {
         gal = halo->Galaxy;

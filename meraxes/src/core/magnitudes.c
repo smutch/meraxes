@@ -106,9 +106,9 @@ void read_photometric_tables(run_globals_t *run_globals)
   phototabs_t *photo       = &(run_globals->photo);
   float **Metals           = &(photo->Metals);
   float **AgeTab           = &(photo->Ages);
-  char              (**MagBands)[5] = &(photo->MagBands);
-  float **PhotoTab    = &(photo->Table);
-  int n_table_entries = 0;
+  char (**MagBands)[5]     = &(photo->MagBands);
+  float **PhotoTab         = &(photo->Table);
+  int n_table_entries      = 0;
 
   if (SID.My_rank == 0)
   {
@@ -196,7 +196,7 @@ void read_photometric_tables(run_globals_t *run_globals)
     *PhotoTab = (float*)SID_malloc(sizeof(float) * (size_t)n_table_entries);
 
     // Finally - loop through the requested bands string one more time, save the
-    // band name and store the potometric table data
+    // band name and store the photometric table data
     *MagBands = SID_malloc(sizeof(char[5]) * (size_t)i_group);
     table_ds  = SID_malloc(sizeof(float) * (size_t)(photo->NAges));
     bp        = strtok(run_params->MagBands, ",");
