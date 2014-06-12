@@ -165,9 +165,12 @@ static void inline convert_input_virial_props(run_globals_t *run_globals, double
   *Mvir /= 1.0e10;
 
   // Update the virial properties
-  *Mvir = calculate_Mvir(run_globals, *Mvir, len);
-  *Rvir = calculate_Rvir(run_globals, *Mvir, snapshot);
-  *Vvir = calculate_Vvir(run_globals, *Mvir, *Rvir);
+  if (Mvir != NULL)
+    *Mvir = calculate_Mvir(run_globals, *Mvir, len);
+  if (Rvir != NULL)
+    *Rvir = calculate_Rvir(run_globals, *Mvir, snapshot);
+  if (Vvir != NULL)
+    *Vvir = calculate_Vvir(run_globals, *Mvir, *Rvir);
 }
 
 
@@ -293,12 +296,12 @@ static void read_trees_and_catalogs(
         {
           cur_halo->Type                    = 0;
           fof_group[(*n_fof_groups_kept)].Mvir        = tree_buffer[jj].fof_mvir;
+
           convert_input_virial_props(run_globals,
               &(fof_group[(*n_fof_groups_kept)].Mvir),
-              &(fof_group[(*n_fof_groups_kept)].Rvir),
-              &(fof_group[(*n_fof_groups_kept)].Vvir),
-              -1,
+              NULL, NULL, -1,
               snapshot);
+
           fof_group[(*n_fof_groups_kept)++].FirstHalo = &(halo[*n_halos_kept]);
         }
         else

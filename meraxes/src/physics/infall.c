@@ -8,7 +8,7 @@ double gas_infall(run_globals_t *run_globals, fof_group_t *FOFgroup, int snapsho
   halo_t *halo;
   double total_baryons = 0.;
   double infall_mass   = 0.;
-  double FOF_Mvir      = FOFgroup->FirstHalo->Mvir;
+  double FOF_Mvir      = FOFgroup->Mvir;
   double fb_modifier;
 
   double total_stellarmass   = 0.0;
