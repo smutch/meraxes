@@ -225,6 +225,9 @@ typedef struct halo_t {
 
 struct fof_group_t {
   halo_t *FirstHalo;
+  double  Mvir;
+  double  Vvir;
+  double  Rvir;
 };
 typedef struct fof_group_t fof_group_t;
 
@@ -449,8 +452,8 @@ void         mpi_debug_here(void);
 void         check_counts(run_globals_t *run_globals, fof_group_t *fof_group, int NGal, int NFof);
 void         cn_quote(void);
 double       Tvir_to_Mvir(run_globals_t *run_globals, double T, double z);
-double       calculate_Mvir(run_globals_t *run_globals, halo_t *halo);
-float        calculate_Rvir(run_globals_t *run_globals, halo_t *halo, double Mvir, int snapshot);
+double       calculate_Mvir(run_globals_t *run_globals, double Mvir, int len);
+float        calculate_Rvir(run_globals_t *run_globals, double Mvir, int snapshot);
 float        calculate_Vvir(run_globals_t *run_globals, double Mvir, float Rvir);
 double       calculate_spin_param(halo_t *halo);
 void         read_cooling_functions(run_globals_t *run_globals);

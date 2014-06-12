@@ -159,14 +159,15 @@ static void read_catalog_halos(
 }
 
 
-static void inline convert_input_halo_units(run_globals_t *run_globals, halo_t *halo, int snapshot)
+static void inline convert_input_virial_props(run_globals_t *run_globals, double *Mvir, double *Rvir, double *Vvir, int len, int snapshot)
 {
-  halo->Mvir /= 1.0e10;
+
+  *Mvir /= 1.0e10;
 
   // Update the virial properties
-  halo->Mvir = calculate_Mvir(run_globals, halo);
-  halo->Rvir = calculate_Rvir(run_globals, halo, halo->Mvir, snapshot);
-  halo->Vvir = calculate_Vvir(run_globals, halo->Mvir, halo->Rvir);
+  *Mvir = calculate_Mvir(run_globals, *Mvir, len);
+  *Rvir = calculate_Rvir(run_globals, *Mvir, snapshot);
+  *Vvir = calculate_Vvir(run_globals, *Mvir, *Rvir);
 }
 
 
@@ -274,54 +275,66 @@ static void read_trees_and_catalogs(
 
       if (keep_flag)
       {
-        halo[*n_halos_kept].ID                 = tree_buffer[jj].id;
-        halo[*n_halos_kept].TreeFlags          = tree_buffer[jj].flags;
-        halo[*n_halos_kept].SnapOffset         = tree_buffer[jj].file_offset;
-        halo[*n_halos_kept].DescIndex          = tree_buffer[jj].desc_index;
-        halo[*n_halos_kept].Mvir               = tree_buffer[jj].fof_mvir; // this will be overwritten for type>0 halos later
-        halo[*n_halos_kept].NextHaloInFOFGroup = NULL;
-        halo[*n_halos_kept].ForestID           = tree_buffer[jj].forest_id;
+        halo_t *cur_halo = &(halo[*n_halos_kept]);
+        catalog_halo_t *cur_cat_halo = &(catalog_buffer[jj]);
+        tree_entry_t *cur_tree_entry = &(tree_buffer[jj]);
+
+        cur_halo->ID                      = cur_tree_entry->id;
+        cur_halo->TreeFlags               = cur_tree_entry->flags;
+        cur_halo->SnapOffset              = cur_tree_entry->file_offset;
+        cur_halo->DescIndex               = cur_tree_entry->desc_index;
+        cur_halo->NextHaloInFOFGroup      = NULL;
+        cur_halo->ForestID                = cur_tree_entry->forest_id;
 
         if (index_lookup)
           index_lookup[*n_halos_kept] = n_read + jj;
 
         if (n_read + jj == tree_buffer[jj].central_index)
         {
-          halo[*n_halos_kept].Type                    = 0;
+          cur_halo->Type                    = 0;
+          fof_group[(*n_fof_groups_kept)].Mvir        = tree_buffer[jj].fof_mvir;
+          convert_input_virial_props(run_globals,
+              &(fof_group[(*n_fof_groups_kept)].Mvir),
+              &(fof_group[(*n_fof_groups_kept)].Rvir),
+              &(fof_group[(*n_fof_groups_kept)].Vvir),
+              -1,
+              snapshot);
           fof_group[(*n_fof_groups_kept)++].FirstHalo = &(halo[*n_halos_kept]);
         }
         else
         {
-          halo[*n_halos_kept].Type                     = 1;
+          cur_halo->Type                     = 1;
           halo[(*n_halos_kept) - 1].NextHaloInFOFGroup = &(halo[*n_halos_kept]);
         }
 
-        halo[*n_halos_kept].FOFGroup = &(fof_group[(*n_fof_groups_kept) - 1]);
+        cur_halo->FOFGroup = &(fof_group[(*n_fof_groups_kept) - 1]);
 
         // paste in the halo properties
-        halo[*n_halos_kept].id_MBP    = catalog_buffer[jj].id_MBP;
-        halo[*n_halos_kept].Len       = catalog_buffer[jj].n_particles;
-        halo[*n_halos_kept].Pos[0]    = catalog_buffer[jj].position_MBP[0];
-        halo[*n_halos_kept].Pos[1]    = catalog_buffer[jj].position_MBP[1];
-        halo[*n_halos_kept].Pos[2]    = catalog_buffer[jj].position_MBP[2];
-        halo[*n_halos_kept].Vel[0]    = catalog_buffer[jj].velocity_COM[0];
-        halo[*n_halos_kept].Vel[1]    = catalog_buffer[jj].velocity_COM[1];
-        halo[*n_halos_kept].Vel[2]    = catalog_buffer[jj].velocity_COM[2];
-        halo[*n_halos_kept].Rvir      = catalog_buffer[jj].R_vir;
-        halo[*n_halos_kept].Rhalo     = catalog_buffer[jj].R_halo;
-        halo[*n_halos_kept].Rmax      = catalog_buffer[jj].R_max;
-        halo[*n_halos_kept].Vmax      = catalog_buffer[jj].V_max;
-        halo[*n_halos_kept].VelDisp   = catalog_buffer[jj].sigma_v;
-        halo[*n_halos_kept].AngMom[0] = catalog_buffer[jj].ang_mom[0];
-        halo[*n_halos_kept].AngMom[1] = catalog_buffer[jj].ang_mom[1];
-        halo[*n_halos_kept].AngMom[2] = catalog_buffer[jj].ang_mom[2];
-        halo[*n_halos_kept].Galaxy    = NULL;
-        if (halo[*n_halos_kept].Type > 0)
-        {
-          halo[*n_halos_kept].Mvir = catalog_buffer[jj].M_vir;
-        }
+        cur_halo->id_MBP    = cur_cat_halo->id_MBP;
+        cur_halo->Len       = cur_cat_halo->n_particles;
+        cur_halo->Pos[0]    = cur_cat_halo->position_MBP[0];
+        cur_halo->Pos[1]    = cur_cat_halo->position_MBP[1];
+        cur_halo->Pos[2]    = cur_cat_halo->position_MBP[2];
+        cur_halo->Vel[0]    = cur_cat_halo->velocity_COM[0];
+        cur_halo->Vel[1]    = cur_cat_halo->velocity_COM[1];
+        cur_halo->Vel[2]    = cur_cat_halo->velocity_COM[2];
+        cur_halo->Rvir      = cur_cat_halo->R_vir;
+        cur_halo->Rhalo     = cur_cat_halo->R_halo;
+        cur_halo->Rmax      = cur_cat_halo->R_max;
+        cur_halo->Vmax      = cur_cat_halo->V_max;
+        cur_halo->VelDisp   = cur_cat_halo->sigma_v;
+        cur_halo->AngMom[0] = cur_cat_halo->ang_mom[0];
+        cur_halo->AngMom[1] = cur_cat_halo->ang_mom[1];
+        cur_halo->AngMom[2] = cur_cat_halo->ang_mom[2];
+        cur_halo->Galaxy    = NULL;
+        cur_halo->Mvir      = cur_cat_halo->M_vir;
 
-        convert_input_halo_units(run_globals, &(halo[*n_halos_kept]), snapshot);
+        convert_input_virial_props(run_globals,
+            &(halo[*n_halos_kept].Mvir),
+            (double *)&(halo[*n_halos_kept].Rvir),
+            (double *)&(halo[*n_halos_kept].Vvir),
+            halo[*n_halos_kept].Len,
+            snapshot);
 
         (*n_halos_kept)++;
       }

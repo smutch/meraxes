@@ -63,16 +63,16 @@ double Tvir_to_Mvir(run_globals_t *run_globals, double T, double z)
 }
 
 
-double calculate_Mvir(run_globals_t *run_globals, halo_t *halo)
+double calculate_Mvir(run_globals_t *run_globals, double Mvir, int len)
 {
-  if (halo->Type == 0 && halo->Mvir)
-    return halo->Mvir;
+  if ((len > 0) && (Mvir > 0))
+    return Mvir;
   else
-    return (double)halo->Len * run_globals->params.PartMass;
+    return (double)len * run_globals->params.PartMass;
 }
 
 
-float calculate_Rvir(run_globals_t *run_globals, halo_t *halo, double Mvir, int snapshot)
+float calculate_Rvir(run_globals_t *run_globals, double Mvir, int snapshot)
 {
   double zplus1;
   double hubble_of_z_sq;
