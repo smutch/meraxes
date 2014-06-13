@@ -250,8 +250,8 @@ struct galaxy_t {
   double           LTTime; //!< Lookback time at the last time this galaxy was identified
 
   // properties of subhalo at the last time this galaxy was a central galaxy
-  double Pos[3];
-  double Vel[3];
+  float Pos[3];
+  float Vel[3];
   double Mvir;
   double Rvir;
   double Vvir;
@@ -476,14 +476,14 @@ void   apply_dust(int n_photo_bands, galaxy_t gal, double *LumDust, int outputbi
 void   cleanup_mags(run_globals_t *run_globals);
 
 // Reionization related
-double reionization_modifier(run_globals_t *run_globals, halo_t *halo, int snapshot);
-double sobacchi2013_modifier(run_globals_t *run_globals, halo_t *halo, double redshift);
-double gnedin2000_modifer(run_globals_t *run_globals, halo_t *halo, double redshift);
+double reionization_modifier(run_globals_t *run_globals, double Mvir, float *Pos, int snapshot);
+double sobacchi2013_modifier(run_globals_t *run_globals, double Mvir, double redshift);
+double gnedin2000_modifer(run_globals_t *run_globals, double Mvir, double redshift);
 double global_ionizing_emmisivity(run_globals_t *run_globals);
 #ifdef USE_TOCF
-double tocf_modifier(run_globals_t *run_globals, halo_t *halo, int snapshot);
+double tocf_modifier(run_globals_t *run_globals, double Mvir, float *Pos, int snapshot);
 void set_HII_eff_factor(run_globals_t *run_globals);
-int  find_cell(double pos, double box_size);
+int  find_cell(float pos, double box_size);
 void malloc_reionization_grids(run_globals_t *run_globals);
 void free_reionization_grids(run_globals_t *run_globals);
 void construct_stellar_grids(run_globals_t *run_globals);
