@@ -754,7 +754,10 @@ trees_info_t read_halos(
 
   // reset the fof group pointers and index lookup (if necessary)
   for (int ii = 0; ii < run_globals->NFOFGroupsMax; ii++)
+  {
     (*fof_group)[ii].FirstHalo = NULL;
+    (*fof_group)[ii].Mvir      = 0.0;
+  }
   if (n_requested_forests > -1)
     for (int ii = 0; ii < run_globals->NHalosMax; ii++)
       (*index_lookup)[ii] = -1;

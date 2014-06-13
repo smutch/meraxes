@@ -226,8 +226,6 @@ typedef struct halo_t {
 struct fof_group_t {
   halo_t *FirstHalo;
   double  Mvir;
-  double  Vvir;
-  double  Rvir;
 };
 typedef struct fof_group_t fof_group_t;
 
