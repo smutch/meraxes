@@ -24,7 +24,7 @@ void set_HII_eff_factor(run_globals_t *run_globals)
 // just use common indexing in square brackets?
 // i.e. ((float *)deltax)[k+(2*(HII_dim/2+1))*(j+HII_dim*i)]
 
-void call_find_HII_bubbles(run_globals_t *run_globals, int snapshot, int nout_gals)
+void call_find_HII_bubbles(run_globals_t *run_globals, int snapshot, int unsampled_snapshot, int nout_gals)
 {
   // Thin wrapper round find_HII_bubbles
 
@@ -50,7 +50,7 @@ void call_find_HII_bubbles(run_globals_t *run_globals, int snapshot, int nout_ga
   if (SID.My_rank == 0)
   {
     // Read in the dark matter density grid
-    read_dm_grid(run_globals, snapshot, 0, (float*)(grids->deltax));
+    read_dm_grid(run_globals, unsampled_snapshot, 0, (float*)(grids->deltax));
 
     // Make copies of the stellar and deltax grids before sending them to
     // 21cmfast.  This is because the floating precision fft--ifft introduces
@@ -326,7 +326,6 @@ void save_tocf_grids(run_globals_t *run_globals, hid_t parent_group_id, int snap
     tocf_grids_t *grids = &(run_globals->tocf_grids);
     hsize_t dims        = HII_TOT_NUM_PIXELS;
     int HII_dim         = tocf_params.HII_dim;
-    double UnitTime_in_s = run_globals->units.UnitTime_in_s;
     float *grid;
     float *ps;
     int ps_nbins;

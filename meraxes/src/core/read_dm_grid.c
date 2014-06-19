@@ -53,7 +53,7 @@ int read_dm_grid(
   fread(&n_grids, sizeof(int), 1, fin);
   fread(&ma_scheme, sizeof(int), 1, fin);
 
-  SID_log("Reading grid for snapshot %d", SID_LOG_OPEN, snapshot);
+  SID_log("Reading grid for unsampled snapshot %d", SID_LOG_OPEN, snapshot);
   SID_log("n_cell = [%d, %d, %d]", SID_LOG_COMMENT, n_cell[0], n_cell[1], n_cell[2]);
   SID_log("box_size = [%.2f, %.2f, %.2f]", SID_LOG_COMMENT, box_size[0], box_size[1], box_size[2]);
   SID_log("ma_scheme = %d", SID_LOG_COMMENT, ma_scheme);
@@ -109,8 +109,8 @@ int read_dm_grid(
         for (int k = 0; k < n_cell[2]; k++)
         {
           fread(&val, sizeof(float), 1, fin);
-          val                                                                                                           *= cell_volume; // now we have the mass in the cell
-          mean                                                                                                          += val;
+          val *= cell_volume; // now we have the mass in the cell
+          mean += val;
           *(grid + HII_R_FFT_INDEX((int)(i * resample_factor), (int)(j * resample_factor), (int)(k * resample_factor))) += val;
         }
 
