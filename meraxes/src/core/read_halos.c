@@ -299,7 +299,9 @@ static void read_trees_and_catalogs(
 
           convert_input_virial_props(run_globals,
               &(fof_group[(*n_fof_groups_kept)].Mvir),
-              NULL, NULL, -1,
+              &(fof_group[(*n_fof_groups_kept)].Rvir),
+              &(fof_group[(*n_fof_groups_kept)].Vvir),
+              -1,
               snapshot);
 
           fof_group[(*n_fof_groups_kept)++].FirstHalo = &(halo[*n_halos_kept]);
@@ -756,6 +758,7 @@ trees_info_t read_halos(
   for (int ii = 0; ii < run_globals->NFOFGroupsMax; ii++)
   {
     (*fof_group)[ii].FirstHalo = NULL;
+    (*fof_group)[ii].FirstOccupiedHalo = NULL;
     (*fof_group)[ii].Mvir      = 0.0;
   }
   if (n_requested_forests > -1)
