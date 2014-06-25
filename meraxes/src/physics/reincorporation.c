@@ -13,17 +13,17 @@ static void update_reservoirs_from_reincorporation(galaxy_t *gal, double reincor
 
 void reincorporate_ejected_gas(run_globals_t *run_globals, galaxy_t *gal)
 {
-  double t_dyn;
-  double reincorporated;
-
-  double ReincorporationEff = run_globals->params.physics.ReincorporationEff;
-
   if (gal->EjectedGas > 0)
   {
+    double t_dyn;
+    double reincorporated;
+    double ReincorporationEff = run_globals->params.physics.ReincorporationEff;
+    fof_group_t *fof_group = gal->Halo->FOFGroup;
+
     // allow some of the ejected gas associated with the central to be
     // reincorporated following the prescription of Guo 2010 (which is actually
     // almost identical to SAGE).
-    t_dyn = gal->Rvir / gal->Vvir;
+    t_dyn = fof_group->Rvir / fof_group->Vvir;
     // reincorporated = ReincorporationEff * gal->Vvir / 220.0 * gal->EjectedGas * (gal->dt / t_dyn);
     reincorporated = ReincorporationEff * gal->EjectedGas * (gal->dt / t_dyn);
 
