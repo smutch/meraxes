@@ -3,6 +3,11 @@
 
 double calculate_merging_time(run_globals_t *run_globals, galaxy_t *sat, int snapshot)
 {
+
+  // TODO: What should we do about FOF properties here?  Do we need to use the
+  // FOF virial properties for the merger clock calculation if one of the
+  // participating galaxies was in a central subhalo?
+
   galaxy_t *parent;
   galaxy_t *mother;
   galaxy_t *cur_gal;
