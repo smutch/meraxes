@@ -335,10 +335,10 @@ static void read_trees_and_catalogs(
         cur_halo->Mvir      = cur_cat_halo->M_vir;
 
         convert_input_virial_props(run_globals,
-            &(halo[*n_halos_kept].Mvir),
-            (double *)&(halo[*n_halos_kept].Rvir),
-            (double *)&(halo[*n_halos_kept].Vvir),
-            halo[*n_halos_kept].Len,
+            &(cur_halo->Mvir),
+            (double *)&(cur_halo->Rvir),
+            (double *)&(cur_halo->Vvir),
+            cur_halo->Len,
             snapshot);
 
         (*n_halos_kept)++;

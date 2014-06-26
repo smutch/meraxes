@@ -455,8 +455,8 @@ void         check_counts(run_globals_t *run_globals, fof_group_t *fof_group, in
 void         cn_quote(void);
 double       Tvir_to_Mvir(run_globals_t *run_globals, double T, double z);
 double       calculate_Mvir(run_globals_t *run_globals, double Mvir, int len);
-float        calculate_Rvir(run_globals_t *run_globals, double Mvir, int snapshot);
-float        calculate_Vvir(run_globals_t *run_globals, double Mvir, float Rvir);
+double       calculate_Rvir(run_globals_t *run_globals, double Mvir, int snapshot);
+double       calculate_Vvir(run_globals_t *run_globals, double Mvir, double Rvir);
 double       calculate_spin_param(halo_t *halo);
 void         read_cooling_functions(run_globals_t *run_globals);
 double       interpolate_cooling_rate(double logTemp, double logZ);

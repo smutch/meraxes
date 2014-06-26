@@ -34,7 +34,6 @@ void supernova_feedback(run_globals_t *run_globals, galaxy_t *gal, double m_star
   double m_eject;
   double factor;
   fof_group_t *fof_group = gal->Halo->FOFGroup;
-  galaxy_t *central = gal->Halo->FOFGroup->FirstHalo->Galaxy;
 
   double SnReheatEff   = run_globals->params.physics.SnReheatEff;
   double SnEjectionEff = run_globals->params.physics.SnEjectionEff;

@@ -72,7 +72,7 @@ double calculate_Mvir(run_globals_t *run_globals, double Mvir, int len)
 }
 
 
-float calculate_Rvir(run_globals_t *run_globals, double Mvir, int snapshot)
+double calculate_Rvir(run_globals_t *run_globals, double Mvir, int snapshot)
 {
   double zplus1;
   double hubble_of_z_sq;
@@ -93,12 +93,12 @@ float calculate_Rvir(run_globals_t *run_globals, double Mvir, int snapshot)
 
   fac = 1 / (Delta * 4 * M_PI / 3.0 * rhocrit);
 
-  return cbrt((float)Mvir * fac);
+  return cbrt(Mvir * fac);
 }
 
-float calculate_Vvir(run_globals_t *run_globals, double Mvir, float Rvir)
+double calculate_Vvir(run_globals_t *run_globals, double Mvir, double Rvir)
 {
-  return sqrt((float)(run_globals->G) * (float)Mvir / Rvir);
+  return sqrt((run_globals->G) * Mvir / Rvir);
 }
 
 double calculate_spin_param(halo_t *halo)
