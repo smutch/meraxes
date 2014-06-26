@@ -214,10 +214,10 @@ typedef struct halo_t {
   int                 Len; //!< Number of particles in the structure
   float               Pos[3]; //!< Most bound particle position [Mpc/h]
   float               Vel[3]; //!< Centre-of-mass velocity [km/s]
-  float               Rvir; //!< Virial radius [Mpc/h]
+  double              Rvir; //!< Virial radius [Mpc/h]
   float               Rhalo; //!< Distance of last halo particle from MBP [Mpc/h]
   float               Rmax; //!< Radius of maximum circular velocity [Mpc/h]
-  float               Vvir; //!< Virial velocity [km/s]
+  double              Vvir; //!< Virial velocity [km/s]
   float               Vmax; //!< Maximum circular velocity [km/s]
   float               VelDisp; //!< Total 3D velocity dispersion [km/s]
   float               AngMom[3]; //!< Specific angular momentum vector [Mpc/h *km/s]

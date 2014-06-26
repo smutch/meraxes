@@ -333,8 +333,8 @@ static void read_trees_and_catalogs(
 
         convert_input_virial_props(run_globals,
             &(cur_halo->Mvir),
-            (double *)&(cur_halo->Rvir),
-            (double *)&(cur_halo->Vvir),
+            &(cur_halo->Rvir),
+            &(cur_halo->Vvir),
             cur_halo->Len,
             snapshot);
 

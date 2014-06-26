@@ -2,8 +2,6 @@
 #----- SA model output files --------------
 #------------------------------------------
 FileNameGalaxies : Tiamat
-FirstFile        : 0
-LastFile         : 0
 
 #------------------------------------------
 #----- Simulation input files  ------------
@@ -11,16 +9,15 @@ LastFile         : 0
 SimName          : Tiamat
 SimulationDir    : /home/smutch/data/input_trees/Tiamat
 CatalogFilePrefix: rockstar_fixed
-NEverySnap       : 1
-NScanSnap        : 16
-TotalSimSnaps    : 100
 BoxSize          : 100
 VolumeFactor     : 1.0
+NSteps           : 1
 
 #------------------------------------------
 #----- Photometric Tables  ----------------
 #------------------------------------------
 PhotometricTablesDir : /home/smutch/models/21cm_sam/meraxes/input/photometric_tables
+CoolingFuncsDir      : /home/smutch/models/21cm_sam/meraxes/input/cooling_functions
 SSPModel             : bc03
 IMF                  : salpeter
 MagSystem            : vega
