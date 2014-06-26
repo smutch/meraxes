@@ -165,12 +165,9 @@ static void inline convert_input_virial_props(run_globals_t *run_globals, double
   *Mvir /= 1.0e10;
 
   // Update the virial properties
-  if (Mvir != NULL)
-    *Mvir = calculate_Mvir(run_globals, *Mvir, len);
-  if (Rvir != NULL)
-    *Rvir = calculate_Rvir(run_globals, *Mvir, snapshot);
-  if (Vvir != NULL)
-    *Vvir = calculate_Vvir(run_globals, *Mvir, *Rvir);
+  *Mvir = calculate_Mvir(run_globals, *Mvir, len);
+  *Rvir = calculate_Rvir(run_globals, *Mvir, snapshot);
+  *Vvir = calculate_Vvir(run_globals, *Mvir, *Rvir);
 }
 
 
