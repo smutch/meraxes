@@ -630,7 +630,7 @@ void create_master_file(run_globals_t *run_globals)
     if((i_core == 0) && (run_globals->params.TOCF_Flag))
     {
       // create links to the 21cmFAST grids
-      sprintf(target_group, "Grids", i_core);
+      sprintf(target_group, "Grids");
       group_id = H5Gcreate(snap_group_id, target_group, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
 
       sprintf(source_ds, "Snap%03d/Grids/xH", run_globals->ListOutputSnaps[i_out]);

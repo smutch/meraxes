@@ -351,6 +351,8 @@ typedef struct tree_entry_t {
   int    desc_index;
   int    central_index;
   int    forest_id;
+  int    fof_len;
+  float  fof_ang_mom[3];
   double fof_mvir;
 } tree_entry_t;
 

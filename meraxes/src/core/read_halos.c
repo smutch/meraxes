@@ -214,7 +214,7 @@ static void read_trees_and_catalogs(
   *n_fof_groups_kept = 0;
 
   size_t dst_size       = sizeof(tree_entry_t);
-  size_t dst_offsets[9] = {
+  size_t dst_offsets[11] = {
     HOFFSET(tree_entry_t, id),
     HOFFSET(tree_entry_t, flags),
     HOFFSET(tree_entry_t, desc_id),
@@ -223,9 +223,11 @@ static void read_trees_and_catalogs(
     HOFFSET(tree_entry_t, desc_index),
     HOFFSET(tree_entry_t, central_index),
     HOFFSET(tree_entry_t, forest_id),
-    HOFFSET(tree_entry_t, fof_mvir)
-  };
-  size_t dst_sizes[9] = {
+    HOFFSET(tree_entry_t, fof_len),
+    HOFFSET(tree_entry_t, fof_ang_mom),
+    HOFFSET(tree_entry_t, fof_mvir) };
+
+  size_t dst_sizes[11] = {
     sizeof(tree_buffer[0].id),
     sizeof(tree_buffer[0].flags),
     sizeof(tree_buffer[0].desc_id),
@@ -234,8 +236,9 @@ static void read_trees_and_catalogs(
     sizeof(tree_buffer[0].desc_index),
     sizeof(tree_buffer[0].central_index),
     sizeof(tree_buffer[0].forest_id),
-    sizeof(tree_buffer[0].fof_mvir)
-  };
+    sizeof(tree_buffer[0].fof_len),
+    sizeof(tree_buffer[0].fof_ang_mom),
+    sizeof(tree_buffer[0].fof_mvir) };
 
   keep_flag = true;
   while (n_read < n_halos)
