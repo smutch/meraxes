@@ -326,7 +326,6 @@ void save_tocf_grids(run_globals_t *run_globals, hid_t parent_group_id, int snap
     tocf_grids_t *grids = &(run_globals->tocf_grids);
     hsize_t dims        = HII_TOT_NUM_PIXELS;
     int HII_dim         = tocf_params.HII_dim;
-    double UnitTime_in_s = run_globals->units.UnitTime_in_s;
     float *grid;
     float *ps;
     int ps_nbins;
