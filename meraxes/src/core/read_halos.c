@@ -221,7 +221,7 @@ static void read_trees_and_catalogs(
   int i_group                 = 0;
   int n_groups                = 0;
   int first_group_index       = 0;
-  int last_group_index        = 0;
+  int last_group_index        = 1;  // N.B. Must be init to different value from first_group_index
 
 
   char catalog_file_prefix[50];
@@ -283,7 +283,7 @@ static void read_trees_and_catalogs(
     if (first_group_index == last_group_index)
     {
       i_group = 1;
-      memcpy(&(group_buffer[n_groups-1]), &(group_buffer[0]), sizeof(catalog_halo_t));
+      memcpy(&(group_buffer[0]), &(group_buffer[n_groups-1]), sizeof(catalog_halo_t));
     }
     else
       i_group = 0;
