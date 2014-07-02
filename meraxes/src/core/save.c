@@ -31,7 +31,6 @@ void prepare_galaxy_for_output(
   galaxy_output_t *galout,
   int              i_snap)
 {
-  double Hubble_h    = run_globals->params.Hubble_h;
   run_units_t *units = &(run_globals->units);
 
   galout->id_MBP = (long long)gal.id_MBP;
@@ -45,33 +44,33 @@ void prepare_galaxy_for_output(
 
   for (int ii = 0; ii < 3; ii++)
   {
-    galout->Pos[ii] = (float)(gal.Pos[ii] / Hubble_h);
+    galout->Pos[ii] = (float)(gal.Pos[ii]);
     galout->Vel[ii] = (float)(gal.Vel[ii]);
   }
 
   galout->Len                = (int)(gal.Len);
-  galout->Mvir               = (float)(gal.Mvir / Hubble_h);
-  galout->Rvir               = (float)(gal.Rvir / Hubble_h);
+  galout->Mvir               = (float)(gal.Mvir);
+  galout->Rvir               = (float)(gal.Rvir);
   galout->Vvir               = (float)(gal.Vvir);
   galout->Vmax               = (float)(gal.Vmax);
   galout->Spin               = (float)(gal.Spin);
-  galout->HotGas             = (float)(gal.HotGas / Hubble_h);
-  galout->MetalsHotGas       = (float)(gal.MetalsHotGas / Hubble_h);
-  galout->ColdGas            = (float)(gal.ColdGas / Hubble_h);
-  galout->MetalsColdGas      = (float)(gal.MetalsColdGas / Hubble_h);
-  galout->Mcool              = (float)(gal.Mcool / Hubble_h);
-  galout->StellarMass        = (float)(gal.StellarMass / Hubble_h);
-  galout->BlackHoleMass      = (float)(gal.BlackHoleMass / Hubble_h);
-  galout->DiskScaleLength    = (float)(gal.DiskScaleLength / Hubble_h);
-  galout->MetalsStellarMass  = (float)(gal.MetalsStellarMass / Hubble_h);
+  galout->HotGas             = (float)(gal.HotGas);
+  galout->MetalsHotGas       = (float)(gal.MetalsHotGas);
+  galout->ColdGas            = (float)(gal.ColdGas);
+  galout->MetalsColdGas      = (float)(gal.MetalsColdGas);
+  galout->Mcool              = (float)(gal.Mcool);
+  galout->StellarMass        = (float)(gal.StellarMass);
+  galout->BlackHoleMass      = (float)(gal.BlackHoleMass);
+  galout->DiskScaleLength    = (float)(gal.DiskScaleLength);
+  galout->MetalsStellarMass  = (float)(gal.MetalsStellarMass);
   galout->Sfr                = (float)(gal.Sfr * units->UnitMass_in_g / units->UnitTime_in_s * SEC_PER_YEAR / SOLAR_MASS);
-  galout->EjectedGas         = (float)(gal.EjectedGas / Hubble_h);
-  galout->MetalsEjectedGas   = (float)(gal.MetalsEjectedGas / Hubble_h);
-  galout->Rcool              = (float)(gal.Rcool / Hubble_h);
+  galout->EjectedGas         = (float)(gal.EjectedGas);
+  galout->MetalsEjectedGas   = (float)(gal.MetalsEjectedGas);
+  galout->Rcool              = (float)(gal.Rcool);
   galout->Cos_Inc            = (float)(gal.Cos_Inc);
   galout->BaryonFracModifier = (float)(gal.BaryonFracModifier);
-  galout->MergTime           = (float)(gal.MergTime * units->UnitLength_in_cm / units->UnitVelocity_in_cm_per_s / SEC_PER_MEGAYEAR / Hubble_h);
-  galout->LTTime             = (float)(gal.LTTime * units->UnitLength_in_cm / units->UnitVelocity_in_cm_per_s / SEC_PER_MEGAYEAR / Hubble_h);
+  galout->MergTime           = (float)(gal.MergTime * units->UnitLength_in_cm / units->UnitVelocity_in_cm_per_s / SEC_PER_MEGAYEAR);
+  galout->LTTime             = (float)(gal.LTTime * units->UnitLength_in_cm / units->UnitVelocity_in_cm_per_s / SEC_PER_MEGAYEAR);
 
   prepare_magnitudes_for_output(run_globals, gal, galout, i_snap);
 }
