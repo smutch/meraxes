@@ -24,19 +24,6 @@ def plot_smf_z5(gals, simprops, ax):
 
     print "Plotting z=5 SMF..."
 
-    # read the observed smf
-    obs = pd.read_table(os.path.join(__script_dir__,
-        "../../utils/obs_datasets/smf/Gonzalez11_z5_smf.txt"),
-        delim_whitespace=True,
-        header = None,
-        skiprows = 3,
-        names = ["sm", "log_phi", "m_err", "p_err"])
-
-    # convert obs to same hubble value
-    obs.sm += np.log10(0.7/simprops["Hubble_h"])
-    for col in ["log_phi", "m_err", "p_err"]:
-        obs[col] -= 3.0*np.log10(0.7/simprops["Hubble_h"])
-
     # generate the model smf
     # sm = stellar mass
     sm = np.log10(gals.StellarMass[gals.StellarMass > 0] * 1.0e10)
@@ -51,14 +38,42 @@ def plot_smf_z5(gals, simprops, ax):
     # plot the model
     ax.plot(smf[:,0], np.log10(smf[:,1]), label="Meraxes")
 
-    # plot the hmf
-    # hm = np.log10(gals.Mvir[gals.Type == 0] * 1.0e10)
-    # hmf = munge.mass_function(hm, simprops["Volume"], 50)
-    # ax.plot(np.log10(0.05*0.17)+hmf[:,0], np.log10(hmf[:,1]), label="HMF (Mvir*0.05*0.17)", ls='--', color='k')
+    # read the observed smf
+    obs = pd.read_table(os.path.join(__script_dir__,
+        "../../utils/obs_datasets/smf/Gonzalez11_z5_smf.txt"),
+        delim_whitespace=True,
+        header = None,
+        skiprows = 3,
+        names = ["sm", "log_phi", "m_err", "p_err"])
+
+    # convert obs to same hubble value
+    obs.sm += np.log10(0.7/simprops["Hubble_h"])
+    for col in ["log_phi", "m_err", "p_err"]:
+        obs[col] -= 3.0*np.log10(0.7/simprops["Hubble_h"])
 
     # plot the observations
     ax.errorbar(obs.sm, obs.log_phi, yerr=[obs.m_err, obs.p_err],
-                label="Gonzalez et al. 2011", ls="none", capsize=0)
+                label="Gonzalez et al. 2011", ls="none",
+                lw=4, capsize=0)
+
+    # do it all again for the next set of observations
+    obs = pd.read_table(os.path.join(__script_dir__,
+        "../../utils/obs_datasets/smf/Katsianis_z5_smf.txt"),
+        delim_whitespace=True,
+        header = None,
+        skiprows = 3,
+        names = ["sm", "log_phi", "err"])
+
+    # convert obs to same hubble value and IMF
+    # -0.26 dex conversion from Salpeter to Chabrier
+    obs.sm += np.log10(0.702/simprops["Hubble_h"]) - 0.26
+    for col in ["log_phi", "err"]:
+        obs[col] -= 3.0*np.log10(0.702/simprops["Hubble_h"])
+
+    # plot the observations
+    ax.errorbar(obs.sm, obs.log_phi, yerr=obs.err,
+                label="Katsianis et al. 2014", ls="none",
+                lw=4, capsize=0)
 
     # add some text
     ax.text(0.05,0.05, "z=5\nh={:.2f}\nChabrier IMF".format(simprops["Hubble_h"]),
