@@ -7,7 +7,7 @@ FileNameGalaxies : Tiamat
 #----- Simulation input files  ------------
 #------------------------------------------
 SimName          : Tiamat
-SimulationDir    : /home/smutch/data/input_trees/Tiamat
+SimulationDir    : /home/smutch/data2/input_trees/Tiamat
 CatalogFilePrefix: rockstar_fixed
 BoxSize          : 100
 VolumeFactor     : 1.0
@@ -26,13 +26,14 @@ MagBands             : Bbv,V,Rc,Ic,K
 #------------------------------------------
 #----- Code options -----------------------
 #------------------------------------------
+NSteps : 1
 FlagInteractive: 0
 RandomSeed: 1809  # seed for random number generator
 
 #------------------------------------------
 #----- 21cmFAST ---------------------------
 #------------------------------------------
-TOCF_Flag : 1 {  # use 21cmfast for reionization?
+TOCF_Flag : 0 {  # use 21cmfast for reionization?
     numcores   : 8          # number of OpenMP threads to run 21cmFAST with
     LogFileDir : tocf_logs  # directory for log files
 }

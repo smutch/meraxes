@@ -89,9 +89,11 @@ static void read_catalog_halos(
   int            *i_halo_in_file,
   int            *i_halo,
   catalog_halo_t *halo,
-  int             n_to_read)
+  int             n_to_read,
+  int             type_flag)
 {
   char fname[STRLEN];
+  char halo_type[10];
   int dummy;
   int n_from_this_file;
 
@@ -109,10 +111,23 @@ static void read_catalog_halos(
   // SID_log("n_to_read = %d", SID_LOG_COMMENT, n_to_read);
   // SID_log("", SID_LOG_CLOSE|SID_LOG_NOPRINT);
 
+  switch (type_flag)
+  {
+    case 0:
+      sprintf(halo_type, "groups");
+      break;
+    case 1:
+      sprintf(halo_type, "subgroups");
+      break;
+    default:
+      SID_log_error("Unrecognised type_flag in read_catalog_halos()");
+      break;
+  }
+
   // Is this the first read?
   if ((*fin) == NULL)
   {
-    halo_catalog_filename(simulation_dir, catalog_file_prefix, snapshot, "subgroups", *i_file, flayout_switch, fname);
+    halo_catalog_filename(simulation_dir, catalog_file_prefix, snapshot, halo_type, *i_file, flayout_switch, fname);
     *fin = fopen(fname, "rb");
     if (*fin == NULL)
     {
@@ -128,7 +143,7 @@ static void read_catalog_halos(
     fclose(*fin);
     (*i_file)++;
     (*i_halo_in_file) = 0;
-    halo_catalog_filename(simulation_dir, catalog_file_prefix, snapshot, "subgroups", *i_file, flayout_switch, fname);
+    halo_catalog_filename(simulation_dir, catalog_file_prefix, snapshot, halo_type, *i_file, flayout_switch, fname);
     *fin = fopen(fname, "rb");
     if (*fin == NULL)
     {
@@ -154,7 +169,7 @@ static void read_catalog_halos(
     *i_halo         += n_from_this_file;
     *i_halo_in_file += n_from_this_file;
     n_to_read       -= n_from_this_file;
-    read_catalog_halos(fin, simulation_dir, catalog_file_prefix, snapshot, flayout_switch, i_file, n_halos_file, i_halo_in_file, i_halo, halo, n_to_read);
+    read_catalog_halos(fin, simulation_dir, catalog_file_prefix, snapshot, flayout_switch, i_file, n_halos_file, i_halo_in_file, i_halo, halo, n_to_read, type_flag);
   }
 }
 
@@ -187,7 +202,7 @@ static void read_trees_and_catalogs(
   int           *index_lookup)
 {
   // I guess this should ideally be equal to the chunk size of the input hdf5 file...
-  int buffer_size = 1000;
+  int buffer_size = 5000;
   int n_read      = 0;
   int n_to_read   = 0;
   bool keep_flag;
@@ -198,9 +213,22 @@ static void read_trees_and_catalogs(
   int n_halos_in_catalog_file = 0;
   int i_halo_in_catalog_file  = 0;
   int i_halo                  = 0;
+
+  FILE *fin_groups            = NULL;
+  int group_flayout_switch    = -1;
+  int i_group_file            = 0;
+  int n_groups_in_catalog_file = 0;
+  int i_group_in_catalog_file = 0;
+  int i_group                 = 0;
+  int n_groups                = 0;
+  int first_group_index       = 0;
+  int last_group_index        = 1;  // N.B. Must be init to different value from first_group_index
+
+
   char catalog_file_prefix[50];
   char simulation_dir[STRLEN];
   catalog_halo_t *catalog_buffer;
+  catalog_halo_t *group_buffer;
 
   SID_log("Doing read...", SID_LOG_OPEN);
 
@@ -210,6 +238,7 @@ static void read_trees_and_catalogs(
   tree_entry_t *tree_buffer;
   tree_buffer    = SID_malloc(sizeof(tree_entry_t) * buffer_size);
   catalog_buffer = SID_malloc(sizeof(catalog_halo_t) * buffer_size);
+  group_buffer   = SID_malloc(sizeof(catalog_halo_t) * buffer_size);
 
   *n_halos_kept      = 0;
   *n_fof_groups_kept = 0;
@@ -224,7 +253,7 @@ static void read_trees_and_catalogs(
     HOFFSET(tree_entry_t, desc_index),
     HOFFSET(tree_entry_t, central_index),
     HOFFSET(tree_entry_t, forest_id),
-    HOFFSET(tree_entry_t, fof_mvir)
+    HOFFSET(tree_entry_t, group_index)
   };
   size_t dst_sizes[9] = {
     sizeof(tree_buffer[0].id),
@@ -235,7 +264,7 @@ static void read_trees_and_catalogs(
     sizeof(tree_buffer[0].desc_index),
     sizeof(tree_buffer[0].central_index),
     sizeof(tree_buffer[0].forest_id),
-    sizeof(tree_buffer[0].fof_mvir)
+    sizeof(tree_buffer[0].group_index)
   };
 
   keep_flag = true;
@@ -251,15 +280,30 @@ static void read_trees_and_catalogs(
       H5TBread_records(fd, "trees", n_read, (hsize_t)n_to_read, dst_size, dst_offsets, dst_sizes, tree_buffer);
     SID_Bcast(tree_buffer, n_to_read * sizeof(tree_entry_t), 0, SID.COMM_WORLD);
 
+    first_group_index = tree_buffer[0].group_index;
+    if (first_group_index == last_group_index)
+    {
+      i_group = 1;
+      memcpy(&(group_buffer[0]), &(group_buffer[n_groups-1]), sizeof(catalog_halo_t));
+    }
+    else
+      i_group = 0;
+    last_group_index = tree_buffer[n_to_read-1].group_index;
+    n_groups = last_group_index - first_group_index + 1;
+
     // read in the corresponding catalog entrys
     if (SID.My_rank == 0)
     {
       i_halo = 0;
       read_catalog_halos(&fin_catalogs, simulation_dir, catalog_file_prefix,
                          unsampled_snapshot, &flayout_switch, &i_catalog_file, &n_halos_in_catalog_file,
-                         &i_halo_in_catalog_file, &i_halo, catalog_buffer, n_to_read);
+                         &i_halo_in_catalog_file, &i_halo, catalog_buffer, n_to_read, 1);
+      read_catalog_halos(&fin_groups, simulation_dir, catalog_file_prefix,
+                         unsampled_snapshot, &group_flayout_switch, &i_group_file, &n_groups_in_catalog_file,
+                         &i_group_in_catalog_file, &i_group, group_buffer, n_groups - i_group, 0);
     }
     SID_Bcast(catalog_buffer, n_to_read * sizeof(catalog_halo_t), 0, SID.COMM_WORLD);
+    SID_Bcast(group_buffer, n_groups * sizeof(catalog_halo_t), 0, SID.COMM_WORLD);
 
     // paste the data into the halo structures
     for (int jj = 0; jj < n_to_read; jj++)
@@ -292,7 +336,7 @@ static void read_trees_and_catalogs(
         if (n_read + jj == tree_buffer[jj].central_index)
         {
           cur_halo->Type                    = 0;
-          fof_group[(*n_fof_groups_kept)].Mvir        = tree_buffer[jj].fof_mvir;
+          fof_group[(*n_fof_groups_kept)].Mvir        = group_buffer[tree_buffer[jj].group_index - first_group_index].M_vir;
 
           convert_input_virial_props(run_globals,
               &(fof_group[(*n_fof_groups_kept)].Mvir),
