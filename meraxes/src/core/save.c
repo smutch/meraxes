@@ -763,6 +763,16 @@ void write_snapshot(
   int index                   = -1;
   double temp                 = 0;
 
+  // We aren't going to write any galaxies that have zero stellar mass, so
+  // modify n_write appropriately...
+  gal = run_globals->FirstGal;
+  while(gal != NULL)
+  {
+    if((gal->Type < 3) && (gal->StellarMass < 1e-10))
+      n_write--;
+    gal = gal->Next;
+  }
+
   SID_log("Writing output file (n_write = %d)...", SID_LOG_OPEN | SID_LOG_TIMER, n_write);
 
   // Create the file.
@@ -818,7 +828,7 @@ void write_snapshot(
     gal = run_globals->FirstGal;
     while (gal != NULL)
     {
-      if (gal->Type < 3)
+      if ((gal->Type < 3) && (gal->StellarMass >= 1e-10))
       {
         if (gal->output_index > -1)
         {
@@ -836,7 +846,7 @@ void write_snapshot(
     gal = run_globals->FirstGal;
     while (gal != NULL)
     {
-      if (gal->Type == 3)
+      if ((gal->Type == 3) && (gal->StellarMass >= 1e-10))
       {
         descendant_index[gal->output_index] = gal->MergerTarget->output_index;
         old_count++;
@@ -865,7 +875,7 @@ void write_snapshot(
     gal = run_globals->FirstGal;
     while (gal != NULL)
     {
-      if (gal->Type < 3)
+      if ((gal->Type < 3) && (gal->StellarMass >= 1e-10))
         gal->output_index = gal_count++;
       gal = gal->Next;
     }
@@ -888,7 +898,7 @@ void write_snapshot(
   while (gal != NULL)
   {
     // Don't output galaxies which merged at this timestep
-    if (gal->Type < 3)
+    if ((gal->Type < 3) && (gal->StellarMass >= 1e-10))
     {
       prepare_galaxy_for_output(run_globals, *gal, &(output_buffer[buffer_count]), i_out);
       buffer_count++;
