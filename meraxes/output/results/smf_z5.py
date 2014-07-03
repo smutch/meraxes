@@ -2,8 +2,10 @@
 
 """Plot the z=5 SMF.
 
-Usage: smf-z5.py <fname>
+Usage: smf-z5.py <fname> [Hubble_h]
 
+Arguments:
+    Hubble_h   Hubble constant [default: 0.702]
 """
 
 import numpy as np
@@ -20,7 +22,7 @@ __date__   = "2014-05-01"
 __script_dir__ = os.path.dirname(os.path.realpath( __file__ ))
 
 
-def plot_smf_z5(gals, simprops, ax):
+def plot_smf_z5(gals, simprops, ax, h):
 
     print "Plotting z=5 SMF..."
 
@@ -47,9 +49,9 @@ def plot_smf_z5(gals, simprops, ax):
         names = ["sm", "log_phi", "m_err", "p_err"])
 
     # convert obs to same hubble value
-    obs.sm += np.log10(0.7/simprops["Hubble_h"])
+    obs.sm += np.log10(0.7/h)
     for col in ["log_phi", "m_err", "p_err"]:
-        obs[col] -= 3.0*np.log10(0.7/simprops["Hubble_h"])
+        obs[col] -= 3.0*np.log10(0.7/h)
 
     # plot the observations
     ax.errorbar(obs.sm, obs.log_phi, yerr=[obs.m_err, obs.p_err],
@@ -65,10 +67,10 @@ def plot_smf_z5(gals, simprops, ax):
         names = ["sm", "log_phi", "err"])
 
     # convert obs to same hubble value and IMF
-    # -0.26 dex conversion from Salpeter to Chabrier
-    obs.sm += np.log10(0.702/simprops["Hubble_h"]) - 0.26
+    # -0.16 dex conversion from Salpeter to Chabrier
+    obs.sm += np.log10(0.702/h) - 0.16
     for col in ["log_phi", "err"]:
-        obs[col] -= 3.0*np.log10(0.702/simprops["Hubble_h"])
+        obs[col] -= 3.0*np.log10(0.702/h)
 
     # plot the observations
     ax.errorbar(obs.sm, obs.log_phi, yerr=obs.err,
@@ -76,7 +78,7 @@ def plot_smf_z5(gals, simprops, ax):
                 lw=4, capsize=0)
 
     # add some text
-    ax.text(0.05,0.05, "z=5\nh={:.2f}\nChabrier IMF".format(simprops["Hubble_h"]),
+    ax.text(0.05,0.05, "z=5\nh={:.2f}\nChabrier IMF".format(h),
            horizontalalignment="left",
            verticalalignment="bottom",
            transform=ax.transAxes)
@@ -91,15 +93,20 @@ if __name__ == '__main__':
 
     args = docopt(__doc__)
     fname = args['<fname>']
+    if args['Hubble_h'] is False:
+        h = 0.702
+    else:
+        h = float(args['Hubble_h'])
+
     snap, redshift = meraxes.io.check_for_redshift(fname, 5.0, tol=0.1)
 
     props = ("StellarMass", "Mvir", "Type")
     gals, simprops = meraxes.io.read_gals(fname, snapshot=snap, props=props,
-            sim_props=True)
+            sim_props=True, h=h)
     gals = gals.view(np.recarray)
 
     fig, ax = plt.subplots(1,1)
-    plot_smf_z5(gals, simprops, ax)
+    plot_smf_z5(gals, simprops, ax, h)
     ax.yaxis.set_tick_params(which='both', color='w')
     ax.legend(loc="upper right")
     fig.tight_layout()
