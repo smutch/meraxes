@@ -761,19 +761,27 @@ void write_snapshot(
   int calc_descendants_i_out  = -1;
   int prev_snapshot           = -1;
   int index                   = -1;
+  int write_count             = 0;
   double temp                 = 0;
+
+  SID_log("Writing output file (n_write = %d)...", SID_LOG_OPEN | SID_LOG_TIMER, n_write);
 
   // We aren't going to write any galaxies that have zero stellar mass, so
   // modify n_write appropriately...
   gal = run_globals->FirstGal;
   while(gal != NULL)
   {
-    if((gal->Type < 3) && (gal->StellarMass < 1e-10))
-      n_write--;
+    if((gal->Type < 3) && (gal->StellarMass >= 1e-10))
+      write_count++;
     gal = gal->Next;
   }
 
-  SID_log("Writing output file (n_write = %d)...", SID_LOG_OPEN | SID_LOG_TIMER, n_write);
+  if (n_write != write_count)
+  {
+    SID_log("Excluding %d ~zero mass galaxies...", SID_LOG_COMMENT, n_write-write_count);
+    SID_log("New write count = %d", SID_LOG_COMMENT, write_count);
+    n_write = write_count;
+  }
 
   // Create the file.
   file_id = H5Fopen(run_globals->FNameOut, H5F_ACC_RDWR, H5P_DEFAULT);
