@@ -37,8 +37,8 @@ void supernova_feedback(run_globals_t *run_globals, galaxy_t *gal, double m_star
 
   double SnReheatEff   = run_globals->params.physics.SnReheatEff;
   double SnEjectionEff = run_globals->params.physics.SnEjectionEff;
-  // double sn_velocity   = 630.0;  // km/s
-  double sn_velocity   = 501.4;  // km/s (too match what is actually used by C06)
+  double sn_velocity   = 630.0;  // km/s
+  // double sn_velocity   = 501.4;  // km/s (too match what is actually used by C06)
 
   // following the SN feedback model Croton+ 2006, what mass of cold gas will
   // we end up reheating due to this star formation episode?
