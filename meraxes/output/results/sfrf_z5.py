@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 
-"""Plot the z=5 SMF.
+"""Plot the z=5 SFRF.
 
-Usage: smf_z5.py <fname> [Hubble_h]
+Usage: sfrf_z5.py <fname> [Hubble_h]
 
 Arguments:
     Hubble_h   Hubble constant [default: 0.702]
@@ -17,75 +17,73 @@ from astropy import log
 import os
 
 __author__ = "Simon Mutch"
-__date__   = "2014-05-01"
+__date__   = "2014-07-04"
 
 __script_dir__ = os.path.dirname(os.path.realpath( __file__ ))
 
 
-def plot_smf_z5(gals, simprops, ax, h):
+def plot_sfrf_z5(gals, simprops, ax, h):
 
-    print "Plotting z=5 SMF..."
+    print "Plotting z=5 SFRF..."
 
     # generate the model smf
     # sm = stellar mass
-    sm = np.log10(gals.StellarMass[gals.StellarMass > 0] * 1.0e10)
+    sfr = np.log10(gals.Sfr[gals.Sfr > 0])
 
-    n_dropped = gals.shape[0] - sm.shape[0]
+    n_dropped = gals.shape[0] - sfr.shape[0]
     if n_dropped > 0:
-        log.warn("Dropped %d galaxies (%.1f%% of total) with stellar mass <= 0" %
+        log.warn("Dropped %d galaxies (%.1f%% of total) with sfr <= 0" %
                 (n_dropped, float(n_dropped)/gals.shape[0]*100))
 
-    smf = munge.mass_function(sm, simprops["Volume"], "knuth")
+    sfrf = munge.mass_function(sfr, simprops["Volume"], "knuth")
 
     # plot the model
-    ax.plot(smf[:,0], np.log10(smf[:,1]), label="Meraxes")
+    ax.plot(sfrf[:,0], np.log10(sfrf[:,1]), label="Meraxes")
 
     # read the observed smf
     obs = pd.read_table(os.path.join(__script_dir__,
-        "../../utils/obs_datasets/smf/Gonzalez11_z5_smf.txt"),
+        "../../utils/obs_datasets/sfrf/Katsianis_z5_sfrf-vanderburg.txt"),
         delim_whitespace=True,
         header = None,
-        skiprows = 3,
-        names = ["sm", "log_phi", "m_err", "p_err"])
+        skiprows = 4,
+        names = ["log_sfr", "log_phi", "err"])
 
     # convert obs to same hubble value
-    obs.sm += np.log10(0.7/h)
-    for col in ["log_phi", "m_err", "p_err"]:
+    for col in ["log_phi", "err"]:
         obs[col] -= 3.0*np.log10(0.7/h)
 
     # plot the observations
-    ax.errorbar(obs.sm, obs.log_phi, yerr=[obs.m_err, obs.p_err],
-                label="Gonzalez et al. 2011", ls="none",
+    ax.errorbar(obs.log_sfr, obs.log_phi, yerr=obs.err,
+                label="Katsianis et al. 2014 (from Van der Burg (2011))", ls="none",
                 lw=4, capsize=0)
 
     # do it all again for the next set of observations
     obs = pd.read_table(os.path.join(__script_dir__,
-        "../../utils/obs_datasets/smf/Katsianis_z5_smf.txt"),
+        "../../utils/obs_datasets/sfrf/Katsianis_z5_sfrf-bouwens.txt"),
         delim_whitespace=True,
         header = None,
-        skiprows = 3,
-        names = ["sm", "log_phi", "err"])
+        skiprows = 4,
+        names = ["log_sfr", "log_phi", "err"])
 
-    # convert obs to same hubble value and IMF
-    # -0.16 dex conversion from Salpeter to Chabrier
-    obs.sm += np.log10(0.702/h) - 0.16
+    # convert obs to same hubble value
     for col in ["log_phi", "err"]:
-        obs[col] -= 3.0*np.log10(0.702/h)
+        obs[col] -= 3.0*np.log10(0.7/h)
 
     # plot the observations
-    ax.errorbar(obs.sm, obs.log_phi, yerr=obs.err,
-                label="Katsianis et al. 2014", ls="none",
+    ax.errorbar(obs.log_sfr, obs.log_phi, yerr=obs.err,
+                label="Katsianis et al. 2014 (from Bouwens (2014))", ls="none",
                 lw=4, capsize=0)
 
     # add some text
-    ax.text(0.05,0.05, "z=5\nh={:.2f}\nChabrier IMF".format(h),
-           horizontalalignment="left",
-           verticalalignment="bottom",
+    ax.text(0.95,0.95, "z=5\nh={:.2f}\nChabrier IMF".format(h),
+           horizontalalignment="right",
+           verticalalignment="top",
            transform=ax.transAxes)
 
-    ax.set_xlim([7,11])
+    ax.set_xlim([-2,3])
+    ax.set_ylim([-6,-1])
 
-    ax.set_xlabel(r"$\log_{10}(M_* / {\rm M_{\odot}})$")
+    ax.set_xlabel(r"$\log_{10}({\rm SFR} / ({\rm M_{\odot}} {\rm yr^{-1}}))$")
     ax.set_ylabel(r"$\log_{10}(\phi / ({\rm dex^{-1}\,Mpc^{-3}}))$")
 
 
@@ -100,15 +98,16 @@ if __name__ == '__main__':
 
     snap, redshift = meraxes.io.check_for_redshift(fname, 5.0, tol=0.1)
 
-    props = ("StellarMass", "Mvir", "Type")
+    props = ("Sfr", "Type")
     gals, simprops = meraxes.io.read_gals(fname, snapshot=snap, props=props,
             sim_props=True, h=h)
     gals = gals.view(np.recarray)
 
     fig, ax = plt.subplots(1,1)
-    plot_smf_z5(gals, simprops, ax, h)
+    plot_sfrf_z5(gals, simprops, ax, h)
     ax.yaxis.set_tick_params(which='both', color='w')
-    ax.legend(loc="upper right")
+    ax.legend(loc="lower left", fontsize="small")
     fig.tight_layout()
-    output_fname = os.path.join(os.path.dirname(fname), "plots/smf-z5.pdf")
+    # output_fname = os.path.join(os.path.dirname(fname), "plots/sfrf-z5.pdf")
+    output_fname = os.path.join("/home/smutch/temp/sfrf-z5.pdf")
     plt.savefig(output_fname)
