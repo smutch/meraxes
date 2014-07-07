@@ -692,7 +692,7 @@ void create_master_file(run_globals_t *run_globals)
     h5_write_attribute(snap_group_id, "Redshift", H5T_NATIVE_DOUBLE, ds_id, &(run_globals->ZZ[run_globals->ListOutputSnaps[i_out]]));
     h5_write_attribute(snap_group_id, "UnsampledSnapshot", H5T_NATIVE_INT, ds_id, &unsampled_snapshot);
 
-    temp = run_globals->LTTime[run_globals->ListOutputSnaps[i_out]] * run_globals->units.UnitLength_in_cm / run_globals->units.UnitVelocity_in_cm_per_s / SEC_PER_MEGAYEAR / run_globals->params.Hubble_h;
+    temp = run_globals->LTTime[run_globals->ListOutputSnaps[i_out]] * run_globals->units.UnitLength_in_cm / run_globals->units.UnitVelocity_in_cm_per_s / SEC_PER_MEGAYEAR;
     h5_write_attribute(snap_group_id, "LTTime", H5T_NATIVE_DOUBLE, ds_id, &temp);
 
 
@@ -735,11 +735,11 @@ static void inline save_walk_indices(
 
 
 void write_snapshot(
-  run_globals_t *run_globals, 
-  int            n_write,     
-  int            i_out,       
+  run_globals_t *run_globals,
+  int            n_write,
+  int            i_out,
   int           *last_n_write,
-  trees_info_t  *trees_info)  
+  trees_info_t  *trees_info)
 {
   /*
    * Write a batch of galaxies to the output HDF5 table.
