@@ -22,7 +22,7 @@ __date__   = "2014-07-04"
 __script_dir__ = os.path.dirname(os.path.realpath( __file__ ))
 
 
-def plot_sfrf_z5(gals, simprops, ax, h):
+def plot(gals, simprops, ax, h):
 
     print "Plotting z=5 SFRF..."
 
@@ -75,12 +75,12 @@ def plot_sfrf_z5(gals, simprops, ax, h):
                 lw=4, capsize=0)
 
     # add some text
-    ax.text(0.95,0.95, "z=5\nh={:.2f}\nChabrier IMF".format(h),
+    ax.text(0.95,0.95, "z=5\nh={:.2f}".format(h),
            horizontalalignment="right",
            verticalalignment="top",
            transform=ax.transAxes)
 
-    ax.set_xlim([-2,3])
+    ax.set_xlim([-1,3])
     ax.set_ylim([-6,-1])
 
     ax.set_xlabel(r"$\log_{10}({\rm SFR} / ({\rm M_{\odot}} {\rm yr^{-1}}))$")
@@ -104,7 +104,7 @@ if __name__ == '__main__':
     gals = gals.view(np.recarray)
 
     fig, ax = plt.subplots(1,1)
-    plot_sfrf_z5(gals, simprops, ax, h)
+    plot(gals, simprops, ax, h)
     ax.yaxis.set_tick_params(which='both', color='w')
     ax.legend(loc="lower left", fontsize="small")
     fig.tight_layout()

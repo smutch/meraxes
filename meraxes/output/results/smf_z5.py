@@ -22,7 +22,7 @@ __date__   = "2014-05-01"
 __script_dir__ = os.path.dirname(os.path.realpath( __file__ ))
 
 
-def plot_smf_z5(gals, simprops, ax, h):
+def plot(gals, simprops, ax, h):
 
     print "Plotting z=5 SMF..."
 
@@ -48,8 +48,9 @@ def plot_smf_z5(gals, simprops, ax, h):
         skiprows = 3,
         names = ["sm", "log_phi", "m_err", "p_err"])
 
-    # convert obs to same hubble value
+    # convert obs to same hubble value and IMF
     obs.sm += np.log10(0.7/h)
+    obs.sm += 0.25  # IMF correction Chabrier -> Salpeter
     for col in ["log_phi", "m_err", "p_err"]:
         obs[col] -= 3.0*np.log10(0.7/h)
 
@@ -68,7 +69,7 @@ def plot_smf_z5(gals, simprops, ax, h):
 
     # convert obs to same hubble value and IMF
     # -0.16 dex conversion from Salpeter to Chabrier
-    obs.sm += np.log10(0.702/h) - 0.16
+    obs.sm += np.log10(0.702/h)
     for col in ["log_phi", "err"]:
         obs[col] -= 3.0*np.log10(0.702/h)
 
@@ -78,12 +79,13 @@ def plot_smf_z5(gals, simprops, ax, h):
                 lw=4, capsize=0)
 
     # add some text
-    ax.text(0.05,0.05, "z=5\nh={:.2f}\nChabrier IMF".format(h),
+    ax.text(0.05,0.05, "z=5\nh={:.2f}\nSalpeter IMF".format(h),
            horizontalalignment="left",
            verticalalignment="bottom",
            transform=ax.transAxes)
 
-    ax.set_xlim([7,11])
+    ax.set_xlim([7.5,11])
+    ax.set_ylim([-6,-1])
 
     ax.set_xlabel(r"$\log_{10}(M_* / {\rm M_{\odot}})$")
     ax.set_ylabel(r"$\log_{10}(\phi / ({\rm dex^{-1}\,Mpc^{-3}}))$")
@@ -106,7 +108,7 @@ if __name__ == '__main__':
     gals = gals.view(np.recarray)
 
     fig, ax = plt.subplots(1,1)
-    plot_smf_z5(gals, simprops, ax, h)
+    plot(gals, simprops, ax, h)
     ax.yaxis.set_tick_params(which='both', color='w')
     ax.legend(loc="upper right")
     fig.tight_layout()

@@ -20,7 +20,7 @@ __date__   = "2014-05-16"
 __script_dir__ = os.path.dirname(os.path.realpath( __file__ ))
 
 
-def plot_smf_z0(gals, simprops, ax):
+def plot(gals, simprops, ax):
 
     print "Plotting z=0 SMF..."
 
@@ -35,6 +35,7 @@ def plot_smf_z0(gals, simprops, ax):
 
     # convert obs to same hubble value
     obs.sm += np.log10(0.7/simprops["Hubble_h"])
+    obs.sm -= np.log10(0.7)  # IMF correction TODO: CHECK!
     for col in ["phi", "min_phi", "max_phi"]:
         obs[col] /= (0.7/simprops["Hubble_h"])**3
 
@@ -68,7 +69,7 @@ def plot_smf_z0(gals, simprops, ax):
     ax.set_ylabel(r"$\log_{10}(\phi / ({\rm dex^{-1}\,Mpc^{-3}}))$")
 
     ax.text(0.05, 0.05,
-           "z=0\nh={:.2f}\nChabrier IMF".format(simprops["Hubble_h"]),
+           "z=0\nh={:.2f}\nSalpeter IMF".format(simprops["Hubble_h"]),
            verticalalignment="bottom",
            horizontalalignment="left",
            transform=ax.transAxes)
@@ -86,7 +87,7 @@ if __name__ == '__main__':
     gals = gals.view(np.recarray)
 
     fig, ax = plt.subplots(1,1)
-    plot_smf_z0(gals, simprops, ax)
+    plot(gals, simprops, ax)
     ax.yaxis.set_tick_params(which='both', color='w')
     ax.legend(loc="upper right")
     fig.tight_layout()
