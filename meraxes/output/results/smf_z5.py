@@ -49,7 +49,7 @@ def plot(gals, simprops, ax, h):
         names = ["sm", "log_phi", "m_err", "p_err"])
 
     # convert obs to same hubble value and IMF
-    obs.sm += np.log10(0.7/h)
+    obs.sm += 2.0*np.log10(0.7/h)
     obs.sm += 0.25  # IMF correction Chabrier -> Salpeter
     for col in ["log_phi", "m_err", "p_err"]:
         obs[col] -= 3.0*np.log10(0.7/h)
@@ -69,7 +69,7 @@ def plot(gals, simprops, ax, h):
 
     # convert obs to same hubble value and IMF
     # -0.16 dex conversion from Salpeter to Chabrier
-    obs.sm += np.log10(0.702/h)
+    obs.sm += 2.0*np.log10(0.702/h)
     for col in ["log_phi", "err"]:
         obs[col] -= 3.0*np.log10(0.702/h)
 

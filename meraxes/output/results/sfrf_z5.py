@@ -49,6 +49,7 @@ def plot(gals, simprops, ax, h):
         names = ["log_sfr", "log_phi", "err"])
 
     # convert obs to same hubble value
+    obs.log_sfr += 2.0*np.log10(0.7/h)
     for col in ["log_phi", "err"]:
         obs[col] -= 3.0*np.log10(0.7/h)
 
@@ -66,6 +67,7 @@ def plot(gals, simprops, ax, h):
         names = ["log_sfr", "log_phi", "err"])
 
     # convert obs to same hubble value
+    obs.log_sfr += 2.0*np.log10(0.7/h)
     for col in ["log_phi", "err"]:
         obs[col] -= 3.0*np.log10(0.7/h)
 

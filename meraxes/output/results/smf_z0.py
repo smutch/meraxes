@@ -34,7 +34,7 @@ def plot(gals, simprops, ax):
                         names = ["sm", "n_gal", "phi", "poisson", "min_phi", "max_phi"])
 
     # convert obs to same hubble value
-    obs.sm += np.log10(0.7/simprops["Hubble_h"])
+    obs.sm += 2.0*np.log10(0.7/simprops["Hubble_h"])
     obs.sm -= np.log10(0.7)  # IMF correction TODO: CHECK!
     for col in ["phi", "min_phi", "max_phi"]:
         obs[col] /= (0.7/simprops["Hubble_h"])**3
