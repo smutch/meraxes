@@ -36,8 +36,8 @@ void prepare_galaxy_for_output(
   galout->id_MBP = (long long)gal.id_MBP;
   galout->ID     = (int)gal.ID;
   galout->Type   = (int)gal.Type;
-  if ((!gal.ghost_flag) && (gal.Halo->FOFGroup->FirstHalo->Galaxy != NULL))
-    galout->CentralGal = (int)gal.Halo->FOFGroup->FirstHalo->Galaxy->output_index;
+  if (!gal.ghost_flag)
+      galout->CentralGal = (int)gal.Halo->FOFGroup->FirstOccupiedHalo->Galaxy->output_index;
   else
     galout->CentralGal = -1;
   galout->GhostFlag = (int)gal.ghost_flag;
@@ -53,6 +53,7 @@ void prepare_galaxy_for_output(
   galout->Rvir               = (float)(gal.Rvir);
   galout->Vvir               = (float)(gal.Vvir);
   galout->Vmax               = (float)(gal.Vmax);
+  galout->FOFMvir            = (float)(gal.Halo->FOFGroup->Mvir);
   galout->Spin               = (float)(gal.Spin);
   galout->HotGas             = (float)(gal.HotGas);
   galout->MetalsHotGas       = (float)(gal.MetalsHotGas);
@@ -86,7 +87,7 @@ void calc_hdf5_props(run_globals_t *run_globals)
   galaxy_output_t galout;
   int i;                                                // dummy
 
-  h5props->n_props = 30;
+  h5props->n_props = 31;
 
 #ifdef CALC_MAGS
   // If we are calculating any magnitudes then increment the number of
@@ -171,6 +172,11 @@ void calc_hdf5_props(run_globals_t *run_globals)
   h5props->dst_offsets[i]     = HOFFSET(galaxy_output_t, Vmax);
   h5props->dst_field_sizes[i] = sizeof(galout.Vmax);
   h5props->field_names[i]     = "Vmax";
+  h5props->field_types[i++]   = H5T_NATIVE_FLOAT;
+
+  h5props->dst_offsets[i]     = HOFFSET(galaxy_output_t, FOFMvir);
+  h5props->dst_field_sizes[i] = sizeof(galout.FOFMvir);
+  h5props->field_names[i]     = "FOFMvir";
   h5props->field_types[i++]   = H5T_NATIVE_FLOAT;
 
   h5props->dst_offsets[i]     = HOFFSET(galaxy_output_t, Spin);

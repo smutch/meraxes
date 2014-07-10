@@ -304,6 +304,7 @@ struct galaxy_output_t {
   float Rvir;
   float Vvir;
   float Vmax;
+  float FOFMvir;
 
   // baryonic reservoirs
   float HotGas;

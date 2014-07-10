@@ -16,18 +16,16 @@ Options:
 import os
 import numpy as np
 import matplotlib.pyplot as plt
-from ssimpl import meraxes
+from ssimpl import meraxes, plotutils
 from docopt import docopt
-import sfrf_z5, smf_z5
+import sfrf_z5, smf_z5, shmr_z5
 
 __author__ = "Simon Mutch"
 __date__   = "2014-07-08"
 
-args = docopt(__doc__)
-
 __available_redshifts__ = [0, 5]
 
-def save_figure(fig, fname_in, fname_out, ext):
+def savefig(fig, fname_in, fname_out, ext):
     fig.tight_layout()
     output_fname = os.path.join(os.path.dirname(fname_in),
                                 "plots/"+fname_out+"."+ext)
@@ -47,10 +45,13 @@ if __name__ == '__main__':
     assert redshift in __available_redshifts__,\
             "Available redshifts are {:s}".format(__available_redshifts__)
 
+    # init the plot style
+    plotutils.init_style()
+
     if redshift == 5:
         snap, redshift = meraxes.io.check_for_redshift(fname, 5.0, tol=0.1)
 
-        props = ("Sfr", "StellarMass", "Type")
+        props = ("Sfr", "StellarMass", "Type", "FOFMvir", "CentralGal")
         gals, simprops = meraxes.io.read_gals(fname, snapshot=snap, props=props,
                 sim_props=True, h=h)
         gals = gals.view(np.recarray)
@@ -60,11 +61,23 @@ if __name__ == '__main__':
         smf_z5.plot(gals, simprops, ax, h)
         ax.yaxis.set_tick_params(which='both', color='w')
         ax.legend(loc="upper right", fontsize="small")
-        save_figure(fig, fname, "smf-z5", ext)
+        savefig(fig, fname, "smf-z5", ext)
 
         # SFRF
         fig, ax = plt.subplots(1,1)
         sfrf_z5.plot(gals, simprops, ax, h)
         ax.yaxis.set_tick_params(which='both', color='w')
         ax.legend(loc="lower left", fontsize="small")
-        save_figure(fig, fname, "sfrf-z5", ext)
+        savefig(fig, fname, "sfrf-z5", ext)
+
+        # SHMR
+        rc = plt.rcParams.copy()
+        plotutils.init_style(theme="white_bg")
+        fig, ax = plt.subplots(1,1)
+        ax.grid('off')
+        shmr_z5.plot(gals, simprops, ax, h)
+        ax.tick_params(axis="both", which='both', color=plt.rcParams["axes.edgecolor"], length=3)
+        ax.legend(loc="upper left", fontsize="small")
+        fig.tight_layout()
+        savefig(fig, fname, "shmr-z5", ext)
+        plt.rcParams = rc

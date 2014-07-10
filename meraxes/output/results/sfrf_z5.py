@@ -110,6 +110,5 @@ if __name__ == '__main__':
     ax.yaxis.set_tick_params(which='both', color='w')
     ax.legend(loc="lower left", fontsize="small")
     fig.tight_layout()
-    # output_fname = os.path.join(os.path.dirname(fname), "plots/sfrf-z5.pdf")
-    output_fname = os.path.join("/home/smutch/temp/sfrf-z5.pdf")
+    output_fname = os.path.join(os.path.dirname(fname), "plots/sfrf-z5.pdf")
     plt.savefig(output_fname)
