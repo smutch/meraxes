@@ -35,7 +35,8 @@ def plot(gals, simprops, ax, h):
 
     stars = np.zeros(gals.shape[0], 'f')
     sel_valid = gals.CentralGal >= 0
-    stars[gals.CentralGal[sel_valid]] += gals.StellarMass[sel_valid]
+    for c, sm in gals[sel_valid][["CentralGal", "StellarMass"]]:
+        stars[c] += sm
     stars = stars[sel]
     shm = stars / mvir
     mvir = np.log10(mvir * 1.e10)
@@ -46,7 +47,7 @@ def plot(gals, simprops, ax, h):
     mvir = mvir[sel]
 
     # plot the data as a hexbin plot
-    im = ax.hexbin(mvir, np.log10(shm), cmap=plt.cm.gist_earth_r, zorder=-1)
+    im = ax.hexbin(mvir, np.log10(shm), bins="log", cmap=plt.cm.gist_earth_r, zorder=-1)
     cbar = plt.colorbar(im, ax=ax, label="Meraxes galaxies")
     cbar.solids.set_edgecolor("face")
     log.info("done hexbin")

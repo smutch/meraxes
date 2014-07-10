@@ -23,7 +23,7 @@ import sfrf_z5, smf_z5, shmr_z5
 __author__ = "Simon Mutch"
 __date__   = "2014-07-08"
 
-__available_redshifts__ = [0, 5]
+__available_redshifts__ = [5,]
 
 def savefig(fig, fname_in, fname_out, ext):
     fig.tight_layout()
