@@ -74,8 +74,8 @@ def plot(gals, simprops, ax, h):
         names = ["hm", "sm"])
 
     # convert values to same hubble value and IMF
-    for col in ["hm", "sm"]:
-        obs[col] *= 0.704/h
+    obs["sm"] /= h
+    obs["hm"] /= h
 
     # plot the values
     pc = ax.scatter(np.log10(obs.hm*1.e10), np.log10(obs.sm/obs.hm),

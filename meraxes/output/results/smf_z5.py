@@ -28,7 +28,10 @@ def plot(gals, simprops, ax, h):
 
     # generate the model smf
     # sm = stellar mass
-    sm = np.log10(gals.StellarMass[gals.StellarMass > 0] * 1.0e10)
+    # N.B. NOTE SFR CUT TO MATCH KATSIANIS 2014 (via SMIT 2012) DATA (log(SFR)
+    # > -0.44)
+    sm = np.log10(gals.StellarMass[(gals.StellarMass > 0) 
+                                   & (np.log10(gals.Sfr) > -0.44)] * 1.0e10)
 
     n_dropped = gals.shape[0] - sm.shape[0]
     if n_dropped > 0:
@@ -102,7 +105,7 @@ if __name__ == '__main__':
 
     snap, redshift = meraxes.io.check_for_redshift(fname, 5.0, tol=0.1)
 
-    props = ("StellarMass", "Mvir", "Type")
+    props = ("StellarMass", "Mvir", "Type", "Sfr")
     gals, simprops = meraxes.io.read_gals(fname, snapshot=snap, props=props,
             sim_props=True, h=h)
     gals = gals.view(np.recarray)
