@@ -27,12 +27,12 @@ def plot(gals, simprops, ax, h):
     print "Plotting z=5 SMF..."
 
     # N.B. NOTE SFR CUT TO MATCH KATSIANIS 2014 (via SMIT 2012) DATA (log(SFR)
+    # > -0.44)
     sfr_limit = -0.44  # lower log10(sfr [Msol]) limit for galaxies
     sfr_limit *= (0.7**2)/(h**2)
 
     # generate the model smf
     # sm = stellar mass
-    # > -0.44)
     sm = np.log10(gals.StellarMass[(gals.StellarMass > 0)
                                    & (np.log10(gals.Sfr) > sfr_limit)] * 1.0e10)
 
@@ -41,10 +41,17 @@ def plot(gals, simprops, ax, h):
     #     log.warn("Dropped %d galaxies (%.1f%% of total) with stellar mass <= 0" %
     #             (n_dropped, float(n_dropped)/gals.shape[0]*100))
 
-    smf = munge.mass_function(sm, simprops["Volume"], "knuth")
+    smf, edges = munge.mass_function(sm, simprops["Volume"], "knuth",
+                                     return_edges=True)
 
     # plot the model
-    ax.plot(smf[:,0], np.log10(smf[:,1]), label="Meraxes")
+    l, = ax.plot(smf[:,0], np.log10(smf[:,1]), label="Meraxes")
+
+    # plot the total SMF (i.e. without SFR cut)
+    sm = np.log10(gals.StellarMass[gals.StellarMass > 0] * 1.0e10)
+    smf = munge.mass_function(sm, simprops["Volume"], edges)
+    ax.plot(smf[:,0], np.log10(smf[:,1]), ls='--', label=None,
+            color=l.get_color())
 
     # read the observed smf
     obs = pd.read_table(os.path.join(__script_dir__,
