@@ -26,17 +26,20 @@ def plot(gals, simprops, ax, h):
 
     print "Plotting z=5 SMF..."
 
+    # N.B. NOTE SFR CUT TO MATCH KATSIANIS 2014 (via SMIT 2012) DATA (log(SFR)
+    sfr_limit = -0.44  # lower log10(sfr [Msol]) limit for galaxies
+    sfr_limit *= (0.7**2)/(h**2)
+
     # generate the model smf
     # sm = stellar mass
-    # N.B. NOTE SFR CUT TO MATCH KATSIANIS 2014 (via SMIT 2012) DATA (log(SFR)
     # > -0.44)
-    sm = np.log10(gals.StellarMass[(gals.StellarMass > 0) 
-                                   & (np.log10(gals.Sfr) > -0.44)] * 1.0e10)
+    sm = np.log10(gals.StellarMass[(gals.StellarMass > 0)
+                                   & (np.log10(gals.Sfr) > sfr_limit)] * 1.0e10)
 
-    n_dropped = gals.shape[0] - sm.shape[0]
-    if n_dropped > 0:
-        log.warn("Dropped %d galaxies (%.1f%% of total) with stellar mass <= 0" %
-                (n_dropped, float(n_dropped)/gals.shape[0]*100))
+    # n_dropped = gals.shape[0] - sm.shape[0]
+    # if n_dropped > 0:
+    #     log.warn("Dropped %d galaxies (%.1f%% of total) with stellar mass <= 0" %
+    #             (n_dropped, float(n_dropped)/gals.shape[0]*100))
 
     smf = munge.mass_function(sm, simprops["Volume"], "knuth")
 
@@ -82,10 +85,11 @@ def plot(gals, simprops, ax, h):
                 lw=4, capsize=0)
 
     # add some text
-    ax.text(0.05,0.05, "z=5\nh={:.2f}\nSalpeter IMF".format(h),
-           horizontalalignment="left",
-           verticalalignment="bottom",
-           transform=ax.transAxes)
+    ax.text(0.05,0.05, "z=5\nh={:.2f}\nSalpeter IMF\n".format(h)+
+            r"log$_{10}$(SFR)"+" > {:.2f}".format(sfr_limit)+r"M$_{\odot}$/yr",
+            horizontalalignment="left",
+            verticalalignment="bottom",
+            transform=ax.transAxes)
 
     ax.set_xlim([7.5,11])
     ax.set_ylim([-6,-1])
