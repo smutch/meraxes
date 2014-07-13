@@ -37,9 +37,15 @@ void prepare_galaxy_for_output(
   galout->ID     = (int)gal.ID;
   galout->Type   = (int)gal.Type;
   if (!gal.ghost_flag)
-      galout->CentralGal = (int)gal.Halo->FOFGroup->FirstOccupiedHalo->Galaxy->output_index;
+  {
+    galout->CentralGal = (int)(gal.Halo->FOFGroup->FirstOccupiedHalo->Galaxy->output_index);
+    galout->FOFMvir    = (float)(gal.Halo->FOFGroup->Mvir);
+  }
   else
+  {
     galout->CentralGal = -1;
+    galout->FOFMvir = -1.0;
+  }
   galout->GhostFlag = (int)gal.ghost_flag;
 
   for (int ii = 0; ii < 3; ii++)
@@ -53,7 +59,6 @@ void prepare_galaxy_for_output(
   galout->Rvir               = (float)(gal.Rvir);
   galout->Vvir               = (float)(gal.Vvir);
   galout->Vmax               = (float)(gal.Vmax);
-  galout->FOFMvir            = (float)(gal.Halo->FOFGroup->Mvir);
   galout->Spin               = (float)(gal.Spin);
   galout->HotGas             = (float)(gal.HotGas);
   galout->MetalsHotGas       = (float)(gal.MetalsHotGas);
@@ -862,8 +867,11 @@ void write_snapshot(
     {
       if ((gal->Type == 3) && (gal->StellarMass >= 1e-10))
       {
-        descendant_index[gal->output_index] = gal->MergerTarget->output_index;
-        old_count++;
+        if (gal->output_index > -1)
+        {
+          descendant_index[gal->output_index] = gal->MergerTarget->output_index;
+          old_count++;
+        }
         index = first_progenitor_index[gal->MergerTarget->output_index];
         if (index > -1)
         {
