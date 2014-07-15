@@ -42,16 +42,19 @@ class Graph:
     def add_node(self, index, snapshot, galaxy=None):
         name = str(self.__counter__)
         if galaxy!=None:
-            self.nodes[name] = {"index":index, "snapshot":snapshot, "type":self.type_first, "galaxy":galaxy.copy()}
+            self.nodes[name] = {"index":index, "snapshot":snapshot, "type":self.type_first, "galaxy":galaxy.copy(), "edge":None}
         else:
-            self.nodes[name] = {"index":index, "snapshot":snapshot, "type":self.type_first, "galaxy":None}
+            self.nodes[name] = {"index":index, "snapshot":snapshot, "type":self.type_first, "galaxy":None, "edge":None}
         self.__counter__+=1
         self.snap_count[snapshot]+=1
         return name
 
     def add_edge(self, start, end, edge_type):
-        self.edges["{:s}->{:s}".format(start, end)] = {"start" : start, "end" : end, "type" : edge_type}
-        self.nodes[end]["type"]=edge_type
+        edge_id = "{:s}->{:s}".format(start, end)
+        self.edges[edge_id] = {"start" : start, "end" : end, "type" : edge_type}
+        node = self.nodes[end]
+        node["type"]=edge_type
+        node["edge"] = edge_id
 
     def iter_nodes(self):
         return self.nodes.itervalues()
@@ -61,17 +64,35 @@ class Graph:
 
     def calc_positions(self):
         pos = np.zeros((self.__counter__, 2), float)
+        main_ID = self.nodes[str(0)]["galaxy"]["ID"]
+        sign = 1
         x_i = 0
+        m_x_i = 0
+        p_x_i = 0
+
+        for i, node in tqdm(enumerate(self.iter_nodes()), desc="calc node pos"):
+            if node["type"]=="NextProgenitor":
+                if self.nodes[self.edges[node["edge"]]["start"]]["galaxy"]["ID"] == main_ID:
+                    if m_x_i < p_x_i:
+                        m_x_i += 1
+                        x_i = -m_x_i
+                    else:
+                        p_x_i += 1
+                        x_i = p_x_i
+                else:
+                    if x_i == p_x_i:
+                        p_x_i += 1
+                        x_i = p_x_i
+                    else:
+                        m_x_i += 1
+                        x_i = -m_x_i
+            pos[i,0] = x_i
+
         for i, node in enumerate(self.iter_nodes()):
             pos[i,1] = node["snapshot"]
-            if node["type"]=="NextProgenitor":
-                x_i+=1
-            pos[i,0] = x_i
-        for i, node in enumerate(self.iter_nodes()):
-            pos[i,0] =  pos[i,0]/(x_i+1)*100.0
+            pos[i,0] = pos[i,0]/(abs(max(m_x_i, p_x_i))+1)*100.0
             node["plot_pos"] = pos[i]
 
-        # now loop back through by following edges
         return pos
 
 
@@ -243,7 +264,7 @@ if __name__ == '__main__':
     ax.grid(True, axis='y', color='0.9')
     ax.grid(False, axis='x')
     ax.set_ylim((np.argwhere(G.snap_count==0)[-1], G.snap_count.size+1))
-    ax.set_xlim((-5, 101))
+    ax.set_xlim((-101, 101))
     ax.set_frame_on(False)
 
     # TODO: Add the redshift axis
