@@ -14,7 +14,7 @@ void set_HII_eff_factor(run_globals_t *run_globals)
 
   physics_params_t *params = &(run_globals->params.physics);
 
-  tocf_params.HII_eff_factor = (params->ReionNionPhotPerBary / 4000.0) *
+  tocf_params.HII_eff_factor *= (params->ReionNionPhotPerBary / 4000.0) *
                                (params->ReionEscapeFrac / 0.15) * (1.0 / (1.0 + params->ReionMeanNRec));
 }
 
