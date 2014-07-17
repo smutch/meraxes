@@ -214,10 +214,10 @@ typedef struct halo_t {
   int                 Len; //!< Number of particles in the structure
   float               Pos[3]; //!< Most bound particle position [Mpc/h]
   float               Vel[3]; //!< Centre-of-mass velocity [km/s]
-  float               Rvir; //!< Virial radius [Mpc/h]
+  double              Rvir; //!< Virial radius [Mpc/h]
   float               Rhalo; //!< Distance of last halo particle from MBP [Mpc/h]
   float               Rmax; //!< Radius of maximum circular velocity [Mpc/h]
-  float               Vvir; //!< Virial velocity [km/s]
+  double              Vvir; //!< Virial velocity [km/s]
   float               Vmax; //!< Maximum circular velocity [km/s]
   float               VelDisp; //!< Total 3D velocity dispersion [km/s]
   float               AngMom[3]; //!< Specific angular momentum vector [Mpc/h *km/s]
@@ -225,6 +225,11 @@ typedef struct halo_t {
 
 struct fof_group_t {
   halo_t *FirstHalo;
+  halo_t *FirstOccupiedHalo;
+  double  Mvir;
+  double  Rvir;
+  double  Vvir;
+  int     TotalSubhaloLen;
 };
 typedef struct fof_group_t fof_group_t;
 
@@ -247,8 +252,8 @@ struct galaxy_t {
   double           LTTime; //!< Lookback time at the last time this galaxy was identified
 
   // properties of subhalo at the last time this galaxy was a central galaxy
-  double Pos[3];
-  double Vel[3];
+  float Pos[3];
+  float Vel[3];
   double Mvir;
   double Rvir;
   double Vvir;
@@ -299,6 +304,7 @@ struct galaxy_output_t {
   float Rvir;
   float Vvir;
   float Vmax;
+  float FOFMvir;
 
   // baryonic reservoirs
   float HotGas;
@@ -351,7 +357,7 @@ typedef struct tree_entry_t {
   int    desc_index;
   int    central_index;
   int    forest_id;
-  double fof_mvir;
+  int    group_index;
 } tree_entry_t;
 
 //! This is the structure for a halo in the catalog files
@@ -449,9 +455,9 @@ void         mpi_debug_here(void);
 void         check_counts(run_globals_t *run_globals, fof_group_t *fof_group, int NGal, int NFof);
 void         cn_quote(void);
 double       Tvir_to_Mvir(run_globals_t *run_globals, double T, double z);
-double       calculate_Mvir(run_globals_t *run_globals, halo_t *halo);
-float        calculate_Rvir(run_globals_t *run_globals, halo_t *halo, double Mvir, int snapshot);
-float        calculate_Vvir(run_globals_t *run_globals, double Mvir, float Rvir);
+double       calculate_Mvir(run_globals_t *run_globals, double Mvir, int len);
+double       calculate_Rvir(run_globals_t *run_globals, double Mvir, int snapshot);
+double       calculate_Vvir(run_globals_t *run_globals, double Mvir, double Rvir);
 double       calculate_spin_param(halo_t *halo);
 void         read_cooling_functions(run_globals_t *run_globals);
 double       interpolate_cooling_rate(double logTemp, double logZ);
@@ -473,14 +479,14 @@ void   apply_dust(int n_photo_bands, galaxy_t gal, double *LumDust, int outputbi
 void   cleanup_mags(run_globals_t *run_globals);
 
 // Reionization related
-double reionization_modifier(run_globals_t *run_globals, halo_t *halo, int snapshot);
-double sobacchi2013_modifier(run_globals_t *run_globals, halo_t *halo, double redshift);
-double gnedin2000_modifer(run_globals_t *run_globals, halo_t *halo, double redshift);
+double reionization_modifier(run_globals_t *run_globals, double Mvir, float *Pos, int snapshot);
+double sobacchi2013_modifier(run_globals_t *run_globals, double Mvir, double redshift);
+double gnedin2000_modifer(run_globals_t *run_globals, double Mvir, double redshift);
 double global_ionizing_emmisivity(run_globals_t *run_globals);
 #ifdef USE_TOCF
-double tocf_modifier(run_globals_t *run_globals, halo_t *halo, int snapshot);
+double tocf_modifier(run_globals_t *run_globals, double Mvir, float *Pos, int snapshot);
 void set_HII_eff_factor(run_globals_t *run_globals);
-int  find_cell(double pos, double box_size);
+int  find_cell(float pos, double box_size);
 void malloc_reionization_grids(run_globals_t *run_globals);
 void free_reionization_grids(run_globals_t *run_globals);
 void construct_stellar_grids(run_globals_t *run_globals);

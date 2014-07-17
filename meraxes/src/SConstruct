@@ -37,8 +37,12 @@ def create_git_header(git_executable):
             shell = True)
 
     diff_defn = ""
-    for l in diff.splitlines():
-       diff_defn += '"'+l.replace('\\', '\\\\').replace('"', '\\"')+'\\n"\\\n'
+    if len(diff) > 0:
+        for l in diff.splitlines():
+           diff_defn += '"'+l.replace('\\', '\\\\').replace('"', '\\"')+'\\n"\\\n'
+    else:
+        diff_defn = '""'
+
 
     with open("git.h", "w") as fd:
         fd.write(header+"\n")

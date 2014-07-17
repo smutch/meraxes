@@ -33,12 +33,12 @@ void supernova_feedback(run_globals_t *run_globals, galaxy_t *gal, double m_star
   double m_reheat;
   double m_eject;
   double factor;
-  galaxy_t *central = gal->Halo->FOFGroup->FirstHalo->Galaxy;
+  fof_group_t *fof_group = gal->Halo->FOFGroup;
 
   double SnReheatEff   = run_globals->params.physics.SnReheatEff;
   double SnEjectionEff = run_globals->params.physics.SnEjectionEff;
-  // double sn_velocity   = 630.0;  // km/s
-  double sn_velocity   = 501.4;  // km/s (too match what is actually used by C06)
+  double sn_velocity   = 630.0;  // km/s
+  // double sn_velocity   = 501.4;  // km/s (too match what is actually used by C06)
 
   // following the SN feedback model Croton+ 2006, what mass of cold gas will
   // we end up reheating due to this star formation episode?
@@ -53,7 +53,7 @@ void supernova_feedback(run_globals_t *run_globals, galaxy_t *gal, double m_star
   }
 
   // how much mass is ejected due to this star formation episode? (ala Croton+ 2006)
-  m_eject = (SnEjectionEff * pow(sn_velocity / central->Vvir, 2) - SnReheatEff) * m_stars;
+  m_eject = (SnEjectionEff * pow(sn_velocity / fof_group->Vvir, 2) - SnReheatEff) * m_stars;
 
   // make sure we are being consistent
   if (m_eject < 0)

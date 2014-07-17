@@ -39,7 +39,7 @@ static void halo_catalog_filename(
   }
 
   // ensure we have a valid i_layout value.
-  if (*i_layout < 0 && *i_layout > 3)
+  if (*i_layout < 0 || *i_layout > 3)
   {
     fprintf(stderr, "cannot resolve catalogue filename.\n");
     ABORT(EXIT_FAILURE);
@@ -89,9 +89,11 @@ static void read_catalog_halos(
   int            *i_halo_in_file,
   int            *i_halo,
   catalog_halo_t *halo,
-  int             n_to_read)
+  int             n_to_read,
+  int             type_flag)
 {
   char fname[STRLEN];
+  char halo_type[10];
   int dummy;
   int n_from_this_file;
 
@@ -109,10 +111,23 @@ static void read_catalog_halos(
   // SID_log("n_to_read = %d", SID_LOG_COMMENT, n_to_read);
   // SID_log("", SID_LOG_CLOSE|SID_LOG_NOPRINT);
 
+  switch (type_flag)
+  {
+    case 0:
+      sprintf(halo_type, "groups");
+      break;
+    case 1:
+      sprintf(halo_type, "subgroups");
+      break;
+    default:
+      SID_log_error("Unrecognised type_flag in read_catalog_halos()");
+      break;
+  }
+
   // Is this the first read?
   if ((*fin) == NULL)
   {
-    halo_catalog_filename(simulation_dir, catalog_file_prefix, snapshot, "subgroups", *i_file, flayout_switch, fname);
+    halo_catalog_filename(simulation_dir, catalog_file_prefix, snapshot, halo_type, *i_file, flayout_switch, fname);
     *fin = fopen(fname, "rb");
     if (*fin == NULL)
     {
@@ -128,7 +143,7 @@ static void read_catalog_halos(
     fclose(*fin);
     (*i_file)++;
     (*i_halo_in_file) = 0;
-    halo_catalog_filename(simulation_dir, catalog_file_prefix, snapshot, "subgroups", *i_file, flayout_switch, fname);
+    halo_catalog_filename(simulation_dir, catalog_file_prefix, snapshot, halo_type, *i_file, flayout_switch, fname);
     *fin = fopen(fname, "rb");
     if (*fin == NULL)
     {
@@ -154,19 +169,20 @@ static void read_catalog_halos(
     *i_halo         += n_from_this_file;
     *i_halo_in_file += n_from_this_file;
     n_to_read       -= n_from_this_file;
-    read_catalog_halos(fin, simulation_dir, catalog_file_prefix, snapshot, flayout_switch, i_file, n_halos_file, i_halo_in_file, i_halo, halo, n_to_read);
+    read_catalog_halos(fin, simulation_dir, catalog_file_prefix, snapshot, flayout_switch, i_file, n_halos_file, i_halo_in_file, i_halo, halo, n_to_read, type_flag);
   }
 }
 
 
-static void inline convert_input_halo_units(run_globals_t *run_globals, halo_t *halo, int snapshot)
+static void inline convert_input_virial_props(run_globals_t *run_globals, double *Mvir, double *Rvir, double *Vvir, int len, int snapshot)
 {
-  halo->Mvir /= 1.0e10;
+
+  *Mvir /= 1.0e10;
 
   // Update the virial properties
-  halo->Mvir = calculate_Mvir(run_globals, halo);
-  halo->Rvir = calculate_Rvir(run_globals, halo, halo->Mvir, snapshot);
-  halo->Vvir = calculate_Vvir(run_globals, halo->Mvir, halo->Rvir);
+  *Mvir = calculate_Mvir(run_globals, *Mvir, len);
+  *Rvir = calculate_Rvir(run_globals, *Mvir, snapshot);
+  *Vvir = calculate_Vvir(run_globals, *Mvir, *Rvir);
 }
 
 
@@ -186,7 +202,7 @@ static void read_trees_and_catalogs(
   int           *index_lookup)
 {
   // I guess this should ideally be equal to the chunk size of the input hdf5 file...
-  int buffer_size = 1000;
+  int buffer_size = 5000;
   int n_read      = 0;
   int n_to_read   = 0;
   bool keep_flag;
@@ -197,9 +213,22 @@ static void read_trees_and_catalogs(
   int n_halos_in_catalog_file = 0;
   int i_halo_in_catalog_file  = 0;
   int i_halo                  = 0;
+
+  FILE *fin_groups            = NULL;
+  int group_flayout_switch    = -1;
+  int i_group_file            = 0;
+  int n_groups_in_catalog_file = 0;
+  int i_group_in_catalog_file = 0;
+  int i_group                 = 0;
+  int n_groups                = 0;
+  int first_group_index       = 0;
+  int last_group_index        = 1;  // N.B. Must be init to different value from first_group_index
+
+
   char catalog_file_prefix[50];
   char simulation_dir[STRLEN];
   catalog_halo_t *catalog_buffer;
+  catalog_halo_t *group_buffer;
 
   SID_log("Doing read...", SID_LOG_OPEN);
 
@@ -209,6 +238,7 @@ static void read_trees_and_catalogs(
   tree_entry_t *tree_buffer;
   tree_buffer    = SID_malloc(sizeof(tree_entry_t) * buffer_size);
   catalog_buffer = SID_malloc(sizeof(catalog_halo_t) * buffer_size);
+  group_buffer   = SID_malloc(sizeof(catalog_halo_t) * buffer_size);
 
   *n_halos_kept      = 0;
   *n_fof_groups_kept = 0;
@@ -223,7 +253,7 @@ static void read_trees_and_catalogs(
     HOFFSET(tree_entry_t, desc_index),
     HOFFSET(tree_entry_t, central_index),
     HOFFSET(tree_entry_t, forest_id),
-    HOFFSET(tree_entry_t, fof_mvir)
+    HOFFSET(tree_entry_t, group_index)
   };
   size_t dst_sizes[9] = {
     sizeof(tree_buffer[0].id),
@@ -234,7 +264,7 @@ static void read_trees_and_catalogs(
     sizeof(tree_buffer[0].desc_index),
     sizeof(tree_buffer[0].central_index),
     sizeof(tree_buffer[0].forest_id),
-    sizeof(tree_buffer[0].fof_mvir)
+    sizeof(tree_buffer[0].group_index)
   };
 
   keep_flag = true;
@@ -250,15 +280,30 @@ static void read_trees_and_catalogs(
       H5TBread_records(fd, "trees", n_read, (hsize_t)n_to_read, dst_size, dst_offsets, dst_sizes, tree_buffer);
     SID_Bcast(tree_buffer, n_to_read * sizeof(tree_entry_t), 0, SID.COMM_WORLD);
 
+    first_group_index = tree_buffer[0].group_index;
+    if (first_group_index == last_group_index)
+    {
+      i_group = 1;
+      memcpy(&(group_buffer[0]), &(group_buffer[n_groups-1]), sizeof(catalog_halo_t));
+    }
+    else
+      i_group = 0;
+    last_group_index = tree_buffer[n_to_read-1].group_index;
+    n_groups = last_group_index - first_group_index + 1;
+
     // read in the corresponding catalog entrys
     if (SID.My_rank == 0)
     {
       i_halo = 0;
       read_catalog_halos(&fin_catalogs, simulation_dir, catalog_file_prefix,
                          unsampled_snapshot, &flayout_switch, &i_catalog_file, &n_halos_in_catalog_file,
-                         &i_halo_in_catalog_file, &i_halo, catalog_buffer, n_to_read);
+                         &i_halo_in_catalog_file, &i_halo, catalog_buffer, n_to_read, 1);
+      read_catalog_halos(&fin_groups, simulation_dir, catalog_file_prefix,
+                         unsampled_snapshot, &group_flayout_switch, &i_group_file, &n_groups_in_catalog_file,
+                         &i_group_in_catalog_file, &i_group, group_buffer, n_groups - i_group, 0);
     }
     SID_Bcast(catalog_buffer, n_to_read * sizeof(catalog_halo_t), 0, SID.COMM_WORLD);
+    SID_Bcast(group_buffer, n_groups * sizeof(catalog_halo_t), 0, SID.COMM_WORLD);
 
     // paste the data into the halo structures
     for (int jj = 0; jj < n_to_read; jj++)
@@ -274,54 +319,68 @@ static void read_trees_and_catalogs(
 
       if (keep_flag)
       {
-        halo[*n_halos_kept].ID                 = tree_buffer[jj].id;
-        halo[*n_halos_kept].TreeFlags          = tree_buffer[jj].flags;
-        halo[*n_halos_kept].SnapOffset         = tree_buffer[jj].file_offset;
-        halo[*n_halos_kept].DescIndex          = tree_buffer[jj].desc_index;
-        halo[*n_halos_kept].Mvir               = tree_buffer[jj].fof_mvir; // this will be overwritten for type>0 halos later
-        halo[*n_halos_kept].NextHaloInFOFGroup = NULL;
-        halo[*n_halos_kept].ForestID           = tree_buffer[jj].forest_id;
+        halo_t *cur_halo = &(halo[*n_halos_kept]);
+        catalog_halo_t *cur_cat_halo = &(catalog_buffer[jj]);
+        tree_entry_t *cur_tree_entry = &(tree_buffer[jj]);
+
+        cur_halo->ID                      = cur_tree_entry->id;
+        cur_halo->TreeFlags               = cur_tree_entry->flags;
+        cur_halo->SnapOffset              = cur_tree_entry->file_offset;
+        cur_halo->DescIndex               = cur_tree_entry->desc_index;
+        cur_halo->NextHaloInFOFGroup      = NULL;
+        cur_halo->ForestID                = cur_tree_entry->forest_id;
 
         if (index_lookup)
           index_lookup[*n_halos_kept] = n_read + jj;
 
         if (n_read + jj == tree_buffer[jj].central_index)
         {
-          halo[*n_halos_kept].Type                    = 0;
+          cur_halo->Type                    = 0;
+          fof_group[(*n_fof_groups_kept)].Mvir        = group_buffer[tree_buffer[jj].group_index - first_group_index].M_vir;
+
+          convert_input_virial_props(run_globals,
+              &(fof_group[(*n_fof_groups_kept)].Mvir),
+              &(fof_group[(*n_fof_groups_kept)].Rvir),
+              &(fof_group[(*n_fof_groups_kept)].Vvir),
+              -1,
+              snapshot);
+
           fof_group[(*n_fof_groups_kept)++].FirstHalo = &(halo[*n_halos_kept]);
         }
         else
         {
-          halo[*n_halos_kept].Type                     = 1;
+          cur_halo->Type                     = 1;
           halo[(*n_halos_kept) - 1].NextHaloInFOFGroup = &(halo[*n_halos_kept]);
         }
 
-        halo[*n_halos_kept].FOFGroup = &(fof_group[(*n_fof_groups_kept) - 1]);
+        cur_halo->FOFGroup = &(fof_group[(*n_fof_groups_kept) - 1]);
 
         // paste in the halo properties
-        halo[*n_halos_kept].id_MBP    = catalog_buffer[jj].id_MBP;
-        halo[*n_halos_kept].Len       = catalog_buffer[jj].n_particles;
-        halo[*n_halos_kept].Pos[0]    = catalog_buffer[jj].position_MBP[0];
-        halo[*n_halos_kept].Pos[1]    = catalog_buffer[jj].position_MBP[1];
-        halo[*n_halos_kept].Pos[2]    = catalog_buffer[jj].position_MBP[2];
-        halo[*n_halos_kept].Vel[0]    = catalog_buffer[jj].velocity_COM[0];
-        halo[*n_halos_kept].Vel[1]    = catalog_buffer[jj].velocity_COM[1];
-        halo[*n_halos_kept].Vel[2]    = catalog_buffer[jj].velocity_COM[2];
-        halo[*n_halos_kept].Rvir      = catalog_buffer[jj].R_vir;
-        halo[*n_halos_kept].Rhalo     = catalog_buffer[jj].R_halo;
-        halo[*n_halos_kept].Rmax      = catalog_buffer[jj].R_max;
-        halo[*n_halos_kept].Vmax      = catalog_buffer[jj].V_max;
-        halo[*n_halos_kept].VelDisp   = catalog_buffer[jj].sigma_v;
-        halo[*n_halos_kept].AngMom[0] = catalog_buffer[jj].ang_mom[0];
-        halo[*n_halos_kept].AngMom[1] = catalog_buffer[jj].ang_mom[1];
-        halo[*n_halos_kept].AngMom[2] = catalog_buffer[jj].ang_mom[2];
-        halo[*n_halos_kept].Galaxy    = NULL;
-        if (halo[*n_halos_kept].Type > 0)
-        {
-          halo[*n_halos_kept].Mvir = catalog_buffer[jj].M_vir;
-        }
+        cur_halo->id_MBP    = cur_cat_halo->id_MBP;
+        cur_halo->Len       = cur_cat_halo->n_particles;
+        cur_halo->Pos[0]    = cur_cat_halo->position_MBP[0];
+        cur_halo->Pos[1]    = cur_cat_halo->position_MBP[1];
+        cur_halo->Pos[2]    = cur_cat_halo->position_MBP[2];
+        cur_halo->Vel[0]    = cur_cat_halo->velocity_COM[0];
+        cur_halo->Vel[1]    = cur_cat_halo->velocity_COM[1];
+        cur_halo->Vel[2]    = cur_cat_halo->velocity_COM[2];
+        cur_halo->Rvir      = cur_cat_halo->R_vir;
+        cur_halo->Rhalo     = cur_cat_halo->R_halo;
+        cur_halo->Rmax      = cur_cat_halo->R_max;
+        cur_halo->Vmax      = cur_cat_halo->V_max;
+        cur_halo->VelDisp   = cur_cat_halo->sigma_v;
+        cur_halo->AngMom[0] = cur_cat_halo->ang_mom[0];
+        cur_halo->AngMom[1] = cur_cat_halo->ang_mom[1];
+        cur_halo->AngMom[2] = cur_cat_halo->ang_mom[2];
+        cur_halo->Galaxy    = NULL;
+        cur_halo->Mvir      = cur_cat_halo->M_vir;
 
-        convert_input_halo_units(run_globals, &(halo[*n_halos_kept]), snapshot);
+        convert_input_virial_props(run_globals,
+            &(cur_halo->Mvir),
+            &(cur_halo->Rvir),
+            &(cur_halo->Vvir),
+            cur_halo->Len,
+            snapshot);
 
         (*n_halos_kept)++;
       }
@@ -738,7 +797,11 @@ trees_info_t read_halos(
 
   // reset the fof group pointers and index lookup (if necessary)
   for (int ii = 0; ii < run_globals->NFOFGroupsMax; ii++)
+  {
     (*fof_group)[ii].FirstHalo = NULL;
+    (*fof_group)[ii].FirstOccupiedHalo = NULL;
+    (*fof_group)[ii].Mvir      = 0.0;
+  }
   if (n_requested_forests > -1)
     for (int ii = 0; ii < run_globals->NHalosMax; ii++)
       (*index_lookup)[ii] = -1;

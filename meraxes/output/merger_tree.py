@@ -21,6 +21,7 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 from docopt import docopt
+from tqdm import tqdm
 
 from ssimpl.meraxes import io as samio
 
@@ -41,16 +42,19 @@ class Graph:
     def add_node(self, index, snapshot, galaxy=None):
         name = str(self.__counter__)
         if galaxy!=None:
-            self.nodes[name] = {"index":index, "snapshot":snapshot, "type":self.type_first, "galaxy":galaxy.copy()}
+            self.nodes[name] = {"index":index, "snapshot":snapshot, "type":self.type_first, "galaxy":galaxy.copy(), "edge":None}
         else:
-            self.nodes[name] = {"index":index, "snapshot":snapshot, "type":self.type_first, "galaxy":None}
+            self.nodes[name] = {"index":index, "snapshot":snapshot, "type":self.type_first, "galaxy":None, "edge":None}
         self.__counter__+=1
         self.snap_count[snapshot]+=1
         return name
 
     def add_edge(self, start, end, edge_type):
-        self.edges["{:s}->{:s}".format(start, end)] = {"start" : start, "end" : end, "type" : edge_type}
-        self.nodes[end]["type"]=edge_type
+        edge_id = "{:s}->{:s}".format(start, end)
+        self.edges[edge_id] = {"start" : start, "end" : end, "type" : edge_type}
+        node = self.nodes[end]
+        node["type"]=edge_type
+        node["edge"] = edge_id
 
     def iter_nodes(self):
         return self.nodes.itervalues()
@@ -60,17 +64,35 @@ class Graph:
 
     def calc_positions(self):
         pos = np.zeros((self.__counter__, 2), float)
+        main_ID = self.nodes[str(0)]["galaxy"]["ID"]
+        sign = 1
         x_i = 0
+        m_x_i = 0
+        p_x_i = 0
+
+        for i, node in tqdm(enumerate(self.iter_nodes()), desc="calc node pos"):
+            if node["type"]=="NextProgenitor":
+                if self.nodes[self.edges[node["edge"]]["start"]]["galaxy"]["ID"] == main_ID:
+                    if m_x_i < p_x_i:
+                        m_x_i += 1
+                        x_i = -m_x_i
+                    else:
+                        p_x_i += 1
+                        x_i = p_x_i
+                else:
+                    if x_i == p_x_i:
+                        p_x_i += 1
+                        x_i = p_x_i
+                    else:
+                        m_x_i += 1
+                        x_i = -m_x_i
+            pos[i,0] = x_i
+
         for i, node in enumerate(self.iter_nodes()):
             pos[i,1] = node["snapshot"]
-            if node["type"]=="NextProgenitor":
-                x_i+=1
-            pos[i,0] = x_i
-        for i, node in enumerate(self.iter_nodes()):
-            pos[i,0] =  pos[i,0]/(x_i+1)*100.0
+            pos[i,0] = pos[i,0]/(abs(max(m_x_i, p_x_i))+1)*100.0
             node["plot_pos"] = pos[i]
 
-        # now loop back through by following edges
         return pos
 
 
@@ -110,7 +132,7 @@ if __name__ == '__main__':
     # Read in the walk indices
     fp_ind = []
     np_ind = []
-    for snap in snaplist:
+    for snap in tqdm(snaplist, desc="Reading indices"):
         try:
             fp_ind.append(samio.read_firstprogenitor_indices(fname_gals, snap))
         except:
@@ -121,7 +143,7 @@ if __name__ == '__main__':
             np_ind.append([])
 
     # Find the index of our requested galaxy
-    gal = samio.read_gals(fname_gals, snapshot=last_snapnum, quiet=True)
+    gal = samio.read_gals(fname_gals, snapshot=last_snapnum, quiet=True, h=0.7)
     ind = np.argwhere(gal["ID"]==galaxy_ID)[0][0]
 
     # Walk the fp and np indices and construct the graph
@@ -129,8 +151,8 @@ if __name__ == '__main__':
     first_node = walk(last_snapnum, ind, fp_ind, np_ind)
 
     # Attach the galaxies to the graph
-    for snap in snaplist:
-        gal = samio.read_gals(fname_gals, snapshot=snap, quiet=True)
+    for snap in tqdm(snaplist, desc="Generating graph"):
+        gal = samio.read_gals(fname_gals, snapshot=snap, quiet=True, h=0.7)
         for node in G.iter_nodes():
             if node["snapshot"] == snap:
                 node["galaxy"] = gal[node["index"]]
@@ -151,21 +173,24 @@ if __name__ == '__main__':
         ax.plot([start_pos[0], end_pos[0]], [start_pos[1], end_pos[1]], 'k-', lw=2, alpha=0.3, zorder=0)
 
     # now draw the nodes
-    # mstar = np.array([n["galaxy"]["StellarMass"] for n in G.iter_nodes()])
-    # mstar = np.log10(mstar*1.e10)*10
-    # sel = (~np.isinf(mstar))
-    # mstar = mstar[sel]**5
-    # mstar = (mstar/mstar.max())*300
+    mstar = np.array([n["galaxy"]["StellarMass"] for n in G.iter_nodes()])
+    mstar = np.log10(mstar*1.e10)
+    true_mstar = mstar.copy()
+    sel = (~np.isinf(mstar))
+    mstar = mstar[sel]**5
+    mstar = (mstar/mstar.max())*500
+    mstar_min = true_mstar.min()
+    mstar_max = true_mstar.max()
 
-    mvir = np.array([n["galaxy"]["Mvir"] for n in G.iter_nodes()])
-    mvir = np.log10(mvir*1.e10)
-    sel = (~np.isinf(mvir))
-    mvir = mvir[sel]
-    true_mvir = mvir.copy()
-    mvir = mvir**20
-    mvir = (mvir/mvir.max())*80
-    mvir_max = true_mvir.max()
-    mvir_min = true_mvir.min()
+    # mvir = np.array([n["galaxy"]["Mvir"] for n in G.iter_nodes()])
+    # mvir = np.log10(mvir*1.e10)
+    # sel = (~np.isinf(mvir))
+    # mvir = mvir[sel]
+    # true_mvir = mvir.copy()
+    # mvir = mvir**20
+    # mvir = (mvir/mvir.max())*80
+    # mvir_max = true_mvir.max()
+    # mvir_min = true_mvir.min()
 
     pos = pos[sel]
 
@@ -175,21 +200,35 @@ if __name__ == '__main__':
 
     type1_sel = (gal_type[sel]==1) & ~ghost_sel
     type2_sel = (gal_type[sel]==2) & ~ghost_sel
-    type0_sel = (~type1_sel & ~type2_sel)
+    type0_sel = (gal_type[sel]==0) & ~ghost_sel
 
     cmap = plt.cm.winter
-    sc = ax.scatter(pos[type0_sel,0], pos[type0_sel,1], vmin=mvir_min,
-                    vmax=mvir_max, marker='o', c=true_mvir[type0_sel],
-                    s=mvir[type0_sel], cmap=cmap, label="Type 0")
-    ax.scatter(pos[type1_sel,0], pos[type1_sel,1], vmin=mvir_min,
-               vmax=mvir_max, marker='^', c=true_mvir[type1_sel],
-               s=mvir[type1_sel], cmap=cmap, label="Type 1")
-    ax.scatter(pos[type2_sel,0], pos[type2_sel,1], vmin=mvir_min,
-               vmax=mvir_max, marker='v', c=true_mvir[type2_sel],
-               s=mvir[type2_sel], cmap=cmap, label="Type 2")
-    ax.scatter(pos[ghost_sel,0], pos[ghost_sel,1], vmin=mvir_min,
-               vmax=mvir_max, marker='s', facecolor='0.5', s=mvir[ghost_sel],
-               label="Ghosts")
+
+    ax.scatter(pos[ghost_sel,0], pos[ghost_sel,1], vmin=mstar_min,
+               vmax=mstar_max, marker='+', linewidths=2, facecolor='0.5',
+               alpha=0.5, s=mstar[ghost_sel], label="Ghosts")
+    ax.scatter(pos[type2_sel,0], pos[type2_sel,1], vmin=mstar_min,
+               vmax=mstar_max, marker='v', c=true_mstar[type2_sel],
+               s=mstar[type2_sel], cmap=cmap, label="Type 2")
+    ax.scatter(pos[type1_sel,0], pos[type1_sel,1], vmin=mstar_min,
+               vmax=mstar_max, marker='^', c=true_mstar[type1_sel],
+               s=mstar[type1_sel], cmap=cmap, label="Type 1")
+    sc = ax.scatter(pos[type0_sel,0], pos[type0_sel,1], vmin=mstar_min,
+                    vmax=mstar_max, marker='o', c=true_mstar[type0_sel],
+                    s=mstar[type0_sel], cmap=cmap, label="Type 0")
+
+    # sc = ax.scatter(pos[type0_sel,0], pos[type0_sel,1], vmin=mvir_min,
+    #                 vmax=mvir_max, marker='o', c=true_mvir[type0_sel],
+    #                 s=mvir[type0_sel], cmap=cmap, label="Type 0")
+    # ax.scatter(pos[type1_sel,0], pos[type1_sel,1], vmin=mvir_min,
+    #            vmax=mvir_max, marker='^', c=true_mvir[type1_sel],
+    #            s=mvir[type1_sel], cmap=cmap, label="Type 1")
+    # ax.scatter(pos[type2_sel,0], pos[type2_sel,1], vmin=mvir_min,
+    #            vmax=mvir_max, marker='v', c=true_mvir[type2_sel],
+    #            s=mvir[type2_sel], cmap=cmap, label="Type 2")
+    # ax.scatter(pos[ghost_sel,0], pos[ghost_sel,1], vmin=mvir_min,
+    #            vmax=mvir_max, marker='s', facecolor='0.5', s=mvir[ghost_sel],
+    #            label="Ghosts")
 
     # add labels for each branch ID
     # for n in G.iter_nodes():
@@ -206,9 +245,8 @@ if __name__ == '__main__':
     # add a color bar
     # import IPython; IPython.embed()
     cb = fig.colorbar(sc)
-    print true_mvir
-    cb.set_clim(true_mvir.min(), true_mvir.max())
-    cb.set_label(r"$\log_{10}(M_{\rm vir}/{\rm M_{\odot}})$")
+    cb.set_clim(true_mstar.min(), true_mstar.max())
+    cb.set_label(r"$\log_{10}(M_{*}/{\rm M_{\odot}})$")
     # labels = cb.ax.get_yticklabels()
     # for i, t in enumerate(labels):
     #         labels[i] = "{:.1f}".format(float(t.get_text())/5.)
@@ -226,7 +264,7 @@ if __name__ == '__main__':
     ax.grid(True, axis='y', color='0.9')
     ax.grid(False, axis='x')
     ax.set_ylim((np.argwhere(G.snap_count==0)[-1], G.snap_count.size+1))
-    ax.set_xlim((-5, 101))
+    ax.set_xlim((-101, 101))
     ax.set_frame_on(False)
 
     # TODO: Add the redshift axis
