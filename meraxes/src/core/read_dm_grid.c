@@ -41,7 +41,7 @@ int read_dm_grid(
   sprintf(fname, "%s/grids/snapshot_%03d_dark_grid.dat", params->SimulationDir, snapshot);
   // ... and open
   fin = fopen(fname, "rb");
-  if (!(fin = fopen(fname, "rb")))
+  if (!fin)
   {
     SID_log_error("Failed to open file: %s", fname);
     return(EXIT_FAILURE);

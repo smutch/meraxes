@@ -11,13 +11,14 @@ double gas_cooling(run_globals_t *run_globals, galaxy_t *gal)
     double t_cool, max_cooling_mass, Tvir;
     double logZ, lambda, x, rho_r_cool, r_cool, rho_at_Rvir;
     run_units_t *units = &(run_globals->units);
+    fof_group_t *fof_group = gal->Halo->FOFGroup;
 
     // following Croton+ 2006, we set the maximum cooling time to be the
     // dynamical time of the host dark matter halo
-    t_cool = gal->Rvir / gal->Vvir;  // internal units
+    t_cool = fof_group->Rvir / fof_group->Vvir;  // internal units
 
     // calculate the halo virial temperature
-    Tvir = 35.9 * gal->Vvir * gal->Vvir;  // internal units (Kelvin)
+    Tvir = 35.9 * fof_group->Vvir * fof_group->Vvir;  // internal units (Kelvin)
 
     // get the log10(metallicity) value
     if (gal->MetalsHotGas > 0)
@@ -37,7 +38,7 @@ double gas_cooling(run_globals_t *run_globals, galaxy_t *gal)
 
     // under the assumption of an isothermal density profile extending to Rvir,
     // now calculate the cooling radius
-    rho_at_Rvir = gal->HotGas / (4. * M_PI * gal->Rvir);
+    rho_at_Rvir = gal->HotGas / (4. * M_PI * fof_group->Rvir);
     r_cool      = sqrt(rho_at_Rvir / rho_r_cool);
     gal->Rcool  = r_cool;
 
@@ -45,7 +46,7 @@ double gas_cooling(run_globals_t *run_globals, galaxy_t *gal)
     // of mass within the free fall radius
     max_cooling_mass = gal->HotGas / t_cool * gal->dt;
 
-    if (r_cool > gal->Rvir)
+    if (r_cool > fof_group->Rvir)
       // here we are in the rapid cooling regime and we accrete all gas within
       // the free-fall radius
       cooling_mass = max_cooling_mass;
@@ -53,7 +54,7 @@ double gas_cooling(run_globals_t *run_globals, galaxy_t *gal)
     else
     {
       // here we are in the hot halo regime (but still limited by what's inside the free-fall radius)
-      cooling_mass = 0.5 * gal->HotGas / gal->Rvir * r_cool / t_cool * gal->dt;
+      cooling_mass = 0.5 * gal->HotGas / fof_group->Rvir * r_cool / t_cool * gal->dt;
       if(cooling_mass > max_cooling_mass)
         cooling_mass = max_cooling_mass;
     }
@@ -86,7 +87,7 @@ void cool_gas_onto_galaxy(galaxy_t *gal, double cooling_mass)
   cooling_metals = cooling_mass * calc_metallicity(gal->HotGas, gal->MetalsHotGas);
 
   // debug("%d %.3e %.3e %.3e %.3e %.3e %.3e %.3e %.3e %.3e %.3e %.3e %.3e %.3e %.3e\n",
-  //     gal->Type, gal->dt, gal->Rvir, gal->Vvir, gal->HotGas, gal->MetalsHotGas, t_cool, logZ, Tvir,
+  //     gal->Type, gal->dt, fof_group->Rvir, fof_group->Vvir, gal->HotGas, gal->MetalsHotGas, t_cool, logZ, Tvir,
   //     lambda, rho_r_cool, rho_at_Rvir, r_cool, max_cooling_mass, cooling_mass);
 
   // save the cooling mass

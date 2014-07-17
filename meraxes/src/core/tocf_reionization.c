@@ -5,6 +5,7 @@
 #include <math.h>
 #include <hdf5.h>
 #include <hdf5_hl.h>
+#include <assert.h>
 
 void set_HII_eff_factor(run_globals_t *run_globals)
 {
@@ -13,7 +14,7 @@ void set_HII_eff_factor(run_globals_t *run_globals)
 
   physics_params_t *params = &(run_globals->params.physics);
 
-  tocf_params.HII_eff_factor = (params->ReionNionPhotPerBary / 4000.0) *
+  tocf_params.HII_eff_factor *= (params->ReionNionPhotPerBary / 4000.0) *
                                (params->ReionEscapeFrac / 0.15) * (1.0 / (1.0 + params->ReionMeanNRec));
 }
 
@@ -62,7 +63,6 @@ void call_find_HII_bubbles(run_globals_t *run_globals, int snapshot, int unsampl
     SID_log("Calling find_HII_bubbles...", SID_LOG_OPEN);
     // TODO: Fix if snapshot==0
     grids->global_xH = find_HII_bubbles(run_globals->ZZ[snapshot], run_globals->ZZ[snapshot - 1],
-        tocf_params.HII_eff_factor, tocf_params.ion_tvir_min, tocf_params.r_bubble_max, tocf_params.numcores,
         grids->xH,
         grids->stars,
         grids->stars_filtered,
@@ -236,11 +236,16 @@ void free_reionization_grids(run_globals_t *run_globals)
 }
 
 
-int find_cell(double pos, double box_size)
+int find_cell(float pos, double box_size)
 {
   int HII_dim = tocf_params.HII_dim;
 
-  return (int)floor(pos / box_size * (double)HII_dim);
+  int cell = (int)floor(pos / box_size * (double)HII_dim);
+
+  cell = (cell < 0) ? 0 : cell;
+  cell = (cell >= HII_dim) ? HII_dim-1 : cell;
+
+  return cell;
 }
 
 
@@ -280,9 +285,29 @@ void construct_stellar_grids(run_globals_t *run_globals)
       // since then, these positions won't reflect that and the satellites will
       // be spatially disconnected from their hosts.  We will need to fix this
       // at some point.
+
+      // TODO: Get Greg to fix these positions to obey PBC!!
+      if (gal->Pos[0] >= box_size)
+        gal->Pos[0] -= box_size;
+      else if (gal->Pos[0] < 0.0)
+        gal->Pos[0] += box_size;
       i = find_cell(gal->Pos[0], box_size);
+
+      if (gal->Pos[1] >= box_size)
+        gal->Pos[1] -= box_size;
+      else if (gal->Pos[1] < 0.0)
+        gal->Pos[1] += box_size;
       j = find_cell(gal->Pos[1], box_size);
+
+      if (gal->Pos[2] >= box_size)
+        gal->Pos[2] -= box_size;
+      else if (gal->Pos[2] < 0.0)
+        gal->Pos[2] += box_size;
       k = find_cell(gal->Pos[2], box_size);
+
+      assert((i >= 0) && (i < HII_dim));
+      assert((j >= 0) && (j < HII_dim));
+      assert((k >= 0) && (k < HII_dim));
 
       *(stellar_grid + HII_R_FFT_INDEX(i, j, k)) += gal->StellarMass;
       *(sfr_grid + HII_R_FFT_INDEX(i, j, k))     += gal->Sfr;

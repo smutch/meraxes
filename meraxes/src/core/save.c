@@ -31,47 +31,52 @@ void prepare_galaxy_for_output(
   galaxy_output_t *galout,
   int              i_snap)
 {
-  double Hubble_h    = run_globals->params.Hubble_h;
   run_units_t *units = &(run_globals->units);
 
   galout->id_MBP = (long long)gal.id_MBP;
   galout->ID     = (int)gal.ID;
   galout->Type   = (int)gal.Type;
-  if ((!gal.ghost_flag) && (gal.Halo->FOFGroup->FirstHalo->Galaxy != NULL))
-    galout->CentralGal = (int)gal.Halo->FOFGroup->FirstHalo->Galaxy->output_index;
+  if (!gal.ghost_flag)
+  {
+    galout->CentralGal = (int)(gal.Halo->FOFGroup->FirstOccupiedHalo->Galaxy->output_index);
+    galout->FOFMvir    = (float)(gal.Halo->FOFGroup->Mvir);
+  }
   else
+  {
     galout->CentralGal = -1;
+    galout->FOFMvir = -1.0;
+  }
   galout->GhostFlag = (int)gal.ghost_flag;
 
   for (int ii = 0; ii < 3; ii++)
   {
-    galout->Pos[ii] = (float)(gal.Pos[ii] / Hubble_h);
+    galout->Pos[ii] = (float)(gal.Pos[ii]);
     galout->Vel[ii] = (float)(gal.Vel[ii]);
   }
 
   galout->Len                = (int)(gal.Len);
-  galout->Mvir               = (float)(gal.Mvir / Hubble_h);
-  galout->Rvir               = (float)(gal.Rvir / Hubble_h);
+  galout->Mvir               = (float)(gal.Mvir);
+  galout->Rvir               = (float)(gal.Rvir);
   galout->Vvir               = (float)(gal.Vvir);
   galout->Vmax               = (float)(gal.Vmax);
   galout->Spin               = (float)(gal.Spin);
-  galout->HotGas             = (float)(gal.HotGas / Hubble_h);
-  galout->MetalsHotGas       = (float)(gal.MetalsHotGas / Hubble_h);
-  galout->ColdGas            = (float)(gal.ColdGas / Hubble_h);
-  galout->MetalsColdGas      = (float)(gal.MetalsColdGas / Hubble_h);
-  galout->Mcool              = (float)(gal.Mcool / Hubble_h);
-  galout->StellarMass        = (float)(gal.StellarMass / Hubble_h);
-  galout->BlackHoleMass      = (float)(gal.BlackHoleMass / Hubble_h);
-  galout->DiskScaleLength    = (float)(gal.DiskScaleLength / Hubble_h);
-  galout->MetalsStellarMass  = (float)(gal.MetalsStellarMass / Hubble_h);
+  galout->HotGas             = (float)(gal.HotGas);
+  galout->MetalsHotGas       = (float)(gal.MetalsHotGas);
+  galout->ColdGas            = (float)(gal.ColdGas);
+  galout->MetalsColdGas      = (float)(gal.MetalsColdGas);
+  galout->Mcool              = (float)(gal.Mcool);
+  galout->StellarMass        = (float)(gal.StellarMass);
+  galout->BlackHoleMass      = (float)(gal.BlackHoleMass);
+  galout->DiskScaleLength    = (float)(gal.DiskScaleLength);
+  galout->MetalsStellarMass  = (float)(gal.MetalsStellarMass);
   galout->Sfr                = (float)(gal.Sfr * units->UnitMass_in_g / units->UnitTime_in_s * SEC_PER_YEAR / SOLAR_MASS);
-  galout->EjectedGas         = (float)(gal.EjectedGas / Hubble_h);
-  galout->MetalsEjectedGas   = (float)(gal.MetalsEjectedGas / Hubble_h);
-  galout->Rcool              = (float)(gal.Rcool / Hubble_h);
+  galout->EjectedGas         = (float)(gal.EjectedGas);
+  galout->MetalsEjectedGas   = (float)(gal.MetalsEjectedGas);
+  galout->Rcool              = (float)(gal.Rcool);
   galout->Cos_Inc            = (float)(gal.Cos_Inc);
   galout->BaryonFracModifier = (float)(gal.BaryonFracModifier);
-  galout->MergTime           = (float)(gal.MergTime * units->UnitLength_in_cm / units->UnitVelocity_in_cm_per_s / SEC_PER_MEGAYEAR / Hubble_h);
-  galout->LTTime             = (float)(gal.LTTime * units->UnitLength_in_cm / units->UnitVelocity_in_cm_per_s / SEC_PER_MEGAYEAR / Hubble_h);
+  galout->MergTime           = (float)(gal.MergTime * units->UnitLength_in_cm / units->UnitVelocity_in_cm_per_s / SEC_PER_MEGAYEAR);
+  galout->LTTime             = (float)(gal.LTTime * units->UnitLength_in_cm / units->UnitVelocity_in_cm_per_s / SEC_PER_MEGAYEAR);
 
   prepare_magnitudes_for_output(run_globals, gal, galout, i_snap);
 }
@@ -87,7 +92,7 @@ void calc_hdf5_props(run_globals_t *run_globals)
   galaxy_output_t galout;
   int i;                                                // dummy
 
-  h5props->n_props = 30;
+  h5props->n_props = 31;
 
 #ifdef CALC_MAGS
   // If we are calculating any magnitudes then increment the number of
@@ -172,6 +177,11 @@ void calc_hdf5_props(run_globals_t *run_globals)
   h5props->dst_offsets[i]     = HOFFSET(galaxy_output_t, Vmax);
   h5props->dst_field_sizes[i] = sizeof(galout.Vmax);
   h5props->field_names[i]     = "Vmax";
+  h5props->field_types[i++]   = H5T_NATIVE_FLOAT;
+
+  h5props->dst_offsets[i]     = HOFFSET(galaxy_output_t, FOFMvir);
+  h5props->dst_field_sizes[i] = sizeof(galout.FOFMvir);
+  h5props->field_names[i]     = "FOFMvir";
   h5props->field_types[i++]   = H5T_NATIVE_FLOAT;
 
   h5props->dst_offsets[i]     = HOFFSET(galaxy_output_t, Spin);
@@ -630,7 +640,7 @@ void create_master_file(run_globals_t *run_globals)
     if((i_core == 0) && (run_globals->params.TOCF_Flag))
     {
       // create links to the 21cmFAST grids
-      sprintf(target_group, "Grids", i_core);
+      sprintf(target_group, "Grids");
       group_id = H5Gcreate(snap_group_id, target_group, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
 
       sprintf(source_ds, "Snap%03d/Grids/xH", run_globals->ListOutputSnaps[i_out]);
@@ -693,7 +703,7 @@ void create_master_file(run_globals_t *run_globals)
     h5_write_attribute(snap_group_id, "Redshift", H5T_NATIVE_DOUBLE, ds_id, &(run_globals->ZZ[run_globals->ListOutputSnaps[i_out]]));
     h5_write_attribute(snap_group_id, "UnsampledSnapshot", H5T_NATIVE_INT, ds_id, &unsampled_snapshot);
 
-    temp = run_globals->LTTime[run_globals->ListOutputSnaps[i_out]] * run_globals->units.UnitLength_in_cm / run_globals->units.UnitVelocity_in_cm_per_s / SEC_PER_MEGAYEAR / run_globals->params.Hubble_h;
+    temp = run_globals->LTTime[run_globals->ListOutputSnaps[i_out]] * run_globals->units.UnitLength_in_cm / run_globals->units.UnitVelocity_in_cm_per_s / SEC_PER_MEGAYEAR;
     h5_write_attribute(snap_group_id, "LTTime", H5T_NATIVE_DOUBLE, ds_id, &temp);
 
 
@@ -736,11 +746,11 @@ static void inline save_walk_indices(
 
 
 void write_snapshot(
-  run_globals_t *run_globals, 
-  int            n_write,     
-  int            i_out,       
+  run_globals_t *run_globals,
+  int            n_write,
+  int            i_out,
   int           *last_n_write,
-  trees_info_t  *trees_info)  
+  trees_info_t  *trees_info)
 {
   /*
    * Write a batch of galaxies to the output HDF5 table.
@@ -762,9 +772,27 @@ void write_snapshot(
   int calc_descendants_i_out  = -1;
   int prev_snapshot           = -1;
   int index                   = -1;
+  int write_count             = 0;
   double temp                 = 0;
 
   SID_log("Writing output file (n_write = %d)...", SID_LOG_OPEN | SID_LOG_TIMER, n_write);
+
+  // We aren't going to write any galaxies that have zero stellar mass, so
+  // modify n_write appropriately...
+  gal = run_globals->FirstGal;
+  while(gal != NULL)
+  {
+    if((gal->Type < 3) && (gal->StellarMass >= 1e-10))
+      write_count++;
+    gal = gal->Next;
+  }
+
+  if (n_write != write_count)
+  {
+    SID_log("Excluding %d ~zero mass galaxies...", SID_LOG_COMMENT, n_write-write_count);
+    SID_log("New write count = %d", SID_LOG_COMMENT, write_count);
+    n_write = write_count;
+  }
 
   // Create the file.
   file_id = H5Fopen(run_globals->FNameOut, H5F_ACC_RDWR, H5P_DEFAULT);
@@ -819,7 +847,7 @@ void write_snapshot(
     gal = run_globals->FirstGal;
     while (gal != NULL)
     {
-      if (gal->Type < 3)
+      if ((gal->Type < 3) && (gal->StellarMass >= 1e-10))
       {
         if (gal->output_index > -1)
         {
@@ -837,10 +865,13 @@ void write_snapshot(
     gal = run_globals->FirstGal;
     while (gal != NULL)
     {
-      if (gal->Type == 3)
+      if ((gal->Type == 3) && (gal->StellarMass >= 1e-10))
       {
-        descendant_index[gal->output_index] = gal->MergerTarget->output_index;
-        old_count++;
+        if (gal->output_index > -1)
+        {
+          descendant_index[gal->output_index] = gal->MergerTarget->output_index;
+          old_count++;
+        }
         index = first_progenitor_index[gal->MergerTarget->output_index];
         if (index > -1)
         {
@@ -866,7 +897,7 @@ void write_snapshot(
     gal = run_globals->FirstGal;
     while (gal != NULL)
     {
-      if (gal->Type < 3)
+      if ((gal->Type < 3) && (gal->StellarMass >= 1e-10))
         gal->output_index = gal_count++;
       gal = gal->Next;
     }
@@ -889,7 +920,7 @@ void write_snapshot(
   while (gal != NULL)
   {
     // Don't output galaxies which merged at this timestep
-    if (gal->Type < 3)
+    if ((gal->Type < 3) && (gal->StellarMass >= 1e-10))
     {
       prepare_galaxy_for_output(run_globals, *gal, &(output_buffer[buffer_count]), i_out);
       buffer_count++;

@@ -2,25 +2,22 @@
 #----- SA model output files --------------
 #------------------------------------------
 FileNameGalaxies : Tiamat
-FirstFile        : 0
-LastFile         : 0
 
 #------------------------------------------
 #----- Simulation input files  ------------
 #------------------------------------------
 SimName          : Tiamat
-SimulationDir    : /home/smutch/data/input_trees/Tiamat
+SimulationDir    : /home/smutch/data2/input_trees/Tiamat
 CatalogFilePrefix: rockstar_fixed
-NEverySnap       : 1
-NScanSnap        : 16
-TotalSimSnaps    : 100
 BoxSize          : 100
 VolumeFactor     : 1.0
+NSteps           : 1
 
 #------------------------------------------
 #----- Photometric Tables  ----------------
 #------------------------------------------
 PhotometricTablesDir : /home/smutch/models/21cm_sam/meraxes/input/photometric_tables
+CoolingFuncsDir      : /home/smutch/models/21cm_sam/meraxes/input/cooling_functions
 SSPModel             : bc03
 IMF                  : salpeter
 MagSystem            : vega
@@ -29,13 +26,14 @@ MagBands             : Bbv,V,Rc,Ic,K
 #------------------------------------------
 #----- Code options -----------------------
 #------------------------------------------
+NSteps : 1
 FlagInteractive: 0
 RandomSeed: 1809  # seed for random number generator
 
 #------------------------------------------
 #----- 21cmFAST ---------------------------
 #------------------------------------------
-TOCF_Flag : 1 {  # use 21cmfast for reionization?
+TOCF_Flag : 0 {  # use 21cmfast for reionization?
     numcores   : 8          # number of OpenMP threads to run 21cmFAST with
     LogFileDir : tocf_logs  # directory for log files
 }
@@ -47,9 +45,9 @@ Flag_ReionizationModifier : 1    # use halo mass dependant infall modifier of So
 Flag_BHFeedback           : 1    # use black hole feedback
 
 SfEfficiency        : 0.1     # star formation efficiency
-SfRecycleFraction   : 0.43    # instantaneous recycle fraction (IMF dependant)
-SnEjectionEff       : 0.35    # mass loading factor for SN feedback
-SnReheatEff         : 3.5     # SN feedback gas reheating efficiency
+SfRecycleFraction   : 0.43    # instantaneous recycle fraction (Salpeter)
+SnEjectionEff       : 0.35    # SN feedback gas reheating efficiency
+SnReheatEff         : 3.5     # mass loading factor per unit star formation
 ReincorporationEff  : 0.3     # gas reincorporation efficiency from ejected component
 Yield               : 0.03    # mass of metals injected into ISM per unit star formation
 RadioModeEff        : 6e-4    # radio mode feedback efficiency

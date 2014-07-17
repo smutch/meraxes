@@ -28,15 +28,15 @@ static double sobacchi_Mvir_min(run_globals_t *run_globals, double z)
 }
 
 
-double sobacchi2013_modifier(run_globals_t *run_globals, halo_t *halo, double redshift)
+double sobacchi2013_modifier(run_globals_t *run_globals, double Mvir, double redshift)
 {
   double Mvir_min;
   double modifier;
 
   Mvir_min = sobacchi_Mvir_min(run_globals, redshift);
 
-  if (halo->Mvir > Mcool(run_globals, redshift))
-    modifier = pow(2.0, -Mvir_min / halo->Mvir);
+  if (Mvir > Mcool(run_globals, redshift))
+    modifier = pow(2.0, -Mvir_min / Mvir);
   else
     modifier = 0.0;
 
@@ -44,7 +44,7 @@ double sobacchi2013_modifier(run_globals_t *run_globals, halo_t *halo, double re
 }
 
 
-double gnedin2000_modifer(run_globals_t *run_globals, halo_t *halo, double redshift)
+double gnedin2000_modifer(run_globals_t *run_globals, double Mvir, double redshift)
 {
   // NOTE THAT PART OF THIS CODE IS COPIED VERBATIM FROM THE CROTON ET AL. 2006 SEMI-ANALYTIC MODEL.
 
@@ -97,7 +97,7 @@ double gnedin2000_modifer(run_globals_t *run_globals, halo_t *halo, double redsh
 
   // we use the maximum of Mfiltering and Mchar
   mass_to_use = (Mfiltering > Mchar) ? Mfiltering : Mchar;
-  modifier    = 1.0 / pow(1.0 + 0.26 * (mass_to_use / halo->Mvir), 3.0);
+  modifier    = 1.0 / pow(1.0 + 0.26 * (mass_to_use / Mvir), 3.0);
 
   return modifier;
 }
@@ -127,7 +127,7 @@ double global_ionizing_emmisivity(run_globals_t *run_globals)
 }
 
 
-double reionization_modifier(run_globals_t *run_globals, halo_t *halo, int snapshot)
+double reionization_modifier(run_globals_t *run_globals, double Mvir, float *Pos, int snapshot)
 {
   double redshift;
   double modifier;
@@ -137,7 +137,7 @@ double reionization_modifier(run_globals_t *run_globals, halo_t *halo, int snaps
 #ifdef USE_TOCF
   if ((tocf_params.uvb_feedback) && (run_globals->params.TOCF_Flag))
   {
-    modifier = tocf_modifier(run_globals, halo, redshift);
+    modifier = tocf_modifier(run_globals, Mvir, Pos, redshift);
     return modifier;
   }
 #endif
@@ -146,12 +146,12 @@ double reionization_modifier(run_globals_t *run_globals, halo_t *halo, int snaps
   {
   case 1:
     // Sobacchi & Mesinger 2013 global reionization scheme
-    modifier = sobacchi2013_modifier(run_globals, halo, redshift);
+    modifier = sobacchi2013_modifier(run_globals, Mvir, redshift);
     break;
 
   case 2:
     // Gnedin 2000 global reionization modifier
-    modifier = gnedin2000_modifer(run_globals, halo, redshift);
+    modifier = gnedin2000_modifer(run_globals, Mvir, redshift);
     break;
 
   default:

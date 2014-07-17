@@ -255,10 +255,30 @@ void dracarys(run_globals_t *run_globals)
     // Incase we ended up removing the last galaxy, update the LastGal pointer
     run_globals->LastGal = prev_gal;
 
-    // Find empty (valid) type 0 halos and place new galaxies in them
-    for (int i_halo = 0; i_halo < trees_info.n_halos; i_halo++)
-      if (check_if_valid_host(run_globals, &(halo[i_halo])))
-        create_new_galaxy(run_globals, snapshot, &(halo[i_halo]), &NGal, &new_gal_counter);
+    // Find empty (valid) type 0 halos and place new galaxies in them.
+    // Also update the fof_group pointers.
+    for (int i_fof = 0; i_fof < trees_info.n_fof_groups; i_fof++)
+    {
+      halo_t *first_occupied_halo = NULL;
+      halo_t *cur_halo = fof_group[i_fof].FirstHalo;
+      int total_subhalo_len = 0;
+
+      while (cur_halo != NULL)
+      {
+        if (check_if_valid_host(run_globals, cur_halo))
+          create_new_galaxy(run_globals, snapshot, cur_halo, &NGal, &new_gal_counter);
+
+        if ((first_occupied_halo == NULL) && (cur_halo->Galaxy != NULL))
+          first_occupied_halo = cur_halo;
+
+        total_subhalo_len += cur_halo->Len;
+
+        cur_halo = cur_halo->NextHaloInFOFGroup;
+      }
+
+      fof_group[i_fof].FirstOccupiedHalo = first_occupied_halo;
+      fof_group[i_fof].TotalSubhaloLen = total_subhalo_len;
+    }
 
     // Loop through each galaxy and deal with HALO mergers now that all other
     // galaxies have been processed and their halo pointers updated...

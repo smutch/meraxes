@@ -1,47 +1,4 @@
 FileNameGalaxies    : meraxes
-DefaultsFile        : /home/smutch/models/21cm_sam/meraxes/input/Tiny_Tiamat.par
+DefaultsFile        : /home/smutch/models/21cm_sam/meraxes/input/Tiamat.par
 FileWithOutputSnaps : snaplist.txt
 OutputDir           : output
-
-# ForestIDFile        : forest_ids.txt
-
-#------------------------------------------
-#----- 21cmFAST ---------------------------
-#------------------------------------------
-TOCF_Flag : 0 {  # use 21cmfast for reionization?
-    numcores         : 16         # number of OpenMP threads to run 21cmFAST with
-    LogFileDir       : tocf_logs  # directory for log files
-    uvb_feedback     : 0
-    compute_mfp      : 0
-    HII_dim          : 128
-    ram              : 64
-    HII_filter       : 0
-    # HII_eff_factor : 4000
-}
-
-#------------------------------------------
-#----- Parameters of physical model -------
-#------------------------------------------
-Flag_ReionizationModifier : 1       # use halo mass dependant infall modifier of Sobacchi & Mesinger (2013)
-Flag_BHFeedback           : 1       # use black hole feedback
-
-SfEfficiency              : 0.1     # star formation efficiency
-SfRecycleFraction         : 0.43    # instantaneous recycle fraction (IMF dependant)
-SnEjectionEff             : 0.35    # mass loading factor for SN feedback
-SnReheatEff               : 3.5     # SN feedback gas reheating efficiency
-ReincorporationEff        : 0.3     # gas reincorporation efficiency from ejected component
-Yield                     : 0.03    # mass of metals injected into ISM per unit star formation
-RadioModeEff              : 6e-4    # radio mode feedback efficiency
-BlackHoleGrowthRate       : 0.03    # black hole growth efficiency through merger driven gas inflow
-
-ThreshMajorMerger         : 0.3     # major merger when mass ratio greater than this
-MergerTimeFactor          : 1.0     # Multiplicitive fator for the merger timescales (2.0->DeLucia+; 1.0->Croton+)
-
-ReionZ_re                 : 9.3
-ReionDeltaZ_re            : 1.0
-ReionDeltaZ_sc            : 2.0
-ReionT0                   : 5.0e4
-ReionTcool                : 1.0e4
-ReionNionPhotPerBary      : 4000
-ReionEscapeFrac           : 0.15
-ReionMeanNRec             : 0.0
