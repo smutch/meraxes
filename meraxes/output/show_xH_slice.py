@@ -35,31 +35,39 @@ def setup_fig(redshift, neutral_fraction, slice_str, slice_axis):
     sel = np.ones(3, bool)
     sel[slice_axis] = False
     labels = np.array(['x', 'y', 'z'])[sel]
-    ax.set_xlabel(labels[0]+' (Mpc)')
-    ax.set_ylabel(labels[1]+' (Mpc)')
+    ax.set_xlabel(labels[0]+' (Mpc/h)')
+    ax.set_ylabel(labels[1]+' (Mpc/h)')
     plt.title('z=%.2f; nf=%.3f; slice=[%s]' % (redshift, neutral_fraction,
-                                             slice_str))
+                                             slice_str),
+              size="medium")
     return fig, ax
 
-def plot_slice(slice_img, ax, dim, slice_axis, box_size, galaxies=False, color_bar=False, cmap='gist_earth_r'):
+def plot_slice(slice_img, ax, dim, slice_axis, box_size, galaxies=False, dm=False, color_bar=False, cmap='gist_earth_r'):
 
     final_size = (slice_img.shape[0]/dim)*box_size
     extent = (0,final_size,0,final_size)
 
-    # slice_img = np.log10(slice_img)
+    if dm is not False:
+        ax.imshow(np.log10(dm.T),
+                  interpolation='bilinear',
+                  cmap=plt.cm.Spectral,
+                  extent = extent,
+                  origin='lower')
 
-    # print slice_img.max()
-    # print slice_img.mean()
-
-    cax = ax.imshow(slice_img.T, interpolation='bilinear',
-                    cmap=getattr(plt.cm, cmap),
+    alpha_cmap = plt.cm.get_cmap("Blues_r")
+    alpha_cmap._init()
+    alphas = np.abs(np.linspace(0.7, 0.0, alpha_cmap.N))
+    alpha_cmap._lut[:-3,-1] = alphas
+    cax = ax.imshow(1.0-slice_img.T, interpolation='bilinear',
+                    cmap=alpha_cmap,
                     extent = extent,
                     origin='lower',
                     vmin=0,
                     vmax=1)
 
-    # ax.contour(slice_img.T, extent=extent, extend='both',
-    #            linewidths=0.5, alpha=0.5, cmap=getattr(plt.cm, cmap+'_r'))
+    ax.contour(slice_img.T, extent=extent, extend='both',
+               linewidths=0.5, alpha=0.5,
+               cmap=plt.cm.Greys_r)
 
     if color_bar:
         cbar = fig.colorbar(cax,)
@@ -70,10 +78,12 @@ def plot_slice(slice_img, ax, dim, slice_axis, box_size, galaxies=False, color_b
         plot_axis = np.argwhere(i_axis!=slice_axis).squeeze()
         ax.scatter(galaxies["Pos"][:,plot_axis[0]],
                    galaxies["Pos"][:,plot_axis[1]],
-                   s=np.log10(galaxies['StellarMass']*1.e10)**9*1e-7,
+                   s=np.log10(galaxies['StellarMass']*1.e10)**9*3e-7,
                    c=np.log10(galaxies['StellarMass']*1.e10),
                    cmap=plt.cm.Blues,
                    marker='o',
+                   # edgecolors='none',
+                   linewidths=0.1,
                    alpha=0.5,
                    zorder=3)
 
@@ -127,6 +137,8 @@ if __name__ == '__main__':
 
     # read the grid and parse the requested slice
     grid = meraxes.io.read_grid(input_file, snapshot, "xH")
+    dm = meraxes.io.read_grid(input_file, snapshot, "deltax")
+    dm /= dm.mean()
     slice_dim = grid.shape[0]
     slice_sel = parse_slice(args['<slice>'], slice_dim)
     box_len = simprops["BoxSize"]
@@ -148,13 +160,16 @@ if __name__ == '__main__':
     grid_slice = grid[slice_sel]
     slice_axis = np.argmin(grid_slice.shape)
     grid_slice = grid_slice.squeeze()
+    dm_slice = dm[slice_sel].squeeze()
     if grid_slice.ndim==3:
         grid_slice = grid_slice.mean(axis=slice_axis)
+        dm_slice = dm_slice.mean(axis=slice_axis)
 
     plotutils.init_style(theme="white_bg")
     fig, ax = setup_fig(redshift, global_xH, args['<slice>'], slice_axis)
     plot_slice(grid_slice, ax, slice_dim, slice_axis, box_len,
                galaxies=gals,
+               dm=dm_slice,
                color_bar=args['--color_bar'],
                cmap=args['--cmap'])
 
