@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 
-"""Plot the z=5 SFRF.
+"""Plot the z=6 SFRF.
 
-Usage: sfrf_z5.py <fname> [Hubble_h]
+Usage: sfrf_z6.py <fname> [Hubble_h]
 
 Arguments:
     Hubble_h   Hubble constant [default: 0.702]
@@ -24,7 +24,7 @@ __script_dir__ = os.path.dirname(os.path.realpath( __file__ ))
 
 def plot(gals, simprops, ax, h):
 
-    print "Plotting z=5 SFRF..."
+    print "Plotting z=6 SFRF..."
 
     # generate the model smf
     # sm = stellar mass
@@ -42,7 +42,7 @@ def plot(gals, simprops, ax, h):
 
     # read the observed sfrf
     obs = pd.read_table(os.path.join(__script_dir__,
-        "../../utils/obs_datasets/sfrf/Katsianis_z5_sfrf-vanderburg.txt"),
+        "../../utils/obs_datasets/sfrf/Katsianis_z6_sfrf-smit.txt"),
         delim_whitespace=True,
         header = None,
         skiprows = 4,
@@ -55,12 +55,12 @@ def plot(gals, simprops, ax, h):
 
     # plot the observations
     ax.errorbar(obs.log_sfr, obs.log_phi, yerr=obs.err,
-                label="Katsianis+ in prep.\n(from Van der Burg+ 2011)", ls="none",
+                label="Katsianis+ 2014 (from Smit+ 2012)", ls="none",
                 lw=4, capsize=0)
 
     # do it all again for the next set of observations
     obs = pd.read_table(os.path.join(__script_dir__,
-        "../../utils/obs_datasets/sfrf/Katsianis_z5_sfrf-bouwens.txt"),
+        "../../utils/obs_datasets/sfrf/Katsianis_z6_sfrf-bouwens.txt"),
         delim_whitespace=True,
         header = None,
         skiprows = 4,
@@ -73,11 +73,11 @@ def plot(gals, simprops, ax, h):
 
     # plot the observations
     ax.errorbar(obs.log_sfr, obs.log_phi, yerr=obs.err,
-                label="Katsianis+ in prep.\n(from Bouwens+ 2014)", ls="none",
+                label="Katsianis+ 2014 (from Bouwens+ 2014)", ls="none",
                 lw=4, capsize=0)
 
     # add some text
-    ax.text(0.95,0.95, "z=5\nh={:.2f}".format(h),
+    ax.text(0.95,0.95, "z=6\nh={:.2f}".format(h),
            horizontalalignment="right",
            verticalalignment="top",
            transform=ax.transAxes)
@@ -98,7 +98,7 @@ if __name__ == '__main__':
     else:
         h = float(args['Hubble_h'])
 
-    snap, redshift = meraxes.io.check_for_redshift(fname, 5.0, tol=0.1)
+    snap, redshift = meraxes.io.check_for_redshift(fname, 6.0, tol=0.1)
 
     props = ("Sfr", "Type")
     gals, simprops = meraxes.io.read_gals(fname, snapshot=snap, props=props,
@@ -110,5 +110,5 @@ if __name__ == '__main__':
     ax.yaxis.set_tick_params(which='both', color='w')
     ax.legend(loc="lower left", fontsize="small")
     fig.tight_layout()
-    output_fname = os.path.join(os.path.dirname(fname), "plots/sfrf-z5.pdf")
+    output_fname = os.path.join(os.path.dirname(fname), "plots/sfrf-z6.pdf")
     plt.savefig(output_fname)

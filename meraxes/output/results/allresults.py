@@ -23,7 +23,7 @@ import sfrf_z5, smf_z5, shmr_z5
 __author__ = "Simon Mutch"
 __date__   = "2014-07-08"
 
-__available_redshifts__ = [5,]
+__available_redshifts__ = [5,6]
 
 def savefig(fig, fname_in, fname_out, ext):
     fig.tight_layout()
@@ -46,7 +46,7 @@ if __name__ == '__main__':
             "Available redshifts are {:s}".format(__available_redshifts__)
 
     # init the plot style
-    plotutils.init_style()
+    plotutils.init_style(context="talk")
 
     if redshift == 5:
         snap, redshift = meraxes.io.check_for_redshift(fname, 5.0, tol=0.1)
@@ -71,13 +71,35 @@ if __name__ == '__main__':
         savefig(fig, fname, "sfrf-z5", ext)
 
         # SHMR
-        rc = plt.rcParams.copy()
-        plotutils.init_style(theme="white_bg")
+        # rc = plt.rcParams.copy()
+        # plotutils.init_style(theme="white_bg")
+        # fig, ax = plt.subplots(1,1)
+        # ax.grid('off')
+        # shmr_z5.plot(gals, simprops, ax, h)
+        # ax.tick_params(axis="both", which='both', color=plt.rcParams["axes.edgecolor"], length=3)
+        # ax.legend(loc="upper left", fontsize="small")
+        # fig.tight_layout()
+        # savefig(fig, fname, "shmr-z5", ext)
+        # plt.rcParams = rc
+
+    if redshift == 6:
+        snap, redshift = meraxes.io.check_for_redshift(fname, 6.0, tol=0.1)
+
+        props = ("Sfr", "StellarMass", "Type", "FOFMvir", "CentralGal")
+        gals, simprops = meraxes.io.read_gals(fname, snapshot=snap, props=props,
+                sim_props=True, h=h)
+        gals = gals.view(np.recarray)
+
+        # SMF
         fig, ax = plt.subplots(1,1)
-        ax.grid('off')
-        shmr_z5.plot(gals, simprops, ax, h)
-        ax.tick_params(axis="both", which='both', color=plt.rcParams["axes.edgecolor"], length=3)
-        ax.legend(loc="upper left", fontsize="small")
-        fig.tight_layout()
-        savefig(fig, fname, "shmr-z5", ext)
-        plt.rcParams = rc
+        smf_z5.plot(gals, simprops, ax, h)
+        ax.yaxis.set_tick_params(which='both', color='w')
+        ax.legend(loc="upper right", fontsize="small")
+        savefig(fig, fname, "smf-z6", ext)
+
+        # SFRF
+        fig, ax = plt.subplots(1,1)
+        sfrf_z5.plot(gals, simprops, ax, h)
+        ax.yaxis.set_tick_params(which='both', color='w')
+        ax.legend(loc="lower left", fontsize="small")
+        savefig(fig, fname, "sfrf-z6", ext)
