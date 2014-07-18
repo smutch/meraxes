@@ -76,7 +76,6 @@ void prepare_galaxy_for_output(
   galout->Cos_Inc            = (float)(gal.Cos_Inc);
   galout->BaryonFracModifier = (float)(gal.BaryonFracModifier);
   galout->MergTime           = (float)(gal.MergTime * units->UnitLength_in_cm / units->UnitVelocity_in_cm_per_s / SEC_PER_MEGAYEAR);
-  galout->LTTime             = (float)(gal.LTTime * units->UnitLength_in_cm / units->UnitVelocity_in_cm_per_s / SEC_PER_MEGAYEAR);
 
   prepare_magnitudes_for_output(run_globals, gal, galout, i_snap);
 }
@@ -92,7 +91,7 @@ void calc_hdf5_props(run_globals_t *run_globals)
   galaxy_output_t galout;
   int i;                                                // dummy
 
-  h5props->n_props = 31;
+  h5props->n_props = 30;
 
 #ifdef CALC_MAGS
   // If we are calculating any magnitudes then increment the number of
@@ -267,11 +266,6 @@ void calc_hdf5_props(run_globals_t *run_globals)
   h5props->dst_offsets[i]     = HOFFSET(galaxy_output_t, BaryonFracModifier);
   h5props->dst_field_sizes[i] = sizeof(galout.BaryonFracModifier);
   h5props->field_names[i]     = "BaryonFracModifier";
-  h5props->field_types[i++]   = H5T_NATIVE_FLOAT;
-
-  h5props->dst_offsets[i]     = HOFFSET(galaxy_output_t, LTTime);
-  h5props->dst_field_sizes[i] = sizeof(galout.LTTime);
-  h5props->field_names[i]     = "LTTime";
   h5props->field_types[i++]   = H5T_NATIVE_FLOAT;
 
 #ifdef CALC_MAGS
