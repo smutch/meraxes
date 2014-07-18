@@ -2,13 +2,13 @@
 
 """Plot all available results for a particular redshift.
 
-Usage: allresults.py <fname> <redshift> [--hubble=<Hubble_h> --ext=<extension>]
+Usage: allresults.py <fname> [--z=<redshift> --hubble=<Hubble_h> --ext=<extension>]
 
 Arguments:
     fname      Input Meraxes file
-    redshift   Redshift to plot
 
 Options:
+    --z=<redshift>       Redshift to plot (unspecified = all avail.)
     --hubble=<Hubble_h>  Hubble constant [default: 0.702]
     --ext=<extension>    Ouput file extension [default: pdf]
 """
@@ -38,18 +38,20 @@ if __name__ == '__main__':
     args = docopt(__doc__)
     fname = args['<fname>']
     h = float(args['--hubble'])
-    redshift = float(args['<redshift>'])
     ext = args['--ext']
+    redshift = args['--z']
 
-    # Check that a valid redshift has been requested
-    assert redshift in __available_redshifts__,\
-            "Available redshifts are {:s}".format(__available_redshifts__)
+    if redshift:
+        redshift = float(redshift)
+        # Check that a valid redshift has been requested
+        assert redshift in __available_redshifts__,\
+                "Available redshifts are {:s}".format(__available_redshifts__)
 
     # init the plot style
     plotutils.init_style(context="talk")
 
-    if redshift == 5:
-        snap, redshift = meraxes.io.check_for_redshift(fname, 5.0, tol=0.1)
+    if not redshift or (redshift == 5):
+        snap, _ = meraxes.io.check_for_redshift(fname, 5.0, tol=0.1)
 
         props = ("Sfr", "StellarMass", "Type", "FOFMvir", "CentralGal")
         gals, simprops = meraxes.io.read_gals(fname, snapshot=snap, props=props,
@@ -82,8 +84,8 @@ if __name__ == '__main__':
         # savefig(fig, fname, "shmr-z5", ext)
         # plt.rcParams = rc
 
-    if redshift == 6:
-        snap, redshift = meraxes.io.check_for_redshift(fname, 6.0, tol=0.1)
+    if not redshift or (redshift == 6):
+        snap, _ = meraxes.io.check_for_redshift(fname, 6.0, tol=0.1)
 
         props = ("Sfr", "StellarMass", "Type", "FOFMvir", "CentralGal")
         gals, simprops = meraxes.io.read_gals(fname, snapshot=snap, props=props,
