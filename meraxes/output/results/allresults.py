@@ -18,12 +18,15 @@ import numpy as np
 import matplotlib.pyplot as plt
 from ssimpl import meraxes, plotutils
 from docopt import docopt
+
 import sfrf_z5, smf_z5, shmr_z5
+import sfrf_z6, smf_z6
+import sfrf_z7, smf_z7
 
 __author__ = "Simon Mutch"
 __date__   = "2014-07-08"
 
-__available_redshifts__ = [5,6]
+__available_redshifts__ = [5,6,7]
 
 def savefig(fig, fname_in, fname_out, ext):
     fig.tight_layout()
@@ -84,6 +87,7 @@ if __name__ == '__main__':
         # savefig(fig, fname, "shmr-z5", ext)
         # plt.rcParams = rc
 
+
     if not redshift or (redshift == 6):
         snap, _ = meraxes.io.check_for_redshift(fname, 6.0, tol=0.1)
 
@@ -94,14 +98,37 @@ if __name__ == '__main__':
 
         # SMF
         fig, ax = plt.subplots(1,1)
-        smf_z5.plot(gals, simprops, ax, h)
+        smf_z6.plot(gals, simprops, ax, h)
         ax.yaxis.set_tick_params(which='both', color='w')
         ax.legend(loc="upper right", fontsize="small")
         savefig(fig, fname, "smf-z6", ext)
 
         # SFRF
         fig, ax = plt.subplots(1,1)
-        sfrf_z5.plot(gals, simprops, ax, h)
+        sfrf_z6.plot(gals, simprops, ax, h)
         ax.yaxis.set_tick_params(which='both', color='w')
         ax.legend(loc="lower left", fontsize="small")
         savefig(fig, fname, "sfrf-z6", ext)
+
+
+    if not redshift or (redshift == 7):
+        snap, _ = meraxes.io.check_for_redshift(fname, 7.0, tol=0.1)
+
+        props = ("Sfr", "StellarMass", "Type", "FOFMvir", "CentralGal")
+        gals, simprops = meraxes.io.read_gals(fname, snapshot=snap, props=props,
+                sim_props=True, h=h)
+        gals = gals.view(np.recarray)
+
+        # SMF
+        fig, ax = plt.subplots(1,1)
+        smf_z7.plot(gals, simprops, ax, h)
+        ax.yaxis.set_tick_params(which='both', color='w')
+        ax.legend(loc="upper right", fontsize="small")
+        savefig(fig, fname, "smf-z7", ext)
+
+        # SFRF
+        fig, ax = plt.subplots(1,1)
+        sfrf_z7.plot(gals, simprops, ax, h)
+        ax.yaxis.set_tick_params(which='both', color='w')
+        ax.legend(loc="lower left", fontsize="small")
+        savefig(fig, fname, "sfrf-z7", ext)

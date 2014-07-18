@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 
-"""Plot the z=6 SMF.
+"""Plot the z=7 SMF.
 
-Usage: smf_z6.py <fname> [Hubble_h]
+Usage: smf_z7.py <fname> [Hubble_h]
 
 Arguments:
     Hubble_h   Hubble constant [default: 0.702]
@@ -24,11 +24,11 @@ __script_dir__ = os.path.dirname(os.path.realpath( __file__ ))
 
 def plot(gals, simprops, ax, h):
 
-    print "Plotting z=6 SMF..."
+    print "Plotting z=7 SMF..."
 
     # N.B. NOTE SFR CUT TO MATCH KATSIANIS 2014 (via SMIT 2012) DATA (log(SFR)
     # > -0.44)
-    sfr_limit = -0.265  # lower log10(sfr [Msol]) limit for galaxies
+    sfr_limit = -0.18  # lower log10(sfr [Msol]) limit for galaxies
     sfr_limit *= (0.7**2)/(h**2)
 
     # generate the model smf
@@ -55,7 +55,7 @@ def plot(gals, simprops, ax, h):
 
     # read the observed smf
     obs = pd.read_table(os.path.join(__script_dir__,
-        "../../utils/obs_datasets/smf/Katsianis14_z6_smf.txt"),
+        "../../utils/obs_datasets/smf/Katsianis14_z7_smf.txt"),
         delim_whitespace=True,
         header = None,
         skiprows = 3,
@@ -72,7 +72,7 @@ def plot(gals, simprops, ax, h):
                 lw=4, capsize=0)
 
     # add some text
-    ax.text(0.05,0.05, "z=6\nh={:.2f}\nSalpeter IMF\n".format(h)+
+    ax.text(0.05,0.05, "z=7\nh={:.2f}\nSalpeter IMF\n".format(h)+
             r"log$_{10}$(SFR)"+" > {:.2f}".format(sfr_limit)+r"M$_{\odot}$/yr",
             horizontalalignment="left",
             verticalalignment="bottom",
@@ -94,7 +94,7 @@ if __name__ == '__main__':
     else:
         h = float(args['Hubble_h'])
 
-    snap, redshift = meraxes.io.check_for_redshift(fname, 6.0, tol=0.1)
+    snap, redshift = meraxes.io.check_for_redshift(fname, 7.0, tol=0.1)
 
     props = ("StellarMass", "Mvir", "Type", "Sfr")
     gals, simprops = meraxes.io.read_gals(fname, snapshot=snap, props=props,
@@ -106,5 +106,5 @@ if __name__ == '__main__':
     ax.yaxis.set_tick_params(which='both', color='w')
     ax.legend(loc="upper right")
     fig.tight_layout()
-    output_fname = os.path.join(os.path.dirname(fname), "plots/smf-z6.pdf")
+    output_fname = os.path.join(os.path.dirname(fname), "plots/smf-z7.pdf")
     plt.savefig(output_fname)
