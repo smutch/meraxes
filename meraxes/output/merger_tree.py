@@ -53,7 +53,7 @@ class Graph:
         edge_id = "{:s}->{:s}".format(start, end)
         self.edges[edge_id] = {"start" : start, "end" : end, "type" : edge_type}
         node = self.nodes[end]
-        node["type"]=edge_type
+        node["type"] = edge_type
         node["edge"] = edge_id
 
     def iter_nodes(self):
@@ -187,8 +187,8 @@ if __name__ == '__main__':
     # sel = (~np.isinf(mvir))
     # mvir = mvir[sel]
     # true_mvir = mvir.copy()
-    # mvir = mvir**20
-    # mvir = (mvir/mvir.max())*80
+    # mvir = mvir**10
+    # mvir = (mvir/mvir.max())*500
     # mvir_max = true_mvir.max()
     # mvir_min = true_mvir.min()
 
@@ -217,18 +217,18 @@ if __name__ == '__main__':
                     vmax=mstar_max, marker='o', c=true_mstar[type0_sel],
                     s=mstar[type0_sel], cmap=cmap, label="Type 0")
 
-    # sc = ax.scatter(pos[type0_sel,0], pos[type0_sel,1], vmin=mvir_min,
-    #                 vmax=mvir_max, marker='o', c=true_mvir[type0_sel],
-    #                 s=mvir[type0_sel], cmap=cmap, label="Type 0")
-    # ax.scatter(pos[type1_sel,0], pos[type1_sel,1], vmin=mvir_min,
-    #            vmax=mvir_max, marker='^', c=true_mvir[type1_sel],
-    #            s=mvir[type1_sel], cmap=cmap, label="Type 1")
+    # ax.scatter(pos[ghost_sel,0], pos[ghost_sel,1], vmin=mvir_min,
+    #            vmax=mvir_max, marker='+', facecolor='0.5',
+    #            alpha=0.5, s=mvir[ghost_sel], label="Ghosts")
     # ax.scatter(pos[type2_sel,0], pos[type2_sel,1], vmin=mvir_min,
     #            vmax=mvir_max, marker='v', c=true_mvir[type2_sel],
     #            s=mvir[type2_sel], cmap=cmap, label="Type 2")
-    # ax.scatter(pos[ghost_sel,0], pos[ghost_sel,1], vmin=mvir_min,
-    #            vmax=mvir_max, marker='s', facecolor='0.5', s=mvir[ghost_sel],
-    #            label="Ghosts")
+    # ax.scatter(pos[type1_sel,0], pos[type1_sel,1], vmin=mvir_min,
+    #            vmax=mvir_max, marker='^', c=true_mvir[type1_sel],
+    #            s=mvir[type1_sel], cmap=cmap, label="Type 1")
+    # sc = ax.scatter(pos[type0_sel,0], pos[type0_sel,1], vmin=mvir_min,
+    #                 vmax=mvir_max, marker='o', c=true_mvir[type0_sel],
+    #                 s=mvir[type0_sel], cmap=cmap, label="Type 0")
 
     # add labels for each branch ID
     # for n in G.iter_nodes():
@@ -247,6 +247,9 @@ if __name__ == '__main__':
     cb = fig.colorbar(sc)
     cb.set_clim(true_mstar.min(), true_mstar.max())
     cb.set_label(r"$\log_{10}(M_{*}/{\rm M_{\odot}})$")
+    # cb.set_label(r"$\log_{10}(M_{\rm vir}/{\rm M_{\odot}})$")
+    # cb.set_clim(true_mvir.min(), true_mvir.max())
+    cb.solids.set_edgecolor("face")
     # labels = cb.ax.get_yticklabels()
     # for i, t in enumerate(labels):
     #         labels[i] = "{:.1f}".format(float(t.get_text())/5.)
