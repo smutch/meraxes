@@ -55,7 +55,7 @@ def plot(gals, simprops, ax, h):
 
     # plot the observations
     ax.errorbar(obs.log_sfr, obs.log_phi, yerr=obs.err,
-                label="Katsianis+ in prep.\n(from Van der Burg+ 2011)", ls="none",
+                label="Katsianis et al. in prep.\n(from Van der Burg+ 2011)", ls="none",
                 lw=4, capsize=0)
 
     # do it all again for the next set of observations
