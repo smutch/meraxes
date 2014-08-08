@@ -44,17 +44,18 @@ TOCF_Flag : 0 {  # use 21cmfast for reionization?
 Flag_ReionizationModifier : 1    # use halo mass dependant infall modifier of Sobacchi & Mesinger (2013)
 Flag_BHFeedback           : 1    # use black hole feedback
 
-SfEfficiency        : 0.1     # star formation efficiency
-SfRecycleFraction   : 0.43    # instantaneous recycle fraction (Salpeter)
-SnEjectionEff       : 0.35    # SN feedback gas reheating efficiency
-SnReheatEff         : 3.5     # mass loading factor per unit star formation
-ReincorporationEff  : 0.3     # gas reincorporation efficiency from ejected component
-Yield               : 0.03    # mass of metals injected into ISM per unit star formation
+SfEfficiency              : 0.01    # star formation efficiency
+SfRecycleFraction         : 0.43    # instantaneous recycle fraction (IMF dependant)
+SnEjectionEff             : 0.83    # SN feedback gas reheating efficiency
+SnReheatEff               : 5.0     # mass loading factor for SN feedback
+ReincorporationEff        : 0.0     # gas reincorporation efficiency from ejected component
+Yield                     : 0.03    # mass of metals injected into ISM per unit star formation
 RadioModeEff        : 6e-4    # radio mode feedback efficiency
 BlackHoleGrowthRate : 0.03    # black hole growth efficiency through merger driven gas inflow
 
 ThreshMajorMerger : 0.3     # major merger when mass ratio greater than this
-MergerTimeFactor  : 1.0     # Multiplicitive fator for the merger timescales (2.0->DeLucia+; 1.0->Croton+)
+MergerTimeFactor  : 0.1     # Multiplicitive fator for the merger timescales (2.0->DeLucia+; 1.0->Croton+)
+
 MinMergerRatioForBurst : 0
 MergerBurstFactor : 0.56
 
