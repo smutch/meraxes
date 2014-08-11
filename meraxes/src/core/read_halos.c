@@ -695,6 +695,35 @@ static void select_forests(run_globals_t *run_globals)
 }
 
 
+static void inline gen_dump_fname(run_globals_t *run_globals, char *fname, int snapshot)
+{
+    sprintf(fname, "%s/dump_files/%s-rank%d.%d",
+        run_globals->params.OutputDir, run_globals->params.FileNameGalaxies,
+        SID.My_rank, snapshot);
+}
+
+static void inline update_pointers_from_offsets(
+  int          n_fof_groups_kept,
+  fof_group_t *fof_group,
+  size_t      *fof_FirstHalo_os,
+  int          n_halos_kept,
+  halo_t      *halo,
+  size_t      *halo_FOFGroup_os,
+  size_t      *halo_NextHaloInFOFGroup_os)
+{
+  for (int ii = 0; ii < n_halos_kept; ii++)
+  {
+    halo[ii].FOFGroup = &(fof_group[halo_FOFGroup_os[ii]]);
+    if (halo_NextHaloInFOFGroup_os[ii] != -1)
+      halo[ii].NextHaloInFOFGroup = &(halo[halo_NextHaloInFOFGroup_os[ii]]);
+    else
+      halo[ii].NextHaloInFOFGroup = NULL;
+  }
+  for (int ii = 0; ii < n_fof_groups_kept; ii++)
+    fof_group[ii].FirstHalo = &(halo[fof_FirstHalo_os[ii]]);
+}
+
+
 trees_info_t read_halos(
   run_globals_t *run_globals,
   int            snapshot,
@@ -820,13 +849,10 @@ trees_info_t read_halos(
     FILE *fdump = NULL;
     char fname[STRLEN];
 
-    sprintf(fname, "%s/dump_files/%s-rank%d.%d",
-        run_globals->params.OutputDir, run_globals->params.FileNameGalaxies,
-        SID.My_rank, snapshot);
+    gen_dump_fname(run_globals, fname, snapshot);
 
     if ((fdump = fopen(fname, "rb")) != NULL)
     {
-
       fread(&n_fof_groups_kept, sizeof(int), 1, fdump);
       size_t *fof_FirstHalo_os = SID_malloc(sizeof(size_t) * n_fof_groups_kept);
       fread(*fof_group, sizeof(fof_group_t), n_fof_groups_kept, fdump);
@@ -840,22 +866,19 @@ trees_info_t read_halos(
       fread(halo_NextHaloInFOFGroup_os, sizeof(size_t), n_halos_kept, fdump);
       fread(*index_lookup, sizeof(int), n_halos_kept, fdump);
 
-      for (int ii = 0; ii < n_halos_kept; ii++)
-      {
-        (*halo)[ii].FOFGroup = &((*fof_group)[halo_FOFGroup_os[ii]]);
-        if (halo_NextHaloInFOFGroup_os[ii] != -1)
-          (*halo)[ii].NextHaloInFOFGroup = &((*halo)[halo_NextHaloInFOFGroup_os[ii]]);
-        else
-          (*halo)[ii].NextHaloInFOFGroup = NULL;
-      }
-      for (int ii = 0; ii < n_fof_groups_kept; ii++)
-        (*fof_group)[ii].FirstHalo = &((*halo)[fof_FirstHalo_os[ii]]);
+      update_pointers_from_offsets(n_fof_groups_kept, *fof_group, fof_FirstHalo_os,
+          n_halos_kept, *halo, halo_FOFGroup_os, halo_NextHaloInFOFGroup_os);
 
       SID_free(SID_FARG fof_FirstHalo_os);
       SID_free(SID_FARG halo_NextHaloInFOFGroup_os);
       SID_free(SID_FARG halo_FOFGroup_os);
 
       fclose(fdump);
+    }
+    else
+    {
+      SID_log_error("FlagReadDumpFile = 1, but there is no dumpfile at:\n%s", fname);
+      ABORT(EXIT_FAILURE);
     }
   }
   else
@@ -917,29 +940,22 @@ trees_info_t read_halos(
       *halo         = (halo_t*)SID_realloc(*halo, sizeof(halo_t) * n_halos_kept);
       *index_lookup = (int*)SID_realloc(*index_lookup, sizeof(int) * n_halos_kept);
       *fof_group    = (fof_group_t*)SID_realloc(*fof_group, sizeof(fof_group_t) * n_fof_groups_kept);
-
-      for (int ii = 0; ii < n_halos_kept; ii++)
-      {
-        (*halo)[ii].FOFGroup = &((*fof_group)[halo_FOFGroup_os[ii]]);
-        if (halo_NextHaloInFOFGroup_os[ii] != -1)
-          (*halo)[ii].NextHaloInFOFGroup = &((*halo)[halo_NextHaloInFOFGroup_os[ii]]);
-        else
-          (*halo)[ii].NextHaloInFOFGroup = NULL;
-      }
-      for (int ii = 0; ii < n_fof_groups_kept; ii++)
-        (*fof_group)[ii].FirstHalo = &((*halo)[fof_FirstHalo_os[ii]]);
+      update_pointers_from_offsets(n_fof_groups_kept, *fof_group, fof_FirstHalo_os,
+          n_halos_kept, *halo, halo_FOFGroup_os, halo_NextHaloInFOFGroup_os);
 
       // save the trees_info for this snapshot as well...
       snapshot_trees_info[snapshot] = trees_info;
+
+      SID_log(" ...done (resized to %d halos)", SID_LOG_CLOSE, n_halos_kept);
     }
     else
     {
+      SID_log("Generating dumpfile...", SID_LOG_OPEN);
+
       FILE *fdump = NULL;
       char fname[STRLEN];
 
-      sprintf(fname, "%s/dump_files/%s-rank%d.%d",
-          run_globals->params.OutputDir, run_globals->params.FileNameGalaxies,
-          SID.My_rank, snapshot);
+      gen_dump_fname(run_globals, fname, snapshot);
 
       if ((fdump = fopen(fname, "wb")) != NULL)
       {
@@ -955,13 +971,12 @@ trees_info_t read_halos(
 
         fclose(fdump);
       }
+      SID_log("...done", SID_LOG_CLOSE);
     }
 
     SID_free(SID_FARG fof_FirstHalo_os);
     SID_free(SID_FARG halo_NextHaloInFOFGroup_os);
     SID_free(SID_FARG halo_FOFGroup_os);
-
-    SID_log(" ...done (resized to %d halos)", SID_LOG_CLOSE, n_halos_kept);
   }
 
   SID_Allreduce(SID_IN_PLACE, &n_halos_kept, 1, SID_INT, SID_SUM, SID.COMM_WORLD);
