@@ -1,6 +1,22 @@
 #include "meraxes.h"
 #include "parse_paramfile.h"
 
+static void check_problem_params(run_params_t *run_params)
+{
+  if(run_params->NSteps != 1)
+  {
+    SID_log_error("The current version of the code only works if NSteps = 1. Sorry! Exiting...");
+    ABORT(EXIT_FAILURE);
+  }
+
+  if(run_params->FlagReadDumpFile && run_params->FlagGenDumpFile)
+  {
+    SID_log_error("Both FlagReadDumpFile & FlagGenDumpFile are set!");
+    ABORT(EXIT_FAILURE);
+  }
+}
+
+
 static void inline store_params(
   entry_t       entry[PARAM_MAX_ENTRIES],
   int           n_entries,
