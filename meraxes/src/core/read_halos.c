@@ -814,10 +814,57 @@ trees_info_t read_halos(
     return trees_info;
   }
 
-  // read in the trees
-  read_trees_and_catalogs(run_globals, snapshot, trees_info.unsampled_snapshot,
-      fin_trees, *halo, n_halos, *fof_group, n_fof_groups, n_requested_forests,
-      &n_halos_kept, &n_fof_groups_kept, *index_lookup);
+
+  if (run_globals->params.FlagReadDumpFile)
+  {
+    FILE *fdump = NULL;
+    char fname[STRLEN];
+
+    sprintf(fname, "%s/dump_files/%s-rank%d.%d",
+        run_globals->params.OutputDir, run_globals->params.FileNameGalaxies,
+        SID.My_rank, snapshot);
+
+    if ((fdump = fopen(fname, "rb")) != NULL)
+    {
+
+      fread(&n_fof_groups_kept, sizeof(int), 1, fdump);
+      size_t *fof_FirstHalo_os = SID_malloc(sizeof(size_t) * n_fof_groups_kept);
+      fread(*fof_group, sizeof(fof_group_t), n_fof_groups_kept, fdump);
+      fread(fof_FirstHalo_os, sizeof(size_t), n_fof_groups_kept, fdump);
+
+      fread(&n_halos_kept, sizeof(int), 1, fdump);
+      size_t *halo_FOFGroup_os           = SID_malloc(sizeof(size_t) * n_halos_kept);
+      size_t *halo_NextHaloInFOFGroup_os = SID_malloc(sizeof(size_t) * n_halos_kept);
+      fread(*halo, sizeof(halo_t), n_halos_kept, fdump);
+      fread(halo_FOFGroup_os, sizeof(size_t), n_halos_kept, fdump);
+      fread(halo_NextHaloInFOFGroup_os, sizeof(size_t), n_halos_kept, fdump);
+      fread(*index_lookup, sizeof(int), n_halos_kept, fdump);
+
+      for (int ii = 0; ii < n_halos_kept; ii++)
+      {
+        (*halo)[ii].FOFGroup = &((*fof_group)[halo_FOFGroup_os[ii]]);
+        if (halo_NextHaloInFOFGroup_os[ii] != -1)
+          (*halo)[ii].NextHaloInFOFGroup = &((*halo)[halo_NextHaloInFOFGroup_os[ii]]);
+        else
+          (*halo)[ii].NextHaloInFOFGroup = NULL;
+      }
+      for (int ii = 0; ii < n_fof_groups_kept; ii++)
+        (*fof_group)[ii].FirstHalo = &((*halo)[fof_FirstHalo_os[ii]]);
+
+      SID_free(SID_FARG fof_FirstHalo_os);
+      SID_free(SID_FARG halo_NextHaloInFOFGroup_os);
+      SID_free(SID_FARG halo_FOFGroup_os);
+
+      fclose(fdump);
+    }
+  }
+  else
+  {
+    // read in the trees
+    read_trees_and_catalogs(run_globals, snapshot, trees_info.unsampled_snapshot,
+        fin_trees, *halo, n_halos, *fof_group, n_fof_groups, n_requested_forests,
+        &n_halos_kept, &n_fof_groups_kept, *index_lookup);
+  }
 
   // close the tree file
   if (SID.My_rank == 0)
@@ -831,7 +878,7 @@ trees_info_t read_halos(
   }
 
   // if we are doing multiple runs then resize the arrays to save space and store the trees_info
-  if (run_globals->params.FlagInteractive)
+  if (run_globals->params.FlagInteractive || run_globals->params.FlagGenDumpFile)
   {
     // Ok - what follows here is hacky as hell.  By calling realloc on these
     // arrays, there is a good chance that the actual array will be moved and
@@ -846,47 +893,73 @@ trees_info_t read_halos(
     // trawling through the code and making the relevant updates in a number of
     // places (so we'll leave that till later!).
 
-    SID_log("Reallocing halo storage arrays...", SID_LOG_OPEN);
+    SID_log("Calculating pointer offsets...", SID_LOG_COMMENT);
 
     size_t *halo_FOFGroup_os           = SID_malloc(sizeof(size_t) * n_halos_kept);
     size_t *halo_NextHaloInFOFGroup_os = SID_malloc(sizeof(size_t) * n_halos_kept);
-    bool *halo_NextHaloInFOFGroup_NULL = SID_malloc(sizeof(bool) * n_halos_kept);
-    size_t *fof_FirstHalo_os           = SID_malloc(sizeof(size_t) * n_halos_kept);
+    size_t *fof_FirstHalo_os           = SID_malloc(sizeof(size_t) * n_fof_groups_kept);
 
     for (int ii = 0; ii < n_halos_kept; ii++)
     {
       halo_FOFGroup_os[ii]             = (size_t)((*halo)[ii].FOFGroup - (*fof_group));
-      halo_NextHaloInFOFGroup_NULL[ii] = false;
       if ((*halo)[ii].NextHaloInFOFGroup != NULL)
         halo_NextHaloInFOFGroup_os[ii] = (size_t)((*halo)[ii].NextHaloInFOFGroup - (*halo));
       else
-        halo_NextHaloInFOFGroup_NULL[ii] = true;
+        halo_NextHaloInFOFGroup_os[ii] = -1;
     }
     for (int ii = 0; ii < n_fof_groups_kept; ii++)
       fof_FirstHalo_os[ii] = (size_t)((*fof_group)[ii].FirstHalo - (*halo));
 
-    *halo         = (halo_t*)SID_realloc(*halo, sizeof(halo_t) * n_halos_kept);
-    *index_lookup = (int*)SID_realloc(*index_lookup, sizeof(int) * n_halos_kept);
-    *fof_group    = (fof_group_t*)SID_realloc(*fof_group, sizeof(fof_group_t) * n_fof_groups_kept);
-
-    for (int ii = 0; ii < n_halos_kept; ii++)
+    if (run_globals->params.FlagInteractive)
     {
-      (*halo)[ii].FOFGroup = &((*fof_group)[halo_FOFGroup_os[ii]]);
-      if (!halo_NextHaloInFOFGroup_NULL[ii])
-        (*halo)[ii].NextHaloInFOFGroup = &((*halo)[halo_NextHaloInFOFGroup_os[ii]]);
-      else
-        (*halo)[ii].NextHaloInFOFGroup = NULL;
+      SID_log("Reallocing halo storage arrays...", SID_LOG_OPEN);
+
+      *halo         = (halo_t*)SID_realloc(*halo, sizeof(halo_t) * n_halos_kept);
+      *index_lookup = (int*)SID_realloc(*index_lookup, sizeof(int) * n_halos_kept);
+      *fof_group    = (fof_group_t*)SID_realloc(*fof_group, sizeof(fof_group_t) * n_fof_groups_kept);
+
+      for (int ii = 0; ii < n_halos_kept; ii++)
+      {
+        (*halo)[ii].FOFGroup = &((*fof_group)[halo_FOFGroup_os[ii]]);
+        if (halo_NextHaloInFOFGroup_os[ii] != -1)
+          (*halo)[ii].NextHaloInFOFGroup = &((*halo)[halo_NextHaloInFOFGroup_os[ii]]);
+        else
+          (*halo)[ii].NextHaloInFOFGroup = NULL;
+      }
+      for (int ii = 0; ii < n_fof_groups_kept; ii++)
+        (*fof_group)[ii].FirstHalo = &((*halo)[fof_FirstHalo_os[ii]]);
+
+      // save the trees_info for this snapshot as well...
+      snapshot_trees_info[snapshot] = trees_info;
     }
-    for (int ii = 0; ii < n_fof_groups_kept; ii++)
-      (*fof_group)[ii].FirstHalo = &((*halo)[fof_FirstHalo_os[ii]]);
+    else
+    {
+      FILE *fdump = NULL;
+      char fname[STRLEN];
+
+      sprintf(fname, "%s/dump_files/%s-rank%d.%d",
+          run_globals->params.OutputDir, run_globals->params.FileNameGalaxies,
+          SID.My_rank, snapshot);
+
+      if ((fdump = fopen(fname, "wb")) != NULL)
+      {
+        fwrite(&n_fof_groups_kept, sizeof(int), 1, fdump);
+        fwrite(*fof_group, sizeof(fof_group_t), n_fof_groups_kept, fdump);
+        fwrite(fof_FirstHalo_os, sizeof(size_t), n_fof_groups_kept, fdump);
+
+        fwrite(&n_halos_kept, sizeof(int), 1, fdump);
+        fwrite(*halo, sizeof(halo_t), n_halos_kept, fdump);
+        fwrite(halo_FOFGroup_os, sizeof(size_t), n_halos_kept, fdump);
+        fwrite(halo_NextHaloInFOFGroup_os, sizeof(size_t), n_halos_kept, fdump);
+        fwrite(*index_lookup, sizeof(int), n_halos_kept, fdump);
+
+        fclose(fdump);
+      }
+    }
 
     SID_free(SID_FARG fof_FirstHalo_os);
-    SID_free(SID_FARG halo_NextHaloInFOFGroup_NULL);
     SID_free(SID_FARG halo_NextHaloInFOFGroup_os);
     SID_free(SID_FARG halo_FOFGroup_os);
-
-    // save the trees_info for this snapshot as well...
-    snapshot_trees_info[snapshot] = trees_info;
 
     SID_log(" ...done (resized to %d halos)", SID_LOG_CLOSE, n_halos_kept);
   }

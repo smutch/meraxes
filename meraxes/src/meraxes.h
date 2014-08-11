@@ -136,6 +136,8 @@ struct run_params_t {
   char             ForestIDFile[STRLEN];
   physics_params_t physics;
   int              FlagInteractive;
+  int              FlagGenDumpFile;
+  int              FlagReadDumpFile;
   int              TOCF_Flag;
 };
 typedef struct run_params_t run_params_t;
