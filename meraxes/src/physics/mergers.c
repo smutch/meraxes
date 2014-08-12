@@ -91,22 +91,11 @@ static void merger_driven_starburst(run_globals_t *run_globals, galaxy_t *parent
   {
     // Calculate a merger driven starburst following Guo+ 2010
     double burst_mass;
-    // double m_reheat;
-    // double m_eject;
-    // double new_metals;
-    // double m_recycled;
 
     burst_mass = run_globals->params.physics.MergerBurstFactor * pow(merger_ratio, 0.7) * parent->ColdGas;
 
     if (burst_mass > 0)
-    {
-      // apply supernova feedback and update baryonic reservoirs
-      // supernova_feedback(run_globals, parent, &burst_mass, &m_reheat, &m_eject, &m_recycled, &new_metals, snapshot);
-
-      // update the baryonic reservoirs (note the order makes a difference here!)
       update_reservoirs_from_sf(run_globals, parent, burst_mass);
-      // update_reservoirs_from_sn_feedback(parent, m_reheat, m_eject, new_metals);
-    }
   }
 }
 

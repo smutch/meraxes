@@ -33,10 +33,13 @@ void update_reservoirs_from_sf(run_globals_t *run_globals, galaxy_t *gal, double
     gal->MetalsStellarMass += new_stars * metallicity;
 
     // update the luminosities
-    current_time = gal->LTTime + 0.5 * gal->dt;
+    // TODO: Check the correct time to use here...
+    current_time = gal->LTTime;
+    // current_time = gal->LTTime + 0.5 * gal->dt;
     add_to_luminosities(run_globals, gal, new_stars, metallicity, current_time);
 
     // Check the validity of the modified reservoir values
+    SID_log("new_stars = %g; ColdGas = %g", SID_LOG_COMMENT, new_stars, gal->ColdGas);
     assert(gal->Sfr >= 0);
     assert(gal->ColdGas >= 0);
     assert(gal->MetalsColdGas >= 0);
@@ -57,10 +60,6 @@ void insitu_star_formation(run_globals_t *run_globals, galaxy_t *gal, int snapsh
     double r_disk;
     double m_crit;
     double m_stars;
-    // double m_reheat;
-    // double m_eject;
-    // double new_metals;
-    // double m_recycled;
 
     double SfEfficiency = run_globals->params.physics.SfEfficiency;
 
@@ -81,11 +80,7 @@ void insitu_star_formation(run_globals_t *run_globals, galaxy_t *gal, int snapsh
     if (m_stars > gal->ColdGas)
       m_stars = gal->ColdGas;
 
-    // apply supernova feedback and update baryonic reservoirs
-    // supernova_feedback(run_globals, gal, &m_stars, &m_reheat, &m_eject, &m_recycled, &new_metals, snapshot);
-
-    // update the baryonic reservoirs (note the order makes a difference here!)
+    // update the baryonic reservoirs
     update_reservoirs_from_sf(run_globals, gal, m_stars);
-    // update_reservoirs_from_sn_feedback(gal, m_reheat, m_eject, new_metals);
   }
 }
