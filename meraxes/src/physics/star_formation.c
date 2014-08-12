@@ -12,6 +12,7 @@ void update_reservoirs_from_sf(run_globals_t *run_globals, galaxy_t *gal, double
 
     // update the galaxy's SFR value
     gal->Sfr += new_stars / gal->dt;
+    assert(gal->Sfr >= 0);
 
     // update the stellar mass history
     gal->NewStars[0] += new_stars;
@@ -19,16 +20,8 @@ void update_reservoirs_from_sf(run_globals_t *run_globals, galaxy_t *gal, double
     // instantaneous recycling approximation of stellar mass
     metallicity     = calc_metallicity(gal->ColdGas, gal->MetalsColdGas);
 
-    if (new_stars == gal->ColdGas)
-    {
-      gal->ColdGas           = 0.0;
-      gal->MetalsColdGas     = 0.0;
-    }
-    else
-    {
-      gal->ColdGas           -= new_stars;
-      gal->MetalsColdGas     -= new_stars * metallicity;
-    }
+    gal->ColdGas           -= new_stars;
+    gal->MetalsColdGas     -= new_stars * metallicity;
     gal->StellarMass       += new_stars;
     gal->MetalsStellarMass += new_stars * metallicity;
 
@@ -39,12 +32,14 @@ void update_reservoirs_from_sf(run_globals_t *run_globals, galaxy_t *gal, double
     add_to_luminosities(run_globals, gal, new_stars, metallicity, current_time);
 
     // Check the validity of the modified reservoir values
-    SID_log("new_stars = %g; ColdGas = %g", SID_LOG_COMMENT, new_stars, gal->ColdGas);
-    assert(gal->Sfr >= 0);
-    assert(gal->ColdGas >= 0);
-    assert(gal->MetalsColdGas >= 0);
-    assert(gal->StellarMass >= 0);
-    assert(gal->MetalsStellarMass >= 0);
+    if (gal->ColdGas < 0)
+      gal->ColdGas = 0.0;
+    if (gal->MetalsColdGas < 0)
+      gal->MetalsColdGas = 0.0;
+    if (gal->StellarMass < 0)
+      gal->StellarMass = 0.0;
+    if (gal->MetalsStellarMass < 0)
+      gal->MetalsStellarMass = 0.0;
   }
 }
 

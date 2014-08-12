@@ -18,17 +18,8 @@ void update_reservoirs_from_sn_feedback(galaxy_t *gal, double m_reheat, double m
 
   metallicity = calc_metallicity(gal->ColdGas, gal->MetalsColdGas);
 
-  if (m_reheat >= gal->ColdGas)
-  {
-    gal->ColdGas          = 0;
-    gal->MetalsColdGas    = 0;
-  }
-  else
-  {
-    gal->ColdGas          -= m_reheat;
-    gal->MetalsColdGas    -= m_reheat * metallicity;
-  }
-
+  gal->ColdGas          -= m_reheat;
+  gal->MetalsColdGas    -= m_reheat * metallicity;
   central->HotGas       += m_reheat;
   central->MetalsHotGas += m_reheat * metallicity;
 
@@ -37,28 +28,24 @@ void update_reservoirs_from_sn_feedback(galaxy_t *gal, double m_reheat, double m
   if (m_eject > central->HotGas)
     m_eject = central->HotGas;
 
-  if (m_eject >= central->HotGas)
-  {
-    m_eject = central->HotGas;
-    central->HotGas       = 0.0;
-    central->MetalsHotGas = 0.0;
-  }
-  else
-  {
-    central->HotGas           -= m_eject;
-    central->MetalsHotGas     -= m_eject * metallicity;
-  }
-
+  central->HotGas           -= m_eject;
+  central->MetalsHotGas     -= m_eject * metallicity;
   central->EjectedGas       += m_eject;
   central->MetalsEjectedGas += m_eject * metallicity;
 
   // Check the validity of the modified reservoir values
-  assert(central->HotGas >= 0);
-  assert(central->MetalsHotGas >= 0);
-  assert(gal->ColdGas >= 0);
-  assert(gal->MetalsColdGas >= 0);
-  assert(central->EjectedGas >= 0);
-  assert(central->MetalsEjectedGas >= 0);
+  if (central->HotGas < 0)
+    central->HotGas = 0.0;
+  if (central->MetalsHotGas < 0)
+    central->MetalsHotGas = 0.0;
+  if (central->ColdGas < 0)
+    central->ColdGas = 0.0;
+  if (central->MetalsColdGas < 0)
+    central->MetalsColdGas = 0.0;
+  if (central->EjectedGas < 0)
+    central->EjectedGas = 0.0;
+  if (central->MetalsEjectedGas < 0)
+    central->MetalsEjectedGas = 0.0;
 }
 
 
@@ -221,10 +208,13 @@ void supernova_feedback(run_globals_t *run_globals, galaxy_t *gal, int snapshot)
   double m_recycled = 0.0;
   double new_metals = 0.0;
 
+  // If we are at snapshot < N_HISTORY_SNAPS-1 then only try to look back to snapshot 0
+  int n_bursts = (snapshot-N_HISTORY_SNAPS+1 >= 0) ? N_HISTORY_SNAPS : snapshot+1;
+
   // Loop through each of the last `N_HISTORY_SNAPS` recorded stellar mass
   // bursts and calculate the amount of energy and mass that they will release
   // in the current time step.
-  for (int i_burst = 1; i_burst < N_HISTORY_SNAPS; i_burst++)
+  for (int i_burst = 1; i_burst < n_bursts; i_burst++)
   {
 
     m_stars = gal->NewStars[i_burst];

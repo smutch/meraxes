@@ -50,7 +50,7 @@ galaxy_t* new_galaxy(run_globals_t *run_globals, int snapshot, int halo_ID)
     gal->Vel[ii] = -99999.9;
   }
 
-  for (int ii = 0; ii < N_HISTORY_SNAPS-1; ii++)
+  for (int ii = 0; ii < N_HISTORY_SNAPS; ii++)
     gal->NewStars[ii] = 0.0;
 
   gal->output_index = -1;
