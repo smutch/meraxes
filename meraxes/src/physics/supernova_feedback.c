@@ -97,9 +97,18 @@ static inline void calc_sn_frac(run_globals_t *run_globals, double m_high, doubl
   double  m_frac_SNII   = 0.1442; // fraction of total stellar mass in stars more massive than 8Msol
   double  const_phi = run_globals->params.physics.IMFNormConst;   // should be 0.1706 for Salpeter
   double exponent = run_globals->params.physics.IMFSlope + 2.0;
+
   *sf_frac = const_phi * 1.0/exponent * (pow(m_high, exponent) - pow(m_low, exponent));
   *sn_frac = *sf_frac / m_frac_SNII;
-  assert((*sn_frac <= 1) && (*sn_frac >= 0));
+
+  if (*sn_frac > 1)
+    *sn_frac = 1.0;
+
+  // here we deal with the last decrement of the stellar mass
+  if (m_low <= 8.0)
+    *sf_frac += (run_globals->params.physics.SfRecycleFraction - m_frac_SNII);
+
+  assert(*sn_frac >= 0);
 }
 
 
@@ -133,60 +142,6 @@ static double inline sn_m_low(double log_dt)
 }
 
 
-// void contemp_supernova_feedback(run_globals_t *run_globals, galaxy_t *gal, double *m_stars, double *m_reheat, double *m_eject, double *m_recycled, double *new_metals, int snapshot)
-// {
-//   run_units_t *units   = &(run_globals->units);
-//   double SnReheatEff   = run_globals->params.physics.SnReheatEff;
-//   double *LTTime       = run_globals->LTTime;
-//   fof_group_t *fof_group = gal->Halo->FOFGroup;
-
-//   double m_high = 120.0;  // Msol
-//   double m_low;
-//   double eta_sn;
-//   double sf_frac;
-//   double sn_frac;
-//   double sn_energy;
-//   double log_dt;
-
-//   // work out the lowest mass star which would have expended it's H & He core
-//   // fuel in this time
-//   // log_dt = log10((LTTime[snapshot-1] - LTTime[snapshot]) * units->UnitTime_in_Megayears / run_globals->params.Hubble_h);
-//   // m_low = sn_m_low(log_dt);  // Msol
-//   m_low = 8.0;
-
-//   // work out the number of supernova per unit stellar mass formed at the current time
-//   eta_sn = calc_eta_sn(run_globals, m_high, m_low);
-
-//   // now work out the energy produced by the supernova and add it to our total at this snapshot
-//   sn_energy = calc_sn_energy(run_globals, (*m_stars), eta_sn);
-
-//   // finally calculate the mass reheated (from fraction of total SN-II that have gone off) from this burst
-//   calc_sn_frac(run_globals, m_high, m_low, &sf_frac, &sn_frac);
-//   *m_reheat  = SnReheatEff * sn_frac * (*m_stars);
-
-//   // make sure we aren't trying to use more cold gas than is available...
-//   if (((*m_stars) + (*m_reheat)) > gal->ColdGas)
-//   {
-//     double factor = gal->ColdGas / ((*m_stars) + (*m_reheat));
-//     *m_stars  *= factor;
-//     *m_reheat *= factor;
-//   }
-
-//   // how much mass is recycled and ejected due to this star formation episode? (ala Croton+ 2006)
-//   // TODO: remove sf_frac = 0.43 for IRA
-//   *m_recycled = (*m_stars) * run_globals->params.physics.SfRecycleFraction;// * sf_frac;
-//   *m_eject = calc_ejected_mass((*m_reheat), sn_energy, fof_group->Vvir);
-//   *new_metals = run_globals->params.physics.Yield * (*m_stars);
-
-//   // make sure we are being consistent
-//   assert(*m_reheat >= 0);
-//   assert(*m_recycled >= 0);
-//   assert(*new_metals >= 0);
-//   assert(*m_eject >= 0);
-
-// }
-
-
 void supernova_feedback(run_globals_t *run_globals, galaxy_t *gal, int snapshot)
 {
   double m_stars = gal->NewStars[1];
@@ -208,8 +163,8 @@ void supernova_feedback(run_globals_t *run_globals, galaxy_t *gal, int snapshot)
   double m_recycled = 0.0;
   double new_metals = 0.0;
 
-  // If we are at snapshot < N_HISTORY_SNAPS-1 then only try to look back to snapshot 0
-  int n_bursts = (snapshot-N_HISTORY_SNAPS+1 >= 0) ? N_HISTORY_SNAPS : snapshot+1;
+  // If we are at snapshot < N_HISTORY_SNAPS-2 then only try to look back to snapshot 0
+  int n_bursts = (snapshot >= (N_HISTORY_SNAPS-1)) ? N_HISTORY_SNAPS : snapshot+1;
 
   // Loop through each of the last `N_HISTORY_SNAPS` recorded stellar mass
   // bursts and calculate the amount of energy and mass that they will release
@@ -243,7 +198,7 @@ void supernova_feedback(run_globals_t *run_globals, galaxy_t *gal, int snapshot)
 
       // finally calculate the mass reheated (from fraction of total SN-II that have gone off) from this burst
       calc_sn_frac(run_globals, m_high, m_low, &sf_frac, &sn_frac);
-      m_recycled += m_stars * run_globals->params.physics.SfRecycleFraction * sn_frac;// * sf_frac;
+      m_recycled += m_stars * sf_frac;
       m_reheat   += SnReheatEff * sn_frac * m_stars;
       new_metals += run_globals->params.physics.Yield * m_stars * sn_frac;
     }
