@@ -2,7 +2,7 @@
 #include <math.h>
 #include <assert.h>
 
-static void update_reservoirs_from_sn_feedback(galaxy_t *gal, double m_reheat, double m_eject, double new_metals)
+void update_reservoirs_from_sn_feedback(galaxy_t *gal, double m_reheat, double m_eject, double new_metals)
 {
   double metallicity;
   galaxy_t *central = gal->Halo->FOFGroup->FirstHalo->Galaxy;
@@ -87,13 +87,8 @@ static inline void calc_sn_frac(run_globals_t *run_globals, double m_high, doubl
 }
 
 
-void supernova_feedback(run_globals_t *run_globals, galaxy_t *gal, double m_stars)
+void supernova_feedback(run_globals_t *run_globals, galaxy_t *gal, double *m_stars, double *m_reheat, double *m_eject, double *new_metals)
 {
-  // NOTE: m_stars should be mass of stars formed **before** instantaneous
-  // recycling approximation is applied
-
-  double m_reheat;
-  double m_eject;
   double factor;
   fof_group_t *fof_group = gal->Halo->FOFGroup;
 
@@ -105,35 +100,31 @@ void supernova_feedback(run_globals_t *run_globals, galaxy_t *gal, double m_star
   double sf_frac;
   double sn_frac;
   double sn_energy;
-  double new_metals;
 
   // work out the number of supernova per unit stellar mass formed at the current time
   eta_sn = calc_eta_sn(run_globals, m_high, m_low);
 
   // now work out the energy produced by the supernova and add it to our total at this snapshot
-  sn_energy = calc_sn_energy(run_globals, m_stars, eta_sn);
+  sn_energy = calc_sn_energy(run_globals, (*m_stars), eta_sn);
 
   // finally calculate the mass reheated (from fraction of total SN-II that have gone off) from this burst
   calc_sn_frac(run_globals, m_high, m_low, &sf_frac, &sn_frac);
-  m_reheat  = SnReheatEff * sn_frac * m_stars;
+  *m_reheat  = SnReheatEff * sn_frac * (*m_stars);
 
   // make sure we aren't trying to use more cold gas than is available...
-  if ((m_stars + m_reheat) > gal->ColdGas)
+  if (((*m_stars) + (*m_reheat)) > gal->ColdGas)
   {
-    factor    = gal->ColdGas / (m_stars + m_reheat);
-    m_stars  *= factor;
-    m_reheat *= factor;
+    factor    = gal->ColdGas / ((*m_stars) + (*m_reheat));
+    *m_stars  *= factor;
+    *m_reheat *= factor;
   }
 
   // how much mass is ejected due to this star formation episode? (ala Croton+ 2006)
-  m_eject = calc_ejected_mass(m_reheat, sn_energy, fof_group->Vvir);
-  new_metals = run_globals->params.physics.Yield * m_stars;
+  *m_eject = calc_ejected_mass((*m_reheat), sn_energy, fof_group->Vvir);
+  *new_metals = run_globals->params.physics.Yield * (*m_stars);
 
   // make sure we are being consistent
-  if (m_eject < 0)
-    m_eject = 0.0;
+  if (*m_eject < 0)
+    *m_eject = 0.0;
 
-  // update the baryonic reservoirs (note the order makes a difference here!)
-  update_reservoirs_from_sf(run_globals, gal, m_stars);
-  update_reservoirs_from_sn_feedback(gal, m_reheat, m_eject, new_metals);
 }

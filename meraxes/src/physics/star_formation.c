@@ -38,6 +38,9 @@ void insitu_star_formation(run_globals_t *run_globals, galaxy_t *gal)
     double r_disk;
     double m_crit;
     double m_stars;
+    double m_reheat;
+    double m_eject;
+    double new_metals;
 
     double SfEfficiency = run_globals->params.physics.SfEfficiency;
 
@@ -56,6 +59,10 @@ void insitu_star_formation(run_globals_t *run_globals, galaxy_t *gal)
       return;
 
     // apply supernova feedback and update baryonic reservoirs
-    supernova_feedback(run_globals, gal, m_stars);
+    supernova_feedback(run_globals, gal, &m_stars, &m_reheat, &m_eject, &new_metals);
+
+    // update the baryonic reservoirs (note the order makes a difference here!)
+    update_reservoirs_from_sf(run_globals, gal, m_stars);
+    update_reservoirs_from_sn_feedback(gal, m_reheat, m_eject, new_metals);
   }
 }
