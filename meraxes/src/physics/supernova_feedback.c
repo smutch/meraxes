@@ -8,6 +8,7 @@ void update_reservoirs_from_sn_feedback(galaxy_t *gal, double m_reheat, double m
   galaxy_t *central = gal->Halo->FOFGroup->FirstHalo->Galaxy;
 
   gal->StellarMass -= m_recycled;
+  gal->ColdGas     += m_recycled;
 
   // assuming instantaneous recycling approximation and enrichment from SNII
   // only, work out the mass of metals returned to the ISM by this SF burst
@@ -15,6 +16,10 @@ void update_reservoirs_from_sn_feedback(galaxy_t *gal, double m_reheat, double m
     gal->MetalsColdGas += new_metals;
   else
     central->MetalsHotGas += new_metals;
+
+  // make sure we aren't trying to use more cold gas than is available...
+  if (m_reheat > gal->ColdGas)
+    m_reheat = gal->ColdGas;
 
   metallicity = calc_metallicity(gal->ColdGas, gal->MetalsColdGas);
 
@@ -105,7 +110,7 @@ static inline void calc_sn_frac(run_globals_t *run_globals, double m_high, doubl
     *sn_frac = 1.0;
 
   // here we deal with the last decrement of the stellar mass
-  if (m_low <= 8.0)
+  if (m_low == 8.0)
     *sf_frac += (run_globals->params.physics.SfRecycleFraction - m_frac_SNII);
 
   assert(*sn_frac >= 0);
@@ -207,10 +212,6 @@ void supernova_feedback(run_globals_t *run_globals, galaxy_t *gal, int snapshot)
   assert(m_reheat >= 0);
   assert(m_recycled >= 0);
   assert(new_metals >= 0);
-
-  // make sure we aren't trying to use more cold gas than is available...
-  if (m_reheat > gal->ColdGas)
-    m_reheat = gal->ColdGas;
 
   // how much mass is ejected due to this star formation episode? (ala Croton+ 2006)
   // Note that we use the Vvir of the host group here, as we are assuming that
