@@ -30,8 +30,9 @@
 #define N_PHOTO_JUMPS 1000
 #endif
 
-#define MVIR_PROP 1
-#define VMAX_PROP 2
+#ifndef N_HISTORY_SNAPS
+#define N_HISTORY_SNAPS 5
+#endif
 
 #define ABORT(sigterm)                                                                 \
   do {                                                                                   \
@@ -73,6 +74,9 @@ struct physics_params_t {
   double SnEjectionEff;
   double ReincorporationEff;
   double Yield;
+  double IMFSlope;
+  double EnergyPerSN;
+  double IMFNormConst;
   double RadioModeEff;
   double BlackHoleGrowthRate;
 

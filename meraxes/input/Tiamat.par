@@ -53,6 +53,10 @@ Yield                     : 0.03    # mass of metals injected into ISM per unit 
 RadioModeEff        : 6e-4    # radio mode feedback efficiency
 BlackHoleGrowthRate : 0.03    # black hole growth efficiency through merger driven gas inflow
 
+IMFSlope            : -2.35   # slope of high mass end of IMF
+EnergyPerSN         : 1e51    # energy per SN in erg/s
+IMFNormConst        : 0.1706  # normalisation const of IMF for 0.1 < M <= 120Msol
+
 ThreshMajorMerger : 0.3     # major merger when mass ratio greater than this
 MergerTimeFactor  : 0.1     # Multiplicitive fator for the merger timescales (2.0->DeLucia+; 1.0->Croton+)
 

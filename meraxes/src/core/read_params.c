@@ -333,6 +333,21 @@ void read_parameter_file(run_globals_t *run_globals, char *fname, int mode)
     required_tag[n_param]  = 1;
     params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
+    strcpy(params_tag[n_param], "IMFSlope");
+    params_addr[n_param]   = &(run_params->physics).IMFSlope;
+    required_tag[n_param]  = 1;
+    params_type[n_param++] = PARAM_TYPE_DOUBLE;
+
+    strcpy(params_tag[n_param], "EnergyPerSN");
+    params_addr[n_param]   = &(run_params->physics).EnergyPerSN;
+    required_tag[n_param]  = 1;
+    params_type[n_param++] = PARAM_TYPE_DOUBLE;
+
+    strcpy(params_tag[n_param], "IMFNormConst");
+    params_addr[n_param]   = &(run_params->physics).IMFNormConst;
+    required_tag[n_param]  = 1;
+    params_type[n_param++] = PARAM_TYPE_DOUBLE;
+
     strcpy(params_tag[n_param], "ThreshMajorMerger");
     params_addr[n_param]   = &((run_params->physics).ThreshMajorMerger);
     required_tag[n_param]  = 1;
