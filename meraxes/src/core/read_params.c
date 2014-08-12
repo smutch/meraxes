@@ -27,7 +27,7 @@ static void inline store_params(
   void         *params_addr[PARAM_MAX_ENTRIES],
   run_params_t *run_params)
 {
-  int level;
+  int level = 0;
   int tag_index;
   int temp;
   char prefix[16] = "\0";

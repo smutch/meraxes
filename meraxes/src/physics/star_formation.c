@@ -1,32 +1,48 @@
 #include <math.h>
 #include "meraxes.h"
 #include <gsl/gsl_sf_lambert.h>
+#include <assert.h>
 
-void update_reservoirs_from_sf(run_globals_t *run_globals, galaxy_t *gal, double new_stars, double m_recycled)
+void update_reservoirs_from_sf(run_globals_t *run_globals, galaxy_t *gal, double new_stars)
 {
-  double metallicity;
-  double current_time;
-  double remaining_stars;
-  double new_metals;
+  if (new_stars > 0)
+  {
+    double metallicity;
+    double current_time;
 
-  // update the galaxy's SFR value
-  gal->Sfr += new_stars / gal->dt;
+    // update the galaxy's SFR value
+    gal->Sfr += new_stars / gal->dt;
 
-  // update the stellar mass history
-  gal->NewStars[0] += new_stars;
+    // update the stellar mass history
+    gal->NewStars[0] += new_stars;
 
-  // instantaneous recycling approximation of stellar mass
-  metallicity     = calc_metallicity(gal->ColdGas, gal->MetalsColdGas);
-  remaining_stars = new_stars - m_recycled;
+    // instantaneous recycling approximation of stellar mass
+    metallicity     = calc_metallicity(gal->ColdGas, gal->MetalsColdGas);
 
-  gal->ColdGas           -= remaining_stars;
-  gal->MetalsColdGas     -= remaining_stars * metallicity;
-  gal->StellarMass       += remaining_stars;
-  gal->MetalsStellarMass += remaining_stars * metallicity;
+    if (new_stars == gal->ColdGas)
+    {
+      gal->ColdGas           = 0.0;
+      gal->MetalsColdGas     = 0.0;
+    }
+    else
+    {
+      gal->ColdGas           -= new_stars;
+      gal->MetalsColdGas     -= new_stars * metallicity;
+    }
+    gal->StellarMass       += new_stars;
+    gal->MetalsStellarMass += new_stars * metallicity;
 
-  // update the luminosities
-  current_time = gal->LTTime + 0.5 * gal->dt;
-  add_to_luminosities(run_globals, gal, new_stars, metallicity, current_time);
+    // update the luminosities
+    current_time = gal->LTTime + 0.5 * gal->dt;
+    add_to_luminosities(run_globals, gal, new_stars, metallicity, current_time);
+
+    // Check the validity of the modified reservoir values
+    assert(gal->Sfr >= 0);
+    assert(gal->ColdGas >= 0);
+    assert(gal->MetalsColdGas >= 0);
+    assert(gal->StellarMass >= 0);
+    assert(gal->MetalsStellarMass >= 0);
+  }
 }
 
 
@@ -41,10 +57,10 @@ void insitu_star_formation(run_globals_t *run_globals, galaxy_t *gal, int snapsh
     double r_disk;
     double m_crit;
     double m_stars;
-    double m_reheat;
-    double m_eject;
-    double new_metals;
-    double m_recycled;
+    // double m_reheat;
+    // double m_eject;
+    // double new_metals;
+    // double m_recycled;
 
     double SfEfficiency = run_globals->params.physics.SfEfficiency;
 
@@ -62,11 +78,14 @@ void insitu_star_formation(run_globals_t *run_globals, galaxy_t *gal, int snapsh
       // no star formation
       return;
 
+    if (m_stars > gal->ColdGas)
+      m_stars = gal->ColdGas;
+
     // apply supernova feedback and update baryonic reservoirs
-    supernova_feedback(run_globals, gal, &m_stars, &m_reheat, &m_eject, &m_recycled, &new_metals, snapshot);
+    // supernova_feedback(run_globals, gal, &m_stars, &m_reheat, &m_eject, &m_recycled, &new_metals, snapshot);
 
     // update the baryonic reservoirs (note the order makes a difference here!)
-    update_reservoirs_from_sf(run_globals, gal, m_stars, m_recycled);
-    update_reservoirs_from_sn_feedback(gal, m_reheat, m_eject, new_metals);
+    update_reservoirs_from_sf(run_globals, gal, m_stars);
+    // update_reservoirs_from_sn_feedback(gal, m_reheat, m_eject, new_metals);
   }
 }
