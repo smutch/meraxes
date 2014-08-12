@@ -2,7 +2,7 @@
 #include "meraxes.h"
 #include <gsl/gsl_sf_lambert.h>
 
-void update_reservoirs_from_sf(run_globals_t *run_globals, galaxy_t *gal, double new_stars)
+void update_reservoirs_from_sf(run_globals_t *run_globals, galaxy_t *gal, double new_stars, double m_recycled)
 {
   double metallicity;
   double current_time;
@@ -17,7 +17,7 @@ void update_reservoirs_from_sf(run_globals_t *run_globals, galaxy_t *gal, double
 
   // instantaneous recycling approximation of stellar mass
   metallicity     = calc_metallicity(gal->ColdGas, gal->MetalsColdGas);
-  remaining_stars = (1.0 - run_globals->params.physics.SfRecycleFraction) * new_stars;
+  remaining_stars = new_stars - m_recycled;
 
   gal->ColdGas           -= remaining_stars;
   gal->MetalsColdGas     -= remaining_stars * metallicity;
@@ -30,7 +30,7 @@ void update_reservoirs_from_sf(run_globals_t *run_globals, galaxy_t *gal, double
 }
 
 
-void insitu_star_formation(run_globals_t *run_globals, galaxy_t *gal)
+void insitu_star_formation(run_globals_t *run_globals, galaxy_t *gal, int snapshot)
 {
   // These star formation & supernova feedback prescriptions are taken directly
   // from Croton+ 2006
@@ -44,6 +44,7 @@ void insitu_star_formation(run_globals_t *run_globals, galaxy_t *gal)
     double m_reheat;
     double m_eject;
     double new_metals;
+    double m_recycled;
 
     double SfEfficiency = run_globals->params.physics.SfEfficiency;
 
@@ -62,10 +63,10 @@ void insitu_star_formation(run_globals_t *run_globals, galaxy_t *gal)
       return;
 
     // apply supernova feedback and update baryonic reservoirs
-    supernova_feedback(run_globals, gal, &m_stars, &m_reheat, &m_eject, &new_metals);
+    supernova_feedback(run_globals, gal, &m_stars, &m_reheat, &m_eject, &m_recycled, &new_metals, snapshot);
 
     // update the baryonic reservoirs (note the order makes a difference here!)
-    update_reservoirs_from_sf(run_globals, gal, m_stars);
+    update_reservoirs_from_sf(run_globals, gal, m_stars, m_recycled);
     update_reservoirs_from_sn_feedback(gal, m_reheat, m_eject, new_metals);
   }
 }

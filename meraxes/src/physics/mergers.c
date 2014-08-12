@@ -85,7 +85,7 @@ double calculate_merging_time(run_globals_t *run_globals, galaxy_t *sat, int sna
 }
 
 
-static void merger_driven_starburst(run_globals_t *run_globals, galaxy_t *parent, double merger_ratio)
+static void merger_driven_starburst(run_globals_t *run_globals, galaxy_t *parent, double merger_ratio, int snapshot)
 {
   if ((parent->ColdGas > 0) && (merger_ratio > run_globals->params.physics.MinMergerRatioForBurst))
   {
@@ -94,23 +94,24 @@ static void merger_driven_starburst(run_globals_t *run_globals, galaxy_t *parent
     double m_reheat;
     double m_eject;
     double new_metals;
+    double m_recycled;
 
     burst_mass = run_globals->params.physics.MergerBurstFactor * pow(merger_ratio, 0.7) * parent->ColdGas;
 
     if (burst_mass > 0)
     {
       // apply supernova feedback and update baryonic reservoirs
-      supernova_feedback(run_globals, parent, &burst_mass, &m_reheat, &m_eject, &new_metals);
+      supernova_feedback(run_globals, parent, &burst_mass, &m_reheat, &m_eject, &m_recycled, &new_metals, snapshot);
 
       // update the baryonic reservoirs (note the order makes a difference here!)
-      update_reservoirs_from_sf(run_globals, parent, burst_mass);
+      update_reservoirs_from_sf(run_globals, parent, burst_mass, m_recycled);
       update_reservoirs_from_sn_feedback(parent, m_reheat, m_eject, new_metals);
     }
   }
 }
 
 
-void merge_with_target(run_globals_t *run_globals, galaxy_t *gal, int *dead_gals)
+void merge_with_target(run_globals_t *run_globals, galaxy_t *gal, int *dead_gals, int snapshot)
 {
   galaxy_t *parent = NULL;
   double merger_ratio;
@@ -153,7 +154,7 @@ void merge_with_target(run_globals_t *run_globals, galaxy_t *gal, int *dead_gals
     merger_driven_BH_growth(run_globals, parent, merger_ratio);
 
   // merger driven starburst prescription
-  merger_driven_starburst(run_globals, parent, merger_ratio);
+  merger_driven_starburst(run_globals, parent, merger_ratio, snapshot);
 
   // Mark the merged galaxy as dead
   gal->Type          = 3;

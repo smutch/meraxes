@@ -43,7 +43,7 @@ int evolve_galaxies(run_globals_t *run_globals, fof_group_t *fof_group, int snap
 
           if (gal->Type < 3)
           {
-            insitu_star_formation(run_globals, gal);
+            insitu_star_formation(run_globals, gal, snapshot);
 
             // If this is a type 2 then decrement the merger clock
             if (gal->Type == 2)
@@ -71,7 +71,7 @@ int evolve_galaxies(run_globals_t *run_globals, fof_group_t *fof_group, int snap
             // If the merger clock has run out or our target halo has already
             // merged then process a merger event.
             if ((gal->MergTime < 0) || (gal->MergerTarget->Type == 3))
-              merge_with_target(run_globals, gal, &dead_gals);
+              merge_with_target(run_globals, gal, &dead_gals, snapshot);
           }
           gal = gal->NextGalInHalo;
         }

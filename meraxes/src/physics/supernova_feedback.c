@@ -87,19 +87,56 @@ static inline void calc_sn_frac(run_globals_t *run_globals, double m_high, doubl
 }
 
 
-void supernova_feedback(run_globals_t *run_globals, galaxy_t *gal, double *m_stars, double *m_reheat, double *m_eject, double *new_metals)
+static double inline sn_m_low(double log_dt)
 {
-  double factor;
+  // log_dt must be in units of log10(dt/Myr)
+  // returned value is in units of Msol
+
+  // This is a fit to the H+He core burning lifetimes of stars of varying
+  // masses from Table 14 of Portinari, L., Chiosi, C. & Bressan, A.
+  // Galactic chemical enrichment with new metallicity dependent stellar
+  // yields.  Astronomy and Astrophysics 334, 505–539 (1998).
+
+  double const_a     = 0.80680268;
+  double const_b     = -2.81547136;
+  double const_c     = -5.73419164;
+  double const_d     = 0.475119568;
+  double m_high      = 120.0;       // highest mass star produced in stellar mass burst (Msol)
+  double m_low;
+
+  m_low = pow(10.0, (const_a / log_dt) + const_b * exp(const_c / log_dt) + const_d);
+
+  // the fitting formula for m_low is only valid until t=const_d
+  if (m_low > m_high)
+    m_low = m_high;
+  // we are only including SN-II which corresponds to m_low >= 8Msol
+  else if (m_low < 8.0)
+    m_low = 8.0;
+
+  return m_low;
+}
+
+
+void supernova_feedback(run_globals_t *run_globals, galaxy_t *gal, double *m_stars, double *m_reheat, double *m_eject, double *m_recycled, double *new_metals, int snapshot)
+{
+  run_units_t *units   = &(run_globals->units);
+  double SnReheatEff   = run_globals->params.physics.SnReheatEff;
+  double *LTTime       = run_globals->LTTime;
   fof_group_t *fof_group = gal->Halo->FOFGroup;
 
-  double SnReheatEff   = run_globals->params.physics.SnReheatEff;
-
   double m_high = 120.0;  // Msol
-  double m_low = 8.0;  // Msol
+  double m_low;
   double eta_sn;
   double sf_frac;
   double sn_frac;
   double sn_energy;
+  double log_dt;
+
+  // work out the lowest mass star which would have expended it's H & He core
+  // fuel in this time
+  // log_dt = log10((LTTime[snapshot-1] - LTTime[snapshot]) * units->UnitTime_in_Megayears / run_globals->params.Hubble_h);
+  // m_low = sn_m_low(log_dt);  // Msol
+  m_low = 8.0;
 
   // work out the number of supernova per unit stellar mass formed at the current time
   eta_sn = calc_eta_sn(run_globals, m_high, m_low);
@@ -114,17 +151,21 @@ void supernova_feedback(run_globals_t *run_globals, galaxy_t *gal, double *m_sta
   // make sure we aren't trying to use more cold gas than is available...
   if (((*m_stars) + (*m_reheat)) > gal->ColdGas)
   {
-    factor    = gal->ColdGas / ((*m_stars) + (*m_reheat));
+    double factor = gal->ColdGas / ((*m_stars) + (*m_reheat));
     *m_stars  *= factor;
     *m_reheat *= factor;
   }
 
-  // how much mass is ejected due to this star formation episode? (ala Croton+ 2006)
+  // how much mass is recycled and ejected due to this star formation episode? (ala Croton+ 2006)
+  // TODO: remove sf_frac = 0.43 for IRA
+  *m_recycled = (*m_stars) * run_globals->params.physics.SfRecycleFraction;// * sf_frac;
   *m_eject = calc_ejected_mass((*m_reheat), sn_energy, fof_group->Vvir);
   *new_metals = run_globals->params.physics.Yield * (*m_stars);
 
   // make sure we are being consistent
-  if (*m_eject < 0)
-    *m_eject = 0.0;
+  assert(*m_reheat >= 0);
+  assert(*m_recycled >= 0);
+  assert(*new_metals >= 0);
+  assert(*m_eject >= 0);
 
 }
