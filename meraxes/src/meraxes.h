@@ -280,6 +280,9 @@ struct galaxy_t {
   double MetalsEjectedGas;
   double BlackHoleMass;
 
+  // baryonic hostories
+  double NewStars[N_HISTORY_SNAPS];
+
   // misc
   double Rcool;
   double Cos_Inc;

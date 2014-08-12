@@ -12,6 +12,9 @@ void update_reservoirs_from_sf(run_globals_t *run_globals, galaxy_t *gal, double
   // update the galaxy's SFR value
   gal->Sfr += new_stars / gal->dt;
 
+  // update the stellar mass history
+  gal->NewStars[0] += new_stars;
+
   // instantaneous recycling approximation of stellar mass
   metallicity     = calc_metallicity(gal->ColdGas, gal->MetalsColdGas);
   remaining_stars = (1.0 - run_globals->params.physics.SfRecycleFraction) * new_stars;

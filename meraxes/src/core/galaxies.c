@@ -50,6 +50,9 @@ galaxy_t* new_galaxy(run_globals_t *run_globals, int snapshot, int halo_ID)
     gal->Vel[ii] = -99999.9;
   }
 
+  for (int ii = 0; ii < N_HISTORY_SNAPS-1; ii++)
+    gal->NewStars[ii] = 0.0;
+
   gal->output_index = -1;
   gal->ghost_flag   = false;
 
@@ -88,6 +91,12 @@ void reset_galaxy_properties(galaxy_t *gal)
   gal->Mcool              = 0.0;
   gal->Sfr                = 0.0;
   gal->BaryonFracModifier = 0.0;
+
+  // roll over the baryonic history arrays
+  for (int ii = N_HISTORY_SNAPS-1; ii > 0; ii--)
+    gal->NewStars[ii] = gal->NewStars[ii-1];
+
+  gal->NewStars[0] = 0.0;
 }
 
 
