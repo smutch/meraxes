@@ -2,10 +2,17 @@
 #include <math.h>
 #include <assert.h>
 
-static void update_reservoirs_from_sn_feedback(galaxy_t *gal, double m_reheat, double m_eject)
+static void update_reservoirs_from_sn_feedback(galaxy_t *gal, double m_reheat, double m_eject, double new_metals)
 {
   double metallicity;
   galaxy_t *central = gal->Halo->FOFGroup->FirstHalo->Galaxy;
+
+  // assuming instantaneous recycling approximation and enrichment from SNII
+  // only, work out the mass of metals returned to the ISM by this SF burst
+  if (gal->ColdGas > 1e-10)
+    gal->MetalsColdGas += new_metals;
+  else
+    central->MetalsHotGas += new_metals;
 
   metallicity = calc_metallicity(gal->ColdGas, gal->MetalsColdGas);
 
@@ -80,7 +87,7 @@ static inline void calc_sn_frac(run_globals_t *run_globals, double m_high, doubl
 }
 
 
-void supernova_feedback(run_globals_t *run_globals, galaxy_t *gal, double m_stars, double merger_mass_ratio)
+void supernova_feedback(run_globals_t *run_globals, galaxy_t *gal, double m_stars)
 {
   // NOTE: m_stars should be mass of stars formed **before** instantaneous
   // recycling approximation is applied
@@ -91,8 +98,6 @@ void supernova_feedback(run_globals_t *run_globals, galaxy_t *gal, double m_star
   fof_group_t *fof_group = gal->Halo->FOFGroup;
 
   double SnReheatEff   = run_globals->params.physics.SnReheatEff;
-  // double sn_velocity   = 611.2;  // km/s
-  // double sn_velocity   = 501.4;  // km/s (too match what is actually used by C06)
 
   double m_high = 120.0;  // Msol
   double m_low = 8.0;  // Msol
@@ -100,6 +105,7 @@ void supernova_feedback(run_globals_t *run_globals, galaxy_t *gal, double m_star
   double sf_frac;
   double sn_frac;
   double sn_energy;
+  double new_metals;
 
   // work out the number of supernova per unit stellar mass formed at the current time
   eta_sn = calc_eta_sn(run_globals, m_high, m_low);
@@ -121,12 +127,13 @@ void supernova_feedback(run_globals_t *run_globals, galaxy_t *gal, double m_star
 
   // how much mass is ejected due to this star formation episode? (ala Croton+ 2006)
   m_eject = calc_ejected_mass(m_reheat, sn_energy, fof_group->Vvir);
+  new_metals = run_globals->params.physics.Yield * m_stars;
 
   // make sure we are being consistent
   if (m_eject < 0)
     m_eject = 0.0;
 
   // update the baryonic reservoirs (note the order makes a difference here!)
-  update_reservoirs_from_sf(run_globals, gal, m_stars, merger_mass_ratio);
-  update_reservoirs_from_sn_feedback(gal, m_reheat, m_eject);
+  update_reservoirs_from_sf(run_globals, gal, m_stars);
+  update_reservoirs_from_sn_feedback(gal, m_reheat, m_eject, new_metals);
 }

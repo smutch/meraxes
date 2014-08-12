@@ -101,7 +101,7 @@ static void merger_driven_starburst(run_globals_t *run_globals, galaxy_t *parent
       burst_mass = 0.0;
 
     // apply the supernova feedback scheme and update the baryonic reservoirs
-    supernova_feedback(run_globals, parent, burst_mass, merger_ratio);
+    supernova_feedback(run_globals, parent, burst_mass);
   }
 }
 

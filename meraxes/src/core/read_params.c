@@ -613,6 +613,9 @@ void read_parameter_file(run_globals_t *run_globals, char *fname, int mode)
     if (i > 0)
       if (run_params->OutputDir[i - 1] != '/')
         strcat(run_params->OutputDir, "/");
+
+    check_problem_params(run_params);
+
   }  // END if(SID.My_rank==0)
 
   // If running mpi then broadcast the run parameters to all cores
