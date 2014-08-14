@@ -5,7 +5,16 @@
 void update_reservoirs_from_sn_feedback(galaxy_t *gal, double m_reheat, double m_eject, double m_recycled, double new_metals)
 {
   double metallicity;
-  galaxy_t *central = gal->Halo->FOFGroup->FirstHalo->Galaxy;
+  galaxy_t *central;
+  
+  // If this is a ghost then it doesn't have an identified halo at this
+  // snapshot.  We will therefore dump all of the reheated gas into the ghost's
+  // hot halo, to be recollected and distributed when the ghost is reidentified
+  // at a later time.
+  if (gal->ghost_flag)
+    central = gal;
+  else
+    central = gal->Halo->FOFGroup->FirstHalo->Galaxy;
 
   gal->StellarMass -= m_recycled;
   gal->ColdGas     += m_recycled;
@@ -28,25 +37,30 @@ void update_reservoirs_from_sn_feedback(galaxy_t *gal, double m_reheat, double m
   central->HotGas       += m_reheat;
   central->MetalsHotGas += m_reheat * metallicity;
 
-  metallicity = calc_metallicity(central->HotGas, central->MetalsHotGas);
+  // If this is a ghost then we don't know what the ejected mass is as we don't
+  // know the properties of the halo!
+  if (!gal->ghost_flag)
+  {
+    metallicity = calc_metallicity(central->HotGas, central->MetalsHotGas);
 
-  if (m_eject > central->HotGas)
-    m_eject = central->HotGas;
+    if (m_eject > central->HotGas)
+      m_eject = central->HotGas;
 
-  central->HotGas           -= m_eject;
-  central->MetalsHotGas     -= m_eject * metallicity;
-  central->EjectedGas       += m_eject;
-  central->MetalsEjectedGas += m_eject * metallicity;
+    central->HotGas           -= m_eject;
+    central->MetalsHotGas     -= m_eject * metallicity;
+    central->EjectedGas       += m_eject;
+    central->MetalsEjectedGas += m_eject * metallicity;
+  }
 
   // Check the validity of the modified reservoir values
   if (central->HotGas < 0)
     central->HotGas = 0.0;
   if (central->MetalsHotGas < 0)
     central->MetalsHotGas = 0.0;
-  if (central->ColdGas < 0)
-    central->ColdGas = 0.0;
-  if (central->MetalsColdGas < 0)
-    central->MetalsColdGas = 0.0;
+  if (gal->ColdGas < 0)
+    gal->ColdGas = 0.0;
+  if (gal->MetalsColdGas < 0)
+    gal->MetalsColdGas = 0.0;
   if (central->EjectedGas < 0)
     central->EjectedGas = 0.0;
   if (central->MetalsEjectedGas < 0)
@@ -160,7 +174,6 @@ void supernova_feedback(run_globals_t *run_globals, galaxy_t *gal, int snapshot)
   run_units_t *units   = &(run_globals->units);
   double SnReheatEff   = run_globals->params.physics.SnReheatEff;
   double *LTTime       = run_globals->LTTime;
-  fof_group_t *fof_group = gal->Halo->FOFGroup;
 
   double m_high;
   double m_low;
@@ -221,10 +234,13 @@ void supernova_feedback(run_globals_t *run_globals, galaxy_t *gal, int snapshot)
   assert(m_recycled >= 0);
   assert(new_metals >= 0);
 
-  // how much mass is ejected due to this star formation episode? (ala Croton+ 2006)
-  // Note that we use the Vvir of the host group here, as we are assuming that
-  // only the group holds a hot halo (which is stored by the central galaxy).
-  m_eject = calc_ejected_mass(m_reheat, sn_energy, fof_group->Vvir);
+  if (!gal->ghost_flag)
+  {
+    // how much mass is ejected due to this star formation episode? (ala Croton+ 2006)
+    // Note that we use the Vvir of the host group here, as we are assuming that
+    // only the group holds a hot halo (which is stored by the central galaxy).
+    m_eject = calc_ejected_mass(m_reheat, sn_energy, gal->Halo->FOFGroup->Vvir);
+  }
 
   // update the baryonic reservoirs
   update_reservoirs_from_sn_feedback(gal, m_reheat, m_eject, m_recycled, new_metals);

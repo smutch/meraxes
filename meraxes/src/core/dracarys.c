@@ -347,8 +347,8 @@ void dracarys(run_globals_t *run_globals)
     }
 
     // We finish by copying the halo properties into the galaxy structure of
-    // all galaxies with type<2 and updating the dt values for
-    // non-ghosts.
+    // all galaxies with type<2, passively evolving ghosts, and updating the dt
+    // values for non-ghosts.
     gal = run_globals->FirstGal;
     while (gal != NULL)
     {
@@ -360,10 +360,15 @@ void dracarys(run_globals_t *run_globals)
 #endif
         ABORT(EXIT_FAILURE);
       }
+
       if (!gal->ghost_flag)
         gal->dt /= (double)NSteps;
+      else
+        passively_evolve_ghost(run_globals, gal, snapshot);
+
       if ((gal->Type < 2) && (!gal->ghost_flag))
         copy_halo_to_galaxy(gal->Halo, gal, snapshot);
+
       gal = gal->Next;
     }
 

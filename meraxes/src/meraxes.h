@@ -438,6 +438,7 @@ void         free_halo_storage(run_globals_t *run_globals);
 void         initialize_halo_storage(run_globals_t *run_globals);
 void         dracarys(run_globals_t *run_globals);
 int          evolve_galaxies(run_globals_t *run_globals, fof_group_t *fof_group, int snapshot, int NGal, int NFof);
+void         passively_evolve_ghost(run_globals_t *run_globals, galaxy_t *gal, int snapshot);
 trees_info_t read_halos(run_globals_t *run_globals, int snapshot, halo_t **halo, fof_group_t **fof_group, int **index_lookup, trees_info_t *snapshot_trees_info);
 galaxy_t   * new_galaxy(run_globals_t *run_globals, int snapshot, int halo_ID);
 void         create_new_galaxy(run_globals_t *run_globals, int snapshot, halo_t *halo, int *NGal, int *new_gal_counter);

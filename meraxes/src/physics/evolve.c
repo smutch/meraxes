@@ -93,3 +93,12 @@ int evolve_galaxies(run_globals_t *run_globals, fof_group_t *fof_group, int snap
 
   return gal_counter - dead_gals;
 }
+
+
+void passively_evolve_ghost(run_globals_t *run_globals, galaxy_t *gal, int snapshot)
+{
+  // Passively evolve ghosts.
+  // Currently, this just means evolving their stellar pops...
+  supernova_feedback(run_globals, gal, snapshot);
+}
+
