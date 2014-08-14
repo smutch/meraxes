@@ -22,6 +22,7 @@ from docopt import docopt
 import sfrf_z5, smf_z5, shmr_z5
 import sfrf_z6, smf_z6
 import sfrf_z7, smf_z7
+import sfh
 
 __author__ = "Simon Mutch"
 __date__   = "2014-07-08"
@@ -51,7 +52,7 @@ if __name__ == '__main__':
                 "Available redshifts are {:s}".format(__available_redshifts__)
 
     # init the plot style
-    plotutils.init_style(context="talk")
+    plotutils.init_style()
 
     if not redshift or (redshift == 5):
         snap, _ = meraxes.io.check_for_redshift(fname, 5.0, tol=0.1)
@@ -132,3 +133,10 @@ if __name__ == '__main__':
         ax.yaxis.set_tick_params(which='both', color='w')
         ax.legend(loc="lower left", fontsize="small")
         savefig(fig, fname, "sfrf-z7", ext)
+
+    if not redshift:
+        # star formation history
+        fig, ax = plt.subplots(1,1)
+        sfh.plot(fname, ax, h)
+        ax.legend(loc="lower left", fontsize="small")
+        savefig(fig, fname, "sfh", ext)

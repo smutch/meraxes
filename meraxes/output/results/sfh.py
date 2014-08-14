@@ -23,10 +23,9 @@ __script_dir__ = os.path.dirname(os.path.realpath(__file__))
 
 def plot(fname, ax, h):
 
-    props = ("StellarMass", "Sfr", "GhostFlag")
+    props = ("Sfr", "GhostFlag")
     simprops = meraxes.io.read_input_params(fname, h)
     snaps, redshifts, lt_times = meraxes.io.read_snaplist(fname, h)
-    snaps = snaps.astype('i')
     volume = simprops["Volume"]
 
     sfrd = np.zeros(snaps.shape)
@@ -41,7 +40,7 @@ def plot(fname, ax, h):
             except IndexError:
                 continue
             gals = gals.view(np.recarray)
-            gals = gals[gals.GhostFlag == 0]
+            gals = np.compress(gals.GhostFlag == 0, gals)
 
             sfrd[snap] = gals.Sfr.sum() / volume
             bar.update()
@@ -52,15 +51,15 @@ def plot(fname, ax, h):
     l, = ax.plot(redshifts, np.log10(sfrd), label="Meraxes")
 
     # add some text
-    ax.text(0.05, 0.05, "h={:.2f}\nSalpeter IMF\n".format(h),
+    ax.text(0.95, 0.95, "h={:.2f}\nSalpeter IMF\n".format(h),
             # r"log$_{10}$(SFR)"+" > {:.2f}".format(sfr_limit)
             # +r"M$_{\odot}$/yr",
-            horizontalalignment="left",
-            verticalalignment="bottom",
+            horizontalalignment="right",
+            verticalalignment="top",
             transform=ax.transAxes)
 
-    ax.set_xlim([5, 20])
-    ax.set_ylim([-3, -1])
+    ax.set_xlim([5, 25])
+    ax.set_ylim([-4, -1])
 
     ax.set_xlabel(r"redshift")
     ax.set_ylabel(r"$\log_{10}\psi ({\rm M_{\odot}yr^{-1}Mpc^{-3}})$")
