@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 
-"""Plot the global star formation rate history.
+"""Plot the global stellar mass density history.
 
-Usage: sfh.py <fname> [Hubble_h]
+Usage: smh.py <fname> [Hubble_h]
 
 Arguments:
     Hubble_h   Hubble constant [default: 0.702]
@@ -23,15 +23,18 @@ __script_dir__ = os.path.dirname(os.path.realpath(__file__))
 
 def plot(fname, ax, h):
 
-    props = ("Sfr", "GhostFlag")
+    props = ("StellarMass", "GhostFlag")
     simprops = meraxes.io.read_input_params(fname, h)
     snaps, redshifts, lt_times = meraxes.io.read_snaplist(fname, h)
     volume = simprops["Volume"]
 
-    sfrd = np.zeros(snaps.shape)
+    # Stellar mass limit
+    sm_lim = simprops["PartMass"]*100*simprops["BaryonFrac"]*0.1
 
-    # generate the model sfh
-    print "Generating SFH..."
+    smd = np.zeros(snaps.shape)
+
+    # generate the model smh
+    print "Generating smh..."
     with ProgressBar(snaps.shape[0]) as bar:
         for snap in snaps:
             try:
@@ -39,30 +42,32 @@ def plot(fname, ax, h):
                                             h=h, quiet=True)
             except IndexError:
                 continue
-            gals = gals.view(np.recarray)
-            gals = np.compress(gals.GhostFlag == 0, gals)
+            gals = np.compress((gals['GhostFlag'] == 0) &
+                               (gals['StellarMass'] >= sm_lim), gals)
 
-            sfrd[snap] = gals.Sfr.sum() / volume
+            smd[snap] = gals['StellarMass'].sum()
             bar.update()
+
+    smd /= volume
 
     print "Plotting star formation history..."
 
     # plot the model
-    l, = ax.plot(redshifts, np.log10(sfrd), label="Meraxes")
+    l, = ax.plot(redshifts, np.log10(smd), label="Meraxes")
 
     # add some text
-    ax.text(0.95, 0.95, "h={:.2f}\nSalpeter IMF\n".format(h),
-            # r"log$_{10}$(SFR)"+" > {:.2f}".format(sfr_limit)
-            # +r"M$_{\odot}$/yr",
+    ax.text(0.95, 0.95, "h={:.2f}\nSalpeter IMF\n".format(h)+
+            r"log$_{10}(M/M_{\odot}$)"+" > {:.2e}".format(sm_lim*1e10)+
+            r"M$_{\odot}$",
             horizontalalignment="right",
             verticalalignment="top",
             transform=ax.transAxes)
 
     ax.set_xlim([5, 25])
-    ax.set_ylim([-4, -1])
+    ax.set_ylim([-7, -2])
 
     ax.set_xlabel(r"redshift")
-    ax.set_ylabel(r"$\log_{10}\psi ({\rm M_{\odot}yr^{-1}Mpc^{-3}})$")
+    ax.set_ylabel(r"$\log_{10}\psi ({\rm 10^{10}M_{\odot}\, Mpc^{-3}})$")
 
 
 if __name__ == '__main__':
@@ -79,5 +84,5 @@ if __name__ == '__main__':
     ax.yaxis.set_tick_params(which='both', color='w')
     ax.legend(loc="lower left")
     fig.tight_layout()
-    output_fname = os.path.join(os.path.dirname(fname), "plots/sfh.pdf")
+    output_fname = os.path.join(os.path.dirname(fname), "plots/smh.pdf")
     plt.savefig(output_fname)
