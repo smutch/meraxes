@@ -77,6 +77,23 @@ if unknown:
     print 'Unknown variables:', unknown.keys()
     env.Exit(1)
 
+
+
+# =============================================================================
+# Print variables
+# =============================================================================
+
+print "\nCommand line arguments:"
+
+if env['nout']:
+	print "nout = ", env['nout']
+
+if env['tocf']:
+	print "tocf = ", env['tocf']
+
+print
+
+
 # Take a snapshot of provided options before we continue.
 vars.Save('config.py', env)
 
@@ -106,7 +123,18 @@ if not GetOption('help'):
         env.AppendUnique(LINKFLAGS=['-pg'])
     if env['mpi']:
         env.AppendUnique(CPPDEFINES=['USE_MPI=1'])
-
+    
+    
+    # =============================================================================
+    # Check to see if directories required for build exist and if not, create them
+    # =============================================================================
+    
+    dirname = os.path.dirname("../include/")
+    if not os.path.exists(dirname):
+        os.makedirs(dirname)
+    
+    
+    
     # =================================
     # = System specific build options =
     # =================================
@@ -144,8 +172,10 @@ if not GetOption('help'):
         GBP_LIBS    = ['/home/smutch/3rd_party/gbpCode/myLib']
         FFTW_INCL   = ['/home/smutch/3rd_party/fftw-3.3.3/include']
         FFTW_LIBS   = ['/home/smutch/3rd_party/fftw-3.3.3/lib']
-        TOCF_INCL   = ['../../21cmfast/include']
-        TOCF_LIBS   = ['../../21cmfast/lib']
+        TOCF_INCL   = ['../../21cmfastv2_meraxes_my_fork/include']
+        TOCF_LIBS   = ['../../21cmfastv2_meraxes_my_fork/lib']
+        HDF5_LIB    = ['/usr/local/x86_64/gnu/hdf5-1.8.9-threadsafe/lib']
+        HDF5_INCL   = ['/usr/local/x86_64/gnu/hdf5-1.8.9-threadsafe/include']
         if env['mpi']:
             CC        = ['/usr/local/x86_64/gnu/openmpi-1.6.1/bin/mpicc']
             GBP_LIBS  = [GBP_LIBS[0]+'/mpi']
@@ -173,17 +203,21 @@ if not GetOption('help'):
 
     env.Replace(CC = CC)
     env.AppendUnique(CPPPATH = ["./"])
-    env.AppendUnique(CPPPATH = [GSL_INCL, GBP_INCL])
-    env.AppendUnique(LIBPATH = [GSL_LIBS, GBP_LIBS])
+    env.AppendUnique(CPPPATH = [GSL_INCL, GBP_INCL, HDF5_INCL])
+    env.AppendUnique(LIBPATH = [GSL_LIBS, GBP_LIBS, HDF5_LIB])
     env.AppendUnique(LIBS = HDF5_LIBS)
     env.AppendUnique(CPPFLAGS = '-std=gnu99')
     # env.AppendUnique(CPPFLAGS = ['-fPIC',])
-
+    
+    # OMP references have been removed
     if env['tocf']:
         env.AppendUnique(CPPPATH = [TOCF_INCL, FFTW_INCL])
         env.AppendUnique(LIBPATH = [TOCF_LIBS, FFTW_LIBS])
-        env.AppendUnique(LIBS = ['21cmfast', 'fftw3f_omp', 'fftw3f', 'gomp'])
-        env.AppendUnique(CC = ['-fopenmp',])
+        
+        #env.AppendUnique(LIBS = ['21cmfast', 'fftw3f_omp', 'fftw3f', 'gomp'])   # OMP
+        env.AppendUnique(LIBS = ['21cmfast', 'fftw3f'])
+        
+        #env.AppendUnique(CC = ['-fopenmp',])   # OMP
 
     # Set the python environment to use in any python scripts.
     if 'VIRTUAL_ENV' in os.environ:

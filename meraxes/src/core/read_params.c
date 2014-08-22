@@ -429,10 +429,10 @@ void read_parameter_file(run_globals_t *run_globals, char *fname, int mode)
     required_tag[n_param]  = 0;
     params_type[n_param++] = PARAM_TYPE_INT;
 
-    strcpy(params_tag[n_param], "TOCF_numcores");
-    params_addr[n_param]   = &(tocf_params.numcores);
-    required_tag[n_param]  = 0;
-    params_type[n_param++] = PARAM_TYPE_INT;
+//    strcpy(params_tag[n_param], "TOCF_numcores");  // PMG REMOVED
+//    params_addr[n_param]   = &(tocf_params.numcores);
+//    required_tag[n_param]  = 0;
+//    params_type[n_param++] = PARAM_TYPE_INT;
 
     strcpy(params_tag[n_param], "TOCF_ram");
     params_addr[n_param]   = &(tocf_params.ram);
@@ -506,6 +506,11 @@ void read_parameter_file(run_globals_t *run_globals, char *fname, int mode)
 
     strcpy(params_tag[n_param], "TOCF_HII_filter");
     params_addr[n_param]   = &(tocf_params.HII_filter);
+    required_tag[n_param]  = 0;
+    params_type[n_param++] = PARAM_TYPE_INT;
+    
+    strcpy(params_tag[n_param], "TOCF_region_type_flag");        // PMG ADDED
+    params_addr[n_param]   = &(tocf_params.region_type_flag);
     required_tag[n_param]  = 0;
     params_type[n_param++] = PARAM_TYPE_INT;
 #endif

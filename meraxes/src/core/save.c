@@ -511,14 +511,16 @@ void create_master_file(run_globals_t *run_globals)
     sprintf(names[ii++], "dim");
     addresses[ii] = &(tocf_params.HII_dim);
     sprintf(names[ii++], "HII_dim");
-    addresses[ii] = &(tocf_params.numcores);
-    sprintf(names[ii++], "numcores");
+//    addresses[ii] = &(tocf_params.numcores);  // PMG REMOVED
+//    sprintf(names[ii++], "numcores");
     addresses[ii] = &(tocf_params.HII_filter);
     sprintf(names[ii++], "HII_filter");
     addresses[ii] = &(tocf_params.uvb_feedback);
     sprintf(names[ii++], "uvb_feedback");
     addresses[ii] = &(tocf_params.compute_mfp);
     sprintf(names[ii++], "compute_mfp");
+    addresses[ii] = &(tocf_params.region_type_flag);   // PMG ADDED
+    sprintf(names[ii++], "region_type_flag");
 
     for (int jj = 0; jj < ii; jj++)
       h5_write_attribute(group_id, names[jj], H5T_NATIVE_INT, ds_id, addresses[jj]);
@@ -640,6 +642,10 @@ void create_master_file(run_globals_t *run_globals)
 
       sprintf(source_ds, "Snap%03d/PowerSpectrum", run_globals->ListOutputSnaps[i_out]);
       sprintf(target_ds, "PowerSpectrum");
+      H5Lcreate_external(relative_source_file, source_ds, snap_group_id, target_ds, H5P_DEFAULT, H5P_DEFAULT);
+      
+      sprintf(source_ds, "Snap%03d/RegionSizeDist", run_globals->ListOutputSnaps[i_out]);
+      sprintf(target_ds, "RegionSizeDist");
       H5Lcreate_external(relative_source_file, source_ds, snap_group_id, target_ds, H5P_DEFAULT, H5P_DEFAULT);
     }
 
