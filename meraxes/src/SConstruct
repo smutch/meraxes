@@ -172,8 +172,8 @@ if not GetOption('help'):
         GBP_LIBS    = ['/home/smutch/3rd_party/gbpCode/myLib']
         FFTW_INCL   = ['/home/smutch/3rd_party/fftw-3.3.3/include']
         FFTW_LIBS   = ['/home/smutch/3rd_party/fftw-3.3.3/lib']
-        TOCF_INCL   = ['../../21cmfastv2_meraxes_my_fork/include']
-        TOCF_LIBS   = ['../../21cmfastv2_meraxes_my_fork/lib']
+        TOCF_INCL   = ['../../21cmfast/include']
+        TOCF_LIBS   = ['../../21cmfast/lib']
         HDF5_LIB    = ['/usr/local/x86_64/gnu/hdf5-1.8.9-threadsafe/lib']
         HDF5_INCL   = ['/usr/local/x86_64/gnu/hdf5-1.8.9-threadsafe/include']
         if env['mpi']:
