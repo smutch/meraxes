@@ -2,6 +2,7 @@
 #include "tree_flags.h"
 #include <hdf5.h>
 #include <hdf5_hl.h>
+#include <assert.h>
 
 static void halo_catalog_filename(
   char *simulation_dir,
@@ -336,6 +337,9 @@ static void read_trees_and_catalogs(
         if (n_read + jj == tree_buffer[jj].central_index)
         {
           cur_halo->Type                    = 0;
+
+          assert((*n_fof_groups_kept) < run_globals->NFOFGroupsMax);
+          assert((tree_buffer[jj].group_index - first_group_index) < n_groups);
           fof_group[(*n_fof_groups_kept)].Mvir        = group_buffer[tree_buffer[jj].group_index - first_group_index].M_vir;
 
           convert_input_virial_props(run_globals,
@@ -988,6 +992,7 @@ trees_info_t read_halos(
   return trees_info;
 }
 
+
 void initialize_halo_storage(run_globals_t *run_globals)
 {
   int *n_store_snapshots             = &(run_globals->NStoreSnapshots);
@@ -1030,6 +1035,7 @@ void initialize_halo_storage(run_globals_t *run_globals)
 
   SID_log("...done", SID_LOG_CLOSE);
 }
+
 
 void free_halo_storage(run_globals_t *run_globals)
 {
