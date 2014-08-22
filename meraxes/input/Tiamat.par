@@ -7,7 +7,7 @@ FileNameGalaxies : Tiamat
 #----- Simulation input files  ------------
 #------------------------------------------
 SimName          : Tiamat
-SimulationDir    : /home/smutch/data_dog/input_trees/Tiamat
+SimulationDir    : /home/smutch/data_dragons/input_trees/Tiamat
 CatalogFilePrefix: rockstar_fixed
 BoxSize          : 100
 VolumeFactor     : 1.0
