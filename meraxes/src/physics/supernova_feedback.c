@@ -6,7 +6,7 @@ void update_reservoirs_from_sn_feedback(galaxy_t *gal, double m_reheat, double m
 {
   double metallicity;
   galaxy_t *central;
-  
+
   // If this is a ghost then it doesn't have an identified halo at this
   // snapshot.  We will therefore dump all of the reheated gas into the ghost's
   // hot halo, to be recollected and distributed when the ghost is reidentified
@@ -61,6 +61,8 @@ void update_reservoirs_from_sn_feedback(galaxy_t *gal, double m_reheat, double m
     gal->ColdGas = 0.0;
   if (gal->MetalsColdGas < 0)
     gal->MetalsColdGas = 0.0;
+  if (gal->StellarMass < 0)
+    gal->StellarMass = 0.0;
   if (central->EjectedGas < 0)
     central->EjectedGas = 0.0;
   if (central->MetalsEjectedGas < 0)

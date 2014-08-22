@@ -159,6 +159,7 @@ struct hdf5_output_t {
   size_t       dst_size;
   hid_t        array3f_tid;
   hid_t        array_nmag_f_tid;
+  hid_t        array_nhist_f_tid;
   size_t      *dst_offsets;
   size_t      *dst_field_sizes;
   const char **field_names;
@@ -328,6 +329,9 @@ struct galaxy_output_t {
   float EjectedGas;
   float MetalsEjectedGas;
   float BlackHoleMass;
+
+  // baryonic histories
+  float NewStars[N_HISTORY_SNAPS];
 
   // misc
   float Rcool;

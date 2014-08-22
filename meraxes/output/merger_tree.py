@@ -152,7 +152,10 @@ if __name__ == '__main__':
 
     # Attach the galaxies to the graph
     for snap in tqdm(snaplist, desc="Generating graph"):
-        gal = samio.read_gals(fname_gals, snapshot=snap, quiet=True, h=0.7)
+        try:
+            gal = samio.read_gals(fname_gals, snapshot=snap, quiet=True, h=0.7)
+        except IndexError:
+            continue
         for node in G.iter_nodes():
             if node["snapshot"] == snap:
                 node["galaxy"] = gal[node["index"]]
@@ -231,16 +234,16 @@ if __name__ == '__main__':
     #                 s=mvir[type0_sel], cmap=cmap, label="Type 0")
 
     # add labels for each branch ID
-    # for n in G.iter_nodes():
-    #     if (n["type"]==G.type_next) or (n==G.nodes[first_node]):
-    #         plot_pos = n["plot_pos"]
-    #         ax.text(plot_pos[0], plot_pos[1]+1,
-    #                 "{:d}".format(n["galaxy"]["ID"]),
-    #                 horizontalalignment="center",
-    #                 verticalalignment="bottom",
-    #                 size="x-small",
-    #                 rotation='vertical',
-    #                 color='0.5')
+    for n in G.iter_nodes():
+        if (n["type"]==G.type_next) or (n==G.nodes[first_node]):
+            plot_pos = n["plot_pos"]
+            ax.text(plot_pos[0], plot_pos[1]+1,
+                    "{:d}".format(n["galaxy"]["ID"]),
+                    horizontalalignment="center",
+                    verticalalignment="bottom",
+                    size="x-small",
+                    rotation='vertical',
+                    color='0.5')
 
     # add a color bar
     # import IPython; IPython.embed()

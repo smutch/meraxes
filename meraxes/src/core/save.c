@@ -77,6 +77,9 @@ void prepare_galaxy_for_output(
   galout->BaryonFracModifier = (float)(gal.BaryonFracModifier);
   galout->MergTime           = (float)(gal.MergTime * units->UnitLength_in_cm / units->UnitVelocity_in_cm_per_s / SEC_PER_MEGAYEAR);
 
+  for (int ii = 0; ii < N_HISTORY_SNAPS; ii++)
+    galout->NewStars[ii] = (float)(gal.NewStars[ii]);
+
   prepare_magnitudes_for_output(run_globals, gal, galout, i_snap);
 }
 
@@ -91,7 +94,7 @@ void calc_hdf5_props(run_globals_t *run_globals)
   galaxy_output_t galout;
   int i;                                                // dummy
 
-  h5props->n_props = 30;
+  h5props->n_props = 31;
 
 #ifdef CALC_MAGS
   // If we are calculating any magnitudes then increment the number of
@@ -106,6 +109,7 @@ void calc_hdf5_props(run_globals_t *run_globals)
 
   // Create datatypes for different size arrays
   h5props->array3f_tid = H5Tarray_create(H5T_NATIVE_FLOAT, 1, (hsize_t[]){ 3 });
+  h5props->array_nhist_f_tid = H5Tarray_create(H5T_NATIVE_FLOAT, 1, (hsize_t[]){ N_HISTORY_SNAPS });
 
   // Calculate the offsets of our struct members in memory
   h5props->dst_offsets = SID_malloc(sizeof(size_t) * h5props->n_props);
@@ -247,6 +251,11 @@ void calc_hdf5_props(run_globals_t *run_globals)
   h5props->dst_field_sizes[i] = sizeof(galout.MetalsEjectedGas);
   h5props->field_names[i]     = "MetalsEjectedGas";
   h5props->field_types[i++]   = H5T_NATIVE_FLOAT;
+
+  h5props->dst_offsets[i]     = HOFFSET(galaxy_output_t, NewStars);
+  h5props->dst_field_sizes[i] = sizeof(galout.NewStars);
+  h5props->field_names[i]     = "NewStars";
+  h5props->field_types[i++]   = h5props->array_nhist_f_tid;
 
   h5props->dst_offsets[i]     = HOFFSET(galaxy_output_t, Rcool);
   h5props->dst_field_sizes[i] = sizeof(galout.Rcool);
