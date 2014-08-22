@@ -94,6 +94,8 @@ static void merger_driven_starburst(run_globals_t *run_globals, galaxy_t *parent
 
     burst_mass = run_globals->params.physics.MergerBurstFactor * pow(merger_ratio, 0.7) * parent->ColdGas;
 
+    // TODO: Add an attenuated burst at t = middle of snapshot
+
     if (burst_mass > 0)
       update_reservoirs_from_sf(run_globals, parent, burst_mass);
   }
