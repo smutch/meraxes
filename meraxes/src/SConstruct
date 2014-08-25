@@ -115,29 +115,30 @@ if not GetOption('help'):
         SYSTEM = 'mac'
     elif sys.platform == 'linux2':
         SYSTEM = 'gstar'
-        # SYSTEM = 'green'
+        # SYSTEM = 'vlsci'
 
-    env.AppendUnique(LIBS=['gbpLib','gsl', 'gslcblas', 'm'])
-    HDF5_LIBS = ['z', 'libhdf5_hl', 'libhdf5']
-
-    if SYSTEM=='green':
-        GSL_INCL    = ['/usr/local/gnu/x86_64/gsl/include']
-        GSL_LIBS    = ['/usr/local/gnu/x86_64/gsl/lib']
-        LEVMAR_INCL = ['/home/ssi/smutch/Packages/src/levmar']
-        LEVMAR_LIBS = ['/home/ssi/smutch/Packages/src/levmar']
-        GBP_INCL    = ['/home/ssi/smutch/Work/3rd_party/libs/gbpCode/myInclude']
-        GBP_LIBS    = ['/home/ssi/smutch/Work/3rd_party/libs/gbpCode/myLib/mpi']
-        FITSIO_INCL = ['/home/ssi/smutch/Work/3rd_party/libs/cfitsio/include']
-        FITSIO_LIBS = ['/home/ssi/smutch/Work/3rd_party/libs/cfitsio/lib']
-        SPRNG_INCL  = ['/home/ssi/smutch/Work/3rd_party/libs/sprng/include']
-        SPRNG_LIBS  = ['/home/ssi/smutch/Work/3rd_party/libs/sprng/lib']
-        CC          = ['/usr/local/gnu/x86_64/openmpi-1.4/bin/mpicc']
-        GIT         = ['/usr/local/git-1.7.4/bin/git']
+    if SYSTEM=='vlsci':
+        GIT         = ['/usr/bin/git']
+        GSL_INCL    = ['/usr/local/gsl/1.16-intel/include']
+        GSL_LIBS    = ['/usr/local/gsl/1.16-intel/lib']
+        HDF5_INCL   = ['/usr/local/hdf5/1.8.11-gcc/include']
+        HDF5_LIBS   = ['/usr/local/hdf5/1.8.11-gcc/lib']
+        GBP_INCL    = ['/vlsci/VRSWAP/smutch/3rd_party/gbpCode/myInclude']
+        GBP_LIBS    = ['/vlsci/VRSWAP/smutch/3rd_party/gbpCode/myLib']
+        # TOCF_INCL   = ['../../21cmfast/include']
+        # TOCF_LIBS   = ['../../21cmfast/lib']
+        if env['mpi']:
+            CC        = ['mpicc']
+            GBP_LIBS  = [GBP_LIBS[0]+'/mpi']
+        else:
+            CC      = ['cc']
 
     elif SYSTEM=='gstar':
         GIT         = ['/usr/bin/git']
         GSL_INCL    = ['/usr/local/x86_64/gnu/gsl-1.9/include']
         GSL_LIBS    = ['/usr/local/x86_64/gnu/gsl-1.9/lib']
+        HDF5_INCL   = ['/usr/local/x86_64/gnu/hdf5-1.8.9-threadsafe/include']
+        HDF5_LIBS   = ['/usr/local/x86_64/gnu/hdf5-1.8.9-threadsafe/lib']
         LEVMAR_INCL = ['/home/smutch/3rd_party/levmar']
         LEVMAR_LIBS = ['/home/smutch/3rd_party/levmar']
         GBP_INCL    = ['/home/smutch/3rd_party/gbpCode/myInclude']
@@ -155,8 +156,6 @@ if not GetOption('help'):
     elif SYSTEM=='mac':
         GSL_INCL    = ['/usr/local/include']
         GSL_LIBS    = ['/usr/local/lib']
-        LEVMAR_INCL = ['/Users/smutch/3rd_party/levmar-2.6']
-        LEVMAR_LIBS = ['/Users/smutch/3rd_party/levmar-2.6']
         GBP_INCL    = ['/Users/smutch/3rd_party/gbpCode/myInclude']
         GBP_LIBS    = ['/Users/smutch/3rd_party/gbpCode/myLib']
         GIT         = ['/usr/bin/git']
@@ -164,6 +163,8 @@ if not GetOption('help'):
         TOCF_LIBS   = ['../../21cmfast/lib']
         FFTW_INCL   = ['/Users/smutch/3rd_party/fftw-3.3.3/include']
         FFTW_LIBS   = ['/Users/smutch/3rd_party/fftw-3.3.3/lib']
+        HDF5_INCL   = []
+        HDF5_LIBS   = []
         if env['mpi']:
             CC        = ['mpicc']
             GBP_LIBS  = [GBP_LIBS[0]+'/mpi']
@@ -173,9 +174,9 @@ if not GetOption('help'):
 
     env.Replace(CC = CC)
     env.AppendUnique(CPPPATH = ["./"])
-    env.AppendUnique(CPPPATH = [GSL_INCL, GBP_INCL])
-    env.AppendUnique(LIBPATH = [GSL_LIBS, GBP_LIBS])
-    env.AppendUnique(LIBS = HDF5_LIBS)
+    env.AppendUnique(CPPPATH = [GSL_INCL, GBP_INCL, HDF5_INCL])
+    env.AppendUnique(LIBPATH = [GSL_LIBS, GBP_LIBS, HDF5_LIBS])
+    env.AppendUnique(LIBS=['gbpLib','gsl', 'gslcblas', 'm', 'z', 'libhdf5_hl', 'libhdf5'])
     env.AppendUnique(CPPFLAGS = '-std=gnu99')
     # env.AppendUnique(CPPFLAGS = ['-fPIC',])
 
