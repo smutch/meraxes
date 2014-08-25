@@ -94,10 +94,18 @@ static void merger_driven_starburst(run_globals_t *run_globals, galaxy_t *parent
 
     burst_mass = run_globals->params.physics.MergerBurstFactor * pow(merger_ratio, 0.7) * parent->ColdGas;
 
-    // TODO: Add an attenuated burst at t = middle of snapshot
-
     if (burst_mass > 0)
+    {
+      double m_reheat;
+      double m_eject;
+      double m_recycled;
+      double new_metals;
+
+      contemporaneous_supernova_feedback(run_globals, parent, &burst_mass, snapshot, &m_reheat, &m_eject, &m_recycled, &new_metals);
+      // update the baryonic reservoirs (note that the order we do this in will change the result!)
       update_reservoirs_from_sf(run_globals, parent, burst_mass);
+      update_reservoirs_from_sn_feedback(parent, m_reheat, m_eject, m_recycled, new_metals);
+    }
   }
 }
 

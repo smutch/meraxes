@@ -99,6 +99,6 @@ void passively_evolve_ghost(run_globals_t *run_globals, galaxy_t *gal, int snaps
 {
   // Passively evolve ghosts.
   // Currently, this just means evolving their stellar pops...
-  supernova_feedback(run_globals, gal, snapshot);
+  delayed_supernova_feedback(run_globals, gal, snapshot);
 }
 

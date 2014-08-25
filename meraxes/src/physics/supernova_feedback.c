@@ -186,6 +186,7 @@ void delayed_supernova_feedback(run_globals_t *run_globals, galaxy_t *gal, int s
   double m_eject = 0.0;
   double m_recycled = 0.0;
   double new_metals = 0.0;
+  double m_stars;
 
   // If we are at snapshot < N_HISTORY_SNAPS-1 then only try to look back to snapshot 0
   int n_bursts = (snapshot >= N_HISTORY_SNAPS) ? N_HISTORY_SNAPS : snapshot;
@@ -249,6 +250,11 @@ void delayed_supernova_feedback(run_globals_t *run_globals, galaxy_t *gal, int s
 void contemporaneous_supernova_feedback(run_globals_t *run_globals, galaxy_t *gal, double *m_stars, int snapshot, double *m_reheat, double *m_eject, double *m_recycled, double *new_metals)
 {
 
+  // Here we approximate a constant SFR accross the timestep by a single burst
+  // at t=0.5*dt.  This is a pretty good approximation (to within ~15% of the
+  // true number of SN that would have gone of by the end of the timestep for a
+  // constant SFR).
+
   run_units_t *units   = &(run_globals->units);
   double SnReheatEff   = run_globals->params.physics.SnReheatEff;
   double *LTTime       = run_globals->LTTime;
@@ -261,9 +267,12 @@ void contemporaneous_supernova_feedback(run_globals_t *run_globals, galaxy_t *ga
   double log_dt;
   double sn_energy = 0.0;
 
+  // init (just in case!)
+  *m_reheat = *m_recycled = *new_metals = *m_eject = 0.0;
+
   // work out the lowest mass star which would have expended it's H & He core
   // fuel in this time
-  log_dt = log10((LTTime[snapshot-1] - LTTime[snapshot]) * units->UnitTime_in_Megayears / run_globals->params.Hubble_h);
+  log_dt = log10((LTTime[snapshot-1] - LTTime[snapshot])/2.0 * units->UnitTime_in_Megayears / run_globals->params.Hubble_h);
   m_low = sn_m_low(log_dt);  // Msol
 
   // work out the number of supernova per unit stellar mass formed at the current time

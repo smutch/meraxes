@@ -456,7 +456,8 @@ double       calculate_merging_time(run_globals_t *run_globals, galaxy_t *gal, i
 void         merge_with_target(run_globals_t *run_globals, galaxy_t *gal, int *dead_gals, int snapshot);
 void         insitu_star_formation(run_globals_t *run_globals, galaxy_t *gal, int snapshot);
 void         update_reservoirs_from_sf(run_globals_t *run_globals, galaxy_t *gal, double new_stars);
-void         supernova_feedback(run_globals_t *run_globals, galaxy_t *gal, int snapshot);
+void         delayed_supernova_feedback(run_globals_t *run_globals, galaxy_t *gal, int snapshot);
+void         contemporaneous_supernova_feedback(run_globals_t *run_globals, galaxy_t *gal, double *m_stars, int snapshot, double *m_reheat, double *m_eject, double *m_recycled, double *new_metals);
 void         update_reservoirs_from_sn_feedback(galaxy_t *gal, double m_reheat, double m_eject, double m_recycled, double new_metals);
 void         prep_hdf5_file(run_globals_t *run_globals);
 void         create_master_file(run_globals_t *run_globals);
