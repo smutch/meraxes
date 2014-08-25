@@ -205,6 +205,3 @@ if not GetOption('help'):
     Depends(incl, git_header)
     Depends(lib, incl)
     env.Alias('lib', lib)
-
-    # Testing alias
-    test = env.Command('test', [target], """cp $SOURCE /home/smutch/data/meraxes/GiggleZ_MR_no_ghost_test/debug/uvb/""")
