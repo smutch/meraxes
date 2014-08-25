@@ -63,7 +63,7 @@ vars.AddVariables(
     BoolVariable('calc_mags', 'Calculate magnitudes.', False),
     BoolVariable('tocf', 'Calculate xH structure with 21cmFAST.', False),
     ('allocparameter', 'Set the ALLOCPARAM value.', 5.0),
-    EnumVariable('build', 'Set the build type.', 'optimised', allowed_values=('debug', 'optimised')),
+    EnumVariable('build', 'Set the build type.', 'standard', allowed_values=('debug', 'standard', 'optimized')),
     BoolVariable('prof', 'Enable profiling.', False),
     BoolVariable('mpi', 'Build with mpi', True),
 )
@@ -99,8 +99,10 @@ if not GetOption('help'):
     if env['build'] == 'debug':
         env.MergeFlags('-g -O0 -Wall')
         env.AppendUnique(CPPDEFINES=['DEBUG'])
-    elif env['build'] == 'optimised':
+    elif env['build'] == 'standard':
         env.MergeFlags('-O2')
+    elif env['build'] == 'optimized':
+        env.MergeFlags('-O2 -DNDEBUG')
     if env['prof']:
         env.MergeFlags('-g -pg')
         env.AppendUnique(LINKFLAGS=['-pg'])
