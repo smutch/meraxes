@@ -281,7 +281,7 @@ void contemporaneous_supernova_feedback(
   // work out the lowest mass star which would have expended it's H & He core
   // fuel in this time
   assert(snapshot > 0);
-  log_dt = log10((LTTime[snapshot-1] - LTTime[snapshot])/2.0 * units->UnitTime_in_Megayears / run_globals->params.Hubble_h);
+  log_dt = log10(gal->dt/2.0 * units->UnitTime_in_Megayears / run_globals->params.Hubble_h);
   m_low = sn_m_low(log_dt);  // Msol
 
   // work out the number of supernova per unit stellar mass formed at the current time

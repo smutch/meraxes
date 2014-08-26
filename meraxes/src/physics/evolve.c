@@ -28,7 +28,6 @@ int evolve_galaxies(run_globals_t *run_globals, fof_group_t *fof_group, int snap
 
         while (gal != NULL)
         {
-          gal->LTTime -= gal->dt;
 
           if (gal->Type == 0)
           {

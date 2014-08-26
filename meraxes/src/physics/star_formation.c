@@ -26,7 +26,7 @@ void update_reservoirs_from_sf(run_globals_t *run_globals, galaxy_t *gal, double
     gal->MetalsStellarMass += new_stars * metallicity;
 
     // update the luminosities
-    current_time = gal->LTTime + 0.5 * gal->dt;
+    current_time = run_globals->LTTime[gal->LastIdentSnap] - 0.5 * gal->dt;
     add_to_luminosities(run_globals, gal, new_stars, metallicity, current_time);
 
     // Check the validity of the modified reservoir values.

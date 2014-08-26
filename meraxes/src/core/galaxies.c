@@ -15,6 +15,7 @@ galaxy_t* new_galaxy(run_globals_t *run_globals, int snapshot, int halo_ID)
   gal->SnapSkipCounter    = 0;
   gal->HaloDescIndex      = -1;
   gal->TreeFlags          = -1;
+  gal->LastIdentSnap      = -1;
   gal->Halo               = NULL;
   gal->FirstGalInHalo     = NULL;
   gal->NextGalInHalo      = NULL;
@@ -22,7 +23,6 @@ galaxy_t* new_galaxy(run_globals_t *run_globals, int snapshot, int halo_ID)
   gal->MergerTarget       = NULL;
   gal->Len                = 0;
   gal->dt                 = 0.0;
-  gal->LTTime             = 0.0;
   gal->Mvir               = 0.0;
   gal->Rvir               = 0.0;
   gal->Vvir               = 0.0;
@@ -126,10 +126,12 @@ void create_new_galaxy(
 
   gal       = new_galaxy(run_globals, snapshot, halo->ID);
   gal->Halo = halo;
+
   if (snapshot > 0)
-    gal->LTTime = run_globals->LTTime[snapshot - 1];
+    gal->LastIdentSnap = snapshot - 1;
   else
-    gal->LTTime = run_globals->LTTime[snapshot];
+    gal->LastIdentSnap = snapshot;
+
   assign_galaxy_to_halo(gal, halo);
 
   if (run_globals->LastGal != NULL)
@@ -139,7 +141,7 @@ void create_new_galaxy(
 
   run_globals->LastGal = gal;
   gal->FirstGalInHalo  = gal;
-  gal->dt              = gal->LTTime - run_globals->LTTime[snapshot];
+  gal->dt              = run_globals->LTTime[gal->LastIdentSnap] - run_globals->LTTime[snapshot];
   *NGal                = *NGal + 1;
   *new_gal_counter     = *new_gal_counter + 1;
 }

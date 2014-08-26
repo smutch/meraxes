@@ -671,7 +671,6 @@ void create_master_file(run_globals_t *run_globals)
     temp = run_globals->LTTime[run_globals->ListOutputSnaps[i_out]] * run_globals->units.UnitLength_in_cm / run_globals->units.UnitVelocity_in_cm_per_s / SEC_PER_MEGAYEAR;
     h5_write_attribute(snap_group_id, "LTTime", H5T_NATIVE_DOUBLE, ds_id, &temp);
 
-
     H5Gclose(snap_group_id);
   }
 

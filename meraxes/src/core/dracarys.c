@@ -84,6 +84,7 @@ void dracarys(run_globals_t *run_globals)
   fof_group_t **snapshot_fof_group  = run_globals->SnapshotFOFGroup;
   int **snapshot_index_lookup       = run_globals->SnapshotIndexLookup;
   trees_info_t *snapshot_trees_info = run_globals->SnapshotTreesInfo;
+  double *LTTime = run_globals->LTTime;
 
   // Find what the last requested output snapshot is
   for (int ii = 0; ii < NOUT; ii++)
@@ -150,7 +151,7 @@ void dracarys(run_globals_t *run_globals)
         if (i_newhalo > -1)
         {
           gal->OldType = gal->Type;
-          gal->dt      = gal->LTTime - run_globals->LTTime[snapshot];
+          gal->dt      = LTTime[gal->LastIdentSnap] - LTTime[snapshot];
           if (gal->Type < 2)
           {
             if (check_for_merger(gal, &(halo[i_newhalo])))
@@ -422,6 +423,15 @@ void dracarys(run_globals_t *run_globals)
     if (run_globals->params.TOCF_Flag)
       check_if_reionization_complete(run_globals);
 #endif
+
+    // Update the LastIdentSnap values for non-ghosts
+    gal = run_globals->FirstGal;
+    while (gal != NULL)
+    {
+      if (!gal->ghost_flag)
+        gal->LastIdentSnap = snapshot;
+      gal = gal->Next;
+    }
 
     SID_log("...done", SID_LOG_CLOSE);
   }

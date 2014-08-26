@@ -248,6 +248,7 @@ struct galaxy_t {
   int              SnapSkipCounter;
   int              HaloDescIndex;
   int              TreeFlags;
+  int              LastIdentSnap;  //!< Last snapshot at which the halo in which this galaxy resides was identified
   bool             ghost_flag;
   struct halo_t   *Halo;
   struct galaxy_t *FirstGalInHalo;
@@ -256,7 +257,6 @@ struct galaxy_t {
   struct galaxy_t *MergerTarget;
   int              Len;
   double           dt; //!< Time between current snapshot and last identification
-  double           LTTime; //!< Lookback time at the last time this galaxy was identified
 
   // properties of subhalo at the last time this galaxy was a central galaxy
   float Pos[3];
