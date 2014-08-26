@@ -433,6 +433,10 @@ void dracarys(run_globals_t *run_globals)
       gal = gal->Next;
     }
 
+#ifdef DEBUG
+    check_pointers(run_globals, halo, fof_group, &trees_info);
+#endif
+
     SID_log("...done", SID_LOG_CLOSE);
   }
 

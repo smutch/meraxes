@@ -265,7 +265,6 @@ void contemporaneous_supernova_feedback(
 
   run_units_t *units   = &(run_globals->units);
   double SnReheatEff   = run_globals->params.physics.SnReheatEff;
-  double *LTTime       = run_globals->LTTime;
 
   double m_high = 120.0;  // Msol
   double m_low;

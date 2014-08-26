@@ -515,5 +515,6 @@ void check_if_reionization_complete(run_globals_t *run_globals);
 
 #ifdef DEBUG
 int debug(const char * restrict format, ...);
+void check_pointers(run_globals_t *run_globals, halo_t *halos, fof_group_t *fof_groups, trees_info_t *trees_info);
 #endif
 #endif // _INIT_MERAXES
