@@ -247,7 +247,15 @@ void delayed_supernova_feedback(run_globals_t *run_globals, galaxy_t *gal, int s
 
 
 
-void contemporaneous_supernova_feedback(run_globals_t *run_globals, galaxy_t *gal, double *m_stars, int snapshot, double *m_reheat, double *m_eject, double *m_recycled, double *new_metals)
+void contemporaneous_supernova_feedback(
+  run_globals_t *run_globals,
+  galaxy_t      *gal,
+  double        *m_stars,
+  int            snapshot,
+  double        *m_reheat,
+  double        *m_eject,
+  double        *m_recycled,
+  double        *new_metals)
 {
 
   // Here we approximate a constant SFR accross the timestep by a single burst
@@ -272,6 +280,7 @@ void contemporaneous_supernova_feedback(run_globals_t *run_globals, galaxy_t *ga
 
   // work out the lowest mass star which would have expended it's H & He core
   // fuel in this time
+  assert(snapshot > 0);
   log_dt = log10((LTTime[snapshot-1] - LTTime[snapshot])/2.0 * units->UnitTime_in_Megayears / run_globals->params.Hubble_h);
   m_low = sn_m_low(log_dt);  // Msol
 
@@ -286,15 +295,17 @@ void contemporaneous_supernova_feedback(run_globals_t *run_globals, galaxy_t *ga
   *m_recycled = *m_stars * burst_recycled_frac;
 
   // attenuate the star formation if necessary, so that we are being consistent
-  if (*m_reheat + *m_stars - *m_recycled > gal->ColdGas)
+  // if (*m_reheat + *m_stars - *m_recycled > gal->ColdGas)
+  if (*m_reheat + *m_stars > gal->ColdGas)
   {
-    double frac = gal->ColdGas / (*m_reheat + *m_stars - *m_recycled);
+    // double frac = gal->ColdGas / (*m_reheat + *m_stars - *m_recycled);
+    double frac = gal->ColdGas / (*m_reheat + *m_stars);
     *m_reheat *= frac;
     *m_stars *= frac;
-    *m_recycled *= frac;
+    // *m_recycled *= frac;
   }
 
-  // how much new metals will be made by this burst?
+  // how much new metals will be created by this burst?
   *new_metals = run_globals->params.physics.Yield * *m_stars * snII_frac;
 
   // now work out the energy produced by the supernova
