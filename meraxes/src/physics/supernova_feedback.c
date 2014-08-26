@@ -246,6 +246,22 @@ void delayed_supernova_feedback(run_globals_t *run_globals, galaxy_t *gal, int s
 }
 
 
+static void backfill_ghost_NewStars(run_globals_t *run_globals, galaxy_t *gal, double m_stars, int snapshot)
+{
+  if ((snapshot - gal->LastIdentSnap) <= N_HISTORY_SNAPS)
+  {
+    double *LTTime       = run_globals->LTTime;
+    double burst_time    = LTTime[gal->LastIdentSnap] - gal->dt*0.5;
+
+    for (int ii = 1; ii < N_HISTORY_SNAPS; ii++)
+      if (LTTime[snapshot - ii] > burst_time)
+      {
+        gal->NewStars[ii-1] += m_stars;
+        break;
+      }
+  }
+}
+
 
 void contemporaneous_supernova_feedback(
   run_globals_t *run_globals,
@@ -280,7 +296,7 @@ void contemporaneous_supernova_feedback(
   // work out the lowest mass star which would have expended it's H & He core
   // fuel in this time
   assert(snapshot > 0);
-  log_dt = log10(gal->dt/2.0 * units->UnitTime_in_Megayears / run_globals->params.Hubble_h);
+  log_dt = log10(gal->dt*0.5 * units->UnitTime_in_Megayears / run_globals->params.Hubble_h);
   m_low = sn_m_low(log_dt);  // Msol
 
   // work out the number of supernova per unit stellar mass formed at the current time
@@ -318,4 +334,9 @@ void contemporaneous_supernova_feedback(
   // Note that we use the Vvir of the host group here, as we are assuming that
   // only the group holds a hot halo (which is stored by the central galaxy).
   *m_eject = calc_ejected_mass(*m_reheat, sn_energy, gal->Halo->FOFGroup->Vvir);
+
+  // If this is a reidentified ghost, then back fill NewStars to reflect this
+  // new SF burst.
+  if (gal->LastIdentSnap < (snapshot-1))
+    backfill_ghost_NewStars(run_globals, gal, *m_stars, snapshot);
 }
