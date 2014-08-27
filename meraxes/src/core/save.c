@@ -709,6 +709,18 @@ static void inline save_walk_indices(
 }
 
 
+static inline bool pass_write_check(galaxy_t *gal, bool flag_merger)
+{
+  if(
+      ( (!flag_merger && (gal->Type < 3)) || (flag_merger && (gal->Type == 3)) )
+      && ( (gal->output_index > -1) || (gal->StellarMass >= 1e-10) )
+    )
+    return true;
+  else
+    return false;
+}
+
+
 void write_snapshot(
   run_globals_t *run_globals,
   int            n_write,
@@ -746,7 +758,7 @@ void write_snapshot(
   gal = run_globals->FirstGal;
   while(gal != NULL)
   {
-    if((gal->Type < 3) && (gal->StellarMass >= 1e-10))
+    if(pass_write_check(gal, false))
       write_count++;
     gal = gal->Next;
   }
@@ -811,11 +823,14 @@ void write_snapshot(
     gal = run_globals->FirstGal;
     while (gal != NULL)
     {
-      if ((gal->Type < 3) && (gal->StellarMass >= 1e-10))
+      if (pass_write_check(gal, false))
       {
         if (gal->output_index > -1)
         {
           first_progenitor_index[gal_count]   = gal->output_index;
+
+          assert(gal->output_index < *last_n_write);
+
           descendant_index[gal->output_index] = gal_count;
           old_count++;
         }
@@ -829,13 +844,10 @@ void write_snapshot(
     gal = run_globals->FirstGal;
     while (gal != NULL)
     {
-      if ((gal->Type == 3) && (gal->StellarMass >= 1e-10))
+      if (pass_write_check(gal, true))
       {
-        if (gal->output_index > -1)
-        {
-          descendant_index[gal->output_index] = gal->MergerTarget->output_index;
-          old_count++;
-        }
+        descendant_index[gal->output_index] = gal->MergerTarget->output_index;
+        old_count++;
         index = first_progenitor_index[gal->MergerTarget->output_index];
         if (index > -1)
         {
@@ -861,7 +873,7 @@ void write_snapshot(
     gal = run_globals->FirstGal;
     while (gal != NULL)
     {
-      if ((gal->Type < 3) && (gal->StellarMass >= 1e-10))
+      if (pass_write_check(gal, false))
         gal->output_index = gal_count++;
       gal = gal->Next;
     }
@@ -884,7 +896,7 @@ void write_snapshot(
   while (gal != NULL)
   {
     // Don't output galaxies which merged at this timestep
-    if ((gal->Type < 3) && (gal->StellarMass >= 1e-10))
+    if (pass_write_check(gal, false))
     {
       prepare_galaxy_for_output(run_globals, *gal, &(output_buffer[buffer_count]), i_out);
       buffer_count++;
