@@ -266,7 +266,7 @@ void check_counts(run_globals_t *run_globals, fof_group_t *fof_group, int NGal, 
 
 void check_pointers(run_globals_t *run_globals, halo_t *halos, fof_group_t *fof_groups, trees_info_t *trees_info)
 {
-  galaxy_t *gal, *gal_pointer;
+  galaxy_t *gal, *gal_pointer, gal_deref;
   halo_t *halo;
   fof_group_t *fof_group;
   int n_halos = trees_info->n_halos;
@@ -283,10 +283,20 @@ void check_pointers(run_globals_t *run_globals, halo_t *halos, fof_group_t *fof_
       assert((halo - halos) < (size_t)n_halos);
     }
     gal_pointer = gal->FirstGalInHalo;
+    if (gal_pointer != NULL)
+      gal_deref = *gal_pointer;
     gal_pointer = gal->NextGalInHalo;
+    if (gal_pointer != NULL)
+      gal_deref = *gal_pointer;
     gal_pointer = gal->Next;
+    if (gal_pointer != NULL)
+      gal_deref = *gal_pointer;
     if (gal->Type == 3)
+    {
       gal_pointer = gal->MergerTarget;
+      if (gal_pointer != NULL)
+        gal_deref = *gal_pointer;
+    }
 
     gal = gal->Next;
   }
@@ -303,6 +313,8 @@ void check_pointers(run_globals_t *run_globals, halo_t *halos, fof_group_t *fof_
       assert((halo - halos) < (size_t)n_halos);
     }
     gal = halos[ii].Galaxy;
+    if (gal != NULL)
+      gal_deref = *gal;
   }
 
   for(int ii=0; ii<n_fof_groups; ii++)
