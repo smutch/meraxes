@@ -11,6 +11,7 @@ int evolve_galaxies(run_globals_t *run_globals, fof_group_t *fof_group, int snap
   double infalling_gas = 0;
   double cooling_mass  = 0;
   int NSteps           = run_globals->params.NSteps;
+  bool Flag_SnDelay    = (bool)(run_globals->params.physics.Flag_SnDelay);
 
   SID_log("Doing physics...", SID_LOG_OPEN | SID_LOG_TIMER);
 
@@ -42,7 +43,8 @@ int evolve_galaxies(run_globals_t *run_globals, fof_group_t *fof_group, int snap
 
           if (gal->Type < 3)
           {
-            delayed_supernova_feedback(run_globals, gal, snapshot);
+            if (Flag_SnDelay)
+              delayed_supernova_feedback(run_globals, gal, snapshot);
 
             insitu_star_formation(run_globals, gal, snapshot);
 
