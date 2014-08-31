@@ -713,8 +713,10 @@ static void inline save_walk_indices(
 static inline bool pass_write_check(galaxy_t *gal, bool flag_merger)
 {
   if(
-      ( (!flag_merger && (gal->Type < 3)) || (flag_merger && (gal->Type == 3)) )
-      && ( (gal->output_index > -1) || (gal->StellarMass >= 1e-10) )
+      // Test for non-merger galaxy to be written in the current snap
+      (!flag_merger && (gal->Type < 3) && ((gal->output_index > -1) || (gal->StellarMass >= 1e-10)) )
+      // and this is the test for a merger to be accounted for in descendant / progenitor arrays
+      || (flag_merger && (gal->Type == 3) && (gal->output_index > -1))
     )
     return true;
   else
@@ -847,8 +849,11 @@ void write_snapshot(
     {
       if (pass_write_check(gal, true))
       {
+        assert((gal->output_index < *last_n_write) && (gal->output_index >= 0));
         descendant_index[gal->output_index] = gal->MergerTarget->output_index;
         old_count++;
+
+        assert((gal->MergerTarget->output_index < n_write) && (gal->MergerTarget->output_index >= 0));
         index = first_progenitor_index[gal->MergerTarget->output_index];
         if (index > -1)
         {
