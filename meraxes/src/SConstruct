@@ -205,3 +205,8 @@ if not GetOption('help'):
     Depends(incl, git_header)
     Depends(lib, incl)
     env.Alias('lib', lib)
+
+    # If you create a my_SConscript file then you can put your own custom
+    # targets etc. in there...
+    if os.path.exists("./my_SConscript"):
+        SConscript('my_SConscript', exports='env target lib copy_files files')
