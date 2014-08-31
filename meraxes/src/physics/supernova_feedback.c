@@ -218,7 +218,15 @@ void delayed_supernova_feedback(run_globals_t *run_globals, galaxy_t *gal, int s
       log_dt = log10(((LTTime[snapshot-i_burst-1] + LTTime[snapshot-i_burst])/2.0 - LTTime[snapshot]) * units->UnitTime_in_Megayears / run_globals->params.Hubble_h);
       m_low = sn_m_low(log_dt);  // Msol
 
-      // work out the number of supernova per unit stellar mass formed at the current time
+      // This check deals with the incredibly unfortunate occasion (which
+      // happens in Tiamat!) where the dt between snapshots oscillates between
+      // meaning we need to consider N_HISTORY_SNAPS and N_HISTORY_SNAPS-1
+      // previous snapshots!...
+      if (m_high == m_low)
+        break;
+
+      // work out the number of supernova per unit stellar mass formed at the
+      // current time
       eta_sn = calc_eta_sn(run_globals, m_high, m_low, &snII_frac);
 
       // increment the total reheated and new metals masses
