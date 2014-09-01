@@ -395,27 +395,6 @@ void dracarys(run_globals_t *run_globals)
     }
 #endif
 
-
-
-
-// PMG ADDED TEST - START
-//#ifdef USE_TOCF
-//    if (run_globals->params.TOCF_Flag)
-//    {
-//        if (!tocf_params.uvb_feedback)
-//        {
-//            // We are decoupled, so no need to run 21cmFAST unless we are ouputing this snapshot
-//            for (int i_out = 0; i_out < NOUT; i_out++)
-//                if (snapshot == run_globals->ListOutputSnaps[i_out])
-//                    run_pmg_mpi_test(run_globals, snapshot);
-//        }
-//    }
-//#endif
-// PMG ADDED TEST - END
-
-
-
-
 #ifdef DEBUG
     // print some statistics for this snapshot
     SID_Allreduce(SID_IN_PLACE, &merger_counter, 1, SID_INT, SID_SUM, SID.COMM_WORLD);
