@@ -1,0 +1,4 @@
+Branch:      useomp
+Of    :      21cm_sam_pmg_fork (fork of smutch/21cm_sam)
+
+Description: Version of meraxes which utilises OMP.
