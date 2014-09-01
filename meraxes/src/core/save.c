@@ -853,13 +853,16 @@ void write_snapshot(
         descendant_index[gal->output_index] = gal->MergerTarget->output_index;
         old_count++;
 
-        assert((gal->MergerTarget->output_index < n_write) && (gal->MergerTarget->output_index >= 0));
-        index = first_progenitor_index[gal->MergerTarget->output_index];
-        if (index > -1)
+        assert(gal->MergerTarget->output_index < n_write);
+        if (gal->MergerTarget->output_index >= 0)
         {
-          while (next_progenitor_index[index] > -1)
-            index = next_progenitor_index[index];
-          next_progenitor_index[index] = gal->output_index;
+          index = first_progenitor_index[gal->MergerTarget->output_index];
+          if (index > -1)
+          {
+            while (next_progenitor_index[index] > -1)
+              index = next_progenitor_index[index];
+            next_progenitor_index[index] = gal->output_index;
+          }
         }
       }
       gal = gal->Next;
