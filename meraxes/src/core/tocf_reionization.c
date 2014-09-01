@@ -433,7 +433,7 @@ void save_tocf_grids(run_globals_t *run_globals, hid_t parent_group_id, int snap
         memset((void*)grid, 0, sizeof(float) * HII_TOT_NUM_PIXELS);
         delta_T_ps(
             run_globals->ZZ[snapshot],
-//            tocf_params.numcores,  // PMG REMOVED - REPLACE WITH meraxes thread count???
+            tocf_params.numcores,
             grids->xH,
             (float*)(grids->deltax),
             NULL,

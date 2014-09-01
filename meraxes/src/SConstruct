@@ -209,15 +209,11 @@ if not GetOption('help'):
     env.AppendUnique(CPPFLAGS = '-std=gnu99')
     # env.AppendUnique(CPPFLAGS = ['-fPIC',])
     
-    # OMP references have been removed
     if env['tocf']:
         env.AppendUnique(CPPPATH = [TOCF_INCL, FFTW_INCL])
         env.AppendUnique(LIBPATH = [TOCF_LIBS, FFTW_LIBS])
-        
-        #env.AppendUnique(LIBS = ['21cmfast', 'fftw3f_omp', 'fftw3f', 'gomp'])   # OMP
-        env.AppendUnique(LIBS = ['21cmfast', 'fftw3f'])
-        
-        #env.AppendUnique(CC = ['-fopenmp',])   # OMP
+        env.AppendUnique(LIBS = ['21cmfast', 'fftw3f_omp', 'fftw3f', 'gomp'])
+        env.AppendUnique(CC = ['-fopenmp',])
 
     # Set the python environment to use in any python scripts.
     if 'VIRTUAL_ENV' in os.environ:
