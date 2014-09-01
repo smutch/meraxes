@@ -1,4 +1,0 @@
-Branch:      useomp 
-Of    :      21cm_sam (fork of smutch/21cm_sam)
-
-Description: Version of meraxes which utilises 21cmFAST running with OMP.
