@@ -163,6 +163,7 @@ void kill_galaxy(
     run_globals->FirstGal = gal->Next;
 
   cur_gal = gal->FirstGalInHalo;
+
   if (cur_gal != gal)
   {
     // If it is a type 2 then also remove it from the linked list of galaxies in its halo
@@ -170,11 +171,18 @@ void kill_galaxy(
       cur_gal = cur_gal->NextGalInHalo;
     cur_gal->NextGalInHalo = gal->NextGalInHalo;
   }
-  else if (gal->NextGalInHalo != NULL)
+  else
+  {
     // If it is a type 0 or 1 (i.e. first galaxy in it's halo) and there are
     // other galaxies in this halo, reset the FirstGalInHalo pointer so that
     // the satellites can be killed later
-    gal->NextGalInHalo->FirstGalInHalo = gal->NextGalInHalo;
+    cur_gal = gal->NextGalInHalo;
+    while (cur_gal != NULL)
+    {
+      cur_gal->FirstGalInHalo = gal->NextGalInHalo;
+      cur_gal = cur_gal->NextGalInHalo;
+    }
+  }
 
   // Finally deallocated the galaxy and decrement any necessary counters
   SID_free(SID_FARG gal);
