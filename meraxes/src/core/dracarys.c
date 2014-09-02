@@ -97,6 +97,11 @@ void dracarys(run_globals_t *run_globals)
   // Loop through each snapshot
   for (int snapshot = 0; snapshot <= last_snap; snapshot++)
   {
+    SID_log("", SID_LOG_COMMENT);
+    SID_log("===============================================================", SID_LOG_COMMENT);
+    SID_log("Snapshot %d  (z = %.2f)", SID_LOG_COMMENT, snapshot, run_globals->ZZ[snapshot]);
+    SID_log("===============================================================", SID_LOG_COMMENT);
+    
     // Reset book keeping counters
     kill_counter    = 0;
     merger_counter  = 0;
@@ -116,7 +121,7 @@ void dracarys(run_globals_t *run_globals)
     fof_group    = snapshot_fof_group[i_snap];
     index_lookup = snapshot_index_lookup[i_snap];
 
-    SID_log("Processing snapshot %d (z=%.2f)...", SID_LOG_OPEN | SID_LOG_TIMER, snapshot, run_globals->ZZ[snapshot]);
+    SID_log("Processing snapshot %d (z = %.2f)...", SID_LOG_OPEN | SID_LOG_TIMER, snapshot, run_globals->ZZ[snapshot]);
 
 #ifdef USE_TOCF
     // Calculate the critical halo mass for cooling

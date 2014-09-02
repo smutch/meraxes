@@ -720,7 +720,7 @@ trees_info_t read_halos(
     return snapshot_trees_info[snapshot];
   }
 
-  SID_log("Reading snapshot %d (z=%.2f) trees and halos...", SID_LOG_OPEN | SID_LOG_TIMER, snapshot, run_globals->ZZ[snapshot]);
+  SID_log("Reading snapshot %d (z = %.2f) trees and halos...", SID_LOG_OPEN | SID_LOG_TIMER, snapshot, run_globals->ZZ[snapshot]);
 
 
   // open the tree file
