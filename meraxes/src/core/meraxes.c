@@ -57,6 +57,10 @@ int main(int argc, char **argv)
 {
   // init SID
   SID_init(&argc, &argv, NULL);
+  
+    SID_log("", SID_LOG_COMMENT);
+    SID_log("BRANCH: useomp_with_feedback", SID_LOG_COMMENT);
+    SID_log("", SID_LOG_COMMENT);
 
   struct stat filestatus;
   run_globals_t run_globals;
