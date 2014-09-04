@@ -17,12 +17,7 @@ void set_HII_eff_factor(run_globals_t *run_globals)
   tocf_params.HII_eff_factor *= (params->ReionNionPhotPerBary / 4000.0) *
                                (params->ReionEscapeFrac / 0.15) * (1.0 / (1.0 + params->ReionMeanNRec));
   
-  //tocf_params.HII_eff_factor = 450000;//25000;   // PMG FORCED to make a reasonable ionisation field at snapshot 18
-  //tocf_params.HII_eff_factor = 120000;           // PMG FORCED ---- ~50% ionisation at z = 10.1 (snapshot 35) without 0.43 factor
-  
   tocf_params.HII_eff_factor /= 0.43;       // PMG ADDED: account for instantaneous recycling factor
-  
-  tocf_params.HII_eff_factor *= 13.0;      // PMG FORCED ---- ~50% ionisation at z = 10.1 (snapshot 35)
   
   SID_log("tocf_params.HII_eff_factor = %g", SID_LOG_COMMENT, tocf_params.HII_eff_factor);
   
@@ -529,45 +524,47 @@ void save_tocf_grids(run_globals_t *run_globals, hid_t parent_group_id, int snap
         // Run call_gen_size_dist if neutral fraction is (0, 0.8]
         // ----------------------------------------------------------------------------------------------------
         
-        if((run_globals->tocf_grids.global_xH <= 0.95) && (run_globals->tocf_grids.global_xH != 0.0))
-        {   
-            SID_log("Calling call_gen_size_dist for snapshot %d...", SID_LOG_OPEN, snapshot);
-            
-            if (tocf_params.region_type_flag) SID_log("Region type: neutral", SID_LOG_COMMENT);
-            else SID_log("Region type: ionised", SID_LOG_COMMENT);
-            
-            call_gen_size_dist(run_globals, snapshot, tocf_params.region_type_flag, &size_dist, &size_dist_nbins);
-            
-            SID_log("size_dist_nbins = %d", SID_LOG_COMMENT, size_dist_nbins);
-            
-            // ====================================================
-            // Remove this when python plotting is sorted?
-            
-            // Create size_dist file
-            if (tocf_params.region_type_flag) sprintf(filename, "output/size_dist_neutral_%d.dat", snapshot);
-            else                              sprintf(filename, "output/size_dist_ionised_%d.dat", snapshot);
-            
-            f1 = fopen(filename, "wt");
-            for(i=0;i<size_dist_nbins;i++) fprintf(f1, "%g\t%g\n", size_dist[0+2*i], size_dist[1+2*i]);
-            fclose(f1);
-            SID_log("Creating %s", SID_LOG_COMMENT, filename);
-            
-            // ====================================================
-            
-            // Write call_gen_size_dist output to hdf5 file
-            dims = size_dist_nbins * 2;
-            H5LTmake_dataset_float(parent_group_id, "RegionSizeDist", 1,             &dims,                         size_dist);
-            H5LTset_attribute_int(parent_group_id , "RegionSizeDist", "nbins",       &size_dist_nbins,              1);
-            H5LTset_attribute_int(parent_group_id , "RegionSizeDist", "region_type", &tocf_params.region_type_flag, 1);
-            
-            free(size_dist);   // allocated within gen_size_dist
-            
-            SID_log("...done", SID_LOG_CLOSE);   // gen_size_dist
-        }
-        else
-        {
-            SID_log("NOT calling call_gen_size_dist for snapshot %d (out of global_xH range)", SID_LOG_COMMENT, snapshot);
-        }
+        SID_log("call_gen_size_dist is TURNED OFF", SID_LOG_COMMENT);
+        
+//        if((run_globals->tocf_grids.global_xH <= 0.95) && (run_globals->tocf_grids.global_xH != 0.0))
+//        {   
+//            SID_log("Calling call_gen_size_dist for snapshot %d...", SID_LOG_OPEN, snapshot);
+//            
+//            if (tocf_params.region_type_flag) SID_log("Region type: neutral", SID_LOG_COMMENT);
+//            else SID_log("Region type: ionised", SID_LOG_COMMENT);
+//            
+//            call_gen_size_dist(run_globals, snapshot, tocf_params.region_type_flag, &size_dist, &size_dist_nbins);
+//            
+//            SID_log("size_dist_nbins = %d", SID_LOG_COMMENT, size_dist_nbins);
+//            
+//            // ====================================================
+//            // Remove this when python plotting is sorted?
+//            
+//            // Create size_dist file
+//            if (tocf_params.region_type_flag) sprintf(filename, "output/size_dist_neutral_%d.dat", snapshot);
+//            else                              sprintf(filename, "output/size_dist_ionised_%d.dat", snapshot);
+//            
+//            f1 = fopen(filename, "wt");
+//            for(i=0;i<size_dist_nbins;i++) fprintf(f1, "%g\t%g\n", size_dist[0+2*i], size_dist[1+2*i]);
+//            fclose(f1);
+//            SID_log("Creating %s", SID_LOG_COMMENT, filename);
+//            
+//            // ====================================================
+//            
+//            // Write call_gen_size_dist output to hdf5 file
+//            dims = size_dist_nbins * 2;
+//            H5LTmake_dataset_float(parent_group_id, "RegionSizeDist", 1,             &dims,                         size_dist);
+//            H5LTset_attribute_int(parent_group_id , "RegionSizeDist", "nbins",       &size_dist_nbins,              1);
+//            H5LTset_attribute_int(parent_group_id , "RegionSizeDist", "region_type", &tocf_params.region_type_flag, 1);
+//            
+//            free(size_dist);   // allocated within gen_size_dist
+//            
+//            SID_log("...done", SID_LOG_CLOSE);   // gen_size_dist
+//        }
+//        else
+//        {
+//            SID_log("NOT calling call_gen_size_dist for snapshot %d (out of global_xH range)", SID_LOG_COMMENT, snapshot);
+//        }
         
 //        SID_log("Calling call_gen_size_dist for snapshot %d...", SID_LOG_OPEN, snapshot);
 //        
@@ -624,13 +621,16 @@ void save_tocf_grids(run_globals_t *run_globals, hid_t parent_group_id, int snap
 }
 
 
-void check_if_reionization_complete(run_globals_t *run_globals)
+bool check_if_reionization_complete(run_globals_t *run_globals)
 {
     SID_log("Checking if reionization complete... (global_xH = %.2f)", SID_LOG_COMMENT, run_globals->tocf_grids.global_xH);
     
     // If the global_xH value is less than 1%, stop doing reionisation
     if (run_globals->tocf_grids.global_xH < 0.01)
-        run_globals->params.TOCF_Flag = 0;
+        //run_globals->params.TOCF_Flag = 0;
+        return true;
+    else
+        return false;
 }
 
 

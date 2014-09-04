@@ -499,7 +499,7 @@ void run_pmg_mpi_test(run_globals_t *run_globals, int snapshot);   // PMG TEST A
 void call_gen_size_dist(run_globals_t *run_globals, int snapshot, int region_type_flag, float **size_dist, int *size_dist_nbins);
 
 void save_tocf_grids(run_globals_t *run_globals, hid_t group_id, int snapshot);
-void check_if_reionization_complete(run_globals_t *run_globals);
+bool check_if_reionization_complete(run_globals_t *run_globals);
 #endif
 
 #ifdef DEBUG

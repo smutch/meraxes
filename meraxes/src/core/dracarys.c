@@ -84,6 +84,10 @@ void dracarys(run_globals_t *run_globals)
   fof_group_t **snapshot_fof_group  = run_globals->SnapshotFOFGroup;
   int **snapshot_index_lookup       = run_globals->SnapshotIndexLookup;
   trees_info_t *snapshot_trees_info = run_globals->SnapshotTreesInfo;
+  
+#ifdef USE_TOCF
+  bool reion_complete_flag = false;
+#endif
 
   // Find what the last requested output snapshot is
   for (int ii = 0; ii < NOUT; ii++)
@@ -395,7 +399,7 @@ void dracarys(run_globals_t *run_globals)
           if (snapshot == run_globals->ListOutputSnaps[i_out])
             call_find_HII_bubbles(run_globals, snapshot, nout_gals);
       }
-      else
+      else if (!reion_complete_flag)
         call_find_HII_bubbles(run_globals, snapshot, nout_gals);
     }
 #endif
@@ -420,7 +424,7 @@ void dracarys(run_globals_t *run_globals)
 
 #ifdef USE_TOCF
     if (run_globals->params.TOCF_Flag)
-      check_if_reionization_complete(run_globals);
+      reion_complete_flag = check_if_reionization_complete(run_globals);
 #endif
 
     SID_log("...done", SID_LOG_CLOSE);

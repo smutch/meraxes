@@ -511,8 +511,8 @@ void create_master_file(run_globals_t *run_globals)
     sprintf(names[ii++], "dim");
     addresses[ii] = &(tocf_params.HII_dim);
     sprintf(names[ii++], "HII_dim");
-//    addresses[ii] = &(tocf_params.numcores);  // PMG REMOVED
-//    sprintf(names[ii++], "numcores");
+    addresses[ii] = &(tocf_params.numcores);  // PMG REMOVED
+    sprintf(names[ii++], "numcores");
     addresses[ii] = &(tocf_params.HII_filter);
     sprintf(names[ii++], "HII_filter");
     addresses[ii] = &(tocf_params.uvb_feedback);
