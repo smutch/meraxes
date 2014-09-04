@@ -17,7 +17,14 @@ void set_HII_eff_factor(run_globals_t *run_globals)
   tocf_params.HII_eff_factor *= (params->ReionNionPhotPerBary / 4000.0) *
                                (params->ReionEscapeFrac / 0.15) * (1.0 / (1.0 + params->ReionMeanNRec));
   
-  tocf_params.HII_eff_factor = 450000;//25000;   // PMG FORCED to make a reasonable ionisation field at snapshot 18
+  //tocf_params.HII_eff_factor = 450000;//25000;   // PMG FORCED to make a reasonable ionisation field at snapshot 18
+  //tocf_params.HII_eff_factor = 120000;           // PMG FORCED ---- ~50% ionisation at z = 10.1 (snapshot 35) without 0.43 factor
+  
+  tocf_params.HII_eff_factor /= 0.43;       // PMG ADDED: account for instantaneous recycling factor
+  
+  tocf_params.HII_eff_factor *= 13.0;      // PMG FORCED ---- ~50% ionisation at z = 10.1 (snapshot 35)
+  
+  SID_log("tocf_params.HII_eff_factor = %g", SID_LOG_COMMENT, tocf_params.HII_eff_factor);
   
 }
 
