@@ -454,7 +454,7 @@ void         create_new_galaxy(run_globals_t *run_globals, int snapshot, halo_t 
 void         assign_galaxy_to_halo(galaxy_t *gal, halo_t *halo);
 void         kill_galaxy(run_globals_t *run_globals, galaxy_t *gal, galaxy_t *prev_gal, int *NGal, int *kill_counter);
 void         copy_halo_to_galaxy(halo_t *halo, galaxy_t *gal, int snapshot);
-void         reset_galaxy_properties(galaxy_t *gal);
+void         reset_galaxy_properties(run_globals_t *run_globals, galaxy_t *gal, int snapshot);
 double       gas_infall(run_globals_t *run_globals, fof_group_t *FOFgroup, int snapshot);
 void         add_infall_to_hot(galaxy_t *central, double infall_mass);
 double       calculate_merging_time(run_globals_t *run_globals, galaxy_t *gal, int snapshot);
@@ -464,6 +464,7 @@ void         update_reservoirs_from_sf(run_globals_t *run_globals, galaxy_t *gal
 double       sn_m_low(double log_dt);
 double       calc_recycled_frac(run_globals_t *run_globals, double m_high, double m_low);
 void         delayed_supernova_feedback(run_globals_t *run_globals, galaxy_t *gal, int snapshot);
+void         evolve_stellar_pops(run_globals_t *run_globals, galaxy_t *gal, int snapshot);
 void         contemporaneous_supernova_feedback(run_globals_t *run_globals, galaxy_t *gal, double *m_stars, int snapshot, double *m_reheat, double *m_eject, double *m_recycled, double *new_metals);
 void         update_reservoirs_from_sn_feedback(galaxy_t *gal, double m_reheat, double m_eject, double m_recycled, double new_metals);
 void         prep_hdf5_file(run_globals_t *run_globals);

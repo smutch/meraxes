@@ -44,7 +44,10 @@ int evolve_galaxies(run_globals_t *run_globals, fof_group_t *fof_group, int snap
           if (gal->Type < 3)
           {
             if (Flag_SnDelay)
+            {
+              evolve_stellar_pops(run_globals, gal, snapshot);
               delayed_supernova_feedback(run_globals, gal, snapshot);
+            }
 
             insitu_star_formation(run_globals, gal, snapshot);
 

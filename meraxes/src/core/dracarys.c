@@ -133,7 +133,7 @@ void dracarys(run_globals_t *run_globals)
       gal->Halo       = NULL;
       gal->ghost_flag = false;
       gal->SnapSkipCounter--;
-      reset_galaxy_properties(gal);
+      reset_galaxy_properties(run_globals, gal, snapshot);
       gal = gal->Next;
     }
 

@@ -1,4 +1,5 @@
 #include "meraxes.h"
+#include <assert.h>
 #include <math.h>
 
 galaxy_t* new_galaxy(run_globals_t *run_globals, int snapshot, int halo_ID)
@@ -86,13 +87,18 @@ void copy_halo_to_galaxy(halo_t *halo, galaxy_t *gal, int snapshot)
   }
 }
 
-void reset_galaxy_properties(galaxy_t *gal)
+void reset_galaxy_properties(run_globals_t *run_globals, galaxy_t *gal, int snapshot)
 {
   // Here we reset any galaxy properties which are calculated on a snapshot by
   // snapshot basis.
   gal->Mcool              = 0.0;
   gal->Sfr                = 0.0;
   gal->BaryonFracModifier = 0.0;
+
+  // update the stellar mass weighted mean age values
+  assert(snapshot > 0);
+  gal->mwmsa_denom += gal->NewStars[N_HISTORY_SNAPS-1];
+  gal->mwmsa_num   += gal->NewStars[N_HISTORY_SNAPS-1] * run_globals->LTTime[snapshot-1];
 
   // roll over the baryonic history arrays
   for (int ii = N_HISTORY_SNAPS-1; ii > 0; ii--)
