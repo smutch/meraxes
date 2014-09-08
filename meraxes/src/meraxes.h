@@ -284,6 +284,8 @@ struct galaxy_t {
   double BlackHoleMass;
 
   // baryonic hostories
+  double mwmsa_num;
+  double mwmsa_denom;
   double NewStars[N_HISTORY_SNAPS];
 
   // misc
@@ -459,6 +461,8 @@ double       calculate_merging_time(run_globals_t *run_globals, galaxy_t *gal, i
 void         merge_with_target(run_globals_t *run_globals, galaxy_t *gal, int *dead_gals, int snapshot);
 void         insitu_star_formation(run_globals_t *run_globals, galaxy_t *gal, int snapshot);
 void         update_reservoirs_from_sf(run_globals_t *run_globals, galaxy_t *gal, double new_stars);
+double       sn_m_low(double log_dt);
+double       calc_recycled_frac(run_globals_t *run_globals, double m_high, double m_low);
 void         delayed_supernova_feedback(run_globals_t *run_globals, galaxy_t *gal, int snapshot);
 void         contemporaneous_supernova_feedback(run_globals_t *run_globals, galaxy_t *gal, double *m_stars, int snapshot, double *m_reheat, double *m_eject, double *m_recycled, double *new_metals);
 void         update_reservoirs_from_sn_feedback(galaxy_t *gal, double m_reheat, double m_eject, double m_recycled, double new_metals);

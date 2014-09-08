@@ -34,8 +34,8 @@ void update_reservoirs_from_sn_feedback(galaxy_t *gal, double m_reheat, double m
 
   gal->ColdGas          -= m_reheat;
   gal->MetalsColdGas    -= m_reheat * metallicity;
-  central->HotGas       += m_reheat;
   central->MetalsHotGas += m_reheat * metallicity;
+  central->HotGas       += m_reheat;
 
   // If this is a ghost then we don't know what the ejected mass is as we don't
   // know the properties of the halo!
@@ -120,7 +120,7 @@ static inline double calc_sn_energy(run_globals_t *run_globals, double stars, do
 }
 
 
-static inline double calc_recycled_frac(run_globals_t *run_globals, double m_high, double m_low)
+double calc_recycled_frac(run_globals_t *run_globals, double m_high, double m_low)
 {
   // calculate the mass ejected (from fraction of total SN-II that have gone off) from this burst
   double  m_frac_SNII = 0.14417; // fraction of total stellar mass in stars more massive than 8Msol
@@ -144,7 +144,7 @@ static inline double calc_recycled_frac(run_globals_t *run_globals, double m_hig
 }
 
 
-static double inline sn_m_low(double log_dt)
+double sn_m_low(double log_dt)
 {
   // log_dt must be in units of log10(dt/Myr)
   // returned value is in units of Msol
