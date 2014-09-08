@@ -275,6 +275,7 @@ struct galaxy_t {
   double MetalsColdGas;
   double Mcool;
   double StellarMass;
+  double GrossStellarMass;
   double MetalsStellarMass;
   double DiskScaleLength;
   double Sfr;
@@ -325,6 +326,7 @@ struct galaxy_output_t {
   float Mcool;
   float DiskScaleLength;
   float StellarMass;
+  float GrossStellarMass;
   float MetalsStellarMass;
   float Sfr;
   float EjectedGas;

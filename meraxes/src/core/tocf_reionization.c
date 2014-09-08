@@ -311,7 +311,7 @@ void construct_stellar_grids(run_globals_t *run_globals)
       assert((j >= 0) && (j < HII_dim));
       assert((k >= 0) && (k < HII_dim));
 
-      *(stellar_grid + HII_R_FFT_INDEX(i, j, k)) += gal->StellarMass;
+      *(stellar_grid + HII_R_FFT_INDEX(i, j, k)) += gal->GrossStellarMass;
       *(sfr_grid + HII_R_FFT_INDEX(i, j, k))     += gal->Sfr;
     }
     gal = gal->Next;
