@@ -128,6 +128,9 @@ double calc_recycled_frac(run_globals_t *run_globals, double m_high, double m_lo
 
   double burst_recycled_frac = const_phi * 1.0/exponent * (pow(m_high, exponent) - pow(m_low, exponent));
 
+  if (burst_recycled_frac < 0)
+    SID_log("WTF? %g (%g, %g)", SID_LOG_COMMENT, burst_recycled_frac, m_low, m_high);
+
   assert(burst_recycled_frac >= 0);
 
   return burst_recycled_frac;

@@ -10,13 +10,14 @@ void evolve_stellar_pops(run_globals_t *run_globals, galaxy_t *gal, int snapshot
   {
     double log_dt;
     double m_stars = gal->mwmsa_denom;
+    double mwmsa = gal->mwmsa_num / gal->mwmsa_denom;
     double m_high, m_low, burst_recycled_frac, m_recycled;
     run_units_t *units = &(run_globals->units);
     double *LTTime = run_globals->LTTime;
 
     // Use the pre-calculated mwmsa numerator and denomenator to get the mwmsa
     // of all stars formed before what is tracked in the NewStars property
-    log_dt = log10((gal->mwmsa_num / gal->mwmsa_denom - LTTime[snapshot-1]) * units->UnitTime_in_Megayears / run_globals->params.Hubble_h);
+    log_dt = log10((mwmsa - LTTime[snapshot-1]) * units->UnitTime_in_Megayears / run_globals->params.Hubble_h);
 
     // work out the higest mass star which would have expended it's H & He
     // core fuel in this time (i.e. the highest mass star that would not
@@ -25,7 +26,7 @@ void evolve_stellar_pops(run_globals_t *run_globals, galaxy_t *gal, int snapshot
 
     // work out the lowest mass star which would have expended it's H & He core
     // fuel in this time
-    log_dt = log10((gal->mwmsa_num / gal->mwmsa_denom - LTTime[snapshot]) * units->UnitTime_in_Megayears / run_globals->params.Hubble_h);
+    log_dt = log10((mwmsa - LTTime[snapshot]) * units->UnitTime_in_Megayears / run_globals->params.Hubble_h);
     m_low = sn_m_low(log_dt);  // Msol
 
     burst_recycled_frac = calc_recycled_frac(run_globals, m_high, m_low);
