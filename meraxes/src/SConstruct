@@ -66,6 +66,7 @@ vars.AddVariables(
     EnumVariable('build', 'Set the build type.', 'standard', allowed_values=('debug', 'standard', 'optimized')),
     BoolVariable('prof', 'Enable profiling.', False),
     BoolVariable('mpi', 'Build with mpi', True),
+    ('n_history_snaps', 'Set the value of N_HISTORY_SNAPS', False)
 )
 
 # Create the environment
@@ -108,6 +109,8 @@ if not GetOption('help'):
         env.AppendUnique(LINKFLAGS=['-pg'])
     if env['mpi']:
         env.AppendUnique(CPPDEFINES=['USE_MPI=1'])
+    if env['n_history_snaps']:
+        env.AppendUnique(CPPDEFINES=['N_HISTORY_SNAPS=${n_history_snaps}'])
 
     # =================================
     # = System specific build options =
