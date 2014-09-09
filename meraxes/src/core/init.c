@@ -238,6 +238,36 @@ static void read_output_snaps(run_globals_t *run_globals)
 }
 
 
+static void check_n_history_snaps(run_globals_t *run_globals)
+{
+  // Check that N_HISTORY_SNAPS is set to a high enough value to allow all
+  // SN-II to be tracked across the entire simulation.  This is calculated in
+  // an extremely crude fasion!
+
+  double *LTTime = run_globals->LTTime;
+  int n_snaps    = run_globals->params.SnaplistLength;
+  double max_dt  = 0.0;
+  double diff;
+  double m_low;
+
+  for (int ii = 1; ii < n_snaps; ii++)
+  {
+    diff = LTTime[ii - 1] - LTTime[ii];
+    if (diff > max_dt)
+      max_dt = diff;
+  }
+
+  max_dt *= (N_HISTORY_SNAPS - 1) * run_globals->units.UnitTime_in_Megayears / run_globals->params.Hubble_h;
+  m_low   = sn_m_low(log10(max_dt));
+
+  if (m_low > 8.0)
+  {
+    SID_log_error("N_HISTORY_SNAPS is likely not set to a high enough value!  Exiting...");
+    ABORT(EXIT_FAILURE);
+  }
+}
+
+
 void init_meraxes(run_globals_t *run_globals)
 {
   int i;
@@ -255,6 +285,9 @@ void init_meraxes(run_globals_t *run_globals)
 
   // read the input snaps list
   read_snap_list(run_globals);
+
+  // check to ensure N_HISTORY_SNAPS is set to a high enough value
+  check_n_history_snaps(run_globals);
 
   // read the output snap list
   read_output_snaps(run_globals);

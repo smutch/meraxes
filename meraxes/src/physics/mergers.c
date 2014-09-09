@@ -3,7 +3,6 @@
 
 double calculate_merging_time(run_globals_t *run_globals, galaxy_t *sat, int snapshot)
 {
-
   // TODO: What should we do about FOF properties here?  Do we need to use the
   // FOF virial properties for the merger clock calculation if one of the
   // participating galaxies was in a central subhalo?
@@ -85,28 +84,32 @@ double calculate_merging_time(run_globals_t *run_globals, galaxy_t *sat, int sna
 }
 
 
-static void merger_driven_starburst(run_globals_t *run_globals, galaxy_t *parent, double merger_ratio)
+static void merger_driven_starburst(run_globals_t *run_globals, galaxy_t *parent, double merger_ratio, int snapshot)
 {
   if ((parent->ColdGas > 0) && (merger_ratio > run_globals->params.physics.MinMergerRatioForBurst))
   {
     // Calculate a merger driven starburst following Guo+ 2010
     double burst_mass;
 
-    // burst_mass = 0.56 * pow(merger_ratio, 0.7) * parent->ColdGas;
     burst_mass = run_globals->params.physics.MergerBurstFactor * pow(merger_ratio, 0.7) * parent->ColdGas;
 
-    // if(burst_mass > parent->ColdGas)
-    //   burst_mass = parent->ColdGas;
-    if (burst_mass < 0)
-      burst_mass = 0.0;
+    if (burst_mass > 0)
+    {
+      double m_reheat;
+      double m_eject;
+      double m_recycled;
+      double new_metals;
 
-    // apply the supernova feedback scheme and update the baryonic reservoirs
-    supernova_feedback(run_globals, parent, burst_mass, merger_ratio);
+      contemporaneous_supernova_feedback(run_globals, parent, &burst_mass, snapshot, &m_reheat, &m_eject, &m_recycled, &new_metals);
+      // update the baryonic reservoirs (note that the order we do this in will change the result!)
+      update_reservoirs_from_sf(run_globals, parent, burst_mass);
+      update_reservoirs_from_sn_feedback(parent, m_reheat, m_eject, m_recycled, new_metals);
+    }
   }
 }
 
 
-void merge_with_target(run_globals_t *run_globals, galaxy_t *gal, int *dead_gals)
+void merge_with_target(run_globals_t *run_globals, galaxy_t *gal, int *dead_gals, int snapshot)
 {
   galaxy_t *parent = NULL;
   double merger_ratio;
@@ -132,6 +135,7 @@ void merge_with_target(run_globals_t *run_globals, galaxy_t *gal, int *dead_gals
 
   // Add galaxies together
   parent->StellarMass       += gal->StellarMass;
+  parent->GrossStellarMass  += gal->GrossStellarMass;
   parent->MetalsStellarMass += gal->MetalsStellarMass;
   parent->Sfr               += gal->Sfr;
   parent->HotGas            += gal->HotGas;
@@ -142,6 +146,9 @@ void merge_with_target(run_globals_t *run_globals, galaxy_t *gal, int *dead_gals
   parent->MetalsEjectedGas  += gal->MetalsEjectedGas;
   parent->BlackHoleMass     += gal->BlackHoleMass;
 
+  for (int ii = 0; ii < N_HISTORY_SNAPS; ii++)
+    parent->NewStars[ii] += gal->NewStars[ii];
+
   for (int outputbin = 0; outputbin < NOUT; outputbin++)
     sum_luminosities(run_globals, parent, gal, outputbin);
 
@@ -149,7 +156,7 @@ void merge_with_target(run_globals_t *run_globals, galaxy_t *gal, int *dead_gals
     merger_driven_BH_growth(run_globals, parent, merger_ratio);
 
   // merger driven starburst prescription
-  merger_driven_starburst(run_globals, parent, merger_ratio);
+  merger_driven_starburst(run_globals, parent, merger_ratio, snapshot);
 
   // Mark the merged galaxy as dead
   gal->Type          = 3;

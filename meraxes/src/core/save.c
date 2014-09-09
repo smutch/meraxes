@@ -4,6 +4,7 @@
 #include <math.h>
 #include <hdf5.h>
 #include <hdf5_hl.h>
+#include <assert.h>
 
 static void inline h5_write_attribute(hid_t loc, const char *name, hid_t datatype, hid_t dataset_id, void *data)
 {
@@ -44,7 +45,7 @@ void prepare_galaxy_for_output(
   else
   {
     galout->CentralGal = -1;
-    galout->FOFMvir = -1.0;
+    galout->FOFMvir    = -1.0;
   }
   galout->GhostFlag = (int)gal.ghost_flag;
 
@@ -66,6 +67,7 @@ void prepare_galaxy_for_output(
   galout->MetalsColdGas      = (float)(gal.MetalsColdGas);
   galout->Mcool              = (float)(gal.Mcool);
   galout->StellarMass        = (float)(gal.StellarMass);
+  galout->GrossStellarMass   = (float)(gal.GrossStellarMass);
   galout->BlackHoleMass      = (float)(gal.BlackHoleMass);
   galout->DiskScaleLength    = (float)(gal.DiskScaleLength);
   galout->MetalsStellarMass  = (float)(gal.MetalsStellarMass);
@@ -76,6 +78,9 @@ void prepare_galaxy_for_output(
   galout->Cos_Inc            = (float)(gal.Cos_Inc);
   galout->BaryonFracModifier = (float)(gal.BaryonFracModifier);
   galout->MergTime           = (float)(gal.MergTime * units->UnitLength_in_cm / units->UnitVelocity_in_cm_per_s / SEC_PER_MEGAYEAR);
+
+  for (int ii = 0; ii < N_HISTORY_SNAPS; ii++)
+    galout->NewStars[ii] = (float)(gal.NewStars[ii]);
 
   prepare_magnitudes_for_output(run_globals, gal, galout, i_snap);
 }
@@ -91,7 +96,7 @@ void calc_hdf5_props(run_globals_t *run_globals)
   galaxy_output_t galout;
   int i;                                                // dummy
 
-  h5props->n_props = 30;
+  h5props->n_props = 32;
 
 #ifdef CALC_MAGS
   // If we are calculating any magnitudes then increment the number of
@@ -105,7 +110,8 @@ void calc_hdf5_props(run_globals_t *run_globals)
   h5props->dst_size = sizeof(galaxy_output_t);
 
   // Create datatypes for different size arrays
-  h5props->array3f_tid = H5Tarray_create(H5T_NATIVE_FLOAT, 1, (hsize_t[]){ 3 });
+  h5props->array3f_tid       = H5Tarray_create(H5T_NATIVE_FLOAT, 1, (hsize_t[]){ 3 });
+  h5props->array_nhist_f_tid = H5Tarray_create(H5T_NATIVE_FLOAT, 1, (hsize_t[]){ N_HISTORY_SNAPS });
 
   // Calculate the offsets of our struct members in memory
   h5props->dst_offsets = SID_malloc(sizeof(size_t) * h5props->n_props);
@@ -218,6 +224,11 @@ void calc_hdf5_props(run_globals_t *run_globals)
   h5props->field_names[i]     = "StellarMass";
   h5props->field_types[i++]   = H5T_NATIVE_FLOAT;
 
+  h5props->dst_offsets[i]     = HOFFSET(galaxy_output_t, GrossStellarMass);
+  h5props->dst_field_sizes[i] = sizeof(galout.GrossStellarMass);
+  h5props->field_names[i]     = "GrossStellarMass";
+  h5props->field_types[i++]   = H5T_NATIVE_FLOAT;
+
   h5props->dst_offsets[i]     = HOFFSET(galaxy_output_t, MetalsStellarMass);
   h5props->dst_field_sizes[i] = sizeof(galout.MetalsStellarMass);
   h5props->field_names[i]     = "MetalsStellarMass";
@@ -247,6 +258,11 @@ void calc_hdf5_props(run_globals_t *run_globals)
   h5props->dst_field_sizes[i] = sizeof(galout.MetalsEjectedGas);
   h5props->field_names[i]     = "MetalsEjectedGas";
   h5props->field_types[i++]   = H5T_NATIVE_FLOAT;
+
+  h5props->dst_offsets[i]     = HOFFSET(galaxy_output_t, NewStars);
+  h5props->dst_field_sizes[i] = sizeof(galout.NewStars);
+  h5props->field_names[i]     = "NewStars";
+  h5props->field_types[i++]   = h5props->array_nhist_f_tid;
 
   h5props->dst_offsets[i]     = HOFFSET(galaxy_output_t, Rcool);
   h5props->dst_field_sizes[i] = sizeof(galout.Rcool);
@@ -630,23 +646,20 @@ void create_master_file(run_globals_t *run_globals)
       H5Gclose(group_id);
 
 #ifdef USE_TOCF
+      if ((i_core == 0) && (run_globals->params.TOCF_Flag))
+      {
+        // create links to the 21cmFAST grids
+        sprintf(target_group, "Grids");
+        sprintf(source_group, "Snap%03d/Grids", run_globals->ListOutputSnaps[i_out]);
+        H5Lcreate_external(relative_source_file, source_group, snap_group_id, target_group, H5P_DEFAULT, H5P_DEFAULT);
 
-    if((i_core == 0) && (run_globals->params.TOCF_Flag))
-    {
-      // create links to the 21cmFAST grids
-      sprintf(target_group, "Grids");
-      sprintf(source_group, "Snap%03d/Grids", run_globals->ListOutputSnaps[i_out]);
-      H5Lcreate_external(relative_source_file, source_group, snap_group_id, target_group, H5P_DEFAULT, H5P_DEFAULT);
-
-      sprintf(source_ds, "Snap%03d/PowerSpectrum", run_globals->ListOutputSnaps[i_out]);
-      sprintf(target_ds, "PowerSpectrum");
-      H5Lcreate_external(relative_source_file, source_ds, snap_group_id, target_ds, H5P_DEFAULT, H5P_DEFAULT);
-    }
-
+        sprintf(source_ds, "Snap%03d/PowerSpectrum", run_globals->ListOutputSnaps[i_out]);
+        sprintf(target_ds, "PowerSpectrum");
+        H5Lcreate_external(relative_source_file, source_ds, snap_group_id, target_ds, H5P_DEFAULT, H5P_DEFAULT);
+      }
 #endif
 
       H5Fclose(source_file_id);
-
     }
 
     // save the global ionizing emissivity at this snapshot
@@ -661,7 +674,6 @@ void create_master_file(run_globals_t *run_globals)
 
     temp = run_globals->LTTime[run_globals->ListOutputSnaps[i_out]] * run_globals->units.UnitLength_in_cm / run_globals->units.UnitVelocity_in_cm_per_s / SEC_PER_MEGAYEAR;
     h5_write_attribute(snap_group_id, "LTTime", H5T_NATIVE_DOUBLE, ds_id, &temp);
-
 
     H5Gclose(snap_group_id);
   }
@@ -701,6 +713,20 @@ static void inline save_walk_indices(
 }
 
 
+static inline bool pass_write_check(galaxy_t *gal, bool flag_merger)
+{
+  if (
+    // Test for non-merger galaxy to be written in the current snap
+    (!flag_merger && (gal->Type < 3) && ((gal->output_index > -1) || (gal->StellarMass >= 1e-10)))
+    // and this is the test for a merger to be accounted for in descendant / progenitor arrays
+    || (flag_merger && (gal->Type == 3) && (gal->output_index > -1))
+    )
+    return true;
+  else
+    return false;
+}
+
+
 void write_snapshot(
   run_globals_t *run_globals,
   int            n_write,
@@ -736,16 +762,16 @@ void write_snapshot(
   // We aren't going to write any galaxies that have zero stellar mass, so
   // modify n_write appropriately...
   gal = run_globals->FirstGal;
-  while(gal != NULL)
+  while (gal != NULL)
   {
-    if((gal->Type < 3) && (gal->StellarMass >= 1e-10))
+    if (pass_write_check(gal, false))
       write_count++;
     gal = gal->Next;
   }
 
   if (n_write != write_count)
   {
-    SID_log("Excluding %d ~zero mass galaxies...", SID_LOG_COMMENT, n_write-write_count);
+    SID_log("Excluding %d ~zero mass galaxies...", SID_LOG_COMMENT, n_write - write_count);
     SID_log("New write count = %d", SID_LOG_COMMENT, write_count);
     n_write = write_count;
   }
@@ -803,11 +829,14 @@ void write_snapshot(
     gal = run_globals->FirstGal;
     while (gal != NULL)
     {
-      if ((gal->Type < 3) && (gal->StellarMass >= 1e-10))
+      if (pass_write_check(gal, false))
       {
         if (gal->output_index > -1)
         {
-          first_progenitor_index[gal_count]   = gal->output_index;
+          first_progenitor_index[gal_count] = gal->output_index;
+
+          assert(gal->output_index < *last_n_write);
+
           descendant_index[gal->output_index] = gal_count;
           old_count++;
         }
@@ -821,19 +850,22 @@ void write_snapshot(
     gal = run_globals->FirstGal;
     while (gal != NULL)
     {
-      if ((gal->Type == 3) && (gal->StellarMass >= 1e-10))
+      if (pass_write_check(gal, true))
       {
-        if (gal->output_index > -1)
+        assert((gal->output_index < *last_n_write) && (gal->output_index >= 0));
+        descendant_index[gal->output_index] = gal->MergerTarget->output_index;
+        old_count++;
+
+        assert(gal->MergerTarget->output_index < n_write);
+        if (gal->MergerTarget->output_index >= 0)
         {
-          descendant_index[gal->output_index] = gal->MergerTarget->output_index;
-          old_count++;
-        }
-        index = first_progenitor_index[gal->MergerTarget->output_index];
-        if (index > -1)
-        {
-          while (next_progenitor_index[index] > -1)
-            index = next_progenitor_index[index];
-          next_progenitor_index[index] = gal->output_index;
+          index = first_progenitor_index[gal->MergerTarget->output_index];
+          if (index > -1)
+          {
+            while (next_progenitor_index[index] > -1)
+              index = next_progenitor_index[index];
+            next_progenitor_index[index] = gal->output_index;
+          }
         }
       }
       gal = gal->Next;
@@ -853,7 +885,7 @@ void write_snapshot(
     gal = run_globals->FirstGal;
     while (gal != NULL)
     {
-      if ((gal->Type < 3) && (gal->StellarMass >= 1e-10))
+      if (pass_write_check(gal, false))
         gal->output_index = gal_count++;
       gal = gal->Next;
     }
@@ -876,7 +908,7 @@ void write_snapshot(
   while (gal != NULL)
   {
     // Don't output galaxies which merged at this timestep
-    if ((gal->Type < 3) && (gal->StellarMass >= 1e-10))
+    if (pass_write_check(gal, false))
     {
       prepare_galaxy_for_output(run_globals, *gal, &(output_buffer[buffer_count]), i_out);
       buffer_count++;

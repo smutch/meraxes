@@ -30,8 +30,9 @@
 #define N_PHOTO_JUMPS 1000
 #endif
 
-#define MVIR_PROP 1
-#define VMAX_PROP 2
+#ifndef N_HISTORY_SNAPS
+#define N_HISTORY_SNAPS 5
+#endif
 
 #define ABORT(sigterm)                                                                 \
   do {                                                                                   \
@@ -66,6 +67,7 @@ FILE *meraxes_debug_file;
 struct physics_params_t {
   int Flag_ReionizationModifier;
   int Flag_BHFeedback;
+  int Flag_SnDelay;
 
   double SfEfficiency;
   double SfRecycleFraction;
@@ -73,6 +75,9 @@ struct physics_params_t {
   double SnEjectionEff;
   double ReincorporationEff;
   double Yield;
+  double IMFSlope;
+  double EnergyPerSN;
+  double IMFNormConst;
   double RadioModeEff;
   double BlackHoleGrowthRate;
 
@@ -132,6 +137,8 @@ struct run_params_t {
   char             ForestIDFile[STRLEN];
   physics_params_t physics;
   int              FlagInteractive;
+  int              FlagGenDumpFile;
+  int              FlagReadDumpFile;
   int              TOCF_Flag;
 };
 typedef struct run_params_t run_params_t;
@@ -153,6 +160,7 @@ struct hdf5_output_t {
   size_t       dst_size;
   hid_t        array3f_tid;
   hid_t        array_nmag_f_tid;
+  hid_t        array_nhist_f_tid;
   size_t      *dst_offsets;
   size_t      *dst_field_sizes;
   const char **field_names;
@@ -241,6 +249,7 @@ struct galaxy_t {
   int              SnapSkipCounter;
   int              HaloDescIndex;
   int              TreeFlags;
+  int              LastIdentSnap;  //!< Last snapshot at which the halo in which this galaxy resides was identified
   bool             ghost_flag;
   struct halo_t   *Halo;
   struct galaxy_t *FirstGalInHalo;
@@ -249,11 +258,10 @@ struct galaxy_t {
   struct galaxy_t *MergerTarget;
   int              Len;
   double           dt; //!< Time between current snapshot and last identification
-  double           LTTime; //!< Lookback time at the last time this galaxy was identified
 
   // properties of subhalo at the last time this galaxy was a central galaxy
-  float Pos[3];
-  float Vel[3];
+  float  Pos[3];
+  float  Vel[3];
   double Mvir;
   double Rvir;
   double Vvir;
@@ -267,12 +275,18 @@ struct galaxy_t {
   double MetalsColdGas;
   double Mcool;
   double StellarMass;
+  double GrossStellarMass;
   double MetalsStellarMass;
   double DiskScaleLength;
   double Sfr;
   double EjectedGas;
   double MetalsEjectedGas;
   double BlackHoleMass;
+
+  // baryonic hostories
+  double mwmsa_num;
+  double mwmsa_denom;
+  double NewStars[N_HISTORY_SNAPS];
 
   // misc
   double Rcool;
@@ -314,11 +328,15 @@ struct galaxy_output_t {
   float Mcool;
   float DiskScaleLength;
   float StellarMass;
+  float GrossStellarMass;
   float MetalsStellarMass;
   float Sfr;
   float EjectedGas;
   float MetalsEjectedGas;
   float BlackHoleMass;
+
+  // baryonic histories
+  float NewStars[N_HISTORY_SNAPS];
 
   // misc
   float Rcool;
@@ -348,15 +366,15 @@ typedef struct trees_info_t {
 
 //! Tree entry struct
 typedef struct tree_entry_t {
-  int    id;
-  int    flags;
-  int    desc_id;
-  int    tree_id;
-  int    file_offset;
-  int    desc_index;
-  int    central_index;
-  int    forest_id;
-  int    group_index;
+  int id;
+  int flags;
+  int desc_id;
+  int tree_id;
+  int file_offset;
+  int desc_index;
+  int central_index;
+  int forest_id;
+  int group_index;
 } tree_entry_t;
 
 //! This is the structure for a halo in the catalog files
@@ -429,20 +447,26 @@ void         free_halo_storage(run_globals_t *run_globals);
 void         initialize_halo_storage(run_globals_t *run_globals);
 void         dracarys(run_globals_t *run_globals);
 int          evolve_galaxies(run_globals_t *run_globals, fof_group_t *fof_group, int snapshot, int NGal, int NFof);
+void         passively_evolve_ghost(run_globals_t *run_globals, galaxy_t *gal, int snapshot);
 trees_info_t read_halos(run_globals_t *run_globals, int snapshot, halo_t **halo, fof_group_t **fof_group, int **index_lookup, trees_info_t *snapshot_trees_info);
 galaxy_t   * new_galaxy(run_globals_t *run_globals, int snapshot, int halo_ID);
 void         create_new_galaxy(run_globals_t *run_globals, int snapshot, halo_t *halo, int *NGal, int *new_gal_counter);
 void         assign_galaxy_to_halo(galaxy_t *gal, halo_t *halo);
 void         kill_galaxy(run_globals_t *run_globals, galaxy_t *gal, galaxy_t *prev_gal, int *NGal, int *kill_counter);
 void         copy_halo_to_galaxy(halo_t *halo, galaxy_t *gal, int snapshot);
-void         reset_galaxy_properties(galaxy_t *gal);
+void         reset_galaxy_properties(run_globals_t *run_globals, galaxy_t *gal, int snapshot);
 double       gas_infall(run_globals_t *run_globals, fof_group_t *FOFgroup, int snapshot);
 void         add_infall_to_hot(galaxy_t *central, double infall_mass);
 double       calculate_merging_time(run_globals_t *run_globals, galaxy_t *gal, int snapshot);
-void         merge_with_target(run_globals_t *run_globals, galaxy_t *gal, int *dead_gals);
-void         insitu_star_formation(run_globals_t *run_globals, galaxy_t *gal);
-void         update_reservoirs_from_sf(run_globals_t *run_globals, galaxy_t *gal, double new_stars, double merger_mass_ratio);
-void         supernova_feedback(run_globals_t *run_globals, galaxy_t *gal, double m_star, double merger_mass_ratio);
+void         merge_with_target(run_globals_t *run_globals, galaxy_t *gal, int *dead_gals, int snapshot);
+void         insitu_star_formation(run_globals_t *run_globals, galaxy_t *gal, int snapshot);
+void         update_reservoirs_from_sf(run_globals_t *run_globals, galaxy_t *gal, double new_stars);
+double       sn_m_low(double log_dt);
+double       calc_recycled_frac(run_globals_t *run_globals, double m_high, double m_low);
+void         delayed_supernova_feedback(run_globals_t *run_globals, galaxy_t *gal, int snapshot);
+void         evolve_stellar_pops(run_globals_t *run_globals, galaxy_t *gal, int snapshot);
+void         contemporaneous_supernova_feedback(run_globals_t *run_globals, galaxy_t *gal, double *m_stars, int snapshot, double *m_reheat, double *m_eject, double *m_recycled, double *new_metals);
+void         update_reservoirs_from_sn_feedback(galaxy_t *gal, double m_reheat, double m_eject, double m_recycled, double new_metals);
 void         prep_hdf5_file(run_globals_t *run_globals);
 void         create_master_file(run_globals_t *run_globals);
 void         write_snapshot(run_globals_t *run_globals, int n_write, int i_out, int *last_n_write, trees_info_t *trees_info);
@@ -484,11 +508,11 @@ double gnedin2000_modifer(run_globals_t *run_globals, double Mvir, double redshi
 double global_ionizing_emmisivity(run_globals_t *run_globals);
 #ifdef USE_TOCF
 double tocf_modifier(run_globals_t *run_globals, double Mvir, float *Pos, int snapshot);
-void set_HII_eff_factor(run_globals_t *run_globals);
-int  find_cell(float pos, double box_size);
-void malloc_reionization_grids(run_globals_t *run_globals);
-void free_reionization_grids(run_globals_t *run_globals);
-void construct_stellar_grids(run_globals_t *run_globals);
+void   set_HII_eff_factor(run_globals_t *run_globals);
+int    find_cell(float pos, double box_size);
+void   malloc_reionization_grids(run_globals_t *run_globals);
+void   free_reionization_grids(run_globals_t *run_globals);
+void   construct_stellar_grids(run_globals_t *run_globals);
 // void    assign_ionization_to_halos(run_globals_t *run_globals, halo_t *halo, int n_halos, float *xH_grid, int xH_dim);
 int  read_dm_grid(run_globals_t *run_globals, int snapshot, int i_grid, float *grid);
 void calculate_Mvir_crit(run_globals_t *run_globals, double redshift);
@@ -498,6 +522,7 @@ void check_if_reionization_complete(run_globals_t *run_globals);
 #endif
 
 #ifdef DEBUG
-int debug(const char * restrict format, ...);
+int  debug(const char * restrict format, ...);
+void check_pointers(run_globals_t *run_globals, halo_t *halos, fof_group_t *fof_groups, trees_info_t *trees_info);
 #endif
 #endif // _INIT_MERAXES
