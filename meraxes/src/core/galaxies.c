@@ -97,12 +97,12 @@ void reset_galaxy_properties(run_globals_t *run_globals, galaxy_t *gal, int snap
 
   // update the stellar mass weighted mean age values
   assert(snapshot > 0);
-  gal->mwmsa_denom += gal->NewStars[N_HISTORY_SNAPS-1];
-  gal->mwmsa_num   += gal->NewStars[N_HISTORY_SNAPS-1] * run_globals->LTTime[snapshot-N_HISTORY_SNAPS];
+  gal->mwmsa_denom += gal->NewStars[N_HISTORY_SNAPS - 1];
+  gal->mwmsa_num   += gal->NewStars[N_HISTORY_SNAPS - 1] * run_globals->LTTime[snapshot - N_HISTORY_SNAPS];
 
   // roll over the baryonic history arrays
-  for (int ii = N_HISTORY_SNAPS-1; ii > 0; ii--)
-    gal->NewStars[ii] = gal->NewStars[ii-1];
+  for (int ii = N_HISTORY_SNAPS - 1; ii > 0; ii--)
+    gal->NewStars[ii] = gal->NewStars[ii - 1];
 
   gal->NewStars[0] = 0.0;
 }
@@ -188,7 +188,7 @@ void kill_galaxy(
     while (cur_gal != NULL)
     {
       cur_gal->FirstGalInHalo = gal->NextGalInHalo;
-      cur_gal = cur_gal->NextGalInHalo;
+      cur_gal                 = cur_gal->NextGalInHalo;
     }
   }
 

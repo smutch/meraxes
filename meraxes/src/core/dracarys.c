@@ -84,7 +84,7 @@ void dracarys(run_globals_t *run_globals)
   fof_group_t **snapshot_fof_group  = run_globals->SnapshotFOFGroup;
   int **snapshot_index_lookup       = run_globals->SnapshotIndexLookup;
   trees_info_t *snapshot_trees_info = run_globals->SnapshotTreesInfo;
-  double *LTTime = run_globals->LTTime;
+  double *LTTime                    = run_globals->LTTime;
 
   // Find what the last requested output snapshot is
   for (int ii = 0; ii < NOUT; ii++)
@@ -261,8 +261,8 @@ void dracarys(run_globals_t *run_globals)
     for (int i_fof = 0; i_fof < trees_info.n_fof_groups; i_fof++)
     {
       halo_t *first_occupied_halo = NULL;
-      halo_t *cur_halo = fof_group[i_fof].FirstHalo;
-      int total_subhalo_len = 0;
+      halo_t *cur_halo            = fof_group[i_fof].FirstHalo;
+      int total_subhalo_len       = 0;
 
       while (cur_halo != NULL)
       {
@@ -278,7 +278,7 @@ void dracarys(run_globals_t *run_globals)
       }
 
       fof_group[i_fof].FirstOccupiedHalo = first_occupied_halo;
-      fof_group[i_fof].TotalSubhaloLen = total_subhalo_len;
+      fof_group[i_fof].TotalSubhaloLen   = total_subhalo_len;
     }
 
     // Loop through each galaxy and deal with HALO mergers now that all other

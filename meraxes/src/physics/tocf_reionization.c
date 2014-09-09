@@ -6,7 +6,7 @@
 void calculate_Mvir_crit(run_globals_t *run_globals, double redshift)
 {
   // Calculate the critical Mvir value in each grid cell (ala Sobacchi & Mesinger 2013b)
-  float *Mvir_crit   = run_globals->tocf_grids.Mvir_crit;
+  float *Mvir_crit = run_globals->tocf_grids.Mvir_crit;
 
   if (SID.My_rank == 0)
   {
@@ -44,7 +44,7 @@ void calculate_Mvir_crit(run_globals_t *run_globals, double redshift)
           if (z_at_ion[HII_R_INDEX(ii, jj, kk)] > redshift)
           {
             cell_Mvir_crit = m_0_sm * pow((1.0 + redshift) / 10.0, a_sm) * pow(J_21_at_ion[HII_R_INDEX(ii, jj, kk)], b_sm) *
-              pow((1.0 - pow((1.0 + redshift) / (1.0 + z_at_ion[HII_R_INDEX(ii, jj, kk)]), c_sm)), d_sm);
+                             pow((1.0 - pow((1.0 + redshift) / (1.0 + z_at_ion[HII_R_INDEX(ii, jj, kk)]), c_sm)), d_sm);
 
             // Put the mass back into internal units
             cell_Mvir_crit /= 1.0e10 * Hubble_h;
@@ -59,22 +59,19 @@ void calculate_Mvir_crit(run_globals_t *run_globals, double redshift)
 
   // Broadcast the result to all ranks
   SID_Bcast(Mvir_crit, HII_TOT_NUM_PIXELS * sizeof(float), 0, SID.COMM_WORLD);
-
 }
 
 
 double tocf_modifier(run_globals_t *run_globals, double Mvir, float *Pos, int snapshot)
 {
-
-  double  box_size    = run_globals->params.BoxSize;
-  float  *M_crit_grid = run_globals->tocf_grids.Mvir_crit;
+  double box_size    = run_globals->params.BoxSize;
+  float *M_crit_grid = run_globals->tocf_grids.Mvir_crit;
 
   // Find which cell this halo lies in
   int i = find_cell(Pos[0], box_size);
   int j = find_cell(Pos[1], box_size);
   int k = find_cell(Pos[2], box_size);
 
-  return pow(2.0, (double)(M_crit_grid[HII_R_INDEX(i,j,k)])/Mvir);
-
+  return pow(2.0, (double)(M_crit_grid[HII_R_INDEX(i, j, k)]) / Mvir);
 }
 #endif

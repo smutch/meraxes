@@ -260,8 +260,8 @@ struct galaxy_t {
   double           dt; //!< Time between current snapshot and last identification
 
   // properties of subhalo at the last time this galaxy was a central galaxy
-  float Pos[3];
-  float Vel[3];
+  float  Pos[3];
+  float  Vel[3];
   double Mvir;
   double Rvir;
   double Vvir;
@@ -366,15 +366,15 @@ typedef struct trees_info_t {
 
 //! Tree entry struct
 typedef struct tree_entry_t {
-  int    id;
-  int    flags;
-  int    desc_id;
-  int    tree_id;
-  int    file_offset;
-  int    desc_index;
-  int    central_index;
-  int    forest_id;
-  int    group_index;
+  int id;
+  int flags;
+  int desc_id;
+  int tree_id;
+  int file_offset;
+  int desc_index;
+  int central_index;
+  int forest_id;
+  int group_index;
 } tree_entry_t;
 
 //! This is the structure for a halo in the catalog files
@@ -508,11 +508,11 @@ double gnedin2000_modifer(run_globals_t *run_globals, double Mvir, double redshi
 double global_ionizing_emmisivity(run_globals_t *run_globals);
 #ifdef USE_TOCF
 double tocf_modifier(run_globals_t *run_globals, double Mvir, float *Pos, int snapshot);
-void set_HII_eff_factor(run_globals_t *run_globals);
-int  find_cell(float pos, double box_size);
-void malloc_reionization_grids(run_globals_t *run_globals);
-void free_reionization_grids(run_globals_t *run_globals);
-void construct_stellar_grids(run_globals_t *run_globals);
+void   set_HII_eff_factor(run_globals_t *run_globals);
+int    find_cell(float pos, double box_size);
+void   malloc_reionization_grids(run_globals_t *run_globals);
+void   free_reionization_grids(run_globals_t *run_globals);
+void   construct_stellar_grids(run_globals_t *run_globals);
 // void    assign_ionization_to_halos(run_globals_t *run_globals, halo_t *halo, int n_halos, float *xH_grid, int xH_dim);
 int  read_dm_grid(run_globals_t *run_globals, int snapshot, int i_grid, float *grid);
 void calculate_Mvir_crit(run_globals_t *run_globals, double redshift);
@@ -522,7 +522,7 @@ void check_if_reionization_complete(run_globals_t *run_globals);
 #endif
 
 #ifdef DEBUG
-int debug(const char * restrict format, ...);
+int  debug(const char * restrict format, ...);
 void check_pointers(run_globals_t *run_globals, halo_t *halos, fof_group_t *fof_groups, trees_info_t *trees_info);
 #endif
 #endif // _INIT_MERAXES

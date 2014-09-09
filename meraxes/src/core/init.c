@@ -245,20 +245,20 @@ static void check_n_history_snaps(run_globals_t *run_globals)
   // an extremely crude fasion!
 
   double *LTTime = run_globals->LTTime;
-  int n_snaps = run_globals->params.SnaplistLength;
-  double max_dt = 0.0;
+  int n_snaps    = run_globals->params.SnaplistLength;
+  double max_dt  = 0.0;
   double diff;
   double m_low;
 
-  for(int ii=1; ii<n_snaps; ii++)
+  for (int ii = 1; ii < n_snaps; ii++)
   {
-    diff = LTTime[ii-1]-LTTime[ii];
+    diff = LTTime[ii - 1] - LTTime[ii];
     if (diff > max_dt)
       max_dt = diff;
   }
 
-  max_dt *= (N_HISTORY_SNAPS-1) * run_globals->units.UnitTime_in_Megayears / run_globals->params.Hubble_h;
-  m_low = sn_m_low(log10(max_dt));
+  max_dt *= (N_HISTORY_SNAPS - 1) * run_globals->units.UnitTime_in_Megayears / run_globals->params.Hubble_h;
+  m_low   = sn_m_low(log10(max_dt));
 
   if (m_low > 8.0)
   {

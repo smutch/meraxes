@@ -71,18 +71,18 @@ void update_reservoirs_from_sn_feedback(galaxy_t *gal, double m_reheat, double m
 
 
 static inline double calc_ejected_mass(
-    double m_reheat,
-    double sn_energy,
-    double Vvir)
+  double m_reheat,
+  double sn_energy,
+  double Vvir)
 {
   double m_eject = 0.0;
 
-  if(m_reheat > 0)
+  if (m_reheat > 0)
   {
-    double Vvir_sqrd = Vvir*Vvir;
-    double reheated_energy = 0.5 * m_reheat * Vvir_sqrd;
+    double Vvir_sqrd                = Vvir * Vvir;
+    double reheated_energy          = 0.5 * m_reheat * Vvir_sqrd;
     double specific_hot_halo_energy = 0.5 * Vvir_sqrd;
-    m_eject = (sn_energy - reheated_energy)/specific_hot_halo_energy;
+    m_eject = (sn_energy - reheated_energy) / specific_hot_halo_energy;
     if (m_eject < 0)
       m_eject = 0.0;
   }
@@ -94,13 +94,14 @@ static inline double calc_ejected_mass(
 static inline double calc_eta_sn(run_globals_t *run_globals, double m_high, double m_low, double *snII_frac)
 {
   // work out the number of supernova per 1e10 Msol formed at the current time
-  double exponent = run_globals->params.physics.IMFSlope + 1.0;  // should be -1.35 for Salpeter
+  double exponent  = run_globals->params.physics.IMFSlope + 1.0; // should be -1.35 for Salpeter
   double const_phi = run_globals->params.physics.IMFNormConst;   // should be 0.1706 for Salpeter
   double eta_SNII  = 7.4319792e-3; // total number of type II SN per solar mass of burst
 
-  double eta_sn = const_phi * 1.0/exponent * (pow(m_high, exponent) - pow(m_low, exponent));
+  double eta_sn = const_phi * 1.0 / exponent * (pow(m_high, exponent) - pow(m_low, exponent));
+
   *snII_frac = eta_sn / eta_SNII;
-  eta_sn *= 1.e10;
+  eta_sn    *= 1.e10;
 
   if (*snII_frac > 1)
     *snII_frac = 1.0;
@@ -112,9 +113,10 @@ static inline double calc_eta_sn(run_globals_t *run_globals, double m_high, doub
 static inline double calc_sn_energy(run_globals_t *run_globals, double stars, double eta_sn)
 {
   // work out the energy produced by the supernova and add it to our total at this snapshot
-  double E_sn = run_globals->params.physics.EnergyPerSN / run_globals->units.UnitEnergy_in_cgs;
+  double E_sn          = run_globals->params.physics.EnergyPerSN / run_globals->units.UnitEnergy_in_cgs;
   double SnEjectionEff = run_globals->params.physics.SnEjectionEff;
-  double sn_energy = 0.5 * SnEjectionEff * stars * E_sn * eta_sn;
+  double sn_energy     = 0.5 * SnEjectionEff * stars * E_sn * eta_sn;
+
   assert(sn_energy >= 0);
   return sn_energy;
 }
@@ -123,10 +125,10 @@ static inline double calc_sn_energy(run_globals_t *run_globals, double stars, do
 double calc_recycled_frac(run_globals_t *run_globals, double m_high, double m_low)
 {
   // calculate the mass ejected (from fraction of total SN-II that have gone off) from this burst
-  double  const_phi = run_globals->params.physics.IMFNormConst;   // should be 0.1706 for Salpeter
-  double  exponent = run_globals->params.physics.IMFSlope + 2.0;
+  double const_phi = run_globals->params.physics.IMFNormConst;    // should be 0.1706 for Salpeter
+  double exponent  = run_globals->params.physics.IMFSlope + 2.0;
 
-  double burst_recycled_frac = const_phi * 1.0/exponent * (pow(m_high, exponent) - pow(m_low, exponent));
+  double burst_recycled_frac = const_phi * 1.0 / exponent * (pow(m_high, exponent) - pow(m_low, exponent));
 
   if (burst_recycled_frac < 0)
     SID_log("WTF? %g (%g, %g)", SID_LOG_COMMENT, burst_recycled_frac, m_low, m_high);
@@ -147,11 +149,11 @@ double sn_m_low(double log_dt)
   // Galactic chemical enrichment with new metallicity dependent stellar
   // yields.  Astronomy and Astrophysics 334, 505–539 (1998).
 
-  double const_a     = 0.80680268;
-  double const_b     = -2.81547136;
-  double const_c     = -5.73419164;
-  double const_d     = 0.475119568;
-  double m_high      = 120.0;       // highest mass star produced in stellar mass burst (Msol)
+  double const_a = 0.80680268;
+  double const_b = -2.81547136;
+  double const_c = -5.73419164;
+  double const_d = 0.475119568;
+  double m_high  = 120.0;           // highest mass star produced in stellar mass burst (Msol)
   double m_low;
 
   m_low = pow(10.0, (const_a / log_dt) + const_b * exp(const_c / log_dt) + const_d);
@@ -168,9 +170,9 @@ double sn_m_low(double log_dt)
 
 void delayed_supernova_feedback(run_globals_t *run_globals, galaxy_t *gal, int snapshot)
 {
-  run_units_t *units   = &(run_globals->units);
-  double SnReheatEff   = run_globals->params.physics.SnReheatEff;
-  double *LTTime       = run_globals->LTTime;
+  run_units_t *units = &(run_globals->units);
+  double SnReheatEff = run_globals->params.physics.SnReheatEff;
+  double *LTTime     = run_globals->LTTime;
 
   double m_high;
   double m_low;
@@ -178,9 +180,9 @@ void delayed_supernova_feedback(run_globals_t *run_globals, galaxy_t *gal, int s
   double burst_recycled_frac;
   double snII_frac;
   double log_dt;
-  double sn_energy = 0.0;
-  double m_reheat = 0.0;
-  double m_eject = 0.0;
+  double sn_energy  = 0.0;
+  double m_reheat   = 0.0;
+  double m_eject    = 0.0;
   double m_recycled = 0.0;
   double new_metals = 0.0;
   double m_stars;
@@ -193,26 +195,25 @@ void delayed_supernova_feedback(run_globals_t *run_globals, galaxy_t *gal, int s
   // in the current time step.
   for (int i_burst = 1; i_burst < n_bursts; i_burst++)
   {
-
     m_stars = gal->NewStars[i_burst];
 
     // Only need to do this if any stars formed in this history bin
-    if(m_stars > 1e-10)
+    if (m_stars > 1e-10)
     {
       // work out the higest mass star which would have expended it's H & He
       // core fuel in this time (i.e. the highest mass star that would not
       // already have left the main sequence since this burst occured).
-      log_dt = log10(((LTTime[snapshot-i_burst-1] + LTTime[snapshot-i_burst])/2.0 - LTTime[snapshot-1]) * units->UnitTime_in_Megayears / run_globals->params.Hubble_h);
+      log_dt = log10(((LTTime[snapshot - i_burst - 1] + LTTime[snapshot - i_burst]) / 2.0 - LTTime[snapshot - 1]) * units->UnitTime_in_Megayears / run_globals->params.Hubble_h);
       m_high = sn_m_low(log_dt);
 
       // work out the lowest mass star which would have expended it's H & He core
       // fuel in this time
-      log_dt = log10(((LTTime[snapshot-i_burst-1] + LTTime[snapshot-i_burst])/2.0 - LTTime[snapshot]) * units->UnitTime_in_Megayears / run_globals->params.Hubble_h);
-      m_low = sn_m_low(log_dt);  // Msol
+      log_dt = log10(((LTTime[snapshot - i_burst - 1] + LTTime[snapshot - i_burst]) / 2.0 - LTTime[snapshot]) * units->UnitTime_in_Megayears / run_globals->params.Hubble_h);
+      m_low  = sn_m_low(log_dt); // Msol
 
       // calculate the mass recycled from this burst
       burst_recycled_frac = calc_recycled_frac(run_globals, m_high, m_low);
-      m_recycled += m_stars * burst_recycled_frac;
+      m_recycled         += m_stars * burst_recycled_frac;
 
       // If m_high is > 8.0 Msol then we have already used all of the SN-II in
       // the previous recorded NewStars bins.  We therefore don't need to
@@ -257,13 +258,13 @@ static void backfill_ghost_NewStars(run_globals_t *run_globals, galaxy_t *gal, d
 {
   if ((snapshot - gal->LastIdentSnap) <= N_HISTORY_SNAPS)
   {
-    double *LTTime       = run_globals->LTTime;
-    double burst_time    = LTTime[gal->LastIdentSnap] - gal->dt*0.5;
+    double *LTTime    = run_globals->LTTime;
+    double burst_time = LTTime[gal->LastIdentSnap] - gal->dt * 0.5;
 
     for (int ii = 1; ii < N_HISTORY_SNAPS; ii++)
       if (LTTime[snapshot - ii] > burst_time)
       {
-        gal->NewStars[ii-1] += m_stars;
+        gal->NewStars[ii - 1] += m_stars;
         break;
       }
   }
@@ -280,18 +281,17 @@ void contemporaneous_supernova_feedback(
   double        *m_recycled,
   double        *new_metals)
 {
-
   // Here we approximate a constant SFR accross the timestep by a single burst
   // at t=0.5*dt.  This is a pretty good approximation (to within ~15% of the
   // true number of SN that would have gone of by the end of the timestep for a
   // constant SFR).
 
-  run_units_t *units   = &(run_globals->units);
-  double SnReheatEff   = run_globals->params.physics.SnReheatEff;
-  bool Flag_SnDelay    = (bool)(run_globals->params.physics.Flag_SnDelay);
+  run_units_t *units = &(run_globals->units);
+  double SnReheatEff = run_globals->params.physics.SnReheatEff;
+  bool Flag_SnDelay  = (bool)(run_globals->params.physics.Flag_SnDelay);
 
   double m_high = 120.0;  // Msol
-  double m_low = 8.0;
+  double m_low  = 8.0;
   double eta_sn;
   double burst_recycled_frac;
   double snII_frac;
@@ -307,13 +307,13 @@ void contemporaneous_supernova_feedback(
   if (Flag_SnDelay)
   {
     assert(snapshot > 0);
-    log_dt = log10(gal->dt*0.5 * units->UnitTime_in_Megayears / run_globals->params.Hubble_h);
-    m_low = sn_m_low(log_dt);  // Msol
+    log_dt = log10(gal->dt * 0.5 * units->UnitTime_in_Megayears / run_globals->params.Hubble_h);
+    m_low  = sn_m_low(log_dt); // Msol
   }
 
   // calculate the mass reheated (from fraction of total SN-II that have gone off) from this burst
   burst_recycled_frac = calc_recycled_frac(run_globals, m_high, m_low);
-  *m_recycled = *m_stars * burst_recycled_frac;
+  *m_recycled         = *m_stars * burst_recycled_frac;
 
   if (m_low < 8.0)
     m_low = 8.0;
@@ -322,7 +322,7 @@ void contemporaneous_supernova_feedback(
   eta_sn = calc_eta_sn(run_globals, m_high, m_low, &snII_frac);
 
   // calculate the total reheated
-  *m_reheat   = SnReheatEff * snII_frac * *m_stars;
+  *m_reheat = SnReheatEff * snII_frac * *m_stars;
 
   // attenuate the star formation if necessary, so that we are being consistent
   // if (*m_reheat + *m_stars - *m_recycled > gal->ColdGas)
@@ -331,7 +331,7 @@ void contemporaneous_supernova_feedback(
     // double frac = gal->ColdGas / (*m_reheat + *m_stars - *m_recycled);
     double frac = gal->ColdGas / (*m_reheat + *m_stars);
     *m_reheat *= frac;
-    *m_stars *= frac;
+    *m_stars  *= frac;
     // *m_recycled *= frac;
   }
 
@@ -352,6 +352,6 @@ void contemporaneous_supernova_feedback(
 
   // If this is a reidentified ghost, then back fill NewStars to reflect this
   // new SF burst.
-  if (Flag_SnDelay && (gal->LastIdentSnap < (snapshot-1)))
+  if (Flag_SnDelay && (gal->LastIdentSnap < (snapshot - 1)))
     backfill_ghost_NewStars(run_globals, gal, *m_stars, snapshot);
 }

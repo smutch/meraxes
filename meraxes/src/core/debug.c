@@ -269,7 +269,7 @@ void check_pointers(run_globals_t *run_globals, halo_t *halos, fof_group_t *fof_
   galaxy_t *gal, *gal_pointer, gal_deref;
   halo_t *halo;
   fof_group_t *fof_group;
-  int n_halos = trees_info->n_halos;
+  int n_halos      = trees_info->n_halos;
   int n_fof_groups = trees_info->n_fof_groups;
 
   SID_log("Running pointers check.  Remember to run with Valgrind if you want to check the ->galaxy pointers.", SID_LOG_COMMENT);
@@ -301,7 +301,7 @@ void check_pointers(run_globals_t *run_globals, halo_t *halos, fof_group_t *fof_
     gal = gal->Next;
   }
 
-  for(int ii=0; ii<n_halos; ii++)
+  for (int ii = 0; ii < n_halos; ii++)
   {
     fof_group = halos[ii].FOFGroup;
     // SID_log("%llu < %llu", SID_LOG_COMMENT, fof_group-fof_groups, (size_t)n_fof_groups);
@@ -317,7 +317,7 @@ void check_pointers(run_globals_t *run_globals, halo_t *halos, fof_group_t *fof_
       gal_deref = *gal;
   }
 
-  for(int ii=0; ii<n_fof_groups; ii++)
+  for (int ii = 0; ii < n_fof_groups; ii++)
   {
     halo = fof_groups[ii].FirstHalo;
     assert((halo - halos) < (size_t)n_halos);

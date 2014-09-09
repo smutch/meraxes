@@ -3,13 +3,13 @@
 
 static void check_problem_params(run_params_t *run_params)
 {
-  if(run_params->NSteps != 1)
+  if (run_params->NSteps != 1)
   {
     SID_log_error("The current version of the code only works if NSteps = 1. Sorry! Exiting...");
     ABORT(EXIT_FAILURE);
   }
 
-  if(run_params->FlagReadDumpFile && run_params->FlagGenDumpFile)
+  if (run_params->FlagReadDumpFile && run_params->FlagGenDumpFile)
   {
     SID_log_error("Both FlagReadDumpFile & FlagGenDumpFile are set!");
     ABORT(EXIT_FAILURE);
@@ -620,7 +620,6 @@ void read_parameter_file(run_globals_t *run_globals, char *fname, int mode)
         strcat(run_params->OutputDir, "/");
 
     check_problem_params(run_params);
-
   }  // END if(SID.My_rank==0)
 
   // If running mpi then broadcast the run parameters to all cores

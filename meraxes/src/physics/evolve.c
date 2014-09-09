@@ -29,7 +29,6 @@ int evolve_galaxies(run_globals_t *run_globals, fof_group_t *fof_group, int snap
 
         while (gal != NULL)
         {
-
           if (gal->Type == 0)
           {
             cooling_mass = gas_cooling(run_globals, gal);

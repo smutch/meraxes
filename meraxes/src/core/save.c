@@ -45,7 +45,7 @@ void prepare_galaxy_for_output(
   else
   {
     galout->CentralGal = -1;
-    galout->FOFMvir = -1.0;
+    galout->FOFMvir    = -1.0;
   }
   galout->GhostFlag = (int)gal.ghost_flag;
 
@@ -110,7 +110,7 @@ void calc_hdf5_props(run_globals_t *run_globals)
   h5props->dst_size = sizeof(galaxy_output_t);
 
   // Create datatypes for different size arrays
-  h5props->array3f_tid = H5Tarray_create(H5T_NATIVE_FLOAT, 1, (hsize_t[]){ 3 });
+  h5props->array3f_tid       = H5Tarray_create(H5T_NATIVE_FLOAT, 1, (hsize_t[]){ 3 });
   h5props->array_nhist_f_tid = H5Tarray_create(H5T_NATIVE_FLOAT, 1, (hsize_t[]){ N_HISTORY_SNAPS });
 
   // Calculate the offsets of our struct members in memory
@@ -646,23 +646,20 @@ void create_master_file(run_globals_t *run_globals)
       H5Gclose(group_id);
 
 #ifdef USE_TOCF
+      if ((i_core == 0) && (run_globals->params.TOCF_Flag))
+      {
+        // create links to the 21cmFAST grids
+        sprintf(target_group, "Grids");
+        sprintf(source_group, "Snap%03d/Grids", run_globals->ListOutputSnaps[i_out]);
+        H5Lcreate_external(relative_source_file, source_group, snap_group_id, target_group, H5P_DEFAULT, H5P_DEFAULT);
 
-    if((i_core == 0) && (run_globals->params.TOCF_Flag))
-    {
-      // create links to the 21cmFAST grids
-      sprintf(target_group, "Grids");
-      sprintf(source_group, "Snap%03d/Grids", run_globals->ListOutputSnaps[i_out]);
-      H5Lcreate_external(relative_source_file, source_group, snap_group_id, target_group, H5P_DEFAULT, H5P_DEFAULT);
-
-      sprintf(source_ds, "Snap%03d/PowerSpectrum", run_globals->ListOutputSnaps[i_out]);
-      sprintf(target_ds, "PowerSpectrum");
-      H5Lcreate_external(relative_source_file, source_ds, snap_group_id, target_ds, H5P_DEFAULT, H5P_DEFAULT);
-    }
-
+        sprintf(source_ds, "Snap%03d/PowerSpectrum", run_globals->ListOutputSnaps[i_out]);
+        sprintf(target_ds, "PowerSpectrum");
+        H5Lcreate_external(relative_source_file, source_ds, snap_group_id, target_ds, H5P_DEFAULT, H5P_DEFAULT);
+      }
 #endif
 
       H5Fclose(source_file_id);
-
     }
 
     // save the global ionizing emissivity at this snapshot
@@ -718,11 +715,11 @@ static void inline save_walk_indices(
 
 static inline bool pass_write_check(galaxy_t *gal, bool flag_merger)
 {
-  if(
-      // Test for non-merger galaxy to be written in the current snap
-      (!flag_merger && (gal->Type < 3) && ((gal->output_index > -1) || (gal->StellarMass >= 1e-10)) )
-      // and this is the test for a merger to be accounted for in descendant / progenitor arrays
-      || (flag_merger && (gal->Type == 3) && (gal->output_index > -1))
+  if (
+    // Test for non-merger galaxy to be written in the current snap
+    (!flag_merger && (gal->Type < 3) && ((gal->output_index > -1) || (gal->StellarMass >= 1e-10)))
+    // and this is the test for a merger to be accounted for in descendant / progenitor arrays
+    || (flag_merger && (gal->Type == 3) && (gal->output_index > -1))
     )
     return true;
   else
@@ -765,16 +762,16 @@ void write_snapshot(
   // We aren't going to write any galaxies that have zero stellar mass, so
   // modify n_write appropriately...
   gal = run_globals->FirstGal;
-  while(gal != NULL)
+  while (gal != NULL)
   {
-    if(pass_write_check(gal, false))
+    if (pass_write_check(gal, false))
       write_count++;
     gal = gal->Next;
   }
 
   if (n_write != write_count)
   {
-    SID_log("Excluding %d ~zero mass galaxies...", SID_LOG_COMMENT, n_write-write_count);
+    SID_log("Excluding %d ~zero mass galaxies...", SID_LOG_COMMENT, n_write - write_count);
     SID_log("New write count = %d", SID_LOG_COMMENT, write_count);
     n_write = write_count;
   }
@@ -836,7 +833,7 @@ void write_snapshot(
       {
         if (gal->output_index > -1)
         {
-          first_progenitor_index[gal_count]   = gal->output_index;
+          first_progenitor_index[gal_count] = gal->output_index;
 
           assert(gal->output_index < *last_n_write);
 

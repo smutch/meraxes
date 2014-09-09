@@ -18,7 +18,7 @@ void update_reservoirs_from_sf(run_globals_t *run_globals, galaxy_t *gal, double
     gal->NewStars[0] += new_stars;
 
     // instantaneous recycling approximation of stellar mass
-    metallicity     = calc_metallicity(gal->ColdGas, gal->MetalsColdGas);
+    metallicity = calc_metallicity(gal->ColdGas, gal->MetalsColdGas);
 
     gal->ColdGas           -= new_stars;
     gal->MetalsColdGas     -= new_stars * metallicity;
