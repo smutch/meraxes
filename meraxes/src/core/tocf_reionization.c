@@ -9,18 +9,21 @@
 
 void set_HII_eff_factor(run_globals_t *run_globals)
 {
-  // Use the params passed to Meraxes via the input file to set the HII
-  // ionizing efficiency factor.
+    // Use the params passed to Meraxes via the input file to set the HII ionising efficiency factor
+    
+    physics_params_t *params = &(run_globals->params.physics);
+    
+    // The following is based on Sobacchi & Messinger (2013) eqn 7
+    // with f_* removed since we define f_coll as M_*/M_tot rather than M_vir/M_tot
+    tocf_params.HII_eff_factor *= 600 * (tocf_params.OMm / tocf_params.OMb) * (params->ReionNionPhotPerBary / 4000.0)
+                                  * (params->ReionEscapeFrac / 0.15) * (1.0 / (1.0 + params->ReionMeanNRec));
+    
+    // Account for instantaneous recycling factor so that stellar mass is cumulative
+    // TODO: this will change in future versions using gross_stars
+    tocf_params.HII_eff_factor /= 0.43;
+    
+    SID_log("Set value of tocf_params.HII_eff_factor = %g", SID_LOG_COMMENT, tocf_params.HII_eff_factor);
 
-  physics_params_t *params = &(run_globals->params.physics);
-
-  tocf_params.HII_eff_factor *= (params->ReionNionPhotPerBary / 4000.0) *
-                               (params->ReionEscapeFrac / 0.15) * (1.0 / (1.0 + params->ReionMeanNRec));
-  
-  tocf_params.HII_eff_factor /= 0.43;       // PMG ADDED: account for instantaneous recycling factor
-  
-  SID_log("tocf_params.HII_eff_factor = %g", SID_LOG_COMMENT, tocf_params.HII_eff_factor);
-  
 }
 
 
@@ -454,63 +457,61 @@ void save_tocf_grids(run_globals_t *run_globals, hid_t parent_group_id, int snap
         // ====================================================
         // Remove this when python plotting is sorted?
         
-        // Create ps file
-        
-        FILE *f1;
-        char filename[128];
-        int i, j, k, i_cut, j_cut, k_cut;
-        
-        // Create delta_T slice file
-        
-        i_cut = (int)(HII_dim/2);
-        j_cut = (int)(HII_dim/2);
-        k_cut = (int)(HII_dim/2);
-        
-        sprintf(filename, "output/delta_T_i%d_%d.dat", i_cut, snapshot);
-        f1 = fopen(filename, "wt");
-        for(k=0;k<HII_dim;k++)
-        {   
-            for(j=0;j<HII_dim;j++)
-            {
-                fprintf(f1, "%g\t", grid[HII_R_INDEX(i_cut,j,k)]);
-            }
-            fprintf(f1, "\n");
-        }
-        fclose(f1);
-        SID_log("Creating %s", SID_LOG_COMMENT, filename);
-        
-        sprintf(filename, "output/delta_T_j%d_%d.dat", j_cut, snapshot);
-        f1 = fopen(filename, "wt");
-        for(k=0;k<HII_dim;k++)
-        {   
-            for(i=0;i<HII_dim;i++)
-            {
-                fprintf(f1, "%g\t", grid[HII_R_INDEX(i,j_cut,k)]);
-            }
-            fprintf(f1, "\n");
-        }
-        fclose(f1);
-        SID_log("Creating %s", SID_LOG_COMMENT, filename);
-        
-        sprintf(filename, "output/delta_T_k%d_%d.dat", k_cut, snapshot);
-        f1 = fopen(filename, "wt");
-        for(j=0;j<HII_dim;j++)
-        {   
-            for(i=0;i<HII_dim;i++)
-            {
-                fprintf(f1, "%g\t", grid[HII_R_INDEX(i,j,k_cut)]);
-            }
-            fprintf(f1, "\n");
-        }
-        fclose(f1);
-        SID_log("Creating %s", SID_LOG_COMMENT, filename);
-        
-        // Create ps file
-        sprintf(filename, "output/ps_%d.dat", snapshot);
-        f1 = fopen(filename, "wt");
-        for(i=1;i<ps_nbins;i++) fprintf(f1, "%g\t%g\t%g\n", ps[0+3*i], ps[1+3*i], ps[2+3*i]);
-        fclose(f1);
-        SID_log("Creating %s", SID_LOG_COMMENT, filename);
+//        FILE *f1;
+//        char filename[128];
+//        int i, j, k, i_cut, j_cut, k_cut;
+//        
+//        // Create delta_T slice file
+//        
+//        i_cut = (int)(HII_dim/2);
+//        j_cut = (int)(HII_dim/2);
+//        k_cut = (int)(HII_dim/2);
+//        
+//        sprintf(filename, "output/delta_T_i%d_%d.dat", i_cut, snapshot);
+//        f1 = fopen(filename, "wt");
+//        for(k=0;k<HII_dim;k++)
+//        {   
+//            for(j=0;j<HII_dim;j++)
+//            {
+//                fprintf(f1, "%g\t", grid[HII_R_INDEX(i_cut,j,k)]);
+//            }
+//            fprintf(f1, "\n");
+//        }
+//        fclose(f1);
+//        SID_log("Creating %s", SID_LOG_COMMENT, filename);
+//        
+//        sprintf(filename, "output/delta_T_j%d_%d.dat", j_cut, snapshot);
+//        f1 = fopen(filename, "wt");
+//        for(k=0;k<HII_dim;k++)
+//        {   
+//            for(i=0;i<HII_dim;i++)
+//            {
+//                fprintf(f1, "%g\t", grid[HII_R_INDEX(i,j_cut,k)]);
+//            }
+//            fprintf(f1, "\n");
+//        }
+//        fclose(f1);
+//        SID_log("Creating %s", SID_LOG_COMMENT, filename);
+//        
+//        sprintf(filename, "output/delta_T_k%d_%d.dat", k_cut, snapshot);
+//        f1 = fopen(filename, "wt");
+//        for(j=0;j<HII_dim;j++)
+//        {   
+//            for(i=0;i<HII_dim;i++)
+//            {
+//                fprintf(f1, "%g\t", grid[HII_R_INDEX(i,j,k_cut)]);
+//            }
+//            fprintf(f1, "\n");
+//        }
+//        fclose(f1);
+//        SID_log("Creating %s", SID_LOG_COMMENT, filename);
+//        
+//        // Create ps file
+//        sprintf(filename, "output/PS_%d.dat", snapshot);
+//        f1 = fopen(filename, "wt");
+//        for(i=1;i<ps_nbins;i++) fprintf(f1, "%g\t%g\t%g\n", ps[0+3*i], ps[1+3*i], ps[2+3*i]);
+//        fclose(f1);
+//        SID_log("Creating %s", SID_LOG_COMMENT, filename);
         
         // END PMG ADDED
         // ====================================================
