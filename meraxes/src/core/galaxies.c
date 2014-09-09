@@ -98,7 +98,6 @@ void reset_galaxy_properties(run_globals_t *run_globals, galaxy_t *gal, int snap
   // update the stellar mass weighted mean age values
   assert(snapshot > 0);
   gal->mwmsa_denom += gal->NewStars[N_HISTORY_SNAPS-1];
-  // TODO: Check `snapshot-N_HISTORY_SNAPS`
   gal->mwmsa_num   += gal->NewStars[N_HISTORY_SNAPS-1] * run_globals->LTTime[snapshot-N_HISTORY_SNAPS];
 
   // roll over the baryonic history arrays

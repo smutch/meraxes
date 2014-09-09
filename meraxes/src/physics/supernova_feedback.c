@@ -214,10 +214,9 @@ void delayed_supernova_feedback(run_globals_t *run_globals, galaxy_t *gal, int s
       burst_recycled_frac = calc_recycled_frac(run_globals, m_high, m_low);
       m_recycled += m_stars * burst_recycled_frac;
 
-      // This check deals with the incredibly unfortunate occasion (which
-      // happens in Tiamat!) where the dt between snapshots oscillates between
-      // meaning we need to consider N_HISTORY_SNAPS and N_HISTORY_SNAPS-1
-      // previous snapshots!...
+      // If m_high is > 8.0 Msol then we have already used all of the SN-II in
+      // the previous recorded NewStars bins.  We therefore don't need to
+      // calculate any supernova feedback quantites.
       if (m_high <= 8.0)
         continue;
 
