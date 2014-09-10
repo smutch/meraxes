@@ -67,7 +67,7 @@ FILE *meraxes_debug_file;
 struct physics_params_t {
   int Flag_ReionizationModifier;
   int Flag_BHFeedback;
-  int Flag_SnDelay;
+  int Flag_IRA;
 
   double SfEfficiency;
   double SfRecycleFraction;

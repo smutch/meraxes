@@ -45,7 +45,7 @@ TOCF_Flag : 0 {  # use 21cmfast for reionization?
 #------------------------------------------
 Flag_ReionizationModifier : 1    # use halo mass dependant infall modifier of Sobacchi & Mesinger (2013)
 Flag_BHFeedback           : 1    # use black hole feedback
-Flag_SnDelay              : 1    # use a delay for SN feedback and stellar mass recycling
+Flag_IRA                  : 0    # use the instantaneous recycling approximation
 
 SfEfficiency              : 0.01    # star formation efficiency
 SfRecycleFraction         : 0.43    # instantaneous recycle fraction (IMF dependant)

@@ -288,12 +288,12 @@ void contemporaneous_supernova_feedback(
 
   run_units_t *units = &(run_globals->units);
   double SnReheatEff = run_globals->params.physics.SnReheatEff;
-  bool Flag_SnDelay  = (bool)(run_globals->params.physics.Flag_SnDelay);
+  bool Flag_IRA  = (bool)(run_globals->params.physics.Flag_IRA);
 
   double m_high = 120.0;  // Msol
   double m_low  = 8.0;
   double eta_sn;
-  double burst_recycled_frac;
+  double burst_recycled_frac = run_globals->params.physics.SfRecycleFraction;
   double snII_frac;
   double log_dt;
   double sn_energy = 0.0;
@@ -303,17 +303,18 @@ void contemporaneous_supernova_feedback(
 
   // work out the lowest mass star which would have expended it's H & He core
   // fuel in this time
-  // N.B. If Flag_SnDelay is False then m_low will equal value in above declaration
-  if (Flag_SnDelay)
+  // N.B. If Flag_IRA is true then m_low and burst_recycled_frac will equal values in above declaration
+  if (!Flag_IRA)
   {
     assert(snapshot > 0);
     log_dt = log10(gal->dt * 0.5 * units->UnitTime_in_Megayears / run_globals->params.Hubble_h);
     m_low  = sn_m_low(log_dt); // Msol
+
+    // calculate the mass reheated (from fraction of total SN-II that have gone off) from this burst
+    burst_recycled_frac = calc_recycled_frac(run_globals, m_high, m_low);
   }
 
-  // calculate the mass reheated (from fraction of total SN-II that have gone off) from this burst
-  burst_recycled_frac = calc_recycled_frac(run_globals, m_high, m_low);
-  *m_recycled         = *m_stars * burst_recycled_frac;
+  *m_recycled = *m_stars * burst_recycled_frac;
 
   if (m_low < 8.0)
     m_low = 8.0;
@@ -352,6 +353,6 @@ void contemporaneous_supernova_feedback(
 
   // If this is a reidentified ghost, then back fill NewStars to reflect this
   // new SF burst.
-  if (Flag_SnDelay && (gal->LastIdentSnap < (snapshot - 1)))
+  if (!Flag_IRA && (gal->LastIdentSnap < (snapshot - 1)))
     backfill_ghost_NewStars(run_globals, gal, *m_stars, snapshot);
 }
