@@ -453,69 +453,6 @@ void save_tocf_grids(run_globals_t *run_globals, hid_t parent_group_id, int snap
         H5LTset_attribute_int(parent_group_id  , "PowerSpectrum", "nbins"         , &ps_nbins      , 1);
         H5LTset_attribute_float(parent_group_id, "PowerSpectrum", "average_deltaT", &average_deltaT, 1);
         
-        // START PMG ADDED
-        // ====================================================
-        // Remove this when python plotting is sorted?
-        
-//        FILE *f1;
-//        char filename[128];
-//        int i, j, k, i_cut, j_cut, k_cut;
-//        
-//        // Create delta_T slice file
-//        
-//        i_cut = (int)(HII_dim/2);
-//        j_cut = (int)(HII_dim/2);
-//        k_cut = (int)(HII_dim/2);
-//        
-//        sprintf(filename, "output/delta_T_i%d_%d.dat", i_cut, snapshot);
-//        f1 = fopen(filename, "wt");
-//        for(k=0;k<HII_dim;k++)
-//        {   
-//            for(j=0;j<HII_dim;j++)
-//            {
-//                fprintf(f1, "%g\t", grid[HII_R_INDEX(i_cut,j,k)]);
-//            }
-//            fprintf(f1, "\n");
-//        }
-//        fclose(f1);
-//        SID_log("Creating %s", SID_LOG_COMMENT, filename);
-//        
-//        sprintf(filename, "output/delta_T_j%d_%d.dat", j_cut, snapshot);
-//        f1 = fopen(filename, "wt");
-//        for(k=0;k<HII_dim;k++)
-//        {   
-//            for(i=0;i<HII_dim;i++)
-//            {
-//                fprintf(f1, "%g\t", grid[HII_R_INDEX(i,j_cut,k)]);
-//            }
-//            fprintf(f1, "\n");
-//        }
-//        fclose(f1);
-//        SID_log("Creating %s", SID_LOG_COMMENT, filename);
-//        
-//        sprintf(filename, "output/delta_T_k%d_%d.dat", k_cut, snapshot);
-//        f1 = fopen(filename, "wt");
-//        for(j=0;j<HII_dim;j++)
-//        {   
-//            for(i=0;i<HII_dim;i++)
-//            {
-//                fprintf(f1, "%g\t", grid[HII_R_INDEX(i,j,k_cut)]);
-//            }
-//            fprintf(f1, "\n");
-//        }
-//        fclose(f1);
-//        SID_log("Creating %s", SID_LOG_COMMENT, filename);
-//        
-//        // Create ps file
-//        sprintf(filename, "output/PS_%d.dat", snapshot);
-//        f1 = fopen(filename, "wt");
-//        for(i=1;i<ps_nbins;i++) fprintf(f1, "%g\t%g\t%g\n", ps[0+3*i], ps[1+3*i], ps[2+3*i]);
-//        fclose(f1);
-//        SID_log("Creating %s", SID_LOG_COMMENT, filename);
-        
-        // END PMG ADDED
-        // ====================================================
-        
         free(delta_T);
         free(ps);
         
