@@ -26,6 +26,24 @@ static void inline h5_write_attribute(hid_t loc, const char *name, hid_t datatyp
   }
 }
 
+
+float current_mwmsa(run_globals_t *run_globals, galaxy_t *gal, int i_snap)
+{
+  double *LTTime = run_globals->LTTime;
+  double mwmsa_num = gal->mwmsa_num;
+  double mwmsa_denom = gal->mwmsa_denom;
+  int snapshot = run_globals->ListOutputSnaps[i_snap];
+
+  for (int ii = 0; ii < N_HISTORY_SNAPS; ii++)
+  {
+    mwmsa_num += gal->NewStars[ii] * LTTime[snapshot-ii];
+    mwmsa_denom += gal->NewStars[ii];
+  }
+
+  return (float)((mwmsa_num/mwmsa_denom) - LTTime[snapshot]);
+}
+
+
 void prepare_galaxy_for_output(
   run_globals_t   *run_globals,
   galaxy_t         gal,
@@ -78,6 +96,7 @@ void prepare_galaxy_for_output(
   galout->Cos_Inc            = (float)(gal.Cos_Inc);
   galout->BaryonFracModifier = (float)(gal.BaryonFracModifier);
   galout->MergTime           = (float)(gal.MergTime * units->UnitLength_in_cm / units->UnitVelocity_in_cm_per_s / SEC_PER_MEGAYEAR);
+  galout->MWMSA              = current_mwmsa(run_globals, &gal, i_snap);
 
   for (int ii = 0; ii < N_HISTORY_SNAPS; ii++)
     galout->NewStars[ii] = (float)(gal.NewStars[ii]);
@@ -96,7 +115,7 @@ void calc_hdf5_props(run_globals_t *run_globals)
   galaxy_output_t galout;
   int i;                                                // dummy
 
-  h5props->n_props = 32;
+  h5props->n_props = 33;
 
 #ifdef CALC_MAGS
   // If we are calculating any magnitudes then increment the number of
@@ -257,6 +276,11 @@ void calc_hdf5_props(run_globals_t *run_globals)
   h5props->dst_offsets[i]     = HOFFSET(galaxy_output_t, MetalsEjectedGas);
   h5props->dst_field_sizes[i] = sizeof(galout.MetalsEjectedGas);
   h5props->field_names[i]     = "MetalsEjectedGas";
+  h5props->field_types[i++]   = H5T_NATIVE_FLOAT;
+
+  h5props->dst_offsets[i]     = HOFFSET(galaxy_output_t, MWMSA);
+  h5props->dst_field_sizes[i] = sizeof(galout.MWMSA);
+  h5props->field_names[i]     = "MWMSA";
   h5props->field_types[i++]   = H5T_NATIVE_FLOAT;
 
   h5props->dst_offsets[i]     = HOFFSET(galaxy_output_t, NewStars);

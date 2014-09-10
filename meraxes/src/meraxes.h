@@ -336,6 +336,7 @@ struct galaxy_output_t {
   float BlackHoleMass;
 
   // baryonic histories
+  float MWMSA;  // Mass weighted mean stellar age
   float NewStars[N_HISTORY_SNAPS];
 
   // misc
