@@ -109,8 +109,8 @@ int read_dm_grid(
         for (int k = 0; k < n_cell[2]; k++)
         {
           fread(&val, sizeof(float), 1, fin);
-          val                                                                                                           *= cell_volume; // now we have the mass in the cell
-          mean                                                                                                          += val;
+          val *= cell_volume; // now we have the mass in the cell
+          mean += val;
           *(grid + HII_R_FFT_INDEX((int)(i * resample_factor), (int)(j * resample_factor), (int)(k * resample_factor))) += val;
         }
 

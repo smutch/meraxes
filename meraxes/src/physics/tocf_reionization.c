@@ -65,16 +65,18 @@ void calculate_Mvir_crit(run_globals_t *run_globals, double redshift)
 
 double tocf_modifier(run_globals_t *run_globals, double Mvir, float *Pos, int snapshot)
 {
-
-  double  box_size    = run_globals->params.BoxSize;
-  float  *M_crit_grid = run_globals->tocf_grids.Mvir_crit;
-
-  // Find which cell this halo lies in
-  int i = find_cell(Pos[0], box_size);
-  int j = find_cell(Pos[1], box_size);
-  int k = find_cell(Pos[2], box_size);
-
-  return pow(2.0, (double)(M_crit_grid[HII_R_INDEX(i,j,k)])/Mvir);
-
+    double f_mod;
+    double box_size     = run_globals->params.BoxSize;
+    float  *M_crit_grid = run_globals->tocf_grids.Mvir_crit;
+    
+    // Find which cell this halo lies in
+    int i = find_cell(Pos[0], box_size);
+    int j = find_cell(Pos[1], box_size);
+    int k = find_cell(Pos[2], box_size);
+    
+    //f_mod = pow(2.0, (double)(M_crit_grid[HII_R_INDEX(i,j,k)])/Mvir);      // PMG & SM: This should be negative (see eqn 6 in Sobacchi & Messinger, MNRAS, 432, L51, 2013)
+    f_mod = pow(2.0, (double)(-1.0*M_crit_grid[HII_R_INDEX(i,j,k)])/Mvir);
+    
+    return f_mod;
 }
 #endif
