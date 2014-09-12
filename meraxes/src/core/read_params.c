@@ -1,6 +1,22 @@
 #include "meraxes.h"
 #include "parse_paramfile.h"
 
+static void check_problem_params(run_params_t *run_params)
+{
+  if (run_params->NSteps != 1)
+  {
+    SID_log_error("The current version of the code only works if NSteps = 1. Sorry! Exiting...");
+    ABORT(EXIT_FAILURE);
+  }
+
+  if (run_params->FlagReadDumpFile && run_params->FlagGenDumpFile)
+  {
+    SID_log_error("Both FlagReadDumpFile & FlagGenDumpFile are set!");
+    ABORT(EXIT_FAILURE);
+  }
+}
+
+
 static void inline store_params(
   entry_t       entry[PARAM_MAX_ENTRIES],
   int           n_entries,
@@ -11,7 +27,7 @@ static void inline store_params(
   void         *params_addr[PARAM_MAX_ENTRIES],
   run_params_t *run_params)
 {
-  int level;
+  int level = 0;
   int tag_index;
   int temp;
   char prefix[16] = "\0";
@@ -290,6 +306,16 @@ void read_parameter_file(run_globals_t *run_globals, char *fname, int mode)
     required_tag[n_param]  = 1;
     params_type[n_param++] = PARAM_TYPE_INT;
 
+    strcpy(params_tag[n_param], "FlagGenDumpFile");
+    params_addr[n_param]   = &(run_params->FlagGenDumpFile);
+    required_tag[n_param]  = 1;
+    params_type[n_param++] = PARAM_TYPE_INT;
+
+    strcpy(params_tag[n_param], "FlagReadDumpFile");
+    params_addr[n_param]   = &(run_params->FlagReadDumpFile);
+    required_tag[n_param]  = 1;
+    params_type[n_param++] = PARAM_TYPE_INT;
+
 
     // Physics params
 
@@ -300,6 +326,11 @@ void read_parameter_file(run_globals_t *run_globals, char *fname, int mode)
 
     strcpy(params_tag[n_param], "Flag_BHFeedback");
     params_addr[n_param]   = &(run_params->physics).Flag_BHFeedback;
+    required_tag[n_param]  = 1;
+    params_type[n_param++] = PARAM_TYPE_INT;
+
+    strcpy(params_tag[n_param], "Flag_IRA");
+    params_addr[n_param]   = &(run_params->physics).Flag_IRA;
     required_tag[n_param]  = 1;
     params_type[n_param++] = PARAM_TYPE_INT;
 
@@ -330,6 +361,21 @@ void read_parameter_file(run_globals_t *run_globals, char *fname, int mode)
 
     strcpy(params_tag[n_param], "Yield");
     params_addr[n_param]   = &(run_params->physics).Yield;
+    required_tag[n_param]  = 1;
+    params_type[n_param++] = PARAM_TYPE_DOUBLE;
+
+    strcpy(params_tag[n_param], "IMFSlope");
+    params_addr[n_param]   = &(run_params->physics).IMFSlope;
+    required_tag[n_param]  = 1;
+    params_type[n_param++] = PARAM_TYPE_DOUBLE;
+
+    strcpy(params_tag[n_param], "EnergyPerSN");
+    params_addr[n_param]   = &(run_params->physics).EnergyPerSN;
+    required_tag[n_param]  = 1;
+    params_type[n_param++] = PARAM_TYPE_DOUBLE;
+
+    strcpy(params_tag[n_param], "IMFNormConst");
+    params_addr[n_param]   = &(run_params->physics).IMFNormConst;
     required_tag[n_param]  = 1;
     params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
@@ -572,6 +618,8 @@ void read_parameter_file(run_globals_t *run_globals, char *fname, int mode)
     if (i > 0)
       if (run_params->OutputDir[i - 1] != '/')
         strcat(run_params->OutputDir, "/");
+
+    check_problem_params(run_params);
   }  // END if(SID.My_rank==0)
 
   // If running mpi then broadcast the run parameters to all cores

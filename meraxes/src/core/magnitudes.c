@@ -33,9 +33,9 @@ void prepare_magnitudes_for_output(run_globals_t *run_globals, galaxy_t gal, gal
   double Hubble_h = run_globals->params.Hubble_h;
   for (int ii = 0; ii < n_bands; ii++)
   {
-    galout->Mag[ii] = (float)(lum_to_mag(gal.Lum[ii][i_snap])) - 5.0*log10(Hubble_h);
+    galout->Mag[ii] = (float)(lum_to_mag(gal.Lum[ii][i_snap])) - 5.0 * log10(Hubble_h);
     apply_dust(n_bands, gal, LumDust, i_snap);
-    galout->MagDust[ii] = (float)(lum_to_mag(LumDust[ii])) - 5.0*log10(Hubble_h);
+    galout->MagDust[ii] = (float)(lum_to_mag(LumDust[ii])) - 5.0 * log10(Hubble_h);
   }
 #else
   return;
@@ -107,9 +107,9 @@ void read_photometric_tables(run_globals_t *run_globals)
   phototabs_t *photo       = &(run_globals->photo);
   float **Metals           = &(photo->Metals);
   float **AgeTab           = &(photo->Ages);
-  char (**MagBands)[5]     = &(photo->MagBands);
-  float **PhotoTab         = &(photo->Table);
-  int n_table_entries      = 0;
+  char (**MagBands)[5] = &(photo->MagBands);
+  float **PhotoTab    = &(photo->Table);
+  int n_table_entries = 0;
 
   if (SID.My_rank == 0)
   {

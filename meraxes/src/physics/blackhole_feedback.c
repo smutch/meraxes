@@ -64,14 +64,13 @@ double radio_mode_BH_heating(run_globals_t *run_globals, galaxy_t *gal, double c
 
 void merger_driven_BH_growth(run_globals_t *run_globals, galaxy_t *gal, double merger_ratio)
 {
-
   if (gal->ColdGas > 0)
   {
     // If there is any cold gas to feed the black hole...
     double accreted_mass;
     double accreted_metals;
     double Vvir;
-    
+
     // If this galaxy is the central of it's FOF group then use the FOF halo properties
     // TODO: This needs closer thought as to if this is the best thing to do...
     if (gal->Type == 0)

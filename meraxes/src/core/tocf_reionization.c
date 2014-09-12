@@ -15,7 +15,7 @@ void set_HII_eff_factor(run_globals_t *run_globals)
   physics_params_t *params = &(run_globals->params.physics);
 
   tocf_params.HII_eff_factor *= (params->ReionNionPhotPerBary / 4000.0) *
-                               (params->ReionEscapeFrac / 0.15) * (1.0 / (1.0 + params->ReionMeanNRec));
+                                (params->ReionEscapeFrac / 0.15) * (1.0 / (1.0 + params->ReionMeanNRec));
 }
 
 
@@ -56,31 +56,33 @@ void call_find_HII_bubbles(run_globals_t *run_globals, int snapshot, int unsampl
     // Make copies of the stellar and deltax grids before sending them to
     // 21cmfast.  This is because the floating precision fft--ifft introduces
     // rounding error that we don't want to store...
-    memcpy(grids->stars_copy , grids->stars , sizeof(fftwf_complex) * HII_KSPACE_NUM_PIXELS);
-    memcpy(grids->sfr_copy   , grids->sfr   , sizeof(fftwf_complex) * HII_KSPACE_NUM_PIXELS);
+    memcpy(grids->stars_copy, grids->stars, sizeof(fftwf_complex) * HII_KSPACE_NUM_PIXELS);
+    memcpy(grids->sfr_copy, grids->sfr, sizeof(fftwf_complex) * HII_KSPACE_NUM_PIXELS);
     memcpy(grids->deltax_copy, grids->deltax, sizeof(fftwf_complex) * HII_KSPACE_NUM_PIXELS);
 
     SID_log("Calling find_HII_bubbles...", SID_LOG_OPEN);
     // TODO: Fix if snapshot==0
     grids->global_xH = find_HII_bubbles(run_globals->ZZ[snapshot], run_globals->ZZ[snapshot - 1],
-        grids->xH,
-        grids->stars,
-        grids->stars_filtered,
-        grids->deltax,
-        grids->deltax_filtered,
-        grids->sfr,
-        grids->sfr_filtered,
-        grids->z_at_ionization,
-        grids->J_21_at_ionization,
-        grids->J_21,
-        grids->mfp,
-        grids->N_rec,
-        grids->N_rec_filtered
-        );
+                                        grids->xH,
+                                        grids->stars,
+                                        grids->stars_filtered,
+                                        grids->deltax,
+                                        grids->deltax_filtered,
+                                        // grids->sfr,
+                                        // grids->sfr_filtered,
+                                        NULL,
+                                        NULL,
+                                        grids->z_at_ionization,
+                                        grids->J_21_at_ionization,
+                                        grids->J_21,
+                                        grids->mfp,
+                                        grids->N_rec,
+                                        grids->N_rec_filtered
+                                        );
 
     // copy the original (non fourier transformed) grids back into place
-    memcpy(grids->stars , grids->stars_copy , sizeof(fftwf_complex) * HII_KSPACE_NUM_PIXELS);
-    memcpy(grids->sfr   , grids->sfr_copy   , sizeof(fftwf_complex) * HII_KSPACE_NUM_PIXELS);
+    memcpy(grids->stars, grids->stars_copy, sizeof(fftwf_complex) * HII_KSPACE_NUM_PIXELS);
+    memcpy(grids->sfr, grids->sfr_copy, sizeof(fftwf_complex) * HII_KSPACE_NUM_PIXELS);
     memcpy(grids->deltax, grids->deltax_copy, sizeof(fftwf_complex) * HII_KSPACE_NUM_PIXELS);
   }
 
@@ -125,8 +127,8 @@ void malloc_reionization_grids(run_globals_t *run_globals)
       grids->sfr_filtered    = (fftwf_complex*)fftwf_malloc(sizeof(fftwf_complex) * HII_KSPACE_NUM_PIXELS);
       grids->sfr_copy        = (fftwf_complex*)fftwf_malloc(sizeof(fftwf_complex) * HII_KSPACE_NUM_PIXELS);
     }
-    grids->stars           = (fftwf_complex*)fftwf_malloc(sizeof(fftwf_complex) * HII_KSPACE_NUM_PIXELS);
-    grids->sfr             = (fftwf_complex*)fftwf_malloc(sizeof(fftwf_complex) * HII_KSPACE_NUM_PIXELS);
+    grids->stars = (fftwf_complex*)fftwf_malloc(sizeof(fftwf_complex) * HII_KSPACE_NUM_PIXELS);
+    grids->sfr   = (fftwf_complex*)fftwf_malloc(sizeof(fftwf_complex) * HII_KSPACE_NUM_PIXELS);
 
     if (tocf_params.uvb_feedback)
     {
@@ -137,7 +139,7 @@ void malloc_reionization_grids(run_globals_t *run_globals)
         grids->J_21_at_ionization = (float*)fftwf_malloc(sizeof(float) * HII_TOT_NUM_PIXELS);
         grids->J_21               = (float*)fftwf_malloc(sizeof(float) * HII_TOT_NUM_PIXELS);
       }
-      grids->Mvir_crit          = (float*)fftwf_malloc(sizeof(float) * HII_TOT_NUM_PIXELS);
+      grids->Mvir_crit = (float*)fftwf_malloc(sizeof(float) * HII_TOT_NUM_PIXELS);
     }
 
     if (tocf_params.compute_mfp && (SID.My_rank == 0))
@@ -161,34 +163,34 @@ void malloc_reionization_grids(run_globals_t *run_globals)
       if (SID.My_rank == 0)
       {
         memset(grids->J_21_at_ionization, 0., sizeof(float) * HII_TOT_NUM_PIXELS);
-        memset(grids->J_21              , 0., sizeof(float) * HII_TOT_NUM_PIXELS);
+        memset(grids->J_21, 0., sizeof(float) * HII_TOT_NUM_PIXELS);
         for (int ii = 0; ii < HII_TOT_NUM_PIXELS; ii++)
           grids->z_at_ionization[ii] = -1;
       }
 
-      memset(grids->Mvir_crit         , 0 , sizeof(float) * HII_TOT_NUM_PIXELS);
+      memset(grids->Mvir_crit, 0, sizeof(float) * HII_TOT_NUM_PIXELS);
     }
 
     if (SID.My_rank == 0)
     {
-      memset(grids->stars_filtered , 0, sizeof(fftwf_complex) * HII_KSPACE_NUM_PIXELS);
-      memset(grids->stars_copy     , 0, sizeof(fftwf_complex) * HII_KSPACE_NUM_PIXELS);
-      memset(grids->deltax         , 0, sizeof(fftwf_complex) * HII_KSPACE_NUM_PIXELS);
+      memset(grids->stars_filtered, 0, sizeof(fftwf_complex) * HII_KSPACE_NUM_PIXELS);
+      memset(grids->stars_copy, 0, sizeof(fftwf_complex) * HII_KSPACE_NUM_PIXELS);
+      memset(grids->deltax, 0, sizeof(fftwf_complex) * HII_KSPACE_NUM_PIXELS);
       memset(grids->deltax_filtered, 0, sizeof(fftwf_complex) * HII_KSPACE_NUM_PIXELS);
-      memset(grids->deltax_copy    , 0, sizeof(fftwf_complex) * HII_KSPACE_NUM_PIXELS);
-      memset(grids->sfr_filtered   , 0, sizeof(fftwf_complex) * HII_KSPACE_NUM_PIXELS);
-      memset(grids->sfr_copy       , 0, sizeof(fftwf_complex) * HII_KSPACE_NUM_PIXELS);
+      memset(grids->deltax_copy, 0, sizeof(fftwf_complex) * HII_KSPACE_NUM_PIXELS);
+      memset(grids->sfr_filtered, 0, sizeof(fftwf_complex) * HII_KSPACE_NUM_PIXELS);
+      memset(grids->sfr_copy, 0, sizeof(fftwf_complex) * HII_KSPACE_NUM_PIXELS);
 
       if (tocf_params.compute_mfp)
       {
-        memset(grids->mfp           , 0., sizeof(float) * HII_TOT_NUM_PIXELS);
-        memset(grids->N_rec         , 0 , sizeof(fftwf_complex) * HII_KSPACE_NUM_PIXELS);
-        memset(grids->N_rec_filtered, 0 , sizeof(fftwf_complex) * HII_KSPACE_NUM_PIXELS);
+        memset(grids->mfp, 0., sizeof(float) * HII_TOT_NUM_PIXELS);
+        memset(grids->N_rec, 0, sizeof(fftwf_complex) * HII_KSPACE_NUM_PIXELS);
+        memset(grids->N_rec_filtered, 0, sizeof(fftwf_complex) * HII_KSPACE_NUM_PIXELS);
       }
     }
 
-    memset(grids->stars          , 0, sizeof(fftwf_complex) * HII_KSPACE_NUM_PIXELS);
-    memset(grids->sfr            , 0, sizeof(fftwf_complex) * HII_KSPACE_NUM_PIXELS);
+    memset(grids->stars, 0, sizeof(fftwf_complex) * HII_KSPACE_NUM_PIXELS);
+    memset(grids->sfr, 0, sizeof(fftwf_complex) * HII_KSPACE_NUM_PIXELS);
 
 
     SID_log(" ...done", SID_LOG_CLOSE);
@@ -243,7 +245,7 @@ int find_cell(float pos, double box_size)
   int cell = (int)floor(pos / box_size * (double)HII_dim);
 
   cell = (cell < 0) ? 0 : cell;
-  cell = (cell >= HII_dim) ? HII_dim-1 : cell;
+  cell = (cell >= HII_dim) ? HII_dim - 1 : cell;
 
   return cell;
 }
@@ -253,12 +255,12 @@ void construct_stellar_grids(run_globals_t *run_globals)
 {
   galaxy_t *gal;
   int i, j, k;
-  double box_size      = (double)(run_globals->params.BoxSize);
-  double Hubble_h      = run_globals->params.Hubble_h;
-  float *stellar_grid  = (float*)(run_globals->tocf_grids.stars);
-  float *sfr_grid      = (float*)(run_globals->tocf_grids.sfr);
-  int HII_dim          = tocf_params.HII_dim;
-  run_units_t *units   = &(run_globals->units);
+  double box_size     = (double)(run_globals->params.BoxSize);
+  double Hubble_h     = run_globals->params.Hubble_h;
+  float *stellar_grid = (float*)(run_globals->tocf_grids.stars);
+  float *sfr_grid     = (float*)(run_globals->tocf_grids.sfr);
+  int HII_dim         = tocf_params.HII_dim;
+  run_units_t *units  = &(run_globals->units);
 
   SID_log("Constructing stellar mass and sfr grids...", SID_LOG_OPEN);
 
@@ -309,7 +311,7 @@ void construct_stellar_grids(run_globals_t *run_globals)
       assert((j >= 0) && (j < HII_dim));
       assert((k >= 0) && (k < HII_dim));
 
-      *(stellar_grid + HII_R_FFT_INDEX(i, j, k)) += gal->StellarMass;
+      *(stellar_grid + HII_R_FFT_INDEX(i, j, k)) += gal->GrossStellarMass;
       *(sfr_grid + HII_R_FFT_INDEX(i, j, k))     += gal->Sfr;
     }
     gal = gal->Next;
@@ -345,7 +347,6 @@ void construct_stellar_grids(run_globals_t *run_globals)
 
 void save_tocf_grids(run_globals_t *run_globals, hid_t parent_group_id, int snapshot)
 {
-
   if (SID.My_rank == 0)
   {
     tocf_grids_t *grids = &(run_globals->tocf_grids);
@@ -379,25 +380,25 @@ void save_tocf_grids(run_globals_t *run_globals, hid_t parent_group_id, int snap
     // fftw padded grids
     grid = (float*)SID_calloc(HII_TOT_NUM_PIXELS * sizeof(float));
 
-    for (int ii = 0; ii < HII_dim; ii++)
-      for (int jj = 0; jj < HII_dim; jj++)
-        for (int kk = 0; kk < HII_dim; kk++)
-          grid[HII_R_INDEX(ii, jj, kk)] = *((float*)(grids->stars) + HII_R_FFT_INDEX(ii, jj, kk));
-    H5LTmake_dataset_float(group_id, "StellarMass", 1, &dims, grid);
+    // for (int ii = 0; ii < HII_dim; ii++)
+    //   for (int jj = 0; jj < HII_dim; jj++)
+    //     for (int kk = 0; kk < HII_dim; kk++)
+    //       grid[HII_R_INDEX(ii, jj, kk)] = *((float*)(grids->stars) + HII_R_FFT_INDEX(ii, jj, kk));
+    // H5LTmake_dataset_float(group_id, "StellarMass", 1, &dims, grid);
 
-    memset((void*)grid, 0, sizeof(float) * HII_TOT_NUM_PIXELS);
-    for (int ii = 0; ii < HII_dim; ii++)
-      for (int jj = 0; jj < HII_dim; jj++)
-        for (int kk = 0; kk < HII_dim; kk++)
-          grid[HII_R_INDEX(ii, jj, kk)] = *((float*)(grids->sfr) + HII_R_FFT_INDEX(ii, jj, kk)) * SEC_PER_YEAR;
-    H5LTmake_dataset_float(group_id, "Sfr", 1, &dims, grid);
+    // memset((void*)grid, 0, sizeof(float) * HII_TOT_NUM_PIXELS);
+    // for (int ii = 0; ii < HII_dim; ii++)
+    //   for (int jj = 0; jj < HII_dim; jj++)
+    //     for (int kk = 0; kk < HII_dim; kk++)
+    //       grid[HII_R_INDEX(ii, jj, kk)] = *((float*)(grids->sfr) + HII_R_FFT_INDEX(ii, jj, kk)) * SEC_PER_YEAR;
+    // H5LTmake_dataset_float(group_id, "Sfr", 1, &dims, grid);
 
-    memset((void*)grid, 0, sizeof(float) * HII_TOT_NUM_PIXELS);
-    for (int ii = 0; ii < HII_dim; ii++)
-      for (int jj = 0; jj < HII_dim; jj++)
-        for (int kk = 0; kk < HII_dim; kk++)
-          grid[HII_R_INDEX(ii, jj, kk)] = *((float*)(grids->deltax) + HII_R_FFT_INDEX(ii, jj, kk));
-    H5LTmake_dataset_float(group_id, "deltax", 1, &dims, grid);
+    // memset((void*)grid, 0, sizeof(float) * HII_TOT_NUM_PIXELS);
+    // for (int ii = 0; ii < HII_dim; ii++)
+    //   for (int jj = 0; jj < HII_dim; jj++)
+    //     for (int kk = 0; kk < HII_dim; kk++)
+    //       grid[HII_R_INDEX(ii, jj, kk)] = *((float*)(grids->deltax) + HII_R_FFT_INDEX(ii, jj, kk));
+    // H5LTmake_dataset_float(group_id, "deltax", 1, &dims, grid);
 
     if (tocf_params.compute_mfp)
     {
@@ -409,24 +410,27 @@ void save_tocf_grids(run_globals_t *run_globals, hid_t parent_group_id, int snap
       H5LTmake_dataset_float(group_id, "N_rec", 1, &dims, grid);
     }
 
-    SID_free(SID_FARG grid);
+    SID_log("Calculating delta_T box and power spectrum...", SID_LOG_OPEN);
 
+    memset((void*)grid, 0, sizeof(float) * HII_TOT_NUM_PIXELS);
+    delta_T_ps(run_globals->ZZ[snapshot], tocf_params.numcores,
+               grids->xH,
+               (float*)(grids->deltax),
+               NULL,
+               NULL,
+               &average_deltaT,
+               grid,
+               &ps,
+               &ps_nbins);
+
+    H5LTmake_dataset_float(group_id, "delta_T", 1, &dims, grid);
+
+    SID_free(SID_FARG grid);
     H5Gclose(group_id);
 
-    SID_log("Calculating delta_T power spectrum...", SID_LOG_OPEN);
-
-    delta_T_ps(run_globals->ZZ[snapshot], tocf_params.numcores,
-        grids->xH,
-        (float*)(grids->deltax),
-        NULL,
-        NULL,
-        &average_deltaT,
-        &ps,
-        &ps_nbins);
-
     dims = ps_nbins * 3;
-    H5LTmake_dataset_float(parent_group_id , "PowerSpectrum", 1               , &dims          , ps);
-    H5LTset_attribute_int(parent_group_id  , "PowerSpectrum", "nbins"         , &ps_nbins      , 1);
+    H5LTmake_dataset_float(parent_group_id, "PowerSpectrum", 1, &dims, ps);
+    H5LTset_attribute_int(parent_group_id, "PowerSpectrum", "nbins", &ps_nbins, 1);
     H5LTset_attribute_float(parent_group_id, "PowerSpectrum", "average_deltaT", &average_deltaT, 1);
     free(ps);
 
@@ -434,7 +438,6 @@ void save_tocf_grids(run_globals_t *run_globals, hid_t parent_group_id, int snap
 
     SID_log(" done", SID_LOG_CLOSE);
   }
-
 }
 
 
@@ -445,5 +448,4 @@ void check_if_reionization_complete(run_globals_t *run_globals)
   if (run_globals->tocf_grids.global_xH < 0.01)
     run_globals->params.TOCF_Flag = 0;
 }
-
 #endif

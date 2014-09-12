@@ -7,7 +7,7 @@ FileNameGalaxies : Tiamat
 #----- Simulation input files  ------------
 #------------------------------------------
 SimName          : Tiamat
-SimulationDir    : /home/smutch/data2/input_trees/Tiamat
+SimulationDir    : /home/smutch/data_dragons/input_trees/Tiamat
 CatalogFilePrefix: rockstar_fixed
 BoxSize          : 100
 VolumeFactor     : 1.0
@@ -26,9 +26,11 @@ MagBands             : Bbv,V,Rc,Ic,K
 #------------------------------------------
 #----- Code options -----------------------
 #------------------------------------------
-NSteps : 1
-FlagInteractive: 0
-RandomSeed: 1809  # seed for random number generator
+NSteps           : 1
+FlagInteractive  : 0
+FlagGenDumpFile  : 0
+FlagReadDumpFile : 0
+RandomSeed       : 1809  # seed for random number generator
 
 #------------------------------------------
 #----- 21cmFAST ---------------------------
@@ -43,20 +45,26 @@ TOCF_Flag : 0 {  # use 21cmfast for reionization?
 #------------------------------------------
 Flag_ReionizationModifier : 1    # use halo mass dependant infall modifier of Sobacchi & Mesinger (2013)
 Flag_BHFeedback           : 1    # use black hole feedback
+Flag_IRA                  : 0    # use the instantaneous recycling approximation
 
-SfEfficiency        : 0.1     # star formation efficiency
-SfRecycleFraction   : 0.43    # instantaneous recycle fraction (Salpeter)
-SnEjectionEff       : 0.35    # SN feedback gas reheating efficiency
-SnReheatEff         : 3.5     # mass loading factor per unit star formation
-ReincorporationEff  : 0.3     # gas reincorporation efficiency from ejected component
-Yield               : 0.03    # mass of metals injected into ISM per unit star formation
-RadioModeEff        : 6e-4    # radio mode feedback efficiency
-BlackHoleGrowthRate : 0.03    # black hole growth efficiency through merger driven gas inflow
+SfEfficiency              : 0.01    # star formation efficiency
+SfRecycleFraction         : 0.43    # instantaneous recycle fraction (IMF dependant)
+SnEjectionEff             : 0.83    # SN feedback gas reheating efficiency
+SnReheatEff               : 5.0     # mass loading factor for SN feedback
+ReincorporationEff        : 0.0     # gas reincorporation efficiency from ejected component
+Yield                     : 0.03    # mass of metals injected into ISM per unit star formation
+RadioModeEff              : 6e-4    # radio mode feedback efficiency
+BlackHoleGrowthRate       : 0.03    # black hole growth efficiency through merger driven gas inflow
 
-ThreshMajorMerger : 0.3     # major merger when mass ratio greater than this
-MergerTimeFactor  : 1.0     # Multiplicitive fator for the merger timescales (2.0->DeLucia+; 1.0->Croton+)
-MinMergerRatioForBurst : 0
-MergerBurstFactor : 0.56
+IMFSlope                  : -2.35   # slope of high mass end of IMF
+EnergyPerSN               : 1e51    # energy per SN in erg/s
+IMFNormConst              : 0.1706  # normalisation const of IMF for 0.1 < M <= 120Msol
+
+ThreshMajorMerger         : 0.3     # major merger when mass ratio greater than this
+MergerTimeFactor          : 0.1     # Multiplicitive fator for the merger timescales (2.0->DeLucia+; 1.0->Croton+)
+
+MinMergerRatioForBurst    : 0       # Minimum mass ratio for merger driven star burst
+MergerBurstFactor         : 0.56    # Constant factor in merger burst equation
 
 # Reionization
 ReionTcool             : 1.0e4

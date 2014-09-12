@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <stdarg.h>
+#include <assert.h>
 #include "meraxes.h"
 
 void mpi_debug_here()
@@ -262,6 +263,69 @@ void check_counts(run_globals_t *run_globals, fof_group_t *fof_group, int NGal, 
 
   SID_log("...done", SID_LOG_CLOSE);
 }
+
+void check_pointers(run_globals_t *run_globals, halo_t *halos, fof_group_t *fof_groups, trees_info_t *trees_info)
+{
+  galaxy_t *gal, *gal_pointer, gal_deref;
+  halo_t *halo;
+  fof_group_t *fof_group;
+  int n_halos      = trees_info->n_halos;
+  int n_fof_groups = trees_info->n_fof_groups;
+
+  SID_log("Running pointers check.  Remember to run with Valgrind if you want to check the ->galaxy pointers.", SID_LOG_COMMENT);
+
+  gal = run_globals->FirstGal;
+  while (gal != NULL)
+  {
+    if (!gal->ghost_flag)
+    {
+      halo = gal->Halo;
+      assert((halo - halos) < (size_t)n_halos);
+    }
+    gal_pointer = gal->FirstGalInHalo;
+    if (gal_pointer != NULL)
+      gal_deref = *gal_pointer;
+    gal_pointer = gal->NextGalInHalo;
+    if (gal_pointer != NULL)
+      gal_deref = *gal_pointer;
+    gal_pointer = gal->Next;
+    if (gal_pointer != NULL)
+      gal_deref = *gal_pointer;
+    if (gal->Type == 3)
+    {
+      gal_pointer = gal->MergerTarget;
+      if (gal_pointer != NULL)
+        gal_deref = *gal_pointer;
+    }
+
+    gal = gal->Next;
+  }
+
+  for (int ii = 0; ii < n_halos; ii++)
+  {
+    fof_group = halos[ii].FOFGroup;
+    // SID_log("%llu < %llu", SID_LOG_COMMENT, fof_group-fof_groups, (size_t)n_fof_groups);
+    assert((fof_group - fof_groups) < (size_t)n_fof_groups);
+    halo = halos[ii].NextHaloInFOFGroup;
+    if (halo != NULL)
+    {
+      // SID_log("%llu < %llu", SID_LOG_COMMENT, halo-halos, (size_t)n_halos);
+      assert((halo - halos) < (size_t)n_halos);
+    }
+    gal = halos[ii].Galaxy;
+    if (gal != NULL)
+      gal_deref = *gal;
+  }
+
+  for (int ii = 0; ii < n_fof_groups; ii++)
+  {
+    halo = fof_groups[ii].FirstHalo;
+    assert((halo - halos) < (size_t)n_halos);
+    halo = fof_groups[ii].FirstOccupiedHalo;
+    assert((halo - halos) < (size_t)n_halos);
+  }
+}
+
 
 #ifdef DEBUG
 int debug(const char * restrict format, ...)
