@@ -45,7 +45,7 @@ def plot(gals, simprops, ax, h):
                                      return_edges=True)
 
     # plot the model
-    l, = ax.plot(smf[:,0], np.log10(smf[:,1]), label="Meraxes")
+    l, = ax.plot(smf[:,0], np.log10(smf[:,1]), lw=3, label="Meraxes")
 
     # plot the total SMF (i.e. without SFR cut)
     sm = np.log10(gals.StellarMass[gals.StellarMass > 0] * 1.0e10)
@@ -81,7 +81,6 @@ def plot(gals, simprops, ax, h):
         names = ["sm", "log_phi", "err"])
 
     # convert obs to same hubble value and IMF
-    # -0.16 dex conversion from Salpeter to Chabrier
     obs.sm += 2.0*np.log10(0.702/h)
     for col in ["log_phi", "err"]:
         obs[col] -= 3.0*np.log10(0.702/h)
@@ -91,11 +90,33 @@ def plot(gals, simprops, ax, h):
                 label="Katsianis et al. 2014", ls="none",
                 lw=4, capsize=0)
 
+    # and again...
+    obs = pd.read_table(os.path.join(__script_dir__,
+        "../../utils/obs_datasets/smf/Duncan14_z5_smf.txt"),
+        delim_whitespace=True,
+        header = None,
+        skiprows = 16,
+        names = ["sm", "phi", "merr", "perr"])
+
+    # convert obs to same hubble value and IMF
+    obs.sm += 2.0*np.log10(0.702/h)
+    obs.sm += 0.25  # IMF correction Chabrier -> Salpeter
+    for col in ["phi", "merr", "perr"]:
+        obs[col] /= (0.7**3/h**3)
+
+    # plot the observations
+    ax.errorbar(obs.sm, np.log10(obs.phi),
+                yerr=[np.log10(obs.phi) - np.log10(obs.merr),
+                      np.log10(obs.perr) - np.log10(obs.phi)],
+                label="Duncan et al. 2014", ls="none",
+                lw=4, capsize=0)
+
+
     # add some text
-    ax.text(0.05,0.05, "z=5\nh={:.2f}\nSalpeter IMF\n".format(h)+
+    ax.text(0.95,0.95, "z=5\nh={:.2f}\nSalpeter IMF\n".format(h)+
             r"log$_{10}$(SFR)"+" > {:.2f}".format(sfr_limit)+r"M$_{\odot}$/yr",
-            horizontalalignment="left",
-            verticalalignment="bottom",
+            horizontalalignment="right",
+            verticalalignment="top",
             transform=ax.transAxes)
 
     ax.set_xlim([7.5,11])
@@ -124,7 +145,7 @@ if __name__ == '__main__':
     fig, ax = plt.subplots(1,1)
     plot(gals, simprops, ax, h)
     ax.yaxis.set_tick_params(which='both', color='w')
-    ax.legend(loc="upper right")
+    ax.legend(loc="lower left")
     fig.tight_layout()
     output_fname = os.path.join(os.path.dirname(fname), "plots/smf-z5.pdf")
     plt.savefig(output_fname)

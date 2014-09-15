@@ -66,7 +66,7 @@ if __name__ == '__main__':
         fig, ax = plt.subplots(1,1)
         smf_z5.plot(gals, simprops, ax, h)
         ax.yaxis.set_tick_params(which='both', color='w')
-        ax.legend(loc="upper right", fontsize="small")
+        ax.legend(loc="lower left", fontsize="small")
         savefig(fig, fname, "smf-z5", ext)
 
         # SFRF
@@ -134,9 +134,9 @@ if __name__ == '__main__':
         ax.legend(loc="lower left", fontsize="small")
         savefig(fig, fname, "sfrf-z7", ext)
 
-    if not redshift:
-        # star formation history
-        fig, ax = plt.subplots(1,1)
-        sfh.plot(fname, ax, h)
-        ax.legend(loc="lower left", fontsize="small")
-        savefig(fig, fname, "sfh", ext)
+    # if not redshift:
+    #     # star formation history
+    #     fig, ax = plt.subplots(1,1)
+    #     sfh.plot(fname, ax, h)
+    #     ax.legend(loc="lower left", fontsize="small")
+    #     savefig(fig, fname, "sfh", ext)
