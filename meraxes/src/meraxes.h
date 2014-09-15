@@ -441,6 +441,7 @@ typedef struct run_globals_t {
  */
 
 void         myexit(int signum);
+void         cleanup(run_globals_t *run_globals);
 void         read_parameter_file(run_globals_t *run_globals, char *fname, int mode);
 void         init_meraxes(run_globals_t *run_globals);
 void         continue_prompt(run_globals_t *run_globals, char *param_file);

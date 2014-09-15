@@ -183,7 +183,7 @@ if not GetOption('help'):
     env.AppendUnique(LIBPATH = [GSL_LIBS, GBP_LIBS, HDF5_LIBS])
     env.AppendUnique(LIBS=['gbpLib','gsl', 'gslcblas', 'm', 'z', 'libhdf5_hl', 'libhdf5'])
     env.AppendUnique(CPPFLAGS = '-std=gnu99')
-    # env.AppendUnique(CPPFLAGS = ['-fPIC',])
+    env.AppendUnique(CPPFLAGS = ['-fPIC',])
 
     if env['tocf']:
         env.AppendUnique(CPPPATH = [TOCF_INCL, FFTW_INCL])
