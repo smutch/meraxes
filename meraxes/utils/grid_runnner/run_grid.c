@@ -1,6 +1,8 @@
 #define _MAIN
+#include <stdio.h>
 #include <meraxes.h>
 #include <sys/stat.h>
+#include <mpi.h>
 
 typedef struct grid_params_t {
   double SfEfficiency;
@@ -50,18 +52,32 @@ static int read_grid_params(char *fname, grid_params_t **grid_params)
 
 int main(int argc, char *argv[])
 {
-    // init SID
-  SID_init(&argc, &argv, NULL);
+
+  // init MPI
+  MPI_Comm model_comm, world_comm;
+  int mpi_world_size;
+  MPI_Group model_group;
+  int my_rank;
+
+  MPI_Init(&argc, &argv);
+  MPI_Comm_dup(MPI_COMM_WORLD, &world_comm);
+  MPI_Comm_size(world_comm, &mpi_world_size);
+  MPI_Comm_rank(world_comm, &my_rank);
+  int analysis_rank = mpi_world_size-1;
+  int my_color = (my_rank != analysis_rank) ? 0 : MPI_UNDEFINED;
+  MPI_Comm_split(world_comm, my_color, my_rank, &model_comm);
+
+  // init SID
+  SID_init(&argc, &argv, NULL, &model_comm);
+  if (my_color == 0)
+    SID_log_set_fp(stderr);
 
   struct stat filestatus;
   run_globals_t run_globals;
   grid_params_t *grid_params;
   int n_grid_runs;
   char cmd[STRLEN];
-
-  int real_n_proc = SID.n_proc;
-  int real_last_rank = real_n_proc - 1;
-  SID.n_proc -= 1;
+  char file_name_galaxies[STRLEN];
 
   // deal with any input arguments
   if (argc != 3)
@@ -73,14 +89,14 @@ int main(int argc, char *argv[])
   // read in the grid parameters
   n_grid_runs = read_grid_params(argv[2], &grid_params);
 
-  // read the input parameter file
-  read_parameter_file(&run_globals, argv[1], 0);
-
-  // set the interactive flag
-  run_globals.params.FlagInteractive = 1;
-
-  if (SID.My_rank < real_last_rank)
+  if (my_color == 0)
   {
+    // read the input parameter file
+    read_parameter_file(&run_globals, argv[1], 0);
+
+    // set the interactive flag
+    run_globals.params.FlagInteractive = 1;
+
     // Check to see if the output directory exists and if not, create it
     if (stat(run_globals.params.OutputDir, &filestatus) != 0)
       mkdir(run_globals.params.OutputDir, 02755);
@@ -95,26 +111,32 @@ int main(int argc, char *argv[])
   // Run the model!
   for (int ii = 0; ii < n_grid_runs; ii++)
   {
-    sprintf(run_globals.params.FileNameGalaxies, "meraxes_%03d", ii);
-    if (SID.My_rank < real_last_rank)
+    sprintf(file_name_galaxies, "meraxes_%03d", ii);
+    if (my_color == 0)
     {
+      strcpy(run_globals.params.FileNameGalaxies, file_name_galaxies);
       update_params(&run_globals, grid_params, ii);
       dracarys(&run_globals);
     }
-    else
+
+    // Sync here so that we can ensure we are not going to try and read
+    // non-existent files
+    MPI_Barrier(world_comm);
+
+    if (my_rank == analysis_rank)
     {
-      // TODO: Complete this...
-      sprintf(cmd, "/home/smutch/pyenv/bin/python /home/smutch/models/21cm_sam/meraxes/output/results/smf_z5.py %s/%s.hdf5",
-          run_globals.params.OutputDir, run_globals.params.FileNameGalaxies);
+      // N.B. The script called here should delete the output files once it is finished with them
+      sprintf(cmd, "/home/smutch/pyenv/bin/python /home/smutch/models/21cm_sam/meraxes/utils/grid_runnner/analyse_run.py %s/%s.hdf5",
+          run_globals.params.OutputDir, file_name_galaxies);
       system(cmd);
     }
   }
 
   // cleanup
+  if (my_color == 0)
+    cleanup(&run_globals);
+
   SID_free(SID_FARG grid_params);
-  cleanup(&run_globals);
-
+  MPI_Comm_free(&world_comm);
   SID_exit(EXIT_SUCCESS);
-
-  return 0;
 }
