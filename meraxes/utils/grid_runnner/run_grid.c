@@ -14,6 +14,7 @@ typedef struct grid_params_t {
   double SnReheatEff;
   double SnEjectionEff;
   double ReincorporationEff;
+  double MergerTimeFactor;
 } grid_params_t;
 
 MPI_Comm world_comm;
@@ -32,6 +33,7 @@ static void update_params(run_globals_t *run_globals, grid_params_t *grid_params
   params->SnReheatEff = grid_params[i_run].SnReheatEff;
   params->SnEjectionEff = grid_params[i_run].SnEjectionEff;
   params->ReincorporationEff = grid_params[i_run].ReincorporationEff;
+  params->MergerTimeFactor = grid_params[i_run].MergerTimeFactor;
 }
 
 static int read_grid_params(char *fname, grid_params_t **grid_params)
@@ -41,20 +43,33 @@ static int read_grid_params(char *fname, grid_params_t **grid_params)
   if (world_rank == 0)
   {
     FILE *fd;
+    int ret;
 
     fd = fopen(fname, "r");
 
     if (fd != NULL)
-      fscanf(fd, "%d\n", &n_grid_runs);
+      fscanf(fd, " %d ", &n_grid_runs);
+    else
+    {
+      fprintf(stderr, "Failed to open %s\n", fname);
+      ABORT(EXIT_FAILURE);
+    }
 
     SID_log("Reading %d parameter sets...", SID_LOG_COMMENT, n_grid_runs);
 
     *grid_params = malloc(sizeof(grid_params_t) * n_grid_runs);
 
     for (int ii = 0; ii < n_grid_runs; ii++)
-      fscanf(fd, "%g %g %g %g\n", (*grid_params)[ii].SfEfficiency,
-          (*grid_params)[ii].SnReheatEff, (*grid_params)[ii].SnEjectionEff,
-          (*grid_params)[ii].ReincorporationEff);
+    {
+      ret = fscanf(fd, " %lg %lg %lg %lg %lg ", &((*grid_params)[ii].SfEfficiency),
+          &((*grid_params)[ii].SnReheatEff), &((*grid_params)[ii].SnEjectionEff),
+          &((*grid_params)[ii].ReincorporationEff), &((*grid_params)[ii].MergerTimeFactor));
+      if (ret != 5)
+      {
+        fprintf(stderr, "Failed to read %s correctly\n", fname);
+        ABORT(EXIT_FAILURE);
+      }
+    }
 
     fclose(fd);
   }
@@ -103,6 +118,7 @@ int main(int argc, char *argv[])
   int n_grid_runs;
   char cmd[STRLEN];
   char file_name_galaxies[STRLEN];
+  char output_dir[STRLEN];
 
   // read in the grid parameters
   n_grid_runs = read_grid_params(argv[2], &grid_params);
@@ -126,6 +142,12 @@ int main(int argc, char *argv[])
     calc_hdf5_props(&run_globals);
   }
 
+  // Copy the output dir of the model to the analysis rank
+  if (world_rank == 0)
+    MPI_Send(&(run_globals.params.OutputDir), sizeof(char)*STRLEN, MPI_BYTE, world_size-1, 16, world_comm);
+  if (analysis_rank)
+    MPI_Recv(&output_dir, sizeof(char)*STRLEN, MPI_BYTE, 0, 16, world_comm, MPI_STATUS_IGNORE);
+
   // Run the model!
   for (int ii = 0; ii < n_grid_runs; ii++)
   {
@@ -134,6 +156,10 @@ int main(int argc, char *argv[])
     {
       strcpy(run_globals.params.FileNameGalaxies, file_name_galaxies);
       update_params(&run_globals, grid_params, ii);
+      SID_log("Updated params to: %g %g %g %g %g", SID_LOG_COMMENT,
+          grid_params[ii].SfEfficiency, grid_params[ii].SnReheatEff,
+          grid_params[ii].SnEjectionEff, grid_params[ii].ReincorporationEff,
+          grid_params[ii].MergerTimeFactor);
       dracarys(&run_globals);
     }
 
@@ -144,8 +170,9 @@ int main(int argc, char *argv[])
     if (analysis_rank)
     {
       // N.B. The script called here should delete the output files once it is finished with them
-      sprintf(cmd, "/home/smutch/pyenv/bin/python /home/smutch/models/21cm_sam/meraxes/utils/grid_runnner/analyse_run.py %s/%s.hdf5",
-          run_globals.params.OutputDir, file_name_galaxies);
+      sprintf(cmd, "/home/smutch/pyenv/bin/python analyse_run.py %s/%s.hdf5",
+          output_dir, file_name_galaxies);
+      printf(" ----- ANALYSIS : Calling\n\t%s\n", cmd);
       system(cmd);
     }
   }
