@@ -84,6 +84,7 @@ struct physics_params_t {
   double ThreshMajorMerger;
   double MinMergerRatioForBurst;
   double MergerBurstFactor;
+  double MergerTimeFactor;
 
   // TODO: These parameters should be used to set the TOCF HII_EFF_FACTOR value
   double ReionNionPhotPerBary;
@@ -131,7 +132,6 @@ struct run_params_t {
   double           wLambda;
   double           SpectralIndex;
   double           PartMass;
-  double           MergerTimeFactor;
   int              SnaplistLength;
   int              RandomSeed;
   char             ForestIDFile[STRLEN];

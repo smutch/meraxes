@@ -432,8 +432,6 @@ void create_master_file(run_globals_t *run_globals)
   sprintf(names[ii++], "OmegaLambda");
   addresses[ii] = &(run_globals->params.PartMass);
   sprintf(names[ii++], "PartMass");
-  addresses[ii] = &(run_globals->params.MergerTimeFactor);
-  sprintf(names[ii++], "MergerTimeFactor");
 
   for (int jj = 0; jj < ii; jj++)
     h5_write_attribute(group_id, names[jj], H5T_NATIVE_DOUBLE, ds_id, addresses[jj]);
@@ -499,6 +497,8 @@ void create_master_file(run_globals_t *run_globals)
   sprintf(names[ii++], "MinMergerRatioForBurst");
   addresses[ii] = &(run_globals->params.physics.MergerBurstFactor);
   sprintf(names[ii++], "MergerBurstFactor");
+  addresses[ii] = &(run_globals->params.physics.MergerTimeFactor);
+  sprintf(names[ii++], "MergerTimeFactor");
 
   addresses[ii] = &(run_globals->params.physics.ReionNionPhotPerBary);
   sprintf(names[ii++], "ReionNionPhotPerBary");
