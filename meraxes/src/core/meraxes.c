@@ -10,7 +10,7 @@
 int main(int argc, char **argv)
 {
   // init SID
-  SID_init(&argc, &argv, NULL);
+  SID_init(&argc, &argv, NULL, NULL);
 
   struct stat filestatus;
   run_globals_t run_globals;

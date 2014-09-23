@@ -3,6 +3,11 @@
 #include <meraxes.h>
 #include <sys/stat.h>
 #include <mpi.h>
+#include <gbpLib.h>
+
+/*
+ * Header info
+ */
 
 typedef struct grid_params_t {
   double SfEfficiency;
@@ -11,6 +16,13 @@ typedef struct grid_params_t {
   double ReincorporationEff;
 } grid_params_t;
 
+MPI_Comm world_comm;
+int world_rank;
+
+
+/*
+ * Code
+ */
 
 static void update_params(run_globals_t *run_globals, grid_params_t *grid_params, int i_run)
 {
@@ -22,55 +34,68 @@ static void update_params(run_globals_t *run_globals, grid_params_t *grid_params
   params->ReincorporationEff = grid_params[i_run].ReincorporationEff;
 }
 
-
 static int read_grid_params(char *fname, grid_params_t **grid_params)
 {
-
-  FILE *fd;
   int n_grid_runs;
 
-  fd = fopen(fname, "r");
+  if (world_rank == 0)
+  {
+    FILE *fd;
 
-  if (fd != NULL)
-    fscanf(fd, "%d\n", &n_grid_runs);
+    fd = fopen(fname, "r");
 
-  SID_log("Reading %d parameter sets...", SID_LOG_COMMENT, n_grid_runs);
+    if (fd != NULL)
+      fscanf(fd, "%d\n", &n_grid_runs);
 
-  *grid_params = SID_malloc(sizeof(grid_params_t) * n_grid_runs);
+    SID_log("Reading %d parameter sets...", SID_LOG_COMMENT, n_grid_runs);
 
-  for (int ii = 0; ii < n_grid_runs; ii++)
-    fscanf(fd, "%g %g %g %g\n", (*grid_params)[ii].SfEfficiency,
-        (*grid_params)[ii].SnReheatEff, (*grid_params)[ii].SnEjectionEff,
-        (*grid_params)[ii].ReincorporationEff);
+    *grid_params = malloc(sizeof(grid_params_t) * n_grid_runs);
 
-  fclose(fd);
+    for (int ii = 0; ii < n_grid_runs; ii++)
+      fscanf(fd, "%g %g %g %g\n", (*grid_params)[ii].SfEfficiency,
+          (*grid_params)[ii].SnReheatEff, (*grid_params)[ii].SnEjectionEff,
+          (*grid_params)[ii].ReincorporationEff);
+
+    fclose(fd);
+  }
+
+  MPI_Bcast(&n_grid_runs, 1, MPI_INT, 0, world_comm);
+  if (world_rank > 0)
+    *grid_params = malloc(sizeof(grid_params_t) * n_grid_runs);
+  MPI_Bcast(*grid_params, sizeof(grid_params_t)*n_grid_runs, MPI_BYTE, 0, world_comm);
 
   return n_grid_runs;
-
 }
 
 
 int main(int argc, char *argv[])
 {
 
+  // deal with any input arguments
+  if (argc != 3)
+  {
+    fprintf(stderr, "\n  usage: %s <parameterfile> <gridfile>\n\n", argv[0]);
+    ABORT(EXIT_SUCCESS);
+  }
+
   // init MPI
-  MPI_Comm model_comm, world_comm;
-  int mpi_world_size;
-  MPI_Group model_group;
-  int my_rank;
+  MPI_Comm model_comm;
+  int world_size;
 
   MPI_Init(&argc, &argv);
   MPI_Comm_dup(MPI_COMM_WORLD, &world_comm);
-  MPI_Comm_size(world_comm, &mpi_world_size);
-  MPI_Comm_rank(world_comm, &my_rank);
-  int analysis_rank = mpi_world_size-1;
-  int my_color = (my_rank != analysis_rank) ? 0 : MPI_UNDEFINED;
-  MPI_Comm_split(world_comm, my_color, my_rank, &model_comm);
+  MPI_Comm_size(world_comm, &world_size);
+  MPI_Comm_rank(world_comm, &world_rank);
+  bool analysis_rank = (world_rank == world_size-1);
+  int my_color = analysis_rank ? MPI_UNDEFINED : 0;
+  MPI_Comm_split(world_comm, my_color, world_rank, &model_comm);
 
   // init SID
-  SID_init(&argc, &argv, NULL, &model_comm);
-  if (my_color == 0)
+  if (!analysis_rank)
+  {
+    SID_init(&argc, &argv, NULL, &model_comm);
     SID_log_set_fp(stderr);
+  }
 
   struct stat filestatus;
   run_globals_t run_globals;
@@ -79,17 +104,10 @@ int main(int argc, char *argv[])
   char cmd[STRLEN];
   char file_name_galaxies[STRLEN];
 
-  // deal with any input arguments
-  if (argc != 3)
-  {
-    SID_log("\n  usage: %s <parameterfile> <gridfile>\n\n", SID_LOG_COMMENT, argv[0]);
-    ABORT(1);
-  }
-
   // read in the grid parameters
   n_grid_runs = read_grid_params(argv[2], &grid_params);
 
-  if (my_color == 0)
+  if (!analysis_rank)
   {
     // read the input parameter file
     read_parameter_file(&run_globals, argv[1], 0);
@@ -112,7 +130,7 @@ int main(int argc, char *argv[])
   for (int ii = 0; ii < n_grid_runs; ii++)
   {
     sprintf(file_name_galaxies, "meraxes_%03d", ii);
-    if (my_color == 0)
+    if (!analysis_rank)
     {
       strcpy(run_globals.params.FileNameGalaxies, file_name_galaxies);
       update_params(&run_globals, grid_params, ii);
@@ -123,7 +141,7 @@ int main(int argc, char *argv[])
     // non-existent files
     MPI_Barrier(world_comm);
 
-    if (my_rank == analysis_rank)
+    if (analysis_rank)
     {
       // N.B. The script called here should delete the output files once it is finished with them
       sprintf(cmd, "/home/smutch/pyenv/bin/python /home/smutch/models/21cm_sam/meraxes/utils/grid_runnner/analyse_run.py %s/%s.hdf5",
@@ -133,10 +151,16 @@ int main(int argc, char *argv[])
   }
 
   // cleanup
-  if (my_color == 0)
+  if (!analysis_rank)
     cleanup(&run_globals);
 
-  SID_free(SID_FARG grid_params);
+  free(grid_params);
   MPI_Comm_free(&world_comm);
-  SID_exit(EXIT_SUCCESS);
+
+  if (!analysis_rank)
+    SID_exit(EXIT_SUCCESS);
+
+  // Only the analysis rank will make it here
+  MPI_Finalize();
+  exit(EXIT_SUCCESS);
 }
