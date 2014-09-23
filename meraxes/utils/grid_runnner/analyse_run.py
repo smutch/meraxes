@@ -7,19 +7,23 @@ from ssimpl import meraxes, munge
 def analysis(meraxes_fname):
 
     h = 0.702
-    fname_out = os.path.join(os.path.dirname(meraxes_fname), "smf.npy")
+    snaps = [99, 77, 62]
 
-    gals, sim_props = meraxes.io.read_gals(meraxes_fname, h=h, sim_props=True)
-    volume = sim_props["Volume"]
+    for snap in snaps:
+        fname_out = os.path.join(os.path.dirname(meraxes_fname),
+                                 "smf_{:d}.npy".format(snap))
 
-    edges = np.linspace(6, 11.5, 51)
-    gals = np.compress(gals["StellarMass"] > 0, gals)
-    smf = munge.mass_function(np.log10(gals["StellarMass"]*1.e10), volume,
-                              bins=edges)
+        gals, sim_props = meraxes.io.read_gals(meraxes_fname, h=h, snapshot=snap, sim_props=True)
+        volume = sim_props["Volume"]
 
-    fout = open(fname_out, "ab")
-    np.save(fout, smf[:,1])
-    fout.close()
+        edges = np.linspace(6, 11.5, 51)
+        gals = np.compress(gals["StellarMass"] > 0, gals)
+        smf = munge.mass_function(np.log10(gals["StellarMass"]*1.e10), volume,
+                                  bins=edges)
+
+        fout = open(fname_out, "ab")
+        np.save(fout, smf[:,1])
+        fout.close()
 
 
 def delete_input(meraxes_fname):
