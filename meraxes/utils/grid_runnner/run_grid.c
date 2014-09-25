@@ -1,5 +1,6 @@
 #define _MAIN
 #include <stdio.h>
+#include <string.h>
 #include <meraxes.h>
 #include <sys/stat.h>
 #include <mpi.h>
@@ -144,9 +145,9 @@ int main(int argc, char *argv[])
 
   // Copy the output dir of the model to the analysis rank
   if (world_rank == 0)
-    MPI_Send(&(run_globals.params.OutputDir), sizeof(char)*STRLEN, MPI_BYTE, world_size-1, 16, world_comm);
+    MPI_Send(run_globals.params.OutputDir, STRLEN, MPI_CHAR, world_size-1, 16, world_comm);
   if (analysis_rank)
-    MPI_Recv(&output_dir, sizeof(char)*STRLEN, MPI_BYTE, 0, 16, world_comm, MPI_STATUS_IGNORE);
+    MPI_Recv(output_dir, STRLEN, MPI_CHAR, 0, 16, world_comm, MPI_STATUS_IGNORE);
 
   // Run the model!
   for (int ii = 0; ii < n_grid_runs; ii++)
@@ -155,11 +156,13 @@ int main(int argc, char *argv[])
     if (!analysis_rank)
     {
       strcpy(run_globals.params.FileNameGalaxies, file_name_galaxies);
+      SID_log(">>>> New FileNameGalaxies is: %s", SID_LOG_COMMENT, run_globals.params.FileNameGalaxies);
       update_params(&run_globals, grid_params, ii);
-      SID_log("Updated params to: %g %g %g %g %g", SID_LOG_COMMENT,
+      SID_log(">>>> Updated params to: %g %g %g %g %g", SID_LOG_COMMENT,
           grid_params[ii].SfEfficiency, grid_params[ii].SnReheatEff,
           grid_params[ii].SnEjectionEff, grid_params[ii].ReincorporationEff,
           grid_params[ii].MergerTimeFactor);
+
       dracarys(&run_globals);
     }
 
@@ -172,7 +175,7 @@ int main(int argc, char *argv[])
       // N.B. The script called here should delete the output files once it is finished with them
       sprintf(cmd, "/home/smutch/pyenv/bin/python analyse_run.py %s/%s.hdf5",
           output_dir, file_name_galaxies);
-      printf(" ----- ANALYSIS : Calling\n\t%s\n", cmd);
+      printf(" >>>> ANALYSIS : Calling\n\t%s\n", cmd);
       system(cmd);
     }
   }

@@ -3,7 +3,7 @@ import numpy as np
 grid_dim = 5
 n_param = 5
 
-SfEfficiency = np.linspace(-3, np.log10(0.2), grid_dim)
+SfEfficiency = np.logspace(-3, np.log10(0.2), grid_dim)
 SnEjectionEff = np.linspace(0.1, 1, grid_dim)
 SnReheatEff = np.linspace(1, 20, grid_dim)
 ReincorporationEff = np.linspace(0,1,grid_dim)
