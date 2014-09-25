@@ -1004,7 +1004,7 @@ void initialize_halo_storage(run_globals_t *run_globals)
 
   int last_snap = 0;
 
-  SID_log("Initializing halo storage arrays...", SID_LOG_COMMENT);
+  SID_log("Initializing halo storage arrays...", SID_LOG_OPEN);
 
   // Find what the last requested output snapshot is
   for (int ii = 0; ii < NOUT; ii++)

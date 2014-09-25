@@ -17,22 +17,25 @@
  * Definitions
  */
 
-#define STRLEN  256  //!< Default string length
 
 #ifndef NOUT
 #define NOUT 1
 #endif
 
+#ifndef N_HISTORY_SNAPS
+#define N_HISTORY_SNAPS 5
+#endif
+
+// ======================================================
+// Don't change these unless you know what you are doing!
+#define STRLEN  256  //!< Default string length
 #ifndef MAX_PHOTO_NBANDS
 #define MAX_PHOTO_NBANDS 5
 #endif
 #ifndef N_PHOTO_JUMPS
 #define N_PHOTO_JUMPS 1000
 #endif
-
-#ifndef N_HISTORY_SNAPS
-#define N_HISTORY_SNAPS 5
-#endif
+// ======================================================
 
 #define ABORT(sigterm)                                                                 \
   do {                                                                                   \
@@ -64,11 +67,7 @@ FILE *meraxes_debug_file;
  */
 
 //! Physics parameter values
-struct physics_params_t {
-  int Flag_ReionizationModifier;
-  int Flag_BHFeedback;
-  int Flag_IRA;
-
+typedef struct physics_params_t {
   double SfEfficiency;
   double SfRecycleFraction;
   double SnReheatEff;
@@ -99,12 +98,18 @@ struct physics_params_t {
 
   double ReionGnedin_z0;
   double ReionGnedin_zr;
-};
-typedef struct physics_params_t physics_params_t;
+
+  // Flags
+  int Flag_ReionizationModifier;
+  int Flag_BHFeedback;
+  int Flag_IRA;
+
+  // TOTAL : 212 + 4 padding (must be multiple of 8)
+} physics_params_t;
 
 //! Run params
 //! Everything in this structure is supplied by the user...
-struct run_params_t {
+typedef struct run_params_t {
   char             OutputDir[STRLEN];
   char             FileNameGalaxies[STRLEN];
   char             SimName[STRLEN];
@@ -117,9 +122,10 @@ struct run_params_t {
   char             IMF[STRLEN];
   char             MagSystem[STRLEN];
   char             MagBands[STRLEN];
-  int              FirstFile;
-  int              LastFile;
-  int              NSteps;
+  char             ForestIDFile[STRLEN];
+
+  physics_params_t physics;
+
   double           BoxSize;
   double           VolumeFactor;
   double           Hubble_h;
@@ -132,18 +138,21 @@ struct run_params_t {
   double           wLambda;
   double           SpectralIndex;
   double           PartMass;
+
+  int              FirstFile;
+  int              LastFile;
+  int              NSteps;
   int              SnaplistLength;
   int              RandomSeed;
-  char             ForestIDFile[STRLEN];
-  physics_params_t physics;
   int              FlagInteractive;
   int              FlagGenDumpFile;
   int              FlagReadDumpFile;
   int              TOCF_Flag;
-};
-typedef struct run_params_t run_params_t;
 
-struct run_units_t {
+  // TOTAL : 3676 + 164 padding (must be multiple of STRLEN)
+} run_params_t;
+
+typedef struct run_units_t {
   double UnitTime_in_s;
   double UnitLength_in_cm;
   double UnitVelocity_in_cm_per_s;
@@ -153,38 +162,37 @@ struct run_units_t {
   double UnitPressure_in_cgs;
   double UnitCoolingRate_in_cgs;
   double UnitEnergy_in_cgs;
-};
-typedef struct run_units_t run_units_t;
+  // TOTAL : 72  (must be multiple of 8)
+} run_units_t;
 
-struct hdf5_output_t {
-  size_t       dst_size;
-  hid_t        array3f_tid;
-  hid_t        array_nmag_f_tid;
-  hid_t        array_nhist_f_tid;
+typedef struct hdf5_output_t {
   size_t      *dst_offsets;
   size_t      *dst_field_sizes;
   const char **field_names;
   hid_t       *field_types;
+  size_t       dst_size;
+  hid_t        array3f_tid;  // sizeof(hid_t) = 4
+  hid_t        array_nmag_f_tid;
+  hid_t        array_nhist_f_tid;
   int          n_props;
-};
-typedef struct hdf5_output_t hdf5_output_t;
 
-struct phototabs_t {
+  // TOTAL : 52 + 4 padding (must be multiple of 8)
+} hdf5_output_t;
+
+typedef struct phototabs_t {
   int    JumpTable[N_PHOTO_JUMPS];
-  int    NAges;
-  int    NBands;
-  int    NMetals;
-  float  JumpFactor;
+  char  (*MagBands)[5];
   float *Table;
   float *Ages;
   float *Metals;
-  char  (*MagBands)[5];
-};
-typedef struct phototabs_t phototabs_t;
+  float  JumpFactor;
+  int    NAges;
+  int    NBands;
+  int    NMetals;
+} phototabs_t;
 
 #ifdef USE_TOCF
-struct tocf_grids_t {
-  float         *xH;
+typedef struct tocf_grids_t {
   fftwf_complex *stars;
   fftwf_complex *stars_filtered;
   fftwf_complex *stars_copy;
@@ -196,68 +204,61 @@ struct tocf_grids_t {
   fftwf_complex *sfr_copy;
   fftwf_complex *N_rec;
   fftwf_complex *N_rec_filtered;
+  float         *xH;
   float         *z_at_ionization;
   float         *J_21_at_ionization;
   float         *J_21;
   float         *Mvir_crit;
   float         *mfp;
   float          global_xH;
-};
-typedef struct tocf_grids_t tocf_grids_t;
+
+  // TOTAL : 140 + 4 padding  (must be multiple of 8)
+} tocf_grids_t;
 #endif
 
 //! The meraxis halo structure
 typedef struct halo_t {
   long long           id_MBP; //!< ID of most bound particle
+  struct fof_group_t *FOFGroup;
+  struct halo_t      *NextHaloInFOFGroup;
+  struct galaxy_t    *Galaxy;
+
+  float               Pos[3]; //!< Most bound particle position [Mpc/h]
+  float               Vel[3]; //!< Centre-of-mass velocity [km/s]
+  float               AngMom[3]; //!< Specific angular momentum vector [Mpc/h *km/s]
+  float               Rhalo; //!< Distance of last halo particle from MBP [Mpc/h]
+
+  double              Mvir; //!< virial mass [M_sol/h]
+  double              Rvir; //!< Virial radius [Mpc/h]
+  double              Vvir; //!< Virial velocity [km/s]
+
+  float               Rmax; //!< Radius of maximum circular velocity [Mpc/h]
+  float               Vmax; //!< Maximum circular velocity [km/s]
+  float               VelDisp; //!< Total 3D velocity dispersion [km/s]
   int                 ID; //!< Halo ID
   int                 Type; //!< Type (0 for central, 1 for satellite)
   int                 SnapOffset; //!< Number of snapshots this halo skips before reappearing
   int                 DescIndex; //!< Index of descendant in next relevant snapshot
   int                 TreeFlags; //!< Bitwise flag indicating the type of match in the trees
   int                 ForestID;
-  struct fof_group_t *FOFGroup;
-  struct halo_t      *NextHaloInFOFGroup;
-  struct galaxy_t    *Galaxy;
-  double              Mvir; //!< virial mass [M_sol/h]
   int                 Len; //!< Number of particles in the structure
-  float               Pos[3]; //!< Most bound particle position [Mpc/h]
-  float               Vel[3]; //!< Centre-of-mass velocity [km/s]
-  double              Rvir; //!< Virial radius [Mpc/h]
-  float               Rhalo; //!< Distance of last halo particle from MBP [Mpc/h]
-  float               Rmax; //!< Radius of maximum circular velocity [Mpc/h]
-  double              Vvir; //!< Virial velocity [km/s]
-  float               Vmax; //!< Maximum circular velocity [km/s]
-  float               VelDisp; //!< Total 3D velocity dispersion [km/s]
-  float               AngMom[3]; //!< Specific angular momentum vector [Mpc/h *km/s]
 } halo_t;
 
-struct fof_group_t {
+typedef struct fof_group_t {
   halo_t *FirstHalo;
   halo_t *FirstOccupiedHalo;
   double  Mvir;
   double  Rvir;
   double  Vvir;
   int     TotalSubhaloLen;
-};
-typedef struct fof_group_t fof_group_t;
+} fof_group_t;
 
-struct galaxy_t {
-  long long        id_MBP;
-  int              ID;
-  int              Type;
-  int              OldType;
-  int              SnapSkipCounter;
-  int              HaloDescIndex;
-  int              TreeFlags;
-  int              LastIdentSnap;  //!< Last snapshot at which the halo in which this galaxy resides was identified
-  bool             ghost_flag;
-  struct halo_t   *Halo;
-  struct galaxy_t *FirstGalInHalo;
-  struct galaxy_t *NextGalInHalo;
-  struct galaxy_t *Next;
-  struct galaxy_t *MergerTarget;
-  int              Len;
-  double           dt; //!< Time between current snapshot and last identification
+typedef struct galaxy_t {
+#ifdef CALC_MAGS
+  double Lum[MAX_PHOTO_NBANDS][NOUT];
+#endif
+
+  double NewStars[N_HISTORY_SNAPS];
 
   // properties of subhalo at the last time this galaxy was a central galaxy
   float  Pos[3];
@@ -267,6 +268,15 @@ struct galaxy_t {
   double Vvir;
   double Vmax;
   double Spin;
+
+  double dt; //!< Time between current snapshot and last identification
+
+  long long id_MBP;
+  struct halo_t   *Halo;
+  struct galaxy_t *FirstGalInHalo;
+  struct galaxy_t *NextGalInHalo;
+  struct galaxy_t *Next;
+  struct galaxy_t *MergerTarget;
 
   // baryonic reservoirs
   double HotGas;
@@ -286,7 +296,6 @@ struct galaxy_t {
   // baryonic hostories
   double mwmsa_num;
   double mwmsa_denom;
-  double NewStars[N_HISTORY_SNAPS];
 
   // misc
   double Rcool;
@@ -294,26 +303,39 @@ struct galaxy_t {
   double MergTime;
   double BaryonFracModifier;
 
-  // write index
-  int output_index;
+  int  ID;
+  int  Type;
+  int  OldType;
+  int  Len;
+  int  SnapSkipCounter;
+  int  HaloDescIndex;
+  int  TreeFlags;
+  int  LastIdentSnap;     //!< Last snapshot at which the halo in which this galaxy resides was identified
+  int  output_index;  //!< write index
 
-#ifdef CALC_MAGS
-  double Lum[MAX_PHOTO_NBANDS][NOUT];
-#endif
-};
-typedef struct galaxy_t galaxy_t;
+  bool ghost_flag;
+
+  // N.B. There will be padding present at the end of this struct, but amount
+  // is dependent on CALC_MAGS, MAX_PHOTO_NBANDS, NOUT and N_HISTORY_SNAPS.
+} galaxy_t;
 
 struct galaxy_output_t {
   long long id_MBP;
-  int       ID;
-  int       Type;
-  int       CentralGal;
-  int       GhostFlag;
+
+#ifdef CALC_MAGS
+  float Mag[MAX_PHOTO_NBANDS];
+  float MagDust[MAX_PHOTO_NBANDS];
+#endif
+
+  int ID;
+  int Type;
+  int CentralGal;
+  int GhostFlag;
+  int Len;
 
   float Pos[3];
   float Vel[3];
   float Spin;
-  int   Len;
   float Mvir;
   float Rvir;
   float Vvir;
@@ -335,22 +357,16 @@ struct galaxy_output_t {
   float MetalsEjectedGas;
   float BlackHoleMass;
 
-  // baryonic histories
-  float MWMSA;  // Mass weighted mean stellar age
-  float NewStars[N_HISTORY_SNAPS];
-
   // misc
   float Rcool;
   float Cos_Inc;
   float MergTime;
   float BaryonFracModifier;
 
-#ifdef CALC_MAGS
-  float Mag[MAX_PHOTO_NBANDS];
-  float MagDust[MAX_PHOTO_NBANDS];
-#endif
-};
-typedef struct galaxy_output_t galaxy_output_t;
+  // baryonic histories
+  float MWMSA;  // Mass weighted mean stellar age
+  float NewStars[N_HISTORY_SNAPS];
+} galaxy_output_t;
 
 
 //! Tree info struct
@@ -399,40 +415,44 @@ typedef struct catalog_halo_t {
   char      padding[8];                //!< Alignment padding
 } catalog_halo_t;
 
+
 //! Global variables which will will be passed around
 typedef struct run_globals_t {
-  int                 LastOutputSnap;
-  int                 ListOutputSnaps[NOUT];
-  int                 NGhosts;
+  struct run_params_t params;
+  char                FNameOut[STRLEN];
+#ifdef USE_TOCF
+  tocf_grids_t        tocf_grids;
+#endif
+  struct run_units_t  units;
+  hdf5_output_t       hdf5props;
+
   double             *AA;
   double             *ZZ;
   double             *LTTime;
+  int                *RequestedForestId;
+  halo_t            **SnapshotHalo;
+  fof_group_t       **SnapshotFOFGroup;
+  int               **SnapshotIndexLookup;
+  trees_info_t       *SnapshotTreesInfo;
+  phototabs_t        *photo;
+  struct galaxy_t    *FirstGal;
+  struct galaxy_t    *LastGal;
+  gsl_rng            *random_generator;
   double              Hubble;
   double              RhoCrit;
   double              G;
-  char                FNameOut[STRLEN];
+
+  int                 LastOutputSnap;
+  int                 NGhosts;
   int                 NHalosMax;
   int                 NFOFGroupsMax;
   int                 NRequestedForests;
   int                 TreesStep;
   int                 TreesScan;
-  bool                SelectForestsSwitch;
-  int                *RequestedForestId;
   int                 NStoreSnapshots;
-  halo_t            **SnapshotHalo;
-  fof_group_t       **SnapshotFOFGroup;
-  int               **SnapshotIndexLookup;
-  trees_info_t       *SnapshotTreesInfo;
-  struct galaxy_t    *FirstGal;
-  struct galaxy_t    *LastGal;
-  gsl_rng            *random_generator;
-  struct run_params_t params;
-  struct run_units_t  units;
-  hdf5_output_t       hdf5props;
-  phototabs_t         photo;
-#ifdef USE_TOCF
-  tocf_grids_t tocf_grids;
-#endif
+
+  int                 ListOutputSnaps[NOUT];
+  bool                SelectForestsSwitch;
 } run_globals_t;
 
 
