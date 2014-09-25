@@ -297,7 +297,7 @@ void read_parameter_file(run_globals_t *run_globals, char *fname, int mode)
     params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
     strcpy(params_tag[n_param], "MergerTimeFactor");
-    params_addr[n_param]   = &(run_params->MergerTimeFactor);
+    params_addr[n_param]   = &(run_params->physics.MergerTimeFactor);
     required_tag[n_param]  = 1;
     params_type[n_param++] = PARAM_TYPE_DOUBLE;
 

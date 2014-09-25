@@ -5,6 +5,9 @@ import subprocess
 import shutil
 from SCons.Script.SConscript import SConsEnvironment
 
+# Get the library dependencies for this system
+from deps import deps
+
 # =====================
 # = Utility functions =
 # =====================
@@ -15,13 +18,19 @@ def files(pattern, exclude=''):
     return [file for file in glob.glob(pattern) if (os.path.isfile(file)
             and file not in glob.glob(exclude))]
 
+
 def copy_files(file_list, dest):
+    """Copy a list of files to `dest`"""
     for f in file_list:
         shutil.copy(f, dest)
+
 SConsEnvironment.CopyFiles = lambda env, file_list, dest: copy_files(file_list, dest)
 
 
 def create_git_header(git_executable):
+
+    """Create the git.h header file."""
+
     header = """/*
 * This file has been automatically generated.  Any modifications will be
 * overwritten during compilation.
@@ -43,7 +52,6 @@ def create_git_header(git_executable):
     else:
         diff_defn = '""'
 
-
     with open("git.h", "w") as fd:
         fd.write(header+"\n")
         fd.write('#define GITREF_STR "%s"\n\n' % ref)
@@ -51,6 +59,34 @@ def create_git_header(git_executable):
 
 SConsEnvironment.CreateGitHeader = lambda env, git_executable: create_git_header(git_executable)
 
+
+def compile_against(libs, deps, env):
+    """Compile against a list of libraries with with paths wtc. defined in
+    `deps`."""
+    for name in libs:
+        dep = deps[name]
+        env.AppendUnique(CPPPATH = [dep['inclp']])
+        env.AppendUnique(LIBPATH = [dep['libp']])
+        env.AppendUnique(LIBS = [dep['lib']])
+
+
+def prepend_user_defines(env, header_file):
+    """Prepend the user defined definitions (i.e. CPPDEFINES) to a header
+    file."""
+
+    defs = "// These defines were added at compilation time\n"\
+           "// (see SConstruct prepend_user_defines())\n"
+    for v in env["CPPDEFINES"]:
+        v = env.subst(v[0])
+        defs += "#define "+v.replace("=", " ")+"\n"
+    defs += "// -------------------------------------------\n\n"
+
+    with open(header_file, "r") as fd:
+        original = fd.read()
+    with open(header_file, "w") as fd:
+        fd.write(defs+"\n"+original)
+
+SConsEnvironment.PrependUserDefines = prepend_user_defines
 
 # ============================
 # = Command line definitions =
@@ -92,112 +128,58 @@ ctags = env.Command('ctags', tagsources, "ctags -R --c++-kinds=+p --fields=+iaS 
 if not GetOption('help'):
 
     # Modify the environment based on any of our variables.
-    env.AppendUnique(CPPDEFINES=['NOUT=${nout}'])
+    env.AppendUnique(CPPDEFINES = ['NOUT=${nout}'])
     if env['calc_mags']:
-        env.AppendUnique(CPPDEFINES=['CALC_MAGS'])
+        env.AppendUnique(CPPDEFINES = ['CALC_MAGS'])
     if env['tocf']:
-        env.AppendUnique(CPPDEFINES=['USE_TOCF'])
+        env.AppendUnique(CPPDEFINES = ['USE_TOCF'])
     if env['build'] == 'debug':
-        env.MergeFlags('-g -O0 -Wall')
-        env.AppendUnique(CPPDEFINES=['DEBUG'])
+        env.MergeFlags('-g -O0 -Wall -DDEBUG')
     elif env['build'] == 'standard':
-        env.MergeFlags('-O2')
+        env.AppendUnique(CPPPLAGS = ['O2'])
     elif env['build'] == 'optimized':
         env.MergeFlags('-O2 -DNDEBUG')
     if env['prof']:
         env.MergeFlags('-g -pg')
         env.AppendUnique(LINKFLAGS=['-pg'])
     if env['mpi']:
-        env.AppendUnique(CPPDEFINES=['USE_MPI=1'])
+        env.AppendUnique(CPPDEFINES = ['USE_MPI=1'])
     if env['n_history_snaps']:
-        env.AppendUnique(CPPDEFINES=['N_HISTORY_SNAPS=${n_history_snaps}'])
+        env.AppendUnique(CPPDEFINES = ['N_HISTORY_SNAPS=${n_history_snaps}'])
 
     # =================================
     # = System specific build options =
     # =================================
 
-    if sys.platform == 'darwin':
-        SYSTEM = 'mac'
-    elif sys.platform == 'linux2':
-        SYSTEM = 'gstar'
-        # SYSTEM = 'vlsci'
+    if env['mpi']:
+        env.Replace(CC = deps['exec']['mpicc'])
+        deps['gbpCode']['libp'] = os.path.join(deps['gbpCode']['libp'], 'mpi')
+    else:
+        env.Replace(CC = deps['exec']['cc'])
 
-    if SYSTEM=='vlsci':
-        GIT         = ['/usr/bin/git']
-        GSL_INCL    = ['/usr/local/gsl/1.16-intel/include']
-        GSL_LIBS    = ['/usr/local/gsl/1.16-intel/lib']
-        HDF5_INCL   = ['/usr/local/hdf5/1.8.11-gcc/include']
-        HDF5_LIBS   = ['/usr/local/hdf5/1.8.11-gcc/lib']
-        GBP_INCL    = ['/vlsci/VRSWAP/smutch/3rd_party/gbpCode/myInclude']
-        GBP_LIBS    = ['/vlsci/VRSWAP/smutch/3rd_party/gbpCode/myLib']
-        # TOCF_INCL   = ['../../21cmfast/include']
-        # TOCF_LIBS   = ['../../21cmfast/lib']
-        if env['mpi']:
-            CC        = ['mpicc']
-            GBP_LIBS  = [GBP_LIBS[0]+'/mpi']
-        else:
-            CC      = ['cc']
-
-    elif SYSTEM=='gstar':
-        GIT         = ['/usr/bin/git']
-        GSL_INCL    = ['/usr/local/x86_64/gnu/gsl-1.9/include']
-        GSL_LIBS    = ['/usr/local/x86_64/gnu/gsl-1.9/lib']
-        HDF5_INCL   = ['/usr/local/x86_64/gnu/hdf5-1.8.9-threadsafe/include']
-        HDF5_LIBS   = ['/usr/local/x86_64/gnu/hdf5-1.8.9-threadsafe/lib']
-        LEVMAR_INCL = ['/home/smutch/3rd_party/levmar']
-        LEVMAR_LIBS = ['/home/smutch/3rd_party/levmar']
-        GBP_INCL    = ['/home/smutch/3rd_party/gbpCode/myInclude']
-        GBP_LIBS    = ['/home/smutch/3rd_party/gbpCode/myLib']
-        FFTW_INCL   = ['/home/smutch/3rd_party/fftw-3.3.3/include']
-        FFTW_LIBS   = ['/home/smutch/3rd_party/fftw-3.3.3/lib']
-        TOCF_INCL   = ['../../21cmfast/include']
-        TOCF_LIBS   = ['../../21cmfast/lib']
-        if env['mpi']:
-            CC        = ['/usr/local/x86_64/gnu/openmpi-1.6.1/bin/mpicc']
-            GBP_LIBS  = [GBP_LIBS[0]+'/mpi']
-        else:
-            CC      = ['cc']
-
-    elif SYSTEM=='mac':
-        GSL_INCL    = ['/usr/local/include']
-        GSL_LIBS    = ['/usr/local/lib']
-        GBP_INCL    = ['/Users/smutch/3rd_party/gbpCode/myInclude']
-        GBP_LIBS    = ['/Users/smutch/3rd_party/gbpCode/myLib']
-        GIT         = ['/usr/bin/git']
-        TOCF_INCL   = ['../../21cmfast/include']
-        TOCF_LIBS   = ['../../21cmfast/lib']
-        FFTW_INCL   = ['/Users/smutch/3rd_party/fftw-3.3.3/include']
-        FFTW_LIBS   = ['/Users/smutch/3rd_party/fftw-3.3.3/lib']
-        HDF5_INCL   = []
-        HDF5_LIBS   = []
-        if env['mpi']:
-            CC        = ['mpicc']
-            GBP_LIBS  = [GBP_LIBS[0]+'/mpi']
-        else:
-            CC      = ['gcc']
-
-
-    env.Replace(CC = CC)
-    env.AppendUnique(CPPPATH = ["./"])
-    env.AppendUnique(CPPPATH = [GSL_INCL, GBP_INCL, HDF5_INCL])
-    env.AppendUnique(LIBPATH = [GSL_LIBS, GBP_LIBS, HDF5_LIBS])
-    env.AppendUnique(LIBS=['gbpLib','gsl', 'gslcblas', 'm', 'z', 'libhdf5_hl', 'libhdf5'])
     env.AppendUnique(CPPFLAGS = '-std=gnu99')
-    # env.AppendUnique(CPPFLAGS = ['-fPIC',])
+    env.AppendUnique(CPPPATH = './')
+
+    libs = ['gsl', 'hdf5', 'gbpCode']
+    compile_against(libs, deps, env)
 
     if env['tocf']:
-        env.AppendUnique(CPPPATH = [TOCF_INCL, FFTW_INCL])
-        env.AppendUnique(LIBPATH = [TOCF_LIBS, FFTW_LIBS])
-        env.AppendUnique(LIBS = ['21cmfast', 'fftw3f_omp', 'fftw3f', 'gomp'])
+        libs = ['21cmfast', 'fftw']
+        compile_against(libs, deps, env)
         env.AppendUnique(CC = ['-fopenmp',])
 
     # Set the python environment to use in any python scripts.
     if 'VIRTUAL_ENV' in os.environ:
         python = os.environ['VIRTUAL_ENV']+'/bin/python'
 
+
+    # ===========
+    # = Targets =
+    # ===========
+
     node_list = files('**/*.c')
     target = env.Program(target='../bin/meraxes', source=node_list)
-    git_header = env.CreateGitHeader(GIT)
+    git_header = env.CreateGitHeader([deps['exec']['git']])
     Depends(target, git_header)
     # env.NoClean(target)
     Default(target)
@@ -205,7 +187,9 @@ if not GetOption('help'):
     node_list.remove("core/meraxes.c")
     lib = env.StaticLibrary(target='../lib/meraxes', source=node_list)
     incl = env.CopyFiles(files('*.h'), '../include')
+    defs = env.PrependUserDefines("../include/meraxes.h")
     Depends(incl, git_header)
+    Depends(defs, incl)
     Depends(lib, incl)
     env.Alias('lib', lib)
 

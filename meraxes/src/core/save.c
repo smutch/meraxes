@@ -115,7 +115,8 @@ void calc_hdf5_props(run_globals_t *run_globals)
   galaxy_output_t galout;
   int i;                                                // dummy
 
-  h5props->n_props = 33;
+  // h5props->n_props = 33;
+  h5props->n_props = 5;
 
 #ifdef CALC_MAGS
   // If we are calculating any magnitudes then increment the number of
@@ -148,6 +149,18 @@ void calc_hdf5_props(run_globals_t *run_globals)
   h5props->field_names[i]     = "id_MBP";
   h5props->field_types[i++]   = H5T_NATIVE_LLONG;
 
+#ifdef CALC_MAGS
+  h5props->dst_offsets[i]     = HOFFSET(galaxy_output_t, Mag);
+  h5props->dst_field_sizes[i] = sizeof(float) * n_photo_bands;
+  h5props->field_names[i]     = "Mag";
+  h5props->field_types[i++]   = h5props->array_nmag_f_tid;
+
+  h5props->dst_offsets[i]     = HOFFSET(galaxy_output_t, MagDust);
+  h5props->dst_field_sizes[i] = sizeof(float) * n_photo_bands;
+  h5props->field_names[i]     = "MagDust";
+  h5props->field_types[i++]   = h5props->array_nmag_f_tid;
+#endif
+
   h5props->dst_offsets[i]     = HOFFSET(galaxy_output_t, ID);
   h5props->dst_field_sizes[i] = sizeof(galout.ID);
   h5props->field_names[i]     = "ID";
@@ -168,6 +181,11 @@ void calc_hdf5_props(run_globals_t *run_globals)
   h5props->field_names[i]     = "GhostFlag";
   h5props->field_types[i++]   = H5T_NATIVE_INT;
 
+  h5props->dst_offsets[i]     = HOFFSET(galaxy_output_t, Len);
+  h5props->dst_field_sizes[i] = sizeof(galout.Len);
+  h5props->field_names[i]     = "Len";
+  h5props->field_types[i++]   = H5T_NATIVE_INT;
+
   h5props->dst_offsets[i]     = HOFFSET(galaxy_output_t, Pos);
   h5props->dst_field_sizes[i] = sizeof(galout.Pos);
   h5props->field_names[i]     = "Pos";
@@ -178,10 +196,10 @@ void calc_hdf5_props(run_globals_t *run_globals)
   h5props->field_names[i]     = "Vel";
   h5props->field_types[i++]   = h5props->array3f_tid;
 
-  h5props->dst_offsets[i]     = HOFFSET(galaxy_output_t, Len);
-  h5props->dst_field_sizes[i] = sizeof(galout.Len);
-  h5props->field_names[i]     = "Len";
-  h5props->field_types[i++]   = H5T_NATIVE_INT;
+  h5props->dst_offsets[i]     = HOFFSET(galaxy_output_t, Spin);
+  h5props->dst_field_sizes[i] = sizeof(galout.Spin);
+  h5props->field_names[i]     = "Spin";
+  h5props->field_types[i++]   = H5T_NATIVE_FLOAT;
 
   h5props->dst_offsets[i]     = HOFFSET(galaxy_output_t, Mvir);
   h5props->dst_field_sizes[i] = sizeof(galout.Mvir);
@@ -206,11 +224,6 @@ void calc_hdf5_props(run_globals_t *run_globals)
   h5props->dst_offsets[i]     = HOFFSET(galaxy_output_t, FOFMvir);
   h5props->dst_field_sizes[i] = sizeof(galout.FOFMvir);
   h5props->field_names[i]     = "FOFMvir";
-  h5props->field_types[i++]   = H5T_NATIVE_FLOAT;
-
-  h5props->dst_offsets[i]     = HOFFSET(galaxy_output_t, Spin);
-  h5props->dst_field_sizes[i] = sizeof(galout.Spin);
-  h5props->field_names[i]     = "Spin";
   h5props->field_types[i++]   = H5T_NATIVE_FLOAT;
 
   h5props->dst_offsets[i]     = HOFFSET(galaxy_output_t, HotGas);
@@ -238,6 +251,11 @@ void calc_hdf5_props(run_globals_t *run_globals)
   h5props->field_names[i]     = "Mcool";
   h5props->field_types[i++]   = H5T_NATIVE_FLOAT;
 
+  h5props->dst_offsets[i]     = HOFFSET(galaxy_output_t, DiskScaleLength);
+  h5props->dst_field_sizes[i] = sizeof(galout.DiskScaleLength);
+  h5props->field_names[i]     = "DiskScaleLength";
+  h5props->field_types[i++]   = H5T_NATIVE_FLOAT;
+
   h5props->dst_offsets[i]     = HOFFSET(galaxy_output_t, StellarMass);
   h5props->dst_field_sizes[i] = sizeof(galout.StellarMass);
   h5props->field_names[i]     = "StellarMass";
@@ -251,16 +269,6 @@ void calc_hdf5_props(run_globals_t *run_globals)
   h5props->dst_offsets[i]     = HOFFSET(galaxy_output_t, MetalsStellarMass);
   h5props->dst_field_sizes[i] = sizeof(galout.MetalsStellarMass);
   h5props->field_names[i]     = "MetalsStellarMass";
-  h5props->field_types[i++]   = H5T_NATIVE_FLOAT;
-
-  h5props->dst_offsets[i]     = HOFFSET(galaxy_output_t, BlackHoleMass);
-  h5props->dst_field_sizes[i] = sizeof(galout.BlackHoleMass);
-  h5props->field_names[i]     = "BlackHoleMass";
-  h5props->field_types[i++]   = H5T_NATIVE_FLOAT;
-
-  h5props->dst_offsets[i]     = HOFFSET(galaxy_output_t, DiskScaleLength);
-  h5props->dst_field_sizes[i] = sizeof(galout.DiskScaleLength);
-  h5props->field_names[i]     = "DiskScaleLength";
   h5props->field_types[i++]   = H5T_NATIVE_FLOAT;
 
   h5props->dst_offsets[i]     = HOFFSET(galaxy_output_t, Sfr);
@@ -278,15 +286,10 @@ void calc_hdf5_props(run_globals_t *run_globals)
   h5props->field_names[i]     = "MetalsEjectedGas";
   h5props->field_types[i++]   = H5T_NATIVE_FLOAT;
 
-  h5props->dst_offsets[i]     = HOFFSET(galaxy_output_t, MWMSA);
-  h5props->dst_field_sizes[i] = sizeof(galout.MWMSA);
-  h5props->field_names[i]     = "MWMSA";
+  h5props->dst_offsets[i]     = HOFFSET(galaxy_output_t, BlackHoleMass);
+  h5props->dst_field_sizes[i] = sizeof(galout.BlackHoleMass);
+  h5props->field_names[i]     = "BlackHoleMass";
   h5props->field_types[i++]   = H5T_NATIVE_FLOAT;
-
-  h5props->dst_offsets[i]     = HOFFSET(galaxy_output_t, NewStars);
-  h5props->dst_field_sizes[i] = sizeof(galout.NewStars);
-  h5props->field_names[i]     = "NewStars";
-  h5props->field_types[i++]   = h5props->array_nhist_f_tid;
 
   h5props->dst_offsets[i]     = HOFFSET(galaxy_output_t, Rcool);
   h5props->dst_field_sizes[i] = sizeof(galout.Rcool);
@@ -308,17 +311,15 @@ void calc_hdf5_props(run_globals_t *run_globals)
   h5props->field_names[i]     = "BaryonFracModifier";
   h5props->field_types[i++]   = H5T_NATIVE_FLOAT;
 
-#ifdef CALC_MAGS
-  h5props->dst_offsets[i]     = HOFFSET(galaxy_output_t, Mag);
-  h5props->dst_field_sizes[i] = sizeof(float) * n_photo_bands;
-  h5props->field_names[i]     = "Mag";
-  h5props->field_types[i++]   = h5props->array_nmag_f_tid;
+  h5props->dst_offsets[i]     = HOFFSET(galaxy_output_t, MWMSA);
+  h5props->dst_field_sizes[i] = sizeof(galout.MWMSA);
+  h5props->field_names[i]     = "MWMSA";
+  h5props->field_types[i++]   = H5T_NATIVE_FLOAT;
 
-  h5props->dst_offsets[i]     = HOFFSET(galaxy_output_t, MagDust);
-  h5props->dst_field_sizes[i] = sizeof(float) * n_photo_bands;
-  h5props->field_names[i]     = "MagDust";
-  h5props->field_types[i++]   = h5props->array_nmag_f_tid;
-#endif
+  h5props->dst_offsets[i]     = HOFFSET(galaxy_output_t, NewStars);
+  h5props->dst_field_sizes[i] = sizeof(galout.NewStars);
+  h5props->field_names[i]     = "NewStars";
+  h5props->field_types[i++]   = h5props->array_nhist_f_tid;
 
   // DEBUG
   if (i != h5props->n_props)
@@ -432,8 +433,6 @@ void create_master_file(run_globals_t *run_globals)
   sprintf(names[ii++], "OmegaLambda");
   addresses[ii] = &(run_globals->params.PartMass);
   sprintf(names[ii++], "PartMass");
-  addresses[ii] = &(run_globals->params.MergerTimeFactor);
-  sprintf(names[ii++], "MergerTimeFactor");
 
   for (int jj = 0; jj < ii; jj++)
     h5_write_attribute(group_id, names[jj], H5T_NATIVE_DOUBLE, ds_id, addresses[jj]);
@@ -499,6 +498,8 @@ void create_master_file(run_globals_t *run_globals)
   sprintf(names[ii++], "MinMergerRatioForBurst");
   addresses[ii] = &(run_globals->params.physics.MergerBurstFactor);
   sprintf(names[ii++], "MergerBurstFactor");
+  addresses[ii] = &(run_globals->params.physics.MergerTimeFactor);
+  sprintf(names[ii++], "MergerTimeFactor");
 
   addresses[ii] = &(run_globals->params.physics.ReionNionPhotPerBary);
   sprintf(names[ii++], "ReionNionPhotPerBary");

@@ -73,7 +73,7 @@ double calculate_merging_time(run_globals_t *run_globals, galaxy_t *sat, int sna
 
   if (sat_mass > 1e-9)
     mergtime =
-      run_globals->params.MergerTimeFactor *
+      run_globals->params.physics.MergerTimeFactor *
       1.17 * sat_rad * sat_rad * mother->Vvir / (coulomb * run_globals->G * sat_mass);
   else
     // if this is just a gas cloud (i.e. the infalling satellite has no stellar
