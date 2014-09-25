@@ -100,16 +100,22 @@ static void print_phototab(run_globals_t *run_globals, int i_metal)
 }
 #endif
 
+
 void read_photometric_tables(run_globals_t *run_globals)
 {
 #ifdef CALC_MAGS
   run_params_t *run_params = &(run_globals->params);
+
+  // malloc the phototabs struct (see cleanup_mags() for free)
+  run_globals->photo       = SID_malloc(sizeof(phototabs_t));
   phototabs_t *photo       = &(run_globals->photo);
+
   float **Metals           = &(photo->Metals);
   float **AgeTab           = &(photo->Ages);
   char (**MagBands)[5] = &(photo->MagBands);
   float **PhotoTab    = &(photo->Table);
   int n_table_entries = 0;
+
 
   if (SID.My_rank == 0)
   {
@@ -441,6 +447,7 @@ void cleanup_mags(run_globals_t *run_globals)
   SID_free(SID_FARG run_globals->photo.MagBands);
   SID_free(SID_FARG run_globals->photo.Ages);
   SID_free(SID_FARG run_globals->photo.Metals);
+  SID_free(SID_FARG run_globals->photo);
   H5Tclose(run_globals->hdf5props.array_nmag_f_tid);
 #else
   return;
