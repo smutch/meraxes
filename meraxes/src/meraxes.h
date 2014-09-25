@@ -319,7 +319,7 @@ typedef struct galaxy_t {
   // is dependent on CALC_MAGS, MAX_PHOTO_NBANDS, NOUT and N_HISTORY_SNAPS.
 } galaxy_t;
 
-struct galaxy_output_t {
+typedef struct galaxy_output_t {
   long long id_MBP;
 
 #ifdef CALC_MAGS
