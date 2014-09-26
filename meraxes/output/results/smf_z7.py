@@ -71,6 +71,27 @@ def plot(gals, simprops, ax, h):
                 label="Katsianis et al. 2014", ls="none",
                 lw=4, capsize=0)
 
+    # and again...
+    obs = pd.read_table(os.path.join(__script_dir__,
+        "../../utils/obs_datasets/smf/Duncan14_MF_z7.txt"),
+        delim_whitespace=True,
+        header = None,
+        skiprows = 8,
+        names = ["sm", "phi", "merr", "perr"])
+
+    # convert obs to same hubble value and IMF
+    obs.sm += 2.0*np.log10(0.702/h)
+    obs.sm += 0.25  # IMF correction Chabrier -> Salpeter
+    for col in ["phi", "merr", "perr"]:
+        obs[col] /= (0.7**3/h**3)
+
+    # plot the observations
+    ax.errorbar(obs.sm, np.log10(obs.phi),
+                yerr=[np.log10(obs.phi) - np.log10(obs.merr),
+                      np.log10(obs.perr) - np.log10(obs.phi)],
+                label="Duncan et al. 2014", ls="none",
+                lw=4, capsize=0)
+
     # add some text
     ax.text(0.05,0.05, "z=7\nh={:.2f}\nSalpeter IMF\n".format(h)+
             r"log$_{10}$(SFR)"+" > {:.2f}".format(sfr_limit)+r"M$_{\odot}$/yr",
