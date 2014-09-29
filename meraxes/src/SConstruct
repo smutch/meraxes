@@ -61,7 +61,7 @@ SConsEnvironment.CreateGitHeader = lambda env, git_executable: create_git_header
 
 
 def compile_against(libs, deps, env):
-    """Compile against a list of libraries with with paths wtc. defined in
+    """Compile against a list of libraries with with paths etc. defined in
     `deps`."""
     for name in libs:
         dep = deps[name]

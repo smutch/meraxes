@@ -13,6 +13,7 @@ void evolve_stellar_pops(run_globals_t *run_globals, galaxy_t *gal, int snapshot
     double m_high, m_low, burst_recycled_frac, m_recycled;
     run_units_t *units = &(run_globals->units);
     double *LTTime     = run_globals->LTTime;
+    double burst_mass_frac;
 
     // Use the pre-calculated mwmsa numerator and denomenator to get the mwmsa
     // of all stars formed before what is tracked in the NewStars property
@@ -28,7 +29,7 @@ void evolve_stellar_pops(run_globals_t *run_globals, galaxy_t *gal, int snapshot
     log_dt = log10((mwmsa - LTTime[snapshot]) * units->UnitTime_in_Megayears / run_globals->params.Hubble_h);
     m_low  = sn_m_low(log_dt); // Msol
 
-    burst_recycled_frac = calc_recycled_frac(run_globals, m_high, m_low);
+    burst_recycled_frac = calc_recycled_frac(run_globals, m_high, m_low, &burst_mass_frac);
     m_recycled          = m_stars * burst_recycled_frac;
     update_reservoirs_from_sn_feedback(gal, 0.0, 0.0, m_recycled, 0.0);
   }

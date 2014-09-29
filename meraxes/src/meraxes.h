@@ -484,7 +484,7 @@ void         merge_with_target(run_globals_t *run_globals, galaxy_t *gal, int *d
 void         insitu_star_formation(run_globals_t *run_globals, galaxy_t *gal, int snapshot);
 void         update_reservoirs_from_sf(run_globals_t *run_globals, galaxy_t *gal, double new_stars);
 double       sn_m_low(double log_dt);
-double       calc_recycled_frac(run_globals_t *run_globals, double m_high, double m_low);
+double       calc_recycled_frac(run_globals_t *run_globals, double m_high, double m_low, double *burst_mass_frac);
 void         delayed_supernova_feedback(run_globals_t *run_globals, galaxy_t *gal, int snapshot);
 void         evolve_stellar_pops(run_globals_t *run_globals, galaxy_t *gal, int snapshot);
 void         contemporaneous_supernova_feedback(run_globals_t *run_globals, galaxy_t *gal, double *m_stars, int snapshot, double *m_reheat, double *m_eject, double *m_recycled, double *new_metals);
