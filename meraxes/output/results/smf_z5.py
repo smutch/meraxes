@@ -92,10 +92,10 @@ def plot(gals, simprops, ax, h):
 
     # and again...
     obs = pd.read_table(os.path.join(__script_dir__,
-        "../../utils/obs_datasets/smf/Duncan14_z5_smf.txt"),
+        "../../utils/obs_datasets/smf/Duncan14_MF_z5.txt"),
         delim_whitespace=True,
         header = None,
-        skiprows = 16,
+        skiprows = 8,
         names = ["sm", "phi", "merr", "perr"])
 
     # convert obs to same hubble value and IMF
@@ -110,7 +110,6 @@ def plot(gals, simprops, ax, h):
                       np.log10(obs.perr) - np.log10(obs.phi)],
                 label="Duncan et al. 2014", ls="none",
                 lw=4, capsize=0)
-
 
     # add some text
     ax.text(0.95,0.95, "z=5\nh={:.2f}\nSalpeter IMF\n".format(h)+
