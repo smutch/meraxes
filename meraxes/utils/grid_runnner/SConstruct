@@ -34,6 +34,9 @@ env.AppendUnique(LIBS=[d['lib'] for d in deps.itervalues()])
 env.AppendUnique(LIBS=['m', 'z'])
 env.AppendUnique(CPPFLAGS = ['-DUSE_MPI', '-std=gnu99', '-O2'])
 
+if not os.path.isdir("bin"):
+    os.mkdir("bin")
+
 node_list = ["run_grid.c"]
-target = env.Program(target='run_grid', source=node_list)
+target = env.Program(target='bin/run_grid', source=node_list)
 Default(target)
