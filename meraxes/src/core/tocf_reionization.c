@@ -434,6 +434,7 @@ void save_tocf_grids(run_globals_t *run_globals, hid_t parent_group_id, int snap
         SID_log("Calculating delta_T box and power spectrum...", SID_LOG_OPEN);
         
         memset((void*)grid, 0, sizeof(float) * HII_TOT_NUM_PIXELS);
+        
         delta_T_ps(
             run_globals->ZZ[snapshot],
             tocf_params.numcores,
@@ -461,6 +462,9 @@ void save_tocf_grids(run_globals_t *run_globals, hid_t parent_group_id, int snap
         
         // Run call_gen_size_dist if neutral fraction is (0, 0.8]
         // ----------------------------------------------------------------------------------------------------
+        //
+        
+        // Perform this analysis post sim run using python?
         
         SID_log("call_gen_size_dist is TURNED OFF", SID_LOG_COMMENT);
         
@@ -518,8 +522,6 @@ void save_tocf_grids(run_globals_t *run_globals, hid_t parent_group_id, int snap
 //            SID_log("size_dist_nbins = %d", SID_LOG_COMMENT, size_dist_nbins);
 //        
 //            //for (i=0; i<size_dist_nbins; i++) SID_log("%3d\t%1.3f\t%g", SID_LOG_COMMENT, i, size_dist[0+2*i], size_dist[1+2*i]);
-//        
-//            // Create ps file
 //            
 //            // START PMG ADDED
 //            // ====================================================
@@ -565,7 +567,6 @@ bool check_if_reionization_complete(run_globals_t *run_globals)
     
     // If the global_xH value is less than 1%, stop doing reionisation
     if (run_globals->tocf_grids.global_xH < 0.01)
-        //run_globals->params.TOCF_Flag = 0;
         return true;
     else
         return false;
