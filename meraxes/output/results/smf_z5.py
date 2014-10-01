@@ -106,8 +106,8 @@ def plot(gals, simprops, ax, h):
 
     # plot the observations
     ax.errorbar(obs.sm, np.log10(obs.phi),
-                yerr=[np.log10(obs.phi) - np.log10(obs.merr),
-                      np.log10(obs.perr) - np.log10(obs.phi)],
+                yerr=[np.log10(obs.phi / (obs.phi - obs.merr)),
+                      np.log10(1.0 + (obs.perr / obs.phi))],
                 label="Duncan et al. 2014", ls="none",
                 lw=4, capsize=0)
 
