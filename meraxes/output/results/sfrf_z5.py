@@ -26,9 +26,11 @@ def plot(gals, simprops, ax, h):
 
     print "Plotting z=5 SFRF..."
 
+    markers = ['o', 's', 'D', 'p', 'v', '^'][::-1]
+
     # generate the model smf
     # sm = stellar mass
-    sfr = np.log10(gals.Sfr[gals.Sfr > 0])
+    sfr = np.log10(gals.Sfr[(gals.Sfr > 0) & (gals.GhostFlag == 0)])
 
     n_dropped = gals.shape[0] - sfr.shape[0]
     if n_dropped > 0:
@@ -38,7 +40,7 @@ def plot(gals, simprops, ax, h):
     sfrf = munge.mass_function(sfr, simprops["Volume"], "knuth")
 
     # plot the model
-    ax.plot(sfrf[:,0], np.log10(sfrf[:,1]), label="Meraxes")
+    ax.plot(sfrf[:,0], np.log10(sfrf[:,1]), lw=4, label="Meraxes")
 
     # read the observed sfrf
     obs = pd.read_table(os.path.join(__script_dir__,
@@ -56,7 +58,7 @@ def plot(gals, simprops, ax, h):
     # plot the observations
     ax.errorbar(obs.log_sfr, obs.log_phi, yerr=obs.err,
                 label="Katsianis et al. in prep.\n(from Van der Burg+ 2011)", ls="none",
-                lw=4, capsize=0)
+                lw=2, capsize=2.5, marker=markers.pop(), mec='none')
 
     # do it all again for the next set of observations
     obs = pd.read_table(os.path.join(__script_dir__,
@@ -74,7 +76,51 @@ def plot(gals, simprops, ax, h):
     # plot the observations
     ax.errorbar(obs.log_sfr, obs.log_phi, yerr=obs.err,
                 label="Katsianis+ in prep.\n(from Bouwens+ 2014)", ls="none",
-                lw=4, capsize=0)
+                lw=2, capsize=2.5, marker=markers.pop(), mec='none')
+
+    # and again
+    obs = pd.read_table(os.path.join(__script_dir__,
+        "../../utils/obs_datasets/sfrf/Duncan14_SFRF_SED_z5.txt"),
+        delim_whitespace=True,
+        header = None,
+        skiprows = 8,
+        names = ["log_sfr", "phi", "merr", "perr"])
+    obs.merr[obs.merr >= obs.phi] = obs.phi - 1e-10
+
+    # convert obs to same hubble value and IMF
+    obs.log_sfr += 2.0*np.log10(0.702/h)
+    obs.log_sfr += 0.25  # IMF correction Chabrier -> Salpeter
+    for col in ["phi", "merr", "perr"]:
+        obs[col] /= (0.7**3/h**3)
+
+    # plot the observations
+    ax.errorbar(obs.log_sfr, np.log10(obs.phi),
+                yerr=[np.log10(obs.phi / (obs.phi - obs.merr)),
+                      np.log10(1.0 + (obs.perr / obs.phi))],
+                label="Duncan et al. 2014 (SEDs)", ls="none",
+                lw=2, capsize=2.5, marker=markers.pop(), mec='none')
+
+    # and again
+    obs = pd.read_table(os.path.join(__script_dir__,
+        "../../utils/obs_datasets/sfrf/Duncan14_SFRF_UV_z5.txt"),
+        delim_whitespace=True,
+        header = None,
+        skiprows = 8,
+        names = ["log_sfr", "phi", "merr", "perr"])
+    obs.merr[obs.merr >= obs.phi] = obs.phi - 1e-10
+
+    # convert obs to same hubble value and IMF
+    obs.log_sfr += 2.0*np.log10(0.702/h)
+    obs.log_sfr += 0.25  # IMF correction Chabrier -> Salpeter
+    for col in ["phi", "merr", "perr"]:
+        obs[col] /= (0.7**3/h**3)
+
+    # plot the observations
+    ax.errorbar(obs.log_sfr, np.log10(obs.phi),
+                yerr=[np.log10(obs.phi / (obs.phi - obs.merr)),
+                      np.log10(1.0 + (obs.perr / obs.phi))],
+                label="Duncan et al. 2014 (UV)", ls="none",
+                lw=2, capsize=2.5, marker=markers.pop(), mec='none')
 
     # add some text
     ax.text(0.95,0.95, "z=5\nh={:.2f}".format(h),
@@ -100,7 +146,7 @@ if __name__ == '__main__':
 
     snap, redshift = meraxes.io.check_for_redshift(fname, 5.0, tol=0.1)
 
-    props = ("Sfr", "Type")
+    props = ("Sfr", "Type", "GhostFlag")
     gals, simprops = meraxes.io.read_gals(fname, snapshot=snap, props=props,
             sim_props=True, h=h)
     gals = gals.view(np.recarray)

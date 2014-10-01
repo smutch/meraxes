@@ -54,10 +54,12 @@ if __name__ == '__main__':
     # init the plot style
     plotutils.init_style()
 
+    props = ("Sfr", "StellarMass", "Type", "FOFMvir", "CentralGal",
+             "GhostFlag")
+
     if not redshift or (redshift == 5):
         snap, _ = meraxes.io.check_for_redshift(fname, 5.0, tol=0.1)
 
-        props = ("Sfr", "StellarMass", "Type", "FOFMvir", "CentralGal")
         gals, simprops = meraxes.io.read_gals(fname, snapshot=snap, props=props,
                 sim_props=True, h=h)
         gals = gals.view(np.recarray)
@@ -92,7 +94,6 @@ if __name__ == '__main__':
     if not redshift or (redshift == 6):
         snap, _ = meraxes.io.check_for_redshift(fname, 6.0, tol=0.1)
 
-        props = ("Sfr", "StellarMass", "Type", "FOFMvir", "CentralGal")
         gals, simprops = meraxes.io.read_gals(fname, snapshot=snap, props=props,
                 sim_props=True, h=h)
         gals = gals.view(np.recarray)
@@ -115,7 +116,6 @@ if __name__ == '__main__':
     if not redshift or (redshift == 7):
         snap, _ = meraxes.io.check_for_redshift(fname, 7.0, tol=0.1)
 
-        props = ("Sfr", "StellarMass", "Type", "FOFMvir", "CentralGal")
         gals, simprops = meraxes.io.read_gals(fname, snapshot=snap, props=props,
                 sim_props=True, h=h)
         gals = gals.view(np.recarray)

@@ -26,6 +26,8 @@ def plot(gals, simprops, ax, h):
 
     print "Plotting z=7 SMF..."
 
+    markers = ['o', 's', 'D', 'p', 'v', '^'][::-1]
+
     # N.B. NOTE SFR CUT TO MATCH KATSIANIS 2014 (via SMIT 2012) DATA (log(SFR)
     # > -0.44)
     sfr_limit = -0.18  # lower log10(sfr [Msol]) limit for galaxies
@@ -45,12 +47,12 @@ def plot(gals, simprops, ax, h):
                                      return_edges=True)
 
     # plot the model
-    l, = ax.plot(smf[:,0], np.log10(smf[:,1]), label="Meraxes")
+    l, = ax.plot(smf[:,0], np.log10(smf[:,1]), ls="--", lw=4, label="Meraxes")
 
     # plot the total SMF (i.e. without SFR cut)
     sm = np.log10(gals.StellarMass[gals.StellarMass > 0] * 1.0e10)
     smf = munge.mass_function(sm, simprops["Volume"], edges)
-    ax.plot(smf[:,0], np.log10(smf[:,1]), ls='--', label=None,
+    ax.plot(smf[:,0], np.log10(smf[:,1]), ls='-', lw=4, label=None,
             color=l.get_color())
 
     # read the observed smf
@@ -69,7 +71,7 @@ def plot(gals, simprops, ax, h):
     # plot the observations
     ax.errorbar(obs.sm, obs.log_phi, yerr=obs.err,
                 label="Katsianis et al. 2014", ls="none",
-                lw=4, capsize=0)
+                lw=2, capsize=2.5, marker=markers.pop(), mec='none')
 
     # and again...
     obs = pd.read_table(os.path.join(__script_dir__,
@@ -78,6 +80,7 @@ def plot(gals, simprops, ax, h):
         header = None,
         skiprows = 8,
         names = ["sm", "phi", "merr", "perr"])
+    obs.merr[obs.merr >= obs.phi] = obs.phi - 1e-10
 
     # convert obs to same hubble value and IMF
     obs.sm += 2.0*np.log10(0.702/h)
@@ -90,7 +93,7 @@ def plot(gals, simprops, ax, h):
                 yerr=[np.log10(obs.phi / (obs.phi - obs.merr)),
                       np.log10(1.0 + (obs.perr / obs.phi))],
                 label="Duncan et al. 2014", ls="none",
-                lw=4, capsize=0)
+                lw=2, capsize=2.5, marker=markers.pop(), mec='none')
 
     # add some text
     ax.text(0.05,0.05, "z=7\nh={:.2f}\nSalpeter IMF\n".format(h)+
