@@ -50,7 +50,9 @@ Flag_IRA                  : 0    # use the instantaneous recycling approximation
 SfEfficiency              : 0.01    # star formation efficiency
 SfRecycleFraction         : 0.43    # instantaneous recycle fraction (IMF dependant)
 SnEjectionEff             : 0.83    # SN feedback gas reheating efficiency
+SnEjectionScaling         : 0       # SN feedback gas reheating efficiency scaling (with Vmax)
 SnReheatEff               : 5.0     # mass loading factor for SN feedback
+SnReheatScaling           : 0       # mass loading factor for SN feedback scaling (with Vmax)
 ReincorporationEff        : 0.0     # gas reincorporation efficiency from ejected component
 Yield                     : 0.03    # mass of metals injected into ISM per unit star formation
 RadioModeEff              : 6e-4    # radio mode feedback efficiency
