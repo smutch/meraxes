@@ -349,8 +349,18 @@ void read_parameter_file(run_globals_t *run_globals, char *fname, int mode)
     required_tag[n_param]  = 1;
     params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
+    strcpy(params_tag[n_param], "SnEjectionScaling");
+    params_addr[n_param]   = &(run_params->physics).SnEjectionScaling;
+    required_tag[n_param]  = 1;
+    params_type[n_param++] = PARAM_TYPE_DOUBLE;
+
     strcpy(params_tag[n_param], "SnReheatEff");
     params_addr[n_param]   = &(run_params->physics).SnReheatEff;
+    required_tag[n_param]  = 1;
+    params_type[n_param++] = PARAM_TYPE_DOUBLE;
+
+    strcpy(params_tag[n_param], "SnReheatScaling");
+    params_addr[n_param]   = &(run_params->physics).SnReheatScaling;
     required_tag[n_param]  = 1;
     params_type[n_param++] = PARAM_TYPE_DOUBLE;
 

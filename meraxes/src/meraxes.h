@@ -71,7 +71,9 @@ typedef struct physics_params_t {
   double SfEfficiency;
   double SfRecycleFraction;
   double SnReheatEff;
+  double SnReheatScaling;
   double SnEjectionEff;
+  double SnEjectionScaling;
   double ReincorporationEff;
   double Yield;
   double IMFSlope;
