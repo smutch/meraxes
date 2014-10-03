@@ -103,7 +103,7 @@ void dracarys(run_globals_t *run_globals)
   {
     SID_log("", SID_LOG_COMMENT);
     SID_log("===============================================================", SID_LOG_COMMENT);
-    SID_log("Snapshot %d  (z = %.2f)", SID_LOG_COMMENT, snapshot, run_globals->ZZ[snapshot]);
+    SID_log("Snapshot %d  (z = %.3f)", SID_LOG_COMMENT, snapshot, run_globals->ZZ[snapshot]);
     SID_log("===============================================================", SID_LOG_COMMENT);
     
     // Reset book keeping counters
