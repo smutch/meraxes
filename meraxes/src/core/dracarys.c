@@ -238,16 +238,21 @@ void dracarys(run_globals_t *run_globals)
     // Do one more pass to make sure that we have killed all galaxies which we
     // should have (i.e. satellites in strayed halos etc.)
     prev_gal = NULL;
+    next_gal = NULL;
     gal      = run_globals->FirstGal;
     while (gal != NULL)
     {
       if (gal->HaloDescIndex < 0)
       {
+        next_gal = gal->Next;
         kill_galaxy(run_globals, gal, prev_gal, &NGal, &kill_counter);
         gal = prev_gal;
       }
       prev_gal = gal;
-      gal      = gal->Next;
+      if (gal != NULL)
+        gal = gal->Next;
+      else
+        gal = next_gal;
     }
 
     // Store the number of ghost galaxies present at this snapshot
