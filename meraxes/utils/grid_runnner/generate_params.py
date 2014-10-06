@@ -11,7 +11,7 @@ MergerTimeFactor = np.linspace(0, 3, grid_dim)
 
 
 with open("grid_params.txt", "w") as fd:
-    fd.write("{:d}\n".format(n_param**grid_dim))
+    fd.write("{:d}\n".format(grid_dim**n_param))
     for i in xrange(grid_dim):
         for j in xrange(grid_dim):
             for k in xrange(grid_dim):
