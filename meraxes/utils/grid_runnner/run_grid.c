@@ -126,6 +126,13 @@ int main(int argc, char *argv[])
 
   if (!analysis_rank)
   {
+
+  // debugging
+#ifdef DEBUG
+    if (SID.My_rank == 0)
+      mpi_debug_here();
+#endif
+
     // read the input parameter file
     read_parameter_file(&run_globals, argv[1], 0);
 

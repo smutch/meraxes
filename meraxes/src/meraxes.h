@@ -83,6 +83,7 @@ typedef struct physics_params_t {
   double BlackHoleGrowthRate;
 
   double ThreshMajorMerger;
+  double MinMergerStellarMass;
   double MinMergerRatioForBurst;
   double MergerBurstFactor;
   double MergerTimeFactor;

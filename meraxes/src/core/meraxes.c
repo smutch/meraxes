@@ -38,7 +38,7 @@ int main(int argc, char **argv)
   sprintf(debug_fname, "debug_%d.txt", SID.My_rank);
   meraxes_debug_file = fopen(debug_fname, "w");
   // if(SID.My_rank==0)
-  //   mpi_debug_here();
+    // mpi_debug_here();
 #endif
 
 #ifdef USE_TOCF

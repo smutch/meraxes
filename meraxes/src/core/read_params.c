@@ -394,6 +394,11 @@ void read_parameter_file(run_globals_t *run_globals, char *fname, int mode)
     required_tag[n_param]  = 1;
     params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
+    strcpy(params_tag[n_param], "MinMergerStellarMass");
+    params_addr[n_param]   = &((run_params->physics).MinMergerStellarMass);
+    required_tag[n_param]  = 1;
+    params_type[n_param++] = PARAM_TYPE_DOUBLE;
+
     strcpy(params_tag[n_param], "MinMergerRatioForBurst");
     params_addr[n_param]   = &((run_params->physics).MinMergerRatioForBurst);
     required_tag[n_param]  = 1;
