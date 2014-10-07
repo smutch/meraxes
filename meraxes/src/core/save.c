@@ -477,6 +477,8 @@ void create_master_file(run_globals_t *run_globals)
   ii            = 0;
   addresses[ii] = &(run_globals->params.physics.SfEfficiency);
   sprintf(names[ii++], "SfEfficiency");
+  addresses[ii] = &(run_globals->params.physics.SfCriticalSDNorm);
+  sprintf(names[ii++], "SfCriticalSDNorm");
   addresses[ii] = &(run_globals->params.physics.SfRecycleFraction);
   sprintf(names[ii++], "SfRecycleFraction");
   addresses[ii] = &(run_globals->params.physics.SnReheatEff);

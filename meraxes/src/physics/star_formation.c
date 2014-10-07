@@ -61,6 +61,7 @@ void insitu_star_formation(run_globals_t *run_globals, galaxy_t *gal, int snapsh
     double new_metals;
 
     double SfEfficiency = run_globals->params.physics.SfEfficiency;
+    double SfCriticalSDNorm = run_globals->params.physics.SfCriticalSDNorm;
 
     // calculate disk scalelength using Mo, Mau & White (1998) eqn. 12 and
     // multiply it by 3 to approximate the star forming region size (ala
@@ -68,7 +69,7 @@ void insitu_star_formation(run_globals_t *run_globals, galaxy_t *gal, int snapsh
     r_disk = gal->DiskScaleLength * 3.0;
 
     // what is the critical mass within r_crit?
-    m_crit = 0.37 * gal->Vvir * r_disk;
+    m_crit = SfCriticalSDNorm * gal->Vvir * r_disk;
 
     if (gal->ColdGas > m_crit)
       m_stars = SfEfficiency * (gal->ColdGas - m_crit) / r_disk * gal->Vvir * gal->dt;

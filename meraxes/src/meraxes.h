@@ -69,6 +69,7 @@ FILE *meraxes_debug_file;
 //! Physics parameter values
 typedef struct physics_params_t {
   double SfEfficiency;
+  double SfCriticalSDNorm;
   double SfRecycleFraction;
   double SnReheatEff;
   double SnReheatScaling;

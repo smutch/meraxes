@@ -48,6 +48,7 @@ Flag_BHFeedback           : 1    # use black hole feedback
 Flag_IRA                  : 0    # use the instantaneous recycling approximation
 
 SfEfficiency              : 0.01    # star formation efficiency
+SfCriticalSDNorm          : 0.37    # critical surface density normalisation factor for star formation (internal units; standard=0.37)
 SfRecycleFraction         : 0.43    # instantaneous recycle fraction (IMF dependant)
 SnEjectionEff             : 0.83    # SN feedback gas reheating efficiency
 SnEjectionScaling         : 0       # SN feedback gas reheating efficiency scaling (with Vmax)
