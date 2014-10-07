@@ -28,8 +28,7 @@ def plot(gals, simprops, ax, h):
 
     markers = ['o', 's', 'D', 'p', 'v', '^'][::-1]
 
-    # generate the model smf
-    # sm = stellar mass
+    # generate the model sfrf
     sfr = np.log10(gals.Sfr[(gals.Sfr > 0) & (gals.GhostFlag == 0)])
 
     n_dropped = gals.shape[0] - sfr.shape[0]
@@ -37,10 +36,14 @@ def plot(gals, simprops, ax, h):
         log.warn("Dropped %d galaxies (%.1f%% of total) with sfr <= 0" %
                 (n_dropped, float(n_dropped)/gals.shape[0]*100))
 
-    sfrf = munge.mass_function(sfr, simprops["Volume"], "knuth")
+    sfrf = munge.mass_function(sfr, simprops["Volume"], "knuth",
+                               poisson_uncert=True)
 
     # plot the model
-    ax.plot(sfrf[:,0], np.log10(sfrf[:,1]), lw=4, label="Meraxes")
+    l, = ax.plot(sfrf[:,0], np.log10(sfrf[:,1]), lw=4, label="Meraxes")
+    yerr = [np.log10(sfrf[:,1]-sfrf[:,2]), np.log10(sfrf[:,1]+sfrf[:,2])]
+    yerr[0][np.isinf(yerr[0])] = -7
+    ax.fill_between(sfrf[:,0], yerr[0], yerr[1], color=l.get_color(), alpha=0.3)
 
     # read the observed sfrf
     obs = pd.read_table(os.path.join(__script_dir__,

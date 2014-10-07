@@ -47,13 +47,17 @@ def plot(gals, simprops, ax, h):
                                      return_edges=True)
 
     # plot the model
-    l, = ax.plot(smf[:,0], np.log10(smf[:,1]), ls="--", lw=4, label="Meraxes")
+    l, = ax.plot(smf[:,0], np.log10(smf[:,1]), ls="--", lw=4, label=None)
 
     # plot the total SMF (i.e. without SFR cut)
     sm = np.log10(gals.StellarMass[gals.StellarMass > 0] * 1.0e10)
-    smf = munge.mass_function(sm, simprops["Volume"], edges)
-    ax.plot(smf[:,0], np.log10(smf[:,1]), ls='-', lw=4, label=None,
+    smf = munge.mass_function(sm, simprops["Volume"], edges,
+                              poisson_uncert=True)
+    ax.plot(smf[:,0], np.log10(smf[:,1]), ls='-', lw=4, label="Meraxes",
             color=l.get_color())
+    yerr = [np.log10(smf[:,1]-smf[:,2]), np.log10(smf[:,1]+smf[:,2])]
+    yerr[0][np.isinf(yerr[0])] = -7
+    ax.fill_between(smf[:,0], yerr[0], yerr[1], color=l.get_color(), alpha=0.3)
 
     # read the observed smf
     obs = pd.read_table(os.path.join(__script_dir__,
