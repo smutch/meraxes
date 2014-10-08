@@ -107,8 +107,8 @@ typedef struct physics_params_t {
   int Flag_ReionizationModifier;
   int Flag_BHFeedback;
   int Flag_IRA;
+  int SfDiskVelOpt;
 
-  // TOTAL : 212 + 4 padding (must be multiple of 8)
 } physics_params_t;
 
 //! Run params

@@ -470,6 +470,8 @@ void create_master_file(run_globals_t *run_globals)
   sprintf(names[ii++], "Flag_BHFeedback");
   addresses[ii] = &(run_globals->params.physics.Flag_IRA);
   sprintf(names[ii++], "Flag_IRA");
+  addresses[ii] = &(run_globals->params.physics.SfDiskVelOpt);
+  sprintf(names[ii++], "SfDiskVelOpt");
 
   for (int jj = 0; jj < ii; jj++)
     h5_write_attribute(group_id, names[jj], H5T_NATIVE_INT, ds_id, addresses[jj]);
