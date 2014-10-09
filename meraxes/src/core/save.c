@@ -936,3 +936,4 @@ void write_snapshot(
 
   SID_log("...done", SID_LOG_CLOSE);
 }
+

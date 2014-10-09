@@ -90,7 +90,10 @@ if env['nout']:
 
 if env['tocf']:
 	print "tocf = ", env['tocf']
-
+	
+if env['build']:
+    print "build =", env['build']
+    
 print
 
 
