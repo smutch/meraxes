@@ -90,8 +90,9 @@ static void merger_driven_starburst(run_globals_t *run_globals, galaxy_t *parent
   {
     // Calculate a merger driven starburst following Guo+ 2010
     double burst_mass;
+    physics_params_t *params = &(run_globals->params.physics);
 
-    burst_mass = run_globals->params.physics.MergerBurstFactor * pow(merger_ratio, 0.7) * parent->ColdGas;
+    burst_mass = params->MergerBurstFactor * pow(merger_ratio, params->MergerBurstScaling) * parent->ColdGas;
 
     if (burst_mass > 0)
     {

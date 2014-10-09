@@ -86,6 +86,7 @@ typedef struct physics_params_t {
   double ThreshMajorMerger;
   double MinMergerStellarMass;
   double MinMergerRatioForBurst;
+  double MergerBurstScaling;
   double MergerBurstFactor;
   double MergerTimeFactor;
 

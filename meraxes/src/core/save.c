@@ -505,6 +505,8 @@ void create_master_file(run_globals_t *run_globals)
   sprintf(names[ii++], "MinMergerStellarMass");
   addresses[ii] = &(run_globals->params.physics.MinMergerRatioForBurst);
   sprintf(names[ii++], "MinMergerRatioForBurst");
+  addresses[ii] = &(run_globals->params.physics.MergerBurstScaling);
+  sprintf(names[ii++], "MergerBurstScaling");
   addresses[ii] = &(run_globals->params.physics.MergerBurstFactor);
   sprintf(names[ii++], "MergerBurstFactor");
   addresses[ii] = &(run_globals->params.physics.MergerTimeFactor);

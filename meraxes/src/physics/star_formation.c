@@ -45,9 +45,6 @@ void update_reservoirs_from_sf(run_globals_t *run_globals, galaxy_t *gal, double
 
 void insitu_star_formation(run_globals_t *run_globals, galaxy_t *gal, int snapshot)
 {
-  // These star formation & supernova feedback prescriptions are taken directly
-  // from Croton+ 2006
-
   // there is no point doing anything if there is no cold gas!
   if (gal->ColdGas > 1e-10)
   {
