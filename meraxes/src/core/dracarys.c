@@ -389,6 +389,26 @@ void dracarys(run_globals_t *run_globals)
     // Add the ghost galaxies into the nout_gals count
     nout_gals += ghost_counter;
 
+
+
+
+
+// PMG ADDED  START
+
+// Write dm regrid data (for all requested snapshots regardless of global ionisation state)
+
+//    for (int i_out = 0; i_out < NOUT; i_out++)
+//        if (snapshot == run_globals->ListOutputSnaps[i_out])
+//            call_dm_grid_stats_PMG(run_globals, snapshot, nout_gals);
+
+// PMG ADDED END
+
+
+
+
+
+
+
 #ifdef USE_TOCF
     if (run_globals->params.TOCF_Flag)
     {
@@ -399,7 +419,7 @@ void dracarys(run_globals_t *run_globals)
           if (snapshot == run_globals->ListOutputSnaps[i_out])
             call_find_HII_bubbles(run_globals, snapshot, nout_gals);
       }
-      else if (!reion_complete_flag)
+      else// if (!reion_complete_flag)
         call_find_HII_bubbles(run_globals, snapshot, nout_gals);
     }
 #endif

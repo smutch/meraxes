@@ -198,10 +198,10 @@ int read_dm_grid(
     SID_log("delta_LRF_mean = %g", SID_LOG_COMMENT, delta_LRF_mean);
     SID_log("delta_LRF_var  = %g", SID_LOG_COMMENT, delta_LRF_var);
     
-    // Write overdensity stats to file -- temp
+    // Write overdensity stats to file
     FILE *f1_pmg;
     char file1_pmg[128];
-    sprintf(file1_pmg, "output-UVFB_ON_HEF-5_Snaps-1-99_GOOD/delta_grid_stats_snap%d.dat", snapshot);
+    sprintf(file1_pmg, "output-UVFB_ON_HEF-5_Snaps-1-99_GOOD_TRY_AGAIN/delta_grid_stats_snap%d.dat", snapshot);
     f1_pmg = fopen(file1_pmg, "wt");
     fprintf(f1_pmg, "min\t%g\n", delta_LRF_min);
     fprintf(f1_pmg, "max\t%g\n", delta_LRF_max);

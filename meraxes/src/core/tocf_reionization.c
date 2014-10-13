@@ -26,13 +26,6 @@ void set_HII_eff_factor(run_globals_t *run_globals)
 
 }
 
-
-// NOTE: I am following the indexing conventions off 21cmFAST here.  I have no
-// idea what the unsigned long long memory offset stuff is all about
-// with the fftwf_complex arrays that have been cast as floats.  Why not still
-// just use common indexing in square brackets?
-// i.e. ((float *)deltax)[k+(2*(HII_dim/2+1))*(j+HII_dim*i)]
-
 void call_find_HII_bubbles(run_globals_t *run_globals, int snapshot, int nout_gals)
 {
   // Thin wrapper round find_HII_bubbles
@@ -99,6 +92,10 @@ void call_find_HII_bubbles(run_globals_t *run_globals, int snapshot, int nout_ga
 
   SID_log("...done", SID_LOG_CLOSE);
 }
+
+
+
+
 
 
 void malloc_reionization_grids(run_globals_t *run_globals)
