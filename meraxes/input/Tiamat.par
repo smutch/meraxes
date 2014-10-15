@@ -65,11 +65,12 @@ EnergyPerSN               : 1e51    # energy per SN in erg/s
 IMFNormConst              : 0.1706  # normalisation const of IMF for 0.1 < M <= 120Msol
 
 ThreshMajorMerger         : 0.3     # major merger when mass ratio greater than this
-MergerTimeFactor          : 0.1     # Multiplicitive fator for the merger timescales (2.0->DeLucia+; 1.0->Croton+)
+MergerTimeFactor          : 0.25    # Multiplicitive fator for the merger timescales (2.0->DeLucia+; 1.0->Croton+)
 
-MinMergerStellarMass      : -1      # Minimum stellar mass for a merger starburst and dynamical friction calc (internal units)
-MinMergerRatioForBurst    : 0       # Minimum mass ratio for merger driven star burst
+MinMergerStellarMass      : 1e-9      # Minimum stellar mass for a merger starburst and dynamical friction calc (internal units)
+MinMergerRatioForBurst    : 0.1       # Minimum mass ratio for merger driven star burst
 MergerBurstFactor         : 0.56    # Constant factor in merger burst equation
+MergerBurstScaling        : 0.7
 
 # Reionization
 ReionTcool             : 1.0e4

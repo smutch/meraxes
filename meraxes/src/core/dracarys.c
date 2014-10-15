@@ -29,16 +29,17 @@ static inline bool check_for_merger(galaxy_t *gal, halo_t *new_halo)
 
 static inline bool check_if_valid_host(run_globals_t *run_globals, halo_t *halo)
 {
+  // We don't want to place new galaxies in any halos with the following flags set...
   // int invalid_flags = (TREE_CASE_FRAGMENTED_RETURNED
   //     | TREE_CASE_FRAGMENTED_EXCHANGED
-  //     | TREE_CASE_FRAGMENTED_STRAYED);
-  // | TREE_CASE_STRAYED);
-  // | TREE_CASE_SPUTTERED);
+  //     | TREE_CASE_FRAGMENTED_STRAYED
+  //     | TREE_CASE_REMNANT
+  //     | TREE_CASE_MERGER);
 
   if ((halo->Type == 0)
       && (halo->Galaxy == NULL))
-    // && (check_for_flag(invalid_flags, halo->TreeFlags)==false))
-    return true;
+      // &! (invalid_flags & halo->TreeFlags))
+      return true;
   else
     return false;
 }

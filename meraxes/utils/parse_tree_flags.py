@@ -16,6 +16,8 @@ class tree_flags(object):
         with open("../src/tree_flags.h", "r") as fd:
             for line in fd:
                 line = line.split()
+                if len(line) == 0:
+                    continue
                 if not line[0].startswith('//'):
                     self.flags[line[1]] = int(line[2])
 

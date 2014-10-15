@@ -1,7 +1,10 @@
 Todo list:
 
-☐ Add parameter for scaling merger bursts with mass ratio
-☐ Justify MergerTimeFactor value
+✔ Add parameter for scaling merger bursts with mass ratio @done (2014-10-09 15:01)
+
+✔ Check if merger burst triggered for zero mass satellite mergers!?! @done (2014-10-14 17:10)
+
+✔ Justify MergerTimeFactor value @done (2014-10-14 17:10)
 ☐ Explore use of Guo SN scaling params
 
 Notes:
