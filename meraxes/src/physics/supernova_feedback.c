@@ -119,7 +119,11 @@ static inline double calc_sn_energy(run_globals_t *run_globals, double stars, do
   double sn_energy;
 
   if (SnEjectionScaling != 0)
+  {
     SnEjectionEff *= 0.5 + pow(Vmax/70.0, -SnEjectionScaling);
+    if (SnEjectionEff > 1.0)
+      SnEjectionEff = 1.0;
+  }
 
   sn_energy  = 0.5 * SnEjectionEff * stars * E_sn * eta_sn;
   assert(sn_energy >= 0);
