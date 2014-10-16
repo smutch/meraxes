@@ -508,11 +508,6 @@ void read_parameter_file(run_globals_t *run_globals, char *fname, int mode)
     params_addr[n_param]   = &(tocf_params.HII_filter);
     required_tag[n_param]  = 0;
     params_type[n_param++] = PARAM_TYPE_INT;
-    
-    strcpy(params_tag[n_param], "TOCF_region_type_flag");        // PMG ADDED
-    params_addr[n_param]   = &(tocf_params.region_type_flag);
-    required_tag[n_param]  = 0;
-    params_type[n_param++] = PARAM_TYPE_INT;
 #endif
 
 

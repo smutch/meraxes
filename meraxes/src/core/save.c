@@ -519,8 +519,6 @@ void create_master_file(run_globals_t *run_globals)
     sprintf(names[ii++], "uvb_feedback");
     addresses[ii] = &(tocf_params.compute_mfp);
     sprintf(names[ii++], "compute_mfp");
-    addresses[ii] = &(tocf_params.region_type_flag);   // PMG ADDED
-    sprintf(names[ii++], "region_type_flag");
 
     for (int jj = 0; jj < ii; jj++)
       h5_write_attribute(group_id, names[jj], H5T_NATIVE_INT, ds_id, addresses[jj]);

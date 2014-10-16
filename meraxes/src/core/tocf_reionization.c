@@ -455,100 +455,7 @@ void save_tocf_grids(run_globals_t *run_globals, hid_t parent_group_id, int snap
         free(ps);
         
         SID_log("...done", SID_LOG_CLOSE);   // delta_T
-        
-        
-        // Run call_gen_size_dist if neutral fraction is (0, 0.8]
-        // ----------------------------------------------------------------------------------------------------
-        //
-        
-        // Perform this analysis post sim run using python?
-        
-        SID_log("call_gen_size_dist is TURNED OFF", SID_LOG_COMMENT);
-        
-//        if((run_globals->tocf_grids.global_xH <= 0.95) && (run_globals->tocf_grids.global_xH != 0.0))
-//        {   
-//            SID_log("Calling call_gen_size_dist for snapshot %d...", SID_LOG_OPEN, snapshot);
-//            
-//            if (tocf_params.region_type_flag) SID_log("Region type: neutral", SID_LOG_COMMENT);
-//            else SID_log("Region type: ionised", SID_LOG_COMMENT);
-//            
-//            call_gen_size_dist(run_globals, snapshot, tocf_params.region_type_flag, &size_dist, &size_dist_nbins);
-//            
-//            SID_log("size_dist_nbins = %d", SID_LOG_COMMENT, size_dist_nbins);
-//            
-//            // ====================================================
-//            // Remove this when python plotting is sorted?
-//            
-//            // Create size_dist file
-//            if (tocf_params.region_type_flag) sprintf(filename, "output/size_dist_neutral_%d.dat", snapshot);
-//            else                              sprintf(filename, "output/size_dist_ionised_%d.dat", snapshot);
-//            
-//            f1 = fopen(filename, "wt");
-//            for(i=0;i<size_dist_nbins;i++) fprintf(f1, "%g\t%g\n", size_dist[0+2*i], size_dist[1+2*i]);
-//            fclose(f1);
-//            SID_log("Creating %s", SID_LOG_COMMENT, filename);
-//            
-//            // ====================================================
-//            
-//            // Write call_gen_size_dist output to hdf5 file
-//            dims = size_dist_nbins * 2;
-//            H5LTmake_dataset_float(parent_group_id, "RegionSizeDist", 1,             &dims,                         size_dist);
-//            H5LTset_attribute_int(parent_group_id , "RegionSizeDist", "nbins",       &size_dist_nbins,              1);
-//            H5LTset_attribute_int(parent_group_id , "RegionSizeDist", "region_type", &tocf_params.region_type_flag, 1);
-//            
-//            free(size_dist);   // allocated within gen_size_dist
-//            
-//            SID_log("...done", SID_LOG_CLOSE);   // gen_size_dist
-//        }
-//        else
-//        {
-//            SID_log("NOT calling call_gen_size_dist for snapshot %d (out of global_xH range)", SID_LOG_COMMENT, snapshot);
-//        }
-        
-//        SID_log("Calling call_gen_size_dist for snapshot %d...", SID_LOG_OPEN, snapshot);
-//        
-//        if (tocf_params.region_type_flag) SID_log("Region type: neutral", SID_LOG_COMMENT);
-//        else SID_log("Region type: ionised", SID_LOG_COMMENT);
-//        
-//        call_gen_size_dist(run_globals, snapshot, tocf_params.region_type_flag, &size_dist, &size_dist_nbins);
-//        
-//        // If ionisation field is single phase then size_dist won't have been written to
-//        // and will still be NULL (so don't try to write to file!)
-//        if (size_dist != NULL)
-//        {
-//            SID_log("size_dist_nbins = %d", SID_LOG_COMMENT, size_dist_nbins);
-//        
-//            //for (i=0; i<size_dist_nbins; i++) SID_log("%3d\t%1.3f\t%g", SID_LOG_COMMENT, i, size_dist[0+2*i], size_dist[1+2*i]);
-//            
-//            // START PMG ADDED
-//            // ====================================================
-//            // Remove this when python plotting is sorted?
-//            
-//            // Create size_dist file
-//            if (tocf_params.region_type_flag) sprintf(filename, "output/size_dist_neutral_%d.dat", snapshot);
-//            else                              sprintf(filename, "output/size_dist_ionised_%d.dat", snapshot);
-//            
-//            f1 = fopen(filename, "wt");
-//            for(i=0;i<size_dist_nbins;i++) fprintf(f1, "%g\t%g\n", size_dist[0+2*i], size_dist[1+2*i]);
-//            fclose(f1);
-//            SID_log("Creating %s", SID_LOG_COMMENT, filename);
-//            
-//            // END PMG ADDED
-//            // ====================================================
-//            
-//            // Write call_gen_size_dist output to hdf5 file
-//            dims = size_dist_nbins * 2;
-//            H5LTmake_dataset_float(parent_group_id, "RegionSizeDist", 1,             &dims,                         size_dist);
-//            H5LTset_attribute_int(parent_group_id , "RegionSizeDist", "nbins",       &size_dist_nbins,              1);
-//            H5LTset_attribute_int(parent_group_id , "RegionSizeDist", "region_type", &tocf_params.region_type_flag, 1);
-//            
-//            free(size_dist);   // allocated within gen_size_dist
-//            
-//            SID_log("...done", SID_LOG_CLOSE);   // gen_size_dist
-//        }
-        
-        // ----------------------------------------------------------------------------------------------------
-            
+                
         SID_free(SID_FARG grid);
         H5Gclose(group_id);
         
@@ -567,31 +474,6 @@ bool check_if_reionization_complete(run_globals_t *run_globals)
         return true;
     else
         return false;
-}
-
-
-void call_gen_size_dist(run_globals_t *run_globals, int snapshot, int region_type_flag, float **size_dist, int *size_dist_nbins)
-{
-    // Thin wrapper around gen_size_dist
-    
-    float nf;
-    tocf_grids_t *grids = &(run_globals->tocf_grids);
-    
-    // Check if the ionisation field is fully neutral or ionised
-    nf = run_globals->tocf_grids.global_xH;
-    
-    if ((nf==0) || (nf==1))
-    {
-        SID_log("call_gen_size_dist: The ionisation field is only a single phase... skipping", SID_LOG_CLOSE);
-        return;
-    }
-    
-    gen_size_dist(run_globals->ZZ[snapshot], region_type_flag, grids->xH, size_dist, size_dist_nbins);
-    
-    //SID_log("address of size_dist_nbins (within call_gen_size_dist) = %p", SID_LOG_COMMENT, size_dist_nbins);
-    SID_log("value of size_dist_nbins (within call_gen_size_dist) = %d", SID_LOG_COMMENT, *size_dist_nbins);
-    
-    SID_log("...done", SID_LOG_CLOSE);
 }
 
 #endif
