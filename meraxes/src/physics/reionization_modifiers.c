@@ -30,17 +30,8 @@ static double sobacchi_Mvir_min(run_globals_t *run_globals, double z)
 
 double sobacchi2013_modifier(run_globals_t *run_globals, double Mvir, double redshift)
 {
-  double Mvir_min;
-  double modifier;
-
-  Mvir_min = sobacchi_Mvir_min(run_globals, redshift);
-
-  if (Mvir > Mcool(run_globals, redshift))
-    modifier = pow(2.0, -Mvir_min / Mvir);
-  else
-    modifier = 0.0;
-
-  return modifier;
+  double Mvir_min = sobacchi_Mvir_min(run_globals, redshift);
+  return pow(2.0, -Mvir_min / Mvir);
 }
 
 
