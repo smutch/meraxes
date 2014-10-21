@@ -14,7 +14,12 @@ from docopt import docopt
 from ssimpl import plotutils, meraxes, munge
 import pandas as pd
 from astropy import log
+
 import os
+import sys
+__script_dir__ = os.path.dirname(os.path.realpath( __file__ ))
+sys.path.append(__script_dir__)
+from smf_common import smf_uncert
 
 __author__ = "Simon Mutch"
 __date__   = "2014-05-01"
@@ -55,9 +60,14 @@ def plot(gals, simprops, ax, h):
                               poisson_uncert=True)
     ax.plot(smf[:,0], np.log10(smf[:,1]), ls='-', lw=4, label="Meraxes",
             color=l.get_color())
-    yerr = [np.log10(smf[:,1]-smf[:,2]), np.log10(smf[:,1]+smf[:,2])]
+    # yerr = [np.log10(smf[:,1]-smf[:,2]), np.log10(smf[:,1]+smf[:,2])]
+    yerr = np.log10(smf_uncert(sm, simprops["Volume"], edges, 6.0))
     yerr[0][np.isinf(yerr[0])] = -7
-    ax.fill_between(smf[:,0], yerr[0], yerr[1], color=l.get_color(), alpha=0.3)
+    p = ax.fill_between(smf[:,0], yerr[0], yerr[1], color=l.get_color(),
+                    alpha=0.3)
+    r = plt.Rectangle([0,10], 0.5, 0.1, color=p.get_facecolor()[0],
+                      alpha=p.get_alpha(), label="Meraxes - convolved+Poisson")
+    ax.add_patch(r)
 
     # read the observed smf
     obs = pd.read_table(os.path.join(__script_dir__,
@@ -74,8 +84,8 @@ def plot(gals, simprops, ax, h):
 
     # plot the observations
     ax.errorbar(obs.sm, obs.log_phi, yerr=obs.err,
-                label="Katsianis et al. 2014", ls="none",
-                lw=2, capsize=2.5, marker=markers.pop(), mec='none')
+                label="Katsianis et al. 2014", ls="None",
+                lw=2, capsize=2.5, marker=markers.pop(), mec='None')
 
     # and again...
     obs = pd.read_table(os.path.join(__script_dir__,
@@ -96,8 +106,8 @@ def plot(gals, simprops, ax, h):
     ax.errorbar(obs.sm, np.log10(obs.phi),
                 yerr=[np.log10(obs.phi / (obs.phi - obs.merr)),
                       np.log10(1.0 + (obs.perr / obs.phi))],
-                label="Duncan et al. 2014", ls="none",
-                lw=2, capsize=2.5, marker=markers.pop(), mec='none')
+                label="Duncan et al. 2014", ls="None",
+                lw=2, capsize=2.5, marker=markers.pop(), mec='None')
 
     # add some text
     ax.text(0.05,0.05, "z=6\nh={:.2f}\nSalpeter IMF\n".format(h)+

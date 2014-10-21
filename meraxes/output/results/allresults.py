@@ -33,25 +33,12 @@ __date__   = "2014-07-08"
 
 __available_redshifts__ = [5,6,7]
 
-def make_serializable(d):
-    if type(d) == dict:
-        for k, v in d.iteritems():
-            d[k] = make_serializable(v)
-    else:
-        if type(d).__module__ == np.__name__:
-            return d.tolist()
-        else:
-            return d
-    return d
-
 
 def savefig(fig, fname_in, fname_out, ext, simprops):
     fig.tight_layout()
     output_fname = os.path.join(os.path.dirname(fname_in),
                                 "plots/"+fname_out+"."+ext)
     print "Saving to:",output_fname
-
-    simprops = make_serializable(simprops)
 
     plt.savefig(output_fname, extra_info=simprops)
 

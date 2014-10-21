@@ -61,7 +61,7 @@ def plot(gals, simprops, ax):
     ax.errorbar(obs.sm, np.log10(obs.phi), yerr=[np.log10(obs.phi) - np.log10(obs.min_phi),
                                                  np.log10(obs.max_phi) - np.log10(obs.phi)],
             label="Baldry et al. 2008",
-            ls="none",)
+            ls="None",)
 
     ax.axis([7,12.5, -4, -1])
 

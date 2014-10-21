@@ -109,7 +109,7 @@ def plot(gals, simprops, ax, h):
 
     # # plot the observations
     # ax.errorbar(obs.sm, obs.log_phi, yerr=obs.err,
-    #             label="Katsianis et al. 2014", ls="none",
+    #             label="Katsianis et al. 2014", ls="None",
     #             lw=4, capsize=0)
 
     # add some text

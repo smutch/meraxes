@@ -60,8 +60,8 @@ def plot(gals, simprops, ax, h):
 
     # plot the observations
     ax.errorbar(obs.log_sfr, obs.log_phi, yerr=obs.err,
-                label="Katsianis et al. in prep.\n(from Van der Burg+ 2011)", ls="none",
-                lw=2, capsize=2.5, marker=markers.pop(), mec='none')
+                label="Katsianis et al. in prep.\n(from Van der Burg+ 2011)", ls="None",
+                lw=2, capsize=2.5, marker=markers.pop(), mec='None')
 
     # do it all again for the next set of observations
     obs = pd.read_table(os.path.join(__script_dir__,
@@ -78,8 +78,8 @@ def plot(gals, simprops, ax, h):
 
     # plot the observations
     ax.errorbar(obs.log_sfr, obs.log_phi, yerr=obs.err,
-                label="Katsianis+ in prep.\n(from Bouwens+ 2014)", ls="none",
-                lw=2, capsize=2.5, marker=markers.pop(), mec='none')
+                label="Katsianis+ in prep.\n(from Bouwens+ 2014)", ls="None",
+                lw=2, capsize=2.5, marker=markers.pop(), mec='None')
 
     # and again
     obs = pd.read_table(os.path.join(__script_dir__,
@@ -100,8 +100,8 @@ def plot(gals, simprops, ax, h):
     ax.errorbar(obs.log_sfr, np.log10(obs.phi),
                 yerr=[np.log10(obs.phi / (obs.phi - obs.merr)),
                       np.log10(1.0 + (obs.perr / obs.phi))],
-                label="Duncan et al. 2014 (SEDs)", ls="none",
-                lw=2, capsize=2.5, marker=markers.pop(), mec='none')
+                label="Duncan et al. 2014 (SEDs)", ls="None",
+                lw=2, capsize=2.5, marker=markers.pop(), mec='None')
 
     # and again
     obs = pd.read_table(os.path.join(__script_dir__,
@@ -122,8 +122,8 @@ def plot(gals, simprops, ax, h):
     ax.errorbar(obs.log_sfr, np.log10(obs.phi),
                 yerr=[np.log10(obs.phi / (obs.phi - obs.merr)),
                       np.log10(1.0 + (obs.perr / obs.phi))],
-                label="Duncan et al. 2014 (UV)", ls="none",
-                lw=2, capsize=2.5, marker=markers.pop(), mec='none')
+                label="Duncan et al. 2014 (UV)", ls="None",
+                lw=2, capsize=2.5, marker=markers.pop(), mec='None')
 
     # add some text
     ax.text(0.95,0.95, "z=5\nh={:.2f}".format(h),
