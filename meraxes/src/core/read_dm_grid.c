@@ -140,8 +140,9 @@ int read_dm_grid(
                 }
         
         // PMG: for anomaly fix
-        // We now know that the offending voxel for these snapshots is (0, 0, 0)
+        // We now know that the offending maximum spike voxel for these snapshots is (0, 0, 0)
         // Now reset its value to that of the average over its neigbours
+        // For these snapshots there are also anomalous empty regions - these are left untreated
         
         // If this is a problem snapshot then do the averaging
         if (snapshot==53 || snapshot==57 || snapshot==61 || snapshot==65 || snapshot==69)
@@ -334,7 +335,7 @@ int read_dm_grid(
 //    SID_log("...done", SID_LOG_CLOSE);
     
     
-    // Find bad voxel if this is a problem snapshot
+    // Find bad voxel (maximum) if this is a problem snapshot
     // --------------------------------------
     
 //    int i_max = -1;
@@ -344,9 +345,7 @@ int read_dm_grid(
 //    
 //    if (snapshot==53 || snapshot==57 || snapshot==61 || snapshot==65 || snapshot==69)
 //    {
-//        SID_log("Finding problem voxel:", SID_LOG_OPEN);
-//        
-//        SID_log("%d", SID_LOG_COMMENT, snapshot);
+//        SID_log("Finding problem voxel (maximum):", SID_LOG_OPEN);
 //        
 //        for (int i = 0; i < n_cell[0]; i++)
 //            for (int j = 0; j < n_cell[1]; j++)
@@ -368,12 +367,42 @@ int read_dm_grid(
 //        SID_log("delta(%d, %d, %d) = %g", SID_LOG_COMMENT, i_max, j_max, k_max, delta_HRD_max);
 //        SID_log("...done", SID_LOG_CLOSE);
 //        
-//        sprintf(file1_pmg, "%s/TIAMAT_dmgrid_anomaly_snap%d.dat", run_globals->params.OutputDir, snapshot);
+//        sprintf(file1_pmg, "%s/TIAMAT_dmgrid_anomaly_max_snap%d.dat", run_globals->params.OutputDir, snapshot);
 //        f1_pmg = fopen(file1_pmg, "wt");
 //        fprintf(f1_pmg, "%d\t%d\t%d\n", i_max, j_max, k_max);
 //        fclose(f1_pmg);
 //    }
     
+    
+    // Find bad voxel/s (-1) if this is a problem snapshot
+    // --------------------------------------
+    
+//    if (snapshot==53 || snapshot==57 || snapshot==61 || snapshot==65 || snapshot==69)
+//    {
+//        SID_log("Finding problem voxel/s (-1):", SID_LOG_OPEN);
+//        
+//        sprintf(file1_pmg, "%s/TIAMAT_dmgrid_anomaly_min_snap%d.dat", run_globals->params.OutputDir, snapshot);
+//        f1_pmg = fopen(file1_pmg, "wt");
+//        
+//        for (int i = 0; i < n_cell[0]; i++)
+//            for (int j = 0; j < n_cell[1]; j++)
+//                for (int k = 0; k < n_cell[2]; k++)
+//                {
+//                    HR_INDEX = (unsigned long long)(k + n_cell[2]*(j + n_cell[1]*i));
+//                    delta_HRD = *(grid_HR + HR_INDEX);
+//                    
+//                    if (delta_HRD==-1.0)
+//                    {
+//                        SID_log("delta(%d, %d, %d) = -1", SID_LOG_COMMENT, i, j, k);
+//                        fprintf(f1_pmg, "%d\t%d\t%d\n", i, j, k);
+//                    }
+//                    
+//                }
+//        
+//        SID_log("...done", SID_LOG_CLOSE);
+//        
+//        fclose(f1_pmg);
+//    }
     
     
     
