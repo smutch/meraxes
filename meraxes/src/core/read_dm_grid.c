@@ -46,16 +46,13 @@ int read_dm_grid(
     double cell_volume       = 0.;
     double cell_volume_ratio = 0.;
     double resample_factor   = 1.;
-    
-    run_params_t *params = &(run_globals->params);
-    
-    int    HII_dim = tocf_params.HII_dim;
-    
+    int    HII_dim           = tocf_params.HII_dim;
     double *grid;
     double *grid_HR;
     int    HR_dim;
-    FILE *f1_pmg;
-    char file1_pmg[128];
+    
+    run_params_t *params = &(run_globals->params);
+    
     
     // Construct the input filename
     sprintf(fname, "%s/grids/snapshot_%03d_dark_grid.dat", params->SimulationDir, snapshot);
@@ -121,7 +118,7 @@ int read_dm_grid(
     grid    = SID_calloc(sizeof(double) * HII_dim*HII_dim*HII_dim);
     grid_HR = SID_calloc(sizeof(double) * n_elem);
     
-    // Initialise the grid (just in case!)
+    // Initialise the grids (just in case!)
     for (int i = 0; i < HII_dim; i++)
         for (int j = 0; j < HII_dim; j++)
             for (int k = 0; k < HII_dim; k++)
@@ -146,11 +143,13 @@ int read_dm_grid(
                     *(grid_HR + HR_INDEX(i, j, k, HR_dim)) = (double)val;
                 }
         
+        // QUICK FIX FOR TIAMAT !!!
+        
         // We know that the offending maximum spike voxel for these snapshots is (0, 0, 0)
         // Now reset its value to that of the average over its neigbours
         // For these snapshots there are also anomalous empty regions - these are left untreated
         
-        // If this is a problem snapshot then do the averaging - QUICK FIX FOR TIAMAT !!!
+        // If this is a problem snapshot then do the averaging
         if (snapshot==53 || snapshot==57 || snapshot==61 || snapshot==65 || snapshot==69)
         {
             *(grid_HR + HR_INDEX(0, 0, 0, HR_dim)) = ( *(grid_HR + HR_INDEX(1, 0, 0, HR_dim)) +
@@ -205,266 +204,6 @@ int read_dm_grid(
         for (int j = 0; j < HII_dim; j++)
             for (int k = 0; k < HII_dim; k++)
                 *(grid_out + HII_R_FFT_INDEX(i, j, k)) = (float)*(grid + HII_R_INDEX(i, j, k));
-    
-    
-    // PMG SECTION START
-    // -----------------------------------------------------------------
-    // -----------------------------------------------------------------
-    
-    // We find that the dm grids of Tiamat snapshots 53, 57, 61, 65, 69 have single outlier voxels
-    // We want to find these and reassign their overdensity value with the average of their neighbours
-    
-    // HRD basic stats (min, max, mean, variance)
-    // --------------------------------------
-    
-//    double delta_HRD;
-//    double delta_HRD_min = 1.0e10;
-//    double delta_HRD_max = -1.0e10;
-//    double delta_HRD_sum = 0.0;
-//    double delta_HRD_mean;
-//    double delta_HRD_var = 0.0;
-//    double n_elem_HR = (double)(n_elem);
-//    
-//    for (int i = 0; i < n_cell[0]; i++)
-//        for (int j = 0; j < n_cell[1]; j++)
-//            for (int k = 0; k < n_cell[2]; k++)
-//            {
-//                HR_INDEX = (unsigned long long)(k + n_cell[2]*(j + n_cell[1]*i));
-//                delta_HRD = *(grid_HR + HR_INDEX);
-//                delta_HRD_sum += delta_HRD;
-//                
-//                if (delta_HRD<delta_HRD_min) delta_HRD_min = delta_HRD;
-//                    
-//                if (delta_HRD>delta_HRD_max) delta_HRD_max = delta_HRD;
-//                
-//            }
-//    
-//    delta_HRD_mean = delta_HRD_sum/n_elem_HR;
-//    
-//    for (int i = 0; i < n_cell[0]; i++)
-//        for (int j = 0; j < n_cell[1]; j++)
-//            for (int k = 0; k < n_cell[2]; k++)
-//            {
-//                HR_INDEX = (unsigned long long)(k + n_cell[2]*(j + n_cell[1]*i));
-//                delta_HRD = *(grid_HR + HR_INDEX);
-//                delta_HRD_var += (delta_HRD - delta_HRD_mean)*(delta_HRD - delta_HRD_mean);
-//            }
-//    
-//    delta_HRD_var /= ((double)(n_elem_HR - 1.0));
-//    
-//    SID_log("delta_HRD_sum  = %g", SID_LOG_COMMENT, delta_HRD_sum);
-//    SID_log("delta_HRD_min  = %g", SID_LOG_COMMENT, delta_HRD_min);
-//    SID_log("delta_HRD_max  = %g", SID_LOG_COMMENT, delta_HRD_max);
-//    SID_log("delta_HRD_mean = %g", SID_LOG_COMMENT, delta_HRD_mean);
-//    SID_log("delta_HRD_var  = %g", SID_LOG_COMMENT, delta_HRD_var);
-//    
-//    // Write overdensity stats to file
-//    sprintf(file1_pmg, "%s/delta_HR_grid_stats_snap%d.dat", run_globals->params.OutputDir, snapshot);
-//    f1_pmg = fopen(file1_pmg, "wt");
-//    fprintf(f1_pmg, "min\t%g\n", delta_HRD_min);
-//    fprintf(f1_pmg, "max\t%g\n", delta_HRD_max);
-//    fprintf(f1_pmg, "mean\t%g\n", delta_HRD_mean);
-//    fprintf(f1_pmg, "var\t%g\n", delta_HRD_var);
-//    fclose(f1_pmg);
-    
-    
-    // HRD histogram
-    // --------------------------------------
-    
-//    unsigned long bin_count_HRD;
-//    int    n_bins_HRD = 100;
-//    double delta_HRD_bin_width = (delta_HRD_max + 1.0)/(double)(n_bins_HRD);
-//    double delta_HRD_bin_min, delta_HRD_bin_mid, delta_HRD_bin_max;
-//    
-////    SID_log("n_bins_HRD           = %d", SID_LOG_COMMENT, n_bins_HRD);
-////    SID_log("delta_HRD_bin_width  = %g", SID_LOG_COMMENT, delta_HRD_bin_width);
-////    SID_log("Bins for HR grid:", SID_LOG_OPEN);
-//    
-//    sprintf(file1_pmg, "%s/delta_HR_grid_hist_snap%d.dat", run_globals->params.OutputDir, snapshot);
-//    f1_pmg = fopen(file1_pmg, "wt");
-//    
-//    for (int bin = 0; bin <= n_bins_HRD; bin++)
-//    {
-//        delta_HRD_bin_min = -1.0 + (double)(bin)*delta_HRD_bin_width;
-//        delta_HRD_bin_mid = delta_HRD_bin_min + delta_HRD_bin_width/2.0;
-//        delta_HRD_bin_max = delta_HRD_bin_min + delta_HRD_bin_width;
-//        
-//        bin_count_HRD = 0;
-//        for (int i = 0; i < n_cell[0]; i++)
-//            for (int j = 0; j < n_cell[1]; j++)
-//                for (int k = 0; k < n_cell[2]; k++)
-//                {
-//                    HR_INDEX = (unsigned long long)(k + n_cell[2]*(j + n_cell[1]*i));
-//                    delta_HRD = *(grid_HR + HR_INDEX);
-//                    
-//                    if (delta_HRD >= delta_HRD_bin_min && delta_HRD < delta_HRD_bin_max)
-//                        bin_count_HRD++;
-//                    
-//                }
-//        
-//        fprintf(f1_pmg, "%f\t%d\n", delta_HRD_bin_mid, bin_count_HRD);
-////        SID_log("%3d\t%f\t%f\t%f\t%d", SID_LOG_COMMENT, bin, delta_HRD_bin_min, delta_HRD_bin_mid, delta_HRD_bin_max, bin_count_HRD);
-//    }
-//    fclose(f1_pmg);
-    
-//    SID_log("...done", SID_LOG_CLOSE);
-    
-    
-    // Find bad voxel (maximum) if this is a problem snapshot
-    // --------------------------------------
-    
-//    int i_max = -1;
-//    int j_max = -1;
-//    int k_max = -1;
-//    delta_HRD_max = -1.0e10;
-//    
-//    if (snapshot==53 || snapshot==57 || snapshot==61 || snapshot==65 || snapshot==69)
-//    {
-//        SID_log("Finding problem voxel (maximum):", SID_LOG_OPEN);
-//        
-//        for (int i = 0; i < n_cell[0]; i++)
-//            for (int j = 0; j < n_cell[1]; j++)
-//                for (int k = 0; k < n_cell[2]; k++)
-//                {
-//                    HR_INDEX = (unsigned long long)(k + n_cell[2]*(j + n_cell[1]*i));
-//                    delta_HRD = *(grid_HR + HR_INDEX);
-//                    
-//                    if (delta_HRD>delta_HRD_max)
-//                    {
-//                        delta_HRD_max = delta_HRD;
-//                        i_max = i;
-//                        j_max = j;
-//                        k_max = k;
-//                    }
-//                    
-//                }
-//        
-//        SID_log("delta(%d, %d, %d) = %g", SID_LOG_COMMENT, i_max, j_max, k_max, delta_HRD_max);
-//        SID_log("...done", SID_LOG_CLOSE);
-//        
-//        sprintf(file1_pmg, "%s/TIAMAT_dmgrid_anomaly_max_snap%d.dat", run_globals->params.OutputDir, snapshot);
-//        f1_pmg = fopen(file1_pmg, "wt");
-//        fprintf(f1_pmg, "%d\t%d\t%d\n", i_max, j_max, k_max);
-//        fclose(f1_pmg);
-//    }
-    
-    
-    // Find bad voxel/s (-1) if this is a problem snapshot
-    // --------------------------------------
-    
-//    if (snapshot==53 || snapshot==57 || snapshot==61 || snapshot==65 || snapshot==69)
-//    {
-//        SID_log("Finding problem voxel/s (-1):", SID_LOG_OPEN);
-//        
-//        sprintf(file1_pmg, "%s/TIAMAT_dmgrid_anomaly_min_snap%d.dat", run_globals->params.OutputDir, snapshot);
-//        f1_pmg = fopen(file1_pmg, "wt");
-//        
-//        for (int i = 0; i < n_cell[0]; i++)
-//            for (int j = 0; j < n_cell[1]; j++)
-//                for (int k = 0; k < n_cell[2]; k++)
-//                {
-//                    HR_INDEX = (unsigned long long)(k + n_cell[2]*(j + n_cell[1]*i));
-//                    delta_HRD = *(grid_HR + HR_INDEX);
-//                    
-//                    if (delta_HRD==-1.0)
-//                    {
-//                        SID_log("delta(%d, %d, %d) = -1", SID_LOG_COMMENT, i, j, k);
-//                        fprintf(f1_pmg, "%d\t%d\t%d\n", i, j, k);
-//                    }
-//                    
-//                }
-//        
-//        SID_log("...done", SID_LOG_CLOSE);
-//        
-//        fclose(f1_pmg);
-//    }
-    
-    
-    
-    
-    // LRF basic stats (min, max, mean, variance)
-    // --------------------------------------
-    
-    float delta_LRF;
-    float delta_LRF_min = 1.0e10;
-    float delta_LRF_max = -1.0e10;
-    float delta_LRF_sum = 0.0;
-    float delta_LRF_mean;
-    float delta_LRF_var = 0.0;
-    float n_elem_LR = (float)(HII_dim*HII_dim*HII_dim);
-    
-    for (int i = 0; i < HII_dim; i++)
-        for (int j = 0; j < HII_dim; j++)
-            for (int k = 0; k < HII_dim; k++)
-            {
-                delta_LRF = *(grid_out + HII_R_FFT_INDEX(i, j, k));
-                
-                delta_LRF_sum += delta_LRF;
-                
-                if (delta_LRF<delta_LRF_min) delta_LRF_min = delta_LRF;
-                    
-                if (delta_LRF>delta_LRF_max) delta_LRF_max = delta_LRF;
-                
-            }
-    
-    delta_LRF_mean = delta_LRF_sum/n_elem_LR;
-    
-    for (int i = 0; i < HII_dim; i++)
-        for (int j = 0; j < HII_dim; j++)
-            for (int k = 0; k < HII_dim; k++)
-            {
-                delta_LRF = *(grid_out + HII_R_FFT_INDEX(i, j, k));
-                delta_LRF_var += (delta_LRF - delta_LRF_mean)*(delta_LRF - delta_LRF_mean);
-            }
-    
-    delta_LRF_var /= ((float)(n_elem_LR - 1.0));
-    
-    // Write overdensity stats to file
-    sprintf(file1_pmg, "%s/delta_LR_grid_stats_snap%d.dat", run_globals->params.OutputDir, snapshot);
-    f1_pmg = fopen(file1_pmg, "wt");
-    fprintf(f1_pmg, "min\t%g\n", delta_LRF_min);
-    fprintf(f1_pmg, "max\t%g\n", delta_LRF_max);
-    fprintf(f1_pmg, "mean\t%g\n", delta_LRF_mean);
-    fprintf(f1_pmg, "var\t%g\n", delta_LRF_var);
-    fclose(f1_pmg);
-    
-    
-    // LRF histogram
-    // --------------------------------------
-    
-    unsigned long bin_count_LRF;
-    int   n_bins_LRF = 100;
-    float delta_LRF_bin_width = (delta_LRF_max + 1.0)/(float)(n_bins_LRF);
-    float delta_LRF_bin_min, delta_LRF_bin_mid, delta_LRF_bin_max;
-    
-    sprintf(file1_pmg, "%s/delta_LR_grid_hist_snap%d.dat", run_globals->params.OutputDir, snapshot);
-    f1_pmg = fopen(file1_pmg, "wt");
-    
-    for (int bin = 0; bin <= n_bins_LRF; bin++)
-    {
-        delta_LRF_bin_min = -1.0 + (float)(bin)*delta_LRF_bin_width;
-        delta_LRF_bin_mid = delta_LRF_bin_min + delta_LRF_bin_width/2.0;
-        delta_LRF_bin_max = delta_LRF_bin_min + delta_LRF_bin_width;
-        
-        bin_count_LRF = 0;
-        for (int i = 0; i < HII_dim; i++)
-            for (int j = 0; j < HII_dim; j++)
-                for (int k = 0; k < HII_dim; k++)
-                {
-                    delta_LRF = *(grid_out + HII_R_FFT_INDEX(i, j, k));
-                    
-                    if (delta_LRF >= delta_LRF_bin_min && delta_LRF < delta_LRF_bin_max)
-                        bin_count_LRF++;
-                    
-                }
-        
-        fprintf(f1_pmg, "%f\t%d\n", delta_LRF_bin_mid, bin_count_LRF);
-    }
-    fclose(f1_pmg);
-    
-    // PMG SECTION END
-    // -----------------------------------------------------------------
-    // -----------------------------------------------------------------
     
     
     SID_free(SID_FARG grid);
