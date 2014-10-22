@@ -487,10 +487,14 @@ void create_master_file(run_globals_t *run_globals)
   sprintf(names[ii++], "SnReheatEff");
   addresses[ii] = &(run_globals->params.physics.SnReheatScaling);
   sprintf(names[ii++], "SnReheatScaling");
+  addresses[ii] = &(run_globals->params.physics.SnReheatNorm);
+  sprintf(names[ii++], "SnReheatNorm");
   addresses[ii] = &(run_globals->params.physics.SnEjectionEff);
   sprintf(names[ii++], "SnEjectionEff");
   addresses[ii] = &(run_globals->params.physics.SnEjectionScaling);
   sprintf(names[ii++], "SnEjectionScaling");
+  addresses[ii] = &(run_globals->params.physics.SnEjectionNorm);
+  sprintf(names[ii++], "SnEjectionNorm");
   addresses[ii] = &(run_globals->params.physics.ReincorporationEff);
   sprintf(names[ii++], "ReincorporationEff");
   addresses[ii] = &(run_globals->params.physics.Yield);

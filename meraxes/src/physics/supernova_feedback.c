@@ -115,12 +115,13 @@ static inline double calc_sn_energy(run_globals_t *run_globals, double stars, do
   // work out the energy produced by the supernova and add it to our total at this snapshot
   double E_sn          = run_globals->params.physics.EnergyPerSN / run_globals->units.UnitEnergy_in_cgs;
   double SnEjectionScaling = run_globals->params.physics.SnEjectionScaling;
+  double SnEjectionNorm = run_globals->params.physics.SnEjectionNorm;
   double SnEjectionEff = run_globals->params.physics.SnEjectionEff;
   double sn_energy;
 
   if (SnEjectionScaling != 0)
   {
-    SnEjectionEff *= 0.5 + pow(Vmax/70.0, -SnEjectionScaling);
+    SnEjectionEff *= 0.5 + pow(Vmax/SnEjectionNorm, -SnEjectionScaling);
     if (SnEjectionEff > 1.0)
       SnEjectionEff = 1.0;
   }
@@ -189,6 +190,7 @@ void delayed_supernova_feedback(run_globals_t *run_globals, galaxy_t *gal, int s
 {
   run_units_t *units = &(run_globals->units);
   double SnReheatScaling = run_globals->params.physics.SnReheatScaling;
+  double SnReheatNorm = run_globals->params.physics.SnReheatNorm;
   double SnReheatEff = run_globals->params.physics.SnReheatEff;
   double *LTTime     = run_globals->LTTime;
 
@@ -211,7 +213,7 @@ void delayed_supernova_feedback(run_globals_t *run_globals, galaxy_t *gal, int s
 
   // scale the reheating efficiency
   if (SnReheatScaling != 0)
-    SnReheatEff *= 0.5 + pow(gal->Vmax/70.0, -SnReheatScaling);
+    SnReheatEff *= 0.5 + pow(gal->Vmax/SnReheatNorm, -SnReheatScaling);
 
   // Loop through each of the last `N_HISTORY_SNAPS` recorded stellar mass
   // bursts and calculate the amount of energy and mass that they will release
@@ -311,6 +313,7 @@ void contemporaneous_supernova_feedback(
 
   run_units_t *units = &(run_globals->units);
   double SnReheatScaling = run_globals->params.physics.SnReheatScaling;
+  double SnReheatNorm = run_globals->params.physics.SnReheatNorm;
   double SnReheatEff = run_globals->params.physics.SnReheatEff;
   bool Flag_IRA  = (bool)(run_globals->params.physics.Flag_IRA);
 
@@ -328,7 +331,7 @@ void contemporaneous_supernova_feedback(
 
   // scale the reheating efficiency
   if (SnReheatScaling != 0)
-    SnReheatEff *= 0.5 + pow(gal->Vmax/70.0, -SnReheatScaling);
+    SnReheatEff *= 0.5 + pow(gal->Vmax/SnReheatNorm, -SnReheatScaling);
 
   // work out the lowest mass star which would have expended it's H & He core
   // fuel in this time
