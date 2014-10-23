@@ -3,6 +3,28 @@
 #include "meraxes.h"
 #include <math.h>
 
+
+/*
+  ==============================================================================
+  MAJOR CODE REVISION by Paul Geil (Octobner 2014)
+  ==============================================================================
+  
+  - A significant numerical accuracy bug was resolved by performing calculations
+    using an array of doubles and then casting it as an array of floats (as
+    required by 21cmfast)
+    
+  - Snapshots 53, 57, 61, 65 and 69 in TIAMAT dm grids contain anomalies [single
+    highly oversense voxels at (0, 0, 0) and extensive slabs with zero density]
+    which significantly affect their statistics. The density spikes have been
+    remedied by resetting the density of the offending voxel to that of the
+    average over its (6) neigbours. Anomalous zero density regions are left
+    untreated.
+    
+  - The TIAMAT velocity grids have not been analysed for anomalies.
+*/
+
+
+
 static inline void read_identifier(FILE *fin, bool skip_flag)
 {
     char identifier[32];
@@ -21,8 +43,6 @@ static unsigned long long HR_INDEX(int i, int j, int k, int grid_dim)
 { 
     return (unsigned long long)(k + grid_dim*(j + grid_dim*i));
 }
-
-
 
 
 
@@ -144,20 +164,22 @@ int read_dm_grid(
                 }
         
         // QUICK FIX FOR TIAMAT !!!
-        
-        // We know that the offending maximum spike voxel for these snapshots is (0, 0, 0)
+        //
+        // From previous analysius, we know that the offending maximum spike voxel for these snapshots is (0, 0, 0)
         // Now reset its value to that of the average over its neigbours
-        // For these snapshots there are also anomalous empty regions - these are left untreated
-        
+        //
         // If this is a problem snapshot then do the averaging
         if (snapshot==53 || snapshot==57 || snapshot==61 || snapshot==65 || snapshot==69)
         {
+            SID_log("Revaluating problem dm density voxel:", SID_LOG_OPEN);
+            
             *(grid_HR + HR_INDEX(0, 0, 0, HR_dim)) = ( *(grid_HR + HR_INDEX(1, 0, 0, HR_dim)) +
                                                        *(grid_HR + HR_INDEX(0, 1, 0, HR_dim)) +
                                                        *(grid_HR + HR_INDEX(0, 0, 1, HR_dim)) +
                                                        *(grid_HR + HR_INDEX(HR_dim - 1, 0, 0, HR_dim)) +
                                                        *(grid_HR + HR_INDEX(0, HR_dim - 1, 0, HR_dim)) +
                                                        *(grid_HR + HR_INDEX(0, 0, HR_dim - 1, HR_dim))) / 6.0;
+            SID_log("...done", SID_LOG_CLOSE);
         }
         
         // Regrid
