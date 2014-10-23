@@ -1,4 +1,5 @@
 #include "meraxes.h"
+#include "parse_paramfile.h"
 #include <hdf5.h>
 
 void cleanup(run_globals_t *run_globals)
@@ -18,6 +19,14 @@ void cleanup(run_globals_t *run_globals)
 #endif
 
   SID_log("Freeing hdf5 related stuff...", SID_LOG_OPEN);
+  if (SID.My_rank == 0)
+  {
+    SID_free(SID_FARG run_globals->hdf5props.params_addr);
+    SID_free(SID_FARG run_globals->hdf5props.params_type);
+    for (int ii = 0; ii < PARAM_MAX_ENTRIES; ii++)
+      SID_free(SID_FARG run_globals->hdf5props.params_tag[ii]);
+    SID_free(SID_FARG run_globals->hdf5props.params_tag);
+  }
   SID_free(SID_FARG run_globals->hdf5props.field_types);
   SID_free(SID_FARG run_globals->hdf5props.field_names);
   SID_free(SID_FARG run_globals->hdf5props.dst_field_sizes);

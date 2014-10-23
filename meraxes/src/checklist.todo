@@ -1,7 +1,10 @@
 Todo list:
 
-✔ Check effect of removing Mvir>Mcool criteria in global reionization model @done (2014-10-20 15:11)
 ☐ Explore use of Guo SN scaling params
+☐ Check typical effective SnReheatEff values
+☐ Compare typical Vmax--Vvir ratios to justify SF law
+✔ Store all read params and write to hdf5 file @done (2014-10-24 11:37)
+☐ Clean up code base for official version
 
 Notes:
 
@@ -13,6 +16,7 @@ Notes:
 Archive:
 ＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿
 ✔ Add parameter for scaling merger bursts with mass ratio @done (2014-10-09 15:01)
+✔ Check effect of removing Mvir>Mcool criteria in global reionization model @done (2014-10-20 15:11)
 ✔ Check if merger burst triggered for zero mass satellite mergers!?! @done (2014-10-14 17:10)
 ✔ Justify MergerTimeFactor value @done (2014-10-14 17:10)
 ✔ Fix run_grid @done (2014-10-07 12:26)

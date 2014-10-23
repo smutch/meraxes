@@ -1,4 +1,5 @@
 #include "meraxes.h"
+#include "parse_paramfile.h"
 #include "git.h"
 #include <unistd.h>
 #include <math.h>
@@ -350,12 +351,12 @@ void prep_hdf5_file(run_globals_t *run_globals)
 
 void create_master_file(run_globals_t *run_globals)
 {
-  hid_t file_id, str_t, ds_id, group_id;
+  hid_t file_id, str_t, ds_id, group_id, prop_t;
   hsize_t dims = 1;
-  char names[50][STRLEN];
   char fname[STRLEN];
-  void *addresses[50];
-  int ii;
+  char **params_tag = run_globals->hdf5props.params_tag;
+  void **params_addr = run_globals->hdf5props.params_addr;
+  int   *params_type = run_globals->hdf5props.params_type;
 
   SID_log("Creating master file...", SID_LOG_OPEN | SID_LOG_TIMER);
 
@@ -373,181 +374,26 @@ void create_master_file(run_globals_t *run_globals)
   // Open the group
   group_id = H5Gcreate(file_id, "InputParams", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
 
-  ii            = 0;
-  addresses[ii] = &(run_globals->params.OutputDir);
-  sprintf(names[ii++], "OutputDir");
-  addresses[ii] = &(run_globals->params.FileNameGalaxies);
-  sprintf(names[ii++], "FileNameGalaxies");
-  addresses[ii] = &(run_globals->params.SimName);
-  sprintf(names[ii++], "SimName");
-  addresses[ii] = &(run_globals->params.SimulationDir);
-  sprintf(names[ii++], "SimulationDir");
-  addresses[ii] = &(run_globals->params.FileWithOutputSnaps);
-  sprintf(names[ii++], "FileWithOutputSnaps");
-  addresses[ii] = &(run_globals->params.CoolingFuncsDir);
-  sprintf(names[ii++], "CoolingFuncsDir");
-  if (run_globals->NRequestedForests > 0)
+  // Save all of the input params
+  for (int ii = 0; (ii < PARAM_MAX_ENTRIES) && (params_type[ii] != PARAM_TYPE_UNUSED); ii++)
   {
-    addresses[ii] = &(run_globals->params.ForestIDFile);
-    sprintf(names[ii++], "ForestIDFile");
+    switch (params_type[ii])
+    {
+      case PARAM_TYPE_STRING:
+        prop_t = str_t;
+        break;
+      case PARAM_TYPE_INT:
+        prop_t = H5T_NATIVE_INT;
+        break;
+      case PARAM_TYPE_DOUBLE:
+        prop_t = H5T_NATIVE_DOUBLE;
+        break;
+      case PARAM_TYPE_FLOAT:
+        prop_t = H5T_NATIVE_FLOAT;
+        break;
+    }
+    h5_write_attribute(group_id, params_tag[ii], prop_t, ds_id, params_addr[ii]);
   }
-
-  for (int jj = 0; jj < ii; jj++)
-    h5_write_attribute(group_id, names[jj], str_t, ds_id, addresses[jj]);
-
-  ii            = 0;
-  addresses[ii] = &(run_globals->TreesStep);
-  sprintf(names[ii++], "TreesStep");
-  addresses[ii] = &(run_globals->TreesScan);
-  sprintf(names[ii++], "TreesScan");
-  addresses[ii] = &(run_globals->params.NSteps);
-  sprintf(names[ii++], "NSteps");
-  addresses[ii] = &(run_globals->params.SnaplistLength);
-  sprintf(names[ii++], "SnaplistLength");
-  addresses[ii] = &(run_globals->NRequestedForests);
-  sprintf(names[ii++], "NRequestedForests");
-  if (SID.n_proc > 0)
-  {
-    addresses[ii] = &(SID.n_proc);
-    sprintf(names[ii++], "NOutputFiles");
-  }
-
-  for (int jj = 0; jj < ii; jj++)
-    h5_write_attribute(group_id, (const char*)(names[jj]), H5T_NATIVE_INT, ds_id, addresses[jj]);
-
-  ii            = 0;
-  addresses[ii] = &(run_globals->params.BoxSize);
-  sprintf(names[ii++], "BoxSize");
-  addresses[ii] = &(run_globals->params.VolumeFactor);
-  sprintf(names[ii++], "VolumeFactor");
-  addresses[ii] = &(run_globals->params.Hubble_h);
-  sprintf(names[ii++], "Hubble_h");
-  addresses[ii] = &(run_globals->params.BaryonFrac);
-  sprintf(names[ii++], "BaryonFrac");
-  addresses[ii] = &(run_globals->params.OmegaM);
-  sprintf(names[ii++], "OmegaM");
-  addresses[ii] = &(run_globals->params.OmegaK);
-  sprintf(names[ii++], "OmegaK");
-  addresses[ii] = &(run_globals->params.OmegaLambda);
-  sprintf(names[ii++], "OmegaLambda");
-  addresses[ii] = &(run_globals->params.PartMass);
-  sprintf(names[ii++], "PartMass");
-
-  for (int jj = 0; jj < ii; jj++)
-    h5_write_attribute(group_id, names[jj], H5T_NATIVE_DOUBLE, ds_id, addresses[jj]);
-
-  // Close the group
-  H5Gclose(group_id);
-
-#ifdef CALC_MAGS
-  // Open the group
-  group_id = H5Gcreate(file_id, "InputParams/photo", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
-
-  ii            = 0;
-  addresses[ii] = &(run_globals->params.SSPModel);
-  sprintf(names[ii++], "SSPModel");
-  addresses[ii] = &(run_globals->params.IMF);
-  sprintf(names[ii++], "IMF");
-  addresses[ii] = &(run_globals->params.MagSystem);
-  sprintf(names[ii++], "MagSystem");
-  addresses[ii] = &(run_globals->params.MagBands);
-  sprintf(names[ii++], "MagBands");
-
-  for (int jj = 0; jj < ii; jj++)
-    h5_write_attribute(group_id, names[jj], str_t, ds_id, addresses[jj]);
-
-  // Close the group
-  H5Gclose(group_id);
-#endif
-
-  // Open the group
-  group_id = H5Gcreate(file_id, "InputParams/physics", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
-
-  ii            = 0;
-  addresses[ii] = &(run_globals->params.physics.Flag_ReionizationModifier);
-  sprintf(names[ii++], "Flag_ReionizationModifier");
-  addresses[ii] = &(run_globals->params.physics.Flag_BHFeedback);
-  sprintf(names[ii++], "Flag_BHFeedback");
-  addresses[ii] = &(run_globals->params.physics.Flag_IRA);
-  sprintf(names[ii++], "Flag_IRA");
-  addresses[ii] = &(run_globals->params.physics.SfDiskVelOpt);
-  sprintf(names[ii++], "SfDiskVelOpt");
-
-  for (int jj = 0; jj < ii; jj++)
-    h5_write_attribute(group_id, names[jj], H5T_NATIVE_INT, ds_id, addresses[jj]);
-
-  ii            = 0;
-  addresses[ii] = &(run_globals->params.physics.SfEfficiency);
-  sprintf(names[ii++], "SfEfficiency");
-  addresses[ii] = &(run_globals->params.physics.SfCriticalSDNorm);
-  sprintf(names[ii++], "SfCriticalSDNorm");
-  addresses[ii] = &(run_globals->params.physics.SfRecycleFraction);
-  sprintf(names[ii++], "SfRecycleFraction");
-  addresses[ii] = &(run_globals->params.physics.SnReheatEff);
-  sprintf(names[ii++], "SnReheatEff");
-  addresses[ii] = &(run_globals->params.physics.SnReheatScaling);
-  sprintf(names[ii++], "SnReheatScaling");
-  addresses[ii] = &(run_globals->params.physics.SnReheatNorm);
-  sprintf(names[ii++], "SnReheatNorm");
-  addresses[ii] = &(run_globals->params.physics.SnEjectionEff);
-  sprintf(names[ii++], "SnEjectionEff");
-  addresses[ii] = &(run_globals->params.physics.SnEjectionScaling);
-  sprintf(names[ii++], "SnEjectionScaling");
-  addresses[ii] = &(run_globals->params.physics.SnEjectionNorm);
-  sprintf(names[ii++], "SnEjectionNorm");
-  addresses[ii] = &(run_globals->params.physics.ReincorporationEff);
-  sprintf(names[ii++], "ReincorporationEff");
-  addresses[ii] = &(run_globals->params.physics.Yield);
-  sprintf(names[ii++], "Yield");
-  addresses[ii] = &(run_globals->params.physics.RadioModeEff);
-  sprintf(names[ii++], "RadioModeEff");
-  addresses[ii] = &(run_globals->params.physics.BlackHoleGrowthRate);
-  sprintf(names[ii++], "BlackHoleGrowthRate");
-  addresses[ii] = &(run_globals->params.physics.ThreshMajorMerger);
-  sprintf(names[ii++], "ThreshMajorMerger");
-  addresses[ii] = &(run_globals->params.physics.MinMergerStellarMass);
-  sprintf(names[ii++], "MinMergerStellarMass");
-  addresses[ii] = &(run_globals->params.physics.MinMergerRatioForBurst);
-  sprintf(names[ii++], "MinMergerRatioForBurst");
-  addresses[ii] = &(run_globals->params.physics.MergerBurstScaling);
-  sprintf(names[ii++], "MergerBurstScaling");
-  addresses[ii] = &(run_globals->params.physics.MergerBurstFactor);
-  sprintf(names[ii++], "MergerBurstFactor");
-  addresses[ii] = &(run_globals->params.physics.MergerTimeFactor);
-  sprintf(names[ii++], "MergerTimeFactor");
-
-  addresses[ii] = &(run_globals->params.physics.ReionNionPhotPerBary);
-  sprintf(names[ii++], "ReionNionPhotPerBary");
-  addresses[ii] = &(run_globals->params.physics.ReionEscapeFrac);
-  sprintf(names[ii++], "ReionEscapeFrac");
-  addresses[ii] = &(run_globals->params.physics.ReionMeanNRec);
-  sprintf(names[ii++], "ReionMeanNRec");
-  addresses[ii] = &(run_globals->params.physics.ReionTcool);
-  sprintf(names[ii++], "ReionTcool");
-
-  if (run_globals->params.physics.Flag_ReionizationModifier == 1)
-  {
-    // Sobacchi & Mesinger 2013b global reionization model
-    addresses[ii] = &(run_globals->params.physics.ReionSobacchi_Zre);
-    sprintf(names[ii++], "ReionSobacchi_Zre");
-    addresses[ii] = &(run_globals->params.physics.ReionSobacchi_DeltaZre);
-    sprintf(names[ii++], "ReionSobacchi_DeltaZre");
-    addresses[ii] = &(run_globals->params.physics.ReionSobacchi_DeltaZsc);
-    sprintf(names[ii++], "ReionSobacchi_DeltaZsc");
-    addresses[ii] = &(run_globals->params.physics.ReionSobacchi_T0);
-    sprintf(names[ii++], "ReionSobacchi_T0");
-  }
-  else if (run_globals->params.physics.Flag_ReionizationModifier == 2)
-  {
-    // Gnedin 2000 global reionization model
-    addresses[ii] = &(run_globals->params.physics.ReionGnedin_z0);
-    sprintf(names[ii++], "ReionGnedin_z0");
-    addresses[ii] = &(run_globals->params.physics.ReionGnedin_zr);
-    sprintf(names[ii++], "ReionGnedin_zr");
-  }
-
-  for (int jj = 0; jj < ii; jj++)
-    h5_write_attribute(group_id, names[jj], H5T_NATIVE_DOUBLE, ds_id, addresses[jj]);
 
   // Close the group
   H5Gclose(group_id);
@@ -558,70 +404,9 @@ void create_master_file(run_globals_t *run_globals)
   H5LTset_attribute_string(file_id, "gitdiff", "gitref", GITREF_STR);
 #endif
 
-#ifdef USE_TOCF
-  if (run_globals->params.TOCF_Flag)
-  {
-    // Open the group
-    group_id = H5Gcreate(file_id, "InputParams/tocf", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
-
-    ii            = 0;
-    addresses[ii] = &(tocf_params.dim);
-    sprintf(names[ii++], "dim");
-    addresses[ii] = &(tocf_params.HII_dim);
-    sprintf(names[ii++], "HII_dim");
-    addresses[ii] = &(tocf_params.numcores);
-    sprintf(names[ii++], "numcores");
-    addresses[ii] = &(tocf_params.HII_filter);
-    sprintf(names[ii++], "HII_filter");
-    addresses[ii] = &(tocf_params.uvb_feedback);
-    sprintf(names[ii++], "uvb_feedback");
-    addresses[ii] = &(tocf_params.compute_mfp);
-    sprintf(names[ii++], "compute_mfp");
-
-    for (int jj = 0; jj < ii; jj++)
-      h5_write_attribute(group_id, names[jj], H5T_NATIVE_INT, ds_id, addresses[jj]);
-
-    ii            = 0;
-    addresses[ii] = &(tocf_params.ram);
-    sprintf(names[ii++], "ram");
-    addresses[ii] = &(tocf_params.HII_eff_factor);
-    sprintf(names[ii++], "HII_eff_factor");
-    addresses[ii] = &(tocf_params.r_bubble_min);
-    sprintf(names[ii++], "r_bubble_min");
-    addresses[ii] = &(tocf_params.r_bubble_max);
-    sprintf(names[ii++], "r_bubble_max");
-    addresses[ii] = &(tocf_params.gamma_halo_bias);
-    sprintf(names[ii++], "gamma_halo_bias");
-    addresses[ii] = &(tocf_params.delta_r_HII_factor);
-    sprintf(names[ii++], "delta_r_HII_factor");
-    addresses[ii] = &(tocf_params.m_0_sm);
-    sprintf(names[ii++], "m_0_sm");
-    addresses[ii] = &(tocf_params.a_sm);
-    sprintf(names[ii++], "a_sm");
-    addresses[ii] = &(tocf_params.b_sm);
-    sprintf(names[ii++], "b_sm");
-    addresses[ii] = &(tocf_params.c_sm);
-    sprintf(names[ii++], "c_sm");
-    addresses[ii] = &(tocf_params.d_sm);
-    sprintf(names[ii++], "d_sm");
-
-    for (int jj = 0; jj < ii; jj++)
-      h5_write_attribute(group_id, names[jj], H5T_NATIVE_FLOAT, ds_id, addresses[jj]);
-
-    ii            = 0;
-    addresses[ii] = &(tocf_params.ion_tvir_min);
-    sprintf(names[ii++], "ion_tvir_min");
-
-    for (int jj = 0; jj < ii; jj++)
-      h5_write_attribute(group_id, names[jj], H5T_NATIVE_DOUBLE, ds_id, addresses[jj]);
-
-    // Close the group
-    H5Gclose(group_id);
-  }
-#endif
-
   // save the number of cores used in this run
   h5_write_attribute(file_id, "NCores", H5T_NATIVE_INT, ds_id, &(SID.n_proc));
+
 
   char target_group[50];
   char source_ds[50];

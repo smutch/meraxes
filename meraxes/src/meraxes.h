@@ -173,6 +173,9 @@ typedef struct run_units_t {
 } run_units_t;
 
 typedef struct hdf5_output_t {
+  char       **params_tag;
+  void       **params_addr;
+  int         *params_type;
   size_t      *dst_offsets;
   size_t      *dst_field_sizes;
   const char **field_names;
