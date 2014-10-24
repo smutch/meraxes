@@ -71,20 +71,23 @@ void update_reservoirs_from_sn_feedback(galaxy_t *gal, double m_reheat, double m
 
 
 static inline double calc_ejected_mass(
-  double m_reheat,
-  double sn_energy,
-  double Vvir)
+  double *m_reheat,
+  double  sn_energy,
+  double  Vvir)
 {
   double m_eject = 0.0;
 
-  if (m_reheat > 0)
+  if (*m_reheat > 0)
   {
     double Vvir_sqrd                = Vvir * Vvir;
-    double reheated_energy          = 0.5 * m_reheat * Vvir_sqrd;
+    double reheated_energy          = 0.5 * (*m_reheat) * Vvir_sqrd;
     double specific_hot_halo_energy = 0.5 * Vvir_sqrd;
     m_eject = (sn_energy - reheated_energy) / specific_hot_halo_energy;
     if (m_eject < 0)
+    {
       m_eject = 0.0;
+      *m_reheat = 2.0 * sn_energy / Vvir_sqrd;
+    }
   }
 
   return m_eject;
@@ -271,8 +274,11 @@ void delayed_supernova_feedback(run_globals_t *run_globals, galaxy_t *gal, int s
     // how much mass is ejected due to this star formation episode? (ala Croton+ 2006)
     // Note that we use the Vvir of the host group here, as we are assuming that
     // only the group holds a hot halo (which is stored by the central galaxy).
-    m_eject = calc_ejected_mass(m_reheat, sn_energy, gal->Halo->FOFGroup->Vvir);
+    m_eject = calc_ejected_mass(&m_reheat, sn_energy, gal->Halo->FOFGroup->Vvir);
   }
+
+  assert(m_reheat >= 0);
+  assert(m_eject >= 0);
 
   // update the baryonic reservoirs
   update_reservoirs_from_sn_feedback(gal, m_reheat, m_eject, m_recycled, new_metals);
@@ -381,7 +387,10 @@ void contemporaneous_supernova_feedback(
   // how much mass is ejected due to this star formation episode? (ala Croton+ 2006)
   // Note that we use the Vvir of the host group here, as we are assuming that
   // only the group holds a hot halo (which is stored by the central galaxy).
-  *m_eject = calc_ejected_mass(*m_reheat, sn_energy, gal->Halo->FOFGroup->Vvir);
+  *m_eject = calc_ejected_mass(m_reheat, sn_energy, gal->Halo->FOFGroup->Vvir);
+
+  assert(*m_reheat >= 0);
+  assert(*m_eject >= 0);
 
   // If this is a reidentified ghost, then back fill NewStars to reflect this
   // new SF burst.
