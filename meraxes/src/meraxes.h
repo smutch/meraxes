@@ -302,6 +302,8 @@ typedef struct galaxy_t {
   double EjectedGas;
   double MetalsEjectedGas;
   double BlackHoleMass;
+  double MaxReheatFrac;
+  double MaxEjectFrac;
 
   // baryonic hostories
   double mwmsa_num;
@@ -366,6 +368,8 @@ typedef struct galaxy_output_t {
   float EjectedGas;
   float MetalsEjectedGas;
   float BlackHoleMass;
+  float MaxReheatFrac;
+  float MaxEjectFrac;
 
   // misc
   float Rcool;

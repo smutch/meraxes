@@ -88,6 +88,8 @@ void prepare_galaxy_for_output(
   galout->StellarMass        = (float)(gal.StellarMass);
   galout->GrossStellarMass   = (float)(gal.GrossStellarMass);
   galout->BlackHoleMass      = (float)(gal.BlackHoleMass);
+  galout->MaxReheatFrac      = (float)(gal.MaxReheatFrac);
+  galout->MaxEjectFrac       = (float)(gal.MaxEjectFrac);
   galout->DiskScaleLength    = (float)(gal.DiskScaleLength);
   galout->MetalsStellarMass  = (float)(gal.MetalsStellarMass);
   galout->Sfr                = (float)(gal.Sfr * units->UnitMass_in_g / units->UnitTime_in_s * SEC_PER_YEAR / SOLAR_MASS);

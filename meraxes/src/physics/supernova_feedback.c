@@ -282,6 +282,24 @@ void delayed_supernova_feedback(run_globals_t *run_globals, galaxy_t *gal, int s
 
   // update the baryonic reservoirs
   update_reservoirs_from_sn_feedback(gal, m_reheat, m_eject, m_recycled, new_metals);
+
+  if ((m_reheat >= gal->ColdGas) && (gal->MaxReheatFrac < 1.0))
+    gal->MaxReheatFrac = 1.0;
+  else
+  {
+    double temp = m_reheat / gal->ColdGas;
+    if (gal->MaxReheatFrac < temp)
+      gal->MaxReheatFrac = temp;
+  }
+  if ((m_eject >= gal->ColdGas) && (gal->MaxEjectFrac < 1.0))
+    gal->MaxEjectFrac = 1.0;
+  else
+  {
+    double temp = m_eject / gal->ColdGas;
+    if (gal->MaxEjectFrac < temp)
+      gal->MaxEjectFrac = temp;
+  }
+
 }
 
 
@@ -396,4 +414,21 @@ void contemporaneous_supernova_feedback(
   // new SF burst.
   if (!Flag_IRA && (gal->LastIdentSnap < (snapshot - 1)))
     backfill_ghost_NewStars(run_globals, gal, *m_stars, snapshot);
+
+  if ((*m_reheat >= gal->ColdGas) && (gal->MaxReheatFrac < 1.0))
+    gal->MaxReheatFrac = 1.0;
+  else
+  {
+    double temp = *m_reheat / gal->ColdGas;
+    if (gal->MaxReheatFrac < temp)
+      gal->MaxReheatFrac = temp;
+  }
+  if ((*m_eject >= gal->ColdGas) && (gal->MaxEjectFrac < 1.0))
+    gal->MaxEjectFrac = 1.0;
+  else
+  {
+    double temp = *m_eject / gal->ColdGas;
+    if (gal->MaxEjectFrac < temp)
+      gal->MaxEjectFrac = temp;
+  }
 }
