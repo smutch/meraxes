@@ -166,27 +166,22 @@ int read_dm_grid(
         
         FILE *f1_pmg;
         char file1_pmg[128];
-        long long zero_count;
+        long long empty_count;
         
         if (snapshot==53)
         {
-            zero_count = 0;
+            empty_count = 0;
             for (int i = 0; i < HR_dim; i++)
                 for (int j = 0; j < HR_dim; j++)
                     for (int k = 0; k < HR_dim; k++)
                     {
-                        if (*(grid_HR + HR_INDEX(i, j, k, HR_dim)) == 0.0) zero_count++;
+                        if (*(grid_HR + HR_INDEX(i, j, k, HR_dim)) == 0.0) empty_count++;
                         
                     }
             
-            sprintf(file1_pmg, "%s/TIAMAT_dm_density_NO_OF_ZEROS_snap%d.dat", run_globals->params.OutputDir, snapshot);
-            f1_pmg = fopen(file1_pmg, "wt");
-            fprintf(f1_pmg, "%d\n", zero_count);
-            fclose(f1_pmg);
-            
-            if(zero_count)
+            if(empty_count)
             {
-                sprintf(file1_pmg, "%s/TIAMAT_dm_density_ZEROS_snap%d.dat", run_globals->params.OutputDir, snapshot);
+                sprintf(file1_pmg, "%s/TIAMAT_dm_density_snap%d_%d_EMPTIES.dat", run_globals->params.OutputDir, snapshot, empty_count);
                 f1_pmg = fopen(file1_pmg, "wt");
                 
                 for (int i = 0; i < HR_dim; i++)
@@ -242,23 +237,18 @@ int read_dm_grid(
         
         if (snapshot==57)
         {
-            zero_count = 0;
+            empty_count = 0;
             for (int i = 0; i < HR_dim; i++)
                 for (int j = 0; j < HR_dim; j++)
                     for (int k = 0; k < HR_dim; k++)
                     {
-                        if (*(grid_HR + HR_INDEX(i, j, k, HR_dim)) == 0.0) zero_count++;
+                        if (*(grid_HR + HR_INDEX(i, j, k, HR_dim)) == 0.0) empty_count++;
                         
                     }
             
-            sprintf(file1_pmg, "%s/TIAMAT_dm_density_NO_OF_ZEROS_snap%d.dat", run_globals->params.OutputDir, snapshot);
-            f1_pmg = fopen(file1_pmg, "wt");
-            fprintf(f1_pmg, "%d\n", zero_count);
-            fclose(f1_pmg);
-            
-            if(zero_count)
+            if(empty_count)
             {
-                sprintf(file1_pmg, "%s/TIAMAT_dm_density_ZEROS_snap%d.dat", run_globals->params.OutputDir, snapshot);
+                sprintf(file1_pmg, "%s/TIAMAT_dm_density_snap%d_%d_EMPTIES.dat", run_globals->params.OutputDir, snapshot, empty_count);
                 f1_pmg = fopen(file1_pmg, "wt");
                 
                 for (int i = 0; i < HR_dim; i++)
@@ -314,23 +304,18 @@ int read_dm_grid(
         
         if (snapshot==61)
         {
-            zero_count = 0;
+            empty_count = 0;
             for (int i = 0; i < HR_dim; i++)
                 for (int j = 0; j < HR_dim; j++)
                     for (int k = 0; k < HR_dim; k++)
                     {
-                        if (*(grid_HR + HR_INDEX(i, j, k, HR_dim)) == 0.0) zero_count++;
+                        if (*(grid_HR + HR_INDEX(i, j, k, HR_dim)) == 0.0) empty_count++;
                         
                     }
             
-            sprintf(file1_pmg, "%s/TIAMAT_dm_density_NO_OF_ZEROS_snap%d.dat", run_globals->params.OutputDir, snapshot);
-            f1_pmg = fopen(file1_pmg, "wt");
-            fprintf(f1_pmg, "%d\n", zero_count);
-            fclose(f1_pmg);
-            
-            if(zero_count)
+            if(empty_count)
             {
-                sprintf(file1_pmg, "%s/TIAMAT_dm_density_ZEROS_snap%d.dat", run_globals->params.OutputDir, snapshot);
+                sprintf(file1_pmg, "%s/TIAMAT_dm_density_snap%d_%d_EMPTIES.dat", run_globals->params.OutputDir, snapshot, empty_count);
                 f1_pmg = fopen(file1_pmg, "wt");
                 
                 for (int i = 0; i < HR_dim; i++)
@@ -386,23 +371,18 @@ int read_dm_grid(
         
         if (snapshot==65)
         {
-            zero_count = 0;
+            empty_count = 0;
             for (int i = 0; i < HR_dim; i++)
                 for (int j = 0; j < HR_dim; j++)
                     for (int k = 0; k < HR_dim; k++)
                     {
-                        if (*(grid_HR + HR_INDEX(i, j, k, HR_dim)) == 0.0) zero_count++;
+                        if (*(grid_HR + HR_INDEX(i, j, k, HR_dim)) == 0.0) empty_count++;
                         
                     }
             
-            sprintf(file1_pmg, "%s/TIAMAT_dm_density_NO_OF_ZEROS_snap%d.dat", run_globals->params.OutputDir, snapshot);
-            f1_pmg = fopen(file1_pmg, "wt");
-            fprintf(f1_pmg, "%d\n", zero_count);
-            fclose(f1_pmg);
-            
-            if(zero_count)
+            if(empty_count)
             {
-                sprintf(file1_pmg, "%s/TIAMAT_dm_density_ZEROS_snap%d.dat", run_globals->params.OutputDir, snapshot);
+                sprintf(file1_pmg, "%s/TIAMAT_dm_density_snap%d_%d_EMPTIES.dat", run_globals->params.OutputDir, snapshot, empty_count);
                 f1_pmg = fopen(file1_pmg, "wt");
                 
                 for (int i = 0; i < HR_dim; i++)
@@ -458,23 +438,18 @@ int read_dm_grid(
         
         if (snapshot==69)
         {
-            zero_count = 0;
+            empty_count = 0;
             for (int i = 0; i < HR_dim; i++)
                 for (int j = 0; j < HR_dim; j++)
                     for (int k = 0; k < HR_dim; k++)
                     {
-                        if (*(grid_HR + HR_INDEX(i, j, k, HR_dim)) == 0.0) zero_count++;
+                        if (*(grid_HR + HR_INDEX(i, j, k, HR_dim)) == 0.0) empty_count++;
                         
                     }
             
-            sprintf(file1_pmg, "%s/TIAMAT_dm_density_NO_OF_ZEROS_snap%d.dat", run_globals->params.OutputDir, snapshot);
-            f1_pmg = fopen(file1_pmg, "wt");
-            fprintf(f1_pmg, "%d\n", zero_count);
-            fclose(f1_pmg);
-            
-            if(zero_count)
+            if(empty_count)
             {
-                sprintf(file1_pmg, "%s/TIAMAT_dm_density_ZEROS_snap%d.dat", run_globals->params.OutputDir, snapshot);
+                sprintf(file1_pmg, "%s/TIAMAT_dm_density_snap%d_%d_EMPTIES.dat", run_globals->params.OutputDir, snapshot, empty_count);
                 f1_pmg = fopen(file1_pmg, "wt");
                 
                 for (int i = 0; i < HR_dim; i++)
@@ -577,32 +552,26 @@ int read_dm_grid(
                 }
         
         
-        
         if (snapshot==53)
         {
-            zero_count = 0;
+            empty_count = 0;
             for (int i = 0; i < HII_dim; i++)
                 for (int j = 0; j < HII_dim; j++)
                     for (int k = 0; k < HII_dim; k++)
                     {
-                        if (*(grid + HII_R_INDEX(i, j, k)) == 0.0) zero_count++;
+                        if (*(grid + HII_R_INDEX(i, j, k)) == -1.0) empty_count++;
                         
                     }
             
-            sprintf(file1_pmg, "%s/TIAMAT_LR_overdensity_NO_OF_ZEROS_snap%d.dat", run_globals->params.OutputDir, snapshot);
-            f1_pmg = fopen(file1_pmg, "wt");
-            fprintf(f1_pmg, "%d\n", zero_count);
-            fclose(f1_pmg);
-            
-            if(zero_count)
+            if(empty_count)
             {
-                sprintf(file1_pmg, "%s/TIAMAT_LR_overdensity_ZEROS_snap%d.dat", run_globals->params.OutputDir, snapshot);
+                sprintf(file1_pmg, "%s/TIAMAT_LR_overdensity_snap%d_%d_EMPTIES.dat", run_globals->params.OutputDir, snapshot, empty_count);
                 f1_pmg = fopen(file1_pmg, "wt");
                 for (int i = 0; i < HII_dim; i++)
                     for (int j = 0; j < HII_dim; j++)
                         for (int k = 0; k < HII_dim; k++)
                         {
-                            if (*(grid + HII_R_INDEX(i, j, k)) == 0.0) fprintf(f1_pmg, "%d\t%d\t%d\n", i, j, k);
+                            if (*(grid + HII_R_INDEX(i, j, k)) == -1.0) fprintf(f1_pmg, "%d\t%d\t%d\n", i, j, k);
                             
                         }
                 fclose(f1_pmg);
@@ -651,22 +620,28 @@ int read_dm_grid(
         
         if (snapshot==57)
         {
-            zero_count = 0;
+            empty_count = 0;
             for (int i = 0; i < HII_dim; i++)
                 for (int j = 0; j < HII_dim; j++)
                     for (int k = 0; k < HII_dim; k++)
                     {
-                        if (*(grid + HII_R_INDEX(i, j, k)) == 0.0) zero_count++;
+                        if (*(grid + HII_R_INDEX(i, j, k)) == -1.0) empty_count++;
                         
                     }
             
-            sprintf(file1_pmg, "%s/TIAMAT_LR_overdensity_NO_OF_ZEROS_snap%d.dat", run_globals->params.OutputDir, snapshot);
-            f1_pmg = fopen(file1_pmg, "wt");
-            fprintf(f1_pmg, "%d\n", zero_count);
-            fclose(f1_pmg);
-            
-            if(zero_count)
+            if(empty_count)
             {
+                sprintf(file1_pmg, "%s/TIAMAT_LR_overdensity_snap%d_%d_EMPTIES.dat", run_globals->params.OutputDir, snapshot, empty_count);
+                f1_pmg = fopen(file1_pmg, "wt");
+                for (int i = 0; i < HII_dim; i++)
+                    for (int j = 0; j < HII_dim; j++)
+                        for (int k = 0; k < HII_dim; k++)
+                        {
+                            if (*(grid + HII_R_INDEX(i, j, k)) == -1.0) fprintf(f1_pmg, "%d\t%d\t%d\n", i, j, k);
+                            
+                        }
+                fclose(f1_pmg);
+                
                 int i = 139;
                 sprintf(file1_pmg, "%s/TIAMAT_LR_overdensity_grid_slice_i%d_snap%d.dat", run_globals->params.OutputDir, i, snapshot);
                 f1_pmg = fopen(file1_pmg, "wt");
@@ -710,22 +685,28 @@ int read_dm_grid(
         
         if (snapshot==61)
         {
-            zero_count = 0;
+            empty_count = 0;
             for (int i = 0; i < HII_dim; i++)
                 for (int j = 0; j < HII_dim; j++)
                     for (int k = 0; k < HII_dim; k++)
                     {
-                        if (*(grid + HII_R_INDEX(i, j, k)) == 0.0) zero_count++;
+                        if (*(grid + HII_R_INDEX(i, j, k)) == -1.0) empty_count++;
                         
                     }
             
-            sprintf(file1_pmg, "%s/TIAMAT_LR_overdensity_NO_OF_ZEROS_snap%d.dat", run_globals->params.OutputDir, snapshot);
-            f1_pmg = fopen(file1_pmg, "wt");
-            fprintf(f1_pmg, "%d\n", zero_count);
-            fclose(f1_pmg);
-            
-            if(zero_count)
+            if(empty_count)
             {
+                sprintf(file1_pmg, "%s/TIAMAT_LR_overdensity_snap%d_%d_EMPTIES.dat", run_globals->params.OutputDir, snapshot, empty_count);
+                f1_pmg = fopen(file1_pmg, "wt");
+                for (int i = 0; i < HII_dim; i++)
+                    for (int j = 0; j < HII_dim; j++)
+                        for (int k = 0; k < HII_dim; k++)
+                        {
+                            if (*(grid + HII_R_INDEX(i, j, k)) == -1.0) fprintf(f1_pmg, "%d\t%d\t%d\n", i, j, k);
+                            
+                        }
+                fclose(f1_pmg);
+                
                 int i = 179;
                 sprintf(file1_pmg, "%s/TIAMAT_LR_overdensity_grid_slice_i%d_snap%d.dat", run_globals->params.OutputDir, i, snapshot);
                 f1_pmg = fopen(file1_pmg, "wt");
@@ -770,22 +751,28 @@ int read_dm_grid(
         
         if (snapshot==65)
         {
-            zero_count = 0;
+            empty_count = 0;
             for (int i = 0; i < HII_dim; i++)
                 for (int j = 0; j < HII_dim; j++)
                     for (int k = 0; k < HII_dim; k++)
                     {
-                        if (*(grid + HII_R_INDEX(i, j, k)) == 0.0) zero_count++;
+                        if (*(grid + HII_R_INDEX(i, j, k)) == -1.0) empty_count++;
                         
                     }
             
-            sprintf(file1_pmg, "%s/TIAMAT_LR_overdensity_NO_OF_ZEROS_snap%d.dat", run_globals->params.OutputDir, snapshot);
-            f1_pmg = fopen(file1_pmg, "wt");
-            fprintf(f1_pmg, "%d\n", zero_count);
-            fclose(f1_pmg);
-            
-            if(zero_count)
+            if(empty_count)
             {
+                sprintf(file1_pmg, "%s/TIAMAT_LR_overdensity_snap%d_%d_EMPTIES.dat", run_globals->params.OutputDir, snapshot, empty_count);
+                f1_pmg = fopen(file1_pmg, "wt");
+                for (int i = 0; i < HII_dim; i++)
+                    for (int j = 0; j < HII_dim; j++)
+                        for (int k = 0; k < HII_dim; k++)
+                        {
+                            if (*(grid + HII_R_INDEX(i, j, k)) == -1.0) fprintf(f1_pmg, "%d\t%d\t%d\n", i, j, k);
+                            
+                        }
+                fclose(f1_pmg);
+                
                 int i = 257;
                 sprintf(file1_pmg, "%s/TIAMAT_LR_overdensity_grid_slice_i%d_snap%d.dat", run_globals->params.OutputDir, i, snapshot);
                 f1_pmg = fopen(file1_pmg, "wt");
@@ -830,22 +817,28 @@ int read_dm_grid(
         
         if (snapshot==69)
         {
-            zero_count = 0;
+            empty_count = 0;
             for (int i = 0; i < HII_dim; i++)
                 for (int j = 0; j < HII_dim; j++)
                     for (int k = 0; k < HII_dim; k++)
                     {
-                        if (*(grid + HII_R_INDEX(i, j, k)) == 0.0) zero_count++;
+                        if (*(grid + HII_R_INDEX(i, j, k)) == -1.0) empty_count++;
                         
                     }
             
-            sprintf(file1_pmg, "%s/TIAMAT_LR_overdensity_NO_OF_ZEROS_snap%d.dat", run_globals->params.OutputDir, snapshot);
-            f1_pmg = fopen(file1_pmg, "wt");
-            fprintf(f1_pmg, "%d\n", zero_count);
-            fclose(f1_pmg);
-            
-            if(zero_count)
+            if(empty_count)
             {
+                sprintf(file1_pmg, "%s/TIAMAT_LR_overdensity_snap%d_%d_EMPTIES.dat", run_globals->params.OutputDir, snapshot, empty_count);
+                f1_pmg = fopen(file1_pmg, "wt");
+                for (int i = 0; i < HII_dim; i++)
+                    for (int j = 0; j < HII_dim; j++)
+                        for (int k = 0; k < HII_dim; k++)
+                        {
+                            if (*(grid + HII_R_INDEX(i, j, k)) == -1.0) fprintf(f1_pmg, "%d\t%d\t%d\n", i, j, k);
+                            
+                        }
+                fclose(f1_pmg);
+                
                 int i = 130;
                 sprintf(file1_pmg, "%s/TIAMAT_LR_overdensity_grid_slice_i%d_snap%d.dat", run_globals->params.OutputDir, i, snapshot);
                 f1_pmg = fopen(file1_pmg, "wt");
