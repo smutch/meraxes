@@ -577,39 +577,39 @@ int read_dm_grid(
                 fclose(f1_pmg);
                 
                 int i = 145;
-                sprintf(file1_pmg, "%s/TIAMAT_LR_overdensity_grid_slice_i%d_snap%d.dat", run_globals->params.OutputDir, i, snapshot);
+                sprintf(file1_pmg, "%s/TIAMAT_LR_density_contrast_grid_slice_i%d_snap%d.dat", run_globals->params.OutputDir, i, snapshot);
                 f1_pmg = fopen(file1_pmg, "wt");
                 for (int k = 0; k < HII_dim; k++)
                 {
                     for (int j = 0; j < HII_dim; j++)
                     {
-                        fprintf(f1_pmg, "%g\t", *(grid + HII_R_INDEX(i, j, k)));
+                        fprintf(f1_pmg, "%g\t", *(grid + HII_R_INDEX(i, j, k)) + 1.0);
                     }
                     fprintf(f1_pmg, "\n");
                 }
                 fclose(f1_pmg);
                 
                 int j = 145;
-                sprintf(file1_pmg, "%s/TIAMAT_LR_overdensity_grid_slice_j%d_snap%d.dat", run_globals->params.OutputDir, j, snapshot);
+                sprintf(file1_pmg, "%s/TIAMAT_LR_density_contrast_grid_slice_j%d_snap%d.dat", run_globals->params.OutputDir, j, snapshot);
                 f1_pmg = fopen(file1_pmg, "wt");
                 for (int k = 0; k < HII_dim; k++)
                 {
                     for (int i = 0; i < HII_dim; i++)
                     {
-                        fprintf(f1_pmg, "%g\t", *(grid + HII_R_INDEX(i, j, k)));
+                        fprintf(f1_pmg, "%g\t", *(grid + HII_R_INDEX(i, j, k)) + 1.0);
                     }
                     fprintf(f1_pmg, "\n");
                 }
                 fclose(f1_pmg);
                 
                 int k = 65;
-                sprintf(file1_pmg, "%s/TIAMAT_LR_overdensity_grid_slice_k%d_snap%d.dat", run_globals->params.OutputDir, k, snapshot);
+                sprintf(file1_pmg, "%s/TIAMAT_LR_density_contrast_grid_slice_k%d_snap%d.dat", run_globals->params.OutputDir, k, snapshot);
                 f1_pmg = fopen(file1_pmg, "wt");
                 for (int j = 0; j < HII_dim; j++)
                 {
                     for (int i = 0; i < HII_dim; i++)
                     {
-                        fprintf(f1_pmg, "%g\t", *(grid + HII_R_INDEX(i, j, k)));
+                        fprintf(f1_pmg, "%g\t", *(grid + HII_R_INDEX(i, j, k)) + 1.0);
                     }
                     fprintf(f1_pmg, "\n");
                 }
@@ -643,39 +643,39 @@ int read_dm_grid(
                 fclose(f1_pmg);
                 
                 int i = 139;
-                sprintf(file1_pmg, "%s/TIAMAT_LR_overdensity_grid_slice_i%d_snap%d.dat", run_globals->params.OutputDir, i, snapshot);
+                sprintf(file1_pmg, "%s/TIAMAT_LR_density_contrast_grid_slice_i%d_snap%d.dat", run_globals->params.OutputDir, i, snapshot);
                 f1_pmg = fopen(file1_pmg, "wt");
                 for (int k = 0; k < HII_dim; k++)
                 {
                     for (int j = 0; j < HII_dim; j++)
                     {
-                        fprintf(f1_pmg, "%g\t", *(grid + HII_R_INDEX(i, j, k)));
+                        fprintf(f1_pmg, "%g\t", *(grid + HII_R_INDEX(i, j, k)) + 1.0);
                     }
                     fprintf(f1_pmg, "\n");
                 }
                 fclose(f1_pmg);
                 
                 int j = 34;
-                sprintf(file1_pmg, "%s/TIAMAT_LR_overdensity_grid_slice_j%d_snap%d.dat", run_globals->params.OutputDir, j, snapshot);
+                sprintf(file1_pmg, "%s/TIAMAT_LR_density_contrast_grid_slice_j%d_snap%d.dat", run_globals->params.OutputDir, j, snapshot);
                 f1_pmg = fopen(file1_pmg, "wt");
                 for (int k = 0; k < HII_dim; k++)
                 {
                     for (int i = 0; i < HII_dim; i++)
                     {
-                        fprintf(f1_pmg, "%g\t", *(grid + HII_R_INDEX(i, j, k)));
+                        fprintf(f1_pmg, "%g\t", *(grid + HII_R_INDEX(i, j, k)) + 1.0);
                     }
                     fprintf(f1_pmg, "\n");
                 }
                 fclose(f1_pmg);
                 
                 int k = 132;
-                sprintf(file1_pmg, "%s/TIAMAT_LR_overdensity_grid_slice_k%d_snap%d.dat", run_globals->params.OutputDir, k, snapshot);
+                sprintf(file1_pmg, "%s/TIAMAT_LR_density_contrast_grid_slice_k%d_snap%d.dat", run_globals->params.OutputDir, k, snapshot);
                 f1_pmg = fopen(file1_pmg, "wt");
                 for (int j = 0; j < HII_dim; j++)
                 {
                     for (int i = 0; i < HII_dim; i++)
                     {
-                        fprintf(f1_pmg, "%g\t", *(grid + HII_R_INDEX(i, j, k)));
+                        fprintf(f1_pmg, "%g\t", *(grid + HII_R_INDEX(i, j, k)) + 1.0);
                     }
                     fprintf(f1_pmg, "\n");
                 }
@@ -708,39 +708,39 @@ int read_dm_grid(
                 fclose(f1_pmg);
                 
                 int i = 179;
-                sprintf(file1_pmg, "%s/TIAMAT_LR_overdensity_grid_slice_i%d_snap%d.dat", run_globals->params.OutputDir, i, snapshot);
+                sprintf(file1_pmg, "%s/TIAMAT_LR_density_contrast_grid_slice_i%d_snap%d.dat", run_globals->params.OutputDir, i, snapshot);
                 f1_pmg = fopen(file1_pmg, "wt");
                 for (int k = 0; k < HII_dim; k++)
                 {
                     for (int j = 0; j < HII_dim; j++)
                     {
-                        fprintf(f1_pmg, "%g\t", *(grid + HII_R_INDEX(i, j, k)));
+                        fprintf(f1_pmg, "%g\t", *(grid + HII_R_INDEX(i, j, k)) + 1.0);
                     }
                     fprintf(f1_pmg, "\n");
                 }
                 fclose(f1_pmg);
                 
                 int j = 83;
-                sprintf(file1_pmg, "%s/TIAMAT_LR_overdensity_grid_slice_j%d_snap%d.dat", run_globals->params.OutputDir, j, snapshot);
+                sprintf(file1_pmg, "%s/TIAMAT_LR_density_contrast_grid_slice_j%d_snap%d.dat", run_globals->params.OutputDir, j, snapshot);
                 f1_pmg = fopen(file1_pmg, "wt");
                 for (int k = 0; k < HII_dim; k++)
                 {
                     for (int i = 0; i < HII_dim; i++)
                     {
-                        fprintf(f1_pmg, "%g\t", *(grid + HII_R_INDEX(i, j, k)));
+                        fprintf(f1_pmg, "%g\t", *(grid + HII_R_INDEX(i, j, k)) + 1.0);
                     }
                     fprintf(f1_pmg, "\n");
                 }
                 fclose(f1_pmg);
                 
                 int k = 194;
-                sprintf(file1_pmg, "%s/TIAMAT_LR_overdensity_grid_slice_k%d_snap%d.dat", run_globals->params.OutputDir, k, snapshot);
+                sprintf(file1_pmg, "%s/TIAMAT_LR_density_contrast_grid_slice_k%d_snap%d.dat", run_globals->params.OutputDir, k, snapshot);
                 f1_pmg = fopen(file1_pmg, "wt");
                 for (int j = 0; j < HII_dim; j++)
                 {
                     for (int i = 0; i < HII_dim; i++)
                     {
-                        fprintf(f1_pmg, "%g\t", *(grid + HII_R_INDEX(i, j, k)));
+                        fprintf(f1_pmg, "%g\t", *(grid + HII_R_INDEX(i, j, k)) + 1.0);
                     }
                     fprintf(f1_pmg, "\n");
                 }
@@ -774,39 +774,39 @@ int read_dm_grid(
                 fclose(f1_pmg);
                 
                 int i = 257;
-                sprintf(file1_pmg, "%s/TIAMAT_LR_overdensity_grid_slice_i%d_snap%d.dat", run_globals->params.OutputDir, i, snapshot);
+                sprintf(file1_pmg, "%s/TIAMAT_LR_density_contrast_grid_slice_i%d_snap%d.dat", run_globals->params.OutputDir, i, snapshot);
                 f1_pmg = fopen(file1_pmg, "wt");
                 for (int k = 0; k < HII_dim; k++)
                 {
                     for (int j = 0; j < HII_dim; j++)
                     {
-                        fprintf(f1_pmg, "%g\t", *(grid + HII_R_INDEX(i, j, k)));
+                        fprintf(f1_pmg, "%g\t", *(grid + HII_R_INDEX(i, j, k)) + 1.0);
                     }
                     fprintf(f1_pmg, "\n");
                 }
                 fclose(f1_pmg);
                 
                 int j = 157;
-                sprintf(file1_pmg, "%s/TIAMAT_LR_overdensity_grid_slice_j%d_snap%d.dat", run_globals->params.OutputDir, j, snapshot);
+                sprintf(file1_pmg, "%s/TIAMAT_LR_density_contrast_grid_slice_j%d_snap%d.dat", run_globals->params.OutputDir, j, snapshot);
                 f1_pmg = fopen(file1_pmg, "wt");
                 for (int k = 0; k < HII_dim; k++)
                 {
                     for (int i = 0; i < HII_dim; i++)
                     {
-                        fprintf(f1_pmg, "%g\t", *(grid + HII_R_INDEX(i, j, k)));
+                        fprintf(f1_pmg, "%g\t", *(grid + HII_R_INDEX(i, j, k)) + 1.0);
                     }
                     fprintf(f1_pmg, "\n");
                 }
                 fclose(f1_pmg);
                 
                 int k = 157;
-                sprintf(file1_pmg, "%s/TIAMAT_LR_overdensity_grid_slice_k%d_snap%d.dat", run_globals->params.OutputDir, k, snapshot);
+                sprintf(file1_pmg, "%s/TIAMAT_LR_density_contrast_grid_slice_k%d_snap%d.dat", run_globals->params.OutputDir, k, snapshot);
                 f1_pmg = fopen(file1_pmg, "wt");
                 for (int j = 0; j < HII_dim; j++)
                 {
                     for (int i = 0; i < HII_dim; i++)
                     {
-                        fprintf(f1_pmg, "%g\t", *(grid + HII_R_INDEX(i, j, k)));
+                        fprintf(f1_pmg, "%g\t", *(grid + HII_R_INDEX(i, j, k)) + 1.0);
                     }
                     fprintf(f1_pmg, "\n");
                 }
@@ -840,39 +840,39 @@ int read_dm_grid(
                 fclose(f1_pmg);
                 
                 int i = 130;
-                sprintf(file1_pmg, "%s/TIAMAT_LR_overdensity_grid_slice_i%d_snap%d.dat", run_globals->params.OutputDir, i, snapshot);
+                sprintf(file1_pmg, "%s/TIAMAT_LR_density_contrast_grid_slice_i%d_snap%d.dat", run_globals->params.OutputDir, i, snapshot);
                 f1_pmg = fopen(file1_pmg, "wt");
                 for (int k = 0; k < HII_dim; k++)
                 {
                     for (int j = 0; j < HII_dim; j++)
                     {
-                        fprintf(f1_pmg, "%g\t", *(grid + HII_R_INDEX(i, j, k)));
+                        fprintf(f1_pmg, "%g\t", *(grid + HII_R_INDEX(i, j, k)) + 1.0);
                     }
                     fprintf(f1_pmg, "\n");
                 }
                 fclose(f1_pmg);
                 
                 int j = 194;
-                sprintf(file1_pmg, "%s/TIAMAT_LR_overdensity_grid_slice_j%d_snap%d.dat", run_globals->params.OutputDir, j, snapshot);
+                sprintf(file1_pmg, "%s/TIAMAT_LR_density_contrast_grid_slice_j%d_snap%d.dat", run_globals->params.OutputDir, j, snapshot);
                 f1_pmg = fopen(file1_pmg, "wt");
                 for (int k = 0; k < HII_dim; k++)
                 {
                     for (int i = 0; i < HII_dim; i++)
                     {
-                        fprintf(f1_pmg, "%g\t", *(grid + HII_R_INDEX(i, j, k)));
+                        fprintf(f1_pmg, "%g\t", *(grid + HII_R_INDEX(i, j, k)) + 1.0);
                     }
                     fprintf(f1_pmg, "\n");
                 }
                 fclose(f1_pmg);
                 
                 int k = 66;
-                sprintf(file1_pmg, "%s/TIAMAT_LR_overdensity_grid_slice_k%d_snap%d.dat", run_globals->params.OutputDir, k, snapshot);
+                sprintf(file1_pmg, "%s/TIAMAT_LR_density_contrast_grid_slice_k%d_snap%d.dat", run_globals->params.OutputDir, k, snapshot);
                 f1_pmg = fopen(file1_pmg, "wt");
                 for (int j = 0; j < HII_dim; j++)
                 {
                     for (int i = 0; i < HII_dim; i++)
                     {
-                        fprintf(f1_pmg, "%g\t", *(grid + HII_R_INDEX(i, j, k)));
+                        fprintf(f1_pmg, "%g\t", *(grid + HII_R_INDEX(i, j, k)) + 1.0);
                     }
                     fprintf(f1_pmg, "\n");
                 }
