@@ -20,7 +20,7 @@ from savefig import monkey_patch
 monkey_patch()
 import matplotlib.pyplot as plt
 
-from ssimpl import meraxes, plotutils
+from dragons import meraxes, plotutils
 from docopt import docopt
 
 import sfrf_z5, smf_z5, shmr_z5

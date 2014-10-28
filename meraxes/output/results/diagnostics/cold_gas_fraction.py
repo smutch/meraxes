@@ -14,7 +14,7 @@ Options:
 import numpy as np
 import matplotlib.pyplot as plt
 from docopt import docopt
-from ssimpl import plotutils, meraxes, munge
+from dragons import plotutils, meraxes, munge
 import os
 
 __author__ = "Simon Mutch"

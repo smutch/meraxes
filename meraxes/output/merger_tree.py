@@ -23,7 +23,7 @@ import matplotlib.pyplot as plt
 from docopt import docopt
 from tqdm import tqdm
 
-from ssimpl.meraxes import io as samio
+from dragons.meraxes import io as samio
 
 __author__ = "Simon Mutch"
 __date__   = "2013/08/14"
