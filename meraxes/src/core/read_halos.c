@@ -344,12 +344,16 @@ static void read_trees_and_catalogs(
 
           assert((*n_fof_groups_kept) < run_globals->NFOFGroupsMax);
           assert((tree_buffer[jj].group_index - first_group_index) < n_groups);
-          fof_group[(*n_fof_groups_kept)].Mvir = group_buffer[tree_buffer[jj].group_index - first_group_index].M_vir;
+          catalog_halo_t *cur_cat_group = &(group_buffer[tree_buffer[jj].group_index - first_group_index]);
+          fof_group_t *cur_group = &(fof_group[*n_fof_groups_kept]);
+
+          cur_group->Mvir = cur_cat_group->M_vir;
+          cur_group->Rvir = cur_cat_group->R_vir;
 
           convert_input_virial_props(run_globals,
-                                     &(fof_group[(*n_fof_groups_kept)].Mvir),
-                                     &(fof_group[(*n_fof_groups_kept)].Rvir),
-                                     &(fof_group[(*n_fof_groups_kept)].Vvir),
+                                     &(cur_group->Mvir),
+                                     &(cur_group->Rvir),
+                                     &(cur_group->Vvir),
                                      -1,
                                      snapshot);
 
