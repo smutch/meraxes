@@ -26,11 +26,12 @@ MagBands             : Bbv,V,Rc,Ic,K
 #------------------------------------------
 #----- Code options -----------------------
 #------------------------------------------
-NSteps           : 1
-FlagInteractive  : 0
-FlagGenDumpFile  : 0
-FlagReadDumpFile : 0
-RandomSeed       : 1809  # seed for random number generator
+NSteps                 : 1
+FlagInteractive        : 0
+FlagGenDumpFile        : 0
+FlagReadDumpFile       : 0
+FlagSubhaloVirialProps : 0
+RandomSeed             : 1809  # seed for random number generator
 
 #------------------------------------------
 #----- 21cmFAST ---------------------------

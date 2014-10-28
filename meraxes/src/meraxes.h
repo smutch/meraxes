@@ -152,12 +152,12 @@ typedef struct run_params_t {
   int              NSteps;
   int              SnaplistLength;
   int              RandomSeed;
+  int              FlagSubhaloVirialProps;
   int              FlagInteractive;
   int              FlagGenDumpFile;
   int              FlagReadDumpFile;
   int              TOCF_Flag;
 
-  // TOTAL : 3676 + 164 padding (must be multiple of STRLEN)
 } run_params_t;
 
 typedef struct run_units_t {

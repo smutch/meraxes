@@ -182,8 +182,11 @@ static void inline convert_input_virial_props(run_globals_t *run_globals, double
   *Mvir /= 1.0e10;
 
   // Update the virial properties
-  *Mvir = calculate_Mvir(run_globals, *Mvir, len);
-  *Rvir = calculate_Rvir(run_globals, *Mvir, snapshot);
+  if (!run_globals->params.FlagSubhaloVirialProps)
+  {
+    *Mvir = calculate_Mvir(run_globals, *Mvir, len);
+    *Rvir = calculate_Rvir(run_globals, *Mvir, snapshot);
+  }
   *Vvir = calculate_Vvir(run_globals, *Mvir, *Rvir);
 }
 

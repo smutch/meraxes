@@ -314,6 +314,11 @@ void read_parameter_file(run_globals_t *run_globals, char *fname, int mode)
       required_tag[n_param]  = 1;
       params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
+      strcpy(params_tag[n_param], "FlagSubhaloVirialProps");
+      params_addr[n_param]   = &(run_params->FlagSubhaloVirialProps);
+      required_tag[n_param]  = 1;
+      params_type[n_param++] = PARAM_TYPE_INT;
+
       strcpy(params_tag[n_param], "FlagInteractive");
       params_addr[n_param]   = &(run_params->FlagInteractive);
       required_tag[n_param]  = 1;
