@@ -1,5 +1,0 @@
-Branch:      useomp_with_feedback 
-Of    :      pmgeil/21cm_sam (fork of smutch/21cm_sam)
-
-Description: Version of meraxes which utilises 21cmFAST running with OMP and
-includes uvb feedback.
