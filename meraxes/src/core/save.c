@@ -118,7 +118,7 @@ void calc_hdf5_props(run_globals_t *run_globals)
   galaxy_output_t galout;
   int i;                                                // dummy
 
-  h5props->n_props = 33;
+  h5props->n_props = 35;
 
 #ifdef CALC_MAGS
   // If we are calculating any magnitudes then increment the number of
@@ -293,6 +293,16 @@ void calc_hdf5_props(run_globals_t *run_globals)
   h5props->field_names[i]     = "BlackHoleMass";
   h5props->field_types[i++]   = H5T_NATIVE_FLOAT;
 
+  h5props->dst_offsets[i]     = HOFFSET(galaxy_output_t, MaxReheatFrac);
+  h5props->dst_field_sizes[i] = sizeof(galout.MaxReheatFrac);
+  h5props->field_names[i]     = "MaxReheatFrac";
+  h5props->field_types[i++]   = H5T_NATIVE_FLOAT;
+
+  h5props->dst_offsets[i]     = HOFFSET(galaxy_output_t, MaxEjectFrac);
+  h5props->dst_field_sizes[i] = sizeof(galout.MaxEjectFrac);
+  h5props->field_names[i]     = "MaxEjectFrac";
+  h5props->field_types[i++]   = H5T_NATIVE_FLOAT;
+
   h5props->dst_offsets[i]     = HOFFSET(galaxy_output_t, Rcool);
   h5props->dst_field_sizes[i] = sizeof(galout.Rcool);
   h5props->field_names[i]     = "Rcool";
@@ -359,6 +369,7 @@ void create_master_file(run_globals_t *run_globals)
   char **params_tag = run_globals->hdf5props.params_tag;
   void **params_addr = run_globals->hdf5props.params_addr;
   int   *params_type = run_globals->hdf5props.params_type;
+  int    params_count = run_globals->hdf5props.params_count;
 
   SID_log("Creating master file...", SID_LOG_OPEN | SID_LOG_TIMER);
 
@@ -377,7 +388,7 @@ void create_master_file(run_globals_t *run_globals)
   group_id = H5Gcreate(file_id, "InputParams", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
 
   // Save all of the input params
-  for (int ii = 0; (ii < PARAM_MAX_ENTRIES) && (params_type[ii] != PARAM_TYPE_UNUSED); ii++)
+  for (int ii = 0; (ii < params_count) && (params_type[ii] != PARAM_TYPE_UNUSED); ii++)
   {
     switch (params_type[ii])
     {

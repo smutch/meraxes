@@ -1,9 +1,12 @@
 Todo list:
 
-☐ Explore use of Guo SN scaling params
-☐ Check typical effective SnReheatEff values
-☐ Compare typical Vmax--Vvir ratios to justify SF law
+✔ Explore use of Guo SN scaling params @done (2014-10-27 15:02)
+✔ Check typical effective SnReheatEff values @done (2014-10-27 15:02)
+✔ Compare typical Vmax--Vvir ratios to justify SF law @done (2014-10-27 15:02)
 ✔ Store all read params and write to hdf5 file @done (2014-10-24 11:37)
+✔ Fix reading of param files for interactive runs @done (2014-10-28 12:24)
+☐ Check out virial definitions
+☐ Look into reincorporation efficiency
 ☐ Clean up code base for official version
 
 Notes:

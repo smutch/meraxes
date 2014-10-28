@@ -117,6 +117,7 @@ typedef struct physics_params_t {
 //! Run params
 //! Everything in this structure is supplied by the user...
 typedef struct run_params_t {
+  char             DefaultsFile[STRLEN];
   char             OutputDir[STRLEN];
   char             FileNameGalaxies[STRLEN];
   char             SimName[STRLEN];
@@ -185,6 +186,7 @@ typedef struct hdf5_output_t {
   hid_t        array_nmag_f_tid;
   hid_t        array_nhist_f_tid;
   int          n_props;
+  int          params_count;
 
   // TOTAL : 52 + 4 padding (must be multiple of 8)
 } hdf5_output_t;

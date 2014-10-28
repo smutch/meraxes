@@ -120,9 +120,8 @@ void read_parameter_file(run_globals_t *run_globals, char *fname, int mode)
 
   if (SID.My_rank == 0)
   {
-    int ii, n_param;
+    int ii;
     int used_tag[PARAM_MAX_ENTRIES], required_tag[PARAM_MAX_ENTRIES];
-    char defaults_file[STRLEN];
     entry_t entry[PARAM_MAX_ENTRIES];
 
     int n_entries;
@@ -130,6 +129,7 @@ void read_parameter_file(run_globals_t *run_globals, char *fname, int mode)
     int *params_type = hdf5props->params_type;
     void **params_addr = hdf5props->params_addr;
     char **params_tag = hdf5props->params_tag;
+    int n_param = hdf5props->params_count;
 
     printf("\nreading parameter file:\n\n");
 
@@ -154,7 +154,7 @@ void read_parameter_file(run_globals_t *run_globals, char *fname, int mode)
       }
 
       strcpy(params_tag[n_param], "DefaultsFile");
-      params_addr[n_param]   = defaults_file;
+      params_addr[n_param]   = run_params->DefaultsFile;
       required_tag[n_param]  = 1;
       params_type[n_param++] = PARAM_TYPE_STRING;
 
@@ -608,6 +608,8 @@ void read_parameter_file(run_globals_t *run_globals, char *fname, int mode)
       required_tag[n_param]  = 0;
       params_type[n_param++] = PARAM_TYPE_INT;
 #endif
+
+      hdf5props->params_count = n_param;
     }
 
     // Initialise used_tag
@@ -619,7 +621,7 @@ void read_parameter_file(run_globals_t *run_globals, char *fname, int mode)
     store_params(entry, n_entries, params_tag, n_param, used_tag, params_type, params_addr, run_params);
 
     // Now parse the default parameter file
-    n_entries = parse_paramfile(defaults_file, entry);
+    n_entries = parse_paramfile(run_params->DefaultsFile, entry);
     store_params(entry, n_entries, params_tag, n_param, used_tag, params_type, params_addr, run_params);
 
     // Check to see if we are missing any required parameters
@@ -627,7 +629,7 @@ void read_parameter_file(run_globals_t *run_globals, char *fname, int mode)
     {
       if ((used_tag[ii] == 0) && (required_tag[ii] == 1))
       {
-        SID_log_error("ii miss a value for tag '%s' in parameter file '%s'.", params_tag[ii], fname);
+        SID_log_error("I miss a value for tag '%s' in parameter file '%s'.", params_tag[ii], fname);
         ABORT(EXIT_FAILURE);
       }
     }
