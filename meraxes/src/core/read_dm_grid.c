@@ -46,6 +46,81 @@ static unsigned long long HR_INDEX(int i, int j, int k, int grid_dim)
 
 
 
+static long long find_HR_empty_count(double *grid_HR, int HR_dim_val)
+{
+    long long count_val = 0;
+    
+    for (int i = 0; i < HR_dim_val; i++)
+        for (int j = 0; j < HR_dim_val; j++)
+            for (int k = 0; k < HR_dim_val; k++)
+            {
+                if (*((double *)grid_HR + HR_INDEX(i, j, k, HR_dim_val)) == 0.0) count_val++;
+                
+            }
+    
+    return (long long)(count_val);
+}
+
+static long long find_LR_empty_count(double *grid, int LR_dim_val)
+{
+    long long count_val = 0;
+    
+    for (int i = 0; i < LR_dim_val; i++)
+        for (int j = 0; j < LR_dim_val; j++)
+            for (int k = 0; k < LR_dim_val; k++)
+            {
+                if (*((double *)grid + HII_R_INDEX(i, j, k)) == -1.0) count_val++;
+                
+            }
+    
+    return (long long)(count_val);
+}
+
+static void write_list_of_HR_empties(double *grid_HR, int HR_dim_val, int snap, long long empty_count, char *out_dir)
+{
+    FILE *f1;
+    char file1[128];
+    
+    sprintf(file1, "%s/TIAMAT_dm_density_snap%d_%d_EMPTIES.dat", out_dir, snap, empty_count);
+    f1 = fopen(file1, "wt");
+    
+    for (int i = 0; i < HR_dim_val; i++)
+        for (int j = 0; j < HR_dim_val; j++)
+            for (int k = 0; k < HR_dim_val; k++)
+            {
+                if (*(grid_HR + HR_INDEX(i, j, k, HR_dim_val)) == 0.0) fprintf(f1, "%d\t%d\t%d\n", i, j, k);
+                
+            }
+    
+    fclose(f1); 
+}
+
+static void write_list_of_LR_empties(double *grid, int LR_dim_val, int snap, long long empty_count, char *out_dir)
+{
+    FILE *f1;
+    char file1[128];
+    
+    sprintf(file1, "%s/TIAMAT_LR_overdensity_snap%d_%d_EMPTIES.dat", out_dir, snap, empty_count);
+    f1 = fopen(file1, "wt");
+    
+    for (int i = 0; i < LR_dim_val; i++)
+        for (int j = 0; j < LR_dim_val; j++)
+            for (int k = 0; k < LR_dim_val; k++)
+            {
+                if (*(grid + HII_R_INDEX(i, j, k)) == -1.0) fprintf(f1, "%d\t%d\t%d\n", i, j, k);
+                
+            }
+    
+    fclose(f1); 
+}
+
+
+
+
+
+
+
+
 int read_dm_grid(
     run_globals_t *run_globals,
     int            snapshot,
@@ -147,9 +222,7 @@ int read_dm_grid(
     for (int i = 0; i < n_cell[0]; i++)
         for (int j = 0; j < n_cell[1]; j++)
             for (int k = 0; k < n_cell[2]; k++)
-            {
                 *(grid_HR + HR_INDEX(i, j, k, HR_dim)) = 0.0;
-            }
     
     
     if (i_grid == 0)  // Density grid
@@ -164,350 +237,331 @@ int read_dm_grid(
                 }
         
         
-        FILE *f1_pmg;
-        char file1_pmg[128];
-        long long empty_count;
-        
-        if (snapshot==53)
+        if (snapshot==53 || snapshot==57 || snapshot==61 || snapshot==65 || snapshot==69)
         {
-            empty_count = 0;
-            for (int i = 0; i < HR_dim; i++)
-                for (int j = 0; j < HR_dim; j++)
-                    for (int k = 0; k < HR_dim; k++)
-                    {
-                        if (*(grid_HR + HR_INDEX(i, j, k, HR_dim)) == 0.0) empty_count++;
-                        
-                    }
+            FILE     *f1_pmg;
+            char      file1_pmg[128];
+            long long empty_count_HR;
+            long long empty_count_LR;
+            int       i, j, k;
             
-            if(empty_count)
+            empty_count_HR = find_HR_empty_count(grid_HR, HR_dim);
+            SID_log("empty_count_HR = %d", SID_LOG_COMMENT, empty_count_HR)
+            
+            if(empty_count_HR)
             {
-                sprintf(file1_pmg, "%s/TIAMAT_dm_density_snap%d_%d_EMPTIES.dat", run_globals->params.OutputDir, snapshot, empty_count);
-                f1_pmg = fopen(file1_pmg, "wt");
+                write_list_of_HR_empties(grid_HR, HR_dim, snapshot, empty_count_HR, run_globals->params.OutputDir);
                 
-                for (int i = 0; i < HR_dim; i++)
-                    for (int j = 0; j < HR_dim; j++)
-                        for (int k = 0; k < HR_dim; k++)
-                        {
-                            if (*(grid_HR + HR_INDEX(i, j, k, HR_dim)) == 0.0) fprintf(f1_pmg, "%d\t%d\t%d\n", i, j, k);
-                            
-                        }
-                fclose(f1_pmg);
-                
-                int i = 580;
-                sprintf(file1_pmg, "%s/TIAMAT_dm_density_grid_slice_i%d_snap%d.dat", run_globals->params.OutputDir, i, snapshot);
-                f1_pmg = fopen(file1_pmg, "wt");
-                for (int k = 0; k < HR_dim; k++)
+                if (snapshot==53)
                 {
-                    for (int j = 0; j < HR_dim; j++)
-                    {
-                        fprintf(f1_pmg, "%g\t", *(grid_HR + HR_INDEX(i, j, k, HR_dim)));
-                    }
-                    fprintf(f1_pmg, "\n");
+                    i = 580;
+                    j = 580;
+                    k = 260;
                 }
-                fclose(f1_pmg);
                 
-                int j = 580;
-                sprintf(file1_pmg, "%s/TIAMAT_dm_density_grid_slice_j%d_snap%d.dat", run_globals->params.OutputDir, j, snapshot);
-                f1_pmg = fopen(file1_pmg, "wt");
-                for (int k = 0; k < HR_dim; k++)
+                if (snapshot==57)
                 {
-                    for (int i = 0; i < HR_dim; i++)
-                    {
-                        fprintf(f1_pmg, "%g\t", *(grid_HR + HR_INDEX(i, j, k, HR_dim)));
-                    }
-                    fprintf(f1_pmg, "\n");
+                    i = 550;
+                    j = 130;
+                    k = 520;
                 }
-                fclose(f1_pmg);
                 
-                int k = 260;
-                sprintf(file1_pmg, "%s/TIAMAT_dm_density_grid_slice_k%d_snap%d.dat", run_globals->params.OutputDir, k, snapshot);
-                f1_pmg = fopen(file1_pmg, "wt");
-                for (int j = 0; j < HR_dim; j++)
+                if (snapshot==61)
                 {
-                    for (int i = 0; i < HR_dim; i++)
-                    {
-                        fprintf(f1_pmg, "%g\t", *(grid_HR + HR_INDEX(i, j, k, HR_dim)));
-                    }
-                    fprintf(f1_pmg, "\n");
+                    i = 710;
+                    j = 325;
+                    k = 770;
                 }
-                fclose(f1_pmg);
+                
+                if (snapshot==65)
+                {
+                    i = 1020;
+                    j = 620;
+                    k = 620;
+                }
+                
+                if (snapshot==69)
+                {
+                    i = 515;
+                    j = 770;
+                    k = 260;
+                }
+                
+                write_HR_i_slice(grid_HR, HR_dim, snapshot, i, run_globals->params.OutputDir);
+                write_HR_j_slice(grid_HR, HR_dim, snapshot, j, run_globals->params.OutputDir);
+                write_HR_k_slice(grid_HR, HR_dim, snapshot, k, run_globals->params.OutputDir);
             }
-            
+             
         }
         
-        if (snapshot==57)
-        {
-            empty_count = 0;
-            for (int i = 0; i < HR_dim; i++)
-                for (int j = 0; j < HR_dim; j++)
-                    for (int k = 0; k < HR_dim; k++)
-                    {
-                        if (*(grid_HR + HR_INDEX(i, j, k, HR_dim)) == 0.0) empty_count++;
-                        
-                    }
-            
-            if(empty_count)
-            {
-                sprintf(file1_pmg, "%s/TIAMAT_dm_density_snap%d_%d_EMPTIES.dat", run_globals->params.OutputDir, snapshot, empty_count);
-                f1_pmg = fopen(file1_pmg, "wt");
-                
-                for (int i = 0; i < HR_dim; i++)
-                    for (int j = 0; j < HR_dim; j++)
-                        for (int k = 0; k < HR_dim; k++)
-                        {
-                            if (*(grid_HR + HR_INDEX(i, j, k, HR_dim)) == 0.0) fprintf(f1_pmg, "%d\t%d\t%d\n", i, j, k);
-                            
-                        }
-                fclose(f1_pmg);
-                
-                int i = 550;
-                sprintf(file1_pmg, "%s/TIAMAT_dm_density_grid_slice_i%d_snap%d.dat", run_globals->params.OutputDir, i, snapshot);
-                f1_pmg = fopen(file1_pmg, "wt");
-                for (int k = 0; k < HR_dim; k++)
-                {
-                    for (int j = 0; j < HR_dim; j++)
-                    {
-                        fprintf(f1_pmg, "%g\t", *(grid_HR + HR_INDEX(i, j, k, HR_dim)));
-                    }
-                    fprintf(f1_pmg, "\n");
-                }
-                fclose(f1_pmg);
-                
-                int j = 130;
-                sprintf(file1_pmg, "%s/TIAMAT_dm_density_grid_slice_j%d_snap%d.dat", run_globals->params.OutputDir, j, snapshot);
-                f1_pmg = fopen(file1_pmg, "wt");
-                for (int k = 0; k < HR_dim; k++)
-                {
-                    for (int i = 0; i < HR_dim; i++)
-                    {
-                        fprintf(f1_pmg, "%g\t", *(grid_HR + HR_INDEX(i, j, k, HR_dim)));
-                    }
-                    fprintf(f1_pmg, "\n");
-                }
-                fclose(f1_pmg);
-                
-                int k = 520;
-                sprintf(file1_pmg, "%s/TIAMAT_dm_density_grid_slice_k%d_snap%d.dat", run_globals->params.OutputDir, k, snapshot);
-                f1_pmg = fopen(file1_pmg, "wt");
-                for (int j = 0; j < HR_dim; j++)
-                {
-                    for (int i = 0; i < HR_dim; i++)
-                    {
-                        fprintf(f1_pmg, "%g\t", *(grid_HR + HR_INDEX(i, j, k, HR_dim)));
-                    }
-                    fprintf(f1_pmg, "\n");
-                }
-                fclose(f1_pmg);
-            }
-            
-        }
         
-        if (snapshot==61)
-        {
-            empty_count = 0;
-            for (int i = 0; i < HR_dim; i++)
-                for (int j = 0; j < HR_dim; j++)
-                    for (int k = 0; k < HR_dim; k++)
-                    {
-                        if (*(grid_HR + HR_INDEX(i, j, k, HR_dim)) == 0.0) empty_count++;
-                        
-                    }
-            
-            if(empty_count)
-            {
-                sprintf(file1_pmg, "%s/TIAMAT_dm_density_snap%d_%d_EMPTIES.dat", run_globals->params.OutputDir, snapshot, empty_count);
-                f1_pmg = fopen(file1_pmg, "wt");
-                
-                for (int i = 0; i < HR_dim; i++)
-                    for (int j = 0; j < HR_dim; j++)
-                        for (int k = 0; k < HR_dim; k++)
-                        {
-                            if (*(grid_HR + HR_INDEX(i, j, k, HR_dim)) == 0.0) fprintf(f1_pmg, "%d\t%d\t%d\n", i, j, k);
-                            
-                        }
-                fclose(f1_pmg);
-                
-                int i = 710;
-                sprintf(file1_pmg, "%s/TIAMAT_dm_density_grid_slice_i%d_snap%d.dat", run_globals->params.OutputDir, i, snapshot);
-                f1_pmg = fopen(file1_pmg, "wt");
-                for (int k = 0; k < HR_dim; k++)
-                {
-                    for (int j = 0; j < HR_dim; j++)
-                    {
-                        fprintf(f1_pmg, "%g\t", *(grid_HR + HR_INDEX(i, j, k, HR_dim)));
-                    }
-                    fprintf(f1_pmg, "\n");
-                }
-                fclose(f1_pmg);
-                
-                int j = 325;
-                sprintf(file1_pmg, "%s/TIAMAT_dm_density_grid_slice_j%d_snap%d.dat", run_globals->params.OutputDir, j, snapshot);
-                f1_pmg = fopen(file1_pmg, "wt");
-                for (int k = 0; k < HR_dim; k++)
-                {
-                    for (int i = 0; i < HR_dim; i++)
-                    {
-                        fprintf(f1_pmg, "%g\t", *(grid_HR + HR_INDEX(i, j, k, HR_dim)));
-                    }
-                    fprintf(f1_pmg, "\n");
-                }
-                fclose(f1_pmg);
-                
-                int k = 770;
-                sprintf(file1_pmg, "%s/TIAMAT_dm_density_grid_slice_k%d_snap%d.dat", run_globals->params.OutputDir, k, snapshot);
-                f1_pmg = fopen(file1_pmg, "wt");
-                for (int j = 0; j < HR_dim; j++)
-                {
-                    for (int i = 0; i < HR_dim; i++)
-                    {
-                        fprintf(f1_pmg, "%g\t", *(grid_HR + HR_INDEX(i, j, k, HR_dim)));
-                    }
-                    fprintf(f1_pmg, "\n");
-                }
-                fclose(f1_pmg);
-            }
-            
-        }
         
-        if (snapshot==65)
-        {
-            empty_count = 0;
-            for (int i = 0; i < HR_dim; i++)
-                for (int j = 0; j < HR_dim; j++)
-                    for (int k = 0; k < HR_dim; k++)
-                    {
-                        if (*(grid_HR + HR_INDEX(i, j, k, HR_dim)) == 0.0) empty_count++;
-                        
-                    }
-            
-            if(empty_count)
-            {
-                sprintf(file1_pmg, "%s/TIAMAT_dm_density_snap%d_%d_EMPTIES.dat", run_globals->params.OutputDir, snapshot, empty_count);
-                f1_pmg = fopen(file1_pmg, "wt");
-                
-                for (int i = 0; i < HR_dim; i++)
-                    for (int j = 0; j < HR_dim; j++)
-                        for (int k = 0; k < HR_dim; k++)
-                        {
-                            if (*(grid_HR + HR_INDEX(i, j, k, HR_dim)) == 0.0) fprintf(f1_pmg, "%d\t%d\t%d\n", i, j, k);
-                            
-                        }
-                fclose(f1_pmg);
-                
-                int i = 1020;
-                sprintf(file1_pmg, "%s/TIAMAT_dm_density_grid_slice_i%d_snap%d.dat", run_globals->params.OutputDir, i, snapshot);
-                f1_pmg = fopen(file1_pmg, "wt");
-                for (int k = 0; k < HR_dim; k++)
-                {
-                    for (int j = 0; j < HR_dim; j++)
-                    {
-                        fprintf(f1_pmg, "%g\t", *(grid_HR + HR_INDEX(i, j, k, HR_dim)));
-                    }
-                    fprintf(f1_pmg, "\n");
-                }
-                fclose(f1_pmg);
-                
-                int j = 620;
-                sprintf(file1_pmg, "%s/TIAMAT_dm_density_grid_slice_j%d_snap%d.dat", run_globals->params.OutputDir, j, snapshot);
-                f1_pmg = fopen(file1_pmg, "wt");
-                for (int k = 0; k < HR_dim; k++)
-                {
-                    for (int i = 0; i < HR_dim; i++)
-                    {
-                        fprintf(f1_pmg, "%g\t", *(grid_HR + HR_INDEX(i, j, k, HR_dim)));
-                    }
-                    fprintf(f1_pmg, "\n");
-                }
-                fclose(f1_pmg);
-                
-                int k = 620;
-                sprintf(file1_pmg, "%s/TIAMAT_dm_density_grid_slice_k%d_snap%d.dat", run_globals->params.OutputDir, k, snapshot);
-                f1_pmg = fopen(file1_pmg, "wt");
-                for (int j = 0; j < HR_dim; j++)
-                {
-                    for (int i = 0; i < HR_dim; i++)
-                    {
-                        fprintf(f1_pmg, "%g\t", *(grid_HR + HR_INDEX(i, j, k, HR_dim)));
-                    }
-                    fprintf(f1_pmg, "\n");
-                }
-                fclose(f1_pmg);
-            }
-            
-        }
+//        FILE *f1_pmg;
+//        char file1_pmg[128];
+//        long long empty_count_HR;
+//        long long empty_count_LR;
         
-        if (snapshot==69)
-        {
-            empty_count = 0;
-            for (int i = 0; i < HR_dim; i++)
-                for (int j = 0; j < HR_dim; j++)
-                    for (int k = 0; k < HR_dim; k++)
-                    {
-                        if (*(grid_HR + HR_INDEX(i, j, k, HR_dim)) == 0.0) empty_count++;
-                        
-                    }
-            
-            if(empty_count)
-            {
-                sprintf(file1_pmg, "%s/TIAMAT_dm_density_snap%d_%d_EMPTIES.dat", run_globals->params.OutputDir, snapshot, empty_count);
-                f1_pmg = fopen(file1_pmg, "wt");
-                
-                for (int i = 0; i < HR_dim; i++)
-                    for (int j = 0; j < HR_dim; j++)
-                        for (int k = 0; k < HR_dim; k++)
-                        {
-                            if (*(grid_HR + HR_INDEX(i, j, k, HR_dim)) == 0.0) fprintf(f1_pmg, "%d\t%d\t%d\n", i, j, k);
-                            
-                        }
-                fclose(f1_pmg);
-                
-                int i = 515;
-                sprintf(file1_pmg, "%s/TIAMAT_dm_density_grid_slice_i%d_snap%d.dat", run_globals->params.OutputDir, i, snapshot);
-                f1_pmg = fopen(file1_pmg, "wt");
-                for (int k = 0; k < HR_dim; k++)
-                {
-                    for (int j = 0; j < HR_dim; j++)
-                    {
-                        fprintf(f1_pmg, "%g\t", *(grid_HR + HR_INDEX(i, j, k, HR_dim)));
-                    }
-                    fprintf(f1_pmg, "\n");
-                }
-                fclose(f1_pmg);
-                
-                int j = 770;
-                sprintf(file1_pmg, "%s/TIAMAT_dm_density_grid_slice_j%d_snap%d.dat", run_globals->params.OutputDir, j, snapshot);
-                f1_pmg = fopen(file1_pmg, "wt");
-                for (int k = 0; k < HR_dim; k++)
-                {
-                    for (int i = 0; i < HR_dim; i++)
-                    {
-                        fprintf(f1_pmg, "%g\t", *(grid_HR + HR_INDEX(i, j, k, HR_dim)));
-                    }
-                    fprintf(f1_pmg, "\n");
-                }
-                fclose(f1_pmg);
-                
-                int k = 260;
-                sprintf(file1_pmg, "%s/TIAMAT_dm_density_grid_slice_k%d_snap%d.dat", run_globals->params.OutputDir, k, snapshot);
-                f1_pmg = fopen(file1_pmg, "wt");
-                for (int j = 0; j < HR_dim; j++)
-                {
-                    for (int i = 0; i < HR_dim; i++)
-                    {
-                        fprintf(f1_pmg, "%g\t", *(grid_HR + HR_INDEX(i, j, k, HR_dim)));
-                    }
-                    fprintf(f1_pmg, "\n");
-                }
-                fclose(f1_pmg);
-            }
-            
-        }
+//        if (snapshot==53)
+//        {
+//            empty_count_HR = find_HR_empty_count(grid_HR, HR_dim);
+//            SID_log("empty_count_HR = %d", SID_LOG_COMMENT, empty_count_HR);
+//            
+//            
+//            if(empty_count_HR)
+//            {
+//                write_list_of_HR_empties(grid_HR, HR_dim, snapshot, empty_count_HR, run_globals->params.OutputDir);
+//                
+//                int i = 580;
+//                sprintf(file1_pmg, "%s/TIAMAT_dm_density_grid_slice_i%d_snap%d.dat", run_globals->params.OutputDir, i, snapshot);
+//                f1_pmg = fopen(file1_pmg, "wt");
+//                for (int k = 0; k < HR_dim; k++)
+//                {
+//                    for (int j = 0; j < HR_dim; j++)
+//                    {
+//                        fprintf(f1_pmg, "%g\t", *(grid_HR + HR_INDEX(i, j, k, HR_dim)));
+//                    }
+//                    fprintf(f1_pmg, "\n");
+//                }
+//                fclose(f1_pmg);
+//                
+//                int j = 580;
+//                sprintf(file1_pmg, "%s/TIAMAT_dm_density_grid_slice_j%d_snap%d.dat", run_globals->params.OutputDir, j, snapshot);
+//                f1_pmg = fopen(file1_pmg, "wt");
+//                for (int k = 0; k < HR_dim; k++)
+//                {
+//                    for (int i = 0; i < HR_dim; i++)
+//                    {
+//                        fprintf(f1_pmg, "%g\t", *(grid_HR + HR_INDEX(i, j, k, HR_dim)));
+//                    }
+//                    fprintf(f1_pmg, "\n");
+//                }
+//                fclose(f1_pmg);
+//                
+//                int k = 260;
+//                sprintf(file1_pmg, "%s/TIAMAT_dm_density_grid_slice_k%d_snap%d.dat", run_globals->params.OutputDir, k, snapshot);
+//                f1_pmg = fopen(file1_pmg, "wt");
+//                for (int j = 0; j < HR_dim; j++)
+//                {
+//                    for (int i = 0; i < HR_dim; i++)
+//                    {
+//                        fprintf(f1_pmg, "%g\t", *(grid_HR + HR_INDEX(i, j, k, HR_dim)));
+//                    }
+//                    fprintf(f1_pmg, "\n");
+//                }
+//                fclose(f1_pmg);
+//            }
+//            
+//        }
+        
+//        if (snapshot==57)
+//        {
+//            empty_count_HR = find_HR_empty_count(grid_HR, HR_dim);
+//            SID_log("empty_count_HR = %d", SID_LOG_COMMENT, empty_count_HR);
+//            
+//            if(empty_count_HR)
+//            {
+//                write_list_of_HR_empties(grid_HR, HR_dim, snapshot, empty_count_HR, run_globals->params.OutputDir);
+//                
+//                int i = 550;
+//                sprintf(file1_pmg, "%s/TIAMAT_dm_density_grid_slice_i%d_snap%d.dat", run_globals->params.OutputDir, i, snapshot);
+//                f1_pmg = fopen(file1_pmg, "wt");
+//                for (int k = 0; k < HR_dim; k++)
+//                {
+//                    for (int j = 0; j < HR_dim; j++)
+//                    {
+//                        fprintf(f1_pmg, "%g\t", *(grid_HR + HR_INDEX(i, j, k, HR_dim)));
+//                    }
+//                    fprintf(f1_pmg, "\n");
+//                }
+//                fclose(f1_pmg);
+//                
+//                int j = 130;
+//                sprintf(file1_pmg, "%s/TIAMAT_dm_density_grid_slice_j%d_snap%d.dat", run_globals->params.OutputDir, j, snapshot);
+//                f1_pmg = fopen(file1_pmg, "wt");
+//                for (int k = 0; k < HR_dim; k++)
+//                {
+//                    for (int i = 0; i < HR_dim; i++)
+//                    {
+//                        fprintf(f1_pmg, "%g\t", *(grid_HR + HR_INDEX(i, j, k, HR_dim)));
+//                    }
+//                    fprintf(f1_pmg, "\n");
+//                }
+//                fclose(f1_pmg);
+//                
+//                int k = 520;
+//                sprintf(file1_pmg, "%s/TIAMAT_dm_density_grid_slice_k%d_snap%d.dat", run_globals->params.OutputDir, k, snapshot);
+//                f1_pmg = fopen(file1_pmg, "wt");
+//                for (int j = 0; j < HR_dim; j++)
+//                {
+//                    for (int i = 0; i < HR_dim; i++)
+//                    {
+//                        fprintf(f1_pmg, "%g\t", *(grid_HR + HR_INDEX(i, j, k, HR_dim)));
+//                    }
+//                    fprintf(f1_pmg, "\n");
+//                }
+//                fclose(f1_pmg);
+//            }
+//            
+//        }
+        
+//        if (snapshot==61)
+//        {
+//            empty_count_HR = find_HR_empty_count(grid_HR, HR_dim);
+//            SID_log("empty_count_HR = %d", SID_LOG_COMMENT, empty_count_HR);
+//            
+//            if(empty_count_HR)
+//            {
+//                write_list_of_HR_empties(grid_HR, HR_dim, snapshot, empty_count_HR, run_globals->params.OutputDir);
+//                
+//                int i = 710;
+//                sprintf(file1_pmg, "%s/TIAMAT_dm_density_grid_slice_i%d_snap%d.dat", run_globals->params.OutputDir, i, snapshot);
+//                f1_pmg = fopen(file1_pmg, "wt");
+//                for (int k = 0; k < HR_dim; k++)
+//                {
+//                    for (int j = 0; j < HR_dim; j++)
+//                    {
+//                        fprintf(f1_pmg, "%g\t", *(grid_HR + HR_INDEX(i, j, k, HR_dim)));
+//                    }
+//                    fprintf(f1_pmg, "\n");
+//                }
+//                fclose(f1_pmg);
+//                
+//                int j = 325;
+//                sprintf(file1_pmg, "%s/TIAMAT_dm_density_grid_slice_j%d_snap%d.dat", run_globals->params.OutputDir, j, snapshot);
+//                f1_pmg = fopen(file1_pmg, "wt");
+//                for (int k = 0; k < HR_dim; k++)
+//                {
+//                    for (int i = 0; i < HR_dim; i++)
+//                    {
+//                        fprintf(f1_pmg, "%g\t", *(grid_HR + HR_INDEX(i, j, k, HR_dim)));
+//                    }
+//                    fprintf(f1_pmg, "\n");
+//                }
+//                fclose(f1_pmg);
+//                
+//                int k = 770;
+//                sprintf(file1_pmg, "%s/TIAMAT_dm_density_grid_slice_k%d_snap%d.dat", run_globals->params.OutputDir, k, snapshot);
+//                f1_pmg = fopen(file1_pmg, "wt");
+//                for (int j = 0; j < HR_dim; j++)
+//                {
+//                    for (int i = 0; i < HR_dim; i++)
+//                    {
+//                        fprintf(f1_pmg, "%g\t", *(grid_HR + HR_INDEX(i, j, k, HR_dim)));
+//                    }
+//                    fprintf(f1_pmg, "\n");
+//                }
+//                fclose(f1_pmg);
+//            }
+//            
+//        }
+        
+//        if (snapshot==65)
+//        {
+//            empty_count_HR = find_HR_empty_count(grid_HR, HR_dim);
+//            SID_log("empty_count_HR = %d", SID_LOG_COMMENT, empty_count_HR);
+//            
+//            if(empty_count_HR)
+//            {
+//                write_list_of_HR_empties(grid_HR, HR_dim, snapshot, empty_count_HR, run_globals->params.OutputDir);
+//                
+//                int i = 1020;
+//                sprintf(file1_pmg, "%s/TIAMAT_dm_density_grid_slice_i%d_snap%d.dat", run_globals->params.OutputDir, i, snapshot);
+//                f1_pmg = fopen(file1_pmg, "wt");
+//                for (int k = 0; k < HR_dim; k++)
+//                {
+//                    for (int j = 0; j < HR_dim; j++)
+//                    {
+//                        fprintf(f1_pmg, "%g\t", *(grid_HR + HR_INDEX(i, j, k, HR_dim)));
+//                    }
+//                    fprintf(f1_pmg, "\n");
+//                }
+//                fclose(f1_pmg);
+//                
+//                int j = 620;
+//                sprintf(file1_pmg, "%s/TIAMAT_dm_density_grid_slice_j%d_snap%d.dat", run_globals->params.OutputDir, j, snapshot);
+//                f1_pmg = fopen(file1_pmg, "wt");
+//                for (int k = 0; k < HR_dim; k++)
+//                {
+//                    for (int i = 0; i < HR_dim; i++)
+//                    {
+//                        fprintf(f1_pmg, "%g\t", *(grid_HR + HR_INDEX(i, j, k, HR_dim)));
+//                    }
+//                    fprintf(f1_pmg, "\n");
+//                }
+//                fclose(f1_pmg);
+//                
+//                int k = 620;
+//                sprintf(file1_pmg, "%s/TIAMAT_dm_density_grid_slice_k%d_snap%d.dat", run_globals->params.OutputDir, k, snapshot);
+//                f1_pmg = fopen(file1_pmg, "wt");
+//                for (int j = 0; j < HR_dim; j++)
+//                {
+//                    for (int i = 0; i < HR_dim; i++)
+//                    {
+//                        fprintf(f1_pmg, "%g\t", *(grid_HR + HR_INDEX(i, j, k, HR_dim)));
+//                    }
+//                    fprintf(f1_pmg, "\n");
+//                }
+//                fclose(f1_pmg);
+//            }
+//            
+//        }
+        
+//        if (snapshot==69)
+//        {
+//            empty_count_HR = find_HR_empty_count(grid_HR, HR_dim);
+//            SID_log("empty_count_HR = %d", SID_LOG_COMMENT, empty_count_HR);
+//            
+//            if(empty_count_HR)
+//            {
+//                write_list_of_HR_empties(grid_HR, HR_dim, snapshot, empty_count_HR, run_globals->params.OutputDir);
+//                
+//                int i = 515;
+//                sprintf(file1_pmg, "%s/TIAMAT_dm_density_grid_slice_i%d_snap%d.dat", run_globals->params.OutputDir, i, snapshot);
+//                f1_pmg = fopen(file1_pmg, "wt");
+//                for (int k = 0; k < HR_dim; k++)
+//                {
+//                    for (int j = 0; j < HR_dim; j++)
+//                    {
+//                        fprintf(f1_pmg, "%g\t", *(grid_HR + HR_INDEX(i, j, k, HR_dim)));
+//                    }
+//                    fprintf(f1_pmg, "\n");
+//                }
+//                fclose(f1_pmg);
+//                
+//                int j = 770;
+//                sprintf(file1_pmg, "%s/TIAMAT_dm_density_grid_slice_j%d_snap%d.dat", run_globals->params.OutputDir, j, snapshot);
+//                f1_pmg = fopen(file1_pmg, "wt");
+//                for (int k = 0; k < HR_dim; k++)
+//                {
+//                    for (int i = 0; i < HR_dim; i++)
+//                    {
+//                        fprintf(f1_pmg, "%g\t", *(grid_HR + HR_INDEX(i, j, k, HR_dim)));
+//                    }
+//                    fprintf(f1_pmg, "\n");
+//                }
+//                fclose(f1_pmg);
+//                
+//                int k = 260;
+//                sprintf(file1_pmg, "%s/TIAMAT_dm_density_grid_slice_k%d_snap%d.dat", run_globals->params.OutputDir, k, snapshot);
+//                f1_pmg = fopen(file1_pmg, "wt");
+//                for (int j = 0; j < HR_dim; j++)
+//                {
+//                    for (int i = 0; i < HR_dim; i++)
+//                    {
+//                        fprintf(f1_pmg, "%g\t", *(grid_HR + HR_INDEX(i, j, k, HR_dim)));
+//                    }
+//                    fprintf(f1_pmg, "\n");
+//                }
+//                fclose(f1_pmg);
+//            }
+//            
+//        }
         
         
         
         // QUICK FIX FOR TIAMAT !!!
         //
-        // From previous analysius, we know that the offending maximum spike voxel for these snapshots is (0, 0, 0)
+        // From previous analysis, we know that the offending maximum spike voxel for these snapshots is (0, 0, 0)
         // Now reset its value to that of the average over its neigbours
         //
         // If this is a problem snapshot then do the averaging
@@ -523,6 +577,15 @@ int read_dm_grid(
                                                        *(grid_HR + HR_INDEX(0, 0, HR_dim - 1, HR_dim))) / 6.0;
             SID_log("...done", SID_LOG_CLOSE);
         }
+        
+        
+        
+        
+        
+        
+        
+        
+        
         
         // Regrid
         mean = 0.0;
@@ -554,27 +617,23 @@ int read_dm_grid(
         
         if (snapshot==53)
         {
-            empty_count = 0;
-            for (int i = 0; i < HII_dim; i++)
-                for (int j = 0; j < HII_dim; j++)
-                    for (int k = 0; k < HII_dim; k++)
-                    {
-                        if (*(grid + HII_R_INDEX(i, j, k)) == -1.0) empty_count++;
-                        
-                    }
+            empty_count_LR = find_LR_empty_count(grid, HII_dim);
+            SID_log("empty_count_LR = %d", SID_LOG_COMMENT, empty_count_LR);
             
-            if(empty_count)
+            if(empty_count_LR)
             {
-                sprintf(file1_pmg, "%s/TIAMAT_LR_overdensity_snap%d_%d_EMPTIES.dat", run_globals->params.OutputDir, snapshot, empty_count);
-                f1_pmg = fopen(file1_pmg, "wt");
-                for (int i = 0; i < HII_dim; i++)
-                    for (int j = 0; j < HII_dim; j++)
-                        for (int k = 0; k < HII_dim; k++)
-                        {
-                            if (*(grid + HII_R_INDEX(i, j, k)) == -1.0) fprintf(f1_pmg, "%d\t%d\t%d\n", i, j, k);
-                            
-                        }
-                fclose(f1_pmg);
+//                sprintf(file1_pmg, "%s/TIAMAT_LR_overdensity_snap%d_%d_EMPTIES.dat", run_globals->params.OutputDir, snapshot, empty_count_LR);
+//                f1_pmg = fopen(file1_pmg, "wt");
+//                for (int i = 0; i < HII_dim; i++)
+//                    for (int j = 0; j < HII_dim; j++)
+//                        for (int k = 0; k < HII_dim; k++)
+//                        {
+//                            if (*(grid + HII_R_INDEX(i, j, k)) == -1.0) fprintf(f1_pmg, "%d\t%d\t%d\n", i, j, k);
+//                            
+//                        }
+//                fclose(f1_pmg);
+                
+                write_list_of_LR_empties(grid, HII_dim, snapshot, empty_count_LR, run_globals->params.OutputDir);
                 
                 int i = 145;
                 sprintf(file1_pmg, "%s/TIAMAT_LR_density_contrast_grid_slice_i%d_snap%d.dat", run_globals->params.OutputDir, i, snapshot);
@@ -620,27 +679,23 @@ int read_dm_grid(
         
         if (snapshot==57)
         {
-            empty_count = 0;
-            for (int i = 0; i < HII_dim; i++)
-                for (int j = 0; j < HII_dim; j++)
-                    for (int k = 0; k < HII_dim; k++)
-                    {
-                        if (*(grid + HII_R_INDEX(i, j, k)) == -1.0) empty_count++;
-                        
-                    }
+            empty_count_LR = find_LR_empty_count(grid, HII_dim);
+            SID_log("empty_count_LR = %d", SID_LOG_COMMENT, empty_count_LR);
             
-            if(empty_count)
+            if(empty_count_LR)
             {
-                sprintf(file1_pmg, "%s/TIAMAT_LR_overdensity_snap%d_%d_EMPTIES.dat", run_globals->params.OutputDir, snapshot, empty_count);
-                f1_pmg = fopen(file1_pmg, "wt");
-                for (int i = 0; i < HII_dim; i++)
-                    for (int j = 0; j < HII_dim; j++)
-                        for (int k = 0; k < HII_dim; k++)
-                        {
-                            if (*(grid + HII_R_INDEX(i, j, k)) == -1.0) fprintf(f1_pmg, "%d\t%d\t%d\n", i, j, k);
-                            
-                        }
-                fclose(f1_pmg);
+//                sprintf(file1_pmg, "%s/TIAMAT_LR_overdensity_snap%d_%d_EMPTIES.dat", run_globals->params.OutputDir, snapshot, empty_count_LR);
+//                f1_pmg = fopen(file1_pmg, "wt");
+//                for (int i = 0; i < HII_dim; i++)
+//                    for (int j = 0; j < HII_dim; j++)
+//                        for (int k = 0; k < HII_dim; k++)
+//                        {
+//                            if (*(grid + HII_R_INDEX(i, j, k)) == -1.0) fprintf(f1_pmg, "%d\t%d\t%d\n", i, j, k);
+//                            
+//                        }
+//                fclose(f1_pmg);
+                
+                write_list_of_LR_empties(grid, HII_dim, snapshot, empty_count_LR, run_globals->params.OutputDir);
                 
                 int i = 139;
                 sprintf(file1_pmg, "%s/TIAMAT_LR_density_contrast_grid_slice_i%d_snap%d.dat", run_globals->params.OutputDir, i, snapshot);
@@ -685,27 +740,23 @@ int read_dm_grid(
         
         if (snapshot==61)
         {
-            empty_count = 0;
-            for (int i = 0; i < HII_dim; i++)
-                for (int j = 0; j < HII_dim; j++)
-                    for (int k = 0; k < HII_dim; k++)
-                    {
-                        if (*(grid + HII_R_INDEX(i, j, k)) == -1.0) empty_count++;
-                        
-                    }
+            empty_count_LR = find_LR_empty_count(grid, HII_dim);
+            SID_log("empty_count_LR = %d", SID_LOG_COMMENT, empty_count_LR);
             
-            if(empty_count)
+            if(empty_count_LR)
             {
-                sprintf(file1_pmg, "%s/TIAMAT_LR_overdensity_snap%d_%d_EMPTIES.dat", run_globals->params.OutputDir, snapshot, empty_count);
-                f1_pmg = fopen(file1_pmg, "wt");
-                for (int i = 0; i < HII_dim; i++)
-                    for (int j = 0; j < HII_dim; j++)
-                        for (int k = 0; k < HII_dim; k++)
-                        {
-                            if (*(grid + HII_R_INDEX(i, j, k)) == -1.0) fprintf(f1_pmg, "%d\t%d\t%d\n", i, j, k);
-                            
-                        }
-                fclose(f1_pmg);
+//                sprintf(file1_pmg, "%s/TIAMAT_LR_overdensity_snap%d_%d_EMPTIES.dat", run_globals->params.OutputDir, snapshot, empty_count_LR);
+//                f1_pmg = fopen(file1_pmg, "wt");
+//                for (int i = 0; i < HII_dim; i++)
+//                    for (int j = 0; j < HII_dim; j++)
+//                        for (int k = 0; k < HII_dim; k++)
+//                        {
+//                            if (*(grid + HII_R_INDEX(i, j, k)) == -1.0) fprintf(f1_pmg, "%d\t%d\t%d\n", i, j, k);
+//                            
+//                        }
+//                fclose(f1_pmg);
+                
+                write_list_of_LR_empties(grid, HII_dim, snapshot, empty_count_LR, run_globals->params.OutputDir);
                 
                 int i = 179;
                 sprintf(file1_pmg, "%s/TIAMAT_LR_density_contrast_grid_slice_i%d_snap%d.dat", run_globals->params.OutputDir, i, snapshot);
@@ -751,29 +802,25 @@ int read_dm_grid(
         
         if (snapshot==65)
         {
-            empty_count = 0;
-            for (int i = 0; i < HII_dim; i++)
-                for (int j = 0; j < HII_dim; j++)
-                    for (int k = 0; k < HII_dim; k++)
-                    {
-                        if (*(grid + HII_R_INDEX(i, j, k)) == -1.0) empty_count++;
-                        
-                    }
+            empty_count_LR = find_LR_empty_count(grid, HII_dim);
+            SID_log("empty_count_LR = %d", SID_LOG_COMMENT, empty_count_LR);
             
-            if(empty_count)
+            if(empty_count_LR)
             {
-                sprintf(file1_pmg, "%s/TIAMAT_LR_overdensity_snap%d_%d_EMPTIES.dat", run_globals->params.OutputDir, snapshot, empty_count);
-                f1_pmg = fopen(file1_pmg, "wt");
-                for (int i = 0; i < HII_dim; i++)
-                    for (int j = 0; j < HII_dim; j++)
-                        for (int k = 0; k < HII_dim; k++)
-                        {
-                            if (*(grid + HII_R_INDEX(i, j, k)) == -1.0) fprintf(f1_pmg, "%d\t%d\t%d\n", i, j, k);
-                            
-                        }
-                fclose(f1_pmg);
+//                sprintf(file1_pmg, "%s/TIAMAT_LR_overdensity_snap%d_%d_EMPTIES.dat", run_globals->params.OutputDir, snapshot, empty_count_LR);
+//                f1_pmg = fopen(file1_pmg, "wt");
+//                for (int i = 0; i < HII_dim; i++)
+//                    for (int j = 0; j < HII_dim; j++)
+//                        for (int k = 0; k < HII_dim; k++)
+//                        {
+//                            if (*(grid + HII_R_INDEX(i, j, k)) == -1.0) fprintf(f1_pmg, "%d\t%d\t%d\n", i, j, k);
+//                            
+//                        }
+//                fclose(f1_pmg);
                 
-                int i = 257;
+                write_list_of_LR_empties(grid, HII_dim, snapshot, empty_count_LR, run_globals->params.OutputDir);
+                
+                int i = 255;
                 sprintf(file1_pmg, "%s/TIAMAT_LR_density_contrast_grid_slice_i%d_snap%d.dat", run_globals->params.OutputDir, i, snapshot);
                 f1_pmg = fopen(file1_pmg, "wt");
                 for (int k = 0; k < HII_dim; k++)
@@ -817,27 +864,23 @@ int read_dm_grid(
         
         if (snapshot==69)
         {
-            empty_count = 0;
-            for (int i = 0; i < HII_dim; i++)
-                for (int j = 0; j < HII_dim; j++)
-                    for (int k = 0; k < HII_dim; k++)
-                    {
-                        if (*(grid + HII_R_INDEX(i, j, k)) == -1.0) empty_count++;
-                        
-                    }
+            empty_count_LR = find_LR_empty_count(grid, HII_dim);
+            SID_log("empty_count_LR = %d", SID_LOG_COMMENT, empty_count_LR);
             
-            if(empty_count)
+            if(empty_count_LR)
             {
-                sprintf(file1_pmg, "%s/TIAMAT_LR_overdensity_snap%d_%d_EMPTIES.dat", run_globals->params.OutputDir, snapshot, empty_count);
-                f1_pmg = fopen(file1_pmg, "wt");
-                for (int i = 0; i < HII_dim; i++)
-                    for (int j = 0; j < HII_dim; j++)
-                        for (int k = 0; k < HII_dim; k++)
-                        {
-                            if (*(grid + HII_R_INDEX(i, j, k)) == -1.0) fprintf(f1_pmg, "%d\t%d\t%d\n", i, j, k);
-                            
-                        }
-                fclose(f1_pmg);
+//                sprintf(file1_pmg, "%s/TIAMAT_LR_overdensity_snap%d_%d_EMPTIES.dat", run_globals->params.OutputDir, snapshot, empty_count_LR);
+//                f1_pmg = fopen(file1_pmg, "wt");
+//                for (int i = 0; i < HII_dim; i++)
+//                    for (int j = 0; j < HII_dim; j++)
+//                        for (int k = 0; k < HII_dim; k++)
+//                        {
+//                            if (*(grid + HII_R_INDEX(i, j, k)) == -1.0) fprintf(f1_pmg, "%d\t%d\t%d\n", i, j, k);
+//                            
+//                        }
+//                fclose(f1_pmg);
+                
+                write_list_of_LR_empties(grid, HII_dim, snapshot, empty_count_LR, run_globals->params.OutputDir);
                 
                 int i = 130;
                 sprintf(file1_pmg, "%s/TIAMAT_LR_density_contrast_grid_slice_i%d_snap%d.dat", run_globals->params.OutputDir, i, snapshot);
