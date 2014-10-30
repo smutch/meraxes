@@ -11,7 +11,7 @@ Arguments:
 import numpy as np
 import matplotlib.pyplot as plt
 from docopt import docopt
-from ssimpl import plotutils, meraxes, munge
+from dragons import plotutils, meraxes, munge
 import pandas as pd
 from astropy import log
 import os
@@ -109,7 +109,7 @@ def plot(gals, simprops, ax, h):
 
     # # plot the observations
     # ax.errorbar(obs.sm, obs.log_phi, yerr=obs.err,
-    #             label="Katsianis et al. 2014", ls="none",
+    #             label="Katsianis et al. 2014", ls="None",
     #             lw=4, capsize=0)
 
     # add some text

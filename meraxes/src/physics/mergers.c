@@ -14,6 +14,7 @@ double calculate_merging_time(run_globals_t *run_globals, galaxy_t *sat, int sna
   double mergtime;
   double sat_mass;
   double sat_rad;
+  double min_stellar_mass;
 
   // Note that we are assuming in this function that the halo properties
   // attached to the galaxies still correspond to the relevant values at the
@@ -25,7 +26,19 @@ double calculate_merging_time(run_globals_t *run_globals, galaxy_t *sat, int sna
   // happen due to reionization).  If true, then just set the merger clock to
   // zero.
   if ((sat->StellarMass + sat->ColdGas) < 2e-10)
-    return 0.0;
+    return -999;
+
+  parent = sat->MergerTarget;
+
+  if (parent == sat)
+  {
+    SID_log_error("Invalid merger...!");
+    ABORT(EXIT_FAILURE);
+  }
+
+  min_stellar_mass = (sat->StellarMass <= parent->StellarMass) ? sat->StellarMass : parent->StellarMass;
+  if (min_stellar_mass < run_globals->params.physics.MinMergerStellarMass)
+    return -999;
 
   // Find the merger "mother halo".  This is the most massive halo associated
   // with the merger event.  It's possible that there are >2 halos
@@ -38,14 +51,6 @@ double calculate_merging_time(run_globals_t *run_globals, galaxy_t *sat, int sna
     if ((cur_gal->OldType < 2) && (cur_gal->OldType > -1) && (cur_gal->Len > mother->Len))
       mother = cur_gal;
     cur_gal = cur_gal->NextGalInHalo;
-  }
-
-  parent = sat->MergerTarget;
-
-  if (parent == sat)
-  {
-    SID_log_error("Invalid merger...!");
-    ABORT(EXIT_FAILURE);
   }
 
   coulomb = log((double)(mother->Len) / (double)(sat->Len) + 1);
@@ -71,14 +76,9 @@ double calculate_merging_time(run_globals_t *run_globals, galaxy_t *sat, int sna
   if (sat_rad > mother->Rvir)
     sat_rad = mother->Rvir;
 
-  if (sat_mass > 1e-9)
-    mergtime =
-      run_globals->params.MergerTimeFactor *
-      1.17 * sat_rad * sat_rad * mother->Vvir / (coulomb * run_globals->G * sat_mass);
-  else
-    // if this is just a gas cloud (i.e. the infalling satellite has no stellar
-    // mass), then instantly merge
-    mergtime = -9999.9;
+  mergtime =
+    run_globals->params.physics.MergerTimeFactor *
+    1.17 * sat_rad * sat_rad * mother->Vvir / (coulomb * run_globals->G * sat_mass);
 
   return mergtime;
 }
@@ -90,8 +90,9 @@ static void merger_driven_starburst(run_globals_t *run_globals, galaxy_t *parent
   {
     // Calculate a merger driven starburst following Guo+ 2010
     double burst_mass;
+    physics_params_t *params = &(run_globals->params.physics);
 
-    burst_mass = run_globals->params.physics.MergerBurstFactor * pow(merger_ratio, 0.7) * parent->ColdGas;
+    burst_mass = params->MergerBurstFactor * pow(merger_ratio, params->MergerBurstScaling) * parent->ColdGas;
 
     if (burst_mass > 0)
     {
@@ -115,6 +116,7 @@ void merge_with_target(run_globals_t *run_globals, galaxy_t *gal, int *dead_gals
   double merger_ratio;
   double parent_baryons;
   double gal_baryons;
+  double min_stellar_mass;
 
   // Identify the parent galaxy in the merger event.
   // Note that this relies on the merger target coming before this galaxy in
@@ -154,11 +156,14 @@ void merge_with_target(run_globals_t *run_globals, galaxy_t *gal, int *dead_gals
   for (int outputbin = 0; outputbin < NOUT; outputbin++)
     sum_luminosities(run_globals, parent, gal, outputbin);
 
+  // TODO: Should this have a stellar mass / baryon limit placed on it?
   if (run_globals->params.physics.Flag_BHFeedback)
     merger_driven_BH_growth(run_globals, parent, merger_ratio);
 
   // merger driven starburst prescription
-  merger_driven_starburst(run_globals, parent, merger_ratio, snapshot);
+  min_stellar_mass = (gal->StellarMass <= parent->StellarMass) ? gal->StellarMass : parent->StellarMass;
+  if (min_stellar_mass > run_globals->params.physics.MinMergerStellarMass)
+    merger_driven_starburst(run_globals, parent, merger_ratio, snapshot);
 
   // Mark the merged galaxy as dead
   gal->Type          = 3;

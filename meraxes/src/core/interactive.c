@@ -20,32 +20,33 @@ static int prompt_char(const char *message)
 
     switch (c)
     {
-    case 'y':
-    case 'Y':
-    {
-      cont = 1;
-      break;
-    }
+      case 'y':
+      case 'Y':
+        {
+          cont = 1;
+          break;
+        }
 
-    case 'n':
-    case 'N':
-    {
-      cont = 0;
-      break;
-    }
+      case 'n':
+      case 'N':
+        {
+          cont = 0;
+          break;
+        }
 
-    default:
-    {
-      printf("\nI do not understand your input...\n");
-      cont = -1;
-      break;
-    }
+      default:
+        {
+          printf("\nI do not understand your input...\n");
+          cont = -1;
+          break;
+        }
     }
   }
 
   SID_Bcast(&cont, sizeof(int), 0, SID.COMM_WORLD);
   return cont;
 }
+
 
 void continue_prompt(run_globals_t *run_globals, char *param_file)
 {

@@ -71,20 +71,23 @@ void update_reservoirs_from_sn_feedback(galaxy_t *gal, double m_reheat, double m
 
 
 static inline double calc_ejected_mass(
-  double m_reheat,
-  double sn_energy,
-  double Vvir)
+  double *m_reheat,
+  double  sn_energy,
+  double  Vvir)
 {
   double m_eject = 0.0;
 
-  if (m_reheat > 0)
+  if (*m_reheat > 0)
   {
     double Vvir_sqrd                = Vvir * Vvir;
-    double reheated_energy          = 0.5 * m_reheat * Vvir_sqrd;
+    double reheated_energy          = 0.5 * (*m_reheat) * Vvir_sqrd;
     double specific_hot_halo_energy = 0.5 * Vvir_sqrd;
     m_eject = (sn_energy - reheated_energy) / specific_hot_halo_energy;
     if (m_eject < 0)
+    {
       m_eject = 0.0;
+      *m_reheat = 2.0 * sn_energy / Vvir_sqrd;
+    }
   }
 
   return m_eject;
@@ -110,30 +113,48 @@ static inline double calc_eta_sn(run_globals_t *run_globals, double m_high, doub
   return eta_sn;
 }
 
-static inline double calc_sn_energy(run_globals_t *run_globals, double stars, double eta_sn)
+static inline double calc_sn_energy(run_globals_t *run_globals, double stars, double Vmax, double eta_sn)
 {
   // work out the energy produced by the supernova and add it to our total at this snapshot
   double E_sn          = run_globals->params.physics.EnergyPerSN / run_globals->units.UnitEnergy_in_cgs;
+  double SnEjectionScaling = run_globals->params.physics.SnEjectionScaling;
+  double SnEjectionNorm = run_globals->params.physics.SnEjectionNorm;
   double SnEjectionEff = run_globals->params.physics.SnEjectionEff;
-  double sn_energy     = 0.5 * SnEjectionEff * stars * E_sn * eta_sn;
+  double sn_energy;
 
+  if (SnEjectionScaling != 0)
+  {
+    SnEjectionEff *= 0.5 + pow(Vmax/SnEjectionNorm, -SnEjectionScaling);
+    if (SnEjectionEff > 1.0)
+      SnEjectionEff = 1.0;
+  }
+
+  sn_energy  = 0.5 * SnEjectionEff * stars * E_sn * eta_sn;
   assert(sn_energy >= 0);
+
   return sn_energy;
 }
 
 
-double calc_recycled_frac(run_globals_t *run_globals, double m_high, double m_low)
+double calc_recycled_frac(run_globals_t *run_globals, double m_high, double m_low, double *burst_mass_frac)
 {
   // calculate the mass ejected (from fraction of total SN-II that have gone off) from this burst
   double const_phi = run_globals->params.physics.IMFNormConst;    // should be 0.1706 for Salpeter
   double exponent  = run_globals->params.physics.IMFSlope + 2.0;
 
   double burst_recycled_frac = const_phi * 1.0 / exponent * (pow(m_high, exponent) - pow(m_low, exponent));
+  double frac_mass_SSP_above_SNII = 0.14417;  // Fraction of SSP with M>8Msol
 
   if (burst_recycled_frac < 0)
     SID_log("WTF? %g (%g, %g)", SID_LOG_COMMENT, burst_recycled_frac, m_low, m_high);
 
   assert(burst_recycled_frac >= 0);
+
+  *burst_mass_frac = burst_recycled_frac / frac_mass_SSP_above_SNII;
+  if (*burst_mass_frac > 1.0)
+    *burst_mass_frac = 1.0;
+
+  assert(*burst_mass_frac >= 0);
 
   return burst_recycled_frac;
 }
@@ -171,6 +192,8 @@ double sn_m_low(double log_dt)
 void delayed_supernova_feedback(run_globals_t *run_globals, galaxy_t *gal, int snapshot)
 {
   run_units_t *units = &(run_globals->units);
+  double SnReheatScaling = run_globals->params.physics.SnReheatScaling;
+  double SnReheatNorm = run_globals->params.physics.SnReheatNorm;
   double SnReheatEff = run_globals->params.physics.SnReheatEff;
   double *LTTime     = run_globals->LTTime;
 
@@ -178,6 +201,7 @@ void delayed_supernova_feedback(run_globals_t *run_globals, galaxy_t *gal, int s
   double m_low;
   double eta_sn;
   double burst_recycled_frac;
+  double burst_mass_frac;
   double snII_frac;
   double log_dt;
   double sn_energy  = 0.0;
@@ -189,6 +213,10 @@ void delayed_supernova_feedback(run_globals_t *run_globals, galaxy_t *gal, int s
 
   // If we are at snapshot < N_HISTORY_SNAPS-1 then only try to look back to snapshot 0
   int n_bursts = (snapshot >= N_HISTORY_SNAPS) ? N_HISTORY_SNAPS : snapshot;
+
+  // scale the reheating efficiency
+  if (SnReheatScaling != 0)
+    SnReheatEff *= 0.5 + pow(gal->Vmax/SnReheatNorm, -SnReheatScaling);
 
   // Loop through each of the last `N_HISTORY_SNAPS` recorded stellar mass
   // bursts and calculate the amount of energy and mass that they will release
@@ -212,7 +240,7 @@ void delayed_supernova_feedback(run_globals_t *run_globals, galaxy_t *gal, int s
       m_low  = sn_m_low(log_dt); // Msol
 
       // calculate the mass recycled from this burst
-      burst_recycled_frac = calc_recycled_frac(run_globals, m_high, m_low);
+      burst_recycled_frac = calc_recycled_frac(run_globals, m_high, m_low, &burst_mass_frac);
       m_recycled         += m_stars * burst_recycled_frac;
 
       // If m_high is > 8.0 Msol then we have already used all of the SN-II in
@@ -230,10 +258,10 @@ void delayed_supernova_feedback(run_globals_t *run_globals, galaxy_t *gal, int s
 
       // increment the total reheated and new metals masses
       m_reheat   += SnReheatEff * snII_frac * m_stars;
-      new_metals += run_globals->params.physics.Yield * m_stars * snII_frac;
+      new_metals += run_globals->params.physics.Yield * m_stars * burst_mass_frac;
 
       // now work out the energy produced by the supernova and add it to our total at this snapshot
-      sn_energy += calc_sn_energy(run_globals, m_stars, eta_sn);
+      sn_energy += calc_sn_energy(run_globals, m_stars, gal->Vmax, eta_sn);
     }
   }
 
@@ -246,11 +274,32 @@ void delayed_supernova_feedback(run_globals_t *run_globals, galaxy_t *gal, int s
     // how much mass is ejected due to this star formation episode? (ala Croton+ 2006)
     // Note that we use the Vvir of the host group here, as we are assuming that
     // only the group holds a hot halo (which is stored by the central galaxy).
-    m_eject = calc_ejected_mass(m_reheat, sn_energy, gal->Halo->FOFGroup->Vvir);
+    m_eject = calc_ejected_mass(&m_reheat, sn_energy, gal->Halo->FOFGroup->Vvir);
   }
+
+  assert(m_reheat >= 0);
+  assert(m_eject >= 0);
 
   // update the baryonic reservoirs
   update_reservoirs_from_sn_feedback(gal, m_reheat, m_eject, m_recycled, new_metals);
+
+  if ((m_reheat >= gal->ColdGas) && (gal->MaxReheatFrac < 1.0))
+    gal->MaxReheatFrac = 1.0;
+  else
+  {
+    double temp = m_reheat / gal->ColdGas;
+    if (gal->MaxReheatFrac < temp)
+      gal->MaxReheatFrac = temp;
+  }
+  if ((m_eject >= gal->ColdGas) && (gal->MaxEjectFrac < 1.0))
+    gal->MaxEjectFrac = 1.0;
+  else
+  {
+    double temp = m_eject / gal->ColdGas;
+    if (gal->MaxEjectFrac < temp)
+      gal->MaxEjectFrac = temp;
+  }
+
 }
 
 
@@ -287,6 +336,8 @@ void contemporaneous_supernova_feedback(
   // constant SFR).
 
   run_units_t *units = &(run_globals->units);
+  double SnReheatScaling = run_globals->params.physics.SnReheatScaling;
+  double SnReheatNorm = run_globals->params.physics.SnReheatNorm;
   double SnReheatEff = run_globals->params.physics.SnReheatEff;
   bool Flag_IRA  = (bool)(run_globals->params.physics.Flag_IRA);
 
@@ -294,12 +345,17 @@ void contemporaneous_supernova_feedback(
   double m_low  = 8.0;
   double eta_sn;
   double burst_recycled_frac = run_globals->params.physics.SfRecycleFraction;
+  double burst_mass_frac = 1.0;
   double snII_frac;
   double log_dt;
   double sn_energy = 0.0;
 
   // init (just in case!)
   *m_reheat = *m_recycled = *new_metals = *m_eject = 0.0;
+
+  // scale the reheating efficiency
+  if (SnReheatScaling != 0)
+    SnReheatEff *= 0.5 + pow(gal->Vmax/SnReheatNorm, -SnReheatScaling);
 
   // work out the lowest mass star which would have expended it's H & He core
   // fuel in this time
@@ -311,7 +367,7 @@ void contemporaneous_supernova_feedback(
     m_low  = sn_m_low(log_dt); // Msol
 
     // calculate the mass reheated (from fraction of total SN-II that have gone off) from this burst
-    burst_recycled_frac = calc_recycled_frac(run_globals, m_high, m_low);
+    burst_recycled_frac = calc_recycled_frac(run_globals, m_high, m_low, &burst_mass_frac);
   }
 
   *m_recycled = *m_stars * burst_recycled_frac;
@@ -337,10 +393,10 @@ void contemporaneous_supernova_feedback(
   }
 
   // how much new metals will be created by this burst?
-  *new_metals = run_globals->params.physics.Yield * *m_stars * snII_frac;
+  *new_metals = run_globals->params.physics.Yield * *m_stars * burst_mass_frac;
 
   // now work out the energy produced by the supernova
-  sn_energy = calc_sn_energy(run_globals, *m_stars, eta_sn);
+  sn_energy = calc_sn_energy(run_globals, *m_stars, gal->Vmax, eta_sn);
 
   assert(*m_reheat >= 0);
   assert(*m_recycled >= 0);
@@ -349,10 +405,30 @@ void contemporaneous_supernova_feedback(
   // how much mass is ejected due to this star formation episode? (ala Croton+ 2006)
   // Note that we use the Vvir of the host group here, as we are assuming that
   // only the group holds a hot halo (which is stored by the central galaxy).
-  *m_eject = calc_ejected_mass(*m_reheat, sn_energy, gal->Halo->FOFGroup->Vvir);
+  *m_eject = calc_ejected_mass(m_reheat, sn_energy, gal->Halo->FOFGroup->Vvir);
+
+  assert(*m_reheat >= 0);
+  assert(*m_eject >= 0);
 
   // If this is a reidentified ghost, then back fill NewStars to reflect this
   // new SF burst.
   if (!Flag_IRA && (gal->LastIdentSnap < (snapshot - 1)))
     backfill_ghost_NewStars(run_globals, gal, *m_stars, snapshot);
+
+  if ((*m_reheat >= gal->ColdGas) && (gal->MaxReheatFrac < 1.0))
+    gal->MaxReheatFrac = 1.0;
+  else
+  {
+    double temp = *m_reheat / gal->ColdGas;
+    if (gal->MaxReheatFrac < temp)
+      gal->MaxReheatFrac = temp;
+  }
+  if ((*m_eject >= gal->ColdGas) && (gal->MaxEjectFrac < 1.0))
+    gal->MaxEjectFrac = 1.0;
+  else
+  {
+    double temp = *m_eject / gal->ColdGas;
+    if (gal->MaxEjectFrac < temp)
+      gal->MaxEjectFrac = temp;
+  }
 }

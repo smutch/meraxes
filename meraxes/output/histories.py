@@ -15,7 +15,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from docopt import docopt
 
-from ssimpl import meraxes, munge, plotutils
+from dragons import meraxes, munge, plotutils
 
 __author__ = "Simon Mutch"
 __date__   = "2014-03-17"
@@ -26,7 +26,7 @@ def plot_histories(fname, gal_id, last_snapshot, output_dir, fig_format):
     # read in the galaxy history
     gal_hist = meraxes.galaxy_history(fname, gal_id, last_snapshot, pandas=True)
 
-    # initialise the ssimpl plotting style
+    # initialise the dragons plotting style
     plotutils.init_style(context='inline')
 
     # create the figure & axes

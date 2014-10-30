@@ -182,8 +182,11 @@ static void inline convert_input_virial_props(run_globals_t *run_globals, double
   *Mvir /= 1.0e10;
 
   // Update the virial properties
-  *Mvir = calculate_Mvir(run_globals, *Mvir, len);
-  *Rvir = calculate_Rvir(run_globals, *Mvir, snapshot);
+  if (!run_globals->params.FlagSubhaloVirialProps)
+  {
+    *Mvir = calculate_Mvir(run_globals, *Mvir, len);
+    *Rvir = calculate_Rvir(run_globals, *Mvir, snapshot);
+  }
   *Vvir = calculate_Vvir(run_globals, *Mvir, *Rvir);
 }
 
@@ -341,12 +344,16 @@ static void read_trees_and_catalogs(
 
           assert((*n_fof_groups_kept) < run_globals->NFOFGroupsMax);
           assert((tree_buffer[jj].group_index - first_group_index) < n_groups);
-          fof_group[(*n_fof_groups_kept)].Mvir = group_buffer[tree_buffer[jj].group_index - first_group_index].M_vir;
+          catalog_halo_t *cur_cat_group = &(group_buffer[tree_buffer[jj].group_index - first_group_index]);
+          fof_group_t *cur_group = &(fof_group[*n_fof_groups_kept]);
+
+          cur_group->Mvir = cur_cat_group->M_vir;
+          cur_group->Rvir = cur_cat_group->R_vir;
 
           convert_input_virial_props(run_globals,
-                                     &(fof_group[(*n_fof_groups_kept)].Mvir),
-                                     &(fof_group[(*n_fof_groups_kept)].Rvir),
-                                     &(fof_group[(*n_fof_groups_kept)].Vvir),
+                                     &(cur_group->Mvir),
+                                     &(cur_group->Rvir),
+                                     &(cur_group->Vvir),
                                      -1,
                                      snapshot);
 
@@ -1004,7 +1011,7 @@ void initialize_halo_storage(run_globals_t *run_globals)
 
   int last_snap = 0;
 
-  SID_log("Initializing halo storage arrays...", SID_LOG_COMMENT);
+  SID_log("Initializing halo storage arrays...", SID_LOG_OPEN);
 
   // Find what the last requested output snapshot is
   for (int ii = 0; ii < NOUT; ii++)

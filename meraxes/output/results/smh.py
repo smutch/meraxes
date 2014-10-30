@@ -11,7 +11,7 @@ Arguments:
 import numpy as np
 import matplotlib.pyplot as plt
 from docopt import docopt
-from ssimpl import meraxes
+from dragons import meraxes
 from astropy.utils.console import ProgressBar
 import os
 

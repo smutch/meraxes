@@ -23,7 +23,7 @@ import matplotlib.pyplot as plt
 from docopt import docopt
 import h5py as h5
 
-from ssimpl import meraxes, nbody, plotutils
+from dragons import meraxes, nbody, plotutils
 
 def setup_fig(redshift, neutral_fraction, slice_str, slice_axis):
 

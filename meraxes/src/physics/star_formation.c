@@ -45,13 +45,11 @@ void update_reservoirs_from_sf(run_globals_t *run_globals, galaxy_t *gal, double
 
 void insitu_star_formation(run_globals_t *run_globals, galaxy_t *gal, int snapshot)
 {
-  // These star formation & supernova feedback prescriptions are taken directly
-  // from Croton+ 2006
-
   // there is no point doing anything if there is no cold gas!
   if (gal->ColdGas > 1e-10)
   {
     double r_disk;
+    double v_disk;
     double m_crit;
     double m_stars;
 
@@ -61,6 +59,22 @@ void insitu_star_formation(run_globals_t *run_globals, galaxy_t *gal, int snapsh
     double new_metals;
 
     double SfEfficiency = run_globals->params.physics.SfEfficiency;
+    double SfCriticalSDNorm = run_globals->params.physics.SfCriticalSDNorm;
+    int    SfDiskVelOpt = run_globals->params.physics.SfDiskVelOpt;
+
+    // What velocity are we going to use as a proxy for the disk rotation velocity?
+    switch (SfDiskVelOpt) {
+      case 1:
+        v_disk = gal->Vmax;
+        break;
+      case 2:
+        v_disk = gal->Vvir;
+        break;
+      default:
+        SID_log_error("Unrecognised value for SfVelocityOpt parameter! Defaulting to v_disk=Vmax.");
+        v_disk = gal->Vmax;
+        break;
+    }
 
     // calculate disk scalelength using Mo, Mau & White (1998) eqn. 12 and
     // multiply it by 3 to approximate the star forming region size (ala
@@ -68,10 +82,10 @@ void insitu_star_formation(run_globals_t *run_globals, galaxy_t *gal, int snapsh
     r_disk = gal->DiskScaleLength * 3.0;
 
     // what is the critical mass within r_crit?
-    m_crit = 0.19 * gal->Vmax * r_disk;
+    m_crit = SfCriticalSDNorm * v_disk * r_disk;
 
     if (gal->ColdGas > m_crit)
-      m_stars = SfEfficiency * (gal->ColdGas - m_crit) / r_disk * gal->Vmax * gal->dt;
+      m_stars = SfEfficiency * (gal->ColdGas - m_crit) / r_disk * v_disk * gal->dt;
     else
       // no star formation
       return;

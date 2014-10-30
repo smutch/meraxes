@@ -1,0 +1,42 @@
+import os
+from SCons.Script.SConscript import SConsEnvironment
+
+env = Environment(ENV=os.environ)
+
+deps = {}
+deps['meraxes'] = {
+    'inclp' : '../../include',
+    'libp'  : '../../lib',
+    'lib'   : 'meraxes',
+}
+deps['gbp'] = {
+    'inclp' : '/home/smutch/3rd_party/gbpCode/myInclude',
+    'libp'  : '/home/smutch/3rd_party/gbpCode/myLib/mpi',
+    'lib'   : 'gbpLib',
+}
+deps['gsl'] = {
+    'inclp' : '/usr/local/x86_64/gnu/gsl-1.9/include',
+    'libp'  : '/usr/local/x86_64/gnu/gsl-1.9/lib',
+    'lib'   : ['gsl', 'gslcblas'],
+}
+deps['hdf5'] = {
+    'inclp' : '/usr/local/x86_64/gnu/hdf5-1.8.9-threadsafe/include',
+    'libp'  : '/usr/local/x86_64/gnu/hdf5-1.8.9-threadsafe/lib',
+    'lib'   : ['hdf5', 'hdf5_hl'],
+}
+
+CC          = ['/usr/local/x86_64/gnu/openmpi-1.6.1/bin/mpicc']
+
+env.Replace(CC = CC)
+env.AppendUnique(CPPPATH = [d['inclp'] for d in deps.itervalues()])
+env.AppendUnique(LIBPATH = [d['libp'] for d in deps.itervalues()])
+env.AppendUnique(LIBS=[d['lib'] for d in deps.itervalues()])
+env.AppendUnique(LIBS=['m', 'z'])
+env.AppendUnique(CPPFLAGS = ['-DUSE_MPI', '-std=gnu99', '-O2'])
+
+if not os.path.isdir("bin"):
+    os.mkdir("bin")
+
+node_list = ["run_grid.c"]
+target = env.Program(target='bin/run_grid', source=node_list)
+Default(target)

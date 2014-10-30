@@ -9,7 +9,7 @@ Usage: smf-z0.py <fname>
 import numpy as np
 import matplotlib.pyplot as plt
 from docopt import docopt
-from ssimpl import plotutils, meraxes, munge
+from dragons import plotutils, meraxes, munge
 import pandas as pd
 from astropy import log
 import os
@@ -61,7 +61,7 @@ def plot(gals, simprops, ax):
     ax.errorbar(obs.sm, np.log10(obs.phi), yerr=[np.log10(obs.phi) - np.log10(obs.min_phi),
                                                  np.log10(obs.max_phi) - np.log10(obs.phi)],
             label="Baldry et al. 2008",
-            ls="none",)
+            ls="None",)
 
     ax.axis([7,12.5, -4, -1])
 

@@ -11,10 +11,15 @@ Arguments:
 import numpy as np
 import matplotlib.pyplot as plt
 from docopt import docopt
-from ssimpl import plotutils, meraxes, munge
+from dragons import plotutils, meraxes, munge
 import pandas as pd
 from astropy import log
+
 import os
+import sys
+__script_dir__ = os.path.dirname(os.path.realpath( __file__ ))
+sys.path.append(__script_dir__)
+from smf_common import smf_uncert
 
 __author__ = "Simon Mutch"
 __date__   = "2014-05-01"
@@ -25,6 +30,8 @@ __script_dir__ = os.path.dirname(os.path.realpath( __file__ ))
 def plot(gals, simprops, ax, h):
 
     print "Plotting z=7 SMF..."
+
+    markers = ['o', 's', 'D', 'p', 'v', '^'][::-1]
 
     # N.B. NOTE SFR CUT TO MATCH KATSIANIS 2014 (via SMIT 2012) DATA (log(SFR)
     # > -0.44)
@@ -45,13 +52,22 @@ def plot(gals, simprops, ax, h):
                                      return_edges=True)
 
     # plot the model
-    l, = ax.plot(smf[:,0], np.log10(smf[:,1]), label="Meraxes")
+    l, = ax.plot(smf[:,0], np.log10(smf[:,1]), ls="--", lw=4, label=None)
 
     # plot the total SMF (i.e. without SFR cut)
     sm = np.log10(gals.StellarMass[gals.StellarMass > 0] * 1.0e10)
-    smf = munge.mass_function(sm, simprops["Volume"], edges)
-    ax.plot(smf[:,0], np.log10(smf[:,1]), ls='--', label=None,
+    smf = munge.mass_function(sm, simprops["Volume"], edges,
+                              poisson_uncert=True)
+    ax.plot(smf[:,0], np.log10(smf[:,1]), ls='-', lw=4, label="Meraxes",
             color=l.get_color())
+    # yerr = [np.log10(smf[:,1]-smf[:,2]), np.log10(smf[:,1]+smf[:,2])]
+    yerr = np.log10(smf_uncert(sm, simprops["Volume"], edges, 7.0))
+    yerr[0][np.isinf(yerr[0])] = -7
+    p = ax.fill_between(smf[:,0], yerr[0], yerr[1], color=l.get_color(),
+                    alpha=0.3)
+    r = plt.Rectangle([0,10], 0.5, 0.1, color=p.get_facecolor()[0],
+                      alpha=p.get_alpha(), label="Meraxes - convolved+Poisson")
+    ax.add_patch(r)
 
     # read the observed smf
     obs = pd.read_table(os.path.join(__script_dir__,
@@ -68,8 +84,30 @@ def plot(gals, simprops, ax, h):
 
     # plot the observations
     ax.errorbar(obs.sm, obs.log_phi, yerr=obs.err,
-                label="Katsianis et al. 2014", ls="none",
-                lw=4, capsize=0)
+                label="Katsianis et al. 2014", ls="None",
+                lw=2, capsize=2.5, marker=markers.pop(), mec='None')
+
+    # and again...
+    obs = pd.read_table(os.path.join(__script_dir__,
+        "../../utils/obs_datasets/smf/Duncan14_MF_z7.txt"),
+        delim_whitespace=True,
+        header = None,
+        skiprows = 8,
+        names = ["sm", "phi", "merr", "perr"])
+    obs.merr[obs.merr >= obs.phi] = obs.phi - 1e-10
+
+    # convert obs to same hubble value and IMF
+    obs.sm += 2.0*np.log10(0.702/h)
+    obs.sm += 0.25  # IMF correction Chabrier -> Salpeter
+    for col in ["phi", "merr", "perr"]:
+        obs[col] /= (0.7**3/h**3)
+
+    # plot the observations
+    ax.errorbar(obs.sm, np.log10(obs.phi),
+                yerr=[np.log10(obs.phi / (obs.phi - obs.merr)),
+                      np.log10(1.0 + (obs.perr / obs.phi))],
+                label="Duncan et al. 2014", ls="None",
+                lw=2, capsize=2.5, marker=markers.pop(), mec='None')
 
     # add some text
     ax.text(0.05,0.05, "z=7\nh={:.2f}\nSalpeter IMF\n".format(h)+
