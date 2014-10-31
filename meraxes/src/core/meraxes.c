@@ -54,6 +54,12 @@ int main(int argc, char **argv)
   if (stat(run_globals.params.OutputDir, &filestatus) != 0)
     mkdir(run_globals.params.OutputDir, 02755);
 
+#ifdef USE_TOCF
+    // Check to see if the tocf_logs directory exists and if not, create it
+    if (stat(tocf_params.logfile_dir, &filestatus) != 0)
+        mkdir(tocf_params.logfile_dir, 02755);
+#endif
+
   // initiate meraxes
   init_meraxes(&run_globals);
 
