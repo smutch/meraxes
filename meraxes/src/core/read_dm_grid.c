@@ -564,9 +564,9 @@ int read_dm_grid(
             empty_count_LR = find_LR_empty_count(grid, HII_dim);
             SID_log("empty_count_LR = %d", SID_LOG_COMMENT, empty_count_LR);
             
-            if(empty_count_LR)   // Empty LR voxels may not exist depending on resampling factor
-            {
-                write_list_of_LR_empties(grid, HII_dim, snapshot, empty_count_LR, run_globals->params.OutputDir);
+//            if(empty_count_LR)   // Empty LR voxels may not exist depending on resampling factor
+//            {
+//                write_list_of_LR_empties(grid, HII_dim, snapshot, empty_count_LR, run_globals->params.OutputDir);
                 
                 if (snapshot==53)
                 {
@@ -606,7 +606,7 @@ int read_dm_grid(
                 write_LR_i_slice(grid, HII_dim, snapshot, i_slice, run_globals->params.OutputDir);
                 write_LR_j_slice(grid, HII_dim, snapshot, j_slice, run_globals->params.OutputDir);
                 write_LR_k_slice(grid, HII_dim, snapshot, k_slice, run_globals->params.OutputDir);
-            }
+//            }
              
         }
         
