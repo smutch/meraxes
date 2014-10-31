@@ -65,9 +65,12 @@ def compile_against(libs, deps, env):
     `deps`."""
     for name in libs:
         dep = deps[name]
-        env.AppendUnique(CPPPATH = [dep['inclp']])
-        env.AppendUnique(LIBPATH = [dep['libp']])
-        env.AppendUnique(LIBS = [dep['lib']])
+        if dep['inclp'] is not None:
+            env.AppendUnique(CPPPATH = [dep['inclp']])
+        if dep['libp'] is not None:
+            env.AppendUnique(LIBPATH = [dep['libp']])
+        if dep['lib'] is not None:
+            env.AppendUnique(LIBS = [dep['lib']])
 
 
 def prepend_user_defines(env, header_file):
