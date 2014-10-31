@@ -6,7 +6,7 @@
 
 /*
   ==============================================================================
-  MAJOR CODE REVISION by Paul Geil (Octobner 2014)
+  MAJOR CODE REVISION by Paul Geil (October 2014)
   ==============================================================================
   
   - A significant numerical accuracy bug was resolved by performing calculations
@@ -17,8 +17,8 @@
     highly oversense voxels at (0, 0, 0) and extensive slabs with zero density]
     which significantly affect their statistics. The density spikes have been
     remedied by resetting the density of the offending voxel to that of the
-    average over its (6) neigbours. Anomalous zero density regions are left
-    untreated.
+    average over its (6) neigbours. Anomalous zero density regions are reassigned
+    to be the mean density of the (non-empty) grid.
     
   - The TIAMAT velocity grids have not been analysed for anomalies.
 */
@@ -43,6 +43,46 @@ static unsigned long long HR_INDEX(int i, int j, int k, int grid_dim)
 { 
     return (unsigned long long)(k + grid_dim*(j + grid_dim*i));
 }
+
+
+
+static long long find_HR_empty_count(double *grid_HR, int HR_dim_val)
+{
+    long long count_val = 0;
+    
+    for (int i = 0; i < HR_dim_val; i++)
+        for (int j = 0; j < HR_dim_val; j++)
+            for (int k = 0; k < HR_dim_val; k++)
+            {
+                if (*((double *)grid_HR + HR_INDEX(i, j, k, HR_dim_val)) == 0.0) count_val++;
+                
+            }
+    
+    return (long long)(count_val);
+}
+
+static double find_HR_non_empty_mean(double *grid_HR, int HR_dim_val, long long N)
+{
+    double val;
+    double mean_val = 0.0;
+    
+    for (int i = 0; i < HR_dim_val; i++)
+        for (int j = 0; j < HR_dim_val; j++)
+            for (int k = 0; k < HR_dim_val; k++)
+            {
+                val = *((double *)grid_HR + HR_INDEX(i, j, k, HR_dim_val));
+                
+                if (val > 0.0) mean_val += val;
+                
+            }
+    
+    mean_val /= (double)(N);
+    
+    return mean_val;
+}
+
+
+
 
 
 
@@ -147,9 +187,7 @@ int read_dm_grid(
     for (int i = 0; i < n_cell[0]; i++)
         for (int j = 0; j < n_cell[1]; j++)
             for (int k = 0; k < n_cell[2]; k++)
-            {
                 *(grid_HR + HR_INDEX(i, j, k, HR_dim)) = 0.0;
-            }
     
     
     if (i_grid == 0)  // Density grid
@@ -163,24 +201,52 @@ int read_dm_grid(
                     *(grid_HR + HR_INDEX(i, j, k, HR_dim)) = (double)val;
                 }
         
-        // QUICK FIX FOR TIAMAT !!!
-        //
-        // From previous analysius, we know that the offending maximum spike voxel for these snapshots is (0, 0, 0)
-        // Now reset its value to that of the average over its neigbours
-        //
-        // If this is a problem snapshot then do the averaging
+        
+        // ************ START OF QUICK FIXES FOR TIAMAT !!!
+        
+        long long empty_count;
+        long long non_empty_count;
+        double    non_empty_mean;
+        
+        // For these problematic snapshots only
+        
         if (snapshot==53 || snapshot==57 || snapshot==61 || snapshot==65 || snapshot==69)
         {
-            SID_log("Revaluating problem dm density voxel:", SID_LOG_OPEN);
+            // From previous analysis, we know that the offending maximum spike voxel for these snapshots is (0, 0, 0)
+            // Now reset its value to that of the average over its neigbours
+            
+            SID_log("Revaluating (0,0,0) dm density voxel:", SID_LOG_OPEN);
             
             *(grid_HR + HR_INDEX(0, 0, 0, HR_dim)) = ( *(grid_HR + HR_INDEX(1, 0, 0, HR_dim)) +
-                                                       *(grid_HR + HR_INDEX(0, 1, 0, HR_dim)) +
-                                                       *(grid_HR + HR_INDEX(0, 0, 1, HR_dim)) +
-                                                       *(grid_HR + HR_INDEX(HR_dim - 1, 0, 0, HR_dim)) +
-                                                       *(grid_HR + HR_INDEX(0, HR_dim - 1, 0, HR_dim)) +
-                                                       *(grid_HR + HR_INDEX(0, 0, HR_dim - 1, HR_dim))) / 6.0;
+                                                        *(grid_HR + HR_INDEX(0, 1, 0, HR_dim)) +
+                                                        *(grid_HR + HR_INDEX(0, 0, 1, HR_dim)) +
+                                                        *(grid_HR + HR_INDEX(HR_dim - 1, 0, 0, HR_dim)) +
+                                                        *(grid_HR + HR_INDEX(0, HR_dim - 1, 0, HR_dim)) +
+                                                        *(grid_HR + HR_INDEX(0, 0, HR_dim - 1, HR_dim))) / 6.0;
+            SID_log("...done", SID_LOG_CLOSE);
+            
+            // From previous analysis, we know that there are anomalous empty regions
+            // Now reassign these voxels with the mean of the (non-empty) grid
+            
+            SID_log("Reassigning empty dm density voxels:", SID_LOG_OPEN);
+            
+            empty_count = find_HR_empty_count(grid_HR, HR_dim);
+            non_empty_count = n_elem - empty_count;
+            non_empty_mean = find_HR_non_empty_mean(grid_HR, HR_dim, non_empty_count);
+            
+            for (int i = 0; i < HR_dim; i++)
+                for (int j = 0; j < HR_dim; j++)
+                    for (int k = 0; k < HR_dim; k++)
+                    {
+                        if (*(grid_HR + HR_INDEX(i, j, k, HR_dim)) == 0.0) *(grid_HR + HR_INDEX(i, j, k, HR_dim)) = non_empty_mean;
+                        
+                    }
+            
             SID_log("...done", SID_LOG_CLOSE);
         }
+        
+        // ************ END OF QUICK FIXES FOR TIAMAT !!!
+        
         
         // Regrid
         mean = 0.0;
@@ -208,6 +274,7 @@ int read_dm_grid(
                 {
                     *(grid + HII_R_INDEX(i, j, k)) = (*(grid + HII_R_INDEX(i, j, k)) / (cell_volume_ratio * mean)) - 1.;
                 }
+        
     }
     else // Velocity component grid
     {
