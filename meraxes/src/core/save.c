@@ -486,17 +486,21 @@ void create_master_file(run_globals_t *run_globals)
       H5Gclose(group_id);
 
 #ifdef USE_TOCF
-      if ((i_core == 0) && (run_globals->params.TOCF_Flag))
-      {
-        // create links to the 21cmFAST grids
-        sprintf(target_group, "Grids");
-        sprintf(source_group, "Snap%03d/Grids", run_globals->ListOutputSnaps[i_out]);
-        H5Lcreate_external(relative_source_file, source_group, snap_group_id, target_group, H5P_DEFAULT, H5P_DEFAULT);
+    if((i_core == 0) && (run_globals->params.TOCF_Flag))
+    {
+      // create links to the 21cmFAST grids
+      sprintf(target_group, "Grids");
+      sprintf(source_group, "Snap%03d/Grids", run_globals->ListOutputSnaps[i_out]);
+      H5Lcreate_external(relative_source_file, source_group, snap_group_id, target_group, H5P_DEFAULT, H5P_DEFAULT);
 
-        sprintf(source_ds, "Snap%03d/PowerSpectrum", run_globals->ListOutputSnaps[i_out]);
-        sprintf(target_ds, "PowerSpectrum");
-        H5Lcreate_external(relative_source_file, source_ds, snap_group_id, target_ds, H5P_DEFAULT, H5P_DEFAULT);
-      }
+      sprintf(source_ds, "Snap%03d/PowerSpectrum", run_globals->ListOutputSnaps[i_out]);
+      sprintf(target_ds, "PowerSpectrum");
+      H5Lcreate_external(relative_source_file, source_ds, snap_group_id, target_ds, H5P_DEFAULT, H5P_DEFAULT);
+
+      sprintf(source_ds, "Snap%03d/RegionSizeDist", run_globals->ListOutputSnaps[i_out]);
+      sprintf(target_ds, "RegionSizeDist");
+      H5Lcreate_external(relative_source_file, source_ds, snap_group_id, target_ds, H5P_DEFAULT, H5P_DEFAULT);
+    }
 #endif
 
       H5Fclose(source_file_id);
@@ -802,3 +806,4 @@ void write_snapshot(
 
   SID_log("...done", SID_LOG_CLOSE);
 }
+

@@ -65,9 +65,12 @@ def compile_against(libs, deps, env):
     `deps`."""
     for name in libs:
         dep = deps[name]
-        env.AppendUnique(CPPPATH = [dep['inclp']])
-        env.AppendUnique(LIBPATH = [dep['libp']])
-        env.AppendUnique(LIBS = [dep['lib']])
+        if dep['inclp'] is not None:
+            env.AppendUnique(CPPPATH = [dep['inclp']])
+        if dep['libp'] is not None:
+            env.AppendUnique(LIBPATH = [dep['libp']])
+        if dep['lib'] is not None:
+            env.AppendUnique(LIBS = [dep['lib']])
 
 
 def prepend_user_defines(env, header_file):
@@ -114,6 +117,24 @@ if unknown:
     print 'Unknown variables:', unknown.keys()
     env.Exit(1)
 
+
+
+# =============================================================================
+# Print variables
+# =============================================================================
+
+print "\nCommand line arguments:"
+
+if env['nout']:
+    print "nout = ", env['nout']
+if env['tocf']:
+    print "tocf = ", env['tocf']
+if env['build']:
+    print "build =", env['build']
+
+print
+
+
 # Take a snapshot of provided options before we continue.
 vars.Save('config.py', env)
 
@@ -146,6 +167,16 @@ if not GetOption('help'):
         env.AppendUnique(CPPDEFINES = ['USE_MPI=1'])
     if env['n_history_snaps']:
         env.AppendUnique(CPPDEFINES = ['N_HISTORY_SNAPS=${n_history_snaps}'])
+
+
+    # =============================================================================
+    # Check to see if directories required for build exist and if not, create them
+    # =============================================================================
+
+    dirname = os.path.dirname("../include/")
+    if not os.path.exists(dirname):
+        os.makedirs(dirname)
+
 
     # =================================
     # = System specific build options =

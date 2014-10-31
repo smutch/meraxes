@@ -529,7 +529,6 @@ void         reincorporate_ejected_gas(run_globals_t *run_globals, galaxy_t *gal
 double       radio_mode_BH_heating(run_globals_t *run_globals, galaxy_t *gal, double cooling_mass);
 void         merger_driven_BH_growth(run_globals_t *run_globals, galaxy_t *gal, double merger_ratio);
 
-
 // Magnitude related
 void   init_luminosities(run_globals_t *run_globals, galaxy_t *gal);
 void   add_to_luminosities(run_globals_t *run_globals, galaxy_t *gal, double burst_mass, double metallicity, double burst_time);
@@ -556,7 +555,7 @@ int  read_dm_grid(run_globals_t *run_globals, int snapshot, int i_grid, float *g
 void calculate_Mvir_crit(run_globals_t *run_globals, double redshift);
 void call_find_HII_bubbles(run_globals_t *run_globals, int snapshot, int unsampled_snapshot, int nout_gals);
 void save_tocf_grids(run_globals_t *run_globals, hid_t group_id, int snapshot);
-void check_if_reionization_complete(run_globals_t *run_globals);
+bool check_if_reionization_complete(run_globals_t *run_globals);
 #endif
 
 #ifdef DEBUG

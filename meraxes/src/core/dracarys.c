@@ -87,6 +87,10 @@ void dracarys(run_globals_t *run_globals)
   trees_info_t *snapshot_trees_info = run_globals->SnapshotTreesInfo;
   double *LTTime                    = run_globals->LTTime;
 
+#ifdef USE_TOCF
+  bool reion_complete_flag = false;
+#endif
+
   // Find what the last requested output snapshot is
   for (int ii = 0; ii < NOUT; ii++)
     if (run_globals->ListOutputSnaps[ii] > last_snap)
@@ -99,6 +103,11 @@ void dracarys(run_globals_t *run_globals)
   // Loop through each snapshot
   for (int snapshot = 0; snapshot <= last_snap; snapshot++)
   {
+    SID_log("", SID_LOG_COMMENT);
+    SID_log("===============================================================", SID_LOG_COMMENT);
+    SID_log("Snapshot %d  (z = %.3f)", SID_LOG_COMMENT, snapshot, run_globals->ZZ[snapshot]);
+    SID_log("===============================================================", SID_LOG_COMMENT);
+
     // Reset book keeping counters
     kill_counter    = 0;
     merger_counter  = 0;
@@ -118,7 +127,7 @@ void dracarys(run_globals_t *run_globals)
     fof_group    = snapshot_fof_group[i_snap];
     index_lookup = snapshot_index_lookup[i_snap];
 
-    SID_log("Processing snapshot %d (z=%.2f)...", SID_LOG_OPEN | SID_LOG_TIMER, snapshot, run_globals->ZZ[snapshot]);
+    SID_log("Processing snapshot %d (z = %.2f)...", SID_LOG_OPEN | SID_LOG_TIMER, snapshot, run_globals->ZZ[snapshot]);
 
 #ifdef USE_TOCF
     // Calculate the critical halo mass for cooling
@@ -402,8 +411,8 @@ void dracarys(run_globals_t *run_globals)
           if (snapshot == run_globals->ListOutputSnaps[i_out])
             call_find_HII_bubbles(run_globals, snapshot, trees_info.unsampled_snapshot, nout_gals);
       }
-      else
-        call_find_HII_bubbles(run_globals, snapshot, trees_info.unsampled_snapshot, nout_gals);
+      else if (!reion_complete_flag)
+        call_find_HII_bubbles(run_globals, snapshot, nout_gals);
     }
 #endif
 
@@ -427,7 +436,7 @@ void dracarys(run_globals_t *run_globals)
 
 #ifdef USE_TOCF
     if (run_globals->params.TOCF_Flag)
-      check_if_reionization_complete(run_globals);
+      reion_complete_flag = check_if_reionization_complete(run_globals);
 #endif
 
     // Update the LastIdentSnap values for non-ghosts
@@ -468,7 +477,7 @@ void dracarys(run_globals_t *run_globals)
     gal = next_gal;
   }
   run_globals->FirstGal = NULL;
-  SID_log(" ...done", SID_LOG_CLOSE);
+  SID_log("...done", SID_LOG_CLOSE);
 
   // Create the master file
   SID_Barrier(SID.COMM_WORLD);
