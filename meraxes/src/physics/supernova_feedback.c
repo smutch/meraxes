@@ -37,8 +37,8 @@ void update_reservoirs_from_sn_feedback(galaxy_t *gal, double m_reheat, double m
   central->MetalsHotGas += m_reheat * metallicity;
   central->HotGas       += m_reheat;
 
-  // If this is a ghost then we don't know what the ejected mass is as we don't
-  // know the properties of the halo!
+  // If this is a ghost then we don't know what the real ejected mass is as we
+  // don't know the properties of the halo!
   if (!gal->ghost_flag)
   {
     metallicity = calc_metallicity(central->HotGas, central->MetalsHotGas);
@@ -73,20 +73,40 @@ void update_reservoirs_from_sn_feedback(galaxy_t *gal, double m_reheat, double m
 static inline double calc_ejected_mass(
   double *m_reheat,
   double  sn_energy,
-  double  Vvir)
+  double  Vvir,
+  double  fof_Vvir)
 {
   double m_eject = 0.0;
 
   if (*m_reheat > 0)
   {
+    // Begin by calculating if we have enough energy to get m_reheat of gas to
+    // Tvir of the host *subhalo*.
     double Vvir_sqrd                = Vvir * Vvir;
     double reheated_energy          = 0.5 * (*m_reheat) * Vvir_sqrd;
     double specific_hot_halo_energy = 0.5 * Vvir_sqrd;
+
     m_eject = (sn_energy - reheated_energy) / specific_hot_halo_energy;
-    if (m_eject < 0)
+
+    if (m_eject <= 0)
     {
+      // If there is not enough energy to reheat all of the gas to Tvir of the
+      // subhalo then how much can we reheat?
       m_eject = 0.0;
       *m_reheat = 2.0 * sn_energy / Vvir_sqrd;
+    }
+    else if (fof_Vvir > 0)
+    {
+      // If we were able to reheat all of the mass with energy left to spare,
+      // is there enough energy to further eject gas from the host *FOF group*?
+      Vvir_sqrd                = fof_Vvir * fof_Vvir;
+      reheated_energy          = 0.5 * (*m_reheat) * Vvir_sqrd;
+      specific_hot_halo_energy = 0.5 * Vvir_sqrd;
+
+      m_eject = (sn_energy - reheated_energy) / specific_hot_halo_energy;
+
+      if (m_eject < 0)
+        m_eject = 0.0;
     }
   }
 
@@ -210,6 +230,7 @@ void delayed_supernova_feedback(run_globals_t *run_globals, galaxy_t *gal, int s
   double m_recycled = 0.0;
   double new_metals = 0.0;
   double m_stars;
+  double fof_Vvir;
 
   // If we are at snapshot < N_HISTORY_SNAPS-1 then only try to look back to snapshot 0
   int n_bursts = (snapshot >= N_HISTORY_SNAPS) ? N_HISTORY_SNAPS : snapshot;
@@ -269,13 +290,17 @@ void delayed_supernova_feedback(run_globals_t *run_globals, galaxy_t *gal, int s
   assert(m_recycled >= 0);
   assert(new_metals >= 0);
 
+  // how much mass is ejected due to this star formation episode?
   if (!gal->ghost_flag)
-  {
-    // how much mass is ejected due to this star formation episode? (ala Croton+ 2006)
-    // Note that we use the Vvir of the host group here, as we are assuming that
-    // only the group holds a hot halo (which is stored by the central galaxy).
-    m_eject = calc_ejected_mass(&m_reheat, sn_energy, gal->Halo->FOFGroup->Vvir);
-  }
+    fof_Vvir = gal->Halo->FOFGroup->Vvir;
+  else
+    fof_Vvir = -1;
+
+  m_eject = calc_ejected_mass(&m_reheat, sn_energy, gal->Vvir, fof_Vvir);
+
+  // Note that m_eject returned for ghosts by calc_ejected_mass() is
+  // meaningless in the current physical prescriptions.  This fact is dealt
+  // with in update_reservoirs_from_sn_feedback().
 
   assert(m_reheat >= 0);
   assert(m_eject >= 0);
@@ -403,9 +428,7 @@ void contemporaneous_supernova_feedback(
   assert(*new_metals >= 0);
 
   // how much mass is ejected due to this star formation episode? (ala Croton+ 2006)
-  // Note that we use the Vvir of the host group here, as we are assuming that
-  // only the group holds a hot halo (which is stored by the central galaxy).
-  *m_eject = calc_ejected_mass(m_reheat, sn_energy, gal->Halo->FOFGroup->Vvir);
+  *m_eject = calc_ejected_mass(m_reheat, sn_energy, gal->Vvir, gal->Halo->FOFGroup->Vvir);
 
   assert(*m_reheat >= 0);
   assert(*m_eject >= 0);
