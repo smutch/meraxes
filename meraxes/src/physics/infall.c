@@ -68,35 +68,36 @@ void add_infall_to_hot(galaxy_t *central, double infall_mass)
     central->HotGas += infall_mass;
   else
   {
-    // // otherwise, strip the mass from the ejected
-    // if(central->EjectedGas > 0)
-    // {
-    //   central->EjectedGas += infall_mass;
-    //   if(central->EjectedGas < 0)
-    //   {
-    //     infall_mass -= central->EjectedGas;
-    //     central->EjectedGas = 0.0;
-    //     central->MetalsEjectedGas = 0.0;
-    //   }
-    //   else
-    //   {
-    //     central->MetalsEjectedGas += calc_metallicity(central->EjectedGas, central->MetalsEjectedGas) * infall_mass;
-    //     infall_mass = 0.0;
-    //   }
-    // }
+    double strip_mass = -infall_mass;
+    // otherwise, strip the mass from the ejected
+    if(central->EjectedGas > 0)
+    {
+      central->EjectedGas -= strip_mass;
+      if(central->EjectedGas < 0)
+      {
+        strip_mass -= central->EjectedGas;
+        central->EjectedGas = 0.0;
+        central->MetalsEjectedGas = 0.0;
+      }
+      else
+      {
+        central->MetalsEjectedGas -= calc_metallicity(central->EjectedGas, central->MetalsEjectedGas) * strip_mass;
+        strip_mass = 0.0;
+      }
+    }
 
     // if we still have mass left to remove after exhausting the mass of
     // the ejected component, the remove as much as we can from the hot gas
-    if (infall_mass < 0)
+    if (strip_mass > 0)
     {
-      central->HotGas += infall_mass;
+      central->HotGas -= strip_mass;
       if (central->HotGas < 0)
       {
         central->HotGas       = 0.0;
         central->MetalsHotGas = 0.0;
       }
-      // else
-      //   central->MetalsHotGas += calc_metallicity(central->HotGas, central->MetalsHotGas) * infall_mass;
+      else
+        central->MetalsHotGas -= calc_metallicity(central->HotGas, central->MetalsHotGas) * strip_mass;
     }
   }
 }
