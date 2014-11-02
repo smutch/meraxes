@@ -40,6 +40,11 @@ def savefig(fig, fname_in, fname_out, ext, simprops):
                                 "plots/"+fname_out+"."+ext)
     print "Saving to:",output_fname
 
+    # ensure output directory exists
+    dirname = os.path.dirname(output_fname)
+    if not os.path.exists(dirname):
+        os.mkdir(dirname)
+
     plt.savefig(output_fname, extra_info=simprops)
 
 
@@ -71,6 +76,9 @@ if __name__ == '__main__':
                 sim_props=True, h=h)
         gals = gals.view(np.recarray)
         simprops["h"] = h
+        git_info = meraxes.io.read_git_info(fname)
+        simprops['model_gitref'] = git_info[0]
+        simprops['model_gitdiff'] = git_info[1]
 
         # SMF
         fig, ax = plt.subplots(1,1)
