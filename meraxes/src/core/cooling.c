@@ -81,7 +81,7 @@ static double interpolate_temp_dependant_cooling_rate(int i_m, double logTemp)
 
   // First deal with boundary conditions
   if (logTemp < MIN_TEMP)
-    logTemp = MIN_TEMP;
+    return -27.0;
 
   // Now find the index of the tabulated temp immediately below our value
   temp_step = (double)(MAX_TEMP - MIN_TEMP) / (double)(N_TEMPS - 1);

@@ -36,6 +36,10 @@ double gas_cooling(run_globals_t *run_globals, galaxy_t *gal)
     x         /= (units->UnitDensity_in_cgs * units->UnitTime_in_s); // now in internal units
     rho_r_cool = x / t_cool * 0.885;                         // 0.885 = 3/2 * mu, mu=0.59 for a fully ionized gas
 
+    // TODO: We can actually get mu from the cooling tables of Sutherland &
+    // Dopita for T>=1e4K.  We should do this rather than assuming the value.
+    // THIS WILL BE ESPECIALLY IMPORTANT FOR TINY TIAMAT.
+
     // under the assumption of an isothermal density profile extending to Rvir,
     // now calculate the cooling radius
     rho_at_Rvir = gal->HotGas / (4. * M_PI * fof_group->Rvir);
