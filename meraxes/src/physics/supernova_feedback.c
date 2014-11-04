@@ -286,6 +286,12 @@ void delayed_supernova_feedback(run_globals_t *run_globals, galaxy_t *gal, int s
     }
   }
 
+  // We can only reheat as much gas as we have available.  Let's inforce this
+  // now, to ensure that the maximal amount of available energy is used to
+  // eject gas from the system.
+  if (m_reheat > gal->ColdGas)
+    m_reheat = gal->ColdGas;
+
   assert(m_reheat >= 0);
   assert(m_recycled >= 0);
   assert(new_metals >= 0);
@@ -405,6 +411,12 @@ void contemporaneous_supernova_feedback(
 
   // calculate the total reheated
   *m_reheat = SnReheatEff * snII_frac * *m_stars;
+
+  // We can only reheat as much gas as we have available.  Let's inforce this
+  // now, to ensure that the maximal amount of available energy is used to
+  // eject gas from the system.
+  if (*m_reheat > gal->ColdGas)
+    *m_reheat = gal->ColdGas;
 
   // attenuate the star formation if necessary, so that we are being consistent
   // if (*m_reheat + *m_stars - *m_recycled > gal->ColdGas)
