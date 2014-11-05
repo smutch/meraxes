@@ -412,7 +412,7 @@ void dracarys(run_globals_t *run_globals)
             call_find_HII_bubbles(run_globals, snapshot, trees_info.unsampled_snapshot, nout_gals);
       }
       else if (!reion_complete_flag)
-        call_find_HII_bubbles(run_globals, snapshot, nout_gals);
+        call_find_HII_bubbles(run_globals, snapshot, trees_info.unsampled_snapshot, nout_gals);
     }
 #endif
 

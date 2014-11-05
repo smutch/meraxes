@@ -11,7 +11,6 @@ void calculate_Mvir_crit(run_globals_t *run_globals, double redshift)
   if (SID.My_rank == 0)
   {
     int HII_dim = tocf_params.HII_dim;
-    float Mvir_atomic;
     float cell_Mvir_crit;
     float Hubble_h = (float)(run_globals->params.Hubble_h);
 
@@ -26,7 +25,6 @@ void calculate_Mvir_crit(run_globals_t *run_globals, double redshift)
 
     // init
     memset(Mvir_crit, 0, sizeof(float) * HII_TOT_NUM_PIXELS);
-    Mvir_atomic = (float)Tvir_to_Mvir(run_globals, tocf_params.ion_tvir_min, redshift);
 
     // Loop through each cell and calculate the value of Mvir_crit
     for (int ii = 0; ii < HII_dim; ii++)
@@ -35,23 +33,24 @@ void calculate_Mvir_crit(run_globals_t *run_globals, double redshift)
       {
         for (int kk = 0; kk < HII_dim; kk++)
         {
-          // Initialise critical mass to atomic cooling mass
-          cell_Mvir_crit = Mvir_atomic;
+          // Initialise critical mass
+          cell_Mvir_crit = 0.0;
 
           // If this cell was ionized in the past then calculate the critical
           // mass using the UVB feedback prescription of Sobacchi & Mesinger
           // 2013b
           if (z_at_ion[HII_R_INDEX(ii, jj, kk)] > redshift)
           {
-            cell_Mvir_crit = m_0_sm * pow((1.0 + redshift) / 10.0, a_sm) * pow(J_21_at_ion[HII_R_INDEX(ii, jj, kk)], b_sm) *
-                             pow((1.0 - pow((1.0 + redshift) / (1.0 + z_at_ion[HII_R_INDEX(ii, jj, kk)]), c_sm)), d_sm);
+            cell_Mvir_crit = m_0_sm * pow(J_21_at_ion[HII_R_INDEX(ii, jj, kk)], a_sm)
+                              * pow((1.0 + redshift) / 10.0, b_sm)
+                              * pow((1.0 - pow((1.0 + redshift) / (1.0 + z_at_ion[HII_R_INDEX(ii, jj, kk)]), c_sm)), d_sm);
 
             // Put the mass back into internal units
-            cell_Mvir_crit /= 1.0e10 * Hubble_h;
+            cell_Mvir_crit *= (Hubble_h / 1.0e10);
           }
 
           // Save the critical mass to the grid
-          Mvir_crit[HII_R_INDEX(ii, jj, kk)] = (Mvir_atomic > cell_Mvir_crit) ? Mvir_atomic : cell_Mvir_crit;
+          Mvir_crit[HII_R_INDEX(ii, jj, kk)] = cell_Mvir_crit;
         }
       }
     }

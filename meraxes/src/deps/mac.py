@@ -36,6 +36,6 @@ deps['fftw'] = {
 deps['21cmfast'] = {
     'inclp' :'../../21cmfast/include',
     'libp'  :'../../21cmfast/lib',
-    'lib'   : ['tocf', 'gomp'],
+    'lib'   : ['21cmfast', 'gomp'],
 }
 

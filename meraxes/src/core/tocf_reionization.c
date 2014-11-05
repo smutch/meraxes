@@ -354,14 +354,9 @@ void save_tocf_grids(run_globals_t *run_globals, hid_t parent_group_id, int snap
         int   HII_dim       = tocf_params.HII_dim;
         float *grid;
         float *ps;
-        float *delta_T;
         int   ps_nbins;
         float average_deltaT;
         hid_t group_id;
-
-        int   size_dist_nbins;
-        float *size_dist = NULL;
-
 
         // Save tocf grids
         // ----------------------------------------------------------------------------------------------------
@@ -446,7 +441,6 @@ void save_tocf_grids(run_globals_t *run_globals, hid_t parent_group_id, int snap
         H5LTset_attribute_int(parent_group_id  , "PowerSpectrum", "nbins"         , &ps_nbins      , 1);
         H5LTset_attribute_float(parent_group_id, "PowerSpectrum", "average_deltaT", &average_deltaT, 1);
 
-        free(delta_T);
         free(ps);
 
         SID_log("...done", SID_LOG_CLOSE);   // delta_T
