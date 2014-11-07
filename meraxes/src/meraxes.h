@@ -180,6 +180,7 @@ typedef struct hdf5_output_t {
   size_t      *dst_offsets;
   size_t      *dst_field_sizes;
   const char **field_names;
+  const char **field_units;
   hid_t       *field_types;
   size_t       dst_size;
   hid_t        array3f_tid;  // sizeof(hid_t) = 4
