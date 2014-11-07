@@ -357,6 +357,7 @@ void save_tocf_grids(run_globals_t *run_globals, hid_t parent_group_id, int snap
         int   ps_nbins;
         float average_deltaT;
         hid_t group_id;
+        double Hubble_h = run_globals->params.Hubble_h;
 
         // Save tocf grids
         // ----------------------------------------------------------------------------------------------------
@@ -367,13 +368,18 @@ void save_tocf_grids(run_globals_t *run_globals, hid_t parent_group_id, int snap
 
         // float grids
         H5LTmake_dataset_float(group_id, "xH", 1, &dims, grids->xH);
+        H5LT_set_attribute_string(group_id, "xH", "Units", "unitless");
 
         if (tocf_params.uvb_feedback)
         {
             H5LTmake_dataset_float(group_id, "J_21", 1, &dims, grids->J_21);
+            H5LT_set_attribute_string(group_id, "J_21", "Units", "10^-21 erg/s/Hz/cm^2/sr");
             H5LTmake_dataset_float(group_id, "J_21_at_ionization", 1, &dims, grids->J_21_at_ionization);
+            H5LT_set_attribute_string(group_id, "J_21_at_ionization", "Units", "10^-21 erg/s/Hz/cm^2/sr");
             H5LTmake_dataset_float(group_id, "z_at_ionization", 1, &dims, grids->z_at_ionization);
+            H5LT_set_attribute_string(group_id, "z_at_ionization", "Units", "unitless");
             H5LTmake_dataset_float(group_id, "Mvir_crit", 1, &dims, grids->Mvir_crit);
+            H5LT_set_attribute_string(group_id, "Mvir_crit", "Units", "1e10/h Msol");
         }
 
         if (tocf_params.compute_mfp)
@@ -387,8 +393,9 @@ void save_tocf_grids(run_globals_t *run_globals, hid_t parent_group_id, int snap
         // for (int ii = 0; ii < HII_dim; ii++)
         //   for (int jj = 0; jj < HII_dim; jj++)
         //     for (int kk = 0; kk < HII_dim; kk++)
-        //       grid[HII_R_INDEX(ii, jj, kk)] = *((float*)(grids->stars) + HII_R_FFT_INDEX(ii, jj, kk));
+        //       grid[HII_R_INDEX(ii, jj, kk)] = *((float*)(grids->stars) + HII_R_FFT_INDEX(ii, jj, kk)) * Hubble_h / 1.0e10;
         // H5LTmake_dataset_float(group_id, "StellarMass", 1, &dims, grid);
+        // H5LT_set_attribute_string(group_id, "StellarMass", "Units", "1e10/h Msol");
 
         // memset((void*)grid, 0, sizeof(float) * HII_TOT_NUM_PIXELS);
         // for (int ii = 0; ii < HII_dim; ii++)
@@ -396,6 +403,7 @@ void save_tocf_grids(run_globals_t *run_globals, hid_t parent_group_id, int snap
         //     for (int kk = 0; kk < HII_dim; kk++)
         //       grid[HII_R_INDEX(ii, jj, kk)] = *((float*)(grids->sfr) + HII_R_FFT_INDEX(ii, jj, kk)) * SEC_PER_YEAR;
         // H5LTmake_dataset_float(group_id, "Sfr", 1, &dims, grid);
+        // H5LT_set_attribute_string(group_id, "Sfr", "Units", "Msol/yr");
 
         memset((void*)grid, 0, sizeof(float) * HII_TOT_NUM_PIXELS);
         for (int ii = 0; ii < HII_dim; ii++)
@@ -403,6 +411,7 @@ void save_tocf_grids(run_globals_t *run_globals, hid_t parent_group_id, int snap
                 for (int kk = 0; kk < HII_dim; kk++)
                     grid[HII_R_INDEX(ii, jj, kk)] = *((float*)(grids->deltax) + HII_R_FFT_INDEX(ii, jj, kk));
         H5LTmake_dataset_float(group_id, "deltax", 1, &dims, grid);
+        H5LT_set_attribute_string(group_id, "deltax", "Units", "unitless");
 
         if (tocf_params.compute_mfp)
         {
