@@ -463,13 +463,27 @@ void create_master_file(run_globals_t *run_globals)
   // Close the group
   H5Gclose(group_id);
 
-  // save the units of each galaxy property
+  // save the units of each galaxy property and grid
   group_id = H5Gcreate(file_id, "Units", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
 
   for (int ii = 0; ii < h5props->n_props; ii++)
     h5_write_attribute(group_id, h5props->field_names[ii], H5T_C_S1, ds_id, h5props->field_units[ii]);
 
   H5Gclose(group_id);
+
+#ifdef USE_TOCF
+  group_id = H5Gcreate(file_id, "Units/Grids", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+  h5_write_attribute(group_id, "xH", H5T_C_S1, ds_id, "unitless");
+  h5_write_attribute(group_id, "J_21", H5T_C_S1, ds_id, "10^-21 erg/s/Hz/cm^2/sr");
+  h5_write_attribute(group_id, "J_21_at_ionization", H5T_C_S1, ds_id, "10^-21 erg/s/Hz/cm^2/sr");
+  h5_write_attribute(group_id, "z_at_ionization", H5T_C_S1, ds_id, "unitless");
+  h5_write_attribute(group_id, "Mvir_crit", H5T_C_S1, ds_id, "1e10/h Msol");
+  h5_write_attribute(group_id, "StellarMass", H5T_C_S1, ds_id, "1e10/h Msol");
+  h5_write_attribute(group_id, "Sfr", H5T_C_S1, ds_id, "Msol/yr");
+  h5_write_attribute(group_id, "deltax", H5T_C_S1, ds_id, "unitless");
+  H5Gclose(group_id);
+#endif
+
 
 #ifdef GITREF_STR
   // Save the git ref and diff if requested
