@@ -38,6 +38,7 @@ galaxy_t* new_galaxy(run_globals_t *run_globals, int snapshot, int halo_ID)
   gal->MetalsEjectedGas   = 0.0;
   gal->Mcool              = 0.0;
   gal->StellarMass        = 0.0;
+  gal->GrossStellarMass   = 0.0;
   gal->MetalsStellarMass  = 0.0;
   gal->mwmsa_num          = 0.0;
   gal->mwmsa_denom        = 0.0;
@@ -47,7 +48,7 @@ galaxy_t* new_galaxy(run_globals_t *run_globals, int snapshot, int halo_ID)
   gal->Sfr                = 0.0;
   gal->Cos_Inc            = gsl_rng_uniform(run_globals->random_generator);
   gal->MergTime           = 99999.9;
-  gal->BaryonFracModifier = 0.0;
+  gal->BaryonFracModifier = 1.0;
 
   for (int ii = 0; ii < 3; ii++)
   {
@@ -95,7 +96,7 @@ void reset_galaxy_properties(run_globals_t *run_globals, galaxy_t *gal, int snap
   // snapshot basis.
   gal->Mcool              = 0.0;
   gal->Sfr                = 0.0;
-  gal->BaryonFracModifier = 0.0;
+  gal->BaryonFracModifier = 1.0;
 
   // update the stellar mass weighted mean age values
   assert(snapshot > 0);
