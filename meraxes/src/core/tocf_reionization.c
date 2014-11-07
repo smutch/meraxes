@@ -19,8 +19,8 @@ void set_HII_eff_factor(run_globals_t *run_globals)
                                   * (params->ReionEscapeFrac / 0.15) * (1.0 / (1.0 + params->ReionMeanNRec));
 
     // Account for instantaneous recycling factor so that stellar mass is cumulative
-    // TODO: this will change in future versions using gross_stars
-    tocf_params.HII_eff_factor /= 0.43;
+    if (params->Flag_IRA)
+      tocf_params.HII_eff_factor /= params->SfRecycleFraction;
 
     SID_log("Set value of tocf_params.HII_eff_factor = %g", SID_LOG_COMMENT, tocf_params.HII_eff_factor);
 }
