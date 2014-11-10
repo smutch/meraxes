@@ -69,8 +69,8 @@ if __name__ == '__main__':
              "MaxReheatFrac", "MaxEjectedFrac")
     gals, simprops = meraxes.io.read_gals(fname, snapshot=snap, props=props,
                                           sim_props=True, h=h,
-                                          h_conv={'MaxReheatFrac' : lambda x,
-                                                  h: x})
+                                          h_scaling={'MaxReheatFrac' : lambda
+                                                     x, h: x})
     gals = gals.view(np.recarray)
 
     fig, ax = plt.subplots(1,1)

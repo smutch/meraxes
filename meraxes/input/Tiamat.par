@@ -51,12 +51,16 @@ SfDiskVelOpt              : 1    # disk velocity for SF law (1=Vmax, 2=Vvir)
 SfEfficiency              : 0.02    # star formation efficiency
 SfCriticalSDNorm          : 0.37    # critical surface density normalisation factor for star formation (internal units; standard=0.37)
 SfRecycleFraction         : 0.25    # instantaneous recycle fraction (IMF dependant)
+
 SnEjectionEff             : 0.5     # SN feedback gas reheating efficiency
 SnEjectionScaling         : 3.0     # SN feedback gas reheating efficiency scaling (with Vmax)
 SnEjectionNorm            : 100.0   # SN feedback gas reheating efficiency norm (with Vmax [internal units])
+
 SnReheatEff               : 6.0     # mass loading factor for SN feedback
+SnReheatLimit             : 100000  # maximum allowed mass loading factor for SN feedback
 SnReheatScaling           : 3.0     # mass loading factor for SN feedback scaling (with Vmax)
 SnReheatNorm              : 100.0   # mass loading factor for SN feedback scaling (with Vmax [internal units])
+
 ReincorporationEff        : 0.0     # gas reincorporation efficiency from ejected component
 Yield                     : 0.03    # mass of metals injected into ISM per unit star formation
 RadioModeEff              : 6e-4    # radio mode feedback efficiency
