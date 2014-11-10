@@ -1,5 +1,6 @@
 #include "meraxes.h"
 #include <math.h>
+#include <assert.h>
 
 static double inline M0(run_globals_t *run_globals, double z)
 {
@@ -20,11 +21,20 @@ static double sobacchi_Mvir_min(run_globals_t *run_globals, double z)
 
   double current_Mcool = Mcool(run_globals, z);
   double current_M0    = M0(run_globals, z);
+  double Mvir_min;
   double g_term;
   physics_params_t *params = &(run_globals->params.physics);
 
   g_term = 1. / (1. + exp((z - (params->ReionSobacchi_Zre - params->ReionSobacchi_DeltaZsc)) / params->ReionSobacchi_DeltaZre));
-  return current_Mcool * pow(current_M0 / current_Mcool, g_term);
+  Mvir_min = current_Mcool * pow(current_M0 / current_Mcool, g_term);
+
+  // This asserion is a check for validity of using Mvir_min in the
+  // sobbachi2013_modifier function below.  Really Mvir_crit should be used in
+  // that function.  Mvir_min = Mvir_crit as long as the halo mass is a factor
+  // of a few greater than Mcool.
+  assert(Mvir_min > 1.01*current_Mcool);
+
+  return Mvir_min;
 }
 
 
