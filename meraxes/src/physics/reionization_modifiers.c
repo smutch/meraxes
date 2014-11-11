@@ -28,19 +28,21 @@ static double sobacchi_Mvir_min(run_globals_t *run_globals, double z)
   g_term = 1. / (1. + exp((z - (params->ReionSobacchi_Zre - params->ReionSobacchi_DeltaZsc)) / params->ReionSobacchi_DeltaZre));
   Mvir_min = current_Mcool * pow(current_M0 / current_Mcool, g_term);
 
-  // This asserion is a check for validity of using Mvir_min in the
-  // sobbachi2013_modifier function below.  Really Mvir_crit should be used in
-  // that function.  Mvir_min = Mvir_crit as long as the halo mass is a factor
-  // of a few greater than Mcool.
-  assert(Mvir_min > 1.01*current_Mcool);
-
   return Mvir_min;
 }
 
 
 double sobacchi2013_modifier(run_globals_t *run_globals, double Mvir, double redshift)
 {
+
+  // This asserion is a check for validity of using Mvir_min here.  Really
+  // Mvir_crit should be used.  Mvir_min = Mvir_crit as long as the halo mass
+  // is a bit larger than Mcool.
+  // double current_Mcool = Mcool(run_globals, redshift);
+  // assert((redshift < 6.0) || (Mvir > 1.05*current_Mcool));
+
   double Mvir_min = sobacchi_Mvir_min(run_globals, redshift);
+
   return pow(2.0, -Mvir_min / Mvir);
 }
 
