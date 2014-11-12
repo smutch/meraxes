@@ -5,4 +5,4 @@ python ../allresults.py /lustre/projects/p070_astro/smutch/meraxes/tuning/output
 python cold_gas_fraction.py /lustre/projects/p070_astro/smutch/meraxes/tuning/output/meraxes.hdf5 5
 python gas_sd.py /lustre/projects/p070_astro/smutch/meraxes/tuning/output/meraxes.hdf5 5
 python used_gas_fractions.py /lustre/projects/p070_astro/smutch/meraxes/tuning/output/meraxes.hdf5 5
-
+python sn_feedback_params.py /lustre/projects/p070_astro/smutch/meraxes/tuning/output/meraxes.hdf5 5
