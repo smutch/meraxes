@@ -78,6 +78,32 @@ def plot(gals, simprops, redshift, axs, h):
     axs[1].set_ylabel(r"SnEjectionEff")
 
 
+def plot_vmax(gals, simprops, redshift, ax, h):
+
+    print "Plotting z={:g} Vmax as func of M*...".format(redshift)
+
+    # bin by stellar mass
+    nbins = 20
+    edges = np.linspace(7,11,nbins+1)
+    width = edges[1]-edges[0]
+    centers = edges[:-1] + 0.5*width
+    ind = np.digitize(np.log10(gals.StellarMass*1e10), edges)-1
+
+    # plot the model
+    vals = [gals.Vmax[sel] for sel in [ind==ii for ii in xrange(0, ind.max()+1)]]
+    ax.boxplot(vals, positions=centers[:ind.max()+1], widths=width*0.75)
+
+    # add some text
+    ax.text(0.05,0.95, "z={:d}\nh={:.2f}\nSalpeter IMF\n".format(int(redshift), h),
+            horizontalalignment="left",
+            verticalalignment="top",
+            transform=ax.transAxes)
+
+    # ax.set_ylim([0,])
+    plt.setp(ax.get_xticklabels(), rotation=45)
+
+    ax.set_ylabel(r"$V_{\rm max}\ [{\rm km/s}]$")
+    ax.set_xlabel(r"$\log_{10}(M_{*}/\rm M_{\odot})$")
 
 
 if __name__ == '__main__':
@@ -102,4 +128,11 @@ if __name__ == '__main__':
     fig.tight_layout()
     output_fname = os.path.join(os.path.dirname(fname),
                                 "plots/sn_feedback_params-z{:d}.png".format(int(redshift)))
+    plt.savefig(output_fname)
+
+    fig, ax = plt.subplots(1, 1)
+    plot_vmax(gals, simprops, redshift, ax, h)
+    fig.tight_layout()
+    output_fname = os.path.join(os.path.dirname(fname),
+                                "plots/Vmax_vs_stellarmass-z{:d}.png".format(int(redshift)))
     plt.savefig(output_fname)
