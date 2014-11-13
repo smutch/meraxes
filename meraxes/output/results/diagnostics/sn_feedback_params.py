@@ -43,17 +43,19 @@ def plot(gals, simprops, redshift, axs, h):
 
     # bin by stellar mass
     nbins = 20
-    edges = np.linspace(7,11,nbins+1)
+    edges = np.linspace(7,11.0,nbins+1)
     width = edges[1]-edges[0]
     centers = edges[:-1] + 0.5*width
-    ind = np.digitize(np.log10(gals.StellarMass*1e10), edges)-1
+    sm = np.log10(gals.StellarMass*1e10)
+    ind = np.digitize(sm, edges)-1
 
     # calc SN params
     SnReheatParam, SnEjectionParam = calc_eff_sn_params(gals, simprops)
 
     # plot the model
-    vals = [SnReheatParam[sel] for sel in [ind==ii for ii in xrange(0, ind.max()+1)]]
-    axs[0].boxplot(vals, positions=centers[:ind.max()+1], widths=width*0.75)
+    n_ind = np.min([ind.max()+1, nbins])
+    vals = [SnReheatParam[sel] for sel in [ind==ii for ii in xrange(0,n_ind)]]
+    axs[0].boxplot(vals, positions=centers[:n_ind], widths=width*0.75)
 
     # add some text
     axs[0].text(0.95,0.95, "z={:d}\nh={:.2f}\nSalpeter IMF\n".format(int(redshift), h),
@@ -67,8 +69,8 @@ def plot(gals, simprops, redshift, axs, h):
 
     axs[0].set_ylabel(r"SnReheatEff")
 
-    vals = [SnEjectionParam[sel] for sel in [ind==ii for ii in xrange(0, ind.max()+1)]]
-    axs[1].boxplot(vals, positions=centers[:ind.max()+1], widths=width*0.75)
+    vals = [SnEjectionParam[sel] for sel in [ind==ii for ii in xrange(0, n_ind)]]
+    axs[1].boxplot(vals, positions=centers[:n_ind], widths=width*0.75)
 
     axs[1].set_ylim([0,1.2])
 
@@ -90,8 +92,9 @@ def plot_vmax(gals, simprops, redshift, ax, h):
     ind = np.digitize(np.log10(gals.StellarMass*1e10), edges)-1
 
     # plot the model
-    vals = [gals.Vmax[sel] for sel in [ind==ii for ii in xrange(0, ind.max()+1)]]
-    ax.boxplot(vals, positions=centers[:ind.max()+1], widths=width*0.75)
+    n_ind = np.min([ind.max()+1, nbins])
+    vals = [gals.Vmax[sel] for sel in [ind==ii for ii in xrange(0, n_ind)]]
+    ax.boxplot(vals, positions=centers[:n_ind], widths=width*0.75)
 
     # add some text
     ax.text(0.05,0.95, "z={:d}\nh={:.2f}\nSalpeter IMF\n".format(int(redshift), h),

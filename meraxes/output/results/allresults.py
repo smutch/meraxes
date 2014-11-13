@@ -76,9 +76,6 @@ if __name__ == '__main__':
                 sim_props=True, h=h)
         gals = gals.view(np.recarray)
         simprops["h"] = h
-        git_info = meraxes.io.read_git_info(fname)
-        simprops['model_gitref'] = git_info[0]
-        simprops['model_gitdiff'] = git_info[1]
 
         # SMF
         fig, ax = plt.subplots(1,1)
