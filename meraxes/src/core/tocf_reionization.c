@@ -60,7 +60,7 @@ void call_find_HII_bubbles(run_globals_t *run_globals, int snapshot, int unsampl
     memcpy(grids->sfr_copy, grids->sfr, sizeof(fftwf_complex) * HII_KSPACE_NUM_PIXELS);
     memcpy(grids->deltax_copy, grids->deltax, sizeof(fftwf_complex) * HII_KSPACE_NUM_PIXELS);
 
-    SID_log("Calling find_HII_bubbles...", SID_LOG_OPEN);
+    SID_log("Calling find_HII_bubbles...", SID_LOG_OPEN | SID_LOG_TIMER);
     // TODO: Fix if snapshot==0
     grids->global_xH = find_HII_bubbles(run_globals->ZZ[snapshot], run_globals->ZZ[snapshot - 1],
         grids->xH,
@@ -262,7 +262,7 @@ void construct_stellar_grids(run_globals_t *run_globals)
   int HII_dim         = tocf_params.HII_dim;
   run_units_t *units  = &(run_globals->units);
 
-  SID_log("Constructing stellar mass and sfr grids...", SID_LOG_OPEN);
+  SID_log("Constructing stellar mass and sfr grids...", SID_LOG_OPEN | SID_LOG_TIMER);
 
   // init the grid
   for (int ii = 0; ii < HII_TOT_FFT_NUM_PIXELS; ii++)

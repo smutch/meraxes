@@ -76,7 +76,7 @@ void insitu_star_formation(run_globals_t *run_globals, galaxy_t *gal, int snapsh
         break;
     }
 
-    // calculate disk scalelength using Mo, Mau & White (1998) eqn. 12 and
+    // calculate disk scalelength using Mo, Mao & White (1998) eqn. 12 and
     // multiply it by 3 to approximate the star forming region size (ala
     // Croton+ 2006).
     r_disk = gal->DiskScaleLength * 3.0;
