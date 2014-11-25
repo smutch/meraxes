@@ -46,7 +46,7 @@ TOCF_Flag : 0 {  # use 21cmfast for reionization?
 Flag_ReionizationModifier : 1    # use halo mass dependant infall modifier of Sobacchi & Mesinger (2013)
 Flag_BHFeedback           : 0    # use black hole feedback
 Flag_IRA                  : 0    # use the instantaneous recycling approximation
-SfDiskVelOpt              : 1    # disk velocity for SF law (1=Vmax, 2=Vvir)
+SfDiskVelOpt              : 2    # disk velocity for SF law (1=Vmax, 2=Vvir)
 
 SfEfficiency              : 0.05    # star formation efficiency
 SfCriticalSDNorm          : 0.19    # critical surface density normalisation factor for star formation (internal units; standard=0.37)
