@@ -48,7 +48,7 @@ def plot_slice(slice_img, ax, dim, slice_axis, box_size, galaxies=False, dm=Fals
     extent = (0,final_size,0,final_size)
 
     if dm is not False:
-        ax.imshow(np.log10(dm.T),
+        ax.imshow(np.log10(dm.T+1.0),
                   interpolation='bilinear',
                   cmap=plt.cm.Spectral,
                   extent = extent,
@@ -138,7 +138,6 @@ if __name__ == '__main__':
     # read the grid and parse the requested slice
     grid = meraxes.io.read_grid(input_file, snapshot, "xH")
     dm = meraxes.io.read_grid(input_file, snapshot, "deltax")
-    dm /= dm.mean()
     slice_dim = grid.shape[0]
     slice_sel = parse_slice(args['<slice>'], slice_dim)
     box_len = simprops["BoxSize"]
