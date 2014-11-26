@@ -440,7 +440,7 @@ void create_master_file(run_globals_t *run_globals)
   group_id = H5Gcreate(file_id, "InputParams", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
 
   // Save all of the input params
-  for (int ii = 0, str_len = 0; (ii < params_count) && (params_type[ii] != PARAM_TYPE_UNUSED); ii++)
+  for (int ii = 0; (ii < params_count) && (params_type[ii] != PARAM_TYPE_UNUSED); ii++)
   {
     switch (params_type[ii])
     {

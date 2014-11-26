@@ -357,7 +357,7 @@ void save_tocf_grids(run_globals_t *run_globals, hid_t parent_group_id, int snap
         int   ps_nbins;
         float average_deltaT;
         hid_t group_id;
-        double Hubble_h = run_globals->params.Hubble_h;
+        // double Hubble_h = run_globals->params.Hubble_h;
 
         // Save tocf grids
         // ----------------------------------------------------------------------------------------------------

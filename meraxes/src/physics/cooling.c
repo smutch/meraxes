@@ -3,78 +3,82 @@
 
 double gas_cooling(run_globals_t *run_globals, galaxy_t *gal)
 {
-  double cooling_mass;
+  double cooling_mass = 0.0;
 
   // we only need to do cooling if there is anything to cool!
   if (gal->HotGas > 1e-10)
   {
-    double t_cool, max_cooling_mass, Tvir;
-    double logZ, lambda, x, rho_r_cool, r_cool, rho_at_Rvir;
-    run_units_t *units     = &(run_globals->units);
     fof_group_t *fof_group = gal->Halo->FOFGroup;
 
-    // following Croton+ 2006, we set the maximum cooling time to be the
-    // dynamical time of the host dark matter halo
-    t_cool = fof_group->Rvir / fof_group->Vvir;  // internal units
-
     // calculate the halo virial temperature
-    Tvir = 35.9 * fof_group->Vvir * fof_group->Vvir;  // internal units (Kelvin)
+    // N.B. This assumes ionised gas with mu=0.59...
+    double Tvir = 35.9 * fof_group->Vvir * fof_group->Vvir;  // internal units (Kelvin)
 
-    // get the log10(metallicity) value
-    if (gal->MetalsHotGas > 0)
-      logZ = log10(calc_metallicity(gal->HotGas, gal->MetalsHotGas));
-    else
-      logZ = -10.0;
-
-    // interpolate the temperature and metallicity dependant cooling rate (lambda)
-    lambda = interpolate_cooling_rate(log10(Tvir), logZ);
-
-    // following equation (3) of Croton+ 2006, calculate the hot gas density at
-    // the radius r_cool (i.e. where the cooling time is equal to `t_cool`
-    // above)
-    x          = PROTONMASS * BOLTZMANN * Tvir / lambda;     // now this has units sec g/cm^3
-    x         /= (units->UnitDensity_in_cgs * units->UnitTime_in_s); // now in internal units
-    rho_r_cool = x / t_cool * 0.885;                         // 0.885 = 3/2 * mu, mu=0.59 for a fully ionized gas
-
-    // TODO: We can actually get mu from the cooling tables of Sutherland &
-    // Dopita for T>=1e4K.  We should do this rather than assuming the value.
-    // THIS WILL BE ESPECIALLY IMPORTANT FOR TINY TIAMAT.
-
-    // under the assumption of an isothermal density profile extending to Rvir,
-    // now calculate the cooling radius
-    rho_at_Rvir = gal->HotGas / (4. * M_PI * fof_group->Rvir);
-    r_cool      = sqrt(rho_at_Rvir / rho_r_cool);
-    gal->Rcool  = r_cool;
-
-    // the maximum amount of gas we can possibly cool is limited by the amount
-    // of mass within the free fall radius
-    max_cooling_mass = gal->HotGas / t_cool * gal->dt;
-
-    if (r_cool > fof_group->Rvir)
-      // here we are in the rapid cooling regime and we accrete all gas within
-      // the free-fall radius
-      cooling_mass = max_cooling_mass;
-    // cooling_mass = gal->HotGas;
-    else
+    // If we are below 10^4 K then no cooling either
+    if (Tvir >= 1e4)
     {
-      // here we are in the hot halo regime (but still limited by what's inside the free-fall radius)
-      cooling_mass = 0.5 * gal->HotGas / fof_group->Rvir * r_cool / t_cool * gal->dt;
-      if (cooling_mass > max_cooling_mass)
+      double t_cool, max_cooling_mass;
+      double logZ, lambda, x, rho_r_cool, r_cool, rho_at_Rvir;
+      run_units_t *units     = &(run_globals->units);
+
+      // following Croton+ 2006, we set the maximum cooling time to be the
+      // dynamical time of the host dark matter halo
+      t_cool = fof_group->Rvir / fof_group->Vvir;  // internal units
+
+      // get the log10(metallicity) value
+      if (gal->MetalsHotGas > 0)
+        logZ = log10(calc_metallicity(gal->HotGas, gal->MetalsHotGas));
+      else
+        logZ = -10.0;
+
+      // interpolate the temperature and metallicity dependant cooling rate (lambda)
+      lambda = interpolate_cooling_rate(log10(Tvir), logZ);
+
+      // following equation (3) of Croton+ 2006, calculate the hot gas density at
+      // the radius r_cool (i.e. where the cooling time is equal to `t_cool`
+      // above)
+      x          = PROTONMASS * BOLTZMANN * Tvir / lambda;     // now this has units sec g/cm^3
+      x         /= (units->UnitDensity_in_cgs * units->UnitTime_in_s); // now in internal units
+      rho_r_cool = x / t_cool * 0.885;                         // 0.885 = 3/2 * mu, mu=0.59 for a fully ionized gas
+
+      // TODO: We can actually get mu from the cooling tables of Sutherland &
+      // Dopita for T>=1e4K.  We should do this rather than assuming the value.
+      // THIS WILL BE ESPECIALLY IMPORTANT FOR TINY TIAMAT.
+
+      // under the assumption of an isothermal density profile extending to Rvir,
+      // now calculate the cooling radius
+      rho_at_Rvir = gal->HotGas / (4. * M_PI * fof_group->Rvir);
+      r_cool      = sqrt(rho_at_Rvir / rho_r_cool);
+      gal->Rcool  = r_cool;
+
+      // the maximum amount of gas we can possibly cool is limited by the amount
+      // of mass within the free fall radius
+      max_cooling_mass = gal->HotGas / t_cool * gal->dt;
+
+      if (r_cool > fof_group->Rvir)
+        // here we are in the rapid cooling regime and we accrete all gas within
+        // the free-fall radius
         cooling_mass = max_cooling_mass;
+      // cooling_mass = gal->HotGas;
+      else
+      {
+        // here we are in the hot halo regime (but still limited by what's inside the free-fall radius)
+        cooling_mass = 0.5 * gal->HotGas / fof_group->Rvir * r_cool / t_cool * gal->dt;
+        if (cooling_mass > max_cooling_mass)
+          cooling_mass = max_cooling_mass;
+      }
+
+      // do one last sanity check to ensure we aren't cooling more gas than is available etc.
+      if (cooling_mass > gal->HotGas)
+        cooling_mass = gal->HotGas;
+
+      if (run_globals->params.physics.Flag_BHFeedback)
+        cooling_mass -= radio_mode_BH_heating(run_globals, gal, cooling_mass);
+
+      if (cooling_mass < 0)
+        cooling_mass = 0.0;
     }
-
-    // do one last sanity check to ensure we aren't cooling more gas than is available etc.
-    if (cooling_mass > gal->HotGas)
-      cooling_mass = gal->HotGas;
-
-    if (run_globals->params.physics.Flag_BHFeedback)
-      cooling_mass -= radio_mode_BH_heating(run_globals, gal, cooling_mass);
-
-    if (cooling_mass < 0)
-      cooling_mass = 0.0;
   }
-  else  // if there is no gas to cool...
-    cooling_mass = 0.0;
 
   return cooling_mass;
 }
