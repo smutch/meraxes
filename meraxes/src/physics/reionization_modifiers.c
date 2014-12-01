@@ -50,6 +50,7 @@ double sobacchi2013_modifier(run_globals_t *run_globals, double Mvir, double red
 double gnedin2000_modifer(run_globals_t *run_globals, double Mvir, double redshift)
 {
   // NOTE THAT PART OF THIS CODE IS COPIED VERBATIM FROM THE CROTON ET AL. 2006 SEMI-ANALYTIC MODEL.
+  // WITH A COUPLE OF BUGFIXES SO THAT EQUATIONS MATCH KRAVTSOV+ 2004
 
   double a0;
   double ar;
@@ -79,11 +80,11 @@ double gnedin2000_modifer(run_globals_t *run_globals, double Mvir, double redshi
   a_on_ar = a / ar;
 
   if (a <= a0)
-    f_of_a = 3.0 * a / ((2.0 * alpha) * (5.0 + 2.0 * alpha)) * pow(a_on_a0, alpha);
+    f_of_a = 3.0 * a / ((2.0 + alpha) * (5.0 + 2.0 * alpha)) * pow(a_on_a0, alpha);
   else if ((a > a0) && (a < ar))
     f_of_a =
-      (3.0 / a) * a0 * a0 * (1.0 / (2.0 + alpha) - 2.0 * pow(a_on_a0, -0.5) / (5.0 + 2.0 * alpha)) +
-      a * a / 10.0 - (a0 * a0 / 10.0) * (5.0 - 4.0 * pow(a_on_a0, -0.5));
+      (3.0 / a) * (a0 * a0 * (1.0 / (2.0 + alpha) - 2.0 * pow(a_on_a0, -0.5) / (5.0 + 2.0 * alpha)) +
+      a * a / 10.0 - (a0 * a0 / 10.0) * (5.0 - 4.0 * pow(a_on_a0, -0.5)));
   else
     f_of_a =
       (3.0 / a) * (a0 * a0 * (1.0 / (2.0 + alpha) - 2.0 * pow(a_on_a0, -0.5) /
