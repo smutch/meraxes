@@ -75,7 +75,7 @@ void add_infall_to_hot(galaxy_t *central, double infall_mass)
       central->EjectedGas -= strip_mass;
       if(central->EjectedGas < 0)
       {
-        strip_mass -= central->EjectedGas;
+        strip_mass = -central->EjectedGas;
         central->EjectedGas = 0.0;
         central->MetalsEjectedGas = 0.0;
       }
