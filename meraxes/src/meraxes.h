@@ -96,7 +96,6 @@ typedef struct physics_params_t {
   // TODO: These parameters should be used to set the TOCF HII_EFF_FACTOR value
   double ReionNionPhotPerBary;
   double ReionEscapeFrac;
-  double ReionMeanNRec; // Mean number of recombinations per baryon
   double ReionTcool;
 
   double ReionSobacchi_Zre;

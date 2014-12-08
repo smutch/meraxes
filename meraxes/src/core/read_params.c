@@ -502,11 +502,6 @@ void read_parameter_file(run_globals_t *run_globals, char *fname, int mode)
       required_tag[n_param]  = 1;
       params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
-      strcpy(params_tag[n_param], "ReionMeanNRec");
-      params_addr[n_param]   = &(run_params->physics).ReionMeanNRec;
-      required_tag[n_param]  = 1;
-      params_type[n_param++] = PARAM_TYPE_DOUBLE;
-
       strcpy(params_tag[n_param], "ReionGnedin_z0");
       params_addr[n_param]   = &(run_params->physics).ReionGnedin_z0;
       required_tag[n_param]  = 1;
