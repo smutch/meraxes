@@ -323,7 +323,6 @@ void init_meraxes(run_globals_t *run_globals)
   initialize_halo_storage(run_globals);
 
 #ifdef USE_TOCF
-  set_HII_eff_factor(run_globals);
   malloc_reionization_grids(run_globals);
 
   if (run_globals->params.TOCF_Flag)
@@ -342,6 +341,9 @@ void init_meraxes(run_globals_t *run_globals)
     tocf_params.power_index = run_globals->params.SpectralIndex;
     tocf_params.wl          = run_globals->params.wLambda;
   }
+
+  set_HII_eff_factor(run_globals);
+
 #else
   // Check if we want to use 21cmFAST
   if (run_globals->params.TOCF_Flag)
