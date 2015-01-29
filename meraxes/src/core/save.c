@@ -864,7 +864,7 @@ void write_snapshot(
   H5LTset_attribute_double(group_id, "Galaxies", "GlobalIonizingEmissivity", &temp, 1);
 
 #ifdef USE_TOCF
-  if (run_globals->params.TOCF_Flag)
+  if (run_globals->params.TOCF_Flag && !check_if_reionization_complete(run_globals))
     save_tocf_grids(run_globals, group_id, run_globals->ListOutputSnaps[i_out]);
 #endif
 

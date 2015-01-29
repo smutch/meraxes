@@ -87,10 +87,6 @@ void dracarys(run_globals_t *run_globals)
   trees_info_t *snapshot_trees_info = run_globals->SnapshotTreesInfo;
   double *LTTime                    = run_globals->LTTime;
 
-#ifdef USE_TOCF
-  bool reion_complete_flag = false;
-#endif
-
   // Find what the last requested output snapshot is
   for (int ii = 0; ii < NOUT; ii++)
     if (run_globals->ListOutputSnaps[ii] > last_snap)
@@ -402,7 +398,7 @@ void dracarys(run_globals_t *run_globals)
     nout_gals += ghost_counter;
 
 #ifdef USE_TOCF
-    if (run_globals->params.TOCF_Flag)
+    if (run_globals->params.TOCF_Flag && !check_if_reionization_complete(run_globals))
     {
       if (!tocf_params.uvb_feedback)
       {
@@ -411,7 +407,7 @@ void dracarys(run_globals_t *run_globals)
           if (snapshot == run_globals->ListOutputSnaps[i_out])
             call_find_HII_bubbles(run_globals, snapshot, trees_info.unsampled_snapshot, nout_gals);
       }
-      else if (!reion_complete_flag)
+      else
         call_find_HII_bubbles(run_globals, snapshot, trees_info.unsampled_snapshot, nout_gals);
     }
 #endif
@@ -433,11 +429,6 @@ void dracarys(run_globals_t *run_globals)
     for (int i_out = 0; i_out < NOUT; i_out++)
       if (snapshot == run_globals->ListOutputSnaps[i_out])
         write_snapshot(run_globals, nout_gals, i_out, &last_nout_gals, &trees_info);
-
-#ifdef USE_TOCF
-    if (run_globals->params.TOCF_Flag)
-      reion_complete_flag = check_if_reionization_complete(run_globals);
-#endif
 
     // Update the LastIdentSnap values for non-ghosts
     gal = run_globals->FirstGal;

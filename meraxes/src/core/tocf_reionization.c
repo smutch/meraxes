@@ -459,7 +459,7 @@ void save_tocf_grids(run_globals_t *run_globals, hid_t parent_group_id, int snap
 
 bool check_if_reionization_complete(run_globals_t *run_globals)
 {
-    SID_log("Checking if reionization complete... (global_xH = %.2f)", SID_LOG_COMMENT, run_globals->tocf_grids.global_xH);
+    // SID_log("Checking if reionization complete... (global_xH = %.2f)", SID_LOG_COMMENT, run_globals->tocf_grids.global_xH);
 
     // If the global_xH value is less than a given fraction, stop doing reionisation
     if (run_globals->tocf_grids.global_xH < 0.0005)
