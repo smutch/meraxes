@@ -322,6 +322,7 @@ typedef struct galaxy_t {
   int  Type;
   int  OldType;
   int  Len;
+  int  MaxLen;
   int  SnapSkipCounter;
   int  HaloDescIndex;
   int  TreeFlags;
@@ -347,6 +348,7 @@ typedef struct galaxy_output_t {
   int CentralGal;
   int GhostFlag;
   int Len;
+  int MaxLen;
 
   float Pos[3];
   float Vel[3];

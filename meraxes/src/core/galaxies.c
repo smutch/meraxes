@@ -23,6 +23,7 @@ galaxy_t* new_galaxy(run_globals_t *run_globals, int snapshot, int halo_ID)
   gal->Next               = NULL;
   gal->MergerTarget       = NULL;
   gal->Len                = 0;
+  gal->MaxLen             = 0;
   gal->dt                 = 0.0;
   gal->Mvir               = 0.0;
   gal->Rvir               = 0.0;
@@ -88,6 +89,10 @@ void copy_halo_to_galaxy(halo_t *halo, galaxy_t *gal, int snapshot)
     gal->Pos[ii] = halo->Pos[ii];
     gal->Vel[ii] = halo->Vel[ii];
   }
+
+  // record the maximum Len value if necessary
+  if (halo->Len > gal->MaxLen)
+    gal->MaxLen = halo->Len;
 }
 
 void reset_galaxy_properties(run_globals_t *run_globals, galaxy_t *gal, int snapshot)
