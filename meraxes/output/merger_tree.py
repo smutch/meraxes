@@ -121,6 +121,8 @@ if __name__ == '__main__':
     fig_format = args["--format"]
     output_dir = args["--output"]
 
+    gal_props = ("Type", "Mvir", "StellarMass", "GhostFlag", "ID", "Len")
+
     # Check that we can construct the tree
     snaplist, zlist, _ = samio.read_snaplist(fname_gals)
     if last_snapnum not in snaplist:
@@ -143,7 +145,8 @@ if __name__ == '__main__':
             np_ind.append([])
 
     # Find the index of our requested galaxy
-    gal = samio.read_gals(fname_gals, snapshot=last_snapnum, quiet=True, h=0.7)
+    gal = samio.read_gals(fname_gals, snapshot=last_snapnum, quiet=True, h=0.7,
+                          props=gal_props)
     ind = np.argwhere(gal["ID"]==galaxy_ID)[0][0]
 
     # Walk the fp and np indices and construct the graph
@@ -153,7 +156,8 @@ if __name__ == '__main__':
     # Attach the galaxies to the graph
     for snap in tqdm(snaplist, desc="Generating graph"):
         try:
-            gal = samio.read_gals(fname_gals, snapshot=snap, quiet=True, h=0.7)
+            gal = samio.read_gals(fname_gals, snapshot=snap, quiet=True, h=0.7,
+                                  props=gal_props)
         except IndexError:
             continue
         for node in G.iter_nodes():

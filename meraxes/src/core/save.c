@@ -512,6 +512,7 @@ void create_master_file(run_globals_t *run_globals)
   hid_t source_file_id;
   hid_t source_group_id;
   hsize_t core_n_gals;
+  htri_t path_valid;
   double temp;
   double global_ionizing_emissivity;
   int unsampled_snapshot;
@@ -569,18 +570,27 @@ void create_master_file(run_globals_t *run_globals)
 #ifdef USE_TOCF
     if((i_core == 0) && (run_globals->params.TOCF_Flag))
     {
-      // create links to the 21cmFAST grids
-      sprintf(target_group, "Grids");
+      // create links to the 21cmFAST grids that exist
       sprintf(source_group, "Snap%03d/Grids", run_globals->ListOutputSnaps[i_out]);
-      H5Lcreate_external(relative_source_file, source_group, snap_group_id, target_group, H5P_DEFAULT, H5P_DEFAULT);
+      if (path_valid = H5LTpath_valid(source_file_id, source_group, FALSE))
+      {
+        sprintf(target_group, "Grids");
+        H5Lcreate_external(relative_source_file, source_group, snap_group_id, target_group, H5P_DEFAULT, H5P_DEFAULT);
+      }
 
       sprintf(source_ds, "Snap%03d/PowerSpectrum", run_globals->ListOutputSnaps[i_out]);
-      sprintf(target_ds, "PowerSpectrum");
-      H5Lcreate_external(relative_source_file, source_ds, snap_group_id, target_ds, H5P_DEFAULT, H5P_DEFAULT);
+      if (path_valid = H5LTpath_valid(source_file_id, source_ds, FALSE))
+      {
+        sprintf(target_ds, "PowerSpectrum");
+        H5Lcreate_external(relative_source_file, source_ds, snap_group_id, target_ds, H5P_DEFAULT, H5P_DEFAULT);
+      }
 
       sprintf(source_ds, "Snap%03d/RegionSizeDist", run_globals->ListOutputSnaps[i_out]);
-      sprintf(target_ds, "RegionSizeDist");
-      H5Lcreate_external(relative_source_file, source_ds, snap_group_id, target_ds, H5P_DEFAULT, H5P_DEFAULT);
+      if (path_valid = H5LTpath_valid(source_file_id, source_ds, FALSE))
+      {
+        sprintf(target_ds, "RegionSizeDist");
+        H5Lcreate_external(relative_source_file, source_ds, snap_group_id, target_ds, H5P_DEFAULT, H5P_DEFAULT);
+      }
     }
 #endif
 
