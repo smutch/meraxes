@@ -24,3 +24,6 @@ data
 testing
 meraxes/src/git.h
 meraxes/src/my_SConscript
+.syntastic_config
+.vimrc
+.exrc
