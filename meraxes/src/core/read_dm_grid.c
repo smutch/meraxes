@@ -121,7 +121,7 @@ int read_dm_grid(
     if (!fin)
     {
         SID_log_error("Failed to open file: %s", fname);
-        return(EXIT_FAILURE);
+        ABORT(EXIT_FAILURE);
     }
     
     // Read the header
@@ -142,7 +142,7 @@ int read_dm_grid(
     {
         SID_log_error("n_grids != 4 as expected...");
         fclose(fin);
-        return -1;
+        ABORT(EXIT_FAILURE);
     }
 
     // Check if the grid in the file is higher resolution than we require
