@@ -9,7 +9,7 @@ FileNameGalaxies : Tiamat
 SimName          : Tiamat
 SimulationDir    : /home/smutch/data_dragons/input_trees/Tiamat
 CatalogFilePrefix: rockstar_fixed
-BoxSize          : 100
+BoxSize          : 67.8
 VolumeFactor     : 1.0
 
 #------------------------------------------
@@ -74,7 +74,7 @@ ThreshMajorMerger         : 0.3     # major merger when mass ratio greater than 
 MergerTimeFactor          : 0.25    # Multiplicitive fator for the merger timescales (2.0->DeLucia+; 1.0->Croton+)
 
 MinMergerStellarMass      : -1      # Minimum stellar mass for a merger starburst and dynamical friction calc (internal units)
-MinMergerRatioForBurst    : 0.0       # Minimum mass ratio for merger driven star burst
+MinMergerRatioForBurst    : 0.0     # Minimum mass ratio for merger driven star burst
 MergerBurstFactor         : 0.57    # Constant factor in merger burst equation
 MergerBurstScaling        : 0.7
 
@@ -96,15 +96,15 @@ ReionGnedin_zr         : 7
 #------------------------------------------------
 #----- Cosmological and nbody sim parameters ----
 #------------------------------------------------
-OmegaM: 0.275
+OmegaM: 0.308
 OmegaK: 0.000
-OmegaLambda: 0.725
+OmegaLambda: 0.692
 OmegaR: 0.0
-BaryonFrac: 0.167
-Hubble_h: 0.702
+BaryonFrac: 0.15714
+Hubble_h: 0.678
 SpectralIndex: 0.968
-Sigma8: 0.816
-PartMass: 0.000263286
+Sigma8: 0.815
+PartMass: 0.0002643852
 wLambda: -1.0
 
 UnitLength_in_cm         : 3.08568e+24       # WATCH OUT : Mpc/h
