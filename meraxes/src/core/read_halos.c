@@ -287,11 +287,15 @@ static void read_trees_and_catalogs(
         n_to_read = n_halos - n_read;
 
       H5TBread_records(fd, "trees", n_read, (hsize_t)n_to_read, dst_size, dst_offsets, dst_sizes, tree_buffer);
+      n_read += n_to_read;
+
       int tmp_size = tree_buffer[n_to_read - 1].group_index - tree_buffer[0].group_index + 1;
       if (tmp_size > group_buffer_size)
         group_buffer_size = tmp_size;
     }
   }
+  SID_Bcast(&group_buffer_size, sizeof(int), 0, SID.COMM_WORLD);
+  SID_log("Using group buffer size = %d", SID_LOG_COMMENT, group_buffer_size);
   group_buffer = SID_malloc(sizeof(catalog_halo_t) * group_buffer_size);
 
   // Now actually do the buffered read...
@@ -432,6 +436,7 @@ static void read_trees_and_catalogs(
       fclose(fin_catalogs);
 
   // free the buffers
+  SID_free(SID_FARG group_buffer);
   SID_free(SID_FARG catalog_buffer);
   SID_free(SID_FARG tree_buffer);
 
