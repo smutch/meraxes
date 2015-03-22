@@ -207,9 +207,10 @@ static void read_trees_and_catalogs(
   int           *index_lookup)
 {
   // I guess this should ideally be equal to the chunk size of the input hdf5 file...
-  int buffer_size = 5000;
-  int n_read      = 0;
-  int n_to_read   = 0;
+  int buffer_size       = 5000;
+  int group_buffer_size = 0;    // This will be calculated below
+  int n_read            = 0;
+  int n_to_read         = 0;
   bool keep_flag;
 
   FILE *fin_catalogs          = NULL;
@@ -243,7 +244,6 @@ static void read_trees_and_catalogs(
   tree_entry_t *tree_buffer;
   tree_buffer    = SID_malloc(sizeof(tree_entry_t) * buffer_size);
   catalog_buffer = SID_malloc(sizeof(catalog_halo_t) * buffer_size);
-  group_buffer   = SID_malloc(sizeof(catalog_halo_t) * buffer_size);
 
   *n_halos_kept      = 0;
   *n_fof_groups_kept = 0;
@@ -272,6 +272,35 @@ static void read_trees_and_catalogs(
     sizeof(tree_buffer[0].group_index)
   };
 
+  // Calculate the maximum group buffer size we require to hold a single
+  // buffer worth of subgroups.  This is necessary as subfind can produce
+  // many groups with no subgroups in them and so the group buffer may need
+  // to be larger than the subgroup buffer.
+  if (SID.My_rank == 0)
+  {
+
+    while (n_read < n_halos)
+    {
+      if ((n_halos - n_read) >= buffer_size)
+        n_to_read = buffer_size;
+      else
+        n_to_read = n_halos - n_read;
+
+      H5TBread_records(fd, "trees", n_read, (hsize_t)n_to_read, dst_size, dst_offsets, dst_sizes, tree_buffer);
+      n_read += n_to_read;
+
+      int tmp_size = tree_buffer[n_to_read - 1].group_index - tree_buffer[0].group_index + 1;
+      if (tmp_size > group_buffer_size)
+        group_buffer_size = tmp_size;
+    }
+  }
+  SID_Bcast(&group_buffer_size, sizeof(int), 0, SID.COMM_WORLD);
+  SID_log("Using group buffer size = %d", SID_LOG_COMMENT, group_buffer_size);
+  group_buffer = SID_malloc(sizeof(catalog_halo_t) * group_buffer_size);
+
+  // Now actually do the buffered read...
+  n_read = 0;
+  n_to_read = 0;
   keep_flag = true;
   while (n_read < n_halos)
   {
@@ -407,6 +436,7 @@ static void read_trees_and_catalogs(
       fclose(fin_catalogs);
 
   // free the buffers
+  SID_free(SID_FARG group_buffer);
   SID_free(SID_FARG catalog_buffer);
   SID_free(SID_FARG tree_buffer);
 
