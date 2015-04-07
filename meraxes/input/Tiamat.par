@@ -29,7 +29,7 @@ NSteps                 : 1  # Current version of code requires NSteps=1
 FlagInteractive        : 0
 FlagGenDumpFile        : 0  # DON'T USE THIS WITHOUT TALKING TO SM FIRST
 FlagReadDumpFile       : 0  # DON'T USE THIS WITHOUT TALKING TO SM FIRST
-FlagSubhaloVirialProps : 1
+FlagSubhaloVirialProps : 0  # 0 -> approximate subhalo virial props using particle number; 1 -> use catalogue values
 RandomSeed             : 1809  # seed for random number generator
 
 #------------------------------------------
@@ -46,7 +46,7 @@ TOCF_Flag : 0 {  # use 21cmfast for reionization?
 Flag_ReionizationModifier : 1    # use halo mass dependant infall modifier of Sobacchi & Mesinger (2013)
 Flag_BHFeedback           : 0    # use black hole feedback
 Flag_IRA                  : 0    # use the instantaneous recycling approximation
-SfDiskVelOpt              : 2    # disk velocity for SF law (1=Vmax, 2=Vvir)
+SfDiskVelOpt              : 1    # disk velocity for SF law (1=Vmax, 2=Vvir)
 
 SfEfficiency              : 0.05    # star formation efficiency
 SfCriticalSDNorm          : 0.19    # critical surface density normalisation factor for star formation (internal units; standard=0.37)

@@ -136,10 +136,10 @@ static inline double calc_eta_sn(run_globals_t *run_globals, double m_high, doub
 static inline double calc_sn_energy(run_globals_t *run_globals, double stars, double Vmax, double eta_sn)
 {
   // work out the energy produced by the supernova and add it to our total at this snapshot
-  double E_sn          = run_globals->params.physics.EnergyPerSN / run_globals->units.UnitEnergy_in_cgs;
+  double E_sn              = run_globals->params.physics.EnergyPerSN / run_globals->units.UnitEnergy_in_cgs;
   double SnEjectionScaling = run_globals->params.physics.SnEjectionScaling;
-  double SnEjectionNorm = run_globals->params.physics.SnEjectionNorm;
-  double SnEjectionEff = run_globals->params.physics.SnEjectionEff;
+  double SnEjectionNorm    = run_globals->params.physics.SnEjectionNorm;
+  double SnEjectionEff     = run_globals->params.physics.SnEjectionEff;
   double sn_energy;
 
   if (SnEjectionScaling != 0)
@@ -164,9 +164,6 @@ double calc_recycled_frac(run_globals_t *run_globals, double m_high, double m_lo
 
   double burst_recycled_frac = const_phi * 1.0 / exponent * (pow(m_high, exponent) - pow(m_low, exponent));
   double frac_mass_SSP_above_SNII = 0.14417;  // Fraction of SSP with M>8Msol
-
-  if (burst_recycled_frac < 0)
-    SID_log("WTF? %g (%g, %g)", SID_LOG_COMMENT, burst_recycled_frac, m_low, m_high);
 
   assert(burst_recycled_frac >= 0);
 
@@ -230,7 +227,6 @@ void delayed_supernova_feedback(run_globals_t *run_globals, galaxy_t *gal, int s
   double m_eject    = 0.0;
   double m_recycled = 0.0;
   double new_metals = 0.0;
-  double m_stars;
   double fof_Vvir;
 
   // If we are at snapshot < N_HISTORY_SNAPS-1 then only try to look back to snapshot 0
@@ -247,7 +243,7 @@ void delayed_supernova_feedback(run_globals_t *run_globals, galaxy_t *gal, int s
   // in the current time step.
   for (int i_burst = 1; i_burst < n_bursts; i_burst++)
   {
-    m_stars = gal->NewStars[i_burst];
+    double m_stars = gal->NewStars[i_burst];
 
     // Only need to do this if any stars formed in this history bin
     if (m_stars > 1e-10)
@@ -382,7 +378,6 @@ void contemporaneous_supernova_feedback(
   double burst_recycled_frac = run_globals->params.physics.SfRecycleFraction;
   double burst_mass_frac = 1.0;
   double snII_frac;
-  double log_dt;
   double sn_energy = 0.0;
 
   // init (just in case!)
@@ -400,7 +395,7 @@ void contemporaneous_supernova_feedback(
   if (!Flag_IRA)
   {
     assert(snapshot > 0);
-    log_dt = log10(gal->dt * 0.5 * units->UnitTime_in_Megayears / run_globals->params.Hubble_h);
+    double log_dt = log10(gal->dt * 0.5 * units->UnitTime_in_Megayears / run_globals->params.Hubble_h);
     m_low  = sn_m_low(log_dt); // Msol
 
     // calculate the mass reheated (from fraction of total SN-II that have gone off) from this burst

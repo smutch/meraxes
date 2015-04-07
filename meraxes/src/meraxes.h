@@ -110,6 +110,7 @@ typedef struct physics_params_t {
   int Flag_ReionizationModifier;
   int Flag_BHFeedback;
   int Flag_IRA;
+  int Flag_FixDiskRadiusOnInfall;
   int SfDiskVelOpt;
 
 } physics_params_t;
@@ -494,7 +495,7 @@ galaxy_t   * new_galaxy(run_globals_t *run_globals, int snapshot, int halo_ID);
 void         create_new_galaxy(run_globals_t *run_globals, int snapshot, halo_t *halo, int *NGal, int *new_gal_counter);
 void         assign_galaxy_to_halo(galaxy_t *gal, halo_t *halo);
 void         kill_galaxy(run_globals_t *run_globals, galaxy_t *gal, galaxy_t *prev_gal, int *NGal, int *kill_counter);
-void         copy_halo_to_galaxy(halo_t *halo, galaxy_t *gal, int snapshot);
+void         copy_halo_to_galaxy(run_globals_t *run_globals, halo_t *halo, galaxy_t *gal, int snapshot);
 void         reset_galaxy_properties(run_globals_t *run_globals, galaxy_t *gal, int snapshot);
 double       gas_infall(run_globals_t *run_globals, fof_group_t *FOFgroup, int snapshot);
 void         add_infall_to_hot(galaxy_t *central, double infall_mass);

@@ -512,7 +512,6 @@ void create_master_file(run_globals_t *run_globals)
   hid_t source_file_id;
   hid_t source_group_id;
   hsize_t core_n_gals;
-  htri_t path_valid;
   double temp;
   double global_ionizing_emissivity;
   int unsampled_snapshot;
