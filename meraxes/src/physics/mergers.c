@@ -56,9 +56,17 @@ double calculate_merging_time(run_globals_t *run_globals, galaxy_t *sat, int sna
   coulomb = log((double)(mother->Len) / (double)(sat->Len) + 1);
 
   // Include the baryonic mass in the calculation of the dynamical friction
-  // timescale ala Guo+ 2011
+  // timescale ala Guo+ 2011.
   // N.B. Hot gas should be zero in the satellite anyway for >99% of cases
-  sat_mass = sat->Mvir + sat->ColdGas + sat->StellarMass + sat->BlackHoleMass + sat->HotGas;
+  // sat_mass = sat->Mvir + sat->ColdGas + sat->StellarMass + sat->BlackHoleMass + sat->HotGas;
+  //
+  // OR
+  //
+  // Don't explicitly include the baryon mass reservoirs for the satellite
+  // mass.  The N-body sim used to generate the trees includes the full matter
+  // density of the Universe. In other words - the virial mass should already
+  // include the baryon mass in it.
+  sat_mass = sat->Mvir;
 
   sat_rad = (double)sqrt(
     powf(parent->Pos[0] - sat->Pos[0], 2.0) +
