@@ -78,15 +78,22 @@ void copy_halo_to_galaxy(run_globals_t *run_globals, halo_t *halo, galaxy_t *gal
   gal->Mvir            = halo->Mvir;
   gal->Rvir            = (double)(halo->Rvir);
   gal->Vvir            = (double)(halo->Vvir);
-  gal->Vmax            = halo->Vmax;
   gal->TreeFlags       = halo->TreeFlags;
   gal->Spin            = calculate_spin_param(halo);
 
   double sqrt_2 = 1.414213562;
   if (gal->Type == 0)
+  {
+    gal->Vmax            = halo->Vmax;
     gal->DiskScaleLength = gal->Spin * gal->Rvir / sqrt_2;
-  else if (!run_globals->params.physics.Flag_FixDiskRadiusOnInfall)
-    gal->DiskScaleLength = gal->Spin * gal->Rvir / sqrt_2;
+  }
+  else 
+  {
+    if (!run_globals->params.physics.Flag_FixVmaxOnInfall)
+      gal->Vmax = halo->Vmax;
+    if (!run_globals->params.physics.Flag_FixDiskRadiusOnInfall)
+      gal->DiskScaleLength = gal->Spin * gal->Rvir / sqrt_2;
+  }
 
   for (int ii = 0; ii < 3; ii++)
   {
