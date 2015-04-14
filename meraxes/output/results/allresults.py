@@ -9,7 +9,7 @@ Arguments:
 
 Options:
     --z=<redshift>       Redshift to plot (unspecified = all avail.)
-    --hubble=<Hubble_h>  Hubble constant [default: 0.702]
+    --hubble=<Hubble_h>  Hubble constant [default: 0.7]
     --ext=<extension>    Ouput file extension [default: pdf]
 """
 
@@ -82,10 +82,10 @@ if __name__ == '__main__':
 
         # SMF
         fig, ax = plt.subplots(1,1)
-        model = Smf(fname, snapshot=snap)
+        model = Smf(fname, -1, snapshot=snap)
         smf_z5.plot(model, ax)
         ax.yaxis.set_tick_params(which='both', color='w')
-        ax.legend(loc="lower left", fontsize="small")
+        ax.legend(loc="upper right", fontsize="small")
         savefig(fig, fname, "smf-z5", ext, simprops)
 
         # SFRF
@@ -118,7 +118,7 @@ if __name__ == '__main__':
 
         # SMF
         fig, ax = plt.subplots(1,1)
-        model = Smf(fname, snapshot=snap)
+        model = Smf(fname, -1, snapshot=snap)
         smf_z6.plot(model, ax)
         ax.yaxis.set_tick_params(which='both', color='w')
         ax.legend(loc="upper right", fontsize="small")
@@ -142,7 +142,7 @@ if __name__ == '__main__':
 
         # SMF
         fig, ax = plt.subplots(1,1)
-        model = Smf(fname, snapshot=snap)
+        model = Smf(fname, -1, snapshot=snap)
         smf_z7.plot(model, ax)
         ax.yaxis.set_tick_params(which='both', color='w')
         ax.legend(loc="upper right", fontsize="small")

@@ -133,6 +133,11 @@ void read_parameter_file(run_globals_t *run_globals, char *fname, int mode)
 
     printf("\nreading parameter file:\n\n");
 
+    // even if this is an interactive run, we have to init required_tag
+    // (used_tag is initialised later)
+    for (ii = 0; ii < PARAM_MAX_ENTRIES; ii++)
+      required_tag[ii] = 0;
+
     // malloc global arrays and init param properties
     if (mode == 0)
     {
