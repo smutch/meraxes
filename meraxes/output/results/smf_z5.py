@@ -59,17 +59,7 @@ def plot_obs(ax):
     ax.plot(mass, phi, ls="--", label="Grazian et al. 2015", color=COLS[3],
             lw=3)
 
-
-if __name__ == '__main__':
-    args = docopt(__doc__)
-    fname = args["<fname>"]
-
-    # set up
-    meraxes.set_little_h(HUBBLE)
-    plt.style.use(["dragons", ])
-    fig, ax = plt.subplots(1, 1)
-
-    model = Smf(fname, 5.0)
+def plot(model, ax):
     model.generate(limits=XLIM)
     # model.gen_uncert(20)
     model.plot(ax, label="Meraxes", lw=4)
@@ -84,6 +74,19 @@ if __name__ == '__main__':
             horizontalalignment="left", verticalalignment="bottom",
             transform=ax.transAxes)
 
+
+if __name__ == '__main__':
+    args = docopt(__doc__)
+    fname = args["<fname>"]
+
+    # set up
+    meraxes.set_little_h(HUBBLE)
+    plt.style.use(["dragons", ])
+    fig, ax = plt.subplots(1, 1)
+
+    model = Smf(fname, 5.0)
+    plot(model, ax)
+
     # save
     plt.tight_layout()
-    plt.savefig(os.path.dirname(fname)+"/plots/smf_z5.pdf")
+    plt.savefig(os.path.dirname(fname)+"/plots/smf-z5.pdf")

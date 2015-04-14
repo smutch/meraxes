@@ -23,6 +23,7 @@ import matplotlib.pyplot as plt
 from dragons import meraxes, plotutils
 from docopt import docopt
 
+from smf import Smf
 import sfrf_z5, smf_z5, shmr_z5
 import sfrf_z6, smf_z6
 import sfrf_z7, smf_z7
@@ -56,6 +57,8 @@ if __name__ == '__main__':
     ext = args['--ext']
     redshift = args['--z']
 
+    meraxes.set_little_h(h)
+
     if redshift:
         redshift = float(redshift)
         # Check that a valid redshift has been requested
@@ -73,13 +76,14 @@ if __name__ == '__main__':
         snap, _ = meraxes.io.check_for_redshift(fname, 5.0, tol=0.1)
 
         gals, simprops = meraxes.io.read_gals(fname, snapshot=snap, props=props,
-                sim_props=True, h=h)
+                sim_props=True)
         gals = gals.view(np.recarray)
         simprops["h"] = h
 
         # SMF
         fig, ax = plt.subplots(1,1)
-        smf_z5.plot(gals, simprops, ax, h)
+        model = Smf(fname, snapshot=snap)
+        smf_z5.plot(model, ax)
         ax.yaxis.set_tick_params(which='both', color='w')
         ax.legend(loc="lower left", fontsize="small")
         savefig(fig, fname, "smf-z5", ext, simprops)
@@ -114,7 +118,8 @@ if __name__ == '__main__':
 
         # SMF
         fig, ax = plt.subplots(1,1)
-        smf_z6.plot(gals, simprops, ax, h)
+        model = Smf(fname, snapshot=snap)
+        smf_z6.plot(model, ax)
         ax.yaxis.set_tick_params(which='both', color='w')
         ax.legend(loc="upper right", fontsize="small")
         savefig(fig, fname, "smf-z6", ext, simprops)
@@ -137,7 +142,8 @@ if __name__ == '__main__':
 
         # SMF
         fig, ax = plt.subplots(1,1)
-        smf_z7.plot(gals, simprops, ax, h)
+        model = Smf(fname, snapshot=snap)
+        smf_z7.plot(model, ax)
         ax.yaxis.set_tick_params(which='both', color='w')
         ax.legend(loc="upper right", fontsize="small")
         savefig(fig, fname, "smf-z7", ext, simprops)
