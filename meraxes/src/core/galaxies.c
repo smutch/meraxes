@@ -51,6 +51,8 @@ galaxy_t* new_galaxy(run_globals_t *run_globals, int snapshot, int halo_ID)
   gal->MergTime           = 99999.9;
   gal->BaryonFracModifier = 1.0;
 
+  gal->MergerStartRadius  = 0.0;
+
   for (int ii = 0; ii < 3; ii++)
   {
     gal->Pos[ii] = -99999.9;
