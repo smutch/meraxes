@@ -31,7 +31,7 @@ HUBBLE = 0.7
 def plot_obs(ax):
     # Start with Duncan+ 2014
     obs = pd.read_table(os.path.join(__script_dir__,
-        "{:s}/smf/Duncan14_MF_z6.txt".format(OBS_DATASETS_DIR)),
+        "{:s}/smf/Duncan14_MF_z5.txt".format(OBS_DATASETS_DIR)),
         delim_whitespace=True,
         header=None,
         skiprows=8,
