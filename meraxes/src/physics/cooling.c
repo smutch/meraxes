@@ -53,7 +53,7 @@ double gas_cooling(run_globals_t *run_globals, galaxy_t *gal)
 
       // the maximum amount of gas we can possibly cool is limited by the amount
       // of mass within the free fall radius
-      max_cooling_mass = gal->HotGas / t_cool * gal->dt;
+      max_cooling_mass = 0.5 * gal->HotGas / t_cool * gal->dt;
 
       if (r_cool > fof_group->Rvir)
         // here we are in the rapid cooling regime and we accrete all gas within
@@ -63,7 +63,7 @@ double gas_cooling(run_globals_t *run_globals, galaxy_t *gal)
       else
       {
         // here we are in the hot halo regime (but still limited by what's inside the free-fall radius)
-        cooling_mass = 0.5 * gal->HotGas / fof_group->Rvir * r_cool / t_cool * gal->dt;
+        cooling_mass = max_cooling_mass / fof_group->Rvir * r_cool;
         if (cooling_mass > max_cooling_mass)
           cooling_mass = max_cooling_mass;
       }
