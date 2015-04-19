@@ -91,7 +91,10 @@ void insitu_star_formation(run_globals_t *run_globals, galaxy_t *gal, int snapsh
       return;
 
     if (m_stars > gal->ColdGas)
+    {
       m_stars = gal->ColdGas;
+      gal->PhysicsFlags |= PHYSICS_FLAG_MAXIMAL_INSITU_SF;
+    }
 
     // calculate the total supernova feedback which would occur if this star
     // formation happened continuously and evenly throughout the snapshot

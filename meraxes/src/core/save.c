@@ -90,6 +90,7 @@ void prepare_galaxy_for_output(
 
   galout->Len                = (int)(gal.Len);
   galout->MaxLen             = (int)(gal.MaxLen);
+  galout->PhysicsFlags       = (int)(gal.PhysicsFlags);
   galout->Mvir               = (float)(gal.Mvir);
   galout->Rvir               = (float)(gal.Rvir);
   galout->Vvir               = (float)(gal.Vvir);
@@ -134,7 +135,7 @@ void calc_hdf5_props(run_globals_t *run_globals)
   galaxy_output_t galout;
   int i;                                                // dummy
 
-  h5props->n_props = 37;
+  h5props->n_props = 40;
 
 #ifdef CALC_MAGS
   // If we are calculating any magnitudes then increment the number of
@@ -217,6 +218,12 @@ void calc_hdf5_props(run_globals_t *run_globals)
   h5props->dst_offsets[i]     = HOFFSET(galaxy_output_t, MaxLen);
   h5props->dst_field_sizes[i] = sizeof(galout.MaxLen);
   h5props->field_names[i]     = "MaxLen";
+  h5props->field_units[i]     = "unitless";
+  h5props->field_types[i++]   = H5T_NATIVE_INT;
+
+  h5props->dst_offsets[i]     = HOFFSET(galaxy_output_t, PhysicsFlags);
+  h5props->dst_field_sizes[i] = sizeof(galout.PhysicsFlags);
+  h5props->field_names[i]     = "PhysicsFlags";
   h5props->field_units[i]     = "unitless";
   h5props->field_types[i++]   = H5T_NATIVE_INT;
 
