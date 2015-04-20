@@ -64,6 +64,7 @@ SnReheatScaling           : 3.5     # mass loading factor for SN feedback scalin
 SnReheatNorm              : 100.0   # mass loading factor for SN feedback scaling (with Vmax [internal units])
 
 ReincorporationEff        : 0.0     # gas reincorporation efficiency from ejected component
+MaxCoolingMassFactor      : 1.0     # maximum cooling mass factor (1 -> ff time; 0.5 -> continuous with hydrostatic cooling)
 Yield                     : 0.03    # mass of metals injected into ISM per unit star formation
 RadioModeEff              : 6e-4    # radio mode feedback efficiency
 BlackHoleGrowthRate       : 0.03    # black hole growth efficiency through merger driven gas inflow

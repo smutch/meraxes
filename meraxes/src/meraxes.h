@@ -82,6 +82,7 @@ typedef struct physics_params_t {
   double SnEjectionEff;
   double SnEjectionScaling;
   double SnEjectionNorm;
+  double MaxCoolingMassFactor;
   double ReincorporationEff;
   double Yield;
   double IMFSlope;
