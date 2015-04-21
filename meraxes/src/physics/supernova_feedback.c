@@ -71,15 +71,20 @@ void update_reservoirs_from_sn_feedback(galaxy_t *gal, double m_reheat, double m
 
 
 static inline double calc_ejected_mass(
-  double *m_reheat,
-  double  sn_energy,
-  double  Vvir,
-  double  fof_Vvir)
+    run_globals_t *run_globals, 
+    double *m_reheat,
+    double  sn_energy,
+    double  Vvir,
+    double  fof_Vvir)
 {
   double m_eject = 0.0;
 
   if (*m_reheat > 0)
   {
+
+    if (run_globals->params.physics.Flag_ReheatToFOFGroupTemp)
+      Vvir = fof_Vvir;
+
     // Begin by calculating if we have enough energy to get m_reheat of gas to
     // Tvir of the host *subhalo*.
     double Vvir_sqrd                = Vvir * Vvir;
@@ -301,7 +306,7 @@ void delayed_supernova_feedback(run_globals_t *run_globals, galaxy_t *gal, int s
   else
     fof_Vvir = -1;
 
-  m_eject = calc_ejected_mass(&m_reheat, sn_energy, gal->Vvir, fof_Vvir);
+  m_eject = calc_ejected_mass(run_globals, &m_reheat, sn_energy, gal->Vvir, fof_Vvir);
 
   // Note that m_eject returned for ghosts by calc_ejected_mass() is
   // meaningless in the current physical prescriptions.  This fact is dealt
@@ -441,7 +446,7 @@ void contemporaneous_supernova_feedback(
   assert(*new_metals >= 0);
 
   // how much mass is ejected due to this star formation episode? (ala Croton+ 2006)
-  *m_eject = calc_ejected_mass(m_reheat, sn_energy, gal->Vvir, gal->Halo->FOFGroup->Vvir);
+  *m_eject = calc_ejected_mass(run_globals, m_reheat, sn_energy, gal->Vvir, gal->Halo->FOFGroup->Vvir);
 
   assert(*m_reheat >= 0);
   assert(*m_eject >= 0);

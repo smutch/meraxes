@@ -117,6 +117,7 @@ typedef struct physics_params_t {
   int Flag_IRA;
   int Flag_FixDiskRadiusOnInfall;
   int Flag_FixVmaxOnInfall;
+  int Flag_ReheatToFOFGroupTemp;
   int SfDiskVelOpt;
 
 } physics_params_t;
