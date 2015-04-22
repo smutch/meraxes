@@ -187,15 +187,15 @@ double sn_m_low(double log_dt)
   // log_dt must be in units of log10(dt/Myr)
   // returned value is in units of Msol
 
-  // This is a fit to the H+He core burning lifetimes of stars of varying
+  // This is a fit to the H+He core burning lifetimes of Z=0.004 stars of varying
   // masses from Table 14 of Portinari, L., Chiosi, C. & Bressan, A.
   // Galactic chemical enrichment with new metallicity dependent stellar
-  // yields.  Astronomy and Astrophysics 334, 505–539 (1998).
+  // yields.  Astronomy and Astrophysics 334, 505--539 (1998).
 
-  double const_a = 0.80680268;
-  double const_b = -2.81547136;
-  double const_c = -5.73419164;
-  double const_d = 0.475119568;
+  double const_a = 0.74729454;
+  double const_b = -2.69790558;
+  double const_c = -4.76591765;
+  double const_d = 0.59339486;
   double m_high  = 120.0;           // highest mass star produced in stellar mass burst (Msol)
   double m_low;
 
