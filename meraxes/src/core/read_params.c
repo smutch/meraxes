@@ -367,6 +367,11 @@ void read_parameter_file(run_globals_t *run_globals, char *fname, int mode)
       required_tag[n_param]  = 1;
       params_type[n_param++] = PARAM_TYPE_INT;
 
+      strcpy(params_tag[n_param], "Flag_ReheatToFOFGroupTemp");
+      params_addr[n_param]   = &(run_params->physics).Flag_ReheatToFOFGroupTemp;
+      required_tag[n_param]  = 1;
+      params_type[n_param++] = PARAM_TYPE_INT;
+
       strcpy(params_tag[n_param], "SfDiskVelOpt");
       params_addr[n_param]   = &(run_params->physics).SfDiskVelOpt;
       required_tag[n_param]  = 1;
@@ -424,6 +429,11 @@ void read_parameter_file(run_globals_t *run_globals, char *fname, int mode)
 
       strcpy(params_tag[n_param], "ReincorporationEff");
       params_addr[n_param]   = &(run_params->physics).ReincorporationEff;
+      required_tag[n_param]  = 1;
+      params_type[n_param++] = PARAM_TYPE_DOUBLE;
+
+      strcpy(params_tag[n_param], "MaxCoolingMassFactor");
+      params_addr[n_param]   = &(run_params->physics).MaxCoolingMassFactor;
       required_tag[n_param]  = 1;
       params_type[n_param++] = PARAM_TYPE_DOUBLE;
 

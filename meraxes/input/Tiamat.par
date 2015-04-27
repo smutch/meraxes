@@ -48,6 +48,7 @@ Flag_BHFeedback            : 0    # use black hole feedback
 Flag_IRA                   : 0    # use the instantaneous recycling approximation
 Flag_FixVmaxOnInfall       : 0    # fix Vmax upon infall
 Flag_FixDiskRadiusOnInfall : 0    # fix disk radius upon infall
+Flag_ReheatToFOFGroupTemp  : 0    # try to reheat gas to the FOF group Tvir instead of just the subgroup value
 SfDiskVelOpt               : 1    # disk velocity for SF law (1=Vmax, 2=Vvir)
 
 SfEfficiency              : 0.05    # star formation efficiency
@@ -63,6 +64,7 @@ SnReheatLimit             : 12.0    # maximum allowed mass loading factor for SN
 SnReheatScaling           : 3.5     # mass loading factor for SN feedback scaling (with Vmax)
 SnReheatNorm              : 100.0   # mass loading factor for SN feedback scaling (with Vmax [internal units])
 
+MaxCoolingMassFactor      : 1.0     # maximum cooling mass factor (1 -> ff time)
 ReincorporationEff        : 0.0     # gas reincorporation efficiency from ejected component
 Yield                     : 0.03    # mass of metals injected into ISM per unit star formation
 RadioModeEff              : 6e-4    # radio mode feedback efficiency

@@ -51,7 +51,7 @@ static float inline apply_pbc(run_globals_t *run_globals, float delta)
 }
 
 
-float distance(run_globals_t *run_globals, float a[3], float b[3])
+float comoving_distance(run_globals_t *run_globals, float a[3], float b[3])
 {
   float dx = apply_pbc(run_globals, a[0] - b[0]);
   float dy = apply_pbc(run_globals, a[1] - b[1]);
