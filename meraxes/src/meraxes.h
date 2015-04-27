@@ -527,7 +527,7 @@ void         calc_hdf5_props(run_globals_t *run_globals);
 void         prepare_galaxy_for_output(run_globals_t *run_globals, galaxy_t gal, galaxy_output_t *galout, int i_snap);
 void         read_photometric_tables(run_globals_t *run_globals);
 int          compare_ints(const void *a, const void *b);
-float        distance(run_globals_t *run_globals, float a[3], float b[3]);
+float        comoving_distance(run_globals_t *run_globals, float a[3], float b[3]);
 void         mpi_debug_here(void);
 void         check_counts(run_globals_t *run_globals, fof_group_t *fof_group, int NGal, int NFof);
 void         cn_quote(void);

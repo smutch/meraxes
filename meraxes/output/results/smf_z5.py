@@ -70,7 +70,7 @@ def plot(model, ax):
     ax.legend(loc=1)
 
     # add some text
-    ax.text(0.05, 0.05, "z=6\nh=%.1f" % HUBBLE,
+    ax.text(0.05, 0.05, "z=5\nh=%.1f" % HUBBLE,
             horizontalalignment="left", verticalalignment="bottom",
             transform=ax.transAxes)
 

@@ -83,7 +83,7 @@ double calculate_merging_time(run_globals_t *run_globals, galaxy_t *orphan, int 
   sat_mass = sat->Mvir;
 
   // TODO: Should this be parent or mother???
-  sat_rad = (double)distance(run_globals, mother->Pos, sat->Pos);
+  sat_rad = (double)comoving_distance(run_globals, mother->Pos, sat->Pos);
 
   // convert to physical length
   // Note that we want to use the redshift corresponding to the previous
