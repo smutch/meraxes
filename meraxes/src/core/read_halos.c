@@ -182,7 +182,7 @@ static void inline convert_input_virial_props(run_globals_t *run_globals, double
   *Mvir /= 1.0e10;
 
   // Update the virial properties
-  if (!run_globals->params.FlagSubhaloVirialProps)
+  if (len > 0)
   {
     *Mvir = calculate_Mvir(run_globals, *Mvir, len);
     *Rvir = calculate_Rvir(run_globals, *Mvir, snapshot);
@@ -219,6 +219,7 @@ static void read_trees_and_catalogs(
   int n_halos_in_catalog_file = 0;
   int i_halo_in_catalog_file  = 0;
   int i_halo                  = 0;
+  int Len;
 
   FILE *fin_groups             = NULL;
   int group_flayout_switch     = -1;
@@ -416,14 +417,35 @@ static void read_trees_and_catalogs(
         cur_halo->Galaxy    = NULL;
         cur_halo->Mvir      = cur_cat_halo->M_vir;
 
+        if ((cur_halo->Type == 0) || run_globals->params.FlagSubhaloVirialProps)
+          Len = -1;
+        else
+          Len = cur_halo->Len;
+
         convert_input_virial_props(run_globals,
                                    &(cur_halo->Mvir),
                                    &(cur_halo->Rvir),
                                    &(cur_halo->Vvir),
-                                   cur_halo->Len,
+                                   Len,
                                    snapshot);
 
+        // // Replace the virial properties of the FOF group by those of the first
+        // // subgroup
+        // if (cur_halo->Type == 0)
+        // {
+        //   cur_halo->FOFGroup->Mvir = cur_halo->Mvir;
+        //   cur_halo->FOFGroup->Rvir = cur_halo->Rvir;
+        //   cur_halo->FOFGroup->Vvir = cur_halo->Vvir;
+        // }
+
         (*n_halos_kept)++;
+
+        // // DEBUG
+        // if ((cur_halo->Mvir > cur_halo->FOFGroup->Mvir) && (cur_halo->Type == 0))
+        // {
+        //   debug("%d %lld %.3e %.3e %d\n", snapshot, cur_halo->id_MBP, cur_halo->Mvir, cur_halo->FOFGroup->Mvir, cur_halo->Len);
+        // }
+
       }
     }
 
