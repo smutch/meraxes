@@ -29,7 +29,7 @@ HUBBLE = 0.7
 
 
 def plot_obs(ax):
-    # Start with Duncan+ 2014
+    # Start with Duncan+ 2014 (h=0.702, Chabrier IMF)
     obs = pd.read_table(os.path.join(__script_dir__,
         "{:s}/smf/Duncan14_MF_z5.txt".format(OBS_DATASETS_DIR)),
         delim_whitespace=True,
@@ -42,7 +42,7 @@ def plot_obs(ax):
     obs.sm += 2.0*np.log10(0.702/HUBBLE)
     obs.sm += 0.25  # IMF correction Chabrier -> Salpeter
     for col in ["phi", "merr", "perr"]:
-        obs[col] /= (0.7**3/HUBBLE**3)
+        obs[col] /= (0.702**3/HUBBLE**3)
 
     # plot the observations
     ax.errorbar(obs.sm, np.log10(obs.phi),
@@ -58,6 +58,26 @@ def plot_obs(ax):
             + 3.0*np.log10(HUBBLE/0.7)
     ax.plot(mass, phi, ls="--", label="Grazian et al. 2015", color=COLS[3],
             lw=3)
+
+    # now plot Gonzalez+ 2011 (h=0.7, Chabrier IMF)
+    obs = pd.read_table(os.path.join(__script_dir__,
+        "{:s}/smf/Gonzalez11_z5_smf.txt".format(OBS_DATASETS_DIR)),
+        delim_whitespace=True,
+        header = None,
+        skiprows = 3,
+        names = ["sm", "log_phi", "m_err", "p_err"])
+
+    # convert obs to same hubble value and IMF
+    obs.sm += 2.0*np.log10(0.7/HUBBLE)
+    obs.sm += 0.25  # IMF correction Chabrier -> Salpeter
+    for col in ["log_phi", "m_err", "p_err"]:
+        obs[col] -= 3.0*np.log10(0.7/HUBBLE)
+
+    # plot the observations
+    ax.errorbar(obs.sm, obs.log_phi, yerr=[obs.m_err, obs.p_err],
+                label="Gonzalez et al. 2011", ls="None", color=COLS[2],
+                lw=2, capsize=2.5, marker='s', mec='None')
+
 
 def plot(model, ax):
     model.generate(limits=XLIM)

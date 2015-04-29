@@ -59,6 +59,25 @@ def plot_obs(ax):
     ax.plot(mass, phi, ls="--", label="Grazian et al. 2015", color=COLS[3],
             lw=3)
 
+    # now plot Gonzalez+ 2011 (h=0.7, Chabrier IMF)
+    obs = pd.read_table(os.path.join(__script_dir__,
+        "{:s}/smf/Gonzalez11_z6_smf.txt".format(OBS_DATASETS_DIR)),
+        delim_whitespace=True,
+        header = None,
+        skiprows = 3,
+        names = ["sm", "log_phi", "m_err", "p_err"])
+
+    # convert obs to same hubble value and IMF
+    obs.sm += 2.0*np.log10(0.7/HUBBLE)
+    obs.sm += 0.25  # IMF correction Chabrier -> Salpeter
+    for col in ["log_phi", "m_err", "p_err"]:
+        obs[col] -= 3.0*np.log10(0.7/HUBBLE)
+
+    # plot the observations
+    ax.errorbar(obs.sm, obs.log_phi, yerr=[obs.m_err, obs.p_err],
+                label="Gonzalez et al. 2011", ls="None", color=COLS[2],
+                lw=2, capsize=2.5, marker='s', mec='None')
+
 
 def plot(model, ax):
     model.generate(limits=XLIM)
