@@ -1,5 +1,6 @@
 #include "meraxes.h"
 #include <math.h>
+#include <assert.h>
 
 void myexit(int signum)
 {
@@ -57,6 +58,9 @@ float comoving_distance(run_globals_t *run_globals, float a[3], float b[3])
   float dy = apply_pbc(run_globals, a[1] - b[1]);
   float dz = apply_pbc(run_globals, a[2] - b[2]);
 
-  return sqrtf(dx*dx + dy*dy + dz*dz);
+  float dist = sqrtf(dx*dx + dy*dy + dz*dz);
+  assert(dist <= run_globals->params.BoxSize/2.0);
+
+  return dist;
 }
 
