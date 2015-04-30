@@ -31,52 +31,10 @@ static inline void read_identifier(FILE *fin, bool skip_flag)
 }
 
 
-
 static unsigned long long HR_INDEX(int i, int j, int k, int grid_dim)
 {
     return (unsigned long long)(k + grid_dim*(j + grid_dim*i));
 }
-
-
-
-static long long find_HR_empty_count(double *grid_HR, int HR_dim_val)
-{
-    long long count_val = 0;
-
-    for (int i = 0; i < HR_dim_val; i++)
-        for (int j = 0; j < HR_dim_val; j++)
-            for (int k = 0; k < HR_dim_val; k++)
-            {
-                if (*((double *)grid_HR + HR_INDEX(i, j, k, HR_dim_val)) == 0.0) count_val++;
-
-            }
-
-    return (long long)(count_val);
-}
-
-static double find_HR_non_empty_mean(double *grid_HR, int HR_dim_val, long long N)
-{
-    double val;
-    double mean_val = 0.0;
-
-    for (int i = 0; i < HR_dim_val; i++)
-        for (int j = 0; j < HR_dim_val; j++)
-            for (int k = 0; k < HR_dim_val; k++)
-            {
-                val = *((double *)grid_HR + HR_INDEX(i, j, k, HR_dim_val));
-
-                if (val > 0.0) mean_val += val;
-
-            }
-
-    mean_val /= (double)(N);
-
-    return mean_val;
-}
-
-
-
-
 
 
 int read_dm_grid(
