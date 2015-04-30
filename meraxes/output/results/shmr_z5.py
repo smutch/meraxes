@@ -93,25 +93,6 @@ def plot(gals, simprops, ax, h):
     x_vals = (bins[1] - bins[0])/2.0 + bins[:-1]
     ax.plot(x_vals, np.log10(med_shm), color="0.1", label="Tescari et al. (2014) median")
 
-    # # do it all again for the next set of observations
-    # obs = pd.read_table(os.path.join(__script_dir__,
-    #     "../../utils/obs_datasets/smf/Katsianis_z5_smf.txt"),
-    #     delim_whitespace=True,
-    #     header = None,
-    #     skiprows = 3,
-    #     names = ["sm", "log_phi", "err"])
-
-    # # convert obs to same hubble value and IMF
-    # # -0.16 dex conversion from Salpeter to Chabrier
-    # obs.sm += np.log10(0.702/h)
-    # for col in ["log_phi", "err"]:
-    #     obs[col] -= 3.0*np.log10(0.702/h)
-
-    # # plot the observations
-    # ax.errorbar(obs.sm, obs.log_phi, yerr=obs.err,
-    #             label="Katsianis et al. 2014", ls="None",
-    #             lw=4, capsize=0)
-
     # add some text
     ax.text(0.95,0.05, "z=5\nh={:.2f}\nSalpeter IMF".format(h),
            horizontalalignment="right",

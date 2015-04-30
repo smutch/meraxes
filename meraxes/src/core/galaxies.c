@@ -50,6 +50,8 @@ galaxy_t* new_galaxy(run_globals_t *run_globals, int snapshot, int halo_ID)
   gal->Cos_Inc            = gsl_rng_uniform(run_globals->random_generator);
   gal->MergTime           = 99999.9;
   gal->BaryonFracModifier = 1.0;
+  gal->PhysicsFlags       = 0;
+  gal->MergerStartRadius  = 0.0;
 
   for (int ii = 0; ii < 3; ii++)
   {
@@ -68,10 +70,8 @@ galaxy_t* new_galaxy(run_globals_t *run_globals, int snapshot, int halo_ID)
   return gal;
 }
 
-void copy_halo_to_galaxy(halo_t *halo, galaxy_t *gal, int snapshot)
+void copy_halo_to_galaxy(run_globals_t *run_globals, halo_t *halo, galaxy_t *gal, int snapshot)
 {
-  double sqrt_2 = 1.414213562;
-
   gal->id_MBP          = halo->id_MBP;
   gal->Type            = halo->Type;
   gal->Len             = halo->Len;
@@ -80,10 +80,23 @@ void copy_halo_to_galaxy(halo_t *halo, galaxy_t *gal, int snapshot)
   gal->Mvir            = halo->Mvir;
   gal->Rvir            = (double)(halo->Rvir);
   gal->Vvir            = (double)(halo->Vvir);
-  gal->Vmax            = halo->Vmax;
   gal->TreeFlags       = halo->TreeFlags;
   gal->Spin            = calculate_spin_param(halo);
-  gal->DiskScaleLength = gal->Spin * gal->Rvir / sqrt_2;
+
+  double sqrt_2 = 1.414213562;
+  if (gal->Type == 0)
+  {
+    gal->Vmax            = halo->Vmax;
+    gal->DiskScaleLength = gal->Spin * gal->Rvir / sqrt_2;
+  }
+  else 
+  {
+    if (!run_globals->params.physics.Flag_FixVmaxOnInfall)
+      gal->Vmax = halo->Vmax;
+    if (!run_globals->params.physics.Flag_FixDiskRadiusOnInfall)
+      gal->DiskScaleLength = gal->Spin * gal->Rvir / sqrt_2;
+  }
+
   for (int ii = 0; ii < 3; ii++)
   {
     gal->Pos[ii] = halo->Pos[ii];
@@ -102,6 +115,7 @@ void reset_galaxy_properties(run_globals_t *run_globals, galaxy_t *gal, int snap
   gal->Mcool              = 0.0;
   gal->Sfr                = 0.0;
   gal->BaryonFracModifier = 1.0;
+  gal->PhysicsFlags       = 0;
 
   // update the stellar mass weighted mean age values
   assert(snapshot > 0);

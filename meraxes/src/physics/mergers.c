@@ -1,15 +1,16 @@
 #include "meraxes.h"
 #include <math.h>
 
-double calculate_merging_time(run_globals_t *run_globals, galaxy_t *sat, int snapshot)
+double calculate_merging_time(run_globals_t *run_globals, galaxy_t *orphan, int snapshot)
 {
   // TODO: What should we do about FOF properties here?  Do we need to use the
   // FOF virial properties for the merger clock calculation if one of the
   // participating galaxies was in a central subhalo?
 
-  galaxy_t *parent;
-  galaxy_t *mother;
-  galaxy_t *cur_gal;
+  galaxy_t *parent  = NULL;
+  galaxy_t *mother  = NULL;
+  galaxy_t *sat     = NULL;
+  galaxy_t *cur_gal = NULL;
   double coulomb;
   double mergtime;
   double sat_mass;
@@ -22,13 +23,26 @@ double calculate_merging_time(run_globals_t *run_globals, galaxy_t *sat, int sna
   // assuming that the halo properties of the galaxies have *not* yet been
   // updated to the current snapshot (where the halos have already merged).
 
-  // First check to see if the baryonic mass of the satellite is zero (this can
-  // happen due to reionization).  If true, then just set the merger clock to
-  // zero.
-  if ((sat->StellarMass + sat->ColdGas) < 2e-10)
+  // First check to see if the baryonic mass of the satellite or the parent is
+  // zero (this can happen due to reionization).  If true, then just set the
+  // merger clock to zero and finish.
+  if ((orphan->StellarMass + orphan->ColdGas) < 2e-10)
+    return -999;
+  if ((orphan->MergerTarget->StellarMass + orphan->MergerTarget->ColdGas) < 2e-10)
     return -999;
 
+  // Next we need to decide, for the purposes of calculating the merger
+  // timescale, which galaxy/halo is the parent and which is the satellite.
+  // Depending on the construction of the trees, we are not gauranteed that the
+  // satellite halo will be more massive thatn the parent halo.  This could
+  // introduce crazy merger timescales and so we must explicitly check...
+  sat = orphan;
   parent = sat->MergerTarget;
+  if (sat->Len > parent->Len)
+  {
+    parent = orphan;
+    sat = orphan->MergerTarget;
+  }
 
   if (parent == sat)
   {
@@ -56,14 +70,20 @@ double calculate_merging_time(run_globals_t *run_globals, galaxy_t *sat, int sna
   coulomb = log((double)(mother->Len) / (double)(sat->Len) + 1);
 
   // Include the baryonic mass in the calculation of the dynamical friction
-  // timescale ala Guo+ 2011
+  // timescale ala Guo+ 2011.
   // N.B. Hot gas should be zero in the satellite anyway for >99% of cases
-  sat_mass = sat->Mvir + sat->ColdGas + sat->StellarMass + sat->BlackHoleMass + sat->HotGas;
+  // sat_mass = sat->Mvir + sat->ColdGas + sat->StellarMass + sat->BlackHoleMass + sat->HotGas;
+  //
+  // OR
+  //
+  // Don't explicitly include the baryon mass reservoirs for the satellite
+  // mass.  The N-body sim used to generate the trees includes the full matter
+  // density of the Universe. In other words - the virial mass should already
+  // include the baryon mass in it.
+  sat_mass = sat->Mvir;
 
-  sat_rad = (double)sqrt(
-    powf(parent->Pos[0] - sat->Pos[0], 2.0) +
-    powf(parent->Pos[1] - sat->Pos[1], 2.0) +
-    powf(parent->Pos[2] - sat->Pos[2], 2.0));
+  // TODO: Should this be parent or mother???
+  sat_rad = (double)comoving_distance(run_globals, mother->Pos, sat->Pos);
 
   // convert to physical length
   // Note that we want to use the redshift corresponding to the previous
@@ -73,6 +93,9 @@ double calculate_merging_time(run_globals_t *run_globals, galaxy_t *sat, int sna
   // during the time the skipped halo is missing from the trees that it last
   // existed unmerged, so `snapshot-1` is as good a time as any to pick.
   sat_rad /= (1 + run_globals->ZZ[snapshot - 1]);
+
+  // TODO: Should this be parent or mother???
+  orphan->MergerStartRadius = sat_rad/mother->Rvir;
 
   if (sat_rad > mother->Rvir)
     sat_rad = mother->Rvir;
@@ -94,6 +117,12 @@ static void merger_driven_starburst(run_globals_t *run_globals, galaxy_t *parent
     physics_params_t *params = &(run_globals->params.physics);
 
     burst_mass = params->MergerBurstFactor * pow(merger_ratio, params->MergerBurstScaling) * parent->ColdGas;
+
+    if(burst_mass > parent->ColdGas)
+    {
+      burst_mass = parent->ColdGas;
+      parent->PhysicsFlags |= PHYSICS_FLAG_MAXIMAL_MERGER_SF;
+    }
 
     if (burst_mass > 0)
     {

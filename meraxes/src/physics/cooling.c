@@ -18,8 +18,9 @@ double gas_cooling(run_globals_t *run_globals, galaxy_t *gal)
     if (Tvir >= 1e4)
     {
       double t_cool, max_cooling_mass;
-      double logZ, lambda, x, rho_r_cool, r_cool, rho_at_Rvir;
+      double logZ, lambda, x, rho_r_cool, r_cool, isothermal_norm;
       run_units_t *units     = &(run_globals->units);
+      double max_cooling_mass_factor = run_globals->params.physics.MaxCoolingMassFactor;
 
       // following Croton+ 2006, we set the maximum cooling time to be the
       // dynamical time of the host dark matter halo
@@ -47,23 +48,26 @@ double gas_cooling(run_globals_t *run_globals, galaxy_t *gal)
 
       // under the assumption of an isothermal density profile extending to Rvir,
       // now calculate the cooling radius
-      rho_at_Rvir = gal->HotGas / (4. * M_PI * fof_group->Rvir);
-      r_cool      = sqrt(rho_at_Rvir / rho_r_cool);
+      isothermal_norm = gal->HotGas / (4. * M_PI * fof_group->Rvir);
+      r_cool      = sqrt(isothermal_norm / rho_r_cool);
       gal->Rcool  = r_cool;
 
       // the maximum amount of gas we can possibly cool is limited by the amount
       // of mass within the free fall radius
-      max_cooling_mass = gal->HotGas / t_cool * gal->dt;
+      max_cooling_mass = max_cooling_mass_factor * gal->HotGas / t_cool * gal->dt;
 
       if (r_cool > fof_group->Rvir)
+      {
         // here we are in the rapid cooling regime and we accrete all gas within
         // the free-fall radius
         cooling_mass = max_cooling_mass;
-      // cooling_mass = gal->HotGas;
+        // cooling_mass = gal->HotGas;
+        gal->PhysicsFlags |= PHYSICS_FLAG_MAXIMAL_COOLING;
+      }
       else
       {
         // here we are in the hot halo regime (but still limited by what's inside the free-fall radius)
-        cooling_mass = 0.5 * gal->HotGas / fof_group->Rvir * r_cool / t_cool * gal->dt;
+        cooling_mass = max_cooling_mass / fof_group->Rvir * r_cool;
         if (cooling_mass > max_cooling_mass)
           cooling_mass = max_cooling_mass;
       }
@@ -96,7 +100,7 @@ void cool_gas_onto_galaxy(galaxy_t *gal, double cooling_mass)
 
   // debug("%d %.3e %.3e %.3e %.3e %.3e %.3e %.3e %.3e %.3e %.3e %.3e %.3e %.3e %.3e\n",
   //     gal->Type, gal->dt, fof_group->Rvir, fof_group->Vvir, gal->HotGas, gal->MetalsHotGas, t_cool, logZ, Tvir,
-  //     lambda, rho_r_cool, rho_at_Rvir, r_cool, max_cooling_mass, cooling_mass);
+  //     lambda, rho_r_cool, isothermal_norm, r_cool, max_cooling_mass, cooling_mass);
 
   // save the cooling mass
   gal->Mcool = cooling_mass;

@@ -62,6 +62,10 @@
 FILE *meraxes_debug_file;
 #endif
 
+#define PHYSICS_FLAG_MAXIMAL_COOLING 1
+#define PHYSICS_FLAG_MAXIMAL_INSITU_SF 2
+#define PHYSICS_FLAG_MAXIMAL_MERGER_SF 4
+
 /*
  * Structures
  */
@@ -78,6 +82,7 @@ typedef struct physics_params_t {
   double SnEjectionEff;
   double SnEjectionScaling;
   double SnEjectionNorm;
+  double MaxCoolingMassFactor;
   double ReincorporationEff;
   double Yield;
   double IMFSlope;
@@ -110,6 +115,9 @@ typedef struct physics_params_t {
   int Flag_ReionizationModifier;
   int Flag_BHFeedback;
   int Flag_IRA;
+  int Flag_FixDiskRadiusOnInfall;
+  int Flag_FixVmaxOnInfall;
+  int Flag_ReheatToFOFGroupTemp;
   int SfDiskVelOpt;
 
 } physics_params_t;
@@ -316,6 +324,7 @@ typedef struct galaxy_t {
   double Rcool;
   double Cos_Inc;
   double MergTime;
+  double MergerStartRadius;
   double BaryonFracModifier;
 
   int  ID;
@@ -328,6 +337,7 @@ typedef struct galaxy_t {
   int  TreeFlags;
   int  LastIdentSnap;     //!< Last snapshot at which the halo in which this galaxy resides was identified
   int  output_index;  //!< write index
+  int  PhysicsFlags;
 
   bool ghost_flag;
 
@@ -380,7 +390,9 @@ typedef struct galaxy_output_t {
   float Rcool;
   float Cos_Inc;
   float MergTime;
+  float MergerStartRadius;
   float BaryonFracModifier;
+  int   PhysicsFlags;
 
   // baryonic histories
   float MWMSA;  // Mass weighted mean stellar age
@@ -494,7 +506,7 @@ galaxy_t   * new_galaxy(run_globals_t *run_globals, int snapshot, int halo_ID);
 void         create_new_galaxy(run_globals_t *run_globals, int snapshot, halo_t *halo, int *NGal, int *new_gal_counter);
 void         assign_galaxy_to_halo(galaxy_t *gal, halo_t *halo);
 void         kill_galaxy(run_globals_t *run_globals, galaxy_t *gal, galaxy_t *prev_gal, int *NGal, int *kill_counter);
-void         copy_halo_to_galaxy(halo_t *halo, galaxy_t *gal, int snapshot);
+void         copy_halo_to_galaxy(run_globals_t *run_globals, halo_t *halo, galaxy_t *gal, int snapshot);
 void         reset_galaxy_properties(run_globals_t *run_globals, galaxy_t *gal, int snapshot);
 double       gas_infall(run_globals_t *run_globals, fof_group_t *FOFgroup, int snapshot);
 void         add_infall_to_hot(galaxy_t *central, double infall_mass);
@@ -515,6 +527,7 @@ void         calc_hdf5_props(run_globals_t *run_globals);
 void         prepare_galaxy_for_output(run_globals_t *run_globals, galaxy_t gal, galaxy_output_t *galout, int i_snap);
 void         read_photometric_tables(run_globals_t *run_globals);
 int          compare_ints(const void *a, const void *b);
+float        comoving_distance(run_globals_t *run_globals, float a[3], float b[3]);
 void         mpi_debug_here(void);
 void         check_counts(run_globals_t *run_globals, fof_group_t *fof_group, int NGal, int NFof);
 void         cn_quote(void);
@@ -558,7 +571,7 @@ int  read_dm_grid(run_globals_t *run_globals, int snapshot, int i_grid, float *g
 void calculate_Mvir_crit(run_globals_t *run_globals, double redshift);
 void call_find_HII_bubbles(run_globals_t *run_globals, int snapshot, int unsampled_snapshot, int nout_gals);
 void save_tocf_grids(run_globals_t *run_globals, hid_t group_id, int snapshot);
-bool check_if_reionization_complete(run_globals_t *run_globals);
+bool check_if_reionization_ongoing(run_globals_t *run_globals);
 #endif
 
 #ifdef DEBUG

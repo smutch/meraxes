@@ -1,13 +1,13 @@
 #------------------------------------------
 #----- SA model output files --------------
 #------------------------------------------
-FileNameGalaxies : Tiamat
+FileNameGalaxies : Mini_Tiamat
 
 #------------------------------------------
 #----- Simulation input files  ------------
 #------------------------------------------
-SimName          : Tiamat
-SimulationDir    : /home/smutch/data_dragons/input_trees/Tiamat
+SimName          : Mini_Tiamat
+SimulationDir    : /home/smutch/data_dragons/input_trees/Mini_Tiamat
 CatalogFilePrefix: subfind
 BoxSize          : 67.8
 VolumeFactor     : 1.0
@@ -52,17 +52,17 @@ Flag_ReheatToFOFGroupTemp  : 0    # try to reheat gas to the FOF group Tvir inst
 SfDiskVelOpt               : 1    # disk velocity for SF law (1=Vmax, 2=Vvir)
 
 SfEfficiency              : 0.05    # star formation efficiency
-SfCriticalSDNorm          : 0.2     # critical surface density normalisation factor for star formation (internal units; standard=0.37)
+SfCriticalSDNorm          : 0.19    # critical surface density normalisation factor for star formation (internal units; standard=0.37)
 SfRecycleFraction         : 0.25    # instantaneous recycle fraction (IMF dependant)
 
-SnEjectionEff             : 0.4     # SN feedback gas reheating efficiency
-SnEjectionScaling         : 2.0     # SN feedback gas reheating efficiency scaling (with Vmax)
-SnEjectionNorm            : 70.0    # SN feedback gas reheating efficiency norm (with Vmax [internal units])
+SnEjectionEff             : 0.6     # SN feedback gas reheating efficiency
+SnEjectionScaling         : 3.5     # SN feedback gas reheating efficiency scaling (with Vmax)
+SnEjectionNorm            : 100.0   # SN feedback gas reheating efficiency norm (with Vmax [internal units])
 
-SnReheatEff               : 5.0     # mass loading factor for SN feedback
-SnReheatLimit             : 10.0    # maximum allowed mass loading factor for SN feedback
-SnReheatScaling           : 0.0     # mass loading factor for SN feedback scaling (with Vmax)
-SnReheatNorm              : 70.0   # mass loading factor for SN feedback scaling (with Vmax [internal units])
+SnReheatEff               : 6.0     # mass loading factor for SN feedback
+SnReheatLimit             : 12.0    # maximum allowed mass loading factor for SN feedback
+SnReheatScaling           : 3.5     # mass loading factor for SN feedback scaling (with Vmax)
+SnReheatNorm              : 100.0   # mass loading factor for SN feedback scaling (with Vmax [internal units])
 
 MaxCoolingMassFactor      : 1.0     # maximum cooling mass factor (1 -> ff time)
 ReincorporationEff        : 0.0     # gas reincorporation efficiency from ejected component
@@ -75,10 +75,10 @@ EnergyPerSN               : 1e51    # energy per SN in erg/s
 IMFNormConst              : 0.1706  # normalisation const of IMF for 0.1 < M <= 120Msol
 
 ThreshMajorMerger         : 0.3     # major merger when mass ratio greater than this
-MergerTimeFactor          : 0.5     # Multiplicitive fator for the merger timescales (2.0->DeLucia+; 1.0->Croton+)
+MergerTimeFactor          : 0.25    # Multiplicitive fator for the merger timescales (2.0->DeLucia+; 1.0->Croton+)
 
-MinMergerStellarMass      : 1e-9    # Minimum stellar mass for a merger starburst and dynamical friction calc (internal units)
-MinMergerRatioForBurst    : 0.1     # Minimum mass ratio for merger driven star burst
+MinMergerStellarMass      : -1      # Minimum stellar mass for a merger starburst and dynamical friction calc (internal units)
+MinMergerRatioForBurst    : 0.0     # Minimum mass ratio for merger driven star burst
 MergerBurstFactor         : 0.57    # Constant factor in merger burst equation
 MergerBurstScaling        : 0.7
 
@@ -108,7 +108,7 @@ BaryonFrac: 0.15714
 Hubble_h: 0.678
 SpectralIndex: 0.968
 Sigma8: 0.815
-PartMass: 0.0002643852
+PartMass: 0.01692066
 wLambda: -1.0
 
 UnitLength_in_cm         : 3.08568e+24       # WATCH OUT : Mpc/h

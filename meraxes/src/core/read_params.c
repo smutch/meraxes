@@ -133,6 +133,11 @@ void read_parameter_file(run_globals_t *run_globals, char *fname, int mode)
 
     printf("\nreading parameter file:\n\n");
 
+    // even if this is an interactive run, we have to init required_tag
+    // (used_tag is initialised later)
+    for (ii = 0; ii < PARAM_MAX_ENTRIES; ii++)
+      required_tag[ii] = 0;
+
     // malloc global arrays and init param properties
     if (mode == 0)
     {
@@ -352,6 +357,21 @@ void read_parameter_file(run_globals_t *run_globals, char *fname, int mode)
       required_tag[n_param]  = 1;
       params_type[n_param++] = PARAM_TYPE_INT;
 
+      strcpy(params_tag[n_param], "Flag_FixDiskRadiusOnInfall");
+      params_addr[n_param]   = &(run_params->physics).Flag_FixDiskRadiusOnInfall;
+      required_tag[n_param]  = 1;
+      params_type[n_param++] = PARAM_TYPE_INT;
+
+      strcpy(params_tag[n_param], "Flag_FixVmaxOnInfall");
+      params_addr[n_param]   = &(run_params->physics).Flag_FixVmaxOnInfall;
+      required_tag[n_param]  = 1;
+      params_type[n_param++] = PARAM_TYPE_INT;
+
+      strcpy(params_tag[n_param], "Flag_ReheatToFOFGroupTemp");
+      params_addr[n_param]   = &(run_params->physics).Flag_ReheatToFOFGroupTemp;
+      required_tag[n_param]  = 1;
+      params_type[n_param++] = PARAM_TYPE_INT;
+
       strcpy(params_tag[n_param], "SfDiskVelOpt");
       params_addr[n_param]   = &(run_params->physics).SfDiskVelOpt;
       required_tag[n_param]  = 1;
@@ -409,6 +429,11 @@ void read_parameter_file(run_globals_t *run_globals, char *fname, int mode)
 
       strcpy(params_tag[n_param], "ReincorporationEff");
       params_addr[n_param]   = &(run_params->physics).ReincorporationEff;
+      required_tag[n_param]  = 1;
+      params_type[n_param++] = PARAM_TYPE_DOUBLE;
+
+      strcpy(params_tag[n_param], "MaxCoolingMassFactor");
+      params_addr[n_param]   = &(run_params->physics).MaxCoolingMassFactor;
       required_tag[n_param]  = 1;
       params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
