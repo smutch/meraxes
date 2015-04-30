@@ -115,6 +115,7 @@ void malloc_reionization_grids(run_globals_t *run_globals)
   grids->N_rec_filtered     = NULL;
 
   grids->global_xH = 1.0;
+  grids->reion_complete = false;
 
   if (run_globals->params.TOCF_Flag)
   {
@@ -355,7 +356,7 @@ void save_tocf_grids(run_globals_t *run_globals, hid_t parent_group_id, int snap
     // Check if we even want to write anything...
     tocf_grids_t *grids = &(run_globals->tocf_grids);
     float epsilon = 0.0005;
-    if ((grids->global_xH < epsilon) && (grids->global_xH > 1.0-epsilon))
+    if ((grids->global_xH < epsilon) || (grids->global_xH > 1.0-epsilon))
       return;
 
     hsize_t dims        = HII_TOT_NUM_PIXELS;
@@ -462,16 +463,29 @@ void save_tocf_grids(run_globals_t *run_globals, hid_t parent_group_id, int snap
 }
 
 
-bool check_if_reionization_ongoing(run_globals_t *run_globals)
+bool check_if_reionization_complete(run_globals_t *run_globals)
 {
-  float *xH = run_globals->tocf_grids.xH;
+  bool complete = run_globals->tocf_grids.reion_complete;
+  if (!complete)
+  {
+    if (SID.My_rank == 0)
+    {
+      complete = true;
+      float *xH = run_globals->tocf_grids.xH;
 
-  // If not all cells are ionised then reionization is still progressing...
-  for(int ii=0; ii < HII_TOT_NUM_PIXELS; ii++)
-    if(xH[ii] != 0.0)
-      return true;
-
-  // ... otherwise we are done!
-  return false;
+      // If not all cells are ionised then reionization is still progressing...
+      for (int ii=0; ii < HII_TOT_NUM_PIXELS; ii++)
+      {
+        if (xH[ii] != 0.0)
+        {
+          complete = false;
+          break;
+        }
+      }
+    }
+    SID_Bcast(&complete, sizeof(bool), 0, SID.COMM_WORLD);
+    run_globals->tocf_grids.reion_complete = complete;
+  }
+  return complete;
 }
 #endif
