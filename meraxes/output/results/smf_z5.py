@@ -23,8 +23,8 @@ __date__ = "2015-04-14"
 
 COLS = plt.rcParams["axes.color_cycle"]
 OBS_DATASETS_DIR = "/home/smutch/models/21cm_sam/meraxes/utils/obs_datasets"
-XLIM = [7, 12]
-YLIM = [-6, -1]
+XLIM = [6, 12]
+YLIM = [-6, 1]
 HUBBLE = 0.7
 
 
