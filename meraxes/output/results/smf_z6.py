@@ -79,8 +79,8 @@ def plot_obs(ax):
                 lw=2, capsize=2.5, marker='s', mec='None')
 
 
-def plot(model, ax):
-    model.generate(limits=XLIM)
+def plot(model, ax, bins="knuth"):
+    model.generate(limits=XLIM, bins=bins)
     # model.gen_uncert(20)
     model.plot(ax, label="Meraxes", lw=4)
     plot_obs(ax)
@@ -90,7 +90,7 @@ def plot(model, ax):
     ax.legend(loc=1)
 
     # add some text
-    ax.text(0.05, 0.05, "z=6\nh=%.1f" % HUBBLE,
+    ax.text(0.05, 0.05, "z=6",
             horizontalalignment="left", verticalalignment="bottom",
             transform=ax.transAxes)
 
