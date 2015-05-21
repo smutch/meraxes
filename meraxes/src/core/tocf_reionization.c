@@ -130,6 +130,7 @@ void malloc_reionization_grids(run_globals_t *run_globals)
       grids->deltax_copy     = (fftwf_complex*)fftwf_malloc(sizeof(fftwf_complex) * HII_KSPACE_NUM_PIXELS);
       grids->sfr_filtered    = (fftwf_complex*)fftwf_malloc(sizeof(fftwf_complex) * HII_KSPACE_NUM_PIXELS);
       grids->sfr_copy        = (fftwf_complex*)fftwf_malloc(sizeof(fftwf_complex) * HII_KSPACE_NUM_PIXELS);
+      grids->z_at_ionization    = (float*)fftwf_malloc(sizeof(float) * HII_TOT_NUM_PIXELS);
     }
     grids->stars = (fftwf_complex*)fftwf_malloc(sizeof(fftwf_complex) * HII_KSPACE_NUM_PIXELS);
     grids->sfr   = (fftwf_complex*)fftwf_malloc(sizeof(fftwf_complex) * HII_KSPACE_NUM_PIXELS);
@@ -139,7 +140,6 @@ void malloc_reionization_grids(run_globals_t *run_globals)
       if (SID.My_rank == 0)
       {
         // Only rank 0 will call 21cmFAST and so it is the only rank that needs to carry around these grids
-        grids->z_at_ionization    = (float*)fftwf_malloc(sizeof(float) * HII_TOT_NUM_PIXELS);
         grids->J_21_at_ionization = (float*)fftwf_malloc(sizeof(float) * HII_TOT_NUM_PIXELS);
         grids->J_21               = (float*)fftwf_malloc(sizeof(float) * HII_TOT_NUM_PIXELS);
       }
@@ -159,7 +159,10 @@ void malloc_reionization_grids(run_globals_t *run_globals)
     if (SID.My_rank == 0)
     {
       for (int ii = 0; ii < HII_TOT_NUM_PIXELS; ii++)
+      {
         grids->xH[ii] = 1.0;
+        grids->z_at_ionization[ii] = -1;
+      }
     }
 
     if (tocf_params.uvb_feedback)
@@ -168,8 +171,6 @@ void malloc_reionization_grids(run_globals_t *run_globals)
       {
         memset(grids->J_21_at_ionization, 0., sizeof(float) * HII_TOT_NUM_PIXELS);
         memset(grids->J_21, 0., sizeof(float) * HII_TOT_NUM_PIXELS);
-        for (int ii = 0; ii < HII_TOT_NUM_PIXELS; ii++)
-          grids->z_at_ionization[ii] = -1;
       }
 
       memset(grids->Mvir_crit, 0, sizeof(float) * HII_TOT_NUM_PIXELS);
@@ -220,8 +221,8 @@ void free_reionization_grids(run_globals_t *run_globals)
     {
       fftwf_free(grids->J_21);
       fftwf_free(grids->J_21_at_ionization);
-      fftwf_free(grids->z_at_ionization);
     }
+    fftwf_free(grids->z_at_ionization);
     fftwf_free(grids->sfr_filtered);
     fftwf_free(grids->sfr_copy);
     fftwf_free(grids->deltax_filtered);
@@ -377,12 +378,12 @@ void save_tocf_grids(run_globals_t *run_globals, hid_t parent_group_id, int snap
 
     // float grids
     H5LTmake_dataset_float(group_id, "xH", 1, &dims, grids->xH);
+    H5LTmake_dataset_float(group_id, "z_at_ionization", 1, &dims, grids->z_at_ionization);
 
     if (tocf_params.uvb_feedback)
     {
       H5LTmake_dataset_float(group_id, "J_21", 1, &dims, grids->J_21);
       H5LTmake_dataset_float(group_id, "J_21_at_ionization", 1, &dims, grids->J_21_at_ionization);
-      H5LTmake_dataset_float(group_id, "z_at_ionization", 1, &dims, grids->z_at_ionization);
       H5LTmake_dataset_float(group_id, "Mvir_crit", 1, &dims, grids->Mvir_crit);
     }
 
