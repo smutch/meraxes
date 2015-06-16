@@ -28,8 +28,8 @@ deps['gbpCode'] = {
 }
 
 deps['fftw'] = {
-    'inclp' : os.path.expanduser('~/3rd_party/fftw-3.3.3/include'),
-    'libp'  : os.path.expanduser('~/3rd_party/fftw-3.3.3/lib'),
+    'inclp' : os.path.expanduser('~/3rd_party/fftw/fftw-3.3.4/include'),
+    'libp'  : os.path.expanduser('~/3rd_party/fftw/fftw-3.3.4/lib'),
     'lib'   : ['fftw3f_omp', 'fftw3f', 'gomp'],
 }
 

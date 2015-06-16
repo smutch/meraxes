@@ -379,7 +379,7 @@ void dracarys(run_globals_t *run_globals)
         passively_evolve_ghost(run_globals, gal, snapshot);
 
       if ((gal->Type < 2) && (!gal->ghost_flag))
-        copy_halo_to_galaxy(gal->Halo, gal, snapshot);
+        copy_halo_to_galaxy(run_globals, gal->Halo, gal, snapshot);
 
       gal = gal->Next;
     }

@@ -143,15 +143,16 @@ if __name__ == '__main__':
     args = docopt(__doc__)
     fname = args['<fname>']
     if args['Hubble_h'] is False:
-        h = 0.702
+        h = 0.7
     else:
         h = float(args['Hubble_h'])
+    meraxes.set_little_h(h)
 
     snap, redshift = meraxes.io.check_for_redshift(fname, 6.0, tol=0.1)
 
     props = ("Sfr", "Type", "GhostFlag")
     gals, simprops = meraxes.io.read_gals(fname, snapshot=snap, props=props,
-            sim_props=True, h=h)
+            sim_props=True)
     gals = gals.view(np.recarray)
 
     fig, ax = plt.subplots(1,1)
