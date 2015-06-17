@@ -9,7 +9,7 @@ Arguments:
 
 Options:
     --z=<redshift>       Redshift to plot (unspecified = all avail.)
-    --hubble=<Hubble_h>  Hubble constant [default: 0.7]
+    --hubble=<Hubble_h>  Hubble constant (default: sim defined)
     --ext=<extension>    Ouput file extension [default: pdf]
 """
 
@@ -53,9 +53,14 @@ if __name__ == '__main__':
 
     args = docopt(__doc__)
     fname = args['<fname>']
-    h = float(args['--hubble'])
     ext = args['--ext']
     redshift = args['--z']
+
+    h = args['--hubble']
+    if h is None:
+        h = meraxes.read_input_params(fname)["Hubble_h"]
+    else:
+        h = float(h)
 
     meraxes.set_little_h(h)
 

@@ -11,6 +11,7 @@ void myexit(int signum)
   //   fflush(SID.fp_log);
   //   fclose(SID.fp_log);
   // }
+  mpi_debug_here();
   SID_exit(signum);
 }
 

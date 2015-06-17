@@ -19,7 +19,8 @@ double gas_infall(run_globals_t *run_globals, fof_group_t *FOFgroup, int snapsho
 
   // Calculate the total baryon mass in the FOF group
   halo    = FOFgroup->FirstHalo;
-  central = halo->Galaxy;
+  central = FOFgroup->FirstOccupiedHalo->Galaxy;
+
   while (halo != NULL)
   {
     gal = halo->Galaxy;
