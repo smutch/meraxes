@@ -247,7 +247,7 @@ int find_cell(float pos, double box_size)
 {
   int HII_dim = tocf_params.HII_dim;
 
-  int cell = (int)floor(pos / box_size * (double)HII_dim);
+  int cell = (int)floor((double)pos / box_size * (double)HII_dim);
 
   cell = (cell < 0) ? 0 : cell;
   cell = (cell >= HII_dim) ? HII_dim - 1 : cell;
