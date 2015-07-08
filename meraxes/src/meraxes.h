@@ -282,6 +282,9 @@ typedef struct galaxy_t {
 
   double NewStars[N_HISTORY_SNAPS];
 
+  // Unique ID for the galaxy
+  long long ID;
+
   // properties of subhalo at the last time this galaxy was a central galaxy
   float  Pos[3];
   float  Vel[3];
@@ -328,7 +331,6 @@ typedef struct galaxy_t {
   double MergerStartRadius;
   double BaryonFracModifier;
 
-  int  ID;
   int  Type;
   int  OldType;
   int  Len;
@@ -349,12 +351,14 @@ typedef struct galaxy_t {
 typedef struct galaxy_output_t {
   long long id_MBP;
 
+  // Unique ID for the galaxy
+  long long ID;
+
 #ifdef CALC_MAGS
   float Mag[MAX_PHOTO_NBANDS];
   float MagDust[MAX_PHOTO_NBANDS];
 #endif
 
-  int ID;
   int Type;
   int CentralGal;
   int GhostFlag;

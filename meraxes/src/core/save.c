@@ -189,7 +189,7 @@ void calc_hdf5_props(run_globals_t *run_globals)
   h5props->dst_field_sizes[i] = sizeof(galout.ID);
   h5props->field_names[i]     = "ID";
   h5props->field_units[i]     = "unitless";
-  h5props->field_types[i++]   = H5T_NATIVE_INT;
+  h5props->field_types[i++]   = H5T_NATIVE_LLONG;
 
   h5props->dst_offsets[i]     = HOFFSET(galaxy_output_t, Type);
   h5props->dst_field_sizes[i] = sizeof(galout.Type);
