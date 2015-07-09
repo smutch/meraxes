@@ -72,6 +72,24 @@ double calculate_Mvir(run_globals_t *run_globals, double Mvir, int len)
 }
 
 
+double hubble_at_snapshot(run_globals_t *run_globals, int snapshot)
+{
+  double Hubble      = run_globals->Hubble;
+  double OmegaM      = run_globals->params.OmegaM;
+  double OmegaK      = run_globals->params.OmegaK;
+  double OmegaLambda = run_globals->params.OmegaLambda;
+  double zplus1      = run_globals->ZZ[snapshot] + 1;
+
+  return Hubble * sqrt(OmegaM * zplus1 * zplus1 * zplus1 + OmegaK * zplus1 * zplus1 + OmegaLambda);
+}
+
+
+double hubble_time(run_globals_t *run_globals, int snapshot)
+{
+  return 1.0 / hubble_at_snapshot(run_globals, snapshot);
+}
+
+
 double calculate_Rvir(run_globals_t *run_globals, double Mvir, int snapshot)
 {
   double zplus1;
@@ -79,13 +97,9 @@ double calculate_Rvir(run_globals_t *run_globals, double Mvir, int snapshot)
   double rhocrit;
   double fac;
   double Delta;
-  double Hubble      = run_globals->Hubble;
-  double OmegaM      = run_globals->params.OmegaM;
-  double OmegaK      = run_globals->params.OmegaK;
-  double OmegaLambda = run_globals->params.OmegaLambda;
 
   zplus1         = 1 + run_globals->ZZ[snapshot];
-  hubble_of_z_sq = Hubble * Hubble * (OmegaM * zplus1 * zplus1 * zplus1 + OmegaK * zplus1 * zplus1 + OmegaLambda);
+  hubble_of_z_sq = pow(hubble_at_snapshot(run_globals, snapshot), 2);
 
   rhocrit = 3 * hubble_of_z_sq / (8 * M_PI * run_globals->G);
 
@@ -108,10 +122,6 @@ double calculate_spin_param(halo_t *halo)
   spin = sqrt(halo->AngMom[0] * halo->AngMom[0] +
               halo->AngMom[1] * halo->AngMom[1] +
               halo->AngMom[2] * halo->AngMom[2]);
-
-  // This limit is used in the SAGE semi-analytic model
-  // if(spin > 1.2)
-  //   spin = 1.2;
 
   spin = spin / (1.414213562 * halo->Vvir * halo->Rvir);
 
