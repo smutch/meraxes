@@ -27,6 +27,8 @@ void cleanup(run_globals_t *run_globals)
       SID_free(SID_FARG run_globals->hdf5props.params_tag[ii]);
     SID_free(SID_FARG run_globals->hdf5props.params_tag);
   }
+  SID_free(SID_FARG run_globals->hdf5props.field_h_conv);
+  SID_free(SID_FARG run_globals->hdf5props.field_units);
   SID_free(SID_FARG run_globals->hdf5props.field_types);
   SID_free(SID_FARG run_globals->hdf5props.field_names);
   SID_free(SID_FARG run_globals->hdf5props.dst_field_sizes);
