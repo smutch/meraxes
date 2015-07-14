@@ -30,15 +30,14 @@ static inline bool check_for_merger(galaxy_t *gal, halo_t *new_halo)
 static inline bool check_if_valid_host(run_globals_t *run_globals, halo_t *halo)
 {
   // We don't want to place new galaxies in any halos with the following flags set...
-  // int invalid_flags = (TREE_CASE_FRAGMENTED_RETURNED
-  //     | TREE_CASE_FRAGMENTED_EXCHANGED
-  //     | TREE_CASE_FRAGMENTED_STRAYED
-  //     | TREE_CASE_REMNANT
-  //     | TREE_CASE_MERGER);
+  int invalid_flags = (TREE_CASE_FRAGMENTED_RETURNED
+      | TREE_CASE_FRAGMENTED_EXCHANGED
+      | TREE_CASE_FRAGMENTED_STRAYED
+      | TREE_CASE_MERGER);
 
   if ((halo->Type == 0)
-      && (halo->Galaxy == NULL))
-      // &! (invalid_flags & halo->TreeFlags))
+      && (halo->Galaxy == NULL)
+      &! (invalid_flags & halo->TreeFlags))
       return true;
   else
     return false;
@@ -68,16 +67,12 @@ void dracarys(run_globals_t *run_globals)
   galaxy_t *prev_gal     = NULL;
   galaxy_t *next_gal     = NULL;
   galaxy_t *cur_gal      = NULL;
-  int *index_lookup      = NULL;
   int i_newhalo;
   int NGal            = 0;
   int nout_gals       = 0;
   int last_nout_gals  = 0;
   int last_snap       = 0;
   int kill_counter    = 0;
-  int merger_counter  = 0;
-  int new_gal_counter = 0;
-  int ghost_counter   = 0;
   int i_snap;
   int NSteps                        = run_globals->params.NSteps;
   int n_store_snapshots             = run_globals->NStoreSnapshots;
@@ -102,6 +97,11 @@ void dracarys(run_globals_t *run_globals)
   // Loop through each snapshot
   for (int snapshot = 0; snapshot <= last_snap; snapshot++)
   {
+    int *index_lookup   = NULL;
+    int merger_counter  = 0;
+    int new_gal_counter = 0;
+    int ghost_counter   = 0;
+
     SID_log("", SID_LOG_COMMENT);
     SID_log("===============================================================", SID_LOG_COMMENT);
     SID_log("Snapshot %d  (z = %.3f)", SID_LOG_COMMENT, snapshot, run_globals->ZZ[snapshot]);
@@ -109,9 +109,6 @@ void dracarys(run_globals_t *run_globals)
 
     // Reset book keeping counters
     kill_counter    = 0;
-    merger_counter  = 0;
-    new_gal_counter = 0;
-    ghost_counter   = 0;
 
     // Read in the halos for this snapshot
     if (run_globals->params.FlagInteractive)
@@ -274,7 +271,6 @@ void dracarys(run_globals_t *run_globals)
     // Also update the fof_group pointers.
     for (int i_fof = 0; i_fof < trees_info.n_fof_groups; i_fof++)
     {
-      halo_t *first_occupied_halo = NULL;
       halo_t *cur_halo            = fof_group[i_fof].FirstHalo;
       int total_subhalo_len       = 0;
 
@@ -283,15 +279,11 @@ void dracarys(run_globals_t *run_globals)
         if (check_if_valid_host(run_globals, cur_halo))
           create_new_galaxy(run_globals, snapshot, cur_halo, &NGal, &new_gal_counter);
 
-        if ((first_occupied_halo == NULL) && (cur_halo->Galaxy != NULL))
-          first_occupied_halo = cur_halo;
-
         total_subhalo_len += cur_halo->Len;
 
         cur_halo = cur_halo->NextHaloInFOFGroup;
       }
 
-      fof_group[i_fof].FirstOccupiedHalo = first_occupied_halo;
       fof_group[i_fof].TotalSubhaloLen   = total_subhalo_len;
     }
 
@@ -359,6 +351,21 @@ void dracarys(run_globals_t *run_globals)
       }
 
       gal = gal->Next;
+    }
+
+    // Calculate the first occupied halo
+    for (int i_fof = 0; i_fof < trees_info.n_fof_groups; i_fof++)
+    {
+      halo_t *cur_halo = fof_group[i_fof].FirstHalo;
+      while (cur_halo != NULL)
+      {
+        if (cur_halo->Galaxy != NULL)
+        {
+          fof_group[i_fof].FirstOccupiedHalo = cur_halo;
+          break;
+        }
+        cur_halo = cur_halo->NextHaloInFOFGroup;
+      }
     }
 
     // We finish by copying the halo properties into the galaxy structure of

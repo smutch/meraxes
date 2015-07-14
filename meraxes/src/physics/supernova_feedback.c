@@ -14,7 +14,7 @@ void update_reservoirs_from_sn_feedback(galaxy_t *gal, double m_reheat, double m
   if (gal->ghost_flag)
     central = gal;
   else
-    central = gal->Halo->FOFGroup->FirstHalo->Galaxy;
+    central = gal->Halo->FOFGroup->FirstOccupiedHalo->Galaxy;
 
   gal->StellarMass -= m_recycled;
   gal->ColdGas     += m_recycled;

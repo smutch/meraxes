@@ -18,6 +18,10 @@ int evolve_galaxies(run_globals_t *run_globals, fof_group_t *fof_group, int snap
 
   for (int i_fof = 0; i_fof < NFof; i_fof++)
   {
+    // First check to see if this FOF group is empty.  If it is then skip it.
+    if (fof_group[i_fof].FirstOccupiedHalo == NULL)
+      continue;
+
     infalling_gas = gas_infall(run_globals, &(fof_group[i_fof]), snapshot);
 
     for (int i_step = 0; i_step < NSteps; i_step++)

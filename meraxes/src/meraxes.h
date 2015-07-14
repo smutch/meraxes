@@ -282,6 +282,9 @@ typedef struct galaxy_t {
 
   double NewStars[N_HISTORY_SNAPS];
 
+  // Unique ID for the galaxy
+  long long ID;
+
   // properties of subhalo at the last time this galaxy was a central galaxy
   float  Pos[3];
   float  Vel[3];
@@ -328,7 +331,6 @@ typedef struct galaxy_t {
   double MergerStartRadius;
   double BaryonFracModifier;
 
-  int  ID;
   int  Type;
   int  OldType;
   int  Len;
@@ -349,12 +351,14 @@ typedef struct galaxy_t {
 typedef struct galaxy_output_t {
   long long id_MBP;
 
+  // Unique ID for the galaxy
+  long long ID;
+
 #ifdef CALC_MAGS
   float Mag[MAX_PHOTO_NBANDS];
   float MagDust[MAX_PHOTO_NBANDS];
 #endif
 
-  int ID;
   int Type;
   int CentralGal;
   int GhostFlag;
@@ -533,6 +537,8 @@ void         mpi_debug_here(void);
 void         check_counts(run_globals_t *run_globals, fof_group_t *fof_group, int NGal, int NFof);
 void         cn_quote(void);
 double       Tvir_to_Mvir(run_globals_t *run_globals, double T, double z);
+double       hubble_at_snapshot(run_globals_t *run_globals, int snapshot);
+double       hubble_time(run_globals_t *run_globals, int snapshot);
 double       calculate_Mvir(run_globals_t *run_globals, double Mvir, int len);
 double       calculate_Rvir(run_globals_t *run_globals, double Mvir, int snapshot);
 double       calculate_Vvir(run_globals_t *run_globals, double Mvir, double Rvir);
@@ -566,7 +572,7 @@ void   set_HII_eff_factor(run_globals_t *run_globals);
 int    find_cell(float pos, double box_size);
 void   malloc_reionization_grids(run_globals_t *run_globals);
 void   free_reionization_grids(run_globals_t *run_globals);
-void   construct_stellar_grids(run_globals_t *run_globals);
+void   construct_stellar_grids(run_globals_t *run_globals, int snapshot);
 // void    assign_ionization_to_halos(run_globals_t *run_globals, halo_t *halo, int n_halos, float *xH_grid, int xH_dim);
 int  read_dm_grid(run_globals_t *run_globals, int snapshot, int i_grid, float *grid);
 void calculate_Mvir_crit(run_globals_t *run_globals, double redshift);

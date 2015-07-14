@@ -47,7 +47,7 @@ void call_find_HII_bubbles(run_globals_t *run_globals, int snapshot, int unsampl
   }
 
   // Construct the stellar mass grid
-  construct_stellar_grids(run_globals);
+  construct_stellar_grids(run_globals, snapshot);
 
   SID_log("...done", SID_LOG_CLOSE);
 
@@ -247,7 +247,7 @@ int find_cell(float pos, double box_size)
 {
   int HII_dim = tocf_params.HII_dim;
 
-  int cell = (int)floor(pos / box_size * (double)HII_dim);
+  int cell = (int)floor((double)pos / box_size * (double)HII_dim);
 
   cell = (cell < 0) ? 0 : cell;
   cell = (cell >= HII_dim) ? HII_dim - 1 : cell;
@@ -256,7 +256,7 @@ int find_cell(float pos, double box_size)
 }
 
 
-void construct_stellar_grids(run_globals_t *run_globals)
+void construct_stellar_grids(run_globals_t *run_globals, int snapshot)
 {
   galaxy_t *gal;
   int i, j, k;
@@ -266,6 +266,7 @@ void construct_stellar_grids(run_globals_t *run_globals)
   float *sfr_grid     = (float*)(run_globals->tocf_grids.sfr);
   int HII_dim         = tocf_params.HII_dim;
   run_units_t *units  = &(run_globals->units);
+  double tHubble      = hubble_time(run_globals, snapshot);
 
   SID_log("Constructing stellar mass and sfr grids...", SID_LOG_OPEN | SID_LOG_TIMER);
 
@@ -317,7 +318,7 @@ void construct_stellar_grids(run_globals_t *run_globals)
       assert((k >= 0) && (k < HII_dim));
 
       *(stellar_grid + HII_R_FFT_INDEX(i, j, k)) += gal->GrossStellarMass;
-      *(sfr_grid + HII_R_FFT_INDEX(i, j, k))     += gal->Sfr;
+      *(sfr_grid + HII_R_FFT_INDEX(i, j, k))     += gal->GrossStellarMass;
     }
     gal = gal->Next;
   }
@@ -328,7 +329,9 @@ void construct_stellar_grids(run_globals_t *run_globals)
 
   if (SID.My_rank == 0)
   {
-    // Do one final pass to put the grid in the correct (real) units (Msol or Msol/s)
+    // Do one final pass to put the grid in the correct (real) units (Msol or
+    // Msol/s) and divide the sfr_grid by tHubble in order to convert the
+    // stellar masses recorded into SFRs.
     for (int i = 0; i < HII_dim; i++)
       for (int j = 0; j < HII_dim; j++)
         for (int k = 0; k < HII_dim; k++)
@@ -336,7 +339,7 @@ void construct_stellar_grids(run_globals_t *run_globals)
           if (*(stellar_grid + HII_R_FFT_INDEX(i, j, k)) > 0)
             *(stellar_grid + HII_R_FFT_INDEX(i, j, k)) *= (1.e10 / Hubble_h);
           if (*(sfr_grid + HII_R_FFT_INDEX(i, j, k)) > 0)
-            *(sfr_grid + HII_R_FFT_INDEX(i, j, k)) *= (units->UnitMass_in_g / units->UnitTime_in_s / SOLAR_MASS);
+            *(sfr_grid + HII_R_FFT_INDEX(i, j, k)) *= (units->UnitMass_in_g / units->UnitTime_in_s / SOLAR_MASS) / tHubble;
 
           // Check for under/overflow
           if (*(stellar_grid + HII_R_FFT_INDEX(i, j, k)) < 0)
