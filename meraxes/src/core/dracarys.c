@@ -86,6 +86,9 @@ void dracarys(run_globals_t *run_globals)
   int **snapshot_index_lookup       = run_globals->SnapshotIndexLookup;
   trees_info_t *snapshot_trees_info = run_globals->SnapshotTreesInfo;
   double *LTTime                    = run_globals->LTTime;
+  
+  float HII_eff_factor_original;
+  float f_esc;
 
   // Find what the last requested output snapshot is
   for (int ii = 0; ii < NOUT; ii++)
@@ -398,6 +401,30 @@ void dracarys(run_globals_t *run_globals)
     nout_gals += ghost_counter;
 
 #ifdef USE_TOCF
+    
+    physics_params_t *params = &(run_globals->params.physics);
+    HII_eff_factor_original = tocf_params.HII_eff_factor;
+    
+    if (params->Flag_RedshiftDepEscFrac)
+    {
+        SID_log("Calculating f_esc(z)...", SID_LOG_OPEN);
+        SID_log("Set value of tocf_params.HII_eff_factor = %g", SID_LOG_COMMENT, tocf_params.HII_eff_factor);
+        
+        tocf_params.HII_eff_factor /= params->ReionEscapeFrac;
+        
+        f_esc = 0.054*(pow((1.0+run_globals->ZZ[snapshot])/5.0, 2.4));
+        
+        if (f_esc > 1.0)
+            f_esc = 1.0;
+        
+        SID_log("f_esc = %g", SID_LOG_COMMENT, f_esc);
+        
+        tocf_params.HII_eff_factor *= f_esc;
+        
+        SID_log("Reset value of tocf_params.HII_eff_factor = %g", SID_LOG_COMMENT, tocf_params.HII_eff_factor);
+        SID_log("done...", SID_LOG_CLOSE);
+    }
+    
     if (run_globals->params.TOCF_Flag && !check_if_reionization_complete(run_globals))
     {
       if (!tocf_params.uvb_feedback)
@@ -410,6 +437,14 @@ void dracarys(run_globals_t *run_globals)
       else
         call_find_HII_bubbles(run_globals, snapshot, trees_info.unsampled_snapshot, nout_gals);
     }
+    
+    // Set tocf_params.HII_eff_factor back to original
+    if (params->Flag_RedshiftDepEscFrac)
+    {
+        tocf_params.HII_eff_factor = HII_eff_factor_original;
+        SID_log("Re-reset value of tocf_params.HII_eff_factor = %g", SID_LOG_COMMENT, tocf_params.HII_eff_factor);
+    }
+    
 #endif
 
 #ifdef DEBUG

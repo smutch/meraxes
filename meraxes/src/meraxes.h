@@ -112,6 +112,7 @@ typedef struct physics_params_t {
   double ReionGnedin_zr;
 
   // Flags
+  int Flag_RedshiftDepEscFrac;
   int Flag_ReionizationModifier;
   int Flag_BHFeedback;
   int Flag_IRA;
@@ -165,7 +166,6 @@ typedef struct run_params_t {
   int              FlagGenDumpFile;
   int              FlagReadDumpFile;
   int              TOCF_Flag;
-
 } run_params_t;
 
 typedef struct run_units_t {
