@@ -268,7 +268,6 @@ void dracarys(run_globals_t *run_globals)
     // Also update the fof_group pointers.
     for (int i_fof = 0; i_fof < trees_info.n_fof_groups; i_fof++)
     {
-      halo_t *first_occupied_halo = NULL;
       halo_t *cur_halo            = fof_group[i_fof].FirstHalo;
       int total_subhalo_len       = 0;
 
@@ -277,15 +276,11 @@ void dracarys(run_globals_t *run_globals)
         if (check_if_valid_host(run_globals, cur_halo))
           create_new_galaxy(run_globals, snapshot, cur_halo, &NGal, &new_gal_counter);
 
-        if ((first_occupied_halo == NULL) && (cur_halo->Galaxy != NULL))
-          first_occupied_halo = cur_halo;
-
         total_subhalo_len += cur_halo->Len;
 
         cur_halo = cur_halo->NextHaloInFOFGroup;
       }
 
-      fof_group[i_fof].FirstOccupiedHalo = first_occupied_halo;
       fof_group[i_fof].TotalSubhaloLen   = total_subhalo_len;
     }
 
@@ -309,12 +304,6 @@ void dracarys(run_globals_t *run_globals)
             cur_gal->Halo = gal->Halo;
             cur_gal       = cur_gal->NextGalInHalo;
           }
-
-          // If this halo just merged into a new FOF group which previously
-          // contained no galaxies then we also need to set the FirstOccupied
-          // pointer of the new host group.
-          if (gal->Halo->FOFGroup->FirstOccupiedHalo == NULL)
-            gal->Halo->FOFGroup->FirstOccupiedHalo = gal->Halo;
         }
         else    // there are galaxies in the halo being merged into
         {
@@ -359,6 +348,21 @@ void dracarys(run_globals_t *run_globals)
       }
 
       gal = gal->Next;
+    }
+
+    // Calculate the first occupied halo
+    for (int i_fof = 0; i_fof < trees_info.n_fof_groups; i_fof++)
+    {
+      halo_t *cur_halo = fof_group[i_fof].FirstHalo;
+      while (cur_halo != NULL)
+      {
+        if (cur_halo->Galaxy != NULL)
+        {
+          fof_group[i_fof].FirstOccupiedHalo = cur_halo;
+          break;
+        }
+        cur_halo = cur_halo->NextHaloInFOFGroup;
+      }
     }
 
     // We finish by copying the halo properties into the galaxy structure of
