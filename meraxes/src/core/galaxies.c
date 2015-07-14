@@ -50,6 +50,7 @@ galaxy_t* new_galaxy(run_globals_t *run_globals, int snapshot, int halo_ID)
   gal->Cos_Inc            = gsl_rng_uniform(run_globals->random_generator);
   gal->MergTime           = 99999.9;
   gal->BaryonFracModifier = 1.0;
+  gal->MvirCrit           = 0.0;
   gal->PhysicsFlags       = 0;
   gal->MergerStartRadius  = 0.0;
 
@@ -115,6 +116,7 @@ void reset_galaxy_properties(run_globals_t *run_globals, galaxy_t *gal, int snap
   gal->Mcool              = 0.0;
   gal->Sfr                = 0.0;
   gal->BaryonFracModifier = 1.0;
+  gal->MvirCrit           = 0.0;
   gal->PhysicsFlags       = 0;
 
   // update the stellar mass weighted mean age values

@@ -52,7 +52,7 @@ double gas_infall(run_globals_t *run_globals, fof_group_t *FOFgroup, int snapsho
   // Calculate the amount of fresh gas required to provide the baryon
   // fraction of this halo.
   // TODO: We should use the position of the FOF group here...
-  fb_modifier = reionization_modifier(run_globals, FOF_Mvir, FOFgroup->FirstHalo->Pos, snapshot);
+  fb_modifier = reionization_modifier(run_globals, central, FOF_Mvir, FOFgroup->FirstHalo->Pos, snapshot);
   infall_mass = fb_modifier * run_globals->params.BaryonFrac * FOF_Mvir - total_baryons;
 
   // record the infall modifier

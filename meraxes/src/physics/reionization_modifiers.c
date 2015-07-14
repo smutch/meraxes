@@ -131,7 +131,7 @@ double global_ionizing_emmisivity(run_globals_t *run_globals)
 }
 
 
-double reionization_modifier(run_globals_t *run_globals, double Mvir, float *Pos, int snapshot)
+double reionization_modifier(run_globals_t *run_globals, galaxy_t *gal, double Mvir, float *Pos, int snapshot)
 {
   double redshift;
   double modifier;
@@ -141,7 +141,7 @@ double reionization_modifier(run_globals_t *run_globals, double Mvir, float *Pos
 #ifdef USE_TOCF
   if ((tocf_params.uvb_feedback) && (run_globals->params.TOCF_Flag))
   {
-    modifier = tocf_modifier(run_globals, Mvir, Pos, snapshot);
+    modifier = tocf_modifier(run_globals, gal, Mvir, Pos, snapshot);
     return modifier;
   }
 #endif

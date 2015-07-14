@@ -331,6 +331,7 @@ typedef struct galaxy_t {
   double MergTime;
   double MergerStartRadius;
   double BaryonFracModifier;
+  double MvirCrit;
 
   int  Type;
   int  OldType;
@@ -398,6 +399,7 @@ typedef struct galaxy_output_t {
   float MergTime;
   float MergerStartRadius;
   float BaryonFracModifier;
+  float MvirCrit;
   int   PhysicsFlags;
 
   // baryonic histories
@@ -563,12 +565,12 @@ void   apply_dust(int n_photo_bands, galaxy_t gal, double *LumDust, int outputbi
 void   cleanup_mags(run_globals_t *run_globals);
 
 // Reionization related
-double reionization_modifier(run_globals_t *run_globals, double Mvir, float *Pos, int snapshot);
+double reionization_modifier(run_globals_t *run_globals, galaxy_t *gal, double Mvir, float *Pos, int snapshot);
 double sobacchi2013_modifier(run_globals_t *run_globals, double Mvir, double redshift);
 double gnedin2000_modifer(run_globals_t *run_globals, double Mvir, double redshift);
 double global_ionizing_emmisivity(run_globals_t *run_globals);
 #ifdef USE_TOCF
-double tocf_modifier(run_globals_t *run_globals, double Mvir, float *Pos, int snapshot);
+double tocf_modifier(run_globals_t *run_globals, galaxy_t *gal, double Mvir, float *Pos, int snapshot);
 void   set_HII_eff_factor(run_globals_t *run_globals);
 int    find_cell(float pos, double box_size);
 void   malloc_reionization_grids(run_globals_t *run_globals);
