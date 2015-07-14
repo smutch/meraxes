@@ -52,15 +52,15 @@ Flag_FixDiskRadiusOnInfall : 0    # fix disk radius upon infall
 Flag_ReheatToFOFGroupTemp  : 0    # try to reheat gas to the FOF group Tvir instead of just the subgroup value
 SfDiskVelOpt               : 1    # disk velocity for SF law (1=Vmax, 2=Vvir)
 
-SfEfficiency              : 0.05    # star formation efficiency
+SfEfficiency              : 0.03    # star formation efficiency
 SfCriticalSDNorm          : 0.2     # critical surface density normalisation factor for star formation (internal units; standard=0.37)
 SfRecycleFraction         : 0.25    # instantaneous recycle fraction (IMF dependant)
 
-SnEjectionEff             : 0.4     # SN feedback gas reheating efficiency
+SnEjectionEff             : 0.5     # SN feedback gas reheating efficiency
 SnEjectionScaling         : 2.0     # SN feedback gas reheating efficiency scaling (with Vmax)
 SnEjectionNorm            : 70.0    # SN feedback gas reheating efficiency norm (with Vmax [internal units])
 
-SnReheatEff               : 5.0     # mass loading factor for SN feedback
+SnReheatEff               : 6.0     # mass loading factor for SN feedback
 SnReheatLimit             : 10.0    # maximum allowed mass loading factor for SN feedback
 SnReheatScaling           : 0.0     # mass loading factor for SN feedback scaling (with Vmax)
 SnReheatNorm              : 70.0   # mass loading factor for SN feedback scaling (with Vmax [internal units])
@@ -86,7 +86,7 @@ MergerBurstScaling        : 0.7
 # Reionization
 ReionTcool             : 1.0e4
 ReionNionPhotPerBary   : 4000
-ReionEscapeFrac        : 0.15
+ReionEscapeFrac        : 0.25
 ReionMeanNRec          : 0.0
 
 ReionSobacchi_Zre      : 9.3
