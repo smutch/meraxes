@@ -302,6 +302,9 @@ void init_meraxes(run_globals_t *run_globals)
   // read in the cooling functions
   read_cooling_functions(run_globals);
 
+  // read in the mean Mvir_crit table (if needed)
+  read_Mcrit_table(run_globals);
+
   for (i = 0; i < snaplist_len; i++)
   {
     run_globals->ZZ[i]     = 1 / run_globals->AA[i] - 1;

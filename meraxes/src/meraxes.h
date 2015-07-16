@@ -140,6 +140,7 @@ typedef struct run_params_t {
   char             MagSystem[STRLEN];
   char             MagBands[STRLEN];
   char             ForestIDFile[STRLEN];
+  char             MvirCritFile[STRLEN];
 
   physics_params_t physics;
 
@@ -155,6 +156,8 @@ typedef struct run_params_t {
   double           wLambda;
   double           SpectralIndex;
   double           PartMass;
+
+  double          *MvirCrit;
 
   int              FirstFile;
   int              LastFile;
@@ -565,6 +568,7 @@ void   apply_dust(int n_photo_bands, galaxy_t gal, double *LumDust, int outputbi
 void   cleanup_mags(run_globals_t *run_globals);
 
 // Reionization related
+void   read_Mcrit_table(run_globals_t *run_globals);
 double reionization_modifier(run_globals_t *run_globals, galaxy_t *gal, double Mvir, float *Pos, int snapshot);
 double sobacchi2013_modifier(run_globals_t *run_globals, double Mvir, double redshift);
 double gnedin2000_modifer(run_globals_t *run_globals, double Mvir, double redshift);

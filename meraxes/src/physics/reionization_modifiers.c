@@ -47,6 +47,19 @@ double sobacchi2013_modifier(run_globals_t *run_globals, double Mvir, double red
 }
 
 
+static double precomputed_Mcrit_modifier(run_globals_t *run_globals, galaxy_t *gal, double Mvir, int snapshot)
+{
+  // Use precomputed Mcrit (Mfilt) mass values as a function of redshif in
+  // order to calculate the baryon fraction modifier using the Sobacchi
+  // formalism.
+
+  double Mvir_crit = run_globals->params.MvirCrit[snapshot];
+  if (gal != NULL)
+    gal->MvirCrit = Mvir_crit;
+  return pow(2.0, -Mvir_crit / Mvir);
+}
+
+
 double gnedin2000_modifer(run_globals_t *run_globals, double Mvir, double redshift)
 {
   // NOTE THAT PART OF THIS CODE IS COPIED VERBATIM FROM THE CROTON ET AL. 2006 SEMI-ANALYTIC MODEL.
@@ -156,6 +169,11 @@ double reionization_modifier(run_globals_t *run_globals, galaxy_t *gal, double M
   case 2:
     // Gnedin 2000 global reionization modifier
     modifier = gnedin2000_modifer(run_globals, Mvir, redshift);
+    break;
+
+  case 3:
+    // Precomputed mean Mcrit values
+    modifier = precomputed_Mcrit_modifier(run_globals, gal, Mvir, snapshot);
     break;
 
   default:

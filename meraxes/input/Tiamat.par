@@ -44,7 +44,7 @@ TOCF_Flag : 0 {  # use 21cmfast for reionization?
 #----- Parameters of physical model -------
 #------------------------------------------
 Flag_RedshiftDepEscFrac    : 0    # use redshift-dependent escape fraction
-Flag_ReionizationModifier  : 1    # use halo mass dependant infall modifier of Sobacchi & Mesinger (2013)
+Flag_ReionizationModifier  : 2    # use halo mass dependant infall modifier of Gnedin
 Flag_BHFeedback            : 0    # use black hole feedback
 Flag_IRA                   : 0    # use the instantaneous recycling approximation
 Flag_FixVmaxOnInfall       : 0    # fix Vmax upon infall

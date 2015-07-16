@@ -249,6 +249,12 @@ void read_parameter_file(run_globals_t *run_globals, char *fname, int mode)
       params_type[n_param++]      = PARAM_TYPE_STRING;
       *(run_params->ForestIDFile) = '\0';
 
+      strcpy(params_tag[n_param], "MvirCritFile");
+      params_addr[n_param]        = &(run_params->MvirCritFile);
+      required_tag[n_param]       = 0;
+      params_type[n_param++]      = PARAM_TYPE_STRING;
+      *(run_params->MvirCritFile) = '\0';
+
       strcpy(params_tag[n_param], "UnitVelocity_in_cm_per_s");
       params_addr[n_param]   = &(run_globals->units.UnitVelocity_in_cm_per_s);
       required_tag[n_param]  = 1;
