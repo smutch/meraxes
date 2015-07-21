@@ -60,7 +60,7 @@ float comoving_distance(run_globals_t *run_globals, float a[3], float b[3])
   float dz = apply_pbc(run_globals, a[2] - b[2]);
 
   float dist = sqrtf(dx*dx + dy*dy + dz*dz);
-  assert(dist <= run_globals->params.BoxSize/2.0);
+  assert(dist <= (sqrtf(3.0)/4.0 * run_globals->params.BoxSize));
 
   return dist;
 }
