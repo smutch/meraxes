@@ -32,9 +32,9 @@ def read_ascii_cooling_file(fin):
     # present one
     if data.shape[0] < 90:
         first_val = data.ix[0].copy()
-        first_val["log(T)"] = 4.0
+        first_val["log(T)"] = 4.05
         data = pd.concat((pd.DataFrame(first_val).T, data), axis=0)
-        first_val["log(T)"] = 4.5
+        first_val["log(T)"] = 4.0
         data = pd.concat((pd.DataFrame(first_val).T, data), axis=0)
 
     return data
