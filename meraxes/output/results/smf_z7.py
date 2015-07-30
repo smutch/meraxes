@@ -12,6 +12,7 @@ from dragons import meraxes, plotutils
 from docopt import docopt
 from smf import Smf, schechter
 import pandas as pd
+from astropy.table import Table
 
 import os
 import sys
@@ -77,6 +78,20 @@ def plot_obs(ax):
     ax.errorbar(obs.sm, obs.log_phi, yerr=[obs.m_err, obs.p_err],
                 label="Gonzalez et al. 2011", ls="None", color=COLS[2],
                 lw=2, capsize=2.5, marker='s', mec='None')
+
+    # now plot Song+ 2015 (h=0.7, Salpeter IMF)
+    obs = Table.read("{:s}/smf/Song2015_z7_smf.txt".format(OBS_DATASETS_DIR),
+                     format='ascii.ecsv')
+
+    # convert obs to same hubble value and IMF
+    obs['logM'] += 2.0*np.log10(0.7/HUBBLE)
+    for col in ["logphi", "merr", "perr"]:
+        obs[col] -= 3.0*np.log10(0.7/HUBBLE)
+
+    # plot the observations
+    ax.errorbar(obs['logM'], obs['logphi'], yerr=[obs['merr'], obs['perr']],
+                label="Song et al. 2015", ls="None", color=COLS[4],
+                lw=2, capsize=2.5, marker='D', mec='None')
 
 
 def plot(model, ax, bins="knuth"):
