@@ -122,6 +122,14 @@ class Smf(object):
         if self.masses is None:
             self.read_masses()
 
+        if type(limits) is list:
+            if len(limits) != 2:
+                raise IndexError("len(limits) must equal 2")
+            if limits[0] is None:
+                limits[0] = self.masses.min()
+            if limits[1] is None:
+                limits[1] = self.masses.max()
+
         self.mf, self.edges =\
             munge.mass_function(self.masses, self.volume, bins,
                                 return_edges=True, poisson_uncert=True,
