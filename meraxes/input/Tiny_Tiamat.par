@@ -1,15 +1,15 @@
 #------------------------------------------
 #----- SA model output files --------------
 #------------------------------------------
-FileNameGalaxies : Mini_Tiamat
+FileNameGalaxies : Tiny_Tiamat
 
 #------------------------------------------
 #----- Simulation input files  ------------
 #------------------------------------------
-SimName          : Mini_Tiamat
-SimulationDir    : /home/smutch/data_dragons/input_trees/Mini_Tiamat
+SimName          : Tiny_Tiamat
+SimulationDir    : /home/smutch/data_dragons/input_trees/Tiny_Tiamat
 CatalogFilePrefix: subfind
-BoxSize          : 67.8
+BoxSize          : 10.0
 VolumeFactor     : 1.0
 
 #------------------------------------------
@@ -109,7 +109,7 @@ BaryonFrac: 0.15714
 Hubble_h: 0.678
 SpectralIndex: 0.968
 Sigma8: 0.815
-PartMass: 0.01692066
+PartMass: 6.786379e-06
 wLambda: -1.0
 
 UnitLength_in_cm         : 3.08568e+24       # WATCH OUT : Mpc/h
