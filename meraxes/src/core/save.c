@@ -730,7 +730,7 @@ static inline bool pass_write_check(galaxy_t *gal, bool flag_merger)
 {
   if (
     // Test for non-merger galaxy to be written in the current snap
-    (!flag_merger && (gal->Type < 3) && ((gal->output_index > -1) || (gal->StellarMass >= 1e-10)))
+    (!flag_merger && (gal->Type < 3)) // && ((gal->output_index > -1) || (gal->StellarMass >= 1e-10)))
     // and this is the test for a merger to be accounted for in descendant / progenitor arrays
     || (flag_merger && (gal->Type == 3) && (gal->output_index > -1))
     )
