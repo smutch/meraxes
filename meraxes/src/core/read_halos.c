@@ -417,7 +417,8 @@ static void read_trees_and_catalogs(
         cur_halo->Galaxy    = NULL;
         cur_halo->Mvir      = cur_cat_halo->M_vir;
 
-        if ((cur_halo->Type == 0) || run_globals->params.FlagSubhaloVirialProps)
+        // TODO: sort this out once and for all!
+        if ((cur_halo->Type == 0) && run_globals->params.FlagSubhaloVirialProps)
           Len = -1;
         else
           Len = cur_halo->Len;
