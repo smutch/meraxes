@@ -87,7 +87,6 @@ MergerBurstScaling        : 0.7
 ReionTcool             : 1.0e4
 ReionNionPhotPerBary   : 4000
 ReionEscapeFrac        : 0.30
-ReionMeanNRec          : 0.0
 
 ReionSobacchi_Zre      : 9.3
 ReionSobacchi_DeltaZre : 1.0

@@ -81,8 +81,8 @@ static void inline store_params(
 
     if (tag_index < 0)
     {
-      SID_log_warning("%s is an unrecognised parameter. Ignoring...", SID_LOG_COMMENT, entry[i_entry].key);
-      continue;
+      SID_log_warning("%s is an unrecognised parameter.", SID_LOG_COMMENT, entry[i_entry].key);
+      ABORT(EXIT_FAILURE);
     }
 
     if (used_tag[tag_index] == 1)

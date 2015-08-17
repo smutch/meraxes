@@ -6,6 +6,7 @@
 void read_Mcrit_table(run_globals_t *run_globals)
 {
 
+  // TODO: Make sure Flag_ReionizationModifier gets set differently if using uvb fb and 21cmFAST
   if (run_globals->params.physics.Flag_ReionizationModifier != 3)
   {
     // Set this to NULL if we don't need it...
