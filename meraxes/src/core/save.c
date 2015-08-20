@@ -561,7 +561,7 @@ void create_master_file(run_globals_t *run_globals)
 
   group_id = H5Gcreate(file_id, "HubbleConversions/Grids", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
   h5_write_attribute(group_id, "xH", H5T_C_S1, ds_id, "None");
-  h5_write_attribute(group_id, "J_21", H5T_C_S1, ds_id, "10^-21 erg/s/Hz/cm^2/sr");
+  h5_write_attribute(group_id, "J_21", H5T_C_S1, ds_id, "None");
   h5_write_attribute(group_id, "J_21_at_ionization", H5T_C_S1, ds_id, "None");
   h5_write_attribute(group_id, "z_at_ionization", H5T_C_S1, ds_id, "None");
   h5_write_attribute(group_id, "Mvir_crit", H5T_C_S1, ds_id, "v/h");
