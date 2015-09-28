@@ -23,13 +23,15 @@ __author__ = "Simon Mutch"
 __date__ = "2015-04-14"
 
 COLS = plt.rcParams["axes.color_cycle"]
+#  COLS = ['0.4',]*len(COLS)
+#  COLS = [COLS[9],]*len(COLS)
 OBS_DATASETS_DIR = "/home/smutch/models/21cm_sam/meraxes/utils/obs_datasets"
 XLIM = [6, 12]
 YLIM = [-6, 1]
 HUBBLE = 0.7
 
 
-def plot_obs(ax):
+def plot_obs(ax, logy=True):
     # Start with Duncan+ 2014 (h=0.702, Chabrier IMF)
     obs = pd.read_table(os.path.join(__script_dir__,
         "{:s}/smf/Duncan14_MF_z5.txt".format(OBS_DATASETS_DIR)),
@@ -46,11 +48,17 @@ def plot_obs(ax):
         obs[col] /= (0.702**3/HUBBLE**3)
 
     # plot the observations
-    ax.errorbar(obs.sm, np.log10(obs.phi),
-                yerr=[np.log10(obs.phi / (obs.phi - obs.merr)),
-                      np.log10(1.0 + (obs.perr / obs.phi))],
-                label="Duncan et al. 2014", ls="None", color=COLS[1],
-                lw=2, capsize=2.5, marker='o', mec='None')
+    if logy:
+        ax.errorbar(obs.sm, np.log10(obs.phi),
+                    yerr=[np.log10(obs.phi / (obs.phi - obs.merr)),
+                          np.log10(1.0 + (obs.perr / obs.phi))],
+                    label="Duncan et al. 2014", ls="None", color=COLS[1],
+                    lw=2, capsize=2.5, marker='o', mec='None')
+    else:
+        ax.errorbar(obs.sm, obs.phi,
+                    yerr=[obs.merr, obs.perr],
+                    label="Duncan et al. 2014", ls="None", color=COLS[1],
+                    lw=2, capsize=2.5, marker='o', mec='None')
 
     # now plot Grazian+ 2015 (h=0.7, Salpeter IMF)
     mass = np.linspace(9.323 + 2.0*np.log10(0.7/HUBBLE), XLIM[1], 30)
@@ -75,9 +83,16 @@ def plot_obs(ax):
         obs[col] -= 3.0*np.log10(0.7/HUBBLE)
 
     # plot the observations
-    ax.errorbar(obs.sm, obs.log_phi, yerr=[obs.m_err, obs.p_err],
-                label="Gonzalez et al. 2011", ls="None", color=COLS[2],
-                lw=2, capsize=2.5, marker='s', mec='None')
+    if logy:
+        ax.errorbar(obs.sm, obs.log_phi, yerr=[obs.m_err, obs.p_err],
+                    label="Gonzalez et al. 2011", ls="None", color=COLS[2],
+                    lw=2, capsize=2.5, marker='s', mec='None')
+    else:
+        ax.errorbar(obs.sm, 10.**obs.log_phi,
+                    yerr=[10.**obs.log_phi - 10.**(obs.log_phi - obs.m_err),
+                          10.**(obs.p_err + obs.log_phi) - 10.**obs.log_phi],
+                    label="Gonzalez et al. 2011", ls="None", color=COLS[2],
+                    lw=2, capsize=2.5, marker='s', mec='None')
 
     # now plot Song+ 2015 (h=0.7, Salpeter IMF)
     obs = Table.read("{:s}/smf/Song2015_z5_smf.txt".format(OBS_DATASETS_DIR),
@@ -89,9 +104,16 @@ def plot_obs(ax):
         obs[col] -= 3.0*np.log10(0.7/HUBBLE)
 
     # plot the observations
-    ax.errorbar(obs['logM'], obs['logphi'], yerr=[obs['merr'], obs['perr']],
-                label="Song et al. 2015", ls="None", color=COLS[4],
-                lw=2, capsize=2.5, marker='D', mec='None')
+    if logy:
+        ax.errorbar(obs['logM'], obs['logphi'], yerr=[obs['merr'], obs['perr']],
+                    label="Song et al. 2015", ls="None", color=COLS[4],
+                    lw=2, capsize=2.5, marker='D', mec='None')
+    else:
+        ax.errorbar(obs['logM'], 10.**obs['logphi'],
+                    yerr=[10.**obs['logphi'] - 10.**(obs['logphi'] - obs['merr']),
+                          10.**(obs['perr'] + obs['logphi']) - 10.**obs['logphi']],
+                    label="Song et al. 2015", ls="None", color=COLS[4],
+                    lw=2, capsize=2.5, marker='D', mec='None')
 
 
 def plot(model, ax, bins="knuth"):
