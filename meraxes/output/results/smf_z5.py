@@ -28,7 +28,6 @@ COLS = plt.rcParams["axes.color_cycle"]
 OBS_DATASETS_DIR = "/home/smutch/models/21cm_sam/meraxes/utils/obs_datasets"
 XLIM = [6, 12]
 YLIM = [-6, 1]
-HUBBLE = 0.7
 
 
 def plot_obs(ax, logy=True):
@@ -137,7 +136,7 @@ if __name__ == '__main__':
     fname = args["<fname>"]
 
     # set up
-    meraxes.set_little_h(HUBBLE)
+    meraxes.set_little_h(fname)
     plt.style.use(["dragons", ])
     fig, ax = plt.subplots(1, 1)
 

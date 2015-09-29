@@ -485,6 +485,7 @@ void prep_hdf5_file(run_globals_t *run_globals)
   h5_write_attribute(file_id, "NCores", H5T_NATIVE_INT, ds_id, &(SID.n_proc));
 
   // close the file
+  H5Sclose(ds_id);
   H5Fclose(file_id);
 }
 
@@ -541,10 +542,11 @@ void create_master_file(run_globals_t *run_globals)
   group_id = H5Gcreate(file_id, "Units", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
   for (int ii = 0; ii < h5props->n_props; ii++)
     h5_write_attribute(group_id, h5props->field_names[ii], H5T_C_S1, ds_id, h5props->field_units[ii]);
+  H5Gclose(group_id);
+
   group_id = H5Gcreate(file_id, "HubbleConversions", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
   for (int ii = 0; ii < h5props->n_props; ii++)
     h5_write_attribute(group_id, h5props->field_names[ii], H5T_C_S1, ds_id, h5props->field_h_conv[ii]);
-
   H5Gclose(group_id);
 
 #ifdef USE_TOCF
@@ -644,6 +646,7 @@ void create_master_file(run_globals_t *run_globals)
         H5Lcreate_external(relative_source_file, source_ds, group_id, target_ds, H5P_DEFAULT, H5P_DEFAULT);
       }
 
+      H5Gclose(source_group_id);
       H5Gclose(group_id);
 
 #ifdef USE_TOCF
