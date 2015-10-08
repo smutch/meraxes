@@ -16,10 +16,8 @@ void set_HII_eff_factor(run_globals_t *run_globals)
   // The following is based on Sobacchi & Messinger (2013) eqn 7
   // with f_* removed and f_b added since we define f_coll as M_*/M_tot rather than M_vir/M_tot,
   // and also with the inclusion of the effects of the Helium fraction.
-  tocf_params.HII_eff_factor *= 459.0 / run_globals->params.BaryonFrac
-    * (params->ReionNionPhotPerBary / 4000.0)
-    * (params->ReionEscapeFrac / 0.15)
-    * (1.3072 / ((1.0 + 3.0*tocf_params.Y_He)*(1.0 - tocf_params.Y_He)));
+  tocf_params.HII_eff_factor = 1.0 / run_globals->params.BaryonFrac
+    * params->ReionNionPhotPerBary * params->ReionEscapeFrac / (1.0 - 0.75*tocf_params.Y_He);
 
   // Account for instantaneous recycling factor so that stellar mass is cumulative
   if (params->Flag_IRA)
