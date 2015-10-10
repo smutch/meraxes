@@ -88,7 +88,7 @@ if __name__ == '__main__':
         # SMF
         fig, ax = plt.subplots(1,1)
         model = Smf(fname, -1, snapshot=snap)
-        smf_z5.plot(model, ax)
+        smf_z5.plot(model, ax, h)
         ax.yaxis.set_tick_params(which='both', color='w')
         ax.legend(loc="upper right", fontsize="small")
         savefig(fig, fname, "smf-z5", ext, simprops)
@@ -124,7 +124,7 @@ if __name__ == '__main__':
         # SMF
         fig, ax = plt.subplots(1,1)
         model = Smf(fname, -1, snapshot=snap)
-        smf_z6.plot(model, ax)
+        smf_z6.plot(model, ax, h)
         ax.yaxis.set_tick_params(which='both', color='w')
         ax.legend(loc="upper right", fontsize="small")
         savefig(fig, fname, "smf-z6", ext, simprops)
@@ -148,7 +148,7 @@ if __name__ == '__main__':
         # SMF
         fig, ax = plt.subplots(1,1)
         model = Smf(fname, -1, snapshot=snap)
-        smf_z7.plot(model, ax)
+        smf_z7.plot(model, ax, h)
         ax.yaxis.set_tick_params(which='both', color='w')
         ax.legend(loc="upper right", fontsize="small")
         savefig(fig, fname, "smf-z7", ext, simprops)
