@@ -45,7 +45,7 @@ def plot_obs(ax, hubble=0.678):
         obs[col] /= (0.7**3/hubble**3)
 
     # plot the observations
-    ax.errorbar(obs.sm, np.log10(obs.phi),
+    ax.errorbar(obs.sm.values, np.log10(obs.phi.values),
                 yerr=[np.log10(obs.phi / (obs.phi - obs.merr)),
                       np.log10(1.0 + (obs.perr / obs.phi))],
                 label="Duncan et al. 2014", ls="None", color=COLS[1],
@@ -74,7 +74,7 @@ def plot_obs(ax, hubble=0.678):
         obs[col] -= 3.0*np.log10(0.7/hubble)
 
     # plot the observations
-    ax.errorbar(obs.sm, obs.log_phi, yerr=[obs.m_err, obs.p_err],
+    ax.errorbar(obs.sm.values, obs.log_phi.values, yerr=[obs.m_err.values, obs.p_err.values],
                 label="Gonzalez et al. 2011", ls="None", color=COLS[2],
                 lw=2, capsize=2.5, marker='s', mec='None')
 
@@ -88,7 +88,7 @@ def plot_obs(ax, hubble=0.678):
         obs[col] -= 3.0*np.log10(0.7/hubble)
 
     # plot the observations
-    ax.errorbar(obs['logM'], obs['logphi'], yerr=[obs['merr'], obs['perr']],
+    ax.errorbar(np.array(obs['logM'], float), np.array(obs['logphi'], float), yerr=[obs['merr'], obs['perr']],
                 label="Song et al. 2015", ls="None", color=COLS[4],
                 lw=2, capsize=2.5, marker='D', mec='None')
 
