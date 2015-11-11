@@ -419,7 +419,7 @@ void dracarys(run_globals_t *run_globals)
         
         tocf_params.HII_eff_factor /= params->ReionEscapeFrac;
         
-        f_esc = 0.054*(pow((1.0+run_globals->ZZ[snapshot])/5.0, 2.4));
+        f_esc = 0.04*(pow((1.0+run_globals->ZZ[snapshot])/6.0, 2.0));
         
         if (f_esc > 1.0)
             f_esc = 1.0;
