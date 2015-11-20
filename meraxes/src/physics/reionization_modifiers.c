@@ -120,30 +120,6 @@ double gnedin2000_modifer(run_globals_t *run_globals, double Mvir, double redshi
 }
 
 
-double global_ionizing_emmisivity(run_globals_t *run_globals)
-{
-  galaxy_t *gal;
-  run_params_t *params     = &(run_globals->params);
-  double unit_conversion   = 0.0628063641739; // Converts internal SFR units to 1e51 baryons per second (mu=0.6)
-  double factor            = unit_conversion * params->physics.ReionNionPhotPerBary * params->physics.ReionEscapeFrac;
-  double global_emissivity = 0.0;
-  double volume            = params->VolumeFactor * pow(params->BoxSize, 3);
-
-  gal = run_globals->FirstGal;
-  while (gal != NULL)
-  {
-    // Orphans can't form stars in this model
-    if (gal->Type < 2)
-      global_emissivity += gal->Sfr;
-
-    gal = gal->Next;
-  }
-  global_emissivity *= factor / volume;  // Units: 1e51 ionising photons per second per (h^-3 Mpc)
-
-  return global_emissivity;
-}
-
-
 double reionization_modifier(run_globals_t *run_globals, galaxy_t *gal, double Mvir, float *Pos, int snapshot)
 {
   double redshift;

@@ -957,11 +957,6 @@ void write_snapshot(
   // Free the output buffer
   SID_free(SID_FARG output_buffer);
 
-  // Store the global ionizing emmisivity contribution from this core
-  temp  = global_ionizing_emmisivity(run_globals);
-  temp *= pow(run_globals->params.Hubble_h, 3);  // Factor out hubble constants
-  H5LTset_attribute_double(group_id, "Galaxies", "GlobalIonizingEmissivity", &temp, 1);
-
 #ifdef USE_TOCF
   if (run_globals->params.TOCF_Flag && !check_if_reionization_complete(run_globals))
     save_tocf_grids(run_globals, group_id, run_globals->ListOutputSnaps[i_out]);

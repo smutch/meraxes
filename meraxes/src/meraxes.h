@@ -572,7 +572,6 @@ void   read_Mcrit_table(run_globals_t *run_globals);
 double reionization_modifier(run_globals_t *run_globals, galaxy_t *gal, double Mvir, float *Pos, int snapshot);
 double sobacchi2013_modifier(run_globals_t *run_globals, double Mvir, double redshift);
 double gnedin2000_modifer(run_globals_t *run_globals, double Mvir, double redshift);
-double global_ionizing_emmisivity(run_globals_t *run_globals);
 #ifdef USE_TOCF
 double tocf_modifier(run_globals_t *run_globals, galaxy_t *gal, double Mvir, float *Pos, int snapshot);
 void   set_HII_eff_factor(run_globals_t *run_globals);
