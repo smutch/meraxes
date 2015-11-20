@@ -10,8 +10,13 @@
 void set_HII_eff_factor(run_globals_t *run_globals)
 {
   // Use the params passed to Meraxes via the input file to set the HII ionising efficiency factor
-
   physics_params_t *params = &(run_globals->params.physics);
+
+  // If we are using a redshift dependent escape fraction then reset
+  // ReionEscapeFrac to one as we don't want to inlcude it in the
+  // HII_eff_factor here.
+  if (params->Flag_RedshiftDepEscFrac)
+    params->ReionEscapeFrac = 1.0;
 
   // The following is based on Sobacchi & Messinger (2013) eqn 7
   // with f_* removed and f_b added since we define f_coll as M_*/M_tot rather than M_vir/M_tot,
@@ -25,6 +30,7 @@ void set_HII_eff_factor(run_globals_t *run_globals)
 
   SID_log("Set value of tocf_params.HII_eff_factor = %g", SID_LOG_COMMENT, tocf_params.HII_eff_factor);
 }
+
 
 void call_find_HII_bubbles(run_globals_t *run_globals, int snapshot, int unsampled_snapshot, int nout_gals)
 {
@@ -392,6 +398,10 @@ void save_tocf_grids(run_globals_t *run_globals, hid_t parent_group_id, int snap
       H5LTmake_dataset_float(group_id, "MFP", 1, &dims, grids->mfp);
 
     H5LTset_attribute_float(group_id, "xH", "global_xH", &(grids->global_xH), 1);
+
+    // Save the escape fraction and HII_eff_factor if we are using a redshift dependent escape fraction
+    H5LTset_attribute_double(group_id, ".", "ReionEscapeFrac", &(run_globals->params.physics.ReionEscapeFrac), 1);
+    H5LTset_attribute_float(group_id, ".", "HII_eff_factor", &(tocf_params.HII_eff_factor), 1);
 
     // fftw padded grids
     grid = (float*)SID_calloc(HII_TOT_NUM_PIXELS * sizeof(float));

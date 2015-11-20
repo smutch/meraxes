@@ -771,7 +771,6 @@ void write_snapshot(
   int prev_snapshot           = -1;
   int index                   = -1;
   int write_count             = 0;
-  double temp                 = 0;
 
   SID_log("Writing output file (n_write = %d)...", SID_LOG_OPEN | SID_LOG_TIMER, n_write);
 
