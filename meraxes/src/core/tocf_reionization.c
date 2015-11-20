@@ -14,9 +14,13 @@ void set_HII_eff_factor(run_globals_t *run_globals)
 
   // If we are using a redshift dependent escape fraction then reset
   // ReionEscapeFrac to one as we don't want to inlcude it in the
-  // HII_eff_factor here.
+  // HII_eff_factor (it will be included in the stellar mass and SFR grids sent
+  // to 21cmFAST instead).
   if (params->Flag_RedshiftDepEscFrac)
+  {
+    SID_log("Flag_RedshiftDepEscFrac is on => setting ReionEscapeFrac = 1.", SID_LOG_COMMENT);
     params->ReionEscapeFrac = 1.0;
+  }
 
   // The following is based on Sobacchi & Messinger (2013) eqn 7
   // with f_* removed and f_b added since we define f_coll as M_*/M_tot rather than M_vir/M_tot,
@@ -321,8 +325,16 @@ void construct_stellar_grids(run_globals_t *run_globals, int snapshot)
       assert((j >= 0) && (j < HII_dim));
       assert((k >= 0) && (k < HII_dim));
 
-      *(stellar_grid + HII_R_FFT_INDEX(i, j, k)) += gal->GrossStellarMass;
-      *(sfr_grid + HII_R_FFT_INDEX(i, j, k))     += gal->GrossStellarMass;
+      if (run_globals->params.physics.Flag_RedshiftDepEscFrac)
+      {
+        *(stellar_grid + HII_R_FFT_INDEX(i, j, k)) += gal->FescWeightedGSM;
+        *(sfr_grid + HII_R_FFT_INDEX(i, j, k))     += gal->FescWeightedGSM;
+      }
+      else
+      {
+        *(stellar_grid + HII_R_FFT_INDEX(i, j, k)) += gal->GrossStellarMass;
+        *(sfr_grid + HII_R_FFT_INDEX(i, j, k))     += gal->GrossStellarMass;
+      }
     }
     gal = gal->Next;
   }

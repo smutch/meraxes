@@ -410,24 +410,13 @@ void dracarys(run_globals_t *run_globals)
     
     if (params->Flag_RedshiftDepEscFrac)
     {
-        SID_log("Calculating f_esc(z)...", SID_LOG_OPEN);
-        SID_log("Set value of tocf_params.HII_eff_factor = %g", SID_LOG_COMMENT, tocf_params.HII_eff_factor);
-        
-        // The first time this is called, params->ReionEscapeFrac = 1 (set in set_HII_eff_factor()).
-        tocf_params.HII_eff_factor /= (float)params->ReionEscapeFrac;
-        
         float f_esc = 0.04*(powf((1.0+run_globals->ZZ[snapshot])/6.0, 3));
         
         if (f_esc > 1.0)
             f_esc = 1.0;
         
-        SID_log("f_esc = %g", SID_LOG_COMMENT, f_esc);
-        
         params->ReionEscapeFrac = (double)f_esc;
-        tocf_params.HII_eff_factor *= f_esc;
-        
-        SID_log("Reset value of tocf_params.HII_eff_factor = %g", SID_LOG_COMMENT, tocf_params.HII_eff_factor);
-        SID_log("done...", SID_LOG_CLOSE);
+        SID_log("f_esc = %g", SID_LOG_COMMENT, f_esc);
     }
     
     if (run_globals->params.TOCF_Flag && !check_if_reionization_complete(run_globals))

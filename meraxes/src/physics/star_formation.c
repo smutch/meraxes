@@ -24,6 +24,7 @@ void update_reservoirs_from_sf(run_globals_t *run_globals, galaxy_t *gal, double
     gal->MetalsColdGas     -= new_stars * metallicity;
     gal->StellarMass       += new_stars;
     gal->GrossStellarMass  += new_stars;
+    gal->FescWeightedGSM   += new_stars * run_globals->params.physics.ReionEscapeFrac;
     gal->MetalsStellarMass += new_stars * metallicity;
 
     // update the luminosities

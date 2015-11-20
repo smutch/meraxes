@@ -315,6 +315,7 @@ typedef struct galaxy_t {
   double Mcool;
   double StellarMass;
   double GrossStellarMass;
+  double FescWeightedGSM;  //!< ReionEscapeFrac weighted GrossStellarMass
   double MetalsStellarMass;
   double DiskScaleLength;
   double Sfr;
@@ -388,6 +389,7 @@ typedef struct galaxy_output_t {
   float DiskScaleLength;
   float StellarMass;
   float GrossStellarMass;
+  float FescWeightedGSM;  //!< ReionEscapeFrac weighted GrossStellarMass
   float MetalsStellarMass;
   float Sfr;
   float EjectedGas;
