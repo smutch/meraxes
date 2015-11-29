@@ -410,7 +410,7 @@ void dracarys(run_globals_t *run_globals)
     
     if (params->Flag_RedshiftDepEscFrac)
     {
-        float f_esc = 0.04*(powf((1.0+run_globals->ZZ[snapshot])/6.0, 3));
+        float f_esc = 0.04*(powf((1.0+run_globals->ZZ[snapshot])/6.0, 2.5));
         
         if (f_esc > 1.0)
             f_esc = 1.0;

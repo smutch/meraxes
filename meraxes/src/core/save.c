@@ -137,7 +137,7 @@ void calc_hdf5_props(run_globals_t *run_globals)
   galaxy_output_t galout;
   int i;                                                // dummy
 
-  h5props->n_props = 39;
+  h5props->n_props = 40;
 
 #ifdef CALC_MAGS
   // If we are calculating any magnitudes then increment the number of
@@ -625,8 +625,6 @@ void create_master_file(run_globals_t *run_globals)
 
       source_file_id = H5Fopen(source_file, H5F_ACC_RDONLY, H5P_DEFAULT);
       H5TBget_table_info(source_file_id, source_ds, NULL, &core_n_gals);
-      H5LTget_attribute_double(source_file_id, source_ds, "GlobalIonizingEmissivity", &temp);
-      global_ionizing_emissivity += temp;
       snap_n_gals                += (int)core_n_gals;
 
       if (i_core == 0)
@@ -686,9 +684,6 @@ void create_master_file(run_globals_t *run_globals)
 
       H5Fclose(source_file_id);
     }
-
-    // save the global ionizing emissivity at this snapshot
-    h5_write_attribute(snap_group_id, "GlobalIonizingEmissivity", H5T_NATIVE_DOUBLE, ds_id, &global_ionizing_emissivity);
 
     // save the total number of galaxies at this snapshot
     h5_write_attribute(snap_group_id, "NGalaxies", H5T_NATIVE_INT, ds_id, &snap_n_gals);

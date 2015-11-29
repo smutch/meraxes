@@ -411,9 +411,8 @@ void save_tocf_grids(run_globals_t *run_globals, hid_t parent_group_id, int snap
 
     H5LTset_attribute_float(group_id, "xH", "global_xH", &(grids->global_xH), 1);
 
-    // Save the escape fraction and HII_eff_factor if we are using a redshift dependent escape fraction
+    // Save the escape fraction if we are using a redshift dependent escape fraction
     H5LTset_attribute_double(group_id, ".", "ReionEscapeFrac", &(run_globals->params.physics.ReionEscapeFrac), 1);
-    H5LTset_attribute_float(group_id, ".", "HII_eff_factor", &(tocf_params.HII_eff_factor), 1);
 
     // fftw padded grids
     grid = (float*)SID_calloc(HII_TOT_NUM_PIXELS * sizeof(float));
