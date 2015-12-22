@@ -82,13 +82,13 @@ def plot_obs(ax, logy=True, hubble=0.678):
     # plot the observations
     if logy:
         ax.errorbar(obs.sm, obs.log_phi, yerr=[obs.m_err, obs.p_err],
-                    label="Gonzalez et al. 2011", ls="None", color=COLS[1],
+                    label="Gonzalez et al. 2011", ls="None", color=COLS[2],
                     lw=2, capsize=2.5, marker='s', mec='None')
     else:
         ax.errorbar(obs.sm, 10.**obs.log_phi,
                     yerr=[10.**obs.log_phi - 10.**(obs.log_phi - obs.m_err),
                           10.**(obs.p_err + obs.log_phi) - 10.**obs.log_phi],
-                    label="Gonzalez et al. 2011", ls="None", color=COLS[1],
+                    label="Gonzalez et al. 2011", ls="None", color=COLS[2],
                     lw=2, capsize=2.5, marker='s', mec='None')
 
     # now plot Song+ 2015 (h=0.7, Salpeter IMF)

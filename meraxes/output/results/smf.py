@@ -113,10 +113,12 @@ class Smf(object):
         self.masses = np.log10(masses*1e10)
 
     def read_masses(self):
-        props = ("StellarMass",)
-        gals = meraxes.io.read_gals(self.fname, snapshot=self.snapshot,
-                                    props=props, quiet=True)
-        self.masses = np.log10(gals["StellarMass"]*1e10)
+        sm = meraxes.io.read_gals(self.fname, snapshot=self.snapshot,
+                                  props=["StellarMass",],
+                                  quiet=True)["StellarMass"]
+        # drop zeros
+        sel = sm > 0
+        self.masses = np.log10(sm[sel]*1e10)
 
     def generate(self, bins="knuth", limits=None):
         if self.masses is None:

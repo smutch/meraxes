@@ -103,6 +103,7 @@ void prepare_galaxy_for_output(
   galout->Mcool              = (float)(gal.Mcool);
   galout->StellarMass        = (float)(gal.StellarMass);
   galout->GrossStellarMass   = (float)(gal.GrossStellarMass);
+  galout->FescWeightedGSM    = (float)(gal.FescWeightedGSM);
   galout->BlackHoleMass      = (float)(gal.BlackHoleMass);
   galout->MaxReheatFrac      = (float)(gal.MaxReheatFrac);
   galout->MaxEjectFrac       = (float)(gal.MaxEjectFrac);
@@ -136,7 +137,7 @@ void calc_hdf5_props(run_globals_t *run_globals)
   galaxy_output_t galout;
   int i;                                                // dummy
 
-  h5props->n_props = 39;
+  h5props->n_props = 40;
 
 #ifdef CALC_MAGS
   // If we are calculating any magnitudes then increment the number of
@@ -351,6 +352,13 @@ void calc_hdf5_props(run_globals_t *run_globals)
   h5props->dst_offsets[i]     = HOFFSET(galaxy_output_t, GrossStellarMass);
   h5props->dst_field_sizes[i] = sizeof(galout.GrossStellarMass);
   h5props->field_names[i]     = "GrossStellarMass";
+  h5props->field_units[i]     = "1e10 solMass";
+  h5props->field_h_conv[i]    = "v/h";
+  h5props->field_types[i++]   = H5T_NATIVE_FLOAT;
+
+  h5props->dst_offsets[i]     = HOFFSET(galaxy_output_t, FescWeightedGSM);
+  h5props->dst_field_sizes[i] = sizeof(galout.FescWeightedGSM);
+  h5props->field_names[i]     = "FescWeightedGSM";
   h5props->field_units[i]     = "1e10 solMass";
   h5props->field_h_conv[i]    = "v/h";
   h5props->field_types[i++]   = H5T_NATIVE_FLOAT;
@@ -617,8 +625,6 @@ void create_master_file(run_globals_t *run_globals)
 
       source_file_id = H5Fopen(source_file, H5F_ACC_RDONLY, H5P_DEFAULT);
       H5TBget_table_info(source_file_id, source_ds, NULL, &core_n_gals);
-      H5LTget_attribute_double(source_file_id, source_ds, "GlobalIonizingEmissivity", &temp);
-      global_ionizing_emissivity += temp;
       snap_n_gals                += (int)core_n_gals;
 
       if (i_core == 0)
@@ -678,9 +684,6 @@ void create_master_file(run_globals_t *run_globals)
 
       H5Fclose(source_file_id);
     }
-
-    // save the global ionizing emissivity at this snapshot
-    h5_write_attribute(snap_group_id, "GlobalIonizingEmissivity", H5T_NATIVE_DOUBLE, ds_id, &global_ionizing_emissivity);
 
     // save the total number of galaxies at this snapshot
     h5_write_attribute(snap_group_id, "NGalaxies", H5T_NATIVE_INT, ds_id, &snap_n_gals);
@@ -771,7 +774,6 @@ void write_snapshot(
   int prev_snapshot           = -1;
   int index                   = -1;
   int write_count             = 0;
-  double temp                 = 0;
 
   SID_log("Writing output file (n_write = %d)...", SID_LOG_OPEN | SID_LOG_TIMER, n_write);
 
@@ -956,11 +958,6 @@ void write_snapshot(
 
   // Free the output buffer
   SID_free(SID_FARG output_buffer);
-
-  // Store the global ionizing emmisivity contribution from this core
-  temp  = global_ionizing_emmisivity(run_globals);
-  temp *= pow(run_globals->params.Hubble_h, 3);  // Factor out hubble constants
-  H5LTset_attribute_double(group_id, "Galaxies", "GlobalIonizingEmissivity", &temp, 1);
 
 #ifdef USE_TOCF
   if (run_globals->params.TOCF_Flag && !check_if_reionization_complete(run_globals))

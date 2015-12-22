@@ -23,7 +23,7 @@ __author__ = "Simon Mutch"
 __date__ = "2015-04-14"
 
 COLS = plt.rcParams["axes.color_cycle"]
-#  COLS = ['0.4',]*len(COLS)
+COLS = ['0.6',]*len(COLS)
 #  COLS = [COLS[9],]*len(COLS)
 OBS_DATASETS_DIR = "/home/smutch/models/21cm_sam/meraxes/utils/obs_datasets"
 XLIM = [6, 12]
