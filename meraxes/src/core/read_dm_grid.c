@@ -38,7 +38,6 @@ static unsigned long long HR_INDEX(int i, int j, int k, int grid_dim)
 
 
 int read_dm_grid(
-    run_globals_t *run_globals,
     int            snapshot,
     int            i_grid,
     float         *grid_out)
@@ -62,7 +61,7 @@ int read_dm_grid(
     double *grid_HR;
     int    HR_dim;
 
-    run_params_t *params = &(run_globals->params);
+    run_params_t *params = &(run_globals.params);
 
 
     // Construct the input filename

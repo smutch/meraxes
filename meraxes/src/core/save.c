@@ -42,12 +42,12 @@ static void inline h5_write_attribute(hid_t loc, const char *name, hid_t datatyp
 }
 
 
-float current_mwmsa(run_globals_t *run_globals, galaxy_t *gal, int i_snap)
+float current_mwmsa(galaxy_t *gal, int i_snap)
 {
-  double *LTTime = run_globals->LTTime;
+  double *LTTime = run_globals.LTTime;
   double mwmsa_num = gal->mwmsa_num;
   double mwmsa_denom = gal->mwmsa_denom;
-  int snapshot = run_globals->ListOutputSnaps[i_snap];
+  int snapshot = run_globals.ListOutputSnaps[i_snap];
 
   for (int ii = 0; ii < N_HISTORY_SNAPS; ii++)
   {
@@ -60,12 +60,11 @@ float current_mwmsa(run_globals_t *run_globals, galaxy_t *gal, int i_snap)
 
 
 void prepare_galaxy_for_output(
-  run_globals_t   *run_globals,
   galaxy_t         gal,
   galaxy_output_t *galout,
   int              i_snap)
 {
-  run_units_t *units = &(run_globals->units);
+  run_units_t *units = &(run_globals.units);
 
   galout->id_MBP = (long long)gal.id_MBP;
   galout->ID     = (int)gal.ID;
@@ -118,22 +117,22 @@ void prepare_galaxy_for_output(
   galout->MvirCrit           = (float)(gal.MvirCrit);
   galout->MergTime           = (float)(gal.MergTime * units->UnitLength_in_cm / units->UnitVelocity_in_cm_per_s / SEC_PER_MEGAYEAR);
   galout->MergerStartRadius  = (float)(gal.MergerStartRadius);
-  galout->MWMSA              = current_mwmsa(run_globals, &gal, i_snap);
+  galout->MWMSA              = current_mwmsa(&gal, i_snap);
 
   for (int ii = 0; ii < N_HISTORY_SNAPS; ii++)
     galout->NewStars[ii] = (float)(gal.NewStars[ii]);
 
-  prepare_magnitudes_for_output(run_globals, gal, galout, i_snap);
+  prepare_magnitudes_for_output(gal, galout, i_snap);
 }
 
-void calc_hdf5_props(run_globals_t *run_globals)
+void calc_hdf5_props()
 {
   /*
    * Prepare an HDF5 to receive the output galaxy data.
    * Here we store the data in an hdf5 table for easily appending new data.
    */
 
-  hdf5_output_t *h5props = &(run_globals->hdf5props);
+  hdf5_output_t *h5props = &(run_globals.hdf5props);
   galaxy_output_t galout;
   int i;                                                // dummy
 
@@ -142,7 +141,7 @@ void calc_hdf5_props(run_globals_t *run_globals)
 #ifdef CALC_MAGS
   // If we are calculating any magnitudes then increment the number of
   // output properties appropriately.
-  int n_photo_bands = run_globals->photo.NBands;
+  int n_photo_bands = run_globals.photo.NBands;
   h5props->n_props         += 2;
   h5props->array_nmag_f_tid = H5Tarray_create(H5T_NATIVE_FLOAT, 1, (hsize_t[]){ n_photo_bands });
 #endif
@@ -476,16 +475,16 @@ void calc_hdf5_props(run_globals_t *run_globals)
   }
 }
 
-void prep_hdf5_file(run_globals_t *run_globals)
+void prep_hdf5_file()
 {
   hid_t file_id;
   hid_t ds_id;
   hsize_t dims = 1;
 
   // create a new file
-  if (access(run_globals->FNameOut, F_OK) != -1)
-    remove(run_globals->FNameOut);
-  file_id = H5Fcreate(run_globals->FNameOut, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
+  if (access(run_globals.FNameOut, F_OK) != -1)
+    remove(run_globals.FNameOut);
+  file_id = H5Fcreate(run_globals.FNameOut, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
 
   // store the file number and total number of cores
   ds_id = H5Screate_simple(1, &dims, NULL);
@@ -497,12 +496,12 @@ void prep_hdf5_file(run_globals_t *run_globals)
   H5Fclose(file_id);
 }
 
-void create_master_file(run_globals_t *run_globals)
+void create_master_file()
 {
   hid_t file_id, ds_id, group_id, prop_t;
   hsize_t dims = 1;
   char fname[STRLEN];
-  hdf5_output_t *h5props = &(run_globals->hdf5props);
+  hdf5_output_t *h5props = &(run_globals.hdf5props);
   char **params_tag = h5props->params_tag;
   void **params_addr = h5props->params_addr;
   int   *params_type = h5props->params_type;
@@ -511,7 +510,7 @@ void create_master_file(run_globals_t *run_globals)
   SID_log("Creating master file...", SID_LOG_OPEN | SID_LOG_TIMER);
 
   // Create a new file
-  sprintf(fname, "%s/%s.hdf5", run_globals->params.OutputDir, run_globals->params.FileNameGalaxies);
+  sprintf(fname, "%s/%s.hdf5", run_globals.params.OutputDir, run_globals.params.FileNameGalaxies);
   if (access(fname, F_OK) != -1)
     remove(fname);
   file_id = H5Fcreate(fname, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
@@ -609,7 +608,7 @@ void create_master_file(run_globals_t *run_globals)
   // Now create soft links to all of the files and datasets that make up this run
   for (int i_out = 0, snap_n_gals = 0; i_out < NOUT; i_out++, snap_n_gals = 0, global_ionizing_emissivity = 0, temp = 0)
   {
-    sprintf(target_group, "Snap%03d", run_globals->ListOutputSnaps[i_out]);
+    sprintf(target_group, "Snap%03d", run_globals.ListOutputSnaps[i_out]);
     snap_group_id = H5Gcreate(file_id, target_group, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
 
     for (int i_core = 0; i_core < SID.n_proc; i_core++)
@@ -617,9 +616,9 @@ void create_master_file(run_globals_t *run_globals)
       sprintf(target_group, "Core%d", i_core);
       group_id = H5Gcreate(snap_group_id, target_group, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
 
-      sprintf(source_file, "%s/%s_%d.hdf5", run_globals->params.OutputDir, run_globals->params.FileNameGalaxies, i_core);
-      sprintf(relative_source_file, "%s_%d.hdf5", run_globals->params.FileNameGalaxies, i_core);
-      sprintf(source_ds, "Snap%03d/Galaxies", run_globals->ListOutputSnaps[i_out]);
+      sprintf(source_file, "%s/%s_%d.hdf5", run_globals.params.OutputDir, run_globals.params.FileNameGalaxies, i_core);
+      sprintf(relative_source_file, "%s_%d.hdf5", run_globals.params.FileNameGalaxies, i_core);
+      sprintf(source_ds, "Snap%03d/Galaxies", run_globals.ListOutputSnaps[i_out]);
       sprintf(target_ds, "Galaxies");
       H5Lcreate_external(relative_source_file, source_ds, group_id, target_ds, H5P_DEFAULT, H5P_DEFAULT);
 
@@ -631,23 +630,23 @@ void create_master_file(run_globals_t *run_globals)
         H5LTget_attribute_int(source_file_id, source_ds, "unsampled_snapshot", &unsampled_snapshot);
 
       // if they exists, then also create a link to walk indices
-      sprintf(source_group, "Snap%03d", run_globals->ListOutputSnaps[i_out]);
+      sprintf(source_group, "Snap%03d", run_globals.ListOutputSnaps[i_out]);
       source_group_id = H5Gopen(source_file_id, source_group, H5P_DEFAULT);
       if (H5LTfind_dataset(source_group_id, "FirstProgenitorIndices"))
       {
-        sprintf(source_ds, "Snap%03d/FirstProgenitorIndices", run_globals->ListOutputSnaps[i_out]);
+        sprintf(source_ds, "Snap%03d/FirstProgenitorIndices", run_globals.ListOutputSnaps[i_out]);
         sprintf(target_ds, "FirstProgenitorIndices");
         H5Lcreate_external(relative_source_file, source_ds, group_id, target_ds, H5P_DEFAULT, H5P_DEFAULT);
       }
       if (H5LTfind_dataset(source_group_id, "NextProgenitorIndices"))
       {
-        sprintf(source_ds, "Snap%03d/NextProgenitorIndices", run_globals->ListOutputSnaps[i_out]);
+        sprintf(source_ds, "Snap%03d/NextProgenitorIndices", run_globals.ListOutputSnaps[i_out]);
         sprintf(target_ds, "NextProgenitorIndices");
         H5Lcreate_external(relative_source_file, source_ds, group_id, target_ds, H5P_DEFAULT, H5P_DEFAULT);
       }
       if (H5LTfind_dataset(source_group_id, "DescendantIndices"))
       {
-        sprintf(source_ds, "Snap%03d/DescendantIndices", run_globals->ListOutputSnaps[i_out]);
+        sprintf(source_ds, "Snap%03d/DescendantIndices", run_globals.ListOutputSnaps[i_out]);
         sprintf(target_ds, "DescendantIndices");
         H5Lcreate_external(relative_source_file, source_ds, group_id, target_ds, H5P_DEFAULT, H5P_DEFAULT);
       }
@@ -656,24 +655,24 @@ void create_master_file(run_globals_t *run_globals)
       H5Gclose(group_id);
 
 #ifdef USE_TOCF
-    if((i_core == 0) && (run_globals->params.TOCF_Flag))
+    if((i_core == 0) && (run_globals.params.TOCF_Flag))
     {
       // create links to the 21cmFAST grids that exist
-      sprintf(source_group, "Snap%03d/Grids", run_globals->ListOutputSnaps[i_out]);
+      sprintf(source_group, "Snap%03d/Grids", run_globals.ListOutputSnaps[i_out]);
       if ((H5LTpath_valid(source_file_id, source_group, FALSE)))
       {
         sprintf(target_group, "Grids");
         H5Lcreate_external(relative_source_file, source_group, snap_group_id, target_group, H5P_DEFAULT, H5P_DEFAULT);
       }
 
-      sprintf(source_ds, "Snap%03d/PowerSpectrum", run_globals->ListOutputSnaps[i_out]);
+      sprintf(source_ds, "Snap%03d/PowerSpectrum", run_globals.ListOutputSnaps[i_out]);
       if ((H5LTpath_valid(source_file_id, source_ds, FALSE)))
       {
         sprintf(target_ds, "PowerSpectrum");
         H5Lcreate_external(relative_source_file, source_ds, snap_group_id, target_ds, H5P_DEFAULT, H5P_DEFAULT);
       }
 
-      sprintf(source_ds, "Snap%03d/RegionSizeDist", run_globals->ListOutputSnaps[i_out]);
+      sprintf(source_ds, "Snap%03d/RegionSizeDist", run_globals.ListOutputSnaps[i_out]);
       if ((H5LTpath_valid(source_file_id, source_ds, FALSE)))
       {
         sprintf(target_ds, "RegionSizeDist");
@@ -689,10 +688,10 @@ void create_master_file(run_globals_t *run_globals)
     h5_write_attribute(snap_group_id, "NGalaxies", H5T_NATIVE_INT, ds_id, &snap_n_gals);
 
     // Save a few useful attributes
-    h5_write_attribute(snap_group_id, "Redshift", H5T_NATIVE_DOUBLE, ds_id, &(run_globals->ZZ[run_globals->ListOutputSnaps[i_out]]));
+    h5_write_attribute(snap_group_id, "Redshift", H5T_NATIVE_DOUBLE, ds_id, &(run_globals.ZZ[run_globals.ListOutputSnaps[i_out]]));
     h5_write_attribute(snap_group_id, "UnsampledSnapshot", H5T_NATIVE_INT, ds_id, &unsampled_snapshot);
 
-    temp = run_globals->LTTime[run_globals->ListOutputSnaps[i_out]] * run_globals->units.UnitLength_in_cm / run_globals->units.UnitVelocity_in_cm_per_s / SEC_PER_MEGAYEAR;
+    temp = run_globals.LTTime[run_globals.ListOutputSnaps[i_out]] * run_globals.units.UnitLength_in_cm / run_globals.units.UnitVelocity_in_cm_per_s / SEC_PER_MEGAYEAR;
     h5_write_attribute(snap_group_id, "LTTime", H5T_NATIVE_DOUBLE, ds_id, &temp);
 
     H5Gclose(snap_group_id);
@@ -707,7 +706,6 @@ void create_master_file(run_globals_t *run_globals)
 }
 
 static void inline save_walk_indices(
-  run_globals_t *run_globals,
   hid_t          file_id,
   int            i_out,
   int            prev_i_out,
@@ -721,13 +719,13 @@ static void inline save_walk_indices(
   char target[50];
 
   dim[0] = (hsize_t)old_count;
-  sprintf(target, "Snap%03d/DescendantIndices", (run_globals->ListOutputSnaps)[prev_i_out]);
+  sprintf(target, "Snap%03d/DescendantIndices", (run_globals.ListOutputSnaps)[prev_i_out]);
   H5LTmake_dataset(file_id, target, 1, dim, H5T_NATIVE_INT, descendant_index);
-  sprintf(target, "Snap%03d/NextProgenitorIndices", (run_globals->ListOutputSnaps)[prev_i_out]);
+  sprintf(target, "Snap%03d/NextProgenitorIndices", (run_globals.ListOutputSnaps)[prev_i_out]);
   H5LTmake_dataset(file_id, target, 1, dim, H5T_NATIVE_INT, next_progenitor_index);
 
   dim[0] = (hsize_t)n_write;
-  sprintf(target, "Snap%03d/FirstProgenitorIndices", (run_globals->ListOutputSnaps)[i_out]);
+  sprintf(target, "Snap%03d/FirstProgenitorIndices", (run_globals.ListOutputSnaps)[i_out]);
   H5LTmake_dataset(file_id, target, 1, dim, H5T_NATIVE_INT, first_progenitor_index);
 }
 
@@ -747,7 +745,6 @@ static inline bool pass_write_check(galaxy_t *gal, bool flag_merger)
 
 
 void write_snapshot(
-  run_globals_t *run_globals,
   int            n_write,
   int            i_out,
   int           *last_n_write,
@@ -764,7 +761,7 @@ void write_snapshot(
   int *fill_data                 = NULL;
   char target_group[20];
   galaxy_t *gal               = NULL;
-  hdf5_output_t h5props       = run_globals->hdf5props;
+  hdf5_output_t h5props       = run_globals.hdf5props;
   int gal_count               = 0;
   int old_count               = 0;
   int *descendant_index       = NULL;
@@ -779,7 +776,7 @@ void write_snapshot(
 
   // We aren't going to write any galaxies that have zero stellar mass, so
   // modify n_write appropriately...
-  gal = run_globals->FirstGal;
+  gal = run_globals.FirstGal;
   while (gal != NULL)
   {
     if (pass_write_check(gal, false))
@@ -795,10 +792,10 @@ void write_snapshot(
   }
 
   // Create the file.
-  file_id = H5Fopen(run_globals->FNameOut, H5F_ACC_RDWR, H5P_DEFAULT);
+  file_id = H5Fopen(run_globals.FNameOut, H5F_ACC_RDWR, H5P_DEFAULT);
 
   // Create the relevant group.
-  sprintf(target_group, "Snap%03d", (run_globals->ListOutputSnaps)[i_out]);
+  sprintf(target_group, "Snap%03d", (run_globals.ListOutputSnaps)[i_out]);
   group_id = H5Gcreate(file_id, target_group, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
 
   // Make the table
@@ -812,10 +809,10 @@ void write_snapshot(
 
   // If the immediately preceeding snapshot was also written, then save the
   // descendent indices
-  prev_snapshot = run_globals->ListOutputSnaps[i_out] - 1;
+  prev_snapshot = run_globals.ListOutputSnaps[i_out] - 1;
   if (i_out > 0)
     for (int ii = 0; ii < NOUT; ii++)
-      if (run_globals->ListOutputSnaps[ii] == prev_snapshot)
+      if (run_globals.ListOutputSnaps[ii] == prev_snapshot)
       {
         calc_descendants_i_out = ii;
         break;
@@ -844,7 +841,7 @@ void write_snapshot(
     // indices as their previous output_index, and the descendent indices of
     // the last snapshot to what will be the output index when the current
     // galaxy is written.
-    gal = run_globals->FirstGal;
+    gal = run_globals.FirstGal;
     while (gal != NULL)
     {
       if (pass_write_check(gal, false))
@@ -865,7 +862,7 @@ void write_snapshot(
 
     // Here we want to walk the progenitor indices to tag on galaxies which
     // have merged in this timestep and also set their descendant_index.
-    gal = run_globals->FirstGal;
+    gal = run_globals.FirstGal;
     while (gal != NULL)
     {
       if (pass_write_check(gal, true))
@@ -889,7 +886,7 @@ void write_snapshot(
       gal = gal->Next;
     }
 
-    save_walk_indices(run_globals, file_id, i_out, calc_descendants_i_out,
+    save_walk_indices(file_id, i_out, calc_descendants_i_out,
                       descendant_index, first_progenitor_index, next_progenitor_index,
                       *last_n_write, n_write);
 
@@ -900,7 +897,7 @@ void write_snapshot(
   }
   else
   {
-    gal = run_globals->FirstGal;
+    gal = run_globals.FirstGal;
     while (gal != NULL)
     {
       if (pass_write_check(gal, false))
@@ -920,7 +917,7 @@ void write_snapshot(
   // In order to speed things up, we will chunk our write.
   // This can cause significant memory overhead if `chunk_size` is large.
   gal_count     = 0;
-  gal           = run_globals->FirstGal;
+  gal           = run_globals.FirstGal;
   output_buffer = SID_calloc(sizeof(galaxy_output_t) * (int)chunk_size);
   int buffer_count = 0;
   while (gal != NULL)
@@ -928,7 +925,7 @@ void write_snapshot(
     // Don't output galaxies which merged at this timestep
     if (pass_write_check(gal, false))
     {
-      prepare_galaxy_for_output(run_globals, *gal, &(output_buffer[buffer_count]), i_out);
+      prepare_galaxy_for_output(*gal, &(output_buffer[buffer_count]), i_out);
       buffer_count++;
     }
     if (buffer_count == (int)chunk_size)
@@ -960,8 +957,8 @@ void write_snapshot(
   SID_free(SID_FARG output_buffer);
 
 #ifdef USE_TOCF
-  if (run_globals->params.TOCF_Flag && !check_if_reionization_complete(run_globals))
-    save_tocf_grids(run_globals, group_id, run_globals->ListOutputSnaps[i_out]);
+  if (run_globals.params.TOCF_Flag && !check_if_reionization_complete())
+    save_tocf_grids(group_id, run_globals.ListOutputSnaps[i_out]);
 #endif
 
   // Close the group.

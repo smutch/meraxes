@@ -48,7 +48,7 @@ static int prompt_char(const char *message)
 }
 
 
-void continue_prompt(run_globals_t *run_globals, char *param_file)
+void continue_prompt(char *param_file)
 {
   int rerun = -1;
 
@@ -59,11 +59,11 @@ void continue_prompt(run_globals_t *run_globals, char *param_file)
     rerun = prompt_char("Reread input file and rerun model?");
 
   if (rerun)
-    read_parameter_file(run_globals, param_file, 1);
+    read_parameter_file(param_file, 1);
   else
   {
-    run_globals->params.FlagInteractive = 0;
-    SID_Bcast(&(run_globals->params.FlagInteractive), sizeof(int), 0, SID.COMM_WORLD);
+    run_globals.params.FlagInteractive = 0;
+    SID_Bcast(&(run_globals.params.FlagInteractive), sizeof(int), 0, SID.COMM_WORLD);
   }
 
   return;

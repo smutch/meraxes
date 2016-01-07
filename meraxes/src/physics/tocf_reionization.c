@@ -3,16 +3,16 @@
 #include "meraxes.h"
 #include <math.h>
 
-void calculate_Mvir_crit(run_globals_t *run_globals, double redshift)
+void calculate_Mvir_crit(double redshift)
 {
   // Calculate the critical Mvir value in each grid cell (ala Sobacchi & Mesinger 2013b)
-  float *Mvir_crit = run_globals->tocf_grids.Mvir_crit;
+  float *Mvir_crit = run_globals.tocf_grids.Mvir_crit;
 
   if (SID.My_rank == 0)
   {
     int HII_dim = tocf_params.HII_dim;
     float cell_Mvir_crit;
-    float Hubble_h = (float)(run_globals->params.Hubble_h);
+    float Hubble_h = (float)(run_globals.params.Hubble_h);
 
     float m_0_sm = tocf_params.m_0_sm;
     float a_sm   = tocf_params.a_sm;
@@ -20,8 +20,8 @@ void calculate_Mvir_crit(run_globals_t *run_globals, double redshift)
     float c_sm   = tocf_params.c_sm;
     float d_sm   = tocf_params.d_sm;
 
-    float *J_21_at_ion = run_globals->tocf_grids.J_21_at_ionization;
-    float *z_at_ion    = run_globals->tocf_grids.z_at_ionization;
+    float *J_21_at_ion = run_globals.tocf_grids.J_21_at_ionization;
+    float *z_at_ion    = run_globals.tocf_grids.z_at_ionization;
 
     // init
     memset(Mvir_crit, 0, sizeof(float) * HII_TOT_NUM_PIXELS);
@@ -61,11 +61,11 @@ void calculate_Mvir_crit(run_globals_t *run_globals, double redshift)
 }
 
 
-double tocf_modifier(run_globals_t *run_globals, galaxy_t *gal, double Mvir, float *Pos, int snapshot)
+double tocf_modifier(galaxy_t *gal, double Mvir, float *Pos, int snapshot)
 {
   double f_mod;
-  double box_size     = run_globals->params.BoxSize;
-  float  *M_crit_grid = run_globals->tocf_grids.Mvir_crit;
+  double box_size     = run_globals.params.BoxSize;
+  float  *M_crit_grid = run_globals.tocf_grids.Mvir_crit;
   double M_crit;
 
   // Find which cell this halo lies in

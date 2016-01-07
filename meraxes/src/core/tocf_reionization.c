@@ -7,10 +7,10 @@
 #include <hdf5_hl.h>
 #include <assert.h>
 
-void set_HII_eff_factor(run_globals_t *run_globals)
+void set_HII_eff_factor()
 {
   // Use the params passed to Meraxes via the input file to set the HII ionising efficiency factor
-  physics_params_t *params = &(run_globals->params.physics);
+  physics_params_t *params = &(run_globals.params.physics);
 
   // If we are using a redshift dependent escape fraction then reset
   // ReionEscapeFrac to one as we don't want to inlcude it in the
@@ -25,7 +25,7 @@ void set_HII_eff_factor(run_globals_t *run_globals)
   // The following is based on Sobacchi & Messinger (2013) eqn 7
   // with f_* removed and f_b added since we define f_coll as M_*/M_tot rather than M_vir/M_tot,
   // and also with the inclusion of the effects of the Helium fraction.
-  tocf_params.HII_eff_factor = 1.0 / run_globals->params.BaryonFrac
+  tocf_params.HII_eff_factor = 1.0 / run_globals.params.BaryonFrac
     * params->ReionNionPhotPerBary * params->ReionEscapeFrac / (1.0 - 0.75*tocf_params.Y_He);
 
   // Account for instantaneous recycling factor so that stellar mass is cumulative
@@ -36,13 +36,13 @@ void set_HII_eff_factor(run_globals_t *run_globals)
 }
 
 
-void call_find_HII_bubbles(run_globals_t *run_globals, int snapshot, int unsampled_snapshot, int nout_gals)
+void call_find_HII_bubbles(int snapshot, int unsampled_snapshot, int nout_gals)
 {
   // Thin wrapper round find_HII_bubbles
 
   int total_n_out_gals = 0;
 
-  tocf_grids_t *grids = &(run_globals->tocf_grids);
+  tocf_grids_t *grids = &(run_globals.tocf_grids);
 
   SID_log("Getting ready to call find_HII_bubbles...", SID_LOG_OPEN);
 
@@ -55,14 +55,14 @@ void call_find_HII_bubbles(run_globals_t *run_globals, int snapshot, int unsampl
   }
 
   // Construct the stellar mass grid
-  construct_stellar_grids(run_globals, snapshot);
+  construct_stellar_grids(snapshot);
 
   SID_log("...done", SID_LOG_CLOSE);
 
   if (SID.My_rank == 0)
   {
     // Read in the dark matter density grid
-    read_dm_grid(run_globals, unsampled_snapshot, 0, (float*)(grids->deltax));
+    read_dm_grid(unsampled_snapshot, 0, (float*)(grids->deltax));
 
     // Make copies of the stellar and deltax grids before sending them to
     // 21cmfast.  This is because the floating precision fft--ifft introduces
@@ -73,7 +73,7 @@ void call_find_HII_bubbles(run_globals_t *run_globals, int snapshot, int unsampl
 
     SID_log("Calling find_HII_bubbles...", SID_LOG_OPEN | SID_LOG_TIMER);
     // TODO: Fix if snapshot==0
-    grids->global_xH = find_HII_bubbles(run_globals->ZZ[snapshot], run_globals->ZZ[snapshot - 1],
+    grids->global_xH = find_HII_bubbles(run_globals.ZZ[snapshot], run_globals.ZZ[snapshot - 1],
         grids->xH,
         grids->stars,
         grids->stars_filtered,
@@ -104,9 +104,9 @@ void call_find_HII_bubbles(run_globals_t *run_globals, int snapshot, int unsampl
 }
 
 
-void malloc_reionization_grids(run_globals_t *run_globals)
+void malloc_reionization_grids()
 {
-  tocf_grids_t *grids = &(run_globals->tocf_grids);
+  tocf_grids_t *grids = &(run_globals.tocf_grids);
 
   grids->xH                 = NULL;
   grids->stars              = NULL;
@@ -125,7 +125,7 @@ void malloc_reionization_grids(run_globals_t *run_globals)
   grids->global_xH = 1.0;
   grids->reion_complete = false;
 
-  if (run_globals->params.TOCF_Flag)
+  if (run_globals.params.TOCF_Flag)
   {
     if (SID.My_rank == 0)
     {
@@ -211,11 +211,11 @@ void malloc_reionization_grids(run_globals_t *run_globals)
 }
 
 
-void free_reionization_grids(run_globals_t *run_globals)
+void free_reionization_grids()
 {
   SID_log("Freeing reionization grids...", SID_LOG_OPEN);
 
-  tocf_grids_t *grids = &(run_globals->tocf_grids);
+  tocf_grids_t *grids = &(run_globals.tocf_grids);
 
   if (SID.My_rank == 0)
   {
@@ -264,17 +264,17 @@ int find_cell(float pos, double box_size)
 }
 
 
-void construct_stellar_grids(run_globals_t *run_globals, int snapshot)
+void construct_stellar_grids(int snapshot)
 {
   galaxy_t *gal;
   int i, j, k;
-  double box_size     = (double)(run_globals->params.BoxSize);
-  double Hubble_h     = run_globals->params.Hubble_h;
-  float *stellar_grid = (float*)(run_globals->tocf_grids.stars);
-  float *sfr_grid     = (float*)(run_globals->tocf_grids.sfr);
+  double box_size     = (double)(run_globals.params.BoxSize);
+  double Hubble_h     = run_globals.params.Hubble_h;
+  float *stellar_grid = (float*)(run_globals.tocf_grids.stars);
+  float *sfr_grid     = (float*)(run_globals.tocf_grids.sfr);
   int HII_dim         = tocf_params.HII_dim;
-  run_units_t *units  = &(run_globals->units);
-  double tHubble      = hubble_time(run_globals, snapshot);
+  run_units_t *units  = &(run_globals.units);
+  double tHubble      = hubble_time(snapshot);
 
   SID_log("Constructing stellar mass and sfr grids...", SID_LOG_OPEN | SID_LOG_TIMER);
 
@@ -286,7 +286,7 @@ void construct_stellar_grids(run_globals_t *run_globals, int snapshot)
   }
 
   // Loop through each valid galaxy and add its stellar mass to the appropriate cell
-  gal = run_globals->FirstGal;
+  gal = run_globals.FirstGal;
   while (gal != NULL)
   {
     // TODO: Note that I am including ghosts here.  We will need to check the
@@ -325,7 +325,7 @@ void construct_stellar_grids(run_globals_t *run_globals, int snapshot)
       assert((j >= 0) && (j < HII_dim));
       assert((k >= 0) && (k < HII_dim));
 
-      if (run_globals->params.physics.Flag_RedshiftDepEscFrac)
+      if (run_globals.params.physics.Flag_RedshiftDepEscFrac)
       {
         *(stellar_grid + HII_R_FFT_INDEX(i, j, k)) += gal->FescWeightedGSM;
         *(sfr_grid + HII_R_FFT_INDEX(i, j, k))     += gal->FescWeightedGSM;
@@ -369,12 +369,12 @@ void construct_stellar_grids(run_globals_t *run_globals, int snapshot)
 }
 
 
-void save_tocf_grids(run_globals_t *run_globals, hid_t parent_group_id, int snapshot)
+void save_tocf_grids(hid_t parent_group_id, int snapshot)
 {
   if (SID.My_rank == 0)
   {
     // Check if we even want to write anything...
-    tocf_grids_t *grids = &(run_globals->tocf_grids);
+    tocf_grids_t *grids = &(run_globals.tocf_grids);
     float epsilon = 0.0005;
     if ((grids->global_xH < epsilon) || (grids->global_xH > 1.0-epsilon))
       return;
@@ -386,7 +386,7 @@ void save_tocf_grids(run_globals_t *run_globals, hid_t parent_group_id, int snap
     int   ps_nbins;
     float average_deltaT;
     hid_t group_id;
-    // double Hubble_h = run_globals->params.Hubble_h;
+    // double Hubble_h = run_globals.params.Hubble_h;
     
     // Save tocf grids
     // ----------------------------------------------------------------------------------------------------
@@ -412,7 +412,7 @@ void save_tocf_grids(run_globals_t *run_globals, hid_t parent_group_id, int snap
     H5LTset_attribute_float(group_id, "xH", "global_xH", &(grids->global_xH), 1);
 
     // Save the escape fraction if we are using a redshift dependent escape fraction
-    H5LTset_attribute_double(group_id, ".", "ReionEscapeFrac", &(run_globals->params.physics.ReionEscapeFrac), 1);
+    H5LTset_attribute_double(group_id, ".", "ReionEscapeFrac", &(run_globals.params.physics.ReionEscapeFrac), 1);
 
     // fftw padded grids
     grid = (float*)SID_calloc(HII_TOT_NUM_PIXELS * sizeof(float));
@@ -456,7 +456,7 @@ void save_tocf_grids(run_globals_t *run_globals, hid_t parent_group_id, int snap
     memset((void*)grid, 0, sizeof(float) * HII_TOT_NUM_PIXELS);
 
     delta_T_ps(
-        run_globals->ZZ[snapshot],
+        run_globals.ZZ[snapshot],
         tocf_params.numcores,
         grids->xH,
         (float*)(grids->deltax),
@@ -486,15 +486,15 @@ void save_tocf_grids(run_globals_t *run_globals, hid_t parent_group_id, int snap
 }
 
 
-bool check_if_reionization_complete(run_globals_t *run_globals)
+bool check_if_reionization_complete()
 {
-  bool complete = run_globals->tocf_grids.reion_complete;
+  bool complete = run_globals.tocf_grids.reion_complete;
   if (!complete)
   {
     if (SID.My_rank == 0)
     {
       complete = true;
-      float *xH = run_globals->tocf_grids.xH;
+      float *xH = run_globals.tocf_grids.xH;
 
       // If not all cells are ionised then reionization is still progressing...
       for (int ii=0; ii < HII_TOT_NUM_PIXELS; ii++)
@@ -507,7 +507,7 @@ bool check_if_reionization_complete(run_globals_t *run_globals)
       }
     }
     SID_Bcast(&complete, sizeof(bool), 0, SID.COMM_WORLD);
-    run_globals->tocf_grids.reion_complete = complete;
+    run_globals.tocf_grids.reion_complete = complete;
   }
   return complete;
 }

@@ -111,12 +111,12 @@ static void inline store_params(
 }
 
 
-void read_parameter_file(run_globals_t *run_globals, char *fname, int mode)
+void read_parameter_file(char *fname, int mode)
 {
   // mode = 0 : for single runs
   // mode = 1 : for interactive runs (do not remalloc arrays)
 
-  run_params_t *run_params = &(run_globals->params);
+  run_params_t *run_params = &(run_globals.params);
 
   if (SID.My_rank == 0)
   {
@@ -125,7 +125,7 @@ void read_parameter_file(run_globals_t *run_globals, char *fname, int mode)
     entry_t entry[PARAM_MAX_ENTRIES];
 
     int n_entries;
-    hdf5_output_t *hdf5props = &(run_globals->hdf5props);
+    hdf5_output_t *hdf5props = &(run_globals.hdf5props);
     int *params_type = hdf5props->params_type;
     void **params_addr = hdf5props->params_addr;
     char **params_tag = hdf5props->params_tag;
@@ -256,17 +256,17 @@ void read_parameter_file(run_globals_t *run_globals, char *fname, int mode)
       *(run_params->MvirCritFile) = '\0';
 
       strcpy(params_tag[n_param], "UnitVelocity_in_cm_per_s");
-      params_addr[n_param]   = &(run_globals->units.UnitVelocity_in_cm_per_s);
+      params_addr[n_param]   = &(run_globals.units.UnitVelocity_in_cm_per_s);
       required_tag[n_param]  = 1;
       params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
       strcpy(params_tag[n_param], "UnitLength_in_cm");
-      params_addr[n_param]   = &(run_globals->units.UnitLength_in_cm);
+      params_addr[n_param]   = &(run_globals.units.UnitLength_in_cm);
       required_tag[n_param]  = 1;
       params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
       strcpy(params_tag[n_param], "UnitMass_in_g");
-      params_addr[n_param]   = &(run_globals->units.UnitMass_in_g);
+      params_addr[n_param]   = &(run_globals.units.UnitMass_in_g);
       required_tag[n_param]  = 1;
       params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
@@ -721,7 +721,7 @@ void read_parameter_file(run_globals_t *run_globals, char *fname, int mode)
 
   // If running mpi then broadcast the run parameters to all cores
   SID_Bcast(run_params, sizeof(run_params_t), 0, SID.COMM_WORLD);
-  SID_Bcast(&(run_globals->units), sizeof(run_units_t), 0, SID.COMM_WORLD);
+  SID_Bcast(&(run_globals.units), sizeof(run_units_t), 0, SID.COMM_WORLD);
 #ifdef USE_TOCF
   SID_Bcast(&tocf_params, sizeof(tocf_params_t), 0, SID.COMM_WORLD);
 #endif

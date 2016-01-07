@@ -2,28 +2,28 @@
 #include <math.h>
 #include <assert.h>
 
-static double inline M0(run_globals_t *run_globals, double z)
+static double inline M0(double z)
 {
-  return Tvir_to_Mvir(run_globals, run_globals->params.physics.ReionSobacchi_T0, z);
+  return Tvir_to_Mvir(run_globals.params.physics.ReionSobacchi_T0, z);
 }
 
 
-static double inline Mcool(run_globals_t *run_globals, double z)
+static double inline Mcool(double z)
 {
-  return Tvir_to_Mvir(run_globals, run_globals->params.physics.ReionTcool, z);
+  return Tvir_to_Mvir(run_globals.params.physics.ReionTcool, z);
 }
 
 
-static double sobacchi_Mvir_min(run_globals_t *run_globals, double z)
+static double sobacchi_Mvir_min(double z)
 {
   // Calculate the minimum halo mass capable of hosting star forming galaxies
   // following Sobacchi & Mesinger 2013b.
 
-  double current_Mcool = Mcool(run_globals, z);
-  double current_M0    = M0(run_globals, z);
+  double current_Mcool = Mcool(z);
+  double current_M0    = M0(z);
   double Mvir_min;
   double g_term;
-  physics_params_t *params = &(run_globals->params.physics);
+  physics_params_t *params = &(run_globals.params.physics);
 
   g_term = 1. / (1. + exp((z - (params->ReionSobacchi_Zre - params->ReionSobacchi_DeltaZsc)) / params->ReionSobacchi_DeltaZre));
   Mvir_min = current_Mcool * pow(current_M0 / current_Mcool, g_term);
@@ -32,35 +32,35 @@ static double sobacchi_Mvir_min(run_globals_t *run_globals, double z)
 }
 
 
-double sobacchi2013_modifier(run_globals_t *run_globals, double Mvir, double redshift)
+double sobacchi2013_modifier(double Mvir, double redshift)
 {
 
   // This asserion is a check for validity of using Mvir_min here.  Really
   // Mvir_crit should be used.  Mvir_min = Mvir_crit as long as the halo mass
   // is a bit larger than Mcool.
-  // double current_Mcool = Mcool(run_globals, redshift);
+  // double current_Mcool = Mcool(redshift);
   // assert((redshift < 6.0) || (Mvir > 1.05*current_Mcool));
 
-  double Mvir_min = sobacchi_Mvir_min(run_globals, redshift);
+  double Mvir_min = sobacchi_Mvir_min(redshift);
 
   return pow(2.0, -Mvir_min / Mvir);
 }
 
 
-static double precomputed_Mcrit_modifier(run_globals_t *run_globals, galaxy_t *gal, double Mvir, int snapshot)
+static double precomputed_Mcrit_modifier(galaxy_t *gal, double Mvir, int snapshot)
 {
   // Use precomputed Mcrit (Mfilt) mass values as a function of redshif in
   // order to calculate the baryon fraction modifier using the Sobacchi
   // formalism.
 
-  double Mvir_crit = run_globals->params.MvirCrit[snapshot];
+  double Mvir_crit = run_globals.params.MvirCrit[snapshot];
   if (gal != NULL)
     gal->MvirCrit = Mvir_crit;
   return pow(2.0, -Mvir_crit / Mvir);
 }
 
 
-double gnedin2000_modifer(run_globals_t *run_globals, double Mvir, double redshift)
+double gnedin2000_modifer(double Mvir, double redshift)
 {
   // NOTE THAT PART OF THIS CODE IS COPIED VERBATIM FROM THE CROTON ET AL. 2006 SEMI-ANALYTIC MODEL.
   // WITH A COUPLE OF BUGFIXES SO THAT EQUATIONS MATCH KRAVTSOV+ 2004
@@ -78,8 +78,8 @@ double gnedin2000_modifer(run_globals_t *run_globals, double Mvir, double redshi
   double mass_to_use;
   double modifier;
 
-  a0 = 1.0 / (1.0 + run_globals->params.physics.ReionGnedin_z0);
-  ar = 1.0 / (1.0 + run_globals->params.physics.ReionGnedin_zr);
+  a0 = 1.0 / (1.0 + run_globals.params.physics.ReionGnedin_z0);
+  ar = 1.0 / (1.0 + run_globals.params.physics.ReionGnedin_zr);
 
   // we employ the reionization recipie described in Gnedin (2000), however use the fitting
   // formulas given by Kravtsov et al (2004) Appendix B
@@ -106,11 +106,11 @@ double gnedin2000_modifer(run_globals_t *run_globals, double Mvir, double redshi
                    * ar / 3.0 - (ar * ar / 3.0) * (3.0 - 2.0 * pow(a_on_ar, -0.5)));
 
   // this is in units of 10^10Msun/h, note mu=0.59 and mu^-1.5 = 2.21
-  Mjeans     = 25.0 * pow(run_globals->params.OmegaM, -0.5) * 2.21;
+  Mjeans     = 25.0 * pow(run_globals.params.OmegaM, -0.5) * 2.21;
   Mfiltering = Mjeans * pow(f_of_a, 1.5);
 
   // calculate the characteristic atomic cooling mass coresponding to a halo temperature of 10^4K
-  Mchar = Mcool(run_globals, redshift);
+  Mchar = Mcool(redshift);
 
   // we use the maximum of Mfiltering and Mchar
   mass_to_use = (Mfiltering > Mchar) ? Mfiltering : Mchar;
@@ -120,36 +120,36 @@ double gnedin2000_modifer(run_globals_t *run_globals, double Mvir, double redshi
 }
 
 
-double reionization_modifier(run_globals_t *run_globals, galaxy_t *gal, double Mvir, float *Pos, int snapshot)
+double reionization_modifier(galaxy_t *gal, double Mvir, float *Pos, int snapshot)
 {
   double redshift;
   double modifier;
 
-  redshift = run_globals->ZZ[snapshot];
+  redshift = run_globals.ZZ[snapshot];
 
 #ifdef USE_TOCF
-  if ((tocf_params.uvb_feedback) && (run_globals->params.TOCF_Flag))
+  if ((tocf_params.uvb_feedback) && (run_globals.params.TOCF_Flag))
   {
-    modifier = tocf_modifier(run_globals, gal, Mvir, Pos, snapshot);
+    modifier = tocf_modifier(gal, Mvir, Pos, snapshot);
     return modifier;
   }
 #endif
 
-  switch (run_globals->params.physics.Flag_ReionizationModifier)
+  switch (run_globals.params.physics.Flag_ReionizationModifier)
   {
   case 1:
     // Sobacchi & Mesinger 2013 global reionization scheme
-    modifier = sobacchi2013_modifier(run_globals, Mvir, redshift);
+    modifier = sobacchi2013_modifier(Mvir, redshift);
     break;
 
   case 2:
     // Gnedin 2000 global reionization modifier
-    modifier = gnedin2000_modifer(run_globals, Mvir, redshift);
+    modifier = gnedin2000_modifer(Mvir, redshift);
     break;
 
   case 3:
     // Precomputed mean Mcrit values
-    modifier = precomputed_Mcrit_modifier(run_globals, gal, Mvir, snapshot);
+    modifier = precomputed_Mcrit_modifier(gal, Mvir, snapshot);
     break;
 
   default:

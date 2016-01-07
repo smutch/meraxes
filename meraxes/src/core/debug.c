@@ -20,7 +20,7 @@ void mpi_debug_here()
 }
 
 
-static void find_missing_gals(run_globals_t *run_globals, fof_group_t *fof_group, int NFof, int flag)
+static void find_missing_gals(fof_group_t *fof_group, int NFof, int flag)
 {
   galaxy_t *gal = NULL;
   halo_t *halo = NULL;
@@ -39,7 +39,7 @@ static void find_missing_gals(run_globals_t *run_globals, fof_group_t *fof_group
   if(flag==0)
   {
     // Count the number of galaxies
-    gal = run_globals->FirstGal;
+    gal = run_globals.FirstGal;
     while (gal!=NULL)
     {
       gal->output_index = counter++;
@@ -84,7 +84,7 @@ static void find_missing_gals(run_globals_t *run_globals, fof_group_t *fof_group
       gal_found[ii] = false;
 
     // Traverse the global linked list and mark off each galaxy
-    gal = run_globals->FirstGal;
+    gal = run_globals.FirstGal;
     master_counter = 0;
     while (gal!=NULL)
     {
@@ -108,7 +108,7 @@ static void find_missing_gals(run_globals_t *run_globals, fof_group_t *fof_group
   master_counter = counter;
 
   // Check the number of gals with ghost_flag=true
-  gal = run_globals->FirstGal;
+  gal = run_globals.FirstGal;
   counter = 0;
   while(gal!=NULL)
   {
@@ -139,7 +139,7 @@ static void find_missing_gals(run_globals_t *run_globals, fof_group_t *fof_group
   counter = 0;
   if(flag==0)
   {
-    gal = run_globals->FirstGal;
+    gal = run_globals.FirstGal;
     while (gal!=NULL)
     {
       // Note that we only store non-ghost missing pointers here...
@@ -178,7 +178,7 @@ static void find_missing_gals(run_globals_t *run_globals, fof_group_t *fof_group
  
 
 
-void check_counts(run_globals_t *run_globals, fof_group_t *fof_group, int NGal, int NFof)
+void check_counts(fof_group_t *fof_group, int NGal, int NFof)
 {
   int counter = 0;
   int gal_next_counter = 0;
@@ -194,13 +194,13 @@ void check_counts(run_globals_t *run_globals, fof_group_t *fof_group, int NGal, 
 
   SID_Allreduce(&NFof, &total_NFof, 1, SID_INT, SID_SUM, SID.COMM_WORLD);
   SID_Allreduce(&NGal, &total_NGal, 1, SID_INT, SID_SUM, SID.COMM_WORLD);
-  SID_Allreduce(&(run_globals->NGhosts), &total_NGhosts, 1, SID_INT, SID_SUM, SID.COMM_WORLD);
+  SID_Allreduce(&(run_globals.NGhosts), &total_NGhosts, 1, SID_INT, SID_SUM, SID.COMM_WORLD);
   SID_log("NFof = %d", SID_LOG_COMMENT, total_NFof);
   SID_log("NGal = %d", SID_LOG_COMMENT, total_NGal);
   SID_log("NGhosts = %d", SID_LOG_COMMENT, total_NGhosts);
 
   counter = 0;
-  gal     = run_globals->FirstGal;
+  gal     = run_globals.FirstGal;
   while (gal != NULL)
   {
     counter++;
@@ -257,14 +257,14 @@ void check_counts(run_globals_t *run_globals, fof_group_t *fof_group, int NGal, 
       flag = 0;
     else
       flag = 1;
-    find_missing_gals(run_globals, fof_group, NFof, flag);
+    find_missing_gals(fof_group, NFof, flag);
     ABORT(EXIT_FAILURE);
   }
 
   SID_log("...done", SID_LOG_CLOSE);
 }
 
-void check_pointers(run_globals_t *run_globals, halo_t *halos, fof_group_t *fof_groups, trees_info_t *trees_info)
+void check_pointers(halo_t *halos, fof_group_t *fof_groups, trees_info_t *trees_info)
 {
   galaxy_t *gal, *gal_pointer, gal_deref;
   halo_t *halo;
@@ -274,7 +274,7 @@ void check_pointers(run_globals_t *run_globals, halo_t *halos, fof_group_t *fof_
 
   SID_log("Running pointers check.  Remember to run with Valgrind if you want to check the ->galaxy pointers.", SID_LOG_COMMENT);
 
-  gal = run_globals->FirstGal;
+  gal = run_globals.FirstGal;
   while (gal != NULL)
   {
     if (!gal->ghost_flag)

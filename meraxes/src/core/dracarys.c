@@ -27,7 +27,7 @@ static inline bool check_for_merger(galaxy_t *gal, halo_t *new_halo)
     return false;
 }
 
-static inline bool check_if_valid_host(run_globals_t *run_globals, halo_t *halo)
+static inline bool check_if_valid_host(halo_t *halo)
 {
   // We don't want to place new galaxies in any halos with the following flags set...
   int invalid_flags = (TREE_CASE_FRAGMENTED_RETURNED
@@ -58,7 +58,7 @@ static int find_original_index(int index, int *lookup, int n_mappings)
 
 
 //! Actually run the model
-void dracarys(run_globals_t *run_globals)
+void dracarys()
 {
   trees_info_t trees_info;
   halo_t *halo           = NULL;
@@ -74,21 +74,21 @@ void dracarys(run_globals_t *run_globals)
   int last_snap       = 0;
   int kill_counter    = 0;
   int i_snap;
-  int NSteps                        = run_globals->params.NSteps;
-  int n_store_snapshots             = run_globals->NStoreSnapshots;
-  halo_t **snapshot_halo            = run_globals->SnapshotHalo;
-  fof_group_t **snapshot_fof_group  = run_globals->SnapshotFOFGroup;
-  int **snapshot_index_lookup       = run_globals->SnapshotIndexLookup;
-  trees_info_t *snapshot_trees_info = run_globals->SnapshotTreesInfo;
-  double *LTTime                    = run_globals->LTTime;
+  int NSteps                        = run_globals.params.NSteps;
+  int n_store_snapshots             = run_globals.NStoreSnapshots;
+  halo_t **snapshot_halo            = run_globals.SnapshotHalo;
+  fof_group_t **snapshot_fof_group  = run_globals.SnapshotFOFGroup;
+  int **snapshot_index_lookup       = run_globals.SnapshotIndexLookup;
+  trees_info_t *snapshot_trees_info = run_globals.SnapshotTreesInfo;
+  double *LTTime                    = run_globals.LTTime;
   
   // Find what the last requested output snapshot is
   for (int ii = 0; ii < NOUT; ii++)
-    if (run_globals->ListOutputSnaps[ii] > last_snap)
-      last_snap = run_globals->ListOutputSnaps[ii];
+    if (run_globals.ListOutputSnaps[ii] > last_snap)
+      last_snap = run_globals.ListOutputSnaps[ii];
 
   // Prep the output file
-  sprintf(run_globals->FNameOut, "%s/%s_%d.hdf5", run_globals->params.OutputDir, run_globals->params.FileNameGalaxies, SID.My_rank);
+  sprintf(run_globals.FNameOut, "%s/%s_%d.hdf5", run_globals.params.OutputDir, run_globals.params.FileNameGalaxies, SID.My_rank);
   prep_hdf5_file(run_globals);
 
   // Loop through each snapshot
@@ -101,46 +101,46 @@ void dracarys(run_globals_t *run_globals)
 
     SID_log("", SID_LOG_COMMENT);
     SID_log("===============================================================", SID_LOG_COMMENT);
-    SID_log("Snapshot %d  (z = %.3f)", SID_LOG_COMMENT, snapshot, run_globals->ZZ[snapshot]);
+    SID_log("Snapshot %d  (z = %.3f)", SID_LOG_COMMENT, snapshot, run_globals.ZZ[snapshot]);
     SID_log("===============================================================", SID_LOG_COMMENT);
 
     // Reset book keeping counters
     kill_counter    = 0;
 
     // Read in the halos for this snapshot
-    if (run_globals->params.FlagInteractive)
+    if (run_globals.params.FlagInteractive)
       i_snap = snapshot;
     else
       i_snap = 0;
 
-    trees_info = read_halos(run_globals, snapshot, &(snapshot_halo[i_snap]), &(snapshot_fof_group[i_snap]), &(snapshot_index_lookup[i_snap]), snapshot_trees_info);
+    trees_info = read_halos(snapshot, &(snapshot_halo[i_snap]), &(snapshot_fof_group[i_snap]), &(snapshot_index_lookup[i_snap]), snapshot_trees_info);
 
     // Set the relevant pointers to this snapshot
     halo         = snapshot_halo[i_snap];
     fof_group    = snapshot_fof_group[i_snap];
     index_lookup = snapshot_index_lookup[i_snap];
 
-    SID_log("Processing snapshot %d (z = %.2f)...", SID_LOG_OPEN | SID_LOG_TIMER, snapshot, run_globals->ZZ[snapshot]);
+    SID_log("Processing snapshot %d (z = %.2f)...", SID_LOG_OPEN | SID_LOG_TIMER, snapshot, run_globals.ZZ[snapshot]);
 
 #ifdef USE_TOCF
     // Calculate the critical halo mass for cooling
-    if ((run_globals->params.TOCF_Flag) && (tocf_params.uvb_feedback))
-      calculate_Mvir_crit(run_globals, run_globals->ZZ[snapshot]);
+    if ((run_globals.params.TOCF_Flag) && (tocf_params.uvb_feedback))
+      calculate_Mvir_crit(run_globals.ZZ[snapshot]);
 #endif
 
     // Reset the halo pointers and ghost flags for all galaxies and decrement
     // the snapskip counter
-    gal = run_globals->FirstGal;
+    gal = run_globals.FirstGal;
     while (gal != NULL)
     {
       gal->Halo       = NULL;
       gal->ghost_flag = false;
       gal->SnapSkipCounter--;
-      reset_galaxy_properties(run_globals, gal, snapshot);
+      reset_galaxy_properties(gal, snapshot);
       gal = gal->Next;
     }
 
-    gal      = run_globals->FirstGal;
+    gal      = run_globals.FirstGal;
     prev_gal = NULL;
     while (gal != NULL)
     {
@@ -207,7 +207,7 @@ void dracarys(run_globals_t *run_globals)
               cur_gal                = cur_gal->NextGalInHalo;
             }
           }
-          kill_galaxy(run_globals, gal, prev_gal, &NGal, &kill_counter);
+          kill_galaxy(gal, prev_gal, &NGal, &kill_counter);
           gal = prev_gal;
         }
       }
@@ -235,20 +235,20 @@ void dracarys(run_globals_t *run_globals)
         gal      = gal->Next;
       }
       else
-        gal = run_globals->FirstGal;
+        gal = run_globals.FirstGal;
     }
 
     // Do one more pass to make sure that we have killed all galaxies which we
     // should have (i.e. satellites in strayed halos etc.)
     prev_gal = NULL;
     next_gal = NULL;
-    gal      = run_globals->FirstGal;
+    gal      = run_globals.FirstGal;
     while (gal != NULL)
     {
       if (gal->HaloDescIndex < 0)
       {
         next_gal = gal->Next;
-        kill_galaxy(run_globals, gal, prev_gal, &NGal, &kill_counter);
+        kill_galaxy(gal, prev_gal, &NGal, &kill_counter);
         gal = prev_gal;
       }
       prev_gal = gal;
@@ -259,10 +259,10 @@ void dracarys(run_globals_t *run_globals)
     }
 
     // Store the number of ghost galaxies present at this snapshot
-    run_globals->NGhosts = ghost_counter;
+    run_globals.NGhosts = ghost_counter;
 
     // Incase we ended up removing the last galaxy, update the LastGal pointer
-    run_globals->LastGal = prev_gal;
+    run_globals.LastGal = prev_gal;
 
     // Find empty (valid) type 0 halos and place new galaxies in them.
     // Also update the fof_group pointers.
@@ -273,8 +273,8 @@ void dracarys(run_globals_t *run_globals)
 
       while (cur_halo != NULL)
       {
-        if (check_if_valid_host(run_globals, cur_halo))
-          create_new_galaxy(run_globals, snapshot, cur_halo, &NGal, &new_gal_counter);
+        if (check_if_valid_host(cur_halo))
+          create_new_galaxy(snapshot, cur_halo, &NGal, &new_gal_counter);
 
         total_subhalo_len += cur_halo->Len;
 
@@ -286,7 +286,7 @@ void dracarys(run_globals_t *run_globals)
 
     // Loop through each galaxy and deal with HALO mergers now that all other
     // galaxies have been processed and their halo pointers updated...
-    gal = run_globals->FirstGal;
+    gal = run_globals.FirstGal;
     while (gal != NULL)
     {
       if (gal->Type == 999)
@@ -342,7 +342,7 @@ void dracarys(run_globals_t *run_globals)
           // after calculating it. This is because we will decrement the clock
           // (by the same amount) when checking for mergers in evolve.c
           gal->MergerTarget = gal->FirstGalInHalo;
-          gal->MergTime     = calculate_merging_time(run_globals, gal, snapshot);
+          gal->MergTime     = calculate_merging_time(gal, snapshot);
           gal->MergTime    += gal->dt;
         }
       }
@@ -368,7 +368,7 @@ void dracarys(run_globals_t *run_globals)
     // We finish by copying the halo properties into the galaxy structure of
     // all galaxies with type<2, passively evolving ghosts, and updating the dt
     // values for non-ghosts.
-    gal = run_globals->FirstGal;
+    gal = run_globals.FirstGal;
     while (gal != NULL)
     {
       if ((gal->Halo == NULL) && (!gal->ghost_flag))
@@ -383,21 +383,21 @@ void dracarys(run_globals_t *run_globals)
       if (!gal->ghost_flag)
         gal->dt /= (double)NSteps;
       else
-        passively_evolve_ghost(run_globals, gal, snapshot);
+        passively_evolve_ghost(gal, snapshot);
 
       if ((gal->Type < 2) && (!gal->ghost_flag))
-        copy_halo_to_galaxy(run_globals, gal->Halo, gal, snapshot);
+        copy_halo_to_galaxy(gal->Halo, gal, snapshot);
 
       gal = gal->Next;
     }
 
 #ifdef DEBUG
-    check_counts(run_globals, fof_group, NGal, trees_info.n_fof_groups);
+    check_counts(fof_group, NGal, trees_info.n_fof_groups);
 #endif
 
     // Do the physics
     if (NGal > 0)
-      nout_gals = evolve_galaxies(run_globals, fof_group, snapshot, NGal, trees_info.n_fof_groups);
+      nout_gals = evolve_galaxies(fof_group, snapshot, NGal, trees_info.n_fof_groups);
     else
       nout_gals = 0;
 
@@ -406,11 +406,11 @@ void dracarys(run_globals_t *run_globals)
 
 #ifdef USE_TOCF
     
-    physics_params_t *params = &(run_globals->params.physics);
+    physics_params_t *params = &(run_globals.params.physics);
     
     if (params->Flag_RedshiftDepEscFrac)
     {
-        float f_esc = 0.04*(powf((1.0+run_globals->ZZ[snapshot])/6.0, 2.5));
+        float f_esc = 0.04*(powf((1.0+run_globals.ZZ[snapshot])/6.0, 2.5));
         
         if (f_esc > 1.0)
             f_esc = 1.0;
@@ -419,17 +419,17 @@ void dracarys(run_globals_t *run_globals)
         SID_log("f_esc = %g", SID_LOG_COMMENT, f_esc);
     }
     
-    if (run_globals->params.TOCF_Flag && !check_if_reionization_complete(run_globals))
+    if (run_globals.params.TOCF_Flag && !check_if_reionization_complete())
     {
       if (!tocf_params.uvb_feedback)
       {
         // We are decoupled, so no need to run 21cmFAST unless we are ouputing this snapshot
         for (int i_out = 0; i_out < NOUT; i_out++)
-          if (snapshot == run_globals->ListOutputSnaps[i_out])
-            call_find_HII_bubbles(run_globals, snapshot, trees_info.unsampled_snapshot, nout_gals);
+          if (snapshot == run_globals.ListOutputSnaps[i_out])
+            call_find_HII_bubbles(snapshot, trees_info.unsampled_snapshot, nout_gals);
       }
       else
-        call_find_HII_bubbles(run_globals, snapshot, trees_info.unsampled_snapshot, nout_gals);
+        call_find_HII_bubbles(snapshot, trees_info.unsampled_snapshot, nout_gals);
     }
     
 #endif
@@ -449,11 +449,11 @@ void dracarys(run_globals_t *run_globals)
 
     // Write the results if this is a requested snapshot
     for (int i_out = 0; i_out < NOUT; i_out++)
-      if (snapshot == run_globals->ListOutputSnaps[i_out])
-        write_snapshot(run_globals, nout_gals, i_out, &last_nout_gals, &trees_info);
+      if (snapshot == run_globals.ListOutputSnaps[i_out])
+        write_snapshot(nout_gals, i_out, &last_nout_gals, &trees_info);
 
     // Update the LastIdentSnap values for non-ghosts
-    gal = run_globals->FirstGal;
+    gal = run_globals.FirstGal;
     while (gal != NULL)
     {
       if (!gal->ghost_flag)
@@ -462,13 +462,13 @@ void dracarys(run_globals_t *run_globals)
     }
 
 #ifdef DEBUG
-    check_pointers(run_globals, halo, fof_group, &trees_info);
+    check_pointers(halo, fof_group, &trees_info);
 #endif
 
     SID_log("...done", SID_LOG_CLOSE);
   }
 
-  if (run_globals->params.FlagInteractive)
+  if (run_globals.params.FlagInteractive)
   {
     // Tidy up counters and galaxies from this iteration
     NGal           = 0;
@@ -482,20 +482,20 @@ void dracarys(run_globals_t *run_globals)
   }
 
   SID_log("Freeing galaxies...", SID_LOG_OPEN);
-  gal = run_globals->FirstGal;
+  gal = run_globals.FirstGal;
   while (gal != NULL)
   {
     next_gal = gal->Next;
     SID_free(SID_FARG gal);
     gal = next_gal;
   }
-  run_globals->FirstGal = NULL;
+  run_globals.FirstGal = NULL;
   SID_log("...done", SID_LOG_CLOSE);
 
   // Create the master file
   SID_Barrier(SID.COMM_WORLD);
   if (SID.My_rank == 0)
-    create_master_file(run_globals);
+    create_master_file();
 }
 
 

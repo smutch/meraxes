@@ -13,7 +13,6 @@ int main(int argc, char **argv)
   SID_init(&argc, &argv, NULL, NULL);
 
   struct stat filestatus;
-  run_globals_t run_globals;
 
   // char log_fname[50];
   // FILE *log_file = NULL;
@@ -48,7 +47,7 @@ int main(int argc, char **argv)
 #endif
 
   // read the input parameter file
-  read_parameter_file(&run_globals, argv[1], 0);
+  read_parameter_file(argv[1], 0);
 
   // Check to see if the output directory exists and if not, create it
   if (stat(run_globals.params.OutputDir, &filestatus) != 0)
@@ -61,25 +60,25 @@ int main(int argc, char **argv)
 #endif
 
   // initiate meraxes
-  init_meraxes(&run_globals);
+  init_meraxes();
 
   // calculate the output hdf5 file properties for later use
-  calc_hdf5_props(&run_globals);
+  calc_hdf5_props();
 
   // Run the model!
   if (!run_globals.params.FlagInteractive)
-    dracarys(&run_globals);
+    dracarys();
   else
   {
     while (run_globals.params.FlagInteractive)
     {
-      dracarys(&run_globals);
-      continue_prompt(&run_globals, argv[1]);
+      dracarys();
+      continue_prompt(argv[1]);
     }
   }
 
   // cleanup
-  cleanup(&run_globals);
+  cleanup();
 
   SID_exit(EXIT_SUCCESS);
 }

@@ -40,9 +40,9 @@ int compare_ints(const void *a, const void *b)
 }
 
 
-static float inline apply_pbc(run_globals_t *run_globals, float delta)
+static float inline apply_pbc(float delta)
 {
-  float box_size = (float)(run_globals->params.BoxSize);
+  float box_size = (float)(run_globals.params.BoxSize);
 
   if(fabs(delta-box_size)<fabs(delta))
     delta -= box_size;
@@ -53,14 +53,14 @@ static float inline apply_pbc(run_globals_t *run_globals, float delta)
 }
 
 
-float comoving_distance(run_globals_t *run_globals, float a[3], float b[3])
+float comoving_distance(float a[3], float b[3])
 {
-  float dx = apply_pbc(run_globals, a[0] - b[0]);
-  float dy = apply_pbc(run_globals, a[1] - b[1]);
-  float dz = apply_pbc(run_globals, a[2] - b[2]);
+  float dx = apply_pbc(a[0] - b[0]);
+  float dy = apply_pbc(a[1] - b[1]);
+  float dz = apply_pbc(a[2] - b[2]);
 
   float dist = sqrtf(dx*dx + dy*dy + dz*dz);
-  assert(dist <= (sqrtf(3.0)/2.0 * run_globals->params.BoxSize));
+  assert(dist <= (sqrtf(3.0)/2.0 * run_globals.params.BoxSize));
 
   return dist;
 }
