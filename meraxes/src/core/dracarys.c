@@ -81,9 +81,10 @@ void dracarys()
   int **snapshot_index_lookup       = run_globals.SnapshotIndexLookup;
   trees_info_t *snapshot_trees_info = run_globals.SnapshotTreesInfo;
   double *LTTime                    = run_globals.LTTime;
+  int NOutputSnaps                  = run_globals.NOutputSnaps;
   
   // Find what the last requested output snapshot is
-  for (int ii = 0; ii < NOUT; ii++)
+  for (int ii = 0; ii < NOutputSnaps; ii++)
     if (run_globals.ListOutputSnaps[ii] > last_snap)
       last_snap = run_globals.ListOutputSnaps[ii];
 
@@ -424,7 +425,7 @@ void dracarys()
       if (!tocf_params.uvb_feedback)
       {
         // We are decoupled, so no need to run 21cmFAST unless we are ouputing this snapshot
-        for (int i_out = 0; i_out < NOUT; i_out++)
+        for (int i_out = 0; i_out < NOutputSnaps; i_out++)
           if (snapshot == run_globals.ListOutputSnaps[i_out])
             call_find_HII_bubbles(snapshot, trees_info.unsampled_snapshot, nout_gals);
       }
@@ -448,7 +449,7 @@ void dracarys()
 #endif
 
     // Write the results if this is a requested snapshot
-    for (int i_out = 0; i_out < NOUT; i_out++)
+    for (int i_out = 0; i_out < NOutputSnaps; i_out++)
       if (snapshot == run_globals.ListOutputSnaps[i_out])
         write_snapshot(nout_gals, i_out, &last_nout_gals, &trees_info);
 

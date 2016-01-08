@@ -38,6 +38,7 @@ void cleanup()
 
   gsl_rng_free(run_globals.random_generator);
 
+  SID_free(SID_FARG run_globals.ListOutputSnaps);
   SID_free(SID_FARG run_globals.LTTime);
   SID_free(SID_FARG run_globals.ZZ);
   SID_free(SID_FARG run_globals.AA);

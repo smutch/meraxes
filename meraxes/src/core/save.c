@@ -141,7 +141,7 @@ void calc_hdf5_props()
 #ifdef CALC_MAGS
   // If we are calculating any magnitudes then increment the number of
   // output properties appropriately.
-  int n_photo_bands = run_globals.photo.NBands;
+  int n_photo_bands = run_globals.photo->NBands;
   h5props->n_props         += 2;
   h5props->array_nmag_f_tid = H5Tarray_create(H5T_NATIVE_FLOAT, 1, (hsize_t[]){ n_photo_bands });
 #endif
@@ -274,7 +274,7 @@ void calc_hdf5_props()
   h5props->dst_offsets[i]     = HOFFSET(galaxy_output_t, Rvir);
   h5props->dst_field_sizes[i] = sizeof(galout.Rvir);
   h5props->field_names[i]     = "Rvir";
-  h5props->field_units[i]     = "Mpc";  // real
+  h5props->field_units[i]     = "Mpc";  // physical
   h5props->field_h_conv[i]    = "v/h";
   h5props->field_types[i++]   = H5T_NATIVE_FLOAT;
 
@@ -606,7 +606,7 @@ void create_master_file()
   int unsampled_snapshot;
 
   // Now create soft links to all of the files and datasets that make up this run
-  for (int i_out = 0, snap_n_gals = 0; i_out < NOUT; i_out++, snap_n_gals = 0, global_ionizing_emissivity = 0, temp = 0)
+  for (int i_out = 0, snap_n_gals = 0; i_out < run_globals.NOutputSnaps; i_out++, snap_n_gals = 0, global_ionizing_emissivity = 0, temp = 0)
   {
     sprintf(target_group, "Snap%03d", run_globals.ListOutputSnaps[i_out]);
     snap_group_id = H5Gcreate(file_id, target_group, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
@@ -811,7 +811,7 @@ void write_snapshot(
   // descendent indices
   prev_snapshot = run_globals.ListOutputSnaps[i_out] - 1;
   if (i_out > 0)
-    for (int ii = 0; ii < NOUT; ii++)
+    for (int ii = 0; ii < run_globals.NOutputSnaps; ii++)
       if (run_globals.ListOutputSnaps[ii] == prev_snapshot)
       {
         calc_descendants_i_out = ii;

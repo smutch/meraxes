@@ -98,8 +98,8 @@ vars = Variables()
 
 vars = Variables('config.py') # Persistent storage.
 vars.AddVariables(
-    ('nout', 'Set the number of output snapshots.', 1),
     BoolVariable('calc_mags', 'Calculate magnitudes.', False),
+    ('nout', 'Set the number of output snapshots. (only required if calc_mags=1)', False),
     BoolVariable('tocf', 'Calculate xH structure with 21cmFAST.', False),
     ('allocparameter', 'Set the ALLOCPARAM value.', 5.0),
     EnumVariable('build', 'Set the build type.', 'standard', allowed_values=('debug', 'standard', 'optimized')),
@@ -149,9 +149,9 @@ ctags = env.Command('ctags', tagsources, "ctags -R --c++-kinds=+p --fields=+iaS 
 if not GetOption('help'):
 
     # Modify the environment based on any of our variables.
-    env.AppendUnique(CPPDEFINES = ['NOUT=${nout}'])
     if env['calc_mags']:
         env.AppendUnique(CPPDEFINES = ['CALC_MAGS'])
+        env.AppendUnique(CPPDEFINES = ['NOUT=${nout}'])
     if env['tocf']:
         env.AppendUnique(CPPDEFINES = ['USE_TOCF'])
     if env['build'] == 'debug':

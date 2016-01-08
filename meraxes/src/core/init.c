@@ -89,10 +89,7 @@ static void read_snap_list()
 
     run_globals.params.SnaplistLength = snaplist_len;
     if (SID.My_rank == 0)
-    {
-      printf("NOUT = %d\n\n", NOUT);
       printf("found %d defined times in snaplist.\n", snaplist_len);
-    }
 
     // malloc the relevant arrays
     run_globals.AA     = SID_malloc(sizeof(double) * snaplist_len);
@@ -190,6 +187,8 @@ static void read_output_snaps()
 {
   int *ListOutputSnaps = run_globals.ListOutputSnaps;
   int *LastOutputSnap  = &(run_globals.LastOutputSnap);
+  int maxsnaps = run_globals.params.SnaplistLength; 
+  int *nout = &(run_globals.NOutputSnaps);
 
   if (SID.My_rank == 0)
   {
@@ -205,22 +204,45 @@ static void read_output_snaps()
       exit(EXIT_FAILURE);
     }
 
-    for (i = 0; i < NOUT; i++)
+    // find out how many output snapshots are being requested
+    int dummy;
+    for (i = 0; i < maxsnaps; i++)
     {
-      if (fscanf(fd, " %d ", &ListOutputSnaps[i]) != 1)
-      {
+      if (fscanf(fd, " %d ", &dummy) == 1)
+        (*nout)++;
+      else
+        break;
+    }
+    fseek(fd, 0, SEEK_SET);
+
+    // allocate the ListOutputSnaps array
+    ListOutputSnaps = SID_malloc(sizeof(int) * (*nout));
+
+    for (i = 0; i < (*nout); i++)
+    {
+      if (fscanf(fd, " %d ", &ListOutputSnaps[i]) == 1)
+        nout++;
+      else {
         SID_log_error("I/O error in file '%s'\n", fname);
         exit(EXIT_FAILURE);
       }
     }
     fclose(fd);
 
+#ifdef CALC_MAGS
+    if (*nout != NOUT)
+    {
+      SID_log_error("Number of entries in output snaplist does not match NOUT!");
+      ABORT(EXIT_FAILURE);
+    }
+#endif
+
     // Loop through the read in snapshot numbers and convert any negative
     // values to positive ones ala python indexing conventions...
     // e.g. -1 -> MAXSNAPS-1 and so on...
     // Also store the last requested output snapnum
     *LastOutputSnap = 0;
-    for (i = 0; i < NOUT; i++)
+    for (i = 0; i < (*nout); i++)
     {
       if (ListOutputSnaps[i] < 0)
         ListOutputSnaps[i] += run_globals.params.SnaplistLength;
@@ -229,12 +251,18 @@ static void read_output_snaps()
     }
 
     // sort the list from low to high snapnum
-    qsort(ListOutputSnaps, NOUT, sizeof(int), compare_ints);
+    qsort(ListOutputSnaps, (*nout), sizeof(int), compare_ints);
   }
 
   // broadcast the data to all other ranks
-  SID_Bcast(ListOutputSnaps, sizeof(int) * NOUT, 0, SID.COMM_WORLD);
+  SID_Bcast(nout, sizeof(int), 0, SID.COMM_WORLD);
+  
+  if(SID.My_rank > 0)
+    ListOutputSnaps = SID_malloc(sizeof(int) * (*nout));
+
+  SID_Bcast(ListOutputSnaps, sizeof(int) * (*nout), 0, SID.COMM_WORLD);
   SID_Bcast(LastOutputSnap, sizeof(int), 0, SID.COMM_WORLD);
+
 }
 
 
@@ -247,12 +275,11 @@ static void check_n_history_snaps()
   double *LTTime = run_globals.LTTime;
   int n_snaps    = run_globals.params.SnaplistLength;
   double min_dt  = LTTime[0] - LTTime[n_snaps-1];
-  double diff;
   double m_low;
 
   for (int ii = 0; ii < n_snaps-N_HISTORY_SNAPS; ii++)
   {
-    diff = LTTime[ii] - LTTime[ii+N_HISTORY_SNAPS];
+    double diff = LTTime[ii] - LTTime[ii+N_HISTORY_SNAPS];
     if (diff < min_dt)
       min_dt = diff;
   }

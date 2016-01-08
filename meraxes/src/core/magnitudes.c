@@ -7,7 +7,7 @@ void init_luminosities(galaxy_t *gal)
 {
 #ifdef CALC_MAGS
   for (int ii = 0; ii < NOUT; ii++)
-    for (int jj = 0; jj < run_globals.photo.NBands; jj++)
+    for (int jj = 0; jj < run_globals.photo->NBands; jj++)
       gal->Lum[jj][ii] = 0.0;
 #else
   return;
@@ -17,7 +17,7 @@ void init_luminosities(galaxy_t *gal)
 void sum_luminosities(galaxy_t *parent, galaxy_t *gal, int outputbin)
 {
 #ifdef CALC_MAGS
-  int n_bands = run_globals.photo.NBands;
+  int n_bands = run_globals.photo->NBands;
   for (int ii = 0; ii < n_bands; ii++)
     parent->Lum[ii][outputbin] += gal->Lum[ii][outputbin];
 #else
@@ -28,7 +28,7 @@ void sum_luminosities(galaxy_t *parent, galaxy_t *gal, int outputbin)
 void prepare_magnitudes_for_output(galaxy_t gal, galaxy_output_t *galout, int i_snap)
 {
 #ifdef CALC_MAGS
-  int n_bands = run_globals.photo.NBands;
+  int n_bands = run_globals.photo->NBands;
   double LumDust[n_bands];
   double Hubble_h = run_globals.params.Hubble_h;
   for (int ii = 0; ii < n_bands; ii++)
@@ -61,7 +61,7 @@ static void init_jump_index()
   float age;
   int idx;
   float jumpfac;
-  phototabs_t *photo = &(run_globals.photo);
+  phototabs_t *photo = run_globals.photo;
   int *jumptab       = photo->JumpTable;
   float *AgeTab      = photo->Ages;
 
@@ -83,7 +83,7 @@ static void init_jump_index()
 #if defined(DEBUG) && defined(CALC_MAGS)
 static void print_phototab(int i_metal)
 {
-  phototabs_t *photo = &(run_globals.photo);
+  phototabs_t *photo = run_globals.photo;
   float *phototab    = photo->Table;
   int n_ages         = photo->NAges;
   int n_bands        = photo->NBands;
@@ -108,7 +108,7 @@ void read_photometric_tables()
 
   // malloc the phototabs struct (see cleanup_mags() for free)
   run_globals.photo       = SID_malloc(sizeof(phototabs_t));
-  phototabs_t *photo       = &(run_globals.photo);
+  phototabs_t *photo       = run_globals.photo;
 
   float **Metals           = &(photo->Metals);
   float **AgeTab           = &(photo->Ages);
@@ -262,13 +262,13 @@ void read_photometric_tables()
 
   SID_Bcast(&(photo->NBands), sizeof(int), 0, SID.COMM_WORLD);
   if (SID.My_rank > 0)
-    *MagBands = (float*)SID_malloc(sizeof(char[5]) * photo->NBands);
+    *MagBands = SID_malloc(sizeof(char[5]) * photo->NBands);
   SID_Bcast(*MagBands, sizeof(char[5]) * photo->NBands, 0, SID.COMM_WORLD);
 
   SID_Bcast(&(n_table_entries), sizeof(int), 0, SID.COMM_WORLD);
   if (SID.My_rank > 0)
     *PhotoTab = (float*)SID_malloc(sizeof(float) * n_table_entries);
-  SID_Bcast(*PhotoTab, sizeof(float) * n_table_entries 0, SID.COMM_WORLD);
+  SID_Bcast(*PhotoTab, sizeof(float) * n_table_entries, 0, SID.COMM_WORLD);
 
 #ifdef DEBUG
   print_phototab(0);
@@ -306,7 +306,7 @@ static void find_interpolated_lum(
   float age, frac;
   float fa1, fa2, fm1, fm2;
 
-  phototabs_t *photo = &(run_globals.photo);
+  phototabs_t *photo = run_globals.photo;
   float *Metals      = photo->Metals;
   float *AgeTab      = photo->Ages;
   int *JumpTable     = photo->JumpTable;
@@ -394,10 +394,10 @@ void add_to_luminosities(
   double         burst_time)
 {
 #ifdef CALC_MAGS
-  phototabs_t *photo = &(run_globals.photo);
+  phototabs_t *photo = run_globals.photo;
   double Hubble_h    = run_globals.params.Hubble_h;
-  float *PhotoTab    = run_globals.photo.Table;
-  int n_bands        = run_globals.photo.NBands;
+  float *PhotoTab    = run_globals.photo->Table;
+  int n_bands        = run_globals.photo->NBands;
   int metals_ind;
   int age_ind;
   double X1, X2;
@@ -441,10 +441,10 @@ double lum_to_mag(double lum)
 void cleanup_mags()
 {
 #ifdef CALC_MAGS
-  SID_free(SID_FARG run_globals.photo.Table);
-  SID_free(SID_FARG run_globals.photo.MagBands);
-  SID_free(SID_FARG run_globals.photo.Ages);
-  SID_free(SID_FARG run_globals.photo.Metals);
+  SID_free(SID_FARG run_globals.photo->Table);
+  SID_free(SID_FARG run_globals.photo->MagBands);
+  SID_free(SID_FARG run_globals.photo->Ages);
+  SID_free(SID_FARG run_globals.photo->Metals);
   SID_free(SID_FARG run_globals.photo);
   H5Tclose(run_globals.hdf5props.array_nmag_f_tid);
 #else

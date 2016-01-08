@@ -18,8 +18,10 @@
  */
 
 
+#ifdef CALC_MAGS
 #ifndef NOUT
 #define NOUT 1
+#endif
 #endif
 
 #ifndef N_HISTORY_SNAPS
@@ -474,6 +476,7 @@ typedef struct run_globals_t {
   double             *ZZ;
   double             *LTTime;
   int                *RequestedForestId;
+  int                *ListOutputSnaps;
   halo_t            **SnapshotHalo;
   fof_group_t       **SnapshotFOFGroup;
   int               **SnapshotIndexLookup;
@@ -486,6 +489,7 @@ typedef struct run_globals_t {
   double              RhoCrit;
   double              G;
 
+  int                 NOutputSnaps;
   int                 LastOutputSnap;
   int                 NGhosts;
   int                 NHalosMax;
@@ -495,7 +499,6 @@ typedef struct run_globals_t {
   int                 TreesScan;
   int                 NStoreSnapshots;
 
-  int                 ListOutputSnaps[NOUT];
   bool                SelectForestsSwitch;
 } run_globals_t;
 #ifdef _MAIN

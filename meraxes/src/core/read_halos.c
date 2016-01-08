@@ -1063,7 +1063,7 @@ void initialize_halo_storage()
   SID_log("Initializing halo storage arrays...", SID_LOG_OPEN);
 
   // Find what the last requested output snapshot is
-  for (int ii = 0; ii < NOUT; ii++)
+  for (int ii = 0; ii < run_globals.NOutputSnaps; ii++)
     if (run_globals.ListOutputSnaps[ii] > last_snap)
       last_snap = run_globals.ListOutputSnaps[ii];
 
