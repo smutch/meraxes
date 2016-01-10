@@ -36,6 +36,35 @@ void set_HII_eff_factor()
 }
 
 
+
+void assign_slab()
+{
+  // Assign the slab size
+  int n_rank = SID.n_proc;
+  int dim = tocf_params.HII_dim;
+
+  // Use fftw to find out what slab each rank should get
+  ptrdiff_t local_nix, local_ix_start;
+  ptrdiff_t local_n_complex = fftwf_mpi_local_size_3d(dim, dim, dim/2 + 1, MPI_COMM_WORLD, &local_nix, &local_ix_start);
+
+  // let every core know...
+  ptrdiff_t *slab_nix = tocf_params.slab_nix;
+  slab_nix = SID_malloc(sizeof(ptrdiff_t) * n_rank);  ///< array of number of x cells of every rank
+  MPI_Allgather(&local_nix, sizeof(ptrdiff_t), MPI_BYTE, slab_nix, sizeof(ptrdiff_t), MPI_BYTE, MPI_COMM_WORLD);
+
+  ptrdiff_t *slab_ix_start = tocf_params.slab_ix_start;
+  slab_ix_start = SID_malloc(sizeof(ptrdiff_t) * n_rank); ///< array first x cell of every rank
+  slab_ix_start[0] = 0;
+  for(int ii=1; ii<n_rank; ii++)
+    slab_ix_start[ii] = slab_ix_start[ii-1] + slab_nix[ii-1];
+
+  ptrdiff_t *slab_n_complex = tocf_params.slab_n_complex;  ///< array of allocation counts for every rank
+  slab_n_complex = SID_malloc(sizeof(ptrdiff_t) * n_rank);  ///< array of allocation counts for every rank
+  MPI_Allgather(&local_n_complex, sizeof(ptrdiff_t), MPI_BYTE, slab_n_complex, sizeof(ptrdiff_t), MPI_BYTE, MPI_COMM_WORLD);
+}
+
+
+
 void call_find_HII_bubbles(int snapshot, int unsampled_snapshot, int nout_gals)
 {
   // Thin wrapper round find_HII_bubbles
