@@ -219,6 +219,62 @@ typedef struct phototabs_t {
 } phototabs_t;
 
 #ifdef USE_TOCF
+typedef struct tocf_params_t tocf_params_t;
+struct tocf_params_t
+{
+    // INIT_PARAMS
+    long  random_seed;   // Seed for the random number generator
+    float box_len;       // In Mpc
+    int   dim;           // Number of cells for the high-res box (sampling ICs) along a principal axis
+    int   HII_dim;       // Number of cells for the low-res box; recommended to be an integer multiple of DIM
+    int   numcores;      // Number of cores you wish to allocate (must be shared mem)
+    float ram;           // Physical memory in GB available
+
+    ptrdiff_t    *slab_nix;
+    ptrdiff_t    *slab_ix_start;
+    ptrdiff_t    *slab_n_complex;
+    
+    // ANAL_PARAMS
+    int    T_use_velocities;
+    int    use_Ts_in_21cm;
+    double ion_tvir_min;
+    float  HII_eff_factor;
+    int    HII_filter;
+    float  r_bubble_min;
+    float  r_bubble_max;
+    int    uvb_feedback;
+    float  gamma_halo_bias;
+    int    compute_mfp;
+    float  delta_r_HII_factor;
+    float  m_0_sm;
+    float  a_sm;
+    float  b_sm;
+    float  c_sm;
+    float  d_sm;
+    
+    // COSMOLOGY
+    float sigma8;
+    float hlittle;
+    float OMm;
+    float OMl;
+    float OMb;
+    float OMn;
+    float OMk;
+    float OMr;
+    float OMtot;
+    float Y_He;
+    float power_index;
+    float wl;
+    
+    // Other
+    char logfile_dir[256];
+};
+
+extern tocf_params_t tocf_params;
+#ifdef _MAIN
+tocf_params_t tocf_params;
+#endif
+
 typedef struct tocf_grids_t {
   fftwf_complex *stars;
   fftwf_complex *stars_filtered;
