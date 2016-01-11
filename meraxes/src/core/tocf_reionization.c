@@ -135,7 +135,10 @@ void call_find_HII_bubbles(int snapshot, int unsampled_snapshot, int nout_gals)
 
 void malloc_reionization_grids()
 {
+
   tocf_grids_t *grids = &(run_globals.tocf_grids);
+
+  grids->galaxy_to_slab_map = NULL;
 
   grids->xH                 = NULL;
   grids->stars              = NULL;

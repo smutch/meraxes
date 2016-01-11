@@ -406,6 +406,10 @@ void dracarys()
     nout_gals += ghost_counter;
 
 #ifdef USE_TOCF
+
+    // if we have already created a mapping of galaxies to MPI slabs then we no
+    // longer need them as they will need to be re-created for the new galaxies
+    SID_free(run_globals.tocf_grids.galaxy_to_slab_map);
     
     physics_params_t *params = &(run_globals.params.physics);
     
