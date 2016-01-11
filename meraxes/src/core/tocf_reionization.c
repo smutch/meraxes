@@ -37,7 +37,7 @@ void set_HII_eff_factor()
 
 
 
-void assign_slab()
+void assign_slabs()
 {
   // Assign the slab size
   int n_rank = SID.n_proc;
@@ -147,93 +147,59 @@ void malloc_reionization_grids()
   grids->z_at_ionization    = NULL;
   grids->J_21_at_ionization = NULL;
   grids->J_21               = NULL;
-  grids->mfp                = NULL;
-  grids->N_rec              = NULL;
-  grids->N_rec_filtered     = NULL;
 
   grids->global_xH = 1.0;
   grids->reion_complete = false;
 
   if (run_globals.params.TOCF_Flag)
   {
-    if (SID.My_rank == 0)
-    {
-      // Only rank 0 will call 21cmFAST and so it is the only rank that needs to carry around these grids
-      grids->xH              = (float*)fftwf_malloc(sizeof(float) * HII_TOT_NUM_PIXELS);
-      grids->stars_filtered  = (fftwf_complex*)fftwf_malloc(sizeof(fftwf_complex) * HII_KSPACE_NUM_PIXELS);
-      grids->stars_copy      = (fftwf_complex*)fftwf_malloc(sizeof(fftwf_complex) * HII_KSPACE_NUM_PIXELS);
-      grids->deltax          = (fftwf_complex*)fftwf_malloc(sizeof(fftwf_complex) * HII_KSPACE_NUM_PIXELS);
-      grids->deltax_filtered = (fftwf_complex*)fftwf_malloc(sizeof(fftwf_complex) * HII_KSPACE_NUM_PIXELS);
-      grids->deltax_copy     = (fftwf_complex*)fftwf_malloc(sizeof(fftwf_complex) * HII_KSPACE_NUM_PIXELS);
-      grids->sfr_filtered    = (fftwf_complex*)fftwf_malloc(sizeof(fftwf_complex) * HII_KSPACE_NUM_PIXELS);
-      grids->sfr_copy        = (fftwf_complex*)fftwf_malloc(sizeof(fftwf_complex) * HII_KSPACE_NUM_PIXELS);
-      grids->z_at_ionization    = (float*)fftwf_malloc(sizeof(float) * HII_TOT_NUM_PIXELS);
-    }
-    grids->stars = (fftwf_complex*)fftwf_malloc(sizeof(fftwf_complex) * HII_KSPACE_NUM_PIXELS);
-    grids->sfr   = (fftwf_complex*)fftwf_malloc(sizeof(fftwf_complex) * HII_KSPACE_NUM_PIXELS);
+
+    assign_slabs();
+
+    int HII_dim = tocf_params.HII_dim;
+    ptrdiff_t slab_n_real = tocf_params.slab_nix[SID.My_rank] * HII_dim * HII_dim;
+    ptrdiff_t slab_n_complex = tocf_params.slab_n_complex[SID.My_rank];
+
+    grids->stars           = fftwf_alloc_real(slab_n_real);
+    grids->stars_filtered  = fftwf_alloc_complex(slab_n_complex);
+    grids->deltax          = fftwf_alloc_real(slab_n_real);
+    grids->deltax_filtered = fftwf_alloc_complex(slab_n_complex);
+    grids->sfr             = fftwf_alloc_real(slab_n_real);
+    grids->sfr_filtered    = fftwf_alloc_complex(slab_n_complex);
+    grids->xH              = fftwf_alloc_real(slab_n_real);
+    grids->z_at_ionization = fftwf_alloc_real(slab_n_real);
 
     if (tocf_params.uvb_feedback)
     {
-      if (SID.My_rank == 0)
-      {
-        // Only rank 0 will call 21cmFAST and so it is the only rank that needs to carry around these grids
-        grids->J_21_at_ionization = (float*)fftwf_malloc(sizeof(float) * HII_TOT_NUM_PIXELS);
-        grids->J_21               = (float*)fftwf_malloc(sizeof(float) * HII_TOT_NUM_PIXELS);
-      }
-      grids->Mvir_crit = (float*)fftwf_malloc(sizeof(float) * HII_TOT_NUM_PIXELS);
-    }
-
-    if (tocf_params.compute_mfp && (SID.My_rank == 0))
-    {
-      // Only rank 0 will call 21cmFAST and so it is the only rank that needs to carry around these grids
-      grids->mfp            = (float*)fftwf_malloc(sizeof(float) * HII_TOT_NUM_PIXELS);
-      grids->N_rec          = (fftwf_complex*)fftwf_malloc(sizeof(fftwf_complex) * HII_KSPACE_NUM_PIXELS);
-      grids->N_rec_filtered = (fftwf_complex*)fftwf_malloc(sizeof(fftwf_complex) * HII_KSPACE_NUM_PIXELS);
+      grids->J_21_at_ionization = fftwf_alloc_real(slab_n_real);
+      grids->J_21               = fftwf_alloc_real(slab_n_real);
+      grids->Mvir_crit          = fftwf_alloc_real(slab_n_real);
     }
 
     SID_log("Initialising grids...", SID_LOG_COMMENT);
 
-    if (SID.My_rank == 0)
+    for (int ii = 0; ii < slab_n_real; ii++)
     {
-      for (int ii = 0; ii < HII_TOT_NUM_PIXELS; ii++)
-      {
-        grids->xH[ii] = 1.0;
-        grids->z_at_ionization[ii] = -1;
-      }
+      grids->xH[ii] = 1.0;
+      grids->z_at_ionization[ii] = -1;
     }
+    memset(grids->xH, 1.0, sizeof(float) * slab_n_real);
+    memset(grids->z_at_ionization, -1.0, sizeof(float) * slab_n_real);
 
     if (tocf_params.uvb_feedback)
     {
-      if (SID.My_rank == 0)
-      {
-        memset(grids->J_21_at_ionization, 0., sizeof(float) * HII_TOT_NUM_PIXELS);
-        memset(grids->J_21, 0., sizeof(float) * HII_TOT_NUM_PIXELS);
-      }
-
-      memset(grids->Mvir_crit, 0, sizeof(float) * HII_TOT_NUM_PIXELS);
+      memset(grids->J_21_at_ionization, 0., sizeof(float) * slab_n_real);
+      memset(grids->J_21, 0., sizeof(float) * slab_n_real);
+      memset(grids->Mvir_crit, 0, sizeof(float) * slab_n_real);
     }
 
-    if (SID.My_rank == 0)
-    {
-      memset(grids->stars_filtered, 0, sizeof(fftwf_complex) * HII_KSPACE_NUM_PIXELS);
-      memset(grids->stars_copy, 0, sizeof(fftwf_complex) * HII_KSPACE_NUM_PIXELS);
-      memset(grids->deltax, 0, sizeof(fftwf_complex) * HII_KSPACE_NUM_PIXELS);
-      memset(grids->deltax_filtered, 0, sizeof(fftwf_complex) * HII_KSPACE_NUM_PIXELS);
-      memset(grids->deltax_copy, 0, sizeof(fftwf_complex) * HII_KSPACE_NUM_PIXELS);
-      memset(grids->sfr_filtered, 0, sizeof(fftwf_complex) * HII_KSPACE_NUM_PIXELS);
-      memset(grids->sfr_copy, 0, sizeof(fftwf_complex) * HII_KSPACE_NUM_PIXELS);
+    memset(grids->stars_filtered, 0, sizeof(fftwf_complex) * slab_n_complex);
+    memset(grids->deltax, 0, sizeof(fftwf_complex) * slab_n_complex);
+    memset(grids->deltax_filtered, 0, sizeof(fftwf_complex) * slab_n_complex);
+    memset(grids->sfr_filtered, 0, sizeof(fftwf_complex) * slab_n_complex);
 
-      if (tocf_params.compute_mfp)
-      {
-        memset(grids->mfp, 0., sizeof(float) * HII_TOT_NUM_PIXELS);
-        memset(grids->N_rec, 0, sizeof(fftwf_complex) * HII_KSPACE_NUM_PIXELS);
-        memset(grids->N_rec_filtered, 0, sizeof(fftwf_complex) * HII_KSPACE_NUM_PIXELS);
-      }
-    }
-
-    memset(grids->stars, 0, sizeof(fftwf_complex) * HII_KSPACE_NUM_PIXELS);
-    memset(grids->sfr, 0, sizeof(fftwf_complex) * HII_KSPACE_NUM_PIXELS);
-
+    memset(grids->stars, 0, sizeof(fftwf_complex) * slab_n_complex);
+    memset(grids->sfr, 0, sizeof(fftwf_complex) * slab_n_complex);
 
     SID_log(" ...done", SID_LOG_CLOSE);
   }
@@ -246,29 +212,17 @@ void free_reionization_grids()
 
   tocf_grids_t *grids = &(run_globals.tocf_grids);
 
-  if (SID.My_rank == 0)
+  if (tocf_params.uvb_feedback)
   {
-    if (tocf_params.compute_mfp)
-    {
-      fftwf_free(grids->N_rec_filtered);
-      fftwf_free(grids->N_rec);
-      fftwf_free(grids->mfp);
-    }
-    if (tocf_params.uvb_feedback)
-    {
-      fftwf_free(grids->J_21);
-      fftwf_free(grids->J_21_at_ionization);
-    }
-    fftwf_free(grids->z_at_ionization);
-    fftwf_free(grids->sfr_filtered);
-    fftwf_free(grids->sfr_copy);
-    fftwf_free(grids->deltax_filtered);
-    fftwf_free(grids->deltax_copy);
-    fftwf_free(grids->deltax);
-    fftwf_free(grids->stars_filtered);
-    fftwf_free(grids->stars_copy);
-    fftwf_free(grids->xH);
+    fftwf_free(grids->J_21);
+    fftwf_free(grids->J_21_at_ionization);
   }
+  fftwf_free(grids->z_at_ionization);
+  fftwf_free(grids->sfr_filtered);
+  fftwf_free(grids->deltax_filtered);
+  fftwf_free(grids->deltax);
+  fftwf_free(grids->stars_filtered);
+  fftwf_free(grids->xH);
 
   if (tocf_params.uvb_feedback)
     fftwf_free(grids->Mvir_crit);

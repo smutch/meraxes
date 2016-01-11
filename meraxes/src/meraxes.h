@@ -285,27 +285,19 @@ tocf_params_t tocf_params;
 #endif
 
 typedef struct tocf_grids_t {
-  fftwf_complex *stars;
+  float         *stars;
   fftwf_complex *stars_filtered;
-  fftwf_complex *stars_copy;
-  fftwf_complex *deltax;
+  float         *deltax;
   fftwf_complex *deltax_filtered;
-  fftwf_complex *deltax_copy;
-  fftwf_complex *sfr;
+  float         *sfr;
   fftwf_complex *sfr_filtered;
-  fftwf_complex *sfr_copy;
-  fftwf_complex *N_rec;
-  fftwf_complex *N_rec_filtered;
   float         *xH;
   float         *z_at_ionization;
   float         *J_21_at_ionization;
   float         *J_21;
   float         *Mvir_crit;
-  float         *mfp;
   float          global_xH;
   bool           reion_complete;
-
-  // TOTAL : 140 + 4 padding  (must be multiple of 8)
 } tocf_grids_t;
 #endif
 
@@ -651,7 +643,7 @@ double reionization_modifier(galaxy_t *gal, double Mvir, float *Pos, int snapsho
 double sobacchi2013_modifier(double Mvir, double redshift);
 double gnedin2000_modifer(double Mvir, double redshift);
 #ifdef USE_TOCF
-void assign_slab();
+void assign_slabs();
 
 double tocf_modifier(galaxy_t *gal, double Mvir, float *Pos, int snapshot);
 void   set_HII_eff_factor();
