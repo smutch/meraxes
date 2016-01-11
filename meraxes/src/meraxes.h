@@ -298,7 +298,9 @@ typedef struct tocf_grids_t {
   float         *J_21;
   float         *Mvir_crit;
   float          global_xH;
+  gal_to_slab_t *galaxy_to_slab_map;
   bool           reion_complete;
+  int            buffer_size;
 } tocf_grids_t;
 #endif
 
@@ -473,6 +475,13 @@ typedef struct galaxy_output_t {
 } galaxy_output_t;
 
 
+typedef struct gal_to_slab_t {
+  int index;
+  galaxy_t *galaxy;
+  int slab_ind;
+} gal_to_slab_t;
+
+
 //! Tree info struct
 typedef struct trees_info_t {
   int n_step;
@@ -607,7 +616,17 @@ void         prepare_galaxy_for_output(galaxy_t gal, galaxy_output_t *galout, in
 void         read_photometric_tables();
 int          compare_ints(const void *a, const void *b);
 int          compare_floats(const void *a, const void *b);
+int          compare_ptrdiff(const void *a, const void *b);
+int          compare_slab_assign(const void *a, const void *b);
+int          searchsorted(void *val,
+                          void *arr,
+                          int count,
+                          size_t size,
+                          int(*compare)(const void *a, const void *b),
+                          int imin,
+                          int imax);
 float        comoving_distance(float a[3], float b[3]);
+int          pos_to_cell(double x, double side, int nx);
 double       accurate_sumf(float *arr, int n);
 int          grid_index(int i, int j, int k, int dim, int type);
 void         mpi_debug_here(void);
@@ -651,7 +670,7 @@ void   set_HII_eff_factor();
 int    find_cell(float pos, double box_size);
 void   malloc_reionization_grids();
 void   free_reionization_grids();
-void   construct_stellar_grids(int snapshot);
+void   construct_stellar_grids(int snapshot, int ngals);
 // void    assign_ionization_to_halos(halo_t *halo, int n_halos, float *xH_grid, int xH_dim);
 int  read_dm_grid(int snapshot, int i_grid, float *grid);
 void calculate_Mvir_crit(double redshift);

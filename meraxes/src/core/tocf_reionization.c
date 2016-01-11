@@ -84,7 +84,7 @@ void call_find_HII_bubbles(int snapshot, int unsampled_snapshot, int nout_gals)
   }
 
   // Construct the stellar mass grid
-  construct_stellar_grids(snapshot);
+  construct_stellar_grids(snapshot, nout_gals);
 
   SID_log("...done", SID_LOG_CLOSE);
 
@@ -169,6 +169,7 @@ void malloc_reionization_grids()
         max_cells = slab_nix[ii];
 
     max_cells *= HII_dim * HII_dim;
+    grids->buffer_size = max_cells;
 
     grids->buffer          = fftwf_alloc_real(max_cells);
     grids->stars           = fftwf_alloc_real(slab_n_real);
@@ -246,27 +247,13 @@ void free_reionization_grids()
 }
 
 
-int find_cell(float pos, double box_size)
-{
-  int HII_dim = tocf_params.HII_dim;
-
-  int cell = (int)floor((double)pos / box_size * (double)HII_dim);
-
-  cell = (cell < 0) ? 0 : cell;
-  cell = (cell >= HII_dim) ? HII_dim - 1 : cell;
-
-  return cell;
-}
-
-
-void construct_stellar_grids(int snapshot)
+void construct_stellar_grids(int snapshot, int ngals)
 {
   galaxy_t *gal;
-  int i, j, k;
   double box_size     = (double)(run_globals.params.BoxSize);
   double Hubble_h     = run_globals.params.Hubble_h;
-  float *stellar_grid = (float*)(run_globals.tocf_grids.stars);
-  float *sfr_grid     = (float*)(run_globals.tocf_grids.sfr);
+  float *stellar_grid = run_globals.tocf_grids.stars;
+  float *sfr_grid     = run_globals.tocf_grids.sfr;
   int HII_dim         = tocf_params.HII_dim;
   run_units_t *units  = &(run_globals.units);
   double tHubble      = hubble_time(snapshot);
@@ -280,8 +267,13 @@ void construct_stellar_grids(int snapshot)
     *(sfr_grid + ii)     = 0.0;
   }
 
-  // Loop through each valid galaxy and add its stellar mass to the appropriate cell
+  // Loop through each valid galaxy and find what slab it sits in
+  run_globals.tocf_grids.galaxy_to_slab_map = SID_malloc(sizeof(gal_to_slab_t) * ngals);
+  gal_to_slab_t *galaxy_to_slab_map         = run_globals.tocf_grids.galaxy_to_slab_map;
+  ptrdiff_t *slab_ix_start = tocf_params.slab_ix_start;
+
   gal = run_globals.FirstGal;
+  int gal_counter = 0;
   while (gal != NULL)
   {
     // TODO: Note that I am including ghosts here.  We will need to check the
@@ -302,62 +294,136 @@ void construct_stellar_grids(int snapshot)
         gal->Pos[0] -= box_size;
       else if (gal->Pos[0] < 0.0)
         gal->Pos[0] += box_size;
-      i = find_cell(gal->Pos[0], box_size);
+      ptrdiff_t ix = pos_to_cell(gal->Pos[0], box_size, HII_dim);
 
-      if (gal->Pos[1] >= box_size)
-        gal->Pos[1] -= box_size;
-      else if (gal->Pos[1] < 0.0)
-        gal->Pos[1] += box_size;
-      j = find_cell(gal->Pos[1], box_size);
+      assert((ix >= 0) && (ix < HII_dim));
 
-      if (gal->Pos[2] >= box_size)
-        gal->Pos[2] -= box_size;
-      else if (gal->Pos[2] < 0.0)
-        gal->Pos[2] += box_size;
-      k = find_cell(gal->Pos[2], box_size);
-
-      assert((i >= 0) && (i < HII_dim));
-      assert((j >= 0) && (j < HII_dim));
-      assert((k >= 0) && (k < HII_dim));
-
-      if (run_globals.params.physics.Flag_RedshiftDepEscFrac)
-      {
-        *(stellar_grid + HII_R_FFT_INDEX(i, j, k)) += gal->FescWeightedGSM;
-        *(sfr_grid + HII_R_FFT_INDEX(i, j, k))     += gal->FescWeightedGSM;
-      }
-      else
-      {
-        *(stellar_grid + HII_R_FFT_INDEX(i, j, k)) += gal->GrossStellarMass;
-        *(sfr_grid + HII_R_FFT_INDEX(i, j, k))     += gal->GrossStellarMass;
-      }
+      galaxy_to_slab_map[gal_counter].index = gal_counter;
+      galaxy_to_slab_map[gal_counter].slab_ind = searchsorted(&ix, slab_ix_start, SID.n_proc, sizeof(ptrdiff_t), compare_ptrdiff, -1, -1);
+      galaxy_to_slab_map[gal_counter++].galaxy = gal;
     }
+
     gal = gal->Next;
   }
 
-  // Collect all grid cell values onto rank 0 which will actually call 21cmFAST
-  SID_Allreduce(SID_IN_PLACE, stellar_grid, HII_TOT_FFT_NUM_PIXELS, SID_FLOAT, SID_SUM, SID.COMM_WORLD);
-  SID_Allreduce(SID_IN_PLACE, sfr_grid, HII_TOT_FFT_NUM_PIXELS, SID_FLOAT, SID_SUM, SID.COMM_WORLD);
+  // sort the slab indices (n.b. compare_slab_assign is a stable comparison)
+  qsort(galaxy_to_slab_map, gal_counter, sizeof(gal_to_slab_t), compare_slab_assign);
 
-  if (SID.My_rank == 0)
+  // loop through each slab
+  int i_gal = 0;
+  double cell_width = box_size / (double)HII_dim;
+  ptrdiff_t *slab_nix = tocf_params.slab_nix;
+  ptrdiff_t buffer_size = run_globals.tocf_grids.buffer_size;
+  float *buffer = run_globals.tocf_grids.buffer;
+
+  enum property { prop_stellar, prop_sfr };
+  for(int prop = prop_stellar; prop <= prop_sfr; prop++)
   {
-    // Do one final pass to put the grid in the correct (real) units (Msol or
-    // Msol/s) and divide the sfr_grid by tHubble in order to convert the
-    // stellar masses recorded into SFRs.
-    for (int i = 0; i < HII_dim; i++)
-      for (int j = 0; j < HII_dim; j++)
-        for (int k = 0; k < HII_dim; k++)
-        {
-          if (*(stellar_grid + HII_R_FFT_INDEX(i, j, k)) > 0)
-            *(stellar_grid + HII_R_FFT_INDEX(i, j, k)) *= (1.e10 / Hubble_h);
-          if (*(sfr_grid + HII_R_FFT_INDEX(i, j, k)) > 0)
-            *(sfr_grid + HII_R_FFT_INDEX(i, j, k)) *= (units->UnitMass_in_g / units->UnitTime_in_s / SOLAR_MASS) / tHubble;
+    for(int i_r=0; i_r < SID.n_proc; i_r++)
+    {
+      double min_xpos = (double)slab_ix_start[i_r] * cell_width;
+      int nix = slab_nix[i_r];
 
-          // Check for under/overflow
-          if (*(stellar_grid + HII_R_FFT_INDEX(i, j, k)) < 0)
-            *(stellar_grid + HII_R_FFT_INDEX(i, j, k)) = 0;
-          if (*(sfr_grid + HII_R_FFT_INDEX(i, j, k)) < 0)
-            *(sfr_grid + HII_R_FFT_INDEX(i, j, k)) = 0;
+      // init the buffer
+      for(int ii=0; ii<buffer_size; ii++)
+        buffer[ii] = 0.;
+
+      // fill the local buffer for this slab
+      while((i_gal < gal_counter) && (galaxy_to_slab_map[i_gal].slab_ind == i_r))
+      {
+        galaxy_t *gal = galaxy_to_slab_map[i_gal].galaxy;
+
+        assert((galaxy_to_slab_map[i_gal].index >= 0) && (galaxy_to_slab_map[i_gal].index < gal_counter));
+        assert((galaxy_to_slab_map[i_gal].slab_ind >= 0) && (galaxy_to_slab_map[i_gal].slab_ind < SID.n_proc));
+
+        if (gal->Pos[0] >= box_size)
+          gal->Pos[0] -= box_size;
+        else if (gal->Pos[0] < 0.0)
+          gal->Pos[0] += box_size;
+        int ix = pos_to_cell(gal->Pos[0] - min_xpos, box_size, HII_dim);
+        if (gal->Pos[1] >= box_size)
+          gal->Pos[1] -= box_size;
+        else if (gal->Pos[1] < 0.0)
+          gal->Pos[1] += box_size;
+        int iy = pos_to_cell(gal->Pos[1], box_size, HII_dim);
+        if (gal->Pos[2] >= box_size)
+          gal->Pos[2] -= box_size;
+        else if (gal->Pos[2] < 0.0)
+          gal->Pos[2] += box_size;
+        int iz = pos_to_cell(gal->Pos[2], box_size, HII_dim);
+
+        assert((ix < nix) && (ix >= 0));
+        assert((iy < HII_dim) && (iy >= 0));
+        assert((iz < HII_dim) && (iz >= 0));
+
+        int ind = grid_index(ix, iy, iz, HII_dim, INDEX_REAL);
+
+        assert((ind >=0) && (ind < nix*HII_dim*HII_dim));
+
+        switch (prop) {
+          case prop_stellar:
+            buffer[ind] += gal->GrossStellarMass;
+            break;
+
+          case prop_sfr:
+            buffer[ind] += gal->FescWeightedGSM;
+            break;
+
+          default:
+            SID_log_error("Unrecognised property in slab creation.");
+            ABORT(EXIT_FAILURE);
+            break;
         }
+
+        i_gal++;
+      }
+
+      // reduce on to the correct rank
+      if(SID.My_rank == i_r)
+        SID_Reduce(MPI_IN_PLACE, buffer, buffer_size, MPI_FLOAT, MPI_SUM, i_r, SID.COMM_WORLD);
+      else
+        SID_Reduce(buffer, buffer, buffer_size, MPI_FLOAT, MPI_SUM, i_r, SID.COMM_WORLD);
+
+      if (SID.My_rank == i_r)
+      {
+        // copy the buffer into the real slab
+        float *slab;
+        switch (prop) {
+          case prop_stellar:
+            slab = stellar_grid;
+            break;
+          case prop_sfr:
+            slab = sfr_grid;
+            break;
+        }
+
+        int slab_size = slab_nix[i_r] * HII_dim * HII_dim;
+        memcpy(slab, buffer, sizeof(float)*slab_size);
+
+        // Do one final pass to put the grid in the correct (real) units (Msol or
+        // Msol/s) and divide the sfr_grid by tHubble in order to convert the
+        // stellar masses recorded into SFRs.
+        for(int ii=0; ii < slab_size; ii++)
+        {
+          // put the values into the correct units
+          switch (prop) {
+            case prop_stellar:
+              if (slab[ii] > 0)
+                slab[ii] *= (1.e10 / Hubble_h);
+              break;
+            case prop_sfr:
+              if (slab[ii] > 0)
+                slab[ii] *= (units->UnitMass_in_g / units->UnitTime_in_s / SOLAR_MASS) / tHubble;
+              break;
+          }
+
+          // check for underflow
+          if (slab[ii] < 0)
+            slab[ii] = 0;
+        }
+      }
+
+    }
   }
 
   SID_log("done", SID_LOG_CLOSE);

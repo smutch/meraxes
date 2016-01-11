@@ -58,6 +58,9 @@ void calculate_Mvir_crit(double redshift)
 
   // Broadcast the result to all ranks
   SID_Bcast(Mvir_crit, HII_TOT_NUM_PIXELS * sizeof(float), 0, SID.COMM_WORLD);
+
+  // We are finished with the mappings between galaxies and slabs now...
+  SID_free(run_globals.tocf_grids.galaxy_to_slab_map);
 }
 
 

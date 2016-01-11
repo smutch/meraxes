@@ -40,7 +40,8 @@ int compare_ints(const void *a, const void *b)
 }
 
 
-int compare_floats(const void *a, const void *b) {
+int compare_floats(const void *a, const void *b)
+{
   float value = *(float *)a - *(float *)b;
   if (value > 0)
     return 1;
@@ -49,6 +50,21 @@ int compare_floats(const void *a, const void *b) {
   else
     return 0;
 }
+
+
+int compare_ptrdiff(const void *a, const void *b)
+{
+  ptrdiff_t result = *(ptrdiff_t *)a - *(ptrdiff_t *)b;
+  return (int)result;
+}
+
+
+int compare_slab_assign(const void *a, const void *b)
+{
+  int value = ((gal_to_slab_t *)a)->slab_ind - ((gal_to_slab_t *)b)->slab_ind;
+  return value != 0 ? value : ((gal_to_slab_t *)a)->index - ((gal_to_slab_t *)b)->index;
+}
+
 
 static float inline apply_pbc(float delta)
 {
@@ -62,6 +78,56 @@ static float inline apply_pbc(float delta)
   return delta;
 }
 
+
+int searchsorted(void *val,
+    void *arr,
+    int count,
+    size_t size,
+    int(*compare)(const void *a, const void *b),
+    int imin,
+    int imax)
+{
+  // check if we need to init imin and imax
+  if ((imax < 0) && (imin < 0))
+  {
+    imin = 0;
+    imax = count-1;
+  }
+
+  // test if we have found the result
+  if ((imax - imin) < 0)
+    return imax;
+  else
+  {
+    // calculate midpoint to cut set in half
+    int imid = imin + ((imax - imin) / 2);
+    void *arr_val = (void *)(((char *)arr + imid * size));
+
+    // three-way comparison
+    if (compare(arr_val, val) > 0)
+      // key is in lower subset
+      return searchsorted(val, arr, count, size, compare, imin, imid - 1);
+    else if (compare(arr_val, val) < 0)
+      // key is in upper subset
+      return searchsorted(val, arr, count, size, compare, imid + 1, imax);
+    else
+      // key has been found
+      return imid;
+  }
+}
+
+
+int pos_to_cell(double x, double side, int nx)
+{
+  int ind = (int)floor(x / side * (double)nx);
+
+  if(ind > nx-1)
+    ind = nx-1;
+  else if(ind < 0)
+    ind = 0;
+
+  return ind;
+}
 
 float comoving_distance(float a[3], float b[3])
 {
