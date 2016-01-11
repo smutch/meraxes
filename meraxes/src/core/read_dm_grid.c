@@ -36,7 +36,7 @@ int read_dm_grid(
     int            i_grid,
     float         *slab)
 {
-    // N.B. We assume in this function that the grid has the fftw3 inplace complex dft padding.
+    // N.B. We assume in this function that the slab has the fftw3 inplace complex dft padding.
 
     char       fname[512];
     MPI_File   fin = NULL;
@@ -128,28 +128,29 @@ int read_dm_grid(
     // Initialise (just in case!)
     for(int ii=0; ii < slab_ni_file; ii++)
       slab_file[ii] = 0.0;
+    // N.B. factor of two for fftw padding
     for(int ii=0; ii < tocf_params.slab_n_complex[SID.My_rank]*2; ii++)
-      slab[ii] = 0;
+      slab[ii] = 0.0;
 
 
     // Read in the slab for this rank
-    long slab_offset = start_foffset + tocf_params.slab_ix_start[SID.My_rank]*sizeof(float);
+    long slab_offset = start_foffset + tocf_params.slab_ix_start[SID.My_rank]*n_cell[1]*n_cell[2]*sizeof(float);
     MPI_File_open(MPI_COMM_WORLD, fname, MPI_MODE_RDONLY, MPI_INFO_NULL, &fin);
     MPI_File_read_at(fin, (MPI_Offset)slab_offset, slab_file, slab_ni_file, MPI_FLOAT, &status);
     MPI_File_close(&fin);
 
     // Copy the read slab into the padded fft slab (already allocated externally)
     // Regrid
-    for (int i = 0; i < slab_nix; i++)
+    for (int ii = 0; ii < slab_nix; ii++)
     {
-      int i_lr = (int)(i * resample_factor);
-      for (int j = 0; j < n_cell[1]; j++)
+      int i_lr = (int)(ii * resample_factor);
+      for (int jj = 0; jj < n_cell[1]; jj++)
       {
-        int j_lr = (int)(j * resample_factor);
-        for (int k = 0; k < n_cell[2]; k++)
+        int j_lr = (int)(jj * resample_factor);
+        for (int kk = 0; kk < n_cell[2]; kk++)
         {
-          int k_lr = (int)(k * resample_factor);
-          slab[grid_index(i_lr, j_lr, k_lr, HII_dim, INDEX_PADDED)] += slab_file[grid_index(i, j, k, HII_dim, INDEX_REAL)];
+          int k_lr = (int)(kk * resample_factor);
+          slab[grid_index(i_lr, j_lr, k_lr, HII_dim, INDEX_PADDED)] += slab_file[grid_index(ii, jj, kk, HII_dim, INDEX_REAL)];
         }
       }
     }
@@ -167,13 +168,13 @@ int read_dm_grid(
 
       // At this point grid holds the summed densities in each LR cell
       // Loop through again and calculate the overdensity
-      // i.e. (rho - rho_mean)/rho_mean
+      // ii.e. (rho - rho_mean)/rho_mean
       double cell_volume_ratio = pow(box_size[0] / (double)HII_dim, 3) / cell_volume;
-      for (int i = 0; i < slab_nix; i++)
-        for (int j = 0; j < HII_dim; j++)
-          for (int k = 0; k < HII_dim; k++)
+      for (int ii = 0; ii < slab_nix; ii++)
+        for (int jj = 0; jj < HII_dim; jj++)
+          for (int kk = 0; kk < HII_dim; kk++)
           {
-            float *val = &(slab[grid_index(i, j, k, HII_dim, INDEX_PADDED)]);
+            float *val = &(slab[grid_index(ii, jj, kk, HII_dim, INDEX_PADDED)]);
             *val = (*val / (cell_volume_ratio * mean)) - 1.;
           }
 
