@@ -157,9 +157,20 @@ void malloc_reionization_grids()
     assign_slabs();
 
     int HII_dim = tocf_params.HII_dim;
-    ptrdiff_t slab_n_real = tocf_params.slab_nix[SID.My_rank] * HII_dim * HII_dim;
+    ptrdiff_t *slab_nix = tocf_params.slab_nix;
+    ptrdiff_t slab_n_real = slab_nix[SID.My_rank] * HII_dim * HII_dim;
     ptrdiff_t slab_n_complex = tocf_params.slab_n_complex[SID.My_rank];
 
+    // create a buffer on each rank which is as large as the largest LOGICAL allocation on any single rank
+    int max_cells = 0;
+
+    for(int ii=0; ii < SID.n_proc; ii++)
+      if(slab_nix[ii] > max_cells)
+        max_cells = slab_nix[ii];
+
+    max_cells *= HII_dim * HII_dim;
+
+    grids->buffer          = fftwf_alloc_real(max_cells);
     grids->stars           = fftwf_alloc_real(slab_n_real);
     grids->stars_filtered  = fftwf_alloc_complex(slab_n_complex);
     grids->deltax          = fftwf_alloc_real(slab_n_real);
@@ -229,6 +240,7 @@ void free_reionization_grids()
 
   fftwf_free(grids->stars);
   fftwf_free(grids->sfr);
+  fftwf_free(grids->buffer);
 
   SID_log(" ...done", SID_LOG_CLOSE);
 }

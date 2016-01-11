@@ -285,6 +285,7 @@ tocf_params_t tocf_params;
 #endif
 
 typedef struct tocf_grids_t {
+  float         *buffer;
   float         *stars;
   fftwf_complex *stars_filtered;
   float         *deltax;
