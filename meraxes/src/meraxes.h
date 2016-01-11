@@ -69,6 +69,15 @@ FILE *meraxes_debug_file;
 #define PHYSICS_FLAG_MAXIMAL_MERGER_SF 4
 
 /*
+ * Enums
+ */
+typedef enum index_type {
+  INDEX_PADDED = 5674,
+  INDEX_REAL,
+  INDEX_COMPLEX_HERM,
+} index_type;
+
+/*
  * Structures
  */
 
@@ -604,7 +613,10 @@ void         calc_hdf5_props();
 void         prepare_galaxy_for_output(galaxy_t gal, galaxy_output_t *galout, int i_snap);
 void         read_photometric_tables();
 int          compare_ints(const void *a, const void *b);
+int          compare_floats(const void *a, const void *b);
 float        comoving_distance(float a[3], float b[3]);
+double       accurate_sumf(float *arr, int n);
+int          grid_index(int i, int j, int k, int dim, int type);
 void         mpi_debug_here(void);
 void         check_counts(fof_group_t *fof_group, int NGal, int NFof);
 void         cn_quote(void);
@@ -639,6 +651,8 @@ double reionization_modifier(galaxy_t *gal, double Mvir, float *Pos, int snapsho
 double sobacchi2013_modifier(double Mvir, double redshift);
 double gnedin2000_modifer(double Mvir, double redshift);
 #ifdef USE_TOCF
+void assign_slab();
+
 double tocf_modifier(galaxy_t *gal, double Mvir, float *Pos, int snapshot);
 void   set_HII_eff_factor();
 int    find_cell(float pos, double box_size);

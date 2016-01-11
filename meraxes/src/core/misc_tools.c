@@ -40,6 +40,16 @@ int compare_ints(const void *a, const void *b)
 }
 
 
+int compare_floats(const void *a, const void *b) {
+  float value = *(float *)a - *(float *)b;
+  if (value > 0)
+    return 1;
+  else if (value < 0)
+    return -1;
+  else
+    return 0;
+}
+
 static float inline apply_pbc(float delta)
 {
   float box_size = (float)(run_globals.params.BoxSize);
@@ -63,5 +73,37 @@ float comoving_distance(float a[3], float b[3])
   assert(dist <= (sqrtf(3.0)/2.0 * run_globals.params.BoxSize));
 
   return dist;
+}
+
+
+double accurate_sumf(float *arr, int n) {
+  // inplace reorder and sum
+  qsort(arr, n, sizeof(float), compare_floats);
+
+  double total = 0;
+  for(int ii=0; ii<n; ii++)
+    total += arr[ii];
+
+  return total;
+}
+
+
+int grid_index(int i, int j, int k, int dim, int type)
+{
+  int ind;
+  switch(type)
+  {
+    case INDEX_PADDED:
+      ind  = k + (2*(dim/2 +1)) * (j + dim * i);
+      break;
+    case INDEX_REAL:
+      ind = k + dim * (j + dim *i);
+      break;
+    case INDEX_COMPLEX_HERM:
+      ind = k + (dim/2 + 1) * (j + dim * i);
+      break;
+  }
+
+  return ind;
 }
 
