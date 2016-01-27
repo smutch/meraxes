@@ -39,6 +39,8 @@ void set_HII_eff_factor()
 
 void assign_slabs()
 {
+  // Allocations made in this function are free'd in `free_reionization_grids`.
+
   // Assign the slab size
   int n_rank = SID.n_proc;
   int dim = tocf_params.HII_dim;
@@ -93,13 +95,6 @@ void call_find_HII_bubbles(int snapshot, int unsampled_snapshot, int nout_gals)
     // Read in the dark matter density grid
     read_dm_grid(unsampled_snapshot, 0, (float*)(grids->deltax));
 
-    // Make copies of the stellar and deltax grids before sending them to
-    // 21cmfast.  This is because the floating precision fft--ifft introduces
-    // rounding error that we don't want to store...
-    memcpy(grids->stars_copy, grids->stars, sizeof(fftwf_complex) * HII_KSPACE_NUM_PIXELS);
-    memcpy(grids->sfr_copy, grids->sfr, sizeof(fftwf_complex) * HII_KSPACE_NUM_PIXELS);
-    memcpy(grids->deltax_copy, grids->deltax, sizeof(fftwf_complex) * HII_KSPACE_NUM_PIXELS);
-
     SID_log("Calling find_HII_bubbles...", SID_LOG_OPEN | SID_LOG_TIMER);
     // TODO: Fix if snapshot==0
     grids->global_xH = find_HII_bubbles(run_globals.ZZ[snapshot], run_globals.ZZ[snapshot - 1],
@@ -112,18 +107,10 @@ void call_find_HII_bubbles(int snapshot, int unsampled_snapshot, int nout_gals)
         grids->sfr_filtered,        // grids->sfr_filtered or NULL
         grids->z_at_ionization,
         grids->J_21_at_ionization,
-        grids->J_21,
-        grids->mfp,
-        grids->N_rec,
-        grids->N_rec_filtered
+        grids->J_21
         );
 
     SID_log("grids->global_xH = %g", SID_LOG_COMMENT, grids->global_xH);
-
-    // copy the original (non fourier transformed) grids back into place
-    memcpy(grids->stars, grids->stars_copy, sizeof(fftwf_complex) * HII_KSPACE_NUM_PIXELS);
-    memcpy(grids->sfr, grids->sfr_copy, sizeof(fftwf_complex) * HII_KSPACE_NUM_PIXELS);
-    memcpy(grids->deltax, grids->deltax_copy, sizeof(fftwf_complex) * HII_KSPACE_NUM_PIXELS);
   }
 
   // send the global_xH value to all cores
@@ -227,6 +214,10 @@ void free_reionization_grids()
 
   tocf_grids_t *grids = &(run_globals.tocf_grids);
 
+  SID_free(SID_FARG tocf_params.slab_n_complex);
+  SID_free(SID_FARG tocf_params.slab_ix_start);
+  SID_free(SID_FARG tocf_params.slab_nix);
+
   if (tocf_params.uvb_feedback)
   {
     fftwf_free(grids->J_21);
@@ -250,32 +241,17 @@ void free_reionization_grids()
 }
 
 
-void construct_stellar_grids(int snapshot, int ngals)
+int map_galaxies_to_slabs(int ngals)
 {
-  galaxy_t *gal;
   double box_size     = (double)(run_globals.params.BoxSize);
-  double Hubble_h     = run_globals.params.Hubble_h;
-  float *stellar_grid = run_globals.tocf_grids.stars;
-  float *sfr_grid     = run_globals.tocf_grids.sfr;
   int HII_dim         = tocf_params.HII_dim;
-  run_units_t *units  = &(run_globals.units);
-  double tHubble      = hubble_time(snapshot);
-
-  SID_log("Constructing stellar mass and sfr grids...", SID_LOG_OPEN | SID_LOG_TIMER);
-
-  // init the grid
-  for (int ii = 0; ii < HII_TOT_FFT_NUM_PIXELS; ii++)
-  {
-    *(stellar_grid + ii) = 0.0;
-    *(sfr_grid + ii)     = 0.0;
-  }
 
   // Loop through each valid galaxy and find what slab it sits in
   run_globals.tocf_grids.galaxy_to_slab_map = SID_malloc(sizeof(gal_to_slab_t) * ngals);
   gal_to_slab_t *galaxy_to_slab_map         = run_globals.tocf_grids.galaxy_to_slab_map;
   ptrdiff_t *slab_ix_start = tocf_params.slab_ix_start;
 
-  gal = run_globals.FirstGal;
+  galaxy_t *gal = run_globals.FirstGal;
   int gal_counter = 0;
   while (gal != NULL)
   {
@@ -309,8 +285,34 @@ void construct_stellar_grids(int snapshot, int ngals)
     gal = gal->Next;
   }
 
-  // sort the slab indices (n.b. compare_slab_assign is a stable comparison)
-  qsort(galaxy_to_slab_map, gal_counter, sizeof(gal_to_slab_t), compare_slab_assign);
+  return gal_counter;
+}
+
+
+void construct_stellar_grids(int snapshot, int ngals_in_slabs)
+{
+  double box_size     = (double)(run_globals.params.BoxSize);
+  double Hubble_h     = run_globals.params.Hubble_h;
+  float *stellar_grid = run_globals.tocf_grids.stars;
+  float *sfr_grid     = run_globals.tocf_grids.sfr;
+  int HII_dim         = tocf_params.HII_dim;
+  run_units_t *units  = &(run_globals.units);
+  double tHubble      = hubble_time(snapshot);
+
+  gal_to_slab_t *galaxy_to_slab_map         = run_globals.tocf_grids.galaxy_to_slab_map;
+  ptrdiff_t *slab_ix_start = tocf_params.slab_ix_start;
+
+  SID_log("Constructing stellar mass and sfr grids...", SID_LOG_OPEN | SID_LOG_TIMER);
+
+  // init the grid
+  for (int ii = 0; ii < HII_TOT_FFT_NUM_PIXELS; ii++)
+  {
+    *(stellar_grid + ii) = 0.0;
+    *(sfr_grid + ii)     = 0.0;
+  }
+
+  // sort the slab indices IN PLACE (n.b. compare_slab_assign is a stable comparison)
+  qsort(galaxy_to_slab_map, ngals_in_slabs, sizeof(gal_to_slab_t), compare_slab_assign);
 
   // loop through each slab
   int i_gal = 0;
@@ -332,11 +334,11 @@ void construct_stellar_grids(int snapshot, int ngals)
         buffer[ii] = 0.;
 
       // fill the local buffer for this slab
-      while((i_gal < gal_counter) && (galaxy_to_slab_map[i_gal].slab_ind == i_r))
+      while((i_gal < ngals_in_slabs) && (galaxy_to_slab_map[i_gal].slab_ind == i_r))
       {
         galaxy_t *gal = galaxy_to_slab_map[i_gal].galaxy;
 
-        assert((galaxy_to_slab_map[i_gal].index >= 0) && (galaxy_to_slab_map[i_gal].index < gal_counter));
+        assert((galaxy_to_slab_map[i_gal].index >= 0) && (galaxy_to_slab_map[i_gal].index < ngals_in_slabs));
         assert((galaxy_to_slab_map[i_gal].slab_ind >= 0) && (galaxy_to_slab_map[i_gal].slab_ind < SID.n_proc));
 
         if (gal->Pos[0] >= box_size)

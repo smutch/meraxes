@@ -396,6 +396,12 @@ void dracarys()
     check_counts(fof_group, NGal, trees_info.n_fof_groups);
 #endif
 
+#ifdef USE_TOCF
+    int ngals_in_slabs;
+    if (run_globals.params.TOCF_Flag)
+      ngals_in_slabs = map_galaxies_to_slabs(NGal);
+#endif
+
     // Do the physics
     if (NGal > 0)
       nout_gals = evolve_galaxies(fof_group, snapshot, NGal, trees_info.n_fof_groups);
@@ -407,10 +413,6 @@ void dracarys()
 
 #ifdef USE_TOCF
 
-    // if we have already created a mapping of galaxies to MPI slabs then we no
-    // longer need them as they will need to be re-created for the new galaxies
-    SID_free(run_globals.tocf_grids.galaxy_to_slab_map);
-    
     physics_params_t *params = &(run_globals.params.physics);
     
     if (params->Flag_RedshiftDepEscFrac)
@@ -436,6 +438,12 @@ void dracarys()
       else
         call_find_HII_bubbles(snapshot, trees_info.unsampled_snapshot, nout_gals);
     }
+
+    // if we have already created a mapping of galaxies to MPI slabs then we no
+    // longer need them as they will need to be re-created for the new halo
+    // positions in the next time step
+    SID_free(SID_FARG run_globals.tocf_grids.galaxy_to_slab_map);
+    
     
 #endif
 

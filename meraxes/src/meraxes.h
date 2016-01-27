@@ -284,6 +284,14 @@ extern tocf_params_t tocf_params;
 tocf_params_t tocf_params;
 #endif
 
+
+typedef struct gal_to_slab_t {
+  int index;
+  struct galaxy_t *galaxy;
+  int slab_ind;
+} gal_to_slab_t;
+
+
 typedef struct tocf_grids_t {
   float         *buffer;
   float         *stars;
@@ -475,13 +483,6 @@ typedef struct galaxy_output_t {
 } galaxy_output_t;
 
 
-typedef struct gal_to_slab_t {
-  int index;
-  galaxy_t *galaxy;
-  int slab_ind;
-} gal_to_slab_t;
-
-
 //! Tree info struct
 typedef struct trees_info_t {
   int n_step;
@@ -670,6 +671,7 @@ void   set_HII_eff_factor();
 int    find_cell(float pos, double box_size);
 void   malloc_reionization_grids();
 void   free_reionization_grids();
+int    map_galaxies_to_slabs(int ngals);
 void   construct_stellar_grids(int snapshot, int ngals);
 // void    assign_ionization_to_halos(halo_t *halo, int n_halos, float *xH_grid, int xH_dim);
 int  read_dm_grid(int snapshot, int i_grid, float *grid);
