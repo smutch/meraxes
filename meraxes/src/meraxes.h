@@ -660,18 +660,19 @@ void   cleanup_mags();
 
 // Reionization related
 void   read_Mcrit_table();
-double reionization_modifier(galaxy_t *gal, double Mvir, float *Pos, int snapshot);
+double reionization_modifier(galaxy_t *gal, double Mvir, int snapshot);
 double sobacchi2013_modifier(double Mvir, double redshift);
 double gnedin2000_modifer(double Mvir, double redshift);
 #ifdef USE_TOCF
 void assign_slabs();
 
-double tocf_modifier(galaxy_t *gal, double Mvir, float *Pos, int snapshot);
+double tocf_modifier(galaxy_t *gal, double Mvir);
 void   set_HII_eff_factor();
 int    find_cell(float pos, double box_size);
 void   malloc_reionization_grids();
 void   free_reionization_grids();
 int    map_galaxies_to_slabs(int ngals);
+void   assign_Mvir_crit_to_galaxies(int ngals_in_slabs);
 void   construct_stellar_grids(int snapshot, int ngals);
 // void    assign_ionization_to_halos(halo_t *halo, int n_halos, float *xH_grid, int xH_dim);
 int  read_dm_grid(int snapshot, int i_grid, float *grid);

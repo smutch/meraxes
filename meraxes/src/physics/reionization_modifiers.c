@@ -120,7 +120,7 @@ double gnedin2000_modifer(double Mvir, double redshift)
 }
 
 
-double reionization_modifier(galaxy_t *gal, double Mvir, float *Pos, int snapshot)
+double reionization_modifier(galaxy_t *gal, double Mvir, int snapshot)
 {
   double redshift;
   double modifier;
@@ -130,7 +130,7 @@ double reionization_modifier(galaxy_t *gal, double Mvir, float *Pos, int snapsho
 #ifdef USE_TOCF
   if ((tocf_params.uvb_feedback) && (run_globals.params.TOCF_Flag))
   {
-    modifier = tocf_modifier(gal, Mvir, Pos, snapshot);
+    modifier = tocf_modifier(gal, Mvir);
     return modifier;
   }
 #endif

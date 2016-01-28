@@ -61,26 +61,8 @@ void calculate_Mvir_crit(double redshift)
 }
 
 
-double tocf_modifier(galaxy_t *gal, double Mvir, float *Pos, int snapshot)
+double tocf_modifier(galaxy_t *gal, double Mvir)
 {
-  double f_mod;
-  double box_size     = run_globals.params.BoxSize;
-  float  *M_crit_grid = run_globals.tocf_grids.Mvir_crit;
-  int HII_dim         = tocf_params.HII_dim;
-  double M_crit;
-
-  int ix = pos_to_cell(Pos[0], box_size, HII_dim);
-  int iy = pos_to_cell(Pos[1], box_size, HII_dim);
-  int iz = pos_to_cell(Pos[2], box_size, HII_dim);
-
-  M_crit = (double)M_crit_grid[grid_index(ix, iy, iz, HII_dim, INDEX_REAL)];
-
-  // see eqn 6 in Sobacchi & Messinger, MNRAS, 432, L51, 2013
-  f_mod = pow(2.0, -1.0*M_crit/Mvir);
-
-  // Record the Mvir_crit (filtering mass) value
-  gal->MvirCrit = M_crit;
-
-  return f_mod;
+  return pow(2.0, -1.0 * gal->MvirCrit / Mvir);
 }
 #endif

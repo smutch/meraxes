@@ -285,7 +285,82 @@ int map_galaxies_to_slabs(int ngals)
     gal = gal->Next;
   }
 
+  // sort the slab indices IN PLACE (n.b. compare_slab_assign is a stable comparison)
+  qsort(galaxy_to_slab_map, gal_counter, sizeof(gal_to_slab_t), compare_slab_assign);
+
   return gal_counter;
+}
+
+
+void assign_Mvir_crit_to_galaxies(int ngals_in_slabs)
+{
+
+  // N.B. We are assuming here that the galaxy_to_slab mapping has been sorted
+  // by slab index...
+  gal_to_slab_t *galaxy_to_slab_map         = run_globals.tocf_grids.galaxy_to_slab_map;
+  float *Mvir_crit = run_globals.tocf_grids.Mvir_crit;
+  float *buffer = run_globals.tocf_grids.buffer;
+  ptrdiff_t *slab_nix = tocf_params.slab_nix;
+  ptrdiff_t *slab_ix_start = tocf_params.slab_ix_start;
+  int HII_dim         = tocf_params.HII_dim;
+  double box_size     = run_globals.params.BoxSize;
+
+  int slab_map_offsets[SID.n_proc];
+  for(int ii=0, i_gal=0; ii < SID.n_proc; ii++)
+  {
+    while((galaxy_to_slab_map[i_gal].slab_ind < ii) && (i_gal < ngals_in_slabs))
+      i_gal++;
+
+    if(galaxy_to_slab_map[i_gal].slab_ind == ii)
+      slab_map_offsets[ii] = i_gal;
+    else
+      slab_map_offsets[ii] = -1;
+  }
+
+  for(int i_skip=0; i_skip < SID.n_proc; i_skip++)
+  {
+    int recv_from_rank = (SID.My_rank + i_skip) % SID.n_proc;
+    int send_to_rank = (SID.My_rank - i_skip) % SID.n_proc;
+
+    bool send_flag = false;
+    bool recv_flag = (slab_map_offsets[recv_from_rank] > -1);
+      
+    int tag = recv_from_rank*1000 + send_to_rank;
+    SID_Sendrecv(&recv_flag, sizeof(bool), SID_BYTE, recv_from_rank, tag,
+        &send_flag, sizeof(bool), SID_BYTE, send_to_rank, tag, SID.COMM_WORLD);
+
+    tag = recv_from_rank*1000 + send_to_rank*2;
+    int n_cells = slab_nix[SID.My_rank]*HII_dim*HII_dim;
+
+    if((SID.My_rank == recv_from_rank) && send_flag)
+      SID_Send(Mvir_crit, n_cells, SID_FLOAT, send_to_rank, tag, SID.COMM_WORLD);
+
+    if((SID.My_rank == send_to_rank) && recv_flag)
+    {
+      SID_Recv(buffer, n_cells, SID_FLOAT, recv_from_rank, tag, SID.COMM_WORLD);
+
+      int i_gal = slab_map_offsets[recv_from_rank];
+      int ix_start = slab_ix_start[recv_from_rank];
+      while((galaxy_to_slab_map[i_gal].slab_ind == recv_from_rank) && (i_gal < ngals_in_slabs))
+      {
+        // TODO: We should use the position of the FOF group here...
+        galaxy_t *gal = galaxy_to_slab_map[i_gal].galaxy;
+        int ix = pos_to_cell(gal->Pos[0], box_size, HII_dim) - ix_start;
+        int iy = pos_to_cell(gal->Pos[1], box_size, HII_dim);
+        int iz = pos_to_cell(gal->Pos[2], box_size, HII_dim);
+
+        // Record the Mvir_crit (filtering mass) value
+        gal->MvirCrit = (double)buffer[grid_index(ix, iy, iz, HII_dim, INDEX_REAL)];
+
+        // increment counter
+        i_gal++;
+      }
+
+    }
+
+  }
+
+
 }
 
 
@@ -311,10 +386,10 @@ void construct_stellar_grids(int snapshot, int ngals_in_slabs)
     *(sfr_grid + ii)     = 0.0;
   }
 
-  // sort the slab indices IN PLACE (n.b. compare_slab_assign is a stable comparison)
-  qsort(galaxy_to_slab_map, ngals_in_slabs, sizeof(gal_to_slab_t), compare_slab_assign);
-
   // loop through each slab
+  //
+  // N.B. We are assuming here that the galaxy_to_slab mapping has been sorted
+  // by slab index...
   int i_gal = 0;
   double cell_width = box_size / (double)HII_dim;
   ptrdiff_t *slab_nix = tocf_params.slab_nix;

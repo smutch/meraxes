@@ -399,7 +399,10 @@ void dracarys()
 #ifdef USE_TOCF
     int ngals_in_slabs;
     if (run_globals.params.TOCF_Flag)
+    {
       ngals_in_slabs = map_galaxies_to_slabs(NGal);
+      assign_Mvir_crit_to_galaxies(ngals_in_slabs);
+    }
 #endif
 
     // Do the physics
