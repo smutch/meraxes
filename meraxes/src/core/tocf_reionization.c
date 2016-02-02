@@ -1,7 +1,9 @@
 #ifdef USE_TOCF
 
 #include "meraxes.h"
+#include <complex.h>
 #include <fftw3.h>
+#include <fftw3-mpi.h>
 #include <math.h>
 #include <hdf5.h>
 #include <hdf5_hl.h>
@@ -129,10 +131,13 @@ void malloc_reionization_grids()
 
   grids->xH                 = NULL;
   grids->stars              = NULL;
+  grids->stars_unfiltered   = NULL;
   grids->stars_filtered     = NULL;
   grids->deltax             = NULL;
+  grids->deltax_unfiltered  = NULL;
   grids->deltax_filtered    = NULL;
   grids->sfr                = NULL;
+  grids->sfr_unfiltered     = NULL;
   grids->sfr_filtered       = NULL;
   grids->z_at_ionization    = NULL;
   grids->J_21_at_ionization = NULL;
@@ -162,11 +167,11 @@ void malloc_reionization_grids()
     grids->buffer_size = max_cells;
 
     grids->buffer          = fftwf_alloc_real(max_cells);
-    grids->stars           = fftwf_alloc_real(slab_n_real);
+    grids->stars           = fftwf_alloc_real(slab_n_real * 2);  // padded for in-place FFT
     grids->stars_filtered  = fftwf_alloc_complex(slab_n_complex);
-    grids->deltax          = fftwf_alloc_real(slab_n_real);
+    grids->deltax          = fftwf_alloc_real(slab_n_real * 2);  // padded for in-place FFT
     grids->deltax_filtered = fftwf_alloc_complex(slab_n_complex);
-    grids->sfr             = fftwf_alloc_real(slab_n_real);
+    grids->sfr             = fftwf_alloc_real(slab_n_real * 2);  // padded for in-place FFT
     grids->sfr_filtered    = fftwf_alloc_complex(slab_n_complex);
     grids->xH              = fftwf_alloc_real(slab_n_real);
     grids->z_at_ionization = fftwf_alloc_real(slab_n_real);
@@ -196,12 +201,12 @@ void malloc_reionization_grids()
     }
 
     memset(grids->stars_filtered, 0, sizeof(fftwf_complex) * slab_n_complex);
-    memset(grids->deltax, 0, sizeof(fftwf_complex) * slab_n_complex);
     memset(grids->deltax_filtered, 0, sizeof(fftwf_complex) * slab_n_complex);
     memset(grids->sfr_filtered, 0, sizeof(fftwf_complex) * slab_n_complex);
 
-    memset(grids->stars, 0, sizeof(fftwf_complex) * slab_n_complex);
-    memset(grids->sfr, 0, sizeof(fftwf_complex) * slab_n_complex);
+    memset(grids->deltax, 0, sizeof(float) * slab_n_real * 2);
+    memset(grids->stars, 0, sizeof(float) * slab_n_real * 2);
+    memset(grids->sfr, 0, sizeof(float) * slab_n_real * 2);
 
     SID_log(" ...done", SID_LOG_CLOSE);
   }

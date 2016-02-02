@@ -51,7 +51,12 @@ double Tvir_to_Mvir(double T, double z)
   double OmegaM      = run_globals.params.OmegaM;
   double OmegaK      = run_globals.params.OmegaK;
   double OmegaLambda = run_globals.params.OmegaLambda;
-  double mu          = 0.59; //!< Mean molecular weight (ionized gas)
+
+  double mu; //!< Mean molecular weight (ionized gas)
+  if (T < 9.99999e3) // Neutral IGM
+    mu = 1.22;
+  else // Ionised IGM
+    mu = 0.59;
 
   double z_term     = pow((1. + z) / 10., -1.5);
   double T_term     = pow(T / 1.98e4, 1.5);

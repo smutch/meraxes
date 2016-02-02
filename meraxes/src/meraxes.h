@@ -295,10 +295,13 @@ typedef struct gal_to_slab_t {
 typedef struct tocf_grids_t {
   float         *buffer;
   float         *stars;
+  fftwf_complex *stars_unfiltered;
   fftwf_complex *stars_filtered;
   float         *deltax;
+  fftwf_complex *deltax_unfiltered;
   fftwf_complex *deltax_filtered;
   float         *sfr;
+  fftwf_complex *sfr_unfiltered;
   fftwf_complex *sfr_filtered;
   float         *xH;
   float         *z_at_ionization;
