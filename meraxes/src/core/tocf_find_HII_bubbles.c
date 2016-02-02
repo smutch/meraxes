@@ -40,22 +40,28 @@ double RtoM(double R){
 void HII_filter(fftwf_complex *box, float R)
 {
   int filter_type = tocf_params.HII_filter;
+  int slab_nx = tocf_params.slab_nix[SID.My_rank];
+  int local_ix_start = tocf_params.slab_ix_start[SID.My_rank];
   int HII_dim = tocf_params.HII_dim;
   int HII_middle = HII_dim / 2;
   float box_size = run_globals.params.BoxSize;
   float delta_k = M_PI / box_size;
-  float k_x, k_y, k_z, k_mag, kR;
 
   // Loop through k-box
-  for (int n_x=0; n_x<HII_dim; n_x++)
+  for (int n_x=0; n_x<slab_nx; n_x++)
   {
-    if (n_x>HII_middle)
-      k_x = (n_x-HII_dim)*delta_k;
+    float k_x;
+    int n_x_global = n_x + local_ix_start;
+
+    if (n_x_global > HII_middle)
+      k_x = (n_x_global - HII_dim)*delta_k;
     else
-      k_x = n_x*delta_k;
+      k_x = n_x_global*delta_k;
 
     for (int n_y=0; n_y<HII_dim; n_y++)
     {
+      float k_y;
+
       if (n_y>HII_middle)
         k_y = (n_y-HII_dim)*delta_k;
       else
@@ -63,11 +69,11 @@ void HII_filter(fftwf_complex *box, float R)
 
       for (int n_z=0; n_z<=HII_middle; n_z++)
       { 
-        k_z = n_z*delta_k;
+        float k_z = n_z*delta_k;
 
-        k_mag = sqrt(k_x*k_x + k_y*k_y + k_z*k_z);
+        float k_mag = sqrt(k_x*k_x + k_y*k_y + k_z*k_z);
 
-        kR = k_mag*R;   // Real space top-hat
+        float kR = k_mag*R;   // Real space top-hat
 
         switch(filter_type)
         {
@@ -84,7 +90,7 @@ void HII_filter(fftwf_complex *box, float R)
         
           case 2:   // Gaussian
             kR *= 0.643;   // Equates integrated volume to the real space top-hat
-            box[HII_C_INDEX(n_x, n_y, n_z)] *= pow(M_E, -kR*kR/2.0);
+            box[HII_C_INDEX(n_x, n_y, n_z)] *= powf(M_E, -kR*kR/2.0);
             break;
 
           default:
