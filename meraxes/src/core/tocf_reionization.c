@@ -320,25 +320,36 @@ void assign_Mvir_crit_to_galaxies(int ngals_in_slabs)
   for(int i_skip=0; i_skip < SID.n_proc; i_skip++)
   {
     int recv_from_rank = (SID.My_rank + i_skip) % SID.n_proc;
-    int send_to_rank = (SID.My_rank - i_skip) % SID.n_proc;
+    int send_to_rank = (SID.My_rank - i_skip + SID.n_proc) % SID.n_proc;
 
     bool send_flag = false;
     bool recv_flag = (slab_map_offsets[recv_from_rank] > -1);
       
-    int tag = recv_from_rank*1000 + send_to_rank;
-    SID_Sendrecv(&recv_flag, sizeof(bool), SID_BYTE, recv_from_rank, tag,
-        &send_flag, sizeof(bool), SID_BYTE, send_to_rank, tag, SID.COMM_WORLD);
-
-    tag = recv_from_rank*1000 + send_to_rank*2;
-    int n_cells = slab_nix[SID.My_rank]*HII_dim*HII_dim;
-
-    if((SID.My_rank == recv_from_rank) && send_flag)
-      SID_Send(Mvir_crit, n_cells, SID_FLOAT, send_to_rank, tag, SID.COMM_WORLD);
-
-    if((SID.My_rank == send_to_rank) && recv_flag)
+    if (i_skip > 0)
     {
-      SID_Recv(buffer, n_cells, SID_FLOAT, recv_from_rank, tag, SID.COMM_WORLD);
+      SID_Sendrecv(&recv_flag, sizeof(bool), SID_BYTE, recv_from_rank, 6393762,
+          &send_flag, sizeof(bool), SID_BYTE, send_to_rank, 6393762, SID.COMM_WORLD);
 
+      if(send_flag)
+      {
+        int n_cells = slab_nix[SID.My_rank]*HII_dim*HII_dim;
+        SID_Send(Mvir_crit, n_cells, SID_FLOAT, send_to_rank, 793710, SID.COMM_WORLD);
+      }
+
+      if(recv_flag)
+      {
+        int n_cells = slab_nix[recv_from_rank]*HII_dim*HII_dim; 
+        SID_Recv(buffer, n_cells, SID_FLOAT, recv_from_rank, 793710, SID.COMM_WORLD);
+      }
+    }
+    else
+    {
+      int n_cells = slab_nix[recv_from_rank]*HII_dim*HII_dim; 
+      memcpy(buffer, Mvir_crit, sizeof(float) * n_cells);
+    }
+
+    if(recv_flag)
+    {
       int i_gal = slab_map_offsets[recv_from_rank];
       int ix_start = slab_ix_start[recv_from_rank];
       while((galaxy_to_slab_map[i_gal].slab_ind == recv_from_rank) && (i_gal < ngals_in_slabs))
@@ -355,7 +366,6 @@ void assign_Mvir_crit_to_galaxies(int ngals_in_slabs)
         // increment counter
         i_gal++;
       }
-
     }
 
   }
