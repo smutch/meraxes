@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <complex.h>
 #include <gbpLib.h>
 #include <gsl/gsl_rng.h>
 #include <stdbool.h>
@@ -249,6 +250,7 @@ struct tocf_params_t
     double ion_tvir_min;
     float  HII_eff_factor;
     int    HII_filter;
+    int    RtoM_filter;  // TODO: INIT!
     float  r_bubble_min;
     float  r_bubble_max;
     int    uvb_feedback;

@@ -1,7 +1,6 @@
 #ifdef USE_TOCF
 
 #include "meraxes.h"
-#include <complex.h>
 #include <fftw3.h>
 #include <fftw3-mpi.h>
 #include <math.h>
@@ -16,7 +15,7 @@
 
 // R in Mpc/h, M in 1e10 Msun/h 
 double RtoM(double R){
-  int filter = tocf_params.HII_filter;
+  int filter = tocf_params.RtoM_filter;
   double OmegaM = run_globals.params.OmegaM;
   double RhoCrit = run_globals.RhoCrit;
 
@@ -36,6 +35,74 @@ double RtoM(double R){
 
   return -1;
 }
+
+
+void HII_filter(fftwf_complex *box, float R)
+{
+  int filter_type = tocf_params.HII_filter;
+  int HII_dim = tocf_params.HII_dim;
+  int HII_middle = HII_dim / 2;
+  float box_size = run_globals.params.BoxSize;
+  float delta_k = M_PI / box_size;
+  float k_x, k_y, k_z, k_mag, kR;
+
+  // Loop through k-box
+  for (int n_x=0; n_x<HII_dim; n_x++)
+  {
+    if (n_x>HII_middle)
+      k_x = (n_x-HII_dim)*delta_k;
+    else
+      k_x = n_x*delta_k;
+
+    for (int n_y=0; n_y<HII_dim; n_y++)
+    {
+      if (n_y>HII_middle)
+        k_y = (n_y-HII_dim)*delta_k;
+      else
+        k_y = n_y*delta_k;
+
+      for (int n_z=0; n_z<=HII_middle; n_z++)
+      { 
+        k_z = n_z*delta_k;
+
+        k_mag = sqrt(k_x*k_x + k_y*k_y + k_z*k_z);
+
+        kR = k_mag*R;   // Real space top-hat
+
+        switch(filter_type)
+        {
+          case 0:   // Real space top-hat
+            if (kR > 1e-4)
+              box[HII_C_INDEX(n_x, n_y, n_z)] *= 3.0 * (sinf(kR)/powf(kR, 3) - cosf(kR)/powf(kR, 2));
+            break;
+
+          case 1:   // k-space top hat
+            kR *= 0.413566994; // Equates integrated volume to the real space top-hat (9pi/2)^(-1/3)
+            if (kR > 1)
+              box[HII_C_INDEX(n_x, n_y, n_z)] = 0.0;
+            break;
+        
+          case 2:   // Gaussian
+            kR *= 0.643;   // Equates integrated volume to the real space top-hat
+            box[HII_C_INDEX(n_x, n_y, n_z)] *= pow(M_E, -kR*kR/2.0);
+            break;
+
+          default:
+            if ( (n_x==0) && (n_y==0) && (n_z==0) )
+            {
+              SID_log_error("HII_filter.c: Warning, HII_filter type %d is undefined!", filter_type);
+              ABORT(EXIT_FAILURE);
+            }
+            break;
+        }
+
+      }
+
+    }
+  }   // End looping through k box
+
+}
+
 
 float find_HII_bubbles(float redshift)
 {
@@ -100,10 +167,9 @@ float find_HII_bubbles(float redshift)
   int slab_n_complex = tocf_params.slab_n_complex[SID.My_rank];
   for (int ii=0; ii<slab_n_complex; ii++)
   {
-    // [0] element refers to real part of complex number
-    deltax_unfiltered[ii][0] /= (float)total_n_cells;
-    stars_unfiltered[ii][0] /= (float)total_n_cells;
-    sfr_unfiltered[ii][0] /= (float)total_n_cells;
+    deltax_unfiltered[ii] /= (float)total_n_cells;
+    stars_unfiltered[ii] /= (float)total_n_cells;
+    sfr_unfiltered[ii] /= (float)total_n_cells;
   }
 
   // Loop through filter radii
@@ -132,9 +198,9 @@ float find_HII_bubbles(float redshift)
     // do the filtering unless this is the last filter step
     if(!flag_last_filter_step)
     {
-      HII_filter(deltax_filtered, HII_filter, R);
-      HII_filter(stars_filtered, HII_filter, R);
-      HII_filter(sfr_filtered, HII_filter, R);
+      HII_filter(deltax_filtered, R);
+      HII_filter(stars_filtered, R);
+      HII_filter(sfr_filtered, R);
     }
 
   }
