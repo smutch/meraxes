@@ -183,6 +183,7 @@ float find_HII_bubbles(float redshift)
   float r_bubble_min = tocf_params.r_bubble_min;  // Mpc/h
   float R = fmin(r_bubble_max, l_factor * box_size);  // Mpc/h
   float delta_r_HII_factor = tocf_params.delta_r_HII_factor;
+  float gamma_halo_bias = tocf_params.gamma_halo_bias;
   
   bool flag_last_filter_step = false;
 
@@ -242,7 +243,6 @@ float find_HII_bubbles(float redshift)
     int flag_uvb_feedback = tocf_params.uvb_feedback;
     float BaryonFrac = run_globals.params.BaryonFrac;
     float HII_eff_factor = tocf_params.HII_eff_factor;
-    float gamma_halo_bias = tocf_params.gamma_halo_bias;
     for (int ix=0; ix<HII_dim; ix++)
     {   
       for (int iy=0; iy<HII_dim; iy++)
@@ -302,6 +302,23 @@ float find_HII_bubbles(float redshift)
 
   }
 
+
+  // Find the neutral fraction
+  float global_xH = 0.0;
+  for (int ct=0; ct < slab_n_real; ct++)
+    global_xH += xH[ct];
+  SID_Allreduce(&global_xH, &global_xH, 1, SID_FLOAT, SID_SUM, SID.COMM_WORLD);
+  global_xH /= (float)pow(HII_dim, 3);
+
+  // Renormalise the J_21 box
+  if(flag_uvb_feedback)
+    for(int ct=0; ct < slab_n_real; ct++)
+      J_21[ct] /= gamma_halo_bias;
+
+  // cleanup
+  fftwf_mpi_cleanup();
+
+  return global_xH;
 }
 
 #endif
