@@ -225,15 +225,80 @@ float find_HII_bubbles(float redshift)
     // Perform sanity checks to account for aliasing effects
     int local_nix = tocf_params.slab_nix[SID.My_rank];
     for (int ix=0; ix<local_nix; ix++)
-      for (int iy=0; iy<HII_DIM; iy++)
-        for (int iz=0; iz<HII_DIM; iz++)
+      for (int iy=0; iy<HII_dim; iy++)
+        for (int iz=0; iz<HII_dim; iz++)
         {   
-          ((float *)deltax_filtered)[grid_index(ix, iy, iz, HII_dim, INDEX_REAL)] = fmaxf(((float *)deltax_filtered)[grid_index(ix, iy, iz, HII_dim, INDEX_REAL)], -1 + REL_TOL);
+          ((float *)deltax_filtered)[grid_index(ix, iy, iz, HII_dim, INDEX_PADDED)] = fmaxf(((float *)deltax_filtered)[grid_index(ix, iy, iz, HII_dim, INDEX_REAL)], -1 + REL_TOL);
 
-          ((float *)stars_filtered)[grid_index(ix, iy, iz, HII_dim, INDEX_REAL)] = fmaxf(((float *)stars_filtered)[grid_index(ix, iy, iz, HII_dim, INDEX_REAL)], 0.0);
+          ((float *)stars_filtered)[grid_index(ix, iy, iz, HII_dim, INDEX_PADDED)] = fmaxf(((float *)stars_filtered)[grid_index(ix, iy, iz, HII_dim, INDEX_REAL)], 0.0);
 
-          ((float *)sfr_filtered)[grid_index(ix, iy, iz, HII_dim, INDEX_REAL)] = fmaxf(((float *)sfr_filtered)[grid_index(ix, iy, iz, HII_dim, INDEX_REAL)] , 0.0);
+          ((float *)sfr_filtered)[grid_index(ix, iy, iz, HII_dim, INDEX_PADDED)] = fmaxf(((float *)sfr_filtered)[grid_index(ix, iy, iz, HII_dim, INDEX_REAL)] , 0.0);
         }
+
+    /*
+     * Main loop through the box...
+     */
+
+    int flag_uvb_feedback = tocf_params.uvb_feedback;
+    float BaryonFrac = run_globals.params.BaryonFrac;
+    float HII_eff_factor = tocf_params.HII_eff_factor;
+    float gamma_halo_bias = tocf_params.gamma_halo_bias;
+    for (int ix=0; ix<HII_dim; ix++)
+    {   
+      for (int iy=0; iy<HII_dim; iy++)
+      {
+        for (int iz=0; iz<HII_dim; iz++)
+        {
+          float density_over_mean = 1.0 + ((float *)deltax_filtered)[grid_index(ix,iy,iz, HII_dim, INDEX_PADDED)];
+
+          float f_coll_stars =  ((float *)stars_filtered)[grid_index(ix, iy, iz, HII_dim, INDEX_PADDED)]/ (RtoM(R)*density_over_mean);
+          f_coll_stars *= (4.0/3.0)*PI*pow(R,3.0) / pixel_volume;
+
+          float sfr_density = ((float *)sfr_filtered)[grid_index(ix, iy, iz, HII_dim, INDEX_PADDED)] / pixel_volume;   // In units of Msolar/s/cMpc/cMpc/cMpc
+
+          // Adjust the denominator of the collapse fraction for the residual electron fraction in the neutral medium
+          // Calculate the mfp of the ionising photons for this size 
+          float J_21_aux;
+          if (flag_uvb_feedback)
+            J_21_aux = (1.0/(4.0 * M_PI)) * 1e21 * tocf_params.alpha_uv * PLANCK * ((1.0+redshift)*(1.0+redshift))*(R*MPC)
+              * HII_eff_factor* BaryonFrac *(1.0-tocf_params.Y_He)
+              * sfr_density*SOLAR_MASS/MPC/MPC/MPC / PROTONMASS;
+
+          // Check if ionised!
+          if (f_coll_stars > 1.0/HII_eff_factor)   // IONISED!!!!
+          {   
+            // If it is the first crossing of the ionisation barrier for this cell (largest R), let's record J_21
+            if (xH[HII_R_INDEX(ix, iy, iz)] > REL_TOL)
+              if(flag_uvb_feedback)
+                J_21[grid_index(ix, iy, iz, HII_dim, INDEX_REAL)] = J_21_aux*gamma_halo_bias;
+
+
+            // Mark as ionised
+            xH[grid_index(ix, iy, iz, HII_dim, INDEX_REAL)] = 0;
+
+          }
+          // Check if this is the last filtering step.
+          // If so, assign partial ionisations to those cells which aren't fully ionised 
+          else if (flag_last_filter_step && (xH[grid_index(ix, iy, iz, HII_dim, INDEX_REAL)] > REL_TOL))
+          {
+            float res_xH = 1.0 - f_coll_stars * HII_eff_factor;
+            xH[grid_index(ix, iy, iz, HII_dim, INDEX_REAL)] = res_xH;
+          }
+
+          // Check if new ionisation
+          float *z_in = run_globals.tocf_grids.z_at_ionization;
+          if ( (xH[grid_index(ix, iy, iz, HII_dim, INDEX_REAL)] < REL_TOL) && (z_in[grid_index(ix, iy, iz, HII_dim, INDEX_REAL)] < 0) )   // New ionisation!
+          {
+            z_in[grid_index(ix, iy, iz, HII_dim, INDEX_REAL)] = redshift;
+            if (flag_uvb_feedback)
+              run_globals.tocf_grids.J_21_at_ionization[grid_index(ix, iy, iz, HII_dim, INDEX_REAL)] = J_21_aux * gamma_halo_bias;
+          }
+
+        } // iz
+      } // iy
+    } // ix
+
+    R /= delta_r_HII_factor;
 
   }
 
