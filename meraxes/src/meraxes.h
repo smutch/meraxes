@@ -61,6 +61,10 @@
 #define SEC_PER_MEGAYEAR 3.155e13
 #define SEC_PER_YEAR     3.155e7
 
+// Constants
+#define REL_TOL (float)1e-5
+#define ABS_TOL (float)1e-8
+
 #ifdef DEBUG
 FILE *meraxes_debug_file;
 #endif

@@ -209,6 +209,32 @@ float find_HII_bubbles(float redshift)
       HII_filter(sfr_filtered, R);
     }
 
+    // inverse fourier transform back to real space
+    plan = fftwf_mpi_plan_dft_c2r_3d(HII_dim, HII_dim, HII_dim, deltax_filtered, (float *)deltax_filtered, SID_COMM_WORLD, FFTW_ESTIMATE);
+    fftwf_execute(plan);
+    fftwf_destroy_plan(plan);
+
+    plan = fftwf_mpi_plan_dft_c2r_3d(HII_dim, HII_dim, HII_dim, stars_filtered, (float *)stars_filtered, SID_COMM_WORLD, FFTW_ESTIMATE);
+    fftwf_execute(plan);
+    fftwf_destroy_plan(plan);
+
+    plan = fftwf_mpi_plan_dft_c2r_3d(HII_dim, HII_dim, HII_dim, sfr_filtered, (float *)sfr_filtered, SID_COMM_WORLD, FFTW_ESTIMATE);
+    fftwf_execute(plan);
+    fftwf_destroy_plan(plan);
+
+    // Perform sanity checks to account for aliasing effects
+    int local_nix = tocf_params.slab_nix[SID.My_rank];
+    for (int ix=0; ix<local_nix; ix++)
+      for (int iy=0; iy<HII_DIM; iy++)
+        for (int iz=0; iz<HII_DIM; iz++)
+        {   
+          ((float *)deltax_filtered)[grid_index(ix, iy, iz, HII_dim, INDEX_REAL)] = fmaxf(((float *)deltax_filtered)[grid_index(ix, iy, iz, HII_dim, INDEX_REAL)], -1 + REL_TOL);
+
+          ((float *)stars_filtered)[grid_index(ix, iy, iz, HII_dim, INDEX_REAL)] = fmaxf(((float *)stars_filtered)[grid_index(ix, iy, iz, HII_dim, INDEX_REAL)], 0.0);
+
+          ((float *)sfr_filtered)[grid_index(ix, iy, iz, HII_dim, INDEX_REAL)] = fmaxf(((float *)sfr_filtered)[grid_index(ix, iy, iz, HII_dim, INDEX_REAL)] , 0.0);
+        }
+
   }
 
 }
