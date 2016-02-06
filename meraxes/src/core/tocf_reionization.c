@@ -373,7 +373,7 @@ void construct_stellar_grids(int snapshot, int ngals_in_slabs)
 
   gal_to_slab_t *galaxy_to_slab_map         = run_globals.tocf_grids.galaxy_to_slab_map;
   ptrdiff_t *slab_ix_start = tocf_params.slab_ix_start;
-  ptrdiff_t local_n_complex = tocf_params.slab_n_complex[SID.My_rank];
+  int local_n_complex = (int)(tocf_params.slab_n_complex[SID.My_rank]);
 
   SID_log("Constructing stellar mass and sfr grids...", SID_LOG_OPEN | SID_LOG_TIMER);
 
@@ -518,8 +518,8 @@ void save_tocf_grids(hid_t parent_group_id, int snapshot)
     if ((grids->global_xH < epsilon) || (grids->global_xH > 1.0-epsilon))
       return;
 
-    hsize_t dims        = HII_TOT_NUM_PIXELS;
     int   HII_dim       = tocf_params.HII_dim;
+    hsize_t dims        = (hsize_t)pow(HII_dim, 3);
     float *grid;
     float *ps;
     int   ps_nbins;
@@ -545,46 +545,18 @@ void save_tocf_grids(hid_t parent_group_id, int snapshot)
       H5LTmake_dataset_float(group_id, "Mvir_crit", 1, &dims, grids->Mvir_crit);
     }
 
-    if (tocf_params.compute_mfp)
-      H5LTmake_dataset_float(group_id, "MFP", 1, &dims, grids->mfp);
-
     H5LTset_attribute_float(group_id, "xH", "global_xH", &(grids->global_xH), 1);
 
     // Save the escape fraction if we are using a redshift dependent escape fraction
     H5LTset_attribute_double(group_id, ".", "ReionEscapeFrac", &(run_globals.params.physics.ReionEscapeFrac), 1);
 
     // fftw padded grids
-    grid = (float*)SID_calloc(HII_TOT_NUM_PIXELS * sizeof(float));
-
-    // for (int ii = 0; ii < HII_dim; ii++)
-    //   for (int jj = 0; jj < HII_dim; jj++)
-    //     for (int kk = 0; kk < HII_dim; kk++)
-    //       grid[HII_R_INDEX(ii, jj, kk)] = *((float*)(grids->stars) + HII_R_FFT_INDEX(ii, jj, kk)) * Hubble_h / 1.0e10;
-    // H5LTmake_dataset_float(group_id, "StellarMass", 1, &dims, grid);
-
-    // memset((void*)grid, 0, sizeof(float) * HII_TOT_NUM_PIXELS);
-    // for (int ii = 0; ii < HII_dim; ii++)
-    //   for (int jj = 0; jj < HII_dim; jj++)
-    //     for (int kk = 0; kk < HII_dim; kk++)
-    //       grid[HII_R_INDEX(ii, jj, kk)] = *((float*)(grids->sfr) + HII_R_FFT_INDEX(ii, jj, kk)) * SEC_PER_YEAR;
-    // H5LTmake_dataset_float(group_id, "Sfr", 1, &dims, grid);
-
-    memset((void*)grid, 0, sizeof(float) * HII_TOT_NUM_PIXELS);
+    grid = (float*)SID_calloc((int)dims * sizeof(float));
     for (int ii = 0; ii < HII_dim; ii++)
       for (int jj = 0; jj < HII_dim; jj++)
         for (int kk = 0; kk < HII_dim; kk++)
-          grid[HII_R_INDEX(ii, jj, kk)] = *((float*)(grids->deltax) + HII_R_FFT_INDEX(ii, jj, kk));
+          grid[grid_index(ii, jj, kk, HII_dim, INDEX_REAL)] = ((float*)(grids->deltax))[grid_index(ii, jj, kk, HII_dim, INDEX_PADDED)];
     H5LTmake_dataset_float(group_id, "deltax", 1, &dims, grid);
-
-    if (tocf_params.compute_mfp)
-    {
-      memset((void*)grid, 0, sizeof(float) * HII_TOT_NUM_PIXELS);
-      for (int ii = 0; ii < HII_dim; ii++)
-        for (int jj = 0; jj < HII_dim; jj++)
-          for (int kk = 0; kk < HII_dim; kk++)
-            grid[HII_R_INDEX(ii, jj, kk)] = *((float*)(grids->N_rec) + HII_R_FFT_INDEX(ii, jj, kk));
-      H5LTmake_dataset_float(group_id, "N_rec", 1, &dims, grid);
-    }
 
 
     // Run delta_T_ps
@@ -592,7 +564,7 @@ void save_tocf_grids(hid_t parent_group_id, int snapshot)
 
     SID_log("Calculating delta_T box and power spectrum...", SID_LOG_OPEN);
 
-    memset((void*)grid, 0, sizeof(float) * HII_TOT_NUM_PIXELS);
+    memset((void*)grid, 0, sizeof(float) * (int)dims);
 
     delta_T_ps(
         run_globals.ZZ[snapshot],

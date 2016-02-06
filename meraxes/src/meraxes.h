@@ -57,6 +57,7 @@
 #define SEC_PER_MEGAYEAR 3.155e13
 #define SEC_PER_YEAR     3.155e7
 #define MPC              3.086e24
+#define TCMB             2.728
 
 // Constants
 #define REL_TOL (float)1e-5
@@ -258,6 +259,7 @@ struct tocf_params_t
     float  gamma_halo_bias;
     int    compute_mfp;
     float  delta_r_HII_factor;
+    float  delta_k_ps;  // TODO: INIT!
     float  alpha_uv; // TODO: INIT!
     float  m_0_sm;
     float  a_sm;

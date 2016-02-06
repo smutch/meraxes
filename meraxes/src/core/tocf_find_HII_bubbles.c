@@ -306,7 +306,7 @@ float find_HII_bubbles(float redshift)
   float global_xH = 0.0;
   for (int ct=0; ct < slab_n_real; ct++)
     global_xH += xH[ct];
-  SID_Allreduce(&global_xH, &global_xH, 1, SID_FLOAT, SID_SUM, SID.COMM_WORLD);
+  SID_Allreduce(SID_IN_PLACE, &global_xH, 1, SID_FLOAT, SID_SUM, SID.COMM_WORLD);
   global_xH /= (float)pow(HII_dim, 3);
 
   // Renormalise the J_21 box
