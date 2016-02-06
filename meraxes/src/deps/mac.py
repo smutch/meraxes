@@ -16,8 +16,8 @@ deps['gsl'] = {
 }
 
 deps['hdf5'] = {
-    'inclp' : '/usr/local/Cellar/hdf5/1.8.14/include',
-    'libp'  : '/usr/local/Cellar/hdf5/1.8.14/lib',
+    'inclp' : '/usr/local/Cellar/hdf5/1.8.16_1/include',
+    'libp'  : '/usr/local/Cellar/hdf5/1.8.16_1/lib',
     'lib'   : ['hdf5', 'hdf5_hl', 'z'],
 }
 
@@ -30,7 +30,7 @@ deps['gbpCode'] = {
 deps['fftw'] = {
     'inclp' : os.path.expanduser('~/3rd_party/fftw/fftw-3.3.4/include'),
     'libp'  : os.path.expanduser('~/3rd_party/fftw/fftw-3.3.4/lib'),
-    'lib'   : ['fftw3f_omp', 'fftw3f', 'omp'],
+    'lib'   : ['fftw3f_mpi', 'fftw3f'],
 }
 
 deps['21cmfast'] = {
