@@ -20,20 +20,12 @@ int delta_T_ps(
     float         **ps,
     int           *ps_nbins)
 {
-  fftwf_complex *deldel_T;
-  fftwf_plan plan;
-
-  bool flag_use_vel = false;
-  bool flag_use_ts = false;
-
   unsigned long long ct, temp_ct;
 
   float pixel_x_HI, pixel_deltax;
-  float maxi, maxj, maxk, maxdvdx, mini, minj, mink, mindvdx;
   float k_mag;
-  float T_rad, pixel_Ts_factor;
+  float T_rad;
 
-  double dvdx, max_v_deriv;
   double ave_Ts, min_Ts, max_Ts, temp;
 
   float *xH = run_globals.tocf_grids.xH;
@@ -46,14 +38,12 @@ int delta_T_ps(
   float min       = 1e3;
   float max       = -1e3;
   double ave       = 0.0;
-  unsigned long long nonlin_ct = 0;
   int HII_dim = tocf_params.HII_dim;
   int local_nix = (int)(run_globals.tocf_grids.slab_nix[SID.My_rank]);
 
   // Set some redshift dependant values
   float redshift = run_globals.ZZ[snapshot];
   T_rad = TCMB*(1 + redshift);
-  float H = (float)hubble_at_snapshot(snapshot);
   float Hubble_h = run_globals.params.Hubble_h;
   float OmegaM = run_globals.params.OmegaM;
   float OmegaB = OmegaM * run_globals.params.BaryonFrac;
@@ -140,65 +130,38 @@ int delta_T_ps(
     in_bin_ct[ii] = 0;
   }
 
-  deldel_T = fftwf_alloc_complex(run_globals.tocf_grids.slab_n_complex[SID.My_rank]);
-
-  if (!deldel_T)
-  {
-    fprintf(stderr, "Unable to allocate memory for the deldel_T box!\n");
-    fprintf(LOG, "Unable to allocate memory for the deldel_T box!\n");
-    fclose(LOG);
-    free(p_box);
-    free(k_ave);
-    free(in_bin_ct);
-    fftwf_cleanup_threads();
-    return -1;
-  }
+  fftwf_complex *deldel_T = fftwf_alloc_complex(run_globals.tocf_grids.slab_n_complex[SID.My_rank]);
 
   // Fill-up the real-space of the deldel box
-  for (i=0; i<HII_DIM; i++)
-  {
-    for (j=0; j<HII_DIM; j++)
-    {
-      for (k=0; k<HII_DIM; k++)
-      {
-        *((float *)deldel_T + HII_R_FFT_INDEX(i,j,k)) = (delta_T[HII_R_INDEX(i,j,k)]/ave - 1)*VOLUME/(float)HII_TOT_NUM_PIXELS;
-        // Note: we include the V/N factor for the scaling after the fft
-      }
-    }
-  }
+  // Note: we include the V/N factor for the scaling after the fft
+  float volume = powf(run_globals.params.BoxSize, 3);
+  for (int ii=0; ii<local_nix; ii++)
+    for (int jj=0; jj<HII_dim; jj++)
+      for (int kk=0; kk<HII_dim; kk++)
+        ((float *)deldel_T)[grid_index(ii, jj, kk, HII_dim, INDEX_PADDED)] = (delta_T[grid_index(ii,jj,kk, HII_dim, INDEX_REAL)]/ave - 1)*volume/(float)tot_num_pixels;
 
   // Transform to k-space
-  plan = fftwf_plan_dft_r2c_3d(HII_DIM, HII_DIM, HII_DIM, (float *)deldel_T, (fftwf_complex *)deldel_T, FFTW_ESTIMATE);
+  fftwf_plan plan = fftwf_mpi_plan_dft_r2c_3d(HII_dim, HII_dim, HII_dim, (float *)deldel_T, (fftwf_complex *)deldel_T,  SID_COMM_WORLD, FFTW_ESTIMATE);
   fftwf_execute(plan);
   fftwf_destroy_plan(plan);
-  fftwf_cleanup();
 
   // Now construct the power spectrum
-  for (n_x=0; n_x<HII_DIM; n_x++)
+  int HII_middle = HII_dim/2;
+  for (int n_x=0; n_x<HII_dim; n_x++)
   {
-    if (n_x>HII_MIDDLE)
-    {
-      k_x =(n_x-HII_DIM)*DELTA_K;   // Wrap around for FFT convention
-    }
-    else
-    {
-      k_x = n_x*DELTA_K;
-    }
+    float k_x = n_x*delta_k;
+    if (n_x>HII_middle)
+      k_x =(n_x-HII_dim)*delta_k;   // Wrap around for FFT convention
 
-    for (n_y=0; n_y<HII_DIM; n_y++)
+    for (int n_y=0; n_y<HII_dim; n_y++)
     {
-      if (n_y>HII_MIDDLE)
-      {
-        k_y =(n_y-HII_DIM)*DELTA_K;
-      }
-      else
-      {
-        k_y = n_y*DELTA_K;
-      }
+      float k_y = n_y*delta_k;
+      if (n_y>HII_middle)
+        k_y =(n_y-HII_dim)*delta_k;
 
-      for (n_z=0; n_z<=HII_MIDDLE; n_z++)
+      for (int n_z=0; n_z<=HII_middle; n_z++)
       { 
-        k_z = n_z*DELTA_K;
+        float k_z = n_z*delta_k;
 
         k_mag = sqrt(k_x*k_x + k_y*k_y + k_z*k_z);
 
@@ -212,7 +175,7 @@ int delta_T_ps(
           if ((k_mag >= k_floor) && (k_mag < k_ceil))
           {
             in_bin_ct[ct]++;
-            p_box[ct] += pow(k_mag,3)*pow(cabs(deldel_T[HII_C_INDEX(n_x, n_y, n_z)]), 2)/(2.0*PI*PI*VOLUME);
+            p_box[ct] += pow(k_mag,3)*pow(cabs(deldel_T[grid_index(n_x, n_y, n_z, HII_dim, INDEX_PADDED)]), 2)/(2.0*M_PI*M_PI*volume);
             // Note the 1/VOLUME factor, which turns this into a power density in k-space
 
             k_ave[ct] += k_mag;
@@ -229,35 +192,21 @@ int delta_T_ps(
 
 
   // Malloc and store the result
-  *ps = (float *)calloc(3*NUM_BINS, sizeof(float));
+  *ps = (float *)calloc(3*num_bins, sizeof(float));
 
   // NOTE - previous ct ran from 1 (not zero) to NUM_BINS
-  for (ct=0; ct<NUM_BINS; ct++)
+  for (int ii=0; ii<num_bins; ii++)
   {
-    if (in_bin_ct[ct]>0)
+    if (in_bin_ct[ii]>0)
     {
-      (*ps)[0+3*ct] = k_ave[ct]/(float)in_bin_ct[ct];                              // Wavenumber
-      (*ps)[1+3*ct] = p_box[ct]/(float)in_bin_ct[ct];                              // Power
-      (*ps)[2+3*ct] = p_box[ct]/(float)in_bin_ct[ct]/sqrt((float)in_bin_ct[ct]);   // Error in power?
+      (*ps)[0+3*ii] = k_ave[ii]/(float)in_bin_ct[ii];                              // Wavenumber
+      (*ps)[1+3*ii] = p_box[ii]/(float)in_bin_ct[ii];                              // Power
+      (*ps)[2+3*ii] = p_box[ii]/(float)in_bin_ct[ii]/sqrt((float)in_bin_ct[ii]);   // Error in power?
     }
 
   }
-  *ps_nbins = NUM_BINS;
+  *ps_nbins = num_bins;
   *average_T = (float)ave;
-
-
-
-
-  //    printf("\n");
-  //    printf("21cm PS k bins\n");
-  //    
-  //    for (ct=1; ct<NUM_BINS; ct++)
-  //    {
-  //        printf("%3d   %g\n", ct, (*ps)[0+3*ct]);
-  //    }
-  //    printf("\n\n");
-
-
 
 
   // Deallocate
@@ -268,9 +217,6 @@ int delta_T_ps(
   free(k_ave);
   free(in_bin_ct);
   fftwf_free(deldel_T);
-  fclose(LOG);
-
-  fftwf_cleanup_threads();
 
   return 0;
 }
