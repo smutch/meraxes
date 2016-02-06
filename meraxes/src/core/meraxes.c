@@ -40,12 +40,6 @@ int main(int argc, char **argv)
   //   mpi_debug_here();
 #endif
 
-#ifdef USE_TOCF
-  // Note that this must be done *before* we read the parameter file as we may
-  // want to overwrite some of the set defaults.
-  init_default_tocf_params();
-#endif
-
   // read the input parameter file
   read_parameter_file(argv[1], 0);
 

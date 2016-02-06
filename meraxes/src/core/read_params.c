@@ -554,100 +554,91 @@ void read_parameter_file(char *fname, int mode)
       params_type[n_param++] = PARAM_TYPE_INT;
 
 #ifdef USE_TOCF
-      strcpy(params_tag[n_param], "TOCF_LogFileDir");
-      params_addr[n_param]   = &(tocf_params.logfile_dir);
-      required_tag[n_param]  = 0;
-      params_type[n_param++] = PARAM_TYPE_STRING;
-
-      strcpy(params_tag[n_param], "TOCF_dim");
-      params_addr[n_param]   = &(tocf_params.dim);
-      required_tag[n_param]  = 0;
-      params_type[n_param++] = PARAM_TYPE_INT;
-
       strcpy(params_tag[n_param], "TOCF_HII_dim");
       params_addr[n_param]   = &(tocf_params.HII_dim);
-      required_tag[n_param]  = 0;
+      required_tag[n_param]  = 1;
       params_type[n_param++] = PARAM_TYPE_INT;
-
-      strcpy(params_tag[n_param], "TOCF_numcores");
-      params_addr[n_param]   = &(tocf_params.numcores);
-      required_tag[n_param]  = 0;
-      params_type[n_param++] = PARAM_TYPE_INT;
-
-      strcpy(params_tag[n_param], "TOCF_ram");
-      params_addr[n_param]   = &(tocf_params.ram);
-      required_tag[n_param]  = 0;
-      params_type[n_param++] = PARAM_TYPE_FLOAT;
 
       strcpy(params_tag[n_param], "TOCF_ion_tvir_min");
       params_addr[n_param]   = &(tocf_params.ion_tvir_min);
-      required_tag[n_param]  = 0;
+      required_tag[n_param]  = 1;
       params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
       strcpy(params_tag[n_param], "TOCF_HII_eff_factor");
       params_addr[n_param]   = &(tocf_params.HII_eff_factor);
-      required_tag[n_param]  = 0;
+      required_tag[n_param]  = 1;
       params_type[n_param++] = PARAM_TYPE_FLOAT;
 
       strcpy(params_tag[n_param], "TOCF_r_bubble_min");
       params_addr[n_param]   = &(tocf_params.r_bubble_min);
-      required_tag[n_param]  = 0;
+      required_tag[n_param]  = 1;
       params_type[n_param++] = PARAM_TYPE_FLOAT;
 
       strcpy(params_tag[n_param], "TOCF_r_bubble_max");
       params_addr[n_param]   = &(tocf_params.r_bubble_max);
-      required_tag[n_param]  = 0;
+      required_tag[n_param]  = 1;
       params_type[n_param++] = PARAM_TYPE_FLOAT;
 
       strcpy(params_tag[n_param], "TOCF_delta_r_HII_factor");
       params_addr[n_param]   = &(tocf_params.delta_r_HII_factor);
-      required_tag[n_param]  = 0;
+      required_tag[n_param]  = 1;
       params_type[n_param++] = PARAM_TYPE_FLOAT;
 
       strcpy(params_tag[n_param], "TOCF_gamma_halo_bias");
       params_addr[n_param]   = &(tocf_params.gamma_halo_bias);
-      required_tag[n_param]  = 0;
+      required_tag[n_param]  = 1;
       params_type[n_param++] = PARAM_TYPE_FLOAT;
 
       strcpy(params_tag[n_param], "TOCF_m_0_sm");
       params_addr[n_param]   = &(tocf_params.m_0_sm);
-      required_tag[n_param]  = 0;
+      required_tag[n_param]  = 1;
       params_type[n_param++] = PARAM_TYPE_FLOAT;
 
       strcpy(params_tag[n_param], "TOCF_a_sm");
       params_addr[n_param]   = &(tocf_params.a_sm);
-      required_tag[n_param]  = 0;
+      required_tag[n_param]  = 1;
       params_type[n_param++] = PARAM_TYPE_FLOAT;
 
       strcpy(params_tag[n_param], "TOCF_b_sm");
       params_addr[n_param]   = &(tocf_params.b_sm);
-      required_tag[n_param]  = 0;
+      required_tag[n_param]  = 1;
       params_type[n_param++] = PARAM_TYPE_FLOAT;
 
       strcpy(params_tag[n_param], "TOCF_c_sm");
       params_addr[n_param]   = &(tocf_params.c_sm);
-      required_tag[n_param]  = 0;
+      required_tag[n_param]  = 1;
       params_type[n_param++] = PARAM_TYPE_FLOAT;
 
       strcpy(params_tag[n_param], "TOCF_d_sm");
       params_addr[n_param]   = &(tocf_params.d_sm);
-      required_tag[n_param]  = 0;
+      required_tag[n_param]  = 1;
       params_type[n_param++] = PARAM_TYPE_FLOAT;
 
       strcpy(params_tag[n_param], "TOCF_uvb_feedback");
       params_addr[n_param]   = &(tocf_params.uvb_feedback);
-      required_tag[n_param]  = 0;
+      required_tag[n_param]  = 1;
       params_type[n_param++] = PARAM_TYPE_INT;
 
       strcpy(params_tag[n_param], "TOCF_compute_mfp");
       params_addr[n_param]   = &(tocf_params.compute_mfp);
-      required_tag[n_param]  = 0;
+      required_tag[n_param]  = 1;
       params_type[n_param++] = PARAM_TYPE_INT;
 
       strcpy(params_tag[n_param], "TOCF_HII_filter");
       params_addr[n_param]   = &(tocf_params.HII_filter);
-      required_tag[n_param]  = 0;
+      required_tag[n_param]  = 1;
       params_type[n_param++] = PARAM_TYPE_INT;
+
+      strcpy(params_tag[n_param], "TOCF_delta_k_ps");
+      params_addr[n_param]   = &(tocf_params.delta_k_ps);
+      required_tag[n_param]  = 1;
+      params_type[n_param++] = PARAM_TYPE_FLOAT;
+      
+      strcpy(params_tag[n_param], "TOCF_alpha_uv");
+      params_addr[n_param]   = &(tocf_params.alpha_uv);
+      required_tag[n_param]  = 1;
+      params_type[n_param++] = PARAM_TYPE_FLOAT;
+      
 #endif
 
       hdf5props->params_count = n_param;
