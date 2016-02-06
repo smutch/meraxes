@@ -10,10 +10,6 @@
 #ifndef _INIT_MERAXES
 #define _INIT_MERAXES
 
-#ifdef USE_TOCF
-#include <21cmfast.h>
-#endif
-
 /*
  * Definitions
  */

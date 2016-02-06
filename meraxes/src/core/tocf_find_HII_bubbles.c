@@ -79,18 +79,18 @@ void HII_filter(fftwf_complex *box, float R)
         {
           case 0:   // Real space top-hat
             if (kR > 1e-4)
-              box[HII_C_INDEX(n_x, n_y, n_z)] *= 3.0 * (sinf(kR)/powf(kR, 3) - cosf(kR)/powf(kR, 2));
+              box[grid_index(n_x, n_y, n_z, HII_dim, INDEX_COMPLEX_HERM)] *= 3.0 * (sinf(kR)/powf(kR, 3) - cosf(kR)/powf(kR, 2));
             break;
 
           case 1:   // k-space top hat
             kR *= 0.413566994; // Equates integrated volume to the real space top-hat (9pi/2)^(-1/3)
             if (kR > 1)
-              box[HII_C_INDEX(n_x, n_y, n_z)] = 0.0;
+              box[grid_index(n_x, n_y, n_z, HII_dim, INDEX_COMPLEX_HERM)] = 0.0;
             break;
         
           case 2:   // Gaussian
             kR *= 0.643;   // Equates integrated volume to the real space top-hat
-            box[HII_C_INDEX(n_x, n_y, n_z)] *= powf(M_E, -kR*kR/2.0);
+            box[grid_index(n_x, n_y, n_z, HII_dim, INDEX_COMPLEX_HERM)] *= powf(M_E, -kR*kR/2.0);
             break;
 
           default:
@@ -118,8 +118,7 @@ float find_HII_bubbles(float redshift)
   int HII_dim = tocf_params.HII_dim;
   float pixel_volume = powf(box_size/(float)HII_dim, 3);  // (Mpc/h)^3
   float l_factor = 0.620350491;  // Factor relating cube length to filter radius = (4PI/3)^(-1/3)
-  float pixel_mass = RtoM(L_FACTOR*box_size/(float)HII_dim);  // 1e10 Msol/h
-  float cell_length_factor = L_FACTOR;
+  float cell_length_factor = l_factor;
   double ion_tvir_min = tocf_params.ion_tvir_min;
   int total_n_cells = (int)pow(HII_dim, 3);
 
@@ -268,7 +267,7 @@ float find_HII_bubbles(float redshift)
           if (f_coll_stars > 1.0/HII_eff_factor)   // IONISED!!!!
           {   
             // If it is the first crossing of the ionisation barrier for this cell (largest R), let's record J_21
-            if (xH[HII_R_INDEX(ix, iy, iz)] > REL_TOL)
+            if (xH[grid_index(ix, iy, iz, HII_dim, INDEX_REAL)] > REL_TOL)
               if(flag_uvb_feedback)
                 J_21[grid_index(ix, iy, iz, HII_dim, INDEX_REAL)] = J_21_aux*gamma_halo_bias;
 
