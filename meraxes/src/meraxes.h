@@ -673,6 +673,7 @@ double gnedin2000_modifer(double Mvir, double redshift);
 #ifdef USE_TOCF
 void assign_slabs();
 
+float  find_HII_bubbles(float redshift);
 double tocf_modifier(galaxy_t *gal, double Mvir);
 void   set_HII_eff_factor();
 int    find_cell(float pos, double box_size);

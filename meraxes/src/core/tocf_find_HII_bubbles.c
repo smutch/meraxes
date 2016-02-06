@@ -40,8 +40,8 @@ double RtoM(double R){
 void HII_filter(fftwf_complex *box, float R)
 {
   int filter_type = tocf_params.HII_filter;
-  int slab_nx = tocf_params.slab_nix[SID.My_rank];
-  int local_ix_start = tocf_params.slab_ix_start[SID.My_rank];
+  int slab_nx = (int)(tocf_params.slab_nix[SID.My_rank]);
+  int local_ix_start = (int)(tocf_params.slab_ix_start[SID.My_rank]);
   int HII_dim = tocf_params.HII_dim;
   int HII_middle = HII_dim / 2;
   float box_size = run_globals.params.BoxSize;
@@ -133,7 +133,7 @@ float find_HII_bubbles(float redshift)
 
   // Init J_21
   int flag_uvb_feedback = tocf_params.uvb_feedback;
-  int slab_n_real = tocf_params.slab_nix[SID.My_rank] * HII_dim * HII_dim;
+  int slab_n_real = (int)(tocf_params.slab_nix[SID.My_rank]) * HII_dim * HII_dim;
   float *J_21 = run_globals.tocf_grids.J_21;
   for(int ii=0; ii < slab_n_real; ii++)
     J_21[ii] = 0.0;
@@ -169,7 +169,7 @@ float find_HII_bubbles(float redshift)
   // Remember to add the factor of VOLUME/TOT_NUM_PIXELS when converting from real space to k-space
   // Note: we will leave off factor of VOLUME, in anticipation of the inverse FFT below
   // TODO: Double check that looping over correct number of elements here
-  int slab_n_complex = tocf_params.slab_n_complex[SID.My_rank];
+  int slab_n_complex = (int)(tocf_params.slab_n_complex[SID.My_rank]);
   for (int ii=0; ii<slab_n_complex; ii++)
   {
     deltax_unfiltered[ii] /= (float)total_n_cells;
@@ -223,7 +223,7 @@ float find_HII_bubbles(float redshift)
     fftwf_destroy_plan(plan);
 
     // Perform sanity checks to account for aliasing effects
-    int local_nix = tocf_params.slab_nix[SID.My_rank];
+    int local_nix = (int)(tocf_params.slab_nix[SID.My_rank]);
     for (int ix=0; ix<local_nix; ix++)
       for (int iy=0; iy<HII_dim; iy++)
         for (int iz=0; iz<HII_dim; iz++)

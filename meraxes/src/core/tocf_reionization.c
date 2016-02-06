@@ -92,32 +92,14 @@ void call_find_HII_bubbles(int snapshot, int unsampled_snapshot, int nout_gals)
 
   SID_log("...done", SID_LOG_CLOSE);
 
-  if (SID.My_rank == 0)
-  {
-    // Read in the dark matter density grid
-    read_dm_grid(unsampled_snapshot, 0, (float*)(grids->deltax));
+  // Read in the dark matter density grid
+  read_dm_grid(unsampled_snapshot, 0, (float*)(grids->deltax));
 
-    SID_log("Calling find_HII_bubbles...", SID_LOG_OPEN | SID_LOG_TIMER);
-    // TODO: Fix if snapshot==0
-    grids->global_xH = find_HII_bubbles(run_globals.ZZ[snapshot], run_globals.ZZ[snapshot - 1],
-        grids->xH,
-        grids->stars,
-        grids->stars_filtered,
-        grids->deltax,
-        grids->deltax_filtered,
-        grids->sfr,                 // grids->sfr or NULL
-        grids->sfr_filtered,        // grids->sfr_filtered or NULL
-        grids->z_at_ionization,
-        grids->J_21_at_ionization,
-        grids->J_21
-        );
+  // Call find_HII_bubbles
+  SID_log("Calling find_HII_bubbles...", SID_LOG_OPEN | SID_LOG_TIMER);
+  grids->global_xH = find_HII_bubbles(run_globals.ZZ[snapshot]);
 
-    SID_log("grids->global_xH = %g", SID_LOG_COMMENT, grids->global_xH);
-  }
-
-  // send the global_xH value to all cores
-  SID_Bcast(&(grids->global_xH), sizeof(float), 0, SID.COMM_WORLD);
-
+  SID_log("grids->global_xH = %g", SID_LOG_COMMENT, grids->global_xH);
   SID_log("...done", SID_LOG_CLOSE);
 }
 
@@ -391,11 +373,12 @@ void construct_stellar_grids(int snapshot, int ngals_in_slabs)
 
   gal_to_slab_t *galaxy_to_slab_map         = run_globals.tocf_grids.galaxy_to_slab_map;
   ptrdiff_t *slab_ix_start = tocf_params.slab_ix_start;
+  ptrdiff_t local_n_complex = tocf_params.slab_n_complex[SID.My_rank];
 
   SID_log("Constructing stellar mass and sfr grids...", SID_LOG_OPEN | SID_LOG_TIMER);
 
   // init the grid
-  for (int ii = 0; ii < HII_TOT_FFT_NUM_PIXELS; ii++)
+  for (int ii = 0; ii < local_n_complex; ii++)
   {
     *(stellar_grid + ii) = 0.0;
     *(sfr_grid + ii)     = 0.0;
