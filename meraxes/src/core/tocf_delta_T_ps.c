@@ -1,5 +1,3 @@
-#ifdef USE_TOCF
-
 #include "meraxes.h"
 #include <fftw3.h>
 #include <fftw3-mpi.h>
@@ -220,4 +218,3 @@ int delta_T_ps(
 
   return 0;
 }
-#endif

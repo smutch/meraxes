@@ -127,13 +127,11 @@ double reionization_modifier(galaxy_t *gal, double Mvir, int snapshot)
 
   redshift = run_globals.ZZ[snapshot];
 
-#ifdef USE_TOCF
   if ((tocf_params.uvb_feedback) && (run_globals.params.TOCF_Flag))
   {
     modifier = tocf_modifier(gal, Mvir);
     return modifier;
   }
-#endif
 
   switch (run_globals.params.physics.Flag_ReionizationModifier)
   {

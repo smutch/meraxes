@@ -13,10 +13,8 @@ void cleanup()
   if (run_globals.RequestedForestId)
     SID_free(SID_FARG run_globals.RequestedForestId);
 
-#ifdef USE_TOCF
   if (run_globals.params.TOCF_Flag)
     free_reionization_grids(run_globals);
-#endif
 
   SID_log("Freeing hdf5 related stuff...", SID_LOG_OPEN);
   if (SID.My_rank == 0)

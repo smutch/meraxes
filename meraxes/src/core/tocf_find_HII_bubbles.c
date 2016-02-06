@@ -1,5 +1,3 @@
-#ifdef USE_TOCF
-
 #include "meraxes.h"
 #include <fftw3.h>
 #include <fftw3-mpi.h>
@@ -319,5 +317,3 @@ float find_HII_bubbles(float redshift)
 
   return global_xH;
 }
-
-#endif

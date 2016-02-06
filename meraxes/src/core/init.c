@@ -348,15 +348,7 @@ void init_meraxes()
   // Initialize the halo storage arrays
   initialize_halo_storage();
 
-#ifdef USE_TOCF
   malloc_reionization_grids();
-
   set_HII_eff_factor();
-
-#else
-  // Check if we want to use 21cmFAST
-  if (run_globals.params.TOCF_Flag)
-    SID_log_warning("TOCF_Flag is set but Meraxes has not been compiled against 21cmFAST!", SID_LOG_COMMENT);
-#endif
 }
 

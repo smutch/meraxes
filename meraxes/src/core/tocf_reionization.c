@@ -1,5 +1,3 @@
-#ifdef USE_TOCF
-
 #include "meraxes.h"
 #include <complex.h>
 #include <fftw3.h>
@@ -11,30 +9,33 @@
 
 void set_HII_eff_factor()
 {
-  // Use the params passed to Meraxes via the input file to set the HII ionising efficiency factor
-  physics_params_t *params = &(run_globals.params.physics);
-
-  // If we are using a redshift dependent escape fraction then reset
-  // ReionEscapeFrac to one as we don't want to inlcude it in the
-  // HII_eff_factor (it will be included in the stellar mass and SFR grids sent
-  // to 21cmFAST instead).
-  if (params->Flag_RedshiftDepEscFrac)
+  if (run_globals.params.TOCF_Flag)
   {
-    SID_log("Flag_RedshiftDepEscFrac is on => setting ReionEscapeFrac = 1.", SID_LOG_COMMENT);
-    params->ReionEscapeFrac = 1.0;
+    // Use the params passed to Meraxes via the input file to set the HII ionising efficiency factor
+    physics_params_t *params = &(run_globals.params.physics);
+
+    // If we are using a redshift dependent escape fraction then reset
+    // ReionEscapeFrac to one as we don't want to inlcude it in the
+    // HII_eff_factor (it will be included in the stellar mass and SFR grids sent
+    // to 21cmFAST instead).
+    if (params->Flag_RedshiftDepEscFrac)
+    {
+      SID_log("Flag_RedshiftDepEscFrac is on => setting ReionEscapeFrac = 1.", SID_LOG_COMMENT);
+      params->ReionEscapeFrac = 1.0;
+    }
+
+    // The following is based on Sobacchi & Messinger (2013) eqn 7
+    // with f_* removed and f_b added since we define f_coll as M_*/M_tot rather than M_vir/M_tot,
+    // and also with the inclusion of the effects of the Helium fraction.
+    tocf_params.HII_eff_factor = 1.0 / run_globals.params.BaryonFrac
+      * params->ReionNionPhotPerBary * params->ReionEscapeFrac / (1.0 - 0.75*tocf_params.Y_He);
+
+    // Account for instantaneous recycling factor so that stellar mass is cumulative
+    if (params->Flag_IRA)
+      tocf_params.HII_eff_factor /= params->SfRecycleFraction;
+
+    SID_log("Set value of tocf_params.HII_eff_factor = %g", SID_LOG_COMMENT, tocf_params.HII_eff_factor);
   }
-
-  // The following is based on Sobacchi & Messinger (2013) eqn 7
-  // with f_* removed and f_b added since we define f_coll as M_*/M_tot rather than M_vir/M_tot,
-  // and also with the inclusion of the effects of the Helium fraction.
-  tocf_params.HII_eff_factor = 1.0 / run_globals.params.BaryonFrac
-    * params->ReionNionPhotPerBary * params->ReionEscapeFrac / (1.0 - 0.75*tocf_params.Y_He);
-
-  // Account for instantaneous recycling factor so that stellar mass is cumulative
-  if (params->Flag_IRA)
-    tocf_params.HII_eff_factor /= params->SfRecycleFraction;
-
-  SID_log("Set value of tocf_params.HII_eff_factor = %g", SID_LOG_COMMENT, tocf_params.HII_eff_factor);
 }
 
 
@@ -655,4 +656,3 @@ bool check_if_reionization_complete()
   run_globals.tocf_grids.reion_complete = (bool)complete;
   return (bool)complete;
 }
-#endif

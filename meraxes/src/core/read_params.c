@@ -553,7 +553,6 @@ void read_parameter_file(char *fname, int mode)
       required_tag[n_param]  = 1;
       params_type[n_param++] = PARAM_TYPE_INT;
 
-#ifdef USE_TOCF
       strcpy(params_tag[n_param], "TOCF_HII_dim");
       params_addr[n_param]   = &(tocf_params.HII_dim);
       required_tag[n_param]  = 1;
@@ -649,8 +648,6 @@ void read_parameter_file(char *fname, int mode)
       required_tag[n_param]  = 1;
       params_type[n_param++] = PARAM_TYPE_FLOAT;
       
-#endif
-
       hdf5props->params_count = n_param;
     }
 
@@ -723,7 +720,5 @@ void read_parameter_file(char *fname, int mode)
   // If running mpi then broadcast the run parameters to all cores
   SID_Bcast(run_params, sizeof(run_params_t), 0, SID.COMM_WORLD);
   SID_Bcast(&(run_globals.units), sizeof(run_units_t), 0, SID.COMM_WORLD);
-#ifdef USE_TOCF
   SID_Bcast(&tocf_params, sizeof(tocf_params_t), 0, SID.COMM_WORLD);
-#endif
 }

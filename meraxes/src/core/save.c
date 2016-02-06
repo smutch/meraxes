@@ -572,29 +572,30 @@ void create_master_file()
     h5_write_attribute(group_id, h5props->field_names[ii], H5T_C_S1, ds_id, h5props->field_h_conv[ii]);
   H5Gclose(group_id);
 
-#ifdef USE_TOCF
-  group_id = H5Gcreate(file_id, "Units/Grids", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
-  h5_write_attribute(group_id, "xH", H5T_C_S1, ds_id, "None");
-  h5_write_attribute(group_id, "J_21", H5T_C_S1, ds_id, "10e-21 erg/s/Hz/cm/cm/sr");
-  h5_write_attribute(group_id, "J_21_at_ionization", H5T_C_S1, ds_id, "10e-21 erg/s/Hz/cm/cm/sr");
-  h5_write_attribute(group_id, "z_at_ionization", H5T_C_S1, ds_id, "None");
-  h5_write_attribute(group_id, "Mvir_crit", H5T_C_S1, ds_id, "1e10 solMass");
-  h5_write_attribute(group_id, "StellarMass", H5T_C_S1, ds_id, "1e10 solMass");
-  h5_write_attribute(group_id, "Sfr", H5T_C_S1, ds_id, "solMass/yr");
-  h5_write_attribute(group_id, "deltax", H5T_C_S1, ds_id, "None");
-  H5Gclose(group_id);
+  if (run_globals.params.TOCF_Flag)
+  {
+    group_id = H5Gcreate(file_id, "Units/Grids", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+    h5_write_attribute(group_id, "xH", H5T_C_S1, ds_id, "None");
+    h5_write_attribute(group_id, "J_21", H5T_C_S1, ds_id, "10e-21 erg/s/Hz/cm/cm/sr");
+    h5_write_attribute(group_id, "J_21_at_ionization", H5T_C_S1, ds_id, "10e-21 erg/s/Hz/cm/cm/sr");
+    h5_write_attribute(group_id, "z_at_ionization", H5T_C_S1, ds_id, "None");
+    h5_write_attribute(group_id, "Mvir_crit", H5T_C_S1, ds_id, "1e10 solMass");
+    h5_write_attribute(group_id, "StellarMass", H5T_C_S1, ds_id, "1e10 solMass");
+    h5_write_attribute(group_id, "Sfr", H5T_C_S1, ds_id, "solMass/yr");
+    h5_write_attribute(group_id, "deltax", H5T_C_S1, ds_id, "None");
+    H5Gclose(group_id);
 
-  group_id = H5Gcreate(file_id, "HubbleConversions/Grids", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
-  h5_write_attribute(group_id, "xH", H5T_C_S1, ds_id, "None");
-  h5_write_attribute(group_id, "J_21", H5T_C_S1, ds_id, "None");
-  h5_write_attribute(group_id, "J_21_at_ionization", H5T_C_S1, ds_id, "None");
-  h5_write_attribute(group_id, "z_at_ionization", H5T_C_S1, ds_id, "None");
-  h5_write_attribute(group_id, "Mvir_crit", H5T_C_S1, ds_id, "v/h");
-  h5_write_attribute(group_id, "StellarMass", H5T_C_S1, ds_id, "v/h");
-  h5_write_attribute(group_id, "Sfr", H5T_C_S1, ds_id, "None");
-  h5_write_attribute(group_id, "deltax", H5T_C_S1, ds_id, "None");
-  H5Gclose(group_id);
-#endif
+    group_id = H5Gcreate(file_id, "HubbleConversions/Grids", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+    h5_write_attribute(group_id, "xH", H5T_C_S1, ds_id, "None");
+    h5_write_attribute(group_id, "J_21", H5T_C_S1, ds_id, "None");
+    h5_write_attribute(group_id, "J_21_at_ionization", H5T_C_S1, ds_id, "None");
+    h5_write_attribute(group_id, "z_at_ionization", H5T_C_S1, ds_id, "None");
+    h5_write_attribute(group_id, "Mvir_crit", H5T_C_S1, ds_id, "v/h");
+    h5_write_attribute(group_id, "StellarMass", H5T_C_S1, ds_id, "v/h");
+    h5_write_attribute(group_id, "Sfr", H5T_C_S1, ds_id, "None");
+    h5_write_attribute(group_id, "deltax", H5T_C_S1, ds_id, "None");
+    H5Gclose(group_id);
+  }
 
 
 #ifdef GITREF_STR
@@ -669,35 +670,36 @@ void create_master_file()
 
       H5Gclose(source_group_id);
       H5Gclose(group_id);
-
-#ifdef USE_TOCF
-    if((i_core == 0) && (run_globals.params.TOCF_Flag))
-    {
-      // create links to the 21cmFAST grids that exist
-      sprintf(source_group, "Snap%03d/Grids", run_globals.ListOutputSnaps[i_out]);
-      if ((H5LTpath_valid(source_file_id, source_group, FALSE)))
-      {
-        sprintf(target_group, "Grids");
-        H5Lcreate_external(relative_source_file, source_group, snap_group_id, target_group, H5P_DEFAULT, H5P_DEFAULT);
-      }
-
-      sprintf(source_ds, "Snap%03d/PowerSpectrum", run_globals.ListOutputSnaps[i_out]);
-      if ((H5LTpath_valid(source_file_id, source_ds, FALSE)))
-      {
-        sprintf(target_ds, "PowerSpectrum");
-        H5Lcreate_external(relative_source_file, source_ds, snap_group_id, target_ds, H5P_DEFAULT, H5P_DEFAULT);
-      }
-
-      sprintf(source_ds, "Snap%03d/RegionSizeDist", run_globals.ListOutputSnaps[i_out]);
-      if ((H5LTpath_valid(source_file_id, source_ds, FALSE)))
-      {
-        sprintf(target_ds, "RegionSizeDist");
-        H5Lcreate_external(relative_source_file, source_ds, snap_group_id, target_ds, H5P_DEFAULT, H5P_DEFAULT);
-      }
-    }
-#endif
-
       H5Fclose(source_file_id);
+
+      if((i_core == 0) && (run_globals.params.TOCF_Flag))
+      {
+        // create links to the 21cmFAST grids that exist
+        sprintf(source_file, "%s/%s_grids.hdf5", run_globals.params.OutputDir, run_globals.params.FileNameGalaxies);
+        source_file_id = H5Fopen(source_file, H5F_ACC_RDONLY, H5P_DEFAULT);
+        sprintf(source_group, "Snap%03d", run_globals.ListOutputSnaps[i_out]);
+        if ((H5LTpath_valid(source_file_id, source_group, FALSE)))
+        {
+          sprintf(target_group, "Grids");
+          H5Lcreate_external(relative_source_file, source_group, snap_group_id, target_group, H5P_DEFAULT, H5P_DEFAULT);
+        }
+
+        // sprintf(source_ds, "Snap%03d/PowerSpectrum", run_globals.ListOutputSnaps[i_out]);
+        // if ((H5LTpath_valid(source_file_id, source_ds, FALSE)))
+        // {
+        //   sprintf(target_ds, "PowerSpectrum");
+        //   H5Lcreate_external(relative_source_file, source_ds, snap_group_id, target_ds, H5P_DEFAULT, H5P_DEFAULT);
+        // }
+
+        // sprintf(source_ds, "Snap%03d/RegionSizeDist", run_globals.ListOutputSnaps[i_out]);
+        // if ((H5LTpath_valid(source_file_id, source_ds, FALSE)))
+        // {
+        //   sprintf(target_ds, "RegionSizeDist");
+        //   H5Lcreate_external(relative_source_file, source_ds, snap_group_id, target_ds, H5P_DEFAULT, H5P_DEFAULT);
+        // }
+        H5Fclose(source_file_id);
+      }
+
     }
 
     // save the total number of galaxies at this snapshot
@@ -972,10 +974,8 @@ void write_snapshot(
   // Free the output buffer
   SID_free(SID_FARG output_buffer);
 
-#ifdef USE_TOCF
   if (run_globals.params.TOCF_Flag && !check_if_reionization_complete())
     save_tocf_grids(run_globals.ListOutputSnaps[i_out]);
-#endif
 
   // Close the group.
   H5Gclose(group_id);

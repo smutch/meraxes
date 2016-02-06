@@ -152,8 +152,6 @@ if not GetOption('help'):
     if env['calc_mags']:
         env.AppendUnique(CPPDEFINES = ['CALC_MAGS'])
         env.AppendUnique(CPPDEFINES = ['NOUT=${nout}'])
-    if env['tocf']:
-        env.AppendUnique(CPPDEFINES = ['USE_TOCF'])
     if env['build'] == 'debug':
         env.MergeFlags('-g -O0 -Wall -DDEBUG')
     elif env['build'] == 'standard':

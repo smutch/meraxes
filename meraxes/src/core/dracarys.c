@@ -123,11 +123,9 @@ void dracarys()
 
     SID_log("Processing snapshot %d (z = %.2f)...", SID_LOG_OPEN | SID_LOG_TIMER, snapshot, run_globals.ZZ[snapshot]);
 
-#ifdef USE_TOCF
     // Calculate the critical halo mass for cooling
     if ((run_globals.params.TOCF_Flag) && (tocf_params.uvb_feedback))
       calculate_Mvir_crit(run_globals.ZZ[snapshot]);
-#endif
 
     // Reset the halo pointers and ghost flags for all galaxies and decrement
     // the snapskip counter
@@ -396,14 +394,11 @@ void dracarys()
     check_counts(fof_group, NGal, trees_info.n_fof_groups);
 #endif
 
-#ifdef USE_TOCF
-    int ngals_in_slabs;
     if (run_globals.params.TOCF_Flag)
     {
-      ngals_in_slabs = map_galaxies_to_slabs(NGal);
+      int ngals_in_slabs = map_galaxies_to_slabs(NGal);
       assign_Mvir_crit_to_galaxies(ngals_in_slabs);
     }
-#endif
 
     // Do the physics
     if (NGal > 0)
@@ -414,41 +409,41 @@ void dracarys()
     // Add the ghost galaxies into the nout_gals count
     nout_gals += ghost_counter;
 
-#ifdef USE_TOCF
 
-    physics_params_t *params = &(run_globals.params.physics);
-    
-    if (params->Flag_RedshiftDepEscFrac)
+    if (run_globals.params.TOCF_Flag)
     {
+      physics_params_t *params = &(run_globals.params.physics);
+
+      if (params->Flag_RedshiftDepEscFrac)
+      {
         float f_esc = 0.04*(powf((1.0+run_globals.ZZ[snapshot])/6.0, 2.5));
-        
+
         if (f_esc > 1.0)
-            f_esc = 1.0;
-        
+          f_esc = 1.0;
+
         params->ReionEscapeFrac = (double)f_esc;
         SID_log("f_esc = %g", SID_LOG_COMMENT, f_esc);
-    }
-    
-    if (run_globals.params.TOCF_Flag && !check_if_reionization_complete())
-    {
-      if (!tocf_params.uvb_feedback)
-      {
-        // We are decoupled, so no need to run 21cmFAST unless we are ouputing this snapshot
-        for (int i_out = 0; i_out < NOutputSnaps; i_out++)
-          if (snapshot == run_globals.ListOutputSnaps[i_out])
-            call_find_HII_bubbles(snapshot, trees_info.unsampled_snapshot, nout_gals);
       }
-      else
-        call_find_HII_bubbles(snapshot, trees_info.unsampled_snapshot, nout_gals);
-    }
 
-    // if we have already created a mapping of galaxies to MPI slabs then we no
-    // longer need them as they will need to be re-created for the new halo
-    // positions in the next time step
-    SID_free(SID_FARG run_globals.tocf_grids.galaxy_to_slab_map);
+      if (!check_if_reionization_complete())
+      {
+        if (!tocf_params.uvb_feedback)
+        {
+          // We are decoupled, so no need to run 21cmFAST unless we are ouputing this snapshot
+          for (int i_out = 0; i_out < NOutputSnaps; i_out++)
+            if (snapshot == run_globals.ListOutputSnaps[i_out])
+              call_find_HII_bubbles(snapshot, trees_info.unsampled_snapshot, nout_gals);
+        }
+        else
+          call_find_HII_bubbles(snapshot, trees_info.unsampled_snapshot, nout_gals);
+      }
+
+      // if we have already created a mapping of galaxies to MPI slabs then we no
+      // longer need them as they will need to be re-created for the new halo
+      // positions in the next time step
+      SID_free(SID_FARG run_globals.tocf_grids.galaxy_to_slab_map);
+    }
     
-    
-#endif
 
 #ifdef DEBUG
     // print some statistics for this snapshot

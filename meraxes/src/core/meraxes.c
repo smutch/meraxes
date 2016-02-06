@@ -48,10 +48,9 @@ int main(int argc, char **argv)
 
   // calculate the output hdf5 file properties for later use
   calc_hdf5_props();
-#ifdef USE_TOCF
-  create_grids_file();
-#endif
 
+  if (run_globals.params.TOCF_Flag)
+    create_grids_file();
 
   // Run the model!
   if (!run_globals.params.FlagInteractive)

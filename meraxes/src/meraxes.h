@@ -231,7 +231,6 @@ typedef struct phototabs_t {
   int    NMetals;
 } phototabs_t;
 
-#ifdef USE_TOCF
 typedef struct tocf_params_t tocf_params_t;
 struct tocf_params_t
 {
@@ -297,7 +296,6 @@ typedef struct tocf_grids_t {
   bool           reion_complete;
   int            buffer_size;
 } tocf_grids_t;
-#endif
 
 //! The meraxis halo structure
 typedef struct halo_t {
@@ -521,9 +519,7 @@ typedef struct catalog_halo_t {
 typedef struct run_globals_t {
   struct run_params_t params;
   char                FNameOut[STRLEN];
-#ifdef USE_TOCF
   tocf_grids_t        tocf_grids;
-#endif
   struct run_units_t  units;
   hdf5_output_t       hdf5props;
 
@@ -650,7 +646,6 @@ void   read_Mcrit_table();
 double reionization_modifier(galaxy_t *gal, double Mvir, int snapshot);
 double sobacchi2013_modifier(double Mvir, double redshift);
 double gnedin2000_modifer(double Mvir, double redshift);
-#ifdef USE_TOCF
 void assign_slabs();
 
 float  find_HII_bubbles(float redshift);
@@ -669,7 +664,6 @@ void call_find_HII_bubbles(int snapshot, int unsampled_snapshot, int nout_gals);
 void create_grids_file();
 void save_tocf_grids(int snapshot);
 bool check_if_reionization_complete();
-#endif
 
 #ifdef DEBUG
 int  debug(const char * restrict format, ...);

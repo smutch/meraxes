@@ -1,5 +1,3 @@
-#ifdef USE_TOCF
-
 #include "meraxes.h"
 #include <math.h>
 
@@ -60,4 +58,3 @@ double tocf_modifier(galaxy_t *gal, double Mvir)
 {
   return pow(2.0, -1.0 * gal->MvirCrit / Mvir);
 }
-#endif
