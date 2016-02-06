@@ -53,17 +53,15 @@ int main(int argc, char **argv)
   if (stat(run_globals.params.OutputDir, &filestatus) != 0)
     mkdir(run_globals.params.OutputDir, 02755);
 
-#ifdef USE_TOCF
-    // Check to see if the tocf_logs directory exists and if not, create it
-    if (stat(tocf_params.logfile_dir, &filestatus) != 0)
-        mkdir(tocf_params.logfile_dir, 02755);
-#endif
-
   // initiate meraxes
   init_meraxes();
 
   // calculate the output hdf5 file properties for later use
   calc_hdf5_props();
+#ifdef USE_TOCF
+  create_grids_file();
+#endif
+
 
   // Run the model!
   if (!run_globals.params.FlagInteractive)

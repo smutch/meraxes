@@ -508,92 +508,125 @@ void construct_stellar_grids(int snapshot, int ngals_in_slabs)
 }
 
 
-void save_tocf_grids(hid_t parent_group_id, int snapshot)
+static void write_grid_float(const char *name, float *data, hid_t file_id, hid_t fspace_id, hid_t memspace_id)
 {
-  if (SID.My_rank == 0)
+  hid_t dset_id = H5Dcreate(file_id, name, H5T_NATIVE_FLOAT, fspace_id,
+      H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+  hid_t plist_id = H5Pcreate(H5P_DATASET_XFER);
+  H5Pset_dxpl_mpio(plist_id, H5FD_MPIO_COLLECTIVE);
+  H5Dwrite(dset_id, H5T_NATIVE_FLOAT, memspace_id, fspace_id, plist_id, data);
+  H5Pclose(plist_id);
+  H5Dclose(dset_id);
+}
+
+void save_tocf_grids(int snapshot)
+{
+
+  // Check if we even want to write anything...
+  tocf_grids_t *grids = &(run_globals.tocf_grids);
+  if ((grids->global_xH < REL_TOL) || (grids->global_xH > 1.0-REL_TOL))
+    return;
+
+  // If we do, well then lets!...
+  int   HII_dim       = tocf_params.HII_dim;
+  int   local_nix     = (int)(tocf_params.slab_nix[SID.My_rank]);
+  // float *ps;
+  // int   ps_nbins;
+  // float average_deltaT;
+  // double Hubble_h = run_globals.params.Hubble_h;
+
+  // Save tocf grids
+  // ----------------------------------------------------------------------------------------------------
+
+  SID_log("Saving tocf grids...", SID_LOG_OPEN);
+
+  char name[STRLEN];
+  sprintf(name, "%s/%s_grids.hdf5", run_globals.params.OutputDir, run_globals.params.FileNameGalaxies);
+
+  // open the file (in parallel)
+  hid_t plist_id = H5Pcreate(H5P_FILE_ACCESS);
+  H5Pset_fapl_mpio(plist_id, SID_COMM_WORLD, MPI_INFO_NULL);
+  hid_t file_id = H5Fopen(name, H5F_ACC_RDWR, plist_id);
+  H5Pclose(plist_id);
+
+  // create the group
+  sprintf(name, "Snap%03d", snapshot);
+  hid_t group_id = H5Gcreate(file_id, name, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+
+  // create the filespace
+  hsize_t dims[3] = {HII_dim, HII_dim, HII_dim};
+  hid_t fspace_id = H5Screate_simple(3, dims, NULL);
+
+  // create the memspace
+  hsize_t mem_dims[3] = {local_nix, HII_dim, HII_dim};
+  hid_t memspace_id = H5Screate_simple(3, mem_dims, NULL);
+
+  // select a hyperslab in the filespace
+  hsize_t start[3] = {tocf_params.slab_ix_start[SID.My_rank], 0, 0};
+  hsize_t count[3] = {local_nix, HII_dim, HII_dim};
+  H5Sselect_hyperslab(fspace_id, H5S_SELECT_SET, start, NULL, count, NULL);
+
+  // create and write the datasets
+  write_grid_float("xH", grids->xH, group_id, fspace_id, memspace_id);
+  write_grid_float("z_at_ionization", grids->z_at_ionization, group_id, fspace_id, memspace_id);
+
+  if (tocf_params.uvb_feedback)
   {
-    // Check if we even want to write anything...
-    tocf_grids_t *grids = &(run_globals.tocf_grids);
-    float epsilon = 0.0005;
-    if ((grids->global_xH < epsilon) || (grids->global_xH > 1.0-epsilon))
-      return;
-
-    int   HII_dim       = tocf_params.HII_dim;
-    hsize_t dims        = (hsize_t)pow(HII_dim, 3);
-    float *grid;
-    float *ps;
-    int   ps_nbins;
-    float average_deltaT;
-    hid_t group_id;
-    // double Hubble_h = run_globals.params.Hubble_h;
-    
-    // Save tocf grids
-    // ----------------------------------------------------------------------------------------------------
-
-    SID_log("Saving tocf grids...", SID_LOG_OPEN);
-
-    group_id = H5Gcreate(parent_group_id, "Grids", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
-
-    // float grids
-    H5LTmake_dataset_float(group_id, "xH", 1, &dims, grids->xH);
-    H5LTmake_dataset_float(group_id, "z_at_ionization", 1, &dims, grids->z_at_ionization);
-
-    if (tocf_params.uvb_feedback)
-    {
-      H5LTmake_dataset_float(group_id, "J_21", 1, &dims, grids->J_21);
-      H5LTmake_dataset_float(group_id, "J_21_at_ionization", 1, &dims, grids->J_21_at_ionization);
-      H5LTmake_dataset_float(group_id, "Mvir_crit", 1, &dims, grids->Mvir_crit);
-    }
-
-    H5LTset_attribute_float(group_id, "xH", "global_xH", &(grids->global_xH), 1);
-
-    // Save the escape fraction if we are using a redshift dependent escape fraction
-    H5LTset_attribute_double(group_id, ".", "ReionEscapeFrac", &(run_globals.params.physics.ReionEscapeFrac), 1);
-
-    // fftw padded grids
-    grid = (float*)SID_calloc((int)dims * sizeof(float));
-    for (int ii = 0; ii < HII_dim; ii++)
-      for (int jj = 0; jj < HII_dim; jj++)
-        for (int kk = 0; kk < HII_dim; kk++)
-          grid[grid_index(ii, jj, kk, HII_dim, INDEX_REAL)] = ((float*)(grids->deltax))[grid_index(ii, jj, kk, HII_dim, INDEX_PADDED)];
-    H5LTmake_dataset_float(group_id, "deltax", 1, &dims, grid);
-
-
-    // Run delta_T_ps
-    // ----------------------------------------------------------------------------------------------------
-
-    SID_log("Calculating delta_T box and power spectrum...", SID_LOG_OPEN);
-
-    memset((void*)grid, 0, sizeof(float) * (int)dims);
-
-    delta_T_ps(
-        run_globals.ZZ[snapshot],
-        tocf_params.numcores,
-        grids->xH,
-        (float*)(grids->deltax),
-        NULL,
-        NULL,
-        &average_deltaT,
-        grid,
-        &ps,
-        &ps_nbins);
-
-    H5LTmake_dataset_float(group_id, "delta_T", 1, &dims, grid);
-
-    dims = ps_nbins * 3;
-    H5LTmake_dataset_float(parent_group_id , "PowerSpectrum", 1               , &dims          , ps);
-    H5LTset_attribute_int(parent_group_id  , "PowerSpectrum", "nbins"         , &ps_nbins      , 1);
-    H5LTset_attribute_float(parent_group_id, "PowerSpectrum", "average_deltaT", &average_deltaT, 1);
-
-    free(ps);
-
-    SID_log("...done", SID_LOG_CLOSE);   // delta_T
-
-    SID_free(SID_FARG grid);
-    H5Gclose(group_id);
-
-    SID_log("...done", SID_LOG_CLOSE);   // Saving tocf grids
+    write_grid_float("J_21", grids->J_21, group_id, fspace_id, memspace_id);
+    write_grid_float("J_21_at_ionization", grids->J_21_at_ionization, group_id, fspace_id, memspace_id);
+    write_grid_float("Mvir_crit", grids->Mvir_crit, group_id, fspace_id, memspace_id);
   }
+
+  H5LTset_attribute_float(group_id, "xH", "global_xH", &(grids->global_xH), 1);
+
+  // Save the escape fraction if we are using a redshift dependent escape fraction
+  H5LTset_attribute_double(group_id, ".", "ReionEscapeFrac", &(run_globals.params.physics.ReionEscapeFrac), 1);
+
+  // fftw padded grids
+  float *grid = (float*)SID_calloc((int)pow(HII_dim, 3) * sizeof(float));
+  for (int ii = 0; ii < HII_dim; ii++)
+    for (int jj = 0; jj < HII_dim; jj++)
+      for (int kk = 0; kk < HII_dim; kk++)
+        grid[grid_index(ii, jj, kk, HII_dim, INDEX_REAL)] = ((float*)(grids->deltax))[grid_index(ii, jj, kk, HII_dim, INDEX_PADDED)];
+  write_grid_float("deltax", grids->deltax, group_id, fspace_id, memspace_id);
+
+
+  // // Run delta_T_ps
+  // // ----------------------------------------------------------------------------------------------------
+
+  // SID_log("Calculating delta_T box and power spectrum...", SID_LOG_OPEN);
+
+  // memset((void*)grid, 0, sizeof(float) * (int)dims);
+
+  // delta_T_ps(
+  //     run_globals.ZZ[snapshot],
+  //     tocf_params.numcores,
+  //     grids->xH,
+  //     (float*)(grids->deltax),
+  //     &average_deltaT,
+  //     grid,
+  //     &ps,
+  //     &ps_nbins);
+
+  // H5LTmake_dataset_float(group_id, "delta_T", 1, &dims, grid);
+
+  // dims = ps_nbins * 3;
+  // H5LTmake_dataset_float(parent_group_id , "PowerSpectrum", 1               , &dims          , ps);
+  // H5LTset_attribute_int(parent_group_id  , "PowerSpectrum", "nbins"         , &ps_nbins      , 1);
+  // H5LTset_attribute_float(parent_group_id, "PowerSpectrum", "average_deltaT", &average_deltaT, 1);
+
+  // free(ps);
+
+  // SID_log("...done", SID_LOG_CLOSE);   // delta_T
+
+  // tidy up
+  SID_free(SID_FARG grid);
+  H5Sclose(memspace_id);
+  H5Sclose(fspace_id);
+  H5Gclose(group_id);
+  H5Fclose(file_id);
+
+  SID_log("...done", SID_LOG_CLOSE);   // Saving tocf grids
 }
 
 

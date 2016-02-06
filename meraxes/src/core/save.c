@@ -496,6 +496,22 @@ void prep_hdf5_file()
   H5Fclose(file_id);
 }
 
+void create_grids_file()
+{
+  if(SID.My_rank == 0)
+  {
+    // create a new file
+    char fname[STRLEN];
+    sprintf(fname, "%s/%s.hdf5", run_globals.params.OutputDir, run_globals.params.FileNameGalaxies);
+    if (access(fname, F_OK) != -1)
+      remove(fname);
+    hid_t file_id = H5Fcreate(fname, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
+
+    // close the file
+    H5Fclose(file_id);
+  }
+}
+
 void create_master_file()
 {
   hid_t file_id, ds_id, group_id, prop_t;
