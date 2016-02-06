@@ -149,11 +149,11 @@ void malloc_reionization_grids()
     grids->buffer_size = max_cells;
 
     grids->buffer          = fftwf_alloc_real(max_cells);
-    grids->stars           = fftwf_alloc_real(slab_n_real * 2);  // padded for in-place FFT
+    grids->stars           = fftwf_alloc_real(slab_n_complex * 2);  // padded for in-place FFT
     grids->stars_filtered  = fftwf_alloc_complex(slab_n_complex);
-    grids->deltax          = fftwf_alloc_real(slab_n_real * 2);  // padded for in-place FFT
+    grids->deltax          = fftwf_alloc_real(slab_n_complex * 2);  // padded for in-place FFT
     grids->deltax_filtered = fftwf_alloc_complex(slab_n_complex);
-    grids->sfr             = fftwf_alloc_real(slab_n_real * 2);  // padded for in-place FFT
+    grids->sfr             = fftwf_alloc_real(slab_n_complex * 2);  // padded for in-place FFT
     grids->sfr_filtered    = fftwf_alloc_complex(slab_n_complex);
     grids->xH              = fftwf_alloc_real(slab_n_real);
     grids->z_at_ionization = fftwf_alloc_real(slab_n_real);

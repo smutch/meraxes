@@ -137,10 +137,10 @@ int delta_T_ps(
   {
     p_box[ii] = 0.0;
     k_ave[ii] = 0.0;
-    in_bin_ii[ii] = 0;
+    in_bin_ct[ii] = 0;
   }
 
-  deldel_T = (fftwf_complex *) fftwf_malloc(sizeof(fftwf_complex)*HII_KSPACE_NUM_PIXELS);
+  deldel_T = fftwf_alloc_complex(run_globals.tocf_grids.slab_n_complex[SID.My_rank]);
 
   if (!deldel_T)
   {
