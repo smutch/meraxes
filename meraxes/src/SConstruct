@@ -195,9 +195,8 @@ if not GetOption('help'):
     compile_against(libs, deps, env)
 
     if env['tocf']:
-        libs = ['21cmfast', 'fftw']
+        libs = ['fftw',]
         compile_against(libs, deps, env)
-        env.AppendUnique(CC = ['-fopenmp',])
 
     # Set the python environment to use in any python scripts.
     if 'VIRTUAL_ENV' in os.environ:

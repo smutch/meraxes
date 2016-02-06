@@ -639,6 +639,16 @@ void read_parameter_file(char *fname, int mode)
       required_tag[n_param]  = 1;
       params_type[n_param++] = PARAM_TYPE_FLOAT;
       
+      strcpy(params_tag[n_param], "TOCF_RtoM_filter");
+      params_addr[n_param]   = &(tocf_params.RtoM_filter);
+      required_tag[n_param]  = 1;
+      params_type[n_param++] = PARAM_TYPE_INT;
+      
+      strcpy(params_tag[n_param], "TOCF_Y_He");
+      params_addr[n_param]   = &(tocf_params.Y_He);
+      required_tag[n_param]  = 1;
+      params_type[n_param++] = PARAM_TYPE_FLOAT;
+      
 #endif
 
       hdf5props->params_count = n_param;

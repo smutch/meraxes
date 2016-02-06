@@ -39,7 +39,7 @@ int delta_T_ps(
   float max       = -1e3;
   double ave       = 0.0;
   int HII_dim = tocf_params.HII_dim;
-  int local_nix = (int)(run_globals.tocf_grids.slab_nix[SID.My_rank]);
+  int local_nix = (int)(tocf_params.slab_nix[SID.My_rank]);
 
   // Set some redshift dependant values
   float redshift = run_globals.ZZ[snapshot];
@@ -130,7 +130,7 @@ int delta_T_ps(
     in_bin_ct[ii] = 0;
   }
 
-  fftwf_complex *deldel_T = fftwf_alloc_complex(run_globals.tocf_grids.slab_n_complex[SID.My_rank]);
+  fftwf_complex *deldel_T = fftwf_alloc_complex(tocf_params.slab_n_complex[SID.My_rank]);
 
   // Fill-up the real-space of the deldel box
   // Note: we include the V/N factor for the scaling after the fft

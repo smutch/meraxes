@@ -6,6 +6,7 @@
 #include <gsl/gsl_rng.h>
 #include <stdbool.h>
 #include <hdf5.h>
+#include <fftw3.h>
 
 #ifndef _INIT_MERAXES
 #define _INIT_MERAXES
@@ -245,10 +246,12 @@ struct tocf_params_t
     double ion_tvir_min;
     float  HII_eff_factor;
     int    HII_filter;
+    int    RtoM_filter;
     float  r_bubble_min;
     float  r_bubble_max;
     int    uvb_feedback;
     float  gamma_halo_bias;
+    float  Y_He;
     int    compute_mfp;
     float  delta_r_HII_factor;
     float  delta_k_ps;

@@ -3,10 +3,6 @@
 #include <gsl/gsl_math.h>
 #include <gsl/gsl_integration.h>
 
-#ifdef USE_TOCF
-#include <21cmfast.h>
-#endif
-
 static void read_requested_forest_ids()
 {
   if (strlen(run_globals.params.ForestIDFile) == 0)
@@ -354,23 +350,6 @@ void init_meraxes()
 
 #ifdef USE_TOCF
   malloc_reionization_grids();
-
-  if (run_globals.params.TOCF_Flag)
-  {
-    tocf_params.box_len = run_globals.params.BoxSize / run_globals.params.Hubble_h;
-
-    // Set the cosmology parameters of 21cmFAST to match those of Meraxes
-    tocf_params.sigma8      = run_globals.params.Sigma8;
-    tocf_params.hlittle     = run_globals.params.Hubble_h;
-    tocf_params.OMm         = run_globals.params.OmegaM;
-    tocf_params.OMl         = run_globals.params.OmegaLambda;
-    tocf_params.OMb         = run_globals.params.BaryonFrac * tocf_params.OMm;
-    tocf_params.OMn         = 0.0;
-    tocf_params.OMk         = run_globals.params.OmegaK;
-    tocf_params.OMr         = run_globals.params.OmegaR;
-    tocf_params.power_index = run_globals.params.SpectralIndex;
-    tocf_params.wl          = run_globals.params.wLambda;
-  }
 
   set_HII_eff_factor();
 

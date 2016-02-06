@@ -2,10 +2,6 @@
 #include "meraxes.h"
 #include <sys/stat.h>
 
-#ifdef USE_TOCF
-#include <21cmfast.h>
-#endif
-
 
 int main(int argc, char **argv)
 {

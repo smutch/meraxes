@@ -974,7 +974,7 @@ void write_snapshot(
 
 #ifdef USE_TOCF
   if (run_globals.params.TOCF_Flag && !check_if_reionization_complete())
-    save_tocf_grids(group_id, run_globals.ListOutputSnaps[i_out]);
+    save_tocf_grids(run_globals.ListOutputSnaps[i_out]);
 #endif
 
   // Close the group.

@@ -632,27 +632,27 @@ void save_tocf_grids(int snapshot)
 
 bool check_if_reionization_complete()
 {
-  bool complete = run_globals.tocf_grids.reion_complete;
-  if (!complete)
+  int complete = (int)run_globals.tocf_grids.reion_complete;
+  if(!complete)
   {
-    if (SID.My_rank == 0)
-    {
-      complete = true;
-      float *xH = run_globals.tocf_grids.xH;
+    complete = 1;
+    float *xH = run_globals.tocf_grids.xH;
+    int HII_dim = tocf_params.HII_dim;
+    int slab_n_real = (int)(tocf_params.slab_nix[SID.My_rank]) * HII_dim * HII_dim;
 
-      // If not all cells are ionised then reionization is still progressing...
-      for (int ii=0; ii < HII_TOT_NUM_PIXELS; ii++)
+    // If not all cells are ionised then reionization is still progressing...
+    for (int ii=0; ii < slab_n_real; ii++)
+    {
+      if (xH[ii] != 0.0)
       {
-        if (xH[ii] != 0.0)
-        {
-          complete = false;
-          break;
-        }
+        complete = 0;
+        break;
       }
     }
-    SID_Bcast(&complete, sizeof(bool), 0, SID.COMM_WORLD);
-    run_globals.tocf_grids.reion_complete = complete;
   }
-  return complete;
+  
+  SID_Allreduce(SID_IN_PLACE, &complete, 1, MPI_INT, MPI_LAND, SID.COMM_WORLD);
+  run_globals.tocf_grids.reion_complete = (bool)complete;
+  return (bool)complete;
 }
 #endif
