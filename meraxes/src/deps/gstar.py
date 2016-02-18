@@ -15,8 +15,8 @@ deps['gsl'] = {
 }
 
 deps['hdf5'] = {
-    'inclp' :'/usr/local/x86_64/gnu/hdf5-1.8.9-threadsafe/include',
-    'libp'  :'/usr/local/x86_64/gnu/hdf5-1.8.9-threadsafe/lib',
+    'inclp' :'/usr/local/x86_64/gnu/hdf5-1.8.14-openmpi/include',
+    'libp'  :'/usr/local/x86_64/gnu/hdf5-1.8.14-openmpi/lib',
     'lib'   : ['hdf5', 'hdf5_hl', 'z'],
 }
 
@@ -29,7 +29,7 @@ deps['gbpCode'] = {
 deps['fftw'] = {
     'inclp' :'/home/smutch/3rd_party/fftw-3.3.3/include',
     'libp'  :'/home/smutch/3rd_party/fftw-3.3.3/lib',
-    'lib'   : ['fftw3f_omp', 'fftw3f', 'gomp'],
+    'lib'   : ['fftw3f_mpi', 'fftw3f'],
 }
 
 deps['21cmfast'] = {
