@@ -27,6 +27,12 @@ def copy_files(file_list, dest):
 SConsEnvironment.CopyFiles = lambda env, file_list, dest: copy_files(file_list, dest)
 
 
+def PhonyTarget(env = None, **kw):
+    if not env: env = DefaultEnvironment()
+    for target,action in kw.items():
+        env.AlwaysBuild(env.Alias(target, [], action))
+
+
 def create_git_header(git_executable):
 
     """Create the git.h header file."""
@@ -205,7 +211,7 @@ if not GetOption('help'):
     # = Targets =
     # ===========
 
-    node_list = files('**/*.c')
+    node_list = files('**/*.c', exclude='tests/*')
     target = env.Program(target='../bin/meraxes', source=node_list)
     git_header = env.CreateGitHeader([deps['exec']['git']])
     Depends(target, git_header)
@@ -221,7 +227,9 @@ if not GetOption('help'):
     Depends(lib, incl)
     env.Alias('lib', lib)
 
+    SConscript('tests/SConscript', exports='env lib deps compile_against PhonyTarget')
+
     # If you create a my_SConscript file then you can put your own custom
     # targets etc. in there...
     if os.path.exists("./my_SConscript"):
-        SConscript('my_SConscript', exports='env target lib copy_files files')
+        SConscript('my_SConscript', exports='env target lib copy_files files PhonyTarget')

@@ -1,0 +1,14 @@
+Import('env lib deps compile_against PhonyTarget')
+
+env.AppendUnique(CPPPATH = '#/../include')
+env.AppendUnique(LIBPATH = '#/../lib')
+
+compile_against(['cmocka'], deps, env)
+
+env.PrependUnique(LIBS = 'meraxes')
+
+for f in Glob('*.c'):
+    test = env.Program(f)
+    Depends(test, lib)
+
+PhonyTarget(env, run_tests = '/usr/local/x86_64/gnu/openmpi-1.6.1/bin/mpirun -n 1 tests/tocf_test')

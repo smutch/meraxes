@@ -1,5 +1,7 @@
 #include "meraxes.h"
 #include "parse_paramfile.h"
+#include <fftw3.h>
+#include <fftw3-mpi.h>
 #include <hdf5.h>
 
 void cleanup()
@@ -14,7 +16,10 @@ void cleanup()
     SID_free(SID_FARG run_globals.RequestedForestId);
 
   if (run_globals.params.TOCF_Flag)
+  {
     free_reionization_grids(run_globals);
+    fftwf_mpi_cleanup();
+  }
 
   SID_log("Freeing hdf5 related stuff...", SID_LOG_OPEN);
   if (SID.My_rank == 0)

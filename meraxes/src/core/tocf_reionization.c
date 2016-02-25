@@ -43,6 +43,7 @@ void set_HII_eff_factor()
 void assign_slabs()
 {
   // Allocations made in this function are free'd in `free_reionization_grids`.
+  fftwf_mpi_init();
 
   // Assign the slab size
   int n_rank = SID.n_proc;
@@ -50,22 +51,22 @@ void assign_slabs()
 
   // Use fftw to find out what slab each rank should get
   ptrdiff_t local_nix, local_ix_start;
-  ptrdiff_t local_n_complex = fftwf_mpi_local_size_3d(dim, dim, dim/2 + 1, MPI_COMM_WORLD, &local_nix, &local_ix_start);
+  ptrdiff_t local_n_complex = fftwf_mpi_local_size_3d(dim, dim, dim/2 + 1, SID_COMM_WORLD, &local_nix, &local_ix_start);
 
   // let every core know...
-  ptrdiff_t *slab_nix = tocf_params.slab_nix;
-  slab_nix = SID_malloc(sizeof(ptrdiff_t) * n_rank);  ///< array of number of x cells of every rank
-  MPI_Allgather(&local_nix, sizeof(ptrdiff_t), MPI_BYTE, slab_nix, sizeof(ptrdiff_t), MPI_BYTE, MPI_COMM_WORLD);
+  ptrdiff_t **slab_nix = &tocf_params.slab_nix;
+  *slab_nix = SID_malloc(sizeof(ptrdiff_t) * n_rank);  ///< array of number of x cells of every rank
+  MPI_Allgather(&local_nix, sizeof(ptrdiff_t), MPI_BYTE, *slab_nix, sizeof(ptrdiff_t), MPI_BYTE, SID_COMM_WORLD);
 
-  ptrdiff_t *slab_ix_start = tocf_params.slab_ix_start;
-  slab_ix_start = SID_malloc(sizeof(ptrdiff_t) * n_rank); ///< array first x cell of every rank
-  slab_ix_start[0] = 0;
+  ptrdiff_t **slab_ix_start = &tocf_params.slab_ix_start;
+  *slab_ix_start = SID_malloc(sizeof(ptrdiff_t) * n_rank); ///< array first x cell of every rank
+  (*slab_ix_start)[0] = 0;
   for(int ii=1; ii<n_rank; ii++)
-    slab_ix_start[ii] = slab_ix_start[ii-1] + slab_nix[ii-1];
+    (*slab_ix_start)[ii] = (*slab_ix_start)[ii-1] + (*slab_nix)[ii-1];
 
-  ptrdiff_t *slab_n_complex = tocf_params.slab_n_complex;  ///< array of allocation counts for every rank
-  slab_n_complex = SID_malloc(sizeof(ptrdiff_t) * n_rank);  ///< array of allocation counts for every rank
-  MPI_Allgather(&local_n_complex, sizeof(ptrdiff_t), MPI_BYTE, slab_n_complex, sizeof(ptrdiff_t), MPI_BYTE, MPI_COMM_WORLD);
+  ptrdiff_t **slab_n_complex = &tocf_params.slab_n_complex;  ///< array of allocation counts for every rank
+  *slab_n_complex = SID_malloc(sizeof(ptrdiff_t) * n_rank);  ///< array of allocation counts for every rank
+  MPI_Allgather(&local_n_complex, sizeof(ptrdiff_t), MPI_BYTE, *slab_n_complex, sizeof(ptrdiff_t), MPI_BYTE, SID_COMM_WORLD);
 }
 
 
@@ -136,7 +137,7 @@ void malloc_reionization_grids()
 
     int HII_dim = tocf_params.HII_dim;
     ptrdiff_t *slab_nix = tocf_params.slab_nix;
-    ptrdiff_t slab_n_real = slab_nix[SID.My_rank] * HII_dim * HII_dim;
+    ptrdiff_t slab_n_real = slab_nix[SID.My_rank] * HII_dim * HII_dim; // TODO: NOT WORKING!!!
     ptrdiff_t slab_n_complex = tocf_params.slab_n_complex[SID.My_rank];
 
     // create a buffer on each rank which is as large as the largest LOGICAL allocation on any single rank
@@ -173,23 +174,30 @@ void malloc_reionization_grids()
       grids->xH[ii] = 1.0;
       grids->z_at_ionization[ii] = -1;
     }
-    memset(grids->xH, 1.0, sizeof(float) * slab_n_real);
-    memset(grids->z_at_ionization, -1.0, sizeof(float) * slab_n_real);
 
-    if (tocf_params.uvb_feedback)
+
+    for (int ii = 0; ii < slab_n_real; ii++)
+      if (tocf_params.uvb_feedback)
+      {
+        grids->J_21_at_ionization[ii] = 0.;
+        grids->J_21[ii] = 0.;
+        grids->Mvir_crit[ii] = 0;
+      }
+
+
+    for (int ii = 0; ii < slab_n_complex; ii++)
     {
-      memset(grids->J_21_at_ionization, 0., sizeof(float) * slab_n_real);
-      memset(grids->J_21, 0., sizeof(float) * slab_n_real);
-      memset(grids->Mvir_crit, 0, sizeof(float) * slab_n_real);
+      grids->stars_filtered[ii] = 0 + 0*I;
+      grids->deltax_filtered[ii] = 0 + 0*I;
+      grids->sfr_filtered[ii] = 0 + 0*I;
     }
 
-    memset(grids->stars_filtered, 0, sizeof(fftwf_complex) * slab_n_complex);
-    memset(grids->deltax_filtered, 0, sizeof(fftwf_complex) * slab_n_complex);
-    memset(grids->sfr_filtered, 0, sizeof(fftwf_complex) * slab_n_complex);
-
-    memset(grids->deltax, 0, sizeof(float) * slab_n_real * 2);
-    memset(grids->stars, 0, sizeof(float) * slab_n_real * 2);
-    memset(grids->sfr, 0, sizeof(float) * slab_n_real * 2);
+    for (int ii = 0; ii < slab_n_complex*2; ii++)
+    {
+      grids->deltax[ii] = 0;
+      grids->stars[ii] = 0;
+      grids->sfr[ii] = 0;
+    }
 
     SID_log(" ...done", SID_LOG_CLOSE);
   }
@@ -401,7 +409,6 @@ void construct_stellar_grids(int snapshot, int ngals_in_slabs)
     for(int i_r=0; i_r < SID.n_proc; i_r++)
     {
       double min_xpos = (double)slab_ix_start[i_r] * cell_width;
-      int nix = slab_nix[i_r];
 
       // init the buffer
       for(int ii=0; ii<buffer_size; ii++)
@@ -431,13 +438,13 @@ void construct_stellar_grids(int snapshot, int ngals_in_slabs)
           gal->Pos[2] += box_size;
         int iz = pos_to_cell(gal->Pos[2], box_size, HII_dim);
 
-        assert((ix < nix) && (ix >= 0));
+        assert((ix < slab_nix[i_r]) && (ix >= 0));
         assert((iy < HII_dim) && (iy >= 0));
         assert((iz < HII_dim) && (iz >= 0));
 
         int ind = grid_index(ix, iy, iz, HII_dim, INDEX_REAL);
 
-        assert((ind >=0) && (ind < nix*HII_dim*HII_dim));
+        assert((ind >=0) && (ind < slab_nix[i_r]*HII_dim*HII_dim));
 
         switch (prop) {
           case prop_stellar:
