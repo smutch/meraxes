@@ -128,8 +128,15 @@ static int teardown_map_galaxies_to_slabs(void **state) {
 
 static void test_map_galaxies_to_slabs(void **state) {
 
-  int n_mapped = map_galaxies_to_slabs(mystate->n_gals);
+  int correct_nix[] = {16, 16, 16, 16};
+  for(int ii=0; ii<SID.n_proc; ii++)
+    assert_int_equal((int)tocf_params.slab_nix[ii], correct_nix[ii]);
 
+  int correct_ix_start[] = {0, 16, 32, 48};
+  for(int ii=0; ii<SID.n_proc; ii++)
+    assert_int_equal((int)tocf_params.slab_ix_start[ii], correct_ix_start[ii]);
+
+  int n_mapped = map_galaxies_to_slabs(mystate->n_gals);
   assert_int_equal(n_mapped, mystate->n_gals);
 
   /* gal_to_slab_t *galaxy_to_slab_map = run_globals.tocf_grids.galaxy_to_slab_map; */
