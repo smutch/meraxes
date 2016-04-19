@@ -33,8 +33,8 @@ deps['fftw'] = {
 }
 
 deps['21cmfast'] = {
-    'inclp' :'../../21cmfast/include',
-    'libp'  :'../../21cmfast/lib',
+    'inclp' :'/home/yqin/bitbucket/21cmfast-dragons/include',
+    'libp'  :'/home/yqin/bitbucket/21cmfast-dragons/lib',
     'lib'   : ['21cmfast', 'gomp'],
 }
 
