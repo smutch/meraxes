@@ -498,6 +498,11 @@ void read_parameter_file(run_globals_t *run_globals, char *fname, int mode)
       required_tag[n_param]  = 1;
       params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
+      strcpy(params_tag[n_param], "QuasarModeEff");
+      params_addr[n_param]   = &(run_params->physics).QuasarModeEff;
+      required_tag[n_param]  = 1;
+      params_type[n_param++] = PARAM_TYPE_DOUBLE;
+
       strcpy(params_tag[n_param], "BlackHoleGrowthRate");
       params_addr[n_param]   = &(run_params->physics).BlackHoleGrowthRate;
       required_tag[n_param]  = 1;

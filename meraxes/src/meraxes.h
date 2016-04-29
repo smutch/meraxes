@@ -89,6 +89,7 @@ typedef struct physics_params_t {
   double EnergyPerSN;
   double IMFNormConst;
   double RadioModeEff;
+  double QuasarModeEff;
   double BlackHoleGrowthRate;
 
   double ThreshMajorMerger;
@@ -555,7 +556,7 @@ double       gas_cooling(run_globals_t *run_globals, galaxy_t *gal);
 void         cool_gas_onto_galaxy(galaxy_t *gal, double cooling_mass);
 double       calc_metallicity(double total_gas, double metals);
 void         reincorporate_ejected_gas(run_globals_t *run_globals, galaxy_t *gal);
-double       radio_mode_BH_heating(run_globals_t *run_globals, galaxy_t *gal, double cooling_mass);
+double       radio_mode_BH_heating(run_globals_t *run_globals, galaxy_t *gal, double cooling_mass, double x);
 void         merger_driven_BH_growth(run_globals_t *run_globals, galaxy_t *gal, double merger_ratio);
 
 // Magnitude related

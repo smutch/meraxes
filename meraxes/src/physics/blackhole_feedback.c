@@ -1,7 +1,54 @@
 #include "meraxes.h"
 #include <math.h>
 
-double radio_mode_BH_heating(run_globals_t *run_globals, galaxy_t *gal, double cooling_mass)
+// quasar feedback suggested by Croton et al. 2016
+void update_reservoirs_from_quasar_mode_bh_feedback(run_globals_t *run_globals, galaxy_t *gal, double m_reheat)
+{
+    double metallicity; 
+    galaxy_t *central;
+
+    if (gal->ghost_flag)
+        central = gal; 
+    else
+        central = gal->Halo->FOFGroup->FirstOccupiedHalo->Galaxy;   
+
+    if (m_reheat < gal->ColdGas)
+    {
+        metallicity = calc_metallicity(gal->ColdGas, gal->MetalsColdGas);
+        gal->ColdGas          -= m_reheat;
+        gal->MetalsColdGas    -= m_reheat * metallicity; 
+        central->MetalsHotGas += m_reheat * metallicity;
+        central->HotGas       += m_reheat;              
+    }
+    else
+    {
+        metallicity = calc_metallicity(central->HotGas, central->MetalsHotGas);
+        gal->ColdGas               = 0.0;
+        gal->MetalsColdGas         = 0.0;
+        central->HotGas           -= m_reheat;
+        central->MetalsHotGas     -= m_reheat * metallicity;
+        central->EjectedGas       += m_reheat;              
+        central->MetalsEjectedGas += m_reheat * metallicity;
+    }
+
+    // Check the validity of the modified reservoir values (HotGas can be negtive for too strong quasar feedback)
+    if (central->HotGas < 0)          
+      central->HotGas = 0.0;          
+    if (central->MetalsHotGas < 0)    
+      central->MetalsHotGas = 0.0;    
+    if (gal->ColdGas < 0)             
+      gal->ColdGas = 0.0;             
+    if (gal->MetalsColdGas < 0)       
+      gal->MetalsColdGas = 0.0;       
+    if (gal->StellarMass < 0)         
+      gal->StellarMass = 0.0;         
+    if (central->EjectedGas < 0)      
+      central->EjectedGas = 0.0;      
+    if (central->MetalsEjectedGas < 0)
+      central->MetalsEjectedGas = 0.0;
+}
+
+double radio_mode_BH_heating(run_globals_t *run_globals, galaxy_t *gal, double cooling_mass, double x)
 {
   double accretion_rate;
   double eddington_rate;
@@ -16,11 +63,11 @@ double radio_mode_BH_heating(run_globals_t *run_globals, galaxy_t *gal, double c
   // if there is any hot gas
   if (gal->HotGas > 0.0)
   {
-    // empirical accretion recipe of Croton et al. (2006)
+
+    //Bondi-Hoyle accretion model
     accretion_rate = run_globals->params.physics.RadioModeEff
-                     / (units->UnitMass_in_g / units->UnitTime_in_s * SEC_PER_YEAR / SOLAR_MASS)
-                     * (gal->BlackHoleMass / 0.01) * pow(fof_group->Vvir / 200.0, 3.0)
-                     * ((gal->HotGas / fof_group->Mvir) / 0.1);
+                    * run_globals->G * 1.7377 * x * gal->BlackHoleMass;
+    // 15/16*pi*mu=1.7377, with mu=0.59; x=k*m_p*T/Lambda
 
     // Eddington rate
     eddington_rate = 1.3e48 * gal->BlackHoleMass / (units->UnitEnergy_in_cgs / units->UnitTime_in_s) / 9e10;
@@ -67,6 +114,7 @@ void merger_driven_BH_growth(run_globals_t *run_globals, galaxy_t *gal, double m
   if (gal->ColdGas > 0)
   {
     // If there is any cold gas to feed the black hole...
+    double m_reheat;
     double accreted_mass;
     double accreted_metals;
     double Vvir;
@@ -89,5 +137,10 @@ void merger_driven_BH_growth(run_globals_t *run_globals, galaxy_t *gal, double m
     gal->BlackHoleMass += accreted_mass;
     gal->ColdGas       -= accreted_mass;
     gal->MetalsColdGas -= accreted_metals;
+
+    m_reheat = run_globals->params.physics.QuasarModeEff *8.98755e9 * accreted_mass /Vvir /Vvir;
+    // 8.98755e9 = eta*c^2, eta=0.1 and c in km/s
+    
+    update_reservoirs_from_quasar_mode_bh_feedback(run_globals, gal, m_reheat);
   }
 }

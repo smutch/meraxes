@@ -77,7 +77,7 @@ double gas_cooling(run_globals_t *run_globals, galaxy_t *gal)
         cooling_mass = gal->HotGas;
 
       if (run_globals->params.physics.Flag_BHFeedback)
-        cooling_mass -= radio_mode_BH_heating(run_globals, gal, cooling_mass);
+        cooling_mass -= radio_mode_BH_heating(run_globals, gal, cooling_mass, x);
 
       if (cooling_mass < 0)
         cooling_mass = 0.0;
