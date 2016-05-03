@@ -116,6 +116,7 @@ void prepare_galaxy_for_output(
   galout->BaryonFracModifier = (float)(gal.BaryonFracModifier);
   galout->MvirCrit           = (float)(gal.MvirCrit);
   galout->MergTime           = (float)(gal.MergTime * units->UnitLength_in_cm / units->UnitVelocity_in_cm_per_s / SEC_PER_MEGAYEAR);
+  galout->MergSnap           = (int)(gal.MergSnap);
   galout->MergerStartRadius  = (float)(gal.MergerStartRadius);
   galout->MWMSA              = current_mwmsa(run_globals, &gal, i_snap);
 
@@ -136,7 +137,7 @@ void calc_hdf5_props(run_globals_t *run_globals)
   galaxy_output_t galout;
   int i;                                                // dummy
 
-  h5props->n_props = 39;
+  h5props->n_props = 40;
 
 #ifdef CALC_MAGS
   // If we are calculating any magnitudes then increment the number of
@@ -424,6 +425,13 @@ void calc_hdf5_props(run_globals_t *run_globals)
   h5props->field_units[i]     = "Myr";
   h5props->field_h_conv[i]    = "v/h";
   h5props->field_types[i++]   = H5T_NATIVE_FLOAT;
+
+  h5props->dst_offsets[i]     = HOFFSET(galaxy_output_t, MergSnap);
+  h5props->dst_field_sizes[i] = sizeof(galout.MergSnap);
+  h5props->field_names[i]     = "MergSnap";
+  h5props->field_units[i]     = "None";
+  h5props->field_h_conv[i]    = "None";
+  h5props->field_types[i++]   = H5T_NATIVE_INT;
 
   h5props->dst_offsets[i]     = HOFFSET(galaxy_output_t, MergerStartRadius);
   h5props->dst_field_sizes[i] = sizeof(galout.MergerStartRadius);
