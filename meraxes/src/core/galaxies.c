@@ -53,6 +53,7 @@ galaxy_t* new_galaxy(run_globals_t *run_globals, int snapshot, int halo_ID)
   gal->MvirCrit           = 0.0;
   gal->PhysicsFlags       = 0;
   gal->MergerStartRadius  = 0.0;
+  gal->MergSnap           = 0;
 
   for (int ii = 0; ii < 3; ii++)
   {

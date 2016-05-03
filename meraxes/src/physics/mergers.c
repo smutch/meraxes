@@ -179,6 +179,7 @@ void merge_with_target(run_globals_t *run_globals, galaxy_t *gal, int *dead_gals
   parent->BlackHoleMass     += gal->BlackHoleMass;
   parent->mwmsa_num         += gal->mwmsa_num;
   parent->mwmsa_denom       += gal->mwmsa_denom;
+  parent->MergSnap          =  snapshot;
 
   for (int ii = 0; ii < N_HISTORY_SNAPS; ii++)
     parent->NewStars[ii] += gal->NewStars[ii];

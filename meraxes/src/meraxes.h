@@ -346,6 +346,7 @@ typedef struct galaxy_t {
   int  LastIdentSnap;     //!< Last snapshot at which the halo in which this galaxy resides was identified
   int  output_index;  //!< write index
   int  PhysicsFlags;
+  int  MergSnap;
 
   bool ghost_flag;
 
@@ -404,6 +405,7 @@ typedef struct galaxy_output_t {
   float BaryonFracModifier;
   float MvirCrit;
   int   PhysicsFlags;
+  int   MergSnap;
 
   // baryonic histories
   float MWMSA;  // Mass weighted mean stellar age
