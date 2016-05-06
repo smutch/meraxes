@@ -325,7 +325,8 @@ typedef struct galaxy_t {
   double EjectedGas;
   double MetalsEjectedGas;
   double BlackHoleMass;
-  double BlackHoleAccretedMass;
+  double BlackHoleAccretedHotMass;
+  double BlackHoleAccretedColdMass;
   double MaxReheatFrac;
   double MaxEjectFrac;
 
@@ -399,7 +400,8 @@ typedef struct galaxy_output_t {
   float EjectedGas;
   float MetalsEjectedGas;
   float BlackHoleMass;
-  float BlackHoleAccretedMass;
+  float BlackHoleAccretedHotMass;
+  float BlackHoleAccretedColdMass;
   float MaxReheatFrac;
   float MaxEjectFrac;
 

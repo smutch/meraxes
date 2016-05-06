@@ -70,7 +70,7 @@ double radio_mode_BH_heating(run_globals_t *run_globals, galaxy_t *gal, double c
     // 15/16*pi*mu=1.7377, with mu=0.59; x=k*m_p*T/Lambda
 
     // Eddington rate
-    eddington_rate = 1.3e48 * gal->BlackHoleMass / (units->UnitEnergy_in_cgs / units->UnitTime_in_s) / 9e10;
+    eddington_rate = 1.3e48 / (units->UnitEnergy_in_cgs / units->UnitTime_in_s) * gal->BlackHoleMass/ 9e10;
 
     // limit accretion by the eddington rate
     if (accretion_rate > eddington_rate)
@@ -82,7 +82,7 @@ double radio_mode_BH_heating(run_globals_t *run_globals, galaxy_t *gal, double c
     if (accreted_mass > gal->HotGas)
       accreted_mass = gal->HotGas;
 
-    gal->BlackHoleAccretedMass += accreted_mass;
+    gal->BlackHoleAccretedHotMass = accreted_mass;
 
     // mass heated by AGN following Croton et al. 2006
     // 1.34e5 = sqrt(2*eta*c^2), eta=0.1 (standard efficiency) and c in km/s
@@ -117,10 +117,12 @@ void merger_driven_BH_growth(run_globals_t *run_globals, galaxy_t *gal, double m
   {
     // If there is any cold gas to feed the black hole...
     double m_reheat;
+    double eddington_mass;
     double accreted_mass;
     double accreted_metals;
     double Vvir;
     double zplus1to1pt5;
+    run_units_t *units = &(run_globals->units);
 
     // If this galaxy is the central of it's FOF group then use the FOF halo properties
     // TODO: This needs closer thought as to if this is the best thing to do...
@@ -134,11 +136,18 @@ void merger_driven_BH_growth(run_globals_t *run_globals, galaxy_t *gal, double m
     accreted_mass = run_globals->params.physics.BlackHoleGrowthRate * merger_ratio /
                     (1.0 + (280.0 * 280.0 / Vvir / Vvir)) * gal->ColdGas * zplus1to1pt5;
 
+    // Eddington rate                                                                                      
+    eddington_mass = 1.3e48 / (units->UnitEnergy_in_cgs / units->UnitTime_in_s) * gal->BlackHoleMass/ 9e10 *gal->dt;
+                                                                                                       
+    // limit accretion by the eddington rate                                                               
+    if (accreted_mass > eddington_mass)                                                                   
+      accreted_mass = eddington_mass;                                                                     
+
     // limit accretion to what is available
     if (accreted_mass > gal->ColdGas)
       accreted_mass = gal->ColdGas;
 
-    gal->BlackHoleAccretedMass += accreted_mass;
+    gal->BlackHoleAccretedHotMass = accreted_mass;
 
     accreted_metals     = calc_metallicity(gal->ColdGas, gal->MetalsColdGas) * accreted_mass;
     gal->BlackHoleMass += accreted_mass;

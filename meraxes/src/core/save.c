@@ -104,7 +104,8 @@ void prepare_galaxy_for_output(
   galout->StellarMass        = (float)(gal.StellarMass);
   galout->GrossStellarMass   = (float)(gal.GrossStellarMass);
   galout->BlackHoleMass      = (float)(gal.BlackHoleMass);
-  galout->BlackHoleAccretedMass      = (float)(gal.BlackHoleAccretedMass);
+  galout->BlackHoleAccretedHotMass      = (float)(gal.BlackHoleAccretedHotMass);
+  galout->BlackHoleAccretedColdMass      = (float)(gal.BlackHoleAccretedColdMass);
   galout->MaxReheatFrac      = (float)(gal.MaxReheatFrac);
   galout->MaxEjectFrac       = (float)(gal.MaxEjectFrac);
   galout->DiskScaleLength    = (float)(gal.DiskScaleLength);
@@ -138,7 +139,7 @@ void calc_hdf5_props(run_globals_t *run_globals)
   galaxy_output_t galout;
   int i;                                                // dummy
 
-  h5props->n_props = 41;
+  h5props->n_props = 42;
 
 #ifdef CALC_MAGS
   // If we are calculating any magnitudes then increment the number of
@@ -392,9 +393,16 @@ void calc_hdf5_props(run_globals_t *run_globals)
   h5props->field_h_conv[i]    = "v/h";
   h5props->field_types[i++]   = H5T_NATIVE_FLOAT;
 
-  h5props->dst_offsets[i]     = HOFFSET(galaxy_output_t, BlackHoleAccretedMass);
-  h5props->dst_field_sizes[i] = sizeof(galout.BlackHoleAccretedMass);
-  h5props->field_names[i]     = "BlackHoleAccretedMass";
+  h5props->dst_offsets[i]     = HOFFSET(galaxy_output_t, BlackHoleAccretedHotMass);
+  h5props->dst_field_sizes[i] = sizeof(galout.BlackHoleAccretedHotMass);
+  h5props->field_names[i]     = "BlackHoleAccretedHotMass";
+  h5props->field_units[i]     = "1e10 solMass";
+  h5props->field_h_conv[i]    = "v/h";
+  h5props->field_types[i++]   = H5T_NATIVE_FLOAT;
+
+  h5props->dst_offsets[i]     = HOFFSET(galaxy_output_t, BlackHoleAccretedColdMass);
+  h5props->dst_field_sizes[i] = sizeof(galout.BlackHoleAccretedColdMass);
+  h5props->field_names[i]     = "BlackHoleAccretedColdMass";
   h5props->field_units[i]     = "1e10 solMass";
   h5props->field_h_conv[i]    = "v/h";
   h5props->field_types[i++]   = H5T_NATIVE_FLOAT;
