@@ -44,6 +44,7 @@ galaxy_t* new_galaxy(run_globals_t *run_globals, int snapshot, int halo_ID)
   gal->mwmsa_num          = 0.0;
   gal->mwmsa_denom        = 0.0;
   gal->BlackHoleMass      = 0.0;
+  gal->BlackHoleAccretedMass      = 0.0;
   gal->MaxReheatFrac      = 0.0;
   gal->MaxEjectFrac       = 0.0;
   gal->Sfr                = 0.0;
@@ -116,6 +117,7 @@ void reset_galaxy_properties(run_globals_t *run_globals, galaxy_t *gal, int snap
   // Here we reset any galaxy properties which are calculated on a snapshot by
   // snapshot basis.
   gal->Mcool              = 0.0;
+  gal->BlackHoleAccretedMass              = 0.0;
   gal->Sfr                = 0.0;
   gal->BaryonFracModifier = 1.0;
   gal->MvirCrit           = 0.0;

@@ -46,8 +46,9 @@ void call_find_HII_bubbles(run_globals_t *run_globals, int snapshot, int unsampl
     return;
   }
 
-  // Construct the stellar mass grid
-  construct_stellar_grids(run_globals, snapshot);
+  // Construct the stellar mass grid XXXXXXXX
+  // Construct the ionizing source grid including stellar mass and effective black hole mass
+  construct_ionizing_source_grids(run_globals, snapshot);
 
   SID_log("...done", SID_LOG_CLOSE);
 
@@ -256,14 +257,14 @@ int find_cell(float pos, double box_size)
 }
 
 
-void construct_stellar_grids(run_globals_t *run_globals, int snapshot)
+void construct_ionizing_source_grids(run_globals_t *run_globals, int snapshot)
 {
   galaxy_t *gal;
   int i, j, k;
   double box_size     = (double)(run_globals->params.BoxSize);
   double Hubble_h     = run_globals->params.Hubble_h;
-  float *stellar_grid = (float*)(run_globals->tocf_grids.stars);
-  float *sfr_grid     = (float*)(run_globals->tocf_grids.sfr);
+  float *ionizing_source_grid = (float*)(run_globals->tocf_grids.stars);
+  float *ionizing_source_formation_rate_grid     = (float*)(run_globals->tocf_grids.sfr);
   int HII_dim         = tocf_params.HII_dim;
   run_units_t *units  = &(run_globals->units);
   double tHubble      = hubble_time(run_globals, snapshot);
@@ -273,8 +274,8 @@ void construct_stellar_grids(run_globals_t *run_globals, int snapshot)
   // init the grid
   for (int ii = 0; ii < HII_TOT_FFT_NUM_PIXELS; ii++)
   {
-    *(stellar_grid + ii) = 0.0;
-    *(sfr_grid + ii)     = 0.0;
+    *(ionizing_source_grid + ii) = 0.0;
+    *(ionizing_source_formation_rate_grid + ii)     = 0.0;
   }
 
   // Loop through each valid galaxy and add its stellar mass to the appropriate cell
@@ -317,35 +318,49 @@ void construct_stellar_grids(run_globals_t *run_globals, int snapshot)
       assert((j >= 0) && (j < HII_dim));
       assert((k >= 0) && (k < HII_dim));
 
-      *(stellar_grid + HII_R_FFT_INDEX(i, j, k)) += gal->GrossStellarMass;
-      *(sfr_grid + HII_R_FFT_INDEX(i, j, k))     += gal->GrossStellarMass;
+      *(ionizing_source_grid + HII_R_FFT_INDEX(i, j, k)) += gal->GrossStellarMass;
+      *(ionizing_source_formation_rate_grid + HII_R_FFT_INDEX(i, j, k))     += gal->GrossStellarMass;
+      
+      if ((run_globals->params.physics.Flag_BHFeedback) && (run_globals->params.physics.Flag_BHReion))
+      {
+        // a trick to include quasar radiation using current 21cmFAST code
+        // bh2star = fesc_BH/fesc * Ngamma_BH/Ngamma
+        // for ionizing_source_formation_rate_grid, need further convertion due to different UV spectral index of quasar and stellar component
+        // *0.36 is ALPHA_UV_BH/ALPHA_UV defined in parameter_files/anal_params.h of 21cmfast-dragons !!!!!BE CAREFUL
+		// ALPHA_UV_BH = 1.8 from Loeb & Barkana 2000
+        // fesc_BH is assumed to be 1 and set from parameter files
+        // Ngamma_BH is assumed to be 18000 with accretion efficiency equal to be 0.1
+        // which is calculated from 11000 with accretion efficiency equal to be 0.06 in Loeb & Barkana 2000
+        *(ionizing_source_grid + HII_R_FFT_INDEX(i, j, k)) += gal->BlackHoleMass * run_globals->bh2star;
+        *(ionizing_source_formation_rate_grid + HII_R_FFT_INDEX(i, j, k))     += gal->BlackHoleMass * run_globals->bh2star *0.36;
+      }
     }
     gal = gal->Next;
   }
 
   // Collect all grid cell values onto rank 0 which will actually call 21cmFAST
-  SID_Allreduce(SID_IN_PLACE, stellar_grid, HII_TOT_FFT_NUM_PIXELS, SID_FLOAT, SID_SUM, SID.COMM_WORLD);
-  SID_Allreduce(SID_IN_PLACE, sfr_grid, HII_TOT_FFT_NUM_PIXELS, SID_FLOAT, SID_SUM, SID.COMM_WORLD);
+  SID_Allreduce(SID_IN_PLACE, ionizing_source_grid, HII_TOT_FFT_NUM_PIXELS, SID_FLOAT, SID_SUM, SID.COMM_WORLD);
+  SID_Allreduce(SID_IN_PLACE, ionizing_source_formation_rate_grid, HII_TOT_FFT_NUM_PIXELS, SID_FLOAT, SID_SUM, SID.COMM_WORLD);
 
   if (SID.My_rank == 0)
   {
     // Do one final pass to put the grid in the correct (real) units (Msol or
-    // Msol/s) and divide the sfr_grid by tHubble in order to convert the
+    // Msol/s) and divide the ionizing_source_formation_rate_grid by tHubble in order to convert the
     // stellar masses recorded into SFRs.
     for (int i = 0; i < HII_dim; i++)
       for (int j = 0; j < HII_dim; j++)
         for (int k = 0; k < HII_dim; k++)
         {
-          if (*(stellar_grid + HII_R_FFT_INDEX(i, j, k)) > 0)
-            *(stellar_grid + HII_R_FFT_INDEX(i, j, k)) *= (1.e10 / Hubble_h);
-          if (*(sfr_grid + HII_R_FFT_INDEX(i, j, k)) > 0)
-            *(sfr_grid + HII_R_FFT_INDEX(i, j, k)) *= (units->UnitMass_in_g / units->UnitTime_in_s / SOLAR_MASS) / tHubble;
+          if (*(ionizing_source_grid + HII_R_FFT_INDEX(i, j, k)) > 0)
+            *(ionizing_source_grid + HII_R_FFT_INDEX(i, j, k)) *= (1.e10 / Hubble_h);
+          if (*(ionizing_source_formation_rate_grid + HII_R_FFT_INDEX(i, j, k)) > 0)
+            *(ionizing_source_formation_rate_grid + HII_R_FFT_INDEX(i, j, k)) *= (units->UnitMass_in_g / units->UnitTime_in_s / SOLAR_MASS) / tHubble;
 
           // Check for under/overflow
-          if (*(stellar_grid + HII_R_FFT_INDEX(i, j, k)) < 0)
-            *(stellar_grid + HII_R_FFT_INDEX(i, j, k)) = 0;
-          if (*(sfr_grid + HII_R_FFT_INDEX(i, j, k)) < 0)
-            *(sfr_grid + HII_R_FFT_INDEX(i, j, k)) = 0;
+          if (*(ionizing_source_grid + HII_R_FFT_INDEX(i, j, k)) < 0)
+            *(ionizing_source_grid + HII_R_FFT_INDEX(i, j, k)) = 0;
+          if (*(ionizing_source_formation_rate_grid + HII_R_FFT_INDEX(i, j, k)) < 0)
+            *(ionizing_source_formation_rate_grid + HII_R_FFT_INDEX(i, j, k)) = 0;
         }
   }
 

@@ -101,7 +101,9 @@ typedef struct physics_params_t {
 
   // TODO: These parameters should be used to set the TOCF HII_EFF_FACTOR value
   double ReionNionPhotPerBary;
+  double ReionNionPhotPerBaryBH;
   double ReionEscapeFrac;
+  double ReionEscapeFracBH;
   double ReionTcool;
 
   double ReionSobacchi_Zre;
@@ -116,6 +118,7 @@ typedef struct physics_params_t {
   int Flag_RedshiftDepEscFrac;
   int Flag_ReionizationModifier;
   int Flag_BHFeedback;
+  int Flag_BHReion;
   int Flag_IRA;
   int Flag_FixDiskRadiusOnInfall;
   int Flag_FixVmaxOnInfall;
@@ -322,6 +325,7 @@ typedef struct galaxy_t {
   double EjectedGas;
   double MetalsEjectedGas;
   double BlackHoleMass;
+  double BlackHoleAccretedMass;
   double MaxReheatFrac;
   double MaxEjectFrac;
 
@@ -395,6 +399,7 @@ typedef struct galaxy_output_t {
   float EjectedGas;
   float MetalsEjectedGas;
   float BlackHoleMass;
+  float BlackHoleAccretedMass;
   float MaxReheatFrac;
   float MaxEjectFrac;
 
@@ -486,6 +491,7 @@ typedef struct run_globals_t {
   double              Hubble;
   double              RhoCrit;
   double              G;
+  double              bh2star;
 
   int                 LastOutputSnap;
   int                 NGhosts;
@@ -559,7 +565,7 @@ void         cool_gas_onto_galaxy(galaxy_t *gal, double cooling_mass);
 double       calc_metallicity(double total_gas, double metals);
 void         reincorporate_ejected_gas(run_globals_t *run_globals, galaxy_t *gal);
 double       radio_mode_BH_heating(run_globals_t *run_globals, galaxy_t *gal, double cooling_mass, double x);
-void         merger_driven_BH_growth(run_globals_t *run_globals, galaxy_t *gal, double merger_ratio);
+void         merger_driven_BH_growth(run_globals_t *run_globals, galaxy_t *gal, double merger_ratio, int snapshot);
 
 // Magnitude related
 void   init_luminosities(run_globals_t *run_globals, galaxy_t *gal);
@@ -582,7 +588,7 @@ void   set_HII_eff_factor(run_globals_t *run_globals);
 int    find_cell(float pos, double box_size);
 void   malloc_reionization_grids(run_globals_t *run_globals);
 void   free_reionization_grids(run_globals_t *run_globals);
-void   construct_stellar_grids(run_globals_t *run_globals, int snapshot);
+void   construct_ionizing_source_grids(run_globals_t *run_globals, int snapshot);
 // void    assign_ionization_to_halos(run_globals_t *run_globals, halo_t *halo, int n_halos, float *xH_grid, int xH_dim);
 int  read_dm_grid(run_globals_t *run_globals, int snapshot, int i_grid, float *grid);
 void calculate_Mvir_crit(run_globals_t *run_globals, double redshift);

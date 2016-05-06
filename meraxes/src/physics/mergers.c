@@ -189,7 +189,7 @@ void merge_with_target(run_globals_t *run_globals, galaxy_t *gal, int *dead_gals
 
   // TODO: Should this have a stellar mass / baryon limit placed on it?
   if (run_globals->params.physics.Flag_BHFeedback)
-    merger_driven_BH_growth(run_globals, parent, merger_ratio);
+    merger_driven_BH_growth(run_globals, parent, merger_ratio, snapshot);
 
   // merger driven starburst prescription
   min_stellar_mass = (gal->StellarMass <= parent->StellarMass) ? gal->StellarMass : parent->StellarMass;

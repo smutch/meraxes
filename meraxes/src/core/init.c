@@ -181,6 +181,11 @@ static void set_units(run_globals_t *run_globals)
   // compute a few quantitites
   run_globals->RhoCrit = 3 * run_globals->Hubble * run_globals->Hubble / (8 * M_PI * run_globals->G);
 
+  if ((run_globals->params.physics.Flag_BHFeedback) && (run_globals->params.physics.Flag_BHReion)) 
+    run_globals->bh2star = (double)(run_globals->params.physics.ReionNionPhotPerBaryBH/run_globals->params.physics.ReionNionPhotPerBary*run_globals->params.physics.ReionEscapeFracBH/run_globals->params.physics.ReionEscapeFrac);
+  else
+    run_globals->bh2star = 0;
+
   // debug("UnitTime_in_s = %e\nUnitTime_in_Megayears = %e\nG = %e\nUnitDensity_in_cgs = %e\nUnitPressure_in_cgs = %e\nUnitCoolingRate_in_cgs = %e\nUnitEnergy_in_cgs = %e\n",
   //     units->UnitTime_in_s, units->UnitTime_in_Megayears, units->UnitDensity_in_cgs, units->UnitPressure_in_cgs, units->UnitCoolingRate_in_cgs, units->UnitEnergy_in_cgs);
   // ABORT(EXIT_SUCCESS);

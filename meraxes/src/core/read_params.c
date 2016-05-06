@@ -363,6 +363,11 @@ void read_parameter_file(run_globals_t *run_globals, char *fname, int mode)
       required_tag[n_param]  = 1;
       params_type[n_param++] = PARAM_TYPE_INT;
 
+      strcpy(params_tag[n_param], "Flag_BHReion");
+      params_addr[n_param]   = &(run_params->physics).Flag_BHReion;
+      required_tag[n_param]  = 1;
+      params_type[n_param++] = PARAM_TYPE_INT;
+
       strcpy(params_tag[n_param], "Flag_IRA");
       params_addr[n_param]   = &(run_params->physics).Flag_IRA;
       required_tag[n_param]  = 1;
@@ -538,8 +543,18 @@ void read_parameter_file(run_globals_t *run_globals, char *fname, int mode)
       required_tag[n_param]  = 1;
       params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
+      strcpy(params_tag[n_param], "ReionNionPhotPerBaryBH");
+      params_addr[n_param]   = &(run_params->physics).ReionNionPhotPerBaryBH;
+      required_tag[n_param]  = 1;
+      params_type[n_param++] = PARAM_TYPE_DOUBLE;
+
       strcpy(params_tag[n_param], "ReionEscapeFrac");
       params_addr[n_param]   = &(run_params->physics).ReionEscapeFrac;
+      required_tag[n_param]  = 1;
+      params_type[n_param++] = PARAM_TYPE_DOUBLE;
+
+      strcpy(params_tag[n_param], "ReionEscapeFracBH");
+      params_addr[n_param]   = &(run_params->physics).ReionEscapeFracBH;
       required_tag[n_param]  = 1;
       params_type[n_param++] = PARAM_TYPE_DOUBLE;
 

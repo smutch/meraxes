@@ -82,6 +82,8 @@ double radio_mode_BH_heating(run_globals_t *run_globals, galaxy_t *gal, double c
     if (accreted_mass > gal->HotGas)
       accreted_mass = gal->HotGas;
 
+    gal->BlackHoleAccretedMass += accreted_mass;
+
     // mass heated by AGN following Croton et al. 2006
     // 1.34e5 = sqrt(2*eta*c^2), eta=0.1 (standard efficiency) and c in km/s
     heated_mass = (1.34e5 / fof_group->Vvir) * (1.34e5 / fof_group->Vvir) * accreted_mass;
@@ -109,7 +111,7 @@ double radio_mode_BH_heating(run_globals_t *run_globals, galaxy_t *gal, double c
 }
 
 
-void merger_driven_BH_growth(run_globals_t *run_globals, galaxy_t *gal, double merger_ratio)
+void merger_driven_BH_growth(run_globals_t *run_globals, galaxy_t *gal, double merger_ratio, int snapshot)
 {
   if (gal->ColdGas > 0)
   {
@@ -118,6 +120,7 @@ void merger_driven_BH_growth(run_globals_t *run_globals, galaxy_t *gal, double m
     double accreted_mass;
     double accreted_metals;
     double Vvir;
+    double zplus1to1pt5;
 
     // If this galaxy is the central of it's FOF group then use the FOF halo properties
     // TODO: This needs closer thought as to if this is the best thing to do...
@@ -126,12 +129,16 @@ void merger_driven_BH_growth(run_globals_t *run_globals, galaxy_t *gal, double m
     else
       Vvir = gal->Vvir;
 
+    // Suggested by Bonoli et al. 2009 and Wyithe et al. 2003
+    zplus1to1pt5 = pow((1 + run_globals->ZZ[snapshot]), 1.5);
     accreted_mass = run_globals->params.physics.BlackHoleGrowthRate * merger_ratio /
-                    (1.0 + (280.0 * 280.0 / Vvir / Vvir)) * gal->ColdGas;
+                    (1.0 + (280.0 * 280.0 / Vvir / Vvir)) * gal->ColdGas * zplus1to1pt5;
 
     // limit accretion to what is available
     if (accreted_mass > gal->ColdGas)
       accreted_mass = gal->ColdGas;
+
+    gal->BlackHoleAccretedMass += accreted_mass;
 
     accreted_metals     = calc_metallicity(gal->ColdGas, gal->MetalsColdGas) * accreted_mass;
     gal->BlackHoleMass += accreted_mass;
