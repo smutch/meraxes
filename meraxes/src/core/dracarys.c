@@ -419,7 +419,7 @@ void dracarys(run_globals_t *run_globals)
         
         tocf_params.HII_eff_factor /= params->ReionEscapeFrac;
         
-        f_esc = 0.054*(pow((1.0+run_globals->ZZ[snapshot])/5.0, 2.4));
+        f_esc = 0.04*(pow((1.0+run_globals->ZZ[snapshot])/6.0, 2.5));
         
         if (f_esc > 1.0)
             f_esc = 1.0;
@@ -431,6 +431,10 @@ void dracarys(run_globals_t *run_globals)
         SID_log("Reset value of tocf_params.HII_eff_factor = %g", SID_LOG_COMMENT, tocf_params.HII_eff_factor);
         SID_log("done...", SID_LOG_CLOSE);
     }
+    else
+    {
+        f_esc = params->ReionEscapeFrac;
+    }
     
     if (run_globals->params.TOCF_Flag && !check_if_reionization_complete(run_globals))
     {
@@ -439,10 +443,10 @@ void dracarys(run_globals_t *run_globals)
         // We are decoupled, so no need to run 21cmFAST unless we are ouputing this snapshot
         for (int i_out = 0; i_out < NOUT; i_out++)
           if (snapshot == run_globals->ListOutputSnaps[i_out])
-            call_find_HII_bubbles(run_globals, snapshot, trees_info.unsampled_snapshot, nout_gals);
+            call_find_HII_bubbles(run_globals, snapshot, trees_info.unsampled_snapshot, nout_gals, f_esc);
       }
       else
-        call_find_HII_bubbles(run_globals, snapshot, trees_info.unsampled_snapshot, nout_gals);
+        call_find_HII_bubbles(run_globals, snapshot, trees_info.unsampled_snapshot, nout_gals, f_esc);
     }
     
     // Set tocf_params.HII_eff_factor back to original

@@ -28,7 +28,7 @@ void set_HII_eff_factor(run_globals_t *run_globals)
   SID_log("Set value of tocf_params.HII_eff_factor = %g", SID_LOG_COMMENT, tocf_params.HII_eff_factor);
 }
 
-void call_find_HII_bubbles(run_globals_t *run_globals, int snapshot, int unsampled_snapshot, int nout_gals)
+void call_find_HII_bubbles(run_globals_t *run_globals, int snapshot, int unsampled_snapshot, int nout_gals, float f_esc)
 {
   // Thin wrapper round find_HII_bubbles
 
@@ -48,7 +48,7 @@ void call_find_HII_bubbles(run_globals_t *run_globals, int snapshot, int unsampl
 
   // Construct the stellar mass grid XXXXXXXX
   // Construct the ionizing source grid including stellar mass and effective black hole mass
-  construct_ionizing_source_grids(run_globals, snapshot);
+  construct_ionizing_source_grids(run_globals, snapshot, f_esc);
 
   SID_log("...done", SID_LOG_CLOSE);
 
@@ -257,7 +257,7 @@ int find_cell(float pos, double box_size)
 }
 
 
-void construct_ionizing_source_grids(run_globals_t *run_globals, int snapshot)
+void construct_ionizing_source_grids(run_globals_t *run_globals, int snapshot, float f_esc)
 {
   galaxy_t *gal;
   int i, j, k;
@@ -327,12 +327,12 @@ void construct_ionizing_source_grids(run_globals_t *run_globals, int snapshot)
         // bh2star = fesc_BH/fesc * Ngamma_BH/Ngamma
         // for ionizing_source_formation_rate_grid, need further convertion due to different UV spectral index of quasar and stellar component
         // *0.36 is ALPHA_UV_BH/ALPHA_UV defined in parameter_files/anal_params.h of 21cmfast-dragons !!!!!BE CAREFUL
-		// ALPHA_UV_BH = 1.8 from Loeb & Barkana 2000
+        // ALPHA_UV_BH = 1.8 from Loeb & Barkana 2000
         // fesc_BH is assumed to be 1 and set from parameter files
         // Ngamma_BH is assumed to be 18000 with accretion efficiency equal to be 0.1
         // which is calculated from 11000 with accretion efficiency equal to be 0.06 in Loeb & Barkana 2000
-        *(ionizing_source_grid + HII_R_FFT_INDEX(i, j, k)) += gal->BlackHoleMass * run_globals->bh2star;
-        *(ionizing_source_formation_rate_grid + HII_R_FFT_INDEX(i, j, k))     += gal->BlackHoleMass * run_globals->bh2star *0.36;
+        *(ionizing_source_grid + HII_R_FFT_INDEX(i, j, k)) += gal->BlackHoleMass * run_globals->bh2star*run_globals->params.physics.ReionEscapeFrac/f_esc;
+        *(ionizing_source_formation_rate_grid + HII_R_FFT_INDEX(i, j, k))     += gal->BlackHoleMass * run_globals->bh2star *run_globals->params.physics.ReionEscapeFrac /f_esc *0.36;
       }
     }
     gal = gal->Next;

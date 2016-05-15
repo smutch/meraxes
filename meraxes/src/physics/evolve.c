@@ -81,7 +81,11 @@ int evolve_galaxies(run_globals_t *run_globals, fof_group_t *fof_group, int snap
             // merged then process a merger event.
             if ((gal->MergTime < 0) || (gal->MergerTarget->Type == 3))
               merge_with_target(run_globals, gal, &dead_gals, snapshot);
+            else if (run_globals->params.physics.Flag_BHFeedback)
+              previous_merger_driven_BH_growth(run_globals, gal);
           }
+          else if (run_globals->params.physics.Flag_BHFeedback)
+            previous_merger_driven_BH_growth(run_globals, gal);
           gal = gal->NextGalInHalo;
         }
         halo = halo->NextHaloInFOFGroup;
