@@ -65,9 +65,9 @@ def plot_slice(slice_img, ax, dim, slice_axis, box_size, galaxies=False, dm=Fals
                     vmin=0,
                     vmax=1)
 
-    ax.contour(slice_img.T, extent=extent, extend='both',
-               linewidths=0.5, alpha=0.5,
-               cmap=plt.cm.Greys_r)
+    #  ax.contour(slice_img.T, extent=extent, extend='both',
+    #             linewidths=0.5, alpha=0.5,
+    #             cmap=plt.cm.Greys_r)
 
     if color_bar:
         cbar = fig.colorbar(cax,)

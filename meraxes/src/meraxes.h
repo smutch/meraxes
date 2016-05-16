@@ -319,6 +319,7 @@ typedef struct galaxy_t {
   double Mcool;
   double StellarMass;
   double GrossStellarMass;
+  double FescWeightedGSM;  //!< ReionEscapeFrac weighted GrossStellarMass
   double MetalsStellarMass;
   double DiskScaleLength;
   double Sfr;
@@ -396,6 +397,7 @@ typedef struct galaxy_output_t {
   float DiskScaleLength;
   float StellarMass;
   float GrossStellarMass;
+  float FescWeightedGSM;  //!< ReionEscapeFrac weighted GrossStellarMass
   float MetalsStellarMass;
   float Sfr;
   float EjectedGas;
@@ -585,7 +587,6 @@ void   read_Mcrit_table(run_globals_t *run_globals);
 double reionization_modifier(run_globals_t *run_globals, galaxy_t *gal, double Mvir, float *Pos, int snapshot);
 double sobacchi2013_modifier(run_globals_t *run_globals, double Mvir, double redshift);
 double gnedin2000_modifer(run_globals_t *run_globals, double Mvir, double redshift);
-double global_ionizing_emmisivity(run_globals_t *run_globals);
 #ifdef USE_TOCF
 double tocf_modifier(run_globals_t *run_globals, galaxy_t *gal, double Mvir, float *Pos, int snapshot);
 void   set_HII_eff_factor(run_globals_t *run_globals);

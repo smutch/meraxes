@@ -10,16 +10,23 @@
 void set_HII_eff_factor(run_globals_t *run_globals)
 {
   // Use the params passed to Meraxes via the input file to set the HII ionising efficiency factor
-
   physics_params_t *params = &(run_globals->params.physics);
+
+  // If we are using a redshift dependent escape fraction then reset
+  // ReionEscapeFrac to one as we don't want to inlcude it in the
+  // HII_eff_factor (it will be included in the stellar mass and SFR grids sent
+  // to 21cmFAST instead).
+  if (params->Flag_RedshiftDepEscFrac)
+  {
+    SID_log("Flag_RedshiftDepEscFrac is on => setting ReionEscapeFrac = 1.", SID_LOG_COMMENT);
+    params->ReionEscapeFrac = 1.0;
+  }
 
   // The following is based on Sobacchi & Messinger (2013) eqn 7
   // with f_* removed and f_b added since we define f_coll as M_*/M_tot rather than M_vir/M_tot,
   // and also with the inclusion of the effects of the Helium fraction.
-  tocf_params.HII_eff_factor *= 459.0 / run_globals->params.BaryonFrac
-    * (params->ReionNionPhotPerBary / 4000.0)
-    * (params->ReionEscapeFrac / 0.15)
-    * (1.3072 / ((1.0 + 3.0*tocf_params.Y_He)*(1.0 - tocf_params.Y_He)));
+  tocf_params.HII_eff_factor = 1.0 / run_globals->params.BaryonFrac
+    * params->ReionNionPhotPerBary * params->ReionEscapeFrac / (1.0 - 0.75*tocf_params.Y_He);
 
   // Account for instantaneous recycling factor so that stellar mass is cumulative
   if (params->Flag_IRA)
@@ -28,7 +35,7 @@ void set_HII_eff_factor(run_globals_t *run_globals)
   SID_log("Set value of tocf_params.HII_eff_factor = %g", SID_LOG_COMMENT, tocf_params.HII_eff_factor);
 }
 
-void call_find_HII_bubbles(run_globals_t *run_globals, int snapshot, int unsampled_snapshot, int nout_gals, float f_esc)
+void call_find_HII_bubbles(run_globals_t *run_globals, int snapshot, int unsampled_snapshot, int nout_gals)
 {
   // Thin wrapper round find_HII_bubbles
 
@@ -318,21 +325,15 @@ void construct_ionizing_source_grids(run_globals_t *run_globals, int snapshot, f
       assert((j >= 0) && (j < HII_dim));
       assert((k >= 0) && (k < HII_dim));
 
-      *(ionizing_source_grid + HII_R_FFT_INDEX(i, j, k)) += gal->GrossStellarMass;
-      *(ionizing_source_formation_rate_grid + HII_R_FFT_INDEX(i, j, k))     += gal->GrossStellarMass;
-      
-      if ((run_globals->params.physics.Flag_BHFeedback) && (run_globals->params.physics.Flag_BHReion))
+      if (run_globals->params.physics.Flag_RedshiftDepEscFrac)
       {
-        // a trick to include quasar radiation using current 21cmFAST code
-        // bh2star = fesc_BH/fesc * Ngamma_BH/Ngamma
-        // for ionizing_source_formation_rate_grid, need further convertion due to different UV spectral index of quasar and stellar component
-        // *0.36 is ALPHA_UV_BH/ALPHA_UV defined in parameter_files/anal_params.h of 21cmfast-dragons !!!!!BE CAREFUL
-        // ALPHA_UV_BH = 1.8 from Loeb & Barkana 2000
-        // fesc_BH is assumed to be 1 and set from parameter files
-        // Ngamma_BH is assumed to be 18000 with accretion efficiency equal to be 0.1
-        // which is calculated from 11000 with accretion efficiency equal to be 0.06 in Loeb & Barkana 2000
-        *(ionizing_source_grid + HII_R_FFT_INDEX(i, j, k)) += gal->BlackHoleMass * run_globals->bh2star*run_globals->params.physics.ReionEscapeFrac/f_esc;
-        *(ionizing_source_formation_rate_grid + HII_R_FFT_INDEX(i, j, k))     += gal->BlackHoleMass * run_globals->bh2star *run_globals->params.physics.ReionEscapeFrac /f_esc *0.36;
+        *(stellar_grid + HII_R_FFT_INDEX(i, j, k)) += gal->FescWeightedGSM;
+        *(sfr_grid + HII_R_FFT_INDEX(i, j, k))     += gal->FescWeightedGSM;
+      }
+      else
+      {
+        *(stellar_grid + HII_R_FFT_INDEX(i, j, k)) += gal->GrossStellarMass;
+        *(sfr_grid + HII_R_FFT_INDEX(i, j, k))     += gal->GrossStellarMass;
       }
     }
     gal = gal->Next;
@@ -409,6 +410,9 @@ void save_tocf_grids(run_globals_t *run_globals, hid_t parent_group_id, int snap
       H5LTmake_dataset_float(group_id, "MFP", 1, &dims, grids->mfp);
 
     H5LTset_attribute_float(group_id, "xH", "global_xH", &(grids->global_xH), 1);
+
+    // Save the escape fraction if we are using a redshift dependent escape fraction
+    H5LTset_attribute_double(group_id, ".", "ReionEscapeFrac", &(run_globals->params.physics.ReionEscapeFrac), 1);
 
     // fftw padded grids
     grid = (float*)SID_calloc(HII_TOT_NUM_PIXELS * sizeof(float));

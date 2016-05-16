@@ -81,7 +81,7 @@ static void inline store_params(
 
     if (tag_index < 0)
     {
-      SID_log_warning("%s is an unrecognised parameter.", SID_LOG_COMMENT, entry[i_entry].key);
+      SID_log_warning("%s is an unrecognised parameter (prefix='%s').", SID_LOG_COMMENT, entry[i_entry].key, prefix);
       ABORT(EXIT_FAILURE);
     }
 
