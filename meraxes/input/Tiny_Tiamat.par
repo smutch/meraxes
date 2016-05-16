@@ -36,8 +36,9 @@ RandomSeed             : 1809  # seed for random number generator
 #----- 21cmFAST ---------------------------
 #------------------------------------------
 TOCF_Flag : 0 {  # use 21cmfast for reionization?
-    numcores   : 8          # number of OpenMP threads to run 21cmFAST with
+    numcores   : 1          # number of OpenMP threads to run 21cmFAST with
     LogFileDir : tocf_logs  # directory for log files
+    HII_dim    : 256
 }
 
 #------------------------------------------
@@ -86,7 +87,7 @@ MergerBurstScaling        : 0.7
 # Reionization
 ReionTcool             : 1.0e4
 ReionNionPhotPerBary   : 4000
-ReionEscapeFrac        : 0.30
+ReionEscapeFrac        : 0.2
 
 ReionSobacchi_Zre      : 9.3
 ReionSobacchi_DeltaZre : 1.0

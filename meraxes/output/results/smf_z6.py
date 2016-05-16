@@ -26,10 +26,9 @@ COLS = plt.rcParams["axes.color_cycle"]
 OBS_DATASETS_DIR = "/home/smutch/models/21cm_sam/meraxes/utils/obs_datasets"
 XLIM = [6, 12]
 YLIM = [-6, 1]
-HUBBLE = 0.7
 
 
-def plot_obs(ax, logy=True):
+def plot_obs(ax, logy=True, hubble=0.678):
     # Start with Duncan+ 2014
     obs = pd.read_table(os.path.join(__script_dir__,
         "{:s}/smf/Duncan14_MF_z6.txt".format(OBS_DATASETS_DIR)),
@@ -40,10 +39,10 @@ def plot_obs(ax, logy=True):
     obs.merr[obs.merr >= obs.phi] = obs.phi - 1e-10
 
     # convert obs to same hubble value and IMF
-    obs.sm += 2.0*np.log10(0.702/HUBBLE)
+    obs.sm += 2.0*np.log10(0.702/hubble)
     obs.sm += 0.25  # IMF correction Chabrier -> Salpeter
     for col in ["phi", "merr", "perr"]:
-        obs[col] /= (0.7**3/HUBBLE**3)
+        obs[col] /= (0.7**3/hubble**3)
 
     # plot the observations
     if logy:
@@ -59,10 +58,10 @@ def plot_obs(ax, logy=True):
                     lw=2, capsize=2.5, marker='o', mec='None')
 
     # now plot Grazian+ 2015 (h=0.7, Salpeter IMF)
-    mass = np.linspace(9.5 + 2.0*np.log10(0.7/HUBBLE), XLIM[1], 30)
+    mass = np.linspace(9.5 + 2.0*np.log10(0.7/hubble), XLIM[1], 30)
     phi = np.log10(schechter(10.49, -4.16, -1.55,
-                             mass + 2.0*np.log10(HUBBLE/0.7)))\
-            + 3.0*np.log10(HUBBLE/0.7)
+                             mass + 2.0*np.log10(hubble/0.7)))\
+            + 3.0*np.log10(hubble/0.7)
     ax.plot(mass, phi, ls="--", label="Grazian et al. 2015", color=COLS[3],
             lw=3)
 
@@ -75,21 +74,21 @@ def plot_obs(ax, logy=True):
         names = ["sm", "log_phi", "m_err", "p_err"])
 
     # convert obs to same hubble value and IMF
-    obs.sm += 2.0*np.log10(0.7/HUBBLE)
+    obs.sm += 2.0*np.log10(0.7/hubble)
     obs.sm += 0.25  # IMF correction Chabrier -> Salpeter
     for col in ["log_phi", "m_err", "p_err"]:
-        obs[col] -= 3.0*np.log10(0.7/HUBBLE)
+        obs[col] -= 3.0*np.log10(0.7/hubble)
 
     # plot the observations
     if logy:
         ax.errorbar(obs.sm, obs.log_phi, yerr=[obs.m_err, obs.p_err],
-                    label="Gonzalez et al. 2011", ls="None", color=COLS[1],
+                    label="Gonzalez et al. 2011", ls="None", color=COLS[2],
                     lw=2, capsize=2.5, marker='s', mec='None')
     else:
         ax.errorbar(obs.sm, 10.**obs.log_phi,
                     yerr=[10.**obs.log_phi - 10.**(obs.log_phi - obs.m_err),
                           10.**(obs.p_err + obs.log_phi) - 10.**obs.log_phi],
-                    label="Gonzalez et al. 2011", ls="None", color=COLS[1],
+                    label="Gonzalez et al. 2011", ls="None", color=COLS[2],
                     lw=2, capsize=2.5, marker='s', mec='None')
 
     # now plot Song+ 2015 (h=0.7, Salpeter IMF)
@@ -97,9 +96,9 @@ def plot_obs(ax, logy=True):
                      format='ascii.ecsv')
 
     # convert obs to same hubble value and IMF
-    obs['logM'] += 2.0*np.log10(0.7/HUBBLE)
+    obs['logM'] += 2.0*np.log10(0.7/hubble)
     for col in ["logphi", "merr", "perr"]:
-        obs[col] -= 3.0*np.log10(0.7/HUBBLE)
+        obs[col] -= 3.0*np.log10(0.7/hubble)
 
     # plot the observations
     if logy:
@@ -114,11 +113,11 @@ def plot_obs(ax, logy=True):
                     lw=2, capsize=2.5, marker='D', mec='None')
 
 
-def plot(model, ax, bins="knuth"):
+def plot(model, ax, hubble, bins="knuth"):
     model.generate(limits=XLIM, bins=bins)
     # model.gen_uncert(20)
     model.plot(ax, label="Meraxes", lw=4)
-    plot_obs(ax)
+    plot_obs(ax, hubble)
 
     model.set_axlabel(ax)
     ax.axis(XLIM + YLIM)
@@ -135,12 +134,12 @@ if __name__ == '__main__':
     fname = args["<fname>"]
 
     # set up
-    meraxes.set_little_h(HUBBLE)
+    hubble = meraxes.set_little_h(fname)
     plt.style.use(["dragons", ])
     fig, ax = plt.subplots(1, 1)
 
     model = Smf(fname, 6.0)
-    plot(model, ax)
+    plot(model, ax, hubble)
 
     # save
     plt.tight_layout()
