@@ -326,6 +326,8 @@ typedef struct galaxy_t {
   double EjectedGas;
   double MetalsEjectedGas;
   double BlackHoleMass;
+  double EffectiveBHM;
+  double FescWeightedEBHM;
   double BlackHoleAccretedHotMass;
   double BlackHoleAccretedColdMass;
   double BlackHoleAccretingColdMass;
@@ -403,6 +405,8 @@ typedef struct galaxy_output_t {
   float EjectedGas;
   float MetalsEjectedGas;
   float BlackHoleMass;
+  float EffectiveBHM;
+  float FescWeightedEBHM;
   float BlackHoleAccretedHotMass;
   float BlackHoleAccretedColdMass;
   float MaxReheatFrac;
@@ -496,7 +500,6 @@ typedef struct run_globals_t {
   double              Hubble;
   double              RhoCrit;
   double              G;
-  double              bh2star;
 
   int                 LastOutputSnap;
   int                 NGhosts;
@@ -593,11 +596,11 @@ void   set_HII_eff_factor(run_globals_t *run_globals);
 int    find_cell(float pos, double box_size);
 void   malloc_reionization_grids(run_globals_t *run_globals);
 void   free_reionization_grids(run_globals_t *run_globals);
-void   construct_ionizing_source_grids(run_globals_t *run_globals, int snapshot, float f_esc);
+void   construct_ionizing_source_grids(run_globals_t *run_globals, int snapshot);
 // void    assign_ionization_to_halos(run_globals_t *run_globals, halo_t *halo, int n_halos, float *xH_grid, int xH_dim);
 int  read_dm_grid(run_globals_t *run_globals, int snapshot, int i_grid, float *grid);
 void calculate_Mvir_crit(run_globals_t *run_globals, double redshift);
-void call_find_HII_bubbles(run_globals_t *run_globals, int snapshot, int unsampled_snapshot, int nout_gals, float f_esc);
+void call_find_HII_bubbles(run_globals_t *run_globals, int snapshot, int unsampled_snapshot, int nout_gals);
 void save_tocf_grids(run_globals_t *run_globals, hid_t group_id, int snapshot);
 bool check_if_reionization_complete(run_globals_t *run_globals);
 #endif

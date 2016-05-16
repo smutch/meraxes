@@ -45,6 +45,8 @@ galaxy_t* new_galaxy(run_globals_t *run_globals, int snapshot, int halo_ID)
   gal->mwmsa_num          = 0.0;
   gal->mwmsa_denom        = 0.0;
   gal->BlackHoleMass      = 1e-7;
+  gal->FescWeightedEBHM       = 1e-7 * run_globals->params.physics.ReionEscapeFracBH*run_globals->params.physics.ReionNionPhotPerBaryBH/run_globals->params.physics.ReionNionPhotPerBary;
+  gal->EffectiveBHM       = 1e-7 * run_globals->params.physics.ReionEscapeFracBH*run_globals->params.physics.ReionNionPhotPerBaryBH/run_globals->params.physics.ReionEscapeFrac/run_globals->params.physics.ReionNionPhotPerBary;
   gal->BlackHoleAccretedHotMass      = 0.0;
   gal->BlackHoleAccretedColdMass      = 0.0;
   gal->BlackHoleAccretingColdMass      = 0.0;

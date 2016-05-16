@@ -418,10 +418,6 @@ void dracarys(run_globals_t *run_globals)
         params->ReionEscapeFrac = (double)f_esc;
         SID_log("f_esc = %g", SID_LOG_COMMENT, f_esc);
     }
-    else
-    {
-        f_esc = params->ReionEscapeFrac;
-    }
     
     if (run_globals->params.TOCF_Flag && !check_if_reionization_complete(run_globals))
     {
@@ -430,10 +426,10 @@ void dracarys(run_globals_t *run_globals)
         // We are decoupled, so no need to run 21cmFAST unless we are ouputing this snapshot
         for (int i_out = 0; i_out < NOUT; i_out++)
           if (snapshot == run_globals->ListOutputSnaps[i_out])
-            call_find_HII_bubbles(run_globals, snapshot, trees_info.unsampled_snapshot, nout_gals, f_esc);
+            call_find_HII_bubbles(run_globals, snapshot, trees_info.unsampled_snapshot, nout_gals);
       }
       else
-        call_find_HII_bubbles(run_globals, snapshot, trees_info.unsampled_snapshot, nout_gals, f_esc);
+        call_find_HII_bubbles(run_globals, snapshot, trees_info.unsampled_snapshot, nout_gals);
     }
     
 #endif

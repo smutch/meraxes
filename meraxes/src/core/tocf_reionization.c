@@ -55,7 +55,7 @@ void call_find_HII_bubbles(run_globals_t *run_globals, int snapshot, int unsampl
 
   // Construct the stellar mass grid XXXXXXXX
   // Construct the ionizing source grid including stellar mass and effective black hole mass
-  construct_ionizing_source_grids(run_globals, snapshot, f_esc);
+  construct_ionizing_source_grids(run_globals, snapshot);
 
   SID_log("...done", SID_LOG_CLOSE);
 
@@ -264,7 +264,7 @@ int find_cell(float pos, double box_size)
 }
 
 
-void construct_ionizing_source_grids(run_globals_t *run_globals, int snapshot, float f_esc)
+void construct_ionizing_source_grids(run_globals_t *run_globals, int snapshot)
 {
   galaxy_t *gal;
   int i, j, k;
@@ -327,13 +327,35 @@ void construct_ionizing_source_grids(run_globals_t *run_globals, int snapshot, f
 
       if (run_globals->params.physics.Flag_RedshiftDepEscFrac)
       {
-        *(stellar_grid + HII_R_FFT_INDEX(i, j, k)) += gal->FescWeightedGSM;
-        *(sfr_grid + HII_R_FFT_INDEX(i, j, k))     += gal->FescWeightedGSM;
+        *(ionizing_source_grid + HII_R_FFT_INDEX(i, j, k)) += gal->FescWeightedGSM;
+        *(ionizing_source_formation_rate_grid + HII_R_FFT_INDEX(i, j, k))     += gal->FescWeightedGSM;
       }
       else
       {
-        *(stellar_grid + HII_R_FFT_INDEX(i, j, k)) += gal->GrossStellarMass;
-        *(sfr_grid + HII_R_FFT_INDEX(i, j, k))     += gal->GrossStellarMass;
+        *(ionizing_source_grid + HII_R_FFT_INDEX(i, j, k)) += gal->GrossStellarMass;
+        *(ionizing_source_formation_rate_grid + HII_R_FFT_INDEX(i, j, k))     += gal->GrossStellarMass;
+      }
+
+      if ((run_globals->params.physics.Flag_BHFeedback) && (run_globals->params.physics.Flag_BHReion))
+      {
+          // a trick to include quasar radiation using current 21cmFAST code
+          // bh2star = fesc_BH/fesc * Ngamma_BH/Ngamma
+          // for ionizing_source_formation_rate_grid, need further convertion due to different UV spectral index of quasar and stellar component
+          // *0.36 is ALPHA_UV_BH/ALPHA_UV defined in parameter_files/anal_params.h of 21cmfast-dragons !!!!!BE CAREFUL
+          // ALPHA_UV_BH = 1.8 from Loeb & Barkana 2000
+          // fesc_BH is assumed to be 1 and set from parameter files
+          // Ngamma_BH is assumed to be 18000 with accretion efficiency equal to be 0.1
+          // which is calculated from 11000 with accretion efficiency equal to be 0.06 in Loeb & Barkana 2000
+          if (run_globals->params.physics.Flag_RedshiftDepEscFrac)
+          {
+            *(ionizing_source_grid + HII_R_FFT_INDEX(i, j, k)) += gal->FescWeightedEBHM;
+            *(ionizing_source_formation_rate_grid + HII_R_FFT_INDEX(i, j, k)) += gal->FescWeightedEBHM * 0.36;
+          }
+          else
+          {
+            *(ionizing_source_grid + HII_R_FFT_INDEX(i, j, k)) += gal->EffectiveBHM;
+            *(ionizing_source_formation_rate_grid + HII_R_FFT_INDEX(i, j, k)) += gal->EffectiveBHM * 0.36;
+          }
       }
     }
     gal = gal->Next;
