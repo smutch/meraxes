@@ -2,7 +2,7 @@
 #include <math.h>
 #include <assert.h> 
 
-#define eta 0.06 //standard efficiency, 10% accreted mass is radiated 
+#define eta 0.1 //standard efficiency, 10% accreted mass is radiated 
 
 // quasar feedback suggested by Croton et al. 2016
 void update_reservoirs_from_quasar_mode_bh_feedback(run_globals_t *run_globals, galaxy_t *gal, double m_reheat)
@@ -53,8 +53,7 @@ void update_reservoirs_from_quasar_mode_bh_feedback(run_globals_t *run_globals, 
 
 double radio_mode_BH_heating(run_globals_t *run_globals, galaxy_t *gal, double cooling_mass, double x)
 {
-  double accretion_rate;
-  double eddington_rate;
+  double eddington_mass;
   double accreted_mass;
   double heated_mass;
   double metallicity;
@@ -68,18 +67,16 @@ double radio_mode_BH_heating(run_globals_t *run_globals, galaxy_t *gal, double c
   {
 
     //Bondi-Hoyle accretion model
-    accretion_rate = run_globals->params.physics.RadioModeEff
-                    * run_globals->G * 1.7377 * x * gal->BlackHoleMass;
+    accreted_mass = run_globals->params.physics.RadioModeEff
+                    * run_globals->G * 1.7377 * x * gal->BlackHoleMass*gal->dt;
     // 15/16*pi*mu=1.7377, with mu=0.59; x=k*m_p*T/Lambda
 
     // Eddington rate
-    eddington_rate = 1.4e37 / (units->UnitEnergy_in_cgs / units->UnitTime_in_s) * gal->BlackHoleMass;
+    eddington_mass = (exp(1.4e37 / (units->UnitEnergy_in_cgs / units->UnitTime_in_s)*gal->dt/eta)-1.) * gal->BlackHoleMass;
 
     // limit accretion by the eddington rate
-    if (eta * accretion_rate > eddington_rate)
-      accretion_rate = eddington_rate/eta;
-
-    accreted_mass = accretion_rate * gal->dt;
+    if (accreted_mass > eddington_mass)
+      accreted_mass = eddington_mass;
 
     // limit accretion by amount of hot gas available
     if (accreted_mass > gal->HotGas)
@@ -121,7 +118,6 @@ void merger_driven_BH_growth(run_globals_t *run_globals, galaxy_t *gal, double m
   {
     // If there is any cold gas to feed the black hole...
     double m_reheat;
-    double eddington_rate;
     double accreted_mass;
     double accreted_metals;
     double Vvir;
@@ -138,13 +134,12 @@ void merger_driven_BH_growth(run_globals_t *run_globals, galaxy_t *gal, double m
     // Suggested by Bonoli et al. 2009 and Wyithe et al. 2003
     zplus1to1pt5 = pow((1 + run_globals->ZZ[snapshot]), 1.5);
 
-	assert(gal->BlackHoleAccretingColdMass >=0);
+    assert(gal->BlackHoleAccretingColdMass >=0);
     gal->BlackHoleAccretingColdMass += run_globals->params.physics.BlackHoleGrowthRate * merger_ratio /
                     (1.0 + (280.0 * 280.0 / Vvir / Vvir)) * gal->ColdGas * zplus1to1pt5;
 
     // Eddington rate
-    eddington_rate = 1.4e37 / (units->UnitEnergy_in_cgs / units->UnitTime_in_s) * gal->BlackHoleMass;
-    accreted_mass = eddington_rate * gal->dt/eta;
+    accreted_mass = (exp(1.4e37 / (units->UnitEnergy_in_cgs / units->UnitTime_in_s)*gal->dt/eta)-1.) * gal->BlackHoleMass;
 
     // limit accretion to what is need
     if (accreted_mass > gal->BlackHoleAccretingColdMass)
@@ -175,7 +170,6 @@ void previous_merger_driven_BH_growth(run_globals_t *run_globals, galaxy_t *gal)
   {
     // If there is any cold gas to feed the black hole...
     double m_reheat;
-    double eddington_rate;
     double accreted_mass;
     double accreted_metals;
     double Vvir;
@@ -189,8 +183,7 @@ void previous_merger_driven_BH_growth(run_globals_t *run_globals, galaxy_t *gal)
       Vvir = gal->Vvir;
 
     // Eddington rate
-    eddington_rate = 1.4e37 / (units->UnitEnergy_in_cgs / units->UnitTime_in_s) * gal->BlackHoleMass;
-    accreted_mass = eddington_rate * gal->dt/eta;
+    accreted_mass = (exp(1.4e37 / (units->UnitEnergy_in_cgs / units->UnitTime_in_s)*gal->dt/eta)-1.) * gal->BlackHoleMass;
 
     // limit accretion to what is need
     if (accreted_mass > gal->BlackHoleAccretingColdMass)
