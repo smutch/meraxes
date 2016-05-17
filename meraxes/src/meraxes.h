@@ -125,9 +125,6 @@ typedef struct physics_params_t {
   int Flag_ReheatToFOFGroupTemp;
   int SfDiskVelOpt;
 
-  // for quasar luminosity
-  double QuasarVoL;
-
 } physics_params_t;
 
 //! Run params
@@ -334,7 +331,6 @@ typedef struct galaxy_t {
   double BlackHoleAccretedHotMass;
   double BlackHoleAccretedColdMass;
   double BlackHoleAccretingColdMass;
-  double QuasarLuminosity;
   double MaxReheatFrac;
   double MaxEjectFrac;
 
@@ -413,7 +409,6 @@ typedef struct galaxy_output_t {
   float FescWeightedEBHM;
   float BlackHoleAccretedHotMass;
   float BlackHoleAccretedColdMass;
-  float QuasarLuminosity;
   float MaxReheatFrac;
   float MaxEjectFrac;
 

@@ -50,7 +50,6 @@ galaxy_t* new_galaxy(run_globals_t *run_globals, int snapshot, int halo_ID)
   gal->BlackHoleAccretedHotMass      = 0.0;
   gal->BlackHoleAccretedColdMass      = 0.0;
   gal->BlackHoleAccretingColdMass      = 0.0;
-  gal->QuasarLuminosity   = 0.0;
   gal->MaxReheatFrac      = 0.0;
   gal->MaxEjectFrac       = 0.0;
   gal->Sfr                = 0.0;
