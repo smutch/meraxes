@@ -107,6 +107,7 @@ void prepare_galaxy_for_output(
   galout->BlackHoleMass      = (float)(gal.BlackHoleMass);
   galout->BlackHoleAccretedHotMass      = (float)(gal.BlackHoleAccretedHotMass);
   galout->BlackHoleAccretedColdMass      = (float)(gal.BlackHoleAccretedColdMass);
+  galout->QuasarLuminosity   = (float)(gal.QuasarLuminosity);
   galout->MaxReheatFrac      = (float)(gal.MaxReheatFrac);
   galout->MaxEjectFrac       = (float)(gal.MaxEjectFrac);
   galout->DiskScaleLength    = (float)(gal.DiskScaleLength);
@@ -140,7 +141,7 @@ void calc_hdf5_props(run_globals_t *run_globals)
   galaxy_output_t galout;
   int i;                                                // dummy
 
-  h5props->n_props = 45;
+  h5props->n_props = 46;
 
 #ifdef CALC_MAGS
   // If we are calculating any magnitudes then increment the number of
@@ -427,6 +428,13 @@ void calc_hdf5_props(run_globals_t *run_globals)
   h5props->field_names[i]     = "BlackHoleAccretedColdMass";
   h5props->field_units[i]     = "1e10 solMass";
   h5props->field_h_conv[i]    = "v/h";
+  h5props->field_types[i++]   = H5T_NATIVE_FLOAT;
+
+  h5props->dst_offsets[i]     = HOFFSET(galaxy_output_t, QuasarLuminosity);
+  h5props->dst_field_sizes[i] = sizeof(galout.QuasarLuminosity);
+  h5props->field_names[i]     = "QuasarLuminosity";
+  h5props->field_units[i]     = "solLuminosity";
+  h5props->field_h_conv[i]    = "None";
   h5props->field_types[i++]   = H5T_NATIVE_FLOAT;
 
   h5props->dst_offsets[i]     = HOFFSET(galaxy_output_t, MaxReheatFrac);
