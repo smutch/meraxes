@@ -125,6 +125,9 @@ typedef struct physics_params_t {
   int Flag_ReheatToFOFGroupTemp;
   int SfDiskVelOpt;
 
+  // for quasar luminosity
+  double QuasarVoL;
+
 } physics_params_t;
 
 //! Run params

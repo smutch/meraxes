@@ -122,8 +122,6 @@ void merger_driven_BH_growth(run_globals_t *run_globals, galaxy_t *gal, double m
     double m_reheat;
     double accreted_mass;
     double accreted_metals;
-    double accretion_time;
-    double glow_time;
     double Vvir;
     double zplus1to1pt5;
     run_units_t *units = &(run_globals->units);
@@ -156,17 +154,6 @@ void merger_driven_BH_growth(run_globals_t *run_globals, galaxy_t *gal, double m
     gal->BlackHoleAccretedColdMass = accreted_mass;
     gal->BlackHoleAccretingColdMass -= accreted_mass;
 
-    accretion_time = log(accreted_mass/gal->BlackHoleMass + 1.)/1.402e37*(units->UnitEnergy_in_cgs / units->UnitTime_in_s)*eta;
-    glow_time = (float)rand()/RAND_MAX *gal->dt;
-    if (glow_time > accretion_time)
-    {
-      gal->QuasarLuminosity = 0.0;
-    }
-    else
-    {
-      gal->QuasarLuminosity = gal->BlackHoleMass * exp(1.402e37 / (units->UnitEnergy_in_cgs / units->UnitTime_in_s)*glow_time/eta) * 3.2e14; // in the unit of solar luminosity
-    }
-
     accreted_metals     = calc_metallicity(gal->ColdGas, gal->MetalsColdGas) * accreted_mass;
     gal->BlackHoleMass += (1.-eta)*accreted_mass;
     gal->FescWeightedEBHM  += (1.-eta)*accreted_mass*run_globals->params.physics.ReionEscapeFracBH*run_globals->params.physics.ReionNionPhotPerBaryBH/run_globals->params.physics.ReionNionPhotPerBary;
@@ -180,7 +167,6 @@ void merger_driven_BH_growth(run_globals_t *run_globals, galaxy_t *gal, double m
   else
   {
     gal->BlackHoleAccretedColdMass = 0.0;
-    gal->QuasarLuminosity = 0.0;
   }
 }
 
@@ -192,8 +178,6 @@ void previous_merger_driven_BH_growth(run_globals_t *run_globals, galaxy_t *gal)
     double m_reheat;
     double accreted_mass;
     double accreted_metals;
-    double accretion_time;
-    double glow_time;
     double Vvir;
     run_units_t *units = &(run_globals->units);
 
@@ -218,17 +202,6 @@ void previous_merger_driven_BH_growth(run_globals_t *run_globals, galaxy_t *gal)
     gal->BlackHoleAccretedColdMass = accreted_mass;
     gal->BlackHoleAccretingColdMass -= accreted_mass;
 
-    accretion_time = log(accreted_mass/gal->BlackHoleMass + 1.)/1.402e37*(units->UnitEnergy_in_cgs / units->UnitTime_in_s)*eta;
-    glow_time = (float)rand()/RAND_MAX *gal->dt;
-    if (glow_time > accretion_time)
-    {
-      gal->QuasarLuminosity = 0.0;
-    }
-    else
-    {
-      gal->QuasarLuminosity = gal->BlackHoleMass * exp(1.402e37 / (units->UnitEnergy_in_cgs / units->UnitTime_in_s)*glow_time/eta) * 3.2e14; // in the unit of solar luminosity
-    }
-
     accreted_metals     = calc_metallicity(gal->ColdGas, gal->MetalsColdGas) * accreted_mass;
     gal->BlackHoleMass += (1.-eta)*accreted_mass;
     gal->FescWeightedEBHM  += (1.-eta)*accreted_mass*run_globals->params.physics.ReionEscapeFracBH*run_globals->params.physics.ReionNionPhotPerBaryBH/run_globals->params.physics.ReionNionPhotPerBary;
@@ -242,6 +215,5 @@ void previous_merger_driven_BH_growth(run_globals_t *run_globals, galaxy_t *gal)
   else
   {
     gal->BlackHoleAccretedColdMass = 0.0;
-    gal->QuasarLuminosity = 0.0;
   }
 }

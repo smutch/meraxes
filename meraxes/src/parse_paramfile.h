@@ -1,4 +1,4 @@
-#define PARAM_MAX_ENTRIES        100
+#define PARAM_MAX_ENTRIES        111
 #define PARAM_MAX_LINE_LEN       512
 #define PARAM_TYPE_INT           801
 #define PARAM_TYPE_FLOAT         802
