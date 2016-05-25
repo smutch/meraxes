@@ -243,7 +243,11 @@ int map_galaxies_to_slabs(int ngals)
   int HII_dim         = tocf_params.HII_dim;
 
   // Loop through each valid galaxy and find what slab it sits in
-  run_globals.tocf_grids.galaxy_to_slab_map = SID_malloc(sizeof(gal_to_slab_t) * ngals);
+  if (ngals > 0)
+    run_globals.tocf_grids.galaxy_to_slab_map = SID_malloc(sizeof(gal_to_slab_t) * ngals);
+  else
+    run_globals.tocf_grids.galaxy_to_slab_map = NULL;
+
   gal_to_slab_t *galaxy_to_slab_map         = run_globals.tocf_grids.galaxy_to_slab_map;
   ptrdiff_t *slab_ix_start = tocf_params.slab_ix_start;
 
@@ -301,18 +305,28 @@ void assign_Mvir_crit_to_galaxies(int ngals_in_slabs)
   int           HII_dim             = tocf_params.HII_dim;
   double        box_size            = run_globals.params.BoxSize;
 
+  // Work out the index of the galaxy_to_slab_map where each slab begins.
   int slab_map_offsets[SID.n_proc];
   for(int ii=0, i_gal=0; ii < SID.n_proc; ii++)
   {
-    while((galaxy_to_slab_map[i_gal].slab_ind < ii) && (i_gal < ngals_in_slabs))
-      i_gal++;
+    if (galaxy_to_slab_map != NULL)
+    {
+      while((galaxy_to_slab_map[i_gal].slab_ind < ii) && (i_gal < ngals_in_slabs))
+        i_gal++;
 
-    if(galaxy_to_slab_map[i_gal].slab_ind == ii)
-      slab_map_offsets[ii] = i_gal;
+      if(galaxy_to_slab_map[i_gal].slab_ind == ii)
+        slab_map_offsets[ii] = i_gal;
+      else
+        slab_map_offsets[ii] = -1;
+    }
     else
+    {
+      // if this core has no galaxies then the offsets are -1 everywhere
       slab_map_offsets[ii] = -1;
+    }
   }
 
+  // do a ring exchange of slabs between all cores
   for(int i_skip=0; i_skip < SID.n_proc; i_skip++)
   {
     int recv_from_rank = (SID.My_rank + i_skip) % SID.n_proc;
@@ -344,6 +358,8 @@ void assign_Mvir_crit_to_galaxies(int ngals_in_slabs)
       memcpy(buffer, Mvir_crit, sizeof(float) * n_cells);
     }
 
+    // if this core has received a slab of Mvir_crit then assign values to the
+    // galaxies which belong to this slab
     if(recv_flag)
     {
       int i_gal = slab_map_offsets[recv_from_rank];

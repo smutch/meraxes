@@ -204,33 +204,57 @@ static void test_map_galaxies_to_slabs(void **state)
 }
 
 
-// static void test_assign_Mvir_crit_to_galaxies(void **state)
-// {
+static void test_assign_Mvir_crit_to_galaxies(void **state)
+{
   
-//   switch (SID.My_rank)
-//   {
-//     case 0:
-//       {
-//         float correct_Mvir_crit[] = {};
-//       }
-//   }
+  int HII_dim = tocf_params.HII_dim;
+  ptrdiff_t *slab_ix_start = tocf_params.slab_ix_start;
+  gal_to_slab_t *galaxy_to_slab_map = run_globals.tocf_grids.galaxy_to_slab_map;
 
-// }
+  int n_mapped = map_galaxies_to_slabs(mystate->n_gals);
+  assign_Mvir_crit_to_galaxies(n_mapped);
+  
+  if (galaxy_to_slab_map != NULL)
+  {
+    for(int ii=0; ii<mystate->n_gals; ii++)
+    {
+      galaxy_t *gal = galaxy_to_slab_map[ii].galaxy;
+      int i_slab = galaxy_to_slab_map[ii].slab_ind;
+
+      assert_int_not_equal(i_slab, -1);
+
+      int idx[] = {0, 0, 0};
+      for(int ii=0; ii<3; ii++)
+        idx[ii] = (int)(gal->Pos[ii] * HII_dim / run_globals.params.BoxSize);
+
+      int i_cell = grid_index(idx[0] - slab_ix_start[i_slab], idx[1], idx[2], HII_dim, INDEX_REAL);
+      assert_int_equal(gal->MvirCrit, (float)(1000*i_slab + i_cell));
+    }
+  }
+
+}
 
 
 int main(int argc, char *argv[])
 {
   SID_init(&argc, &argv, NULL, NULL);
 
+  // Turn of SID logging
+  FILE *fp_log = fopen("/dev/null", "w");
+  SID.fp_log = fp_log;
+
+
   // Ensure we are running with the expected number of processors
   assert_int_equal(SID.n_proc, 4);
 
   const struct CMUnitTest tests[] = {
-    cmocka_unit_test_setup_teardown(test_map_galaxies_to_slabs, setup_tocf_tests, teardown_tocf_tests),
+    cmocka_unit_test(test_map_galaxies_to_slabs),
+    cmocka_unit_test(test_assign_Mvir_crit_to_galaxies),
   };
 
-  int result = cmocka_run_group_tests(tests, NULL, NULL);
+  int result = cmocka_run_group_tests(tests, setup_tocf_tests, teardown_tocf_tests);
 
   SID_exit(result);
+  fclose(fp_log);
   return result;
 }
