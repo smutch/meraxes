@@ -293,13 +293,13 @@ void assign_Mvir_crit_to_galaxies(int ngals_in_slabs)
 
   // N.B. We are assuming here that the galaxy_to_slab mapping has been sorted
   // by slab index...
-  gal_to_slab_t *galaxy_to_slab_map         = run_globals.tocf_grids.galaxy_to_slab_map;
-  float *Mvir_crit = run_globals.tocf_grids.Mvir_crit;
-  float *buffer = run_globals.tocf_grids.buffer;
-  ptrdiff_t *slab_nix = tocf_params.slab_nix;
-  ptrdiff_t *slab_ix_start = tocf_params.slab_ix_start;
-  int HII_dim         = tocf_params.HII_dim;
-  double box_size     = run_globals.params.BoxSize;
+  gal_to_slab_t *galaxy_to_slab_map = run_globals.tocf_grids.galaxy_to_slab_map;
+  float         *Mvir_crit          = run_globals.tocf_grids.Mvir_crit;
+  float         *buffer             = run_globals.tocf_grids.buffer;
+  ptrdiff_t     *slab_nix           = tocf_params.slab_nix;
+  ptrdiff_t     *slab_ix_start      = tocf_params.slab_ix_start;
+  int           HII_dim             = tocf_params.HII_dim;
+  double        box_size            = run_globals.params.BoxSize;
 
   int slab_map_offsets[SID.n_proc];
   for(int ii=0, i_gal=0; ii < SID.n_proc; ii++)
@@ -316,10 +316,10 @@ void assign_Mvir_crit_to_galaxies(int ngals_in_slabs)
   for(int i_skip=0; i_skip < SID.n_proc; i_skip++)
   {
     int recv_from_rank = (SID.My_rank + i_skip) % SID.n_proc;
-    int send_to_rank = (SID.My_rank - i_skip + SID.n_proc) % SID.n_proc;
+    int send_to_rank   = (SID.My_rank - i_skip + SID.n_proc) % SID.n_proc;
 
-    bool send_flag = false;
-    bool recv_flag = (slab_map_offsets[recv_from_rank] > -1);
+    bool send_flag     = false;
+    bool recv_flag     = (slab_map_offsets[recv_from_rank] > -1);
       
     if (i_skip > 0)
     {

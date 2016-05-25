@@ -195,12 +195,8 @@ if not GetOption('help'):
     env.AppendUnique(CPPFLAGS = '-std=gnu99')
     env.AppendUnique(CPPPATH = './')
 
-    libs = ['gsl', 'hdf5', 'gbpCode']
+    libs = ['gsl', 'hdf5', 'gbpCode', 'fftw']
     compile_against(libs, deps, env)
-
-    if env['tocf']:
-        libs = ['fftw',]
-        compile_against(libs, deps, env)
 
     # Set the python environment to use in any python scripts.
     if 'VIRTUAL_ENV' in os.environ:
