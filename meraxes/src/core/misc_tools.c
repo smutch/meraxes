@@ -173,3 +173,17 @@ int grid_index(int i, int j, int k, int dim, int type)
   return ind;
 }
 
+/// Numpy style isclose()
+int isclosef(
+  float a,
+  float b,
+  float rel_tol,  ///< [in] = -1 for Numpy default
+  float abs_tol)  ///< [in] = -1 for Numpy default
+{
+  if (abs_tol < 0)
+    abs_tol = 1e-8;  ///< Numpy default
+  if (rel_tol < 0)
+    rel_tol = 1e-5;  ///< Numpy default
+  return fabs(a - b) <= (abs_tol + rel_tol * fabs(b));
+}
+

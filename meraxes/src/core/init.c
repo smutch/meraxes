@@ -153,7 +153,7 @@ static double time_to_present(double z)
   return time;
 }
 
-static void set_units()
+void set_units()
 {
   run_units_t *units = &(run_globals.units);
 

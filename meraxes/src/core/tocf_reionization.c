@@ -89,8 +89,8 @@ void call_find_HII_bubbles(int snapshot, int unsampled_snapshot, int nout_gals)
     return;
   }
 
-  // Construct the stellar mass grid
-  construct_stellar_grids(snapshot, nout_gals);
+  // Construct the baryon grids
+  construct_baryon_grids(snapshot, nout_gals);
 
   SID_log("...done", SID_LOG_CLOSE);
 
@@ -386,8 +386,12 @@ void assign_Mvir_crit_to_galaxies(int ngals_in_slabs)
 }
 
 
-void construct_stellar_grids(int snapshot, int ngals_in_slabs)
+void construct_baryon_grids(int snapshot, int ngals_in_slabs)
 {
+  
+  // if(SID.My_rank == 0)
+  //   mpi_debug_here();
+
   double box_size     = (double)(run_globals.params.BoxSize);
   double Hubble_h     = run_globals.params.Hubble_h;
   float *stellar_grid = run_globals.tocf_grids.stars;
@@ -430,54 +434,58 @@ void construct_stellar_grids(int snapshot, int ngals_in_slabs)
       for(int ii=0; ii<buffer_size; ii++)
         buffer[ii] = 0.;
 
-      // fill the local buffer for this slab
-      while((i_gal < ngals_in_slabs) && (galaxy_to_slab_map[i_gal].slab_ind == i_r))
+      // if this core holds no galaxies then we don't need to fill the buffer
+      if(ngals_in_slabs != 0)
       {
-        galaxy_t *gal = galaxy_to_slab_map[i_gal].galaxy;
+        // fill the local buffer for this slab
+        while((i_gal < ngals_in_slabs) && (galaxy_to_slab_map[i_gal].slab_ind == i_r))
+        {
+          galaxy_t *gal = galaxy_to_slab_map[i_gal].galaxy;
 
-        assert((galaxy_to_slab_map[i_gal].index >= 0) && (galaxy_to_slab_map[i_gal].index < ngals_in_slabs));
-        assert((galaxy_to_slab_map[i_gal].slab_ind >= 0) && (galaxy_to_slab_map[i_gal].slab_ind < SID.n_proc));
+          assert((galaxy_to_slab_map[i_gal].index >= 0) && (galaxy_to_slab_map[i_gal].index < ngals_in_slabs));
+          assert((galaxy_to_slab_map[i_gal].slab_ind >= 0) && (galaxy_to_slab_map[i_gal].slab_ind < SID.n_proc));
 
-        if (gal->Pos[0] >= box_size)
-          gal->Pos[0] -= box_size;
-        else if (gal->Pos[0] < 0.0)
-          gal->Pos[0] += box_size;
-        int ix = pos_to_cell(gal->Pos[0] - min_xpos, box_size, HII_dim);
-        if (gal->Pos[1] >= box_size)
-          gal->Pos[1] -= box_size;
-        else if (gal->Pos[1] < 0.0)
-          gal->Pos[1] += box_size;
-        int iy = pos_to_cell(gal->Pos[1], box_size, HII_dim);
-        if (gal->Pos[2] >= box_size)
-          gal->Pos[2] -= box_size;
-        else if (gal->Pos[2] < 0.0)
-          gal->Pos[2] += box_size;
-        int iz = pos_to_cell(gal->Pos[2], box_size, HII_dim);
+          if (gal->Pos[0] >= box_size)
+            gal->Pos[0] -= box_size;
+          else if (gal->Pos[0] < 0.0)
+            gal->Pos[0] += box_size;
+          int ix = pos_to_cell(gal->Pos[0] - min_xpos, box_size, HII_dim);
+          if (gal->Pos[1] >= box_size)
+            gal->Pos[1] -= box_size;
+          else if (gal->Pos[1] < 0.0)
+            gal->Pos[1] += box_size;
+          int iy = pos_to_cell(gal->Pos[1], box_size, HII_dim);
+          if (gal->Pos[2] >= box_size)
+            gal->Pos[2] -= box_size;
+          else if (gal->Pos[2] < 0.0)
+            gal->Pos[2] += box_size;
+          int iz = pos_to_cell(gal->Pos[2], box_size, HII_dim);
 
-        assert((ix < slab_nix[i_r]) && (ix >= 0));
-        assert((iy < HII_dim) && (iy >= 0));
-        assert((iz < HII_dim) && (iz >= 0));
+          assert((ix < slab_nix[i_r]) && (ix >= 0));
+          assert((iy < HII_dim) && (iy >= 0));
+          assert((iz < HII_dim) && (iz >= 0));
 
-        int ind = grid_index(ix, iy, iz, HII_dim, INDEX_REAL);
+          int ind = grid_index(ix, iy, iz, HII_dim, INDEX_REAL);
 
-        assert((ind >=0) && (ind < slab_nix[i_r]*HII_dim*HII_dim));
+          assert((ind >=0) && (ind < slab_nix[i_r]*HII_dim*HII_dim));
 
-        switch (prop) {
-          case prop_stellar:
-            buffer[ind] += gal->GrossStellarMass;
-            break;
+          switch (prop) {
+            case prop_stellar:
+              buffer[ind] += gal->GrossStellarMass;
+              break;
 
-          case prop_sfr:
-            buffer[ind] += gal->FescWeightedGSM;
-            break;
+            case prop_sfr:
+              buffer[ind] += gal->FescWeightedGSM;
+              break;
 
-          default:
-            SID_log_error("Unrecognised property in slab creation.");
-            ABORT(EXIT_FAILURE);
-            break;
+            default:
+              SID_log_error("Unrecognised property in slab creation.");
+              ABORT(EXIT_FAILURE);
+              break;
+          }
+
+          i_gal++;
         }
-
-        i_gal++;
       }
 
       // reduce on to the correct rank
@@ -490,7 +498,8 @@ void construct_stellar_grids(int snapshot, int ngals_in_slabs)
       {
         // copy the buffer into the real slab
         float *slab;
-        switch (prop) {
+        switch (prop)
+        {
           case prop_stellar:
             slab = stellar_grid;
             break;

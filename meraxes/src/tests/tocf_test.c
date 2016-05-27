@@ -21,6 +21,11 @@ static int setup_tocf_tests(void **state)
   tocf_params.uvb_feedback = 1;
   run_globals.params.TOCF_Flag = 1;
   run_globals.params.BoxSize = 100.;  // Not the size of Tiamat but easy for checking
+  run_globals.params.Hubble_h = 1.0;  // Nonsense but again, easy for debugging
+  run_globals.ZZ = SID_malloc(sizeof(double) * 10);
+  for(int ii=9; ii>=0; ii--)
+    run_globals.ZZ[ii] = (double)(ii+5); 
+  set_units();
 
   malloc_reionization_grids();
 
@@ -45,6 +50,8 @@ static int setup_tocf_tests(void **state)
           gals[ii].Pos[0] = xpos[ii];
           gals[ii].Pos[1] = gals[ii].Pos[0];
           gals[ii].Pos[2] = gals[ii].Pos[0];
+          gals[ii].GrossStellarMass = xpos[ii] / 2.;
+          gals[ii].Sfr = xpos[ii] / 4.;
 
           // for(int jj=0; jj<3; jj++)
           //   SID_log("R%d: [%d][%d] -> %.2f", SID_LOG_COMMENT|SID_LOG_ALLRANKS, SID.My_rank, ii, jj, gals[ii].Pos[jj]);
@@ -69,6 +76,8 @@ static int setup_tocf_tests(void **state)
           gals[ii].Pos[0] = xpos[ii];
           gals[ii].Pos[1] = gals[ii].Pos[0];
           gals[ii].Pos[2] = gals[ii].Pos[0];
+          gals[ii].GrossStellarMass = xpos[ii] / 2.;
+          gals[ii].Sfr = xpos[ii] / 4.;
 
           // for(int jj=0; jj<3; jj++)
           //   SID_log("R%d: [%d][%d] -> %.2f", SID_LOG_COMMENT|SID_LOG_ALLRANKS, SID.My_rank, ii, jj, gals[ii].Pos[jj]);
@@ -93,6 +102,8 @@ static int setup_tocf_tests(void **state)
           gals[ii].Pos[0] = xpos[ii];
           gals[ii].Pos[1] = gals[ii].Pos[0];
           gals[ii].Pos[2] = gals[ii].Pos[0];
+          gals[ii].GrossStellarMass = xpos[ii] / 2.;
+          gals[ii].Sfr = xpos[ii] / 4.;
 
           // for(int jj=0; jj<3; jj++)
           //   SID_log("R%d: [%d][%d] -> %.2f", SID_LOG_COMMENT|SID_LOG_ALLRANKS, SID.My_rank, ii, jj, gals[ii].Pos[jj]);
@@ -131,6 +142,7 @@ static int setup_tocf_tests(void **state)
 static int teardown_tocf_tests(void **state)
 {
 
+  SID_free(SID_FARG run_globals.ZZ);
   SID_free(SID_FARG run_globals.tocf_grids.galaxy_to_slab_map);
   SID_free(SID_FARG ((state_t *)*state)->gals);
   free_reionization_grids();
@@ -235,6 +247,44 @@ static void test_assign_Mvir_crit_to_galaxies(void **state)
 }
 
 
+static void test_construct_baryon_grids(void **state)
+{
+  int snapshot = 5;
+  int HII_dim = tocf_params.HII_dim;
+  ptrdiff_t *slab_ix_start = tocf_params.slab_ix_start;
+  float *stars_grid = run_globals.tocf_grids.stars;
+  float Hubble_h = run_globals.params.Hubble_h;
+
+  map_galaxies_to_slabs(mystate->n_gals);
+  construct_baryon_grids(snapshot, mystate->n_gals);
+
+  int n_cells_tot = 7;
+  float correct_vals[] = {21.5, 10.5, 33.5, 44, 0.5, 1, 49.5, 25};
+  int i_xyz[] = {27, 13, 42, 56, 0, 1, 63, 32};
+  int slab[] = {1, 0, 2, 3, 0, 0, 3, 2};
+
+  for(int ii=0; ii<n_cells_tot; ii++)
+  {
+    if (slab[ii] == SID.My_rank)
+    {
+      int i_cell = grid_index(
+        i_xyz[ii] - (int)slab_ix_start[slab[ii]],
+        i_xyz[ii],
+        i_xyz[ii],
+        HII_dim,
+        INDEX_REAL
+      );
+      assert_true(isclosef(
+        correct_vals[ii] * (1.e10 / Hubble_h),
+        stars_grid[i_cell],
+        -1,
+        -1
+      ));
+    }
+  }
+}
+
+
 int main(int argc, char *argv[])
 {
   SID_init(&argc, &argv, NULL, NULL);
@@ -250,6 +300,7 @@ int main(int argc, char *argv[])
   const struct CMUnitTest tests[] = {
     cmocka_unit_test(test_map_galaxies_to_slabs),
     cmocka_unit_test(test_assign_Mvir_crit_to_galaxies),
+    cmocka_unit_test(test_construct_baryon_grids),
   };
 
   int result = cmocka_run_group_tests(tests, setup_tocf_tests, teardown_tocf_tests);
