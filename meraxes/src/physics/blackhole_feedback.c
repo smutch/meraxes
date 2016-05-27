@@ -123,7 +123,7 @@ void merger_driven_BH_growth(run_globals_t *run_globals, galaxy_t *gal, double m
     double accreted_mass;
     double accreted_metals;
     double Vvir;
-    double zplus1to1pt5;
+    //double zplus1to1pt5;
     run_units_t *units = &(run_globals->units);
 
     // If this galaxy is the central of it's FOF group then use the FOF halo properties
@@ -134,11 +134,11 @@ void merger_driven_BH_growth(run_globals_t *run_globals, galaxy_t *gal, double m
       Vvir = gal->Vvir;
 
     // Suggested by Bonoli et al. 2009 and Wyithe et al. 2003
-    zplus1to1pt5 = pow((1 + run_globals->ZZ[snapshot]), 1.5);
+    //zplus1to1pt5 = pow((1 + run_globals->ZZ[snapshot]), 3.0);
 
     assert(gal->BlackHoleAccretingColdMass >=0);
     gal->BlackHoleAccretingColdMass += run_globals->params.physics.BlackHoleGrowthRate * merger_ratio /
-                    (1.0 + (280.0 * 280.0 / Vvir / Vvir)) * gal->ColdGas * zplus1to1pt5;
+                    (1.0 + (280.0 * 280.0 / Vvir / Vvir)) * gal->ColdGas;// * zplus1to1pt5;
 
     // Eddington rate
     accreted_mass = (exp(1.402e37 / (units->UnitEnergy_in_cgs / units->UnitTime_in_s)*gal->dt/eta)-1.) * gal->BlackHoleMass;
