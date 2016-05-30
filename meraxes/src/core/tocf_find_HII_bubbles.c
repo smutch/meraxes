@@ -269,8 +269,17 @@ float find_HII_bubbles(float redshift)
     // }
 
     int flag_uvb_feedback = tocf_params.uvb_feedback;
-    float BaryonFrac = run_globals.params.BaryonFrac;
     float HII_eff_factor = tocf_params.HII_eff_factor;
+    float ReionEscapeFrac = run_globals.params.physics.ReionEscapeFrac;
+    float ReionNionPhotPerBary = run_globals.params.physics.ReionNionPhotPerBary;
+    run_units_t *units = &(run_globals.units);
+
+    float J_21_aux_constant = 1e21 * (1.0+redshift)*(1.0+redshift)/(4.0 * M_PI)
+      * tocf_params.alpha_uv * PLANCK
+      * R * units->UnitLength_in_cm
+      * ReionEscapeFrac * ReionNionPhotPerBary
+      * units->UnitMass_in_g / pow(units->UnitLength_in_cm, 3) / PROTONMASS;
+
     for (int ix=0; ix<local_nix; ix++)
     {   
       for (int iy=0; iy<HII_dim; iy++)
@@ -282,15 +291,14 @@ float find_HII_bubbles(float redshift)
           float f_coll_stars =  ((float *)stars_filtered)[grid_index(ix, iy, iz, HII_dim, INDEX_PADDED)]/ (RtoM(R)*density_over_mean);
           f_coll_stars *= (4.0/3.0)*PI*pow(R,3.0) / pixel_volume;
 
-          float sfr_density = ((float *)sfr_filtered)[grid_index(ix, iy, iz, HII_dim, INDEX_PADDED)] / pixel_volume;   // In units of Msolar/s/cMpc/cMpc/cMpc
+          float sfr_density = ((float *)sfr_filtered)[grid_index(ix, iy, iz, HII_dim, INDEX_PADDED)] / pixel_volume;   // In internal units
 
-          // Adjust the denominator of the collapse fraction for the residual electron fraction in the neutral medium
-          // Calculate the mfp of the ionising photons for this size 
+          // TODO: I fixed an incorrect factor in this equation (1-Y_He instead
+          // of 1-0.75*Y_He) that will need to be reverted when comparing with
+          // old results. 
           float J_21_aux;
           if (flag_uvb_feedback)
-            J_21_aux = (1.0/(4.0 * M_PI)) * 1e21 * tocf_params.alpha_uv * PLANCK * ((1.0+redshift)*(1.0+redshift))*(R*MPC)
-              * HII_eff_factor* BaryonFrac *(1.0-tocf_params.Y_He)
-              * sfr_density*SOLAR_MASS/MPC/MPC/MPC / PROTONMASS;
+            J_21_aux = sfr_density * J_21_aux_constant;
 
           // Check if ionised!
           if (f_coll_stars > 1.0/HII_eff_factor)   // IONISED!!!!

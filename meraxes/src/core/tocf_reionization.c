@@ -511,29 +511,27 @@ void construct_baryon_grids(int snapshot, int ngals_in_slabs)
         int slab_size = slab_nix[i_r] * HII_dim * HII_dim;
         memcpy(slab, buffer, sizeof(float)*slab_size);
 
-        // Do one final pass to put the grid in the correct (real) units (Msol or
-        // Msol/s) and divide the sfr_grid by tHubble in order to convert the
-        // stellar masses recorded into SFRs.
-        for(int ii=0; ii < slab_size; ii++)
-        {
-          // put the values into the correct units
-          switch (prop) {
-            case prop_stellar:
-              if (slab[ii] > 0)
-                slab[ii] *= (1.e10 / Hubble_h);
-              break;
-            case prop_sfr:
-              if (slab[ii] > 0)
-                slab[ii] *= (units->UnitMass_in_g / units->UnitTime_in_s / SOLAR_MASS) / tHubble;
-              break;
-          }
+				// Do one final pass and divide the sfr_grid by tHubble
+        // in order to convert the stellar masses recorded into SFRs.
+				switch (prop) {
+					case prop_sfr:
+						for(int ii=0; ii < slab_size; ii++)
+						{
+							if (slab[ii] > 0)
+								slab[ii] /= tHubble;
+							else if (slab[ii] < 0)
+								slab[ii] = 0;
+						}
+						break;
 
-          // check for underflow
-          if (slab[ii] < 0)
-            slab[ii] = 0;
-        }
-      }
+					case prop_stellar:
+						for(int ii=0; ii < slab_size; ii++)
+							if (slab[ii] < 0)
+                slab[ii] = 0;
+            break;
+				}
 
+			}
     }
   }
 
