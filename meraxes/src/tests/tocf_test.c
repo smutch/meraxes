@@ -258,10 +258,10 @@ static void test_construct_baryon_grids(void **state)
   map_galaxies_to_slabs(mystate->n_gals);
   construct_baryon_grids(snapshot, mystate->n_gals);
 
-  int n_cells_tot = 7;
+  int n_cells_tot = 8;
   float correct_vals[] = {21.5, 10.5, 33.5, 44, 0.5, 1, 49.5, 25};
-  int i_xyz[] = {27, 13, 42, 56, 0, 1, 63, 32};
-  int slab[] = {1, 0, 2, 3, 0, 0, 3, 2};
+  int i_xyz[]          =   {27,   13,   42, 56,   0, 1,   63, 32};
+  int slab[]           =    {1,    0,    2,  3,   0, 0,    3,  2};
 
   for(int ii=0; ii<n_cells_tot; ii++)
   {

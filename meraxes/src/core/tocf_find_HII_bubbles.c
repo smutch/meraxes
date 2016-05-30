@@ -4,6 +4,10 @@
 #include <math.h>
 #include <assert.h>
 
+// DEBUG
+#include <hdf5.h>
+#include <hdf5_hl.h>
+
 /*
  * This code is a re-write of the modified version of 21cmFAST used in Mutch et 
  * al. (2016; Meraxes paper).  The original code was written by Andrei Mesinger 
@@ -117,17 +121,12 @@ float find_HII_bubbles(float redshift)
   float pixel_volume = powf(box_size/(float)HII_dim, 3);  // (Mpc/h)^3
   float l_factor = 0.620350491;  // Factor relating cube length to filter radius = (4PI/3)^(-1/3)
   float cell_length_factor = l_factor;
-  double ion_tvir_min = tocf_params.ion_tvir_min;
   int total_n_cells = (int)pow(HII_dim, 3);
 
   // This parameter choice is sensitive to noise on the cell size, at least for the typical
   // cell sizes in RT simulations. It probably doesn't matter for larger cell sizes.
   if ((box_size/(float)HII_dim) < 1.0)   // Fairly arbitrary length based on 2 runs Sobacchi did
     cell_length_factor = 1.0; 
-
-  double M_min = 0.0;  // Minimum source mass  (1e10 Msol/h)
-  if(tocf_params.ion_tvir_min > 0.0)
-    M_min = Tvir_to_Mvir(ion_tvir_min, redshift);
 
   // Init J_21
   int flag_uvb_feedback = tocf_params.uvb_feedback;
@@ -139,7 +138,7 @@ float find_HII_bubbles(float redshift)
   // Init xH
   float *xH = run_globals.tocf_grids.xH;
   for(int ii=0; ii < slab_n_real; ii++)
-    xH[ii] = 0.0;
+    xH[ii] = 1.0;
 
   // Forward fourier transform to obtain k-space fields
   // TODO: Ensure that fftwf_mpi_init has been called and fftwf_mpi_cleanup will be called
@@ -226,21 +225,53 @@ float find_HII_bubbles(float redshift)
       for (int iy=0; iy<HII_dim; iy++)
         for (int iz=0; iz<HII_dim; iz++)
         {   
-          ((float *)deltax_filtered)[grid_index(ix, iy, iz, HII_dim, INDEX_PADDED)] = fmaxf(((float *)deltax_filtered)[grid_index(ix, iy, iz, HII_dim, INDEX_REAL)], -1 + REL_TOL);
+          ((float *)deltax_filtered)[grid_index(ix, iy, iz, HII_dim, INDEX_PADDED)] = fmaxf(((float *)deltax_filtered)[grid_index(ix, iy, iz, HII_dim, INDEX_PADDED)], -1 + REL_TOL);
 
-          ((float *)stars_filtered)[grid_index(ix, iy, iz, HII_dim, INDEX_PADDED)] = fmaxf(((float *)stars_filtered)[grid_index(ix, iy, iz, HII_dim, INDEX_REAL)], 0.0);
+          ((float *)stars_filtered)[grid_index(ix, iy, iz, HII_dim, INDEX_PADDED)] = fmaxf(((float *)stars_filtered)[grid_index(ix, iy, iz, HII_dim, INDEX_PADDED)], 0.0);
 
-          ((float *)sfr_filtered)[grid_index(ix, iy, iz, HII_dim, INDEX_PADDED)] = fmaxf(((float *)sfr_filtered)[grid_index(ix, iy, iz, HII_dim, INDEX_REAL)] , 0.0);
+          ((float *)sfr_filtered)[grid_index(ix, iy, iz, HII_dim, INDEX_PADDED)] = fmaxf(((float *)sfr_filtered)[grid_index(ix, iy, iz, HII_dim, INDEX_PADDED)] , 0.0);
         }
 
     /*
      * Main loop through the box...
      */
 
+    // // DEBUG
+    // if (R == r_bubble_max)
+    // {
+    //   char fname[STRLEN];
+    //   sprintf(fname, "tests/output/debug-%d.hdf5", SID.My_rank);
+    //   hid_t fd = H5Fcreate(fname, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
+    //   int local_nix = tocf_params.slab_nix[SID.My_rank];
+    //   float *temp = SID_malloc(local_nix * HII_dim * HII_dim * sizeof(float));
+
+    //   float *deltax = run_globals.tocf_grids.deltax;
+    //   for(int ii=0; ii<local_nix; ii++)
+    //     for(int jj=0; jj<HII_dim; jj++)
+    //       for(int kk=0; kk<HII_dim; kk++)
+    //         temp[grid_index(ii, jj, kk, HII_dim, INDEX_REAL)] = 
+    //           ((float *)deltax_filtered)[grid_index(ii, jj, kk, HII_dim, INDEX_PADDED)];
+    //   H5LTmake_dataset_float(fd, "deltax", 3, (hsize_t[3]){local_nix, HII_dim, HII_dim}, temp);
+
+    //   float *stars = run_globals.tocf_grids.stars;
+    //   for(int ii=0; ii<local_nix; ii++)
+    //     for(int jj=0; jj<HII_dim; jj++)
+    //       for(int kk=0; kk<HII_dim; kk++)
+    //         temp[grid_index(ii, jj, kk, HII_dim, INDEX_REAL)] =
+    //           ((float *)stars_filtered)[grid_index(ii, jj, kk, HII_dim, INDEX_PADDED)];
+    //   H5LTmake_dataset_float(fd, "stars", 3, (hsize_t[3]){local_nix, HII_dim, HII_dim}, temp);
+
+    //   float factor = 1.0 / RtoM(R) * (4.0/3.0)*PI*pow(R,3.0) / pixel_volume;
+    //   H5LTset_attribute_float(fd, "/", "factor", &factor, 1);
+
+    //   H5Fclose(fd);
+    //   SID_free(SID_FARG temp);
+    // }
+
     int flag_uvb_feedback = tocf_params.uvb_feedback;
     float BaryonFrac = run_globals.params.BaryonFrac;
     float HII_eff_factor = tocf_params.HII_eff_factor;
-    for (int ix=0; ix<HII_dim; ix++)
+    for (int ix=0; ix<local_nix; ix++)
     {   
       for (int iy=0; iy<HII_dim; iy++)
       {
