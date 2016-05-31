@@ -216,9 +216,8 @@ static void read_output_snaps()
 
     for (i = 0; i < (*nout); i++)
     {
-      if (fscanf(fd, " %d ", &ListOutputSnaps[i]) == 1)
-        nout++;
-      else {
+      if (fscanf(fd, " %d ", &ListOutputSnaps[i]) != 1)
+      {
         SID_log_error("I/O error in file '%s'\n", fname);
         exit(EXIT_FAILURE);
       }
@@ -246,8 +245,17 @@ static void read_output_snaps()
         *LastOutputSnap = ListOutputSnaps[i];
     }
 
+    // DEBUG
+    SID_log("nout = %d", SID_LOG_COMMENT, *nout);
+    SID_log("LastOutputSnap = %d", SID_LOG_COMMENT, *LastOutputSnap);
+    SID_log("ListOutputSnaps = [ ", SID_LOG_CONTINUE);
+    for(int ii=0; ii < *nout; ii++)
+      SID_log("%d ", SID_LOG_CONTINUE, ListOutputSnaps[ii]);
+    SID_log("]", SID_LOG_CONTINUE);
+
     // sort the list from low to high snapnum
     qsort(ListOutputSnaps, (*nout), sizeof(int), compare_ints);
+
   }
 
   // broadcast the data to all other ranks
