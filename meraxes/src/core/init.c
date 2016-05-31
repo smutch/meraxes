@@ -181,7 +181,7 @@ void set_units()
 
 static void read_output_snaps()
 {
-  int *ListOutputSnaps = run_globals.ListOutputSnaps;
+  int **ListOutputSnaps = &(run_globals.ListOutputSnaps);
   int *LastOutputSnap  = &(run_globals.LastOutputSnap);
   int maxsnaps = run_globals.params.SnaplistLength; 
   int *nout = &(run_globals.NOutputSnaps);
@@ -212,11 +212,11 @@ static void read_output_snaps()
     fseek(fd, 0, SEEK_SET);
 
     // allocate the ListOutputSnaps array
-    ListOutputSnaps = SID_malloc(sizeof(int) * (*nout));
+    *ListOutputSnaps = SID_malloc(sizeof(int) * (*nout));
 
     for (i = 0; i < (*nout); i++)
     {
-      if (fscanf(fd, " %d ", &ListOutputSnaps[i]) != 1)
+      if (fscanf(fd, " %d ", &((*ListOutputSnaps)[i])) != 1)
       {
         SID_log_error("I/O error in file '%s'\n", fname);
         exit(EXIT_FAILURE);
@@ -239,10 +239,10 @@ static void read_output_snaps()
     *LastOutputSnap = 0;
     for (i = 0; i < (*nout); i++)
     {
-      if (ListOutputSnaps[i] < 0)
-        ListOutputSnaps[i] += run_globals.params.SnaplistLength;
-      if (ListOutputSnaps[i] > *LastOutputSnap)
-        *LastOutputSnap = ListOutputSnaps[i];
+      if ((*ListOutputSnaps)[i] < 0)
+        (*ListOutputSnaps)[i] += run_globals.params.SnaplistLength;
+      if ((*ListOutputSnaps)[i] > *LastOutputSnap)
+        *LastOutputSnap = (*ListOutputSnaps)[i];
     }
 
     // DEBUG
@@ -250,11 +250,11 @@ static void read_output_snaps()
     SID_log("LastOutputSnap = %d", SID_LOG_COMMENT, *LastOutputSnap);
     SID_log("ListOutputSnaps = [ ", SID_LOG_CONTINUE);
     for(int ii=0; ii < *nout; ii++)
-      SID_log("%d ", SID_LOG_CONTINUE, ListOutputSnaps[ii]);
+      SID_log("%d ", SID_LOG_CONTINUE, (*ListOutputSnaps)[ii]);
     SID_log("]", SID_LOG_CONTINUE);
 
     // sort the list from low to high snapnum
-    qsort(ListOutputSnaps, (*nout), sizeof(int), compare_ints);
+    qsort(*ListOutputSnaps, (*nout), sizeof(int), compare_ints);
 
   }
 
@@ -262,9 +262,9 @@ static void read_output_snaps()
   SID_Bcast(nout, sizeof(int), 0, SID.COMM_WORLD);
   
   if(SID.My_rank > 0)
-    ListOutputSnaps = SID_malloc(sizeof(int) * (*nout));
+    *ListOutputSnaps = SID_malloc(sizeof(int) * (*nout));
 
-  SID_Bcast(ListOutputSnaps, sizeof(int) * (*nout), 0, SID.COMM_WORLD);
+  SID_Bcast(*ListOutputSnaps, sizeof(int) * (*nout), 0, SID.COMM_WORLD);
   SID_Bcast(LastOutputSnap, sizeof(int), 0, SID.COMM_WORLD);
 
 }
