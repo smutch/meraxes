@@ -124,7 +124,7 @@ void dracarys()
     SID_log("Processing snapshot %d (z = %.2f)...", SID_LOG_OPEN | SID_LOG_TIMER, snapshot, run_globals.ZZ[snapshot]);
 
     // Calculate the critical halo mass for cooling
-    if ((run_globals.params.TocfFlag) && (tocf_params.uvb_feedback))
+    if ((run_globals.params.TocfFlag) && (run_globals.params.ReionUVBFlag))
       calculate_Mvir_crit(run_globals.ZZ[snapshot]);
 
     // Reset the halo pointers and ghost flags for all galaxies and decrement
@@ -427,7 +427,7 @@ void dracarys()
 
       if (!check_if_reionization_complete())
       {
-        if (!tocf_params.uvb_feedback)
+        if (!run_globals.params.ReionUVBFlag)
         {
           // We are decoupled, so no need to run 21cmFAST unless we are ouputing this snapshot
           for (int i_out = 0; i_out < NOutputSnaps; i_out++)
@@ -441,7 +441,7 @@ void dracarys()
       // if we have already created a mapping of galaxies to MPI slabs then we no
       // longer need them as they will need to be re-created for the new halo
       // positions in the next time step
-      SID_free(SID_FARG run_globals.tocf_grids.galaxy_to_slab_map);
+      SID_free(SID_FARG run_globals.reion_grids.galaxy_to_slab_map);
     }
     
 

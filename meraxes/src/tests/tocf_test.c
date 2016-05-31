@@ -17,8 +17,8 @@ static int setup_tocf_tests(void **state)
 {
   *state = SID_malloc(sizeof(state_t));
 
-  tocf_params.HII_dim = 64;
-  tocf_params.uvb_feedback = 1;
+  run_globals.params.ReionGridDim = 64;
+  run_globals.params.ReionUVBFlag = 1;
   run_globals.params.TocfFlag = 1;
   run_globals.params.BoxSize = 100.;  // Not the size of Tiamat but easy for checking
   run_globals.params.Hubble_h = 1.0;  // Nonsense but again, easy for debugging
@@ -126,10 +126,10 @@ static int setup_tocf_tests(void **state)
   run_globals.FirstGal = mystate->gals;
 
   // grids
-  tocf_grids_t *grids = &(run_globals.tocf_grids);
-  int HII_dim = tocf_params.HII_dim;
-  ptrdiff_t *slab_nix = tocf_params.slab_nix;
-  ptrdiff_t slab_n_real = slab_nix[SID.My_rank] * HII_dim * HII_dim; // TODO: NOT WORKING?
+  reion_grids_t *grids = &(run_globals.reion_grids);
+  int ReionGridDim = run_globals.params.ReionGridDim;
+  ptrdiff_t *slab_nix = run_globals.params.slab_nix;
+  ptrdiff_t slab_n_real = slab_nix[SID.My_rank] * ReionGridDim * ReionGridDim; // TODO: NOT WORKING?
 
   for (int ii = 0; ii < slab_n_real; ii++)
     grids->Mvir_crit[ii] = (float)(1000*SID.My_rank + ii);
@@ -143,7 +143,7 @@ static int teardown_tocf_tests(void **state)
 {
 
   SID_free(SID_FARG run_globals.ZZ);
-  SID_free(SID_FARG run_globals.tocf_grids.galaxy_to_slab_map);
+  SID_free(SID_FARG run_globals.reion_grids.galaxy_to_slab_map);
   SID_free(SID_FARG ((state_t *)*state)->gals);
   free_reionization_grids();
   SID_free(SID_FARG *state);
@@ -157,16 +157,16 @@ static void test_map_galaxies_to_slabs(void **state)
 
   int correct_nix[] = {16, 16, 16, 16};
   for(int ii=0; ii<SID.n_proc; ii++)
-    assert_int_equal((int)tocf_params.slab_nix[ii], correct_nix[ii]);
+    assert_int_equal((int)run_globals.params.slab_nix[ii], correct_nix[ii]);
 
   int correct_ix_start[] = {0, 16, 32, 48};
   for(int ii=0; ii<SID.n_proc; ii++)
-    assert_int_equal((int)tocf_params.slab_ix_start[ii], correct_ix_start[ii]);
+    assert_int_equal((int)run_globals.params.slab_ix_start[ii], correct_ix_start[ii]);
 
   int n_mapped = map_galaxies_to_slabs(mystate->n_gals);
   assert_int_equal(n_mapped, mystate->n_gals);
 
-  gal_to_slab_t *galaxy_to_slab_map = run_globals.tocf_grids.galaxy_to_slab_map; 
+  gal_to_slab_t *galaxy_to_slab_map = run_globals.reion_grids.galaxy_to_slab_map; 
   int *correct_slab;
 
   switch (SID.My_rank)
@@ -219,9 +219,9 @@ static void test_map_galaxies_to_slabs(void **state)
 static void test_assign_Mvir_crit_to_galaxies(void **state)
 {
   
-  int HII_dim = tocf_params.HII_dim;
-  ptrdiff_t *slab_ix_start = tocf_params.slab_ix_start;
-  gal_to_slab_t *galaxy_to_slab_map = run_globals.tocf_grids.galaxy_to_slab_map;
+  int ReionGridDim = run_globals.params.ReionGridDim;
+  ptrdiff_t *slab_ix_start = run_globals.params.slab_ix_start;
+  gal_to_slab_t *galaxy_to_slab_map = run_globals.reion_grids.galaxy_to_slab_map;
 
   int n_mapped = map_galaxies_to_slabs(mystate->n_gals);
   assign_Mvir_crit_to_galaxies(n_mapped);
@@ -237,9 +237,9 @@ static void test_assign_Mvir_crit_to_galaxies(void **state)
 
       int idx[] = {0, 0, 0};
       for(int ii=0; ii<3; ii++)
-        idx[ii] = (int)(gal->Pos[ii] * HII_dim / run_globals.params.BoxSize);
+        idx[ii] = (int)(gal->Pos[ii] * ReionGridDim / run_globals.params.BoxSize);
 
-      int i_cell = grid_index(idx[0] - slab_ix_start[i_slab], idx[1], idx[2], HII_dim, INDEX_REAL);
+      int i_cell = grid_index(idx[0] - slab_ix_start[i_slab], idx[1], idx[2], ReionGridDim, INDEX_REAL);
       assert_int_equal(gal->MvirCrit, (float)(1000*i_slab + i_cell));
     }
   }
@@ -250,9 +250,9 @@ static void test_assign_Mvir_crit_to_galaxies(void **state)
 static void test_construct_baryon_grids(void **state)
 {
   int snapshot = 5;
-  int HII_dim = tocf_params.HII_dim;
-  ptrdiff_t *slab_ix_start = tocf_params.slab_ix_start;
-  float *stars_grid = run_globals.tocf_grids.stars;
+  int ReionGridDim = run_globals.params.ReionGridDim;
+  ptrdiff_t *slab_ix_start = run_globals.params.slab_ix_start;
+  float *stars_grid = run_globals.reion_grids.stars;
   float Hubble_h = run_globals.params.Hubble_h;
 
   map_galaxies_to_slabs(mystate->n_gals);
@@ -271,7 +271,7 @@ static void test_construct_baryon_grids(void **state)
         i_xyz[ii] - (int)slab_ix_start[slab[ii]],
         i_xyz[ii],
         i_xyz[ii],
-        HII_dim,
+        ReionGridDim,
         INDEX_REAL
       );
       assert_true(isclosef(

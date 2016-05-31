@@ -37,15 +37,15 @@ int read_dm_grid(
     // N.B. We assume in this function that the slab has the fftw3 inplace complex dft padding.
 
     char       fname[512];
-    MPI_File   fin = NULL;
-    MPI_Status status;
     int        n_cell[3];
     double     box_size[3];
     int        n_grids;
     int        ma_scheme;
-    double     resample_factor   = 1.;
-    int        HII_dim           = tocf_params.HII_dim;
     long       start_foffset;
+    MPI_Status status;
+    double     resample_factor = 1.;
+    int        ReionGridDim    = run_globals.params.ReionGridDim;
+    MPI_File   fin             = NULL;
 
 
     run_params_t *params = &(run_globals.params);
@@ -102,9 +102,9 @@ int read_dm_grid(
     MPI_Bcast(&start_foffset, 1, MPI_LONG, 0, MPI_COMM_WORLD);
 
     // Check if the grid in the file is higher resolution than we require
-    if ((n_cell[0] != HII_dim) || (n_cell[1] != HII_dim) || (n_cell[2] != HII_dim))
+    if ((n_cell[0] != ReionGridDim) || (n_cell[1] != ReionGridDim) || (n_cell[2] != ReionGridDim))
     {
-      resample_factor = (double)HII_dim / (double)n_cell[0];
+      resample_factor = (double)ReionGridDim / (double)n_cell[0];
       if (resample_factor > 1.0001)
       {
         SID_log_error("The dark matter density grid in this file has a resolution less than that required! Aborting!");
@@ -118,7 +118,7 @@ int read_dm_grid(
     }
 
     // Malloc the slab
-    ptrdiff_t slab_nix = tocf_params.slab_nix[SID.My_rank];
+    ptrdiff_t slab_nix = run_globals.reion_grids.slab_nix[SID.My_rank];
     
     ptrdiff_t slab_ni_file = slab_nix * n_cell[1] * n_cell[2];
     float *slab_file   = SID_calloc(sizeof(float) * slab_ni_file);
@@ -127,12 +127,12 @@ int read_dm_grid(
     for(int ii=0; ii < slab_ni_file; ii++)
       slab_file[ii] = 0.0;
     // N.B. factor of two for fftw padding
-    for(int ii=0; ii < tocf_params.slab_n_complex[SID.My_rank]*2; ii++)
+    for(int ii=0; ii < run_globals.reion_grids.slab_n_complex[SID.My_rank]*2; ii++)
       slab[ii] = 0.0;
 
 
     // Read in the slab for this rank
-    long slab_offset = start_foffset + tocf_params.slab_ix_start[SID.My_rank]*n_cell[1]*n_cell[2]*sizeof(float);
+    long slab_offset = start_foffset + run_globals.reion_grids.slab_ix_start[SID.My_rank]*n_cell[1]*n_cell[2]*sizeof(float);
     MPI_File_open(MPI_COMM_WORLD, fname, MPI_MODE_RDONLY, MPI_INFO_NULL, &fin);
     MPI_File_read_at(fin, (MPI_Offset)slab_offset, slab_file, slab_ni_file, MPI_FLOAT, &status);
     MPI_File_close(&fin);
@@ -148,7 +148,7 @@ int read_dm_grid(
         for (int kk = 0; kk < n_cell[2]; kk++)
         {
           int k_lr = (int)(kk * resample_factor);
-          slab[grid_index(i_lr, j_lr, k_lr, HII_dim, INDEX_PADDED)] += slab_file[grid_index(ii, jj, kk, HII_dim, INDEX_REAL)];
+          slab[grid_index(i_lr, j_lr, k_lr, ReionGridDim, INDEX_PADDED)] += slab_file[grid_index(ii, jj, kk, ReionGridDim, INDEX_REAL)];
         }
       }
     }
@@ -167,12 +167,12 @@ int read_dm_grid(
       // At this point grid holds the summed densities in each LR cell
       // Loop through again and calculate the overdensity
       // ii.e. (rho - rho_mean)/rho_mean
-      double cell_volume_ratio = pow(box_size[0] / (double)HII_dim, 3) / cell_volume;
+      double cell_volume_ratio = pow(box_size[0] / (double)ReionGridDim, 3) / cell_volume;
       for (int ii = 0; ii < slab_nix; ii++)
-        for (int jj = 0; jj < HII_dim; jj++)
-          for (int kk = 0; kk < HII_dim; kk++)
+        for (int jj = 0; jj < ReionGridDim; jj++)
+          for (int kk = 0; kk < ReionGridDim; kk++)
           {
-            float *val = &(slab[grid_index(ii, jj, kk, HII_dim, INDEX_PADDED)]);
+            float *val = &(slab[grid_index(ii, jj, kk, ReionGridDim, INDEX_PADDED)]);
             *val = (*val / (cell_volume_ratio * mean)) - 1.;
           }
 

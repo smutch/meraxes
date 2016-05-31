@@ -974,7 +974,7 @@ void write_snapshot(
   SID_free(SID_FARG output_buffer);
 
   if (run_globals.params.TocfFlag && !check_if_reionization_complete())
-    save_tocf_grids(run_globals.ListOutputSnaps[i_out]);
+    save_reion_grids(run_globals.ListOutputSnaps[i_out]);
 
   // Close the group.
   H5Gclose(group_id);

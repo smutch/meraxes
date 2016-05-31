@@ -553,88 +553,88 @@ void read_parameter_file(char *fname, int mode)
       required_tag[n_param]  = 1;
       params_type[n_param++] = PARAM_TYPE_INT;
 
-      strcpy(params_tag[n_param], "TOCF_HII_dim");
-      params_addr[n_param]   = &(tocf_params.HII_dim);
+      strcpy(params_tag[n_param], "ReionGridDim");
+      params_addr[n_param]   = &(run_params->ReionGridDim);
       required_tag[n_param]  = 0;
       params_type[n_param++] = PARAM_TYPE_INT;
 
-      strcpy(params_tag[n_param], "TOCF_HII_eff_factor");
-      params_addr[n_param]   = &(tocf_params.HII_eff_factor);
+      strcpy(params_tag[n_param], "ReionEfficiency");
+      params_addr[n_param]   = &(run_params->physics).ReionEfficiency;
       required_tag[n_param]  = 0;
       params_type[n_param++] = PARAM_TYPE_FLOAT;
 
-      strcpy(params_tag[n_param], "TOCF_r_bubble_min");
-      params_addr[n_param]   = &(tocf_params.r_bubble_min);
+      strcpy(params_tag[n_param], "ReionRBubbleMin");
+      params_addr[n_param]   = &(run_params->physics).ReionRBubbleMin;
       required_tag[n_param]  = 0;
       params_type[n_param++] = PARAM_TYPE_FLOAT;
 
-      strcpy(params_tag[n_param], "TOCF_r_bubble_max");
-      params_addr[n_param]   = &(tocf_params.r_bubble_max);
+      strcpy(params_tag[n_param], "ReionRBubbleMax");
+      params_addr[n_param]   = &(run_params->physics).ReionRBubbleMax;
       required_tag[n_param]  = 0;
       params_type[n_param++] = PARAM_TYPE_FLOAT;
 
-      strcpy(params_tag[n_param], "TOCF_delta_r_HII_factor");
-      params_addr[n_param]   = &(tocf_params.delta_r_HII_factor);
+      strcpy(params_tag[n_param], "ReionDeltaRFactor");
+      params_addr[n_param]   = &(run_params->ReionDeltaRFactor);
       required_tag[n_param]  = 0;
       params_type[n_param++] = PARAM_TYPE_FLOAT;
 
-      strcpy(params_tag[n_param], "TOCF_gamma_halo_bias");
-      params_addr[n_param]   = &(tocf_params.gamma_halo_bias);
+      strcpy(params_tag[n_param], "ReionGammaHaloBias");
+      params_addr[n_param]   = &(run_params->physics).ReionGammaHaloBias;
       required_tag[n_param]  = 0;
       params_type[n_param++] = PARAM_TYPE_FLOAT;
 
-      strcpy(params_tag[n_param], "TOCF_m_0_sm");
-      params_addr[n_param]   = &(tocf_params.m_0_sm);
+      strcpy(params_tag[n_param], "ReionSMParam_m0");
+      params_addr[n_param]   = &(run_params->physics).ReionSMParam_m0;
       required_tag[n_param]  = 0;
       params_type[n_param++] = PARAM_TYPE_FLOAT;
 
-      strcpy(params_tag[n_param], "TOCF_a_sm");
-      params_addr[n_param]   = &(tocf_params.a_sm);
+      strcpy(params_tag[n_param], "ReionSMParam_a");
+      params_addr[n_param]   = &(run_params->physics).ReionSMParam_a;
       required_tag[n_param]  = 0;
       params_type[n_param++] = PARAM_TYPE_FLOAT;
 
-      strcpy(params_tag[n_param], "TOCF_b_sm");
-      params_addr[n_param]   = &(tocf_params.b_sm);
+      strcpy(params_tag[n_param], "ReionSMParam_b");
+      params_addr[n_param]   = &(run_params->physics).ReionSMParam_b;
       required_tag[n_param]  = 0;
       params_type[n_param++] = PARAM_TYPE_FLOAT;
 
-      strcpy(params_tag[n_param], "TOCF_c_sm");
-      params_addr[n_param]   = &(tocf_params.c_sm);
+      strcpy(params_tag[n_param], "ReionSMParam_c");
+      params_addr[n_param]   = &(run_params->physics).ReionSMParam_c;
       required_tag[n_param]  = 0;
       params_type[n_param++] = PARAM_TYPE_FLOAT;
 
-      strcpy(params_tag[n_param], "TOCF_d_sm");
-      params_addr[n_param]   = &(tocf_params.d_sm);
+      strcpy(params_tag[n_param], "ReionSMParam_d");
+      params_addr[n_param]   = &(run_params->physics).ReionSMParam_d;
       required_tag[n_param]  = 0;
       params_type[n_param++] = PARAM_TYPE_FLOAT;
 
-      strcpy(params_tag[n_param], "TOCF_uvb_feedback");
-      params_addr[n_param]   = &(tocf_params.uvb_feedback);
+      strcpy(params_tag[n_param], "ReionUVBFlag");
+      params_addr[n_param]   = &(run_params->ReionUVBFlag);
       required_tag[n_param]  = 0;
       params_type[n_param++] = PARAM_TYPE_INT;
 
-      strcpy(params_tag[n_param], "TOCF_HII_filter");
-      params_addr[n_param]   = &(tocf_params.HII_filter);
+      strcpy(params_tag[n_param], "ReionFilterType");
+      params_addr[n_param]   = &(run_params->ReionFilterType);
       required_tag[n_param]  = 0;
       params_type[n_param++] = PARAM_TYPE_INT;
 
-      strcpy(params_tag[n_param], "TOCF_delta_k_ps");
-      params_addr[n_param]   = &(tocf_params.delta_k_ps);
+      strcpy(params_tag[n_param], "ReionPowerSpecDeltaK");
+      params_addr[n_param]   = &(run_params->ReionPowerSpecDeltaK);
       required_tag[n_param]  = 0;
       params_type[n_param++] = PARAM_TYPE_FLOAT;
       
-      strcpy(params_tag[n_param], "TOCF_alpha_uv");
-      params_addr[n_param]   = &(tocf_params.alpha_uv);
+      strcpy(params_tag[n_param], "ReionAlphaUV");
+      params_addr[n_param]   = &(run_params->physics).ReionAlphaUV;
       required_tag[n_param]  = 0;
       params_type[n_param++] = PARAM_TYPE_FLOAT;
       
-      strcpy(params_tag[n_param], "TOCF_RtoM_filter");
-      params_addr[n_param]   = &(tocf_params.RtoM_filter);
+      strcpy(params_tag[n_param], "ReionRtoMFilterType");
+      params_addr[n_param]   = &(run_params->ReionRtoMFilterType);
       required_tag[n_param]  = 0;
       params_type[n_param++] = PARAM_TYPE_INT;
       
-      strcpy(params_tag[n_param], "TOCF_Y_He");
-      params_addr[n_param]   = &(tocf_params.Y_He);
+      strcpy(params_tag[n_param], "Y_He");
+      params_addr[n_param]   = &(run_params->physics).Y_He;
       required_tag[n_param]  = 0;
       params_type[n_param++] = PARAM_TYPE_FLOAT;
       
@@ -710,5 +710,4 @@ void read_parameter_file(char *fname, int mode)
   // If running mpi then broadcast the run parameters to all cores
   SID_Bcast(run_params, sizeof(run_params_t), 0, SID.COMM_WORLD);
   SID_Bcast(&(run_globals.units), sizeof(run_units_t), 0, SID.COMM_WORLD);
-  SID_Bcast(&tocf_params, sizeof(tocf_params_t), 0, SID.COMM_WORLD);
 }

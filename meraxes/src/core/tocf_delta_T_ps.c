@@ -23,8 +23,8 @@ int delta_T_ps(
   float pixel_x_HI, pixel_deltax;
   float k_mag;
 
-  float *xH = run_globals.tocf_grids.xH;
-  float *deltax = run_globals.tocf_grids.deltax;
+  float *xH = run_globals.reion_grids.xH;
+  float *deltax = run_globals.reion_grids.deltax;
 
   // Begin initialisation
   // ------------------------------------------------------------------------------------------------------
@@ -33,8 +33,8 @@ int delta_T_ps(
   float min       = 1e3;
   float max       = -1e3;
   double ave       = 0.0;
-  int HII_dim = tocf_params.HII_dim;
-  int local_nix = (int)(tocf_params.slab_nix[SID.My_rank]);
+  int ReionGridDim = run_globals.params.ReionGridDim;
+  int local_nix = (int)(run_globals.reion_grids.slab_nix[SID.My_rank]);
 
   // Set some redshift dependant values
   float redshift = run_globals.ZZ[snapshot];
@@ -52,13 +52,13 @@ int delta_T_ps(
 
   for (int ii=0; ii<local_nix; ii++)
   {
-    for (int jj=0; jj<HII_dim; jj++)
+    for (int jj=0; jj<ReionGridDim; jj++)
     {
-      for (int kk=0; kk<HII_dim; kk++)
+      for (int kk=0; kk<ReionGridDim; kk++)
       {
-        pixel_deltax = deltax[grid_index(ii, jj, kk, HII_dim, INDEX_PADDED)];
+        pixel_deltax = deltax[grid_index(ii, jj, kk, ReionGridDim, INDEX_PADDED)];
 
-        int index = grid_index(ii, jj, kk, HII_dim, INDEX_REAL);
+        int index = grid_index(ii, jj, kk, ReionGridDim, INDEX_REAL);
         pixel_x_HI = xH[index];
 
         if (pixel_x_HI > ABS_TOL)
@@ -77,7 +77,7 @@ int delta_T_ps(
     }
   }
 
-  int tot_num_pixels = (int)pow(HII_dim, 3);
+  int tot_num_pixels = (int)pow(ReionGridDim, 3);
 
   SID_Allreduce(SID_IN_PLACE, &ave, 1, SID_INT, SID_SUM, SID.COMM_WORLD);
   ave /= (double)tot_num_pixels;
@@ -88,9 +88,9 @@ int delta_T_ps(
   // ------------------------------------------------------------------------------------------------------
 
   float k_factor = 1.5;
-  float delta_k = tocf_params.delta_k_ps;
+  float delta_k = run_globals.params.ReionPowerSpecDeltaK;
   float k_first_bin_ceil = delta_k;
-  float k_max = delta_k*HII_dim;
+  float k_max = delta_k*ReionGridDim;
 
   // Initialise arrays
   // ghetto counting (lookup how to do logs of arbitrary bases in c...)
@@ -117,34 +117,34 @@ int delta_T_ps(
     in_bin_ct[ii] = 0;
   }
 
-  fftwf_complex *deldel_T = fftwf_alloc_complex(tocf_params.slab_n_complex[SID.My_rank]);
+  fftwf_complex *deldel_T = fftwf_alloc_complex(run_globals.reion_grids.slab_n_complex[SID.My_rank]);
 
   // Fill-up the real-space of the deldel box
   // Note: we include the V/N factor for the scaling after the fft
   float volume = powf(run_globals.params.BoxSize, 3);
   for (int ii=0; ii<local_nix; ii++)
-    for (int jj=0; jj<HII_dim; jj++)
-      for (int kk=0; kk<HII_dim; kk++)
-        ((float *)deldel_T)[grid_index(ii, jj, kk, HII_dim, INDEX_PADDED)] = (delta_T[grid_index(ii,jj,kk, HII_dim, INDEX_REAL)]/ave - 1)*volume/(float)tot_num_pixels;
+    for (int jj=0; jj<ReionGridDim; jj++)
+      for (int kk=0; kk<ReionGridDim; kk++)
+        ((float *)deldel_T)[grid_index(ii, jj, kk, ReionGridDim, INDEX_PADDED)] = (delta_T[grid_index(ii,jj,kk, ReionGridDim, INDEX_REAL)]/ave - 1)*volume/(float)tot_num_pixels;
 
   // Transform to k-space
-  fftwf_plan plan = fftwf_mpi_plan_dft_r2c_3d(HII_dim, HII_dim, HII_dim, (float *)deldel_T, (fftwf_complex *)deldel_T,  SID_COMM_WORLD, FFTW_ESTIMATE);
+  fftwf_plan plan = fftwf_mpi_plan_dft_r2c_3d(ReionGridDim, ReionGridDim, ReionGridDim, (float *)deldel_T, (fftwf_complex *)deldel_T,  SID_COMM_WORLD, FFTW_ESTIMATE);
   fftwf_execute(plan);
   fftwf_destroy_plan(plan);
 
   // Now construct the power spectrum
-  int HII_middle = HII_dim/2;
-  for (int n_x=0; n_x<HII_dim; n_x++)
+  int HII_middle = ReionGridDim/2;
+  for (int n_x=0; n_x<ReionGridDim; n_x++)
   {
     float k_x = n_x*delta_k;
     if (n_x>HII_middle)
-      k_x =(n_x-HII_dim)*delta_k;   // Wrap around for FFT convention
+      k_x =(n_x-ReionGridDim)*delta_k;   // Wrap around for FFT convention
 
-    for (int n_y=0; n_y<HII_dim; n_y++)
+    for (int n_y=0; n_y<ReionGridDim; n_y++)
     {
       float k_y = n_y*delta_k;
       if (n_y>HII_middle)
-        k_y =(n_y-HII_dim)*delta_k;
+        k_y =(n_y-ReionGridDim)*delta_k;
 
       for (int n_z=0; n_z<=HII_middle; n_z++)
       { 
@@ -162,7 +162,7 @@ int delta_T_ps(
           if ((k_mag >= k_floor) && (k_mag < k_ceil))
           {
             in_bin_ct[ct]++;
-            p_box[ct] += pow(k_mag,3)*pow(cabs(deldel_T[grid_index(n_x, n_y, n_z, HII_dim, INDEX_PADDED)]), 2)/(2.0*M_PI*M_PI*volume);
+            p_box[ct] += pow(k_mag,3)*pow(cabs(deldel_T[grid_index(n_x, n_y, n_z, ReionGridDim, INDEX_PADDED)]), 2)/(2.0*M_PI*M_PI*volume);
             // Note the 1/VOLUME factor, which turns this into a power density in k-space
 
             k_ave[ct] += k_mag;

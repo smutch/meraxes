@@ -114,17 +114,33 @@ typedef struct physics_params_t {
   double MergerTimeFactor;
 
   // TODO: These parameters should be used to set the TOCF HII_EFF_FACTOR value
+  float  ReionEfficiency;
   double ReionNionPhotPerBary;
   double ReionEscapeFrac;
   double ReionTcool;
+  float  Y_He;
 
+  float  ReionGammaHaloBias;
+  float  ReionAlphaUV;
+  float  ReionRBubbleMin;
+  float  ReionRBubbleMax;
+
+  // global reionization prescription
   double ReionSobacchi_Zre;
   double ReionSobacchi_DeltaZre;
   double ReionSobacchi_DeltaZsc;
   double ReionSobacchi_T0;
 
+  // global reionization prescription
   double ReionGnedin_z0;
   double ReionGnedin_zr;
+
+  // filtering mass fit
+  float  ReionSMParam_m0;
+  float  ReionSMParam_a;
+  float  ReionSMParam_b;
+  float  ReionSMParam_c;
+  float  ReionSMParam_d;
 
   // Flags
   int Flag_RedshiftDepEscFrac;
@@ -174,6 +190,14 @@ typedef struct run_params_t {
 
   double          *MvirCrit;
 
+
+  float            ReionDeltaRFactor;
+  float            ReionPowerSpecDeltaK;
+  int              ReionGridDim;
+  int              ReionFilterType;
+  int              ReionRtoMFilterType;
+  int              ReionUVBFlag;
+
   int              FirstFile;
   int              LastFile;
   int              NSteps;
@@ -185,6 +209,7 @@ typedef struct run_params_t {
   int              FlagReadDumpFile;
   int              TocfFlag;
 } run_params_t;
+
 
 typedef struct run_units_t {
   double UnitTime_in_s;
@@ -231,40 +256,6 @@ typedef struct phototabs_t {
   int    NMetals;
 } phototabs_t;
 
-typedef struct tocf_params_t tocf_params_t;
-struct tocf_params_t
-{
-    // INIT_PARAMS
-    int   HII_dim;       // Number of cells for the low-res box; recommended to be an integer multiple of DIM
-
-    ptrdiff_t    *slab_nix;
-    ptrdiff_t    *slab_ix_start;
-    ptrdiff_t    *slab_n_complex;
-    
-    // ANAL_PARAMS
-    float  HII_eff_factor;
-    int    HII_filter;
-    int    RtoM_filter;
-    float  r_bubble_min;
-    float  r_bubble_max;
-    int    uvb_feedback;
-    float  gamma_halo_bias;
-    float  Y_He;
-    float  delta_r_HII_factor;
-    float  delta_k_ps;
-    float  alpha_uv;
-    float  m_0_sm;
-    float  a_sm;
-    float  b_sm;
-    float  c_sm;
-    float  d_sm;
-};
-
-extern tocf_params_t tocf_params;
-#ifdef _MAIN
-tocf_params_t tocf_params;
-#endif
-
 
 typedef struct gal_to_slab_t {
   int index;
@@ -273,7 +264,11 @@ typedef struct gal_to_slab_t {
 } gal_to_slab_t;
 
 
-typedef struct tocf_grids_t {
+typedef struct reion_grids_t {
+  ptrdiff_t     *slab_nix;
+  ptrdiff_t     *slab_ix_start;
+  ptrdiff_t     *slab_n_complex;
+
   float         *buffer;
   float         *stars;
   fftwf_complex *stars_unfiltered;
@@ -289,11 +284,12 @@ typedef struct tocf_grids_t {
   float         *J_21_at_ionization;
   float         *J_21;
   float         *Mvir_crit;
-  float          global_xH;
   gal_to_slab_t *galaxy_to_slab_map;
+
+  float          global_xH;
   bool           reion_complete;
   int            buffer_size;
-} tocf_grids_t;
+} reion_grids_t;
 
 //! The meraxis halo structure
 typedef struct halo_t {
@@ -517,7 +513,7 @@ typedef struct catalog_halo_t {
 typedef struct run_globals_t {
   struct run_params_t params;
   char                FNameOut[STRLEN];
-  tocf_grids_t        tocf_grids;
+  reion_grids_t       reion_grids;
   struct run_units_t  units;
   hdf5_output_t       hdf5props;
 
@@ -650,7 +646,7 @@ void assign_slabs();
 
 float  find_HII_bubbles(float redshift);
 double tocf_modifier(galaxy_t *gal, double Mvir);
-void   set_HII_eff_factor();
+void   set_ReionEfficiency();
 int    find_cell(float pos, double box_size);
 void   malloc_reionization_grids();
 void   free_reionization_grids();
@@ -662,7 +658,7 @@ int  read_dm_grid(int snapshot, int i_grid, float *grid);
 void calculate_Mvir_crit(double redshift);
 void call_find_HII_bubbles(int snapshot, int unsampled_snapshot, int nout_gals);
 void create_grids_file();
-void save_tocf_grids(int snapshot);
+void save_reion_grids(int snapshot);
 bool check_if_reionization_complete();
 
 #ifdef DEBUG

@@ -97,13 +97,11 @@ double hubble_time(int snapshot)
 
 double calculate_Rvir(double Mvir, int snapshot)
 {
-  double zplus1;
   double hubble_of_z_sq;
   double rhocrit;
   double fac;
   double Delta;
 
-  zplus1         = 1 + run_globals.ZZ[snapshot];
   hubble_of_z_sq = pow(hubble_at_snapshot(snapshot), 2);
 
   rhocrit = 3 * hubble_of_z_sq / (8 * M_PI * run_globals.G);

@@ -357,6 +357,6 @@ void init_meraxes()
   initialize_halo_storage();
 
   malloc_reionization_grids();
-  set_HII_eff_factor();
+  set_ReionEfficiency();
 }
 
