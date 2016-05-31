@@ -207,7 +207,7 @@ typedef struct run_params_t {
   int              FlagInteractive;
   int              FlagGenDumpFile;
   int              FlagReadDumpFile;
-  int              TocfFlag;
+  int              PatchyReionFlag;
 } run_params_t;
 
 

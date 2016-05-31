@@ -33,15 +33,6 @@ FlagSubhaloVirialProps : 0  # 0 -> approximate subhalo virial props using partic
 RandomSeed             : 1809  # seed for random number generator
 
 #------------------------------------------
-#----- 21cmFAST ---------------------------
-#------------------------------------------
-TOCF_Flag : 0 {  # use 21cmfast for reionization?
-    numcores   : 1          # number of OpenMP threads to run 21cmFAST with
-    LogFileDir : tocf_logs  # directory for log files
-    HII_dim    : 256
-}
-
-#------------------------------------------
 #----- Parameters of physical model -------
 #------------------------------------------
 Flag_RedshiftDepEscFrac    : 0    # use redshift-dependent escape fraction
@@ -84,11 +75,12 @@ MinMergerRatioForBurst    : 0.1     # Minimum mass ratio for merger driven star 
 MergerBurstFactor         : 0.57    # Constant factor in merger burst equation
 MergerBurstScaling        : 0.7
 
-# Reionization
-ReionTcool             : 1.0e4
-ReionNionPhotPerBary   : 4000
-ReionEscapeFrac        : 0.2
 
+#----------------------------------------------
+#----- Reionization ---------------------------
+#----------------------------------------------
+
+# global prescriptions
 ReionSobacchi_Zre      : 9.3
 ReionSobacchi_DeltaZre : 1.0
 ReionSobacchi_DeltaZsc : 2.0
@@ -96,6 +88,32 @@ ReionSobacchi_T0       : 5.0e4
 
 ReionGnedin_z0         : 8
 ReionGnedin_zr         : 7
+
+# patchy (21cmFAST) prescription
+PatchyReionFlag        : 0
+ReionUVBFlag           : 1
+
+ReionGridDim           : 128
+ReionDeltaRFactor      : 1.1
+ReionFilterType        : 0
+ReionPowerSpecDeltaK   : 0.1
+ReionRtoMFilterType    : 0
+
+Y_He                   : 0.24
+ReionRBubbleMin        : 0.4
+ReionRBubbleMax        : 20.0
+ReionGammaHaloBias     : 2.0
+ReionAlphaUV           : 5.0
+ReionSMParam_m0        : 0.19  # internal units
+ReionSMParam_a         : 0.17
+ReionSMParam_b         : -2.1
+ReionSMParam_c         : 2.0
+ReionSMParam_d         : 2.5
+
+ReionTcool             : 1.0e4  # Kelvin
+ReionNionPhotPerBary   : 4000
+ReionEscapeFrac        : 0.2
+
 
 
 #------------------------------------------------

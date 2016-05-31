@@ -39,7 +39,7 @@ double RtoM(double R){
 }
 
 
-void ReionFilterType(fftwf_complex *box, float R)
+static void filter(fftwf_complex *box, float R)
 {
   int filter_type = run_globals.params.ReionFilterType;
   int slab_nx = (int)(run_globals.reion_grids.slab_nix[SID.My_rank]);
@@ -201,9 +201,9 @@ float find_HII_bubbles(float redshift)
     // do the filtering unless this is the last filter step
     if(!flag_last_filter_step)
     {
-      ReionFilterType(deltax_filtered, R);
-      ReionFilterType(stars_filtered, R);
-      ReionFilterType(sfr_filtered, R);
+      filter(deltax_filtered, R);
+      filter(stars_filtered, R);
+      filter(sfr_filtered, R);
     }
 
     // inverse fourier transform back to real space

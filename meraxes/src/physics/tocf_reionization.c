@@ -41,9 +41,6 @@ void calculate_Mvir_crit(double redshift)
           cell_Mvir_crit = ReionSMParam_m0 * pow(J_21_at_ion[grid_index(ii, jj, kk, ReionGridDim, INDEX_REAL)], ReionSMParam_a)
             * pow((1.0 + redshift) / 10.0, ReionSMParam_b)
             * pow((1.0 - pow((1.0 + redshift) / (1.0 + z_at_ion[grid_index(ii, jj, kk, ReionGridDim, INDEX_REAL)]), ReionSMParam_c)), ReionSMParam_d);
-
-          // Put the mass back into internal units
-          cell_Mvir_crit *= (Hubble_h / 1.0e10);
         }
 
         // Save the critical mass to the grid

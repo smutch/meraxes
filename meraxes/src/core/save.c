@@ -572,7 +572,7 @@ void create_master_file()
     h5_write_attribute(group_id, h5props->field_names[ii], H5T_C_S1, ds_id, h5props->field_h_conv[ii]);
   H5Gclose(group_id);
 
-  if (run_globals.params.TocfFlag)
+  if (run_globals.params.PatchyReionFlag)
   {
     group_id = H5Gcreate(file_id, "Units/Grids", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
     h5_write_attribute(group_id, "xH", H5T_C_S1, ds_id, "None");
@@ -671,7 +671,7 @@ void create_master_file()
       H5Gclose(group_id);
       H5Fclose(source_file_id);
 
-      if((i_core == 0) && (run_globals.params.TocfFlag))
+      if((i_core == 0) && (run_globals.params.PatchyReionFlag))
       {
         // create links to the 21cmFAST grids that exist
         sprintf(source_file, "%s/%s_grids.hdf5", run_globals.params.OutputDir, run_globals.params.FileNameGalaxies);
@@ -973,7 +973,7 @@ void write_snapshot(
   // Free the output buffer
   SID_free(SID_FARG output_buffer);
 
-  if (run_globals.params.TocfFlag && !check_if_reionization_complete())
+  if (run_globals.params.PatchyReionFlag && !check_if_reionization_complete())
     save_reion_grids(run_globals.ListOutputSnaps[i_out]);
 
   // Close the group.

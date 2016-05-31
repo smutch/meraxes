@@ -9,7 +9,7 @@
 
 void set_ReionEfficiency()
 {
-  if (run_globals.params.TocfFlag)
+  if (run_globals.params.PatchyReionFlag)
   {
     // Use the params passed to Meraxes via the input file to set the HII ionising efficiency factor
     physics_params_t *params = &(run_globals.params.physics);
@@ -130,7 +130,7 @@ void malloc_reionization_grids()
   grids->global_xH = 1.0;
   grids->reion_complete = false;
 
-  if (run_globals.params.TocfFlag)
+  if (run_globals.params.PatchyReionFlag)
   {
 
     assign_slabs();

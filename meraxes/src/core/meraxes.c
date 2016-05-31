@@ -49,7 +49,7 @@ int main(int argc, char **argv)
   // calculate the output hdf5 file properties for later use
   calc_hdf5_props();
 
-  if (run_globals.params.TocfFlag)
+  if (run_globals.params.PatchyReionFlag)
     create_grids_file();
 
   // Run the model!

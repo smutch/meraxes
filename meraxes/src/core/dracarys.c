@@ -124,7 +124,7 @@ void dracarys()
     SID_log("Processing snapshot %d (z = %.2f)...", SID_LOG_OPEN | SID_LOG_TIMER, snapshot, run_globals.ZZ[snapshot]);
 
     // Calculate the critical halo mass for cooling
-    if ((run_globals.params.TocfFlag) && (run_globals.params.ReionUVBFlag))
+    if ((run_globals.params.PatchyReionFlag) && (run_globals.params.ReionUVBFlag))
       calculate_Mvir_crit(run_globals.ZZ[snapshot]);
 
     // Reset the halo pointers and ghost flags for all galaxies and decrement
@@ -394,7 +394,7 @@ void dracarys()
     check_counts(fof_group, NGal, trees_info.n_fof_groups);
 #endif
 
-    if (run_globals.params.TocfFlag)
+    if (run_globals.params.PatchyReionFlag)
     {
       int ngals_in_slabs = map_galaxies_to_slabs(NGal);
       assign_Mvir_crit_to_galaxies(ngals_in_slabs);
@@ -410,7 +410,7 @@ void dracarys()
     nout_gals += ghost_counter;
 
 
-    if (run_globals.params.TocfFlag)
+    if (run_globals.params.PatchyReionFlag)
     {
       physics_params_t *params = &(run_globals.params.physics);
 
