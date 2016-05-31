@@ -536,12 +536,6 @@ void read_parameter_file(char *fname, int mode)
       required_tag[n_param]  = 1;
       params_type[n_param++] = PARAM_TYPE_INT;
 
-      // TODO: Get rid of this
-      strcpy(params_tag[n_param], "ReionEfficiency");
-      params_addr[n_param]   = &(run_params->physics).ReionEfficiency;
-      required_tag[n_param]  = 1;
-      params_type[n_param++] = PARAM_TYPE_FLOAT;
-
       strcpy(params_tag[n_param], "ReionRBubbleMin");
       params_addr[n_param]   = &(run_params->physics).ReionRBubbleMin;
       required_tag[n_param]  = 1;

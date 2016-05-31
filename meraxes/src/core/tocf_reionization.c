@@ -36,6 +36,9 @@ void set_ReionEfficiency()
 
     SID_log("Set value of run_globals.params.ReionEfficiency = %g", SID_LOG_COMMENT, run_globals.params.physics.ReionEfficiency);
   }
+  else {
+    run_globals.params.physics.ReionEfficiency = -1;
+  }
 }
 
 
