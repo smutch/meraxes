@@ -106,7 +106,6 @@ vars = Variables('config.py') # Persistent storage.
 vars.AddVariables(
     BoolVariable('calc_mags', 'Calculate magnitudes.', False),
     ('nout', 'Set the number of output snapshots. (only required if calc_mags=1)', False),
-    BoolVariable('tocf', 'Calculate xH structure with 21cmFAST.', False),
     ('allocparameter', 'Set the ALLOCPARAM value.', 5.0),
     EnumVariable('build', 'Set the build type.', 'standard', allowed_values=('debug', 'standard', 'optimized')),
     BoolVariable('prof', 'Enable profiling.', False),
@@ -133,8 +132,6 @@ print "\nCommand line arguments:"
 
 if env['nout']:
     print "nout = ", env['nout']
-if env['tocf']:
-    print "tocf = ", env['tocf']
 if env['build']:
     print "build =", env['build']
 

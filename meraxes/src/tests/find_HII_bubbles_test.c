@@ -26,7 +26,7 @@ static int setup(void **state)
   read_parameter_file(param_file, 0);
 
   run_globals.params.BoxSize     = 100.;
-  run_globals.params.TOCF_Flag   = 1;
+  run_globals.params.TocfFlag   = 1;
   tocf_params.HII_dim            = 32;
   tocf_params.HII_eff_factor     = 1.0;
   tocf_params.uvb_feedback       = 1;

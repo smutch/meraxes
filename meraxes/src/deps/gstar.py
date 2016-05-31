@@ -32,12 +32,6 @@ deps['fftw'] = {
     'lib'   : ['fftw3f_mpi', 'fftw3f'],
 }
 
-deps['21cmfast'] = {
-    'inclp' :'../../21cmfast/include',
-    'libp'  :'../../21cmfast/lib',
-    'lib'   : ['21cmfast', 'gomp'],
-}
-
 deps['cmocka'] = {
     'inclp' : '/home/smutch/3rd_party/cmocka/include',
     'libp' : '/home/smutch/3rd_party/cmocka/lib',

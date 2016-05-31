@@ -32,10 +32,3 @@ deps['fftw'] = {
     'libp'  : os.path.expanduser('~/3rd_party/fftw/fftw-3.3.4/lib'),
     'lib'   : ['fftw3f_mpi', 'fftw3f'],
 }
-
-deps['21cmfast'] = {
-    'inclp' :'../../21cmfast/include',
-    'libp'  :'../../21cmfast/lib',
-    'lib'   : ['21cmfast', 'omp'],
-}
-

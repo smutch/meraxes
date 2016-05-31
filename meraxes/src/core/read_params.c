@@ -59,7 +59,7 @@ static void inline store_params(
       }
     }
 
-    if (strcmp(key, "TOCF_Flag") == 0)
+    if (strcmp(key, "TocfFlag") == 0)
     {
       temp = atoi(entry[i_entry].value);
       if (used_tag[tag_index] == 0)
@@ -548,8 +548,8 @@ void read_parameter_file(char *fname, int mode)
       required_tag[n_param]  = 1;
       params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
-      strcpy(params_tag[n_param], "TOCF_Flag");
-      params_addr[n_param]   = &(run_params->TOCF_Flag);
+      strcpy(params_tag[n_param], "TocfFlag");
+      params_addr[n_param]   = &(run_params->TocfFlag);
       required_tag[n_param]  = 1;
       params_type[n_param++] = PARAM_TYPE_INT;
 

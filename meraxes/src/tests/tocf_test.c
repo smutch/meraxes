@@ -19,7 +19,7 @@ static int setup_tocf_tests(void **state)
 
   tocf_params.HII_dim = 64;
   tocf_params.uvb_feedback = 1;
-  run_globals.params.TOCF_Flag = 1;
+  run_globals.params.TocfFlag = 1;
   run_globals.params.BoxSize = 100.;  // Not the size of Tiamat but easy for checking
   run_globals.params.Hubble_h = 1.0;  // Nonsense but again, easy for debugging
   run_globals.ZZ = SID_malloc(sizeof(double) * 10);

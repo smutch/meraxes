@@ -183,7 +183,7 @@ typedef struct run_params_t {
   int              FlagInteractive;
   int              FlagGenDumpFile;
   int              FlagReadDumpFile;
-  int              TOCF_Flag;
+  int              TocfFlag;
 } run_params_t;
 
 typedef struct run_units_t {

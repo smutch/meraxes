@@ -572,7 +572,7 @@ void create_master_file()
     h5_write_attribute(group_id, h5props->field_names[ii], H5T_C_S1, ds_id, h5props->field_h_conv[ii]);
   H5Gclose(group_id);
 
-  if (run_globals.params.TOCF_Flag)
+  if (run_globals.params.TocfFlag)
   {
     group_id = H5Gcreate(file_id, "Units/Grids", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
     h5_write_attribute(group_id, "xH", H5T_C_S1, ds_id, "None");
@@ -619,11 +619,10 @@ void create_master_file()
   hid_t source_group_id;
   hsize_t core_n_gals;
   double temp;
-  double global_ionizing_emissivity;
   int unsampled_snapshot;
 
   // Now create soft links to all of the files and datasets that make up this run
-  for (int i_out = 0, snap_n_gals = 0; i_out < run_globals.NOutputSnaps; i_out++, snap_n_gals = 0, global_ionizing_emissivity = 0, temp = 0)
+  for (int i_out = 0, snap_n_gals = 0; i_out < run_globals.NOutputSnaps; i_out++, snap_n_gals = 0, temp = 0)
   {
     sprintf(target_group, "Snap%03d", run_globals.ListOutputSnaps[i_out]);
     snap_group_id = H5Gcreate(file_id, target_group, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
@@ -672,7 +671,7 @@ void create_master_file()
       H5Gclose(group_id);
       H5Fclose(source_file_id);
 
-      if((i_core == 0) && (run_globals.params.TOCF_Flag))
+      if((i_core == 0) && (run_globals.params.TocfFlag))
       {
         // create links to the 21cmFAST grids that exist
         sprintf(source_file, "%s/%s_grids.hdf5", run_globals.params.OutputDir, run_globals.params.FileNameGalaxies);
@@ -974,7 +973,7 @@ void write_snapshot(
   // Free the output buffer
   SID_free(SID_FARG output_buffer);
 
-  if (run_globals.params.TOCF_Flag && !check_if_reionization_complete())
+  if (run_globals.params.TocfFlag && !check_if_reionization_complete())
     save_tocf_grids(run_globals.ListOutputSnaps[i_out]);
 
   // Close the group.

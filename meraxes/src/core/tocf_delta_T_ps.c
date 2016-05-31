@@ -22,9 +22,6 @@ int delta_T_ps(
 
   float pixel_x_HI, pixel_deltax;
   float k_mag;
-  float T_rad;
-
-  double ave_Ts, min_Ts, max_Ts, temp;
 
   float *xH = run_globals.tocf_grids.xH;
   float *deltax = run_globals.tocf_grids.deltax;
@@ -41,7 +38,6 @@ int delta_T_ps(
 
   // Set some redshift dependant values
   float redshift = run_globals.ZZ[snapshot];
-  T_rad = TCMB*(1 + redshift);
   float Hubble_h = run_globals.params.Hubble_h;
   float OmegaM = run_globals.params.OmegaM;
   float OmegaB = OmegaM * run_globals.params.BaryonFrac;
@@ -52,10 +48,6 @@ int delta_T_ps(
   // ------------------------------------------------------------------------------------------------------
   // ------------------------------------------------------------------------------------------------------
 
-  ave_Ts = 0.0;
-  min_Ts = 1e5;
-  max_Ts = 0.0;
-  temp = 0.0;
   temp_ct = 0;
 
   for (int ii=0; ii<local_nix; ii++)
@@ -70,10 +62,7 @@ int delta_T_ps(
         pixel_x_HI = xH[index];
 
         if (pixel_x_HI > ABS_TOL)
-        {
-          temp = pixel_deltax;
           temp_ct++;
-        }
 
         delta_T[index] = const_factor*pixel_x_HI*(1.0 + pixel_deltax);
 
