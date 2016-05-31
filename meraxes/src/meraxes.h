@@ -242,7 +242,6 @@ struct tocf_params_t
     ptrdiff_t    *slab_n_complex;
     
     // ANAL_PARAMS
-    double ion_tvir_min;
     float  HII_eff_factor;
     int    HII_filter;
     int    RtoM_filter;
@@ -251,7 +250,6 @@ struct tocf_params_t
     int    uvb_feedback;
     float  gamma_halo_bias;
     float  Y_He;
-    int    compute_mfp;
     float  delta_r_HII_factor;
     float  delta_k_ps;
     float  alpha_uv;

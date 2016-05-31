@@ -558,11 +558,6 @@ void read_parameter_file(char *fname, int mode)
       required_tag[n_param]  = 0;
       params_type[n_param++] = PARAM_TYPE_INT;
 
-      strcpy(params_tag[n_param], "TOCF_ion_tvir_min");
-      params_addr[n_param]   = &(tocf_params.ion_tvir_min);
-      required_tag[n_param]  = 0;
-      params_type[n_param++] = PARAM_TYPE_DOUBLE;
-
       strcpy(params_tag[n_param], "TOCF_HII_eff_factor");
       params_addr[n_param]   = &(tocf_params.HII_eff_factor);
       required_tag[n_param]  = 0;
@@ -615,11 +610,6 @@ void read_parameter_file(char *fname, int mode)
 
       strcpy(params_tag[n_param], "TOCF_uvb_feedback");
       params_addr[n_param]   = &(tocf_params.uvb_feedback);
-      required_tag[n_param]  = 0;
-      params_type[n_param++] = PARAM_TYPE_INT;
-
-      strcpy(params_tag[n_param], "TOCF_compute_mfp");
-      params_addr[n_param]   = &(tocf_params.compute_mfp);
       required_tag[n_param]  = 0;
       params_type[n_param++] = PARAM_TYPE_INT;
 
