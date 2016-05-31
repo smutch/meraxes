@@ -56,11 +56,11 @@ int read_dm_grid(
     // Read the header
     if (SID.My_rank == 0)
     {
-      FILE *fd = fopen(fname, "rb");
-      if (!fin)
+      FILE *fd;
+      if((fd = fopen(fname, "rb")) == NULL)
       {
-        SID_log_error("Failed to open file: %s", fname);
-        ABORT(EXIT_FAILURE);
+        fprintf(stderr, "Failed to open file: %s\n", fname);
+        return EXIT_FAILURE;
       }
 
       fread(n_cell, sizeof(int), 3, fd);
