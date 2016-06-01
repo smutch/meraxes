@@ -1,11 +1,11 @@
-#include "meraxes.h"
-#include "parse_paramfile.h"
-#include "git.h"
 #include <unistd.h>
 #include <math.h>
 #include <hdf5.h>
 #include <hdf5_hl.h>
 #include <assert.h>
+#include "meraxes.h"
+#include "parse_paramfile.h"
+#include "git.h"
 
 static void inline h5_write_attribute(hid_t loc, const char *name, hid_t datatype, hid_t dataset_id, const void *data)
 {
@@ -502,7 +502,7 @@ void create_grids_file()
   {
     // create a new file
     char fname[STRLEN];
-    sprintf(fname, "%s/%s.hdf5", run_globals.params.OutputDir, run_globals.params.FileNameGalaxies);
+    sprintf(fname, "%s/%s_grids.hdf5", run_globals.params.OutputDir, run_globals.params.FileNameGalaxies);
     if (access(fname, F_OK) != -1)
       remove(fname);
     hid_t file_id = H5Fcreate(fname, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);

@@ -382,9 +382,6 @@ void assign_Mvir_crit_to_galaxies(int ngals_in_slabs)
     else
     {
       int n_cells = slab_nix[recv_from_rank]*ReionGridDim*ReionGridDim; 
-#ifdef DEBUG
-      debug("%d :: (i_skip=%d) Local memcpy of %d cells.\n", SID.My_rank, i_skip, n_cells);
-#endif
       memcpy(buffer, Mvir_crit, sizeof(float) * n_cells);
     }
 
