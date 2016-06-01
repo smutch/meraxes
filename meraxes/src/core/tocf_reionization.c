@@ -291,6 +291,8 @@ int map_galaxies_to_slabs(int ngals)
   // sort the slab indices IN PLACE (n.b. compare_slab_assign is a stable comparison)
   qsort(galaxy_to_slab_map, gal_counter, sizeof(gal_to_slab_t), compare_slab_assign);
 
+  assert(gal_counter == ngals);
+
   return gal_counter;
 }
 
@@ -389,7 +391,7 @@ void assign_Mvir_crit_to_galaxies(int ngals_in_slabs)
 }
 
 
-void construct_baryon_grids(int snapshot, int ngals_in_slabs)
+void construct_baryon_grids(int snapshot, int local_ngals)
 {
   
   double box_size     = (double)(run_globals.params.BoxSize);
@@ -415,7 +417,6 @@ void construct_baryon_grids(int snapshot, int ngals_in_slabs)
   //
   // N.B. We are assuming here that the galaxy_to_slab mapping has been sorted
   // by slab index...
-  int i_gal = 0;
   double cell_width = box_size / (double)ReionGridDim;
   ptrdiff_t *slab_nix = run_globals.reion_grids.slab_nix;
   ptrdiff_t buffer_size = run_globals.reion_grids.buffer_size;
@@ -424,6 +425,9 @@ void construct_baryon_grids(int snapshot, int ngals_in_slabs)
   enum property { prop_stellar, prop_sfr };
   for(int prop = prop_stellar; prop <= prop_sfr; prop++)
   {
+    int i_gal = 0;
+    int skipped_gals = 0;
+
     for(int i_r=0; i_r < SID.n_proc; i_r++)
     {
       double min_xpos = (double)slab_ix_start[i_r] * cell_width;
@@ -433,14 +437,24 @@ void construct_baryon_grids(int snapshot, int ngals_in_slabs)
         buffer[ii] = 0.;
 
       // if this core holds no galaxies then we don't need to fill the buffer
-      if(ngals_in_slabs != 0)
+      if(local_ngals != 0)
       {
         // fill the local buffer for this slab
-        while((i_gal < ngals_in_slabs) && (galaxy_to_slab_map[i_gal].slab_ind == i_r))
+        while(((i_gal - skipped_gals) < local_ngals) && (galaxy_to_slab_map[i_gal].slab_ind == i_r))
         {
           galaxy_t *gal = galaxy_to_slab_map[i_gal].galaxy;
 
-          assert((galaxy_to_slab_map[i_gal].index >= 0) && (galaxy_to_slab_map[i_gal].index < ngals_in_slabs));
+          // Dead galaxies should not be included here and are not in the
+          // local_ngals count.  They will, however, have been assigned to a
+          // slab so we will need to ignore them here...
+          if (gal->Type > 2)
+          {
+            i_gal++;
+            skipped_gals++;
+            continue;
+          }
+
+          assert(galaxy_to_slab_map[i_gal].index >= 0);
           assert((galaxy_to_slab_map[i_gal].slab_ind >= 0) && (galaxy_to_slab_map[i_gal].slab_ind < SID.n_proc));
 
           if (gal->Pos[0] >= box_size)
