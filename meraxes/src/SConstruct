@@ -220,7 +220,7 @@ if not GetOption('help'):
     Depends(lib, incl)
     env.Alias('lib', lib)
 
-    SConscript('tests/SConscript', exports='env lib deps compile_against PhonyTarget')
+    # SConscript('tests/SConscript', exports='env lib deps compile_against PhonyTarget')
 
     # If you create a my_SConscript file then you can put your own custom
     # targets etc. in there...
