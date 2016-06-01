@@ -337,10 +337,6 @@ void assign_Mvir_crit_to_galaxies(int ngals_in_slabs)
     }
   }
 
-#ifdef DEBUG
-      debug("%d :: NEW SNAPSHOT! ====================\n", SID.My_rank);
-#endif
-
   // do a ring exchange of slabs between all cores
   for(int i_skip=0; i_skip < SID.n_proc; i_skip++)
   {
@@ -352,41 +348,21 @@ void assign_Mvir_crit_to_galaxies(int ngals_in_slabs)
       
     if (i_skip > 0)
     {
-#ifdef DEBUG
-      if (recv_flag)
-        debug("%d :: (i_skip=%d) I want to receive from %d.\n", SID.My_rank, i_skip, recv_from_rank);
-#endif
       SID_Sendrecv(&recv_flag, sizeof(bool), SID_BYTE, recv_from_rank, 6393762,
           &send_flag, sizeof(bool), SID_BYTE, send_to_rank, 6393762, SID.COMM_WORLD);
-#ifdef DEBUG
-      if (send_flag)
-        debug("%d :: (i_skip=%d) I want to send to %d.\n", SID.My_rank, i_skip, send_to_rank);
-#endif
 
+      // need to ensure sends and receives do not clash!
       if (send_to_rank > SID.My_rank)
       {
         if(send_flag)
         {
           int n_cells = slab_nix[SID.My_rank]*ReionGridDim*ReionGridDim;
-#ifdef DEBUG
-          debug("%d :: (i_skip=%d) Sending %d cells to %d.\n", SID.My_rank, i_skip, n_cells, send_to_rank);
-#endif
           SID_Send(Mvir_crit, n_cells, SID_FLOAT, send_to_rank, 793710, SID.COMM_WORLD);
-#ifdef DEBUG
-          debug("%d :: (i_skip=%d) Sent %d cells to %d.\n", SID.My_rank, i_skip, n_cells, send_to_rank);
-#endif
         }
-
         if(recv_flag)
         {
           int n_cells = slab_nix[recv_from_rank]*ReionGridDim*ReionGridDim; 
-#ifdef DEBUG
-          debug("%d :: (i_skip=%d) Receiving %d cells from %d.\n", SID.My_rank, i_skip, n_cells, recv_from_rank);
-#endif
           SID_Recv(buffer, n_cells, SID_FLOAT, recv_from_rank, 793710, SID.COMM_WORLD);
-#ifdef DEBUG
-          debug("%d :: (i_skip=%d) Received %d cells from %d.\n", SID.My_rank, i_skip, n_cells, recv_from_rank);
-#endif
         }
       }
       else
@@ -394,25 +370,12 @@ void assign_Mvir_crit_to_galaxies(int ngals_in_slabs)
         if(recv_flag)
         {
           int n_cells = slab_nix[recv_from_rank]*ReionGridDim*ReionGridDim; 
-#ifdef DEBUG
-          debug("%d :: (i_skip=%d) Receiving %d cells from %d.\n", SID.My_rank, i_skip, n_cells, recv_from_rank);
-#endif
           SID_Recv(buffer, n_cells, SID_FLOAT, recv_from_rank, 793710, SID.COMM_WORLD);
-#ifdef DEBUG
-          debug("%d :: (i_skip=%d) Received %d cells from %d.\n", SID.My_rank, i_skip, n_cells, recv_from_rank);
-#endif
         }
-
         if(send_flag)
         {
           int n_cells = slab_nix[SID.My_rank]*ReionGridDim*ReionGridDim;
-#ifdef DEBUG
-          debug("%d :: (i_skip=%d) Sending %d cells to %d.\n", SID.My_rank, i_skip, n_cells, send_to_rank);
-#endif
           SID_Send(Mvir_crit, n_cells, SID_FLOAT, send_to_rank, 793710, SID.COMM_WORLD);
-#ifdef DEBUG
-          debug("%d :: (i_skip=%d) Sent %d cells to %d.\n", SID.My_rank, i_skip, n_cells, send_to_rank);
-#endif
         }
       }
     }
