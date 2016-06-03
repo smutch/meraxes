@@ -649,8 +649,8 @@ void save_reion_grids(int snapshot)
   H5LTset_attribute_double(group_id, ".", "ReionEscapeFrac", &(run_globals.params.physics.ReionEscapeFrac), 1);
 
   // fftw padded grids
-  float *grid = (float*)SID_calloc((int)pow(ReionGridDim, 3) * sizeof(float));
-  for (int ii = 0; ii < ReionGridDim; ii++)
+  float *grid = (float*)SID_calloc((int)local_nix * ReionGridDim * ReionGridDim * sizeof(float));
+  for (int ii = 0; ii < local_nix; ii++)
     for (int jj = 0; jj < ReionGridDim; jj++)
       for (int kk = 0; kk < ReionGridDim; kk++)
         grid[grid_index(ii, jj, kk, ReionGridDim, INDEX_REAL)] = ((float*)(grids->deltax))[grid_index(ii, jj, kk, ReionGridDim, INDEX_PADDED)];
