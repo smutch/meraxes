@@ -650,12 +650,24 @@ void save_reion_grids(int snapshot)
 
   // fftw padded grids
   float *grid = (float*)SID_calloc((int)local_nix * ReionGridDim * ReionGridDim * sizeof(float));
+
   for (int ii = 0; ii < local_nix; ii++)
     for (int jj = 0; jj < ReionGridDim; jj++)
       for (int kk = 0; kk < ReionGridDim; kk++)
-        grid[grid_index(ii, jj, kk, ReionGridDim, INDEX_REAL)] = ((float*)(grids->deltax))[grid_index(ii, jj, kk, ReionGridDim, INDEX_PADDED)];
-  write_grid_float("deltax", grids->deltax, group_id, fspace_id, memspace_id);
+        grid[grid_index(ii, jj, kk, ReionGridDim, INDEX_REAL)] = (grids->deltax)[grid_index(ii, jj, kk, ReionGridDim, INDEX_PADDED)];
+  write_grid_float("deltax", grid, group_id, fspace_id, memspace_id);
 
+  for (int ii = 0; ii < local_nix; ii++)
+    for (int jj = 0; jj < ReionGridDim; jj++)
+      for (int kk = 0; kk < ReionGridDim; kk++)
+        grid[grid_index(ii, jj, kk, ReionGridDim, INDEX_REAL)] = (grids->stars)[grid_index(ii, jj, kk, ReionGridDim, INDEX_PADDED)];
+  write_grid_float("stars", grid, group_id, fspace_id, memspace_id);
+
+  for (int ii = 0; ii < local_nix; ii++)
+    for (int jj = 0; jj < ReionGridDim; jj++)
+      for (int kk = 0; kk < ReionGridDim; kk++)
+        grid[grid_index(ii, jj, kk, ReionGridDim, INDEX_REAL)] = (grids->sfr)[grid_index(ii, jj, kk, ReionGridDim, INDEX_PADDED)];
+  write_grid_float("sfr", grid, group_id, fspace_id, memspace_id);
 
   // // Run delta_T_ps
   // // ----------------------------------------------------------------------------------------------------
