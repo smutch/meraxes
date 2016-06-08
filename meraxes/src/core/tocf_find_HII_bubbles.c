@@ -142,6 +142,7 @@ float find_HII_bubbles(float redshift)
 
   // Forward fourier transform to obtain k-space fields
   // TODO: Ensure that fftwf_mpi_init has been called and fftwf_mpi_cleanup will be called
+  // TODO: Don't use estimate and calculate plan in code init
   float *deltax = run_globals.reion_grids.deltax;
   fftwf_complex *deltax_unfiltered = (fftwf_complex *)deltax;  // WATCH OUT!
   fftwf_complex *deltax_filtered = run_globals.reion_grids.deltax_filtered;
@@ -277,13 +278,35 @@ float find_HII_bubbles(float redshift)
     float J_21_aux_constant = 1e21 * (1.0+redshift)*(1.0+redshift)/(4.0 * M_PI)
       * run_globals.params.physics.ReionAlphaUV * PLANCK
       * R * units->UnitLength_in_cm
-      * ReionEscapeFrac * ReionNionPhotPerBary
-      * units->UnitMass_in_g / pow(units->UnitLength_in_cm, 3) / PROTONMASS;
+      * ReionEscapeFrac * ReionNionPhotPerBary / PROTONMASS
+      * units->UnitMass_in_g / pow(units->UnitLength_in_cm, 3) / units->UnitTime_in_s;
+  
+    // DEBUG
+    // for (int ix=0; ix<local_nix; ix++)
+    //   for (int iy=0; iy<ReionGridDim; iy++)
+    //     for (int iz=0; iz<ReionGridDim; iz++)
+    //       if (((float *)sfr_filtered)[grid_index(ix, iy, iz, ReionGridDim, INDEX_PADDED)] > 0)
+    //       {
+    //         SID_log("J_21_aux ==========", SID_LOG_OPEN);
+    //         SID_log("redshift = %.2f", SID_LOG_COMMENT, redshift);
+    //         SID_log("alpha = %.2e", SID_LOG_COMMENT, run_globals.params.physics.ReionAlphaUV);
+    //         SID_log("PLANCK = %.2e", SID_LOG_COMMENT, PLANCK);
+    //         SID_log("ReionEscapeFrac = %.2f", SID_LOG_COMMENT, ReionEscapeFrac);
+    //         SID_log("ReionNionPhotPerBary = %.1f", SID_LOG_COMMENT, ReionNionPhotPerBary);
+    //         SID_log("UnitMass_in_g = %.2e", SID_LOG_COMMENT, units->UnitMass_in_g);
+    //         SID_log("UnitLength_in_cm = %.2e", SID_LOG_COMMENT, units->UnitLength_in_cm);
+    //         SID_log("PROTONMASS = %.2e", SID_LOG_COMMENT, PROTONMASS);
+    //         SID_log("-> J_21_aux_constant = %.2e", SID_LOG_COMMENT, J_21_aux_constant);
+    //         SID_log("pixel_volume = %.2e", SID_LOG_COMMENT, pixel_volume);
+    //         SID_log("sfr_density[%d, %d, %d] = %.2e", SID_LOG_COMMENT, ((float *)sfr_filtered)[grid_index(ix, iy, iz, ReionGridDim, INDEX_PADDED)] / pixel_volume);
+    //         SID_log("-> J_21_aux = %.2e", SID_LOG_COMMENT, ((float *)sfr_filtered)[grid_index(ix, iy, iz, ReionGridDim, INDEX_PADDED)] / pixel_volume * J_21_aux_constant);
+    //         SID_log("==========", SID_LOG_CLOSE);
+    //         if (SID.My_rank == 0)
+    //           ABORT(EXIT_SUCCESS);
+    //       }
 
     for (int ix=0; ix<local_nix; ix++)
-    {   
       for (int iy=0; iy<ReionGridDim; iy++)
-      {
         for (int iz=0; iz<ReionGridDim; iz++)
         {
           float density_over_mean = 1.0 + ((float *)deltax_filtered)[grid_index(ix,iy,iz, ReionGridDim, INDEX_PADDED)];
@@ -329,10 +352,7 @@ float find_HII_bubbles(float redshift)
             if (flag_ReionUVBFlag)
               run_globals.reion_grids.J_21_at_ionization[grid_index(ix, iy, iz, ReionGridDim, INDEX_REAL)] = J_21_aux * ReionGammaHaloBias;
           }
-
         } // iz
-      } // iy
-    } // ix
 
     R /= ReionDeltaRFactor;
 

@@ -52,7 +52,7 @@
 #define BOLTZMANN        1.3806e-16
 #define GAS_CONST        8.31425e7
 #define C                2.9979e10
-#define PLANCK           6.6262e-27
+#define PLANCK           6.6262e-27  //! [erg/s]
 #define PROTONMASS       1.6726e-24
 #define HUBBLE           3.2407789e-18 //! [h/sec]
 #define SEC_PER_MEGAYEAR 3.155e13
