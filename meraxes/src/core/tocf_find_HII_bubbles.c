@@ -278,7 +278,7 @@ float find_HII_bubbles(float redshift)
     float J_21_aux_constant = 1e21 * (1.0+redshift)*(1.0+redshift)/(4.0 * M_PI)
       * run_globals.params.physics.ReionAlphaUV * PLANCK
       * R * units->UnitLength_in_cm
-      * ReionEscapeFrac * ReionNionPhotPerBary / PROTONMASS
+      * ReionNionPhotPerBary / PROTONMASS
       * units->UnitMass_in_g / pow(units->UnitLength_in_cm, 3) / units->UnitTime_in_s;
   
     // DEBUG
