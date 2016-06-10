@@ -420,7 +420,7 @@ void construct_baryon_grids(int snapshot, int local_ngals)
   double box_size     = (double)(run_globals.params.BoxSize);
   float *stellar_grid = run_globals.reion_grids.stars;
   float *sfr_grid     = run_globals.reion_grids.sfr;
-  int ReionGridDim         = run_globals.params.ReionGridDim;
+  int ReionGridDim    = run_globals.params.ReionGridDim;
   double tHubble      = hubble_time(snapshot);
 
   gal_to_slab_t *galaxy_to_slab_map         = run_globals.reion_grids.galaxy_to_slab_map;
@@ -430,17 +430,16 @@ void construct_baryon_grids(int snapshot, int local_ngals)
   SID_log("Constructing stellar mass and sfr grids...", SID_LOG_OPEN | SID_LOG_TIMER);
 
   // init the grid
-  for (int ii = 0; ii < local_n_complex; ii++)
+  for (int ii = 0; ii < local_n_complex*2; ii++)
   {
-    *(stellar_grid + ii) = 0.0;
-    *(sfr_grid + ii)     = 0.0;
+    stellar_grid[ii] = 0.0;
+    sfr_grid[ii]     = 0.0;
   }
 
   // loop through each slab
   //
   // N.B. We are assuming here that the galaxy_to_slab mapping has been sorted
   // by slab index...
-  double cell_width = box_size / (double)ReionGridDim;
   ptrdiff_t *slab_nix = run_globals.reion_grids.slab_nix;
   ptrdiff_t buffer_size = run_globals.reion_grids.buffer_size;
   float *buffer = run_globals.reion_grids.buffer;
@@ -453,8 +452,6 @@ void construct_baryon_grids(int snapshot, int local_ngals)
 
     for(int i_r=0; i_r < SID.n_proc; i_r++)
     {
-      double min_xpos = (double)slab_ix_start[i_r] * cell_width;
-
       // init the buffer
       for(int ii=0; ii<buffer_size; ii++)
         buffer[ii] = 0.;
@@ -480,11 +477,12 @@ void construct_baryon_grids(int snapshot, int local_ngals)
           assert(galaxy_to_slab_map[i_gal].index >= 0);
           assert((galaxy_to_slab_map[i_gal].slab_ind >= 0) && (galaxy_to_slab_map[i_gal].slab_ind < SID.n_proc));
 
+          // TODO: This should be done properly with NGP
           if (gal->Pos[0] >= box_size)
             gal->Pos[0] -= box_size;
           else if (gal->Pos[0] < 0.0)
             gal->Pos[0] += box_size;
-          int ix = pos_to_cell(gal->Pos[0] - min_xpos, box_size, ReionGridDim);
+          int ix = pos_to_cell(gal->Pos[0], box_size, ReionGridDim) - slab_ix_start[i_r];
           if (gal->Pos[1] >= box_size)
             gal->Pos[1] -= box_size;
           else if (gal->Pos[1] < 0.0)
@@ -531,40 +529,36 @@ void construct_baryon_grids(int snapshot, int local_ngals)
 
       if (SID.My_rank == i_r)
       {
-        // copy the buffer into the real slab
-        float *slab;
-        switch (prop)
-        {
-          case prop_stellar:
-            slab = stellar_grid;
-            break;
-          case prop_sfr:
-            slab = sfr_grid;
-            break;
-        }
-
-        int slab_size = slab_nix[i_r] * ReionGridDim * ReionGridDim;
-        memcpy(slab, buffer, sizeof(float)*slab_size);
 
 				// Do one final pass and divide the sfr_grid by tHubble
-        // in order to convert the stellar masses recorded into SFRs.
-				switch (prop) {
-					case prop_sfr:
-						for(int ii=0; ii < slab_size; ii++)
-						{
-							if (slab[ii] > 0)
-								slab[ii] /= tHubble;
-							else if (slab[ii] < 0)
-								slab[ii] = 0;
-						}
-						break;
-
-					case prop_stellar:
-						for(int ii=0; ii < slab_size; ii++)
-							if (slab[ii] < 0)
-                slab[ii] = 0;
+        // in order to convert the stellar masses recorded into SFRs before
+        // finally copying the values into the appropriate slab.
+        // TODO: Use a better timescale for SFR
+        switch (prop)
+        {
+          case prop_sfr:
+            for(int ix=0; ix<slab_nix[i_r]; ix++)
+              for(int iy=0; iy<ReionGridDim; iy++)
+                for(int iz=0; iz<ReionGridDim; iz++)
+                {
+                  float val = buffer[grid_index(ix, iy, iz, ReionGridDim, INDEX_REAL)];
+                  val = (val > 0) ? val / tHubble : 0;
+                  sfr_grid[grid_index(ix, iy, iz, ReionGridDim, INDEX_PADDED)] = val;
+                }
             break;
-				}
+
+          case prop_stellar:
+            for(int ix=0; ix<slab_nix[i_r]; ix++)
+              for(int iy=0; iy<ReionGridDim; iy++)
+                for(int iz=0; iz<ReionGridDim; iz++)
+                {
+                  float val = buffer[grid_index(ix, iy, iz, ReionGridDim, INDEX_REAL)];
+                  if (val < 0)
+                    val = 0;
+                  stellar_grid[grid_index(ix, iy, iz, ReionGridDim, INDEX_PADDED)] = val;
+                }
+            break;
+        }
 
 			}
     }

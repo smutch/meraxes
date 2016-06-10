@@ -15,7 +15,7 @@
  * subsequently made by Simon Mutch & Paul Geil.
  */
 
-// R in Mpc/h, M in 1e10 Msun/h 
+// R in Mpc/h (comoving), M in 1e10 Msun/h 
 double RtoM(double R){
   int filter = run_globals.params.ReionRtoMFilterType;
   double OmegaM = run_globals.params.OmegaM;
@@ -132,8 +132,9 @@ float find_HII_bubbles(float redshift)
   int flag_ReionUVBFlag = run_globals.params.ReionUVBFlag;
   int slab_n_real = (int)(run_globals.reion_grids.slab_nix[SID.My_rank]) * ReionGridDim * ReionGridDim;
   float *J_21 = run_globals.reion_grids.J_21;
-  for(int ii=0; ii < slab_n_real; ii++)
-    J_21[ii] = 0.0;
+  if (flag_ReionUVBFlag)
+    for(int ii=0; ii < slab_n_real; ii++)
+      J_21[ii] = 0.0;
 
   // Init xH
   float *xH = run_globals.reion_grids.xH;
@@ -237,44 +238,11 @@ float find_HII_bubbles(float redshift)
      * Main loop through the box...
      */
 
-    // // DEBUG
-    // if (R == ReionRBubbleMax)
-    // {
-    //   char fname[STRLEN];
-    //   sprintf(fname, "tests/output/debug-%d.hdf5", SID.My_rank);
-    //   hid_t fd = H5Fcreate(fname, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
-    //   int local_nix = run_globals.params.slab_nix[SID.My_rank];
-    //   float *temp = SID_malloc(local_nix * ReionGridDim * ReionGridDim * sizeof(float));
-
-    //   float *deltax = run_globals.reion_grids.deltax;
-    //   for(int ii=0; ii<local_nix; ii++)
-    //     for(int jj=0; jj<ReionGridDim; jj++)
-    //       for(int kk=0; kk<ReionGridDim; kk++)
-    //         temp[grid_index(ii, jj, kk, ReionGridDim, INDEX_REAL)] = 
-    //           ((float *)deltax_filtered)[grid_index(ii, jj, kk, ReionGridDim, INDEX_PADDED)];
-    //   H5LTmake_dataset_float(fd, "deltax", 3, (hsize_t[3]){local_nix, ReionGridDim, ReionGridDim}, temp);
-
-    //   float *stars = run_globals.reion_grids.stars;
-    //   for(int ii=0; ii<local_nix; ii++)
-    //     for(int jj=0; jj<ReionGridDim; jj++)
-    //       for(int kk=0; kk<ReionGridDim; kk++)
-    //         temp[grid_index(ii, jj, kk, ReionGridDim, INDEX_REAL)] =
-    //           ((float *)stars_filtered)[grid_index(ii, jj, kk, ReionGridDim, INDEX_PADDED)];
-    //   H5LTmake_dataset_float(fd, "stars", 3, (hsize_t[3]){local_nix, ReionGridDim, ReionGridDim}, temp);
-
-    //   float factor = 1.0 / RtoM(R) * (4.0/3.0)*PI*pow(R,3.0) / pixel_volume;
-    //   H5LTset_attribute_float(fd, "/", "factor", &factor, 1);
-
-    //   H5Fclose(fd);
-    //   SID_free(SID_FARG temp);
-    // }
-
-    int flag_ReionUVBFlag = run_globals.params.ReionUVBFlag;
     float ReionEfficiency = run_globals.params.physics.ReionEfficiency;
-    float ReionEscapeFrac = run_globals.params.physics.ReionEscapeFrac;
     float ReionNionPhotPerBary = run_globals.params.physics.ReionNionPhotPerBary;
     run_units_t *units = &(run_globals.units);
 
+    // N.B. The SFRs have already been multiplied by the escape fraction
     float J_21_aux_constant = 1e21 * (1.0+redshift)*(1.0+redshift)/(4.0 * M_PI)
       * run_globals.params.physics.ReionAlphaUV * PLANCK
       * R * units->UnitLength_in_cm
@@ -313,6 +281,13 @@ float find_HII_bubbles(float redshift)
 
           float f_coll_stars =  ((float *)stars_filtered)[grid_index(ix, iy, iz, ReionGridDim, INDEX_PADDED)]/ (RtoM(R)*density_over_mean);
           f_coll_stars *= (4.0/3.0)*PI*pow(R,3.0) / pixel_volume;
+
+// #ifdef DEBUG
+//           debug("%d, %g, %g, %g, %g, %g, %g, %g, %g\n", SID.My_rank,
+//               R, density_over_mean, f_coll_stars,
+//               ((float *)stars_filtered)[grid_index(ix, iy, iz, ReionGridDim, INDEX_PADDED)],
+//               RtoM(R), (4.0/3.0)*PI*pow(R,3.0), pixel_volume, 1.0/ReionEfficiency);
+// #endif
 
           float sfr_density = ((float *)sfr_filtered)[grid_index(ix, iy, iz, ReionGridDim, INDEX_PADDED)] / pixel_volume;   // In internal units
 
@@ -371,8 +346,18 @@ float find_HII_bubbles(float redshift)
     for(int ct=0; ct < slab_n_real; ct++)
       J_21[ct] /= ReionGammaHaloBias;
 
-  // cleanup
-  fftwf_mpi_cleanup();
+  // Return the grids to real space
+  plan = fftwf_mpi_plan_dft_c2r_3d(ReionGridDim, ReionGridDim, ReionGridDim, sfr_unfiltered, sfr, SID_COMM_WORLD, FFTW_ESTIMATE);
+  fftwf_execute(plan);
+  fftwf_destroy_plan(plan);
+
+  plan = fftwf_mpi_plan_dft_c2r_3d(ReionGridDim, ReionGridDim, ReionGridDim, deltax_unfiltered, deltax, SID_COMM_WORLD, FFTW_ESTIMATE);
+  fftwf_execute(plan);
+  fftwf_destroy_plan(plan);
+
+  plan = fftwf_mpi_plan_dft_c2r_3d(ReionGridDim, ReionGridDim, ReionGridDim, stars_unfiltered, stars, SID_COMM_WORLD, FFTW_ESTIMATE);
+  fftwf_execute(plan);
+  fftwf_destroy_plan(plan);
 
   return global_xH;
 }

@@ -148,7 +148,7 @@ double accurate_sumf(float *arr, int n) {
 
   double total = 0;
   for(int ii=0; ii<n; ii++)
-    total += arr[ii];
+    total += (double)(arr[ii]);
 
   return total;
 }
