@@ -205,11 +205,11 @@ if not GetOption('help'):
     # ===========
 
     node_list = files('**/*.c', exclude='tests/*')
-    target = env.Program(target='../bin/meraxes', source=node_list)
+    executable = env.Program(target='../bin/meraxes', source=node_list)
     git_header = env.CreateGitHeader([deps['exec']['git']])
-    Depends(target, git_header)
-    # env.NoClean(target)
-    Default(target)
+    Depends(executable, git_header)
+    # env.NoClean(executable)
+    Default(executable)
 
     node_list.remove("core/meraxes.c")
     lib = env.StaticLibrary(target='../lib/meraxes', source=node_list)
@@ -225,4 +225,4 @@ if not GetOption('help'):
     # If you create a my_SConscript file then you can put your own custom
     # targets etc. in there...
     if os.path.exists("./my_SConscript"):
-        SConscript('my_SConscript', exports='env target lib copy_files files PhonyTarget')
+        SConscript('my_SConscript', exports='env executable lib copy_files files PhonyTarget')
