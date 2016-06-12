@@ -91,6 +91,7 @@ typedef struct physics_params_t {
   double RadioModeEff;
   double QuasarModeEff;
   double BlackHoleGrowthRate;
+  double EddingtonRatio;
 
   double ThreshMajorMerger;
   double MinMergerStellarMass;
