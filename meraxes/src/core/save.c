@@ -105,6 +105,7 @@ void prepare_galaxy_for_output(
   galout->GrossStellarMass   = (float)(gal.GrossStellarMass);
   galout->FescWeightedGSM    = (float)(gal.FescWeightedGSM);
   galout->BlackHoleMass      = (float)(gal.BlackHoleMass);
+  galout->BlackHoleGrossMass      = (float)(gal.BlackHoleGrossMass);
   galout->BlackHoleAccretedHotMass      = (float)(gal.BlackHoleAccretedHotMass);
   galout->BlackHoleAccretedColdMass      = (float)(gal.BlackHoleAccretedColdMass);
   galout->MaxReheatFrac      = (float)(gal.MaxReheatFrac);
