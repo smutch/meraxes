@@ -98,6 +98,7 @@ double radio_mode_BH_heating(run_globals_t *run_globals, galaxy_t *gal, double c
     // add the accreted mass to the black hole
     metallicity         = calc_metallicity(gal->HotGas, gal->MetalsHotGas);
     gal->BlackHoleMass += (1.-eta)*accreted_mass;
+    gal->BlackHoleGrossMass += (1.-eta)*accreted_mass;
     gal->FescWeightedEBHM  += (1.-eta)*accreted_mass*run_globals->params.physics.ReionEscapeFracBH*run_globals->params.physics.ReionNionPhotPerBaryBH/run_globals->params.physics.ReionNionPhotPerBary;
     gal->EffectiveBHM  += (1.-eta)*accreted_mass*run_globals->params.physics.ReionEscapeFracBH*run_globals->params.physics.ReionNionPhotPerBaryBH/run_globals->params.physics.ReionEscapeFrac/run_globals->params.physics.ReionNionPhotPerBary;
     gal->HotGas        -= accreted_mass;
@@ -156,6 +157,7 @@ void merger_driven_BH_growth(run_globals_t *run_globals, galaxy_t *gal, double m
 
     accreted_metals     = calc_metallicity(gal->ColdGas, gal->MetalsColdGas) * accreted_mass;
     gal->BlackHoleMass += (1.-eta)*accreted_mass;
+    gal->BlackHoleGrossMass += (1.-eta)*accreted_mass;
     gal->FescWeightedEBHM  += (1.-eta)*accreted_mass*run_globals->params.physics.ReionEscapeFracBH*run_globals->params.physics.ReionNionPhotPerBaryBH/run_globals->params.physics.ReionNionPhotPerBary;
     gal->EffectiveBHM  += (1.-eta)*accreted_mass*run_globals->params.physics.ReionEscapeFracBH*run_globals->params.physics.ReionNionPhotPerBaryBH/run_globals->params.physics.ReionEscapeFrac/run_globals->params.physics.ReionNionPhotPerBary;
     gal->ColdGas       -= accreted_mass;
@@ -204,6 +206,7 @@ void previous_merger_driven_BH_growth(run_globals_t *run_globals, galaxy_t *gal)
 
     accreted_metals     = calc_metallicity(gal->ColdGas, gal->MetalsColdGas) * accreted_mass;
     gal->BlackHoleMass += (1.-eta)*accreted_mass;
+    gal->BlackHoleGrossMass += (1.-eta)*accreted_mass;
     gal->FescWeightedEBHM  += (1.-eta)*accreted_mass*run_globals->params.physics.ReionEscapeFracBH*run_globals->params.physics.ReionNionPhotPerBaryBH/run_globals->params.physics.ReionNionPhotPerBary;
     gal->EffectiveBHM  += (1.-eta)*accreted_mass*run_globals->params.physics.ReionEscapeFracBH*run_globals->params.physics.ReionNionPhotPerBaryBH/run_globals->params.physics.ReionEscapeFrac/run_globals->params.physics.ReionNionPhotPerBary;
     gal->ColdGas       -= accreted_mass;

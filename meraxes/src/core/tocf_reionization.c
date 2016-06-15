@@ -342,19 +342,19 @@ void construct_ionizing_source_grids(run_globals_t *run_globals, int snapshot)
           // bh2star = fesc_BH/fesc * Ngamma_BH/Ngamma
           // for ionizing_source_formation_rate_grid, need further convertion due to different UV spectral index of quasar and stellar component
           // *0.36 is ALPHA_UV_BH/ALPHA_UV defined in parameter_files/anal_params.h of 21cmfast-dragons !!!!!BE CAREFUL
-          // ALPHA_UV_BH = 1.8 from Loeb & Barkana 2000
+          // ALPHA_UV_BH = 1.57 from Giallongo et al 2015
           // fesc_BH is assumed to be 1 and set from parameter files
           // Ngamma_BH is assumed to be 18000 with accretion efficiency equal to be 0.1
           // which is calculated from 11000 with accretion efficiency equal to be 0.06 in Loeb & Barkana 2000
           if (run_globals->params.physics.Flag_RedshiftDepEscFrac)
           {
             *(ionizing_source_grid + HII_R_FFT_INDEX(i, j, k)) += gal->FescWeightedEBHM;
-            *(ionizing_source_formation_rate_grid + HII_R_FFT_INDEX(i, j, k)) += gal->FescWeightedEBHM * 0.36;
+            *(ionizing_source_formation_rate_grid + HII_R_FFT_INDEX(i, j, k)) += gal->FescWeightedEBHM * 0.314;
           }
           else
           {
             *(ionizing_source_grid + HII_R_FFT_INDEX(i, j, k)) += gal->EffectiveBHM;
-            *(ionizing_source_formation_rate_grid + HII_R_FFT_INDEX(i, j, k)) += gal->EffectiveBHM * 0.36;
+            *(ionizing_source_formation_rate_grid + HII_R_FFT_INDEX(i, j, k)) += gal->EffectiveBHM * 0.314;
           }
       }
     }

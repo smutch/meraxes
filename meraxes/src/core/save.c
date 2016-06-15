@@ -140,7 +140,7 @@ void calc_hdf5_props(run_globals_t *run_globals)
   galaxy_output_t galout;
   int i;                                                // dummy
 
-  h5props->n_props = 45;
+  h5props->n_props = 46;
 
 #ifdef CALC_MAGS
   // If we are calculating any magnitudes then increment the number of
@@ -397,6 +397,13 @@ void calc_hdf5_props(run_globals_t *run_globals)
   h5props->dst_offsets[i]     = HOFFSET(galaxy_output_t, BlackHoleMass);
   h5props->dst_field_sizes[i] = sizeof(galout.BlackHoleMass);
   h5props->field_names[i]     = "BlackHoleMass";
+  h5props->field_units[i]     = "1e10 solMass";
+  h5props->field_h_conv[i]    = "v/h";
+  h5props->field_types[i++]   = H5T_NATIVE_FLOAT;
+
+  h5props->dst_offsets[i]     = HOFFSET(galaxy_output_t, BlackHoleGrossMass);
+  h5props->dst_field_sizes[i] = sizeof(galout.BlackHoleGrossMass);
+  h5props->field_names[i]     = "BlackHoleGrossMass";
   h5props->field_units[i]     = "1e10 solMass";
   h5props->field_h_conv[i]    = "v/h";
   h5props->field_types[i++]   = H5T_NATIVE_FLOAT;
