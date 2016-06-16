@@ -502,13 +502,14 @@ void construct_baryon_grids(int snapshot, int local_ngals)
 
           assert((ind >=0) && (ind < slab_nix[i_r]*ReionGridDim*ReionGridDim));
 
+          // They are the same just now, but may be different in the future once the model is improved.
           switch (prop) {
             case prop_stellar:
               buffer[ind] += gal->GrossStellarMass;
               break;
 
             case prop_sfr:
-              buffer[ind] += gal->FescWeightedGSM;
+              buffer[ind] += gal->GrossStellarMass;
               break;
 
             default:

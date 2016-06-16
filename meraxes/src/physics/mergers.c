@@ -168,7 +168,6 @@ void merge_with_target(galaxy_t *gal, int *dead_gals, int snapshot)
   // Add galaxies together
   parent->StellarMass       += gal->StellarMass;
   parent->GrossStellarMass  += gal->GrossStellarMass;
-  parent->FescWeightedGSM   += gal->FescWeightedGSM;
   parent->MetalsStellarMass += gal->MetalsStellarMass;
   parent->Sfr               += gal->Sfr;
   parent->HotGas            += gal->HotGas;
