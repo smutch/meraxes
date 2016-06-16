@@ -662,12 +662,6 @@ void read_parameter_file(char *fname, int mode)
             printf("%d\n", *((int*)(params_addr[ii])));
             break;
           }
-
-          // if (ii==(n_param-12))
-          //   printf("\t\t%35s\n", "--- physics parameters ---");
-
-          // if (ii==(n_param-4))
-          //   printf("\t\t%35s\n", "--- TOCF parameters ---");
         }
       }
     }
