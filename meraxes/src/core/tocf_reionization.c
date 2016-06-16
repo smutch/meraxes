@@ -95,10 +95,13 @@ void call_find_HII_bubbles(int snapshot, int unsampled_snapshot, int nout_gals)
   // Construct the baryon grids
   construct_baryon_grids(snapshot, nout_gals);
 
-  SID_log("...done", SID_LOG_CLOSE);
-
   // Read in the dark matter density grid
   read_dm_grid(unsampled_snapshot, 0, (float*)(grids->deltax));
+
+  // save the grids prior to doing FFTs to avoid precision loss and aliasing etc.
+  save_reion_input_grids(snapshot);
+
+  SID_log("...done", SID_LOG_CLOSE);
 
   // Call find_HII_bubbles
   SID_log("Calling find_HII_bubbles...", SID_LOG_OPEN | SID_LOG_TIMER);
@@ -566,6 +569,7 @@ void construct_baryon_grids(int snapshot, int local_ngals)
   }
 
   SID_log("done", SID_LOG_CLOSE);
+  
 }
 
 
@@ -580,26 +584,16 @@ static void write_grid_float(const char *name, float *data, hid_t file_id, hid_t
   H5Dclose(dset_id);
 }
 
-void save_reion_grids(int snapshot)
+
+void save_reion_input_grids(int snapshot)
 {
-
-  // Check if we even want to write anything...
   reion_grids_t *grids = &(run_globals.reion_grids);
-  if ((grids->global_xH < REL_TOL) || (grids->global_xH > 1.0-REL_TOL))
-    return;
-
-  // If we do, well then lets!...
   int   ReionGridDim       = run_globals.params.ReionGridDim;
   int   local_nix     = (int)(run_globals.reion_grids.slab_nix[SID.My_rank]);
-  // float *ps;
-  // int   ps_nbins;
-  // float average_deltaT;
-  // double Hubble_h = run_globals.params.Hubble_h;
+  double UnitTime_in_s = run_globals.units.UnitTime_in_s;
+  double UnitMass_in_g = run_globals.units.UnitMass_in_g;
 
-  // Save tocf grids
-  // ----------------------------------------------------------------------------------------------------
-
-  SID_log("Saving tocf grids...", SID_LOG_OPEN);
+  SID_log("Saving tocf input grids...", SID_LOG_OPEN);
 
   char name[STRLEN];
   sprintf(name, "%s/%s_grids.hdf5", run_globals.params.OutputDir, run_globals.params.FileNameGalaxies);
@@ -627,22 +621,6 @@ void save_reion_grids(int snapshot)
   hsize_t count[3] = {local_nix, ReionGridDim, ReionGridDim};
   H5Sselect_hyperslab(fspace_id, H5S_SELECT_SET, start, NULL, count, NULL);
 
-  // create and write the datasets
-  write_grid_float("xH", grids->xH, group_id, fspace_id, memspace_id);
-  write_grid_float("z_at_ionization", grids->z_at_ionization, group_id, fspace_id, memspace_id);
-
-  if (run_globals.params.ReionUVBFlag)
-  {
-    write_grid_float("J_21", grids->J_21, group_id, fspace_id, memspace_id);
-    write_grid_float("J_21_at_ionization", grids->J_21_at_ionization, group_id, fspace_id, memspace_id);
-    write_grid_float("Mvir_crit", grids->Mvir_crit, group_id, fspace_id, memspace_id);
-  }
-
-  H5LTset_attribute_float(group_id, "xH", "global_xH", &(grids->global_xH), 1);
-
-  // Save the escape fraction if we are using a redshift dependent escape fraction
-  H5LTset_attribute_double(group_id, ".", "ReionEscapeFrac", &(run_globals.params.physics.ReionEscapeFrac), 1);
-
   // fftw padded grids
   float *grid = (float*)SID_calloc((int)local_nix * ReionGridDim * ReionGridDim * sizeof(float));
 
@@ -661,8 +639,77 @@ void save_reion_grids(int snapshot)
   for (int ii = 0; ii < local_nix; ii++)
     for (int jj = 0; jj < ReionGridDim; jj++)
       for (int kk = 0; kk < ReionGridDim; kk++)
-        grid[grid_index(ii, jj, kk, ReionGridDim, INDEX_REAL)] = (grids->sfr)[grid_index(ii, jj, kk, ReionGridDim, INDEX_PADDED)];
+        grid[grid_index(ii, jj, kk, ReionGridDim, INDEX_REAL)] = (grids->sfr)[grid_index(ii, jj, kk, ReionGridDim, INDEX_PADDED)] \
+                                                                 * UnitMass_in_g / UnitTime_in_s \
+                                                                 * SEC_PER_YEAR / SOLAR_MASS;
   write_grid_float("sfr", grid, group_id, fspace_id, memspace_id);
+
+  // tidy up
+  SID_free(SID_FARG grid);
+  H5Sclose(memspace_id);
+  H5Sclose(fspace_id);
+  H5Gclose(group_id);
+  H5Fclose(file_id);
+
+  SID_log("...done", SID_LOG_CLOSE);
+
+}
+
+
+void save_reion_output_grids(int snapshot)
+{
+
+  reion_grids_t *grids = &(run_globals.reion_grids);
+  int   ReionGridDim       = run_globals.params.ReionGridDim;
+  int   local_nix     = (int)(run_globals.reion_grids.slab_nix[SID.My_rank]);
+  // float *ps;
+  // int   ps_nbins;
+  // float average_deltaT;
+  // double Hubble_h = run_globals.params.Hubble_h;
+
+  // Save tocf grids
+  // ----------------------------------------------------------------------------------------------------
+
+  SID_log("Saving tocf output grids...", SID_LOG_OPEN);
+
+  char name[STRLEN];
+  sprintf(name, "%s/%s_grids.hdf5", run_globals.params.OutputDir, run_globals.params.FileNameGalaxies);
+
+  // open the file (in parallel)
+  hid_t plist_id = H5Pcreate(H5P_FILE_ACCESS);
+  H5Pset_fapl_mpio(plist_id, SID_COMM_WORLD, MPI_INFO_NULL);
+  hid_t file_id = H5Fopen(name, H5F_ACC_RDWR, plist_id);
+  H5Pclose(plist_id);
+
+  // open the group
+  sprintf(name, "Snap%03d", snapshot);
+  hid_t group_id = H5Gopen(file_id, name, H5P_DEFAULT);
+
+  // create the filespace
+  hsize_t dims[3] = {ReionGridDim, ReionGridDim, ReionGridDim};
+  hid_t fspace_id = H5Screate_simple(3, dims, NULL);
+
+  // create the memspace
+  hsize_t mem_dims[3] = {local_nix, ReionGridDim, ReionGridDim};
+  hid_t memspace_id = H5Screate_simple(3, mem_dims, NULL);
+
+  // select a hyperslab in the filespace
+  hsize_t start[3] = {run_globals.reion_grids.slab_ix_start[SID.My_rank], 0, 0};
+  hsize_t count[3] = {local_nix, ReionGridDim, ReionGridDim};
+  H5Sselect_hyperslab(fspace_id, H5S_SELECT_SET, start, NULL, count, NULL);
+
+  // create and write the datasets
+  write_grid_float("xH", grids->xH, group_id, fspace_id, memspace_id);
+  write_grid_float("z_at_ionization", grids->z_at_ionization, group_id, fspace_id, memspace_id);
+
+  if (run_globals.params.ReionUVBFlag)
+  {
+    write_grid_float("J_21", grids->J_21, group_id, fspace_id, memspace_id);
+    write_grid_float("J_21_at_ionization", grids->J_21_at_ionization, group_id, fspace_id, memspace_id);
+    write_grid_float("Mvir_crit", grids->Mvir_crit, group_id, fspace_id, memspace_id);
+  }
+
+  H5LTset_attribute_float(group_id, "xH", "global_xH", &(grids->global_xH), 1);
 
   // // Run delta_T_ps
   // // ----------------------------------------------------------------------------------------------------
@@ -693,7 +740,6 @@ void save_reion_grids(int snapshot)
   // SID_log("...done", SID_LOG_CLOSE);   // delta_T
 
   // tidy up
-  SID_free(SID_FARG grid);
   H5Sclose(memspace_id);
   H5Sclose(fspace_id);
   H5Gclose(group_id);

@@ -15,8 +15,8 @@
  * subsequently made by Simon Mutch & Paul Geil.
  */
 
-// R in Mpc/h (comoving), M in 1e10 Msun/h 
 double RtoM(double R){
+  // All in internal units
   int filter = run_globals.params.ReionRtoMFilterType;
   double OmegaM = run_globals.params.OmegaM;
   double RhoCrit = run_globals.RhoCrit;
@@ -242,9 +242,8 @@ float find_HII_bubbles(float redshift)
     float ReionNionPhotPerBary = run_globals.params.physics.ReionNionPhotPerBary;
     run_units_t *units = &(run_globals.units);
 
-    // N.B. The SFRs have already been multiplied by the escape fraction
     float J_21_aux_constant = 1e21 * (1.0+redshift)*(1.0+redshift)/(4.0 * M_PI)
-      * run_globals.params.physics.ReionAlphaUV * PLANCK
+      * run_globals.params.physics.ReionAlphaUV * PLANCK * run_globals.params.physics.ReionEscapeFrac
       * R * units->UnitLength_in_cm
       * ReionNionPhotPerBary / PROTONMASS
       * units->UnitMass_in_g / pow(units->UnitLength_in_cm, 3) / units->UnitTime_in_s;
@@ -345,19 +344,6 @@ float find_HII_bubbles(float redshift)
   if(flag_ReionUVBFlag)
     for(int ct=0; ct < slab_n_real; ct++)
       J_21[ct] /= ReionGammaHaloBias;
-
-  // Return the grids to real space
-  plan = fftwf_mpi_plan_dft_c2r_3d(ReionGridDim, ReionGridDim, ReionGridDim, sfr_unfiltered, sfr, SID_COMM_WORLD, FFTW_ESTIMATE);
-  fftwf_execute(plan);
-  fftwf_destroy_plan(plan);
-
-  plan = fftwf_mpi_plan_dft_c2r_3d(ReionGridDim, ReionGridDim, ReionGridDim, deltax_unfiltered, deltax, SID_COMM_WORLD, FFTW_ESTIMATE);
-  fftwf_execute(plan);
-  fftwf_destroy_plan(plan);
-
-  plan = fftwf_mpi_plan_dft_c2r_3d(ReionGridDim, ReionGridDim, ReionGridDim, stars_unfiltered, stars, SID_COMM_WORLD, FFTW_ESTIMATE);
-  fftwf_execute(plan);
-  fftwf_destroy_plan(plan);
 
   return global_xH;
 }

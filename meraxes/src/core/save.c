@@ -965,8 +965,8 @@ void write_snapshot(
   // Free the output buffer
   SID_free(SID_FARG output_buffer);
 
-  if (run_globals.params.PatchyReionFlag && !check_if_reionization_complete())
-    save_reion_grids(run_globals.ListOutputSnaps[i_out]);
+  if (run_globals.params.PatchyReionFlag)
+    save_reion_output_grids(run_globals.ListOutputSnaps[i_out]);
 
   // Close the group.
   H5Gclose(group_id);
