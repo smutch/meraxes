@@ -709,7 +709,7 @@ void save_reion_output_grids(int snapshot)
     write_grid_float("Mvir_crit", grids->Mvir_crit, group_id, fspace_id, memspace_id);
   }
 
-  H5LTset_attribute_float(group_id, "xH", "global_xH", &(grids->global_xH), 1);
+  H5LTset_attribute_double(group_id, "xH", "global_xH", &(grids->global_xH), 1);
 
   // // Run delta_T_ps
   // // ----------------------------------------------------------------------------------------------------

@@ -112,15 +112,15 @@ static void filter(fftwf_complex *box, float R)
 }
 
 
-float find_HII_bubbles(float redshift)
+double find_HII_bubbles(float redshift)
 {
   // TODO: TAKE A VERY VERY CLOSE LOOK AT UNITS!!!!
 
   float box_size = run_globals.params.BoxSize;  // Mpc/h
   int ReionGridDim = run_globals.params.ReionGridDim;
-  float pixel_volume = powf(box_size/(float)ReionGridDim, 3);  // (Mpc/h)^3
-  float l_factor = 0.620350491;  // Factor relating cube length to filter radius = (4PI/3)^(-1/3)
-  float cell_length_factor = l_factor;
+  double pixel_volume = pow((double)box_size/(double)ReionGridDim, 3);  // (Mpc/h)^3
+  double l_factor = 0.620350491;  // Factor relating cube length to filter radius = (4PI/3)^(-1/3)
+  double cell_length_factor = l_factor;
   int total_n_cells = (int)pow(ReionGridDim, 3);
 
   // This parameter choice is sensitive to noise on the cell size, at least for the typical
@@ -238,15 +238,15 @@ float find_HII_bubbles(float redshift)
      * Main loop through the box...
      */
 
-    float ReionEfficiency = run_globals.params.physics.ReionEfficiency;
-    float ReionNionPhotPerBary = run_globals.params.physics.ReionNionPhotPerBary;
+    double ReionEfficiency = run_globals.params.physics.ReionEfficiency;
+    double ReionNionPhotPerBary = run_globals.params.physics.ReionNionPhotPerBary;
     run_units_t *units = &(run_globals.units);
 
-    float J_21_aux_constant = 1e21 * (1.0+redshift)*(1.0+redshift)/(4.0 * M_PI)
-      * run_globals.params.physics.ReionAlphaUV * PLANCK * run_globals.params.physics.ReionEscapeFrac
-      * R * units->UnitLength_in_cm
-      * ReionNionPhotPerBary / PROTONMASS
-      * units->UnitMass_in_g / pow(units->UnitLength_in_cm, 3) / units->UnitTime_in_s;
+    double J_21_aux_constant = (1.0+(double)redshift)*(1.0+(double)redshift)/(4.0 * M_PI)
+      * (double)run_globals.params.physics.ReionAlphaUV * PLANCK * 1e21 * (double)run_globals.params.physics.ReionEscapeFrac
+      * (double)R * (double)units->UnitLength_in_cm
+      * (double)ReionNionPhotPerBary / PROTONMASS
+      * (double)units->UnitMass_in_g / pow((double)units->UnitLength_in_cm, 3) / (double)units->UnitTime_in_s;
   
     // DEBUG
     // for (int ix=0; ix<local_nix; ix++)
@@ -276,10 +276,10 @@ float find_HII_bubbles(float redshift)
       for (int iy=0; iy<ReionGridDim; iy++)
         for (int iz=0; iz<ReionGridDim; iz++)
         {
-          float density_over_mean = 1.0 + ((float *)deltax_filtered)[grid_index(ix,iy,iz, ReionGridDim, INDEX_PADDED)];
+          double density_over_mean = 1.0 + ((float *)deltax_filtered)[grid_index(ix,iy,iz, ReionGridDim, INDEX_PADDED)];
 
-          float f_coll_stars =  ((float *)stars_filtered)[grid_index(ix, iy, iz, ReionGridDim, INDEX_PADDED)]/ (RtoM(R)*density_over_mean);
-          f_coll_stars *= (4.0/3.0)*PI*pow(R,3.0) / pixel_volume;
+          double f_coll_stars =  (double)((float *)stars_filtered)[grid_index(ix, iy, iz, ReionGridDim, INDEX_PADDED)]/ (RtoM(R)*density_over_mean);
+          f_coll_stars *= (4.0/3.0)*M_PI*pow(R,3.0) / pixel_volume;
 
 // #ifdef DEBUG
 //           debug("%d, %g, %g, %g, %g, %g, %g, %g, %g\n", SID.My_rank,
@@ -288,14 +288,14 @@ float find_HII_bubbles(float redshift)
 //               RtoM(R), (4.0/3.0)*PI*pow(R,3.0), pixel_volume, 1.0/ReionEfficiency);
 // #endif
 
-          float sfr_density = ((float *)sfr_filtered)[grid_index(ix, iy, iz, ReionGridDim, INDEX_PADDED)] / pixel_volume;   // In internal units
+          double sfr_density = (double)((float *)sfr_filtered)[grid_index(ix, iy, iz, ReionGridDim, INDEX_PADDED)] / pixel_volume;   // In internal units
 
           // TODO: I fixed an incorrect factor in this equation (1-Y_He instead
           // of 1-0.75*Y_He) that will need to be reverted when comparing with
           // old results. 
           float J_21_aux;
           if (flag_ReionUVBFlag)
-            J_21_aux = sfr_density * J_21_aux_constant;
+            J_21_aux = (float)(sfr_density * J_21_aux_constant);
 
           // Check if ionised!
           if (f_coll_stars > 1.0/ReionEfficiency)   // IONISED!!!!
@@ -334,11 +334,11 @@ float find_HII_bubbles(float redshift)
 
 
   // Find the neutral fraction
-  float global_xH = 0.0;
+  double global_xH = 0.0;
   for (int ct=0; ct < slab_n_real; ct++)
-    global_xH += xH[ct];
-  SID_Allreduce(SID_IN_PLACE, &global_xH, 1, SID_FLOAT, SID_SUM, SID.COMM_WORLD);
-  global_xH /= (float)pow(ReionGridDim, 3);
+    global_xH += (double)xH[ct];
+  SID_Allreduce(SID_IN_PLACE, &global_xH, 1, SID_DOUBLE, SID_SUM, SID.COMM_WORLD);
+  global_xH /= pow(ReionGridDim, 3);
 
   return global_xH;
 }

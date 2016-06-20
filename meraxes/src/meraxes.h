@@ -286,7 +286,7 @@ typedef struct reion_grids_t {
   float         *Mvir_crit;
   gal_to_slab_t *galaxy_to_slab_map;
 
-  float          global_xH;
+  double         global_xH;
   bool           reion_complete;
   int            buffer_size;
 } reion_grids_t;
@@ -642,7 +642,7 @@ double sobacchi2013_modifier(double Mvir, double redshift);
 double gnedin2000_modifer(double Mvir, double redshift);
 void assign_slabs();
 
-float  find_HII_bubbles(float redshift);
+double  find_HII_bubbles(float redshift);
 double tocf_modifier(galaxy_t *gal, double Mvir);
 void   set_ReionEfficiency();
 int    find_cell(float pos, double box_size);
