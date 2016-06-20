@@ -303,7 +303,7 @@ float find_HII_bubbles(float redshift)
             // If it is the first crossing of the ionisation barrier for this cell (largest R), let's record J_21
             if (xH[grid_index(ix, iy, iz, ReionGridDim, INDEX_REAL)] > REL_TOL)
               if(flag_ReionUVBFlag)
-                J_21[grid_index(ix, iy, iz, ReionGridDim, INDEX_REAL)] = J_21_aux*ReionGammaHaloBias;
+                J_21[grid_index(ix, iy, iz, ReionGridDim, INDEX_REAL)] = J_21_aux;
 
 
             // Mark as ionised
@@ -339,11 +339,6 @@ float find_HII_bubbles(float redshift)
     global_xH += xH[ct];
   SID_Allreduce(SID_IN_PLACE, &global_xH, 1, SID_FLOAT, SID_SUM, SID.COMM_WORLD);
   global_xH /= (float)pow(ReionGridDim, 3);
-
-  // Renormalise the J_21 box
-  if(flag_ReionUVBFlag)
-    for(int ct=0; ct < slab_n_real; ct++)
-      J_21[ct] /= ReionGammaHaloBias;
 
   return global_xH;
 }
