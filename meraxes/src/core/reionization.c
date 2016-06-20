@@ -45,6 +45,8 @@ void set_ReionEfficiency()
 
 void assign_slabs()
 {
+  SID_log("Assigning slabs to MPI cores...", SID_LOG_OPEN);
+
   // Allocations made in this function are free'd in `free_reionization_grids`.
   fftwf_mpi_init();
 
@@ -70,6 +72,8 @@ void assign_slabs()
   ptrdiff_t **slab_n_complex = &run_globals.reion_grids.slab_n_complex;  ///< array of allocation counts for every rank
   *slab_n_complex = SID_malloc(sizeof(ptrdiff_t) * n_rank);  ///< array of allocation counts for every rank
   MPI_Allgather(&local_n_complex, sizeof(ptrdiff_t), MPI_BYTE, *slab_n_complex, sizeof(ptrdiff_t), MPI_BYTE, SID_COMM_WORLD);
+
+  SID_log("...done", SID_LOG_CLOSE);
 }
 
 

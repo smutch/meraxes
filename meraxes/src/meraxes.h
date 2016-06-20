@@ -191,8 +191,8 @@ typedef struct run_params_t {
   double          *MvirCrit;
 
 
-  float            ReionDeltaRFactor;
-  float            ReionPowerSpecDeltaK;
+  double           ReionDeltaRFactor;
+  double           ReionPowerSpecDeltaK;
   int              ReionGridDim;
   int              ReionFilterType;
   int              ReionRtoMFilterType;
