@@ -539,47 +539,47 @@ void read_parameter_file(char *fname, int mode)
       strcpy(params_tag[n_param], "ReionRBubbleMin");
       params_addr[n_param]   = &(run_params->physics).ReionRBubbleMin;
       required_tag[n_param]  = 1;
-      params_type[n_param++] = PARAM_TYPE_FLOAT;
+      params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
       strcpy(params_tag[n_param], "ReionRBubbleMax");
       params_addr[n_param]   = &(run_params->physics).ReionRBubbleMax;
       required_tag[n_param]  = 1;
-      params_type[n_param++] = PARAM_TYPE_FLOAT;
+      params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
       strcpy(params_tag[n_param], "ReionDeltaRFactor");
       params_addr[n_param]   = &(run_params->ReionDeltaRFactor);
       required_tag[n_param]  = 1;
-      params_type[n_param++] = PARAM_TYPE_FLOAT;
+      params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
       strcpy(params_tag[n_param], "ReionGammaHaloBias");
       params_addr[n_param]   = &(run_params->physics).ReionGammaHaloBias;
       required_tag[n_param]  = 1;
-      params_type[n_param++] = PARAM_TYPE_FLOAT;
+      params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
       strcpy(params_tag[n_param], "ReionSMParam_m0");
       params_addr[n_param]   = &(run_params->physics).ReionSMParam_m0;
       required_tag[n_param]  = 1;
-      params_type[n_param++] = PARAM_TYPE_FLOAT;
+      params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
       strcpy(params_tag[n_param], "ReionSMParam_a");
       params_addr[n_param]   = &(run_params->physics).ReionSMParam_a;
       required_tag[n_param]  = 1;
-      params_type[n_param++] = PARAM_TYPE_FLOAT;
+      params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
       strcpy(params_tag[n_param], "ReionSMParam_b");
       params_addr[n_param]   = &(run_params->physics).ReionSMParam_b;
       required_tag[n_param]  = 1;
-      params_type[n_param++] = PARAM_TYPE_FLOAT;
+      params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
       strcpy(params_tag[n_param], "ReionSMParam_c");
       params_addr[n_param]   = &(run_params->physics).ReionSMParam_c;
       required_tag[n_param]  = 1;
-      params_type[n_param++] = PARAM_TYPE_FLOAT;
+      params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
       strcpy(params_tag[n_param], "ReionSMParam_d");
       params_addr[n_param]   = &(run_params->physics).ReionSMParam_d;
       required_tag[n_param]  = 1;
-      params_type[n_param++] = PARAM_TYPE_FLOAT;
+      params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
       strcpy(params_tag[n_param], "ReionUVBFlag");
       params_addr[n_param]   = &(run_params->ReionUVBFlag);
@@ -594,12 +594,12 @@ void read_parameter_file(char *fname, int mode)
       strcpy(params_tag[n_param], "ReionPowerSpecDeltaK");
       params_addr[n_param]   = &(run_params->ReionPowerSpecDeltaK);
       required_tag[n_param]  = 1;
-      params_type[n_param++] = PARAM_TYPE_FLOAT;
+      params_type[n_param++] = PARAM_TYPE_DOUBLE;
       
       strcpy(params_tag[n_param], "ReionAlphaUV");
       params_addr[n_param]   = &(run_params->physics).ReionAlphaUV;
       required_tag[n_param]  = 1;
-      params_type[n_param++] = PARAM_TYPE_FLOAT;
+      params_type[n_param++] = PARAM_TYPE_DOUBLE;
       
       strcpy(params_tag[n_param], "ReionRtoMFilterType");
       params_addr[n_param]   = &(run_params->ReionRtoMFilterType);
@@ -609,7 +609,7 @@ void read_parameter_file(char *fname, int mode)
       strcpy(params_tag[n_param], "Y_He");
       params_addr[n_param]   = &(run_params->physics).Y_He;
       required_tag[n_param]  = 1;
-      params_type[n_param++] = PARAM_TYPE_FLOAT;
+      params_type[n_param++] = PARAM_TYPE_DOUBLE;
       
       hdf5props->params_count = n_param;
     }

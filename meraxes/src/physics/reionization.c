@@ -8,15 +8,16 @@ void calculate_Mvir_crit(double redshift)
   float *Mvir_crit = run_globals.reion_grids.Mvir_crit;
 
   int ReionGridDim = run_globals.params.ReionGridDim;
-  float cell_Mvir_crit;
+  double cell_Mvir_crit;
   int local_n_x = (int)(run_globals.reion_grids.slab_nix[SID.My_rank]);
   int local_n_cell = local_n_x * ReionGridDim * ReionGridDim;
 
-  float ReionSMParam_m0 = run_globals.params.physics.ReionSMParam_m0;
-  float ReionSMParam_a   = run_globals.params.physics.ReionSMParam_a;
-  float ReionSMParam_b   = run_globals.params.physics.ReionSMParam_b;
-  float ReionSMParam_c   = run_globals.params.physics.ReionSMParam_c;
-  float ReionSMParam_d   = run_globals.params.physics.ReionSMParam_d;
+  double ReionSMParam_m0  = run_globals.params.physics.ReionSMParam_m0;
+  double ReionSMParam_a   = run_globals.params.physics.ReionSMParam_a;
+  double ReionSMParam_b   = run_globals.params.physics.ReionSMParam_b;
+  double ReionSMParam_c   = run_globals.params.physics.ReionSMParam_c;
+  double ReionSMParam_d   = run_globals.params.physics.ReionSMParam_d;
+  double Hubble_h         = run_globals.params.Hubble_h;
 
   float *J_21_at_ion = run_globals.reion_grids.J_21_at_ionization;
   float *z_at_ion    = run_globals.reion_grids.z_at_ionization;
@@ -39,13 +40,13 @@ void calculate_Mvir_crit(double redshift)
         // 2013b
         if (z_at_ion[grid_index(ii, jj, kk, ReionGridDim, INDEX_REAL)] > redshift)
         {
-          cell_Mvir_crit = ReionSMParam_m0 * pow(J_21_at_ion[grid_index(ii, jj, kk, ReionGridDim, INDEX_REAL)], ReionSMParam_a)
+          cell_Mvir_crit = ReionSMParam_m0 * pow((double)(J_21_at_ion[grid_index(ii, jj, kk, ReionGridDim, INDEX_REAL)])*Hubble_h*Hubble_h*Hubble_h, ReionSMParam_a)
             * pow((1.0 + redshift) / 10.0, ReionSMParam_b)
-            * pow((1.0 - pow((1.0 + redshift) / (1.0 + z_at_ion[grid_index(ii, jj, kk, ReionGridDim, INDEX_REAL)]), ReionSMParam_c)), ReionSMParam_d);
+            * pow((1.0 - pow((1.0 + redshift) / (1.0 + (double)(z_at_ion[grid_index(ii, jj, kk, ReionGridDim, INDEX_REAL)])), ReionSMParam_c)), ReionSMParam_d);
         }
 
         // Save the critical mass to the grid
-        Mvir_crit[grid_index(ii, jj, kk, ReionGridDim, INDEX_REAL)] = cell_Mvir_crit;
+        Mvir_crit[grid_index(ii, jj, kk, ReionGridDim, INDEX_REAL)] = (float)cell_Mvir_crit;
       }
     }
   }
@@ -54,7 +55,7 @@ void calculate_Mvir_crit(double redshift)
 
 double tocf_modifier(galaxy_t *gal, double Mvir)
 {
-  return pow(2.0, -1.0 * gal->MvirCrit / Mvir);
+  return pow(2.0, -1.0 * (double)(gal->MvirCrit) / Mvir);
 }
 
 

@@ -114,16 +114,16 @@ typedef struct physics_params_t {
   double MergerTimeFactor;
 
   // TODO: These parameters should be used to set the TOCF HII_EFF_FACTOR value
-  float  ReionEfficiency;
+  double ReionEfficiency;
   double ReionNionPhotPerBary;
   double ReionEscapeFrac;
   double ReionTcool;
-  float  Y_He;
+  double Y_He;
 
-  float  ReionGammaHaloBias;
-  float  ReionAlphaUV;
-  float  ReionRBubbleMin;
-  float  ReionRBubbleMax;
+  double  ReionGammaHaloBias;
+  double  ReionAlphaUV;
+  double  ReionRBubbleMin;
+  double  ReionRBubbleMax;
 
   // global reionization prescription
   double ReionSobacchi_Zre;
@@ -136,11 +136,11 @@ typedef struct physics_params_t {
   double ReionGnedin_zr;
 
   // filtering mass fit
-  float  ReionSMParam_m0;
-  float  ReionSMParam_a;
-  float  ReionSMParam_b;
-  float  ReionSMParam_c;
-  float  ReionSMParam_d;
+  double  ReionSMParam_m0;
+  double  ReionSMParam_a;
+  double  ReionSMParam_b;
+  double  ReionSMParam_c;
+  double  ReionSMParam_d;
 
   // Flags
   int Flag_RedshiftDepEscFrac;
