@@ -549,9 +549,9 @@ void construct_baryon_grids(int snapshot, int local_ngals)
               for(int iy=0; iy<ReionGridDim; iy++)
                 for(int iz=0; iz<ReionGridDim; iz++)
                 {
-                  float val = buffer[grid_index(ix, iy, iz, ReionGridDim, INDEX_REAL)];
+                  double val = (double)buffer[grid_index(ix, iy, iz, ReionGridDim, INDEX_REAL)];
                   val = (val > 0) ? val / tHubble : 0;
-                  sfr_grid[grid_index(ix, iy, iz, ReionGridDim, INDEX_PADDED)] = val;
+                  sfr_grid[grid_index(ix, iy, iz, ReionGridDim, INDEX_PADDED)] = (float)val;
                 }
             break;
 

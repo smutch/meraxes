@@ -43,10 +43,7 @@ int read_dm_grid(
   int        n_grids;
   int        ma_scheme;
   long       start_foffset;
-  MPI_Status status;
-  double     resample_factor = 1.;
-  int        ReionGridDim    = run_globals.params.ReionGridDim;
-  MPI_File   fin             = NULL;
+  int        ReionGridDim  = run_globals.params.ReionGridDim;
 
 
   run_params_t *params = &(run_globals.params);
@@ -106,6 +103,7 @@ int read_dm_grid(
   MPI_Bcast(&start_foffset, 1, MPI_LONG, 0, SID_COMM_WORLD);
 
   // Check if the grid in the file is higher resolution than we require
+  double resample_factor = 1.;
   if ((n_cell[0] != ReionGridDim) || (n_cell[1] != ReionGridDim) || (n_cell[2] != ReionGridDim))
   {
     resample_factor = (double)ReionGridDim / (double)n_cell[0];
@@ -139,9 +137,35 @@ int read_dm_grid(
 
 
   // Read in the slab for this rank
-  long slab_offset = start_foffset + (long)(slab_ix_start_file*n_cell[1]*n_cell[2]*sizeof(float));
-  MPI_File_open(SID_COMM_WORLD, fname, MPI_MODE_RDONLY, MPI_INFO_NULL, &fin);
-  MPI_File_read_at(fin, (MPI_Offset)slab_offset, slab_file, slab_ni_file, MPI_FLOAT, &status);
+  MPI_File fin = NULL;
+  MPI_Status status;
+  MPI_Offset slab_offset = start_foffset/sizeof(float) + (slab_ix_start_file*n_cell[1]*n_cell[2]);
+
+  MPI_File_open(MPI_COMM_WORLD, fname, MPI_MODE_RDONLY, MPI_INFO_NULL, &fin);
+  MPI_File_set_view(fin, 0, MPI_FLOAT, MPI_FLOAT, "native", MPI_INFO_NULL);
+
+  ptrdiff_t chunk_size = slab_ni_file;
+  int n_reads = 1;
+  while(chunk_size > INT_MAX/16)
+  {
+    chunk_size /= 2;
+    n_reads *= 2;
+  }
+
+  MPI_Offset offset = slab_offset;
+  for(int ii=0; ii<n_reads; ii++, offset+=chunk_size)
+  {
+    MPI_File_read_at(fin, offset, &(slab_file[chunk_size*ii]), chunk_size, MPI_FLOAT, &status);
+
+    int count_check;
+    MPI_Get_count(&status, MPI_FLOAT, &count_check);
+    if (count_check != chunk_size)
+    {
+      SID_log_error("Failed to read correct number of elements on rank %d.", SID.My_rank);
+      SID_log_error("Expected %d but read %d.", (int)chunk_size, count_check);
+      ABORT(EXIT_FAILURE);
+    }
+  }
   MPI_File_close(&fin);
 
   // Copy the read slab into the padded fft slab (already allocated externally)
