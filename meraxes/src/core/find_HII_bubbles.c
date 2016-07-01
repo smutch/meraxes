@@ -24,10 +24,10 @@ double RtoM(double R){
   switch (filter)
   {
    case 0: //top hat M = (4/3) PI <rho> R^3
-    return (4.0/3.0)*PI*pow(R,3)*(OmegaM*RhoCrit);
+    return (4.0/3.0)*M_PI*pow(R,3)*(OmegaM*RhoCrit);
     break;
    case 1: //gaussian: M = (2PI)^1.5 <rho> R^3
-    return pow(2*PI, 1.5) * OmegaM*RhoCrit * pow(R, 3);
+    return pow(2*M_PI, 1.5) * OmegaM*RhoCrit * pow(R, 3);
     break;
    default: // filter not defined
     SID_log_error("Unrecognised filter (%d). Aborting...", filter);
@@ -47,7 +47,7 @@ static void filter(fftwf_complex *box, float R)
   int ReionGridDim = run_globals.params.ReionGridDim;
   int HII_middle = ReionGridDim / 2;
   float box_size = run_globals.params.BoxSize;
-  float delta_k = M_PI / box_size;
+  float delta_k = 2.0*M_PI / box_size;
 
   // Loop through k-box
   for (int n_x=0; n_x<slab_nx; n_x++)
@@ -73,7 +73,7 @@ static void filter(fftwf_complex *box, float R)
       { 
         float k_z = n_z*delta_k;
 
-        float k_mag = sqrt(k_x*k_x + k_y*k_y + k_z*k_z);
+        float k_mag = sqrtf(k_x*k_x + k_y*k_y + k_z*k_z);
 
         float kR = k_mag*R;   // Real space top-hat
 
@@ -81,18 +81,18 @@ static void filter(fftwf_complex *box, float R)
         {
           case 0:   // Real space top-hat
             if (kR > 1e-4)
-              box[grid_index(n_x, n_y, n_z, ReionGridDim, INDEX_COMPLEX_HERM)] *= 3.0 * (sinf(kR)/powf(kR, 3) - cosf(kR)/powf(kR, 2));
+              box[grid_index(n_x, n_y, n_z, ReionGridDim, INDEX_COMPLEX_HERM)] *= (fftwf_complex)(3.0 * (sinf(kR)/powf(kR, 3) - cosf(kR)/powf(kR, 2)));
             break;
 
           case 1:   // k-space top hat
             kR *= 0.413566994; // Equates integrated volume to the real space top-hat (9pi/2)^(-1/3)
             if (kR > 1)
-              box[grid_index(n_x, n_y, n_z, ReionGridDim, INDEX_COMPLEX_HERM)] = 0.0;
+              box[grid_index(n_x, n_y, n_z, ReionGridDim, INDEX_COMPLEX_HERM)] = (fftwf_complex)0.0;
             break;
         
           case 2:   // Gaussian
             kR *= 0.643;   // Equates integrated volume to the real space top-hat
-            box[grid_index(n_x, n_y, n_z, ReionGridDim, INDEX_COMPLEX_HERM)] *= powf(M_E, -kR*kR/2.0);
+            box[grid_index(n_x, n_y, n_z, ReionGridDim, INDEX_COMPLEX_HERM)] *= (fftwf_complex)(powf(M_E, -kR*kR/2.0));
             break;
 
           default:
@@ -171,9 +171,9 @@ double find_HII_bubbles(float redshift)
   int slab_n_complex = (int)(run_globals.reion_grids.slab_n_complex[SID.My_rank]);
   for (int ii=0; ii<slab_n_complex; ii++)
   {
-    deltax_unfiltered[ii] /= (float)total_n_cells;
-    stars_unfiltered[ii] /= (float)total_n_cells;
-    sfr_unfiltered[ii] /= (float)total_n_cells;
+    deltax_unfiltered[ii] /= (double)total_n_cells;
+    stars_unfiltered[ii] /= (double)total_n_cells;
+    sfr_unfiltered[ii] /= (double)total_n_cells;
   }
 
   // Loop through filter radii
@@ -276,10 +276,12 @@ double find_HII_bubbles(float redshift)
       for (int iy=0; iy<ReionGridDim; iy++)
         for (int iz=0; iz<ReionGridDim; iz++)
         {
-          double density_over_mean = 1.0 + ((float *)deltax_filtered)[grid_index(ix,iy,iz, ReionGridDim, INDEX_PADDED)];
+          double density_over_mean = 1.0 + (double)((float *)deltax_filtered)[grid_index(ix,iy,iz, ReionGridDim, INDEX_PADDED)];
 
           double f_coll_stars =  (double)((float *)stars_filtered)[grid_index(ix, iy, iz, ReionGridDim, INDEX_PADDED)]/ (RtoM(R)*density_over_mean);
           f_coll_stars *= (4.0/3.0)*M_PI*pow(R,3.0) / pixel_volume;
+
+          double sfr_density = (double)((float *)sfr_filtered)[grid_index(ix, iy, iz, ReionGridDim, INDEX_PADDED)] / pixel_volume;   // In internal units
 
 // #ifdef DEBUG
 //           debug("%d, %g, %g, %g, %g, %g, %g, %g, %g\n", SID.My_rank,
