@@ -173,7 +173,7 @@ int grid_index(int i, int j, int k, int dim, int type)
   switch(type)
   {
     case INDEX_PADDED:
-      ind  = k + (2*(dim/2 +1)) * (j + dim * i);
+      ind = k + (2*(dim/2 +1)) * (j + dim * i);
       break;
     case INDEX_REAL:
       ind = k + dim * (j + dim *i);

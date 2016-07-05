@@ -1,6 +1,7 @@
 #define _MAIN
 #include "meraxes.h"
 #include <sys/stat.h>
+#include <fenv.h>
 
 
 int main(int argc, char **argv)
@@ -24,7 +25,14 @@ int main(int argc, char **argv)
   if (argc != 2)
   {
     SID_log("\n  usage: %s <parameterfile>\n\n", SID_LOG_COMMENT, argv[0]);
-    ABORT(1);
+    ABORT(EXIT_FAILURE);
+  }
+
+  // set the rounding mode
+  if (!fesetround(1))  // nearest number
+  {
+    SID_log_error("Failed to set rounding mode!");
+    ABORT(EXIT_FAILURE);
   }
 
 #ifdef DEBUG
