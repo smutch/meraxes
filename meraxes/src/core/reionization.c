@@ -489,7 +489,6 @@ void construct_baryon_grids(int snapshot, int local_ngals)
           assert(galaxy_to_slab_map[i_gal].index >= 0);
           assert((galaxy_to_slab_map[i_gal].slab_ind >= 0) && (galaxy_to_slab_map[i_gal].slab_ind < SID.n_proc));
 
-          // TODO: This should be done properly with NGP
           int ix = pos_to_cell(gal->Pos[0], box_size, ReionGridDim) - slab_ix_start[i_r];
           int iy = pos_to_cell(gal->Pos[1], box_size, ReionGridDim);
           int iz = pos_to_cell(gal->Pos[2], box_size, ReionGridDim);

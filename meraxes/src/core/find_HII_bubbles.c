@@ -349,9 +349,6 @@ double find_HII_bubbles(float redshift)
 //                 RtoM(R), (4.0/3.0)*M_PI*pow(R,3.0), pixel_volume, 1.0/ReionEfficiency, sfr_density, ((float*)sfr_filtered)[grid_index(ix, iy, iz, ReionGridDim, INDEX_PADDED)], (float)(sfr_density * J_21_aux_constant));
 // #endif
 
-          // TODO: I fixed an incorrect factor in this equation (1-Y_He instead
-          // of 1-0.75*Y_He) that will need to be reverted when comparing with
-          // old results. 
           float J_21_aux;
           if (flag_ReionUVBFlag)
             J_21_aux = (float)(sfr_density * J_21_aux_constant);

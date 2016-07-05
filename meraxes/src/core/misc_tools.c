@@ -132,12 +132,12 @@ int searchsorted(void *val,
 
 int pos_to_cell(double x, double side, int nx)
 {
-  int ind = (int)floor(x / side * (double)nx);
+  int ind = (int)nearbyint(x / side * (double)nx);
 
   if(ind > nx-1)
-    ind = nx-1;
-  else if(ind < 0)
     ind = 0;
+
+  assert(ind > -1);
 
   return ind;
 }
