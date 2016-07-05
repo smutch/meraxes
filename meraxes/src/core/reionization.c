@@ -282,7 +282,7 @@ int map_galaxies_to_slabs(int ngals)
       // be spatially disconnected from their hosts.  We will need to fix this
       // at some point.
 
-      ptrdiff_t ix = pos_to_cell(gal->Pos[0], box_size, ReionGridDim);
+      ptrdiff_t ix = pos_to_ngp(gal->Pos[0], box_size, ReionGridDim);
 
       assert((ix >= 0) && (ix < ReionGridDim));
 
@@ -400,9 +400,9 @@ void assign_Mvir_crit_to_galaxies(int ngals_in_slabs)
       {
         // TODO: We should use the position of the FOF group here...
         galaxy_t *gal = galaxy_to_slab_map[i_gal].galaxy;
-        int ix = pos_to_cell(gal->Pos[0], box_size, ReionGridDim) - ix_start;
-        int iy = pos_to_cell(gal->Pos[1], box_size, ReionGridDim);
-        int iz = pos_to_cell(gal->Pos[2], box_size, ReionGridDim);
+        int ix = pos_to_ngp(gal->Pos[0], box_size, ReionGridDim) - ix_start;
+        int iy = pos_to_ngp(gal->Pos[1], box_size, ReionGridDim);
+        int iz = pos_to_ngp(gal->Pos[2], box_size, ReionGridDim);
 
         assert(ix >=0);
         assert(ix < slab_nix[recv_from_rank]);
@@ -489,9 +489,9 @@ void construct_baryon_grids(int snapshot, int local_ngals)
           assert(galaxy_to_slab_map[i_gal].index >= 0);
           assert((galaxy_to_slab_map[i_gal].slab_ind >= 0) && (galaxy_to_slab_map[i_gal].slab_ind < SID.n_proc));
 
-          int ix = pos_to_cell(gal->Pos[0], box_size, ReionGridDim) - slab_ix_start[i_r];
-          int iy = pos_to_cell(gal->Pos[1], box_size, ReionGridDim);
-          int iz = pos_to_cell(gal->Pos[2], box_size, ReionGridDim);
+          int ix = pos_to_ngp(gal->Pos[0], box_size, ReionGridDim) - slab_ix_start[i_r];
+          int iy = pos_to_ngp(gal->Pos[1], box_size, ReionGridDim);
+          int iz = pos_to_ngp(gal->Pos[2], box_size, ReionGridDim);
 
           assert((ix < slab_nix[i_r]) && (ix >= 0));
           assert((iy < ReionGridDim) && (iy >= 0));

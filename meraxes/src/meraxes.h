@@ -604,7 +604,7 @@ int          searchsorted(void *val,
                           int imin,
                           int imax);
 float        comoving_distance(float a[3], float b[3]);
-int          pos_to_cell(double x, double side, int nx);
+int          pos_to_ngp(double x, double side, int nx);
 float        apply_pbc_pos(float x);
 double       accurate_sumf(float *arr, int n);
 int          grid_index(int i, int j, int k, int dim, int type);

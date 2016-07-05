@@ -130,7 +130,7 @@ int searchsorted(void *val,
 }
 
 
-int pos_to_cell(double x, double side, int nx)
+int pos_to_ngp(double x, double side, int nx)
 {
   int ind = (int)nearbyint(x / side * (double)nx);
 
