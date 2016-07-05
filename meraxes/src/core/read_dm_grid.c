@@ -187,20 +187,15 @@ int read_dm_grid(
 
   if (i_grid == 0)  // Density grid
   {
-    // N.B. this function call destroys the ordering of the input array!
-    double mean = accurate_sumf(slab_file, slab_ni_file);
-
-    SID_Allreduce(SID_IN_PLACE, &mean, 1, SID_DOUBLE, SID_SUM, SID.COMM_WORLD);
-
     // Calculate the volume of a single high resolution cell
     double cell_volume = pow(box_size[0] / (double)n_cell[0], 3);
 
-    // Mean density from high res grid
-    mean *= cell_volume / pow(box_size[0], 3);
+    // N.B. Hubble factor below to account for incorrect units in input DM grids!
+    double mean = (double)run_globals.params.NPart * run_globals.params.PartMass / pow(box_size[0], 3) / run_globals.params.Hubble_h;
 
     // At this point grid holds the summed densities in each LR cell
     // Loop through again and calculate the overdensity
-    // ii.e. (rho - rho_mean)/rho_mean
+    // i.e. (rho - rho_mean)/rho_mean
     double cell_volume_ratio = pow(box_size[0] / (double)ReionGridDim, 3) / cell_volume;
     for (int ii = 0; ii < slab_nix; ii++)
       for (int jj = 0; jj < ReionGridDim; jj++)

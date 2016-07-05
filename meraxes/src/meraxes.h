@@ -187,6 +187,7 @@ typedef struct run_params_t {
   double           wLambda;
   double           SpectralIndex;
   double           PartMass;
+  long long        NPart;
 
   double          *MvirCrit;
 
@@ -604,10 +605,12 @@ int          searchsorted(void *val,
                           int imax);
 float        comoving_distance(float a[3], float b[3]);
 int          pos_to_cell(double x, double side, int nx);
+float        apply_pbc_pos(float x);
 double       accurate_sumf(float *arr, int n);
 int          grid_index(int i, int j, int k, int dim, int type);
 void         mpi_debug_here(void);
 int 				 isclosef(float a, float b, float rel_tol, float abs_tol);
+void         printProgress (double percentage);
 void         check_counts(fof_group_t *fof_group, int NGal, int NFof);
 void         cn_quote(void);
 double       Tvir_to_Mvir(double T, double z);

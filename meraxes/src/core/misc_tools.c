@@ -66,7 +66,7 @@ int compare_slab_assign(const void *a, const void *b)
 }
 
 
-static float inline apply_pbc(float delta)
+static inline float apply_pbc_disp(float delta)
 {
   float box_size = (float)(run_globals.params.BoxSize);
 
@@ -76,6 +76,19 @@ static float inline apply_pbc(float delta)
     delta += box_size;
 
   return delta;
+}
+
+
+float apply_pbc_pos(float x)
+{
+  float box_size = (float)(run_globals.params.BoxSize);
+
+  if (x >= box_size)
+    x -= box_size;
+  else if (x < 0.0)
+    x += box_size;
+
+  return x;
 }
 
 
@@ -131,9 +144,9 @@ int pos_to_cell(double x, double side, int nx)
 
 float comoving_distance(float a[3], float b[3])
 {
-  float dx = apply_pbc(a[0] - b[0]);
-  float dy = apply_pbc(a[1] - b[1]);
-  float dz = apply_pbc(a[2] - b[2]);
+  float dx = apply_pbc_disp(a[0] - b[0]);
+  float dy = apply_pbc_disp(a[1] - b[1]);
+  float dz = apply_pbc_disp(a[2] - b[2]);
 
   float dist = sqrtf(dx*dx + dy*dy + dz*dz);
   assert(dist <= (sqrtf(3.0)/2.0 * run_globals.params.BoxSize));

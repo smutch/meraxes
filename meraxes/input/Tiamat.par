@@ -100,11 +100,11 @@ ReionPowerSpecDeltaK   : 0.1
 ReionRtoMFilterType    : 0
 
 Y_He                   : 0.24
-ReionRBubbleMin        : 0.4
-ReionRBubbleMax        : 20.0
+ReionRBubbleMin        : 0.4068
+ReionRBubbleMax        : 20.34
 ReionGammaHaloBias     : 2.0
 ReionAlphaUV           : 5.0
-ReionSMParam_m0        : 0.19  # internal units
+ReionSMParam_m0        : 0.18984  # internal units
 ReionSMParam_a         : 0.17
 ReionSMParam_b         : -2.1
 ReionSMParam_c         : 2.0
@@ -129,6 +129,7 @@ SpectralIndex: 0.968
 Sigma8: 0.815
 PartMass: 0.0002643852
 wLambda: -1.0
+NPart: 10077696000
 
 UnitLength_in_cm         : 3.08568e+24       # WATCH OUT : Mpc/h
 UnitMass_in_g            : 1.989e+43         # WATCH OUT : 10^10Msun/h

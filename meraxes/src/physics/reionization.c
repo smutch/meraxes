@@ -40,7 +40,7 @@ void calculate_Mvir_crit(double redshift)
         // 2013b
         if (z_at_ion[grid_index(ii, jj, kk, ReionGridDim, INDEX_REAL)] > redshift)
         {
-          cell_Mvir_crit = ReionSMParam_m0 * pow((double)(J_21_at_ion[grid_index(ii, jj, kk, ReionGridDim, INDEX_REAL)])*Hubble_h*Hubble_h*Hubble_h, ReionSMParam_a)
+          cell_Mvir_crit = ReionSMParam_m0 * pow((double)(J_21_at_ion[grid_index(ii, jj, kk, ReionGridDim, INDEX_REAL)])*Hubble_h*Hubble_h, ReionSMParam_a)
             * pow((1.0 + redshift) / 10.0, ReionSMParam_b)
             * pow((1.0 - pow((1.0 + redshift) / (1.0 + (double)(z_at_ion[grid_index(ii, jj, kk, ReionGridDim, INDEX_REAL)])), ReionSMParam_c)), ReionSMParam_d);
         }
@@ -55,7 +55,9 @@ void calculate_Mvir_crit(double redshift)
 
 double tocf_modifier(galaxy_t *gal, double Mvir)
 {
-  return pow(2.0, -1.0 * (double)(gal->MvirCrit) / Mvir);
+  // return pow(2.0, -1.0 * (double)(gal->MvirCrit) / Mvir);
+  // DEBUG
+  return 1.0;
 }
 
 

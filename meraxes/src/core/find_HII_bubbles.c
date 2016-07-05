@@ -3,6 +3,8 @@
 #include <fftw3-mpi.h>
 #include <math.h>
 #include <assert.h>
+#include <signal.h>
+#include <limits.h>
 
 // DEBUG
 #include <hdf5.h>
@@ -141,6 +143,32 @@ double find_HII_bubbles(float redshift)
   for(int ii=0; ii < slab_n_real; ii++)
     xH[ii] = 1.0;
 
+// #ifdef DEBUG
+//   {
+//     char fname_debug[STRLEN];
+//     sprintf(fname_debug, "pre_stars-%d.dat", SID.My_rank);
+//     FILE *fd_debug = fopen(fname_debug, "wb");
+//     for(int ix = 0; ix < run_globals.reion_grids.slab_nix[SID.My_rank]; ix++)
+//       for(int iy = 0; iy < ReionGridDim; iy++)
+//         for(int iz = 0; iz < ReionGridDim; iz++)
+//           fwrite(&(run_globals.reion_grids.stars[grid_index(ix, iy, iz, ReionGridDim, INDEX_PADDED)]), sizeof(float), 1, fd_debug);
+//     fclose(fd_debug);
+//   }
+// #endif
+
+// #ifdef DEBUG
+//   {
+//     char fname_debug[STRLEN];
+//     sprintf(fname_debug, "pre_sfr-%d.dat", SID.My_rank);
+//     FILE *fd_debug = fopen(fname_debug, "wb");
+//     for(int ix = 0; ix < run_globals.reion_grids.slab_nix[SID.My_rank]; ix++)
+//       for(int iy = 0; iy < ReionGridDim; iy++)
+//         for(int iz = 0; iz < ReionGridDim; iz++)
+//           fwrite(&(run_globals.reion_grids.sfr[grid_index(ix, iy, iz, ReionGridDim, INDEX_PADDED)]), sizeof(float), 1, fd_debug);
+//     fclose(fd_debug);
+//   }
+// #endif
+
   // Forward fourier transform to obtain k-space fields
   // TODO: Ensure that fftwf_mpi_init has been called and fftwf_mpi_cleanup will be called
   // TODO: Don't use estimate and calculate plan in code init
@@ -195,6 +223,10 @@ double find_HII_bubbles(float redshift)
       R = cell_length_factor * box_size / (float)ReionGridDim;
     }
 
+    // DEBUG
+    // SID_log("R = %.2e (h=0.678 -> %.2e)", SID_LOG_COMMENT, R, R/0.678);
+    SID_log(".", SID_LOG_CONTINUE);
+
     // copy the k-space grids
     memcpy(deltax_filtered, deltax_unfiltered, sizeof(fftwf_complex)*slab_n_complex);
     memcpy(stars_filtered, stars_unfiltered, sizeof(fftwf_complex)*slab_n_complex);
@@ -233,6 +265,31 @@ double find_HII_bubbles(float redshift)
 
           ((float *)sfr_filtered)[grid_index(ix, iy, iz, ReionGridDim, INDEX_PADDED)] = fmaxf(((float *)sfr_filtered)[grid_index(ix, iy, iz, ReionGridDim, INDEX_PADDED)] , 0.0);
         }
+
+// #ifdef DEBUG
+//   {
+//     char fname_debug[STRLEN];
+//     sprintf(fname_debug, "post_stars-%d_R%.3f.dat", SID.My_rank, R);
+//     FILE *fd_debug = fopen(fname_debug, "wb");
+//     for(int ix = 0; ix < run_globals.reion_grids.slab_nix[SID.My_rank]; ix++)
+//       for(int iy = 0; iy < ReionGridDim; iy++)
+//         for(int iz = 0; iz < ReionGridDim; iz++)
+//           fwrite(&(run_globals.reion_grids.stars_filtered[grid_index(ix, iy, iz, ReionGridDim, INDEX_PADDED)]), sizeof(float), 1, fd_debug);
+//     fclose(fd_debug);
+//   }
+//   {
+//     char fname_debug[STRLEN];
+//     sprintf(fname_debug, "post_sfr-%d_R%.3f.dat", SID.My_rank, R);
+//     FILE *fd_debug = fopen(fname_debug, "wb");
+//     for(int ix = 0; ix < run_globals.reion_grids.slab_nix[SID.My_rank]; ix++)
+//       for(int iy = 0; iy < ReionGridDim; iy++)
+//         for(int iz = 0; iz < ReionGridDim; iz++)
+//           fwrite(&(run_globals.reion_grids.sfr_filtered[grid_index(ix, iy, iz, ReionGridDim, INDEX_PADDED)]), sizeof(float), 1, fd_debug);
+//     fclose(fd_debug);
+//   }
+// #endif
+
+
 
     /*
      * Main loop through the box...
@@ -284,13 +341,13 @@ double find_HII_bubbles(float redshift)
           double sfr_density = (double)((float *)sfr_filtered)[grid_index(ix, iy, iz, ReionGridDim, INDEX_PADDED)] / pixel_volume;   // In internal units
 
 // #ifdef DEBUG
-//           debug("%d, %g, %g, %g, %g, %g, %g, %g, %g\n", SID.My_rank,
-//               R, density_over_mean, f_coll_stars,
-//               ((float *)stars_filtered)[grid_index(ix, iy, iz, ReionGridDim, INDEX_PADDED)],
-//               RtoM(R), (4.0/3.0)*PI*pow(R,3.0), pixel_volume, 1.0/ReionEfficiency);
+//           if(abs(redshift - 23.074) < 0.01)
+//             debug("%d, %d, %d, %d, %g, %g, %g, %g, %g, %g, %g, %g, %g, %g, %g\n",
+//                 SID.My_rank, ix, iy, iz,
+//                 R, density_over_mean, f_coll_stars,
+//                 ((float *)stars_filtered)[grid_index(ix, iy, iz, ReionGridDim, INDEX_PADDED)],
+//                 RtoM(R), (4.0/3.0)*M_PI*pow(R,3.0), pixel_volume, 1.0/ReionEfficiency, sfr_density, ((float*)sfr_filtered)[grid_index(ix, iy, iz, ReionGridDim, INDEX_PADDED)], (float)(sfr_density * J_21_aux_constant));
 // #endif
-
-          double sfr_density = (double)((float *)sfr_filtered)[grid_index(ix, iy, iz, ReionGridDim, INDEX_PADDED)] / pixel_volume;   // In internal units
 
           // TODO: I fixed an incorrect factor in this equation (1-Y_He instead
           // of 1-0.75*Y_He) that will need to be reverted when comparing with

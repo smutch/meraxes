@@ -83,6 +83,10 @@ static void inline store_params(
     case PARAM_TYPE_INT:
       *((int*)params_addr[tag_index]) = atoi(entry[i_entry].value);
       break;
+
+    case PARAM_TYPE_LONGLONG:
+      *((long long*)params_addr[tag_index]) = atoll(entry[i_entry].value);
+      break;
     }
     used_tag[tag_index] = 1;
   }
@@ -297,6 +301,11 @@ void read_parameter_file(char *fname, int mode)
       params_addr[n_param]   = &(run_params->PartMass);
       required_tag[n_param]  = 1;
       params_type[n_param++] = PARAM_TYPE_DOUBLE;
+
+      strcpy(params_tag[n_param], "NPart");
+      params_addr[n_param]   = &(run_params->NPart);
+      required_tag[n_param]  = 1;
+      params_type[n_param++] = PARAM_TYPE_LONGLONG;
 
       strcpy(params_tag[n_param], "MergerTimeFactor");
       params_addr[n_param]   = &(run_params->physics.MergerTimeFactor);

@@ -103,12 +103,14 @@ void call_find_HII_bubbles(int snapshot, int unsampled_snapshot, int nout_gals)
   read_dm_grid(unsampled_snapshot, 0, (float*)(grids->deltax));
 
   // save the grids prior to doing FFTs to avoid precision loss and aliasing etc.
-  save_reion_input_grids(snapshot);
+  for (int i_out = 0; i_out < run_globals.NOutputSnaps; i_out++)
+    if (snapshot == run_globals.ListOutputSnaps[i_out])
+      save_reion_input_grids(snapshot);
 
   SID_log("...done", SID_LOG_CLOSE);
 
   // Call find_HII_bubbles
-  SID_log("Calling find_HII_bubbles...", SID_LOG_OPEN | SID_LOG_TIMER);
+  SID_log("Calling find_HII_bubbles", SID_LOG_OPEN | SID_LOG_TIMER);
   grids->global_xH = find_HII_bubbles(run_globals.ZZ[snapshot]);
 
   SID_log("grids->global_xH = %g", SID_LOG_COMMENT, grids->global_xH);
@@ -280,11 +282,6 @@ int map_galaxies_to_slabs(int ngals)
       // be spatially disconnected from their hosts.  We will need to fix this
       // at some point.
 
-      // TODO: Get Greg to fix these positions to obey PBC!!
-      if (gal->Pos[0] >= box_size)
-        gal->Pos[0] -= box_size;
-      else if (gal->Pos[0] < 0.0)
-        gal->Pos[0] += box_size;
       ptrdiff_t ix = pos_to_cell(gal->Pos[0], box_size, ReionGridDim);
 
       assert((ix >= 0) && (ix < ReionGridDim));
@@ -320,6 +317,7 @@ void assign_Mvir_crit_to_galaxies(int ngals_in_slabs)
   ptrdiff_t     *slab_ix_start      = run_globals.reion_grids.slab_ix_start;
   int           ReionGridDim             = run_globals.params.ReionGridDim;
   double        box_size            = run_globals.params.BoxSize;
+  int           total_assigned      = 0;
 
   SID_log("Assigning Mvir_crit to galaxies...", SID_LOG_OPEN);
 
@@ -406,15 +404,22 @@ void assign_Mvir_crit_to_galaxies(int ngals_in_slabs)
         int iy = pos_to_cell(gal->Pos[1], box_size, ReionGridDim);
         int iz = pos_to_cell(gal->Pos[2], box_size, ReionGridDim);
 
+        assert(ix >=0);
+        assert(ix < slab_nix[recv_from_rank]);
+
         // Record the Mvir_crit (filtering mass) value
         gal->MvirCrit = (double)buffer[grid_index(ix, iy, iz, ReionGridDim, INDEX_REAL)];
 
-        // increment counter
+        // increment counters
         i_gal++;
+        total_assigned++;
       }
     }
 
   }
+
+  if(total_assigned != ngals_in_slabs)
+    ABORT(EXIT_FAILURE);
 
   SID_log("...done.", SID_LOG_CLOSE);
 
@@ -485,20 +490,8 @@ void construct_baryon_grids(int snapshot, int local_ngals)
           assert((galaxy_to_slab_map[i_gal].slab_ind >= 0) && (galaxy_to_slab_map[i_gal].slab_ind < SID.n_proc));
 
           // TODO: This should be done properly with NGP
-          if (gal->Pos[0] >= box_size)
-            gal->Pos[0] -= box_size;
-          else if (gal->Pos[0] < 0.0)
-            gal->Pos[0] += box_size;
           int ix = pos_to_cell(gal->Pos[0], box_size, ReionGridDim) - slab_ix_start[i_r];
-          if (gal->Pos[1] >= box_size)
-            gal->Pos[1] -= box_size;
-          else if (gal->Pos[1] < 0.0)
-            gal->Pos[1] += box_size;
           int iy = pos_to_cell(gal->Pos[1], box_size, ReionGridDim);
-          if (gal->Pos[2] >= box_size)
-            gal->Pos[2] -= box_size;
-          else if (gal->Pos[2] < 0.0)
-            gal->Pos[2] += box_size;
           int iz = pos_to_cell(gal->Pos[2], box_size, ReionGridDim);
 
           assert((ix < slab_nix[i_r]) && (ix >= 0));
