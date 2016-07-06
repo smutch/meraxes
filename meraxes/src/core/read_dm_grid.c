@@ -173,15 +173,21 @@ int read_dm_grid(
   // TODO: This should be done with FFT
   for (int ii = 0; ii < slab_nix_file; ii++)
   {
-    int i_lr = (int)(ii * resample_factor);
+    int i_lr = (int)nearbyint((double)(ii * resample_factor));
+    if (i_lr >= ReionGridDim)
+      i_lr = 0;
     assert((i_lr > -1) && (i_lr < ReionGridDim));
     for (int jj = 0; jj < n_cell[1]; jj++)
     {
-      int j_lr = (int)(jj * resample_factor);
+      int j_lr = (int)nearbyint((double)(jj * resample_factor));
+      if (j_lr >= ReionGridDim)
+        j_lr = 0;
       assert((j_lr > -1) && (j_lr < ReionGridDim));
       for (int kk = 0; kk < n_cell[2]; kk++)
       {
-        int k_lr = (int)(kk * resample_factor);
+        int k_lr = (int)nearbyint((double)(kk * resample_factor));
+        if (k_lr >= ReionGridDim)
+          k_lr = 0;
         assert((k_lr > -1) && (k_lr < ReionGridDim));
         slab[grid_index(i_lr, j_lr, k_lr, ReionGridDim, INDEX_PADDED)] += slab_file[grid_index(ii, jj, kk, n_cell[1], INDEX_REAL)];
       }
