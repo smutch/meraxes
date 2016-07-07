@@ -1,6 +1,9 @@
 #include "meraxes.h"
 #include <math.h>
 #include <assert.h>
+#include <complex.h>
+#include <fftw3.h>
+#include <fftw3-mpi.h>
 
 
 /*
@@ -121,20 +124,19 @@ int read_dm_grid(
 
   // Malloc the slab
   ptrdiff_t slab_nix = run_globals.reion_grids.slab_nix[SID.My_rank];
-  ptrdiff_t slab_ix_start = run_globals.reion_grids.slab_ix_start[SID.My_rank];
+  ptrdiff_t slab_n_complex = run_globals.reion_grids.slab_n_complex[SID.My_rank];
 
-  ptrdiff_t slab_nix_file = (ptrdiff_t)lrint((double)slab_nix / resample_factor);
-  ptrdiff_t slab_ix_start_file = (ptrdiff_t)lrint((double)slab_ix_start / resample_factor);
-  ptrdiff_t slab_ni_file = slab_nix_file * n_cell[1] * n_cell[2];
-  float *slab_file   = SID_calloc(sizeof(float) * slab_ni_file);
+  ptrdiff_t slab_nix_file, slab_ix_start_file;
+  ptrdiff_t slab_n_complex_file = fftwf_mpi_local_size_3d(n_cell[0], n_cell[0], n_cell[0]/2 + 1, SID_COMM_WORLD, &slab_nix_file, &slab_ix_start_file);
+  fftwf_complex *slab_file = fftwf_alloc_complex(slab_n_complex_file);
+  ptrdiff_t slab_ni_file = slab_nix_file * n_cell[0] * n_cell[0];
 
   // Initialise (just in case!)
-  for(int ii=0; ii < slab_ni_file; ii++)
-    slab_file[ii] = 0.0;
+  for(int ii=0; ii < slab_n_complex_file; ii++)
+    slab_file[ii] = 0 + 0*I;
   // N.B. factor of two for fftw padding
-  for(int ii=0; ii < run_globals.reion_grids.slab_n_complex[SID.My_rank]*2; ii++)
+  for(int ii=0; ii < slab_n_complex*2; ii++)
     slab[ii] = 0.0;
-
 
   // Read in the slab for this rank
   MPI_File fin = NULL;
@@ -155,7 +157,7 @@ int read_dm_grid(
   MPI_Offset offset = slab_offset;
   for(int ii=0; ii<n_reads; ii++, offset+=chunk_size)
   {
-    MPI_File_read_at(fin, offset, &(slab_file[chunk_size*ii]), chunk_size, MPI_FLOAT, &status);
+    MPI_File_read_at(fin, offset, &(((float *)slab_file)[chunk_size*ii]), chunk_size, MPI_FLOAT, &status);
 
     int count_check;
     MPI_Get_count(&status, MPI_FLOAT, &count_check);
@@ -168,28 +170,39 @@ int read_dm_grid(
   }
   MPI_File_close(&fin);
 
-  // Copy the read slab into the padded fft slab (already allocated externally)
-  // Regrid
-  // TODO: This should be done with FFT
-  for (int ii = 0; ii < slab_nix_file; ii++)
+  // reorder the read slab for inplace fftw padding
+  for(int ii=slab_nix_file-1; ii >= 0; ii--)
+    for(int jj=n_cell[0]-1; jj >= 0; jj--)
+      for(int kk=n_cell[0]-1; kk >= 0; kk--)
+        ((float *)slab_file)[grid_index(ii, jj, kk, n_cell[0], INDEX_PADDED)] = ((float *)slab_file)[grid_index(ii, jj, kk, n_cell[0], INDEX_REAL)];
+
+  // smooth the grid
+  SID_log("Smoothing hires grid...", SID_LOG_CONTINUE);
+  fftwf_plan plan = fftwf_mpi_plan_dft_r2c_3d(n_cell[0], n_cell[0], n_cell[0], (float *)slab_file, slab_file, SID_COMM_WORLD, FFTW_ESTIMATE);
+  fftwf_execute(plan);
+  fftwf_destroy_plan(plan);
+  filter(slab_file, resample_factor*run_globals.params.BoxSize/2.0);
+  plan = fftwf_mpi_plan_dft_c2r_3d(n_cell[0], n_cell[0], n_cell[0], slab_file, (float *)slab_file, SID_COMM_WORLD, FFTW_ESTIMATE);
+  fftwf_execute(plan);
+  fftwf_destroy_plan(plan);
+  SID_log("...done", SID_LOG_COMMENT);
+
+  // Copy the read and smoothed slab into the padded fft slab (already allocated externally)
+  int n_every = n_cell[0] / ReionGridDim;
+  for (int ii = 0; ii < slab_nix; ii++)
   {
-    int i_lr = (int)nearbyint((double)(ii * resample_factor));
-    if (i_lr >= ReionGridDim)
-      i_lr = 0;
-    assert((i_lr > -1) && (i_lr < ReionGridDim));
-    for (int jj = 0; jj < n_cell[1]; jj++)
+    int i_hr = n_every*ii;
+    assert((i_hr > -1) && (i_hr < slab_nix_file));
+    for (int jj = 0; jj < ReionGridDim; jj++)
     {
-      int j_lr = (int)nearbyint((double)(jj * resample_factor));
-      if (j_lr >= ReionGridDim)
-        j_lr = 0;
-      assert((j_lr > -1) && (j_lr < ReionGridDim));
-      for (int kk = 0; kk < n_cell[2]; kk++)
+      int j_hr = n_every*jj;
+      assert((j_hr > -1) && (j_hr < n_cell[0]));
+      for (int kk = 0; kk < ReionGridDim; kk++)
       {
-        int k_lr = (int)nearbyint((double)(kk * resample_factor));
-        if (k_lr >= ReionGridDim)
-          k_lr = 0;
-        assert((k_lr > -1) && (k_lr < ReionGridDim));
-        slab[grid_index(i_lr, j_lr, k_lr, ReionGridDim, INDEX_PADDED)] += slab_file[grid_index(ii, jj, kk, n_cell[1], INDEX_REAL)];
+        int k_hr = n_every*jj;
+        assert((k_hr > -1) && (k_hr < n_cell[0]));
+
+        slab[grid_index(ii, jj, kk, ReionGridDim, INDEX_PADDED)] = ((float *)slab_file)[grid_index(i_hr, j_hr, k_hr, n_cell[0], INDEX_PADDED)];
       }
     }
   }
@@ -216,7 +229,7 @@ int read_dm_grid(
 
   }
 
-  SID_free(SID_FARG slab_file);
+  fftwf_free(slab_file);
 
   SID_log("...done", SID_LOG_CLOSE);
 
