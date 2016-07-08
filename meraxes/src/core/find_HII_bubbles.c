@@ -50,7 +50,7 @@ double find_HII_bubbles(float redshift)
   double pixel_volume = pow((double)box_size/(double)ReionGridDim, 3);  // (Mpc/h)^3
   double l_factor = 0.620350491;  // Factor relating cube length to filter radius = (4PI/3)^(-1/3)
   double cell_length_factor = l_factor;
-  int total_n_cells = (int)pow(ReionGridDim, 3);
+  long long total_n_cells = (long long)pow((double)ReionGridDim, 3);
 
   // This parameter choice is sensitive to noise on the cell size, at least for the typical
   // cell sizes in RT simulations. It probably doesn't matter for larger cell sizes.
@@ -160,11 +160,13 @@ double find_HII_bubbles(float redshift)
     memcpy(sfr_filtered, sfr_unfiltered, sizeof(fftwf_complex)*slab_n_complex);
 
     // do the filtering unless this is the last filter step
+    int local_nix = (int)(run_globals.reion_grids.slab_nix[SID.My_rank]);
+    int local_ix_start = (int)(run_globals.reion_grids.slab_ix_start[SID.My_rank]);
     if(!flag_last_filter_step)
     {
-      filter(deltax_filtered, R);
-      filter(stars_filtered, R);
-      filter(sfr_filtered, R);
+      filter(deltax_filtered, local_ix_start, local_nix, ReionGridDim, R);
+      filter(stars_filtered, local_ix_start, local_nix, ReionGridDim, R);
+      filter(sfr_filtered, local_ix_start, local_nix, ReionGridDim, R);
     }
 
     // inverse fourier transform back to real space
@@ -181,7 +183,6 @@ double find_HII_bubbles(float redshift)
     fftwf_destroy_plan(plan);
 
     // Perform sanity checks to account for aliasing effects
-    int local_nix = (int)(run_globals.reion_grids.slab_nix[SID.My_rank]);
     for (int ix=0; ix<local_nix; ix++)
       for (int iy=0; iy<ReionGridDim; iy++)
         for (int iz=0; iz<ReionGridDim; iz++)

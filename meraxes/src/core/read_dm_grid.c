@@ -176,16 +176,28 @@ int read_dm_grid(
       for(int kk=n_cell[0]-1; kk >= 0; kk--)
         ((float *)slab_file)[grid_index(ii, jj, kk, n_cell[0], INDEX_PADDED)] = ((float *)slab_file)[grid_index(ii, jj, kk, n_cell[0], INDEX_REAL)];
 
-  // smooth the grid
-  SID_log("Smoothing hires grid...", SID_LOG_CONTINUE);
-  fftwf_plan plan = fftwf_mpi_plan_dft_r2c_3d(n_cell[0], n_cell[0], n_cell[0], (float *)slab_file, slab_file, SID_COMM_WORLD, FFTW_ESTIMATE);
-  fftwf_execute(plan);
-  fftwf_destroy_plan(plan);
-  filter(slab_file, resample_factor*run_globals.params.BoxSize/2.0);
-  plan = fftwf_mpi_plan_dft_c2r_3d(n_cell[0], n_cell[0], n_cell[0], slab_file, (float *)slab_file, SID_COMM_WORLD, FFTW_ESTIMATE);
-  fftwf_execute(plan);
-  fftwf_destroy_plan(plan);
-  SID_log("...done", SID_LOG_COMMENT);
+  // smooth the grid if needed
+  if (resample_factor < 1.0)
+  {
+    SID_log("Smoothing hi-res grid...", SID_LOG_OPEN|SID_LOG_TIMER);
+    fftwf_plan plan = fftwf_mpi_plan_dft_r2c_3d(n_cell[0], n_cell[0], n_cell[0], (float *)slab_file, slab_file, SID_COMM_WORLD, FFTW_ESTIMATE);
+    fftwf_execute(plan);
+    fftwf_destroy_plan(plan);
+
+    // Remember to add the factor of VOLUME/TOT_NUM_PIXELS when converting from
+    // real space to k-space.
+    // Note: we will leave off factor of VOLUME, in anticipation of the inverse
+    // FFT below
+    long long total_n_cells_file = n_cell[0] * n_cell[0] * n_cell[0];
+    for(int ii=0; ii < slab_n_complex_file; ii++)
+      slab_file[ii] /= (double)total_n_cells_file;
+    filter(slab_file, slab_ix_start_file, slab_nix_file, n_cell[0], run_globals.params.BoxSize / (double)ReionGridDim / 2.0);
+
+    plan = fftwf_mpi_plan_dft_c2r_3d(n_cell[0], n_cell[0], n_cell[0], slab_file, (float *)slab_file, SID_COMM_WORLD, FFTW_ESTIMATE);
+    fftwf_execute(plan);
+    fftwf_destroy_plan(plan);
+    SID_log("...done", SID_LOG_CLOSE);
+  }
 
   // Copy the read and smoothed slab into the padded fft slab (already allocated externally)
   int n_every = n_cell[0] / ReionGridDim;
@@ -199,32 +211,28 @@ int read_dm_grid(
       assert((j_hr > -1) && (j_hr < n_cell[0]));
       for (int kk = 0; kk < ReionGridDim; kk++)
       {
-        int k_hr = n_every*jj;
+        int k_hr = n_every*kk;
         assert((k_hr > -1) && (k_hr < n_cell[0]));
 
         slab[grid_index(ii, jj, kk, ReionGridDim, INDEX_PADDED)] = ((float *)slab_file)[grid_index(i_hr, j_hr, k_hr, n_cell[0], INDEX_PADDED)];
       }
     }
   }
-
+  
   if (i_grid == 0)  // Density grid
   {
-    // Calculate the volume of a single high resolution cell
-    double cell_volume = pow(box_size[0] / (double)n_cell[0], 3);
-
     // N.B. Hubble factor below to account for incorrect units in input DM grids!
     double mean = (double)run_globals.params.NPart * run_globals.params.PartMass / pow(box_size[0], 3) / run_globals.params.Hubble_h;
 
     // At this point grid holds the summed densities in each LR cell
     // Loop through again and calculate the overdensity
     // i.e. (rho - rho_mean)/rho_mean
-    double cell_volume_ratio = pow(box_size[0] / (double)ReionGridDim, 3) / cell_volume;
     for (int ii = 0; ii < slab_nix; ii++)
       for (int jj = 0; jj < ReionGridDim; jj++)
         for (int kk = 0; kk < ReionGridDim; kk++)
         {
           float *val = &(slab[grid_index(ii, jj, kk, ReionGridDim, INDEX_PADDED)]);
-          *val = (float)(((double)*val / (cell_volume_ratio * mean)) - 1.);
+          *val = (float)(((double)*val / mean) - 1.);
         }
 
   }

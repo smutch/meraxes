@@ -645,7 +645,7 @@ double sobacchi2013_modifier(double Mvir, double redshift);
 double gnedin2000_modifer(double Mvir, double redshift);
 void assign_slabs();
 
-void   filter(fftwf_complex *box, float R);
+void   filter(fftwf_complex *box, int local_ix_start, int slab_nx, int grid_dim, float R);
 double find_HII_bubbles(float redshift);
 double tocf_modifier(galaxy_t *gal, double Mvir);
 void   set_ReionEfficiency();

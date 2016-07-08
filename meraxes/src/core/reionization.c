@@ -772,13 +772,10 @@ bool check_if_reionization_complete()
 }
 
 
-void filter(fftwf_complex *box, float R)
+void filter(fftwf_complex *box, int local_ix_start, int slab_nx, int grid_dim, float R)
 {
   int filter_type = run_globals.params.ReionFilterType;
-  int slab_nx = (int)(run_globals.reion_grids.slab_nix[SID.My_rank]);
-  int local_ix_start = (int)(run_globals.reion_grids.slab_ix_start[SID.My_rank]);
-  int ReionGridDim = run_globals.params.ReionGridDim;
-  int HII_middle = ReionGridDim / 2;
+  int middle = grid_dim / 2;
   float box_size = run_globals.params.BoxSize;
   float delta_k = 2.0*M_PI / box_size;
 
@@ -788,21 +785,21 @@ void filter(fftwf_complex *box, float R)
     float k_x;
     int n_x_global = n_x + local_ix_start;
 
-    if (n_x_global > HII_middle)
-      k_x = (n_x_global - ReionGridDim)*delta_k;
+    if (n_x_global > middle)
+      k_x = (n_x_global - grid_dim)*delta_k;
     else
       k_x = n_x_global*delta_k;
 
-    for (int n_y=0; n_y<ReionGridDim; n_y++)
+    for (int n_y=0; n_y<grid_dim; n_y++)
     {
       float k_y;
 
-      if (n_y>HII_middle)
-        k_y = (n_y-ReionGridDim)*delta_k;
+      if (n_y>middle)
+        k_y = (n_y-grid_dim)*delta_k;
       else
         k_y = n_y*delta_k;
 
-      for (int n_z=0; n_z<=HII_middle; n_z++)
+      for (int n_z=0; n_z<=middle; n_z++)
       { 
         float k_z = n_z*delta_k;
 
@@ -814,18 +811,18 @@ void filter(fftwf_complex *box, float R)
         {
           case 0:   // Real space top-hat
             if (kR > 1e-4)
-              box[grid_index(n_x, n_y, n_z, ReionGridDim, INDEX_COMPLEX_HERM)] *= (fftwf_complex)(3.0 * (sinf(kR)/powf(kR, 3) - cosf(kR)/powf(kR, 2)));
+              box[grid_index(n_x, n_y, n_z, grid_dim, INDEX_COMPLEX_HERM)] *= (fftwf_complex)(3.0 * (sinf(kR)/powf(kR, 3) - cosf(kR)/powf(kR, 2)));
             break;
 
           case 1:   // k-space top hat
             kR *= 0.413566994; // Equates integrated volume to the real space top-hat (9pi/2)^(-1/3)
             if (kR > 1)
-              box[grid_index(n_x, n_y, n_z, ReionGridDim, INDEX_COMPLEX_HERM)] = (fftwf_complex)0.0;
+              box[grid_index(n_x, n_y, n_z, grid_dim, INDEX_COMPLEX_HERM)] = (fftwf_complex)0.0;
             break;
         
           case 2:   // Gaussian
             kR *= 0.643;   // Equates integrated volume to the real space top-hat
-            box[grid_index(n_x, n_y, n_z, ReionGridDim, INDEX_COMPLEX_HERM)] *= (fftwf_complex)(powf(M_E, -kR*kR/2.0));
+            box[grid_index(n_x, n_y, n_z, grid_dim, INDEX_COMPLEX_HERM)] *= (fftwf_complex)(powf(M_E, -kR*kR/2.0));
             break;
 
           default:
