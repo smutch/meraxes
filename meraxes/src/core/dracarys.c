@@ -483,6 +483,9 @@ void dracarys()
 #ifdef DEBUG
     check_pointers(halo, fof_group, &trees_info);
 #endif
+    
+    if (run_globals.params.FlagMCMC)
+      meraxes_mcmc_likelihood(snapshot);
 
     SID_log("...done", SID_LOG_CLOSE);
   }

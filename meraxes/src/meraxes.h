@@ -669,6 +669,11 @@ void   save_reion_output_grids(int snapshot);
 bool   check_if_reionization_complete();
 void   write_single_grid(const char *fname, float *grid, const char *grid_name, bool padded_flag, bool create_file_flag);
 
+
+// MCMC related
+// meraxes_mcmc_likelihood must be implemented by the calling code!
+int (*meraxes_mcmc_likelihood)(int snapshot);
+
 #ifdef DEBUG
 int  debug(const char * restrict format, ...);
 void check_pointers(halo_t *halos, fof_group_t *fof_groups, trees_info_t *trees_info);
