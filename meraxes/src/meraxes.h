@@ -524,6 +524,7 @@ typedef struct run_globals_t {
   halo_t            **SnapshotHalo;
   fof_group_t       **SnapshotFOFGroup;
   int               **SnapshotIndexLookup;
+  float             **SnapshotDeltax;
   trees_info_t       *SnapshotTreesInfo;
   phototabs_t        *photo;
   struct galaxy_t    *FirstGal;
@@ -656,14 +657,16 @@ int    map_galaxies_to_slabs(int ngals);
 void   assign_Mvir_crit_to_galaxies(int ngals_in_slabs);
 void   construct_baryon_grids(int snapshot, int ngals);
 // void    assign_ionization_to_halos(halo_t *halo, int n_halos, float *xH_grid, int xH_dim);
-int  read_dm_grid(int snapshot, int i_grid, float *grid);
-void calculate_Mvir_crit(double redshift);
-void call_find_HII_bubbles(int snapshot, int unsampled_snapshot, int nout_gals);
-void create_grids_file();
-void save_reion_input_grids(int snapshot);
-void save_reion_output_grids(int snapshot);
-bool check_if_reionization_complete();
-void write_single_grid(const char *fname, float *grid, const char *grid_name, bool padded_flag, bool create_file_flag);
+int    read_dm_grid(int snapshot, int i_grid, float *grid);
+void   free_grids_cache();
+void   calculate_Mvir_crit(double redshift);
+void   call_find_HII_bubbles(int snapshot, int unsampled_snapshot, int nout_gals);
+void   create_grids_file();
+void   gen_grids_fname(char *name);
+void   save_reion_input_grids(int snapshot);
+void   save_reion_output_grids(int snapshot);
+bool   check_if_reionization_complete();
+void   write_single_grid(const char *fname, float *grid, const char *grid_name, bool padded_flag, bool create_file_flag);
 
 #ifdef DEBUG
 int  debug(const char * restrict format, ...);

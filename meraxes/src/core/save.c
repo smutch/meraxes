@@ -490,11 +490,11 @@ void prep_hdf5_file()
 
 void create_grids_file()
 {
-  if(SID.My_rank == 0)
+  if((SID.My_rank == 0) && run_globals.params.PatchyReionFlag)
   {
     // create a new file
     char fname[STRLEN];
-    sprintf(fname, "%s/%s_grids.hdf5", run_globals.params.OutputDir, run_globals.params.FileNameGalaxies);
+    gen_grids_fname(fname);
     if (access(fname, F_OK) != -1)
       remove(fname);
     hid_t file_id = H5Fcreate(fname, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);

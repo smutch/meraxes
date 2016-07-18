@@ -358,5 +358,11 @@ void init_meraxes()
 
   malloc_reionization_grids();
   set_ReionEfficiency();
+
+  // create the grids file if required
+  create_grids_file();
+
+  // calculate the output hdf5 file properties for later use
+  calc_hdf5_props();
 }
 
