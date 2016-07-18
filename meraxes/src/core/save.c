@@ -490,7 +490,7 @@ void prep_hdf5_file()
 
 void create_grids_file()
 {
-  if(SID.My_rank == 0)
+  if((SID.My_rank == 0) && run_globals.params.PatchyReionFlag)
   {
     // create a new file
     char fname[STRLEN];

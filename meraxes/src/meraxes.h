@@ -662,6 +662,7 @@ void   free_grids_cache();
 void   calculate_Mvir_crit(double redshift);
 void   call_find_HII_bubbles(int snapshot, int unsampled_snapshot, int nout_gals);
 void   create_grids_file();
+void   gen_grids_fname(char *name);
 void   save_reion_input_grids(int snapshot);
 void   save_reion_output_grids(int snapshot);
 bool   check_if_reionization_complete();

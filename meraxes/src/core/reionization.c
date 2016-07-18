@@ -583,6 +583,11 @@ static void write_grid_float(const char *name, float *data, hid_t file_id, hid_t
   H5Dclose(dset_id);
 }
 
+void gen_grids_fname(char *name)
+{
+  sprintf(name, "%s/%s_grids.hdf5", run_globals.params.OutputDir, run_globals.params.FileNameGalaxies);
+}
+
 
 void save_reion_input_grids(int snapshot)
 {
@@ -595,7 +600,7 @@ void save_reion_input_grids(int snapshot)
   SID_log("Saving tocf input grids...", SID_LOG_OPEN);
 
   char name[STRLEN];
-  sprintf(name, "%s/%s_grids.hdf5", run_globals.params.OutputDir, run_globals.params.FileNameGalaxies);
+  gen_grids_fname(name);
 
   // open the file (in parallel)
   hid_t plist_id = H5Pcreate(H5P_FILE_ACCESS);

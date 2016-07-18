@@ -286,11 +286,14 @@ int read_dm_grid(
 
 void free_grids_cache()
 {
-  float **snapshot_deltax = run_globals.SnapshotDeltax;
+  if (run_globals.params.PatchyReionFlag)
+  {
+    float **snapshot_deltax = run_globals.SnapshotDeltax;
 
-  if (run_globals.params.FlagInteractive)
-    for(int ii=0; ii < run_globals.NStoreSnapshots; ii++)
-      fftwf_free(snapshot_deltax[ii]);
+    if (run_globals.params.FlagInteractive)
+      for(int ii=0; ii < run_globals.NStoreSnapshots; ii++)
+        fftwf_free(snapshot_deltax[ii]);
 
-  SID_free(SID_FARG snapshot_deltax);
+    SID_free(SID_FARG snapshot_deltax);
+  }
 }

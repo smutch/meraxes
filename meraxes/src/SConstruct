@@ -146,7 +146,12 @@ Help(vars.GenerateHelpText(env))
 
 # Define the command for building a tags file
 tagsources = Glob("*.[ch]")
-ctags = env.Command('ctags', tagsources, "ctags -R --c++-kinds=+p --fields=+iaS --extra=+q")
+tagsclean = AlwaysBuild(env.Command('tagsclean', None, 'rm -vf tags'))
+ctags = env.Command('ctags', [tagsources, tagsclean], "ctags -R --c++-kinds=+p --fields=+iaS --extra=+q")
+
+# Command for build cscope database
+csclean = AlwaysBuild(env.Command('csclean', None, 'rm -vf cscope.out'))
+AlwaysBuild(env.Alias('cscope', Command('cscope.out', csclean, 'cscope -bRv')))
 
 # If the user requested help don't bother continuing with the build.
 if not GetOption('help'):
