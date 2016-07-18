@@ -8,16 +8,18 @@ void cleanup()
 {
   SID_log("Running cleanup...", SID_LOG_OPEN);
 
-  free_halo_storage(run_globals);
+  free_grids_cache();
 
-  cleanup_mags(run_globals);
+  free_halo_storage();
+
+  cleanup_mags();
 
   if (run_globals.RequestedForestId)
     SID_free(SID_FARG run_globals.RequestedForestId);
 
   if (run_globals.params.PatchyReionFlag)
   {
-    free_reionization_grids(run_globals);
+    free_reionization_grids();
     fftwf_mpi_cleanup();
   }
 

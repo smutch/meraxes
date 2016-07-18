@@ -33,12 +33,48 @@ static inline void read_identifier(FILE *fin, bool skip_flag)
 }
 
 
+static int load_cached_deltax_slab(float *slab, int snapshot)
+{
+  if (run_globals.SnapshotDeltax[snapshot] != NULL)
+  {
+    ptrdiff_t slab_n_complex = run_globals.reion_grids.slab_n_complex[SID.My_rank];
+    memcpy(slab, run_globals.SnapshotDeltax[snapshot], sizeof(float) * slab_n_complex * 2);
+    return 0;
+  }
+  else
+    return 1;
+}
+
+
+static int cache_deltax_slab(float *slab, int snapshot)
+{
+  if (run_globals.SnapshotDeltax[snapshot] == NULL)
+  {
+    float **cache = &run_globals.SnapshotDeltax[snapshot];
+    ptrdiff_t slab_n_complex = run_globals.reion_grids.slab_n_complex[SID.My_rank];
+    ptrdiff_t mem_size = sizeof(float) * slab_n_complex * 2;
+
+    *cache = fftwf_alloc_real(mem_size);
+    memcpy(*cache, slab, mem_size);
+    return 0;
+  }
+  else
+    return 1;
+}
+
+
 int read_dm_grid(
     int            snapshot,
     int            i_grid,
     float         *slab)
 {
   // N.B. We assume in this function that the slab has the fftw3 inplace complex dft padding.
+
+  run_params_t *params = &(run_globals.params);
+
+  // Have we read this slab before?
+  if (params->FlagInteractive && !load_cached_deltax_slab(slab, snapshot))
+    return 0;
 
   char       fname[512];
   int        n_cell[3];
@@ -47,9 +83,6 @@ int read_dm_grid(
   int        ma_scheme;
   long       start_foffset;
   int        ReionGridDim  = run_globals.params.ReionGridDim;
-
-
-  run_params_t *params = &(run_globals.params);
 
   // Construct the input filename
   sprintf(fname, "%s/grids/snapshot_%03d_dark_grid.dat", params->SimulationDir, snapshot);
@@ -234,10 +267,13 @@ int read_dm_grid(
           float *val = &(slab[grid_index(ii, jj, kk, ReionGridDim, INDEX_PADDED)]);
           *val = (float)(((double)*val / mean) - 1.);
         }
-
   }
 
   fftwf_free(slab_file);
+
+  // Do we need to cache this slab?
+  if (params->FlagInteractive)
+    cache_deltax_slab(slab, snapshot);
 
   SID_log("...done", SID_LOG_CLOSE);
 
@@ -245,4 +281,16 @@ int read_dm_grid(
   // write_single_grid("output/debug.h5", slab, "deltax", true, true);
 
   return 0;
+}
+
+
+void free_grids_cache()
+{
+  float **snapshot_deltax = run_globals.SnapshotDeltax;
+
+  if (run_globals.params.FlagInteractive)
+    for(int ii=0; ii < run_globals.NStoreSnapshots; ii++)
+      fftwf_free(snapshot_deltax[ii]);
+
+  SID_free(SID_FARG snapshot_deltax);
 }

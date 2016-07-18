@@ -123,6 +123,9 @@ void malloc_reionization_grids()
 
   reion_grids_t *grids = &(run_globals.reion_grids);
 
+  // run_globals.NStoreSnapshots is set in `initialize_halo_storage`
+  run_globals.SnapshotDeltax = (float **)SID_calloc(sizeof(float *) * run_globals.NStoreSnapshots);
+
   grids->galaxy_to_slab_map = NULL;
 
   grids->xH                 = NULL;
