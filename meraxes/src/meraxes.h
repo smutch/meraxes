@@ -209,7 +209,7 @@ typedef struct run_params_t {
   int              FlagGenDumpFile;
   int              FlagReadDumpFile;
   int              FlagMCMC;
-  int              PatchyReionFlag;
+  int              FlagPatchyReion;
 } run_params_t;
 
 
