@@ -30,6 +30,7 @@ FlagInteractive        : 0
 FlagGenDumpFile        : 0  # DON'T USE THIS WITHOUT TALKING TO SM FIRST
 FlagReadDumpFile       : 0  # DON'T USE THIS WITHOUT TALKING TO SM FIRST
 FlagSubhaloVirialProps : 0  # 0 -> approximate subhalo virial props using particle number; 1 -> use catalogue values
+FlagMCMC               : 0  # Don't do any writing and activate MCMC related routines
 RandomSeed             : 1809  # seed for random number generator
 
 #------------------------------------------
