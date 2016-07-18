@@ -677,7 +677,7 @@ void save_reion_output_grids(int snapshot)
   SID_log("Saving tocf output grids...", SID_LOG_OPEN);
 
   char name[STRLEN];
-  sprintf(name, "%s/%s_grids.hdf5", run_globals.params.OutputDir, run_globals.params.FileNameGalaxies);
+  gen_grids_fname(name);
 
   // open the file (in parallel)
   hid_t plist_id = H5Pcreate(H5P_FILE_ACCESS);
