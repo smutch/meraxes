@@ -218,14 +218,15 @@ if not GetOption('help'):
 
     node_list.remove("core/meraxes.c")
     lib = env.StaticLibrary(target='../lib/meraxes', source=node_list)
+    dynlib = env.SharedLibrary(target='../lib/meraxes', source=node_list)
     incl = env.CopyFiles(files('*.h'), '../include')
     defs = env.PrependUserDefines("../include/meraxes.h")
     Depends(incl, git_header)
     Depends(defs, incl)
     Depends(lib, incl)
+    Depends(dynlib, incl)
     env.Alias('lib', lib)
-
-    # SConscript('tests/SConscript', exports='env lib deps compile_against PhonyTarget')
+    env.Alias('dynlib', dynlib)
 
     # If you create a my_SConscript file then you can put your own custom
     # targets etc. in there...
