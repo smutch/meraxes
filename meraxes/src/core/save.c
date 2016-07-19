@@ -473,8 +473,6 @@ void calc_hdf5_props()
 void prep_hdf5_file()
 {
   hid_t file_id;
-  hid_t ds_id;
-  hsize_t dims = 1;
 
   // create a new file
   if (access(run_globals.FNameOut, F_OK) != -1)
@@ -482,12 +480,9 @@ void prep_hdf5_file()
   file_id = H5Fcreate(run_globals.FNameOut, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
 
   // store the file number and total number of cores
-  ds_id = H5Screate_simple(1, &dims, NULL);
-  h5_write_attribute(file_id, "iCore", H5T_NATIVE_INT, ds_id, &(SID.My_rank));
-  h5_write_attribute(file_id, "NCores", H5T_NATIVE_INT, ds_id, &(SID.n_proc));
+  H5LTset_attribute_int(file_id, "/", "NCores", &(SID.My_rank), 1);
 
   // close the file
-  H5Sclose(ds_id);
   H5Fclose(file_id);
 }
 
@@ -509,8 +504,7 @@ void create_grids_file()
 
 void create_master_file()
 {
-  hid_t file_id, ds_id, group_id, prop_t;
-  hsize_t dims = 1;
+  hid_t file_id, group_id;
   char fname[STRLEN];
   hdf5_output_t *h5props = &(run_globals.hdf5props);
   char **params_tag = h5props->params_tag;
@@ -526,9 +520,6 @@ void create_master_file()
     remove(fname);
   file_id = H5Fcreate(fname, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
 
-  // Set up reusable dataspaces and types
-  ds_id = H5Screate_simple(1, &dims, NULL);
-
   // Open the group
   group_id = H5Gcreate(file_id, "InputParams", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
 
@@ -538,19 +529,21 @@ void create_master_file()
     switch (params_type[ii])
     {
       case PARAM_TYPE_STRING:
-        prop_t = H5T_C_S1;
+        H5LTset_attribute_string(group_id, "/", params_tag[ii], params_addr[ii]);
         break;
       case PARAM_TYPE_INT:
-        prop_t = H5T_NATIVE_INT;
+        H5LTset_attribute_int(group_id, "/", params_tag[ii], params_addr[ii], 1);
         break;
       case PARAM_TYPE_DOUBLE:
-        prop_t = H5T_NATIVE_DOUBLE;
+        H5LTset_attribute_double(group_id, "/", params_tag[ii], params_addr[ii], 1);
         break;
       case PARAM_TYPE_FLOAT:
-        prop_t = H5T_NATIVE_FLOAT;
+        H5LTset_attribute_float(group_id, "/", params_tag[ii], params_addr[ii], 1);
+        break;
+      default:
+        ABORT(EXIT_FAILURE);
         break;
     }
-    h5_write_attribute(group_id, params_tag[ii], prop_t, ds_id, params_addr[ii]);
   }
 
   // Close the group
@@ -559,36 +552,36 @@ void create_master_file()
   // save the units of each galaxy property and grid
   group_id = H5Gcreate(file_id, "Units", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
   for (int ii = 0; ii < h5props->n_props; ii++)
-    h5_write_attribute(group_id, h5props->field_names[ii], H5T_C_S1, ds_id, h5props->field_units[ii]);
+    H5LTset_attribute_string(group_id, "/", h5props->field_names[ii], h5props->field_units[ii]);
   H5Gclose(group_id);
 
   group_id = H5Gcreate(file_id, "HubbleConversions", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
   for (int ii = 0; ii < h5props->n_props; ii++)
-    h5_write_attribute(group_id, h5props->field_names[ii], H5T_C_S1, ds_id, h5props->field_h_conv[ii]);
+    H5LTset_attribute_string(group_id, "/", h5props->field_names[ii], h5props->field_h_conv[ii]);
   H5Gclose(group_id);
 
   if (run_globals.params.FlagPatchyReion)
   {
     group_id = H5Gcreate(file_id, "Units/Grids", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
-    h5_write_attribute(group_id, "xH", H5T_C_S1, ds_id, "None");
-    h5_write_attribute(group_id, "J_21", H5T_C_S1, ds_id, "10e-21 erg/s/Hz/cm/cm/sr");
-    h5_write_attribute(group_id, "J_21_at_ionization", H5T_C_S1, ds_id, "10e-21 erg/s/Hz/cm/cm/sr");
-    h5_write_attribute(group_id, "z_at_ionization", H5T_C_S1, ds_id, "None");
-    h5_write_attribute(group_id, "Mvir_crit", H5T_C_S1, ds_id, "1e10 solMass");
-    h5_write_attribute(group_id, "StellarMass", H5T_C_S1, ds_id, "1e10 solMass");
-    h5_write_attribute(group_id, "Sfr", H5T_C_S1, ds_id, "solMass/yr");
-    h5_write_attribute(group_id, "deltax", H5T_C_S1, ds_id, "None");
+    H5LTset_attribute_string(group_id, "/", "xH", "None");
+    H5LTset_attribute_string(group_id, "/", "J_21", "10e-21 erg/s/Hz/cm/cm/sr");
+    H5LTset_attribute_string(group_id, "/", "J_21_at_ionization", "10e-21 erg/s/Hz/cm/cm/sr");
+    H5LTset_attribute_string(group_id, "/", "z_at_ionization", "None");
+    H5LTset_attribute_string(group_id, "/", "Mvir_crit", "1e10 solMass");
+    H5LTset_attribute_string(group_id, "/", "StellarMass", "1e10 solMass");
+    H5LTset_attribute_string(group_id, "/", "Sfr", "solMass/yr");
+    H5LTset_attribute_string(group_id, "/", "deltax", "None");
     H5Gclose(group_id);
 
     group_id = H5Gcreate(file_id, "HubbleConversions/Grids", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
-    h5_write_attribute(group_id, "xH", H5T_C_S1, ds_id, "None");
-    h5_write_attribute(group_id, "J_21", H5T_C_S1, ds_id, "v*(h**2)");
-    h5_write_attribute(group_id, "J_21_at_ionization", H5T_C_S1, ds_id, "v*(h**2)");
-    h5_write_attribute(group_id, "z_at_ionization", H5T_C_S1, ds_id, "None");
-    h5_write_attribute(group_id, "Mvir_crit", H5T_C_S1, ds_id, "v/h");
-    h5_write_attribute(group_id, "StellarMass", H5T_C_S1, ds_id, "v/h");
-    h5_write_attribute(group_id, "Sfr", H5T_C_S1, ds_id, "None");
-    h5_write_attribute(group_id, "deltax", H5T_C_S1, ds_id, "None");
+    H5LTset_attribute_string(group_id, "/", "xH", "None");
+    H5LTset_attribute_string(group_id, "/", "J_21", "v*(h**2)");
+    H5LTset_attribute_string(group_id, "/", "J_21_at_ionization", "v*(h**2)");
+    H5LTset_attribute_string(group_id, "/", "z_at_ionization", "None");
+    H5LTset_attribute_string(group_id, "/", "Mvir_crit", "v/h");
+    H5LTset_attribute_string(group_id, "/", "StellarMass", "v/h");
+    H5LTset_attribute_string(group_id, "/", "Sfr", "None");
+    H5LTset_attribute_string(group_id, "/", "deltax", "None");
     H5Gclose(group_id);
   }
 
@@ -600,7 +593,7 @@ void create_master_file()
 #endif
 
   // save the number of cores used in this run
-  h5_write_attribute(file_id, "NCores", H5T_NATIVE_INT, ds_id, &(SID.n_proc));
+  H5LTset_attribute_int(file_id, "/", "NCores", &(SID.n_proc), 1);
 
 
   char target_group[50];
@@ -697,22 +690,20 @@ void create_master_file()
     }
 
     // save the total number of galaxies at this snapshot
-    h5_write_attribute(snap_group_id, "NGalaxies", H5T_NATIVE_INT, ds_id, &snap_n_gals);
+    H5LTset_attribute_int(snap_group_id, "/", "NGalaxies", &snap_n_gals, 1);
 
     // Save a few useful attributes
-    h5_write_attribute(snap_group_id, "Redshift", H5T_NATIVE_DOUBLE, ds_id, &(run_globals.ZZ[run_globals.ListOutputSnaps[i_out]]));
-    h5_write_attribute(snap_group_id, "UnsampledSnapshot", H5T_NATIVE_INT, ds_id, &unsampled_snapshot);
+    H5LTset_attribute_double(snap_group_id, "/", "Redshift", &(run_globals.ZZ[run_globals.ListOutputSnaps[i_out]]), 1);
+    H5LTset_attribute_int(snap_group_id, "/", "UnsampledSnapshot", &unsampled_snapshot, 1);
 
     temp = run_globals.LTTime[run_globals.ListOutputSnaps[i_out]] * run_globals.units.UnitLength_in_cm / run_globals.units.UnitVelocity_in_cm_per_s / SEC_PER_MEGAYEAR;
-    h5_write_attribute(snap_group_id, "LTTime", H5T_NATIVE_DOUBLE, ds_id, &temp);
+    H5LTset_attribute_double(snap_group_id, "/", "LTTime", &temp, 1);
 
     H5Gclose(snap_group_id);
   }
 
   // Close the HDF5 file.
   H5Fclose(file_id);
-
-  H5Sclose(ds_id);
 
   SID_log(" ...done", SID_LOG_CLOSE);
 }
