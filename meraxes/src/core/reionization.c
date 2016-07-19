@@ -583,9 +583,9 @@ static void write_grid_float(const char *name, float *data, hid_t file_id, hid_t
   H5Dclose(dset_id);
 }
 
-void gen_grids_fname(char *name)
+void gen_grids_fname(int snapshot, char *name)
 {
-  sprintf(name, "%s/%s_grids.hdf5", run_globals.params.OutputDir, run_globals.params.FileNameGalaxies);
+  sprintf(name, "%s/%s_grids_%d.hdf5", run_globals.params.OutputDir, run_globals.params.FileNameGalaxies, snapshot);
 }
 
 
@@ -600,17 +600,13 @@ void save_reion_input_grids(int snapshot)
   SID_log("Saving tocf input grids...", SID_LOG_OPEN);
 
   char name[STRLEN];
-  gen_grids_fname(name);
+  gen_grids_fname(snapshot, name);
 
-  // open the file (in parallel)
+  // create the file (in parallel)
   hid_t plist_id = H5Pcreate(H5P_FILE_ACCESS);
   H5Pset_fapl_mpio(plist_id, SID_COMM_WORLD, MPI_INFO_NULL);
-  hid_t file_id = H5Fopen(name, H5F_ACC_RDWR, plist_id);
+  hid_t file_id = H5Fcreate(name, H5F_ACC_TRUNC, H5P_DEFAULT, plist_id);
   H5Pclose(plist_id);
-
-  // create the group
-  sprintf(name, "Snap%03d", snapshot);
-  hid_t group_id = H5Gcreate(file_id, name, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
 
   // create the filespace
   hsize_t dims[3] = {ReionGridDim, ReionGridDim, ReionGridDim};
@@ -632,13 +628,13 @@ void save_reion_input_grids(int snapshot)
     for (int jj = 0; jj < ReionGridDim; jj++)
       for (int kk = 0; kk < ReionGridDim; kk++)
         grid[grid_index(ii, jj, kk, ReionGridDim, INDEX_REAL)] = (grids->deltax)[grid_index(ii, jj, kk, ReionGridDim, INDEX_PADDED)];
-  write_grid_float("deltax", grid, group_id, fspace_id, memspace_id);
+  write_grid_float("deltax", grid, file_id, fspace_id, memspace_id);
 
   for (int ii = 0; ii < local_nix; ii++)
     for (int jj = 0; jj < ReionGridDim; jj++)
       for (int kk = 0; kk < ReionGridDim; kk++)
         grid[grid_index(ii, jj, kk, ReionGridDim, INDEX_REAL)] = (grids->stars)[grid_index(ii, jj, kk, ReionGridDim, INDEX_PADDED)];
-  write_grid_float("stars", grid, group_id, fspace_id, memspace_id);
+  write_grid_float("stars", grid, file_id, fspace_id, memspace_id);
 
   for (int ii = 0; ii < local_nix; ii++)
     for (int jj = 0; jj < ReionGridDim; jj++)
@@ -646,13 +642,12 @@ void save_reion_input_grids(int snapshot)
         grid[grid_index(ii, jj, kk, ReionGridDim, INDEX_REAL)] = (grids->sfr)[grid_index(ii, jj, kk, ReionGridDim, INDEX_PADDED)] \
                                                                  * UnitMass_in_g / UnitTime_in_s \
                                                                  * SEC_PER_YEAR / SOLAR_MASS;
-  write_grid_float("sfr", grid, group_id, fspace_id, memspace_id);
+  write_grid_float("sfr", grid, file_id, fspace_id, memspace_id);
 
   // tidy up
   SID_free(SID_FARG grid);
   H5Sclose(memspace_id);
   H5Sclose(fspace_id);
-  H5Gclose(group_id);
   H5Fclose(file_id);
 
   SID_log("...done", SID_LOG_CLOSE);
@@ -677,17 +672,13 @@ void save_reion_output_grids(int snapshot)
   SID_log("Saving tocf output grids...", SID_LOG_OPEN);
 
   char name[STRLEN];
-  gen_grids_fname(name);
+  gen_grids_fname(snapshot, name);
 
   // open the file (in parallel)
   hid_t plist_id = H5Pcreate(H5P_FILE_ACCESS);
   H5Pset_fapl_mpio(plist_id, SID_COMM_WORLD, MPI_INFO_NULL);
   hid_t file_id = H5Fopen(name, H5F_ACC_RDWR, plist_id);
   H5Pclose(plist_id);
-
-  // open the group
-  sprintf(name, "Snap%03d", snapshot);
-  hid_t group_id = H5Gopen(file_id, name, H5P_DEFAULT);
 
   // create the filespace
   hsize_t dims[3] = {ReionGridDim, ReionGridDim, ReionGridDim};
@@ -703,17 +694,17 @@ void save_reion_output_grids(int snapshot)
   H5Sselect_hyperslab(fspace_id, H5S_SELECT_SET, start, NULL, count, NULL);
 
   // create and write the datasets
-  write_grid_float("xH", grids->xH, group_id, fspace_id, memspace_id);
-  write_grid_float("z_at_ionization", grids->z_at_ionization, group_id, fspace_id, memspace_id);
+  write_grid_float("xH", grids->xH, file_id, fspace_id, memspace_id);
+  write_grid_float("z_at_ionization", grids->z_at_ionization, file_id, fspace_id, memspace_id);
 
   if (run_globals.params.ReionUVBFlag)
   {
-    write_grid_float("J_21", grids->J_21, group_id, fspace_id, memspace_id);
-    write_grid_float("J_21_at_ionization", grids->J_21_at_ionization, group_id, fspace_id, memspace_id);
-    write_grid_float("Mvir_crit", grids->Mvir_crit, group_id, fspace_id, memspace_id);
+    write_grid_float("J_21", grids->J_21, file_id, fspace_id, memspace_id);
+    write_grid_float("J_21_at_ionization", grids->J_21_at_ionization, file_id, fspace_id, memspace_id);
+    write_grid_float("Mvir_crit", grids->Mvir_crit, file_id, fspace_id, memspace_id);
   }
 
-  H5LTset_attribute_double(group_id, "xH", "global_xH", &(grids->global_xH), 1);
+  H5LTset_attribute_double(file_id, "xH", "global_xH", &(grids->global_xH), 1);
 
   // // Run delta_T_ps
   // // ----------------------------------------------------------------------------------------------------
@@ -746,7 +737,6 @@ void save_reion_output_grids(int snapshot)
   // tidy up
   H5Sclose(memspace_id);
   H5Sclose(fspace_id);
-  H5Gclose(group_id);
   H5Fclose(file_id);
 
   SID_log("...done", SID_LOG_CLOSE);   // Saving tocf grids

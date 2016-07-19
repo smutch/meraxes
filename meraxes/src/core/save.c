@@ -7,41 +7,6 @@
 #include "parse_paramfile.h"
 #include "git.h"
 
-static void inline h5_write_attribute(hid_t loc, const char *name, hid_t datatype, hid_t dataset_id, const void *data)
-{
-  herr_t status;
-  hid_t attr_id;
-  bool writing_string = false;
-
-  if (datatype == H5T_C_S1)
-  {
-    int str_len = strlen((char *)data);
-    if (str_len <=0)
-      str_len = 1;
-    datatype = H5Tcopy(H5T_C_S1);
-    H5Tset_size(datatype, str_len);
-    writing_string = true;
-  }
-
-  attr_id = H5Acreate(loc, name, datatype, dataset_id, H5P_DEFAULT, H5P_DEFAULT);
-  status  = H5Awrite(attr_id, datatype, data);
-  if (status < 0)
-  {
-    SID_log("Error writing attribute '%s'", SID_LOG_COMMENT, name);
-    ABORT(EXIT_FAILURE);
-  }
-  status = H5Aclose(attr_id);
-  if (status < 0)
-  {
-    SID_log("Error closing attribute '%s'", SID_LOG_COMMENT, name);
-    ABORT(EXIT_FAILURE);
-  }
-
-  if (writing_string)
-    H5Tclose(datatype);
-}
-
-
 float current_mwmsa(galaxy_t *gal, int i_snap)
 {
   double *LTTime = run_globals.LTTime;
@@ -480,27 +445,13 @@ void prep_hdf5_file()
   file_id = H5Fcreate(run_globals.FNameOut, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
 
   // store the file number and total number of cores
-  H5LTset_attribute_int(file_id, "/", "NCores", &(SID.My_rank), 1);
+  H5LTset_attribute_int(file_id, "/", "iCore", &(SID.My_rank), 1);
+  H5LTset_attribute_int(file_id, "/", "NCores", &(SID.n_proc), 1);
 
   // close the file
   H5Fclose(file_id);
 }
 
-void create_grids_file()
-{
-  if((SID.My_rank == 0) && run_globals.params.FlagPatchyReion &! run_globals.params.FlagMCMC)
-  {
-    // create a new file
-    char fname[STRLEN];
-    gen_grids_fname(fname);
-    if (access(fname, F_OK) != -1)
-      remove(fname);
-    hid_t file_id = H5Fcreate(fname, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
-
-    // close the file
-    H5Fclose(file_id);
-  }
-}
 
 void create_master_file()
 {
@@ -521,68 +472,85 @@ void create_master_file()
   file_id = H5Fcreate(fname, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
 
   // Open the group
-  group_id = H5Gcreate(file_id, "InputParams", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
-
-  // Save all of the input params
-  for (int ii = 0; (ii < params_count) && (params_type[ii] != PARAM_TYPE_UNUSED); ii++)
   {
-    switch (params_type[ii])
+    const char *group_name = {"InputParams"};
+    group_id = H5Gcreate(file_id, group_name, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+
+    // Save all of the input params
+    for (int ii = 0; (ii < params_count) && (params_type[ii] != PARAM_TYPE_UNUSED); ii++)
     {
-      case PARAM_TYPE_STRING:
-        H5LTset_attribute_string(group_id, "/", params_tag[ii], params_addr[ii]);
-        break;
-      case PARAM_TYPE_INT:
-        H5LTset_attribute_int(group_id, "/", params_tag[ii], params_addr[ii], 1);
-        break;
-      case PARAM_TYPE_DOUBLE:
-        H5LTset_attribute_double(group_id, "/", params_tag[ii], params_addr[ii], 1);
-        break;
-      case PARAM_TYPE_FLOAT:
-        H5LTset_attribute_float(group_id, "/", params_tag[ii], params_addr[ii], 1);
-        break;
-      default:
-        ABORT(EXIT_FAILURE);
-        break;
+      switch (params_type[ii])
+      {
+        case PARAM_TYPE_STRING:
+          H5LTset_attribute_string(file_id, group_name, params_tag[ii], params_addr[ii]);
+          break;
+        case PARAM_TYPE_INT:
+          H5LTset_attribute_int(file_id, group_name, params_tag[ii], params_addr[ii], 1);
+          break;
+        case PARAM_TYPE_DOUBLE:
+          H5LTset_attribute_double(file_id, group_name, params_tag[ii], params_addr[ii], 1);
+          break;
+        case PARAM_TYPE_FLOAT:
+          H5LTset_attribute_float(file_id, group_name, params_tag[ii], params_addr[ii], 1);
+          break;
+        case PARAM_TYPE_LONGLONG:
+          H5LTset_attribute_long_long(file_id, group_name, params_tag[ii], params_addr[ii], 1);
+          break;
+        default:
+          ABORT(EXIT_FAILURE);
+          break;
+      }
+    }
+
+    // Close the group
+    H5Gclose(group_id);
+  }
+
+  // save the units of each galaxy property and grid
+  {
+    const char *group_name[2] = {"Units", "HubbleConversions"};
+    for(int ii=0; ii<2; ii++)
+    {
+      group_id = H5Gcreate(file_id, group_name[ii], H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+      H5Gclose(group_id);
+    }
+
+    for (int ii = 0; ii < h5props->n_props; ii++)
+    {
+      H5LTset_attribute_string(file_id, group_name[0], h5props->field_names[ii], h5props->field_units[ii]);
+      H5LTset_attribute_string(file_id, group_name[1], h5props->field_names[ii], h5props->field_h_conv[ii]);
     }
   }
 
-  // Close the group
-  H5Gclose(group_id);
-
-  // save the units of each galaxy property and grid
-  group_id = H5Gcreate(file_id, "Units", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
-  for (int ii = 0; ii < h5props->n_props; ii++)
-    H5LTset_attribute_string(group_id, "/", h5props->field_names[ii], h5props->field_units[ii]);
-  H5Gclose(group_id);
-
-  group_id = H5Gcreate(file_id, "HubbleConversions", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
-  for (int ii = 0; ii < h5props->n_props; ii++)
-    H5LTset_attribute_string(group_id, "/", h5props->field_names[ii], h5props->field_h_conv[ii]);
-  H5Gclose(group_id);
-
   if (run_globals.params.FlagPatchyReion)
   {
-    group_id = H5Gcreate(file_id, "Units/Grids", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
-    H5LTset_attribute_string(group_id, "/", "xH", "None");
-    H5LTset_attribute_string(group_id, "/", "J_21", "10e-21 erg/s/Hz/cm/cm/sr");
-    H5LTset_attribute_string(group_id, "/", "J_21_at_ionization", "10e-21 erg/s/Hz/cm/cm/sr");
-    H5LTset_attribute_string(group_id, "/", "z_at_ionization", "None");
-    H5LTset_attribute_string(group_id, "/", "Mvir_crit", "1e10 solMass");
-    H5LTset_attribute_string(group_id, "/", "StellarMass", "1e10 solMass");
-    H5LTset_attribute_string(group_id, "/", "Sfr", "solMass/yr");
-    H5LTset_attribute_string(group_id, "/", "deltax", "None");
-    H5Gclose(group_id);
+    {
+      const char *group_name = {"Units/Grids"};
+      group_id = H5Gcreate(file_id, group_name, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+      H5LTset_attribute_string(file_id, group_name, "xH", "None");
+      H5LTset_attribute_string(file_id, group_name, "J_21", "10e-21 erg/s/Hz/cm/cm/sr");
+      H5LTset_attribute_string(file_id, group_name, "J_21_at_ionization", "10e-21 erg/s/Hz/cm/cm/sr");
+      H5LTset_attribute_string(file_id, group_name, "z_at_ionization", "None");
+      H5LTset_attribute_string(file_id, group_name, "Mvir_crit", "1e10 solMass");
+      H5LTset_attribute_string(file_id, group_name, "StellarMass", "1e10 solMass");
+      H5LTset_attribute_string(file_id, group_name, "Sfr", "solMass/yr");
+      H5LTset_attribute_string(file_id, group_name, "deltax", "None");
+      H5Gclose(group_id);
+    }
 
-    group_id = H5Gcreate(file_id, "HubbleConversions/Grids", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
-    H5LTset_attribute_string(group_id, "/", "xH", "None");
-    H5LTset_attribute_string(group_id, "/", "J_21", "v*(h**2)");
-    H5LTset_attribute_string(group_id, "/", "J_21_at_ionization", "v*(h**2)");
-    H5LTset_attribute_string(group_id, "/", "z_at_ionization", "None");
-    H5LTset_attribute_string(group_id, "/", "Mvir_crit", "v/h");
-    H5LTset_attribute_string(group_id, "/", "StellarMass", "v/h");
-    H5LTset_attribute_string(group_id, "/", "Sfr", "None");
-    H5LTset_attribute_string(group_id, "/", "deltax", "None");
-    H5Gclose(group_id);
+    {
+      const char *group_name = {"HubbleConversions/Grids"};
+      group_id = H5Gcreate(file_id, group_name, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+      H5LTset_attribute_string(file_id, group_name, "xH", "None");
+      H5LTset_attribute_string(file_id, group_name, "J_21", "v*(h**2)");
+      H5LTset_attribute_string(file_id, group_name, "J_21_at_ionization", "v*(h**2)");
+      H5LTset_attribute_string(file_id, group_name, "z_at_ionization", "None");
+      H5LTset_attribute_string(file_id, group_name, "Mvir_crit", "v/h");
+      H5LTset_attribute_string(file_id, group_name, "StellarMass", "v/h");
+      H5LTset_attribute_string(file_id, group_name, "Sfr", "None");
+      H5LTset_attribute_string(file_id, group_name, "deltax", "None");
+      H5Gclose(group_id);
+    }
   }
 
 
@@ -599,7 +567,6 @@ void create_master_file()
   char target_group[50];
   char source_ds[50];
   char source_group[50];
-  char target_ds[50];
   char source_file[STRLEN];
   char relative_source_file[50];
   hid_t snap_group_id;
@@ -623,8 +590,7 @@ void create_master_file()
       sprintf(source_file, "%s/%s_%d.hdf5", run_globals.params.OutputDir, run_globals.params.FileNameGalaxies, i_core);
       sprintf(relative_source_file, "%s_%d.hdf5", run_globals.params.FileNameGalaxies, i_core);
       sprintf(source_ds, "Snap%03d/Galaxies", run_globals.ListOutputSnaps[i_out]);
-      sprintf(target_ds, "Galaxies");
-      H5Lcreate_external(relative_source_file, source_ds, group_id, target_ds, H5P_DEFAULT, H5P_DEFAULT);
+      H5Lcreate_external(relative_source_file, source_ds, group_id, "Galaxies", H5P_DEFAULT, H5P_DEFAULT);
 
       source_file_id = H5Fopen(source_file, H5F_ACC_RDONLY, H5P_DEFAULT);
       H5TBget_table_info(source_file_id, source_ds, NULL, &core_n_gals);
@@ -639,20 +605,17 @@ void create_master_file()
       if (H5LTfind_dataset(source_group_id, "FirstProgenitorIndices"))
       {
         sprintf(source_ds, "Snap%03d/FirstProgenitorIndices", run_globals.ListOutputSnaps[i_out]);
-        sprintf(target_ds, "FirstProgenitorIndices");
-        H5Lcreate_external(relative_source_file, source_ds, group_id, target_ds, H5P_DEFAULT, H5P_DEFAULT);
+        H5Lcreate_external(relative_source_file, source_ds, group_id, "FirstProgenitorIndices", H5P_DEFAULT, H5P_DEFAULT);
       }
       if (H5LTfind_dataset(source_group_id, "NextProgenitorIndices"))
       {
         sprintf(source_ds, "Snap%03d/NextProgenitorIndices", run_globals.ListOutputSnaps[i_out]);
-        sprintf(target_ds, "NextProgenitorIndices");
-        H5Lcreate_external(relative_source_file, source_ds, group_id, target_ds, H5P_DEFAULT, H5P_DEFAULT);
+        H5Lcreate_external(relative_source_file, source_ds, group_id, "NextProgenitorIndices", H5P_DEFAULT, H5P_DEFAULT);
       }
       if (H5LTfind_dataset(source_group_id, "DescendantIndices"))
       {
         sprintf(source_ds, "Snap%03d/DescendantIndices", run_globals.ListOutputSnaps[i_out]);
-        sprintf(target_ds, "DescendantIndices");
-        H5Lcreate_external(relative_source_file, source_ds, group_id, target_ds, H5P_DEFAULT, H5P_DEFAULT);
+        H5Lcreate_external(relative_source_file, source_ds, group_id, "DescendantIndices", H5P_DEFAULT, H5P_DEFAULT);
       }
 
       H5Gclose(source_group_id);
@@ -662,14 +625,10 @@ void create_master_file()
       if((i_core == 0) && (run_globals.params.FlagPatchyReion))
       {
         // create links to the 21cmFAST grids that exist
-        sprintf(source_file, "%s/%s_grids.hdf5", run_globals.params.OutputDir, run_globals.params.FileNameGalaxies);
+        gen_grids_fname(run_globals.ListOutputSnaps[i_out], source_file);
         source_file_id = H5Fopen(source_file, H5F_ACC_RDONLY, H5P_DEFAULT);
-        sprintf(source_group, "Snap%03d", run_globals.ListOutputSnaps[i_out]);
         if ((H5LTpath_valid(source_file_id, source_group, FALSE)))
-        {
-          sprintf(target_group, "Grids");
-          H5Lcreate_external(relative_source_file, source_group, snap_group_id, target_group, H5P_DEFAULT, H5P_DEFAULT);
-        }
+          H5Lcreate_external(relative_source_file, "/", snap_group_id, "Grids", H5P_DEFAULT, H5P_DEFAULT);
 
         // sprintf(source_ds, "Snap%03d/PowerSpectrum", run_globals.ListOutputSnaps[i_out]);
         // if ((H5LTpath_valid(source_file_id, source_ds, FALSE)))
@@ -689,15 +648,17 @@ void create_master_file()
 
     }
 
-    // save the total number of galaxies at this snapshot
-    H5LTset_attribute_int(snap_group_id, "/", "NGalaxies", &snap_n_gals, 1);
-
     // Save a few useful attributes
-    H5LTset_attribute_double(snap_group_id, "/", "Redshift", &(run_globals.ZZ[run_globals.ListOutputSnaps[i_out]]), 1);
-    H5LTset_attribute_int(snap_group_id, "/", "UnsampledSnapshot", &unsampled_snapshot, 1);
+    sprintf(target_group, "Snap%03d", run_globals.ListOutputSnaps[i_out]);
+
+    // save the total number of galaxies at this snapshot
+    H5LTset_attribute_int(file_id, target_group, "NGalaxies", &snap_n_gals, 1);
+
+    H5LTset_attribute_double(file_id, target_group, "Redshift", &(run_globals.ZZ[run_globals.ListOutputSnaps[i_out]]), 1);
+    H5LTset_attribute_int(file_id, target_group, "UnsampledSnapshot", &unsampled_snapshot, 1);
 
     temp = run_globals.LTTime[run_globals.ListOutputSnaps[i_out]] * run_globals.units.UnitLength_in_cm / run_globals.units.UnitVelocity_in_cm_per_s / SEC_PER_MEGAYEAR;
-    H5LTset_attribute_double(snap_group_id, "/", "LTTime", &temp, 1);
+    H5LTset_attribute_double(file_id, target_group, "LTTime", &temp, 1);
 
     H5Gclose(snap_group_id);
   }
@@ -767,12 +728,10 @@ void write_snapshot(
   hdf5_output_t h5props       = run_globals.hdf5props;
   int gal_count               = 0;
   int old_count               = 0;
-  int *descendant_index       = NULL;
   int *first_progenitor_index = NULL;
   int *next_progenitor_index  = NULL;
   int calc_descendants_i_out  = -1;
   int prev_snapshot           = -1;
-  int index                   = -1;
   int write_count             = 0;
 
   SID_log("Writing output file (n_write = %d)...", SID_LOG_OPEN | SID_LOG_TIMER, n_write);
@@ -827,7 +786,7 @@ void write_snapshot(
   if (calc_descendants_i_out > -1)
   {
     // malloc the arrays
-    descendant_index       = SID_malloc(sizeof(int) * (*last_n_write));
+    int *descendant_index       = SID_malloc(sizeof(int) * (*last_n_write));
     next_progenitor_index  = SID_malloc(sizeof(int) * (*last_n_write));
     first_progenitor_index = SID_malloc(sizeof(int) * n_write);
 
@@ -877,7 +836,7 @@ void write_snapshot(
         assert(gal->MergerTarget->output_index < n_write);
         if (gal->MergerTarget->output_index >= 0)
         {
-          index = first_progenitor_index[gal->MergerTarget->output_index];
+          int index = first_progenitor_index[gal->MergerTarget->output_index];
           if (index > -1)
           {
             while (next_progenitor_index[index] > -1)
