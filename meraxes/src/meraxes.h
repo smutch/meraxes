@@ -208,7 +208,8 @@ typedef struct run_params_t {
   int              FlagInteractive;
   int              FlagGenDumpFile;
   int              FlagReadDumpFile;
-  int              PatchyReionFlag;
+  int              FlagMCMC;
+  int              FlagPatchyReion;
 } run_params_t;
 
 
@@ -656,17 +657,21 @@ void   free_reionization_grids();
 int    map_galaxies_to_slabs(int ngals);
 void   assign_Mvir_crit_to_galaxies(int ngals_in_slabs);
 void   construct_baryon_grids(int snapshot, int ngals);
-// void    assign_ionization_to_halos(halo_t *halo, int n_halos, float *xH_grid, int xH_dim);
+void   gen_grids_fname(int snapshot, char *name);
+void   create_grids_file();
 int    read_dm_grid(int snapshot, int i_grid, float *grid);
 void   free_grids_cache();
 void   calculate_Mvir_crit(double redshift);
 void   call_find_HII_bubbles(int snapshot, int unsampled_snapshot, int nout_gals);
-void   create_grids_file();
-void   gen_grids_fname(char *name);
 void   save_reion_input_grids(int snapshot);
 void   save_reion_output_grids(int snapshot);
 bool   check_if_reionization_complete();
 void   write_single_grid(const char *fname, float *grid, const char *grid_name, bool padded_flag, bool create_file_flag);
+
+
+// MCMC related
+// meraxes_mcmc_likelihood must be implemented by the calling code!
+int (*meraxes_mcmc_likelihood)(int snapshot);
 
 #ifdef DEBUG
 int  debug(const char * restrict format, ...);

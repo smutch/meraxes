@@ -89,8 +89,11 @@ void dracarys()
       last_snap = run_globals.ListOutputSnaps[ii];
 
   // Prep the output file
-  sprintf(run_globals.FNameOut, "%s/%s_%d.hdf5", run_globals.params.OutputDir, run_globals.params.FileNameGalaxies, SID.My_rank);
-  prep_hdf5_file(run_globals);
+  if (!run_globals.params.FlagMCMC)
+  {
+    sprintf(run_globals.FNameOut, "%s/%s_%d.hdf5", run_globals.params.OutputDir, run_globals.params.FileNameGalaxies, SID.My_rank);
+    prep_hdf5_file(run_globals);
+  }
 
   // Loop through each snapshot
   for (int snapshot = 0; snapshot <= last_snap; snapshot++)
@@ -124,7 +127,7 @@ void dracarys()
     SID_log("Processing snapshot %d (z = %.2f)...", SID_LOG_OPEN | SID_LOG_TIMER, snapshot, run_globals.ZZ[snapshot]);
 
     // Calculate the critical halo mass for cooling
-    if ((run_globals.params.PatchyReionFlag) && (run_globals.params.ReionUVBFlag))
+    if ((run_globals.params.FlagPatchyReion) && (run_globals.params.ReionUVBFlag))
       calculate_Mvir_crit(run_globals.ZZ[snapshot]);
 
     // Reset the halo pointers and ghost flags for all galaxies and decrement
@@ -395,7 +398,7 @@ void dracarys()
 #endif
 
     int ngals_in_slabs = NGal;
-    if (run_globals.params.PatchyReionFlag)
+    if (run_globals.params.FlagPatchyReion)
     {
       ngals_in_slabs = map_galaxies_to_slabs(NGal);
       if (run_globals.params.ReionUVBFlag)
@@ -412,7 +415,7 @@ void dracarys()
     nout_gals += ghost_counter;
 
 
-    if (run_globals.params.PatchyReionFlag)
+    if (run_globals.params.FlagPatchyReion)
     {
       physics_params_t *params = &(run_globals.params.physics);
 
@@ -461,9 +464,12 @@ void dracarys()
 #endif
 
     // Write the results if this is a requested snapshot
-    for (int i_out = 0; i_out < NOutputSnaps; i_out++)
-      if (snapshot == run_globals.ListOutputSnaps[i_out])
-        write_snapshot(nout_gals, i_out, &last_nout_gals, &trees_info);
+    if (!run_globals.params.FlagMCMC)
+    {
+      for (int i_out = 0; i_out < NOutputSnaps; i_out++)
+        if (snapshot == run_globals.ListOutputSnaps[i_out])
+          write_snapshot(nout_gals, i_out, &last_nout_gals, &trees_info);
+    }
 
     // Update the LastIdentSnap values for non-ghosts
     gal = run_globals.FirstGal;
@@ -477,11 +483,14 @@ void dracarys()
 #ifdef DEBUG
     check_pointers(halo, fof_group, &trees_info);
 #endif
+    
+    if (run_globals.params.FlagMCMC)
+      meraxes_mcmc_likelihood(snapshot);
 
     SID_log("...done", SID_LOG_CLOSE);
   }
 
-  if (run_globals.params.FlagInteractive)
+  if (run_globals.params.FlagInteractive || run_globals.params.FlagMCMC)
   {
     // Tidy up counters and galaxies from this iteration
     NGal           = 0;
@@ -507,7 +516,10 @@ void dracarys()
 
   // Create the master file
   SID_Barrier(SID.COMM_WORLD);
-  if (SID.My_rank == 0)
-    create_master_file();
+  if (!run_globals.params.FlagMCMC)
+  {
+    if (SID.My_rank == 0)
+      create_master_file();
+  }
 }
 

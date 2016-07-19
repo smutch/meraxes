@@ -59,7 +59,6 @@ void continue_prompt(char *param_file)
   while (rerun < 0)
     rerun = prompt_char("Reread input file and rerun model?");
 
-  create_grids_file();
   SID_Barrier(SID.COMM_WORLD);
 
   if (rerun)
