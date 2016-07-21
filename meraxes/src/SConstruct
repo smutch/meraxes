@@ -196,6 +196,7 @@ if not GetOption('help'):
 
     env.AppendUnique(CPPFLAGS = '-std=gnu99')
     env.AppendUnique(CPPPATH = './')
+    env.AppendUnique(SHCCFLAGS = '-rdynamic')
 
     libs = ['gsl', 'hdf5', 'gbpCode', 'fftw']
     compile_against(libs, deps, env)
