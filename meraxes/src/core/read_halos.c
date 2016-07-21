@@ -809,7 +809,7 @@ trees_info_t read_halos(
   int n_requested_forests = run_globals.NRequestedForests;
 
   // if we are doing multiple runs and have already read in this snapshot then we don't need to do read anything else
-  if ((run_globals.params.FlagInteractive) && (snapshot_trees_info[snapshot].n_halos != -1))
+  if ((run_globals.params.FlagInteractive || run_globals.params.FlagMCMC) && (snapshot_trees_info[snapshot].n_halos != -1))
   {
     SID_log("Snapshot %d has alread been read in... (n_halos = %d)", SID_LOG_COMMENT, snapshot, snapshot_trees_info[snapshot].n_halos);
     return snapshot_trees_info[snapshot];
@@ -844,7 +844,7 @@ trees_info_t read_halos(
   if (run_globals.TreesScan == -1)
     run_globals.TreesScan = trees_info.n_search;
 
-  if (run_globals.params.FlagInteractive)
+  if (run_globals.params.FlagInteractive || run_globals.params.FlagMCMC)
   {
     if (n_halos < 1)
     {
@@ -967,7 +967,7 @@ trees_info_t read_halos(
   }
 
   // if we are doing multiple runs then resize the arrays to save space and store the trees_info
-  if (run_globals.params.FlagInteractive || run_globals.params.FlagGenDumpFile)
+  if (run_globals.params.FlagInteractive || run_globals.params.FlagGenDumpFile || run_globals.params.FlagMCMC)
   {
     // Ok - what follows here is hacky as hell.  By calling realloc on these
     // arrays, there is a good chance that the actual array will be moved and
@@ -999,7 +999,7 @@ trees_info_t read_halos(
     for (int ii = 0; ii < n_fof_groups_kept; ii++)
       fof_FirstHalo_os[ii] = (size_t)((*fof_group)[ii].FirstHalo - (*halo));
 
-    if (run_globals.params.FlagInteractive)
+    if (run_globals.params.FlagInteractive || run_globals.params.FlagMCMC)
     {
       SID_log("Reallocing halo storage arrays...", SID_LOG_OPEN);
 
@@ -1073,7 +1073,7 @@ void initialize_halo_storage()
       last_snap = run_globals.ListOutputSnaps[ii];
 
   // Allocate an array of last_snap halo array pointers
-  if (run_globals.params.FlagInteractive)
+  if (run_globals.params.FlagInteractive || run_globals.params.FlagMCMC)
     *n_store_snapshots = last_snap + 1;
   else
     *n_store_snapshots = 1;
@@ -1087,7 +1087,7 @@ void initialize_halo_storage()
     (*snapshot_trees_info)[ii].n_halos = -1;
 
   // loop through and read all snapshots
-  if (run_globals.params.FlagInteractive)
+  if (run_globals.params.FlagInteractive || run_globals.params.FlagMCMC)
   {
     SID_log("Preloading input trees and halos...", SID_LOG_OPEN);
     for (int i_snap = 0; i_snap <= last_snap; i_snap++)

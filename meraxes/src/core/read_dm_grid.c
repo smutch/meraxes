@@ -176,7 +176,7 @@ int read_dm_grid(
   MPI_Status status;
   MPI_Offset slab_offset = start_foffset/sizeof(float) + (slab_ix_start_file*n_cell[1]*n_cell[2]);
 
-  MPI_File_open(MPI_COMM_WORLD, fname, MPI_MODE_RDONLY, MPI_INFO_NULL, &fin);
+  MPI_File_open(SID_COMM_WORLD, fname, MPI_MODE_RDONLY, MPI_INFO_NULL, &fin);
   MPI_File_set_view(fin, 0, MPI_FLOAT, MPI_FLOAT, "native", MPI_INFO_NULL);
 
   ptrdiff_t chunk_size = slab_ni_file;

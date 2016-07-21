@@ -112,7 +112,7 @@ void dracarys()
     kill_counter    = 0;
 
     // Read in the halos for this snapshot
-    if (run_globals.params.FlagInteractive)
+    if (run_globals.params.FlagInteractive || run_globals.params.FlagMCMC)
       i_snap = snapshot;
     else
       i_snap = 0;
