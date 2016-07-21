@@ -645,7 +645,7 @@ void   read_Mcrit_table();
 double reionization_modifier(galaxy_t *gal, double Mvir, int snapshot);
 double sobacchi2013_modifier(double Mvir, double redshift);
 double gnedin2000_modifer(double Mvir, double redshift);
-void assign_slabs();
+void   assign_slabs();
 
 void   filter(fftwf_complex *box, int local_ix_start, int slab_nx, int grid_dim, float R);
 double find_HII_bubbles(float redshift);
@@ -671,7 +671,7 @@ void   write_single_grid(const char *fname, float *grid, const char *grid_name, 
 
 // MCMC related
 // meraxes_mcmc_likelihood must be implemented by the calling code!
-int (*meraxes_mcmc_likelihood)(int snapshot);
+int (*meraxes_mcmc_likelihood)(int snapshot, int ngals);
 
 #ifdef DEBUG
 int  debug(const char * restrict format, ...);

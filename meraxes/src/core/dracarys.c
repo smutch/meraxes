@@ -485,7 +485,7 @@ void dracarys()
 #endif
     
     if (run_globals.params.FlagMCMC)
-      meraxes_mcmc_likelihood(snapshot);
+      meraxes_mcmc_likelihood(snapshot, nout_gals);
 
     SID_log("...done", SID_LOG_CLOSE);
   }
