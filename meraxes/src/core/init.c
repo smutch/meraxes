@@ -245,14 +245,6 @@ static void read_output_snaps()
         *LastOutputSnap = (*ListOutputSnaps)[i];
     }
 
-    // DEBUG
-    SID_log("nout = %d", SID_LOG_COMMENT, *nout);
-    SID_log("LastOutputSnap = %d", SID_LOG_COMMENT, *LastOutputSnap);
-    SID_log("ListOutputSnaps = [ ", SID_LOG_CONTINUE);
-    for(int ii=0; ii < *nout; ii++)
-      SID_log("%d ", SID_LOG_CONTINUE, (*ListOutputSnaps)[ii]);
-    SID_log("]", SID_LOG_CLOSE);
-
     // sort the list from low to high snapnum
     qsort(*ListOutputSnaps, (*nout), sizeof(int), compare_ints);
 
