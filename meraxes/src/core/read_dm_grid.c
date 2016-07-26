@@ -286,7 +286,7 @@ int read_dm_grid(
 
 void free_grids_cache()
 {
-  if (run_globals.params.FlagPatchyReion)
+  if (run_globals.params.Flag_PatchyReion)
   {
     float **snapshot_deltax = run_globals.SnapshotDeltax;
 

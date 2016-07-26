@@ -19,7 +19,7 @@ static int setup_tocf_tests(void **state)
 
   run_globals.params.ReionGridDim = 64;
   run_globals.params.ReionUVBFlag = 1;
-  run_globals.params.FlagPatchyReion = 1;
+  run_globals.params.Flag_PatchyReion = 1;
   run_globals.params.BoxSize = 100.;  // Not the size of Tiamat but easy for checking
   run_globals.params.Hubble_h = 1.0;  // Nonsense but again, easy for debugging
   run_globals.ZZ = SID_malloc(sizeof(double) * 10);

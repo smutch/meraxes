@@ -522,7 +522,7 @@ void create_master_file()
     }
   }
 
-  if (run_globals.params.FlagPatchyReion)
+  if (run_globals.params.Flag_PatchyReion)
   {
     {
       const char *group_name = {"Units/Grids"};
@@ -622,7 +622,7 @@ void create_master_file()
       H5Gclose(group_id);
       H5Fclose(source_file_id);
 
-      if((i_core == 0) && (run_globals.params.FlagPatchyReion))
+      if((i_core == 0) && (run_globals.params.Flag_PatchyReion))
       {
         // create links to the 21cmFAST grids that exist
         gen_grids_fname(run_globals.ListOutputSnaps[i_out], source_file);
@@ -918,7 +918,7 @@ void write_snapshot(
   // Free the output buffer
   SID_free(SID_FARG output_buffer);
 
-  if (run_globals.params.FlagPatchyReion && !check_if_reionization_complete())
+  if (run_globals.params.Flag_PatchyReion && !check_if_reionization_complete())
     save_reion_output_grids(run_globals.ListOutputSnaps[i_out]);
 
   // Close the group.

@@ -26,7 +26,7 @@ static int setup(void **state)
   read_parameter_file(param_file, 0);
 
   run_globals.params.BoxSize     = 100.;
-  run_globals.params.FlagPatchyReion   = 1;
+  run_globals.params.Flag_PatchyReion   = 1;
   run_globals.params.ReionGridDim            = 32;
   run_globals.params.ReionEfficiency     = 1.0;
   run_globals.params.ReionUVBFlag       = 1;

@@ -17,7 +17,7 @@ void cleanup()
   if (run_globals.RequestedForestId)
     SID_free(SID_FARG run_globals.RequestedForestId);
 
-  if (run_globals.params.FlagPatchyReion)
+  if (run_globals.params.Flag_PatchyReion)
   {
     free_reionization_grids();
     fftwf_mpi_cleanup();
