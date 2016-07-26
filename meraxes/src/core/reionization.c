@@ -174,6 +174,7 @@ void malloc_reionization_grids()
     grids->sfr_filtered    = fftwf_alloc_complex(slab_n_complex);
     grids->xH              = fftwf_alloc_real(slab_n_real);
     grids->z_at_ionization = fftwf_alloc_real(slab_n_real);
+    grids->r_bubble        = fftwf_alloc_real(slab_n_real);
 
     if (run_globals.params.ReionUVBFlag)
     {
@@ -188,6 +189,7 @@ void malloc_reionization_grids()
     {
       grids->xH[ii] = 1.0;
       grids->z_at_ionization[ii] = -1;
+      grids->r_bubble[ii] = 0.0;
     }
 
 
@@ -572,13 +574,20 @@ void construct_baryon_grids(int snapshot, int local_ngals)
 }
 
 
-static void write_grid_float(const char *name, float *data, hid_t file_id, hid_t fspace_id, hid_t memspace_id)
+static void write_grid_float(const char *name, float *data, hid_t file_id, hid_t fspace_id, hid_t memspace_id, hid_t dcpl_id)
 {
+  // create the dataset
   hid_t dset_id = H5Dcreate(file_id, name, H5T_NATIVE_FLOAT, fspace_id,
-      H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+      H5P_DEFAULT, dcpl_id, H5P_DEFAULT);
+
+  // create the property list
   hid_t plist_id = H5Pcreate(H5P_DATASET_XFER);
   H5Pset_dxpl_mpio(plist_id, H5FD_MPIO_COLLECTIVE);
+
+  // write the dataset
   H5Dwrite(dset_id, H5T_NATIVE_FLOAT, memspace_id, fspace_id, plist_id, data);
+
+  // cleanup
   H5Pclose(plist_id);
   H5Dclose(dset_id);
 }
@@ -621,6 +630,10 @@ void save_reion_input_grids(int snapshot)
   hsize_t count[3] = {local_nix, ReionGridDim, ReionGridDim};
   H5Sselect_hyperslab(fspace_id, H5S_SELECT_SET, start, NULL, count, NULL);
 
+  // set the dataset creation property list to use chunking along x-axis
+  hid_t dcpl_id = H5Pcreate(H5P_DATASET_CREATE);
+  H5Pset_chunk(dcpl_id, 3, (hsize_t [3]){1, ReionGridDim, ReionGridDim});
+
   // fftw padded grids
   float *grid = (float*)SID_calloc((int)local_nix * ReionGridDim * ReionGridDim * sizeof(float));
 
@@ -628,13 +641,13 @@ void save_reion_input_grids(int snapshot)
     for (int jj = 0; jj < ReionGridDim; jj++)
       for (int kk = 0; kk < ReionGridDim; kk++)
         grid[grid_index(ii, jj, kk, ReionGridDim, INDEX_REAL)] = (grids->deltax)[grid_index(ii, jj, kk, ReionGridDim, INDEX_PADDED)];
-  write_grid_float("deltax", grid, file_id, fspace_id, memspace_id);
+  write_grid_float("deltax", grid, file_id, fspace_id, memspace_id, dcpl_id);
 
   for (int ii = 0; ii < local_nix; ii++)
     for (int jj = 0; jj < ReionGridDim; jj++)
       for (int kk = 0; kk < ReionGridDim; kk++)
         grid[grid_index(ii, jj, kk, ReionGridDim, INDEX_REAL)] = (grids->stars)[grid_index(ii, jj, kk, ReionGridDim, INDEX_PADDED)];
-  write_grid_float("stars", grid, file_id, fspace_id, memspace_id);
+  write_grid_float("stars", grid, file_id, fspace_id, memspace_id, dcpl_id);
 
   for (int ii = 0; ii < local_nix; ii++)
     for (int jj = 0; jj < ReionGridDim; jj++)
@@ -642,10 +655,11 @@ void save_reion_input_grids(int snapshot)
         grid[grid_index(ii, jj, kk, ReionGridDim, INDEX_REAL)] = (grids->sfr)[grid_index(ii, jj, kk, ReionGridDim, INDEX_PADDED)] \
                                                                  * UnitMass_in_g / UnitTime_in_s \
                                                                  * SEC_PER_YEAR / SOLAR_MASS;
-  write_grid_float("sfr", grid, file_id, fspace_id, memspace_id);
+  write_grid_float("sfr", grid, file_id, fspace_id, memspace_id, dcpl_id);
 
   // tidy up
   SID_free(SID_FARG grid);
+  H5Pclose(dcpl_id);
   H5Sclose(memspace_id);
   H5Sclose(fspace_id);
   H5Fclose(file_id);
@@ -693,15 +707,20 @@ void save_reion_output_grids(int snapshot)
   hsize_t count[3] = {local_nix, ReionGridDim, ReionGridDim};
   H5Sselect_hyperslab(fspace_id, H5S_SELECT_SET, start, NULL, count, NULL);
 
+  // set the dataset creation property list to use chunking along x-axis
+  hid_t dcpl_id = H5Pcreate(H5P_DATASET_CREATE);
+  H5Pset_chunk(dcpl_id, 3, (hsize_t [3]){1, ReionGridDim, ReionGridDim});
+
   // create and write the datasets
-  write_grid_float("xH", grids->xH, file_id, fspace_id, memspace_id);
-  write_grid_float("z_at_ionization", grids->z_at_ionization, file_id, fspace_id, memspace_id);
+  write_grid_float("xH", grids->xH, file_id, fspace_id, memspace_id, dcpl_id);
+  write_grid_float("z_at_ionization", grids->z_at_ionization, file_id, fspace_id, memspace_id, dcpl_id);
+  write_grid_float("r_bubble", grids->r_bubble, file_id, fspace_id, memspace_id, dcpl_id);
 
   if (run_globals.params.ReionUVBFlag)
   {
-    write_grid_float("J_21", grids->J_21, file_id, fspace_id, memspace_id);
-    write_grid_float("J_21_at_ionization", grids->J_21_at_ionization, file_id, fspace_id, memspace_id);
-    write_grid_float("Mvir_crit", grids->Mvir_crit, file_id, fspace_id, memspace_id);
+    write_grid_float("J_21", grids->J_21, file_id, fspace_id, memspace_id, dcpl_id);
+    write_grid_float("J_21_at_ionization", grids->J_21_at_ionization, file_id, fspace_id, memspace_id, dcpl_id);
+    write_grid_float("Mvir_crit", grids->Mvir_crit, file_id, fspace_id, memspace_id, dcpl_id);
   }
 
   H5LTset_attribute_double(file_id, "xH", "global_xH", &(grids->global_xH), 1);
@@ -735,6 +754,7 @@ void save_reion_output_grids(int snapshot)
   // SID_log("...done", SID_LOG_CLOSE);   // delta_T
 
   // tidy up
+  H5Pclose(dcpl_id);
   H5Sclose(memspace_id);
   H5Sclose(fspace_id);
   H5Fclose(file_id);

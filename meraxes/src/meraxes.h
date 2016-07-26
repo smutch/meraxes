@@ -286,6 +286,7 @@ typedef struct reion_grids_t {
   float         *J_21_at_ionization;
   float         *J_21;
   float         *Mvir_crit;
+  float         *r_bubble;
   gal_to_slab_t *galaxy_to_slab_map;
 
   double         global_xH;

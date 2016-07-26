@@ -70,6 +70,11 @@ double find_HII_bubbles(float redshift)
   for(int ii=0; ii < slab_n_real; ii++)
     xH[ii] = 1.0;
 
+  // Init r_bubble
+  float *r_bubble = run_globals.reion_grids.r_bubble;
+  for(int ii=0; ii < slab_n_real; ii++)
+    r_bubble[ii] = 0.0;
+
 // #ifdef DEBUG
 //   {
 //     char fname_debug[STRLEN];
@@ -285,13 +290,17 @@ double find_HII_bubbles(float redshift)
           if (f_coll_stars > 1.0/ReionEfficiency)   // IONISED!!!!
           {   
             // If it is the first crossing of the ionisation barrier for this cell (largest R), let's record J_21
-            if (xH[grid_index(ix, iy, iz, ReionGridDim, INDEX_REAL)] > REL_TOL)
+            int ind = grid_index(ix, iy, iz, ReionGridDim, INDEX_REAL);
+            if (xH[ind] > REL_TOL)
               if(flag_ReionUVBFlag)
-                J_21[grid_index(ix, iy, iz, ReionGridDim, INDEX_REAL)] = J_21_aux;
+                J_21[ind] = J_21_aux;
 
 
             // Mark as ionised
-            xH[grid_index(ix, iy, iz, ReionGridDim, INDEX_REAL)] = 0;
+            xH[ind] = 0;
+
+            // Record radius
+            r_bubble[ind] = R;
 
           }
           // Check if this is the last filtering step.
