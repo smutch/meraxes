@@ -7,6 +7,7 @@ from SCons.Script.SConscript import SConsEnvironment
 
 # Get the library dependencies for this system
 from deps import deps
+from deps.termcolor import cprint
 
 # =====================
 # = Utility functions =
@@ -163,8 +164,9 @@ if not GetOption('help'):
     if env['build'] == 'debug':
         env.MergeFlags('-g -O0 -Wall -DDEBUG')
     elif env['build'] == 'standard':
-        env.MergeFlags('-O2 -march=native')
+        env.MergeFlags('-O2')
     elif env['build'] == 'optimized':
+        cprint("WARNING: This build will only work on the EXACT same architecture!", color='yellow', attrs=['bold'])
         env.MergeFlags('-O3 -DNDEBUG -march=native')
     if env['prof']:
         env.MergeFlags('-g -pg')

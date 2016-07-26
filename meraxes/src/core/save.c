@@ -626,9 +626,12 @@ void create_master_file()
       {
         // create links to the 21cmFAST grids that exist
         gen_grids_fname(run_globals.ListOutputSnaps[i_out], source_file);
-        source_file_id = H5Fopen(source_file, H5F_ACC_RDONLY, H5P_DEFAULT);
-        if ((H5LTpath_valid(source_file_id, source_group, FALSE)))
+        if (access(source_file, F_OK) != -1)
+        {
+          source_file_id = H5Fopen(source_file, H5F_ACC_RDONLY, H5P_DEFAULT);
           H5Lcreate_external(relative_source_file, "/", snap_group_id, "Grids", H5P_DEFAULT, H5P_DEFAULT);
+          H5Fclose(source_file_id);
+        }
 
         // sprintf(source_ds, "Snap%03d/PowerSpectrum", run_globals.ListOutputSnaps[i_out]);
         // if ((H5LTpath_valid(source_file_id, source_ds, FALSE)))
@@ -643,7 +646,6 @@ void create_master_file()
         //   sprintf(target_ds, "RegionSizeDist");
         //   H5Lcreate_external(relative_source_file, source_ds, snap_group_id, target_ds, H5P_DEFAULT, H5P_DEFAULT);
         // }
-        H5Fclose(source_file_id);
       }
 
     }
