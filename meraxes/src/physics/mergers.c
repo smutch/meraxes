@@ -165,6 +165,8 @@ void merge_with_target(galaxy_t *gal, int *dead_gals, int snapshot)
   else
     merger_ratio = parent_baryons / gal_baryons;
 
+  min_stellar_mass = (gal->StellarMass <= parent->StellarMass) ? gal->StellarMass : parent->StellarMass;
+
   // Add galaxies together
   parent->StellarMass       += gal->StellarMass;
   parent->GrossStellarMass  += gal->GrossStellarMass;
@@ -191,8 +193,7 @@ void merge_with_target(galaxy_t *gal, int *dead_gals, int snapshot)
     merger_driven_BH_growth(parent, merger_ratio);
 
   // merger driven starburst prescription
-  min_stellar_mass = (gal->StellarMass <= parent->StellarMass) ? gal->StellarMass : parent->StellarMass;
-  if (min_stellar_mass > run_globals.params.physics.MinMergerStellarMass)
+  if (min_stellar_mass >= run_globals.params.physics.MinMergerStellarMass)
     merger_driven_starburst(parent, merger_ratio, snapshot);
 
   // Mark the merged galaxy as dead
