@@ -29,12 +29,12 @@ deps['gbpCode'] = {
 deps['fftw'] = {
     'inclp' :'/home/smutch/3rd_party/fftw-3.3.3/include',
     'libp'  :'/home/smutch/3rd_party/fftw-3.3.3/lib',
-    'lib'   : ['fftw3f_omp', 'fftw3f'],
+    'lib'   : ['fftw3f_omp', 'fftw3f', 'gomp'],
 }
 
 deps['21cmfast'] = {
     'inclp' :'/home/yqin/bitbucket/21cmfast-dragons/include',
     'libp'  :'/home/yqin/bitbucket/21cmfast-dragons/lib',
-    'lib'   : ['21cmfast'],
+    'lib'   : ['21cmfast', 'gomp'],
 }
 

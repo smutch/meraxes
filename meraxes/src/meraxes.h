@@ -105,6 +105,7 @@ typedef struct physics_params_t {
   double ReionNionPhotPerBaryBH;
   double ReionEscapeFrac;
   double ReionEscapeFracBH;
+  double BlackHoleMassLimitReion;
   double ReionTcool;
 
   double ReionSobacchi_Zre;

@@ -69,7 +69,6 @@ def compile_against(libs, deps, env):
             env.AppendUnique(CPPPATH = [dep['inclp']])
         if dep['libp'] is not None:
             env.AppendUnique(LIBPATH = [dep['libp']])
-            env.AppendUnique(RPATH = [dep['libp']])
         if dep['lib'] is not None:
             env.AppendUnique(LIBS = [dep['lib']])
 
@@ -190,8 +189,7 @@ if not GetOption('help'):
         env.Replace(CC = deps['exec']['cc'])
 
     env.AppendUnique(CPPFLAGS = '-std=gnu99 ')
-    #env.AppendUnique(CPPFLAGS = '-march=native -O3 ')
-    env.AppendUnique(CPPFLAGS = '-march=native -xhost -O3 -ipo -g ')
+    env.AppendUnique(CPPFLAGS = '-march=native -O3 ')
     env.AppendUnique(CPPPATH = './')
 
     libs = ['gsl', 'hdf5', 'gbpCode']
@@ -200,7 +198,7 @@ if not GetOption('help'):
     if env['tocf']:
         libs = ['21cmfast', 'fftw']
         compile_against(libs, deps, env)
-        env.AppendUnique(CC = ['-openmp',])
+        env.AppendUnique(CC = ['-fopenmp',])
 
     # Set the python environment to use in any python scripts.
     if 'VIRTUAL_ENV' in os.environ:

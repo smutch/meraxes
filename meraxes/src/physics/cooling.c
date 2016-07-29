@@ -1,5 +1,6 @@
 #include "meraxes.h"
 #include <math.h>
+#include <assert.h>
 
 double gas_cooling(run_globals_t *run_globals, galaxy_t *gal)
 {
@@ -48,6 +49,7 @@ double gas_cooling(run_globals_t *run_globals, galaxy_t *gal)
 
       // under the assumption of an isothermal density profile extending to Rvir,
       // now calculate the cooling radius
+	  assert(rho_r_cool>0);
       isothermal_norm = gal->HotGas / (4. * M_PI * fof_group->Rvir);
       r_cool      = sqrt(isothermal_norm / rho_r_cool);
       gal->Rcool  = r_cool;

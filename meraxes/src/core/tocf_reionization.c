@@ -268,6 +268,7 @@ void construct_ionizing_source_grids(run_globals_t *run_globals, int snapshot)
 {
   galaxy_t *gal;
   int i, j, k;
+  int N_BlackHoleMassLimitReion = 0;
   double box_size     = (double)(run_globals->params.BoxSize);
   double Hubble_h     = run_globals->params.Hubble_h;
   float *ionizing_source_grid = (float*)(run_globals->tocf_grids.stars);
@@ -338,6 +339,12 @@ void construct_ionizing_source_grids(run_globals_t *run_globals, int snapshot)
 
       if ((run_globals->params.physics.Flag_BHFeedback) && (run_globals->params.physics.Flag_BHReion))
       {
+          if (gal->BlackHoleMass < run_globals->params.physics.BlackHoleMassLimitReion)
+          {
+              N_BlackHoleMassLimitReion+=1;
+              gal = gal->Next;
+              continue;
+          }
           // a trick to include quasar radiation using current 21cmFAST code
           // bh2star = fesc_BH/fesc * Ngamma_BH/Ngamma
           // for ionizing_source_formation_rate_grid, need further convertion due to different UV spectral index of quasar and stellar component
@@ -360,6 +367,8 @@ void construct_ionizing_source_grids(run_globals_t *run_globals, int snapshot)
     }
     gal = gal->Next;
   }
+
+  SID_log("%d quasars are smaller than %g",SID_LOG_COMMENT, N_BlackHoleMassLimitReion,run_globals->params.physics.BlackHoleMassLimitReion);
 
   // Collect all grid cell values onto rank 0 which will actually call 21cmFAST
   SID_Allreduce(SID_IN_PLACE, ionizing_source_grid, HII_TOT_FFT_NUM_PIXELS, SID_FLOAT, SID_SUM, SID.COMM_WORLD);
