@@ -658,7 +658,7 @@ void   free_reionization_grids();
 int    map_galaxies_to_slabs(int ngals);
 void   assign_Mvir_crit_to_galaxies(int ngals_in_slabs);
 void   construct_baryon_grids(int snapshot, int ngals);
-void   gen_grids_fname(int snapshot, char *name);
+void   gen_grids_fname(int snapshot, char *name, bool relative);
 void   create_grids_file();
 int    read_dm_grid(int snapshot, int i_grid, float *grid);
 void   free_grids_cache();

@@ -625,7 +625,8 @@ void create_master_file()
       if((i_core == 0) && (run_globals.params.Flag_PatchyReion))
       {
         // create links to the 21cmFAST grids that exist
-        gen_grids_fname(run_globals.ListOutputSnaps[i_out], source_file);
+        gen_grids_fname(run_globals.ListOutputSnaps[i_out], relative_source_file, true);
+        gen_grids_fname(run_globals.ListOutputSnaps[i_out], source_file, false);
         if (access(source_file, F_OK) != -1)
         {
           source_file_id = H5Fopen(source_file, H5F_ACC_RDONLY, H5P_DEFAULT);
