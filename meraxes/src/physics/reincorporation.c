@@ -11,13 +11,13 @@ static void update_reservoirs_from_reincorporation(galaxy_t *gal, double reincor
 }
 
 
-void reincorporate_ejected_gas(run_globals_t *run_globals, galaxy_t *gal)
+void reincorporate_ejected_gas(galaxy_t *gal)
 {
   if (gal->EjectedGas > 0)
   {
     double t_dyn;
     double reincorporated;
-    double ReincorporationEff = run_globals->params.physics.ReincorporationEff;
+    double ReincorporationEff = run_globals.params.physics.ReincorporationEff;
     fof_group_t *fof_group    = gal->Halo->FOFGroup;
 
     // allow some of the ejected gas associated with the central to be

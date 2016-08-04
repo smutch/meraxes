@@ -1,7 +1,7 @@
 #include "meraxes.h"
 #include <math.h>
 
-double radio_mode_BH_heating(run_globals_t *run_globals, galaxy_t *gal, double cooling_mass)
+double radio_mode_BH_heating(galaxy_t *gal, double cooling_mass)
 {
   double accretion_rate;
   double eddington_rate;
@@ -11,13 +11,13 @@ double radio_mode_BH_heating(run_globals_t *run_globals, galaxy_t *gal, double c
 
   fof_group_t *fof_group = gal->Halo->FOFGroup;
 
-  run_units_t *units = &(run_globals->units);
+  run_units_t *units = &(run_globals.units);
 
   // if there is any hot gas
   if (gal->HotGas > 0.0)
   {
     // empirical accretion recipe of Croton et al. (2006)
-    accretion_rate = run_globals->params.physics.RadioModeEff
+    accretion_rate = run_globals.params.physics.RadioModeEff
                      / (units->UnitMass_in_g / units->UnitTime_in_s * SEC_PER_YEAR / SOLAR_MASS)
                      * (gal->BlackHoleMass / 0.01) * pow(fof_group->Vvir / 200.0, 3.0)
                      * ((gal->HotGas / fof_group->Mvir) / 0.1);
@@ -62,7 +62,7 @@ double radio_mode_BH_heating(run_globals_t *run_globals, galaxy_t *gal, double c
 }
 
 
-void merger_driven_BH_growth(run_globals_t *run_globals, galaxy_t *gal, double merger_ratio)
+void merger_driven_BH_growth(galaxy_t *gal, double merger_ratio)
 {
   if (gal->ColdGas > 0)
   {
@@ -78,7 +78,7 @@ void merger_driven_BH_growth(run_globals_t *run_globals, galaxy_t *gal, double m
     else
       Vvir = gal->Vvir;
 
-    accreted_mass = run_globals->params.physics.BlackHoleGrowthRate * merger_ratio /
+    accreted_mass = run_globals.params.physics.BlackHoleGrowthRate * merger_ratio /
                     (1.0 + (280.0 * 280.0 / Vvir / Vvir)) * gal->ColdGas;
 
     // limit accretion to what is available
