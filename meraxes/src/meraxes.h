@@ -605,6 +605,7 @@ void   construct_ionizing_source_grids(run_globals_t *run_globals, int snapshot)
 int  read_dm_grid(run_globals_t *run_globals, int snapshot, int i_grid, float *grid);
 void calculate_Mvir_crit(run_globals_t *run_globals, double redshift);
 void call_find_HII_bubbles(run_globals_t *run_globals, int snapshot, int unsampled_snapshot, int nout_gals);
+float calculate_massweighted_QHII(float *xH, float *deltax);
 void save_tocf_grids(run_globals_t *run_globals, hid_t group_id, int snapshot);
 bool check_if_reionization_complete(run_globals_t *run_globals);
 #endif

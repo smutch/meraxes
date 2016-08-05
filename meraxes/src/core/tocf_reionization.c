@@ -35,6 +35,32 @@ void set_HII_eff_factor(run_globals_t *run_globals)
   SID_log("Set value of tocf_params.HII_eff_factor = %g", SID_LOG_COMMENT, tocf_params.HII_eff_factor);
 }
 
+float calculate_massweighted_QHII(
+  float         *xH,             
+  float         *deltax)
+{
+  int HII_dim = tocf_params.HII_dim; 
+  float massweighted_QHII = 0.0;
+  float massweight = 0.0;
+  int index;
+
+  // Loop through each cell and calculate the value of mass weighted HII fraction
+  for (int ii = 0; ii < HII_dim; ii++) 
+  {
+    for (int jj = 0; jj < HII_dim; jj++)
+    {
+      for (int kk = 0; kk < HII_dim; kk++)
+      {
+        index = HII_R_INDEX(ii, jj, kk);
+        massweighted_QHII += (1.0-xH[index]) * (1.0 + deltax[index]);
+        massweight += (1.0 + deltax[index]);
+      }
+    }
+  }
+  return massweighted_QHII/massweight;
+}
+
+
 void call_find_HII_bubbles(run_globals_t *run_globals, int snapshot, int unsampled_snapshot, int nout_gals)
 {
   // Thin wrapper round find_HII_bubbles
@@ -42,6 +68,8 @@ void call_find_HII_bubbles(run_globals_t *run_globals, int snapshot, int unsampl
   int total_n_out_gals = 0;
 
   tocf_grids_t *grids = &(run_globals->tocf_grids);
+
+  float massweighted_QHII;
 
   SID_log("Getting ready to call find_HII_bubbles...", SID_LOG_OPEN);
 
@@ -99,6 +127,9 @@ void call_find_HII_bubbles(run_globals_t *run_globals, int snapshot, int unsampl
 
   // send the global_xH value to all cores
   SID_Bcast(&(grids->global_xH), sizeof(float), 0, SID.COMM_WORLD);
+
+  massweighted_QHII = calculate_massweighted_QHII(grids->xH, (float*)(grids->deltax)); 
+  SID_log("global mass weighted xHII = %g at z = %g", SID_LOG_COMMENT, massweighted_QHII,run_globals->ZZ[snapshot]);
 
   SID_log("...done", SID_LOG_CLOSE);
 }
