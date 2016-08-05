@@ -1,10 +1,7 @@
 #define _MAIN
 #include "meraxes.h"
 #include <sys/stat.h>
-
-#ifdef USE_TOCF
-#include <21cmfast.h>
-#endif
+#include <fenv.h>
 
 
 int main(int argc, char **argv)
@@ -13,7 +10,6 @@ int main(int argc, char **argv)
   SID_init(&argc, &argv, NULL, NULL);
 
   struct stat filestatus;
-  run_globals_t run_globals;
 
   // char log_fname[50];
   // FILE *log_file = NULL;
@@ -29,7 +25,14 @@ int main(int argc, char **argv)
   if (argc != 2)
   {
     SID_log("\n  usage: %s <parameterfile>\n\n", SID_LOG_COMMENT, argv[0]);
-    ABORT(1);
+    ABORT(EXIT_FAILURE);
+  }
+
+  // set the rounding mode
+  if (!fesetround(1))  // nearest number
+  {
+    SID_log_error("Failed to set rounding mode!");
+    ABORT(EXIT_FAILURE);
   }
 
 #ifdef DEBUG
@@ -41,45 +44,30 @@ int main(int argc, char **argv)
   //   mpi_debug_here();
 #endif
 
-#ifdef USE_TOCF
-  // Note that this must be done *before* we read the parameter file as we may
-  // want to overwrite some of the set defaults.
-  init_default_tocf_params();
-#endif
-
   // read the input parameter file
-  read_parameter_file(&run_globals, argv[1], 0);
+  read_parameter_file(argv[1], 0);
 
   // Check to see if the output directory exists and if not, create it
   if (stat(run_globals.params.OutputDir, &filestatus) != 0)
     mkdir(run_globals.params.OutputDir, 02755);
 
-#ifdef USE_TOCF
-    // Check to see if the tocf_logs directory exists and if not, create it
-    if (stat(tocf_params.logfile_dir, &filestatus) != 0)
-        mkdir(tocf_params.logfile_dir, 02755);
-#endif
-
   // initiate meraxes
-  init_meraxes(&run_globals);
-
-  // calculate the output hdf5 file properties for later use
-  calc_hdf5_props(&run_globals);
+  init_meraxes();
 
   // Run the model!
-  if (!run_globals.params.FlagInteractive)
-    dracarys(&run_globals);
+  if (!run_globals.params.FlagInteractive &! run_globals.params.FlagMCMC)
+    dracarys();
   else
   {
     while (run_globals.params.FlagInteractive)
     {
-      dracarys(&run_globals);
-      continue_prompt(&run_globals, argv[1]);
+      dracarys();
+      continue_prompt(argv[1]);
     }
   }
 
   // cleanup
-  cleanup(&run_globals);
+  cleanup();
 
   SID_exit(EXIT_SUCCESS);
 }

@@ -2,7 +2,7 @@
 #include "meraxes.h"
 
 //! Evolve existing galaxies forward in time
-int evolve_galaxies(run_globals_t *run_globals, fof_group_t *fof_group, int snapshot, int NGal, int NFof)
+int evolve_galaxies(fof_group_t *fof_group, int snapshot, int NGal, int NFof)
 {
   galaxy_t *gal        = NULL;
   halo_t *halo         = NULL;
@@ -10,8 +10,8 @@ int evolve_galaxies(run_globals_t *run_globals, fof_group_t *fof_group, int snap
   int dead_gals        = 0;
   double infalling_gas = 0;
   double cooling_mass  = 0;
-  int NSteps           = run_globals->params.NSteps;
-  bool Flag_IRA    = (bool)(run_globals->params.physics.Flag_IRA);
+  int NSteps           = run_globals.params.NSteps;
+  bool Flag_IRA    = (bool)(run_globals.params.physics.Flag_IRA);
 
   SID_log("Doing physics...", SID_LOG_OPEN | SID_LOG_TIMER);
 
@@ -22,7 +22,7 @@ int evolve_galaxies(run_globals_t *run_globals, fof_group_t *fof_group, int snap
     if (fof_group[i_fof].FirstOccupiedHalo == NULL)
       continue;
 
-    infalling_gas = gas_infall(run_globals, &(fof_group[i_fof]), snapshot);
+    infalling_gas = gas_infall(&(fof_group[i_fof]), snapshot);
 
     for (int i_step = 0; i_step < NSteps; i_step++)
     {
@@ -35,11 +35,11 @@ int evolve_galaxies(run_globals_t *run_globals, fof_group_t *fof_group, int snap
         {
           if (gal->Type == 0)
           {
-            cooling_mass = gas_cooling(run_globals, gal);
+            cooling_mass = gas_cooling(gal);
 
             add_infall_to_hot(gal, infalling_gas / ((double)NSteps));
 
-            reincorporate_ejected_gas(run_globals, gal);
+            reincorporate_ejected_gas(gal);
 
             cool_gas_onto_galaxy(gal, cooling_mass);
           }
@@ -48,11 +48,11 @@ int evolve_galaxies(run_globals_t *run_globals, fof_group_t *fof_group, int snap
           {
             if (!Flag_IRA)
             {
-              evolve_stellar_pops(run_globals, gal, snapshot);
-              delayed_supernova_feedback(run_globals, gal, snapshot);
+              evolve_stellar_pops(gal, snapshot);
+              delayed_supernova_feedback(gal, snapshot);
             }
 
-            insitu_star_formation(run_globals, gal, snapshot);
+            insitu_star_formation(gal, snapshot);
 
             // If this is a type 2 then decrement the merger clock
             if (gal->Type == 2)
@@ -80,7 +80,7 @@ int evolve_galaxies(run_globals_t *run_globals, fof_group_t *fof_group, int snap
             // If the merger clock has run out or our target halo has already
             // merged then process a merger event.
             if ((gal->MergTime < 0) || (gal->MergerTarget->Type == 3))
-              merge_with_target(run_globals, gal, &dead_gals, snapshot);
+              merge_with_target(gal, &dead_gals, snapshot);
           }
           gal = gal->NextGalInHalo;
         }
@@ -89,7 +89,7 @@ int evolve_galaxies(run_globals_t *run_globals, fof_group_t *fof_group, int snap
     }
   }
 
-  if (gal_counter + (run_globals->NGhosts) != NGal)
+  if (gal_counter + (run_globals.NGhosts) != NGal)
   {
     SID_log_error("We have not processed the expected number of galaxies...");
     SID_log("gal_counter = %d but NGal = %d", SID_LOG_COMMENT, gal_counter, NGal);
@@ -102,17 +102,17 @@ int evolve_galaxies(run_globals_t *run_globals, fof_group_t *fof_group, int snap
 }
 
 
-void passively_evolve_ghost(run_globals_t *run_globals, galaxy_t *gal, int snapshot)
+void passively_evolve_ghost(galaxy_t *gal, int snapshot)
 {
   // Passively evolve ghosts.
   // Currently, this just means evolving their stellar pops...
 
-  bool Flag_IRA = (bool)(run_globals->params.physics.Flag_IRA);
+  bool Flag_IRA = (bool)(run_globals.params.physics.Flag_IRA);
 
   if (!Flag_IRA)
   {
-    evolve_stellar_pops(run_globals, gal, snapshot);
-    delayed_supernova_feedback(run_globals, gal, snapshot);
+    evolve_stellar_pops(gal, snapshot);
+    delayed_supernova_feedback(gal, snapshot);
   }
 }
 

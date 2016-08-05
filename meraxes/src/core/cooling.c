@@ -43,7 +43,7 @@ static char group_name[N_METALLICITIES][6] = {
 static double cooling_rate[N_METALLICITIES][N_TEMPS];
 
 
-void read_cooling_functions(run_globals_t *run_globals)
+void read_cooling_functions()
 {
   if (SID.My_rank == 0)
   {
@@ -51,7 +51,7 @@ void read_cooling_functions(run_globals_t *run_globals)
     char dset_name[30];
     char fname[STRLEN];
 
-    sprintf(fname, "%s/SD93.hdf5", run_globals->params.CoolingFuncsDir);
+    sprintf(fname, "%s/SD93.hdf5", run_globals.params.CoolingFuncsDir);
     fd = H5Fopen(fname, H5F_ACC_RDONLY, H5P_DEFAULT);
 
     for (int i_m = 0; i_m < N_METALLICITIES; i_m++)
