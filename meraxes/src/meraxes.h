@@ -532,6 +532,7 @@ typedef struct run_globals_t {
   struct galaxy_t    *FirstGal;
   struct galaxy_t    *LastGal;
   gsl_rng            *random_generator;
+  void               *mhysa_self;
   double              Hubble;
   double              RhoCrit;
   double              G;
@@ -671,8 +672,8 @@ void   write_single_grid(const char *fname, float *grid, const char *grid_name, 
 
 
 // MCMC related
-// meraxes_mcmc_likelihood must be implemented by the calling code!
-int (*meraxes_mcmc_likelihood)(int snapshot, int ngals);
+// meraxes_mhysa_hook must be implemented by the calling code (Mhysa)!
+int (*meraxes_mhysa_hook)(void *self, int snapshot, int ngals);
 
 #ifdef DEBUG
 int  debug(const char * restrict format, ...);

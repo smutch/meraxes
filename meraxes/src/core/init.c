@@ -345,6 +345,9 @@ void init_meraxes()
   // Set the SelectForestsSwitch
   run_globals.SelectForestsSwitch = true;
 
+  // This will be set by Mhysa
+  run_globals.mhysa_self = NULL;
+
   // Initialize the halo storage arrays
   initialize_halo_storage();
 
