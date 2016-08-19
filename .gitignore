@@ -27,3 +27,4 @@ meraxes/src/my_SConscript
 .syntastic_config
 .vimrc
 .exrc
+*.os
