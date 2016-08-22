@@ -2,10 +2,9 @@
 #include "meraxes.h"
 #include "tree_flags.h"
 
-
 static void inline turn_off_merger_flag(galaxy_t *gal)
 {
-  gal->TreeFlags = gal->TreeFlags & (~TREE_CASE_MERGER);
+  gal->TreeFlags = gal->TreeFlags & (~TREE_CASE_MERGER) & (~TREE_CASE_MERGER_PRIMARY);
 }
 
 static inline bool check_for_flag(int flag, int tree_flags)
@@ -21,7 +20,8 @@ static inline bool check_for_merger(galaxy_t *gal, halo_t *new_halo)
   // if this is marked as a merger in the trees OR the galaxy stellar mass is
   // now greater than the host halo mass, then mark this as a merger
   // if( check_for_flag(TREE_CASE_MERGER, gal->TreeFlags) || (gal->StellarMass > new_halo->Mvir) )
-  if (check_for_flag(TREE_CASE_MERGER, gal->TreeFlags))
+  if (check_for_flag(TREE_CASE_MERGER, gal->TreeFlags)
+      || check_for_flag(TREE_CASE_MERGER_PRIMARY, gal->TreeFlags))
     return true;
   else
     return false;
@@ -30,8 +30,9 @@ static inline bool check_for_merger(galaxy_t *gal, halo_t *new_halo)
 static inline bool check_if_valid_host(halo_t *halo)
 {
   // We don't want to place new galaxies in any halos with the following flags set...
-  int invalid_flags = (TREE_CASE_FRAGMENTED_RETURNED
-      | TREE_CASE_FRAGMENTED_EXCHANGED
+  int invalid_flags = (TREE_CASE_FRAGMENTED_NORMAL
+      | TREE_CASE_FRAGMENTED_NEW
+      | TREE_CASE_FRAGMENTED_EJECTED
       | TREE_CASE_FRAGMENTED_STRAYED
       | TREE_CASE_MERGER);
 
