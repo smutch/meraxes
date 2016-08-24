@@ -1004,8 +1004,12 @@ trees_info_t read_halos(
       SID_log("Reallocing halo storage arrays...", SID_LOG_OPEN);
 
       *halo         = (halo_t*)SID_realloc(*halo, sizeof(halo_t) * n_halos_kept);
-      *index_lookup = (int*)SID_realloc(*index_lookup, sizeof(int) * n_halos_kept);
       *fof_group    = (fof_group_t*)SID_realloc(*fof_group, sizeof(fof_group_t) * n_fof_groups_kept);
+
+      // Only realloc `index_lookup` if we are actually using it (`n_proc` > 1
+      // or we are subsampling the trees).
+      if (*index_lookup)
+        *index_lookup = (int*)SID_realloc(*index_lookup, sizeof(int) * n_halos_kept);
       update_pointers_from_offsets(n_fof_groups_kept, *fof_group, fof_FirstHalo_os,
                                    n_halos_kept, *halo, halo_FOFGroup_os, halo_NextHaloInFOFGroup_os);
 
@@ -1084,7 +1088,10 @@ void initialize_halo_storage()
   *snapshot_trees_info   = (trees_info_t*)SID_calloc(sizeof(trees_info_t) * (*n_store_snapshots));
 
   for (int ii = 0; ii < *n_store_snapshots; ii++)
+  {
     (*snapshot_trees_info)[ii].n_halos = -1;
+    (*snapshot_index_lookup)[ii] = NULL;
+  }
 
   // loop through and read all snapshots
   if (run_globals.params.FlagInteractive || run_globals.params.FlagMCMC)

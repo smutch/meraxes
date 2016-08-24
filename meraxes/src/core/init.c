@@ -309,12 +309,18 @@ void init_meraxes()
   // read the input snaps list
   read_snap_list();
 
-  // check to ensure N_HISTORY_SNAPS is set to a high enough value
-  check_n_history_snaps();
-
   // read the output snap list
   read_output_snaps();
+
   snaplist_len = run_globals.params.SnaplistLength;
+  for (i = 0; i < snaplist_len; i++)
+  {
+    run_globals.ZZ[i]     = 1 / run_globals.AA[i] - 1;
+    run_globals.LTTime[i] = time_to_present(run_globals.ZZ[i]);
+  }
+
+  // check to ensure N_HISTORY_SNAPS is set to a high enough value
+  check_n_history_snaps();
 
   // read in the requested forest IDs (if any)
   read_requested_forest_ids();
@@ -327,12 +333,6 @@ void init_meraxes()
 
   // read in the mean Mvir_crit table (if needed)
   read_Mcrit_table();
-
-  for (i = 0; i < snaplist_len; i++)
-  {
-    run_globals.ZZ[i]     = 1 / run_globals.AA[i] - 1;
-    run_globals.LTTime[i] = time_to_present(run_globals.ZZ[i]);
-  }
 
   // Initialise galaxy pointers
   run_globals.FirstGal = NULL;
