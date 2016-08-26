@@ -105,7 +105,10 @@ void prepare_galaxy_for_output(
   galout->GrossStellarMass   = (float)(gal.GrossStellarMass);
   galout->FescWeightedGSM    = (float)(gal.FescWeightedGSM);
   galout->BlackHoleMass      = (float)(gal.BlackHoleMass);
-  galout->BlackHoleGrossMass      = (float)(gal.BlackHoleGrossMass);
+  galout->BlackHoleGrossMass = (float)(gal.BlackHoleGrossMass);
+  galout->emissivity         = (float)(gal.emissivity);
+  galout->EffectiveBHM       = (float)(gal.EffectiveBHM);
+  galout->FescWeightedEBHM   = (float)(gal.FescWeightedEBHM);
   galout->BlackHoleAccretedHotMass      = (float)(gal.BlackHoleAccretedHotMass);
   galout->BlackHoleAccretedColdMass      = (float)(gal.BlackHoleAccretedColdMass);
   galout->MaxReheatFrac      = (float)(gal.MaxReheatFrac);
@@ -412,7 +415,7 @@ void calc_hdf5_props(run_globals_t *run_globals)
   h5props->dst_offsets[i]     = HOFFSET(galaxy_output_t, emissivity);
   h5props->dst_field_sizes[i] = sizeof(galout.emissivity);
   h5props->field_names[i]     = "emissivity";
-  h5props->field_units[i]     = "photons";
+  h5props->field_units[i]     = "1e60photons";
   h5props->field_h_conv[i]    = "None";
   h5props->field_types[i++]   = H5T_NATIVE_FLOAT;
 

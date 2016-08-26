@@ -583,6 +583,7 @@ void         reincorporate_ejected_gas(run_globals_t *run_globals, galaxy_t *gal
 double       radio_mode_BH_heating(run_globals_t *run_globals, galaxy_t *gal, double cooling_mass, double x);
 void         merger_driven_BH_growth(run_globals_t *run_globals, galaxy_t *gal, double merger_ratio, int snapshot);
 void         previous_merger_driven_BH_growth(run_globals_t *run_globals, galaxy_t *gal);
+double calculate_emissivity(run_globals_t *run_globals, double BlackHoleMass, double accreted_mass);
 
 // Magnitude related
 void   init_luminosities(run_globals_t *run_globals, galaxy_t *gal);

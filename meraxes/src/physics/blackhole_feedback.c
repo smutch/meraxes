@@ -9,15 +9,18 @@ double calculate_emissivity(run_globals_t *run_globals, double BlackHoleMass, do
     double accretion_time;
     double Lbol;//bolometric luminotisy
     double kb;//bolometric correction
-    run_units_t *units = &(run_globals->units);
+    //run_units_t *units = &(run_globals->units);
 
-    accretion_time = log10(1.0+accreted_mass/BlackHoleMass)/run_globals->params.physics.EddingtonRatio*eta / (1.402e37 / (units->UnitEnergy_in_cgs / units->UnitTime_in_Megayears)); //in second
+    //accretion_time = log(1.0+accreted_mass/BlackHoleMass)/run_globals->params.physics.EddingtonRatio*eta / (1.402e37 / (units->UnitEnergy_in_cgs / units->UnitTime_in_Megayears)); //in second
+    accretion_time = log(1.0+accreted_mass/BlackHoleMass) * 450 *eta/run_globals->params.physics.EddingtonRatio*SEC_PER_MEGAYEAR;// second
 
     // this will be bolometric luminosity in 1e10Lsun, just google this
     // (1 solar mass *(speed of light)^2/450e6year) /3.828e26watt
     // where 450e6year is eddington time scale
     Lbol = run_globals->params.physics.EddingtonRatio *BlackHoleMass /run_globals->params.Hubble_h * 32886.5934;
     kb = 6.25*pow(Lbol, -0.37) + 9.0*pow(Lbol,-0.012);
+    //printf("accreted_mass=%g,\tBlackHoleMass=%g,\taccretion_time=%g,\tLbol=%g,\tkb=%g\n",accreted_mass,BlackHoleMass,accretion_time,Lbol,kb);
+
     // this is very complicated...
     // firstly B band luminosity is:   LB = Lbol/kb 1e10Lsun
     // then B band magnitude is:       MB = 4.74 - 2.5log10(1e10LB)
@@ -95,13 +98,15 @@ double radio_mode_BH_heating(run_globals_t *run_globals, galaxy_t *gal, double c
   if (gal->HotGas > 0.0)
   {
 
-    //Bondi-Hoyle accretion model
+    //bondi-hoyle accretion model
     accreted_mass = run_globals->params.physics.RadioModeEff
                     * run_globals->G * 1.7377 * x * gal->BlackHoleMass*gal->dt;
-    // 15/16*pi*mu=1.7377, with mu=0.59; x=k*m_p*T/Lambda
+    // 15/16*pi*mu=1.7377, with mu=0.59; x=k*m_p*t/lambda
 
-    // Eddington rate
-    eddington_mass = (exp(1.402e37 / (units->UnitEnergy_in_cgs / units->UnitTime_in_s)*gal->dt/eta*run_globals->params.physics.EddingtonRatio)-1.) * gal->BlackHoleMass;
+    // eddington rate
+    //eddington_mass = (exp(1.402e37 / (units->unitenergy_in_cgs / units->unittime_in_s)*gal->dt/eta*run_globals->params.physics.EddingtonRatio)-1.) * gal->BlackHoleMass;
+    eddington_mass = (exp(gal->dt/eta*run_globals->params.physics.EddingtonRatio/450)-1.)*gal->BlackHoleMass;
+
 
     // limit accretion by the eddington rate
     if (accreted_mass > eddington_mass)
@@ -110,8 +115,6 @@ double radio_mode_BH_heating(run_globals_t *run_globals, galaxy_t *gal, double c
     // limit accretion by amount of hot gas available
     if (accreted_mass > gal->HotGas)
       accreted_mass = gal->HotGas;
-
-    gal->BlackHoleAccretedHotMass = accreted_mass;
 
     // mass heated by AGN following Croton et al. 2006
     heated_mass = 2.*eta*8.98755e10 / fof_group->Vvir / fof_group->Vvir * accreted_mass;
@@ -123,17 +126,23 @@ double radio_mode_BH_heating(run_globals_t *run_globals, galaxy_t *gal, double c
       heated_mass   = cooling_mass;
     }
 
+    gal->BlackHoleAccretedHotMass = accreted_mass;
+
     // add the accreted mass to the black hole
     metallicity         = calc_metallicity(gal->HotGas, gal->MetalsHotGas);
 
     //N_gamma,q * N_bh; later emissivity * PROTONMASS/1e10/SOLAR_MASS will be  N_gamma,q * M_bh
     emissivity = calculate_emissivity(run_globals, gal->BlackHoleMass, accreted_mass);
+    //printf("emissivity = %g\n",emissivity);
 
-    gal->emissivity = emissivity;
+    gal->emissivity = emissivity/1e60;
+    //printf("gal->emissivity = %g\n",gal->emissivity);
     gal->BlackHoleMass      += (1.-eta)*accreted_mass;
     gal->BlackHoleGrossMass += (1.-eta)*accreted_mass;
     gal->EffectiveBHM       += emissivity*PROTONMASS/1e10/SOLAR_MASS*run_globals->params.physics.ReionEscapeFracBH/run_globals->params.physics.ReionNionPhotPerBary/run_globals->params.physics.ReionEscapeFrac;
+    //printf("gal->EffectiveBHM = %g\n",gal->EffectiveBHM);
     gal->FescWeightedEBHM   += emissivity*PROTONMASS/1e10/SOLAR_MASS*run_globals->params.physics.ReionEscapeFracBH/run_globals->params.physics.ReionNionPhotPerBary;
+    //printf("gal->FescWeightedEBHM = %g\n",gal->FescWeightedEBHM);
     gal->HotGas        -= accreted_mass;
     gal->MetalsHotGas  -= metallicity * accreted_mass;
   }
@@ -162,7 +171,7 @@ void merger_driven_BH_growth(run_globals_t *run_globals, galaxy_t *gal, double m
     double zplus1to1pt5;
     run_units_t *units = &(run_globals->units);
 
-    // If this galaxy is the central of it's FOF group then use the FOF halo properties
+    // If this galaxy is the central of it's FOF group then use the FOF Halo properties
     // TODO: This needs closer thought as to if this is the best thing to do...
     if (gal->Type == 0)
       Vvir = gal->Halo->FOFGroup->Vvir;
@@ -177,7 +186,8 @@ void merger_driven_BH_growth(run_globals_t *run_globals, galaxy_t *gal, double m
                     (1.0 + (280.0 * 280.0 / Vvir / Vvir)) * gal->ColdGas* zplus1to1pt5;
 
     // Eddington rate
-    accreted_mass = (exp(1.402e37 / (units->UnitEnergy_in_cgs / units->UnitTime_in_s)*gal->dt/eta*run_globals->params.physics.EddingtonRatio)-1.) * gal->BlackHoleMass;
+    //accreted_mass = (exp(1.402e37 / (units->UnitEnergy_in_cgs / units->UnitTime_in_s)*gal->dt/eta*run_globals->params.physics.EddingtonRatio)-1.) * gal->BlackHoleMass;
+    accreted_mass = (exp(gal->dt/eta*run_globals->params.physics.EddingtonRatio/450)-1.)*gal->BlackHoleMass;
 
     // limit accretion to what is need
     if (accreted_mass > gal->BlackHoleAccretingColdMass)
@@ -194,7 +204,7 @@ void merger_driven_BH_growth(run_globals_t *run_globals, galaxy_t *gal, double m
     //N_gamma,q * N_bh; later emissivity * PROTONMASS/1e10/SOLAR_MASS will be  N_gamma,q * M_bh
     emissivity = calculate_emissivity(run_globals, gal->BlackHoleMass, accreted_mass); 
     
-    gal->emissivity +=emissivity;
+    gal->emissivity +=emissivity/1e60;
     gal->BlackHoleMass      += (1.-eta)*accreted_mass;
     gal->BlackHoleGrossMass += (1.-eta)*accreted_mass; 
     gal->EffectiveBHM       += emissivity*PROTONMASS/1e10/SOLAR_MASS*run_globals->params.physics.ReionEscapeFracBH/run_globals->params.physics.ReionNionPhotPerBary/run_globals->params.physics.ReionEscapeFrac;
@@ -223,7 +233,7 @@ void previous_merger_driven_BH_growth(run_globals_t *run_globals, galaxy_t *gal)
     double Vvir;
     run_units_t *units = &(run_globals->units);
 
-    // If this galaxy is the central of it's FOF group then use the FOF halo properties
+    // If this galaxy is the central of it's FOF group then use the FOF Halo properties
     // TODO: This needs closer thought as to if this is the best thing to do...
     if (gal->Type == 0)
       Vvir = gal->Halo->FOFGroup->Vvir;
@@ -231,7 +241,8 @@ void previous_merger_driven_BH_growth(run_globals_t *run_globals, galaxy_t *gal)
       Vvir = gal->Vvir;
 
     // Eddington rate
-    accreted_mass = (exp(1.402e37 / (units->UnitEnergy_in_cgs / units->UnitTime_in_s)*gal->dt/eta*run_globals->params.physics.EddingtonRatio)-1.) * gal->BlackHoleMass;
+    //accreted_mass = (exp(1.402e37 / (units->UnitEnergy_in_cgs / units->UnitTime_in_s)*gal->dt/eta*run_globals->params.physics.EddingtonRatio)-1.) * gal->BlackHoleMass;
+    accreted_mass = (exp(gal->dt/eta*run_globals->params.physics.EddingtonRatio/450)-1.)*gal->BlackHoleMass;
 
     // limit accretion to what is need
     if (accreted_mass > gal->BlackHoleAccretingColdMass)
@@ -248,7 +259,7 @@ void previous_merger_driven_BH_growth(run_globals_t *run_globals, galaxy_t *gal)
     //N_gamma,q * N_bh; later emissivity * PROTONMASS/1e10/SOLAR_MASS will be  N_gamma,q * M_bh
     emissivity = calculate_emissivity(run_globals, gal->BlackHoleMass, accreted_mass);
 
-    gal->emissivity +=emissivity;
+    gal->emissivity +=emissivity/1e60;
     gal->BlackHoleMass      += (1.-eta)*accreted_mass;
     gal->BlackHoleGrossMass += (1.-eta)*accreted_mass;
     gal->EffectiveBHM       += emissivity*PROTONMASS/1e10/SOLAR_MASS*run_globals->params.physics.ReionEscapeFracBH/run_globals->params.physics.ReionNionPhotPerBary/run_globals->params.physics.ReionEscapeFrac;
