@@ -9,7 +9,7 @@ double calculate_emissivity(run_globals_t *run_globals, double BlackHoleMass, do
     double accretion_time;
     double Lbol;//bolometric luminotisy
     double kb;//bolometric correction
-	run_units_t *units = &(run_globals->units);
+    run_units_t *units = &(run_globals->units);
 
     accretion_time = log10(1.0+accreted_mass/BlackHoleMass)/run_globals->params.physics.EddingtonRatio*eta / (1.402e37 / (units->UnitEnergy_in_cgs / units->UnitTime_in_Megayears)); //in second
 
@@ -85,6 +85,7 @@ double radio_mode_BH_heating(run_globals_t *run_globals, galaxy_t *gal, double c
   double accreted_mass;
   double heated_mass;
   double metallicity;
+  double emissivity;
 
   fof_group_t *fof_group = gal->Halo->FOFGroup;
 
@@ -126,12 +127,13 @@ double radio_mode_BH_heating(run_globals_t *run_globals, galaxy_t *gal, double c
     metallicity         = calc_metallicity(gal->HotGas, gal->MetalsHotGas);
 
     //N_gamma,q * N_bh; later emissivity * PROTONMASS/1e10/SOLAR_MASS will be  N_gamma,q * M_bh
-    gal->emissivity = calculate_emissivity(run_globals, gal->BlackHoleMass, accreted_mass);
+    emissivity = calculate_emissivity(run_globals, gal->BlackHoleMass, accreted_mass);
 
+    gal->emissivity = emissivity;
     gal->BlackHoleMass      += (1.-eta)*accreted_mass;
     gal->BlackHoleGrossMass += (1.-eta)*accreted_mass;
-    gal->EffectiveBHM       += gal->emissivity*PROTONMASS/1e10/SOLAR_MASS*run_globals->params.physics.ReionEscapeFracBH/run_globals->params.physics.ReionNionPhotPerBary/run_globals->params.physics.ReionEscapeFrac;
-    gal->FescWeightedEBHM   += gal->emissivity*PROTONMASS/1e10/SOLAR_MASS*run_globals->params.physics.ReionEscapeFracBH/run_globals->params.physics.ReionNionPhotPerBary;
+    gal->EffectiveBHM       += emissivity*PROTONMASS/1e10/SOLAR_MASS*run_globals->params.physics.ReionEscapeFracBH/run_globals->params.physics.ReionNionPhotPerBary/run_globals->params.physics.ReionEscapeFrac;
+    gal->FescWeightedEBHM   += emissivity*PROTONMASS/1e10/SOLAR_MASS*run_globals->params.physics.ReionEscapeFracBH/run_globals->params.physics.ReionNionPhotPerBary;
     gal->HotGas        -= accreted_mass;
     gal->MetalsHotGas  -= metallicity * accreted_mass;
   }
@@ -155,6 +157,7 @@ void merger_driven_BH_growth(run_globals_t *run_globals, galaxy_t *gal, double m
     double m_reheat;
     double accreted_mass;
     double accreted_metals;
+    double emissivity;
     double Vvir;
     double zplus1to1pt5;
     run_units_t *units = &(run_globals->units);
@@ -189,12 +192,13 @@ void merger_driven_BH_growth(run_globals_t *run_globals, galaxy_t *gal, double m
     accreted_metals     = calc_metallicity(gal->ColdGas, gal->MetalsColdGas) * accreted_mass;
 
     //N_gamma,q * N_bh; later emissivity * PROTONMASS/1e10/SOLAR_MASS will be  N_gamma,q * M_bh
-    gal->emissivity = calculate_emissivity(run_globals, gal->BlackHoleMass, accreted_mass); 
+    emissivity = calculate_emissivity(run_globals, gal->BlackHoleMass, accreted_mass); 
     
+    gal->emissivity +=emissivity;
     gal->BlackHoleMass      += (1.-eta)*accreted_mass;
     gal->BlackHoleGrossMass += (1.-eta)*accreted_mass; 
-    gal->EffectiveBHM       += gal->emissivity*PROTONMASS/1e10/SOLAR_MASS*run_globals->params.physics.ReionEscapeFracBH/run_globals->params.physics.ReionNionPhotPerBary/run_globals->params.physics.ReionEscapeFrac;
-    gal->FescWeightedEBHM   += gal->emissivity*PROTONMASS/1e10/SOLAR_MASS*run_globals->params.physics.ReionEscapeFracBH/run_globals->params.physics.ReionNionPhotPerBary;
+    gal->EffectiveBHM       += emissivity*PROTONMASS/1e10/SOLAR_MASS*run_globals->params.physics.ReionEscapeFracBH/run_globals->params.physics.ReionNionPhotPerBary/run_globals->params.physics.ReionEscapeFrac;
+    gal->FescWeightedEBHM   += emissivity*PROTONMASS/1e10/SOLAR_MASS*run_globals->params.physics.ReionEscapeFracBH/run_globals->params.physics.ReionNionPhotPerBary;
     gal->ColdGas       -= accreted_mass;
     gal->MetalsColdGas -= accreted_metals;
 
@@ -215,6 +219,7 @@ void previous_merger_driven_BH_growth(run_globals_t *run_globals, galaxy_t *gal)
     double m_reheat;
     double accreted_mass;
     double accreted_metals;
+    double emissivity;
     double Vvir;
     run_units_t *units = &(run_globals->units);
 
@@ -241,12 +246,13 @@ void previous_merger_driven_BH_growth(run_globals_t *run_globals, galaxy_t *gal)
     accreted_metals     = calc_metallicity(gal->ColdGas, gal->MetalsColdGas) * accreted_mass;
 
     //N_gamma,q * N_bh; later emissivity * PROTONMASS/1e10/SOLAR_MASS will be  N_gamma,q * M_bh
-    gal->emissivity = calculate_emissivity(run_globals, gal->BlackHoleMass, accreted_mass);
+    emissivity = calculate_emissivity(run_globals, gal->BlackHoleMass, accreted_mass);
 
+    gal->emissivity +=emissivity;
     gal->BlackHoleMass      += (1.-eta)*accreted_mass;
     gal->BlackHoleGrossMass += (1.-eta)*accreted_mass;
-    gal->EffectiveBHM       += gal->emissivity*PROTONMASS/1e10/SOLAR_MASS*run_globals->params.physics.ReionEscapeFracBH/run_globals->params.physics.ReionNionPhotPerBary/run_globals->params.physics.ReionEscapeFrac;
-    gal->FescWeightedEBHM   += gal->emissivity*PROTONMASS/1e10/SOLAR_MASS*run_globals->params.physics.ReionEscapeFracBH/run_globals->params.physics.ReionNionPhotPerBary;
+    gal->EffectiveBHM       += emissivity*PROTONMASS/1e10/SOLAR_MASS*run_globals->params.physics.ReionEscapeFracBH/run_globals->params.physics.ReionNionPhotPerBary/run_globals->params.physics.ReionEscapeFrac;
+    gal->FescWeightedEBHM   += emissivity*PROTONMASS/1e10/SOLAR_MASS*run_globals->params.physics.ReionEscapeFracBH/run_globals->params.physics.ReionNionPhotPerBary;
     gal->ColdGas       -= accreted_mass;
     gal->MetalsColdGas -= accreted_metals;
 
