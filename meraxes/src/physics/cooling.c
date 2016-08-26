@@ -84,6 +84,16 @@ double gas_cooling(run_globals_t *run_globals, galaxy_t *gal)
       if (cooling_mass < 0)
         cooling_mass = 0.0;
     }
+	else
+	{
+		gal->BlackHoleAccretedHotMass = 0.0;
+		gal->emissivity = 0.0;              
+	}
+  }
+  else
+  {
+	  gal->BlackHoleAccretedHotMass = 0.0;
+	  gal->emissivity = 0.0;              
   }
 
   return cooling_mass;

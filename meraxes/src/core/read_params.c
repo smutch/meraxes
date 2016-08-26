@@ -353,6 +353,16 @@ void read_parameter_file(run_globals_t *run_globals, char *fname, int mode)
       required_tag[n_param]  = 1;
       params_type[n_param++] = PARAM_TYPE_INT;
       
+      strcpy(params_tag[n_param], "RedshiftDepEscFracNorm");
+      params_addr[n_param]   = &(run_params->physics).RedshiftDepEscFracNorm;
+      required_tag[n_param]  = 1;
+      params_type[n_param++] = PARAM_TYPE_DOUBLE;
+      
+      strcpy(params_tag[n_param], "RedshiftDepEscFracScaling");
+      params_addr[n_param]   = &(run_params->physics).RedshiftDepEscFracScaling;
+      required_tag[n_param]  = 1;
+      params_type[n_param++] = PARAM_TYPE_DOUBLE;
+      
       strcpy(params_tag[n_param], "Flag_ReionizationModifier");
       params_addr[n_param]   = &(run_params->physics).Flag_ReionizationModifier;
       required_tag[n_param]  = 1;
@@ -508,6 +518,11 @@ void read_parameter_file(run_globals_t *run_globals, char *fname, int mode)
       required_tag[n_param]  = 1;
       params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
+      strcpy(params_tag[n_param], "BlackHoleSeed");
+      params_addr[n_param]   = &(run_params->physics).BlackHoleSeed;
+      required_tag[n_param]  = 1;
+      params_type[n_param++] = PARAM_TYPE_DOUBLE;
+
       strcpy(params_tag[n_param], "BlackHoleGrowthRate");
       params_addr[n_param]   = &(run_params->physics).BlackHoleGrowthRate;
       required_tag[n_param]  = 1;
@@ -545,11 +560,6 @@ void read_parameter_file(run_globals_t *run_globals, char *fname, int mode)
 
       strcpy(params_tag[n_param], "ReionNionPhotPerBary");
       params_addr[n_param]   = &(run_params->physics).ReionNionPhotPerBary;
-      required_tag[n_param]  = 1;
-      params_type[n_param++] = PARAM_TYPE_DOUBLE;
-
-      strcpy(params_tag[n_param], "ReionNionPhotPerBaryBH");
-      params_addr[n_param]   = &(run_params->physics).ReionNionPhotPerBaryBH;
       required_tag[n_param]  = 1;
       params_type[n_param++] = PARAM_TYPE_DOUBLE;
 

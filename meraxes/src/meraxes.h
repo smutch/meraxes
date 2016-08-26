@@ -102,7 +102,7 @@ typedef struct physics_params_t {
 
   // TODO: These parameters should be used to set the TOCF HII_EFF_FACTOR value
   double ReionNionPhotPerBary;
-  double ReionNionPhotPerBaryBH;
+  double BlackHoleSeed;
   double ReionEscapeFrac;
   double ReionEscapeFracBH;
   double BlackHoleMassLimitReion;
@@ -118,6 +118,8 @@ typedef struct physics_params_t {
 
   // Flags
   int Flag_RedshiftDepEscFrac;
+  double RedshiftDepEscFracNorm;
+  double RedshiftDepEscFracScaling;
   int Flag_ReionizationModifier;
   int Flag_BHFeedback;
   int Flag_BHReion;
@@ -329,6 +331,7 @@ typedef struct galaxy_t {
   double MetalsEjectedGas;
   double BlackHoleMass;
   double BlackHoleGrossMass;
+  double emissivity;
   double EffectiveBHM;
   double FescWeightedEBHM;
   double BlackHoleAccretedHotMass;
@@ -409,6 +412,7 @@ typedef struct galaxy_output_t {
   float MetalsEjectedGas;
   float BlackHoleMass;
   float BlackHoleGrossMass;
+  float emissivity;
   float EffectiveBHM;
   float FescWeightedEBHM;
   float BlackHoleAccretedHotMass;

@@ -44,8 +44,9 @@ galaxy_t* new_galaxy(run_globals_t *run_globals, int snapshot, int halo_ID)
   gal->MetalsStellarMass  = 0.0;
   gal->mwmsa_num          = 0.0;
   gal->mwmsa_denom        = 0.0;
-  gal->BlackHoleMass      = 1e-7;
+  gal->BlackHoleMass      = run_globals->params.physics.BlackHoleSeed;
   gal->BlackHoleGrossMass = 0.0;
+  gal->emissivity         = 0.0;
   gal->FescWeightedEBHM   = 0.0;
   gal->EffectiveBHM       = 0.0;
   gal->BlackHoleAccretedHotMass      = 0.0;
