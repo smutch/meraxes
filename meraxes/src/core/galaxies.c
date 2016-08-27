@@ -124,6 +124,7 @@ void reset_galaxy_properties(run_globals_t *run_globals, galaxy_t *gal, int snap
   // Here we reset any galaxy properties which are calculated on a snapshot by
   // snapshot basis.
   gal->Mcool              = 0.0;
+  gal->emissivity         = 0.0;
   gal->BlackHoleAccretedHotMass      = 0.0;
   gal->BlackHoleAccretedColdMass      = 0.0;
   gal->Sfr                = 0.0;

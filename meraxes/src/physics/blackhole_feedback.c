@@ -105,7 +105,7 @@ double radio_mode_BH_heating(run_globals_t *run_globals, galaxy_t *gal, double c
 
     // eddington rate
     //eddington_mass = (exp(1.402e37 / (units->unitenergy_in_cgs / units->unittime_in_s)*gal->dt/eta*run_globals->params.physics.EddingtonRatio)-1.) * gal->BlackHoleMass;
-    eddington_mass = (exp(gal->dt/eta*run_globals->params.physics.EddingtonRatio/450)-1.)*gal->BlackHoleMass;
+    eddington_mass = (exp(gal->dt/eta*run_globals->params.physics.EddingtonRatio/(450./units->UnitTime_in_Megayears))-1.)*gal->BlackHoleMass;
 
 
     // limit accretion by the eddington rate
@@ -187,7 +187,7 @@ void merger_driven_BH_growth(run_globals_t *run_globals, galaxy_t *gal, double m
 
     // Eddington rate
     //accreted_mass = (exp(1.402e37 / (units->UnitEnergy_in_cgs / units->UnitTime_in_s)*gal->dt/eta*run_globals->params.physics.EddingtonRatio)-1.) * gal->BlackHoleMass;
-    accreted_mass = (exp(gal->dt/eta*run_globals->params.physics.EddingtonRatio/450)-1.)*gal->BlackHoleMass;
+    accreted_mass = (exp(gal->dt/eta*run_globals->params.physics.EddingtonRatio/(450./units->UnitTime_in_Megayears))-1.)*gal->BlackHoleMass;
 
     // limit accretion to what is need
     if (accreted_mass > gal->BlackHoleAccretingColdMass)
@@ -242,7 +242,7 @@ void previous_merger_driven_BH_growth(run_globals_t *run_globals, galaxy_t *gal)
 
     // Eddington rate
     //accreted_mass = (exp(1.402e37 / (units->UnitEnergy_in_cgs / units->UnitTime_in_s)*gal->dt/eta*run_globals->params.physics.EddingtonRatio)-1.) * gal->BlackHoleMass;
-    accreted_mass = (exp(gal->dt/eta*run_globals->params.physics.EddingtonRatio/450)-1.)*gal->BlackHoleMass;
+    accreted_mass = (exp(gal->dt/eta*run_globals->params.physics.EddingtonRatio/(450./units->UnitTime_in_Megayears))-1.)*gal->BlackHoleMass;
 
     // limit accretion to what is need
     if (accreted_mass > gal->BlackHoleAccretingColdMass)
