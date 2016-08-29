@@ -418,6 +418,17 @@ void dracarys(run_globals_t *run_globals)
         params->ReionEscapeFrac = (double)f_esc;
         SID_log("f_esc = %g", SID_LOG_COMMENT, f_esc);
     }
+
+    if (params->Flag_RedshiftDepEscFracBH)
+    {
+        float f_esc_q = run_globals->params.physics.RedshiftDepEscFracBHNorm*(powf((1.0+run_globals->ZZ[snapshot])/6.0, run_globals->params.physics.RedshiftDepEscFracBHScaling));
+        
+        if (f_esc_q > 1.0)
+            f_esc_q = 1.0;
+        
+        params->ReionEscapeFracBH = (double)f_esc_q;
+        SID_log("f_esc_q = %g", SID_LOG_COMMENT, f_esc_q);
+    }
     
     if (run_globals->params.TOCF_Flag && !check_if_reionization_complete(run_globals))
     {

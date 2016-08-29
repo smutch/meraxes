@@ -363,6 +363,21 @@ void read_parameter_file(run_globals_t *run_globals, char *fname, int mode)
       required_tag[n_param]  = 1;
       params_type[n_param++] = PARAM_TYPE_DOUBLE;
       
+      strcpy(params_tag[n_param], "Flag_RedshiftDepEscFracBH");
+      params_addr[n_param]   = &(run_params->physics).Flag_RedshiftDepEscFracBH;
+      required_tag[n_param]  = 1;
+      params_type[n_param++] = PARAM_TYPE_INT;
+      
+      strcpy(params_tag[n_param], "RedshiftDepEscFracBHNorm");
+      params_addr[n_param]   = &(run_params->physics).RedshiftDepEscFracBHNorm;
+      required_tag[n_param]  = 1;
+      params_type[n_param++] = PARAM_TYPE_DOUBLE;
+      
+      strcpy(params_tag[n_param], "RedshiftDepEscFracBHScaling");
+      params_addr[n_param]   = &(run_params->physics).RedshiftDepEscFracBHScaling;
+      required_tag[n_param]  = 1;
+      params_type[n_param++] = PARAM_TYPE_DOUBLE;
+      
       strcpy(params_tag[n_param], "Flag_ReionizationModifier");
       params_addr[n_param]   = &(run_params->physics).Flag_ReionizationModifier;
       required_tag[n_param]  = 1;

@@ -120,6 +120,9 @@ typedef struct physics_params_t {
   int Flag_RedshiftDepEscFrac;
   double RedshiftDepEscFracNorm;
   double RedshiftDepEscFracScaling;
+  int Flag_RedshiftDepEscFracBH;
+  double RedshiftDepEscFracBHNorm;
+  double RedshiftDepEscFracBHScaling;
   int Flag_ReionizationModifier;
   int Flag_BHFeedback;
   int Flag_BHReion;
