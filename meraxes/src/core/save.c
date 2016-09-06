@@ -54,7 +54,6 @@ void prepare_galaxy_for_output(
 
   galout->Len                = (int)(gal.Len);
   galout->MaxLen             = (int)(gal.MaxLen);
-  galout->PhysicsFlags       = (int)(gal.PhysicsFlags);
   galout->Mvir               = (float)(gal.Mvir);
   galout->Rvir               = (float)(gal.Rvir);
   galout->Vvir               = (float)(gal.Vvir);
@@ -196,13 +195,6 @@ void calc_hdf5_props()
     h5props->dst_offsets[i]     = HOFFSET(galaxy_output_t, MaxLen);
     h5props->dst_field_sizes[i] = sizeof(galout.MaxLen);
     h5props->field_names[i]     = "MaxLen";
-    h5props->field_units[i]     = "None";
-    h5props->field_h_conv[i]    = "None";
-    h5props->field_types[i++]   = H5T_NATIVE_INT;
-
-    h5props->dst_offsets[i]     = HOFFSET(galaxy_output_t, PhysicsFlags);
-    h5props->dst_field_sizes[i] = sizeof(galout.PhysicsFlags);
-    h5props->field_names[i]     = "PhysicsFlags";
     h5props->field_units[i]     = "None";
     h5props->field_h_conv[i]    = "None";
     h5props->field_types[i++]   = H5T_NATIVE_INT;

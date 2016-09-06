@@ -68,10 +68,6 @@
 FILE *meraxes_debug_file;
 #endif
 
-#define PHYSICS_FLAG_MAXIMAL_COOLING 1
-#define PHYSICS_FLAG_MAXIMAL_INSITU_SF 2
-#define PHYSICS_FLAG_MAXIMAL_MERGER_SF 4
-
 /*
  * Enums
  */
@@ -395,7 +391,6 @@ typedef struct galaxy_t {
   int  TreeFlags;
   int  LastIdentSnap;     //!< Last snapshot at which the halo in which this galaxy resides was identified
   int  output_index;  //!< write index
-  int  PhysicsFlags;
 
   bool ghost_flag;
 
@@ -451,7 +446,6 @@ typedef struct galaxy_output_t {
   float MergerStartRadius;
   float BaryonFracModifier;
   float MvirCrit;
-  int   PhysicsFlags;
 
   // baryonic histories
   float MWMSA;  // Mass weighted mean stellar age

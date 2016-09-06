@@ -119,10 +119,7 @@ static void merger_driven_starburst(galaxy_t *parent, double merger_ratio, int s
     burst_mass = params->MergerBurstFactor * pow(merger_ratio, params->MergerBurstScaling) * parent->ColdGas;
 
     if(burst_mass > parent->ColdGas)
-    {
       burst_mass = parent->ColdGas;
-      parent->PhysicsFlags |= PHYSICS_FLAG_MAXIMAL_MERGER_SF;
-    }
 
     if (burst_mass > 0)
     {
