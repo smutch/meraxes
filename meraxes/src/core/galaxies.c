@@ -44,8 +44,6 @@ galaxy_t* new_galaxy(int snapshot, int halo_ID)
   gal->mwmsa_num          = 0.0;
   gal->mwmsa_denom        = 0.0;
   gal->BlackHoleMass      = 0.0;
-  gal->MaxReheatFrac      = 0.0;
-  gal->MaxEjectFrac       = 0.0;
   gal->Sfr                = 0.0;
   gal->Cos_Inc            = gsl_rng_uniform(run_globals.random_generator);
   gal->MergTime           = 99999.9;
@@ -129,9 +127,6 @@ void reset_galaxy_properties(galaxy_t *gal, int snapshot)
     gal->NewStars[ii] = gal->NewStars[ii - 1];
 
   gal->NewStars[0] = 0.0;
-
-  gal->MaxEjectFrac = 0.0;
-  gal->MaxReheatFrac = 0.0;
 }
 
 

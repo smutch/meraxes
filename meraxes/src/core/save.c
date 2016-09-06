@@ -68,8 +68,6 @@ void prepare_galaxy_for_output(
   galout->StellarMass        = (float)(gal.StellarMass);
   galout->GrossStellarMass   = (float)(gal.GrossStellarMass);
   galout->BlackHoleMass      = (float)(gal.BlackHoleMass);
-  galout->MaxReheatFrac      = (float)(gal.MaxReheatFrac);
-  galout->MaxEjectFrac       = (float)(gal.MaxEjectFrac);
   galout->DiskScaleLength    = (float)(gal.DiskScaleLength);
   galout->MetalsStellarMass  = (float)(gal.MetalsStellarMass);
   galout->Sfr                = (float)(gal.Sfr * units->UnitMass_in_g / units->UnitTime_in_s * SEC_PER_YEAR / SOLAR_MASS);
@@ -354,20 +352,6 @@ void calc_hdf5_props()
     h5props->field_names[i]     = "BlackHoleMass";
     h5props->field_units[i]     = "1e10 solMass";
     h5props->field_h_conv[i]    = "v/h";
-    h5props->field_types[i++]   = H5T_NATIVE_FLOAT;
-
-    h5props->dst_offsets[i]     = HOFFSET(galaxy_output_t, MaxReheatFrac);
-    h5props->dst_field_sizes[i] = sizeof(galout.MaxReheatFrac);
-    h5props->field_names[i]     = "MaxReheatFrac";
-    h5props->field_units[i]     = "None";
-    h5props->field_h_conv[i]    = "None";
-    h5props->field_types[i++]   = H5T_NATIVE_FLOAT;
-
-    h5props->dst_offsets[i]     = HOFFSET(galaxy_output_t, MaxEjectFrac);
-    h5props->dst_field_sizes[i] = sizeof(galout.MaxEjectFrac);
-    h5props->field_names[i]     = "MaxEjectFrac";
-    h5props->field_units[i]     = "None";
-    h5props->field_h_conv[i]    = "None";
     h5props->field_types[i++]   = H5T_NATIVE_FLOAT;
 
     h5props->dst_offsets[i]     = HOFFSET(galaxy_output_t, Rcool);
