@@ -381,6 +381,7 @@ typedef struct galaxy_t {
   double MergerStartRadius;
   double BaryonFracModifier;
   double MvirCrit;
+  double MergerBurstMass;
 
   int  Type;
   int  OldType;
@@ -446,6 +447,7 @@ typedef struct galaxy_output_t {
   float MergerStartRadius;
   float BaryonFracModifier;
   float MvirCrit;
+  float MergerBurstMass;
 
   // baryonic histories
   float MWMSA;  // Mass weighted mean stellar age
