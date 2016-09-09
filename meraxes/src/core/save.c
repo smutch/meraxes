@@ -54,7 +54,6 @@ void prepare_galaxy_for_output(
 
   galout->Len                = (int)(gal.Len);
   galout->MaxLen             = (int)(gal.MaxLen);
-  galout->PhysicsFlags       = (int)(gal.PhysicsFlags);
   galout->Mvir               = (float)(gal.Mvir);
   galout->Rvir               = (float)(gal.Rvir);
   galout->Vvir               = (float)(gal.Vvir);
@@ -68,8 +67,6 @@ void prepare_galaxy_for_output(
   galout->StellarMass        = (float)(gal.StellarMass);
   galout->GrossStellarMass   = (float)(gal.GrossStellarMass);
   galout->BlackHoleMass      = (float)(gal.BlackHoleMass);
-  galout->MaxReheatFrac      = (float)(gal.MaxReheatFrac);
-  galout->MaxEjectFrac       = (float)(gal.MaxEjectFrac);
   galout->DiskScaleLength    = (float)(gal.DiskScaleLength);
   galout->MetalsStellarMass  = (float)(gal.MetalsStellarMass);
   galout->Sfr                = (float)(gal.Sfr * units->UnitMass_in_g / units->UnitTime_in_s * SEC_PER_YEAR / SOLAR_MASS);
@@ -79,6 +76,7 @@ void prepare_galaxy_for_output(
   galout->Cos_Inc            = (float)(gal.Cos_Inc);
   galout->BaryonFracModifier = (float)(gal.BaryonFracModifier);
   galout->MvirCrit           = (float)(gal.MvirCrit);
+  galout->MergerBurstMass    = (float)(gal.MergerBurstMass);
   galout->MergTime           = (float)(gal.MergTime * units->UnitLength_in_cm / units->UnitVelocity_in_cm_per_s / SEC_PER_MEGAYEAR);
   galout->MergerStartRadius  = (float)(gal.MergerStartRadius);
   galout->MWMSA              = current_mwmsa(&gal, i_snap);
@@ -102,7 +100,7 @@ void calc_hdf5_props()
     galaxy_output_t galout;
     int i;                                                // dummy
 
-    h5props->n_props = 39;
+    h5props->n_props = 37;
 
 #ifdef CALC_MAGS
     // If we are calculating any magnitudes then increment the number of
@@ -198,13 +196,6 @@ void calc_hdf5_props()
     h5props->dst_offsets[i]     = HOFFSET(galaxy_output_t, MaxLen);
     h5props->dst_field_sizes[i] = sizeof(galout.MaxLen);
     h5props->field_names[i]     = "MaxLen";
-    h5props->field_units[i]     = "None";
-    h5props->field_h_conv[i]    = "None";
-    h5props->field_types[i++]   = H5T_NATIVE_INT;
-
-    h5props->dst_offsets[i]     = HOFFSET(galaxy_output_t, PhysicsFlags);
-    h5props->dst_field_sizes[i] = sizeof(galout.PhysicsFlags);
-    h5props->field_names[i]     = "PhysicsFlags";
     h5props->field_units[i]     = "None";
     h5props->field_h_conv[i]    = "None";
     h5props->field_types[i++]   = H5T_NATIVE_INT;
@@ -356,20 +347,6 @@ void calc_hdf5_props()
     h5props->field_h_conv[i]    = "v/h";
     h5props->field_types[i++]   = H5T_NATIVE_FLOAT;
 
-    h5props->dst_offsets[i]     = HOFFSET(galaxy_output_t, MaxReheatFrac);
-    h5props->dst_field_sizes[i] = sizeof(galout.MaxReheatFrac);
-    h5props->field_names[i]     = "MaxReheatFrac";
-    h5props->field_units[i]     = "None";
-    h5props->field_h_conv[i]    = "None";
-    h5props->field_types[i++]   = H5T_NATIVE_FLOAT;
-
-    h5props->dst_offsets[i]     = HOFFSET(galaxy_output_t, MaxEjectFrac);
-    h5props->dst_field_sizes[i] = sizeof(galout.MaxEjectFrac);
-    h5props->field_names[i]     = "MaxEjectFrac";
-    h5props->field_units[i]     = "None";
-    h5props->field_h_conv[i]    = "None";
-    h5props->field_types[i++]   = H5T_NATIVE_FLOAT;
-
     h5props->dst_offsets[i]     = HOFFSET(galaxy_output_t, Rcool);
     h5props->dst_field_sizes[i] = sizeof(galout.Rcool);
     h5props->field_names[i]     = "Rcool";
@@ -408,6 +385,13 @@ void calc_hdf5_props()
     h5props->dst_offsets[i]     = HOFFSET(galaxy_output_t, MvirCrit);
     h5props->dst_field_sizes[i] = sizeof(galout.MvirCrit);
     h5props->field_names[i]     = "MvirCrit";
+    h5props->field_units[i]     = "1e10 solMass";
+    h5props->field_h_conv[i]    = "v/h";
+    h5props->field_types[i++]   = H5T_NATIVE_FLOAT;
+
+    h5props->dst_offsets[i]     = HOFFSET(galaxy_output_t, MergerBurstMass);
+    h5props->dst_field_sizes[i] = sizeof(galout.MergerBurstMass);
+    h5props->field_names[i]     = "MergerBurstMass";
     h5props->field_units[i]     = "1e10 solMass";
     h5props->field_h_conv[i]    = "v/h";
     h5props->field_types[i++]   = H5T_NATIVE_FLOAT;
