@@ -1,23 +1,21 @@
 #!/usr/bin/env python
 
 """Randomly sample a forests_info file to generate a list of forest_ids.
-
-Usage: sample_forests_ids.py <sample_frac> <seed> <forests_info_file> <box_size>
 """
+
+from __future__ import print_function, division
 
 import numpy as np
 import h5py as h5
-from docopt import docopt
 from random import sample, seed
 import matplotlib.pylab as plt
 import pandas as pd
 from dragons import munge, nbody
 import os
+import click
 
 __author__ = "Simon Mutch"
 __date__ = "2014-05-04"
-
-args = docopt(__doc__)
 
 
 def sample_forest_ids(sample_frac, forests_info_file):
@@ -27,15 +25,15 @@ def sample_forest_ids(sample_frac, forests_info_file):
 
     n_to_sample = int(forest_ids.shape[0] * sample_frac)
 
-    print "Sampling {:d} of {:d} forest_ids...".format(n_to_sample,
-                                                       forest_ids.shape[0])
+    print("Sampling {:d} of {:d} forest_ids...".format(n_to_sample,
+                                                       forest_ids.shape[0]))
 
-    sampled = forest_ids[sample(xrange(forest_ids.shape[0]), n_to_sample)]
+    sampled = forest_ids[sample(range(forest_ids.shape[0]), n_to_sample)]
     sampled.sort()
 
     output_file = "sampled_forest_ids-{:.2f}.txt".format(sample_frac)
-    with open(output_file, "w") as fd:
-        fd.write("{:d}\n".format(sampled.shape[0]))
+    with open(output_file, "wb") as fd:
+        fd.write("{:d}\n".format(sampled.shape[0]).encode('utf-8'))
         np.savetxt(fd, sampled, fmt='%d')
 
     return sampled
@@ -43,7 +41,7 @@ def sample_forest_ids(sample_frac, forests_info_file):
 
 def plot_hmf(sampled_ids, sample_frac, forests_info_file, volume):
 
-    print "Plotting sampled & unsampled mass functions"
+    print("Plotting sampled & unsampled mass functions")
 
     # read in the trees
     tree_fname = os.path.join(os.path.dirname(forests_info_file),
@@ -91,11 +89,14 @@ def plot_hmf(sampled_ids, sample_frac, forests_info_file, volume):
 
 
 if __name__ == '__main__':
-    sample_frac = float(args["<sample_frac>"])
-    forests_info_file = args["<forests_info_file>"]
-    volume = float(args["<box_size>"])**3
-    rseed = int(args["<seed>"])
+    @click.command()
+    @click.argument('sample_frac', type=click.FLOAT)
+    @click.argument('forests_info_file', type=click.STRING)
+    @click.argument('volume', type=click.FLOAT)
+    @click.argument('rseed', type=click.INT)
+    def cli(sample_frac, forests_info_file, volume, rseed):
+        seed(rseed)
+        sampled_ids = sample_forest_ids(sample_frac, forests_info_file)
+        plot_hmf(sampled_ids, sample_frac, forests_info_file, volume)
 
-    seed(rseed)
-    sampled_ids = sample_forest_ids(sample_frac, forests_info_file)
-    plot_hmf(sampled_ids, sample_frac, forests_info_file, volume)
+    cli()

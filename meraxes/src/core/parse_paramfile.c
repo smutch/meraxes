@@ -27,13 +27,12 @@ static int match_regex(regex_t *reg, const char *match_str, entry_t *entry)
   // "match" contains the matches found.
   regmatch_t match[n_matches];
 
-  int nomatch;
   int start;
   int finish;
 
   while (1)
   {
-    nomatch = regexec(reg, p, n_matches, match, 0);
+    int nomatch = regexec(reg, p, n_matches, match, 0);
     if (nomatch)
     {
       return nomatch;
