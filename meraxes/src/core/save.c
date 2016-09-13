@@ -109,7 +109,7 @@ void calc_hdf5_props()
     galaxy_output_t galout;
     int i;                                                // dummy
 
-  h5props->n_props = 47;
+  h5props->n_props = 46;
 
 #ifdef CALC_MAGS
     // If we are calculating any magnitudes then increment the number of
@@ -485,7 +485,7 @@ void calc_hdf5_props()
     // DEBUG
     if (i != h5props->n_props)
     {
-      SID_log_error("Incorrect number of galaxy properties in HDF5 file.");
+      SID_log_error("Incorrect number of galaxy properties in HDF5 file. Should be %d, but is %d", h5props->n_props,i);
       ABORT(EXIT_FAILURE);
     }
   }
@@ -834,13 +834,13 @@ void write_snapshot(
   if (i_out > 0)
   {
     for (int ii = 0; ii < run_globals.NOutputSnaps; ii++)
-	{
+  {
       if (run_globals.ListOutputSnaps[ii] == prev_snapshot)
       {
         calc_descendants_i_out = ii;
         break;
       }
-	}
+  }
   }
 
   // Assign the write order indices to each galaxy and store the old indices if required

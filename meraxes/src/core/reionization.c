@@ -42,13 +42,13 @@ double  calculate_massweighted_QHII(
   for (int ix=0; ix<local_nix; ix++)
   { 
     for (int iy=0; iy<ReionGridDim; iy++)
-	{
-	  for (int iz=0; iz<ReionGridDim; iz++)
-	  {
-		  massweighted_QHII += (1. - xH[grid_index(ix, iy, iz, ReionGridDim, INDEX_REAL)]) * (1. + deltax[grid_index(ix, iy, iz, ReionGridDim, INDEX_REAL)]);
-		  massweight += (1. + deltax[grid_index(ix, iy, iz, ReionGridDim, INDEX_REAL)]);
-	  }
-	}
+  {
+    for (int iz=0; iz<ReionGridDim; iz++)
+    {
+      massweighted_QHII += (1. - xH[grid_index(ix, iy, iz, ReionGridDim, INDEX_REAL)]) * (1. + deltax[grid_index(ix, iy, iz, ReionGridDim, INDEX_REAL)]);
+      massweight += (1. + deltax[grid_index(ix, iy, iz, ReionGridDim, INDEX_REAL)]);
+    }
+  }
   }
   SID_Allreduce(SID_IN_PLACE, &massweighted_QHII, 1, SID_DOUBLE, SID_SUM, SID.COMM_WORLD);
   SID_Allreduce(SID_IN_PLACE, &massweight,        1, SID_DOUBLE, SID_SUM, SID.COMM_WORLD);
@@ -456,7 +456,6 @@ void construct_baryon_grids(int snapshot, int local_ngals)
   float *stellar_grid = run_globals.reion_grids.stars;
   float *sfr_grid     = run_globals.reion_grids.sfr;
   int ReionGridDim    = run_globals.params.ReionGridDim;
-  int N_BlackHoleMassLimitReion = 0;
   double tHubble      = hubble_time(snapshot);
 
   gal_to_slab_t *galaxy_to_slab_map         = run_globals.reion_grids.galaxy_to_slab_map;
@@ -485,6 +484,7 @@ void construct_baryon_grids(int snapshot, int local_ngals)
   {
     int i_gal = 0;
     int skipped_gals = 0;
+	int N_BlackHoleMassLimitReion = 0;
 
     for(int i_r=0; i_r < SID.n_proc; i_r++)
     {
@@ -559,8 +559,6 @@ void construct_baryon_grids(int snapshot, int local_ngals)
         }
       }
      
-      SID_log("%d quasars are smaller than %g",SID_LOG_COMMENT, N_BlackHoleMassLimitReion,run_globals.params.physics.BlackHoleMassLimitReion);
-
       // reduce on to the correct rank
       if(SID.My_rank == i_r)
         SID_Reduce(MPI_IN_PLACE, buffer, buffer_size, MPI_FLOAT, MPI_SUM, i_r, SID.COMM_WORLD);
@@ -602,6 +600,8 @@ void construct_baryon_grids(int snapshot, int local_ngals)
 
       }
     }
+	SID_Allreduce(SID_IN_PLACE, &N_BlackHoleMassLimitReion, 1, SID_DOUBLE, SID_SUM, SID.COMM_WORLD);
+    SID_log("%d quasars are smaller than %g",SID_LOG_COMMENT, N_BlackHoleMassLimitReion,run_globals.params.physics.BlackHoleMassLimitReion);
   }
 
   SID_log("done", SID_LOG_CLOSE);
