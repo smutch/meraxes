@@ -419,27 +419,14 @@ void dracarys()
     {
       physics_params_t *params = &(run_globals.params.physics);
 
-      if (params->Flag_RedshiftDepEscFrac)
-      {
-        float f_esc = run_globals.params.physics.RedshiftDepEscFracNorm*(powf((1.0+run_globals.ZZ[snapshot])/6.0, run_globals.params.physics.RedshiftDepEscFracScaling));
-        if (f_esc > 1.0)
-          f_esc = 1.0;
-
-        params->ReionEscapeFrac = (double)f_esc;
-        SID_log("f_esc = %g", SID_LOG_COMMENT, f_esc);
-      }
-
-      if (params->Flag_RedshiftDepEscFracBH)
-      {
-        float f_esc_q = run_globals.params.physics.RedshiftDepEscFracBHNorm*(powf((1.0+run_globals.ZZ[snapshot])/6.0, run_globals.params.physics.RedshiftDepEscFracBHScaling));
-        
-        if (f_esc_q > 1.0)
-            f_esc_q = 1.0;
-        
-        params->ReionEscapeFracBH = (double)f_esc_q;
-        SID_log("f_esc_q = %g", SID_LOG_COMMENT, f_esc_q);
-      }
-    
+      float f_esc = run_globals.params.physics.RedshiftDepEscFracNorm*(powf((1.0+run_globals.ZZ[snapshot])/6.0, run_globals.params.physics.RedshiftDepEscFracScaling));
+      float f_esc_q = run_globals.params.physics.RedshiftDepEscFracBHNorm*(powf((1.0+run_globals.ZZ[snapshot])/6.0, run_globals.params.physics.RedshiftDepEscFracBHScaling));
+      if (f_esc   > 1.0) f_esc   = 1.0;
+      if (f_esc_q > 1.0) f_esc_q = 1.0;
+      params->ReionEscapeFrac = (double)f_esc;
+      params->ReionEscapeFracBH = (double)f_esc_q;
+      SID_log("f_esc = %g", SID_LOG_COMMENT, f_esc);
+      SID_log("f_esc_q = %g", SID_LOG_COMMENT, f_esc_q);
 
       if (!check_if_reionization_complete())
       {

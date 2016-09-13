@@ -14,21 +14,11 @@ void set_ReionEfficiency()
     // Use the params passed to Meraxes via the input file to set the HII ionising efficiency factor
     physics_params_t *params = &(run_globals.params.physics);
 
-    // If we are using a redshift dependent escape fraction then reset
-    // ReionEscapeFrac to one as we don't want to inlcude it in the
-    // ReionEfficiency (it will be included in the stellar mass and SFR grids sent
-    // to 21cmFAST instead).
-    if (params->Flag_RedshiftDepEscFrac)
-    {
-      SID_log("Flag_RedshiftDepEscFrac is on => setting ReionEscapeFrac = 1.", SID_LOG_COMMENT);
-      params->ReionEscapeFrac = 1.0;
-    }
-
     // The following is based on Sobacchi & Messinger (2013) eqn 7
     // with f_* removed and f_b added since we define f_coll as M_*/M_tot rather than M_vir/M_tot,
     // and also with the inclusion of the effects of the Helium fraction.
     run_globals.params.physics.ReionEfficiency = 1.0 / run_globals.params.BaryonFrac
-      * params->ReionNionPhotPerBary * params->ReionEscapeFrac / (1.0 - 0.75*run_globals.params.physics.Y_He);
+      * params->ReionNionPhotPerBary / (1.0 - 0.75*run_globals.params.physics.Y_He);
 
     // Account for instantaneous recycling factor so that stellar mass is cumulative
     if (params->Flag_IRA)
@@ -538,7 +528,7 @@ void construct_baryon_grids(int snapshot, int local_ngals)
           // They are the same just now, but may be different in the future once the model is improved.
           switch (prop) {
             case prop_stellar:
-              buffer[ind] += gal->GrossStellarMass;
+              buffer[ind] += gal->FescWeightedGSM;
               // a trick to include quasar radiation using current 21cmFAST code
               if ((run_globals.params.physics.Flag_BHFeedback) && (run_globals.params.physics.Flag_BHReion))
               {
@@ -550,7 +540,7 @@ void construct_baryon_grids(int snapshot, int local_ngals)
               break;
 
             case prop_sfr:
-              buffer[ind] += gal->GrossStellarMass;
+              buffer[ind] += gal->FescWeightedGSM;
               // for ionizing_source_formation_rate_grid, need further convertion due to different UV spectral index of quasar and stellar component
               if ((run_globals.params.physics.Flag_BHFeedback) && (run_globals.params.physics.Flag_BHReion))
               {

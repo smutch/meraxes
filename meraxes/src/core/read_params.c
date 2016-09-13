@@ -340,11 +340,6 @@ void read_parameter_file(char *fname, int mode)
 
       // Physics params
       
-      strcpy(params_tag[n_param], "Flag_RedshiftDepEscFrac");
-      params_addr[n_param]   = &(run_params->physics).Flag_RedshiftDepEscFrac;
-      required_tag[n_param]  = 1;
-      params_type[n_param++] = PARAM_TYPE_INT;
-      
       strcpy(params_tag[n_param], "RedshiftDepEscFracNorm");
       params_addr[n_param]   = &(run_params->physics).RedshiftDepEscFracNorm;
       required_tag[n_param]  = 1;
@@ -354,11 +349,6 @@ void read_parameter_file(char *fname, int mode)
       params_addr[n_param]   = &(run_params->physics).RedshiftDepEscFracScaling;
       required_tag[n_param]  = 1;
       params_type[n_param++] = PARAM_TYPE_DOUBLE;
-      
-      strcpy(params_tag[n_param], "Flag_RedshiftDepEscFracBH");
-      params_addr[n_param]   = &(run_params->physics).Flag_RedshiftDepEscFracBH;
-      required_tag[n_param]  = 1;
-      params_type[n_param++] = PARAM_TYPE_INT;
       
       strcpy(params_tag[n_param], "RedshiftDepEscFracBHNorm");
       params_addr[n_param]   = &(run_params->physics).RedshiftDepEscFracBHNorm;
@@ -567,16 +557,6 @@ void read_parameter_file(char *fname, int mode)
 
       strcpy(params_tag[n_param], "ReionNionPhotPerBary");
       params_addr[n_param]   = &(run_params->physics).ReionNionPhotPerBary;
-      required_tag[n_param]  = 1;
-      params_type[n_param++] = PARAM_TYPE_DOUBLE;
-
-      strcpy(params_tag[n_param], "ReionEscapeFrac");
-      params_addr[n_param]   = &(run_params->physics).ReionEscapeFrac;
-      required_tag[n_param]  = 1;
-      params_type[n_param++] = PARAM_TYPE_DOUBLE;
-
-      strcpy(params_tag[n_param], "ReionEscapeFracBH");
-      params_addr[n_param]   = &(run_params->physics).ReionEscapeFracBH;
       required_tag[n_param]  = 1;
       params_type[n_param++] = PARAM_TYPE_DOUBLE;
 

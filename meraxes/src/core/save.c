@@ -67,6 +67,7 @@ void prepare_galaxy_for_output(
   galout->Mcool              = (float)(gal.Mcool);
   galout->StellarMass        = (float)(gal.StellarMass);
   galout->GrossStellarMass   = (float)(gal.GrossStellarMass);
+  galout->FescWeightedGSM    = (float)(gal.FescWeightedGSM);
   galout->BlackHoleMass      = (float)(gal.BlackHoleMass);
   galout->BlackHoleGrossMass = (float)(gal.BlackHoleGrossMass);
   galout->emissivity         = (float)(gal.emissivity);
@@ -326,6 +327,13 @@ void calc_hdf5_props()
   h5props->field_units[i]     = "1e10 solMass";
   h5props->field_h_conv[i]    = "v/h";
   h5props->field_types[i++]   = H5T_NATIVE_FLOAT;
+
+  h5props->dst_offsets[i]     = HOFFSET(galaxy_output_t, FescWeightedGSM);         
+  h5props->dst_field_sizes[i] = sizeof(galout.FescWeightedGSM);                    
+  h5props->field_names[i]     = "FescWeightedGSM";                                 
+  h5props->field_units[i]     = "1e10 solMass";                                    
+  h5props->field_h_conv[i]    = "v/h";                                             
+  h5props->field_types[i++]   = H5T_NATIVE_FLOAT;                                  
 
   h5props->dst_offsets[i]     = HOFFSET(galaxy_output_t, MetalsStellarMass);
   h5props->dst_field_sizes[i] = sizeof(galout.MetalsStellarMass);

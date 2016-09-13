@@ -118,9 +118,9 @@ typedef struct physics_params_t {
   // TODO: These parameters should be used to set the TOCF HII_EFF_FACTOR value
   double ReionEfficiency;
   double ReionNionPhotPerBary;
-  double BlackHoleSeed;
-  double ReionEscapeFrac;
+  double ReionEscapeFrac;  
   double ReionEscapeFracBH;
+  double BlackHoleSeed;
   double BlackHoleMassLimitReion;
   double ReionTcool;
   double Y_He;
@@ -149,10 +149,8 @@ typedef struct physics_params_t {
   double  ReionSMParam_d;
 
   // Flags
-  int Flag_RedshiftDepEscFrac;
   double RedshiftDepEscFracNorm;
   double RedshiftDepEscFracScaling;
-  int Flag_RedshiftDepEscFracBH;
   double RedshiftDepEscFracBHNorm;
   double RedshiftDepEscFracBHScaling;
   int Flag_ReionizationModifier;
