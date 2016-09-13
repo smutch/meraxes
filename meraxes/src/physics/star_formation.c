@@ -3,7 +3,7 @@
 #include <gsl/gsl_sf_lambert.h>
 #include <assert.h>
 
-void update_reservoirs_from_sf(run_globals_t *run_globals, galaxy_t *gal, double new_stars)
+void update_reservoirs_from_sf(galaxy_t *gal, double new_stars)
 {
   if (new_stars > 0)
   {
@@ -24,12 +24,12 @@ void update_reservoirs_from_sf(run_globals_t *run_globals, galaxy_t *gal, double
     gal->MetalsColdGas     -= new_stars * metallicity;
     gal->StellarMass       += new_stars;
     gal->GrossStellarMass  += new_stars;
-    gal->FescWeightedGSM   += new_stars * run_globals->params.physics.ReionEscapeFrac;
+    gal->FescWeightedGSM   += new_stars * run_globals.params.physics.ReionEscapeFrac;
     gal->MetalsStellarMass += new_stars * metallicity;
 
     // update the luminosities
-    current_time = run_globals->LTTime[gal->LastIdentSnap] - 0.5 * gal->dt;
-    add_to_luminosities(run_globals, gal, new_stars, metallicity, current_time);
+    current_time = run_globals.LTTime[gal->LastIdentSnap] - 0.5 * gal->dt;
+    add_to_luminosities(gal, new_stars, metallicity, current_time);
 
     // Check the validity of the modified reservoir values.
     // Note that the ColdGas reservers *can* be negative at this point.  This
@@ -44,7 +44,7 @@ void update_reservoirs_from_sf(run_globals_t *run_globals, galaxy_t *gal, double
 }
 
 
-void insitu_star_formation(run_globals_t *run_globals, galaxy_t *gal, int snapshot)
+void insitu_star_formation(galaxy_t *gal, int snapshot)
 {
   // there is no point doing anything if there is no cold gas!
   if (gal->ColdGas > 1e-10)
@@ -59,9 +59,9 @@ void insitu_star_formation(run_globals_t *run_globals, galaxy_t *gal, int snapsh
     double m_recycled;
     double new_metals;
 
-    double SfEfficiency = run_globals->params.physics.SfEfficiency;
-    double SfCriticalSDNorm = run_globals->params.physics.SfCriticalSDNorm;
-    int    SfDiskVelOpt = run_globals->params.physics.SfDiskVelOpt;
+    double SfEfficiency = run_globals.params.physics.SfEfficiency;
+    double SfCriticalSDNorm = run_globals.params.physics.SfCriticalSDNorm;
+    int    SfDiskVelOpt = run_globals.params.physics.SfDiskVelOpt;
 
     // What velocity are we going to use as a proxy for the disk rotation velocity?
     switch (SfDiskVelOpt) {
@@ -99,10 +99,10 @@ void insitu_star_formation(run_globals_t *run_globals, galaxy_t *gal, int snapsh
 
     // calculate the total supernova feedback which would occur if this star
     // formation happened continuously and evenly throughout the snapshot
-    contemporaneous_supernova_feedback(run_globals, gal, &m_stars, snapshot, &m_reheat, &m_eject, &m_recycled, &new_metals);
+    contemporaneous_supernova_feedback(gal, &m_stars, snapshot, &m_reheat, &m_eject, &m_recycled, &new_metals);
 
     // update the baryonic reservoirs (note that the order we do this in will change the result!)
-    update_reservoirs_from_sf(run_globals, gal, m_stars);
+    update_reservoirs_from_sf(gal, m_stars);
     update_reservoirs_from_sn_feedback(gal, m_reheat, m_eject, m_recycled, new_metals);
   }
 }

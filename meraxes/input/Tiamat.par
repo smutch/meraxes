@@ -30,16 +30,8 @@ FlagInteractive        : 0
 FlagGenDumpFile        : 0  # DON'T USE THIS WITHOUT TALKING TO SM FIRST
 FlagReadDumpFile       : 0  # DON'T USE THIS WITHOUT TALKING TO SM FIRST
 FlagSubhaloVirialProps : 0  # 0 -> approximate subhalo virial props using particle number; 1 -> use catalogue values
+FlagMCMC               : 0  # Don't do any writing and activate MCMC related routines
 RandomSeed             : 1809  # seed for random number generator
-
-#------------------------------------------
-#----- 21cmFAST ---------------------------
-#------------------------------------------
-TOCF_Flag : 0 {  # use 21cmfast for reionization?
-    numcores   : 1          # number of OpenMP threads to run 21cmFAST with
-    LogFileDir : tocf_logs  # directory for log files
-    HII_dim    : 256
-}
 
 #------------------------------------------
 #----- Parameters of physical model -------
@@ -84,11 +76,12 @@ MinMergerRatioForBurst    : 0.1     # Minimum mass ratio for merger driven star 
 MergerBurstFactor         : 0.57    # Constant factor in merger burst equation
 MergerBurstScaling        : 0.7
 
-# Reionization
-ReionTcool             : 1.0e4
-ReionNionPhotPerBary   : 4000
-ReionEscapeFrac        : 0.2
 
+#----------------------------------------------
+#----- Reionization ---------------------------
+#----------------------------------------------
+
+# global prescriptions
 ReionSobacchi_Zre      : 9.3
 ReionSobacchi_DeltaZre : 1.0
 ReionSobacchi_DeltaZsc : 2.0
@@ -96,6 +89,32 @@ ReionSobacchi_T0       : 5.0e4
 
 ReionGnedin_z0         : 8
 ReionGnedin_zr         : 7
+
+# patchy (21cmFAST) prescription
+Flag_PatchyReion       : 0
+ReionUVBFlag           : 1
+
+ReionGridDim           : 128
+ReionDeltaRFactor      : 1.1
+ReionFilterType        : 0
+ReionPowerSpecDeltaK   : 0.1
+ReionRtoMFilterType    : 0
+
+Y_He                   : 0.24
+ReionRBubbleMin        : 0.4068
+ReionRBubbleMax        : 20.34
+ReionGammaHaloBias     : 2.0
+ReionAlphaUV           : 5.0
+ReionSMParam_m0        : 0.18984  # internal units
+ReionSMParam_a         : 0.17
+ReionSMParam_b         : -2.1
+ReionSMParam_c         : 2.0
+ReionSMParam_d         : 2.5
+
+ReionTcool             : 1.0e4  # Kelvin
+ReionNionPhotPerBary   : 4000
+ReionEscapeFrac        : 0.2
+
 
 
 #------------------------------------------------
@@ -111,7 +130,8 @@ SpectralIndex: 0.968
 Sigma8: 0.815
 PartMass: 0.0002643852
 wLambda: -1.0
+NPart: 10077696000
 
 UnitLength_in_cm         : 3.08568e+24       # WATCH OUT : Mpc/h
-UnitMass_in_g            : 1.989e+43         # WATCH OUT : 10^10Msun
+UnitMass_in_g            : 1.989e+43         # WATCH OUT : 10^10Msun/h
 UnitVelocity_in_cm_per_s : 100000            # WATCH OUT : km/s

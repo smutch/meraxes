@@ -1,7 +1,9 @@
-#ifdef USE_TOCF
-
 #include "meraxes.h"
 #include <math.h>
+#include <assert.h>
+#include <complex.h>
+#include <fftw3.h>
+#include <fftw3-mpi.h>
 
 
 /*
@@ -20,193 +22,278 @@
 
 static inline void read_identifier(FILE *fin, bool skip_flag)
 {
-    char identifier[32];
+  char identifier[32];
 
-    fread(identifier, sizeof(identifier), 1, fin);
+  fread(identifier, sizeof(identifier), 1, fin);
 
-    if (skip_flag)
-        SID_log_error("Skipping grid: %s...", identifier);
-    else
-        SID_log("Reading grid: %s...", SID_LOG_COMMENT, identifier);
+  if (skip_flag)
+    SID_log_error("Skipping grid: %s...", identifier);
+  else
+    SID_log("Reading grid: %s...", SID_LOG_COMMENT, identifier);
 }
 
 
-static unsigned long long HR_INDEX(int i, int j, int k, int grid_dim)
+static int load_cached_deltax_slab(float *slab, int snapshot)
 {
-    return (unsigned long long)(k + grid_dim*(j + grid_dim*i));
+  if (run_globals.SnapshotDeltax[snapshot] != NULL)
+  {
+    ptrdiff_t slab_n_complex = run_globals.reion_grids.slab_n_complex[SID.My_rank];
+    memcpy(slab, run_globals.SnapshotDeltax[snapshot], sizeof(float) * slab_n_complex * 2);
+    return 0;
+  }
+  else
+    return 1;
+}
+
+
+static int cache_deltax_slab(float *slab, int snapshot)
+{
+  if (run_globals.SnapshotDeltax[snapshot] == NULL)
+  {
+    float **cache = &run_globals.SnapshotDeltax[snapshot];
+    ptrdiff_t slab_n_complex = run_globals.reion_grids.slab_n_complex[SID.My_rank];
+    ptrdiff_t mem_size = sizeof(float) * slab_n_complex * 2;
+
+    *cache = fftwf_alloc_real(mem_size);
+    memcpy(*cache, slab, mem_size);
+    return 0;
+  }
+  else
+    return 1;
 }
 
 
 int read_dm_grid(
-    run_globals_t *run_globals,
     int            snapshot,
     int            i_grid,
-    float         *grid_out)
+    float         *slab)
 {
-    // N.B. We assume in this function that the grid has the fftw3 inplace complex dft padding.
+  // N.B. We assume in this function that the slab has the fftw3 inplace complex dft padding.
 
-    char   fname[512];
-    FILE   *fin;
-    int    n_cell[3];
-    double box_size[3];
-    int    n_grids;
-    int    ma_scheme;
-    int    n_elem;
-    float  val;
-    double mean              = 0.;
-    double cell_volume       = 0.;
-    double cell_volume_ratio = 0.;
-    double resample_factor   = 1.;
-    int    HII_dim           = tocf_params.HII_dim;
-    double *grid;
-    double *grid_HR;
-    int    HR_dim;
+  run_params_t *params = &(run_globals.params);
 
-    run_params_t *params = &(run_globals->params);
+  // Have we read this slab before?
+  if (params->FlagInteractive && !load_cached_deltax_slab(slab, snapshot))
+    return 0;
 
+  char       fname[512];
+  int        n_cell[3];
+  double     box_size[3];
+  int        n_grids;
+  int        ma_scheme;
+  long       start_foffset;
+  int        ReionGridDim  = run_globals.params.ReionGridDim;
 
-    // Construct the input filename
-    sprintf(fname, "%s/grids/snapshot_%03d_dark_grid.dat", params->SimulationDir, snapshot);
-    // ... and open
-    fin = fopen(fname, "rb");
-    if (!fin)
+  // Construct the input filename
+  sprintf(fname, "%s/grids/snapshot_%03d_dark_grid.dat", params->SimulationDir, snapshot);
+
+  // Read the header
+  if (SID.My_rank == 0)
+  {
+    FILE *fd;
+    if((fd = fopen(fname, "rb")) == NULL)
     {
-        SID_log_error("Failed to open file: %s", fname);
-        ABORT(EXIT_FAILURE);
+      fprintf(stderr, "Failed to open file: %s\n", fname);
+      return EXIT_FAILURE;
     }
 
-    // Read the header
-    fread(n_cell, sizeof(int), 3, fin);
-    fread(box_size, sizeof(double), 3, fin);
-    fread(&n_grids, sizeof(int), 1, fin);
-    fread(&ma_scheme, sizeof(int), 1, fin);
+    fread(n_cell, sizeof(int), 3, fd);
+    fread(box_size, sizeof(double), 3, fd);
+    fread(&n_grids, sizeof(int), 1, fd);
+    fread(&ma_scheme, sizeof(int), 1, fd);
 
     SID_log("Reading grid for snapshot %d", SID_LOG_OPEN | SID_LOG_TIMER, snapshot);
     SID_log("n_cell = [%d, %d, %d]", SID_LOG_COMMENT, n_cell[0], n_cell[1], n_cell[2]);
     SID_log("box_size = [%.2f, %.2f, %.2f] cMpc/h", SID_LOG_COMMENT, box_size[0], box_size[1], box_size[2]);
     SID_log("ma_scheme = %d", SID_LOG_COMMENT, ma_scheme);
 
-    // Assuming the grid is cubic!
-    HR_dim = n_cell[0];
-
     if (n_grids != 4)
     {
-        SID_log_error("n_grids != 4 as expected...");
-        fclose(fin);
-        ABORT(EXIT_FAILURE);
+      SID_log_error("n_grids != 4 as expected...");
+      fclose(fd);
+      ABORT(EXIT_FAILURE);
     }
 
-    // Check if the grid in the file is higher resolution than we require
-    if ((n_cell[0] != HII_dim) || (n_cell[1] != HII_dim) || (n_cell[2] != HII_dim))
-    {
-        resample_factor = (double)HII_dim / (double)n_cell[0];
-        if (resample_factor > 1.0001)
-        {
-            SID_log_error("The dark matter density grid in this file has a resolution less than that required! Aborting!");
-            fclose(fin);
-            ABORT(EXIT_FAILURE);
-        }
-        SID_log("Using resample factor = %.3f", SID_LOG_COMMENT, resample_factor);
-    }
-    else
-    {
-        resample_factor = 1;
-    }
+    assert((n_cell[0] == n_cell[1]) && (n_cell[1] == n_cell[2])
+        && "Input grids are not cubic!");
 
     // Compute the total number of elements in each grid
-    n_elem = n_cell[0] * n_cell[1] * n_cell[2];
+    int n_total_cell = n_cell[0] * n_cell[1] * n_cell[2];
 
-    // Read the grids
+    // Skip to the grid that we want
     // Note that we are expecting them to be in a particular order here
     for (int ii = 0; ii < i_grid; ii++)
     {
-        read_identifier(fin, true);
-        fseek(fin, sizeof(float) * n_elem, SEEK_CUR);
+      read_identifier(fd, true);
+      fseek(fd, sizeof(float) * n_total_cell, SEEK_CUR);
     }
-    read_identifier(fin, false);
+    read_identifier(fd, false);
 
-    // Malloc the grid
-    grid    = SID_calloc(sizeof(double) * HII_dim*HII_dim*HII_dim);
-    grid_HR = SID_calloc(sizeof(double) * n_elem);
+    start_foffset = ftell(fd);
+    fclose(fd);
+  }
 
-    // Initialise the grids (just in case!)
-    for (int i = 0; i < HII_dim; i++)
-        for (int j = 0; j < HII_dim; j++)
-            for (int k = 0; k < HII_dim; k++)
-                *(grid + HII_R_INDEX(i, j, k)) = 0.0;
+  // share the needed information with all ranks
+  MPI_Bcast(n_cell, 3, MPI_INT, 0, SID_COMM_WORLD);
+  MPI_Bcast(box_size, 3, MPI_DOUBLE, 0, SID_COMM_WORLD);
+  MPI_Bcast(&start_foffset, 1, MPI_LONG, 0, SID_COMM_WORLD);
 
-    for (int i = 0; i < n_cell[0]; i++)
-        for (int j = 0; j < n_cell[1]; j++)
-            for (int k = 0; k < n_cell[2]; k++)
-                *(grid_HR + HR_INDEX(i, j, k, HR_dim)) = 0.0;
-
-
-    if (i_grid == 0)  // Density grid
+  // Check if the grid in the file is higher resolution than we require
+  double resample_factor = 1.;
+  if ((n_cell[0] != ReionGridDim) || (n_cell[1] != ReionGridDim) || (n_cell[2] != ReionGridDim))
+  {
+    resample_factor = (double)ReionGridDim / (double)n_cell[0];
+    if (resample_factor > 1.0001)
     {
-        // Read in the grid and assign grid_HR values
-        for (int i = 0; i < n_cell[0]; i++)
-            for (int j = 0; j < n_cell[1]; j++)
-                for (int k = 0; k < n_cell[2]; k++)
-                {
-                    fread(&val, sizeof(float), 1, fin);
-                    *(grid_HR + HR_INDEX(i, j, k, HR_dim)) = (double)val;
-                }
-
-        // Regrid
-        mean = 0.0;
-        for (int i = 0; i < n_cell[0]; i++)
-            for (int j = 0; j < n_cell[1]; j++)
-                for (int k = 0; k < n_cell[2]; k++)
-                {
-                    mean += *(grid_HR + HR_INDEX(i, j, k, HR_dim));
-                    *(grid + HII_R_INDEX((int)(i * resample_factor), (int)(j * resample_factor), (int)(k * resample_factor))) += *(grid_HR + HR_INDEX(i, j, k, HR_dim));
-                }
-
-        // Calculate the volume of a single high resolution cell
-        cell_volume = pow(box_size[0] / (double)n_cell[0], 3);
-
-        // Mean density from high res grid
-        mean *= cell_volume / pow(box_size[0], 3);
-
-        // At this point grid holds the summed densities in each LR cell
-        // Loop through again and calculate the overdensity
-        // i.e. (rho - rho_mean)/rho_mean
-        cell_volume_ratio = pow(box_size[0] / (double)HII_dim, 3) / cell_volume;
-        for (int i = 0; i < HII_dim; i++)
-            for (int j = 0; j < HII_dim; j++)
-                for (int k = 0; k < HII_dim; k++)
-                {
-                    *(grid + HII_R_INDEX(i, j, k)) = (*(grid + HII_R_INDEX(i, j, k)) / (cell_volume_ratio * mean)) - 1.;
-                }
-
+      SID_log_error("The dark matter density grid in this file has a resolution less than that required! Aborting!");
+      ABORT(EXIT_FAILURE);
     }
-    else // Velocity component grid
+    SID_log("Using resample factor = %.3f", SID_LOG_COMMENT, resample_factor);
+  }
+  else
+  {
+    resample_factor = 1;
+  }
+
+  // Malloc the slab
+  ptrdiff_t slab_nix = run_globals.reion_grids.slab_nix[SID.My_rank];
+  ptrdiff_t slab_n_complex = run_globals.reion_grids.slab_n_complex[SID.My_rank];
+
+  ptrdiff_t slab_nix_file, slab_ix_start_file;
+  ptrdiff_t slab_n_complex_file = fftwf_mpi_local_size_3d(n_cell[0], n_cell[0], n_cell[0]/2 + 1, SID_COMM_WORLD, &slab_nix_file, &slab_ix_start_file);
+  fftwf_complex *slab_file = fftwf_alloc_complex(slab_n_complex_file);
+  ptrdiff_t slab_ni_file = slab_nix_file * n_cell[0] * n_cell[0];
+
+  // Initialise (just in case!)
+  for(int ii=0; ii < slab_n_complex_file; ii++)
+    slab_file[ii] = 0 + 0*I;
+  // N.B. factor of two for fftw padding
+  for(int ii=0; ii < slab_n_complex*2; ii++)
+    slab[ii] = 0.0;
+
+  // Read in the slab for this rank
+  MPI_File fin = NULL;
+  MPI_Status status;
+  MPI_Offset slab_offset = start_foffset/sizeof(float) + (slab_ix_start_file*n_cell[1]*n_cell[2]);
+
+  MPI_File_open(SID_COMM_WORLD, fname, MPI_MODE_RDONLY, MPI_INFO_NULL, &fin);
+  MPI_File_set_view(fin, 0, MPI_FLOAT, MPI_FLOAT, "native", MPI_INFO_NULL);
+
+  ptrdiff_t chunk_size = slab_ni_file;
+  int n_reads = 1;
+  while(chunk_size > INT_MAX/16)
+  {
+    chunk_size /= 2;
+    n_reads *= 2;
+  }
+
+  MPI_Offset offset = slab_offset;
+  for(int ii=0; ii<n_reads; ii++, offset+=chunk_size)
+  {
+    MPI_File_read_at(fin, offset, &(((float *)slab_file)[chunk_size*ii]), chunk_size, MPI_FLOAT, &status);
+
+    int count_check;
+    MPI_Get_count(&status, MPI_FLOAT, &count_check);
+    if (count_check != chunk_size)
     {
-        // Read in the grid
-        for (int i = 0; i < n_cell[0]; i++)
-            for (int j = 0; j < n_cell[1]; j++)
-                for (int k = 0; k < n_cell[2]; k++)
-                {
-                    fread(&val, sizeof(float), 1, fin);
-                    *(grid + HII_R_INDEX((int)(i * resample_factor), (int)(j * resample_factor), (int)(k * resample_factor))) += (double)val;
-                }
+      SID_log_error("Failed to read correct number of elements on rank %d.", SID.My_rank);
+      SID_log_error("Expected %d but read %d.", (int)chunk_size, count_check);
+      ABORT(EXIT_FAILURE);
     }
+  }
+  MPI_File_close(&fin);
 
-    // Copy the grid (double) to the output (float) and free
-    for (int i = 0; i < HII_dim; i++)
-        for (int j = 0; j < HII_dim; j++)
-            for (int k = 0; k < HII_dim; k++)
-                *(grid_out + HII_R_FFT_INDEX(i, j, k)) = (float)*(grid + HII_R_INDEX(i, j, k));
+  // reorder the read slab for inplace fftw padding
+  for(int ii=slab_nix_file-1; ii >= 0; ii--)
+    for(int jj=n_cell[0]-1; jj >= 0; jj--)
+      for(int kk=n_cell[0]-1; kk >= 0; kk--)
+        ((float *)slab_file)[grid_index(ii, jj, kk, n_cell[0], INDEX_PADDED)] = ((float *)slab_file)[grid_index(ii, jj, kk, n_cell[0], INDEX_REAL)];
 
+  // smooth the grid if needed
+  if (resample_factor < 1.0)
+  {
+    SID_log("Smoothing hi-res grid...", SID_LOG_OPEN|SID_LOG_TIMER);
+    fftwf_plan plan = fftwf_mpi_plan_dft_r2c_3d(n_cell[0], n_cell[0], n_cell[0], (float *)slab_file, slab_file, SID_COMM_WORLD, FFTW_ESTIMATE);
+    fftwf_execute(plan);
+    fftwf_destroy_plan(plan);
 
-    SID_free(SID_FARG grid);
-    SID_free(SID_FARG grid_HR);
+    // Remember to add the factor of VOLUME/TOT_NUM_PIXELS when converting from
+    // real space to k-space.
+    // Note: we will leave off factor of VOLUME, in anticipation of the inverse
+    // FFT below
+    long long total_n_cells_file = n_cell[0] * n_cell[0] * n_cell[0];
+    for(int ii=0; ii < slab_n_complex_file; ii++)
+      slab_file[ii] /= (double)total_n_cells_file;
+    filter(slab_file, slab_ix_start_file, slab_nix_file, n_cell[0], run_globals.params.BoxSize / (double)ReionGridDim / 2.0);
 
+    plan = fftwf_mpi_plan_dft_c2r_3d(n_cell[0], n_cell[0], n_cell[0], slab_file, (float *)slab_file, SID_COMM_WORLD, FFTW_ESTIMATE);
+    fftwf_execute(plan);
+    fftwf_destroy_plan(plan);
     SID_log("...done", SID_LOG_CLOSE);
+  }
 
-    // Close the file
-    fclose(fin);
+  // Copy the read and smoothed slab into the padded fft slab (already allocated externally)
+  int n_every = n_cell[0] / ReionGridDim;
+  for (int ii = 0; ii < slab_nix; ii++)
+  {
+    int i_hr = n_every*ii;
+    assert((i_hr > -1) && (i_hr < slab_nix_file));
+    for (int jj = 0; jj < ReionGridDim; jj++)
+    {
+      int j_hr = n_every*jj;
+      assert((j_hr > -1) && (j_hr < n_cell[0]));
+      for (int kk = 0; kk < ReionGridDim; kk++)
+      {
+        int k_hr = n_every*kk;
+        assert((k_hr > -1) && (k_hr < n_cell[0]));
 
-    return 0;
+        slab[grid_index(ii, jj, kk, ReionGridDim, INDEX_PADDED)] = ((float *)slab_file)[grid_index(i_hr, j_hr, k_hr, n_cell[0], INDEX_PADDED)];
+      }
+    }
+  }
+  
+  if (i_grid == 0)  // Density grid
+  {
+    // N.B. Hubble factor below to account for incorrect units in input DM grids!
+    double mean = (double)run_globals.params.NPart * run_globals.params.PartMass / pow(box_size[0], 3) / run_globals.params.Hubble_h;
+
+    // At this point grid holds the summed densities in each LR cell
+    // Loop through again and calculate the overdensity
+    // i.e. (rho - rho_mean)/rho_mean
+    for (int ii = 0; ii < slab_nix; ii++)
+      for (int jj = 0; jj < ReionGridDim; jj++)
+        for (int kk = 0; kk < ReionGridDim; kk++)
+        {
+          float *val = &(slab[grid_index(ii, jj, kk, ReionGridDim, INDEX_PADDED)]);
+          *val = (float)(((double)*val / mean) - 1.);
+        }
+  }
+
+  fftwf_free(slab_file);
+
+  // Do we need to cache this slab?
+  if (params->FlagInteractive)
+    cache_deltax_slab(slab, snapshot);
+
+  SID_log("...done", SID_LOG_CLOSE);
+
+  // DEBUG
+  // write_single_grid("output/debug.h5", slab, "deltax", true, true);
+
+  return 0;
 }
-#endif
+
+
+void free_grids_cache()
+{
+  if (run_globals.params.Flag_PatchyReion)
+  {
+    float **snapshot_deltax = run_globals.SnapshotDeltax;
+
+    if (run_globals.params.FlagInteractive)
+      for(int ii=0; ii < run_globals.NStoreSnapshots; ii++)
+        fftwf_free(snapshot_deltax[ii]);
+
+    SID_free(SID_FARG snapshot_deltax);
+  }
+}

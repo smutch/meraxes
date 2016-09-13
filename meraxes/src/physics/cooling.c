@@ -2,7 +2,7 @@
 #include <math.h>
 #include <assert.h>
 
-double gas_cooling(run_globals_t *run_globals, galaxy_t *gal)
+double gas_cooling(galaxy_t *gal)
 {
   double cooling_mass = 0.0;
 
@@ -20,8 +20,8 @@ double gas_cooling(run_globals_t *run_globals, galaxy_t *gal)
     {
       double t_cool, max_cooling_mass;
       double logZ, lambda, x, rho_r_cool, r_cool, isothermal_norm;
-      run_units_t *units     = &(run_globals->units);
-      double max_cooling_mass_factor = run_globals->params.physics.MaxCoolingMassFactor;
+      run_units_t *units     = &(run_globals.units);
+      double max_cooling_mass_factor = run_globals.params.physics.MaxCoolingMassFactor;
 
       // following Croton+ 2006, we set the maximum cooling time to be the
       // dynamical time of the host dark matter halo
@@ -78,8 +78,8 @@ double gas_cooling(run_globals_t *run_globals, galaxy_t *gal)
       if (cooling_mass > gal->HotGas)
         cooling_mass = gal->HotGas;
 
-      if (run_globals->params.physics.Flag_BHFeedback)
-        cooling_mass -= radio_mode_BH_heating(run_globals, gal, cooling_mass, x);
+      if (run_globals.params.physics.Flag_BHFeedback)
+        cooling_mass -= radio_mode_BH_heating(gal, cooling_mass, x);
 
       if (cooling_mass < 0)
         cooling_mass = 0.0;

@@ -4,6 +4,7 @@
 #define PARAM_TYPE_FLOAT         802
 #define PARAM_TYPE_DOUBLE        803
 #define PARAM_TYPE_STRING        804
+#define PARAM_TYPE_LONGLONG      805
 #define PARAM_TYPE_UNUSED        809
 
 typedef struct entry_t entry_t;

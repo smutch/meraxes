@@ -7,6 +7,7 @@ from SCons.Script.SConscript import SConsEnvironment
 
 # Get the library dependencies for this system
 from deps import deps
+from deps.termcolor import cprint
 
 # =====================
 # = Utility functions =
@@ -99,9 +100,8 @@ vars = Variables()
 
 vars = Variables('config.py') # Persistent storage.
 vars.AddVariables(
-    ('nout', 'Set the number of output snapshots.', 1),
     BoolVariable('calc_mags', 'Calculate magnitudes.', False),
-    BoolVariable('tocf', 'Calculate xH structure with 21cmFAST.', False),
+    ('nout', 'Set the number of output snapshots. (only required if calc_mags=1)', False),
     ('allocparameter', 'Set the ALLOCPARAM value.', 5.0),
     EnumVariable('build', 'Set the build type.', 'standard', allowed_values=('debug', 'standard', 'optimized')),
     BoolVariable('prof', 'Enable profiling.', False),
@@ -128,8 +128,6 @@ print "\nCommand line arguments:"
 
 if env['nout']:
     print "nout = ", env['nout']
-if env['tocf']:
-    print "tocf = ", env['tocf']
 if env['build']:
     print "build =", env['build']
 
@@ -144,23 +142,28 @@ Help(vars.GenerateHelpText(env))
 
 # Define the command for building a tags file
 tagsources = Glob("*.[ch]")
-ctags = env.Command('ctags', tagsources, "ctags -R --c++-kinds=+p --fields=+iaS --extra=+q")
+tagsclean = AlwaysBuild(env.Command('tagsclean', None, 'rm -vf tags'))
+ctags = env.Command('ctags', [tagsources, tagsclean], "ctags -R --c++-kinds=+p --fields=+iaS --extra=+q")
+
+# Command for build cscope database
+csclean = AlwaysBuild(env.Command('csclean', None, 'rm -vf cscope.out'))
+AlwaysBuild(env.Alias('cscope', Command('cscope.out', csclean, 'cscope -bRv')))
 
 # If the user requested help don't bother continuing with the build.
 if not GetOption('help'):
 
     # Modify the environment based on any of our variables.
-    env.AppendUnique(CPPDEFINES = ['NOUT=${nout}'])
     if env['calc_mags']:
         env.AppendUnique(CPPDEFINES = ['CALC_MAGS'])
-    if env['tocf']:
-        env.AppendUnique(CPPDEFINES = ['USE_TOCF'])
+        env.AppendUnique(CPPDEFINES = ['NOUT=${nout}'])
     if env['build'] == 'debug':
         env.MergeFlags('-g -O0 -Wall -DDEBUG')
     elif env['build'] == 'standard':
-        env.AppendUnique(CPPPLAGS = ['O2'])
+        env.MergeFlags('-O2')
     elif env['build'] == 'optimized':
-        env.MergeFlags('-O2 -DNDEBUG')
+        cprint("WARNING: This build will only work on the EXACT same architecture!", color='yellow', attrs=['bold'])
+        env.MergeFlags('-O3 -DNDEBUG -march=native -xhost -g')
+        #env.AppendUnique(CPPFLAGS = '-march=native -xhost -O3 -ipo -g ')
     if env['prof']:
         env.MergeFlags('-g -pg')
         env.AppendUnique(LINKFLAGS=['-pg'])
@@ -189,18 +192,12 @@ if not GetOption('help'):
     else:
         env.Replace(CC = deps['exec']['cc'])
 
-    env.AppendUnique(CPPFLAGS = '-std=gnu99 ')
-    #env.AppendUnique(CPPFLAGS = '-march=native -O3 ')
-    env.AppendUnique(CPPFLAGS = '-march=native -xhost -O3 -ipo -g ')
+    env.AppendUnique(CPPFLAGS = '-std=gnu99')
     env.AppendUnique(CPPPATH = './')
+    env.AppendUnique(SHCCFLAGS = '-rdynamic')
 
-    libs = ['gsl', 'hdf5', 'gbpCode']
+    libs = ['gsl', 'hdf5', 'gbpCode', 'fftw']
     compile_against(libs, deps, env)
-
-    if env['tocf']:
-        libs = ['21cmfast', 'fftw']
-        compile_against(libs, deps, env)
-        env.AppendUnique(CC = ['-openmp',])
 
     # Set the python environment to use in any python scripts.
     if 'VIRTUAL_ENV' in os.environ:
@@ -211,23 +208,26 @@ if not GetOption('help'):
     # = Targets =
     # ===========
 
-    node_list = files('**/*.c')
-    target = env.Program(target='../bin/meraxes', source=node_list)
+    node_list = files('**/*.c', exclude='tests/*')
+    executable = env.Program(target='../bin/meraxes', source=node_list)
     git_header = env.CreateGitHeader([deps['exec']['git']])
-    Depends(target, git_header)
-    # env.NoClean(target)
-    Default(target)
+    Depends(executable, git_header)
+    # env.NoClean(executable)
+    Default(executable)
 
     node_list.remove("core/meraxes.c")
     lib = env.StaticLibrary(target='../lib/meraxes', source=node_list)
+    dynlib = env.SharedLibrary(target='../lib/meraxes', source=node_list)
     incl = env.CopyFiles(files('*.h'), '../include')
     defs = env.PrependUserDefines("../include/meraxes.h")
     Depends(incl, git_header)
     Depends(defs, incl)
     Depends(lib, incl)
+    Depends(dynlib, incl)
     env.Alias('lib', lib)
+    env.Alias('dynlib', dynlib)
 
     # If you create a my_SConscript file then you can put your own custom
     # targets etc. in there...
     if os.path.exists("./my_SConscript"):
-        SConscript('my_SConscript', exports='env target lib copy_files files')
+        SConscript('my_SConscript', exports='env executable lib copy_files files')

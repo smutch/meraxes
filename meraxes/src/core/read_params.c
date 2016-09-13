@@ -28,8 +28,6 @@ static void inline store_params(
   run_params_t *run_params)
 {
   int level = 0;
-  int tag_index;
-  int temp;
   char prefix[16] = "\0";
   char key[STRLEN];
 
@@ -49,7 +47,7 @@ static void inline store_params(
     // DEBUG
     // SID_log("level = %d :: prefix = %s", SID_LOG_COMMENT, level, prefix);
 
-    tag_index = -1;
+    int tag_index = -1;
     for (int ii = 0; ii < n_param; ii++)
     {
       if (strcmp(key, params_tag[ii]) == 0)
@@ -57,26 +55,6 @@ static void inline store_params(
         tag_index = ii;
         break;
       }
-    }
-
-    if (strcmp(key, "TOCF_Flag") == 0)
-    {
-      temp = atoi(entry[i_entry].value);
-      if (used_tag[tag_index] == 0)
-      {
-        *((int*)params_addr[tag_index]) = atoi(entry[i_entry].value);
-        used_tag[tag_index]             = 1;
-      }
-      if (temp != 1)
-      {
-        SID_log("Skipping TOCF params block...", SID_LOG_COMMENT);
-        temp = entry[i_entry++].level;
-        while (entry[i_entry++].level > temp)
-          ;
-        i_entry -= 2;
-      }
-      else
-        sprintf(prefix, "TOCF_");
     }
 
     if (tag_index < 0)
@@ -105,18 +83,22 @@ static void inline store_params(
     case PARAM_TYPE_INT:
       *((int*)params_addr[tag_index]) = atoi(entry[i_entry].value);
       break;
+
+    case PARAM_TYPE_LONGLONG:
+      *((long long*)params_addr[tag_index]) = atoll(entry[i_entry].value);
+      break;
     }
     used_tag[tag_index] = 1;
   }
 }
 
 
-void read_parameter_file(run_globals_t *run_globals, char *fname, int mode)
+void read_parameter_file(char *fname, int mode)
 {
   // mode = 0 : for single runs
   // mode = 1 : for interactive runs (do not remalloc arrays)
 
-  run_params_t *run_params = &(run_globals->params);
+  run_params_t *run_params = &(run_globals.params);
 
   if (SID.My_rank == 0)
   {
@@ -125,7 +107,7 @@ void read_parameter_file(run_globals_t *run_globals, char *fname, int mode)
     entry_t entry[PARAM_MAX_ENTRIES];
 
     int n_entries;
-    hdf5_output_t *hdf5props = &(run_globals->hdf5props);
+    hdf5_output_t *hdf5props = &(run_globals.hdf5props);
     int *params_type = hdf5props->params_type;
     void **params_addr = hdf5props->params_addr;
     char **params_tag = hdf5props->params_tag;
@@ -256,17 +238,17 @@ void read_parameter_file(run_globals_t *run_globals, char *fname, int mode)
       *(run_params->MvirCritFile) = '\0';
 
       strcpy(params_tag[n_param], "UnitVelocity_in_cm_per_s");
-      params_addr[n_param]   = &(run_globals->units.UnitVelocity_in_cm_per_s);
+      params_addr[n_param]   = &(run_globals.units.UnitVelocity_in_cm_per_s);
       required_tag[n_param]  = 1;
       params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
       strcpy(params_tag[n_param], "UnitLength_in_cm");
-      params_addr[n_param]   = &(run_globals->units.UnitLength_in_cm);
+      params_addr[n_param]   = &(run_globals.units.UnitLength_in_cm);
       required_tag[n_param]  = 1;
       params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
       strcpy(params_tag[n_param], "UnitMass_in_g");
-      params_addr[n_param]   = &(run_globals->units.UnitMass_in_g);
+      params_addr[n_param]   = &(run_globals.units.UnitMass_in_g);
       required_tag[n_param]  = 1;
       params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
@@ -320,6 +302,11 @@ void read_parameter_file(run_globals_t *run_globals, char *fname, int mode)
       required_tag[n_param]  = 1;
       params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
+      strcpy(params_tag[n_param], "NPart");
+      params_addr[n_param]   = &(run_params->NPart);
+      required_tag[n_param]  = 1;
+      params_type[n_param++] = PARAM_TYPE_LONGLONG;
+
       strcpy(params_tag[n_param], "MergerTimeFactor");
       params_addr[n_param]   = &(run_params->physics.MergerTimeFactor);
       required_tag[n_param]  = 1;
@@ -342,6 +329,11 @@ void read_parameter_file(run_globals_t *run_globals, char *fname, int mode)
 
       strcpy(params_tag[n_param], "FlagReadDumpFile");
       params_addr[n_param]   = &(run_params->FlagReadDumpFile);
+      required_tag[n_param]  = 1;
+      params_type[n_param++] = PARAM_TYPE_INT;
+
+      strcpy(params_tag[n_param], "FlagMCMC");
+      params_addr[n_param]   = &(run_params->FlagMCMC);
       required_tag[n_param]  = 1;
       params_type[n_param++] = PARAM_TYPE_INT;
 
@@ -603,108 +595,96 @@ void read_parameter_file(run_globals_t *run_globals, char *fname, int mode)
       required_tag[n_param]  = 1;
       params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
-      strcpy(params_tag[n_param], "TOCF_Flag");
-      params_addr[n_param]   = &(run_params->TOCF_Flag);
+      strcpy(params_tag[n_param], "Flag_PatchyReion");
+      params_addr[n_param]   = &(run_params->Flag_PatchyReion);
       required_tag[n_param]  = 1;
       params_type[n_param++] = PARAM_TYPE_INT;
 
-#ifdef USE_TOCF
-      strcpy(params_tag[n_param], "TOCF_LogFileDir");
-      params_addr[n_param]   = &(tocf_params.logfile_dir);
-      required_tag[n_param]  = 0;
-      params_type[n_param++] = PARAM_TYPE_STRING;
-
-      strcpy(params_tag[n_param], "TOCF_dim");
-      params_addr[n_param]   = &(tocf_params.dim);
-      required_tag[n_param]  = 0;
+      strcpy(params_tag[n_param], "ReionGridDim");
+      params_addr[n_param]   = &(run_params->ReionGridDim);
+      required_tag[n_param]  = 1;
       params_type[n_param++] = PARAM_TYPE_INT;
 
-      strcpy(params_tag[n_param], "TOCF_HII_dim");
-      params_addr[n_param]   = &(tocf_params.HII_dim);
-      required_tag[n_param]  = 0;
-      params_type[n_param++] = PARAM_TYPE_INT;
-
-      strcpy(params_tag[n_param], "TOCF_numcores");
-      params_addr[n_param]   = &(tocf_params.numcores);
-      required_tag[n_param]  = 0;
-      params_type[n_param++] = PARAM_TYPE_INT;
-
-      strcpy(params_tag[n_param], "TOCF_ram");
-      params_addr[n_param]   = &(tocf_params.ram);
-      required_tag[n_param]  = 0;
-      params_type[n_param++] = PARAM_TYPE_FLOAT;
-
-      strcpy(params_tag[n_param], "TOCF_ion_tvir_min");
-      params_addr[n_param]   = &(tocf_params.ion_tvir_min);
-      required_tag[n_param]  = 0;
+      strcpy(params_tag[n_param], "ReionRBubbleMin");
+      params_addr[n_param]   = &(run_params->physics).ReionRBubbleMin;
+      required_tag[n_param]  = 1;
       params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
-      strcpy(params_tag[n_param], "TOCF_HII_eff_factor");
-      params_addr[n_param]   = &(tocf_params.HII_eff_factor);
-      required_tag[n_param]  = 0;
-      params_type[n_param++] = PARAM_TYPE_FLOAT;
+      strcpy(params_tag[n_param], "ReionRBubbleMax");
+      params_addr[n_param]   = &(run_params->physics).ReionRBubbleMax;
+      required_tag[n_param]  = 1;
+      params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
-      strcpy(params_tag[n_param], "TOCF_r_bubble_min");
-      params_addr[n_param]   = &(tocf_params.r_bubble_min);
-      required_tag[n_param]  = 0;
-      params_type[n_param++] = PARAM_TYPE_FLOAT;
+      strcpy(params_tag[n_param], "ReionDeltaRFactor");
+      params_addr[n_param]   = &(run_params->ReionDeltaRFactor);
+      required_tag[n_param]  = 1;
+      params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
-      strcpy(params_tag[n_param], "TOCF_r_bubble_max");
-      params_addr[n_param]   = &(tocf_params.r_bubble_max);
-      required_tag[n_param]  = 0;
-      params_type[n_param++] = PARAM_TYPE_FLOAT;
+      strcpy(params_tag[n_param], "ReionGammaHaloBias");
+      params_addr[n_param]   = &(run_params->physics).ReionGammaHaloBias;
+      required_tag[n_param]  = 1;
+      params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
-      strcpy(params_tag[n_param], "TOCF_delta_r_HII_factor");
-      params_addr[n_param]   = &(tocf_params.delta_r_HII_factor);
-      required_tag[n_param]  = 0;
-      params_type[n_param++] = PARAM_TYPE_FLOAT;
+      strcpy(params_tag[n_param], "ReionSMParam_m0");
+      params_addr[n_param]   = &(run_params->physics).ReionSMParam_m0;
+      required_tag[n_param]  = 1;
+      params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
-      strcpy(params_tag[n_param], "TOCF_gamma_halo_bias");
-      params_addr[n_param]   = &(tocf_params.gamma_halo_bias);
-      required_tag[n_param]  = 0;
-      params_type[n_param++] = PARAM_TYPE_FLOAT;
+      strcpy(params_tag[n_param], "ReionSMParam_a");
+      params_addr[n_param]   = &(run_params->physics).ReionSMParam_a;
+      required_tag[n_param]  = 1;
+      params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
-      strcpy(params_tag[n_param], "TOCF_m_0_sm");
-      params_addr[n_param]   = &(tocf_params.m_0_sm);
-      required_tag[n_param]  = 0;
-      params_type[n_param++] = PARAM_TYPE_FLOAT;
+      strcpy(params_tag[n_param], "ReionSMParam_b");
+      params_addr[n_param]   = &(run_params->physics).ReionSMParam_b;
+      required_tag[n_param]  = 1;
+      params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
-      strcpy(params_tag[n_param], "TOCF_a_sm");
-      params_addr[n_param]   = &(tocf_params.a_sm);
-      required_tag[n_param]  = 0;
-      params_type[n_param++] = PARAM_TYPE_FLOAT;
+      strcpy(params_tag[n_param], "ReionSMParam_c");
+      params_addr[n_param]   = &(run_params->physics).ReionSMParam_c;
+      required_tag[n_param]  = 1;
+      params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
-      strcpy(params_tag[n_param], "TOCF_b_sm");
-      params_addr[n_param]   = &(tocf_params.b_sm);
-      required_tag[n_param]  = 0;
-      params_type[n_param++] = PARAM_TYPE_FLOAT;
+      strcpy(params_tag[n_param], "ReionSMParam_d");
+      params_addr[n_param]   = &(run_params->physics).ReionSMParam_d;
+      required_tag[n_param]  = 1;
+      params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
-      strcpy(params_tag[n_param], "TOCF_c_sm");
-      params_addr[n_param]   = &(tocf_params.c_sm);
-      required_tag[n_param]  = 0;
-      params_type[n_param++] = PARAM_TYPE_FLOAT;
-
-      strcpy(params_tag[n_param], "TOCF_d_sm");
-      params_addr[n_param]   = &(tocf_params.d_sm);
-      required_tag[n_param]  = 0;
-      params_type[n_param++] = PARAM_TYPE_FLOAT;
-
-      strcpy(params_tag[n_param], "TOCF_uvb_feedback");
-      params_addr[n_param]   = &(tocf_params.uvb_feedback);
-      required_tag[n_param]  = 0;
+      strcpy(params_tag[n_param], "ReionUVBFlag");
+      params_addr[n_param]   = &(run_params->ReionUVBFlag);
+      required_tag[n_param]  = 1;
       params_type[n_param++] = PARAM_TYPE_INT;
 
-      strcpy(params_tag[n_param], "TOCF_compute_mfp");
-      params_addr[n_param]   = &(tocf_params.compute_mfp);
-      required_tag[n_param]  = 0;
+      strcpy(params_tag[n_param], "ReionFilterType");
+      params_addr[n_param]   = &(run_params->ReionFilterType);
+      required_tag[n_param]  = 1;
       params_type[n_param++] = PARAM_TYPE_INT;
 
-      strcpy(params_tag[n_param], "TOCF_HII_filter");
-      params_addr[n_param]   = &(tocf_params.HII_filter);
-      required_tag[n_param]  = 0;
+      strcpy(params_tag[n_param], "ReionPowerSpecDeltaK");
+      params_addr[n_param]   = &(run_params->ReionPowerSpecDeltaK);
+      required_tag[n_param]  = 1;
+      params_type[n_param++] = PARAM_TYPE_DOUBLE;
+      
+      strcpy(params_tag[n_param], "ReionAlphaUV");
+      params_addr[n_param]   = &(run_params->physics).ReionAlphaUV;
+      required_tag[n_param]  = 1;
+      params_type[n_param++] = PARAM_TYPE_DOUBLE;
+      
+      strcpy(params_tag[n_param], "ReionAlphaUVBH");
+      params_addr[n_param]   = &(run_params->physics).ReionAlphaUVBH;
+      required_tag[n_param]  = 1;
+      params_type[n_param++] = PARAM_TYPE_DOUBLE;
+      
+      strcpy(params_tag[n_param], "ReionRtoMFilterType");
+      params_addr[n_param]   = &(run_params->ReionRtoMFilterType);
+      required_tag[n_param]  = 1;
       params_type[n_param++] = PARAM_TYPE_INT;
-#endif
-
+      
+      strcpy(params_tag[n_param], "Y_He");
+      params_addr[n_param]   = &(run_params->physics).Y_He;
+      required_tag[n_param]  = 1;
+      params_type[n_param++] = PARAM_TYPE_DOUBLE;
+      
       hdf5props->params_count = n_param;
     }
 
@@ -756,12 +736,6 @@ void read_parameter_file(run_globals_t *run_globals, char *fname, int mode)
             printf("%d\n", *((int*)(params_addr[ii])));
             break;
           }
-
-          // if (ii==(n_param-12))
-          //   printf("\t\t%35s\n", "--- physics parameters ---");
-
-          // if (ii==(n_param-4))
-          //   printf("\t\t%35s\n", "--- TOCF parameters ---");
         }
       }
     }
@@ -776,8 +750,5 @@ void read_parameter_file(run_globals_t *run_globals, char *fname, int mode)
 
   // If running mpi then broadcast the run parameters to all cores
   SID_Bcast(run_params, sizeof(run_params_t), 0, SID.COMM_WORLD);
-  SID_Bcast(&(run_globals->units), sizeof(run_units_t), 0, SID.COMM_WORLD);
-#ifdef USE_TOCF
-  SID_Bcast(&tocf_params, sizeof(tocf_params_t), 0, SID.COMM_WORLD);
-#endif
+  SID_Bcast(&(run_globals.units), sizeof(run_units_t), 0, SID.COMM_WORLD);
 }

@@ -1,7 +1,7 @@
 #include "meraxes.h"
 #include <math.h>
 
-double calculate_merging_time(run_globals_t *run_globals, galaxy_t *orphan, int snapshot)
+double calculate_merging_time(galaxy_t *orphan, int snapshot)
 {
   // TODO: What should we do about FOF properties here?  Do we need to use the
   // FOF virial properties for the merger clock calculation if one of the
@@ -51,7 +51,7 @@ double calculate_merging_time(run_globals_t *run_globals, galaxy_t *orphan, int 
   }
 
   min_stellar_mass = (sat->StellarMass <= parent->StellarMass) ? sat->StellarMass : parent->StellarMass;
-  if (min_stellar_mass < run_globals->params.physics.MinMergerStellarMass)
+  if (min_stellar_mass < run_globals.params.physics.MinMergerStellarMass)
     return -999;
 
   // Find the merger "mother halo".  This is the most massive halo associated
@@ -83,7 +83,7 @@ double calculate_merging_time(run_globals_t *run_globals, galaxy_t *orphan, int 
   sat_mass = sat->Mvir;
 
   // TODO: Should this be parent or mother???
-  sat_rad = (double)comoving_distance(run_globals, mother->Pos, sat->Pos);
+  sat_rad = (double)comoving_distance(mother->Pos, sat->Pos);
 
   // convert to physical length
   // Note that we want to use the redshift corresponding to the previous
@@ -92,7 +92,7 @@ double calculate_merging_time(run_globals_t *run_globals, galaxy_t *orphan, int 
   // `snapshot-1` may not be correct.  However, we don't actually know when
   // during the time the skipped halo is missing from the trees that it last
   // existed unmerged, so `snapshot-1` is as good a time as any to pick.
-  sat_rad /= (1 + run_globals->ZZ[snapshot - 1]);
+  sat_rad /= (1 + run_globals.ZZ[snapshot - 1]);
 
   // TODO: Should this be parent or mother???
   orphan->MergerStartRadius = sat_rad/mother->Rvir;
@@ -101,20 +101,20 @@ double calculate_merging_time(run_globals_t *run_globals, galaxy_t *orphan, int 
     sat_rad = mother->Rvir;
 
   mergtime =
-    run_globals->params.physics.MergerTimeFactor *
-    1.17 * sat_rad * sat_rad * mother->Vvir / (coulomb * run_globals->G * sat_mass);
+    run_globals.params.physics.MergerTimeFactor *
+    1.17 * sat_rad * sat_rad * mother->Vvir / (coulomb * run_globals.G * sat_mass);
 
   return mergtime;
 }
 
 
-static void merger_driven_starburst(run_globals_t *run_globals, galaxy_t *parent, double merger_ratio, int snapshot)
+static void merger_driven_starburst(galaxy_t *parent, double merger_ratio, int snapshot)
 {
-  if ((parent->ColdGas > 0) && (merger_ratio > run_globals->params.physics.MinMergerRatioForBurst))
+  if ((parent->ColdGas > 0) && (merger_ratio > run_globals.params.physics.MinMergerRatioForBurst))
   {
     // Calculate a merger driven starburst following Guo+ 2010
     double burst_mass;
-    physics_params_t *params = &(run_globals->params.physics);
+    physics_params_t *params = &(run_globals.params.physics);
 
     burst_mass = params->MergerBurstFactor * pow(merger_ratio, params->MergerBurstScaling) * parent->ColdGas;
 
@@ -131,16 +131,16 @@ static void merger_driven_starburst(run_globals_t *run_globals, galaxy_t *parent
       double m_recycled;
       double new_metals;
 
-      contemporaneous_supernova_feedback(run_globals, parent, &burst_mass, snapshot, &m_reheat, &m_eject, &m_recycled, &new_metals);
+      contemporaneous_supernova_feedback(parent, &burst_mass, snapshot, &m_reheat, &m_eject, &m_recycled, &new_metals);
       // update the baryonic reservoirs (note that the order we do this in will change the result!)
-      update_reservoirs_from_sf(run_globals, parent, burst_mass);
+      update_reservoirs_from_sf(parent, burst_mass);
       update_reservoirs_from_sn_feedback(parent, m_reheat, m_eject, m_recycled, new_metals);
     }
   }
 }
 
 
-void merge_with_target(run_globals_t *run_globals, galaxy_t *gal, int *dead_gals, int snapshot)
+void merge_with_target(galaxy_t *gal, int *dead_gals, int snapshot)
 {
   galaxy_t *parent = NULL;
   double merger_ratio;
@@ -165,10 +165,11 @@ void merge_with_target(run_globals_t *run_globals, galaxy_t *gal, int *dead_gals
   else
     merger_ratio = parent_baryons / gal_baryons;
 
+  min_stellar_mass = (gal->StellarMass <= parent->StellarMass) ? gal->StellarMass : parent->StellarMass;
+
   // Add galaxies together
   parent->StellarMass       += gal->StellarMass;
   parent->GrossStellarMass  += gal->GrossStellarMass;
-  parent->FescWeightedGSM   += gal->FescWeightedGSM;
   parent->MetalsStellarMass += gal->MetalsStellarMass;
   parent->Sfr               += gal->Sfr;
   parent->HotGas            += gal->HotGas;
@@ -179,8 +180,7 @@ void merge_with_target(run_globals_t *run_globals, galaxy_t *gal, int *dead_gals
   parent->MetalsEjectedGas  += gal->MetalsEjectedGas;
   parent->BlackHoleMass     += gal->BlackHoleMass;
   parent->BlackHoleGrossMass+= gal->BlackHoleGrossMass;
-  parent->EffectiveBHM  += gal->EffectiveBHM;
-  parent->FescWeightedEBHM  += gal->FescWeightedEBHM;
+  parent->EffectiveBHM      += gal->EffectiveBHM;
   parent->mwmsa_num         += gal->mwmsa_num;
   parent->mwmsa_denom       += gal->mwmsa_denom;
   parent->MergSnap          =  snapshot;
@@ -188,17 +188,16 @@ void merge_with_target(run_globals_t *run_globals, galaxy_t *gal, int *dead_gals
   for (int ii = 0; ii < N_HISTORY_SNAPS; ii++)
     parent->NewStars[ii] += gal->NewStars[ii];
 
-  for (int outputbin = 0; outputbin < NOUT; outputbin++)
-    sum_luminosities(run_globals, parent, gal, outputbin);
+  for (int outputbin = 0; outputbin < run_globals.NOutputSnaps; outputbin++)
+    sum_luminosities(parent, gal, outputbin);
 
   // TODO: Should this have a stellar mass / baryon limit placed on it?
-  if (run_globals->params.physics.Flag_BHFeedback)
-    merger_driven_BH_growth(run_globals, parent, merger_ratio, snapshot);
+  if (run_globals.params.physics.Flag_BHFeedback)
+    merger_driven_BH_growth(parent, merger_ratio, snapshot);
 
   // merger driven starburst prescription
-  min_stellar_mass = (gal->StellarMass <= parent->StellarMass) ? gal->StellarMass : parent->StellarMass;
-  if (min_stellar_mass > run_globals->params.physics.MinMergerStellarMass)
-    merger_driven_starburst(run_globals, parent, merger_ratio, snapshot);
+  if (min_stellar_mass >= run_globals.params.physics.MinMergerStellarMass)
+    merger_driven_starburst(parent, merger_ratio, snapshot);
 
   // Mark the merged galaxy as dead
   gal->Type          = 3;
