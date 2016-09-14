@@ -378,6 +378,7 @@ typedef struct galaxy_t {
   double StellarMass;
   double GrossStellarMass;
   double FescWeightedGSM;
+  double Stellaremissivity;
   double MetalsStellarMass;
   double DiskScaleLength;
   double Sfr;
@@ -385,7 +386,7 @@ typedef struct galaxy_t {
   double MetalsEjectedGas;
   double BlackHoleMass;
   double BlackHoleGrossMass;
-  double emissivity;
+  double BHemissivity;
   double EffectiveBHM;
   double BlackHoleAccretedHotMass;
   double BlackHoleAccretedColdMass;
@@ -458,6 +459,7 @@ typedef struct galaxy_output_t {
   float DiskScaleLength;
   float StellarMass;
   float GrossStellarMass;
+  float Stellaremissivity;
   float FescWeightedGSM;
   float MetalsStellarMass;
   float Sfr;
@@ -465,7 +467,7 @@ typedef struct galaxy_output_t {
   float MetalsEjectedGas;
   float BlackHoleMass;
   float BlackHoleGrossMass;
-  float emissivity;
+  float BHemissivity;
   float EffectiveBHM;
   float BlackHoleAccretedHotMass;
   float BlackHoleAccretedColdMass;
@@ -546,6 +548,7 @@ typedef struct run_globals_t {
   double             *AA;
   double             *ZZ;
   double             *LTTime;
+  double             *mass_weighted_xHII;
   int                *RequestedForestId;
   int                *ListOutputSnaps;
   halo_t            **SnapshotHalo;
@@ -656,7 +659,7 @@ double       calc_metallicity(double total_gas, double metals);
 double       radio_mode_BH_heating(galaxy_t *gal, double cooling_mass, double x);
 void         merger_driven_BH_growth(galaxy_t *gal, double merger_ratio, int snapshot);
 void         previous_merger_driven_BH_growth(galaxy_t *gal);
-double calculate_emissivity(double BlackHoleMass, double accreted_mass);
+double       calculate_BHemissivity(double BlackHoleMass, double accreted_mass);
 void         reincorporate_ejected_gas(galaxy_t *gal);
 
 // Magnitude related
@@ -676,12 +679,11 @@ double gnedin2000_modifer(double Mvir, double redshift);
 void   assign_slabs();
 
 void   filter(fftwf_complex *box, int local_ix_start, int slab_nx, int grid_dim, float R);
-double find_HII_bubbles(float redshift);
+double find_HII_bubbles(int snapshot);
 double tocf_modifier(galaxy_t *gal, double Mvir);
 void   set_ReionEfficiency();
 int    find_cell(float pos, double box_size);
 
-double calculate_massweighted_QHII(float *xH, float *deltax);
 void   malloc_reionization_grids();
 void   free_reionization_grids();
 int    map_galaxies_to_slabs(int ngals);

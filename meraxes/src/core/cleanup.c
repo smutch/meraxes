@@ -50,6 +50,7 @@ void cleanup()
   SID_free(SID_FARG run_globals.LTTime);
   SID_free(SID_FARG run_globals.ZZ);
   SID_free(SID_FARG run_globals.AA);
+  SID_free(SID_FARG run_globals.mass_weighted_xHII);
 
   SID_log(" ...done", SID_LOG_CLOSE);
 
