@@ -113,16 +113,13 @@ static void merger_driven_starburst(galaxy_t *parent, double merger_ratio, int s
   if ((parent->ColdGas > 0) && (merger_ratio > run_globals.params.physics.MinMergerRatioForBurst))
   {
     // Calculate a merger driven starburst following Guo+ 2010
-    double burst_mass;
     physics_params_t *params = &(run_globals.params.physics);
 
-    burst_mass = params->MergerBurstFactor * pow(merger_ratio, params->MergerBurstScaling) * parent->ColdGas;
+    double burst_mass = params->MergerBurstFactor * pow(merger_ratio, params->MergerBurstScaling) * parent->ColdGas;
 
     if(burst_mass > parent->ColdGas)
-    {
       burst_mass = parent->ColdGas;
-      parent->PhysicsFlags |= PHYSICS_FLAG_MAXIMAL_MERGER_SF;
-    }
+
 
     if (burst_mass > 0)
     {
@@ -134,6 +131,7 @@ static void merger_driven_starburst(galaxy_t *parent, double merger_ratio, int s
       contemporaneous_supernova_feedback(parent, &burst_mass, snapshot, &m_reheat, &m_eject, &m_recycled, &new_metals);
       // update the baryonic reservoirs (note that the order we do this in will change the result!)
       update_reservoirs_from_sf(parent, burst_mass);
+      parent->MergerBurstMass += burst_mass;
       update_reservoirs_from_sn_feedback(parent, m_reheat, m_eject, m_recycled, new_metals);
     }
   }
@@ -181,6 +179,7 @@ void merge_with_target(galaxy_t *gal, int *dead_gals, int snapshot)
   parent->BlackHoleMass     += gal->BlackHoleMass;
   parent->mwmsa_num         += gal->mwmsa_num;
   parent->mwmsa_denom       += gal->mwmsa_denom;
+  parent->MergerBurstMass   += gal->MergerBurstMass;
 
   for (int ii = 0; ii < N_HISTORY_SNAPS; ii++)
     parent->NewStars[ii] += gal->NewStars[ii];

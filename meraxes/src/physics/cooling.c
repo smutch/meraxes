@@ -62,7 +62,6 @@ double gas_cooling(galaxy_t *gal)
         // the free-fall radius
         cooling_mass = max_cooling_mass;
         // cooling_mass = gal->HotGas;
-        gal->PhysicsFlags |= PHYSICS_FLAG_MAXIMAL_COOLING;
       }
       else
       {

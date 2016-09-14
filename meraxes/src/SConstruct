@@ -190,9 +190,9 @@ if not GetOption('help'):
     else:
         env.Replace(CC = deps['exec']['cc'])
 
-    env.AppendUnique(CPPFLAGS = '-std=gnu99')
+    env.AppendUnique(CPPFLAGS = ['-std=gnu99'])
     env.AppendUnique(CPPPATH = './')
-    env.AppendUnique(SHCCFLAGS = '-rdynamic')
+    env.AppendUnique(SHCCFLAGS = ['-rdynamic'])
 
     libs = ['gsl', 'hdf5', 'gbpCode', 'fftw']
     compile_against(libs, deps, env)
@@ -200,6 +200,8 @@ if not GetOption('help'):
     # Set the python environment to use in any python scripts.
     if 'VIRTUAL_ENV' in os.environ:
         python = os.environ['VIRTUAL_ENV']+'/bin/python'
+
+    env.AppendUnique(CPPFLAGS = ['-fdiagnostics-color=auto'])
 
 
     # ===========

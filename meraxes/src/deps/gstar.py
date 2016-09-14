@@ -3,8 +3,8 @@
 deps = {}
 
 deps['exec'] = {
-    'mpicc' : '/usr/local/x86_64/intel/openmpi-1.10.2-psm/bin/mpicc',
-    'cc' : '/usr/local/intel-15.3.0/composer_xe_2015.3.187/bin/intel64/icc',
+    'mpicc' : '/usr/local/x86_64/gnu/openmpi-1.10.2-psm/bin/mpicc',
+    'cc' : '/usr/local/gcc-5.1.0/bin/gcc',
     'git' : '/usr/bin/git',
 }
 
@@ -15,8 +15,8 @@ deps['gsl'] = {
 }
 
 deps['hdf5'] = {
-    'inclp' :'/usr/local/x86_64/intel/hdf5-1.10.0-openmpi-1.10.2-psm/include',
-    'libp'  :'/usr/local/x86_64/intel/hdf5-1.10.0-openmpi-1.10.2-psm/lib',
+    'inclp' :'/usr/local/x86_64/gnu/hdf5-1.10.0-openmpi-1.10.2-psm/include',
+    'libp'  :'/usr/local/x86_64/gnu/hdf5-1.10.0-openmpi-1.10.2-psm/lib',
     'lib'   : ['hdf5', 'hdf5_hl', 'z'],
 }
 

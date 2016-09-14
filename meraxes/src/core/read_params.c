@@ -675,6 +675,10 @@ void read_parameter_file(char *fname, int mode)
           case PARAM_TYPE_INT:
             printf("%d\n", *((int*)(params_addr[ii])));
             break;
+
+          case PARAM_TYPE_LONGLONG:
+            printf("%lld\n", *((long long*)(params_addr[ii])));
+            break;
           }
         }
       }
