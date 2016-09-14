@@ -138,7 +138,7 @@ double radio_mode_BH_heating(galaxy_t *gal, double cooling_mass, double x)
     //printf("gal->BHemissivity = %g\n",gal->BHemissivity);
     gal->BlackHoleMass      += (1.-eta)*accreted_mass;
     gal->BlackHoleGrossMass += (1.-eta)*accreted_mass;
-    gal->EffectiveBHM       += BHemissivity*PROTONMASS/1e10/SOLAR_MASS*run_globals.params.physics.ReionEscapeFracBH/run_globals.params.physics.ReionNionPhotPerBary/run_globals.params.physics.ReionEscapeFrac;
+    gal->EffectiveBHM       += BHemissivity*PROTONMASS/1e10/SOLAR_MASS*run_globals.params.physics.ReionEscapeFracBH/run_globals.params.physics.ReionNionPhotPerBary;
     gal->HotGas        -= accreted_mass;
     gal->MetalsHotGas  -= metallicity * accreted_mass;
   }
@@ -195,7 +195,7 @@ void merger_driven_BH_growth(galaxy_t *gal, double merger_ratio, int snapshot)
     gal->BHemissivity +=BHemissivity/1e60;
     gal->BlackHoleMass      += (1.-eta)*accreted_mass;
     gal->BlackHoleGrossMass += (1.-eta)*accreted_mass; 
-    gal->EffectiveBHM       += BHemissivity*PROTONMASS/1e10/SOLAR_MASS*run_globals.params.physics.ReionEscapeFracBH/run_globals.params.physics.ReionNionPhotPerBary/run_globals.params.physics.ReionEscapeFrac;
+    gal->EffectiveBHM       += BHemissivity*PROTONMASS/1e10/SOLAR_MASS*run_globals.params.physics.ReionEscapeFracBH/run_globals.params.physics.ReionNionPhotPerBary;
     gal->ColdGas       -= accreted_mass;
     gal->MetalsColdGas -= accreted_metals;
 
@@ -245,7 +245,7 @@ void previous_merger_driven_BH_growth(galaxy_t *gal)
     gal->BHemissivity +=BHemissivity/1e60;
     gal->BlackHoleMass      += (1.-eta)*accreted_mass;
     gal->BlackHoleGrossMass += (1.-eta)*accreted_mass;
-    gal->EffectiveBHM       += BHemissivity*PROTONMASS/1e10/SOLAR_MASS*run_globals.params.physics.ReionEscapeFracBH/run_globals.params.physics.ReionNionPhotPerBary/run_globals.params.physics.ReionEscapeFrac;
+    gal->EffectiveBHM       += BHemissivity*PROTONMASS/1e10/SOLAR_MASS*run_globals.params.physics.ReionEscapeFracBH/run_globals.params.physics.ReionNionPhotPerBary;
     gal->ColdGas       -= accreted_mass;
     gal->MetalsColdGas -= accreted_metals;
 
