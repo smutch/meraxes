@@ -91,6 +91,7 @@ static void read_snap_list()
     run_globals.AA     = SID_malloc(sizeof(double) * snaplist_len);
     run_globals.ZZ     = SID_malloc(sizeof(double) * snaplist_len);
     run_globals.LTTime = SID_malloc(sizeof(double) * snaplist_len);
+    run_globals.mass_weighted_xHII = SID_malloc(sizeof(double) * snaplist_len);
 
     // seek back to the start of the file
     rewind(fin);
@@ -116,8 +117,10 @@ static void read_snap_list()
     run_globals.AA     = SID_malloc(sizeof(double) * run_globals.params.SnaplistLength);
     run_globals.ZZ     = SID_malloc(sizeof(double) * run_globals.params.SnaplistLength);
     run_globals.LTTime = SID_malloc(sizeof(double) * run_globals.params.SnaplistLength);
+    run_globals.mass_weighted_xHII     = SID_malloc(sizeof(double) * run_globals.params.SnaplistLength);
   }
   SID_Bcast(run_globals.AA, sizeof(double) * run_globals.params.SnaplistLength, 0, SID.COMM_WORLD);
+  SID_Bcast(run_globals.mass_weighted_xHII, sizeof(double) * run_globals.params.SnaplistLength, 0, SID.COMM_WORLD);
 }
 
 double integrand_time_to_present(double a, void *params)
@@ -332,6 +335,7 @@ void init_meraxes()
   {
     run_globals.ZZ[i]     = 1 / run_globals.AA[i] - 1;
     run_globals.LTTime[i] = time_to_present(run_globals.ZZ[i]);
+	run_globals.mass_weighted_xHII[i] = 0.0;
   }
 
   // Initialise galaxy pointers

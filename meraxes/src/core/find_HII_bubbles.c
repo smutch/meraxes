@@ -41,10 +41,11 @@ double RtoM(double R){
 }
 
 
-double find_HII_bubbles(float redshift)
+double find_HII_bubbles(int snapshot)
 {
   // TODO: TAKE A VERY VERY CLOSE LOOK AT UNITS!!!!
 
+  float redshift = run_globals.ZZ[snapshot];
   float box_size = run_globals.params.BoxSize;  // Mpc/h
   int ReionGridDim = run_globals.params.ReionGridDim;
   double pixel_volume = pow((double)box_size/(double)ReionGridDim, 3);  // (Mpc/h)^3
@@ -328,10 +329,21 @@ double find_HII_bubbles(float redshift)
 
   // Find the neutral fraction
   double global_xH = 0.0;
+  double massweight = 0.0;
+  double massweighted_xHII = 0.0;
+  double density_over_mean;
   for (int ct=0; ct < slab_n_real; ct++)
+  {
     global_xH += (double)xH[ct];
+	density_over_mean = 1. + (double)((float *)deltax_filtered)[ct];
+	massweight += density_over_mean;
+	massweighted_xHII += (1. - (double)xH[ct]) * density_over_mean;
+  }
   SID_Allreduce(SID_IN_PLACE, &global_xH, 1, SID_DOUBLE, SID_SUM, SID.COMM_WORLD);
+  SID_Allreduce(SID_IN_PLACE, &massweight, 1, SID_DOUBLE, SID_SUM, SID.COMM_WORLD);
+  SID_Allreduce(SID_IN_PLACE, &massweighted_xHII, 1, SID_DOUBLE, SID_SUM, SID.COMM_WORLD);
   global_xH /= pow(ReionGridDim, 3);
+  run_globals.mass_weighted_xHII[snapshot] =  massweighted_xHII/massweight;
 
   return global_xH;
 }

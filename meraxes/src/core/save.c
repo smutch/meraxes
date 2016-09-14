@@ -67,10 +67,11 @@ void prepare_galaxy_for_output(
   galout->Mcool              = (float)(gal.Mcool);
   galout->StellarMass        = (float)(gal.StellarMass);
   galout->GrossStellarMass   = (float)(gal.GrossStellarMass);
+  galout->Stellaremissivity  = (float)(gal.Stellaremissivity);
   galout->FescWeightedGSM    = (float)(gal.FescWeightedGSM);
   galout->BlackHoleMass      = (float)(gal.BlackHoleMass);
   galout->BlackHoleGrossMass = (float)(gal.BlackHoleGrossMass);
-  galout->emissivity         = (float)(gal.emissivity);
+  galout->BHemissivity       = (float)(gal.BHemissivity);
   galout->EffectiveBHM       = (float)(gal.EffectiveBHM);
   galout->BlackHoleAccretedHotMass      = (float)(gal.BlackHoleAccretedHotMass);
   galout->BlackHoleAccretedColdMass      = (float)(gal.BlackHoleAccretedColdMass);
@@ -109,7 +110,7 @@ void calc_hdf5_props()
     galaxy_output_t galout;
     int i;                                                // dummy
 
-  h5props->n_props = 46;
+  h5props->n_props = 47;
 
 #ifdef CALC_MAGS
     // If we are calculating any magnitudes then increment the number of
@@ -328,6 +329,13 @@ void calc_hdf5_props()
   h5props->field_h_conv[i]    = "v/h";
   h5props->field_types[i++]   = H5T_NATIVE_FLOAT;
 
+  h5props->dst_offsets[i]     = HOFFSET(galaxy_output_t, Stellaremissivity);
+  h5props->dst_field_sizes[i] = sizeof(galout.Stellaremissivity);
+  h5props->field_names[i]     = "Stellaremissivity";
+  h5props->field_units[i]     = "1e60 photons";
+  h5props->field_h_conv[i]    = "None";
+  h5props->field_types[i++]   = H5T_NATIVE_FLOAT;
+
   h5props->dst_offsets[i]     = HOFFSET(galaxy_output_t, FescWeightedGSM);         
   h5props->dst_field_sizes[i] = sizeof(galout.FescWeightedGSM);                    
   h5props->field_names[i]     = "FescWeightedGSM";                                 
@@ -377,10 +385,10 @@ void calc_hdf5_props()
   h5props->field_h_conv[i]    = "v/h";
   h5props->field_types[i++]   = H5T_NATIVE_FLOAT;
 
-  h5props->dst_offsets[i]     = HOFFSET(galaxy_output_t, emissivity);
-  h5props->dst_field_sizes[i] = sizeof(galout.emissivity);
-  h5props->field_names[i]     = "emissivity";
-  h5props->field_units[i]     = "1e60photons";
+  h5props->dst_offsets[i]     = HOFFSET(galaxy_output_t, BHemissivity);
+  h5props->dst_field_sizes[i] = sizeof(galout.BHemissivity);
+  h5props->field_names[i]     = "BHemissivity";
+  h5props->field_units[i]     = "1e60 photons";
   h5props->field_h_conv[i]    = "None";
   h5props->field_types[i++]   = H5T_NATIVE_FLOAT;
 
@@ -718,6 +726,9 @@ void create_master_file()
 
     temp = run_globals.LTTime[run_globals.ListOutputSnaps[i_out]] * run_globals.units.UnitLength_in_cm / run_globals.units.UnitVelocity_in_cm_per_s / SEC_PER_MEGAYEAR;
     H5LTset_attribute_double(file_id, target_group, "LTTime", &temp, 1);
+
+	// save mass_weighted_xH
+	H5LTset_attribute_double(file_id, target_group, "mass_weighted_xHII", &(run_globals.mass_weighted_xHII[run_globals.ListOutputSnaps[i_out]]), 1); 
 
     H5Gclose(snap_group_id);
   }

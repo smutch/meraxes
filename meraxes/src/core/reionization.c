@@ -31,31 +31,6 @@ void set_ReionEfficiency()
   }
 }
 
-double  calculate_massweighted_QHII(
-  float         *xH,             
-  float         *deltax)
-{
-  float massweighted_QHII = 0.0;
-  float massweight        = 0.0;
-  int   ReionGridDim      = run_globals.params.ReionGridDim;
-  int   local_nix         = (int)(run_globals.reion_grids.slab_nix[SID.My_rank]);
-  for (int ix=0; ix<local_nix; ix++)
-  { 
-    for (int iy=0; iy<ReionGridDim; iy++)
-  {
-    for (int iz=0; iz<ReionGridDim; iz++)
-    {
-      massweighted_QHII += (1. - xH[grid_index(ix, iy, iz, ReionGridDim, INDEX_REAL)]) * (1. + deltax[grid_index(ix, iy, iz, ReionGridDim, INDEX_REAL)]);
-      massweight += (1. + deltax[grid_index(ix, iy, iz, ReionGridDim, INDEX_REAL)]);
-    }
-  }
-  }
-  SID_Allreduce(SID_IN_PLACE, &massweighted_QHII, 1, SID_DOUBLE, SID_SUM, SID.COMM_WORLD);
-  SID_Allreduce(SID_IN_PLACE, &massweight,        1, SID_DOUBLE, SID_SUM, SID.COMM_WORLD);
-
-  return massweighted_QHII/massweight;
-}
-
 void assign_slabs()
 {
   SID_log("Assigning slabs to MPI cores...", SID_LOG_OPEN);
@@ -99,8 +74,6 @@ void call_find_HII_bubbles(int snapshot, int unsampled_snapshot, int nout_gals)
 
   reion_grids_t *grids = &(run_globals.reion_grids);
 
-  float massweighted_QHII;
-
   SID_log("Getting ready to call find_HII_bubbles...", SID_LOG_OPEN);
 
   // Check to see if there are actually any galaxies at this snapshot
@@ -126,11 +99,10 @@ void call_find_HII_bubbles(int snapshot, int unsampled_snapshot, int nout_gals)
 
   // Call find_HII_bubbles
   SID_log("Calling find_HII_bubbles", SID_LOG_OPEN | SID_LOG_TIMER);
-  grids->global_xH = find_HII_bubbles(run_globals.ZZ[snapshot]);
+  grids->global_xH = find_HII_bubbles(snapshot);
 
-  massweighted_QHII = calculate_massweighted_QHII(grids->xH, (float*)(grids->deltax_filtered)); 
   SID_log("grids->global_xH = %g", SID_LOG_COMMENT, grids->global_xH);
-  SID_log("global mass weighted xHII = %g at z = %g", SID_LOG_COMMENT, massweighted_QHII,run_globals.ZZ[snapshot]);
+  SID_log("global mass weighted xHII = %g at z = %g", SID_LOG_COMMENT, run_globals.mass_weighted_xHII[snapshot],run_globals.ZZ[snapshot]);
 
   SID_log("...done", SID_LOG_CLOSE);
 }

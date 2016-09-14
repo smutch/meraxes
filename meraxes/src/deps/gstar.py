@@ -34,6 +34,6 @@ deps['fftw'] = {
 
 deps['cmocka'] = {
     'inclp' : '/home/smutch/3rd_party/cmocka/include',
-    'libp' : '/home/smutch/3rd_party/cmocka/lib',
-    'lib' : 'cmocka',
+    'libp'  : '/home/smutch/3rd_party/cmocka/lib',
+    'lib'   : 'cmocka',
 }
