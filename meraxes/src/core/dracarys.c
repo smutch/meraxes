@@ -431,7 +431,7 @@ void dracarys()
         SID_log("f_esc = %g", SID_LOG_COMMENT, f_esc);
       }
 
-      if (!check_if_reionization_complete())
+      if (check_if_reionization_ongoing())
       {
         if (!run_globals.params.ReionUVBFlag)
         {
