@@ -162,8 +162,7 @@ if not GetOption('help'):
         env.MergeFlags('-O2')
     elif env['build'] == 'optimized':
         cprint("WARNING: This build will only work on the EXACT same architecture!", color='yellow', attrs=['bold'])
-        env.MergeFlags('-O3 -DNDEBUG -march=native -xhost -g')
-        #env.AppendUnique(CPPFLAGS = '-march=native -xhost -O3 -ipo -g ')
+        env.MergeFlags('-O3 -DNDEBUG -march=native')
     if env['prof']:
         env.MergeFlags('-g -pg')
         env.AppendUnique(LINKFLAGS=['-pg'])

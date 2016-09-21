@@ -580,6 +580,11 @@ void read_parameter_file(char *fname, int mode)
       required_tag[n_param]  = 1;
       params_type[n_param++] = PARAM_TYPE_INT;
 
+      strcpy(params_tag[n_param], "Flag_output_grids");
+      params_addr[n_param]   = &(run_params->Flag_output_grids);
+      required_tag[n_param]  = 1;
+      params_type[n_param++] = PARAM_TYPE_INT;
+
       strcpy(params_tag[n_param], "ReionGridDim");
       params_addr[n_param]   = &(run_params->ReionGridDim);
       required_tag[n_param]  = 1;

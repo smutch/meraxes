@@ -24,7 +24,7 @@ void update_reservoirs_from_sf(galaxy_t *gal, double new_stars)
     gal->MetalsColdGas     -= new_stars * metallicity;
     gal->StellarMass       += new_stars;
     gal->GrossStellarMass  += new_stars;
-    gal->Stellaremissivity  = new_stars * 1e10 * SOLAR_MASS/run_globals.params.Hubble_h / PROTONMASS * run_globals.params.physics.ReionNionPhotPerBary/1e60;
+    gal->Stellaremissivity += new_stars * 1e10 * SOLAR_MASS/run_globals.params.Hubble_h / PROTONMASS * run_globals.params.physics.ReionNionPhotPerBary/1e60;
     gal->FescWeightedGSM   += new_stars * run_globals.params.physics.ReionEscapeFrac;
     gal->MetalsStellarMass += new_stars * metallicity;
 

@@ -41,6 +41,7 @@ galaxy_t* new_galaxy(int snapshot, int halo_ID)
   gal->StellarMass        = 0.0;
   gal->GrossStellarMass   = 0.0;
   gal->Stellaremissivity  = 0.0;
+  gal->MergerSemissivity  = 0.0;
   gal->FescWeightedGSM    = 0.0;
   gal->MetalsStellarMass  = 0.0;
   gal->mwmsa_num          = 0.0;
@@ -128,6 +129,7 @@ void reset_galaxy_properties(galaxy_t *gal, int snapshot)
   gal->PhysicsFlags               = 0;
   gal->BHemissivity               = 0.0;
   gal->Stellaremissivity          = 0.0;
+  gal->MergerSemissivity          = 0.0; 
   gal->BaryonFracModifier         = 1.0;
   gal->BlackHoleAccretedHotMass   = 0.0;
   gal->BlackHoleAccretedColdMass  = 0.0;

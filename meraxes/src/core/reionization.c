@@ -92,7 +92,7 @@ void call_find_HII_bubbles(int snapshot, int unsampled_snapshot, int nout_gals)
 
   // save the grids prior to doing FFTs to avoid precision loss and aliasing etc.
   for (int i_out = 0; i_out < run_globals.NOutputSnaps; i_out++)
-    if (snapshot == run_globals.ListOutputSnaps[i_out])
+    if (snapshot == run_globals.ListOutputSnaps[i_out] && run_globals.params.Flag_output_grids)
       save_reion_input_grids(snapshot);
 
   SID_log("...done", SID_LOG_CLOSE);
@@ -456,7 +456,7 @@ void construct_baryon_grids(int snapshot, int local_ngals)
   {
     int i_gal = 0;
     int skipped_gals = 0;
-	int N_BlackHoleMassLimitReion = 0;
+    int N_BlackHoleMassLimitReion = 0;
 
     for(int i_r=0; i_r < SID.n_proc; i_r++)
     {
@@ -572,7 +572,7 @@ void construct_baryon_grids(int snapshot, int local_ngals)
 
       }
     }
-	SID_Allreduce(SID_IN_PLACE, &N_BlackHoleMassLimitReion, 1, SID_DOUBLE, SID_SUM, SID.COMM_WORLD);
+    SID_Allreduce(SID_IN_PLACE, &N_BlackHoleMassLimitReion, 1, SID_DOUBLE, SID_SUM, SID.COMM_WORLD);
     SID_log("%d quasars are smaller than %g",SID_LOG_COMMENT, N_BlackHoleMassLimitReion,run_globals.params.physics.BlackHoleMassLimitReion);
   }
 
@@ -701,7 +701,7 @@ void save_reion_output_grids(int snapshot)
   // open the file (in parallel)
   hid_t plist_id = H5Pcreate(H5P_FILE_ACCESS);
   H5Pset_fapl_mpio(plist_id, SID_COMM_WORLD, MPI_INFO_NULL);
-  hid_t file_id = H5Fopen(name, H5F_ACC_RDWR, plist_id);
+  hid_t file_id = H5Fcreate(name, H5F_ACC_TRUNC, H5P_DEFAULT, plist_id);
   H5Pclose(plist_id);
 
   // create the filespace

@@ -220,6 +220,7 @@ typedef struct run_params_t {
   int              FlagReadDumpFile;
   int              FlagMCMC;
   int              Flag_PatchyReion;
+  int              Flag_output_grids;
 } run_params_t;
 
 
@@ -379,6 +380,7 @@ typedef struct galaxy_t {
   double GrossStellarMass;
   double FescWeightedGSM;
   double Stellaremissivity;
+  double MergerSemissivity;
   double MetalsStellarMass;
   double DiskScaleLength;
   double Sfr;
@@ -460,6 +462,7 @@ typedef struct galaxy_output_t {
   float StellarMass;
   float GrossStellarMass;
   float Stellaremissivity;
+  float MergerSemissivity;
   float FescWeightedGSM;
   float MetalsStellarMass;
   float Sfr;
