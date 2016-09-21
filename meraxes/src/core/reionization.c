@@ -701,7 +701,7 @@ void save_reion_output_grids(int snapshot)
   // open the file (in parallel)
   hid_t plist_id = H5Pcreate(H5P_FILE_ACCESS);
   H5Pset_fapl_mpio(plist_id, SID_COMM_WORLD, MPI_INFO_NULL);
-  hid_t file_id = H5Fcreate(name, H5F_ACC_TRUNC, H5P_DEFAULT, plist_id);
+  hid_t file_id = H5Fopen(name, H5F_ACC_RDWR, plist_id);
   H5Pclose(plist_id);
 
   // create the filespace

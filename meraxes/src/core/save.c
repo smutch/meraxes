@@ -806,6 +806,7 @@ void write_snapshot(
   hdf5_output_t h5props       = run_globals.hdf5props;
   int gal_count               = 0;
   int old_count               = 0;
+  int total_n_out_gals        = 0; 
   int *first_progenitor_index = NULL;
   int *next_progenitor_index  = NULL;
   int calc_descendants_i_out  = -1;
@@ -1001,7 +1002,11 @@ void write_snapshot(
   SID_free(SID_FARG output_buffer);
 
   if ((run_globals.params.Flag_PatchyReion) && (!check_if_reionization_complete()) && (run_globals.params.Flag_output_grids))
-    save_reion_output_grids(run_globals.ListOutputSnaps[i_out]);
+  {
+    SID_Allreduce(&gal_count, &total_n_out_gals, 1, SID_INT, SID_SUM, SID.COMM_WORLD); 
+    if (total_n_out_gals>0)
+      save_reion_output_grids(run_globals.ListOutputSnaps[i_out]);
+  }
 
   // Close the group.
   H5Gclose(group_id);
