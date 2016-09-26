@@ -286,7 +286,7 @@ typedef struct reion_grids_t {
   gal_to_slab_t *galaxy_to_slab_map;
 
   double         global_xH;
-  bool           reion_complete;
+  bool           reion_ongoing;
   int            buffer_size;
 } reion_grids_t;
 
@@ -659,7 +659,7 @@ void   calculate_Mvir_crit(double redshift);
 void   call_find_HII_bubbles(int snapshot, int unsampled_snapshot, int nout_gals);
 void   save_reion_input_grids(int snapshot);
 void   save_reion_output_grids(int snapshot);
-bool   check_if_reionization_complete();
+bool   check_if_reionization_ongoing();
 void   write_single_grid(const char *fname, float *grid, const char *grid_name, bool padded_flag, bool create_file_flag);
 
 

@@ -143,7 +143,7 @@ void malloc_reionization_grids()
   grids->J_21               = NULL;
 
   grids->global_xH = 1.0;
-  grids->reion_complete = false;
+  grids->reion_ongoing = false;
 
   if (run_globals.params.Flag_PatchyReion)
   {
@@ -766,30 +766,34 @@ void save_reion_output_grids(int snapshot)
 }
 
 
-bool check_if_reionization_complete()
+bool check_if_reionization_ongoing()
 {
-  int complete = (int)run_globals.reion_grids.reion_complete;
-  if(!complete)
+  int ongoing = 0;
+  if (run_globals.FirstGal != NULL)
   {
-    complete = 1;
-    float *xH = run_globals.reion_grids.xH;
-    int ReionGridDim = run_globals.params.ReionGridDim;
-    int slab_n_real = (int)(run_globals.reion_grids.slab_nix[SID.My_rank]) * ReionGridDim * ReionGridDim;
-
-    // If not all cells are ionised then reionization is still progressing...
-    for (int ii=0; ii < slab_n_real; ii++)
+    ongoing = (int)run_globals.reion_grids.reion_ongoing;
+    if(!ongoing)
     {
-      if (xH[ii] != 0.0)
+      ongoing = 0;
+      float *xH = run_globals.reion_grids.xH;
+      int ReionGridDim = run_globals.params.ReionGridDim;
+      int slab_n_real = (int)(run_globals.reion_grids.slab_nix[SID.My_rank]) * ReionGridDim * ReionGridDim;
+
+      // If not all cells are ionised then reionization is still progressing...
+      for (int ii=0; ii < slab_n_real; ii++)
       {
-        complete = 0;
-        break;
+        if (xH[ii] != 0.0)
+        {
+          ongoing = 1;
+          break;
+        }
       }
     }
   }
   
-  SID_Allreduce(SID_IN_PLACE, &complete, 1, MPI_INT, MPI_LAND, SID.COMM_WORLD);
-  run_globals.reion_grids.reion_complete = (bool)complete;
-  return (bool)complete;
+  SID_Allreduce(SID_IN_PLACE, &ongoing, 1, MPI_INT, MPI_LOR, SID.COMM_WORLD);
+  run_globals.reion_grids.reion_ongoing = (bool)ongoing;
+  return (bool)ongoing;
 }
 
 

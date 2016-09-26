@@ -226,8 +226,3 @@ if not GetOption('help'):
     Depends(dynlib, incl)
     env.Alias('lib', lib)
     env.Alias('dynlib', dynlib)
-
-    # If you create a my_SConscript file then you can put your own custom
-    # targets etc. in there...
-    if os.path.exists("./my_SConscript"):
-        SConscript('my_SConscript', exports='env executable lib copy_files files')

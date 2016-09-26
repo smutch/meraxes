@@ -2,10 +2,9 @@
 #include "meraxes.h"
 #include "tree_flags.h"
 
-
 static void inline turn_off_merger_flag(galaxy_t *gal)
 {
-  gal->TreeFlags = gal->TreeFlags & (~TREE_CASE_MERGER);
+  gal->TreeFlags = gal->TreeFlags & (~TREE_CASE_MERGER) & (~TREE_CASE_MERGER_PRIMARY);
 }
 
 static inline bool check_for_flag(int flag, int tree_flags)
@@ -30,10 +29,11 @@ static inline bool check_for_merger(galaxy_t *gal, halo_t *new_halo)
 static inline bool check_if_valid_host(halo_t *halo)
 {
   // We don't want to place new galaxies in any halos with the following flags set...
-  int invalid_flags = (TREE_CASE_FRAGMENTED_RETURNED
-      | TREE_CASE_FRAGMENTED_EXCHANGED
+  int invalid_flags = (TREE_CASE_FRAGMENTED_NORMAL
+      | TREE_CASE_FRAGMENTED_NEW
+      | TREE_CASE_FRAGMENTED_EJECTED  // TODO: Now marked as other
       | TREE_CASE_FRAGMENTED_STRAYED
-      | TREE_CASE_MERGER);
+      | TREE_CASE_MERGER);  // TODO: Try off and think about closely
 
   if ((halo->Type == 0)
       && (halo->Galaxy == NULL)
@@ -142,32 +142,46 @@ void dracarys()
       gal = gal->Next;
     }
 
+    // Loop through each galaxy we already have
     gal      = run_globals.FirstGal;
     prev_gal = NULL;
     while (gal != NULL)
     {
+      // Get the index of this galaxies descendent halo (which will be the one
+      // which exists at this snapshot unless the halo has skipped a snap).
       i_newhalo = gal->HaloDescIndex;
 
+      // If the halo of this galaxy should exist at this snapshot.
       if (gal->SnapSkipCounter <= 0)
       {
+        // If we are subsampling the trees, or for some other reason need to
+        // find the corrected halo index, then do so. 
         if ((index_lookup) && (i_newhalo > -1) && !(gal->ghost_flag) && (gal->Type < 2))
           i_newhalo = find_original_index(gal->HaloDescIndex, index_lookup, trees_info.n_halos);
 
+        // If this galaxy hasn't been marked for death 
         if (i_newhalo > -1)
         {
           gal->OldType = gal->Type;
           gal->dt      = LTTime[gal->LastIdentSnap] - LTTime[snapshot];
+
+          // If this is a central or a satellite
           if (gal->Type < 2)
           {
             if (check_for_merger(gal, &(halo[i_newhalo])))
             {
-              // Here we have a new merger...  Mark it and deal with it below.
+              // Here we have a new merger with this galaxy merging into a
+              // another...  Mark it and deal with it below.
               gal->Type = 999;
               merger_counter++;
 
-              // if this was marked as a halo merger in the input trees then
+              // If this was marked as a halo merger in the input trees then
               // update the halo pointer correspondingly and turn off the
-              // merger flag
+              // merger flag.  Note the distinction here with the
+              // `check_for_merger` check above.  That check may want to
+              // consider galaxy properties such as stellar mass.  This check
+              // is only concerned with halo mergers as defined by the input
+              // trees.
               if (check_for_flag(TREE_CASE_MERGER, gal->TreeFlags))
               {
                 gal->Halo = &(halo[i_newhalo]);
@@ -340,7 +354,7 @@ void dracarys()
             SID_log_warning("Just set gal->FirstGalInHalo = NULL!", SID_LOG_COMMENT);
 
           // Set the merger target of the incoming galaxy and initialise the
-          // merger clock.  Note that we *increment* the clock imemdiately
+          // merger clock.  Note that we *increment* the clock immediately
           // after calculating it. This is because we will decrement the clock
           // (by the same amount) when checking for mergers in evolve.c
           gal->MergerTarget = gal->FirstGalInHalo;
@@ -430,7 +444,7 @@ void dracarys()
         SID_log("f_esc = %g", SID_LOG_COMMENT, f_esc);
       }
 
-      if (!check_if_reionization_complete())
+      if (check_if_reionization_ongoing())
       {
         if (!run_globals.params.ReionUVBFlag)
         {

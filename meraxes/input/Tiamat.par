@@ -7,7 +7,7 @@ FileNameGalaxies : Tiamat
 #----- Simulation input files  ------------
 #------------------------------------------
 SimName          : Tiamat
-SimulationDir    : /home/smutch/data_dragons/input_trees/Tiamat
+SimulationDir    : /home/yqin/dragons/input_trees/tiamat/Tiamat_z2
 CatalogFilePrefix: subfind
 BoxSize          : 67.8
 VolumeFactor     : 1.0
