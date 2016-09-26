@@ -54,7 +54,7 @@ int evolve_galaxies(fof_group_t *fof_group, int snapshot, int NGal, int NFof)
 
             insitu_star_formation(gal, snapshot);
 
-            if (run_globals.params.physics.Flag_BHFeedback) 
+            if (gal->BlackHoleAccretingColdMass >0)
               previous_merger_driven_BH_growth(gal);             
 
             // If this is a type 2 then decrement the merger clock

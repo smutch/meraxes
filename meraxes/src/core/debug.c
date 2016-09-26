@@ -235,13 +235,13 @@ void check_counts(fof_group_t *fof_group, int NGal, int NFof)
           gal = gal->NextGalInHalo;
           counter++;
           ii++;
-          if (ii > 1000)
+          if (ii > 10000)
             ABORT(EXIT_FAILURE);
         }
         halo = halo->NextHaloInFOFGroup;
         halo_counter++;
         jj++;
-        if (jj > 1000)
+        if (jj > 10000)
           ABORT(EXIT_FAILURE);
       }
     }
