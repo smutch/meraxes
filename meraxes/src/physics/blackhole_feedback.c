@@ -169,7 +169,6 @@ void merger_driven_BH_growth(galaxy_t *gal, double merger_ratio, int snapshot)
     // Suggested by Bonoli et al. 2009 and Wyithe et al. 2003
     zplus1to1pt5 = pow((1 + run_globals.ZZ[snapshot]), 1.5);
 
-    assert(gal->BlackHoleAccretingColdMass >=0);
     gal->BlackHoleAccretingColdMass += run_globals.params.physics.BlackHoleGrowthRate * merger_ratio /
                     (1.0 + (280.0 * 280.0 / Vvir / Vvir)) * gal->ColdGas* zplus1to1pt5;
 

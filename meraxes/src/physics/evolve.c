@@ -54,6 +54,9 @@ int evolve_galaxies(fof_group_t *fof_group, int snapshot, int NGal, int NFof)
 
             insitu_star_formation(gal, snapshot);
 
+            if (run_globals.params.physics.Flag_BHFeedback) 
+              previous_merger_driven_BH_growth(gal);             
+
             // If this is a type 2 then decrement the merger clock
             if (gal->Type == 2)
               gal->MergTime -= gal->dt;
@@ -81,11 +84,7 @@ int evolve_galaxies(fof_group_t *fof_group, int snapshot, int NGal, int NFof)
             // merged then process a merger event.
             if ((gal->MergTime < 0) || (gal->MergerTarget->Type == 3))
               merge_with_target(gal, &dead_gals, snapshot);
-            else if (run_globals.params.physics.Flag_BHFeedback)
-              previous_merger_driven_BH_growth(gal);
           }
-          else if (run_globals.params.physics.Flag_BHFeedback)
-            previous_merger_driven_BH_growth(gal);
           gal = gal->NextGalInHalo;
         }
         halo = halo->NextHaloInFOFGroup;

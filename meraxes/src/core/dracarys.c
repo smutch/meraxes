@@ -20,8 +20,8 @@ static inline bool check_for_merger(galaxy_t *gal, halo_t *new_halo)
   // if this is marked as a merger in the trees OR the galaxy stellar mass is
   // now greater than the host halo mass, then mark this as a merger
   // if( check_for_flag(TREE_CASE_MERGER, gal->TreeFlags) || (gal->StellarMass > new_halo->Mvir) )
-  if (check_for_flag(TREE_CASE_MERGER, gal->TreeFlags)
-      || check_for_flag(TREE_CASE_MERGER_PRIMARY, gal->TreeFlags))
+  if (check_for_flag(TREE_CASE_MERGER, gal->TreeFlags))
+      //|| check_for_flag(TREE_CASE_MERGER_PRIMARY, gal->TreeFlags))
     return true;
   else
     return false;
@@ -441,8 +441,8 @@ void dracarys()
         else
           call_find_HII_bubbles(snapshot, trees_info.unsampled_snapshot, nout_gals);
       }
-	  else
-		  run_globals.mass_weighted_xHII[snapshot] = 1.0;
+      else
+          run_globals.mass_weighted_xHII[snapshot] = 1.0;
 
       // if we have already created a mapping of galaxies to MPI slabs then we no
       // longer need them as they will need to be re-created for the new halo
