@@ -33,6 +33,8 @@ double calculate_BHemissivity(double BlackHoleMass, double accreted_mass)
     // BHemissivity = Lbol/kb*2.1276330276278045e+54*accretion_time; //photon numbers
 
     return Lbol/kb*2.1276330276278045e+54*accretion_time; //photon numbers 
+	
+	// This introduce inconsistence compared to the calculation of luminosity. Here we assume Lbol(t) = Lbol(t0), which is not always true
 }
 
 // quasar feedback suggested by Croton et al. 2016

@@ -484,6 +484,7 @@ typedef struct galaxy_output_t {
   float MergerStartRadius;
   float BaryonFracModifier;
   float MvirCrit;
+  float dt;
   int   PhysicsFlags;
   int   MergSnap;
 
