@@ -137,7 +137,7 @@ double radio_mode_BH_heating(galaxy_t *gal, double cooling_mass, double x)
 	//TODO: we could add heating effienciency to split the energy into
 	//heating and reionization.
 	//
-    gal->BlackHoleMass      += (1.-eta)*accreted_mass;
+    gal->BlackHoleMass += (1.-eta)*accreted_mass;
     gal->HotGas        -= accreted_mass;
     gal->MetalsHotGas  -= metallicity * accreted_mass;
   }
@@ -150,11 +150,7 @@ void merger_driven_BH_growth(galaxy_t *gal, double merger_ratio, int snapshot)
   if (gal->ColdGas > 0)
   {
     // If there is any cold gas to feed the black hole...
-    double m_reheat;
 	double accreting_mass;
-    double accreted_mass;
-    double accreted_metals;
-    double BHemissivity;
     double Vvir;
     double zplus1to1pt5;
     run_units_t *units = &(run_globals.units);
@@ -176,31 +172,10 @@ void merger_driven_BH_growth(galaxy_t *gal, double merger_ratio, int snapshot)
 	if (accreting_mass > gal->ColdGas) 
 	    accreting_mass = gal->ColdGas;
 
+	// put the mass onto the accretion disk and let the black hole accrete it in the next snapshot
+	// TODO: since the merger is put in the end of galaxy evolution, this is following the
+	// inconsistence consistently
     gal->BlackHoleAccretingColdMass += accreting_mass;
-
-    // Eddington rate
-    //accreted_mass = (exp(1.402e37 / (units->UnitEnergy_in_cgs / units->UnitTime_in_s)*gal->dt/eta*run_globals.params.physics.EddingtonRatio)-1.) * gal->BlackHoleMass;
-    accreted_mass = (exp(gal->dt/eta*run_globals.params.physics.EddingtonRatio/(450./units->UnitTime_in_Megayears))-1.)*gal->BlackHoleMass;
-
-    // limit accretion to what is need
-    if (accreted_mass > gal->BlackHoleAccretingColdMass)
-      accreted_mass = gal->BlackHoleAccretingColdMass;
-
-    gal->BlackHoleAccretedColdMass += accreted_mass;
-    gal->BlackHoleAccretingColdMass -= accreted_mass;
-    accreted_metals     = calc_metallicity(gal->ColdGas, gal->MetalsColdGas) * accreted_mass;
-
-    //N_gamma,q * N_bh; later BHemissivity * PROTONMASS/1e10/SOLAR_MASS will be  N_gamma,q * M_bh
-    BHemissivity = calculate_BHemissivity(gal->BlackHoleMass, accreted_mass); 
-    
-    gal->BHemissivity +=BHemissivity/1e60;
-    gal->BlackHoleMass      += (1.-eta)*accreted_mass;
-    gal->EffectiveBHM       += BHemissivity*PROTONMASS/1e10/SOLAR_MASS*run_globals.params.physics.ReionEscapeFracBH/run_globals.params.physics.ReionNionPhotPerBary;
-    gal->ColdGas       -= accreted_mass;
-    gal->MetalsColdGas -= accreted_metals;
-
-    m_reheat = run_globals.params.physics.QuasarModeEff *eta*8.98755e10 * accreted_mass /Vvir /Vvir;
-    update_reservoirs_from_quasar_mode_bh_feedback(gal, m_reheat);
   }
 }
 
@@ -234,9 +209,9 @@ void previous_merger_driven_BH_growth(galaxy_t *gal)
   //N_gamma,q * N_bh; later BHemissivity * PROTONMASS/1e10/SOLAR_MASS will be  N_gamma,q * M_bh
   BHemissivity = calculate_BHemissivity(gal->BlackHoleMass, accreted_mass);
 
-  gal->BHemissivity +=BHemissivity/1e60;
-  gal->BlackHoleMass      += (1.-eta)*accreted_mass;
-  gal->EffectiveBHM       += BHemissivity*PROTONMASS/1e10/SOLAR_MASS*run_globals.params.physics.ReionEscapeFracBH/run_globals.params.physics.ReionNionPhotPerBary;
+  gal->BHemissivity  +=BHemissivity/1e60;
+  gal->BlackHoleMass += (1.-eta)*accreted_mass;
+  gal->EffectiveBHM  += BHemissivity*PROTONMASS/1e10/SOLAR_MASS*run_globals.params.physics.ReionEscapeFracBH/run_globals.params.physics.ReionNionPhotPerBary;
 
   m_reheat = run_globals.params.physics.QuasarModeEff *eta*8.98755e10 * accreted_mass /Vvir /Vvir;
   update_reservoirs_from_quasar_mode_bh_feedback(gal, m_reheat);
