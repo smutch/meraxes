@@ -187,7 +187,6 @@ void merge_with_target(galaxy_t *gal, int *dead_gals, int snapshot)
   parent->BlackHoleAccretingColdMass += gal->BlackHoleAccretingColdMass;
   parent->BHemissivity      += gal->BHemissivity;
   parent->BlackHoleMass     += gal->BlackHoleMass;
-  parent->BlackHoleGrossMass+= gal->BlackHoleGrossMass;
   parent->EffectiveBHM      += gal->EffectiveBHM;
   parent->mwmsa_num         += gal->mwmsa_num;
   parent->mwmsa_denom       += gal->mwmsa_denom;

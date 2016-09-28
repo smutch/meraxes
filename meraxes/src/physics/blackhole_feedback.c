@@ -132,15 +132,12 @@ double radio_mode_BH_heating(galaxy_t *gal, double cooling_mass, double x)
     // add the accreted mass to the black hole
     metallicity         = calc_metallicity(gal->HotGas, gal->MetalsHotGas);
 
-    //N_gamma,q * N_bh; later BHemissivity * PROTONMASS/1e10/SOLAR_MASS will be  N_gamma,q * M_bh
-    BHemissivity = calculate_BHemissivity(gal->BlackHoleMass, accreted_mass);
-    //printf("BHemissivity = %g\n",BHemissivity);
-
-    gal->BHemissivity += BHemissivity/1e60;
-    //printf("gal->BHemissivity = %g\n",gal->BHemissivity);
+	//Assuming all energy from radio mode is going to heat the cooling flow
+	//So no emissivity from radio mode!
+	//TODO: we could add heating effienciency to split the energy into
+	//heating and reionization.
+	//
     gal->BlackHoleMass      += (1.-eta)*accreted_mass;
-    gal->BlackHoleGrossMass += (1.-eta)*accreted_mass;
-    gal->EffectiveBHM       += BHemissivity*PROTONMASS/1e10/SOLAR_MASS*run_globals.params.physics.ReionEscapeFracBH/run_globals.params.physics.ReionNionPhotPerBary;
     gal->HotGas        -= accreted_mass;
     gal->MetalsHotGas  -= metallicity * accreted_mass;
   }
@@ -198,7 +195,6 @@ void merger_driven_BH_growth(galaxy_t *gal, double merger_ratio, int snapshot)
     
     gal->BHemissivity +=BHemissivity/1e60;
     gal->BlackHoleMass      += (1.-eta)*accreted_mass;
-    gal->BlackHoleGrossMass += (1.-eta)*accreted_mass; 
     gal->EffectiveBHM       += BHemissivity*PROTONMASS/1e10/SOLAR_MASS*run_globals.params.physics.ReionEscapeFracBH/run_globals.params.physics.ReionNionPhotPerBary;
     gal->ColdGas       -= accreted_mass;
     gal->MetalsColdGas -= accreted_metals;
@@ -240,7 +236,6 @@ void previous_merger_driven_BH_growth(galaxy_t *gal)
 
   gal->BHemissivity +=BHemissivity/1e60;
   gal->BlackHoleMass      += (1.-eta)*accreted_mass;
-  gal->BlackHoleGrossMass += (1.-eta)*accreted_mass;
   gal->EffectiveBHM       += BHemissivity*PROTONMASS/1e10/SOLAR_MASS*run_globals.params.physics.ReionEscapeFracBH/run_globals.params.physics.ReionNionPhotPerBary;
 
   m_reheat = run_globals.params.physics.QuasarModeEff *eta*8.98755e10 * accreted_mass /Vvir /Vvir;
