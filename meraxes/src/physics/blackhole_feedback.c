@@ -10,7 +10,7 @@ double calculate_BHemissivity(double BlackHoleMass, double accreted_mass)
     double Lbol;//bolometric luminotisy
     double kb;//bolometric correction
 
-    accretion_time = log(1.0+accreted_mass/BlackHoleMass) * 450 *eta*run_globals.params.physics.QuasarModeEff/run_globals.params.physics.EddingtonRatio*SEC_PER_MEGAYEAR;// second
+    accretion_time = log(1.0+accreted_mass/BlackHoleMass) * 450 *eta/run_globals.params.physics.EddingtonRatio*SEC_PER_MEGAYEAR;// second
 
     // Bolometric luminosity at the middle of accretion time
     // this will be bolometric luminosity in 1e10Lsun, just google this
@@ -192,7 +192,7 @@ void previous_merger_driven_BH_growth(galaxy_t *gal)
 
   // Eddington rate
   //accreted_mass = (exp(1.402e37 / (units->UnitEnergy_in_cgs / units->UnitTime_in_s)*gal->dt/eta*run_globals.params.physics.EddingtonRatio)-1.) * gal->BlackHoleMass;
-  accreted_mass = (exp(gal->dt/eta/run_globals.params.physics.QuasarModeEff*run_globals.params.physics.EddingtonRatio/(450./units->UnitTime_in_Megayears))-1.)*gal->BlackHoleMass;
+  accreted_mass = (exp(gal->dt/eta*run_globals.params.physics.EddingtonRatio/(450./units->UnitTime_in_Megayears))-1.)*gal->BlackHoleMass;
 
   // limit accretion to what is need
   if (accreted_mass > gal->BlackHoleAccretingColdMass)
