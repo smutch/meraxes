@@ -53,11 +53,6 @@ void cleanup()
 
   SID_log(" ...done", SID_LOG_CLOSE);
 
-#ifdef DEBUG
-  // close the debug file
-  fclose(meraxes_debug_file);
-#endif
-
   // close the log file
   // if(SID.n_proc > 1)
   // {

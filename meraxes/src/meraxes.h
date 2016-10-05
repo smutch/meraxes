@@ -69,10 +69,6 @@
 #define REL_TOL (float)1e-5
 #define ABS_TOL (float)1e-8
 
-#ifdef DEBUG
-FILE *meraxes_debug_file;
-#endif
-
 /*
  * Enums
  */
