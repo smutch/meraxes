@@ -415,7 +415,6 @@ void dracarys()
     // Add the ghost galaxies into the nout_gals count
     nout_gals += ghost_counter;
 
-
     if (run_globals.params.Flag_PatchyReion)
     {
       physics_params_t *params = &(run_globals.params.physics);
@@ -428,6 +427,21 @@ void dracarys()
       params->ReionEscapeFracBH = (double)f_esc_q;
       SID_log("f_esc = %g", SID_LOG_COMMENT, f_esc);
       SID_log("f_esc_q = %g", SID_LOG_COMMENT, f_esc_q);
+
+	  double dBHemissivitydt=0.0;
+      double dStellaremissivitydt = 0.0;
+	  gal = run_globals.FirstGal;
+	  while (gal != NULL)                        
+	  {                                          
+	    dBHemissivitydt +=gal->BHemissivity/gal->dt;
+	    dStellaremissivitydt +=gal->Stellaremissivity/gal->dt;
+  	    gal = gal->Next;                         
+	  }                                          
+	 
+      SID_Allreduce(SID_IN_PLACE, &dBHemissivitydt, 1, SID_DOUBLE, SID_SUM, SID.COMM_WORLD);
+      SID_Allreduce(SID_IN_PLACE, &dStellaremissivitydt, 1, SID_DOUBLE, SID_SUM, SID.COMM_WORLD);
+	  SID_log("dBHemissivitydt = %g",SID_LOG_COMMENT, dBHemissivitydt);
+	  SID_log("dStellaremissivitydt = %g",SID_LOG_COMMENT, dStellaremissivitydt);
 
       if (!check_if_reionization_complete())
       {
