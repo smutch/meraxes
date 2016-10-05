@@ -52,11 +52,4 @@ void cleanup()
   SID_free(SID_FARG run_globals.AA);
 
   SID_log(" ...done", SID_LOG_CLOSE);
-
-  // close the log file
-  // if(SID.n_proc > 1)
-  // {
-  //   fflush(SID.fp_log);
-  //   fclose(SID.fp_log);
-  // }
 }
