@@ -44,6 +44,11 @@ int main(int argc, char **argv)
   //   mpi_debug_here();
 #endif
 
+#ifdef LOGGER
+  dzlog_init("zlog.conf", "default");
+  dzlog_notice("Log for rank %d.", SID.My_rank);
+#endif
+
   // read the input parameter file
   read_parameter_file(argv[1], 0);
 
@@ -68,6 +73,10 @@ int main(int argc, char **argv)
 
   // cleanup
   cleanup();
+
+#ifdef LOGGER
+  zlog_fini();
+#endif
 
   SID_exit(EXIT_SUCCESS);
 }

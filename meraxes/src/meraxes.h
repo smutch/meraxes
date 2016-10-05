@@ -11,6 +11,11 @@
 #ifndef _INIT_MERAXES
 #define _INIT_MERAXES
 
+#ifdef LOGGER
+#include <zlog.h>
+#include "logger/overrides.h"
+#endif
+
 /*
  * Definitions
  */

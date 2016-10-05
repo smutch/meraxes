@@ -66,11 +66,11 @@ def compile_against(libs, deps, env):
     `deps`."""
     for name in libs:
         dep = deps[name]
-        if dep['inclp'] is not None:
+        if 'inclp' in dep and dep['inclp'] is not None:
             env.AppendUnique(CPPPATH = [dep['inclp']])
-        if dep['libp'] is not None:
+        if 'libp' in dep and dep['libp'] is not None:
             env.AppendUnique(LIBPATH = [dep['libp']])
-        if dep['lib'] is not None:
+        if 'lib' in dep and dep['lib'] is not None:
             env.AppendUnique(LIBS = [dep['lib']])
 
 
@@ -104,7 +104,7 @@ vars.AddVariables(
     ('allocparameter', 'Set the ALLOCPARAM value.', 5.0),
     EnumVariable('build', 'Set the build type.', 'standard', allowed_values=('debug', 'standard', 'optimized')),
     BoolVariable('prof', 'Enable profiling.', False),
-    BoolVariable('mpi', 'Build with mpi', True),
+    BoolVariable('logger', 'Enable detailed logging with zlog.', False),
     ('n_history_snaps', 'Set the value of N_HISTORY_SNAPS', False)
 )
 
@@ -165,10 +165,10 @@ if not GetOption('help'):
     if env['prof']:
         env.MergeFlags('-g -pg')
         env.AppendUnique(LINKFLAGS=['-pg'])
-    if env['mpi']:
-        env.AppendUnique(CPPDEFINES = ['USE_MPI=1'])
     if env['n_history_snaps']:
         env.AppendUnique(CPPDEFINES = ['N_HISTORY_SNAPS=${n_history_snaps}'])
+    if env['logger']:
+        env.MergeFlags('-lzlog')
 
 
     # =============================================================================
@@ -184,18 +184,15 @@ if not GetOption('help'):
     # = System specific build options =
     # =================================
 
-    if env['mpi']:
-        env.Replace(CC = deps['exec']['mpicc'])
-        deps['gbpCode']['libp'] = os.path.join(deps['gbpCode']['libp'], 'mpi')
-    else:
-        env.Replace(CC = deps['exec']['cc'])
-
+    env.Replace(CC = deps['exec']['mpicc'])
+    env.AppendUnique(CPPDEFINES = ['USE_MPI=1'])
     env.AppendUnique(CPPFLAGS = ['-std=gnu99'])
     env.AppendUnique(CPPPATH = './')
     env.AppendUnique(SHCCFLAGS = ['-rdynamic'])
 
     libs = ['gsl', 'hdf5', 'gbpCode', 'fftw']
     compile_against(libs, deps, env)
+
 
     # Set the python environment to use in any python scripts.
     if 'VIRTUAL_ENV' in os.environ:
@@ -209,11 +206,21 @@ if not GetOption('help'):
     # ===========
 
     node_list = files('**/*.c', exclude='tests/*')
+    if not env['logger']:
+        node_list = [node for node in node_list if node not in files('logger/*')]
+
+    if env['logger']:
+        env.AppendUnique(CPPDEFINES = 'LOGGER')
+
     executable = env.Program(target='../bin/meraxes', source=node_list)
     git_header = env.CreateGitHeader([deps['exec']['git']])
     Depends(executable, git_header)
     # env.NoClean(executable)
     Default(executable)
+
+    # if env['logger']:
+    #     logger = env.Object(target='logger/logger.o', source='logger/logger.c')
+    #     Depends(executable, logger)
 
     node_list.remove("core/meraxes.c")
     lib = env.StaticLibrary(target='../lib/meraxes', source=node_list)
