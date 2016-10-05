@@ -167,8 +167,6 @@ if not GetOption('help'):
         env.AppendUnique(LINKFLAGS=['-pg'])
     if env['n_history_snaps']:
         env.AppendUnique(CPPDEFINES = ['N_HISTORY_SNAPS=${n_history_snaps}'])
-    if env['logger']:
-        env.MergeFlags('-lzlog')
 
 
     # =============================================================================
@@ -191,6 +189,8 @@ if not GetOption('help'):
     env.AppendUnique(SHCCFLAGS = ['-rdynamic'])
 
     libs = ['gsl', 'hdf5', 'gbpCode', 'fftw']
+    if env['logger']:
+        libs += ['zlog']
     compile_against(libs, deps, env)
 
 
