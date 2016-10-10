@@ -428,20 +428,23 @@ void dracarys()
       SID_log("f_esc = %g", SID_LOG_COMMENT, f_esc);
       SID_log("f_esc_q = %g", SID_LOG_COMMENT, f_esc_q);
 
-	  double dBHemissivitydt=0.0;
+      double dBHemissivitydt=0.0;
       double dStellaremissivitydt = 0.0;
-	  gal = run_globals.FirstGal;
-	  while (gal != NULL)                        
-	  {                                          
-	    dBHemissivitydt +=gal->BHemissivity/gal->dt;
-	    dStellaremissivitydt +=gal->Stellaremissivity/gal->dt;
-  	    gal = gal->Next;                         
-	  }                                          
-	 
+      gal = run_globals.FirstGal;
+      while (gal != NULL)                        
+      {                                          
+        if (gal->BlackHoleMass >= run_globals.params.physics.BlackHoleMassLimitReion)
+        {
+          dBHemissivitydt +=gal->BHemissivity/gal->dt;
+        }
+        dStellaremissivitydt +=gal->Stellaremissivity/gal->dt;
+        gal = gal->Next;                         
+      }                                          
+     
       SID_Allreduce(SID_IN_PLACE, &dBHemissivitydt, 1, SID_DOUBLE, SID_SUM, SID.COMM_WORLD);
       SID_Allreduce(SID_IN_PLACE, &dStellaremissivitydt, 1, SID_DOUBLE, SID_SUM, SID.COMM_WORLD);
-	  SID_log("dBHemissivitydt = %g",SID_LOG_COMMENT, dBHemissivitydt);
-	  SID_log("dStellaremissivitydt = %g",SID_LOG_COMMENT, dStellaremissivitydt);
+      SID_log("dBHemissivitydt = %g",SID_LOG_COMMENT, dBHemissivitydt);
+      SID_log("dStellaremissivitydt = %g",SID_LOG_COMMENT, dStellaremissivitydt);
 
       if (!check_if_reionization_complete())
       {

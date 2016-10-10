@@ -456,7 +456,7 @@ void construct_baryon_grids(int snapshot, int local_ngals)
   {
     int i_gal = 0;
     int skipped_gals = 0;
-    int N_BlackHoleMassLimitReion = 0;
+    long N_BlackHoleMassLimitReion = 0;
 
     for(int i_r=0; i_r < SID.n_proc; i_r++)
     {

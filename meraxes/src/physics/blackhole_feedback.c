@@ -97,8 +97,8 @@ double radio_mode_BH_heating(galaxy_t *gal, double cooling_mass, double x)
       Vvir = gal->Vvir;                
     //bondi-hoyle accretion model
     double accreted_mass = run_globals.params.physics.RadioModeEff
-                    * run_globals.G * 1.7377 * x * gal->BlackHoleMass*gal->dt;
-    // 15/16*pi*mu=1.7377, with mu=0.59; x=k*m_p*t/lambda
+                    * run_globals.G * 3.4754 * x * gal->BlackHoleMass*gal->dt;
+    // 15/8*pi*mu=3.4754, with mu=0.59; x=k*m_p*t/lambda
 
     // eddington rate
     //eddington_mass = (exp(1.402e37 / (units->unitenergy_in_cgs / units->unittime_in_s)*gal->dt/eta*run_globals.params.physics.EddingtonRatio)-1.) * gal->BlackHoleMass;
