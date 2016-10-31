@@ -11,6 +11,11 @@
 #ifndef _INIT_MERAXES
 #define _INIT_MERAXES
 
+#ifdef LOGGER
+#include <zlog.h>
+#include "logger/overrides.h"
+#endif
+
 /*
  * Definitions
  */
@@ -63,10 +68,6 @@
 // Constants
 #define REL_TOL (float)1e-5
 #define ABS_TOL (float)1e-8
-
-#ifdef DEBUG
-FILE *meraxes_debug_file;
-#endif
 
 /*
  * Enums

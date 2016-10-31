@@ -397,17 +397,3 @@ void write_single_grid(const char *fname,
     SID_free(SID_FARG grid_out);
 
 }
-
-
-#ifdef DEBUG
-int debug(const char * restrict format, ...)
-{
-  int rc;
-  va_list args;
-
-  va_start(args, format);
-  rc = vfprintf(meraxes_debug_file, format, args);
-  va_end(args);
-  return rc;
-}
-#endif

@@ -22,7 +22,7 @@ deps['hdf5'] = {
 
 deps['gbpCode'] = {
     'inclp' :'/home/smutch/3rd_party/gbpCode/myInclude',
-    'libp'  :'/home/smutch/3rd_party/gbpCode/myLib',
+    'libp'  :'/home/smutch/3rd_party/gbpCode/myLib/mpi',
     'lib'   : 'gbpLib',
 }
 
@@ -36,4 +36,10 @@ deps['cmocka'] = {
     'inclp' : '/home/smutch/3rd_party/cmocka/include',
     'libp' : '/home/smutch/3rd_party/cmocka/lib',
     'lib' : 'cmocka',
+}
+
+deps['zlog'] = {
+    'inclp' : '/home/smutch/3rd_party/zlog/include',
+    'libp' : '/home/smutch/3rd_party/zlog/lib',
+    'lib' : 'zlog',
 }

@@ -52,16 +52,4 @@ void cleanup()
   SID_free(SID_FARG run_globals.AA);
 
   SID_log(" ...done", SID_LOG_CLOSE);
-
-#ifdef DEBUG
-  // close the debug file
-  fclose(meraxes_debug_file);
-#endif
-
-  // close the log file
-  // if(SID.n_proc > 1)
-  // {
-  //   fflush(SID.fp_log);
-  //   fclose(SID.fp_log);
-  // }
 }

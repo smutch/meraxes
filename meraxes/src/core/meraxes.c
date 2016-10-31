@@ -35,13 +35,9 @@ int main(int argc, char **argv)
     ABORT(EXIT_FAILURE);
   }
 
-#ifdef DEBUG
-  // open the debug file for this core
-  char debug_fname[50];
-  sprintf(debug_fname, "debug_%d.txt", SID.My_rank);
-  meraxes_debug_file = fopen(debug_fname, "w");
-  // if(SID.My_rank==0)
-  //   mpi_debug_here();
+#ifdef LOGGER
+  dzlog_init("zlog.conf", "default");
+  dzlog_notice("Log for rank %d.", SID.My_rank);
 #endif
 
   // read the input parameter file
@@ -68,6 +64,10 @@ int main(int argc, char **argv)
 
   // cleanup
   cleanup();
+
+#ifdef LOGGER
+  zlog_fini();
+#endif
 
   SID_exit(EXIT_SUCCESS);
 }
