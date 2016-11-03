@@ -63,6 +63,9 @@ void continue_prompt(char *param_file)
 
   if (rerun)
   {
+    if (run_globals.params.Flag_PatchyReion)
+      init_reion_grids();
+
     read_parameter_file(param_file, 1);
   }
   else

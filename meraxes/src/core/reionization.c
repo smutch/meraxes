@@ -118,6 +118,53 @@ void call_find_HII_bubbles(int snapshot, int unsampled_snapshot, int nout_gals)
 }
 
 
+void init_reion_grids()
+{
+  reion_grids_t *grids = &(run_globals.reion_grids);
+  int ReionGridDim = run_globals.params.ReionGridDim;
+  ptrdiff_t *slab_nix = run_globals.reion_grids.slab_nix;
+  ptrdiff_t slab_n_real = slab_nix[SID.My_rank] * ReionGridDim * ReionGridDim; // TODO: NOT WORKING!!!
+  ptrdiff_t slab_n_complex = run_globals.reion_grids.slab_n_complex[SID.My_rank];
+
+  SID_log("Initialising grids...", SID_LOG_COMMENT);
+
+  grids->global_xH = 1.0;
+  grids->reion_ongoing = false;
+
+  for (int ii = 0; ii < slab_n_real; ii++)
+  {
+    grids->xH[ii] = 1.0;
+    grids->z_at_ionization[ii] = -1;
+    grids->r_bubble[ii] = 0.0;
+  }
+
+
+  for (int ii = 0; ii < slab_n_real; ii++)
+    if (run_globals.params.ReionUVBFlag)
+    {
+      grids->J_21_at_ionization[ii] = 0.;
+      grids->J_21[ii] = 0.;
+      grids->Mvir_crit[ii] = 0;
+    }
+
+
+  for (int ii = 0; ii < slab_n_complex; ii++)
+  {
+    grids->stars_filtered[ii] = 0 + 0*I;
+    grids->deltax_filtered[ii] = 0 + 0*I;
+    grids->sfr_filtered[ii] = 0 + 0*I;
+  }
+
+  for (int ii = 0; ii < slab_n_complex*2; ii++)
+  {
+    grids->deltax[ii] = 0;
+    grids->stars[ii] = 0;
+    grids->sfr[ii] = 0;
+  }
+
+  SID_log(" ...done", SID_LOG_CLOSE);
+}
+
 void malloc_reionization_grids()
 {
 
@@ -141,9 +188,6 @@ void malloc_reionization_grids()
   grids->z_at_ionization    = NULL;
   grids->J_21_at_ionization = NULL;
   grids->J_21               = NULL;
-
-  grids->global_xH = 1.0;
-  grids->reion_ongoing = false;
 
   if (run_globals.params.Flag_PatchyReion)
   {
@@ -183,40 +227,7 @@ void malloc_reionization_grids()
       grids->Mvir_crit          = fftwf_alloc_real(slab_n_real);
     }
 
-    SID_log("Initialising grids...", SID_LOG_COMMENT);
-
-    for (int ii = 0; ii < slab_n_real; ii++)
-    {
-      grids->xH[ii] = 1.0;
-      grids->z_at_ionization[ii] = -1;
-      grids->r_bubble[ii] = 0.0;
-    }
-
-
-    for (int ii = 0; ii < slab_n_real; ii++)
-      if (run_globals.params.ReionUVBFlag)
-      {
-        grids->J_21_at_ionization[ii] = 0.;
-        grids->J_21[ii] = 0.;
-        grids->Mvir_crit[ii] = 0;
-      }
-
-
-    for (int ii = 0; ii < slab_n_complex; ii++)
-    {
-      grids->stars_filtered[ii] = 0 + 0*I;
-      grids->deltax_filtered[ii] = 0 + 0*I;
-      grids->sfr_filtered[ii] = 0 + 0*I;
-    }
-
-    for (int ii = 0; ii < slab_n_complex*2; ii++)
-    {
-      grids->deltax[ii] = 0;
-      grids->stars[ii] = 0;
-      grids->sfr[ii] = 0;
-    }
-
-    SID_log(" ...done", SID_LOG_CLOSE);
+    init_reion_grids();
   }
 }
 

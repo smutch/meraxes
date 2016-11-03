@@ -641,6 +641,7 @@ double reionization_modifier(galaxy_t *gal, double Mvir, int snapshot);
 double sobacchi2013_modifier(double Mvir, double redshift);
 double gnedin2000_modifer(double Mvir, double redshift);
 void   assign_slabs();
+void   init_reion_grids();
 
 void   filter(fftwf_complex *box, int local_ix_start, int slab_nx, int grid_dim, float R);
 double find_HII_bubbles(float redshift);

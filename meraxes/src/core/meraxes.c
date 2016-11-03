@@ -51,7 +51,7 @@ int main(int argc, char **argv)
   init_meraxes();
 
   // Run the model!
-  if (!run_globals.params.FlagInteractive &! run_globals.params.FlagMCMC)
+  if ((!run_globals.params.FlagInteractive) & (!run_globals.params.FlagMCMC))
     dracarys();
   else
   {
