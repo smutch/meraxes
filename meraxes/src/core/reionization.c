@@ -129,7 +129,8 @@ void init_reion_grids()
   SID_log("Initialising grids...", SID_LOG_COMMENT);
 
   grids->global_xH = 1.0;
-  grids->reion_ongoing = false;
+  grids->started = 0;
+  grids->finished = 0;
 
   for (int ii = 0; ii < slab_n_real; ii++)
   {
@@ -779,32 +780,51 @@ void save_reion_output_grids(int snapshot)
 
 bool check_if_reionization_ongoing()
 {
-  int ongoing = 0;
-  if (run_globals.FirstGal != NULL)
-  {
-    ongoing = (int)run_globals.reion_grids.reion_ongoing;
-    if(!ongoing)
-    {
-      ongoing = 0;
-      float *xH = run_globals.reion_grids.xH;
-      int ReionGridDim = run_globals.params.ReionGridDim;
-      int slab_n_real = (int)(run_globals.reion_grids.slab_nix[SID.My_rank]) * ReionGridDim * ReionGridDim;
+  int started = (int)run_globals.reion_grids.started;
+  int finished = (int)run_globals.reion_grids.finished;
 
-      // If not all cells are ionised then reionization is still progressing...
-      for (int ii=0; ii < slab_n_real; ii++)
+  // First check if we've already finished on all cores.
+  if (finished)
+    return false;
+  
+  // Ok, so we haven't finished.  Have we started then?
+  if (started)
+  {
+    // So we have started, but have not previously found to be finished.  Have
+    // we now finished though?
+    float *xH = run_globals.reion_grids.xH;
+    int ReionGridDim = run_globals.params.ReionGridDim;
+    int slab_n_real = (int)(run_globals.reion_grids.slab_nix[SID.My_rank]) * ReionGridDim * ReionGridDim;
+
+    // If not all cells are ionised then reionization is still progressing...
+    finished = 1;
+    for (int ii=0; ii < slab_n_real; ii++)
+    {
+      if (xH[ii] != 0.0)
       {
-        if (xH[ii] != 0.0)
-        {
-          ongoing = 1;
-          break;
-        }
+        finished = 0;
+        break;
       }
     }
   }
-  
-  SID_Allreduce(SID_IN_PLACE, &ongoing, 1, MPI_INT, MPI_LOR, SID.COMM_WORLD);
-  run_globals.reion_grids.reion_ongoing = (bool)ongoing;
-  return (bool)ongoing;
+  else
+  {
+    // Here we haven't finished or previously started.  Should we start then?
+    if (run_globals.FirstGal != NULL)
+      started = 1;
+  }
+
+  // At this stage, `started` and `finished` should be set accordingly for each
+  // individual core.  Now we need to combine them on all cores.
+  SID_Allreduce(SID_IN_PLACE, &started, 1, MPI_INT, MPI_LOR, SID.COMM_WORLD);
+  run_globals.reion_grids.started = started;
+  SID_Allreduce(SID_IN_PLACE, &finished, 1, MPI_INT, MPI_LOR, SID.COMM_WORLD);
+  run_globals.reion_grids.finished = finished;
+
+  if (started && (!finished))
+    return true;
+  else
+    return false;
 }
 
 

@@ -37,7 +37,7 @@ static inline bool check_if_valid_host(halo_t *halo)
 
   if ((halo->Type == 0)
       && (halo->Galaxy == NULL)
-      &! (invalid_flags & halo->TreeFlags))
+      && !(invalid_flags & halo->TreeFlags))
       return true;
   else
     return false;

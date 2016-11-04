@@ -287,7 +287,8 @@ typedef struct reion_grids_t {
   gal_to_slab_t *galaxy_to_slab_map;
 
   double         global_xH;
-  bool           reion_ongoing;
+  int            started;
+  int            finished;
   int            buffer_size;
 } reion_grids_t;
 
