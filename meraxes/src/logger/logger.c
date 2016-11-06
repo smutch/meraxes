@@ -65,7 +65,8 @@ OMPI_DECLSPEC  int __MPI_Bcast__(void *buffer, int count, MPI_Datatype datatype,
 {
   zlog_category_t *log_cat = zlog_get_category("mpi");
   zlog_info(log_cat, "Bcast : %zu bytes from rank %d", count*sizeof(datatype), root);
-  MPI_Bcast(buffer, count, datatype, root, comm);
+  int retval = MPI_Bcast(buffer, count, datatype, root, comm);
+  return retval;
 }
 
 OMPI_DECLSPEC  int __MPI_Send__(const void *buf, int count, MPI_Datatype datatype, int dest,
@@ -73,7 +74,8 @@ OMPI_DECLSPEC  int __MPI_Send__(const void *buf, int count, MPI_Datatype datatyp
 {
   zlog_category_t *log_cat = zlog_get_category("mpi");
   zlog_info(log_cat, "Send : %zu bytes to %d", count*sizeof(datatype), dest);
-  MPI_Send(buf, count, datatype, dest, tag, comm);
+  int retval = MPI_Send(buf, count, datatype, dest, tag, comm);
+  return retval;
 }
 
 OMPI_DECLSPEC  int __MPI_Sendrecv__(const void *sendbuf, int sendcount, MPI_Datatype sendtype,
@@ -83,7 +85,8 @@ OMPI_DECLSPEC  int __MPI_Sendrecv__(const void *sendbuf, int sendcount, MPI_Data
 {
   zlog_category_t *log_cat = zlog_get_category("mpi");
   zlog_info(log_cat, "Sendrecv : %zu bytes to %d, %zu bytes from %d", sendcount*sizeof(sendtype), dest, recvcount*sizeof(recvtype), source);
-  MPI_Sendrecv(sendbuf, sendcount, sendtype, dest, sendtag, recvbuf, recvcount, recvtype, source, recvtag, comm, status);
+  int retval = MPI_Sendrecv(sendbuf, sendcount, sendtype, dest, sendtag, recvbuf, recvcount, recvtype, source, recvtag, comm, status);
+  return retval;
 }
 
 OMPI_DECLSPEC  int __MPI_Recv__(void *buf, int count, MPI_Datatype datatype, int source,
@@ -91,7 +94,8 @@ OMPI_DECLSPEC  int __MPI_Recv__(void *buf, int count, MPI_Datatype datatype, int
 {
   zlog_category_t *log_cat = zlog_get_category("mpi");
   zlog_info(log_cat, "Recv : %zu bytes from %d", count*sizeof(datatype), source);
-  MPI_Recv(buf, count, datatype, source, tag, comm, status);
+  int retval = MPI_Recv(buf, count, datatype, source, tag, comm, status);
+  return retval;
 }
 
 OMPI_DECLSPEC  int __MPI_Reduce__(const void *sendbuf, void *recvbuf, int count,
@@ -99,7 +103,8 @@ OMPI_DECLSPEC  int __MPI_Reduce__(const void *sendbuf, void *recvbuf, int count,
 {
   zlog_category_t *log_cat = zlog_get_category("mpi");
   zlog_info(log_cat, "Reduce : %zu bytes to rank %d", count*sizeof(datatype), root);
-  MPI_Reduce(sendbuf, recvbuf, count, datatype, op, root, comm);
+  int retval = MPI_Reduce(sendbuf, recvbuf, count, datatype, op, root, comm);
+  return retval;
 }
 
 OMPI_DECLSPEC  int __MPI_Allreduce__(const void *sendbuf, void *recvbuf, int count,
@@ -107,7 +112,8 @@ OMPI_DECLSPEC  int __MPI_Allreduce__(const void *sendbuf, void *recvbuf, int cou
 {
   zlog_category_t *log_cat = zlog_get_category("mpi");
   zlog_info(log_cat, "Allreduce : %zu bytes", count*sizeof(datatype));
-  MPI_Allreduce(sendbuf, recvbuf, count, datatype, op, comm);
+  int retval = MPI_Allreduce(sendbuf, recvbuf, count, datatype, op, comm);
+  return retval;
 }
 
 OMPI_DECLSPEC  int __MPI_Allgather__(const void *sendbuf, int sendcount, MPI_Datatype sendtype,
@@ -116,5 +122,6 @@ OMPI_DECLSPEC  int __MPI_Allgather__(const void *sendbuf, int sendcount, MPI_Dat
 {
   zlog_category_t *log_cat = zlog_get_category("mpi");
   zlog_info(log_cat, "Allgather : send %zu bytes, recv %zu bytes", sendcount*sizeof(recvtype), sendcount*sizeof(recvtype));
-  MPI_Allgather(sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, comm);
+  int retval = MPI_Allgather(sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, comm);
+  return retval;
 }
