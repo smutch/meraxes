@@ -67,7 +67,10 @@ def compile_against(libs, deps, env):
     for name in libs:
         dep = deps[name]
         if 'inclp' in dep and dep['inclp'] is not None:
-            env.AppendUnique(CPPPATH = [dep['inclp']])
+            # Note the use of CCFLAGS here instead of CPPPATH.  This is an
+            # attempt to spedd up the build by preventing scons from checking
+            # all of the included libraries for changes.
+            env.AppendUnique(CCFLAGS = ['-I'+dep['inclp']])
         if 'libp' in dep and dep['libp'] is not None:
             env.AppendUnique(LIBPATH = [dep['libp']])
         if 'lib' in dep and dep['lib'] is not None:
