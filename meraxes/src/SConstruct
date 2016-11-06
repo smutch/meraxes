@@ -245,5 +245,8 @@ if not GetOption('help'):
     # env.NoClean(executable)
     Default(executable)
 
-    env.Alias('lib', env.BuildLib(node_list, 'static'))
-    env.Alias('dynlib', env.BuildLib(node_list, 'dynamic'))
+    lib = env.Alias('lib', env.BuildLib(node_list, 'static'))
+    dynlib = env.Alias('dynlib', env.BuildLib(node_list, 'dynamic'))
+
+    # Add an `all` target
+    env.Alias('all', [executable, dynlib, lib])
