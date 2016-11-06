@@ -818,7 +818,7 @@ bool check_if_reionization_ongoing()
   // individual core.  Now we need to combine them on all cores.
   SID_Allreduce(SID_IN_PLACE, &started, 1, MPI_INT, MPI_LOR, SID.COMM_WORLD);
   run_globals.reion_grids.started = started;
-  SID_Allreduce(SID_IN_PLACE, &finished, 1, MPI_INT, MPI_LOR, SID.COMM_WORLD);
+  SID_Allreduce(SID_IN_PLACE, &finished, 1, MPI_INT, MPI_LAND, SID.COMM_WORLD);
   run_globals.reion_grids.finished = finished;
 
   if (started && (!finished))
