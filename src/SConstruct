@@ -3,7 +3,9 @@ import glob
 import sys
 import subprocess
 import shutil
+from textwrap import dedent
 from SCons.Script.SConscript import SConsEnvironment
+from SCons.Conftest import _check_empty_program
 
 # Get the library dependencies for this system
 from deps import deps
@@ -29,14 +31,13 @@ SConsEnvironment.CopyFiles = lambda env, file_list, dest: copy_files(file_list, 
 
 
 def create_git_header(git_executable):
-
     """Create the git.h header file."""
 
-    header = """/*
-* This file has been automatically generated.  Any modifications will be
-* overwritten during compilation.
-*/
-"""
+    header = dedent("""/*
+            * This file has been automatically generated.  Any modifications will be
+            * overwritten during compilation.
+            */
+            """)
 
     ref = subprocess.check_output(git_executable[0]+' show-ref --head | head -n 1 | cut -d " " -f 1',
             cwd = Dir('.').path,
@@ -59,22 +60,6 @@ def create_git_header(git_executable):
         fd.write('#define GITDIFF_STR %s\n' % diff_defn)
 
 SConsEnvironment.CreateGitHeader = lambda env, git_executable: create_git_header(git_executable)
-
-
-def compile_against(libs, deps, env):
-    """Compile against a list of libraries with with paths etc. defined in
-    `deps`."""
-    for name in libs:
-        dep = deps[name]
-        if 'inclp' in dep and dep['inclp'] is not None:
-            # Note the use of CCFLAGS here instead of CPPPATH.  This is an
-            # attempt to spedd up the build by preventing scons from checking
-            # all of the included libraries for changes.
-            env.AppendUnique(CCFLAGS = ['-I'+dep['inclp']])
-        if 'libp' in dep and dep['libp'] is not None:
-            env.AppendUnique(LIBPATH = [dep['libp']])
-        if 'lib' in dep and dep['lib'] is not None:
-            env.AppendUnique(LIBS = [dep['lib']])
 
 
 def BuildLib(env, nodes, lib_type='dynamic'):
@@ -119,10 +104,10 @@ def BuildLib(env, nodes, lib_type='dynamic'):
 
 AddMethod(Environment, BuildLib)
 
+
 # ============================
 # = Command line definitions =
 # ============================
-vars = Variables()
 
 vars = Variables('config.py') # Persistent storage.
 vars.AddVariables(
@@ -195,6 +180,23 @@ if not GetOption('help'):
     if env['n_history_snaps']:
         env.AppendUnique(CPPDEFINES = ['N_HISTORY_SNAPS=${n_history_snaps}'])
 
+    # ====================
+    # Compiler flag checks
+    # ====================
+
+    def CheckCCFlag(context, flag):
+        context.Message('Checking if compiler supports %s ...' % flag)
+        text = "int main(){ return 0; }"
+        cppflags = context.vardict.get("CPPFLAGS", [])
+        context.vardict["CPPFLAGS"] = cppflags + list(flag)
+        result = _check_empty_program(context, 'CC', text, 'C')
+        context.Result(result)
+        return result
+
+    conf = Configure(env, custom_tests = {'CheckCCFlag': CheckCCFlag})
+    conf.CheckCCFlag('-fdiagnostics-color=auto')
+    env = conf.Finish()
+
 
     # =============================================================================
     # Check to see if directories required for build exist and if not, create them
@@ -215,17 +217,25 @@ if not GetOption('help'):
     env.AppendUnique(CPPPATH = './')
     env.AppendUnique(SHCCFLAGS = ['-rdynamic'])
 
+    def compile_against(libs, deps, env):
+        """Compile against a list of libraries with with paths etc. defined in
+        `deps`."""
+        for name in libs:
+            dep = deps[name]
+            if 'inclp' in dep and dep['inclp'] is not None:
+                # Note the use of CCFLAGS here instead of CPPPATH.  This is an
+                # attempt to spedd up the build by preventing scons from checking
+                # all of the included libraries for changes.
+                env.AppendUnique(CCFLAGS = ['-I'+dep['inclp']])
+            if 'libp' in dep and dep['libp'] is not None:
+                env.AppendUnique(LIBPATH = [dep['libp']])
+            if 'lib' in dep and dep['lib'] is not None:
+                env.AppendUnique(LIBS = [dep['lib']])
+
     libs = ['gsl', 'hdf5', 'gbpCode', 'fftw']
     if env['logger']:
         libs += ['zlog']
     compile_against(libs, deps, env)
-
-
-    # Set the python environment to use in any python scripts.
-    if 'VIRTUAL_ENV' in os.environ:
-        python = os.environ['VIRTUAL_ENV']+'/bin/python'
-
-    env.AppendUnique(CPPFLAGS = ['-fdiagnostics-color=auto'])
 
 
     # ===========
