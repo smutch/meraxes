@@ -22,9 +22,12 @@ plots
 bu
 data
 testing
-meraxes/src/git.h
-meraxes/src/my_SConscript
+src/git.h
+src/my_SConscript
 .syntastic_config
 .vimrc
 .exrc
 *.os
+include
+.sconf_temp
+config.log
