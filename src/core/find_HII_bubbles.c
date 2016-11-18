@@ -41,7 +41,7 @@ double RtoM(double R){
 }
 
 
-double find_HII_bubbles(float redshift)
+void find_HII_bubbles(float redshift)
 {
   // TODO: TAKE A VERY VERY CLOSE LOOK AT UNITS!!!!
 
@@ -51,6 +51,7 @@ double find_HII_bubbles(float redshift)
   double l_factor = 0.620350491;  // Factor relating cube length to filter radius = (4PI/3)^(-1/3)
   double cell_length_factor = l_factor;
   long long total_n_cells = (long long)pow((double)ReionGridDim, 3);
+  int local_nix = (int)(run_globals.reion_grids.slab_nix[SID.My_rank]);
 
   // This parameter choice is sensitive to noise on the cell size, at least for the typical
   // cell sizes in RT simulations. It probably doesn't matter for larger cell sizes.
@@ -165,7 +166,6 @@ double find_HII_bubbles(float redshift)
     memcpy(sfr_filtered, sfr_unfiltered, sizeof(fftwf_complex)*slab_n_complex);
 
     // do the filtering unless this is the last filter step
-    int local_nix = (int)(run_globals.reion_grids.slab_nix[SID.My_rank]);
     int local_ix_start = (int)(run_globals.reion_grids.slab_ix_start[SID.My_rank]);
     if(!flag_last_filter_step)
     {
@@ -326,12 +326,27 @@ double find_HII_bubbles(float redshift)
   }
 
 
-  // Find the neutral fraction
-  double global_xH = 0.0;
-  for (int ct=0; ct < slab_n_real; ct++)
-    global_xH += (double)xH[ct];
-  SID_Allreduce(SID_IN_PLACE, &global_xH, 1, SID_DOUBLE, SID_SUM, SID.COMM_WORLD);
-  global_xH /= pow(ReionGridDim, 3);
+  // Find the volume and mass weighted neutral fractions
+  // TODO: The deltax grid will have rounding errors from forward and reverse
+  //       FFT. Should cache deltax slabs prior to ffts and reuse here.
+  double volume_weighted_global_xH = 0.0;
+  double mass_weighted_global_xH = 0.0;
 
-  return global_xH;
+  for (int ix=0; ix<local_nix; ix++)
+    for (int iy=0; iy<ReionGridDim; iy++)
+      for (int iz=0; iz<ReionGridDim; iz++)
+      {
+        int i_real = grid_index(ix, iy, iz, ReionGridDim, INDEX_REAL);
+        int i_padded = grid_index(ix, iy, iz, ReionGridDim, INDEX_PADDED);
+        volume_weighted_global_xH += (double)xH[i_real];
+        mass_weighted_global_xH += (double)(xH[i_real] * (deltax[i_padded] + 1));
+      }
+
+  SID_Allreduce(SID_IN_PLACE, &volume_weighted_global_xH, 1, SID_DOUBLE, SID_SUM, SID.COMM_WORLD);
+  SID_Allreduce(SID_IN_PLACE, &mass_weighted_global_xH, 1, SID_DOUBLE, SID_SUM, SID.COMM_WORLD);
+  volume_weighted_global_xH /= (double)total_n_cells;
+  mass_weighted_global_xH /= (double)total_n_cells;
+
+  run_globals.reion_grids.volume_weighted_global_xH = volume_weighted_global_xH;
+  run_globals.reion_grids.mass_weighted_global_xH = mass_weighted_global_xH;
 }

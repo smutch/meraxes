@@ -111,9 +111,9 @@ void call_find_HII_bubbles(int snapshot, int unsampled_snapshot, int nout_gals)
 
   // Call find_HII_bubbles
   SID_log("Calling find_HII_bubbles", SID_LOG_OPEN | SID_LOG_TIMER);
-  grids->global_xH = find_HII_bubbles(run_globals.ZZ[snapshot]);
+  find_HII_bubbles(run_globals.ZZ[snapshot]);
 
-  SID_log("grids->global_xH = %g", SID_LOG_COMMENT, grids->global_xH);
+  SID_log("grids->volume_weighted_global_xH = %g", SID_LOG_COMMENT, grids->volume_weighted_global_xH);
   SID_log("...done", SID_LOG_CLOSE);
 }
 
@@ -128,7 +128,8 @@ void init_reion_grids()
 
   SID_log("Initialising grids...", SID_LOG_COMMENT);
 
-  grids->global_xH = 1.0;
+  grids->volume_weighted_global_xH = 1.0;
+  grids->mass_weighted_global_xH = 1.0;
   grids->started = 0;
   grids->finished = 0;
 
@@ -738,7 +739,8 @@ void save_reion_output_grids(int snapshot)
     write_grid_float("Mvir_crit", grids->Mvir_crit, file_id, fspace_id, memspace_id, dcpl_id);
   }
 
-  H5LTset_attribute_double(file_id, "xH", "global_xH", &(grids->global_xH), 1);
+  H5LTset_attribute_double(file_id, "xH", "volume_weighted_global_xH", &(grids->volume_weighted_global_xH), 1);
+  H5LTset_attribute_double(file_id, "xH_mass_weighted", "mass_weighted_global_xH", &(grids->mass_weighted_global_xH), 1);
 
   // // Run delta_T_ps
   // // ----------------------------------------------------------------------------------------------------

@@ -92,7 +92,7 @@ void dracarys()
   if (!run_globals.params.FlagMCMC)
   {
     sprintf(run_globals.FNameOut, "%s/%s_%d.hdf5", run_globals.params.OutputDir, run_globals.params.FileNameGalaxies, SID.My_rank);
-    prep_hdf5_file(run_globals);
+    prep_hdf5_file();
   }
 
   // Loop through each snapshot

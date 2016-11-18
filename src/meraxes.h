@@ -286,7 +286,8 @@ typedef struct reion_grids_t {
   float         *r_bubble;
   gal_to_slab_t *galaxy_to_slab_map;
 
-  double         global_xH;
+  double         volume_weighted_global_xH;
+  double         mass_weighted_global_xH;
   int            started;
   int            finished;
   int            buffer_size;
@@ -645,7 +646,7 @@ void   assign_slabs(void);
 void   init_reion_grids(void);
 
 void   filter(fftwf_complex *box, int local_ix_start, int slab_nx, int grid_dim, float R);
-double find_HII_bubbles(float redshift);
+void   find_HII_bubbles(float redshift);
 double tocf_modifier(galaxy_t *gal, double Mvir);
 void   set_ReionEfficiency(void);
 int    find_cell(float pos, double box_size);
