@@ -7,8 +7,8 @@ FileNameGalaxies : Tiamat
 #----- Simulation input files  ------------
 #------------------------------------------
 SimName          : Tiamat
-# SimulationDir    : /home/yqin/dragons/input_trees/tiamat/Tiamat_z2
-SimulationDir    : /coepp/cephfs/borg/data/smutch/data/simulations/Tiamat/meraxes
+SimulationDir    : /home/yqin/dragons/input_trees/tiamat/Tiamat_z2
+# SimulationDir    : /coepp/cephfs/borg/data/smutch/data/simulations/Tiamat/meraxes
 CatalogFilePrefix: subfind
 BoxSize          : 67.8
 VolumeFactor     : 1.0
@@ -16,10 +16,10 @@ VolumeFactor     : 1.0
 #------------------------------------------
 #----- Photometric Tables  ----------------
 #------------------------------------------
-# PhotometricTablesDir : /home/smutch/models/21cm_sam/meraxes/input/photometric_tables
-# CoolingFuncsDir      : /home/smutch/models/21cm_sam/meraxes/input/cooling_functions
-PhotometricTablesDir : /coepp/cephfs/borg/data/smutch/models/meraxes/input/photometric_tables
-CoolingFuncsDir      : /coepp/cephfs/borg/data/smutch/models/meraxes/input/cooling_functions
+PhotometricTablesDir : /home/smutch/models/meraxes/input/photometric_tables
+CoolingFuncsDir      : /home/smutch/models/meraxes/input/cooling_functions
+# PhotometricTablesDir : /coepp/cephfs/borg/data/smutch/models/meraxes/input/photometric_tables
+# CoolingFuncsDir      : /coepp/cephfs/borg/data/smutch/models/meraxes/input/cooling_functions
 SSPModel             : bc03
 IMF                  : salpeter
 MagSystem            : vega

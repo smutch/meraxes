@@ -363,6 +363,9 @@ typedef struct galaxy_t {
   double MetalsHotGas;
   double ColdGas;
   double MetalsColdGas;
+  double H2Frac;
+  double H2Mass;
+  double HIMass;
   double Mcool;
   double StellarMass;
   double GrossStellarMass;
@@ -578,6 +581,7 @@ void         add_infall_to_hot(galaxy_t *central, double infall_mass);
 double       calculate_merging_time(galaxy_t *gal, int snapshot);
 void         merge_with_target(galaxy_t *gal, int *dead_gals, int snapshot);
 void         insitu_star_formation(galaxy_t *gal, int snapshot);
+double       pressure_dependent_star_formation(galaxy_t *gal, int snapshot);
 void         update_reservoirs_from_sf(galaxy_t *gal, double new_stars);
 double       sn_m_low(double log_dt);
 double       calc_recycled_frac(double m_high, double m_low, double *burst_mass_frac);
