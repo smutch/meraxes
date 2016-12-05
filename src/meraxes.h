@@ -439,6 +439,9 @@ typedef struct galaxy_output_t {
   float MetalsHotGas;
   float ColdGas;
   float MetalsColdGas;
+  float H2Frac;
+  float H2Mass;
+  float HIMass;
   float Mcool;
   float DiskScaleLength;
   float StellarMass;
