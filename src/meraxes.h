@@ -138,6 +138,10 @@ typedef struct physics_params_t {
   double  ReionSMParam_b;
   double  ReionSMParam_c;
   double  ReionSMParam_d;
+  
+  // options
+  int SfDiskVelOpt;
+  int SfPrescription;
 
   // Flags
   int Flag_RedshiftDepEscFrac;
@@ -147,7 +151,6 @@ typedef struct physics_params_t {
   int Flag_FixDiskRadiusOnInfall;
   int Flag_FixVmaxOnInfall;
   int Flag_ReheatToFOFGroupTemp;
-  int SfDiskVelOpt;
 
 } physics_params_t;
 

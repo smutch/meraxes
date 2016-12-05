@@ -63,6 +63,7 @@ void insitu_star_formation(galaxy_t *gal, int snapshot)
     double SfEfficiency = run_globals.params.physics.SfEfficiency;
     double SfCriticalSDNorm = run_globals.params.physics.SfCriticalSDNorm;
     int    SfDiskVelOpt = run_globals.params.physics.SfDiskVelOpt;
+    int    SfPrescription = run_globals.params.physics.SfPrescription;
 
     // What velocity are we going to use as a proxy for the disk rotation velocity?
     switch (SfDiskVelOpt) {
@@ -83,14 +84,34 @@ void insitu_star_formation(galaxy_t *gal, int snapshot)
     // Croton+ 2006).
     r_disk = gal->DiskScaleLength * 3.0;
 
-    // what is the critical mass within r_crit?
-    m_crit = SfCriticalSDNorm * v_disk * r_disk;
+    switch (SfPrescription)
+    {
+      case 1:
+        // what is the critical mass within r_crit?
+        // from Kauffmann (1996) eq7 x piR^2, (Vvir in km/s, reff in Mpc/h) in units of 10^10Msun/h 
+        m_crit = SfCriticalSDNorm * v_disk * r_disk;
+        if (gal->ColdGas > m_crit)
+          m_stars = SfEfficiency * (gal->ColdGas - m_crit) / r_disk * v_disk * gal->dt;
+        else
+          // no star formation
+          return;
+        break;
 
-    if (gal->ColdGas > m_crit)
-      m_stars = SfEfficiency * (gal->ColdGas - m_crit) / r_disk * v_disk * gal->dt;
-    else
-      // no star formation
-      return;
+      case 2:
+        // f_h2 from Blitz & Rosolowski 2006 abd Bigiel+11 SF law
+        m_stars = pressure_dependent_star_formation(gal, snapshot)*gal->dt; 
+        break;
+
+      case 3:
+        // GALFORM
+        m_stars = gal->ColdGas/(r_disk/v_disk/0.029*pow(200./v_disk,1.5))*gal->dt;
+        break;
+
+      default:
+        SID_log_error("Unknown SfPrescription!");
+        ABORT(EXIT_FAILURE);
+        break;
+    }
 
     if (m_stars > gal->ColdGas)
       m_stars = gal->ColdGas;
