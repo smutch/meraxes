@@ -340,6 +340,16 @@ void read_parameter_file(char *fname, int mode)
 
       // Physics params
       
+      strcpy(params_tag[n_param], "SfDiskVelOpt");
+      params_addr[n_param]   = &(run_params->physics).SfDiskVelOpt;
+      required_tag[n_param]  = 1;
+      params_type[n_param++] = PARAM_TYPE_INT;
+
+      strcpy(params_tag[n_param], "SfPrescription");
+      params_addr[n_param]   = &(run_params->physics).SfPrescription;
+      required_tag[n_param]  = 1;
+      params_type[n_param++] = PARAM_TYPE_INT;
+
       strcpy(params_tag[n_param], "Flag_RedshiftDepEscFrac");
       params_addr[n_param]   = &(run_params->physics).Flag_RedshiftDepEscFrac;
       required_tag[n_param]  = 1;
@@ -372,11 +382,6 @@ void read_parameter_file(char *fname, int mode)
 
       strcpy(params_tag[n_param], "Flag_ReheatToFOFGroupTemp");
       params_addr[n_param]   = &(run_params->physics).Flag_ReheatToFOFGroupTemp;
-      required_tag[n_param]  = 1;
-      params_type[n_param++] = PARAM_TYPE_INT;
-
-      strcpy(params_tag[n_param], "SfDiskVelOpt");
-      params_addr[n_param]   = &(run_params->physics).SfDiskVelOpt;
       required_tag[n_param]  = 1;
       params_type[n_param++] = PARAM_TYPE_INT;
 

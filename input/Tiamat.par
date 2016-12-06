@@ -39,6 +39,9 @@ RandomSeed             : 1809  # seed for random number generator
 #------------------------------------------
 #----- Parameters of physical model -------
 #------------------------------------------
+SfDiskVelOpt               : 1    # disk velocity for SF law (1=Vmax, 2=Vvir)
+SfPrescription             : 1    # C06 SF law
+
 Flag_RedshiftDepEscFrac    : 0    # use redshift-dependent escape fraction
 Flag_ReionizationModifier  : 2    # use halo mass dependant infall modifier of Gnedin
 Flag_BHFeedback            : 0    # use black hole feedback
@@ -46,7 +49,6 @@ Flag_IRA                   : 0    # use the instantaneous recycling approximatio
 Flag_FixVmaxOnInfall       : 0    # fix Vmax upon infall
 Flag_FixDiskRadiusOnInfall : 0    # fix disk radius upon infall
 Flag_ReheatToFOFGroupTemp  : 0    # try to reheat gas to the FOF group Tvir instead of just the subgroup value
-SfDiskVelOpt               : 1    # disk velocity for SF law (1=Vmax, 2=Vvir)
 
 SfEfficiency              : 0.03    # star formation efficiency
 SfCriticalSDNorm          : 0.2     # critical surface density normalisation factor for star formation (internal units; standard=0.37)

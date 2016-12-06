@@ -63,6 +63,9 @@ void prepare_galaxy_for_output(
   galout->MetalsHotGas       = (float)(gal.MetalsHotGas);
   galout->ColdGas            = (float)(gal.ColdGas);
   galout->MetalsColdGas      = (float)(gal.MetalsColdGas);
+  galout->H2Frac             = (float)(gal.H2Frac);
+  galout->H2Mass             = (float)(gal.H2Mass);
+  galout->HIMass             = (float)(gal.HIMass);
   galout->Mcool              = (float)(gal.Mcool);
   galout->StellarMass        = (float)(gal.StellarMass);
   galout->GrossStellarMass   = (float)(gal.GrossStellarMass);
@@ -100,7 +103,7 @@ void calc_hdf5_props()
     galaxy_output_t galout;
     int i;                                                // dummy
 
-    h5props->n_props = 37;
+    h5props->n_props = 40;
 
 #ifdef CALC_MAGS
     // If we are calculating any magnitudes then increment the number of
@@ -280,6 +283,27 @@ void calc_hdf5_props()
     h5props->dst_offsets[i]     = HOFFSET(galaxy_output_t, MetalsColdGas);
     h5props->dst_field_sizes[i] = sizeof(galout.MetalsColdGas);
     h5props->field_names[i]     = "MetalsColdGas";
+    h5props->field_units[i]     = "1e10 solMass";
+    h5props->field_h_conv[i]    = "v/h";
+    h5props->field_types[i++]   = H5T_NATIVE_FLOAT;
+
+    h5props->dst_offsets[i]     = HOFFSET(galaxy_output_t, H2Frac);
+    h5props->dst_field_sizes[i] = sizeof(galout.H2Frac);
+    h5props->field_names[i]     = "H2Frac";
+    h5props->field_units[i]     = "None";
+    h5props->field_h_conv[i]    = "None";
+    h5props->field_types[i++]   = H5T_NATIVE_FLOAT;
+
+    h5props->dst_offsets[i]     = HOFFSET(galaxy_output_t, H2Mass);
+    h5props->dst_field_sizes[i] = sizeof(galout.H2Mass);
+    h5props->field_names[i]     = "H2Mass";
+    h5props->field_units[i]     = "1e10 solMass";
+    h5props->field_h_conv[i]    = "v/h";
+    h5props->field_types[i++]   = H5T_NATIVE_FLOAT;
+
+    h5props->dst_offsets[i]     = HOFFSET(galaxy_output_t, HIMass);
+    h5props->dst_field_sizes[i] = sizeof(galout.HIMass);
+    h5props->field_names[i]     = "HIMass";
     h5props->field_units[i]     = "1e10 solMass";
     h5props->field_h_conv[i]    = "v/h";
     h5props->field_types[i++]   = H5T_NATIVE_FLOAT;
