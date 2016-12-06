@@ -10,7 +10,7 @@ galaxy_t* new_galaxy(int snapshot, int halo_ID)
 
   // Initialise the properties
   gal->id_MBP             = 0;
-  gal->ID                 = snapshot * 10000000 + halo_ID;
+  gal->ID                 = snapshot * 1e10 + halo_ID;
   gal->Type               = -1;
   gal->OldType            = -1;
   gal->SnapSkipCounter    = 0;
