@@ -5,7 +5,25 @@
 #include <assert.h>
 #include <hdf5.h>
 #include <hdf5_hl.h>
+#include <stdint.h>
 #include "meraxes.h"
+
+void check_mhysa_pointer()
+{
+  fprintf(stderr, "Addresses: run_globals.mhysa_self = %p\n", run_globals.mhysa_self);
+  fprintf(stderr, "          &run_globals = %p\n", &run_globals);
+  fprintf(stderr, "          &run_globals.FNameOut = %p\n", &run_globals.FNameOut); 
+  fprintf(stderr, "          &run_globals.AA = %p\n", &run_globals.AA); 
+  fprintf(stderr, "          &run_globals.ZZ = %p\n", &run_globals.ZZ); 
+  fprintf(stderr, "          &run_globals.LTTime = %p\n", &run_globals.LTTime); 
+  fprintf(stderr, "          &run_globals.RequestedForestId = %p\n", &run_globals.RequestedForestId); 
+  fprintf(stderr, "          &run_globals.ListOutputSnaps = %p\n", &run_globals.ListOutputSnaps); 
+  fprintf(stderr, "          &run_globals.SnapshotIndexLookup = %p\n", &run_globals.SnapshotIndexLookup); 
+  fprintf(stderr, "          &run_globals.SnapshotDeltax = %p\n", &run_globals.SnapshotDeltax); 
+  fprintf(stderr, "          &run_globals.FirstGal = %p\n", &run_globals.FirstGal); 
+  fprintf(stderr, "          &run_globals.LastGal = %p\n", &run_globals.LastGal); 
+  fprintf(stderr, "          &run_globals.mhysa_self = %p\n", &run_globals.mhysa_self);
+}
 
 void mpi_debug_here()
 {

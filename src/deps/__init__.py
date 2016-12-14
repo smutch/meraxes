@@ -4,7 +4,8 @@ import socket
 
 if os.path.exists("deps/custom.py"):
     from custom import deps
-elif 'coepp' in socket.gethostname():
+elif any(s in socket.gethostname()
+         for s in ('coepp', 'melbourne.rc.nectar')):
     from coepp import deps
 else:
     if sys.platform == 'darwin':
