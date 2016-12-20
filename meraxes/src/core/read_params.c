@@ -530,6 +530,16 @@ void read_parameter_file(char *fname, int mode)
       required_tag[n_param]  = 1;
       params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
+      strcpy(params_tag[n_param], "quasar_mode_scaling");
+      params_addr[n_param]   = &(run_params->physics).quasar_mode_scaling;
+      required_tag[n_param]  = 1;
+      params_type[n_param++] = PARAM_TYPE_DOUBLE;
+
+      strcpy(params_tag[n_param], "quasar_open_angel");
+      params_addr[n_param]   = &(run_params->physics).quasar_open_angel;
+      required_tag[n_param]  = 1;
+      params_type[n_param++] = PARAM_TYPE_DOUBLE;
+
       strcpy(params_tag[n_param], "ReionSobacchi_Zre");
       params_addr[n_param]   = &(run_params->physics).ReionSobacchi_Zre;
       required_tag[n_param]  = 1;

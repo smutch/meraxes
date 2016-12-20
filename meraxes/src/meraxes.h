@@ -107,6 +107,9 @@ typedef struct physics_params_t {
   double QuasarModeEff;
   double BlackHoleGrowthRate;
   double EddingtonRatio;
+  double quasar_mode_scaling;
+  double quasar_open_angel;
+  double quasar_fobs;
 
   double ThreshMajorMerger;
   double MinMergerStellarMass;
@@ -642,7 +645,7 @@ float        apply_pbc_pos(float x);
 double       accurate_sumf(float *arr, int n);
 int          grid_index(int i, int j, int k, int dim, int type);
 void         mpi_debug_here(void);
-int 				 isclosef(float a, float b, float rel_tol, float abs_tol);
+int          isclosef(float a, float b, float rel_tol, float abs_tol);
 void         printProgress (double percentage);
 void         check_counts(fof_group_t *fof_group, int NGal, int NFof);
 void         cn_quote(void);
@@ -683,6 +686,7 @@ void   assign_slabs();
 void   filter(fftwf_complex *box, int local_ix_start, int slab_nx, int grid_dim, float R);
 double find_HII_bubbles(int snapshot);
 double tocf_modifier(galaxy_t *gal, double Mvir);
+void   set_quasar_fobs();
 void   set_ReionEfficiency();
 int    find_cell(float pos, double box_size);
 

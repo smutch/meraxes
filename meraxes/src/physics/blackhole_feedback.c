@@ -30,7 +30,7 @@ double calculate_BHemissivity(double BlackHoleMass, double accreted_mass)
     // then total BHemissivity in this step: BHemissivity*accretion_time
     // BHemissivity = Lbol/kb*2.1276330276278045e+54*accretion_time; //photon numbers
 
-    return Lbol/kb*2.1276330276278045e+54*accretion_time; //photon numbers 
+    return run_globals.params.physics.quasar_fobs*Lbol/kb*2.1276330276278045e+54*accretion_time; //photon numbers 
     
     // This introduce inconsistence compared to the calculation of luminosity. Here we assume Lbol(t) = Lbol(t = accretion_time/2), which is only an approximation!
 }
@@ -158,7 +158,7 @@ void merger_driven_BH_growth(galaxy_t *gal, double merger_ratio, int snapshot)
       Vvir = gal->Vvir;
 
     // Suggested by Bonoli et al. 2009 and Wyithe et al. 2003
-    zplus1to1pt5 = pow((1 + run_globals.ZZ[snapshot]), 1.5);
+    zplus1to1pt5 = pow((1 + run_globals.ZZ[snapshot]), run_globals.params.physics.quasar_mode_scaling);
 
     accreting_mass = run_globals.params.physics.BlackHoleGrowthRate * merger_ratio / 
                    (1.0 + (280.0 * 280.0 / Vvir / Vvir)) * gal->ColdGas* zplus1to1pt5; 

@@ -354,6 +354,7 @@ void init_meraxes()
 
   malloc_reionization_grids();
   set_ReionEfficiency();
+  set_quasar_fobs();
 
   // calculate the output hdf5 file properties for later use
   calc_hdf5_props();

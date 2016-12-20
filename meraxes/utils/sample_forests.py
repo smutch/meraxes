@@ -97,6 +97,6 @@ if __name__ == '__main__':
     def cli(sample_frac, forests_info_file, volume, rseed):
         seed(rseed)
         sampled_ids = sample_forest_ids(sample_frac, forests_info_file)
-        plot_hmf(sampled_ids, sample_frac, forests_info_file, volume)
+        #plot_hmf(sampled_ids, sample_frac, forests_info_file, volume)
 
     cli()

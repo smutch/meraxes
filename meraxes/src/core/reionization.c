@@ -7,6 +7,12 @@
 #include <hdf5_hl.h>
 #include <assert.h>
 
+void set_quasar_fobs()
+{
+  run_globals.params.physics.quasar_fobs = 1.-cos(run_globals.params.physics.quasar_open_angel/180.* M_PI /2.);
+  SID_log("Quasar Radiation Open Angel is set to be %g, corresponding to an obscure fraction of %g", SID_LOG_COMMENT,run_globals.params.physics.quasar_open_angel, run_globals.params.physics.quasar_fobs);
+}
+  
 void set_ReionEfficiency()
 {
   if (run_globals.params.Flag_PatchyReion)
