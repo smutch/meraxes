@@ -185,6 +185,8 @@ typedef struct run_params_t {
   char             MagBands[STRLEN];
   char             ForestIDFile[STRLEN];
   char             MvirCritFile[STRLEN];
+  char             MassRatioModifier[STRLEN];
+  char             BaryonFracModifier[STRLEN];
 
   physics_params_t physics;
 
@@ -541,6 +543,17 @@ typedef struct catalog_halo_t {
   char      padding[8];                //!< Alignment padding
 } catalog_halo_t;
 
+typedef struct Modifier
+{
+    float logMmin;
+    float logMmax;
+    float mass_mean;
+    float mass_errl;
+    float mass_erru;
+    float ratio;
+    float ratio_errl;
+    float ratio_erru;
+} Modifier;
 
 //! Global variables which will will be passed around
 typedef struct run_globals_t {
@@ -555,6 +568,8 @@ typedef struct run_globals_t {
   double             *LTTime;
   double             *mass_weighted_xHII;
   int                *RequestedForestId;
+  int                RequestedMassRatioModifier;
+  int                RequestedBaryonFracModifier;
   int                *ListOutputSnaps;
   halo_t            **SnapshotHalo;
   fof_group_t       **SnapshotFOFGroup;
@@ -580,6 +595,8 @@ typedef struct run_globals_t {
   int                 NStoreSnapshots;
 
   bool                SelectForestsSwitch;
+  Modifier            *mass_ratio_modifier;
+  Modifier            *baryon_frac_modifier;
 } run_globals_t;
 #ifdef _MAIN
 run_globals_t run_globals;
@@ -657,6 +674,9 @@ double       calculate_Rvir(double Mvir, int snapshot);
 double       calculate_Vvir(double Mvir, double Rvir);
 double       calculate_spin_param(halo_t *halo);
 void         read_cooling_functions();
+void         read_mass_ratio_modifiers(int snapshot);
+void         read_baryon_frac_modifiers(int snapshot);
+double       interpolate_modifier(Modifier modifier_data, double logM);
 double       interpolate_cooling_rate(double logTemp, double logZ);
 double       gas_cooling(galaxy_t *gal);
 void         cool_gas_onto_galaxy(galaxy_t *gal, double cooling_mass);

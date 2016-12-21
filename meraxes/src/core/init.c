@@ -328,6 +328,11 @@ void init_meraxes()
   // read in the cooling functions
   read_cooling_functions();
 
+  // set RequestedMassRatioModifier and RequestedBaryonFracModifieruto be 1 first
+  // it will be set to -1 later if MassRatioModifier or BaryonFracModifier is not specified
+  run_globals.RequestedMassRatioModifier = 1;
+  run_globals.RequestedBaryonFracModifier = 1;
+
   // read in the mean Mvir_crit table (if needed)
   read_Mcrit_table();
 
@@ -335,7 +340,7 @@ void init_meraxes()
   {
     run_globals.ZZ[i]     = 1 / run_globals.AA[i] - 1;
     run_globals.LTTime[i] = time_to_present(run_globals.ZZ[i]);
-	run_globals.mass_weighted_xHII[i] = 0.0;
+    run_globals.mass_weighted_xHII[i] = 0.0;
   }
 
   // Initialise galaxy pointers

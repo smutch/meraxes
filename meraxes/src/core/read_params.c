@@ -237,6 +237,18 @@ void read_parameter_file(char *fname, int mode)
       params_type[n_param++]      = PARAM_TYPE_STRING;
       *(run_params->MvirCritFile) = '\0';
 
+      strcpy(params_tag[n_param], "MassRatioModifier");
+      params_addr[n_param]        = &(run_params->MassRatioModifier);
+      required_tag[n_param]       = 0;
+      params_type[n_param++]      = PARAM_TYPE_STRING;
+      *(run_params->MassRatioModifier) = '\0';
+
+      strcpy(params_tag[n_param], "BaryonFracModifier");
+      params_addr[n_param]        = &(run_params->BaryonFracModifier);
+      required_tag[n_param]       = 0;
+      params_type[n_param++]      = PARAM_TYPE_STRING;
+      *(run_params->BaryonFracModifier) = '\0';
+
       strcpy(params_tag[n_param], "UnitVelocity_in_cm_per_s");
       params_addr[n_param]   = &(run_globals.units.UnitVelocity_in_cm_per_s);
       required_tag[n_param]  = 1;
