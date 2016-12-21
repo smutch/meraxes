@@ -16,17 +16,17 @@ void read_mass_ratio_modifiers(int snapshot){
     SID_log("No Mass Ratio Modifier :(", SID_LOG_COMMENT);
   }
   else{
-    run_globals.modifier_data_modifier = SID_malloc(sizeof(Modifier) * N_LOGMS);
+    run_globals.mass_ratio_modifier = SID_malloc(sizeof(Modifier) * N_LOGMS);
     const size_t dst_size           = sizeof(Modifier);
     const size_t dst_sizes[NFIELDS] = {
-       sizeof(run_globals.modifier_data_modifier[0].logMmin),
-       sizeof(run_globals.modifier_data_modifier[0].logMmax),
-       sizeof(run_globals.modifier_data_modifier[0].mass_mean),
-       sizeof(run_globals.modifier_data_modifier[0].mass_errl),
-       sizeof(run_globals.modifier_data_modifier[0].mass_erru),
-       sizeof(run_globals.modifier_data_modifier[0].ratio),
-       sizeof(run_globals.modifier_data_modifier[0].ratio_errl),
-       sizeof(run_globals.modifier_data_modifier[0].ratio_erru)};
+       sizeof(run_globals.mass_ratio_modifier[0].logMmin),
+       sizeof(run_globals.mass_ratio_modifier[0].logMmax),
+       sizeof(run_globals.mass_ratio_modifier[0].mass_mean),
+       sizeof(run_globals.mass_ratio_modifier[0].mass_errl),
+       sizeof(run_globals.mass_ratio_modifier[0].mass_erru),
+       sizeof(run_globals.mass_ratio_modifier[0].ratio),
+       sizeof(run_globals.mass_ratio_modifier[0].ratio_errl),
+       sizeof(run_globals.mass_ratio_modifier[0].ratio_erru)};
 
     const size_t dst_offset[NFIELDS] = {
        HOFFSET( Modifier, logMmin),
@@ -47,10 +47,10 @@ void read_mass_ratio_modifiers(int snapshot){
       fd = H5Fopen(fname, H5F_ACC_RDONLY, H5P_DEFAULT);
       sprintf(tablename, "%03d", snapshot);
 
-      H5TBread_fields_name(fd, tablename,"log10(mass_lower),log10(mass_upper),mass_mean,mass_errl,mass_erru,ratio_mean,ratio_errl,ratio_erru", N_START, N_LOGMS, dst_size, dst_offset, dst_sizes, run_globals.modifier_data_modifier);
+      H5TBread_fields_name(fd, tablename,"log10(mass_lower),log10(mass_upper),mass_mean,mass_errl,mass_erru,ratio_mean,ratio_errl,ratio_erru", N_START, N_LOGMS, dst_size, dst_offset, dst_sizes, run_globals.mass_ratio_modifier);
       H5Fclose(fd);
     }
-    SID_Bcast(run_globals.modifier_data_modifier, sizeof(run_globals.modifier_data_modifier), 0, SID.COMM_WORLD);
+    SID_Bcast(run_globals.mass_ratio_modifier, sizeof(run_globals.mass_ratio_modifier), 0, SID.COMM_WORLD);
   }
 }
 
@@ -99,7 +99,7 @@ void read_baryon_frac_modifiers(int snapshot){
 }
 
 
-double interpolate_modifier(Modifier modifier_data, double logM){
+double interpolate_modifier(Modifier *modifier_data, double logM){
     if (logM < modifier_data[0].logMmin)
         return modifier_data[0].ratio;
     if (logM > modifier_data[N_LOGMS-1].logMmin)
@@ -111,7 +111,7 @@ double interpolate_modifier(Modifier modifier_data, double logM){
     while (logM > modifier_data[i].logMmin)
         i++;
     
-    logM_below = modifier_data[i].logMmin
+    logM_below = modifier_data[i].logMmin;
     ratio_below = modifier_data[i].ratio;
     ratio_above = modifier_data[i+1].ratio;
 

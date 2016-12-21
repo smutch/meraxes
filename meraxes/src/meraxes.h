@@ -676,7 +676,7 @@ double       calculate_spin_param(halo_t *halo);
 void         read_cooling_functions();
 void         read_mass_ratio_modifiers(int snapshot);
 void         read_baryon_frac_modifiers(int snapshot);
-double       interpolate_modifier(Modifier modifier_data, double logM);
+double       interpolate_modifier(Modifier *modifier_data, double logM);
 double       interpolate_cooling_rate(double logTemp, double logZ);
 double       gas_cooling(galaxy_t *gal);
 void         cool_gas_onto_galaxy(galaxy_t *gal, double cooling_mass);
