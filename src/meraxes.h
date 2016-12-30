@@ -618,6 +618,7 @@ float        apply_pbc_pos(float x);
 double       accurate_sumf(float *arr, int n);
 int          grid_index(int i, int j, int k, int dim, int type);
 void         mpi_debug_here(void);
+void         check_mhysa_pointer(void);
 int 				 isclosef(float a, float b, float rel_tol, float abs_tol);
 void         printProgress (double percentage);
 void         check_counts(fof_group_t *fof_group, int NGal, int NFof);

@@ -236,6 +236,7 @@ if not GetOption('help'):
                 env.AppendUnique(CCFLAGS = ['-I'+dep['inclp']])
             if 'libp' in dep and dep['libp'] is not None:
                 env.AppendUnique(LIBPATH = [dep['libp']])
+                env.AppendUnique(RPATH = [dep['libp']])
             if 'lib' in dep and dep['lib'] is not None:
                 env.AppendUnique(LIBS = [dep['lib']])
 
