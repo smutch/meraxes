@@ -45,7 +45,6 @@ void find_HII_bubbles(float redshift)
 {
   // TODO: TAKE A VERY VERY CLOSE LOOK AT UNITS!!!!
 
-  float redshift = run_globals.ZZ[snapshot];
   float box_size = run_globals.params.BoxSize;  // Mpc/h
   int ReionGridDim = run_globals.params.ReionGridDim;
   double pixel_volume = pow((double)box_size/(double)ReionGridDim, 3);  // (Mpc/h)^3

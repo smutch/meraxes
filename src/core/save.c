@@ -86,7 +86,6 @@ void prepare_galaxy_for_output(
   galout->dt                 = (float)(gal.dt);
   galout->MergerBurstMass    = (float)(gal.MergerBurstMass);
   galout->MergTime           = (float)(gal.MergTime * units->UnitLength_in_cm / units->UnitVelocity_in_cm_per_s / SEC_PER_MEGAYEAR);
-  galout->MergSnap           = (int)(gal.MergSnap);
   galout->MergerStartRadius  = (float)(gal.MergerStartRadius);
   galout->MWMSA              = current_mwmsa(&gal, i_snap);
 
