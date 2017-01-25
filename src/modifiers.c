@@ -9,7 +9,7 @@
 #define DELTA_M 1.0
 #define MIN_LOGM 7.5
 #define MAX_LOGM 11.5
-#define M_OFFSET 0.5
+#define M_OFFSET 0.5 
 
 void read_mass_ratio_modifiers(int snapshot){
   if (strlen(run_globals.params.MassRatioModifier) == 0){
@@ -101,18 +101,18 @@ void read_baryon_frac_modifiers(int snapshot){
 
 
 double interpolate_modifier(Modifier *modifier_data, double logM){
-    if (logM < modifier_data[0].logMmin)
+    if (logM < modifier_data[0].logMmin+M_OFFSET)
         return modifier_data[0].ratio;
-    if (logM > modifier_data[N_LOGMS-1].logMmin)
+    if (logM > modifier_data[N_LOGMS-1].logMmin+M_OFFSET)
         return  modifier_data[N_LOGMS-1].ratio;
     double logM_below, ratio_below, ratio_above, ratio;
     int i;
     
     i = 0;
-    while (logM > modifier_data[i].logMmin)
+    while (logM > modifier_data[i].logMmin+M_OFFSET)
         i++;
     
-    logM_below = modifier_data[i].logMmin;
+    logM_below = modifier_data[i].logMmin+M_OFFSET;
     ratio_below = modifier_data[i].ratio;
     ratio_above = modifier_data[i+1].ratio;
 
