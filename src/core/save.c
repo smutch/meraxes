@@ -419,6 +419,7 @@ void calc_hdf5_props()
     h5props->field_types[i++]   = h5props->array_nhist_f_tid;
 
     // Blackhole or Emissivity related
+    h5props->dst_offsets[i]     = HOFFSET(galaxy_output_t, Stellaremissivity);
     h5props->dst_field_sizes[i] = sizeof(galout.Stellaremissivity);
     h5props->field_names[i]     = "Stellaremissivity";
     h5props->field_units[i]     = "1e60 photons";
