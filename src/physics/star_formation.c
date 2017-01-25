@@ -60,6 +60,12 @@ void insitu_star_formation(galaxy_t *gal, int snapshot)
     double m_recycled;
     double new_metals;
 
+    double zplus1;                                                         
+    double zplus1_n;                                                       
+                                                                           
+    zplus1 = 1.0 + run_globals.ZZ[snapshot];                              
+    zplus1_n = pow(zplus1,run_globals.params.physics.SfEfficiencyScaling);
+
     double SfEfficiency = run_globals.params.physics.SfEfficiency;
     double SfCriticalSDNorm = run_globals.params.physics.SfCriticalSDNorm;
     int    SfDiskVelOpt = run_globals.params.physics.SfDiskVelOpt;
@@ -87,7 +93,7 @@ void insitu_star_formation(galaxy_t *gal, int snapshot)
     m_crit = SfCriticalSDNorm * v_disk * r_disk;
 
     if (gal->ColdGas > m_crit)
-      m_stars = SfEfficiency * (gal->ColdGas - m_crit) / r_disk * v_disk * gal->dt;
+      m_stars = zplus1_n * SfEfficiency * (gal->ColdGas - m_crit) / r_disk * v_disk * gal->dt;
     else
       // no star formation
       return;

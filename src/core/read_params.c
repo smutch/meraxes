@@ -417,6 +417,11 @@ void read_parameter_file(char *fname, int mode)
       required_tag[n_param]  = 1;
       params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
+	  strcpy(params_tag[n_param], "SfEfficiencyScaling");                 
+	  params_addr[n_param]   = &(run_params->physics).SfEfficiencyScaling;
+	  required_tag[n_param]  = 1;                                         
+	  params_type[n_param++] = PARAM_TYPE_DOUBLE;                         
+
       strcpy(params_tag[n_param], "SfCriticalSDNorm");
       params_addr[n_param]   = &(run_params->physics).SfCriticalSDNorm;
       required_tag[n_param]  = 1;

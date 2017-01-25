@@ -48,7 +48,8 @@ Flag_FixDiskRadiusOnInfall : 0    # fix disk radius upon infall
 Flag_ReheatToFOFGroupTemp  : 0    # try to reheat gas to the FOF group Tvir instead of just the subgroup value
 SfDiskVelOpt               : 1    # disk velocity for SF law (1=Vmax, 2=Vvir)
 
-SfEfficiency              : 0.03    # star formation efficiency
+SfEfficiency              : 0.03    # star formation efficiency Normalization
+SfEfficiencyScaling       : 0.0     # star formation efficiency Scaling
 SfCriticalSDNorm          : 0.2     # critical surface density normalisation factor for star formation (internal units; standard=0.37)
 SfRecycleFraction         : 0.25    # instantaneous recycle fraction (IMF dependant)
 
