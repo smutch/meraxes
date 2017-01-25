@@ -65,12 +65,12 @@ SnReheatNorm              : 70.0   # mass loading factor for SN feedback scaling
 MaxCoolingMassFactor      : 1.0     # maximum cooling mass factor (1 -> ff time)
 ReincorporationEff        : 0.0     # gas reincorporation efficiency from ejected component
 Yield                     : 0.03    # mass of metals injected into ISM per unit star formation
-RadioModeEff              : 6e-4    # radio mode feedback efficiency
-BlackHoleGrowthRate       : 0.03    # black hole growth efficiency through merger driven gas inflow
 
-IMFSlope                  : -2.35   # slope of high mass end of IMF
+IMFSlope                  : -2.35   # slope of high mass end of IMF. Salpeter = -2.35, Chabrier = -2.3
 EnergyPerSN               : 1e51    # energy per SN in erg/s
-IMFNormConst              : 0.1706  # normalisation const of IMF for 0.1 < M <= 120Msol
+IMFNormConst              : 0.1706  # normalisation const of IMF for 0.1 < M <= 120Msol. Salpeter = 0.1706, Chabrier = 0.237912
+eta_SNII                  : 7.4319792e-3 # total number of type II SN per solar mass of burst. 7.4319792e-3 for Salpeter, 1.18963e-2 for Chabrier
+frac_mass_SSP_above_SNII  : 0.14417 # Fraction of SSP with M>8Msol. 0.14417 for Salpeter, 0.23638 for Chabrier
 
 ThreshMajorMerger         : 0.3     # major merger when mass ratio greater than this
 MergerTimeFactor          : 0.5     # Multiplicitive fator for the merger timescales (2.0->DeLucia+; 1.0->Croton+)

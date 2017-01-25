@@ -1,22 +1,22 @@
 #------------------------------------------
 #----- SA model output files --------------
 #------------------------------------------
-FileNameGalaxies : GiggleZ_HR
+FileNameGalaxies : Tiamat_z2_lowResGrids
 
 #------------------------------------------
 #----- Simulation input files  ------------
 #------------------------------------------
-SimName          : GiggleZ_HR
-SimulationDir    : /home/yqin/dragons/input_trees/gigglez/GiggleZ_HR_P
+SimName          : Tiamat_z2_lowResGrids
+SimulationDir    : /home/yqin/dragons/input_trees/tiamat/Tiamat_z2_lowResGrids
 CatalogFilePrefix: subfind
-BoxSize          : 125
+BoxSize          : 67.8
 VolumeFactor     : 1.0
 
 #------------------------------------------
 #----- Photometric Tables  ----------------
 #------------------------------------------
 PhotometricTablesDir : /home/yqin/bitbucket/meraxes/meraxes/input/photometric_tables
-CoolingFuncsDir      : /home/yqin/bitbucket/meraxes/meraxes/input/cooling_functions 
+CoolingFuncsDir      : /home/yqin/bitbucket/meraxes/meraxes/input/cooling_functions
 SSPModel             : bc03
 IMF                  : salpeter
 MagSystem            : vega
@@ -30,7 +30,7 @@ FlagInteractive        : 0
 FlagGenDumpFile        : 0  # DON'T USE THIS WITHOUT TALKING TO SM FIRST
 FlagReadDumpFile       : 0  # DON'T USE THIS WITHOUT TALKING TO SM FIRST
 FlagSubhaloVirialProps : 0  # 0 -> approximate subhalo virial props using particle number; 1 -> use catalogue values
-FlagMCMC               : 0  # Don't do any writing and activate MCMC related routines
+FlagMCMC               : 0
 RandomSeed             : 1809  # seed for random number generator
 
 #------------------------------------------
@@ -45,7 +45,7 @@ Flag_ReheatToFOFGroupTemp  : 0    # try to reheat gas to the FOF group Tvir inst
 SfDiskVelOpt               : 1    # disk velocity for SF law (1=Vmax, 2=Vvir)
 
 SfEfficiency              : 0.03    # star formation efficiency Normalization
-SfEfficiencyScaling		  : 0.0     # star formation efficiency Scaling
+SfEfficiencyScaling       : 0.0     # star formation efficiency Scaling
 SfCriticalSDNorm          : 0.2     # critical surface density normalisation factor for star formation (internal units; standard=0.37)
 SfRecycleFraction         : 0.25    # instantaneous recycle fraction (IMF dependant)
 
@@ -61,12 +61,12 @@ SnReheatNorm              : 70.0   # mass loading factor for SN feedback scaling
 MaxCoolingMassFactor      : 1.0     # maximum cooling mass factor (1 -> ff time)
 ReincorporationEff        : 0.0     # gas reincorporation efficiency from ejected component
 Yield                     : 0.03    # mass of metals injected into ISM per unit star formation
-RadioModeEff              : 6e-4    # radio mode feedback efficiency
-BlackHoleGrowthRate       : 0.03    # black hole growth efficiency through merger driven gas inflow
 
-IMFSlope                  : -2.35   # slope of high mass end of IMF
+IMFSlope                  : -2.35   # slope of high mass end of IMF. Salpeter = -2.35, Chabrier = -2.3
 EnergyPerSN               : 1e51    # energy per SN in erg/s
-IMFNormConst              : 0.1706  # normalisation const of IMF for 0.1 < M <= 120Msol
+IMFNormConst              : 0.1706  # normalisation const of IMF for 0.1 < M <= 120Msol. Salpeter = 0.1706, Chabrier = 0.237912
+eta_SNII                  : 7.4319792e-3 # total number of type II SN per solar mass of burst. 7.4319792e-3 for Salpeter, 1.18963e-2 for Chabrier
+frac_mass_SSP_above_SNII  : 0.14417 # Fraction of SSP with M>8Msol. 0.14417 for Salpeter, 0.23638 for Chabrier
 
 ThreshMajorMerger         : 0.3     # major merger when mass ratio greater than this
 MergerTimeFactor          : 0.5     # Multiplicitive fator for the merger timescales (2.0->DeLucia+; 1.0->Croton+)
@@ -76,6 +76,22 @@ MinMergerRatioForBurst    : 0.1     # Minimum mass ratio for merger driven star 
 MergerBurstFactor         : 0.57    # Constant factor in merger burst equation
 MergerBurstScaling        : 0.7
 
+#----------------------------------------------
+#----- BlackHole and Quasar-------------------
+#----------------------------------------------
+
+Flag_BHFeedback           : 0
+RadioModeEff              : 0.3
+QuasarModeEff             : 0.0005
+BlackHoleGrowthRate       : 0.05
+Flag_BHReion              : 0
+EddingtonRatio            : 1.0
+BlackHoleSeed             : 1e-7
+BlackHoleMassLimitReion   : -1
+RedshiftDepEscFracBHNorm     : 1.00 # at z=5
+RedshiftDepEscFracBHScaling  : 0.00
+quasar_mode_scaling       : 0.0
+quasar_open_angel         : 80.0
 
 #----------------------------------------------
 #----- Reionization ---------------------------
@@ -115,7 +131,7 @@ ReionSMParam_d         : 2.5
 
 ReionTcool             : 1.0e4  # Kelvin
 ReionNionPhotPerBary   : 4000
-RedshiftDepEscFracNorm     : 0.04 
+RedshiftDepEscFracNorm     : 0.04
 RedshiftDepEscFracScaling  : 2.5
 
 
@@ -131,9 +147,9 @@ BaryonFrac: 0.15714
 Hubble_h: 0.678
 SpectralIndex: 0.968
 Sigma8: 0.815
-PartMass: 0.0132541
+PartMass: 0.0002643852
 wLambda: -1.0
-NPart: 1259712000
+NPart: 10077696000
 
 UnitLength_in_cm         : 3.08568e+24       # WATCH OUT : Mpc/h
 UnitMass_in_g            : 1.989e+43         # WATCH OUT : 10^10Msun/h
