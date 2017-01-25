@@ -123,7 +123,7 @@ static inline double calc_eta_sn(double m_high, double m_low, double *snII_frac)
   // work out the number of supernova per 1e10 Msol formed at the current time
   double exponent  = run_globals.params.physics.IMFSlope + 1.0; // should be -1.35 for Salpeter
   double const_phi = run_globals.params.physics.IMFNormConst;   // should be 0.1706 for Salpeter
-  double eta_SNII  = 7.4319792e-3; // total number of type II SN per solar mass of burst
+  double eta_SNII  = run_globals.params.physics.eta_SNII; // total number of type II SN per solar mass of burst
 
   double eta_sn = const_phi * 1.0 / exponent * (pow(m_high, exponent) - pow(m_low, exponent));
 
@@ -167,7 +167,7 @@ double calc_recycled_frac(double m_high, double m_low, double *burst_mass_frac)
   double exponent  = run_globals.params.physics.IMFSlope + 2.0;
 
   double burst_recycled_frac = const_phi * 1.0 / exponent * (pow(m_high, exponent) - pow(m_low, exponent));
-  double frac_mass_SSP_above_SNII = 0.14417;  // Fraction of SSP with M>8Msol
+  double frac_mass_SSP_above_SNII = run_globals.params.physics.frac_mass_SSP_above_SNII;  // Fraction of SSP with M>8Msol
 
   assert(burst_recycled_frac >= 0);
 

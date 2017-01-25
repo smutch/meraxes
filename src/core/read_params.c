@@ -417,10 +417,10 @@ void read_parameter_file(char *fname, int mode)
       required_tag[n_param]  = 1;
       params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
-	  strcpy(params_tag[n_param], "SfEfficiencyScaling");                 
-	  params_addr[n_param]   = &(run_params->physics).SfEfficiencyScaling;
-	  required_tag[n_param]  = 1;                                         
-	  params_type[n_param++] = PARAM_TYPE_DOUBLE;                         
+      strcpy(params_tag[n_param], "SfEfficiencyScaling");                 
+      params_addr[n_param]   = &(run_params->physics).SfEfficiencyScaling;
+      required_tag[n_param]  = 1;                                         
+      params_type[n_param++] = PARAM_TYPE_DOUBLE;                         
 
       strcpy(params_tag[n_param], "SfCriticalSDNorm");
       params_addr[n_param]   = &(run_params->physics).SfCriticalSDNorm;
@@ -494,6 +494,16 @@ void read_parameter_file(char *fname, int mode)
 
       strcpy(params_tag[n_param], "IMFNormConst");
       params_addr[n_param]   = &(run_params->physics).IMFNormConst;
+      required_tag[n_param]  = 1;
+      params_type[n_param++] = PARAM_TYPE_DOUBLE;
+
+      strcpy(params_tag[n_param], "eta_SNII");
+      params_addr[n_param]   = &(run_params->physics).eta_SNII;
+      required_tag[n_param]  = 1;
+      params_type[n_param++] = PARAM_TYPE_DOUBLE;
+
+      strcpy(params_tag[n_param], "frac_mass_SSP_above_SNII");
+      params_addr[n_param]   = &(run_params->physics).frac_mass_SSP_above_SNII;
       required_tag[n_param]  = 1;
       params_type[n_param++] = PARAM_TYPE_DOUBLE;
 

@@ -91,6 +91,7 @@ typedef enum index_type {
 //! Physics parameter values
 typedef struct physics_params_t {
   double SfEfficiency;
+  double SfEfficiencyScaling;
   double SfCriticalSDNorm;
   double SfRecycleFraction;
   double SnReheatEff;
@@ -106,6 +107,8 @@ typedef struct physics_params_t {
   double IMFSlope;
   double EnergyPerSN;
   double IMFNormConst;
+  double eta_SNII;
+  double frac_mass_SSP_above_SNII;
   double RadioModeEff;
   double QuasarModeEff;
   double BlackHoleGrowthRate;
