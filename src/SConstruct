@@ -1,0 +1,269 @@
+import os
+import glob
+import sys
+import subprocess
+import shutil
+from textwrap import dedent
+from SCons.Script.SConscript import SConsEnvironment
+from SCons.Conftest import _check_empty_program
+
+# Get the library dependencies for this system
+from deps import deps
+from deps.termcolor import cprint, colored
+
+# =====================
+# = Utility functions =
+# =====================
+
+def files(pattern, exclude=''):
+    """All files matching a pattern, excluding
+    directories and any specified patterns."""
+    return [file for file in glob.glob(pattern) if (os.path.isfile(file)
+            and file not in glob.glob(exclude))]
+
+
+def copy_files(file_list, dest):
+    """Copy a list of files to `dest`"""
+    for f in file_list:
+        shutil.copy(f, dest)
+
+SConsEnvironment.CopyFiles = lambda env, file_list, dest: copy_files(file_list, dest)
+
+
+def create_git_header(git_executable):
+    """Create the git.h header file."""
+
+    header = dedent("""/*
+            * This file has been automatically generated.  Any modifications will be
+            * overwritten during compilation.
+            */
+            """)
+
+    ref = subprocess.check_output(git_executable[0]+' show-ref --head | head -n 1 | cut -d " " -f 1',
+            cwd = Dir('.').path,
+            shell = True).rstrip('\n')
+
+    diff = subprocess.check_output(git_executable[0]+' diff --no-color',
+            cwd = Dir('.').path,
+            shell = True)
+
+    diff_defn = ""
+    if len(diff) > 0:
+        for l in diff.splitlines():
+           diff_defn += '"'+l.replace('\\', '\\\\').replace('"', '\\"')+'\\n"\\\n'
+    else:
+        diff_defn = '""'
+
+    with open("git.h", "w") as fd:
+        fd.write(header+"\n")
+        fd.write('#define GITREF_STR "%s"\n\n' % ref)
+        fd.write('#define GITDIFF_STR %s\n' % diff_defn)
+
+SConsEnvironment.CreateGitHeader = lambda env, git_executable: create_git_header(git_executable)
+
+
+def BuildLib(env, nodes, lib_type='dynamic'):
+    assert(lib_type in ('dynamic', 'static'))
+    try:
+        nodes.remove("core/meraxes.c")
+    except ValueError:
+        pass
+
+    if lib_type == 'dynamic':
+        Lib = env.SharedLibrary
+    elif lib_type == 'static':
+        Lib = env.StaticLibrary
+    lib = Lib('../lib/meraxes', nodes)
+
+    def install_meraxes_header(env):
+        """Prepend the user defined definitions (i.e. CPPDEFINES) to a header
+        file."""
+
+        defs = "// These defines were added at compilation time\n"\
+               "// (see SConstruct prepend_user_defines())\n"
+        for v in env["CPPDEFINES"]:
+            v = env.subst(v[0])
+            defs += "#define "+v.replace("=", " ")+"\n"
+        defs += "// -------------------------------------------\n\n"
+
+        with open("meraxes.h", "r") as fd:
+            original = fd.read()
+        with open("../include/meraxes.h", "w") as fd:
+            fd.write(defs+"\n"+original)
+
+        return 'dummy_target'
+
+    meraxes_header = env.Install('../include', 'meraxes.h')
+    env.AddPostAction('../include/meraxes.h', Command('dummy_target', '../include/meraxes.h', install_meraxes_header(env)))
+
+    install_headers = [env.Install('../include', files('*.h', exclude='meraxes.h'))]
+    if env['logger']:
+        install_headers += [env.Install('../include/logger', files('logger/*.h'))]
+
+    return [lib, meraxes_header] + install_headers
+
+AddMethod(Environment, BuildLib)
+
+
+# ============================
+# = Command line definitions =
+# ============================
+
+vars = Variables('config.py') # Persistent storage.
+vars.AddVariables(
+    BoolVariable('calc_mags', 'Calculate magnitudes.', False),
+    ('nout', 'Set the number of output snapshots. (only required if calc_mags=1)', False),
+    ('allocparameter', 'Set the ALLOCPARAM value.', 5.0),
+    EnumVariable('build', 'Set the build type.', 'standard', allowed_values=('debug', 'standard', 'optimized')),
+    BoolVariable('prof', 'Enable profiling.', False),
+    BoolVariable('logger', 'Enable detailed logging with zlog.', False),
+    ('n_history_snaps', 'Set the value of N_HISTORY_SNAPS', False),
+    BoolVariable('verbose', 'Show compile commands', False),
+)
+
+# Create the environment
+env = Environment(variables = vars, ENV=os.environ)
+
+# Check if there were any unkown variables on the command line.
+unknown = vars.UnknownVariables()
+if unknown:
+    print 'Unknown variables:', unknown.keys()
+    env.Exit(1)
+
+
+
+# =============================================================================
+# Print variables
+# =============================================================================
+
+print "\nCommand line arguments:"
+
+if env['nout']:
+    print "nout = ", env['nout']
+if env['build']:
+    print "build =", env['build']
+
+print
+
+
+# Take a snapshot of provided options before we continue.
+vars.Save('config.py', env)
+
+# Generate a help line later use.
+Help(vars.GenerateHelpText(env))
+
+# Define the command for building a tags file
+tagsources = Glob("*.[ch]")
+tagsclean = AlwaysBuild(env.Command('tagsclean', None, 'rm -vf tags'))
+ctags = env.Command('ctags', [tagsources, tagsclean], "ctags -R --c++-kinds=+p --fields=+iaS --extra=+q")
+
+# Command for build cscope database
+csclean = AlwaysBuild(env.Command('csclean', None, 'rm -vf cscope.out'))
+AlwaysBuild(env.Alias('cscope', Command('cscope.out', csclean, 'cscope -bRv')))
+
+# If the user requested help don't bother continuing with the build.
+if not GetOption('help'):
+
+    # Modify the environment based on any of our variables.
+    if env['calc_mags']:
+        env.AppendUnique(CPPDEFINES = ['CALC_MAGS'])
+        env.AppendUnique(CPPDEFINES = ['NOUT=${nout}'])
+    if env['build'] == 'debug':
+        env.MergeFlags('-g -O0 -Wall -DDEBUG')
+    elif env['build'] == 'standard':
+        env.MergeFlags('-O2')
+    elif env['build'] == 'optimized':
+        cprint("WARNING: This build will only work on the EXACT same architecture!", color='red', attrs=['bold'])
+        env.MergeFlags('-O3 -DNDEBUG -march=native')
+    if env['prof']:
+        env.MergeFlags('-g -pg')
+        env.AppendUnique(LINKFLAGS=['-pg'])
+    if env['n_history_snaps']:
+        env.AppendUnique(CPPDEFINES = ['N_HISTORY_SNAPS=${n_history_snaps}'])
+    if not env['verbose']:
+        env['CCCOMSTR'] = colored("Compiling ", color='green') + "$TARGET ..."
+        env['LINKCOMSTR'] = colored("Linking ", color='blue') + "$TARGET ..."
+        env['SHCCCOMSTR'] = env['CCCOMSTR']
+        env['SHLINKCOMSTR'] = env['LINKCOMSTR']
+        env['INSTALLSTR'] = colored("Install file: ", color='blue') + '"$SOURCE" as "$TARGET" ...'
+
+    # ====================
+    # Compiler flag checks
+    # ====================
+
+    def CheckCCFlag(context, flag):
+        context.Message('Checking if compiler supports %s ...' % flag)
+        text = "int main(){ return 0; }"
+        cppflags = context.vardict.get("CPPFLAGS", [])
+        context.vardict["CPPFLAGS"] = cppflags + list(flag)
+        result = _check_empty_program(context, 'CC', text, 'C')
+        context.Result(result)
+        return result
+
+    conf = Configure(env, custom_tests = {'CheckCCFlag': CheckCCFlag})
+    conf.CheckCCFlag('-fdiagnostics-color=auto')
+    env = conf.Finish()
+
+
+    # =============================================================================
+    # Check to see if directories required for build exist and if not, create them
+    # =============================================================================
+
+    dirname = os.path.dirname("../include/")
+    if not os.path.exists(dirname):
+        os.makedirs(dirname)
+
+
+    # =================================
+    # = System specific build options =
+    # =================================
+
+    env.Replace(CC = deps['exec']['mpicc'])
+    env.AppendUnique(CPPDEFINES = ['USE_MPI=1'])
+    env.AppendUnique(CPPFLAGS = ['-std=gnu99'])
+    env.AppendUnique(CPPPATH = './')
+    env.AppendUnique(SHCCFLAGS = ['-rdynamic'])
+
+    def compile_against(libs, deps, env):
+        """Compile against a list of libraries with with paths etc. defined in
+        `deps`."""
+        for name in libs:
+            dep = deps[name]
+            if 'inclp' in dep and dep['inclp'] is not None:
+                # Note the use of CCFLAGS here instead of CPPPATH.  This is an
+                # attempt to speed up the build by preventing scons from checking
+                # all of the included libraries for changes.
+                env.AppendUnique(CCFLAGS = ['-I'+dep['inclp']])
+            if 'libp' in dep and dep['libp'] is not None:
+                env.AppendUnique(LIBPATH = [dep['libp']])
+            if 'lib' in dep and dep['lib'] is not None:
+                env.AppendUnique(LIBS = [dep['lib']])
+
+    libs = ['gsl', 'hdf5', 'gbpCode', 'fftw']
+    if env['logger']:
+        libs += ['zlog']
+    compile_against(libs, deps, env)
+
+
+    # ===========
+    # = Targets =
+    # ===========
+
+    node_list = files('**/*.c', exclude='tests/*')
+    if not env['logger']:
+        node_list = [node for node in node_list if node not in files('logger/*')]
+
+    if env['logger']:
+        env.AppendUnique(CPPDEFINES = 'LOGGER')
+
+    executable = env.Program(target='../bin/meraxes', source=node_list)
+    git_header = env.CreateGitHeader([deps['exec']['git']])
+    Depends(executable, git_header)
+    # env.NoClean(executable)
+    Default(executable)
+
+    static_lib = env.Alias('static_lib', env.BuildLib(node_list, 'static'))
+    lib = env.Alias('lib', env.BuildLib(node_list, 'dynamic'))
+
+    # Add an `all` target
+    env.Alias('all', [executable, lib, static_lib])
