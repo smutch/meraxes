@@ -753,7 +753,7 @@ void save_reion_output_grids(int snapshot)
   }
 
   H5LTset_attribute_double(file_id, "xH", "volume_weighted_global_xH", &(grids->volume_weighted_global_xH), 1);
-  H5LTset_attribute_double(file_id, "xH_mass_weighted", "mass_weighted_global_xH", &(grids->mass_weighted_global_xH), 1);
+  H5LTset_attribute_double(file_id, "xH", "mass_weighted_global_xH", &(grids->mass_weighted_global_xH), 1);
 
   // // Run delta_T_ps
   // // ----------------------------------------------------------------------------------------------------

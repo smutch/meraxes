@@ -712,9 +712,6 @@ void create_master_file()
     temp = run_globals.LTTime[run_globals.ListOutputSnaps[i_out]] * run_globals.units.UnitLength_in_cm / run_globals.units.UnitVelocity_in_cm_per_s / SEC_PER_MEGAYEAR;
     H5LTset_attribute_double(file_id, target_group, "LTTime", &temp, 1);
 
-    // save mass_weighted_xH
-    H5LTset_attribute_double(file_id, target_group, "mass_weighted_xHII", &(run_globals.mass_weighted_xHII[run_globals.ListOutputSnaps[i_out]]), 1); 
-
     H5Gclose(snap_group_id);
   }
 

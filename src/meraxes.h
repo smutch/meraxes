@@ -562,7 +562,6 @@ typedef struct run_globals_t {
   double             *AA;
   double             *ZZ;
   double             *LTTime;
-  double             *mass_weighted_xHII;
   int                *RequestedForestId;
   int                RequestedMassRatioModifier;
   int                RequestedBaryonFracModifier;

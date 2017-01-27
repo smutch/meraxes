@@ -490,8 +490,6 @@ void dracarys()
         else
           call_find_HII_bubbles(snapshot, trees_info.unsampled_snapshot, nout_gals);
       }
-      else
-          run_globals.mass_weighted_xHII[snapshot] = 1.0;
 
       // if we have already created a mapping of galaxies to MPI slabs then we no
       // longer need them as they will need to be re-created for the new halo
