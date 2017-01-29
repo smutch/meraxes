@@ -258,8 +258,8 @@ if not GetOption('help'):
         env.AppendUnique(CPPDEFINES = 'LOGGER')
 
     executable = env.Program(target='../bin/meraxes', source=node_list)
-    git_header = env.CreateGitHeader([deps['exec']['git']])
-    Depends(executable, git_header)
+    #git_header = env.CreateGitHeader([deps['exec']['git']])
+    #Depends(executable, git_header)
     # env.NoClean(executable)
     Default(executable)
 

@@ -109,6 +109,7 @@ ReionGnedin_zr         : 7
 # patchy (21cmFAST) prescription
 Flag_PatchyReion       : 0
 Flag_output_grids      : 1
+Flag_output_grids_when_finished  : 0
 ReionUVBFlag           : 1
 
 ReionGridDim           : 256
