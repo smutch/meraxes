@@ -805,6 +805,11 @@ bool check_if_reionization_ongoing()
   // Ok, so we haven't finished.  Have we started then?
   if (started)
   {
+    // whether we want to continue even when reionization is finished
+    // In order to keep outputting meraxes_grids_%d.hdf5
+    if (run_globals.params.Flag_output_grids_when_finished)
+      return true;
+
     // So we have started, but have not previously found to be finished.  Have
     // we now finished though?
     float *xH = run_globals.reion_grids.xH;

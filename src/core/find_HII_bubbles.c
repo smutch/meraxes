@@ -339,7 +339,7 @@ void find_HII_bubbles(float redshift)
         int i_real = grid_index(ix, iy, iz, ReionGridDim, INDEX_REAL);
         int i_padded = grid_index(ix, iy, iz, ReionGridDim, INDEX_PADDED);
         volume_weighted_global_xH += (double)xH[i_real];
-        mass_weighted_global_xH += (double)(xH[i_real] * (deltax[i_padded] + 1));
+        mass_weighted_global_xH += (double)(xH[i_real] * (deltax[i_real] + 1.0));
       }
 
   SID_Allreduce(SID_IN_PLACE, &volume_weighted_global_xH, 1, SID_DOUBLE, SID_SUM, SID.COMM_WORLD);
