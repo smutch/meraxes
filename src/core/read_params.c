@@ -237,6 +237,18 @@ void read_parameter_file(char *fname, int mode)
       params_type[n_param++]      = PARAM_TYPE_STRING;
       *(run_params->MvirCritFile) = '\0';
 
+      strcpy(params_tag[n_param], "MassRatioModifier");
+      params_addr[n_param]        = &(run_params->MassRatioModifier);
+      required_tag[n_param]       = 0;
+      params_type[n_param++]      = PARAM_TYPE_STRING;
+      *(run_params->MassRatioModifier) = '\0';
+
+      strcpy(params_tag[n_param], "BaryonFracModifier");
+      params_addr[n_param]        = &(run_params->BaryonFracModifier);
+      required_tag[n_param]       = 0;
+      params_type[n_param++]      = PARAM_TYPE_STRING;
+      *(run_params->BaryonFracModifier) = '\0';
+
       strcpy(params_tag[n_param], "UnitVelocity_in_cm_per_s");
       params_addr[n_param]   = &(run_globals.units.UnitVelocity_in_cm_per_s);
       required_tag[n_param]  = 1;
@@ -350,10 +362,25 @@ void read_parameter_file(char *fname, int mode)
       required_tag[n_param]  = 1;
       params_type[n_param++] = PARAM_TYPE_INT;
 
-      strcpy(params_tag[n_param], "Flag_RedshiftDepEscFrac");
-      params_addr[n_param]   = &(run_params->physics).Flag_RedshiftDepEscFrac;
+      strcpy(params_tag[n_param], "RedshiftDepEscFracNorm");
+      params_addr[n_param]   = &(run_params->physics).RedshiftDepEscFracNorm;
       required_tag[n_param]  = 1;
-      params_type[n_param++] = PARAM_TYPE_INT;
+      params_type[n_param++] = PARAM_TYPE_DOUBLE;
+      
+      strcpy(params_tag[n_param], "RedshiftDepEscFracScaling");
+      params_addr[n_param]   = &(run_params->physics).RedshiftDepEscFracScaling;
+      required_tag[n_param]  = 1;
+      params_type[n_param++] = PARAM_TYPE_DOUBLE;
+      
+      strcpy(params_tag[n_param], "RedshiftDepEscFracBHNorm");
+      params_addr[n_param]   = &(run_params->physics).RedshiftDepEscFracBHNorm;
+      required_tag[n_param]  = 1;
+      params_type[n_param++] = PARAM_TYPE_DOUBLE;
+      
+      strcpy(params_tag[n_param], "RedshiftDepEscFracBHScaling");
+      params_addr[n_param]   = &(run_params->physics).RedshiftDepEscFracBHScaling;
+      required_tag[n_param]  = 1;
+      params_type[n_param++] = PARAM_TYPE_DOUBLE;
       
       strcpy(params_tag[n_param], "Flag_ReionizationModifier");
       params_addr[n_param]   = &(run_params->physics).Flag_ReionizationModifier;
@@ -364,6 +391,11 @@ void read_parameter_file(char *fname, int mode)
       params_addr[n_param]   = &(run_params->physics).Flag_BHFeedback;
       required_tag[n_param]  = 1;
       params_type[n_param++] = PARAM_TYPE_INT;
+
+      strcpy(params_tag[n_param], "Flag_BHReion");                 
+      params_addr[n_param]   = &(run_params->physics).Flag_BHReion;
+      required_tag[n_param]  = 1;                                  
+      params_type[n_param++] = PARAM_TYPE_INT;                     
 
       strcpy(params_tag[n_param], "Flag_IRA");
       params_addr[n_param]   = &(run_params->physics).Flag_IRA;
@@ -389,6 +421,11 @@ void read_parameter_file(char *fname, int mode)
       params_addr[n_param]   = &(run_params->physics).SfEfficiency;
       required_tag[n_param]  = 1;
       params_type[n_param++] = PARAM_TYPE_DOUBLE;
+
+      strcpy(params_tag[n_param], "SfEfficiencyScaling");                 
+      params_addr[n_param]   = &(run_params->physics).SfEfficiencyScaling;
+      required_tag[n_param]  = 1;                                         
+      params_type[n_param++] = PARAM_TYPE_DOUBLE;                         
 
       strcpy(params_tag[n_param], "SfCriticalSDNorm");
       params_addr[n_param]   = &(run_params->physics).SfCriticalSDNorm;
@@ -465,6 +502,16 @@ void read_parameter_file(char *fname, int mode)
       required_tag[n_param]  = 1;
       params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
+      strcpy(params_tag[n_param], "eta_SNII");
+      params_addr[n_param]   = &(run_params->physics).eta_SNII;
+      required_tag[n_param]  = 1;
+      params_type[n_param++] = PARAM_TYPE_DOUBLE;
+
+      strcpy(params_tag[n_param], "frac_mass_SSP_above_SNII");
+      params_addr[n_param]   = &(run_params->physics).frac_mass_SSP_above_SNII;
+      required_tag[n_param]  = 1;
+      params_type[n_param++] = PARAM_TYPE_DOUBLE;
+
       strcpy(params_tag[n_param], "ThreshMajorMerger");
       params_addr[n_param]   = &((run_params->physics).ThreshMajorMerger);
       required_tag[n_param]  = 1;
@@ -495,8 +542,33 @@ void read_parameter_file(char *fname, int mode)
       required_tag[n_param]  = 1;
       params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
+      strcpy(params_tag[n_param], "QuasarModeEff");
+      params_addr[n_param]   = &(run_params->physics).QuasarModeEff;
+      required_tag[n_param]  = 1;
+      params_type[n_param++] = PARAM_TYPE_DOUBLE;
+
+      strcpy(params_tag[n_param], "BlackHoleSeed");
+      params_addr[n_param]   = &(run_params->physics).BlackHoleSeed;
+      required_tag[n_param]  = 1;
+      params_type[n_param++] = PARAM_TYPE_DOUBLE;
+
       strcpy(params_tag[n_param], "BlackHoleGrowthRate");
       params_addr[n_param]   = &(run_params->physics).BlackHoleGrowthRate;
+      required_tag[n_param]  = 1;
+      params_type[n_param++] = PARAM_TYPE_DOUBLE;
+
+      strcpy(params_tag[n_param], "EddingtonRatio");
+      params_addr[n_param]   = &(run_params->physics).EddingtonRatio;
+      required_tag[n_param]  = 1;
+      params_type[n_param++] = PARAM_TYPE_DOUBLE;
+
+      strcpy(params_tag[n_param], "quasar_mode_scaling");
+      params_addr[n_param]   = &(run_params->physics).quasar_mode_scaling;
+      required_tag[n_param]  = 1;
+      params_type[n_param++] = PARAM_TYPE_DOUBLE;
+
+      strcpy(params_tag[n_param], "quasar_open_angel");
+      params_addr[n_param]   = &(run_params->physics).quasar_open_angel;
       required_tag[n_param]  = 1;
       params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
@@ -530,8 +602,8 @@ void read_parameter_file(char *fname, int mode)
       required_tag[n_param]  = 1;
       params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
-      strcpy(params_tag[n_param], "ReionEscapeFrac");
-      params_addr[n_param]   = &(run_params->physics).ReionEscapeFrac;
+      strcpy(params_tag[n_param], "BlackHoleMassLimitReion");
+      params_addr[n_param]   = &(run_params->physics).BlackHoleMassLimitReion;
       required_tag[n_param]  = 1;
       params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
@@ -547,6 +619,16 @@ void read_parameter_file(char *fname, int mode)
 
       strcpy(params_tag[n_param], "Flag_PatchyReion");
       params_addr[n_param]   = &(run_params->Flag_PatchyReion);
+      required_tag[n_param]  = 1;
+      params_type[n_param++] = PARAM_TYPE_INT;
+
+      strcpy(params_tag[n_param], "Flag_output_grids");
+      params_addr[n_param]   = &(run_params->Flag_output_grids);
+      required_tag[n_param]  = 1;
+      params_type[n_param++] = PARAM_TYPE_INT;
+
+      strcpy(params_tag[n_param], "Flag_output_grids_when_finished");
+      params_addr[n_param]   = &(run_params->Flag_output_grids_when_finished);
       required_tag[n_param]  = 1;
       params_type[n_param++] = PARAM_TYPE_INT;
 
@@ -617,6 +699,11 @@ void read_parameter_file(char *fname, int mode)
       
       strcpy(params_tag[n_param], "ReionAlphaUV");
       params_addr[n_param]   = &(run_params->physics).ReionAlphaUV;
+      required_tag[n_param]  = 1;
+      params_type[n_param++] = PARAM_TYPE_DOUBLE;
+      
+      strcpy(params_tag[n_param], "ReionAlphaUVBH");
+      params_addr[n_param]   = &(run_params->physics).ReionAlphaUVBH;
       required_tag[n_param]  = 1;
       params_type[n_param++] = PARAM_TYPE_DOUBLE;
       

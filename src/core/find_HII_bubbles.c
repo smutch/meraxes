@@ -331,6 +331,8 @@ void find_HII_bubbles(float redshift)
   //       FFT. Should cache deltax slabs prior to ffts and reuse here.
   double volume_weighted_global_xH = 0.0;
   double mass_weighted_global_xH = 0.0;
+  double mass_weight = 0.0;
+  double density_over_mean;
 
   for (int ix=0; ix<local_nix; ix++)
     for (int iy=0; iy<ReionGridDim; iy++)
@@ -339,13 +341,16 @@ void find_HII_bubbles(float redshift)
         int i_real = grid_index(ix, iy, iz, ReionGridDim, INDEX_REAL);
         int i_padded = grid_index(ix, iy, iz, ReionGridDim, INDEX_PADDED);
         volume_weighted_global_xH += (double)xH[i_real];
-        mass_weighted_global_xH += (double)(xH[i_real] * (deltax[i_padded] + 1));
+        density_over_mean = 1.0 + (double)((float *)deltax_filtered)[i_padded];
+        mass_weighted_global_xH += (double)(xH[i_real]) * density_over_mean;
+        mass_weight += density_over_mean;
       }
 
   SID_Allreduce(SID_IN_PLACE, &volume_weighted_global_xH, 1, SID_DOUBLE, SID_SUM, SID.COMM_WORLD);
   SID_Allreduce(SID_IN_PLACE, &mass_weighted_global_xH, 1, SID_DOUBLE, SID_SUM, SID.COMM_WORLD);
+  SID_Allreduce(SID_IN_PLACE, &mass_weight, 1, SID_DOUBLE, SID_SUM, SID.COMM_WORLD);
   volume_weighted_global_xH /= (double)total_n_cells;
-  mass_weighted_global_xH /= (double)total_n_cells;
+  mass_weighted_global_xH /= mass_weight;
 
   run_globals.reion_grids.volume_weighted_global_xH = volume_weighted_global_xH;
   run_globals.reion_grids.mass_weighted_global_xH = mass_weighted_global_xH;

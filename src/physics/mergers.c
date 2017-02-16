@@ -128,6 +128,7 @@ static void merger_driven_starburst(galaxy_t *parent, double merger_ratio, int s
       double m_recycled;
       double new_metals;
 
+      parent->MergerSemissivity += burst_mass * 1e10 * SOLAR_MASS/run_globals.params.Hubble_h / PROTONMASS * run_globals.params.physics.ReionNionPhotPerBary/1e60; 
       contemporaneous_supernova_feedback(parent, &burst_mass, snapshot, &m_reheat, &m_eject, &m_recycled, &new_metals);
       // update the baryonic reservoirs (note that the order we do this in will change the result!)
       update_reservoirs_from_sf(parent, burst_mass);
@@ -167,7 +168,10 @@ void merge_with_target(galaxy_t *gal, int *dead_gals, int snapshot)
 
   // Add galaxies together
   parent->StellarMass       += gal->StellarMass;
+  parent->Stellaremissivity += gal->Stellaremissivity;
+  parent->MergerSemissivity += gal->MergerSemissivity;
   parent->GrossStellarMass  += gal->GrossStellarMass;
+  parent->FescWeightedGSM   += gal->FescWeightedGSM;         
   parent->MetalsStellarMass += gal->MetalsStellarMass;
   parent->Sfr               += gal->Sfr;
   parent->HotGas            += gal->HotGas;
@@ -176,7 +180,12 @@ void merge_with_target(galaxy_t *gal, int *dead_gals, int snapshot)
   parent->MetalsColdGas     += gal->MetalsColdGas;
   parent->EjectedGas        += gal->EjectedGas;
   parent->MetalsEjectedGas  += gal->MetalsEjectedGas;
+  parent->BlackHoleAccretedHotMass   += gal->BlackHoleAccretedHotMass;
+  parent->BlackHoleAccretedColdMass  += gal->BlackHoleAccretedColdMass;
+  parent->BlackHoleAccretingColdMass += gal->BlackHoleAccretingColdMass;
+  parent->BHemissivity      += gal->BHemissivity;
   parent->BlackHoleMass     += gal->BlackHoleMass;
+  parent->EffectiveBHM      += gal->EffectiveBHM;
   parent->mwmsa_num         += gal->mwmsa_num;
   parent->mwmsa_denom       += gal->mwmsa_denom;
   parent->MergerBurstMass   += gal->MergerBurstMass;
@@ -189,7 +198,7 @@ void merge_with_target(galaxy_t *gal, int *dead_gals, int snapshot)
 
   // TODO: Should this have a stellar mass / baryon limit placed on it?
   if (run_globals.params.physics.Flag_BHFeedback)
-    merger_driven_BH_growth(parent, merger_ratio);
+    merger_driven_BH_growth(parent, merger_ratio, snapshot);
 
   // merger driven starburst prescription
   if (min_stellar_mass >= run_globals.params.physics.MinMergerStellarMass)

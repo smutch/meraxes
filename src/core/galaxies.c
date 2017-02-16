@@ -43,10 +43,18 @@ galaxy_t* new_galaxy(int snapshot, int halo_ID)
   gal->Mcool              = 0.0;
   gal->StellarMass        = 0.0;
   gal->GrossStellarMass   = 0.0;
+  gal->Stellaremissivity  = 0.0;
+  gal->MergerSemissivity  = 0.0;
+  gal->FescWeightedGSM    = 0.0;
   gal->MetalsStellarMass  = 0.0;
   gal->mwmsa_num          = 0.0;
   gal->mwmsa_denom        = 0.0;
-  gal->BlackHoleMass      = 0.0;
+  gal->BlackHoleMass      = run_globals.params.physics.BlackHoleSeed;
+  gal->BHemissivity       = 0.0;
+  gal->EffectiveBHM       = 0.0;
+  gal->BlackHoleAccretedHotMass      = 0.0;
+  gal->BlackHoleAccretedColdMass      = 0.0;
+  gal->BlackHoleAccretingColdMass      = 0.0;
   gal->Sfr                = 0.0;
   gal->Cos_Inc            = gsl_rng_uniform(run_globals.random_generator);
   gal->MergTime           = 99999.9;
@@ -114,10 +122,15 @@ void reset_galaxy_properties(galaxy_t *gal, int snapshot)
 {
   // Here we reset any galaxy properties which are calculated on a snapshot by
   // snapshot basis.
-  gal->Mcool              = 0.0;
-  gal->Sfr                = 0.0;
-  gal->BaryonFracModifier = 1.0;
-  gal->MvirCrit           = 0.0;
+  gal->Sfr                        = 0.0;
+  gal->Mcool                      = 0.0;
+  gal->MvirCrit                   = 0.0;
+  gal->BHemissivity               = 0.0;
+  gal->Stellaremissivity          = 0.0;
+  gal->MergerSemissivity          = 0.0; 
+  gal->BaryonFracModifier         = 1.0;
+  gal->BlackHoleAccretedHotMass   = 0.0;
+  gal->BlackHoleAccretedColdMass  = 0.0;
 
   // update the stellar mass weighted mean age values
   assert(snapshot > 0);

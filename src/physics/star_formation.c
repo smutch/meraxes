@@ -26,6 +26,8 @@ void update_reservoirs_from_sf(galaxy_t *gal, double new_stars)
     gal->MetalsColdGas     -= new_stars * metallicity;
     gal->StellarMass       += new_stars;
     gal->GrossStellarMass  += new_stars;
+    gal->Stellaremissivity += new_stars * 1e10 * SOLAR_MASS/run_globals.params.Hubble_h / PROTONMASS * run_globals.params.physics.ReionNionPhotPerBary/1e60;
+    gal->FescWeightedGSM   += new_stars * run_globals.params.physics.ReionEscapeFrac;
     gal->MetalsStellarMass += new_stars * metallicity;
 
     // update the luminosities
@@ -59,6 +61,12 @@ void insitu_star_formation(galaxy_t *gal, int snapshot)
     double m_eject;
     double m_recycled;
     double new_metals;
+
+    double zplus1;                                                         
+    double zplus1_n;                                                       
+                                                                           
+    zplus1 = 1.0 + run_globals.ZZ[snapshot];                              
+    zplus1_n = pow(zplus1,run_globals.params.physics.SfEfficiencyScaling);
 
     double SfEfficiency = run_globals.params.physics.SfEfficiency;
     double SfCriticalSDNorm = run_globals.params.physics.SfCriticalSDNorm;
@@ -112,6 +120,11 @@ void insitu_star_formation(galaxy_t *gal, int snapshot)
         ABORT(EXIT_FAILURE);
         break;
     }
+
+    // apply redshift dependent efficiency
+    // (note that we are assuming the redshift dependency is applied directly to
+    // the amount of stars produced here...)
+    m_stars = zplus1_n * m_stars;
 
     if (m_stars > gal->ColdGas)
       m_stars = gal->ColdGas;

@@ -1,14 +1,13 @@
 #------------------------------------------
 #----- SA model output files --------------
 #------------------------------------------
-FileNameGalaxies : Tiamat
+FileNameGalaxies : Tiamat_z2
 
 #------------------------------------------
 #----- Simulation input files  ------------
 #------------------------------------------
-SimName          : Tiamat
+SimName          : Tiamat_z2
 SimulationDir    : /home/yqin/dragons/input_trees/tiamat/Tiamat_z2
-# SimulationDir    : /coepp/cephfs/dragons/smutch/data/simulations/Tiamat/meraxes
 CatalogFilePrefix: subfind
 BoxSize          : 67.8
 VolumeFactor     : 1.0
@@ -16,10 +15,8 @@ VolumeFactor     : 1.0
 #------------------------------------------
 #----- Photometric Tables  ----------------
 #------------------------------------------
-PhotometricTablesDir : /home/smutch/models/meraxes/input/photometric_tables
-CoolingFuncsDir      : /home/smutch/models/meraxes/input/cooling_functions
-# PhotometricTablesDir : /coepp/cephfs/dragons/smutch/models/meraxes/input/photometric_tables
-# CoolingFuncsDir      : /coepp/cephfs/dragons/smutch/models/meraxes/input/cooling_functions
+PhotometricTablesDir : /home/yqin/bitbucket/meraxes/meraxes/input/photometric_tables
+CoolingFuncsDir      : /home/yqin/bitbucket/meraxes/meraxes/input/cooling_functions
 SSPModel             : bc03
 IMF                  : salpeter
 MagSystem            : vega
@@ -33,22 +30,19 @@ FlagInteractive        : 0
 FlagGenDumpFile        : 0  # DON'T USE THIS WITHOUT TALKING TO SM FIRST
 FlagReadDumpFile       : 0  # DON'T USE THIS WITHOUT TALKING TO SM FIRST
 FlagSubhaloVirialProps : 0  # 0 -> approximate subhalo virial props using particle number; 1 -> use catalogue values
-FlagMCMC               : 0  # Don't do any writing and activate MCMC related routines
+FlagMCMC               : 0
 RandomSeed             : 1809  # seed for random number generator
 
 #------------------------------------------
 #----- Parameters of physical model -------
 #------------------------------------------
-SfDiskVelOpt               : 1    # disk velocity for SF law (1=Vmax, 2=Vvir)
-SfPrescription             : 1    # C06 SF law
-
-Flag_RedshiftDepEscFrac    : 0    # use redshift-dependent escape fraction
 Flag_ReionizationModifier  : 2    # use halo mass dependant infall modifier of Gnedin
 Flag_BHFeedback            : 0    # use black hole feedback
 Flag_IRA                   : 0    # use the instantaneous recycling approximation
 Flag_FixVmaxOnInfall       : 0    # fix Vmax upon infall
 Flag_FixDiskRadiusOnInfall : 0    # fix disk radius upon infall
 Flag_ReheatToFOFGroupTemp  : 0    # try to reheat gas to the FOF group Tvir instead of just the subgroup value
+SfDiskVelOpt               : 1    # disk velocity for SF law (1=Vmax, 2=Vvir)
 
 SfEfficiency              : 0.03    # star formation efficiency Normalization
 SfEfficiencyScaling       : 0.0     # star formation efficiency Scaling
@@ -82,6 +76,22 @@ MinMergerRatioForBurst    : 0.1     # Minimum mass ratio for merger driven star 
 MergerBurstFactor         : 0.57    # Constant factor in merger burst equation
 MergerBurstScaling        : 0.7
 
+#----------------------------------------------
+#----- BlackHole and Quasar-------------------
+#----------------------------------------------
+
+Flag_BHFeedback           : 0
+RadioModeEff              : 0.3
+QuasarModeEff             : 0.0005
+BlackHoleGrowthRate       : 0.05
+Flag_BHReion              : 0
+EddingtonRatio            : 1.0
+BlackHoleSeed             : 1e-7
+BlackHoleMassLimitReion   : -1
+RedshiftDepEscFracBHNorm     : 1.00 # at z=5
+RedshiftDepEscFracBHScaling  : 0.00
+quasar_mode_scaling       : 0.0
+quasar_open_angel         : 80.0
 
 #----------------------------------------------
 #----- Reionization ---------------------------
@@ -98,9 +108,11 @@ ReionGnedin_zr         : 7
 
 # patchy (21cmFAST) prescription
 Flag_PatchyReion       : 0
+Flag_output_grids      : 1
+Flag_output_grids_when_finished  : 0
 ReionUVBFlag           : 1
 
-ReionGridDim           : 128
+ReionGridDim           : 256
 ReionDeltaRFactor      : 1.1
 ReionFilterType        : 0
 ReionPowerSpecDeltaK   : 0.1
@@ -111,6 +123,7 @@ ReionRBubbleMin        : 0.4068
 ReionRBubbleMax        : 20.34
 ReionGammaHaloBias     : 2.0
 ReionAlphaUV           : 5.0
+ReionAlphaUVBH         : 1.57
 ReionSMParam_m0        : 0.18984  # internal units
 ReionSMParam_a         : 0.17
 ReionSMParam_b         : -2.1
@@ -119,7 +132,8 @@ ReionSMParam_d         : 2.5
 
 ReionTcool             : 1.0e4  # Kelvin
 ReionNionPhotPerBary   : 4000
-ReionEscapeFrac        : 0.2
+RedshiftDepEscFracNorm     : 0.04
+RedshiftDepEscFracScaling  : 2.5
 
 
 

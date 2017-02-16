@@ -1,0 +1,15 @@
+file /lustre/projects/p113_astro/yqin/bitbucket/new_meraxes/src/SConstruct,line 203:
+	Configure(confdir = .sconf_temp)
+scons: Configure: Checking if compiler supports -fdiagnostics-color=auto ...
+scons: Configure: ".sconf_temp/conftest_0.c" is up to date.
+scons: Configure: The original builder output was:
+  |.sconf_temp/conftest_0.c <-
+  |  |int main(){ return 0; }
+  |
+scons: Configure: ".sconf_temp/conftest_0.o" is up to date.
+scons: Configure: The original builder output was:
+  |[32mCompiling [0m.sconf_temp/conftest_0.o ...
+  |
+scons: Configure: (cached) no
+
+

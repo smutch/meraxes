@@ -21,6 +21,7 @@ static inline bool check_for_merger(galaxy_t *gal, halo_t *new_halo)
   // now greater than the host halo mass, then mark this as a merger
   // if( check_for_flag(TREE_CASE_MERGER, gal->TreeFlags) || (gal->StellarMass > new_halo->Mvir) )
   if (check_for_flag(TREE_CASE_MERGER, gal->TreeFlags))
+      //|| check_for_flag(TREE_CASE_MERGER_PRIMARY, gal->TreeFlags))
     return true;
   else
     return false;
@@ -107,6 +108,24 @@ void dracarys()
     SID_log("===============================================================", SID_LOG_COMMENT);
     SID_log("Snapshot %d  (z = %.3f)", SID_LOG_COMMENT, snapshot, run_globals.ZZ[snapshot]);
     SID_log("===============================================================", SID_LOG_COMMENT);
+
+
+    int i;
+    // Read Mass Ratio Modifier and Baryon Fraction Modifier
+    if (run_globals.RequestedMassRatioModifier == 1){
+        read_mass_ratio_modifiers(snapshot);
+        /*for (i=0; i<=30; i++){
+		    Modifier data = run_globals.mass_ratio_modifier[i];
+            SID_log("%f\t%f\t%f\t%f\t%f", SID_LOG_COMMENT, data.logMmin, data.logMmax, data.mass_mean, data.ratio, data.ratio_errl);
+        }*/
+    }
+    if (run_globals.RequestedBaryonFracModifier == 1){
+        read_baryon_frac_modifiers(snapshot);
+        /*for (i=0; i<=30; i++){
+		    Modifier data = run_globals.baryon_frac_modifier[i];
+            SID_log("%f\t%f\t%f\t%f\t%f", SID_LOG_COMMENT, data.logMmin, data.logMmax, data.mass_mean, data.ratio, data.ratio_errl);
+        }*/
+    }
 
     // Reset book keeping counters
     kill_counter    = 0;
@@ -428,21 +447,36 @@ void dracarys()
     // Add the ghost galaxies into the nout_gals count
     nout_gals += ghost_counter;
 
-
     if (run_globals.params.Flag_PatchyReion)
     {
       physics_params_t *params = &(run_globals.params.physics);
 
-      if (params->Flag_RedshiftDepEscFrac)
-      {
-        float f_esc = 0.04*(powf((1.0+run_globals.ZZ[snapshot])/6.0, 2.5));
+      float f_esc = run_globals.params.physics.RedshiftDepEscFracNorm*(powf((1.0+run_globals.ZZ[snapshot])/6.0, run_globals.params.physics.RedshiftDepEscFracScaling));
+      float f_esc_q = run_globals.params.physics.RedshiftDepEscFracBHNorm*(powf((1.0+run_globals.ZZ[snapshot])/6.0, run_globals.params.physics.RedshiftDepEscFracBHScaling));
+      if (f_esc   > 1.0) f_esc   = 1.0;
+      if (f_esc_q > 1.0) f_esc_q = 1.0;
+      params->ReionEscapeFrac = (double)f_esc;
+      params->ReionEscapeFracBH = (double)f_esc_q;
+      SID_log("f_esc = %g", SID_LOG_COMMENT, f_esc);
+      SID_log("f_esc_q = %g", SID_LOG_COMMENT, f_esc_q);
 
-        if (f_esc > 1.0)
-          f_esc = 1.0;
-
-        params->ReionEscapeFrac = (double)f_esc;
-        SID_log("f_esc = %g", SID_LOG_COMMENT, f_esc);
-      }
+      double dBHemissivitydt=0.0;
+      double dStellaremissivitydt = 0.0;
+      gal = run_globals.FirstGal;
+      while (gal != NULL)                        
+      {                                          
+        if (gal->BlackHoleMass >= run_globals.params.physics.BlackHoleMassLimitReion)
+        {
+          dBHemissivitydt +=gal->BHemissivity/gal->dt;
+        }
+        dStellaremissivitydt +=gal->Stellaremissivity/gal->dt;
+        gal = gal->Next;                         
+      }                                          
+     
+      SID_Allreduce(SID_IN_PLACE, &dBHemissivitydt, 1, SID_DOUBLE, SID_SUM, SID.COMM_WORLD);
+      SID_Allreduce(SID_IN_PLACE, &dStellaremissivitydt, 1, SID_DOUBLE, SID_SUM, SID.COMM_WORLD);
+      SID_log("dBHemissivitydt = %g",SID_LOG_COMMENT, dBHemissivitydt);
+      SID_log("dStellaremissivitydt = %g",SID_LOG_COMMENT, dStellaremissivitydt);
 
       if (check_if_reionization_ongoing())
       {

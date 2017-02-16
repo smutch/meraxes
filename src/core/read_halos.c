@@ -3,6 +3,7 @@
 #include <hdf5.h>
 #include <hdf5_hl.h>
 #include <assert.h>
+#include <math.h>
 
 static void halo_catalog_filename(
   char *simulation_dir,
@@ -179,6 +180,14 @@ static void read_catalog_halos(
 
 static void inline convert_input_virial_props(double *Mvir, double *Rvir, double *Vvir, int len, int snapshot)
 {
+  double ratio;
+  ratio = 1.0;
+  if (run_globals.RequestedMassRatioModifier == 1){
+    double logM;
+    logM  = log10(*Mvir/run_globals.params.Hubble_h);
+    ratio = interpolate_modifier(run_globals.mass_ratio_modifier, logM);
+    //SID_log("%f\t%f\t%f", SID_LOG_COMMENT, *Mvir, logM, ratio);
+  }
   *Mvir /= 1.0e10;
 
   // Update the virial properties
@@ -188,6 +197,7 @@ static void inline convert_input_virial_props(double *Mvir, double *Rvir, double
     *Rvir = calculate_Rvir(*Mvir, snapshot);
   }
   *Vvir = calculate_Vvir(*Mvir, *Rvir);
+  *Mvir *= ratio;
 }
 
 

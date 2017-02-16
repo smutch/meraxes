@@ -331,6 +331,11 @@ void init_meraxes()
   // read in the cooling functions
   read_cooling_functions();
 
+  // set RequestedMassRatioModifier and RequestedBaryonFracModifieruto be 1 first
+  // it will be set to -1 later if MassRatioModifier or BaryonFracModifier is not specified
+  run_globals.RequestedMassRatioModifier = 1;
+  run_globals.RequestedBaryonFracModifier = 1;
+
   // read in the mean Mvir_crit table (if needed)
   read_Mcrit_table();
 
@@ -353,6 +358,7 @@ void init_meraxes()
 
   malloc_reionization_grids();
   set_ReionEfficiency();
+  set_quasar_fobs();
 
   // calculate the output hdf5 file properties for later use
   calc_hdf5_props();

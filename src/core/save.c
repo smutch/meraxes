@@ -69,7 +69,14 @@ void prepare_galaxy_for_output(
   galout->Mcool              = (float)(gal.Mcool);
   galout->StellarMass        = (float)(gal.StellarMass);
   galout->GrossStellarMass   = (float)(gal.GrossStellarMass);
+  galout->Stellaremissivity  = (float)(gal.Stellaremissivity);
+  galout->MergerSemissivity  = (float)(gal.MergerSemissivity);
+  galout->FescWeightedGSM    = (float)(gal.FescWeightedGSM);
   galout->BlackHoleMass      = (float)(gal.BlackHoleMass);
+  galout->BHemissivity       = (float)(gal.BHemissivity);
+  galout->EffectiveBHM       = (float)(gal.EffectiveBHM);
+  galout->BlackHoleAccretedHotMass      = (float)(gal.BlackHoleAccretedHotMass);
+  galout->BlackHoleAccretedColdMass      = (float)(gal.BlackHoleAccretedColdMass);
   galout->DiskScaleLength    = (float)(gal.DiskScaleLength);
   galout->MetalsStellarMass  = (float)(gal.MetalsStellarMass);
   galout->Sfr                = (float)(gal.Sfr * units->UnitMass_in_g / units->UnitTime_in_s * SEC_PER_YEAR / SOLAR_MASS);
@@ -79,6 +86,7 @@ void prepare_galaxy_for_output(
   galout->Cos_Inc            = (float)(gal.Cos_Inc);
   galout->BaryonFracModifier = (float)(gal.BaryonFracModifier);
   galout->MvirCrit           = (float)(gal.MvirCrit);
+  galout->dt                 = (float)(gal.dt);
   galout->MergerBurstMass    = (float)(gal.MergerBurstMass);
   galout->MergTime           = (float)(gal.MergTime * units->UnitLength_in_cm / units->UnitVelocity_in_cm_per_s / SEC_PER_MEGAYEAR);
   galout->MergerStartRadius  = (float)(gal.MergerStartRadius);
@@ -103,7 +111,7 @@ void calc_hdf5_props()
     galaxy_output_t galout;
     int i;                                                // dummy
 
-    h5props->n_props = 40;
+    h5props->n_props = 48;
 
 #ifdef CALC_MAGS
     // If we are calculating any magnitudes then increment the number of
@@ -434,10 +442,67 @@ void calc_hdf5_props()
     h5props->field_h_conv[i]    = "v/h";
     h5props->field_types[i++]   = h5props->array_nhist_f_tid;
 
+    // Blackhole or Emissivity related
+    h5props->dst_offsets[i]     = HOFFSET(galaxy_output_t, Stellaremissivity);
+    h5props->dst_field_sizes[i] = sizeof(galout.Stellaremissivity);
+    h5props->field_names[i]     = "Stellaremissivity";
+    h5props->field_units[i]     = "1e60 photons";
+    h5props->field_h_conv[i]    = "None";
+    h5props->field_types[i++]   = H5T_NATIVE_FLOAT;
+  
+    h5props->dst_offsets[i]     = HOFFSET(galaxy_output_t, MergerSemissivity);
+    h5props->dst_field_sizes[i] = sizeof(galout.MergerSemissivity);
+    h5props->field_names[i]     = "MergerSemissivity";
+    h5props->field_units[i]     = "1e60 photons";
+    h5props->field_h_conv[i]    = "None";
+    h5props->field_types[i++]   = H5T_NATIVE_FLOAT;
+  
+    h5props->dst_offsets[i]     = HOFFSET(galaxy_output_t, FescWeightedGSM);         
+    h5props->dst_field_sizes[i] = sizeof(galout.FescWeightedGSM);                    
+    h5props->field_names[i]     = "FescWeightedGSM";                                 
+    h5props->field_units[i]     = "1e10 solMass";                                    
+    h5props->field_h_conv[i]    = "v/h";                                             
+    h5props->field_types[i++]   = H5T_NATIVE_FLOAT;                                  
+  
+    h5props->dst_offsets[i]     = HOFFSET(galaxy_output_t, BHemissivity);
+    h5props->dst_field_sizes[i] = sizeof(galout.BHemissivity);
+    h5props->field_names[i]     = "BHemissivity";
+    h5props->field_units[i]     = "1e60 photons";
+    h5props->field_h_conv[i]    = "None";
+    h5props->field_types[i++]   = H5T_NATIVE_FLOAT;
+  
+    h5props->dst_offsets[i]     = HOFFSET(galaxy_output_t, EffectiveBHM);
+    h5props->dst_field_sizes[i] = sizeof(galout.EffectiveBHM);
+    h5props->field_names[i]     = "EffectiveBHM";
+    h5props->field_units[i]     = "1e10 solMass";
+    h5props->field_h_conv[i]    = "v/h";
+    h5props->field_types[i++]   = H5T_NATIVE_FLOAT;
+  
+    h5props->dst_offsets[i]     = HOFFSET(galaxy_output_t, BlackHoleAccretedHotMass);
+    h5props->dst_field_sizes[i] = sizeof(galout.BlackHoleAccretedHotMass);
+    h5props->field_names[i]     = "BlackHoleAccretedHotMass";
+    h5props->field_units[i]     = "1e10 solMass";
+    h5props->field_h_conv[i]    = "v/h";
+    h5props->field_types[i++]   = H5T_NATIVE_FLOAT;
+  
+    h5props->dst_offsets[i]     = HOFFSET(galaxy_output_t, BlackHoleAccretedColdMass);
+    h5props->dst_field_sizes[i] = sizeof(galout.BlackHoleAccretedColdMass);
+    h5props->field_names[i]     = "BlackHoleAccretedColdMass";
+    h5props->field_units[i]     = "1e10 solMass";
+    h5props->field_h_conv[i]    = "v/h";
+    h5props->field_types[i++]   = H5T_NATIVE_FLOAT;
+  
+    h5props->dst_offsets[i]     = HOFFSET(galaxy_output_t, dt);
+    h5props->dst_field_sizes[i] = sizeof(galout.dt);
+    h5props->field_names[i]     = "dt";
+    h5props->field_units[i]     = "Myr";
+    h5props->field_h_conv[i]    = "v/h";
+    h5props->field_types[i++]   = H5T_NATIVE_FLOAT;
+
     // DEBUG
     if (i != h5props->n_props)
     {
-      SID_log_error("Incorrect number of galaxy properties in HDF5 file.");
+      SID_log_error("Incorrect number of galaxy properties in HDF5 file. Should be %d, but is %d", h5props->n_props,i);
       ABORT(EXIT_FAILURE);
     }
   }
@@ -739,6 +804,7 @@ void write_snapshot(
   hdf5_output_t h5props       = run_globals.hdf5props;
   int gal_count               = 0;
   int old_count               = 0;
+  int total_n_out_gals        = 0; 
   int *first_progenitor_index = NULL;
   int *next_progenitor_index  = NULL;
   int calc_descendants_i_out  = -1;
@@ -784,12 +850,16 @@ void write_snapshot(
   // descendent indices
   prev_snapshot = run_globals.ListOutputSnaps[i_out] - 1;
   if (i_out > 0)
+  {
     for (int ii = 0; ii < run_globals.NOutputSnaps; ii++)
+  {
       if (run_globals.ListOutputSnaps[ii] == prev_snapshot)
       {
         calc_descendants_i_out = ii;
         break;
       }
+  }
+  }
 
   // Assign the write order indices to each galaxy and store the old indices if required
   gal_count = 0;
@@ -929,7 +999,7 @@ void write_snapshot(
   // Free the output buffer
   SID_free(SID_FARG output_buffer);
 
-  if (run_globals.params.Flag_PatchyReion && check_if_reionization_ongoing())
+  if (run_globals.params.Flag_PatchyReion && check_if_reionization_ongoing()  && (run_globals.params.Flag_output_grids))
     save_reion_output_grids(run_globals.ListOutputSnaps[i_out]);
 
   // Close the group.
@@ -943,4 +1013,3 @@ void write_snapshot(
 
   SID_log("...done", SID_LOG_CLOSE);
 }
-

@@ -7,6 +7,12 @@
 #include <hdf5_hl.h>
 #include <assert.h>
 
+void set_quasar_fobs()
+{
+  run_globals.params.physics.quasar_fobs = 1.-cos(run_globals.params.physics.quasar_open_angel/180.* M_PI /2.);
+  SID_log("Quasar Radiation Open Angel is set to be %g, corresponding to an obscure fraction of %g", SID_LOG_COMMENT,run_globals.params.physics.quasar_open_angel, run_globals.params.physics.quasar_fobs);
+}
+  
 void set_ReionEfficiency()
 {
   if (run_globals.params.Flag_PatchyReion)
@@ -14,21 +20,11 @@ void set_ReionEfficiency()
     // Use the params passed to Meraxes via the input file to set the HII ionising efficiency factor
     physics_params_t *params = &(run_globals.params.physics);
 
-    // If we are using a redshift dependent escape fraction then reset
-    // ReionEscapeFrac to one as we don't want to inlcude it in the
-    // ReionEfficiency (it will be included in the stellar mass and SFR grids sent
-    // to 21cmFAST instead).
-    if (params->Flag_RedshiftDepEscFrac)
-    {
-      SID_log("Flag_RedshiftDepEscFrac is on => setting ReionEscapeFrac = 1.", SID_LOG_COMMENT);
-      params->ReionEscapeFrac = 1.0;
-    }
-
     // The following is based on Sobacchi & Messinger (2013) eqn 7
     // with f_* removed and f_b added since we define f_coll as M_*/M_tot rather than M_vir/M_tot,
     // and also with the inclusion of the effects of the Helium fraction.
     run_globals.params.physics.ReionEfficiency = 1.0 / run_globals.params.BaryonFrac
-      * params->ReionNionPhotPerBary * params->ReionEscapeFrac / (1.0 - 0.75*run_globals.params.physics.Y_He);
+      * params->ReionNionPhotPerBary / (1.0 - 0.75*run_globals.params.physics.Y_He);
 
     // Account for instantaneous recycling factor so that stellar mass is cumulative
     if (params->Flag_IRA)
@@ -40,8 +36,6 @@ void set_ReionEfficiency()
     run_globals.params.physics.ReionEfficiency = -1;
   }
 }
-
-
 
 void assign_slabs()
 {
@@ -104,16 +98,18 @@ void call_find_HII_bubbles(int snapshot, int unsampled_snapshot, int nout_gals)
 
   // save the grids prior to doing FFTs to avoid precision loss and aliasing etc.
   for (int i_out = 0; i_out < run_globals.NOutputSnaps; i_out++)
-    if (snapshot == run_globals.ListOutputSnaps[i_out])
+    if (snapshot == run_globals.ListOutputSnaps[i_out] && run_globals.params.Flag_output_grids)
       save_reion_input_grids(snapshot);
 
   SID_log("...done", SID_LOG_CLOSE);
 
   // Call find_HII_bubbles
   SID_log("Calling find_HII_bubbles", SID_LOG_OPEN | SID_LOG_TIMER);
+
   find_HII_bubbles(run_globals.ZZ[snapshot]);
 
   SID_log("grids->volume_weighted_global_xH = %g", SID_LOG_COMMENT, grids->volume_weighted_global_xH);
+  SID_log("global mass weighted xHII = %g at z = %g", SID_LOG_COMMENT, grids->mass_weighted_global_xH,run_globals.ZZ[snapshot]);
   SID_log("...done", SID_LOG_CLOSE);
 }
 
@@ -479,6 +475,7 @@ void construct_baryon_grids(int snapshot, int local_ngals)
   {
     int i_gal = 0;
     int skipped_gals = 0;
+    long N_BlackHoleMassLimitReion = 0;
 
     for(int i_r=0; i_r < SID.n_proc; i_r++)
     {
@@ -522,11 +519,25 @@ void construct_baryon_grids(int snapshot, int local_ngals)
           // They are the same just now, but may be different in the future once the model is improved.
           switch (prop) {
             case prop_stellar:
-              buffer[ind] += gal->GrossStellarMass;
+              buffer[ind] += gal->FescWeightedGSM;
+              // a trick to include quasar radiation using current 21cmFAST code
+              if ((run_globals.params.physics.Flag_BHFeedback) && (run_globals.params.physics.Flag_BHReion))
+              {
+                if (gal->BlackHoleMass >= run_globals.params.physics.BlackHoleMassLimitReion)
+                  buffer[ind] += gal->EffectiveBHM;
+                else
+                  N_BlackHoleMassLimitReion+=1;
+              }
               break;
 
             case prop_sfr:
-              buffer[ind] += gal->GrossStellarMass;
+              buffer[ind] += gal->FescWeightedGSM;
+              // for ionizing_source_formation_rate_grid, need further convertion due to different UV spectral index of quasar and stellar component
+              if ((run_globals.params.physics.Flag_BHFeedback) && (run_globals.params.physics.Flag_BHReion))
+              {
+                if (gal->BlackHoleMass >= run_globals.params.physics.BlackHoleMassLimitReion)
+                  buffer[ind] += gal->EffectiveBHM * (double)run_globals.params.physics.ReionAlphaUVBH/(double)run_globals.params.physics.ReionAlphaUV;
+              }
               break;
 
             default:
@@ -538,7 +549,7 @@ void construct_baryon_grids(int snapshot, int local_ngals)
           i_gal++;
         }
       }
-
+     
       // reduce on to the correct rank
       if(SID.My_rank == i_r)
         SID_Reduce(MPI_IN_PLACE, buffer, buffer_size, MPI_FLOAT, MPI_SUM, i_r, SID.COMM_WORLD);
@@ -548,7 +559,7 @@ void construct_baryon_grids(int snapshot, int local_ngals)
       if (SID.My_rank == i_r)
       {
 
-				// Do one final pass and divide the sfr_grid by tHubble
+        // Do one final pass and divide the sfr_grid by tHubble
         // in order to convert the stellar masses recorded into SFRs before
         // finally copying the values into the appropriate slab.
         // TODO: Use a better timescale for SFR
@@ -578,8 +589,10 @@ void construct_baryon_grids(int snapshot, int local_ngals)
             break;
         }
 
-			}
+      }
     }
+    SID_Allreduce(SID_IN_PLACE, &N_BlackHoleMassLimitReion, 1, SID_DOUBLE, SID_SUM, SID.COMM_WORLD);
+    SID_log("%d quasars are smaller than %g",SID_LOG_COMMENT, N_BlackHoleMassLimitReion,run_globals.params.physics.BlackHoleMassLimitReion);
   }
 
   SID_log("done", SID_LOG_CLOSE);
@@ -740,7 +753,7 @@ void save_reion_output_grids(int snapshot)
   }
 
   H5LTset_attribute_double(file_id, "xH", "volume_weighted_global_xH", &(grids->volume_weighted_global_xH), 1);
-  H5LTset_attribute_double(file_id, "xH_mass_weighted", "mass_weighted_global_xH", &(grids->mass_weighted_global_xH), 1);
+  H5LTset_attribute_double(file_id, "xH", "mass_weighted_global_xH", &(grids->mass_weighted_global_xH), 1);
 
   // // Run delta_T_ps
   // // ----------------------------------------------------------------------------------------------------
@@ -792,6 +805,11 @@ bool check_if_reionization_ongoing()
   // Ok, so we haven't finished.  Have we started then?
   if (started)
   {
+    // whether we want to continue even when reionization is finished
+    // In order to keep outputting meraxes_grids_%d.hdf5
+    if (run_globals.params.Flag_output_grids_when_finished)
+      return true;
+
     // So we have started, but have not previously found to be finished.  Have
     // we now finished though?
     float *xH = run_globals.reion_grids.xH;
