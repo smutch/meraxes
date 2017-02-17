@@ -71,10 +71,10 @@ void update_reservoirs_from_sn_feedback(galaxy_t *gal, double m_reheat, double m
 
 
 static inline double calc_ejected_mass(
-    double *m_reheat,
-    double  sn_energy,
-    double  Vvir,
-    double  fof_Vvir)
+  double *m_reheat,
+  double  sn_energy,
+  double  Vvir,
+  double  fof_Vvir)
 {
   double m_eject = 0.0;
 
@@ -123,7 +123,7 @@ static inline double calc_eta_sn(double m_high, double m_low, double *snII_frac)
   // work out the number of supernova per 1e10 Msol formed at the current time
   double exponent  = run_globals.params.physics.IMFSlope + 1.0; // should be -1.35 for Salpeter
   double const_phi = run_globals.params.physics.IMFNormConst;   // should be 0.1706 for Salpeter
-  double eta_SNII  = run_globals.params.physics.eta_SNII; // total number of type II SN per solar mass of burst
+  double eta_SNII  = run_globals.params.physics.eta_SNII;       // total number of type II SN per solar mass of burst
 
   double eta_sn = const_phi * 1.0 / exponent * (pow(m_high, exponent) - pow(m_low, exponent));
 
@@ -148,7 +148,7 @@ static inline double calc_sn_energy(double stars, double Vmax, double eta_sn)
 
   if (SnEjectionScaling != 0)
   {
-    SnEjectionEff *= 0.5 + pow(Vmax/SnEjectionNorm, -SnEjectionScaling);
+    SnEjectionEff *= 0.5 + pow(Vmax / SnEjectionNorm, -SnEjectionScaling);
     if (SnEjectionEff > 1.0)
       SnEjectionEff = 1.0;
   }
@@ -238,7 +238,7 @@ void delayed_supernova_feedback(galaxy_t *gal, int snapshot)
 
   // scale the reheating efficiency
   if (SnReheatScaling != 0)
-    SnReheatEff *= 0.5 + pow(gal->Vmax/SnReheatNorm, -SnReheatScaling);
+    SnReheatEff *= 0.5 + pow(gal->Vmax / SnReheatNorm, -SnReheatScaling);
   if (SnReheatEff > SnReheatLimit)
     SnReheatEff = SnReheatLimit;
 
@@ -338,13 +338,13 @@ static void backfill_ghost_NewStars(galaxy_t *gal, double m_stars, int snapshot)
 
 
 void contemporaneous_supernova_feedback(
-  galaxy_t      *gal,
-  double        *m_stars,
-  int            snapshot,
-  double        *m_reheat,
-  double        *m_eject,
-  double        *m_recycled,
-  double        *new_metals)
+  galaxy_t *gal,
+  double   *m_stars,
+  int       snapshot,
+  double   *m_reheat,
+  double   *m_eject,
+  double   *m_recycled,
+  double   *new_metals)
 {
   // Here we approximate a constant SFR accross the timestep by a single burst
   // at t=0.5*dt.  This is a pretty good approximation (to within ~15% of the
@@ -371,7 +371,7 @@ void contemporaneous_supernova_feedback(
 
   // scale the reheating efficiency
   if (SnReheatScaling != 0)
-    SnReheatEff *= 0.5 + pow(gal->Vmax/SnReheatNorm, -SnReheatScaling);
+    SnReheatEff *= 0.5 + pow(gal->Vmax / SnReheatNorm, -SnReheatScaling);
   if (SnReheatEff > SnReheatLimit)
     SnReheatEff = SnReheatLimit;
 

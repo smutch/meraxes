@@ -9,10 +9,10 @@
 
 void set_quasar_fobs()
 {
-  run_globals.params.physics.quasar_fobs = 1.-cos(run_globals.params.physics.quasar_open_angel/180.* M_PI /2.);
+  run_globals.params.physics.quasar_fobs = 1. - cos(run_globals.params.physics.quasar_open_angel / 180. * M_PI / 2.);
   SID_log("Quasar Radiation Open Angel is set to be %g, corresponding to an obscure fraction of %g", SID_LOG_COMMENT,run_globals.params.physics.quasar_open_angel, run_globals.params.physics.quasar_fobs);
 }
-  
+
 void set_ReionEfficiency()
 {
   if (run_globals.params.Flag_PatchyReion)
@@ -24,7 +24,7 @@ void set_ReionEfficiency()
     // with f_* removed and f_b added since we define f_coll as M_*/M_tot rather than M_vir/M_tot,
     // and also with the inclusion of the effects of the Helium fraction.
     run_globals.params.physics.ReionEfficiency = 1.0 / run_globals.params.BaryonFrac
-      * params->ReionNionPhotPerBary / (1.0 - 0.75*run_globals.params.physics.Y_He);
+                                                 * params->ReionNionPhotPerBary / (1.0 - 0.75 * run_globals.params.physics.Y_He);
 
     // Account for instantaneous recycling factor so that stellar mass is cumulative
     if (params->Flag_IRA)
@@ -50,7 +50,7 @@ void assign_slabs()
 
   // Use fftw to find out what slab each rank should get
   ptrdiff_t local_nix, local_ix_start;
-  ptrdiff_t local_n_complex = fftwf_mpi_local_size_3d(dim, dim, dim/2 + 1, SID_COMM_WORLD, &local_nix, &local_ix_start);
+  ptrdiff_t local_n_complex = fftwf_mpi_local_size_3d(dim, dim, dim / 2 + 1, SID_COMM_WORLD, &local_nix, &local_ix_start);
 
   // let every core know...
   ptrdiff_t **slab_nix = &run_globals.reion_grids.slab_nix;
@@ -60,11 +60,11 @@ void assign_slabs()
   ptrdiff_t **slab_ix_start = &run_globals.reion_grids.slab_ix_start;
   *slab_ix_start = SID_malloc(sizeof(ptrdiff_t) * n_rank); ///< array first x cell of every rank
   (*slab_ix_start)[0] = 0;
-  for(int ii=1; ii<n_rank; ii++)
-    (*slab_ix_start)[ii] = (*slab_ix_start)[ii-1] + (*slab_nix)[ii-1];
+  for(int ii = 1; ii < n_rank; ii++)
+    (*slab_ix_start)[ii] = (*slab_ix_start)[ii - 1] + (*slab_nix)[ii - 1];
 
-  ptrdiff_t **slab_n_complex = &run_globals.reion_grids.slab_n_complex;  ///< array of allocation counts for every rank
-  *slab_n_complex = SID_malloc(sizeof(ptrdiff_t) * n_rank);  ///< array of allocation counts for every rank
+  ptrdiff_t **slab_n_complex = &run_globals.reion_grids.slab_n_complex; ///< array of allocation counts for every rank
+  *slab_n_complex = SID_malloc(sizeof(ptrdiff_t) * n_rank);             ///< array of allocation counts for every rank
   MPI_Allgather(&local_n_complex, sizeof(ptrdiff_t), MPI_BYTE, *slab_n_complex, sizeof(ptrdiff_t), MPI_BYTE, SID_COMM_WORLD);
 
   SID_log("...done", SID_LOG_CLOSE);
@@ -148,12 +148,12 @@ void init_reion_grids()
 
   for (int ii = 0; ii < slab_n_complex; ii++)
   {
-    grids->stars_filtered[ii] = 0 + 0*I;
-    grids->deltax_filtered[ii] = 0 + 0*I;
-    grids->sfr_filtered[ii] = 0 + 0*I;
+    grids->stars_filtered[ii] = 0 + 0 * I;
+    grids->deltax_filtered[ii] = 0 + 0 * I;
+    grids->sfr_filtered[ii] = 0 + 0 * I;
   }
 
-  for (int ii = 0; ii < slab_n_complex*2; ii++)
+  for (int ii = 0; ii < slab_n_complex * 2; ii++)
   {
     grids->deltax[ii] = 0;
     grids->stars[ii] = 0;
@@ -200,7 +200,7 @@ void malloc_reionization_grids()
     // create a buffer on each rank which is as large as the largest LOGICAL allocation on any single rank
     int max_cells = 0;
 
-    for(int ii=0; ii < SID.n_proc; ii++)
+    for(int ii = 0; ii < SID.n_proc; ii++)
       if(slab_nix[ii] > max_cells)
         max_cells = slab_nix[ii];
 
@@ -329,15 +329,15 @@ void assign_Mvir_crit_to_galaxies(int ngals_in_slabs)
   float         *buffer             = run_globals.reion_grids.buffer;
   ptrdiff_t     *slab_nix           = run_globals.reion_grids.slab_nix;
   ptrdiff_t     *slab_ix_start      = run_globals.reion_grids.slab_ix_start;
-  int           ReionGridDim             = run_globals.params.ReionGridDim;
-  double        box_size            = run_globals.params.BoxSize;
-  int           total_assigned      = 0;
+  int ReionGridDim             = run_globals.params.ReionGridDim;
+  double box_size            = run_globals.params.BoxSize;
+  int total_assigned      = 0;
 
   SID_log("Assigning Mvir_crit to galaxies...", SID_LOG_OPEN);
 
   // Work out the index of the galaxy_to_slab_map where each slab begins.
   int slab_map_offsets[SID.n_proc];
-  for(int ii=0, i_gal=0; ii < SID.n_proc; ii++)
+  for(int ii = 0, i_gal = 0; ii < SID.n_proc; ii++)
   {
     if (galaxy_to_slab_map != NULL)
     {
@@ -357,30 +357,30 @@ void assign_Mvir_crit_to_galaxies(int ngals_in_slabs)
   }
 
   // do a ring exchange of slabs between all cores
-  for(int i_skip=0; i_skip < SID.n_proc; i_skip++)
+  for(int i_skip = 0; i_skip < SID.n_proc; i_skip++)
   {
     int recv_from_rank = (SID.My_rank + i_skip) % SID.n_proc;
     int send_to_rank   = (SID.My_rank - i_skip + SID.n_proc) % SID.n_proc;
 
     bool send_flag     = false;
     bool recv_flag     = (slab_map_offsets[recv_from_rank] > -1);
-      
+
     if (i_skip > 0)
     {
       SID_Sendrecv(&recv_flag, sizeof(bool), SID_BYTE, recv_from_rank, 6393762,
-          &send_flag, sizeof(bool), SID_BYTE, send_to_rank, 6393762, SID.COMM_WORLD);
+                   &send_flag, sizeof(bool), SID_BYTE, send_to_rank, 6393762, SID.COMM_WORLD);
 
       // need to ensure sends and receives do not clash!
       if (send_to_rank > SID.My_rank)
       {
         if(send_flag)
         {
-          int n_cells = slab_nix[SID.My_rank]*ReionGridDim*ReionGridDim;
+          int n_cells = slab_nix[SID.My_rank] * ReionGridDim * ReionGridDim;
           SID_Send(Mvir_crit, n_cells, SID_FLOAT, send_to_rank, 793710, SID.COMM_WORLD);
         }
         if(recv_flag)
         {
-          int n_cells = slab_nix[recv_from_rank]*ReionGridDim*ReionGridDim; 
+          int n_cells = slab_nix[recv_from_rank] * ReionGridDim * ReionGridDim;
           SID_Recv(buffer, n_cells, SID_FLOAT, recv_from_rank, 793710, SID.COMM_WORLD);
         }
       }
@@ -388,19 +388,19 @@ void assign_Mvir_crit_to_galaxies(int ngals_in_slabs)
       {
         if(recv_flag)
         {
-          int n_cells = slab_nix[recv_from_rank]*ReionGridDim*ReionGridDim; 
+          int n_cells = slab_nix[recv_from_rank] * ReionGridDim * ReionGridDim;
           SID_Recv(buffer, n_cells, SID_FLOAT, recv_from_rank, 793710, SID.COMM_WORLD);
         }
         if(send_flag)
         {
-          int n_cells = slab_nix[SID.My_rank]*ReionGridDim*ReionGridDim;
+          int n_cells = slab_nix[SID.My_rank] * ReionGridDim * ReionGridDim;
           SID_Send(Mvir_crit, n_cells, SID_FLOAT, send_to_rank, 793710, SID.COMM_WORLD);
         }
       }
     }
     else
     {
-      int n_cells = slab_nix[recv_from_rank]*ReionGridDim*ReionGridDim; 
+      int n_cells = slab_nix[recv_from_rank] * ReionGridDim * ReionGridDim;
       memcpy(buffer, Mvir_crit, sizeof(float) * n_cells);
     }
 
@@ -418,7 +418,7 @@ void assign_Mvir_crit_to_galaxies(int ngals_in_slabs)
         int iy = pos_to_ngp(gal->Pos[1], box_size, ReionGridDim);
         int iz = pos_to_ngp(gal->Pos[2], box_size, ReionGridDim);
 
-        assert(ix >=0);
+        assert(ix >= 0);
         assert(ix < slab_nix[recv_from_rank]);
 
         // Record the Mvir_crit (filtering mass) value
@@ -442,7 +442,7 @@ void assign_Mvir_crit_to_galaxies(int ngals_in_slabs)
 
 void construct_baryon_grids(int snapshot, int local_ngals)
 {
-  
+
   double box_size     = (double)(run_globals.params.BoxSize);
   float *stellar_grid = run_globals.reion_grids.stars;
   float *sfr_grid     = run_globals.reion_grids.sfr;
@@ -456,7 +456,7 @@ void construct_baryon_grids(int snapshot, int local_ngals)
   SID_log("Constructing stellar mass and sfr grids...", SID_LOG_OPEN | SID_LOG_TIMER);
 
   // init the grid
-  for (int ii = 0; ii < local_n_complex*2; ii++)
+  for (int ii = 0; ii < local_n_complex * 2; ii++)
   {
     stellar_grid[ii] = 0.0;
     sfr_grid[ii]     = 0.0;
@@ -477,10 +477,10 @@ void construct_baryon_grids(int snapshot, int local_ngals)
     int skipped_gals = 0;
     long N_BlackHoleMassLimitReion = 0;
 
-    for(int i_r=0; i_r < SID.n_proc; i_r++)
+    for(int i_r = 0; i_r < SID.n_proc; i_r++)
     {
       // init the buffer
-      for(int ii=0; ii<buffer_size; ii++)
+      for(int ii = 0; ii < buffer_size; ii++)
         buffer[ii] = 0.;
 
       // if this core holds no galaxies then we don't need to fill the buffer
@@ -514,7 +514,7 @@ void construct_baryon_grids(int snapshot, int local_ngals)
 
           int ind = grid_index(ix, iy, iz, ReionGridDim, INDEX_REAL);
 
-          assert((ind >=0) && (ind < slab_nix[i_r]*ReionGridDim*ReionGridDim));
+          assert((ind >= 0) && (ind < slab_nix[i_r] * ReionGridDim * ReionGridDim));
 
           // They are the same just now, but may be different in the future once the model is improved.
           switch (prop) {
@@ -526,7 +526,7 @@ void construct_baryon_grids(int snapshot, int local_ngals)
                 if (gal->BlackHoleMass >= run_globals.params.physics.BlackHoleMassLimitReion)
                   buffer[ind] += gal->EffectiveBHM;
                 else
-                  N_BlackHoleMassLimitReion+=1;
+                  N_BlackHoleMassLimitReion += 1;
               }
               break;
 
@@ -536,7 +536,7 @@ void construct_baryon_grids(int snapshot, int local_ngals)
               if ((run_globals.params.physics.Flag_BHFeedback) && (run_globals.params.physics.Flag_BHReion))
               {
                 if (gal->BlackHoleMass >= run_globals.params.physics.BlackHoleMassLimitReion)
-                  buffer[ind] += gal->EffectiveBHM * (double)run_globals.params.physics.ReionAlphaUVBH/(double)run_globals.params.physics.ReionAlphaUV;
+                  buffer[ind] += gal->EffectiveBHM * (double)run_globals.params.physics.ReionAlphaUVBH / (double)run_globals.params.physics.ReionAlphaUV;
               }
               break;
 
@@ -549,7 +549,7 @@ void construct_baryon_grids(int snapshot, int local_ngals)
           i_gal++;
         }
       }
-     
+
       // reduce on to the correct rank
       if(SID.My_rank == i_r)
         SID_Reduce(MPI_IN_PLACE, buffer, buffer_size, MPI_FLOAT, MPI_SUM, i_r, SID.COMM_WORLD);
@@ -566,9 +566,9 @@ void construct_baryon_grids(int snapshot, int local_ngals)
         switch (prop)
         {
           case prop_sfr:
-            for(int ix=0; ix<slab_nix[i_r]; ix++)
-              for(int iy=0; iy<ReionGridDim; iy++)
-                for(int iz=0; iz<ReionGridDim; iz++)
+            for(int ix = 0; ix < slab_nix[i_r]; ix++)
+              for(int iy = 0; iy < ReionGridDim; iy++)
+                for(int iz = 0; iz < ReionGridDim; iz++)
                 {
                   double val = (double)buffer[grid_index(ix, iy, iz, ReionGridDim, INDEX_REAL)];
                   val = (val > 0) ? val / tHubble : 0;
@@ -577,9 +577,9 @@ void construct_baryon_grids(int snapshot, int local_ngals)
             break;
 
           case prop_stellar:
-            for(int ix=0; ix<slab_nix[i_r]; ix++)
-              for(int iy=0; iy<ReionGridDim; iy++)
-                for(int iz=0; iz<ReionGridDim; iz++)
+            for(int ix = 0; ix < slab_nix[i_r]; ix++)
+              for(int iy = 0; iy < ReionGridDim; iy++)
+                for(int iz = 0; iz < ReionGridDim; iz++)
                 {
                   float val = buffer[grid_index(ix, iy, iz, ReionGridDim, INDEX_REAL)];
                   if (val < 0)
@@ -596,7 +596,7 @@ void construct_baryon_grids(int snapshot, int local_ngals)
   }
 
   SID_log("done", SID_LOG_CLOSE);
-  
+
 }
 
 
@@ -604,7 +604,7 @@ static void write_grid_float(const char *name, float *data, hid_t file_id, hid_t
 {
   // create the dataset
   hid_t dset_id = H5Dcreate(file_id, name, H5T_NATIVE_FLOAT, fspace_id,
-      H5P_DEFAULT, dcpl_id, H5P_DEFAULT);
+                            H5P_DEFAULT, dcpl_id, H5P_DEFAULT);
 
   // create the property list
   hid_t plist_id = H5Pcreate(H5P_DATASET_XFER);
@@ -630,8 +630,8 @@ void gen_grids_fname(int snapshot, char *name, bool relative)
 void save_reion_input_grids(int snapshot)
 {
   reion_grids_t *grids = &(run_globals.reion_grids);
-  int   ReionGridDim       = run_globals.params.ReionGridDim;
-  int   local_nix     = (int)(run_globals.reion_grids.slab_nix[SID.My_rank]);
+  int ReionGridDim       = run_globals.params.ReionGridDim;
+  int local_nix     = (int)(run_globals.reion_grids.slab_nix[SID.My_rank]);
   double UnitTime_in_s = run_globals.units.UnitTime_in_s;
   double UnitMass_in_g = run_globals.units.UnitMass_in_g;
 
@@ -702,8 +702,8 @@ void save_reion_output_grids(int snapshot)
 {
 
   reion_grids_t *grids = &(run_globals.reion_grids);
-  int   ReionGridDim       = run_globals.params.ReionGridDim;
-  int   local_nix     = (int)(run_globals.reion_grids.slab_nix[SID.My_rank]);
+  int ReionGridDim       = run_globals.params.ReionGridDim;
+  int local_nix     = (int)(run_globals.reion_grids.slab_nix[SID.My_rank]);
   // float *ps;
   // int   ps_nbins;
   // float average_deltaT;
@@ -801,7 +801,7 @@ bool check_if_reionization_ongoing()
   // First check if we've already finished on all cores.
   if (finished)
     return false;
-  
+
   // Ok, so we haven't finished.  Have we started then?
   if (started)
   {
@@ -818,7 +818,7 @@ bool check_if_reionization_ongoing()
 
     // If not all cells are ionised then reionization is still progressing...
     finished = 1;
-    for (int ii=0; ii < slab_n_real; ii++)
+    for (int ii = 0; ii < slab_n_real; ii++)
     {
       if (xH[ii] != 0.0)
       {
@@ -853,56 +853,56 @@ void filter(fftwf_complex *box, int local_ix_start, int slab_nx, int grid_dim, f
   int filter_type = run_globals.params.ReionFilterType;
   int middle = grid_dim / 2;
   float box_size = run_globals.params.BoxSize;
-  float delta_k = 2.0*M_PI / box_size;
+  float delta_k = 2.0 * M_PI / box_size;
 
   // Loop through k-box
-  for (int n_x=0; n_x<slab_nx; n_x++)
+  for (int n_x = 0; n_x < slab_nx; n_x++)
   {
     float k_x;
     int n_x_global = n_x + local_ix_start;
 
     if (n_x_global > middle)
-      k_x = (n_x_global - grid_dim)*delta_k;
+      k_x = (n_x_global - grid_dim) * delta_k;
     else
-      k_x = n_x_global*delta_k;
+      k_x = n_x_global * delta_k;
 
-    for (int n_y=0; n_y<grid_dim; n_y++)
+    for (int n_y = 0; n_y < grid_dim; n_y++)
     {
       float k_y;
 
-      if (n_y>middle)
-        k_y = (n_y-grid_dim)*delta_k;
+      if (n_y > middle)
+        k_y = (n_y - grid_dim) * delta_k;
       else
-        k_y = n_y*delta_k;
+        k_y = n_y * delta_k;
 
-      for (int n_z=0; n_z<=middle; n_z++)
-      { 
-        float k_z = n_z*delta_k;
+      for (int n_z = 0; n_z <= middle; n_z++)
+      {
+        float k_z = n_z * delta_k;
 
-        float k_mag = sqrtf(k_x*k_x + k_y*k_y + k_z*k_z);
+        float k_mag = sqrtf(k_x * k_x + k_y * k_y + k_z * k_z);
 
-        float kR = k_mag*R;   // Real space top-hat
+        float kR = k_mag * R;   // Real space top-hat
 
         switch(filter_type)
         {
           case 0:   // Real space top-hat
             if (kR > 1e-4)
-              box[grid_index(n_x, n_y, n_z, grid_dim, INDEX_COMPLEX_HERM)] *= (fftwf_complex)(3.0 * (sinf(kR)/powf(kR, 3) - cosf(kR)/powf(kR, 2)));
+              box[grid_index(n_x, n_y, n_z, grid_dim, INDEX_COMPLEX_HERM)] *= (fftwf_complex)(3.0 * (sinf(kR) / powf(kR, 3) - cosf(kR) / powf(kR, 2)));
             break;
 
-          case 1:   // k-space top hat
+          case 1:              // k-space top hat
             kR *= 0.413566994; // Equates integrated volume to the real space top-hat (9pi/2)^(-1/3)
             if (kR > 1)
               box[grid_index(n_x, n_y, n_z, grid_dim, INDEX_COMPLEX_HERM)] = (fftwf_complex)0.0;
             break;
-        
-          case 2:   // Gaussian
-            kR *= 0.643;   // Equates integrated volume to the real space top-hat
-            box[grid_index(n_x, n_y, n_z, grid_dim, INDEX_COMPLEX_HERM)] *= (fftwf_complex)(powf(M_E, -kR*kR/2.0));
+
+          case 2:        // Gaussian
+            kR *= 0.643; // Equates integrated volume to the real space top-hat
+            box[grid_index(n_x, n_y, n_z, grid_dim, INDEX_COMPLEX_HERM)] *= (fftwf_complex)(powf(M_E, -kR * kR / 2.0));
             break;
 
           default:
-            if ( (n_x==0) && (n_y==0) && (n_z==0) )
+            if ( (n_x == 0) && (n_y == 0) && (n_z == 0) )
             {
               SID_log_error("ReionFilterType.c: Warning, ReionFilterType type %d is undefined!", filter_type);
               ABORT(EXIT_FAILURE);

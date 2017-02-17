@@ -183,7 +183,7 @@ static void read_output_snaps()
 {
   int **ListOutputSnaps = &(run_globals.ListOutputSnaps);
   int *LastOutputSnap  = &(run_globals.LastOutputSnap);
-  int maxsnaps = run_globals.params.SnaplistLength; 
+  int maxsnaps = run_globals.params.SnaplistLength;
   int *nout = &(run_globals.NOutputSnaps);
 
   if (SID.My_rank == 0)
@@ -252,7 +252,7 @@ static void read_output_snaps()
 
   // broadcast the data to all other ranks
   SID_Bcast(nout, sizeof(int), 0, SID.COMM_WORLD);
-  
+
   if(SID.My_rank > 0)
     *ListOutputSnaps = SID_malloc(sizeof(int) * (*nout));
 
@@ -270,12 +270,12 @@ static void check_n_history_snaps()
 
   double *LTTime = run_globals.LTTime;
   int n_snaps    = run_globals.params.SnaplistLength;
-  double min_dt  = LTTime[0] - LTTime[n_snaps-1];
+  double min_dt  = LTTime[0] - LTTime[n_snaps - 1];
   double m_low;
 
-  for (int ii = 0; ii < n_snaps-N_HISTORY_SNAPS; ii++)
+  for (int ii = 0; ii < n_snaps - N_HISTORY_SNAPS; ii++)
   {
-    double diff = LTTime[ii] - LTTime[ii+N_HISTORY_SNAPS];
+    double diff = LTTime[ii] - LTTime[ii + N_HISTORY_SNAPS];
     if (diff < min_dt)
       min_dt = diff;
   }

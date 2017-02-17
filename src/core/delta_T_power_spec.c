@@ -5,18 +5,18 @@
 #include <assert.h>
 
 /*
- * This code is a re-write of the modified version of 21cmFAST used in Mutch et 
- * al. (2016; Meraxes paper).  The original code was written by Andrei Mesinger 
- * with additions as detailed in Sobacchi & Mesinger (2013abc).  Updates were 
+ * This code is a re-write of the modified version of 21cmFAST used in Mutch et
+ * al. (2016; Meraxes paper).  The original code was written by Andrei Mesinger
+ * with additions as detailed in Sobacchi & Mesinger (2013abc).  Updates were
  * subsequently made by Simon Mutch & Paul Geil.
  */
 
 int delta_T_ps(
-    int            snapshot,
-    float         *average_T,
-    float         *delta_T,
-    float         **ps,
-    int           *ps_nbins)
+  int     snapshot,
+  float  *average_T,
+  float  *delta_T,
+  float **ps,
+  int    *ps_nbins)
 {
   unsigned long long ct, temp_ct;
 
@@ -41,7 +41,7 @@ int delta_T_ps(
   float Hubble_h = run_globals.params.Hubble_h;
   float OmegaM = run_globals.params.OmegaM;
   float OmegaB = OmegaM * run_globals.params.BaryonFrac;
-  float const_factor = 27.0*(OmegaB * Hubble_h * Hubble_h / 0.023)*sqrt((0.15/OmegaM/Hubble_h/Hubble_h)*(1.0+redshift)/10.0);
+  float const_factor = 27.0 * (OmegaB * Hubble_h * Hubble_h / 0.023) * sqrt((0.15 / OmegaM / Hubble_h / Hubble_h) * (1.0 + redshift) / 10.0);
 
 
   // delta_T grid (same size as the bubble box)
@@ -50,11 +50,11 @@ int delta_T_ps(
 
   temp_ct = 0;
 
-  for (int ii=0; ii<local_nix; ii++)
+  for (int ii = 0; ii < local_nix; ii++)
   {
-    for (int jj=0; jj<ReionGridDim; jj++)
+    for (int jj = 0; jj < ReionGridDim; jj++)
     {
-      for (int kk=0; kk<ReionGridDim; kk++)
+      for (int kk = 0; kk < ReionGridDim; kk++)
       {
         pixel_deltax = deltax[grid_index(ii, jj, kk, ReionGridDim, INDEX_PADDED)];
 
@@ -64,7 +64,7 @@ int delta_T_ps(
         if (pixel_x_HI > ABS_TOL)
           temp_ct++;
 
-        delta_T[index] = const_factor*pixel_x_HI*(1.0 + pixel_deltax);
+        delta_T[index] = const_factor * pixel_x_HI * (1.0 + pixel_deltax);
 
         if (max < delta_T[index])
           max = delta_T[index];
@@ -90,7 +90,7 @@ int delta_T_ps(
   float k_factor = 1.5;
   float delta_k = run_globals.params.ReionPowerSpecDeltaK;
   float k_first_bin_ceil = delta_k;
-  float k_max = delta_k*ReionGridDim;
+  float k_max = delta_k * ReionGridDim;
 
   // Initialise arrays
   // ghetto counting (lookup how to do logs of arbitrary bases in c...)
@@ -106,11 +106,11 @@ int delta_T_ps(
 
   //    printf("    NUM_BINS       = %d\n", NUM_BINS);
 
-  double *p_box     = malloc(sizeof(double)*num_bins);
-  double *k_ave     = malloc(sizeof(double)*num_bins);
-  unsigned long long *in_bin_ct = malloc(sizeof(unsigned long long)*num_bins);
+  double *p_box     = malloc(sizeof(double) * num_bins);
+  double *k_ave     = malloc(sizeof(double) * num_bins);
+  unsigned long long *in_bin_ct = malloc(sizeof(unsigned long long) * num_bins);
 
-  for (int ii=0; ii < num_bins; ii++)
+  for (int ii = 0; ii < num_bins; ii++)
   {
     p_box[ii] = 0.0;
     k_ave[ii] = 0.0;
@@ -122,10 +122,10 @@ int delta_T_ps(
   // Fill-up the real-space of the deldel box
   // Note: we include the V/N factor for the scaling after the fft
   float volume = powf(run_globals.params.BoxSize, 3);
-  for (int ii=0; ii<local_nix; ii++)
-    for (int jj=0; jj<ReionGridDim; jj++)
-      for (int kk=0; kk<ReionGridDim; kk++)
-        ((float *)deldel_T)[grid_index(ii, jj, kk, ReionGridDim, INDEX_PADDED)] = (delta_T[grid_index(ii,jj,kk, ReionGridDim, INDEX_REAL)]/ave - 1)*volume/(float)tot_num_pixels;
+  for (int ii = 0; ii < local_nix; ii++)
+    for (int jj = 0; jj < ReionGridDim; jj++)
+      for (int kk = 0; kk < ReionGridDim; kk++)
+        ((float *)deldel_T)[grid_index(ii, jj, kk, ReionGridDim, INDEX_PADDED)] = (delta_T[grid_index(ii,jj,kk, ReionGridDim, INDEX_REAL)] / ave - 1) * volume / (float)tot_num_pixels;
 
   // Transform to k-space
   fftwf_plan plan = fftwf_mpi_plan_dft_r2c_3d(ReionGridDim, ReionGridDim, ReionGridDim, (float *)deldel_T, (fftwf_complex *)deldel_T,  SID_COMM_WORLD, FFTW_ESTIMATE);
@@ -133,24 +133,24 @@ int delta_T_ps(
   fftwf_destroy_plan(plan);
 
   // Now construct the power spectrum
-  int HII_middle = ReionGridDim/2;
-  for (int n_x=0; n_x<ReionGridDim; n_x++)
+  int HII_middle = ReionGridDim / 2;
+  for (int n_x = 0; n_x < ReionGridDim; n_x++)
   {
-    float k_x = n_x*delta_k;
-    if (n_x>HII_middle)
-      k_x =(n_x-ReionGridDim)*delta_k;   // Wrap around for FFT convention
+    float k_x = n_x * delta_k;
+    if (n_x > HII_middle)
+      k_x = (n_x - ReionGridDim) * delta_k; // Wrap around for FFT convention
 
-    for (int n_y=0; n_y<ReionGridDim; n_y++)
+    for (int n_y = 0; n_y < ReionGridDim; n_y++)
     {
-      float k_y = n_y*delta_k;
-      if (n_y>HII_middle)
-        k_y =(n_y-ReionGridDim)*delta_k;
+      float k_y = n_y * delta_k;
+      if (n_y > HII_middle)
+        k_y = (n_y - ReionGridDim) * delta_k;
 
-      for (int n_z=0; n_z<=HII_middle; n_z++)
-      { 
-        float k_z = n_z*delta_k;
+      for (int n_z = 0; n_z <= HII_middle; n_z++)
+      {
+        float k_z = n_z * delta_k;
 
-        k_mag = sqrt(k_x*k_x + k_y*k_y + k_z*k_z);
+        k_mag = sqrt(k_x * k_x + k_y * k_y + k_z * k_z);
 
         // Now go through the k bins and update
         ct = 0;
@@ -162,7 +162,7 @@ int delta_T_ps(
           if ((k_mag >= k_floor) && (k_mag < k_ceil))
           {
             in_bin_ct[ct]++;
-            p_box[ct] += pow(k_mag,3)*pow(cabs(deldel_T[grid_index(n_x, n_y, n_z, ReionGridDim, INDEX_PADDED)]), 2)/(2.0*M_PI*M_PI*volume);
+            p_box[ct] += pow(k_mag,3) * pow(cabs(deldel_T[grid_index(n_x, n_y, n_z, ReionGridDim, INDEX_PADDED)]), 2) / (2.0 * M_PI * M_PI * volume);
             // Note the 1/VOLUME factor, which turns this into a power density in k-space
 
             k_ave[ct] += k_mag;
@@ -179,16 +179,16 @@ int delta_T_ps(
 
 
   // Malloc and store the result
-  *ps = (float *)calloc(3*num_bins, sizeof(float));
+  *ps = (float *)calloc(3 * num_bins, sizeof(float));
 
   // NOTE - previous ct ran from 1 (not zero) to NUM_BINS
-  for (int ii=0; ii<num_bins; ii++)
+  for (int ii = 0; ii < num_bins; ii++)
   {
-    if (in_bin_ct[ii]>0)
+    if (in_bin_ct[ii] > 0)
     {
-      (*ps)[0+3*ii] = k_ave[ii]/(float)in_bin_ct[ii];                              // Wavenumber
-      (*ps)[1+3*ii] = p_box[ii]/(float)in_bin_ct[ii];                              // Power
-      (*ps)[2+3*ii] = p_box[ii]/(float)in_bin_ct[ii]/sqrt((float)in_bin_ct[ii]);   // Error in power?
+      (*ps)[0 + 3 * ii] = k_ave[ii] / (float)in_bin_ct[ii];                              // Wavenumber
+      (*ps)[1 + 3 * ii] = p_box[ii] / (float)in_bin_ct[ii];                              // Power
+      (*ps)[2 + 3 * ii] = p_box[ii] / (float)in_bin_ct[ii] / sqrt((float)in_bin_ct[ii]); // Error in power?
     }
 
   }

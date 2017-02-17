@@ -95,7 +95,7 @@ double calculate_merging_time(galaxy_t *orphan, int snapshot)
   sat_rad /= (1 + run_globals.ZZ[snapshot - 1]);
 
   // TODO: Should this be parent or mother???
-  orphan->MergerStartRadius = sat_rad/mother->Rvir;
+  orphan->MergerStartRadius = sat_rad / mother->Rvir;
 
   if (sat_rad > mother->Rvir)
     sat_rad = mother->Rvir;
@@ -128,7 +128,7 @@ static void merger_driven_starburst(galaxy_t *parent, double merger_ratio, int s
       double m_recycled;
       double new_metals;
 
-      parent->MergerSemissivity += burst_mass * 1e10 * SOLAR_MASS/run_globals.params.Hubble_h / PROTONMASS * run_globals.params.physics.ReionNionPhotPerBary/1e60; 
+      parent->MergerSemissivity += burst_mass * 1e10 * SOLAR_MASS / run_globals.params.Hubble_h / PROTONMASS * run_globals.params.physics.ReionNionPhotPerBary / 1e60;
       contemporaneous_supernova_feedback(parent, &burst_mass, snapshot, &m_reheat, &m_eject, &m_recycled, &new_metals);
       // update the baryonic reservoirs (note that the order we do this in will change the result!)
       update_reservoirs_from_sf(parent, burst_mass);
@@ -171,7 +171,7 @@ void merge_with_target(galaxy_t *gal, int *dead_gals, int snapshot)
   parent->Stellaremissivity += gal->Stellaremissivity;
   parent->MergerSemissivity += gal->MergerSemissivity;
   parent->GrossStellarMass  += gal->GrossStellarMass;
-  parent->FescWeightedGSM   += gal->FescWeightedGSM;         
+  parent->FescWeightedGSM   += gal->FescWeightedGSM;
   parent->MetalsStellarMass += gal->MetalsStellarMass;
   parent->Sfr               += gal->Sfr;
   parent->HotGas            += gal->HotGas;

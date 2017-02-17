@@ -57,7 +57,7 @@
 #define BOLTZMANN        1.3806e-16
 #define GAS_CONST        8.31425e7
 #define C                2.9979e10
-#define PLANCK           6.6262e-27  //! [erg/s]
+#define PLANCK           6.6262e-27    //! [erg/s]
 #define PROTONMASS       1.6726e-24
 #define HUBBLE           3.2407789e-18 //! [h/sec]
 #define SEC_PER_MEGAYEAR 3.155e13
@@ -121,18 +121,18 @@ typedef struct physics_params_t {
   // TODO: These parameters should be used to set the TOCF HII_EFF_FACTOR value
   double ReionEfficiency;
   double ReionNionPhotPerBary;
-  double ReionEscapeFrac;  
+  double ReionEscapeFrac;
   double ReionEscapeFracBH;
   double BlackHoleSeed;
   double BlackHoleMassLimitReion;
   double ReionTcool;
   double Y_He;
 
-  double  ReionGammaHaloBias;
-  double  ReionAlphaUV;
-  double  ReionAlphaUVBH;
-  double  ReionRBubbleMin;
-  double  ReionRBubbleMax;
+  double ReionGammaHaloBias;
+  double ReionAlphaUV;
+  double ReionAlphaUVBH;
+  double ReionRBubbleMin;
+  double ReionRBubbleMax;
 
   // global reionization prescription
   double ReionSobacchi_Zre;
@@ -145,12 +145,12 @@ typedef struct physics_params_t {
   double ReionGnedin_zr;
 
   // filtering mass fit
-  double  ReionSMParam_m0;
-  double  ReionSMParam_a;
-  double  ReionSMParam_b;
-  double  ReionSMParam_c;
-  double  ReionSMParam_d;
-  
+  double ReionSMParam_m0;
+  double ReionSMParam_a;
+  double ReionSMParam_b;
+  double ReionSMParam_c;
+  double ReionSMParam_d;
+
   // options
   int SfDiskVelOpt;
   int SfPrescription;
@@ -173,63 +173,63 @@ typedef struct physics_params_t {
 //! Run params
 //! Everything in this structure is supplied by the user...
 typedef struct run_params_t {
-  char             DefaultsFile[STRLEN];
-  char             OutputDir[STRLEN];
-  char             FileNameGalaxies[STRLEN];
-  char             SimName[STRLEN];
-  char             SimulationDir[STRLEN];
-  char             CatalogFilePrefix[STRLEN];
-  char             FileWithOutputSnaps[STRLEN];
-  char             PhotometricTablesDir[STRLEN];
-  char             CoolingFuncsDir[STRLEN];
-  char             SSPModel[STRLEN];
-  char             IMF[STRLEN];
-  char             MagSystem[STRLEN];
-  char             MagBands[STRLEN];
-  char             ForestIDFile[STRLEN];
-  char             MvirCritFile[STRLEN];
-  char             MassRatioModifier[STRLEN];
-  char             BaryonFracModifier[STRLEN];
+  char DefaultsFile[STRLEN];
+  char OutputDir[STRLEN];
+  char FileNameGalaxies[STRLEN];
+  char SimName[STRLEN];
+  char SimulationDir[STRLEN];
+  char CatalogFilePrefix[STRLEN];
+  char FileWithOutputSnaps[STRLEN];
+  char PhotometricTablesDir[STRLEN];
+  char CoolingFuncsDir[STRLEN];
+  char SSPModel[STRLEN];
+  char IMF[STRLEN];
+  char MagSystem[STRLEN];
+  char MagBands[STRLEN];
+  char ForestIDFile[STRLEN];
+  char MvirCritFile[STRLEN];
+  char MassRatioModifier[STRLEN];
+  char BaryonFracModifier[STRLEN];
 
   physics_params_t physics;
 
-  double           BoxSize;
-  double           VolumeFactor;
-  double           Hubble_h;
-  double           BaryonFrac;
-  double           OmegaM;
-  double           OmegaK;
-  double           OmegaR;
-  double           OmegaLambda;
-  double           Sigma8;
-  double           wLambda;
-  double           SpectralIndex;
-  double           PartMass;
-  long long        NPart;
+  double BoxSize;
+  double VolumeFactor;
+  double Hubble_h;
+  double BaryonFrac;
+  double OmegaM;
+  double OmegaK;
+  double OmegaR;
+  double OmegaLambda;
+  double Sigma8;
+  double wLambda;
+  double SpectralIndex;
+  double PartMass;
+  long long NPart;
 
   double          *MvirCrit;
 
 
-  double           ReionDeltaRFactor;
-  double           ReionPowerSpecDeltaK;
-  int              ReionGridDim;
-  int              ReionFilterType;
-  int              ReionRtoMFilterType;
-  int              ReionUVBFlag;
+  double ReionDeltaRFactor;
+  double ReionPowerSpecDeltaK;
+  int ReionGridDim;
+  int ReionFilterType;
+  int ReionRtoMFilterType;
+  int ReionUVBFlag;
 
-  int              FirstFile;
-  int              LastFile;
-  int              NSteps;
-  int              SnaplistLength;
-  int              RandomSeed;
-  int              FlagSubhaloVirialProps;
-  int              FlagInteractive;
-  int              FlagGenDumpFile;
-  int              FlagReadDumpFile;
-  int              FlagMCMC;
-  int              Flag_PatchyReion;
-  int              Flag_output_grids;
-  int              Flag_output_grids_when_finished;
+  int FirstFile;
+  int LastFile;
+  int NSteps;
+  int SnaplistLength;
+  int RandomSeed;
+  int FlagSubhaloVirialProps;
+  int FlagInteractive;
+  int FlagGenDumpFile;
+  int FlagReadDumpFile;
+  int FlagMCMC;
+  int Flag_PatchyReion;
+  int Flag_output_grids;
+  int Flag_output_grids_when_finished;
 } run_params_t;
 
 
@@ -256,26 +256,26 @@ typedef struct hdf5_output_t {
   const char **field_units;
   const char **field_h_conv;
   hid_t       *field_types;
-  size_t       dst_size;
-  hid_t        array3f_tid;  // sizeof(hid_t) = 4
-  hid_t        array_nmag_f_tid;
-  hid_t        array_nhist_f_tid;
-  int          n_props;
-  int          params_count;
+  size_t dst_size;
+  hid_t array3f_tid;         // sizeof(hid_t) = 4
+  hid_t array_nmag_f_tid;
+  hid_t array_nhist_f_tid;
+  int n_props;
+  int params_count;
 
   // TOTAL : 52 + 4 padding (must be multiple of 8)
 } hdf5_output_t;
 
 typedef struct phototabs_t {
-  int    JumpTable[N_PHOTO_JUMPS];
-  char  (*MagBands)[5];
+  int JumpTable[N_PHOTO_JUMPS];
+  char (*MagBands)[5];
   float *Table;
   float *Ages;
   float *Metals;
-  float  JumpFactor;
-  int    NAges;
-  int    NBands;
-  int    NMetals;
+  float JumpFactor;
+  int NAges;
+  int NBands;
+  int NMetals;
 } phototabs_t;
 
 
@@ -309,48 +309,48 @@ typedef struct reion_grids_t {
   float         *r_bubble;
   gal_to_slab_t *galaxy_to_slab_map;
 
-  double         volume_weighted_global_xH;
-  double         mass_weighted_global_xH;
-  int            started;
-  int            finished;
-  int            buffer_size;
+  double volume_weighted_global_xH;
+  double mass_weighted_global_xH;
+  int started;
+  int finished;
+  int buffer_size;
 } reion_grids_t;
 
 //! The meraxis halo structure
 typedef struct halo_t {
-  long long           id_MBP; //!< ID of most bound particle
+  long long id_MBP;           //!< ID of most bound particle
   struct fof_group_t *FOFGroup;
   struct halo_t      *NextHaloInFOFGroup;
   struct galaxy_t    *Galaxy;
 
-  float               Pos[3]; //!< Most bound particle position [Mpc/h]
-  float               Vel[3]; //!< Centre-of-mass velocity [km/s]
-  float               AngMom[3]; //!< Specific angular momentum vector [Mpc/h *km/s]
-  float               Rhalo; //!< Distance of last halo particle from MBP [Mpc/h]
+  float Pos[3];           //!< Most bound particle position [Mpc/h]
+  float Vel[3];           //!< Centre-of-mass velocity [km/s]
+  float AngMom[3];        //!< Specific angular momentum vector [Mpc/h *km/s]
+  float Rhalo;            //!< Distance of last halo particle from MBP [Mpc/h]
 
-  double              Mvir; //!< virial mass [M_sol/h]
-  double              Rvir; //!< Virial radius [Mpc/h]
-  double              Vvir; //!< Virial velocity [km/s]
+  double Mvir;            //!< virial mass [M_sol/h]
+  double Rvir;            //!< Virial radius [Mpc/h]
+  double Vvir;            //!< Virial velocity [km/s]
 
-  float               Rmax; //!< Radius of maximum circular velocity [Mpc/h]
-  float               Vmax; //!< Maximum circular velocity [km/s]
-  float               VelDisp; //!< Total 3D velocity dispersion [km/s]
-  int                 ID; //!< Halo ID
-  int                 Type; //!< Type (0 for central, 1 for satellite)
-  int                 SnapOffset; //!< Number of snapshots this halo skips before reappearing
-  int                 DescIndex; //!< Index of descendant in next relevant snapshot
-  int                 TreeFlags; //!< Bitwise flag indicating the type of match in the trees
-  int                 ForestID;
-  int                 Len; //!< Number of particles in the structure
+  float Rmax;             //!< Radius of maximum circular velocity [Mpc/h]
+  float Vmax;             //!< Maximum circular velocity [km/s]
+  float VelDisp;          //!< Total 3D velocity dispersion [km/s]
+  int ID;                 //!< Halo ID
+  int Type;               //!< Type (0 for central, 1 for satellite)
+  int SnapOffset;         //!< Number of snapshots this halo skips before reappearing
+  int DescIndex;          //!< Index of descendant in next relevant snapshot
+  int TreeFlags;          //!< Bitwise flag indicating the type of match in the trees
+  int ForestID;
+  int Len;                //!< Number of particles in the structure
 } halo_t;
 
 typedef struct fof_group_t {
   halo_t *FirstHalo;
   halo_t *FirstOccupiedHalo;
-  double  Mvir;
-  double  Rvir;
-  double  Vvir;
-  int     TotalSubhaloLen;
+  double Mvir;
+  double Rvir;
+  double Vvir;
+  int TotalSubhaloLen;
 } fof_group_t;
 
 typedef struct galaxy_t {
@@ -364,8 +364,8 @@ typedef struct galaxy_t {
   long long ID;
 
   // properties of subhalo at the last time this galaxy was a central galaxy
-  float  Pos[3];
-  float  Vel[3];
+  float Pos[3];
+  float Vel[3];
   double Mvir;
   double Rvir;
   double Vvir;
@@ -420,15 +420,15 @@ typedef struct galaxy_t {
   double MvirCrit;
   double MergerBurstMass;
 
-  int  Type;
-  int  OldType;
-  int  Len;
-  int  MaxLen;
-  int  SnapSkipCounter;
-  int  HaloDescIndex;
-  int  TreeFlags;
-  int  LastIdentSnap;     //!< Last snapshot at which the halo in which this galaxy resides was identified
-  int  output_index;  //!< write index
+  int Type;
+  int OldType;
+  int Len;
+  int MaxLen;
+  int SnapSkipCounter;
+  int HaloDescIndex;
+  int TreeFlags;
+  int LastIdentSnap;  //!< Last snapshot at which the halo in which this galaxy resides was identified
+  int output_index;   //!< write index
 
   bool ghost_flag;
 
@@ -531,50 +531,50 @@ typedef struct tree_entry_t {
 //! This is the structure for a halo in the catalog files
 typedef struct catalog_halo_t {
   long long id_MBP;                    //!< ID of most bound particle in structure
-  double    M_vir;                     //!< Bryan & Norman (ApJ 495, 80, 1998) virial mass [M_sol/h]
-  int       n_particles;               //!< Number of particles in the structure
-  float     position_COM[3];           //!< Centre-of-mass position      [Mpc/h]
-  float     position_MBP[3];           //!< Most bound particle position [Mpc/h]
-  float     velocity_COM[3];           //!< Centre-of-mass velocity      [km/s]
-  float     velocity_MBP[3];           //!< Most bound particle velocity [km/s]
-  float     R_vir;                     //!< Virial radius [Mpc/h]
-  float     R_halo;                    //!< Distance of last halo particle from MBP [Mpc/h]
-  float     R_max;                     //!< Radius of maximum circular velocity     [Mpc/h]
-  float     V_max;                     //!< Maximum circular velocity               [km/s]
-  float     sigma_v;                   //!< Total 3D velocity dispersion            [km/s]
-  float     ang_mom[3];                //!< Specific angular momentum vector        [Mpc/h*km/s]
-  float     q_triaxial;                //!< Triaxial shape parameter q=b/a
-  float     s_triaxial;                //!< Triaxial shape parameter s=c/a
-  float     shape_eigen_vectors[3][3]; //!< Normalized triaxial shape eigenvectors
-  char      padding[8];                //!< Alignment padding
+  double M_vir;                        //!< Bryan & Norman (ApJ 495, 80, 1998) virial mass [M_sol/h]
+  int n_particles;                     //!< Number of particles in the structure
+  float position_COM[3];               //!< Centre-of-mass position      [Mpc/h]
+  float position_MBP[3];               //!< Most bound particle position [Mpc/h]
+  float velocity_COM[3];               //!< Centre-of-mass velocity      [km/s]
+  float velocity_MBP[3];               //!< Most bound particle velocity [km/s]
+  float R_vir;                         //!< Virial radius [Mpc/h]
+  float R_halo;                        //!< Distance of last halo particle from MBP [Mpc/h]
+  float R_max;                         //!< Radius of maximum circular velocity     [Mpc/h]
+  float V_max;                         //!< Maximum circular velocity               [km/s]
+  float sigma_v;                       //!< Total 3D velocity dispersion            [km/s]
+  float ang_mom[3];                    //!< Specific angular momentum vector        [Mpc/h*km/s]
+  float q_triaxial;                    //!< Triaxial shape parameter q=b/a
+  float s_triaxial;                    //!< Triaxial shape parameter s=c/a
+  float shape_eigen_vectors[3][3];     //!< Normalized triaxial shape eigenvectors
+  char padding[8];                     //!< Alignment padding
 } catalog_halo_t;
 
 typedef struct Modifier
 {
-    float logMmin;
-    float logMmax;
-    float mass_mean;
-    float mass_errl;
-    float mass_erru;
-    float ratio;
-    float ratio_errl;
-    float ratio_erru;
+  float logMmin;
+  float logMmax;
+  float mass_mean;
+  float mass_errl;
+  float mass_erru;
+  float ratio;
+  float ratio_errl;
+  float ratio_erru;
 } Modifier;
 
 //! Global variables which will will be passed around
 typedef struct run_globals_t {
   struct run_params_t params;
-  char                FNameOut[STRLEN];
-  reion_grids_t       reion_grids;
-  struct run_units_t  units;
-  hdf5_output_t       hdf5props;
+  char FNameOut[STRLEN];
+  reion_grids_t reion_grids;
+  struct run_units_t units;
+  hdf5_output_t hdf5props;
 
   double             *AA;
   double             *ZZ;
   double             *LTTime;
   int                *RequestedForestId;
-  int                RequestedMassRatioModifier;
-  int                RequestedBaryonFracModifier;
+  int RequestedMassRatioModifier;
+  int RequestedBaryonFracModifier;
   int                *ListOutputSnaps;
   halo_t            **SnapshotHalo;
   fof_group_t       **SnapshotFOFGroup;
@@ -586,21 +586,21 @@ typedef struct run_globals_t {
   struct galaxy_t    *LastGal;
   gsl_rng            *random_generator;
   void               *mhysa_self;
-  double              Hubble;
-  double              RhoCrit;
-  double              G;
+  double Hubble;
+  double RhoCrit;
+  double G;
 
-  int                 NOutputSnaps;
-  int                 LastOutputSnap;
-  int                 NGhosts;
-  int                 NHalosMax;
-  int                 NFOFGroupsMax;
-  int                 NRequestedForests;
-  int                 TreesStep;
-  int                 TreesScan;
-  int                 NStoreSnapshots;
+  int NOutputSnaps;
+  int LastOutputSnap;
+  int NGhosts;
+  int NHalosMax;
+  int NFOFGroupsMax;
+  int NRequestedForests;
+  int TreesStep;
+  int TreesScan;
+  int NStoreSnapshots;
 
-  bool                SelectForestsSwitch;
+  bool SelectForestsSwitch;
   Modifier            *mass_ratio_modifier;
   Modifier            *baryon_frac_modifier;
 } run_globals_t;
@@ -660,7 +660,7 @@ int          searchsorted(void *val,
                           void *arr,
                           int count,
                           size_t size,
-                          int(*compare)(const void *a, const void *b),
+                          int (*compare)(const void *a, const void *b),
                           int imin,
                           int imax);
 float        comoving_distance(float a[3], float b[3]);
@@ -670,7 +670,7 @@ double       accurate_sumf(float *arr, int n);
 int          grid_index(int i, int j, int k, int dim, int type);
 void         mpi_debug_here(void);
 void         check_mhysa_pointer(void);
-int 				 isclosef(float a, float b, float rel_tol, float abs_tol);
+int          isclosef(float a, float b, float rel_tol, float abs_tol);
 void         printProgress (double percentage);
 void         check_counts(fof_group_t *fof_group, int NGal, int NFof);
 void         cn_quote(void);

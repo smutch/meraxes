@@ -39,9 +39,9 @@ double gas_cooling(galaxy_t *gal)
       // following equation (3) of Croton+ 2006, calculate the hot gas density at
       // the radius r_cool (i.e. where the cooling time is equal to `t_cool`
       // above)
-      x          = PROTONMASS * BOLTZMANN * Tvir / lambda;     // now this has units sec g/cm^3
+      x          = PROTONMASS * BOLTZMANN * Tvir / lambda;             // now this has units sec g/cm^3
       x         /= (units->UnitDensity_in_cgs * units->UnitTime_in_s); // now in internal units
-      rho_r_cool = x / t_cool * 0.885;                         // 0.885 = 3/2 * mu, mu=0.59 for a fully ionized gas
+      rho_r_cool = x / t_cool * 0.885;                                 // 0.885 = 3/2 * mu, mu=0.59 for a fully ionized gas
 
       // TODO: We can actually get mu from the cooling tables of Sutherland &
       // Dopita for T>=1e4K.  We should do this rather than assuming the value.
@@ -49,7 +49,7 @@ double gas_cooling(galaxy_t *gal)
 
       // under the assumption of an isothermal density profile extending to Rvir,
       // now calculate the cooling radius
-	  assert(rho_r_cool>0);
+      assert(rho_r_cool > 0);
       isothermal_norm = gal->HotGas / (4. * M_PI * fof_group->Rvir);
       r_cool      = sqrt(isothermal_norm / rho_r_cool);
       gal->Rcool  = r_cool;

@@ -68,25 +68,25 @@ static void inline store_params(
 
     switch (params_type[tag_index])
     {
-    case PARAM_TYPE_DOUBLE:
-      *((double*)params_addr[tag_index]) = atof(entry[i_entry].value);
-      break;
+      case PARAM_TYPE_DOUBLE:
+        *((double*)params_addr[tag_index]) = atof(entry[i_entry].value);
+        break;
 
-    case PARAM_TYPE_FLOAT:
-      *((float*)params_addr[tag_index]) = atof(entry[i_entry].value);
-      break;
+      case PARAM_TYPE_FLOAT:
+        *((float*)params_addr[tag_index]) = atof(entry[i_entry].value);
+        break;
 
-    case PARAM_TYPE_STRING:
-      strcpy(params_addr[tag_index], entry[i_entry].value);
-      break;
+      case PARAM_TYPE_STRING:
+        strcpy(params_addr[tag_index], entry[i_entry].value);
+        break;
 
-    case PARAM_TYPE_INT:
-      *((int*)params_addr[tag_index]) = atoi(entry[i_entry].value);
-      break;
+      case PARAM_TYPE_INT:
+        *((int*)params_addr[tag_index]) = atoi(entry[i_entry].value);
+        break;
 
-    case PARAM_TYPE_LONGLONG:
-      *((long long*)params_addr[tag_index]) = atoll(entry[i_entry].value);
-      break;
+      case PARAM_TYPE_LONGLONG:
+        *((long long*)params_addr[tag_index]) = atoll(entry[i_entry].value);
+        break;
     }
     used_tag[tag_index] = 1;
   }
@@ -351,7 +351,7 @@ void read_parameter_file(char *fname, int mode)
 
 
       // Physics params
-      
+
       strcpy(params_tag[n_param], "SfDiskVelOpt");
       params_addr[n_param]   = &(run_params->physics).SfDiskVelOpt;
       required_tag[n_param]  = 1;
@@ -366,22 +366,22 @@ void read_parameter_file(char *fname, int mode)
       params_addr[n_param]   = &(run_params->physics).RedshiftDepEscFracNorm;
       required_tag[n_param]  = 1;
       params_type[n_param++] = PARAM_TYPE_DOUBLE;
-      
+
       strcpy(params_tag[n_param], "RedshiftDepEscFracScaling");
       params_addr[n_param]   = &(run_params->physics).RedshiftDepEscFracScaling;
       required_tag[n_param]  = 1;
       params_type[n_param++] = PARAM_TYPE_DOUBLE;
-      
+
       strcpy(params_tag[n_param], "RedshiftDepEscFracBHNorm");
       params_addr[n_param]   = &(run_params->physics).RedshiftDepEscFracBHNorm;
       required_tag[n_param]  = 1;
       params_type[n_param++] = PARAM_TYPE_DOUBLE;
-      
+
       strcpy(params_tag[n_param], "RedshiftDepEscFracBHScaling");
       params_addr[n_param]   = &(run_params->physics).RedshiftDepEscFracBHScaling;
       required_tag[n_param]  = 1;
       params_type[n_param++] = PARAM_TYPE_DOUBLE;
-      
+
       strcpy(params_tag[n_param], "Flag_ReionizationModifier");
       params_addr[n_param]   = &(run_params->physics).Flag_ReionizationModifier;
       required_tag[n_param]  = 1;
@@ -392,10 +392,10 @@ void read_parameter_file(char *fname, int mode)
       required_tag[n_param]  = 1;
       params_type[n_param++] = PARAM_TYPE_INT;
 
-      strcpy(params_tag[n_param], "Flag_BHReion");                 
+      strcpy(params_tag[n_param], "Flag_BHReion");
       params_addr[n_param]   = &(run_params->physics).Flag_BHReion;
-      required_tag[n_param]  = 1;                                  
-      params_type[n_param++] = PARAM_TYPE_INT;                     
+      required_tag[n_param]  = 1;
+      params_type[n_param++] = PARAM_TYPE_INT;
 
       strcpy(params_tag[n_param], "Flag_IRA");
       params_addr[n_param]   = &(run_params->physics).Flag_IRA;
@@ -422,10 +422,10 @@ void read_parameter_file(char *fname, int mode)
       required_tag[n_param]  = 1;
       params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
-      strcpy(params_tag[n_param], "SfEfficiencyScaling");                 
+      strcpy(params_tag[n_param], "SfEfficiencyScaling");
       params_addr[n_param]   = &(run_params->physics).SfEfficiencyScaling;
-      required_tag[n_param]  = 1;                                         
-      params_type[n_param++] = PARAM_TYPE_DOUBLE;                         
+      required_tag[n_param]  = 1;
+      params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
       strcpy(params_tag[n_param], "SfCriticalSDNorm");
       params_addr[n_param]   = &(run_params->physics).SfCriticalSDNorm;
@@ -696,27 +696,27 @@ void read_parameter_file(char *fname, int mode)
       params_addr[n_param]   = &(run_params->ReionPowerSpecDeltaK);
       required_tag[n_param]  = 1;
       params_type[n_param++] = PARAM_TYPE_DOUBLE;
-      
+
       strcpy(params_tag[n_param], "ReionAlphaUV");
       params_addr[n_param]   = &(run_params->physics).ReionAlphaUV;
       required_tag[n_param]  = 1;
       params_type[n_param++] = PARAM_TYPE_DOUBLE;
-      
+
       strcpy(params_tag[n_param], "ReionAlphaUVBH");
       params_addr[n_param]   = &(run_params->physics).ReionAlphaUVBH;
       required_tag[n_param]  = 1;
       params_type[n_param++] = PARAM_TYPE_DOUBLE;
-      
+
       strcpy(params_tag[n_param], "ReionRtoMFilterType");
       params_addr[n_param]   = &(run_params->ReionRtoMFilterType);
       required_tag[n_param]  = 1;
       params_type[n_param++] = PARAM_TYPE_INT;
-      
+
       strcpy(params_tag[n_param], "Y_He");
       params_addr[n_param]   = &(run_params->physics).Y_He;
       required_tag[n_param]  = 1;
       params_type[n_param++] = PARAM_TYPE_DOUBLE;
-      
+
       hdf5props->params_count = n_param;
     }
 
@@ -752,25 +752,25 @@ void read_parameter_file(char *fname, int mode)
 
           switch (params_type[ii])
           {
-          case PARAM_TYPE_DOUBLE:
-            printf("%g\n", *((double*)(params_addr[ii])));
-            break;
+            case PARAM_TYPE_DOUBLE:
+              printf("%g\n", *((double*)(params_addr[ii])));
+              break;
 
-          case PARAM_TYPE_FLOAT:
-            printf("%g\n", *((float*)(params_addr[ii])));
-            break;
+            case PARAM_TYPE_FLOAT:
+              printf("%g\n", *((float*)(params_addr[ii])));
+              break;
 
-          case PARAM_TYPE_STRING:
-            printf("%s\n", (char*)params_addr[ii]);
-            break;
+            case PARAM_TYPE_STRING:
+              printf("%s\n", (char*)params_addr[ii]);
+              break;
 
-          case PARAM_TYPE_INT:
-            printf("%d\n", *((int*)(params_addr[ii])));
-            break;
+            case PARAM_TYPE_INT:
+              printf("%d\n", *((int*)(params_addr[ii])));
+              break;
 
-          case PARAM_TYPE_LONGLONG:
-            printf("%lld\n", *((long long*)(params_addr[ii])));
-            break;
+            case PARAM_TYPE_LONGLONG:
+              printf("%lld\n", *((long long*)(params_addr[ii])));
+              break;
           }
         }
       }

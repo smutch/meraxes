@@ -290,15 +290,15 @@ static int inline get_jump_index(double age, float *AgeTab, int *jumptab, float 
 }
 
 static void find_interpolated_lum(
-  double         timenow,
-  double         timetarget,
-  double         metallicity,
-  int           *metals_ind,
-  int           *age_ind,
-  double        *fage1,
-  double        *fage2,
-  double        *fmet1,
-  double        *fmet2)
+  double  timenow,
+  double  timetarget,
+  double  metallicity,
+  int    *metals_ind,
+  int    *age_ind,
+  double *fage1,
+  double *fage2,
+  double *fmet1,
+  double *fmet2)
 {
   // TODO: There is a lot of float/double calculations here. I should tidy this up...
 
@@ -388,10 +388,10 @@ static void find_interpolated_lum(
 
 
 void add_to_luminosities(
-  galaxy_t      *gal,
-  double         burst_mass,
-  double         metallicity,
-  double         burst_time)
+  galaxy_t *gal,
+  double    burst_mass,
+  double    metallicity,
+  double    burst_time)
 {
 #ifdef CALC_MAGS
   phototabs_t *photo = run_globals.photo;

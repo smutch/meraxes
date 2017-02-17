@@ -53,9 +53,10 @@ double gas_infall(fof_group_t *FOFgroup, int snapshot)
   // fraction of this halo.
   fb_modifier = reionization_modifier(central, FOF_Mvir, snapshot);
   fb_modifier_hydro = 1.0;
-  if (run_globals.RequestedBaryonFracModifier == 1){
+  if (run_globals.RequestedBaryonFracModifier == 1)
+  {
     double logM;
-    logM  = log10(FOF_Mvir*1e10/run_globals.params.Hubble_h);
+    logM  = log10(FOF_Mvir * 1e10 / run_globals.params.Hubble_h);
     fb_modifier_hydro = interpolate_modifier(run_globals.baryon_frac_modifier, logM);
     //SID_log("%f\t%f\t%f", SID_LOG_COMMENT, FOF_Mvir, logM, fb_modifier_hydro);
   }

@@ -40,9 +40,9 @@ void calculate_Mvir_crit(double redshift)
         // 2013b
         if (z_at_ion[grid_index(ii, jj, kk, ReionGridDim, INDEX_REAL)] > redshift)
         {
-          cell_Mvir_crit = ReionSMParam_m0 * pow((double)(J_21_at_ion[grid_index(ii, jj, kk, ReionGridDim, INDEX_REAL)])*Hubble_h*Hubble_h, ReionSMParam_a)
-            * pow((1.0 + redshift) / 10.0, ReionSMParam_b)
-            * pow((1.0 - pow((1.0 + redshift) / (1.0 + (double)(z_at_ion[grid_index(ii, jj, kk, ReionGridDim, INDEX_REAL)])), ReionSMParam_c)), ReionSMParam_d);
+          cell_Mvir_crit = ReionSMParam_m0 * pow((double)(J_21_at_ion[grid_index(ii, jj, kk, ReionGridDim, INDEX_REAL)]) * Hubble_h * Hubble_h, ReionSMParam_a)
+                           * pow((1.0 + redshift) / 10.0, ReionSMParam_b)
+                           * pow((1.0 - pow((1.0 + redshift) / (1.0 + (double)(z_at_ion[grid_index(ii, jj, kk, ReionGridDim, INDEX_REAL)])), ReionSMParam_c)), ReionSMParam_d);
         }
 
         // Save the critical mass to the grid
@@ -154,7 +154,7 @@ double gnedin2000_modifer(double Mvir, double redshift)
   else if ((a > a0) && (a < ar))
     f_of_a =
       (3.0 / a) * (a0 * a0 * (1.0 / (2.0 + alpha) - 2.0 * pow(a_on_a0, -0.5) / (5.0 + 2.0 * alpha)) +
-      a * a / 10.0 - (a0 * a0 / 10.0) * (5.0 - 4.0 * pow(a_on_a0, -0.5)));
+                   a * a / 10.0 - (a0 * a0 / 10.0) * (5.0 - 4.0 * pow(a_on_a0, -0.5)));
   else
     f_of_a =
       (3.0 / a) * (a0 * a0 * (1.0 / (2.0 + alpha) - 2.0 * pow(a_on_a0, -0.5) /
@@ -192,24 +192,24 @@ double reionization_modifier(galaxy_t *gal, double Mvir, int snapshot)
 
   switch (run_globals.params.physics.Flag_ReionizationModifier)
   {
-  case 1:
-    // Sobacchi & Mesinger 2013 global reionization scheme
-    modifier = sobacchi2013_modifier(Mvir, redshift);
-    break;
+    case 1:
+      // Sobacchi & Mesinger 2013 global reionization scheme
+      modifier = sobacchi2013_modifier(Mvir, redshift);
+      break;
 
-  case 2:
-    // Gnedin 2000 global reionization modifier
-    modifier = gnedin2000_modifer(Mvir, redshift);
-    break;
+    case 2:
+      // Gnedin 2000 global reionization modifier
+      modifier = gnedin2000_modifer(Mvir, redshift);
+      break;
 
-  case 3:
-    // Precomputed mean Mcrit values
-    modifier = precomputed_Mcrit_modifier(gal, Mvir, snapshot);
-    break;
+    case 3:
+      // Precomputed mean Mcrit values
+      modifier = precomputed_Mcrit_modifier(gal, Mvir, snapshot);
+      break;
 
-  default:
-    modifier = 1.0;
-    break;
+    default:
+      modifier = 1.0;
+      break;
   }
 
   return modifier;

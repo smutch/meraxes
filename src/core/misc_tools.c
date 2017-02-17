@@ -70,9 +70,9 @@ static inline float apply_pbc_disp(float delta)
 {
   float box_size = (float)(run_globals.params.BoxSize);
 
-  if(fabs(delta-box_size)<fabs(delta))
+  if(fabs(delta - box_size) < fabs(delta))
     delta -= box_size;
-  if(fabs(delta+box_size)<fabs(delta))
+  if(fabs(delta + box_size) < fabs(delta))
     delta += box_size;
 
   return delta;
@@ -93,18 +93,18 @@ float apply_pbc_pos(float x)
 
 
 int searchsorted(void *val,
-    void *arr,
-    int count,
-    size_t size,
-    int(*compare)(const void *a, const void *b),
-    int imin,
-    int imax)
+                 void *arr,
+                 int count,
+                 size_t size,
+                 int (*compare)(const void *a, const void *b),
+                 int imin,
+                 int imax)
 {
   // check if we need to init imin and imax
   if ((imax < 0) && (imin < 0))
   {
     imin = 0;
-    imax = count-1;
+    imax = count - 1;
   }
 
   // test if we have found the result
@@ -134,7 +134,7 @@ int pos_to_ngp(double x, double side, int nx)
 {
   int ind = (int)nearbyint(x / side * (double)nx);
 
-  if(ind > nx-1)
+  if(ind > nx - 1)
     ind = 0;
 
   assert(ind > -1);
@@ -148,8 +148,8 @@ float comoving_distance(float a[3], float b[3])
   float dy = apply_pbc_disp(a[1] - b[1]);
   float dz = apply_pbc_disp(a[2] - b[2]);
 
-  float dist = sqrtf(dx*dx + dy*dy + dz*dz);
-  assert(dist <= (sqrtf(3.0)/2.0 * run_globals.params.BoxSize));
+  float dist = sqrtf(dx * dx + dy * dy + dz * dz);
+  assert(dist <= (sqrtf(3.0) / 2.0 * run_globals.params.BoxSize));
 
   return dist;
 }
@@ -160,7 +160,7 @@ double accurate_sumf(float *arr, int n) {
   qsort(arr, n, sizeof(float), compare_floats);
 
   double total = 0;
-  for(int ii=0; ii<n; ii++)
+  for(int ii = 0; ii < n; ii++)
     total += (double)(arr[ii]);
 
   return total;
@@ -173,13 +173,13 @@ int grid_index(int i, int j, int k, int dim, int type)
   switch(type)
   {
     case INDEX_PADDED:
-      ind = k + (2*(dim/2 +1)) * (j + dim * i);
+      ind = k + (2 * (dim / 2 + 1)) * (j + dim * i);
       break;
     case INDEX_REAL:
-      ind = k + dim * (j + dim *i);
+      ind = k + dim * (j + dim * i);
       break;
     case INDEX_COMPLEX_HERM:
-      ind = k + (dim/2 + 1) * (j + dim * i);
+      ind = k + (dim / 2 + 1) * (j + dim * i);
       break;
   }
 
@@ -194,9 +194,9 @@ int isclosef(
   float abs_tol)  ///< [in] = -1 for Numpy default
 {
   if (abs_tol < 0)
-    abs_tol = 1e-8;  ///< Numpy default
+    abs_tol = 1e-8;                                              ///< Numpy default
   if (rel_tol < 0)
-    rel_tol = 1e-5;  ///< Numpy default
+    rel_tol = 1e-5;                                              ///< Numpy default
   return fabs(a - b) <= (abs_tol + rel_tol * fabs(b));
 }
 

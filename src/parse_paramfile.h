@@ -9,7 +9,7 @@
 
 typedef struct entry_t entry_t;
 struct entry_t {
-  int  level;
+  int level;
   char key[64];
   char value[256];
 };

@@ -21,7 +21,7 @@ static inline bool check_for_merger(galaxy_t *gal, halo_t *new_halo)
   // now greater than the host halo mass, then mark this as a merger
   // if( check_for_flag(TREE_CASE_MERGER, gal->TreeFlags) || (gal->StellarMass > new_halo->Mvir) )
   if (check_for_flag(TREE_CASE_MERGER, gal->TreeFlags))
-      //|| check_for_flag(TREE_CASE_MERGER_PRIMARY, gal->TreeFlags))
+    //|| check_for_flag(TREE_CASE_MERGER_PRIMARY, gal->TreeFlags))
     return true;
   else
     return false;
@@ -31,15 +31,15 @@ static inline bool check_if_valid_host(halo_t *halo)
 {
   // We don't want to place new galaxies in any halos with the following flags set...
   int invalid_flags = (TREE_CASE_FRAGMENTED_NORMAL
-      | TREE_CASE_FRAGMENTED_NEW
-      | TREE_CASE_FRAGMENTED_EJECTED  // TODO: Now marked as other
-      | TREE_CASE_FRAGMENTED_STRAYED
-      | TREE_CASE_MERGER);  // TODO: Try off and think about closely
+                       | TREE_CASE_FRAGMENTED_NEW
+                       | TREE_CASE_FRAGMENTED_EJECTED // TODO: Now marked as other
+                       | TREE_CASE_FRAGMENTED_STRAYED
+                       | TREE_CASE_MERGER);           // TODO: Try off and think about closely
 
   if ((halo->Type == 0)
       && (halo->Galaxy == NULL)
       && !(invalid_flags & halo->TreeFlags))
-      return true;
+    return true;
   else
     return false;
 }
@@ -83,7 +83,7 @@ void dracarys()
   trees_info_t *snapshot_trees_info = run_globals.SnapshotTreesInfo;
   double *LTTime                    = run_globals.LTTime;
   int NOutputSnaps                  = run_globals.NOutputSnaps;
-  
+
   // Find what the last requested output snapshot is
   for (int ii = 0; ii < NOutputSnaps; ii++)
     if (run_globals.ListOutputSnaps[ii] > last_snap)
@@ -112,10 +112,10 @@ void dracarys()
 
     // Read mass ratio modifiers and baryon fraction modifiers
     if (run_globals.RequestedMassRatioModifier == 1)
-        read_mass_ratio_modifiers(snapshot);
+      read_mass_ratio_modifiers(snapshot);
 
     if (run_globals.RequestedBaryonFracModifier == 1)
-        read_baryon_frac_modifiers(snapshot);
+      read_baryon_frac_modifiers(snapshot);
 
     // Reset book keeping counters
     kill_counter    = 0;
@@ -164,11 +164,11 @@ void dracarys()
       if (gal->SnapSkipCounter <= 0)
       {
         // If we are subsampling the trees, or for some other reason need to
-        // find the corrected halo index, then do so. 
+        // find the corrected halo index, then do so.
         if ((index_lookup) && (i_newhalo > -1) && !(gal->ghost_flag) && (gal->Type < 2))
           i_newhalo = find_original_index(gal->HaloDescIndex, index_lookup, trees_info.n_halos);
 
-        // If this galaxy hasn't been marked for death 
+        // If this galaxy hasn't been marked for death
         if (i_newhalo > -1)
         {
           gal->OldType = gal->Type;
@@ -441,8 +441,8 @@ void dracarys()
     {
       physics_params_t *params = &(run_globals.params.physics);
 
-      float f_esc = run_globals.params.physics.RedshiftDepEscFracNorm*(powf((1.0+run_globals.ZZ[snapshot])/6.0, run_globals.params.physics.RedshiftDepEscFracScaling));
-      float f_esc_q = run_globals.params.physics.RedshiftDepEscFracBHNorm*(powf((1.0+run_globals.ZZ[snapshot])/6.0, run_globals.params.physics.RedshiftDepEscFracBHScaling));
+      float f_esc = run_globals.params.physics.RedshiftDepEscFracNorm * (powf((1.0 + run_globals.ZZ[snapshot]) / 6.0, run_globals.params.physics.RedshiftDepEscFracScaling));
+      float f_esc_q = run_globals.params.physics.RedshiftDepEscFracBHNorm * (powf((1.0 + run_globals.ZZ[snapshot]) / 6.0, run_globals.params.physics.RedshiftDepEscFracBHScaling));
       if (f_esc   > 1.0) f_esc   = 1.0;
       if (f_esc_q > 1.0) f_esc_q = 1.0;
       params->ReionEscapeFrac = (double)f_esc;
@@ -450,19 +450,19 @@ void dracarys()
       SID_log("f_esc = %g", SID_LOG_COMMENT, f_esc);
       SID_log("f_esc_q = %g", SID_LOG_COMMENT, f_esc_q);
 
-      double dBHemissivitydt=0.0;
+      double dBHemissivitydt = 0.0;
       double dStellaremissivitydt = 0.0;
       gal = run_globals.FirstGal;
-      while (gal != NULL)                        
-      {                                          
+      while (gal != NULL)
+      {
         if (gal->BlackHoleMass >= run_globals.params.physics.BlackHoleMassLimitReion)
         {
-          dBHemissivitydt +=gal->BHemissivity/gal->dt;
+          dBHemissivitydt += gal->BHemissivity / gal->dt;
         }
-        dStellaremissivitydt +=gal->Stellaremissivity/gal->dt;
-        gal = gal->Next;                         
-      }                                          
-     
+        dStellaremissivitydt += gal->Stellaremissivity / gal->dt;
+        gal = gal->Next;
+      }
+
       SID_Allreduce(SID_IN_PLACE, &dBHemissivitydt, 1, SID_DOUBLE, SID_SUM, SID.COMM_WORLD);
       SID_Allreduce(SID_IN_PLACE, &dStellaremissivitydt, 1, SID_DOUBLE, SID_SUM, SID.COMM_WORLD);
       SID_log("dBHemissivitydt = %g",SID_LOG_COMMENT, dBHemissivitydt);
@@ -486,7 +486,7 @@ void dracarys()
       // positions in the next time step
       SID_free(SID_FARG run_globals.reion_grids.galaxy_to_slab_map);
     }
-    
+
 
 #ifdef DEBUG
     // print some statistics for this snapshot
@@ -521,7 +521,7 @@ void dracarys()
 #ifdef DEBUG
     check_pointers(halo, fof_group, &trees_info);
 #endif
-    
+
     if (run_globals.params.FlagMCMC)
       meraxes_mhysa_hook(run_globals.mhysa_self, snapshot, nout_gals);
 

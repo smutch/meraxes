@@ -99,7 +99,7 @@ void copy_halo_to_galaxy(halo_t *halo, galaxy_t *gal, int snapshot)
     gal->Vmax            = halo->Vmax;
     gal->DiskScaleLength = gal->Spin * gal->Rvir / sqrt_2;
   }
-  else 
+  else
   {
     if (!run_globals.params.physics.Flag_FixVmaxOnInfall)
       gal->Vmax = halo->Vmax;
@@ -127,7 +127,7 @@ void reset_galaxy_properties(galaxy_t *gal, int snapshot)
   gal->MvirCrit                   = 0.0;
   gal->BHemissivity               = 0.0;
   gal->Stellaremissivity          = 0.0;
-  gal->MergerSemissivity          = 0.0; 
+  gal->MergerSemissivity          = 0.0;
   gal->BaryonFracModifier         = 1.0;
   gal->BlackHoleAccretedHotMass   = 0.0;
   gal->BlackHoleAccretedColdMass  = 0.0;
@@ -160,11 +160,11 @@ void assign_galaxy_to_halo(galaxy_t *gal, halo_t *halo)
 }
 
 
-void create_new_galaxy( 
-  int            snapshot,
-  halo_t        *halo,
-  int           *NGal,
-  int           *new_gal_counter)
+void create_new_galaxy(
+  int     snapshot,
+  halo_t *halo,
+  int    *NGal,
+  int    *new_gal_counter)
 {
   galaxy_t *gal;
 
@@ -191,11 +191,11 @@ void create_new_galaxy(
 }
 
 
-void kill_galaxy( 
-  galaxy_t      *gal,
-  galaxy_t      *prev_gal,
-  int           *NGal,
-  int           *kill_counter)
+void kill_galaxy(
+  galaxy_t *gal,
+  galaxy_t *prev_gal,
+  int      *NGal,
+  int      *kill_counter)
 {
   galaxy_t *cur_gal;
 

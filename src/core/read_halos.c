@@ -115,17 +115,17 @@ static void read_catalog_halos(
 
   switch (type_flag)
   {
-  case 0:
-    sprintf(halo_type, "groups");
-    break;
+    case 0:
+      sprintf(halo_type, "groups");
+      break;
 
-  case 1:
-    sprintf(halo_type, "subgroups");
-    break;
+    case 1:
+      sprintf(halo_type, "subgroups");
+      break;
 
-  default:
-    SID_log_error("Unrecognised type_flag in read_catalog_halos()");
-    break;
+    default:
+      SID_log_error("Unrecognised type_flag in read_catalog_halos()");
+      break;
   }
 
   // Is this the first read?
@@ -182,9 +182,10 @@ static void inline convert_input_virial_props(double *Mvir, double *Rvir, double
 {
   double ratio;
   ratio = 1.0;
-  if (run_globals.RequestedMassRatioModifier == 1){
+  if (run_globals.RequestedMassRatioModifier == 1)
+  {
     double logM;
-    logM  = log10(*Mvir/run_globals.params.Hubble_h);
+    logM  = log10(*Mvir / run_globals.params.Hubble_h);
     ratio = interpolate_modifier(run_globals.mass_ratio_modifier, logM);
     //SID_log("%f\t%f\t%f", SID_LOG_COMMENT, *Mvir, logM, ratio);
   }
@@ -203,17 +204,17 @@ static void inline convert_input_virial_props(double *Mvir, double *Rvir, double
 
 //! Buffered read of hdf5 trees into halo structures
 static void read_trees_and_catalogs(
-  int            snapshot,
-  int            unsampled_snapshot,
-  hid_t          fd,
-  halo_t        *halo,
-  int            n_halos,
-  fof_group_t   *fof_group,
-  int            n_fof_groups,
-  int            n_requested_forests,
-  int           *n_halos_kept,
-  int           *n_fof_groups_kept,
-  int           *index_lookup)
+  int          snapshot,
+  int          unsampled_snapshot,
+  hid_t        fd,
+  halo_t      *halo,
+  int          n_halos,
+  fof_group_t *fof_group,
+  int          n_fof_groups,
+  int          n_requested_forests,
+  int         *n_halos_kept,
+  int         *n_fof_groups_kept,
+  int         *index_lookup)
 {
   // I guess this should ideally be equal to the chunk size of the input hdf5 file...
   int buffer_size       = 5000;
@@ -802,11 +803,11 @@ static void inline update_pointers_from_offsets(
 
 
 trees_info_t read_halos(
-  int            snapshot,
-  halo_t       **halo,
-  fof_group_t  **fof_group,
-  int          **index_lookup,
-  trees_info_t  *snapshot_trees_info)
+  int           snapshot,
+  halo_t      **halo,
+  fof_group_t **fof_group,
+  int         **index_lookup,
+  trees_info_t *snapshot_trees_info)
 {
   int n_halos;                             //!< Number of halos
   char fname[STRLEN];
