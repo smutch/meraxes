@@ -1,7 +1,6 @@
 // These defines were added at compilation time
 // (see SConstruct prepend_user_defines())
-#define DEBUG
-#define USE_MPI 1
+#define U
 // -------------------------------------------
 
 
