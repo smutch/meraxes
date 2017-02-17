@@ -7,6 +7,48 @@
 #include <hdf5_hl.h>
 #include <assert.h>
 
+
+void set_fesc(int snapshot)
+{
+  physics_params_t *params = &(run_globals.params.physics);
+
+  float f_esc = params->RedshiftDepEscFracNorm * (powf((1.0 + run_globals.ZZ[snapshot]) / 6.0, params->RedshiftDepEscFracScaling));
+  float f_esc_q = params->RedshiftDepEscFracBHNorm * (powf((1.0 + run_globals.ZZ[snapshot]) / 6.0, params->RedshiftDepEscFracBHScaling));
+
+  if (f_esc   > 1.0) f_esc   = 1.0;
+  if (f_esc_q > 1.0) f_esc_q = 1.0;
+
+  params->ReionEscapeFrac = (double)f_esc;
+  params->ReionEscapeFracBH = (double)f_esc_q;
+
+  SID_log("f_esc   = %g", SID_LOG_COMMENT, f_esc);
+  SID_log("f_esc_q = %g", SID_LOG_COMMENT, f_esc_q);
+}
+
+
+void collect_dEmissivitydt()
+{
+  physics_params_t *params = &(run_globals.params.physics);
+
+  double dBHemissivitydt = 0.0;
+  double dStellarEmissivitydt = 0.0;
+  galaxy_t *gal = run_globals.FirstGal;
+  while (gal != NULL)
+  {
+    if (gal->BlackHoleMass >= params->BlackHoleMassLimitReion)
+    {
+      dBHemissivitydt += gal->BHemissivity / gal->dt;
+    }
+    dStellarEmissivitydt += gal->StellarEmissivity / gal->dt;
+    gal = gal->Next;
+  }
+
+  SID_Allreduce(SID_IN_PLACE, &dBHemissivitydt, 1, SID_DOUBLE, SID_SUM, SID.COMM_WORLD);
+  SID_Allreduce(SID_IN_PLACE, &dStellarEmissivitydt, 1, SID_DOUBLE, SID_SUM, SID.COMM_WORLD);
+  SID_log("dBHemissivitydt      = %g",SID_LOG_COMMENT, dBHemissivitydt);
+  SID_log("dStellarEmissivitydt = %g",SID_LOG_COMMENT, dStellarEmissivitydt);
+}
+
 void set_quasar_fobs()
 {
   run_globals.params.physics.quasar_fobs = 1. - cos(run_globals.params.physics.quasar_open_angel / 180. * M_PI / 2.);

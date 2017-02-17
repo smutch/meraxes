@@ -11,16 +11,6 @@ int main(int argc, char **argv)
 
   struct stat filestatus;
 
-  // char log_fname[50];
-  // FILE *log_file = NULL;
-  // if(SID.n_proc > 1)
-  // {
-  //   SID.flag_log_allranks = 1;
-  //   sprintf(log_fname, "rank_%d.log", SID.My_rank);
-  //   log_file = fopen(log_fname, "w");
-  //   SID.fp_log = log_file;
-  // }
-
   // deal with any input arguments
   if (argc != 2)
   {

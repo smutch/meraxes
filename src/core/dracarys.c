@@ -21,7 +21,6 @@ static inline bool check_for_merger(galaxy_t *gal, halo_t *new_halo)
   // now greater than the host halo mass, then mark this as a merger
   // if( check_for_flag(TREE_CASE_MERGER, gal->TreeFlags) || (gal->StellarMass > new_halo->Mvir) )
   if (check_for_flag(TREE_CASE_MERGER, gal->TreeFlags))
-    //|| check_for_flag(TREE_CASE_MERGER_PRIMARY, gal->TreeFlags))
     return true;
   else
     return false;
@@ -439,34 +438,8 @@ void dracarys()
 
     if (run_globals.params.Flag_PatchyReion)
     {
-      physics_params_t *params = &(run_globals.params.physics);
-
-      float f_esc = run_globals.params.physics.RedshiftDepEscFracNorm * (powf((1.0 + run_globals.ZZ[snapshot]) / 6.0, run_globals.params.physics.RedshiftDepEscFracScaling));
-      float f_esc_q = run_globals.params.physics.RedshiftDepEscFracBHNorm * (powf((1.0 + run_globals.ZZ[snapshot]) / 6.0, run_globals.params.physics.RedshiftDepEscFracBHScaling));
-      if (f_esc   > 1.0) f_esc   = 1.0;
-      if (f_esc_q > 1.0) f_esc_q = 1.0;
-      params->ReionEscapeFrac = (double)f_esc;
-      params->ReionEscapeFracBH = (double)f_esc_q;
-      SID_log("f_esc = %g", SID_LOG_COMMENT, f_esc);
-      SID_log("f_esc_q = %g", SID_LOG_COMMENT, f_esc_q);
-
-      double dBHemissivitydt = 0.0;
-      double dStellaremissivitydt = 0.0;
-      gal = run_globals.FirstGal;
-      while (gal != NULL)
-      {
-        if (gal->BlackHoleMass >= run_globals.params.physics.BlackHoleMassLimitReion)
-        {
-          dBHemissivitydt += gal->BHemissivity / gal->dt;
-        }
-        dStellaremissivitydt += gal->Stellaremissivity / gal->dt;
-        gal = gal->Next;
-      }
-
-      SID_Allreduce(SID_IN_PLACE, &dBHemissivitydt, 1, SID_DOUBLE, SID_SUM, SID.COMM_WORLD);
-      SID_Allreduce(SID_IN_PLACE, &dStellaremissivitydt, 1, SID_DOUBLE, SID_SUM, SID.COMM_WORLD);
-      SID_log("dBHemissivitydt = %g",SID_LOG_COMMENT, dBHemissivitydt);
-      SID_log("dStellaremissivitydt = %g",SID_LOG_COMMENT, dStellaremissivitydt);
+      set_fesc(snapshot);
+      collect_dEmissivitydt();
 
       if (check_if_reionization_ongoing())
       {

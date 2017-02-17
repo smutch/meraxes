@@ -393,7 +393,7 @@ typedef struct galaxy_t {
   double StellarMass;
   double GrossStellarMass;
   double FescWeightedGSM;
-  double Stellaremissivity;
+  double StellarEmissivity;
   double MergerSemissivity;
   double MetalsStellarMass;
   double DiskScaleLength;
@@ -474,7 +474,7 @@ typedef struct galaxy_output_t {
   float DiskScaleLength;
   float StellarMass;
   float GrossStellarMass;
-  float Stellaremissivity;
+  float StellarEmissivity;
   float MergerSemissivity;
   float FescWeightedGSM;
   float MetalsStellarMass;
@@ -713,6 +713,8 @@ void   assign_slabs(void);
 void   init_reion_grids(void);
 
 void   filter(fftwf_complex *box, int local_ix_start, int slab_nx, int grid_dim, float R);
+void   set_fesc(int snapshot);
+void   collect_dEmissivitydt(void);
 void   set_quasar_fobs(void);
 void   find_HII_bubbles(float redshift);
 double tocf_modifier(galaxy_t *gal, double Mvir);
