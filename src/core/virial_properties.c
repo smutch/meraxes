@@ -1,6 +1,5 @@
 #include "meraxes.h"
 #include <math.h>
-
 static inline double E_z(double z, double OmegaM, double OmegaK, double OmegaLambda)
 {
   // Function stolen and adapted from gbpCosmo
@@ -17,6 +16,7 @@ static inline double E_z(double z, double OmegaM, double OmegaK, double OmegaLam
   return result;
 }
 
+
 static inline double Omega_z(double redshift, double OmegaM, double OmegaK, double OmegaLambda)
 {
   // Function stolen and adapted from gbpCosmo
@@ -28,6 +28,7 @@ static inline double Omega_z(double redshift, double OmegaM, double OmegaK, doub
 
   return OmegaM * one_plus_z_cube / (Ez * Ez);
 }
+
 
 static inline double Delta_vir(double redshift)
 {
@@ -113,10 +114,12 @@ double calculate_Rvir(double Mvir, int snapshot)
   return cbrt(Mvir * fac);
 }
 
+
 double calculate_Vvir(double Mvir, double Rvir)
 {
   return sqrt((run_globals.G) * Mvir / Rvir);
 }
+
 
 double calculate_spin_param(halo_t *halo)
 {
@@ -130,3 +133,4 @@ double calculate_spin_param(halo_t *halo)
 
   return (double)spin;
 }
+

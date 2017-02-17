@@ -2,8 +2,6 @@
 #include "meraxes.h"
 #include <sys/stat.h>
 #include <fenv.h>
-
-
 int main(int argc, char **argv)
 {
   // init SID
@@ -44,13 +42,11 @@ int main(int argc, char **argv)
   if ((!run_globals.params.FlagInteractive) & (!run_globals.params.FlagMCMC))
     dracarys();
   else
-  {
     while (run_globals.params.FlagInteractive)
     {
       dracarys();
       continue_prompt(argv[1]);
     }
-  }
 
   // cleanup
   cleanup();
@@ -61,3 +57,4 @@ int main(int argc, char **argv)
 
   SID_exit(EXIT_SUCCESS);
 }
+

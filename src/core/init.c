@@ -2,7 +2,6 @@
 #include <time.h>
 #include <gsl/gsl_math.h>
 #include <gsl/gsl_integration.h>
-
 static void read_requested_forest_ids()
 {
   if (strlen(run_globals.params.ForestIDFile) == 0)
@@ -120,6 +119,7 @@ static void read_snap_list()
   SID_Bcast(run_globals.AA, sizeof(double) * run_globals.params.SnaplistLength, 0, SID.COMM_WORLD);
 }
 
+
 double integrand_time_to_present(double a, void *params)
 {
   double omega_m      = ((run_params_t*)params)->OmegaM;
@@ -128,6 +128,7 @@ double integrand_time_to_present(double a, void *params)
 
   return 1 / sqrt(omega_m / a + omega_k + omega_lambda * a * a);
 }
+
 
 static double time_to_present(double z)
 {
@@ -152,6 +153,7 @@ static double time_to_present(double z)
   // return time to present as a function of redshift
   return time;
 }
+
 
 void set_units()
 {
@@ -178,6 +180,7 @@ void set_units()
   //     units->UnitTime_in_s, units->UnitTime_in_Megayears, units->UnitDensity_in_cgs, units->UnitPressure_in_cgs, units->UnitCoolingRate_in_cgs, units->UnitEnergy_in_cgs);
   // ABORT(EXIT_SUCCESS);
 }
+
 
 static void read_output_snaps()
 {
@@ -215,13 +218,11 @@ static void read_output_snaps()
     *ListOutputSnaps = SID_malloc(sizeof(int) * (*nout));
 
     for (i = 0; i < (*nout); i++)
-    {
       if (fscanf(fd, " %d ", &((*ListOutputSnaps)[i])) != 1)
       {
         SID_log_error("I/O error in file '%s'\n", fname);
         exit(EXIT_FAILURE);
       }
-    }
     fclose(fd);
 
 #ifdef CALC_MAGS
@@ -247,7 +248,6 @@ static void read_output_snaps()
 
     // sort the list from low to high snapnum
     qsort(*ListOutputSnaps, (*nout), sizeof(int), compare_ints);
-
   }
 
   // broadcast the data to all other ranks
@@ -258,7 +258,6 @@ static void read_output_snaps()
 
   SID_Bcast(*ListOutputSnaps, sizeof(int) * (*nout), 0, SID.COMM_WORLD);
   SID_Bcast(LastOutputSnap, sizeof(int), 0, SID.COMM_WORLD);
-
 }
 
 

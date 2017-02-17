@@ -1,7 +1,6 @@
 #include "meraxes.h"
 #include <assert.h>
 #include <math.h>
-
 galaxy_t* new_galaxy(int snapshot, int halo_ID)
 {
   galaxy_t *gal = NULL;
@@ -80,6 +79,7 @@ galaxy_t* new_galaxy(int snapshot, int halo_ID)
   return gal;
 }
 
+
 void copy_halo_to_galaxy(halo_t *halo, galaxy_t *gal, int snapshot)
 {
   gal->id_MBP          = halo->id_MBP;
@@ -117,6 +117,7 @@ void copy_halo_to_galaxy(halo_t *halo, galaxy_t *gal, int snapshot)
   if (halo->Len > gal->MaxLen)
     gal->MaxLen = halo->Len;
 }
+
 
 void reset_galaxy_properties(galaxy_t *gal, int snapshot)
 {

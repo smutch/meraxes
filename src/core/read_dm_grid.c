@@ -4,8 +4,6 @@
 #include <complex.h>
 #include <fftw3.h>
 #include <fftw3-mpi.h>
-
-
 /*
    ==============================================================================
    MAJOR CODE REVISION by Paul Geil (October 2014)
@@ -151,9 +149,7 @@ int read_dm_grid(
     SID_log("Using resample factor = %.3f", SID_LOG_COMMENT, resample_factor);
   }
   else
-  {
     resample_factor = 1;
-  }
 
   // Malloc the slab
   ptrdiff_t slab_nix = run_globals.reion_grids.slab_nix[SID.My_rank];
@@ -297,3 +293,4 @@ void free_grids_cache()
     SID_free(SID_FARG snapshot_deltax);
   }
 }
+

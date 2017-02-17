@@ -7,7 +7,6 @@
 #include <hdf5_hl.h>
 #include <assert.h>
 
-
 void set_fesc(int snapshot)
 {
   physics_params_t *params = &(run_globals.params.physics);
@@ -36,9 +35,7 @@ void collect_dEmissivitydt()
   while (gal != NULL)
   {
     if (gal->BlackHoleMass >= params->BlackHoleMassLimitReion)
-    {
       dBHemissivitydt += gal->BHemissivity / gal->dt;
-    }
     dStellarEmissivitydt += gal->StellarEmissivity / gal->dt;
     gal = gal->Next;
   }
@@ -49,11 +46,15 @@ void collect_dEmissivitydt()
   SID_log("dStellarEmissivitydt = %g",SID_LOG_COMMENT, dStellarEmissivitydt);
 }
 
+
 void set_quasar_fobs()
 {
-  run_globals.params.physics.quasar_fobs = 1. - cos(run_globals.params.physics.quasar_open_angel / 180. * M_PI / 2.);
-  SID_log("Quasar Radiation Open Angel is set to be %g, corresponding to an obscure fraction of %g", SID_LOG_COMMENT,run_globals.params.physics.quasar_open_angel, run_globals.params.physics.quasar_fobs);
+  physics_params_t *params = &(run_globals.params.physics);
+  params->quasar_fobs = 1. - cos(params->quasar_open_angle / 180. * M_PI / 2.);
+  SID_log("Quasar radiation open angle is set to be %g, corresponding to an obscure fraction of %g",
+      SID_LOG_COMMENT, params->quasar_open_angle, params->quasar_fobs);
 }
+
 
 void set_ReionEfficiency()
 {
@@ -74,10 +75,10 @@ void set_ReionEfficiency()
 
     SID_log("Set value of run_globals.params.ReionEfficiency = %g", SID_LOG_COMMENT, run_globals.params.physics.ReionEfficiency);
   }
-  else {
+  else
     run_globals.params.physics.ReionEfficiency = -1;
-  }
 }
+
 
 void assign_slabs()
 {
@@ -111,7 +112,6 @@ void assign_slabs()
 
   SID_log("...done", SID_LOG_CLOSE);
 }
-
 
 
 void call_find_HII_bubbles(int snapshot, int unsampled_snapshot, int nout_gals)
@@ -205,9 +205,9 @@ void init_reion_grids()
   SID_log(" ...done", SID_LOG_CLOSE);
 }
 
+
 void malloc_reionization_grids()
 {
-
   reion_grids_t *grids = &(run_globals.reion_grids);
 
   // run_globals.NStoreSnapshots is set in `initialize_halo_storage`
@@ -231,7 +231,6 @@ void malloc_reionization_grids()
 
   if (run_globals.params.Flag_PatchyReion)
   {
-
     assign_slabs();
 
     int ReionGridDim = run_globals.params.ReionGridDim;
@@ -363,7 +362,6 @@ int map_galaxies_to_slabs(int ngals)
 
 void assign_Mvir_crit_to_galaxies(int ngals_in_slabs)
 {
-
   // N.B. We are assuming here that the galaxy_to_slab mapping has been sorted
   // by slab index...
   gal_to_slab_t *galaxy_to_slab_map = run_globals.reion_grids.galaxy_to_slab_map;
@@ -392,10 +390,8 @@ void assign_Mvir_crit_to_galaxies(int ngals_in_slabs)
         slab_map_offsets[ii] = -1;
     }
     else
-    {
       // if this core has no galaxies then the offsets are -1 everywhere
       slab_map_offsets[ii] = -1;
-    }
   }
 
   // do a ring exchange of slabs between all cores
@@ -471,20 +467,17 @@ void assign_Mvir_crit_to_galaxies(int ngals_in_slabs)
         total_assigned++;
       }
     }
-
   }
 
   if(total_assigned != ngals_in_slabs)
     ABORT(EXIT_FAILURE);
 
   SID_log("...done.", SID_LOG_CLOSE);
-
 }
 
 
 void construct_baryon_grids(int snapshot, int local_ngals)
 {
-
   double box_size     = (double)(run_globals.params.BoxSize);
   float *stellar_grid = run_globals.reion_grids.stars;
   float *sfr_grid     = run_globals.reion_grids.sfr;
@@ -527,7 +520,6 @@ void construct_baryon_grids(int snapshot, int local_ngals)
 
       // if this core holds no galaxies then we don't need to fill the buffer
       if(local_ngals != 0)
-      {
         // fill the local buffer for this slab
         while(((i_gal - skipped_gals) < local_ngals) && (galaxy_to_slab_map[i_gal].slab_ind == i_r))
         {
@@ -576,10 +568,8 @@ void construct_baryon_grids(int snapshot, int local_ngals)
               buffer[ind] += gal->FescWeightedGSM;
               // for ionizing_source_formation_rate_grid, need further convertion due to different UV spectral index of quasar and stellar component
               if ((run_globals.params.physics.Flag_BHFeedback) && (run_globals.params.physics.Flag_BHReion))
-              {
                 if (gal->BlackHoleMass >= run_globals.params.physics.BlackHoleMassLimitReion)
                   buffer[ind] += gal->EffectiveBHM * (double)run_globals.params.physics.ReionAlphaUVBH / (double)run_globals.params.physics.ReionAlphaUV;
-              }
               break;
 
             default:
@@ -590,7 +580,6 @@ void construct_baryon_grids(int snapshot, int local_ngals)
 
           i_gal++;
         }
-      }
 
       // reduce on to the correct rank
       if(SID.My_rank == i_r)
@@ -599,7 +588,6 @@ void construct_baryon_grids(int snapshot, int local_ngals)
         SID_Reduce(buffer, buffer, buffer_size, MPI_FLOAT, MPI_SUM, i_r, SID.COMM_WORLD);
 
       if (SID.My_rank == i_r)
-      {
 
         // Do one final pass and divide the sfr_grid by tHubble
         // in order to convert the stellar masses recorded into SFRs before
@@ -630,15 +618,12 @@ void construct_baryon_grids(int snapshot, int local_ngals)
                 }
             break;
         }
-
-      }
     }
     SID_Allreduce(SID_IN_PLACE, &N_BlackHoleMassLimitReion, 1, SID_DOUBLE, SID_SUM, SID.COMM_WORLD);
     SID_log("%d quasars are smaller than %g",SID_LOG_COMMENT, N_BlackHoleMassLimitReion,run_globals.params.physics.BlackHoleMassLimitReion);
   }
 
   SID_log("done", SID_LOG_CLOSE);
-
 }
 
 
@@ -659,6 +644,7 @@ static void write_grid_float(const char *name, float *data, hid_t file_id, hid_t
   H5Pclose(plist_id);
   H5Dclose(dset_id);
 }
+
 
 void gen_grids_fname(int snapshot, char *name, bool relative)
 {
@@ -736,13 +722,11 @@ void save_reion_input_grids(int snapshot)
   H5Fclose(file_id);
 
   SID_log("...done", SID_LOG_CLOSE);
-
 }
 
 
 void save_reion_output_grids(int snapshot)
 {
-
   reion_grids_t *grids = &(run_globals.reion_grids);
   int ReionGridDim       = run_globals.params.ReionGridDim;
   int local_nix     = (int)(run_globals.reion_grids.slab_nix[SID.My_rank]);
@@ -861,20 +845,16 @@ bool check_if_reionization_ongoing()
     // If not all cells are ionised then reionization is still progressing...
     finished = 1;
     for (int ii = 0; ii < slab_n_real; ii++)
-    {
       if (xH[ii] != 0.0)
       {
         finished = 0;
         break;
       }
-    }
   }
   else
-  {
-    // Here we haven't finished or previously started.  Should we start then?
-    if (run_globals.FirstGal != NULL)
-      started = 1;
-  }
+  // Here we haven't finished or previously started.  Should we start then?
+  if (run_globals.FirstGal != NULL)
+    started = 1;
 
   // At this stage, `started` and `finished` should be set accordingly for each
   // individual core.  Now we need to combine them on all cores.
@@ -951,12 +931,8 @@ void filter(fftwf_complex *box, int local_ix_start, int slab_nx, int grid_dim, f
             }
             break;
         }
-
       }
-
     }
   }   // End looping through k box
-
 }
-
 

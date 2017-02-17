@@ -15,8 +15,6 @@
 #define Ar_Av 0.751
 #define Ai_Av 0.479
 #define Ak_Av 0.114
-
-
 static double slab_model(float tau, float costheta)
 {
   float correction_factor;
@@ -105,4 +103,6 @@ void apply_dust(int n_photo_bands, galaxy_t gal, double *LumDust, int outputbin)
     LumDust[4] = (float)Lum_corr;
   }
 }
+
+
 #endif // CALC_MAGS

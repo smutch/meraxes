@@ -6,7 +6,6 @@
 #include "meraxes.h"
 #include "parse_paramfile.h"
 #include "git.h"
-
 float current_mwmsa(galaxy_t *gal, int i_snap)
 {
   double *LTTime = run_globals.LTTime;
@@ -97,6 +96,7 @@ void prepare_galaxy_for_output(
 
   prepare_magnitudes_for_output(gal, galout, i_snap);
 }
+
 
 void calc_hdf5_props()
 {
@@ -508,6 +508,7 @@ void calc_hdf5_props()
   }
 }
 
+
 void prep_hdf5_file()
 {
   hid_t file_id;
@@ -551,7 +552,6 @@ void create_master_file()
 
     // Save all of the input params
     for (int ii = 0; (ii < params_count) && (params_type[ii] != PARAM_TYPE_UNUSED); ii++)
-    {
       switch (params_type[ii])
       {
         case PARAM_TYPE_STRING:
@@ -573,7 +573,6 @@ void create_master_file()
           ABORT(EXIT_FAILURE);
           break;
       }
-    }
 
     // Close the group
     H5Gclose(group_id);
@@ -721,7 +720,6 @@ void create_master_file()
         //   H5Lcreate_external(relative_source_file, source_ds, snap_group_id, target_ds, H5P_DEFAULT, H5P_DEFAULT);
         // }
       }
-
     }
 
     // Save a few useful attributes
@@ -744,6 +742,7 @@ void create_master_file()
 
   SID_log(" ...done", SID_LOG_CLOSE);
 }
+
 
 static void inline save_walk_indices(
   hid_t file_id,
@@ -851,13 +850,11 @@ void write_snapshot(
   if (i_out > 0)
   {
     for (int ii = 0; ii < run_globals.NOutputSnaps; ii++)
-    {
       if (run_globals.ListOutputSnaps[ii] == prev_snapshot)
       {
         calc_descendants_i_out = ii;
         break;
       }
-    }
   }
 
   // Assign the write order indices to each galaxy and store the old indices if required
@@ -1012,3 +1009,4 @@ void write_snapshot(
 
   SID_log("...done", SID_LOG_CLOSE);
 }
+

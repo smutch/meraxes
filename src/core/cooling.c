@@ -41,8 +41,6 @@ static char group_name[N_METALLICITIES][6] = {
 };
 
 static double cooling_rate[N_METALLICITIES][N_TEMPS];
-
-
 void read_cooling_functions()
 {
   if (SID.My_rank == 0)
@@ -128,3 +126,4 @@ double interpolate_cooling_rate(double logTemp, double logZ)
 
   return pow(10, rate);
 }
+

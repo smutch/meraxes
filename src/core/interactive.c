@@ -1,6 +1,5 @@
 #include "meraxes.h"
 #include "unistd.h"
-
 static int prompt_char(const char *message)
 {
   int cont;
@@ -76,3 +75,4 @@ void continue_prompt(char *param_file)
 
   return;
 }
+

@@ -1,7 +1,6 @@
 #include "meraxes.h"
 #include <math.h>
 #include <assert.h>
-
 void update_reservoirs_from_sn_feedback(galaxy_t *gal, double m_reheat, double m_eject, double m_recycled, double new_metals)
 {
   double metallicity;
@@ -80,7 +79,6 @@ static inline double calc_ejected_mass(
 
   if (*m_reheat > 0)
   {
-
     if (run_globals.params.physics.Flag_ReheatToFOFGroupTemp)
       Vvir = fof_Vvir;
 
@@ -136,6 +134,7 @@ static inline double calc_eta_sn(double m_high, double m_low, double *snII_frac)
   assert((eta_sn >= 0) && (*snII_frac >= 0));
   return eta_sn;
 }
+
 
 static inline double calc_sn_energy(double stars, double Vmax, double eta_sn)
 {
@@ -316,7 +315,6 @@ void delayed_supernova_feedback(galaxy_t *gal, int snapshot)
 
   // update the baryonic reservoirs
   update_reservoirs_from_sn_feedback(gal, m_reheat, m_eject, m_recycled, new_metals);
-
 }
 
 
@@ -437,3 +435,4 @@ void contemporaneous_supernova_feedback(
   if (!Flag_IRA && (gal->LastIdentSnap < (snapshot - 1)))
     backfill_ghost_NewStars(gal, *m_stars, snapshot);
 }
+

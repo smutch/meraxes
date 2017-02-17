@@ -1,11 +1,11 @@
 #include <math.h>
 #include "meraxes.h"
 #include "tree_flags.h"
-
 static void inline turn_off_merger_flag(galaxy_t *gal)
 {
   gal->TreeFlags = gal->TreeFlags & (~TREE_CASE_MERGER) & (~TREE_CASE_MERGER_PRIMARY);
 }
+
 
 static inline bool check_for_flag(int flag, int tree_flags)
 {
@@ -14,6 +14,7 @@ static inline bool check_for_flag(int flag, int tree_flags)
   else
     return false;
 }
+
 
 static inline bool check_for_merger(galaxy_t *gal, halo_t *new_halo)
 {
@@ -25,6 +26,7 @@ static inline bool check_for_merger(galaxy_t *gal, halo_t *new_halo)
   else
     return false;
 }
+
 
 static inline bool check_if_valid_host(halo_t *halo)
 {
@@ -476,11 +478,9 @@ void dracarys()
 
     // Write the results if this is a requested snapshot
     if (!run_globals.params.FlagMCMC)
-    {
       for (int i_out = 0; i_out < NOutputSnaps; i_out++)
         if (snapshot == run_globals.ListOutputSnaps[i_out])
           write_snapshot(nout_gals, i_out, &last_nout_gals, &trees_info);
-    }
 
     // Update the LastIdentSnap values for non-ghosts
     gal = run_globals.FirstGal;
@@ -528,9 +528,7 @@ void dracarys()
   // Create the master file
   SID_Barrier(SID.COMM_WORLD);
   if (!run_globals.params.FlagMCMC)
-  {
     if (SID.My_rank == 0)
       create_master_file();
-  }
 }
 

@@ -19,7 +19,6 @@ static void halo_catalog_filename(
 
   // if we need to determine the filename structure...
   if (*i_layout == -1)
-  {
     for (*i_layout = 0; (*i_layout < 4) && (flag_success == false); (*i_layout)++)
     {
       if (*i_layout == 0)
@@ -38,7 +37,6 @@ static void halo_catalog_filename(
         break;
       }
     }
-  }
 
   // ensure we have a valid i_layout value.
   if (*i_layout < 0 || *i_layout > 3)
@@ -70,13 +68,6 @@ static void inline read_catalogs_header(
   fread(n_files, sizeof(int), 1, fin);
   fread(n_halos_file, sizeof(int), 1, fin);
   fread(n_halos_total, sizeof(int), 1, fin);
-
-  // SID_log("Catalogs header:", SID_LOG_OPEN);
-  // SID_log("i_file = %d", SID_LOG_COMMENT, *i_file);
-  // SID_log("n_files = %d", SID_LOG_COMMENT, *n_files);
-  // SID_log("n_halos_file = %d", SID_LOG_COMMENT, *n_halos_file);
-  // SID_log("n_halos_total = %d", SID_LOG_COMMENT, *n_halos_total);
-  // SID_log("", SID_LOG_NOPRINT|SID_LOG_CLOSE);
 }
 
 
@@ -98,20 +89,6 @@ static void read_catalog_halos(
   char halo_type[10];
   int dummy;
   int n_from_this_file;
-
-  // SID_log("Called read_catalog_halos with:", SID_LOG_OPEN);
-  // SID_log("simulation_dir = %s", SID_LOG_COMMENT, simulation_dir);
-  // SID_log("catalog_file_prefix = %s", SID_LOG_COMMENT, catalog_file_prefix);
-  // SID_log("snapshot = %d", SID_LOG_COMMENT, snapshot);
-  // SID_log("flayout_switch = %d", SID_LOG_COMMENT, *flayout_switch);
-  // SID_log("i_file = %d", SID_LOG_COMMENT, *i_file);
-  // SID_log("n_halos_file = %d", SID_LOG_COMMENT, *n_halos_file);
-  // SID_log("i_halo_in_file = %d", SID_LOG_COMMENT, *i_halo_in_file);
-  // SID_log("i_halo = %d", SID_LOG_COMMENT, *i_halo);
-  // SID_log("halo[0].position_MBP[0] = %.3f", SID_LOG_COMMENT, halo[0].position_MBP[0]);
-  // SID_log("halo[1].position_MBP[0] = %.3f", SID_LOG_COMMENT, halo[1].position_MBP[0]);
-  // SID_log("n_to_read = %d", SID_LOG_COMMENT, n_to_read);
-  // SID_log("", SID_LOG_CLOSE|SID_LOG_NOPRINT);
 
   switch (type_flag)
   {
@@ -180,12 +157,10 @@ static void read_catalog_halos(
 
 static void inline convert_input_virial_props(double *Mvir, double *Rvir, double *Vvir, int len, int snapshot)
 {
-  double ratio;
-  ratio = 1.0;
+  double ratio = 1.0;
   if (run_globals.RequestedMassRatioModifier == 1)
   {
-    double logM;
-    logM  = log10(*Mvir / run_globals.params.Hubble_h);
+    double logM = log10(*Mvir / run_globals.params.Hubble_h);
     ratio = interpolate_modifier(run_globals.mass_ratio_modifier, logM);
     //SID_log("%f\t%f\t%f", SID_LOG_COMMENT, *Mvir, logM, ratio);
   }
@@ -288,8 +263,6 @@ static void read_trees_and_catalogs(
   // many groups with no subgroups in them and so the group buffer may need
   // to be larger than the subgroup buffer.
   if (SID.My_rank == 0)
-  {
-
     while (n_read < n_halos)
     {
       if ((n_halos - n_read) >= buffer_size)
@@ -304,7 +277,6 @@ static void read_trees_and_catalogs(
       if (tmp_size > group_buffer_size)
         group_buffer_size = tmp_size;
     }
-  }
   SID_Bcast(&group_buffer_size, sizeof(int), 0, SID.COMM_WORLD);
   SID_log("Using group buffer size = %d", SID_LOG_COMMENT, group_buffer_size);
   group_buffer = SID_malloc(sizeof(catalog_halo_t) * group_buffer_size);
@@ -453,13 +425,6 @@ static void read_trees_and_catalogs(
         // }
 
         (*n_halos_kept)++;
-
-        // // DEBUG
-        // if ((cur_halo->Mvir > cur_halo->FOFGroup->Mvir) && (cur_halo->Type == 0))
-        // {
-        //   debug("%d %lld %.3e %.3e %d\n", snapshot, cur_halo->id_MBP, cur_halo->Mvir, cur_halo->FOFGroup->Mvir, cur_halo->Len);
-        // }
-
       }
     }
 
@@ -581,14 +546,12 @@ static void select_forests()
     requested_ind = (int*)SID_malloc(sizeof(int) * (*n_requested_forests));
     n_halos_tot   = 0;
     for (i_forest = 0, i_req = 0; (i_forest < n_forests) && (i_req < (*n_requested_forests)); i_forest++)
-    {
       if (forest_id[i_forest] == run_globals.RequestedForestId[i_req])
       {
         requested_ind[i_req] = i_forest;
         n_halos_tot         += n_halos[i_forest];
         i_req++;
       }
-    }
     n_forests = (*n_requested_forests);
   }
   else
@@ -608,6 +571,10 @@ static void select_forests()
       SID_log_error("There are fewer processors than there are forests to be processed (%d).  Try again with fewer cores!", n_forests);
       ABORT(EXIT_FAILURE);
     }
+
+    // TODO: Load balancing still seems pretty bad.
+    // This should be looked into to see if there are any improvements that can
+    // be made.  This would hopefully improve runtimes...
 
     // malloc the arrays we need for keeping track of the load balancing
     int *rank_first_forest = (int*)SID_malloc(sizeof(int) * SID.n_proc);
@@ -661,7 +628,6 @@ static void select_forests()
 
       // now double back and make sure we haven't got way more halos on this rank than any previous rank
       for (int j_rank = i_rank - 1; j_rank > -1; j_rank--)
-      {
         while ((rank_n_halos[j_rank + 1] > 1.05 * rank_n_halos[j_rank]) && (rank_n_halos[j_rank + 1] > 1))
         {
           rank_n_halos[j_rank + 1] -= n_halos[rank_first_forest[j_rank + 1]];
@@ -673,7 +639,6 @@ static void select_forests()
           rank_n_forests[j_rank + 1]--;
           rank_n_forests[j_rank]++;
         }
-      }
     }
 
     // add any uncounted forests to the last process
@@ -705,25 +670,6 @@ static void select_forests()
     if ((SID.My_rank == SID.n_proc - 1) && !sample_forests)
       run_globals.RequestedForestId[*n_requested_forests - 1] = -1;
 
-    // DEBUG
-    // SID_Barrier(SID.COMM_WORLD);
-    // SID_log("DEBUGGING INFO FOR select_forests()", SID_LOG_COMMENT);
-    // SID_Barrier(SID.COMM_WORLD);
-    // SID_log("n_requested_forests = %d", SID_LOG_COMMENT, *n_requested_forests);
-    // SID_Barrier(SID.COMM_WORLD);
-    // SID_log("run_globals.RequestedForestId[0] = %d", SID_LOG_COMMENT, run_globals.RequestedForestId[0]);
-    // SID_Barrier(SID.COMM_WORLD);
-    // SID_log("run_globals.RequestedForestId[-1] = %d", SID_LOG_COMMENT, run_globals.RequestedForestId[*n_requested_forests-1]);
-    // SID_Barrier(SID.COMM_WORLD);
-    // SID_log("rank_n_halos[%d] = %d", SID_LOG_COMMENT, SID.My_rank, rank_n_halos[SID.My_rank]);
-    // SID_Barrier(SID.COMM_WORLD);
-    // SID_log("rank_n_forests[%d] = %d", SID_LOG_COMMENT, SID.My_rank, rank_n_forests[SID.My_rank]);
-    // SID_Barrier(SID.COMM_WORLD);
-    // SID_log("rank_first_forest = %d", SID_LOG_COMMENT, rank_first_forest[SID.My_rank]);
-    // SID_Barrier(SID.COMM_WORLD);
-    // SID_log("rank_last_forest = %d", SID_LOG_COMMENT, rank_last_forest[SID.My_rank]);
-    // SID_Barrier(SID.COMM_WORLD);
-
     // free the arrays
     SID_free(SID_FARG rank_n_halos);
     SID_free(SID_FARG rank_n_forests);
@@ -736,14 +682,12 @@ static void select_forests()
   max_halos      = 0;
   max_fof_groups = 0;
   for (int i_forest = 0, i_req = 0; (i_forest < n_forests) && (i_req < (*n_requested_forests)); i_forest++)
-  {
     if (forest_id[requested_ind[i_forest]] == run_globals.RequestedForestId[i_req])
     {
       max_halos      += max_contemp_halo[requested_ind[i_forest]];
       max_fof_groups += max_contemp_fof[requested_ind[i_forest]];
       i_req++;
     }
-  }
 
   // store the maximum number of halos and fof groups needed at any one snapshot
   run_globals.NHalosMax     = max_halos;
@@ -779,6 +723,7 @@ static void inline gen_dump_fname(char *fname, int snapshot)
           run_globals.params.OutputDir, run_globals.params.FileNameGalaxies,
           SID.My_rank, snapshot);
 }
+
 
 static void inline update_pointers_from_offsets(
   int          n_fof_groups_kept,
@@ -856,7 +801,6 @@ trees_info_t read_halos(
     run_globals.TreesScan = trees_info.n_search;
 
   if (run_globals.params.FlagInteractive || run_globals.params.FlagMCMC)
-  {
     if (n_halos < 1)
     {
       SID_log("No halos in this file... skipping...", SID_LOG_COMMENT);
@@ -866,7 +810,6 @@ trees_info_t read_halos(
       snapshot_trees_info[snapshot] = trees_info;
       return trees_info;
     }
-  }
 
   // If necessary, allocate the halo array
   if (*halo == NULL)
@@ -959,12 +902,10 @@ trees_info_t read_halos(
     }
   }
   else
-  {
     // read in the trees
     read_trees_and_catalogs(snapshot, trees_info.unsampled_snapshot,
                             fin_trees, *halo, n_halos, *fof_group, n_fof_groups, n_requested_forests,
                             &n_halos_kept, &n_fof_groups_kept, *index_lookup);
-  }
 
   // close the tree file
   if (SID.My_rank == 0)

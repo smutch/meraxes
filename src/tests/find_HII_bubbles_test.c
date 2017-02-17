@@ -14,7 +14,6 @@ typedef struct state_t {
 #define mystate ((state_t *)*state)
 
 #define MERAXES_TEST_OUTPUT_DIR "/mnt/home/smutch/models/21cm_sam/meraxes/src/tests/output/"
-
 static int setup(void **state)
 {
   *state = SID_malloc(sizeof(state_t));
@@ -61,7 +60,6 @@ static int setup(void **state)
   }
 
   return 0;
-
 }
 
 
@@ -149,3 +147,4 @@ int main(int argc, char *argv[])
   // fclose(fp_log);
   return result;
 }
+

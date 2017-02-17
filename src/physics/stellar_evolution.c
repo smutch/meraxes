@@ -1,8 +1,6 @@
 #include "meraxes.h"
 #include <math.h>
 #include <assert.h>
-
-
 void evolve_stellar_pops(galaxy_t *gal, int snapshot)
 {
   if (gal->mwmsa_num > 0)
@@ -34,3 +32,4 @@ void evolve_stellar_pops(galaxy_t *gal, int snapshot)
     update_reservoirs_from_sn_feedback(gal, 0.0, 0.0, m_recycled, 0.0);
   }
 }
+

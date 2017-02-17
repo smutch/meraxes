@@ -4,7 +4,6 @@
 #include <gsl/gsl_sf_lambert.h>
 #include <gsl/gsl_math.h>
 #include <gsl/gsl_integration.h>
-
 void update_reservoirs_from_sf(galaxy_t *gal, double new_stars)
 {
   if (new_stars > 0)
@@ -141,7 +140,6 @@ void insitu_star_formation(galaxy_t *gal, int snapshot)
 
 
 struct FR_parameters { double a; double b; double c; double d;};
-
 static double integrand_p_dependent_SFR(double q, void *gal)
 {
   struct FR_parameters * params = (struct FR_parameters *)gal;
@@ -237,9 +235,7 @@ double pressure_dependent_star_formation(galaxy_t *gal, int snapshot)
       gal->H2Mass = 2. * M_PI * MSFRR * 1.0e3 / units->UnitMass_in_g; // Molecular hydrogen mass
       gal->HIMass = 0.76 * gal->ColdGas - gal->H2Mass;                //hydrogen mass
       if (gal->H2Mass > gal->ColdGas)
-      {
         gal->H2Mass = gal->ColdGas;
-      }
       MSFRR = MSFRR * 2.0 * M_PI * sf_eff / SEC_PER_YEAR;
       MSFRR = MSFRR * 1.0e3; // in g/s
     }
@@ -263,3 +259,4 @@ double pressure_dependent_star_formation(galaxy_t *gal, int snapshot)
 
   return MSFRR;
 }
+

@@ -1,6 +1,5 @@
 #include "meraxes.h"
 #include "parse_paramfile.h"
-
 static void check_problem_params(run_params_t *run_params)
 {
   if (run_params->NSteps != 1)
@@ -49,13 +48,11 @@ static void inline store_params(
 
     int tag_index = -1;
     for (int ii = 0; ii < n_param; ii++)
-    {
       if (strcmp(key, params_tag[ii]) == 0)
       {
         tag_index = ii;
         break;
       }
-    }
 
     if (tag_index < 0)
     {
@@ -567,8 +564,8 @@ void read_parameter_file(char *fname, int mode)
       required_tag[n_param]  = 1;
       params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
-      strcpy(params_tag[n_param], "quasar_open_angel");
-      params_addr[n_param]   = &(run_params->physics).quasar_open_angel;
+      strcpy(params_tag[n_param], "quasar_open_angle");
+      params_addr[n_param]   = &(run_params->physics).quasar_open_angle;
       required_tag[n_param]  = 1;
       params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
@@ -734,18 +731,15 @@ void read_parameter_file(char *fname, int mode)
 
     // Check to see if we are missing any required parameters
     for (ii = 0; ii < n_param; ii++)
-    {
       if ((used_tag[ii] == 0) && (required_tag[ii] == 1))
       {
         SID_log_error("I miss a value for tag '%s' in parameter file '%s'.", params_tag[ii], fname);
         ABORT(EXIT_FAILURE);
       }
-    }
 
     if (SID.My_rank == 0)
     {
       for (ii = 0; ii < n_param; ii++)
-      {
         if (used_tag[ii] == 1)
         {
           printf("%35s\t", params_tag[ii]);
@@ -773,7 +767,6 @@ void read_parameter_file(char *fname, int mode)
               break;
           }
         }
-      }
     }
 
     ii = strlen(run_params->OutputDir);
@@ -788,3 +781,4 @@ void read_parameter_file(char *fname, int mode)
   SID_Bcast(run_params, sizeof(run_params_t), 0, SID.COMM_WORLD);
   SID_Bcast(&(run_globals.units), sizeof(run_units_t), 0, SID.COMM_WORLD);
 }
+

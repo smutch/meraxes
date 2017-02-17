@@ -2,7 +2,6 @@
 #include <ctype.h>
 #include <meraxes.h>
 #include <parse_paramfile.h>
-
 static int compile_regex(regex_t *reg, const char *regex_text)
 {
   int status = regcomp(reg, regex_text, REG_EXTENDED | REG_NEWLINE);
@@ -17,6 +16,7 @@ static int compile_regex(regex_t *reg, const char *regex_text)
   }
   return 0;
 }
+
 
 static int match_regex(regex_t *reg, const char *match_str, entry_t *entry)
 {
@@ -34,9 +34,7 @@ static int match_regex(regex_t *reg, const char *match_str, entry_t *entry)
   {
     int nomatch = regexec(reg, p, n_matches, match, 0);
     if (nomatch)
-    {
       return nomatch;
-    }
     for (int ii = 0; ii < n_matches; ii++)
     {
       if (match[ii].rm_so == -1)

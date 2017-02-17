@@ -108,7 +108,7 @@ typedef struct physics_params_t {
   double BlackHoleGrowthRate;
   double EddingtonRatio;
   double quasar_mode_scaling;
-  double quasar_open_angel;
+  double quasar_open_angle;
   double quasar_fobs;
 
   double ThreshMajorMerger;
@@ -167,7 +167,6 @@ typedef struct physics_params_t {
   int Flag_FixDiskRadiusOnInfall;
   int Flag_FixVmaxOnInfall;
   int Flag_ReheatToFOFGroupTemp;
-
 } physics_params_t;
 
 //! Run params

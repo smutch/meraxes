@@ -1,6 +1,5 @@
 #include <math.h>
 #include "meraxes.h"
-
 //! Evolve existing galaxies forward in time
 int evolve_galaxies(fof_group_t *fof_group, int snapshot, int NGal, int NFof)
 {
@@ -79,12 +78,10 @@ int evolve_galaxies(fof_group_t *fof_group, int snapshot, int NGal, int NFof)
         while (gal != NULL)
         {
           if (gal->Type == 2)
-          {
             // If the merger clock has run out or our target halo has already
             // merged then process a merger event.
             if ((gal->MergTime < 0) || (gal->MergerTarget->Type == 3))
               merge_with_target(gal, &dead_gals, snapshot);
-          }
           gal = gal->NextGalInHalo;
         }
         halo = halo->NextHaloInFOFGroup;

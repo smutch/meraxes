@@ -1,7 +1,6 @@
 #include "meraxes.h"
 #include <math.h>
 #include <assert.h>
-
 void calculate_Mvir_crit(double redshift)
 {
   // Calculate the critical Mvir value in each grid cell (ala Sobacchi & Mesinger 2013b)
@@ -29,7 +28,6 @@ void calculate_Mvir_crit(double redshift)
   for (int ii = 0; ii < local_n_x; ii++)
   {
     for (int jj = 0; jj < ReionGridDim; jj++)
-    {
       for (int kk = 0; kk < ReionGridDim; kk++)
       {
         // Initialise critical mass
@@ -39,16 +37,13 @@ void calculate_Mvir_crit(double redshift)
         // mass using the UVB feedback prescription of Sobacchi & Mesinger
         // 2013b
         if (z_at_ion[grid_index(ii, jj, kk, ReionGridDim, INDEX_REAL)] > redshift)
-        {
           cell_Mvir_crit = ReionSMParam_m0 * pow((double)(J_21_at_ion[grid_index(ii, jj, kk, ReionGridDim, INDEX_REAL)]) * Hubble_h * Hubble_h, ReionSMParam_a)
                            * pow((1.0 + redshift) / 10.0, ReionSMParam_b)
                            * pow((1.0 - pow((1.0 + redshift) / (1.0 + (double)(z_at_ion[grid_index(ii, jj, kk, ReionGridDim, INDEX_REAL)])), ReionSMParam_c)), ReionSMParam_d);
-        }
 
         // Save the critical mass to the grid
         Mvir_crit[grid_index(ii, jj, kk, ReionGridDim, INDEX_REAL)] = (float)cell_Mvir_crit;
       }
-    }
   }
 }
 
@@ -91,7 +86,6 @@ static double sobacchi_Mvir_min(double z)
 
 double sobacchi2013_modifier(double Mvir, double redshift)
 {
-
   // This asserion is a check for validity of using Mvir_min here.  Really
   // Mvir_crit should be used.  Mvir_min = Mvir_crit as long as the halo mass
   // is a bit larger than Mcool.
@@ -214,5 +208,4 @@ double reionization_modifier(galaxy_t *gal, double Mvir, int snapshot)
 
   return modifier;
 }
-
 

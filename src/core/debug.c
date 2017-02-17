@@ -7,7 +7,6 @@
 #include <hdf5_hl.h>
 #include <stdint.h>
 #include "meraxes.h"
-
 void check_mhysa_pointer()
 {
   fprintf(stderr, "Addresses: run_globals.mhysa_self = %p\n", run_globals.mhysa_self);
@@ -24,6 +23,7 @@ void check_mhysa_pointer()
   fprintf(stderr, "          &run_globals.LastGal = %p\n", &run_globals.LastGal);
   fprintf(stderr, "          &run_globals.mhysa_self = %p\n", &run_globals.mhysa_self);
 }
+
 
 void mpi_debug_here()
 {
@@ -115,7 +115,6 @@ static void find_missing_gals(fof_group_t *fof_group, int NFof, int flag)
       gal = gal->Next;
     }
     SID_log("I find %d gals traversing global list...", SID_LOG_COMMENT, master_counter);
-
   }
 
   // Now create an array which holds pointers to the missing galaxies
@@ -173,7 +172,6 @@ static void find_missing_gals(fof_group_t *fof_group, int NFof, int flag)
   {
     for(int ii = 0; ii < master_counter; ii++)
       if(!gal_found[ii])
-      {
         for(int i_fof = 0; i_fof < NFof; i_fof++)
         {
           halo = fof_group[i_fof].FirstHalo;
@@ -187,7 +185,6 @@ static void find_missing_gals(fof_group_t *fof_group, int NFof, int flag)
             halo = halo->NextHaloInFOFGroup;
           }
         }
-      }
   }
 
   mpi_debug_here();
@@ -197,7 +194,6 @@ static void find_missing_gals(fof_group_t *fof_group, int NFof, int flag)
 
   SID_log("...done", SID_LOG_CLOSE);
 }
-
 
 
 void check_counts(fof_group_t *fof_group, int NGal, int NFof)
@@ -286,6 +282,7 @@ void check_counts(fof_group_t *fof_group, int NGal, int NFof)
   SID_log("...done", SID_LOG_CLOSE);
 }
 
+
 void check_pointers(halo_t *halos, fof_group_t *fof_groups, trees_info_t *trees_info)
 {
   galaxy_t *gal, *gal_pointer, gal_deref;
@@ -330,10 +327,8 @@ void check_pointers(halo_t *halos, fof_group_t *fof_groups, trees_info_t *trees_
     assert((fof_group - fof_groups) < (size_t)n_fof_groups);
     halo = halos[ii].NextHaloInFOFGroup;
     if (halo != NULL)
-    {
       // SID_log("%llu < %llu", SID_LOG_COMMENT, halo-halos, (size_t)n_halos);
       assert((halo - halos) < (size_t)n_halos);
-    }
     gal = halos[ii].Galaxy;
     if (gal != NULL)
       gal_deref = *gal;
@@ -356,7 +351,6 @@ void write_single_grid(const char *fname,
                        bool        padded_flag,
                        bool        create_file_flag)
 {
-
   hid_t plist_id = H5Pcreate(H5P_FILE_ACCESS);
   H5Pset_fapl_mpio(plist_id, SID_COMM_WORLD, MPI_INFO_NULL);
 
@@ -415,5 +409,5 @@ void write_single_grid(const char *fname,
 
   if (padded_flag)
     SID_free(SID_FARG grid_out);
-
 }
+

@@ -1,7 +1,6 @@
 #include "meraxes.h"
 #include <math.h>
 #include <assert.h>
-
 double gas_cooling(galaxy_t *gal)
 {
   double cooling_mass = 0.0;
@@ -59,12 +58,10 @@ double gas_cooling(galaxy_t *gal)
       max_cooling_mass = max_cooling_mass_factor * gal->HotGas / t_cool * gal->dt;
 
       if (r_cool > fof_group->Rvir)
-      {
         // here we are in the rapid cooling regime and we accrete all gas within
         // the free-fall radius
         cooling_mass = max_cooling_mass;
-        // cooling_mass = gal->HotGas;
-      }
+      // cooling_mass = gal->HotGas;
       else
       {
         // here we are in the hot halo regime (but still limited by what's inside the free-fall radius)
@@ -111,3 +108,4 @@ void cool_gas_onto_galaxy(galaxy_t *gal, double cooling_mass)
   gal->ColdGas       += cooling_mass;
   gal->MetalsColdGas += cooling_metals;
 }
+

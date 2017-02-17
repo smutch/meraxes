@@ -9,7 +9,6 @@
 // DEBUG
 #include <hdf5.h>
 #include <hdf5_hl.h>
-
 /*
  * This code is a re-write of the modified version of 21cmFAST used in Mutch et
  * al. (2016; Meraxes paper).  The original code was written by Andrei Mesinger
@@ -17,7 +16,8 @@
  * subsequently made by Simon Mutch & Paul Geil.
  */
 
-double RtoM(double R){
+double RtoM(double R)
+{
   // All in internal units
   int filter = run_globals.params.ReionRtoMFilterType;
   double OmegaM = run_globals.params.OmegaM;
@@ -301,7 +301,6 @@ void find_HII_bubbles(float redshift)
 
             // Record radius
             r_bubble[ind] = R;
-
           }
           // Check if this is the last filtering step.
           // If so, assign partial ionisations to those cells which aren't fully ionised
@@ -323,7 +322,6 @@ void find_HII_bubbles(float redshift)
     // iz
 
     R /= ReionDeltaRFactor;
-
   }
 
 
@@ -356,3 +354,4 @@ void find_HII_bubbles(float redshift)
   run_globals.reion_grids.volume_weighted_global_xH = volume_weighted_global_xH;
   run_globals.reion_grids.mass_weighted_global_xH = mass_weighted_global_xH;
 }
+

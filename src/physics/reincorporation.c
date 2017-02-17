@@ -1,5 +1,4 @@
 #include "meraxes.h"
-
 static void update_reservoirs_from_reincorporation(galaxy_t *gal, double reincorporated)
 {
   double metals = reincorporated * calc_metallicity(gal->EjectedGas, gal->MetalsEjectedGas);
@@ -35,3 +34,4 @@ void reincorporate_ejected_gas(galaxy_t *gal)
     update_reservoirs_from_reincorporation(gal, reincorporated);
   }
 }
+

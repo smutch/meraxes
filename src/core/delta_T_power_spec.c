@@ -3,7 +3,6 @@
 #include <fftw3-mpi.h>
 #include <math.h>
 #include <assert.h>
-
 /*
  * This code is a re-write of the modified version of 21cmFAST used in Mutch et
  * al. (2016; Meraxes paper).  The original code was written by Andrei Mesinger
@@ -53,7 +52,6 @@ int delta_T_ps(
   for (int ii = 0; ii < local_nix; ii++)
   {
     for (int jj = 0; jj < ReionGridDim; jj++)
-    {
       for (int kk = 0; kk < ReionGridDim; kk++)
       {
         pixel_deltax = deltax[grid_index(ii, jj, kk, ReionGridDim, INDEX_PADDED)];
@@ -74,7 +72,6 @@ int delta_T_ps(
 
         ave += delta_T[index];
       }
-    }
   }
 
   int tot_num_pixels = (int)pow(ReionGridDim, 3);
@@ -183,7 +180,6 @@ int delta_T_ps(
 
   // NOTE - previous ct ran from 1 (not zero) to NUM_BINS
   for (int ii = 0; ii < num_bins; ii++)
-  {
     if (in_bin_ct[ii] > 0)
     {
       (*ps)[0 + 3 * ii] = k_ave[ii] / (float)in_bin_ct[ii];                              // Wavenumber
@@ -191,7 +187,6 @@ int delta_T_ps(
       (*ps)[2 + 3 * ii] = p_box[ii] / (float)in_bin_ct[ii] / sqrt((float)in_bin_ct[ii]); // Error in power?
     }
 
-  }
   *ps_nbins = num_bins;
   *average_T = (float)ave;
 
@@ -207,3 +202,4 @@ int delta_T_ps(
 
   return 0;
 }
+

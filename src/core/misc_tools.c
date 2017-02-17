@@ -1,7 +1,6 @@
 #include "meraxes.h"
 #include <math.h>
 #include <assert.h>
-
 void myexit(int signum)
 {
   fprintf(stderr, "Task: %d\tnode: %s\tis exiting.\n\n\n", SID.My_rank, SID.My_node);
@@ -142,6 +141,7 @@ int pos_to_ngp(double x, double side, int nx)
   return ind;
 }
 
+
 float comoving_distance(float a[3], float b[3])
 {
   float dx = apply_pbc_disp(a[0] - b[0]);
@@ -155,7 +155,8 @@ float comoving_distance(float a[3], float b[3])
 }
 
 
-double accurate_sumf(float *arr, int n) {
+double accurate_sumf(float *arr, int n)
+{
   // inplace reorder and sum
   qsort(arr, n, sizeof(float), compare_floats);
 
@@ -185,6 +186,7 @@ int grid_index(int i, int j, int k, int dim, int type)
 
   return ind;
 }
+
 
 /// Numpy style isclose()
 int isclosef(

@@ -3,7 +3,6 @@
 #include <assert.h>
 
 #define eta 0.06 //standard efficiency, 6% accreted mass is radiated
-
 double calculate_BHemissivity(double BlackHoleMass, double accreted_mass)
 {
   double accretion_time;
@@ -34,6 +33,7 @@ double calculate_BHemissivity(double BlackHoleMass, double accreted_mass)
 
   // This introduce inconsistence compared to the calculation of luminosity. Here we assume Lbol(t) = Lbol(t = accretion_time/2), which is only an approximation!
 }
+
 
 // quasar feedback suggested by Croton et al. 2016
 void update_reservoirs_from_quasar_mode_bh_feedback(galaxy_t *gal, double m_reheat)
@@ -81,6 +81,7 @@ void update_reservoirs_from_quasar_mode_bh_feedback(galaxy_t *gal, double m_rehe
   if (central->MetalsEjectedGas < 0)
     central->MetalsEjectedGas = 0.0;
 }
+
 
 double radio_mode_BH_heating(galaxy_t *gal, double cooling_mass, double x)
 {
@@ -173,6 +174,7 @@ void merger_driven_BH_growth(galaxy_t *gal, double merger_ratio, int snapshot)
   }
 }
 
+
 void previous_merger_driven_BH_growth(galaxy_t *gal)
 {
   // If there is any cold gas to feed the black hole...
@@ -210,3 +212,4 @@ void previous_merger_driven_BH_growth(galaxy_t *gal)
   m_reheat = run_globals.params.physics.QuasarModeEff * 2. * eta * 8.98755e10 * accreted_mass / Vvir / Vvir;
   update_reservoirs_from_quasar_mode_bh_feedback(gal, m_reheat);
 }
+

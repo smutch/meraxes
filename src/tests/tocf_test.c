@@ -11,8 +11,6 @@ typedef struct state_t {
   int global_n_gals;
 } state_t;
 #define mystate ((state_t *)*state)
-
-
 static int setup_tocf_tests(void **state)
 {
   *state = SID_malloc(sizeof(state_t));
@@ -141,7 +139,6 @@ static int setup_tocf_tests(void **state)
 
 static int teardown_tocf_tests(void **state)
 {
-
   SID_free(SID_FARG run_globals.ZZ);
   SID_free(SID_FARG run_globals.reion_grids.galaxy_to_slab_map);
   SID_free(SID_FARG ((state_t *)*state)->gals);
@@ -154,7 +151,6 @@ static int teardown_tocf_tests(void **state)
 
 static void test_map_galaxies_to_slabs(void **state)
 {
-
   int correct_nix[] = {16, 16, 16, 16};
   for(int ii = 0; ii < SID.n_proc; ii++)
     assert_int_equal((int)run_globals.params.slab_nix[ii], correct_nix[ii]);
@@ -212,13 +208,11 @@ static void test_map_galaxies_to_slabs(void **state)
     assert_int_equal(galaxy_to_slab_map[ii].slab_ind, correct_slab[ii]);
 
   SID_free(SID_FARG correct_slab);
-
 }
 
 
 static void test_assign_Mvir_crit_to_galaxies(void **state)
 {
-
   int ReionGridDim = run_globals.params.ReionGridDim;
   ptrdiff_t *slab_ix_start = run_globals.params.slab_ix_start;
   gal_to_slab_t *galaxy_to_slab_map = run_globals.reion_grids.galaxy_to_slab_map;
@@ -227,7 +221,6 @@ static void test_assign_Mvir_crit_to_galaxies(void **state)
   assign_Mvir_crit_to_galaxies(n_mapped);
 
   if (galaxy_to_slab_map != NULL)
-  {
     for(int ii = 0; ii < mystate->n_gals; ii++)
     {
       galaxy_t *gal = galaxy_to_slab_map[ii].galaxy;
@@ -242,8 +235,6 @@ static void test_assign_Mvir_crit_to_galaxies(void **state)
       int i_cell = grid_index(idx[0] - slab_ix_start[i_slab], idx[1], idx[2], ReionGridDim, INDEX_REAL);
       assert_int_equal(gal->MvirCrit, (float)(1000 * i_slab + i_cell));
     }
-  }
-
 }
 
 
@@ -264,7 +255,6 @@ static void test_construct_baryon_grids(void **state)
   int slab[]           =    {1,    0,    2,  3,   0, 0,    3,  2};
 
   for(int ii = 0; ii < n_cells_tot; ii++)
-  {
     if (slab[ii] == SID.My_rank)
     {
       int i_cell = grid_index(
@@ -281,7 +271,6 @@ static void test_construct_baryon_grids(void **state)
                     -1
                     ));
     }
-  }
 }
 
 
@@ -309,3 +298,4 @@ int main(int argc, char *argv[])
   fclose(fp_log);
   return result;
 }
+

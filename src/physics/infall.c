@@ -1,6 +1,5 @@
 #include <math.h>
 #include "meraxes.h"
-
 double gas_infall(fof_group_t *FOFgroup, int snapshot)
 {
   galaxy_t *gal;
@@ -109,3 +108,4 @@ void add_infall_to_hot(galaxy_t *central, double infall_mass)
     }
   }
 }
+

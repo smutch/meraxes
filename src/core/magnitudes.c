@@ -2,7 +2,6 @@
 #include <hdf5.h>
 #include <hdf5_hl.h>
 #include "meraxes.h"
-
 void init_luminosities(galaxy_t *gal)
 {
 #ifdef CALC_MAGS
@@ -14,6 +13,7 @@ void init_luminosities(galaxy_t *gal)
 #endif
 }
 
+
 void sum_luminosities(galaxy_t *parent, galaxy_t *gal, int outputbin)
 {
 #ifdef CALC_MAGS
@@ -24,6 +24,7 @@ void sum_luminosities(galaxy_t *parent, galaxy_t *gal, int outputbin)
   return;
 #endif
 }
+
 
 void prepare_magnitudes_for_output(galaxy_t gal, galaxy_output_t *galout, int i_snap)
 {
@@ -42,6 +43,7 @@ void prepare_magnitudes_for_output(galaxy_t gal, galaxy_output_t *galout, int i_
 #endif
 }
 
+
 #ifdef CALC_MAGS
 static int inline phototab_index(
   phototabs_t *photo,
@@ -51,6 +53,7 @@ static int inline phototab_index(
 {
   return (int)((i_age) + photo->NAges * ((i_metal) + photo->NMetals * (i_band)));
 }
+
 
 static void init_jump_index()
 {
@@ -78,6 +81,8 @@ static void init_jump_index()
 
   photo->JumpFactor = jumpfac;
 }
+
+
 #endif
 
 #if defined(DEBUG) && defined(CALC_MAGS)
@@ -98,9 +103,9 @@ static void print_phototab(int i_metal)
   }
   printf("--------------------\n");
 }
+
+
 #endif
-
-
 void read_photometric_tables()
 {
 #ifdef CALC_MAGS
@@ -283,11 +288,13 @@ void read_photometric_tables()
 #endif // CALC_MAGS
 }
 
+
 #ifdef CALC_MAGS
 static int inline get_jump_index(double age, float *AgeTab, int *jumptab, float jumpfac)
 {
   return jumptab[(int)((age - AgeTab[1]) * jumpfac)];
 }
+
 
 static void find_interpolated_lum(
   double  timenow,
@@ -384,9 +391,9 @@ static void find_interpolated_lum(
   *fmet1 = (double)fm1;
   *fmet2 = (double)fm2;
 }
+
+
 #endif
-
-
 void add_to_luminosities(
   galaxy_t *gal,
   double    burst_mass,
@@ -430,6 +437,7 @@ void add_to_luminosities(
 #endif // CALC_MAGS
 }
 
+
 double lum_to_mag(double lum)
 {
   if (lum > 0)
@@ -437,6 +445,7 @@ double lum_to_mag(double lum)
   else
     return 99.0;
 }
+
 
 void cleanup_mags()
 {
@@ -451,3 +460,4 @@ void cleanup_mags()
   return;
 #endif
 }
+

@@ -1,6 +1,5 @@
 #include "meraxes.h"
 #include <math.h>
-
 double calculate_merging_time(galaxy_t *orphan, int snapshot)
 {
   // TODO: What should we do about FOF properties here?  Do we need to use the
@@ -209,3 +208,4 @@ void merge_with_target(galaxy_t *gal, int *dead_gals, int snapshot)
   gal->HaloDescIndex = -1;
   (*dead_gals)++;
 }
+

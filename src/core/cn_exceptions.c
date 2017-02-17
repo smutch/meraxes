@@ -2,7 +2,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
-
 void cn_quote()
 {
   char quote_list[28][512];
