@@ -148,7 +148,6 @@ void merger_driven_BH_growth(galaxy_t *gal, double merger_ratio, int snapshot)
     double accreting_mass;
     double Vvir;
     double zplus1to1pt5;
-    run_units_t *units = &(run_globals.units);
 
     // If this galaxy is the central of it's FOF group then use the FOF Halo properties
     // TODO: This needs closer thought as to if this is the best thing to do...

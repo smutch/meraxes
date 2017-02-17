@@ -804,7 +804,6 @@ void write_snapshot(
   hdf5_output_t h5props       = run_globals.hdf5props;
   int gal_count               = 0;
   int old_count               = 0;
-  int total_n_out_gals        = 0; 
   int *first_progenitor_index = NULL;
   int *next_progenitor_index  = NULL;
   int calc_descendants_i_out  = -1;

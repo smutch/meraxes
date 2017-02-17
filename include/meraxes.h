@@ -1,6 +1,7 @@
 // These defines were added at compilation time
 // (see SConstruct prepend_user_defines())
-#define U
+#define DEBUG
+#define USE_MPI 1
 // -------------------------------------------
 
 
@@ -156,6 +157,10 @@ typedef struct physics_params_t {
   double  ReionSMParam_b;
   double  ReionSMParam_c;
   double  ReionSMParam_d;
+  
+  // options
+  int SfDiskVelOpt;
+  int SfPrescription;
 
   // Flags
   double RedshiftDepEscFracNorm;
@@ -169,7 +174,6 @@ typedef struct physics_params_t {
   int Flag_FixDiskRadiusOnInfall;
   int Flag_FixVmaxOnInfall;
   int Flag_ReheatToFOFGroupTemp;
-  int SfDiskVelOpt;
 
 } physics_params_t;
 
@@ -389,6 +393,9 @@ typedef struct galaxy_t {
   double MetalsHotGas;
   double ColdGas;
   double MetalsColdGas;
+  double H2Frac;
+  double H2Mass;
+  double HIMass;
   double Mcool;
   double StellarMass;
   double GrossStellarMass;
@@ -467,6 +474,9 @@ typedef struct galaxy_output_t {
   float MetalsHotGas;
   float ColdGas;
   float MetalsColdGas;
+  float H2Frac;
+  float H2Mass;
+  float HIMass;
   float Mcool;
   float DiskScaleLength;
   float StellarMass;
@@ -635,6 +645,7 @@ void         add_infall_to_hot(galaxy_t *central, double infall_mass);
 double       calculate_merging_time(galaxy_t *gal, int snapshot);
 void         merge_with_target(galaxy_t *gal, int *dead_gals, int snapshot);
 void         insitu_star_formation(galaxy_t *gal, int snapshot);
+double       pressure_dependent_star_formation(galaxy_t *gal, int snapshot);
 void         update_reservoirs_from_sf(galaxy_t *gal, double new_stars);
 double       sn_m_low(double log_dt);
 double       calc_recycled_frac(double m_high, double m_low, double *burst_mass_frac);
@@ -665,7 +676,8 @@ float        apply_pbc_pos(float x);
 double       accurate_sumf(float *arr, int n);
 int          grid_index(int i, int j, int k, int dim, int type);
 void         mpi_debug_here(void);
-int          isclosef(float a, float b, float rel_tol, float abs_tol);
+void         check_mhysa_pointer(void);
+int 				 isclosef(float a, float b, float rel_tol, float abs_tol);
 void         printProgress (double percentage);
 void         check_counts(fof_group_t *fof_group, int NGal, int NFof);
 void         cn_quote(void);

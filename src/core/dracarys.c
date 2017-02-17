@@ -110,22 +110,12 @@ void dracarys()
     SID_log("===============================================================", SID_LOG_COMMENT);
 
 
-    int i;
-    // Read Mass Ratio Modifier and Baryon Fraction Modifier
-    if (run_globals.RequestedMassRatioModifier == 1){
+    // Read mass ratio modifiers and baryon fraction modifiers
+    if (run_globals.RequestedMassRatioModifier == 1)
         read_mass_ratio_modifiers(snapshot);
-        /*for (i=0; i<=30; i++){
-		    Modifier data = run_globals.mass_ratio_modifier[i];
-            SID_log("%f\t%f\t%f\t%f\t%f", SID_LOG_COMMENT, data.logMmin, data.logMmax, data.mass_mean, data.ratio, data.ratio_errl);
-        }*/
-    }
-    if (run_globals.RequestedBaryonFracModifier == 1){
+
+    if (run_globals.RequestedBaryonFracModifier == 1)
         read_baryon_frac_modifiers(snapshot);
-        /*for (i=0; i<=30; i++){
-		    Modifier data = run_globals.baryon_frac_modifier[i];
-            SID_log("%f\t%f\t%f\t%f\t%f", SID_LOG_COMMENT, data.logMmin, data.logMmax, data.mass_mean, data.ratio, data.ratio_errl);
-        }*/
-    }
 
     // Reset book keeping counters
     kill_counter    = 0;
