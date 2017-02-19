@@ -2,6 +2,7 @@
 #include "meraxes.h"
 #include <sys/stat.h>
 #include <fenv.h>
+
 int main(int argc, char **argv)
 {
   // init SID
@@ -57,4 +58,3 @@ int main(int argc, char **argv)
 
   SID_exit(EXIT_SUCCESS);
 }
-

@@ -206,7 +206,7 @@ typedef struct run_params_t {
   double PartMass;
   long long NPart;
 
-  double          *MvirCrit;
+  double *MvirCrit;
 
 
   double ReionDeltaRFactor;
@@ -246,15 +246,15 @@ typedef struct run_units_t {
 } run_units_t;
 
 typedef struct hdf5_output_t {
-  char       **params_tag;
-  void       **params_addr;
-  int         *params_type;
-  size_t      *dst_offsets;
-  size_t      *dst_field_sizes;
+  char **params_tag;
+  void **params_addr;
+  int *params_type;
+  size_t *dst_offsets;
+  size_t *dst_field_sizes;
   const char **field_names;
   const char **field_units;
   const char **field_h_conv;
-  hid_t       *field_types;
+  hid_t *field_types;
   size_t dst_size;
   hid_t array3f_tid;         // sizeof(hid_t) = 4
   hid_t array_nmag_f_tid;
@@ -286,26 +286,26 @@ typedef struct gal_to_slab_t {
 
 
 typedef struct reion_grids_t {
-  ptrdiff_t     *slab_nix;
-  ptrdiff_t     *slab_ix_start;
-  ptrdiff_t     *slab_n_complex;
+  ptrdiff_t *slab_nix;
+  ptrdiff_t *slab_ix_start;
+  ptrdiff_t *slab_n_complex;
 
-  float         *buffer;
-  float         *stars;
+  float *buffer;
+  float *stars;
   fftwf_complex *stars_unfiltered;
   fftwf_complex *stars_filtered;
-  float         *deltax;
+  float *deltax;
   fftwf_complex *deltax_unfiltered;
   fftwf_complex *deltax_filtered;
-  float         *sfr;
+  float *sfr;
   fftwf_complex *sfr_unfiltered;
   fftwf_complex *sfr_filtered;
-  float         *xH;
-  float         *z_at_ionization;
-  float         *J_21_at_ionization;
-  float         *J_21;
-  float         *Mvir_crit;
-  float         *r_bubble;
+  float *xH;
+  float *z_at_ionization;
+  float *J_21_at_ionization;
+  float *J_21;
+  float *Mvir_crit;
+  float *r_bubble;
   gal_to_slab_t *galaxy_to_slab_map;
 
   double volume_weighted_global_xH;
@@ -319,8 +319,8 @@ typedef struct reion_grids_t {
 typedef struct halo_t {
   long long id_MBP;           //!< ID of most bound particle
   struct fof_group_t *FOFGroup;
-  struct halo_t      *NextHaloInFOFGroup;
-  struct galaxy_t    *Galaxy;
+  struct halo_t *NextHaloInFOFGroup;
+  struct galaxy_t *Galaxy;
 
   float Pos[3];           //!< Most bound particle position [Mpc/h]
   float Vel[3];           //!< Centre-of-mass velocity [km/s]
@@ -374,7 +374,7 @@ typedef struct galaxy_t {
   double dt; //!< Time between current snapshot and last identification
 
   long long id_MBP;
-  struct halo_t   *Halo;
+  struct halo_t *Halo;
   struct galaxy_t *FirstGalInHalo;
   struct galaxy_t *NextGalInHalo;
   struct galaxy_t *Next;
@@ -568,23 +568,23 @@ typedef struct run_globals_t {
   struct run_units_t units;
   hdf5_output_t hdf5props;
 
-  double             *AA;
-  double             *ZZ;
-  double             *LTTime;
-  int                *RequestedForestId;
+  double *AA;
+  double *ZZ;
+  double *LTTime;
+  int *RequestedForestId;
   int RequestedMassRatioModifier;
   int RequestedBaryonFracModifier;
-  int                *ListOutputSnaps;
-  halo_t            **SnapshotHalo;
-  fof_group_t       **SnapshotFOFGroup;
-  int               **SnapshotIndexLookup;
-  float             **SnapshotDeltax;
-  trees_info_t       *SnapshotTreesInfo;
-  phototabs_t        *photo;
-  struct galaxy_t    *FirstGal;
-  struct galaxy_t    *LastGal;
-  gsl_rng            *random_generator;
-  void               *mhysa_self;
+  int *ListOutputSnaps;
+  halo_t **SnapshotHalo;
+  fof_group_t **SnapshotFOFGroup;
+  int **SnapshotIndexLookup;
+  float **SnapshotDeltax;
+  trees_info_t *SnapshotTreesInfo;
+  phototabs_t *photo;
+  struct galaxy_t *FirstGal;
+  struct galaxy_t *LastGal;
+  gsl_rng *random_generator;
+  void *mhysa_self;
   double Hubble;
   double RhoCrit;
   double G;
@@ -600,11 +600,11 @@ typedef struct run_globals_t {
   int NStoreSnapshots;
 
   bool SelectForestsSwitch;
-  Modifier            *mass_ratio_modifier;
-  Modifier            *baryon_frac_modifier;
+  Modifier *mass_ratio_modifier;
+  Modifier *baryon_frac_modifier;
 } run_globals_t;
 #ifdef _MAIN
-run_globals_t run_globals;
+run_globals_t        run_globals;
 #else
 extern run_globals_t run_globals;
 #endif

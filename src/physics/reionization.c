@@ -1,25 +1,26 @@
 #include "meraxes.h"
 #include <math.h>
 #include <assert.h>
+
 void calculate_Mvir_crit(double redshift)
 {
   // Calculate the critical Mvir value in each grid cell (ala Sobacchi & Mesinger 2013b)
-  float *Mvir_crit = run_globals.reion_grids.Mvir_crit;
+  float *Mvir_crit       = run_globals.reion_grids.Mvir_crit;
 
-  int ReionGridDim = run_globals.params.ReionGridDim;
+  int    ReionGridDim    = run_globals.params.ReionGridDim;
   double cell_Mvir_crit;
-  int local_n_x = (int)(run_globals.reion_grids.slab_nix[SID.My_rank]);
-  int local_n_cell = local_n_x * ReionGridDim * ReionGridDim;
+  int    local_n_x       = (int)(run_globals.reion_grids.slab_nix[SID.My_rank]);
+  int    local_n_cell    = local_n_x * ReionGridDim * ReionGridDim;
 
-  double ReionSMParam_m0  = run_globals.params.physics.ReionSMParam_m0;
-  double ReionSMParam_a   = run_globals.params.physics.ReionSMParam_a;
-  double ReionSMParam_b   = run_globals.params.physics.ReionSMParam_b;
-  double ReionSMParam_c   = run_globals.params.physics.ReionSMParam_c;
-  double ReionSMParam_d   = run_globals.params.physics.ReionSMParam_d;
-  double Hubble_h         = run_globals.params.Hubble_h;
+  double ReionSMParam_m0 = run_globals.params.physics.ReionSMParam_m0;
+  double ReionSMParam_a  = run_globals.params.physics.ReionSMParam_a;
+  double ReionSMParam_b  = run_globals.params.physics.ReionSMParam_b;
+  double ReionSMParam_c  = run_globals.params.physics.ReionSMParam_c;
+  double ReionSMParam_d  = run_globals.params.physics.ReionSMParam_d;
+  double Hubble_h        = run_globals.params.Hubble_h;
 
-  float *J_21_at_ion = run_globals.reion_grids.J_21_at_ionization;
-  float *z_at_ion    = run_globals.reion_grids.z_at_ionization;
+  float *J_21_at_ion     = run_globals.reion_grids.J_21_at_ionization;
+  float *z_at_ion        = run_globals.reion_grids.z_at_ionization;
 
   // init
   memset(Mvir_crit, 0, sizeof(float) * local_n_cell);
@@ -71,13 +72,13 @@ static double sobacchi_Mvir_min(double z)
   // Calculate the minimum halo mass capable of hosting star forming galaxies
   // following Sobacchi & Mesinger 2013b.
 
-  double current_Mcool = Mcool(z);
-  double current_M0    = M0(z);
-  double Mvir_min;
-  double g_term;
-  physics_params_t *params = &(run_globals.params.physics);
+  double            current_Mcool = Mcool(z);
+  double            current_M0    = M0(z);
+  double            Mvir_min;
+  double            g_term;
+  physics_params_t *params        = &(run_globals.params.physics);
 
-  g_term = 1. / (1. + exp((z - (params->ReionSobacchi_Zre - params->ReionSobacchi_DeltaZsc)) / params->ReionSobacchi_DeltaZre));
+  g_term   = 1. / (1. + exp((z - (params->ReionSobacchi_Zre - params->ReionSobacchi_DeltaZsc)) / params->ReionSobacchi_DeltaZre));
   Mvir_min = current_Mcool * pow(current_M0 / current_Mcool, g_term);
 
   return Mvir_min;
@@ -105,6 +106,7 @@ static double precomputed_Mcrit_modifier(galaxy_t *gal, double Mvir, int snapsho
   // formalism.
 
   double Mvir_crit = run_globals.params.MvirCrit[snapshot];
+
   if (gal != NULL)
     gal->MvirCrit = Mvir_crit;
   return pow(2.0, -Mvir_crit / Mvir);
@@ -136,7 +138,7 @@ double gnedin2000_modifer(double Mvir, double redshift)
   // formulas given by Kravtsov et al (2004) Appendix B
 
   // alpha=6 gives the best fit to the Gnedin data
-  alpha = 6.0;
+  alpha   = 6.0;
 
   // calculate the filtering mass
   a       = 1.0 / (1.0 + redshift);
@@ -157,11 +159,11 @@ double gnedin2000_modifer(double Mvir, double redshift)
                    * ar / 3.0 - (ar * ar / 3.0) * (3.0 - 2.0 * pow(a_on_ar, -0.5)));
 
   // this is in units of 10^10Msun/h, note mu=0.59 and mu^-1.5 = 2.21
-  Mjeans     = 25.0 * pow(run_globals.params.OmegaM, -0.5) * 2.21;
-  Mfiltering = Mjeans * pow(f_of_a, 1.5);
+  Mjeans      = 25.0 * pow(run_globals.params.OmegaM, -0.5) * 2.21;
+  Mfiltering  = Mjeans * pow(f_of_a, 1.5);
 
   // calculate the characteristic atomic cooling mass coresponding to a halo temperature of 10^4K
-  Mchar = Mcool(redshift);
+  Mchar       = Mcool(redshift);
 
   // we use the maximum of Mfiltering and Mchar
   mass_to_use = (Mfiltering > Mchar) ? Mfiltering : Mchar;
@@ -208,4 +210,3 @@ double reionization_modifier(galaxy_t *gal, double Mvir, int snapshot)
 
   return modifier;
 }
-

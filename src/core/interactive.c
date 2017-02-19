@@ -1,5 +1,6 @@
 #include "meraxes.h"
 #include "unistd.h"
+
 static int prompt_char(const char *message)
 {
   int cont;
@@ -7,7 +8,7 @@ static int prompt_char(const char *message)
   if (SID.My_rank == 0)
   {
     char c;
-    int tmp;
+    int  tmp;
 
     printf("\n%s (y/n): ", message);
     fflush(stdout);
@@ -75,4 +76,3 @@ void continue_prompt(char *param_file)
 
   return;
 }
-

@@ -1,5 +1,6 @@
 #include "meraxes.h"
 #include <math.h>
+
 static inline double E_z(double z, double OmegaM, double OmegaK, double OmegaLambda)
 {
   // Function stolen and adapted from gbpCosmo
@@ -54,6 +55,7 @@ double Tvir_to_Mvir(double T, double z)
   double OmegaLambda = run_globals.params.OmegaLambda;
 
   double mu;         //!< Mean molecular weight (ionized gas)
+
   if (T < 9.99999e3) // Neutral IGM
     mu = 1.22;
   else               // Ionised IGM
@@ -63,7 +65,7 @@ double Tvir_to_Mvir(double T, double z)
   double T_term     = pow(T / 1.98e4, 1.5);
   double cosmo_term = pow(OmegaM / Omega_z(z, OmegaM, OmegaK, OmegaLambda) *
                           Delta_vir(z) / 18. / (M_PI * M_PI), -0.5);
-  double mol_term = pow(mu / 0.6, -1.5);
+  double mol_term   = pow(mu / 0.6, -1.5);
 
   return 0.01 * mol_term * cosmo_term * T_term * z_term;
 }
@@ -105,11 +107,11 @@ double calculate_Rvir(double Mvir, int snapshot)
 
   hubble_of_z_sq = pow(hubble_at_snapshot(snapshot), 2);
 
-  rhocrit = 3 * hubble_of_z_sq / (8 * M_PI * run_globals.G);
+  rhocrit        = 3 * hubble_of_z_sq / (8 * M_PI * run_globals.G);
 
-  Delta = Delta_vir(run_globals.ZZ[snapshot]);
+  Delta          = Delta_vir(run_globals.ZZ[snapshot]);
 
-  fac = 1 / (Delta * 4 * M_PI / 3.0 * rhocrit);
+  fac            = 1 / (Delta * 4 * M_PI / 3.0 * rhocrit);
 
   return cbrt(Mvir * fac);
 }
@@ -133,4 +135,3 @@ double calculate_spin_param(halo_t *halo)
 
   return (double)spin;
 }
-

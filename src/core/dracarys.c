@@ -1,6 +1,7 @@
 #include <math.h>
 #include "meraxes.h"
 #include "tree_flags.h"
+
 static void inline turn_off_merger_flag(galaxy_t *gal)
 {
   gal->TreeFlags = gal->TreeFlags & (~TREE_CASE_MERGER) & (~TREE_CASE_MERGER_PRIMARY);
@@ -48,8 +49,8 @@ static inline bool check_if_valid_host(halo_t *halo)
 
 static int find_original_index(int index, int *lookup, int n_mappings)
 {
-  int *pointer  = NULL;
-  int new_index = -1;
+  int *pointer   = NULL;
+  int  new_index = -1;
 
   pointer = bsearch(&index, lookup, (size_t)n_mappings, sizeof(int), compare_ints);
   if (pointer)
@@ -62,28 +63,28 @@ static int find_original_index(int index, int *lookup, int n_mappings)
 //! Actually run the model
 void dracarys()
 {
-  trees_info_t trees_info;
-  halo_t *halo           = NULL;
-  fof_group_t *fof_group = NULL;
-  galaxy_t *gal          = NULL;
-  galaxy_t *prev_gal     = NULL;
-  galaxy_t *next_gal     = NULL;
-  galaxy_t *cur_gal      = NULL;
-  int i_newhalo;
-  int NGal            = 0;
-  int nout_gals       = 0;
-  int last_nout_gals  = 0;
-  int last_snap       = 0;
-  int kill_counter    = 0;
-  int i_snap;
-  int NSteps                        = run_globals.params.NSteps;
-  int n_store_snapshots             = run_globals.NStoreSnapshots;
-  halo_t **snapshot_halo            = run_globals.SnapshotHalo;
-  fof_group_t **snapshot_fof_group  = run_globals.SnapshotFOFGroup;
-  int **snapshot_index_lookup       = run_globals.SnapshotIndexLookup;
-  trees_info_t *snapshot_trees_info = run_globals.SnapshotTreesInfo;
-  double *LTTime                    = run_globals.LTTime;
-  int NOutputSnaps                  = run_globals.NOutputSnaps;
+  trees_info_t  trees_info;
+  halo_t       *halo                  = NULL;
+  fof_group_t  *fof_group             = NULL;
+  galaxy_t     *gal                   = NULL;
+  galaxy_t     *prev_gal              = NULL;
+  galaxy_t     *next_gal              = NULL;
+  galaxy_t     *cur_gal               = NULL;
+  int           i_newhalo;
+  int           NGal                  = 0;
+  int           nout_gals             = 0;
+  int           last_nout_gals        = 0;
+  int           last_snap             = 0;
+  int           kill_counter          = 0;
+  int           i_snap;
+  int           NSteps                = run_globals.params.NSteps;
+  int           n_store_snapshots     = run_globals.NStoreSnapshots;
+  halo_t      **snapshot_halo         = run_globals.SnapshotHalo;
+  fof_group_t **snapshot_fof_group    = run_globals.SnapshotFOFGroup;
+  int         **snapshot_index_lookup = run_globals.SnapshotIndexLookup;
+  trees_info_t *snapshot_trees_info   = run_globals.SnapshotTreesInfo;
+  double       *LTTime                = run_globals.LTTime;
+  int           NOutputSnaps          = run_globals.NOutputSnaps;
 
   // Find what the last requested output snapshot is
   for (int ii = 0; ii < NOutputSnaps; ii++)
@@ -100,10 +101,10 @@ void dracarys()
   // Loop through each snapshot
   for (int snapshot = 0; snapshot <= last_snap; snapshot++)
   {
-    int *index_lookup   = NULL;
-    int merger_counter  = 0;
-    int new_gal_counter = 0;
-    int ghost_counter   = 0;
+    int *index_lookup    = NULL;
+    int  merger_counter  = 0;
+    int  new_gal_counter = 0;
+    int  ghost_counter   = 0;
 
     SID_log("", SID_LOG_COMMENT);
     SID_log("===============================================================", SID_LOG_COMMENT);
@@ -119,7 +120,7 @@ void dracarys()
       read_baryon_frac_modifiers(snapshot);
 
     // Reset book keeping counters
-    kill_counter    = 0;
+    kill_counter = 0;
 
     // Read in the halos for this snapshot
     if (run_globals.params.FlagInteractive || run_globals.params.FlagMCMC)
@@ -127,7 +128,7 @@ void dracarys()
     else
       i_snap = 0;
 
-    trees_info = read_halos(snapshot, &(snapshot_halo[i_snap]), &(snapshot_fof_group[i_snap]), &(snapshot_index_lookup[i_snap]), snapshot_trees_info);
+    trees_info   = read_halos(snapshot, &(snapshot_halo[i_snap]), &(snapshot_fof_group[i_snap]), &(snapshot_index_lookup[i_snap]), snapshot_trees_info);
 
     // Set the relevant pointers to this snapshot
     halo         = snapshot_halo[i_snap];
@@ -149,7 +150,7 @@ void dracarys()
       gal->ghost_flag = false;
       gal->SnapSkipCounter--;
       reset_galaxy_properties(gal, snapshot);
-      gal = gal->Next;
+      gal             = gal->Next;
     }
 
     // Loop through each galaxy we already have
@@ -275,7 +276,7 @@ void dracarys()
       {
         next_gal = gal->Next;
         kill_galaxy(gal, prev_gal, &NGal, &kill_counter);
-        gal = prev_gal;
+        gal      = prev_gal;
       }
       prev_gal = gal;
       if (gal != NULL)
@@ -294,8 +295,8 @@ void dracarys()
     // Also update the fof_group pointers.
     for (int i_fof = 0; i_fof < trees_info.n_fof_groups; i_fof++)
     {
-      halo_t *cur_halo            = fof_group[i_fof].FirstHalo;
-      int total_subhalo_len       = 0;
+      halo_t *cur_halo          = fof_group[i_fof].FirstHalo;
+      int     total_subhalo_len = 0;
 
       while (cur_halo != NULL)
       {
@@ -304,10 +305,10 @@ void dracarys()
 
         total_subhalo_len += cur_halo->Len;
 
-        cur_halo = cur_halo->NextHaloInFOFGroup;
+        cur_halo           = cur_halo->NextHaloInFOFGroup;
       }
 
-      fof_group[i_fof].TotalSubhaloLen   = total_subhalo_len;
+      fof_group[i_fof].TotalSubhaloLen = total_subhalo_len;
     }
 
     // Loop through each galaxy and deal with HALO mergers now that all other
@@ -339,7 +340,7 @@ void dracarys()
           gal->Type = 2;
 
           // Add the incoming galaxy to the end of the halo's linked list
-          cur_gal = gal->Halo->Galaxy;
+          cur_gal   = gal->Halo->Galaxy;
           while (cur_gal != NULL)
           {
             prev_gal = cur_gal;
@@ -348,7 +349,7 @@ void dracarys()
           prev_gal->NextGalInHalo = gal;
 
           // Update the FirstGalInHalo pointer.
-          gal->FirstGalInHalo = gal->Halo->Galaxy;
+          gal->FirstGalInHalo     = gal->Halo->Galaxy;
 
           // Loop through and update the FirstGalInHalo and Halo pointers of any other
           // galaxies that are attached to the incoming galaxy
@@ -520,7 +521,7 @@ void dracarys()
   {
     next_gal = gal->Next;
     SID_free(SID_FARG gal);
-    gal = next_gal;
+    gal      = next_gal;
   }
   run_globals.FirstGal = NULL;
   SID_log("...done", SID_LOG_CLOSE);
@@ -531,4 +532,3 @@ void dracarys()
     if (SID.My_rank == 0)
       create_master_file();
 }
-

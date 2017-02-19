@@ -14,7 +14,7 @@ static void halo_catalog_filename(
   int  *i_layout,
   char *fname)
 {
-  bool flag_success = false;
+  bool  flag_success = false;
   FILE *fin;
 
   // if we need to determine the filename structure...
@@ -87,8 +87,8 @@ static void read_catalog_halos(
 {
   char fname[STRLEN];
   char halo_type[10];
-  int dummy;
-  int n_from_this_file;
+  int  dummy;
+  int  n_from_this_file;
 
   switch (type_flag)
   {
@@ -125,7 +125,7 @@ static void read_catalog_halos(
     (*i_file)++;
     (*i_halo_in_file) = 0;
     halo_catalog_filename(simulation_dir, catalog_file_prefix, snapshot, halo_type, *i_file, flayout_switch, fname);
-    *fin = fopen(fname, "rb");
+    *fin              = fopen(fname, "rb");
     if (*fin == NULL)
     {
       SID_log("Failed to open file %s", SID_LOG_COMMENT, fname);
@@ -158,6 +158,7 @@ static void read_catalog_halos(
 static void inline convert_input_virial_props(double *Mvir, double *Rvir, double *Vvir, int len, int snapshot)
 {
   double ratio = 1.0;
+
   if (run_globals.RequestedMassRatioModifier == 1)
   {
     double logM = log10(*Mvir / run_globals.params.Hubble_h);
@@ -172,7 +173,7 @@ static void inline convert_input_virial_props(double *Mvir, double *Rvir, double
     *Mvir = calculate_Mvir(*Mvir, len);
     *Rvir = calculate_Rvir(*Mvir, snapshot);
   }
-  *Vvir = calculate_Vvir(*Mvir, *Rvir);
+  *Vvir  = calculate_Vvir(*Mvir, *Rvir);
   *Mvir *= ratio;
 }
 
@@ -192,33 +193,33 @@ static void read_trees_and_catalogs(
   int         *index_lookup)
 {
   // I guess this should ideally be equal to the chunk size of the input hdf5 file...
-  int buffer_size       = 5000;
-  int group_buffer_size = 0;    // This will be calculated below
-  int n_read            = 0;
-  int n_to_read         = 0;
-  bool keep_flag;
+  int             buffer_size              = 5000;
+  int             group_buffer_size        = 0; // This will be calculated below
+  int             n_read                   = 0;
+  int             n_to_read                = 0;
+  bool            keep_flag;
 
-  FILE *fin_catalogs          = NULL;
-  int flayout_switch          = -1;
-  int i_catalog_file          = 0;
-  int n_halos_in_catalog_file = 0;
-  int i_halo_in_catalog_file  = 0;
-  int i_halo                  = 0;
-  int Len;
+  FILE           *fin_catalogs             = NULL;
+  int             flayout_switch           = -1;
+  int             i_catalog_file           = 0;
+  int             n_halos_in_catalog_file  = 0;
+  int             i_halo_in_catalog_file   = 0;
+  int             i_halo                   = 0;
+  int             Len;
 
-  FILE *fin_groups             = NULL;
-  int group_flayout_switch     = -1;
-  int i_group_file             = 0;
-  int n_groups_in_catalog_file = 0;
-  int i_group_in_catalog_file  = 0;
-  int i_group                  = 0;
-  int n_groups                 = 0;
-  int first_group_index        = 0;
-  int last_group_index         = 1; // N.B. Must be init to different value from first_group_index
+  FILE           *fin_groups               = NULL;
+  int             group_flayout_switch     = -1;
+  int             i_group_file             = 0;
+  int             n_groups_in_catalog_file = 0;
+  int             i_group_in_catalog_file  = 0;
+  int             i_group                  = 0;
+  int             n_groups                 = 0;
+  int             first_group_index        = 0;
+  int             last_group_index         = 1;// N.B. Must be init to different value from first_group_index
 
 
-  char catalog_file_prefix[50];
-  char simulation_dir[STRLEN];
+  char            catalog_file_prefix[50];
+  char            simulation_dir[STRLEN];
   catalog_halo_t *catalog_buffer;
   catalog_halo_t *group_buffer;
 
@@ -228,8 +229,8 @@ static void read_trees_and_catalogs(
   sprintf(simulation_dir, "%s", run_globals.params.SimulationDir);
 
   tree_entry_t *tree_buffer;
-  tree_buffer    = SID_malloc(sizeof(tree_entry_t) * buffer_size);
-  catalog_buffer = SID_malloc(sizeof(catalog_halo_t) * buffer_size);
+  tree_buffer        = SID_malloc(sizeof(tree_entry_t) * buffer_size);
+  catalog_buffer     = SID_malloc(sizeof(catalog_halo_t) * buffer_size);
 
   *n_halos_kept      = 0;
   *n_fof_groups_kept = 0;
@@ -282,9 +283,9 @@ static void read_trees_and_catalogs(
   group_buffer = SID_malloc(sizeof(catalog_halo_t) * group_buffer_size);
 
   // Now actually do the buffered read...
-  n_read = 0;
-  n_to_read = 0;
-  keep_flag = true;
+  n_read       = 0;
+  n_to_read    = 0;
+  keep_flag    = true;
   while (n_read < n_halos)
   {
     if ((n_halos - n_read) >= buffer_size)
@@ -336,9 +337,9 @@ static void read_trees_and_catalogs(
 
       if (keep_flag)
       {
-        halo_t *cur_halo             = &(halo[*n_halos_kept]);
-        catalog_halo_t *cur_cat_halo = &(catalog_buffer[jj]);
-        tree_entry_t *cur_tree_entry = &(tree_buffer[jj]);
+        halo_t         *cur_halo       = &(halo[*n_halos_kept]);
+        catalog_halo_t *cur_cat_halo   = &(catalog_buffer[jj]);
+        tree_entry_t   *cur_tree_entry = &(tree_buffer[jj]);
 
         cur_halo->ID                 = cur_tree_entry->id;
         cur_halo->TreeFlags          = cur_tree_entry->flags;
@@ -357,7 +358,7 @@ static void read_trees_and_catalogs(
           assert((*n_fof_groups_kept) < run_globals.NFOFGroupsMax);
           assert((tree_buffer[jj].group_index - first_group_index) < n_groups);
           catalog_halo_t *cur_cat_group = &(group_buffer[tree_buffer[jj].group_index - first_group_index]);
-          fof_group_t *cur_group = &(fof_group[*n_fof_groups_kept]);
+          fof_group_t    *cur_group     = &(fof_group[*n_fof_groups_kept]);
 
           cur_group->Mvir = cur_cat_group->M_vir;
           cur_group->Rvir = cur_cat_group->R_vir;
@@ -376,7 +377,7 @@ static void read_trees_and_catalogs(
           halo[(*n_halos_kept) - 1].NextHaloInFOFGroup = &(halo[*n_halos_kept]);
         }
 
-        cur_halo->FOFGroup = &(fof_group[(*n_fof_groups_kept) - 1]);
+        cur_halo->FOFGroup  = &(fof_group[(*n_fof_groups_kept) - 1]);
 
         // paste in the halo properties
         cur_halo->id_MBP    = cur_cat_halo->id_MBP;
@@ -399,9 +400,9 @@ static void read_trees_and_catalogs(
         cur_halo->Mvir      = cur_cat_halo->M_vir;
 
         // double check that PBC conditions are met!
-        cur_halo->Pos[0] = apply_pbc_pos(cur_halo->Pos[0]);
-        cur_halo->Pos[1] = apply_pbc_pos(cur_halo->Pos[1]);
-        cur_halo->Pos[2] = apply_pbc_pos(cur_halo->Pos[2]);
+        cur_halo->Pos[0]    = apply_pbc_pos(cur_halo->Pos[0]);
+        cur_halo->Pos[1]    = apply_pbc_pos(cur_halo->Pos[1]);
+        cur_halo->Pos[2]    = apply_pbc_pos(cur_halo->Pos[2]);
 
         // TODO: sort this out once and for all!
         if ((cur_halo->Type == 0) && run_globals.params.FlagSubhaloVirialProps)
@@ -464,22 +465,22 @@ static trees_info_t read_trees_info(hid_t fd)
 
 static void select_forests()
 {
-  char fname[STRLEN];
+  char  fname[STRLEN];
   hid_t fin;
-  int i_forest;
-  int i_req;
-  int n_forests;
-  int n_halos_tot;
-  int n_halos_unused;
-  int *forest_id;
-  int *max_contemp_halo;
-  int *max_contemp_fof;
-  int *n_halos;
-  int max_halos;
-  int max_fof_groups;
-  int *n_requested_forests = &(run_globals.NRequestedForests);
-  int *requested_ind;
-  bool sample_forests;
+  int   i_forest;
+  int   i_req;
+  int   n_forests;
+  int   n_halos_tot;
+  int   n_halos_unused;
+  int  *forest_id;
+  int  *max_contemp_halo;
+  int  *max_contemp_fof;
+  int  *n_halos;
+  int   max_halos;
+  int   max_fof_groups;
+  int  *n_requested_forests = &(run_globals.NRequestedForests);
+  int  *requested_ind;
+  bool  sample_forests;
 
   SID_log("Calling select_forests()...", SID_LOG_COMMENT);
 
@@ -505,7 +506,7 @@ static void select_forests()
     // find out how many halos in the whole simulation there are
     H5LTget_attribute_int(fin, "info", "n_subgroups", &n_halos_tot);
     H5LTget_attribute_int(fin, "info", "n_unused", &n_halos_unused);
-    n_halos_tot += n_halos_unused;
+    n_halos_tot     += n_halos_unused;
 
     // allocate the arrays
     forest_id        = (int*)SID_malloc(sizeof(int) * n_forests);
@@ -581,9 +582,9 @@ static void select_forests()
     int *rank_last_forest  = (int*)SID_malloc(sizeof(int) * SID.n_proc);
     int *rank_n_forests    = (int*)SID_malloc(sizeof(int) * SID.n_proc);
     int *rank_n_halos      = (int*)SID_malloc(sizeof(int) * SID.n_proc);
-    int i_rank;
-    int n_halos_used;
-    int n_halos_target;
+    int  i_rank;
+    int  n_halos_used;
+    int  n_halos_target;
 
     // initialise
     for (int ii = 0; ii < SID.n_proc; ii++)
@@ -608,7 +609,7 @@ static void select_forests()
         rank_n_halos[i_rank] += n_halos[requested_ind[i_forest]];
 
         // adjust our target to smooth out variations as much as possible
-        n_halos_target = (n_halos_tot - n_halos_used) / (SID.n_proc - i_rank);
+        n_halos_target        = (n_halos_tot - n_halos_used) / (SID.n_proc - i_rank);
 
         // increment the counter of the number of forests on this rank
         rank_n_forests[i_rank]++;
@@ -754,15 +755,15 @@ trees_info_t read_halos(
   int         **index_lookup,
   trees_info_t *snapshot_trees_info)
 {
-  int n_halos;                             //!< Number of halos
-  char fname[STRLEN];
-  int n_fof_groups;
+  int          n_halos;                    //!< Number of halos
+  char         fname[STRLEN];
+  int          n_fof_groups;
   trees_info_t trees_info;
-  hid_t fin_trees;
+  hid_t        fin_trees;
 
-  int n_halos_kept;
-  int n_fof_groups_kept;
-  int n_requested_forests = run_globals.NRequestedForests;
+  int          n_halos_kept;
+  int          n_fof_groups_kept;
+  int          n_requested_forests = run_globals.NRequestedForests;
 
   // if we are doing multiple runs and have already read in this snapshot then we don't need to do read anything else
   if ((run_globals.params.FlagInteractive || run_globals.params.FlagMCMC) && (snapshot_trees_info[snapshot].n_halos != -1))
@@ -820,7 +821,7 @@ trees_info_t read_halos(
       if (run_globals.SelectForestsSwitch == true)
       {
         select_forests();
-        n_requested_forests = run_globals.NRequestedForests;
+        n_requested_forests             = run_globals.NRequestedForests;
 
         // Toggle the SelectForestsSwitch so that we know we don't need to call this again
         run_globals.SelectForestsSwitch = false;
@@ -867,7 +868,7 @@ trees_info_t read_halos(
   if (run_globals.params.FlagReadDumpFile)
   {
     FILE *fdump = NULL;
-    char fname[STRLEN];
+    char  fname[STRLEN];
 
     gen_dump_fname(fname, snapshot);
 
@@ -955,8 +956,8 @@ trees_info_t read_halos(
     {
       SID_log("Reallocing halo storage arrays...", SID_LOG_OPEN);
 
-      *halo         = (halo_t*)SID_realloc(*halo, sizeof(halo_t) * n_halos_kept);
-      *fof_group    = (fof_group_t*)SID_realloc(*fof_group, sizeof(fof_group_t) * n_fof_groups_kept);
+      *halo      = (halo_t*)SID_realloc(*halo, sizeof(halo_t) * n_halos_kept);
+      *fof_group = (fof_group_t*)SID_realloc(*fof_group, sizeof(fof_group_t) * n_fof_groups_kept);
 
       // Only realloc `index_lookup` if we are actually using it (`n_proc` > 1
       // or we are subsampling the trees).
@@ -975,7 +976,7 @@ trees_info_t read_halos(
       SID_log("Generating dumpfile...", SID_LOG_OPEN);
 
       FILE *fdump = NULL;
-      char fname[STRLEN];
+      char  fname[STRLEN];
 
       gen_dump_fname(fname, snapshot);
 
@@ -1013,13 +1014,13 @@ trees_info_t read_halos(
 
 void initialize_halo_storage()
 {
-  int *n_store_snapshots             = &(run_globals.NStoreSnapshots);
-  halo_t ***snapshot_halo            = &(run_globals.SnapshotHalo);
-  fof_group_t ***snapshot_fof_group  = &(run_globals.SnapshotFOFGroup);
-  int ***snapshot_index_lookup       = &(run_globals.SnapshotIndexLookup);
-  trees_info_t **snapshot_trees_info = &(run_globals.SnapshotTreesInfo);
+  int           *n_store_snapshots     = &(run_globals.NStoreSnapshots);
+  halo_t      ***snapshot_halo         = &(run_globals.SnapshotHalo);
+  fof_group_t ***snapshot_fof_group    = &(run_globals.SnapshotFOFGroup);
+  int         ***snapshot_index_lookup = &(run_globals.SnapshotIndexLookup);
+  trees_info_t **snapshot_trees_info   = &(run_globals.SnapshotTreesInfo);
 
-  int last_snap = 0;
+  int            last_snap             = 0;
 
   SID_log("Initializing halo storage arrays...", SID_LOG_OPEN);
 
@@ -1042,7 +1043,7 @@ void initialize_halo_storage()
   for (int ii = 0; ii < *n_store_snapshots; ii++)
   {
     (*snapshot_trees_info)[ii].n_halos = -1;
-    (*snapshot_index_lookup)[ii] = NULL;
+    (*snapshot_index_lookup)[ii]       = NULL;
   }
 
   // loop through and read all snapshots
@@ -1060,11 +1061,11 @@ void initialize_halo_storage()
 
 void free_halo_storage()
 {
-  int n_store_snapshots             = run_globals.NStoreSnapshots;
-  halo_t **snapshot_halo            = run_globals.SnapshotHalo;
-  fof_group_t **snapshot_fof_group  = run_globals.SnapshotFOFGroup;
-  int **snapshot_index_lookup       = run_globals.SnapshotIndexLookup;
-  trees_info_t *snapshot_trees_info = run_globals.SnapshotTreesInfo;
+  int           n_store_snapshots     = run_globals.NStoreSnapshots;
+  halo_t      **snapshot_halo         = run_globals.SnapshotHalo;
+  fof_group_t **snapshot_fof_group    = run_globals.SnapshotFOFGroup;
+  int         **snapshot_index_lookup = run_globals.SnapshotIndexLookup;
+  trees_info_t *snapshot_trees_info   = run_globals.SnapshotTreesInfo;
 
   // Free all of the remaining allocated galaxies, halos and fof groups
   SID_log("Freeing FOF groups and halos...", SID_LOG_COMMENT);

@@ -1,5 +1,6 @@
 #include "meraxes.h"
 #include <math.h>
+
 double calculate_merging_time(galaxy_t *orphan, int snapshot)
 {
   // TODO: What should we do about FOF properties here?  Do we need to use the
@@ -10,11 +11,11 @@ double calculate_merging_time(galaxy_t *orphan, int snapshot)
   galaxy_t *mother  = NULL;
   galaxy_t *sat     = NULL;
   galaxy_t *cur_gal = NULL;
-  double coulomb;
-  double mergtime;
-  double sat_mass;
-  double sat_rad;
-  double min_stellar_mass;
+  double    coulomb;
+  double    mergtime;
+  double    sat_mass;
+  double    sat_rad;
+  double    min_stellar_mass;
 
   // Note that we are assuming in this function that the halo properties
   // attached to the galaxies still correspond to the relevant values at the
@@ -35,12 +36,12 @@ double calculate_merging_time(galaxy_t *orphan, int snapshot)
   // Depending on the construction of the trees, we are not gauranteed that the
   // satellite halo will be more massive thatn the parent halo.  This could
   // introduce crazy merger timescales and so we must explicitly check...
-  sat = orphan;
+  sat    = orphan;
   parent = sat->MergerTarget;
   if (sat->Len > parent->Len)
   {
     parent = orphan;
-    sat = orphan->MergerTarget;
+    sat    = orphan->MergerTarget;
   }
 
   if (parent == sat)
@@ -82,7 +83,7 @@ double calculate_merging_time(galaxy_t *orphan, int snapshot)
   sat_mass = sat->Mvir;
 
   // TODO: Should this be parent or mother???
-  sat_rad = (double)comoving_distance(mother->Pos, sat->Pos);
+  sat_rad  = (double)comoving_distance(mother->Pos, sat->Pos);
 
   // convert to physical length
   // Note that we want to use the redshift corresponding to the previous
@@ -91,7 +92,7 @@ double calculate_merging_time(galaxy_t *orphan, int snapshot)
   // `snapshot-1` may not be correct.  However, we don't actually know when
   // during the time the skipped halo is missing from the trees that it last
   // existed unmerged, so `snapshot-1` is as good a time as any to pick.
-  sat_rad /= (1 + run_globals.ZZ[snapshot - 1]);
+  sat_rad                  /= (1 + run_globals.ZZ[snapshot - 1]);
 
   // TODO: Should this be parent or mother???
   orphan->MergerStartRadius = sat_rad / mother->Rvir;
@@ -112,9 +113,9 @@ static void merger_driven_starburst(galaxy_t *parent, double merger_ratio, int s
   if ((parent->ColdGas > 0) && (merger_ratio > run_globals.params.physics.MinMergerRatioForBurst))
   {
     // Calculate a merger driven starburst following Guo+ 2010
-    physics_params_t *params = &(run_globals.params.physics);
+    physics_params_t *params     = &(run_globals.params.physics);
 
-    double burst_mass = params->MergerBurstFactor * pow(merger_ratio, params->MergerBurstScaling) * parent->ColdGas;
+    double            burst_mass = params->MergerBurstFactor * pow(merger_ratio, params->MergerBurstScaling) * parent->ColdGas;
 
     if(burst_mass > parent->ColdGas)
       burst_mass = parent->ColdGas;
@@ -141,53 +142,53 @@ static void merger_driven_starburst(galaxy_t *parent, double merger_ratio, int s
 void merge_with_target(galaxy_t *gal, int *dead_gals, int snapshot)
 {
   galaxy_t *parent = NULL;
-  double merger_ratio;
-  double parent_baryons;
-  double gal_baryons;
-  double min_stellar_mass;
+  double    merger_ratio;
+  double    parent_baryons;
+  double    gal_baryons;
+  double    min_stellar_mass;
 
   // Identify the parent galaxy in the merger event.
   // Note that this relies on the merger target coming before this galaxy in
   // the linked list of halo members.  This should be the case but I should
   // confirm that it is always true...
-  parent = gal->MergerTarget;
+  parent            = gal->MergerTarget;
   while (parent->Type == 3)
     parent = parent->MergerTarget;
   gal->MergerTarget = parent;
 
   // use the **baryonic** mass to calculate the merger ratio
-  parent_baryons = parent->StellarMass + parent->ColdGas;
-  gal_baryons    = gal->StellarMass + gal->ColdGas;
+  parent_baryons    = parent->StellarMass + parent->ColdGas;
+  gal_baryons       = gal->StellarMass + gal->ColdGas;
   if (parent_baryons > gal_baryons)
     merger_ratio = gal_baryons / parent_baryons;
   else
     merger_ratio = parent_baryons / gal_baryons;
 
-  min_stellar_mass = (gal->StellarMass <= parent->StellarMass) ? gal->StellarMass : parent->StellarMass;
+  min_stellar_mass                    = (gal->StellarMass <= parent->StellarMass) ? gal->StellarMass : parent->StellarMass;
 
   // Add galaxies together
-  parent->StellarMass       += gal->StellarMass;
-  parent->StellarEmissivity += gal->StellarEmissivity;
-  parent->MergerSemissivity += gal->MergerSemissivity;
-  parent->GrossStellarMass  += gal->GrossStellarMass;
-  parent->FescWeightedGSM   += gal->FescWeightedGSM;
-  parent->MetalsStellarMass += gal->MetalsStellarMass;
-  parent->Sfr               += gal->Sfr;
-  parent->HotGas            += gal->HotGas;
-  parent->MetalsHotGas      += gal->MetalsHotGas;
-  parent->ColdGas           += gal->ColdGas;
-  parent->MetalsColdGas     += gal->MetalsColdGas;
-  parent->EjectedGas        += gal->EjectedGas;
-  parent->MetalsEjectedGas  += gal->MetalsEjectedGas;
+  parent->StellarMass                += gal->StellarMass;
+  parent->StellarEmissivity          += gal->StellarEmissivity;
+  parent->MergerSemissivity          += gal->MergerSemissivity;
+  parent->GrossStellarMass           += gal->GrossStellarMass;
+  parent->FescWeightedGSM            += gal->FescWeightedGSM;
+  parent->MetalsStellarMass          += gal->MetalsStellarMass;
+  parent->Sfr                        += gal->Sfr;
+  parent->HotGas                     += gal->HotGas;
+  parent->MetalsHotGas               += gal->MetalsHotGas;
+  parent->ColdGas                    += gal->ColdGas;
+  parent->MetalsColdGas              += gal->MetalsColdGas;
+  parent->EjectedGas                 += gal->EjectedGas;
+  parent->MetalsEjectedGas           += gal->MetalsEjectedGas;
   parent->BlackHoleAccretedHotMass   += gal->BlackHoleAccretedHotMass;
   parent->BlackHoleAccretedColdMass  += gal->BlackHoleAccretedColdMass;
   parent->BlackHoleAccretingColdMass += gal->BlackHoleAccretingColdMass;
-  parent->BHemissivity      += gal->BHemissivity;
-  parent->BlackHoleMass     += gal->BlackHoleMass;
-  parent->EffectiveBHM      += gal->EffectiveBHM;
-  parent->mwmsa_num         += gal->mwmsa_num;
-  parent->mwmsa_denom       += gal->mwmsa_denom;
-  parent->MergerBurstMass   += gal->MergerBurstMass;
+  parent->BHemissivity               += gal->BHemissivity;
+  parent->BlackHoleMass              += gal->BlackHoleMass;
+  parent->EffectiveBHM               += gal->EffectiveBHM;
+  parent->mwmsa_num                  += gal->mwmsa_num;
+  parent->mwmsa_denom                += gal->mwmsa_denom;
+  parent->MergerBurstMass            += gal->MergerBurstMass;
 
   for (int ii = 0; ii < N_HISTORY_SNAPS; ii++)
     parent->NewStars[ii] += gal->NewStars[ii];
@@ -208,4 +209,3 @@ void merge_with_target(galaxy_t *gal, int *dead_gals, int snapshot)
   gal->HaloDescIndex = -1;
   (*dead_gals)++;
 }
-

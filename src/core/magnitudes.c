@@ -2,6 +2,7 @@
 #include <hdf5.h>
 #include <hdf5_hl.h>
 #include "meraxes.h"
+
 void init_luminosities(galaxy_t *gal)
 {
 #ifdef CALC_MAGS
@@ -29,12 +30,12 @@ void sum_luminosities(galaxy_t *parent, galaxy_t *gal, int outputbin)
 void prepare_magnitudes_for_output(galaxy_t gal, galaxy_output_t *galout, int i_snap)
 {
 #ifdef CALC_MAGS
-  int n_bands = run_globals.photo->NBands;
+  int    n_bands  = run_globals.photo->NBands;
   double LumDust[n_bands];
   double Hubble_h = run_globals.params.Hubble_h;
   for (int ii = 0; ii < n_bands; ii++)
   {
-    galout->Mag[ii] = (float)(lum_to_mag(gal.Lum[ii][i_snap])) - 5.0 * log10(Hubble_h);
+    galout->Mag[ii]     = (float)(lum_to_mag(gal.Lum[ii][i_snap])) - 5.0 * log10(Hubble_h);
     apply_dust(n_bands, gal, LumDust, i_snap);
     galout->MagDust[ii] = (float)(lum_to_mag(LumDust[ii])) - 5.0 * log10(Hubble_h);
   }
@@ -45,6 +46,7 @@ void prepare_magnitudes_for_output(galaxy_t gal, galaxy_output_t *galout, int i_
 
 
 #ifdef CALC_MAGS
+
 static int inline phototab_index(
   phototabs_t *photo,
   int          i_band,
@@ -61,19 +63,19 @@ static void init_jump_index()
   // the nearest AgeTab index for any given age.  The larger the NJumps, the
   // more accurate we can be...
 
-  float age;
-  int idx;
-  float jumpfac;
-  phototabs_t *photo = run_globals.photo;
-  int *jumptab       = photo->JumpTable;
-  float *AgeTab      = photo->Ages;
+  float        age;
+  int          idx;
+  float        jumpfac;
+  phototabs_t *photo   = run_globals.photo;
+  int         *jumptab = photo->JumpTable;
+  float       *AgeTab  = photo->Ages;
 
   jumpfac = N_PHOTO_JUMPS / (AgeTab[photo->NAges - 1] - AgeTab[1]);
 
   for (int ii = 0; ii < N_PHOTO_JUMPS; ii++)
   {
-    age = AgeTab[1] + ii / jumpfac;
-    idx = 1;
+    age         = AgeTab[1] + ii / jumpfac;
+    idx         = 1;
     while (AgeTab[idx + 1] < age)
       idx++;
     jumptab[ii] = idx;
@@ -86,12 +88,13 @@ static void init_jump_index()
 #endif
 
 #if defined(DEBUG) && defined(CALC_MAGS)
+
 static void print_phototab(int i_metal)
 {
-  phototabs_t *photo = run_globals.photo;
-  float *phototab    = photo->Table;
-  int n_ages         = photo->NAges;
-  int n_bands        = photo->NBands;
+  phototabs_t *photo    = run_globals.photo;
+  float       *phototab = photo->Table;
+  int          n_ages   = photo->NAges;
+  int          n_bands  = photo->NBands;
 
   printf("--------------------\n");
   printf("PHOTOTAB i_metal=%d\n", i_metal);
@@ -106,38 +109,39 @@ static void print_phototab(int i_metal)
 
 
 #endif
+
 void read_photometric_tables()
 {
 #ifdef CALC_MAGS
   run_params_t *run_params = &(run_globals.params);
 
   // malloc the phototabs struct (see cleanup_mags() for free)
-  run_globals.photo       = SID_malloc(sizeof(phototabs_t));
-  phototabs_t *photo       = run_globals.photo;
+  run_globals.photo = SID_malloc(sizeof(phototabs_t));
+  phototabs_t *photo           = run_globals.photo;
 
-  float **Metals           = &(photo->Metals);
-  float **AgeTab           = &(photo->Ages);
+  float      **Metals          = &(photo->Metals);
+  float      **AgeTab          = &(photo->Ages);
   char (**MagBands)[5] = &(photo->MagBands);
-  float **PhotoTab    = &(photo->Table);
-  int n_table_entries = 0;
+  float      **PhotoTab        = &(photo->Table);
+  int          n_table_entries = 0;
 
 
   if (SID.My_rank == 0)
   {
-    hid_t fin;
-    hid_t group;
-    hsize_t dims[1];
-    char name[STRLEN];
-    char *bp;
-    int i_group = 0;
-    float *table_ds;
-    int start_ind                = 0;
-    double UnitTime_in_Megayears = run_globals.units.UnitTime_in_Megayears;
-    double Hubble_h              = run_params->Hubble_h;
-    char temp[STRLEN];
+    hid_t       fin;
+    hid_t       group;
+    hsize_t     dims[1];
+    char        name[STRLEN];
+    char       *bp;
+    int         i_group               = 0;
+    float      *table_ds;
+    int         start_ind             = 0;
+    double      UnitTime_in_Megayears = run_globals.units.UnitTime_in_Megayears;
+    double      Hubble_h              = run_params->Hubble_h;
+    char        temp[STRLEN];
     H5E_auto2_t old_func;
-    void *old_client_data;
-    herr_t error_stack = 0;
+    void       *old_client_data;
+    herr_t      error_stack = 0;
 
 
     SID_log("Reading photometric tables...", SID_LOG_OPEN);
@@ -173,7 +177,7 @@ void read_photometric_tables()
     // we are going to use
     i_group = 0;
     sprintf(temp, "%s", run_params->MagBands);
-    bp = strtok(temp, ",");
+    bp      = strtok(temp, ",");
     while (bp != NULL)
     {
       group = H5Gopen(fin, bp, H5P_DEFAULT);
@@ -205,7 +209,7 @@ void read_photometric_tables()
     // can malloc the photometric table itself.
     n_table_entries = photo->NBands * photo->NMetals * photo->NAges;
     SID_log("N table entries = %d", SID_LOG_COMMENT, n_table_entries);
-    *PhotoTab = (float*)SID_malloc(sizeof(float) * (size_t)n_table_entries);
+    *PhotoTab       = (float*)SID_malloc(sizeof(float) * (size_t)n_table_entries);
 
     // Finally - loop through the requested bands string one more time, save the
     // band name and store the photometric table data
@@ -213,7 +217,7 @@ void read_photometric_tables()
     table_ds  = SID_malloc(sizeof(float) * (size_t)(photo->NAges));
     bp        = strtok(run_params->MagBands, ",");
     SID_log("Reading in photometric table...", SID_LOG_COMMENT);
-    i_group = 0;
+    i_group   = 0;
     while (bp != NULL)
     {
       group = H5Gopen(fin, bp, H5P_DEFAULT);
@@ -290,6 +294,7 @@ void read_photometric_tables()
 
 
 #ifdef CALC_MAGS
+
 static int inline get_jump_index(double age, float *AgeTab, int *jumptab, float jumpfac)
 {
   return jumptab[(int)((age - AgeTab[1]) * jumpfac)];
@@ -309,17 +314,17 @@ static void find_interpolated_lum(
 {
   // TODO: There is a lot of float/double calculations here. I should tidy this up...
 
-  int k, i, idx;
-  float age, frac;
-  float fa1, fa2, fm1, fm2;
+  int          k, i, idx;
+  float        age, frac;
+  float        fa1, fa2, fm1, fm2;
 
-  phototabs_t *photo = run_globals.photo;
-  float *Metals      = photo->Metals;
-  float *AgeTab      = photo->Ages;
-  int *JumpTable     = photo->JumpTable;
-  float JumpFactor   = photo->JumpFactor;
-  int n_ages         = photo->NAges;
-  int n_metals       = photo->NMetals;
+  phototabs_t *photo      = run_globals.photo;
+  float       *Metals     = photo->Metals;
+  float       *AgeTab     = photo->Ages;
+  int         *JumpTable  = photo->JumpTable;
+  float        JumpFactor = photo->JumpFactor;
+  int          n_ages     = photo->NAges;
+  int          n_metals   = photo->NMetals;
 
   age = (float)(timenow - timetarget);
 
@@ -341,7 +346,7 @@ static void find_interpolated_lum(
     }
     else
     {
-      idx = get_jump_index(age, AgeTab, JumpTable, JumpFactor);
+      idx  = get_jump_index(age, AgeTab, JumpTable, JumpFactor);
       while (AgeTab[idx + 1] < age)
         idx++;
       k    = idx;
@@ -374,7 +379,7 @@ static void find_interpolated_lum(
   }
   else
   {
-    idx = 0;
+    idx  = 0;
     while (Metals[idx + 1] < metallicity)
       idx++;
     i    = idx;
@@ -386,14 +391,15 @@ static void find_interpolated_lum(
   *metals_ind = i;
   *age_ind    = k;
 
-  *fage1 = (double)fa1;
-  *fage2 = (double)fa2;
-  *fmet1 = (double)fm1;
-  *fmet2 = (double)fm2;
+  *fage1      = (double)fa1;
+  *fage2      = (double)fa2;
+  *fmet1      = (double)fm1;
+  *fmet2      = (double)fm2;
 }
 
 
 #endif
+
 void add_to_luminosities(
   galaxy_t *gal,
   double    burst_mass,
@@ -402,13 +408,13 @@ void add_to_luminosities(
 {
 #ifdef CALC_MAGS
   phototabs_t *photo = run_globals.photo;
-  double Hubble_h    = run_globals.params.Hubble_h;
-  float *PhotoTab    = run_globals.photo->Table;
-  int n_bands        = run_globals.photo->NBands;
-  int metals_ind;
-  int age_ind;
-  double X1, X2;
-  double f1, f2, fmet1, fmet2;
+  double       Hubble_h = run_globals.params.Hubble_h;
+  float       *PhotoTab = run_globals.photo->Table;
+  int          n_bands = run_globals.photo->NBands;
+  int          metals_ind;
+  int          age_ind;
+  double       X1, X2;
+  double       f1, f2, fmet1, fmet2;
 
   // Convert burst_mass into 1e6 Msol/(h=Hubble_h) units
   X1 = burst_mass * 1e4 / Hubble_h;
@@ -460,4 +466,3 @@ void cleanup_mags()
   return;
 #endif
 }
-

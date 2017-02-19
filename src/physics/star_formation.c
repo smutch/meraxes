@@ -4,6 +4,7 @@
 #include <gsl/gsl_sf_lambert.h>
 #include <gsl/gsl_math.h>
 #include <gsl/gsl_integration.h>
+
 void update_reservoirs_from_sf(galaxy_t *gal, double new_stars)
 {
   if (new_stars > 0)
@@ -16,10 +17,10 @@ void update_reservoirs_from_sf(galaxy_t *gal, double new_stars)
     assert(gal->Sfr >= 0);
 
     // update the stellar mass history
-    gal->NewStars[0] += new_stars;
+    gal->NewStars[0]       += new_stars;
 
     // instantaneous recycling approximation of stellar mass
-    metallicity = calc_metallicity(gal->ColdGas, gal->MetalsColdGas);
+    metallicity             = calc_metallicity(gal->ColdGas, gal->MetalsColdGas);
 
     gal->ColdGas           -= new_stars;
     gal->MetalsColdGas     -= new_stars * metallicity;
@@ -30,7 +31,7 @@ void update_reservoirs_from_sf(galaxy_t *gal, double new_stars)
     gal->MetalsStellarMass += new_stars * metallicity;
 
     // update the luminosities
-    current_time = run_globals.LTTime[gal->LastIdentSnap] - 0.5 * gal->dt;
+    current_time            = run_globals.LTTime[gal->LastIdentSnap] - 0.5 * gal->dt;
     add_to_luminosities(gal, new_stars, metallicity, current_time);
 
     // Check the validity of the modified reservoir values.
@@ -64,13 +65,13 @@ void insitu_star_formation(galaxy_t *gal, int snapshot)
     double zplus1;
     double zplus1_n;
 
-    zplus1 = 1.0 + run_globals.ZZ[snapshot];
+    zplus1   = 1.0 + run_globals.ZZ[snapshot];
     zplus1_n = pow(zplus1,run_globals.params.physics.SfEfficiencyScaling);
 
-    double SfEfficiency = run_globals.params.physics.SfEfficiency;
+    double SfEfficiency     = run_globals.params.physics.SfEfficiency;
     double SfCriticalSDNorm = run_globals.params.physics.SfCriticalSDNorm;
-    int SfDiskVelOpt = run_globals.params.physics.SfDiskVelOpt;
-    int SfPrescription = run_globals.params.physics.SfPrescription;
+    int    SfDiskVelOpt     = run_globals.params.physics.SfDiskVelOpt;
+    int    SfPrescription   = run_globals.params.physics.SfPrescription;
 
     // What velocity are we going to use as a proxy for the disk rotation velocity?
     switch (SfDiskVelOpt) {
@@ -140,20 +141,21 @@ void insitu_star_formation(galaxy_t *gal, int snapshot)
 
 
 struct FR_parameters { double a; double b; double c; double d;};
+
 static double integrand_p_dependent_SFR(double q, void *gal)
 {
-  struct FR_parameters * params = (struct FR_parameters *)gal;
+  struct FR_parameters * params       = (struct FR_parameters *)gal;
 
-  double sigma_gas0 = (params->a);
-  double sigma_stars0 = (params->b);
-  double v_ratio = (params->c);
-  double reff = (params->d);
+  double                 sigma_gas0   = (params->a);
+  double                 sigma_stars0 = (params->b);
+  double                 v_ratio      = (params->c);
+  double                 reff         = (params->d);
 
-  double G_SI = GRAVITY * 1.e-3;
-  double sf_effH = 1.;
+  double                 G_SI         = GRAVITY * 1.e-3;
+  double                 sf_effH      = 1.;
 
-  double p_ext = M_PI / 2.0 * G_SI * sigma_gas0 * exp(-q / reff) * (sigma_gas0 * exp(-q / reff)  + v_ratio * sqrt(sigma_stars0 * exp(-q / reff)) );
-  double fmol = 1.0 / (1.0 + pow(p_ext / 4.79e-13, -0.92));
+  double                 p_ext        = M_PI / 2.0 * G_SI * sigma_gas0 * exp(-q / reff) * (sigma_gas0 * exp(-q / reff)  + v_ratio * sqrt(sigma_stars0 * exp(-q / reff)) );
+  double                 fmol         = 1.0 / (1.0 + pow(p_ext / 4.79e-13, -0.92));
 
   // double Surface0 = 200. * 1.989e30 / 3.086e16 / 3.086e16;  // 200M_sun/pc^(-2)
   // sf_effH=sf_effH*(1.+pow(sigma_gas0*exp(-q/reff)/Surface0,0.4));  //Lagos et al. 2011 paper
@@ -166,16 +168,17 @@ static double integrand_p_dependent_SFR(double q, void *gal)
 
 static double p_dependent_SFR(double lower_limit, double upper_limit, double sigma_gas0, double sigma_stars0, double v_ratio, double reff, double zplus1)
 {
-  static gsl_function FR;
+  static gsl_function               FR;
   static gsl_integration_workspace *workspace;
-  double result, abserr;
-  size_t worksize = 512;
+  double                            result, abserr;
+  size_t                            worksize   = 512;
 
-  struct FR_parameters parameters = {sigma_gas0, sigma_stars0, v_ratio, reff};
-  workspace = gsl_integration_workspace_alloc(worksize);
+  struct FR_parameters              parameters = {sigma_gas0, sigma_stars0, v_ratio, reff};
+
+  workspace   = gsl_integration_workspace_alloc(worksize);
 
   FR.function = &integrand_p_dependent_SFR;
-  FR.params = &parameters;
+  FR.params   = &parameters;
 
   gsl_integration_qag(&FR, lower_limit, upper_limit, 1.0e-8, 1.0e-8, worksize, GSL_INTEG_GAUSS21, workspace, &result, &abserr);
   gsl_integration_workspace_free(workspace);
@@ -191,36 +194,36 @@ double pressure_dependent_star_formation(galaxy_t *gal, int snapshot)
    * Based on the SF prescription of Blitz & Rosolowski (2006).
    */
 
-  double zplus1 = run_globals.ZZ[snapshot] + 1;
-  run_units_t *units = &(run_globals.units);
-  double G_SI = GRAVITY * 1.e-3;
+  double       zplus1 = run_globals.ZZ[snapshot] + 1;
+  run_units_t *units  = &(run_globals.units);
+  double       G_SI   = GRAVITY * 1.e-3;
 
   // SF timescale:
   // double sf_eff = 1.0 / 2.0e9; // yr^-1 - 2Gyr is sort of an average H2 depletion time (Bigiel+08, Leroy+09, Bigiel+11, Bollato+11, Saintonge+11)
   // double sf_eff = 1.0 / 3.0e8; // yr^-1 - 300Myr is sort of an average H2 depletion time (Duffy+17)
   double sf_eff = 1.0 / 2.0e9 * zplus1; // redshift dependence SF timescale
-  double MSFRR = 0.0;
+  double MSFRR  = 0.0;
 
   if(gal->DiskScaleLength > 0.0)
   {
-    double reff = 1. * gal->DiskScaleLength;
+    double reff       = 1. * gal->DiskScaleLength;
     double sigma_gas0 = 0.76 * gal->ColdGas / (2.0 * M_PI * reff * reff);
-    sigma_gas0 = sigma_gas0 * units->UnitMass_in_g / pow(units->UnitLength_in_cm,2);     // in g.cm^-2
-    sigma_gas0 = sigma_gas0 * 1.0e-3 * 1.0e4;                                            // in kg.m^-2 //gas surface density
+    sigma_gas0   = sigma_gas0 * units->UnitMass_in_g / pow(units->UnitLength_in_cm,2);   // in g.cm^-2
+    sigma_gas0   = sigma_gas0 * 1.0e-3 * 1.0e4;                                          // in kg.m^-2 //gas surface density
 
     double sigma_stars0 = gal->StellarMass / (2.0 * M_PI * reff * reff);                 // DRAGONS units
     sigma_stars0 = sigma_stars0 * units->UnitMass_in_g / pow(units->UnitLength_in_cm,2); // in g.cm^-2
     sigma_stars0 = sigma_stars0 * 1.0e-3 * 1.0e4;                                        // in kg.m^-2 // stellar surface density
 
-    reff = reff * units->UnitLength_in_cm / 100.0;                                       // in m
+    reff         = reff * units->UnitLength_in_cm / 100.0;                               // in m
 
     double vdisp_gas = 10.0e3;                                                           // m.s^-1 , following BR06
-    double v_ratio = vdisp_gas / sqrt(M_PI * G_SI * 0.14 * reff);                        //relation between stellar and gas dispersion
+    double v_ratio   = vdisp_gas / sqrt(M_PI * G_SI * 0.14 * reff);                      //relation between stellar and gas dispersion
 
     if(sigma_gas0 > 0.0)
     {
       double p_ext = M_PI / 2.0 * G_SI * sigma_gas0 * (sigma_gas0  + v_ratio * sqrt(sigma_stars0) );
-      double MSFR = 1.0 / (1.0 + pow(p_ext / 4.79e-13, -0.92));
+      double MSFR  = 1.0 / (1.0 + pow(p_ext / 4.79e-13, -0.92));
       gal->H2Frac = MSFR; // Molecular hydrogen fraction, f_(H2Mass)
 
       if ((MSFR < 0.0) || (MSFR > 1.0))
@@ -231,17 +234,17 @@ double pressure_dependent_star_formation(galaxy_t *gal, int snapshot)
 
       // Bigiel+11 SF law
       // TODO: PUT THIS BACK!
-      MSFRR = p_dependent_SFR(0, 5 * reff, sigma_gas0, sigma_stars0, v_ratio,reff,zplus1);
+      MSFRR       = p_dependent_SFR(0, 5 * reff, sigma_gas0, sigma_stars0, v_ratio,reff,zplus1);
       gal->H2Mass = 2. * M_PI * MSFRR * 1.0e3 / units->UnitMass_in_g; // Molecular hydrogen mass
       gal->HIMass = 0.76 * gal->ColdGas - gal->H2Mass;                //hydrogen mass
       if (gal->H2Mass > gal->ColdGas)
         gal->H2Mass = gal->ColdGas;
-      MSFRR = MSFRR * 2.0 * M_PI * sf_eff / SEC_PER_YEAR;
-      MSFRR = MSFRR * 1.0e3; // in g/s
+      MSFRR       = MSFRR * 2.0 * M_PI * sf_eff / SEC_PER_YEAR;
+      MSFRR       = MSFRR * 1.0e3; // in g/s
     }
     else
     {
-      MSFRR = 0.0;
+      MSFRR       = 0.0;
       gal->H2Frac = 0.0;
       gal->H2Mass = 0.0;
       gal->HIMass = 0.0;
@@ -249,7 +252,7 @@ double pressure_dependent_star_formation(galaxy_t *gal, int snapshot)
   }
   else
   {
-    MSFRR = 0.0;
+    MSFRR       = 0.0;
     gal->H2Frac = 0.0;
     gal->H2Mass = 0.0;
     gal->HIMass = 0.0;
@@ -259,4 +262,3 @@ double pressure_dependent_star_formation(galaxy_t *gal, int snapshot)
 
   return MSFRR;
 }
-

@@ -11,16 +11,17 @@ typedef struct state_t {
   int global_n_gals;
 } state_t;
 #define mystate ((state_t *)*state)
+
 static int setup_tocf_tests(void **state)
 {
-  *state = SID_malloc(sizeof(state_t));
+  *state                              = SID_malloc(sizeof(state_t));
 
-  run_globals.params.ReionGridDim = 64;
-  run_globals.params.ReionUVBFlag = 1;
+  run_globals.params.ReionGridDim     = 64;
+  run_globals.params.ReionUVBFlag     = 1;
   run_globals.params.Flag_PatchyReion = 1;
-  run_globals.params.BoxSize = 100.;  // Not the size of Tiamat but easy for checking
-  run_globals.params.Hubble_h = 1.0;  // Nonsense but again, easy for debugging
-  run_globals.ZZ = SID_malloc(sizeof(double) * 10);
+  run_globals.params.BoxSize          = 100.; // Not the size of Tiamat but easy for checking
+  run_globals.params.Hubble_h         = 1.0;  // Nonsense but again, easy for debugging
+  run_globals.ZZ                      = SID_malloc(sizeof(double) * 10);
   for(int ii = 9; ii >= 0; ii--)
     run_globals.ZZ[ii] = (double)(ii + 5);
   set_units();
@@ -34,9 +35,9 @@ static int setup_tocf_tests(void **state)
     case 0:
     {
       mystate->n_gals = 4;
-      float xpos[] = {43, 21, 67, 88};
-      mystate->gals = SID_malloc(mystate->n_gals * sizeof(galaxy_t));
-      galaxy_t *gals = mystate->gals;
+      float     xpos[] = {43, 21, 67, 88};
+      mystate->gals   = SID_malloc(mystate->n_gals * sizeof(galaxy_t));
+      galaxy_t *gals   = mystate->gals;
       for(int ii = 0; ii < mystate->n_gals; ii++)
       {
         if (ii < mystate->n_gals - 1)
@@ -44,12 +45,12 @@ static int setup_tocf_tests(void **state)
         else
           gals[ii].Next = NULL;
 
-        gals[ii].Type = 0;
-        gals[ii].Pos[0] = xpos[ii];
-        gals[ii].Pos[1] = gals[ii].Pos[0];
-        gals[ii].Pos[2] = gals[ii].Pos[0];
+        gals[ii].Type             = 0;
+        gals[ii].Pos[0]           = xpos[ii];
+        gals[ii].Pos[1]           = gals[ii].Pos[0];
+        gals[ii].Pos[2]           = gals[ii].Pos[0];
         gals[ii].GrossStellarMass = xpos[ii] / 2.;
-        gals[ii].Sfr = xpos[ii] / 4.;
+        gals[ii].Sfr              = xpos[ii] / 4.;
 
         // for(int jj=0; jj<3; jj++)
         //   SID_log("R%d: [%d][%d] -> %.2f", SID_LOG_COMMENT|SID_LOG_ALLRANKS, SID.My_rank, ii, jj, gals[ii].Pos[jj]);
@@ -60,9 +61,9 @@ static int setup_tocf_tests(void **state)
     case 1:
     {
       mystate->n_gals = 3;
-      float xpos[] = {1, 2, 99};
-      mystate->gals = SID_malloc(mystate->n_gals * sizeof(galaxy_t));
-      galaxy_t *gals = mystate->gals;
+      float     xpos[] = {1, 2, 99};
+      mystate->gals   = SID_malloc(mystate->n_gals * sizeof(galaxy_t));
+      galaxy_t *gals   = mystate->gals;
       for(int ii = 0; ii < mystate->n_gals; ii++)
       {
         if (ii < mystate->n_gals - 1)
@@ -70,12 +71,12 @@ static int setup_tocf_tests(void **state)
         else
           gals[ii].Next = NULL;
 
-        gals[ii].Type = 0;
-        gals[ii].Pos[0] = xpos[ii];
-        gals[ii].Pos[1] = gals[ii].Pos[0];
-        gals[ii].Pos[2] = gals[ii].Pos[0];
+        gals[ii].Type             = 0;
+        gals[ii].Pos[0]           = xpos[ii];
+        gals[ii].Pos[1]           = gals[ii].Pos[0];
+        gals[ii].Pos[2]           = gals[ii].Pos[0];
         gals[ii].GrossStellarMass = xpos[ii] / 2.;
-        gals[ii].Sfr = xpos[ii] / 4.;
+        gals[ii].Sfr              = xpos[ii] / 4.;
 
         // for(int jj=0; jj<3; jj++)
         //   SID_log("R%d: [%d][%d] -> %.2f", SID_LOG_COMMENT|SID_LOG_ALLRANKS, SID.My_rank, ii, jj, gals[ii].Pos[jj]);
@@ -86,9 +87,9 @@ static int setup_tocf_tests(void **state)
     case 2:
     {
       mystate->n_gals = 1;
-      float xpos[] = {50};
-      mystate->gals = SID_malloc(mystate->n_gals * sizeof(galaxy_t));
-      galaxy_t *gals = mystate->gals;
+      float     xpos[] = {50};
+      mystate->gals   = SID_malloc(mystate->n_gals * sizeof(galaxy_t));
+      galaxy_t *gals   = mystate->gals;
       for(int ii = 0; ii < mystate->n_gals; ii++)
       {
         if (ii < mystate->n_gals - 1)
@@ -96,12 +97,12 @@ static int setup_tocf_tests(void **state)
         else
           gals[ii].Next = NULL;
 
-        gals[ii].Type = 0;
-        gals[ii].Pos[0] = xpos[ii];
-        gals[ii].Pos[1] = gals[ii].Pos[0];
-        gals[ii].Pos[2] = gals[ii].Pos[0];
+        gals[ii].Type             = 0;
+        gals[ii].Pos[0]           = xpos[ii];
+        gals[ii].Pos[1]           = gals[ii].Pos[0];
+        gals[ii].Pos[2]           = gals[ii].Pos[0];
         gals[ii].GrossStellarMass = xpos[ii] / 2.;
-        gals[ii].Sfr = xpos[ii] / 4.;
+        gals[ii].Sfr              = xpos[ii] / 4.;
 
         // for(int jj=0; jj<3; jj++)
         //   SID_log("R%d: [%d][%d] -> %.2f", SID_LOG_COMMENT|SID_LOG_ALLRANKS, SID.My_rank, ii, jj, gals[ii].Pos[jj]);
@@ -112,7 +113,7 @@ static int setup_tocf_tests(void **state)
     case 3:
     {
       mystate->n_gals = 0;
-      mystate->gals = NULL;
+      mystate->gals   = NULL;
     }
     break;
 
@@ -124,10 +125,10 @@ static int setup_tocf_tests(void **state)
   run_globals.FirstGal = mystate->gals;
 
   // grids
-  reion_grids_t *grids = &(run_globals.reion_grids);
-  int ReionGridDim = run_globals.params.ReionGridDim;
-  ptrdiff_t *slab_nix = run_globals.params.slab_nix;
-  ptrdiff_t slab_n_real = slab_nix[SID.My_rank] * ReionGridDim * ReionGridDim; // TODO: NOT WORKING?
+  reion_grids_t *grids        = &(run_globals.reion_grids);
+  int            ReionGridDim = run_globals.params.ReionGridDim;
+  ptrdiff_t     *slab_nix     = run_globals.params.slab_nix;
+  ptrdiff_t      slab_n_real  = slab_nix[SID.My_rank] * ReionGridDim * ReionGridDim; // TODO: NOT WORKING?
 
   for (int ii = 0; ii < slab_n_real; ii++)
     grids->Mvir_crit[ii] = (float)(1000 * SID.My_rank + ii);
@@ -152,6 +153,7 @@ static int teardown_tocf_tests(void **state)
 static void test_map_galaxies_to_slabs(void **state)
 {
   int correct_nix[] = {16, 16, 16, 16};
+
   for(int ii = 0; ii < SID.n_proc; ii++)
     assert_int_equal((int)run_globals.params.slab_nix[ii], correct_nix[ii]);
 
@@ -159,11 +161,11 @@ static void test_map_galaxies_to_slabs(void **state)
   for(int ii = 0; ii < SID.n_proc; ii++)
     assert_int_equal((int)run_globals.params.slab_ix_start[ii], correct_ix_start[ii]);
 
-  int n_mapped = map_galaxies_to_slabs(mystate->n_gals);
+  int            n_mapped           = map_galaxies_to_slabs(mystate->n_gals);
   assert_int_equal(n_mapped, mystate->n_gals);
 
   gal_to_slab_t *galaxy_to_slab_map = run_globals.reion_grids.galaxy_to_slab_map;
-  int *correct_slab;
+  int           *correct_slab;
 
   switch (SID.My_rank)
   {
@@ -172,7 +174,7 @@ static void test_map_galaxies_to_slabs(void **state)
       // N.B. The galaxy_to_slab_map array is ordered and hence the
       // correct_slab values do not correspond to the order in which the
       // galaxies were created!
-      correct_slab = SID_malloc(sizeof(int) * mystate->n_gals);
+      correct_slab    = SID_malloc(sizeof(int) * mystate->n_gals);
       correct_slab[0] = 0;
       correct_slab[1] = 1;
       correct_slab[2] = 2;
@@ -182,7 +184,7 @@ static void test_map_galaxies_to_slabs(void **state)
 
     case 1:
     {
-      correct_slab = SID_malloc(sizeof(int) * mystate->n_gals);
+      correct_slab    = SID_malloc(sizeof(int) * mystate->n_gals);
       correct_slab[0] = 0;
       correct_slab[1] = 0;
       correct_slab[2] = 3;
@@ -191,7 +193,7 @@ static void test_map_galaxies_to_slabs(void **state)
 
     case 2:
     {
-      correct_slab = SID_malloc(sizeof(int) * mystate->n_gals);
+      correct_slab    = SID_malloc(sizeof(int) * mystate->n_gals);
       correct_slab[0] = 2;
     }
     break;
@@ -213,18 +215,19 @@ static void test_map_galaxies_to_slabs(void **state)
 
 static void test_assign_Mvir_crit_to_galaxies(void **state)
 {
-  int ReionGridDim = run_globals.params.ReionGridDim;
-  ptrdiff_t *slab_ix_start = run_globals.params.slab_ix_start;
+  int            ReionGridDim       = run_globals.params.ReionGridDim;
+  ptrdiff_t     *slab_ix_start      = run_globals.params.slab_ix_start;
   gal_to_slab_t *galaxy_to_slab_map = run_globals.reion_grids.galaxy_to_slab_map;
 
-  int n_mapped = map_galaxies_to_slabs(mystate->n_gals);
+  int            n_mapped           = map_galaxies_to_slabs(mystate->n_gals);
+
   assign_Mvir_crit_to_galaxies(n_mapped);
 
   if (galaxy_to_slab_map != NULL)
     for(int ii = 0; ii < mystate->n_gals; ii++)
     {
-      galaxy_t *gal = galaxy_to_slab_map[ii].galaxy;
-      int i_slab = galaxy_to_slab_map[ii].slab_ind;
+      galaxy_t *gal    = galaxy_to_slab_map[ii].galaxy;
+      int       i_slab = galaxy_to_slab_map[ii].slab_ind;
 
       assert_int_not_equal(i_slab, -1);
 
@@ -240,19 +243,19 @@ static void test_assign_Mvir_crit_to_galaxies(void **state)
 
 static void test_construct_baryon_grids(void **state)
 {
-  int snapshot = 5;
-  int ReionGridDim = run_globals.params.ReionGridDim;
+  int        snapshot      = 5;
+  int        ReionGridDim  = run_globals.params.ReionGridDim;
   ptrdiff_t *slab_ix_start = run_globals.params.slab_ix_start;
-  float *stars_grid = run_globals.reion_grids.stars;
-  float Hubble_h = run_globals.params.Hubble_h;
+  float     *stars_grid    = run_globals.reion_grids.stars;
+  float      Hubble_h      = run_globals.params.Hubble_h;
 
   map_galaxies_to_slabs(mystate->n_gals);
   construct_baryon_grids(snapshot, mystate->n_gals);
 
-  int n_cells_tot = 8;
+  int   n_cells_tot    = 8;
   float correct_vals[] = {21.5, 10.5, 33.5, 44, 0.5, 1, 49.5, 25};
-  int i_xyz[]          =   {27,   13,   42, 56,   0, 1,   63, 32};
-  int slab[]           =    {1,    0,    2,  3,   0, 0,    3,  2};
+  int   i_xyz[]        =   {27,   13,   42, 56,   0, 1,   63, 32};
+  int   slab[]         =    {1,    0,    2,  3,   0, 0,    3,  2};
 
   for(int ii = 0; ii < n_cells_tot; ii++)
     if (slab[ii] == SID.My_rank)
@@ -292,10 +295,9 @@ int main(int argc, char *argv[])
     cmocka_unit_test(test_construct_baryon_grids),
   };
 
-  int result = cmocka_run_group_tests(tests, setup_tocf_tests, teardown_tocf_tests);
+  int                     result = cmocka_run_group_tests(tests, setup_tocf_tests, teardown_tocf_tests);
 
   SID_exit(result);
   fclose(fp_log);
   return result;
 }
-

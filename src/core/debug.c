@@ -7,6 +7,7 @@
 #include <hdf5_hl.h>
 #include <stdint.h>
 #include "meraxes.h"
+
 void check_mhysa_pointer()
 {
   fprintf(stderr, "Addresses: run_globals.mhysa_self = %p\n", run_globals.mhysa_self);
@@ -28,7 +29,7 @@ void check_mhysa_pointer()
 void mpi_debug_here()
 {
 #ifdef DEBUG
-  int i = 0;
+  int  i = 0;
   char hostname[256];
   gethostname(hostname, sizeof(hostname));
   printf("Task %d, PID %d on %s ready for attach\n", SID.My_rank, getpid(), hostname);
@@ -42,12 +43,12 @@ void mpi_debug_here()
 
 static void find_missing_gals(fof_group_t *fof_group, int NFof, int flag)
 {
-  galaxy_t *gal = NULL;
-  halo_t *halo = NULL;
-  int counter = 0;
-  int master_counter = 0;
-  int missing_counter = 0;
-  bool *gal_found;
+  galaxy_t  *gal             = NULL;
+  halo_t    *halo            = NULL;
+  int        counter         = 0;
+  int        master_counter  = 0;
+  int        missing_counter = 0;
+  bool      *gal_found;
   galaxy_t **missing_pointers;
 
   SID_log("Running `find_missing_galaxies`...", SID_LOG_OPEN);
@@ -63,7 +64,7 @@ static void find_missing_gals(fof_group_t *fof_group, int NFof, int flag)
     while (gal != NULL)
     {
       gal->output_index = counter++;
-      gal = gal->Next;
+      gal               = gal->Next;
     }
 
     gal_found = SID_calloc(sizeof(bool) * counter);
@@ -76,7 +77,7 @@ static void find_missing_gals(fof_group_t *fof_group, int NFof, int flag)
         gal = halo->Galaxy;
         while(gal != NULL) {
           gal_found[gal->output_index] = true;
-          gal = gal->NextGalInHalo;
+          gal                          = gal->NextGalInHalo;
         }
         halo = halo->NextHaloInFOFGroup;
       }
@@ -92,7 +93,7 @@ static void find_missing_gals(fof_group_t *fof_group, int NFof, int flag)
         gal = halo->Galaxy;
         while(gal != NULL) {
           gal->output_index = counter++;
-          gal = gal->NextGalInHalo;
+          gal               = gal->NextGalInHalo;
         }
         halo = halo->NextHaloInFOFGroup;
       }
@@ -105,7 +106,7 @@ static void find_missing_gals(fof_group_t *fof_group, int NFof, int flag)
       gal_found[ii] = false;
 
     // Traverse the global linked list and mark off each galaxy
-    gal = run_globals.FirstGal;
+    gal            = run_globals.FirstGal;
     master_counter = 0;
     while (gal != NULL)
     {
@@ -128,8 +129,8 @@ static void find_missing_gals(fof_group_t *fof_group, int NFof, int flag)
   master_counter = counter;
 
   // Check the number of gals with ghost_flag=true
-  gal = run_globals.FirstGal;
-  counter = 0;
+  gal            = run_globals.FirstGal;
+  counter        = 0;
   while(gal != NULL)
   {
     if(gal->ghost_flag)
@@ -156,7 +157,7 @@ static void find_missing_gals(fof_group_t *fof_group, int NFof, int flag)
   missing_pointers = SID_calloc(sizeof(galaxy_t *) * missing_counter);
 
   // Loop through the galaxies and store the pointers of the missing ones
-  counter = 0;
+  counter          = 0;
   if(flag == 0)
   {
     gal = run_globals.FirstGal;
@@ -198,15 +199,15 @@ static void find_missing_gals(fof_group_t *fof_group, int NFof, int flag)
 
 void check_counts(fof_group_t *fof_group, int NGal, int NFof)
 {
-  int counter = 0;
-  int gal_next_counter = 0;
-  int halo_counter   = 0;
-  int halo_pop_count = 0;
-  int total_NGal     = 0;
-  int total_NFof     = 0;
-  int total_NGhosts  = 0;
-  galaxy_t *gal      = NULL;
-  halo_t *halo       = NULL;
+  int       counter          = 0;
+  int       gal_next_counter = 0;
+  int       halo_counter     = 0;
+  int       halo_pop_count   = 0;
+  int       total_NGal       = 0;
+  int       total_NFof       = 0;
+  int       total_NGhosts    = 0;
+  galaxy_t *gal              = NULL;
+  halo_t   *halo             = NULL;
 
   SID_log("Running counts check...", SID_LOG_OPEN | SID_LOG_TIMER);
 
@@ -230,9 +231,9 @@ void check_counts(fof_group_t *fof_group, int NGal, int NFof)
           counter - total_NGhosts);
   gal_next_counter = counter;
 
-  halo_pop_count = 0;
-  counter        = 0;
-  halo_counter   = 0;
+  halo_pop_count   = 0;
+  counter          = 0;
+  halo_counter     = 0;
   if (NGal > 0)
   {
     int ii;
@@ -245,7 +246,7 @@ void check_counts(fof_group_t *fof_group, int NGal, int NFof)
         gal = halo->Galaxy;
         if (gal != NULL)
           halo_pop_count++;
-        ii = 0;
+        ii  = 0;
         while (gal != NULL)
         {
           gal = gal->NextGalInHalo;
@@ -285,11 +286,11 @@ void check_counts(fof_group_t *fof_group, int NGal, int NFof)
 
 void check_pointers(halo_t *halos, fof_group_t *fof_groups, trees_info_t *trees_info)
 {
-  galaxy_t *gal, *gal_pointer, gal_deref;
-  halo_t *halo;
+  galaxy_t    *gal, *gal_pointer, gal_deref;
+  halo_t      *halo;
   fof_group_t *fof_group;
-  int n_halos      = trees_info->n_halos;
-  int n_fof_groups = trees_info->n_fof_groups;
+  int          n_halos      = trees_info->n_halos;
+  int          n_fof_groups = trees_info->n_fof_groups;
 
   SID_log("Running pointers check.  Remember to run with Valgrind if you want to check the ->galaxy pointers.", SID_LOG_COMMENT);
 
@@ -325,7 +326,7 @@ void check_pointers(halo_t *halos, fof_group_t *fof_groups, trees_info_t *trees_
     fof_group = halos[ii].FOFGroup;
     // SID_log("%llu < %llu", SID_LOG_COMMENT, fof_group-fof_groups, (size_t)n_fof_groups);
     assert((fof_group - fof_groups) < (size_t)n_fof_groups);
-    halo = halos[ii].NextHaloInFOFGroup;
+    halo      = halos[ii].NextHaloInFOFGroup;
     if (halo != NULL)
       // SID_log("%llu < %llu", SID_LOG_COMMENT, halo-halos, (size_t)n_halos);
       assert((halo - halos) < (size_t)n_halos);
@@ -352,6 +353,7 @@ void write_single_grid(const char *fname,
                        bool        create_file_flag)
 {
   hid_t plist_id = H5Pcreate(H5P_FILE_ACCESS);
+
   H5Pset_fapl_mpio(plist_id, SID_COMM_WORLD, MPI_INFO_NULL);
 
   hid_t fd;
@@ -362,8 +364,8 @@ void write_single_grid(const char *fname,
 
   H5Pclose(plist_id);
 
-  int local_nix = run_globals.reion_grids.slab_nix[SID.My_rank];
-  int ReionGridDim = run_globals.params.ReionGridDim;
+  int    local_nix    = run_globals.reion_grids.slab_nix[SID.My_rank];
+  int    ReionGridDim = run_globals.params.ReionGridDim;
   float *grid_out;
 
   if (padded_flag)
@@ -379,16 +381,16 @@ void write_single_grid(const char *fname,
     grid_out = grid;
 
   // create the filespace
-  hsize_t dims[3] = {ReionGridDim, ReionGridDim, ReionGridDim};
-  hid_t fspace_id = H5Screate_simple(3, dims, NULL);
+  hsize_t dims[3]     = {ReionGridDim, ReionGridDim, ReionGridDim};
+  hid_t   fspace_id   = H5Screate_simple(3, dims, NULL);
 
   // create the memspace
   hsize_t mem_dims[3] = {local_nix, ReionGridDim, ReionGridDim};
-  hid_t memspace_id = H5Screate_simple(3, mem_dims, NULL);
+  hid_t   memspace_id = H5Screate_simple(3, mem_dims, NULL);
 
   // select a hyperslab in the filespace
-  hsize_t start[3] = {run_globals.reion_grids.slab_ix_start[SID.My_rank], 0, 0};
-  hsize_t count[3] = {local_nix, ReionGridDim, ReionGridDim};
+  hsize_t start[3]    = {run_globals.reion_grids.slab_ix_start[SID.My_rank], 0, 0};
+  hsize_t count[3]    = {local_nix, ReionGridDim, ReionGridDim};
   H5Sselect_hyperslab(fspace_id, H5S_SELECT_SET, start, NULL, count, NULL);
 
   // crerate the dataset
@@ -410,4 +412,3 @@ void write_single_grid(const char *fname,
   if (padded_flag)
     SID_free(SID_FARG grid_out);
 }
-

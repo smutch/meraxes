@@ -2,10 +2,11 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+
 void cn_quote()
 {
   char quote_list[28][512];
-  int ind;
+  int  ind;
 
   srand(time(NULL));
 
@@ -43,4 +44,3 @@ void cn_quote()
   fprintf(stderr, "%s\n", quote_list[ind]);
   fflush(stderr);
 }
-

@@ -2,6 +2,7 @@
 #include <hdf5.h>
 #include <hdf5_hl.h>
 #include <assert.h>
+
 void read_Mcrit_table()
 {
   // TODO: Make sure Flag_ReionizationModifier gets set differently if using uvb fb and 21cmFAST
@@ -14,7 +15,7 @@ void read_Mcrit_table()
 
   if(SID.My_rank == 0)
   {
-    hid_t fd;
+    hid_t   fd;
     hsize_t dims;
 
     // open the file
@@ -38,4 +39,3 @@ void read_Mcrit_table()
   // broadcast the result to the other ranks
   SID_Bcast(run_globals.params.MvirCrit, run_globals.params.SnaplistLength, 0, SID.COMM_WORLD);
 }
-

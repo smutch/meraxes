@@ -1,20 +1,21 @@
 #include <math.h>
 #include "meraxes.h"
+
 double gas_infall(fof_group_t *FOFgroup, int snapshot)
 {
   galaxy_t *gal;
   galaxy_t *central;
-  halo_t *halo;
-  double total_baryons = 0.;
-  double infall_mass   = 0.;
-  double FOF_Mvir      = FOFgroup->Mvir;
-  double fb_modifier, fb_modifier_hydro;
+  halo_t   *halo;
+  double    total_baryons = 0.;
+  double    infall_mass = 0.;
+  double    FOF_Mvir = FOFgroup->Mvir;
+  double    fb_modifier, fb_modifier_hydro;
 
-  double total_stellarmass   = 0.0;
-  double total_hotgas        = 0.0;
-  double total_coldgas       = 0.0;
-  double total_ejectedgas    = 0.0;
-  double total_blackholemass = 0.0;
+  double    total_stellarmass   = 0.0;
+  double    total_hotgas        = 0.0;
+  double    total_coldgas       = 0.0;
+  double    total_ejectedgas    = 0.0;
+  double    total_blackholemass = 0.0;
 
   // Calculate the total baryon mass in the FOF group
   halo    = FOFgroup->FirstHalo;
@@ -50,16 +51,16 @@ double gas_infall(fof_group_t *FOFgroup, int snapshot)
 
   // Calculate the amount of fresh gas required to provide the baryon
   // fraction of this halo.
-  fb_modifier = reionization_modifier(central, FOF_Mvir, snapshot);
+  fb_modifier       = reionization_modifier(central, FOF_Mvir, snapshot);
   fb_modifier_hydro = 1.0;
   if (run_globals.RequestedBaryonFracModifier == 1)
   {
     double logM;
-    logM  = log10(FOF_Mvir * 1e10 / run_globals.params.Hubble_h);
+    logM              = log10(FOF_Mvir * 1e10 / run_globals.params.Hubble_h);
     fb_modifier_hydro = interpolate_modifier(run_globals.baryon_frac_modifier, logM);
     //SID_log("%f\t%f\t%f", SID_LOG_COMMENT, FOF_Mvir, logM, fb_modifier_hydro);
   }
-  infall_mass = fb_modifier * fb_modifier_hydro * run_globals.params.BaryonFrac * FOF_Mvir - total_baryons;
+  infall_mass                 = fb_modifier * fb_modifier_hydro * run_globals.params.BaryonFrac * FOF_Mvir - total_baryons;
 
   // record the infall modifier
   central->BaryonFracModifier = fb_modifier;
@@ -82,14 +83,14 @@ void add_infall_to_hot(galaxy_t *central, double infall_mass)
       central->EjectedGas -= strip_mass;
       if(central->EjectedGas < 0)
       {
-        strip_mass = -central->EjectedGas;
-        central->EjectedGas = 0.0;
+        strip_mass                = -central->EjectedGas;
+        central->EjectedGas       = 0.0;
         central->MetalsEjectedGas = 0.0;
       }
       else
       {
         central->MetalsEjectedGas -= calc_metallicity(central->EjectedGas, central->MetalsEjectedGas) * strip_mass;
-        strip_mass = 0.0;
+        strip_mass                 = 0.0;
       }
     }
 
@@ -108,4 +109,3 @@ void add_infall_to_hot(galaxy_t *central, double infall_mass)
     }
   }
 }
-

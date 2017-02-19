@@ -3,6 +3,7 @@
 #include <fftw3.h>
 #include <fftw3-mpi.h>
 #include <hdf5.h>
+
 void cleanup()
 {
   SID_log("Running cleanup...", SID_LOG_OPEN);
@@ -52,4 +53,3 @@ void cleanup()
 
   SID_log(" ...done", SID_LOG_CLOSE);
 }
-

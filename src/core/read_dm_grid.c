@@ -4,6 +4,7 @@
 #include <complex.h>
 #include <fftw3.h>
 #include <fftw3-mpi.h>
+
 /*
    ==============================================================================
    MAJOR CODE REVISION by Paul Geil (October 2014)
@@ -48,9 +49,9 @@ static int cache_deltax_slab(float *slab, int snapshot)
 {
   if (run_globals.SnapshotDeltax[snapshot] == NULL)
   {
-    float **cache = &run_globals.SnapshotDeltax[snapshot];
+    float   **cache          = &run_globals.SnapshotDeltax[snapshot];
     ptrdiff_t slab_n_complex = run_globals.reion_grids.slab_n_complex[SID.My_rank];
-    ptrdiff_t mem_size = sizeof(float) * slab_n_complex * 2;
+    ptrdiff_t mem_size       = sizeof(float) * slab_n_complex * 2;
 
     *cache = fftwf_alloc_real(mem_size);
     memcpy(*cache, slab, mem_size);
@@ -74,13 +75,13 @@ int read_dm_grid(
   if (params->FlagInteractive && !load_cached_deltax_slab(slab, snapshot))
     return 0;
 
-  char fname[512];
-  int n_cell[3];
+  char   fname[512];
+  int    n_cell[3];
   double box_size[3];
-  int n_grids;
-  int ma_scheme;
-  long start_foffset;
-  int ReionGridDim  = run_globals.params.ReionGridDim;
+  int    n_grids;
+  int    ma_scheme;
+  long   start_foffset;
+  int    ReionGridDim = run_globals.params.ReionGridDim;
 
   // Construct the input filename
   sprintf(fname, "%s/grids/snapshot_%03d_dark_grid.dat", params->SimulationDir, snapshot);
@@ -152,13 +153,13 @@ int read_dm_grid(
     resample_factor = 1;
 
   // Malloc the slab
-  ptrdiff_t slab_nix = run_globals.reion_grids.slab_nix[SID.My_rank];
-  ptrdiff_t slab_n_complex = run_globals.reion_grids.slab_n_complex[SID.My_rank];
+  ptrdiff_t      slab_nix = run_globals.reion_grids.slab_nix[SID.My_rank];
+  ptrdiff_t      slab_n_complex = run_globals.reion_grids.slab_n_complex[SID.My_rank];
 
-  ptrdiff_t slab_nix_file, slab_ix_start_file;
-  ptrdiff_t slab_n_complex_file = fftwf_mpi_local_size_3d(n_cell[0], n_cell[0], n_cell[0] / 2 + 1, SID_COMM_WORLD, &slab_nix_file, &slab_ix_start_file);
-  fftwf_complex *slab_file = fftwf_alloc_complex(slab_n_complex_file);
-  ptrdiff_t slab_ni_file = slab_nix_file * n_cell[0] * n_cell[0];
+  ptrdiff_t      slab_nix_file, slab_ix_start_file;
+  ptrdiff_t      slab_n_complex_file = fftwf_mpi_local_size_3d(n_cell[0], n_cell[0], n_cell[0] / 2 + 1, SID_COMM_WORLD, &slab_nix_file, &slab_ix_start_file);
+  fftwf_complex *slab_file           = fftwf_alloc_complex(slab_n_complex_file);
+  ptrdiff_t      slab_ni_file        = slab_nix_file * n_cell[0] * n_cell[0];
 
   // Initialise (just in case!)
   for(int ii = 0; ii < slab_n_complex_file; ii++)
@@ -168,7 +169,7 @@ int read_dm_grid(
     slab[ii] = 0.0;
 
   // Read in the slab for this rank
-  MPI_File fin = NULL;
+  MPI_File   fin         = NULL;
   MPI_Status status;
   MPI_Offset slab_offset = start_foffset / sizeof(float) + (slab_ix_start_file * n_cell[1] * n_cell[2]);
 
@@ -176,11 +177,11 @@ int read_dm_grid(
   MPI_File_set_view(fin, 0, MPI_FLOAT, MPI_FLOAT, "native", MPI_INFO_NULL);
 
   ptrdiff_t chunk_size = slab_ni_file;
-  int n_reads = 1;
+  int       n_reads    = 1;
   while(chunk_size > INT_MAX / 16)
   {
     chunk_size /= 2;
-    n_reads *= 2;
+    n_reads    *= 2;
   }
 
   MPI_Offset offset = slab_offset;
@@ -293,4 +294,3 @@ void free_grids_cache()
     SID_free(SID_FARG snapshot_deltax);
   }
 }
-

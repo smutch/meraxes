@@ -16,7 +16,6 @@
 #define MAX_LOGM 11.5
 #define M_OFFSET 0.5
 
-
 void read_mass_ratio_modifiers(int snapshot)
 {
   if (strlen(run_globals.params.MassRatioModifier) == 0)
@@ -52,8 +51,8 @@ void read_mass_ratio_modifiers(int snapshot)
     if (SID.My_rank == 0)
     {
       hid_t fd;
-      char fname[STRLEN];
-      char tablename[STRLEN];
+      char  fname[STRLEN];
+      char  tablename[STRLEN];
 
       sprintf(fname, "%s", run_globals.params.MassRatioModifier);
       fd = H5Fopen(fname, H5F_ACC_RDONLY, H5P_DEFAULT);
@@ -103,8 +102,8 @@ void read_baryon_frac_modifiers(int snapshot)
     if (SID.My_rank == 0)
     {
       hid_t fd;
-      char fname[STRLEN];
-      char tablename[STRLEN];
+      char  fname[STRLEN];
+      char  tablename[STRLEN];
 
       sprintf(fname, "%s", run_globals.params.BaryonFracModifier);
       fd = H5Fopen(fname, H5F_ACC_RDONLY, H5P_DEFAULT);
@@ -128,18 +127,17 @@ double interpolate_modifier(Modifier *modifier_data, double logM)
     return modifier_data[N_LOGMS - 1].ratio;
 
   double logM_below, ratio_below, ratio_above, ratio;
-  int i;
+  int    i;
 
   i = 0;
   while (logM > modifier_data[i].logMmin)
     i++;
 
-  logM_below = modifier_data[i].logMmin;
+  logM_below  = modifier_data[i].logMmin;
   ratio_below = modifier_data[i].ratio;
   ratio_above = modifier_data[i + 1].ratio;
 
-  ratio = ratio_below + (ratio_above - ratio_below) / DELTA_M * (logM - logM_below);
+  ratio       = ratio_below + (ratio_above - ratio_below) / DELTA_M * (logM - logM_below);
 
   return ratio;
 }
-

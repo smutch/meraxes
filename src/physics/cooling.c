@@ -1,6 +1,7 @@
 #include "meraxes.h"
 #include <math.h>
 #include <assert.h>
+
 double gas_cooling(galaxy_t *gal)
 {
   double cooling_mass = 0.0;
@@ -17,10 +18,10 @@ double gas_cooling(galaxy_t *gal)
     // If we are below 10^4 K then no cooling either
     if (Tvir >= 1e4)
     {
-      double t_cool, max_cooling_mass;
-      double logZ, lambda, x, rho_r_cool, r_cool, isothermal_norm;
-      run_units_t *units     = &(run_globals.units);
-      double max_cooling_mass_factor = run_globals.params.physics.MaxCoolingMassFactor;
+      double       t_cool, max_cooling_mass;
+      double       logZ, lambda, x, rho_r_cool, r_cool, isothermal_norm;
+      run_units_t *units                   = &(run_globals.units);
+      double       max_cooling_mass_factor = run_globals.params.physics.MaxCoolingMassFactor;
 
       // following Croton+ 2006, we set the maximum cooling time to be the
       // dynamical time of the host dark matter halo
@@ -50,8 +51,8 @@ double gas_cooling(galaxy_t *gal)
       // now calculate the cooling radius
       assert(rho_r_cool > 0);
       isothermal_norm = gal->HotGas / (4. * M_PI * fof_group->Rvir);
-      r_cool      = sqrt(isothermal_norm / rho_r_cool);
-      gal->Rcool  = r_cool;
+      r_cool          = sqrt(isothermal_norm / rho_r_cool);
+      gal->Rcool      = r_cool;
 
       // the maximum amount of gas we can possibly cool is limited by the amount
       // of mass within the free fall radius
@@ -100,7 +101,7 @@ void cool_gas_onto_galaxy(galaxy_t *gal, double cooling_mass)
   //     lambda, rho_r_cool, isothermal_norm, r_cool, max_cooling_mass, cooling_mass);
 
   // save the cooling mass
-  gal->Mcool = cooling_mass;
+  gal->Mcool          = cooling_mass;
 
   // update the galaxy reservoirs
   gal->HotGas        -= cooling_mass;
@@ -108,4 +109,3 @@ void cool_gas_onto_galaxy(galaxy_t *gal, double cooling_mass)
   gal->ColdGas       += cooling_mass;
   gal->MetalsColdGas += cooling_metals;
 }
-

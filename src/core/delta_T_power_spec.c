@@ -3,6 +3,7 @@
 #include <fftw3-mpi.h>
 #include <math.h>
 #include <assert.h>
+
 /*
  * This code is a re-write of the modified version of 21cmFAST used in Mutch et
  * al. (2016; Meraxes paper).  The original code was written by Andrei Mesinger
@@ -19,28 +20,28 @@ int delta_T_ps(
 {
   unsigned long long ct, temp_ct;
 
-  float pixel_x_HI, pixel_deltax;
-  float k_mag;
+  float              pixel_x_HI, pixel_deltax;
+  float              k_mag;
 
-  float *xH = run_globals.reion_grids.xH;
-  float *deltax = run_globals.reion_grids.deltax;
+  float             *xH     = run_globals.reion_grids.xH;
+  float             *deltax = run_globals.reion_grids.deltax;
 
   // Begin initialisation
   // ------------------------------------------------------------------------------------------------------
   // ------------------------------------------------------------------------------------------------------
 
-  float min       = 1e3;
-  float max       = -1e3;
-  double ave       = 0.0;
-  int ReionGridDim = run_globals.params.ReionGridDim;
-  int local_nix = (int)(run_globals.reion_grids.slab_nix[SID.My_rank]);
+  float  min          = 1e3;
+  float  max          = -1e3;
+  double ave          = 0.0;
+  int    ReionGridDim = run_globals.params.ReionGridDim;
+  int    local_nix    = (int)(run_globals.reion_grids.slab_nix[SID.My_rank]);
 
   // Set some redshift dependant values
-  float redshift = run_globals.ZZ[snapshot];
-  float Hubble_h = run_globals.params.Hubble_h;
-  float OmegaM = run_globals.params.OmegaM;
-  float OmegaB = OmegaM * run_globals.params.BaryonFrac;
-  float const_factor = 27.0 * (OmegaB * Hubble_h * Hubble_h / 0.023) * sqrt((0.15 / OmegaM / Hubble_h / Hubble_h) * (1.0 + redshift) / 10.0);
+  float  redshift     = run_globals.ZZ[snapshot];
+  float  Hubble_h     = run_globals.params.Hubble_h;
+  float  OmegaM       = run_globals.params.OmegaM;
+  float  OmegaB       = OmegaM * run_globals.params.BaryonFrac;
+  float  const_factor = 27.0 * (OmegaB * Hubble_h * Hubble_h / 0.023) * sqrt((0.15 / OmegaM / Hubble_h / Hubble_h) * (1.0 + redshift) / 10.0);
 
 
   // delta_T grid (same size as the bubble box)
@@ -57,7 +58,7 @@ int delta_T_ps(
         pixel_deltax = deltax[grid_index(ii, jj, kk, ReionGridDim, INDEX_PADDED)];
 
         int index = grid_index(ii, jj, kk, ReionGridDim, INDEX_REAL);
-        pixel_x_HI = xH[index];
+        pixel_x_HI   = xH[index];
 
         if (pixel_x_HI > ABS_TOL)
           temp_ct++;
@@ -84,16 +85,16 @@ int delta_T_ps(
   // ------------------------------------------------------------------------------------------------------
   // ------------------------------------------------------------------------------------------------------
 
-  float k_factor = 1.5;
-  float delta_k = run_globals.params.ReionPowerSpecDeltaK;
+  float k_factor         = 1.5;
+  float delta_k          = run_globals.params.ReionPowerSpecDeltaK;
   float k_first_bin_ceil = delta_k;
-  float k_max = delta_k * ReionGridDim;
+  float k_max            = delta_k * ReionGridDim;
 
   // Initialise arrays
   // ghetto counting (lookup how to do logs of arbitrary bases in c...)
-  int num_bins = 0;
-  float k_floor = 0.0;
-  float k_ceil = k_first_bin_ceil;
+  int   num_bins = 0;
+  float k_floor  = 0.0;
+  float k_ceil   = k_first_bin_ceil;
   while (k_ceil < k_max)
   {
     num_bins++;
@@ -103,14 +104,14 @@ int delta_T_ps(
 
   //    printf("    NUM_BINS       = %d\n", NUM_BINS);
 
-  double *p_box     = malloc(sizeof(double) * num_bins);
-  double *k_ave     = malloc(sizeof(double) * num_bins);
+  double             *p_box     = malloc(sizeof(double) * num_bins);
+  double             *k_ave     = malloc(sizeof(double) * num_bins);
   unsigned long long *in_bin_ct = malloc(sizeof(unsigned long long) * num_bins);
 
   for (int ii = 0; ii < num_bins; ii++)
   {
-    p_box[ii] = 0.0;
-    k_ave[ii] = 0.0;
+    p_box[ii]     = 0.0;
+    k_ave[ii]     = 0.0;
     in_bin_ct[ii] = 0;
   }
 
@@ -147,12 +148,12 @@ int delta_T_ps(
       {
         float k_z = n_z * delta_k;
 
-        k_mag = sqrt(k_x * k_x + k_y * k_y + k_z * k_z);
+        k_mag   = sqrt(k_x * k_x + k_y * k_y + k_z * k_z);
 
         // Now go through the k bins and update
-        ct = 0;
+        ct      = 0;
         k_floor = 0.0;
-        k_ceil = k_first_bin_ceil;
+        k_ceil  = k_first_bin_ceil;
         while (k_ceil < k_max)
         {
           // Check if we fal in this bin
@@ -187,7 +188,7 @@ int delta_T_ps(
       (*ps)[2 + 3 * ii] = p_box[ii] / (float)in_bin_ct[ii] / sqrt((float)in_bin_ct[ii]); // Error in power?
     }
 
-  *ps_nbins = num_bins;
+  *ps_nbins  = num_bins;
   *average_T = (float)ave;
 
 
@@ -202,4 +203,3 @@ int delta_T_ps(
 
   return 0;
 }
-

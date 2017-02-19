@@ -1,6 +1,7 @@
 #include "meraxes.h"
 #include <math.h>
 #include <assert.h>
+
 void myexit(int signum)
 {
   fprintf(stderr, "Task: %d\tnode: %s\tis exiting.\n\n\n", SID.My_rank, SID.My_node);
@@ -42,6 +43,7 @@ int compare_ints(const void *a, const void *b)
 int compare_floats(const void *a, const void *b)
 {
   float value = *(float *)a - *(float *)b;
+
   if (value > 0)
     return 1;
   else if (value < 0)
@@ -54,6 +56,7 @@ int compare_floats(const void *a, const void *b)
 int compare_ptrdiff(const void *a, const void *b)
 {
   ptrdiff_t result = *(ptrdiff_t *)a - *(ptrdiff_t *)b;
+
   return (int)result;
 }
 
@@ -61,6 +64,7 @@ int compare_ptrdiff(const void *a, const void *b)
 int compare_slab_assign(const void *a, const void *b)
 {
   int value = ((gal_to_slab_t *)a)->slab_ind - ((gal_to_slab_t *)b)->slab_ind;
+
   return value != 0 ? value : ((gal_to_slab_t *)a)->index - ((gal_to_slab_t *)b)->index;
 }
 
@@ -112,7 +116,7 @@ int searchsorted(void *val,
   else
   {
     // calculate midpoint to cut set in half
-    int imid = imin + ((imax - imin) / 2);
+    int   imid    = imin + ((imax - imin) / 2);
     void *arr_val = (void *)(((char *)arr + imid * size));
 
     // three-way comparison
@@ -144,11 +148,12 @@ int pos_to_ngp(double x, double side, int nx)
 
 float comoving_distance(float a[3], float b[3])
 {
-  float dx = apply_pbc_disp(a[0] - b[0]);
-  float dy = apply_pbc_disp(a[1] - b[1]);
-  float dz = apply_pbc_disp(a[2] - b[2]);
+  float dx   = apply_pbc_disp(a[0] - b[0]);
+  float dy   = apply_pbc_disp(a[1] - b[1]);
+  float dz   = apply_pbc_disp(a[2] - b[2]);
 
   float dist = sqrtf(dx * dx + dy * dy + dz * dz);
+
   assert(dist <= (sqrtf(3.0) / 2.0 * run_globals.params.BoxSize));
 
   return dist;
@@ -171,6 +176,7 @@ double accurate_sumf(float *arr, int n)
 int grid_index(int i, int j, int k, int dim, int type)
 {
   int ind;
+
   switch(type)
   {
     case INDEX_PADDED:
@@ -201,4 +207,3 @@ int isclosef(
     rel_tol = 1e-5;                                              ///< Numpy default
   return fabs(a - b) <= (abs_tol + rel_tol * fabs(b));
 }
-
