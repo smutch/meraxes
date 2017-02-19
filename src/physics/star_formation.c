@@ -146,16 +146,16 @@ static double integrand_p_dependent_SFR(double q, void *gal)
 {
   struct FR_parameters * params       = (struct FR_parameters *)gal;
 
-  double                 sigma_gas0   = (params->a);
-  double                 sigma_stars0 = (params->b);
-  double                 v_ratio      = (params->c);
-  double                 reff         = (params->d);
+  double sigma_gas0   = (params->a);
+  double sigma_stars0 = (params->b);
+  double v_ratio      = (params->c);
+  double reff         = (params->d);
 
-  double                 G_SI         = GRAVITY * 1.e-3;
-  double                 sf_effH      = 1.;
+  double G_SI         = GRAVITY * 1.e-3;
+  double sf_effH      = 1.;
 
-  double                 p_ext        = M_PI / 2.0 * G_SI * sigma_gas0 * exp(-q / reff) * (sigma_gas0 * exp(-q / reff)  + v_ratio * sqrt(sigma_stars0 * exp(-q / reff)) );
-  double                 fmol         = 1.0 / (1.0 + pow(p_ext / 4.79e-13, -0.92));
+  double p_ext        = M_PI / 2.0 * G_SI * sigma_gas0 * exp(-q / reff) * (sigma_gas0 * exp(-q / reff)  + v_ratio * sqrt(sigma_stars0 * exp(-q / reff)) );
+  double fmol         = 1.0 / (1.0 + pow(p_ext / 4.79e-13, -0.92));
 
   // double Surface0 = 200. * 1.989e30 / 3.086e16 / 3.086e16;  // 200M_sun/pc^(-2)
   // sf_effH=sf_effH*(1.+pow(sigma_gas0*exp(-q/reff)/Surface0,0.4));  //Lagos et al. 2011 paper

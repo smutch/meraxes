@@ -58,7 +58,6 @@ double gas_infall(fof_group_t *FOFgroup, int snapshot)
     double logM;
     logM              = log10(FOF_Mvir * 1e10 / run_globals.params.Hubble_h);
     fb_modifier_hydro = interpolate_modifier(run_globals.baryon_frac_modifier, logM);
-    //SID_log("%f\t%f\t%f", SID_LOG_COMMENT, FOF_Mvir, logM, fb_modifier_hydro);
   }
   infall_mass                 = fb_modifier * fb_modifier_hydro * run_globals.params.BaryonFrac * FOF_Mvir - total_baryons;
 
