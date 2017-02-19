@@ -3,9 +3,21 @@ Meraxes
 
 The Meraxes semi-analytic galaxy formation model.
 
-Author: [Simon Mutch](http://www.ph.unimelb.edu.au/~smutch/index.html) (The University of Melbourne)
+**Author**: [Simon Mutch](http://www.ph.unimelb.edu.au/~smutch/index.html) (*The University of Melbourne*)
 
-If you use this code or its results in any publications, please cite [Mutch et al. 2016](http://adsabs.harvard.edu/abs/2016MNRAS.462..250M) (MNRAS, accepted):
+
+Contributors
+------------
+
+* Paul Geil (*The University of Melbourne*)
+* Yuxiang Qin (*The University of Melbourne*)
+* Hansik Kim (*The University of Melbourne*)
+
+
+Attribution
+-----------
+
+If you use this code or its results in any publications, please cite [Mutch et al. 2016b](http://adsabs.harvard.edu/abs/2016MNRAS.462..250M) (MNRAS, 462, 250):
 
 ```
 @ARTICLE{2016MNRAS.462..250M,
@@ -25,3 +37,15 @@ archivePrefix = "arXiv",
   adsnote = {Provided by the SAO/NASA Astrophysics Data System}
 }
 ```
+
+For the AGN model, please cite Qin et al. 2017 (MNRAS, in prep).
+
+
+How to contribute
+=================
+
+1. Fork the [official repository](https://bitbucket.org/dragons-astro/meraxes).
+2. Make your changes in a new, appropriately named branch (e.g. `mutch_starformation` or `fix_progenitor_order`).
+    * All git commit messages should loosely follow the [standard format outlined here](http://tbaggery.com/2008/04/19/a-note-about-git-commit-messages.html).
+    * Ensure your new code is commented enough so that others can understand what it's doing.
+3. Issue a [pull request](https://confluence.atlassian.com/bitbucket/work-with-pull-requests-223220593.html) to the official repository.
