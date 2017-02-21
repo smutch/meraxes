@@ -18,25 +18,24 @@ static int compile_regex(regex_t *reg, const char *regex_text)
   return 0;
 }
 
+
 static int match_regex(regex_t *reg, const char *match_str, entry_t *entry)
 {
   // "p" is a pointer into the string which points to the end of the previous match.
-  const char * p = match_str;
+  const char * p         = match_str;
   // "n_matches" is the maximum number of matches allowed.
-  const int n_matches = 3;
+  const int    n_matches = 3;
   // "match" contains the matches found.
-  regmatch_t match[n_matches];
+  regmatch_t   match[n_matches];
 
-  int start;
-  int finish;
+  int          start;
+  int          finish;
 
   while (1)
   {
     int nomatch = regexec(reg, p, n_matches, match, 0);
     if (nomatch)
-    {
       return nomatch;
-    }
     for (int ii = 0; ii < n_matches; ii++)
     {
       if (match[ii].rm_so == -1)
@@ -69,12 +68,12 @@ static int match_regex(regex_t *reg, const char *match_str, entry_t *entry)
 
 int parse_paramfile(char *fname, entry_t entry[PARAM_MAX_ENTRIES])
 {
-  char buffer[PARAM_MAX_LINE_LEN];
-  FILE *fin;
-  int level_change;
-  int last_level;
-  int counter;
-  regex_t reg;
+  char        buffer[PARAM_MAX_LINE_LEN];
+  FILE       *fin;
+  int         level_change;
+  int         last_level;
+  int         counter;
+  regex_t     reg;
   const char *regex_text = "[[:space:]]*([^[:space:]^#]+)[[:space:]]*:[[:space:]]*([^#]*)";
 
   if ((fin = fopen(fname, "r")) == NULL)
@@ -124,4 +123,3 @@ int parse_paramfile(char *fname, entry_t entry[PARAM_MAX_ENTRIES])
 
   return counter;
 }
-

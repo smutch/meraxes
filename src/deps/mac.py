@@ -10,8 +10,8 @@ deps['exec'] = {
 }
 
 deps['gsl'] = {
-    'inclp' : '/usr/local/Cellar/gsl/1.16/include',
-    'libp'  : '/usr/local/Cellar/gsl/1.16/lib',
+    'inclp' : '/usr/local/Cellar/gsl/2.3/include',
+    'libp'  : '/usr/local/Cellar/gsl/2.3/lib',
     'lib'   : ['gsl', 'gslcblas'],
 }
 
@@ -23,12 +23,12 @@ deps['hdf5'] = {
 
 deps['gbpCode'] = {
     'inclp' : os.path.expanduser('~/3rd_party/gbpCode/myInclude'),
-    'libp'  : os.path.expanduser('~/3rd_party/gbpCode/myLib'),
+    'libp'  : os.path.expanduser('~/3rd_party/gbpCode/myLib/mpi'),
     'lib'   : 'gbpLib',
 }
 
 deps['fftw'] = {
-    'inclp' : os.path.expanduser('~/3rd_party/fftw/fftw-3.3.4/include'),
-    'libp'  : os.path.expanduser('~/3rd_party/fftw/fftw-3.3.4/lib'),
+    'inclp' : os.path.expanduser('~/3rd_party/fftw-3.3.5/include'),
+    'libp'  : os.path.expanduser('~/3rd_party/fftw-3.3.5/lib'),
     'lib'   : ['fftw3f_mpi', 'fftw3f'],
 }

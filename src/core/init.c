@@ -14,11 +14,11 @@ static void read_requested_forest_ids()
 
   if (SID.My_rank == 0)
   {
-    FILE *fin;
-    char *line = NULL;
+    FILE  *fin;
+    char  *line      = NULL;
     size_t len;
-    int n_forests = -1;
-    int *ids;
+    int    n_forests = -1;
+    int   *ids;
 
     if (!(fin = fopen(run_globals.params.ForestIDFile, "r")))
     {
@@ -27,11 +27,11 @@ static void read_requested_forest_ids()
     }
 
     getline(&line, &len, fin);
-    n_forests                      = atoi(line);
+    n_forests                     = atoi(line);
     run_globals.NRequestedForests = n_forests;
 
     run_globals.RequestedForestId = SID_malloc(sizeof(int) * n_forests);
-    ids                            = run_globals.RequestedForestId;
+    ids                           = run_globals.RequestedForestId;
 
     for (int ii = 0; ii < n_forests; ii++)
     {
@@ -59,10 +59,10 @@ static void read_snap_list()
 {
   if (SID.My_rank == 0)
   {
-    FILE *fin;
-    int snaplist_len;
-    double dummy;
-    char fname[STRLEN];
+    FILE        *fin;
+    int          snaplist_len;
+    double       dummy;
+    char         fname[STRLEN];
     run_params_t params = run_globals.params;
 
     sprintf(fname, "%s/a_list.txt", params.SimulationDir);
@@ -120,6 +120,7 @@ static void read_snap_list()
   SID_Bcast(run_globals.AA, sizeof(double) * run_globals.params.SnaplistLength, 0, SID.COMM_WORLD);
 }
 
+
 double integrand_time_to_present(double a, void *params)
 {
   double omega_m      = ((run_params_t*)params)->OmegaM;
@@ -129,14 +130,15 @@ double integrand_time_to_present(double a, void *params)
   return 1 / sqrt(omega_m / a + omega_k + omega_lambda * a * a);
 }
 
+
 static double time_to_present(double z)
 {
 #define WORKSIZE 1000
-  gsl_function F;
+  gsl_function               F;
   gsl_integration_workspace *workspace;
-  double time;
-  double result;
-  double abserr;
+  double                     time;
+  double                     result;
+  double                     abserr;
 
   workspace  = gsl_integration_workspace_alloc(WORKSIZE);
   F.function = &integrand_time_to_present;
@@ -153,43 +155,45 @@ static double time_to_present(double z)
   return time;
 }
 
+
 void set_units()
 {
   run_units_t *units = &(run_globals.units);
 
-  units->UnitTime_in_s         = units->UnitLength_in_cm / units->UnitVelocity_in_cm_per_s;
-  units->UnitTime_in_Megayears = units->UnitTime_in_s / SEC_PER_MEGAYEAR;
+  units->UnitTime_in_s          = units->UnitLength_in_cm / units->UnitVelocity_in_cm_per_s;
+  units->UnitTime_in_Megayears  = units->UnitTime_in_s / SEC_PER_MEGAYEAR;
 
-  run_globals.G = GRAVITY / pow(units->UnitLength_in_cm, 3) * units->UnitMass_in_g * pow(units->UnitTime_in_s, 2);
+  run_globals.G                 = GRAVITY / pow(units->UnitLength_in_cm, 3) * units->UnitMass_in_g * pow(units->UnitTime_in_s, 2);
 
   units->UnitDensity_in_cgs     = units->UnitMass_in_g / pow(units->UnitLength_in_cm, 3);
   units->UnitPressure_in_cgs    = units->UnitMass_in_g / units->UnitLength_in_cm / pow(units->UnitTime_in_s, 2);
   units->UnitCoolingRate_in_cgs = units->UnitPressure_in_cgs / units->UnitTime_in_s;
 
-  units->UnitEnergy_in_cgs = units->UnitMass_in_g * pow(units->UnitLength_in_cm, 2) / pow(units->UnitTime_in_s, 2);
+  units->UnitEnergy_in_cgs      = units->UnitMass_in_g * pow(units->UnitLength_in_cm, 2) / pow(units->UnitTime_in_s, 2);
 
   // convert some physical input parameters to internal units
-  run_globals.Hubble = HUBBLE * units->UnitTime_in_s;
+  run_globals.Hubble            = HUBBLE * units->UnitTime_in_s;
 
   // compute a few quantitites
-  run_globals.RhoCrit = 3 * run_globals.Hubble * run_globals.Hubble / (8 * M_PI * run_globals.G);
+  run_globals.RhoCrit           = 3 * run_globals.Hubble * run_globals.Hubble / (8 * M_PI * run_globals.G);
 
   // debug("UnitTime_in_s = %e\nUnitTime_in_Megayears = %e\nG = %e\nUnitDensity_in_cgs = %e\nUnitPressure_in_cgs = %e\nUnitCoolingRate_in_cgs = %e\nUnitEnergy_in_cgs = %e\n",
   //     units->UnitTime_in_s, units->UnitTime_in_Megayears, units->UnitDensity_in_cgs, units->UnitPressure_in_cgs, units->UnitCoolingRate_in_cgs, units->UnitEnergy_in_cgs);
   // ABORT(EXIT_SUCCESS);
 }
 
+
 static void read_output_snaps()
 {
   int **ListOutputSnaps = &(run_globals.ListOutputSnaps);
-  int *LastOutputSnap  = &(run_globals.LastOutputSnap);
-  int maxsnaps = run_globals.params.SnaplistLength; 
-  int *nout = &(run_globals.NOutputSnaps);
+  int  *LastOutputSnap  = &(run_globals.LastOutputSnap);
+  int   maxsnaps        = run_globals.params.SnaplistLength;
+  int  *nout            = &(run_globals.NOutputSnaps);
 
   if (SID.My_rank == 0)
   {
-    int i;
-    char fname[STRLEN];
+    int   i;
+    char  fname[STRLEN];
     FILE *fd;
 
     strcpy(fname, run_globals.params.FileWithOutputSnaps);
@@ -215,13 +219,11 @@ static void read_output_snaps()
     *ListOutputSnaps = SID_malloc(sizeof(int) * (*nout));
 
     for (i = 0; i < (*nout); i++)
-    {
       if (fscanf(fd, " %d ", &((*ListOutputSnaps)[i])) != 1)
       {
         SID_log_error("I/O error in file '%s'\n", fname);
         exit(EXIT_FAILURE);
       }
-    }
     fclose(fd);
 
 #ifdef CALC_MAGS
@@ -247,18 +249,16 @@ static void read_output_snaps()
 
     // sort the list from low to high snapnum
     qsort(*ListOutputSnaps, (*nout), sizeof(int), compare_ints);
-
   }
 
   // broadcast the data to all other ranks
   SID_Bcast(nout, sizeof(int), 0, SID.COMM_WORLD);
-  
+
   if(SID.My_rank > 0)
     *ListOutputSnaps = SID_malloc(sizeof(int) * (*nout));
 
   SID_Bcast(*ListOutputSnaps, sizeof(int) * (*nout), 0, SID.COMM_WORLD);
   SID_Bcast(LastOutputSnap, sizeof(int), 0, SID.COMM_WORLD);
-
 }
 
 
@@ -268,14 +268,14 @@ static void check_n_history_snaps()
   // SN-II to be tracked across the entire simulation.  This is calculated in
   // an extremely crude fasion!
 
-  double *LTTime = run_globals.LTTime;
-  int n_snaps    = run_globals.params.SnaplistLength;
-  double min_dt  = LTTime[0] - LTTime[n_snaps-1];
-  double m_low;
+  double *LTTime  = run_globals.LTTime;
+  int     n_snaps = run_globals.params.SnaplistLength;
+  double  min_dt  = LTTime[0] - LTTime[n_snaps - 1];
+  double  m_low;
 
-  for (int ii = 0; ii < n_snaps-N_HISTORY_SNAPS; ii++)
+  for (int ii = 0; ii < n_snaps - N_HISTORY_SNAPS; ii++)
   {
-    double diff = LTTime[ii] - LTTime[ii+N_HISTORY_SNAPS];
+    double diff = LTTime[ii] - LTTime[ii + N_HISTORY_SNAPS];
     if (diff < min_dt)
       min_dt = diff;
   }
@@ -333,25 +333,25 @@ void init_meraxes()
 
   // set RequestedMassRatioModifier and RequestedBaryonFracModifieruto be 1 first
   // it will be set to -1 later if MassRatioModifier or BaryonFracModifier is not specified
-  run_globals.RequestedMassRatioModifier = 1;
+  run_globals.RequestedMassRatioModifier  = 1;
   run_globals.RequestedBaryonFracModifier = 1;
 
   // read in the mean Mvir_crit table (if needed)
   read_Mcrit_table();
 
   // Initialise galaxy pointers
-  run_globals.FirstGal = NULL;
-  run_globals.LastGal  = NULL;
+  run_globals.FirstGal            = NULL;
+  run_globals.LastGal             = NULL;
 
   // Initialise some book keeping parameters for the input trees
-  run_globals.TreesStep = -1;
-  run_globals.TreesScan = -1;
+  run_globals.TreesStep           = -1;
+  run_globals.TreesScan           = -1;
 
   // Set the SelectForestsSwitch
   run_globals.SelectForestsSwitch = true;
 
   // This will be set by Mhysa
-  run_globals.mhysa_self = NULL;
+  run_globals.mhysa_self          = NULL;
 
   // Initialize the halo storage arrays
   initialize_halo_storage();
@@ -363,4 +363,3 @@ void init_meraxes()
   // calculate the output hdf5 file properties for later use
   calc_hdf5_props();
 }
-

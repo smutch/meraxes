@@ -29,7 +29,7 @@ static double metallicities[N_METALLICITIES] = {
   +0.5
 };
 
-static char group_name[N_METALLICITIES][6] = {
+static char   group_name[N_METALLICITIES][6] = {
   "mzero",
   "m-30",
   "m-20",
@@ -42,14 +42,13 @@ static char group_name[N_METALLICITIES][6] = {
 
 static double cooling_rate[N_METALLICITIES][N_TEMPS];
 
-
 void read_cooling_functions()
 {
   if (SID.My_rank == 0)
   {
     hid_t fd;
-    char dset_name[30];
-    char fname[STRLEN];
+    char  dset_name[30];
+    char  fname[STRLEN];
 
     sprintf(fname, "%s/SD93.hdf5", run_globals.params.CoolingFuncsDir);
     fd = H5Fopen(fname, H5F_ACC_RDONLY, H5P_DEFAULT);
@@ -74,7 +73,7 @@ void read_cooling_functions()
 
 static double interpolate_temp_dependant_cooling_rate(int i_m, double logTemp)
 {
-  int i_t;
+  int    i_t;
   double temp_step;
   double rate, rate_below, rate_above;
   double logT_below;
@@ -97,7 +96,7 @@ static double interpolate_temp_dependant_cooling_rate(int i_m, double logTemp)
   logT_below = MIN_TEMP + temp_step * i_t;
 
   // Now linearly interpolate the cooling rate
-  rate = rate_below + (rate_above - rate_below) / temp_step * (logTemp - logT_below);
+  rate       = rate_below + (rate_above - rate_below) / temp_step * (logTemp - logT_below);
 
   return rate;
 }
@@ -105,7 +104,7 @@ static double interpolate_temp_dependant_cooling_rate(int i_m, double logTemp)
 
 double interpolate_cooling_rate(double logTemp, double logZ)
 {
-  int i_m;
+  int    i_m;
   double rate_below, rate_above, rate;
 
   // First deal with boundary conditions
@@ -124,7 +123,7 @@ double interpolate_cooling_rate(double logTemp, double logZ)
   rate_above = interpolate_temp_dependant_cooling_rate(i_m + 1, logTemp);
 
   // Finally, linearly interpolate the cooling rates
-  rate = rate_below + (rate_above - rate_below) / (metallicities[i_m + 1] - metallicities[i_m]) * (logZ - metallicities[i_m]);
+  rate       = rate_below + (rate_above - rate_below) / (metallicities[i_m + 1] - metallicities[i_m]) * (logZ - metallicities[i_m]);
 
   return pow(10, rate);
 }

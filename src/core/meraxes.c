@@ -3,23 +3,12 @@
 #include <sys/stat.h>
 #include <fenv.h>
 
-
 int main(int argc, char **argv)
 {
   // init SID
   SID_init(&argc, &argv, NULL, NULL);
 
   struct stat filestatus;
-
-  // char log_fname[50];
-  // FILE *log_file = NULL;
-  // if(SID.n_proc > 1)
-  // {
-  //   SID.flag_log_allranks = 1;
-  //   sprintf(log_fname, "rank_%d.log", SID.My_rank);
-  //   log_file = fopen(log_fname, "w");
-  //   SID.fp_log = log_file;
-  // }
 
   // deal with any input arguments
   if (argc != 2)
@@ -54,13 +43,11 @@ int main(int argc, char **argv)
   if ((!run_globals.params.FlagInteractive) & (!run_globals.params.FlagMCMC))
     dracarys();
   else
-  {
     while (run_globals.params.FlagInteractive)
     {
       dracarys();
       continue_prompt(argv[1]);
     }
-  }
 
   // cleanup
   cleanup();

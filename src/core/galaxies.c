@@ -6,62 +6,62 @@ galaxy_t* new_galaxy(int snapshot, int halo_ID)
 {
   galaxy_t *gal = NULL;
 
-  gal = SID_malloc(sizeof(galaxy_t));
+  gal                             = SID_malloc(sizeof(galaxy_t));
 
   // Initialise the properties
-  gal->id_MBP             = 0;
-  gal->ID                 = snapshot * 1e10 + halo_ID;
-  gal->Type               = -1;
-  gal->OldType            = -1;
-  gal->SnapSkipCounter    = 0;
-  gal->HaloDescIndex      = -1;
-  gal->TreeFlags          = -1;
-  gal->LastIdentSnap      = -1;
-  gal->Halo               = NULL;
-  gal->FirstGalInHalo     = NULL;
-  gal->NextGalInHalo      = NULL;
-  gal->Next               = NULL;
-  gal->MergerTarget       = NULL;
-  gal->Len                = 0;
-  gal->MaxLen             = 0;
-  gal->dt                 = 0.0;
-  gal->Mvir               = 0.0;
-  gal->Rvir               = 0.0;
-  gal->Vvir               = 0.0;
-  gal->Vmax               = 0.0;
-  gal->Spin               = 0.0;
-  gal->DiskScaleLength    = 0.0;
-  gal->HotGas             = 0.0;
-  gal->MetalsHotGas       = 0.0;
-  gal->ColdGas            = 0.0;
-  gal->MetalsColdGas      = 0.0;
-  gal->H2Frac             = 0.0;
-  gal->H2Mass             = 0.0;
-  gal->HIMass             = 0.0;
-  gal->EjectedGas         = 0.0;
-  gal->MetalsEjectedGas   = 0.0;
-  gal->Mcool              = 0.0;
-  gal->StellarMass        = 0.0;
-  gal->GrossStellarMass   = 0.0;
-  gal->Stellaremissivity  = 0.0;
-  gal->MergerSemissivity  = 0.0;
-  gal->FescWeightedGSM    = 0.0;
-  gal->MetalsStellarMass  = 0.0;
-  gal->mwmsa_num          = 0.0;
-  gal->mwmsa_denom        = 0.0;
-  gal->BlackHoleMass      = run_globals.params.physics.BlackHoleSeed;
-  gal->BHemissivity       = 0.0;
-  gal->EffectiveBHM       = 0.0;
-  gal->BlackHoleAccretedHotMass      = 0.0;
-  gal->BlackHoleAccretedColdMass      = 0.0;
-  gal->BlackHoleAccretingColdMass      = 0.0;
-  gal->Sfr                = 0.0;
-  gal->Cos_Inc            = gsl_rng_uniform(run_globals.random_generator);
-  gal->MergTime           = 99999.9;
-  gal->BaryonFracModifier = 1.0;
-  gal->MvirCrit           = 0.0;
-  gal->MergerBurstMass    = 0.0;
-  gal->MergerStartRadius  = 0.0;
+  gal->id_MBP                     = 0;
+  gal->ID                         = snapshot * 1e10 + halo_ID;
+  gal->Type                       = -1;
+  gal->OldType                    = -1;
+  gal->SnapSkipCounter            = 0;
+  gal->HaloDescIndex              = -1;
+  gal->TreeFlags                  = -1;
+  gal->LastIdentSnap              = -1;
+  gal->Halo                       = NULL;
+  gal->FirstGalInHalo             = NULL;
+  gal->NextGalInHalo              = NULL;
+  gal->Next                       = NULL;
+  gal->MergerTarget               = NULL;
+  gal->Len                        = 0;
+  gal->MaxLen                     = 0;
+  gal->dt                         = 0.0;
+  gal->Mvir                       = 0.0;
+  gal->Rvir                       = 0.0;
+  gal->Vvir                       = 0.0;
+  gal->Vmax                       = 0.0;
+  gal->Spin                       = 0.0;
+  gal->DiskScaleLength            = 0.0;
+  gal->HotGas                     = 0.0;
+  gal->MetalsHotGas               = 0.0;
+  gal->ColdGas                    = 0.0;
+  gal->MetalsColdGas              = 0.0;
+  gal->H2Frac                     = 0.0;
+  gal->H2Mass                     = 0.0;
+  gal->HIMass                     = 0.0;
+  gal->EjectedGas                 = 0.0;
+  gal->MetalsEjectedGas           = 0.0;
+  gal->Mcool                      = 0.0;
+  gal->StellarMass                = 0.0;
+  gal->GrossStellarMass           = 0.0;
+  gal->StellarEmissivity          = 0.0;
+  gal->MergerSemissivity          = 0.0;
+  gal->FescWeightedGSM            = 0.0;
+  gal->MetalsStellarMass          = 0.0;
+  gal->mwmsa_num                  = 0.0;
+  gal->mwmsa_denom                = 0.0;
+  gal->BlackHoleMass              = run_globals.params.physics.BlackHoleSeed;
+  gal->BHemissivity               = 0.0;
+  gal->EffectiveBHM               = 0.0;
+  gal->BlackHoleAccretedHotMass   = 0.0;
+  gal->BlackHoleAccretedColdMass  = 0.0;
+  gal->BlackHoleAccretingColdMass = 0.0;
+  gal->Sfr                        = 0.0;
+  gal->Cos_Inc                    = gsl_rng_uniform(run_globals.random_generator);
+  gal->MergTime                   = 99999.9;
+  gal->BaryonFracModifier         = 1.0;
+  gal->MvirCrit                   = 0.0;
+  gal->MergerBurstMass            = 0.0;
+  gal->MergerStartRadius          = 0.0;
 
   for (int ii = 0; ii < 3; ii++)
   {
@@ -79,6 +79,7 @@ galaxy_t* new_galaxy(int snapshot, int halo_ID)
 
   return gal;
 }
+
 
 void copy_halo_to_galaxy(halo_t *halo, galaxy_t *gal, int snapshot)
 {
@@ -99,7 +100,7 @@ void copy_halo_to_galaxy(halo_t *halo, galaxy_t *gal, int snapshot)
     gal->Vmax            = halo->Vmax;
     gal->DiskScaleLength = gal->Spin * gal->Rvir / sqrt_2;
   }
-  else 
+  else
   {
     if (!run_globals.params.physics.Flag_FixVmaxOnInfall)
       gal->Vmax = halo->Vmax;
@@ -118,19 +119,20 @@ void copy_halo_to_galaxy(halo_t *halo, galaxy_t *gal, int snapshot)
     gal->MaxLen = halo->Len;
 }
 
+
 void reset_galaxy_properties(galaxy_t *gal, int snapshot)
 {
   // Here we reset any galaxy properties which are calculated on a snapshot by
   // snapshot basis.
-  gal->Sfr                        = 0.0;
-  gal->Mcool                      = 0.0;
-  gal->MvirCrit                   = 0.0;
-  gal->BHemissivity               = 0.0;
-  gal->Stellaremissivity          = 0.0;
-  gal->MergerSemissivity          = 0.0; 
-  gal->BaryonFracModifier         = 1.0;
-  gal->BlackHoleAccretedHotMass   = 0.0;
-  gal->BlackHoleAccretedColdMass  = 0.0;
+  gal->Sfr                       = 0.0;
+  gal->Mcool                     = 0.0;
+  gal->MvirCrit                  = 0.0;
+  gal->BHemissivity              = 0.0;
+  gal->StellarEmissivity         = 0.0;
+  gal->MergerSemissivity         = 0.0;
+  gal->BaryonFracModifier        = 1.0;
+  gal->BlackHoleAccretedHotMass  = 0.0;
+  gal->BlackHoleAccretedColdMass = 0.0;
 
   // update the stellar mass weighted mean age values
   assert(snapshot > 0);
@@ -160,11 +162,11 @@ void assign_galaxy_to_halo(galaxy_t *gal, halo_t *halo)
 }
 
 
-void create_new_galaxy( 
-  int            snapshot,
-  halo_t        *halo,
-  int           *NGal,
-  int           *new_gal_counter)
+void create_new_galaxy(
+  int     snapshot,
+  halo_t *halo,
+  int    *NGal,
+  int    *new_gal_counter)
 {
   galaxy_t *gal;
 
@@ -184,18 +186,18 @@ void create_new_galaxy(
     run_globals.FirstGal = gal;
 
   run_globals.LastGal = gal;
-  gal->FirstGalInHalo  = gal;
-  gal->dt              = run_globals.LTTime[gal->LastIdentSnap] - run_globals.LTTime[snapshot];
-  *NGal                = *NGal + 1;
-  *new_gal_counter     = *new_gal_counter + 1;
+  gal->FirstGalInHalo = gal;
+  gal->dt             = run_globals.LTTime[gal->LastIdentSnap] - run_globals.LTTime[snapshot];
+  *NGal               = *NGal + 1;
+  *new_gal_counter    = *new_gal_counter + 1;
 }
 
 
-void kill_galaxy( 
-  galaxy_t      *gal,
-  galaxy_t      *prev_gal,
-  int           *NGal,
-  int           *kill_counter)
+void kill_galaxy(
+  galaxy_t *gal,
+  galaxy_t *prev_gal,
+  int      *NGal,
+  int      *kill_counter)
 {
   galaxy_t *cur_gal;
 
@@ -232,4 +234,3 @@ void kill_galaxy(
   *NGal         = *NGal - 1;
   *kill_counter = *kill_counter + 1;
 }
-

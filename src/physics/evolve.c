@@ -4,14 +4,14 @@
 //! Evolve existing galaxies forward in time
 int evolve_galaxies(fof_group_t *fof_group, int snapshot, int NGal, int NFof)
 {
-  galaxy_t *gal        = NULL;
-  halo_t *halo         = NULL;
-  int gal_counter      = 0;
-  int dead_gals        = 0;
-  double infalling_gas = 0;
-  double cooling_mass  = 0;
-  int NSteps           = run_globals.params.NSteps;
-  bool Flag_IRA    = (bool)(run_globals.params.physics.Flag_IRA);
+  galaxy_t *gal           = NULL;
+  halo_t   *halo          = NULL;
+  int       gal_counter   = 0;
+  int       dead_gals     = 0;
+  double    infalling_gas = 0;
+  double    cooling_mass  = 0;
+  int       NSteps        = run_globals.params.NSteps;
+  bool      Flag_IRA      = (bool)(run_globals.params.physics.Flag_IRA);
 
   SID_log("Doing physics...", SID_LOG_OPEN | SID_LOG_TIMER);
 
@@ -52,8 +52,8 @@ int evolve_galaxies(fof_group_t *fof_group, int snapshot, int NGal, int NFof)
               delayed_supernova_feedback(gal, snapshot);
             }
 
-            if (gal->BlackHoleAccretingColdMass >0)
-              previous_merger_driven_BH_growth(gal);             
+            if (gal->BlackHoleAccretingColdMass > 0)
+              previous_merger_driven_BH_growth(gal);
 
             insitu_star_formation(gal, snapshot);
 
@@ -79,12 +79,10 @@ int evolve_galaxies(fof_group_t *fof_group, int snapshot, int NGal, int NFof)
         while (gal != NULL)
         {
           if (gal->Type == 2)
-          {
             // If the merger clock has run out or our target halo has already
             // merged then process a merger event.
             if ((gal->MergTime < 0) || (gal->MergerTarget->Type == 3))
               merge_with_target(gal, &dead_gals, snapshot);
-          }
           gal = gal->NextGalInHalo;
         }
         halo = halo->NextHaloInFOFGroup;
@@ -118,4 +116,3 @@ void passively_evolve_ghost(galaxy_t *gal, int snapshot)
     delayed_supernova_feedback(gal, snapshot);
   }
 }
-

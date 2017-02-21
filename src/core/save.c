@@ -9,18 +9,18 @@
 
 float current_mwmsa(galaxy_t *gal, int i_snap)
 {
-  double *LTTime = run_globals.LTTime;
-  double mwmsa_num = gal->mwmsa_num;
-  double mwmsa_denom = gal->mwmsa_denom;
-  int snapshot = run_globals.ListOutputSnaps[i_snap];
+  double *LTTime      = run_globals.LTTime;
+  double  mwmsa_num   = gal->mwmsa_num;
+  double  mwmsa_denom = gal->mwmsa_denom;
+  int     snapshot    = run_globals.ListOutputSnaps[i_snap];
 
   for (int ii = 0; ii < N_HISTORY_SNAPS; ii++)
   {
-    mwmsa_num += gal->NewStars[ii] * LTTime[snapshot-ii];
+    mwmsa_num   += gal->NewStars[ii] * LTTime[snapshot - ii];
     mwmsa_denom += gal->NewStars[ii];
   }
 
-  return (float)((mwmsa_num/mwmsa_denom) - LTTime[snapshot]);
+  return (float)((mwmsa_num / mwmsa_denom) - LTTime[snapshot]);
 }
 
 
@@ -52,51 +52,52 @@ void prepare_galaxy_for_output(
     galout->Vel[ii] = (float)(gal.Vel[ii]);
   }
 
-  galout->Len                = (int)(gal.Len);
-  galout->MaxLen             = (int)(gal.MaxLen);
-  galout->Mvir               = (float)(gal.Mvir);
-  galout->Rvir               = (float)(gal.Rvir);
-  galout->Vvir               = (float)(gal.Vvir);
-  galout->Vmax               = (float)(gal.Vmax);
-  galout->Spin               = (float)(gal.Spin);
-  galout->HotGas             = (float)(gal.HotGas);
-  galout->MetalsHotGas       = (float)(gal.MetalsHotGas);
-  galout->ColdGas            = (float)(gal.ColdGas);
-  galout->MetalsColdGas      = (float)(gal.MetalsColdGas);
-  galout->H2Frac             = (float)(gal.H2Frac);
-  galout->H2Mass             = (float)(gal.H2Mass);
-  galout->HIMass             = (float)(gal.HIMass);
-  galout->Mcool              = (float)(gal.Mcool);
-  galout->StellarMass        = (float)(gal.StellarMass);
-  galout->GrossStellarMass   = (float)(gal.GrossStellarMass);
-  galout->Stellaremissivity  = (float)(gal.Stellaremissivity);
-  galout->MergerSemissivity  = (float)(gal.MergerSemissivity);
-  galout->FescWeightedGSM    = (float)(gal.FescWeightedGSM);
-  galout->BlackHoleMass      = (float)(gal.BlackHoleMass);
-  galout->BHemissivity       = (float)(gal.BHemissivity);
-  galout->EffectiveBHM       = (float)(gal.EffectiveBHM);
-  galout->BlackHoleAccretedHotMass      = (float)(gal.BlackHoleAccretedHotMass);
-  galout->BlackHoleAccretedColdMass      = (float)(gal.BlackHoleAccretedColdMass);
-  galout->DiskScaleLength    = (float)(gal.DiskScaleLength);
-  galout->MetalsStellarMass  = (float)(gal.MetalsStellarMass);
-  galout->Sfr                = (float)(gal.Sfr * units->UnitMass_in_g / units->UnitTime_in_s * SEC_PER_YEAR / SOLAR_MASS);
-  galout->EjectedGas         = (float)(gal.EjectedGas);
-  galout->MetalsEjectedGas   = (float)(gal.MetalsEjectedGas);
-  galout->Rcool              = (float)(gal.Rcool);
-  galout->Cos_Inc            = (float)(gal.Cos_Inc);
-  galout->BaryonFracModifier = (float)(gal.BaryonFracModifier);
-  galout->MvirCrit           = (float)(gal.MvirCrit);
-  galout->dt                 = (float)(gal.dt);
-  galout->MergerBurstMass    = (float)(gal.MergerBurstMass);
-  galout->MergTime           = (float)(gal.MergTime * units->UnitLength_in_cm / units->UnitVelocity_in_cm_per_s / SEC_PER_MEGAYEAR);
-  galout->MergerStartRadius  = (float)(gal.MergerStartRadius);
-  galout->MWMSA              = current_mwmsa(&gal, i_snap);
+  galout->Len                       = (int)(gal.Len);
+  galout->MaxLen                    = (int)(gal.MaxLen);
+  galout->Mvir                      = (float)(gal.Mvir);
+  galout->Rvir                      = (float)(gal.Rvir);
+  galout->Vvir                      = (float)(gal.Vvir);
+  galout->Vmax                      = (float)(gal.Vmax);
+  galout->Spin                      = (float)(gal.Spin);
+  galout->HotGas                    = (float)(gal.HotGas);
+  galout->MetalsHotGas              = (float)(gal.MetalsHotGas);
+  galout->ColdGas                   = (float)(gal.ColdGas);
+  galout->MetalsColdGas             = (float)(gal.MetalsColdGas);
+  galout->H2Frac                    = (float)(gal.H2Frac);
+  galout->H2Mass                    = (float)(gal.H2Mass);
+  galout->HIMass                    = (float)(gal.HIMass);
+  galout->Mcool                     = (float)(gal.Mcool);
+  galout->StellarMass               = (float)(gal.StellarMass);
+  galout->GrossStellarMass          = (float)(gal.GrossStellarMass);
+  galout->StellarEmissivity         = (float)(gal.StellarEmissivity);
+  galout->MergerSemissivity         = (float)(gal.MergerSemissivity);
+  galout->FescWeightedGSM           = (float)(gal.FescWeightedGSM);
+  galout->BlackHoleMass             = (float)(gal.BlackHoleMass);
+  galout->BHemissivity              = (float)(gal.BHemissivity);
+  galout->EffectiveBHM              = (float)(gal.EffectiveBHM);
+  galout->BlackHoleAccretedHotMass  = (float)(gal.BlackHoleAccretedHotMass);
+  galout->BlackHoleAccretedColdMass = (float)(gal.BlackHoleAccretedColdMass);
+  galout->DiskScaleLength           = (float)(gal.DiskScaleLength);
+  galout->MetalsStellarMass         = (float)(gal.MetalsStellarMass);
+  galout->Sfr                       = (float)(gal.Sfr * units->UnitMass_in_g / units->UnitTime_in_s * SEC_PER_YEAR / SOLAR_MASS);
+  galout->EjectedGas                = (float)(gal.EjectedGas);
+  galout->MetalsEjectedGas          = (float)(gal.MetalsEjectedGas);
+  galout->Rcool                     = (float)(gal.Rcool);
+  galout->Cos_Inc                   = (float)(gal.Cos_Inc);
+  galout->BaryonFracModifier        = (float)(gal.BaryonFracModifier);
+  galout->MvirCrit                  = (float)(gal.MvirCrit);
+  galout->dt                        = (float)(gal.dt);
+  galout->MergerBurstMass           = (float)(gal.MergerBurstMass);
+  galout->MergTime                  = (float)(gal.MergTime * units->UnitLength_in_cm / units->UnitVelocity_in_cm_per_s / SEC_PER_MEGAYEAR);
+  galout->MergerStartRadius         = (float)(gal.MergerStartRadius);
+  galout->MWMSA                     = current_mwmsa(&gal, i_snap);
 
   for (int ii = 0; ii < N_HISTORY_SNAPS; ii++)
     galout->NewStars[ii] = (float)(gal.NewStars[ii]);
 
   prepare_magnitudes_for_output(gal, galout, i_snap);
 }
+
 
 void calc_hdf5_props()
 {
@@ -107,9 +108,9 @@ void calc_hdf5_props()
 
   if (!run_globals.params.FlagMCMC)
   {
-    hdf5_output_t *h5props = &(run_globals.hdf5props);
+    hdf5_output_t  *h5props = &(run_globals.hdf5props);
     galaxy_output_t galout;
-    int i;                                                // dummy
+    int             i;                                    // dummy
 
     h5props->n_props = 48;
 
@@ -122,29 +123,29 @@ void calc_hdf5_props()
 #endif
 
     // Size of a single galaxy entry.
-    h5props->dst_size = sizeof(galaxy_output_t);
+    h5props->dst_size          = sizeof(galaxy_output_t);
 
     // Create datatypes for different size arrays
     h5props->array3f_tid       = H5Tarray_create(H5T_NATIVE_FLOAT, 1, (hsize_t[]){ 3 });
     h5props->array_nhist_f_tid = H5Tarray_create(H5T_NATIVE_FLOAT, 1, (hsize_t[]){ N_HISTORY_SNAPS });
 
     // Calculate the offsets of our struct members in memory
-    h5props->dst_offsets = SID_malloc(sizeof(size_t) * h5props->n_props);
+    h5props->dst_offsets       = SID_malloc(sizeof(size_t) * h5props->n_props);
     // Calculate the sizes of our struct members in memory.
-    h5props->dst_field_sizes = SID_malloc(sizeof(size_t) * h5props->n_props);
+    h5props->dst_field_sizes   = SID_malloc(sizeof(size_t) * h5props->n_props);
     // Give each galaxy property a field name in the table
-    h5props->field_names = SID_malloc(sizeof(const char*) * h5props->n_props);
+    h5props->field_names       = SID_malloc(sizeof(const char*) * h5props->n_props);
     // Assign a type to each galaxy property field in the table.
-    h5props->field_types = SID_malloc(sizeof(hid_t) * h5props->n_props);
+    h5props->field_types       = SID_malloc(sizeof(hid_t) * h5props->n_props);
     // Store the **output** units of each property for writing to the master file.
     // Units should be compatible with the python astropy.units module.
-    h5props->field_units = SID_malloc(sizeof(const char*) * h5props->n_props);
+    h5props->field_units       = SID_malloc(sizeof(const char*) * h5props->n_props);
     // Store the **output** h conversion for each property.  The string will be
     // parsed by python eval(), substituting h for the appropriate value at read
     // time and v for the property value.
-    h5props->field_h_conv = SID_malloc(sizeof(const char*) * h5props->n_props);
+    h5props->field_h_conv       = SID_malloc(sizeof(const char*) * h5props->n_props);
 
-    i = 0;
+    i                           = 0;
 
     h5props->dst_offsets[i]     = HOFFSET(galaxy_output_t, id_MBP);
     h5props->dst_field_sizes[i] = sizeof(galout.id_MBP);
@@ -165,7 +166,7 @@ void calc_hdf5_props()
     h5props->dst_field_sizes[i] = sizeof(float) * n_photo_bands;
     h5props->field_names[i]     = "MagDust";
     h5props->field_units[i]     = "mag";
-    h5props->field_h_conv[i]     = "v - 5*log10(h)";
+    h5props->field_h_conv[i]    = "v - 5*log10(h)";
     h5props->field_types[i++]   = h5props->array_nmag_f_tid;
 #endif
 
@@ -443,55 +444,55 @@ void calc_hdf5_props()
     h5props->field_types[i++]   = h5props->array_nhist_f_tid;
 
     // Blackhole or Emissivity related
-    h5props->dst_offsets[i]     = HOFFSET(galaxy_output_t, Stellaremissivity);
-    h5props->dst_field_sizes[i] = sizeof(galout.Stellaremissivity);
-    h5props->field_names[i]     = "Stellaremissivity";
+    h5props->dst_offsets[i]     = HOFFSET(galaxy_output_t, StellarEmissivity);
+    h5props->dst_field_sizes[i] = sizeof(galout.StellarEmissivity);
+    h5props->field_names[i]     = "StellarEmissivity";
     h5props->field_units[i]     = "1e60 photons";
     h5props->field_h_conv[i]    = "None";
     h5props->field_types[i++]   = H5T_NATIVE_FLOAT;
-  
+
     h5props->dst_offsets[i]     = HOFFSET(galaxy_output_t, MergerSemissivity);
     h5props->dst_field_sizes[i] = sizeof(galout.MergerSemissivity);
     h5props->field_names[i]     = "MergerSemissivity";
     h5props->field_units[i]     = "1e60 photons";
     h5props->field_h_conv[i]    = "None";
     h5props->field_types[i++]   = H5T_NATIVE_FLOAT;
-  
-    h5props->dst_offsets[i]     = HOFFSET(galaxy_output_t, FescWeightedGSM);         
-    h5props->dst_field_sizes[i] = sizeof(galout.FescWeightedGSM);                    
-    h5props->field_names[i]     = "FescWeightedGSM";                                 
-    h5props->field_units[i]     = "1e10 solMass";                                    
-    h5props->field_h_conv[i]    = "v/h";                                             
-    h5props->field_types[i++]   = H5T_NATIVE_FLOAT;                                  
-  
+
+    h5props->dst_offsets[i]     = HOFFSET(galaxy_output_t, FescWeightedGSM);
+    h5props->dst_field_sizes[i] = sizeof(galout.FescWeightedGSM);
+    h5props->field_names[i]     = "FescWeightedGSM";
+    h5props->field_units[i]     = "1e10 solMass";
+    h5props->field_h_conv[i]    = "v/h";
+    h5props->field_types[i++]   = H5T_NATIVE_FLOAT;
+
     h5props->dst_offsets[i]     = HOFFSET(galaxy_output_t, BHemissivity);
     h5props->dst_field_sizes[i] = sizeof(galout.BHemissivity);
     h5props->field_names[i]     = "BHemissivity";
     h5props->field_units[i]     = "1e60 photons";
     h5props->field_h_conv[i]    = "None";
     h5props->field_types[i++]   = H5T_NATIVE_FLOAT;
-  
+
     h5props->dst_offsets[i]     = HOFFSET(galaxy_output_t, EffectiveBHM);
     h5props->dst_field_sizes[i] = sizeof(galout.EffectiveBHM);
     h5props->field_names[i]     = "EffectiveBHM";
     h5props->field_units[i]     = "1e10 solMass";
     h5props->field_h_conv[i]    = "v/h";
     h5props->field_types[i++]   = H5T_NATIVE_FLOAT;
-  
+
     h5props->dst_offsets[i]     = HOFFSET(galaxy_output_t, BlackHoleAccretedHotMass);
     h5props->dst_field_sizes[i] = sizeof(galout.BlackHoleAccretedHotMass);
     h5props->field_names[i]     = "BlackHoleAccretedHotMass";
     h5props->field_units[i]     = "1e10 solMass";
     h5props->field_h_conv[i]    = "v/h";
     h5props->field_types[i++]   = H5T_NATIVE_FLOAT;
-  
+
     h5props->dst_offsets[i]     = HOFFSET(galaxy_output_t, BlackHoleAccretedColdMass);
     h5props->dst_field_sizes[i] = sizeof(galout.BlackHoleAccretedColdMass);
     h5props->field_names[i]     = "BlackHoleAccretedColdMass";
     h5props->field_units[i]     = "1e10 solMass";
     h5props->field_h_conv[i]    = "v/h";
     h5props->field_types[i++]   = H5T_NATIVE_FLOAT;
-  
+
     h5props->dst_offsets[i]     = HOFFSET(galaxy_output_t, dt);
     h5props->dst_field_sizes[i] = sizeof(galout.dt);
     h5props->field_names[i]     = "dt";
@@ -507,6 +508,7 @@ void calc_hdf5_props()
     }
   }
 }
+
 
 void prep_hdf5_file()
 {
@@ -528,13 +530,13 @@ void prep_hdf5_file()
 
 void create_master_file()
 {
-  hid_t file_id, group_id;
-  char fname[STRLEN];
-  hdf5_output_t *h5props = &(run_globals.hdf5props);
-  char **params_tag = h5props->params_tag;
-  void **params_addr = h5props->params_addr;
-  int   *params_type = h5props->params_type;
-  int    params_count = h5props->params_count;
+  hid_t          file_id, group_id;
+  char           fname[STRLEN];
+  hdf5_output_t *h5props      = &(run_globals.hdf5props);
+  char         **params_tag   = h5props->params_tag;
+  void         **params_addr  = h5props->params_addr;
+  int           *params_type  = h5props->params_type;
+  int            params_count = h5props->params_count;
 
   SID_log("Creating master file...", SID_LOG_OPEN | SID_LOG_TIMER);
 
@@ -551,7 +553,6 @@ void create_master_file()
 
     // Save all of the input params
     for (int ii = 0; (ii < params_count) && (params_type[ii] != PARAM_TYPE_UNUSED); ii++)
-    {
       switch (params_type[ii])
       {
         case PARAM_TYPE_STRING:
@@ -573,7 +574,6 @@ void create_master_file()
           ABORT(EXIT_FAILURE);
           break;
       }
-    }
 
     // Close the group
     H5Gclose(group_id);
@@ -582,7 +582,7 @@ void create_master_file()
   // save the units of each galaxy property and grid
   {
     const char *group_name[2] = {"Units", "HubbleConversions"};
-    for(int ii=0; ii<2; ii++)
+    for(int ii = 0; ii < 2; ii++)
     {
       group_id = H5Gcreate(file_id, group_name[ii], H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
       H5Gclose(group_id);
@@ -637,17 +637,17 @@ void create_master_file()
   H5LTset_attribute_int(file_id, "/", "NCores", &(SID.n_proc), 1);
 
 
-  char target_group[50];
-  char source_ds[50];
-  char source_group[50];
-  char source_file[STRLEN];
-  char relative_source_file[50];
-  hid_t snap_group_id;
-  hid_t source_file_id;
-  hid_t source_group_id;
+  char    target_group[50];
+  char    source_ds[50];
+  char    source_group[50];
+  char    source_file[STRLEN];
+  char    relative_source_file[50];
+  hid_t   snap_group_id;
+  hid_t   source_file_id;
+  hid_t   source_group_id;
   hsize_t core_n_gals;
-  double temp;
-  int unsampled_snapshot;
+  double  temp;
+  int     unsampled_snapshot;
 
   // Now create soft links to all of the files and datasets that make up this run
   for (int i_out = 0, snap_n_gals = 0; i_out < run_globals.NOutputSnaps; i_out++, snap_n_gals = 0, temp = 0)
@@ -667,7 +667,7 @@ void create_master_file()
 
       source_file_id = H5Fopen(source_file, H5F_ACC_RDONLY, H5P_DEFAULT);
       H5TBget_table_info(source_file_id, source_ds, NULL, &core_n_gals);
-      snap_n_gals                += (int)core_n_gals;
+      snap_n_gals   += (int)core_n_gals;
 
       if (i_core == 0)
         H5LTget_attribute_int(source_file_id, source_ds, "unsampled_snapshot", &unsampled_snapshot);
@@ -721,7 +721,6 @@ void create_master_file()
         //   H5Lcreate_external(relative_source_file, source_ds, snap_group_id, target_ds, H5P_DEFAULT, H5P_DEFAULT);
         // }
       }
-
     }
 
     // Save a few useful attributes
@@ -745,18 +744,19 @@ void create_master_file()
   SID_log(" ...done", SID_LOG_CLOSE);
 }
 
+
 static void inline save_walk_indices(
-  hid_t          file_id,
-  int            i_out,
-  int            prev_i_out,
-  int           *descendant_index,
-  int           *first_progenitor_index,
-  int           *next_progenitor_index,
-  int            old_count,
-  int            n_write)
+  hid_t file_id,
+  int   i_out,
+  int   prev_i_out,
+  int  *descendant_index,
+  int  *first_progenitor_index,
+  int  *next_progenitor_index,
+  int   old_count,
+  int   n_write)
 {
   hsize_t dim[1];
-  char target[50];
+  char    target[50];
 
   dim[0] = (hsize_t)old_count;
   sprintf(target, "Snap%03d/DescendantIndices", (run_globals.ListOutputSnaps)[prev_i_out]);
@@ -785,30 +785,30 @@ static inline bool pass_write_check(galaxy_t *gal, bool flag_merger)
 
 
 void write_snapshot(
-  int            n_write,
-  int            i_out,
-  int           *last_n_write,
-  trees_info_t  *trees_info)
+  int           n_write,
+  int           i_out,
+  int          *last_n_write,
+  trees_info_t *trees_info)
 {
   /*
    * Write a batch of galaxies to the output HDF5 table.
    */
 
-  hid_t file_id;
-  hid_t group_id;
-  hsize_t chunk_size             = 10000;
-  galaxy_output_t *output_buffer = NULL;
-  int *fill_data                 = NULL;
-  char target_group[20];
-  galaxy_t *gal               = NULL;
-  hdf5_output_t h5props       = run_globals.hdf5props;
-  int gal_count               = 0;
-  int old_count               = 0;
-  int *first_progenitor_index = NULL;
-  int *next_progenitor_index  = NULL;
-  int calc_descendants_i_out  = -1;
-  int prev_snapshot           = -1;
-  int write_count             = 0;
+  hid_t            file_id;
+  hid_t            group_id;
+  hsize_t          chunk_size             = 10000;
+  galaxy_output_t *output_buffer          = NULL;
+  int             *fill_data              = NULL;
+  char             target_group[20];
+  galaxy_t        *gal                    = NULL;
+  hdf5_output_t    h5props                = run_globals.hdf5props;
+  int              gal_count              = 0;
+  int              old_count              = 0;
+  int             *first_progenitor_index = NULL;
+  int             *next_progenitor_index  = NULL;
+  int              calc_descendants_i_out = -1;
+  int              prev_snapshot          = -1;
+  int              write_count            = 0;
 
   SID_log("Writing output file (n_write = %d)...", SID_LOG_OPEN | SID_LOG_TIMER, n_write);
 
@@ -851,13 +851,11 @@ void write_snapshot(
   if (i_out > 0)
   {
     for (int ii = 0; ii < run_globals.NOutputSnaps; ii++)
-  {
       if (run_globals.ListOutputSnaps[ii] == prev_snapshot)
       {
         calc_descendants_i_out = ii;
         break;
       }
-  }
   }
 
   // Assign the write order indices to each galaxy and store the old indices if required
@@ -866,7 +864,7 @@ void write_snapshot(
   if (calc_descendants_i_out > -1)
   {
     // malloc the arrays
-    int *descendant_index       = SID_malloc(sizeof(int) * (*last_n_write));
+    int *descendant_index = SID_malloc(sizeof(int) * (*last_n_write));
     next_progenitor_index  = SID_malloc(sizeof(int) * (*last_n_write));
     first_progenitor_index = SID_malloc(sizeof(int) * n_write);
 

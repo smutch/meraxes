@@ -16,7 +16,6 @@
 #define Ai_Av 0.479
 #define Ak_Av 0.114
 
-
 static double slab_model(float tau, float costheta)
 {
   float correction_factor;
@@ -54,9 +53,9 @@ void apply_dust(int n_photo_bands, galaxy_t gal, double *LumDust, int outputbin)
   // Correction for B magnitude
   if (gal.Lum[0][outputbin] > 0)
   {
-    Lum      = gal.Lum[0][outputbin];
-    tauB     = tauBstar * pow((Lum / Lbstar), beta);
-    Lum_corr = Lum * slab_model(tauB, incl);
+    Lum        = gal.Lum[0][outputbin];
+    tauB       = tauBstar * pow((Lum / Lbstar), beta);
+    Lum_corr   = Lum * slab_model(tauB, incl);
 
     LumDust[0] = (float)Lum_corr;
   }
@@ -67,8 +66,8 @@ void apply_dust(int n_photo_bands, galaxy_t gal, double *LumDust, int outputbin)
   tauV = tauB / Ab_Av;
   if (gal.Lum[1][outputbin] > 0)
   {
-    Lum      = gal.Lum[1][outputbin];
-    Lum_corr = Lum * slab_model(tauV, incl);
+    Lum        = gal.Lum[1][outputbin];
+    Lum_corr   = Lum * slab_model(tauV, incl);
 
     LumDust[1] = (float)Lum_corr;
   }
@@ -78,9 +77,9 @@ void apply_dust(int n_photo_bands, galaxy_t gal, double *LumDust, int outputbin)
   // Correction for R magnitude
   if (gal.Lum[2][outputbin] > 0)
   {
-    tauR     = tauV * Ar_Av;
-    Lum      = gal.Lum[2][outputbin];
-    Lum_corr = Lum * slab_model(tauR, incl);
+    tauR       = tauV * Ar_Av;
+    Lum        = gal.Lum[2][outputbin];
+    Lum_corr   = Lum * slab_model(tauR, incl);
 
     LumDust[2] = (float)Lum_corr;
   }
@@ -88,9 +87,9 @@ void apply_dust(int n_photo_bands, galaxy_t gal, double *LumDust, int outputbin)
   // Correction for I magnitude
   if (gal.Lum[3][outputbin] > 0)
   {
-    tauI     = tauV * Ai_Av;
-    Lum      = gal.Lum[3][outputbin];
-    Lum_corr = Lum * slab_model(tauI, incl);
+    tauI       = tauV * Ai_Av;
+    Lum        = gal.Lum[3][outputbin];
+    Lum_corr   = Lum * slab_model(tauI, incl);
 
     LumDust[3] = (float)Lum_corr;
   }
@@ -98,11 +97,13 @@ void apply_dust(int n_photo_bands, galaxy_t gal, double *LumDust, int outputbin)
   // Correction for K magnitude
   if (gal.Lum[4][outputbin] > 0)
   {
-    tauK     = tauV * Ak_Av;
-    Lum      = gal.Lum[4][outputbin];
-    Lum_corr = Lum * slab_model(tauK, incl);
+    tauK       = tauV * Ak_Av;
+    Lum        = gal.Lum[4][outputbin];
+    Lum_corr   = Lum * slab_model(tauK, incl);
 
     LumDust[4] = (float)Lum_corr;
   }
 }
+
+
 #endif // CALC_MAGS

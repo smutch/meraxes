@@ -8,7 +8,7 @@ static int prompt_char(const char *message)
   if (SID.My_rank == 0)
   {
     char c;
-    int tmp;
+    int  tmp;
 
     printf("\n%s (y/n): ", message);
     fflush(stdout);
@@ -23,24 +23,24 @@ static int prompt_char(const char *message)
     {
       case 'y':
       case 'Y':
-        {
-          cont = 1;
-          break;
-        }
+      {
+        cont = 1;
+        break;
+      }
 
       case 'n':
       case 'N':
-        {
-          cont = 0;
-          break;
-        }
+      {
+        cont = 0;
+        break;
+      }
 
       default:
-        {
-          printf("\nI do not understand your input...\n");
-          cont = -1;
-          break;
-        }
+      {
+        printf("\nI do not understand your input...\n");
+        cont = -1;
+        break;
+      }
     }
   }
 
