@@ -996,7 +996,7 @@ void write_snapshot(
   // Free the output buffer
   SID_free(SID_FARG output_buffer);
 
-  if (run_globals.params.Flag_PatchyReion && check_if_reionization_ongoing()  && (run_globals.params.Flag_output_grids))
+  if (run_globals.params.Flag_PatchyReion && check_if_reionization_ongoing()  && (run_globals.params.Flag_OutputGrids))
     save_reion_output_grids(run_globals.ListOutputSnaps[i_out]);
 
   // Close the group.

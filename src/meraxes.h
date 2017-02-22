@@ -227,8 +227,8 @@ typedef struct run_params_t {
   int FlagReadDumpFile;
   int FlagMCMC;
   int Flag_PatchyReion;
-  int Flag_output_grids;
-  int Flag_output_grids_when_finished;
+  int Flag_OutputGrids;
+  int Flag_OutputGridsPostReion;
 } run_params_t;
 
 

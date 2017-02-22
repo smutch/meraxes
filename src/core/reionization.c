@@ -144,7 +144,7 @@ void call_find_HII_bubbles(int snapshot, int unsampled_snapshot, int nout_gals)
 
   // save the grids prior to doing FFTs to avoid precision loss and aliasing etc.
   for (int i_out = 0; i_out < run_globals.NOutputSnaps; i_out++)
-    if (snapshot == run_globals.ListOutputSnaps[i_out] && run_globals.params.Flag_output_grids)
+    if (snapshot == run_globals.ListOutputSnaps[i_out] && run_globals.params.Flag_OutputGrids)
       save_reion_input_grids(snapshot);
 
   SID_log("...done", SID_LOG_CLOSE);
@@ -839,7 +839,7 @@ bool check_if_reionization_ongoing()
   {
     // whether we want to continue even when reionization is finished
     // In order to keep outputting meraxes_grids_%d.hdf5
-    if (run_globals.params.Flag_output_grids_when_finished)
+    if (run_globals.params.Flag_OutputGridsPostReion)
       return true;
 
     // So we have started, but have not previously found to be finished.  Have
