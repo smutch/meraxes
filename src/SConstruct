@@ -193,9 +193,9 @@ if not GetOption('help'):
 
     def CheckCCFlag(context, flag):
         context.Message('Checking if compiler supports %s ...' % flag)
-        text = "int main(){ return 0; }"
+        text = "int main(int argc, char **argv){ return 0; }"
         cppflags = context.vardict.get("CPPFLAGS", [])
-        context.vardict["CPPFLAGS"] = cppflags + list(flag)
+        context.vardict["CPPFLAGS"] = cppflags + [flag,]
         result = _check_empty_program(context, 'CC', text, 'C')
         context.Result(result)
         return result
