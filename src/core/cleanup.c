@@ -10,6 +10,9 @@ void cleanup()
 
   free_grids_cache();
 
+  if (run_globals.RequestedMassRatioModifier != -1)
+    SID_free(SID_FARG run_globals.mass_ratio_modifier);
+
   free_halo_storage();
 
   cleanup_mags();

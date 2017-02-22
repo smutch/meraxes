@@ -163,7 +163,6 @@ static void inline convert_input_virial_props(double *Mvir, double *Rvir, double
   {
     double logM = log10(*Mvir / run_globals.params.Hubble_h);
     ratio = interpolate_modifier(run_globals.mass_ratio_modifier, logM);
-    //SID_log("%f\t%f\t%f", SID_LOG_COMMENT, *Mvir, logM, ratio);
   }
   *Mvir /= 1.0e10;
 
