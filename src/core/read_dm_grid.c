@@ -17,8 +17,6 @@
    - The TIAMAT velocity grids have not been analysed for anomalies.
  */
 
-
-
 static inline void read_identifier(FILE *fin, bool skip_flag)
 {
   char identifier[32];

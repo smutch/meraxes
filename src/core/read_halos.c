@@ -214,7 +214,7 @@ static void read_trees_and_catalogs(
   int             i_group                  = 0;
   int             n_groups                 = 0;
   int             first_group_index        = 0;
-  int             last_group_index         = 1;// N.B. Must be init to different value from first_group_index
+  int             last_group_index         = 1; // N.B. Must be init to different value from first_group_index
 
 
   char            catalog_file_prefix[50];

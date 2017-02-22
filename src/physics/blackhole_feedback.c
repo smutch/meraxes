@@ -157,9 +157,7 @@ void merger_driven_BH_growth(galaxy_t *gal, double merger_ratio, int snapshot)
   if (gal->ColdGas > 0)
   {
     // If there is any cold gas to feed the black hole...
-    double accreting_mass;
     double Vvir;
-    double zplus1to1pt5;
 
     // If this galaxy is the central of it's FOF group then use the FOF Halo properties
     // TODO: This needs closer thought as to if this is the best thing to do...
@@ -169,10 +167,10 @@ void merger_driven_BH_growth(galaxy_t *gal, double merger_ratio, int snapshot)
       Vvir = gal->Vvir;
 
     // Suggested by Bonoli et al. 2009 and Wyithe et al. 2003
-    zplus1to1pt5   = pow((1 + run_globals.ZZ[snapshot]), run_globals.params.physics.quasar_mode_scaling);
+    double z_scaling      = pow((1 + run_globals.ZZ[snapshot]), run_globals.params.physics.quasar_mode_scaling);
 
-    accreting_mass = run_globals.params.physics.BlackHoleGrowthRate * merger_ratio /
-                     (1.0 + (280.0 * 280.0 / Vvir / Vvir)) * gal->ColdGas * zplus1to1pt5;
+    double accreting_mass = run_globals.params.physics.BlackHoleGrowthRate * merger_ratio /
+                            (1.0 + (280.0 * 280.0 / Vvir / Vvir)) * gal->ColdGas * z_scaling;
 
     // limit accretion to what is available
     if (accreting_mass > gal->ColdGas)
