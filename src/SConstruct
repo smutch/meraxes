@@ -198,6 +198,8 @@ if not GetOption('help'):
         context.vardict["CPPFLAGS"] = cppflags + [flag,]
         result = _check_empty_program(context, 'CC', text, 'C')
         context.Result(result)
+        if result:
+            context.env.AppendUnique(CPPFLAGS = [flag,])
         return result
 
     conf = Configure(env, custom_tests = {'CheckCCFlag': CheckCCFlag})
