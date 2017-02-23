@@ -155,7 +155,7 @@ void call_find_HII_bubbles(int snapshot, int unsampled_snapshot, int nout_gals)
   find_HII_bubbles(run_globals.ZZ[snapshot]);
 
   SID_log("grids->volume_weighted_global_xH = %g", SID_LOG_COMMENT, grids->volume_weighted_global_xH);
-  SID_log("global mass weighted xHII = %g at z = %g", SID_LOG_COMMENT, grids->mass_weighted_global_xH,run_globals.ZZ[snapshot]);
+  SID_log("global mass weighted xHII = %g at z = %g", SID_LOG_COMMENT, 1.0 - grids->mass_weighted_global_xH,run_globals.ZZ[snapshot]);
   SID_log("...done", SID_LOG_CLOSE);
 }
 
