@@ -2,6 +2,7 @@
 #include "tree_flags.h"
 #include <hdf5.h>
 #include <hdf5_hl.h>
+#include <gsl/gsl_sort_int.h>
 #include <assert.h>
 #include <math.h>
 
@@ -462,6 +463,14 @@ static trees_info_t read_trees_info(hid_t fd)
 }
 
 
+static void reorder_forest_array(int *arr, size_t *sort_ind, int n_forests, int *temp)
+{
+  memcpy(temp, arr, sizeof(int) * n_forests);
+  for(int ii=0, jj=n_forests-1; ii < n_forests; ii++, jj--)
+    arr[ii] = temp[sort_ind[jj]];
+}
+
+
 static void select_forests()
 {
   char  fname[STRLEN];
@@ -539,6 +548,19 @@ static void select_forests()
   SID_Bcast(max_contemp_fof, sizeof(int) * n_forests, 0, SID.COMM_WORLD);
   SID_Bcast(n_halos, sizeof(int) * n_forests, 0, SID.COMM_WORLD);
 
+  // sort the forests by the number of halos in each one
+  size_t *sort_ind = SID_malloc(sizeof(size_t) * n_forests);
+  gsl_sort_int_index(sort_ind, n_halos, 1, n_forests);
+  int *temp = SID_malloc(sizeof(int) * n_forests);
+
+  reorder_forest_array(forest_id, sort_ind, n_forests, temp);
+  reorder_forest_array(max_contemp_halo, sort_ind, n_forests, temp);
+  reorder_forest_array(max_contemp_fof, sort_ind, n_forests, temp);
+  reorder_forest_array(n_halos, sort_ind, n_forests, temp);
+
+  SID_free(SID_FARG temp);
+  SID_free(SID_FARG sort_ind);
+  
   // if we have read in a list of requested forest IDs then use these to create
   // an array of indices pointing to the elements we want
   if (sample_forests)
@@ -625,20 +647,6 @@ static void select_forests()
         // updated the total number of used halos
         n_halos_used += rank_n_halos[i_rank];
       }
-
-      // now double back and make sure we haven't got way more halos on this rank than any previous rank
-      for (int j_rank = i_rank - 1; j_rank > -1; j_rank--)
-        while ((rank_n_halos[j_rank + 1] > 1.05 * rank_n_halos[j_rank]) && (rank_n_halos[j_rank + 1] > 1))
-        {
-          rank_n_halos[j_rank + 1] -= n_halos[rank_first_forest[j_rank + 1]];
-          rank_n_halos[j_rank]     += n_halos[rank_first_forest[j_rank + 1]];
-
-          rank_first_forest[j_rank + 1]++;
-          rank_last_forest[j_rank]++;
-
-          rank_n_forests[j_rank + 1]--;
-          rank_n_forests[j_rank]++;
-        }
     }
 
     // add any uncounted forests to the last process
@@ -650,11 +658,7 @@ static void select_forests()
     }
 
     // create our list of forest_ids for this rank
-    if ((SID.My_rank < SID.n_proc - 1) || sample_forests)
-      *n_requested_forests = rank_n_forests[SID.My_rank];
-    else
-      *n_requested_forests = rank_n_forests[SID.My_rank] + 1;
-
+    *n_requested_forests = rank_n_forests[SID.My_rank];
     if (run_globals.RequestedForestId != NULL)
       run_globals.RequestedForestId = SID_realloc(run_globals.RequestedForestId, *n_requested_forests * sizeof(int));
     else
@@ -662,13 +666,6 @@ static void select_forests()
 
     for (int ii = rank_first_forest[SID.My_rank], jj = 0; ii <= rank_last_forest[SID.My_rank]; ii++, jj++)
       run_globals.RequestedForestId[jj] = forest_id[requested_ind[ii]];
-
-    // note that when we actually read in the halos, the last rank will always
-    // take any halos that have a forest_id of -1 unless we provided a list of
-    // requested forest IDs.  This fact should have been taken in to account
-    // above when we load balanced the forests.
-    if ((SID.My_rank == SID.n_proc - 1) && !sample_forests)
-      run_globals.RequestedForestId[*n_requested_forests - 1] = -1;
 
     // free the arrays
     SID_free(SID_FARG rank_n_halos);
@@ -692,6 +689,9 @@ static void select_forests()
   // store the maximum number of halos and fof groups needed at any one snapshot
   run_globals.NHalosMax     = max_halos;
   run_globals.NFOFGroupsMax = max_fof_groups;
+
+  // sort the requested forest ids so that they can be bsearch'd later
+  qsort(run_globals.RequestedForestId, *n_requested_forests, sizeof(int), compare_ints);
 
   // {
   //   // DEBUG
