@@ -6,16 +6,12 @@
 
 double calculate_BHemissivity(double BlackHoleMass, double accreted_mass)
 {
-  // TODO: Yuxiang - Improve units choice here.
-  // Looks like there will be a large precision loss. Use internal units where
-  // ever possible...
-
   double            accretion_time;
   double            Lbol; //bolometric luminotisy
   double            kb;   //bolometric correction
   physics_params_t *physics = &(run_globals.params.physics);
 
-  accretion_time = log(1.0 + accreted_mass / BlackHoleMass) * 450 * eta / physics->EddingtonRatio * SEC_PER_MEGAYEAR; // second
+  accretion_time = log(1.0 + accreted_mass / BlackHoleMass) * 450. * eta / physics->EddingtonRatio; // Myr
 
   // Bolometric luminosity at the middle of accretion time
   // this will be bolometric luminosity in 1e10Lsun, just google this
@@ -33,10 +29,11 @@ double calculate_BHemissivity(double BlackHoleMass, double accreted_mass)
   // then UV lum:                    LUV = 10**((M1450_1-51.594843)/-2.5) #erg/s/Hz
   // then 912 lum:                   L912 = LUV*(1200./1450)**0.44*(912/1200.)**1.57  #erg/s/Hz
   // then BHemissivity:              L912/Planck constant/1.57 #photons/s
-  // then total BHemissivity in this step: BHemissivity*accretion_time
-  // BHemissivity = Lbol/kb*2.1276330276278045e+54*accretion_time; //photon numbers
+  // then total BHemissivity in this step: BHemissivity*accretion_time*SEC_PER_MEGAYEAR
+  // BHemissivity = fobs*Lbol/kb*2.1276330276278045e+54*SEC_PER_MEGAYEAR*accretion_time/1e60; // photon numbers/1e60
+  // BHemissivity = fobs*Lbol/kb*67126822.0217*accretion_time; // photon numbers/1e60
 
-  return physics->quasar_fobs * Lbol / kb * 2.1276330276278045e+54 * accretion_time; //photon numbers
+  return physics->quasar_fobs * Lbol / kb * 67126822.0217 * accretion_time; //1e60 photon numbers
 
   // This introduce inconsistency compared to the calculation of luminosity. Here we assume Lbol(t) = Lbol(t = accretion_time/2), which is only an approximation!
 }
@@ -213,15 +210,15 @@ void previous_merger_driven_BH_growth(galaxy_t *gal)
   gal->BlackHoleAccretedColdMass  += accreted_mass;
   gal->BlackHoleAccretingColdMass -= accreted_mass;
 
-  //N_gamma,q * N_bh; later BHemissivity * PROTONMASS/1e10/SOLAR_MASS will be  N_gamma,q * M_bh
-  BHemissivity                     = calculate_BHemissivity(gal->BlackHoleMass, accreted_mass);
+  //N_gamma,q * N_bh; later 1e60*BHemissivity * PROTONMASS/1e10/SOLAR_MASS will be N_gamma,q * M_bh
+  BHemissivity        = calculate_BHemissivity(gal->BlackHoleMass, accreted_mass);
+  gal->BHemissivity  += BHemissivity;
+  gal->BlackHoleMass += (1. - eta) * accreted_mass;
+  // 1e60 * PROTONMASS * 1e10 / SOLAR_MASS = 8.40925088e-8
+  gal->EffectiveBHM  += BHemissivity * 8.40925088e-8
+                        * run_globals.params.physics.ReionEscapeFracBH / run_globals.params.physics.ReionNionPhotPerBary;
 
-  // TODO: Yuxiang - again check units for precision loss (some will be unavoidable)
-  gal->BHemissivity               += BHemissivity / 1e60;
-  gal->BlackHoleMass              += (1. - eta) * accreted_mass;
-  gal->EffectiveBHM               += BHemissivity * PROTONMASS / 1e10 / SOLAR_MASS
-                                     * run_globals.params.physics.ReionEscapeFracBH / run_globals.params.physics.ReionNionPhotPerBary;
-
-  m_reheat                         = run_globals.params.physics.QuasarModeEff * 2. * eta * 8.98755e10 * accreted_mass / Vvir / Vvir;
+  // quasar mode feedback
+  m_reheat            = run_globals.params.physics.QuasarModeEff * 2. * eta * 8.98755e10 * accreted_mass / Vvir / Vvir;
   update_reservoirs_from_quasar_mode_bh_feedback(gal, m_reheat);
 }
