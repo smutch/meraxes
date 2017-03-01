@@ -773,6 +773,12 @@ trees_info_t read_halos(
 
   SID_log("Reading snapshot %d (z = %.2f) trees and halos...", SID_LOG_OPEN | SID_LOG_TIMER, snapshot, run_globals.ZZ[snapshot]);
 
+  // Read mass ratio modifiers and baryon fraction modifiers if required
+  if (run_globals.RequestedMassRatioModifier == 1)
+    read_mass_ratio_modifiers(snapshot);
+
+  if (run_globals.RequestedBaryonFracModifier == 1)
+    read_baryon_frac_modifiers(snapshot);
 
   // open the tree file
   if (SID.My_rank == 0)

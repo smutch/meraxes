@@ -23,7 +23,8 @@ void read_mass_ratio_modifiers(int snapshot)
     run_globals.RequestedMassRatioModifier = -1;
     SID_log("No Mass Ratio Modifier :(", SID_LOG_COMMENT);
   }
-  else{
+  else
+  {
     run_globals.mass_ratio_modifier = SID_malloc(sizeof(Modifier) * N_LOGMS);
     const size_t dst_size           = sizeof(Modifier);
     const size_t dst_sizes[NFIELDS] = {
