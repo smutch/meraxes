@@ -32,7 +32,7 @@ void prepare_galaxy_for_output(
   run_units_t *units = &(run_globals.units);
 
   galout->id_MBP = (long long)gal.id_MBP;
-  galout->ID     = (int)gal.ID;
+  galout->ID     = (long long)gal.ID;
   galout->Type   = (int)gal.Type;
   if (!gal.ghost_flag)
   {
