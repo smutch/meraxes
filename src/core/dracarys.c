@@ -111,14 +111,6 @@ void dracarys()
     SID_log("Snapshot %d  (z = %.3f)", SID_LOG_COMMENT, snapshot, run_globals.ZZ[snapshot]);
     SID_log("===============================================================", SID_LOG_COMMENT);
 
-
-    // Read mass ratio modifiers and baryon fraction modifiers
-    if (run_globals.RequestedMassRatioModifier == 1)
-      read_mass_ratio_modifiers(snapshot);
-
-    if (run_globals.RequestedBaryonFracModifier == 1)
-      read_baryon_frac_modifiers(snapshot);
-
     // Reset book keeping counters
     kill_counter = 0;
 
