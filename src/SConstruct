@@ -195,11 +195,11 @@ if not GetOption('help'):
         context.Message('Checking if compiler supports %s ...' % flag)
         text = "int main(int argc, char **argv){ return 0; }"
         cppflags = context.vardict.get("CPPFLAGS", [])
-        context.vardict["CPPFLAGS"] = cppflags + [flag,]
-        result = _check_empty_program(context, 'CC', text, 'C')
+        context.env.AppendUnique(CPPFLAGS = [flag,])
+        result = not bool(_check_empty_program(context, 'CC', text, 'C'))
         context.Result(result)
-        if result:
-            context.env.AppendUnique(CPPFLAGS = [flag,])
+        if not result:
+            context.env.Replace(CPPFLAGS = [f for f in context.env['CPPFLAGS'] if f != flag])
         return result
 
     conf = Configure(env, custom_tests = {'CheckCCFlag': CheckCCFlag})
