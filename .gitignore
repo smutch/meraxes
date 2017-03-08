@@ -31,3 +31,4 @@ src/my_SConscript
 include
 .sconf_temp
 config.log
+src/git.h

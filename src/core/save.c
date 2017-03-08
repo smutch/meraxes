@@ -86,9 +86,9 @@ void prepare_galaxy_for_output(
   galout->Cos_Inc                   = (float)(gal.Cos_Inc);
   galout->BaryonFracModifier        = (float)(gal.BaryonFracModifier);
   galout->MvirCrit                  = (float)(gal.MvirCrit);
-  galout->dt                        = (float)(gal.dt);
+  galout->dt                        = (float)(gal.dt * units->UnitTime_in_Megayears);
   galout->MergerBurstMass           = (float)(gal.MergerBurstMass);
-  galout->MergTime                  = (float)(gal.MergTime * units->UnitLength_in_cm / units->UnitVelocity_in_cm_per_s / SEC_PER_MEGAYEAR);
+  galout->MergTime                  = (float)(gal.MergTime * units->UnitTime_in_Megayears);
   galout->MergerStartRadius         = (float)(gal.MergerStartRadius);
   galout->MWMSA                     = current_mwmsa(&gal, i_snap);
 
