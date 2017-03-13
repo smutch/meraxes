@@ -164,6 +164,7 @@ void set_units()
   units->UnitTime_in_Megayears  = units->UnitTime_in_s / SEC_PER_MEGAYEAR;
 
   run_globals.G                 = GRAVITY / pow(units->UnitLength_in_cm, 3) * units->UnitMass_in_g * pow(units->UnitTime_in_s, 2);
+  run_globals.Csquare           = pow(C / units->UnitVelocity_in_cm_per_s, 2);
 
   units->UnitDensity_in_cgs     = units->UnitMass_in_g / pow(units->UnitLength_in_cm, 3);
   units->UnitPressure_in_cgs    = units->UnitMass_in_g / units->UnitLength_in_cm / pow(units->UnitTime_in_s, 2);

@@ -69,8 +69,6 @@ void prepare_galaxy_for_output(
   galout->Mcool                     = (float)(gal.Mcool);
   galout->StellarMass               = (float)(gal.StellarMass);
   galout->GrossStellarMass          = (float)(gal.GrossStellarMass);
-  galout->StellarEmissivity         = (float)(gal.StellarEmissivity);
-  galout->MergerSemissivity         = (float)(gal.MergerSemissivity);
   galout->FescWeightedGSM           = (float)(gal.FescWeightedGSM);
   galout->BlackHoleMass             = (float)(gal.BlackHoleMass);
   galout->BHemissivity              = (float)(gal.BHemissivity);
@@ -112,7 +110,7 @@ void calc_hdf5_props()
     galaxy_output_t galout;
     int             i;                                    // dummy
 
-    h5props->n_props = 48;
+    h5props->n_props = 46;
 
 #ifdef CALC_MAGS
     // If we are calculating any magnitudes then increment the number of
@@ -444,20 +442,6 @@ void calc_hdf5_props()
     h5props->field_types[i++]   = h5props->array_nhist_f_tid;
 
     // Blackhole or Emissivity related
-    h5props->dst_offsets[i]     = HOFFSET(galaxy_output_t, StellarEmissivity);
-    h5props->dst_field_sizes[i] = sizeof(galout.StellarEmissivity);
-    h5props->field_names[i]     = "StellarEmissivity";
-    h5props->field_units[i]     = "1e60 photons";
-    h5props->field_h_conv[i]    = "None";
-    h5props->field_types[i++]   = H5T_NATIVE_FLOAT;
-
-    h5props->dst_offsets[i]     = HOFFSET(galaxy_output_t, MergerSemissivity);
-    h5props->dst_field_sizes[i] = sizeof(galout.MergerSemissivity);
-    h5props->field_names[i]     = "MergerSemissivity";
-    h5props->field_units[i]     = "1e60 photons";
-    h5props->field_h_conv[i]    = "None";
-    h5props->field_types[i++]   = H5T_NATIVE_FLOAT;
-
     h5props->dst_offsets[i]     = HOFFSET(galaxy_output_t, FescWeightedGSM);
     h5props->dst_field_sizes[i] = sizeof(galout.FescWeightedGSM);
     h5props->field_names[i]     = "FescWeightedGSM";

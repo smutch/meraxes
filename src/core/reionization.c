@@ -24,30 +24,6 @@ void set_fesc(int snapshot)
   SID_log("f_esc_q = %g", SID_LOG_COMMENT, f_esc_q);
 }
 
-
-void collect_dEmissivitydt()
-{
-  physics_params_t *params               = &(run_globals.params.physics);
-
-  double            dBHemissivitydt      = 0.0;
-  double            dStellarEmissivitydt = 0.0;
-  galaxy_t         *gal                  = run_globals.FirstGal;
-
-  while (gal != NULL)
-  {
-    if (gal->BlackHoleMass >= params->BlackHoleMassLimitReion)
-      dBHemissivitydt += gal->BHemissivity / gal->dt;
-    dStellarEmissivitydt += gal->StellarEmissivity / gal->dt;
-    gal                   = gal->Next;
-  }
-
-  SID_Allreduce(SID_IN_PLACE, &dBHemissivitydt, 1, SID_DOUBLE, SID_SUM, SID.COMM_WORLD);
-  SID_Allreduce(SID_IN_PLACE, &dStellarEmissivitydt, 1, SID_DOUBLE, SID_SUM, SID.COMM_WORLD);
-  SID_log("dBHemissivitydt      = %g",SID_LOG_COMMENT, dBHemissivitydt);
-  SID_log("dStellarEmissivitydt = %g",SID_LOG_COMMENT, dStellarEmissivitydt);
-}
-
-
 void set_quasar_fobs()
 {
   physics_params_t *params = &(run_globals.params.physics);

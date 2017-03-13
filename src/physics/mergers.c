@@ -128,9 +128,6 @@ static void merger_driven_starburst(galaxy_t *parent, double merger_ratio, int s
       double m_recycled;
       double new_metals;
 
-	  // 1e60 * PROTONMASS / 1e10 / SOLAR_MASS = 8.40925088e-8
-	  parent->MergerSemissivity += burst_mass /run_globals.params.Hubble_h * run_globals.params.physics.ReionNionPhotPerBary / 8.40925088e-8;
-
       contemporaneous_supernova_feedback(parent, &burst_mass, snapshot, &m_reheat, &m_eject, &m_recycled, &new_metals);
       // update the baryonic reservoirs (note that the order we do this in will change the result!)
       update_reservoirs_from_sf(parent, burst_mass);
@@ -170,8 +167,6 @@ void merge_with_target(galaxy_t *gal, int *dead_gals, int snapshot)
 
   // Add galaxies together
   parent->StellarMass                += gal->StellarMass;
-  parent->StellarEmissivity          += gal->StellarEmissivity;
-  parent->MergerSemissivity          += gal->MergerSemissivity;
   parent->GrossStellarMass           += gal->GrossStellarMass;
   parent->FescWeightedGSM            += gal->FescWeightedGSM;
   parent->MetalsStellarMass          += gal->MetalsStellarMass;

@@ -434,7 +434,6 @@ void dracarys()
     if (run_globals.params.Flag_PatchyReion)
     {
       set_fesc(snapshot);
-      collect_dEmissivitydt();
 
       if (check_if_reionization_ongoing())
       {

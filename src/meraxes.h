@@ -392,8 +392,6 @@ typedef struct galaxy_t {
   double StellarMass;
   double GrossStellarMass;
   double FescWeightedGSM;
-  double StellarEmissivity;
-  double MergerSemissivity;
   double MetalsStellarMass;
   double DiskScaleLength;
   double Sfr;
@@ -473,8 +471,6 @@ typedef struct galaxy_output_t {
   float DiskScaleLength;
   float StellarMass;
   float GrossStellarMass;
-  float StellarEmissivity;
-  float MergerSemissivity;
   float FescWeightedGSM;
   float MetalsStellarMass;
   float Sfr;
@@ -588,6 +584,7 @@ typedef struct run_globals_t {
   double Hubble;
   double RhoCrit;
   double G;
+  double Csquare;
 
   int NOutputSnaps;
   int LastOutputSnap;
@@ -713,7 +710,6 @@ void   init_reion_grids(void);
 
 void   filter(fftwf_complex *box, int local_ix_start, int slab_nx, int grid_dim, float R);
 void   set_fesc(int snapshot);
-void   collect_dEmissivitydt(void);
 void   set_quasar_fobs(void);
 void   find_HII_bubbles(float redshift);
 double tocf_modifier(galaxy_t *gal, double Mvir);

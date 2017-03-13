@@ -2,7 +2,29 @@
 #include <math.h>
 #include <assert.h>
 
-#define eta 0.06 //standard efficiency, 6% accreted mass is radiated
+#define ETA 0.06
+//standard efficiency, 6% accreted mass is radiated
+
+#define EMISSIVITY_CONVERTOR 8.40925088e-8 
+//=1e60 * PROTONMASS / 1e10 / SOLAR_MASS
+// Unit_convertor is to convert emissivity from 1e60 photons to photons per atom
+
+#define LUMINOSITY_CONVERTOR 32886.5934 
+// = (1 solar mass *(speed of light)^2/450e6year) /3.828e26watt
+// where 450e6year is eddington time scale
+
+#define LB2EMISSIVITY 67126822.0217
+// this is a little bit complicated...
+// firstly B band luminosity is:   LB = Lbol/kb 1e10Lsun
+// then B band magnitude is:       MB = 4.74 - 2.5log10(1e10LB)
+// then convert from Vega to AB:   MAB,B = MB-0.09
+// then UV mag:                    M1450 = MAB,B+0.524
+// then UV lum:                    LUV = 10**((M1450_1-51.594843)/-2.5) #erg/s/Hz
+// then 912 lum:                   L912 = LUV*(1200./1450)**0.44*(912/1200.)**1.57  #erg/s/Hz
+// then BHemissivity:              L912/Planck constant/1.57 #photons/s
+// then total BHemissivity in this step: BHemissivity*accretion_time*SEC_PER_MEGAYEAR
+// BHemissivity = fobs*Lbol/kb*2.1276330276278045e+54*SEC_PER_MEGAYEAR*accretion_time/1e60; // photon numbers/1e60
+// BHemissivity = fobs*Lbol/kb*67126822.0217*accretion_time; // photon numbers/1e60
 
 double calculate_BHemissivity(double BlackHoleMass, double accreted_mass)
 {
@@ -11,31 +33,17 @@ double calculate_BHemissivity(double BlackHoleMass, double accreted_mass)
   double            kb;   //bolometric correction
   physics_params_t *physics = &(run_globals.params.physics);
 
-  accretion_time = log(1.0 + accreted_mass / BlackHoleMass) * 450. * eta / physics->EddingtonRatio; // Myr
+  accretion_time = log(1.0 + accreted_mass / BlackHoleMass) * 450. * ETA / physics->EddingtonRatio; // Myr
 
-  // Bolometric luminosity at the middle of accretion time
-  // this will be bolometric luminosity in 1e10Lsun, just google this
-  // (1 solar mass *(speed of light)^2/450e6year) /3.828e26watt
-  // where 450e6year is eddington time scale
+  // Bolometric luminosity in 1e10 Lsun at the MIDDLE of accretion time
+  // TODO: this introduce inconsistency compared to the calculation of luminosity. 
+  // Here we assume Lbol(t) = Lbol(t = accretion_time/2), which is only an approximation!
   Lbol = sqrt(1. + accreted_mass / BlackHoleMass) * physics->EddingtonRatio
-         * BlackHoleMass / run_globals.params.Hubble_h * 32886.5934;
+         * BlackHoleMass / run_globals.params.Hubble_h * LUMINOSITY_CONVERTOR;
   kb   = 6.25 * pow(Lbol, -0.37) + 9.0 * pow(Lbol,-0.012);
 
-  // this is very complicated...
-  // firstly B band luminosity is:   LB = Lbol/kb 1e10Lsun
-  // then B band magnitude is:       MB = 4.74 - 2.5log10(1e10LB)
-  // then convert from Vega to AB:   MAB,B = MB-0.09
-  // then UV mag:                    M1450 = MAB,B+0.524
-  // then UV lum:                    LUV = 10**((M1450_1-51.594843)/-2.5) #erg/s/Hz
-  // then 912 lum:                   L912 = LUV*(1200./1450)**0.44*(912/1200.)**1.57  #erg/s/Hz
-  // then BHemissivity:              L912/Planck constant/1.57 #photons/s
-  // then total BHemissivity in this step: BHemissivity*accretion_time*SEC_PER_MEGAYEAR
-  // BHemissivity = fobs*Lbol/kb*2.1276330276278045e+54*SEC_PER_MEGAYEAR*accretion_time/1e60; // photon numbers/1e60
-  // BHemissivity = fobs*Lbol/kb*67126822.0217*accretion_time; // photon numbers/1e60
+  return physics->quasar_fobs * Lbol / kb * LB2EMISSIVITY * accretion_time; //1e60 photon numbers
 
-  return physics->quasar_fobs * Lbol / kb * 67126822.0217 * accretion_time; //1e60 photon numbers
-
-  // This introduce inconsistency compared to the calculation of luminosity. Here we assume Lbol(t) = Lbol(t = accretion_time/2), which is only an approximation!
 }
 
 
@@ -108,9 +116,7 @@ double radio_mode_BH_heating(galaxy_t *gal, double cooling_mass, double x)
     // 15/8*pi*mu=3.4754, with mu=0.59; x=k*m_p*t/lambda
 
     // eddington rate
-    //eddington_mass = (exp(1.402e37 / (units->unitenergy_in_cgs / units->unittime_in_s)*gal->dt/eta
-    //  *run_globals.params.physics.EddingtonRatio)-1.) * gal->BlackHoleMass;
-    double eddington_mass = (exp(gal->dt / eta * run_globals.params.physics.EddingtonRatio /
+    double eddington_mass = (exp(gal->dt / ETA * run_globals.params.physics.EddingtonRatio /
                                  (450. / units->UnitTime_in_Megayears)) - 1.) * gal->BlackHoleMass;
 
     // limit accretion by the eddington rate
@@ -122,7 +128,7 @@ double radio_mode_BH_heating(galaxy_t *gal, double cooling_mass, double x)
       accreted_mass = gal->HotGas;
 
     // mass heated by AGN following Croton et al. 2006
-    heated_mass = 2. * eta * 8.98755e10 / Vvir / Vvir * accreted_mass;
+    heated_mass = 2. * ETA * run_globals.Csquare / Vvir / Vvir * accreted_mass;
 
     // limit the amount of heating to the amount of cooling
     if (heated_mass > cooling_mass)
@@ -140,8 +146,7 @@ double radio_mode_BH_heating(galaxy_t *gal, double cooling_mass, double x)
     //So no emissivity from radio mode!
     //TODO: we could add heating effienciency to split the energy into
     //heating and reionization.
-    //
-    gal->BlackHoleMass += (1. - eta) * accreted_mass;
+    gal->BlackHoleMass += (1. - ETA) * accreted_mass;
     gal->HotGas        -= accreted_mass;
     gal->MetalsHotGas  -= metallicity * accreted_mass;
   }
@@ -198,9 +203,7 @@ void previous_merger_driven_BH_growth(galaxy_t *gal)
     Vvir = gal->Vvir;
 
   // Eddington rate
-  //accreted_mass = (exp(1.402e37 / (units->UnitEnergy_in_cgs / units->UnitTime_in_s)*gal->dt/eta
-  //  *run_globals.params.physics.EddingtonRatio)-1.) * gal->BlackHoleMass;
-  accreted_mass = (exp(gal->dt / eta * run_globals.params.physics.EddingtonRatio
+  accreted_mass = (exp(gal->dt / ETA * run_globals.params.physics.EddingtonRatio
                        / (450. / units->UnitTime_in_Megayears)) - 1.) * gal->BlackHoleMass;
 
   // limit accretion to what is need
@@ -213,12 +216,11 @@ void previous_merger_driven_BH_growth(galaxy_t *gal)
   //N_gamma,q * N_bh; later 1e60*BHemissivity * PROTONMASS/1e10/SOLAR_MASS will be N_gamma,q * M_bh
   BHemissivity        = calculate_BHemissivity(gal->BlackHoleMass, accreted_mass);
   gal->BHemissivity  += BHemissivity;
-  gal->BlackHoleMass += (1. - eta) * accreted_mass;
-  // 1e60 * PROTONMASS * 1e10 / SOLAR_MASS = 8.40925088e-8
-  gal->EffectiveBHM  += BHemissivity * 8.40925088e-8
+  gal->BlackHoleMass += (1. - ETA) * accreted_mass;
+  gal->EffectiveBHM  += BHemissivity * EMISSIVITY_CONVERTOR
                         * run_globals.params.physics.ReionEscapeFracBH / run_globals.params.physics.ReionNionPhotPerBary;
 
   // quasar mode feedback
-  m_reheat            = run_globals.params.physics.QuasarModeEff * 2. * eta * 8.98755e10 * accreted_mass / Vvir / Vvir;
+  m_reheat            = run_globals.params.physics.QuasarModeEff * 2. * ETA * run_globals.Csquare * accreted_mass / Vvir / Vvir;
   update_reservoirs_from_quasar_mode_bh_feedback(gal, m_reheat);
 }
