@@ -118,8 +118,7 @@ ReionGnedin_zr         : 7
 
 # patchy (21cmFAST) prescription
 Flag_PatchyReion       : 0
-Flag_BHReion           : 0
-Flag_OutputGrids      : 1
+Flag_OutputGrids       : 1
 Flag_OutputGridsPostReion  : 0
 
 ReionUVBFlag           : 1
@@ -146,7 +145,7 @@ ReionNionPhotPerBary   : 4000
 
 RedshiftDepEscFracNorm      : 0.06
 RedshiftDepEscFracScaling   : 0.5
-RedshiftDepEscFracBHNor   m : 1
+RedshiftDepEscFracBHNorm    : 1
 RedshiftDepEscFracBHScaling : 0
 
 

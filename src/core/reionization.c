@@ -535,7 +535,7 @@ void construct_baryon_grids(int snapshot, int local_ngals)
             case prop_stellar:
               buffer[ind] += gal->FescWeightedGSM;
               // a trick to include quasar radiation using current 21cmFAST code
-              if ((run_globals.params.physics.Flag_BHFeedback) && (run_globals.params.physics.Flag_BHReion))
+              if (run_globals.params.physics.Flag_BHFeedback)
               {
                 if (gal->BlackHoleMass >= run_globals.params.physics.BlackHoleMassLimitReion)
                   buffer[ind] += gal->EffectiveBHM;
@@ -547,7 +547,7 @@ void construct_baryon_grids(int snapshot, int local_ngals)
             case prop_sfr:
               buffer[ind] += gal->FescWeightedGSM;
               // for ionizing_source_formation_rate_grid, need further convertion due to different UV spectral index of quasar and stellar component
-              if ((run_globals.params.physics.Flag_BHFeedback) && (run_globals.params.physics.Flag_BHReion))
+              if (run_globals.params.physics.Flag_BHFeedback)
                 if (gal->BlackHoleMass >= run_globals.params.physics.BlackHoleMassLimitReion)
                   buffer[ind] += gal->EffectiveBHM * (double)run_globals.params.physics.ReionAlphaUVBH / (double)run_globals.params.physics.ReionAlphaUV;
               break;
