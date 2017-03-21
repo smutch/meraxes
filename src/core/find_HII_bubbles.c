@@ -205,7 +205,7 @@ void find_HII_bubbles(double redshift)
       for (int iy = 0; iy < ReionGridDim; iy++)
         for (int iz = 0; iz < ReionGridDim; iz++)
         {
-		  i_padded = grid_index(ix, iy, iz, ReionGridDim, INDEX_PADDED);
+          i_padded = grid_index(ix, iy, iz, ReionGridDim, INDEX_PADDED);
           ((float *)deltax_filtered)[i_padded] = fmaxf(((float *)deltax_filtered)[i_padded], -1 + REL_TOL);
           ((float *)stars_filtered)[i_padded]  = fmaxf(((float *)stars_filtered)[i_padded], 0.0);
           ((float *)sfr_filtered)[i_padded]    = fmaxf(((float *)sfr_filtered)[i_padded], 0.0);
@@ -242,7 +242,7 @@ void find_HII_bubbles(double redshift)
 
     J_21_aux_constant = (1.0 + redshift) * (1.0 + redshift) / (4.0 * M_PI)
                         * run_globals.params.physics.ReionAlphaUV * PLANCK
-						* 1e21 * run_globals.params.physics.ReionEscapeFrac
+                        * 1e21 * run_globals.params.physics.ReionEscapeFrac
                         * R *units->UnitLength_in_cm * ReionNionPhotPerBary / PROTONMASS
                         * units->UnitMass_in_g / pow(units->UnitLength_in_cm, 3) / units->UnitTime_in_s;
 
@@ -274,8 +274,8 @@ void find_HII_bubbles(double redshift)
       for (int iy = 0; iy < ReionGridDim; iy++)
         for (int iz = 0; iz < ReionGridDim; iz++)
         {
-		  i_real   = grid_index(ix, iy, iz, ReionGridDim, INDEX_REAL);
-		  i_padded = grid_index(ix, iy, iz, ReionGridDim, INDEX_PADDED);
+          i_real   = grid_index(ix, iy, iz, ReionGridDim, INDEX_REAL);
+          i_padded = grid_index(ix, iy, iz, ReionGridDim, INDEX_PADDED);
 
           density_over_mean = 1.0 + (double)((float *)deltax_filtered)[i_padded];
 
