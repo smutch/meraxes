@@ -711,7 +711,7 @@ void   init_reion_grids(void);
 void   filter(fftwf_complex *box, int local_ix_start, int slab_nx, int grid_dim, float R);
 void   set_fesc(int snapshot);
 void   set_quasar_fobs(void);
-void   find_HII_bubbles(float redshift);
+void   find_HII_bubbles(double redshift);
 double tocf_modifier(galaxy_t *gal, double Mvir);
 void   set_ReionEfficiency(void);
 int    find_cell(float pos, double box_size);
