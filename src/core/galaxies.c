@@ -41,6 +41,7 @@ galaxy_t* new_galaxy(int snapshot, int halo_ID)
   gal->EjectedGas                 = 0.0;
   gal->MetalsEjectedGas           = 0.0;
   gal->Mcool                      = 0.0;
+  gal->Rcool                      = 0.0;
   gal->StellarMass                = 0.0;
   gal->GrossStellarMass           = 0.0;
   gal->FescWeightedGSM            = 0.0;
@@ -124,6 +125,7 @@ void reset_galaxy_properties(galaxy_t *gal, int snapshot)
   // snapshot basis.
   gal->Sfr                       = 0.0;
   gal->Mcool                     = 0.0;
+  gal->Rcool                     = 0.0;
   gal->MvirCrit                  = 0.0;
   gal->BHemissivity              = 0.0;
   gal->BaryonFracModifier        = 1.0;
