@@ -116,7 +116,7 @@ void read_photometric_tables()
   run_params_t *run_params = &(run_globals.params);
 
   // malloc the phototabs struct (see cleanup_mags() for free)
-  run_globals.photo = SID_malloc(sizeof(phototabs_t));
+  run_globals.photo = malloc(sizeof(phototabs_t));
   phototabs_t *photo           = run_globals.photo;
 
   float      **Metals          = &(photo->Metals);
@@ -126,7 +126,7 @@ void read_photometric_tables()
   int          n_table_entries = 0;
 
 
-  if (SID.My_rank == 0)
+  if (run_globals.mpi_rank == 0)
   {
     hid_t       fin;
     hid_t       group;
@@ -144,25 +144,25 @@ void read_photometric_tables()
     herr_t      error_stack = 0;
 
 
-    SID_log("Reading photometric tables...", SID_LOG_OPEN);
+    mlog("Reading photometric tables...", MLOG_OPEN);
 
     // Open the file
     sprintf(name, "%s/%s/%s/%s.hdf5", run_params->PhotometricTablesDir, run_params->SSPModel, run_params->IMF, run_params->MagSystem);
-    SID_log("Using tables in file %s", SID_LOG_COMMENT, name);
+    mlog("Using tables in file %s", MLOG_MESG, name);
     fin = H5Fopen(name, H5F_ACC_RDONLY, H5P_DEFAULT);
 
     // Read the list of metallicities
-    SID_log("Reading metallicities...", SID_LOG_COMMENT);
+    mlog("Reading metallicities...", MLOG_MESG);
     H5LTget_dataset_info(fin, "metallicities", dims, NULL, NULL);
     photo->NMetals = (int)(dims[0]);
-    *Metals        = (float*)SID_malloc(sizeof(float) * (size_t)(dims[0]));
+    *Metals        = (float*)malloc(sizeof(float) * (size_t)(dims[0]));
     H5LTread_dataset_float(fin, "metallicities", *Metals);
 
     // Read the list of ages
-    SID_log("Reading ages...", SID_LOG_COMMENT);
+    mlog("Reading ages...", MLOG_MESG);
     H5LTget_dataset_info(fin, "age", dims, NULL, NULL);
     photo->NAges = (int)(dims[0]);
-    *AgeTab      = (float*)SID_malloc(sizeof(float) * (size_t)(dims[0]));
+    *AgeTab      = (float*)malloc(sizeof(float) * (size_t)(dims[0]));
     H5LTread_dataset_float(fin, "age", *AgeTab);
 
     // Convert the ages from Myr to log10(internal time units)
@@ -187,7 +187,7 @@ void read_photometric_tables()
         H5Gclose(group);
       }
       else
-        SID_log_warning("Requested magnitude band `%s' not preset in input photometric tables - skipping...", SID_LOG_COMMENT, bp);
+        mlog_warning("Requested magnitude band `%s' not preset in input photometric tables - skipping...", MLOG_MESG, bp);
 
       bp = strtok(NULL, " ,\n");
     }
@@ -195,28 +195,28 @@ void read_photometric_tables()
 
     if (i_group > MAX_PHOTO_NBANDS)
     {
-      SID_log_error("Requested number of valid magnitude bands exceeds maximum (%d > %d)!", SID_LOG_COMMENT, i_group, MAX_PHOTO_NBANDS);
+      mlog_error("Requested number of valid magnitude bands exceeds maximum (%d > %d)!", MLOG_MESG, i_group, MAX_PHOTO_NBANDS);
       ABORT(EXIT_FAILURE);
     }
     else if (i_group == 0)
     {
-      SID_log("No valid magnitude bands requested!", SID_LOG_COMMENT);
-      SID_log("Exiting... Please recompile with CALC_MAGS=0...", SID_LOG_COMMENT);
+      mlog("No valid magnitude bands requested!", MLOG_MESG);
+      mlog("Exiting... Please recompile with CALC_MAGS=0...", MLOG_MESG);
       ABORT(EXIT_FAILURE);
     }
 
     // Now we have the number of magnitude bands, metallicities and ages so we
     // can malloc the photometric table itself.
     n_table_entries = photo->NBands * photo->NMetals * photo->NAges;
-    SID_log("N table entries = %d", SID_LOG_COMMENT, n_table_entries);
-    *PhotoTab       = (float*)SID_malloc(sizeof(float) * (size_t)n_table_entries);
+    mlog("N table entries = %d", MLOG_MESG, n_table_entries);
+    *PhotoTab       = (float*)malloc(sizeof(float) * (size_t)n_table_entries);
 
     // Finally - loop through the requested bands string one more time, save the
     // band name and store the photometric table data
-    *MagBands = SID_malloc(sizeof(char[5]) * (size_t)i_group);
-    table_ds  = SID_malloc(sizeof(float) * (size_t)(photo->NAges));
+    *MagBands = malloc(sizeof(char[5]) * (size_t)i_group);
+    table_ds  = malloc(sizeof(float) * (size_t)(photo->NAges));
     bp        = strtok(run_params->MagBands, ",");
-    SID_log("Reading in photometric table...", SID_LOG_COMMENT);
+    mlog("Reading in photometric table...", MLOG_MESG);
     i_group   = 0;
     while (bp != NULL)
     {
@@ -252,32 +252,32 @@ void read_photometric_tables()
       (*Metals)[ii] = log10((*Metals)[ii]);
 
     // free temp arrays
-    SID_free(SID_FARG table_ds);
+    free(table_ds);
 
     // Close the file
     H5Fclose(fin);
   }
 
   // if using MPI, broadcast the necessary data to all ranks
-  SID_Bcast(&(photo->NMetals), sizeof(int), 0, SID.COMM_WORLD);
-  if (SID.My_rank > 0)
-    *Metals = (float*)SID_malloc(sizeof(float) * photo->NMetals);
-  SID_Bcast(*Metals, sizeof(float) * photo->NMetals, 0, SID.COMM_WORLD);
+  MPI_Bcast(&(photo->NMetals), sizeof(int), 0, MPI_COMM_WORLD);
+  if (run_globals.mpi_rank > 0)
+    *Metals = (float*)malloc(sizeof(float) * photo->NMetals);
+  MPI_Bcast(*Metals, sizeof(float) * photo->NMetals, 0, MPI_COMM_WORLD);
 
-  SID_Bcast(&(photo->NAges), sizeof(int), 0, SID.COMM_WORLD);
-  if (SID.My_rank > 0)
-    *AgeTab = (float*)SID_malloc(sizeof(float) * photo->NAges);
-  SID_Bcast(*AgeTab, sizeof(float) * photo->NAges, 0, SID.COMM_WORLD);
+  MPI_Bcast(&(photo->NAges), sizeof(int), 0, MPI_COMM_WORLD);
+  if (run_globals.mpi_rank > 0)
+    *AgeTab = (float*)malloc(sizeof(float) * photo->NAges);
+  MPI_Bcast(*AgeTab, sizeof(float) * photo->NAges, 0, MPI_COMM_WORLD);
 
-  SID_Bcast(&(photo->NBands), sizeof(int), 0, SID.COMM_WORLD);
-  if (SID.My_rank > 0)
-    *MagBands = SID_malloc(sizeof(char[5]) * photo->NBands);
-  SID_Bcast(*MagBands, sizeof(char[5]) * photo->NBands, 0, SID.COMM_WORLD);
+  MPI_Bcast(&(photo->NBands), sizeof(int), 0, MPI_COMM_WORLD);
+  if (run_globals.mpi_rank > 0)
+    *MagBands = malloc(sizeof(char[5]) * photo->NBands);
+  MPI_Bcast(*MagBands, sizeof(char[5]) * photo->NBands, 0, MPI_COMM_WORLD);
 
-  SID_Bcast(&(n_table_entries), sizeof(int), 0, SID.COMM_WORLD);
-  if (SID.My_rank > 0)
-    *PhotoTab = (float*)SID_malloc(sizeof(float) * n_table_entries);
-  SID_Bcast(*PhotoTab, sizeof(float) * n_table_entries, 0, SID.COMM_WORLD);
+  MPI_Bcast(&(n_table_entries), sizeof(int), 0, MPI_COMM_WORLD);
+  if (run_globals.mpi_rank > 0)
+    *PhotoTab = (float*)malloc(sizeof(float) * n_table_entries);
+  MPI_Bcast(*PhotoTab, sizeof(float) * n_table_entries, 0, MPI_COMM_WORLD);
 
 #ifdef DEBUG
   print_phototab(0);
@@ -285,7 +285,7 @@ void read_photometric_tables()
 
   init_jump_index();
 
-  SID_log(" ...done", SID_LOG_CLOSE);
+  mlog(" ...done", MLOG_CLOSE);
 
 #else
   return;
@@ -456,11 +456,11 @@ double lum_to_mag(double lum)
 void cleanup_mags()
 {
 #ifdef CALC_MAGS
-  SID_free(SID_FARG run_globals.photo->Table);
-  SID_free(SID_FARG run_globals.photo->MagBands);
-  SID_free(SID_FARG run_globals.photo->Ages);
-  SID_free(SID_FARG run_globals.photo->Metals);
-  SID_free(SID_FARG run_globals.photo);
+  free(run_globals.photo->Table);
+  free(run_globals.photo->MagBands);
+  free(run_globals.photo->Ages);
+  free(run_globals.photo->Metals);
+  free(run_globals.photo);
   H5Tclose(run_globals.hdf5props.array_nmag_f_tid);
 #else
   return;

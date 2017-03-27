@@ -5,13 +5,13 @@ static void check_problem_params(run_params_t *run_params)
 {
   if (run_params->NSteps != 1)
   {
-    SID_log_error("The current version of the code only works if NSteps = 1. Sorry! Exiting...");
+    mlog_error("The current version of the code only works if NSteps = 1. Sorry! Exiting...");
     ABORT(EXIT_FAILURE);
   }
 
   if (run_params->FlagReadDumpFile && run_params->FlagGenDumpFile)
   {
-    SID_log_error("Both FlagReadDumpFile & FlagGenDumpFile are set!");
+    mlog_error("Both FlagReadDumpFile & FlagGenDumpFile are set!");
     ABORT(EXIT_FAILURE);
   }
 }
@@ -34,7 +34,7 @@ static void inline store_params(
   for (int i_entry = 0; i_entry < n_entries; i_entry++)
   {
     // DEBUG
-    // SID_log("Checking %s", SID_LOG_COMMENT, entry[i_entry].key);
+    // mlog("Checking %s", MLOG_MESG, entry[i_entry].key);
 
     // reset prefix if we have descended an indentation level
     if (entry[i_entry].level < level)
@@ -45,7 +45,7 @@ static void inline store_params(
     level = entry[i_entry].level;
 
     // DEBUG
-    // SID_log("level = %d :: prefix = %s", SID_LOG_COMMENT, level, prefix);
+    // mlog("level = %d :: prefix = %s", MLOG_MESG, level, prefix);
 
     int tag_index = -1;
     for (int ii = 0; ii < n_param; ii++)
@@ -57,7 +57,7 @@ static void inline store_params(
 
     if (tag_index < 0)
     {
-      SID_log_warning("%s is an unrecognised parameter (prefix='%s').", SID_LOG_COMMENT, entry[i_entry].key, prefix);
+      mlog_warning("%s is an unrecognised parameter (prefix='%s').", MLOG_MESG, entry[i_entry].key, prefix);
       ABORT(EXIT_FAILURE);
     }
 
@@ -98,7 +98,7 @@ void read_parameter_file(char *fname, int mode)
 
   run_params_t *run_params = &(run_globals.params);
 
-  if (SID.My_rank == 0)
+  if (run_globals.mpi_rank == 0)
   {
     int            ii;
     int            used_tag[PARAM_MAX_ENTRIES], required_tag[PARAM_MAX_ENTRIES];
@@ -121,13 +121,13 @@ void read_parameter_file(char *fname, int mode)
     // malloc global arrays and init param properties
     if (mode == 0)
     {
-      hdf5props->params_tag  = SID_malloc(sizeof(char *) * PARAM_MAX_ENTRIES);
+      hdf5props->params_tag  = malloc(sizeof(char *) * PARAM_MAX_ENTRIES);
       for (int ii = 0; ii < PARAM_MAX_ENTRIES; ii++)
-        hdf5props->params_tag[ii] = SID_malloc(sizeof(char) * 128);
+        hdf5props->params_tag[ii] = malloc(sizeof(char) * 128);
       params_tag             = hdf5props->params_tag;
-      hdf5props->params_type = SID_malloc(sizeof(int) * PARAM_MAX_ENTRIES);
+      hdf5props->params_type = malloc(sizeof(int) * PARAM_MAX_ENTRIES);
       params_type            = hdf5props->params_type;
-      hdf5props->params_addr = SID_malloc(sizeof(void *) * PARAM_MAX_ENTRIES);
+      hdf5props->params_addr = malloc(sizeof(void *) * PARAM_MAX_ENTRIES);
       params_addr            = hdf5props->params_addr;
 
       // Initialise values and arrays
@@ -729,11 +729,11 @@ void read_parameter_file(char *fname, int mode)
     for (ii = 0; ii < n_param; ii++)
       if ((used_tag[ii] == 0) && (required_tag[ii] == 1))
       {
-        SID_log_error("I miss a value for tag '%s' in parameter file '%s'.", params_tag[ii], fname);
+        mlog_error("I miss a value for tag '%s' in parameter file '%s'.", params_tag[ii], fname);
         ABORT(EXIT_FAILURE);
       }
 
-    if (SID.My_rank == 0)
+    if (run_globals.mpi_rank == 0)
     {
       for (ii = 0; ii < n_param; ii++)
         if (used_tag[ii] == 1)
@@ -771,9 +771,9 @@ void read_parameter_file(char *fname, int mode)
         strcat(run_params->OutputDir, "/");
 
     check_problem_params(run_params);
-  }  // END if(SID.My_rank==0)
+  }  // END if(run_globals.mpi_rank==0)
 
   // If running mpi then broadcast the run parameters to all cores
-  SID_Bcast(run_params, sizeof(run_params_t), 0, SID.COMM_WORLD);
-  SID_Bcast(&(run_globals.units), sizeof(run_units_t), 0, SID.COMM_WORLD);
+  MPI_Bcast(run_params, sizeof(run_params_t), 0, MPI_COMM_WORLD);
+  MPI_Bcast(&(run_globals.units), sizeof(run_units_t), 0, MPI_COMM_WORLD);
 }

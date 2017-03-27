@@ -2,19 +2,14 @@
 #include <stdlib.h>
 #include <string.h>
 #include <complex.h>
-#include <gbpLib.h>
 #include <gsl/gsl_rng.h>
 #include <stdbool.h>
 #include <hdf5.h>
 #include <fftw3.h>
+#include <mlog.h>
 
 #ifndef _INIT_MERAXES
 #define _INIT_MERAXES
-
-#ifdef LOGGER
-#include <zlog.h>
-#include "logger/overrides.h"
-#endif
 
 /*
  * Definitions
@@ -567,6 +562,10 @@ typedef struct run_globals_t {
   reion_grids_t reion_grids;
   struct run_units_t units;
   hdf5_output_t hdf5props;
+
+  MPI_Comm mpi_comm;
+  int mpi_rank;
+  int mpi_size;
 
   double *AA;
   double *ZZ;

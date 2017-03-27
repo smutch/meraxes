@@ -97,8 +97,6 @@ def BuildLib(env, nodes, lib_type='dynamic'):
     env.AddPostAction('../include/meraxes.h', Command('dummy_target', '../include/meraxes.h', install_meraxes_header(env)))
 
     install_headers = [env.Install('../include', files('*.h', exclude='meraxes.h'))]
-    if env['logger']:
-        install_headers += [env.Install('../include/logger', files('logger/*.h'))]
 
     return [lib, meraxes_header] + install_headers
 
@@ -116,7 +114,6 @@ vars.AddVariables(
     ('allocparameter', 'Set the ALLOCPARAM value.', 5.0),
     EnumVariable('build', 'Set the build type.', 'standard', allowed_values=('debug', 'standard', 'optimized')),
     BoolVariable('prof', 'Enable profiling.', False),
-    BoolVariable('logger', 'Enable detailed logging with zlog.', False),
     ('n_history_snaps', 'Set the value of N_HISTORY_SNAPS', False),
     BoolVariable('verbose', 'Show compile commands', False),
 )
@@ -244,8 +241,6 @@ if not GetOption('help'):
                 env.AppendUnique(LIBS = [dep['lib']])
 
     libs = ['gsl', 'hdf5', 'mlog', 'fftw']
-    if env['logger']:
-        libs += ['zlog']
     compile_against(libs, deps, env)
 
 
@@ -254,11 +249,6 @@ if not GetOption('help'):
     # ===========
 
     node_list = files('**/*.c', exclude='tests/*')
-    if not env['logger']:
-        node_list = [node for node in node_list if node not in files('logger/*')]
-
-    if env['logger']:
-        env.AppendUnique(CPPDEFINES = 'LOGGER')
 
     executable = env.Program(target='../bin/meraxes', source=node_list)
     git_header = env.CreateGitHeader([deps['exec']['git']])

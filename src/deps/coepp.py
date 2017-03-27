@@ -36,10 +36,3 @@ deps['fftw'] = {
     'libp'  : os.path.join(fftw_dir, 'lib'),
     'lib'   : ['fftw3f_mpi', 'fftw3f'],
 }
-
-zlog_dir = '/coepp/cephfs/dragons/smutch/3rd_party/zlog'
-deps['zlog'] = {
-    'inclp' : os.path.join(zlog_dir, 'include'),
-    'libp'  : os.path.join(zlog_dir, 'lib'),
-    'lib' : 'zlog',
-}

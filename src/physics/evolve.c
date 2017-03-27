@@ -13,7 +13,7 @@ int evolve_galaxies(fof_group_t *fof_group, int snapshot, int NGal, int NFof)
   int       NSteps        = run_globals.params.NSteps;
   bool      Flag_IRA      = (bool)(run_globals.params.physics.Flag_IRA);
 
-  SID_log("Doing physics...", SID_LOG_OPEN | SID_LOG_TIMER);
+  mlog("Doing physics...", MLOG_OPEN | MLOG_TIMERSTART);
 
 
   for (int i_fof = 0; i_fof < NFof; i_fof++)
@@ -92,12 +92,12 @@ int evolve_galaxies(fof_group_t *fof_group, int snapshot, int NGal, int NFof)
 
   if (gal_counter + (run_globals.NGhosts) != NGal)
   {
-    SID_log_error("We have not processed the expected number of galaxies...");
-    SID_log("gal_counter = %d but NGal = %d", SID_LOG_COMMENT, gal_counter, NGal);
+    mlog_error("We have not processed the expected number of galaxies...");
+    mlog("gal_counter = %d but NGal = %d", MLOG_MESG, gal_counter, NGal);
     ABORT(EXIT_FAILURE);
   }
 
-  SID_log("...done", SID_LOG_CLOSE);
+  mlog("...done", MLOG_CLOSE | MLOG_TIMERSTOP);
 
   return gal_counter - dead_gals;
 }

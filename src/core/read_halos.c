@@ -102,7 +102,7 @@ static void read_catalog_halos(
       break;
 
     default:
-      SID_log_error("Unrecognised type_flag in read_catalog_halos()");
+      mlog_error("Unrecognised type_flag in read_catalog_halos()");
       break;
   }
 
@@ -113,7 +113,7 @@ static void read_catalog_halos(
     *fin = fopen(fname, "rb");
     if (*fin == NULL)
     {
-      SID_log("Failed to open file %s", SID_LOG_COMMENT, fname);
+      mlog("Failed to open file %s", MLOG_MESG, fname);
       ABORT(34494);
     }
     read_catalogs_header(*fin, &dummy, &dummy, n_halos_file, &dummy);
@@ -129,7 +129,7 @@ static void read_catalog_halos(
     *fin              = fopen(fname, "rb");
     if (*fin == NULL)
     {
-      SID_log("Failed to open file %s", SID_LOG_COMMENT, fname);
+      mlog("Failed to open file %s", MLOG_MESG, fname);
       ABORT(34494);
     }
     read_catalogs_header(*fin, &dummy, &dummy, n_halos_file, &dummy);
@@ -222,14 +222,14 @@ static void read_trees_and_catalogs(
   catalog_halo_t *catalog_buffer;
   catalog_halo_t *group_buffer;
 
-  SID_log("Doing read...", SID_LOG_OPEN);
+  mlog("Doing read...", MLOG_OPEN);
 
   sprintf(catalog_file_prefix, "%s", run_globals.params.CatalogFilePrefix);
   sprintf(simulation_dir, "%s", run_globals.params.SimulationDir);
 
   tree_entry_t *tree_buffer;
-  tree_buffer        = SID_malloc(sizeof(tree_entry_t) * buffer_size);
-  catalog_buffer     = SID_malloc(sizeof(catalog_halo_t) * buffer_size);
+  tree_buffer        = malloc(sizeof(tree_entry_t) * buffer_size);
+  catalog_buffer     = malloc(sizeof(catalog_halo_t) * buffer_size);
 
   *n_halos_kept      = 0;
   *n_fof_groups_kept = 0;
@@ -264,7 +264,7 @@ static void read_trees_and_catalogs(
   // buffer worth of subgroups.  This is necessary as subfind can produce
   // many groups with no subgroups in them and so the group buffer may need
   // to be larger than the subgroup buffer.
-  if (SID.My_rank == 0)
+  if (run_globals.mpi_rank == 0)
     while (n_read < n_halos)
     {
       if ((n_halos - n_read) >= buffer_size)
@@ -279,9 +279,9 @@ static void read_trees_and_catalogs(
       if (tmp_size > group_buffer_size)
         group_buffer_size = tmp_size;
     }
-  SID_Bcast(&group_buffer_size, sizeof(int), 0, SID.COMM_WORLD);
-  SID_log("Using group buffer size = %d", SID_LOG_COMMENT, group_buffer_size);
-  group_buffer = SID_malloc(sizeof(catalog_halo_t) * group_buffer_size);
+  MPI_Bcast(&group_buffer_size, sizeof(int), 0, MPI_COMM_WORLD);
+  mlog("Using group buffer size = %d", MLOG_MESG, group_buffer_size);
+  group_buffer = malloc(sizeof(catalog_halo_t) * group_buffer_size);
 
   // Now actually do the buffered read...
   n_read       = 0;
@@ -295,9 +295,9 @@ static void read_trees_and_catalogs(
       n_to_read = n_halos - n_read;
 
     // read in a tree_buffer of the trees
-    if (SID.My_rank == 0)
+    if (run_globals.mpi_rank == 0)
       H5TBread_records(fd, "trees", n_read, (hsize_t)n_to_read, dst_size, dst_offsets, dst_sizes, tree_buffer);
-    SID_Bcast(tree_buffer, n_to_read * sizeof(tree_entry_t), 0, SID.COMM_WORLD);
+    MPI_Bcast(tree_buffer, n_to_read * sizeof(tree_entry_t), 0, MPI_COMM_WORLD);
 
     first_group_index = tree_buffer[0].group_index;
     if (first_group_index == last_group_index)
@@ -311,7 +311,7 @@ static void read_trees_and_catalogs(
     n_groups         = last_group_index - first_group_index + 1;
 
     // read in the corresponding catalog entrys
-    if (SID.My_rank == 0)
+    if (run_globals.mpi_rank == 0)
     {
       i_halo = 0;
       read_catalog_halos(&fin_catalogs, simulation_dir, catalog_file_prefix,
@@ -321,8 +321,8 @@ static void read_trees_and_catalogs(
                          unsampled_snapshot, &group_flayout_switch, &i_group_file, &n_groups_in_catalog_file,
                          &i_group_in_catalog_file, &i_group, group_buffer, n_groups - i_group, 0);
     }
-    SID_Bcast(catalog_buffer, n_to_read * sizeof(catalog_halo_t), 0, SID.COMM_WORLD);
-    SID_Bcast(group_buffer, n_groups * sizeof(catalog_halo_t), 0, SID.COMM_WORLD);
+    MPI_Bcast(catalog_buffer, n_to_read * sizeof(catalog_halo_t), 0, MPI_COMM_WORLD);
+    MPI_Bcast(group_buffer, n_groups * sizeof(catalog_halo_t), 0, MPI_COMM_WORLD);
 
     // paste the data into the halo structures
     for (int jj = 0; jj < n_to_read; jj++)
@@ -437,16 +437,16 @@ static void read_trees_and_catalogs(
   }
 
   // close the catalogs file
-  if (SID.My_rank == 0)
+  if (run_globals.mpi_rank == 0)
     if (fin_catalogs)
       fclose(fin_catalogs);
 
   // free the buffers
-  SID_free(SID_FARG group_buffer);
-  SID_free(SID_FARG catalog_buffer);
-  SID_free(SID_FARG tree_buffer);
+  free(group_buffer);
+  free(catalog_buffer);
+  free(tree_buffer);
 
-  SID_log(" ...done", SID_LOG_CLOSE);
+  mlog(" ...done", MLOG_CLOSE);
 }
 
 
@@ -494,7 +494,7 @@ static void select_forests()
   int  *requested_ind;
   bool  sample_forests;
 
-  SID_log("Calling select_forests()...", SID_LOG_COMMENT);
+  mlog("Calling select_forests()...", MLOG_MESG);
 
   // are we sampling the forests or just dividing them amoungst cores?
   if (run_globals.RequestedForestId == NULL)
@@ -503,12 +503,12 @@ static void select_forests()
     sample_forests = true;
 
   // if this is the master rank then read in the forest info
-  if (SID.My_rank == 0)
+  if (run_globals.mpi_rank == 0)
   {
     sprintf(fname, "%s/trees/forests_info.hdf5", run_globals.params.SimulationDir);
     if ((fin = H5Fopen(fname, H5F_ACC_RDONLY, H5P_DEFAULT)) < 0)
     {
-      SID_log("Failed to open file %s", SID_LOG_COMMENT, fname);
+      mlog("Failed to open file %s", MLOG_MESG, fname);
       ABORT(EXIT_FAILURE);
     }
 
@@ -521,10 +521,10 @@ static void select_forests()
     n_halos_tot     += n_halos_unused;
 
     // allocate the arrays
-    forest_id        = (int*)SID_malloc(sizeof(int) * n_forests);
-    max_contemp_halo = (int*)SID_malloc(sizeof(int) * n_forests);
-    max_contemp_fof  = (int*)SID_malloc(sizeof(int) * n_forests);
-    n_halos          = (int*)SID_malloc(sizeof(int) * n_forests);
+    forest_id        = (int*)malloc(sizeof(int) * n_forests);
+    max_contemp_halo = (int*)malloc(sizeof(int) * n_forests);
+    max_contemp_fof  = (int*)malloc(sizeof(int) * n_forests);
+    n_halos          = (int*)malloc(sizeof(int) * n_forests);
 
     // read in the max number of contemporaneous halos and groups and the forest ids
     H5LTread_dataset_int(fin, "info/max_contemporaneous_halos", max_contemp_halo);
@@ -537,39 +537,39 @@ static void select_forests()
   }
 
   // broadcast the forest info
-  SID_Bcast(&n_forests, sizeof(int), 0, SID.COMM_WORLD);
-  SID_Bcast(&n_halos_tot, sizeof(int), 0, SID.COMM_WORLD);
-  SID_Bcast(&n_halos_unused, sizeof(int), 0, SID.COMM_WORLD);
-  if (SID.My_rank > 0)
+  MPI_Bcast(&n_forests, sizeof(int), 0, MPI_COMM_WORLD);
+  MPI_Bcast(&n_halos_tot, sizeof(int), 0, MPI_COMM_WORLD);
+  MPI_Bcast(&n_halos_unused, sizeof(int), 0, MPI_COMM_WORLD);
+  if (run_globals.mpi_rank > 0)
   {
-    forest_id        = (int*)SID_malloc(sizeof(int) * n_forests);
-    max_contemp_halo = (int*)SID_malloc(sizeof(int) * n_forests);
-    max_contemp_fof  = (int*)SID_malloc(sizeof(int) * n_forests);
-    n_halos          = (int*)SID_malloc(sizeof(int) * n_forests);
+    forest_id        = (int*)malloc(sizeof(int) * n_forests);
+    max_contemp_halo = (int*)malloc(sizeof(int) * n_forests);
+    max_contemp_fof  = (int*)malloc(sizeof(int) * n_forests);
+    n_halos          = (int*)malloc(sizeof(int) * n_forests);
   }
-  SID_Bcast(forest_id, sizeof(int) * n_forests, 0, SID.COMM_WORLD);
-  SID_Bcast(max_contemp_halo, sizeof(int) * n_forests, 0, SID.COMM_WORLD);
-  SID_Bcast(max_contemp_fof, sizeof(int) * n_forests, 0, SID.COMM_WORLD);
-  SID_Bcast(n_halos, sizeof(int) * n_forests, 0, SID.COMM_WORLD);
+  MPI_Bcast(forest_id, sizeof(int) * n_forests, 0, MPI_COMM_WORLD);
+  MPI_Bcast(max_contemp_halo, sizeof(int) * n_forests, 0, MPI_COMM_WORLD);
+  MPI_Bcast(max_contemp_fof, sizeof(int) * n_forests, 0, MPI_COMM_WORLD);
+  MPI_Bcast(n_halos, sizeof(int) * n_forests, 0, MPI_COMM_WORLD);
 
   // sort the forests by the number of halos in each one
-  size_t *sort_ind = SID_malloc(sizeof(size_t) * n_forests);
+  size_t *sort_ind = malloc(sizeof(size_t) * n_forests);
   gsl_sort_int_index(sort_ind, n_halos, 1, n_forests);
-  int *temp = SID_malloc(sizeof(int) * n_forests);
+  int *temp = malloc(sizeof(int) * n_forests);
 
   reorder_forest_array(forest_id, sort_ind, n_forests, temp);
   reorder_forest_array(max_contemp_halo, sort_ind, n_forests, temp);
   reorder_forest_array(max_contemp_fof, sort_ind, n_forests, temp);
   reorder_forest_array(n_halos, sort_ind, n_forests, temp);
 
-  SID_free(SID_FARG temp);
-  SID_free(SID_FARG sort_ind);
+  free(temp);
+  free(sort_ind);
   
   // if we have read in a list of requested forest IDs then use these to create
   // an array of indices pointing to the elements we want
   if (sample_forests)
   {
-    requested_ind = (int*)SID_malloc(sizeof(int) * (*n_requested_forests));
+    requested_ind = (int*)malloc(sizeof(int) * (*n_requested_forests));
     n_halos_tot   = 0;
     for (i_forest = 0, i_req = 0; (i_forest < n_forests) && (i_req < (*n_requested_forests)); i_forest++)
       if (forest_id[i_forest] == run_globals.RequestedForestId[i_req])
@@ -584,17 +584,17 @@ static void select_forests()
   {
     // if we haven't asked for any specific forest IDs then just fill the
     // requested ind array sequentially
-    requested_ind = (int*)SID_malloc(sizeof(int) * n_forests);
+    requested_ind = (int*)malloc(sizeof(int) * n_forests);
     for (i_req = 0; i_req < n_forests; i_req++)
       requested_ind[i_req] = i_req;
   }
 
   // if we are running the code with more than one core, let's subselect the forests on each one
-  if (SID.n_proc > 1)
+  if (run_globals.mpi_size > 1)
   {
-    if (n_forests < SID.n_proc)
+    if (n_forests < run_globals.mpi_size)
     {
-      SID_log_error("There are fewer processors than there are forests to be processed (%d).  Try again with fewer cores!", n_forests);
+      mlog_error("There are fewer processors than there are forests to be processed (%d).  Try again with fewer cores!", n_forests);
       ABORT(EXIT_FAILURE);
     }
 
@@ -603,16 +603,16 @@ static void select_forests()
     // be made.  This would hopefully improve runtimes...
 
     // malloc the arrays we need for keeping track of the load balancing
-    int *rank_first_forest = (int*)SID_malloc(sizeof(int) * SID.n_proc);
-    int *rank_last_forest  = (int*)SID_malloc(sizeof(int) * SID.n_proc);
-    int *rank_n_forests    = (int*)SID_malloc(sizeof(int) * SID.n_proc);
-    int *rank_n_halos      = (int*)SID_malloc(sizeof(int) * SID.n_proc);
+    int *rank_first_forest = (int*)malloc(sizeof(int) * run_globals.mpi_size);
+    int *rank_last_forest  = (int*)malloc(sizeof(int) * run_globals.mpi_size);
+    int *rank_n_forests    = (int*)malloc(sizeof(int) * run_globals.mpi_size);
+    int *rank_n_halos      = (int*)malloc(sizeof(int) * run_globals.mpi_size);
     int  i_rank;
     int  n_halos_used;
     int  n_halos_target;
 
     // initialise
-    for (int ii = 0; ii < SID.n_proc; ii++)
+    for (int ii = 0; ii < run_globals.mpi_size; ii++)
     {
       rank_first_forest[ii] = 0;
       rank_last_forest[ii]  = 0;
@@ -621,7 +621,7 @@ static void select_forests()
     }
 
     // loop through each rank
-    for (i_rank = 0, n_halos_used = 0, i_forest = 0, n_halos_target = 0; i_rank < SID.n_proc; i_rank++, i_forest++)
+    for (i_rank = 0, n_halos_used = 0, i_forest = 0, n_halos_target = 0; i_rank < run_globals.mpi_size; i_rank++, i_forest++)
     {
       // start with the next forest (or first forest if this is the first rank)
       rank_first_forest[i_rank] = i_forest;
@@ -634,7 +634,7 @@ static void select_forests()
         rank_n_halos[i_rank] += n_halos[requested_ind[i_forest]];
 
         // adjust our target to smooth out variations as much as possible
-        n_halos_target        = (n_halos_tot - n_halos_used) / (SID.n_proc - i_rank);
+        n_halos_target        = (n_halos_tot - n_halos_used) / (run_globals.mpi_size - i_rank);
 
         // increment the counter of the number of forests on this rank
         rank_n_forests[i_rank]++;
@@ -656,26 +656,26 @@ static void select_forests()
     // add any uncounted forests to the last process
     for (i_forest++; i_forest < n_forests; i_forest++)
     {
-      rank_last_forest[SID.n_proc - 1] = i_forest;
-      rank_n_halos[SID.n_proc - 1]    += n_halos[requested_ind[i_forest]];
-      rank_n_forests[SID.n_proc - 1]++;
+      rank_last_forest[run_globals.mpi_size - 1] = i_forest;
+      rank_n_halos[run_globals.mpi_size - 1]    += n_halos[requested_ind[i_forest]];
+      rank_n_forests[run_globals.mpi_size - 1]++;
     }
 
     // create our list of forest_ids for this rank
-    *n_requested_forests = rank_n_forests[SID.My_rank];
+    *n_requested_forests = rank_n_forests[run_globals.mpi_rank];
     if (run_globals.RequestedForestId != NULL)
-      run_globals.RequestedForestId = SID_realloc(run_globals.RequestedForestId, *n_requested_forests * sizeof(int));
+      run_globals.RequestedForestId = reallocf(run_globals.RequestedForestId, *n_requested_forests * sizeof(int));
     else
-      run_globals.RequestedForestId = (int*)SID_malloc(sizeof(int) * (*n_requested_forests));
+      run_globals.RequestedForestId = (int*)malloc(sizeof(int) * (*n_requested_forests));
 
-    for (int ii = rank_first_forest[SID.My_rank], jj = 0; ii <= rank_last_forest[SID.My_rank]; ii++, jj++)
+    for (int ii = rank_first_forest[run_globals.mpi_rank], jj = 0; ii <= rank_last_forest[run_globals.mpi_rank]; ii++, jj++)
       run_globals.RequestedForestId[jj] = forest_id[requested_ind[ii]];
 
     // free the arrays
-    SID_free(SID_FARG rank_n_halos);
-    SID_free(SID_FARG rank_n_forests);
-    SID_free(SID_FARG rank_last_forest);
-    SID_free(SID_FARG rank_first_forest);
+    free(rank_n_halos);
+    free(rank_n_forests);
+    free(rank_last_forest);
+    free(rank_first_forest);
   }
 
 
@@ -702,7 +702,7 @@ static void select_forests()
   //   hid_t fd;
   //   char fname[50];
   //   hsize_t dims;
-  //   sprintf(fname, "debug_%d.hdf5", SID.My_rank);
+  //   sprintf(fname, "debug_%d.hdf5", run_globals.mpi_rank);
   //   fd = H5Fcreate(fname, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
   //   dims = (hsize_t)(*n_requested_forests);
   //   H5LTmake_dataset_int(fd, "forest_id", 1, &dims, run_globals.RequestedForestId);
@@ -713,11 +713,11 @@ static void select_forests()
   // }
 
   // free the arrays
-  SID_free(SID_FARG requested_ind);
-  SID_free(SID_FARG n_halos);
-  SID_free(SID_FARG forest_id);
-  SID_free(SID_FARG max_contemp_fof);
-  SID_free(SID_FARG max_contemp_halo);
+  free(requested_ind);
+  free(n_halos);
+  free(forest_id);
+  free(max_contemp_fof);
+  free(max_contemp_halo);
 }
 
 
@@ -725,7 +725,7 @@ static void inline gen_dump_fname(char *fname, int snapshot)
 {
   sprintf(fname, "%s/dump_files/%s-rank%d.%d",
           run_globals.params.OutputDir, run_globals.params.FileNameGalaxies,
-          SID.My_rank, snapshot);
+          run_globals.mpi_rank, snapshot);
 }
 
 
@@ -771,11 +771,11 @@ trees_info_t read_halos(
   // if we are doing multiple runs and have already read in this snapshot then we don't need to do read anything else
   if ((run_globals.params.FlagInteractive || run_globals.params.FlagMCMC) && (snapshot_trees_info[snapshot].n_halos != -1))
   {
-    SID_log("Snapshot %d has alread been read in... (n_halos = %d)", SID_LOG_COMMENT, snapshot, snapshot_trees_info[snapshot].n_halos);
+    mlog("Snapshot %d has alread been read in... (n_halos = %d)", MLOG_MESG, snapshot, snapshot_trees_info[snapshot].n_halos);
     return snapshot_trees_info[snapshot];
   }
 
-  SID_log("Reading snapshot %d (z = %.2f) trees and halos...", SID_LOG_OPEN | SID_LOG_TIMER, snapshot, run_globals.ZZ[snapshot]);
+  mlog("Reading snapshot %d (z = %.2f) trees and halos...", MLOG_OPEN | MLOG_TIMERSTART, snapshot, run_globals.ZZ[snapshot]);
 
   // Read mass ratio modifiers and baryon fraction modifiers if required
   if (run_globals.RequestedMassRatioModifier == 1)
@@ -785,12 +785,12 @@ trees_info_t read_halos(
     read_baryon_frac_modifiers(snapshot);
 
   // open the tree file
-  if (SID.My_rank == 0)
+  if (run_globals.mpi_rank == 0)
   {
     sprintf(fname, "%s/trees/horizontal_trees_%03d.hdf5", run_globals.params.SimulationDir, snapshot);
     if ((fin_trees = H5Fopen(fname, H5F_ACC_RDONLY, H5P_DEFAULT)) < 0)
     {
-      SID_log("Failed to open file %s", SID_LOG_COMMENT, fname);
+      mlog("Failed to open file %s", MLOG_MESG, fname);
       ABORT(EXIT_FAILURE);
     }
 
@@ -799,7 +799,7 @@ trees_info_t read_halos(
   }
 
   // if necessary, broadcast the tree file info
-  SID_Bcast(&trees_info, sizeof(trees_info_t), 0, SID.COMM_WORLD);
+  MPI_Bcast(&trees_info, sizeof(trees_info_t), 0, MPI_COMM_WORLD);
 
   n_halos      = trees_info.n_halos;
   n_fof_groups = trees_info.n_fof_groups;
@@ -813,9 +813,8 @@ trees_info_t read_halos(
   if (run_globals.params.FlagInteractive || run_globals.params.FlagMCMC)
     if (n_halos < 1)
     {
-      SID_log("No halos in this file... skipping...", SID_LOG_COMMENT);
-      SID_log("", SID_LOG_NOPRINT | SID_LOG_CLOSE);
-      if (SID.My_rank == 0)
+      mlog("No halos in this file... skipping...", MLOG_CLOSE | MLOG_TIMERSTOP);
+      if (run_globals.mpi_rank == 0)
         H5Fclose(fin_trees);
       snapshot_trees_info[snapshot] = trees_info;
       return trees_info;
@@ -825,7 +824,7 @@ trees_info_t read_halos(
   if (*halo == NULL)
   {
     // if required, select forests and calculate the maximum number of halos and fof groups
-    if ((n_requested_forests > -1) || (SID.n_proc > 1))
+    if ((n_requested_forests > -1) || (run_globals.mpi_size > 1))
     {
       if (run_globals.SelectForestsSwitch == true)
       {
@@ -835,7 +834,7 @@ trees_info_t read_halos(
         // Toggle the SelectForestsSwitch so that we know we don't need to call this again
         run_globals.SelectForestsSwitch = false;
       }
-      *index_lookup = SID_malloc(sizeof(int) * run_globals.NHalosMax);
+      *index_lookup = malloc(sizeof(int) * run_globals.NHalosMax);
     }
     else
     {
@@ -843,15 +842,15 @@ trees_info_t read_halos(
       run_globals.NFOFGroupsMax = trees_info.n_fof_groups_max;
     }
 
-    SID_log("Allocating halo array with %d elements...", SID_LOG_COMMENT, run_globals.NHalosMax);
-    *halo = SID_malloc(sizeof(halo_t) * run_globals.NHalosMax);
+    mlog("Allocating halo array with %d elements...", MLOG_MESG, run_globals.NHalosMax);
+    *halo = malloc(sizeof(halo_t) * run_globals.NHalosMax);
   }
 
   // Allocate the fof_group array if necessary
   if (*fof_group == NULL)
   {
-    SID_log("Allocating fof_group array with %d elements...", SID_LOG_COMMENT, run_globals.NFOFGroupsMax);
-    *fof_group = SID_malloc(sizeof(fof_group_t) * run_globals.NFOFGroupsMax);
+    mlog("Allocating fof_group array with %d elements...", MLOG_MESG, run_globals.NFOFGroupsMax);
+    *fof_group = malloc(sizeof(fof_group_t) * run_globals.NFOFGroupsMax);
   }
 
   // reset the fof group pointers and index lookup (if necessary)
@@ -867,8 +866,8 @@ trees_info_t read_halos(
 
   if (n_halos < 1)
   {
-    SID_log("No halos in this file... skipping...", SID_LOG_CLOSE);
-    if (SID.My_rank == 0)
+    mlog("No halos in this file... skipping...", MLOG_CLOSE | MLOG_TIMERSTOP);
+    if (run_globals.mpi_rank == 0)
       H5Fclose(fin_trees);
     return trees_info;
   }
@@ -884,13 +883,13 @@ trees_info_t read_halos(
     if ((fdump = fopen(fname, "rb")) != NULL)
     {
       fread(&n_fof_groups_kept, sizeof(int), 1, fdump);
-      size_t *fof_FirstHalo_os = SID_malloc(sizeof(size_t) * n_fof_groups_kept);
+      size_t *fof_FirstHalo_os = malloc(sizeof(size_t) * n_fof_groups_kept);
       fread(*fof_group, sizeof(fof_group_t), n_fof_groups_kept, fdump);
       fread(fof_FirstHalo_os, sizeof(size_t), n_fof_groups_kept, fdump);
 
       fread(&n_halos_kept, sizeof(int), 1, fdump);
-      size_t *halo_FOFGroup_os           = SID_malloc(sizeof(size_t) * n_halos_kept);
-      size_t *halo_NextHaloInFOFGroup_os = SID_malloc(sizeof(size_t) * n_halos_kept);
+      size_t *halo_FOFGroup_os           = malloc(sizeof(size_t) * n_halos_kept);
+      size_t *halo_NextHaloInFOFGroup_os = malloc(sizeof(size_t) * n_halos_kept);
       fread(*halo, sizeof(halo_t), n_halos_kept, fdump);
       fread(halo_FOFGroup_os, sizeof(size_t), n_halos_kept, fdump);
       fread(halo_NextHaloInFOFGroup_os, sizeof(size_t), n_halos_kept, fdump);
@@ -899,15 +898,15 @@ trees_info_t read_halos(
       update_pointers_from_offsets(n_fof_groups_kept, *fof_group, fof_FirstHalo_os,
                                    n_halos_kept, *halo, halo_FOFGroup_os, halo_NextHaloInFOFGroup_os);
 
-      SID_free(SID_FARG fof_FirstHalo_os);
-      SID_free(SID_FARG halo_NextHaloInFOFGroup_os);
-      SID_free(SID_FARG halo_FOFGroup_os);
+      free(fof_FirstHalo_os);
+      free(halo_NextHaloInFOFGroup_os);
+      free(halo_FOFGroup_os);
 
       fclose(fdump);
     }
     else
     {
-      SID_log_error("FlagReadDumpFile = 1, but there is no dumpfile at:\n%s", fname);
+      mlog_error("FlagReadDumpFile = 1, but there is no dumpfile at:\n%s", fname);
       ABORT(EXIT_FAILURE);
     }
   }
@@ -918,7 +917,7 @@ trees_info_t read_halos(
                             &n_halos_kept, &n_fof_groups_kept, *index_lookup);
 
   // close the tree file
-  if (SID.My_rank == 0)
+  if (run_globals.mpi_rank == 0)
     H5Fclose(fin_trees);
 
   // if subsampling the trees, then update the trees_info to reflect what we now have
@@ -944,11 +943,11 @@ trees_info_t read_halos(
     // trawling through the code and making the relevant updates in a number of
     // places (so we'll leave that till later!).
 
-    SID_log("Calculating pointer offsets...", SID_LOG_COMMENT);
+    mlog("Calculating pointer offsets...", MLOG_MESG);
 
-    size_t *halo_FOFGroup_os           = SID_malloc(sizeof(size_t) * n_halos_kept);
-    size_t *halo_NextHaloInFOFGroup_os = SID_malloc(sizeof(size_t) * n_halos_kept);
-    size_t *fof_FirstHalo_os           = SID_malloc(sizeof(size_t) * n_fof_groups_kept);
+    size_t *halo_FOFGroup_os           = malloc(sizeof(size_t) * n_halos_kept);
+    size_t *halo_NextHaloInFOFGroup_os = malloc(sizeof(size_t) * n_halos_kept);
+    size_t *fof_FirstHalo_os           = malloc(sizeof(size_t) * n_fof_groups_kept);
 
     for (int ii = 0; ii < n_halos_kept; ii++)
     {
@@ -963,26 +962,26 @@ trees_info_t read_halos(
 
     if (run_globals.params.FlagInteractive || run_globals.params.FlagMCMC)
     {
-      SID_log("Reallocing halo storage arrays...", SID_LOG_OPEN);
+      mlog("Reallocing halo storage arrays...", MLOG_OPEN);
 
-      *halo      = (halo_t*)SID_realloc(*halo, sizeof(halo_t) * n_halos_kept);
-      *fof_group = (fof_group_t*)SID_realloc(*fof_group, sizeof(fof_group_t) * n_fof_groups_kept);
+      *halo      = (halo_t*)realloc(*halo, sizeof(halo_t) * n_halos_kept);
+      *fof_group = (fof_group_t*)realloc(*fof_group, sizeof(fof_group_t) * n_fof_groups_kept);
 
       // Only realloc `index_lookup` if we are actually using it (`n_proc` > 1
       // or we are subsampling the trees).
       if (*index_lookup)
-        *index_lookup = (int*)SID_realloc(*index_lookup, sizeof(int) * n_halos_kept);
+        *index_lookup = (int*)realloc(*index_lookup, sizeof(int) * n_halos_kept);
       update_pointers_from_offsets(n_fof_groups_kept, *fof_group, fof_FirstHalo_os,
                                    n_halos_kept, *halo, halo_FOFGroup_os, halo_NextHaloInFOFGroup_os);
 
       // save the trees_info for this snapshot as well...
       snapshot_trees_info[snapshot] = trees_info;
 
-      SID_log(" ...done (resized to %d halos)", SID_LOG_CLOSE, n_halos_kept);
+      mlog(" ...done (resized to %d halos)", MLOG_CLOSE, n_halos_kept);
     }
     else
     {
-      SID_log("Generating dumpfile...", SID_LOG_OPEN);
+      mlog("Generating dumpfile...", MLOG_OPEN);
 
       FILE *fdump = NULL;
       char  fname[STRLEN];
@@ -1003,19 +1002,19 @@ trees_info_t read_halos(
 
         fclose(fdump);
       }
-      SID_log("...done", SID_LOG_CLOSE);
+      mlog("...done", MLOG_CLOSE);
     }
 
-    SID_free(SID_FARG fof_FirstHalo_os);
-    SID_free(SID_FARG halo_NextHaloInFOFGroup_os);
-    SID_free(SID_FARG halo_FOFGroup_os);
+    free(fof_FirstHalo_os);
+    free(halo_NextHaloInFOFGroup_os);
+    free(halo_FOFGroup_os);
   }
 
-  SID_Allreduce(SID_IN_PLACE, &n_halos_kept, 1, SID_INT, SID_SUM, SID.COMM_WORLD);
-  SID_Allreduce(SID_IN_PLACE, &n_fof_groups_kept, 1, SID_INT, SID_SUM, SID.COMM_WORLD);
-  SID_log("Read %d halos in %d fof_groups.", SID_LOG_COMMENT, n_halos_kept, n_fof_groups_kept);
+  MPI_Allreduce(MPI_IN_PLACE, &n_halos_kept, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
+  MPI_Allreduce(MPI_IN_PLACE, &n_fof_groups_kept, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
+  mlog("Read %d halos in %d fof_groups.", MLOG_MESG, n_halos_kept, n_fof_groups_kept);
 
-  SID_log("...done", SID_LOG_CLOSE);
+  mlog("...done", MLOG_CLOSE | MLOG_TIMERSTOP);
 
   return trees_info;
 }
@@ -1031,7 +1030,7 @@ void initialize_halo_storage()
 
   int            last_snap             = 0;
 
-  SID_log("Initializing halo storage arrays...", SID_LOG_OPEN);
+  mlog("Initializing halo storage arrays...", MLOG_OPEN);
 
   // Find what the last requested output snapshot is
   for (int ii = 0; ii < run_globals.NOutputSnaps; ii++)
@@ -1044,10 +1043,10 @@ void initialize_halo_storage()
   else
     *n_store_snapshots = 1;
 
-  *snapshot_halo         = (halo_t**)SID_calloc(sizeof(halo_t *) * (*n_store_snapshots));
-  *snapshot_fof_group    = (fof_group_t**)SID_calloc(sizeof(fof_group_t *) * (*n_store_snapshots));
-  *snapshot_index_lookup = (int**)SID_calloc(sizeof(int *) * (*n_store_snapshots));
-  *snapshot_trees_info   = (trees_info_t*)SID_calloc(sizeof(trees_info_t) * (*n_store_snapshots));
+  *snapshot_halo         = (halo_t**)calloc(*n_store_snapshots, sizeof(halo_t *));
+  *snapshot_fof_group    = (fof_group_t**)calloc(*n_store_snapshots, sizeof(fof_group_t *));
+  *snapshot_index_lookup = (int**)calloc(*n_store_snapshots, sizeof(int *));
+  *snapshot_trees_info   = (trees_info_t*)calloc(*n_store_snapshots, sizeof(trees_info_t));
 
   for (int ii = 0; ii < *n_store_snapshots; ii++)
   {
@@ -1058,13 +1057,13 @@ void initialize_halo_storage()
   // loop through and read all snapshots
   if (run_globals.params.FlagInteractive || run_globals.params.FlagMCMC)
   {
-    SID_log("Preloading input trees and halos...", SID_LOG_OPEN);
+    mlog("Preloading input trees and halos...", MLOG_OPEN);
     for (int i_snap = 0; i_snap <= last_snap; i_snap++)
       read_halos(i_snap, &((*snapshot_halo)[i_snap]), &((*snapshot_fof_group)[i_snap]), &((*snapshot_index_lookup)[i_snap]), *snapshot_trees_info);
-    SID_log("...done", SID_LOG_CLOSE);
+    mlog("...done", MLOG_CLOSE);
   }
 
-  SID_log("...done", SID_LOG_CLOSE);
+  mlog("...done", MLOG_CLOSE);
 }
 
 
@@ -1077,15 +1076,15 @@ void free_halo_storage()
   trees_info_t *snapshot_trees_info   = run_globals.SnapshotTreesInfo;
 
   // Free all of the remaining allocated galaxies, halos and fof groups
-  SID_log("Freeing FOF groups and halos...", SID_LOG_COMMENT);
+  mlog("Freeing FOF groups and halos...", MLOG_MESG);
   for (int ii = 0; ii < n_store_snapshots; ii++)
   {
-    SID_free(SID_FARG snapshot_halo[ii]);
-    SID_free(SID_FARG snapshot_fof_group[ii]);
-    SID_free(SID_FARG snapshot_index_lookup[ii]);
+    free(snapshot_halo[ii]);
+    free(snapshot_fof_group[ii]);
+    free(snapshot_index_lookup[ii]);
   }
-  SID_free(SID_FARG snapshot_halo);
-  SID_free(SID_FARG snapshot_fof_group);
-  SID_free(SID_FARG snapshot_index_lookup);
-  SID_free(SID_FARG snapshot_trees_info);
+  free(snapshot_halo);
+  free(snapshot_fof_group);
+  free(snapshot_index_lookup);
+  free(snapshot_trees_info);
 }

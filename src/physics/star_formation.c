@@ -81,7 +81,7 @@ void insitu_star_formation(galaxy_t *gal, int snapshot)
         v_disk = gal->Vvir;
         break;
       default:
-        SID_log_error("Unrecognised value for SfVelocityOpt parameter! Defaulting to v_disk=Vmax.");
+        mlog_error("Unrecognised value for SfVelocityOpt parameter! Defaulting to v_disk=Vmax.");
         v_disk = gal->Vmax;
         break;
     }
@@ -115,7 +115,7 @@ void insitu_star_formation(galaxy_t *gal, int snapshot)
         break;
 
       default:
-        SID_log_error("Unknown SfPrescription!");
+        mlog_error("Unknown SfPrescription!");
         ABORT(EXIT_FAILURE);
         break;
     }
@@ -222,7 +222,7 @@ double pressure_dependent_star_formation(galaxy_t *gal, int snapshot)
 
       if ((MSFR < 0.0) || (MSFR > 1.0))
       {
-        SID_log_error("BR06 - H2Frac = %e\n", MSFR);
+        mlog_error("BR06 - H2Frac = %e\n", MSFR);
         ABORT(66);
       }
 

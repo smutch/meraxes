@@ -129,20 +129,20 @@ void calc_hdf5_props()
     h5props->array_nhist_f_tid = H5Tarray_create(H5T_NATIVE_FLOAT, 1, (hsize_t[]){ N_HISTORY_SNAPS });
 
     // Calculate the offsets of our struct members in memory
-    h5props->dst_offsets       = SID_malloc(sizeof(size_t) * h5props->n_props);
+    h5props->dst_offsets       = malloc(sizeof(size_t) * h5props->n_props);
     // Calculate the sizes of our struct members in memory.
-    h5props->dst_field_sizes   = SID_malloc(sizeof(size_t) * h5props->n_props);
+    h5props->dst_field_sizes   = malloc(sizeof(size_t) * h5props->n_props);
     // Give each galaxy property a field name in the table
-    h5props->field_names       = SID_malloc(sizeof(const char*) * h5props->n_props);
+    h5props->field_names       = malloc(sizeof(const char*) * h5props->n_props);
     // Assign a type to each galaxy property field in the table.
-    h5props->field_types       = SID_malloc(sizeof(hid_t) * h5props->n_props);
+    h5props->field_types       = malloc(sizeof(hid_t) * h5props->n_props);
     // Store the **output** units of each property for writing to the master file.
     // Units should be compatible with the python astropy.units module.
-    h5props->field_units       = SID_malloc(sizeof(const char*) * h5props->n_props);
+    h5props->field_units       = malloc(sizeof(const char*) * h5props->n_props);
     // Store the **output** h conversion for each property.  The string will be
     // parsed by python eval(), substituting h for the appropriate value at read
     // time and v for the property value.
-    h5props->field_h_conv       = SID_malloc(sizeof(const char*) * h5props->n_props);
+    h5props->field_h_conv       = malloc(sizeof(const char*) * h5props->n_props);
 
     i                           = 0;
 
@@ -495,7 +495,7 @@ void calc_hdf5_props()
     // DEBUG
     if (i != h5props->n_props)
     {
-      SID_log_error("Incorrect number of galaxy properties in HDF5 file. Should be %d, but is %d", h5props->n_props,i);
+      mlog_error("Incorrect number of galaxy properties in HDF5 file. Should be %d, but is %d", h5props->n_props,i);
       ABORT(EXIT_FAILURE);
     }
   }
@@ -512,8 +512,8 @@ void prep_hdf5_file()
   file_id = H5Fcreate(run_globals.FNameOut, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
 
   // store the file number and total number of cores
-  H5LTset_attribute_int(file_id, "/", "iCore", &(SID.My_rank), 1);
-  H5LTset_attribute_int(file_id, "/", "NCores", &(SID.n_proc), 1);
+  H5LTset_attribute_int(file_id, "/", "iCore", &(run_globals.mpi_rank), 1);
+  H5LTset_attribute_int(file_id, "/", "NCores", &(run_globals.mpi_size), 1);
 
   // close the file
   H5Fclose(file_id);
@@ -530,7 +530,7 @@ void create_master_file()
   int           *params_type  = h5props->params_type;
   int            params_count = h5props->params_count;
 
-  SID_log("Creating master file...", SID_LOG_OPEN | SID_LOG_TIMER);
+  mlog("Creating master file...", MLOG_OPEN | MLOG_TIMERSTART);
 
   // Create a new file
   sprintf(fname, "%s/%s.hdf5", run_globals.params.OutputDir, run_globals.params.FileNameGalaxies);
@@ -626,7 +626,7 @@ void create_master_file()
 #endif
 
   // save the number of cores used in this run
-  H5LTset_attribute_int(file_id, "/", "NCores", &(SID.n_proc), 1);
+  H5LTset_attribute_int(file_id, "/", "NCores", &(run_globals.mpi_size), 1);
 
 
   char    target_group[50];
@@ -647,7 +647,7 @@ void create_master_file()
     sprintf(target_group, "Snap%03d", run_globals.ListOutputSnaps[i_out]);
     snap_group_id = H5Gcreate(file_id, target_group, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
 
-    for (int i_core = 0; i_core < SID.n_proc; i_core++)
+    for (int i_core = 0; i_core < run_globals.mpi_size; i_core++)
     {
       sprintf(target_group, "Core%d", i_core);
       group_id = H5Gcreate(snap_group_id, target_group, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
@@ -733,7 +733,7 @@ void create_master_file()
   // Close the HDF5 file.
   H5Fclose(file_id);
 
-  SID_log(" ...done", SID_LOG_CLOSE);
+  mlog(" ...done", MLOG_CLOSE | MLOG_TIMERSTOP);
 }
 
 
@@ -802,7 +802,7 @@ void write_snapshot(
   int              prev_snapshot          = -1;
   int              write_count            = 0;
 
-  SID_log("Writing output file (n_write = %d)...", SID_LOG_OPEN | SID_LOG_TIMER, n_write);
+  mlog("Writing output file (n_write = %d)...", MLOG_OPEN | MLOG_TIMERSTART, n_write);
 
   // We aren't going to write any galaxies that have zero stellar mass, so
   // modify n_write appropriately...
@@ -816,8 +816,8 @@ void write_snapshot(
 
   if (n_write != write_count)
   {
-    SID_log("Excluding %d ~zero mass galaxies...", SID_LOG_COMMENT, n_write - write_count);
-    SID_log("New write count = %d", SID_LOG_COMMENT, write_count);
+    mlog("Excluding %d ~zero mass galaxies...", MLOG_MESG, n_write - write_count);
+    mlog("New write count = %d", MLOG_MESG, write_count);
     n_write = write_count;
   }
 
@@ -856,9 +856,9 @@ void write_snapshot(
   if (calc_descendants_i_out > -1)
   {
     // malloc the arrays
-    int *descendant_index = SID_malloc(sizeof(int) * (*last_n_write));
-    next_progenitor_index  = SID_malloc(sizeof(int) * (*last_n_write));
-    first_progenitor_index = SID_malloc(sizeof(int) * n_write);
+    int *descendant_index = malloc(sizeof(int) * (*last_n_write));
+    next_progenitor_index  = malloc(sizeof(int) * (*last_n_write));
+    first_progenitor_index = malloc(sizeof(int) * n_write);
 
     // initialise all entries to -1
     for (int ii = 0; ii < *last_n_write; ii++)
@@ -923,9 +923,9 @@ void write_snapshot(
                       *last_n_write, n_write);
 
     // Free the allocated arrays
-    SID_free(SID_FARG first_progenitor_index);
-    SID_free(SID_FARG next_progenitor_index);
-    SID_free(SID_FARG descendant_index);
+    free(first_progenitor_index);
+    free(next_progenitor_index);
+    free(descendant_index);
   }
   else
   {
@@ -950,7 +950,7 @@ void write_snapshot(
   // This can cause significant memory overhead if `chunk_size` is large.
   gal_count     = 0;
   gal           = run_globals.FirstGal;
-  output_buffer = SID_calloc(sizeof(galaxy_output_t) * (int)chunk_size);
+  output_buffer = calloc((int)chunk_size, sizeof(galaxy_output_t));
   int buffer_count = 0;
   while (gal != NULL)
   {
@@ -980,13 +980,13 @@ void write_snapshot(
 
   if (n_write != gal_count)
   {
-    SID_log("We don't have the expected number of galaxies in save...", SID_LOG_COMMENT);
-    SID_log("gal_count=%d, n_write=%d", SID_LOG_COMMENT, gal_count, n_write);
+    mlog("We don't have the expected number of galaxies in save...", MLOG_MESG);
+    mlog("gal_count=%d, n_write=%d", MLOG_MESG, gal_count, n_write);
     ABORT(EXIT_FAILURE);
   }
 
   // Free the output buffer
-  SID_free(SID_FARG output_buffer);
+  free(output_buffer);
 
   if (run_globals.params.Flag_PatchyReion && check_if_reionization_ongoing()  && (run_globals.params.Flag_OutputGrids))
     save_reion_output_grids(run_globals.ListOutputSnaps[i_out]);
@@ -1000,5 +1000,5 @@ void write_snapshot(
   // Update the value of last_n_write
   *last_n_write = n_write;
 
-  SID_log("...done", SID_LOG_CLOSE);
+  mlog("...done", MLOG_CLOSE | MLOG_TIMERSTOP);
 }

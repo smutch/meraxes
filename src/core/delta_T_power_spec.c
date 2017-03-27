@@ -34,7 +34,7 @@ int delta_T_ps(
   float  max          = -1e3;
   double ave          = 0.0;
   int    ReionGridDim = run_globals.params.ReionGridDim;
-  int    local_nix    = (int)(run_globals.reion_grids.slab_nix[SID.My_rank]);
+  int    local_nix    = (int)(run_globals.reion_grids.slab_nix[run_globals.mpi_rank]);
 
   // Set some redshift dependant values
   float  redshift     = run_globals.ZZ[snapshot];
@@ -77,7 +77,7 @@ int delta_T_ps(
 
   int tot_num_pixels = (int)pow(ReionGridDim, 3);
 
-  SID_Allreduce(SID_IN_PLACE, &ave, 1, SID_INT, SID_SUM, SID.COMM_WORLD);
+  MPI_Allreduce(MPI_IN_PLACE, &ave, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
   ave /= (double)tot_num_pixels;
 
 
@@ -115,7 +115,7 @@ int delta_T_ps(
     in_bin_ct[ii] = 0;
   }
 
-  fftwf_complex *deldel_T = fftwf_alloc_complex(run_globals.reion_grids.slab_n_complex[SID.My_rank]);
+  fftwf_complex *deldel_T = fftwf_alloc_complex(run_globals.reion_grids.slab_n_complex[run_globals.mpi_rank]);
 
   // Fill-up the real-space of the deldel box
   // Note: we include the V/N factor for the scaling after the fft
@@ -126,7 +126,7 @@ int delta_T_ps(
         ((float *)deldel_T)[grid_index(ii, jj, kk, ReionGridDim, INDEX_PADDED)] = (delta_T[grid_index(ii,jj,kk, ReionGridDim, INDEX_REAL)] / ave - 1) * volume / (float)tot_num_pixels;
 
   // Transform to k-space
-  fftwf_plan plan = fftwf_mpi_plan_dft_r2c_3d(ReionGridDim, ReionGridDim, ReionGridDim, (float *)deldel_T, (fftwf_complex *)deldel_T,  SID_COMM_WORLD, FFTW_ESTIMATE);
+  fftwf_plan plan = fftwf_mpi_plan_dft_r2c_3d(ReionGridDim, ReionGridDim, ReionGridDim, (float *)deldel_T, (fftwf_complex *)deldel_T,  MPI_COMM_WORLD, FFTW_ESTIMATE);
   fftwf_execute(plan);
   fftwf_destroy_plan(plan);
 

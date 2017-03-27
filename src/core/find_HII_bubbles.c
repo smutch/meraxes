@@ -35,7 +35,7 @@ double RtoM(double R)
       return pow(2 * M_PI, 1.5) * OmegaM * RhoCrit * pow(R, 3);
       break;
     default: // filter not defined
-      SID_log_error("Unrecognised filter (%d). Aborting...", filter);
+      mlog_error("Unrecognised filter (%d). Aborting...", filter);
       ABORT(EXIT_FAILURE);
       break;
   }
@@ -53,7 +53,7 @@ void find_HII_bubbles(double redshift)
   double       pixel_volume         = pow(box_size / (double)ReionGridDim, 3); // (Mpc/h)^3
   double       cell_length_factor   = L_FACTOR;
   double       total_n_cells        = pow((double)ReionGridDim, 3);
-  int          local_nix            = (int)(run_globals.reion_grids.slab_nix[SID.My_rank]);
+  int          local_nix            = (int)(run_globals.reion_grids.slab_nix[run_globals.mpi_rank]);
   int          slab_n_real          = local_nix * ReionGridDim * ReionGridDim;
   int          flag_ReionUVBFlag    = run_globals.params.ReionUVBFlag;
   double       ReionEfficiency      = run_globals.params.physics.ReionEfficiency;
@@ -92,9 +92,9 @@ void find_HII_bubbles(double redshift)
   // #ifdef DEBUG
   //   {
   //     char fname_debug[STRLEN];
-  //     sprintf(fname_debug, "pre_stars-%d.dat", SID.My_rank);
+  //     sprintf(fname_debug, "pre_stars-%d.dat", run_globals.mpi_rank);
   //     FILE *fd_debug = fopen(fname_debug, "wb");
-  //     for(int ix = 0; ix < run_globals.reion_grids.slab_nix[SID.My_rank]; ix++)
+  //     for(int ix = 0; ix < run_globals.reion_grids.slab_nix[run_globals.mpi_rank]; ix++)
   //       for(int iy = 0; iy < ReionGridDim; iy++)
   //         for(int iz = 0; iz < ReionGridDim; iz++)
   //           fwrite(&(run_globals.reion_grids.stars[grid_index(ix, iy, iz, ReionGridDim, INDEX_PADDED)]), sizeof(float), 1, fd_debug);
@@ -105,9 +105,9 @@ void find_HII_bubbles(double redshift)
   // #ifdef DEBUG
   //   {
   //     char fname_debug[STRLEN];
-  //     sprintf(fname_debug, "pre_sfr-%d.dat", SID.My_rank);
+  //     sprintf(fname_debug, "pre_sfr-%d.dat", run_globals.mpi_rank);
   //     FILE *fd_debug = fopen(fname_debug, "wb");
-  //     for(int ix = 0; ix < run_globals.reion_grids.slab_nix[SID.My_rank]; ix++)
+  //     for(int ix = 0; ix < run_globals.reion_grids.slab_nix[run_globals.mpi_rank]; ix++)
   //       for(int iy = 0; iy < ReionGridDim; iy++)
   //         for(int iz = 0; iz < ReionGridDim; iz++)
   //           fwrite(&(run_globals.reion_grids.sfr[grid_index(ix, iy, iz, ReionGridDim, INDEX_PADDED)]), sizeof(float), 1, fd_debug);
@@ -121,28 +121,28 @@ void find_HII_bubbles(double redshift)
   float         *deltax            = run_globals.reion_grids.deltax;
   fftwf_complex *deltax_unfiltered = (fftwf_complex *)deltax;  // WATCH OUT!
   fftwf_complex *deltax_filtered   = run_globals.reion_grids.deltax_filtered;
-  fftwf_plan     plan              = fftwf_mpi_plan_dft_r2c_3d(ReionGridDim, ReionGridDim, ReionGridDim, deltax, deltax_unfiltered, SID_COMM_WORLD, FFTW_ESTIMATE);
+  fftwf_plan     plan              = fftwf_mpi_plan_dft_r2c_3d(ReionGridDim, ReionGridDim, ReionGridDim, deltax, deltax_unfiltered, MPI_COMM_WORLD, FFTW_ESTIMATE);
   fftwf_execute(plan);
   fftwf_destroy_plan(plan);
 
   float         *stars            = run_globals.reion_grids.stars;
   fftwf_complex *stars_unfiltered = (fftwf_complex *)stars;  // WATCH OUT!
   fftwf_complex *stars_filtered   = run_globals.reion_grids.stars_filtered;
-  plan = fftwf_mpi_plan_dft_r2c_3d(ReionGridDim, ReionGridDim, ReionGridDim, stars, stars_unfiltered, SID_COMM_WORLD, FFTW_ESTIMATE);
+  plan = fftwf_mpi_plan_dft_r2c_3d(ReionGridDim, ReionGridDim, ReionGridDim, stars, stars_unfiltered, MPI_COMM_WORLD, FFTW_ESTIMATE);
   fftwf_execute(plan);
   fftwf_destroy_plan(plan);
 
   float         *sfr            = run_globals.reion_grids.sfr;
   fftwf_complex *sfr_unfiltered = (fftwf_complex *)sfr;  // WATCH OUT!
   fftwf_complex *sfr_filtered   = run_globals.reion_grids.sfr_filtered;
-  plan = fftwf_mpi_plan_dft_r2c_3d(ReionGridDim, ReionGridDim, ReionGridDim, sfr, sfr_unfiltered, SID_COMM_WORLD, FFTW_ESTIMATE);
+  plan = fftwf_mpi_plan_dft_r2c_3d(ReionGridDim, ReionGridDim, ReionGridDim, sfr, sfr_unfiltered, MPI_COMM_WORLD, FFTW_ESTIMATE);
   fftwf_execute(plan);
   fftwf_destroy_plan(plan);
 
   // Remember to add the factor of VOLUME/TOT_NUM_PIXELS when converting from real space to k-space
   // Note: we will leave off factor of VOLUME, in anticipation of the inverse FFT below
   // TODO: Double check that looping over correct number of elements here
-  int slab_n_complex = (int)(run_globals.reion_grids.slab_n_complex[SID.My_rank]);
+  int slab_n_complex = (int)(run_globals.reion_grids.slab_n_complex[run_globals.mpi_rank]);
   for (int ii = 0; ii < slab_n_complex; ii++)
   {
     deltax_unfiltered[ii] /= total_n_cells;
@@ -170,8 +170,8 @@ void find_HII_bubbles(double redshift)
     }
 
     // DEBUG
-    // SID_log("R = %.2e (h=0.678 -> %.2e)", SID_LOG_COMMENT, R, R/0.678);
-    SID_log(".", SID_LOG_CONTINUE);
+    // mlog("R = %.2e (h=0.678 -> %.2e)", MLOG_MESG, R, R/0.678);
+    mlog(".", MLOG_CONT);
 
     // copy the k-space grids
     memcpy(deltax_filtered, deltax_unfiltered, sizeof(fftwf_complex) * slab_n_complex);
@@ -179,7 +179,7 @@ void find_HII_bubbles(double redshift)
     memcpy(sfr_filtered, sfr_unfiltered, sizeof(fftwf_complex) * slab_n_complex);
 
     // do the filtering unless this is the last filter step
-    int local_ix_start = (int)(run_globals.reion_grids.slab_ix_start[SID.My_rank]);
+    int local_ix_start = (int)(run_globals.reion_grids.slab_ix_start[run_globals.mpi_rank]);
     if(!flag_last_filter_step)
     {
       filter(deltax_filtered, local_ix_start, local_nix, ReionGridDim, (float)R);
@@ -188,15 +188,15 @@ void find_HII_bubbles(double redshift)
     }
 
     // inverse fourier transform back to real space
-    plan = fftwf_mpi_plan_dft_c2r_3d(ReionGridDim, ReionGridDim, ReionGridDim, deltax_filtered, (float *)deltax_filtered, SID_COMM_WORLD, FFTW_ESTIMATE);
+    plan = fftwf_mpi_plan_dft_c2r_3d(ReionGridDim, ReionGridDim, ReionGridDim, deltax_filtered, (float *)deltax_filtered, MPI_COMM_WORLD, FFTW_ESTIMATE);
     fftwf_execute(plan);
     fftwf_destroy_plan(plan);
 
-    plan = fftwf_mpi_plan_dft_c2r_3d(ReionGridDim, ReionGridDim, ReionGridDim, stars_filtered, (float *)stars_filtered, SID_COMM_WORLD, FFTW_ESTIMATE);
+    plan = fftwf_mpi_plan_dft_c2r_3d(ReionGridDim, ReionGridDim, ReionGridDim, stars_filtered, (float *)stars_filtered, MPI_COMM_WORLD, FFTW_ESTIMATE);
     fftwf_execute(plan);
     fftwf_destroy_plan(plan);
 
-    plan = fftwf_mpi_plan_dft_c2r_3d(ReionGridDim, ReionGridDim, ReionGridDim, sfr_filtered, (float *)sfr_filtered, SID_COMM_WORLD, FFTW_ESTIMATE);
+    plan = fftwf_mpi_plan_dft_c2r_3d(ReionGridDim, ReionGridDim, ReionGridDim, sfr_filtered, (float *)sfr_filtered, MPI_COMM_WORLD, FFTW_ESTIMATE);
     fftwf_execute(plan);
     fftwf_destroy_plan(plan);
 
@@ -214,9 +214,9 @@ void find_HII_bubbles(double redshift)
     // #ifdef DEBUG
     //   {
     //     char fname_debug[STRLEN];
-    //     sprintf(fname_debug, "post_stars-%d_R%.3f.dat", SID.My_rank, R);
+    //     sprintf(fname_debug, "post_stars-%d_R%.3f.dat", run_globals.mpi_rank, R);
     //     FILE *fd_debug = fopen(fname_debug, "wb");
-    //     for(int ix = 0; ix < run_globals.reion_grids.slab_nix[SID.My_rank]; ix++)
+    //     for(int ix = 0; ix < run_globals.reion_grids.slab_nix[run_globals.mpi_rank]; ix++)
     //       for(int iy = 0; iy < ReionGridDim; iy++)
     //         for(int iz = 0; iz < ReionGridDim; iz++)
     //           fwrite(&(run_globals.reion_grids.stars_filtered[grid_index(ix, iy, iz, ReionGridDim, INDEX_PADDED)]), sizeof(float), 1, fd_debug);
@@ -224,9 +224,9 @@ void find_HII_bubbles(double redshift)
     //   }
     //   {
     //     char fname_debug[STRLEN];
-    //     sprintf(fname_debug, "post_sfr-%d_R%.3f.dat", SID.My_rank, R);
+    //     sprintf(fname_debug, "post_sfr-%d_R%.3f.dat", run_globals.mpi_rank, R);
     //     FILE *fd_debug = fopen(fname_debug, "wb");
-    //     for(int ix = 0; ix < run_globals.reion_grids.slab_nix[SID.My_rank]; ix++)
+    //     for(int ix = 0; ix < run_globals.reion_grids.slab_nix[run_globals.mpi_rank]; ix++)
     //       for(int iy = 0; iy < ReionGridDim; iy++)
     //         for(int iz = 0; iz < ReionGridDim; iz++)
     //           fwrite(&(run_globals.reion_grids.sfr_filtered[grid_index(ix, iy, iz, ReionGridDim, INDEX_PADDED)]), sizeof(float), 1, fd_debug);
@@ -252,21 +252,21 @@ void find_HII_bubbles(double redshift)
     //     for (int iz=0; iz<ReionGridDim; iz++)
     //       if (((float *)sfr_filtered)[grid_index(ix, iy, iz, ReionGridDim, INDEX_PADDED)] > 0)
     //       {
-    //         SID_log("J_21_aux ==========", SID_LOG_OPEN);
-    //         SID_log("redshift = %.2f", SID_LOG_COMMENT, redshift);
-    //         SID_log("alpha = %.2e", SID_LOG_COMMENT, run_globals.params.physics.ReionAlphaUV);
-    //         SID_log("PLANCK = %.2e", SID_LOG_COMMENT, PLANCK);
-    //         SID_log("ReionEscapeFrac = %.2f", SID_LOG_COMMENT, ReionEscapeFrac);
-    //         SID_log("ReionNionPhotPerBary = %.1f", SID_LOG_COMMENT, ReionNionPhotPerBary);
-    //         SID_log("UnitMass_in_g = %.2e", SID_LOG_COMMENT, units->UnitMass_in_g);
-    //         SID_log("UnitLength_in_cm = %.2e", SID_LOG_COMMENT, units->UnitLength_in_cm);
-    //         SID_log("PROTONMASS = %.2e", SID_LOG_COMMENT, PROTONMASS);
-    //         SID_log("-> J_21_aux_constant = %.2e", SID_LOG_COMMENT, J_21_aux_constant);
-    //         SID_log("pixel_volume = %.2e", SID_LOG_COMMENT, pixel_volume);
-    //         SID_log("sfr_density[%d, %d, %d] = %.2e", SID_LOG_COMMENT, ((float *)sfr_filtered)[grid_index(ix, iy, iz, ReionGridDim, INDEX_PADDED)] / pixel_volume);
-    //         SID_log("-> J_21_aux = %.2e", SID_LOG_COMMENT, ((float *)sfr_filtered)[grid_index(ix, iy, iz, ReionGridDim, INDEX_PADDED)] / pixel_volume * J_21_aux_constant);
-    //         SID_log("==========", SID_LOG_CLOSE);
-    //         if (SID.My_rank == 0)
+    //         mlog("J_21_aux ==========", MLOG_OPEN);
+    //         mlog("redshift = %.2f", MLOG_MESG, redshift);
+    //         mlog("alpha = %.2e", MLOG_MESG, run_globals.params.physics.ReionAlphaUV);
+    //         mlog("PLANCK = %.2e", MLOG_MESG, PLANCK);
+    //         mlog("ReionEscapeFrac = %.2f", MLOG_MESG, ReionEscapeFrac);
+    //         mlog("ReionNionPhotPerBary = %.1f", MLOG_MESG, ReionNionPhotPerBary);
+    //         mlog("UnitMass_in_g = %.2e", MLOG_MESG, units->UnitMass_in_g);
+    //         mlog("UnitLength_in_cm = %.2e", MLOG_MESG, units->UnitLength_in_cm);
+    //         mlog("PROTONMASS = %.2e", MLOG_MESG, PROTONMASS);
+    //         mlog("-> J_21_aux_constant = %.2e", MLOG_MESG, J_21_aux_constant);
+    //         mlog("pixel_volume = %.2e", MLOG_MESG, pixel_volume);
+    //         mlog("sfr_density[%d, %d, %d] = %.2e", MLOG_MESG, ((float *)sfr_filtered)[grid_index(ix, iy, iz, ReionGridDim, INDEX_PADDED)] / pixel_volume);
+    //         mlog("-> J_21_aux = %.2e", MLOG_MESG, ((float *)sfr_filtered)[grid_index(ix, iy, iz, ReionGridDim, INDEX_PADDED)] / pixel_volume * J_21_aux_constant);
+    //         mlog("==========", MLOG_CLOSE);
+    //         if (run_globals.mpi_rank == 0)
     //           ABORT(EXIT_SUCCESS);
     //       }
 
@@ -287,7 +287,7 @@ void find_HII_bubbles(double redshift)
           // #ifdef DEBUG
           //           if(abs(redshift - 23.074) < 0.01)
           //             debug("%d, %d, %d, %d, %g, %g, %g, %g, %g, %g, %g, %g, %g, %g, %g\n",
-          //                 SID.My_rank, ix, iy, iz,
+          //                 run_globals.mpi_rank, ix, iy, iz,
           //                 R, density_over_mean, f_coll_stars,
           //                 ((float *)stars_filtered)[grid_index(ix, iy, iz, ReionGridDim, INDEX_PADDED)],
           //                 RtoM(R), (4.0/3.0)*M_PI*pow(R,3.0), pixel_volume, 1.0/ReionEfficiency, sfr_density, ((float*)sfr_filtered)[grid_index(ix, iy, iz, ReionGridDim, INDEX_PADDED)], (float)(sfr_density * J_21_aux_constant));
@@ -350,9 +350,9 @@ void find_HII_bubbles(double redshift)
         mass_weight               += density_over_mean;
       }
 
-  SID_Allreduce(SID_IN_PLACE, &volume_weighted_global_xH, 1, SID_DOUBLE, SID_SUM, SID.COMM_WORLD);
-  SID_Allreduce(SID_IN_PLACE, &mass_weighted_global_xH, 1, SID_DOUBLE, SID_SUM, SID.COMM_WORLD);
-  SID_Allreduce(SID_IN_PLACE, &mass_weight, 1, SID_DOUBLE, SID_SUM, SID.COMM_WORLD);
+  MPI_Allreduce(MPI_IN_PLACE, &volume_weighted_global_xH, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
+  MPI_Allreduce(MPI_IN_PLACE, &mass_weighted_global_xH, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
+  MPI_Allreduce(MPI_IN_PLACE, &mass_weight, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
 
   volume_weighted_global_xH                        /= total_n_cells;
   mass_weighted_global_xH                          /= mass_weight;

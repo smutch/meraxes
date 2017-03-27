@@ -5,7 +5,7 @@ static int prompt_char(const char *message)
 {
   int cont;
 
-  if (SID.My_rank == 0)
+  if (run_globals.mpi_rank == 0)
   {
     char c;
     int  tmp;
@@ -44,7 +44,7 @@ static int prompt_char(const char *message)
     }
   }
 
-  SID_Bcast(&cont, sizeof(int), 0, SID.COMM_WORLD);
+  MPI_Bcast(&cont, sizeof(int), 0, MPI_COMM_WORLD);
   return cont;
 }
 
@@ -59,7 +59,7 @@ void continue_prompt(char *param_file)
   while (rerun < 0)
     rerun = prompt_char("Reread input file and rerun model?");
 
-  SID_Barrier(SID.COMM_WORLD);
+  MPI_Barrier(MPI_COMM_WORLD);
 
   if (rerun)
   {
@@ -71,7 +71,7 @@ void continue_prompt(char *param_file)
   else
   {
     run_globals.params.FlagInteractive = 0;
-    SID_Bcast(&(run_globals.params.FlagInteractive), sizeof(int), 0, SID.COMM_WORLD);
+    MPI_Bcast(&(run_globals.params.FlagInteractive), sizeof(int), 0, MPI_COMM_WORLD);
   }
 
   return;

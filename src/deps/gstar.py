@@ -37,9 +37,3 @@ deps['cmocka'] = {
     'libp'  : '/home/smutch/3rd_party/cmocka/lib',
     'lib'   : 'cmocka',
 }
-
-deps['zlog'] = {
-    'inclp' : '/home/smutch/3rd_party/zlog/include',
-    'libp' : '/home/smutch/3rd_party/zlog/lib',
-    'lib' : 'zlog',
-}

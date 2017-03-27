@@ -46,7 +46,7 @@ double calculate_merging_time(galaxy_t *orphan, int snapshot)
 
   if (parent == sat)
   {
-    SID_log_error("Invalid merger...!");
+    mlog_error("Invalid merger...!");
     ABORT(EXIT_FAILURE);
   }
 

@@ -11,8 +11,8 @@ static int compile_regex(regex_t *reg, const char *regex_text)
   {
     char error_message[256];
     regerror(status, reg, error_message, 256);
-    SID_log_error("Regex error compiling '%s': %s",
-                  SID_LOG_COMMENT, regex_text, error_message);
+    mlog_error("Regex error compiling '%s': %s",
+                  MLOG_MESG, regex_text, error_message);
     return 1;
   }
   return 0;
@@ -78,7 +78,7 @@ int parse_paramfile(char *fname, entry_t entry[PARAM_MAX_ENTRIES])
 
   if ((fin = fopen(fname, "r")) == NULL)
   {
-    SID_log_error("Failed to open parameter file %s\t...ABORTING", fname);
+    mlog_error("Failed to open parameter file %s\t...ABORTING", fname);
     ABORT(EXIT_FAILURE);
   }
   compile_regex(&reg, regex_text);

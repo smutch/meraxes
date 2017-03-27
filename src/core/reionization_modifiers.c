@@ -13,7 +13,7 @@ void read_Mcrit_table()
     return;
   }
 
-  if(SID.My_rank == 0)
+  if(run_globals.mpi_rank == 0)
   {
     hid_t   fd;
     hsize_t dims;
@@ -27,15 +27,15 @@ void read_Mcrit_table()
     assert((int)dims == run_globals.params.SnaplistLength);
 
     // read the dataset
-    run_globals.params.MvirCrit = SID_malloc(sizeof(double) * (int)dims);
+    run_globals.params.MvirCrit = malloc(sizeof(double) * (int)dims);
     H5LTread_dataset_double(fd, "mean_Mvir_crit", run_globals.params.MvirCrit);
 
     // close the file
     H5Fclose(fd);
   }
   else
-    run_globals.params.MvirCrit = SID_malloc(sizeof(double) * run_globals.params.SnaplistLength);
+    run_globals.params.MvirCrit = malloc(sizeof(double) * run_globals.params.SnaplistLength);
 
   // broadcast the result to the other ranks
-  SID_Bcast(run_globals.params.MvirCrit, run_globals.params.SnaplistLength, 0, SID.COMM_WORLD);
+  MPI_Bcast(run_globals.params.MvirCrit, run_globals.params.SnaplistLength, 0, MPI_COMM_WORLD);
 }

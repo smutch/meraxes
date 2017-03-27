@@ -94,7 +94,7 @@ void dracarys()
   // Prep the output file
   if (!run_globals.params.FlagMCMC)
   {
-    sprintf(run_globals.FNameOut, "%s/%s_%d.hdf5", run_globals.params.OutputDir, run_globals.params.FileNameGalaxies, SID.My_rank);
+    sprintf(run_globals.FNameOut, "%s/%s_%d.hdf5", run_globals.params.OutputDir, run_globals.params.FileNameGalaxies, run_globals.mpi_rank);
     prep_hdf5_file();
   }
 
@@ -106,10 +106,10 @@ void dracarys()
     int  new_gal_counter = 0;
     int  ghost_counter   = 0;
 
-    SID_log("", SID_LOG_COMMENT);
-    SID_log("===============================================================", SID_LOG_COMMENT);
-    SID_log("Snapshot %d  (z = %.3f)", SID_LOG_COMMENT, snapshot, run_globals.ZZ[snapshot]);
-    SID_log("===============================================================", SID_LOG_COMMENT);
+    mlog("", MLOG_MESG);
+    mlog("===============================================================", MLOG_MESG);
+    mlog("Snapshot %d  (z = %.3f)", MLOG_MESG, snapshot, run_globals.ZZ[snapshot]);
+    mlog("===============================================================", MLOG_MESG);
 
     // Reset book keeping counters
     kill_counter = 0;
@@ -127,7 +127,7 @@ void dracarys()
     fof_group    = snapshot_fof_group[i_snap];
     index_lookup = snapshot_index_lookup[i_snap];
 
-    SID_log("Processing snapshot %d (z = %.2f)...", SID_LOG_OPEN | SID_LOG_TIMER, snapshot, run_globals.ZZ[snapshot]);
+    mlog("Processing snapshot %d (z = %.2f)...", MLOG_OPEN | MLOG_TIMERSTART, snapshot, run_globals.ZZ[snapshot]);
 
     // Calculate the critical halo mass for cooling
     if ((run_globals.params.Flag_PatchyReion) && (run_globals.params.ReionUVBFlag))
@@ -354,7 +354,7 @@ void dracarys()
           }
 
           if (gal->FirstGalInHalo == NULL)
-            SID_log_warning("Just set gal->FirstGalInHalo = NULL!", SID_LOG_COMMENT);
+            mlog_warning("Just set gal->FirstGalInHalo = NULL!", MLOG_MESG);
 
           // Set the merger target of the incoming galaxy and initialise the
           // merger clock.  Note that we *increment* the clock immediately
@@ -392,7 +392,7 @@ void dracarys()
     {
       if ((gal->Halo == NULL) && (!gal->ghost_flag))
       {
-        SID_log_error("We missed a galaxy during processing!");
+        mlog_error("We missed a galaxy during processing!");
 #ifdef DEBUG
         mpi_debug_here();
 #endif
@@ -451,21 +451,21 @@ void dracarys()
       // if we have already created a mapping of galaxies to MPI slabs then we no
       // longer need them as they will need to be re-created for the new halo
       // positions in the next time step
-      SID_free(SID_FARG run_globals.reion_grids.galaxy_to_slab_map);
+      free(run_globals.reion_grids.galaxy_to_slab_map);
     }
 
 
 #ifdef DEBUG
     // print some statistics for this snapshot
-    SID_Allreduce(SID_IN_PLACE, &merger_counter, 1, SID_INT, SID_SUM, SID.COMM_WORLD);
-    SID_Allreduce(SID_IN_PLACE, &kill_counter, 1, SID_INT, SID_SUM, SID.COMM_WORLD);
-    SID_Allreduce(SID_IN_PLACE, &new_gal_counter, 1, SID_INT, SID_SUM, SID.COMM_WORLD);
-    SID_Allreduce(SID_IN_PLACE, &ghost_counter, 1, SID_INT, SID_SUM, SID.COMM_WORLD);
+    MPI_Allreduce(MPI_IN_PLACE, &merger_counter, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
+    MPI_Allreduce(MPI_IN_PLACE, &kill_counter, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
+    MPI_Allreduce(MPI_IN_PLACE, &new_gal_counter, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
+    MPI_Allreduce(MPI_IN_PLACE, &ghost_counter, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
 
-    SID_log("Newly identified merger events    :: %d", SID_LOG_COMMENT, merger_counter);
-    SID_log("Killed galaxies                   :: %d", SID_LOG_COMMENT, kill_counter);
-    SID_log("Newly created galaxies            :: %d", SID_LOG_COMMENT, new_gal_counter);
-    SID_log("Galaxies in ghost halos           :: %d", SID_LOG_COMMENT, ghost_counter);
+    mlog("Newly identified merger events    :: %d", MLOG_MESG, merger_counter);
+    mlog("Killed galaxies                   :: %d", MLOG_MESG, kill_counter);
+    mlog("Newly created galaxies            :: %d", MLOG_MESG, new_gal_counter);
+    mlog("Galaxies in ghost halos           :: %d", MLOG_MESG, ghost_counter);
 #endif
 
     // Write the results if this is a requested snapshot
@@ -490,7 +490,7 @@ void dracarys()
     if (run_globals.params.FlagMCMC)
       meraxes_mhysa_hook(run_globals.mhysa_self, snapshot, nout_gals);
 
-    SID_log("...done", SID_LOG_CLOSE);
+    mlog("...done", MLOG_CLOSE | MLOG_TIMERSTOP);
   }
 
   if (run_globals.params.FlagInteractive || run_globals.params.FlagMCMC)
@@ -500,26 +500,26 @@ void dracarys()
     nout_gals      = 0;
     last_nout_gals = 0;
 
-    SID_log("Resetting halo->galaxy pointers", SID_LOG_COMMENT);
+    mlog("Resetting halo->galaxy pointers", MLOG_MESG);
     for (int ii = 0; ii < n_store_snapshots; ii++)
       for (int jj = 0; jj < snapshot_trees_info[ii].n_halos; jj++)
         snapshot_halo[ii][jj].Galaxy = NULL;
   }
 
-  SID_log("Freeing galaxies...", SID_LOG_OPEN);
+  mlog("Freeing galaxies...", MLOG_OPEN);
   gal = run_globals.FirstGal;
   while (gal != NULL)
   {
     next_gal = gal->Next;
-    SID_free(SID_FARG gal);
+    free(gal);
     gal      = next_gal;
   }
   run_globals.FirstGal = NULL;
-  SID_log("...done", SID_LOG_CLOSE);
+  mlog("...done", MLOG_CLOSE);
 
   // Create the master file
-  SID_Barrier(SID.COMM_WORLD);
+  MPI_Barrier(MPI_COMM_WORLD);
   if (!run_globals.params.FlagMCMC)
-    if (SID.My_rank == 0)
+    if (run_globals.mpi_rank == 0)
       create_master_file();
 }

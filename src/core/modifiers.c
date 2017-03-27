@@ -22,11 +22,11 @@ void read_mass_ratio_modifiers(int snapshot)
   if (strlen(run_globals.params.MassRatioModifier) == 0)
   {
     run_globals.RequestedMassRatioModifier = -1;
-    SID_log("No Mass Ratio Modifier :(", SID_LOG_COMMENT);
+    mlog("No Mass Ratio Modifier :(", MLOG_MESG);
   }
   else
   {
-    run_globals.mass_ratio_modifier = SID_malloc(sizeof(Modifier) * N_LOGMS);
+    run_globals.mass_ratio_modifier = malloc(sizeof(Modifier) * N_LOGMS);
     const size_t dst_size           = sizeof(Modifier);
     const size_t dst_sizes[NFIELDS] = {
       sizeof(run_globals.mass_ratio_modifier[0].logMmin),
@@ -50,7 +50,7 @@ void read_mass_ratio_modifiers(int snapshot)
       HOFFSET(Modifier, ratio_erru)
     };
 
-    if (SID.My_rank == 0)
+    if (run_globals.mpi_rank == 0)
     {
       hid_t fd;
       char  fname[STRLEN];
@@ -64,7 +64,7 @@ void read_mass_ratio_modifiers(int snapshot)
                            N_START, N_LOGMS, dst_size, dst_offset, dst_sizes, run_globals.mass_ratio_modifier);
       H5Fclose(fd);
     }
-    SID_Bcast(run_globals.mass_ratio_modifier, sizeof(run_globals.mass_ratio_modifier), 0, SID.COMM_WORLD);
+    MPI_Bcast(run_globals.mass_ratio_modifier, sizeof(run_globals.mass_ratio_modifier), 0, MPI_COMM_WORLD);
   }
 }
 
@@ -74,10 +74,10 @@ void read_baryon_frac_modifiers(int snapshot)
   if (strlen(run_globals.params.BaryonFracModifier) == 0)
   {
     run_globals.RequestedBaryonFracModifier = -1;
-    SID_log("No Baryon Fraction Modifier :(", SID_LOG_COMMENT);
+    mlog("No Baryon Fraction Modifier :(", MLOG_MESG);
   }
   else{
-    run_globals.baryon_frac_modifier = SID_malloc(sizeof(Modifier) * N_LOGMS);
+    run_globals.baryon_frac_modifier = malloc(sizeof(Modifier) * N_LOGMS);
     const size_t dst_size           = sizeof(Modifier);
     const size_t dst_sizes[NFIELDS] = {
       sizeof(run_globals.baryon_frac_modifier[0].logMmin),
@@ -101,7 +101,7 @@ void read_baryon_frac_modifiers(int snapshot)
       HOFFSET(Modifier, ratio_erru)
     };
 
-    if (SID.My_rank == 0)
+    if (run_globals.mpi_rank == 0)
     {
       hid_t fd;
       char  fname[STRLEN];
@@ -115,7 +115,7 @@ void read_baryon_frac_modifiers(int snapshot)
                            N_START, N_LOGMS, dst_size, dst_offset, dst_sizes, run_globals.baryon_frac_modifier);
       H5Fclose(fd);
     }
-    SID_Bcast(run_globals.baryon_frac_modifier, sizeof(run_globals.baryon_frac_modifier), 0, SID.COMM_WORLD);
+    MPI_Bcast(run_globals.baryon_frac_modifier, sizeof(run_globals.baryon_frac_modifier), 0, MPI_COMM_WORLD);
   }
 }
 

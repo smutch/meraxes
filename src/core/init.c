@@ -12,7 +12,7 @@ static void read_requested_forest_ids()
     return;
   }
 
-  if (SID.My_rank == 0)
+  if (run_globals.mpi_rank == 0)
   {
     FILE  *fin;
     char  *line      = NULL;
@@ -22,7 +22,7 @@ static void read_requested_forest_ids()
 
     if (!(fin = fopen(run_globals.params.ForestIDFile, "r")))
     {
-      SID_log_error("Failed to open file: %s", run_globals.params.ForestIDFile);
+      mlog_error("Failed to open file: %s", run_globals.params.ForestIDFile);
       ABORT(EXIT_FAILURE);
     }
 
@@ -30,7 +30,7 @@ static void read_requested_forest_ids()
     n_forests                     = atoi(line);
     run_globals.NRequestedForests = n_forests;
 
-    run_globals.RequestedForestId = SID_malloc(sizeof(int) * n_forests);
+    run_globals.RequestedForestId = malloc(sizeof(int) * n_forests);
     ids                           = run_globals.RequestedForestId;
 
     for (int ii = 0; ii < n_forests; ii++)
@@ -41,23 +41,23 @@ static void read_requested_forest_ids()
 
     free(line);
 
-    SID_log("Found %d requested forest IDs", SID_LOG_COMMENT, n_forests);
+    mlog("Found %d requested forest IDs", MLOG_MESG, n_forests);
 
     fclose(fin);
   }
 
 
   // broadcast the data to all other ranks
-  SID_Bcast(&(run_globals.NRequestedForests), sizeof(int), 0, SID.COMM_WORLD);
-  if (SID.My_rank > 0)
-    run_globals.RequestedForestId = SID_malloc(sizeof(int) * run_globals.NRequestedForests);
-  SID_Bcast(run_globals.RequestedForestId, sizeof(int) * run_globals.NRequestedForests, 0, SID.COMM_WORLD);
+  MPI_Bcast(&(run_globals.NRequestedForests), sizeof(int), 0, MPI_COMM_WORLD);
+  if (run_globals.mpi_rank > 0)
+    run_globals.RequestedForestId = malloc(sizeof(int) * run_globals.NRequestedForests);
+  MPI_Bcast(run_globals.RequestedForestId, sizeof(int) * run_globals.NRequestedForests, 0, MPI_COMM_WORLD);
 }
 
 
 static void read_snap_list()
 {
-  if (SID.My_rank == 0)
+  if (run_globals.mpi_rank == 0)
   {
     FILE        *fin;
     int          snaplist_len;
@@ -69,7 +69,7 @@ static void read_snap_list()
 
     if (!(fin = fopen(fname, "r")))
     {
-      SID_log_error("failed to read snaplist in file '%s'", fname);
+      mlog_error("failed to read snaplist in file '%s'", fname);
       ABORT(EXIT_FAILURE);
     }
 
@@ -84,13 +84,13 @@ static void read_snap_list()
     } while (true);
 
     run_globals.params.SnaplistLength = snaplist_len;
-    if (SID.My_rank == 0)
+    if (run_globals.mpi_rank == 0)
       printf("found %d defined times in snaplist.\n", snaplist_len);
 
     // malloc the relevant arrays
-    run_globals.AA     = SID_malloc(sizeof(double) * snaplist_len);
-    run_globals.ZZ     = SID_malloc(sizeof(double) * snaplist_len);
-    run_globals.LTTime = SID_malloc(sizeof(double) * snaplist_len);
+    run_globals.AA     = malloc(sizeof(double) * snaplist_len);
+    run_globals.ZZ     = malloc(sizeof(double) * snaplist_len);
+    run_globals.LTTime = malloc(sizeof(double) * snaplist_len);
 
     // seek back to the start of the file
     rewind(fin);
@@ -110,14 +110,14 @@ static void read_snap_list()
   }
 
   // broadcast the read to all other ranks and malloc the necessary arrays
-  SID_Bcast(&(run_globals.params.SnaplistLength), sizeof(int), 0, SID.COMM_WORLD);
-  if (SID.My_rank > 0)
+  MPI_Bcast(&(run_globals.params.SnaplistLength), sizeof(int), 0, MPI_COMM_WORLD);
+  if (run_globals.mpi_rank > 0)
   {
-    run_globals.AA     = SID_malloc(sizeof(double) * run_globals.params.SnaplistLength);
-    run_globals.ZZ     = SID_malloc(sizeof(double) * run_globals.params.SnaplistLength);
-    run_globals.LTTime = SID_malloc(sizeof(double) * run_globals.params.SnaplistLength);
+    run_globals.AA     = malloc(sizeof(double) * run_globals.params.SnaplistLength);
+    run_globals.ZZ     = malloc(sizeof(double) * run_globals.params.SnaplistLength);
+    run_globals.LTTime = malloc(sizeof(double) * run_globals.params.SnaplistLength);
   }
-  SID_Bcast(run_globals.AA, sizeof(double) * run_globals.params.SnaplistLength, 0, SID.COMM_WORLD);
+  MPI_Bcast(run_globals.AA, sizeof(double) * run_globals.params.SnaplistLength, 0, MPI_COMM_WORLD);
 }
 
 
@@ -191,7 +191,7 @@ static void read_output_snaps()
   int   maxsnaps        = run_globals.params.SnaplistLength;
   int  *nout            = &(run_globals.NOutputSnaps);
 
-  if (SID.My_rank == 0)
+  if (run_globals.mpi_rank == 0)
   {
     int   i;
     char  fname[STRLEN];
@@ -201,7 +201,7 @@ static void read_output_snaps()
 
     if (!(fd = fopen(fname, "r")))
     {
-      SID_log_error("file `%s' not found.", fname);
+      mlog_error("file `%s' not found.", fname);
       exit(EXIT_FAILURE);
     }
 
@@ -217,12 +217,12 @@ static void read_output_snaps()
     fseek(fd, 0, SEEK_SET);
 
     // allocate the ListOutputSnaps array
-    *ListOutputSnaps = SID_malloc(sizeof(int) * (*nout));
+    *ListOutputSnaps = malloc(sizeof(int) * (*nout));
 
     for (i = 0; i < (*nout); i++)
       if (fscanf(fd, " %d ", &((*ListOutputSnaps)[i])) != 1)
       {
-        SID_log_error("I/O error in file '%s'\n", fname);
+        mlog_error("I/O error in file '%s'\n", fname);
         exit(EXIT_FAILURE);
       }
     fclose(fd);
@@ -230,7 +230,7 @@ static void read_output_snaps()
 #ifdef CALC_MAGS
     if (*nout != NOUT)
     {
-      SID_log_error("Number of entries in output snaplist does not match NOUT!");
+      mlog_error("Number of entries in output snaplist does not match NOUT!");
       ABORT(EXIT_FAILURE);
     }
 #endif
@@ -253,13 +253,13 @@ static void read_output_snaps()
   }
 
   // broadcast the data to all other ranks
-  SID_Bcast(nout, sizeof(int), 0, SID.COMM_WORLD);
+  MPI_Bcast(nout, sizeof(int), 0, MPI_COMM_WORLD);
 
-  if(SID.My_rank > 0)
-    *ListOutputSnaps = SID_malloc(sizeof(int) * (*nout));
+  if(run_globals.mpi_rank > 0)
+    *ListOutputSnaps = malloc(sizeof(int) * (*nout));
 
-  SID_Bcast(*ListOutputSnaps, sizeof(int) * (*nout), 0, SID.COMM_WORLD);
-  SID_Bcast(LastOutputSnap, sizeof(int), 0, SID.COMM_WORLD);
+  MPI_Bcast(*ListOutputSnaps, sizeof(int) * (*nout), 0, MPI_COMM_WORLD);
+  MPI_Bcast(LastOutputSnap, sizeof(int), 0, MPI_COMM_WORLD);
 }
 
 
@@ -286,7 +286,7 @@ static void check_n_history_snaps()
 
   if (m_low > 8.0)
   {
-    SID_log_error("N_HISTORY_SNAPS is likely not set to a high enough value!  Exiting...");
+    mlog_error("N_HISTORY_SNAPS is likely not set to a high enough value!  Exiting...");
     ABORT(EXIT_FAILURE);
   }
 }

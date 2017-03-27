@@ -6,7 +6,7 @@ galaxy_t* new_galaxy(int snapshot, int halo_ID)
 {
   galaxy_t *gal = NULL;
 
-  gal                             = SID_malloc(sizeof(galaxy_t));
+  gal                             = malloc(sizeof(galaxy_t));
 
   // Initialise the properties
   gal->id_MBP                     = 0;
@@ -154,7 +154,7 @@ void assign_galaxy_to_halo(galaxy_t *gal, halo_t *halo)
     halo->Galaxy = gal;
   else
   {
-    SID_log_error("Trying to assign first galaxy to a halo which already has a first galaxy!");
+    mlog_error("Trying to assign first galaxy to a halo which already has a first galaxy!");
 #ifdef DEBUG
     mpi_debug_here();
 #endif
@@ -231,7 +231,7 @@ void kill_galaxy(
   }
 
   // Finally deallocated the galaxy and decrement any necessary counters
-  SID_free(SID_FARG gal);
+  free(gal);
   *NGal         = *NGal - 1;
   *kill_counter = *kill_counter + 1;
 }

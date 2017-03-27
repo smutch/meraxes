@@ -9,7 +9,7 @@ void calculate_Mvir_crit(double redshift)
 
   int    ReionGridDim    = run_globals.params.ReionGridDim;
   double cell_Mvir_crit;
-  int    local_n_x       = (int)(run_globals.reion_grids.slab_nix[SID.My_rank]);
+  int    local_n_x       = (int)(run_globals.reion_grids.slab_nix[run_globals.mpi_rank]);
   int    local_n_cell    = local_n_x * ReionGridDim * ReionGridDim;
 
   double ReionSMParam_m0 = run_globals.params.physics.ReionSMParam_m0;

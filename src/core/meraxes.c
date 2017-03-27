@@ -5,29 +5,28 @@
 
 int main(int argc, char **argv)
 {
-  // init SID
-  SID_init(&argc, &argv, NULL, NULL);
+  MPI_Comm_dup(MPI_COMM_WORLD, run_globals.mpi_comm)
+  MPI_Comm_rank(MPI_COMM_WORLD, &run_globals.mpi_rank);
+  MPI_Comm_size(MPI_COMM_WORLD, &run_globals.mpi_size);
+
+  // init mlog
+  init_mlog(MPI_COMM_WORLD, stdout, stdout, stderr);
 
   struct stat filestatus;
 
   // deal with any input arguments
   if (argc != 2)
   {
-    SID_log("\n  usage: %s <parameterfile>\n\n", SID_LOG_COMMENT, argv[0]);
+    mlog("\n  usage: %s <parameterfile>\n\n", MLOG_MESG, argv[0]);
     ABORT(EXIT_FAILURE);
   }
 
   // set the rounding mode
   if (!fesetround(1))  // nearest number
   {
-    SID_log_error("Failed to set rounding mode!");
+    mlog_error("Failed to set rounding mode!");
     ABORT(EXIT_FAILURE);
   }
-
-#ifdef LOGGER
-  dzlog_init("zlog.conf", "default");
-  dzlog_notice("Log for rank %d.", SID.My_rank);
-#endif
 
   // read the input parameter file
   read_parameter_file(argv[1], 0);
@@ -52,9 +51,6 @@ int main(int argc, char **argv)
   // cleanup
   cleanup();
 
-#ifdef LOGGER
-  zlog_fini();
-#endif
-
-  SID_exit(EXIT_SUCCESS);
+  MPI_Finalize();
+  return EXIT_SUCCESS;
 }

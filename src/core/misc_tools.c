@@ -4,15 +4,12 @@
 
 void myexit(int signum)
 {
-  fprintf(stderr, "Task: %d\tnode: %s\tis exiting.\n\n\n", SID.My_rank, SID.My_node);
+  fprintf(stderr, "Task: %d\tis exiting.\n\n\n", run_globals.mpi_rank);
   cn_quote();
-  // if(SID.n_proc > 1)
-  // {
-  //   fflush(SID.fp_log);
-  //   fclose(SID.fp_log);
-  // }
   mpi_debug_here();
-  SID_exit(signum);
+  cleanup();
+  MPI_Finalize();
+  exit(signum);
 }
 
 

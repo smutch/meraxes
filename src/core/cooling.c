@@ -44,7 +44,7 @@ static double cooling_rate[N_METALLICITIES][N_TEMPS];
 
 void read_cooling_functions()
 {
-  if (SID.My_rank == 0)
+  if (run_globals.mpi_rank == 0)
   {
     hid_t fd;
     char  dset_name[30];
@@ -63,7 +63,7 @@ void read_cooling_functions()
   }
 
   // broadcast the values to all cores
-  SID_Bcast(cooling_rate, sizeof(cooling_rate), 0, SID.COMM_WORLD);
+  MPI_Bcast(cooling_rate, sizeof(cooling_rate), 0, MPI_COMM_WORLD);
 
   // add solar metallicity to all metallicity values
   for (int i_m = 0; i_m < N_METALLICITIES; i_m++)
