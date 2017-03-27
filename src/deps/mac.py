@@ -32,3 +32,9 @@ deps['fftw'] = {
     'libp'  : os.path.expanduser('~/3rd_party/fftw-3.3.5/lib'),
     'lib'   : ['fftw3f_mpi', 'fftw3f'],
 }
+
+deps['mlog'] = {
+    'inclp' : os.path.join(os.path.dirname(os.path.realpath(__file__)), '../mlog'),
+    'libp' : os.path.join(os.path.dirname(os.path.realpath(__file__)), '../mlog'),
+    'lib'   : ['mlog'],
+}

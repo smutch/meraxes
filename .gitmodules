@@ -1,0 +1,3 @@
+[submodule "src/mlog"]
+	path = src/mlog
+	url = git@github.com:smutch/mlog.git
