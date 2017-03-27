@@ -259,25 +259,25 @@ void read_photometric_tables()
   }
 
   // if using MPI, broadcast the necessary data to all ranks
-  MPI_Bcast(&(photo->NMetals), sizeof(int), 0, MPI_COMM_WORLD);
+  MPI_Bcast(&(photo->NMetals), 1, MPI_INT, 0, MPI_COMM_WORLD);
   if (run_globals.mpi_rank > 0)
     *Metals = (float*)malloc(sizeof(float) * photo->NMetals);
-  MPI_Bcast(*Metals, sizeof(float) * photo->NMetals, 0, MPI_COMM_WORLD);
+  MPI_Bcast(*Metals, photo->NMetals, MPI_FLOAT, 0, MPI_COMM_WORLD);
 
-  MPI_Bcast(&(photo->NAges), sizeof(int), 0, MPI_COMM_WORLD);
+  MPI_Bcast(&(photo->NAges), 1, MPI_INT, 0, MPI_COMM_WORLD);
   if (run_globals.mpi_rank > 0)
     *AgeTab = (float*)malloc(sizeof(float) * photo->NAges);
-  MPI_Bcast(*AgeTab, sizeof(float) * photo->NAges, 0, MPI_COMM_WORLD);
+  MPI_Bcast(*AgeTab, photo->NAges, MPI_FLOAT, 0, MPI_COMM_WORLD);
 
-  MPI_Bcast(&(photo->NBands), sizeof(int), 0, MPI_COMM_WORLD);
+  MPI_Bcast(&(photo->NBands), 1, MPI_INT, 0, MPI_COMM_WORLD);
   if (run_globals.mpi_rank > 0)
     *MagBands = malloc(sizeof(char[5]) * photo->NBands);
-  MPI_Bcast(*MagBands, sizeof(char[5]) * photo->NBands, 0, MPI_COMM_WORLD);
+  MPI_Bcast(*MagBands, photo->NBands*5, MPI_CHAR, 0, MPI_COMM_WORLD);
 
-  MPI_Bcast(&(n_table_entries), sizeof(int), 0, MPI_COMM_WORLD);
+  MPI_Bcast(&(n_table_entries), 1, MPI_INT, 0, MPI_COMM_WORLD);
   if (run_globals.mpi_rank > 0)
     *PhotoTab = (float*)malloc(sizeof(float) * n_table_entries);
-  MPI_Bcast(*PhotoTab, sizeof(float) * n_table_entries, 0, MPI_COMM_WORLD);
+  MPI_Bcast(*PhotoTab, n_table_entries, MPI_FLOAT, 0, MPI_COMM_WORLD);
 
 #ifdef DEBUG
   print_phototab(0);

@@ -63,7 +63,7 @@ void read_cooling_functions()
   }
 
   // broadcast the values to all cores
-  MPI_Bcast(cooling_rate, sizeof(cooling_rate), 0, MPI_COMM_WORLD);
+  MPI_Bcast(cooling_rate, sizeof(cooling_rate), MPI_BYTE, 0, MPI_COMM_WORLD);
 
   // add solar metallicity to all metallicity values
   for (int i_m = 0; i_m < N_METALLICITIES; i_m++)

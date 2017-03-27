@@ -44,7 +44,7 @@ static int prompt_char(const char *message)
     }
   }
 
-  MPI_Bcast(&cont, sizeof(int), 0, MPI_COMM_WORLD);
+  MPI_Bcast(&cont, 1, MPI_INT, 0, MPI_COMM_WORLD);
   return cont;
 }
 
@@ -71,7 +71,7 @@ void continue_prompt(char *param_file)
   else
   {
     run_globals.params.FlagInteractive = 0;
-    MPI_Bcast(&(run_globals.params.FlagInteractive), sizeof(int), 0, MPI_COMM_WORLD);
+    MPI_Bcast(&(run_globals.params.FlagInteractive), 1, MPI_INT, 0, MPI_COMM_WORLD);
   }
 
   return;

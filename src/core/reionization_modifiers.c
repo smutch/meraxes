@@ -37,5 +37,5 @@ void read_Mcrit_table()
     run_globals.params.MvirCrit = malloc(sizeof(double) * run_globals.params.SnaplistLength);
 
   // broadcast the result to the other ranks
-  MPI_Bcast(run_globals.params.MvirCrit, run_globals.params.SnaplistLength, 0, MPI_COMM_WORLD);
+  MPI_Bcast(run_globals.params.MvirCrit, run_globals.params.SnaplistLength, MPI_DOUBLE, 0, MPI_COMM_WORLD);
 }

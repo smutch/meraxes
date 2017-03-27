@@ -64,7 +64,7 @@ void read_mass_ratio_modifiers(int snapshot)
                            N_START, N_LOGMS, dst_size, dst_offset, dst_sizes, run_globals.mass_ratio_modifier);
       H5Fclose(fd);
     }
-    MPI_Bcast(run_globals.mass_ratio_modifier, sizeof(run_globals.mass_ratio_modifier), 0, MPI_COMM_WORLD);
+    MPI_Bcast(run_globals.mass_ratio_modifier, sizeof(run_globals.mass_ratio_modifier), MPI_BYTE, 0, MPI_COMM_WORLD);
   }
 }
 
@@ -115,7 +115,7 @@ void read_baryon_frac_modifiers(int snapshot)
                            N_START, N_LOGMS, dst_size, dst_offset, dst_sizes, run_globals.baryon_frac_modifier);
       H5Fclose(fd);
     }
-    MPI_Bcast(run_globals.baryon_frac_modifier, sizeof(run_globals.baryon_frac_modifier), 0, MPI_COMM_WORLD);
+    MPI_Bcast(run_globals.baryon_frac_modifier, sizeof(run_globals.baryon_frac_modifier), MPI_BYTE, 0, MPI_COMM_WORLD);
   }
 }
 
