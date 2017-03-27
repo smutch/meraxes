@@ -1,4 +1,5 @@
 # Gstar library dependencies
+import os
 
 deps = {}
 
@@ -36,4 +37,10 @@ deps['cmocka'] = {
     'inclp' : '/home/smutch/3rd_party/cmocka/include',
     'libp'  : '/home/smutch/3rd_party/cmocka/lib',
     'lib'   : 'cmocka',
+}
+
+deps['mlog'] = {
+    'inclp' : os.path.join(os.path.dirname(os.path.realpath(__file__)), '../mlog'),
+    'libp' : os.path.join(os.path.dirname(os.path.realpath(__file__)), '../mlog'),
+    'lib'   : ['mlog'],
 }

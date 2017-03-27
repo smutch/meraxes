@@ -32,4 +32,3 @@ include
 .sconf_temp
 config.log
 src/git.h
-src/mlog
