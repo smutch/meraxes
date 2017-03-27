@@ -664,7 +664,7 @@ static void select_forests()
     // create our list of forest_ids for this rank
     *n_requested_forests = rank_n_forests[run_globals.mpi_rank];
     if (run_globals.RequestedForestId != NULL)
-      run_globals.RequestedForestId = reallocf(run_globals.RequestedForestId, *n_requested_forests * sizeof(int));
+      run_globals.RequestedForestId = realloc(run_globals.RequestedForestId, *n_requested_forests * sizeof(int));
     else
       run_globals.RequestedForestId = (int*)malloc(sizeof(int) * (*n_requested_forests));
 

@@ -354,7 +354,7 @@ void dracarys()
           }
 
           if (gal->FirstGalInHalo == NULL)
-            mlog_warning("Just set gal->FirstGalInHalo = NULL!", MLOG_MESG);
+            mlog("<WARNING> Just set gal->FirstGalInHalo = NULL!", MLOG_MESG);
 
           // Set the merger target of the incoming galaxy and initialise the
           // merger clock.  Note that we *increment* the clock immediately

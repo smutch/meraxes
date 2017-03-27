@@ -57,7 +57,7 @@ static void inline store_params(
 
     if (tag_index < 0)
     {
-      mlog_warning("%s is an unrecognised parameter (prefix='%s').", MLOG_MESG, entry[i_entry].key, prefix);
+      mlog("<WARNING> %s is an unrecognised parameter (prefix='%s').", MLOG_MESG, entry[i_entry].key, prefix);
       ABORT(EXIT_FAILURE);
     }
 
