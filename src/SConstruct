@@ -196,7 +196,7 @@ if not GetOption('help'):
         context.Message('Checking if compiler supports %s ...' % flag)
         text = "int main(int argc, char **argv){ return 0; }"
         cppflags = context.vardict.get("CPPFLAGS", [])
-        context.env.AppendUnique(CPPFLAGS = [flag,])
+        context.env.AppendUnique(CPPFLAGS = [flag, '-Werror=unknown-warning-option'])
         result = not bool(_check_empty_program(context, 'CC', text, 'C'))
         context.Result(result)
         if not result:
