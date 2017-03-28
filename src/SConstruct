@@ -182,7 +182,7 @@ if not GetOption('help'):
         env['LINKCOMSTR'] = colored("Linking ", color='blue') + "$TARGET ..."
         env['SHCCCOMSTR'] = env['CCCOMSTR']
         env['SHLINKCOMSTR'] = env['LINKCOMSTR']
-        env['INSTALLSTR'] = colored("Install file: ", color='blue') + '"$SOURCE" as "$TARGET" ...'
+        env['INSTALLSTR'] = colored("Installing file: ", color='blue') + '"$SOURCE" as "$TARGET" ...'
 
     # ====================
     # Compiler flag checks
@@ -213,16 +213,28 @@ if not GetOption('help'):
     if not os.path.exists(dirname):
         os.makedirs(dirname)
 
+    # =============================
+    # = Set minimum build options =
+    # =============================
+
+    env.Replace(CC = deps['exec']['mpicc'])
+    env.AppendUnique(CPPFLAGS = ['-std=gnu99'])
+    env.AppendUnique(CPPPATH = './')
+    env.AppendUnique(SHCCFLAGS = ['-rdynamic'])
+
+    # Build mlog
+    cc = env['CC']
+    mesg_format = {}
+    for k in ('CCCOMSTR', 'LINKCOMSTR', 'SHCCCOMSTR', 'SHLINKCOMSTR', 'INSTALLSTR'):
+        try:
+            mesg_format[k] = env[k]
+        except KeyError:
+            pass
+    SConscript('mlog/SConscript', exports='cc mesg_format')
 
     # =================================
     # = System specific build options =
     # =================================
-
-    env.Replace(CC = deps['exec']['mpicc'])
-    env.AppendUnique(CPPDEFINES = ['USE_MPI=1'])
-    env.AppendUnique(CPPFLAGS = ['-std=gnu99'])
-    env.AppendUnique(CPPPATH = './')
-    env.AppendUnique(SHCCFLAGS = ['-rdynamic'])
 
     def compile_against(libs, deps, env):
         """Compile against a list of libraries with with paths etc. defined in
