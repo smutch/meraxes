@@ -79,12 +79,16 @@ def BuildLib(env, nodes, lib_type='dynamic'):
         """Prepend the user defined definitions (i.e. CPPDEFINES) to a header
         file."""
 
-        defs = "// These defines were added at compilation time\n"\
-               "// (see SConstruct prepend_user_defines())\n"
-        for v in env["CPPDEFINES"]:
-            v = env.subst(v[0])
-            defs += "#define "+v.replace("=", " ")+"\n"
-        defs += "// -------------------------------------------\n\n"
+        defs = ""
+
+        cppdefines = env.get("CPPDEFINES", [])
+        if len(cppdefines) > 0:
+            defs += "// These defines were added at compilation time\n"\
+                    "// (see SConstruct prepend_user_defines())\n"
+            for v in cppdefines:
+                v = env.subst(v[0])
+                defs += "#define "+v.replace("=", " ")+"\n"
+            defs += "// -------------------------------------------\n\n"
 
         with open("meraxes.h", "r") as fd:
             original = fd.read()
