@@ -73,12 +73,12 @@ void assign_slabs()
 
   // Use fftw to find out what slab each rank should get
   ptrdiff_t   local_nix, local_ix_start;
-  ptrdiff_t   local_n_complex = fftwf_mpi_local_size_3d(dim, dim, dim / 2 + 1, MPI_COMM_WORLD, &local_nix, &local_ix_start);
+  ptrdiff_t   local_n_complex = fftwf_mpi_local_size_3d(dim, dim, dim / 2 + 1, run_globals.mpi_comm, &local_nix, &local_ix_start);
 
   // let every core know...
   ptrdiff_t **slab_nix        = &run_globals.reion_grids.slab_nix;
   *slab_nix = malloc(sizeof(ptrdiff_t) * n_rank);  ///< array of number of x cells of every rank
-  MPI_Allgather(&local_nix, sizeof(ptrdiff_t), MPI_BYTE, *slab_nix, sizeof(ptrdiff_t), MPI_BYTE, MPI_COMM_WORLD);
+  MPI_Allgather(&local_nix, sizeof(ptrdiff_t), MPI_BYTE, *slab_nix, sizeof(ptrdiff_t), MPI_BYTE, run_globals.mpi_comm);
 
   ptrdiff_t **slab_ix_start = &run_globals.reion_grids.slab_ix_start;
   *slab_ix_start      = malloc(sizeof(ptrdiff_t) * n_rank); ///< array first x cell of every rank
@@ -88,7 +88,7 @@ void assign_slabs()
 
   ptrdiff_t **slab_n_complex = &run_globals.reion_grids.slab_n_complex; ///< array of allocation counts for every rank
   *slab_n_complex = malloc(sizeof(ptrdiff_t) * n_rank);             ///< array of allocation counts for every rank
-  MPI_Allgather(&local_n_complex, sizeof(ptrdiff_t), MPI_BYTE, *slab_n_complex, sizeof(ptrdiff_t), MPI_BYTE, MPI_COMM_WORLD);
+  MPI_Allgather(&local_n_complex, sizeof(ptrdiff_t), MPI_BYTE, *slab_n_complex, sizeof(ptrdiff_t), MPI_BYTE, run_globals.mpi_comm);
 
   mlog("...done", MLOG_CLOSE);
 }
@@ -105,7 +105,7 @@ void call_find_HII_bubbles(int snapshot, int unsampled_snapshot, int nout_gals)
   mlog("Getting ready to call find_HII_bubbles...", MLOG_OPEN);
 
   // Check to see if there are actually any galaxies at this snapshot
-  MPI_Allreduce(&nout_gals, &total_n_out_gals, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
+  MPI_Allreduce(&nout_gals, &total_n_out_gals, 1, MPI_INT, MPI_SUM, run_globals.mpi_comm);
   if (total_n_out_gals == 0)
   {
     mlog("No galaxies in the simulation - skipping...", MLOG_CLOSE);
@@ -386,7 +386,7 @@ void assign_Mvir_crit_to_galaxies(int ngals_in_slabs)
     if (i_skip > 0)
     {
       MPI_Sendrecv(&recv_flag, sizeof(bool), MPI_BYTE, recv_from_rank, 6393762,
-                   &send_flag, sizeof(bool), MPI_BYTE, send_to_rank, 6393762, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+                   &send_flag, sizeof(bool), MPI_BYTE, send_to_rank, 6393762, run_globals.mpi_comm, MPI_STATUS_IGNORE);
 
       // need to ensure sends and receives do not clash!
       if (send_to_rank > run_globals.mpi_rank)
@@ -394,12 +394,12 @@ void assign_Mvir_crit_to_galaxies(int ngals_in_slabs)
         if(send_flag)
         {
           int n_cells = slab_nix[run_globals.mpi_rank] * ReionGridDim * ReionGridDim;
-          MPI_Send(Mvir_crit, n_cells, MPI_FLOAT, send_to_rank, 793710, MPI_COMM_WORLD);
+          MPI_Send(Mvir_crit, n_cells, MPI_FLOAT, send_to_rank, 793710, run_globals.mpi_comm);
         }
         if(recv_flag)
         {
           int n_cells = slab_nix[recv_from_rank] * ReionGridDim * ReionGridDim;
-          MPI_Recv(buffer, n_cells, MPI_FLOAT, recv_from_rank, 793710, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+          MPI_Recv(buffer, n_cells, MPI_FLOAT, recv_from_rank, 793710, run_globals.mpi_comm, MPI_STATUS_IGNORE);
         }
       }
       else
@@ -407,12 +407,12 @@ void assign_Mvir_crit_to_galaxies(int ngals_in_slabs)
         if(recv_flag)
         {
           int n_cells = slab_nix[recv_from_rank] * ReionGridDim * ReionGridDim;
-          MPI_Recv(buffer, n_cells, MPI_FLOAT, recv_from_rank, 793710, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+          MPI_Recv(buffer, n_cells, MPI_FLOAT, recv_from_rank, 793710, run_globals.mpi_comm, MPI_STATUS_IGNORE);
         }
         if(send_flag)
         {
           int n_cells = slab_nix[run_globals.mpi_rank] * ReionGridDim * ReionGridDim;
-          MPI_Send(Mvir_crit, n_cells, MPI_FLOAT, send_to_rank, 793710, MPI_COMM_WORLD);
+          MPI_Send(Mvir_crit, n_cells, MPI_FLOAT, send_to_rank, 793710, run_globals.mpi_comm);
         }
       }
     }
@@ -563,9 +563,9 @@ void construct_baryon_grids(int snapshot, int local_ngals)
 
       // reduce on to the correct rank
       if(run_globals.mpi_rank == i_r)
-        MPI_Reduce(MPI_IN_PLACE, buffer, buffer_size, MPI_FLOAT, MPI_SUM, i_r, MPI_COMM_WORLD);
+        MPI_Reduce(MPI_IN_PLACE, buffer, buffer_size, MPI_FLOAT, MPI_SUM, i_r, run_globals.mpi_comm);
       else
-        MPI_Reduce(buffer, buffer, buffer_size, MPI_FLOAT, MPI_SUM, i_r, MPI_COMM_WORLD);
+        MPI_Reduce(buffer, buffer, buffer_size, MPI_FLOAT, MPI_SUM, i_r, run_globals.mpi_comm);
 
       if (run_globals.mpi_rank == i_r)
 
@@ -599,7 +599,7 @@ void construct_baryon_grids(int snapshot, int local_ngals)
             break;
         }
     }
-    MPI_Allreduce(MPI_IN_PLACE, &N_BlackHoleMassLimitReion, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
+    MPI_Allreduce(MPI_IN_PLACE, &N_BlackHoleMassLimitReion, 1, MPI_DOUBLE, MPI_SUM, run_globals.mpi_comm);
     mlog("%d quasars are smaller than %g",MLOG_MESG, N_BlackHoleMassLimitReion,run_globals.params.physics.BlackHoleMassLimitReion);
   }
 
@@ -651,7 +651,7 @@ void save_reion_input_grids(int snapshot)
 
   // create the file (in parallel)
   hid_t plist_id = H5Pcreate(H5P_FILE_ACCESS);
-  H5Pset_fapl_mpio(plist_id, MPI_COMM_WORLD, MPI_INFO_NULL);
+  H5Pset_fapl_mpio(plist_id, run_globals.mpi_comm, MPI_INFO_NULL);
   hid_t file_id  = H5Fcreate(name, H5F_ACC_TRUNC, H5P_DEFAULT, plist_id);
   H5Pclose(plist_id);
 
@@ -727,7 +727,7 @@ void save_reion_output_grids(int snapshot)
 
   // open the file (in parallel)
   hid_t plist_id = H5Pcreate(H5P_FILE_ACCESS);
-  H5Pset_fapl_mpio(plist_id, MPI_COMM_WORLD, MPI_INFO_NULL);
+  H5Pset_fapl_mpio(plist_id, run_globals.mpi_comm, MPI_INFO_NULL);
   hid_t file_id  = H5Fopen(name, H5F_ACC_RDWR, plist_id);
   H5Pclose(plist_id);
 
@@ -840,9 +840,9 @@ bool check_if_reionization_ongoing()
 
   // At this stage, `started` and `finished` should be set accordingly for each
   // individual core.  Now we need to combine them on all cores.
-  MPI_Allreduce(MPI_IN_PLACE, &started, 1, MPI_INT, MPI_LOR, MPI_COMM_WORLD);
+  MPI_Allreduce(MPI_IN_PLACE, &started, 1, MPI_INT, MPI_LOR, run_globals.mpi_comm);
   run_globals.reion_grids.started  = started;
-  MPI_Allreduce(MPI_IN_PLACE, &finished, 1, MPI_INT, MPI_LAND, MPI_COMM_WORLD);
+  MPI_Allreduce(MPI_IN_PLACE, &finished, 1, MPI_INT, MPI_LAND, run_globals.mpi_comm);
   run_globals.reion_grids.finished = finished;
 
   if (started && (!finished))

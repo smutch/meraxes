@@ -211,9 +211,9 @@ void check_counts(fof_group_t *fof_group, int NGal, int NFof)
 
   mlog("Running counts check...", MLOG_OPEN | MLOG_TIMERSTART);
 
-  MPI_Allreduce(&NFof, &total_NFof, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
-  MPI_Allreduce(&NGal, &total_NGal, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
-  MPI_Allreduce(&(run_globals.NGhosts), &total_NGhosts, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
+  MPI_Allreduce(&NFof, &total_NFof, 1, MPI_INT, MPI_SUM, run_globals.mpi_comm);
+  MPI_Allreduce(&NGal, &total_NGal, 1, MPI_INT, MPI_SUM, run_globals.mpi_comm);
+  MPI_Allreduce(&(run_globals.NGhosts), &total_NGhosts, 1, MPI_INT, MPI_SUM, run_globals.mpi_comm);
   mlog("NFof = %d", MLOG_MESG, total_NFof);
   mlog("NGal = %d", MLOG_MESG, total_NGal);
   mlog("NGhosts = %d", MLOG_MESG, total_NGhosts);
@@ -225,7 +225,7 @@ void check_counts(fof_group_t *fof_group, int NGal, int NFof)
     counter++;
     gal = gal->Next;
   }
-  MPI_Allreduce(MPI_IN_PLACE, &counter, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
+  MPI_Allreduce(MPI_IN_PLACE, &counter, 1, MPI_INT, MPI_SUM, run_globals.mpi_comm);
   mlog("Counting using gal->Next gives %d gals (-%d ghosts = %d gals)",
           MLOG_MESG, counter, total_NGhosts,
           counter - total_NGhosts);
@@ -263,9 +263,9 @@ void check_counts(fof_group_t *fof_group, int NGal, int NFof)
       }
     }
   }
-  MPI_Allreduce(MPI_IN_PLACE, &counter, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
-  MPI_Allreduce(MPI_IN_PLACE, &halo_counter, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
-  MPI_Allreduce(MPI_IN_PLACE, &halo_pop_count, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
+  MPI_Allreduce(MPI_IN_PLACE, &counter, 1, MPI_INT, MPI_SUM, run_globals.mpi_comm);
+  MPI_Allreduce(MPI_IN_PLACE, &halo_counter, 1, MPI_INT, MPI_SUM, run_globals.mpi_comm);
+  MPI_Allreduce(MPI_IN_PLACE, &halo_pop_count, 1, MPI_INT, MPI_SUM, run_globals.mpi_comm);
   mlog("Counting using FOF groups gives %d gals in %d halos", MLOG_MESG, counter, halo_counter);
   mlog("%d halos are populated with at least one galaxy", MLOG_MESG, halo_pop_count);
 
@@ -354,7 +354,7 @@ void write_single_grid(const char *fname,
 {
   hid_t plist_id = H5Pcreate(H5P_FILE_ACCESS);
 
-  H5Pset_fapl_mpio(plist_id, MPI_COMM_WORLD, MPI_INFO_NULL);
+  H5Pset_fapl_mpio(plist_id, run_globals.mpi_comm, MPI_INFO_NULL);
 
   hid_t fd;
   if (create_file_flag)

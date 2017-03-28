@@ -44,7 +44,7 @@ static int prompt_char(const char *message)
     }
   }
 
-  MPI_Bcast(&cont, 1, MPI_INT, 0, MPI_COMM_WORLD);
+  MPI_Bcast(&cont, 1, MPI_INT, 0, run_globals.mpi_comm);
   return cont;
 }
 
@@ -59,7 +59,7 @@ void continue_prompt(char *param_file)
   while (rerun < 0)
     rerun = prompt_char("Reread input file and rerun model?");
 
-  MPI_Barrier(MPI_COMM_WORLD);
+  MPI_Barrier(run_globals.mpi_comm);
 
   if (rerun)
   {
@@ -71,7 +71,7 @@ void continue_prompt(char *param_file)
   else
   {
     run_globals.params.FlagInteractive = 0;
-    MPI_Bcast(&(run_globals.params.FlagInteractive), 1, MPI_INT, 0, MPI_COMM_WORLD);
+    MPI_Bcast(&(run_globals.params.FlagInteractive), 1, MPI_INT, 0, run_globals.mpi_comm);
   }
 
   return;

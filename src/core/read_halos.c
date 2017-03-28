@@ -279,7 +279,7 @@ static void read_trees_and_catalogs(
       if (tmp_size > group_buffer_size)
         group_buffer_size = tmp_size;
     }
-  MPI_Bcast(&group_buffer_size, 1, MPI_INT, 0, MPI_COMM_WORLD);
+  MPI_Bcast(&group_buffer_size, 1, MPI_INT, 0, run_globals.mpi_comm);
   mlog("Using group buffer size = %d", MLOG_MESG, group_buffer_size);
   group_buffer = malloc(sizeof(catalog_halo_t) * group_buffer_size);
 
@@ -297,7 +297,7 @@ static void read_trees_and_catalogs(
     // read in a tree_buffer of the trees
     if (run_globals.mpi_rank == 0)
       H5TBread_records(fd, "trees", n_read, (hsize_t)n_to_read, dst_size, dst_offsets, dst_sizes, tree_buffer);
-    MPI_Bcast(tree_buffer, n_to_read * sizeof(tree_entry_t), MPI_BYTE, 0, MPI_COMM_WORLD);
+    MPI_Bcast(tree_buffer, n_to_read * sizeof(tree_entry_t), MPI_BYTE, 0, run_globals.mpi_comm);
 
     first_group_index = tree_buffer[0].group_index;
     if (first_group_index == last_group_index)
@@ -321,8 +321,8 @@ static void read_trees_and_catalogs(
                          unsampled_snapshot, &group_flayout_switch, &i_group_file, &n_groups_in_catalog_file,
                          &i_group_in_catalog_file, &i_group, group_buffer, n_groups - i_group, 0);
     }
-    MPI_Bcast(catalog_buffer, n_to_read * sizeof(catalog_halo_t), MPI_BYTE, 0, MPI_COMM_WORLD);
-    MPI_Bcast(group_buffer, n_groups * sizeof(catalog_halo_t), MPI_BYTE, 0, MPI_COMM_WORLD);
+    MPI_Bcast(catalog_buffer, n_to_read * sizeof(catalog_halo_t), MPI_BYTE, 0, run_globals.mpi_comm);
+    MPI_Bcast(group_buffer, n_groups * sizeof(catalog_halo_t), MPI_BYTE, 0, run_globals.mpi_comm);
 
     // paste the data into the halo structures
     for (int jj = 0; jj < n_to_read; jj++)
@@ -537,9 +537,9 @@ static void select_forests()
   }
 
   // broadcast the forest info
-  MPI_Bcast(&n_forests, 1, MPI_INT, 0, MPI_COMM_WORLD);
-  MPI_Bcast(&n_halos_tot, 1, MPI_INT, 0, MPI_COMM_WORLD);
-  MPI_Bcast(&n_halos_unused, 1, MPI_INT, 0, MPI_COMM_WORLD);
+  MPI_Bcast(&n_forests, 1, MPI_INT, 0, run_globals.mpi_comm);
+  MPI_Bcast(&n_halos_tot, 1, MPI_INT, 0, run_globals.mpi_comm);
+  MPI_Bcast(&n_halos_unused, 1, MPI_INT, 0, run_globals.mpi_comm);
   if (run_globals.mpi_rank > 0)
   {
     forest_id        = (int*)malloc(sizeof(int) * n_forests);
@@ -547,10 +547,10 @@ static void select_forests()
     max_contemp_fof  = (int*)malloc(sizeof(int) * n_forests);
     n_halos          = (int*)malloc(sizeof(int) * n_forests);
   }
-  MPI_Bcast(forest_id, n_forests, MPI_INT, 0, MPI_COMM_WORLD);
-  MPI_Bcast(max_contemp_halo, n_forests, MPI_INT, 0, MPI_COMM_WORLD);
-  MPI_Bcast(max_contemp_fof, n_forests, MPI_INT, 0, MPI_COMM_WORLD);
-  MPI_Bcast(n_halos, n_forests, MPI_INT, 0, MPI_COMM_WORLD);
+  MPI_Bcast(forest_id, n_forests, MPI_INT, 0, run_globals.mpi_comm);
+  MPI_Bcast(max_contemp_halo, n_forests, MPI_INT, 0, run_globals.mpi_comm);
+  MPI_Bcast(max_contemp_fof, n_forests, MPI_INT, 0, run_globals.mpi_comm);
+  MPI_Bcast(n_halos, n_forests, MPI_INT, 0, run_globals.mpi_comm);
 
   // sort the forests by the number of halos in each one
   size_t *sort_ind = malloc(sizeof(size_t) * n_forests);
@@ -799,7 +799,7 @@ trees_info_t read_halos(
   }
 
   // if necessary, broadcast the tree file info
-  MPI_Bcast(&trees_info, sizeof(trees_info_t), MPI_BYTE, 0, MPI_COMM_WORLD);
+  MPI_Bcast(&trees_info, sizeof(trees_info_t), MPI_BYTE, 0, run_globals.mpi_comm);
 
   n_halos      = trees_info.n_halos;
   n_fof_groups = trees_info.n_fof_groups;
@@ -1010,8 +1010,8 @@ trees_info_t read_halos(
     free(halo_FOFGroup_os);
   }
 
-  MPI_Allreduce(MPI_IN_PLACE, &n_halos_kept, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
-  MPI_Allreduce(MPI_IN_PLACE, &n_fof_groups_kept, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
+  MPI_Allreduce(MPI_IN_PLACE, &n_halos_kept, 1, MPI_INT, MPI_SUM, run_globals.mpi_comm);
+  MPI_Allreduce(MPI_IN_PLACE, &n_fof_groups_kept, 1, MPI_INT, MPI_SUM, run_globals.mpi_comm);
   mlog("Read %d halos in %d fof_groups.", MLOG_MESG, n_halos_kept, n_fof_groups_kept);
 
   mlog("...done", MLOG_CLOSE | MLOG_TIMERSTOP);

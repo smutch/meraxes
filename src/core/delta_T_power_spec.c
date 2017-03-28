@@ -77,7 +77,7 @@ int delta_T_ps(
 
   int tot_num_pixels = (int)pow(ReionGridDim, 3);
 
-  MPI_Allreduce(MPI_IN_PLACE, &ave, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
+  MPI_Allreduce(MPI_IN_PLACE, &ave, 1, MPI_INT, MPI_SUM, run_globals.mpi_comm);
   ave /= (double)tot_num_pixels;
 
 
@@ -126,7 +126,7 @@ int delta_T_ps(
         ((float *)deldel_T)[grid_index(ii, jj, kk, ReionGridDim, INDEX_PADDED)] = (delta_T[grid_index(ii,jj,kk, ReionGridDim, INDEX_REAL)] / ave - 1) * volume / (float)tot_num_pixels;
 
   // Transform to k-space
-  fftwf_plan plan = fftwf_mpi_plan_dft_r2c_3d(ReionGridDim, ReionGridDim, ReionGridDim, (float *)deldel_T, (fftwf_complex *)deldel_T,  MPI_COMM_WORLD, FFTW_ESTIMATE);
+  fftwf_plan plan = fftwf_mpi_plan_dft_r2c_3d(ReionGridDim, ReionGridDim, ReionGridDim, (float *)deldel_T, (fftwf_complex *)deldel_T,  run_globals.mpi_comm, FFTW_ESTIMATE);
   fftwf_execute(plan);
   fftwf_destroy_plan(plan);
 

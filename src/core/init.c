@@ -48,10 +48,10 @@ static void read_requested_forest_ids()
 
 
   // broadcast the data to all other ranks
-  MPI_Bcast(&(run_globals.NRequestedForests), 1, MPI_INT, 0, MPI_COMM_WORLD);
+  MPI_Bcast(&(run_globals.NRequestedForests), 1, MPI_INT, 0, run_globals.mpi_comm);
   if (run_globals.mpi_rank > 0)
     run_globals.RequestedForestId = malloc(sizeof(int) * run_globals.NRequestedForests);
-  MPI_Bcast(run_globals.RequestedForestId, run_globals.NRequestedForests, MPI_INT, 0, MPI_COMM_WORLD);
+  MPI_Bcast(run_globals.RequestedForestId, run_globals.NRequestedForests, MPI_INT, 0, run_globals.mpi_comm);
 }
 
 
@@ -110,14 +110,14 @@ static void read_snap_list()
   }
 
   // broadcast the read to all other ranks and malloc the necessary arrays
-  MPI_Bcast(&(run_globals.params.SnaplistLength), 1, MPI_INT, 0, MPI_COMM_WORLD);
+  MPI_Bcast(&(run_globals.params.SnaplistLength), 1, MPI_INT, 0, run_globals.mpi_comm);
   if (run_globals.mpi_rank > 0)
   {
     run_globals.AA     = malloc(sizeof(double) * run_globals.params.SnaplistLength);
     run_globals.ZZ     = malloc(sizeof(double) * run_globals.params.SnaplistLength);
     run_globals.LTTime = malloc(sizeof(double) * run_globals.params.SnaplistLength);
   }
-  MPI_Bcast(run_globals.AA, run_globals.params.SnaplistLength, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+  MPI_Bcast(run_globals.AA, run_globals.params.SnaplistLength, MPI_DOUBLE, 0, run_globals.mpi_comm);
 }
 
 
@@ -253,13 +253,13 @@ static void read_output_snaps()
   }
 
   // broadcast the data to all other ranks
-  MPI_Bcast(nout, 1, MPI_INT, 0, MPI_COMM_WORLD);
+  MPI_Bcast(nout, 1, MPI_INT, 0, run_globals.mpi_comm);
 
   if(run_globals.mpi_rank > 0)
     *ListOutputSnaps = malloc(sizeof(int) * (*nout));
 
-  MPI_Bcast(*ListOutputSnaps, *nout, MPI_INT, 0, MPI_COMM_WORLD);
-  MPI_Bcast(LastOutputSnap, 1, MPI_INT, 0, MPI_COMM_WORLD);
+  MPI_Bcast(*ListOutputSnaps, *nout, MPI_INT, 0, run_globals.mpi_comm);
+  MPI_Bcast(LastOutputSnap, 1, MPI_INT, 0, run_globals.mpi_comm);
 }
 
 

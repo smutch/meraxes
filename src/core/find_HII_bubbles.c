@@ -121,21 +121,21 @@ void find_HII_bubbles(double redshift)
   float         *deltax            = run_globals.reion_grids.deltax;
   fftwf_complex *deltax_unfiltered = (fftwf_complex *)deltax;  // WATCH OUT!
   fftwf_complex *deltax_filtered   = run_globals.reion_grids.deltax_filtered;
-  fftwf_plan     plan              = fftwf_mpi_plan_dft_r2c_3d(ReionGridDim, ReionGridDim, ReionGridDim, deltax, deltax_unfiltered, MPI_COMM_WORLD, FFTW_ESTIMATE);
+  fftwf_plan     plan              = fftwf_mpi_plan_dft_r2c_3d(ReionGridDim, ReionGridDim, ReionGridDim, deltax, deltax_unfiltered, run_globals.mpi_comm, FFTW_ESTIMATE);
   fftwf_execute(plan);
   fftwf_destroy_plan(plan);
 
   float         *stars            = run_globals.reion_grids.stars;
   fftwf_complex *stars_unfiltered = (fftwf_complex *)stars;  // WATCH OUT!
   fftwf_complex *stars_filtered   = run_globals.reion_grids.stars_filtered;
-  plan = fftwf_mpi_plan_dft_r2c_3d(ReionGridDim, ReionGridDim, ReionGridDim, stars, stars_unfiltered, MPI_COMM_WORLD, FFTW_ESTIMATE);
+  plan = fftwf_mpi_plan_dft_r2c_3d(ReionGridDim, ReionGridDim, ReionGridDim, stars, stars_unfiltered, run_globals.mpi_comm, FFTW_ESTIMATE);
   fftwf_execute(plan);
   fftwf_destroy_plan(plan);
 
   float         *sfr            = run_globals.reion_grids.sfr;
   fftwf_complex *sfr_unfiltered = (fftwf_complex *)sfr;  // WATCH OUT!
   fftwf_complex *sfr_filtered   = run_globals.reion_grids.sfr_filtered;
-  plan = fftwf_mpi_plan_dft_r2c_3d(ReionGridDim, ReionGridDim, ReionGridDim, sfr, sfr_unfiltered, MPI_COMM_WORLD, FFTW_ESTIMATE);
+  plan = fftwf_mpi_plan_dft_r2c_3d(ReionGridDim, ReionGridDim, ReionGridDim, sfr, sfr_unfiltered, run_globals.mpi_comm, FFTW_ESTIMATE);
   fftwf_execute(plan);
   fftwf_destroy_plan(plan);
 
@@ -188,15 +188,15 @@ void find_HII_bubbles(double redshift)
     }
 
     // inverse fourier transform back to real space
-    plan = fftwf_mpi_plan_dft_c2r_3d(ReionGridDim, ReionGridDim, ReionGridDim, deltax_filtered, (float *)deltax_filtered, MPI_COMM_WORLD, FFTW_ESTIMATE);
+    plan = fftwf_mpi_plan_dft_c2r_3d(ReionGridDim, ReionGridDim, ReionGridDim, deltax_filtered, (float *)deltax_filtered, run_globals.mpi_comm, FFTW_ESTIMATE);
     fftwf_execute(plan);
     fftwf_destroy_plan(plan);
 
-    plan = fftwf_mpi_plan_dft_c2r_3d(ReionGridDim, ReionGridDim, ReionGridDim, stars_filtered, (float *)stars_filtered, MPI_COMM_WORLD, FFTW_ESTIMATE);
+    plan = fftwf_mpi_plan_dft_c2r_3d(ReionGridDim, ReionGridDim, ReionGridDim, stars_filtered, (float *)stars_filtered, run_globals.mpi_comm, FFTW_ESTIMATE);
     fftwf_execute(plan);
     fftwf_destroy_plan(plan);
 
-    plan = fftwf_mpi_plan_dft_c2r_3d(ReionGridDim, ReionGridDim, ReionGridDim, sfr_filtered, (float *)sfr_filtered, MPI_COMM_WORLD, FFTW_ESTIMATE);
+    plan = fftwf_mpi_plan_dft_c2r_3d(ReionGridDim, ReionGridDim, ReionGridDim, sfr_filtered, (float *)sfr_filtered, run_globals.mpi_comm, FFTW_ESTIMATE);
     fftwf_execute(plan);
     fftwf_destroy_plan(plan);
 
@@ -350,9 +350,9 @@ void find_HII_bubbles(double redshift)
         mass_weight               += density_over_mean;
       }
 
-  MPI_Allreduce(MPI_IN_PLACE, &volume_weighted_global_xH, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
-  MPI_Allreduce(MPI_IN_PLACE, &mass_weighted_global_xH, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
-  MPI_Allreduce(MPI_IN_PLACE, &mass_weight, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
+  MPI_Allreduce(MPI_IN_PLACE, &volume_weighted_global_xH, 1, MPI_DOUBLE, MPI_SUM, run_globals.mpi_comm);
+  MPI_Allreduce(MPI_IN_PLACE, &mass_weighted_global_xH, 1, MPI_DOUBLE, MPI_SUM, run_globals.mpi_comm);
+  MPI_Allreduce(MPI_IN_PLACE, &mass_weight, 1, MPI_DOUBLE, MPI_SUM, run_globals.mpi_comm);
 
   volume_weighted_global_xH                        /= total_n_cells;
   mass_weighted_global_xH                          /= mass_weight;

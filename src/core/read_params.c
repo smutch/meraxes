@@ -774,6 +774,6 @@ void read_parameter_file(char *fname, int mode)
   }  // END if(run_globals.mpi_rank==0)
 
   // If running mpi then broadcast the run parameters to all cores
-  MPI_Bcast(run_params, sizeof(run_params_t), MPI_BYTE, 0, MPI_COMM_WORLD);
-  MPI_Bcast(&(run_globals.units), sizeof(run_units_t), MPI_BYTE, 0, MPI_COMM_WORLD);
+  MPI_Bcast(run_params, sizeof(run_params_t), MPI_BYTE, 0, run_globals.mpi_comm);
+  MPI_Bcast(&(run_globals.units), sizeof(run_units_t), MPI_BYTE, 0, run_globals.mpi_comm);
 }

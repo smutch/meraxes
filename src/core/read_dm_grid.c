@@ -131,9 +131,9 @@ int read_dm_grid(
   }
 
   // share the needed information with all ranks
-  MPI_Bcast(n_cell, 3, MPI_INT, 0, MPI_COMM_WORLD);
-  MPI_Bcast(box_size, 3, MPI_DOUBLE, 0, MPI_COMM_WORLD);
-  MPI_Bcast(&start_foffset, 1, MPI_LONG, 0, MPI_COMM_WORLD);
+  MPI_Bcast(n_cell, 3, MPI_INT, 0, run_globals.mpi_comm);
+  MPI_Bcast(box_size, 3, MPI_DOUBLE, 0, run_globals.mpi_comm);
+  MPI_Bcast(&start_foffset, 1, MPI_LONG, 0, run_globals.mpi_comm);
 
   // Check if the grid in the file is higher resolution than we require
   double resample_factor = 1.;
@@ -155,7 +155,7 @@ int read_dm_grid(
   ptrdiff_t      slab_n_complex = run_globals.reion_grids.slab_n_complex[run_globals.mpi_rank];
 
   ptrdiff_t      slab_nix_file, slab_ix_start_file;
-  ptrdiff_t      slab_n_complex_file = fftwf_mpi_local_size_3d(n_cell[0], n_cell[0], n_cell[0] / 2 + 1, MPI_COMM_WORLD, &slab_nix_file, &slab_ix_start_file);
+  ptrdiff_t      slab_n_complex_file = fftwf_mpi_local_size_3d(n_cell[0], n_cell[0], n_cell[0] / 2 + 1, run_globals.mpi_comm, &slab_nix_file, &slab_ix_start_file);
   fftwf_complex *slab_file           = fftwf_alloc_complex(slab_n_complex_file);
   ptrdiff_t      slab_ni_file        = slab_nix_file * n_cell[0] * n_cell[0];
 
@@ -171,7 +171,7 @@ int read_dm_grid(
   MPI_Status status;
   MPI_Offset slab_offset = start_foffset / sizeof(float) + (slab_ix_start_file * n_cell[1] * n_cell[2]);
 
-  MPI_File_open(MPI_COMM_WORLD, fname, MPI_MODE_RDONLY, MPI_INFO_NULL, &fin);
+  MPI_File_open(run_globals.mpi_comm, fname, MPI_MODE_RDONLY, MPI_INFO_NULL, &fin);
   MPI_File_set_view(fin, 0, MPI_FLOAT, MPI_FLOAT, "native", MPI_INFO_NULL);
 
   ptrdiff_t chunk_size = slab_ni_file;
@@ -208,7 +208,7 @@ int read_dm_grid(
   if (resample_factor < 1.0)
   {
     mlog("Smoothing hi-res grid...", MLOG_OPEN | MLOG_TIMERSTART);
-    fftwf_plan plan = fftwf_mpi_plan_dft_r2c_3d(n_cell[0], n_cell[0], n_cell[0], (float *)slab_file, slab_file, MPI_COMM_WORLD, FFTW_ESTIMATE);
+    fftwf_plan plan = fftwf_mpi_plan_dft_r2c_3d(n_cell[0], n_cell[0], n_cell[0], (float *)slab_file, slab_file, run_globals.mpi_comm, FFTW_ESTIMATE);
     fftwf_execute(plan);
     fftwf_destroy_plan(plan);
 
@@ -221,7 +221,7 @@ int read_dm_grid(
       slab_file[ii] /= (double)total_n_cells_file;
     filter(slab_file, slab_ix_start_file, slab_nix_file, n_cell[0], run_globals.params.BoxSize / (double)ReionGridDim / 2.0);
 
-    plan = fftwf_mpi_plan_dft_c2r_3d(n_cell[0], n_cell[0], n_cell[0], slab_file, (float *)slab_file, MPI_COMM_WORLD, FFTW_ESTIMATE);
+    plan = fftwf_mpi_plan_dft_c2r_3d(n_cell[0], n_cell[0], n_cell[0], slab_file, (float *)slab_file, run_globals.mpi_comm, FFTW_ESTIMATE);
     fftwf_execute(plan);
     fftwf_destroy_plan(plan);
     mlog("...done", MLOG_CLOSE | MLOG_TIMERSTOP);

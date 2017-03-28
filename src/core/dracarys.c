@@ -457,10 +457,10 @@ void dracarys()
 
 #ifdef DEBUG
     // print some statistics for this snapshot
-    MPI_Allreduce(MPI_IN_PLACE, &merger_counter, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
-    MPI_Allreduce(MPI_IN_PLACE, &kill_counter, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
-    MPI_Allreduce(MPI_IN_PLACE, &new_gal_counter, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
-    MPI_Allreduce(MPI_IN_PLACE, &ghost_counter, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
+    MPI_Allreduce(MPI_IN_PLACE, &merger_counter, 1, MPI_INT, MPI_SUM, run_globals.mpi_comm);
+    MPI_Allreduce(MPI_IN_PLACE, &kill_counter, 1, MPI_INT, MPI_SUM, run_globals.mpi_comm);
+    MPI_Allreduce(MPI_IN_PLACE, &new_gal_counter, 1, MPI_INT, MPI_SUM, run_globals.mpi_comm);
+    MPI_Allreduce(MPI_IN_PLACE, &ghost_counter, 1, MPI_INT, MPI_SUM, run_globals.mpi_comm);
 
     mlog("Newly identified merger events    :: %d", MLOG_MESG, merger_counter);
     mlog("Killed galaxies                   :: %d", MLOG_MESG, kill_counter);
@@ -518,7 +518,7 @@ void dracarys()
   mlog("...done", MLOG_CLOSE);
 
   // Create the master file
-  MPI_Barrier(MPI_COMM_WORLD);
+  MPI_Barrier(run_globals.mpi_comm);
   if (!run_globals.params.FlagMCMC)
     if (run_globals.mpi_rank == 0)
       create_master_file();
