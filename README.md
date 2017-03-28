@@ -6,12 +6,13 @@ The Meraxes semi-analytic galaxy formation model.
 **Author**: [Simon Mutch](http://www.ph.unimelb.edu.au/~smutch/index.html) (*The University of Melbourne*)
 
 
-Contributors
+Requirements
 ------------
 
-* Paul Geil (*The University of Melbourne*)
-* Yuxiang Qin (*The University of Melbourne*)
-* Hansik Kim (*The University of Melbourne*)
+* [GSL](https://www.gnu.org/software/gsl/)
+* [FFTW3](http://www.fftw.org) built with `--enable-float --enable-mpi` ([see installation docs](http://www.fftw.org/fftw3_doc/Installation-on-Unix.html#Installation-on-Unix)).
+* [MLOG](https://github.com/smutch/mlog) (This is packaged with Meraxes as a git submodule and will be built automatically.)
+* [HDF5](https://support.hdfgroup.org/HDF5/) built with MPI bindings.
 
 
 Attribution
@@ -38,7 +39,15 @@ archivePrefix = "arXiv",
 }
 ```
 
-For the AGN model, please cite Qin et al. 2017 (MNRAS, in prep).
+For the AGN model, please cite [Qin et al. 2017 (arXiv:1703.04895)](https://ui.adsabs.harvard.edu/#abs/2017arXiv170304895Q/abstract).
+
+
+Contributors
+------------
+
+* Paul Geil (*The University of Melbourne*)
+* Yuxiang Qin (*The University of Melbourne*)
+* Hansik Kim (*The University of Melbourne*)
 
 
 How to contribute

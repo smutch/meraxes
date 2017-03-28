@@ -21,22 +21,10 @@ deps['hdf5'] = {
     'lib'   : ['hdf5', 'hdf5_hl', 'z'],
 }
 
-deps['gbpCode'] = {
-    'inclp' :'/home/smutch/3rd_party/gbpCode/myInclude',
-    'libp'  :'/home/smutch/3rd_party/gbpCode/myLib/mpi',
-    'lib'   : 'gbpLib',
-}
-
 deps['fftw'] = {
     'inclp' :'/home/smutch/3rd_party/fftw-3.3.3/include',
     'libp'  :'/home/smutch/3rd_party/fftw-3.3.3/lib',
     'lib'   : ['fftw3f_mpi', 'fftw3f'],
-}
-
-deps['cmocka'] = {
-    'inclp' : '/home/smutch/3rd_party/cmocka/include',
-    'libp'  : '/home/smutch/3rd_party/cmocka/lib',
-    'lib'   : 'cmocka',
 }
 
 deps['mlog'] = {
