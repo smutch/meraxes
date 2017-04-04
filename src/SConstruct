@@ -193,17 +193,19 @@ if not GetOption('help'):
     # ====================
 
     def CheckCCFlag(context, flag):
+        flag = [flag,]
         context.Message('Checking if compiler supports %s ...' % flag)
         text = "int main(int argc, char **argv){ return 0; }"
         cppflags = context.vardict.get("CPPFLAGS", [])
-        context.env.AppendUnique(CPPFLAGS = [flag, '-Werror=unknown-warning-option'])
+        context.env.AppendUnique(CPPFLAGS = flag)
         result = not bool(_check_empty_program(context, 'CC', text, 'C'))
         context.Result(result)
         if not result:
-            context.env.Replace(CPPFLAGS = [f for f in context.env['CPPFLAGS'] if f != flag])
+            context.env.Replace(CPPFLAGS = [f for f in context.env['CPPFLAGS'] if f not in flag])
         return result
 
     conf = Configure(env, custom_tests = {'CheckCCFlag': CheckCCFlag})
+    conf.CheckCCFlag('-Werror=unknown-warning-option')
     conf.CheckCCFlag('-fdiagnostics-color=auto')
     conf.CheckCCFlag('-Wno-unused-but-set-variable')
     env = conf.Finish()
