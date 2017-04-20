@@ -33,7 +33,7 @@ double calculate_BHemissivity(double BlackHoleMass, double accreted_mass)
   double            kb;   //bolometric correction
   physics_params_t *physics = &(run_globals.params.physics);
 
-  accretion_time = log(1.0 + accreted_mass / BlackHoleMass) * 450. * ETA / physics->EddingtonRatio; // Myr
+  accretion_time = log(1.0 + accreted_mass / BlackHoleMass) * 450.514890 * ETA / physics->EddingtonRatio; // Myr
 
   // Bolometric luminosity in 1e10 Lsun at the MIDDLE of accretion time
   // TODO: this introduce inconsistency compared to the calculation of luminosity. 
@@ -116,8 +116,8 @@ double radio_mode_BH_heating(galaxy_t *gal, double cooling_mass, double x)
     // 15/8*pi*mu=3.4754, with mu=0.59; x=k*m_p*t/lambda
 
     // eddington rate
-    double eddington_mass = (exp(gal->dt / ETA * run_globals.params.physics.EddingtonRatio /
-                                 (450. / units->UnitTime_in_Megayears)) - 1.) * gal->BlackHoleMass;
+    double eddington_mass = (exp(gal->dt * units->UnitTime_in_Megayears / run_globals.params.Hubble_h /450.514890 
+				                / ETA * run_globals.params.physics.EddingtonRatio) - 1.) * gal->BlackHoleMass;
 
     // limit accretion by the eddington rate
     if (accreted_mass > eddington_mass)
@@ -203,8 +203,8 @@ void previous_merger_driven_BH_growth(galaxy_t *gal)
     Vvir = gal->Vvir;
 
   // Eddington rate
-  accreted_mass = (exp(gal->dt / ETA * run_globals.params.physics.EddingtonRatio
-                       / (450. / units->UnitTime_in_Megayears)) - 1.) * gal->BlackHoleMass;
+  accreted_mass = (exp(gal->dt * units->UnitTime_in_Megayears / run_globals.params.Hubble_h /450.514890 
+		                / ETA * run_globals.params.physics.EddingtonRatio) - 1.) * gal->BlackHoleMass;
 
   // limit accretion to what is need
   if (accreted_mass > gal->BlackHoleAccretingColdMass)
