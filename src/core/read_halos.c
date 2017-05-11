@@ -552,19 +552,6 @@ static void select_forests()
   MPI_Bcast(max_contemp_fof, n_forests, MPI_INT, 0, run_globals.mpi_comm);
   MPI_Bcast(n_halos, n_forests, MPI_INT, 0, run_globals.mpi_comm);
 
-  // sort the forests by the number of halos in each one
-  size_t *sort_ind = malloc(sizeof(size_t) * n_forests);
-  gsl_sort_int_index(sort_ind, n_halos, 1, n_forests);
-  int *temp = malloc(sizeof(int) * n_forests);
-
-  reorder_forest_array(forest_id, sort_ind, n_forests, temp);
-  reorder_forest_array(max_contemp_halo, sort_ind, n_forests, temp);
-  reorder_forest_array(max_contemp_fof, sort_ind, n_forests, temp);
-  reorder_forest_array(n_halos, sort_ind, n_forests, temp);
-
-  free(temp);
-  free(sort_ind);
-  
   // if we have read in a list of requested forest IDs then use these to create
   // an array of indices pointing to the elements we want
   if (sample_forests)
@@ -578,7 +565,6 @@ static void select_forests()
         n_halos_tot         += n_halos[i_forest];
         i_req++;
       }
-    n_forests = (*n_requested_forests);
   }
   else
   {
@@ -589,6 +575,34 @@ static void select_forests()
       requested_ind[i_req] = i_req;
   }
 
+  // sort the forests by the number of halos in each one
+  size_t *sort_ind = malloc(sizeof(size_t) * n_forests);
+  gsl_sort_int_index(sort_ind, n_halos, 1, n_forests);
+  int *temp = malloc(sizeof(int) * n_forests);
+
+  reorder_forest_array(forest_id, sort_ind, n_forests, temp);
+  reorder_forest_array(max_contemp_halo, sort_ind, n_forests, temp);
+  reorder_forest_array(max_contemp_fof, sort_ind, n_forests, temp);
+  reorder_forest_array(n_halos, sort_ind, n_forests, temp);
+
+  // also rearrange the sampled forest indices if need be
+  if (sample_forests)
+  {
+    int *rank = (int *)malloc(sizeof(int) * n_forests);
+    for(int ii=0; ii < n_forests; ii++)
+      rank[sort_ind[ii]] = ii;
+
+    for(int ii=0; ii < (*n_requested_forests); ii++)
+      requested_ind[ii] = n_forests - 1 - rank[requested_ind[ii]];
+
+    n_forests = (*n_requested_forests);
+    free(rank);
+  }
+
+  free(temp);
+  free(sort_ind);
+
+  
   // if we are running the code with more than one core, let's subselect the forests on each one
   if (run_globals.mpi_size > 1)
   {
@@ -660,6 +674,8 @@ static void select_forests()
       rank_n_halos[run_globals.mpi_size - 1]    += n_halos[requested_ind[i_forest]];
       rank_n_forests[run_globals.mpi_size - 1]++;
     }
+
+    assert(rank_n_forests[run_globals.mpi_rank] > 0);
 
     // create our list of forest_ids for this rank
     *n_requested_forests = rank_n_forests[run_globals.mpi_rank];
