@@ -280,7 +280,7 @@ void check_counts(fof_group_t *fof_group, int NGal, int NFof)
     ABORT(EXIT_FAILURE);
   }
 
-  mlog("...done", MLOG_TIMERSTOP);
+  mlog("...done", MLOG_CLOSE|MLOG_TIMERSTOP);
 }
 
 
