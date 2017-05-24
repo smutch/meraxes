@@ -158,23 +158,21 @@ static void read_catalog_halos(
 
 static void inline convert_input_virial_props(double *Mvir, double *Rvir, double *Vvir, int len, int snapshot)
 {
-  double ratio = 1.0;
-
-  if (run_globals.RequestedMassRatioModifier == 1)
-  {
-    double logM = log10(*Mvir / run_globals.params.Hubble_h);
-    ratio = interpolate_modifier(run_globals.mass_ratio_modifier, logM);
+  if (len > 0){
+    // Update the virial properties for subhalos
+    *Mvir = calculate_Mvir(*Mvir, len);         
+    *Rvir = calculate_Rvir(*Mvir, snapshot);    
   }
-  *Mvir /= 1.0e10;
-
-  // Update the virial properties
-  if (len > 0)
-  {
-    *Mvir = calculate_Mvir(*Mvir, len);
-    *Rvir = calculate_Rvir(*Mvir, snapshot);
+  else{
+    // Convert the mass unit for FoFs
+    *Mvir /= 1.0e10;
+    if (run_globals.RequestedMassRatioModifier == 1){
+      // Modifier the FoF mass and update the virial radius
+      *Mvir *= interpolate_modifier(run_globals.mass_ratio_modifier, log10(*Mvir * 1.0e10 / run_globals.params.Hubble_h));
+      *Rvir  = calculate_Rvir(*Mvir, snapshot);
+    }
   }
   *Vvir  = calculate_Vvir(*Mvir, *Rvir);
-  *Mvir *= ratio;
 }
 
 
