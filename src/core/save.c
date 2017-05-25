@@ -83,6 +83,7 @@ void prepare_galaxy_for_output(
   galout->Rcool                     = (float)(gal.Rcool);
   galout->Cos_Inc                   = (float)(gal.Cos_Inc);
   galout->BaryonFracModifier        = (float)(gal.BaryonFracModifier);
+  galout->FOFMvirModifier           = (float)(gal.FOFMvirModifier);
   galout->MvirCrit                  = (float)(gal.MvirCrit);
   galout->dt                        = (float)(gal.dt * units->UnitTime_in_Megayears);
   galout->MergerBurstMass           = (float)(gal.MergerBurstMass);
@@ -110,7 +111,7 @@ void calc_hdf5_props()
     galaxy_output_t galout;
     int             i;                                    // dummy
 
-    h5props->n_props = 46;
+    h5props->n_props = 47;
 
 #ifdef CALC_MAGS
     // If we are calculating any magnitudes then increment the number of
@@ -409,6 +410,13 @@ void calc_hdf5_props()
     h5props->dst_offsets[i]     = HOFFSET(galaxy_output_t, BaryonFracModifier);
     h5props->dst_field_sizes[i] = sizeof(galout.BaryonFracModifier);
     h5props->field_names[i]     = "BaryonFracModifier";
+    h5props->field_units[i]     = "None";
+    h5props->field_h_conv[i]    = "None";
+    h5props->field_types[i++]   = H5T_NATIVE_FLOAT;
+
+    h5props->dst_offsets[i]     = HOFFSET(galaxy_output_t, FOFMvirModifier);
+    h5props->dst_field_sizes[i] = sizeof(galout.FOFMvirModifier);
+    h5props->field_names[i]     = "FOFMvirModifier";
     h5props->field_units[i]     = "None";
     h5props->field_h_conv[i]    = "None";
     h5props->field_types[i++]   = H5T_NATIVE_FLOAT;

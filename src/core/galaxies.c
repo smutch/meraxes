@@ -58,6 +58,7 @@ galaxy_t* new_galaxy(int snapshot, int halo_ID)
   gal->Cos_Inc                    = gsl_rng_uniform(run_globals.random_generator);
   gal->MergTime                   = 99999.9;
   gal->BaryonFracModifier         = 1.0;
+  gal->FOFMvirModifier            = 1.0;
   gal->MvirCrit                   = 0.0;
   gal->MergerBurstMass            = 0.0;
   gal->MergerStartRadius          = 0.0;
@@ -92,6 +93,7 @@ void copy_halo_to_galaxy(halo_t *halo, galaxy_t *gal, int snapshot)
   gal->Vvir            = (double)(halo->Vvir);
   gal->TreeFlags       = halo->TreeFlags;
   gal->Spin            = calculate_spin_param(halo);
+  gal->FOFMvirModifier = halo->FOFGroup->FOFMvirModifier;
 
   double sqrt_2 = 1.414213562;
   if (gal->Type == 0)
@@ -129,6 +131,7 @@ void reset_galaxy_properties(galaxy_t *gal, int snapshot)
   gal->MvirCrit                  = 0.0;
   gal->BHemissivity              = 0.0;
   gal->BaryonFracModifier        = 1.0;
+  gal->FOFMvirModifier           = 1.0;
   gal->BlackHoleAccretedHotMass  = 0.0;
   gal->BlackHoleAccretedColdMass = 0.0;
 
