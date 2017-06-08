@@ -521,6 +521,7 @@ typedef struct tree_entry_t {
   int tree_id;
   int file_offset;
   int desc_index;
+  int n_particle_peak;
   int central_index;
   int forest_id;
   int group_index;

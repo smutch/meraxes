@@ -235,24 +235,26 @@ static void read_trees_and_catalogs(
   *n_fof_groups_kept = 0;
 
   size_t dst_size       = sizeof(tree_entry_t);
-  size_t dst_offsets[9] = {
+  size_t dst_offsets[10] = {
     HOFFSET(tree_entry_t, id),
     HOFFSET(tree_entry_t, flags),
     HOFFSET(tree_entry_t, desc_id),
     HOFFSET(tree_entry_t, tree_id),
     HOFFSET(tree_entry_t, file_offset),
     HOFFSET(tree_entry_t, desc_index),
+    HOFFSET(tree_entry_t, n_particle_peak),
     HOFFSET(tree_entry_t, central_index),
     HOFFSET(tree_entry_t, forest_id),
     HOFFSET(tree_entry_t, group_index)
   };
-  size_t dst_sizes[9] = {
+  size_t dst_sizes[10] = {
     sizeof(tree_buffer[0].id),
     sizeof(tree_buffer[0].flags),
     sizeof(tree_buffer[0].desc_id),
     sizeof(tree_buffer[0].tree_id),
     sizeof(tree_buffer[0].file_offset),
     sizeof(tree_buffer[0].desc_index),
+    sizeof(tree_buffer[0].n_particle_peak),
     sizeof(tree_buffer[0].central_index),
     sizeof(tree_buffer[0].forest_id),
     sizeof(tree_buffer[0].group_index)
