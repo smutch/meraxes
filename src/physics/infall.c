@@ -9,7 +9,8 @@ double gas_infall(fof_group_t *FOFgroup, int snapshot)
   double    total_baryons = 0.;
   double    infall_mass = 0.;
   double    FOF_Mvir = FOFgroup->Mvir;
-  double    fb_modifier, fb_modifier_hydro;
+  double    FOFMvirModifier = FOFgroup->FOFMvirModifier;
+  double    fb_modifier;
 
   double    total_stellarmass   = 0.0;
   double    total_hotgas        = 0.0;
@@ -51,15 +52,10 @@ double gas_infall(fof_group_t *FOFgroup, int snapshot)
 
   // Calculate the amount of fresh gas required to provide the baryon
   // fraction of this halo.
-  fb_modifier       = reionization_modifier(central, FOF_Mvir, snapshot);
-  fb_modifier_hydro = 1.0;
+  fb_modifier    = reionization_modifier(central, FOF_Mvir, snapshot);
   if (run_globals.RequestedBaryonFracModifier == 1)
-  {
-    double logM;
-    logM              = log10(FOF_Mvir * 1e10 / run_globals.params.Hubble_h);
-    fb_modifier_hydro = interpolate_modifier(run_globals.baryon_frac_modifier, logM);
-  }
-  infall_mass                 = fb_modifier * fb_modifier_hydro * run_globals.params.BaryonFrac * FOF_Mvir - total_baryons;
+    fb_modifier *= interpolate_modifier(run_globals.baryon_frac_modifier, log10(FOF_Mvir/FOFMvirModifier/run_globals.params.Hubble_h)+10.0);
+  infall_mass    = fb_modifier * run_globals.params.BaryonFrac * FOF_Mvir - total_baryons;
 
   // record the infall modifier
   central->BaryonFracModifier = fb_modifier;

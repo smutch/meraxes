@@ -349,6 +349,7 @@ typedef struct fof_group_t {
   double Mvir;
   double Rvir;
   double Vvir;
+  double FOFMvirModifier;
   int TotalSubhaloLen;
 } fof_group_t;
 
@@ -414,6 +415,7 @@ typedef struct galaxy_t {
   double MergTime;
   double MergerStartRadius;
   double BaryonFracModifier;
+  double FOFMvirModifier;
   double MvirCrit;
   double MergerBurstMass;
 
@@ -488,6 +490,7 @@ typedef struct galaxy_output_t {
   float MergTime;
   float MergerStartRadius;
   float BaryonFracModifier;
+  float FOFMvirModifier;
   float MvirCrit;
   float dt;
   float MergerBurstMass;
