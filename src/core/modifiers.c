@@ -142,7 +142,7 @@ double interpolate_modifier(Modifier *modifier_data, double logM)
   ratio       = ratio_below + (ratio_above - ratio_below) / DELTA_M * (logM - logM_below);
 
   if (!(ratio > 0)){
-    SID_log_error("Something wrong about the modifier: logM=%f, ratio=%f",logM, ratio);
+    mlog_error("Something wrong about the modifier: logM=%f, ratio=%f",logM, ratio);
     ABORT(EXIT_FAILURE);
   }
 
