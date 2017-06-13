@@ -7,7 +7,7 @@ FileNameGalaxies : Tiamat
 #----- Simulation input files  ------------
 #------------------------------------------
 SimName          : Tiamat
-SimulationDir    : /home/yqin/dragons/input_trees/tiamat/Tiamat_z2
+SimulationDir    : /lustre/projects/p070_astro/smutch/input_trees/Tiamat
 # SimulationDir    : /coepp/cephfs/dragons/smutch/data/simulations/Tiamat/meraxes
 CatalogFilePrefix: subfind
 BoxSize          : 67.8
