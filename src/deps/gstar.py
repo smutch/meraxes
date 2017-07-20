@@ -6,7 +6,7 @@ deps = {}
 deps['exec'] = {
     'mpicc' : '/usr/local/x86_64/gnu/openmpi-1.10.2-psm/bin/mpicc',
 	'cc' : '/usr/local/intel-15.3.0/composer_xe_2015.3.187/bin/intel64/icc',
-    'git' : '/usr/bin/git',
+    'git' : '/home/smutch/3rd_party/git/bin/git',
 }
 
 deps['gsl'] = {
