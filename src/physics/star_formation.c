@@ -98,7 +98,7 @@ void insitu_star_formation(galaxy_t *gal, int snapshot)
         // from Kauffmann (1996) eq7 x piR^2, (Vvir in km/s, reff in Mpc/h) in units of 10^10Msun/h
         m_crit = SfCriticalSDNorm * v_disk * r_disk;
         if (gal->ColdGas > m_crit)
-          m_stars = SfEfficiency * (gal->ColdGas - m_crit) / r_disk * v_disk * gal->dt;
+          m_stars = zplus1_n * SfEfficiency * (gal->ColdGas - m_crit) / r_disk * v_disk * gal->dt;
         else
           // no star formation
           return;
@@ -119,11 +119,6 @@ void insitu_star_formation(galaxy_t *gal, int snapshot)
         ABORT(EXIT_FAILURE);
         break;
     }
-
-    // apply redshift dependent efficiency
-    // (note that we are assuming the redshift dependency is applied directly to
-    // the amount of stars produced here...)
-    m_stars = zplus1_n * m_stars;
 
     if (m_stars > gal->ColdGas)
       m_stars = gal->ColdGas;
@@ -165,7 +160,7 @@ static double integrand_p_dependent_SFR(double q, void *gal)
 }
 
 
-static double p_dependent_SFR(double lower_limit, double upper_limit, double sigma_gas0, double sigma_stars0, double v_ratio, double reff, double zplus1)
+static double p_dependent_SFR(double lower_limit, double upper_limit, double sigma_gas0, double sigma_stars0, double v_ratio, double reff)
 {
   static gsl_function               FR;
   static gsl_integration_workspace *workspace;
@@ -193,14 +188,14 @@ double pressure_dependent_star_formation(galaxy_t *gal, int snapshot)
    * Based on the SF prescription of Blitz & Rosolowski (2006).
    */
 
-  double       zplus1 = run_globals.ZZ[snapshot] + 1;
-  run_units_t *units  = &(run_globals.units);
-  double       G_SI   = GRAVITY * 1.e-3;
+  double       SfEfficiency = run_globals.params.physics.SfEfficiency;
+  double       Y_He         = run_globals.params.physics.Y_He;
+  double       zplus1_n     = pow(1.0 + run_globals.ZZ[snapshot], run_globals.params.physics.SfEfficiencyScaling);
+  run_units_t *units        = &(run_globals.units);
+  double       G_SI         = GRAVITY * 1.e-3;
 
   // SF timescale:
-  // double sf_eff = 1.0 / 2.0e9; // yr^-1 - 2Gyr is sort of an average H2 depletion time (Bigiel+08, Leroy+09, Bigiel+11, Bollato+11, Saintonge+11)
-  // double sf_eff = 1.0 / 3.0e8; // yr^-1 - 300Myr is sort of an average H2 depletion time (Duffy+17)
-  double sf_eff = 1.0 / 2.0e9 * zplus1; // redshift dependence SF timescale
+  double sf_eff = 1.0 / 3.0e8 * SfEfficiency * zplus1_n;
   double MSFRR  = 0.0;
 
   if(gal->DiskScaleLength > 0.0)
@@ -233,11 +228,11 @@ double pressure_dependent_star_formation(galaxy_t *gal, int snapshot)
 
       // Bigiel+11 SF law
       // TODO: PUT THIS BACK!
-      MSFRR       = p_dependent_SFR(0, 5 * reff, sigma_gas0, sigma_stars0, v_ratio,reff,zplus1);
+      MSFRR       = p_dependent_SFR(0, 5 * reff, sigma_gas0, sigma_stars0, v_ratio,reff);
       gal->H2Mass = 2. * M_PI * MSFRR * 1.0e3 / units->UnitMass_in_g; // Molecular hydrogen mass
-      gal->HIMass = 0.76 * gal->ColdGas - gal->H2Mass;                //hydrogen mass
-      if (gal->H2Mass > gal->ColdGas)
-        gal->H2Mass = gal->ColdGas;
+      if (gal->H2Mass > (1.-Y_He) * gal->ColdGas)
+        gal->H2Mass = (1.-Y_He) * gal->ColdGas;
+      gal->HIMass = (1.-Y_He) * gal->ColdGas - gal->H2Mass;                //hydrogen mass
       MSFRR       = MSFRR * 2.0 * M_PI * sf_eff / SEC_PER_YEAR;
       MSFRR       = MSFRR * 1.0e3; // in g/s
     }
