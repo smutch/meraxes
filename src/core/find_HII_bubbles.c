@@ -110,7 +110,7 @@ static void _find_HII_bubbles(
   {
     // prepare output file
     char fname[STRLEN];
-    sprintf(fname, "validation_input-core%03d.h5", mpi_rank);
+    sprintf(fname, "validation_input-core%03d-z%.2f.h5", mpi_rank, redshift);
     hid_t file_id = H5Fcreate(fname, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
 
     // write all of the input values
@@ -177,7 +177,7 @@ static void _find_HII_bubbles(
   {
     // prepare output file
     char fname[STRLEN];
-    sprintf(fname, "validation_output-core%03d.h5", mpi_rank);
+    sprintf(fname, "validation_output-core%03d-z%.2f.h5", mpi_rank, redshift);
     hid_t file_id = H5Fcreate(fname, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
 
     hid_t group = H5Gcreate(file_id, "kspace", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
@@ -346,7 +346,7 @@ static void _find_HII_bubbles(
   {
     // prepare output file
     char fname[STRLEN];
-    sprintf(fname, "validation_output-core%03d.h5", mpi_rank);
+    sprintf(fname, "validation_output-core%03d-z%.2f.h5", mpi_rank, redshift);
     hid_t file_id = H5Fopen(fname, H5F_ACC_RDWR, H5P_DEFAULT);
 
     H5LTmake_dataset_float(file_id, "xH", 1, (hsize_t []){slab_n_real}, xH);
