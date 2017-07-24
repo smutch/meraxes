@@ -6,7 +6,6 @@
 #include <signal.h>
 #include <limits.h>
 
-// DEBUG
 #include <hdf5.h>
 #include <hdf5_hl.h>
 
@@ -64,13 +63,18 @@ static void _find_HII_bubbles(
     double ReionAlphaUV,
     double ReionEscapeFrac,
 
+    bool validation_output,
+
     // preallocated 1D grids (local_nix * ReionGridDim * ReionGridDim)
     float *J_21,  // real
-    float *xH, // real
     float *r_bubble, // real
+
+    // input grids
     float *deltax,  // real & padded
     float *stars,  // real & padded
     float *sfr,  // real & padded
+
+    // preallocated
     fftwf_complex *deltax_filtered,  // complex
     fftwf_complex *stars_filtered,  // complex
     fftwf_complex *sfr_filtered,  // complex
@@ -80,6 +84,7 @@ static void _find_HII_bubbles(
     ptrdiff_t *slabs_ix_start,
 
     // output - preallocated real grids (local_nix * ReionGridDim * ReionGridDim)
+    float *xH, // real
     float *z_at_ionization,
     float *J_21_at_ionization,
 
@@ -93,13 +98,46 @@ static void _find_HII_bubbles(
   double       total_n_cells        = pow((double)ReionGridDim, 3);
   int          slab_n_real          = local_nix * ReionGridDim * ReionGridDim;
   float        J_21_aux;
-  double       J_21_aux_constant;
   double       density_over_mean;
   double       sfr_density;
   double       f_coll_stars;
   int          i_real;
   int          i_padded;
 
+  int slab_n_complex = (int)(slabs_n_complex[mpi_rank]);
+
+  if (validation_output)
+  {
+    // prepare output file
+    char fname[STRLEN];
+    sprintf(fname, "validation_input-core%03d.h5", mpi_rank);
+    hid_t file_id = H5Fcreate(fname, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
+
+    // write all of the input values
+    H5LTset_attribute_double(file_id, "/", "redshift", &redshift, 1);
+    H5LTset_attribute_int(file_id, "/", "mpi_rank", &mpi_rank, 1);
+    H5LTset_attribute_double(file_id, "/", "box_size", &box_size, 1);
+    H5LTset_attribute_int(file_id, "/", "ReionGridDim", &ReionGridDim, 1);
+    H5LTset_attribute_int(file_id, "/", "local_nix", &local_nix, 1);
+    H5LTset_attribute_int(file_id, "/", "flag_ReionUVBFlag", &flag_ReionUVBFlag, 1);
+    H5LTset_attribute_double(file_id, "/", "ReionEfficiency", &ReionEfficiency, 1);
+    H5LTset_attribute_double(file_id, "/", "ReionNionPhotPerBary", &ReionNionPhotPerBary, 1);
+    H5LTset_attribute_double(file_id, "/", "UnitLength_in_cm", &UnitLength_in_cm, 1);
+    H5LTset_attribute_double(file_id, "/", "UnitMass_in_g", &UnitMass_in_g, 1);
+    H5LTset_attribute_double(file_id, "/", "UnitTime_in_s", &UnitTime_in_s, 1);
+    H5LTset_attribute_double(file_id, "/", "ReionRBubbleMax", &ReionRBubbleMax, 1);
+    H5LTset_attribute_double(file_id, "/", "ReionRBubbleMin", &ReionRBubbleMin, 1);
+    H5LTset_attribute_double(file_id, "/", "ReionDeltaRFactor", &ReionDeltaRFactor, 1);
+    H5LTset_attribute_double(file_id, "/", "ReionGammaHaloBias", &ReionGammaHaloBias, 1);
+    H5LTset_attribute_double(file_id, "/", "ReionAlphaUV", &ReionAlphaUV, 1);
+    H5LTset_attribute_double(file_id, "/", "ReionEscapeFrac", &ReionEscapeFrac, 1);
+
+    H5LTmake_dataset_float(file_id, "deltax", 1, (hsize_t []){slab_n_complex*2}, deltax);
+    H5LTmake_dataset_float(file_id, "stars", 1, (hsize_t []){slab_n_complex*2}, stars);
+    H5LTmake_dataset_float(file_id, "sfr", 1, (hsize_t []){slab_n_complex*2}, sfr);
+
+    H5Fclose(file_id);
+  }
 
   // This parameter choice is sensitive to noise on the cell size, at least for the typical
   // cell sizes in RT simulations. It probably doesn't matter for larger cell sizes.
@@ -135,9 +173,25 @@ static void _find_HII_bubbles(
   fftwf_execute(plan);
   fftwf_destroy_plan(plan);
 
+  if (validation_output)
+  {
+    // prepare output file
+    char fname[STRLEN];
+    sprintf(fname, "validation_output-core%03d.h5", mpi_rank);
+    hid_t file_id = H5Fcreate(fname, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
+
+    hid_t group = H5Gcreate(file_id, "kspace", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+
+    H5LTmake_dataset_float(group, "deltax", 1, (hsize_t []){slab_n_complex * 2}, deltax);
+    H5LTmake_dataset_float(group, "stars", 1, (hsize_t []){slab_n_complex * 2}, stars);
+    H5LTmake_dataset_float(group, "sfr", 1, (hsize_t []){slab_n_complex * 2}, sfr);
+
+    H5Gclose(group);
+    H5Fclose(file_id);
+  }
+
   // Remember to add the factor of VOLUME/TOT_NUM_PIXELS when converting from real space to k-space
   // Note: we will leave off factor of VOLUME, in anticipation of the inverse FFT below
-  int slab_n_complex = (int)(slabs_n_complex[mpi_rank]);
   for (int ii = 0; ii < slab_n_complex; ii++)
   {
     deltax_unfiltered[ii] /= total_n_cells;
@@ -160,8 +214,6 @@ static void _find_HII_bubbles(
       R                     = cell_length_factor * box_size / (double)ReionGridDim;
     }
 
-    // DEBUG
-    // mlog("R = %.2e (h=0.678 -> %.2e)", MLOG_MESG, R, R/0.678);
     mlog(".", MLOG_CONT);
 
     // copy the k-space grids
@@ -206,11 +258,11 @@ static void _find_HII_bubbles(
      * Main loop through the box...
      */
 
-    J_21_aux_constant = (1.0 + redshift) * (1.0 + redshift) / (4.0 * M_PI)
-                        * ReionAlphaUV * PLANCK
-                        * 1e21 * ReionEscapeFrac
-                        * R *UnitLength_in_cm * ReionNionPhotPerBary / PROTONMASS
-                        * UnitMass_in_g / pow(UnitLength_in_cm, 3) / UnitTime_in_s;
+    double J_21_aux_constant = (1.0 + redshift) * (1.0 + redshift) / (4.0 * M_PI)
+      * ReionAlphaUV * PLANCK
+      * 1e21 * ReionEscapeFrac
+      * R *UnitLength_in_cm * ReionNionPhotPerBary / PROTONMASS
+      * UnitMass_in_g / pow(UnitLength_in_cm, 3) / UnitTime_in_s;
 
     for (int ix = 0; ix < local_nix; ix++)
       for (int iy = 0; iy < ReionGridDim; iy++)
@@ -289,6 +341,23 @@ static void _find_HII_bubbles(
 
   *volume_weighted_global_xH                        /= total_n_cells;
   *mass_weighted_global_xH                          /= mass_weight;
+
+  if (validation_output)
+  {
+    // prepare output file
+    char fname[STRLEN];
+    sprintf(fname, "validation_output-core%03d.h5", mpi_rank);
+    hid_t file_id = H5Fopen(fname, H5F_ACC_RDWR, H5P_DEFAULT);
+
+    H5LTmake_dataset_float(file_id, "xH", 1, (hsize_t []){slab_n_real}, xH);
+    H5LTmake_dataset_float(file_id, "z_at_ionization", 1, (hsize_t []){slab_n_real}, z_at_ionization);
+    H5LTmake_dataset_float(file_id, "J_21_at_ionization", 1, (hsize_t []){slab_n_real}, J_21_at_ionization);
+
+    H5LTset_attribute_double(file_id, "/", "volume_weighted_global_xH", volume_weighted_global_xH, 1);
+    H5LTset_attribute_double(file_id, "/", "mass_weighted_global_xH", mass_weighted_global_xH, 1);
+
+    H5Fclose(file_id);
+  }
 }
 
 
@@ -314,8 +383,9 @@ void find_HII_bubbles(double redshift)
       run_globals.params.physics.ReionAlphaUV,
       run_globals.params.physics.ReionEscapeFrac,
 
+      true,  // VALIDATION OUTPUT FLAG
+
       run_globals.reion_grids.J_21,
-      run_globals.reion_grids.xH,
       run_globals.reion_grids.r_bubble,
       run_globals.reion_grids.deltax,
       run_globals.reion_grids.stars,
@@ -327,6 +397,7 @@ void find_HII_bubbles(double redshift)
       run_globals.reion_grids.slab_n_complex,
       run_globals.reion_grids.slab_ix_start,
 
+      run_globals.reion_grids.xH,
       run_globals.reion_grids.z_at_ionization,
       run_globals.reion_grids.J_21_at_ionization,
 
