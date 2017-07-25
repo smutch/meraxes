@@ -106,7 +106,7 @@ static void _find_HII_bubbles(
 
   int slab_n_complex = (int)(slabs_n_complex[mpi_rank]);
 
-  if (validation_output)
+  if (validation_output && isclosef(redshift, 6.98713751375, -1, -1))
   {
     // prepare output file
     char fname[STRLEN];
@@ -173,7 +173,7 @@ static void _find_HII_bubbles(
   fftwf_execute(plan);
   fftwf_destroy_plan(plan);
 
-  if (validation_output)
+  if (validation_output && isclosef(redshift, 6.98713751375, -1, -1))
   {
     // prepare output file
     char fname[STRLEN];
@@ -342,7 +342,7 @@ static void _find_HII_bubbles(
   *volume_weighted_global_xH                        /= total_n_cells;
   *mass_weighted_global_xH                          /= mass_weight;
 
-  if (validation_output)
+  if (validation_output && isclosef(redshift, 6.98713751375, -1, -1))
   {
     // prepare output file
     char fname[STRLEN];
