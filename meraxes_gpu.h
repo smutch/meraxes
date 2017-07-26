@@ -1,4 +1,7 @@
 #ifndef _MERAXES_GPU_H
+#define _MERAXES_GPU_H
+
+#include "utils.h"
 
 double RtoM(double R);
 
@@ -104,7 +107,8 @@ void find_HII_bubbles_driver(
         // output - single values
         double *volume_weighted_global_xH,
         double *mass_weighted_global_xH
-        ));
+        ),
+    timer_info *timer);
 
 #define _MERAXES_GPU_H
 #endif

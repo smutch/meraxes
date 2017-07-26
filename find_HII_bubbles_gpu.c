@@ -384,7 +384,8 @@ void find_HII_bubbles_driver(
         // output - single values
         double *volume_weighted_global_xH,
         double *mass_weighted_global_xH
-        ))
+        ),
+    timer_info *timer)
 {
     // Initialize MPI stuff
     MPI_Comm   mpi_comm;
@@ -472,6 +473,7 @@ void find_HII_bubbles_driver(
     double         mass_weighted_global_xH;
     
     // Call the version of find_HII_bubbles we've been passed
+    timer_start(timer);
     _find_HII_bubbles_passed(
         redshift, //
         mpi_comm,
@@ -506,8 +508,8 @@ void find_HII_bubbles_driver(
         z_at_ionization,
         J_21_at_ionization,
         &volume_weighted_global_xH,
-        &mass_weighted_global_xH
-    );
+        &mass_weighted_global_xH);
+    timer_stop(timer);
     
     // Clean-up
     fftwf_free(J_21);

@@ -1,2 +1,2 @@
 #!/bin/bash
-gcc -g -std=gnu99 main.c find_HII_bubbles_gpu.c -lm -lmeraxes
+gcc -g -std=gnu99 main.c utils.c find_HII_bubbles_gpu.c -lm -lmeraxes
