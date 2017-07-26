@@ -1,0 +1,2 @@
+#~/bin/bash
+h5diff validation_input-core000-z6.99.h5 /lustre/projects/p124_astro/smutch/adacs/128cubed/validation_input-core000-z6.99.h5

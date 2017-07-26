@@ -1,3 +1,6 @@
+# Datafiles
+*.h5
+
 # Prerequisites
 *.d
 
