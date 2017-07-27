@@ -3,8 +3,6 @@
 
 #include "utils.h"
 
-double RtoM(double R);
-
 void  _find_HII_bubbles_gpu(
     // input
     double redshift,
@@ -108,6 +106,7 @@ void find_HII_bubbles_driver(
         double *volume_weighted_global_xH,
         double *mass_weighted_global_xH
         ),
+    const char *reference_directory,
     timer_info *timer);
 
 #define _MERAXES_GPU_H

@@ -10,10 +10,6 @@
 #include <hdf5.h>
 #include <hdf5_hl.h>
 
-#define L_FACTOR 0.620350491 // Factor relating cube length to filter radius = (4PI/3)^(-1/3)
-
-#define TEST_INPUT_DIR "/lustre/projects/p124_astro/smutch/adacs/128cubed"
-
 // Presently, this is just a copy of what's in Meraxes
 void _find_HII_bubbles_gpu(
     // input
@@ -268,6 +264,7 @@ void _find_HII_bubbles_gpu(
 
             // Record radius
             r_bubble[i_real] = (float)R;
+//fprintf(stderr,"ix,iy,iz=%03d,%03d,%03d R=%le\n",ix,iy,iz,r_bubble[i_real]);
           }
           // Check if this is the last filtering step.
           // If so, assign partial ionisations to those cells which aren't fully ionised
@@ -282,6 +279,7 @@ void _find_HII_bubbles_gpu(
             if (flag_ReionUVBFlag)
               J_21_at_ionization[i_real] = J_21_aux * (float)ReionGammaHaloBias;
           }
+//if(iz<100) fprintf(stderr,"%le ",J_21_at_ionization[i_real]);if(iz==100) fprintf(stderr," XXXXXXX\n");
         }
     // iz
 
@@ -385,23 +383,19 @@ void find_HII_bubbles_driver(
         double *volume_weighted_global_xH,
         double *mass_weighted_global_xH
         ),
+    const char *reference_directory,
     timer_info *timer)
 {
-    // Initialize MPI stuff
-    MPI_Comm   mpi_comm;
-    int        mpi_rank; 
-    int        n_rank; 
-    MPI_Comm_dup(MPI_COMM_WORLD, &mpi_comm);
-    MPI_Comm_rank(mpi_comm,&mpi_rank);
-    MPI_Comm_size(mpi_comm,&n_rank);
+    int mpi_rank=run_globals.mpi_rank;
+    int n_rank  =run_globals.mpi_size;
     if(n_rank!=1){
         if(mpi_rank==0) fprintf(stderr,"n_rank=%d but only n_rank==1 supported at this point.\n",n_rank);
         exit(1);
     }
     
-    // Initialize inputs file
+    // Open inputs file
     char fname[STRLEN];
-    sprintf(fname, "%s/validation_input-core%03d-z%.2f.h5", TEST_INPUT_DIR,mpi_rank, redshift);
+    sprintf(fname, "%s/validation_input-core%03d-z%.2f.h5",reference_directory,mpi_rank, redshift);
     hid_t file_id = H5Fopen(fname, H5F_ACC_RDONLY, H5P_DEFAULT);
     
     // Read input attributes
@@ -421,11 +415,11 @@ void find_HII_bubbles_driver(
     double ReionAlphaUV;
     double ReionEscapeFrac;
     H5LTget_attribute_double(file_id, "/", "redshift", &redshift);
-    H5LTget_attribute_int(file_id, "/", "mpi_rank", &mpi_rank);
+    H5LTget_attribute_int   (file_id, "/", "mpi_rank", &mpi_rank);
     H5LTget_attribute_double(file_id, "/", "box_size", &box_size);
-    H5LTget_attribute_int(file_id, "/", "ReionGridDim", &ReionGridDim);
-    H5LTget_attribute_int(file_id, "/", "local_nix", &local_nix);
-    H5LTget_attribute_int(file_id, "/", "flag_ReionUVBFlag", &flag_ReionUVBFlag);
+    H5LTget_attribute_int   (file_id, "/", "ReionGridDim", &ReionGridDim);
+    H5LTget_attribute_int   (file_id, "/", "local_nix", &local_nix);
+    H5LTget_attribute_int   (file_id, "/", "flag_ReionUVBFlag", &flag_ReionUVBFlag);
     H5LTget_attribute_double(file_id, "/", "ReionEfficiency", &ReionEfficiency);
     H5LTget_attribute_double(file_id, "/", "ReionNionPhotPerBary", &ReionNionPhotPerBary);
     H5LTget_attribute_double(file_id, "/", "UnitLength_in_cm", &UnitLength_in_cm);
@@ -439,28 +433,28 @@ void find_HII_bubbles_driver(
     H5LTget_attribute_double(file_id, "/", "ReionEscapeFrac", &ReionEscapeFrac);
 
     // Initialize fftw here (we need to do this because we need 'slab_n_complex' to set the size of the input datasets
-    int            dim = ReionGridDim;
-    ptrdiff_t      local_nix_2, local_ix_start;
-    int            local_n_complex = fftwf_mpi_local_size_3d(dim, dim, dim / 2 + 1, mpi_comm, &local_nix_2, &local_ix_start);
+    ptrdiff_t local_nix_2;
+    ptrdiff_t local_ix_start;
+    int       local_n_complex = fftwf_mpi_local_size_3d(ReionGridDim, ReionGridDim, ReionGridDim / 2 + 1, run_globals.mpi_comm, &local_nix_2, &local_ix_start);
     if(local_nix!=local_nix_2){
         printf("Error: local_nix!=local_nix_2 (ie. %d!=%d)\n",local_nix,local_nix_2);
         exit(1);
     }
-    int    slab_n_complex           =local_n_complex;
-    int    slab_n_real = local_nix*ReionGridDim*ReionGridDim;
+    int       slab_n_complex    =  local_n_complex;
+    int       slab_n_real       =  local_nix*ReionGridDim*ReionGridDim;
+    ptrdiff_t slabs_n_complex[] = {slab_n_complex}; // works for 1 core only
+    ptrdiff_t slabs_ix_start[]  = {0};              // works for 1 core only
 
     // Read input datasets
-    float *deltax      = fftwf_alloc_real(slab_n_complex * 2);
-    float *stars       = fftwf_alloc_real(slab_n_complex * 2);
-    float *sfr         = fftwf_alloc_real(slab_n_complex * 2);
+    float *deltax = fftwf_alloc_real(slab_n_complex * 2);
+    float *stars  = fftwf_alloc_real(slab_n_complex * 2);
+    float *sfr    = fftwf_alloc_real(slab_n_complex * 2);
     H5LTread_dataset_float(file_id, "deltax", deltax);
     H5LTread_dataset_float(file_id, "sfr",  sfr);
     H5LTread_dataset_float(file_id, "stars", stars);
     H5Fclose(file_id);
 
     // Initialize outputs    
-    ptrdiff_t      slabs_n_complex[]        ={slab_n_complex}; // works for 1 core only
-    ptrdiff_t      slabs_ix_start[]         ={0};              // works for 1 core only
     float         *J_21                     =fftwf_alloc_real(slab_n_real);
     float         *r_bubble                 =fftwf_alloc_real(slab_n_real); 
     fftwf_complex *deltax_filtered          =fftwf_alloc_complex(slab_n_complex);
@@ -476,7 +470,7 @@ void find_HII_bubbles_driver(
     timer_start(timer);
     _find_HII_bubbles_passed(
         redshift, //
-        mpi_comm,
+        run_globals.mpi_comm,
         mpi_rank,
         box_size, //
         ReionGridDim, //
