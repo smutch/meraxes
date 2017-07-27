@@ -62,18 +62,14 @@ void _find_HII_bubbles_gpu(
     double *mass_weighted_global_xH
     )
 {
-  double       pixel_volume         = pow(box_size / (double)ReionGridDim, 3); // (Mpc/h)^3
+  const double pixel_volume         = pow(box_size / (double)ReionGridDim, 3); // (Mpc/h)^3
+  const double inv_pixel_volume     = 1.f/pixel_volume;
+  const double total_n_cells        = pow((double)ReionGridDim, 3);
+  const double inv_total_n_cells    = 1.f/total_n_cells;
+  const int    slab_n_real          = local_nix * ReionGridDim * ReionGridDim;
+  const int    slab_n_complex = (int)(slabs_n_complex[mpi_rank]);
   double       cell_length_factor   = L_FACTOR;
-  double       total_n_cells        = pow((double)ReionGridDim, 3);
-  int          slab_n_real          = local_nix * ReionGridDim * ReionGridDim;
-  float        J_21_aux;
-  double       density_over_mean;
-  double       sfr_density;
-  double       f_coll_stars;
-  int          i_real;
-  int          i_padded;
 
-  int slab_n_complex = (int)(slabs_n_complex[mpi_rank]);
 
   if (validation_output)
   {
@@ -162,11 +158,11 @@ void _find_HII_bubbles_gpu(
   // Remember to add the factor of VOLUME/TOT_NUM_PIXELS when converting from real space to k-space
   // Note: we will leave off factor of VOLUME, in anticipation of the inverse FFT below
   for (int ii = 0; ii < slab_n_complex; ii++)
-  {
-    deltax_unfiltered[ii] /= total_n_cells;
-    stars_unfiltered[ii]  /= total_n_cells;
-    sfr_unfiltered[ii]    /= total_n_cells;
-  }
+    deltax_unfiltered[ii] *= inv_total_n_cells;
+  for (int ii = 0; ii < slab_n_complex; ii++)
+    stars_unfiltered[ii]  *= inv_total_n_cells;
+  for (int ii = 0; ii < slab_n_complex; ii++)
+    sfr_unfiltered[ii]    *= inv_total_n_cells;
 
   // Loop through filter radii
   double R                     = fmin(ReionRBubbleMax, L_FACTOR * box_size); // Mpc/h
@@ -217,7 +213,7 @@ void _find_HII_bubbles_gpu(
       for (int iy = 0; iy < ReionGridDim; iy++)
         for (int iz = 0; iz < ReionGridDim; iz++)
         {
-          i_padded = grid_index(ix, iy, iz, ReionGridDim, INDEX_PADDED);
+          const int i_padded = grid_index(ix, iy, iz, ReionGridDim, INDEX_PADDED);
           ((float *)deltax_filtered)[i_padded] = fmaxf(((float *)deltax_filtered)[i_padded], -1 + REL_TOL);
           ((float *)stars_filtered)[i_padded]  = fmaxf(((float *)stars_filtered)[i_padded], 0.0);
           ((float *)sfr_filtered)[i_padded]    = fmaxf(((float *)sfr_filtered)[i_padded], 0.0);
@@ -227,7 +223,7 @@ void _find_HII_bubbles_gpu(
      * Main loop through the box...
      */
 
-    double J_21_aux_constant = (1.0 + redshift) * (1.0 + redshift) / (4.0 * M_PI)
+    const double J_21_aux_constant = (1.0 + redshift) * (1.0 + redshift) / (4.0 * M_PI)
       * ReionAlphaUV * PLANCK
       * 1e21 * ReionEscapeFrac
       * R *UnitLength_in_cm * ReionNionPhotPerBary / PROTONMASS
@@ -237,16 +233,17 @@ void _find_HII_bubbles_gpu(
       for (int iy = 0; iy < ReionGridDim; iy++)
         for (int iz = 0; iz < ReionGridDim; iz++)
         {
-          i_real   = grid_index(ix, iy, iz, ReionGridDim, INDEX_REAL);
-          i_padded = grid_index(ix, iy, iz, ReionGridDim, INDEX_PADDED);
+          const int i_real   = grid_index(ix, iy, iz, ReionGridDim, INDEX_REAL);
+          const int i_padded = grid_index(ix, iy, iz, ReionGridDim, INDEX_PADDED);
 
-          density_over_mean = 1.0 + (double)((float *)deltax_filtered)[i_padded];
+          double density_over_mean = 1.0 + (double)((float *)deltax_filtered)[i_padded];
 
-          f_coll_stars      =  (double)((float *)stars_filtered)[i_padded] / (RtoM(R) * density_over_mean)
-                               * (4.0 / 3.0) * M_PI * pow(R,3.0) / pixel_volume;
+          double f_coll_stars      =  (double)((float *)stars_filtered)[i_padded] / (RtoM(R) * density_over_mean)
+                               * (4.0 / 3.0) * M_PI * pow(R,3.0)  * inv_pixel_volume;
 
-          sfr_density       = (double)((float *)sfr_filtered)[i_padded] / pixel_volume; // In internal units
+          double sfr_density       = (double)((float *)sfr_filtered)[i_padded] * inv_pixel_volume; // In internal units
 
+          float J_21_aux;
           if (flag_ReionUVBFlag)
             J_21_aux = (float)(sfr_density * J_21_aux_constant);
 
@@ -258,13 +255,11 @@ void _find_HII_bubbles_gpu(
               if(flag_ReionUVBFlag)
                 J_21[i_real] = J_21_aux;
 
-
             // Mark as ionised
             xH[i_real]       = 0;
 
             // Record radius
             r_bubble[i_real] = (float)R;
-//fprintf(stderr,"ix,iy,iz=%03d,%03d,%03d R=%le\n",ix,iy,iz,r_bubble[i_real]);
           }
           // Check if this is the last filtering step.
           // If so, assign partial ionisations to those cells which aren't fully ionised
@@ -279,7 +274,6 @@ void _find_HII_bubbles_gpu(
             if (flag_ReionUVBFlag)
               J_21_at_ionization[i_real] = J_21_aux * (float)ReionGammaHaloBias;
           }
-//if(iz<100) fprintf(stderr,"%le ",J_21_at_ionization[i_real]);if(iz==100) fprintf(stderr," XXXXXXX\n");
         }
     // iz
 
@@ -298,10 +292,10 @@ void _find_HII_bubbles_gpu(
     for (int iy = 0; iy < ReionGridDim; iy++)
       for (int iz = 0; iz < ReionGridDim; iz++)
       {
-        i_real   = grid_index(ix, iy, iz, ReionGridDim, INDEX_REAL);
-        i_padded = grid_index(ix, iy, iz, ReionGridDim, INDEX_PADDED);
+        const int i_real   = grid_index(ix, iy, iz, ReionGridDim, INDEX_REAL);
+        const int i_padded = grid_index(ix, iy, iz, ReionGridDim, INDEX_PADDED);
+        double density_over_mean    = 1.0 + (double)((float *)deltax_filtered)[i_padded];
         *volume_weighted_global_xH += (double)xH[i_real];
-        density_over_mean           = 1.0 + (double)((float *)deltax_filtered)[i_padded];
         *mass_weighted_global_xH   += (double)(xH[i_real]) * density_over_mean;
         mass_weight                += density_over_mean;
       }
@@ -310,7 +304,7 @@ void _find_HII_bubbles_gpu(
   MPI_Allreduce(MPI_IN_PLACE, &mass_weighted_global_xH, 1, MPI_DOUBLE, MPI_SUM, mpi_comm);
   MPI_Allreduce(MPI_IN_PLACE, &mass_weight, 1, MPI_DOUBLE, MPI_SUM, mpi_comm);
 
-  *volume_weighted_global_xH                        /= total_n_cells;
+  *volume_weighted_global_xH                        *= inv_total_n_cells;
   *mass_weighted_global_xH                          /= mass_weight;
 
   if (validation_output)
