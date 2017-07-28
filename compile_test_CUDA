@@ -1,0 +1,2 @@
+#!/bin/bash
+nvcc -g -O3 -std=c99 -arch=sm_30 main.c utils.c find_HII_bubbles_gpu.c -lm -lmeraxes -o b.out

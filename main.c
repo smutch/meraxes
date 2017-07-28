@@ -38,15 +38,17 @@ int main(int argc,char *argv[]){
     timer_info   timer;
     const double redshift = 6.99f;
 
-    // Run the Meraxes version of _find_HII_bubbles()
-    fprintf(stdout,"Calling Meraxes version of find_HII_bubbles()...");fflush(stdout);
-    find_HII_bubbles_driver(redshift,_find_HII_bubbles,reference_directory,&timer);
-    fprintf(stdout,"Done. (%ld seconds)\n",timer_delta(timer));fflush(stdout);
-
+#ifdef __NVCC__
     // Run the GPU version of _find_HII_bubbles()
     fprintf(stdout,"Calling GPU version of find_HII_bubbles()...");fflush(stdout);
     find_HII_bubbles_driver(redshift,_find_HII_bubbles_gpu,reference_directory,&timer);
     fprintf(stdout,"Done. (%ld seconds)\n",timer_delta(timer));fflush(stdout);
+#else
+    // Run the Meraxes version of _find_HII_bubbles()
+    fprintf(stdout,"Calling Meraxes version of find_HII_bubbles()...");fflush(stdout);
+    find_HII_bubbles_driver(redshift,_find_HII_bubbles,reference_directory,&timer);
+    fprintf(stdout,"Done. (%ld seconds)\n",timer_delta(timer));fflush(stdout);
+#endif
 
     // Clean-up and exit
     MPI_Finalize();

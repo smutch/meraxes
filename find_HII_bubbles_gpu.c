@@ -110,16 +110,17 @@ void _find_HII_bubbles_gpu(
     cell_length_factor = 1.0;
 
   // Init J_21
+  int ix,iy,iz,ii;
   if (flag_ReionUVBFlag)
-    for(int ii = 0; ii < slab_n_real; ii++)
+    for(ii = 0; ii < slab_n_real; ii++)
       J_21[ii] = 0.0;
 
   // Init xH
-  for(int ii = 0; ii < slab_n_real; ii++)
+  for(ii = 0; ii < slab_n_real; ii++)
     xH[ii] = 1.0;
 
   // Init r_bubble
-  for(int ii = 0; ii < slab_n_real; ii++)
+  for(ii = 0; ii < slab_n_real; ii++)
     r_bubble[ii] = 0.0;
 
   // Forward fourier transform to obtain k-space fields
@@ -157,11 +158,11 @@ void _find_HII_bubbles_gpu(
 
   // Remember to add the factor of VOLUME/TOT_NUM_PIXELS when converting from real space to k-space
   // Note: we will leave off factor of VOLUME, in anticipation of the inverse FFT below
-  for (int ii = 0; ii < slab_n_complex; ii++)
+  for (ii = 0; ii < slab_n_complex; ii++)
     deltax_unfiltered[ii] *= inv_total_n_cells;
-  for (int ii = 0; ii < slab_n_complex; ii++)
+  for (ii = 0; ii < slab_n_complex; ii++)
     stars_unfiltered[ii]  *= inv_total_n_cells;
-  for (int ii = 0; ii < slab_n_complex; ii++)
+  for (ii = 0; ii < slab_n_complex; ii++)
     sfr_unfiltered[ii]    *= inv_total_n_cells;
 
   // Loop through filter radii
@@ -209,9 +210,9 @@ void _find_HII_bubbles_gpu(
     fftwf_destroy_plan(plan);
 
     // Perform sanity checks to account for aliasing effects
-    for (int ix = 0; ix < local_nix; ix++)
-      for (int iy = 0; iy < ReionGridDim; iy++)
-        for (int iz = 0; iz < ReionGridDim; iz++)
+    for (ix = 0; ix < local_nix; ix++)
+      for (iy = 0; iy < ReionGridDim; iy++)
+        for (iz = 0; iz < ReionGridDim; iz++)
         {
           const int i_padded = grid_index(ix, iy, iz, ReionGridDim, INDEX_PADDED);
           ((float *)deltax_filtered)[i_padded] = fmaxf(((float *)deltax_filtered)[i_padded], -1 + REL_TOL);
@@ -229,9 +230,9 @@ void _find_HII_bubbles_gpu(
       * R *UnitLength_in_cm * ReionNionPhotPerBary / PROTONMASS
       * UnitMass_in_g / pow(UnitLength_in_cm, 3) / UnitTime_in_s;
 
-    for (int ix = 0; ix < local_nix; ix++)
-      for (int iy = 0; iy < ReionGridDim; iy++)
-        for (int iz = 0; iz < ReionGridDim; iz++)
+    for (ix = 0; ix < local_nix; ix++)
+      for (iy = 0; iy < ReionGridDim; iy++)
+        for (iz = 0; iz < ReionGridDim; iz++)
         {
           const int i_real   = grid_index(ix, iy, iz, ReionGridDim, INDEX_REAL);
           const int i_padded = grid_index(ix, iy, iz, ReionGridDim, INDEX_PADDED);
@@ -288,9 +289,9 @@ void _find_HII_bubbles_gpu(
   *mass_weighted_global_xH   = 0.0;
   double mass_weight         = 0.0;
 
-  for (int ix = 0; ix < local_nix; ix++)
-    for (int iy = 0; iy < ReionGridDim; iy++)
-      for (int iz = 0; iz < ReionGridDim; iz++)
+  for (ix = 0; ix < local_nix; ix++)
+    for (iy = 0; iy < ReionGridDim; iy++)
+      for (iz = 0; iz < ReionGridDim; iz++)
       {
         const int i_real   = grid_index(ix, iy, iz, ReionGridDim, INDEX_REAL);
         const int i_padded = grid_index(ix, iy, iz, ReionGridDim, INDEX_PADDED);
