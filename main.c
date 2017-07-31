@@ -51,8 +51,9 @@ int main(int argc,char *argv[]){
 #endif
 
     // Clean-up and exit
-    MPI_Finalize();
     fclose(fp_null);
+    MPI_Comm_free(&(run_globals.mpi_comm));
+    MPI_Finalize();
     exit(EXIT_SUCCESS);
 }
 

@@ -1,8 +1,33 @@
 #ifndef _MERAXES_GPU_H
 #define _MERAXES_GPU_H
-
+#include <fftw3.h>
+#include <fftw3-mpi.h>
+#include <math.h>
+#include <assert.h>
+#include <signal.h>
+#include <limits.h>
+#include <hdf5.h>
+#include <hdf5_hl.h>
+#include <cuda_runtime.h>
+#include <cufft.h>
 #include "utils.h"
+#include "meraxes.h"
 
+#ifdef __NVCC__
+typedef float2 Complex;
+#else
+typedef fftwf_complex Complex;
+#endif
+//static __device__ __host__ Complex ComplexAdd    (Complex, Complex);
+//static __device__ __host__ Complex ComplexScale  (Complex, float);
+//static __device__ __host__ Complex ComplexMul    (Complex, Complex);
+//static __device__ __host__ Complex ComplexScalMul(Complex, double);
+
+__global__ void complex_vector_times_scalar(Complex *vector,double scalar,int n);
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 void  _find_HII_bubbles_gpu(
     // input
     double redshift,
@@ -36,9 +61,9 @@ void  _find_HII_bubbles_gpu(
     float *sfr,  // real & padded
 
     // preallocated
-    fftwf_complex *deltax_filtered,  // complex
-    fftwf_complex *stars_filtered,  // complex
-    fftwf_complex *sfr_filtered,  // complex
+    Complex *deltax_filtered,  // complex
+    Complex *stars_filtered,  // complex
+    Complex *sfr_filtered,  // complex
 
     // length = mpi.size
     ptrdiff_t *slabs_n_complex,
@@ -89,9 +114,9 @@ void find_HII_bubbles_driver(
         float *sfr,  // real & padded
 
         // preallocated
-        fftwf_complex *deltax_filtered,  // complex
-        fftwf_complex *stars_filtered,  // complex
-        fftwf_complex *sfr_filtered,  // complex
+        Complex *deltax_filtered,  // complex
+        Complex *stars_filtered,  // complex
+        Complex *sfr_filtered,  // complex
 
         // length = mpi.size
         ptrdiff_t *slabs_n_complex,
@@ -108,6 +133,8 @@ void find_HII_bubbles_driver(
         ),
     const char *reference_directory,
     timer_info *timer);
-
+#ifdef __cplusplus
+}
+#endif
 #define _MERAXES_GPU_H
 #endif
