@@ -326,10 +326,10 @@ void _find_HII_bubbles_gpu(
   cufftComplex *deltax_filtered   = NULL;
   cufftComplex *stars_filtered    = NULL;
   cufftComplex *sfr_filtered      = NULL;
-  float        *xH_device                = NULL;
+  float        *xH_device                 = NULL;
   float        *J_21_device               = NULL;
-  float        *r_bubble_device          = NULL;
-  float        *z_at_ionization_device   = NULL;
+  float        *r_bubble_device           = NULL;
+  float        *z_at_ionization_device    = NULL;
   float        *J_21_at_ionization_device = NULL;
   cudaMalloc((void**)&deltax_unfiltered,sizeof(cufftComplex)*slab_n_complex);
   cudaMalloc((void**)&stars_unfiltered, sizeof(cufftComplex)*slab_n_complex);
@@ -337,19 +337,38 @@ void _find_HII_bubbles_gpu(
   cudaMalloc((void**)&deltax_filtered,  sizeof(cufftComplex)*slab_n_complex);
   cudaMalloc((void**)&stars_filtered,   sizeof(cufftComplex)*slab_n_complex);
   cudaMalloc((void**)&sfr_filtered,     sizeof(cufftComplex)*slab_n_complex);
-  cudaMalloc((void**)&xH_device,               sizeof(float)*slab_n_real);
-  cudaMalloc((void**)&z_at_ionization_device,  sizeof(float)*slab_n_real);
+  cudaMalloc((void**)&xH_device,                sizeof(float)*slab_n_real);
+  cudaMalloc((void**)&J_21_device,              sizeof(float)*slab_n_real);
+  cudaMalloc((void**)&r_bubble_device,          sizeof(float)*slab_n_real);
+  cudaMalloc((void**)&z_at_ionization_device,   sizeof(float)*slab_n_real);
   cudaMalloc((void**)&J_21_at_ionization_device,sizeof(float)*slab_n_real);
   cudaMemcpy(deltax,deltax_unfiltered,  sizeof(cufftComplex)*slab_n_complex,cudaMemcpyHostToDevice);
   cudaMemcpy(stars, stars_unfiltered,   sizeof(cufftComplex)*slab_n_complex,cudaMemcpyHostToDevice);
   cudaMemcpy(sfr,   sfr_unfiltered,     sizeof(cufftComplex)*slab_n_complex,cudaMemcpyHostToDevice);
 
+
   // Initialize output grids
+  if(cudaThreadSynchronize() != cudaSuccess){
+    fprintf(stderr, "Cuda error 4a.\n");
+    return;
+  }
   set_array_gpu<<<grid,threads>>>(xH_device,      slab_n_real,1.f);
+  if(cudaThreadSynchronize() != cudaSuccess){
+    fprintf(stderr, "Cuda error 4b.\n");
+    return;
+  }
   set_array_gpu<<<grid,threads>>>(r_bubble_device,slab_n_real,0.f);
+  if(cudaThreadSynchronize() != cudaSuccess){
+    fprintf(stderr, "Cuda error 4c.\n");
+    return;
+  }
   if (flag_ReionUVBFlag){
      cudaMalloc((void**)&J_21_device,sizeof(float)*slab_n_real);
      set_array_gpu<<<grid,threads>>>(J_21_device,slab_n_real,0.f);
+  }
+  if(cudaThreadSynchronize() != cudaSuccess){
+    fprintf(stderr, "Cuda error 4d.\n");
+    return;
   }
 
   // Perform FFTs
@@ -454,9 +473,7 @@ void _find_HII_bubbles_gpu(
     sanity_check_aliasing<<<grid,threads>>>(stars_filtered, slab_n_complex,0.);
     sanity_check_aliasing<<<grid,threads>>>(sfr_filtered,   slab_n_complex,0.);
 
-    /*
-     * Main loop through the box...
-     */
+    // Main loop through the box...
     const double J_21_aux_constant = (1.0 + redshift) * (1.0 + redshift) / (4.0 * M_PI)
       * ReionAlphaUV * PLANCK
       * 1e21 * ReionEscapeFrac
@@ -475,21 +492,22 @@ void _find_HII_bubbles_gpu(
         inv_pixel_volume,
         J_21_aux_constant,
         ReionGammaHaloBias,
-        xH,
-        J_21,
-        r_bubble,
-        J_21_at_ionization,
-        z_at_ionization,
+        xH_device,
+        J_21_device,
+        r_bubble_device,
+        J_21_at_ionization_device,
+        z_at_ionization_device,
         deltax_filtered,
         stars_filtered,
         sfr_filtered);
 
     R /= ReionDeltaRFactor;
   }
-  cudaMemcpy(xH_device,                xH,                sizeof(float) * slab_n_real,cudaMemcpyDeviceToHost);
-  cudaMemcpy(deltax_filtered,          deltax,            sizeof(float) * slab_n_real,cudaMemcpyDeviceToHost);
-  cudaMemcpy(z_at_ionization_device,   z_at_ionization,   sizeof(float) * slab_n_real,cudaMemcpyDeviceToHost);
-  cudaMemcpy(J_21_at_ionization_device,J_21_at_ionization,sizeof(float) * slab_n_real,cudaMemcpyDeviceToHost);
+  cudaMemcpy(xH,                xH_device,                sizeof(float) * slab_n_real,cudaMemcpyDeviceToHost);
+  cudaMemcpy(J_21,              J_21_device,              sizeof(float) * slab_n_real,cudaMemcpyDeviceToHost);
+  cudaMemcpy(deltax,            deltax_filtered,          sizeof(float) * slab_n_real,cudaMemcpyDeviceToHost);
+  cudaMemcpy(z_at_ionization,   z_at_ionization_device,   sizeof(float) * slab_n_real,cudaMemcpyDeviceToHost);
+  cudaMemcpy(J_21_at_ionization,J_21_at_ionization_device,sizeof(float) * slab_n_real,cudaMemcpyDeviceToHost);
 
 
   // Find the volume and mass weighted neutral fractions
