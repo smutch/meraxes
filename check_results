@@ -1,6 +1,12 @@
 #~/bin/bash
 echo "******* Checking inputs:"
-h5diff -v -n20 validation_input-core000-z6.99.h5 /lustre/projects/p124_astro/smutch/adacs/128cubed/validation_input-core000-z6.99.h5
+h5diff validation_input-core000-z6.99.h5 /lustre/projects/p124_astro/smutch/adacs/128cubed/validation_input-core000-z6.99.h5
+if [ $? -eq 0 ]; then
+    echo "No differences found."
+fi
 echo
 echo "******* Checking outputs:"
-h5diff -v -n20 validation_output-core000-z6.99.h5 /lustre/projects/p124_astro/smutch/adacs/128cubed/validation_output-core000-z6.99.h5
+h5diff validation_output-core000-z6.99.h5 /lustre/projects/p124_astro/smutch/adacs/128cubed/validation_output-core000-z6.99.h5
+if [ $? -eq 0 ]; then
+    echo "No differences found."
+fi

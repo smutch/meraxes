@@ -509,7 +509,6 @@ void _find_HII_bubbles_gpu(
   cudaMemcpy(z_at_ionization,   z_at_ionization_device,   sizeof(float) * slab_n_real,cudaMemcpyDeviceToHost);
   cudaMemcpy(J_21_at_ionization,J_21_at_ionization_device,sizeof(float) * slab_n_real,cudaMemcpyDeviceToHost);
 
-
   // Find the volume and mass weighted neutral fractions
   // TODO: The deltax grid will have rounding errors from forward and reverse
   //       FFT. Should cache deltax slabs prior to ffts and reuse here.
