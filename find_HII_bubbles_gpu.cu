@@ -315,12 +315,6 @@ void _find_HII_bubbles_gpu(
   if ((box_size / (double)ReionGridDim) < 1.0) // Fairly arbitrary length based on 2 runs Sobacchi did
     cell_length_factor = 1.0;
 
-  // Forward fourier transform to obtain k-space fields
-  // Initialize cuFFT
-  cufftHandle plan;
-  cufftPlan3d(&plan, ReionGridDim, ReionGridDim, ReionGridDim, CUFFT_R2C);
-  cufftSetCompatibilityMode(plan,CUFFT_COMPATIBILITY_FFTW_ALL);
-
   // Initialize arrays on the device
   cufftComplex *deltax_unfiltered = (cufftComplex *)deltax;
   cufftComplex *stars_unfiltered  = (cufftComplex *)stars;
@@ -342,12 +336,70 @@ void _find_HII_bubbles_gpu(
   cudaMalloc((void**)&xH_device,                sizeof(float)*slab_n_real);
   cudaMalloc((void**)&J_21_device,              sizeof(float)*slab_n_real);
   cudaMalloc((void**)&r_bubble_device,          sizeof(float)*slab_n_real);
-  cudaMalloc((void**)&z_at_ionization_device,   sizeof(float)*slab_n_real);
-  cudaMalloc((void**)&J_21_at_ionization_device,sizeof(float)*slab_n_real);
-  cudaMemcpy(deltax,deltax_unfiltered,  sizeof(cufftComplex)*slab_n_complex,cudaMemcpyHostToDevice);
-  cudaMemcpy(stars, stars_unfiltered,   sizeof(cufftComplex)*slab_n_complex,cudaMemcpyHostToDevice);
-  cudaMemcpy(sfr,   sfr_unfiltered,     sizeof(cufftComplex)*slab_n_complex,cudaMemcpyHostToDevice);
+  cudaMalloc((void**)&z_at_ionization_device,   sizeof(float)*2*slab_n_complex);
+  cudaMalloc((void**)&J_21_at_ionization_device,sizeof(float)*2*slab_n_complex);
+  cudaMemcpy(deltax_unfiltered,deltax, sizeof(cufftComplex)*slab_n_complex,cudaMemcpyHostToDevice);
+  cudaMemcpy(stars_unfiltered, stars,  sizeof(cufftComplex)*slab_n_complex,cudaMemcpyHostToDevice);
+  cudaMemcpy(sfr_unfiltered,   sfr,    sizeof(cufftComplex)*slab_n_complex,cudaMemcpyHostToDevice);
+  cudaMemcpy(z_at_ionization_device,z_at_ionization,      sizeof(float)*2*slab_n_complex,cudaMemcpyHostToDevice);
+  cudaMemcpy(J_21_at_ionization_device,J_21_at_ionization,sizeof(float)*2*slab_n_complex,cudaMemcpyHostToDevice);
 
+  // Forward fourier transform to obtain k-space fields
+  // Initialize cuFFT
+  cufftHandle plan;
+  cufftPlan3d(&plan, ReionGridDim, ReionGridDim, ReionGridDim, CUFFT_R2C);
+  cufftSetCompatibilityMode(plan,CUFFT_COMPATIBILITY_FFTW_ALL);
+
+  // Perform FFTs
+  if (cufftExecR2C(plan,(cufftReal *)deltax_unfiltered,deltax_unfiltered) != CUFFT_SUCCESS ) {
+    fprintf(stderr, "Cuda error 1.\n");
+    return ;
+  }
+  if (cufftExecR2C(plan,(cufftReal *)stars_unfiltered,stars_unfiltered) != CUFFT_SUCCESS ) {
+    fprintf(stderr, "Cuda error 2.\n");
+    return ;
+  }
+  if (cufftExecR2C(plan,(cufftReal *)sfr_unfiltered,sfr_unfiltered) != CUFFT_SUCCESS ) {
+    fprintf(stderr, "Cuda error 3.\n");
+    return ;
+  }
+
+  // Clean-up the device
+  cufftDestroy(plan);
+
+  // Make sure that the device has synchronized
+  if(cudaThreadSynchronize() != cudaSuccess){
+    fprintf(stderr, "Cuda error 4.\n");
+    return;
+  }
+
+  if (validation_output)
+  {
+    // prepare output file
+    char fname[STRLEN];
+    sprintf(fname, "validation_output-core%03d-z%.2f.h5", mpi_rank, redshift);
+    hid_t file_id = H5Fcreate(fname, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
+
+    hid_t group = H5Gcreate(file_id, "kspace", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+
+    float *array_temp = (float *)malloc(sizeof(float)*2*slab_n_complex);
+    cudaMemcpy(array_temp,deltax_unfiltered,sizeof(float)*2*slab_n_complex,cudaMemcpyDeviceToHost);
+    H5LTmake_dataset_float(group, "deltax", 1, (hsize_t []){slab_n_complex * 2}, array_temp);
+    cudaMemcpy(array_temp,stars_unfiltered,sizeof(float)*2*slab_n_complex,cudaMemcpyDeviceToHost);
+    H5LTmake_dataset_float(group, "stars", 1, (hsize_t []){slab_n_complex * 2}, array_temp);
+    cudaMemcpy(array_temp,sfr_unfiltered,sizeof(float)*2*slab_n_complex,cudaMemcpyDeviceToHost);
+    H5LTmake_dataset_float(group, "sfr", 1, (hsize_t []){slab_n_complex * 2}, array_temp);
+    free(array_temp);
+
+    H5Gclose(group);
+    H5Fclose(file_id);
+  }
+
+  // Remember to add the factor of VOLUME/TOT_NUM_PIXELS when converting from real space to k-space
+  // Note: we will leave off factor of VOLUME, in anticipation of the inverse FFT below
+  complex_vector_times_scalar<<<grid, threads>>>(deltax_unfiltered,inv_total_n_cells,slab_n_complex);
+  complex_vector_times_scalar<<<grid, threads>>>(stars_unfiltered, inv_total_n_cells,slab_n_complex);
+  complex_vector_times_scalar<<<grid, threads>>>(sfr_unfiltered,   inv_total_n_cells,slab_n_complex);
 
   // Initialize output grids
   if(cudaThreadSynchronize() != cudaSuccess){
@@ -373,52 +425,6 @@ void _find_HII_bubbles_gpu(
     return;
   }
 
-  // Perform FFTs
-  if (cufftExecR2C(plan,(cufftReal *)deltax_unfiltered,deltax_unfiltered) != CUFFT_SUCCESS ) {
-    fprintf(stderr, "Cuda error 1.\n");
-    return ;
-  }
-  if (cufftExecR2C(plan,(cufftReal *)stars_unfiltered,stars_unfiltered) != CUFFT_SUCCESS ) {
-    fprintf(stderr, "Cuda error 2.\n");
-    return ;
-  }
-  if (cufftExecR2C(plan,(cufftReal *)sfr_unfiltered,sfr_unfiltered) != CUFFT_SUCCESS ) {
-    fprintf(stderr, "Cuda error 3.\n");
-    return ;
-  }
-
-  // Make sure that the device has synchronized
-  if(cudaThreadSynchronize() != cudaSuccess){
-    fprintf(stderr, "Cuda error 4.\n");
-    return;
-  }
-
-  // Clean-up the device
-  cufftDestroy(plan);
-
-  if (validation_output)
-  {
-    // prepare output file
-    char fname[STRLEN];
-    sprintf(fname, "validation_output-core%03d-z%.2f.h5", mpi_rank, redshift);
-    hid_t file_id = H5Fcreate(fname, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
-
-    hid_t group = H5Gcreate(file_id, "kspace", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
-
-    H5LTmake_dataset_float(group, "deltax", 1, (hsize_t []){slab_n_complex * 2}, deltax);
-    H5LTmake_dataset_float(group, "stars", 1, (hsize_t []){slab_n_complex * 2}, stars);
-    H5LTmake_dataset_float(group, "sfr", 1, (hsize_t []){slab_n_complex * 2}, sfr);
-
-    H5Gclose(group);
-    H5Fclose(file_id);
-  }
-
-  // Remember to add the factor of VOLUME/TOT_NUM_PIXELS when converting from real space to k-space
-  // Note: we will leave off factor of VOLUME, in anticipation of the inverse FFT below
-  complex_vector_times_scalar<<<grid, threads>>>(deltax_unfiltered,inv_total_n_cells,slab_n_complex);
-  complex_vector_times_scalar<<<grid, threads>>>(stars_unfiltered, inv_total_n_cells,slab_n_complex);
-  complex_vector_times_scalar<<<grid, threads>>>(sfr_unfiltered,   inv_total_n_cells,slab_n_complex);
-
   // Loop through filter radii
   double R                     = fmin(ReionRBubbleMax, L_FACTOR * box_size); // Mpc/h
   bool   flag_last_filter_step = false;
@@ -440,76 +446,76 @@ void _find_HII_bubbles_gpu(
     cudaMemcpy(stars_filtered, stars_unfiltered, sizeof(Complex) * slab_n_complex,cudaMemcpyDeviceToDevice);
     cudaMemcpy(sfr_filtered,   sfr_unfiltered,   sizeof(Complex) * slab_n_complex,cudaMemcpyDeviceToDevice);
 
-    // Perform convolution
-    if(!flag_last_filter_step){
-       filter_gpu<<<grid,threads>>>(deltax_filtered,ReionGridDim,slab_n_complex,(float)R);
-       filter_gpu<<<grid,threads>>>(stars_filtered, ReionGridDim,slab_n_complex,(float)R);
-       filter_gpu<<<grid,threads>>>(sfr_filtered,   ReionGridDim,slab_n_complex,(float)R);
-    }
-
-    // inverse fourier transform back to real space
-
-    // Initialize cuFFT
-    cufftPlan3d(&plan, ReionGridDim, ReionGridDim, ReionGridDim, CUFFT_C2R);
-    cufftSetCompatibilityMode(plan,CUFFT_COMPATIBILITY_FFTW_ALL);
-    
-    // Perform FFTs
-    if (cufftExecC2R(plan,(cufftComplex *)deltax_filtered, (cufftReal *)deltax_filtered) != CUFFT_SUCCESS ) {
-      fprintf(stderr, "Cuda error 101.\n");
-      return ;
-    }
-    if (cufftExecC2R(plan,(cufftComplex *)stars_filtered, (cufftReal *)stars_filtered) != CUFFT_SUCCESS ) {
-      fprintf(stderr, "Cuda error 102.\n");
-      return ;
-    }
-    if (cufftExecC2R(plan,(cufftComplex *)sfr_filtered, (cufftReal *)sfr_filtered) != CUFFT_SUCCESS ) {
-      fprintf(stderr, "Cuda error 103.\n");
-      return ;
-    }
-
-    // Clean-up device
-    cufftDestroy(plan);
-
-    // Perform sanity checks to account for aliasing effects
-    sanity_check_aliasing<<<grid,threads>>>(deltax_filtered,slab_n_complex,-1.f + REL_TOL);
-    sanity_check_aliasing<<<grid,threads>>>(stars_filtered, slab_n_complex,0.);
-    sanity_check_aliasing<<<grid,threads>>>(sfr_filtered,   slab_n_complex,0.);
-
-    // Main loop through the box...
-    const double J_21_aux_constant = (1.0 + redshift) * (1.0 + redshift) / (4.0 * M_PI)
-      * ReionAlphaUV * PLANCK
-      * 1e21 * ReionEscapeFrac
-      * R *UnitLength_in_cm * ReionNionPhotPerBary / PROTONMASS
-      * UnitMass_in_g / pow(UnitLength_in_cm, 3) / UnitTime_in_s;
-    const double inv_pixel_volume = 1.f/pixel_volume;
-    find_HII_bubbles_gpu_main_loop<<<grid,threads>>>(
-        redshift,
-        slab_n_real,
-        flag_last_filter_step,
-        flag_ReionUVBFlag,
-        ReionGridDim,
-        R,
-        RtoM(R),
-        ReionEfficiency,
-        inv_pixel_volume,
-        J_21_aux_constant,
-        ReionGammaHaloBias,
-        xH_device,
-        J_21_device,
-        r_bubble_device,
-        J_21_at_ionization_device,
-        z_at_ionization_device,
-        deltax_filtered,
-        stars_filtered,
-        sfr_filtered);
+//    // Perform convolution
+//    if(!flag_last_filter_step){
+//       filter_gpu<<<grid,threads>>>(deltax_filtered,ReionGridDim,slab_n_complex,(float)R);
+//       filter_gpu<<<grid,threads>>>(stars_filtered, ReionGridDim,slab_n_complex,(float)R);
+//       filter_gpu<<<grid,threads>>>(sfr_filtered,   ReionGridDim,slab_n_complex,(float)R);
+//    }
+//
+//    // inverse fourier transform back to real space
+//
+//    // Initialize cuFFT
+//    cufftPlan3d(&plan, ReionGridDim, ReionGridDim, ReionGridDim, CUFFT_C2R);
+//    cufftSetCompatibilityMode(plan,CUFFT_COMPATIBILITY_FFTW_ALL);
+//    
+//    // Perform FFTs
+//    if (cufftExecC2R(plan,(cufftComplex *)deltax_filtered, (cufftReal *)deltax_filtered) != CUFFT_SUCCESS ) {
+//      fprintf(stderr, "Cuda error 101.\n");
+//      return ;
+//    }
+//    if (cufftExecC2R(plan,(cufftComplex *)stars_filtered, (cufftReal *)stars_filtered) != CUFFT_SUCCESS ) {
+//      fprintf(stderr, "Cuda error 102.\n");
+//      return ;
+//    }
+//    if (cufftExecC2R(plan,(cufftComplex *)sfr_filtered, (cufftReal *)sfr_filtered) != CUFFT_SUCCESS ) {
+//      fprintf(stderr, "Cuda error 103.\n");
+//      return ;
+//    }
+//
+//    // Clean-up device
+//    cufftDestroy(plan);
+//
+//    // Perform sanity checks to account for aliasing effects
+//    sanity_check_aliasing<<<grid,threads>>>(deltax_filtered,slab_n_complex,-1.f + REL_TOL);
+//    sanity_check_aliasing<<<grid,threads>>>(stars_filtered, slab_n_complex,0.);
+//    sanity_check_aliasing<<<grid,threads>>>(sfr_filtered,   slab_n_complex,0.);
+//
+//    // Main loop through the box...
+//    const double J_21_aux_constant = (1.0 + redshift) * (1.0 + redshift) / (4.0 * M_PI)
+//      * ReionAlphaUV * PLANCK
+//      * 1e21 * ReionEscapeFrac
+//      * R *UnitLength_in_cm * ReionNionPhotPerBary / PROTONMASS
+//      * UnitMass_in_g / pow(UnitLength_in_cm, 3) / UnitTime_in_s;
+//    const double inv_pixel_volume = 1.f/pixel_volume;
+//    find_HII_bubbles_gpu_main_loop<<<grid,threads>>>(
+//        redshift,
+//        slab_n_real,
+//        flag_last_filter_step,
+//        flag_ReionUVBFlag,
+//        ReionGridDim,
+//        R,
+//        RtoM(R),
+//        ReionEfficiency,
+//        inv_pixel_volume,
+//        J_21_aux_constant,
+//        ReionGammaHaloBias,
+//        xH_device,
+//        J_21_device,
+//        r_bubble_device,
+//        J_21_at_ionization_device,
+//        z_at_ionization_device,
+//        deltax_filtered,
+//        stars_filtered,
+//        sfr_filtered);
 
     R /= ReionDeltaRFactor;
   }
   cudaMemcpy(xH,                xH_device,                sizeof(float) * slab_n_real,cudaMemcpyDeviceToHost);
   cudaMemcpy(J_21,              J_21_device,              sizeof(float) * slab_n_real,cudaMemcpyDeviceToHost);
   cudaMemcpy(deltax,            deltax_filtered,          sizeof(float) * slab_n_real,cudaMemcpyDeviceToHost);
-  cudaMemcpy(z_at_ionization,   z_at_ionization_device,   sizeof(float) * slab_n_real,cudaMemcpyDeviceToHost);
-  cudaMemcpy(J_21_at_ionization,J_21_at_ionization_device,sizeof(float) * slab_n_real,cudaMemcpyDeviceToHost);
+  cudaMemcpy(z_at_ionization,   z_at_ionization_device,   sizeof(float) * 2 * slab_n_complex,cudaMemcpyDeviceToHost);
+  cudaMemcpy(J_21_at_ionization,J_21_at_ionization_device,sizeof(float) * 2 * slab_n_complex,cudaMemcpyDeviceToHost);
 
   // Find the volume and mass weighted neutral fractions
   // TODO: The deltax grid will have rounding errors from forward and reverse
