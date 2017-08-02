@@ -64,6 +64,8 @@
 #define REL_TOL (float)1e-5
 #define ABS_TOL (float)1e-8
 
+#define L_FACTOR 0.620350491 // Factor relating cube length to filter radius = (4PI/3)^(-1/3)
+
 /*
  * Enums
  */
@@ -613,7 +615,9 @@ extern run_globals_t run_globals;
 /*
  * Functions
  */
-
+#ifdef __cplusplus
+extern "C" {
+#endif
 void         myexit(int signum);
 void         cleanup(void);
 void         read_parameter_file(char *fname, int mode);
@@ -714,7 +718,58 @@ void   init_reion_grids(void);
 void   filter(fftwf_complex *box, int local_ix_start, int slab_nx, int grid_dim, float R);
 void   set_fesc(int snapshot);
 void   set_quasar_fobs(void);
+double RtoM(double R);
 void   find_HII_bubbles(double redshift);
+void _find_HII_bubbles(
+    // input
+    double redshift,
+    MPI_Comm mpi_comm,
+    int mpi_rank,
+    double box_size,
+    int ReionGridDim,
+    int local_nix,
+    int flag_ReionUVBFlag,
+    double ReionEfficiency,
+    double ReionNionPhotPerBary,
+    double UnitLength_in_cm,
+    double UnitMass_in_g,
+    double UnitTime_in_s,
+    double ReionRBubbleMax,
+    double ReionRBubbleMin,
+    double ReionDeltaRFactor,
+    double ReionGammaHaloBias,
+    double ReionAlphaUV,
+    double ReionEscapeFrac,
+
+    bool validation_output,
+
+    // preallocated 1D grids (local_nix * ReionGridDim * ReionGridDim)
+    float *J_21,  // real
+    float *r_bubble, // real
+
+    // input grids
+    float *deltax,  // real & padded
+    float *stars,  // real & padded
+    float *sfr,  // real & padded
+
+    // preallocated
+    fftwf_complex *deltax_filtered,  // complex
+    fftwf_complex *stars_filtered,  // complex
+    fftwf_complex *sfr_filtered,  // complex
+
+    // length = mpi.size
+    ptrdiff_t *slabs_n_complex,
+    ptrdiff_t *slabs_ix_start,
+
+    // output - preallocated real grids (local_nix * ReionGridDim * ReionGridDim)
+    float *xH, // real
+    float *z_at_ionization,
+    float *J_21_at_ionization,
+
+    // output - single values
+    double *volume_weighted_global_xH,
+    double *mass_weighted_global_xH
+    );
 double tocf_modifier(galaxy_t *gal, double Mvir);
 void   set_ReionEfficiency(void);
 int    find_cell(float pos, double box_size);
@@ -743,4 +798,9 @@ int (*meraxes_mhysa_hook)(void *self, int snapshot, int ngals);
 int  debug(const char * restrict format, ...);
 void check_pointers(halo_t *halos, fof_group_t *fof_groups, trees_info_t *trees_info);
 #endif
+
+#ifdef __cplusplus
+}
+#endif
+
 #endif // _INIT_MERAXES

@@ -169,7 +169,6 @@ double accurate_sumf(float *arr, int n)
   return total;
 }
 
-
 int grid_index(int i, int j, int k, int dim, int type)
 {
   int ind;

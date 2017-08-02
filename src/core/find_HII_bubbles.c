@@ -9,8 +9,6 @@
 #include <hdf5.h>
 #include <hdf5_hl.h>
 
-#define L_FACTOR 0.620350491 // Factor relating cube length to filter radius = (4PI/3)^(-1/3)
-
 /*
  * This code is a re-write of the modified version of 21cmFAST used in Mutch et
  * al. (2016; Meraxes paper).  The original code was written by Andrei Mesinger
@@ -42,7 +40,7 @@ double RtoM(double R)
   return -1;
 }
 
-static void _find_HII_bubbles(
+void _find_HII_bubbles(
     // input
     double redshift,
     MPI_Comm mpi_comm,
