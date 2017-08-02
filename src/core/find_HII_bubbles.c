@@ -133,6 +133,8 @@ void _find_HII_bubbles(
     H5LTmake_dataset_float(file_id, "deltax", 1, (hsize_t []){slab_n_complex*2}, deltax);
     H5LTmake_dataset_float(file_id, "stars", 1, (hsize_t []){slab_n_complex*2}, stars);
     H5LTmake_dataset_float(file_id, "sfr", 1, (hsize_t []){slab_n_complex*2}, sfr);
+    H5LTmake_dataset_float(file_id, "z_at_ionization", 1, (hsize_t []){slab_n_complex * 2}, z_at_ionization);
+    H5LTmake_dataset_float(file_id, "J_21_at_ionization", 1, (hsize_t []){slab_n_complex * 2}, J_21_at_ionization);
 
     H5Fclose(file_id);
   }
