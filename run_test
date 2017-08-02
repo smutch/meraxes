@@ -1,3 +1,3 @@
 #!/bin/bash
-mpiexec -n 1 ./a.out /lustre/projects/p124_astro/smutch/adacs/128cubed
+mpiexec -n 1 ./a.out ../test/
 

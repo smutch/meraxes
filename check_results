@@ -1,12 +1,30 @@
 #~/bin/bash
+if (($# != 1)); then
+   echo "Syntax: "$0" redshift"
+   exit 2
+fi
+export Z=$1
+export TEST_DIR="../test/"
+
+export RVAL=0
 echo "******* Checking inputs:"
-h5diff validation_input-core000-z6.99.h5 /lustre/projects/p124_astro/smutch/adacs/128cubed/validation_input-core000-z6.99.h5
+h5diff validation_input-core000-z${Z}.h5 ${TEST_DIR}/validation_input-core000-z${Z}.h5
 if [ $? -eq 0 ]; then
     echo "No differences found."
+else
+    echo "Result: files differ."
+    RTMP=$?
+    RVAL=$(( RVAL > RTMP ? RVAL : RTMP ))
 fi
+
 echo
 echo "******* Checking outputs:"
-h5diff validation_output-core000-z6.99.h5 /lustre/projects/p124_astro/smutch/adacs/128cubed/validation_output-core000-z6.99.h5
+h5diff validation_output-core000-z${Z}.h5 ${TEST_DIR}/validation_output-core000-z${Z}.h5
 if [ $? -eq 0 ]; then
     echo "No differences found."
+else
+    echo "Result: files differ."
+    RTMP=$?
+    RVAL=$(( RVAL > RTMP ? RVAL : RTMP ))
 fi
+exit $RVAL

@@ -25,7 +25,6 @@ int main(int argc,char *argv[]){
     }
     strcpy(reference_directory,argv[1]);
     sprintf(filename_input_params,"%s/input.par",reference_directory);
-    sprintf(filename_input_params,"./input.par",reference_directory);
     fprintf(stdout,"Using parameter file: {%s}\n",filename_input_params);
 
     // Read the input parameter file
@@ -36,7 +35,8 @@ int main(int argc,char *argv[]){
 
     // Initialize a timer and the redshift we will process
     timer_info   timer;
-    const double redshift = 6.99f;
+    //const double redshift = 6.99f;
+    const double redshift = 27.57f;
 
 #ifdef __NVCC__
     // Run the GPU version of _find_HII_bubbles()
