@@ -80,7 +80,7 @@ void sanity_check_aliasing(Complex *grid,int grid_dim,int n_real,float val){
     int i_real = blockIdx.x*blockDim.x + threadIdx.x;
     if (i_real < n_real){
         int i_x,i_y,i_z;
-        grid_index2indices(i_real,grid_dim,INDEX_COMPLEX_HERM,&i_x,&i_y,&i_z);
+        grid_index2indices(i_real,grid_dim,INDEX_REAL,&i_x,&i_y,&i_z);
         const int i_padded = grid_index_gpu(i_x,i_y,i_z,grid_dim,INDEX_PADDED);
         ((float *)grid)[i_padded] = fmaxf(((float *)grid)[i_padded], val);
     }
@@ -260,18 +260,18 @@ void _find_HII_bubbles_gpu(
     bool validation_output,
 
     // preallocated 1D grids (local_nix * ReionGridDim * ReionGridDim)
-    float *J_21,  // real
+    float *J_21,     // real
     float *r_bubble, // real
 
     // input grids
     float *deltax,  // real & padded
-    float *stars,  // real & padded
-    float *sfr,  // real & padded
+    float *stars,   // real & padded
+    float *sfr,     // real & padded
 
     // preallocated
     Complex *deltax_filtered_device_in,  // complex
-    Complex *stars_filtered_device_in,  // complex
-    Complex *sfr_filtered_device_in,  // complex
+    Complex *stars_filtered_device_in,   // complex
+    Complex *sfr_filtered_device_in,     // complex
 
     // length = mpi.size
     ptrdiff_t *slabs_n_complex,
@@ -292,9 +292,6 @@ void _find_HII_bubbles_gpu(
   const double inv_total_n_cells    = 1.f/total_n_cells;
   const int    slab_n_real          = local_nix * ReionGridDim * ReionGridDim;
   const int    slab_n_complex       = (int)(slabs_n_complex[mpi_rank]);
-  double       cell_length_factor   = L_FACTOR;
-
-  
 
   if (validation_output)
   {
@@ -304,62 +301,57 @@ void _find_HII_bubbles_gpu(
     hid_t file_id = H5Fcreate(fname, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
 
     // write all of the input values
-    H5LTset_attribute_double(file_id, "/", "redshift", &redshift, 1);
-    H5LTset_attribute_int(file_id, "/", "mpi_rank", &mpi_rank, 1);
-    H5LTset_attribute_double(file_id, "/", "box_size", &box_size, 1);
-    H5LTset_attribute_int(file_id, "/", "ReionGridDim", &ReionGridDim, 1);
-    H5LTset_attribute_int(file_id, "/", "local_nix", &local_nix, 1);
-    H5LTset_attribute_int(file_id, "/", "flag_ReionUVBFlag", &flag_ReionUVBFlag, 1);
-    H5LTset_attribute_double(file_id, "/", "ReionEfficiency", &ReionEfficiency, 1);
+    H5LTset_attribute_double(file_id, "/", "redshift",             &redshift, 1);
+    H5LTset_attribute_int   (file_id, "/", "mpi_rank",             &mpi_rank, 1);
+    H5LTset_attribute_double(file_id, "/", "box_size",             &box_size, 1);
+    H5LTset_attribute_int   (file_id, "/", "ReionGridDim",         &ReionGridDim, 1);
+    H5LTset_attribute_int   (file_id, "/", "local_nix",            &local_nix, 1);
+    H5LTset_attribute_int   (file_id, "/", "flag_ReionUVBFlag",    &flag_ReionUVBFlag, 1);
+    H5LTset_attribute_double(file_id, "/", "ReionEfficiency",      &ReionEfficiency, 1);
     H5LTset_attribute_double(file_id, "/", "ReionNionPhotPerBary", &ReionNionPhotPerBary, 1);
-    H5LTset_attribute_double(file_id, "/", "UnitLength_in_cm", &UnitLength_in_cm, 1);
-    H5LTset_attribute_double(file_id, "/", "UnitMass_in_g", &UnitMass_in_g, 1);
-    H5LTset_attribute_double(file_id, "/", "UnitTime_in_s", &UnitTime_in_s, 1);
-    H5LTset_attribute_double(file_id, "/", "ReionRBubbleMax", &ReionRBubbleMax, 1);
-    H5LTset_attribute_double(file_id, "/", "ReionRBubbleMin", &ReionRBubbleMin, 1);
-    H5LTset_attribute_double(file_id, "/", "ReionDeltaRFactor", &ReionDeltaRFactor, 1);
-    H5LTset_attribute_double(file_id, "/", "ReionGammaHaloBias", &ReionGammaHaloBias, 1);
-    H5LTset_attribute_double(file_id, "/", "ReionAlphaUV", &ReionAlphaUV, 1);
-    H5LTset_attribute_double(file_id, "/", "ReionEscapeFrac", &ReionEscapeFrac, 1);
+    H5LTset_attribute_double(file_id, "/", "UnitLength_in_cm",     &UnitLength_in_cm, 1);
+    H5LTset_attribute_double(file_id, "/", "UnitMass_in_g",        &UnitMass_in_g, 1);
+    H5LTset_attribute_double(file_id, "/", "UnitTime_in_s",        &UnitTime_in_s, 1);
+    H5LTset_attribute_double(file_id, "/", "ReionRBubbleMax",      &ReionRBubbleMax, 1);
+    H5LTset_attribute_double(file_id, "/", "ReionRBubbleMin",      &ReionRBubbleMin, 1);
+    H5LTset_attribute_double(file_id, "/", "ReionDeltaRFactor",    &ReionDeltaRFactor, 1);
+    H5LTset_attribute_double(file_id, "/", "ReionGammaHaloBias",   &ReionGammaHaloBias, 1);
+    H5LTset_attribute_double(file_id, "/", "ReionAlphaUV",         &ReionAlphaUV, 1);
+    H5LTset_attribute_double(file_id, "/", "ReionEscapeFrac",      &ReionEscapeFrac, 1);
 
-    H5LTmake_dataset_float(file_id, "deltax", 1, (hsize_t []){slab_n_complex*2}, deltax);
-    H5LTmake_dataset_float(file_id, "stars", 1, (hsize_t []){slab_n_complex*2}, stars);
-    H5LTmake_dataset_float(file_id, "sfr", 1, (hsize_t []){slab_n_complex*2}, sfr);
-    H5LTmake_dataset_float(file_id, "z_at_ionization", 1, (hsize_t []){slab_n_real}, z_at_ionization);
-    H5LTmake_dataset_float(file_id, "J_21_at_ionization", 1, (hsize_t []){slab_n_real}, J_21_at_ionization);
+    H5LTmake_dataset_float(file_id, "deltax",             1, (hsize_t []){slab_n_complex*2}, deltax);
+    H5LTmake_dataset_float(file_id, "stars",              1, (hsize_t []){slab_n_complex*2}, stars);
+    H5LTmake_dataset_float(file_id, "sfr",                1, (hsize_t []){slab_n_complex*2}, sfr);
+    H5LTmake_dataset_float(file_id, "z_at_ionization",    1, (hsize_t []){slab_n_real},      z_at_ionization);
+    H5LTmake_dataset_float(file_id, "J_21_at_ionization", 1, (hsize_t []){slab_n_real},      J_21_at_ionization);
 
     H5Fclose(file_id);
   }
 
-  // This parameter choice is sensitive to noise on the cell size, at least for the typical
-  // cell sizes in RT simulations. It probably doesn't matter for larger cell sizes.
-  if ((box_size / (double)ReionGridDim) < 1.0) // Fairly arbitrary length based on 2 runs Sobacchi did
-    cell_length_factor = 1.0;
-
-  // Initialize arrays on the device
-  cufftComplex *deltax_unfiltered_device  = (cufftComplex *)deltax;
-  cufftComplex *stars_unfiltered_device   = (cufftComplex *)stars;
-  cufftComplex *sfr_unfiltered_device     = (cufftComplex *)sfr;
+  // Initialize device arrays
+  cufftComplex *deltax_unfiltered_device  = NULL;
+  cufftComplex *stars_unfiltered_device   = NULL;
+  cufftComplex *sfr_unfiltered_device     = NULL;
   cufftComplex *deltax_filtered_device    = NULL;
   cufftComplex *stars_filtered_device     = NULL;
   cufftComplex *sfr_filtered_device       = NULL;
   float        *xH_device                 = NULL;
-  float        *J_21_device               = NULL;
   float        *r_bubble_device           = NULL;
   float        *z_at_ionization_device    = NULL;
   float        *J_21_at_ionization_device = NULL;
-  cudaMalloc((void**)&deltax_unfiltered_device,           sizeof(cufftComplex)*slab_n_complex);
-  cudaMalloc((void**)&stars_unfiltered_device,            sizeof(cufftComplex)*slab_n_complex);
-  cudaMalloc((void**)&sfr_unfiltered_device,              sizeof(cufftComplex)*slab_n_complex);
-  cudaMalloc((void**)&deltax_filtered_device,             sizeof(cufftComplex)*slab_n_complex);
-  cudaMalloc((void**)&stars_filtered_device,              sizeof(cufftComplex)*slab_n_complex);
-  cudaMalloc((void**)&sfr_filtered_device,                sizeof(cufftComplex)*slab_n_complex);
-  cudaMalloc((void**)&xH_device,                          sizeof(float)*slab_n_real);
+  float        *J_21_device               = NULL;
+  cudaMalloc((void**)&deltax_unfiltered_device, sizeof(cufftComplex)*slab_n_complex);
+  cudaMalloc((void**)&stars_unfiltered_device,  sizeof(cufftComplex)*slab_n_complex);
+  cudaMalloc((void**)&sfr_unfiltered_device,    sizeof(cufftComplex)*slab_n_complex);
+  cudaMalloc((void**)&deltax_filtered_device,   sizeof(cufftComplex)*slab_n_complex);
+  cudaMalloc((void**)&stars_filtered_device,    sizeof(cufftComplex)*slab_n_complex);
+  cudaMalloc((void**)&sfr_filtered_device,      sizeof(cufftComplex)*slab_n_complex);
+  cudaMalloc((void**)&xH_device,                sizeof(float)*slab_n_real);
+  cudaMalloc((void**)&r_bubble_device,          sizeof(float)*slab_n_real);
+  cudaMalloc((void**)&z_at_ionization_device,   sizeof(float)*slab_n_real);
+  cudaMalloc((void**)&J_21_at_ionization_device,sizeof(float)*slab_n_real);
   if(flag_ReionUVBFlag)
-     cudaMalloc((void**)&J_21_device,                     sizeof(float)*slab_n_real);
-  cudaMalloc((void**)&r_bubble_device,                    sizeof(float)*slab_n_real);
-  cudaMalloc((void**)&z_at_ionization_device,             sizeof(float)*slab_n_real);
-  cudaMalloc((void**)&J_21_at_ionization_device,          sizeof(float)*slab_n_real);
+     cudaMalloc((void**)&J_21_device,           sizeof(float)*slab_n_real);
 
   // Perform host -> device transfer
   cudaMemcpy(deltax_unfiltered_device, deltax,            sizeof(float)*2*slab_n_complex,cudaMemcpyHostToDevice);
@@ -452,6 +444,12 @@ void _find_HII_bubbles_gpu(
      }
   }
 
+  // This parameter choice is sensitive to noise on the cell size, at least for the typical
+  // cell sizes in RT simulations. It probably doesn't matter for larger cell sizes.
+  double cell_length_factor = L_FACTOR;
+  if ((box_size / (double)ReionGridDim) < 1.0) // Fairly arbitrary length based on 2 runs Sobacchi did
+    cell_length_factor = 1.0;
+
   // Loop through filter radii
   double R                     = fmin(ReionRBubbleMax, L_FACTOR * box_size); // Mpc/h
   bool   flag_last_filter_step = false;
@@ -469,7 +467,7 @@ void _find_HII_bubbles_gpu(
 
     mlog(".", MLOG_CONT);
 
-    // copy the k-space grids
+    // create working copies of the k-space grids
     cudaMemcpy(deltax_filtered_device,deltax_unfiltered_device,sizeof(Complex) * slab_n_complex,cudaMemcpyDeviceToDevice);
     cudaMemcpy(stars_filtered_device, stars_unfiltered_device, sizeof(Complex) * slab_n_complex,cudaMemcpyDeviceToDevice);
     cudaMemcpy(sfr_filtered_device,   sfr_unfiltered_device,   sizeof(Complex) * slab_n_complex,cudaMemcpyDeviceToDevice);
@@ -490,11 +488,11 @@ void _find_HII_bubbles_gpu(
         hid_t file_id = H5Fcreate(fname, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
         hid_t group = H5Gcreate(file_id, "kspace", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
         float *array_temp = (float *)malloc(sizeof(float)*2*slab_n_complex);
-        cudaMemcpy(array_temp,deltax_unfiltered_device,sizeof(float)*2*slab_n_complex,cudaMemcpyDeviceToHost);
+        cudaMemcpy(array_temp,deltax_filtered_device,sizeof(float)*2*slab_n_complex,cudaMemcpyDeviceToHost);
         H5LTmake_dataset_float(group, "deltax_filtered_device", 1, (hsize_t []){slab_n_complex * 2}, array_temp);
-        cudaMemcpy(array_temp,stars_unfiltered_device,sizeof(float)*2*slab_n_complex,cudaMemcpyDeviceToHost);
+        cudaMemcpy(array_temp,stars_filtered_device,sizeof(float)*2*slab_n_complex,cudaMemcpyDeviceToHost);
         H5LTmake_dataset_float(group, "stars_filtered_device", 1, (hsize_t []){slab_n_complex * 2}, array_temp);
-        cudaMemcpy(array_temp,sfr_unfiltered_device,sizeof(float)*2*slab_n_complex,cudaMemcpyDeviceToHost);
+        cudaMemcpy(array_temp,sfr_filtered_device,sizeof(float)*2*slab_n_complex,cudaMemcpyDeviceToHost);
         H5LTmake_dataset_float(group, "sfr_filtered_device", 1, (hsize_t []){slab_n_complex * 2}, array_temp);
         free(array_temp);
         H5Gclose(group);
@@ -615,25 +613,27 @@ void _find_HII_bubbles_gpu(
   }
 
   // Perform device -> host transfer
+  cudaMemcpy(xH,                xH_device,                sizeof(float) * slab_n_real,       cudaMemcpyDeviceToHost);
+  cudaMemcpy(r_bubble,          r_bubble_device,          sizeof(float) * slab_n_real,       cudaMemcpyDeviceToHost);
   cudaMemcpy(z_at_ionization,   z_at_ionization_device,   sizeof(float) * 2 * slab_n_complex,cudaMemcpyDeviceToHost);
   cudaMemcpy(J_21_at_ionization,J_21_at_ionization_device,sizeof(float) * 2 * slab_n_complex,cudaMemcpyDeviceToHost);
-  cudaMemcpy(xH,                xH_device,                sizeof(float) * slab_n_real,cudaMemcpyDeviceToHost);
-  cudaMemcpy(deltax,            deltax_filtered_device,   sizeof(float) * slab_n_real,cudaMemcpyDeviceToHost);
+  cudaMemcpy(deltax,            deltax_filtered_device,   sizeof(float) * slab_n_real,       cudaMemcpyDeviceToHost);
   if(flag_ReionUVBFlag)
      cudaMemcpy(J_21,           J_21_device,              sizeof(float) * slab_n_real,cudaMemcpyDeviceToHost);
 
   // Clean-up device
-  cudaFree(z_at_ionization_device);
-  cudaFree(J_21_at_ionization_device);
-  cudaFree(xH_device);
-  if(flag_ReionUVBFlag)
-     cudaFree(J_21_device);
   cudaFree(deltax_unfiltered_device);
   cudaFree(stars_unfiltered_device);
   cudaFree(sfr_unfiltered_device);
   cudaFree(deltax_filtered_device);
   cudaFree(stars_filtered_device);
   cudaFree(sfr_filtered_device);
+  cudaFree(xH_device);
+  cudaFree(r_bubble_device);
+  cudaFree(z_at_ionization_device);
+  cudaFree(J_21_at_ionization_device);
+  if(flag_ReionUVBFlag)
+     cudaFree(J_21_device);
 
   // Find the volume and mass weighted neutral fractions
   // TODO: The deltax grid will have rounding errors from forward and reverse
