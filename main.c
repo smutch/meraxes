@@ -36,7 +36,8 @@ int main(int argc,char *argv[]){
     // Initialize a timer and the redshift we will process
     timer_info   timer;
     //const double redshift = 6.99f;
-    const double redshift = 11.30f;
+    //const double redshift = 11.30f;
+    const double redshift =7.145f;
 
 #ifdef __NVCC__
     // Run the GPU version of _find_HII_bubbles()
