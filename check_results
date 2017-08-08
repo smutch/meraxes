@@ -8,7 +8,7 @@ export TEST_DIR="../test/"
 
 export RVAL=0
 echo "******* Checking inputs:"
-h5diff validation_input-core000-z${Z}.h5 ${TEST_DIR}/validation_input-core000-z${Z}.h5
+h5diff -d 1e-2 validation_input-core000-z${Z}.h5 ${TEST_DIR}/validation_input-core000-z${Z}.h5
 if [ $? -eq 0 ]; then
     echo "No differences found."
 else
@@ -19,7 +19,7 @@ fi
 
 echo
 echo "******* Checking outputs:"
-h5diff validation_output-core000-z${Z}.h5 ${TEST_DIR}/validation_output-core000-z${Z}.h5
+h5diff -d 1e-2 validation_output-core000-z${Z}.h5 ${TEST_DIR}/validation_output-core000-z${Z}.h5
 if [ $? -eq 0 ]; then
     echo "No differences found."
 else
