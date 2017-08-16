@@ -789,10 +789,13 @@ void   save_reion_output_grids(int snapshot);
 bool   check_if_reionization_ongoing(void);
 void   write_single_grid(const char *fname, float *grid, const char *grid_name, bool padded_flag, bool create_file_flag);
 
-
 // MCMC related
 // meraxes_mhysa_hook must be implemented by the calling code (Mhysa)!
+#ifdef _MAIN
 int (*meraxes_mhysa_hook)(void *self, int snapshot, int ngals);
+#else
+extern  int (*meraxes_mhysa_hook)(void *self, int snapshot, int ngals);
+#endif
 
 #ifdef DEBUG
 int  debug(const char * restrict format, ...);
