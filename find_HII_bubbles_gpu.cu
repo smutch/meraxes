@@ -204,7 +204,7 @@ void _find_HII_bubbles_gpu(
     H5Gclose(group);
     H5Fclose(file_id);
   }
-  if(true){
+  if(false){
     float *array_temp = (float *)malloc(sizeof(float)*(slab_n_complex*2));
     char fname[STRLEN];
     sprintf(fname, "%s/validation_output-core%03d-z%.2f.h5", "../test/", mpi_rank, redshift);
@@ -257,6 +257,16 @@ void _find_HII_bubbles_gpu(
   double cell_length_factor = L_FACTOR;
   if ((box_size / (double)ReionGridDim) < 1.0) // Fairly arbitrary length based on 2 runs Sobacchi did
     cell_length_factor = 1.0;
+
+  // Initialize inverse FFTs
+#ifdef GPU_HYBRID
+  fftwf_plan plan_deltax = fftwf_mpi_plan_dft_c2r_3d(ReionGridDim, ReionGridDim, ReionGridDim, (fftwf_complex *)deltax_filtered, (float *)deltax_filtered, mpi_comm, FFTW_ESTIMATE);
+  fftwf_plan plan_stars  = fftwf_mpi_plan_dft_c2r_3d(ReionGridDim, ReionGridDim, ReionGridDim, (fftwf_complex *)stars_filtered, (float *)stars_filtered, mpi_comm, FFTW_ESTIMATE);
+  fftwf_plan plan_sfr    = fftwf_mpi_plan_dft_c2r_3d(ReionGridDim, ReionGridDim, ReionGridDim, (fftwf_complex *)sfr_filtered, (float *)sfr_filtered, mpi_comm, FFTW_ESTIMATE);
+#else
+  cufftPlan3d(&plan, ReionGridDim, ReionGridDim, ReionGridDim, CUFFT_C2R);
+  cufftSetCompatibilityMode(plan,CUFFT_COMPATIBILITY_FFTW_ALL);
+#endif
 
   // Loop through filter radii
   double R                     = fmin(ReionRBubbleMax, L_FACTOR * box_size); // Mpc/h
@@ -334,28 +344,17 @@ void _find_HII_bubbles_gpu(
     // inverse fourier transform back to real space
 #ifdef GPU_HYBRID
     cudaMemcpy(deltax_filtered,deltax_filtered_device,sizeof(float)*2*slab_n_complex,cudaMemcpyDeviceToHost);
-    plan = fftwf_mpi_plan_dft_c2r_3d(ReionGridDim, ReionGridDim, ReionGridDim, (fftwf_complex *)deltax_filtered, (float *)deltax_filtered, mpi_comm, FFTW_ESTIMATE);
-    fftwf_execute(plan);
-    fftwf_destroy_plan(plan);
+    fftwf_execute(plan_deltax);
     cudaMemcpy(deltax_filtered_device,deltax_filtered,sizeof(float)*2*slab_n_complex,cudaMemcpyHostToDevice);
 
     cudaMemcpy(stars_filtered,stars_filtered_device,sizeof(float)*2*slab_n_complex,cudaMemcpyDeviceToHost);
-    plan = fftwf_mpi_plan_dft_c2r_3d(ReionGridDim, ReionGridDim, ReionGridDim, (fftwf_complex *)stars_filtered, (float *)stars_filtered, mpi_comm, FFTW_ESTIMATE);
-    fftwf_execute(plan);
-    fftwf_destroy_plan(plan);
+    fftwf_execute(plan_stars);
     cudaMemcpy(stars_filtered_device,stars_filtered,sizeof(float)*2*slab_n_complex,cudaMemcpyHostToDevice);
 
     cudaMemcpy(sfr_filtered,sfr_filtered_device,sizeof(float)*2*slab_n_complex,cudaMemcpyDeviceToHost);
-    plan = fftwf_mpi_plan_dft_c2r_3d(ReionGridDim, ReionGridDim, ReionGridDim, (fftwf_complex *)sfr_filtered, (float *)sfr_filtered, mpi_comm, FFTW_ESTIMATE);
-    fftwf_execute(plan);
-    fftwf_destroy_plan(plan);
+    fftwf_execute(plan_sfr);
     cudaMemcpy(sfr_filtered_device,sfr_filtered,sizeof(float)*2*slab_n_complex,cudaMemcpyHostToDevice);
 #else
-    // Initialize cuFFT
-    cufftPlan3d(&plan, ReionGridDim, ReionGridDim, ReionGridDim, CUFFT_C2R);
-    cufftSetCompatibilityMode(plan,CUFFT_COMPATIBILITY_FFTW_ALL);
-    
-    // Perform FFTs
     if (cufftExecC2R(plan,(cufftComplex *)deltax_filtered_device, (cufftReal *)deltax_filtered_device) != CUFFT_SUCCESS ) {
       fprintf(stderr, "Cuda error 101.\n");
       return ;
@@ -368,9 +367,6 @@ void _find_HII_bubbles_gpu(
       fprintf(stderr, "Cuda error 103.\n");
       return ;
     }
-
-    // Clean-up device
-    cufftDestroy(plan);
 #endif
 
     if (validation_output && i_R==1 || !strcmp(fname,fname_full_dump))
@@ -495,6 +491,14 @@ void _find_HII_bubbles_gpu(
 
     R /= ReionDeltaRFactor;
   }
+
+#ifdef GPU_HYBRID
+    fftwf_destroy_plan(plan_deltax);
+    fftwf_destroy_plan(plan_stars);
+    fftwf_destroy_plan(plan_sfr);
+#else
+    cufftDestroy(plan);
+#endif
 
   // Perform device -> host transfer
   cudaMemcpy(xH,                xH_device,                sizeof(float) * slab_n_real, cudaMemcpyDeviceToHost);
