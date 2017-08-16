@@ -68,9 +68,9 @@ void _find_HII_bubbles(
     float *r_bubble, // real
 
     // input grids
-    float *deltax,  // real & padded
-    float *stars,  // real & padded
-    float *sfr,  // real & padded
+    float *deltax,  // real & padded; allocated for 2*n_complex
+    float *stars,  // real & padded;  allocated for 2*n_complex
+    float *sfr,  // real & padded;    allocated for 2*n_complex
 
     // preallocated
     fftwf_complex *deltax_filtered,  // complex
@@ -133,8 +133,8 @@ void _find_HII_bubbles(
     H5LTmake_dataset_float(file_id, "deltax", 1, (hsize_t []){slab_n_complex*2}, deltax);
     H5LTmake_dataset_float(file_id, "stars", 1, (hsize_t []){slab_n_complex*2}, stars);
     H5LTmake_dataset_float(file_id, "sfr", 1, (hsize_t []){slab_n_complex*2}, sfr);
-    H5LTmake_dataset_float(file_id, "z_at_ionization", 1, (hsize_t []){slab_n_complex * 2}, z_at_ionization);
-    H5LTmake_dataset_float(file_id, "J_21_at_ionization", 1, (hsize_t []){slab_n_complex * 2}, J_21_at_ionization);
+    H5LTmake_dataset_float(file_id, "z_at_ionization", 1, (hsize_t []){slab_n_real}, z_at_ionization);
+    H5LTmake_dataset_float(file_id, "J_21_at_ionization", 1, (hsize_t []){slab_n_real}, J_21_at_ionization);
 
     H5Fclose(file_id);
   }
@@ -183,8 +183,8 @@ void _find_HII_bubbles(
     hid_t group = H5Gcreate(file_id, "kspace", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
 
     H5LTmake_dataset_float(group, "deltax", 1, (hsize_t []){slab_n_complex * 2}, deltax);
-    H5LTmake_dataset_float(group, "stars", 1, (hsize_t []){slab_n_complex * 2}, stars);
-    H5LTmake_dataset_float(group, "sfr", 1, (hsize_t []){slab_n_complex * 2}, sfr);
+    H5LTmake_dataset_float(group, "stars",  1, (hsize_t []){slab_n_complex * 2}, stars);
+    H5LTmake_dataset_float(group, "sfr",    1, (hsize_t []){slab_n_complex * 2}, sfr);
 
     H5Gclose(group);
     H5Fclose(file_id);
@@ -204,8 +204,10 @@ void _find_HII_bubbles(
 
   bool  flag_last_filter_step = false;
 
+  int i_R=0;
   while(!flag_last_filter_step)
   {
+    i_R++;
     // check to see if this is our last filtering step
     if( ((R / ReionDeltaRFactor) <= (cell_length_factor * box_size / (double)ReionGridDim))
         || ((R / ReionDeltaRFactor) <= ReionRBubbleMin) )
@@ -230,6 +232,27 @@ void _find_HII_bubbles(
       filter((fftwf_complex *)sfr_filtered,    local_ix_start, local_nix, ReionGridDim, (float)R);
     }
 
+    char fname[STRLEN];
+    char fname_full_dump[STRLEN];
+    sprintf(fname, "validation_test-core%03d-z%.2f_%03d.h5", mpi_rank, redshift,i_R);
+    if(redshift>10.)
+       sprintf(fname_full_dump, "validation_test-core%03d-z%.2f_%03d.h5", mpi_rank,10.11,i_R);
+    else if(redshift>6.)
+       sprintf(fname_full_dump, "validation_test-core%03d-z%.2f_%03d.h5", mpi_rank, 9.03,i_R);
+    else
+       sprintf(fname_full_dump, "validation_test-core%03d-z%.2f_%03d.h5", mpi_rank, 5.95,i_R);
+    if (validation_output && i_R==1 || !strcmp(fname,fname_full_dump))
+    {
+        // prepare output file
+        hid_t file_id = H5Fcreate(fname, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
+        hid_t group = H5Gcreate(file_id, "kspace", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+        H5LTmake_dataset_float(group, "deltax_filtered", 1, (hsize_t []){slab_n_complex * 2}, (float *)deltax_filtered);
+        H5LTmake_dataset_float(group, "stars_filtered",  1, (hsize_t []){slab_n_complex * 2}, (float *)stars_filtered);
+        H5LTmake_dataset_float(group, "sfr_filtered",    1, (hsize_t []){slab_n_complex * 2}, (float *)sfr_filtered);
+        H5Gclose(group);
+        H5Fclose(file_id);
+    }
+
     // inverse fourier transform back to real space
     plan = fftwf_mpi_plan_dft_c2r_3d(ReionGridDim, ReionGridDim, ReionGridDim, (fftwf_complex *)deltax_filtered, (float *)deltax_filtered, mpi_comm, FFTW_ESTIMATE);
     fftwf_execute(plan);
@@ -242,6 +265,16 @@ void _find_HII_bubbles(
     plan = fftwf_mpi_plan_dft_c2r_3d(ReionGridDim, ReionGridDim, ReionGridDim, (fftwf_complex *)sfr_filtered, (float *)sfr_filtered, mpi_comm, FFTW_ESTIMATE);
     fftwf_execute(plan);
     fftwf_destroy_plan(plan);
+
+    if (validation_output && i_R==1 || !strcmp(fname,fname_full_dump))
+    {
+        // prepare output file
+        hid_t file_id = H5Fopen(fname, H5F_ACC_RDWR, H5P_DEFAULT);
+        H5LTmake_dataset_float(file_id, "deltax_filtered_ift", 1, (hsize_t []){slab_n_complex * 2}, (float *)deltax_filtered);
+        H5LTmake_dataset_float(file_id, "stars_filtered_ift",  1, (hsize_t []){slab_n_complex * 2}, (float *)stars_filtered);
+        H5LTmake_dataset_float(file_id, "sfr_filtered_ift",    1, (hsize_t []){slab_n_complex * 2}, (float *)sfr_filtered);
+        H5Fclose(file_id);
+    }
 
     // Perform sanity checks to account for aliasing effects
     for (int ix = 0; ix < local_nix; ix++)
@@ -257,6 +290,16 @@ void _find_HII_bubbles(
     /*
      * Main loop through the box...
      */
+
+    if (validation_output && i_R==1 || !strcmp(fname,fname_full_dump))
+    {
+        // prepare output file
+        hid_t file_id = H5Fopen(fname, H5F_ACC_RDWR, H5P_DEFAULT);
+        H5LTmake_dataset_float(file_id, "deltax_checked", 1, (hsize_t []){slab_n_complex * 2}, (float *)deltax_filtered);
+        H5LTmake_dataset_float(file_id, "stars_checked",  1, (hsize_t []){slab_n_complex * 2}, (float *)stars_filtered);
+        H5LTmake_dataset_float(file_id, "sfr_checked",    1, (hsize_t []){slab_n_complex * 2}, (float *)sfr_filtered);
+        H5Fclose(file_id);
+    }
 
     double J_21_aux_constant = (1.0 + redshift) * (1.0 + redshift) / (4.0 * M_PI)
       * ReionAlphaUV * PLANCK
@@ -312,9 +355,21 @@ void _find_HII_bubbles(
         }
     // iz
 
+    if (validation_output && i_R==1 || !strcmp(fname,fname_full_dump))
+    {
+        // prepare output file
+        hid_t file_id = H5Fopen(fname, H5F_ACC_RDWR, H5P_DEFAULT);
+        H5LTmake_dataset_float(file_id, "xH",       1, (hsize_t []){slab_n_real}, xH);
+        H5LTmake_dataset_float(file_id, "r_bubble", 1, (hsize_t []){slab_n_real}, r_bubble);
+        if(flag_ReionUVBFlag)
+           H5LTmake_dataset_float(file_id, "J_21",            1, (hsize_t []){slab_n_real},      J_21);
+        H5LTmake_dataset_float(file_id, "J_21_at_ionization", 1, (hsize_t []){slab_n_real},      J_21_at_ionization);
+        H5LTmake_dataset_float(file_id, "z_at_ionization",    1, (hsize_t []){slab_n_real},      z_at_ionization);
+        H5Fclose(file_id);
+    }
+
     R /= ReionDeltaRFactor;
   }
-
 
   // Find the volume and mass weighted neutral fractions
   // TODO: The deltax grid will have rounding errors from forward and reverse
@@ -339,8 +394,8 @@ void _find_HII_bubbles(
   MPI_Allreduce(MPI_IN_PLACE, &mass_weighted_global_xH, 1, MPI_DOUBLE, MPI_SUM, mpi_comm);
   MPI_Allreduce(MPI_IN_PLACE, &mass_weight, 1, MPI_DOUBLE, MPI_SUM, mpi_comm);
 
-  *volume_weighted_global_xH                        /= total_n_cells;
-  *mass_weighted_global_xH                          /= mass_weight;
+  *volume_weighted_global_xH /= total_n_cells;
+  *mass_weighted_global_xH   /= mass_weight;
 
   if (validation_output)
   {
