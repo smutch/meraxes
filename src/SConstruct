@@ -177,8 +177,7 @@ if not GetOption('help'):
         cprint("WARNING: This build will only work on the EXACT same architecture!", color='red', attrs=['bold'])
         env.MergeFlags('-O3 -DNDEBUG -march=native')
     if env['prof']:
-        env.MergeFlags('-g -pg')
-        env.AppendUnique(LINKFLAGS=['-pg'])
+        env.MergeFlags('-g')
     if env['n_history_snaps']:
         env.AppendUnique(CPPDEFINES = ['N_HISTORY_SNAPS=${n_history_snaps}'])
     if not env['verbose']:
@@ -260,6 +259,9 @@ if not GetOption('help'):
 
     libs = ['gsl', 'hdf5', 'mlog', 'fftw']
     compile_against(libs, deps, env)
+
+    if env['prof']:
+        compile_against(['gperftools'], deps, env)
 
 
     # ===========

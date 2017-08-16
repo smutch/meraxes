@@ -32,3 +32,8 @@ deps['mlog'] = {
     'libp' : os.path.join(os.path.dirname(os.path.realpath(__file__)), '../mlog'),
     'lib'   : ['mlog'],
 }
+
+deps['gperftools'] = {
+    'libp' : '/lustre/projects/p124_astro/smutch/3rd_party/gperftools/lib',
+    'lib' : ['profiler'],
+}
