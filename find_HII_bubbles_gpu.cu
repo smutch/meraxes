@@ -47,9 +47,9 @@ void _find_HII_bubbles_gpu(
     float *sfr,     // real & padded
 
     // preallocated
-    Complex *deltax_filtered_device_in,  // complex
-    Complex *stars_filtered_device_in,   // complex
-    Complex *sfr_filtered_device_in,     // complex
+    Complex *deltax_filtered,  // complex
+    Complex *stars_filtered,   // complex
+    Complex *sfr_filtered,     // complex
 
     // length = mpi.size
     ptrdiff_t *slabs_n_complex,
@@ -131,6 +131,24 @@ void _find_HII_bubbles_gpu(
   if(flag_ReionUVBFlag)
      cudaMalloc((void**)&J_21_device,           sizeof(float)*slab_n_real);
 
+#ifdef GPU_HYBRID
+  // Forward fourier transform to obtain k-space fields
+  fftwf_complex *deltax_unfiltered = (fftwf_complex *)deltax;  // WATCH OUT!
+  fftwf_plan     plan              = fftwf_mpi_plan_dft_r2c_3d(ReionGridDim, ReionGridDim, ReionGridDim, deltax, deltax_unfiltered, mpi_comm, FFTW_ESTIMATE);
+  fftwf_execute(plan);
+  fftwf_destroy_plan(plan);
+
+  fftwf_complex *stars_unfiltered = (fftwf_complex *)stars;  // WATCH OUT!
+  plan = fftwf_mpi_plan_dft_r2c_3d(ReionGridDim, ReionGridDim, ReionGridDim, stars, stars_unfiltered, mpi_comm, FFTW_ESTIMATE);
+  fftwf_execute(plan);
+  fftwf_destroy_plan(plan);
+
+  fftwf_complex *sfr_unfiltered = (fftwf_complex *)sfr;  // WATCH OUT!
+  plan = fftwf_mpi_plan_dft_r2c_3d(ReionGridDim, ReionGridDim, ReionGridDim, sfr, sfr_unfiltered, mpi_comm, FFTW_ESTIMATE);
+  fftwf_execute(plan);
+  fftwf_destroy_plan(plan);
+#endif
+
   // Perform host -> device transfer
   cudaMemcpy(deltax_unfiltered_device, deltax,            sizeof(float)*2*slab_n_complex,cudaMemcpyHostToDevice);
   cudaMemcpy(stars_unfiltered_device,  stars,             sizeof(float)*2*slab_n_complex,cudaMemcpyHostToDevice);
@@ -138,8 +156,7 @@ void _find_HII_bubbles_gpu(
   cudaMemcpy(z_at_ionization_device,   z_at_ionization,   sizeof(float)*slab_n_real,     cudaMemcpyHostToDevice);
   cudaMemcpy(J_21_at_ionization_device,J_21_at_ionization,sizeof(float)*slab_n_real,     cudaMemcpyHostToDevice);
 
-  // Forward fourier transform to obtain k-space fields
-
+#ifndef GPU_HYBRID
   // Initialize cuFFT
   cufftHandle plan;
   cufftPlan3d(&plan, ReionGridDim, ReionGridDim, ReionGridDim, CUFFT_R2C);
@@ -167,6 +184,7 @@ void _find_HII_bubbles_gpu(
     fprintf(stderr, "Cuda error 4.\n");
     return;
   }
+#endif
 
   if (validation_output)
   {
@@ -314,7 +332,25 @@ void _find_HII_bubbles_gpu(
     }
 
     // inverse fourier transform back to real space
+#ifdef GPU_HYBRID
+    cudaMemcpy(deltax_filtered,deltax_filtered_device,sizeof(float)*2*slab_n_complex,cudaMemcpyDeviceToHost);
+    plan = fftwf_mpi_plan_dft_c2r_3d(ReionGridDim, ReionGridDim, ReionGridDim, (fftwf_complex *)deltax_filtered, (float *)deltax_filtered, mpi_comm, FFTW_ESTIMATE);
+    fftwf_execute(plan);
+    fftwf_destroy_plan(plan);
+    cudaMemcpy(deltax_filtered_device,deltax_filtered,sizeof(float)*2*slab_n_complex,cudaMemcpyHostToDevice);
 
+    cudaMemcpy(stars_filtered,stars_filtered_device,sizeof(float)*2*slab_n_complex,cudaMemcpyDeviceToHost);
+    plan = fftwf_mpi_plan_dft_c2r_3d(ReionGridDim, ReionGridDim, ReionGridDim, (fftwf_complex *)stars_filtered, (float *)stars_filtered, mpi_comm, FFTW_ESTIMATE);
+    fftwf_execute(plan);
+    fftwf_destroy_plan(plan);
+    cudaMemcpy(stars_filtered_device,stars_filtered,sizeof(float)*2*slab_n_complex,cudaMemcpyHostToDevice);
+
+    cudaMemcpy(sfr_filtered,sfr_filtered_device,sizeof(float)*2*slab_n_complex,cudaMemcpyDeviceToHost);
+    plan = fftwf_mpi_plan_dft_c2r_3d(ReionGridDim, ReionGridDim, ReionGridDim, (fftwf_complex *)sfr_filtered, (float *)sfr_filtered, mpi_comm, FFTW_ESTIMATE);
+    fftwf_execute(plan);
+    fftwf_destroy_plan(plan);
+    cudaMemcpy(sfr_filtered_device,sfr_filtered,sizeof(float)*2*slab_n_complex,cudaMemcpyHostToDevice);
+#else
     // Initialize cuFFT
     cufftPlan3d(&plan, ReionGridDim, ReionGridDim, ReionGridDim, CUFFT_C2R);
     cufftSetCompatibilityMode(plan,CUFFT_COMPATIBILITY_FFTW_ALL);
@@ -335,6 +371,7 @@ void _find_HII_bubbles_gpu(
 
     // Clean-up device
     cufftDestroy(plan);
+#endif
 
     if (validation_output && i_R==1 || !strcmp(fname,fname_full_dump))
     {
@@ -350,7 +387,7 @@ void _find_HII_bubbles_gpu(
         free(array_temp);
         H5Fclose(file_id);
     }
-    if(true){
+    if(false){
       hid_t file_id = H5Fopen(fname_ref, H5F_ACC_RDONLY, H5P_DEFAULT);
       float *array_temp = (float *)malloc(sizeof(float)*(2*slab_n_complex));
       H5LTread_dataset_float(file_id,"deltax_filtered_ift",array_temp);cudaMemcpy(deltax_filtered_device,array_temp,sizeof(float)*2*slab_n_complex,cudaMemcpyHostToDevice);

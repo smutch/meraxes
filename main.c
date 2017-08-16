@@ -43,14 +43,12 @@ int main(int argc,char *argv[]){
 
 #ifdef __NVCC__
 #ifdef GPU_HYBRID
-    // Run the hybrid GPU/FFTW version of _find_HII_bubbles()
-    fprintf(stdout,"Calling GPU version of find_HII_bubbles()...");fflush(stdout);
-    find_HII_bubbles_driver(redshift,_find_HII_bubbles_hybrid,reference_directory,&timer);
+    fprintf(stdout,"Calling hybrid GPU/FFTW version of find_HII_bubbles()...");fflush(stdout);
 #else
-    // Run the GPU version of _find_HII_bubbles()
     fprintf(stdout,"Calling GPU version of find_HII_bubbles()...");fflush(stdout);
-    find_HII_bubbles_driver(redshift,_find_HII_bubbles_gpu,reference_directory,&timer);
 #endif
+    // Run the GPU version of _find_HII_bubbles()
+    find_HII_bubbles_driver(redshift,_find_HII_bubbles_gpu,reference_directory,&timer);
     fprintf(stdout,"Done. (%ld seconds)\n",timer_delta(timer));fflush(stdout);
 #else
     // Run the Meraxes version of _find_HII_bubbles()
