@@ -14,7 +14,7 @@
 #include <cuda_runtime.h>
 #include <cufft.h>
 
-void _find_HII_bubbles_gpu(
+void _find_HII_bubbles_hybrid(
     // input
     double redshift,
     MPI_Comm mpi_comm,
