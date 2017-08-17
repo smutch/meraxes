@@ -3,24 +3,25 @@ cmake_minimum_required(VERSION 3.5)
 project(meraxes)
 
 # Build type
-if(NOT CMAKE_BUILD_TYPE)
-  message(STATUS "CMAKE_BUILD_TYPE not given, defaulting to 'standard'.")
-  set(CMAKE_BUILD_TYPE "standard" CACHE STRING "Choose the type of build." FORCE)
-endif()
+set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -DDEBUG -Wall -O0")
+set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -march=native")
+set(CMAKE_C_FLAGS_RELWITHDEBINFO "${CMAKE_C_FLAGS_RELWITHDEBINFO} -Wall")
+set(CMAKE_BUILD_TYPE "RelWithDebInfo" CACHE STRING "Build type.")
 
 set(CMAKE_INSTALL_PREFIX ${CMAKE_CURRENT_SOURCE_DIR}/.. CACHE PATH "Installation path prefix." FORCE)
 
-# Set available build types for CMake GUIs.
-# A different build type can still be set by -DCMAKE_BUILD_TYPE=...
-set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "standard" "debug" "optimized")
+# ensure RPATH is used for builds
+set(CMAKE_SKIP_BUILD_RPATH  FALSE)
 
-if(CMAKE_BUILD_TYPE EQUAL "debug")
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -O0 -Wall -DDEBUG")
-elseif(CMAKE_BUILD_TYPE EQUAL "optimized")
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O3 -DNDEBUG -march=native")
-elseif(CMAKE_BUILD_TYPE EQUAL "standard")
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O2")
-endif()
+# when building, don't use the install RPATH already
+# (but later on when installing)
+set(CMAKE_BUILD_WITH_INSTALL_RPATH FALSE) 
+
+set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
+
+# add the automatically determined parts of the RPATH
+# which point to directories outside the build tree to the install RPATH
+set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 
 # Code options
 if(N_HISTORY_SNAPS)
@@ -46,7 +47,8 @@ include_directories(${HDF5_INCLUDE_DIRS})
 link_libraries(${HDF5_C_LIBRARIES} ${HDF5_C_HL_LIBRARIES})
 add_definitions(${HDF5_DEFINITIONS})
 
-# set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS}")
+# THIS IS A TEMPORARY HACK TO OVERCOME A BUG IN CMAKE
+set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -lhdf5_hl")
 
 # FFTW
 find_path(FFTW_INCLUDE_DIRS fftw3.h HINTS ${FFTW_ROOT})
@@ -95,7 +97,7 @@ string(REPLACE "\\n" "\\\\n" GITDIFF GITDIFF)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/git.h.in ${CMAKE_BINARY_DIR}/git.h ESCAPE_QUOTES @ONLY)
 
 # Compiler options
-set(CMAKE_C_FLAGS ${CMAKE_C_FLAGS} "-Wall -std=gnu99 -O3 -DNDEBUG -march=native")
+set(CMAKE_C_FLAGS ${CMAKE_C_FLAGS} "-std=gnu99")
 
 # source files
 file(GLOB SOURCES core/*.[ch] *.h physics/*.[ch])
@@ -108,4 +110,5 @@ install(TARGETS meraxes DESTINATION bin)
 add_library(lib SHARED ${SOURCES})
 set_target_properties(lib PROPERTIES OUTPUT_NAME meraxes)
 install(TARGETS lib DESTINATION lib)
-install(FILES meraxes.h ${CMAKE_BINARY_DIR}/git.h DESTINATION include)
+install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/mlog/libmlog.so DESTINATION lib)
+install(FILES meraxes.h ${CMAKE_BINARY_DIR}/git.h ${CMAKE_CURRENT_SOURCE_DIR}/mlog/libmlog.so DESTINATION include)
