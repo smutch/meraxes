@@ -38,19 +38,20 @@ include_directories(${GSL_INCLUDE_DIRS})
 link_libraries(${GSL_LIBRARIES})
 
 # HDF5
-find_package(HDF5 REQUIRED)
+find_package(HDF5 REQUIRED COMPONENTS C HL)
 if (NOT HDF5_IS_PARALLEL)
     message(FATAL_ERROR "Meraxes requires HDF5 with parallel support.")
 endif()
 include_directories(${HDF5_INCLUDE_DIRS})
-link_libraries(${HDF5_C_LIBRARIES})
+link_libraries(${HDF5_C_LIBRARIES} ${HDF5_C_HL_LIBRARIES})
 add_definitions(${HDF5_DEFINITIONS})
-set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -lhdf5_hl")
+
+# set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS}")
 
 # FFTW
-find_path(FFTW_INCLUDE_DIRS fftw3.h)
-find_library(FFTW_LIBRARIES fftw3f)
-find_library(FFTW_MPI_LIBRARIES fftw3f_mpi)
+find_path(FFTW_INCLUDE_DIRS fftw3.h HINTS ${FFTW_ROOT})
+find_library(FFTW_LIBRARIES fftw3f HINTS ${FFTW_ROOT})
+find_library(FFTW_MPI_LIBRARIES fftw3f_mpi ${FFTW_ROOT})
 include_directories(${FFTW_INCLUDE_DIRS})
 link_libraries(${FFTW_LIBRARIES} ${FFTW_MPI_LIBRARIES})
 
