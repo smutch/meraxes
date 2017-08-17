@@ -8,6 +8,8 @@ if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE "standard" CACHE STRING "Choose the type of build." FORCE)
 endif()
 
+set(CMAKE_INSTALL_PREFIX ${CMAKE_CURRENT_SOURCE_DIR}/.. CACHE PATH "Installation path prefix." FORCE)
+
 # Set available build types for CMake GUIs.
 # A different build type can still be set by -DCMAKE_BUILD_TYPE=...
 set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "standard" "debug" "optimized")
@@ -76,12 +78,20 @@ if(ENABLE_PROFILING)
     set(CMAKE_C_FLAGS ${CMAKE_C_FLAGS} "-g")
 endif()
 
-
 # math
 link_libraries(m)
 
 # Meraxes headers
-include_directories(BEFORE .)
+include_directories(BEFORE ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR})
+find_package(Git REQUIRED)
+execute_process(COMMAND ${GIT_EXECUTABLE} rev-parse HEAD
+    OUTPUT_VARIABLE GITREF
+    OUTPUT_STRIP_TRAILING_WHITESPACE)
+execute_process(COMMAND ${GIT_EXECUTABLE} --no-pager diff --no-color
+    OUTPUT_VARIABLE GITDIFF
+    OUTPUT_STRIP_TRAILING_WHITESPACE)
+string(REPLACE "\\n" "\\\\n" GITDIFF GITDIFF)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/git.h.in ${CMAKE_BINARY_DIR}/git.h ESCAPE_QUOTES @ONLY)
 
 # Compiler options
 set(CMAKE_C_FLAGS ${CMAKE_C_FLAGS} "-Wall -std=gnu99 -O3 -DNDEBUG -march=native")
@@ -91,7 +101,10 @@ file(GLOB SOURCES core/*.[ch] *.h physics/*.[ch])
 
 # executable
 add_executable(meraxes ${SOURCES})
+install(TARGETS meraxes DESTINATION bin)
 
 # library
-add_library(lib SHARED EXCLUDE_FROM_ALL ${SOURCES})
+add_library(lib SHARED ${SOURCES})
 set_target_properties(lib PROPERTIES OUTPUT_NAME meraxes)
+install(TARGETS lib DESTINATION lib)
+install(FILES meraxes.h ${CMAKE_BINARY_DIR}/git.h DESTINATION include)
