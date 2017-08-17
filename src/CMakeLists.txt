@@ -104,11 +104,23 @@ file(GLOB SOURCES core/*.[ch] *.h physics/*.[ch])
 
 # executable
 add_executable(meraxes ${SOURCES})
-install(TARGETS meraxes DESTINATION bin)
+install(TARGETS meraxes DESTINATION bin COMPONENT bin)
+ADD_CUSTOM_TARGET(install.meraxes
+    ${CMAKE_COMMAND} 
+    -DBUILD_TYPE=${CMAKE_BUILD_TYPE} 
+    -DCOMPONENT=bin
+    -P ${CMAKE_BINARY_DIR}/cmake_install.cmake) 
+ADD_DEPENDENCIES(install.meraxes meraxes)
 
 # library
 add_library(lib SHARED ${SOURCES})
 set_target_properties(lib PROPERTIES OUTPUT_NAME meraxes)
-install(TARGETS lib DESTINATION lib)
-install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/mlog/libmlog.so DESTINATION lib)
-install(FILES meraxes.h ${CMAKE_BINARY_DIR}/git.h ${CMAKE_CURRENT_SOURCE_DIR}/mlog/libmlog.so DESTINATION include)
+install(TARGETS lib DESTINATION lib COMPONENT lib)
+install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/mlog/libmlog.so DESTINATION lib COMPONENT lib)
+install(FILES meraxes.h ${CMAKE_BINARY_DIR}/git.h DESTINATION include COMPONENT lib)
+ADD_CUSTOM_TARGET(install.lib
+    ${CMAKE_COMMAND} 
+    -DBUILD_TYPE=${CMAKE_BUILD_TYPE} 
+    -DCOMPONENT=lib
+    -P ${CMAKE_BINARY_DIR}/cmake_install.cmake) 
+ADD_DEPENDENCIES(install.lib lib)
