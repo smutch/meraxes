@@ -8,7 +8,9 @@ set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -march=native")
 set(CMAKE_C_FLAGS_RELWITHDEBINFO "${CMAKE_C_FLAGS_RELWITHDEBINFO} -Wall")
 set(CMAKE_BUILD_TYPE "RelWithDebInfo" CACHE STRING "Build type.")
 
-set(CMAKE_INSTALL_PREFIX ${CMAKE_CURRENT_SOURCE_DIR}/.. CACHE PATH "Installation path prefix." FORCE)
+if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
+  set(CMAKE_INSTALL_PREFIX ${CMAKE_CURRENT_SOURCE_DIR}/.. CACHE PATH "..." FORCE)
+endif()
 
 # ensure RPATH is used for builds
 set(CMAKE_SKIP_BUILD_RPATH  FALSE)
@@ -105,12 +107,12 @@ file(GLOB SOURCES core/*.[ch] *.h physics/*.[ch])
 # executable
 add_executable(meraxes ${SOURCES})
 install(TARGETS meraxes DESTINATION bin COMPONENT bin)
-ADD_CUSTOM_TARGET(install.meraxes
+add_custom_target(install.meraxes
     ${CMAKE_COMMAND} 
     -DBUILD_TYPE=${CMAKE_BUILD_TYPE} 
     -DCOMPONENT=bin
     -P ${CMAKE_BINARY_DIR}/cmake_install.cmake) 
-ADD_DEPENDENCIES(install.meraxes meraxes)
+add_dependencies(install.meraxes meraxes)
 
 # library
 add_library(lib SHARED ${SOURCES})
@@ -118,9 +120,18 @@ set_target_properties(lib PROPERTIES OUTPUT_NAME meraxes)
 install(TARGETS lib DESTINATION lib COMPONENT lib)
 install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/mlog/libmlog.so DESTINATION lib COMPONENT lib)
 install(FILES meraxes.h ${CMAKE_BINARY_DIR}/git.h DESTINATION include COMPONENT lib)
-ADD_CUSTOM_TARGET(install.lib
+add_custom_target(install.lib
     ${CMAKE_COMMAND} 
     -DBUILD_TYPE=${CMAKE_BUILD_TYPE} 
     -DCOMPONENT=lib
     -P ${CMAKE_BINARY_DIR}/cmake_install.cmake) 
-ADD_DEPENDENCIES(install.lib lib)
+add_dependencies(install.lib lib)
+
+add_custom_target(setuprun
+    COMMENT "Setting up run (RUNDIR=$ENV{RUNDIR}) with minimal required files..."
+    COMMAND mkdir -p \${RUNDIR}
+    COMMAND cp -n ${CMAKE_CURRENT_SOURCE_DIR}/../input/input.par \${RUNDIR}
+    COMMAND cp -n ${CMAKE_CURRENT_SOURCE_DIR}/../input/snaplist.txt \${RUNDIR}
+    COMMAND cp ${CMAKE_CURRENT_SOURCE_DIR}/../bin/meraxes \${RUNDIR}
+    )
+add_dependencies(setuprun meraxes)
