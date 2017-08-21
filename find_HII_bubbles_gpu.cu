@@ -261,8 +261,8 @@ void _find_HII_bubbles_gpu(
   // Initialize inverse FFTs
 #ifdef GPU_HYBRID
   fftwf_plan plan_deltax = fftwf_mpi_plan_dft_c2r_3d(ReionGridDim, ReionGridDim, ReionGridDim, (fftwf_complex *)deltax_filtered, (float *)deltax_filtered, mpi_comm, FFTW_ESTIMATE);
-  fftwf_plan plan_stars  = fftwf_mpi_plan_dft_c2r_3d(ReionGridDim, ReionGridDim, ReionGridDim, (fftwf_complex *)stars_filtered, (float *)stars_filtered, mpi_comm, FFTW_ESTIMATE);
-  fftwf_plan plan_sfr    = fftwf_mpi_plan_dft_c2r_3d(ReionGridDim, ReionGridDim, ReionGridDim, (fftwf_complex *)sfr_filtered, (float *)sfr_filtered, mpi_comm, FFTW_ESTIMATE);
+  fftwf_plan plan_stars  = fftwf_mpi_plan_dft_c2r_3d(ReionGridDim, ReionGridDim, ReionGridDim, (fftwf_complex *)stars_filtered,  (float *)stars_filtered,  mpi_comm, FFTW_ESTIMATE);
+  fftwf_plan plan_sfr    = fftwf_mpi_plan_dft_c2r_3d(ReionGridDim, ReionGridDim, ReionGridDim, (fftwf_complex *)sfr_filtered,    (float *)sfr_filtered,    mpi_comm, FFTW_ESTIMATE);
 #else
   cufftPlan3d(&plan, ReionGridDim, ReionGridDim, ReionGridDim, CUFFT_C2R);
   cufftSetCompatibilityMode(plan,CUFFT_COMPATIBILITY_FFTW_ALL);
@@ -284,19 +284,6 @@ void _find_HII_bubbles_gpu(
     }
 
     mlog(".", MLOG_CONT);
-
-    // create working copies of the k-space grids
-    cudaMemcpy(deltax_filtered_device,deltax_unfiltered_device,sizeof(Complex) * slab_n_complex,cudaMemcpyDeviceToDevice);
-    cudaMemcpy(stars_filtered_device, stars_unfiltered_device, sizeof(Complex) * slab_n_complex,cudaMemcpyDeviceToDevice);
-    cudaMemcpy(sfr_filtered_device,   sfr_unfiltered_device,   sizeof(Complex) * slab_n_complex,cudaMemcpyDeviceToDevice);
-
-    // Perform convolution
-    int local_ix_start = 0; // make this = (int)(slabs_ix_start[mpi_rank]);
-    if(!flag_last_filter_step){
-       filter_gpu<<<grid_complex,threads>>>(deltax_filtered_device,local_ix_start,local_nix,ReionGridDim,slab_n_complex,R,box_size,run_globals.params.ReionRtoMFilterType);
-       filter_gpu<<<grid_complex,threads>>>(stars_filtered_device, local_ix_start,local_nix,ReionGridDim,slab_n_complex,R,box_size,run_globals.params.ReionRtoMFilterType);
-       filter_gpu<<<grid_complex,threads>>>(sfr_filtered_device,   local_ix_start,local_nix,ReionGridDim,slab_n_complex,R,box_size,run_globals.params.ReionRtoMFilterType);
-    }
 
     char fname[STRLEN];
     char fname_full_dump[STRLEN];
@@ -320,6 +307,47 @@ void _find_HII_bubbles_gpu(
         hid_t file_id = H5Fcreate(fname, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
         hid_t group = H5Gcreate(file_id, "kspace", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
         float *array_temp = (float *)malloc(sizeof(float)*2*slab_n_complex);
+        cudaMemcpy(array_temp,deltax_unfiltered_device,sizeof(float)*2*slab_n_complex,cudaMemcpyDeviceToHost);
+        H5LTmake_dataset_float(group, "deltax_unfiltered", 1, (hsize_t []){slab_n_complex * 2}, array_temp);
+        cudaMemcpy(array_temp,stars_unfiltered_device,sizeof(float)*2*slab_n_complex,cudaMemcpyDeviceToHost);
+        H5LTmake_dataset_float(group, "stars_unfiltered", 1, (hsize_t []){slab_n_complex * 2}, array_temp);
+        cudaMemcpy(array_temp,sfr_unfiltered_device,sizeof(float)*2*slab_n_complex,cudaMemcpyDeviceToHost);
+        H5LTmake_dataset_float(group, "sfr_unfiltered", 1, (hsize_t []){slab_n_complex * 2}, array_temp);
+        free(array_temp);
+        H5Gclose(group);
+        H5Fclose(file_id);
+    }
+    if(false){ 
+      float *array_temp = (float *)malloc(sizeof(float)*(slab_n_complex*2));
+      hid_t file_id = H5Fopen(fname_ref, H5F_ACC_RDONLY, H5P_DEFAULT);
+      hid_t group   = H5Gopen(file_id, "kspace",H5P_DEFAULT);
+      H5LTread_dataset_float(group,"deltax_unfiltered",array_temp); cudaMemcpy(deltax_unfiltered_device,array_temp,sizeof(float)*2*slab_n_complex,cudaMemcpyHostToDevice);
+      H5LTread_dataset_float(group,"stars_unfiltered", array_temp); cudaMemcpy(stars_unfiltered_device, array_temp,sizeof(float)*2*slab_n_complex,cudaMemcpyHostToDevice);
+      H5LTread_dataset_float(group,"sfr_unfiltered",   array_temp); cudaMemcpy(sfr_unfiltered_device,   array_temp,sizeof(float)*2*slab_n_complex,cudaMemcpyHostToDevice);
+      H5Gclose(group);
+      H5Fclose(file_id);
+      free(array_temp);
+    }
+
+    // create working copies of the k-space grids
+    cudaMemcpy(deltax_filtered_device,deltax_unfiltered_device,sizeof(Complex) * slab_n_complex,cudaMemcpyDeviceToDevice);
+    cudaMemcpy(stars_filtered_device, stars_unfiltered_device, sizeof(Complex) * slab_n_complex,cudaMemcpyDeviceToDevice);
+    cudaMemcpy(sfr_filtered_device,   sfr_unfiltered_device,   sizeof(Complex) * slab_n_complex,cudaMemcpyDeviceToDevice);
+
+    // Perform convolution
+    int local_ix_start = 0; // make this = (int)(slabs_ix_start[mpi_rank]);
+    if(!flag_last_filter_step){
+       filter_gpu<<<grid_complex,threads>>>(deltax_filtered_device,local_nix,ReionGridDim,local_ix_start,slab_n_complex,R,box_size,run_globals.params.ReionRtoMFilterType);
+       filter_gpu<<<grid_complex,threads>>>(stars_filtered_device, local_nix,ReionGridDim,local_ix_start,slab_n_complex,R,box_size,run_globals.params.ReionRtoMFilterType);
+       filter_gpu<<<grid_complex,threads>>>(sfr_filtered_device,   local_nix,ReionGridDim,local_ix_start,slab_n_complex,R,box_size,run_globals.params.ReionRtoMFilterType);
+    }
+
+    if (validation_output && i_R==1 || !strcmp(fname,fname_full_dump))
+    {
+        // prepare output file
+        hid_t file_id = H5Fcreate(fname, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
+        hid_t group = H5Gcreate(file_id, "kspace", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+        float *array_temp = (float *)malloc(sizeof(float)*2*slab_n_complex);
         cudaMemcpy(array_temp,deltax_filtered_device,sizeof(float)*2*slab_n_complex,cudaMemcpyDeviceToHost);
         H5LTmake_dataset_float(group, "deltax_filtered", 1, (hsize_t []){slab_n_complex * 2}, array_temp);
         cudaMemcpy(array_temp,stars_filtered_device,sizeof(float)*2*slab_n_complex,cudaMemcpyDeviceToHost);
@@ -330,13 +358,14 @@ void _find_HII_bubbles_gpu(
         H5Gclose(group);
         H5Fclose(file_id);
     }
-    if(false){
+    if(false){ // good from here down
       float *array_temp = (float *)malloc(sizeof(float)*(slab_n_complex*2));
       hid_t file_id = H5Fopen(fname_ref, H5F_ACC_RDONLY, H5P_DEFAULT);
       hid_t group   = H5Gopen(file_id, "kspace",H5P_DEFAULT);
-      H5LTread_dataset_float(group,"deltax_filtered",array_temp); cudaMemcpy(deltax_unfiltered_device,array_temp,sizeof(float)*2*slab_n_complex,cudaMemcpyHostToDevice);
-      H5LTread_dataset_float(group,"stars_filtered", array_temp); cudaMemcpy(stars_unfiltered_device, array_temp,sizeof(float)*2*slab_n_complex,cudaMemcpyHostToDevice);
-      H5LTread_dataset_float(group,"sfr_filtered",   array_temp); cudaMemcpy(sfr_unfiltered_device,   array_temp,sizeof(float)*2*slab_n_complex,cudaMemcpyHostToDevice);
+      H5LTread_dataset_float(group,"deltax_filtered",array_temp); cudaMemcpy(deltax_filtered_device,array_temp,sizeof(float)*2*slab_n_complex,cudaMemcpyHostToDevice);
+      H5LTread_dataset_float(group,"stars_filtered", array_temp); cudaMemcpy(stars_filtered_device, array_temp,sizeof(float)*2*slab_n_complex,cudaMemcpyHostToDevice);
+      H5LTread_dataset_float(group,"sfr_filtered",   array_temp); cudaMemcpy(sfr_filtered_device,   array_temp,sizeof(float)*2*slab_n_complex,cudaMemcpyHostToDevice);
+      H5Gclose(group);
       H5Fclose(file_id);
       free(array_temp);
     }
@@ -394,9 +423,9 @@ void _find_HII_bubbles_gpu(
     }
 
     // Perform sanity checks to account for aliasing effects
-    sanity_check_aliasing<<<grid_real,threads>>>(deltax_filtered_device,ReionGridDim,slab_n_real,-1.f + REL_TOL);
-    sanity_check_aliasing<<<grid_real,threads>>>(stars_filtered_device, ReionGridDim,slab_n_real,0.);
-    sanity_check_aliasing<<<grid_real,threads>>>(sfr_filtered_device,   ReionGridDim,slab_n_real,0.);
+    sanity_check_aliasing<<<grid_real,threads>>>(deltax_filtered_device,ReionGridDim,local_ix_start,slab_n_real,-1.f + REL_TOL);
+    sanity_check_aliasing<<<grid_real,threads>>>(stars_filtered_device, ReionGridDim,local_ix_start,slab_n_real,0.);
+    sanity_check_aliasing<<<grid_real,threads>>>(sfr_filtered_device,   ReionGridDim,local_ix_start,slab_n_real,0.);
 
     if (validation_output && i_R==1 || !strcmp(fname,fname_full_dump))
     {
@@ -412,7 +441,7 @@ void _find_HII_bubbles_gpu(
         free(array_temp);
         H5Fclose(file_id);
     }
-    if(false){
+    if(false){ 
       hid_t file_id = H5Fopen(fname_ref, H5F_ACC_RDONLY, H5P_DEFAULT);
       float *array_temp = (float *)malloc(sizeof(float)*(2*slab_n_complex));
       H5LTread_dataset_float(file_id,"deltax_checked",array_temp);cudaMemcpy(deltax_filtered_device,array_temp,sizeof(float)*2*slab_n_complex,cudaMemcpyHostToDevice);
@@ -436,6 +465,7 @@ void _find_HII_bubbles_gpu(
         flag_last_filter_step, //
         flag_ReionUVBFlag, //
         ReionGridDim, //
+        local_ix_start,
         R, //
         RtoM(R), //
         ReionEfficiency, //

@@ -14,7 +14,8 @@
 #include <cuda_runtime.h>
 #include <cufft.h>
 
-__device__ void inline grid_index2indices(const int idx,const int dim,const int mode,int *ix,int *iy,int *iz){
+__device__
+void inline grid_index2indices(const int idx,const int dim,const int i_x_start,const int mode,int *ix,int *iy,int *iz){
     int n;
     int remainder=idx;
     switch(mode){
@@ -35,10 +36,11 @@ __device__ void inline grid_index2indices(const int idx,const int dim,const int 
     remainder=(remainder-(*iz))/n;
     (*iy)=remainder%dim;
     remainder=(remainder-(*iy))/dim;
-    (*ix)=remainder;
+    (*ix)=remainder+i_x_start;
 }
 
-__device__ int grid_index_gpu(int i, int j, int k, int dim, int type)
+__device__
+int inline grid_index_gpu(int i, int j, int k, int dim, int type)
 {
   int ind;
 
@@ -74,38 +76,55 @@ void complex_vector_times_scalar(Complex *vector,double scalar,int n_complex){
 }
 
 __global__
-void sanity_check_aliasing(Complex *grid,int grid_dim,int n_real,float val){
+void sanity_check_aliasing(Complex *grid,int grid_dim,int i_x_start,int n_real,float val){
     int i_real = blockIdx.x*blockDim.x + threadIdx.x;
     if (i_real < n_real){
         int i_x,i_y,i_z;
-        grid_index2indices(i_real,grid_dim,INDEX_REAL,&i_x,&i_y,&i_z);
+        grid_index2indices(i_real,grid_dim,i_x_start,INDEX_REAL,&i_x,&i_y,&i_z);
         const int i_padded = grid_index_gpu(i_x,i_y,i_z,grid_dim,INDEX_PADDED);
         ((float *)grid)[i_padded] = fmaxf(((float *)grid)[i_padded], val);
     }
 }
 
+__device__
+float inline k_mag_gpu(const int n_x,const int n_y,const int n_z,const int grid_dim,const float box_size){
+    float delta_k = 2.0 * M_PI / box_size;
+    int   middle  = grid_dim / 2;
+    // Compute k_x
+    float k_x;
+    if (n_x > middle)
+        k_x = (n_x - grid_dim) * delta_k;
+    else
+        k_x = n_x * delta_k;
+    // Compute k_y
+    float k_y;
+    if (n_y > middle)
+        k_y = (n_y - grid_dim) * delta_k;
+    else
+        k_y = n_y * delta_k;
+    // Compute k_z
+    float k_z;
+    k_z = n_z * delta_k;
+    return(sqrtf(k_x * k_x + k_y * k_y + k_z * k_z));
+}
+
 __global__
-void filter_gpu(Complex *box,int local_ix_start,int slab_nx,int grid_dim,int n_complex,float R,double box_size_in,int filter_type){
-    int i_complex = blockIdx.x*blockDim.x + threadIdx.x;
-    if (i_complex < n_complex){
+void filter_gpu(Complex *box,int slab_nx,int grid_dim,int local_ix_start,int n_complex,float R,double box_size_in,int filter_type){
+    int i_complex_herm = blockIdx.x*blockDim.x + threadIdx.x;
+    if (i_complex_herm < n_complex){
 
         // Map i_complex to grid indices
         int n_x,n_y,n_z;
-        grid_index2indices(i_complex,grid_dim,INDEX_COMPLEX_HERM,&n_x,&n_y,&n_z);
+        grid_index2indices(i_complex_herm,grid_dim,local_ix_start,INDEX_COMPLEX_HERM,&n_x,&n_y,&n_z);
 
         // Compute k_mag for given grid indices
         float box_size = box_size_in;
-        float delta_k  = 2.0 * M_PI / box_size;
-        float k_x      = n_x*delta_k;
-        float k_y      = n_y*delta_k;
-        float k_z      = n_z*delta_k;
-        float k_mag    = sqrtf(k_x * k_x + k_y * k_y + k_z * k_z);
+        float k_mag    = k_mag_gpu(n_x,n_y,n_z,grid_dim,box_size);
 
         // Calculate filter
-        const int   i_complex_herm = grid_index_gpu(n_x,n_y,n_z,grid_dim,INDEX_COMPLEX_HERM);
-        float       kR             = k_mag * R;
-        float       scalar         = 0.;
-        int         support        = false;
+        float       kR      = k_mag * R;
+        float       scalar  = 0.;
+        int         support = false;
         switch(filter_type)
         {
           case 0:   // Real space top-hat
@@ -149,6 +168,7 @@ void find_HII_bubbles_gpu_main_loop(
         int      flag_last_filter_step,
         int      flag_ReionUVBFlag,
         int      ReionGridDim,
+        int      i_x_start,
         float    R,
         float    M,
         float    ReionEfficiency,
@@ -166,7 +186,7 @@ void find_HII_bubbles_gpu_main_loop(
     int i_real = blockIdx.x*blockDim.x + threadIdx.x;
     if(i_real < n_real){
         int ix,iy,iz;
-        grid_index2indices(i_real,ReionGridDim,INDEX_REAL,&ix,&iy,&iz); // TODO: need to pass local_i_start to this eventually
+        grid_index2indices(i_real,ReionGridDim,i_x_start,INDEX_REAL,&ix,&iy,&iz); // TODO: need to pass local_i_start to this eventually
         const int i_padded = grid_index_gpu(ix,iy,iz, ReionGridDim, INDEX_PADDED);
 
         double density_over_mean = 1.0 + (double)((float *)deltax_filtered_device)[i_padded];
