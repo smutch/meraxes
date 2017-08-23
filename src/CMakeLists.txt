@@ -7,8 +7,8 @@ find_package(Git REQUIRED)
 # Build type
 set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -DDEBUG -Wall -O0")
 set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -march=native")
-set(CMAKE_C_FLAGS_RELWITHDEBINFO "${CMAKE_C_FLAGS_RELWITHDEBINFO} -Wall")
-set(CMAKE_BUILD_TYPE "RelWithDebInfo" CACHE STRING "Build type.")
+set(CMAKE_C_FLAGS_RELWITHDEBINFO "${CMAKE_C_FLAGS_RELWITHDEBINFO} -Wall -march=native")
+set(CMAKE_BUILD_TYPE "Release" CACHE STRING "Build type.")
 
 if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
   set(CMAKE_INSTALL_PREFIX ${CMAKE_CURRENT_SOURCE_DIR}/.. CACHE PATH "..." FORCE)
@@ -37,6 +37,28 @@ find_package(MPI REQUIRED)
 include_directories(${MPI_INCLUDE_PATH})
 link_libraries(${MPI_C_LIBRARIES})
 
+# MLOG
+find_library(MLOG_LIBRARIES libmlog.a PATHS ${MLOG_ROOT})
+if((NOT MLOG_LIBRARIES) OR (NOT EXISTS ${MLOG_LIBRARIES}))
+    message(STATUS "Unable to find mlog. Building it as part of Meraxes")
+    if(NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/mlog/mlog.c")
+        message(STATUS "Checking out mlog submodule")
+        execute_process(COMMAND git submodule update --init
+                        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+    endif()
+    set(MLOG_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/mlog")
+    add_library(mlog STATIC "${MLOG_ROOT}/mlog.c" "${MLOG_ROOT}/mlog.h")
+    set_property(TARGET mlog PROPERTY POSITION_INDEPENDENT_CODE ON)
+    add_custom_command(TARGET mlog PRE_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy
+        ${MLOG_ROOT}/mlog.h $<TARGET_FILE_DIR:mlog>)
+    link_libraries(mlog)
+else()
+    find_path(MLOG_INCLUDE_DIRS mlog.h PATHS ${MLOG_ROOT})
+    include_directories(${MLOG_INCLUDE_DIRS})
+    link_libraries(${MLOG_LIBRARIES})
+endif()
+
 # GSL
 find_package(GSL REQUIRED)
 include_directories(${GSL_INCLUDE_DIRS})
@@ -55,26 +77,11 @@ add_definitions(${HDF5_DEFINITIONS})
 set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -lhdf5_hl")
 
 # FFTW
-find_path(FFTW_INCLUDE_DIRS fftw3.h HINTS ${FFTW_ROOT})
-find_library(FFTW_LIBRARIES fftw3f HINTS ${FFTW_ROOT})
+find_path(FFTW_INCLUDE_DIRS fftw3.h PATHS ${FFTW_ROOT})
+find_library(FFTW_LIBRARIES fftw3f PATHS ${FFTW_ROOT})
 find_library(FFTW_MPI_LIBRARIES fftw3f_mpi ${FFTW_ROOT})
 include_directories(${FFTW_INCLUDE_DIRS})
 link_libraries(${FFTW_LIBRARIES} ${FFTW_MPI_LIBRARIES})
-
-# MLOG
-find_path(MLOG_INCLUDE_DIRS mlog.h PATH ${MLOG_ROOT} HINTS ${CMAKE_CURRENT_SOURCE_DIR}/mlog)
-if((NOT MLOG_INCLUDE_DIRS) OR (NOT EXISTS ${MLOG_INCLUDE_DIRS}))
-    message("Unable to find mlog. Checking it out as a submodule...")
-    execute_process(COMMAND git submodule update --init
-                    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
-    message("Building mlog...")
-    execute_process(COMMAND make
-                    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/mlog)
-    set(MLOG_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/mlog)
-endif()
-find_library(MLOG_LIBRARIES mlog PATH ${MLOG_ROOT} HINTS ${CMAKE_CURRENT_SOURCE_DIR}/mlog)
-include_directories(${MLOG_INCLUDE_DIRS})
-link_libraries(${MLOG_LIBRARIES})
 
 # OpenMP
 option(USE_OpenMP "Use OpenMP" OFF)
@@ -126,7 +133,6 @@ add_dependencies(install.meraxes meraxes)
 add_library(lib SHARED ${SOURCES})
 set_target_properties(lib PROPERTIES OUTPUT_NAME meraxes)
 install(TARGETS lib DESTINATION lib COMPONENT lib)
-install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/mlog/libmlog.so DESTINATION lib COMPONENT lib)
 install(FILES meraxes.h ${CMAKE_BINARY_DIR}/git.h DESTINATION include COMPONENT lib)
 add_custom_target(install.lib
     ${CMAKE_COMMAND} 
