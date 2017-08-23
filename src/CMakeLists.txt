@@ -1,6 +1,8 @@
 # project setup
 cmake_minimum_required(VERSION 3.5)
 project(meraxes)
+include(${CMAKE_ROOT}/Modules/ExternalProject.cmake)
+find_package(Git REQUIRED)
 
 # Build type
 set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -DDEBUG -Wall -O0")
@@ -60,8 +62,17 @@ include_directories(${FFTW_INCLUDE_DIRS})
 link_libraries(${FFTW_LIBRARIES} ${FFTW_MPI_LIBRARIES})
 
 # MLOG
-find_path(MLOG_INCLUDE_DIRS mlog.h HINTS mlog/)
-find_library(MLOG_LIBRARIES mlog HINTS mlog/)
+find_path(MLOG_INCLUDE_DIRS mlog.h PATH ${MLOG_ROOT} HINTS ${CMAKE_CURRENT_SOURCE_DIR}/mlog)
+if((NOT MLOG_INCLUDE_DIRS) OR (NOT EXISTS ${MLOG_INCLUDE_DIRS}))
+    message("Unable to find mlog. Checking it out as a submodule...")
+    execute_process(COMMAND git submodule update --init
+                    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+    message("Building mlog...")
+    execute_process(COMMAND make
+                    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/mlog)
+    set(MLOG_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/mlog)
+endif()
+find_library(MLOG_LIBRARIES mlog PATH ${MLOG_ROOT} HINTS ${CMAKE_CURRENT_SOURCE_DIR}/mlog)
 include_directories(${MLOG_INCLUDE_DIRS})
 link_libraries(${MLOG_LIBRARIES})
 
@@ -86,7 +97,6 @@ link_libraries(m)
 
 # Meraxes headers
 include_directories(BEFORE ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR})
-find_package(Git REQUIRED)
 execute_process(COMMAND ${GIT_EXECUTABLE} rev-parse HEAD
     OUTPUT_VARIABLE GITREF
     OUTPUT_STRIP_TRAILING_WHITESPACE)
