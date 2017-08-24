@@ -73,13 +73,21 @@ include_directories(${HDF5_INCLUDE_DIRS})
 link_libraries(${HDF5_C_LIBRARIES} ${HDF5_C_HL_LIBRARIES})
 add_definitions(${HDF5_DEFINITIONS})
 
-# THIS IS A TEMPORARY HACK TO OVERCOME A BUG IN CMAKE
-set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -lhdf5_hl")
+# THIS IS A TEMPORARY HACK TO OVERCOME A BUG IN SOME VERSIONS OF CMAKE
+if(NOT (${HDF5_C_HL_LIBRARIES} MATCHES "libhdf5_hl"))
+    list(GET HDF5_C_LIBRARIES 0 HDF5_LIB)
+    get_filename_component(HDF5_LIBDIR ${HDF5_LIB} DIRECTORY)
+    link_libraries("${HDF5_LIBDIR}/hdf5_hl.so")
+endif()
+
 
 # FFTW
-find_path(FFTW_INCLUDE_DIRS fftw3.h PATHS ${FFTW_ROOT})
-find_library(FFTW_LIBRARIES fftw3f PATHS ${FFTW_ROOT})
-find_library(FFTW_MPI_LIBRARIES fftw3f_mpi ${FFTW_ROOT})
+find_path(FFTW_INCLUDE_DIRS fftw3.h PATHS "${FFTW_ROOT}/*" NO_DEFAULT_PATH)
+find_path(FFTW_INCLUDE_DIRS fftw3.h)
+find_library(FFTW_LIBRARIES fftw3f PATHS "${FFTW_ROOT}/*" NO_DEFAULT_PATH)
+find_library(FFTW_LIBRARIES fftw3f)
+find_library(FFTW_MPI_LIBRARIES fftw3f_mpi PATHS "${FFTW_ROOT}/*" NO_DEFAULT_PATH)
+find_library(FFTW_MPI_LIBRARIES fftw3f_mpi)
 include_directories(${FFTW_INCLUDE_DIRS})
 link_libraries(${FFTW_LIBRARIES} ${FFTW_MPI_LIBRARIES})
 
@@ -142,7 +150,8 @@ add_custom_target(install.lib
 add_dependencies(install.lib lib)
 
 add_custom_target(setuprun
-    COMMENT "Setting up run (RUNDIR=$ENV{RUNDIR}) with minimal required files..."
+    COMMENT "Setting up run with minimal required files..."
+    COMMAND echo "RUNDIR = \${RUNDIR}"
     COMMAND mkdir -p \${RUNDIR}
     COMMAND cp -n ${CMAKE_CURRENT_SOURCE_DIR}/../input/input.par \${RUNDIR}
     COMMAND cp -n ${CMAKE_CURRENT_SOURCE_DIR}/../input/snaplist.txt \${RUNDIR}
