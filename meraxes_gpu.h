@@ -51,106 +51,7 @@ __global__ void  find_HII_bubbles_gpu_main_loop(
 #ifdef __cplusplus
 extern "C" {
 #endif
-void  _find_HII_bubbles_gpu(
-    // input
-    double redshift,
-    MPI_Comm mpi_comm,
-    int mpi_rank,
-    double box_size,
-    int ReionGridDim,
-    int local_nix,
-    int flag_ReionUVBFlag,
-    double ReionEfficiency,
-    double ReionNionPhotPerBary,
-    double UnitLength_in_cm,
-    double UnitMass_in_g,
-    double UnitTime_in_s,
-    double ReionRBubbleMax,
-    double ReionRBubbleMin,
-    double ReionDeltaRFactor,
-    double ReionGammaHaloBias,
-    double ReionAlphaUV,
-    double ReionEscapeFrac,
-
-    bool validation_output,
-
-    // preallocated 1D grids (local_nix * ReionGridDim * ReionGridDim)
-    float *J_21,  // real
-    float *r_bubble, // real
-
-    // input grids
-    float *deltax,  // real & padded
-    float *stars,  // real & padded
-    float *sfr,  // real & padded
-
-    // preallocated
-    Complex *deltax_filtered,  // complex
-    Complex *stars_filtered,  // complex
-    Complex *sfr_filtered,  // complex
-
-    // length = mpi.size
-    ptrdiff_t *slabs_n_complex,
-    ptrdiff_t *slabs_ix_start,
-
-    // output - preallocated real grids (local_nix * ReionGridDim * ReionGridDim)
-    float *xH, // real
-    float *z_at_ionization,
-    float *J_21_at_ionization,
-
-    // output - single values
-    double *volume_weighted_global_xH,
-    double *mass_weighted_global_xH
-    );
-void  _find_HII_bubbles_hybrid(
-    // input
-    double redshift,
-    MPI_Comm mpi_comm,
-    int mpi_rank,
-    double box_size,
-    int ReionGridDim,
-    int local_nix,
-    int flag_ReionUVBFlag,
-    double ReionEfficiency,
-    double ReionNionPhotPerBary,
-    double UnitLength_in_cm,
-    double UnitMass_in_g,
-    double UnitTime_in_s,
-    double ReionRBubbleMax,
-    double ReionRBubbleMin,
-    double ReionDeltaRFactor,
-    double ReionGammaHaloBias,
-    double ReionAlphaUV,
-    double ReionEscapeFrac,
-
-    bool validation_output,
-
-    // preallocated 1D grids (local_nix * ReionGridDim * ReionGridDim)
-    float *J_21,  // real
-    float *r_bubble, // real
-
-    // input grids
-    float *deltax,  // real & padded
-    float *stars,  // real & padded
-    float *sfr,  // real & padded
-
-    // preallocated
-    Complex *deltax_filtered,  // complex
-    Complex *stars_filtered,  // complex
-    Complex *sfr_filtered,  // complex
-
-    // length = mpi.size
-    ptrdiff_t *slabs_n_complex,
-    ptrdiff_t *slabs_ix_start,
-
-    // output - preallocated real grids (local_nix * ReionGridDim * ReionGridDim)
-    float *xH, // real
-    float *z_at_ionization,
-    float *J_21_at_ionization,
-
-    // output - single values
-    double *volume_weighted_global_xH,
-    double *mass_weighted_global_xH
-    );
+void  _find_HII_bubbles_gpu(double redshift);
 #ifdef __cplusplus
 }
 #endif
@@ -160,57 +61,8 @@ void  _find_HII_bubbles_hybrid(
 extern "C" {
 #endif
 void find_HII_bubbles_driver(
-    double redshift,
-    void  (*find_HII_bubbles_passed)(
-        // input
-        double redshift,
-        MPI_Comm mpi_comm,
-        int mpi_rank,
-        double box_size,
-        int ReionGridDim,
-        int local_nix,
-        int flag_ReionUVBFlag,
-        double ReionEfficiency,
-        double ReionNionPhotPerBary,
-        double UnitLength_in_cm,
-        double UnitMass_in_g,
-        double UnitTime_in_s,
-        double ReionRBubbleMax,
-        double ReionRBubbleMin,
-        double ReionDeltaRFactor,
-        double ReionGammaHaloBias,
-        double ReionAlphaUV,
-        double ReionEscapeFrac,
-
-        bool validation_output,
-
-        // preallocated 1D grids (local_nix * ReionGridDim * ReionGridDim)
-        float *J_21,  // real
-        float *r_bubble, // real
-
-        // input grids
-        float *deltax,  // real & padded
-        float *stars,  // real & padded
-        float *sfr,  // real & padded
-
-        // preallocated
-        Complex *deltax_filtered,  // complex
-        Complex *stars_filtered,  // complex
-        Complex *sfr_filtered,  // complex
-
-        // length = mpi.size
-        ptrdiff_t *slabs_n_complex,
-        ptrdiff_t *slabs_ix_start,
-
-        // output - preallocated real grids (local_nix * ReionGridDim * ReionGridDim)
-        float *xH, // real
-        float *z_at_ionization,
-        float *J_21_at_ionization,
-
-        // output - single values
-        double *volume_weighted_global_xH,
-        double *mass_weighted_global_xH
-        ),
+    int        i_out,
+    void       (*find_HII_bubbles_passed)(double redshift),
     const char *reference_directory,
     timer_info *timer);
 #ifdef __cplusplus
