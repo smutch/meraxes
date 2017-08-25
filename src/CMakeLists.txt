@@ -102,9 +102,9 @@ endif()
 # Profiling
 option(ENABLE_PROFILING "Enable profiling with gperftools." OFF)
 if(ENABLE_PROFILING)
-    find_library(GPERF_LIBRARIES profiler)
-    link_libraries(GPERF_LIBRARIES)
-    set(CMAKE_C_FLAGS ${CMAKE_C_FLAGS} "-g")
+    find_library(GPERF_LIBRARIES profiler PATHS "${GPERF_ROOT}/*")
+    link_libraries(${GPERF_LIBRARIES})
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g")
 endif()
 
 # math
