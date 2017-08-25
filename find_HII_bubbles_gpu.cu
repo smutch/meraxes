@@ -14,9 +14,7 @@
 #include <cuda_runtime.h>
 #include <cufft.h>
 
-void _find_HII_bubbles_gpu(double redshift){
-  const bool validation_output     = true;
-  const bool validation_input      = true;
+void _find_HII_bubbles_gpu(double redshift,const bool flag_write_validation_output){
   // Fetch needed things from run_globals
   const MPI_Comm mpi_comm          = run_globals.mpi_comm;
   const int    mpi_rank            = run_globals.mpi_rank;
@@ -64,7 +62,7 @@ void _find_HII_bubbles_gpu(double redshift){
   const double total_n_cells        = pow((double)ReionGridDim, 3);
   const double inv_total_n_cells    = 1.f/total_n_cells;
 
-  if (validation_output)
+  if (flag_write_validation_output)
   {
     // prepare output file
     char fname[STRLEN];
@@ -181,7 +179,7 @@ void _find_HII_bubbles_gpu(double redshift){
   }
 #endif
 
-  if (validation_output)
+  if (flag_write_validation_output)
   {
     // prepare output file
     char fname[STRLEN];
@@ -199,7 +197,7 @@ void _find_HII_bubbles_gpu(double redshift){
     H5Gclose(group);
     H5Fclose(file_id);
   }
-  if(validation_input && false){
+  if(false){
     float *array_temp = (float *)malloc(sizeof(float)*(slab_n_complex*2));
     char fname[STRLEN];
     sprintf(fname, "%s/validation_output-core%03d-z%.2f.h5", "../test/", mpi_rank, redshift);
@@ -296,7 +294,7 @@ void _find_HII_bubbles_gpu(double redshift){
         sprintf(fname_full_dump,"validation_test-core%03d-z%.2f_%03d.h5", mpi_rank, 5.95,i_R);
         sprintf(fname_ref,      "%s/validation_test-core%03d-z%.2f_%03d.h5", "../test/",mpi_rank, 5.95,i_R);
     }
-    if (validation_output && i_R==1 || !strcmp(fname,fname_full_dump))
+    if (flag_write_validation_output && (i_R==1 || !strcmp(fname,fname_full_dump)))
     {
         // prepare output file
         hid_t file_id = H5Fcreate(fname, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
@@ -312,7 +310,7 @@ void _find_HII_bubbles_gpu(double redshift){
         H5Gclose(group);
         H5Fclose(file_id);
     }
-    if(validation_input && false){ 
+    if(false){ 
       float *array_temp = (float *)malloc(sizeof(float)*(slab_n_complex*2));
       hid_t file_id = H5Fopen(fname_ref, H5F_ACC_RDONLY, H5P_DEFAULT);
       hid_t group   = H5Gopen(file_id, "kspace",H5P_DEFAULT);
@@ -336,7 +334,7 @@ void _find_HII_bubbles_gpu(double redshift){
        filter_gpu<<<grid_complex,threads>>>(sfr_filtered_device,   local_nix,ReionGridDim,local_ix_start,slab_n_complex,R,box_size,run_globals.params.ReionRtoMFilterType);
     }
 
-    if (validation_output && i_R==1 || !strcmp(fname,fname_full_dump))
+    if (flag_write_validation_output && (i_R==1 || !strcmp(fname,fname_full_dump)))
     {
         // prepare output file
         hid_t file_id = H5Fcreate(fname, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
@@ -352,7 +350,7 @@ void _find_HII_bubbles_gpu(double redshift){
         H5Gclose(group);
         H5Fclose(file_id);
     }
-    if(validation_input && false){ 
+    if(false){ 
       float *array_temp = (float *)malloc(sizeof(float)*(slab_n_complex*2));
       hid_t file_id = H5Fopen(fname_ref, H5F_ACC_RDONLY, H5P_DEFAULT);
       hid_t group   = H5Gopen(file_id, "kspace",H5P_DEFAULT);
@@ -392,7 +390,7 @@ void _find_HII_bubbles_gpu(double redshift){
     cudaMemcpy(sfr_filtered_device,sfr_filtered,sizeof(float)*2*slab_n_complex,cudaMemcpyHostToDevice);
 #endif
 
-    if (validation_output && i_R==1 || !strcmp(fname,fname_full_dump))
+    if (flag_write_validation_output && (i_R==1 || !strcmp(fname,fname_full_dump)))
     {
         // prepare output file
         hid_t file_id = H5Fopen(fname, H5F_ACC_RDWR, H5P_DEFAULT);
@@ -406,7 +404,7 @@ void _find_HII_bubbles_gpu(double redshift){
         free(array_temp);
         H5Fclose(file_id);
     }
-    if(validation_input && false){
+    if(false){
       hid_t file_id = H5Fopen(fname_ref, H5F_ACC_RDONLY, H5P_DEFAULT);
       float *array_temp = (float *)malloc(sizeof(float)*(2*slab_n_complex));
       H5LTread_dataset_float(file_id,"deltax_filtered_ift",array_temp);cudaMemcpy(deltax_filtered_device,array_temp,sizeof(float)*2*slab_n_complex,cudaMemcpyHostToDevice);
@@ -421,7 +419,7 @@ void _find_HII_bubbles_gpu(double redshift){
     sanity_check_aliasing<<<grid_real,threads>>>(stars_filtered_device, ReionGridDim,local_ix_start,slab_n_real,0.);
     sanity_check_aliasing<<<grid_real,threads>>>(sfr_filtered_device,   ReionGridDim,local_ix_start,slab_n_real,0.);
 
-    if (validation_output && i_R==1 || !strcmp(fname,fname_full_dump))
+    if (flag_write_validation_output && (i_R==1 || !strcmp(fname,fname_full_dump)))
     {
         // prepare output file
         hid_t file_id = H5Fopen(fname, H5F_ACC_RDWR, H5P_DEFAULT);
@@ -435,7 +433,7 @@ void _find_HII_bubbles_gpu(double redshift){
         free(array_temp);
         H5Fclose(file_id);
     }
-    if(validation_input && false){ 
+    if(false){ 
       hid_t file_id = H5Fopen(fname_ref, H5F_ACC_RDONLY, H5P_DEFAULT);
       float *array_temp = (float *)malloc(sizeof(float)*(2*slab_n_complex));
       H5LTread_dataset_float(file_id,"deltax_checked",array_temp);cudaMemcpy(deltax_filtered_device,array_temp,sizeof(float)*2*slab_n_complex,cudaMemcpyHostToDevice);
@@ -475,7 +473,7 @@ void _find_HII_bubbles_gpu(double redshift){
         stars_filtered_device,
         sfr_filtered_device);
 
-    if (validation_output && i_R==1 || !strcmp(fname,fname_full_dump))
+    if (flag_write_validation_output && (i_R==1 || !strcmp(fname,fname_full_dump)))
     {
         // prepare output file
         hid_t file_id = H5Fopen(fname, H5F_ACC_RDWR, H5P_DEFAULT);
@@ -499,7 +497,7 @@ void _find_HII_bubbles_gpu(double redshift){
         free(array_temp);
         H5Fclose(file_id);
     }
-    if(validation_input && false){
+    if(false){
       hid_t file_id = H5Fopen(fname_ref, H5F_ACC_RDONLY, H5P_DEFAULT);
       float *array_temp = (float *)malloc(sizeof(float)*(slab_n_real));
       H5LTread_dataset_float(file_id,"xH",      array_temp);cudaMemcpy(xH_device,      array_temp,sizeof(float)*slab_n_real,cudaMemcpyHostToDevice);
@@ -570,21 +568,5 @@ void _find_HII_bubbles_gpu(double redshift){
   *volume_weighted_global_xH *= inv_total_n_cells;
   *mass_weighted_global_xH   /= mass_weight;
 
-  if (validation_output)
-  {
-    // prepare output file
-    char fname[STRLEN];
-    sprintf(fname, "validation_output-core%03d-z%.2f.h5", mpi_rank, redshift);
-    hid_t file_id = H5Fopen(fname, H5F_ACC_RDWR, H5P_DEFAULT);
-
-    H5LTmake_dataset_float(file_id, "xH",                 1, (hsize_t []){slab_n_real}, xH);
-    H5LTmake_dataset_float(file_id, "z_at_ionization",    1, (hsize_t []){slab_n_real}, z_at_ionization);
-    H5LTmake_dataset_float(file_id, "J_21_at_ionization", 1, (hsize_t []){slab_n_real}, J_21_at_ionization);
-
-    H5LTset_attribute_double(file_id, "/", "volume_weighted_global_xH", volume_weighted_global_xH, 1);
-    H5LTset_attribute_double(file_id, "/", "mass_weighted_global_xH",   mass_weighted_global_xH, 1);
-
-    H5Fclose(file_id);
-  }
 }
 

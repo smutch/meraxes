@@ -42,40 +42,15 @@ static void init_meraxes_globals(int argc,char **argv,char *filename_input_param
     malloc_reionization_grids();
 }
 
-// Call the appropriate version of find_HII_bubbles(), depending
-//    on what compiler flags have been set.
-static void call_find_HII_bubbles_gpu(int snapshot,char *reference_directory,timer_info *timer){
-#ifdef __NVCC__
-#ifndef USE_CUFFT
-    fprintf(stdout,"Calling hybrid-GPU/FFTW version of find_HII_bubbles()...");fflush(stdout);
-#else
-    fprintf(stdout,"Calling pure-GPU version of find_HII_bubbles()...");fflush(stdout);
-#endif
-    // Run the GPU version of _find_HII_bubbles()
-    find_HII_bubbles_driver(snapshot,_find_HII_bubbles_gpu,reference_directory,timer);
-    fprintf(stdout,"Done. (%ld seconds)\n",timer_delta(*timer));fflush(stdout);
-#else
-    // Run the Meraxes version of _find_HII_bubbles()
-    fprintf(stdout,"Calling Meraxes version of find_HII_bubbles()...");fflush(stdout);
-    find_HII_bubbles_driver(snapshot,_find_HII_bubbles,reference_directory,timer);
-    fprintf(stdout,"Done. (%ld seconds)\n",timer_delta(*timer));fflush(stdout);
-#endif
-}
-
 static bool inputs_present(char *reference_directory,int snapshot){
     char  fname[STRLEN];
     FILE *fp_in = NULL;
     bool  rval  = true;
     sprintf(fname,"%s/validation_input-core%03d-z%.2f.h5",reference_directory,run_globals.mpi_rank,run_globals.ZZ[snapshot]);
-    fprintf(stdout,"Checking for snapshot %d (z=%lf)...",snapshot,run_globals.ZZ[snapshot]);
-    if((fp_in = fopen(fname,"r")) != NULL){
+    if((fp_in = fopen(fname,"r")) != NULL)
         fclose(fp_in);
-        fprintf(stdout,"found.\n");
-    }
-    else{
+    else
         rval=false;
-        fprintf(stdout,"not found.\n");
-    }
     return(rval); 
 }
 
@@ -84,11 +59,14 @@ int main(int argc,char *argv[]){
     // Parse the command line arguments
     char reference_directory[256];
     char filename_input_params[256];
-    if(argc!=2){
-       fprintf(stderr,"You need to pass two arguments (the reference directory and the parameter file residing in it).\n");
+    bool flag_write_validation=false;
+    if(argc!=2 && argc!=3){
+       fprintf(stderr,"syntax: %s reference_dir params_file_in_reference_dir [optional: write validation files? (1=yes)]\n",argv[0]);
        exit(EXIT_FAILURE);
     }
     strcpy(reference_directory,argv[1]);
+    if(argc==3)
+        flag_write_validation=(atoi(argv[2])==1);
     sprintf(filename_input_params,"%s/input.par",reference_directory);
     fprintf(stdout,"Using parameter file: {%s}\n",filename_input_params);
 
@@ -103,17 +81,13 @@ int main(int argc,char *argv[]){
     for(;snapshot<run_globals.params.SnaplistLength;snapshot++){
         // If the input files are available, call find_HII_bubbles
         if(inputs_present(reference_directory,snapshot)){
-            timer_info timer;
-            fprintf(stdout,"Processing snapshot %d of %d (z=%lf).\n",
-                    snapshot,
-                    run_globals.params.SnaplistLength,
-                    run_globals.ZZ[snapshot]);fflush(stdout);
             // Call find_HII_bubbles
-            call_find_HII_bubbles_gpu(snapshot,reference_directory,&timer);
+            timer_info timer;
+            find_HII_bubbles_driver(snapshot,reference_directory,flag_write_validation,&timer);
             time_total+=timer_delta(timer);
         }
     }
-    fprintf(stdout,"Total time spent in _find_HII_bubbles(): %d\n",time_total);
+    fprintf(stdout,"Total time spent in _find_HII_bubbles(): %d seconds\n",time_total);
 
     // Clean-up and exit
     free_reionization_grids();

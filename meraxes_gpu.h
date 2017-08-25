@@ -51,7 +51,7 @@ __global__ void  find_HII_bubbles_gpu_main_loop(
 #ifdef __cplusplus
 extern "C" {
 #endif
-void  _find_HII_bubbles_gpu(double redshift);
+void  _find_HII_bubbles_gpu(double redshift,const bool flag_write_validation_output);
 #ifdef __cplusplus
 }
 #endif
@@ -61,9 +61,9 @@ void  _find_HII_bubbles_gpu(double redshift);
 extern "C" {
 #endif
 void find_HII_bubbles_driver(
-    int        i_out,
-    void       (*find_HII_bubbles_passed)(double redshift),
+    int        snapshot,
     const char *reference_directory,
+    const bool flag_write_validation_data,
     timer_info *timer);
 #ifdef __cplusplus
 }
