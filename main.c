@@ -62,6 +62,23 @@ static void call_find_HII_bubbles_gpu(int snapshot,char *reference_directory,tim
 #endif
 }
 
+static bool inputs_present(char *reference_directory,int snapshot){
+    char  fname[STRLEN];
+    FILE *fp_in = NULL;
+    bool  rval  = true;
+    sprintf(fname,"%s/validation_input-core%03d-z%.2f.h5",reference_directory,run_globals.mpi_rank,run_globals.ZZ[snapshot]);
+    fprintf(stdout,"Checking for snapshot %d (z=%lf)...",snapshot,run_globals.ZZ[snapshot]);
+    if((fp_in = fopen(fname,"r")) != NULL){
+        fclose(fp_in);
+        fprintf(stdout,"found.\n");
+    }
+    else{
+        rval=false;
+        fprintf(stdout,"not found.\n");
+    }
+    return(rval); 
+}
+
 int main(int argc,char *argv[]){
 
     // Parse the command line arguments
@@ -80,26 +97,23 @@ int main(int argc,char *argv[]){
     FILE *fp_null=fopen("/dev/null","w");
     init_meraxes_globals(argc,argv,filename_input_params,fp_null);
 
-    // Create a timer 
-    timer_info timer;
-
-    // For the given redshift, which given output are we working with?
-    double redshift = 6.99; // xH=0.5
-    int    snapshot = 0;
-    int    j_out    = 0;
-    double max_diff = 1e5;
-    for(;j_out<run_globals.params.SnaplistLength;j_out++){
-        double diff=fabs(run_globals.ZZ[j_out]-redshift);
-        if(diff<max_diff){
-            snapshot=j_out;
-            max_diff=diff;
+    // Loop over all snapshots
+    int snapshot  =0;
+    int time_total=0;
+    for(;snapshot<run_globals.params.SnaplistLength;snapshot++){
+        // If the input files are available, call find_HII_bubbles
+        if(inputs_present(reference_directory,snapshot)){
+            timer_info timer;
+            fprintf(stdout,"Processing snapshot %d of %d (z=%lf).\n",
+                    snapshot,
+                    run_globals.params.SnaplistLength,
+                    run_globals.ZZ[snapshot]);fflush(stdout);
+            // Call find_HII_bubbles
+            call_find_HII_bubbles_gpu(snapshot,reference_directory,&timer);
+            time_total+=timer_delta(timer);
         }
     }
-    redshift=run_globals.ZZ[snapshot];
-    fprintf(stdout,"Processing snapshot %d of %d (z=%lf).\n",snapshot,run_globals.params.SnaplistLength,redshift);fflush(stdout);
-
-    // Run find_HII_bubbles
-    call_find_HII_bubbles_gpu(snapshot,reference_directory,&timer);
+    fprintf(stdout,"Total time spent in _find_HII_bubbles(): %d\n",time_total);
 
     // Clean-up and exit
     free_reionization_grids();
