@@ -57,7 +57,7 @@ void find_HII_bubbles_driver(
         _find_HII_bubbles(redshift,flag_write_validation_data);
     #endif
     timer_stop(timer);
-    fprintf(stdout,"Done. (%ld seconds)\n",timer_delta(*timer));fflush(stdout);
+    fprintf(stdout,"Done. (%.2f seconds)\n",timer_delta(*timer));fflush(stdout);
 
     // Write final output
     char fname_out[STRLEN];

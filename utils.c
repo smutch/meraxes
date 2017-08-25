@@ -1,19 +1,21 @@
-#include <time.h>
+#include <sys/time.h>
 #include "utils.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 void timer_start(timer_info *timer){
-    time(&(timer->start));
+    gettimeofday(&(timer->start),NULL);
 }
 
 void timer_stop (timer_info *timer){
-    time(&(timer->stop));
+    gettimeofday(&(timer->stop),NULL);
 }
 
-long timer_delta(timer_info timer){
-    return((long)difftime(timer.stop,timer.start));
+float timer_delta(timer_info timer){
+    struct timeval diff;
+    timersub(&(timer.stop),&(timer.start), &diff);
+    return((float)diff.tv_sec+(1e-6*(float)diff.tv_usec));
 }
 
 #ifdef __cplusplus

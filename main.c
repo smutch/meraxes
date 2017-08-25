@@ -76,8 +76,8 @@ int main(int argc,char *argv[]){
     init_meraxes_globals(argc,argv,filename_input_params,fp_null);
 
     // Loop over all snapshots
-    int snapshot  =0;
-    int time_total=0;
+    float time_total=0;
+    int   snapshot  =0;
     for(;snapshot<run_globals.params.SnaplistLength;snapshot++){
         // If the input files are available, call find_HII_bubbles
         if(inputs_present(reference_directory,snapshot)){
@@ -87,7 +87,7 @@ int main(int argc,char *argv[]){
             time_total+=timer_delta(timer);
         }
     }
-    fprintf(stdout,"Total time spent in _find_HII_bubbles(): %d seconds\n",time_total);
+    fprintf(stdout,"Total time spent in _find_HII_bubbles(): %.2f seconds\n",time_total);
 
     // Clean-up and exit
     free_reionization_grids();
