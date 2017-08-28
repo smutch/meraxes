@@ -13,6 +13,9 @@
 #include "utils.h"
 #include "meraxes.h"
 
+// Include a bunch of c++-specific stuff if needed
+#include "meraxes_gpu.hh"
+
 #ifdef __NVCC__
 typedef float2 Complex;
 #else
@@ -20,6 +23,9 @@ typedef fftwf_complex Complex;
 #endif
 
 #ifdef __NVCC__
+#ifdef __cplusplus
+__host__   void  _throw_on_cuda_error(cudaError_t cuda_code, int implementation_code, const char *file, int line);
+__host__   void  _throw_on_cuFFT_error(cufftResult cuda_code, int implementation_code, const char *file, int line);
 __device__ void  inline grid_index2indices(const int idx,const int dim,const int local_ix_start,const int mode,int *ix,int *iy,int *iz);
 __device__ int   inline grid_index_gpu(int i, int j, int k, int dim, int type);
 __device__ float inline k_mag_gpu(const int n_x,const int n_y,const int n_z,const int dim,const float box_size);
@@ -48,7 +54,6 @@ __global__ void  find_HII_bubbles_gpu_main_loop(
                    Complex *deltax_filtered_device,
                    Complex *stars_filtered_device,
                    Complex *sfr_filtered_device);
-#ifdef __cplusplus
 extern "C" {
 #endif
 void  _find_HII_bubbles_gpu(double redshift,const bool flag_write_validation_output);

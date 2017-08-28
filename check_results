@@ -1,5 +1,5 @@
 #~/bin/bash
-export CHECK_FLAGS="-v -n20"
+export CHECK_FLAGS="-v"
 #export CHECK_FLAGS=""
 export CHECK_ACCURACY="1e-7"
 

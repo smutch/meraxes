@@ -62,6 +62,9 @@ void _find_HII_bubbles_gpu(double redshift,const bool flag_write_validation_outp
   const double total_n_cells        = pow((double)ReionGridDim, 3);
   const double inv_total_n_cells    = 1.f/total_n_cells;
 
+  const hsize_t dset_real_size={slab_n_real};
+  const hsize_t dset_cplx_size={2*slab_n_complex};
+
   if (flag_write_validation_output)
   {
     // prepare output file
@@ -88,11 +91,11 @@ void _find_HII_bubbles_gpu(double redshift,const bool flag_write_validation_outp
     H5LTset_attribute_double(file_id, "/", "ReionAlphaUV",         &ReionAlphaUV, 1);
     H5LTset_attribute_double(file_id, "/", "ReionEscapeFrac",      &ReionEscapeFrac, 1);
 
-    H5LTmake_dataset_float(file_id, "deltax",             1, (hsize_t []){slab_n_complex*2}, deltax);
-    H5LTmake_dataset_float(file_id, "stars",              1, (hsize_t []){slab_n_complex*2}, stars);
-    H5LTmake_dataset_float(file_id, "sfr",                1, (hsize_t []){slab_n_complex*2}, sfr);
-    H5LTmake_dataset_float(file_id, "z_at_ionization",    1, (hsize_t []){slab_n_real},      z_at_ionization);
-    H5LTmake_dataset_float(file_id, "J_21_at_ionization", 1, (hsize_t []){slab_n_real},      J_21_at_ionization);
+    H5LTmake_dataset_float(file_id, "deltax",             1, &dset_cplx_size, deltax);
+    H5LTmake_dataset_float(file_id, "stars",              1, &dset_cplx_size, stars);
+    H5LTmake_dataset_float(file_id, "sfr",                1, &dset_cplx_size, sfr);
+    H5LTmake_dataset_float(file_id, "z_at_ionization",    1, &dset_real_size, z_at_ionization);
+    H5LTmake_dataset_float(file_id, "J_21_at_ionization", 1, &dset_real_size, J_21_at_ionization);
 
     H5Fclose(file_id);
   }
@@ -109,18 +112,26 @@ void _find_HII_bubbles_gpu(double redshift,const bool flag_write_validation_outp
   float        *z_at_ionization_device    = NULL;
   float        *J_21_at_ionization_device = NULL;
   float        *J_21_device               = NULL;
-  cudaMalloc((void**)&deltax_unfiltered_device, sizeof(cufftComplex)*slab_n_complex);
-  cudaMalloc((void**)&stars_unfiltered_device,  sizeof(cufftComplex)*slab_n_complex);
-  cudaMalloc((void**)&sfr_unfiltered_device,    sizeof(cufftComplex)*slab_n_complex);
-  cudaMalloc((void**)&deltax_filtered_device,   sizeof(cufftComplex)*slab_n_complex);
-  cudaMalloc((void**)&stars_filtered_device,    sizeof(cufftComplex)*slab_n_complex);
-  cudaMalloc((void**)&sfr_filtered_device,      sizeof(cufftComplex)*slab_n_complex);
-  cudaMalloc((void**)&xH_device,                sizeof(float)*slab_n_real);
-  cudaMalloc((void**)&r_bubble_device,          sizeof(float)*slab_n_real);
-  cudaMalloc((void**)&z_at_ionization_device,   sizeof(float)*slab_n_real);
-  cudaMalloc((void**)&J_21_at_ionization_device,sizeof(float)*slab_n_real);
-  if(flag_ReionUVBFlag)
-     cudaMalloc((void**)&J_21_device,           sizeof(float)*slab_n_real);
+  try{
+    throw_on_cuda_error(cudaErrorMissingConfiguration,ERROR_CUDA_MALLOC);
+    throw_on_cuda_error(cudaMalloc((void**)&deltax_unfiltered_device, sizeof(cufftComplex)*slab_n_complex),ERROR_CUDA_MALLOC);
+    throw_on_cuda_error(cudaMalloc((void**)&stars_unfiltered_device,  sizeof(cufftComplex)*slab_n_complex),ERROR_CUDA_MALLOC);
+    throw_on_cuda_error(cudaMalloc((void**)&sfr_unfiltered_device,    sizeof(cufftComplex)*slab_n_complex),ERROR_CUDA_MALLOC);
+    throw_on_cuda_error(cudaMalloc((void**)&deltax_filtered_device,   sizeof(cufftComplex)*slab_n_complex),ERROR_CUDA_MALLOC);
+    throw_on_cuda_error(cudaMalloc((void**)&stars_filtered_device,    sizeof(cufftComplex)*slab_n_complex),ERROR_CUDA_MALLOC);
+    throw_on_cuda_error(cudaMalloc((void**)&sfr_filtered_device,      sizeof(cufftComplex)*slab_n_complex),ERROR_CUDA_MALLOC);
+    throw_on_cuda_error(cudaMalloc((void**)&xH_device,                sizeof(float)*slab_n_real),          ERROR_CUDA_MALLOC);
+    throw_on_cuda_error(cudaMalloc((void**)&r_bubble_device,          sizeof(float)*slab_n_real),          ERROR_CUDA_MALLOC);
+    throw_on_cuda_error(cudaMalloc((void**)&z_at_ionization_device,   sizeof(float)*slab_n_real),          ERROR_CUDA_MALLOC);
+    throw_on_cuda_error(cudaMalloc((void**)&J_21_at_ionization_device,sizeof(float)*slab_n_real),          ERROR_CUDA_MALLOC);
+    if(flag_ReionUVBFlag)
+       throw_on_cuda_error(cudaMalloc((void**)&J_21_device,           sizeof(float)*slab_n_real),ERROR_CUDA_MALLOC);
+  }
+  catch(const local_exception e){
+    //mlog(e.compose_message());
+    std::cout << "ERROR! (" << e.compose_message() << ")" << std::endl;
+    ABORT(e.error_code());
+  }
 
   // If we're not using CUFFT, do the forward FFT first, before sending it to the device
 #ifndef USE_CUFFT
@@ -141,41 +152,44 @@ void _find_HII_bubbles_gpu(double redshift,const bool flag_write_validation_outp
   fftwf_destroy_plan(plan);
 #endif
 
-  // Perform host -> device transfer of input grids
-  cudaMemcpy(deltax_unfiltered_device, deltax,            sizeof(float)*2*slab_n_complex,cudaMemcpyHostToDevice);
-  cudaMemcpy(stars_unfiltered_device,  stars,             sizeof(float)*2*slab_n_complex,cudaMemcpyHostToDevice);
-  cudaMemcpy(sfr_unfiltered_device,    sfr,               sizeof(float)*2*slab_n_complex,cudaMemcpyHostToDevice);
-  cudaMemcpy(z_at_ionization_device,   z_at_ionization,   sizeof(float)*slab_n_real,     cudaMemcpyHostToDevice);
-  cudaMemcpy(J_21_at_ionization_device,J_21_at_ionization,sizeof(float)*slab_n_real,     cudaMemcpyHostToDevice);
+  // Perform host -> device transfer of input grids (note that these grids are k-space if we are using FFTW
+  //    but are real-space if we are using CUFFT.  They will be transformed once on the device if the latter.
+  try{
+    throw_on_cuda_error(cudaMemcpy(deltax_unfiltered_device, deltax,            sizeof(float)*2*slab_n_complex,cudaMemcpyHostToDevice),ERROR_CUDA_MEMCPY_H2D);
+    throw_on_cuda_error(cudaMemcpy(stars_unfiltered_device,  stars,             sizeof(float)*2*slab_n_complex,cudaMemcpyHostToDevice),ERROR_CUDA_MEMCPY_H2D);
+    throw_on_cuda_error(cudaMemcpy(sfr_unfiltered_device,    sfr,               sizeof(float)*2*slab_n_complex,cudaMemcpyHostToDevice),ERROR_CUDA_MEMCPY_H2D);
+    throw_on_cuda_error(cudaMemcpy(z_at_ionization_device,   z_at_ionization,   sizeof(float)*slab_n_real,     cudaMemcpyHostToDevice),ERROR_CUDA_MEMCPY_H2D);
+    throw_on_cuda_error(cudaMemcpy(J_21_at_ionization_device,J_21_at_ionization,sizeof(float)*slab_n_real,     cudaMemcpyHostToDevice),ERROR_CUDA_MEMCPY_H2D);
+  }
+  catch(const local_exception e){
+    //mlog(e.compose_message());
+    std::cout << "ERROR! (" << e.compose_message() << ")" << std::endl;
+    ABORT(e.error_code());
+  }
 
   // If we're using CUFFT, perform the forward FFT now that the data is on the device
 #ifdef USE_CUFFT
   // Initialize cuFFT
   cufftHandle plan;
-  cufftPlan3d(&plan, ReionGridDim, ReionGridDim, ReionGridDim, CUFFT_R2C);
-  cufftSetCompatibilityMode(plan,CUFFT_COMPATIBILITY_FFTW_ALL);
+  try{
+    throw_on_cuFFT_error(cufftPlan3d(&plan, ReionGridDim, ReionGridDim, ReionGridDim, CUFFT_R2C),ERROR_CUFFT_CREATE_PLAN);
+    throw_on_cuFFT_error(cufftSetCompatibilityMode(plan,CUFFT_COMPATIBILITY_FFTW_ALL),           ERROR_CUFFT_SET_COMPATIBILITY);
 
-  // Perform FFTs
-  if (cufftExecR2C(plan,(cufftReal *)deltax_unfiltered_device,deltax_unfiltered_device) != CUFFT_SUCCESS ) {
-    fprintf(stderr, "Cuda error 1.\n");
-    return ;
-  }
-  if (cufftExecR2C(plan,(cufftReal *)stars_unfiltered_device,stars_unfiltered_device) != CUFFT_SUCCESS ) {
-    fprintf(stderr, "Cuda error 2.\n");
-    return ;
-  }
-  if (cufftExecR2C(plan,(cufftReal *)sfr_unfiltered_device,sfr_unfiltered_device) != CUFFT_SUCCESS ) {
-    fprintf(stderr, "Cuda error 3.\n");
-    return ;
-  }
+    // Perform FFTs
+    throw_on_cuFFT_error(cufftExecR2C(plan,(cufftReal *)deltax_unfiltered_device,deltax_unfiltered_device),ERROR_CUFFT_R2C);
+    throw_on_cuFFT_error(cufftExecR2C(plan,(cufftReal *)stars_unfiltered_device,stars_unfiltered_device),  ERROR_CUFFT_R2C);
+    throw_on_cuFFT_error(cufftExecR2C(plan,(cufftReal *)sfr_unfiltered_device,sfr_unfiltered_device),      ERROR_CUFFT_R2C);
 
-  // Clean-up 
-  cufftDestroy(plan);
+    // Clean-up 
+    throw_on_cuFFT_error(cufftDestroy(plan),ERROR_CUFFT_PLAN_DESTROY);
 
-  // Make sure that the device has synchronized
-  if(cudaThreadSynchronize() != cudaSuccess){
-    fprintf(stderr, "Cuda error 4.\n");
-    return;
+    // Make sure that the device has synchronized
+    throw_on_cuda_error(cudaThreadSynchronize(),ERROR_CUDA_SYNC);
+  }
+  catch(const local_exception e){
+    //mlog(e.compose_message());
+    std::cout << "ERROR! (" << e.compose_message() << ")" << std::endl;
+    ABORT(e.error_code());
   }
 #endif
 
@@ -188,11 +202,11 @@ void _find_HII_bubbles_gpu(double redshift,const bool flag_write_validation_outp
     hid_t group = H5Gcreate(file_id, "kspace", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
     float *array_temp = (float *)malloc(sizeof(float)*2*slab_n_complex);
     cudaMemcpy(array_temp,deltax_unfiltered_device,sizeof(float)*2*slab_n_complex,cudaMemcpyDeviceToHost);
-    H5LTmake_dataset_float(group, "deltax", 1, (hsize_t []){slab_n_complex * 2}, array_temp);
+    H5LTmake_dataset_float(group, "deltax", 1, &dset_cplx_size, array_temp);
     cudaMemcpy(array_temp,stars_unfiltered_device,sizeof(float)*2*slab_n_complex,cudaMemcpyDeviceToHost);
-    H5LTmake_dataset_float(group, "stars", 1, (hsize_t []){slab_n_complex * 2}, array_temp);
+    H5LTmake_dataset_float(group, "stars", 1, &dset_cplx_size, array_temp);
     cudaMemcpy(array_temp,sfr_unfiltered_device,sizeof(float)*2*slab_n_complex,cudaMemcpyDeviceToHost);
-    H5LTmake_dataset_float(group, "sfr", 1, (hsize_t []){slab_n_complex * 2}, array_temp);
+    H5LTmake_dataset_float(group, "sfr", 1, &dset_cplx_size, array_temp);
     free(array_temp);
     H5Gclose(group);
     H5Fclose(file_id);
@@ -301,11 +315,11 @@ void _find_HII_bubbles_gpu(double redshift,const bool flag_write_validation_outp
         hid_t group = H5Gcreate(file_id, "kspace", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
         float *array_temp = (float *)malloc(sizeof(float)*2*slab_n_complex);
         cudaMemcpy(array_temp,deltax_unfiltered_device,sizeof(float)*2*slab_n_complex,cudaMemcpyDeviceToHost);
-        H5LTmake_dataset_float(group, "deltax_unfiltered", 1, (hsize_t []){slab_n_complex * 2}, array_temp);
+        H5LTmake_dataset_float(group, "deltax_unfiltered", 1, &dset_cplx_size, array_temp);
         cudaMemcpy(array_temp,stars_unfiltered_device,sizeof(float)*2*slab_n_complex,cudaMemcpyDeviceToHost);
-        H5LTmake_dataset_float(group, "stars_unfiltered", 1, (hsize_t []){slab_n_complex * 2}, array_temp);
+        H5LTmake_dataset_float(group, "stars_unfiltered", 1, &dset_cplx_size, array_temp);
         cudaMemcpy(array_temp,sfr_unfiltered_device,sizeof(float)*2*slab_n_complex,cudaMemcpyDeviceToHost);
-        H5LTmake_dataset_float(group, "sfr_unfiltered", 1, (hsize_t []){slab_n_complex * 2}, array_temp);
+        H5LTmake_dataset_float(group, "sfr_unfiltered", 1, &dset_cplx_size, array_temp);
         free(array_temp);
         H5Gclose(group);
         H5Fclose(file_id);
@@ -341,11 +355,11 @@ void _find_HII_bubbles_gpu(double redshift,const bool flag_write_validation_outp
         hid_t group = H5Gcreate(file_id, "kspace", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
         float *array_temp = (float *)malloc(sizeof(float)*2*slab_n_complex);
         cudaMemcpy(array_temp,deltax_filtered_device,sizeof(float)*2*slab_n_complex,cudaMemcpyDeviceToHost);
-        H5LTmake_dataset_float(group, "deltax_filtered", 1, (hsize_t []){slab_n_complex * 2}, array_temp);
+        H5LTmake_dataset_float(group, "deltax_filtered", 1, &dset_cplx_size, array_temp);
         cudaMemcpy(array_temp,stars_filtered_device,sizeof(float)*2*slab_n_complex,cudaMemcpyDeviceToHost);
-        H5LTmake_dataset_float(group, "stars_filtered", 1, (hsize_t []){slab_n_complex * 2}, array_temp);
+        H5LTmake_dataset_float(group, "stars_filtered", 1, &dset_cplx_size, array_temp);
         cudaMemcpy(array_temp,sfr_filtered_device,sizeof(float)*2*slab_n_complex,cudaMemcpyDeviceToHost);
-        H5LTmake_dataset_float(group, "sfr_filtered", 1, (hsize_t []){slab_n_complex * 2}, array_temp);
+        H5LTmake_dataset_float(group, "sfr_filtered", 1, &dset_cplx_size, array_temp);
         free(array_temp);
         H5Gclose(group);
         H5Fclose(file_id);
@@ -396,11 +410,11 @@ void _find_HII_bubbles_gpu(double redshift,const bool flag_write_validation_outp
         hid_t file_id = H5Fopen(fname, H5F_ACC_RDWR, H5P_DEFAULT);
         float *array_temp = (float *)malloc(sizeof(float)*2*slab_n_complex);
         cudaMemcpy(array_temp,deltax_filtered_device,sizeof(float)*2*slab_n_complex,cudaMemcpyDeviceToHost);
-        H5LTmake_dataset_float(file_id, "deltax_filtered_ift", 1, (hsize_t []){slab_n_complex * 2}, array_temp);
+        H5LTmake_dataset_float(file_id, "deltax_filtered_ift", 1, &dset_cplx_size, array_temp);
         cudaMemcpy(array_temp,stars_filtered_device,sizeof(float)*2*slab_n_complex,cudaMemcpyDeviceToHost);
-        H5LTmake_dataset_float(file_id, "stars_filtered_ift", 1, (hsize_t []){slab_n_complex * 2}, array_temp);
+        H5LTmake_dataset_float(file_id, "stars_filtered_ift", 1, &dset_cplx_size, array_temp);
         cudaMemcpy(array_temp,sfr_filtered_device,sizeof(float)*2*slab_n_complex,cudaMemcpyDeviceToHost);
-        H5LTmake_dataset_float(file_id, "sfr_filtered_ift", 1, (hsize_t []){slab_n_complex * 2}, array_temp);
+        H5LTmake_dataset_float(file_id, "sfr_filtered_ift", 1, &dset_cplx_size, array_temp);
         free(array_temp);
         H5Fclose(file_id);
     }
@@ -425,11 +439,11 @@ void _find_HII_bubbles_gpu(double redshift,const bool flag_write_validation_outp
         hid_t file_id = H5Fopen(fname, H5F_ACC_RDWR, H5P_DEFAULT);
         float *array_temp = (float *)malloc(sizeof(float)*2*slab_n_complex);
         cudaMemcpy(array_temp,deltax_filtered_device,sizeof(float)*2*slab_n_complex,cudaMemcpyDeviceToHost);
-        H5LTmake_dataset_float(file_id, "deltax_checked", 1, (hsize_t []){slab_n_complex * 2}, array_temp);
+        H5LTmake_dataset_float(file_id, "deltax_checked", 1, &dset_cplx_size, array_temp);
         cudaMemcpy(array_temp,stars_filtered_device,sizeof(float)*2*slab_n_complex,cudaMemcpyDeviceToHost);
-        H5LTmake_dataset_float(file_id, "stars_checked", 1, (hsize_t []){slab_n_complex * 2}, array_temp);
+        H5LTmake_dataset_float(file_id, "stars_checked", 1, &dset_cplx_size, array_temp);
         cudaMemcpy(array_temp,sfr_filtered_device,sizeof(float)*2*slab_n_complex,cudaMemcpyDeviceToHost);
-        H5LTmake_dataset_float(file_id, "sfr_checked", 1, (hsize_t []){slab_n_complex * 2}, array_temp);
+        H5LTmake_dataset_float(file_id, "sfr_checked", 1, &dset_cplx_size, array_temp);
         free(array_temp);
         H5Fclose(file_id);
     }
@@ -479,21 +493,21 @@ void _find_HII_bubbles_gpu(double redshift,const bool flag_write_validation_outp
         hid_t file_id = H5Fopen(fname, H5F_ACC_RDWR, H5P_DEFAULT);
         float *array_temp = (float *)malloc(sizeof(float)*slab_n_real);
         cudaMemcpy(array_temp,xH_device,sizeof(float)*slab_n_real,cudaMemcpyDeviceToHost);
-        H5LTmake_dataset_float(file_id, "xH", 1, (hsize_t []){slab_n_real}, array_temp);
+        H5LTmake_dataset_float(file_id, "xH", 1, &dset_real_size, array_temp);
         cudaMemcpy(array_temp,r_bubble_device,sizeof(float)*slab_n_real,cudaMemcpyDeviceToHost);
-        H5LTmake_dataset_float(file_id, "r_bubble", 1, (hsize_t []){slab_n_real}, array_temp);
+        H5LTmake_dataset_float(file_id, "r_bubble", 1, &dset_real_size, array_temp);
         cudaMemcpy(array_temp,deltax_filtered_device,sizeof(float)*slab_n_real,cudaMemcpyDeviceToHost);
-        H5LTmake_dataset_float(file_id, "deltax", 1, (hsize_t []){slab_n_real}, array_temp);
+        H5LTmake_dataset_float(file_id, "deltax", 1, &dset_real_size, array_temp);
         if(flag_ReionUVBFlag){
             cudaMemcpy(array_temp,J_21_device,sizeof(float)*slab_n_real,cudaMemcpyDeviceToHost);
-            H5LTmake_dataset_float(file_id, "J_21", 1, (hsize_t []){slab_n_real}, array_temp);
+            H5LTmake_dataset_float(file_id, "J_21", 1, &dset_real_size, array_temp);
         }
         free(array_temp);
         array_temp = (float *)malloc(sizeof(float)*(2*slab_n_complex));
         cudaMemcpy(array_temp,J_21_at_ionization_device,sizeof(float)*slab_n_real,cudaMemcpyDeviceToHost);
-        H5LTmake_dataset_float(file_id, "J_21_at_ionization", 1, (hsize_t []){slab_n_real}, array_temp);
+        H5LTmake_dataset_float(file_id, "J_21_at_ionization", 1, &dset_real_size, array_temp);
         cudaMemcpy(array_temp,z_at_ionization_device,sizeof(float)*slab_n_real,cudaMemcpyDeviceToHost);
-        H5LTmake_dataset_float(file_id, "z_at_ionization", 1, (hsize_t []){slab_n_real}, array_temp);
+        H5LTmake_dataset_float(file_id, "z_at_ionization", 1, &dset_real_size, array_temp);
         free(array_temp);
         H5Fclose(file_id);
     }
@@ -514,6 +528,7 @@ void _find_HII_bubbles_gpu(double redshift,const bool flag_write_validation_outp
     R /= ReionDeltaRFactor;
   }
 
+    // Clean-up FFT plan(s)
 #ifdef USE_CUFFT
     cufftDestroy(plan);
 #else
