@@ -72,7 +72,8 @@ int main(int argc,char *argv[]){
 
     // Call several meraxes initialisation routines to set-up
     //    the inputs we need, allocate grid arrays, etc.
-    FILE *fp_null=fopen("/dev/null","w");
+    //FILE *fp_null=fopen("/dev/null","w");
+    FILE *fp_null=stderr;
     init_meraxes_globals(argc,argv,filename_input_params,fp_null);
 
     // Loop over all snapshots

@@ -15,13 +15,13 @@
 #include <cufft.h>
 
 
-void _throw_on_cuda_error(cudaError_t cuda_code, int implementation_code, const char *file, int line)
+__host__ void _throw_on_cuda_error(cudaError_t cuda_code, int implementation_code, const std::string file, int line)
 {
-  if(cuda_code != cudaSuccess) throw(implementation_code);
+  if(cuda_code != cudaSuccess) throw(meraxes_cuda_exception((int)cuda_code,implementation_code,file,line));
 }
-void _throw_on_cuFFT_error(cufftResult cufft_code, int implementation_code, const char *file, int line)
+__host__ void _throw_on_cuFFT_error(cufftResult cufft_code, int implementation_code, const std::string file, int line)
 {
-  if(cufft_code != CUFFT_SUCCESS) throw(implementation_code);
+  if(cufft_code != CUFFT_SUCCESS) throw(meraxes_cuda_exception((int)cufft_code,implementation_code,file,line));
 }
 
 __device__

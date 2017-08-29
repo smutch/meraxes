@@ -16,7 +16,6 @@
 
 void _find_HII_bubbles_gpu(double redshift,const bool flag_write_validation_output){
   // Fetch needed things from run_globals
-  const MPI_Comm mpi_comm          = run_globals.mpi_comm;
   const int    mpi_rank            = run_globals.mpi_rank;
   const double box_size            = run_globals.params.BoxSize;
   const int    ReionGridDim        = run_globals.params.ReionGridDim;
@@ -47,9 +46,6 @@ void _find_HII_bubbles_gpu(double redshift,const bool flag_write_validation_outp
   // preallocated grids
   float   *J_21            = run_globals.reion_grids.J_21;     // real
   float   *r_bubble        = run_globals.reion_grids.r_bubble; // real
-  Complex *deltax_filtered = (Complex *)run_globals.reion_grids.deltax_filtered;// complex TODO: Check the consistancy of Complex instances
-  Complex *stars_filtered  = (Complex *)run_globals.reion_grids.stars_filtered; // complex TODO: Check the consistancy of Complex instances
-  Complex *sfr_filtered    = (Complex *)run_globals.reion_grids.sfr_filtered;   // complex TODO: Check the consistancy of Complex instances
   // output grids
   float *xH                = run_globals.reion_grids.xH;                 // real
   float *z_at_ionization   = run_globals.reion_grids.z_at_ionization;    // real
@@ -113,28 +109,32 @@ void _find_HII_bubbles_gpu(double redshift,const bool flag_write_validation_outp
   float        *J_21_at_ionization_device = NULL;
   float        *J_21_device               = NULL;
   try{
-    throw_on_cuda_error(cudaErrorMissingConfiguration,ERROR_CUDA_MALLOC);
-    throw_on_cuda_error(cudaMalloc((void**)&deltax_unfiltered_device, sizeof(cufftComplex)*slab_n_complex),ERROR_CUDA_MALLOC);
-    throw_on_cuda_error(cudaMalloc((void**)&stars_unfiltered_device,  sizeof(cufftComplex)*slab_n_complex),ERROR_CUDA_MALLOC);
-    throw_on_cuda_error(cudaMalloc((void**)&sfr_unfiltered_device,    sizeof(cufftComplex)*slab_n_complex),ERROR_CUDA_MALLOC);
-    throw_on_cuda_error(cudaMalloc((void**)&deltax_filtered_device,   sizeof(cufftComplex)*slab_n_complex),ERROR_CUDA_MALLOC);
-    throw_on_cuda_error(cudaMalloc((void**)&stars_filtered_device,    sizeof(cufftComplex)*slab_n_complex),ERROR_CUDA_MALLOC);
-    throw_on_cuda_error(cudaMalloc((void**)&sfr_filtered_device,      sizeof(cufftComplex)*slab_n_complex),ERROR_CUDA_MALLOC);
-    throw_on_cuda_error(cudaMalloc((void**)&xH_device,                sizeof(float)*slab_n_real),          ERROR_CUDA_MALLOC);
-    throw_on_cuda_error(cudaMalloc((void**)&r_bubble_device,          sizeof(float)*slab_n_real),          ERROR_CUDA_MALLOC);
-    throw_on_cuda_error(cudaMalloc((void**)&z_at_ionization_device,   sizeof(float)*slab_n_real),          ERROR_CUDA_MALLOC);
-    throw_on_cuda_error(cudaMalloc((void**)&J_21_at_ionization_device,sizeof(float)*slab_n_real),          ERROR_CUDA_MALLOC);
+    throw_on_cuda_error(cudaErrorLaunchTimeout,meraxes_cuda_exception::MALLOC);
+    throw_on_cuda_error(cudaMalloc((void**)&deltax_unfiltered_device, sizeof(cufftComplex)*slab_n_complex),meraxes_cuda_exception::MALLOC);
+    throw_on_cuda_error(cudaMalloc((void**)&stars_unfiltered_device,  sizeof(cufftComplex)*slab_n_complex),meraxes_cuda_exception::MALLOC);
+    throw_on_cuda_error(cudaMalloc((void**)&sfr_unfiltered_device,    sizeof(cufftComplex)*slab_n_complex),meraxes_cuda_exception::MALLOC);
+    throw_on_cuda_error(cudaMalloc((void**)&deltax_filtered_device,   sizeof(cufftComplex)*slab_n_complex),meraxes_cuda_exception::MALLOC);
+    throw_on_cuda_error(cudaMalloc((void**)&stars_filtered_device,    sizeof(cufftComplex)*slab_n_complex),meraxes_cuda_exception::MALLOC);
+    throw_on_cuda_error(cudaMalloc((void**)&sfr_filtered_device,      sizeof(cufftComplex)*slab_n_complex),meraxes_cuda_exception::MALLOC);
+    throw_on_cuda_error(cudaMalloc((void**)&xH_device,                sizeof(float)*slab_n_real),          meraxes_cuda_exception::MALLOC);
+    throw_on_cuda_error(cudaMalloc((void**)&r_bubble_device,          sizeof(float)*slab_n_real),          meraxes_cuda_exception::MALLOC);
+    throw_on_cuda_error(cudaMalloc((void**)&z_at_ionization_device,   sizeof(float)*slab_n_real),          meraxes_cuda_exception::MALLOC);
+    throw_on_cuda_error(cudaMalloc((void**)&J_21_at_ionization_device,sizeof(float)*slab_n_real),          meraxes_cuda_exception::MALLOC);
     if(flag_ReionUVBFlag)
-       throw_on_cuda_error(cudaMalloc((void**)&J_21_device,           sizeof(float)*slab_n_real),ERROR_CUDA_MALLOC);
+       throw_on_cuda_error(cudaMalloc((void**)&J_21_device,           sizeof(float)*slab_n_real),meraxes_cuda_exception::MALLOC);
   }
-  catch(const local_exception e){
-    //mlog(e.compose_message());
-    std::cout << "ERROR! (" << e.compose_message() << ")" << std::endl;
-    ABORT(e.error_code());
+  catch(const meraxes_cuda_exception e){
+      e.process_exception();
   }
 
   // If we're not using CUFFT, do the forward FFT first, before sending it to the device
 #ifndef USE_CUFFT
+  // The following are only needed if we are using FFTW
+  const MPI_Comm mpi_comm = run_globals.mpi_comm;
+  Complex *deltax_filtered = (Complex *)run_globals.reion_grids.deltax_filtered;// complex TODO: Check the consistancy of Complex instances
+  Complex *stars_filtered  = (Complex *)run_globals.reion_grids.stars_filtered; // complex TODO: Check the consistancy of Complex instances
+  Complex *sfr_filtered    = (Complex *)run_globals.reion_grids.sfr_filtered;   // complex TODO: Check the consistancy of Complex instances
+
   // Forward fourier transform to obtain k-space fields
   fftwf_complex *deltax_unfiltered = (fftwf_complex *)deltax;  // WATCH OUT!
   fftwf_plan     plan              = fftwf_mpi_plan_dft_r2c_3d(ReionGridDim, ReionGridDim, ReionGridDim, deltax, deltax_unfiltered, mpi_comm, FFTW_ESTIMATE);
@@ -155,16 +155,14 @@ void _find_HII_bubbles_gpu(double redshift,const bool flag_write_validation_outp
   // Perform host -> device transfer of input grids (note that these grids are k-space if we are using FFTW
   //    but are real-space if we are using CUFFT.  They will be transformed once on the device if the latter.
   try{
-    throw_on_cuda_error(cudaMemcpy(deltax_unfiltered_device, deltax,            sizeof(float)*2*slab_n_complex,cudaMemcpyHostToDevice),ERROR_CUDA_MEMCPY_H2D);
-    throw_on_cuda_error(cudaMemcpy(stars_unfiltered_device,  stars,             sizeof(float)*2*slab_n_complex,cudaMemcpyHostToDevice),ERROR_CUDA_MEMCPY_H2D);
-    throw_on_cuda_error(cudaMemcpy(sfr_unfiltered_device,    sfr,               sizeof(float)*2*slab_n_complex,cudaMemcpyHostToDevice),ERROR_CUDA_MEMCPY_H2D);
-    throw_on_cuda_error(cudaMemcpy(z_at_ionization_device,   z_at_ionization,   sizeof(float)*slab_n_real,     cudaMemcpyHostToDevice),ERROR_CUDA_MEMCPY_H2D);
-    throw_on_cuda_error(cudaMemcpy(J_21_at_ionization_device,J_21_at_ionization,sizeof(float)*slab_n_real,     cudaMemcpyHostToDevice),ERROR_CUDA_MEMCPY_H2D);
+    throw_on_cuda_error(cudaMemcpy(deltax_unfiltered_device, deltax,            sizeof(float)*2*slab_n_complex,cudaMemcpyHostToDevice),meraxes_cuda_exception::MEMCPY);
+    throw_on_cuda_error(cudaMemcpy(stars_unfiltered_device,  stars,             sizeof(float)*2*slab_n_complex,cudaMemcpyHostToDevice),meraxes_cuda_exception::MEMCPY);
+    throw_on_cuda_error(cudaMemcpy(sfr_unfiltered_device,    sfr,               sizeof(float)*2*slab_n_complex,cudaMemcpyHostToDevice),meraxes_cuda_exception::MEMCPY);
+    throw_on_cuda_error(cudaMemcpy(z_at_ionization_device,   z_at_ionization,   sizeof(float)*slab_n_real,     cudaMemcpyHostToDevice),meraxes_cuda_exception::MEMCPY);
+    throw_on_cuda_error(cudaMemcpy(J_21_at_ionization_device,J_21_at_ionization,sizeof(float)*slab_n_real,     cudaMemcpyHostToDevice),meraxes_cuda_exception::MEMCPY);
   }
-  catch(const local_exception e){
-    //mlog(e.compose_message());
-    std::cout << "ERROR! (" << e.compose_message() << ")" << std::endl;
-    ABORT(e.error_code());
+  catch(const meraxes_cuda_exception e){
+      e.process_exception();
   }
 
   // If we're using CUFFT, perform the forward FFT now that the data is on the device
@@ -172,25 +170,24 @@ void _find_HII_bubbles_gpu(double redshift,const bool flag_write_validation_outp
   // Initialize cuFFT
   cufftHandle plan;
   try{
-    throw_on_cuFFT_error(cufftPlan3d(&plan, ReionGridDim, ReionGridDim, ReionGridDim, CUFFT_R2C),ERROR_CUFFT_CREATE_PLAN);
-    throw_on_cuFFT_error(cufftSetCompatibilityMode(plan,CUFFT_COMPATIBILITY_FFTW_ALL),           ERROR_CUFFT_SET_COMPATIBILITY);
+    throw_on_cuFFT_error(cufftPlan3d(&plan, ReionGridDim, ReionGridDim, ReionGridDim, CUFFT_R2C),meraxes_cuda_exception::CUFFT_CREATE_PLAN);
+    throw_on_cuFFT_error(cufftSetCompatibilityMode(plan,CUFFT_COMPATIBILITY_FFTW_ALL),           meraxes_cuda_exception::CUFFT_SET_COMPATIBILITY);
 
     // Perform FFTs
-    throw_on_cuFFT_error(cufftExecR2C(plan,(cufftReal *)deltax_unfiltered_device,deltax_unfiltered_device),ERROR_CUFFT_R2C);
-    throw_on_cuFFT_error(cufftExecR2C(plan,(cufftReal *)stars_unfiltered_device,stars_unfiltered_device),  ERROR_CUFFT_R2C);
-    throw_on_cuFFT_error(cufftExecR2C(plan,(cufftReal *)sfr_unfiltered_device,sfr_unfiltered_device),      ERROR_CUFFT_R2C);
+    throw_on_cuFFT_error(cufftExecR2C(plan,(cufftReal *)deltax_unfiltered_device,deltax_unfiltered_device),meraxes_cuda_exception::CUFFT_R2C);
+    throw_on_cuFFT_error(cufftExecR2C(plan,(cufftReal *)stars_unfiltered_device,stars_unfiltered_device),  meraxes_cuda_exception::CUFFT_R2C);
+    throw_on_cuFFT_error(cufftExecR2C(plan,(cufftReal *)sfr_unfiltered_device,sfr_unfiltered_device),      meraxes_cuda_exception::CUFFT_R2C);
 
     // Clean-up 
-    throw_on_cuFFT_error(cufftDestroy(plan),ERROR_CUFFT_PLAN_DESTROY);
+    throw_on_cuFFT_error(cufftDestroy(plan),meraxes_cuda_exception::CUFFT_PLAN_DESTROY);
 
     // Make sure that the device has synchronized
-    throw_on_cuda_error(cudaThreadSynchronize(),ERROR_CUDA_SYNC);
+    throw_on_cuda_error(cudaThreadSynchronize(),meraxes_cuda_exception::SYNC);
   }
-  catch(const local_exception e){
-    //mlog(e.compose_message());
-    std::cout << "ERROR! (" << e.compose_message() << ")" << std::endl;
-    ABORT(e.error_code());
+  catch(const meraxes_cuda_exception e){
+      e.process_exception();
   }
+
 #endif
 
   if (flag_write_validation_output)
@@ -235,29 +232,11 @@ void _find_HII_bubbles_gpu(double redshift,const bool flag_write_validation_outp
   complex_vector_times_scalar<<<grid_complex, threads>>>(stars_unfiltered_device, inv_total_n_cells,slab_n_complex);
   complex_vector_times_scalar<<<grid_complex, threads>>>(sfr_unfiltered_device,   inv_total_n_cells,slab_n_complex);
 
-  if(cudaThreadSynchronize() != cudaSuccess){
-    fprintf(stderr, "Cuda error 4a.\n");
-    return;
-  }
-
   // Initialize a few of the output grids
   set_array_gpu<<<grid_real,threads>>>(xH_device,      slab_n_real,1.f);
-  if(cudaThreadSynchronize() != cudaSuccess){
-    fprintf(stderr, "Cuda error 4b.\n");
-    return;
-  }
   set_array_gpu<<<grid_real,threads>>>(r_bubble_device,slab_n_real,0.f);
-  if(cudaThreadSynchronize() != cudaSuccess){
-    fprintf(stderr, "Cuda error 4c.\n");
-    return;
-  }
-  if (flag_ReionUVBFlag){
+  if (flag_ReionUVBFlag)
      set_array_gpu<<<grid_real,threads>>>(J_21_device,slab_n_real,0.f);
-     if(cudaThreadSynchronize() != cudaSuccess){
-       fprintf(stderr, "Cuda error 4d.\n");
-       return;
-     }
-  }
 
   // This parameter choice is sensitive to noise on the cell size, at least for the typical
   // cell sizes in RT simulations. It probably doesn't matter for larger cell sizes.
@@ -582,6 +561,5 @@ void _find_HII_bubbles_gpu(double redshift,const bool flag_write_validation_outp
       }
   *volume_weighted_global_xH *= inv_total_n_cells;
   *mass_weighted_global_xH   /= mass_weight;
-
 }
 
