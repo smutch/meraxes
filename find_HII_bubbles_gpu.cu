@@ -109,7 +109,6 @@ void _find_HII_bubbles_gpu(double redshift,const bool flag_write_validation_outp
   float        *J_21_at_ionization_device = NULL;
   float        *J_21_device               = NULL;
   try{
-    throw_on_cuda_error(cudaErrorLaunchTimeout,meraxes_cuda_exception::MALLOC);
     throw_on_cuda_error(cudaMalloc((void**)&deltax_unfiltered_device, sizeof(cufftComplex)*slab_n_complex),meraxes_cuda_exception::MALLOC);
     throw_on_cuda_error(cudaMalloc((void**)&stars_unfiltered_device,  sizeof(cufftComplex)*slab_n_complex),meraxes_cuda_exception::MALLOC);
     throw_on_cuda_error(cudaMalloc((void**)&sfr_unfiltered_device,    sizeof(cufftComplex)*slab_n_complex),meraxes_cuda_exception::MALLOC);
@@ -246,8 +245,13 @@ void _find_HII_bubbles_gpu(double redshift,const bool flag_write_validation_outp
 
   // Initialize inverse FFTs
 #ifdef USE_CUFFT
-  cufftPlan3d(&plan, ReionGridDim, ReionGridDim, ReionGridDim, CUFFT_C2R);
-  cufftSetCompatibilityMode(plan,CUFFT_COMPATIBILITY_FFTW_ALL);
+  try{
+      throw_on_cuFFT_error(cufftPlan3d(&plan, ReionGridDim, ReionGridDim, ReionGridDim, CUFFT_C2R),meraxes_cuda_exception::CUFFT_C2R);
+      throw_on_cuFFT_error(cufftSetCompatibilityMode(plan,CUFFT_COMPATIBILITY_FFTW_ALL),           meraxes_cuda_exception::CUFFT_SET_COMPATIBILITY);
+  }
+  catch(const meraxes_cuda_exception e){
+      e.process_exception();
+  }
 #else
   fftwf_plan plan_deltax = fftwf_mpi_plan_dft_c2r_3d(ReionGridDim, ReionGridDim, ReionGridDim, (fftwf_complex *)deltax_filtered, (float *)deltax_filtered, mpi_comm, FFTW_ESTIMATE);
   fftwf_plan plan_stars  = fftwf_mpi_plan_dft_c2r_3d(ReionGridDim, ReionGridDim, ReionGridDim, (fftwf_complex *)stars_filtered,  (float *)stars_filtered,  mpi_comm, FFTW_ESTIMATE);
@@ -316,9 +320,14 @@ void _find_HII_bubbles_gpu(double redshift,const bool flag_write_validation_outp
     }
 
     // create working copies of the k-space grids
-    cudaMemcpy(deltax_filtered_device,deltax_unfiltered_device,sizeof(Complex) * slab_n_complex,cudaMemcpyDeviceToDevice);
-    cudaMemcpy(stars_filtered_device, stars_unfiltered_device, sizeof(Complex) * slab_n_complex,cudaMemcpyDeviceToDevice);
-    cudaMemcpy(sfr_filtered_device,   sfr_unfiltered_device,   sizeof(Complex) * slab_n_complex,cudaMemcpyDeviceToDevice);
+    try{
+        throw_on_cuda_error(cudaMemcpy(deltax_filtered_device,deltax_unfiltered_device,sizeof(Complex) * slab_n_complex,cudaMemcpyDeviceToDevice),meraxes_cuda_exception::MEMCPY);
+        throw_on_cuda_error(cudaMemcpy(stars_filtered_device, stars_unfiltered_device, sizeof(Complex) * slab_n_complex,cudaMemcpyDeviceToDevice),meraxes_cuda_exception::MEMCPY);
+        throw_on_cuda_error(cudaMemcpy(sfr_filtered_device,   sfr_unfiltered_device,   sizeof(Complex) * slab_n_complex,cudaMemcpyDeviceToDevice),meraxes_cuda_exception::MEMCPY);
+    }
+    catch(const meraxes_cuda_exception e){
+        e.process_exception();
+    }
 
     // Perform convolution
     if(!flag_last_filter_step){
@@ -356,32 +365,28 @@ void _find_HII_bubbles_gpu(double redshift,const bool flag_write_validation_outp
     }
 
     // inverse fourier transform back to real space
+    try{
 #ifdef USE_CUFFT
-    if (cufftExecC2R(plan,(cufftComplex *)deltax_filtered_device, (cufftReal *)deltax_filtered_device) != CUFFT_SUCCESS ) {
-      fprintf(stderr, "Cuda error 101.\n");
-      return ;
-    }
-    if (cufftExecC2R(plan,(cufftComplex *)stars_filtered_device, (cufftReal *)stars_filtered_device) != CUFFT_SUCCESS ) {
-      fprintf(stderr, "Cuda error 102.\n");
-      return ;
-    }
-    if (cufftExecC2R(plan,(cufftComplex *)sfr_filtered_device, (cufftReal *)sfr_filtered_device) != CUFFT_SUCCESS ) {
-      fprintf(stderr, "Cuda error 103.\n");
-      return ;
-    }
+        throw_on_cuFFT_error(cufftExecC2R(plan,(cufftComplex *)deltax_filtered_device, (cufftReal *)deltax_filtered_device),meraxes_cuda_exception::CUFFT_C2R);
+        throw_on_cuFFT_error(cufftExecC2R(plan,(cufftComplex *)stars_filtered_device, (cufftReal *)stars_filtered_device),  meraxes_cuda_exception::CUFFT_C2R);
+        throw_on_cuFFT_error(cufftExecC2R(plan,(cufftComplex *)sfr_filtered_device, (cufftReal *)sfr_filtered_device),      meraxes_cuda_exception::CUFFT_C2R);
 #else
-    cudaMemcpy(deltax_filtered,deltax_filtered_device,sizeof(float)*2*slab_n_complex,cudaMemcpyDeviceToHost);
-    fftwf_execute(plan_deltax);
-    cudaMemcpy(deltax_filtered_device,deltax_filtered,sizeof(float)*2*slab_n_complex,cudaMemcpyHostToDevice);
+        throw_on_cuda_error(cudaMemcpy(deltax_filtered,deltax_filtered_device,sizeof(float)*2*slab_n_complex,cudaMemcpyDeviceToHost),meraxes_cuda_exception::MEMCPY);
+        fftwf_execute(plan_deltax);
+        throw_on_cuda_error(cudaMemcpy(deltax_filtered_device,deltax_filtered,sizeof(float)*2*slab_n_complex,cudaMemcpyHostToDevice),meraxes_cuda_exception::MEMCPY);
 
-    cudaMemcpy(stars_filtered,stars_filtered_device,sizeof(float)*2*slab_n_complex,cudaMemcpyDeviceToHost);
-    fftwf_execute(plan_stars);
-    cudaMemcpy(stars_filtered_device,stars_filtered,sizeof(float)*2*slab_n_complex,cudaMemcpyHostToDevice);
+        throw_on_cuda_error(cudaMemcpy(stars_filtered,stars_filtered_device,sizeof(float)*2*slab_n_complex,cudaMemcpyDeviceToHost),meraxes_cuda_exception::MEMCPY);
+        fftwf_execute(plan_stars);
+        throw_on_cuda_error(cudaMemcpy(stars_filtered_device,stars_filtered,sizeof(float)*2*slab_n_complex,cudaMemcpyHostToDevice),meraxes_cuda_exception::MEMCPY);
 
-    cudaMemcpy(sfr_filtered,sfr_filtered_device,sizeof(float)*2*slab_n_complex,cudaMemcpyDeviceToHost);
-    fftwf_execute(plan_sfr);
-    cudaMemcpy(sfr_filtered_device,sfr_filtered,sizeof(float)*2*slab_n_complex,cudaMemcpyHostToDevice);
+        throw_on_cuda_error(cudaMemcpy(sfr_filtered,sfr_filtered_device,sizeof(float)*2*slab_n_complex,cudaMemcpyDeviceToHost),meraxes_cuda_exception::MEMCPY);
+        fftwf_execute(plan_sfr);
+        throw_on_cuda_error(cudaMemcpy(sfr_filtered_device,sfr_filtered,sizeof(float)*2*slab_n_complex,cudaMemcpyHostToDevice),meraxes_cuda_exception::MEMCPY);
 #endif
+    }
+    catch(const meraxes_cuda_exception e){
+        e.process_exception();
+    }
 
     if (flag_write_validation_output && (i_R==1 || !strcmp(fname,fname_full_dump)))
     {
@@ -509,35 +514,51 @@ void _find_HII_bubbles_gpu(double redshift,const bool flag_write_validation_outp
 
     // Clean-up FFT plan(s)
 #ifdef USE_CUFFT
-    cufftDestroy(plan);
+  try{
+    throw_on_cuFFT_error(cufftDestroy(plan),meraxes_cuda_exception::CUFFT_PLAN_DESTROY);
+  }
+  catch(const meraxes_cuda_exception e){
+      e.process_exception();
+  }
 #else
-    fftwf_destroy_plan(plan_deltax);
-    fftwf_destroy_plan(plan_stars);
-    fftwf_destroy_plan(plan_sfr);
+  fftwf_destroy_plan(plan_deltax);
+  fftwf_destroy_plan(plan_stars);
+  fftwf_destroy_plan(plan_sfr);
 #endif
 
   // Perform device -> host transfer
-  cudaMemcpy((void *)xH,                (void *)xH_device,                sizeof(float) * slab_n_real, cudaMemcpyDeviceToHost);
-  cudaMemcpy((void *)r_bubble,          (void *)r_bubble_device,          sizeof(float) * slab_n_real, cudaMemcpyDeviceToHost);
-  if(flag_ReionUVBFlag)
-     cudaMemcpy((void *)J_21,           (void *)J_21_device,              sizeof(float) * slab_n_real, cudaMemcpyDeviceToHost);
-  cudaMemcpy((void *)z_at_ionization,   (void *)z_at_ionization_device,   sizeof(float) * slab_n_real, cudaMemcpyDeviceToHost);
-  cudaMemcpy((void *)J_21_at_ionization,(void *)J_21_at_ionization_device,sizeof(float) * slab_n_real, cudaMemcpyDeviceToHost);
-  cudaMemcpy((void *)deltax,            (void *)deltax_filtered_device,   sizeof(float) * 2* slab_n_complex, cudaMemcpyDeviceToHost);
+  try{
+    throw_on_cuda_error(cudaMemcpy((void *)xH,                (void *)xH_device,                sizeof(float) * slab_n_real, cudaMemcpyDeviceToHost),meraxes_cuda_exception::MEMCPY);
+    throw_on_cuda_error(cudaMemcpy((void *)r_bubble,          (void *)r_bubble_device,          sizeof(float) * slab_n_real, cudaMemcpyDeviceToHost),meraxes_cuda_exception::MEMCPY);
+    if(flag_ReionUVBFlag)
+         throw_on_cuda_error(cudaMemcpy((void *)J_21,           (void *)J_21_device,              sizeof(float) * slab_n_real, cudaMemcpyDeviceToHost),meraxes_cuda_exception::MEMCPY);
+    throw_on_cuda_error(cudaMemcpy((void *)z_at_ionization,   (void *)z_at_ionization_device,   sizeof(float) * slab_n_real, cudaMemcpyDeviceToHost),meraxes_cuda_exception::MEMCPY);
+    throw_on_cuda_error(cudaMemcpy((void *)J_21_at_ionization,(void *)J_21_at_ionization_device,sizeof(float) * slab_n_real, cudaMemcpyDeviceToHost),meraxes_cuda_exception::MEMCPY);
+    throw_on_cuda_error(cudaMemcpy((void *)deltax,            (void *)deltax_filtered_device,   sizeof(float) * 2* slab_n_complex, cudaMemcpyDeviceToHost),meraxes_cuda_exception::MEMCPY);
+  }
+  catch(const meraxes_cuda_exception e){
+      e.process_exception();
+  }
 
   // Clean-up device
-  cudaFree(deltax_unfiltered_device);
-  cudaFree(stars_unfiltered_device);
-  cudaFree(sfr_unfiltered_device);
-  cudaFree(deltax_filtered_device);
-  cudaFree(stars_filtered_device);
-  cudaFree(sfr_filtered_device);
-  cudaFree(xH_device);
-  cudaFree(r_bubble_device);
-  cudaFree(z_at_ionization_device);
-  cudaFree(J_21_at_ionization_device);
-  if(flag_ReionUVBFlag)
-     cudaFree(J_21_device);
+  try{
+    throw_on_cuda_error(cudaFree(deltax_unfiltered_device),meraxes_cuda_exception::FREE);
+    throw_on_cuda_error(cudaFree(stars_unfiltered_device),meraxes_cuda_exception::FREE);
+    throw_on_cuda_error(cudaFree(sfr_unfiltered_device),meraxes_cuda_exception::FREE);
+    throw_on_cuda_error(cudaFree(deltax_filtered_device),meraxes_cuda_exception::FREE);
+    throw_on_cuda_error(cudaFree(stars_filtered_device),meraxes_cuda_exception::FREE);
+    throw_on_cuda_error(cudaFree(sfr_filtered_device),meraxes_cuda_exception::FREE);
+    throw_on_cuda_error(cudaFree(xH_device),meraxes_cuda_exception::FREE);
+    throw_on_cuda_error(cudaFree(r_bubble_device),meraxes_cuda_exception::FREE);
+    throw_on_cuda_error(cudaFree(z_at_ionization_device),meraxes_cuda_exception::FREE);
+    throw_on_cuda_error(cudaFree(J_21_at_ionization_device),meraxes_cuda_exception::FREE);
+    if(flag_ReionUVBFlag)
+       throw_on_cuda_error(cudaFree(J_21_device),meraxes_cuda_exception::FREE);
+  }
+  catch(const meraxes_cuda_exception e){
+      e.process_exception();
+  }
+
 
   // Find the volume and mass weighted neutral fractions
   // TODO: The deltax grid will have rounding errors from forward and reverse

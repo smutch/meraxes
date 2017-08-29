@@ -48,7 +48,7 @@ class meraxes_exception_base : public std::exception {
         }
 
         // Returns an integer expressing the error code.
-        virtual const int error_code() const noexcept {
+        virtual int error_code() const noexcept {
            return(this->_error_code);
         }
 
@@ -66,6 +66,7 @@ class meraxes_cuda_exception : public meraxes_exception_base {
         // List all the implementation exception codes here
         enum _code_list{
             MALLOC,
+            FREE,
             MEMCPY,
             SYNC,
             CUFFT_CREATE_PLAN,
@@ -80,6 +81,8 @@ class meraxes_cuda_exception : public meraxes_exception_base {
             switch (code){
             case MALLOC:
                 return("CUDA error while calling cudaMalloc()");
+            case FREE:
+                return("CUDA error while calling cudaFree()");
             case MEMCPY:
                 return("CUDA error while calling cudaMemcpy()");
             case SYNC:
