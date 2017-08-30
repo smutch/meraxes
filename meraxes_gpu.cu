@@ -14,39 +14,7 @@
 #include <cuda_runtime.h>
 #include <cufft.h>
 
-
-// These functions deal with any GPU exceptions, but should be called with the macros defined in the corresponding .hh file
-__host__ void _throw_on_cuda_error(cudaError_t cuda_code, int implementation_code, const std::string file, int line)
-{
-  if(cuda_code != cudaSuccess) throw(meraxes_cuda_exception((int)cuda_code,implementation_code,file,line));
-}
-__host__ void _throw_on_cuFFT_error(cufftResult cufft_code, int implementation_code, const std::string file, int line)
-{
-  if(cufft_code != CUFFT_SUCCESS) throw(meraxes_cuda_exception((int)cufft_code,implementation_code,file,line));
-}
-__host__ void _check_for_cuda_error(int implementation_code,const std::string file, int line)
-{
-  try{
-    cudaError_t cuda_code = cudaPeekAtLastError();
-    if(cuda_code != cudaSuccess)
-        throw(meraxes_cuda_exception((int)cuda_code,implementation_code,"CUDA error detected after ",file,line));
-  }
-  catch(const meraxes_cuda_exception e){
-      e.process_exception();
-  }
-}
-__host__ void _check_thread_sync(int implementation_code,const std::string file, int line)
-{
-  try{
-    cudaError_t cuda_code = cudaDeviceSynchronize();
-    if(cuda_code != cudaSuccess)
-        throw(meraxes_cuda_exception((int)cuda_code,implementation_code,"Threads not synchronised after ",file,line));
-  }
-  catch(const meraxes_cuda_exception e){
-      e.process_exception();
-  }
-}
-
+// Convert a grid vector index to an (i,j,k)-triplet
 __device__
 void inline grid_index2indices(const int idx,const int dim,const int i_x_start,const int mode,int *ix,int *iy,int *iz){
     int n;
@@ -93,32 +61,6 @@ int inline grid_index_gpu(int i, int j, int k, int dim, int type)
   return ind;
 }
 
-__global__
-void set_array_gpu(float *array,int n_real,float val){
-    int i_real = blockIdx.x*blockDim.x + threadIdx.x;
-    if (i_real < n_real) array[i_real]=val;
-}
-
-__global__
-void complex_vector_times_scalar(Complex *vector,double scalar,int n_complex){
-    int i_complex = blockIdx.x*blockDim.x + threadIdx.x;
-    if (i_complex < n_complex){
-        vector[i_complex].x*=scalar;
-        vector[i_complex].y*=scalar;
-    }
-}
-
-__global__
-void sanity_check_aliasing(Complex *grid,int grid_dim,int i_x_start,int n_real,float val){
-    int i_real = blockIdx.x*blockDim.x + threadIdx.x;
-    if (i_real < n_real){
-        int i_x,i_y,i_z;
-        grid_index2indices(i_real,grid_dim,i_x_start,INDEX_REAL,&i_x,&i_y,&i_z);
-        const int i_padded = grid_index_gpu(i_x,i_y,i_z,grid_dim,INDEX_PADDED);
-        ((float *)grid)[i_padded] = fmaxf(((float *)grid)[i_padded], val);
-    }
-}
-
 __device__
 float inline k_mag_gpu(const int n_x,const int n_y,const int n_z,const int grid_dim,const float box_size){
     float delta_k = 2.0 * M_PI / box_size;
@@ -141,6 +83,36 @@ float inline k_mag_gpu(const int n_x,const int n_y,const int n_z,const int grid_
     return(sqrtf(k_x * k_x + k_y * k_y + k_z * k_z));
 }
 
+// Kernel to set all the values of a vector to a constant
+__global__
+void set_array_gpu(float *array,int n_real,float val){
+    int i_real = blockIdx.x*blockDim.x + threadIdx.x;
+    if (i_real < n_real) array[i_real]=val;
+}
+
+// Kernel to multiply a complex vector by a scalar
+__global__
+void complex_vector_times_scalar(Complex *vector,double scalar,int n_complex){
+    int i_complex = blockIdx.x*blockDim.x + threadIdx.x;
+    if (i_complex < n_complex){
+        vector[i_complex].x*=scalar;
+        vector[i_complex].y*=scalar;
+    }
+}
+
+// Kernel to perform aliasing sanity checks
+__global__
+void sanity_check_aliasing(Complex *grid,int grid_dim,int i_x_start,int n_real,float val){
+    int i_real = blockIdx.x*blockDim.x + threadIdx.x;
+    if (i_real < n_real){
+        int i_x,i_y,i_z;
+        grid_index2indices(i_real,grid_dim,i_x_start,INDEX_REAL,&i_x,&i_y,&i_z);
+        const int i_padded = grid_index_gpu(i_x,i_y,i_z,grid_dim,INDEX_PADDED);
+        ((float *)grid)[i_padded] = fmaxf(((float *)grid)[i_padded], val);
+    }
+}
+
+// Kernel to perform filtering convolution
 __global__
 void filter_gpu(Complex *box,int slab_nx,int grid_dim,int local_ix_start,int n_complex,float R,double box_size_in,int filter_type){
     int i_complex_herm = blockIdx.x*blockDim.x + threadIdx.x;
@@ -194,6 +166,7 @@ void filter_gpu(Complex *box,int slab_nx,int grid_dim,int local_ix_start,int n_c
     }
 }
 
+// Kernel to apply the logic of the main loop of find_HII_bubbles
 __global__
 void find_HII_bubbles_gpu_main_loop(
         float    redshift,
@@ -261,5 +234,37 @@ void find_HII_bubbles_gpu_main_loop(
             J_21_at_ionization[i_real] = J_21_aux * (float)ReionGammaHaloBias;
         }
     }
+}
+
+// These functions deal with any GPU exceptions, but should be called with the macros defined in the corresponding .hh file
+__host__ void _throw_on_cuda_error(cudaError_t cuda_code, int implementation_code, const std::string file, int line)
+{
+  if(cuda_code != cudaSuccess) throw(meraxes_cuda_exception((int)cuda_code,implementation_code,file,line));
+}
+__host__ void _throw_on_cuFFT_error(cufftResult cufft_code, int implementation_code, const std::string file, int line)
+{
+  if(cufft_code != CUFFT_SUCCESS) throw(meraxes_cuda_exception((int)cufft_code,implementation_code,file,line));
+}
+__host__ void _check_for_cuda_error(int implementation_code,const std::string file, int line)
+{
+  try{
+    cudaError_t cuda_code = cudaPeekAtLastError();
+    if(cuda_code != cudaSuccess)
+        throw(meraxes_cuda_exception((int)cuda_code,implementation_code,"CUDA error detected after ",file,line));
+  }
+  catch(const meraxes_cuda_exception e){
+      e.process_exception();
+  }
+}
+__host__ void _check_thread_sync(int implementation_code,const std::string file, int line)
+{
+  try{
+    cudaError_t cuda_code = cudaDeviceSynchronize();
+    if(cuda_code != cudaSuccess)
+        throw(meraxes_cuda_exception((int)cuda_code,implementation_code,"Threads not synchronised after ",file,line));
+  }
+  catch(const meraxes_cuda_exception e){
+      e.process_exception();
+  }
 }
 
