@@ -1,18 +1,10 @@
-#include "meraxes.h"
-#include "meraxes_gpu.h"
-#include "utils.h"
 #include <fftw3.h>
 #include <fftw3-mpi.h>
 #include <math.h>
-#include <assert.h>
-#include <signal.h>
-#include <limits.h>
-
 #include <hdf5.h>
 #include <hdf5_hl.h>
-
-#include <cuda_runtime.h>
-#include <cufft.h>
+#include "meraxes.h"
+#include "meraxes_gpu.h"
 
 void _find_HII_bubbles_gpu(double redshift,const bool flag_write_validation_output){
   // Fetch needed things from run_globals
