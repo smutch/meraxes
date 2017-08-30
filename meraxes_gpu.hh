@@ -2,13 +2,17 @@
 #ifdef __cplusplus
 #define _MERAXES_GPU_HH
 
-#include <iostream>
 #include <sstream>
 #include <string>
 
-// Wrap all cuda calls with these macros inside try blocks
-#define throw_on_cuda_error(cuda_code,implementation_code)   { _throw_on_cuda_error ((cuda_code), implementation_code, __FILE__, __LINE__); }
-#define throw_on_cuFFT_error(cufft_code,implementation_code) { _throw_on_cuFFT_error((cufft_code),implementation_code, __FILE__, __LINE__); }
+// Wrap exception-handling calls with these macros 
+// N.B.: The ',' in the execution configuration part of a CUDA kernel
+//       call confuses the pre-processor ... so make sure to add ()'s
+//       around the kernel call when using throw_on_kernel_error()
+#define throw_on_cuda_error(cuda_code,implementation_code)    { _throw_on_cuda_error ((cuda_code),implementation_code, __FILE__, __LINE__); }
+#define throw_on_cuFFT_error(cufft_code,implementation_code)  { _throw_on_cuFFT_error((cufft_code),implementation_code, __FILE__, __LINE__); }
+#define throw_on_kernel_error(kernel_call,implementation_code){ (kernel_call);_check_for_cuda_error(implementation_code, __FILE__, __LINE__); }
+#define check_thread_sync(implementation_code)                { _check_thread_sync(implementation_code,__FILE__, __LINE__); }
 
 // Define exception classes
 class meraxes_exception_base : public std::exception {
@@ -53,6 +57,8 @@ class meraxes_exception_base : public std::exception {
         }
 
         // Call this method inside catch blocks to process the exception
+        // THIS IS THE CODE TO MODIFY IF YOU WANT TO ADJUST THE WAY
+        //    MERAXES RESPONDS TO GPU ERRORS
         virtual void process_exception() const{
             mlog(this->what(),MLOG_MESG);
             ABORT(this->error_code());
@@ -74,6 +80,11 @@ class meraxes_cuda_exception : public meraxes_exception_base {
             CUFFT_R2C,
             CUFFT_C2R,
             CUFFT_PLAN_DESTROY,
+            KERNEL_CMPLX_AX,
+            KERNEL_SET_ARRAY,
+            KERNEL_FILTER,
+            KERNEL_CHECK,
+            KERNEL_MAIN_LOOP
             }; 
     private:
         std::string _set_message(int code){
@@ -97,6 +108,16 @@ class meraxes_cuda_exception : public meraxes_exception_base {
                 return("cuFFT error while performing complex->real cuFFT transform");
             case CUFFT_PLAN_DESTROY:
                 return("cuFFT error while destroying cuFFT plan");
+            case KERNEL_CMPLX_AX:
+                return("scalar-times-complex-vector kernel execution");
+            case KERNEL_SET_ARRAY:
+                return("initialize-vector-to-constant kernel execution");
+            case KERNEL_FILTER:
+                return("filter/convolution kernel execution");
+            case KERNEL_CHECK:
+                return("post-convolution-sanity-check kernel execution");
+            case KERNEL_MAIN_LOOP:
+                return("main find_HII_bubbles() kernel execution");
             default:
                 return("Undocumented CUDA error.");
             }
@@ -104,6 +125,9 @@ class meraxes_cuda_exception : public meraxes_exception_base {
     public:
         explicit meraxes_cuda_exception(int cuda_code,int implementation_code,const std::string file,const int line) : 
                  meraxes_exception_base((cuda_code),_set_message(implementation_code),file,line) {
+        }
+        explicit meraxes_cuda_exception(int cuda_code,int implementation_code,const std::string& modifier,const std::string file,const int line) : 
+                 meraxes_exception_base((cuda_code),modifier+_set_message(implementation_code),file,line) {
         }
 };
 

@@ -186,7 +186,6 @@ void _find_HII_bubbles_gpu(double redshift,const bool flag_write_validation_outp
   catch(const meraxes_cuda_exception e){
       e.process_exception();
   }
-
 #endif
 
   if (flag_write_validation_output)
@@ -227,15 +226,27 @@ void _find_HII_bubbles_gpu(double redshift,const bool flag_write_validation_outp
 
   // Remember to add the factor of VOLUME/TOT_NUM_PIXELS when converting from real space to k-space
   // Note: we will leave off factor of VOLUME, in anticipation of the inverse FFT below
-  complex_vector_times_scalar<<<grid_complex, threads>>>(deltax_unfiltered_device,inv_total_n_cells,slab_n_complex);
-  complex_vector_times_scalar<<<grid_complex, threads>>>(stars_unfiltered_device, inv_total_n_cells,slab_n_complex);
-  complex_vector_times_scalar<<<grid_complex, threads>>>(sfr_unfiltered_device,   inv_total_n_cells,slab_n_complex);
+  try{
+    throw_on_kernel_error((complex_vector_times_scalar<<<grid_complex, threads>>>(deltax_unfiltered_device,inv_total_n_cells,slab_n_complex)),meraxes_cuda_exception::KERNEL_CMPLX_AX);
+    throw_on_kernel_error((complex_vector_times_scalar<<<grid_complex, threads>>>(stars_unfiltered_device, inv_total_n_cells,slab_n_complex)),meraxes_cuda_exception::KERNEL_CMPLX_AX);
+    throw_on_kernel_error((complex_vector_times_scalar<<<grid_complex, threads>>>(sfr_unfiltered_device,   inv_total_n_cells,slab_n_complex)),meraxes_cuda_exception::KERNEL_CMPLX_AX);
+    check_thread_sync(meraxes_cuda_exception::KERNEL_CMPLX_AX);
+  }
+  catch(const meraxes_cuda_exception e){
+      e.process_exception();
+  }
 
   // Initialize a few of the output grids
-  set_array_gpu<<<grid_real,threads>>>(xH_device,      slab_n_real,1.f);
-  set_array_gpu<<<grid_real,threads>>>(r_bubble_device,slab_n_real,0.f);
-  if (flag_ReionUVBFlag)
-     set_array_gpu<<<grid_real,threads>>>(J_21_device,slab_n_real,0.f);
+  try{
+    throw_on_kernel_error((set_array_gpu<<<grid_real,threads>>>(xH_device,      slab_n_real,1.f)),meraxes_cuda_exception::KERNEL_SET_ARRAY);
+    throw_on_kernel_error((set_array_gpu<<<grid_real,threads>>>(r_bubble_device,slab_n_real,0.f)),meraxes_cuda_exception::KERNEL_SET_ARRAY);
+    if(flag_ReionUVBFlag)
+        throw_on_kernel_error((set_array_gpu<<<grid_real,threads>>>(J_21_device,slab_n_real,0.f)),meraxes_cuda_exception::KERNEL_SET_ARRAY);
+    check_thread_sync(meraxes_cuda_exception::KERNEL_SET_ARRAY);
+  }
+  catch(const meraxes_cuda_exception e){
+      e.process_exception();
+  }
 
   // This parameter choice is sensitive to noise on the cell size, at least for the typical
   // cell sizes in RT simulations. It probably doesn't matter for larger cell sizes.
@@ -331,9 +342,15 @@ void _find_HII_bubbles_gpu(double redshift,const bool flag_write_validation_outp
 
     // Perform convolution
     if(!flag_last_filter_step){
-       filter_gpu<<<grid_complex,threads>>>(deltax_filtered_device,local_nix,ReionGridDim,local_ix_start,slab_n_complex,R,box_size,run_globals.params.ReionRtoMFilterType);
-       filter_gpu<<<grid_complex,threads>>>(stars_filtered_device, local_nix,ReionGridDim,local_ix_start,slab_n_complex,R,box_size,run_globals.params.ReionRtoMFilterType);
-       filter_gpu<<<grid_complex,threads>>>(sfr_filtered_device,   local_nix,ReionGridDim,local_ix_start,slab_n_complex,R,box_size,run_globals.params.ReionRtoMFilterType);
+        try{
+            throw_on_kernel_error((filter_gpu<<<grid_complex,threads>>>(deltax_filtered_device,local_nix,ReionGridDim,local_ix_start,slab_n_complex,R,box_size,run_globals.params.ReionRtoMFilterType)),meraxes_cuda_exception::KERNEL_FILTER);
+            throw_on_kernel_error((filter_gpu<<<grid_complex,threads>>>(stars_filtered_device, local_nix,ReionGridDim,local_ix_start,slab_n_complex,R,box_size,run_globals.params.ReionRtoMFilterType)),meraxes_cuda_exception::KERNEL_FILTER);
+            throw_on_kernel_error((filter_gpu<<<grid_complex,threads>>>(sfr_filtered_device,   local_nix,ReionGridDim,local_ix_start,slab_n_complex,R,box_size,run_globals.params.ReionRtoMFilterType)),meraxes_cuda_exception::KERNEL_FILTER);
+            check_thread_sync(meraxes_cuda_exception::KERNEL_FILTER);
+        }
+        catch(const meraxes_cuda_exception e){
+            e.process_exception();
+        }
     }
 
     if (flag_write_validation_output && (i_R==1 || !strcmp(fname,fname_full_dump)))
@@ -413,9 +430,15 @@ void _find_HII_bubbles_gpu(double redshift,const bool flag_write_validation_outp
     }
 
     // Perform sanity checks to account for aliasing effects
-    sanity_check_aliasing<<<grid_real,threads>>>(deltax_filtered_device,ReionGridDim,local_ix_start,slab_n_real,-1.f + REL_TOL);
-    sanity_check_aliasing<<<grid_real,threads>>>(stars_filtered_device, ReionGridDim,local_ix_start,slab_n_real,0.);
-    sanity_check_aliasing<<<grid_real,threads>>>(sfr_filtered_device,   ReionGridDim,local_ix_start,slab_n_real,0.);
+    try{
+        throw_on_kernel_error((sanity_check_aliasing<<<grid_real,threads>>>(deltax_filtered_device,ReionGridDim,local_ix_start,slab_n_real,-1.f + REL_TOL)),meraxes_cuda_exception::KERNEL_CHECK);
+        throw_on_kernel_error((sanity_check_aliasing<<<grid_real,threads>>>(stars_filtered_device, ReionGridDim,local_ix_start,slab_n_real,0.)),meraxes_cuda_exception::KERNEL_CHECK);
+        throw_on_kernel_error((sanity_check_aliasing<<<grid_real,threads>>>(sfr_filtered_device,   ReionGridDim,local_ix_start,slab_n_real,0.)),meraxes_cuda_exception::KERNEL_CHECK);
+        check_thread_sync(meraxes_cuda_exception::KERNEL_CHECK);
+    }
+    catch(const meraxes_cuda_exception e){
+        e.process_exception();
+    }
 
     if (flag_write_validation_output && (i_R==1 || !strcmp(fname,fname_full_dump)))
     {
@@ -449,27 +472,33 @@ void _find_HII_bubbles_gpu(double redshift,const bool flag_write_validation_outp
       * UnitMass_in_g / pow(UnitLength_in_cm, 3) / UnitTime_in_s;
     const double inv_pixel_volume = 1.f/pixel_volume;
 
-    find_HII_bubbles_gpu_main_loop<<<grid_real,threads>>>(
-        redshift, 
-        slab_n_real, 
-        flag_last_filter_step, 
-        flag_ReionUVBFlag, 
-        ReionGridDim, 
-        local_ix_start,
-        R, 
-        RtoM(R), 
-        ReionEfficiency, 
-        inv_pixel_volume, 
-        J_21_aux_constant, 
-        ReionGammaHaloBias, 
-        xH_device,
-        J_21_device,
-        r_bubble_device,
-        J_21_at_ionization_device,
-        z_at_ionization_device,
-        deltax_filtered_device,
-        stars_filtered_device,
-        sfr_filtered_device);
+    try{
+        throw_on_kernel_error((find_HII_bubbles_gpu_main_loop<<<grid_real,threads>>>(
+            redshift, 
+            slab_n_real, 
+            flag_last_filter_step, 
+            flag_ReionUVBFlag, 
+            ReionGridDim, 
+            local_ix_start,
+            R, 
+            RtoM(R), 
+            ReionEfficiency, 
+            inv_pixel_volume, 
+            J_21_aux_constant, 
+            ReionGammaHaloBias, 
+            xH_device,
+            J_21_device,
+            r_bubble_device,
+            J_21_at_ionization_device,
+            z_at_ionization_device,
+            deltax_filtered_device,
+            stars_filtered_device,
+            sfr_filtered_device)),meraxes_cuda_exception::KERNEL_MAIN_LOOP);
+        check_thread_sync(meraxes_cuda_exception::KERNEL_MAIN_LOOP);
+    }
+    catch(const meraxes_cuda_exception e){
+        e.process_exception();
+    }
 
     if (flag_write_validation_output && (i_R==1 || !strcmp(fname,fname_full_dump)))
     {
@@ -512,7 +541,7 @@ void _find_HII_bubbles_gpu(double redshift,const bool flag_write_validation_outp
     R /= ReionDeltaRFactor;
   }
 
-    // Clean-up FFT plan(s)
+  // Clean-up FFT plan(s)
 #ifdef USE_CUFFT
   try{
     throw_on_cuFFT_error(cufftDestroy(plan),meraxes_cuda_exception::CUFFT_PLAN_DESTROY);
@@ -542,15 +571,15 @@ void _find_HII_bubbles_gpu(double redshift,const bool flag_write_validation_outp
 
   // Clean-up device
   try{
-    throw_on_cuda_error(cudaFree(deltax_unfiltered_device),meraxes_cuda_exception::FREE);
-    throw_on_cuda_error(cudaFree(stars_unfiltered_device),meraxes_cuda_exception::FREE);
-    throw_on_cuda_error(cudaFree(sfr_unfiltered_device),meraxes_cuda_exception::FREE);
-    throw_on_cuda_error(cudaFree(deltax_filtered_device),meraxes_cuda_exception::FREE);
-    throw_on_cuda_error(cudaFree(stars_filtered_device),meraxes_cuda_exception::FREE);
-    throw_on_cuda_error(cudaFree(sfr_filtered_device),meraxes_cuda_exception::FREE);
-    throw_on_cuda_error(cudaFree(xH_device),meraxes_cuda_exception::FREE);
-    throw_on_cuda_error(cudaFree(r_bubble_device),meraxes_cuda_exception::FREE);
-    throw_on_cuda_error(cudaFree(z_at_ionization_device),meraxes_cuda_exception::FREE);
+    throw_on_cuda_error(cudaFree(deltax_unfiltered_device), meraxes_cuda_exception::FREE);
+    throw_on_cuda_error(cudaFree(stars_unfiltered_device),  meraxes_cuda_exception::FREE);
+    throw_on_cuda_error(cudaFree(sfr_unfiltered_device),    meraxes_cuda_exception::FREE);
+    throw_on_cuda_error(cudaFree(deltax_filtered_device),   meraxes_cuda_exception::FREE);
+    throw_on_cuda_error(cudaFree(stars_filtered_device),    meraxes_cuda_exception::FREE);
+    throw_on_cuda_error(cudaFree(sfr_filtered_device),      meraxes_cuda_exception::FREE);
+    throw_on_cuda_error(cudaFree(xH_device),                meraxes_cuda_exception::FREE);
+    throw_on_cuda_error(cudaFree(r_bubble_device),          meraxes_cuda_exception::FREE);
+    throw_on_cuda_error(cudaFree(z_at_ionization_device),   meraxes_cuda_exception::FREE);
     throw_on_cuda_error(cudaFree(J_21_at_ionization_device),meraxes_cuda_exception::FREE);
     if(flag_ReionUVBFlag)
        throw_on_cuda_error(cudaFree(J_21_device),meraxes_cuda_exception::FREE);
@@ -558,7 +587,6 @@ void _find_HII_bubbles_gpu(double redshift,const bool flag_write_validation_outp
   catch(const meraxes_cuda_exception e){
       e.process_exception();
   }
-
 
   // Find the volume and mass weighted neutral fractions
   // TODO: The deltax grid will have rounding errors from forward and reverse

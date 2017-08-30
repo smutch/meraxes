@@ -25,8 +25,11 @@ typedef fftwf_complex Complex;
 #ifdef __NVCC__
 #ifdef __cplusplus
 #include <string>
-__host__   void  _throw_on_cuda_error(cudaError_t cuda_code, int implementation_code, const std::string file, int line);
-__host__   void  _throw_on_cuFFT_error(cufftResult cuda_code, int implementation_code, const std::string file, int line);
+__host__   void  _throw_on_cuda_error  (cudaError_t cuda_code, int implementation_code, const std::string file, int line);
+__host__   void  _throw_on_cuFFT_error (cufftResult cuda_code, int implementation_code, const std::string file, int line);
+__host__   void  _throw_on_kernel_error(int implementation_code, const std::string file, int line);
+__host__   void  _check_for_cuda_error (int implementation_code,const std::string file, int line);
+__host__   void  _check_thread_sync    (int implementation_code,const std::string file, int line);
 __device__ void  inline grid_index2indices(const int idx,const int dim,const int local_ix_start,const int mode,int *ix,int *iy,int *iz);
 __device__ int   inline grid_index_gpu(int i, int j, int k, int dim, int type);
 __device__ float inline k_mag_gpu(const int n_x,const int n_y,const int n_z,const int dim,const float box_size);
