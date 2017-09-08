@@ -1,0 +1,6 @@
+#!/bin/bash
+module purge
+module load  gcc/5.1.0 openmpi/x86_64/gnu/1.10.2-psm hdf5/x86_64/gnu/1.10.0-openmpi-1.10.2-psm fftw/x86_64/gnu/3.3.5-openmpi-1.10.2-psm gsl/x86_64/gnu/1.9 cuda/7.5
+export C_INCLUDE_PATH=${C_INCLUDE_PATH}:/home/gpoole/projects/ADACS/smutch/meraxes/include:/home/gpoole/projects/ADACS/smutch/meraxes/src/mlog:/home/smutch/3rd_party/fftw-3.3.3/include/
+export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:/home/gpoole/projects/ADACS/smutch/meraxes/lib/:/home/gpoole/projects/ADACS/smutch/meraxes/src/mlog/:/home/smutch/3rd_party/fftw-3.3.3/lib/
+export LIBRARY_PATH=${LIBRARY_PATH}:/home/gpoole/projects/ADACS/smutch/meraxes/lib/:/home/gpoole/projects/ADACS/smutch/meraxes/src/mlog/:/home/smutch/3rd_party/fftw-3.3.3/lib/

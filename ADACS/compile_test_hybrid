@@ -1,0 +1,3 @@
+#!/bin/bash
+export CPLUS_INCLUDE_PATH=${C_INCLUDE_PATH}
+nvcc -g -O3 -std=c++11 -arch=sm_30 utils.c meraxes_gpu.cu find_HII_bubbles_driver.c find_HII_bubbles_gpu.cu main.c -lm -lmeraxes -lcufft -o c.out

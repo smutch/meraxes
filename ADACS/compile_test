@@ -1,0 +1,2 @@
+#!/bin/bash
+gcc -g -O3 -std=gnu99 main.c utils.c find_HII_bubbles_driver.c -lm -lmeraxes -o a.out
