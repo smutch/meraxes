@@ -55,7 +55,7 @@ static void read_requested_forest_ids()
 }
 
 
-static void read_snap_list()
+void read_snap_list()
 {
   if (run_globals.mpi_rank == 0)
   {
@@ -131,7 +131,7 @@ double integrand_time_to_present(double a, void *params)
 }
 
 
-static double time_to_present(double z)
+double time_to_present(double z)
 {
 #define WORKSIZE 1000
   gsl_function               F;
@@ -184,7 +184,7 @@ void set_units()
 }
 
 
-static void read_output_snaps()
+void read_output_snaps()
 {
   int **ListOutputSnaps = &(run_globals.ListOutputSnaps);
   int  *LastOutputSnap  = &(run_globals.LastOutputSnap);
@@ -196,7 +196,6 @@ static void read_output_snaps()
     int   i;
     char  fname[STRLEN];
     FILE *fd;
-
     strcpy(fname, run_globals.params.FileWithOutputSnaps);
 
     if (!(fd = fopen(fname, "r")))

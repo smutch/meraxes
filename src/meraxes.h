@@ -623,6 +623,9 @@ void         cleanup(void);
 void         read_parameter_file(char *fname, int mode);
 void         init_meraxes(void);
 void         set_units(void);
+void         read_snap_list(void);
+void         read_output_snaps(void);
+double       time_to_present(double z);
 void         continue_prompt(char *param_file);
 void         free_halo_storage(void);
 void         initialize_halo_storage(void);
@@ -720,56 +723,7 @@ void   set_fesc(int snapshot);
 void   set_quasar_fobs(void);
 double RtoM(double R);
 void   find_HII_bubbles(double redshift);
-void _find_HII_bubbles(
-    // input
-    double redshift,
-    MPI_Comm mpi_comm,
-    int mpi_rank,
-    double box_size,
-    int ReionGridDim,
-    int local_nix,
-    int flag_ReionUVBFlag,
-    double ReionEfficiency,
-    double ReionNionPhotPerBary,
-    double UnitLength_in_cm,
-    double UnitMass_in_g,
-    double UnitTime_in_s,
-    double ReionRBubbleMax,
-    double ReionRBubbleMin,
-    double ReionDeltaRFactor,
-    double ReionGammaHaloBias,
-    double ReionAlphaUV,
-    double ReionEscapeFrac,
-
-    bool validation_output,
-
-    // preallocated 1D grids (local_nix * ReionGridDim * ReionGridDim)
-    float *J_21,  // real
-    float *r_bubble, // real
-
-    // input grids
-    float *deltax,  // real & padded
-    float *stars,  // real & padded
-    float *sfr,  // real & padded
-
-    // preallocated
-    fftwf_complex *deltax_filtered,  // complex
-    fftwf_complex *stars_filtered,  // complex
-    fftwf_complex *sfr_filtered,  // complex
-
-    // length = mpi.size
-    ptrdiff_t *slabs_n_complex,
-    ptrdiff_t *slabs_ix_start,
-
-    // output - preallocated real grids (local_nix * ReionGridDim * ReionGridDim)
-    float *xH, // real
-    float *z_at_ionization,
-    float *J_21_at_ionization,
-
-    // output - single values
-    double *volume_weighted_global_xH,
-    double *mass_weighted_global_xH
-    );
+void   _find_HII_bubbles(double redshift,const bool flag_write_validation_data);
 double tocf_modifier(galaxy_t *gal, double Mvir);
 void   set_ReionEfficiency(void);
 int    find_cell(float pos, double box_size);

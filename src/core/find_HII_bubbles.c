@@ -40,71 +40,62 @@ double RtoM(double R)
   return -1;
 }
 
-void _find_HII_bubbles(
-    // input
-    double redshift,
-    MPI_Comm mpi_comm,
-    int mpi_rank,
-    double box_size,
-    int ReionGridDim,
-    int local_nix,
-    int flag_ReionUVBFlag,
-    double ReionEfficiency,
-    double ReionNionPhotPerBary,
-    double UnitLength_in_cm,
-    double UnitMass_in_g,
-    double UnitTime_in_s,
-    double ReionRBubbleMax,
-    double ReionRBubbleMin,
-    double ReionDeltaRFactor,
-    double ReionGammaHaloBias,
-    double ReionAlphaUV,
-    double ReionEscapeFrac,
-
-    bool validation_output,
-
-    // preallocated 1D grids (local_nix * ReionGridDim * ReionGridDim)
-    float *J_21,  // real
-    float *r_bubble, // real
-
-    // input grids
-    float *deltax,  // real & padded; allocated for 2*n_complex
-    float *stars,  // real & padded;  allocated for 2*n_complex
-    float *sfr,  // real & padded;    allocated for 2*n_complex
-
-    // preallocated
-    fftwf_complex *deltax_filtered,  // complex
-    fftwf_complex *stars_filtered,  // complex
-    fftwf_complex *sfr_filtered,  // complex
-
-    // length = mpi.size
-    ptrdiff_t *slabs_n_complex,
-    ptrdiff_t *slabs_ix_start,
-
-    // output - preallocated real grids (local_nix * ReionGridDim * ReionGridDim)
-    float *xH, // real
-    float *z_at_ionization,
-    float *J_21_at_ionization,
-
-    // output - single values
-    double *volume_weighted_global_xH,
-    double *mass_weighted_global_xH
-    )
+void _find_HII_bubbles(double redshift,const bool flag_validation_output)
 {
+  // Fetch needed things from run_globals
+  const MPI_Comm mpi_comm          = run_globals.mpi_comm;
+  const int    mpi_rank            = run_globals.mpi_rank;
+  const double box_size            = run_globals.params.BoxSize;
+  const int    ReionGridDim        = run_globals.params.ReionGridDim;
+  const int    flag_ReionUVBFlag   = run_globals.params.ReionUVBFlag;
+  const double ReionEfficiency     = run_globals.params.physics.ReionEfficiency;
+  const double ReionNionPhotPerBary= run_globals.params.physics.ReionNionPhotPerBary;
+  const double UnitLength_in_cm    = run_globals.units.UnitLength_in_cm;
+  const double UnitMass_in_g       = run_globals.units.UnitMass_in_g;
+  const double UnitTime_in_s       = run_globals.units.UnitTime_in_s;
+  const double ReionRBubbleMax     = run_globals.params.physics.ReionRBubbleMax;
+  const double ReionRBubbleMin     = run_globals.params.physics.ReionRBubbleMin;
+  const double ReionDeltaRFactor   = run_globals.params.ReionDeltaRFactor;
+  const double ReionGammaHaloBias  = run_globals.params.physics.ReionGammaHaloBias;
+  const double ReionAlphaUV        = run_globals.params.physics.ReionAlphaUV;
+  const double ReionEscapeFrac     = run_globals.params.physics.ReionEscapeFrac;
+  // grid parameters
+  const ptrdiff_t *slabs_nix       = run_globals.reion_grids.slab_nix;
+  const ptrdiff_t *slabs_n_complex = run_globals.reion_grids.slab_n_complex;
+  const ptrdiff_t *slabs_ix_start  = run_globals.reion_grids.slab_ix_start;
+  const int local_nix              = (int)slabs_nix[mpi_rank];
+  const int local_ix_start         = (int)slabs_ix_start[mpi_rank];
+  const int slab_n_complex         = (int)(slabs_n_complex[mpi_rank]);
+  const int slab_n_real            = local_nix * ReionGridDim * ReionGridDim;
+  // input grids
+  float *deltax   = run_globals.reion_grids.deltax;  // real & padded
+  float *stars    = run_globals.reion_grids.stars;   // real & padded
+  float *sfr      = run_globals.reion_grids.sfr;     // real & padded
+  // preallocated grids
+  float   *J_21                  = run_globals.reion_grids.J_21;     // real
+  float   *r_bubble              = run_globals.reion_grids.r_bubble; // real
+  fftwf_complex *deltax_filtered = (fftwf_complex *)run_globals.reion_grids.deltax_filtered;// complex TODO: Check the consistancy of Complex instances
+  fftwf_complex *stars_filtered  = (fftwf_complex *)run_globals.reion_grids.stars_filtered; // complex TODO: Check the consistancy of Complex instances
+  fftwf_complex *sfr_filtered    = (fftwf_complex *)run_globals.reion_grids.sfr_filtered;   // complex TODO: Check the consistancy of Complex instances
+  // output grids
+  float *xH                = run_globals.reion_grids.xH;                 // real
+  float *z_at_ionization   = run_globals.reion_grids.z_at_ionization;    // real
+  float *J_21_at_ionization= run_globals.reion_grids.J_21_at_ionization; // real
+  // output - single values
+  double *volume_weighted_global_xH=&(run_globals.reion_grids.volume_weighted_global_xH);
+  double *mass_weighted_global_xH  =&(run_globals.reion_grids.mass_weighted_global_xH);    
+
+
   double       pixel_volume         = pow(box_size / (double)ReionGridDim, 3); // (Mpc/h)^3
   double       cell_length_factor   = L_FACTOR;
   double       total_n_cells        = pow((double)ReionGridDim, 3);
-  int          slab_n_real          = local_nix * ReionGridDim * ReionGridDim;
   float        J_21_aux;
   double       density_over_mean;
   double       sfr_density;
   double       f_coll_stars;
   int          i_real;
   int          i_padded;
-
-  int slab_n_complex = (int)(slabs_n_complex[mpi_rank]);
-
-  if (validation_output)
+  if (flag_validation_output)
   {
     // prepare output file
     char fname[STRLEN];
@@ -173,23 +164,6 @@ void _find_HII_bubbles(
   fftwf_execute(plan);
   fftwf_destroy_plan(plan);
 
-  if (validation_output)
-  {
-    // prepare output file
-    char fname[STRLEN];
-    sprintf(fname, "validation_output-core%03d-z%.2f.h5", mpi_rank, redshift);
-    hid_t file_id = H5Fcreate(fname, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
-
-    hid_t group = H5Gcreate(file_id, "kspace", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
-
-    H5LTmake_dataset_float(group, "deltax", 1, (hsize_t []){slab_n_complex * 2}, deltax);
-    H5LTmake_dataset_float(group, "stars",  1, (hsize_t []){slab_n_complex * 2}, stars);
-    H5LTmake_dataset_float(group, "sfr",    1, (hsize_t []){slab_n_complex * 2}, sfr);
-
-    H5Gclose(group);
-    H5Fclose(file_id);
-  }
-
   // Remember to add the factor of VOLUME/TOT_NUM_PIXELS when converting from real space to k-space
   // Note: we will leave off factor of VOLUME, in anticipation of the inverse FFT below
   for (int ii = 0; ii < slab_n_complex; ii++)
@@ -218,10 +192,32 @@ void _find_HII_bubbles(
 
     mlog(".", MLOG_CONT);
 
+    char fname[STRLEN];
+    char fname_full_dump[STRLEN];
+    sprintf(fname, "validation_test-core%03d-z%.2f_%03d.h5", mpi_rank, redshift,i_R);
+    if(redshift>10.)
+       sprintf(fname_full_dump, "validation_test-core%03d-z%.2f_%03d.h5", mpi_rank,10.11,i_R);
+    else if(redshift>6.)
+       sprintf(fname_full_dump, "validation_test-core%03d-z%.2f_%03d.h5", mpi_rank, 9.03,i_R);
+    else
+       sprintf(fname_full_dump, "validation_test-core%03d-z%.2f_%03d.h5", mpi_rank, 5.95,i_R);
+    if (flag_validation_output && i_R==1 || !strcmp(fname,fname_full_dump))
+    {
+        // prepare output file
+        hid_t file_id = H5Fcreate(fname, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
+        hid_t group = H5Gcreate(file_id, "kspace", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+        H5LTmake_dataset_float(group, "deltax_unfiltered", 1, (hsize_t []){slab_n_complex * 2}, (float *)deltax_unfiltered);
+        H5LTmake_dataset_float(group, "stars_unfiltered",  1, (hsize_t []){slab_n_complex * 2}, (float *)stars_unfiltered);
+        H5LTmake_dataset_float(group, "sfr_unfiltered",    1, (hsize_t []){slab_n_complex * 2}, (float *)sfr_unfiltered);
+        H5Gclose(group);
+        H5Fclose(file_id);
+    }
+
     // copy the k-space grids
     memcpy(deltax_filtered, deltax_unfiltered, sizeof(fftwf_complex) * slab_n_complex);
     memcpy(stars_filtered, stars_unfiltered, sizeof(fftwf_complex) * slab_n_complex);
     memcpy(sfr_filtered, sfr_unfiltered, sizeof(fftwf_complex) * slab_n_complex);
+
 
     // do the filtering unless this is the last filter step
     int local_ix_start = (int)(slabs_ix_start[mpi_rank]);
@@ -232,20 +228,11 @@ void _find_HII_bubbles(
       filter((fftwf_complex *)sfr_filtered,    local_ix_start, local_nix, ReionGridDim, (float)R);
     }
 
-    char fname[STRLEN];
-    char fname_full_dump[STRLEN];
-    sprintf(fname, "validation_test-core%03d-z%.2f_%03d.h5", mpi_rank, redshift,i_R);
-    if(redshift>10.)
-       sprintf(fname_full_dump, "validation_test-core%03d-z%.2f_%03d.h5", mpi_rank,10.11,i_R);
-    else if(redshift>6.)
-       sprintf(fname_full_dump, "validation_test-core%03d-z%.2f_%03d.h5", mpi_rank, 9.03,i_R);
-    else
-       sprintf(fname_full_dump, "validation_test-core%03d-z%.2f_%03d.h5", mpi_rank, 5.95,i_R);
-    if (validation_output && i_R==1 || !strcmp(fname,fname_full_dump))
+    if (flag_validation_output && i_R==1 || !strcmp(fname,fname_full_dump))
     {
         // prepare output file
-        hid_t file_id = H5Fcreate(fname, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
-        hid_t group = H5Gcreate(file_id, "kspace", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+        hid_t file_id = H5Fopen(fname, H5F_ACC_RDWR, H5P_DEFAULT);
+        hid_t group   = H5Gopen(file_id, "kspace", H5P_DEFAULT);
         H5LTmake_dataset_float(group, "deltax_filtered", 1, (hsize_t []){slab_n_complex * 2}, (float *)deltax_filtered);
         H5LTmake_dataset_float(group, "stars_filtered",  1, (hsize_t []){slab_n_complex * 2}, (float *)stars_filtered);
         H5LTmake_dataset_float(group, "sfr_filtered",    1, (hsize_t []){slab_n_complex * 2}, (float *)sfr_filtered);
@@ -266,7 +253,7 @@ void _find_HII_bubbles(
     fftwf_execute(plan);
     fftwf_destroy_plan(plan);
 
-    if (validation_output && i_R==1 || !strcmp(fname,fname_full_dump))
+    if (flag_validation_output && i_R==1 || !strcmp(fname,fname_full_dump))
     {
         // prepare output file
         hid_t file_id = H5Fopen(fname, H5F_ACC_RDWR, H5P_DEFAULT);
@@ -291,7 +278,7 @@ void _find_HII_bubbles(
      * Main loop through the box...
      */
 
-    if (validation_output && i_R==1 || !strcmp(fname,fname_full_dump))
+    if (flag_validation_output && i_R==1 || !strcmp(fname,fname_full_dump))
     {
         // prepare output file
         hid_t file_id = H5Fopen(fname, H5F_ACC_RDWR, H5P_DEFAULT);
@@ -355,7 +342,7 @@ void _find_HII_bubbles(
         }
     // iz
 
-    if (validation_output && i_R==1 || !strcmp(fname,fname_full_dump))
+    if (flag_validation_output && i_R==1 || !strcmp(fname,fname_full_dump))
     {
         // prepare output file
         hid_t file_id = H5Fopen(fname, H5F_ACC_RDWR, H5P_DEFAULT);
@@ -390,74 +377,30 @@ void _find_HII_bubbles(
         mass_weight                += density_over_mean;
       }
 
-  MPI_Allreduce(MPI_IN_PLACE, &volume_weighted_global_xH, 1, MPI_DOUBLE, MPI_SUM, mpi_comm);
-  MPI_Allreduce(MPI_IN_PLACE, &mass_weighted_global_xH, 1, MPI_DOUBLE, MPI_SUM, mpi_comm);
-  MPI_Allreduce(MPI_IN_PLACE, &mass_weight, 1, MPI_DOUBLE, MPI_SUM, mpi_comm);
+  MPI_Allreduce(MPI_IN_PLACE, volume_weighted_global_xH, 1, MPI_DOUBLE, MPI_SUM, mpi_comm);
+  MPI_Allreduce(MPI_IN_PLACE, mass_weighted_global_xH,   1, MPI_DOUBLE, MPI_SUM, mpi_comm);
+  MPI_Allreduce(MPI_IN_PLACE, &mass_weight,              1, MPI_DOUBLE, MPI_SUM, mpi_comm);
 
   *volume_weighted_global_xH /= total_n_cells;
   *mass_weighted_global_xH   /= mass_weight;
 
-  if (validation_output)
-  {
-    // prepare output file
-    char fname[STRLEN];
-    sprintf(fname, "validation_output-core%03d-z%.2f.h5", mpi_rank, redshift);
-    hid_t file_id = H5Fopen(fname, H5F_ACC_RDWR, H5P_DEFAULT);
-
-    H5LTmake_dataset_float(file_id, "xH", 1, (hsize_t []){slab_n_real}, xH);
-    H5LTmake_dataset_float(file_id, "z_at_ionization", 1, (hsize_t []){slab_n_real}, z_at_ionization);
-    H5LTmake_dataset_float(file_id, "J_21_at_ionization", 1, (hsize_t []){slab_n_real}, J_21_at_ionization);
-
-    H5LTset_attribute_double(file_id, "/", "volume_weighted_global_xH", volume_weighted_global_xH, 1);
-    H5LTset_attribute_double(file_id, "/", "mass_weighted_global_xH", mass_weighted_global_xH, 1);
-
-    H5Fclose(file_id);
-  }
 }
 
 
 void find_HII_bubbles(double redshift)
 {
-  _find_HII_bubbles(
-      redshift,
-      run_globals.mpi_comm,
-      run_globals.mpi_rank,
-      run_globals.params.BoxSize,
-      run_globals.params.ReionGridDim,
-      (int)(run_globals.reion_grids.slab_nix[run_globals.mpi_rank]),
-      run_globals.params.ReionUVBFlag,
-      run_globals.params.physics.ReionEfficiency,
-      run_globals.params.physics.ReionNionPhotPerBary,
-      run_globals.units.UnitLength_in_cm,
-      run_globals.units.UnitMass_in_g,
-      run_globals.units.UnitTime_in_s,
-      run_globals.params.physics.ReionRBubbleMax, // Mpc/h
-      run_globals.params.physics.ReionRBubbleMin, // Mpc/h
-      run_globals.params.ReionDeltaRFactor,
-      run_globals.params.physics.ReionGammaHaloBias,
-      run_globals.params.physics.ReionAlphaUV,
-      run_globals.params.physics.ReionEscapeFrac,
+  _find_HII_bubbles(redshift,true);
 
-      true,  // VALIDATION OUTPUT FLAG
-
-      run_globals.reion_grids.J_21,
-      run_globals.reion_grids.r_bubble,
-      run_globals.reion_grids.deltax,
-      run_globals.reion_grids.stars,
-      run_globals.reion_grids.sfr,
-      run_globals.reion_grids.deltax_filtered,
-      run_globals.reion_grids.stars_filtered,
-      run_globals.reion_grids.sfr_filtered,
-
-      run_globals.reion_grids.slab_n_complex,
-      run_globals.reion_grids.slab_ix_start,
-
-      run_globals.reion_grids.xH,
-      run_globals.reion_grids.z_at_ionization,
-      run_globals.reion_grids.J_21_at_ionization,
-
-      &run_globals.reion_grids.volume_weighted_global_xH,
-      &run_globals.reion_grids.mass_weighted_global_xH
-  );
-
+  // Write final output
+  char fname_out[STRLEN];
+  sprintf(fname_out,"validation_output-core%03d-z%.2f.h5",run_globals.mpi_rank, redshift);
+  hid_t file_id_out = H5Fcreate(fname_out, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
+  const int slab_n_real = (int)(run_globals.reion_grids.slab_nix[run_globals.mpi_rank]) * run_globals.params.ReionGridDim * run_globals.params.ReionGridDim;
+  H5LTmake_dataset_float(file_id_out, "xH",                 1, (hsize_t []){slab_n_real}, run_globals.reion_grids.xH);
+  H5LTmake_dataset_float(file_id_out, "z_at_ionization",    1, (hsize_t []){slab_n_real}, run_globals.reion_grids.z_at_ionization);
+  H5LTmake_dataset_float(file_id_out, "J_21_at_ionization", 1, (hsize_t []){slab_n_real}, run_globals.reion_grids.J_21_at_ionization);
+  H5LTset_attribute_double(file_id_out, "/", "volume_weighted_global_xH", &(run_globals.reion_grids.volume_weighted_global_xH), 1);
+  H5LTset_attribute_double(file_id_out, "/", "mass_weighted_global_xH",   &(run_globals.reion_grids.mass_weighted_global_xH),   1);
+  H5Fclose(file_id_out);
 }
+
