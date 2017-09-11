@@ -30,7 +30,6 @@ static void halo_catalog_filename(
         sprintf(fname, "%s/catalogs/%s_%03d.catalog_%s_properties.%d", simulation_dir, catalog_file_prefix, snapshot, group_type, sub);
       else if (*i_layout == 3)
         sprintf(fname, "%s/catalogs/%s_%03d.catalog_%s_properties", simulation_dir, catalog_file_prefix, snapshot, group_type);
-
       if ((fin = fopen(fname, "rb")) != NULL)
       {
         flag_success = true;

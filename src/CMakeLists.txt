@@ -13,7 +13,7 @@ include(${CMAKE_ROOT}/Modules/ExternalProject.cmake)
 find_package(Git REQUIRED)
 
 # Uncomment for a verbose run
-#set(CMAKE_VERBOSE_MAKEFILE ON)
+set(CMAKE_VERBOSE_MAKEFILE ON)
 
 # Build type
 set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -DDEBUG -Wall -O0")
@@ -131,26 +131,40 @@ if(USE_OpenMP)
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_EXE_LINKER_FLAGS}")
 endif()
 
-# CUDA (& add executable: meraxes)
+# CUDA & CUFFT (& add executable: meraxes)
 option(USE_CUDA "Use CUDA" OFF)
 if(USE_CUDA)
     find_package(CUDA REQUIRED)
     add_definitions(-DUSE_CUDA)
+    option(USE_CUFFT "Use cuFFT" OFF)
+    if(USE_CUFFT)
+        add_definitions(-DUSE_CUFFT)
+    endif()
+
     # Collect CUDA source code
     file(GLOB SOURCES_CU core/*.cu *.hh)
     set(SOURCES ${SOURCES_C} ${SOURCES_CU})
+
     # Pass options to NVCC
     set(CUDA_HOST_COMPILER ${CMAKE_CXX_COMPILER})
     set(CUDA_PROPAGATE_HOST_FLAGS ON)
     set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -arch=sm_30")
+
     ################################################################################
     # This ugly hack is needed to work around a bug in the fftw3.h header file
     #    see the following for a discussion: https://github.com/FFTW/fftw3/issues/18
     set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -D__INTEL_COMPILER")
     ################################################################################
+
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${CUDA_C_FLAGS}")
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${CUDA_EXE_LINKER_FLAGS}")
     cuda_add_executable(meraxes ${SOURCES})
+
+    # CUFFT
+    if(USE_CUFFT)
+        CUDA_ADD_CUFFT_TO_TARGET(meraxes)
+    endif()
+
 else()
     set(SOURCES ${SOURCES_C})
     add_executable(meraxes ${SOURCES})
@@ -176,15 +190,10 @@ add_custom_target(install.meraxes
     -P ${CMAKE_BINARY_DIR}/cmake_install.cmake) 
 add_dependencies(install.meraxes meraxes)
 
-# CUFFT
-option(USE_CUFFT "Use cuFFT" OFF)
-if(USE_CUFFT)
-    CUDA_ADD_CUFFT_TO_TARGET(meraxes)
-endif()
-
 # library
 add_library(lib SHARED ${SOURCES})
 set_target_properties(lib PROPERTIES OUTPUT_NAME meraxes)
+set_property(TARGET lib PROPERTY POSITION_INDEPENDENT_CODE ON)
 install(TARGETS lib DESTINATION lib COMPONENT lib)
 install(FILES meraxes.h ${CMAKE_BINARY_DIR}/git.h DESTINATION include COMPONENT lib)
 add_custom_target(install.lib
