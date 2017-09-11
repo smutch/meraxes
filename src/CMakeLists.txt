@@ -132,6 +132,6 @@ add_custom_target(setuprun
     COMMAND mkdir -p \${RUNDIR}
     COMMAND cp -n ${CMAKE_CURRENT_SOURCE_DIR}/../input/input.par \${RUNDIR}
     COMMAND cp -n ${CMAKE_CURRENT_SOURCE_DIR}/../input/snaplist.txt \${RUNDIR}
-    COMMAND cp ${CMAKE_CURRENT_SOURCE_DIR}/../bin/meraxes \${RUNDIR}
+    COMMAND cp ${CMAKE_BINARY_DIR}/meraxes \${RUNDIR}
     )
 add_dependencies(setuprun meraxes)
