@@ -4,7 +4,6 @@
 #include <hdf5.h>
 #include <hdf5_hl.h>
 #include "meraxes.h"
-#include "meraxes_gpu.h"
 
 void _find_HII_bubbles_gpu(double redshift,const bool flag_write_validation_output){
   // Fetch needed things from run_globals

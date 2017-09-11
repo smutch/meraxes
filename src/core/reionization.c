@@ -126,8 +126,6 @@ void call_find_HII_bubbles(int snapshot, int unsampled_snapshot, int nout_gals)
   mlog("...done", MLOG_CLOSE);
 
   // Call find_HII_bubbles
-  mlog("Calling find_HII_bubbles", MLOG_OPEN | MLOG_TIMERSTART);
-
   find_HII_bubbles(run_globals.ZZ[snapshot]);
 
   mlog("grids->volume_weighted_global_xH = %g", MLOG_MESG, grids->volume_weighted_global_xH);

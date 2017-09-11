@@ -15,7 +15,6 @@
  * Definitions
  */
 
-
 #ifdef CALC_MAGS
 #ifndef NOUT
 #define NOUT 1
@@ -722,7 +721,7 @@ void   filter(fftwf_complex *box, int local_ix_start, int slab_nx, int grid_dim,
 void   set_fesc(int snapshot);
 void   set_quasar_fobs(void);
 double RtoM(double R);
-void   find_HII_bubbles(double redshift);
+void   find_HII_bubbles(int snapshot);
 void   _find_HII_bubbles(double redshift,const bool flag_write_validation_data);
 double tocf_modifier(galaxy_t *gal, double Mvir);
 void   set_ReionEfficiency(void);
@@ -759,5 +758,8 @@ void check_pointers(halo_t *halos, fof_group_t *fof_groups, trees_info_t *trees_
 #ifdef __cplusplus
 }
 #endif
+
+// This stuff is needed by the GPU routines
+#include "meraxes_gpu.h"
 
 #endif // _INIT_MERAXES

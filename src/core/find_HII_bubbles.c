@@ -385,11 +385,30 @@ void _find_HII_bubbles(double redshift,const bool flag_validation_output)
   *mass_weighted_global_xH   /= mass_weight;
 
 }
-
-
-void find_HII_bubbles(double redshift)
+void find_HII_bubbles(int snapshot)
 {
-  _find_HII_bubbles(redshift,true);
+  // Call the version of find_HII_bubbles we've been passed (and time it)
+  int    flag_write_validation_data=false;
+  double redshift=run_globals.ZZ[snapshot];
+  timer_info timer;
+  #ifdef USE_CUDA
+      #ifndef USE_CUFFT
+          mlog("Calling hybrid-GPU/FFTW version of find_HII_bubbles() for snap=%d/z=%.2lf...",MLOG_OPEN | MLOG_TIMERSTART,snapshot,redshift);
+      #else
+          mlog("Calling pure-GPU version of find_HII_bubbles() for snap=%d/z=%.2lf...", MLOG_OPEN | MLOG_TIMERSTART,snapshot,redshift);
+      #endif
+      // Run the GPU version of _find_HII_bubbles()
+      timer_start(&timer);
+      _find_HII_bubbles_gpu(redshift,flag_write_validation_data);
+  #else
+      // Run the Meraxes version of _find_HII_bubbles()
+      mlog("Calling pure-CPU version of find_HII_bubbles() for snap=%d/z=%.2lf...", MLOG_OPEN | MLOG_TIMERSTART,snapshot,redshift);
+      timer_start(&timer);
+      _find_HII_bubbles(redshift,flag_write_validation_data);
+  #endif
+  timer_stop(&timer);
+  timer_gpu+=timer_delta(timer);
+  mlog("Total time spent in find_HII_bubbles: %.2f",MLOG_MESG,timer_gpu);
 
   // Write final output
   char fname_out[STRLEN];
@@ -403,4 +422,3 @@ void find_HII_bubbles(double redshift)
   H5LTset_attribute_double(file_id_out, "/", "mass_weighted_global_xH",   &(run_globals.reion_grids.mass_weighted_global_xH),   1);
   H5Fclose(file_id_out);
 }
-

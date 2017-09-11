@@ -1,3 +1,0 @@
-#!/bin/bash
-mpiexec -n 1 valgrind --leak-check=full --suppressions=/usr/local/x86_64/gnu/openmpi-1.10.2-psm/share/openmpi/openmpi-valgrind.supp ./b.out ../test/
-

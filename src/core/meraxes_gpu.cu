@@ -1,5 +1,4 @@
 #include "meraxes.h"
-#include "meraxes_gpu.h"
 #include "utils.h"
 #include <fftw3.h>
 #include <fftw3-mpi.h>

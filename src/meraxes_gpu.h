@@ -1,15 +1,15 @@
 #ifndef _MERAXES_GPU_H
 #define _MERAXES_GPU_H
 
-#ifdef __NVCC__
+// Stuff used for testing timer
+#include "utils.h"
+
+#ifndef __cplusplus
+typedef fftwf_complex Complex;
+#else
 #include <cuda_runtime.h>
 typedef float2 Complex;
-#else
-typedef fftwf_complex Complex;
-#endif
-
-#ifdef __cplusplus
-    extern "C" {
+extern "C" {
 #endif
 void _find_HII_bubbles_gpu(double redshift,const bool flag_write_validation_output);
 
