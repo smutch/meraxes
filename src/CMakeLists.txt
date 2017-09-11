@@ -68,11 +68,9 @@ link_libraries(${MLOG_LIBRARIES})
 # OpenMP
 option(USE_OpenMP "Use OpenMP" OFF)
 if(USE_OpenMP)
-    find_package(OpenMP)
-    if(OpenMP_C_FOUND)
-        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
-        set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_EXE_LINKER_FLAGS}")
-    endif()
+    find_package(OpenMP REQUIRED)
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
+    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_EXE_LINKER_FLAGS}")
 endif()
 
 # Profiling
@@ -99,7 +97,7 @@ string(REPLACE "\\n" "\\\\n" GITDIFF GITDIFF)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/git.h.in ${CMAKE_BINARY_DIR}/git.h ESCAPE_QUOTES @ONLY)
 
 # Compiler options
-set(CMAKE_C_FLAGS ${CMAKE_C_FLAGS} "-std=gnu99")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=gnu99")
 
 # source files
 file(GLOB SOURCES core/*.[ch] *.h physics/*.[ch])
