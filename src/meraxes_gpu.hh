@@ -24,11 +24,13 @@ typedef char gpu_info;
 #include <cufft.h>
 
 // Host-side exception-handling routines
-__host__ void  _throw_on_cuda_error  (cudaError_t cuda_code, int implementation_code,  const std::string file, const std::string func, int line);
-__host__ void  _throw_on_cuFFT_error (cufftResult cuda_code, int implementation_code,  const std::string file, const std::string func, int line);
-__host__ void  _throw_on_kernel_error(int implementation_code, const std::string file, const std::string func, int line);
-__host__ void  _check_for_cuda_error (int implementation_code, const std::string file, const std::string func, int line);
-__host__ void  _check_thread_sync    (int implementation_code, const std::string file, const std::string func, int line);
+__host__ void  _throw_on_cuda_error   (cudaError_t cuda_code, int implementation_code,  const std::string file, const std::string func, int line);
+__host__ void  _throw_on_cuFFT_error  (cufftResult cuda_code, int implementation_code,  const std::string file, const std::string func, int line);
+__host__ void  _throw_on_kernel_error (int implementation_code, const std::string file, const std::string func, int line);
+__host__ void  _check_for_cuda_error  (int implementation_code, const std::string file, const std::string func, int line);
+__host__ void  _check_thread_sync     (int implementation_code, const std::string file, const std::string func, int line);
+__host__ void  _throw_on_global_error (const std::string file, const std::string func, int line);
+__host__ void  notify_of_global_error (int error_code);
 
 // These routines are needed by the kernel
 __device__ void  inline grid_index2indices(const int idx,const int dim,const int local_ix_start,const int mode,int *ix,int *iy,int *iz);
@@ -69,6 +71,7 @@ __global__ void find_HII_bubbles_gpu_main_loop(
 #define throw_on_cuFFT_error(cufft_code,implementation_code)  { _throw_on_cuFFT_error((cufft_code),implementation_code, __FILE__, __func__, __LINE__); }
 #define throw_on_kernel_error(kernel_call,implementation_code){ (kernel_call);_check_for_cuda_error(implementation_code, __FILE__, __func__, __LINE__); }
 #define check_thread_sync(implementation_code)                { _check_thread_sync(implementation_code,__FILE__, __func__, __LINE__); }
+#define throw_on_global_error()                               { _throw_on_global_error(__FILE__, __func__, __LINE__);}
 #endif
 
 // Define exception classes
@@ -143,6 +146,7 @@ class meraxes_cuda_exception : public meraxes_exception_base {
     public:
         // List all the implementation exception codes here
         enum _code_list{
+            GLOBAL,
             INIT,
             MALLOC,
             FREE,
@@ -163,6 +167,8 @@ class meraxes_cuda_exception : public meraxes_exception_base {
         std::string _set_message(int code){
             // List the exception message information for each implementation exception code here
             switch (code){
+            case GLOBAL:
+                return("Notified of error on differing rank.");
             case INIT:
                 return("CUDA error while initializing device.");
             case MALLOC:
@@ -205,11 +211,14 @@ class meraxes_cuda_exception : public meraxes_exception_base {
         // This is the constructor used for most standard exception handling
         explicit meraxes_cuda_exception(int cuda_code,int implementation_code,const std::string file,const std::string func,const int line) : 
                  meraxes_exception_base((cuda_code),_set_message(implementation_code),file,func,line) {
+                     if(implementation_code!=GLOBAL) notify_of_global_error(cuda_code);
+
         }
         // This constructor deals with the case when we want to modify the _set_message() string.  This is
         //    used for specifying whether kernel errors are CUDA errors or thread-sync errors, for example.
         explicit meraxes_cuda_exception(int cuda_code,int implementation_code,const std::string& modifier,const std::string file,const std::string func,const int line) : 
                  meraxes_exception_base((cuda_code),modifier+_set_message(implementation_code),file,func,line) {
+                     if(implementation_code!=GLOBAL) notify_of_global_error(cuda_code);
         }
 };
 
