@@ -1,23 +1,6 @@
 #ifndef _MERAXES_GPU_HH
 #define _MERAXES_GPU_HH
 
-// This structure carries the information about
-//   the GPU allocated to this CPU's scope. It
-//   needs to be declared by all compilers since
-//   it is used by run_globals.
-#ifdef USE_CUDA
-#include <cuda_runtime.h>
-typedef struct gpu_info{
-    int    device;                    // the ordinal of the current context's device
-    bool   flag_use_cuFFT;            // true if the code has been compiled with cuFFT
-    struct cudaDeviceProp properties; // Properties of this context's assigned device
-    int    n_threads;                 // No. of threads to use in kernal calls
-    int    n_contexts;                // No. of ranks with successfully allocated GPU contexts
-} gpu_info;
-#else
-typedef char gpu_info;
-#endif
-
 #ifdef __cplusplus
 #ifdef __NVCC__
 #include <cuda_runtime.h>
@@ -135,8 +118,18 @@ class meraxes_exception_base : public std::exception {
         // THIS IS THE CODE TO MODIFY IF YOU WANT TO ADJUST THE WAY
         //    MERAXES RESPONDS TO GPU ERRORS
         virtual void process_exception() const{
-            _mlog_error(this->what(),this->file(),this->func(),this->line());
-            ABORT(EXIT_FAILURE);
+            // This loop aids in making the error reporting a bit cleaner in the log
+            for(int i_rank=0;i_rank<run_globals.mpi_size;i_rank++){
+                if(i_rank==run_globals.mpi_rank){
+                    if(this->error_code()!=0)
+                        _mlog_error(this->what(),this->file(),this->func(),this->line());
+                }
+                MPI_Barrier(run_globals.mpi_comm);
+            }
+            if(this->error_code()!=0)
+                ABORT(EXIT_FAILURE);
+            else
+                ABORT(EXIT_SUCCESS);
         }
 };
 

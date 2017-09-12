@@ -50,12 +50,6 @@ void myexit(int signum);
     myexit(sigterm);                                                                     \
   } while (0)
 
-// This stuff is needed by the GPU routines.  This
-//    needs to be included after mlog.h is included
-//    and after ABORT() & myexit() are defined, since 
-//    they are used within.
-#include "meraxes_gpu.h"
-
 // Units (cgs):
 #define GRAVITY          6.672e-8
 #define SOLAR_MASS       1.989e33
@@ -570,6 +564,23 @@ typedef struct Modifier
   float ratio_erru;
 } Modifier;
 
+// This structure carries the information about
+//   the GPU allocated to this CPU's scope. It
+//   needs to be declared by all compilers since
+//   it is used by run_globals.
+#ifdef USE_CUDA
+#include <cuda_runtime.h>
+typedef struct gpu_info{
+    int    device;                    // the ordinal of the current context's device
+    bool   flag_use_cuFFT;            // true if the code has been compiled with cuFFT
+    struct cudaDeviceProp properties; // Properties of this context's assigned device
+    int    n_threads;                 // No. of threads to use in kernal calls
+    int    n_contexts;                // No. of ranks with successfully allocated GPU contexts
+} gpu_info;
+#else
+typedef char gpu_info;
+#endif
+
 //! Global variables which will will be passed around
 typedef struct run_globals_t {
   struct run_params_t params;
@@ -769,6 +780,12 @@ extern  int (*meraxes_mhysa_hook)(void *self, int snapshot, int ngals);
 int  debug(const char * restrict format, ...);
 void check_pointers(halo_t *halos, fof_group_t *fof_groups, trees_info_t *trees_info);
 #endif
+
+// This stuff is needed by the GPU routines.  This
+//    needs to be included after mlog.h is included
+//    and after ABORT(), myexit() & run_globals are
+//    defined, since they are used within.
+#include "meraxes_gpu.h"
 
 #ifdef __cplusplus
 }

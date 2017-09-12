@@ -48,7 +48,7 @@ __host__ void _throw_on_global_error(const std::string file, const std::string f
 {
   int error_code=0;
   MPI_Allreduce(MPI_IN_PLACE,&error_code,1,MPI_INT,MPI_MAX,run_globals.mpi_comm);
-  if(error_code!=0) throw(meraxes_cuda_exception(error_code,meraxes_cuda_exception::GLOBAL,file,func,line));
+  if(error_code!=0) throw(meraxes_cuda_exception(0,meraxes_cuda_exception::GLOBAL,file,func,line));
 }
 __host__ void notify_of_global_error(int error_code)
 {

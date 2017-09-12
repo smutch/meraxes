@@ -49,9 +49,6 @@ void _find_HII_bubbles_gpu(double redshift,const bool flag_write_validation_outp
   const double total_n_cells        = pow((double)ReionGridDim, 3);
   const double inv_total_n_cells    = 1.f/total_n_cells;
 
-  const hsize_t dset_real_size={slab_n_real};
-  const hsize_t dset_cplx_size={2*slab_n_complex};
-
   // Initialize device arrays
   cufftComplex *deltax_unfiltered_device  = NULL;
   cufftComplex *stars_unfiltered_device   = NULL;
