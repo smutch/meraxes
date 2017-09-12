@@ -3,6 +3,32 @@
 #include <gsl/gsl_math.h>
 #include <gsl/gsl_integration.h>
 
+void init_gpu(){
+    // If we are compiling with CUDA, allocate a structure
+    //   that will carry information about the device
+#ifdef USE_CUDA
+    // Alocate the structure that will carry all the information
+    //   about the GPU assigned to this thread
+    run_globals.gpu=(gpu_info *)malloc(sizeof(gpu_info));
+
+    // This function has all the CUDA device polling calls
+    init_CUDA();
+
+#ifdef USE_CUFFT
+    run_globals.gpu->flag_use_cuFFT=true;
+#else
+    run_globals.gpu->flag_use_cuFFT=false;
+#endif
+
+    // If we are not compiling with CUDA, set this
+    //   pointer to NULL.  This is a good way
+    //   to test in the code if a GPU is being used.
+#else
+    mlog("CPU-only version of Meraxes running.",MLOG_MESG);
+    run_globals.gpu=NULL;
+#endif
+}
+
 static void read_requested_forest_ids()
 {
   if (strlen(run_globals.params.ForestIDFile) == 0)
@@ -295,6 +321,9 @@ void init_meraxes()
 {
   int i;
   int snaplist_len;
+
+  // initialize GPU
+  init_gpu();
 
   // initialise the random number generator
   run_globals.random_generator = gsl_rng_alloc(gsl_rng_ranlxd1);

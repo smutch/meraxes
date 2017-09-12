@@ -13,6 +13,63 @@
 #include <cuda_runtime.h>
 #include <cufft.h>
 
+// These functions deal with any GPU exceptions, but should be called with the macros defined in the corresponding .hh file
+__host__ void _throw_on_cuda_error(cudaError_t cuda_code, int implementation_code, const std::string file, int line)
+{
+  if(cuda_code != cudaSuccess) throw(meraxes_cuda_exception((int)cuda_code,implementation_code,file,line));
+}
+__host__ void _throw_on_cuFFT_error(cufftResult cufft_code, int implementation_code, const std::string file, int line)
+{
+  if(cufft_code != CUFFT_SUCCESS) throw(meraxes_cuda_exception((int)cufft_code,implementation_code,file,line));
+}
+__host__ void _check_for_cuda_error(int implementation_code,const std::string file, int line)
+{
+  try{
+    cudaError_t cuda_code = cudaPeekAtLastError();
+    if(cuda_code != cudaSuccess)
+        throw(meraxes_cuda_exception((int)cuda_code,implementation_code,"CUDA error detected after ",file,line));
+  }
+  catch(const meraxes_cuda_exception e){
+      e.process_exception();
+  }
+}
+__host__ void _check_thread_sync(int implementation_code,const std::string file, int line)
+{
+  try{
+    cudaError_t cuda_code = cudaDeviceSynchronize();
+    if(cuda_code != cudaSuccess)
+        throw(meraxes_cuda_exception((int)cuda_code,implementation_code,"Threads not synchronised after ",file,line));
+  }
+  catch(const meraxes_cuda_exception e){
+      e.process_exception();
+  }
+}
+
+// Initialize device.  Called by init_gpu().
+void init_CUDA(){
+    try{
+        // This establishes a context
+        throw_on_cuda_error(cudaFree(0),meraxes_cuda_exception::INIT);
+        // Get the device assigned to this context
+        throw_on_cuda_error(cudaGetDevice(&(run_globals.gpu->device)),meraxes_cuda_exception::INIT); 
+        // Get the properties of the device assigned to this context
+        throw_on_cuda_error(cudaGetDeviceProperties(&(run_globals.gpu->properties),run_globals.gpu->device),meraxes_cuda_exception::INIT); 
+    }
+    catch(const meraxes_cuda_exception e){
+        e.process_exception();
+    }
+
+    // Set the number of threads to use.  Perhaps something
+    //    more sophisticated should be done here eventually ...
+    run_globals.gpu->n_threads=256;
+
+    // Send a status message to mlog    
+    if(run_globals.mpi_size==1)
+        mlog("GPU context successfully established.",MLOG_MESG);
+    else
+        mlog("All ranks have successfully established GPU contexts.",MLOG_MESG);
+}
+
 // Convert a grid vector index to an (i,j,k)-triplet
 __device__
 void inline grid_index2indices(const int idx,const int dim,const int i_x_start,const int mode,int *ix,int *iy,int *iz){
@@ -233,37 +290,5 @@ void find_HII_bubbles_gpu_main_loop(
             J_21_at_ionization[i_real] = J_21_aux * (float)ReionGammaHaloBias;
         }
     }
-}
-
-// These functions deal with any GPU exceptions, but should be called with the macros defined in the corresponding .hh file
-__host__ void _throw_on_cuda_error(cudaError_t cuda_code, int implementation_code, const std::string file, int line)
-{
-  if(cuda_code != cudaSuccess) throw(meraxes_cuda_exception((int)cuda_code,implementation_code,file,line));
-}
-__host__ void _throw_on_cuFFT_error(cufftResult cufft_code, int implementation_code, const std::string file, int line)
-{
-  if(cufft_code != CUFFT_SUCCESS) throw(meraxes_cuda_exception((int)cufft_code,implementation_code,file,line));
-}
-__host__ void _check_for_cuda_error(int implementation_code,const std::string file, int line)
-{
-  try{
-    cudaError_t cuda_code = cudaPeekAtLastError();
-    if(cuda_code != cudaSuccess)
-        throw(meraxes_cuda_exception((int)cuda_code,implementation_code,"CUDA error detected after ",file,line));
-  }
-  catch(const meraxes_cuda_exception e){
-      e.process_exception();
-  }
-}
-__host__ void _check_thread_sync(int implementation_code,const std::string file, int line)
-{
-  try{
-    cudaError_t cuda_code = cudaDeviceSynchronize();
-    if(cuda_code != cudaSuccess)
-        throw(meraxes_cuda_exception((int)cuda_code,implementation_code,"Threads not synchronised after ",file,line));
-  }
-  catch(const meraxes_cuda_exception e){
-      e.process_exception();
-  }
 }
 

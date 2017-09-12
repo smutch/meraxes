@@ -36,11 +36,25 @@
 #endif
 // ======================================================
 
+// Define things used for aborting exceptions
+#ifdef __cplusplus
+extern "C" {
+#endif
+void myexit(int signum);
+#ifdef __cplusplus
+}
+#endif
 #define ABORT(sigterm)                                                                 \
   do {                                                                                   \
     fprintf(stderr, "\nIn file: %s\tfunc: %s\tline: %i\n", __FILE__, __FUNCTION__, __LINE__);  \
     myexit(sigterm);                                                                     \
   } while (0)
+
+// This stuff is needed by the GPU routines.  This
+//    needs to be included after mlog.h is included
+//    and after ABORT() & myexit() are defined, since 
+//    they are used within.
+#include "meraxes_gpu.h"
 
 // Units (cgs):
 #define GRAVITY          6.672e-8
@@ -567,6 +581,7 @@ typedef struct run_globals_t {
   MPI_Comm mpi_comm;
   int mpi_rank;
   int mpi_size;
+  gpu_info *gpu;
 
   double *AA;
   double *ZZ;
@@ -617,10 +632,10 @@ extern run_globals_t run_globals;
 #ifdef __cplusplus
 extern "C" {
 #endif
-void         myexit(int signum);
 void         cleanup(void);
 void         read_parameter_file(char *fname, int mode);
 void         init_meraxes(void);
+void         init_gpu();
 void         set_units(void);
 void         read_snap_list(void);
 void         read_output_snaps(void);
@@ -758,8 +773,5 @@ void check_pointers(halo_t *halos, fof_group_t *fof_groups, trees_info_t *trees_
 #ifdef __cplusplus
 }
 #endif
-
-// This stuff is needed by the GPU routines
-#include "meraxes_gpu.h"
 
 #endif // _INIT_MERAXES

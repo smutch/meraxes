@@ -12,6 +12,7 @@ typedef float2 Complex;
 extern "C" {
 #endif
 void _find_HII_bubbles_gpu(double redshift,const bool flag_write_validation_output);
+void init_CUDA();
 
 #include "utils.h"
 void find_HII_bubbles_driver(

@@ -211,7 +211,7 @@ void _find_HII_bubbles_gpu(double redshift,const bool flag_write_validation_outp
   }
 
   // Initialize GPU block and thread count
-  int threads      = 256;  
+  int threads      = run_globals.gpu->n_threads;  
   int grid_complex = (slab_n_complex+(threads-1))/threads;
   int grid_real    = (slab_n_real   +(threads-1))/threads;
 

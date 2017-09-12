@@ -1,10 +1,35 @@
 #ifndef _MERAXES_GPU_HH
-#ifdef __cplusplus
 #define _MERAXES_GPU_HH
 
+// This structure carries the information about
+//   the GPU allocated to this CPU's scope. It
+//   needs to be declared by all compilers since
+//   it is used by run_globals.
+#ifdef USE_CUDA
+#include <cuda_runtime.h>
+typedef struct gpu_info{
+    int    device;                    // the ordinal of the current context's device
+    bool   flag_use_cuFFT;            // true if the code has been compiled with cuFFT
+    struct cudaDeviceProp properties; // Properties of this context's assigned device
+    int    n_threads;                 // No. of threads to use in kernal calls
+    int    n_contexts;                // No. of ranks with successfully allocated GPU contexts
+} gpu_info;
+#else
+typedef char gpu_info;
+#endif
+
+#ifdef __cplusplus
 #ifdef __NVCC__
 #include <cuda_runtime.h>
 #include <cufft.h>
+
+// Host-side exception-handling routines
+__host__ void  _throw_on_cuda_error  (cudaError_t cuda_code, int implementation_code, const std::string file, int line);
+__host__ void  _throw_on_cuFFT_error (cufftResult cuda_code, int implementation_code, const std::string file, int line);
+__host__ void  _throw_on_kernel_error(int implementation_code, const std::string file, int line);
+__host__ void  _check_for_cuda_error (int implementation_code,const std::string file, int line);
+__host__ void  _check_thread_sync    (int implementation_code,const std::string file, int line);
+
 // These routines are needed by the kernel
 __device__ void  inline grid_index2indices(const int idx,const int dim,const int local_ix_start,const int mode,int *ix,int *iy,int *iz);
 __device__ int   inline grid_index_gpu(int i, int j, int k, int dim, int type);
@@ -36,13 +61,6 @@ __global__ void find_HII_bubbles_gpu_main_loop(
                    Complex *deltax_filtered_device,
                    Complex *stars_filtered_device,
                    Complex *sfr_filtered_device);
-
-// Host-side exception-handling routines
-__host__ void  _throw_on_cuda_error  (cudaError_t cuda_code, int implementation_code, const std::string file, int line);
-__host__ void  _throw_on_cuFFT_error (cufftResult cuda_code, int implementation_code, const std::string file, int line);
-__host__ void  _throw_on_kernel_error(int implementation_code, const std::string file, int line);
-__host__ void  _check_for_cuda_error (int implementation_code,const std::string file, int line);
-__host__ void  _check_thread_sync    (int implementation_code,const std::string file, int line);
 
 // Wrap exception-handling calls with these macros to add exception location information to the error messages
 // N.B.: The ',' in the execution configuration part of a CUDA kernel call confuses the pre-processor ... so 
@@ -112,6 +130,7 @@ class meraxes_cuda_exception : public meraxes_exception_base {
     public:
         // List all the implementation exception codes here
         enum _code_list{
+            INIT,
             MALLOC,
             FREE,
             MEMCPY,
@@ -131,6 +150,8 @@ class meraxes_cuda_exception : public meraxes_exception_base {
         std::string _set_message(int code){
             // List the exception message information for each implementation exception code here
             switch (code){
+            case INIT:
+                return("CUDA error while initializing device.");
             case MALLOC:
                 return("CUDA error while calling cudaMalloc()");
             case FREE:

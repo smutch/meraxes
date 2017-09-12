@@ -13,7 +13,7 @@ include(${CMAKE_ROOT}/Modules/ExternalProject.cmake)
 find_package(Git REQUIRED)
 
 # Uncomment for a verbose run
-set(CMAKE_VERBOSE_MAKEFILE ON)
+#set(CMAKE_VERBOSE_MAKEFILE ON)
 
 # Build type
 set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -DDEBUG -Wall -O0")
@@ -158,13 +158,14 @@ if(USE_CUDA)
 
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${CUDA_C_FLAGS}")
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${CUDA_EXE_LINKER_FLAGS}")
+
+    # Add the Meraxes executable to the project
     cuda_add_executable(meraxes ${SOURCES})
 
     # CUFFT
     if(USE_CUFFT)
         CUDA_ADD_CUFFT_TO_TARGET(meraxes)
     endif()
-
 else()
     set(SOURCES ${SOURCES_C})
     add_executable(meraxes ${SOURCES})
