@@ -24,11 +24,11 @@ typedef char gpu_info;
 #include <cufft.h>
 
 // Host-side exception-handling routines
-__host__ void  _throw_on_cuda_error  (cudaError_t cuda_code, int implementation_code, const std::string file, int line);
-__host__ void  _throw_on_cuFFT_error (cufftResult cuda_code, int implementation_code, const std::string file, int line);
-__host__ void  _throw_on_kernel_error(int implementation_code, const std::string file, int line);
-__host__ void  _check_for_cuda_error (int implementation_code,const std::string file, int line);
-__host__ void  _check_thread_sync    (int implementation_code,const std::string file, int line);
+__host__ void  _throw_on_cuda_error  (cudaError_t cuda_code, int implementation_code,  const std::string file, const std::string func, int line);
+__host__ void  _throw_on_cuFFT_error (cufftResult cuda_code, int implementation_code,  const std::string file, const std::string func, int line);
+__host__ void  _throw_on_kernel_error(int implementation_code, const std::string file, const std::string func, int line);
+__host__ void  _check_for_cuda_error (int implementation_code, const std::string file, const std::string func, int line);
+__host__ void  _check_thread_sync    (int implementation_code, const std::string file, const std::string func, int line);
 
 // These routines are needed by the kernel
 __device__ void  inline grid_index2indices(const int idx,const int dim,const int local_ix_start,const int mode,int *ix,int *iy,int *iz);
@@ -65,10 +65,10 @@ __global__ void find_HII_bubbles_gpu_main_loop(
 // Wrap exception-handling calls with these macros to add exception location information to the error messages
 // N.B.: The ',' in the execution configuration part of a CUDA kernel call confuses the pre-processor ... so 
 //       make sure to add ()'s around the kernel call when using throw_on_kernel_error()
-#define throw_on_cuda_error(cuda_code,implementation_code)    { _throw_on_cuda_error ((cuda_code),implementation_code, __FILE__, __LINE__); }
-#define throw_on_cuFFT_error(cufft_code,implementation_code)  { _throw_on_cuFFT_error((cufft_code),implementation_code, __FILE__, __LINE__); }
-#define throw_on_kernel_error(kernel_call,implementation_code){ (kernel_call);_check_for_cuda_error(implementation_code, __FILE__, __LINE__); }
-#define check_thread_sync(implementation_code)                { _check_thread_sync(implementation_code,__FILE__, __LINE__); }
+#define throw_on_cuda_error(cuda_code,implementation_code)    { _throw_on_cuda_error ((cuda_code),implementation_code, __FILE__, __func__, __LINE__); }
+#define throw_on_cuFFT_error(cufft_code,implementation_code)  { _throw_on_cuFFT_error((cufft_code),implementation_code, __FILE__, __func__, __LINE__); }
+#define throw_on_kernel_error(kernel_call,implementation_code){ (kernel_call);_check_for_cuda_error(implementation_code, __FILE__, __func__, __LINE__); }
+#define check_thread_sync(implementation_code)                { _check_thread_sync(implementation_code,__FILE__, __func__, __LINE__); }
 #endif
 
 // Define exception classes
@@ -79,14 +79,16 @@ class meraxes_exception_base : public std::exception {
         int         _error_code;
         std::string _message;
         std::string _file;
+        std::string _func;
         int         _line;
         std::string _composition;
     public:
         // Constructor (C++ STL strings).
-        explicit meraxes_exception_base(int code,const std::string& message,const std::string& file,const int line):
+        explicit meraxes_exception_base(int code,const std::string& message,const std::string& file,const std::string& func,const int line):
           _error_code(code),
           _message(message),
           _file(file),
+          _func(func),
           _line(line)
           {
             // Create the error message ...
@@ -102,12 +104,18 @@ class meraxes_exception_base : public std::exception {
         // Destructor.  Virtual to allow for subclassing.
         virtual ~meraxes_exception_base() noexcept {}
 
-        // Returns a pointer to the error description.
+        // The following functions return pointers.
         //    The underlying memory is possessed by the
         //    meraxes_exception object. Callers must
         //    not attempt to free the memory.
         virtual const char* what() const noexcept {
-            return(_composition.c_str());
+            return(_message.c_str());
+        }
+        virtual const char* file() const noexcept {
+            return(_file.c_str());
+        }
+        virtual const char* func() const noexcept {
+            return(_func.c_str());
         }
 
         // Returns an integer expressing the error code.
@@ -115,12 +123,17 @@ class meraxes_exception_base : public std::exception {
            return(this->_error_code);
         }
 
+        // Returns an integer expressing the line number of the error.
+        virtual int line() const noexcept {
+           return(this->_line);
+        }
+
         // Call this method inside catch blocks to process the exception
         // THIS IS THE CODE TO MODIFY IF YOU WANT TO ADJUST THE WAY
         //    MERAXES RESPONDS TO GPU ERRORS
         virtual void process_exception() const{
-            mlog(this->what(),MLOG_MESG);
-            ABORT(this->error_code());
+            _mlog_error(this->what(),this->file(),this->func(),this->line());
+            ABORT(EXIT_FAILURE);
         }
 };
 
@@ -190,13 +203,13 @@ class meraxes_cuda_exception : public meraxes_exception_base {
         }
     public:
         // This is the constructor used for most standard exception handling
-        explicit meraxes_cuda_exception(int cuda_code,int implementation_code,const std::string file,const int line) : 
-                 meraxes_exception_base((cuda_code),_set_message(implementation_code),file,line) {
+        explicit meraxes_cuda_exception(int cuda_code,int implementation_code,const std::string file,const std::string func,const int line) : 
+                 meraxes_exception_base((cuda_code),_set_message(implementation_code),file,func,line) {
         }
         // This constructor deals with the case when we want to modify the _set_message() string.  This is
         //    used for specifying whether kernel errors are CUDA errors or thread-sync errors, for example.
-        explicit meraxes_cuda_exception(int cuda_code,int implementation_code,const std::string& modifier,const std::string file,const int line) : 
-                 meraxes_exception_base((cuda_code),modifier+_set_message(implementation_code),file,line) {
+        explicit meraxes_cuda_exception(int cuda_code,int implementation_code,const std::string& modifier,const std::string file,const std::string func,const int line) : 
+                 meraxes_exception_base((cuda_code),modifier+_set_message(implementation_code),file,func,line) {
         }
 };
 
