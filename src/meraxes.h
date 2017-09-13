@@ -498,14 +498,11 @@ typedef struct galaxy_output_t {
 
 //! Tree info struct
 typedef struct trees_info_t {
-  int n_step;
-  int n_search;
   int n_halos;
   int n_halos_max;
   int max_tree_id;
   int n_fof_groups;
   int n_fof_groups_max;
-  int unsampled_snapshot;
 } trees_info_t;
 
 //! Tree entry struct
@@ -625,7 +622,8 @@ void         initialize_halo_storage(void);
 void         dracarys(void);
 int          evolve_galaxies(fof_group_t *fof_group, int snapshot, int NGal, int NFof);
 void         passively_evolve_ghost(galaxy_t *gal, int snapshot);
-trees_info_t read_halos(int snapshot, halo_t **halo, fof_group_t **fof_group, int **index_lookup, trees_info_t *snapshot_trees_info);
+// trees_info_t read_halos(int snapshot, halo_t **halo, fof_group_t **fof_group, int **index_lookup, trees_info_t *snapshot_trees_info);
+int        * read_forest_ids(hid_t fd);
 galaxy_t   * new_galaxy(int snapshot, int halo_ID);
 void         create_new_galaxy(int snapshot, halo_t *halo, int *NGal, int *new_gal_counter);
 void         assign_galaxy_to_halo(galaxy_t *gal, halo_t *halo);
