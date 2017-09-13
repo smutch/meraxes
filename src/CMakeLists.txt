@@ -2,6 +2,7 @@
 cmake_minimum_required(VERSION 3.5)
 project(meraxes)
 include(${CMAKE_ROOT}/Modules/ExternalProject.cmake)
+include(${CMAKE_CURRENT_SOURCE_DIR}/local.cmake OPTIONAL)
 find_package(Git REQUIRED)
 
 # Build type
@@ -154,6 +155,7 @@ add_custom_target(install.lib
     -P ${CMAKE_BINARY_DIR}/cmake_install.cmake) 
 add_dependencies(install.lib lib)
 
+# custom targets
 add_custom_target(setuprun
     COMMENT "Setting up run with minimal required files..."
     COMMAND echo "RUNDIR = \${RUNDIR}"
@@ -163,3 +165,8 @@ add_custom_target(setuprun
     COMMAND cp ${CMAKE_BINARY_DIR}/meraxes \${RUNDIR}
     )
 add_dependencies(setuprun meraxes)
+
+add_custom_target(formatcode
+    COMMENT "Use clang-format to format the source code consistently."
+    COMMAND ${CLANG_FORMAT_BINARY} -style=Google -i ${SOURCES}
+    )
