@@ -1,4 +1,5 @@
 #include "meraxes.h"
+#include <assert.h>
 #include <gsl/gsl_sort_int.h>
 #include <hdf5.h>
 #include <hdf5_hl.h>
@@ -141,15 +142,131 @@ static void select_forests()
     free(temp);
     free(sort_ind);
 
-    // TODO: Cont here...
+    // if we are running the code with more than one core, let's subselect the
+    // forests on each one
+    if (run_globals.mpi_size > 1) {
+        if (n_forests < run_globals.mpi_size) {
+            mlog_error(
+                "There are fewer processors than there are forests to be processed "
+                "(%d).  Try again with fewer cores!",
+                n_forests);
+            ABORT(EXIT_FAILURE);
+        }
+
+        // TODO: Load balancing still seems pretty bad.
+        // This should be looked into to see if there are any improvements that can
+        // be made.  This would hopefully improve runtimes...
+
+        // malloc the arrays we need for keeping track of the load balancing
+        int* rank_first_forest = (int*)malloc(sizeof(int) * run_globals.mpi_size);
+        int* rank_last_forest = (int*)malloc(sizeof(int) * run_globals.mpi_size);
+        int* rank_n_forests = (int*)malloc(sizeof(int) * run_globals.mpi_size);
+        int* rank_n_halos = (int*)malloc(sizeof(int) * run_globals.mpi_size);
+
+        // initialise
+        for (int ii = 0; ii < run_globals.mpi_size; ii++) {
+            rank_first_forest[ii] = 0;
+            rank_last_forest[ii] = 0;
+            rank_n_forests[ii] = 0;
+            rank_n_halos[ii] = 0;
+        }
+
+        // loop through each rank
+        int i_forest = 0;
+        for (int i_rank = 0, n_halos_used = 0, n_halos_target = 0;
+             i_rank < run_globals.mpi_size; i_rank++, i_forest++) {
+            // start with the next forest (or first forest if this is the first rank)
+            rank_first_forest[i_rank] = i_forest;
+            rank_last_forest[i_rank] = i_forest;
+
+            // if we still have forests left to check from the total list of forests
+            if (i_forest < n_forests) {
+                // add this forest's halos to this rank's total
+                rank_n_halos[i_rank] += n_halos[requested_ind[i_forest]];
+
+                // adjust our target to smooth out variations as much as possible
+                n_halos_target = (n_halos_tot - n_halos_used) / (run_globals.mpi_size - i_rank);
+
+                // increment the counter of the number of forests on this rank
+                rank_n_forests[i_rank]++;
+
+                // keep adding forests until we have reached (or exceeded) the current
+                // target
+                while ((rank_n_halos[i_rank] < n_halos_target) && (i_forest < (n_forests - 1))) {
+                    i_forest++;
+                    rank_n_forests[i_rank]++;
+                    rank_last_forest[i_rank] = i_forest;
+                    rank_n_halos[i_rank] += n_halos[requested_ind[i_forest]];
+                }
+
+                // updated the total number of used halos
+                n_halos_used += rank_n_halos[i_rank];
+            }
+        }
+
+        // add any uncounted forests to the last process
+        // n.b. i_forest = value from last for loop
+        for (i_forest++; i_forest < n_forests; i_forest++) {
+            rank_last_forest[run_globals.mpi_size - 1] = i_forest;
+            rank_n_halos[run_globals.mpi_size - 1] += n_halos[requested_ind[i_forest]];
+            rank_n_forests[run_globals.mpi_size - 1]++;
+        }
+
+        assert(rank_n_forests[run_globals.mpi_rank] > 0);
+
+        // create our list of forest_ids for this rank
+        run_globals.NRequestedForests = rank_n_forests[run_globals.mpi_rank];
+        if (run_globals.RequestedForestId != NULL)
+            run_globals.RequestedForestId = realloc(run_globals.RequestedForestId,
+                run_globals.NRequestedForests * sizeof(int));
+        else
+            run_globals.RequestedForestId = (int*)malloc(sizeof(int) * run_globals.NRequestedForests);
+
+        for (int ii = rank_first_forest[run_globals.mpi_rank], jj = 0;
+             ii <= rank_last_forest[run_globals.mpi_rank];
+             ii++, jj++)
+            run_globals.RequestedForestId[jj] = forest_id[requested_ind[ii]];
+
+        // free the arrays
+        free(rank_n_halos);
+        free(rank_n_forests);
+        free(rank_last_forest);
+        free(rank_first_forest);
+    }
+
+    // loop through and tot up the max number of halos and fof_groups we will need
+    // to allocate
+    int max_halos = 0;
+    int max_fof_groups = 0;
+    for (int i_forest = 0, i_req = 0;
+         (i_forest < n_forests) && (i_req < run_globals.NRequestedForests);
+         i_forest++)
+        if (forest_id[requested_ind[i_forest]] == run_globals.RequestedForestId[i_req]) {
+            max_halos += max_contemp_halo[requested_ind[i_forest]];
+            max_fof_groups += max_contemp_fof[requested_ind[i_forest]];
+            i_req++;
+        }
+
+    // store the maximum number of halos and fof groups needed at any one snapshot
+    run_globals.NHalosMax = max_halos;
+    run_globals.NFOFGroupsMax = max_fof_groups;
+
+    // sort the requested forest ids so that they can be bsearch'd later
+    qsort(run_globals.RequestedForestId, run_globals.NRequestedForests,
+        sizeof(int), compare_ints);
 
     free(requested_ind);
+    free(max_contemp_halo);
+    free(max_contemp_fof);
+    free(forest_id);
+    free(n_halos);
 }
 
-trees_info_t read_halos(const int snapshot, halo_t** halos, int** index_lookup)
+trees_info_t read_halos(const int snapshot, halo_t** halos,
+    int** index_lookup)
 {
-
-    mlog("Reading snapshot %d (z = %.2f) trees and halos...", MLOG_OPEN | MLOG_TIMERSTART, snapshot, run_globals.ZZ[snapshot]);
+    mlog("Reading snapshot %d (z = %.2f) trees and halos...",
+        MLOG_OPEN | MLOG_TIMERSTART, snapshot, run_globals.ZZ[snapshot]);
 
     // Read mass ratio modifiers and baryon fraction modifiers if required
     if (run_globals.RequestedMassRatioModifier == 1)
@@ -173,12 +290,14 @@ trees_info_t read_halos(const int snapshot, halo_t** halos, int** index_lookup)
     // snapshot and we were in interactive / MCMC mode...  Not sure why though...
 
     if ((*halos) == NULL) {
-        // if required, select forests and calculate the maximum number of halos and fof groups
+        // if required, select forests and calculate the maximum number of halos and
+        // fof groups
         if ((run_globals.NRequestedForests > -1) || (run_globals.mpi_size > 1)) {
             if (run_globals.SelectForestsSwitch == true) {
                 select_forests();
 
-                // Toggle the SelectForestsSwitch so that we know we don't need to call this again
+                // Toggle the SelectForestsSwitch so that we know we don't need to call
+                // this again
                 run_globals.SelectForestsSwitch = false;
             }
             *index_lookup = malloc(sizeof(int) * run_globals.NHalosMax);
