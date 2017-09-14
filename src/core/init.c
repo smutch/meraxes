@@ -1,366 +1,340 @@
 #include "meraxes.h"
-#include <time.h>
-#include <gsl/gsl_math.h>
 #include <gsl/gsl_integration.h>
+#include <gsl/gsl_math.h>
+#include <time.h>
 
 static void read_requested_forest_ids()
 {
-  if (strlen(run_globals.params.ForestIDFile) == 0)
-  {
-    run_globals.NRequestedForests = -1;
-    run_globals.RequestedForestId = NULL;
-    return;
-  }
-
-  if (run_globals.mpi_rank == 0)
-  {
-    FILE  *fin;
-    char  *line      = NULL;
-    size_t len;
-    int    n_forests = -1;
-    int   *ids;
-
-    if (!(fin = fopen(run_globals.params.ForestIDFile, "r")))
-    {
-      mlog_error("Failed to open file: %s", run_globals.params.ForestIDFile);
-      ABORT(EXIT_FAILURE);
+    if (strlen(run_globals.params.ForestIDFile) == 0) {
+        run_globals.NRequestedForests = -1;
+        run_globals.RequestedForestId = NULL;
+        return;
     }
 
-    getline(&line, &len, fin);
-    n_forests                     = atoi(line);
-    run_globals.NRequestedForests = n_forests;
+    if (run_globals.mpi_rank == 0) {
+        FILE* fin;
+        char* line = NULL;
+        size_t len;
+        int n_forests = -1;
+        int* ids;
 
-    run_globals.RequestedForestId = malloc(sizeof(int) * n_forests);
-    ids                           = run_globals.RequestedForestId;
+        if (!(fin = fopen(run_globals.params.ForestIDFile, "r"))) {
+            mlog_error("Failed to open file: %s", run_globals.params.ForestIDFile);
+            ABORT(EXIT_FAILURE);
+        }
 
-    for (int ii = 0; ii < n_forests; ii++)
-    {
-      getline(&line, &len, fin);
-      ids[ii] = atoi(line);
+        getline(&line, &len, fin);
+        n_forests = atoi(line);
+        run_globals.NRequestedForests = n_forests;
+
+        run_globals.RequestedForestId = malloc(sizeof(int) * n_forests);
+        ids = run_globals.RequestedForestId;
+
+        for (int ii = 0; ii < n_forests; ii++) {
+            getline(&line, &len, fin);
+            ids[ii] = atoi(line);
+        }
+
+        free(line);
+
+        mlog("Found %d requested forest IDs", MLOG_MESG, n_forests);
+
+        fclose(fin);
     }
 
-    free(line);
-
-    mlog("Found %d requested forest IDs", MLOG_MESG, n_forests);
-
-    fclose(fin);
-  }
-
-
-  // broadcast the data to all other ranks
-  MPI_Bcast(&(run_globals.NRequestedForests), 1, MPI_INT, 0, run_globals.mpi_comm);
-  if (run_globals.mpi_rank > 0)
-    run_globals.RequestedForestId = malloc(sizeof(int) * run_globals.NRequestedForests);
-  MPI_Bcast(run_globals.RequestedForestId, run_globals.NRequestedForests, MPI_INT, 0, run_globals.mpi_comm);
+    // broadcast the data to all other ranks
+    MPI_Bcast(&(run_globals.NRequestedForests), 1, MPI_INT, 0, run_globals.mpi_comm);
+    if (run_globals.mpi_rank > 0)
+        run_globals.RequestedForestId = malloc(sizeof(int) * run_globals.NRequestedForests);
+    MPI_Bcast(run_globals.RequestedForestId, run_globals.NRequestedForests, MPI_INT, 0, run_globals.mpi_comm);
 }
-
 
 static void read_snap_list()
 {
-  if (run_globals.mpi_rank == 0)
-  {
-    FILE        *fin;
-    int          snaplist_len;
-    double       dummy;
-    char         fname[STRLEN];
-    run_params_t params = run_globals.params;
+    if (run_globals.mpi_rank == 0) {
+        FILE* fin;
+        int snaplist_len;
+        double dummy;
+        char fname[STRLEN];
+        run_params_t params = run_globals.params;
 
-    sprintf(fname, "%s/a_list.txt", params.SimulationDir);
+        sprintf(fname, "%s/a_list.txt", params.SimulationDir);
 
-    if (!(fin = fopen(fname, "r")))
-    {
-      mlog_error("failed to read snaplist in file '%s'", fname);
-      ABORT(EXIT_FAILURE);
+        if (!(fin = fopen(fname, "r"))) {
+            mlog_error("failed to read snaplist in file '%s'", fname);
+            ABORT(EXIT_FAILURE);
+        }
+
+        // Count the number of snapshot list entries
+        snaplist_len = 0;
+        do {
+            if (fscanf(fin, " %lg ", &dummy) == 1)
+                snaplist_len++;
+            else
+                break;
+        } while (true);
+
+        run_globals.params.SnaplistLength = snaplist_len;
+        if (run_globals.mpi_rank == 0)
+            printf("found %d defined times in snaplist.\n", snaplist_len);
+
+        // malloc the relevant arrays
+        run_globals.AA = malloc(sizeof(double) * snaplist_len);
+        run_globals.ZZ = malloc(sizeof(double) * snaplist_len);
+        run_globals.LTTime = malloc(sizeof(double) * snaplist_len);
+
+        // seek back to the start of the file
+        rewind(fin);
+
+        // actually read in the expansion factors
+        snaplist_len = 0;
+        do {
+            if (fscanf(fin, " %lg ", &(run_globals.AA[snaplist_len])) == 1)
+                snaplist_len++;
+            else
+                break;
+        } while (true);
+
+        // close the file
+        fclose(fin);
     }
 
-    // Count the number of snapshot list entries
-    snaplist_len = 0;
-    do
-    {
-      if (fscanf(fin, " %lg ", &dummy) == 1)
-        snaplist_len++;
-      else
-        break;
-    } while (true);
-
-    run_globals.params.SnaplistLength = snaplist_len;
-    if (run_globals.mpi_rank == 0)
-      printf("found %d defined times in snaplist.\n", snaplist_len);
-
-    // malloc the relevant arrays
-    run_globals.AA     = malloc(sizeof(double) * snaplist_len);
-    run_globals.ZZ     = malloc(sizeof(double) * snaplist_len);
-    run_globals.LTTime = malloc(sizeof(double) * snaplist_len);
-
-    // seek back to the start of the file
-    rewind(fin);
-
-    // actually read in the expansion factors
-    snaplist_len = 0;
-    do
-    {
-      if (fscanf(fin, " %lg ", &(run_globals.AA[snaplist_len])) == 1)
-        snaplist_len++;
-      else
-        break;
-    } while (true);
-
-    // close the file
-    fclose(fin);
-  }
-
-  // broadcast the read to all other ranks and malloc the necessary arrays
-  MPI_Bcast(&(run_globals.params.SnaplistLength), 1, MPI_INT, 0, run_globals.mpi_comm);
-  if (run_globals.mpi_rank > 0)
-  {
-    run_globals.AA     = malloc(sizeof(double) * run_globals.params.SnaplistLength);
-    run_globals.ZZ     = malloc(sizeof(double) * run_globals.params.SnaplistLength);
-    run_globals.LTTime = malloc(sizeof(double) * run_globals.params.SnaplistLength);
-  }
-  MPI_Bcast(run_globals.AA, run_globals.params.SnaplistLength, MPI_DOUBLE, 0, run_globals.mpi_comm);
+    // broadcast the read to all other ranks and malloc the necessary arrays
+    MPI_Bcast(&(run_globals.params.SnaplistLength), 1, MPI_INT, 0, run_globals.mpi_comm);
+    if (run_globals.mpi_rank > 0) {
+        run_globals.AA = malloc(sizeof(double) * run_globals.params.SnaplistLength);
+        run_globals.ZZ = malloc(sizeof(double) * run_globals.params.SnaplistLength);
+        run_globals.LTTime = malloc(sizeof(double) * run_globals.params.SnaplistLength);
+    }
+    MPI_Bcast(run_globals.AA, run_globals.params.SnaplistLength, MPI_DOUBLE, 0, run_globals.mpi_comm);
 }
 
-
-double integrand_time_to_present(double a, void *params)
+double integrand_time_to_present(double a, void* params)
 {
-  double omega_m      = ((run_params_t*)params)->OmegaM;
-  double omega_k      = ((run_params_t*)params)->OmegaK;
-  double omega_lambda = ((run_params_t*)params)->OmegaLambda;
+    double omega_m = ((run_params_t*)params)->OmegaM;
+    double omega_k = ((run_params_t*)params)->OmegaK;
+    double omega_lambda = ((run_params_t*)params)->OmegaLambda;
 
-  return 1 / sqrt(omega_m / a + omega_k + omega_lambda * a * a);
+    return 1 / sqrt(omega_m / a + omega_k + omega_lambda * a * a);
 }
-
 
 static double time_to_present(double z)
 {
 #define WORKSIZE 1000
-  gsl_function               F;
-  gsl_integration_workspace *workspace;
-  double                     time;
-  double                     result;
-  double                     abserr;
+    gsl_function F;
+    gsl_integration_workspace* workspace;
+    double time;
+    double result;
+    double abserr;
 
-  workspace  = gsl_integration_workspace_alloc(WORKSIZE);
-  F.function = &integrand_time_to_present;
-  F.params   = &(run_globals.params);
+    workspace = gsl_integration_workspace_alloc(WORKSIZE);
+    F.function = &integrand_time_to_present;
+    F.params = &(run_globals.params);
 
-  gsl_integration_qag(&F, 1.0 / (z + 1), 1.0, 1.0 / run_globals.Hubble,
-                      1.0e-8, WORKSIZE, GSL_INTEG_GAUSS21, workspace, &result, &abserr);
+    gsl_integration_qag(&F, 1.0 / (z + 1), 1.0, 1.0 / run_globals.Hubble,
+        1.0e-8, WORKSIZE, GSL_INTEG_GAUSS21, workspace, &result, &abserr);
 
-  time = 1 / run_globals.Hubble * result;
+    time = 1 / run_globals.Hubble * result;
 
-  gsl_integration_workspace_free(workspace);
+    gsl_integration_workspace_free(workspace);
 
-  // return time to present as a function of redshift
-  return time;
+    // return time to present as a function of redshift
+    return time;
 }
-
 
 void set_units()
 {
-  run_units_t *units = &(run_globals.units);
+    run_units_t* units = &(run_globals.units);
 
-  units->UnitTime_in_s          = units->UnitLength_in_cm / units->UnitVelocity_in_cm_per_s;
-  units->UnitTime_in_Megayears  = units->UnitTime_in_s / SEC_PER_MEGAYEAR;
+    units->UnitTime_in_s = units->UnitLength_in_cm / units->UnitVelocity_in_cm_per_s;
+    units->UnitTime_in_Megayears = units->UnitTime_in_s / SEC_PER_MEGAYEAR;
 
-  run_globals.G                 = GRAVITY / pow(units->UnitLength_in_cm, 3) * units->UnitMass_in_g * pow(units->UnitTime_in_s, 2);
-  run_globals.Csquare           = pow(C / units->UnitVelocity_in_cm_per_s, 2);
+    run_globals.G = GRAVITY / pow(units->UnitLength_in_cm, 3) * units->UnitMass_in_g * pow(units->UnitTime_in_s, 2);
+    run_globals.Csquare = pow(C / units->UnitVelocity_in_cm_per_s, 2);
 
-  units->UnitDensity_in_cgs     = units->UnitMass_in_g / pow(units->UnitLength_in_cm, 3);
-  units->UnitPressure_in_cgs    = units->UnitMass_in_g / units->UnitLength_in_cm / pow(units->UnitTime_in_s, 2);
-  units->UnitCoolingRate_in_cgs = units->UnitPressure_in_cgs / units->UnitTime_in_s;
+    units->UnitDensity_in_cgs = units->UnitMass_in_g / pow(units->UnitLength_in_cm, 3);
+    units->UnitPressure_in_cgs = units->UnitMass_in_g / units->UnitLength_in_cm / pow(units->UnitTime_in_s, 2);
+    units->UnitCoolingRate_in_cgs = units->UnitPressure_in_cgs / units->UnitTime_in_s;
 
-  units->UnitEnergy_in_cgs      = units->UnitMass_in_g * pow(units->UnitLength_in_cm, 2) / pow(units->UnitTime_in_s, 2);
+    units->UnitEnergy_in_cgs = units->UnitMass_in_g * pow(units->UnitLength_in_cm, 2) / pow(units->UnitTime_in_s, 2);
 
-  // convert some physical input parameters to internal units
-  run_globals.Hubble            = HUBBLE * units->UnitTime_in_s;
+    // convert some physical input parameters to internal units
+    run_globals.Hubble = HUBBLE * units->UnitTime_in_s;
 
-  // compute a few quantitites
-  run_globals.RhoCrit           = 3 * run_globals.Hubble * run_globals.Hubble / (8 * M_PI * run_globals.G);
+    // compute a few quantitites
+    run_globals.RhoCrit = 3 * run_globals.Hubble * run_globals.Hubble / (8 * M_PI * run_globals.G);
 
-  // debug("UnitTime_in_s = %e\nUnitTime_in_Megayears = %e\nG = %e\nUnitDensity_in_cgs = %e\nUnitPressure_in_cgs = %e\nUnitCoolingRate_in_cgs = %e\nUnitEnergy_in_cgs = %e\n",
-  //     units->UnitTime_in_s, units->UnitTime_in_Megayears, units->UnitDensity_in_cgs, units->UnitPressure_in_cgs, units->UnitCoolingRate_in_cgs, units->UnitEnergy_in_cgs);
-  // ABORT(EXIT_SUCCESS);
+    // debug("UnitTime_in_s = %e\nUnitTime_in_Megayears = %e\nG = %e\nUnitDensity_in_cgs = %e\nUnitPressure_in_cgs = %e\nUnitCoolingRate_in_cgs = %e\nUnitEnergy_in_cgs = %e\n",
+    //     units->UnitTime_in_s, units->UnitTime_in_Megayears, units->UnitDensity_in_cgs, units->UnitPressure_in_cgs, units->UnitCoolingRate_in_cgs, units->UnitEnergy_in_cgs);
+    // ABORT(EXIT_SUCCESS);
 }
-
 
 static void read_output_snaps()
 {
-  int **ListOutputSnaps = &(run_globals.ListOutputSnaps);
-  int  *LastOutputSnap  = &(run_globals.LastOutputSnap);
-  int   maxsnaps        = run_globals.params.SnaplistLength;
-  int  *nout            = &(run_globals.NOutputSnaps);
+    int** ListOutputSnaps = &(run_globals.ListOutputSnaps);
+    int* LastOutputSnap = &(run_globals.LastOutputSnap);
+    int maxsnaps = run_globals.params.SnaplistLength;
+    int* nout = &(run_globals.NOutputSnaps);
 
-  if (run_globals.mpi_rank == 0)
-  {
-    int   i;
-    char  fname[STRLEN];
-    FILE *fd;
+    if (run_globals.mpi_rank == 0) {
+        int i;
+        char fname[STRLEN];
+        FILE* fd;
 
-    strcpy(fname, run_globals.params.FileWithOutputSnaps);
+        strcpy(fname, run_globals.params.FileWithOutputSnaps);
 
-    if (!(fd = fopen(fname, "r")))
-    {
-      mlog_error("file `%s' not found.", fname);
-      exit(EXIT_FAILURE);
-    }
+        if (!(fd = fopen(fname, "r"))) {
+            mlog_error("file `%s' not found.", fname);
+            exit(EXIT_FAILURE);
+        }
 
-    // find out how many output snapshots are being requested
-    int dummy;
-    for (i = 0; i < maxsnaps; i++)
-    {
-      if (fscanf(fd, " %d ", &dummy) == 1)
-        (*nout)++;
-      else
-        break;
-    }
-    fseek(fd, 0, SEEK_SET);
+        // find out how many output snapshots are being requested
+        int dummy;
+        for (i = 0; i < maxsnaps; i++) {
+            if (fscanf(fd, " %d ", &dummy) == 1)
+                (*nout)++;
+            else
+                break;
+        }
+        fseek(fd, 0, SEEK_SET);
 
-    // allocate the ListOutputSnaps array
-    *ListOutputSnaps = malloc(sizeof(int) * (*nout));
+        // allocate the ListOutputSnaps array
+        *ListOutputSnaps = malloc(sizeof(int) * (*nout));
 
-    for (i = 0; i < (*nout); i++)
-      if (fscanf(fd, " %d ", &((*ListOutputSnaps)[i])) != 1)
-      {
-        mlog_error("I/O error in file '%s'\n", fname);
-        exit(EXIT_FAILURE);
-      }
-    fclose(fd);
+        for (i = 0; i < (*nout); i++)
+            if (fscanf(fd, " %d ", &((*ListOutputSnaps)[i])) != 1) {
+                mlog_error("I/O error in file '%s'\n", fname);
+                exit(EXIT_FAILURE);
+            }
+        fclose(fd);
 
 #ifdef CALC_MAGS
-    if (*nout != NOUT)
-    {
-      mlog_error("Number of entries in output snaplist does not match NOUT!");
-      ABORT(EXIT_FAILURE);
-    }
+        if (*nout != NOUT) {
+            mlog_error("Number of entries in output snaplist does not match NOUT!");
+            ABORT(EXIT_FAILURE);
+        }
 #endif
 
-    // Loop through the read in snapshot numbers and convert any negative
-    // values to positive ones ala python indexing conventions...
-    // e.g. -1 -> MAXSNAPS-1 and so on...
-    // Also store the last requested output snapnum
-    *LastOutputSnap = 0;
-    for (i = 0; i < (*nout); i++)
-    {
-      if ((*ListOutputSnaps)[i] < 0)
-        (*ListOutputSnaps)[i] += run_globals.params.SnaplistLength;
-      if ((*ListOutputSnaps)[i] > *LastOutputSnap)
-        *LastOutputSnap = (*ListOutputSnaps)[i];
+        // Loop through the read in snapshot numbers and convert any negative
+        // values to positive ones ala python indexing conventions...
+        // e.g. -1 -> MAXSNAPS-1 and so on...
+        // Also store the last requested output snapnum
+        *LastOutputSnap = 0;
+        for (i = 0; i < (*nout); i++) {
+            if ((*ListOutputSnaps)[i] < 0)
+                (*ListOutputSnaps)[i] += run_globals.params.SnaplistLength;
+            if ((*ListOutputSnaps)[i] > *LastOutputSnap)
+                *LastOutputSnap = (*ListOutputSnaps)[i];
+        }
+
+        // sort the list from low to high snapnum
+        qsort(*ListOutputSnaps, (*nout), sizeof(int), compare_ints);
     }
 
-    // sort the list from low to high snapnum
-    qsort(*ListOutputSnaps, (*nout), sizeof(int), compare_ints);
-  }
+    // broadcast the data to all other ranks
+    MPI_Bcast(nout, 1, MPI_INT, 0, run_globals.mpi_comm);
 
-  // broadcast the data to all other ranks
-  MPI_Bcast(nout, 1, MPI_INT, 0, run_globals.mpi_comm);
+    if (run_globals.mpi_rank > 0)
+        *ListOutputSnaps = malloc(sizeof(int) * (*nout));
 
-  if(run_globals.mpi_rank > 0)
-    *ListOutputSnaps = malloc(sizeof(int) * (*nout));
-
-  MPI_Bcast(*ListOutputSnaps, *nout, MPI_INT, 0, run_globals.mpi_comm);
-  MPI_Bcast(LastOutputSnap, 1, MPI_INT, 0, run_globals.mpi_comm);
+    MPI_Bcast(*ListOutputSnaps, *nout, MPI_INT, 0, run_globals.mpi_comm);
+    MPI_Bcast(LastOutputSnap, 1, MPI_INT, 0, run_globals.mpi_comm);
 }
-
 
 static void check_n_history_snaps()
 {
-  // Check that N_HISTORY_SNAPS is set to a high enough value to allow all
-  // SN-II to be tracked across the entire simulation.  This is calculated in
-  // an extremely crude fasion!
+    // Check that N_HISTORY_SNAPS is set to a high enough value to allow all
+    // SN-II to be tracked across the entire simulation.  This is calculated in
+    // an extremely crude fasion!
 
-  double *LTTime  = run_globals.LTTime;
-  int     n_snaps = run_globals.params.SnaplistLength;
-  double  min_dt  = LTTime[0] - LTTime[n_snaps - 1];
-  double  m_low;
+    double* LTTime = run_globals.LTTime;
+    int n_snaps = run_globals.params.SnaplistLength;
+    double min_dt = LTTime[0] - LTTime[n_snaps - 1];
+    double m_low;
 
-  for (int ii = 0; ii < n_snaps - N_HISTORY_SNAPS; ii++)
-  {
-    double diff = LTTime[ii] - LTTime[ii + N_HISTORY_SNAPS];
-    if (diff < min_dt)
-      min_dt = diff;
-  }
+    for (int ii = 0; ii < n_snaps - N_HISTORY_SNAPS; ii++) {
+        double diff = LTTime[ii] - LTTime[ii + N_HISTORY_SNAPS];
+        if (diff < min_dt)
+            min_dt = diff;
+    }
 
-  min_dt *= run_globals.units.UnitTime_in_Megayears / run_globals.params.Hubble_h;
-  m_low   = sn_m_low(log10(min_dt));
+    min_dt *= run_globals.units.UnitTime_in_Megayears / run_globals.params.Hubble_h;
+    m_low = sn_m_low(log10(min_dt));
 
-  if (m_low > 8.0)
-  {
-    mlog_error("N_HISTORY_SNAPS is likely not set to a high enough value!  Exiting...");
-    ABORT(EXIT_FAILURE);
-  }
+    if (m_low > 8.0) {
+        mlog_error("N_HISTORY_SNAPS is likely not set to a high enough value!  Exiting...");
+        ABORT(EXIT_FAILURE);
+    }
 }
-
 
 void init_meraxes()
 {
-  int i;
-  int snaplist_len;
+    int i;
+    int snaplist_len;
 
-  // initialise the random number generator
-  run_globals.random_generator = gsl_rng_alloc(gsl_rng_ranlxd1);
-  gsl_rng_set(run_globals.random_generator, run_globals.params.RandomSeed);
+    // initialise the random number generator
+    run_globals.random_generator = gsl_rng_alloc(gsl_rng_ranlxd1);
+    gsl_rng_set(run_globals.random_generator, run_globals.params.RandomSeed);
 
-  // set the units
-  set_units();
+    // set the units
+    set_units();
 
-  // init the stdlib random number generator (for CN exceptions only)
-  srand((unsigned)time(NULL));
+    // init the stdlib random number generator (for CN exceptions only)
+    srand((unsigned)time(NULL));
 
-  // read the input snaps list
-  read_snap_list();
+    // read the input snaps list
+    read_snap_list();
 
-  // read the output snap list
-  read_output_snaps();
+    // read the output snap list
+    read_output_snaps();
 
-  snaplist_len = run_globals.params.SnaplistLength;
-  for (i = 0; i < snaplist_len; i++)
-  {
-    run_globals.ZZ[i]     = 1 / run_globals.AA[i] - 1;
-    run_globals.LTTime[i] = time_to_present(run_globals.ZZ[i]);
-  }
+    snaplist_len = run_globals.params.SnaplistLength;
+    for (i = 0; i < snaplist_len; i++) {
+        run_globals.ZZ[i] = 1 / run_globals.AA[i] - 1;
+        run_globals.LTTime[i] = time_to_present(run_globals.ZZ[i]);
+    }
 
-  // check to ensure N_HISTORY_SNAPS is set to a high enough value
-  check_n_history_snaps();
+    // check to ensure N_HISTORY_SNAPS is set to a high enough value
+    check_n_history_snaps();
 
-  // read in the requested forest IDs (if any)
-  read_requested_forest_ids();
+    // read in the requested forest IDs (if any)
+    read_requested_forest_ids();
 
-  // read in the photometric tables if required
-  read_photometric_tables();
+    // read in the photometric tables if required
+    read_photometric_tables();
 
-  // read in the cooling functions
-  read_cooling_functions();
+    // read in the cooling functions
+    read_cooling_functions();
 
-  // set RequestedMassRatioModifier and RequestedBaryonFracModifieruto be 1 first
-  // it will be set to -1 later if MassRatioModifier or BaryonFracModifier is not specified
-  run_globals.RequestedMassRatioModifier  = 1;
-  run_globals.RequestedBaryonFracModifier = 1;
+    // set RequestedMassRatioModifier and RequestedBaryonFracModifieruto be 1 first
+    // it will be set to -1 later if MassRatioModifier or BaryonFracModifier is not specified
+    run_globals.RequestedMassRatioModifier = 1;
+    run_globals.RequestedBaryonFracModifier = 1;
 
-  // read in the mean Mvir_crit table (if needed)
-  read_Mcrit_table();
+    // read in the mean Mvir_crit table (if needed)
+    read_Mcrit_table();
 
-  // Initialise galaxy pointers
-  run_globals.FirstGal            = NULL;
-  run_globals.LastGal             = NULL;
+    // Initialise galaxy pointers
+    run_globals.FirstGal = NULL;
+    run_globals.LastGal = NULL;
 
-  // Initialise some book keeping parameters for the input trees
-  run_globals.TreesStep           = -1;
-  run_globals.TreesScan           = -1;
+    // Initialise some book keeping parameters for the input trees
+    run_globals.TreesStep = -1;
+    run_globals.TreesScan = -1;
 
-  // Set the SelectForestsSwitch
-  run_globals.SelectForestsSwitch = true;
+    // Set the SelectForestsSwitch
+    run_globals.SelectForestsSwitch = true;
 
-  // This will be set by Mhysa
-  run_globals.mhysa_self          = NULL;
+    // This will be set by Mhysa
+    run_globals.mhysa_self = NULL;
 
-  // Initialize the halo storage arrays
-  initialize_halo_storage();
+    // Initialize the halo storage arrays
+    initialize_halo_storage();
 
-  malloc_reionization_grids();
-  set_ReionEfficiency();
-  set_quasar_fobs();
+    malloc_reionization_grids();
+    set_ReionEfficiency();
+    set_quasar_fobs();
 
-  // calculate the output hdf5 file properties for later use
-  calc_hdf5_props();
+    // calculate the output hdf5 file properties for later use
+    calc_hdf5_props();
 }
