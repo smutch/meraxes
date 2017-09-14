@@ -6,6 +6,7 @@
 
 static trees_info_t read_trees_info(const int snapshot)
 {
+    // TODO: This is wasteful and should probably only ever be done once and stored in run_globals.
     char fname[STRLEN];
     sprintf(fname, "%s/trees/meraxes_augmented_info.h5", run_globals.params.SimulationDir);
 
@@ -15,14 +16,18 @@ static trees_info_t read_trees_info(const int snapshot)
         ABORT(EXIT_FAILURE);
     }
 
-    char grp_name[STRLEN];
-    sprintf(grp_name, "Snap_%03d", snapshot);
-
+    int n_snaps = 0;
     trees_info_t trees_info;
-    H5LTget_attribute_int(fd, grp_name, "n_halos", &(trees_info.n_halos));
-    H5LTget_attribute_int(fd, grp_name, "n_halos_max", &(trees_info.n_halos_max));
-    H5LTget_attribute_int(fd, grp_name, "n_fof_groups", &(trees_info.n_fof_groups));
-    H5LTget_attribute_int(fd, grp_name, "n_fof_groups_max", &(trees_info.n_fof_groups_max));
+    H5LTget_attribute_int(fd, "/", "n_snaps", &n_snaps);
+    H5LTget_attribute_int(fd, "/", "n_halos_max", &(trees_info.n_halos_max));
+    H5LTget_attribute_int(fd, "/", "n_fof_groups_max", &(trees_info.n_fof_groups_max));
+
+    int* buffer = malloc(sizeof(int) * n_snaps);
+    H5LTread_dataset_int(fd, "n_halos", buffer);
+    trees_info.n_halos = buffer[snapshot];
+    H5LTread_dataset_int(fd, "n_fof_groups", buffer);
+    trees_info.n_fof_groups = buffer[snapshot];
+    free(buffer);
 
     H5Fclose(fd);
 
@@ -262,7 +267,25 @@ static void select_forests()
     free(n_halos);
 }
 
-trees_info_t read_halos(const int snapshot, halo_t** halos,
+static fof_group_t* init_fof_groups()
+{
+    mlog("Allocating fof_group array with %d elements...", MLOG_MESG, run_globals.NFOFGroupsMax);
+    fof_group_t* fof_groups = malloc(sizeof(fof_group_t) * run_globals.NFOFGroupsMax);
+
+    for (int ii = 0; ii < run_globals.NFOFGroupsMax; ii++) {
+        fof_groups[ii].FirstHalo = NULL;
+        fof_groups[ii].FirstOccupiedHalo = NULL;
+        fof_groups[ii].Mvir = 0.0;
+    }
+
+    return fof_groups;
+}
+
+static void read_velociraptor_trees(int snapshot, halo_t* halos, int n_halos, fof_group_t* fof_groups, int n_fof_groups, int* index_lookup)
+{
+}
+
+trees_info_t read_halos(const int snapshot, halo_t** halos, fof_group_t** fof_groups,
     int** index_lookup)
 {
     mlog("Reading snapshot %d (z = %.2f) trees and halos...",
@@ -287,7 +310,13 @@ trees_info_t read_halos(const int snapshot, halo_t** halos,
     int n_fof_groups = trees_info.n_fof_groups;
 
     // TODO: Here the original code returned if there were no halos at this
-    // snapshot and we were in interactive / MCMC mode...  Not sure why though...
+    // snapshot and we were in interactive / MCMC mode...  Not sure why the
+    // caveat though...
+
+    if (n_halos < 1) {
+        mlog("No halos in this file... skipping...", MLOG_CLOSE | MLOG_TIMERSTOP);
+        return trees_info;
+    }
 
     if ((*halos) == NULL) {
         // if required, select forests and calculate the maximum number of halos and
@@ -301,6 +330,8 @@ trees_info_t read_halos(const int snapshot, halo_t** halos,
                 run_globals.SelectForestsSwitch = false;
             }
             *index_lookup = malloc(sizeof(int) * run_globals.NHalosMax);
+            for (int ii = 0; ii < run_globals.NHalosMax; ii++)
+                (*index_lookup)[ii] = -1;
         } else {
             run_globals.NHalosMax = trees_info.n_halos_max;
             run_globals.NFOFGroupsMax = trees_info.n_fof_groups_max;
@@ -309,6 +340,13 @@ trees_info_t read_halos(const int snapshot, halo_t** halos,
         mlog("Allocating halo array with %d elements...", MLOG_MESG, run_globals.NHalosMax);
         *halos = malloc(sizeof(halo_t) * run_globals.NHalosMax);
     }
+
+    // Allocate the fof_group array if necessary
+    if (*fof_groups == NULL)
+        *fof_groups = init_fof_groups();
+
+    // Now actually read in the trees!
+    read_velociraptor_trees(snapshot, *halos, n_halos, *fof_groups, n_fof_groups, *index_lookup);
 
     return trees_info;
 }
