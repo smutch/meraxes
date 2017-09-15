@@ -381,7 +381,7 @@ void _find_HII_bubbles(double redshift,const bool flag_validation_output)
   *mass_weighted_global_xH   /= mass_weight;
 
 }
-void find_HII_bubbles(int snapshot)
+void find_HII_bubbles(int snapshot,timer_info *timer_total)
 {
   // Call the version of find_HII_bubbles we've been passed (and time it)
   int    flag_write_validation_data=false;
@@ -404,17 +404,19 @@ void find_HII_bubbles(int snapshot)
   #endif
   timer_stop(&timer);
   timer_gpu+=timer_delta(timer);
-  mlog("Total time spent in find_HII_bubbles: %.2f s",MLOG_MESG,timer_gpu);
+  mlog("Total time spent in find_HII_bubbles vs. total run time: %.2f of %.2f s",MLOG_MESG,timer_gpu,timer_delta(*timer_total));
 
   // Write final output
-  char fname_out[STRLEN];
-  sprintf(fname_out,"validation_output-core%03d-z%.2f.h5",run_globals.mpi_rank, redshift);
-  hid_t file_id_out = H5Fcreate(fname_out, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
-  const int slab_n_real = (int)(run_globals.reion_grids.slab_nix[run_globals.mpi_rank]) * run_globals.params.ReionGridDim * run_globals.params.ReionGridDim;
-  H5LTmake_dataset_float(file_id_out, "xH",                 1, (hsize_t []){slab_n_real}, run_globals.reion_grids.xH);
-  H5LTmake_dataset_float(file_id_out, "z_at_ionization",    1, (hsize_t []){slab_n_real}, run_globals.reion_grids.z_at_ionization);
-  H5LTmake_dataset_float(file_id_out, "J_21_at_ionization", 1, (hsize_t []){slab_n_real}, run_globals.reion_grids.J_21_at_ionization);
-  H5LTset_attribute_double(file_id_out, "/", "volume_weighted_global_xH", &(run_globals.reion_grids.volume_weighted_global_xH), 1);
-  H5LTset_attribute_double(file_id_out, "/", "mass_weighted_global_xH",   &(run_globals.reion_grids.mass_weighted_global_xH),   1);
-  H5Fclose(file_id_out);
+  if(false){
+    char fname_out[STRLEN];
+    sprintf(fname_out,"validation_output-core%03d-z%.2f.h5",run_globals.mpi_rank, redshift);
+    hid_t file_id_out = H5Fcreate(fname_out, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
+    const int slab_n_real = (int)(run_globals.reion_grids.slab_nix[run_globals.mpi_rank]) * run_globals.params.ReionGridDim * run_globals.params.ReionGridDim;
+    H5LTmake_dataset_float(file_id_out, "xH",                 1, (hsize_t []){slab_n_real}, run_globals.reion_grids.xH);
+    H5LTmake_dataset_float(file_id_out, "z_at_ionization",    1, (hsize_t []){slab_n_real}, run_globals.reion_grids.z_at_ionization);
+    H5LTmake_dataset_float(file_id_out, "J_21_at_ionization", 1, (hsize_t []){slab_n_real}, run_globals.reion_grids.J_21_at_ionization);
+    H5LTset_attribute_double(file_id_out, "/", "volume_weighted_global_xH", &(run_globals.reion_grids.volume_weighted_global_xH), 1);
+    H5LTset_attribute_double(file_id_out, "/", "mass_weighted_global_xH",   &(run_globals.reion_grids.mass_weighted_global_xH),   1);
+    H5Fclose(file_id_out);
+  }
 }

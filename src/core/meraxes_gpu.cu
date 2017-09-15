@@ -14,9 +14,9 @@
 #include <cufft.h>
 
 // These functions deal with any GPU exceptions, but should be called with the macros defined in the corresponding .hh file
-__host__ void _throw_on_generic_error(bool check_success,int implementation_code, const std::string file, const std::string func, int line)
+__host__ void _throw_on_generic_error(bool check_failure,int implementation_code, const std::string file, const std::string func, int line)
 {
-  if(!check_success) throw(meraxes_cuda_exception(GENERIC_CUDA_ERROR_CODE,implementation_code,file,func,line));
+  if(check_failure) throw(meraxes_cuda_exception(GENERIC_CUDA_ERROR_CODE,implementation_code,file,func,line));
 }
 __host__ void _throw_on_cuda_error(cudaError_t cuda_code, int implementation_code, const std::string file, const std::string func, int line)
 {
@@ -85,7 +85,18 @@ void init_CUDA(){
         mlog("All ranks have successfully established GPU contexts.",MLOG_MESG);
 }
 
+// Call this function to put the GPU in an error state that can be caught after as an exception
+//    This is not necessarily the best way, but it will do the job for now.
+//    This is based on: 
+// https://devtalk.nvidia.com/default/topic/418479/how-to-trigger-a-cuda-error-from-inside-a-kernel/
+__device__
+void inline cause_cuda_error(){
+   int *adr = (int*)0xffffffff;
+   *adr = 12;
+}
+
 // Convert a grid vector index to an (i,j,k)-triplet
+// Pass i_x_start=0 for local indices, rather than global indices
 __device__
 void inline grid_index2indices(const int idx,const int dim,const int i_x_start,const int mode,int *ix,int *iy,int *iz){
     int n;
@@ -101,7 +112,7 @@ void inline grid_index2indices(const int idx,const int dim,const int i_x_start,c
             n=(dim/2+1);
             break;
         default:
-            // THROW ERROR HERE
+            cause_cuda_error();
             break;
     }
     (*iz)=remainder%n;
@@ -126,6 +137,9 @@ int inline grid_index_gpu(int i, int j, int k, int dim, int type)
       break;
     case INDEX_COMPLEX_HERM:
       ind = k + (dim / 2 + 1) * (j + dim * i);
+      break;
+    default:
+      cause_cuda_error();
       break;
   }
 
@@ -173,11 +187,11 @@ void complex_vector_times_scalar(Complex *vector,double scalar,int n_complex){
 
 // Kernel to perform aliasing sanity checks
 __global__
-void sanity_check_aliasing(Complex *grid,int grid_dim,int i_x_start,int n_real,float val){
+void sanity_check_aliasing(Complex *grid,int grid_dim,int n_real,float val){
     int i_real = blockIdx.x*blockDim.x + threadIdx.x;
     if (i_real < n_real){
         int i_x,i_y,i_z;
-        grid_index2indices(i_real,grid_dim,i_x_start,INDEX_REAL,&i_x,&i_y,&i_z);
+        grid_index2indices(i_real,grid_dim,0,INDEX_REAL,&i_x,&i_y,&i_z); // pass i_x_start=0 'cause we want the local indices
         const int i_padded = grid_index_gpu(i_x,i_y,i_z,grid_dim,INDEX_PADDED);
         ((float *)grid)[i_padded] = fmaxf(((float *)grid)[i_padded], val);
     }
@@ -189,9 +203,9 @@ void filter_gpu(Complex *box,int grid_dim,int local_ix_start,int n_complex,float
     int i_complex_herm = blockIdx.x*blockDim.x + threadIdx.x;
     if (i_complex_herm < n_complex){
 
-        // Map i_complex to grid indices
+        // Map i_complex to global grid indices
         int n_x,n_y,n_z;
-        grid_index2indices(i_complex_herm,grid_dim,local_ix_start,INDEX_COMPLEX_HERM,&n_x,&n_y,&n_z);
+        grid_index2indices(i_complex_herm,grid_dim,local_ix_start,INDEX_COMPLEX_HERM,&n_x,&n_y,&n_z); // pass i_x_start becuase we need the global indices for k_mag
 
         // Compute k_mag for given grid indices
         float box_size = box_size_in;
@@ -237,7 +251,6 @@ void find_HII_bubbles_gpu_main_loop(
         int      flag_last_filter_step,
         int      flag_ReionUVBFlag,
         int      ReionGridDim,
-        int      i_x_start,
         float    R,
         float    M,
         float    ReionEfficiency,
@@ -255,7 +268,7 @@ void find_HII_bubbles_gpu_main_loop(
     int i_real = blockIdx.x*blockDim.x + threadIdx.x;
     if(i_real < n_real){
         int ix,iy,iz;
-        grid_index2indices(i_real,ReionGridDim,i_x_start,INDEX_REAL,&ix,&iy,&iz); 
+        grid_index2indices(i_real,ReionGridDim,0,INDEX_REAL,&ix,&iy,&iz); // pass i_x_start=0 'cause we want the local indices
         const int i_padded = grid_index_gpu(ix,iy,iz, ReionGridDim, INDEX_PADDED);
 
         double density_over_mean = 1.0 + (double)((float *)deltax_filtered_device)[i_padded];

@@ -8,6 +8,8 @@
 #include <fftw3.h>
 #include <mlog.h>
 
+#include "utils.h"
+
 #ifndef _INIT_MERAXES
 #define _INIT_MERAXES
 
@@ -747,7 +749,7 @@ void   filter(fftwf_complex *box, int local_ix_start, int slab_nx, int grid_dim,
 void   set_fesc(int snapshot);
 void   set_quasar_fobs(void);
 double RtoM(double R);
-void   find_HII_bubbles(int snapshot);
+void   find_HII_bubbles(int snapshot, timer_info *timer);
 void   _find_HII_bubbles(double redshift,const bool flag_write_validation_data);
 double tocf_modifier(galaxy_t *gal, double Mvir);
 void   set_ReionEfficiency(void);
@@ -762,7 +764,7 @@ void   create_grids_file(void);
 int    read_dm_grid(int snapshot, int i_grid, float *grid);
 void   free_grids_cache(void);
 void   calculate_Mvir_crit(double redshift);
-void   call_find_HII_bubbles(int snapshot, int unsampled_snapshot, int nout_gals);
+void   call_find_HII_bubbles(int snapshot, int unsampled_snapshot, int nout_gals, timer_info *timer);
 void   save_reion_input_grids(int snapshot);
 void   save_reion_output_grids(int snapshot);
 bool   check_if_reionization_ongoing(void);

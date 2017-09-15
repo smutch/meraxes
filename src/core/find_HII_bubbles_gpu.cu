@@ -49,44 +49,6 @@ void _find_HII_bubbles_gpu(double redshift,const bool flag_write_validation_outp
   const double total_n_cells        = pow((double)ReionGridDim, 3);
   const double inv_total_n_cells    = 1./total_n_cells;
 
-  const hsize_t dset_real_size[]={(hsize_t)slab_n_real};
-  const hsize_t dset_cplx_size[]={2*(hsize_t)slab_n_complex};
-
-  if (true)
-  {
-    // prepare output file
-    char fname[STRLEN];
-    sprintf(fname, "validation_input-core%03d-z%.2f.h5", mpi_rank, redshift);
-    hid_t file_id = H5Fcreate(fname, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
-
-    // write all of the input values
-    H5LTset_attribute_double(file_id, "/", "redshift", &redshift, 1);
-    H5LTset_attribute_int(file_id, "/", "mpi_rank", &mpi_rank, 1);
-    H5LTset_attribute_double(file_id, "/", "box_size", &box_size, 1);
-    H5LTset_attribute_int(file_id, "/", "ReionGridDim", &ReionGridDim, 1);
-    H5LTset_attribute_int(file_id, "/", "local_nix", &local_nix, 1);
-    H5LTset_attribute_int(file_id, "/", "flag_ReionUVBFlag", &flag_ReionUVBFlag, 1);
-    H5LTset_attribute_double(file_id, "/", "ReionEfficiency", &ReionEfficiency, 1);
-    H5LTset_attribute_double(file_id, "/", "ReionNionPhotPerBary", &ReionNionPhotPerBary, 1);
-    H5LTset_attribute_double(file_id, "/", "UnitLength_in_cm", &UnitLength_in_cm, 1);
-    H5LTset_attribute_double(file_id, "/", "UnitMass_in_g", &UnitMass_in_g, 1);
-    H5LTset_attribute_double(file_id, "/", "UnitTime_in_s", &UnitTime_in_s, 1);
-    H5LTset_attribute_double(file_id, "/", "ReionRBubbleMax", &ReionRBubbleMax, 1);
-    H5LTset_attribute_double(file_id, "/", "ReionRBubbleMin", &ReionRBubbleMin, 1);
-    H5LTset_attribute_double(file_id, "/", "ReionDeltaRFactor", &ReionDeltaRFactor, 1);
-    H5LTset_attribute_double(file_id, "/", "ReionGammaHaloBias", &ReionGammaHaloBias, 1);
-    H5LTset_attribute_double(file_id, "/", "ReionAlphaUV", &ReionAlphaUV, 1);
-    H5LTset_attribute_double(file_id, "/", "ReionEscapeFrac", &ReionEscapeFrac, 1);
-
-    H5LTmake_dataset_float(file_id, "deltax", 1, dset_cplx_size, deltax);
-    H5LTmake_dataset_float(file_id, "stars", 1, dset_cplx_size, stars);
-    H5LTmake_dataset_float(file_id, "sfr", 1, dset_cplx_size, sfr);
-    H5LTmake_dataset_float(file_id, "z_at_ionization", 1, dset_real_size, z_at_ionization);
-    H5LTmake_dataset_float(file_id, "J_21_at_ionization", 1, dset_real_size, J_21_at_ionization);
-
-    H5Fclose(file_id);
-  }
-
   // Check that a valid filter option has been specified
   try{
       throw_on_generic_error(run_globals.params.ReionRtoMFilterType<0 || run_globals.params.ReionRtoMFilterType>2,meraxes_cuda_exception::INVALID_FILTER);
@@ -121,7 +83,7 @@ void _find_HII_bubbles_gpu(double redshift,const bool flag_write_validation_outp
     throw_on_cuda_error(cudaMalloc((void**)&J_21_at_ionization_device,sizeof(float)*slab_n_real),          meraxes_cuda_exception::MALLOC);
     if(flag_ReionUVBFlag)
        throw_on_cuda_error(cudaMalloc((void**)&J_21_device,           sizeof(float)*slab_n_real),meraxes_cuda_exception::MALLOC);
-    // Throw an error if another rank has thrown an error
+    // Throw an exception if another rank has thrown one
     throw_on_global_error(); 
   }
   catch(const meraxes_cuda_exception e){
@@ -161,7 +123,7 @@ void _find_HII_bubbles_gpu(double redshift,const bool flag_write_validation_outp
     throw_on_cuda_error(cudaMemcpy(sfr_unfiltered_device,    sfr,               sizeof(float)*2*slab_n_complex,cudaMemcpyHostToDevice),meraxes_cuda_exception::MEMCPY);
     throw_on_cuda_error(cudaMemcpy(z_at_ionization_device,   z_at_ionization,   sizeof(float)*slab_n_real,     cudaMemcpyHostToDevice),meraxes_cuda_exception::MEMCPY);
     throw_on_cuda_error(cudaMemcpy(J_21_at_ionization_device,J_21_at_ionization,sizeof(float)*slab_n_real,     cudaMemcpyHostToDevice),meraxes_cuda_exception::MEMCPY);
-    // Throw an error if another rank has thrown an error
+    // Throw an exception if another rank has thrown one
     throw_on_global_error(); 
   }
   catch(const meraxes_cuda_exception e){
@@ -187,7 +149,7 @@ void _find_HII_bubbles_gpu(double redshift,const bool flag_write_validation_outp
     // Make sure that the device has synchronized
     throw_on_cuda_error(cudaThreadSynchronize(),meraxes_cuda_exception::SYNC);
 
-    // Throw an error if another rank has thrown an error
+    // Throw an exception if another rank has thrown one
     throw_on_global_error();
   }
   catch(const meraxes_cuda_exception e){
@@ -207,7 +169,7 @@ void _find_HII_bubbles_gpu(double redshift,const bool flag_write_validation_outp
     throw_on_kernel_error((complex_vector_times_scalar<<<grid_complex,threads>>>(stars_unfiltered_device, inv_total_n_cells,slab_n_complex)),meraxes_cuda_exception::KERNEL_CMPLX_AX);
     throw_on_kernel_error((complex_vector_times_scalar<<<grid_complex,threads>>>(sfr_unfiltered_device,   inv_total_n_cells,slab_n_complex)),meraxes_cuda_exception::KERNEL_CMPLX_AX);
     check_thread_sync(meraxes_cuda_exception::KERNEL_CMPLX_AX);
-    // Throw an error if another rank has thrown an error
+    // Throw an exception if another rank has thrown one
     throw_on_global_error();
   }
   catch(const meraxes_cuda_exception e){
@@ -221,7 +183,7 @@ void _find_HII_bubbles_gpu(double redshift,const bool flag_write_validation_outp
     if(flag_ReionUVBFlag)
         throw_on_kernel_error((set_array_gpu<<<grid_real,threads>>>(J_21_device,slab_n_real,0.f)),meraxes_cuda_exception::KERNEL_SET_ARRAY);
     check_thread_sync(meraxes_cuda_exception::KERNEL_SET_ARRAY);
-    // Throw an error if another rank has thrown an error
+    // Throw an exception if another rank has thrown one
     throw_on_global_error();
   }
   catch(const meraxes_cuda_exception e){
@@ -239,7 +201,7 @@ void _find_HII_bubbles_gpu(double redshift,const bool flag_write_validation_outp
   try{
       throw_on_cuFFT_error(cufftPlan3d(&plan, ReionGridDim, ReionGridDim, ReionGridDim, CUFFT_C2R),meraxes_cuda_exception::CUFFT_C2R);
       throw_on_cuFFT_error(cufftSetCompatibilityMode(plan,CUFFT_COMPATIBILITY_FFTW_ALL),           meraxes_cuda_exception::CUFFT_SET_COMPATIBILITY);
-      // Throw an error if another rank has thrown an error
+      // Throw an exception if another rank has thrown one
       throw_on_global_error();
   }
   catch(const meraxes_cuda_exception e){
@@ -250,24 +212,6 @@ void _find_HII_bubbles_gpu(double redshift,const bool flag_write_validation_outp
   fftwf_plan plan_stars  = fftwf_mpi_plan_dft_c2r_3d(ReionGridDim, ReionGridDim, ReionGridDim, (fftwf_complex *)stars_filtered,  (float *)stars_filtered,  mpi_comm, FFTW_ESTIMATE);
   fftwf_plan plan_sfr    = fftwf_mpi_plan_dft_c2r_3d(ReionGridDim, ReionGridDim, ReionGridDim, (fftwf_complex *)sfr_filtered,    (float *)sfr_filtered,    mpi_comm, FFTW_ESTIMATE);
 #endif
-
-#define MAX(A,B)  ((A) > (B) ?  (A) : (B))
-  if (true)
-  {
-    // prepare output file
-    char fname[STRLEN];
-    sprintf(fname, "validation_unfiltered-core%03d-z%.2f.h5", mpi_rank, redshift);
-    hid_t file_id = H5Fcreate(fname, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
-    float *tmp=(float *)malloc(sizeof(float)*MAX(2*slab_n_complex,slab_n_real));
-    cudaMemcpy(tmp,deltax_unfiltered_device,sizeof(Complex) * slab_n_complex,cudaMemcpyDeviceToHost);
-    H5LTmake_dataset_float(file_id, "deltax_unfiltered", 1, dset_cplx_size, (float *)tmp);
-    cudaMemcpy(tmp,stars_unfiltered_device,sizeof(Complex) * slab_n_complex,cudaMemcpyDeviceToHost);
-    H5LTmake_dataset_float(file_id, "stars_unfiltered", 1, dset_cplx_size, (float *)tmp);
-    cudaMemcpy(tmp,sfr_unfiltered_device,sizeof(Complex) * slab_n_complex,cudaMemcpyDeviceToHost);
-    H5LTmake_dataset_float(file_id, "sfr_unfiltered", 1, dset_cplx_size, (float *)tmp);
-    free(tmp);
-    H5Fclose(file_id);
-  }
 
   // Loop through filter radii
   double R                     = fmin(ReionRBubbleMax, L_FACTOR * box_size); // Mpc/h
@@ -292,7 +236,7 @@ void _find_HII_bubbles_gpu(double redshift,const bool flag_write_validation_outp
         throw_on_cuda_error(cudaMemcpy(deltax_filtered_device,deltax_unfiltered_device,sizeof(Complex) * slab_n_complex,cudaMemcpyDeviceToDevice),meraxes_cuda_exception::MEMCPY);
         throw_on_cuda_error(cudaMemcpy(stars_filtered_device, stars_unfiltered_device, sizeof(Complex) * slab_n_complex,cudaMemcpyDeviceToDevice),meraxes_cuda_exception::MEMCPY);
         throw_on_cuda_error(cudaMemcpy(sfr_filtered_device,   sfr_unfiltered_device,   sizeof(Complex) * slab_n_complex,cudaMemcpyDeviceToDevice),meraxes_cuda_exception::MEMCPY);
-        // Throw an error if another rank has thrown an error
+        // Throw an exception if another rank has thrown one
         throw_on_global_error();
     }
     catch(const meraxes_cuda_exception e){
@@ -306,29 +250,12 @@ void _find_HII_bubbles_gpu(double redshift,const bool flag_write_validation_outp
             throw_on_kernel_error((filter_gpu<<<grid_complex,threads>>>(stars_filtered_device, ReionGridDim,local_ix_start,slab_n_complex,R,box_size,run_globals.params.ReionRtoMFilterType)),meraxes_cuda_exception::KERNEL_FILTER);
             throw_on_kernel_error((filter_gpu<<<grid_complex,threads>>>(sfr_filtered_device,   ReionGridDim,local_ix_start,slab_n_complex,R,box_size,run_globals.params.ReionRtoMFilterType)),meraxes_cuda_exception::KERNEL_FILTER);
             check_thread_sync(meraxes_cuda_exception::KERNEL_FILTER);
-            // Throw an error if another rank has thrown an error
+            // Throw an exception if another rank has thrown one
             throw_on_global_error();
         }
         catch(const meraxes_cuda_exception e){
             e.process_exception();
         }
-    }
-
-    if (true)
-    {
-        // prepare output file
-        char fname[STRLEN];
-        sprintf(fname, "validation_filtered-core%03d-z%.2f_%02d.h5", mpi_rank, redshift,i_R);
-        hid_t file_id = H5Fcreate(fname, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
-        float *tmp=(float *)malloc(sizeof(float)*MAX(2*slab_n_complex,slab_n_real));
-        cudaMemcpy(tmp,deltax_filtered_device,sizeof(Complex) * slab_n_complex,cudaMemcpyDeviceToHost);
-        H5LTmake_dataset_float(file_id, "deltax_filtered", 1, dset_cplx_size, tmp);
-        cudaMemcpy(tmp,stars_filtered_device,sizeof(Complex) * slab_n_complex,cudaMemcpyDeviceToHost);
-        H5LTmake_dataset_float(file_id, "stars_filtered",  1, dset_cplx_size, tmp);
-        cudaMemcpy(tmp,sfr_filtered_device,sizeof(Complex) * slab_n_complex,cudaMemcpyDeviceToHost);
-        H5LTmake_dataset_float(file_id, "sfr_filtered",    1, dset_cplx_size, tmp);
-        free(tmp);
-        H5Fclose(file_id);
     }
 
     // inverse fourier transform back to real space
@@ -350,58 +277,24 @@ void _find_HII_bubbles_gpu(double redshift,const bool flag_write_validation_outp
         fftwf_execute(plan_sfr);
         throw_on_cuda_error(cudaMemcpy(sfr_filtered_device,sfr_filtered,sizeof(float)*2*slab_n_complex,cudaMemcpyHostToDevice),meraxes_cuda_exception::MEMCPY);
 #endif
-        // Throw an error if another rank has thrown an error
+        // Throw an exception if another rank has thrown one
         throw_on_global_error();
     }
     catch(const meraxes_cuda_exception e){
         e.process_exception();
-    }
-
-    if (true)
-    {
-        // prepare output file
-        char fname[STRLEN];
-        sprintf(fname, "validation_filtered_ift-core%03d-z%.2f_%02d.h5", mpi_rank, redshift,i_R);
-        hid_t file_id = H5Fcreate(fname, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
-        float *tmp=(float *)malloc(sizeof(float)*MAX(2*slab_n_complex,slab_n_real));
-        cudaMemcpy(tmp,deltax_filtered_device,sizeof(Complex) * slab_n_complex,cudaMemcpyDeviceToHost);
-        H5LTmake_dataset_float(file_id, "deltax_filtered_ift", 1, dset_cplx_size, tmp);
-        cudaMemcpy(tmp,stars_filtered_device,sizeof(Complex) * slab_n_complex,cudaMemcpyDeviceToHost);
-        H5LTmake_dataset_float(file_id, "stars_filtered_ift",  1, dset_cplx_size, tmp);
-        cudaMemcpy(tmp,sfr_filtered_device,sizeof(Complex) * slab_n_complex,cudaMemcpyDeviceToHost);
-        H5LTmake_dataset_float(file_id, "sfr_filtered_ift",    1, dset_cplx_size, tmp);
-        free(tmp);
-        H5Fclose(file_id);
     }
 
     // Perform sanity checks to account for aliasing effects
     try{
-        throw_on_kernel_error((sanity_check_aliasing<<<grid_real,threads>>>(deltax_filtered_device,ReionGridDim,local_ix_start,slab_n_real,-1.f + REL_TOL)),meraxes_cuda_exception::KERNEL_CHECK);
-        throw_on_kernel_error((sanity_check_aliasing<<<grid_real,threads>>>(stars_filtered_device, ReionGridDim,local_ix_start,slab_n_real,0.)),meraxes_cuda_exception::KERNEL_CHECK);
-        throw_on_kernel_error((sanity_check_aliasing<<<grid_real,threads>>>(sfr_filtered_device,   ReionGridDim,local_ix_start,slab_n_real,0.)),meraxes_cuda_exception::KERNEL_CHECK);
+        throw_on_kernel_error((sanity_check_aliasing<<<grid_real,threads>>>(deltax_filtered_device,ReionGridDim,slab_n_real,-1.f + REL_TOL)),meraxes_cuda_exception::KERNEL_CHECK);
+        throw_on_kernel_error((sanity_check_aliasing<<<grid_real,threads>>>(stars_filtered_device, ReionGridDim,slab_n_real,0.)),meraxes_cuda_exception::KERNEL_CHECK);
+        throw_on_kernel_error((sanity_check_aliasing<<<grid_real,threads>>>(sfr_filtered_device,   ReionGridDim,slab_n_real,0.)),meraxes_cuda_exception::KERNEL_CHECK);
         check_thread_sync(meraxes_cuda_exception::KERNEL_CHECK);
-        // Throw an error if another rank has thrown an error
+        // Throw an exception if another rank has thrown one
         throw_on_global_error();
     }
     catch(const meraxes_cuda_exception e){
         e.process_exception();
-    }
-
-    if (true)
-    {
-        // prepare output file
-        char fname[STRLEN];
-        sprintf(fname, "validation_sanity-core%03d-z%.2f_%02d.h5", mpi_rank, redshift,i_R);
-        hid_t file_id = H5Fcreate(fname, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
-        float *tmp=(float *)malloc(sizeof(float)*MAX(2*slab_n_complex,slab_n_real));
-        cudaMemcpy(tmp,deltax_filtered_device,sizeof(Complex) * slab_n_complex,cudaMemcpyDeviceToHost);
-        H5LTmake_dataset_float(file_id, "deltax_sanity", 1, dset_cplx_size, tmp);
-        cudaMemcpy(tmp,stars_filtered_device,sizeof(Complex) * slab_n_complex,cudaMemcpyDeviceToHost);
-        H5LTmake_dataset_float(file_id, "stars_sanity",  1, dset_cplx_size, tmp);
-        cudaMemcpy(tmp,sfr_filtered_device,sizeof(Complex) * slab_n_complex,cudaMemcpyDeviceToHost);
-        H5LTmake_dataset_float(file_id, "sfr_sanity",    1, dset_cplx_size, tmp);
-        free(tmp);
-        H5Fclose(file_id);
     }
 
     // Main loop through the box...
@@ -419,7 +312,6 @@ void _find_HII_bubbles_gpu(double redshift,const bool flag_write_validation_outp
             flag_last_filter_step, 
             flag_ReionUVBFlag, 
             ReionGridDim, 
-            local_ix_start,
             R, 
             RtoM(R), 
             ReionEfficiency, 
@@ -435,34 +327,11 @@ void _find_HII_bubbles_gpu(double redshift,const bool flag_write_validation_outp
             stars_filtered_device,
             sfr_filtered_device)),meraxes_cuda_exception::KERNEL_MAIN_LOOP);
         check_thread_sync(meraxes_cuda_exception::KERNEL_MAIN_LOOP);
-        // Throw an error if another rank has thrown an error
+        // Throw an exception if another rank has thrown one
         throw_on_global_error();
     }
     catch(const meraxes_cuda_exception e){
         e.process_exception();
-    }
-
-    if (true)
-    {
-        // prepare output file
-        char fname[STRLEN];
-        sprintf(fname, "validation_main-core%03d-z%.2f_%02d.h5", mpi_rank, redshift,i_R);
-        hid_t file_id = H5Fcreate(fname, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
-        float *tmp=(float *)malloc(sizeof(float)*MAX(2*slab_n_complex,slab_n_real));
-        cudaMemcpy(tmp,xH_device,sizeof(float) * slab_n_real,cudaMemcpyDeviceToHost);
-        H5LTmake_dataset_float(file_id, "xH",       1, dset_real_size, tmp);
-        cudaMemcpy(tmp,r_bubble_device,sizeof(float) * slab_n_real,cudaMemcpyDeviceToHost);
-        H5LTmake_dataset_float(file_id, "r_bubble", 1, dset_real_size, tmp);
-        if(flag_ReionUVBFlag){
-           cudaMemcpy(tmp,J_21_device,sizeof(float) * slab_n_real,cudaMemcpyDeviceToHost);
-           H5LTmake_dataset_float(file_id, "J_21", 1, dset_real_size,tmp);
-        }
-        cudaMemcpy(tmp,J_21_at_ionization_device,sizeof(float) * slab_n_real,cudaMemcpyDeviceToHost);
-        H5LTmake_dataset_float(file_id, "J_21_at_ionization", 1, dset_real_size,tmp);
-        cudaMemcpy(tmp,z_at_ionization_device,sizeof(float) * slab_n_real,cudaMemcpyDeviceToHost);
-        H5LTmake_dataset_float(file_id, "z_at_ionization",    1, dset_real_size,tmp);
-        free(tmp);
-        H5Fclose(file_id);
     }
 
     R /= ReionDeltaRFactor;
@@ -472,7 +341,7 @@ void _find_HII_bubbles_gpu(double redshift,const bool flag_write_validation_outp
 #ifdef USE_CUFFT
   try{
     throw_on_cuFFT_error(cufftDestroy(plan),meraxes_cuda_exception::CUFFT_PLAN_DESTROY);
-    // Throw an error if another rank has thrown an error
+    // Throw an exception if another rank has thrown one
     throw_on_global_error();
   }
   catch(const meraxes_cuda_exception e){
@@ -489,11 +358,11 @@ void _find_HII_bubbles_gpu(double redshift,const bool flag_write_validation_outp
     throw_on_cuda_error(cudaMemcpy((void *)xH,                (void *)xH_device,                sizeof(float) * slab_n_real, cudaMemcpyDeviceToHost),meraxes_cuda_exception::MEMCPY);
     throw_on_cuda_error(cudaMemcpy((void *)r_bubble,          (void *)r_bubble_device,          sizeof(float) * slab_n_real, cudaMemcpyDeviceToHost),meraxes_cuda_exception::MEMCPY);
     if(flag_ReionUVBFlag)
-         throw_on_cuda_error(cudaMemcpy((void *)J_21,           (void *)J_21_device,              sizeof(float) * slab_n_real, cudaMemcpyDeviceToHost),meraxes_cuda_exception::MEMCPY);
+         throw_on_cuda_error(cudaMemcpy((void *)J_21,         (void *)J_21_device,              sizeof(float) * slab_n_real, cudaMemcpyDeviceToHost),meraxes_cuda_exception::MEMCPY);
     throw_on_cuda_error(cudaMemcpy((void *)z_at_ionization,   (void *)z_at_ionization_device,   sizeof(float) * slab_n_real, cudaMemcpyDeviceToHost),meraxes_cuda_exception::MEMCPY);
     throw_on_cuda_error(cudaMemcpy((void *)J_21_at_ionization,(void *)J_21_at_ionization_device,sizeof(float) * slab_n_real, cudaMemcpyDeviceToHost),meraxes_cuda_exception::MEMCPY);
     throw_on_cuda_error(cudaMemcpy((void *)deltax,            (void *)deltax_filtered_device,   sizeof(float) * 2* slab_n_complex, cudaMemcpyDeviceToHost),meraxes_cuda_exception::MEMCPY);
-    // Throw an error if another rank has thrown an error
+    // Throw an exception if another rank has thrown one
     throw_on_global_error();
   }
   catch(const meraxes_cuda_exception e){
@@ -514,7 +383,7 @@ void _find_HII_bubbles_gpu(double redshift,const bool flag_write_validation_outp
     throw_on_cuda_error(cudaFree(J_21_at_ionization_device),meraxes_cuda_exception::FREE);
     if(flag_ReionUVBFlag)
        throw_on_cuda_error(cudaFree(J_21_device),meraxes_cuda_exception::FREE);
-    // Throw an error if another rank has thrown an error
+    // Throw an exception if another rank has thrown one
     throw_on_global_error();
   }
   catch(const meraxes_cuda_exception e){
@@ -541,6 +410,9 @@ void _find_HII_bubbles_gpu(double redshift,const bool flag_write_validation_outp
         *mass_weighted_global_xH   += (double)(xH[i_real]) * density_over_mean;
         mass_weight                += density_over_mean;
       }
+  MPI_Allreduce(MPI_IN_PLACE, volume_weighted_global_xH, 1, MPI_DOUBLE, MPI_SUM, mpi_comm);
+  MPI_Allreduce(MPI_IN_PLACE, mass_weighted_global_xH,   1, MPI_DOUBLE, MPI_SUM, mpi_comm);
+  MPI_Allreduce(MPI_IN_PLACE, &mass_weight,              1, MPI_DOUBLE, MPI_SUM, mpi_comm);
   *volume_weighted_global_xH *= inv_total_n_cells;
   *mass_weighted_global_xH   /= mass_weight;
 }
