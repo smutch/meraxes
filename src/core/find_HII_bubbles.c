@@ -95,7 +95,8 @@ void _find_HII_bubbles(double redshift,const bool flag_validation_output)
   double       f_coll_stars;
   int          i_real;
   int          i_padded;
-  if (flag_validation_output)
+
+  if (true)
   {
     // prepare output file
     char fname[STRLEN];
@@ -173,6 +174,18 @@ void _find_HII_bubbles(double redshift,const bool flag_validation_output)
     sfr_unfiltered[ii]    /= total_n_cells;
   }
 
+  if (true)
+  {
+    // prepare output file
+    char fname[STRLEN];
+    sprintf(fname, "validation_unfiltered-core%03d-z%.2f.h5", mpi_rank, redshift);
+    hid_t file_id = H5Fcreate(fname, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
+    H5LTmake_dataset_float(file_id, "deltax_unfiltered", 1, (hsize_t []){slab_n_complex*2}, deltax_unfiltered);
+    H5LTmake_dataset_float(file_id, "stars_unfiltered", 1, (hsize_t []){slab_n_complex*2}, stars_unfiltered);
+    H5LTmake_dataset_float(file_id, "sfr_unfiltered", 1, (hsize_t []){slab_n_complex*2}, sfr_unfiltered);
+    H5Fclose(file_id);
+  }
+
   // Loop through filter radii
   double R                     = fmin(ReionRBubbleMax, L_FACTOR * box_size); // Mpc/h
 
@@ -192,35 +205,12 @@ void _find_HII_bubbles(double redshift,const bool flag_validation_output)
 
     mlog(".", MLOG_CONT);
 
-    char fname[STRLEN];
-    char fname_full_dump[STRLEN];
-    sprintf(fname, "validation_test-core%03d-z%.2f_%03d.h5", mpi_rank, redshift,i_R);
-    if(redshift>10.)
-       sprintf(fname_full_dump, "validation_test-core%03d-z%.2f_%03d.h5", mpi_rank,10.11,i_R);
-    else if(redshift>6.)
-       sprintf(fname_full_dump, "validation_test-core%03d-z%.2f_%03d.h5", mpi_rank, 9.03,i_R);
-    else
-       sprintf(fname_full_dump, "validation_test-core%03d-z%.2f_%03d.h5", mpi_rank, 5.95,i_R);
-    if (flag_validation_output && i_R==1 || !strcmp(fname,fname_full_dump))
-    {
-        // prepare output file
-        hid_t file_id = H5Fcreate(fname, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
-        hid_t group = H5Gcreate(file_id, "kspace", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
-        H5LTmake_dataset_float(group, "deltax_unfiltered", 1, (hsize_t []){slab_n_complex * 2}, (float *)deltax_unfiltered);
-        H5LTmake_dataset_float(group, "stars_unfiltered",  1, (hsize_t []){slab_n_complex * 2}, (float *)stars_unfiltered);
-        H5LTmake_dataset_float(group, "sfr_unfiltered",    1, (hsize_t []){slab_n_complex * 2}, (float *)sfr_unfiltered);
-        H5Gclose(group);
-        H5Fclose(file_id);
-    }
-
     // copy the k-space grids
     memcpy(deltax_filtered, deltax_unfiltered, sizeof(fftwf_complex) * slab_n_complex);
     memcpy(stars_filtered, stars_unfiltered, sizeof(fftwf_complex) * slab_n_complex);
     memcpy(sfr_filtered, sfr_unfiltered, sizeof(fftwf_complex) * slab_n_complex);
 
-
     // do the filtering unless this is the last filter step
-    int local_ix_start = (int)(slabs_ix_start[mpi_rank]);
     if(!flag_last_filter_step)
     {
       filter((fftwf_complex *)deltax_filtered, local_ix_start, local_nix, ReionGridDim, (float)R);
@@ -228,15 +218,15 @@ void _find_HII_bubbles(double redshift,const bool flag_validation_output)
       filter((fftwf_complex *)sfr_filtered,    local_ix_start, local_nix, ReionGridDim, (float)R);
     }
 
-    if (flag_validation_output && i_R==1 || !strcmp(fname,fname_full_dump))
+    if (true)
     {
         // prepare output file
-        hid_t file_id = H5Fopen(fname, H5F_ACC_RDWR, H5P_DEFAULT);
-        hid_t group   = H5Gopen(file_id, "kspace", H5P_DEFAULT);
-        H5LTmake_dataset_float(group, "deltax_filtered", 1, (hsize_t []){slab_n_complex * 2}, (float *)deltax_filtered);
-        H5LTmake_dataset_float(group, "stars_filtered",  1, (hsize_t []){slab_n_complex * 2}, (float *)stars_filtered);
-        H5LTmake_dataset_float(group, "sfr_filtered",    1, (hsize_t []){slab_n_complex * 2}, (float *)sfr_filtered);
-        H5Gclose(group);
+        char fname[STRLEN];
+        sprintf(fname, "validation_filtered-core%03d-z%.2f_%02d.h5", mpi_rank, redshift,i_R);
+        hid_t file_id = H5Fcreate(fname, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
+        H5LTmake_dataset_float(file_id, "deltax_filtered", 1, (hsize_t []){slab_n_complex * 2}, (float *)deltax_filtered);
+        H5LTmake_dataset_float(file_id, "stars_filtered",  1, (hsize_t []){slab_n_complex * 2}, (float *)stars_filtered);
+        H5LTmake_dataset_float(file_id, "sfr_filtered",    1, (hsize_t []){slab_n_complex * 2}, (float *)sfr_filtered);
         H5Fclose(file_id);
     }
 
@@ -253,10 +243,12 @@ void _find_HII_bubbles(double redshift,const bool flag_validation_output)
     fftwf_execute(plan);
     fftwf_destroy_plan(plan);
 
-    if (flag_validation_output && i_R==1 || !strcmp(fname,fname_full_dump))
+    if (true)
     {
         // prepare output file
-        hid_t file_id = H5Fopen(fname, H5F_ACC_RDWR, H5P_DEFAULT);
+        char fname[STRLEN];
+        sprintf(fname, "validation_filtered_ift-core%03d-z%.2f_%02d.h5", mpi_rank, redshift,i_R);
+        hid_t file_id = H5Fcreate(fname, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
         H5LTmake_dataset_float(file_id, "deltax_filtered_ift", 1, (hsize_t []){slab_n_complex * 2}, (float *)deltax_filtered);
         H5LTmake_dataset_float(file_id, "stars_filtered_ift",  1, (hsize_t []){slab_n_complex * 2}, (float *)stars_filtered);
         H5LTmake_dataset_float(file_id, "sfr_filtered_ift",    1, (hsize_t []){slab_n_complex * 2}, (float *)sfr_filtered);
@@ -278,13 +270,15 @@ void _find_HII_bubbles(double redshift,const bool flag_validation_output)
      * Main loop through the box...
      */
 
-    if (flag_validation_output && i_R==1 || !strcmp(fname,fname_full_dump))
+    if (true)
     {
         // prepare output file
-        hid_t file_id = H5Fopen(fname, H5F_ACC_RDWR, H5P_DEFAULT);
-        H5LTmake_dataset_float(file_id, "deltax_checked", 1, (hsize_t []){slab_n_complex * 2}, (float *)deltax_filtered);
-        H5LTmake_dataset_float(file_id, "stars_checked",  1, (hsize_t []){slab_n_complex * 2}, (float *)stars_filtered);
-        H5LTmake_dataset_float(file_id, "sfr_checked",    1, (hsize_t []){slab_n_complex * 2}, (float *)sfr_filtered);
+        char fname[STRLEN];
+        sprintf(fname, "validation_sanity-core%03d-z%.2f_%02d.h5", mpi_rank, redshift,i_R);
+        hid_t file_id = H5Fcreate(fname, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
+        H5LTmake_dataset_float(file_id, "deltax_sanity", 1, (hsize_t []){slab_n_complex * 2}, (float *)deltax_filtered);
+        H5LTmake_dataset_float(file_id, "stars_sanity",  1, (hsize_t []){slab_n_complex * 2}, (float *)stars_filtered);
+        H5LTmake_dataset_float(file_id, "sfr_sanity",    1, (hsize_t []){slab_n_complex * 2}, (float *)sfr_filtered);
         H5Fclose(file_id);
     }
 
@@ -341,11 +335,13 @@ void _find_HII_bubbles(double redshift,const bool flag_validation_output)
           }
         }
     // iz
-
-    if (flag_validation_output && i_R==1 || !strcmp(fname,fname_full_dump))
+ 
+    if (true)
     {
         // prepare output file
-        hid_t file_id = H5Fopen(fname, H5F_ACC_RDWR, H5P_DEFAULT);
+        char fname[STRLEN];
+        sprintf(fname, "validation_main-core%03d-z%.2f_%02d.h5", mpi_rank, redshift,i_R);
+        hid_t file_id = H5Fcreate(fname, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
         H5LTmake_dataset_float(file_id, "xH",       1, (hsize_t []){slab_n_real}, xH);
         H5LTmake_dataset_float(file_id, "r_bubble", 1, (hsize_t []){slab_n_real}, r_bubble);
         if(flag_ReionUVBFlag)

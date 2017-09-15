@@ -47,7 +47,54 @@ void _find_HII_bubbles_gpu(double redshift,const bool flag_write_validation_outp
   // a few needed constants
   const double pixel_volume         = pow(box_size / (double)ReionGridDim, 3); // (Mpc/h)^3
   const double total_n_cells        = pow((double)ReionGridDim, 3);
-  const double inv_total_n_cells    = 1.f/total_n_cells;
+  const double inv_total_n_cells    = 1./total_n_cells;
+
+  const hsize_t dset_real_size[]={(hsize_t)slab_n_real};
+  const hsize_t dset_cplx_size[]={2*(hsize_t)slab_n_complex};
+
+  if (true)
+  {
+    // prepare output file
+    char fname[STRLEN];
+    sprintf(fname, "validation_input-core%03d-z%.2f.h5", mpi_rank, redshift);
+    hid_t file_id = H5Fcreate(fname, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
+
+    // write all of the input values
+    H5LTset_attribute_double(file_id, "/", "redshift", &redshift, 1);
+    H5LTset_attribute_int(file_id, "/", "mpi_rank", &mpi_rank, 1);
+    H5LTset_attribute_double(file_id, "/", "box_size", &box_size, 1);
+    H5LTset_attribute_int(file_id, "/", "ReionGridDim", &ReionGridDim, 1);
+    H5LTset_attribute_int(file_id, "/", "local_nix", &local_nix, 1);
+    H5LTset_attribute_int(file_id, "/", "flag_ReionUVBFlag", &flag_ReionUVBFlag, 1);
+    H5LTset_attribute_double(file_id, "/", "ReionEfficiency", &ReionEfficiency, 1);
+    H5LTset_attribute_double(file_id, "/", "ReionNionPhotPerBary", &ReionNionPhotPerBary, 1);
+    H5LTset_attribute_double(file_id, "/", "UnitLength_in_cm", &UnitLength_in_cm, 1);
+    H5LTset_attribute_double(file_id, "/", "UnitMass_in_g", &UnitMass_in_g, 1);
+    H5LTset_attribute_double(file_id, "/", "UnitTime_in_s", &UnitTime_in_s, 1);
+    H5LTset_attribute_double(file_id, "/", "ReionRBubbleMax", &ReionRBubbleMax, 1);
+    H5LTset_attribute_double(file_id, "/", "ReionRBubbleMin", &ReionRBubbleMin, 1);
+    H5LTset_attribute_double(file_id, "/", "ReionDeltaRFactor", &ReionDeltaRFactor, 1);
+    H5LTset_attribute_double(file_id, "/", "ReionGammaHaloBias", &ReionGammaHaloBias, 1);
+    H5LTset_attribute_double(file_id, "/", "ReionAlphaUV", &ReionAlphaUV, 1);
+    H5LTset_attribute_double(file_id, "/", "ReionEscapeFrac", &ReionEscapeFrac, 1);
+
+    H5LTmake_dataset_float(file_id, "deltax", 1, dset_cplx_size, deltax);
+    H5LTmake_dataset_float(file_id, "stars", 1, dset_cplx_size, stars);
+    H5LTmake_dataset_float(file_id, "sfr", 1, dset_cplx_size, sfr);
+    H5LTmake_dataset_float(file_id, "z_at_ionization", 1, dset_real_size, z_at_ionization);
+    H5LTmake_dataset_float(file_id, "J_21_at_ionization", 1, dset_real_size, J_21_at_ionization);
+
+    H5Fclose(file_id);
+  }
+
+  // Check that a valid filter option has been specified
+  try{
+      throw_on_generic_error(run_globals.params.ReionRtoMFilterType<0 || run_globals.params.ReionRtoMFilterType>2,meraxes_cuda_exception::INVALID_FILTER);
+      throw_on_global_error();
+  }
+  catch(const meraxes_cuda_exception e){
+      e.process_exception();
+  }
 
   // Initialize device arrays
   cufftComplex *deltax_unfiltered_device  = NULL;
@@ -156,9 +203,9 @@ void _find_HII_bubbles_gpu(double redshift,const bool flag_write_validation_outp
   // Remember to add the factor of VOLUME/TOT_NUM_PIXELS when converting from real space to k-space
   // Note: we will leave off factor of VOLUME, in anticipation of the inverse FFT below
   try{
-    throw_on_kernel_error((complex_vector_times_scalar<<<grid_complex, threads>>>(deltax_unfiltered_device,inv_total_n_cells,slab_n_complex)),meraxes_cuda_exception::KERNEL_CMPLX_AX);
-    throw_on_kernel_error((complex_vector_times_scalar<<<grid_complex, threads>>>(stars_unfiltered_device, inv_total_n_cells,slab_n_complex)),meraxes_cuda_exception::KERNEL_CMPLX_AX);
-    throw_on_kernel_error((complex_vector_times_scalar<<<grid_complex, threads>>>(sfr_unfiltered_device,   inv_total_n_cells,slab_n_complex)),meraxes_cuda_exception::KERNEL_CMPLX_AX);
+    throw_on_kernel_error((complex_vector_times_scalar<<<grid_complex,threads>>>(deltax_unfiltered_device,inv_total_n_cells,slab_n_complex)),meraxes_cuda_exception::KERNEL_CMPLX_AX);
+    throw_on_kernel_error((complex_vector_times_scalar<<<grid_complex,threads>>>(stars_unfiltered_device, inv_total_n_cells,slab_n_complex)),meraxes_cuda_exception::KERNEL_CMPLX_AX);
+    throw_on_kernel_error((complex_vector_times_scalar<<<grid_complex,threads>>>(sfr_unfiltered_device,   inv_total_n_cells,slab_n_complex)),meraxes_cuda_exception::KERNEL_CMPLX_AX);
     check_thread_sync(meraxes_cuda_exception::KERNEL_CMPLX_AX);
     // Throw an error if another rank has thrown an error
     throw_on_global_error();
@@ -204,11 +251,32 @@ void _find_HII_bubbles_gpu(double redshift,const bool flag_write_validation_outp
   fftwf_plan plan_sfr    = fftwf_mpi_plan_dft_c2r_3d(ReionGridDim, ReionGridDim, ReionGridDim, (fftwf_complex *)sfr_filtered,    (float *)sfr_filtered,    mpi_comm, FFTW_ESTIMATE);
 #endif
 
+#define MAX(A,B)  ((A) > (B) ?  (A) : (B))
+  if (true)
+  {
+    // prepare output file
+    char fname[STRLEN];
+    sprintf(fname, "validation_unfiltered-core%03d-z%.2f.h5", mpi_rank, redshift);
+    hid_t file_id = H5Fcreate(fname, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
+    float *tmp=(float *)malloc(sizeof(float)*MAX(2*slab_n_complex,slab_n_real));
+    cudaMemcpy(tmp,deltax_unfiltered_device,sizeof(Complex) * slab_n_complex,cudaMemcpyDeviceToHost);
+    H5LTmake_dataset_float(file_id, "deltax_unfiltered", 1, dset_cplx_size, (float *)tmp);
+    cudaMemcpy(tmp,stars_unfiltered_device,sizeof(Complex) * slab_n_complex,cudaMemcpyDeviceToHost);
+    H5LTmake_dataset_float(file_id, "stars_unfiltered", 1, dset_cplx_size, (float *)tmp);
+    cudaMemcpy(tmp,sfr_unfiltered_device,sizeof(Complex) * slab_n_complex,cudaMemcpyDeviceToHost);
+    H5LTmake_dataset_float(file_id, "sfr_unfiltered", 1, dset_cplx_size, (float *)tmp);
+    free(tmp);
+    H5Fclose(file_id);
+  }
+
   // Loop through filter radii
   double R                     = fmin(ReionRBubbleMax, L_FACTOR * box_size); // Mpc/h
   bool   flag_last_filter_step = false;
+  int i_R=0;
   while(!flag_last_filter_step)
   {
+    i_R++;
+
     // check to see if this is our last filtering step
     if( ((R / ReionDeltaRFactor) <= (cell_length_factor * box_size / (double)ReionGridDim))
         || ((R / ReionDeltaRFactor) <= ReionRBubbleMin) )
@@ -234,9 +302,9 @@ void _find_HII_bubbles_gpu(double redshift,const bool flag_write_validation_outp
     // Perform convolution
     if(!flag_last_filter_step){
         try{
-            throw_on_kernel_error((filter_gpu<<<grid_complex,threads>>>(deltax_filtered_device,local_nix,ReionGridDim,local_ix_start,slab_n_complex,R,box_size,run_globals.params.ReionRtoMFilterType)),meraxes_cuda_exception::KERNEL_FILTER);
-            throw_on_kernel_error((filter_gpu<<<grid_complex,threads>>>(stars_filtered_device, local_nix,ReionGridDim,local_ix_start,slab_n_complex,R,box_size,run_globals.params.ReionRtoMFilterType)),meraxes_cuda_exception::KERNEL_FILTER);
-            throw_on_kernel_error((filter_gpu<<<grid_complex,threads>>>(sfr_filtered_device,   local_nix,ReionGridDim,local_ix_start,slab_n_complex,R,box_size,run_globals.params.ReionRtoMFilterType)),meraxes_cuda_exception::KERNEL_FILTER);
+            throw_on_kernel_error((filter_gpu<<<grid_complex,threads>>>(deltax_filtered_device,ReionGridDim,local_ix_start,slab_n_complex,R,box_size,run_globals.params.ReionRtoMFilterType)),meraxes_cuda_exception::KERNEL_FILTER);
+            throw_on_kernel_error((filter_gpu<<<grid_complex,threads>>>(stars_filtered_device, ReionGridDim,local_ix_start,slab_n_complex,R,box_size,run_globals.params.ReionRtoMFilterType)),meraxes_cuda_exception::KERNEL_FILTER);
+            throw_on_kernel_error((filter_gpu<<<grid_complex,threads>>>(sfr_filtered_device,   ReionGridDim,local_ix_start,slab_n_complex,R,box_size,run_globals.params.ReionRtoMFilterType)),meraxes_cuda_exception::KERNEL_FILTER);
             check_thread_sync(meraxes_cuda_exception::KERNEL_FILTER);
             // Throw an error if another rank has thrown an error
             throw_on_global_error();
@@ -244,6 +312,23 @@ void _find_HII_bubbles_gpu(double redshift,const bool flag_write_validation_outp
         catch(const meraxes_cuda_exception e){
             e.process_exception();
         }
+    }
+
+    if (true)
+    {
+        // prepare output file
+        char fname[STRLEN];
+        sprintf(fname, "validation_filtered-core%03d-z%.2f_%02d.h5", mpi_rank, redshift,i_R);
+        hid_t file_id = H5Fcreate(fname, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
+        float *tmp=(float *)malloc(sizeof(float)*MAX(2*slab_n_complex,slab_n_real));
+        cudaMemcpy(tmp,deltax_filtered_device,sizeof(Complex) * slab_n_complex,cudaMemcpyDeviceToHost);
+        H5LTmake_dataset_float(file_id, "deltax_filtered", 1, dset_cplx_size, tmp);
+        cudaMemcpy(tmp,stars_filtered_device,sizeof(Complex) * slab_n_complex,cudaMemcpyDeviceToHost);
+        H5LTmake_dataset_float(file_id, "stars_filtered",  1, dset_cplx_size, tmp);
+        cudaMemcpy(tmp,sfr_filtered_device,sizeof(Complex) * slab_n_complex,cudaMemcpyDeviceToHost);
+        H5LTmake_dataset_float(file_id, "sfr_filtered",    1, dset_cplx_size, tmp);
+        free(tmp);
+        H5Fclose(file_id);
     }
 
     // inverse fourier transform back to real space
@@ -272,6 +357,23 @@ void _find_HII_bubbles_gpu(double redshift,const bool flag_write_validation_outp
         e.process_exception();
     }
 
+    if (true)
+    {
+        // prepare output file
+        char fname[STRLEN];
+        sprintf(fname, "validation_filtered_ift-core%03d-z%.2f_%02d.h5", mpi_rank, redshift,i_R);
+        hid_t file_id = H5Fcreate(fname, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
+        float *tmp=(float *)malloc(sizeof(float)*MAX(2*slab_n_complex,slab_n_real));
+        cudaMemcpy(tmp,deltax_filtered_device,sizeof(Complex) * slab_n_complex,cudaMemcpyDeviceToHost);
+        H5LTmake_dataset_float(file_id, "deltax_filtered_ift", 1, dset_cplx_size, tmp);
+        cudaMemcpy(tmp,stars_filtered_device,sizeof(Complex) * slab_n_complex,cudaMemcpyDeviceToHost);
+        H5LTmake_dataset_float(file_id, "stars_filtered_ift",  1, dset_cplx_size, tmp);
+        cudaMemcpy(tmp,sfr_filtered_device,sizeof(Complex) * slab_n_complex,cudaMemcpyDeviceToHost);
+        H5LTmake_dataset_float(file_id, "sfr_filtered_ift",    1, dset_cplx_size, tmp);
+        free(tmp);
+        H5Fclose(file_id);
+    }
+
     // Perform sanity checks to account for aliasing effects
     try{
         throw_on_kernel_error((sanity_check_aliasing<<<grid_real,threads>>>(deltax_filtered_device,ReionGridDim,local_ix_start,slab_n_real,-1.f + REL_TOL)),meraxes_cuda_exception::KERNEL_CHECK);
@@ -283,6 +385,23 @@ void _find_HII_bubbles_gpu(double redshift,const bool flag_write_validation_outp
     }
     catch(const meraxes_cuda_exception e){
         e.process_exception();
+    }
+
+    if (true)
+    {
+        // prepare output file
+        char fname[STRLEN];
+        sprintf(fname, "validation_sanity-core%03d-z%.2f_%02d.h5", mpi_rank, redshift,i_R);
+        hid_t file_id = H5Fcreate(fname, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
+        float *tmp=(float *)malloc(sizeof(float)*MAX(2*slab_n_complex,slab_n_real));
+        cudaMemcpy(tmp,deltax_filtered_device,sizeof(Complex) * slab_n_complex,cudaMemcpyDeviceToHost);
+        H5LTmake_dataset_float(file_id, "deltax_sanity", 1, dset_cplx_size, tmp);
+        cudaMemcpy(tmp,stars_filtered_device,sizeof(Complex) * slab_n_complex,cudaMemcpyDeviceToHost);
+        H5LTmake_dataset_float(file_id, "stars_sanity",  1, dset_cplx_size, tmp);
+        cudaMemcpy(tmp,sfr_filtered_device,sizeof(Complex) * slab_n_complex,cudaMemcpyDeviceToHost);
+        H5LTmake_dataset_float(file_id, "sfr_sanity",    1, dset_cplx_size, tmp);
+        free(tmp);
+        H5Fclose(file_id);
     }
 
     // Main loop through the box...
@@ -321,6 +440,29 @@ void _find_HII_bubbles_gpu(double redshift,const bool flag_write_validation_outp
     }
     catch(const meraxes_cuda_exception e){
         e.process_exception();
+    }
+
+    if (true)
+    {
+        // prepare output file
+        char fname[STRLEN];
+        sprintf(fname, "validation_main-core%03d-z%.2f_%02d.h5", mpi_rank, redshift,i_R);
+        hid_t file_id = H5Fcreate(fname, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
+        float *tmp=(float *)malloc(sizeof(float)*MAX(2*slab_n_complex,slab_n_real));
+        cudaMemcpy(tmp,xH_device,sizeof(float) * slab_n_real,cudaMemcpyDeviceToHost);
+        H5LTmake_dataset_float(file_id, "xH",       1, dset_real_size, tmp);
+        cudaMemcpy(tmp,r_bubble_device,sizeof(float) * slab_n_real,cudaMemcpyDeviceToHost);
+        H5LTmake_dataset_float(file_id, "r_bubble", 1, dset_real_size, tmp);
+        if(flag_ReionUVBFlag){
+           cudaMemcpy(tmp,J_21_device,sizeof(float) * slab_n_real,cudaMemcpyDeviceToHost);
+           H5LTmake_dataset_float(file_id, "J_21", 1, dset_real_size,tmp);
+        }
+        cudaMemcpy(tmp,J_21_at_ionization_device,sizeof(float) * slab_n_real,cudaMemcpyDeviceToHost);
+        H5LTmake_dataset_float(file_id, "J_21_at_ionization", 1, dset_real_size,tmp);
+        cudaMemcpy(tmp,z_at_ionization_device,sizeof(float) * slab_n_real,cudaMemcpyDeviceToHost);
+        H5LTmake_dataset_float(file_id, "z_at_ionization",    1, dset_real_size,tmp);
+        free(tmp);
+        H5Fclose(file_id);
     }
 
     R /= ReionDeltaRFactor;

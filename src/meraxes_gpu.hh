@@ -7,6 +7,7 @@
 #include <cufft.h>
 
 // Host-side exception-handling routines
+__host__ void  _throw_on_generic_error(bool check,int implementation_code,  const std::string file, const std::string func, int line);
 __host__ void  _throw_on_cuda_error   (cudaError_t cuda_code, int implementation_code,  const std::string file, const std::string func, int line);
 __host__ void  _throw_on_cuFFT_error  (cufftResult cuda_code, int implementation_code,  const std::string file, const std::string func, int line);
 __host__ void  _throw_on_kernel_error (int implementation_code, const std::string file, const std::string func, int line);
@@ -24,7 +25,7 @@ __device__ float inline k_mag_gpu(const int n_x,const int n_y,const int n_z,cons
 __global__ void set_array_gpu(float *array,int n_real,float val);
 __global__ void sanity_check_aliasing(Complex *grid,int grid_dim,int local_ix_start,int n_real,float val);
 __global__ void complex_vector_times_scalar(Complex *vector,double scalar,int n_complex);
-__global__ void filter_gpu(Complex *box,int slab_nx,int grid_dim,int local_ix_start,int n_complex,float R,double box_size_in,int filter_type);
+__global__ void filter_gpu(Complex *box,int grid_dim,int local_ix_start,int n_complex,float R,double box_size_in,int filter_type);
 __global__ void find_HII_bubbles_gpu_main_loop(
                    float    redshift,
                    int      n_real,
@@ -50,6 +51,7 @@ __global__ void find_HII_bubbles_gpu_main_loop(
 // Wrap exception-handling calls with these macros to add exception location information to the error messages
 // N.B.: The ',' in the execution configuration part of a CUDA kernel call confuses the pre-processor ... so 
 //       make sure to add ()'s around the kernel call when using throw_on_kernel_error()
+#define throw_on_generic_error(bool_check,implementation_code){ _throw_on_generic_error(bool_check,implementation_code, __FILE__, __func__, __LINE__); }
 #define throw_on_cuda_error(cuda_code,implementation_code)    { _throw_on_cuda_error ((cuda_code),implementation_code, __FILE__, __func__, __LINE__); }
 #define throw_on_cuFFT_error(cufft_code,implementation_code)  { _throw_on_cuFFT_error((cufft_code),implementation_code, __FILE__, __func__, __LINE__); }
 #define throw_on_kernel_error(kernel_call,implementation_code){ (kernel_call);_check_for_cuda_error(implementation_code, __FILE__, __func__, __LINE__); }
@@ -60,6 +62,7 @@ __global__ void find_HII_bubbles_gpu_main_loop(
 // Define exception classes
 #include <sstream>
 #include <string>
+#define  GENERIC_CUDA_ERROR_CODE 160614
 class meraxes_exception_base : public std::exception {
     protected:
         int         _error_code;
@@ -139,6 +142,7 @@ class meraxes_cuda_exception : public meraxes_exception_base {
     public:
         // List all the implementation exception codes here
         enum _code_list{
+            INVALID_FILTER,
             GLOBAL,
             INIT,
             MALLOC,
@@ -160,6 +164,8 @@ class meraxes_cuda_exception : public meraxes_exception_base {
         std::string _set_message(int code){
             // List the exception message information for each implementation exception code here
             switch (code){
+            case INVALID_FILTER:
+                return("Invalid filter specified in run_globals.");
             case GLOBAL:
                 return("Notified of error on differing rank.");
             case INIT:

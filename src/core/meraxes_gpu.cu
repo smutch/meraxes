@@ -14,6 +14,10 @@
 #include <cufft.h>
 
 // These functions deal with any GPU exceptions, but should be called with the macros defined in the corresponding .hh file
+__host__ void _throw_on_generic_error(bool check_success,int implementation_code, const std::string file, const std::string func, int line)
+{
+  if(!check_success) throw(meraxes_cuda_exception(GENERIC_CUDA_ERROR_CODE,implementation_code,file,func,line));
+}
 __host__ void _throw_on_cuda_error(cudaError_t cuda_code, int implementation_code, const std::string file, const std::string func, int line)
 {
   if(cuda_code != cudaSuccess) throw(meraxes_cuda_exception((int)cuda_code,implementation_code,file,func,line));
@@ -181,7 +185,7 @@ void sanity_check_aliasing(Complex *grid,int grid_dim,int i_x_start,int n_real,f
 
 // Kernel to perform filtering convolution
 __global__
-void filter_gpu(Complex *box,int slab_nx,int grid_dim,int local_ix_start,int n_complex,float R,double box_size_in,int filter_type){
+void filter_gpu(Complex *box,int grid_dim,int local_ix_start,int n_complex,float R,double box_size_in,int filter_type){
     int i_complex_herm = blockIdx.x*blockDim.x + threadIdx.x;
     if (i_complex_herm < n_complex){
 
@@ -215,14 +219,6 @@ void filter_gpu(Complex *box,int slab_nx,int grid_dim,int local_ix_start,int n_c
             scalar  = powf(M_E, -kR * kR / 2.0);
             support = true;
             break;
-          // Implement this check before the kernel!!!!!!!!!!
-          //default:
-          //  if (i==0)
-          //  {
-          //    mlog_error("ReionFilterType.c: Warning, ReionFilterType type %d is undefined!", filter_type);
-          //    ABORT(EXIT_FAILURE);
-          //  }
-          //  break;
         }
 
         // Apply filter
@@ -259,7 +255,7 @@ void find_HII_bubbles_gpu_main_loop(
     int i_real = blockIdx.x*blockDim.x + threadIdx.x;
     if(i_real < n_real){
         int ix,iy,iz;
-        grid_index2indices(i_real,ReionGridDim,i_x_start,INDEX_REAL,&ix,&iy,&iz); // TODO: need to pass local_i_start to this eventually
+        grid_index2indices(i_real,ReionGridDim,i_x_start,INDEX_REAL,&ix,&iy,&iz); 
         const int i_padded = grid_index_gpu(ix,iy,iz, ReionGridDim, INDEX_PADDED);
 
         double density_over_mean = 1.0 + (double)((float *)deltax_filtered_device)[i_padded];
