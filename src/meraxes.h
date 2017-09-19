@@ -305,31 +305,25 @@ typedef struct reion_grids_t {
     int buffer_size;
 } reion_grids_t;
 
-//! The meraxis halo structure
+//! The meraxes halo structure
 typedef struct halo_t {
-    long long id_MBP; //!< ID of most bound particle
     struct fof_group_t* FOFGroup;
     struct halo_t* NextHaloInFOFGroup;
     struct galaxy_t* Galaxy;
 
     float Pos[3]; //!< Most bound particle position [Mpc/h]
-    float Vel[3]; //!< Centre-of-mass velocity [km/s]
     float AngMom[3]; //!< Specific angular momentum vector [Mpc/h *km/s]
-    float Rhalo; //!< Distance of last halo particle from MBP [Mpc/h]
 
     double Mvir; //!< virial mass [M_sol/h]
     double Rvir; //!< Virial radius [Mpc/h]
     double Vvir; //!< Virial velocity [km/s]
 
-    float Rmax; //!< Radius of maximum circular velocity [Mpc/h]
     float Vmax; //!< Maximum circular velocity [km/s]
-    float VelDisp; //!< Total 3D velocity dispersion [km/s]
-    int ID; //!< Halo ID
+    unsigned long ID; //!< Halo ID
     int Type; //!< Type (0 for central, 1 for satellite)
     int SnapOffset; //!< Number of snapshots this halo skips before reappearing
     int DescIndex; //!< Index of descendant in next relevant snapshot
     int TreeFlags; //!< Bitwise flag indicating the type of match in the trees
-    int ForestID;
     int Len; //!< Number of particles in the structure
 } halo_t;
 
@@ -502,10 +496,9 @@ typedef struct trees_info_t {
 //! Tree entry struct
 typedef struct tree_entry_t {
     long ForestID;
-    long Tail;
+    long Head;
     long HostHaloID;
     double Mass_200crit;
-    double Mass_FOF;
     double R_200crit;
     double Vmax;
     double Xc;

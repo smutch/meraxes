@@ -1,8 +1,8 @@
 #include "meraxes.h"
 #include <assert.h>
 #include <gsl/gsl_sort_int.h>
-#include <hdf5.h>
 #include <hdf5_hl.h>
+#include <math.h>
 
 static trees_info_t read_trees_info(const int snapshot)
 {
@@ -281,11 +281,37 @@ static fof_group_t* init_fof_groups()
     return fof_groups;
 }
 
-#define READ_TREE_ENTRY_PROP(name, type, h5type) { \
-    H5LTread_dataset(snap_group, #name, h5type, (type *)buffer); \
-    for (int ii = 0; ii < n_halos_total; ii++) { \
-        tree_entries[ii].name = (type)buffer[ii]; \
-    } \
+#define READ_TREE_ENTRY_PROP(name, type, h5type)                    \
+    {                                                               \
+        H5LTread_dataset(snap_group, #name, h5type, (type*)buffer); \
+        for (int ii = 0; ii < n_halos_total; ii++) {                \
+            tree_entries[ii].name = (type)buffer[ii];               \
+        }                                                           \
+    }
+
+static int id_to_ind(long id)
+{
+    return (int)((id % (uint64_t)1e12) - 1);
+}
+
+static void inline convert_input_virial_props(double* Mvir, double* Rvir, double* Vvir,
+    double* FOFMvirModifier, const int len,
+    const int snapshot, const bool fof_flag)
+{
+    // Update the virial properties for subhalos
+    if (*Mvir == -1) {
+        assert(len > 0);
+        *Mvir = calculate_Mvir(*Mvir, len);
+    } else if (fof_flag && (run_globals.RequestedMassRatioModifier == 1)) {
+        // Modifier the FoF mass and update the virial radius
+        assert(FOFMvirModifier != NULL);
+        *FOFMvirModifier = interpolate_modifier(run_globals.mass_ratio_modifier, log10(*Mvir / run_globals.params.Hubble_h) + 10.0);
+        *Mvir *= *FOFMvirModifier;
+    }
+    if (*Rvir == -1)
+        *Rvir = calculate_Rvir(*Mvir, snapshot);
+    if (*Vvir == -1)
+        *Vvir = calculate_Vvir(*Mvir, *Rvir);
 }
 
 static void read_velociraptor_trees(int snapshot, halo_t* halos, int n_halos, fof_group_t* fof_groups, int n_fof_groups, int* index_lookup)
@@ -294,7 +320,9 @@ static void read_velociraptor_trees(int snapshot, halo_t* halos, int n_halos, fo
     // be implemented in future though, as we ramp up the size of the
     // simulations...
 
-    tree_entry_t *tree_entries = NULL;
+    mlog("Reading velociraptor trees for snapshot %d...", MLOG_OPEN, snapshot);
+
+    tree_entry_t* tree_entries = NULL;
     int n_halos_total = 0;
 
     if (run_globals.mpi_rank == 0) {
@@ -320,10 +348,9 @@ static void read_velociraptor_trees(int snapshot, halo_t* halos, int n_halos, fo
             long buffer[n_halos_total];
 
             READ_TREE_ENTRY_PROP(ForestID, long, H5T_NATIVE_LONG);
-            READ_TREE_ENTRY_PROP(Tail, long, H5T_NATIVE_LONG);
+            READ_TREE_ENTRY_PROP(Head, long, H5T_NATIVE_LONG);
             READ_TREE_ENTRY_PROP(HostHaloID, long, H5T_NATIVE_LONG);
             READ_TREE_ENTRY_PROP(Mass_200crit, double, H5T_NATIVE_DOUBLE);
-            READ_TREE_ENTRY_PROP(Mass_FOF, double, H5T_NATIVE_DOUBLE);
             READ_TREE_ENTRY_PROP(R_200crit, double, H5T_NATIVE_DOUBLE);
             READ_TREE_ENTRY_PROP(Vmax, double, H5T_NATIVE_DOUBLE);
             READ_TREE_ENTRY_PROP(Xc, double, H5T_NATIVE_DOUBLE);
@@ -341,8 +368,70 @@ static void read_velociraptor_trees(int snapshot, halo_t* halos, int n_halos, fo
     size_t _nbytes = sizeof(tree_entry_t) * n_halos_total;
     if (run_globals.mpi_rank > 0)
         tree_entries = malloc(_nbytes);
-    MPI_Bcast(&tree_entries, _nbytes, MPI_BYTE, 0, run_globals.mpi_comm);
+    MPI_Bcast(tree_entries, (int)_nbytes, MPI_BYTE, 0, run_globals.mpi_comm);
 
+    // TODO: Make sure that the ForestID is consistently being treated as long
+
+    int halo_count = 0;
+    int group_count = 0;
+    for (int ii = 0; ii < n_halos_total; ++ii) {
+        if (run_globals.RequestedForestId != NULL) {
+            if (bsearch(&(tree_entries[ii].ForestID), run_globals.RequestedForestId,
+                    (size_t)run_globals.NRequestedForests, sizeof(int), compare_ints)
+                != NULL) {
+
+                tree_entry_t tree_entry = tree_entries[ii];
+                halo_t* halo = &(halos[halo_count++]);
+
+                halo->ID = tree_entry.ID;
+                halo->DescIndex = id_to_ind(tree_entry.Head);
+                halo->NextHaloInFOFGroup = NULL;
+                halo->Type = tree_entry.HostHaloID == -1 ? 0 : 1;
+
+                if (index_lookup)
+                    index_lookup[halo_count] = ii;
+
+                if (halo->Type == 0) {
+                    // TODO: Assertions here...
+                    fof_group_t* fof_group = &fof_groups[group_count];
+
+                    // TODO: What masses and radii should I use for centrals (inclusive vs. exclusive etc.)?
+                    fof_group->Mvir = tree_entry.Mass_200crit;
+                    fof_group->Rvir = tree_entry.R_200crit;
+                    fof_group->FOFMvirModifier = 1.0;
+
+                    convert_input_virial_props(&fof_group->Mvir, &fof_group->Rvir, &fof_group->Vvir,
+                        &fof_group->FOFMvirModifier, -1, snapshot, true);
+
+                    fof_groups[group_count++].FirstHalo = halo;
+                } else if (halo_count > 0)
+                    halos[halo_count - 1].NextHaloInFOFGroup = halo;
+
+                // TODO: Set halo->FOFGroup pointer
+                //halos->FOFGroup = &fof_groups[group_count - 1];
+
+                halo->Len = (int)tree_entry.npart;
+                halo->Pos[0] = (float)tree_entry.Xc;
+                halo->Pos[1] = (float)tree_entry.Yc;
+                halo->Pos[2] = (float)tree_entry.Zc;
+
+                // TODO: What masses and radii should I use for satellites (inclusive vs. exclusive etc.)?
+                halo->Mvir = -1f;
+                halo->Rvir = -1f;
+                halo->Vmax = (float)tree_entry.Vmax;
+
+                // TODO: Ask Pascal for ang mom vectors
+
+                halo->Galaxy = NULL;
+
+                convert_input_virial_props(&halo->Mvir, &halo->Rvir, &halo->Vvir, NULL, -1, snapshot, false);
+
+                halo_count++;
+            }
+        }
+    }
+
+    mlog("...done", MLOG_CLOSE);
 }
 
 trees_info_t read_halos(const int snapshot, halo_t** halos, fof_group_t** fof_groups,
