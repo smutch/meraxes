@@ -91,7 +91,7 @@ void assign_slabs()
     mlog("...done", MLOG_CLOSE);
 }
 
-void call_find_HII_bubbles(int snapshot, int unsampled_snapshot, int nout_gals)
+void call_find_HII_bubbles(int snapshot, int nout_gals)
 {
     // Thin wrapper round find_HII_bubbles
 
@@ -112,7 +112,7 @@ void call_find_HII_bubbles(int snapshot, int unsampled_snapshot, int nout_gals)
     construct_baryon_grids(snapshot, nout_gals);
 
     // Read in the dark matter density grid
-    read_dm_grid(unsampled_snapshot, 0, (float*)(grids->deltax));
+    read_dm_grid(snapshot, 0, (float*)(grids->deltax));
 
     // save the grids prior to doing FFTs to avoid precision loss and aliasing etc.
     for (int i_out = 0; i_out < run_globals.NOutputSnaps; i_out++)

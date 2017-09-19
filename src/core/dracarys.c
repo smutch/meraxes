@@ -397,9 +397,9 @@ void dracarys()
                     // We are decoupled, so no need to run 21cmFAST unless we are ouputing this snapshot
                     for (int i_out = 0; i_out < NOutputSnaps; i_out++)
                         if (snapshot == run_globals.ListOutputSnaps[i_out])
-                            call_find_HII_bubbles(snapshot, trees_info.unsampled_snapshot, nout_gals);
+                            call_find_HII_bubbles(snapshot, nout_gals);
                 } else
-                    call_find_HII_bubbles(snapshot, trees_info.unsampled_snapshot, nout_gals);
+                    call_find_HII_bubbles(snapshot, nout_gals);
             }
 
             // if we have already created a mapping of galaxies to MPI slabs then we no

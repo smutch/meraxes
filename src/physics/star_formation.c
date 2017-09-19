@@ -111,6 +111,7 @@ void insitu_star_formation(galaxy_t* gal, int snapshot)
             break;
 
         default:
+            m_stars = 0;
             mlog_error("Unknown SfPrescription!");
             ABORT(EXIT_FAILURE);
             break;

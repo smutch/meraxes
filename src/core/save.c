@@ -29,7 +29,6 @@ void prepare_galaxy_for_output(
 {
     run_units_t* units = &(run_globals.units);
 
-    galout->id_MBP = (long long)gal.id_MBP;
     galout->ID = (long long)gal.ID;
     galout->Type = (int)gal.Type;
     if (!gal.ghost_flag) {
@@ -43,7 +42,6 @@ void prepare_galaxy_for_output(
 
     for (int ii = 0; ii < 3; ii++) {
         galout->Pos[ii] = (float)(gal.Pos[ii]);
-        galout->Vel[ii] = (float)(gal.Vel[ii]);
     }
 
     galout->Len = (int)(gal.Len);
@@ -804,10 +802,7 @@ void write_snapshot(
         h5props.dst_offsets, h5props.field_types, chunk_size, fill_data, 0,
         NULL);
 
-    // Store the unsampled snapshot number
-    H5LTset_attribute_int(group_id, "Galaxies", "unsampled_snapshot", &(trees_info->unsampled_snapshot), 1);
-
-    // If the immediately preceeding snapshot was also written, then save the
+    // If the immediately preceding snapshot was also written, then save the
     // descendent indices
     prev_snapshot = run_globals.ListOutputSnaps[i_out] - 1;
     if (i_out > 0) {

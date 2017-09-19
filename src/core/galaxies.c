@@ -9,7 +9,6 @@ galaxy_t* new_galaxy(int snapshot, int halo_ID)
     gal = malloc(sizeof(galaxy_t));
 
     // Initialise the properties
-    gal->id_MBP = 0;
     gal->ID = snapshot * 1e10 + halo_ID;
     gal->Type = -1;
     gal->OldType = -1;
@@ -65,7 +64,6 @@ galaxy_t* new_galaxy(int snapshot, int halo_ID)
 
     for (int ii = 0; ii < 3; ii++) {
         gal->Pos[ii] = -99999.9;
-        gal->Vel[ii] = -99999.9;
     }
 
     for (int ii = 0; ii < N_HISTORY_SNAPS; ii++)
@@ -81,7 +79,6 @@ galaxy_t* new_galaxy(int snapshot, int halo_ID)
 
 void copy_halo_to_galaxy(halo_t* halo, galaxy_t* gal, int snapshot)
 {
-    gal->id_MBP = halo->id_MBP;
     gal->Type = halo->Type;
     gal->Len = halo->Len;
     gal->SnapSkipCounter = halo->SnapOffset;
@@ -106,7 +103,6 @@ void copy_halo_to_galaxy(halo_t* halo, galaxy_t* gal, int snapshot)
 
     for (int ii = 0; ii < 3; ii++) {
         gal->Pos[ii] = halo->Pos[ii];
-        gal->Vel[ii] = halo->Vel[ii];
     }
 
     // record the maximum Len value if necessary

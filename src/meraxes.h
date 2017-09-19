@@ -216,8 +216,6 @@ typedef struct run_params_t {
     int RandomSeed;
     int FlagSubhaloVirialProps;
     int FlagInteractive;
-    int FlagGenDumpFile;
-    int FlagReadDumpFile;
     int FlagMCMC;
     int Flag_PatchyReion;
     int Flag_OutputGrids;
@@ -349,7 +347,6 @@ typedef struct galaxy_t {
 
     // properties of subhalo at the last time this galaxy was a central galaxy
     float Pos[3];
-    float Vel[3];
     double Mvir;
     double Rvir;
     double Vvir;
@@ -358,7 +355,6 @@ typedef struct galaxy_t {
 
     double dt; //!< Time between current snapshot and last identification
 
-    long long id_MBP;
     struct halo_t* Halo;
     struct galaxy_t* FirstGalInHalo;
     struct galaxy_t* NextGalInHalo;
@@ -609,7 +605,7 @@ void initialize_halo_storage(void);
 void dracarys(void);
 int evolve_galaxies(fof_group_t* fof_group, int snapshot, int NGal, int NFof);
 void passively_evolve_ghost(galaxy_t* gal, int snapshot);
-// trees_info_t read_halos(int snapshot, halo_t **halo, fof_group_t **fof_group, int **index_lookup, trees_info_t *snapshot_trees_info);
+trees_info_t read_halos(int snapshot, halo_t **halo, fof_group_t **fof_group, int **index_lookup, trees_info_t *snapshot_trees_info);
 int* read_forest_ids(hid_t fd);
 galaxy_t* new_galaxy(int snapshot, int halo_ID);
 void create_new_galaxy(int snapshot, halo_t* halo, int* NGal, int* new_gal_counter);
@@ -713,7 +709,7 @@ void create_grids_file(void);
 int read_dm_grid(int snapshot, int i_grid, float* grid);
 void free_grids_cache(void);
 void calculate_Mvir_crit(double redshift);
-void call_find_HII_bubbles(int snapshot, int unsampled_snapshot, int nout_gals);
+void call_find_HII_bubbles(int snapshot, int nout_gals);
 void save_reion_input_grids(int snapshot);
 void save_reion_output_grids(int snapshot);
 bool check_if_reionization_ongoing(void);

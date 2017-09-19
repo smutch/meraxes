@@ -7,11 +7,6 @@ static void check_problem_params(run_params_t* run_params)
         mlog_error("The current version of the code only works if NSteps = 1. Sorry! Exiting...");
         ABORT(EXIT_FAILURE);
     }
-
-    if (run_params->FlagReadDumpFile && run_params->FlagGenDumpFile) {
-        mlog_error("Both FlagReadDumpFile & FlagGenDumpFile are set!");
-        ABORT(EXIT_FAILURE);
-    }
 }
 
 static void inline store_params(
@@ -318,16 +313,6 @@ void read_parameter_file(char* fname, int mode)
 
             strcpy(params_tag[n_param], "FlagInteractive");
             params_addr[n_param] = &(run_params->FlagInteractive);
-            required_tag[n_param] = 1;
-            params_type[n_param++] = PARAM_TYPE_INT;
-
-            strcpy(params_tag[n_param], "FlagGenDumpFile");
-            params_addr[n_param] = &(run_params->FlagGenDumpFile);
-            required_tag[n_param] = 1;
-            params_type[n_param++] = PARAM_TYPE_INT;
-
-            strcpy(params_tag[n_param], "FlagReadDumpFile");
-            params_addr[n_param] = &(run_params->FlagReadDumpFile);
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_INT;
 

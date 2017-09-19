@@ -34,7 +34,7 @@ static trees_info_t read_trees_info(const int snapshot)
     return trees_info;
 }
 
-static void reorder_forest_array(int* arr, size_t* sort_ind, int n_forests, int* temp)
+static void reorder_forest_array(int* arr, const size_t* sort_ind, int n_forests, int* temp)
 {
     memcpy(temp, arr, sizeof(int) * n_forests);
     for (int ii = 0, jj = n_forests - 1; ii < n_forests; ii++, jj--)
@@ -53,7 +53,8 @@ static void select_forests()
         sample_forests = true;
 
     // if this is the master rank then read in the forest info
-    int *max_contemp_halo, *max_contemp_fof, *forest_id, *n_halos, n_forests;
+    int *max_contemp_halo = NULL, *max_contemp_fof = NULL, *forest_id = NULL, *n_halos = NULL;
+    int n_forests = 0;
     if (run_globals.mpi_rank == 0) {
         char fname[STRLEN];
         sprintf(fname, "%s/trees/meraxes_augmented_info.h5", run_globals.params.SimulationDir);
@@ -120,7 +121,7 @@ static void select_forests()
 
     // sort the forests by the number of halos in each one
     size_t* sort_ind = malloc(sizeof(size_t) * n_forests);
-    gsl_sort_int_index(sort_ind, n_halos, 1, n_forests);
+    gsl_sort_int_index(sort_ind, n_halos, 1, (const size_t)n_forests);
     int* temp = malloc(sizeof(int) * n_forests);
 
     reorder_forest_array(forest_id, sort_ind, n_forests, temp);
@@ -257,7 +258,7 @@ static void select_forests()
     run_globals.NFOFGroupsMax = max_fof_groups;
 
     // sort the requested forest ids so that they can be bsearch'd later
-    qsort(run_globals.RequestedForestId, run_globals.NRequestedForests,
+    qsort(run_globals.RequestedForestId, (size_t)run_globals.NRequestedForests,
         sizeof(int), compare_ints);
 
     free(requested_ind);
@@ -284,7 +285,7 @@ static fof_group_t* init_fof_groups()
 #define READ_TREE_ENTRY_PROP(name, type, h5type)                    \
     {                                                               \
         H5LTread_dataset(snap_group, #name, h5type, (type*)buffer); \
-        for (int ii = 0; ii < n_halos_total; ii++) {                \
+        for (int ii = 0; ii < n_tree_entries; ii++) {                \
             tree_entries[ii].name = (type)buffer[ii];               \
         }                                                           \
     }
@@ -314,7 +315,7 @@ static void inline convert_input_virial_props(double* Mvir, double* Rvir, double
         *Vvir = calculate_Vvir(*Mvir, *Rvir);
 }
 
-static void read_velociraptor_trees(int snapshot, halo_t* halos, int n_halos, fof_group_t* fof_groups, int n_fof_groups, int* index_lookup)
+static void read_velociraptor_trees(int snapshot, halo_t* halos, int *n_halos, fof_group_t* fof_groups, int *n_fof_groups, int* index_lookup)
 {
     // TODO: For the moment, I'll forgo chunking the read.  This will need to
     // be implemented in future though, as we ramp up the size of the
@@ -323,7 +324,7 @@ static void read_velociraptor_trees(int snapshot, halo_t* halos, int n_halos, fo
     mlog("Reading velociraptor trees for snapshot %d...", MLOG_OPEN, snapshot);
 
     tree_entry_t* tree_entries = NULL;
-    int n_halos_total = 0;
+    int n_tree_entries = 0;
 
     if (run_globals.mpi_rank == 0) {
         char fname[STRLEN];
@@ -340,12 +341,12 @@ static void read_velociraptor_trees(int snapshot, halo_t* halos, int n_halos, fo
         sprintf(snap_group_name, "Snap_%03d", snapshot);
         hid_t snap_group = H5Gopen(fd, snap_group_name, H5P_DEFAULT);
 
-        H5LTget_attribute_int(snap_group, "/", "NHalos", &n_halos_total);
+        H5LTget_attribute_int(snap_group, "/", "NHalos", &n_tree_entries);
 
-        tree_entries = malloc(sizeof(tree_entry_t) * n_halos_total);
+        tree_entries = malloc(sizeof(tree_entry_t) * n_tree_entries);
 
         {
-            long buffer[n_halos_total];
+            long buffer[n_tree_entries];
 
             READ_TREE_ENTRY_PROP(ForestID, long, H5T_NATIVE_LONG);
             READ_TREE_ENTRY_PROP(Head, long, H5T_NATIVE_LONG);
@@ -364,24 +365,24 @@ static void read_velociraptor_trees(int snapshot, halo_t* halos, int n_halos, fo
         H5Fclose(fd);
     }
 
-    MPI_Bcast(&n_halos_total, 1, MPI_INT, 0, run_globals.mpi_comm);
-    size_t _nbytes = sizeof(tree_entry_t) * n_halos_total;
+    MPI_Bcast(&n_tree_entries, 1, MPI_INT, 0, run_globals.mpi_comm);
+    size_t _nbytes = sizeof(tree_entry_t) * n_tree_entries;
     if (run_globals.mpi_rank > 0)
         tree_entries = malloc(_nbytes);
     MPI_Bcast(tree_entries, (int)_nbytes, MPI_BYTE, 0, run_globals.mpi_comm);
 
     // TODO: Make sure that the ForestID is consistently being treated as long
 
-    int halo_count = 0;
-    int group_count = 0;
-    for (int ii = 0; ii < n_halos_total; ++ii) {
+    *n_halos = 0;
+    *n_fof_groups = 0;
+    for (int ii = 0; ii < n_tree_entries; ++ii) {
         if (run_globals.RequestedForestId != NULL) {
             if (bsearch(&(tree_entries[ii].ForestID), run_globals.RequestedForestId,
                     (size_t)run_globals.NRequestedForests, sizeof(int), compare_ints)
                 != NULL) {
 
                 tree_entry_t tree_entry = tree_entries[ii];
-                halo_t* halo = &(halos[halo_count++]);
+                halo_t* halo = &(halos[*n_halos]);
 
                 halo->ID = tree_entry.ID;
                 halo->DescIndex = id_to_ind(tree_entry.Head);
@@ -389,11 +390,10 @@ static void read_velociraptor_trees(int snapshot, halo_t* halos, int n_halos, fo
                 halo->Type = tree_entry.HostHaloID == -1 ? 0 : 1;
 
                 if (index_lookup)
-                    index_lookup[halo_count] = ii;
+                    index_lookup[*n_halos] = ii;
 
                 if (halo->Type == 0) {
-                    // TODO: Assertions here...
-                    fof_group_t* fof_group = &fof_groups[group_count];
+                    fof_group_t* fof_group = &fof_groups[*n_fof_groups];
 
                     // TODO: What masses and radii should I use for centrals (inclusive vs. exclusive etc.)?
                     fof_group->Mvir = tree_entry.Mass_200crit;
@@ -403,9 +403,9 @@ static void read_velociraptor_trees(int snapshot, halo_t* halos, int n_halos, fo
                     convert_input_virial_props(&fof_group->Mvir, &fof_group->Rvir, &fof_group->Vvir,
                         &fof_group->FOFMvirModifier, -1, snapshot, true);
 
-                    fof_groups[group_count++].FirstHalo = halo;
-                } else if (halo_count > 0)
-                    halos[halo_count - 1].NextHaloInFOFGroup = halo;
+                    fof_groups[(*n_fof_groups)++].FirstHalo = halo;
+                } else if (*n_halos > 0)
+                    halos[*n_halos - 1].NextHaloInFOFGroup = halo;
 
                 // TODO: Set halo->FOFGroup pointer
                 //halos->FOFGroup = &fof_groups[group_count - 1];
@@ -416,8 +416,8 @@ static void read_velociraptor_trees(int snapshot, halo_t* halos, int n_halos, fo
                 halo->Pos[2] = (float)tree_entry.Zc;
 
                 // TODO: What masses and radii should I use for satellites (inclusive vs. exclusive etc.)?
-                halo->Mvir = -1f;
-                halo->Rvir = -1f;
+                halo->Mvir = -1;
+                halo->Rvir = -1;
                 halo->Vmax = (float)tree_entry.Vmax;
 
                 // TODO: Ask Pascal for ang mom vectors
@@ -426,17 +426,47 @@ static void read_velociraptor_trees(int snapshot, halo_t* halos, int n_halos, fo
 
                 convert_input_virial_props(&halo->Mvir, &halo->Rvir, &halo->Vvir, NULL, -1, snapshot, false);
 
-                halo_count++;
+                (*n_halos)++;
             }
         }
     }
 
+    free(tree_entries);
+
     mlog("...done", MLOG_CLOSE);
 }
 
-trees_info_t read_halos(const int snapshot, halo_t** halos, fof_group_t** fof_groups,
-    int** index_lookup)
+static void inline update_pointers_from_offsets(
+    int          n_fof_groups_kept,
+    fof_group_t *fof_group,
+    size_t      *fof_FirstHalo_os,
+    int          n_halos_kept,
+    halo_t      *halo,
+    size_t      *halo_FOFGroup_os,
+    size_t      *halo_NextHaloInFOFGroup_os)
 {
+    for (int ii = 0; ii < n_halos_kept; ii++)
+    {
+        halo[ii].FOFGroup = &(fof_group[halo_FOFGroup_os[ii]]);
+        if (halo_NextHaloInFOFGroup_os[ii] != -1)
+            halo[ii].NextHaloInFOFGroup = &(halo[halo_NextHaloInFOFGroup_os[ii]]);
+        else
+            halo[ii].NextHaloInFOFGroup = NULL;
+    }
+    for (int ii = 0; ii < n_fof_groups_kept; ii++)
+        fof_group[ii].FirstHalo = &(halo[fof_FirstHalo_os[ii]]);
+}
+
+trees_info_t read_halos(const int snapshot, halo_t** halos, fof_group_t** fof_groups,
+    int** index_lookup, trees_info_t *snapshot_trees_info)
+{
+    // if we are doing multiple runs and have already read in this snapshot then we don't need to do read anything else
+    if ((run_globals.params.FlagInteractive || run_globals.params.FlagMCMC) && (snapshot_trees_info[snapshot].n_halos != -1))
+    {
+        mlog("Snapshot %d has already been read in... (n_halos = %d)", MLOG_MESG, snapshot, snapshot_trees_info[snapshot].n_halos);
+        return snapshot_trees_info[snapshot];
+    }
+
     mlog("Reading snapshot %d (z = %.2f) trees and halos...",
         MLOG_OPEN | MLOG_TIMERSTART, snapshot, run_globals.ZZ[snapshot]);
 
@@ -495,7 +525,138 @@ trees_info_t read_halos(const int snapshot, halo_t** halos, fof_group_t** fof_gr
         *fof_groups = init_fof_groups();
 
     // Now actually read in the trees!
-    read_velociraptor_trees(snapshot, *halos, n_halos, *fof_groups, n_fof_groups, *index_lookup);
+    read_velociraptor_trees(snapshot, *halos, &n_halos, *fof_groups, &n_fof_groups, *index_lookup);
+
+    // if subsampling the trees, then update the trees_info to reflect what we now have
+    if (run_globals.NRequestedForests > -1) {
+        trees_info.n_halos      = n_halos;
+        trees_info.n_fof_groups = n_fof_groups;
+    }
+
+    // if we are doing multiple runs then resize the arrays to save space and store the trees_info
+    if (run_globals.params.FlagInteractive || run_globals.params.FlagMCMC)
+    {
+        // Ok - what follows here is hacky as hell.  By calling realloc on these
+        // arrays, there is a good chance that the actual array will be moved and
+        // there is no way to prevent this.  A side effect will be that all of the
+        // pointers that refer to any of these arrays will be broken.  The simplest
+        // way to deal with this is to calculate the array offsets which each
+        // pointer refers to, and then reset all of the pointers in the realloc'd
+        // arrays.
+        //
+        // In future, this should definitely be changed. All pointers to these
+        // array members should be made integer offsets instead.  That will require
+        // trawling through the code and making the relevant updates in a number of
+        // places (so we'll leave that till later!).
+
+        mlog("Calculating pointer offsets...", MLOG_MESG);
+
+        size_t *halo_FOFGroup_os           = malloc(sizeof(size_t) * n_halos);
+        size_t *halo_NextHaloInFOFGroup_os = malloc(sizeof(size_t) * n_halos);
+        size_t *fof_FirstHalo_os           = malloc(sizeof(size_t) * n_fof_groups);
+
+        for (int ii = 0; ii < n_halos; ii++)
+        {
+            halo_FOFGroup_os[ii] = (size_t)((*halos)[ii].FOFGroup - (*fof_groups));
+            if ((*halos)[ii].NextHaloInFOFGroup != NULL)
+                halo_NextHaloInFOFGroup_os[ii] = (size_t)((*halos)[ii].NextHaloInFOFGroup - (*halos));
+            else
+                halo_NextHaloInFOFGroup_os[ii] = -1;
+        }
+        for (int ii = 0; ii < n_fof_groups; ii++)
+            fof_FirstHalo_os[ii] = (size_t)((*fof_groups)[ii].FirstHalo - (*halos));
+
+        mlog("Reallocing halo storage arrays...", MLOG_OPEN);
+
+        *halos      = (halo_t*)realloc(*halos, sizeof(halo_t) * n_halos);
+        *fof_groups = (fof_group_t*)realloc(*fof_groups, sizeof(fof_group_t) * n_fof_groups);
+
+        // Only realloc `index_lookup` if we are actually using it (`n_proc` > 1
+        // or we are subsampling the trees).
+        if (*index_lookup)
+            *index_lookup = (int*)realloc(*index_lookup, sizeof(int) * n_halos);
+        update_pointers_from_offsets(n_fof_groups, *fof_groups, fof_FirstHalo_os,
+                                     n_halos, *halos, halo_FOFGroup_os, halo_NextHaloInFOFGroup_os);
+
+        // save the trees_info for this snapshot as well...
+        snapshot_trees_info[snapshot] = trees_info;
+
+        mlog(" ...done (resized to %d halos)", MLOG_CLOSE, n_halos);
+
+        free(fof_FirstHalo_os);
+        free(halo_NextHaloInFOFGroup_os);
+        free(halo_FOFGroup_os);
+    }
 
     return trees_info;
 }
+
+void initialize_halo_storage()
+{
+    int           *n_store_snapshots     = &(run_globals.NStoreSnapshots);
+    halo_t      ***snapshot_halo         = &(run_globals.SnapshotHalo);
+    fof_group_t ***snapshot_fof_group    = &(run_globals.SnapshotFOFGroup);
+    int         ***snapshot_index_lookup = &(run_globals.SnapshotIndexLookup);
+    trees_info_t **snapshot_trees_info   = &(run_globals.SnapshotTreesInfo);
+
+    int            last_snap             = 0;
+
+    mlog("Initializing halo storage arrays...", MLOG_OPEN);
+
+    // Find what the last requested output snapshot is
+    for (int ii = 0; ii < run_globals.NOutputSnaps; ii++)
+        if (run_globals.ListOutputSnaps[ii] > last_snap)
+            last_snap = run_globals.ListOutputSnaps[ii];
+
+    // Allocate an array of last_snap halo array pointers
+    if (run_globals.params.FlagInteractive || run_globals.params.FlagMCMC)
+        *n_store_snapshots = last_snap + 1;
+    else
+        *n_store_snapshots = 1;
+
+    *snapshot_halo         = (halo_t**)calloc(*n_store_snapshots, sizeof(halo_t *));
+    *snapshot_fof_group    = (fof_group_t**)calloc(*n_store_snapshots, sizeof(fof_group_t *));
+    *snapshot_index_lookup = (int**)calloc(*n_store_snapshots, sizeof(int *));
+    *snapshot_trees_info   = (trees_info_t*)calloc(*n_store_snapshots, sizeof(trees_info_t));
+
+    for (int ii = 0; ii < *n_store_snapshots; ii++)
+    {
+        (*snapshot_trees_info)[ii].n_halos = -1;
+        (*snapshot_index_lookup)[ii]       = NULL;
+    }
+
+    // loop through and read all snapshots
+    if (run_globals.params.FlagInteractive || run_globals.params.FlagMCMC)
+    {
+        mlog("Preloading input trees and halos...", MLOG_OPEN);
+        for (int i_snap = 0; i_snap <= last_snap; i_snap++)
+            read_halos(i_snap, &((*snapshot_halo)[i_snap]), &((*snapshot_fof_group)[i_snap]), &((*snapshot_index_lookup)[i_snap]), *snapshot_trees_info);
+        mlog("...done", MLOG_CLOSE);
+    }
+
+    mlog("...done", MLOG_CLOSE);
+}
+
+
+void free_halo_storage()
+{
+    int           n_store_snapshots     = run_globals.NStoreSnapshots;
+    halo_t      **snapshot_halo         = run_globals.SnapshotHalo;
+    fof_group_t **snapshot_fof_group    = run_globals.SnapshotFOFGroup;
+    int         **snapshot_index_lookup = run_globals.SnapshotIndexLookup;
+    trees_info_t *snapshot_trees_info   = run_globals.SnapshotTreesInfo;
+
+    // Free all of the remaining allocated galaxies, halos and fof groups
+    mlog("Freeing FOF groups and halos...", MLOG_MESG);
+    for (int ii = 0; ii < n_store_snapshots; ii++)
+    {
+        free(snapshot_halo[ii]);
+        free(snapshot_fof_group[ii]);
+        free(snapshot_index_lookup[ii]);
+    }
+    free(snapshot_halo);
+    free(snapshot_fof_group);
+    free(snapshot_index_lookup);
+    free(snapshot_trees_info);
+}
+
