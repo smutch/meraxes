@@ -381,6 +381,8 @@ void _find_HII_bubbles(double redshift,const bool flag_validation_output)
   *mass_weighted_global_xH   /= mass_weight;
 
 }
+
+// This function makes sure that the right version of find_HII_bubbles() gets called.
 void find_HII_bubbles(int snapshot,timer_info *timer_total)
 {
   // Call the version of find_HII_bubbles we've been passed (and time it)
@@ -407,7 +409,7 @@ void find_HII_bubbles(int snapshot,timer_info *timer_total)
   timer_gpu+=timer_delta(timer);
   mlog("Total time spent in find_HII_bubbles vs. total run time: %.2f of %.2f s",MLOG_MESG,timer_gpu,timer_delta(*timer_total));
 
-  // Write final output
+  // Write reionization results for this snapshot.  Useful for testing.
   if(false){
     char fname_out[STRLEN];
     sprintf(fname_out,"validation_output-core%03d-z%.2f.h5",run_globals.mpi_rank, redshift);
@@ -420,4 +422,6 @@ void find_HII_bubbles(int snapshot,timer_info *timer_total)
     H5LTset_attribute_double(file_id_out, "/", "mass_weighted_global_xH",   &(run_globals.reion_grids.mass_weighted_global_xH),   1);
     H5Fclose(file_id_out);
   }
+
 }
+

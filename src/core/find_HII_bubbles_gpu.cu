@@ -1,3 +1,35 @@
+//==============================================================================
+//
+// This code was developed as part of the Astronomy Data and Computing Services
+// (ADACS; https://adacs.org.au) 2017B Software Support program.
+//
+// Written by: Gregory B. Poole
+// Date:       September 2017
+//
+// It is distributed under the MIT (Expat) License (see https://opensource.org/):
+//
+// Copyright (c) 2017 Astronomy Data and Computing Services (ADACS)
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in all
+// copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+// SOFTWARE.
+//
+//==============================================================================
+
 #include <fftw3.h>
 #include <fftw3-mpi.h>
 #include <math.h>
@@ -5,6 +37,9 @@
 #include <hdf5_hl.h>
 #include "meraxes.h"
 
+// This is the CUDA-enabled version of find_HII_bubbles().  It uses cuFFT for
+//    all FFTs if the USE_CUFFT compiler flag has been set.  Otherwise, it uses 
+//    fftw.  In both cases, everything else is done with the GPU.
 void _find_HII_bubbles_gpu(double redshift,const bool flag_write_validation_output){
   // Fetch needed things from run_globals
   const int    mpi_rank            = run_globals.mpi_rank;
@@ -397,7 +432,9 @@ void _find_HII_bubbles_gpu(double redshift,const bool flag_write_validation_outp
   *mass_weighted_global_xH   = 0.0;
   double mass_weight         = 0.0;
 
-  // Calculate neutral fractions
+  // Calculate neutral fractions.  
+  // TODO: A parallel reduction could be done for this before results are off-loaded
+  //       from the GPU.
   int ix,iy,iz;
   for (ix = 0; ix < local_nix; ix++)
     for (iy = 0; iy < ReionGridDim; iy++)

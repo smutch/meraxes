@@ -1,3 +1,35 @@
+//==============================================================================
+//
+// This code was developed as part of the Astronomy Data and Computing Services
+// (ADACS; https://adacs.org.au) 2017B Software Support program.
+//
+// Written by: Gregory B. Poole
+// Date:       September 2017
+//
+// It is distributed under the MIT (Expat) License (see https://opensource.org/):
+//
+// Copyright (c) 2017 Astronomy Data and Computing Services (ADACS)
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in all
+// copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+// SOFTWARE.
+//
+//==============================================================================
+
 #ifndef _MERAXES_GPU_HH
 #define _MERAXES_GPU_HH
 
@@ -16,7 +48,7 @@ __host__ void  _check_thread_sync     (int implementation_code, const std::strin
 __host__ void  _throw_on_global_error (const std::string file, const std::string func, int line);
 __host__ void  notify_of_global_error (int error_code);
 
-// These routines are needed by the kernel
+// These routines are needed by the kernels
 __device__ void  inline grid_index2indices(const int idx,const int dim,const int local_ix_start,const int mode,int *ix,int *iy,int *iz);
 __device__ int   inline grid_index_gpu(int i, int j, int k, int dim, int type);
 __device__ float inline k_mag_gpu(const int n_x,const int n_y,const int n_z,const int dim,const float box_size);
@@ -58,7 +90,7 @@ __global__ void find_HII_bubbles_gpu_main_loop(
 #define throw_on_global_error()                                  { _throw_on_global_error(__FILE__, __func__, __LINE__);}
 #endif
 
-// Define exception classes
+// Define base exception classes
 #include <sstream>
 #include <string>
 #define  GENERIC_CUDA_ERROR_CODE 160614
@@ -136,7 +168,7 @@ class meraxes_exception_base : public std::exception {
 };
 
 // Derived meraxes exception class for CUDA exceptions
-//    Defineall implementation error codes and associated error messages here
+//    Define all implementation error codes and associated error messages here
 class meraxes_cuda_exception : public meraxes_exception_base {
     public:
         // List all the implementation exception codes here
