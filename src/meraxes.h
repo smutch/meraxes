@@ -501,16 +501,18 @@ typedef struct trees_info_t {
 
 //! Tree entry struct
 typedef struct tree_entry_t {
-    int id;
-    int flags;
-    int desc_id;
-    int tree_id;
-    int file_offset;
-    int desc_index;
-    int n_particle_peak;
-    int central_index;
-    int forest_id;
-    int group_index;
+    long ForestID;
+    long Tail;
+    long HostHaloID;
+    double Mass_200crit;
+    double Mass_FOF;
+    double R_200crit;
+    double Vmax;
+    double Xc;
+    double Yc;
+    double Zc;
+    unsigned long ID;
+    unsigned long npart;
 } tree_entry_t;
 
 //! This is the structure for a halo in the catalog files

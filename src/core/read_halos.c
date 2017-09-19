@@ -281,8 +281,68 @@ static fof_group_t* init_fof_groups()
     return fof_groups;
 }
 
+#define READ_TREE_ENTRY_PROP(name, type, h5type) { \
+    H5LTread_dataset(snap_group, #name, h5type, (type *)buffer); \
+    for (int ii = 0; ii < n_halos_total; ii++) { \
+        tree_entries[ii].name = (type)buffer[ii]; \
+    } \
+}
+
 static void read_velociraptor_trees(int snapshot, halo_t* halos, int n_halos, fof_group_t* fof_groups, int n_fof_groups, int* index_lookup)
 {
+    // TODO: For the moment, I'll forgo chunking the read.  This will need to
+    // be implemented in future though, as we ramp up the size of the
+    // simulations...
+
+    tree_entry_t *tree_entries = NULL;
+    int n_halos_total = 0;
+
+    if (run_globals.mpi_rank == 0) {
+        char fname[STRLEN];
+        sprintf(fname, "%s/trees/VELOCIraptor.tree.t4.unifiedhalotree.withforest.snap.hdf.data.h5",
+            run_globals.params.SimulationDir);
+
+        hid_t fd = H5Fopen(fname, H5F_ACC_RDONLY, H5P_DEFAULT);
+        if (fd < 0) {
+            mlog("Failed to open file %s", MLOG_MESG, fname);
+            ABORT(EXIT_FAILURE);
+        }
+
+        char snap_group_name[9];
+        sprintf(snap_group_name, "Snap_%03d", snapshot);
+        hid_t snap_group = H5Gopen(fd, snap_group_name, H5P_DEFAULT);
+
+        H5LTget_attribute_int(snap_group, "/", "NHalos", &n_halos_total);
+
+        tree_entries = malloc(sizeof(tree_entry_t) * n_halos_total);
+
+        {
+            long buffer[n_halos_total];
+
+            READ_TREE_ENTRY_PROP(ForestID, long, H5T_NATIVE_LONG);
+            READ_TREE_ENTRY_PROP(Tail, long, H5T_NATIVE_LONG);
+            READ_TREE_ENTRY_PROP(HostHaloID, long, H5T_NATIVE_LONG);
+            READ_TREE_ENTRY_PROP(Mass_200crit, double, H5T_NATIVE_DOUBLE);
+            READ_TREE_ENTRY_PROP(Mass_FOF, double, H5T_NATIVE_DOUBLE);
+            READ_TREE_ENTRY_PROP(R_200crit, double, H5T_NATIVE_DOUBLE);
+            READ_TREE_ENTRY_PROP(Vmax, double, H5T_NATIVE_DOUBLE);
+            READ_TREE_ENTRY_PROP(Xc, double, H5T_NATIVE_DOUBLE);
+            READ_TREE_ENTRY_PROP(Yc, double, H5T_NATIVE_DOUBLE);
+            READ_TREE_ENTRY_PROP(Zc, double, H5T_NATIVE_DOUBLE);
+            READ_TREE_ENTRY_PROP(ID, unsigned long, H5T_NATIVE_ULONG);
+            READ_TREE_ENTRY_PROP(npart, unsigned long, H5T_NATIVE_ULONG);
+        }
+
+        H5Gclose(snap_group);
+        H5Fclose(fd);
+    }
+
+    MPI_Bcast(&n_halos_total, 1, MPI_INT, 0, run_globals.mpi_comm);
+    size_t _nbytes = sizeof(tree_entry_t) * n_halos_total;
+    if (run_globals.mpi_rank > 0)
+        tree_entries = malloc(_nbytes);
+    MPI_Bcast(&tree_entries, _nbytes, MPI_BYTE, 0, run_globals.mpi_comm);
+
 }
 
 trees_info_t read_halos(const int snapshot, halo_t** halos, fof_group_t** fof_groups,
