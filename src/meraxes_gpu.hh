@@ -82,9 +82,9 @@ class meraxes_exception_base : public std::exception {
             // Create the error message ...
             std::stringstream s;
             // ... add the error description to the exception message
-            s << _message << ": ";
+            s << _message << " (code=";
             // ... add the error location to the exception message
-            s << _file << "(" << std::to_string(_line) << ")";
+            s << _error_code << ")";
             // Convert stream to string
             this->_composition = s.str();
           }
@@ -97,7 +97,7 @@ class meraxes_exception_base : public std::exception {
         //    meraxes_exception object. Callers must
         //    not attempt to free the memory.
         virtual const char* what() const noexcept {
-            return(_message.c_str());
+            return(_composition.c_str());
         }
         virtual const char* file() const noexcept {
             return(_file.c_str());

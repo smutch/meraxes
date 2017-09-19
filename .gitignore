@@ -32,4 +32,4 @@ include
 .sconf_temp
 config.log
 src/git.h
-src/build
+src/build*

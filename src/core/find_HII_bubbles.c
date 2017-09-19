@@ -403,6 +403,7 @@ void find_HII_bubbles(int snapshot,timer_info *timer_total)
       _find_HII_bubbles(redshift,flag_write_validation_data);
   #endif
   timer_stop(&timer);
+  timer_stop(timer_total);
   timer_gpu+=timer_delta(timer);
   mlog("Total time spent in find_HII_bubbles vs. total run time: %.2f of %.2f s",MLOG_MESG,timer_gpu,timer_delta(*timer_total));
 
