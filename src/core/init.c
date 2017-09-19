@@ -15,6 +15,15 @@ void init_gpu(){
     init_CUDA();
 
 #ifdef USE_CUFFT
+    // At present, Meraxes can only use cuFFT when one MPI rank
+    //   is involved.  To allow this to be multicore, the code
+    //   which handles the interpolation of the grids for the
+    //   galaxies will need to be adjusted.
+    if(run_globals.mpi_size>1){
+        mlog_error("cuFFT is not yet supported for mpi_size>1.");
+        ABORT(EXIT_FAILURE);
+    }
+
     run_globals.gpu->flag_use_cuFFT=true;
 #else
     run_globals.gpu->flag_use_cuFFT=false;

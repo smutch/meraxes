@@ -42,6 +42,7 @@
 //    fftw.  In both cases, everything else is done with the GPU.
 void _find_HII_bubbles_gpu(double redshift,const bool flag_write_validation_output){
   // Fetch needed things from run_globals
+  const MPI_Comm mpi_comm          = run_globals.mpi_comm;
   const int    mpi_rank            = run_globals.mpi_rank;
   const double box_size            = run_globals.params.BoxSize;
   const int    ReionGridDim        = run_globals.params.ReionGridDim;
@@ -128,7 +129,6 @@ void _find_HII_bubbles_gpu(double redshift,const bool flag_write_validation_outp
   // If we're not using CUFFT, do the forward FFT first, before sending it to the device
 #ifndef USE_CUFFT
   // The following are only needed if we are using FFTW
-  const MPI_Comm mpi_comm = run_globals.mpi_comm;
   Complex *deltax_filtered = (Complex *)run_globals.reion_grids.deltax_filtered;// complex TODO: Check the consistancy of Complex instances
   Complex *stars_filtered  = (Complex *)run_globals.reion_grids.stars_filtered; // complex TODO: Check the consistancy of Complex instances
   Complex *sfr_filtered    = (Complex *)run_globals.reion_grids.sfr_filtered;   // complex TODO: Check the consistancy of Complex instances
