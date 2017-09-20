@@ -97,54 +97,18 @@ __host__ void notify_of_global_error(int error_code)
 // Initialize device.  Called by init_gpu().
 void init_CUDA(){
     try{
-        // Check if the environment variable PBS_GPUFILE is defined
-        //    If it is, we assume that it lists the devices available
-        //    to the job.  Use this list to select a device number.
-        char *filename_gpu_list=std::getenv("PBS_GPUFILE");
-        if(filename_gpu_list!=NULL){
 
-            // Read the GPU list, keeping those items which match this rank's host name.
-            //    The file is assumed to list the gpu's in order of rank in the form:
-            //    <node_name>-gpu<device_number>
-            std::ifstream infile(filename_gpu_list);
-            std::string line;
-            std::string host_name;
-            std::string device_number_str;
-            int         device_number;
-            int         i_line=0;
-            while (std::getline(infile, line) && i_line<=run_globals.mpi_rank){
-                if(i_line == run_globals.mpi_rank){
-
-                    // Parse the node name
-                    int i_char=0;
-                    char char_i;
-                    for(char_i=line[i_char];char_i!='-' && i_char<line.size();char_i=line[i_char++])
-                        host_name+=char_i;
-
-                    // Skip '-gpu' (we've already got '-', so skip another 3)
-                    i_char+=3;
-
-                    // Parse device number
-                    for(char_i=line[i_char];i_char<line.size();char_i=line[i_char++])
-                        device_number_str+=char_i;
-                    device_number=std::stoi(device_number_str);
-                }
-                i_line++;
-            }
-            infile.close();
-
-            // Set the device to establish a context
-            throw_on_cuda_error(cudaSetDevice(device_number),meraxes_cuda_exception::INIT);
-        }
-        // If a GPU file is not specified, assume that CUDA can establish a default context.
-        else
-            throw_on_cuda_error(cudaFree(0),meraxes_cuda_exception::INIT);
+        // Establish a context.
+        throw_on_cuda_error(cudaFree(0),meraxes_cuda_exception::INIT);
 
         // Get the device assigned to this context
         throw_on_cuda_error(cudaGetDevice(&(run_globals.gpu->device)),meraxes_cuda_exception::INIT); 
 
         // Get the properties of the device assigned to this context
         throw_on_cuda_error(cudaGetDeviceProperties(&(run_globals.gpu->properties),run_globals.gpu->device),meraxes_cuda_exception::INIT); 
+
+        // Throw an exception if another rank has thrown one
+        throw_on_global_error();
     }
     catch(const meraxes_cuda_exception e){
         e.process_exception();
