@@ -282,14 +282,6 @@ static fof_group_t* init_fof_groups()
     return fof_groups;
 }
 
-#define READ_TREE_ENTRY_PROP(name, type, h5type)                    \
-    {                                                               \
-        H5LTread_dataset(snap_group, #name, h5type, (type*)buffer); \
-        for (int ii = 0; ii < n_tree_entries; ii++) {               \
-            tree_entries[ii].name = (type)buffer[ii];               \
-        }                                                           \
-    }
-
 static int id_to_ind(long id)
 {
     return (int)((id % (uint64_t)1e12) - 1);
@@ -314,6 +306,14 @@ static void inline convert_input_virial_props(double* Mvir, double* Rvir, double
     if (*Vvir == -1)
         *Vvir = calculate_Vvir(*Mvir, *Rvir);
 }
+
+#define READ_TREE_ENTRY_PROP(name, type, h5type)                    \
+    {                                                               \
+        H5LTread_dataset(snap_group, #name, h5type, (type*)buffer); \
+        for (int ii = 0; ii < n_tree_entries; ii++) {               \
+            tree_entries[ii].name = (type)buffer[ii];               \
+        }                                                           \
+    }
 
 static void read_velociraptor_trees(int snapshot, halo_t* halos, int* n_halos, fof_group_t* fof_groups, int* n_fof_groups, int* index_lookup)
 {
@@ -403,12 +403,20 @@ static void read_velociraptor_trees(int snapshot, halo_t* halos, int* n_halos, f
                     convert_input_virial_props(&fof_group->Mvir, &fof_group->Rvir, &fof_group->Vvir,
                         &fof_group->FOFMvirModifier, -1, snapshot, true);
 
+                    halo->FOFGroup = &(fof_groups[*n_fof_groups]);
                     fof_groups[(*n_fof_groups)++].FirstHalo = halo;
-                } else if (*n_halos > 0)
-                    halos[*n_halos - 1].NextHaloInFOFGroup = halo;
+                } else {
+                    // We can take advantage of the fact that host halos always seem to appear before their subhalos in the
+                    // trees to immediately connect FOF group members.
+                    assert(tree_entry.HostHaloID < tree_entry.ID);
 
-                // TODO: Set halo->FOFGroup pointer
-                //halos->FOFGroup = &fof_groups[group_count - 1];
+                    int host_index = id_to_ind(tree_entry.HostHaloID);
+                    halo_t* prev_halo_in_fof_group = bsearch(&host_index, &index_lookup,
+                        (size_t)(*n_halos) + 1, sizeof(int), compare_ints);
+
+                    prev_halo_in_fof_group->NextHaloInFOFGroup = halo;
+                    halo->FOFGroup = prev_halo_in_fof_group->FOFGroup;
+                }
 
                 halo->Len = (int)tree_entry.npart;
                 halo->Pos[0] = (float)tree_entry.Xc;

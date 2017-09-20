@@ -156,7 +156,6 @@ typedef struct physics_params_t {
     double RedshiftDepEscFracBHScaling;
     int Flag_ReionizationModifier;
     int Flag_BHFeedback;
-    int Flag_BHReion;
     int Flag_IRA;
     int Flag_FixDiskRadiusOnInfall;
     int Flag_FixVmaxOnInfall;
@@ -504,27 +503,6 @@ typedef struct tree_entry_t {
     unsigned long npart;
 } tree_entry_t;
 
-//! This is the structure for a halo in the catalog files
-typedef struct catalog_halo_t {
-    long long id_MBP; //!< ID of most bound particle in structure
-    double M_vir; //!< Bryan & Norman (ApJ 495, 80, 1998) virial mass [M_sol/h]
-    int n_particles; //!< Number of particles in the structure
-    float position_COM[3]; //!< Centre-of-mass position      [Mpc/h]
-    float position_MBP[3]; //!< Most bound particle position [Mpc/h]
-    float velocity_COM[3]; //!< Centre-of-mass velocity      [km/s]
-    float velocity_MBP[3]; //!< Most bound particle velocity [km/s]
-    float R_vir; //!< Virial radius [Mpc/h]
-    float R_halo; //!< Distance of last halo particle from MBP [Mpc/h]
-    float R_max; //!< Radius of maximum circular velocity     [Mpc/h]
-    float V_max; //!< Maximum circular velocity               [km/s]
-    float sigma_v; //!< Total 3D velocity dispersion            [km/s]
-    float ang_mom[3]; //!< Specific angular momentum vector        [Mpc/h*km/s]
-    float q_triaxial; //!< Triaxial shape parameter q=b/a
-    float s_triaxial; //!< Triaxial shape parameter s=c/a
-    float shape_eigen_vectors[3][3]; //!< Normalized triaxial shape eigenvectors
-    char padding[8]; //!< Alignment padding
-} catalog_halo_t;
-
 typedef struct Modifier {
     float logMmin;
     float logMmax;
@@ -606,7 +584,6 @@ void dracarys(void);
 int evolve_galaxies(fof_group_t* fof_group, int snapshot, int NGal, int NFof);
 void passively_evolve_ghost(galaxy_t* gal, int snapshot);
 trees_info_t read_halos(int snapshot, halo_t** halo, fof_group_t** fof_group, int** index_lookup, trees_info_t* snapshot_trees_info);
-int* read_forest_ids(hid_t fd);
 galaxy_t* new_galaxy(int snapshot, int halo_ID);
 void create_new_galaxy(int snapshot, halo_t* halo, int* NGal, int* new_gal_counter);
 void assign_galaxy_to_halo(galaxy_t* gal, halo_t* halo);
