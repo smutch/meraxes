@@ -106,7 +106,7 @@ option(ENABLE_PROFILING "Enable profiling with gperftools." OFF)
 if(ENABLE_PROFILING)
     find_library(GPERF_LIBRARIES profiler PATHS "${GPERF_ROOT}/*")
     link_libraries(${GPERF_LIBRARIES})
-    add_compile_options(-g)
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g")
 endif()
 
 # math
@@ -124,7 +124,7 @@ string(REPLACE "\\n" "\\\\n" GITDIFF GITDIFF)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/git.h.in ${CMAKE_BINARY_DIR}/git.h ESCAPE_QUOTES @ONLY)
 
 # Compiler options
-add_compile_options(-std=gnu99)
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=gnu99")
 
 # source files
 file(GLOB SOURCES core/*.[ch] *.h physics/*.[ch])
