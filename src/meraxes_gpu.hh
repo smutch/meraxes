@@ -176,6 +176,7 @@ class meraxes_cuda_exception : public meraxes_exception_base {
             INVALID_FILTER,
             GLOBAL,
             INIT,
+            INIT_PBS_GPUFILE,
             MALLOC,
             FREE,
             MEMCPY,
@@ -201,6 +202,8 @@ class meraxes_cuda_exception : public meraxes_exception_base {
                 return("Notified of error on differing rank.");
             case INIT:
                 return("CUDA error while initializing device.");
+            case INIT_PBS_GPUFILE:
+                return("CUDA error while using PBS_GPUFILE to set device number");
             case MALLOC:
                 return("CUDA error while calling cudaMalloc()");
             case FREE:

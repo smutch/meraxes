@@ -40,6 +40,9 @@
 #include <limits.h>
 
 #include <fstream>
+#include <vector>
+#include <algorithm>
+#include <string>
 
 #include <hdf5.h>
 #include <hdf5_hl.h>
@@ -97,9 +100,167 @@ __host__ void notify_of_global_error(int error_code)
 // Initialize device.  Called by init_gpu().
 void init_CUDA(){
     try{
+        // Check if the environment variable PBS_GPUFILE is defined
+        //    If it is, we assume that it lists the devices available
+        //    to the job.  Use this list to select a device number.
+        char *filename_gpu_list=std::getenv("PBS_GPUFILE");
+        if(filename_gpu_list!=NULL){
+            // To determine which device to use, we need 4 steps:
+            //   1) Determine what node each rank is on by reading the
+            //      PBS_NODEFILE file.
+            //   2) Determine the rank-order-position of each mpi rank 
+            //      in the list of cores on the local node (i_rank_node),
+            //      as well as the number of ranks on the local node (n_rank_node)
+            //   3) Determine the list of available device numbers
+            //      on the local node
+            //   4) Select a device number of the rank from the list
+            //      of available devices using i_rank_node & n_rank_node.
 
-        // Establish a context.
-        throw_on_cuda_error(cudaFree(0),meraxes_cuda_exception::INIT);
+            // First, parse PBS_NODEFILE and communicate the name of each rank's node
+            char *filename_node_name_list=std::getenv("PBS_NODEFILE");
+            throw_on_generic_error(filename_node_name_list==NULL,meraxes_cuda_exception::INIT_PBS_GPUFILE);
+            char node_name[MPI_MAX_PROCESSOR_NAME]; // this will hold the rank's node name
+            if(run_globals.mpi_rank==0){
+                // Open the file
+                std::ifstream infile(filename_node_name_list);
+
+                // Read each line
+                int i_rank=0;
+                std::string node_name_i;
+                while (std::getline(infile,node_name_i)){
+                    char node_name_i_c_ctr[MPI_MAX_PROCESSOR_NAME];
+                    strcpy(node_name_i_c_ctr,node_name_i.c_str());
+                    // Store this device number on the i_rank'th rank
+                    if(i_rank==0)
+                        strcpy(node_name,node_name_i_c_ctr);
+                    else if(i_rank<run_globals.mpi_size)
+                        MPI_Send(node_name_i_c_ctr,MPI_MAX_PROCESSOR_NAME,MPI_CHAR,i_rank,110100100,run_globals.mpi_comm);
+                    i_rank++;
+                }
+                infile.close();
+
+                // Check that the length of the file matches the size of the communicator
+                throw_on_generic_error(i_rank!=run_globals.mpi_size,meraxes_cuda_exception::INIT_PBS_GPUFILE);
+            }
+            else{
+                MPI_Status mpi_status; // ignored, at the moment
+                MPI_Recv(node_name,MPI_MAX_PROCESSOR_NAME,MPI_CHAR,0,110100100,run_globals.mpi_comm,&mpi_status);
+            }
+            throw_on_global_error();
+
+            // Second, generate a count of ranks on the local node and determine each rank's position in that count
+            int n_rank_node=0;
+
+            // Open the file and loop over the entries
+            std::ifstream infile;
+            if(run_globals.mpi_rank==0)
+                infile.open(filename_node_name_list);
+            int i_rank     =0;
+            int i_rank_node=-1; // this will hold the rank-order of this mpi rank on the local node
+            for(;i_rank<run_globals.mpi_size;i_rank++){ // we've already checked above that the size is as expected
+                char node_test[MPI_MAX_PROCESSOR_NAME];
+                if(run_globals.mpi_rank==0){
+                    std::string node_name_i;
+                    std::getline(infile,node_name_i);
+                    strcpy(node_test,node_name_i.c_str());
+                }
+                MPI_Bcast(node_test,MPI_MAX_PROCESSOR_NAME,MPI_CHAR,0,run_globals.mpi_comm);
+                bool flag_test_is_local=(!strcmp(node_name,node_test));
+                // Determine the rank-order for this node.
+                // Set an integer, defaulting to the end of an ascending list ...
+                int i_rank_node_test=run_globals.mpi_size+run_globals.mpi_rank;
+                // ... unless this item matches the local node name, and we haven't set a value yet ...
+                if(flag_test_is_local && i_rank_node<0) 
+                    i_rank_node_test=run_globals.mpi_rank;
+                // Find the earliest local-node rank that isn't set yet
+                MPI_Allreduce(MPI_IN_PLACE,&i_rank_node_test,1,MPI_INT,MPI_MIN,run_globals.mpi_comm); 
+                // And set the index for that node
+                if(i_rank_node_test==run_globals.mpi_rank)
+                    i_rank_node=n_rank_node;
+                // Lastly, generate a count
+                if(flag_test_is_local)
+                    n_rank_node++;
+            }
+            if(run_globals.mpi_rank==0)
+                infile.close();
+
+            // Sanity check on the local node's rank count
+            throw_on_generic_error(n_rank_node<=0 || n_rank_node>run_globals.mpi_size,meraxes_cuda_exception::INIT_PBS_GPUFILE);
+            throw_on_global_error();
+
+            // Read the GPU list, keeping a list of device numbers on this rank's node.
+            //    The file is assumed to list the gpus with the following form:
+            //    <node_name>-gpu<device_number>
+
+            // Read the device file into a vector of strings on the 0'th rank
+            std::vector<std::string> device_file_lines;
+            if(run_globals.mpi_rank==0){
+                std::ifstream infile(filename_gpu_list);
+                std::string line;
+                while (std::getline(infile,line)) device_file_lines.push_back(line);
+                infile.close();
+            }
+            int n_device_global=device_file_lines.size();
+            MPI_Bcast(&n_device_global,1,MPI_INT,0,run_globals.mpi_comm);
+
+            // Loop over the file again, communicating host names and device numbers to each rank
+            std::vector<int> device_number_list;
+            int i_device=0;
+            for(;i_device<n_device_global;i_device++){ // we've already checked above that the size is as expected
+                char host_name_i[MPI_MAX_PROCESSOR_NAME];
+                int  device_number_i;
+                // Read the line and parse it into host name and device number
+                if(run_globals.mpi_rank==0){
+                    // Parse the i_rank'th node name
+                    std::string line=device_file_lines[i_device];
+                    std::string host_name_temp;
+                    int  i_char=0;
+                    char char_i=line[i_char];
+                    int  l_size=line.size();
+                    while(char_i!='-' && i_char<l_size){
+                        host_name_temp+=char_i;
+                        if((++i_char)>=l_size) break;
+                        char_i=line[i_char];
+                    }
+                    char host_name_i[MPI_MAX_PROCESSOR_NAME];
+                    strcpy(host_name_i,host_name_temp.c_str());
+
+                    // Skip '-gpu' 
+                    i_char+=4;
+
+                    // Parse i_rank'th device number
+                    std::string device_number_str;
+                    char_i=line[i_char];
+                    while(i_char<l_size){
+                        device_number_str+=char_i;
+                        if((++i_char)>=l_size) break;
+                        char_i=line[i_char];
+                    }
+                    device_number_i=std::stoi(device_number_str);
+                }
+                // Communicate result
+                MPI_Bcast(host_name_i,MPI_MAX_PROCESSOR_NAME,MPI_CHAR,0,run_globals.mpi_comm);
+                MPI_Bcast(&device_number_i,1,MPI_INT,0,run_globals.mpi_comm);
+
+                // Accumulate a list of device numbers on the local node
+                if(!strcmp(node_name,host_name_i)){
+                    if(std::find(device_number_list.begin(),device_number_list.end(),device_number_i)==device_number_list.end()){
+                       device_number_list.push_back(device_number_i); 
+                    }
+                }
+            }
+            throw_on_generic_error(device_number_list.size()<=0,meraxes_cuda_exception::INIT_PBS_GPUFILE);
+
+            // Finally, set the device number
+            int device_number=device_number_list[i_rank_node%device_number_list.size()];
+
+            // Set the device to establish a context
+            throw_on_cuda_error(cudaSetDevice(device_number),meraxes_cuda_exception::INIT);
+        }
+        // If a GPU file is not specified, assume that CUDA can establish a default context.
+        else
+            throw_on_cuda_error(cudaFree(0),meraxes_cuda_exception::INIT);
+        throw_on_global_error();
 
         // Get the device assigned to this context
         throw_on_cuda_error(cudaGetDevice(&(run_globals.gpu->device)),meraxes_cuda_exception::INIT); 
@@ -120,9 +281,18 @@ void init_CUDA(){
 
     // Send a status message to mlog    
     if(run_globals.mpi_size==1)
-        mlog("GPU context successfully established.",MLOG_MESG);
-    else
-        mlog("All ranks have successfully established GPU contexts.",MLOG_MESG);
+        mlog("GPU context established on device %d (%s; %.1fGBs of global memory).",MLOG_MESG,
+                run_globals.gpu->device,run_globals.gpu->properties.name,(float)(run_globals.gpu->properties.totalGlobalMem/(1024*1024*1024)));
+    else{
+        // Report device details for each rank
+        int i_rank=0;
+        for(;i_rank<run_globals.mpi_size;i_rank++){
+            if(i_rank==run_globals.mpi_rank)
+                mlog("Context established on GPU device %d (%s; %.1fGBs of global memory).",MLOG_MESG|MLOG_ALLRANKS|MLOG_FLUSH,
+                        run_globals.gpu->device,run_globals.gpu->properties.name,(float)(run_globals.gpu->properties.totalGlobalMem/(1024*1024*1024)));
+            MPI_Barrier(run_globals.mpi_comm);
+        }
+    }
 }
 
 // Call this function in kernels to put the GPU in an error state that can be caught after as an exception
