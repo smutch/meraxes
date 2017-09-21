@@ -492,7 +492,7 @@ typedef struct trees_info_t {
 typedef struct tree_entry_t {
     long ForestID;
     long Head;
-    long HostHaloID;
+    long hostHaloID;
     double Mass_200crit;
     double R_200crit;
     double Vmax;

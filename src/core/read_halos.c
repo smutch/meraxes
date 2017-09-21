@@ -8,7 +8,7 @@ static trees_info_t read_trees_info(const int snapshot)
 {
     // TODO: This is wasteful and should probably only ever be done once and stored in run_globals.
     char fname[STRLEN];
-    sprintf(fname, "%s/trees/meraxes_augmented_info.h5", run_globals.params.SimulationDir);
+    sprintf(fname, "%s/trees/meraxes_augmented_stats.h5", run_globals.params.SimulationDir);
 
     hid_t fd = H5Fopen(fname, H5F_ACC_RDONLY, H5P_DEFAULT);
     if (fd < 0) {
@@ -48,11 +48,11 @@ static void select_forests()
     mlog("Calling select_forests()...", MLOG_MESG);
 
     // if this is the master rank then read in the forest info
-    int *max_contemp_halo = NULL, *max_contemp_fof = NULL, *forest_id = NULL, *n_halos = NULL;
+    int *max_contemp_halo = NULL, *max_contemp_fof = NULL, *forest_ids = NULL, *n_halos = NULL;
     int n_forests = 0;
     if (run_globals.mpi_rank == 0) {
         char fname[STRLEN];
-        sprintf(fname, "%s/trees/meraxes_augmented_info.h5", run_globals.params.SimulationDir);
+        sprintf(fname, "%s/trees/meraxes_augmented_stats.h5", run_globals.params.SimulationDir);
 
         hid_t fd = H5Fopen(fname, H5F_ACC_RDONLY, H5P_DEFAULT);
         if (fd < 0) {
@@ -66,13 +66,13 @@ static void select_forests()
         // allocate the arrays
         max_contemp_halo = (int*)malloc(sizeof(int) * n_forests);
         max_contemp_fof = (int*)malloc(sizeof(int) * n_forests);
-        forest_id = (int*)malloc(sizeof(int) * n_forests);
+        forest_ids = (int*)malloc(sizeof(int) * n_forests);
         n_halos = (int*)malloc(sizeof(int) * n_forests);
 
         // read in the max number of contemporaneous halos and groups and the forest ids
         H5LTread_dataset_int(fd, "forests/max_contemporaneous_halos", max_contemp_halo);
         H5LTread_dataset_int(fd, "forests/max_contemporaneous_fof_groups", max_contemp_fof);
-        H5LTread_dataset_int(fd, "forests/forest_id", forest_id);
+        H5LTread_dataset_int(fd, "forests/forest_ids", forest_ids);
         H5LTread_dataset_int(fd, "forests/n_halos", n_halos);
 
         // close the file
@@ -84,12 +84,12 @@ static void select_forests()
     if (run_globals.mpi_rank > 0) {
         max_contemp_halo = (int*)malloc(sizeof(int) * n_forests);
         max_contemp_fof = (int*)malloc(sizeof(int) * n_forests);
-        forest_id = (int*)malloc(sizeof(int) * n_forests);
+        forest_ids = (int*)malloc(sizeof(int) * n_forests);
         n_halos = (int*)malloc(sizeof(int) * n_forests);
     }
     MPI_Bcast(max_contemp_halo, n_forests, MPI_INT, 0, run_globals.mpi_comm);
     MPI_Bcast(max_contemp_fof, n_forests, MPI_INT, 0, run_globals.mpi_comm);
-    MPI_Bcast(forest_id, n_forests, MPI_INT, 0, run_globals.mpi_comm);
+    MPI_Bcast(forest_ids, n_forests, MPI_INT, 0, run_globals.mpi_comm);
     MPI_Bcast(n_halos, n_forests, MPI_INT, 0, run_globals.mpi_comm);
 
     // if we have read in a list of requested forest IDs then use these to create
@@ -99,7 +99,7 @@ static void select_forests()
     if (run_globals.RequestedForestId != NULL) {
         requested_ind = malloc(sizeof(int) * run_globals.NRequestedForests);
         for (int i_forest = 0, i_req = 0; (i_forest < n_forests) && (i_req < run_globals.NRequestedForests); i_forest++)
-            if (forest_id[i_forest] == run_globals.RequestedForestId[i_req]) {
+            if (forest_ids[i_forest] == run_globals.RequestedForestId[i_req]) {
                 requested_ind[i_req] = i_forest;
                 n_halos_tot += n_halos[i_forest];
                 i_req++;
@@ -119,7 +119,7 @@ static void select_forests()
     gsl_sort_int_index(sort_ind, n_halos, 1, (const size_t)n_forests);
     int* temp = malloc(sizeof(int) * n_forests);
 
-    reorder_forest_array(forest_id, sort_ind, n_forests, temp);
+    reorder_forest_array(forest_ids, sort_ind, n_forests, temp);
     reorder_forest_array(max_contemp_halo, sort_ind, n_forests, temp);
     reorder_forest_array(max_contemp_fof, sort_ind, n_forests, temp);
     reorder_forest_array(n_halos, sort_ind, n_forests, temp);
@@ -226,7 +226,7 @@ static void select_forests()
         for (int ii = rank_first_forest[run_globals.mpi_rank], jj = 0;
              ii <= rank_last_forest[run_globals.mpi_rank];
              ii++, jj++)
-            run_globals.RequestedForestId[jj] = forest_id[requested_ind[ii]];
+            run_globals.RequestedForestId[jj] = forest_ids[requested_ind[ii]];
 
         // free the arrays
         free(rank_n_halos);
@@ -244,7 +244,7 @@ static void select_forests()
     for (int i_forest = 0, i_req = 0;
          (i_forest < n_forests) && (i_req < run_globals.NRequestedForests);
          i_forest++)
-        if (forest_id[requested_ind[i_forest]] == run_globals.RequestedForestId[i_req]) {
+        if (forest_ids[requested_ind[i_forest]] == run_globals.RequestedForestId[i_req]) {
             max_halos += max_contemp_halo[requested_ind[i_forest]];
             max_fof_groups += max_contemp_fof[requested_ind[i_forest]];
             i_req++;
@@ -261,7 +261,7 @@ static void select_forests()
     free(requested_ind);
     free(max_contemp_halo);
     free(max_contemp_fof);
-    free(forest_id);
+    free(forest_ids);
     free(n_halos);
 }
 
@@ -328,7 +328,7 @@ static void read_velociraptor_trees(int snapshot, halo_t* halos, int* n_halos, f
 
     if (run_globals.mpi_rank == 0) {
         char fname[STRLEN];
-        sprintf(fname, "%s/trees/VELOCIraptor.tree.t4.unifiedhalotree.withforest.snap.hdf.data.h5",
+        sprintf(fname, "%s/trees/VELOCIraptor.tree.t4.unifiedhalotree.withforest.snap.hdf.data",
             run_globals.params.SimulationDir);
 
         hid_t fd = H5Fopen(fname, H5F_ACC_RDONLY, H5P_DEFAULT);
@@ -341,7 +341,7 @@ static void read_velociraptor_trees(int snapshot, halo_t* halos, int* n_halos, f
         sprintf(snap_group_name, "Snap_%03d", snapshot);
         hid_t snap_group = H5Gopen(fd, snap_group_name, H5P_DEFAULT);
 
-        H5LTget_attribute_int(snap_group, "/", "NHalos", &n_tree_entries);
+        H5LTget_attribute_int(fd, snap_group_name, "NHalos", &n_tree_entries);
 
         tree_entries = malloc(sizeof(tree_entry_t) * n_tree_entries);
 
@@ -349,7 +349,7 @@ static void read_velociraptor_trees(int snapshot, halo_t* halos, int* n_halos, f
 
         READ_TREE_ENTRY_PROP(ForestID, long, H5T_NATIVE_LONG);
         READ_TREE_ENTRY_PROP(Head, long, H5T_NATIVE_LONG);
-        READ_TREE_ENTRY_PROP(HostHaloID, long, H5T_NATIVE_LONG);
+        READ_TREE_ENTRY_PROP(hostHaloID, long, H5T_NATIVE_LONG);
         READ_TREE_ENTRY_PROP(Mass_200crit, double, H5T_NATIVE_DOUBLE);
         READ_TREE_ENTRY_PROP(R_200crit, double, H5T_NATIVE_DOUBLE);
         READ_TREE_ENTRY_PROP(Vmax, double, H5T_NATIVE_DOUBLE);
@@ -387,7 +387,7 @@ static void read_velociraptor_trees(int snapshot, halo_t* halos, int* n_halos, f
                 halo->ID = tree_entry.ID;
                 halo->DescIndex = id_to_ind(tree_entry.Head);
                 halo->NextHaloInFOFGroup = NULL;
-                halo->Type = tree_entry.HostHaloID == -1 ? 0 : 1;
+                halo->Type = tree_entry.hostHaloID == -1 ? 0 : 1;
 
                 if (index_lookup)
                     index_lookup[*n_halos] = ii;
@@ -408,9 +408,9 @@ static void read_velociraptor_trees(int snapshot, halo_t* halos, int* n_halos, f
                 } else {
                     // We can take advantage of the fact that host halos always seem to appear before their subhalos in the
                     // trees to immediately connect FOF group members.
-                    assert((unsigned long)tree_entry.HostHaloID < tree_entry.ID);
+                    assert((unsigned long)tree_entry.hostHaloID < tree_entry.ID);
 
-                    int host_index = id_to_ind(tree_entry.HostHaloID);
+                    int host_index = id_to_ind(tree_entry.hostHaloID);
                     halo_t* prev_halo_in_fof_group = bsearch(&host_index, &index_lookup,
                         (size_t)(*n_halos) + 1, sizeof(int), compare_ints);
 
