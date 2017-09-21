@@ -188,7 +188,7 @@ void check_counts(fof_group_t* fof_group, int NGal, int NFof)
     int total_NGal = 0;
     int total_NFof = 0;
     int total_NGhosts = 0;
-    galaxy_t* gal = NULL;
+    galaxy_t* gal = run_globals.FirstGal;
     halo_t* halo = NULL;
 
     mlog("Running counts check...", MLOG_OPEN | MLOG_TIMERSTART);
@@ -201,7 +201,6 @@ void check_counts(fof_group_t* fof_group, int NGal, int NFof)
     mlog("NGhosts = %d", MLOG_MESG, total_NGhosts);
 
     counter = 0;
-    gal = run_globals.FirstGal;
     while (gal != NULL) {
         counter++;
         gal = gal->Next;
@@ -261,9 +260,8 @@ void check_counts(fof_group_t* fof_group, int NGal, int NFof)
 
 void check_pointers(halo_t* halos, fof_group_t* fof_groups, trees_info_t* trees_info)
 {
-    galaxy_t *gal, *gal_pointer, gal_deref;
+    galaxy_t *gal, gal_deref;
     halo_t* halo;
-    fof_group_t* fof_group;
     int n_halos = trees_info->n_halos;
     int n_fof_groups = trees_info->n_fof_groups;
 
@@ -273,9 +271,9 @@ void check_pointers(halo_t* halos, fof_group_t* fof_groups, trees_info_t* trees_
     while (gal != NULL) {
         if (!gal->ghost_flag) {
             halo = gal->Halo;
-            assert((halo - halos) < (size_t)n_halos);
+            assert((halo - halos) < (long)n_halos);
         }
-        gal_pointer = gal->FirstGalInHalo;
+        galaxy_t *gal_pointer = gal->FirstGalInHalo;
         if (gal_pointer != NULL)
             gal_deref = *gal_pointer;
         gal_pointer = gal->NextGalInHalo;
@@ -294,13 +292,13 @@ void check_pointers(halo_t* halos, fof_group_t* fof_groups, trees_info_t* trees_
     }
 
     for (int ii = 0; ii < n_halos; ii++) {
-        fof_group = halos[ii].FOFGroup;
-        // mlog("%llu < %llu", MLOG_MESG, fof_group-fof_groups, (size_t)n_fof_groups);
-        assert((fof_group - fof_groups) < (size_t)n_fof_groups);
+      fof_group_t* fof_group = halos[ii].FOFGroup;
+        // mlog("%ld < %ld\n", MLOG_MESG, fof_group-fof_groups, n_fof_groups);
+        assert((fof_group - fof_groups) < (long)n_fof_groups);
         halo = halos[ii].NextHaloInFOFGroup;
         if (halo != NULL)
             // mlog("%llu < %llu", MLOG_MESG, halo-halos, (size_t)n_halos);
-            assert((halo - halos) < (size_t)n_halos);
+            assert((halo - halos) < (long)n_halos);
         gal = halos[ii].Galaxy;
         if (gal != NULL)
             gal_deref = *gal;
@@ -308,10 +306,10 @@ void check_pointers(halo_t* halos, fof_group_t* fof_groups, trees_info_t* trees_
 
     for (int ii = 0; ii < n_fof_groups; ii++) {
         halo = fof_groups[ii].FirstHalo;
-        assert((halo - halos) < (size_t)n_halos);
+        assert((halo - halos) < (long)n_halos);
         halo = fof_groups[ii].FirstOccupiedHalo;
         if (halo != NULL)
-            assert((halo - halos) < (size_t)n_halos);
+            assert((halo - halos) < (long)n_halos);
     }
 }
 
