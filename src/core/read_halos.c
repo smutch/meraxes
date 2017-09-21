@@ -304,12 +304,12 @@ static void inline convert_input_virial_props(double* Mvir, double* Rvir, double
         *Vvir = calculate_Vvir(*Mvir, *Rvir);
 }
 
-#define READ_TREE_ENTRY_PROP(name, type, h5type)                    \
-    {                                                               \
+#define READ_TREE_ENTRY_PROP(name, type, h5type)             \
+    {                                                        \
         H5LTread_dataset(snap_group, #name, h5type, buffer); \
-        for (int ii = 0; ii < n_tree_entries; ii++) {               \
-            tree_entries[ii].name = ((type *)buffer)[ii];               \
-        }                                                           \
+        for (int ii = 0; ii < n_tree_entries; ii++) {        \
+            tree_entries[ii].name = ((type*)buffer)[ii];     \
+        }                                                    \
     }
 
 static void read_velociraptor_trees(int snapshot, halo_t* halos, int* n_halos, fof_group_t* fof_groups, int* n_fof_groups, int* index_lookup)
@@ -319,6 +319,9 @@ static void read_velociraptor_trees(int snapshot, halo_t* halos, int* n_halos, f
     // simulations...
 
     mlog("Reading velociraptor trees for snapshot %d...", MLOG_OPEN, snapshot);
+
+    // analyzer assertions
+    assert(run_globals.mpi_rank >= 0);
 
     tree_entry_t* tree_entries = NULL;
     int n_tree_entries = 0;
@@ -342,7 +345,7 @@ static void read_velociraptor_trees(int snapshot, halo_t* halos, int* n_halos, f
 
         tree_entries = malloc(sizeof(tree_entry_t) * n_tree_entries);
 
-        void *buffer = malloc(n_tree_entries * sizeof(long));
+        void* buffer = malloc(n_tree_entries * sizeof(long));
 
         READ_TREE_ENTRY_PROP(ForestID, long, H5T_NATIVE_LONG);
         READ_TREE_ENTRY_PROP(Head, long, H5T_NATIVE_LONG);
