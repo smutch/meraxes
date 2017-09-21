@@ -106,7 +106,7 @@ option(ENABLE_PROFILING "Enable profiling with gperftools." OFF)
 if(ENABLE_PROFILING)
     find_library(GPERF_LIBRARIES profiler PATHS "${GPERF_ROOT}/*")
     link_libraries(${GPERF_LIBRARIES})
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g")
+    add_compile_options(-g)
 endif()
 
 # math
@@ -124,7 +124,7 @@ string(REPLACE "\\n" "\\\\n" GITDIFF GITDIFF)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/git.h.in ${CMAKE_BINARY_DIR}/git.h ESCAPE_QUOTES @ONLY)
 
 # Compiler options
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=gnu99")
+add_compile_options(-std=gnu99)
 
 # source files
 file(GLOB SOURCES core/*.[ch] *.h physics/*.[ch])
@@ -133,6 +133,10 @@ file(GLOB SOURCES core/*.[ch] *.h physics/*.[ch])
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+
+# build options
+set(N_HISTORY_SNAPS 5 CACHE VALUE "Number of snapshots for delayed SN feedback")
+add_definitions(-DN_HISTORY_SNAPS=${N_HISTORY_SNAPS})
 
 # executable
 add_executable(meraxes ${SOURCES})
@@ -163,7 +167,7 @@ add_custom_target(setuprun
     COMMAND mkdir -p \${RUNDIR}
     COMMAND cp -n ${CMAKE_CURRENT_SOURCE_DIR}/../input/input.par \${RUNDIR}
     COMMAND cp -n ${CMAKE_CURRENT_SOURCE_DIR}/../input/snaplist.txt \${RUNDIR}
-    COMMAND cp ${CMAKE_BINARY_DIR}/meraxes \${RUNDIR}
+    COMMAND cp ${CMAKE_BINARY_DIR}/bin/meraxes \${RUNDIR}
     )
 add_dependencies(setuprun meraxes)
 
