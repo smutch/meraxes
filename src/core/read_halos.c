@@ -47,11 +47,6 @@ static void select_forests()
     // them, and then potentially split them amoungst cores
     mlog("Calling select_forests()...", MLOG_MESG);
 
-    // are we sampling the forests or just dividing them amoungst cores?
-    bool sample_forests = false;
-    if (run_globals.RequestedForestId != NULL)
-        sample_forests = true;
-
     // if this is the master rank then read in the forest info
     int *max_contemp_halo = NULL, *max_contemp_fof = NULL, *forest_id = NULL, *n_halos = NULL;
     int n_forests = 0;
@@ -101,7 +96,7 @@ static void select_forests()
     // an array of indices pointing to the elements we want
     int* requested_ind;
     int n_halos_tot = 0;
-    if (sample_forests) {
+    if (run_globals.RequestedForestId != NULL) {
         requested_ind = malloc(sizeof(int) * run_globals.NRequestedForests);
         for (int i_forest = 0, i_req = 0; (i_forest < n_forests) && (i_req < run_globals.NRequestedForests); i_forest++)
             if (forest_id[i_forest] == run_globals.RequestedForestId[i_req]) {
@@ -130,7 +125,7 @@ static void select_forests()
     reorder_forest_array(n_halos, sort_ind, n_forests, temp);
 
     // also rearrange the sampled forest indices if need be
-    if (sample_forests) {
+    if (run_globals.RequestedForestId != NULL) {
         int* rank = (int*)malloc(sizeof(int) * n_forests);
         for (int ii = 0; ii < n_forests; ii++)
             rank[sort_ind[ii]] = ii;
@@ -240,6 +235,8 @@ static void select_forests()
         free(rank_first_forest);
     }
 
+    assert(run_globals.RequestedForestId != NULL);
+
     // loop through and tot up the max number of halos and fof_groups we will need
     // to allocate
     int max_halos = 0;
@@ -309,9 +306,9 @@ static void inline convert_input_virial_props(double* Mvir, double* Rvir, double
 
 #define READ_TREE_ENTRY_PROP(name, type, h5type)                    \
     {                                                               \
-        H5LTread_dataset(snap_group, #name, h5type, (type*)buffer); \
+        H5LTread_dataset(snap_group, #name, h5type, buffer); \
         for (int ii = 0; ii < n_tree_entries; ii++) {               \
-            tree_entries[ii].name = (type)buffer[ii];               \
+            tree_entries[ii].name = ((type *)buffer)[ii];               \
         }                                                           \
     }
 
@@ -345,21 +342,21 @@ static void read_velociraptor_trees(int snapshot, halo_t* halos, int* n_halos, f
 
         tree_entries = malloc(sizeof(tree_entry_t) * n_tree_entries);
 
-        {
-            long buffer[n_tree_entries];
+        void *buffer = malloc(n_tree_entries * sizeof(long));
 
-            READ_TREE_ENTRY_PROP(ForestID, long, H5T_NATIVE_LONG);
-            READ_TREE_ENTRY_PROP(Head, long, H5T_NATIVE_LONG);
-            READ_TREE_ENTRY_PROP(HostHaloID, long, H5T_NATIVE_LONG);
-            READ_TREE_ENTRY_PROP(Mass_200crit, double, H5T_NATIVE_DOUBLE);
-            READ_TREE_ENTRY_PROP(R_200crit, double, H5T_NATIVE_DOUBLE);
-            READ_TREE_ENTRY_PROP(Vmax, double, H5T_NATIVE_DOUBLE);
-            READ_TREE_ENTRY_PROP(Xc, double, H5T_NATIVE_DOUBLE);
-            READ_TREE_ENTRY_PROP(Yc, double, H5T_NATIVE_DOUBLE);
-            READ_TREE_ENTRY_PROP(Zc, double, H5T_NATIVE_DOUBLE);
-            READ_TREE_ENTRY_PROP(ID, unsigned long, H5T_NATIVE_ULONG);
-            READ_TREE_ENTRY_PROP(npart, unsigned long, H5T_NATIVE_ULONG);
-        }
+        READ_TREE_ENTRY_PROP(ForestID, long, H5T_NATIVE_LONG);
+        READ_TREE_ENTRY_PROP(Head, long, H5T_NATIVE_LONG);
+        READ_TREE_ENTRY_PROP(HostHaloID, long, H5T_NATIVE_LONG);
+        READ_TREE_ENTRY_PROP(Mass_200crit, double, H5T_NATIVE_DOUBLE);
+        READ_TREE_ENTRY_PROP(R_200crit, double, H5T_NATIVE_DOUBLE);
+        READ_TREE_ENTRY_PROP(Vmax, double, H5T_NATIVE_DOUBLE);
+        READ_TREE_ENTRY_PROP(Xc, double, H5T_NATIVE_DOUBLE);
+        READ_TREE_ENTRY_PROP(Yc, double, H5T_NATIVE_DOUBLE);
+        READ_TREE_ENTRY_PROP(Zc, double, H5T_NATIVE_DOUBLE);
+        READ_TREE_ENTRY_PROP(ID, unsigned long, H5T_NATIVE_ULONG);
+        READ_TREE_ENTRY_PROP(npart, unsigned long, H5T_NATIVE_ULONG);
+
+        free(buffer);
 
         H5Gclose(snap_group);
         H5Fclose(fd);
@@ -408,7 +405,7 @@ static void read_velociraptor_trees(int snapshot, halo_t* halos, int* n_halos, f
                 } else {
                     // We can take advantage of the fact that host halos always seem to appear before their subhalos in the
                     // trees to immediately connect FOF group members.
-                    assert(tree_entry.HostHaloID < tree_entry.ID);
+                    assert((unsigned long)tree_entry.HostHaloID < tree_entry.ID);
 
                     int host_index = id_to_ind(tree_entry.HostHaloID);
                     halo_t* prev_halo_in_fof_group = bsearch(&host_index, &index_lookup,
@@ -455,7 +452,7 @@ static void inline update_pointers_from_offsets(
 {
     for (int ii = 0; ii < n_halos_kept; ii++) {
         halo[ii].FOFGroup = &(fof_group[halo_FOFGroup_os[ii]]);
-        if (halo_NextHaloInFOFGroup_os[ii] != -1)
+        if (halo_NextHaloInFOFGroup_os[ii] != (size_t)-1)
             halo[ii].NextHaloInFOFGroup = &(halo[halo_NextHaloInFOFGroup_os[ii]]);
         else
             halo[ii].NextHaloInFOFGroup = NULL;

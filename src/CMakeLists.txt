@@ -3,6 +3,7 @@ cmake_minimum_required(VERSION 3.5)
 project(meraxes)
 include(${CMAKE_ROOT}/Modules/ExternalProject.cmake)
 include(${CMAKE_CURRENT_SOURCE_DIR}/local.cmake OPTIONAL)
+set(CMAKE_EXPORT_COMPILE_COMMANDS TRUE CACHE BOOL "Export compile commands (for clang-tidy)" FORCE)
 find_package(Git REQUIRED)
 
 # Build type
