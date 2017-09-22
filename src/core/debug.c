@@ -34,6 +34,7 @@ void mpi_debug_here()
     printf("Task %d, PID %d on %s ready for attach\n", run_globals.mpi_rank, getpid(), hostname);
     printf("Once connected go up stack to 'sleep(5)' and 'set var i=7'\n");
     fflush(stdout);
+    // cppcheck-suppress knownConditionTrueFalse
     while (0 == i)
         sleep(5);
 #endif
