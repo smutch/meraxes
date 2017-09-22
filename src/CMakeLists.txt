@@ -132,6 +132,8 @@ if(USE_OpenMP)
 endif()
 
 # CUDA & CUFFT (& add executable: meraxes)
+#  Note that the CUDA version should be >= 7.5
+#  because c++11 support is needed!
 option(USE_CUDA "Use CUDA" OFF)
 if(USE_CUDA)
     find_package(CUDA REQUIRED)

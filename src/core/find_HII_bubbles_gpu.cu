@@ -37,6 +37,13 @@
 #include <hdf5_hl.h>
 #include "meraxes.h"
 
+/*
+ * This code is a re-write of the modified version of 21cmFAST used in Mutch et
+ * al. (2016; Meraxes paper).  The original code was written by Andrei Mesinger
+ * with additions as detailed in Sobacchi & Mesinger (2013abc).  Updates were
+ * subsequently made by Simon Mutch & Paul Geil.
+ */
+
 // This is the CUDA-enabled version of find_HII_bubbles().  It uses cuFFT for
 //    all FFTs if the USE_CUFFT compiler flag has been set.  Otherwise, it uses 
 //    fftw.  In both cases, everything else is done with the GPU.
@@ -266,7 +273,7 @@ void _find_HII_bubbles_gpu(double redshift,const bool flag_write_validation_outp
 
     mlog(".", MLOG_CONT);
 
-    // create working copies of the k-space grids
+    // Create working copies of the k-space grids
     try{
         throw_on_cuda_error(cudaMemcpy(deltax_filtered_device,deltax_unfiltered_device,sizeof(Complex) * slab_n_complex,cudaMemcpyDeviceToDevice),meraxes_cuda_exception::MEMCPY);
         throw_on_cuda_error(cudaMemcpy(stars_filtered_device, stars_unfiltered_device, sizeof(Complex) * slab_n_complex,cudaMemcpyDeviceToDevice),meraxes_cuda_exception::MEMCPY);

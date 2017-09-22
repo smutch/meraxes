@@ -123,7 +123,6 @@ void init_CUDA(){
             if(run_globals.mpi_rank==0){
                 // Open the file
                 std::ifstream infile(filename_node_name_list);
-
                 // Read each line
                 int i_rank=0;
                 std::string node_name_i;
@@ -138,7 +137,6 @@ void init_CUDA(){
                     i_rank++;
                 }
                 infile.close();
-
                 // Check that the length of the file matches the size of the communicator
                 throw_on_generic_error(i_rank!=run_globals.mpi_size,meraxes_cuda_exception::INIT_PBS_GPUFILE);
             }
@@ -224,10 +222,8 @@ void init_CUDA(){
                     }
                     char host_name_i[MPI_MAX_PROCESSOR_NAME];
                     strcpy(host_name_i,host_name_temp.c_str());
-
                     // Skip '-gpu' 
                     i_char+=4;
-
                     // Parse i_rank'th device number
                     std::string device_number_str;
                     char_i=line[i_char];
@@ -431,15 +427,15 @@ void filter_gpu(Complex *box,int grid_dim,int local_ix_start,int n_complex,float
             support = (kR>1e-4);
             break;
 
-          case 1:                  // k-space top hat
-            kR     *= 0.413566994; // Equates integrated volume to the real space top-hat (9pi/2)^(-1/3)
+          case 1:                   // k-space top hat
+            kR     *= 0.413566994f; // Equates integrated volume to the real space top-hat (9pi/2)^(-1/3)
             scalar  = 0.f;
             support = (kR>1);
             break;
 
-          case 2:            // Gaussian
-            kR     *= 0.643; // Equates integrated volume to the real space top-hat
-            scalar  = powf(M_E, -kR * kR / 2.0);
+          case 2:             // Gaussian
+            kR     *= 0.643f; // Equates integrated volume to the real space top-hat
+            scalar  = powf(M_E, -kR * kR / 2.0f);
             support = true;
             break;
         }
