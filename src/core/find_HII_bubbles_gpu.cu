@@ -322,8 +322,8 @@ void _find_HII_bubbles_gpu(double redshift,const bool flag_write_validation_outp
     // Perform sanity checks to account for aliasing effects
     try{
         throw_on_kernel_error((sanity_check_aliasing<<<grid_real,threads>>>(deltax_filtered_device,ReionGridDim,slab_n_real,-1.f + REL_TOL)),meraxes_cuda_exception::KERNEL_CHECK);
-        throw_on_kernel_error((sanity_check_aliasing<<<grid_real,threads>>>(stars_filtered_device, ReionGridDim,slab_n_real,0.)),meraxes_cuda_exception::KERNEL_CHECK);
-        throw_on_kernel_error((sanity_check_aliasing<<<grid_real,threads>>>(sfr_filtered_device,   ReionGridDim,slab_n_real,0.)),meraxes_cuda_exception::KERNEL_CHECK);
+        throw_on_kernel_error((sanity_check_aliasing<<<grid_real,threads>>>(stars_filtered_device, ReionGridDim,slab_n_real,0.f)),meraxes_cuda_exception::KERNEL_CHECK);
+        throw_on_kernel_error((sanity_check_aliasing<<<grid_real,threads>>>(sfr_filtered_device,   ReionGridDim,slab_n_real,0.f)),meraxes_cuda_exception::KERNEL_CHECK);
         check_thread_sync(meraxes_cuda_exception::KERNEL_CHECK);
         // Throw an exception if another rank has thrown one
         throw_on_global_error();
@@ -338,7 +338,7 @@ void _find_HII_bubbles_gpu(double redshift,const bool flag_write_validation_outp
       * 1e21 * ReionEscapeFrac
       * R *UnitLength_in_cm * ReionNionPhotPerBary / PROTONMASS
       * UnitMass_in_g / pow(UnitLength_in_cm, 3) / UnitTime_in_s;
-    const double inv_pixel_volume = 1.f/pixel_volume;
+    const double inv_pixel_volume = 1./pixel_volume;
 
     try{
         throw_on_kernel_error((find_HII_bubbles_gpu_main_loop<<<grid_real,threads>>>(

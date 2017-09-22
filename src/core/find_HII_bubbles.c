@@ -96,41 +96,6 @@ void _find_HII_bubbles(double redshift,const bool flag_validation_output)
   int          i_real;
   int          i_padded;
 
-  if (true)
-  {
-    // prepare output file
-    char fname[STRLEN];
-    sprintf(fname, "validation_input-core%03d-z%.2f.h5", mpi_rank, redshift);
-    hid_t file_id = H5Fcreate(fname, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
-
-    // write all of the input values
-    H5LTset_attribute_double(file_id, "/", "redshift", &redshift, 1);
-    H5LTset_attribute_int(file_id, "/", "mpi_rank", &mpi_rank, 1);
-    H5LTset_attribute_double(file_id, "/", "box_size", &box_size, 1);
-    H5LTset_attribute_int(file_id, "/", "ReionGridDim", &ReionGridDim, 1);
-    H5LTset_attribute_int(file_id, "/", "local_nix", &local_nix, 1);
-    H5LTset_attribute_int(file_id, "/", "flag_ReionUVBFlag", &flag_ReionUVBFlag, 1);
-    H5LTset_attribute_double(file_id, "/", "ReionEfficiency", &ReionEfficiency, 1);
-    H5LTset_attribute_double(file_id, "/", "ReionNionPhotPerBary", &ReionNionPhotPerBary, 1);
-    H5LTset_attribute_double(file_id, "/", "UnitLength_in_cm", &UnitLength_in_cm, 1);
-    H5LTset_attribute_double(file_id, "/", "UnitMass_in_g", &UnitMass_in_g, 1);
-    H5LTset_attribute_double(file_id, "/", "UnitTime_in_s", &UnitTime_in_s, 1);
-    H5LTset_attribute_double(file_id, "/", "ReionRBubbleMax", &ReionRBubbleMax, 1);
-    H5LTset_attribute_double(file_id, "/", "ReionRBubbleMin", &ReionRBubbleMin, 1);
-    H5LTset_attribute_double(file_id, "/", "ReionDeltaRFactor", &ReionDeltaRFactor, 1);
-    H5LTset_attribute_double(file_id, "/", "ReionGammaHaloBias", &ReionGammaHaloBias, 1);
-    H5LTset_attribute_double(file_id, "/", "ReionAlphaUV", &ReionAlphaUV, 1);
-    H5LTset_attribute_double(file_id, "/", "ReionEscapeFrac", &ReionEscapeFrac, 1);
-
-    H5LTmake_dataset_float(file_id, "deltax", 1, (hsize_t []){slab_n_complex*2}, deltax);
-    H5LTmake_dataset_float(file_id, "stars", 1, (hsize_t []){slab_n_complex*2}, stars);
-    H5LTmake_dataset_float(file_id, "sfr", 1, (hsize_t []){slab_n_complex*2}, sfr);
-    H5LTmake_dataset_float(file_id, "z_at_ionization", 1, (hsize_t []){slab_n_real}, z_at_ionization);
-    H5LTmake_dataset_float(file_id, "J_21_at_ionization", 1, (hsize_t []){slab_n_real}, J_21_at_ionization);
-
-    H5Fclose(file_id);
-  }
-
   // This parameter choice is sensitive to noise on the cell size, at least for the typical
   // cell sizes in RT simulations. It probably doesn't matter for larger cell sizes.
   if ((box_size / (double)ReionGridDim) < 1.0) // Fairly arbitrary length based on 2 runs Sobacchi did
@@ -174,18 +139,6 @@ void _find_HII_bubbles(double redshift,const bool flag_validation_output)
     sfr_unfiltered[ii]    /= total_n_cells;
   }
 
-  if (true)
-  {
-    // prepare output file
-    char fname[STRLEN];
-    sprintf(fname, "validation_unfiltered-core%03d-z%.2f.h5", mpi_rank, redshift);
-    hid_t file_id = H5Fcreate(fname, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
-    H5LTmake_dataset_float(file_id, "deltax_unfiltered", 1, (hsize_t []){slab_n_complex*2}, deltax_unfiltered);
-    H5LTmake_dataset_float(file_id, "stars_unfiltered", 1, (hsize_t []){slab_n_complex*2}, stars_unfiltered);
-    H5LTmake_dataset_float(file_id, "sfr_unfiltered", 1, (hsize_t []){slab_n_complex*2}, sfr_unfiltered);
-    H5Fclose(file_id);
-  }
-
   // Loop through filter radii
   double R                     = fmin(ReionRBubbleMax, L_FACTOR * box_size); // Mpc/h
 
@@ -218,18 +171,6 @@ void _find_HII_bubbles(double redshift,const bool flag_validation_output)
       filter((fftwf_complex *)sfr_filtered,    local_ix_start, local_nix, ReionGridDim, (float)R);
     }
 
-    if (true)
-    {
-        // prepare output file
-        char fname[STRLEN];
-        sprintf(fname, "validation_filtered-core%03d-z%.2f_%02d.h5", mpi_rank, redshift,i_R);
-        hid_t file_id = H5Fcreate(fname, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
-        H5LTmake_dataset_float(file_id, "deltax_filtered", 1, (hsize_t []){slab_n_complex * 2}, (float *)deltax_filtered);
-        H5LTmake_dataset_float(file_id, "stars_filtered",  1, (hsize_t []){slab_n_complex * 2}, (float *)stars_filtered);
-        H5LTmake_dataset_float(file_id, "sfr_filtered",    1, (hsize_t []){slab_n_complex * 2}, (float *)sfr_filtered);
-        H5Fclose(file_id);
-    }
-
     // inverse fourier transform back to real space
     plan = fftwf_mpi_plan_dft_c2r_3d(ReionGridDim, ReionGridDim, ReionGridDim, (fftwf_complex *)deltax_filtered, (float *)deltax_filtered, mpi_comm, FFTW_ESTIMATE);
     fftwf_execute(plan);
@@ -242,18 +183,6 @@ void _find_HII_bubbles(double redshift,const bool flag_validation_output)
     plan = fftwf_mpi_plan_dft_c2r_3d(ReionGridDim, ReionGridDim, ReionGridDim, (fftwf_complex *)sfr_filtered, (float *)sfr_filtered, mpi_comm, FFTW_ESTIMATE);
     fftwf_execute(plan);
     fftwf_destroy_plan(plan);
-
-    if (true)
-    {
-        // prepare output file
-        char fname[STRLEN];
-        sprintf(fname, "validation_filtered_ift-core%03d-z%.2f_%02d.h5", mpi_rank, redshift,i_R);
-        hid_t file_id = H5Fcreate(fname, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
-        H5LTmake_dataset_float(file_id, "deltax_filtered_ift", 1, (hsize_t []){slab_n_complex * 2}, (float *)deltax_filtered);
-        H5LTmake_dataset_float(file_id, "stars_filtered_ift",  1, (hsize_t []){slab_n_complex * 2}, (float *)stars_filtered);
-        H5LTmake_dataset_float(file_id, "sfr_filtered_ift",    1, (hsize_t []){slab_n_complex * 2}, (float *)sfr_filtered);
-        H5Fclose(file_id);
-    }
 
     // Perform sanity checks to account for aliasing effects
     for (int ix = 0; ix < local_nix; ix++)
@@ -269,18 +198,6 @@ void _find_HII_bubbles(double redshift,const bool flag_validation_output)
     /*
      * Main loop through the box...
      */
-
-    if (true)
-    {
-        // prepare output file
-        char fname[STRLEN];
-        sprintf(fname, "validation_sanity-core%03d-z%.2f_%02d.h5", mpi_rank, redshift,i_R);
-        hid_t file_id = H5Fcreate(fname, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
-        H5LTmake_dataset_float(file_id, "deltax_sanity", 1, (hsize_t []){slab_n_complex * 2}, (float *)deltax_filtered);
-        H5LTmake_dataset_float(file_id, "stars_sanity",  1, (hsize_t []){slab_n_complex * 2}, (float *)stars_filtered);
-        H5LTmake_dataset_float(file_id, "sfr_sanity",    1, (hsize_t []){slab_n_complex * 2}, (float *)sfr_filtered);
-        H5Fclose(file_id);
-    }
 
     double J_21_aux_constant = (1.0 + redshift) * (1.0 + redshift) / (4.0 * M_PI)
       * ReionAlphaUV * PLANCK
@@ -336,21 +253,6 @@ void _find_HII_bubbles(double redshift,const bool flag_validation_output)
         }
     // iz
  
-    if (true)
-    {
-        // prepare output file
-        char fname[STRLEN];
-        sprintf(fname, "validation_main-core%03d-z%.2f_%02d.h5", mpi_rank, redshift,i_R);
-        hid_t file_id = H5Fcreate(fname, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
-        H5LTmake_dataset_float(file_id, "xH",       1, (hsize_t []){slab_n_real}, xH);
-        H5LTmake_dataset_float(file_id, "r_bubble", 1, (hsize_t []){slab_n_real}, r_bubble);
-        if(flag_ReionUVBFlag)
-           H5LTmake_dataset_float(file_id, "J_21",            1, (hsize_t []){slab_n_real},      J_21);
-        H5LTmake_dataset_float(file_id, "J_21_at_ionization", 1, (hsize_t []){slab_n_real},      J_21_at_ionization);
-        H5LTmake_dataset_float(file_id, "z_at_ionization",    1, (hsize_t []){slab_n_real},      z_at_ionization);
-        H5Fclose(file_id);
-    }
-
     R /= ReionDeltaRFactor;
   }
 
@@ -390,10 +292,10 @@ void find_HII_bubbles(int snapshot,timer_info *timer_total)
   double redshift=run_globals.ZZ[snapshot];
   timer_info timer;
   #ifdef USE_CUDA
-      #ifndef USE_CUFFT
-          mlog("Calling hybrid-GPU/FFTW version of find_HII_bubbles() for snap=%d/z=%.2lf...",MLOG_OPEN | MLOG_TIMERSTART,snapshot,redshift);
-      #else
+      #ifdef USE_CUFFT
           mlog("Calling pure-GPU version of find_HII_bubbles() for snap=%d/z=%.2lf...", MLOG_OPEN | MLOG_TIMERSTART,snapshot,redshift);
+      #else
+          mlog("Calling hybrid-GPU/FFTW version of find_HII_bubbles() for snap=%d/z=%.2lf...",MLOG_OPEN | MLOG_TIMERSTART,snapshot,redshift);
       #endif
       // Run the GPU version of _find_HII_bubbles()
       timer_start(&timer);
@@ -408,20 +310,5 @@ void find_HII_bubbles(int snapshot,timer_info *timer_total)
   timer_stop(timer_total);
   timer_gpu+=timer_delta(timer);
   mlog("Total time spent in find_HII_bubbles vs. total run time (snapshot %d ): %.2f of %.2f s",MLOG_MESG,snapshot,timer_gpu,timer_delta(*timer_total));
-
-  // Write reionization results for this snapshot.  Useful for testing.
-  if(false){
-    char fname_out[STRLEN];
-    sprintf(fname_out,"validation_output-core%03d-z%.2f.h5",run_globals.mpi_rank, redshift);
-    hid_t file_id_out = H5Fcreate(fname_out, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
-    const int slab_n_real = (int)(run_globals.reion_grids.slab_nix[run_globals.mpi_rank]) * run_globals.params.ReionGridDim * run_globals.params.ReionGridDim;
-    H5LTmake_dataset_float(file_id_out, "xH",                 1, (hsize_t []){slab_n_real}, run_globals.reion_grids.xH);
-    H5LTmake_dataset_float(file_id_out, "z_at_ionization",    1, (hsize_t []){slab_n_real}, run_globals.reion_grids.z_at_ionization);
-    H5LTmake_dataset_float(file_id_out, "J_21_at_ionization", 1, (hsize_t []){slab_n_real}, run_globals.reion_grids.J_21_at_ionization);
-    H5LTset_attribute_double(file_id_out, "/", "volume_weighted_global_xH", &(run_globals.reion_grids.volume_weighted_global_xH), 1);
-    H5LTset_attribute_double(file_id_out, "/", "mass_weighted_global_xH",   &(run_globals.reion_grids.mass_weighted_global_xH),   1);
-    H5Fclose(file_id_out);
-  }
-
 }
 

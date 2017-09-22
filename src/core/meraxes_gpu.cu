@@ -422,7 +422,7 @@ void filter_gpu(Complex *box,int grid_dim,int local_ix_start,int n_complex,float
 
         // Calculate filter
         float       kR      = k_mag * R;
-        float       scalar  = 0.;
+        float       scalar  = 0.f;
         int         support = false;
         switch(filter_type)
         {
