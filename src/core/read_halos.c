@@ -284,6 +284,11 @@ static int id_to_ind(long id)
     return (int)((id % (uint64_t)1e12) - 1);
 }
 
+static int id_to_snap(long id)
+{
+    return id / 1e12l;
+}
+
 static void inline convert_input_virial_props(double* Mvir, double* Rvir, double* Vvir,
     double* FOFMvirModifier, const int len,
     const int snapshot, const bool fof_flag)
@@ -390,6 +395,7 @@ static void read_velociraptor_trees(int snapshot, halo_t* halos, int* n_halos, f
         halo->DescIndex = id_to_ind(tree_entry.Head);
         halo->NextHaloInFOFGroup = NULL;
         halo->Type = tree_entry.hostHaloID == -1 ? 0 : 1;
+        halo->SnapOffset = id_to_snap(tree_entry.Head) - snapshot;
 
         if (index_lookup)
           index_lookup[*n_halos] = ii;
@@ -592,6 +598,8 @@ trees_info_t read_halos(const int snapshot, halo_t** halos, fof_group_t** fof_gr
         free(halo_NextHaloInFOFGroup_os);
         free(halo_FOFGroup_os);
     }
+
+    mlog("...done", MLOG_CLOSE|MLOG_TIMERSTOP);
 
     return trees_info;
 }
