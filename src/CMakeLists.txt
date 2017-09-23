@@ -10,7 +10,7 @@ find_package(Git REQUIRED)
 set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -DDEBUG -Wall -O0")
 set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -march=native")
 set(CMAKE_C_FLAGS_RELWITHDEBINFO "${CMAKE_C_FLAGS_RELWITHDEBINFO} -Wall -march=native")
-set(CMAKE_BUILD_TYPE "Release" CACHE STRING "Build type.")
+set(CMAKE_BUILD_TYPE "Debug" CACHE STRING "Build type.")
 
 if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
   set(CMAKE_INSTALL_PREFIX ${CMAKE_CURRENT_SOURCE_DIR}/.. CACHE PATH "..." FORCE)
@@ -30,9 +30,7 @@ set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
 set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 
 # Code options
-if(N_HISTORY_SNAPS)
-    add_definitions(-DN_HISTORY_SNAPS=${N_HISTORY_SNAPS})
-endif()
+set(N_HISTORY_SNAPS 5 CACHE VALUE "For delayed SN feedback.")
 
 # MPI
 find_package(MPI REQUIRED)
@@ -163,6 +161,7 @@ add_dependencies(install.lib lib)
 # custom targets
 add_custom_target(setuprun
     COMMENT "Setting up run with minimal required files..."
+    COMMAND test -n \"\${RUNDIR}\" || (echo "*** Must set RUNDIR to execute target 'setuprun'. ***" && exit 1)
     COMMAND echo "RUNDIR = \${RUNDIR}"
     COMMAND mkdir -p \${RUNDIR}
     COMMAND cp -n ${CMAKE_CURRENT_SOURCE_DIR}/../input/input.par \${RUNDIR}
