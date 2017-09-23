@@ -15,17 +15,6 @@ static inline bool check_for_flag(int flag, int tree_flags)
         return false;
 }
 
-static inline bool check_for_merger(galaxy_t* gal, halo_t* new_halo)
-{
-    // if this is marked as a merger in the trees OR the galaxy stellar mass is
-    // now greater than the host halo mass, then mark this as a merger
-    // if( check_for_flag(TREE_CASE_MERGER, gal->TreeFlags) || (gal->StellarMass > new_halo->Mvir) )
-    if (check_for_flag(TREE_CASE_MERGER, gal->TreeFlags))
-        return true;
-    else
-        return false;
-}
-
 static inline bool check_if_valid_host(halo_t* halo)
 {
     // We don't want to place new galaxies in any halos with the following flags set...
@@ -159,41 +148,9 @@ void dracarys()
 
                     // If this is a central or a satellite
                     if (gal->Type < 2) {
-                        if (check_for_merger(gal, &(halo[i_newhalo]))) {
-                            // Here we have a new merger with this galaxy merging into a
-                            // another...  Mark it and deal with it below.
-                            gal->Type = 999;
-                            merger_counter++;
-
-                            // If this was marked as a halo merger in the input trees then
-                            // update the halo pointer correspondingly and turn off the
-                            // merger flag.  Note the distinction here with the
-                            // `check_for_merger` check above.  That check may want to
-                            // consider galaxy properties such as stellar mass.  This check
-                            // is only concerned with halo mergers as defined by the input
-                            // trees.
-                            if (check_for_flag(TREE_CASE_MERGER, gal->TreeFlags)) {
-                                gal->Halo = &(halo[i_newhalo]);
-                                turn_off_merger_flag(gal);
-                            }
-                            // otherwise, set the new halo to be the central halo of the corresponding FOF group
-                            else
-                                gal->Halo = halo[i_newhalo].FOFGroup->FirstHalo;
-                        } else {
-                            // Here we have the simplest case where a galaxy continues along in it's halo...
-                            gal->Halo = &(halo[i_newhalo]);
-                            assign_galaxy_to_halo(gal, &(halo[i_newhalo]));
-
-                            // Loop through all of the other galaxies in this halo and set their Halo pointer
-                            cur_gal = gal->NextGalInHalo;
-                            while (cur_gal != NULL) {
-                                cur_gal->Halo = &(halo[i_newhalo]);
-                                cur_gal = cur_gal->NextGalInHalo;
-                            }
-                        }
+                        connect_galaxy_and_halo(gal, &halo[i_newhalo], &merger_counter);
                     }
-                } else // this galaxy has been marked for death
-                {
+                } else { // this galaxy has been marked for death
                     if (gal->FirstGalInHalo == gal) {
                         // We have marked the first galaxy in the halo for death. If there are any
                         // other type 2 galaxies in this halo then we must kill them as well...
@@ -256,6 +213,23 @@ void dracarys()
         // Incase we ended up removing the last galaxy, update the LastGal pointer
         run_globals.LastGal = prev_gal;
 
+        // Loop through each galaxy and set the merger clocks for new infallers
+        // now that all other galaxies have been processed and their halo
+        // pointers updated...
+        gal = run_globals.FirstGal;
+        while (gal != NULL) {
+            if ((gal->Type == 2) && (gal->MergerTarget == NULL)) {
+                // Set the merger target of the incoming galaxy and initialise the
+                // merger clock.  Note that we *increment* the clock immediately
+                // after calculating it. This is because we will decrement the clock
+                // (by the same amount) when checking for mergers in evolve.c
+                gal->MergerTarget = gal->Halo->Galaxy;
+                gal->MergTime = calculate_merging_time(gal, snapshot);
+                gal->MergTime += gal->dt;
+            }
+            gal = gal->Next;
+        }
+
         // Find empty (valid) type 0 halos and place new galaxies in them.
         // Also update the fof_group pointers.
         for (int i_fof = 0; i_fof < trees_info.n_fof_groups; i_fof++) {
@@ -272,65 +246,6 @@ void dracarys()
             }
 
             fof_group[i_fof].TotalSubhaloLen = total_subhalo_len;
-        }
-
-        // Loop through each galaxy and deal with HALO mergers now that all other
-        // galaxies have been processed and their halo pointers updated...
-        gal = run_globals.FirstGal;
-        while (gal != NULL) {
-            if (gal->Type == 999) {
-                if (gal->Halo->Galaxy == NULL) {
-                    // Here we have a halo with a galaxy that has just merged into an
-                    // empty halo.  From the point of view of the model, this isn't
-                    // actually a merger and so we need to catch these cases...
-                    gal->Halo->Galaxy = gal;
-                    gal->Type = gal->Halo->Type;
-                    cur_gal = gal->NextGalInHalo;
-                    while (cur_gal != NULL) {
-                        cur_gal->Halo = gal->Halo;
-                        cur_gal = cur_gal->NextGalInHalo;
-                    }
-                } else // there are galaxies in the halo being merged into
-                {
-                    // Remember that we have already set the galaxy's halo pointer so we
-                    // don't need to do that here.
-
-                    gal->Type = 2;
-
-                    // Add the incoming galaxy to the end of the halo's linked list
-                    cur_gal = gal->Halo->Galaxy;
-                    while (cur_gal != NULL) {
-                        prev_gal = cur_gal;
-                        cur_gal = cur_gal->NextGalInHalo;
-                    }
-                    prev_gal->NextGalInHalo = gal;
-
-                    // Update the FirstGalInHalo pointer.
-                    gal->FirstGalInHalo = gal->Halo->Galaxy;
-
-                    // Loop through and update the FirstGalInHalo and Halo pointers of any other
-                    // galaxies that are attached to the incoming galaxy
-                    cur_gal = gal->NextGalInHalo;
-                    while (cur_gal != NULL) {
-                        cur_gal->FirstGalInHalo = gal->FirstGalInHalo;
-                        cur_gal->Halo = gal->Halo;
-                        cur_gal = cur_gal->NextGalInHalo;
-                    }
-
-                    if (gal->FirstGalInHalo == NULL)
-                        mlog("<WARNING> Just set gal->FirstGalInHalo = NULL!", MLOG_MESG);
-
-                    // Set the merger target of the incoming galaxy and initialise the
-                    // merger clock.  Note that we *increment* the clock immediately
-                    // after calculating it. This is because we will decrement the clock
-                    // (by the same amount) when checking for mergers in evolve.c
-                    gal->MergerTarget = gal->FirstGalInHalo;
-                    gal->MergTime = calculate_merging_time(gal, snapshot);
-                    gal->MergTime += gal->dt;
-                }
-            }
-
-            gal = gal->Next;
         }
 
         // Calculate the first occupied halo
@@ -364,7 +279,7 @@ void dracarys()
                 passively_evolve_ghost(gal, snapshot);
 
             if ((gal->Type < 2) && (!gal->ghost_flag))
-                copy_halo_to_galaxy(gal->Halo, gal, snapshot);
+                copy_halo_props_to_galaxy(gal->Halo, gal);
 
             gal = gal->Next;
         }

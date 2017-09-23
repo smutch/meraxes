@@ -4,9 +4,7 @@
 
 galaxy_t* new_galaxy(int snapshot, int halo_ID)
 {
-    galaxy_t* gal = NULL;
-
-    gal = malloc(sizeof(galaxy_t));
+    galaxy_t* gal = malloc(sizeof(galaxy_t));
 
     // Initialise the properties
     gal->ID = snapshot * 1e10 + halo_ID;
@@ -77,7 +75,7 @@ galaxy_t* new_galaxy(int snapshot, int halo_ID)
     return gal;
 }
 
-void copy_halo_to_galaxy(halo_t* halo, galaxy_t* gal, int snapshot)
+void copy_halo_props_to_galaxy(halo_t* halo, galaxy_t* gal)
 {
     gal->Type = halo->Type;
     gal->Len = halo->Len;
@@ -136,16 +134,56 @@ void reset_galaxy_properties(galaxy_t* gal, int snapshot)
     gal->NewStars[0] = 0.0;
 }
 
-void assign_galaxy_to_halo(galaxy_t* gal, halo_t* halo)
+static void push_galaxy_to_halo(galaxy_t* gal, halo_t* halo)
 {
     if (halo->Galaxy == NULL)
         halo->Galaxy = gal;
     else {
-        mlog_error("Trying to assign first galaxy to a halo which already has a first galaxy!");
-#ifdef DEBUG
-        mpi_debug_here();
-#endif
-        ABORT(EXIT_FAILURE);
+        // Walk the galaxy list for the halo to find the end and then link the
+        // new galaxy
+        galaxy_t *cur_gal = halo->Galaxy;
+        galaxy_t *prev_gal = cur_gal;
+        while (cur_gal != NULL) {
+            prev_gal = cur_gal;
+            cur_gal = cur_gal->NextGalInHalo;
+        }
+        prev_gal->NextGalInHalo = gal;
+    }
+
+    // Loop through the new galaxy, and all galaxies attached to it, and set
+    // the first galaxy in halo pointer
+    galaxy_t *cur_gal = gal;
+    while (cur_gal != NULL) {
+        cur_gal->FirstGalInHalo = halo->Galaxy;
+        cur_gal = cur_gal->NextGalInHalo;
+    }
+}
+
+void connect_galaxy_and_halo(galaxy_t* gal, halo_t* halo, int* merger_counter)
+{
+    if (halo->Galaxy == NULL)
+        push_galaxy_to_halo(gal, halo);
+    else {
+        // There is already a galaxy been assigned to this halo.  That means we
+        // have a merger. Now we need to work out which galaxy is merging into
+        // which.  There are a number of criterion we could use here. For now,
+        // let's use the galaxy with the least massive halo at the last
+        // snapshot it was identified is the one which is merging into another
+        // object.
+        assert(merger_counter != NULL);
+        (*merger_counter)++;
+
+        galaxy_t* parent = halo->Galaxy->Mvir >= gal->Mvir ? halo->Galaxy : gal;
+        galaxy_t* infaller = halo->Galaxy == parent ? gal : halo->Galaxy;
+        infaller->Type = 2;
+
+        // Make sure the halo is pointing to the right galaxy
+        if (parent != halo->Galaxy)
+            halo->Galaxy = parent;
+
+        // Add the incoming galaxy to the end of the halo's linked list
+        push_galaxy_to_halo(infaller, halo);
+
     }
 }
 
@@ -165,7 +203,7 @@ void create_new_galaxy(
     else
         gal->LastIdentSnap = snapshot;
 
-    assign_galaxy_to_halo(gal, halo);
+    connect_galaxy_and_halo(gal, halo, NULL);
 
     if (run_globals.LastGal != NULL)
         run_globals.LastGal->Next = gal;
