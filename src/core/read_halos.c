@@ -104,7 +104,8 @@ static void select_forests()
                 n_halos_tot += n_halos[i_forest];
                 i_req++;
             }
-    } else {
+    }
+    else {
         // if we haven't asked for any specific forest IDs then just fill the
         // requested ind array sequentially
         requested_ind = (int*)malloc(sizeof(int) * n_forests);
@@ -294,11 +295,11 @@ static void inline convert_input_virial_props(double* Mvir, double* Rvir, double
     const int snapshot, const bool fof_flag)
 {
     // Update the virial properties for subhalos
-    if (*Mvir == -1)
-    {
+    if (*Mvir == -1) {
         assert(len > 0);
         *Mvir = calculate_Mvir(*Mvir, len);
-    } else {
+    }
+    else {
 
         *Mvir *= 1e-10;
 
@@ -308,7 +309,6 @@ static void inline convert_input_virial_props(double* Mvir, double* Rvir, double
             *FOFMvirModifier = interpolate_modifier(run_globals.mass_ratio_modifier, log10(*Mvir / run_globals.params.Hubble_h) + 10.0);
             *Mvir *= *FOFMvirModifier;
         }
-
     }
 
     if (*Rvir == -1)
@@ -389,73 +389,74 @@ static void read_velociraptor_trees(int snapshot, halo_t* halos, int* n_halos, f
     *n_halos = 0;
     *n_fof_groups = 0;
     for (int ii = 0; ii < n_tree_entries; ++ii) {
-      bool keep_this_halo = true;
+        bool keep_this_halo = true;
 
-      if ((run_globals.RequestedForestId != NULL)
-          && (bsearch(&(tree_entries[ii].ForestID), run_globals.RequestedForestId,
-              (size_t)run_globals.NRequestedForests, sizeof(int), compare_ints)) == NULL)
-        keep_this_halo = false;
+        if ((run_globals.RequestedForestId != NULL)
+            && (bsearch(&(tree_entries[ii].ForestID), run_globals.RequestedForestId,
+                   (size_t)run_globals.NRequestedForests, sizeof(int), compare_ints))
+                == NULL)
+            keep_this_halo = false;
 
-      if (keep_this_halo)
-      {
-        tree_entry_t tree_entry = tree_entries[ii];
-        halo_t* halo = &(halos[*n_halos]);
+        if (keep_this_halo) {
+            tree_entry_t tree_entry = tree_entries[ii];
+            halo_t* halo = &(halos[*n_halos]);
 
-        halo->ID = tree_entry.ID;
-        halo->DescIndex = id_to_ind(tree_entry.Head);
-        halo->NextHaloInFOFGroup = NULL;
-        halo->Type = tree_entry.hostHaloID == -1 ? 0 : 1;
-        halo->SnapOffset = id_to_snap(tree_entry.Head) - snapshot;
+            halo->ID = tree_entry.ID;
+            halo->DescIndex = id_to_ind(tree_entry.Head);
+            halo->NextHaloInFOFGroup = NULL;
+            halo->Type = tree_entry.hostHaloID == -1 ? 0 : 1;
+            halo->SnapOffset = id_to_snap(tree_entry.Head) - snapshot;
 
-        if (index_lookup)
-          index_lookup[*n_halos] = ii;
+            if (index_lookup)
+                index_lookup[*n_halos] = ii;
 
-        if (halo->Type == 0) {
-          fof_group_t* fof_group = &fof_groups[*n_fof_groups];
+            if (halo->Type == 0) {
+                fof_group_t* fof_group = &fof_groups[*n_fof_groups];
 
-          // TODO: What masses and radii should I use for centrals (inclusive vs. exclusive etc.)?
-          fof_group->Mvir = tree_entry.Mass_200crit;
-          fof_group->Rvir = tree_entry.R_200crit;
-          fof_group->FOFMvirModifier = 1.0;
+                // TODO: What masses and radii should I use for centrals (inclusive vs. exclusive etc.)?
+                fof_group->Mvir = tree_entry.Mass_200crit;
+                fof_group->Rvir = tree_entry.R_200crit;
+                fof_group->FOFMvirModifier = 1.0;
 
-          convert_input_virial_props(&fof_group->Mvir, &fof_group->Rvir, &fof_group->Vvir,
-              &fof_group->FOFMvirModifier, -1, snapshot, true);
+                convert_input_virial_props(&fof_group->Mvir, &fof_group->Rvir, &fof_group->Vvir,
+                    &fof_group->FOFMvirModifier, -1, snapshot, true);
 
-          halo->FOFGroup = &(fof_groups[*n_fof_groups]);
-          fof_groups[(*n_fof_groups)++].FirstHalo = halo;
-        } else {
-          // We can take advantage of the fact that host halos always seem to appear before their subhalos in the
-          // trees to immediately connect FOF group members.
-          assert((unsigned long)tree_entry.hostHaloID < tree_entry.ID);
+                halo->FOFGroup = &(fof_groups[*n_fof_groups]);
+                fof_groups[(*n_fof_groups)++].FirstHalo = halo;
+            }
+            else {
+                // We can take advantage of the fact that host halos always seem to appear before their subhalos in the
+                // trees to immediately connect FOF group members.
+                assert((unsigned long)tree_entry.hostHaloID < tree_entry.ID);
 
-          int host_index = id_to_ind(tree_entry.hostHaloID);
-          halo_t* prev_halo_in_fof_group = bsearch(&host_index, &index_lookup,
-              (size_t)(*n_halos) + 1, sizeof(int), compare_ints);
+                int host_index = id_to_ind(tree_entry.hostHaloID);
+                halo_t* prev_halo_in_fof_group = bsearch(&host_index, &index_lookup,
+                    (size_t)(*n_halos) + 1, sizeof(int), compare_ints);
 
-          prev_halo_in_fof_group->NextHaloInFOFGroup = halo;
-          halo->FOFGroup = prev_halo_in_fof_group->FOFGroup;
+                prev_halo_in_fof_group->NextHaloInFOFGroup = halo;
+                halo->FOFGroup = prev_halo_in_fof_group->FOFGroup;
+            }
+
+            halo->Len = (int)tree_entry.npart;
+            halo->Pos[0] = (float)tree_entry.Xc;
+            halo->Pos[1] = (float)tree_entry.Yc;
+            halo->Pos[2] = (float)tree_entry.Zc;
+
+            // TODO: What masses and radii should I use for satellites (inclusive vs. exclusive etc.)?
+            halo->Mvir = -1;
+            halo->Rvir = -1;
+            halo->Vmax = (float)tree_entry.Vmax;
+
+            // TODO: Ask Pascal for real ang mom vectors
+            halo->AngMom[0] = halo->AngMom[1] = 0;
+            halo->AngMom[2] = sqrt(2.0) * tree_entry.Mass_200crit * tree_entry.Vmax * tree_entry.R_200crit;
+
+            halo->Galaxy = NULL;
+
+            convert_input_virial_props(&halo->Mvir, &halo->Rvir, &halo->Vvir, NULL, halo->Len, snapshot, false);
+
+            (*n_halos)++;
         }
-
-        halo->Len = (int)tree_entry.npart;
-        halo->Pos[0] = (float)tree_entry.Xc;
-        halo->Pos[1] = (float)tree_entry.Yc;
-        halo->Pos[2] = (float)tree_entry.Zc;
-
-        // TODO: What masses and radii should I use for satellites (inclusive vs. exclusive etc.)?
-        halo->Mvir = -1;
-        halo->Rvir = -1;
-        halo->Vmax = (float)tree_entry.Vmax;
-
-        // TODO: Ask Pascal for real ang mom vectors
-        halo->AngMom[0] = halo->AngMom[1] = 0;
-        halo->AngMom[2] = sqrt(2.0) * tree_entry.Mass_200crit * tree_entry.Vmax * tree_entry.R_200crit; 
-
-        halo->Galaxy = NULL;
-
-        convert_input_virial_props(&halo->Mvir, &halo->Rvir, &halo->Vvir, NULL, halo->Len, snapshot, false);
-
-        (*n_halos)++;
-      }
     }
 
     free(tree_entries);
@@ -536,7 +537,8 @@ trees_info_t read_halos(const int snapshot, halo_t** halos, fof_group_t** fof_gr
             *index_lookup = malloc(sizeof(int) * run_globals.NHalosMax);
             for (int ii = 0; ii < run_globals.NHalosMax; ii++)
                 (*index_lookup)[ii] = -1;
-        } else {
+        }
+        else {
             run_globals.NHalosMax = trees_info.n_halos_max;
             run_globals.NFOFGroupsMax = trees_info.n_fof_groups_max;
         }
@@ -611,7 +613,7 @@ trees_info_t read_halos(const int snapshot, halo_t** halos, fof_group_t** fof_gr
         free(halo_FOFGroup_os);
     }
 
-    mlog("...done", MLOG_CLOSE|MLOG_TIMERSTOP);
+    mlog("...done", MLOG_CLOSE | MLOG_TIMERSTOP);
 
     return trees_info;
 }

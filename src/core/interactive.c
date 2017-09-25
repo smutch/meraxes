@@ -59,7 +59,8 @@ void continue_prompt(char* param_file)
             init_reion_grids();
 
         read_parameter_file(param_file, 1);
-    } else {
+    }
+    else {
         run_globals.params.FlagInteractive = 0;
         MPI_Bcast(&(run_globals.params.FlagInteractive), 1, MPI_INT, 0, run_globals.mpi_comm);
     }

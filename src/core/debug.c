@@ -78,7 +78,8 @@ static void find_missing_gals(fof_group_t* fof_group, int NFof, int flag)
                 halo = halo->NextHaloInFOFGroup;
             }
         }
-    } else if (flag == 1) {
+    }
+    else if (flag == 1) {
         // Count the number of galaxies
         for (int i_fof = 0; i_fof < NFof; i_fof++) {
             halo = fof_group[i_fof].FirstHalo;
@@ -155,7 +156,8 @@ static void find_missing_gals(fof_group_t* fof_group, int NFof, int flag)
                 missing_pointers[counter++] = gal;
             gal = gal->Next;
         }
-    } else if (flag == 1) {
+    }
+    else if (flag == 1) {
         for (int ii = 0; ii < master_counter; ii++)
             if (!gal_found[ii])
                 for (int i_fof = 0; i_fof < NFof; i_fof++) {
@@ -274,7 +276,7 @@ void check_pointers(halo_t* halos, fof_group_t* fof_groups, trees_info_t* trees_
             halo = gal->Halo;
             assert((halo - halos) < (long)n_halos);
         }
-        galaxy_t *gal_pointer = gal->FirstGalInHalo;
+        galaxy_t* gal_pointer = gal->FirstGalInHalo;
         if (gal_pointer != NULL)
             gal_deref = *gal_pointer;
         gal_pointer = gal->NextGalInHalo;
@@ -293,7 +295,7 @@ void check_pointers(halo_t* halos, fof_group_t* fof_groups, trees_info_t* trees_
     }
 
     for (int ii = 0; ii < n_halos; ii++) {
-      fof_group_t* fof_group = halos[ii].FOFGroup;
+        fof_group_t* fof_group = halos[ii].FOFGroup;
         // mlog("%ld < %ld\n", MLOG_MESG, fof_group-fof_groups, n_fof_groups);
         assert((fof_group - fof_groups) < (long)n_fof_groups);
         halo = halos[ii].NextHaloInFOFGroup;
@@ -342,7 +344,8 @@ void write_single_grid(const char* fname,
             for (int jj = 0; jj < ReionGridDim; jj++)
                 for (int kk = 0; kk < ReionGridDim; kk++)
                     grid_out[grid_index(ii, jj, kk, ReionGridDim, INDEX_REAL)] = grid[grid_index(ii, jj, kk, ReionGridDim, INDEX_PADDED)];
-    } else
+    }
+    else
         grid_out = grid;
 
     // create the filespace

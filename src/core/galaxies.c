@@ -92,7 +92,8 @@ void copy_halo_props_to_galaxy(halo_t* halo, galaxy_t* gal)
     if (gal->Type == 0) {
         gal->Vmax = halo->Vmax;
         gal->DiskScaleLength = gal->Spin * gal->Rvir / sqrt_2;
-    } else {
+    }
+    else {
         if (!run_globals.params.physics.Flag_FixVmaxOnInfall)
             gal->Vmax = halo->Vmax;
         if (!run_globals.params.physics.Flag_FixDiskRadiusOnInfall)
@@ -141,8 +142,8 @@ static void push_galaxy_to_halo(galaxy_t* gal, halo_t* halo)
     else {
         // Walk the galaxy list for the halo to find the end and then link the
         // new galaxy
-        galaxy_t *cur_gal = halo->Galaxy;
-        galaxy_t *prev_gal = cur_gal;
+        galaxy_t* cur_gal = halo->Galaxy;
+        galaxy_t* prev_gal = cur_gal;
         while (cur_gal != NULL) {
             prev_gal = cur_gal;
             cur_gal->Halo = halo;
@@ -153,7 +154,7 @@ static void push_galaxy_to_halo(galaxy_t* gal, halo_t* halo)
 
     // Loop through the new galaxy, and all galaxies attached to it, and set
     // the first galaxy in halo and halo pointer
-    galaxy_t *cur_gal = gal;
+    galaxy_t* cur_gal = gal;
     while (cur_gal != NULL) {
         cur_gal->Halo = halo;
         cur_gal->FirstGalInHalo = halo->Galaxy;
@@ -239,7 +240,8 @@ void kill_galaxy(
         while ((cur_gal->NextGalInHalo != NULL) && (cur_gal->NextGalInHalo != gal))
             cur_gal = cur_gal->NextGalInHalo;
         cur_gal->NextGalInHalo = gal->NextGalInHalo;
-    } else {
+    }
+    else {
         // If it is a type 0 or 1 (i.e. first galaxy in it's halo) and there are
         // other galaxies in this halo, reset the FirstGalInHalo pointer so that
         // the satellites can be killed later

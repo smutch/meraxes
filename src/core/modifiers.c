@@ -22,7 +22,8 @@ void read_mass_ratio_modifiers(int snapshot)
     if (strlen(run_globals.params.MassRatioModifier) == 0) {
         run_globals.RequestedMassRatioModifier = -1;
         mlog("No Mass Ratio Modifier :(", MLOG_MESG);
-    } else {
+    }
+    else {
         run_globals.mass_ratio_modifier = malloc(sizeof(Modifier) * N_LOGMS);
         const size_t dst_size = sizeof(Modifier);
         const size_t dst_sizes[NFIELDS] = {
@@ -69,7 +70,8 @@ void read_baryon_frac_modifiers(int snapshot)
     if (strlen(run_globals.params.BaryonFracModifier) == 0) {
         run_globals.RequestedBaryonFracModifier = -1;
         mlog("No Baryon Fraction Modifier :(", MLOG_MESG);
-    } else {
+    }
+    else {
         run_globals.baryon_frac_modifier = malloc(sizeof(Modifier) * N_LOGMS);
         const size_t dst_size = sizeof(Modifier);
         const size_t dst_sizes[NFIELDS] = {

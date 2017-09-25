@@ -54,7 +54,8 @@ void set_ReionEfficiency()
             params->ReionEfficiency /= params->SfRecycleFraction;
 
         mlog("Set value of run_globals.params.ReionEfficiency = %g", MLOG_MESG, params->ReionEfficiency);
-    } else
+    }
+    else
         params->ReionEfficiency = -1;
 }
 
@@ -346,7 +347,8 @@ void assign_Mvir_crit_to_galaxies(int ngals_in_slabs)
                 slab_map_offsets[ii] = i_gal;
             else
                 slab_map_offsets[ii] = -1;
-        } else
+        }
+        else
             // if this core has no galaxies then the offsets are -1 everywhere
             slab_map_offsets[ii] = -1;
     }
@@ -373,7 +375,8 @@ void assign_Mvir_crit_to_galaxies(int ngals_in_slabs)
                     int n_cells = slab_nix[recv_from_rank] * ReionGridDim * ReionGridDim;
                     MPI_Recv(buffer, n_cells, MPI_FLOAT, recv_from_rank, 793710, run_globals.mpi_comm, MPI_STATUS_IGNORE);
                 }
-            } else {
+            }
+            else {
                 if (recv_flag) {
                     int n_cells = slab_nix[recv_from_rank] * ReionGridDim * ReionGridDim;
                     MPI_Recv(buffer, n_cells, MPI_FLOAT, recv_from_rank, 793710, run_globals.mpi_comm, MPI_STATUS_IGNORE);
@@ -383,7 +386,8 @@ void assign_Mvir_crit_to_galaxies(int ngals_in_slabs)
                     MPI_Send(Mvir_crit, n_cells, MPI_FLOAT, send_to_rank, 793710, run_globals.mpi_comm);
                 }
             }
-        } else {
+        }
+        else {
             int n_cells = slab_nix[recv_from_rank] * ReionGridDim * ReionGridDim;
             memcpy(buffer, Mvir_crit, sizeof(float) * n_cells);
         }
@@ -779,7 +783,8 @@ bool check_if_reionization_ongoing()
                 finished = 0;
                 break;
             }
-    } else
+    }
+    else
         // Here we haven't finished or previously started.  Should we start then?
         if (run_globals.FirstGal != NULL)
         started = 1;

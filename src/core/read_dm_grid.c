@@ -35,7 +35,8 @@ static int load_cached_deltax_slab(float* slab, int snapshot)
         ptrdiff_t slab_n_complex = run_globals.reion_grids.slab_n_complex[run_globals.mpi_rank];
         memcpy(slab, run_globals.SnapshotDeltax[snapshot], sizeof(float) * slab_n_complex * 2);
         return 0;
-    } else
+    }
+    else
         return 1;
 }
 
@@ -49,7 +50,8 @@ static int cache_deltax_slab(float* slab, int snapshot)
         *cache = fftwf_alloc_real(mem_size);
         memcpy(*cache, slab, mem_size);
         return 0;
-    } else
+    }
+    else
         return 1;
 }
 
@@ -133,7 +135,8 @@ int read_dm_grid(
             ABORT(EXIT_FAILURE);
         }
         mlog("Using resample factor = %.3f", MLOG_MESG, resample_factor);
-    } else
+    }
+    else
         resample_factor = 1;
 
     // Malloc the slab

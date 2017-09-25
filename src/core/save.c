@@ -34,7 +34,8 @@ void prepare_galaxy_for_output(
     if (!gal.ghost_flag) {
         galout->CentralGal = (int)(gal.Halo->FOFGroup->FirstOccupiedHalo->Galaxy->output_index);
         galout->FOFMvir = (float)(gal.Halo->FOFGroup->Mvir);
-    } else {
+    }
+    else {
         galout->CentralGal = -1;
         galout->FOFMvir = -1.0;
     }
@@ -875,7 +876,8 @@ void write_snapshot(
         free(first_progenitor_index);
         free(next_progenitor_index);
         free(descendant_index);
-    } else {
+    }
+    else {
         gal = run_globals.FirstGal;
         while (gal != NULL) {
             if (pass_write_check(gal, false))

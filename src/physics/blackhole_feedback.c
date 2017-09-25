@@ -62,7 +62,8 @@ void update_reservoirs_from_quasar_mode_bh_feedback(galaxy_t* gal, double m_rehe
         gal->MetalsColdGas -= m_reheat * metallicity;
         central->MetalsHotGas += m_reheat * metallicity;
         central->HotGas += m_reheat;
-    } else {
+    }
+    else {
         metallicity = calc_metallicity(central->HotGas, central->MetalsHotGas);
         gal->ColdGas = 0.0;
         gal->MetalsColdGas = 0.0;
@@ -110,7 +111,8 @@ double radio_mode_BH_heating(galaxy_t* gal, double cooling_mass, double x)
 
         // eddington rate
         double eddington_mass = exp(gal->dt * units->UnitTime_in_Megayears / run_globals.params.Hubble_h / 450.514890
-                                     / ETA * run_globals.params.physics.EddingtonRatio) * gal->BlackHoleMass;
+                                    / ETA * run_globals.params.physics.EddingtonRatio)
+            * gal->BlackHoleMass;
 
         // limit accretion by the eddington rate
         if (accreted_mass > eddington_mass)
@@ -192,7 +194,8 @@ void previous_merger_driven_BH_growth(galaxy_t* gal)
 
     // Eddington rate
     accreted_mass = expm1(gal->dt * units->UnitTime_in_Megayears / run_globals.params.Hubble_h / 450.514890
-                         / ETA * run_globals.params.physics.EddingtonRatio) * gal->BlackHoleMass;
+                        / ETA * run_globals.params.physics.EddingtonRatio)
+        * gal->BlackHoleMass;
 
     // limit accretion to what is need
     if (accreted_mass > gal->BlackHoleAccretingColdMass)
