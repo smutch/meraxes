@@ -620,7 +620,6 @@ void create_master_file()
     hid_t source_group_id;
     hsize_t core_n_gals;
     double temp;
-    int unsampled_snapshot;
 
     // Now create soft links to all of the files and datasets that make up this run
     for (int i_out = 0, snap_n_gals = 0; i_out < run_globals.NOutputSnaps; i_out++, snap_n_gals = 0, temp = 0) {
@@ -639,9 +638,6 @@ void create_master_file()
             source_file_id = H5Fopen(source_file, H5F_ACC_RDONLY, H5P_DEFAULT);
             H5TBget_table_info(source_file_id, source_ds, NULL, &core_n_gals);
             snap_n_gals += (int)core_n_gals;
-
-            if (i_core == 0)
-                H5LTget_attribute_int(source_file_id, source_ds, "unsampled_snapshot", &unsampled_snapshot);
 
             // if they exists, then also create a link to walk indices
             sprintf(source_group, "Snap%03d", run_globals.ListOutputSnaps[i_out]);
@@ -696,7 +692,6 @@ void create_master_file()
         H5LTset_attribute_int(file_id, target_group, "NGalaxies", &snap_n_gals, 1);
 
         H5LTset_attribute_double(file_id, target_group, "Redshift", &(run_globals.ZZ[run_globals.ListOutputSnaps[i_out]]), 1);
-        H5LTset_attribute_int(file_id, target_group, "UnsampledSnapshot", &unsampled_snapshot, 1);
 
         temp = run_globals.LTTime[run_globals.ListOutputSnaps[i_out]] * run_globals.units.UnitLength_in_cm / run_globals.units.UnitVelocity_in_cm_per_s / SEC_PER_MEGAYEAR;
         H5LTset_attribute_double(file_id, target_group, "LTTime", &temp, 1);
