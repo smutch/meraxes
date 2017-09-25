@@ -499,6 +499,7 @@ typedef struct tree_entry_t {
     double Xc;
     double Yc;
     double Zc;
+    double lambda_B;
     unsigned long ID;
     unsigned long npart;
 } tree_entry_t;

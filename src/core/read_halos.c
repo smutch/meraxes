@@ -361,6 +361,7 @@ static void read_velociraptor_trees(int snapshot, halo_t* halos, int* n_halos, f
         READ_TREE_ENTRY_PROP(Xc, double, H5T_NATIVE_DOUBLE);
         READ_TREE_ENTRY_PROP(Yc, double, H5T_NATIVE_DOUBLE);
         READ_TREE_ENTRY_PROP(Zc, double, H5T_NATIVE_DOUBLE);
+        READ_TREE_ENTRY_PROP(lambda_B, double, H5T_NATIVE_DOUBLE);
         READ_TREE_ENTRY_PROP(ID, unsigned long, H5T_NATIVE_ULONG);
         READ_TREE_ENTRY_PROP(npart, unsigned long, H5T_NATIVE_ULONG);
 
@@ -436,7 +437,9 @@ static void read_velociraptor_trees(int snapshot, halo_t* halos, int* n_halos, f
         halo->Rvir = -1;
         halo->Vmax = (float)tree_entry.Vmax;
 
-        // TODO: Ask Pascal for ang mom vectors
+        // TODO: Ask Pascal for real ang mom vectors
+        halo->AngMom[0] = halo->AngMom[1] = 0;
+        halo->AngMom[2] = sqrt(2.0) * tree_entry.Mass_200crit * tree_entry.Vmax * tree_entry.R_200crit; 
 
         halo->Galaxy = NULL;
 
