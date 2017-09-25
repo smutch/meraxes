@@ -294,17 +294,26 @@ static void inline convert_input_virial_props(double* Mvir, double* Rvir, double
     const int snapshot, const bool fof_flag)
 {
     // Update the virial properties for subhalos
-    if (*Mvir == -1) {
+    if (*Mvir == -1)
+    {
         assert(len > 0);
         *Mvir = calculate_Mvir(*Mvir, len);
-    } else if (fof_flag && (run_globals.RequestedMassRatioModifier == 1)) {
-        // Modifier the FoF mass and update the virial radius
-        assert(FOFMvirModifier != NULL);
-        *FOFMvirModifier = interpolate_modifier(run_globals.mass_ratio_modifier, log10(*Mvir / run_globals.params.Hubble_h) + 10.0);
-        *Mvir *= *FOFMvirModifier;
+    } else {
+
+        *Mvir *= 1e-10;
+
+        if (fof_flag && (run_globals.RequestedMassRatioModifier == 1)) {
+            // Modifier the FoF mass and update the virial radius
+            assert(FOFMvirModifier != NULL);
+            *FOFMvirModifier = interpolate_modifier(run_globals.mass_ratio_modifier, log10(*Mvir / run_globals.params.Hubble_h) + 10.0);
+            *Mvir *= *FOFMvirModifier;
+        }
+
     }
+
     if (*Rvir == -1)
         *Rvir = calculate_Rvir(*Mvir, snapshot);
+
     if (*Vvir == -1)
         *Vvir = calculate_Vvir(*Mvir, *Rvir);
 }
