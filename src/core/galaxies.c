@@ -145,15 +145,17 @@ static void push_galaxy_to_halo(galaxy_t* gal, halo_t* halo)
         galaxy_t *prev_gal = cur_gal;
         while (cur_gal != NULL) {
             prev_gal = cur_gal;
+            cur_gal->Halo = halo;
             cur_gal = cur_gal->NextGalInHalo;
         }
         prev_gal->NextGalInHalo = gal;
     }
 
     // Loop through the new galaxy, and all galaxies attached to it, and set
-    // the first galaxy in halo pointer
+    // the first galaxy in halo and halo pointer
     galaxy_t *cur_gal = gal;
     while (cur_gal != NULL) {
+        cur_gal->Halo = halo;
         cur_gal->FirstGalInHalo = halo->Galaxy;
         cur_gal = cur_gal->NextGalInHalo;
     }
@@ -183,7 +185,6 @@ void connect_galaxy_and_halo(galaxy_t* gal, halo_t* halo, int* merger_counter)
 
         // Add the incoming galaxy to the end of the halo's linked list
         push_galaxy_to_halo(infaller, halo);
-
     }
 }
 

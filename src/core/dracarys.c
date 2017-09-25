@@ -147,9 +147,9 @@ void dracarys()
                     gal->dt = LTTime[gal->LastIdentSnap] - LTTime[snapshot];
 
                     // If this is a central or a satellite
-                    if (gal->Type < 2) {
+                    if (gal->Type < 2)
                         connect_galaxy_and_halo(gal, &halo[i_newhalo], &merger_counter);
-                    }
+
                 } else { // this galaxy has been marked for death
                     if (gal->FirstGalInHalo == gal) {
                         // We have marked the first galaxy in the halo for death. If there are any
