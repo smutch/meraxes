@@ -300,9 +300,6 @@ static void inline convert_input_virial_props(double* Mvir, double* Rvir, double
         *Mvir = calculate_Mvir(*Mvir, len);
     }
     else {
-
-        *Mvir *= 1e-10;
-
         if (fof_flag && (run_globals.RequestedMassRatioModifier == 1)) {
             // Modifier the FoF mass and update the virial radius
             assert(FOFMvirModifier != NULL);
@@ -375,6 +372,11 @@ static void read_velociraptor_trees(int snapshot, halo_t* halos, int* n_halos, f
         READ_TREE_ENTRY_PROP(npart, unsigned long, H5T_NATIVE_ULONG);
 
         free(buffer);
+
+        // convert units
+        for (int ii = 0; ii < n_tree_entries; ii++) {
+            tree_entries[ii].Mass_200crit *= 1e-10;
+        }
 
         H5Gclose(snap_group);
         H5Fclose(fd);
