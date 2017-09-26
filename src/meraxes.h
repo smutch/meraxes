@@ -415,7 +415,7 @@ typedef struct galaxy_t {
 } galaxy_t;
 
 typedef struct galaxy_output_t {
-    long long id_MBP;
+    long long HaloID;
 
     // Unique ID for the galaxy
     long long ID;

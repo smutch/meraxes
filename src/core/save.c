@@ -32,10 +32,12 @@ void prepare_galaxy_for_output(
     galout->ID = (long long)gal.ID;
     galout->Type = (int)gal.Type;
     if (!gal.ghost_flag) {
+        galout->HaloID = (long long)gal.Halo->ID;
         galout->CentralGal = (int)(gal.Halo->FOFGroup->FirstOccupiedHalo->Galaxy->output_index);
         galout->FOFMvir = (float)(gal.Halo->FOFGroup->Mvir);
     }
     else {
+        galout->HaloID = -1;
         galout->CentralGal = -1;
         galout->FOFMvir = -1.0;
     }
@@ -137,9 +139,9 @@ void calc_hdf5_props()
 
         i = 0;
 
-        h5props->dst_offsets[i] = HOFFSET(galaxy_output_t, id_MBP);
-        h5props->dst_field_sizes[i] = sizeof(galout.id_MBP);
-        h5props->field_names[i] = "id_MBP";
+        h5props->dst_offsets[i] = HOFFSET(galaxy_output_t, HaloID);
+        h5props->dst_field_sizes[i] = sizeof(galout.HaloID);
+        h5props->field_names[i] = "HaloID";
         h5props->field_units[i] = "None";
         h5props->field_h_conv[i] = "None";
         h5props->field_types[i++] = H5T_NATIVE_LLONG;
