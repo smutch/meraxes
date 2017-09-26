@@ -51,6 +51,6 @@ check:
 	/home/smutch/3rd_party/cppcheck/src/htmlreport/cppcheck-htmlreport --title=Meraxes --source-dir=./ --file=cppcheck_report/cppcheck_report.xml --report-dir=cppcheck_report
 
 % ::
-	$(BUILD_CMD) -C build $@
+	@$(BUILD_CMD) -C build $@
 
 .PHONY: init all cmake cleandist check

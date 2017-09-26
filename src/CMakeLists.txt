@@ -170,7 +170,9 @@ add_custom_target(setuprun
     )
 add_dependencies(setuprun meraxes)
 
-add_custom_target(formatcode
-    COMMENT "Use clang-format to format the source code consistently."
-    COMMAND ${CLANG_FORMAT_BINARY} -style=WebKit -i ${SOURCES}
-    )
+if(EXISTS ${CLANG_FORMAT_BINARY})
+    add_custom_target(format
+        COMMENT "Use clang-format to format the source code consistently."
+        COMMAND ${CLANG_FORMAT_BINARY} -style=WebKit -i ${SOURCES}
+        )
+endif()
