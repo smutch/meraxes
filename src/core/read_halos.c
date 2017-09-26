@@ -429,14 +429,19 @@ static void read_velociraptor_trees(int snapshot, halo_t* halos, int* n_halos, f
             else {
                 // We can take advantage of the fact that host halos always seem to appear before their subhalos in the
                 // trees to immediately connect FOF group members.
-                assert((unsigned long)tree_entry.hostHaloID < tree_entry.ID);
-
                 int host_index = id_to_ind(tree_entry.hostHaloID);
-                halo_t* prev_halo_in_fof_group = bsearch(&host_index, &index_lookup,
-                    (size_t)(*n_halos) + 1, sizeof(int), compare_ints);
+                assert(host_index < *n_halos);
 
-                prev_halo_in_fof_group->NextHaloInFOFGroup = halo;
-                halo->FOFGroup = prev_halo_in_fof_group->FOFGroup;
+                if (index_lookup)
+                    host_index = *(int*)bsearch(&host_index, index_lookup, (size_t)(*n_halos) + 1, sizeof(int), compare_ints);
+
+                halo_t* prev_halo = &halos[host_index];
+                halo->FOFGroup = prev_halo->FOFGroup;
+
+                while (prev_halo->NextHaloInFOFGroup != NULL)
+                    prev_halo = prev_halo->NextHaloInFOFGroup;
+
+                prev_halo->NextHaloInFOFGroup = halo;
             }
 
             halo->Len = (int)tree_entry.npart;
