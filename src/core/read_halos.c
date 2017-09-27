@@ -430,10 +430,12 @@ static void read_velociraptor_trees(int snapshot, halo_t* halos, int* n_halos, f
                 // We can take advantage of the fact that host halos always seem to appear before their subhalos in the
                 // trees to immediately connect FOF group members.
                 int host_index = id_to_ind(tree_entry.hostHaloID);
-                assert(host_index < *n_halos);
 
                 if (index_lookup)
-                    host_index = *(int*)bsearch(&host_index, index_lookup, (size_t)(*n_halos) + 1, sizeof(int), compare_ints);
+                    host_index = find_original_index(host_index, index_lookup, *n_halos);
+
+                assert(host_index > -1);
+                assert(host_index < *n_halos);
 
                 halo_t* prev_halo = &halos[host_index];
                 halo->FOFGroup = prev_halo->FOFGroup;
@@ -448,11 +450,13 @@ static void read_velociraptor_trees(int snapshot, halo_t* halos, int* n_halos, f
             halo->Pos[0] = (float)tree_entry.Xc;
             halo->Pos[1] = (float)tree_entry.Yc;
             halo->Pos[2] = (float)tree_entry.Zc;
+            halo->Vmax = (float)tree_entry.Vmax;
 
             // TODO: What masses and radii should I use for satellites (inclusive vs. exclusive etc.)?
             halo->Mvir = -1;
             halo->Rvir = -1;
-            halo->Vmax = (float)tree_entry.Vmax;
+            halo->Vvir = -1;
+            convert_input_virial_props(&halo->Mvir, &halo->Rvir, &halo->Vvir, NULL, halo->Len, snapshot, false);
 
             // TODO: Ask Pascal for real ang mom vectors
             halo->AngMom[0] = halo->AngMom[1] = 0;
@@ -460,7 +464,6 @@ static void read_velociraptor_trees(int snapshot, halo_t* halos, int* n_halos, f
 
             halo->Galaxy = NULL;
 
-            convert_input_virial_props(&halo->Mvir, &halo->Rvir, &halo->Vvir, NULL, halo->Len, snapshot, false);
 
             (*n_halos)++;
         }

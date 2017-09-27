@@ -33,9 +33,7 @@ int compare_ints(const void* a, const void* b)
 {
     return *((int*)a) - *((int*)b);
 }
-
-int compare_floats(const void* a, const void* b)
-{
+int compare_floats(const void* a, const void* b) {
     float value = *(float*)a - *(float*)b;
 
     if (value > 0)
@@ -188,3 +186,16 @@ int isclosef(
         rel_tol = 1e-5; ///< Numpy default
     return fabs(a - b) <= (abs_tol + rel_tol * fabs(b));
 }
+
+
+int find_original_index(int index, int* lookup, int n_mappings)
+{
+    int new_index = -1;
+    int* pointer = bsearch(&index, lookup, (size_t)n_mappings, sizeof(int), compare_ints);
+
+    if (pointer)
+        new_index = (int)(pointer - lookup);
+
+    return new_index;
+}
+

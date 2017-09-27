@@ -629,6 +629,7 @@ int grid_index(int i, int j, int k, int dim, int type);
 void mpi_debug_here(void);
 void check_mhysa_pointer(void);
 int isclosef(float a, float b, float rel_tol, float abs_tol);
+int find_original_index(int index, int* lookup, int n_mappings);
 void check_counts(fof_group_t* fof_group, int NGal, int NFof);
 void cn_quote(void);
 double Tvir_to_Mvir(double T, double z);

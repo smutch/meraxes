@@ -32,18 +32,6 @@ static inline bool check_if_valid_host(halo_t* halo)
         return false;
 }
 
-static int find_original_index(int index, int* lookup, int n_mappings)
-{
-    int* pointer = NULL;
-    int new_index = -1;
-
-    pointer = bsearch(&index, lookup, (size_t)n_mappings, sizeof(int), compare_ints);
-    if (pointer)
-        new_index = (int)(pointer - lookup);
-
-    return new_index;
-}
-
 //! Actually run the model
 void dracarys()
 {
