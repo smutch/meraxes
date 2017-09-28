@@ -9,8 +9,6 @@
 #include <hdf5.h>
 #include <hdf5_hl.h>
 
-#define L_FACTOR 0.620350491 // Factor relating cube length to filter radius = (4PI/3)^(-1/3)
-
 /*
  * This code is a re-write of the modified version of 21cmFAST used in Mutch et
  * al. (2016; Meraxes paper).  The original code was written by Andrei Mesinger
@@ -42,102 +40,61 @@ double RtoM(double R)
   return -1;
 }
 
-static void _find_HII_bubbles(
-    // input
-    double redshift,
-    MPI_Comm mpi_comm,
-    int mpi_rank,
-    double box_size,
-    int ReionGridDim,
-    int local_nix,
-    int flag_ReionUVBFlag,
-    double ReionEfficiency,
-    double ReionNionPhotPerBary,
-    double UnitLength_in_cm,
-    double UnitMass_in_g,
-    double UnitTime_in_s,
-    double ReionRBubbleMax,
-    double ReionRBubbleMin,
-    double ReionDeltaRFactor,
-    double ReionGammaHaloBias,
-    double ReionAlphaUV,
-    double ReionEscapeFrac,
-
-    bool validation_output,
-
-    // preallocated 1D grids (local_nix * ReionGridDim * ReionGridDim)
-    float *J_21,  // real
-    float *r_bubble, // real
-
-    // input grids
-    float *deltax,  // real & padded
-    float *stars,  // real & padded
-    float *sfr,  // real & padded
-
-    // preallocated
-    fftwf_complex *deltax_filtered,  // complex
-    fftwf_complex *stars_filtered,  // complex
-    fftwf_complex *sfr_filtered,  // complex
-
-    // length = mpi.size
-    ptrdiff_t *slabs_n_complex,
-    ptrdiff_t *slabs_ix_start,
-
-    // output - preallocated real grids (local_nix * ReionGridDim * ReionGridDim)
-    float *xH, // real
-    float *z_at_ionization,
-    float *J_21_at_ionization,
-
-    // output - single values
-    double *volume_weighted_global_xH,
-    double *mass_weighted_global_xH
-    )
+void _find_HII_bubbles(double redshift,const bool flag_validation_output)
 {
+  // Fetch needed things from run_globals
+  const MPI_Comm mpi_comm          = run_globals.mpi_comm;
+  const int    mpi_rank            = run_globals.mpi_rank;
+  const double box_size            = run_globals.params.BoxSize;
+  const int    ReionGridDim        = run_globals.params.ReionGridDim;
+  const int    flag_ReionUVBFlag   = run_globals.params.ReionUVBFlag;
+  const double ReionEfficiency     = run_globals.params.physics.ReionEfficiency;
+  const double ReionNionPhotPerBary= run_globals.params.physics.ReionNionPhotPerBary;
+  const double UnitLength_in_cm    = run_globals.units.UnitLength_in_cm;
+  const double UnitMass_in_g       = run_globals.units.UnitMass_in_g;
+  const double UnitTime_in_s       = run_globals.units.UnitTime_in_s;
+  const double ReionRBubbleMax     = run_globals.params.physics.ReionRBubbleMax;
+  const double ReionRBubbleMin     = run_globals.params.physics.ReionRBubbleMin;
+  const double ReionDeltaRFactor   = run_globals.params.ReionDeltaRFactor;
+  const double ReionGammaHaloBias  = run_globals.params.physics.ReionGammaHaloBias;
+  const double ReionAlphaUV        = run_globals.params.physics.ReionAlphaUV;
+  const double ReionEscapeFrac     = run_globals.params.physics.ReionEscapeFrac;
+  // grid parameters
+  const ptrdiff_t *slabs_nix       = run_globals.reion_grids.slab_nix;
+  const ptrdiff_t *slabs_n_complex = run_globals.reion_grids.slab_n_complex;
+  const ptrdiff_t *slabs_ix_start  = run_globals.reion_grids.slab_ix_start;
+  const int local_nix              = (int)slabs_nix[mpi_rank];
+  const int local_ix_start         = (int)slabs_ix_start[mpi_rank];
+  const int slab_n_complex         = (int)(slabs_n_complex[mpi_rank]);
+  const int slab_n_real            = local_nix * ReionGridDim * ReionGridDim;
+  // input grids
+  float *deltax   = run_globals.reion_grids.deltax;  // real & padded
+  float *stars    = run_globals.reion_grids.stars;   // real & padded
+  float *sfr      = run_globals.reion_grids.sfr;     // real & padded
+  // preallocated grids
+  float   *J_21                  = run_globals.reion_grids.J_21;     // real
+  float   *r_bubble              = run_globals.reion_grids.r_bubble; // real
+  fftwf_complex *deltax_filtered = (fftwf_complex *)run_globals.reion_grids.deltax_filtered;// complex TODO: Check the consistancy of Complex instances
+  fftwf_complex *stars_filtered  = (fftwf_complex *)run_globals.reion_grids.stars_filtered; // complex TODO: Check the consistancy of Complex instances
+  fftwf_complex *sfr_filtered    = (fftwf_complex *)run_globals.reion_grids.sfr_filtered;   // complex TODO: Check the consistancy of Complex instances
+  // output grids
+  float *xH                = run_globals.reion_grids.xH;                 // real
+  float *z_at_ionization   = run_globals.reion_grids.z_at_ionization;    // real
+  float *J_21_at_ionization= run_globals.reion_grids.J_21_at_ionization; // real
+  // output - single values
+  double *volume_weighted_global_xH=&(run_globals.reion_grids.volume_weighted_global_xH);
+  double *mass_weighted_global_xH  =&(run_globals.reion_grids.mass_weighted_global_xH);    
+
+
   double       pixel_volume         = pow(box_size / (double)ReionGridDim, 3); // (Mpc/h)^3
   double       cell_length_factor   = L_FACTOR;
   double       total_n_cells        = pow((double)ReionGridDim, 3);
-  int          slab_n_real          = local_nix * ReionGridDim * ReionGridDim;
   float        J_21_aux;
   double       density_over_mean;
   double       sfr_density;
   double       f_coll_stars;
   int          i_real;
   int          i_padded;
-
-  int slab_n_complex = (int)(slabs_n_complex[mpi_rank]);
-
-  if (validation_output && isclosef(redshift, 6.98713751375, -1, -1))
-  {
-    // prepare output file
-    char fname[STRLEN];
-    sprintf(fname, "validation_input-core%03d-z%.2f.h5", mpi_rank, redshift);
-    hid_t file_id = H5Fcreate(fname, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
-
-    // write all of the input values
-    H5LTset_attribute_double(file_id, "/", "redshift", &redshift, 1);
-    H5LTset_attribute_int(file_id, "/", "mpi_rank", &mpi_rank, 1);
-    H5LTset_attribute_double(file_id, "/", "box_size", &box_size, 1);
-    H5LTset_attribute_int(file_id, "/", "ReionGridDim", &ReionGridDim, 1);
-    H5LTset_attribute_int(file_id, "/", "local_nix", &local_nix, 1);
-    H5LTset_attribute_int(file_id, "/", "flag_ReionUVBFlag", &flag_ReionUVBFlag, 1);
-    H5LTset_attribute_double(file_id, "/", "ReionEfficiency", &ReionEfficiency, 1);
-    H5LTset_attribute_double(file_id, "/", "ReionNionPhotPerBary", &ReionNionPhotPerBary, 1);
-    H5LTset_attribute_double(file_id, "/", "UnitLength_in_cm", &UnitLength_in_cm, 1);
-    H5LTset_attribute_double(file_id, "/", "UnitMass_in_g", &UnitMass_in_g, 1);
-    H5LTset_attribute_double(file_id, "/", "UnitTime_in_s", &UnitTime_in_s, 1);
-    H5LTset_attribute_double(file_id, "/", "ReionRBubbleMax", &ReionRBubbleMax, 1);
-    H5LTset_attribute_double(file_id, "/", "ReionRBubbleMin", &ReionRBubbleMin, 1);
-    H5LTset_attribute_double(file_id, "/", "ReionDeltaRFactor", &ReionDeltaRFactor, 1);
-    H5LTset_attribute_double(file_id, "/", "ReionGammaHaloBias", &ReionGammaHaloBias, 1);
-    H5LTset_attribute_double(file_id, "/", "ReionAlphaUV", &ReionAlphaUV, 1);
-    H5LTset_attribute_double(file_id, "/", "ReionEscapeFrac", &ReionEscapeFrac, 1);
-
-    H5LTmake_dataset_float(file_id, "deltax", 1, (hsize_t []){slab_n_complex*2}, deltax);
-    H5LTmake_dataset_float(file_id, "stars", 1, (hsize_t []){slab_n_complex*2}, stars);
-    H5LTmake_dataset_float(file_id, "sfr", 1, (hsize_t []){slab_n_complex*2}, sfr);
-
-    H5Fclose(file_id);
-  }
 
   // This parameter choice is sensitive to noise on the cell size, at least for the typical
   // cell sizes in RT simulations. It probably doesn't matter for larger cell sizes.
@@ -173,23 +130,6 @@ static void _find_HII_bubbles(
   fftwf_execute(plan);
   fftwf_destroy_plan(plan);
 
-  if (validation_output && isclosef(redshift, 6.98713751375, -1, -1))
-  {
-    // prepare output file
-    char fname[STRLEN];
-    sprintf(fname, "validation_output-core%03d-z%.2f.h5", mpi_rank, redshift);
-    hid_t file_id = H5Fcreate(fname, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
-
-    hid_t group = H5Gcreate(file_id, "kspace", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
-
-    H5LTmake_dataset_float(group, "deltax", 1, (hsize_t []){slab_n_complex * 2}, deltax);
-    H5LTmake_dataset_float(group, "stars", 1, (hsize_t []){slab_n_complex * 2}, stars);
-    H5LTmake_dataset_float(group, "sfr", 1, (hsize_t []){slab_n_complex * 2}, sfr);
-
-    H5Gclose(group);
-    H5Fclose(file_id);
-  }
-
   // Remember to add the factor of VOLUME/TOT_NUM_PIXELS when converting from real space to k-space
   // Note: we will leave off factor of VOLUME, in anticipation of the inverse FFT below
   for (int ii = 0; ii < slab_n_complex; ii++)
@@ -204,8 +144,10 @@ static void _find_HII_bubbles(
 
   bool  flag_last_filter_step = false;
 
+  int i_R=0;
   while(!flag_last_filter_step)
   {
+    i_R++;
     // check to see if this is our last filtering step
     if( ((R / ReionDeltaRFactor) <= (cell_length_factor * box_size / (double)ReionGridDim))
         || ((R / ReionDeltaRFactor) <= ReionRBubbleMin) )
@@ -222,7 +164,6 @@ static void _find_HII_bubbles(
     memcpy(sfr_filtered, sfr_unfiltered, sizeof(fftwf_complex) * slab_n_complex);
 
     // do the filtering unless this is the last filter step
-    int local_ix_start = (int)(slabs_ix_start[mpi_rank]);
     if(!flag_last_filter_step)
     {
       filter((fftwf_complex *)deltax_filtered, local_ix_start, local_nix, ReionGridDim, (float)R);
@@ -311,10 +252,9 @@ static void _find_HII_bubbles(
           }
         }
     // iz
-
+ 
     R /= ReionDeltaRFactor;
   }
-
 
   // Find the volume and mass weighted neutral fractions
   // TODO: The deltax grid will have rounding errors from forward and reverse
@@ -335,74 +275,40 @@ static void _find_HII_bubbles(
         mass_weight                += density_over_mean;
       }
 
-  MPI_Allreduce(MPI_IN_PLACE, &volume_weighted_global_xH, 1, MPI_DOUBLE, MPI_SUM, mpi_comm);
-  MPI_Allreduce(MPI_IN_PLACE, &mass_weighted_global_xH, 1, MPI_DOUBLE, MPI_SUM, mpi_comm);
-  MPI_Allreduce(MPI_IN_PLACE, &mass_weight, 1, MPI_DOUBLE, MPI_SUM, mpi_comm);
+  MPI_Allreduce(MPI_IN_PLACE, volume_weighted_global_xH, 1, MPI_DOUBLE, MPI_SUM, mpi_comm);
+  MPI_Allreduce(MPI_IN_PLACE, mass_weighted_global_xH,   1, MPI_DOUBLE, MPI_SUM, mpi_comm);
+  MPI_Allreduce(MPI_IN_PLACE, &mass_weight,              1, MPI_DOUBLE, MPI_SUM, mpi_comm);
 
-  *volume_weighted_global_xH                        /= total_n_cells;
-  *mass_weighted_global_xH                          /= mass_weight;
+  *volume_weighted_global_xH /= total_n_cells;
+  *mass_weighted_global_xH   /= mass_weight;
 
-  if (validation_output && isclosef(redshift, 6.98713751375, -1, -1))
-  {
-    // prepare output file
-    char fname[STRLEN];
-    sprintf(fname, "validation_output-core%03d-z%.2f.h5", mpi_rank, redshift);
-    hid_t file_id = H5Fopen(fname, H5F_ACC_RDWR, H5P_DEFAULT);
-
-    H5LTmake_dataset_float(file_id, "xH", 1, (hsize_t []){slab_n_real}, xH);
-    H5LTmake_dataset_float(file_id, "z_at_ionization", 1, (hsize_t []){slab_n_real}, z_at_ionization);
-    H5LTmake_dataset_float(file_id, "J_21_at_ionization", 1, (hsize_t []){slab_n_real}, J_21_at_ionization);
-
-    H5LTset_attribute_double(file_id, "/", "volume_weighted_global_xH", volume_weighted_global_xH, 1);
-    H5LTset_attribute_double(file_id, "/", "mass_weighted_global_xH", mass_weighted_global_xH, 1);
-
-    H5Fclose(file_id);
-  }
 }
 
-
-void find_HII_bubbles(double redshift)
+// This function makes sure that the right version of find_HII_bubbles() gets called.
+void find_HII_bubbles(int snapshot,timer_info *timer_total)
 {
-  _find_HII_bubbles(
-      redshift,
-      run_globals.mpi_comm,
-      run_globals.mpi_rank,
-      run_globals.params.BoxSize,
-      run_globals.params.ReionGridDim,
-      (int)(run_globals.reion_grids.slab_nix[run_globals.mpi_rank]),
-      run_globals.params.ReionUVBFlag,
-      run_globals.params.physics.ReionEfficiency,
-      run_globals.params.physics.ReionNionPhotPerBary,
-      run_globals.units.UnitLength_in_cm,
-      run_globals.units.UnitMass_in_g,
-      run_globals.units.UnitTime_in_s,
-      run_globals.params.physics.ReionRBubbleMax, // Mpc/h
-      run_globals.params.physics.ReionRBubbleMin, // Mpc/h
-      run_globals.params.ReionDeltaRFactor,
-      run_globals.params.physics.ReionGammaHaloBias,
-      run_globals.params.physics.ReionAlphaUV,
-      run_globals.params.physics.ReionEscapeFrac,
-
-      true,  // VALIDATION OUTPUT FLAG
-
-      run_globals.reion_grids.J_21,
-      run_globals.reion_grids.r_bubble,
-      run_globals.reion_grids.deltax,
-      run_globals.reion_grids.stars,
-      run_globals.reion_grids.sfr,
-      run_globals.reion_grids.deltax_filtered,
-      run_globals.reion_grids.stars_filtered,
-      run_globals.reion_grids.sfr_filtered,
-
-      run_globals.reion_grids.slab_n_complex,
-      run_globals.reion_grids.slab_ix_start,
-
-      run_globals.reion_grids.xH,
-      run_globals.reion_grids.z_at_ionization,
-      run_globals.reion_grids.J_21_at_ionization,
-
-      &run_globals.reion_grids.volume_weighted_global_xH,
-      &run_globals.reion_grids.mass_weighted_global_xH
-  );
-
+  // Call the version of find_HII_bubbles we've been passed (and time it)
+  int    flag_write_validation_data=false;
+  double redshift=run_globals.ZZ[snapshot];
+  timer_info timer;
+  #ifdef USE_CUDA
+      #ifdef USE_CUFFT
+          mlog("Calling pure-GPU version of find_HII_bubbles() for snap=%d/z=%.2lf...", MLOG_OPEN | MLOG_TIMERSTART,snapshot,redshift);
+      #else
+          mlog("Calling hybrid-GPU/FFTW version of find_HII_bubbles() for snap=%d/z=%.2lf...",MLOG_OPEN | MLOG_TIMERSTART,snapshot,redshift);
+      #endif
+      // Run the GPU version of _find_HII_bubbles()
+      timer_start(&timer);
+      _find_HII_bubbles_gpu(redshift,flag_write_validation_data);
+  #else
+      // Run the Meraxes version of _find_HII_bubbles()
+      mlog("Calling pure-CPU version of find_HII_bubbles() for snap=%d/z=%.2lf...", MLOG_OPEN | MLOG_TIMERSTART,snapshot,redshift);
+      timer_start(&timer);
+      _find_HII_bubbles(redshift,flag_write_validation_data);
+  #endif
+  timer_stop(&timer);
+  timer_stop(timer_total);
+  timer_gpu+=timer_delta(timer);
+  mlog("Total time spent in find_HII_bubbles vs. total run time (snapshot %d ): %.2f of %.2f s",MLOG_MESG,snapshot,timer_gpu,timer_delta(*timer_total));
 }
+

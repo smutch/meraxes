@@ -3,6 +3,41 @@
 #include <gsl/gsl_math.h>
 #include <gsl/gsl_integration.h>
 
+void init_gpu(){
+    // If we are compiling with CUDA, allocate a structure
+    //   that will carry information about the device
+#ifdef USE_CUDA
+    // Alocate the structure that will carry all the information
+    //   about the GPU assigned to this thread
+    run_globals.gpu=(gpu_info *)malloc(sizeof(gpu_info));
+
+    // This function has all the CUDA device polling calls
+    init_CUDA();
+
+#ifdef USE_CUFFT
+    // At present, Meraxes can only use cuFFT when one MPI rank
+    //   is involved.  To allow this to be multicore, the code
+    //   which handles the interpolation of the grids for the
+    //   galaxies will need to be adjusted.
+    if(run_globals.mpi_size>1){
+        mlog_error("cuFFT is not yet supported for mpi_size>1.");
+        ABORT(EXIT_FAILURE);
+    }
+
+    run_globals.gpu->flag_use_cuFFT=true;
+#else
+    run_globals.gpu->flag_use_cuFFT=false;
+#endif
+
+    // If we are not compiling with CUDA, set this
+    //   pointer to NULL.  This is a good way
+    //   to test in the code if a GPU is being used.
+#else
+    mlog("CPU-only version of Meraxes running.",MLOG_MESG);
+    run_globals.gpu=NULL;
+#endif
+}
+
 static void read_requested_forest_ids()
 {
   if (strlen(run_globals.params.ForestIDFile) == 0)
@@ -55,7 +90,7 @@ static void read_requested_forest_ids()
 }
 
 
-static void read_snap_list()
+void read_snap_list()
 {
   if (run_globals.mpi_rank == 0)
   {
@@ -131,7 +166,7 @@ double integrand_time_to_present(double a, void *params)
 }
 
 
-static double time_to_present(double z)
+double time_to_present(double z)
 {
 #define WORKSIZE 1000
   gsl_function               F;
@@ -184,7 +219,7 @@ void set_units()
 }
 
 
-static void read_output_snaps()
+void read_output_snaps()
 {
   int **ListOutputSnaps = &(run_globals.ListOutputSnaps);
   int  *LastOutputSnap  = &(run_globals.LastOutputSnap);
@@ -196,7 +231,6 @@ static void read_output_snaps()
     int   i;
     char  fname[STRLEN];
     FILE *fd;
-
     strcpy(fname, run_globals.params.FileWithOutputSnaps);
 
     if (!(fd = fopen(fname, "r")))
@@ -296,6 +330,9 @@ void init_meraxes()
 {
   int i;
   int snaplist_len;
+
+  // initialize GPU
+  init_gpu();
 
   // initialise the random number generator
   run_globals.random_generator = gsl_rng_alloc(gsl_rng_ranlxd1);

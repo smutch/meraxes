@@ -8,13 +8,14 @@
 #include <fftw3.h>
 #include <mlog.h>
 
+#include "utils.h"
+
 #ifndef _INIT_MERAXES
 #define _INIT_MERAXES
 
 /*
  * Definitions
  */
-
 
 #ifdef CALC_MAGS
 #ifndef NOUT
@@ -37,6 +38,14 @@
 #endif
 // ======================================================
 
+// Define things used for aborting exceptions
+#ifdef __cplusplus
+extern "C" {
+#endif
+void myexit(int signum);
+#ifdef __cplusplus
+}
+#endif
 #define ABORT(sigterm)                                                                 \
   do {                                                                                   \
     fprintf(stderr, "\nIn file: %s\tfunc: %s\tline: %i\n", __FILE__, __FUNCTION__, __LINE__);  \
@@ -63,6 +72,8 @@
 // Constants
 #define REL_TOL (float)1e-5
 #define ABS_TOL (float)1e-8
+
+#define L_FACTOR 0.620350491 // Factor relating cube length to filter radius = (4PI/3)^(-1/3)
 
 /*
  * Enums
@@ -555,6 +566,23 @@ typedef struct Modifier
   float ratio_erru;
 } Modifier;
 
+// This structure carries the information about
+//   the GPU allocated to this CPU's scope. It
+//   needs to be declared by all compilers since
+//   it is used by run_globals.
+#ifdef USE_CUDA
+#include <cuda_runtime.h>
+typedef struct gpu_info{
+    int    device;                    // the ordinal of the current context's device
+    bool   flag_use_cuFFT;            // true if the code has been compiled with cuFFT
+    struct cudaDeviceProp properties; // Properties of this context's assigned device
+    int    n_threads;                 // No. of threads to use in kernal calls
+    int    n_contexts;                // No. of ranks with successfully allocated GPU contexts
+} gpu_info;
+#else
+typedef char gpu_info;
+#endif
+
 //! Global variables which will will be passed around
 typedef struct run_globals_t {
   struct run_params_t params;
@@ -566,6 +594,7 @@ typedef struct run_globals_t {
   MPI_Comm mpi_comm;
   int mpi_rank;
   int mpi_size;
+  gpu_info *gpu;
 
   double *AA;
   double *ZZ;
@@ -613,12 +642,17 @@ extern run_globals_t run_globals;
 /*
  * Functions
  */
-
-void         myexit(int signum);
+#ifdef __cplusplus
+extern "C" {
+#endif
 void         cleanup(void);
 void         read_parameter_file(char *fname, int mode);
 void         init_meraxes(void);
+void         init_gpu();
 void         set_units(void);
+void         read_snap_list(void);
+void         read_output_snaps(void);
+double       time_to_present(double z);
 void         continue_prompt(char *param_file);
 void         free_halo_storage(void);
 void         initialize_halo_storage(void);
@@ -714,7 +748,9 @@ void   init_reion_grids(void);
 void   filter(fftwf_complex *box, int local_ix_start, int slab_nx, int grid_dim, float R);
 void   set_fesc(int snapshot);
 void   set_quasar_fobs(void);
-void   find_HII_bubbles(double redshift);
+double RtoM(double R);
+void   find_HII_bubbles(int snapshot, timer_info *timer);
+void   _find_HII_bubbles(double redshift,const bool flag_write_validation_data);
 double tocf_modifier(galaxy_t *gal, double Mvir);
 void   set_ReionEfficiency(void);
 int    find_cell(float pos, double box_size);
@@ -728,19 +764,33 @@ void   create_grids_file(void);
 int    read_dm_grid(int snapshot, int i_grid, float *grid);
 void   free_grids_cache(void);
 void   calculate_Mvir_crit(double redshift);
-void   call_find_HII_bubbles(int snapshot, int unsampled_snapshot, int nout_gals);
+void   call_find_HII_bubbles(int snapshot, int unsampled_snapshot, int nout_gals, timer_info *timer);
 void   save_reion_input_grids(int snapshot);
 void   save_reion_output_grids(int snapshot);
 bool   check_if_reionization_ongoing(void);
 void   write_single_grid(const char *fname, float *grid, const char *grid_name, bool padded_flag, bool create_file_flag);
 
-
 // MCMC related
 // meraxes_mhysa_hook must be implemented by the calling code (Mhysa)!
+#ifdef _MAIN
 int (*meraxes_mhysa_hook)(void *self, int snapshot, int ngals);
+#else
+extern  int (*meraxes_mhysa_hook)(void *self, int snapshot, int ngals);
+#endif
 
 #ifdef DEBUG
 int  debug(const char * restrict format, ...);
 void check_pointers(halo_t *halos, fof_group_t *fof_groups, trees_info_t *trees_info);
 #endif
+
+// This stuff is needed by the GPU routines.  This
+//    needs to be included after mlog.h is included
+//    and after ABORT(), myexit() & run_globals are
+//    defined, since they are used within.
+#include "meraxes_gpu.h"
+
+#ifdef __cplusplus
+}
+#endif
+
 #endif // _INIT_MERAXES

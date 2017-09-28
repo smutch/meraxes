@@ -94,7 +94,7 @@ void assign_slabs()
 }
 
 
-void call_find_HII_bubbles(int snapshot, int unsampled_snapshot, int nout_gals)
+void call_find_HII_bubbles(int snapshot, int unsampled_snapshot, int nout_gals, timer_info *timer)
 {
   // Thin wrapper round find_HII_bubbles
 
@@ -126,9 +126,7 @@ void call_find_HII_bubbles(int snapshot, int unsampled_snapshot, int nout_gals)
   mlog("...done", MLOG_CLOSE);
 
   // Call find_HII_bubbles
-  mlog("Calling find_HII_bubbles", MLOG_OPEN | MLOG_TIMERSTART);
-
-  find_HII_bubbles(run_globals.ZZ[snapshot]);
+  find_HII_bubbles(snapshot,timer);
 
   mlog("grids->volume_weighted_global_xH = %g", MLOG_MESG, grids->volume_weighted_global_xH);
   mlog("global mass weighted xHII = %g at z = %g", MLOG_MESG, 1.0 - grids->mass_weighted_global_xH, run_globals.ZZ[snapshot]);
