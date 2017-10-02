@@ -418,6 +418,7 @@ static void read_velociraptor_trees(int snapshot, halo_t* halos, int* n_halos, f
                 // TODO: What masses and radii should I use for centrals (inclusive vs. exclusive etc.)?
                 fof_group->Mvir = tree_entry.Mass_200crit;
                 fof_group->Rvir = tree_entry.R_200crit;
+                fof_group->Vvir = -1;
                 fof_group->FOFMvirModifier = 1.0;
 
                 convert_input_virial_props(&fof_group->Mvir, &fof_group->Rvir, &fof_group->Vvir,
@@ -459,8 +460,9 @@ static void read_velociraptor_trees(int snapshot, halo_t* halos, int* n_halos, f
             convert_input_virial_props(&halo->Mvir, &halo->Rvir, &halo->Vvir, NULL, halo->Len, snapshot, false);
 
             // TODO: Ask Pascal for real ang mom vectors
+            // N.B. See calculation of spin which has been hacked!
             halo->AngMom[0] = halo->AngMom[1] = 0;
-            halo->AngMom[2] = sqrt(2.0) * tree_entry.Mass_200crit * tree_entry.Vmax * tree_entry.R_200crit;
+            halo->AngMom[2] = tree_entry.lambda_B;
 
             halo->Galaxy = NULL;
 

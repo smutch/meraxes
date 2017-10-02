@@ -117,9 +117,11 @@ double calculate_spin_param(halo_t* halo)
 {
     float spin;
 
-    spin = sqrt(halo->AngMom[0] * halo->AngMom[0] + halo->AngMom[1] * halo->AngMom[1] + halo->AngMom[2] * halo->AngMom[2]);
+    // spin = sqrt(halo->AngMom[0] * halo->AngMom[0] + halo->AngMom[1] * halo->AngMom[1] + halo->AngMom[2] * halo->AngMom[2]);
 
-    spin = spin / (1.414213562 * halo->Vvir * halo->Rvir);
+    // spin = spin / (1.414213562 * halo->Vvir * halo->Rvir);
+
+    spin = halo->AngMom[2];
 
     return (double)spin;
 }
