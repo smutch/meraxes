@@ -45,7 +45,7 @@ cmake:
 cleandist:
 	rm -rf build
 
-check:
+check: build/compile_commands.json
 	mkdir -p cppcheck_report
 	cppcheck --enable=all --project=$^ --xml-version=2 2> cppcheck_report/cppcheck_report.xml
 	/home/smutch/3rd_party/cppcheck/src/htmlreport/cppcheck-htmlreport --title=Meraxes --source-dir=./ --file=cppcheck_report/cppcheck_report.xml --report-dir=cppcheck_report

@@ -32,7 +32,7 @@ void set_quasar_fobs()
 
     params->quasar_fobs = 1. - cos(params->quasar_open_angle / 180. * M_PI / 2.);
     mlog("Quasar radiation open angle is set to be %g, corresponding to an obscure fraction of %g",
-        MLOG_MESG, params->quasar_open_angle, params->quasar_fobs);
+        MLOG_MESG|MLOG_FLUSH, params->quasar_open_angle, params->quasar_fobs);
 }
 
 void set_ReionEfficiency()
