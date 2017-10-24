@@ -15,11 +15,10 @@ static void halo_catalog_filename(
     int* i_layout,
     char* fname)
 {
-    bool flag_success = false;
-    FILE* fin;
 
     // if we need to determine the filename structure...
-    if (*i_layout == -1)
+    if (*i_layout == -1) {
+        bool flag_success = false;
         for (*i_layout = 0; (*i_layout < 4) && (flag_success == false); (*i_layout)++) {
             if (*i_layout == 0)
                 sprintf(fname, "%s/catalogs/%s_%03d.catalog_%s_properties/%s_%03d.catalog_%s_properties.%d", simulation_dir, catalog_file_prefix, snapshot, group_type, catalog_file_prefix, snapshot, group_type, sub);
@@ -30,12 +29,14 @@ static void halo_catalog_filename(
             else if (*i_layout == 3)
                 sprintf(fname, "%s/catalogs/%s_%03d.catalog_%s_properties", simulation_dir, catalog_file_prefix, snapshot, group_type);
 
+            FILE* fin;
             if ((fin = fopen(fname, "rb")) != NULL) {
                 flag_success = true;
                 fclose(fin);
                 break;
             }
         }
+    }
 
     // ensure we have a valid i_layout value.
     if (*i_layout < 0 || *i_layout > 3) {

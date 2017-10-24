@@ -2,12 +2,7 @@
 #include "tree_flags.h"
 #include <math.h>
 
-static void inline turn_off_merger_flag(galaxy_t* gal)
-{
-    gal->TreeFlags = gal->TreeFlags & (~TREE_CASE_MERGER) & (~TREE_CASE_MERGER_PRIMARY);
-}
-
-static inline bool check_for_flag(int flag, int tree_flags)
+bool check_for_flag(int flag, int tree_flags)
 {
     if ((tree_flags & flag) == flag)
         return true;

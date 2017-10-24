@@ -1,4 +1,5 @@
 #include "meraxes.h"
+#include "tree_flags.h"
 #include <assert.h>
 #include <math.h>
 
@@ -164,22 +165,42 @@ static void push_galaxy_to_halo(galaxy_t* gal, halo_t* halo)
 
 void connect_galaxy_and_halo(galaxy_t* gal, halo_t* halo, int* merger_counter)
 {
+
     if (halo->Galaxy == NULL)
         push_galaxy_to_halo(gal, halo);
     else {
         // There is already a galaxy been assigned to this halo.  That means we
         // have a merger. Now we need to work out which galaxy is merging into
-        // which.  There are a number of criterion we could use here. For now,
-        // let's use the galaxy with the least massive halo at the last
-        // snapshot it was identified is the one which is merging into another
-        // object.
+        // which.
+
         assert(merger_counter != NULL);
         (*merger_counter)++;
 
-        galaxy_t* parent = halo->Galaxy->Mvir >= gal->Mvir ? halo->Galaxy : gal;
-        galaxy_t* infaller = halo->Galaxy == parent ? gal : halo->Galaxy;
-        infaller->Type = 2;
+        galaxy_t *parent = NULL;
+        galaxy_t *infaller = NULL;
+        switch (run_globals.params.TreesID) {
+            case GBPTREES_TREES:
+                // For gbpTrees, we have the merger flags to give us guidance.  Let's use them...
+                // TODO: Make sure I don't need to turn off the merger flag...
+                parent = check_for_flag(TREE_CASE_MERGER, gal->TreeFlags) ? halo->Galaxy : gal;
+                infaller = halo->Galaxy == parent ? gal : halo->Galaxy;
+                break;
 
+            case VELOCIRAPTOR_TREES:
+                // There are a number of criterion we could use here. For now,
+                // let's use the galaxy with the least massive halo at the last
+                // snapshot it was identified is the one which is merging into another
+                // object.
+                parent = halo->Galaxy->Mvir >= gal->Mvir ? halo->Galaxy : gal;
+                infaller = halo->Galaxy == parent ? gal : halo->Galaxy;
+                break;
+
+            default:
+                mlog_error("Unrecognised input trees identifier (TreesID).");
+                break;
+        }
+
+        infaller->Type = 2;
         // Make sure the halo is pointing to the right galaxy
         if (parent != halo->Galaxy)
             halo->Galaxy = parent;
