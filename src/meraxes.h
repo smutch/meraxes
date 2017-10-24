@@ -208,6 +208,7 @@ typedef struct run_params_t {
     int ReionRtoMFilterType;
     int ReionUVBFlag;
 
+    enum {VELOCIRAPTOR_TREES, GBPTREES_TREES, UNSET} TreesID;
     int FirstFile;
     int LastFile;
     int NSteps;
@@ -488,22 +489,6 @@ typedef struct trees_info_t {
     int n_fof_groups_max;
 } trees_info_t;
 
-//! Tree entry struct
-typedef struct tree_entry_t {
-    long ForestID;
-    long Head;
-    long hostHaloID;
-    double Mass_200crit;
-    double R_200crit;
-    double Vmax;
-    double Xc;
-    double Yc;
-    double Zc;
-    double lambda_B;
-    unsigned long ID;
-    unsigned long npart;
-} tree_entry_t;
-
 typedef struct Modifier {
     float logMmin;
     float logMmax;
@@ -555,8 +540,6 @@ typedef struct run_globals_t {
     int NHalosMax;
     int NFOFGroupsMax;
     int NRequestedForests;
-    int TreesStep;
-    int TreesScan;
     int NStoreSnapshots;
 
     bool SelectForestsSwitch;
@@ -579,12 +562,21 @@ void read_parameter_file(char* fname, int mode);
 void init_meraxes(void);
 void set_units(void);
 void continue_prompt(char* param_file);
+
+trees_info_t read_halos(int snapshot, halo_t** halo, fof_group_t** fof_group, int** index_lookup, trees_info_t* snapshot_trees_info);
+
+void read_trees__velociraptor(int snapshot, halo_t* halos, int* n_halos, fof_group_t* fof_groups, int* n_fof_groups, int* index_lookup);
+trees_info_t read_trees_info__velociraptor(const int snapshot);
+
+void read_trees__gbptrees(int snapshot, halo_t* halo, int n_halos, fof_group_t* fof_group, int n_fof_groups, int n_requested_forests, int* n_halos_kept, int* n_fof_groups_kept, int* index_lookup);
+trees_info_t read_trees_info__gbptrees(int snapshot);
+
 void free_halo_storage(void);
 void initialize_halo_storage(void);
+
 void dracarys(void);
 int evolve_galaxies(fof_group_t* fof_group, int snapshot, int NGal, int NFof);
 void passively_evolve_ghost(galaxy_t* gal, int snapshot);
-trees_info_t read_halos(int snapshot, halo_t** halo, fof_group_t** fof_group, int** index_lookup, trees_info_t* snapshot_trees_info);
 galaxy_t* new_galaxy(int snapshot, int halo_ID);
 void create_new_galaxy(int snapshot, halo_t* halo, int* NGal, int* new_gal_counter);
 void kill_galaxy(galaxy_t* gal, galaxy_t* prev_gal, int* NGal, int* kill_counter);
