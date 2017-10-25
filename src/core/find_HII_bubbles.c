@@ -29,10 +29,8 @@ double RtoM(double R)
     switch (filter) {
     case 0: //top hat M = (4/3) PI <rho> R^3
         return (4.0 / 3.0) * M_PI * pow(R, 3) * (OmegaM * RhoCrit);
-        break;
     case 1: //gaussian: M = (2PI)^1.5 <rho> R^3
         return pow(2 * M_PI, 1.5) * OmegaM * RhoCrit * pow(R, 3);
-        break;
     default: // filter not defined
         mlog_error("Unrecognised filter (%d). Aborting...", filter);
         ABORT(EXIT_FAILURE);

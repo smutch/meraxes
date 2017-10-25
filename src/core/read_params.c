@@ -73,6 +73,10 @@ static void inline store_params(
         case PARAM_TYPE_LONGLONG:
             *((long long*)params_addr[tag_index]) = atoll(entry[i_entry].value);
             break;
+
+        default:
+            mlog_error("Unknown param type.");
+            break;
         }
         used_tag[tag_index] = 1;
     }
@@ -107,7 +111,7 @@ void read_parameter_file(char* fname, int mode)
         // malloc global arrays and init param properties
         if (mode == 0) {
             hdf5props->params_tag = malloc(sizeof(char*) * PARAM_MAX_ENTRIES);
-            for (int ii = 0; ii < PARAM_MAX_ENTRIES; ii++)
+            for (ii = 0; ii < PARAM_MAX_ENTRIES; ii++)
                 hdf5props->params_tag[ii] = malloc(sizeof(char) * 128);
             params_tag = hdf5props->params_tag;
             hdf5props->params_type = malloc(sizeof(int) * PARAM_MAX_ENTRIES);
@@ -734,6 +738,10 @@ void read_parameter_file(char* fname, int mode)
 
                     case PARAM_TYPE_LONGLONG:
                         printf("%lld\n", *((long long*)(params_addr[ii])));
+                        break;
+
+                    default:
+                        mlog_error("Unknown param type.");
                         break;
                     }
                 }

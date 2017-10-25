@@ -37,11 +37,10 @@ void set_quasar_fobs()
 
 void set_ReionEfficiency()
 {
+    // Use the params passed to Meraxes via the input file to set the HII ionising efficiency factor
     physics_params_t* params = &(run_globals.params.physics);
 
     if (run_globals.params.Flag_PatchyReion) {
-        // Use the params passed to Meraxes via the input file to set the HII ionising efficiency factor
-        physics_params_t* params = &(run_globals.params.physics);
 
         // The following is based on Sobacchi & Messinger (2013) eqn 7
         // with f_* removed and f_b added since we define f_coll as M_*/M_tot rather than M_vir/M_tot,
@@ -113,7 +112,7 @@ void call_find_HII_bubbles(int snapshot, int nout_gals)
     construct_baryon_grids(snapshot, nout_gals);
 
     // Read in the dark matter density grid
-    read_dm_grid(snapshot, 0, (float*)(grids->deltax));
+    read_dm_grid(snapshot, 0, grids->deltax);
 
     // save the grids prior to doing FFTs to avoid precision loss and aliasing etc.
     for (int i_out = 0; i_out < run_globals.NOutputSnaps; i_out++)
@@ -270,7 +269,7 @@ void free_reionization_grids()
 
 int map_galaxies_to_slabs(int ngals)
 {
-    double box_size = (double)(run_globals.params.BoxSize);
+    double box_size = run_globals.params.BoxSize;
     int ReionGridDim = run_globals.params.ReionGridDim;
 
     mlog("Mapping galaxies to slabs...", MLOG_OPEN);
@@ -425,7 +424,7 @@ void assign_Mvir_crit_to_galaxies(int ngals_in_slabs)
 
 void construct_baryon_grids(int snapshot, int local_ngals)
 {
-    double box_size = (double)(run_globals.params.BoxSize);
+    double box_size = run_globals.params.BoxSize;
     float* stellar_grid = run_globals.reion_grids.stars;
     float* sfr_grid = run_globals.reion_grids.sfr;
     int ReionGridDim = run_globals.params.ReionGridDim;
@@ -511,7 +510,7 @@ void construct_baryon_grids(int snapshot, int local_ngals)
                         // for ionizing_source_formation_rate_grid, need further convertion due to different UV spectral index of quasar and stellar component
                         if (run_globals.params.physics.Flag_BHFeedback)
                             if (gal->BlackHoleMass >= run_globals.params.physics.BlackHoleMassLimitReion)
-                                buffer[ind] += gal->EffectiveBHM * (double)run_globals.params.physics.ReionAlphaUVBH / (double)run_globals.params.physics.ReionAlphaUV;
+                                buffer[ind] += gal->EffectiveBHM * run_globals.params.physics.ReionAlphaUVBH / run_globals.params.physics.ReionAlphaUV;
                         break;
 
                     default:
@@ -536,26 +535,30 @@ void construct_baryon_grids(int snapshot, int local_ngals)
                 // finally copying the values into the appropriate slab.
                 // TODO: Use a better timescale for SFR
                 switch (prop) {
-                case prop_sfr:
-                    for (int ix = 0; ix < slab_nix[i_r]; ix++)
-                        for (int iy = 0; iy < ReionGridDim; iy++)
-                            for (int iz = 0; iz < ReionGridDim; iz++) {
-                                double val = (double)buffer[grid_index(ix, iy, iz, ReionGridDim, INDEX_REAL)];
-                                val = (val > 0) ? val / tHubble : 0;
-                                sfr_grid[grid_index(ix, iy, iz, ReionGridDim, INDEX_PADDED)] = (float)val;
-                            }
-                    break;
+                    case prop_sfr:
+                        for (int ix = 0; ix < slab_nix[i_r]; ix++)
+                            for (int iy = 0; iy < ReionGridDim; iy++)
+                                for (int iz = 0; iz < ReionGridDim; iz++) {
+                                    double val = (double)buffer[grid_index(ix, iy, iz, ReionGridDim, INDEX_REAL)];
+                                    val = (val > 0) ? val / tHubble : 0;
+                                    sfr_grid[grid_index(ix, iy, iz, ReionGridDim, INDEX_PADDED)] = (float)val;
+                                }
+                        break;
 
-                case prop_stellar:
-                    for (int ix = 0; ix < slab_nix[i_r]; ix++)
-                        for (int iy = 0; iy < ReionGridDim; iy++)
-                            for (int iz = 0; iz < ReionGridDim; iz++) {
-                                float val = buffer[grid_index(ix, iy, iz, ReionGridDim, INDEX_REAL)];
-                                if (val < 0)
-                                    val = 0;
-                                stellar_grid[grid_index(ix, iy, iz, ReionGridDim, INDEX_PADDED)] = val;
-                            }
-                    break;
+                    case prop_stellar:
+                        for (int ix = 0; ix < slab_nix[i_r]; ix++)
+                            for (int iy = 0; iy < ReionGridDim; iy++)
+                                for (int iz = 0; iz < ReionGridDim; iz++) {
+                                    float val = buffer[grid_index(ix, iy, iz, ReionGridDim, INDEX_REAL)];
+                                    if (val < 0)
+                                        val = 0;
+                                    stellar_grid[grid_index(ix, iy, iz, ReionGridDim, INDEX_PADDED)] = val;
+                                }
+                        break;
+
+                    default:
+                        mlog_error("Eh!?!");
+                        ABORT(EXIT_FAILURE);
                 }
         }
         MPI_Allreduce(MPI_IN_PLACE, &N_BlackHoleMassLimitReion, 1, MPI_DOUBLE, MPI_SUM, run_globals.mpi_comm);
@@ -629,7 +632,7 @@ void save_reion_input_grids(int snapshot)
     H5Pset_chunk(dcpl_id, 3, (hsize_t[3]){ 1, ReionGridDim, ReionGridDim });
 
     // fftw padded grids
-    float* grid = (float*)calloc((int)local_nix * ReionGridDim * ReionGridDim, sizeof(float));
+    float* grid = (float*)calloc(local_nix * ReionGridDim * ReionGridDim, sizeof(float));
 
     for (int ii = 0; ii < local_nix; ii++)
         for (int jj = 0; jj < ReionGridDim; jj++)
@@ -756,8 +759,8 @@ void save_reion_output_grids(int snapshot)
 
 bool check_if_reionization_ongoing()
 {
-    int started = (int)run_globals.reion_grids.started;
-    int finished = (int)run_globals.reion_grids.finished;
+    int started = run_globals.reion_grids.started;
+    int finished = run_globals.reion_grids.finished;
 
     // First check if we've already finished on all cores.
     if (finished)

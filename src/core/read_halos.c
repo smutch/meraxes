@@ -91,7 +91,7 @@ void initialize_halo_storage()
 static void select_forests()
 {
     // search the input tree files for all unique forest ids, store them, sort
-    // them, and then potentially split them amoungst cores
+    // them, and then potentially split them amongst cores
     mlog("Calling select_forests()...", MLOG_MESG);
 
     // if this is the master rank then read in the forest info

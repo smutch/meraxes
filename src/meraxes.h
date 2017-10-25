@@ -162,6 +162,8 @@ typedef struct physics_params_t {
     int Flag_ReheatToFOFGroupTemp;
 } physics_params_t;
 
+enum tree_ids {VELOCIRAPTOR_TREES, GBPTREES_TREES, UNSET};
+
 //! Run params
 //! Everything in this structure is supplied by the user...
 typedef struct run_params_t {
@@ -208,7 +210,7 @@ typedef struct run_params_t {
     int ReionRtoMFilterType;
     int ReionUVBFlag;
 
-    enum {VELOCIRAPTOR_TREES, GBPTREES_TREES, UNSET} TreesID;
+    enum tree_ids TreesID;
     int FirstFile;
     int LastFile;
     int NSteps;
@@ -617,7 +619,7 @@ float comoving_distance(float a[3], float b[3]);
 int pos_to_ngp(double x, double side, int nx);
 float apply_pbc_pos(float x);
 double accurate_sumf(float* arr, int n);
-int grid_index(int i, int j, int k, int dim, int type);
+int grid_index(int i, int j, int k, int dim, index_type type);
 void mpi_debug_here(void);
 void check_mhysa_pointer(void);
 int isclosef(float a, float b, float rel_tol, float abs_tol);

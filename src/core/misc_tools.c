@@ -86,7 +86,7 @@ int searchsorted(void* val,
     void* arr,
     int count,
     size_t size,
-    int (*compare)(const void* a, const void* b),
+    int (*compare)(const void*, const void*),
     int imin,
     int imax)
 {
@@ -154,9 +154,9 @@ double accurate_sumf(float* arr, int n)
     return total;
 }
 
-int grid_index(int i, int j, int k, int dim, int type)
+int grid_index(int i, int j, int k, int dim, index_type type)
 {
-    int ind;
+    int ind = -1;
 
     switch (type) {
     case INDEX_PADDED:
@@ -167,6 +167,9 @@ int grid_index(int i, int j, int k, int dim, int type)
         break;
     case INDEX_COMPLEX_HERM:
         ind = k + (dim / 2 + 1) * (j + dim * i);
+        break;
+    default:
+        mlog_error("Unknown indexing type.");
         break;
     }
 

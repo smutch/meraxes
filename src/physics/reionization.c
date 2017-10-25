@@ -48,7 +48,7 @@ void calculate_Mvir_crit(double redshift)
 
 double tocf_modifier(galaxy_t* gal, double Mvir)
 {
-    return pow(2.0, -1.0 * (double)(gal->MvirCrit) / Mvir);
+    return pow(2.0, -1.0 * gal->MvirCrit / Mvir);
 }
 
 static double inline M0(double z)

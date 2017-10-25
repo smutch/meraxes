@@ -56,7 +56,6 @@ static int match_regex(regex_t* reg, const char* match_str, entry_t* entry)
         }
         p += match[0].rm_eo;
     }
-    return 0;
 }
 
 int parse_paramfile(char* fname, entry_t entry[PARAM_MAX_ENTRIES])

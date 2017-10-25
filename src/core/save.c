@@ -29,11 +29,11 @@ void prepare_galaxy_for_output(
 {
     run_units_t* units = &(run_globals.units);
 
-    galout->ID = (long long)gal.ID;
-    galout->Type = (int)gal.Type;
+    galout->ID = gal.ID;
+    galout->Type = gal.Type;
     if (!gal.ghost_flag) {
         galout->HaloID = (long long)gal.Halo->ID;
-        galout->CentralGal = (int)(gal.Halo->FOFGroup->FirstOccupiedHalo->Galaxy->output_index);
+        galout->CentralGal = gal.Halo->FOFGroup->FirstOccupiedHalo->Galaxy->output_index;
         galout->FOFMvir = (float)(gal.Halo->FOFGroup->Mvir);
     }
     else {
@@ -44,10 +44,10 @@ void prepare_galaxy_for_output(
     galout->GhostFlag = (int)gal.ghost_flag;
 
     for (int ii = 0; ii < 3; ii++)
-        galout->Pos[ii] = (float)(gal.Pos[ii]);
+        galout->Pos[ii] = gal.Pos[ii];
 
-    galout->Len = (int)(gal.Len);
-    galout->MaxLen = (int)(gal.MaxLen);
+    galout->Len = gal.Len;
+    galout->MaxLen = gal.MaxLen;
     galout->Mvir = (float)(gal.Mvir);
     galout->Rvir = (float)(gal.Rvir);
     galout->Vvir = (float)(gal.Vvir);

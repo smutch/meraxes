@@ -83,8 +83,8 @@ void copy_halo_props_to_galaxy(halo_t* halo, galaxy_t* gal)
     gal->SnapSkipCounter = halo->SnapOffset;
     gal->HaloDescIndex = halo->DescIndex;
     gal->Mvir = halo->Mvir;
-    gal->Rvir = (double)(halo->Rvir);
-    gal->Vvir = (double)(halo->Vvir);
+    gal->Rvir = halo->Rvir;
+    gal->Vvir = halo->Vvir;
     gal->TreeFlags = halo->TreeFlags;
     gal->Spin = calculate_spin_param(halo);
     gal->FOFMvirModifier = halo->FOFGroup->FOFMvirModifier;
