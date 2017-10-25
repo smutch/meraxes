@@ -235,6 +235,7 @@ void dracarys()
 
         // Calculate the first occupied halo
         for (int i_fof = 0; i_fof < trees_info.n_fof_groups; i_fof++) {
+            fof_group[i_fof].FirstOccupiedHalo = NULL;
             halo_t* cur_halo = fof_group[i_fof].FirstHalo;
             while (cur_halo != NULL) {
                 if (cur_halo->Galaxy != NULL) {

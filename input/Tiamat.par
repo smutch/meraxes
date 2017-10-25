@@ -6,12 +6,13 @@ FileNameGalaxies : Tiamat
 #------------------------------------------
 #----- Simulation input files  ------------
 #------------------------------------------
-SimName          : Tiamat
-SimulationDir    : /lustre/projects/p070_astro/smutch/input_trees/Tiamat
-# SimulationDir    : /coepp/cephfs/dragons/smutch/data/simulations/Tiamat/meraxes
-CatalogFilePrefix: subfind
-BoxSize          : 67.8
-VolumeFactor     : 1.0
+SimName           : Tiamat
+SimulationDir     : /lustre/projects/p070_astro/smutch/input_trees/Tiamat
+# SimulationDir     : /coepp/cephfs/dragons/smutch/data/simulations/Tiamat/meraxes
+TreesID           : 1   # 0 -> VELOCIraptor; 1 -> gbpTrees
+CatalogFilePrefix : subfind
+BoxSize           : 67.8
+VolumeFactor      : 1.0
 
 #------------------------------------------
 #----- Photometric Tables  ----------------

@@ -134,7 +134,7 @@ static void select_forests()
         hid_t grp = H5Gopen2(fd, grp_name, H5P_DEFAULT);
         H5LTread_dataset_int(grp, "max_contemporaneous_halos", max_contemp_halo);
         H5LTread_dataset_int(grp, "max_contemporaneous_fof_groups", max_contemp_fof);
-        H5LTread_dataset_int(grp, "forest_ids", forest_ids);
+        H5LTread_dataset_int(grp, "forest_id", forest_ids);
         H5LTread_dataset_int(grp, "n_halos", n_halos);
         H5Gclose(grp);
 
