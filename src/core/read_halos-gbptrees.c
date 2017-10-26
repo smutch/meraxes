@@ -399,6 +399,9 @@ void read_trees__gbptrees(
                 cur_halo->Pos[0] = cur_cat_halo->position_MBP[0];
                 cur_halo->Pos[1] = cur_cat_halo->position_MBP[1];
                 cur_halo->Pos[2] = cur_cat_halo->position_MBP[2];
+                cur_halo->Vel[0] = cur_cat_halo->velocity_COM[0];
+                cur_halo->Vel[1] = cur_cat_halo->velocity_COM[1];
+                cur_halo->Vel[2] = cur_cat_halo->velocity_COM[2];
                 cur_halo->Rvir = cur_cat_halo->R_vir;
                 cur_halo->Vmax = cur_cat_halo->V_max;
                 cur_halo->AngMom[0] = cur_cat_halo->ang_mom[0];

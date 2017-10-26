@@ -63,6 +63,7 @@ galaxy_t* new_galaxy(int snapshot, int halo_ID)
 
     for (int ii = 0; ii < 3; ii++) {
         gal->Pos[ii] = -99999.9;
+        gal->Vel[ii] = -99999.9;
     }
 
     for (int ii = 0; ii < N_HISTORY_SNAPS; ii++)
@@ -103,6 +104,7 @@ void copy_halo_props_to_galaxy(halo_t* halo, galaxy_t* gal)
 
     for (int ii = 0; ii < 3; ii++) {
         gal->Pos[ii] = halo->Pos[ii];
+        gal->Vel[ii] = halo->Vel[ii];
     }
 
     // record the maximum Len value if necessary

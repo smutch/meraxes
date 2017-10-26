@@ -312,6 +312,7 @@ typedef struct halo_t {
     struct galaxy_t* Galaxy;
 
     float Pos[3]; //!< Most bound particle position [Mpc/h]
+    float Vel[3]; //!< Centre of mass velocity [Mpc/h]
     float AngMom[3]; //!< Specific angular momentum vector [Mpc/h *km/s]
 
     double Mvir; //!< virial mass [M_sol/h]
@@ -349,6 +350,7 @@ typedef struct galaxy_t {
 
     // properties of subhalo at the last time this galaxy was a central galaxy
     float Pos[3];
+    float Vel[3];
     double Mvir;
     double Rvir;
     double Vvir;

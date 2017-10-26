@@ -43,8 +43,10 @@ void prepare_galaxy_for_output(
     }
     galout->GhostFlag = (int)gal.ghost_flag;
 
-    for (int ii = 0; ii < 3; ii++)
+    for (int ii = 0; ii < 3; ii++) {
         galout->Pos[ii] = gal.Pos[ii];
+        galout->Vel[ii] = gal.Vel[ii];
+    }
 
     galout->Len = gal.Len;
     galout->MaxLen = gal.MaxLen;
