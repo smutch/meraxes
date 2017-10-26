@@ -582,7 +582,7 @@ void dracarys(void);
 int evolve_galaxies(fof_group_t* fof_group, int snapshot, int NGal, int NFof);
 void passively_evolve_ghost(galaxy_t* gal, int snapshot);
 galaxy_t* new_galaxy(int snapshot, int halo_ID);
-void create_new_galaxy(int snapshot, halo_t* halo, int* NGal, int* new_gal_counter);
+void create_new_galaxy(int snapshot, halo_t* halo, int* NGal, int* new_gal_counter, int* merger_counter);
 void kill_galaxy(galaxy_t* gal, galaxy_t* prev_gal, int* NGal, int* kill_counter);
 void copy_halo_props_to_galaxy(halo_t* halo, galaxy_t* gal);
 void connect_galaxy_and_halo(galaxy_t* gal, halo_t* halo, int* merger_counter);

@@ -216,7 +216,8 @@ void create_new_galaxy(
     int snapshot,
     halo_t* halo,
     int* NGal,
-    int* new_gal_counter)
+    int* new_gal_counter,
+    int* merger_counter)
 {
     galaxy_t* gal;
 
@@ -228,7 +229,7 @@ void create_new_galaxy(
     else
         gal->LastIdentSnap = snapshot;
 
-    connect_galaxy_and_halo(gal, halo, NULL);
+    connect_galaxy_and_halo(gal, halo, merger_counter);
 
     if (run_globals.LastGal != NULL)
         run_globals.LastGal->Next = gal;
@@ -236,7 +237,7 @@ void create_new_galaxy(
         run_globals.FirstGal = gal;
 
     run_globals.LastGal = gal;
-    gal->FirstGalInHalo = gal;
+    // gal->FirstGalInHalo = gal;
     gal->dt = run_globals.LTTime[gal->LastIdentSnap] - run_globals.LTTime[snapshot];
     *NGal = *NGal + 1;
     *new_gal_counter = *new_gal_counter + 1;
