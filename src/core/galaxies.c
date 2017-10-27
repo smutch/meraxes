@@ -13,7 +13,7 @@ galaxy_t* new_galaxy(int snapshot, int halo_ID)
     gal->OldType = -1;
     gal->SnapSkipCounter = 0;
     gal->HaloDescIndex = -1;
-    gal->TreeFlags = -1;
+    gal->TreeFlags = 0;
     gal->LastIdentSnap = -1;
     gal->Halo = NULL;
     gal->FirstGalInHalo = NULL;
@@ -157,11 +157,11 @@ static void push_galaxy_to_halo(galaxy_t* gal, halo_t* halo)
 
     // Loop through the new galaxy, and all galaxies attached to it, and set
     // the first galaxy in halo and halo pointer
-    galaxy_t* cur_gal = gal;
-    while (cur_gal != NULL) {
-        cur_gal->Halo = halo;
-        cur_gal->FirstGalInHalo = halo->Galaxy;
-        cur_gal = cur_gal->NextGalInHalo;
+    gal = halo->Galaxy;
+    while (gal != NULL) {
+        gal->Halo = halo;
+        gal->FirstGalInHalo = halo->Galaxy;
+        gal = gal->NextGalInHalo;
     }
 }
 
@@ -175,8 +175,8 @@ void connect_galaxy_and_halo(galaxy_t* gal, halo_t* halo, int* merger_counter)
         // have a merger. Now we need to work out which galaxy is merging into
         // which.
 
-        assert(merger_counter != NULL);
-        (*merger_counter)++;
+        // assert(merger_counter != NULL);
+        // (*merger_counter)++;
 
         galaxy_t *parent = NULL;
         galaxy_t *infaller = NULL;
@@ -190,7 +190,7 @@ void connect_galaxy_and_halo(galaxy_t* gal, halo_t* halo, int* merger_counter)
 
             case VELOCIRAPTOR_TREES:
                 // There are a number of criterion we could use here. For now,
-                // let's use the galaxy with the least massive halo at the last
+                // let's say the galaxy with the least massive halo at the last
                 // snapshot it was identified is the one which is merging into another
                 // object.
                 parent = halo->Galaxy->Mvir >= gal->Mvir ? halo->Galaxy : gal;
@@ -201,6 +201,8 @@ void connect_galaxy_and_halo(galaxy_t* gal, halo_t* halo, int* merger_counter)
                 mlog_error("Unrecognised input trees identifier (TreesID).");
                 break;
         }
+
+        // assert(check_for_flag(TREE_CASE_MERGER, infaller->TreeFlags));
 
         infaller->Type = 2;
         // Make sure the halo is pointing to the right galaxy
@@ -237,7 +239,6 @@ void create_new_galaxy(
         run_globals.FirstGal = gal;
 
     run_globals.LastGal = gal;
-    // gal->FirstGalInHalo = gal;
     gal->dt = run_globals.LTTime[gal->LastIdentSnap] - run_globals.LTTime[snapshot];
     *NGal = *NGal + 1;
     *new_gal_counter = *new_gal_counter + 1;
