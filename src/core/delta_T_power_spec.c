@@ -121,7 +121,7 @@ int delta_T_ps(
 
     // Transform to k-space
     fftwf_plan plan = fftwf_mpi_plan_dft_r2c_3d(ReionGridDim, ReionGridDim, ReionGridDim, (float*)deldel_T,
-                                                deldel_T, run_globals.mpi_comm, FFTW_ESTIMATE);
+        deldel_T, run_globals.mpi_comm, FFTW_ESTIMATE);
     fftwf_execute(plan);
     fftwf_destroy_plan(plan);
 

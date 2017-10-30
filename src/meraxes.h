@@ -162,7 +162,8 @@ typedef struct physics_params_t {
     int Flag_ReheatToFOFGroupTemp;
 } physics_params_t;
 
-enum tree_ids {VELOCIRAPTOR_TREES, GBPTREES_TREES};
+enum tree_ids { VELOCIRAPTOR_TREES,
+    GBPTREES_TREES };
 
 //! Run params
 //! Everything in this structure is supplied by the user...

@@ -102,19 +102,19 @@ static void select_forests()
         char grp_name[30];
 
         switch (run_globals.params.TreesID) {
-            case VELOCIRAPTOR_TREES:
-                sprintf(fname, "%s/trees/meraxes_augmented_stats.h5", run_globals.params.SimulationDir);
-                strcpy(grp_name, "forests\0");
-                break;
-            case GBPTREES_TREES:
-                sprintf(fname, "%s/trees/forests_info.hdf5", run_globals.params.SimulationDir);
-                strcpy(grp_name, "info\0");
-                break;
-            default:
-                mlog_error("Unrecognised input trees identifier (TreesID).");
-                break;
+        case VELOCIRAPTOR_TREES:
+            sprintf(fname, "%s/trees/meraxes_augmented_stats.h5", run_globals.params.SimulationDir);
+            strcpy(grp_name, "forests\0");
+            break;
+        case GBPTREES_TREES:
+            sprintf(fname, "%s/trees/forests_info.hdf5", run_globals.params.SimulationDir);
+            strcpy(grp_name, "info\0");
+            break;
+        default:
+            mlog_error("Unrecognised input trees identifier (TreesID).");
+            break;
         }
-        
+
         hid_t fd = H5Fopen(fname, H5F_ACC_RDONLY, H5P_DEFAULT);
         if (fd < 0) {
             mlog("Failed to open file %s", MLOG_MESG, fname);
@@ -339,7 +339,7 @@ trees_info_t read_halos(const int snapshot, halo_t** halos, fof_group_t** fof_gr
     }
 
     mlog("Reading snapshot %d (z = %.2f) trees and halos...",
-            MLOG_OPEN | MLOG_TIMERSTART, snapshot, run_globals.ZZ[snapshot]);
+        MLOG_OPEN | MLOG_TIMERSTART, snapshot, run_globals.ZZ[snapshot]);
 
     // Read mass ratio modifiers and baryon fraction modifiers if required
     if (run_globals.RequestedMassRatioModifier == 1)
@@ -351,15 +351,15 @@ trees_info_t read_halos(const int snapshot, halo_t** halos, fof_group_t** fof_gr
     // read in the tree information for this snapshot
     trees_info_t trees_info;
     switch (run_globals.params.TreesID) {
-        case VELOCIRAPTOR_TREES:
-            trees_info = read_trees_info__velociraptor(snapshot);
-            break;
-        case GBPTREES_TREES:
-            trees_info = read_trees_info__gbptrees(snapshot);
-            break;
-        default:
-            mlog_error("Unrecognised input trees identifier (TreesID).");
-            break;
+    case VELOCIRAPTOR_TREES:
+        trees_info = read_trees_info__velociraptor(snapshot);
+        break;
+    case GBPTREES_TREES:
+        trees_info = read_trees_info__gbptrees(snapshot);
+        break;
+    default:
+        mlog_error("Unrecognised input trees identifier (TreesID).");
+        break;
     }
 
     int n_halos = trees_info.n_halos;
@@ -401,31 +401,29 @@ trees_info_t read_halos(const int snapshot, halo_t** halos, fof_group_t** fof_gr
     if (*fof_groups == NULL)
         *fof_groups = init_fof_groups();
 
-
     // Now actually read in the trees!
     switch (run_globals.params.TreesID) {
-        case VELOCIRAPTOR_TREES:
-            read_trees__velociraptor(snapshot, *halos, &n_halos, *fof_groups, &n_fof_groups, *index_lookup);
-            break;
+    case VELOCIRAPTOR_TREES:
+        read_trees__velociraptor(snapshot, *halos, &n_halos, *fof_groups, &n_fof_groups, *index_lookup);
+        break;
 
-        case GBPTREES_TREES:
-            {
-                int n_halos_kept = 0;
-                int n_fof_groups_kept = 0;
+    case GBPTREES_TREES: {
+        int n_halos_kept = 0;
+        int n_fof_groups_kept = 0;
 
-                read_trees__gbptrees(snapshot, *halos, n_halos,
-                        *fof_groups, n_fof_groups, run_globals.NRequestedForests,
-                        &n_halos_kept, &n_fof_groups_kept, *index_lookup);
+        read_trees__gbptrees(snapshot, *halos, n_halos,
+            *fof_groups, n_fof_groups, run_globals.NRequestedForests,
+            &n_halos_kept, &n_fof_groups_kept, *index_lookup);
 
-                n_halos = n_halos_kept;
-                n_fof_groups = n_fof_groups_kept;
-            }
+        n_halos = n_halos_kept;
+        n_fof_groups = n_fof_groups_kept;
+    }
 
-            break;
+    break;
 
-        default:
-            mlog_error("Unrecognised input trees identifier (TreesID).");
-            break;
+    default:
+        mlog_error("Unrecognised input trees identifier (TreesID).");
+        break;
     }
 
     // if subsampling the trees, then update the trees_info to reflect what we now have
@@ -475,7 +473,7 @@ trees_info_t read_halos(const int snapshot, halo_t** halos, fof_group_t** fof_gr
         if (*index_lookup)
             *index_lookup = (int*)realloc(*index_lookup, sizeof(int) * n_halos);
         update_pointers_from_offsets(n_fof_groups, *fof_groups, fof_FirstHalo_os,
-                n_halos, *halos, halo_FOFGroup_os, halo_NextHaloInFOFGroup_os);
+            n_halos, *halos, halo_FOFGroup_os, halo_NextHaloInFOFGroup_os);
 
         // save the trees_info for this snapshot as well...
         snapshot_trees_info[snapshot] = trees_info;

@@ -242,7 +242,6 @@ void read_trees__velociraptor(int snapshot, halo_t* halos, int* n_halos, fof_gro
 
             halo->Galaxy = NULL;
 
-
             (*n_halos)++;
         }
     }

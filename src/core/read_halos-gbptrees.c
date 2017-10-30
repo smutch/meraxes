@@ -65,23 +65,23 @@ static void inline read_catalogs_header(
 
 //! This is the structure for a halo in the catalog files
 typedef struct catalog_halo_t {
-  long long id_MBP;                    //!< ID of most bound particle in structure
-  double M_vir;                        //!< Bryan & Norman (ApJ 495, 80, 1998) virial mass [M_sol/h]
-  int n_particles;                     //!< Number of particles in the structure
-  float position_COM[3];               //!< Centre-of-mass position      [Mpc/h]
-  float position_MBP[3];               //!< Most bound particle position [Mpc/h]
-  float velocity_COM[3];               //!< Centre-of-mass velocity      [km/s]
-  float velocity_MBP[3];               //!< Most bound particle velocity [km/s]
-  float R_vir;                         //!< Virial radius [Mpc/h]
-  float R_halo;                        //!< Distance of last halo particle from MBP [Mpc/h]
-  float R_max;                         //!< Radius of maximum circular velocity     [Mpc/h]
-  float V_max;                         //!< Maximum circular velocity               [km/s]
-  float sigma_v;                       //!< Total 3D velocity dispersion            [km/s]
-  float ang_mom[3];                    //!< Specific angular momentum vector        [Mpc/h*km/s]
-  float q_triaxial;                    //!< Triaxial shape parameter q=b/a
-  float s_triaxial;                    //!< Triaxial shape parameter s=c/a
-  float shape_eigen_vectors[3][3];     //!< Normalized triaxial shape eigenvectors
-  char padding[8];                     //!< Alignment padding
+    long long id_MBP; //!< ID of most bound particle in structure
+    double M_vir; //!< Bryan & Norman (ApJ 495, 80, 1998) virial mass [M_sol/h]
+    int n_particles; //!< Number of particles in the structure
+    float position_COM[3]; //!< Centre-of-mass position      [Mpc/h]
+    float position_MBP[3]; //!< Most bound particle position [Mpc/h]
+    float velocity_COM[3]; //!< Centre-of-mass velocity      [km/s]
+    float velocity_MBP[3]; //!< Most bound particle velocity [km/s]
+    float R_vir; //!< Virial radius [Mpc/h]
+    float R_halo; //!< Distance of last halo particle from MBP [Mpc/h]
+    float R_max; //!< Radius of maximum circular velocity     [Mpc/h]
+    float V_max; //!< Maximum circular velocity               [km/s]
+    float sigma_v; //!< Total 3D velocity dispersion            [km/s]
+    float ang_mom[3]; //!< Specific angular momentum vector        [Mpc/h*km/s]
+    float q_triaxial; //!< Triaxial shape parameter q=b/a
+    float s_triaxial; //!< Triaxial shape parameter s=c/a
+    float shape_eigen_vectors[3][3]; //!< Normalized triaxial shape eigenvectors
+    char padding[8]; //!< Alignment padding
 } catalog_halo_t;
 
 static void read_catalog_halos(
@@ -147,7 +147,8 @@ static void read_catalog_halos(
         fread(&(halo[*i_halo]), sizeof(catalog_halo_t), n_to_read, *fin);
         *i_halo += n_to_read;
         *i_halo_in_file += n_to_read;
-    } else {
+    }
+    else {
         // read in as many as we can from this file and then get the rest from the next file
         n_from_this_file = (*n_halos_file) - *i_halo_in_file;
 
@@ -165,7 +166,8 @@ static void inline convert_input_virial_props(double* Mvir, double* Rvir, double
         // Update the virial properties for subhalos
         *Mvir = calculate_Mvir(*Mvir, len);
         *Rvir = calculate_Rvir(*Mvir, snapshot);
-    } else {
+    }
+    else {
         // Convert the mass unit for FoFs
         *Mvir /= 1.0e10;
         if (run_globals.RequestedMassRatioModifier == 1) {
@@ -324,7 +326,8 @@ void read_trees__gbptrees(
         if (first_group_index == last_group_index) {
             i_group = 1;
             memcpy(&(group_buffer[0]), &(group_buffer[n_groups - 1]), sizeof(catalog_halo_t));
-        } else
+        }
+        else
             i_group = 0;
         last_group_index = tree_buffer[n_to_read - 1].group_index;
         n_groups = last_group_index - first_group_index + 1;
@@ -387,7 +390,8 @@ void read_trees__gbptrees(
                         snapshot);
 
                     fof_group[(*n_fof_groups_kept)++].FirstHalo = &(halo[*n_halos_kept]);
-                } else {
+                }
+                else {
                     cur_halo->Type = 1;
                     halo[(*n_halos_kept) - 1].NextHaloInFOFGroup = &(halo[*n_halos_kept]);
                 }

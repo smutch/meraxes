@@ -33,7 +33,8 @@ int compare_ints(const void* a, const void* b)
 {
     return *((int*)a) - *((int*)b);
 }
-int compare_floats(const void* a, const void* b) {
+int compare_floats(const void* a, const void* b)
+{
     float value = *(float*)a - *(float*)b;
 
     if (value > 0)
@@ -190,7 +191,6 @@ int isclosef(
     return fabs(a - b) <= (abs_tol + rel_tol * fabs(b));
 }
 
-
 int find_original_index(int index, int* lookup, int n_mappings)
 {
     int new_index = -1;
@@ -201,4 +201,3 @@ int find_original_index(int index, int* lookup, int n_mappings)
 
     return new_index;
 }
-

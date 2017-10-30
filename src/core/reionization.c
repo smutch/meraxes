@@ -32,7 +32,7 @@ void set_quasar_fobs()
 
     params->quasar_fobs = 1. - cos(params->quasar_open_angle / 180. * M_PI / 2.);
     mlog("Quasar radiation open angle is set to be %g, corresponding to an obscure fraction of %g",
-        MLOG_MESG|MLOG_FLUSH, params->quasar_open_angle, params->quasar_fobs);
+        MLOG_MESG | MLOG_FLUSH, params->quasar_open_angle, params->quasar_fobs);
 }
 
 void set_ReionEfficiency()
@@ -535,30 +535,30 @@ void construct_baryon_grids(int snapshot, int local_ngals)
                 // finally copying the values into the appropriate slab.
                 // TODO: Use a better timescale for SFR
                 switch (prop) {
-                    case prop_sfr:
-                        for (int ix = 0; ix < slab_nix[i_r]; ix++)
-                            for (int iy = 0; iy < ReionGridDim; iy++)
-                                for (int iz = 0; iz < ReionGridDim; iz++) {
-                                    double val = (double)buffer[grid_index(ix, iy, iz, ReionGridDim, INDEX_REAL)];
-                                    val = (val > 0) ? val / tHubble : 0;
-                                    sfr_grid[grid_index(ix, iy, iz, ReionGridDim, INDEX_PADDED)] = (float)val;
-                                }
-                        break;
+                case prop_sfr:
+                    for (int ix = 0; ix < slab_nix[i_r]; ix++)
+                        for (int iy = 0; iy < ReionGridDim; iy++)
+                            for (int iz = 0; iz < ReionGridDim; iz++) {
+                                double val = (double)buffer[grid_index(ix, iy, iz, ReionGridDim, INDEX_REAL)];
+                                val = (val > 0) ? val / tHubble : 0;
+                                sfr_grid[grid_index(ix, iy, iz, ReionGridDim, INDEX_PADDED)] = (float)val;
+                            }
+                    break;
 
-                    case prop_stellar:
-                        for (int ix = 0; ix < slab_nix[i_r]; ix++)
-                            for (int iy = 0; iy < ReionGridDim; iy++)
-                                for (int iz = 0; iz < ReionGridDim; iz++) {
-                                    float val = buffer[grid_index(ix, iy, iz, ReionGridDim, INDEX_REAL)];
-                                    if (val < 0)
-                                        val = 0;
-                                    stellar_grid[grid_index(ix, iy, iz, ReionGridDim, INDEX_PADDED)] = val;
-                                }
-                        break;
+                case prop_stellar:
+                    for (int ix = 0; ix < slab_nix[i_r]; ix++)
+                        for (int iy = 0; iy < ReionGridDim; iy++)
+                            for (int iz = 0; iz < ReionGridDim; iz++) {
+                                float val = buffer[grid_index(ix, iy, iz, ReionGridDim, INDEX_REAL)];
+                                if (val < 0)
+                                    val = 0;
+                                stellar_grid[grid_index(ix, iy, iz, ReionGridDim, INDEX_PADDED)] = val;
+                            }
+                    break;
 
-                    default:
-                        mlog_error("Eh!?!");
-                        ABORT(EXIT_FAILURE);
+                default:
+                    mlog_error("Eh!?!");
+                    ABORT(EXIT_FAILURE);
                 }
         }
         MPI_Allreduce(MPI_IN_PLACE, &N_BlackHoleMassLimitReion, 1, MPI_DOUBLE, MPI_SUM, run_globals.mpi_comm);
