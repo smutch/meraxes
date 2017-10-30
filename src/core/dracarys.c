@@ -231,6 +231,7 @@ void dracarys()
         // now that all other galaxies have been processed and their halo
         // pointers updated...
         gal = run_globals.FirstGal;
+
         while (gal != NULL) {
             if ((gal->Type == 2) && (gal->MergerTarget == NULL)) {
                 // Set the merger target of the incoming galaxy and initialise the

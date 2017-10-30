@@ -64,7 +64,7 @@ double calculate_merging_time(galaxy_t* orphan, int snapshot)
         cur_gal = cur_gal->NextGalInHalo;
     }
 
-    coulomb = log((double)(mother->Len) / (double)(sat->Len) + 1);
+    coulomb = log1p((double)(mother->Len) / (double)(sat->Len));
 
     // Include the baryonic mass in the calculation of the dynamical friction
     // timescale ala Guo+ 2011.
