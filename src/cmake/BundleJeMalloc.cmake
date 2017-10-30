@@ -1,5 +1,4 @@
 function(bundle_jemalloc)
-    message(STATUS "Using bundled JeMalloc")
     ExternalProject_Add(jemalloc-5.0.1
         URL https://github.com/jemalloc/jemalloc/releases/download/5.0.1/jemalloc-5.0.1.tar.bz2
         URL_MD5 507f7b6b882d868730d644510491d18f

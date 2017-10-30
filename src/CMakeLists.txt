@@ -116,7 +116,7 @@ target_link_libraries(meraxes_lib PRIVATE m)
 target_link_libraries(meraxes PRIVATE m)
 
 # JEMALLOC
-if(USE_JeMalloc)
+if(USE_JeMalloc OR USE_BUNDLED_JeMalloc)
     if (NOT USE_BUNDLED_JeMalloc)
         find_package(JeMalloc REQUIRED)
         target_link_libraries(meraxes_lib PRIVATE ${JEMALLOC_LIBRARIES})
@@ -186,16 +186,11 @@ endif()
 
 
 # FFTW
-find_path(FFTW_INCLUDE_DIRS fftw3.h PATHS "${FFTW_ROOT}/*" NO_DEFAULT_PATH)
-find_path(FFTW_INCLUDE_DIRS fftw3.h)
-find_library(FFTW_LIBRARIES fftw3f PATHS "${FFTW_ROOT}/*" NO_DEFAULT_PATH)
-find_library(FFTW_LIBRARIES fftw3f)
-find_library(FFTW_MPI_LIBRARIES fftw3f_mpi PATHS "${FFTW_ROOT}/*" NO_DEFAULT_PATH)
-find_library(FFTW_MPI_LIBRARIES fftw3f_mpi)
+find_package(FFTW REQUIRED)
 target_include_directories(meraxes_lib PRIVATE ${FFTW_INCLUDE_DIRS})
 target_include_directories(meraxes PRIVATE ${FFTW_INCLUDE_DIRS})
-target_link_libraries(meraxes_lib PRIVATE ${FFTW_LIBRARIES} ${FFTW_MPI_LIBRARIES})
-target_link_libraries(meraxes PRIVATE ${FFTW_LIBRARIES} ${FFTW_MPI_LIBRARIES})
+target_link_libraries(meraxes_lib PRIVATE ${FFTW_LIBRARIES})
+target_link_libraries(meraxes PRIVATE ${FFTW_LIBRARIES})
 
 # OpenMP
 option(USE_OpenMP "Use OpenMP" OFF)
