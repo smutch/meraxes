@@ -3,6 +3,7 @@ cmake_minimum_required(VERSION 3.5)
 project(meraxes)
 include(${CMAKE_ROOT}/Modules/ExternalProject.cmake)
 include(${CMAKE_CURRENT_SOURCE_DIR}/local.cmake OPTIONAL)
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 set_property(DIRECTORY PROPERTY EP_PREFIX "${CMAKE_CURRENT_SOURCE_DIR}/3rd_party")
 set(CMAKE_EXPORT_COMPILE_COMMANDS TRUE CACHE BOOL "Export compile commands (for clang-tidy)" FORCE)
 find_package(Git REQUIRED)
@@ -45,6 +46,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 set(N_HISTORY_SNAPS 5 CACHE VALUE "Number of snapshots for delayed SN feedback")
 add_definitions(-DN_HISTORY_SNAPS=${N_HISTORY_SNAPS})
 set(USE_JeMalloc TRUE CACHE BOOL "Build with jemalloc (may improve performance on some systems)")
+set(USE_BUNDLED_JeMalloc TRUE CACHE BOOL "Download and build against bundled jemalloc")
 
 # executable
 add_executable(meraxes ${SOURCES})
@@ -115,25 +117,14 @@ target_link_libraries(meraxes PRIVATE m)
 
 # JEMALLOC
 if(USE_JeMalloc)
-    ExternalProject_Add(jemalloc-5.0.1
-        URL https://github.com/jemalloc/jemalloc/releases/download/5.0.1/jemalloc-5.0.1.tar.bz2
-        URL_MD5 507f7b6b882d868730d644510491d18f
-        CONFIGURE_COMMAND <SOURCE_DIR>/configure --prefix=<INSTALL_DIR>
-        BUILD_COMMAND make -j4
-        BUILD_IN_SOURCE 1
-        BUILD_ALWAYS 0
-        INSTALL_COMMAND make install
-        EXCLUDE_FROM_ALL 1
-        )
-    ExternalProject_Get_Property(jemalloc-5.0.1 INSTALL_DIR)
-    add_library(jemalloc SHARED IMPORTED)
-    set(JEMALLOC_LIBRARIES ${INSTALL_DIR}/lib/${CMAKE_FIND_LIBRARY_PREFIXES}jemalloc.so)
-    set_target_properties(jemalloc PROPERTIES IMPORTED_LOCATION ${JEMALLOC_LIBRARIES})
-    if(NOT EXISTS ${JEMALLOC_LIBRARIES})
-        add_dependencies(jemalloc jemalloc-5.0.1)
+    if (NOT USE_BUNDLED_JeMalloc)
+        find_package(JeMalloc REQUIRED)
+        target_link_libraries(meraxes_lib PRIVATE ${JEMALLOC_LIBRARIES})
+        target_link_libraries(meraxes PRIVATE ${JEMALLOC_LIBRARIES})
+    else()
+        include(cmake/BundleJeMalloc.cmake)
+        bundle_jemalloc()
     endif()
-    target_link_libraries(meraxes_lib PRIVATE jemalloc)
-    target_link_libraries(meraxes PRIVATE jemalloc)
 endif()
 
 # MPI
