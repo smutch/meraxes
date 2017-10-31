@@ -130,12 +130,8 @@ void dracarys()
                     gal->dt = LTTime[gal->LastIdentSnap] - LTTime[snapshot];
 
                     // If this is a central or a satellite
-                    if (gal->Type < 2) {
-                        // TODO: Get rid of the increment here and put it back into connect_galaxy_and_halo.
-                        if (check_for_flag(TREE_CASE_MERGER, gal->TreeFlags))
-                            merger_counter++;
+                    if (gal->Type < 2)
                         connect_galaxy_and_halo(gal, &halo[i_newhalo], &merger_counter);
-                    }
                 }
                 else { // this galaxy has been marked for death
                     if (gal->FirstGalInHalo == gal) {

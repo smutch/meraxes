@@ -175,8 +175,8 @@ void connect_galaxy_and_halo(galaxy_t* gal, halo_t* halo, int* merger_counter)
         // have a merger. Now we need to work out which galaxy is merging into
         // which.
 
-        // assert(merger_counter != NULL);
-        // (*merger_counter)++;
+        assert(merger_counter != NULL);
+        (*merger_counter)++;
 
         galaxy_t* parent = NULL;
         galaxy_t* infaller = NULL;
