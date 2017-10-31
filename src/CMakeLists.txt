@@ -46,7 +46,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 set(N_HISTORY_SNAPS 5 CACHE VALUE "Number of snapshots for delayed SN feedback")
 add_definitions(-DN_HISTORY_SNAPS=${N_HISTORY_SNAPS})
 set(USE_JeMalloc TRUE CACHE BOOL "Build with jemalloc (may improve performance on some systems)")
-set(USE_BUNDLED_JeMalloc TRUE CACHE BOOL "Download and build against bundled jemalloc")
+set(USE_BUNDLED_JeMalloc FALSE CACHE BOOL "Download and build against bundled jemalloc")
 
 # executable
 add_executable(meraxes ${SOURCES})

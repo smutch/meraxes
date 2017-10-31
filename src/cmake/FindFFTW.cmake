@@ -12,8 +12,7 @@ endif()
 set(FFTW_DEFINITIONS ${PC_FFTW_CFLAGS_OTHER})
 
 find_path(FFTW_INCLUDE_DIR fftw3.h
-          PATHS ${PC_FFTW_INCLUDEDIR} ${PC_FFTW_INCLUDE_DIRS}
-          HINTS ${FFTW_ROOT})
+          PATHS ${PC_FFTW_INCLUDEDIR} ${PC_FFTW_INCLUDE_DIRS} "${FFTW_ROOT}/include")
 
 function(find_fftw_lib name dst_var)
     # If we're asked to use static linkage, add it as a preferred library name.
@@ -28,8 +27,8 @@ function(find_fftw_lib name dst_var)
     list(APPEND FFTW_NAMES ${name})
 
     find_library(${dst_var} NAMES ${FFTW_NAMES}
-        HINTS ${PC_FFTW_LIBDIR} ${PC_FFTW_LIBRARY_DIRS}
-        ${FFTW_ROOT})
+        PATHS "${FFTW_ROOT}/lib"
+        HINTS ${PC_FFTW_LIBDIR} ${PC_FFTW_LIBRARY_DIRS})
 endfunction()
 
 find_fftw_lib(fftw3f FFTW_LIBRARY)
