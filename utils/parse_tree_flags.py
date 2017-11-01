@@ -19,13 +19,17 @@ class tree_flags(object):
                 if len(line) == 0:
                     continue
                 if not line[0].startswith('//'):
-                    self.flags[line[1]] = int(line[2])
+                    if line[2] in self.flags.keys():
+                        self.flags[line[1]] = self.flags[line[2]]
+                    else:
+                        self.flags[line[1]] = int(line[2])
+        self.flags = dict((k, v) for k, v in self.flags.items() if 'TTTP' not in k)
 
     def parse(self, num):
-        print("Flag {:d} matches:".format(num))
-        for s, v in self.flags.iteritems():
+        print(("Flag {:d} matches:".format(num)))
+        for s, v in self.flags.items():
             if (num & v) == v:
-                print s
+                print(s)
 
 
 if __name__ == '__main__':

@@ -1,414 +1,382 @@
-#include <stdlib.h>
-#include <stdio.h>
-#include <unistd.h>
-#include <stdarg.h>
+#include "meraxes.h"
 #include <assert.h>
 #include <hdf5.h>
 #include <hdf5_hl.h>
+#include <stdarg.h>
 #include <stdint.h>
-#include "meraxes.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
 
 void check_mhysa_pointer()
 {
-  fprintf(stderr, "Addresses: run_globals.mhysa_self = %p\n", run_globals.mhysa_self);
-  fprintf(stderr, "          &run_globals = %p\n", &run_globals);
-  fprintf(stderr, "          &run_globals.FNameOut = %p\n", &run_globals.FNameOut);
-  fprintf(stderr, "          &run_globals.AA = %p\n", &run_globals.AA);
-  fprintf(stderr, "          &run_globals.ZZ = %p\n", &run_globals.ZZ);
-  fprintf(stderr, "          &run_globals.LTTime = %p\n", &run_globals.LTTime);
-  fprintf(stderr, "          &run_globals.RequestedForestId = %p\n", &run_globals.RequestedForestId);
-  fprintf(stderr, "          &run_globals.ListOutputSnaps = %p\n", &run_globals.ListOutputSnaps);
-  fprintf(stderr, "          &run_globals.SnapshotIndexLookup = %p\n", &run_globals.SnapshotIndexLookup);
-  fprintf(stderr, "          &run_globals.SnapshotDeltax = %p\n", &run_globals.SnapshotDeltax);
-  fprintf(stderr, "          &run_globals.FirstGal = %p\n", &run_globals.FirstGal);
-  fprintf(stderr, "          &run_globals.LastGal = %p\n", &run_globals.LastGal);
-  fprintf(stderr, "          &run_globals.mhysa_self = %p\n", &run_globals.mhysa_self);
+    fprintf(stderr, "Addresses: run_globals.mhysa_self = %p\n", run_globals.mhysa_self);
+    fprintf(stderr, "          &run_globals = %p\n", &run_globals);
+    fprintf(stderr, "          &run_globals.FNameOut = %p\n", &run_globals.FNameOut);
+    fprintf(stderr, "          &run_globals.AA = %p\n", &run_globals.AA);
+    fprintf(stderr, "          &run_globals.ZZ = %p\n", &run_globals.ZZ);
+    fprintf(stderr, "          &run_globals.LTTime = %p\n", &run_globals.LTTime);
+    fprintf(stderr, "          &run_globals.RequestedForestId = %p\n", &run_globals.RequestedForestId);
+    fprintf(stderr, "          &run_globals.ListOutputSnaps = %p\n", &run_globals.ListOutputSnaps);
+    fprintf(stderr, "          &run_globals.SnapshotIndexLookup = %p\n", &run_globals.SnapshotIndexLookup);
+    fprintf(stderr, "          &run_globals.SnapshotDeltax = %p\n", &run_globals.SnapshotDeltax);
+    fprintf(stderr, "          &run_globals.FirstGal = %p\n", &run_globals.FirstGal);
+    fprintf(stderr, "          &run_globals.LastGal = %p\n", &run_globals.LastGal);
+    fprintf(stderr, "          &run_globals.mhysa_self = %p\n", &run_globals.mhysa_self);
 }
-
 
 void mpi_debug_here()
 {
 #ifdef DEBUG
-  int  i = 0;
-  char hostname[256];
-  gethostname(hostname, sizeof(hostname));
-  printf("Task %d, PID %d on %s ready for attach\n", run_globals.mpi_rank, getpid(), hostname);
-  printf("Once connected go up stack to 'sleep(5)' and 'set var i=7'\n");
-  fflush(stdout);
-  while (0 == i)
-    sleep(5);
+    int i = 0;
+    char hostname[256];
+    gethostname(hostname, sizeof(hostname));
+    printf("Task %d, PID %d on %s ready for attach\n", run_globals.mpi_rank, getpid(), hostname);
+    printf("Once connected go up stack to 'sleep(5)' and 'set var i=7'\n");
+    fflush(stdout);
+    // cppcheck-suppress knownConditionTrueFalse
+    while (0 == i)
+        sleep(5);
 #endif
 }
 
-
-static void find_missing_gals(fof_group_t *fof_group, int NFof, int flag)
+static void find_missing_gals(fof_group_t* fof_group, int NFof, int flag)
 {
-  galaxy_t  *gal             = NULL;
-  halo_t    *halo            = NULL;
-  int        counter         = 0;
-  int        master_counter  = 0;
-  int        missing_counter = 0;
-  bool      *gal_found;
-  galaxy_t **missing_pointers;
+    galaxy_t* gal = NULL;
+    halo_t* halo = NULL;
+    int counter = 0;
+    int master_counter = 0;
+    int missing_counter = 0;
+    bool* gal_found;
+    galaxy_t** missing_pointers;
 
-  mlog("Running `find_missing_galaxies`...", MLOG_OPEN);
+    mlog("Running `find_missing_galaxies`...", MLOG_OPEN);
 
-  // If flag =0 then we have more galaxies in the global linked list than when
-  // we traverse the FOF groups.  If flag =1 then we have the opposite
-  // situation...
+    // If flag =0 then we have more galaxies in the global linked list than when
+    // we traverse the FOF groups.  If flag =1 then we have the opposite
+    // situation...
 
-  if(flag == 0)
-  {
-    // Count the number of galaxies
-    gal = run_globals.FirstGal;
-    while (gal != NULL)
-    {
-      gal->output_index = counter++;
-      gal               = gal->Next;
-    }
-
-    gal_found = calloc(counter, sizeof(bool));
-
-    // Loop through each FOF halo and mark off each galaxy
-    for(int i_fof = 0; i_fof < NFof; i_fof++)
-    {
-      halo = fof_group[i_fof].FirstHalo;
-      while (halo != NULL) {
-        gal = halo->Galaxy;
-        while(gal != NULL) {
-          gal_found[gal->output_index] = true;
-          gal                          = gal->NextGalInHalo;
+    if (flag == 0) {
+        // Count the number of galaxies
+        gal = run_globals.FirstGal;
+        while (gal != NULL) {
+            gal->output_index = counter++;
+            gal = gal->Next;
         }
-        halo = halo->NextHaloInFOFGroup;
-      }
-    }
-  }
-  else if(flag == 1)
-  {
-    // Count the number of galaxies
-    for(int i_fof = 0; i_fof < NFof; i_fof++)
-    {
-      halo = fof_group[i_fof].FirstHalo;
-      while (halo != NULL) {
-        gal = halo->Galaxy;
-        while(gal != NULL) {
-          gal->output_index = counter++;
-          gal               = gal->NextGalInHalo;
+
+        gal_found = calloc(counter, sizeof(bool));
+
+        // Loop through each FOF halo and mark off each galaxy
+        for (int i_fof = 0; i_fof < NFof; i_fof++) {
+            halo = fof_group[i_fof].FirstHalo;
+            while (halo != NULL) {
+                gal = halo->Galaxy;
+                while (gal != NULL) {
+                    gal_found[gal->output_index] = true;
+                    gal = gal->NextGalInHalo;
+                }
+                halo = halo->NextHaloInFOFGroup;
+            }
         }
-        halo = halo->NextHaloInFOFGroup;
-      }
+    }
+    else if (flag == 1) {
+        // Count the number of galaxies
+        for (int i_fof = 0; i_fof < NFof; i_fof++) {
+            halo = fof_group[i_fof].FirstHalo;
+            while (halo != NULL) {
+                gal = halo->Galaxy;
+                while (gal != NULL) {
+                    gal->output_index = counter++;
+                    gal = gal->NextGalInHalo;
+                }
+                halo = halo->NextHaloInFOFGroup;
+            }
+        }
+
+        mlog("I find counter=%d using FOF traversal...", MLOG_MESG, counter);
+
+        gal_found = malloc(sizeof(bool) * counter);
+        for (int ii = 0; ii < counter; ii++)
+            gal_found[ii] = false;
+
+        // Traverse the global linked list and mark off each galaxy
+        gal = run_globals.FirstGal;
+        master_counter = 0;
+        while (gal != NULL) {
+            if (!gal->ghost_flag)
+                gal_found[gal->output_index] = true;
+            master_counter++;
+            gal = gal->Next;
+        }
+        mlog("I find %d gals traversing global list...", MLOG_MESG, master_counter);
     }
 
-    mlog("I find counter=%d using FOF traversal...", MLOG_MESG, counter);
+    // Now create an array which holds pointers to the missing galaxies
+    for (int ii = 0; ii < counter; ii++)
+        if (!gal_found[ii]) {
+            mlog("ii = %d", MLOG_MESG, ii);
+            missing_counter++;
+        }
 
-    gal_found = malloc(sizeof(bool) * counter);
-    for(int ii = 0; ii < counter; ii++)
-      gal_found[ii] = false;
+    master_counter = counter;
 
-    // Traverse the global linked list and mark off each galaxy
-    gal            = run_globals.FirstGal;
-    master_counter = 0;
-    while (gal != NULL)
-    {
-      if(!gal->ghost_flag)
-        gal_found[gal->output_index] = true;
-      master_counter++;
-      gal = gal->Next;
-    }
-    mlog("I find %d gals traversing global list...", MLOG_MESG, master_counter);
-  }
-
-  // Now create an array which holds pointers to the missing galaxies
-  for(int ii = 0; ii < counter; ii++)
-    if(!gal_found[ii])
-    {
-      mlog("ii = %d", MLOG_MESG, ii);
-      missing_counter++;
-    }
-
-  master_counter = counter;
-
-  // Check the number of gals with ghost_flag=true
-  gal            = run_globals.FirstGal;
-  counter        = 0;
-  while(gal != NULL)
-  {
-    if(gal->ghost_flag)
-      counter++;
-    gal = gal->Next;
-  }
-  mlog("I find %d gals with ghost_flag=true", MLOG_MESG, counter);
-  counter = 0;
-  for(int i_fof = 0; i_fof < NFof; i_fof++)
-  {
-    halo = fof_group[i_fof].FirstHalo;
-    while (halo != NULL) {
-      gal = halo->Galaxy;
-      while(gal != NULL) {
-        if(gal->ghost_flag)
-          counter++;
-        gal = gal->NextGalInHalo;
-      }
-      halo = halo->NextHaloInFOFGroup;
-    }
-  }
-  mlog("I find %d gals with ghost_flag=true (FOF traversal)", MLOG_MESG, counter);
-
-  missing_pointers = calloc(missing_counter, sizeof(galaxy_t *));
-
-  // Loop through the galaxies and store the pointers of the missing ones
-  counter          = 0;
-  if(flag == 0)
-  {
+    // Check the number of gals with ghost_flag=true
     gal = run_globals.FirstGal;
-    while (gal != NULL)
-    {
-      // Note that we only store non-ghost missing pointers here...
-      if((!gal_found[gal->output_index]) && (gal->SnapSkipCounter <= 0))
-        missing_pointers[counter++] = gal;
-      gal = gal->Next;
+    counter = 0;
+    while (gal != NULL) {
+        if (gal->ghost_flag)
+            counter++;
+        gal = gal->Next;
     }
-  }
-  else if(flag == 1)
-  {
-    for(int ii = 0; ii < master_counter; ii++)
-      if(!gal_found[ii])
-        for(int i_fof = 0; i_fof < NFof; i_fof++)
-        {
-          halo = fof_group[i_fof].FirstHalo;
-          while (halo != NULL) {
+    mlog("I find %d gals with ghost_flag=true", MLOG_MESG, counter);
+    counter = 0;
+    for (int i_fof = 0; i_fof < NFof; i_fof++) {
+        halo = fof_group[i_fof].FirstHalo;
+        while (halo != NULL) {
             gal = halo->Galaxy;
-            while(gal != NULL) {
-              if(gal->output_index == ii)
-                missing_pointers[counter++] = gal;
-              gal = gal->NextGalInHalo;
+            while (gal != NULL) {
+                if (gal->ghost_flag)
+                    counter++;
+                gal = gal->NextGalInHalo;
             }
             halo = halo->NextHaloInFOFGroup;
-          }
         }
-  }
+    }
+    mlog("I find %d gals with ghost_flag=true (FOF traversal)", MLOG_MESG, counter);
 
-  mpi_debug_here();
+    missing_pointers = calloc(missing_counter, sizeof(galaxy_t*));
 
-  free(missing_pointers);
-  free(gal_found);
+    // Loop through the galaxies and store the pointers of the missing ones
+    counter = 0;
+    if (flag == 0) {
+        gal = run_globals.FirstGal;
+        while (gal != NULL) {
+            // Note that we only store non-ghost missing pointers here...
+            if ((!gal_found[gal->output_index]) && (gal->SnapSkipCounter <= 0))
+                missing_pointers[counter++] = gal;
+            gal = gal->Next;
+        }
+    }
+    else if (flag == 1) {
+        for (int ii = 0; ii < master_counter; ii++)
+            if (!gal_found[ii])
+                for (int i_fof = 0; i_fof < NFof; i_fof++) {
+                    halo = fof_group[i_fof].FirstHalo;
+                    while (halo != NULL) {
+                        gal = halo->Galaxy;
+                        while (gal != NULL) {
+                            if (gal->output_index == ii)
+                                missing_pointers[counter++] = gal;
+                            gal = gal->NextGalInHalo;
+                        }
+                        halo = halo->NextHaloInFOFGroup;
+                    }
+                }
+    }
 
-  mlog("...done", MLOG_CLOSE);
+    mpi_debug_here();
+
+    free(missing_pointers);
+    free(gal_found);
+
+    mlog("...done", MLOG_CLOSE);
 }
 
-
-void check_counts(fof_group_t *fof_group, int NGal, int NFof)
+void check_counts(fof_group_t* fof_group, int NGal, int NFof)
 {
-  int       counter          = 0;
-  int       gal_next_counter = 0;
-  int       halo_counter     = 0;
-  int       halo_pop_count   = 0;
-  int       total_NGal       = 0;
-  int       total_NFof       = 0;
-  int       total_NGhosts    = 0;
-  galaxy_t *gal              = NULL;
-  halo_t   *halo             = NULL;
+    int counter = 0;
+    int gal_next_counter = 0;
+    int halo_counter = 0;
+    int halo_pop_count = 0;
+    int total_NGal = 0;
+    int total_NFof = 0;
+    int total_NGhosts = 0;
+    galaxy_t* gal = run_globals.FirstGal;
+    halo_t* halo = NULL;
 
-  mlog("Running counts check...", MLOG_OPEN | MLOG_TIMERSTART);
+    mlog("Running counts check...", MLOG_OPEN | MLOG_TIMERSTART);
 
-  MPI_Allreduce(&NFof, &total_NFof, 1, MPI_INT, MPI_SUM, run_globals.mpi_comm);
-  MPI_Allreduce(&NGal, &total_NGal, 1, MPI_INT, MPI_SUM, run_globals.mpi_comm);
-  MPI_Allreduce(&(run_globals.NGhosts), &total_NGhosts, 1, MPI_INT, MPI_SUM, run_globals.mpi_comm);
-  mlog("NFof = %d", MLOG_MESG, total_NFof);
-  mlog("NGal = %d", MLOG_MESG, total_NGal);
-  mlog("NGhosts = %d", MLOG_MESG, total_NGhosts);
+    MPI_Allreduce(&NFof, &total_NFof, 1, MPI_INT, MPI_SUM, run_globals.mpi_comm);
+    MPI_Allreduce(&NGal, &total_NGal, 1, MPI_INT, MPI_SUM, run_globals.mpi_comm);
+    MPI_Allreduce(&(run_globals.NGhosts), &total_NGhosts, 1, MPI_INT, MPI_SUM, run_globals.mpi_comm);
+    mlog("NFof = %d", MLOG_MESG, total_NFof);
+    mlog("NGal = %d", MLOG_MESG, total_NGal);
+    mlog("NGhosts = %d", MLOG_MESG, total_NGhosts);
 
-  counter = 0;
-  gal     = run_globals.FirstGal;
-  while (gal != NULL)
-  {
-    counter++;
-    gal = gal->Next;
-  }
-  MPI_Allreduce(MPI_IN_PLACE, &counter, 1, MPI_INT, MPI_SUM, run_globals.mpi_comm);
-  mlog("Counting using gal->Next gives %d gals (-%d ghosts = %d gals)",
-          MLOG_MESG, counter, total_NGhosts,
-          counter - total_NGhosts);
-  gal_next_counter = counter;
+    counter = 0;
+    while (gal != NULL) {
+        counter++;
+        gal = gal->Next;
+    }
+    MPI_Allreduce(MPI_IN_PLACE, &counter, 1, MPI_INT, MPI_SUM, run_globals.mpi_comm);
+    mlog("Counting using gal->Next gives %d gals (-%d ghosts = %d gals)",
+        MLOG_MESG, counter, total_NGhosts,
+        counter - total_NGhosts);
+    gal_next_counter = counter;
 
-  halo_pop_count   = 0;
-  counter          = 0;
-  halo_counter     = 0;
-  if (NGal > 0)
-  {
-    int ii;
-    for (int i_fof = 0; i_fof < NFof; i_fof++)
-    {
-      int jj = 0;
-      halo = fof_group[i_fof].FirstHalo;
-      while (halo != NULL)
-      {
-        gal = halo->Galaxy;
+    halo_pop_count = 0;
+    counter = 0;
+    halo_counter = 0;
+    if (NGal > 0) {
+        int ii;
+        for (int i_fof = 0; i_fof < NFof; i_fof++) {
+            int jj = 0;
+            halo = fof_group[i_fof].FirstHalo;
+            while (halo != NULL) {
+                gal = halo->Galaxy;
+                if (gal != NULL)
+                    halo_pop_count++;
+                ii = 0;
+                while (gal != NULL) {
+                    gal = gal->NextGalInHalo;
+                    counter++;
+                    ii++;
+                    if (ii > 10000)
+                        ABORT(EXIT_FAILURE);
+                }
+                halo = halo->NextHaloInFOFGroup;
+                halo_counter++;
+                jj++;
+                if (jj > 10000)
+                    ABORT(EXIT_FAILURE);
+            }
+        }
+    }
+    MPI_Allreduce(MPI_IN_PLACE, &counter, 1, MPI_INT, MPI_SUM, run_globals.mpi_comm);
+    MPI_Allreduce(MPI_IN_PLACE, &halo_counter, 1, MPI_INT, MPI_SUM, run_globals.mpi_comm);
+    MPI_Allreduce(MPI_IN_PLACE, &halo_pop_count, 1, MPI_INT, MPI_SUM, run_globals.mpi_comm);
+    mlog("Counting using FOF groups gives %d gals in %d halos", MLOG_MESG, counter, halo_counter);
+    mlog("%d halos are populated with at least one galaxy", MLOG_MESG, halo_pop_count);
+
+    if ((gal_next_counter - total_NGhosts) != counter) {
+        int flag;
+        if ((gal_next_counter - total_NGhosts) > counter)
+            flag = 0;
+        else
+            flag = 1;
+        find_missing_gals(fof_group, NFof, flag);
+        ABORT(EXIT_FAILURE);
+    }
+
+    mlog("...done", MLOG_CLOSE | MLOG_TIMERSTOP);
+}
+
+void check_pointers(halo_t* halos, fof_group_t* fof_groups, trees_info_t* trees_info)
+{
+    galaxy_t *gal, gal_deref;
+    halo_t* halo;
+    int n_halos = trees_info->n_halos;
+    int n_fof_groups = trees_info->n_fof_groups;
+
+    mlog("Running pointers check.  Remember to run with Valgrind if you want to check the ->galaxy pointers.", MLOG_MESG);
+
+    gal = run_globals.FirstGal;
+    while (gal != NULL) {
+        if (!gal->ghost_flag) {
+            halo = gal->Halo;
+            assert((halo - halos) < (long)n_halos);
+        }
+        galaxy_t* gal_pointer = gal->FirstGalInHalo;
+        if (gal_pointer != NULL)
+            gal_deref = *gal_pointer;
+        gal_pointer = gal->NextGalInHalo;
+        if (gal_pointer != NULL)
+            gal_deref = *gal_pointer;
+        gal_pointer = gal->Next;
+        if (gal_pointer != NULL)
+            gal_deref = *gal_pointer;
+        if (gal->Type == 3) {
+            gal_pointer = gal->MergerTarget;
+            if (gal_pointer != NULL)
+                gal_deref = *gal_pointer;
+        }
+
+        gal = gal->Next;
+    }
+
+    for (int ii = 0; ii < n_halos; ii++) {
+        fof_group_t* fof_group = halos[ii].FOFGroup;
+        // mlog("%ld < %ld\n", MLOG_MESG, fof_group-fof_groups, n_fof_groups);
+        assert((fof_group - fof_groups) < (long)n_fof_groups);
+        halo = halos[ii].NextHaloInFOFGroup;
+        if (halo != NULL)
+            // mlog("%llu < %llu", MLOG_MESG, halo-halos, (size_t)n_halos);
+            assert((halo - halos) < (long)n_halos);
+        gal = halos[ii].Galaxy;
         if (gal != NULL)
-          halo_pop_count++;
-        ii  = 0;
-        while (gal != NULL)
-        {
-          gal = gal->NextGalInHalo;
-          counter++;
-          ii++;
-          if (ii > 10000)
-            ABORT(EXIT_FAILURE);
-        }
-        halo = halo->NextHaloInFOFGroup;
-        halo_counter++;
-        jj++;
-        if (jj > 10000)
-          ABORT(EXIT_FAILURE);
-      }
+            gal_deref = *gal;
     }
-  }
-  MPI_Allreduce(MPI_IN_PLACE, &counter, 1, MPI_INT, MPI_SUM, run_globals.mpi_comm);
-  MPI_Allreduce(MPI_IN_PLACE, &halo_counter, 1, MPI_INT, MPI_SUM, run_globals.mpi_comm);
-  MPI_Allreduce(MPI_IN_PLACE, &halo_pop_count, 1, MPI_INT, MPI_SUM, run_globals.mpi_comm);
-  mlog("Counting using FOF groups gives %d gals in %d halos", MLOG_MESG, counter, halo_counter);
-  mlog("%d halos are populated with at least one galaxy", MLOG_MESG, halo_pop_count);
 
-  if((gal_next_counter - total_NGhosts) != counter)
-  {
-    int flag;
-    if((gal_next_counter - total_NGhosts) > counter)
-      flag = 0;
+    for (int ii = 0; ii < n_fof_groups; ii++) {
+        halo = fof_groups[ii].FirstHalo;
+        assert((halo - halos) < (long)n_halos);
+        halo = fof_groups[ii].FirstOccupiedHalo;
+        if (halo != NULL)
+            assert((halo - halos) < (long)n_halos);
+    }
+}
+
+void write_single_grid(const char* fname,
+    float* grid,
+    const char* grid_name,
+    bool padded_flag,
+    bool create_file_flag)
+{
+    hid_t plist_id = H5Pcreate(H5P_FILE_ACCESS);
+
+    H5Pset_fapl_mpio(plist_id, run_globals.mpi_comm, MPI_INFO_NULL);
+
+    hid_t fd;
+    if (create_file_flag)
+        fd = H5Fcreate(fname, H5F_ACC_TRUNC, H5P_DEFAULT, plist_id);
     else
-      flag = 1;
-    find_missing_gals(fof_group, NFof, flag);
-    ABORT(EXIT_FAILURE);
-  }
+        fd = H5Fopen(fname, H5F_ACC_RDWR, plist_id);
 
-  mlog("...done", MLOG_CLOSE|MLOG_TIMERSTOP);
-}
+    H5Pclose(plist_id);
 
+    int local_nix = run_globals.reion_grids.slab_nix[run_globals.mpi_rank];
+    int ReionGridDim = run_globals.params.ReionGridDim;
+    float* grid_out;
 
-void check_pointers(halo_t *halos, fof_group_t *fof_groups, trees_info_t *trees_info)
-{
-  galaxy_t    *gal, *gal_pointer, gal_deref;
-  halo_t      *halo;
-  fof_group_t *fof_group;
-  int          n_halos      = trees_info->n_halos;
-  int          n_fof_groups = trees_info->n_fof_groups;
-
-  mlog("Running pointers check.  Remember to run with Valgrind if you want to check the ->galaxy pointers.", MLOG_MESG);
-
-  gal = run_globals.FirstGal;
-  while (gal != NULL)
-  {
-    if (!gal->ghost_flag)
-    {
-      halo = gal->Halo;
-      assert((halo - halos) < (size_t)n_halos);
+    if (padded_flag) {
+        grid_out = malloc(local_nix * ReionGridDim * ReionGridDim * sizeof(float));
+        for (int ii = 0; ii < local_nix; ii++)
+            for (int jj = 0; jj < ReionGridDim; jj++)
+                for (int kk = 0; kk < ReionGridDim; kk++)
+                    grid_out[grid_index(ii, jj, kk, ReionGridDim, INDEX_REAL)] = grid[grid_index(ii, jj, kk, ReionGridDim, INDEX_PADDED)];
     }
-    gal_pointer = gal->FirstGalInHalo;
-    if (gal_pointer != NULL)
-      gal_deref = *gal_pointer;
-    gal_pointer = gal->NextGalInHalo;
-    if (gal_pointer != NULL)
-      gal_deref = *gal_pointer;
-    gal_pointer = gal->Next;
-    if (gal_pointer != NULL)
-      gal_deref = *gal_pointer;
-    if (gal->Type == 3)
-    {
-      gal_pointer = gal->MergerTarget;
-      if (gal_pointer != NULL)
-        gal_deref = *gal_pointer;
-    }
+    else
+        grid_out = grid;
 
-    gal = gal->Next;
-  }
+    // create the filespace
+    hsize_t dims[3] = { ReionGridDim, ReionGridDim, ReionGridDim };
+    hid_t fspace_id = H5Screate_simple(3, dims, NULL);
 
-  for (int ii = 0; ii < n_halos; ii++)
-  {
-    fof_group = halos[ii].FOFGroup;
-    // mlog("%llu < %llu", MLOG_MESG, fof_group-fof_groups, (size_t)n_fof_groups);
-    assert((fof_group - fof_groups) < (size_t)n_fof_groups);
-    halo      = halos[ii].NextHaloInFOFGroup;
-    if (halo != NULL)
-      // mlog("%llu < %llu", MLOG_MESG, halo-halos, (size_t)n_halos);
-      assert((halo - halos) < (size_t)n_halos);
-    gal = halos[ii].Galaxy;
-    if (gal != NULL)
-      gal_deref = *gal;
-  }
+    // create the memspace
+    hsize_t mem_dims[3] = { local_nix, ReionGridDim, ReionGridDim };
+    hid_t memspace_id = H5Screate_simple(3, mem_dims, NULL);
 
-  for (int ii = 0; ii < n_fof_groups; ii++)
-  {
-    halo = fof_groups[ii].FirstHalo;
-    assert((halo - halos) < (size_t)n_halos);
-    halo = fof_groups[ii].FirstOccupiedHalo;
-    if (halo != NULL)
-      assert((halo - halos) < (size_t)n_halos);
-  }
-}
+    // select a hyperslab in the filespace
+    hsize_t start[3] = { run_globals.reion_grids.slab_ix_start[run_globals.mpi_rank], 0, 0 };
+    hsize_t count[3] = { local_nix, ReionGridDim, ReionGridDim };
+    H5Sselect_hyperslab(fspace_id, H5S_SELECT_SET, start, NULL, count, NULL);
 
+    // crerate the dataset
+    hid_t dset_id = H5Dcreate(fd, grid_name, H5T_NATIVE_FLOAT, fspace_id,
+        H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+    plist_id = H5Pcreate(H5P_DATASET_XFER);
+    H5Pset_dxpl_mpio(plist_id, H5FD_MPIO_COLLECTIVE);
 
-void write_single_grid(const char *fname,
-                       float      *grid,
-                       const char *grid_name,
-                       bool        padded_flag,
-                       bool        create_file_flag)
-{
-  hid_t plist_id = H5Pcreate(H5P_FILE_ACCESS);
+    // write the dataset
+    H5Dwrite(dset_id, H5T_NATIVE_FLOAT, memspace_id, fspace_id, plist_id, grid_out);
 
-  H5Pset_fapl_mpio(plist_id, run_globals.mpi_comm, MPI_INFO_NULL);
+    // cleanup
+    H5Pclose(plist_id);
+    H5Dclose(dset_id);
+    H5Sclose(memspace_id);
+    H5Sclose(fspace_id);
+    H5Fclose(fd);
 
-  hid_t fd;
-  if (create_file_flag)
-    fd = H5Fcreate(fname, H5F_ACC_TRUNC, H5P_DEFAULT, plist_id);
-  else
-    fd = H5Fopen(fname, H5F_ACC_RDWR, plist_id);
-
-  H5Pclose(plist_id);
-
-  int    local_nix    = run_globals.reion_grids.slab_nix[run_globals.mpi_rank];
-  int    ReionGridDim = run_globals.params.ReionGridDim;
-  float *grid_out;
-
-  if (padded_flag)
-  {
-    grid_out = malloc(local_nix * ReionGridDim * ReionGridDim * sizeof(float));
-    for(int ii = 0; ii < local_nix; ii++)
-      for(int jj = 0; jj < ReionGridDim; jj++)
-        for(int kk = 0; kk < ReionGridDim; kk++)
-          grid_out[grid_index(ii, jj, kk, ReionGridDim, INDEX_REAL)] =
-            grid[grid_index(ii, jj, kk, ReionGridDim, INDEX_PADDED)];
-  }
-  else
-    grid_out = grid;
-
-  // create the filespace
-  hsize_t dims[3]     = {ReionGridDim, ReionGridDim, ReionGridDim};
-  hid_t   fspace_id   = H5Screate_simple(3, dims, NULL);
-
-  // create the memspace
-  hsize_t mem_dims[3] = {local_nix, ReionGridDim, ReionGridDim};
-  hid_t   memspace_id = H5Screate_simple(3, mem_dims, NULL);
-
-  // select a hyperslab in the filespace
-  hsize_t start[3]    = {run_globals.reion_grids.slab_ix_start[run_globals.mpi_rank], 0, 0};
-  hsize_t count[3]    = {local_nix, ReionGridDim, ReionGridDim};
-  H5Sselect_hyperslab(fspace_id, H5S_SELECT_SET, start, NULL, count, NULL);
-
-  // crerate the dataset
-  hid_t dset_id = H5Dcreate(fd, grid_name, H5T_NATIVE_FLOAT, fspace_id,
-                            H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
-  plist_id = H5Pcreate(H5P_DATASET_XFER);
-  H5Pset_dxpl_mpio(plist_id, H5FD_MPIO_COLLECTIVE);
-
-  // write the dataset
-  H5Dwrite(dset_id, H5T_NATIVE_FLOAT, memspace_id, fspace_id, plist_id, grid_out);
-
-  // cleanup
-  H5Pclose(plist_id);
-  H5Dclose(dset_id);
-  H5Sclose(memspace_id);
-  H5Sclose(fspace_id);
-  H5Fclose(fd);
-
-  if (padded_flag)
-    free(grid_out);
+    if (padded_flag)
+        free(grid_out);
 }
