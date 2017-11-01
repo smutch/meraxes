@@ -186,6 +186,7 @@ void connect_galaxy_and_halo(galaxy_t* gal, halo_t* halo, int* merger_counter)
             // TODO: Make sure I don't need to turn off the merger flag...
             parent = check_for_flag(TREE_CASE_MERGER, gal->TreeFlags) ? halo->Galaxy : gal;
             infaller = halo->Galaxy == parent ? gal : halo->Galaxy;
+            assert(check_for_flag(TREE_CASE_MERGER, infaller->TreeFlags));
             break;
 
         case VELOCIRAPTOR_TREES:
@@ -202,7 +203,6 @@ void connect_galaxy_and_halo(galaxy_t* gal, halo_t* halo, int* merger_counter)
             break;
         }
 
-        // assert(check_for_flag(TREE_CASE_MERGER, infaller->TreeFlags));
 
         infaller->Type = 2;
         // Make sure the halo is pointing to the right galaxy
