@@ -36,6 +36,7 @@ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=gnu99")
 
 # source files
 file(GLOB SOURCES core/*.[ch] *.h physics/*.[ch])
+list(REMOVE_ITEM SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/core/meraxes.c)
 
 # output paths
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
@@ -49,18 +50,9 @@ set(USE_JeMalloc TRUE CACHE BOOL "Build with jemalloc (may improve performance o
 set(USE_BUNDLED_JeMalloc FALSE CACHE BOOL "Download and build against bundled jemalloc")
 set(USE_BUNDLED_FFTW FALSE CACHE BOOL "Download and build against bundled fftw")
 
-# executable
-add_executable(meraxes ${SOURCES})
-install(TARGETS meraxes DESTINATION bin COMPONENT bin)
-add_custom_target(install.meraxes
-    ${CMAKE_COMMAND} 
-    -DBUILD_TYPE=${CMAKE_BUILD_TYPE} 
-    -DCOMPONENT=bin
-    -P ${CMAKE_BINARY_DIR}/cmake_install.cmake) 
-add_dependencies(install.meraxes meraxes)
-
 # library
-add_library(meraxes_lib SHARED ${SOURCES})
+set(BUILD_SHARED_LIBS OFF CACHE BOOL "Build shared library version (required for Mhysa)")
+add_library(meraxes_lib ${SOURCES})
 set_target_properties(meraxes_lib PROPERTIES OUTPUT_NAME meraxes)
 install(TARGETS meraxes_lib DESTINATION lib COMPONENT lib)
 install(FILES meraxes.h ${CMAKE_BINARY_DIR}/git.h DESTINATION include COMPONENT lib)
@@ -70,6 +62,30 @@ add_custom_target(install.lib
     -DCOMPONENT=lib
     -P ${CMAKE_BINARY_DIR}/cmake_install.cmake) 
 add_dependencies(install.lib meraxes_lib)
+
+# executable
+if(NOT BUILD_SHARED_LIBS)
+    add_executable(meraxes ${CMAKE_CURRENT_SOURCE_DIR}/core/meraxes.c)
+    target_link_libraries(meraxes meraxes_lib)
+    install(TARGETS meraxes DESTINATION bin COMPONENT bin)
+    add_custom_target(install.meraxes
+        ${CMAKE_COMMAND} 
+        -DBUILD_TYPE=${CMAKE_BUILD_TYPE} 
+        -DCOMPONENT=bin
+        -P ${CMAKE_BINARY_DIR}/cmake_install.cmake) 
+    add_dependencies(install.meraxes meraxes)
+
+    add_custom_target(setuprun
+        COMMENT "Setting up run with minimal required files..."
+        COMMAND test -n \"\${RUNDIR}\" || (echo "*** Must set RUNDIR to execute target 'setuprun'. ***" && exit 1)
+        COMMAND echo "RUNDIR = \${RUNDIR}"
+        COMMAND mkdir -p \${RUNDIR}
+        COMMAND cp -n ${CMAKE_CURRENT_SOURCE_DIR}/../input/input.par \${RUNDIR}
+        COMMAND cp -n ${CMAKE_CURRENT_SOURCE_DIR}/../input/snaplist.txt \${RUNDIR}
+        COMMAND cp ${CMAKE_BINARY_DIR}/bin/meraxes \${RUNDIR}
+        )
+    add_dependencies(setuprun meraxes)
+endif()
 
 # Meraxes headers
 include_directories(BEFORE ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR})
@@ -81,18 +97,6 @@ execute_process(COMMAND ${GIT_EXECUTABLE} --no-pager diff --no-color
     OUTPUT_STRIP_TRAILING_WHITESPACE)
 string(REPLACE "\\n" "\\\\n" GITDIFF GITDIFF)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/git.h.in ${CMAKE_BINARY_DIR}/git.h ESCAPE_QUOTES @ONLY)
-
-# custom targets
-add_custom_target(setuprun
-    COMMENT "Setting up run with minimal required files..."
-    COMMAND test -n \"\${RUNDIR}\" || (echo "*** Must set RUNDIR to execute target 'setuprun'. ***" && exit 1)
-    COMMAND echo "RUNDIR = \${RUNDIR}"
-    COMMAND mkdir -p \${RUNDIR}
-    COMMAND cp -n ${CMAKE_CURRENT_SOURCE_DIR}/../input/input.par \${RUNDIR}
-    COMMAND cp -n ${CMAKE_CURRENT_SOURCE_DIR}/../input/snaplist.txt \${RUNDIR}
-    COMMAND cp ${CMAKE_BINARY_DIR}/bin/meraxes \${RUNDIR}
-    )
-add_dependencies(setuprun meraxes)
 
 add_custom_target(cleandist
     COMMENT "Clean everything, including 3rd party libs."
@@ -113,15 +117,13 @@ endif()
 ##############
 
 # MATH
-target_link_libraries(meraxes_lib PRIVATE m)
-target_link_libraries(meraxes PRIVATE m)
+target_link_libraries(meraxes_lib m)
 
 # JEMALLOC
 if(USE_JeMalloc OR USE_BUNDLED_JeMalloc)
     if (NOT USE_BUNDLED_JeMalloc)
         find_package(JeMalloc REQUIRED)
-        target_link_libraries(meraxes_lib PRIVATE ${JEMALLOC_LIBRARIES})
-        target_link_libraries(meraxes PRIVATE ${JEMALLOC_LIBRARIES})
+        target_link_libraries(meraxes_lib ${JEMALLOC_LIBRARIES})
     else()
         include(cmake/BundleJeMalloc.cmake)
         bundle_jemalloc()
@@ -131,9 +133,7 @@ endif()
 # MPI
 find_package(MPI REQUIRED)
 target_include_directories(meraxes_lib PUBLIC ${MPI_INCLUDE_PATH})
-target_include_directories(meraxes PRIVATE ${MPI_INCLUDE_PATH})
-target_link_libraries(meraxes_lib PUBLIC ${MPI_C_LIBRARIES})
-target_link_libraries(meraxes PRIVATE ${MPI_C_LIBRARIES})
+target_link_libraries(meraxes_lib ${MPI_C_LIBRARIES})
 
 # MLOG
 find_library(MLOG_LIBRARIES libmlog.a PATHS ${MLOG_ROOT})
@@ -148,50 +148,39 @@ if((NOT MLOG_LIBRARIES) OR (NOT EXISTS ${MLOG_LIBRARIES}))
     add_library(mlog STATIC "${MLOG_ROOT}/mlog.c" "${MLOG_ROOT}/mlog.h")
     set_property(TARGET mlog PROPERTY POSITION_INDEPENDENT_CODE ON)
     target_include_directories(meraxes_lib PUBLIC ${MLOG_ROOT})
-    target_include_directories(meraxes PUBLIC ${MLOG_ROOT})
-    target_link_libraries(meraxes_lib PUBLIC mlog)
-    target_link_libraries(meraxes PRIVATE mlog)
+    target_link_libraries(meraxes_lib mlog)
 else()
     find_path(MLOG_INCLUDE_DIRS mlog.h PATHS ${MLOG_ROOT})
     target_include_directories(meraxes_lib PUBLIC ${MLOG_INCLUDE_DIRS})
-    target_include_directories(meraxes PRIVATE ${MLOG_INCLUDE_DIRS})
-    target_link_libraries(meraxes_lib PUBLIC ${MLOG_LIBRARIES})
-    target_link_libraries(meraxes PRIVATE ${MLOG_LIBRARIES})
+    target_link_libraries(meraxes_lib ${MLOG_LIBRARIES})
 endif()
 
 # GSL
 find_package(GSL REQUIRED)
-target_include_directories(meraxes_lib PRIVATE ${GSL_INCLUDE_DIRS})
-target_include_directories(meraxes PRIVATE ${GSL_INCLUDE_DIRS})
-target_link_libraries(meraxes_lib PRIVATE ${GSL_LIBRARIES})
-target_link_libraries(meraxes PRIVATE ${GSL_LIBRARIES})
+target_include_directories(meraxes_lib PUBLIC ${GSL_INCLUDE_DIRS})
+target_link_libraries(meraxes_lib ${GSL_LIBRARIES})
 
 # HDF5
 find_package(HDF5 REQUIRED COMPONENTS C HL)
 if (NOT HDF5_IS_PARALLEL)
     message(FATAL_ERROR "Meraxes requires HDF5 with parallel support.")
 endif()
-target_include_directories(meraxes_lib PRIVATE ${HDF5_INCLUDE_DIRS})
-target_include_directories(meraxes PRIVATE ${HDF5_INCLUDE_DIRS})
-target_link_libraries(meraxes_lib PRIVATE ${HDF5_C_LIBRARIES} ${HDF5_C_HL_LIBRARIES})
-target_link_libraries(meraxes PRIVATE ${HDF5_C_LIBRARIES} ${HDF5_C_HL_LIBRARIES})
+target_include_directories(meraxes_lib PUBLIC ${HDF5_INCLUDE_DIRS})
+target_link_libraries(meraxes_lib ${HDF5_C_LIBRARIES} ${HDF5_C_HL_LIBRARIES})
 add_definitions(${HDF5_DEFINITIONS})
 
 # THIS IS A TEMPORARY HACK TO OVERCOME A BUG IN SOME VERSIONS OF CMAKE
 if(NOT (${HDF5_C_HL_LIBRARIES} MATCHES "libhdf5_hl"))
     list(GET HDF5_C_LIBRARIES 0 HDF5_LIB)
     get_filename_component(HDF5_LIBDIR ${HDF5_LIB} DIRECTORY)
-    target_link_libraries(meraxes_lib PRIVATE "${HDF5_LIBDIR}/libhdf5_hl.so")
-    target_link_libraries(meraxes PRIVATE "${HDF5_LIBDIR}/libhdf5_hl.so")
+    target_link_libraries(meraxes_lib "${HDF5_LIBDIR}/libhdf5_hl.so")
 endif()
 
 # FFTW
 if(NOT USE_BUNDLED_FFTW)
     find_package(FFTW REQUIRED)
-    target_include_directories(meraxes_lib PRIVATE ${FFTW_INCLUDE_DIRS})
-    target_include_directories(meraxes PRIVATE ${FFTW_INCLUDE_DIRS})
-    target_link_libraries(meraxes_lib PRIVATE ${FFTW_LIBRARIES})
-    target_link_libraries(meraxes PRIVATE ${FFTW_LIBRARIES})
+    target_include_directories(meraxes_lib PUBLIC ${FFTW_INCLUDE_DIRS})
+    target_link_libraries(meraxes_lib ${FFTW_LIBRARIES})
 else()
     include(cmake/BundleFFTW.cmake)
     bundle_fftw()
@@ -209,6 +198,5 @@ endif()
 option(ENABLE_PROFILING "Enable profiling of executable with gperftools." OFF)
 if(ENABLE_PROFILING)
     find_library(GPERF_LIBRARIES profiler PATHS "${GPERF_ROOT}/*")
-    target_link_libraries(meraxes PRIVATE ${GPERF_LIBRARIES})
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g")
 endif()
