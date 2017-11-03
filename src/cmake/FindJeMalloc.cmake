@@ -13,7 +13,7 @@ set(JEMALLOC_DEFINITIONS ${PC_JEMALLOC_CFLAGS_OTHER})
 
 find_path(JEMALLOC_INCLUDE_DIR jemalloc/jemalloc.h
           PATHS ${PC_JEMALLOC_INCLUDEDIR} ${PC_JEMALLOC_INCLUDE_DIRS}
-          HINTS ${JEMALLOC_ROOT})
+          HINTS "${JEMALLOC_ROOT}/include")
 
 # If we're asked to use static linkage, add libjemalloc.a as a preferred library name.
 if(JEMALLOC_USE_STATIC)
@@ -28,7 +28,7 @@ list(APPEND JEMALLOC_NAMES jemalloc)
 
 find_library(JEMALLOC_LIBRARY NAMES ${JEMALLOC_NAMES}
   HINTS ${PC_JEMALLOC_LIBDIR} ${PC_JEMALLOC_LIBRARY_DIRS}
-  ${JEMALLOC_ROOT})
+  "${JEMALLOC_ROOT}/lib")
 
 set(JEMALLOC_LIBRARIES ${JEMALLOC_LIBRARY})
 set(JEMALLOC_INCLUDE_DIRS ${JEMALLOC_INCLUDE_DIR})
