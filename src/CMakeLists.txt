@@ -34,6 +34,11 @@ set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 # Compiler options
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=gnu99")
 
+# need to set extra options for clang
+if("${CMAKE_C_COMPILER_ID}" MATCHES "Clang")
+    set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -undefined dynamic_lookup")
+endif()
+
 # source files
 file(GLOB SOURCES core/*.[ch] *.h physics/*.[ch])
 list(REMOVE_ITEM SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/core/meraxes.c)
