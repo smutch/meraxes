@@ -1,7 +1,6 @@
 #include "meraxes.h"
 #include <assert.h>
 #include <fftw3-mpi.h>
-#include <fftw3.h>
 #include <limits.h>
 #include <math.h>
 #include <signal.h>
