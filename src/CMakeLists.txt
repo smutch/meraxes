@@ -117,6 +117,13 @@ if(EXISTS ${CLANG_FORMAT_BINARY})
         )
 endif()
 
+#######
+# TESTS
+#######
+
+enable_testing()
+add_subdirectory(tests)
+
 ##############
 # DEPENDENCIES
 ##############
