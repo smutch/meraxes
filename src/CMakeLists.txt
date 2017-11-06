@@ -11,8 +11,6 @@ find_package(Git REQUIRED)
 # build options
 set(N_HISTORY_SNAPS 5 CACHE VALUE "Number of snapshots for delayed SN feedback")
 add_definitions(-DN_HISTORY_SNAPS=${N_HISTORY_SNAPS})
-set(USE_JeMalloc TRUE CACHE BOOL "Build with jemalloc (may improve performance on some systems)")
-set(USE_BUNDLED_JeMalloc FALSE CACHE BOOL "Download and build against bundled jemalloc")
 set(USE_BUNDLED_FFTW FALSE CACHE BOOL "Download and build against bundled fftw")
 set(BUILD_TESTS FALSE CACHE BOOL "Build criterion tests")
 
@@ -134,17 +132,6 @@ endif()
 
 # MATH
 target_link_libraries(meraxes_lib m)
-
-# JEMALLOC
-if(USE_JeMalloc OR USE_BUNDLED_JeMalloc)
-    if (NOT USE_BUNDLED_JeMalloc)
-        find_package(JeMalloc REQUIRED)
-        target_link_libraries(meraxes_lib ${JEMALLOC_LIBRARIES})
-    else()
-        include(cmake/BundleJeMalloc.cmake)
-        bundle_jemalloc()
-    endif()
-endif()
 
 # MPI
 find_package(MPI REQUIRED)
