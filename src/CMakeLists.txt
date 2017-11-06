@@ -8,6 +8,15 @@ set_property(DIRECTORY PROPERTY EP_PREFIX "${CMAKE_CURRENT_SOURCE_DIR}/3rd_party
 set(CMAKE_EXPORT_COMPILE_COMMANDS TRUE CACHE BOOL "Export compile commands (for clang-tidy)" FORCE)
 find_package(Git REQUIRED)
 
+# build options
+set(N_HISTORY_SNAPS 5 CACHE VALUE "Number of snapshots for delayed SN feedback")
+add_definitions(-DN_HISTORY_SNAPS=${N_HISTORY_SNAPS})
+set(USE_JeMalloc TRUE CACHE BOOL "Build with jemalloc (may improve performance on some systems)")
+set(USE_BUNDLED_JeMalloc FALSE CACHE BOOL "Download and build against bundled jemalloc")
+set(USE_BUNDLED_FFTW FALSE CACHE BOOL "Download and build against bundled fftw")
+set(BUILD_TESTS FALSE CACHE BOOL "Build criterion tests")
+
+
 # Build type
 set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -DDEBUG -Wall -O0")
 set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -march=native")
@@ -47,13 +56,6 @@ list(REMOVE_ITEM SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/core/meraxes.c)
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
-
-# build options
-set(N_HISTORY_SNAPS 5 CACHE VALUE "Number of snapshots for delayed SN feedback")
-add_definitions(-DN_HISTORY_SNAPS=${N_HISTORY_SNAPS})
-set(USE_JeMalloc TRUE CACHE BOOL "Build with jemalloc (may improve performance on some systems)")
-set(USE_BUNDLED_JeMalloc FALSE CACHE BOOL "Download and build against bundled jemalloc")
-set(USE_BUNDLED_FFTW FALSE CACHE BOOL "Download and build against bundled fftw")
 
 # library
 set(BUILD_SHARED_LIBS OFF CACHE BOOL "Build shared library version (required for Mhysa)")
@@ -121,8 +123,10 @@ endif()
 # TESTS
 #######
 
-enable_testing()
-add_subdirectory(tests)
+if(BUILD_TESTS)
+    enable_testing()
+    add_subdirectory(tests)
+endif()
 
 ##############
 # DEPENDENCIES
