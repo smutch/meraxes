@@ -115,8 +115,8 @@ void read_trees__velociraptor(int snapshot, halo_t* halos, int* n_halos, fof_gro
 
     if (run_globals.mpi_rank == 0) {
         char fname[STRLEN];
-        sprintf(fname, "%s/trees/VELOCIraptor.tree.t4.unifiedhalotree.withforest.snap.hdf.data",
-            run_globals.params.SimulationDir);
+        sprintf(fname, "%s/trees/%s",
+            run_globals.params.SimulationDir, run_globals.params.CatalogFilePrefix);
 
         hid_t fd = H5Fopen(fname, H5F_ACC_RDONLY, H5P_DEFAULT);
         if (fd < 0) {
