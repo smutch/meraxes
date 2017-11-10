@@ -21,9 +21,7 @@
 #endif
 #endif
 
-#ifndef N_HISTORY_SNAPS
-#define N_HISTORY_SNAPS 5
-#endif
+#define N_HISTORY_SNAPS @N_HISTORY_SNAPS@
 
 // ======================================================
 // Don't change these unless you know what you are doing!

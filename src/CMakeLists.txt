@@ -60,7 +60,7 @@ set(BUILD_SHARED_LIBS OFF CACHE BOOL "Build shared library version (required for
 add_library(meraxes_lib ${SOURCES})
 set_target_properties(meraxes_lib PROPERTIES OUTPUT_NAME meraxes)
 install(TARGETS meraxes_lib DESTINATION lib COMPONENT lib)
-install(FILES meraxes.h ${CMAKE_BINARY_DIR}/git.h DESTINATION include COMPONENT lib)
+install(FILES ${CMAKE_BINARY_DIR}/meraxes.h ${CMAKE_BINARY_DIR}/git.h DESTINATION include COMPONENT lib)
 add_custom_target(install.lib
     ${CMAKE_COMMAND} 
     -DBUILD_TYPE=${CMAKE_BUILD_TYPE} 
@@ -93,6 +93,7 @@ if(NOT BUILD_SHARED_LIBS)
 endif()
 
 # Meraxes headers
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/meraxes.h.in ${CMAKE_BINARY_DIR}/meraxes.h ESCAPE_QUOTES @ONLY)
 include_directories(BEFORE ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR})
 execute_process(COMMAND ${GIT_EXECUTABLE} rev-parse HEAD
     OUTPUT_VARIABLE GITREF
