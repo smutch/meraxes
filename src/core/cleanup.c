@@ -53,5 +53,5 @@ void cleanup()
     free(run_globals.ZZ);
     free(run_globals.AA);
 
-    mlog(" ...done", MLOG_CLOSE);
+    mlog(" ...done\n", MLOG_CLOSE|MLOG_FLUSH);
 }
