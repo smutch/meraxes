@@ -3,7 +3,7 @@
 #include <assert.h>
 #include <math.h>
 
-galaxy_t* new_galaxy(int snapshot, int halo_ID)
+galaxy_t* new_galaxy(int snapshot, unsigned long halo_ID)
 {
     galaxy_t* gal = malloc(sizeof(galaxy_t));
 
