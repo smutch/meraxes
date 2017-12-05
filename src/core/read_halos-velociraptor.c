@@ -185,6 +185,10 @@ void read_trees__velociraptor(int snapshot, halo_t* halos, int* n_halos, fof_gro
             halo->Type = tree_entry.hostHaloID == -1 ? 0 : 1;
             halo->SnapOffset = id_to_snap(tree_entry.Head) - snapshot;
 
+            // Here we have a cyclic pointer, indicating that this halo's life ends here
+            if (tree_entry.Head == tree_entry.ID)
+                halo->DescIndex = -1;
+
             if (index_lookup)
                 index_lookup[*n_halos] = ii;
 
