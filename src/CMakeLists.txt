@@ -15,6 +15,9 @@ find_package(Git REQUIRED)
 # Uncomment for a verbose run
 #set(CMAKE_VERBOSE_MAKEFILE ON)
 
+# Include local settings
+include(${CMAKE_CURRENT_SOURCE_DIR}/local.cmake OPTIONAL)
+
 # Build type
 set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -DDEBUG -Wall -O0")
 set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -march=native")
