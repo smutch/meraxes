@@ -117,7 +117,7 @@ quasar_open_angle         : 80.0
 #----- Reionization ---------------------------
 #----------------------------------------------
 
-Flag_ReionizationModifier  : 2    # use halo mass dependant infall modifier of Gnedin
+Flag_ReionizationModifier  : 2    # 0: No modifier, 1: Sobacchi 21cmFAST modifier, 2: use halo mass dependant infall modifier of Gnedin, 3: precomputed (requires input file)
 
 # global prescriptions
 ReionSobacchi_Zre      : 9.3
@@ -129,11 +129,11 @@ ReionGnedin_z0         : 8
 ReionGnedin_zr         : 7
 
 # patchy (21cmFAST) prescription
-Flag_PatchyReion       : 0
+Flag_PatchyReion       : 0  # Use 21cmFAST (ensure Flag_ReionizationModifier=1 if wish to couple to galaxy formation).
 Flag_OutputGrids       : 1
 Flag_OutputGridsPostReion  : 0
 
-ReionUVBFlag           : 1
+ReionUVBFlag           : 1  # Use 21cmFAST (ensure Flag_ReionizationModifier=1 if wish to couple to galaxy formation).
 ReionGridDim           : 128
 ReionDeltaRFactor      : 1.1
 ReionFilterType        : 0
