@@ -9,14 +9,14 @@ include(${CMAKE_ROOT}/Modules/ExternalProject.cmake)
 include(${CMAKE_CURRENT_SOURCE_DIR}/local.cmake OPTIONAL)
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 set_property(DIRECTORY PROPERTY EP_PREFIX "${CMAKE_CURRENT_SOURCE_DIR}/3rd_party")
-set(CMAKE_EXPORT_COMPILE_COMMANDS TRUE CACHE BOOL "Export compile commands (for clang-tidy)" FORCE)
+option(CMAKE_EXPORT_COMPILE_COMMANDS "Export compile commands (for clang-tidy)" ON)
 find_package(Git REQUIRED)
 
 # build options
 set(N_HISTORY_SNAPS 5 CACHE VALUE "Number of snapshots for delayed SN feedback")
 add_definitions(-DN_HISTORY_SNAPS=${N_HISTORY_SNAPS})
-set(USE_BUNDLED_FFTW FALSE CACHE BOOL "Download and build against bundled fftw")
-set(BUILD_TESTS FALSE CACHE BOOL "Build criterion tests")
+option(USE_BUNDLED_FFTW "Download and build against bundled fftw" OFF)
+option(BUILD_TESTS "Build criterion tests" OFF)
 
 # Build type
 set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -DDEBUG -Wall -O0")
@@ -29,7 +29,7 @@ if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
 endif()
 
 # ensure RPATH is used for builds
-set(CMAKE_SKIP_BUILD_RPATH  FALSE)
+set(CMAKE_SKIP_BUILD_RPATH FALSE)
 
 # when building, don't use the install RPATH already
 # (but later on when installing)
@@ -237,14 +237,6 @@ if(NOT USE_BUNDLED_FFTW)
 else()
     include(cmake/BundleFFTW.cmake)
     bundle_fftw()
-endif()
-
-# OpenMP
-option(USE_OpenMP "Use OpenMP" OFF)
-if(USE_OpenMP)
-    find_package(OpenMP REQUIRED)
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
-    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_EXE_LINKER_FLAGS}")
 endif()
 
 # Profiling
