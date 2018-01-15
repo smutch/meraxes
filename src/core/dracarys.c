@@ -64,6 +64,10 @@ void dracarys()
         prep_hdf5_file();
     }
 
+    // Initialize timer
+    timer_info timer;
+    timer_start(&timer);
+
     // Loop through each snapshot
     for (int snapshot = 0; snapshot <= last_snap; snapshot++) {
         int* index_lookup = NULL;
@@ -306,10 +310,10 @@ void dracarys()
                     // We are decoupled, so no need to run 21cmFAST unless we are ouputing this snapshot
                     for (int i_out = 0; i_out < NOutputSnaps; i_out++)
                         if (snapshot == run_globals.ListOutputSnaps[i_out])
-                            call_find_HII_bubbles(snapshot, nout_gals);
+                            call_find_HII_bubbles(snapshot, nout_gals, &timer);
                 }
                 else
-                    call_find_HII_bubbles(snapshot, nout_gals);
+                    call_find_HII_bubbles(snapshot, nout_gals, &timer);
             }
 
             // if we have already created a mapping of galaxies to MPI slabs then we no

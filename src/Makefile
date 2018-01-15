@@ -1,11 +1,7 @@
 .PHONY: default config cleanbuild
 
-ifneq ("$(wildcard local.cmake)", "")
-INIT_CACHE = "-Clocal.cmake"
-endif
-
 default:
-	@if [ ! -d "build" ]; then echo $(INIT_CACHE); cmake . -Bbuild $(INIT_CACHE) $(CMAKE_OPTS); fi
+	@if [ ! -d "build" ]; then cmake . -Bbuild $(CMAKE_OPTS); fi
 	@make -C build --no-print-directory $(MFLAGS)
 
 config:

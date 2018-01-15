@@ -344,7 +344,7 @@ void _find_HII_bubbles(double redshift)
 }
 
 // This function makes sure that the right version of find_HII_bubbles() gets called.
-void find_HII_bubbles(int snapshot,timer_info *timer_total)
+void find_HII_bubbles(int snapshot, timer_info *timer_total)
 {
   // Call the version of find_HII_bubbles we've been passed (and time it)
   int    flag_write_validation_data=false;

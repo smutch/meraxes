@@ -37,6 +37,8 @@
 #include <hdf5_hl.h>
 #include "meraxes.h"
 
+#define L_FACTOR 0.620350491 // Factor relating cube length to filter radius = (4PI/3)^(-1/3)
+
 /*
  * This code is a re-write of the modified version of 21cmFAST used in Mutch et
  * al. (2016; Meraxes paper).  The original code was written by Andrei Mesinger

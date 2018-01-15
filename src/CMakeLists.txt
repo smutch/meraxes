@@ -97,11 +97,11 @@ if(USE_CUDA)
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${CUDA_EXE_LINKER_FLAGS}")
 
     # Add the Meraxes lib to the project
-    cude_add_library(meraxes_lib ${SOURCES})
+    cuda_add_library(meraxes_lib ${SOURCES})
 
     # CUFFT
     if(USE_CUFFT)
-        CUDA_ADD_CUFFT_TO_TARGET(meraxes)
+        cuda_add_cufft_to_target(meraxes_lib)
     endif()
 else()
     add_library(meraxes_lib ${SOURCES})
