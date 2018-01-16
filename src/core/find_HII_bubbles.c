@@ -368,6 +368,7 @@ void find_HII_bubbles(int snapshot, timer_info *timer_total)
   timer_stop(&timer);
   timer_stop(timer_total);
   timer_gpu+=timer_delta(timer);
+  mlog("...done", MLOG_CLOSE | MLOG_TIMERSTOP);
   mlog("Total time spent in find_HII_bubbles vs. total run time (snapshot %d ): %.2f of %.2f s",MLOG_MESG,snapshot,timer_gpu,timer_delta(*timer_total));
 }
 
