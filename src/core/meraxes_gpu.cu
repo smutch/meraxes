@@ -220,7 +220,6 @@ void init_CUDA(){
                         if((++i_char)>=l_size) break;
                         char_i=line[i_char];
                     }
-                    char host_name_i[MPI_MAX_PROCESSOR_NAME];
                     strcpy(host_name_i,host_name_temp.c_str());
                     // Skip '-gpu' 
                     i_char+=4;
