@@ -119,7 +119,11 @@ add_dependencies(install.lib meraxes_lib)
 
 # executable
 if(NOT BUILD_SHARED_LIBS)
-    add_executable(meraxes ${CMAKE_CURRENT_SOURCE_DIR}/core/meraxes.c)
+    if(USE_CUDA)
+        cuda_add_executable(meraxes ${CMAKE_CURRENT_SOURCE_DIR}/core/meraxes.c)
+    else()
+        add_executable(meraxes ${CMAKE_CURRENT_SOURCE_DIR}/core/meraxes.c)
+    endif()
     target_link_libraries(meraxes meraxes_lib)
     install(TARGETS meraxes DESTINATION bin COMPONENT bin)
     add_custom_target(install.meraxes

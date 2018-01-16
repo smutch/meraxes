@@ -590,7 +590,6 @@ extern run_globals_t run_globals;
 #ifdef __cplusplus
 extern "C" {
 #endif
-void myexit(int signum);
 void cleanup(void);
 void read_parameter_file(char* fname, int mode);
 void init_meraxes(void);
