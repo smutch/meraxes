@@ -171,6 +171,14 @@ if(EXISTS ${CLANG_FORMAT_BINARY})
         )
 endif()
 
+# Cscope
+add_custom_command(OUTPUT cscope.out
+    DEPENDS ${SOURCES}
+    WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
+    COMMAND cscope -k -b -P ${PROJECT_SOURCE_DIR} ${TARGET_SOURCES}
+)
+add_custom_target(cscope DEPENDS cscope.out)
+
 #######
 # TESTS
 #######
