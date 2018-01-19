@@ -97,6 +97,29 @@ __host__ void notify_of_global_error(int error_code)
   MPI_Allreduce(MPI_IN_PLACE,&result,1,MPI_INT,MPI_MAX,run_globals.mpi_comm);
 }
 
+static void dump_gpu_properties()
+{
+    // This should be called after the logic of init_CUDA() is complete.
+    using std::cout;
+    using std::endl;
+
+    gpu_info info = *run_globals.gpu;
+
+    if(run_globals.mpi_rank == 0){
+        cout << "GPU properties" << endl << "==============" << endl;
+        cout << "device = " << info.device << endl;
+        cout << "name = " << info.properties.name << endl;
+        cout << "flag_use_cuFFT = " << info.flag_use_cuFFT << endl;
+        cout << "n_threads = " << info.n_threads << endl;
+        cout << "n_contexts = " << info.n_contexts << endl;
+        cout << "maxThreadsPerBlock = " << info.properties.maxThreadsPerBlock << endl;
+        cout << "maxThreadsPerMultiProcessor = " << info.properties.maxThreadsPerMultiProcessor << endl;
+        cout << "concurrentKernels = " << info.properties.concurrentKernels << endl;
+        cout << "==============" << endl;
+        }
+        
+}
+
 // Initialize device.  Called by init_gpu().
 void init_CUDA(){
     try{
@@ -288,6 +311,8 @@ void init_CUDA(){
             MPI_Barrier(run_globals.mpi_comm);
         }
     }
+
+    dump_gpu_properties();
 }
 
 // Call this function in kernels to put the GPU in an error state that can be caught after as an exception
