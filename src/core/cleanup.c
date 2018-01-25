@@ -53,8 +53,8 @@ void cleanup()
     free(run_globals.ZZ);
     free(run_globals.AA);
 
-    if(run_globals.gpu!=NULL)
+    if (run_globals.gpu != NULL)
         free(run_globals.gpu);
 
-    mlog(" ...done\n", MLOG_CLOSE|MLOG_FLUSH);
+    mlog(" ...done\n", MLOG_CLOSE | MLOG_FLUSH);
 }

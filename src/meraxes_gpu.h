@@ -1,6 +1,6 @@
 //==============================================================================
 //
-// This code was developed as part of the Astronomy Data and Computing Services 
+// This code was developed as part of the Astronomy Data and Computing Services
 // (ADACS; https://adacs.org.au) 2017B Software Support program.
 //
 // Written by: Gregory B. Poole
@@ -49,13 +49,13 @@ typedef fftwf_complex Complex;
 #ifdef __cplusplus
 extern "C" {
 #endif
-void _find_HII_bubbles_gpu(double redshift,const bool flag_write_validation_output);
+void _find_HII_bubbles_gpu(double redshift, const bool flag_write_validation_output);
 void init_CUDA();
 #ifdef __cplusplus
 }
 #endif
 
-// All the c++11-specific stuff 
+// All the c++11-specific stuff
 #include "meraxes_gpu.hh"
 
 #define _MERAXES_GPU_H

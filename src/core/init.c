@@ -3,13 +3,14 @@
 #include <gsl/gsl_math.h>
 #include <time.h>
 
-void init_gpu(){
-    // If we are compiling with CUDA, allocate a structure
-    //   that will carry information about the device
+void init_gpu()
+{
+// If we are compiling with CUDA, allocate a structure
+//   that will carry information about the device
 #ifdef USE_CUDA
     // Alocate the structure that will carry all the information
     //   about the GPU assigned to this thread
-    run_globals.gpu=(gpu_info *)malloc(sizeof(gpu_info));
+    run_globals.gpu = (gpu_info*)malloc(sizeof(gpu_info));
 
     // This function has all the CUDA device polling calls
     init_CUDA();
@@ -19,22 +20,22 @@ void init_gpu(){
     //   is involved.  To allow this to be multicore, the code
     //   which handles the interpolation of the grids for the
     //   galaxies will need to be adjusted.
-    if(run_globals.mpi_size>1){
+    if (run_globals.mpi_size > 1) {
         mlog_error("cuFFT is not yet supported for mpi_size>1.");
         ABORT(EXIT_FAILURE);
     }
 
-    run_globals.gpu->flag_use_cuFFT=true;
+    run_globals.gpu->flag_use_cuFFT = true;
 #else
-    run_globals.gpu->flag_use_cuFFT=false;
+    run_globals.gpu->flag_use_cuFFT = false;
 #endif
 
-    // If we are not compiling with CUDA, set this
-    //   pointer to NULL.  This is a good way
-    //   to test in the code if a GPU is being used.
+// If we are not compiling with CUDA, set this
+//   pointer to NULL.  This is a good way
+//   to test in the code if a GPU is being used.
 #else
-    mlog("CPU-only version of Meraxes running.",MLOG_MESG);
-    run_globals.gpu=NULL;
+    mlog("CPU-only version of Meraxes running.", MLOG_MESG);
+    run_globals.gpu = NULL;
 #endif
 }
 

@@ -203,7 +203,6 @@ void connect_galaxy_and_halo(galaxy_t* gal, halo_t* halo, int* merger_counter)
             break;
         }
 
-
         infaller->Type = 2;
         // Make sure the halo is pointing to the right galaxy
         if (parent != halo->Galaxy)

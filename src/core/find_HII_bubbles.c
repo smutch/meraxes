@@ -344,31 +344,30 @@ void _find_HII_bubbles(double redshift)
 }
 
 // This function makes sure that the right version of find_HII_bubbles() gets called.
-void find_HII_bubbles(int snapshot, timer_info *timer_total)
+void find_HII_bubbles(int snapshot, timer_info* timer_total)
 {
-  // Call the version of find_HII_bubbles we've been passed (and time it)
-  int    flag_write_validation_data=false;
-  double redshift=run_globals.ZZ[snapshot];
-  timer_info timer;
-  #ifdef USE_CUDA
-      #ifdef USE_CUFFT
-          mlog("Calling pure-GPU version of find_HII_bubbles() for snap=%d/z=%.2lf...", MLOG_OPEN | MLOG_TIMERSTART,snapshot,redshift);
-      #else
-          mlog("Calling hybrid-GPU/FFTW version of find_HII_bubbles() for snap=%d/z=%.2lf...",MLOG_OPEN | MLOG_TIMERSTART,snapshot,redshift);
-      #endif
-      // Run the GPU version of _find_HII_bubbles()
-      timer_start(&timer);
-      _find_HII_bubbles_gpu(redshift, flag_write_validation_data);
-  #else
-      // Run the Meraxes version of _find_HII_bubbles()
-      mlog("Calling pure-CPU version of find_HII_bubbles() for snap=%d/z=%.2lf...", MLOG_OPEN | MLOG_TIMERSTART,snapshot,redshift);
-      timer_start(&timer);
-      _find_HII_bubbles(redshift);
-  #endif
-  timer_stop(&timer);
-  timer_stop(timer_total);
-  timer_gpu+=timer_delta(timer);
-  mlog("...done", MLOG_CLOSE | MLOG_TIMERSTOP);
-  mlog("Total time spent in find_HII_bubbles vs. total run time (snapshot %d ): %.2f of %.2f s",MLOG_MESG,snapshot,timer_gpu,timer_delta(*timer_total));
+    // Call the version of find_HII_bubbles we've been passed (and time it)
+    int flag_write_validation_data = false;
+    double redshift = run_globals.ZZ[snapshot];
+    timer_info timer;
+#ifdef USE_CUDA
+#ifdef USE_CUFFT
+    mlog("Calling pure-GPU version of find_HII_bubbles() for snap=%d/z=%.2lf...", MLOG_OPEN | MLOG_TIMERSTART, snapshot, redshift);
+#else
+    mlog("Calling hybrid-GPU/FFTW version of find_HII_bubbles() for snap=%d/z=%.2lf...", MLOG_OPEN | MLOG_TIMERSTART, snapshot, redshift);
+#endif
+    // Run the GPU version of _find_HII_bubbles()
+    timer_start(&timer);
+    _find_HII_bubbles_gpu(redshift, flag_write_validation_data);
+#else
+    // Run the Meraxes version of _find_HII_bubbles()
+    mlog("Calling pure-CPU version of find_HII_bubbles() for snap=%d/z=%.2lf...", MLOG_OPEN | MLOG_TIMERSTART, snapshot, redshift);
+    timer_start(&timer);
+    _find_HII_bubbles(redshift);
+#endif
+    timer_stop(&timer);
+    timer_stop(timer_total);
+    timer_gpu += timer_delta(timer);
+    mlog("...done", MLOG_CLOSE | MLOG_TIMERSTOP);
+    mlog("Total time spent in find_HII_bubbles vs. total run time (snapshot %d ): %.2f of %.2f s", MLOG_MESG, snapshot, timer_gpu, timer_delta(*timer_total));
 }
-
