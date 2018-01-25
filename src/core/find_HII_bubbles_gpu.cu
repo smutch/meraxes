@@ -210,11 +210,11 @@ void _find_HII_bubbles_gpu(double redshift,const bool flag_write_validation_outp
   int grid_complex = (slab_n_complex+(threads-1))/threads;
   int grid_real    = (slab_n_real   +(threads-1))/threads;
 
-  mlog("threads = %d", MLOG_ALLRANKS|MLOG_MESG, threads);
-  mlog("slab_n_complex = %d", MLOG_ALLRANKS|MLOG_MESG, slab_n_complex);
-  mlog("grid_complex = %d", MLOG_ALLRANKS|MLOG_MESG, grid_complex);
-  mlog("slab_n_real = %d", MLOG_ALLRANKS|MLOG_MESG, slab_n_real);
-  mlog("grid_real = %d", MLOG_ALLRANKS|MLOG_MESG|MLOG_FLUSH, grid_real);
+  // mlog("threads = %d", MLOG_ALLRANKS|MLOG_MESG, threads);
+  // mlog("slab_n_complex = %d", MLOG_ALLRANKS|MLOG_MESG, slab_n_complex);
+  // mlog("grid_complex = %d", MLOG_ALLRANKS|MLOG_MESG, grid_complex);
+  // mlog("slab_n_real = %d", MLOG_ALLRANKS|MLOG_MESG, slab_n_real);
+  // mlog("grid_real = %d", MLOG_ALLRANKS|MLOG_MESG|MLOG_FLUSH, grid_real);
 
   MPI_Barrier(run_globals.mpi_comm);
 
