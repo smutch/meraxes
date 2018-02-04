@@ -222,9 +222,9 @@ void _find_HII_bubbles_gpu(double redshift, const bool flag_write_validation_out
     // Remember to add the factor of VOLUME/TOT_NUM_PIXELS when converting from real space to k-space
     // Note: we will leave off factor of VOLUME, in anticipation of the inverse FFT below
     try {
-        throw_on_kernel_error((complex_vector_times_scalar<<<grid_complex, threads> > >(deltax_unfiltered_device, inv_total_n_cells, slab_n_complex)), meraxes_cuda_exception::KERNEL_CMPLX_AX);
-        throw_on_kernel_error((complex_vector_times_scalar<<<grid_complex, threads> > >(stars_unfiltered_device, inv_total_n_cells, slab_n_complex)), meraxes_cuda_exception::KERNEL_CMPLX_AX);
-        throw_on_kernel_error((complex_vector_times_scalar<<<grid_complex, threads> > >(sfr_unfiltered_device, inv_total_n_cells, slab_n_complex)), meraxes_cuda_exception::KERNEL_CMPLX_AX);
+        throw_on_kernel_error((complex_vector_times_scalar<<<grid_complex, threads>>>(deltax_unfiltered_device, inv_total_n_cells, slab_n_complex)), meraxes_cuda_exception::KERNEL_CMPLX_AX);
+        throw_on_kernel_error((complex_vector_times_scalar<<<grid_complex, threads>>>(stars_unfiltered_device, inv_total_n_cells, slab_n_complex)), meraxes_cuda_exception::KERNEL_CMPLX_AX);
+        throw_on_kernel_error((complex_vector_times_scalar<<<grid_complex, threads>>>(sfr_unfiltered_device, inv_total_n_cells, slab_n_complex)), meraxes_cuda_exception::KERNEL_CMPLX_AX);
         check_thread_sync(meraxes_cuda_exception::KERNEL_CMPLX_AX);
         // Throw an exception if another rank has thrown one
         throw_on_global_error();
@@ -236,10 +236,10 @@ void _find_HII_bubbles_gpu(double redshift, const bool flag_write_validation_out
     // Initialize a few of the output grids
     try {
         if (slab_n_real > 0) {
-            throw_on_kernel_error((set_array_gpu<<<grid_real, threads> > >(xH_device, slab_n_real, 1.f)), meraxes_cuda_exception::KERNEL_SET_ARRAY);
-            throw_on_kernel_error((set_array_gpu<<<grid_real, threads> > >(r_bubble_device, slab_n_real, 0.f)), meraxes_cuda_exception::KERNEL_SET_ARRAY);
+            throw_on_kernel_error((set_array_gpu<<<grid_real, threads>>>(xH_device, slab_n_real, 1.f)), meraxes_cuda_exception::KERNEL_SET_ARRAY);
+            throw_on_kernel_error((set_array_gpu<<<grid_real, threads>>>(r_bubble_device, slab_n_real, 0.f)), meraxes_cuda_exception::KERNEL_SET_ARRAY);
             if (flag_ReionUVBFlag)
-                throw_on_kernel_error((set_array_gpu<<<grid_real, threads> > >(J_21_device, slab_n_real, 0.f)), meraxes_cuda_exception::KERNEL_SET_ARRAY);
+                throw_on_kernel_error((set_array_gpu<<<grid_real, threads>>>(J_21_device, slab_n_real, 0.f)), meraxes_cuda_exception::KERNEL_SET_ARRAY);
         }
         check_thread_sync(meraxes_cuda_exception::KERNEL_SET_ARRAY);
         // Throw an exception if another rank has thrown one
@@ -303,9 +303,9 @@ void _find_HII_bubbles_gpu(double redshift, const bool flag_write_validation_out
         // Perform convolution
         if (!flag_last_filter_step) {
             try {
-                throw_on_kernel_error((filter_gpu<<<grid_complex, threads> > >(deltax_filtered_device, ReionGridDim, local_ix_start, slab_n_complex, R, box_size, run_globals.params.ReionRtoMFilterType)), meraxes_cuda_exception::KERNEL_FILTER);
-                throw_on_kernel_error((filter_gpu<<<grid_complex, threads> > >(stars_filtered_device, ReionGridDim, local_ix_start, slab_n_complex, R, box_size, run_globals.params.ReionRtoMFilterType)), meraxes_cuda_exception::KERNEL_FILTER);
-                throw_on_kernel_error((filter_gpu<<<grid_complex, threads> > >(sfr_filtered_device, ReionGridDim, local_ix_start, slab_n_complex, R, box_size, run_globals.params.ReionRtoMFilterType)), meraxes_cuda_exception::KERNEL_FILTER);
+                throw_on_kernel_error((filter_gpu<<<grid_complex, threads>>>(deltax_filtered_device, ReionGridDim, local_ix_start, slab_n_complex, R, box_size, run_globals.params.ReionRtoMFilterType)), meraxes_cuda_exception::KERNEL_FILTER);
+                throw_on_kernel_error((filter_gpu<<<grid_complex, threads>>>(stars_filtered_device, ReionGridDim, local_ix_start, slab_n_complex, R, box_size, run_globals.params.ReionRtoMFilterType)), meraxes_cuda_exception::KERNEL_FILTER);
+                throw_on_kernel_error((filter_gpu<<<grid_complex, threads>>>(sfr_filtered_device, ReionGridDim, local_ix_start, slab_n_complex, R, box_size, run_globals.params.ReionRtoMFilterType)), meraxes_cuda_exception::KERNEL_FILTER);
                 check_thread_sync(meraxes_cuda_exception::KERNEL_FILTER);
                 // Throw an exception if another rank has thrown one
                 throw_on_global_error();
@@ -344,9 +344,9 @@ void _find_HII_bubbles_gpu(double redshift, const bool flag_write_validation_out
         // Perform sanity checks to account for aliasing effects
         try {
             if (slab_n_real > 0) {
-                throw_on_kernel_error((sanity_check_aliasing<<<grid_real, threads> > >(deltax_filtered_device, ReionGridDim, slab_n_real, -1.f + REL_TOL)), meraxes_cuda_exception::KERNEL_CHECK);
-                throw_on_kernel_error((sanity_check_aliasing<<<grid_real, threads> > >(stars_filtered_device, ReionGridDim, slab_n_real, 0.f)), meraxes_cuda_exception::KERNEL_CHECK);
-                throw_on_kernel_error((sanity_check_aliasing<<<grid_real, threads> > >(sfr_filtered_device, ReionGridDim, slab_n_real, 0.f)), meraxes_cuda_exception::KERNEL_CHECK);
+                throw_on_kernel_error((sanity_check_aliasing<<<grid_real, threads>>>(deltax_filtered_device, ReionGridDim, slab_n_real, -1.f + REL_TOL)), meraxes_cuda_exception::KERNEL_CHECK);
+                throw_on_kernel_error((sanity_check_aliasing<<<grid_real, threads>>>(stars_filtered_device, ReionGridDim, slab_n_real, 0.f)), meraxes_cuda_exception::KERNEL_CHECK);
+                throw_on_kernel_error((sanity_check_aliasing<<<grid_real, threads>>>(sfr_filtered_device, ReionGridDim, slab_n_real, 0.f)), meraxes_cuda_exception::KERNEL_CHECK);
             }
             check_thread_sync(meraxes_cuda_exception::KERNEL_CHECK);
             // Throw an exception if another rank has thrown one
@@ -366,7 +366,7 @@ void _find_HII_bubbles_gpu(double redshift, const bool flag_write_validation_out
 
         try {
             if (slab_n_real > 0) {
-                throw_on_kernel_error((find_HII_bubbles_gpu_main_loop<<<grid_real, threads> > >(
+                throw_on_kernel_error((find_HII_bubbles_gpu_main_loop<<<grid_real, threads>>>(
                                           redshift,
                                           slab_n_real,
                                           flag_last_filter_step,
