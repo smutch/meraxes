@@ -6,9 +6,9 @@ set(CMAKE_CXX_COMPILER "g++")
 
 project(meraxes)
 include(${CMAKE_ROOT}/Modules/ExternalProject.cmake)
-include(${CMAKE_CURRENT_SOURCE_DIR}/local.cmake OPTIONAL)
-list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
-set_property(DIRECTORY PROPERTY EP_PREFIX "${CMAKE_CURRENT_SOURCE_DIR}/3rd_party")
+include(${CMAKE_CURRENT_LIST_DIR}/local.cmake OPTIONAL)
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
+set_property(DIRECTORY PROPERTY EP_PREFIX "${CMAKE_CURRENT_LIST_DIR}/3rd_party")
 option(CMAKE_EXPORT_COMPILE_COMMANDS "Export compile commands (for clang-tidy)" ON)
 find_package(Git REQUIRED)
 
@@ -25,7 +25,7 @@ set(CMAKE_C_FLAGS_RELWITHDEBINFO "${CMAKE_C_FLAGS_RELWITHDEBINFO} -Wall -march=n
 set(CMAKE_BUILD_TYPE "Debug" CACHE STRING "Build type.")
 
 if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
-  set(CMAKE_INSTALL_PREFIX ${CMAKE_CURRENT_SOURCE_DIR}/.. CACHE PATH "..." FORCE)
+  set(CMAKE_INSTALL_PREFIX ${CMAKE_CURRENT_LIST_DIR}/.. CACHE PATH "..." FORCE)
 endif()
 
 # ensure RPATH is used for builds
@@ -55,8 +55,8 @@ if("${CMAKE_C_COMPILER_ID}" MATCHES "Clang")
 endif()
 
 # source files
-file(GLOB SOURCES core/*.[ch] *.h physics/*.[ch])
-list(REMOVE_ITEM SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/core/meraxes.c)
+file(GLOB SOURCES ${CMAKE_CURRENT_LIST_DIR}/core/*.[ch] *.h ${CMAKE_CURRENT_LIST_DIR}/physics/*.[ch])
+list(REMOVE_ITEM SOURCES ${CMAKE_CURRENT_LIST_DIR}/core/meraxes.c)
 
 # output paths
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
@@ -120,9 +120,9 @@ add_dependencies(install.lib meraxes_lib)
 # executable
 if(NOT BUILD_SHARED_LIBS)
     if(USE_CUDA)
-        cuda_add_executable(meraxes ${CMAKE_CURRENT_SOURCE_DIR}/core/meraxes.c)
+        cuda_add_executable(meraxes ${CMAKE_CURRENT_LIST_DIR}/core/meraxes.c)
     else()
-        add_executable(meraxes ${CMAKE_CURRENT_SOURCE_DIR}/core/meraxes.c)
+        add_executable(meraxes ${CMAKE_CURRENT_LIST_DIR}/core/meraxes.c)
     endif()
     target_link_libraries(meraxes meraxes_lib)
     install(TARGETS meraxes DESTINATION bin COMPONENT bin)
@@ -138,16 +138,16 @@ if(NOT BUILD_SHARED_LIBS)
         COMMAND test -n \"\${RUNDIR}\" || (echo "*** Must set RUNDIR to execute target 'setuprun'. ***" && exit 1)
         COMMAND echo "RUNDIR = \${RUNDIR}"
         COMMAND mkdir -p \${RUNDIR}
-        COMMAND cp -n ${CMAKE_CURRENT_SOURCE_DIR}/../input/input.par \${RUNDIR}
-        COMMAND cp -n ${CMAKE_CURRENT_SOURCE_DIR}/../input/snaplist.txt \${RUNDIR}
+        COMMAND cp -n ${CMAKE_CURRENT_LIST_DIR}/../input/input.par \${RUNDIR}
+        COMMAND cp -n ${CMAKE_CURRENT_LIST_DIR}/../input/snaplist.txt \${RUNDIR}
         COMMAND cp ${CMAKE_BINARY_DIR}/bin/meraxes \${RUNDIR}
         )
     add_dependencies(setuprun meraxes)
 endif()
 
 # Meraxes headers
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/meraxes.h.in ${CMAKE_BINARY_DIR}/meraxes.h ESCAPE_QUOTES @ONLY)
-include_directories(BEFORE ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR})
+configure_file(${CMAKE_CURRENT_LIST_DIR}/meraxes.h.in ${CMAKE_BINARY_DIR}/meraxes.h ESCAPE_QUOTES @ONLY)
+include_directories(BEFORE ${CMAKE_CURRENT_LIST_DIR} ${CMAKE_CURRENT_BINARY_DIR})
 execute_process(COMMAND ${GIT_EXECUTABLE} rev-parse HEAD
     OUTPUT_VARIABLE GITREF
     OUTPUT_STRIP_TRAILING_WHITESPACE)
@@ -155,13 +155,13 @@ execute_process(COMMAND ${GIT_EXECUTABLE} --no-pager diff --no-color
     OUTPUT_VARIABLE GITDIFF
     OUTPUT_STRIP_TRAILING_WHITESPACE)
 string(REPLACE "\\n" "\\\\n" GITDIFF GITDIFF)
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/git.h.in ${CMAKE_BINARY_DIR}/git.h ESCAPE_QUOTES @ONLY)
+configure_file(${CMAKE_CURRENT_LIST_DIR}/git.h.in ${CMAKE_BINARY_DIR}/git.h ESCAPE_QUOTES @ONLY)
 
 add_custom_target(cleandist
     COMMENT "Clean everything, including 3rd party libs."
     COMMAND ${CMAKE_MAKE_PROGRAM} clean
     COMMAND ${CMAKE_COMMAND} -E echo "Cleaning 3rd party libs..."
-    COMMAND ${CMAKE_COMMAND} -E remove_directory ${CMAKE_CURRENT_SOURCE_DIR}/3rd_party
+    COMMAND ${CMAKE_COMMAND} -E remove_directory ${CMAKE_CURRENT_LIST_DIR}/3rd_party
     )
 
 if(EXISTS ${CLANG_FORMAT_BINARY})
@@ -204,12 +204,12 @@ target_link_libraries(meraxes_lib ${MPI_C_LIBRARIES})
 find_library(MLOG_LIBRARIES libmlog.a PATHS ${MLOG_ROOT})
 if((NOT MLOG_LIBRARIES) OR (NOT EXISTS ${MLOG_LIBRARIES}))
     message(STATUS "Unable to find mlog. Building it as part of Meraxes")
-    if(NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/mlog/mlog.c")
+    if(NOT EXISTS "${CMAKE_CURRENT_LIST_DIR}/mlog/mlog.c")
         message(STATUS "Checking out mlog submodule")
         execute_process(COMMAND git submodule update --init
-                        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+                        WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR})
     endif()
-    set(MLOG_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/mlog")
+    set(MLOG_ROOT "${CMAKE_CURRENT_LIST_DIR}/mlog")
     add_library(mlog STATIC "${MLOG_ROOT}/mlog.c" "${MLOG_ROOT}/mlog.h")
     set_property(TARGET mlog PROPERTY POSITION_INDEPENDENT_CODE ON)
     target_include_directories(meraxes_lib PUBLIC ${MLOG_ROOT})
