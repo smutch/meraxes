@@ -7,8 +7,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
-#include "utils.h"
+#include <time.h>
 
 #ifndef _INIT_MERAXES
 #define _INIT_MERAXES
@@ -83,6 +82,18 @@ typedef enum index_type {
 /*
  * Structures
  */
+
+//! Utility timer struct for GPU runs
+typedef struct timer_info {
+    struct timeval start;
+    struct timeval stop;
+} timer_info;
+
+#ifdef _MAIN
+float timer_gpu = 0.f;
+#else
+extern float timer_gpu;
+#endif
 
 //! Physics parameter values
 typedef struct physics_params_t {
@@ -646,6 +657,9 @@ int searchsorted(void* val,
     int (*compare)(const void* a, const void* b),
     int imin,
     int imax);
+void timer_start(timer_info* timer);
+void timer_stop(timer_info* timer);
+float timer_delta(timer_info timer);
 float comoving_distance(float a[3], float b[3]);
 int pos_to_ngp(double x, double side, int nx);
 float apply_pbc_pos(float x);
@@ -732,11 +746,13 @@ int debug(const char* restrict format, ...);
 void check_pointers(halo_t* halos, fof_group_t* fof_groups, trees_info_t* trees_info);
 #endif
 
+#ifdef USE_CUDA
 // This stuff is needed by the GPU routines.  This
 //    needs to be included after mlog.h is included
 //    and after ABORT(), myexit() & run_globals are
 //    defined, since they are used within.
 #include "meraxes_gpu.h"
+#endif
 
 #ifdef __cplusplus
 }
