@@ -91,17 +91,7 @@ int read_dm_grid__gbptrees(
     MPI_Bcast(&start_foffset, 1, MPI_LONG, 0, run_globals.mpi_comm);
 
     // Check if the grid in the file is higher resolution than we require
-    double resample_factor = 1.;
-    if ((n_cell[0] != ReionGridDim) || (n_cell[1] != ReionGridDim) || (n_cell[2] != ReionGridDim)) {
-        resample_factor = (double)ReionGridDim / (double)n_cell[0];
-        if (resample_factor > 1.0001) {
-            mlog_error("The dark matter density grid in this file has a resolution less than that required! Aborting!");
-            ABORT(EXIT_FAILURE);
-        }
-        mlog("Using resample factor = %.3f", MLOG_MESG, resample_factor);
-    }
-    else
-        resample_factor = 1;
+    double resample_factor = calc_resample_factor(n_cell);
 
     // Malloc the slab
     ptrdiff_t slab_nix = run_globals.reion_grids.slab_nix[run_globals.mpi_rank];
@@ -155,26 +145,7 @@ int read_dm_grid__gbptrees(
                 ((float*)slab_file)[grid_index(ii, jj, kk, n_cell[0], INDEX_PADDED)] = ((float*)slab_file)[grid_index(ii, jj, kk, n_cell[0], INDEX_REAL)];
 
     // smooth the grid if needed
-    if (resample_factor < 1.0) {
-        mlog("Smoothing hi-res grid...", MLOG_OPEN | MLOG_TIMERSTART);
-        fftwf_plan plan = fftwf_mpi_plan_dft_r2c_3d(n_cell[0], n_cell[0], n_cell[0], (float*)slab_file, slab_file, run_globals.mpi_comm, FFTW_ESTIMATE);
-        fftwf_execute(plan);
-        fftwf_destroy_plan(plan);
-
-        // Remember to add the factor of VOLUME/TOT_NUM_PIXELS when converting from
-        // real space to k-space.
-        // Note: we will leave off factor of VOLUME, in anticipation of the inverse
-        // FFT below
-        long long total_n_cells_file = n_cell[0] * n_cell[0] * n_cell[0];
-        for (int ii = 0; ii < slab_n_complex_file; ii++)
-            slab_file[ii] /= (double)total_n_cells_file;
-        filter(slab_file, slab_ix_start_file, slab_nix_file, n_cell[0], run_globals.params.BoxSize / (double)ReionGridDim / 2.0);
-
-        plan = fftwf_mpi_plan_dft_c2r_3d(n_cell[0], n_cell[0], n_cell[0], slab_file, (float*)slab_file, run_globals.mpi_comm, FFTW_ESTIMATE);
-        fftwf_execute(plan);
-        fftwf_destroy_plan(plan);
-        mlog("...done", MLOG_CLOSE | MLOG_TIMERSTOP);
-    }
+    smooth_grid(resample_factor, n_cell, slab_file, slab_n_complex_file, slab_ix_start_file, slab_nix_file);
 
     // Copy the read and smoothed slab into the padded fft slab (already allocated externally)
     int n_every = n_cell[0] / ReionGridDim;
