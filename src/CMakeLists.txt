@@ -9,7 +9,7 @@ include(${CMAKE_ROOT}/Modules/ExternalProject.cmake)
 include(${CMAKE_CURRENT_SOURCE_DIR}/local.cmake OPTIONAL)
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 set_property(DIRECTORY PROPERTY EP_PREFIX "${CMAKE_CURRENT_SOURCE_DIR}/3rd_party")
-option(CMAKE_EXPORT_COMPILE_COMMANDS "Export compile commands (for clang-tidy)" ON)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 find_package(Git REQUIRED)
 
 # build options
