@@ -1,6 +1,5 @@
 #include "meraxes.h"
 #include <assert.h>
-#include <complex.h>
 #include <fftw3-mpi.h>
 #include <fftw3.h>
 #include <math.h>
@@ -29,35 +28,8 @@ static inline void read_identifier(FILE* fin, bool skip_flag)
         mlog("Reading grid: %s...", MLOG_MESG, identifier);
 }
 
-static int load_cached_deltax_slab(float* slab, int snapshot)
-{
-    if (run_globals.SnapshotDeltax[snapshot] != NULL) {
-        ptrdiff_t slab_n_complex = run_globals.reion_grids.slab_n_complex[run_globals.mpi_rank];
-        memcpy(slab, run_globals.SnapshotDeltax[snapshot], sizeof(float) * slab_n_complex * 2);
-        return 0;
-    }
-    else
-        return 1;
-}
-
-static int cache_deltax_slab(float* slab, int snapshot)
-{
-    if (run_globals.SnapshotDeltax[snapshot] == NULL) {
-        float** cache = &run_globals.SnapshotDeltax[snapshot];
-        ptrdiff_t slab_n_complex = run_globals.reion_grids.slab_n_complex[run_globals.mpi_rank];
-        ptrdiff_t mem_size = sizeof(float) * slab_n_complex * 2;
-
-        *cache = fftwf_alloc_real(mem_size);
-        memcpy(*cache, slab, mem_size);
-        return 0;
-    }
-    else
-        return 1;
-}
-
-int read_dm_grid(
+int read_dm_grid__gbptrees(
     int snapshot,
-    int i_grid,
     float* slab)
 {
     // N.B. We assume in this function that the slab has the fftw3 inplace complex dft padding.
@@ -106,15 +78,7 @@ int read_dm_grid(
         assert((n_cell[0] == n_cell[1]) && (n_cell[1] == n_cell[2])
             && "Input grids are not cubic!");
 
-        // Compute the total number of elements in each grid
-        int n_total_cell = n_cell[0] * n_cell[1] * n_cell[2];
-
-        // Skip to the grid that we want
-        // Note that we are expecting them to be in a particular order here
-        for (int ii = 0; ii < i_grid; ii++) {
-            read_identifier(fd, true);
-            fseek(fd, sizeof(float) * n_total_cell, SEEK_CUR);
-        }
+        // Note that we are expecting the first grid to be the density grid
         read_identifier(fd, false);
 
         start_foffset = ftell(fd);
@@ -229,21 +193,18 @@ int read_dm_grid(
         }
     }
 
-    if (i_grid == 0) // Density grid
-    {
-        // N.B. Hubble factor below to account for incorrect units in input DM grids!
-        double mean = (double)run_globals.params.NPart * run_globals.params.PartMass / pow(box_size[0], 3) / run_globals.params.Hubble_h;
+    // N.B. Hubble factor below to account for incorrect units in input DM grids!
+    double mean = (double)run_globals.params.NPart * run_globals.params.PartMass / pow(box_size[0], 3) / run_globals.params.Hubble_h;
 
-        // At this point grid holds the summed densities in each LR cell
-        // Loop through again and calculate the overdensity
-        // i.e. (rho - rho_mean)/rho_mean
-        for (int ii = 0; ii < slab_nix; ii++)
-            for (int jj = 0; jj < ReionGridDim; jj++)
-                for (int kk = 0; kk < ReionGridDim; kk++) {
-                    float* val = &(slab[grid_index(ii, jj, kk, ReionGridDim, INDEX_PADDED)]);
-                    *val = (float)(((double)*val / mean) - 1.);
-                }
-    }
+    // At this point grid holds the summed densities in each LR cell
+    // Loop through again and calculate the overdensity
+    // i.e. (rho - rho_mean)/rho_mean
+    for (int ii = 0; ii < slab_nix; ii++)
+        for (int jj = 0; jj < ReionGridDim; jj++)
+            for (int kk = 0; kk < ReionGridDim; kk++) {
+                float* val = &(slab[grid_index(ii, jj, kk, ReionGridDim, INDEX_PADDED)]);
+                *val = (float)(((double)*val / mean) - 1.);
+            }
 
     fftwf_free(slab_file);
 
@@ -257,17 +218,4 @@ int read_dm_grid(
     // write_single_grid("output/debug.h5", slab, "deltax", true, true);
 
     return 0;
-}
-
-void free_grids_cache()
-{
-    if (run_globals.params.Flag_PatchyReion) {
-        float** snapshot_deltax = run_globals.SnapshotDeltax;
-
-        if (run_globals.params.FlagInteractive)
-            for (int ii = 0; ii < run_globals.NStoreSnapshots; ii++)
-                fftwf_free(snapshot_deltax[ii]);
-
-        free(snapshot_deltax);
-    }
 }
