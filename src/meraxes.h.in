@@ -7,6 +7,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 
 #ifndef _INIT_MERAXES
 #define _INIT_MERAXES
@@ -34,10 +35,18 @@
 #endif
 // ======================================================
 
-#define ABORT(sigterm)                                                                            \
-    do {                                                                                          \
-        fprintf(stderr, "\nIn file: %s\tfunc: %s\tline: %i\n", __FILE__, __FUNCTION__, __LINE__); \
-        myexit(sigterm);                                                                          \
+// Define things used for aborting exceptions
+#ifdef __cplusplus
+extern "C" {
+#endif
+    void myexit(int signum);
+#ifdef __cplusplus
+}
+#endif
+#define ABORT(sigterm)                                                                 \
+    do {                                                                                   \
+        fprintf(stderr, "\nIn file: %s\tfunc: %s\tline: %i\n", __FILE__, __FUNCTION__, __LINE__);  \
+        myexit(sigterm);                                                                     \
     } while (0)
 
 // Units (cgs):
@@ -73,6 +82,18 @@ typedef enum index_type {
 /*
  * Structures
  */
+
+//! Utility timer struct for GPU runs
+typedef struct timer_info {
+    struct timeval start;
+    struct timeval stop;
+} timer_info;
+
+#ifdef _MAIN
+float timer_gpu = 0.f;
+#else
+extern float timer_gpu;
+#endif
 
 //! Physics parameter values
 typedef struct physics_params_t {
@@ -503,6 +524,23 @@ typedef struct Modifier {
     float ratio_erru;
 } Modifier;
 
+// This structure carries the information about
+//   the GPU allocated to this CPU's scope. It
+//   needs to be declared by all compilers since
+//   it is used by run_globals.
+#ifdef USE_CUDA
+#include <cuda_runtime.h>
+typedef struct gpu_info{
+    int    device;                    // the ordinal of the current context's device
+    bool   flag_use_cuFFT;            // true if the code has been compiled with cuFFT
+    struct cudaDeviceProp properties; // Properties of this context's assigned device
+    int    n_threads;                 // No. of threads to use in kernal calls
+    int    n_contexts;                // No. of ranks with successfully allocated GPU contexts
+} gpu_info;
+#else
+typedef char gpu_info;
+#endif
+
 //! Global variables which will will be passed around
 typedef struct run_globals_t {
     struct run_params_t params;
@@ -514,6 +552,7 @@ typedef struct run_globals_t {
     MPI_Comm mpi_comm;
     int mpi_rank;
     int mpi_size;
+  gpu_info *gpu;
 
     double* AA;
     double* ZZ;
@@ -559,7 +598,9 @@ extern run_globals_t run_globals;
  * Functions
  */
 
-void myexit(int signum);
+#ifdef __cplusplus
+extern "C" {
+#endif
 void cleanup(void);
 void read_parameter_file(char* fname, int mode);
 void init_meraxes(void);
@@ -616,6 +657,9 @@ int searchsorted(void* val,
     int (*compare)(const void* a, const void* b),
     int imin,
     int imax);
+void timer_start(timer_info* timer);
+void timer_stop(timer_info* timer);
+float timer_delta(timer_info timer);
 float comoving_distance(float a[3], float b[3]);
 int pos_to_ngp(double x, double side, int nx);
 float apply_pbc_pos(float x);
@@ -669,7 +713,8 @@ void init_reion_grids(void);
 void filter(fftwf_complex* box, int local_ix_start, int slab_nx, int grid_dim, float R);
 void set_fesc(int snapshot);
 void set_quasar_fobs(void);
-void find_HII_bubbles(double redshift);
+double RtoM(double R);
+void find_HII_bubbles(int snapshot, timer_info *timer_total);
 double tocf_modifier(galaxy_t* gal, double Mvir);
 void set_ReionEfficiency(void);
 int find_cell(float pos, double box_size);
@@ -682,7 +727,7 @@ void gen_grids_fname(int snapshot, char* name, bool relative);
 int read_dm_grid(int snapshot, int i_grid, float* grid);
 void free_grids_cache(void);
 void calculate_Mvir_crit(double redshift);
-void call_find_HII_bubbles(int snapshot, int nout_gals);
+void call_find_HII_bubbles(int snapshot, int nout_gals, timer_info *timer);
 void save_reion_input_grids(int snapshot);
 void save_reion_output_grids(int snapshot);
 bool check_if_reionization_ongoing(void);
@@ -690,10 +735,27 @@ void write_single_grid(const char* fname, float* grid, const char* grid_name, bo
 
 // MCMC related
 // meraxes_mhysa_hook must be implemented by the calling code (Mhysa)!
-int (*meraxes_mhysa_hook)(void* self, int snapshot, int ngals);
+#ifdef _MAIN
+int (*meraxes_mhysa_hook)(void *self, int snapshot, int ngals);
+#else
+extern  int (*meraxes_mhysa_hook)(void *self, int snapshot, int ngals);
+#endif
 
 #ifdef DEBUG
 int debug(const char* restrict format, ...);
 void check_pointers(halo_t* halos, fof_group_t* fof_groups, trees_info_t* trees_info);
 #endif
+
+#ifdef USE_CUDA
+// This stuff is needed by the GPU routines.  This
+//    needs to be included after mlog.h is included
+//    and after ABORT(), myexit() & run_globals are
+//    defined, since they are used within.
+#include "meraxes_gpu.h"
+#endif
+
+#ifdef __cplusplus
+}
+#endif
+
 #endif // _INIT_MERAXES
