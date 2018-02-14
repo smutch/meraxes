@@ -52,6 +52,10 @@ int read_dm_grid__velociraptor(
     assert((n_cell[0] == n_cell[1]) && (n_cell[1] == n_cell[2])
             && "Input grids are not cubic!");
 
+    mlog("Reading VELOCIraptor grid for snapshot %d", MLOG_OPEN | MLOG_TIMERSTART, snapshot);
+    mlog("n_cell = [%d, %d, %d]", MLOG_MESG, n_cell[0], n_cell[1], n_cell[2]);
+    mlog("box_size = %.2f cMpc/h", MLOG_MESG, box_size);
+
     double resample_factor = calc_resample_factor(n_cell);
 
     // Malloc the slab
