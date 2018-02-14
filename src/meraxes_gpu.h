@@ -33,9 +33,6 @@
 #ifndef _MERAXES_GPU_H
 #define _MERAXES_GPU_H
 
-// Stuff used for testing timer
-#include "utils.h"
-
 // Define a generic Complex datatype
 #ifdef __cplusplus
 #include <cuda_runtime.h>

@@ -137,8 +137,8 @@ int read_dm_grid__velociraptor(
     }
 
     // N.B. Hubble factor below to account for incorrect units in input DM grids!
-    // TODO: Discuss this with Pascal
-    double mean = (double)run_globals.params.NPart * run_globals.params.PartMass / pow(box_size, 3) / run_globals.params.Hubble_h;
+    // TODO: Discuss this with Pascal and check carefully
+    double mean = (double)run_globals.params.NPart * run_globals.params.PartMass / pow(box_size, 3) * run_globals.params.Hubble_h / (double)(n_cell[0] * n_cell[1] * n_cell[2]);
 
     // At this point grid holds the summed densities in each LR cell
     // Loop through again and calculate the overdensity

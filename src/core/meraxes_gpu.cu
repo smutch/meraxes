@@ -31,7 +31,6 @@
 //==============================================================================
 
 #include "meraxes.h"
-#include "utils.h"
 #include <fftw3.h>
 #include <fftw3-mpi.h>
 #include <math.h>

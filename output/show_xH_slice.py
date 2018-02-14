@@ -22,8 +22,11 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 from docopt import docopt
 import h5py as h5
+import seaborn as sns
 
 from dragons import meraxes, nbody, plotutils
+
+sns.set("talk", "white")
 
 def setup_fig(redshift, neutral_fraction, slice_str, slice_axis):
 
@@ -97,7 +100,7 @@ def parse_slice(slice_str, max_dim):
     slice_dict = re.match(pattern, slice_str).groupdict()
 
     default = [0,max_dim,None]
-    for ii, k in enumerate(slice_dict.iterkeys()):
+    for ii, k in enumerate(slice_dict.keys()):
         if slice_dict[k]==':':
             slice_dict[k]=default[:]
         else:
@@ -142,7 +145,7 @@ if __name__ == '__main__':
     slice_sel = parse_slice(args['<slice>'], slice_dim)
     box_len = simprops["BoxSize"]
     with h5.File(input_file, "r") as fd:
-        global_xH = fd["Snap{:03d}/Grids/xH".format(snapshot)].attrs["global_xH"][0]
+        global_xH = fd["Snap{:03d}/Grids/xH".format(snapshot)].attrs["mass_weighted_global_xH"][0]
 
     # if requested read in the galaxies and select those within our slice
     if(args['--galaxies']):
@@ -164,7 +167,6 @@ if __name__ == '__main__':
         grid_slice = grid_slice.mean(axis=slice_axis)
         dm_slice = dm_slice.mean(axis=slice_axis)
 
-    plotutils.init_style(theme="white_bg")
     fig, ax = setup_fig(redshift, global_xH, args['<slice>'], slice_axis)
     plot_slice(grid_slice, ax, slice_dim, slice_axis, box_len,
                galaxies=gals,
