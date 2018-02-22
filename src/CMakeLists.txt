@@ -159,7 +159,7 @@ execute_process(COMMAND ${GIT_EXECUTABLE} rev-parse HEAD
 execute_process(COMMAND ${GIT_EXECUTABLE} --no-pager diff --no-color
     OUTPUT_VARIABLE GITDIFF
     OUTPUT_STRIP_TRAILING_WHITESPACE)
-string(REPLACE "\\n" "\\\\n" GITDIFF GITDIFF)
+string(REPLACE "\n" "\\n" GITDIFF ${GITDIFF})
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/git.h.in ${CMAKE_BINARY_DIR}/git.h ESCAPE_QUOTES @ONLY)
 
 add_custom_target(cleandist
