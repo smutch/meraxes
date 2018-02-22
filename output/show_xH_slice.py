@@ -53,13 +53,13 @@ def plot_slice(slice_img, ax, dim, slice_axis, box_size, galaxies=False, dm=Fals
     if dm is not False:
         ax.imshow(np.log10(dm.T+1.0),
                   interpolation='bilinear',
-                  cmap=plt.cm.Spectral,
+                  cmap=plt.cm.gist_earth,
                   extent = extent,
                   origin='lower')
 
-    alpha_cmap = plt.cm.get_cmap("Blues_r")
+    alpha_cmap = plt.cm.get_cmap("magma")
     alpha_cmap._init()
-    alphas = np.abs(np.linspace(0.7, 0.0, alpha_cmap.N))
+    alphas = np.abs(np.linspace(0.6, 0.0, alpha_cmap.N))
     alpha_cmap._lut[:-3,-1] = alphas
     cax = ax.imshow(1.0-slice_img.T, interpolation='bilinear',
                     cmap=alpha_cmap,
@@ -83,11 +83,11 @@ def plot_slice(slice_img, ax, dim, slice_axis, box_size, galaxies=False, dm=Fals
                    galaxies["Pos"][:,plot_axis[1]],
                    s=np.log10(galaxies['StellarMass']*1.e10)**9*3e-7,
                    c=np.log10(galaxies['StellarMass']*1.e10),
-                   cmap=plt.cm.Blues,
+                   cmap=plt.cm.Greys,
                    marker='o',
                    # edgecolors='none',
                    linewidths=0.1,
-                   alpha=0.5,
+                   alpha=1.0,
                    zorder=3)
 
     ax.set_xlim(0,final_size)
