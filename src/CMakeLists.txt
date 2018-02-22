@@ -10,7 +10,6 @@ include(${CMAKE_CURRENT_SOURCE_DIR}/local.cmake OPTIONAL)
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 set_property(DIRECTORY PROPERTY EP_PREFIX "${CMAKE_CURRENT_SOURCE_DIR}/3rd_party")
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-find_package(Git REQUIRED)
 
 # build options
 set(N_HISTORY_SNAPS 5 CACHE VALUE "Number of snapshots for delayed SN feedback")
@@ -153,14 +152,13 @@ endif()
 # Meraxes headers
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/meraxes.h.in ${CMAKE_BINARY_DIR}/meraxes.h ESCAPE_QUOTES @ONLY)
 include_directories(BEFORE ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR})
-execute_process(COMMAND ${GIT_EXECUTABLE} rev-parse HEAD
-    OUTPUT_VARIABLE GITREF
-    OUTPUT_STRIP_TRAILING_WHITESPACE)
-execute_process(COMMAND ${GIT_EXECUTABLE} --no-pager diff --no-color
-    OUTPUT_VARIABLE GITDIFF
-    OUTPUT_STRIP_TRAILING_WHITESPACE)
-string(REPLACE "\n" "\\n" GITDIFF ${GITDIFF})
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/git.h.in ${CMAKE_BINARY_DIR}/git.h ESCAPE_QUOTES @ONLY)
+add_custom_target(record_gitinfo
+    COMMAND ${CMAKE_COMMAND}
+        -DSOURCE_DIR=${CMAKE_CURRENT_SOURCE_DIR}
+        -P ${CMAKE_CURRENT_SOURCE_DIR}/cmake/versioning.cmake
+    DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/git.h.in
+    )
+add_dependencies(meraxes_lib record_gitinfo)
 
 add_custom_target(cleandist
     COMMENT "Clean everything, including 3rd party libs."
