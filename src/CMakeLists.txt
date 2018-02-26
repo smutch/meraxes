@@ -70,6 +70,8 @@ set(BUILD_SHARED_LIBS OFF CACHE BOOL "Build shared library version (required for
 #  because c++11 support is needed!
 option(USE_CUDA "Use CUDA" OFF)
 if(USE_CUDA)
+    message(STATUS "Compiling with CUDA... You may see `Policy CMP0007` warnings below."
+        "\n   These can be safely ignored. This is a bug in `find_package(CUDA)` and is out of our hands...")
     find_package(CUDA REQUIRED)
     add_definitions(-DUSE_CUDA)
     option(USE_CUFFT "Use cuFFT" OFF)
@@ -217,7 +219,6 @@ set_target_properties(mlog PROPERTIES
 target_include_directories(meraxes_lib PUBLIC
     $<BUILD_INTERFACE:${MLOG_ROOT}>
     $<INSTALL_INTERFACE:include>)
-# target_include_directories(meraxes_lib PUBLIC ${MLOG_ROOT})
 target_link_libraries(meraxes_lib mlog)
 
 install(TARGETS mlog EXPORT MeraxesConfig
@@ -266,5 +267,3 @@ endif()
 # Exports for other codes to build against this version of Meraxes
 install(EXPORT MeraxesConfig DESTINATION share/meraxes/cmake)
 export(TARGETS meraxes_lib mlog FILE MeraxesConfig.cmake)
-
-
