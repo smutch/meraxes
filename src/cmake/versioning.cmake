@@ -7,7 +7,7 @@ execute_process(COMMAND ${GIT_EXECUTABLE} --no-pager diff --no-color
     OUTPUT_VARIABLE GITDIFF
     OUTPUT_STRIP_TRAILING_WHITESPACE)
 
-if (NOT test STREQUAL "")
+if (NOT GITDIFF STREQUAL "")
     string(REPLACE "\n" "\\n" GITDIFF ${GITDIFF})
 endif()
 
