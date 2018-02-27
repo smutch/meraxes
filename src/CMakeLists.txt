@@ -139,6 +139,9 @@ if(NOT BUILD_SHARED_LIBS)
         -P ${CMAKE_BINARY_DIR}/cmake_install.cmake) 
     add_dependencies(install.meraxes meraxes)
 
+    set(SIM_DEFAULTS_PARAM_FILE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../input/Tiamat.par")
+    configure_file(${CMAKE_CURRENT_SOURCE_DIR}/../input/input.par ${CMAKE_BINARY_DIR}/input.par ESCAPE_QUOTES @ONLY)
+
     add_custom_target(setuprun
         COMMENT "Setting up run with minimal required files..."
         COMMAND test -n \"\${RUNDIR}\" || (echo "*** Must set RUNDIR to execute target 'setuprun'. ***" && exit 1)
