@@ -8,6 +8,7 @@ execute_process(COMMAND ${GIT_EXECUTABLE} --no-pager diff --no-color
     OUTPUT_STRIP_TRAILING_WHITESPACE)
 
 if (NOT GITDIFF STREQUAL "")
+    string(REPLACE "\\\"" "\\\\\"" GITDIFF ${GITDIFF})
     string(REPLACE "\n" "\\n" GITDIFF ${GITDIFF})
 endif()
 
