@@ -5,6 +5,7 @@ The Meraxes semi-analytic galaxy formation model.
 
 **Author**: [Simon Mutch](http://www.ph.unimelb.edu.au/~smutch/index.html) (*The University of Melbourne*)
 
+**Note: This code is in pre-release phase and contains unpublished physical recipes and code implementations.  Please do not distribute this code without permission or copy any portions.  All rights reserved!**
 
 Requirements
 ------------
