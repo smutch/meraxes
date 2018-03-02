@@ -45,9 +45,6 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 # build options
 set(N_HISTORY_SNAPS 5 CACHE VALUE "Number of snapshots for delayed SN feedback")
 add_definitions(-DN_HISTORY_SNAPS=${N_HISTORY_SNAPS})
-set(USE_JeMalloc TRUE CACHE BOOL "Build with jemalloc (may improve performance on some systems)")
-set(USE_BUNDLED_JeMalloc FALSE CACHE BOOL "Download and build against bundled jemalloc")
-set(USE_BUNDLED_FFTW FALSE CACHE BOOL "Download and build against bundled fftw")
 
 # executable
 add_executable(meraxes ${SOURCES})
@@ -116,18 +113,6 @@ endif()
 target_link_libraries(meraxes_lib PRIVATE m)
 target_link_libraries(meraxes PRIVATE m)
 
-# JEMALLOC
-if(USE_JeMalloc OR USE_BUNDLED_JeMalloc)
-    if (NOT USE_BUNDLED_JeMalloc)
-        find_package(JeMalloc REQUIRED)
-        target_link_libraries(meraxes_lib PRIVATE ${JEMALLOC_LIBRARIES})
-        target_link_libraries(meraxes PRIVATE ${JEMALLOC_LIBRARIES})
-    else()
-        include(cmake/BundleJeMalloc.cmake)
-        bundle_jemalloc()
-    endif()
-endif()
-
 # MPI
 find_package(MPI REQUIRED)
 target_include_directories(meraxes_lib PUBLIC ${MPI_INCLUDE_PATH})
@@ -185,17 +170,11 @@ if(NOT (${HDF5_C_HL_LIBRARIES} MATCHES "libhdf5_hl"))
     target_link_libraries(meraxes PRIVATE "${HDF5_LIBDIR}/libhdf5_hl.so")
 endif()
 
-# FFTW
-if(NOT USE_BUNDLED_FFTW)
-    find_package(FFTW REQUIRED)
-    target_include_directories(meraxes_lib PRIVATE ${FFTW_INCLUDE_DIRS})
-    target_include_directories(meraxes PRIVATE ${FFTW_INCLUDE_DIRS})
-    target_link_libraries(meraxes_lib PRIVATE ${FFTW_LIBRARIES})
-    target_link_libraries(meraxes PRIVATE ${FFTW_LIBRARIES})
-else()
-    include(cmake/BundleFFTW.cmake)
-    bundle_fftw()
-endif()
+find_package(FFTW REQUIRED)
+target_include_directories(meraxes_lib PRIVATE ${FFTW_INCLUDE_DIRS})
+target_include_directories(meraxes PRIVATE ${FFTW_INCLUDE_DIRS})
+target_link_libraries(meraxes_lib PRIVATE ${FFTW_LIBRARIES})
+target_link_libraries(meraxes PRIVATE ${FFTW_LIBRARIES})
 
 # OpenMP
 option(USE_OpenMP "Use OpenMP" OFF)
