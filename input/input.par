@@ -1,4 +1,4 @@
 FileNameGalaxies    : meraxes
-DefaultsFile        : /home/smutch/models/meraxes/input/Tiamat.par
+DefaultsFile        : @SIM_DEFAULTS_PARAM_FILE_PATH@
 FileWithOutputSnaps : snaplist.txt
 OutputDir           : output

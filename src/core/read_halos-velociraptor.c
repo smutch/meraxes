@@ -115,8 +115,8 @@ void read_trees__velociraptor(int snapshot, halo_t* halos, int* n_halos, fof_gro
 
     if (run_globals.mpi_rank == 0) {
         char fname[STRLEN];
-        sprintf(fname, "%s/trees/VELOCIraptor.tree.t4.unifiedhalotree.withforest.snap.hdf.data",
-            run_globals.params.SimulationDir);
+        sprintf(fname, "%s/trees/%s",
+            run_globals.params.SimulationDir, run_globals.params.CatalogFilePrefix);
 
         hid_t fd = H5Fopen(fname, H5F_ACC_RDONLY, H5P_DEFAULT);
         if (fd < 0) {
@@ -150,8 +150,19 @@ void read_trees__velociraptor(int snapshot, halo_t* halos, int* n_halos, fof_gro
         free(buffer);
 
         // convert units
+        double scale_factor = -999.;
+        H5LTget_attribute_double(fd, snap_group_name, "scalefactor", &scale_factor);
         for (int ii = 0; ii < n_tree_entries; ii++) {
             tree_entries[ii].Mass_200crit *= 1e-10;
+            tree_entries[ii].Xc *= run_globals.params.Hubble_h / scale_factor;
+            tree_entries[ii].Yc *= run_globals.params.Hubble_h / scale_factor;
+            tree_entries[ii].Zc *= run_globals.params.Hubble_h / scale_factor;
+#ifdef DEBUG
+            double box_size = run_globals.params.BoxSize;
+            assert((tree_entries[ii].Xc <= box_size) && (tree_entries[ii].Xc >= 0.0));
+            assert((tree_entries[ii].Yc <= box_size) && (tree_entries[ii].Yc >= 0.0));
+            assert((tree_entries[ii].Zc <= box_size) && (tree_entries[ii].Zc >= 0.0));
+#endif
         }
 
         H5Gclose(snap_group);
@@ -184,6 +195,10 @@ void read_trees__velociraptor(int snapshot, halo_t* halos, int* n_halos, fof_gro
             halo->NextHaloInFOFGroup = NULL;
             halo->Type = tree_entry.hostHaloID == -1 ? 0 : 1;
             halo->SnapOffset = id_to_snap(tree_entry.Head) - snapshot;
+
+            // Here we have a cyclic pointer, indicating that this halo's life ends here
+            if (tree_entry.Head == tree_entry.ID)
+                halo->DescIndex = -1;
 
             if (index_lookup)
                 index_lookup[*n_halos] = ii;
