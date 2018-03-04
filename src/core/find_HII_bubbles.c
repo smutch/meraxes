@@ -229,7 +229,7 @@ void _find_HII_bubbles(double redshift)
 
         J_21_aux_constant = (1.0 + redshift) * (1.0 + redshift) / (4.0 * M_PI)
             * run_globals.params.physics.ReionAlphaUV * PLANCK
-            * 1e21// * run_globals.params.physics.ReionEscapeFrac
+            * 1e21 * run_globals.params.physics.ReionEscapeFrac
             * R * units->UnitLength_in_cm * ReionNionPhotPerBary / PROTONMASS
             * units->UnitMass_in_g / pow(units->UnitLength_in_cm, 3) / units->UnitTime_in_s;
 

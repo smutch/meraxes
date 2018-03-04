@@ -359,7 +359,7 @@ void _find_HII_bubbles_gpu(double redshift, const bool flag_write_validation_out
         // Main loop through the box...
         const double J_21_aux_constant = (1.0 + redshift) * (1.0 + redshift) / (4.0 * M_PI)
             * ReionAlphaUV * PLANCK
-            * 1e21 //* ReionEscapeFrac
+            * 1e21 * ReionEscapeFrac
             * R * UnitLength_in_cm * ReionNionPhotPerBary / PROTONMASS
             * UnitMass_in_g / pow(UnitLength_in_cm, 3) / UnitTime_in_s;
         const double inv_pixel_volume = 1. / pixel_volume;
