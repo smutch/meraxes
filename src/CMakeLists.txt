@@ -216,6 +216,8 @@ if(NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/mlog/mlog.c")
 endif()
 set(MLOG_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/mlog")
 add_library(mlog STATIC "${MLOG_ROOT}/mlog.c" "${MLOG_ROOT}/mlog.h")
+target_link_libraries(mlog mpi)
+target_include_directories(mlog PRIVATE ${MPI_INCLUDE_PATH})
 set_target_properties(mlog PROPERTIES
     POSITION_INDEPENDENT_CODE ON
     PUBLIC_HEADER "${MLOG_ROOT}/mlog.h")
