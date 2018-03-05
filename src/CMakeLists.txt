@@ -147,7 +147,7 @@ if(NOT BUILD_SHARED_LIBS)
         COMMAND test -n \"\${RUNDIR}\" || (echo "*** Must set RUNDIR to execute target 'setuprun'. ***" && exit 1)
         COMMAND echo "RUNDIR = \${RUNDIR}"
         COMMAND mkdir -p \${RUNDIR}
-        COMMAND cp -n ${CMAKE_CURRENT_SOURCE_DIR}/../input/input.par \${RUNDIR}
+        COMMAND cp -n ${CMAKE_BINARY_DIR}/input.par \${RUNDIR}
         COMMAND cp -n ${CMAKE_CURRENT_SOURCE_DIR}/../input/snaplist.txt \${RUNDIR}
         COMMAND cp ${CMAKE_BINARY_DIR}/bin/meraxes \${RUNDIR}
         )
