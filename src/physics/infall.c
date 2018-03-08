@@ -29,7 +29,7 @@ double gas_infall(fof_group_t* FOFgroup, int snapshot)
             total_hotgas += gal->HotGas;
             total_coldgas += gal->ColdGas;
             total_ejectedgas += gal->EjectedGas;
-            total_blackholemass += gal->BlackHoleMass;
+            total_blackholemass += gal->BlackHoleMass + gal->BlackHoleAccretingColdMass;
 
             if (gal != central) {
                 central->HotGas += gal->HotGas + gal->EjectedGas;

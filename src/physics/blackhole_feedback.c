@@ -133,16 +133,16 @@ double radio_mode_BH_heating(galaxy_t* gal, double cooling_mass, double x)
 
         gal->BlackHoleAccretedHotMass = accreted_mass;
 
-        // add the accreted mass to the black hole
+        // add the accreted mass to the black hole from hotgas
         double metallicity = calc_metallicity(gal->HotGas, gal->MetalsHotGas);
 
         //Assuming all energy from radio mode is going to heat the cooling flow
         //So no emissivity from radio mode!
         //TODO: we could add heating effienciency to split the energy into
         //heating and reionization.
-        gal->BlackHoleMass += (1. - ETA) * accreted_mass;
-        gal->HotGas -= accreted_mass;
-        gal->MetalsHotGas -= metallicity * accreted_mass;
+        gal->BlackHoleMass += accreted_mass * (1. - ETA);
+        gal->HotGas        -= accreted_mass;
+        gal->MetalsHotGas  -= accreted_mass * metallicity;
     }
     return heated_mass;
 }
@@ -169,10 +169,15 @@ void merger_driven_BH_growth(galaxy_t* gal, double merger_ratio, int snapshot)
         if (accreting_mass > gal->ColdGas)
             accreting_mass = gal->ColdGas;
 
+        // add the accreting mass to the black hole from coldgas
+        double metallicity = calc_metallicity(gal->ColdGas, gal->MetalsColdGas);
+
         // put the mass onto the accretion disk and let the black hole accrete it in the next snapshot
         // TODO: since the merger is put in the end of galaxy evolution, this is following the
         // inconsistence consistently
         gal->BlackHoleAccretingColdMass += accreting_mass;
+        gal->ColdGas                    -= accreting_mass;
+        gal->MetalsColdGas              -= accreting_mass * metallicity;
     }
 }
 

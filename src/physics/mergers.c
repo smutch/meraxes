@@ -183,13 +183,13 @@ void merge_with_target(galaxy_t* gal, int* dead_gals, int snapshot)
     for (int outputbin = 0; outputbin < run_globals.NOutputSnaps; outputbin++)
         sum_luminosities(parent, gal, outputbin);
 
-    // TODO: Should this have a stellar mass / baryon limit placed on it?
-    if (run_globals.params.physics.Flag_BHFeedback)
-        merger_driven_BH_growth(parent, merger_ratio, snapshot);
-
     // merger driven starburst prescription
     if (min_stellar_mass >= run_globals.params.physics.MinMergerStellarMass)
         merger_driven_starburst(parent, merger_ratio, snapshot);
+
+    // TODO: Should this have a stellar mass / baryon limit placed on it?
+    if (run_globals.params.physics.Flag_BHFeedback)
+        merger_driven_BH_growth(parent, merger_ratio, snapshot);
 
     // Mark the merged galaxy as dead
     gal->Type = 3;
