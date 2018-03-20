@@ -801,7 +801,7 @@ bool check_if_reionization_ongoing()
     else
         // Here we haven't finished or previously started.  Should we start then?
         if (run_globals.FirstGal != NULL)
-        started = 1;
+            started = 1;
 
     // At this stage, `started` and `finished` should be set accordingly for each
     // individual core.  Now we need to combine them on all cores.
