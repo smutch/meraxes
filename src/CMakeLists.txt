@@ -205,8 +205,7 @@ target_link_libraries(meraxes_lib m)
 
 # MPI
 find_package(MPI REQUIRED)
-target_include_directories(meraxes_lib PUBLIC ${MPI_INCLUDE_PATH})
-target_link_libraries(meraxes_lib ${MPI_C_LIBRARIES})
+target_link_libraries(meraxes_lib MPI::MPI_C)
 
 # MLOG
 if(NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/mlog/mlog.c")
@@ -216,7 +215,7 @@ if(NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/mlog/mlog.c")
 endif()
 set(MLOG_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/mlog")
 add_library(mlog STATIC "${MLOG_ROOT}/mlog.c" "${MLOG_ROOT}/mlog.h")
-target_link_libraries(mlog mpi)
+target_link_libraries(mlog MPI::MPI_C)
 target_include_directories(mlog PRIVATE ${MPI_INCLUDE_PATH})
 set_target_properties(mlog PROPERTIES
     POSITION_INDEPENDENT_CODE ON
@@ -233,8 +232,7 @@ install(TARGETS mlog EXPORT MeraxesConfig
 
 # GSL
 find_package(GSL REQUIRED)
-target_include_directories(meraxes_lib PUBLIC ${GSL_INCLUDE_DIRS})
-target_link_libraries(meraxes_lib ${GSL_LIBRARIES})
+target_link_libraries(meraxes_lib GSL::gsl GSL::gslcblas)
 
 # HDF5
 find_package(HDF5 REQUIRED COMPONENTS C HL)
