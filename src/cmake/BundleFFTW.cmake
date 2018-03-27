@@ -26,6 +26,8 @@ function(bundle_fftw)
     endif()
 
     set(FFTW_LIBRARIES ${FFTW_MPI_LIBRARY} ${FFTW_LIBRARY})
-    target_include_directories(meraxes_lib PUBLIC ${FFTW_INCLUDE_DIRS})
+    target_include_directories(meraxes_lib PUBLIC
+        $<BUILD_INTERFACE:${FFTW_INCLUDE_DIRS}>
+        $<INSTALL_INTERFACE:include>)
     target_link_libraries(meraxes_lib fftw fftw-mpi)
 endfunction()
