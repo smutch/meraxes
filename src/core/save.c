@@ -6,6 +6,7 @@
 #include <hdf5_hl.h>
 #include <math.h>
 #include <unistd.h>
+#include <lber.h>
 
 float current_mwmsa(galaxy_t* gal, int i_snap)
 {
@@ -720,17 +721,45 @@ static void inline save_walk_indices(
     int n_write)
 {
     hsize_t dim[1];
+    hid_t dset_id;
     char target[50];
 
-    dim[0] = (hsize_t)old_count;
-    sprintf(target, "Snap%03d/DescendantIndices", (run_globals.ListOutputSnaps)[prev_i_out]);
-    H5LTmake_dataset(file_id, target, 1, dim, H5T_NATIVE_INT, descendant_index);
-    sprintf(target, "Snap%03d/NextProgenitorIndices", (run_globals.ListOutputSnaps)[prev_i_out]);
-    H5LTmake_dataset(file_id, target, 1, dim, H5T_NATIVE_INT, next_progenitor_index);
+    hid_t plist_id  = H5Pcreate(H5P_DATASET_CREATE);
+    hsize_t chunks[1] = {1000};
+    H5Pset_chunk(plist_id, 1, chunks);
+    H5Pset_deflate(plist_id, 6);
 
+    dim[0] = (hsize_t)old_count;
+    hid_t dspace_id = H5Screate_simple(1, dim, NULL);
+
+    sprintf(target, "Snap%03d/DescendantIndices", (run_globals.ListOutputSnaps)[prev_i_out]);
+    dset_id = H5Dcreate(file_id, target, H5T_NATIVE_INT,
+                        dspace_id, H5P_DEFAULT, plist_id, H5P_DEFAULT);
+    H5Dwrite(dset_id, H5T_NATIVE_FLOAT, H5S_ALL, H5S_ALL, H5P_DEFAULT, descendant_index);
+    H5Dclose(dset_id);
+    //H5LTmake_dataset(file_id, target, 1, dim, H5T_NATIVE_INT, descendant_index);
+
+    sprintf(target, "Snap%03d/NextProgenitorIndices", (run_globals.ListOutputSnaps)[prev_i_out]);
+    dset_id = H5Dcreate(file_id, target, H5T_NATIVE_INT,
+                        dspace_id, H5P_DEFAULT, plist_id, H5P_DEFAULT);
+    H5Dwrite(dset_id, H5T_NATIVE_FLOAT, H5S_ALL, H5S_ALL, H5P_DEFAULT, next_progenitor_index);
+    H5Dclose(dset_id);
+    //H5LTmake_dataset(file_id, target, 1, dim, H5T_NATIVE_INT, next_progenitor_index);
+
+    H5Sclose(dspace_id);
     dim[0] = (hsize_t)n_write;
+    dspace_id = H5Screate_simple(1, dim, NULL);
+
     sprintf(target, "Snap%03d/FirstProgenitorIndices", (run_globals.ListOutputSnaps)[i_out]);
-    H5LTmake_dataset(file_id, target, 1, dim, H5T_NATIVE_INT, first_progenitor_index);
+    dset_id = H5Dcreate(file_id, target, H5T_NATIVE_INT,
+                        dspace_id, H5P_DEFAULT, plist_id, H5P_DEFAULT);
+    H5Dwrite(dset_id, H5T_NATIVE_FLOAT, H5S_ALL, H5S_ALL, H5P_DEFAULT, first_progenitor_index);
+    H5Dclose(dset_id);
+    //H5LTmake_dataset(file_id, target, 1, dim, H5T_NATIVE_INT, first_progenitor_index);
+
+    H5Sclose(dspace_id);
+    H5Pclose(plist_id);
+
 }
 
 static inline bool pass_write_check(galaxy_t* gal, bool flag_merger)
@@ -757,7 +786,7 @@ void write_snapshot(
 
     hid_t file_id;
     hid_t group_id;
-    hsize_t chunk_size = 10000;
+    hsize_t chunk_size = 1000;
     galaxy_output_t* output_buffer = NULL;
     int* fill_data = NULL;
     char target_group[20];
@@ -798,7 +827,7 @@ void write_snapshot(
     // Make the table
     H5TBmake_table("Galaxies", group_id, "Galaxies",
         h5props.n_props, n_write, h5props.dst_size, h5props.field_names,
-        h5props.dst_offsets, h5props.field_types, chunk_size, fill_data, 0,
+        h5props.dst_offsets, h5props.field_types, chunk_size, fill_data, 1,
         NULL);
 
     // If the immediately preceding snapshot was also written, then save the
