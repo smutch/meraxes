@@ -9,6 +9,7 @@ FileNameGalaxies : Tiamat125-HR
 SimName          : Tiamat125-HR
 SimulationDir    : /home/smutch/data_dragons/input_trees/Tiamat_125_HR/
 CatalogFilePrefix: subfind
+TreesID          : 1
 BoxSize          : 125.0
 VolumeFactor     : 1.0
 
@@ -27,8 +28,6 @@ MagBands             : Bbv,V,Rc,Ic,K
 #------------------------------------------
 NSteps                 : 1  # Current version of code requires NSteps=1
 FlagInteractive        : 0
-FlagGenDumpFile        : 0  # DON'T USE THIS WITHOUT TALKING TO SM FIRST
-FlagReadDumpFile       : 0  # DON'T USE THIS WITHOUT TALKING TO SM FIRST
 FlagSubhaloVirialProps : 0  # 0 -> approximate subhalo virial props using particle number; 1 -> use catalogue values
 FlagMCMC               : 0  # Don't do any writing and activate MCMC related routines
 RandomSeed             : 1809  # seed for random number generator
@@ -102,7 +101,7 @@ quasar_open_angle         : 80.0
 #----- Reionization ---------------------------
 #----------------------------------------------
 
-Flag_ReionizationModifier  : 2    # use halo mass dependant infall modifier of Gnedin
+Flag_ReionizationModifier  : 1
 
 # global prescriptions
 ReionSobacchi_Zre      : 9.3
