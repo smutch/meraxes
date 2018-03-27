@@ -1,8 +1,8 @@
 # project setup
 cmake_minimum_required(VERSION 3.5)
 # Set default compilers (must come before project line)
-set(CMAKE_C_COMPILER   "gcc")
-set(CMAKE_CXX_COMPILER "g++")
+# set(CMAKE_C_COMPILER   "icc")
+# set(CMAKE_CXX_COMPILER "icpc")
 
 project(meraxes)
 include(${CMAKE_ROOT}/Modules/ExternalProject.cmake)
