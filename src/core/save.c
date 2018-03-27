@@ -777,8 +777,7 @@ static inline bool pass_write_check(galaxy_t* gal, bool flag_merger)
 void write_snapshot(
     int n_write,
     int i_out,
-    int* last_n_write,
-    trees_info_t* trees_info)
+    int* last_n_write)
 {
     /*
    * Write a batch of galaxies to the output HDF5 table.
@@ -816,6 +815,10 @@ void write_snapshot(
         mlog("New write count = %d", MLOG_MESG, write_count);
         n_write = write_count;
     }
+
+    // if n_write is zero then we don't need to anything further
+    if (n_write <= 0)
+        return;
 
     // Create the file.
     file_id = H5Fopen(run_globals.FNameOut, H5F_ACC_RDWR, H5P_DEFAULT);

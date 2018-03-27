@@ -39,6 +39,7 @@ static fof_group_t* init_fof_groups()
 
 static void reorder_forest_array(int* arr, const size_t* sort_ind, int n_forests, int* temp)
 {
+    assert(arr != NULL);
     memcpy(temp, arr, sizeof(int) * n_forests);
     for (int ii = 0, jj = n_forests - 1; ii < n_forests; ii++, jj--)
         arr[ii] = temp[sort_ind[jj]];
@@ -170,7 +171,7 @@ static void select_forests()
     int* requested_ind;
     int n_halos_tot = 0;
     if (run_globals.RequestedForestId != NULL) {
-        requested_ind = malloc(sizeof(int) * run_globals.NRequestedForests);
+        requested_ind = calloc(run_globals.NRequestedForests, sizeof(int));
         for (int i_forest = 0, i_req = 0; (i_forest < n_forests) && (i_req < run_globals.NRequestedForests); i_forest++)
             if (forest_ids[i_forest] == run_globals.RequestedForestId[i_req]) {
                 requested_ind[i_req] = i_forest;
@@ -181,7 +182,7 @@ static void select_forests()
     else {
         // if we haven't asked for any specific forest IDs then just fill the
         // requested ind array sequentially
-        requested_ind = (int*)malloc(sizeof(int) * n_forests);
+        requested_ind = (int*)calloc(n_forests, sizeof(int));
         for (int i_req = 0; i_req < n_forests; i_req++) {
             n_halos_tot += n_halos[i_req];
             requested_ind[i_req] = i_req;
