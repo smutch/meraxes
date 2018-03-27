@@ -642,7 +642,7 @@ void contemporaneous_supernova_feedback(galaxy_t* gal, double* m_stars, int snap
 void update_reservoirs_from_sn_feedback(galaxy_t* gal, double m_reheat, double m_eject, double m_recycled, double new_metals);
 void prep_hdf5_file(void);
 void create_master_file(void);
-void write_snapshot(int n_write, int i_out, int* last_n_write, trees_info_t* trees_info);
+void write_snapshot(int n_write, int i_out, int* last_n_write);
 void calc_hdf5_props(void);
 void prepare_galaxy_for_output(galaxy_t gal, galaxy_output_t* galout, int i_snap);
 void read_photometric_tables(void);
