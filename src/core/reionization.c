@@ -642,9 +642,6 @@ void save_reion_input_grids(int snapshot)
     hid_t dcpl_id = H5Pcreate(H5P_DATASET_CREATE);
     H5Pset_chunk(dcpl_id, 3, (hsize_t[3]){ 1, ReionGridDim, ReionGridDim });
     
-    // set the compression options
-    H5Pset_deflate(dcpl_id, 6);
-
     // fftw padded grids
     float* grid = (float*)calloc(local_nix * ReionGridDim * ReionGridDim, sizeof(float));
 
@@ -719,9 +716,6 @@ void save_reion_output_grids(int snapshot)
     // set the dataset creation property list to use chunking along x-axis
     hid_t dcpl_id = H5Pcreate(H5P_DATASET_CREATE);
     H5Pset_chunk(dcpl_id, 3, (hsize_t[3]){ 1, ReionGridDim, ReionGridDim });
-
-    // set the compression options
-    H5Pset_deflate(dcpl_id, 6);
 
     // create and write the datasets
     write_grid_float("xH", grids->xH, file_id, fspace_id, memspace_id, dcpl_id);
