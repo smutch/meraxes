@@ -737,13 +737,13 @@ static void inline save_walk_indices(
         sprintf(target, "Snap%03d/DescendantIndices", (run_globals.ListOutputSnaps)[prev_i_out]);
         dset_id = H5Dcreate(file_id, target, H5T_NATIVE_INT,
                 dspace_id, H5P_DEFAULT, plist_id, H5P_DEFAULT);
-        H5Dwrite(dset_id, H5T_NATIVE_FLOAT, H5S_ALL, H5S_ALL, H5P_DEFAULT, descendant_index);
+        H5Dwrite(dset_id, H5T_NATIVE_INT, H5S_ALL, H5S_ALL, H5P_DEFAULT, descendant_index);
         H5Dclose(dset_id);
 
         sprintf(target, "Snap%03d/NextProgenitorIndices", (run_globals.ListOutputSnaps)[prev_i_out]);
         dset_id = H5Dcreate(file_id, target, H5T_NATIVE_INT,
                 dspace_id, H5P_DEFAULT, plist_id, H5P_DEFAULT);
-        H5Dwrite(dset_id, H5T_NATIVE_FLOAT, H5S_ALL, H5S_ALL, H5P_DEFAULT, next_progenitor_index);
+        H5Dwrite(dset_id, H5T_NATIVE_INT, H5S_ALL, H5S_ALL, H5P_DEFAULT, next_progenitor_index);
         H5Dclose(dset_id);
 
         H5Sclose(dspace_id);
@@ -775,7 +775,7 @@ static void inline save_walk_indices(
         sprintf(target, "Snap%03d/FirstProgenitorIndices", (run_globals.ListOutputSnaps)[i_out]);
         dset_id = H5Dcreate(file_id, target, H5T_NATIVE_INT,
                 dspace_id, H5P_DEFAULT, plist_id, H5P_DEFAULT);
-        H5Dwrite(dset_id, H5T_NATIVE_FLOAT, H5S_ALL, H5S_ALL, H5P_DEFAULT, first_progenitor_index);
+        H5Dwrite(dset_id, H5T_NATIVE_INT, H5S_ALL, H5S_ALL, H5P_DEFAULT, first_progenitor_index);
         H5Dclose(dset_id);
 
         H5Sclose(dspace_id);
