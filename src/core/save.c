@@ -720,45 +720,76 @@ static void inline save_walk_indices(
     int old_count,
     int n_write)
 {
-    hsize_t dim[1];
     hid_t dset_id;
     char target[50];
+    int chunk_size = 1000;
 
-    hid_t plist_id  = H5Pcreate(H5P_DATASET_CREATE);
-    hsize_t chunks[1] = {1000};
-    H5Pset_chunk(plist_id, 1, chunks);
-    H5Pset_deflate(plist_id, 6);
+    if (old_count > 0) {
+        hsize_t dim[1] = {old_count};
+        hsize_t chunks[1] = {chunk_size > old_count ? old_count : chunk_size};
 
-    dim[0] = (hsize_t)old_count;
-    hid_t dspace_id = H5Screate_simple(1, dim, NULL);
+        hid_t plist_id  = H5Pcreate(H5P_DATASET_CREATE);
+        H5Pset_chunk(plist_id, 1, chunks);
+        H5Pset_deflate(plist_id, 6);
 
-    sprintf(target, "Snap%03d/DescendantIndices", (run_globals.ListOutputSnaps)[prev_i_out]);
-    dset_id = H5Dcreate(file_id, target, H5T_NATIVE_INT,
-                        dspace_id, H5P_DEFAULT, plist_id, H5P_DEFAULT);
-    H5Dwrite(dset_id, H5T_NATIVE_FLOAT, H5S_ALL, H5S_ALL, H5P_DEFAULT, descendant_index);
-    H5Dclose(dset_id);
-    //H5LTmake_dataset(file_id, target, 1, dim, H5T_NATIVE_INT, descendant_index);
+        hid_t dspace_id = H5Screate_simple(1, dim, NULL);
 
-    sprintf(target, "Snap%03d/NextProgenitorIndices", (run_globals.ListOutputSnaps)[prev_i_out]);
-    dset_id = H5Dcreate(file_id, target, H5T_NATIVE_INT,
-                        dspace_id, H5P_DEFAULT, plist_id, H5P_DEFAULT);
-    H5Dwrite(dset_id, H5T_NATIVE_FLOAT, H5S_ALL, H5S_ALL, H5P_DEFAULT, next_progenitor_index);
-    H5Dclose(dset_id);
-    //H5LTmake_dataset(file_id, target, 1, dim, H5T_NATIVE_INT, next_progenitor_index);
+        sprintf(target, "Snap%03d/DescendantIndices", (run_globals.ListOutputSnaps)[prev_i_out]);
+        dset_id = H5Dcreate(file_id, target, H5T_NATIVE_INT,
+                dspace_id, H5P_DEFAULT, plist_id, H5P_DEFAULT);
+        H5Dwrite(dset_id, H5T_NATIVE_INT, H5S_ALL, H5S_ALL, H5P_DEFAULT, descendant_index);
+        H5Dclose(dset_id);
 
-    H5Sclose(dspace_id);
-    dim[0] = (hsize_t)n_write;
-    dspace_id = H5Screate_simple(1, dim, NULL);
+        sprintf(target, "Snap%03d/NextProgenitorIndices", (run_globals.ListOutputSnaps)[prev_i_out]);
+        dset_id = H5Dcreate(file_id, target, H5T_NATIVE_INT,
+                dspace_id, H5P_DEFAULT, plist_id, H5P_DEFAULT);
+        H5Dwrite(dset_id, H5T_NATIVE_INT, H5S_ALL, H5S_ALL, H5P_DEFAULT, next_progenitor_index);
+        H5Dclose(dset_id);
 
-    sprintf(target, "Snap%03d/FirstProgenitorIndices", (run_globals.ListOutputSnaps)[i_out]);
-    dset_id = H5Dcreate(file_id, target, H5T_NATIVE_INT,
-                        dspace_id, H5P_DEFAULT, plist_id, H5P_DEFAULT);
-    H5Dwrite(dset_id, H5T_NATIVE_FLOAT, H5S_ALL, H5S_ALL, H5P_DEFAULT, first_progenitor_index);
-    H5Dclose(dset_id);
-    //H5LTmake_dataset(file_id, target, 1, dim, H5T_NATIVE_INT, first_progenitor_index);
+        H5Sclose(dspace_id);
+        H5Pclose(plist_id);
+    } else {
+        // Here we create empty datasets.  This is purely to maintain backward
+        // compatibility for other codes which read the output (e.g. Yisheng
+        // Qiu's magcalc code).
+        hsize_t dim[1] = {0};
 
-    H5Sclose(dspace_id);
-    H5Pclose(plist_id);
+        sprintf(target, "Snap%03d/DescendantIndices", (run_globals.ListOutputSnaps)[prev_i_out]);
+        H5LTmake_dataset(file_id, target, 1, dim, H5T_NATIVE_INT, descendant_index);
+
+        sprintf(target, "Snap%03d/NextProgenitorIndices", (run_globals.ListOutputSnaps)[prev_i_out]);
+        H5LTmake_dataset(file_id, target, 1, dim, H5T_NATIVE_INT, next_progenitor_index);
+    }
+    
+    if (n_write > 0) {
+        hsize_t dim[1] = {(hsize_t)n_write};
+        hsize_t chunks[1] = {chunk_size > n_write ? n_write : chunk_size};
+        
+        hid_t plist_id  = H5Pcreate(H5P_DATASET_CREATE);
+        H5Pset_chunk(plist_id, 1, chunks);
+        H5Pset_deflate(plist_id, 6);
+
+        H5Pset_chunk(plist_id, 1, chunks);
+        hid_t dspace_id = H5Screate_simple(1, dim, NULL);
+
+        sprintf(target, "Snap%03d/FirstProgenitorIndices", (run_globals.ListOutputSnaps)[i_out]);
+        dset_id = H5Dcreate(file_id, target, H5T_NATIVE_INT,
+                dspace_id, H5P_DEFAULT, plist_id, H5P_DEFAULT);
+        H5Dwrite(dset_id, H5T_NATIVE_INT, H5S_ALL, H5S_ALL, H5P_DEFAULT, first_progenitor_index);
+        H5Dclose(dset_id);
+
+        H5Sclose(dspace_id);
+        H5Pclose(plist_id);
+    } else {
+        // Here we create empty datasets.  This is purely to maintain backward
+        // compatibility for other codes which read the output (e.g. Yisheng
+        // Qiu's magcalc code).
+        hsize_t dim[1] = {0};
+
+        sprintf(target, "Snap%03d/FirstProgenitorIndices", (run_globals.ListOutputSnaps)[i_out]);
+        H5LTmake_dataset(file_id, target, 1, dim, H5T_NATIVE_INT, first_progenitor_index);
+    }
+
 
 }
 
