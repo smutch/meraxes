@@ -816,7 +816,7 @@ void write_snapshot(
 
     hid_t file_id;
     hid_t group_id;
-    hsize_t chunk_size = 1000;
+    hsize_t chunk_size = 5000;
     galaxy_output_t* output_buffer = NULL;
     int* fill_data = NULL;
     char target_group[20];
@@ -847,10 +847,6 @@ void write_snapshot(
         n_write = write_count;
     }
 
-    // if n_write is zero then we don't need to anything further
-    if (n_write <= 0)
-        return;
-
     // Create the file.
     file_id = H5Fopen(run_globals.FNameOut, H5F_ACC_RDWR, H5P_DEFAULT);
 
@@ -858,11 +854,16 @@ void write_snapshot(
     sprintf(target_group, "Snap%03d", (run_globals.ListOutputSnaps)[i_out]);
     group_id = H5Gcreate(file_id, target_group, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
 
+    // reset the chunk size if required
+    if ((int)chunk_size < n_write)
+        chunk_size = n_write;
+
     // Make the table
     H5TBmake_table("Galaxies", group_id, "Galaxies",
         h5props.n_props, n_write, h5props.dst_size, h5props.field_names,
         h5props.dst_offsets, h5props.field_types, chunk_size, fill_data, 1,
         NULL);
+
 
     // If the immediately preceding snapshot was also written, then save the
     // descendent indices
