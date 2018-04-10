@@ -52,6 +52,7 @@ int load_cached_deltax_slab(float* slab, int snapshot)
     if (run_globals.SnapshotDeltax[snapshot] != NULL) {
         ptrdiff_t slab_n_complex = run_globals.reion_grids.slab_n_complex[run_globals.mpi_rank];
         memcpy(slab, run_globals.SnapshotDeltax[snapshot], sizeof(float) * slab_n_complex * 2);
+        mlog("Loaded deltax slab from cache.", MLOG_MESG);
         return 0;
     }
     else

@@ -13,7 +13,7 @@ int read_dm_grid__velociraptor(
     run_params_t* params = &(run_globals.params);
 
     // Have we read this slab before?
-    if (params->FlagInteractive && !load_cached_deltax_slab(slab, snapshot))
+    if ((params->FlagInteractive || params->FlagMCMC) && !load_cached_deltax_slab(slab, snapshot))
         return 0;
 
     // generate the input filename
@@ -54,7 +54,7 @@ int read_dm_grid__velociraptor(
 
     mlog("Reading VELOCIraptor grid for snapshot %d", MLOG_OPEN | MLOG_TIMERSTART, snapshot);
     mlog("n_cell = [%d, %d, %d]", MLOG_MESG, n_cell[0], n_cell[1], n_cell[2]);
-    mlog("box_size = %.2f cMpc/h", MLOG_MESG, box_size);
+    mlog("box_size = %.2f cMpc/h", MLOG_MESG, box_size * params->Hubble_h);
 
     double resample_factor = calc_resample_factor(n_cell);
 
@@ -153,7 +153,7 @@ int read_dm_grid__velociraptor(
     fftwf_free(slab_file);
 
     // Do we need to cache this slab?
-    if (params->FlagInteractive)
+    if (params->FlagInteractive || params->FlagMCMC)
         cache_deltax_slab(slab, snapshot);
 
     mlog("...done", MLOG_CLOSE | MLOG_TIMERSTOP);

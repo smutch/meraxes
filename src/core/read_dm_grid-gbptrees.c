@@ -37,7 +37,7 @@ int read_dm_grid__gbptrees(
     run_params_t* params = &(run_globals.params);
 
     // Have we read this slab before?
-    if (params->FlagInteractive && !load_cached_deltax_slab(slab, snapshot))
+    if ((params->FlagInteractive || params->FlagMCMC) && !load_cached_deltax_slab(slab, snapshot))
         return 0;
 
     char fname[512];
@@ -180,7 +180,7 @@ int read_dm_grid__gbptrees(
     fftwf_free(slab_file);
 
     // Do we need to cache this slab?
-    if (params->FlagInteractive)
+    if (params->FlagInteractive || params->FlagMCMC)
         cache_deltax_slab(slab, snapshot);
 
     mlog("...done", MLOG_CLOSE | MLOG_TIMERSTOP);
