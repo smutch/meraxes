@@ -322,7 +322,8 @@ int map_galaxies_to_slabs(int ngals)
     }
 
     // sort the slab indices IN PLACE (n.b. compare_slab_assign is a stable comparison)
-    qsort(galaxy_to_slab_map, (size_t)gal_counter, sizeof(gal_to_slab_t), compare_slab_assign);
+    if (galaxy_to_slab_map != NULL)
+        qsort(galaxy_to_slab_map, (size_t)gal_counter, sizeof(gal_to_slab_t), compare_slab_assign);
 
     assert(gal_counter == ngals);
 
@@ -641,7 +642,7 @@ void save_reion_input_grids(int snapshot)
     // set the dataset creation property list to use chunking along x-axis
     hid_t dcpl_id = H5Pcreate(H5P_DATASET_CREATE);
     H5Pset_chunk(dcpl_id, 3, (hsize_t[3]){ 1, ReionGridDim, ReionGridDim });
-
+    
     // fftw padded grids
     float* grid = (float*)calloc(local_nix * ReionGridDim * ReionGridDim, sizeof(float));
 

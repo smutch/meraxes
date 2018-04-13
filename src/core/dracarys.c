@@ -339,7 +339,7 @@ void dracarys()
         if (!run_globals.params.FlagMCMC)
             for (int i_out = 0; i_out < NOutputSnaps; i_out++)
                 if (snapshot == run_globals.ListOutputSnaps[i_out])
-                    write_snapshot(nout_gals, i_out, &last_nout_gals, &trees_info);
+                    write_snapshot(nout_gals, i_out, &last_nout_gals);
 
         // Update the LastIdentSnap values for non-ghosts
         gal = run_globals.FirstGal;
