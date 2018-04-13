@@ -1,26 +1,22 @@
 #------------------------------------------
 #----- SA model output files --------------
 #------------------------------------------
-FileNameGalaxies : Tiamat
+FileNameGalaxies : Tiamat125-MR
 
 #------------------------------------------
 #----- Simulation input files  ------------
 #------------------------------------------
-SimName           : Tiamat
-SimulationDir     : /lustre/projects/p070_astro/smutch/input_trees/Tiamat
-# SimulationDir     : /coepp/cephfs/dragons/smutch/data/simulations/Tiamat/meraxes
-TreesID           : 1   # 0 -> VELOCIraptor; 1 -> gbpTrees
-CatalogFilePrefix : subfind
-BoxSize           : 67.8
-VolumeFactor      : 1.0
+SimName          : Tiamat125-MR
+SimulationDir    : /home/yqin/dragons/input_trees/Tiamat_125_MR
+CatalogFilePrefix: subfind
+BoxSize          : 125.0
+VolumeFactor     : 1.0
 
 #------------------------------------------
 #----- Photometric Tables  ----------------
 #------------------------------------------
-PhotometricTablesDir : /home/smutch/models/meraxes/input/photometric_tables
-CoolingFuncsDir      : /home/smutch/models/meraxes/input/cooling_functions
-# PhotometricTablesDir : /coepp/cephfs/dragons/smutch/models/meraxes/input/photometric_tables
-# CoolingFuncsDir      : /coepp/cephfs/dragons/smutch/models/meraxes/input/cooling_functions
+PhotometricTablesDir : /home/yqin/bitbucket/meraxes/input/photometric_tables
+CoolingFuncsDir      : /home/yqin/bitbucket/meraxes/input/cooling_functions
 SSPModel             : bc03
 IMF                  : salpeter
 MagSystem            : vega
@@ -31,6 +27,8 @@ MagBands             : Bbv,V,Rc,Ic,K
 #------------------------------------------
 NSteps                 : 1  # Current version of code requires NSteps=1
 FlagInteractive        : 0
+FlagGenDumpFile        : 0  # DON'T USE THIS WITHOUT TALKING TO SM FIRST
+FlagReadDumpFile       : 0  # DON'T USE THIS WITHOUT TALKING TO SM FIRST
 FlagSubhaloVirialProps : 0  # 0 -> approximate subhalo virial props using particle number; 1 -> use catalogue values
 FlagMCMC               : 0  # Don't do any writing and activate MCMC related routines
 RandomSeed             : 1809  # seed for random number generator
@@ -77,10 +75,10 @@ SnEjectionEff             : 1.0     # SN feedback gas reheating efficiency
 SnEjectionScaling         : 2.0     # SN feedback gas reheating efficiency scaling (with Vmax)
 SnEjectionNorm            : 70.0    # SN feedback gas reheating efficiency norm (with Vmax [internal units])
 
-SnReheatEff               : 10.0    # mass loading factor for SN feedback
+SnReheatEff               : 10.0     # mass loading factor for SN feedback
 SnReheatLimit             : 10.0    # maximum allowed mass loading factor for SN feedback
 SnReheatScaling           : 0.0     # mass loading factor for SN feedback scaling (with Vmax)
-SnReheatNorm              : 70.0    # mass loading factor for SN feedback scaling (with Vmax [internal units])
+SnReheatNorm              : 70.0   # mass loading factor for SN feedback scaling (with Vmax [internal units])
 
 # ----- cooling and reincorporation -----
 MaxCoolingMassFactor      : 1.0     # maximum cooling mass factor (1 -> ff time)
@@ -117,7 +115,7 @@ quasar_open_angle         : 80.0
 #----- Reionization ---------------------------
 #----------------------------------------------
 
-Flag_ReionizationModifier  : 1    # 0: No modifier, 1: Sobacchi 21cmFAST modifier, 2: use halo mass dependant infall modifier of Gnedin, 3: precomputed (requires input file)
+Flag_ReionizationModifier  : 1
 
 # global prescriptions
 ReionSobacchi_Zre      : 9.3
@@ -129,11 +127,11 @@ ReionGnedin_z0         : 8
 ReionGnedin_zr         : 7
 
 # patchy (21cmFAST) prescription
-Flag_PatchyReion       : 1  # Use 21cmFAST (ensure Flag_ReionizationModifier=1 if wish to couple to galaxy formation).
-Flag_OutputGrids       : 1
+Flag_PatchyReion       : 1
+Flag_OutputGrids      : 1
 Flag_OutputGridsPostReion  : 0
 
-ReionUVBFlag           : 1  # Use 21cmFAST (ensure Flag_ReionizationModifier=1 if wish to couple to galaxy formation).
+ReionUVBFlag           : 1
 ReionGridDim           : 128
 ReionDeltaRFactor      : 1.1
 ReionFilterType        : 0
@@ -155,9 +153,9 @@ ReionSMParam_d         : 2.5
 ReionTcool             : 1.0e4  # Kelvin
 ReionNionPhotPerBary   : 4000
 
-RedshiftDepEscFracNorm      : 0.06
-RedshiftDepEscFracScaling   : 0.5
-RedshiftDepEscFracBHNorm    : 1
+RedshiftDepEscFracNorm : 0.06
+RedshiftDepEscFracScaling : 0.5
+RedshiftDepEscFracBHNorm : 1
 RedshiftDepEscFracBHScaling : 0
 
 
@@ -173,9 +171,9 @@ BaryonFrac: 0.15714
 Hubble_h: 0.678
 SpectralIndex: 0.968
 Sigma8: 0.815
-PartMass: 0.0002643852
+PartMass: 0.1060328
 wLambda: -1.0
-NPart: 10077696000
+NPart: 157464000
 
 UnitLength_in_cm         : 3.08568e+24       # WATCH OUT : Mpc/h
 UnitMass_in_g            : 1.989e+43         # WATCH OUT : 10^10Msun/h
