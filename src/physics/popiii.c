@@ -50,9 +50,9 @@ void calculate_J_21_LW(int snapshot){
 	Nion_popii  *= params->ReionNionPhotPerBary       / factor;
 	Nion_popiii *= params->ReionNionPhotPerBaryPopIII / factor;
     Nion         = Nion_bh + Nion_popii + Nion_popiii;
-    //Nion_bh     /= Nion / 100;
-    //Nion_popii  /= Nion / 100;
-    //Nion_popiii /= Nion / 100;
+    Nion_bh     /= Nion / 100;
+    Nion_popii  /= Nion / 100;
+    Nion_popiii /= Nion / 100;
     run_globals.J_21_LW_bg[snapshot] = Nion * J_21_LW_aux;
     mlog("J_21_LW is %g (fBH=%.2f, fPopII=%.2f and fPopIII=%.2f)", \
          MLOG_MESG, run_globals.J_21_LW_bg[snapshot], Nion_bh, Nion_popii, Nion_popiii);
