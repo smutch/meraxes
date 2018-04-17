@@ -40,6 +40,7 @@ galaxy_t* new_galaxy(int snapshot, unsigned long halo_ID)
     gal->MetalsEjectedGas = 0.0;
     gal->Mcool = 0.0;
     gal->Rcool = 0.0;
+	gal->PopIIIMass = 0;
     gal->StellarMass = 0.0;
     gal->GrossStellarMass = 0.0;
     gal->FescWeightedGSM = 0.0;

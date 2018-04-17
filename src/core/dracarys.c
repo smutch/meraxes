@@ -293,6 +293,9 @@ void dracarys()
                 assign_Mvir_crit_to_galaxies(ngals_in_slabs);
         }
 
+        // Calculate the Lyman Werner Background
+        calculate_J_21_LW(snapshot);
+
         // Do the physics
         if (NGal > 0)
             nout_gals = evolve_galaxies(fof_group, snapshot, NGal, trees_info.n_fof_groups);

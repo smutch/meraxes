@@ -64,6 +64,7 @@ void prepare_galaxy_for_output(
     galout->H2Mass = (float)(gal.H2Mass);
     galout->HIMass = (float)(gal.HIMass);
     galout->Mcool = (float)(gal.Mcool);
+    galout->PopIIIMass = (float)(gal.PopIIIMass);
     galout->StellarMass = (float)(gal.StellarMass);
     galout->GrossStellarMass = (float)(gal.GrossStellarMass);
     galout->FescWeightedGSM = (float)(gal.FescWeightedGSM);
@@ -322,6 +323,13 @@ void calc_hdf5_props()
         h5props->dst_field_sizes[i] = sizeof(galout.DiskScaleLength);
         h5props->field_names[i] = "DiskScaleLength";
         h5props->field_units[i] = "Mpc"; // real
+        h5props->field_h_conv[i] = "v/h";
+        h5props->field_types[i++] = H5T_NATIVE_FLOAT;
+
+        h5props->dst_offsets[i] = HOFFSET(galaxy_output_t, PopIIIMass);
+        h5props->dst_field_sizes[i] = sizeof(galout.PopIIIMass);
+        h5props->field_names[i] = "PopIIIMass";
+        h5props->field_units[i] = "1e10 solMass";
         h5props->field_h_conv[i] = "v/h";
         h5props->field_types[i++] = H5T_NATIVE_FLOAT;
 
