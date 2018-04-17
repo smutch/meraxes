@@ -405,7 +405,7 @@ void read_parameter_file(char* fname, int mode)
             strcpy(params_tag[n_param], "PopIIIEfficiency");
             params_addr[n_param] = &(run_params->physics).PopIIIEfficiency;
             required_tag[n_param] = 1;
-            params_type[n_param++] = PARAM_TYPE_INT;
+            params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
             strcpy(params_tag[n_param], "SfEfficiency");
             params_addr[n_param] = &(run_params->physics).SfEfficiency;

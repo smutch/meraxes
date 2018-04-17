@@ -47,15 +47,20 @@ void calculate_J_21_LW(int snapshot){
         Nion_popiii += gal->PopIIIMass;
         gal          = gal->Next;
     }
-	Nion_popii  *= params->ReionNionPhotPerBary       / factor;
-	Nion_popiii *= params->ReionNionPhotPerBaryPopIII / factor;
+    Nion_popii  *= params->ReionNionPhotPerBary       / factor;
+    Nion_popiii *= params->ReionNionPhotPerBaryPopIII / factor;
     Nion         = Nion_bh + Nion_popii + Nion_popiii;
-    Nion_bh     /= Nion / 100;
-    Nion_popii  /= Nion / 100;
-    Nion_popiii /= Nion / 100;
     run_globals.J_21_LW_bg[snapshot] = Nion * J_21_LW_aux;
-    mlog("J_21_LW is %g (fBH=%.2f, fPopII=%.2f and fPopIII=%.2f)", \
-         MLOG_MESG, run_globals.J_21_LW_bg[snapshot], Nion_bh, Nion_popii, Nion_popiii);
+    if (Nion > 0){
+        Nion_bh     /= Nion / 100;
+        Nion_popii  /= Nion / 100;
+        Nion_popiii /= Nion / 100;
+        mlog("J_21_LW is %g (fBH=%.2f\%, fPopII=%.2f\%, and fPopIII=%.2f\%)", \
+             MLOG_MESG, run_globals.J_21_LW_bg[snapshot], Nion_bh, Nion_popii, Nion_popiii);
+    }
+    else
+        mlog("J_21_LW is 0",MLOG_MESG);
+
 }
 
 double calculate_Mvir_crit_LW(galaxy_t* gal, int snapshot){
@@ -73,7 +78,7 @@ double calculate_Mvir_crit_LW(galaxy_t* gal, int snapshot){
 void popiii_supernova_feedback(galaxy_t* gal, double m_popiii){
     // all popiii reach SN
 
-    double* m_reheat;
+    double m_reheat;
     double sn_energy, m_eject, new_metals;
     double SnReheatScaling = run_globals.params.physics.SnReheatScaling;
     double SnReheatNorm = run_globals.params.physics.SnReheatNorm;
@@ -87,12 +92,13 @@ void popiii_supernova_feedback(galaxy_t* gal, double m_popiii){
         SnReheatEff = SnReheatLimit;
 
     new_metals    = m_popiii * run_globals.params.physics.Yield;
-    *m_reheat     = m_popiii * SnReheatEff;
-    if (*m_reheat > gal->ColdGas)
-        *m_reheat = gal->ColdGas;
+    //mlog("m_popiii=%g,new_metals=%g,SnReheatEff=%.2f",MLOG_MESG, m_popiii,new_metals,SnReheatEff);
+    m_reheat     = m_popiii * SnReheatEff;
+    if (m_reheat > gal->ColdGas)
+        m_reheat = gal->ColdGas;
 
     sn_energy = calc_sn_energy(m_popiii, gal->Vmax, 1.0);
-    m_eject   = calc_ejected_mass(m_reheat, sn_energy, gal->Vvir, gal->Halo->FOFGroup->Vvir);
+    m_eject   = calc_ejected_mass(&m_reheat, sn_energy, gal->Vvir, gal->Halo->FOFGroup->Vvir);
 
     // all popiii remnants added to blackhole
     // TODO: a fraction can be used for feedback
@@ -100,25 +106,27 @@ void popiii_supernova_feedback(galaxy_t* gal, double m_popiii){
     // the remnants can be used as BlackHoleSeed
     gal->BlackHoleMass += m_popiii;
 
-    assert(*m_reheat >= 0);
+    assert(m_reheat >= 0);
     assert(m_eject >= 0);
 
-    update_reservoirs_from_sn_feedback(gal, *m_reheat, m_eject, 0.0, new_metals);
+    update_reservoirs_from_sn_feedback(gal, m_reheat, m_eject, 0.0, new_metals);
 }
 
 void popiii_star_formation(galaxy_t* gal, int snapshot){
 
-    double M_POPIII = run_globals.params.physics.M_POPIII;
+    double M_POPIII = run_globals.params.physics.M_POPIII * SOLAR_MASS /\
+                      run_globals.units.UnitMass_in_g;
 
-    double m_popiii  = (int)(run_globals.params.physics.PopIIIEfficiency *\
+    double m_popiii  = (run_globals.params.physics.PopIIIEfficiency *\
                             (gal->ColdGas + gal->HotGas) / M_POPIII) * M_POPIII ;
+    //mlog("m_popiii=%g,ColdGas=%g,HotGas=%g",MLOG_MESG, m_popiii,gal->ColdGas, gal->HotGas);
 
     if (m_popiii > 0){
+        //mlog("POPIII!",MLOG_MESG);
         // TODO: going to starve popiii SF when molecular cooling is implemented.
         // now galaxy form popiii as long as cold+hot is enough
         // no matter how small the cold gas is...
 
-        mlog("POPIII!",MLOG_MESG);
         if(m_popiii < gal->ColdGas)
             gal->ColdGas -= m_popiii;
         else{
