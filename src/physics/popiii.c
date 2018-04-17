@@ -117,7 +117,7 @@ void popiii_star_formation(galaxy_t* gal, int snapshot){
     double M_POPIII = run_globals.params.physics.M_POPIII * SOLAR_MASS /\
                       run_globals.units.UnitMass_in_g;
 
-    double m_popiii  = (int)(run_globals.params.physics.PopIIIEfficiency *\
+    double m_popiii  = (run_globals.params.physics.PopIIIEfficiency *\
                             (gal->ColdGas + gal->HotGas) / M_POPIII) * M_POPIII ;
     //mlog("m_popiii=%g,ColdGas=%g,HotGas=%g",MLOG_MESG, m_popiii,gal->ColdGas, gal->HotGas);
 
