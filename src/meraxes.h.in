@@ -648,7 +648,9 @@ double calc_ejected_mass(double* m_reheat, double sn_energy, double Vvir, double
 double calc_recycled_frac(double m_high, double m_low, double* burst_mass_frac);
 void delayed_supernova_feedback(galaxy_t* gal, int snapshot);
 void evolve_stellar_pops(galaxy_t* gal, int snapshot);
-void evolve_PopIII(galaxy_t* gal, int snapshot);
+void evolve_popiii(galaxy_t* gal, int snapshot);
+void popiii_star_formation(galaxy_t* gal, int snapshot);
+void popiii_supernova_feedback(galaxy_t* gal, double m_popiii);
 void contemporaneous_supernova_feedback(galaxy_t* gal, double* m_stars, int snapshot, double* m_reheat, double* m_eject, double* m_recycled, double* new_metals);
 void update_reservoirs_from_sn_feedback(galaxy_t* gal, double m_reheat, double m_eject, double m_recycled, double new_metals);
 void prep_hdf5_file(void);
@@ -743,7 +745,8 @@ int load_cached_deltax_slab(float* slab, int snapshot);
 int cache_deltax_slab(float* slab, int snapshot);
 void free_grids_cache(void);
 void calculate_Mvir_crit(double redshift);
-double calculate_J_21_LW(int snapshot);
+void calculate_J_21_LW(int snapshot);
+
 void call_find_HII_bubbles(int snapshot, int nout_gals, timer_info *timer);
 void save_reion_input_grids(int snapshot);
 void save_reion_output_grids(int snapshot);

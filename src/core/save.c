@@ -107,7 +107,7 @@ void calc_hdf5_props()
         galaxy_output_t galout;
         int i; // dummy
 
-        h5props->n_props = 47;
+        h5props->n_props = 48;
 
 #ifdef CALC_MAGS
         // If we are calculating any magnitudes then increment the number of

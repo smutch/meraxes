@@ -17,7 +17,7 @@
 #define E_LW 2e-11 //erg
 #define NU_LW 5.8e14 //erg
 
-double calculate_J_21_LW(int snapshot){
+void calculate_J_21_LW(int snapshot){
     // TODO consider J_21_LW from nearby objects
     // only background is considered at this moment
 
@@ -25,43 +25,56 @@ double calculate_J_21_LW(int snapshot){
     run_units_t*       units = &(run_globals.units);
     galaxy_t*            gal = run_globals.FirstGal;
 
-    double z1cube = powf(1.0 + run_globals.ZZ[snapshot], 3);
-    double volume = powf(run_globals.params.BoxSize, 3);
-    double factor = 1e60 * (PROTONMASS / units->UnitMass_in_g) *\
-                    (1.0 - 0.75 * params->Y_He);
+    double z1cube      = powf(1.0 + run_globals.ZZ[snapshot], 3);
+    double volume      = powf(run_globals.params.BoxSize, 3);
+    double factor      = 1e60 * (PROTONMASS / units->UnitMass_in_g) *\
+                         (1.0 - 0.75 * params->Y_He);
+    double J_21_LW_aux = C / (4. * M_PI) * E_LW / NU_LW / volume * z1cube *\
+                         1e81 / pow(units->UnitLength_in_cm, 3);
+    /*Nion *= 1e60 * (C / units->UnitVelocity_in_cm_per_s) / (4. * M_PI) *\
+              (E_LW / units.UnitEnergy_in_cgs) /\
+              (NU_LW * units->UnitTime_in_s) / volume * z1cube /\
+              (1e-21 /  units.UnitEnergy_in_cgs * pow(units->UnitLength_in_cm, 2.0));*/
 
-    double Nion = 0; //1e60 photons
+
+    double Nion        = 0.0; //1e60 photons
+    double Nion_bh     = 0.0; //1e60 photons
+    double Nion_popii  = 0.0; //1e60 photons
+    double Nion_popiii = 0.0; //1e60 photons
     while (gal != NULL) {
-        Nion += (gal->GrossStellarMass * params->ReionNionPhotPerBary +\
-                 gal->PopIIIMass * params->ReionNionPhotPerBaryPopIII) /\
-                 factor + gal->BHemissivity;
-        gal = gal->Next;
+        Nion_bh     += gal->BHemissivity;
+        Nion_popii  += gal->GrossStellarMass;
+        Nion_popiii += gal->PopIIIMass;
+        gal          = gal->Next;
     }
-
-    /*Nion *= (C / units->UnitVelocity_in_cm_per_s) / (4. * M_PI) *\
-            (E_LW / units.UnitEnergy_in_cgs) /\
-            (NU_LW * units->UnitTime_in_s) / volume * z1cube /\
-            (1e-21 /  units.UnitEnergy_in_cgs * pow(units->UnitLength_in_cm, 2.0));*/
-    Nion *= C / (4. * M_PI) * E_LW / NU_LW / volume * z1cube * 1e21/ \
-            pow(units->UnitLength_in_cm, 3);
-
-    run_globals.J_21_LW_bg[snapshot] = Nion;
+	Nion_popii  *= params->ReionNionPhotPerBary       / factor;
+	Nion_popiii *= params->ReionNionPhotPerBaryPopIII / factor;
+    Nion         = Nion_bh + Nion_popii + Nion_popiii;
+    //Nion_bh     /= Nion / 100;
+    //Nion_popii  /= Nion / 100;
+    //Nion_popiii /= Nion / 100;
+    run_globals.J_21_LW_bg[snapshot] = Nion * J_21_LW_aux;
+    mlog("J_21_LW is %g (fBH=%.2f, fPopII=%.2f and fPopIII=%.2f)", \
+         MLOG_MESG, run_globals.J_21_LW_bg[snapshot], Nion_bh, Nion_popii, Nion_popiii);
 }
 
-double calculate_Mvir_crit_LW(int snapshot){
-    double redshift      = run_globals.ZZ[snapshot];
-    double term_J_21_LW  = pow(4 * M_PI * run_globals.J_21_LW_bg[snapshot], 0.47);
-    double term_redshift = pow((1. + redshift)/26., -1.5);
-    double Mvir_crit_LW  = 3.73e-5 * term_redshift * (1. + 6.96 * term_J_21_LW);
-    double Matomic       = Tvir_to_Mvir(1e4, redshift);
-	return Mvir_crit_LW >= Matomic ? Mvir_crit_LW : Matomic;
+double calculate_Mvir_crit_LW(galaxy_t* gal, int snapshot){
+    double term_J_21_LW, term_redshift, Mvir_crit_LW, Matomic, redshift;
+
+    redshift      = run_globals.ZZ[snapshot];
+    term_J_21_LW  = powf(4. * M_PI * run_globals.J_21_LW_bg[snapshot], 0.47);
+    term_redshift = powf((1. + redshift)/26., -1.5);
+    Mvir_crit_LW  = 3.73e-5 * term_redshift * (1. + 6.96 * term_J_21_LW);
+    Matomic       = Tvir_to_Mvir(1e4, redshift);
+
+    return Mvir_crit_LW < Matomic ? Mvir_crit_LW : Matomic;
 }
 
 void popiii_supernova_feedback(galaxy_t* gal, double m_popiii){
     // all popiii reach SN
 
     double* m_reheat;
-	double sn_energy, m_eject, new_metals;
+    double sn_energy, m_eject, new_metals;
     double SnReheatScaling = run_globals.params.physics.SnReheatScaling;
     double SnReheatNorm = run_globals.params.physics.SnReheatNorm;
     double SnReheatEff = run_globals.params.physics.SnReheatEff;
@@ -74,7 +87,7 @@ void popiii_supernova_feedback(galaxy_t* gal, double m_popiii){
         SnReheatEff = SnReheatLimit;
 
     new_metals    = m_popiii * run_globals.params.physics.Yield;
-	*m_reheat     = m_popiii * SnReheatEff;
+    *m_reheat     = m_popiii * SnReheatEff;
     if (*m_reheat > gal->ColdGas)
         *m_reheat = gal->ColdGas;
 
@@ -95,36 +108,36 @@ void popiii_supernova_feedback(galaxy_t* gal, double m_popiii){
 
 void popiii_star_formation(galaxy_t* gal, int snapshot){
 
-    int    n_popiii;
-    double m_popiii;
     double M_POPIII = run_globals.params.physics.M_POPIII;
 
-    m_popiii  = run_globals.params.physics.PopIIIEfficiency *\
-                (gal->ColdGas + gal->HotGas);
-    n_popiii  = (int)(m_popiii / M_POPIII);
-    n_popiii += ((double)rand() / RAND_MAX) > (m_popiii - n_popiii * M_POPIII);
-    m_popiii  = n_popiii * M_POPIII;
+    double m_popiii  = (int)(run_globals.params.physics.PopIIIEfficiency *\
+                            (gal->ColdGas + gal->HotGas) / M_POPIII) * M_POPIII ;
 
-    // TODO: going to starve popiii SF when molecular cooling is implemented.
-    // now galaxy form popiii as long as cold+hot is enough
-    // no matter how small the cold gas is...
+    if (m_popiii > 0){
+        // TODO: going to starve popiii SF when molecular cooling is implemented.
+        // now galaxy form popiii as long as cold+hot is enough
+        // no matter how small the cold gas is...
 
-    if(m_popiii < gal->ColdGas)
-        gal->ColdGas -= m_popiii;
-    else{
-        gal->ColdGas  = 0.0;
-        gal->HotGas  -= (m_popiii - gal->ColdGas);
+        mlog("POPIII!",MLOG_MESG);
+        if(m_popiii < gal->ColdGas)
+            gal->ColdGas -= m_popiii;
+        else{
+            gal->ColdGas  = 0.0;
+            gal->HotGas  -= (m_popiii - gal->ColdGas);
+        }
+        assert(gal->ColdGas >= 0);
+        assert(gal->HotGas  >= 0);
+        gal->PopIIIMass     += m_popiii;
+        gal->Sfr            += m_popiii / gal->dt;
+
+        popiii_supernova_feedback(gal, m_popiii);
     }
-    assert(gal->ColdGas >= 0);
-    assert(gal->HotGas >= 0);
-    gal->PopIIIMass += m_popiii;
-    gal->Sfr        += m_popiii / gal->dt;
-
-    popiii_supernova_feedback(gal, m_popiii);
 }
 
-void evolve_PopIII(galaxy_t* gal, int snapshot){
-    double Mvir_crit_LW = calculate_Mvir_crit_LW(snapshot);
-    if(gal->Mvir > Mvir_crit_LW)
+void evolve_popiii(galaxy_t* gal, int snapshot){
+    double Mvir_crit_LW = 0;
+    
+    Mvir_crit_LW = calculate_Mvir_crit_LW(gal, snapshot);
+    if (gal->Mvir > Mvir_crit_LW)
         popiii_star_formation(gal, snapshot);
 }

@@ -121,7 +121,7 @@ void reset_galaxy_properties(galaxy_t* gal, int snapshot)
     gal->Mcool = 0.0;
     gal->Rcool = 0.0;
     gal->MvirCrit = 0.0;
-    gal->BHemissivity = 0.0;
+    //gal->BHemissivity = 0.0;
     gal->BaryonFracModifier = 1.0;
     gal->FOFMvirModifier = 1.0;
     gal->BlackHoleAccretedHotMass = 0.0;
