@@ -118,6 +118,7 @@ static void read_snap_list()
         run_globals.AA = malloc(sizeof(double) * snaplist_len);
         run_globals.ZZ = malloc(sizeof(double) * snaplist_len);
         run_globals.LTTime = malloc(sizeof(double) * snaplist_len);
+        run_globals.J_21_LW_bg = malloc(sizeof(double) * snaplist_len);
 
         // seek back to the start of the file
         rewind(fin);
@@ -141,6 +142,7 @@ static void read_snap_list()
         run_globals.AA = malloc(sizeof(double) * run_globals.params.SnaplistLength);
         run_globals.ZZ = malloc(sizeof(double) * run_globals.params.SnaplistLength);
         run_globals.LTTime = malloc(sizeof(double) * run_globals.params.SnaplistLength);
+        run_globals.J_21_LW_bg = malloc(sizeof(double) * run_globals.params.SnaplistLength);
     }
     MPI_Bcast(run_globals.AA, run_globals.params.SnaplistLength, MPI_DOUBLE, 0, run_globals.mpi_comm);
 }

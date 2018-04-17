@@ -68,7 +68,7 @@ void update_reservoirs_from_sn_feedback(galaxy_t* gal, double m_reheat, double m
         central->MetalsEjectedGas = 0.0;
 }
 
-static inline double calc_ejected_mass(
+double calc_ejected_mass(
     double* m_reheat,
     double sn_energy,
     double Vvir,
@@ -130,7 +130,7 @@ static inline double calc_eta_sn(double m_high, double m_low, double* snII_frac)
     return eta_sn;
 }
 
-static inline double calc_sn_energy(double stars, double Vmax, double eta_sn)
+double calc_sn_energy(double stars, double Vmax, double eta_sn)
 {
     // work out the energy produced by the supernova and add it to our total at this snapshot
     double E_sn = run_globals.params.physics.EnergyPerSN / run_globals.units.UnitEnergy_in_cgs;

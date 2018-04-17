@@ -156,6 +156,7 @@ void merge_with_target(galaxy_t* gal, int* dead_gals, int snapshot)
     min_stellar_mass = (gal->StellarMass <= parent->StellarMass) ? gal->StellarMass : parent->StellarMass;
 
     // Add galaxies together
+    parent->PopIIIMass += gal->PopIIIMass;
     parent->StellarMass += gal->StellarMass;
     parent->GrossStellarMass += gal->GrossStellarMass;
     parent->FescWeightedGSM += gal->FescWeightedGSM;

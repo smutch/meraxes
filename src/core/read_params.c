@@ -392,6 +392,21 @@ void read_parameter_file(char* fname, int mode)
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_INT;
 
+            strcpy(params_tag[n_param], "Flag_PopIII");
+            params_addr[n_param] = &(run_params->physics).Flag_PopIII;
+            required_tag[n_param] = 1;
+            params_type[n_param++] = PARAM_TYPE_INT;
+
+            strcpy(params_tag[n_param], "M_POPIII");
+            params_addr[n_param] = &(run_params->physics).M_POPIII;
+            required_tag[n_param] = 1;
+            params_type[n_param++] = PARAM_TYPE_DOUBLE;
+
+            strcpy(params_tag[n_param], "PopIIIEfficiency");
+            params_addr[n_param] = &(run_params->physics).PopIIIEfficiency;
+            required_tag[n_param] = 1;
+            params_type[n_param++] = PARAM_TYPE_INT;
+
             strcpy(params_tag[n_param], "SfEfficiency");
             params_addr[n_param] = &(run_params->physics).SfEfficiency;
             required_tag[n_param] = 1;
@@ -574,6 +589,11 @@ void read_parameter_file(char* fname, int mode)
 
             strcpy(params_tag[n_param], "ReionNionPhotPerBary");
             params_addr[n_param] = &(run_params->physics).ReionNionPhotPerBary;
+            required_tag[n_param] = 1;
+            params_type[n_param++] = PARAM_TYPE_DOUBLE;
+
+            strcpy(params_tag[n_param], "ReionNionPhotPerBaryPopIII");
+            params_addr[n_param] = &(run_params->physics).ReionNionPhotPerBaryPopIII;
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_DOUBLE;
 

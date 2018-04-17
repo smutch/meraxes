@@ -70,6 +70,7 @@ extern "C" {
 #define REL_TOL (float)1e-5
 #define ABS_TOL (float)1e-8
 
+
 /*
  * Enums
  */
@@ -97,6 +98,8 @@ extern float timer_gpu;
 
 //! Physics parameter values
 typedef struct physics_params_t {
+    double PopIIIEfficiency;
+    double M_POPIII;
     double SfEfficiency;
     double SfEfficiencyScaling;
     double SfCriticalSDNorm;
@@ -134,6 +137,7 @@ typedef struct physics_params_t {
     // TODO: These parameters should be used to set the TOCF HII_EFF_FACTOR value
     double ReionEfficiency;
     double ReionNionPhotPerBary;
+    double ReionNionPhotPerBaryPopIII;
     double ReionEscapeFrac;
     double ReionEscapeFracBH;
     double BlackHoleSeed;
@@ -175,6 +179,7 @@ typedef struct physics_params_t {
     double RedshiftDepEscFracBHScaling;
     int Flag_ReionizationModifier;
     int Flag_BHFeedback;
+    int Flag_PopIII;
     int Flag_IRA;
     int Flag_FixDiskRadiusOnInfall;
     int Flag_FixVmaxOnInfall;
@@ -394,6 +399,7 @@ typedef struct galaxy_t {
     double H2Mass;
     double HIMass;
     double Mcool;
+    double PopIIIMass;
     double StellarMass;
     double GrossStellarMass;
     double FescWeightedGSM;
@@ -475,6 +481,7 @@ typedef struct galaxy_output_t {
     float HIMass;
     float Mcool;
     float DiskScaleLength;
+    float PopIIIMass;
     float StellarMass;
     float GrossStellarMass;
     float FescWeightedGSM;
@@ -587,6 +594,7 @@ typedef struct run_globals_t {
     bool SelectForestsSwitch;
     Modifier* mass_ratio_modifier;
     Modifier* baryon_frac_modifier;
+    double* J_21_LW_bg;
 } run_globals_t;
 #ifdef _MAIN
 run_globals_t run_globals;
@@ -635,9 +643,12 @@ void insitu_star_formation(galaxy_t* gal, int snapshot);
 double pressure_dependent_star_formation(galaxy_t* gal, int snapshot);
 void update_reservoirs_from_sf(galaxy_t* gal, double new_stars);
 double sn_m_low(double log_dt);
+double calc_sn_energy(double stars, double Vmax, double eta_sn);
+double calc_ejected_mass(double* m_reheat, double sn_energy, double Vvir, double fof_Vvir);
 double calc_recycled_frac(double m_high, double m_low, double* burst_mass_frac);
 void delayed_supernova_feedback(galaxy_t* gal, int snapshot);
 void evolve_stellar_pops(galaxy_t* gal, int snapshot);
+void evolve_PopIII(galaxy_t* gal, int snapshot);
 void contemporaneous_supernova_feedback(galaxy_t* gal, double* m_stars, int snapshot, double* m_reheat, double* m_eject, double* m_recycled, double* new_metals);
 void update_reservoirs_from_sn_feedback(galaxy_t* gal, double m_reheat, double m_eject, double m_recycled, double new_metals);
 void prep_hdf5_file(void);
@@ -732,11 +743,13 @@ int load_cached_deltax_slab(float* slab, int snapshot);
 int cache_deltax_slab(float* slab, int snapshot);
 void free_grids_cache(void);
 void calculate_Mvir_crit(double redshift);
+double calculate_J_21_LW(int snapshot);
 void call_find_HII_bubbles(int snapshot, int nout_gals, timer_info *timer);
 void save_reion_input_grids(int snapshot);
 void save_reion_output_grids(int snapshot);
 bool check_if_reionization_ongoing(void);
 void write_single_grid(const char* fname, float* grid, const char* grid_name, bool padded_flag, bool create_file_flag);
+
 
 // MCMC related
 // meraxes_mhysa_hook must be implemented by the calling code (Mhysa)!
