@@ -2,7 +2,8 @@
 #include <assert.h>
 #include <math.h>
 
-void update_reservoirs_from_sn_feedback(galaxy_t* gal, double m_reheat, double m_eject, double m_recycled, double new_metals)
+void update_reservoirs_from_sn_feedback(galaxy_t* gal, double m_reheat, double m_eject, 
+                                        double m_recycled, double m_recycled_metals, double new_metals)
 {
     double metallicity;
     galaxy_t* central;
@@ -17,14 +18,15 @@ void update_reservoirs_from_sn_feedback(galaxy_t* gal, double m_reheat, double m
         central = gal->Halo->FOFGroup->FirstOccupiedHalo->Galaxy;
 
     gal->StellarMass -= m_recycled;
+    gal->MetalsStellarMass -= m_recycled_metals;
     gal->ColdGas += m_recycled;
 
     // assuming instantaneous recycling approximation and enrichment from SNII
     // only, work out the mass of metals returned to the ISM by this SF burst
     if (gal->ColdGas > 1e-10)
-        gal->MetalsColdGas += new_metals;
+        gal->MetalsColdGas += new_metals + m_recycled_metals;
     else
-        central->MetalsHotGas += new_metals;
+        central->MetalsHotGas += new_metals + m_recycled_metals;
 
     // make sure we aren't trying to use more cold gas than is available...
     if (m_reheat > gal->ColdGas)
@@ -62,6 +64,8 @@ void update_reservoirs_from_sn_feedback(galaxy_t* gal, double m_reheat, double m
         gal->MetalsColdGas = 0.0;
     if (gal->StellarMass < 0)
         gal->StellarMass = 0.0;
+    if (gal->MetalsStellarMass < 0)
+        gal->MetalsStellarMass = 0.0;
     if (central->EjectedGas < 0)
         central->EjectedGas = 0.0;
     if (central->MetalsEjectedGas < 0)
@@ -219,6 +223,7 @@ void delayed_supernova_feedback(galaxy_t* gal, int snapshot)
     double m_reheat = 0.0;
     double m_eject = 0.0;
     double m_recycled = 0.0;
+    double m_recycled_metals = 0.0;
     double new_metals = 0.0;
     double fof_Vvir;
 
@@ -236,6 +241,7 @@ void delayed_supernova_feedback(galaxy_t* gal, int snapshot)
     // in the current time step.
     for (int i_burst = 1; i_burst < n_bursts; i_burst++) {
         double m_stars = gal->NewStars[i_burst];
+        double m_metals = gal->NewMetals[i_burst];
 
         // Only need to do this if any stars formed in this history bin
         if (m_stars > 1e-10) {
@@ -253,6 +259,7 @@ void delayed_supernova_feedback(galaxy_t* gal, int snapshot)
             // calculate the mass recycled from this burst
             burst_recycled_frac = calc_recycled_frac(m_high, m_low, &burst_mass_frac);
             m_recycled += m_stars * burst_recycled_frac;
+            m_recycled_metals += m_metals * burst_recycled_frac;
 
             // If m_high is > 8.0 Msol then we have already used all of the SN-II in
             // the previous recorded NewStars bins.  We therefore don't need to
@@ -270,7 +277,7 @@ void delayed_supernova_feedback(galaxy_t* gal, int snapshot)
             // increment the total reheated and new metals masses
             m_reheat += SnReheatEff * snII_frac * m_stars;
             new_metals += run_globals.params.physics.Yield * m_stars * burst_mass_frac;
-
+    
             // now work out the energy produced by the supernova and add it to our total at this snapshot
             sn_energy += calc_sn_energy(m_stars, gal->Vmax, eta_sn);
         }
@@ -302,7 +309,7 @@ void delayed_supernova_feedback(galaxy_t* gal, int snapshot)
     assert(m_eject >= 0);
 
     // update the baryonic reservoirs
-    update_reservoirs_from_sn_feedback(gal, m_reheat, m_eject, m_recycled, new_metals);
+    update_reservoirs_from_sn_feedback(gal, m_reheat, m_eject, m_recycled, m_recycled_metals, new_metals);
 }
 
 static void backfill_ghost_NewStars(galaxy_t* gal, double m_stars, int snapshot)
