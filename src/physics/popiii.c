@@ -44,7 +44,7 @@ void calculate_J_21_LW(int snapshot){
     while (gal != NULL) {
         Nion_bh     += gal->BHemissivity;
         Nion_popii  += gal->GrossStellarMass;
-        Nion_popiii += gal->PopIIIMass;
+        Nion_popiii += gal->GrossPopIIIMass;
         gal          = gal->Next;
     }
     Nion_popii  *= params->ReionNionPhotPerBary       / factor;
@@ -117,7 +117,7 @@ void popiii_star_formation(galaxy_t* gal, int snapshot){
     double M_POPIII = run_globals.params.physics.M_POPIII * SOLAR_MASS /\
                       run_globals.units.UnitMass_in_g;
 
-    double m_popiii  = (run_globals.params.physics.PopIIIEfficiency *\
+    double m_popiii  = (int)(run_globals.params.physics.PopIIIEfficiency *\
                             (gal->ColdGas + gal->HotGas) / M_POPIII) * M_POPIII ;
     //mlog("m_popiii=%g,ColdGas=%g,HotGas=%g",MLOG_MESG, m_popiii,gal->ColdGas, gal->HotGas);
 
@@ -133,10 +133,11 @@ void popiii_star_formation(galaxy_t* gal, int snapshot){
             gal->ColdGas  = 0.0;
             gal->HotGas  -= (m_popiii - gal->ColdGas);
         }
-        assert(gal->ColdGas >= 0);
-        assert(gal->HotGas  >= 0);
-        gal->PopIIIMass     += m_popiii;
-        gal->Sfr            += m_popiii / gal->dt;
+        assert(gal->ColdGas  >= 0);
+        assert(gal->HotGas   >= 0);
+        gal->PopIIIMass      += m_popiii;
+        gal->GrossPopIIIMass += m_popiii;
+        gal->Sfr             += m_popiii / gal->dt;
 
         popiii_supernova_feedback(gal, m_popiii);
     }

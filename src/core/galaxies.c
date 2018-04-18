@@ -41,6 +41,7 @@ galaxy_t* new_galaxy(int snapshot, unsigned long halo_ID)
     gal->Mcool = 0.0;
     gal->Rcool = 0.0;
 	gal->PopIIIMass = 0;
+	gal->GrossPopIIIMass = 0;
     gal->StellarMass = 0.0;
     gal->GrossStellarMass = 0.0;
     gal->FescWeightedGSM = 0.0;
@@ -126,6 +127,7 @@ void reset_galaxy_properties(galaxy_t* gal, int snapshot)
     gal->FOFMvirModifier = 1.0;
     gal->BlackHoleAccretedHotMass = 0.0;
     gal->BlackHoleAccretedColdMass = 0.0;
+	gal->PopIIIMass = 0;
 
     // update the stellar mass weighted mean age values
     assert(snapshot > 0);

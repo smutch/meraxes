@@ -40,7 +40,7 @@ int evolve_galaxies(fof_group_t* fof_group, int snapshot, int NGal, int NFof)
                     }
 
                     if (gal->Type < 3) {
-                        if (Flag_PopIII)
+                        if ((Flag_PopIII) && (gal->GrossPopIIIMass<1e-10))
                             evolve_popiii(gal, snapshot);
                         if (!Flag_IRA) {
                             evolve_stellar_pops(gal, snapshot);
