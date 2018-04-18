@@ -65,6 +65,7 @@ void prepare_galaxy_for_output(
     galout->HIMass = (float)(gal.HIMass);
     galout->Mcool = (float)(gal.Mcool);
     galout->PopIIIMass = (float)(gal.PopIIIMass);
+    galout->GrossPopIIIMass = (float)(gal.GrossPopIIIMass);
     galout->StellarMass = (float)(gal.StellarMass);
     galout->GrossStellarMass = (float)(gal.GrossStellarMass);
     galout->FescWeightedGSM = (float)(gal.FescWeightedGSM);
@@ -107,7 +108,7 @@ void calc_hdf5_props()
         galaxy_output_t galout;
         int i; // dummy
 
-        h5props->n_props = 48;
+        h5props->n_props = 49;
 
 #ifdef CALC_MAGS
         // If we are calculating any magnitudes then increment the number of
@@ -329,6 +330,13 @@ void calc_hdf5_props()
         h5props->dst_offsets[i] = HOFFSET(galaxy_output_t, PopIIIMass);
         h5props->dst_field_sizes[i] = sizeof(galout.PopIIIMass);
         h5props->field_names[i] = "PopIIIMass";
+        h5props->field_units[i] = "1e10 solMass";
+        h5props->field_h_conv[i] = "v/h";
+        h5props->field_types[i++] = H5T_NATIVE_FLOAT;
+
+        h5props->dst_offsets[i] = HOFFSET(galaxy_output_t, GrossPopIIIMass);
+        h5props->dst_field_sizes[i] = sizeof(galout.GrossPopIIIMass);
+        h5props->field_names[i] = "GrossPopIIIMass";
         h5props->field_units[i] = "1e10 solMass";
         h5props->field_h_conv[i] = "v/h";
         h5props->field_types[i++] = H5T_NATIVE_FLOAT;
