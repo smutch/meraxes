@@ -131,7 +131,7 @@ Flag_OutputGrids       : 1
 Flag_OutputGridsPostReion  : 0
 
 ReionUVBFlag           : 1  # Use 21cmFAST (ensure Flag_ReionizationModifier=1 if wish to couple to galaxy formation).
-ReionGridDim           : 128
+ReionGridDim           : 512
 ReionDeltaRFactor      : 1.1
 ReionFilterType        : 0
 ReionPowerSpecDeltaK   : 0.1
