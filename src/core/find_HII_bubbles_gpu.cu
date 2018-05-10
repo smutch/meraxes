@@ -67,7 +67,7 @@ void _find_HII_bubbles_gpu(double redshift, const bool flag_write_validation_out
     const double ReionDeltaRFactor = run_globals.params.ReionDeltaRFactor;
     const double ReionGammaHaloBias = run_globals.params.physics.ReionGammaHaloBias;
     const double ReionAlphaUV = run_globals.params.physics.ReionAlphaUV;
-    const double ReionEscapeFrac = run_globals.params.physics.ReionEscapeFrac;
+    // const double ReionEscapeFrac = run_globals.params.physics.ReionEscapeFrac;
     // grid parameters
     const ptrdiff_t* slabs_nix = run_globals.reion_grids.slab_nix;
     const ptrdiff_t* slabs_n_complex = run_globals.reion_grids.slab_n_complex;
@@ -185,7 +185,9 @@ void _find_HII_bubbles_gpu(double redshift, const bool flag_write_validation_out
     cufftHandle plan;
     try {
         throw_on_cuFFT_error(cufftPlan3d(&plan, ReionGridDim, ReionGridDim, ReionGridDim, CUFFT_R2C), meraxes_cuda_exception::CUFFT_CREATE_PLAN);
-        throw_on_cuFFT_error(cufftSetCompatibilityMode(plan, CUFFT_COMPATIBILITY_FFTW_ALL), meraxes_cuda_exception::CUFFT_SET_COMPATIBILITY);
+
+        // depreciated in CUFFT > v9.1
+        // throw_on_cuFFT_error(cufftSetCompatibilityMode(plan, CUFFT_COMPATIBILITY_FFTW_ALL), meraxes_cuda_exception::CUFFT_SET_COMPATIBILITY);
 
         // Perform FFTs
         throw_on_cuFFT_error(cufftExecR2C(plan, (cufftReal*)deltax_unfiltered_device, deltax_unfiltered_device), meraxes_cuda_exception::CUFFT_R2C);
@@ -259,7 +261,8 @@ void _find_HII_bubbles_gpu(double redshift, const bool flag_write_validation_out
 #ifdef USE_CUFFT
     try {
         throw_on_cuFFT_error(cufftPlan3d(&plan, ReionGridDim, ReionGridDim, ReionGridDim, CUFFT_C2R), meraxes_cuda_exception::CUFFT_C2R);
-        throw_on_cuFFT_error(cufftSetCompatibilityMode(plan, CUFFT_COMPATIBILITY_FFTW_ALL), meraxes_cuda_exception::CUFFT_SET_COMPATIBILITY);
+        // depreciated in CUFFT > v9.1
+        // throw_on_cuFFT_error(cufftSetCompatibilityMode(plan, CUFFT_COMPATIBILITY_FFTW_ALL), meraxes_cuda_exception::CUFFT_SET_COMPATIBILITY);
         // Throw an exception if another rank has thrown one
         throw_on_global_error();
     }
