@@ -16,8 +16,12 @@ void set_fesc(int snapshot)
 
     if (f_esc > 1.0)
         f_esc = 1.0;
+    else if (f_esc < 0.0)
+        f_esc = 0.0;
     if (f_esc_q > 1.0)
         f_esc_q = 1.0;
+    else if (f_esc_q < 0.0)
+        f_esc_q = 0.0;
 
     params->ReionEscapeFrac = (double)f_esc;
     params->ReionEscapeFracBH = (double)f_esc_q;
@@ -40,22 +44,18 @@ void set_ReionEfficiency()
     // Use the params passed to Meraxes via the input file to set the HII ionising efficiency factor
     physics_params_t* params = &(run_globals.params.physics);
 
-    if (run_globals.params.Flag_PatchyReion) {
 
-        // The following is based on Sobacchi & Messinger (2013) eqn 7
-        // with f_* removed and f_b added since we define f_coll as M_*/M_tot rather than M_vir/M_tot,
-        // and also with the inclusion of the effects of the Helium fraction.
-        params->ReionEfficiency = 1.0 / run_globals.params.BaryonFrac
-            * params->ReionNionPhotPerBary / (1.0 - 0.75 * params->Y_He);
+    // The following is based on Sobacchi & Messinger (2013) eqn 7
+    // with f_* removed and f_b added since we define f_coll as M_*/M_tot rather than M_vir/M_tot,
+    // and also with the inclusion of the effects of the Helium fraction.
+    params->ReionEfficiency = 1.0 / run_globals.params.BaryonFrac
+        * params->ReionNionPhotPerBary / (1.0 - 0.75 * params->Y_He);
 
-        // Account for instantaneous recycling factor so that stellar mass is cumulative
-        if (params->Flag_IRA)
-            params->ReionEfficiency /= params->SfRecycleFraction;
+    // Account for instantaneous recycling factor so that stellar mass is cumulative
+    if (params->Flag_IRA)
+        params->ReionEfficiency /= params->SfRecycleFraction;
 
-        mlog("Set value of run_globals.params.ReionEfficiency = %g", MLOG_MESG, params->ReionEfficiency);
-    }
-    else
-        params->ReionEfficiency = -1;
+    mlog("Set value of run_globals.params.ReionEfficiency = %g", MLOG_MESG, params->ReionEfficiency);
 }
 
 void assign_slabs()
