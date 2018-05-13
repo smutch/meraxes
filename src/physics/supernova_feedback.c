@@ -139,11 +139,9 @@ static inline double calc_sn_energy(double stars, double Vmax, double eta_sn)
     double SnEjectionEff = run_globals.params.physics.SnEjectionEff;
     double sn_energy;
 
-    if (SnEjectionScaling != 0) {
-        SnEjectionEff *= 0.5 + pow(Vmax / SnEjectionNorm, -SnEjectionScaling);
-        if (SnEjectionEff > 1.0)
-            SnEjectionEff = 1.0;
-    }
+    SnEjectionEff *= 0.5 + pow(Vmax / SnEjectionNorm, -SnEjectionScaling);
+    if (SnEjectionEff > 1.0)
+        SnEjectionEff = 1.0;
 
     sn_energy = 0.5 * SnEjectionEff * stars * E_sn * eta_sn;
     assert(sn_energy >= 0);
@@ -226,8 +224,7 @@ void delayed_supernova_feedback(galaxy_t* gal, int snapshot)
     int n_bursts = (snapshot >= N_HISTORY_SNAPS) ? N_HISTORY_SNAPS : snapshot;
 
     // scale the reheating efficiency
-    if (SnReheatScaling != 0)
-        SnReheatEff *= 0.5 + pow(gal->Vmax / SnReheatNorm, -SnReheatScaling);
+    SnReheatEff *= 0.5 + pow(gal->Vmax / SnReheatNorm, -SnReheatScaling);
     if (SnReheatEff > SnReheatLimit)
         SnReheatEff = SnReheatLimit;
 
@@ -352,8 +349,7 @@ void contemporaneous_supernova_feedback(
     *m_reheat = *m_recycled = *new_metals = *m_eject = 0.0;
 
     // scale the reheating efficiency
-    if (SnReheatScaling != 0)
-        SnReheatEff *= 0.5 + pow(gal->Vmax / SnReheatNorm, -SnReheatScaling);
+    SnReheatEff *= 0.5 + pow(gal->Vmax / SnReheatNorm, -SnReheatScaling);
     if (SnReheatEff > SnReheatLimit)
         SnReheatEff = SnReheatLimit;
 
