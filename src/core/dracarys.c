@@ -302,8 +302,8 @@ void dracarys()
         // Add the ghost galaxies into the nout_gals count
         nout_gals += ghost_counter;
 
+        set_fesc(snapshot);
         if (run_globals.params.Flag_PatchyReion) {
-            set_fesc(snapshot);
 
             if (check_if_reionization_ongoing()) {
                 if (!run_globals.params.ReionUVBFlag) {
