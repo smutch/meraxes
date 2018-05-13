@@ -131,7 +131,7 @@ if(NOT BUILD_SHARED_LIBS)
     else()
         add_executable(meraxes ${CMAKE_CURRENT_SOURCE_DIR}/core/meraxes.c)
     endif()
-    target_link_libraries(meraxes meraxes_lib)
+    target_link_libraries(meraxes PRIVATE meraxes_lib)
     install(TARGETS meraxes DESTINATION bin COMPONENT bin)
     add_custom_target(install.meraxes
         ${CMAKE_COMMAND} 
@@ -202,11 +202,11 @@ endif()
 ##############
 
 # MATH
-target_link_libraries(meraxes_lib m)
+target_link_libraries(meraxes_lib PRIVATE m)
 
 # MPI
 find_package(MPI REQUIRED)
-target_link_libraries(meraxes_lib MPI::MPI_C)
+target_link_libraries(meraxes_lib PUBLIC MPI::MPI_C)
 
 # MLOG
 if(NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/mlog/mlog.c")
@@ -216,7 +216,7 @@ if(NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/mlog/mlog.c")
 endif()
 set(MLOG_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/mlog")
 add_library(mlog STATIC "${MLOG_ROOT}/mlog.c" "${MLOG_ROOT}/mlog.h")
-target_link_libraries(mlog MPI::MPI_C)
+target_link_libraries(mlog PRIVATE MPI::MPI_C)
 target_include_directories(mlog PRIVATE ${MPI_INCLUDE_PATH})
 set_target_properties(mlog PROPERTIES
     POSITION_INDEPENDENT_CODE ON
@@ -224,7 +224,7 @@ set_target_properties(mlog PROPERTIES
 target_include_directories(meraxes_lib PUBLIC
     $<BUILD_INTERFACE:${MLOG_ROOT}>
     $<INSTALL_INTERFACE:include>)
-target_link_libraries(meraxes_lib mlog)
+target_link_libraries(meraxes_lib PUBLIC mlog)
 
 install(TARGETS mlog EXPORT MeraxesConfig
     DESTINATION lib 
@@ -233,7 +233,7 @@ install(TARGETS mlog EXPORT MeraxesConfig
 
 # GSL
 find_package(GSL REQUIRED)
-target_link_libraries(meraxes_lib GSL::gsl GSL::gslcblas)
+target_link_libraries(meraxes_lib PRIVATE GSL::gsl GSL::gslcblas)
 
 # HDF5
 find_package(HDF5 REQUIRED COMPONENTS C HL)
@@ -241,21 +241,21 @@ if (NOT HDF5_IS_PARALLEL)
     message(FATAL_ERROR "Meraxes requires HDF5 with parallel support.")
 endif()
 target_include_directories(meraxes_lib PUBLIC ${HDF5_INCLUDE_DIRS})
-target_link_libraries(meraxes_lib ${HDF5_C_LIBRARIES} ${HDF5_C_HL_LIBRARIES})
+target_link_libraries(meraxes_lib PUBLIC ${HDF5_C_LIBRARIES} ${HDF5_C_HL_LIBRARIES})
 add_definitions(${HDF5_DEFINITIONS})
 
 # THIS IS A TEMPORARY HACK TO OVERCOME A BUG IN SOME VERSIONS OF CMAKE
 if(NOT (${HDF5_C_HL_LIBRARIES} MATCHES "libhdf5_hl"))
     list(GET HDF5_C_LIBRARIES 0 HDF5_LIB)
     get_filename_component(HDF5_LIBDIR ${HDF5_LIB} DIRECTORY)
-    target_link_libraries(meraxes_lib "${HDF5_LIBDIR}/libhdf5_hl.so")
+    target_link_libraries(meraxes_lib PUBLIC "${HDF5_LIBDIR}/libhdf5_hl.so")
 endif()
 
 # FFTW
 if(NOT USE_BUNDLED_FFTW)
     find_package(FFTW REQUIRED)
     target_include_directories(meraxes_lib PUBLIC ${FFTW_INCLUDE_DIRS})
-    target_link_libraries(meraxes_lib ${FFTW_LIBRARIES})
+    target_link_libraries(meraxes_lib PUBLIC ${FFTW_LIBRARIES})
 else()
     include(cmake/BundleFFTW.cmake)
     bundle_fftw()
