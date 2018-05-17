@@ -332,6 +332,11 @@ void read_parameter_file(char* fname, int mode)
 
             // Physics params
 
+            strcpy(params_tag[n_param], "EscapeFracDependency");
+            params_addr[n_param] = &(run_params->physics).EscapeFracDependency;
+            required_tag[n_param] = 1;
+            params_type[n_param++] = PARAM_TYPE_INT;
+
             strcpy(params_tag[n_param], "SfDiskVelOpt");
             params_addr[n_param] = &(run_params->physics).SfDiskVelOpt;
             required_tag[n_param] = 1;
@@ -341,26 +346,6 @@ void read_parameter_file(char* fname, int mode)
             params_addr[n_param] = &(run_params->physics).SfPrescription;
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_INT;
-
-            strcpy(params_tag[n_param], "RedshiftDepEscFracNorm");
-            params_addr[n_param] = &(run_params->physics).RedshiftDepEscFracNorm;
-            required_tag[n_param] = 1;
-            params_type[n_param++] = PARAM_TYPE_DOUBLE;
-
-            strcpy(params_tag[n_param], "RedshiftDepEscFracScaling");
-            params_addr[n_param] = &(run_params->physics).RedshiftDepEscFracScaling;
-            required_tag[n_param] = 1;
-            params_type[n_param++] = PARAM_TYPE_DOUBLE;
-
-            strcpy(params_tag[n_param], "RedshiftDepEscFracBHNorm");
-            params_addr[n_param] = &(run_params->physics).RedshiftDepEscFracBHNorm;
-            required_tag[n_param] = 1;
-            params_type[n_param++] = PARAM_TYPE_DOUBLE;
-
-            strcpy(params_tag[n_param], "RedshiftDepEscFracBHScaling");
-            params_addr[n_param] = &(run_params->physics).RedshiftDepEscFracBHScaling;
-            required_tag[n_param] = 1;
-            params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
             strcpy(params_tag[n_param], "Flag_ReionizationModifier");
             params_addr[n_param] = &(run_params->physics).Flag_ReionizationModifier;
@@ -629,6 +614,26 @@ void read_parameter_file(char* fname, int mode)
 
             strcpy(params_tag[n_param], "ReionGammaHaloBias");
             params_addr[n_param] = &(run_params->physics).ReionGammaHaloBias;
+            required_tag[n_param] = 1;
+            params_type[n_param++] = PARAM_TYPE_DOUBLE;
+
+            strcpy(params_tag[n_param], "EscapeFracNorm");
+            params_addr[n_param] = &(run_params->physics).EscapeFracNorm;
+            required_tag[n_param] = 1;
+            params_type[n_param++] = PARAM_TYPE_DOUBLE;
+
+            strcpy(params_tag[n_param], "EscapeFracScaling");
+            params_addr[n_param] = &(run_params->physics).EscapeFracScaling;
+            required_tag[n_param] = 1;
+            params_type[n_param++] = PARAM_TYPE_DOUBLE;
+
+            strcpy(params_tag[n_param], "EscapeFracBHNorm");
+            params_addr[n_param] = &(run_params->physics).EscapeFracBHNorm;
+            required_tag[n_param] = 1;
+            params_type[n_param++] = PARAM_TYPE_DOUBLE;
+
+            strcpy(params_tag[n_param], "EscapeFracBHScaling");
+            params_addr[n_param] = &(run_params->physics).EscapeFracBHScaling;
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_DOUBLE;
 

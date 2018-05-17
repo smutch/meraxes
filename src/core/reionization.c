@@ -7,27 +7,51 @@
 #include <hdf5_hl.h>
 #include <math.h>
 
-void set_fesc(int snapshot)
+void calculate_galaxy_fesc_vals(galaxy_t *gal, double new_stars, int snapshot)
 {
     physics_params_t* params = &(run_globals.params.physics);
 
-    float f_esc = params->RedshiftDepEscFracNorm * (powf((1.0 + run_globals.ZZ[snapshot]) / 6.0, params->RedshiftDepEscFracScaling));
-    float f_esc_q = params->RedshiftDepEscFracBHNorm * (powf((1.0 + run_globals.ZZ[snapshot]) / 6.0, params->RedshiftDepEscFracBHScaling));
+    float fesc_bh = params->EscapeFracBHNorm * (powf((1.0 + run_globals.ZZ[snapshot]) / 6.0, params->EscapeFracBHScaling));
 
-    if (f_esc > 1.0)
-        f_esc = 1.0;
-    else if (f_esc < 0.0)
-        f_esc = 0.0;
-    if (f_esc_q > 1.0)
-        f_esc_q = 1.0;
-    else if (f_esc_q < 0.0)
-        f_esc_q = 0.0;
+    double fesc = params->EscapeFracNorm;
+    switch (params->EscapeFracDependency)
+    {
+        case 0:
+            break;
+        case 1:
+            fesc *= pow((1.0 + run_globals.ZZ[snapshot]) / 6.0, params->EscapeFracScaling);
+            break;
+        case 2:
+            fesc *= pow(gal->StellarMass / 0.01, params->EscapeFracScaling);
+            break;
+        case 3:
+            fesc *= powf(gal->Sfr * run_globals.units.UnitMass_in_g / run_globals.units.UnitTime_in_s * SEC_PER_YEAR / SOLAR_MASS / 100., params->EscapeFracScaling);
+            break;
+        default:
+            mlog_error("Unrecognised EscapeFracDependency parameter value.");
+    }
+        
+    if (fesc > 1.0)
+        fesc = 1.0;
+    else if (fesc < 0.0)
+        fesc = 0.0;
+    if (fesc_bh > 1.0)
+        fesc_bh = 1.0;
+    else if (fesc_bh < 0.0)
+        fesc_bh = 0.0;
 
-    params->ReionEscapeFrac = (double)f_esc;
-    params->ReionEscapeFracBH = (double)f_esc_q;
+    gal->Fesc = fesc;
+    gal->FescWeightedGSM += new_stars * fesc;
 
-    mlog("f_esc   = %g", MLOG_MESG, f_esc);
-    mlog("f_esc_q = %g", MLOG_MESG, f_esc_q);
+    // Here we just set the black hole escape fraction for use in the next
+    // timestep when calculating previous_merger_driven_BH_growth().  It is in
+    // this function that the EffectiveBHM will be updated.  For the galaxy
+    // that we are working on now, the EffectiveBHM has already been calculated
+    // using the FescBH value from the previous snapshot.
+    // The upshot is that we don't need to do anything to the EffectiveBHM
+    // here.  It's confusing I know.  I intend to re-write this to make things
+    // more obvious at some point in the future.
+    gal->FescBH = fesc_bh;
 }
 
 void set_quasar_fobs()
@@ -121,7 +145,7 @@ void call_find_HII_bubbles(int snapshot, int nout_gals, timer_info* timer)
             break;
         default:
             mlog_error("Unrecognised input trees identifier (TreesID).");
-        break;
+            break;
     }
 
     // save the grids prior to doing FFTs to avoid precision loss and aliasing etc.
@@ -503,6 +527,9 @@ void construct_baryon_grids(int snapshot, int local_ngals)
                     int ind = grid_index(ix, iy, iz, ReionGridDim, INDEX_REAL);
 
                     assert((ind >= 0) && (ind < slab_nix[i_r] * ReionGridDim * ReionGridDim));
+
+                    // update the galaxy escape fractions for stars and black holes
+                    calculate_galaxy_fesc_vals(gal, gal->NewStars[0], snapshot);
 
                     // They are the same just now, but may be different in the future once the model is improved.
                     switch (prop) {
