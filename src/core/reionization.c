@@ -7,7 +7,7 @@
 #include <hdf5_hl.h>
 #include <math.h>
 
-void calculate_galaxy_fesc_vals(galaxy_t *gal, double new_stars, int snapshot)
+static void calculate_galaxy_fesc_vals(galaxy_t *gal, double new_stars, int snapshot)
 {
     physics_params_t* params = &(run_globals.params.physics);
 
