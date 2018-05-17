@@ -1,0 +1,8 @@
+One thing to watch out for here is that we are now calculating and applying the
+escape fraction based on the properties at the end of the current snapshot
+(e.g. redshift, sfr etc.), whereas previously we were actually using the escape
+fraction calculated at the end of the previous snapshot.  The way the code is
+now, this is still being done for the black holes though.  It's just the
+galaxies where things have changed.  We could return to the old way of doing
+things by moving the calculate_galaxy_fesc_vals() function call into dracarys()
+after the reionization calculation.
