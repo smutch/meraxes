@@ -214,7 +214,7 @@ void previous_merger_driven_BH_growth(galaxy_t* gal)
     gal->BHemissivity += BHemissivity;
     gal->BlackHoleMass += (1. - ETA) * accreted_mass;
     gal->EffectiveBHM += BHemissivity * EMISSIVITY_CONVERTOR
-        * run_globals.params.physics.ReionEscapeFracBH / run_globals.params.physics.ReionNionPhotPerBary;
+        * gal->FescBH / run_globals.params.physics.ReionNionPhotPerBary;
 
     // quasar mode feedback
     m_reheat = run_globals.params.physics.QuasarModeEff * 2. * ETA * run_globals.Csquare * accreted_mass / Vvir / Vvir;

@@ -7,7 +7,7 @@ FileNameGalaxies : velociraptor_test
 #----- Simulation input files  ------------
 #------------------------------------------
 SimName           : VELOCIraptor Test
-SimulationDir     : /lustre/projects/p124_astro/smutch/velociraptor/data
+SimulationDir     : /fred/oz013/simulations/SURFS_L40_N512
 CatalogFilePrefix : VELOCIraptor.tree.t4.unifiedhalotree.withforestid.snap.hdf.data
 TreesID           : 0  # 0 -> VELOCIraptor; 1 -> gbpTrees
 BoxSize           : 40.0
