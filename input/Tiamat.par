@@ -146,6 +146,13 @@ ReionRBubbleMax        : 20.34
 ReionGammaHaloBias     : 2.0
 ReionAlphaUV           : 5.0
 ReionAlphaUVBH         : 1.57
+
+EscapeFracDependency   : 1  # 0->none, 1->redshift, 2->stellar mass, 3->sfr
+EscapeFracNorm         : 0.06
+EscapeFracScaling      : 0.5
+EscapeFracBHNorm       : 1
+EscapeFracBHScaling    : 0
+
 ReionSMParam_m0        : 0.18984  # internal units
 ReionSMParam_a         : 0.17
 ReionSMParam_b         : -2.1
@@ -154,11 +161,6 @@ ReionSMParam_d         : 2.5
 
 ReionTcool             : 1.0e4  # Kelvin
 ReionNionPhotPerBary   : 4000
-
-RedshiftDepEscFracNorm      : 0.06
-RedshiftDepEscFracScaling   : 0.5
-RedshiftDepEscFracBHNorm    : 1
-RedshiftDepEscFracBHScaling : 0
 
 
 
