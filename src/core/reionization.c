@@ -513,6 +513,9 @@ void construct_baryon_grids(int snapshot, int local_ngals)
                         continue;
                     }
 
+                    // update the galaxy escape fractions for stars and black holes
+                    calculate_galaxy_fesc_vals(gal, gal->NewStars[0], snapshot);
+
                     assert(galaxy_to_slab_map[i_gal].index >= 0);
                     assert((galaxy_to_slab_map[i_gal].slab_ind >= 0) && (galaxy_to_slab_map[i_gal].slab_ind < run_globals.mpi_size));
 
@@ -527,9 +530,6 @@ void construct_baryon_grids(int snapshot, int local_ngals)
                     int ind = grid_index(ix, iy, iz, ReionGridDim, INDEX_REAL);
 
                     assert((ind >= 0) && (ind < slab_nix[i_r] * ReionGridDim * ReionGridDim));
-
-                    // update the galaxy escape fractions for stars and black holes
-                    calculate_galaxy_fesc_vals(gal, gal->NewStars[0], snapshot);
 
                     // They are the same just now, but may be different in the future once the model is improved.
                     switch (prop) {
