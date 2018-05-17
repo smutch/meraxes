@@ -7,7 +7,7 @@
 #include <hdf5_hl.h>
 #include <math.h>
 
-static void calculate_galaxy_fesc_vals(galaxy_t *gal, double new_stars, int snapshot)
+void calculate_galaxy_fesc_vals(galaxy_t *gal, double new_stars, int snapshot)
 {
     physics_params_t* params = &(run_globals.params.physics);
 
@@ -512,9 +512,6 @@ void construct_baryon_grids(int snapshot, int local_ngals)
                         skipped_gals++;
                         continue;
                     }
-
-                    // update the galaxy escape fractions for stars and black holes
-                    calculate_galaxy_fesc_vals(gal, gal->NewStars[0], snapshot);
 
                     assert(galaxy_to_slab_map[i_gal].index >= 0);
                     assert((galaxy_to_slab_map[i_gal].slab_ind >= 0) && (galaxy_to_slab_map[i_gal].slab_ind < run_globals.mpi_size));

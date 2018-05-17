@@ -720,6 +720,7 @@ void set_quasar_fobs(void);
 double RtoM(double R);
 void find_HII_bubbles(int snapshot, timer_info *timer_total);
 double tocf_modifier(galaxy_t* gal, double Mvir);
+void calculate_galaxy_fesc_vals(galaxy_t *gal, double new_stars, int snapshot);
 void set_ReionEfficiency(void);
 int find_cell(float pos, double box_size);
 void malloc_reionization_grids(void);
