@@ -40,8 +40,8 @@ galaxy_t* new_galaxy(int snapshot, unsigned long halo_ID)
     gal->MetalsEjectedGas = 0.0;
     gal->Mcool = 0.0;
     gal->Rcool = 0.0;
-	gal->PopIIIMass = 0;
-	gal->GrossPopIIIMass = 0;
+    gal->PopIIIMass = 0;
+    gal->GrossPopIIIMass = 0;
     gal->StellarMass = 0.0;
     gal->GrossStellarMass = 0.0;
     gal->FescWeightedGSM = 0.0;
@@ -127,7 +127,7 @@ void reset_galaxy_properties(galaxy_t* gal, int snapshot)
     gal->FOFMvirModifier = 1.0;
     gal->BlackHoleAccretedHotMass = 0.0;
     gal->BlackHoleAccretedColdMass = 0.0;
-	gal->PopIIIMass = 0;
+    gal->PopIIIMass = 0;
 
     // update the stellar mass weighted mean age values
     assert(snapshot > 0);
@@ -189,7 +189,9 @@ void connect_galaxy_and_halo(galaxy_t* gal, halo_t* halo, int* merger_counter)
             // TODO: Make sure I don't need to turn off the merger flag...
             parent = check_for_flag(TREE_CASE_MERGER, gal->TreeFlags) ? halo->Galaxy : gal;
             infaller = halo->Galaxy == parent ? gal : halo->Galaxy;
-            assert(check_for_flag(TREE_CASE_MERGER, infaller->TreeFlags));
+            // assert TREE_CASE_HIGHRES because at the connection point, halos from highres
+            // might not makred as TREE_CASE_MERGER
+            assert(check_for_flag(TREE_CASE_MERGER & TREE_CASE_HIGHRES, infaller->TreeFlags));
             break;
 
         case VELOCIRAPTOR_TREES:

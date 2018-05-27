@@ -66,12 +66,17 @@ double Tvir_to_Mvir(double T, double z)
     return 0.01 * mol_term * cosmo_term * T_term * z_term;
 }
 
-double calculate_Mvir(double Mvir, int len)
+double calculate_Mvir(double Mvir, int len, int flag_highres)
 {
     if ((len < 0) && (Mvir > 0))
         return Mvir;
     else
-        return (double)len * run_globals.params.PartMass;
+    {
+        if (flag_highres == 0)
+            return (double)len * run_globals.params.PartMass;
+        else
+            return (double)len * run_globals.params.PartMass_highres;
+    }
 }
 
 double hubble_at_snapshot(int snapshot)

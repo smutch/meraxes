@@ -224,6 +224,7 @@ typedef struct run_params_t {
     double wLambda;
     double SpectralIndex;
     double PartMass;
+    double PartMass_highres;
     long long NPart;
 
     double* MvirCrit;
@@ -623,6 +624,8 @@ void read_trees__velociraptor(int snapshot, halo_t* halos, int* n_halos, fof_gro
 trees_info_t read_trees_info__velociraptor(const int snapshot);
 
 void read_trees__gbptrees(int snapshot, halo_t* halo, int n_halos, fof_group_t* fof_group, int n_fof_groups, int n_requested_forests, int* n_halos_kept, int* n_fof_groups_kept, int* index_lookup);
+void read_trees__extended_gbptrees(int snapshot, halo_t* halo, int n_halos, fof_group_t* fof_group, int n_fof_groups, int n_requested_forests, int* n_halos_kept, int* n_fof_groups_kept, int* index_lookup);
+trees_info_t read_trees_info__gbptrees(int snapshot);
 trees_info_t read_trees_info__gbptrees(int snapshot);
 
 void free_halo_storage(void);
@@ -690,7 +693,7 @@ void cn_quote(void);
 double Tvir_to_Mvir(double T, double z);
 double hubble_at_snapshot(int snapshot);
 double hubble_time(int snapshot);
-double calculate_Mvir(double Mvir, int len);
+double calculate_Mvir(double Mvir, int len, int flag_highres);
 double calculate_Rvir(double Mvir, int snapshot);
 double calculate_Vvir(double Mvir, double Rvir);
 double calculate_spin_param(halo_t* halo);

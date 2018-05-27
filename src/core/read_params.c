@@ -305,6 +305,12 @@ void read_parameter_file(char* fname, int mode)
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
+            strcpy(params_tag[n_param], "PartMass_highres");
+            params_addr[n_param] = &(run_params->PartMass_highres);
+            required_tag[n_param] = 0;
+            params_type[n_param++] = PARAM_TYPE_DOUBLE;
+            run_params->PartMass_highres = 0.0;
+
             strcpy(params_tag[n_param], "NPart");
             params_addr[n_param] = &(run_params->NPart);
             required_tag[n_param] = 1;

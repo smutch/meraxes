@@ -67,3 +67,6 @@
 #define TREE_CASE_GHOST_NULL TTTP21 // Marks a ghost halo where a subgroup is it's own group.
 //    This is a default behaviour that occurs when a group is strayed but one of
 //    it's subgroups isn't.
+#define TREE_CASE_HIGHRES TTTP22 // Marks a halo connected from the highres simulation.
+#define TREE_CASE_TRAITOR TTTP23 // Marks a halo connected from the highres simulation which does not have any descendants
+//    because it merges into another group in the highres

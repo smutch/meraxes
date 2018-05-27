@@ -294,8 +294,8 @@ void dracarys()
         }
 
         // Calculate the Lyman Werner Background
-		if (run_globals.params.physics.Flag_PopIII)
-        	calculate_J_21_LW(snapshot);
+        if (run_globals.params.physics.Flag_PopIII)
+            calculate_J_21_LW(snapshot);
 
         // Do the physics
         if (NGal > 0)

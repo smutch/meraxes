@@ -422,7 +422,12 @@ trees_info_t read_halos(const int snapshot, halo_t** halos, fof_group_t** fof_gr
         int n_halos_kept = 0;
         int n_fof_groups_kept = 0;
 
+        if (run_globals.params.PartMass_highres == 0)
         read_trees__gbptrees(snapshot, *halos, n_halos,
+            *fof_groups, n_fof_groups, run_globals.NRequestedForests,
+            &n_halos_kept, &n_fof_groups_kept, *index_lookup);
+        else
+        read_trees__extended_gbptrees(snapshot, *halos, n_halos,
             *fof_groups, n_fof_groups, run_globals.NRequestedForests,
             &n_halos_kept, &n_fof_groups_kept, *index_lookup);
 
