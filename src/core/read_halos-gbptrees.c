@@ -2,6 +2,7 @@
 #include <assert.h>
 #include <hdf5_hl.h>
 #include <math.h>
+#include "tree_flags.h"
 
 static void halo_catalog_filename(
     char* simulation_dir,
