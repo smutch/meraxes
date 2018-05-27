@@ -191,7 +191,7 @@ void connect_galaxy_and_halo(galaxy_t* gal, halo_t* halo, int* merger_counter)
             infaller = halo->Galaxy == parent ? gal : halo->Galaxy;
             // assert TREE_CASE_HIGHRES because at the connection point, halos from highres
             // might not makred as TREE_CASE_MERGER
-            assert(check_for_flag(TREE_CASE_MERGER & TREE_CASE_HIGHRES, infaller->TreeFlags));
+            assert(check_for_flag(TREE_CASE_MERGER & TREE_CASE_CONNECTION, infaller->TreeFlags));
             break;
 
         case VELOCIRAPTOR_TREES:

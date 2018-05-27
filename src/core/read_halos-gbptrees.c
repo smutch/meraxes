@@ -784,7 +784,7 @@ void read_trees__extended_gbptrees(
                     NULL,
                     Len,
                     snapshot,
-                    check_for_flag(TREE_CASE_HIGHRES & TREE_CASE_TRAITOR, cur_halo->TreeFlags));
+                    check_for_flag(TREE_CASE_HIGHRES, cur_halo->TreeFlags));
 
                 (*n_halos_kept)++;
             }
