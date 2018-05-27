@@ -57,7 +57,7 @@ static void inline convert_input_virial_props(double* Mvir, double* Rvir, double
     // Update the virial properties for subhalos
     if (*Mvir == -1) {
         assert(len > 0);
-        *Mvir = calculate_Mvir(*Mvir, len, 0);
+        *Mvir = calculate_Mvir(*Mvir, len, false);
     }
     else {
         if (fof_flag && (run_globals.RequestedMassRatioModifier == 1)) {
