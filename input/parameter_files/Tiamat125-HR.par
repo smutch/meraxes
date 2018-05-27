@@ -7,7 +7,7 @@ FileNameGalaxies : Tiamat125-HR
 #----- Simulation input files  ------------
 #------------------------------------------
 SimName           : Tiamat125-HR
-SimulationDir     : /home/yqin/dragons/input_trees/Tiamat_125_HR
+SimulationDir     : /fred/oz013/simulations/Tiamat_125_HR
 TreesID           : 1   # 0 -> VELOCIraptor; 1 -> gbpTrees
 CatalogFilePrefix : subfind
 BoxSize           : 125.0
@@ -16,8 +16,8 @@ VolumeFactor      : 1.0
 #------------------------------------------
 #----- Photometric Tables  ----------------
 #------------------------------------------
-PhotometricTablesDir : /home/yqin/bitbucket/meraxes/input/photometric_tables
-CoolingFuncsDir      : /home/yqin/bitbucket/meraxes/input/cooling_functions
+PhotometricTablesDir : /fred/oz013/photometric_tables
+CoolingFuncsDir      : /fred/oz013/cooling_functions
 SSPModel             : bc03
 IMF                  : salpeter
 MagSystem            : vega
