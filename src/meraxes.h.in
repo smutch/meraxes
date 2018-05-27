@@ -693,7 +693,7 @@ void cn_quote(void);
 double Tvir_to_Mvir(double T, double z);
 double hubble_at_snapshot(int snapshot);
 double hubble_time(int snapshot);
-double calculate_Mvir(double Mvir, int len, int flag_highres);
+double calculate_Mvir(double Mvir, int len, bool flag_highres);
 double calculate_Rvir(double Mvir, int snapshot);
 double calculate_Vvir(double Mvir, double Rvir);
 double calculate_spin_param(halo_t* halo);

@@ -66,16 +66,16 @@ double Tvir_to_Mvir(double T, double z)
     return 0.01 * mol_term * cosmo_term * T_term * z_term;
 }
 
-double calculate_Mvir(double Mvir, int len, int flag_highres)
+double calculate_Mvir(double Mvir, int len, bool flag_highres)
 {
     if ((len < 0) && (Mvir > 0))
         return Mvir;
     else
     {
-        if (flag_highres == 0)
-            return (double)len * run_globals.params.PartMass;
-        else
+        if (flag_highres)
             return (double)len * run_globals.params.PartMass_highres;
+        else
+            return (double)len * run_globals.params.PartMass;
     }
 }
 

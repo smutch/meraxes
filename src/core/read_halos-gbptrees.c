@@ -160,7 +160,7 @@ static void read_catalog_halos(
     }
 }
 
-static void inline convert_input_virial_props(double* Mvir, double* Rvir, double* Vvir, double* FOFMvirModifier, int len, int snapshot, int flag_highres)
+static void inline convert_input_virial_props(double* Mvir, double* Rvir, double* Vvir, double* FOFMvirModifier, int len, int snapshot, bool flag_highres)
 {
     if (len >= 0) {
         // Update the virial properties for subhalos
@@ -388,7 +388,7 @@ void read_trees__gbptrees(
                         &(cur_group->FOFMvirModifier),
                         -1,
                         snapshot,
-                        0);
+                        false);
 
                     fof_group[(*n_fof_groups_kept)++].FirstHalo = &(halo[*n_halos_kept]);
                 }
@@ -432,7 +432,7 @@ void read_trees__gbptrees(
                     NULL,
                     Len,
                     snapshot,
-                    0);
+                    false);
 
                 // // Replace the virial properties of the FOF group by those of the first
                 // // subgroup
@@ -739,7 +739,7 @@ void read_trees__extended_gbptrees(
                         &(cur_group->FOFMvirModifier),
                         -1,
                         snapshot,
-                        1);
+                        true);
 
                     fof_group[(*n_fof_groups_kept)++].FirstHalo = &(halo[*n_halos_kept]);
                 }
@@ -783,7 +783,7 @@ void read_trees__extended_gbptrees(
                     NULL,
                     Len,
                     snapshot,
-                    1);
+                    check_for_flag(TREE_CASE_HIGHRES, cur_halo->TreeFlags));
 
                 (*n_halos_kept)++;
             }
