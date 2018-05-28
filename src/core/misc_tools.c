@@ -122,8 +122,8 @@ int pos_to_ngp(double x, double side, int nx)
 {
     int ind = (int)nearbyint(x / side * (double)nx);
 
-    if (ind > nx - 1)
-        ind = 0;
+    while (ind > nx - 1)
+        ind -= nx;
 
     assert(ind > -1);
 

@@ -756,6 +756,12 @@ void read_trees__extended_gbptrees(
                 cur_halo->Pos[0] = cur_cat_halo->position_MBP[0] + cur_tree_entry->position_offset[0];
                 cur_halo->Pos[1] = cur_cat_halo->position_MBP[1] + cur_tree_entry->position_offset[1];
                 cur_halo->Pos[2] = cur_cat_halo->position_MBP[2] + cur_tree_entry->position_offset[2];
+                while (cur_halo->Pos[0] > run_globals.params.BoxSize)
+                    cur_halo->Pos[0] -= run_globals.params.BoxSize;
+                while (cur_halo->Pos[1] > run_globals.params.BoxSize)
+                    cur_halo->Pos[1] -= run_globals.params.BoxSize;
+                while (cur_halo->Pos[2] > run_globals.params.BoxSize)
+                    cur_halo->Pos[2] -= run_globals.params.BoxSize;
                 cur_halo->Vel[0] = cur_cat_halo->velocity_COM[0];
                 cur_halo->Vel[1] = cur_cat_halo->velocity_COM[1];
                 cur_halo->Vel[2] = cur_cat_halo->velocity_COM[2];
