@@ -134,18 +134,40 @@ static inline double calc_eta_sn(double m_high, double m_low, double* snII_frac)
     return eta_sn;
 }
 
-static inline double calc_sn_energy(double stars, double Vmax, double eta_sn)
+
+static inline double calc_sn_reheat_eff(double Vmax, int snapshot)
+{
+    double zplus1 = 1. + run_globals.ZZ[snapshot];
+    double SnReheatEff = run_globals.params.physics.SnReheatEff;
+    double SnReheatLimit = run_globals.params.physics.SnReheatLimit;
+    // Vmax is in a unit of km/s
+    if (Vmax < 60.)
+        SnReheatEff *= pow(zplus1, 1.25)*pow(Vmax/60., -3.2);
+    else
+        SnReheatEff *= pow(zplus1, 1.25)*pow(Vmax/60., -1);
+    return (SnReheatEff > SnReheatLimit) ? SnReheatLimit : SnReheatEff;
+}
+
+
+static inline double calc_sn_energy(double stars, double Vmax, double eta_sn, int snapshot)
 {
     // work out the energy produced by the supernova and add it to our total at this snapshot
+    double zplus1 = 1. + run_globals.ZZ[snapshot];
     double E_sn = run_globals.params.physics.EnergyPerSN / run_globals.units.UnitEnergy_in_cgs;
     double SnEjectionScaling = run_globals.params.physics.SnEjectionScaling;
     double SnEjectionNorm = run_globals.params.physics.SnEjectionNorm;
     double SnEjectionEff = run_globals.params.physics.SnEjectionEff;
     double sn_energy;
 
-    SnEjectionEff *= 0.5 + pow(Vmax / SnEjectionNorm, -SnEjectionScaling);
-    if (SnEjectionEff > 1.0)
-        SnEjectionEff = 1.0;
+    if (SnEjectionScaling != 0) {
+        //SnEjectionEff *= 0.5 + pow(Vmax / SnEjectionNorm, -SnEjectionScaling);
+        if (Vmax < 60.)
+            SnEjectionEff *= pow(zplus1, 1.25)*pow(Vmax/60., -3.2);
+        else
+            SnEjectionEff *= pow(zplus1, 1.25)*pow(Vmax/60., -1);
+        if (SnEjectionEff > 1.0)
+            SnEjectionEff = 1.0;
+    }
 
     sn_energy = SnEjectionEff * stars * E_sn * eta_sn;
     assert(sn_energy >= 0);
@@ -204,10 +226,10 @@ double sn_m_low(double log_dt)
 void delayed_supernova_feedback(galaxy_t* gal, int snapshot)
 {
     run_units_t* units = &(run_globals.units);
-    double SnReheatScaling = run_globals.params.physics.SnReheatScaling;
-    double SnReheatNorm = run_globals.params.physics.SnReheatNorm;
-    double SnReheatEff = run_globals.params.physics.SnReheatEff;
-    double SnReheatLimit = run_globals.params.physics.SnReheatLimit;
+    //double SnReheatScaling = run_globals.params.physics.SnReheatScaling;
+    //double SnReheatNorm = run_globals.params.physics.SnReheatNorm;
+    //double SnReheatEff = run_globals.params.physics.SnReheatEff;
+    //double SnReheatLimit = run_globals.params.physics.SnReheatLimit;
     double* LTTime = run_globals.LTTime;
 
     double m_high;
@@ -229,9 +251,11 @@ void delayed_supernova_feedback(galaxy_t* gal, int snapshot)
     int n_bursts = (snapshot >= N_HISTORY_SNAPS) ? N_HISTORY_SNAPS : snapshot;
 
     // scale the reheating efficiency
-    SnReheatEff *= 0.5 + pow(gal->Vmax / SnReheatNorm, -SnReheatScaling);
-    if (SnReheatEff > SnReheatLimit)
-        SnReheatEff = SnReheatLimit;
+    double SnReheatEff = calc_sn_reheat_eff(gal->Vmax, snapshot);
+    //if (SnReheatScaling != 0)
+    //    SnReheatEff *= 0.5 + pow(gal->Vmax / SnReheatNorm, -SnReheatScaling);
+    //if (SnReheatEff > SnReheatLimit)
+    //    SnReheatEff = SnReheatLimit;
 
     // Loop through each of the last `N_HISTORY_SNAPS` recorded stellar mass
     // bursts and calculate the amount of energy and mass that they will release
@@ -276,7 +300,7 @@ void delayed_supernova_feedback(galaxy_t* gal, int snapshot)
             new_metals += run_globals.params.physics.Yield * m_stars * burst_mass_frac;
     
             // now work out the energy produced by the supernova and add it to our total at this snapshot
-            sn_energy += calc_sn_energy(m_stars, gal->Vmax, eta_sn);
+            sn_energy += calc_sn_energy(m_stars, gal->Vmax, eta_sn, snapshot);
         }
     }
 
@@ -338,10 +362,10 @@ void contemporaneous_supernova_feedback(
     // constant SFR).
 
     run_units_t* units = &(run_globals.units);
-    double SnReheatScaling = run_globals.params.physics.SnReheatScaling;
-    double SnReheatNorm = run_globals.params.physics.SnReheatNorm;
-    double SnReheatEff = run_globals.params.physics.SnReheatEff;
-    double SnReheatLimit = run_globals.params.physics.SnReheatLimit;
+    //double SnReheatScaling = run_globals.params.physics.SnReheatScaling;
+    //double SnReheatNorm = run_globals.params.physics.SnReheatNorm;
+    //double SnReheatEff = run_globals.params.physics.SnReheatEff;
+    //double SnReheatLimit = run_globals.params.physics.SnReheatLimit;
     bool Flag_IRA = (bool)(run_globals.params.physics.Flag_IRA);
 
     double m_high = 120.0; // Msol
@@ -356,9 +380,11 @@ void contemporaneous_supernova_feedback(
     *m_reheat = *m_recycled = *new_metals = *m_eject = 0.0;
 
     // scale the reheating efficiency
-    SnReheatEff *= 0.5 + pow(gal->Vmax / SnReheatNorm, -SnReheatScaling);
-    if (SnReheatEff > SnReheatLimit)
-        SnReheatEff = SnReheatLimit;
+    double SnReheatEff = calc_sn_reheat_eff(gal->Vmax, snapshot);
+    //if (SnReheatScaling != 0)
+    //    SnReheatEff *= 0.5 + pow(gal->Vmax / SnReheatNorm, -SnReheatScaling);
+    //if (SnReheatEff > SnReheatLimit)
+    //    SnReheatEff = SnReheatLimit;
 
     // work out the lowest mass star which would have expended it's H & He core
     // fuel in this time
@@ -403,7 +429,7 @@ void contemporaneous_supernova_feedback(
     *new_metals = run_globals.params.physics.Yield * *m_stars * burst_mass_frac;
 
     // now work out the energy produced by the supernova
-    sn_energy = calc_sn_energy(*m_stars, gal->Vmax, eta_sn);
+    sn_energy = calc_sn_energy(*m_stars, gal->Vmax, eta_sn, snapshot);
 
     assert(*m_reheat >= 0);
     assert(*m_recycled >= 0);
