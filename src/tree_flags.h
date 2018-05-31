@@ -68,6 +68,7 @@
 //    This is a default behaviour that occurs when a group is strayed but one of
 //    it's subgroups isn't.
 #define TREE_CASE_HIGHRES TTTP22 // Marks a halo connected from the highres simulation.
-#define TREE_CASE_TRAITOR TTTP23 // Marks a halo connected from the highres simulation which does not have any descendants
+#define TREE_CASE_HIGHRES_TRAITOR TTTP23 // Marks a halo connected from the highres simulation which does not have any descendants
 //    because it merges into another group in the highres
-#define TREE_CASE_CONNECTION TTTP24 // Marks a halo connected from the highres simulation to a halo in the lowres sim
+#define TREE_CASE_HIGHRES_CONNECTION TTTP24 // Marks a halo connected from the highres simulation to a halo in the lowres sim
+#define TREE_CASE_HIGHRES_HERMIT TTTP25 // Marks a halo connected from the highres simulation whose descendant cannot be resolved in lowres
