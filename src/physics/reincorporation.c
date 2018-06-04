@@ -23,8 +23,8 @@ void reincorporate_ejected_gas(galaxy_t* gal)
         // almost identical to SAGE).
         t_dyn = fof_group->Rvir / fof_group->Vvir;
         // reincorporated = ReincorporationEff * gal->Vvir / 220.0 * gal->EjectedGas * (gal->dt / t_dyn);
-        //reincorporated = ReincorporationEff * gal->EjectedGas * (gal->dt / t_dyn);
-        reincorporated = ReincorporationEff*gal->EjectedGas*gal->dt*gal->Mvir;
+        reincorporated = ReincorporationEff * gal->EjectedGas * (gal->dt / t_dyn);
+        // reincorporated = ReincorporationEff*gal->EjectedGas*gal->dt*gal->Mvir;
 
         // ensure consistency
         if (reincorporated > gal->EjectedGas)
