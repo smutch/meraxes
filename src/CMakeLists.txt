@@ -4,9 +4,10 @@ cmake_minimum_required(VERSION 3.5)
 # set(CMAKE_C_COMPILER   "icc")
 # set(CMAKE_CXX_COMPILER "icpc")
 
+include(${CMAKE_CURRENT_SOURCE_DIR}/local.cmake OPTIONAL)
+
 project(meraxes)
 include(${CMAKE_ROOT}/Modules/ExternalProject.cmake)
-include(${CMAKE_CURRENT_SOURCE_DIR}/local.cmake OPTIONAL)
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 set_property(DIRECTORY PROPERTY EP_PREFIX "${CMAKE_CURRENT_SOURCE_DIR}/3rd_party")
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
@@ -42,7 +43,7 @@ set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 
 # Compiler options
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=gnu99")
-set(CMAKE_CXX_FLAGS "-std=c++11")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 
 # The following line is needed to deal with this annoying problem:
 #    https://developers.redhat.com/blog/2015/02/05/gcc5-and-the-c11-abi/
