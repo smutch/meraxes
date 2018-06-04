@@ -1,12 +1,17 @@
 # project setup
 cmake_minimum_required(VERSION 3.5)
-# Set default compilers (must come before project line)
-# set(CMAKE_C_COMPILER   "icc")
-# set(CMAKE_CXX_COMPILER "icpc")
 
+# include local custom settings (must come before project line to allow
+# compilers tp be set)
 include(${CMAKE_CURRENT_SOURCE_DIR}/local.cmake OPTIONAL)
 
 project(meraxes)
+
+# if set in local.cmake, compiler options must be added here, after the
+# project() call
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CXXFLAGS}")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${CFLAGS}")
+
 include(${CMAKE_ROOT}/Modules/ExternalProject.cmake)
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 set_property(DIRECTORY PROPERTY EP_PREFIX "${CMAKE_CURRENT_SOURCE_DIR}/3rd_party")
