@@ -142,9 +142,9 @@ static inline double calc_sn_reheat_eff(double Vmax, int snapshot)
     double SnReheatLimit = run_globals.params.physics.SnReheatLimit;
     // Vmax is in a unit of km/s
     if (Vmax < 60.)
-        SnReheatEff *= pow(zplus1, 1.25)*pow(Vmax/60., -3.2);
+        SnReheatEff *= pow(zplus1, 1.3)*pow(Vmax/60., -3.2);
     else
-        SnReheatEff *= pow(zplus1, 1.25)*pow(Vmax/60., -1);
+        SnReheatEff *= pow(zplus1, 1.3)*pow(Vmax/60., -1);
     return (SnReheatEff > SnReheatLimit) ? SnReheatLimit : SnReheatEff;
 }
 
@@ -162,9 +162,9 @@ static inline double calc_sn_energy(double stars, double Vmax, double eta_sn, in
     if (SnEjectionScaling != 0) {
         //SnEjectionEff *= 0.5 + pow(Vmax / SnEjectionNorm, -SnEjectionScaling);
         if (Vmax < 60.)
-            SnEjectionEff *= pow(zplus1, 1.25)*pow(Vmax/60., -3.2);
+            SnEjectionEff *= pow(zplus1, 1.3)*pow(Vmax/60., -3.2);
         else
-            SnEjectionEff *= pow(zplus1, 1.25)*pow(Vmax/60., -1);
+            SnEjectionEff *= pow(zplus1, 1.3)*pow(Vmax/60., -1);
         if (SnEjectionEff > 1.0)
             SnEjectionEff = 1.0;
     }
