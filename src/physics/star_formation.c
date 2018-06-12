@@ -57,7 +57,6 @@ void insitu_star_formation(galaxy_t* gal, int snapshot)
         double m_reheat;
         double m_eject;
         double m_recycled;
-        double m_recycled_metals;
         double new_metals;
 
         double zplus1;
@@ -124,15 +123,11 @@ void insitu_star_formation(galaxy_t* gal, int snapshot)
 
         // calculate the total supernova feedback which would occur if this star
         // formation happened continuously and evenly throughout the snapshot
-        contemporaneous_supernova_feedback(gal, &m_stars, snapshot, &m_reheat, &m_eject, &m_recycled, &new_metals);
-        // Calculate the amount of metals that is stored in stars and released due to the contemporaneous 
-        // supernova feedback. We use the meallicity of cold gas since they are new formed stars
-        m_recycled_metals = m_recycled * calc_metallicity(gal->ColdGas, gal->MetalsColdGas);
-
+        contemporaneous_supernova_feedback(gal, &m_stars, snapshot, 
+                                           &m_reheat, &m_eject, &m_recycled, &new_metals);
         // update the baryonic reservoirs (note that the order we do this in will change the result!)
         update_reservoirs_from_sf(gal, m_stars);
-        update_reservoirs_from_sn_feedback(gal, m_reheat, m_eject, 
-                                           m_recycled, m_recycled_metals, new_metals);
+        update_reservoirs_from_sn_feedback(gal, m_reheat, m_eject, m_recycled, new_metals);
     }
 }
 

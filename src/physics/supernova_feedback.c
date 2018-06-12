@@ -3,7 +3,7 @@
 #include <math.h>
 
 void update_reservoirs_from_sn_feedback(galaxy_t* gal, double m_reheat, double m_eject, 
-                                        double m_recycled, double m_recycled_metals, double new_metals)
+                                        double m_recycled, double new_metals)
 {
     double metallicity;
     galaxy_t* central;
@@ -18,15 +18,15 @@ void update_reservoirs_from_sn_feedback(galaxy_t* gal, double m_reheat, double m
         central = gal->Halo->FOFGroup->FirstOccupiedHalo->Galaxy;
 
     gal->StellarMass -= m_recycled;
-    gal->MetalsStellarMass -= m_recycled_metals;
+    gal->MetalsStellarMass -= new_metals;
     gal->ColdGas += m_recycled;
 
     // assuming instantaneous recycling approximation and enrichment from SNII
     // only, work out the mass of metals returned to the ISM by this SF burst
     if (gal->ColdGas > 1e-10)
-        gal->MetalsColdGas += new_metals + m_recycled_metals;
+        gal->MetalsColdGas += new_metals;
     else
-        central->MetalsHotGas += new_metals + m_recycled_metals;
+        central->MetalsHotGas += new_metals;
 
     // make sure we aren't trying to use more cold gas than is available...
     if (m_reheat > gal->ColdGas)
@@ -231,6 +231,7 @@ void delayed_supernova_feedback(galaxy_t* gal, int snapshot)
     //double SnReheatEff = run_globals.params.physics.SnReheatEff;
     //double SnReheatLimit = run_globals.params.physics.SnReheatLimit;
     double* LTTime = run_globals.LTTime;
+    double time_unit = units->UnitTime_in_Megayears / run_globals.params.Hubble_h;
 
     double m_high;
     double m_low;
@@ -243,7 +244,6 @@ void delayed_supernova_feedback(galaxy_t* gal, int snapshot)
     double m_reheat = 0.0;
     double m_eject = 0.0;
     double m_recycled = 0.0;
-    double m_recycled_metals = 0.0;
     double new_metals = 0.0;
     double fof_Vvir;
 
@@ -269,18 +269,18 @@ void delayed_supernova_feedback(galaxy_t* gal, int snapshot)
             // work out the higest mass star which would have expended it's H & He
             // core fuel in this time (i.e. the highest mass star that would not
             // already have left the main sequence since this burst occured).
-            log_dt = log10(((LTTime[snapshot - i_burst - 1] + LTTime[snapshot - i_burst]) / 2.0 - LTTime[snapshot - 1]) * units->UnitTime_in_Megayears / run_globals.params.Hubble_h);
+            log_dt = log10(((LTTime[snapshot - i_burst - 1] + LTTime[snapshot - i_burst]) / 2.0 - LTTime[snapshot - 1]) * time_unit);
             m_high = sn_m_low(log_dt);
 
             // work out the lowest mass star which would have expended it's H & He core
             // fuel in this time
-            log_dt = log10(((LTTime[snapshot - i_burst - 1] + LTTime[snapshot - i_burst]) / 2.0 - LTTime[snapshot]) * units->UnitTime_in_Megayears / run_globals.params.Hubble_h);
+            log_dt = log10(((LTTime[snapshot - i_burst - 1] + LTTime[snapshot - i_burst]) / 2.0 - LTTime[snapshot]) * time_unit);
             m_low = sn_m_low(log_dt); // Msol
 
             // calculate the mass recycled from this burst
             burst_recycled_frac = calc_recycled_frac(m_high, m_low, &burst_mass_frac);
-            m_recycled += m_stars * burst_recycled_frac;
-            m_recycled_metals += m_metals * burst_recycled_frac;
+            // calculate recycled mass and metals by yield tables
+            m_recycled += m_stars * get_yield(i_burst, 0.001, Y_TOTAL);
 
             // If m_high is > 8.0 Msol then we have already used all of the SN-II in
             // the previous recorded NewStars bins.  We therefore don't need to
@@ -297,7 +297,7 @@ void delayed_supernova_feedback(galaxy_t* gal, int snapshot)
 
             // increment the total reheated and new metals masses
             m_reheat += SnReheatEff * snII_frac * m_stars;
-            new_metals += run_globals.params.physics.Yield * m_stars * burst_mass_frac;
+            new_metals += m_stars * get_yield(i_burst, 0.001, Y_TOTAL_METAL);
     
             // now work out the energy produced by the supernova and add it to our total at this snapshot
             sn_energy += calc_sn_energy(m_stars, gal->Vmax, eta_sn, snapshot);
@@ -330,7 +330,7 @@ void delayed_supernova_feedback(galaxy_t* gal, int snapshot)
     assert(m_eject >= 0);
 
     // update the baryonic reservoirs
-    update_reservoirs_from_sn_feedback(gal, m_reheat, m_eject, m_recycled, m_recycled_metals, new_metals);
+    update_reservoirs_from_sn_feedback(gal, m_reheat, m_eject, m_recycled, new_metals);
 }
 
 static void backfill_ghost_NewStars(galaxy_t* gal, double m_stars, int snapshot)
@@ -389,6 +389,7 @@ void contemporaneous_supernova_feedback(
     // work out the lowest mass star which would have expended it's H & He core
     // fuel in this time
     // N.B. If Flag_IRA is true then m_low and burst_recycled_frac will equal values in above declaration
+
     if (!Flag_IRA) {
         assert(snapshot > 0);
         double log_dt = log10(gal->dt * 0.5 * units->UnitTime_in_Megayears / run_globals.params.Hubble_h);
@@ -398,7 +399,11 @@ void contemporaneous_supernova_feedback(
         burst_recycled_frac = calc_recycled_frac(m_high, m_low, &burst_mass_frac);
     }
 
-    *m_recycled = *m_stars * burst_recycled_frac;
+    // calculate recycled mass and metals by yield tables
+    // At this point, the baryonic reservoirs have not been updated. Thus, use the metallicity
+    // of cold gas for new formed stars.
+    double metallicity = calc_metallicity(gal->ColdGas, gal->MetalsColdGas);
+    *m_recycled += *m_stars * get_yield(0, metallicity, Y_TOTAL);
 
     if (m_low < 8.0)
         m_low = 8.0;
@@ -426,7 +431,7 @@ void contemporaneous_supernova_feedback(
     }
 
     // how much new metals will be created by this burst?
-    *new_metals = run_globals.params.physics.Yield * *m_stars * burst_mass_frac;
+    *new_metals = *m_stars * get_yield(0, metallicity, Y_TOTAL_METAL);
 
     // now work out the energy produced by the supernova
     sn_energy = calc_sn_energy(*m_stars, gal->Vmax, eta_sn, snapshot);

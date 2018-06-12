@@ -14,6 +14,8 @@ int evolve_galaxies(fof_group_t* fof_group, int snapshot, int NGal, int NFof)
     bool Flag_IRA = (bool)(run_globals.params.physics.Flag_IRA);
 
     mlog("Doing physics...", MLOG_OPEN | MLOG_TIMERSTART);
+    // pre-calculate yield tables for each lookback snapshot
+    compute_yield_tables(snapshot);
 
     for (int i_fof = 0; i_fof < NFof; i_fof++) {
         // First check to see if this FOF group is empty.  If it is then skip it.
@@ -40,7 +42,7 @@ int evolve_galaxies(fof_group_t* fof_group, int snapshot, int NGal, int NFof)
 
                     if (gal->Type < 3) {
                         if (!Flag_IRA) {
-                            evolve_stellar_pops(gal, snapshot);
+                            //evolve_stellar_pops(gal, snapshot);
                             delayed_supernova_feedback(gal, snapshot);
                         }
 
@@ -99,7 +101,7 @@ void passively_evolve_ghost(galaxy_t* gal, int snapshot)
     bool Flag_IRA = (bool)(run_globals.params.physics.Flag_IRA);
 
     if (!Flag_IRA) {
-        evolve_stellar_pops(gal, snapshot);
+        //evolve_stellar_pops(gal, snapshot);
         delayed_supernova_feedback(gal, snapshot);
     }
 }
