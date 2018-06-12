@@ -201,3 +201,84 @@ int find_original_index(int index, int* lookup, int n_mappings)
 
     return new_index;
 }
+
+
+
+int bisection_search(double a, double *x, int nX) {
+    /* return idx such x[idx] <= a < x[idx + 1]
+     * a must be x[0] <= a < x[nX - 1]
+     */
+    unsigned int idx0 = 0;
+    unsigned int idx1 = nX - 1;
+    unsigned int idxMid;
+    while(idx1 - idx0 > 1) {
+        idxMid = (idx0 + idx1)/2;
+        if(a >= x[idxMid])
+            idx0 = idxMid;
+        else if(a < x[idxMid])
+            idx1 = idxMid;
+    }
+    return idx0;
+}
+
+
+double interp(double xp, double *x, double *y, int nPts) {
+    /* Interpolate a given points */
+    int idx0, idx1;
+    if((xp < x[0]) || (xp > x[nPts - 1])) {
+        mlog_error("Beyond the interpolation region!");
+        ABORT(EXIT_FAILURE);
+    }
+    if (xp == x[nPts - 1])
+        return y[nPts - 1];
+    else {
+        idx0 = bisection_search(xp, x, nPts);
+        if (x[idx0] == xp)
+            return y[idx0];
+        idx1 = idx0 + 1;
+        return y[idx0] + (y[idx1] - y[idx0])*(xp - x[idx0])/(x[idx1] - x[idx0]);
+    }
+}
+
+
+double trapz_table(double *y, double *x, int nPts, double a, double b) {
+    /* Integrate tabular data from a to b */
+    int i;
+    int idx0, idx1;
+    double ya, yb;
+    double sum;
+    if (x[0] > a) {
+        mlog_error("Integration range is beyond the tabular data!");
+        ABORT(EXIT_FAILURE);
+    }
+    if (x[nPts - 1] < b) {
+        mlog_error("Integration range is beyond the tabular data!");
+        ABORT(EXIT_FAILURE);
+    }
+    if (a > b) {
+        mlog_error("Integration range is wrong!");
+        ABORT(EXIT_FAILURE);
+    }
+    idx0 = bisection_search(a, x, nPts);
+    idx1 = idx0 + 1;
+
+    ya = y[idx0] + (y[idx1] - y[idx0])*(a - x[idx0])/(x[idx1] - x[idx0]);
+    if(b <= x[idx1]) {
+        yb = y[idx0] + (y[idx1] - y[idx0])*(b - x[idx0])/(x[idx1] - x[idx0]);
+        return (b - a)*(yb + ya)/2.;
+    }
+    else
+        sum = (x[idx1] - a)*(y[idx1] + ya)/2.;
+
+    for(i = idx1; i < nPts - 1; ++i) {
+        if (x[i + 1] < b)
+            sum += (x[i + 1] - x[i])*(y[i + 1] + y[i])/2.;
+        else if (x[i] < b) {
+            yb = y[i] + (y[i + 1] - y[i])*(b - x[i])/(x[i + 1] - x[i]);
+            sum += (b - x[i])*(yb + y[i])/2.;
+        }
+        else
+            break;
+    }
+    return sum;
+}
