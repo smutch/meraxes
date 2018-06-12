@@ -18,14 +18,32 @@ void calculate_galaxy_fesc_vals(galaxy_t *gal, double new_stars, int snapshot)
     {
         case 0:
             break;
-        case 1:
+        case 1:  // redshift
             fesc *= pow((1.0 + run_globals.ZZ[snapshot]) / 6.0, params->EscapeFracScaling);
             break;
-        case 2:
-            fesc *= pow(gal->StellarMass / 0.01, params->EscapeFracScaling);
+        case 2:  // stellar mass
+            if (gal->StellarMass > 0.0)
+                fesc *= pow(log10(gal->StellarMass / run_globals.params.Hubble_h + 10.) / 8.0, params->EscapeFracScaling);
+            else
+                fesc = 0.0;
             break;
-        case 3:
-            fesc *= powf(gal->Sfr * run_globals.units.UnitMass_in_g / run_globals.units.UnitTime_in_s * SEC_PER_YEAR / SOLAR_MASS / 100., params->EscapeFracScaling);
+        case 3: // star formation rate
+            if (gal->Sfr > 0.0)
+                fesc *= pow((log10(gal->Sfr * run_globals.units.UnitMass_in_g / run_globals.units.UnitTime_in_s * SEC_PER_YEAR / SOLAR_MASS) + 10.) / 10., params->EscapeFracScaling);
+            else
+                fesc = 0.0;
+            break;
+        case 4: // cold gas density
+            if (gal->ColdGas > 0.0)
+                fesc *= pow((log10((gal->ColdGas / gal->DiskScaleLength)) + 10.) / 10., params->EscapeFracScaling);
+            else
+                fesc = 1.0;
+            break;
+        case 5:  // halo mass
+            if (gal->Mvir > 0.0)
+                fesc *= pow((log10(gal->Mvir) + 10.) / 9.0, params->EscapeFracScaling);
+            else
+                fesc = 0.0;
             break;
         default:
             mlog_error("Unrecognised EscapeFracDependency parameter value.");
