@@ -35,6 +35,22 @@
 #endif
 // ======================================================
 
+
+// ======================================================
+// Indices used for yield tables
+#ifndef Y_NELEMENT
+#define Y_NELEMENT 2
+#endif
+#ifndef Y_TOTAL
+#define Y_TOTAL 0
+#endif
+#ifndef Y_TOTAL_METAL
+#define Y_TOTAL_METAL 1
+#endif
+// ======================================================
+
+
+
 // Define things used for aborting exceptions
 #ifdef __cplusplus
 extern "C" {
@@ -196,6 +212,7 @@ typedef struct run_params_t {
     char FileWithOutputSnaps[STRLEN];
     char PhotometricTablesDir[STRLEN];
     char CoolingFuncsDir[STRLEN];
+    char YieldDir[STRLEN];
     char SSPModel[STRLEN];
     char IMF[STRLEN];
     char MagSystem[STRLEN];
@@ -640,7 +657,7 @@ double calc_recycled_frac(double m_high, double m_low, double* burst_mass_frac);
 void delayed_supernova_feedback(galaxy_t* gal, int snapshot);
 void evolve_stellar_pops(galaxy_t* gal, int snapshot);
 void contemporaneous_supernova_feedback(galaxy_t* gal, double* m_stars, int snapshot, double* m_reheat, double* m_eject, double* m_recycled, double* new_metals);
-void update_reservoirs_from_sn_feedback(galaxy_t* gal, double m_reheat, double m_eject, double m_recycled, double m_recycled_metals, double new_metals);
+void update_reservoirs_from_sn_feedback(galaxy_t* gal, double m_reheat, double m_eject, double m_recycled, double new_metals);
 void prep_hdf5_file(void);
 void create_master_file(void);
 void write_snapshot(int n_write, int i_out, int* last_n_write);
@@ -693,6 +710,16 @@ void merger_driven_BH_growth(galaxy_t* gal, double merger_ratio, int snapshot);
 void previous_merger_driven_BH_growth(galaxy_t* gal);
 double calculate_BHemissivity(double BlackHoleMass, double accreted_mass);
 void reincorporate_ejected_gas(galaxy_t* gal);
+
+// Numeric tools
+double interp(double xp, double *x, double *y, int nPts);
+double trapz_table(double *y, double *x, int nPts, double a, double b);
+int bisection_search(double a, double *x, int nX);
+
+// Yield related
+void read_yield_tables(void);
+void compute_yield_tables(int snapshot);
+double get_yield(int i_burst, double metals, int element);
 
 // Magnitude related
 void init_luminosities(galaxy_t* gal);
