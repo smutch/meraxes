@@ -18,7 +18,7 @@ void update_reservoirs_from_sn_feedback(galaxy_t* gal, double m_reheat, double m
         central = gal->Halo->FOFGroup->FirstOccupiedHalo->Galaxy;
 
     gal->StellarMass -= m_recycled;
-    gal->MetalsStellarMass -= new_metals;
+    //gal->MetalsStellarMass -= new_metals;
     gal->ColdGas += m_recycled;
 
     // assuming instantaneous recycling approximation and enrichment from SNII
