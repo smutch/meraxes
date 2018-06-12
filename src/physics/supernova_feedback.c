@@ -262,7 +262,7 @@ void delayed_supernova_feedback(galaxy_t* gal, int snapshot)
     // in the current time step.
     for (int i_burst = 1; i_burst < n_bursts; i_burst++) {
         double m_stars = gal->NewStars[i_burst];
-        double m_metals = gal->NewMetals[i_burst];
+        double metallicity = calc_metallicity(m_stars, gal->NewMetals[i_burst]);
 
         // Only need to do this if any stars formed in this history bin
         if (m_stars > 1e-10) {
@@ -280,7 +280,7 @@ void delayed_supernova_feedback(galaxy_t* gal, int snapshot)
             // calculate the mass recycled from this burst
             burst_recycled_frac = calc_recycled_frac(m_high, m_low, &burst_mass_frac);
             // calculate recycled mass and metals by yield tables
-            m_recycled += m_stars * get_yield(i_burst, 0.001, Y_TOTAL);
+            m_recycled += m_stars * get_yield(i_burst, metallicity, Y_TOTAL);
 
             // If m_high is > 8.0 Msol then we have already used all of the SN-II in
             // the previous recorded NewStars bins.  We therefore don't need to
@@ -297,7 +297,7 @@ void delayed_supernova_feedback(galaxy_t* gal, int snapshot)
 
             // increment the total reheated and new metals masses
             m_reheat += SnReheatEff * snII_frac * m_stars;
-            new_metals += m_stars * get_yield(i_burst, 0.001, Y_TOTAL_METAL);
+            new_metals += m_stars * get_yield(i_burst, metallicity, Y_TOTAL_METAL);
     
             // now work out the energy produced by the supernova and add it to our total at this snapshot
             sn_energy += calc_sn_energy(m_stars, gal->Vmax, eta_sn, snapshot);
