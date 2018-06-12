@@ -146,6 +146,11 @@ void read_parameter_file(char* fname, int mode)
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_STRING;
 
+            strcpy(params_tag[n_param], "YieldDir");
+            params_addr[n_param] = run_params->YieldDir;
+            required_tag[n_param] = 1;
+            params_type[n_param++] = PARAM_TYPE_STRING;
+
             strcpy(params_tag[n_param], "SSPModel");
             params_addr[n_param] = run_params->SSPModel;
             required_tag[n_param] = 1;
