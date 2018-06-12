@@ -352,6 +352,9 @@ void init_meraxes()
     // read in the cooling functions
     read_cooling_functions();
 
+    // read in the yield tables
+    read_yield_tables();
+
     // set RequestedMassRatioModifier and RequestedBaryonFracModifieruto be 1 first
     // it will be set to -1 later if MassRatioModifier or BaryonFracModifier is not specified
     run_globals.RequestedMassRatioModifier = 1;
