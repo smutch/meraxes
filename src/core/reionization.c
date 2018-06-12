@@ -23,7 +23,7 @@ void calculate_galaxy_fesc_vals(galaxy_t *gal, double new_stars, int snapshot)
             break;
         case 2:  // stellar mass
             if (gal->StellarMass > 0.0)
-                fesc *= pow(log10(gal->StellarMass / run_globals.params.Hubble_h + 10.) / 8.0, params->EscapeFracScaling);
+                fesc *= pow((log10(gal->StellarMass / run_globals.params.Hubble_h) + 10.) / 8.0, params->EscapeFracScaling);
             else
                 fesc = 0.0;
             break;
@@ -41,7 +41,7 @@ void calculate_galaxy_fesc_vals(galaxy_t *gal, double new_stars, int snapshot)
             break;
         case 5:  // halo mass
             if (gal->Mvir > 0.0)
-                fesc *= pow((log10(gal->Mvir) + 10.) / 9.0, params->EscapeFracScaling);
+                fesc *= pow((log10(gal->Mvir / run_globals.params.Hubble_h) + 10.) / 9.0, params->EscapeFracScaling);
             else
                 fesc = 0.0;
             break;
