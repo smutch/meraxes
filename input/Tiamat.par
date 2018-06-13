@@ -73,7 +73,7 @@ EnergyPerSN               : 1e51    # energy per SN in erg/s
 eta_SNII                  : 7.4319792e-3 # total number of type II SN per solar mass of burst. 7.4319792e-3 for Salpeter, 1.18963e-2 for Chabrier
 frac_mass_SSP_above_SNII  : 0.14417 # Fraction of SSP with M>8Msol. 0.14417 for Salpeter, 0.23638 for Chabrier
 
-SnEjectionEff             : 1.0     # SN feedback gas reheating efficiency
+SnEjectionEff             : 0.5     # SN feedback gas reheating efficiency
 SnEjectionScaling         : 2.0     # SN feedback gas reheating efficiency scaling (with Vmax)
 SnEjectionNorm            : 70.0    # SN feedback gas reheating efficiency norm (with Vmax [internal units])
 
