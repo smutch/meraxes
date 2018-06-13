@@ -143,7 +143,7 @@ static inline double calc_sn_energy(double stars, double Vmax, double eta_sn)
     if (SnEjectionEff > 1.0)
         SnEjectionEff = 1.0;
 
-    sn_energy = 0.5 * SnEjectionEff * stars * E_sn * eta_sn;
+    sn_energy = SnEjectionEff * stars * E_sn * eta_sn;
     assert(sn_energy >= 0);
 
     return sn_energy;
