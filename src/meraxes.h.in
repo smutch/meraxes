@@ -364,6 +364,7 @@ typedef struct galaxy_t {
 #endif
 
     double NewStars[N_HISTORY_SNAPS];
+    double NewMetals[N_HISTORY_SNAPS];
 
     // Unique ID for the galaxy
     unsigned long ID;
@@ -639,7 +640,7 @@ double calc_recycled_frac(double m_high, double m_low, double* burst_mass_frac);
 void delayed_supernova_feedback(galaxy_t* gal, int snapshot);
 void evolve_stellar_pops(galaxy_t* gal, int snapshot);
 void contemporaneous_supernova_feedback(galaxy_t* gal, double* m_stars, int snapshot, double* m_reheat, double* m_eject, double* m_recycled, double* new_metals);
-void update_reservoirs_from_sn_feedback(galaxy_t* gal, double m_reheat, double m_eject, double m_recycled, double new_metals);
+void update_reservoirs_from_sn_feedback(galaxy_t* gal, double m_reheat, double m_eject, double m_recycled, double m_recycled_metals, double new_metals);
 void prep_hdf5_file(void);
 void create_master_file(void);
 void write_snapshot(int n_write, int i_out, int* last_n_write);

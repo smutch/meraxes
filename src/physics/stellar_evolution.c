@@ -8,7 +8,7 @@ void evolve_stellar_pops(galaxy_t* gal, int snapshot)
         double log_dt;
         double m_stars = gal->mwmsa_denom;
         double mwmsa = gal->mwmsa_num / gal->mwmsa_denom;
-        double m_high, m_low, burst_recycled_frac, m_recycled;
+        double m_high, m_low, burst_recycled_frac, m_recycled, m_recycled_metals;
         run_units_t* units = &(run_globals.units);
         double* LTTime = run_globals.LTTime;
         double burst_mass_frac;
@@ -29,6 +29,7 @@ void evolve_stellar_pops(galaxy_t* gal, int snapshot)
 
         burst_recycled_frac = calc_recycled_frac(m_high, m_low, &burst_mass_frac);
         m_recycled = m_stars * burst_recycled_frac;
-        update_reservoirs_from_sn_feedback(gal, 0.0, 0.0, m_recycled, 0.0);
+        m_recycled_metals = m_recycled * calc_metallicity(gal->StellarMass, gal->MetalsStellarMass);
+        update_reservoirs_from_sn_feedback(gal, 0.0, 0.0, m_recycled, m_recycled_metals, 0.0);
     }
 }
