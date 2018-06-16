@@ -212,7 +212,7 @@ typedef struct run_params_t {
     char FileWithOutputSnaps[STRLEN];
     char PhotometricTablesDir[STRLEN];
     char CoolingFuncsDir[STRLEN];
-    char YieldDir[STRLEN];
+    char FeedbackDir[STRLEN];
     char SSPModel[STRLEN];
     char IMF[STRLEN];
     char MagSystem[STRLEN];
@@ -716,10 +716,12 @@ double interp(double xp, double *x, double *y, int nPts);
 double trapz_table(double *y, double *x, int nPts, double a, double b);
 int bisection_search(double a, double *x, int nX);
 
-// Yield related
-void read_yield_tables(void);
-void compute_yield_tables(int snapshot);
+// Feedback related
+void read_feedback_tables(void);
+void compute_feedback_tables(int snapshot);
 double get_yield(int i_burst, double metals, int element);
+double get_energy(int i_burst, double metals);
+double get_total_energy(void);
 
 // Magnitude related
 void init_luminosities(galaxy_t* gal);
