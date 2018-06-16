@@ -117,6 +117,8 @@ typedef struct physics_params_t {
     double SfEfficiencyScaling;
     double SfCriticalSDNorm;
     double SfRecycleFraction;
+    int SnModel;
+    double SnRedshiftDep;
     double SnReheatEff;
     double SnReheatLimit;
     double SnReheatScaling;

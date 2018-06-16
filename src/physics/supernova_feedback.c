@@ -135,39 +135,58 @@ static inline double calc_eta_sn(double m_high, double m_low, double* snII_frac)
 }
 
 
-static inline double calc_sn_reheat_eff(double Vmax, int snapshot)
+static inline double calc_sn_reheat_eff(galaxy_t *gal, int snapshot)
 {
+    double Vmax = gal->Vmax;
     double zplus1 = 1. + run_globals.ZZ[snapshot];
     physics_params_t *params = &run_globals.params.physics;
+    int SnModel = params->SnModel;
+    double SnRedshiftDep = params->SnRedshiftDep;
     double SnReheatEff = params->SnReheatEff;
     double SnReheatLimit = params->SnReheatLimit;
-    // Vmax is in a unit of km/s
-    if (Vmax < 60.)
-        SnReheatEff *= pow(zplus1, 1.3)*pow(Vmax/60., -3.2);
+    if (SnModel == 1) {
+        double SnReheatScaling = params->SnReheatScaling;
+        double SnReheatNorm = params->SnReheatNorm;
+        SnReheatEff *= pow(zplus1, SnRedshiftDep)*(.5 + pow(Vmax/SnReheatNorm, -SnReheatScaling));
+    }
+    else {
+        // Vmax is in a unit of km/s
+        if (Vmax < 60.)
+            SnReheatEff *= pow(zplus1, SnRedshiftDep)*pow(Vmax/60., -3.2);
+        else
+            SnReheatEff *= pow(zplus1, SnRedshiftDep)*pow(Vmax/60., -1);
+    }
+    if (SnReheatEff < SnReheatLimit)
+        return SnReheatEff;
     else
-        SnReheatEff *= pow(zplus1, 1.3)*pow(Vmax/60., -1);
-    if (SnReheatEff > SnReheatLimit)
-        SnReheatEff = SnReheatLimit;
-    return SnReheatEff;
+        return SnReheatLimit;
 }
 
 
-static inline double calc_sn_ejection_eff(double Vmax, int snapshot)
+static inline double calc_sn_ejection_eff(galaxy_t *gal, int snapshot)
 {
+    double Vmax = gal->Vmax;
     double zplus1 = 1. + run_globals.ZZ[snapshot];
     physics_params_t *params = &run_globals.params.physics;
-    double E_sn = params->EnergyPerSN / run_globals.units.UnitEnergy_in_cgs;
-    double SnEjectionScaling = params->SnEjectionScaling;
-    double SnEjectionNorm = params->SnEjectionNorm;
+    int SnModel = params->SnModel;
+    double SnRedshiftDep = params->SnRedshiftDep;
     double SnEjectionEff = params->SnEjectionEff;
-    // Vmax is in a unit of km/s
-    if (Vmax < 60.)
-        SnEjectionEff *= pow(zplus1, 1.3)*pow(Vmax/60., -3.2);
+    if (SnModel == 1) {
+        double SnEjectionNorm = params->SnEjectionNorm;
+        double SnEjectionScaling = params->SnEjectionScaling;
+        SnEjectionEff *= pow(zplus1, SnRedshiftDep)*(.5 + pow(Vmax/SnEjectionNorm, -SnEjectionScaling));
+    }
+    else {
+        // Vmax is in a unit of km/s
+        if (Vmax < 60.)
+            SnEjectionEff *= pow(zplus1, SnRedshiftDep)*pow(Vmax/60., -3.2);
+        else
+            SnEjectionEff *= pow(zplus1, SnRedshiftDep)*pow(Vmax/60., -1);
+    }
+    if (SnEjectionEff < 1.)
+        return SnEjectionEff;
     else
-        SnEjectionEff *= pow(zplus1, 1.3)*pow(Vmax/60., -1);
-    if (SnEjectionEff > 1.0)
-        SnEjectionEff = 1.0;
-    return SnEjectionEff;
+        return 1.;
 }
 
 
@@ -273,8 +292,8 @@ void delayed_supernova_feedback(galaxy_t* gal, int snapshot)
         }
     }
 
-    m_reheat = calc_sn_reheat_eff(gal->Vmax, snapshot)*sn_energy/get_total_energy();
-    sn_energy *= calc_sn_ejection_eff(gal->Vmax, snapshot);
+    m_reheat = calc_sn_reheat_eff(gal, snapshot)*sn_energy/get_total_energy();
+    sn_energy *= calc_sn_ejection_eff(gal, snapshot);
     // We can only reheat as much gas as we have available.  Let's inforce this
     // now, to ensure that the maximal amount of available energy is used to
     // eject gas from the system.
@@ -361,8 +380,8 @@ void contemporaneous_supernova_feedback(
 
     // calculate the SNII energy and total reheated mass
     sn_energy = get_energy(0, metallicity) * *m_stars;
-    *m_reheat = calc_sn_reheat_eff(gal->Vmax, snapshot) * sn_energy/get_total_energy();
-    sn_energy *= calc_sn_ejection_eff(gal->Vmax, snapshot);
+    *m_reheat = calc_sn_reheat_eff(gal, snapshot) * sn_energy/get_total_energy();
+    sn_energy *= calc_sn_ejection_eff(gal, snapshot);
 
     // We can only reheat as much gas as we have available.  Let's inforce this
     // now, to ensure that the maximal amount of available energy is used to
