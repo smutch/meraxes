@@ -147,14 +147,14 @@ static inline double calc_sn_reheat_eff(galaxy_t *gal, int snapshot)
     if (SnModel == 1) {
         double SnReheatScaling = params->SnReheatScaling;
         double SnReheatNorm = params->SnReheatNorm;
-        SnReheatEff *= pow(zplus1, SnRedshiftDep)*(.5 + pow(Vmax/SnReheatNorm, -SnReheatScaling));
+        SnReheatEff *= pow(zplus1/4., SnRedshiftDep)*(.5 + pow(Vmax/SnReheatNorm, -SnReheatScaling));
     }
     else {
         // Vmax is in a unit of km/s
         if (Vmax < 60.)
-            SnReheatEff *= pow(zplus1, SnRedshiftDep)*pow(Vmax/60., -3.2);
+            SnReheatEff *= pow(zplus1/4., SnRedshiftDep)*pow(Vmax/60., -3.2);
         else
-            SnReheatEff *= pow(zplus1, SnRedshiftDep)*pow(Vmax/60., -1);
+            SnReheatEff *= pow(zplus1/4., SnRedshiftDep)*pow(Vmax/60., -1);
     }
     if (SnReheatEff < SnReheatLimit)
         return SnReheatEff;
@@ -174,14 +174,14 @@ static inline double calc_sn_ejection_eff(galaxy_t *gal, int snapshot)
     if (SnModel == 1) {
         double SnEjectionNorm = params->SnEjectionNorm;
         double SnEjectionScaling = params->SnEjectionScaling;
-        SnEjectionEff *= pow(zplus1, SnRedshiftDep)*(.5 + pow(Vmax/SnEjectionNorm, -SnEjectionScaling));
+        SnEjectionEff *= pow(zplus1/4., SnRedshiftDep)*(.5 + pow(Vmax/SnEjectionNorm, -SnEjectionScaling));
     }
     else {
         // Vmax is in a unit of km/s
         if (Vmax < 60.)
-            SnEjectionEff *= pow(zplus1, SnRedshiftDep)*pow(Vmax/60., -3.2);
+            SnEjectionEff *= pow(zplus1/4., SnRedshiftDep)*pow(Vmax/60., -3.2);
         else
-            SnEjectionEff *= pow(zplus1, SnRedshiftDep)*pow(Vmax/60., -1);
+            SnEjectionEff *= pow(zplus1/4., SnRedshiftDep)*pow(Vmax/60., -1);
     }
     if (SnEjectionEff < 1.)
         return SnEjectionEff;
