@@ -137,24 +137,24 @@ static inline double calc_eta_sn(double m_high, double m_low, double* snII_frac)
 
 static inline double calc_sn_reheat_eff(galaxy_t *gal, int snapshot)
 {
-    double Vmax = gal->Vmax;
+    double Vmax = gal->Vmax;    // Vmax is in a unit of km/s
     double zplus1 = 1. + run_globals.ZZ[snapshot];
     physics_params_t *params = &run_globals.params.physics;
     int SnModel = params->SnModel;
-    double SnRedshiftDep = params->SnRedshiftDep;
+    double SnReheatRedshiftDep = params->SnReheatRedshiftDep;
     double SnReheatEff = params->SnReheatEff;
     double SnReheatLimit = params->SnReheatLimit;
     if (SnModel == 1) {
         double SnReheatScaling = params->SnReheatScaling;
         double SnReheatNorm = params->SnReheatNorm;
-        SnReheatEff *= pow(zplus1/4., SnRedshiftDep)*(.5 + pow(Vmax/SnReheatNorm, -SnReheatScaling));
+        SnReheatEff *= pow(zplus1/4., SnReheatRedshiftDep) \
+                       *(.5 + pow(Vmax/SnReheatNorm, -SnReheatScaling));
     }
     else {
-        // Vmax is in a unit of km/s
         if (Vmax < 60.)
-            SnReheatEff *= pow(zplus1/4., SnRedshiftDep)*pow(Vmax/60., -3.2);
+            SnReheatEff *= pow(zplus1/4., SnReheatRedshiftDep)*pow(Vmax/60., -3.2);
         else
-            SnReheatEff *= pow(zplus1/4., SnRedshiftDep)*pow(Vmax/60., -1);
+            SnReheatEff *= pow(zplus1/4., SnReheatRedshiftDep)*pow(Vmax/60., -1);
     }
     if (SnReheatEff < SnReheatLimit)
         return SnReheatEff;
@@ -165,23 +165,23 @@ static inline double calc_sn_reheat_eff(galaxy_t *gal, int snapshot)
 
 static inline double calc_sn_ejection_eff(galaxy_t *gal, int snapshot)
 {
-    double Vmax = gal->Vmax;
+    double Vmax = gal->Vmax;    // Vmax is in a unit of km/s
     double zplus1 = 1. + run_globals.ZZ[snapshot];
     physics_params_t *params = &run_globals.params.physics;
     int SnModel = params->SnModel;
-    double SnRedshiftDep = params->SnRedshiftDep;
+    double SnEjectionRedshiftDep = params->SnEjectionRedshiftDep;
     double SnEjectionEff = params->SnEjectionEff;
     if (SnModel == 1) {
         double SnEjectionNorm = params->SnEjectionNorm;
         double SnEjectionScaling = params->SnEjectionScaling;
-        SnEjectionEff *= pow(zplus1/4., SnRedshiftDep)*(.5 + pow(Vmax/SnEjectionNorm, -SnEjectionScaling));
+        SnEjectionEff *= pow(zplus1/4., SnEjectionRedshiftDep)\
+                         *(.5 + pow(Vmax/SnEjectionNorm, -SnEjectionScaling));
     }
     else {
-        // Vmax is in a unit of km/s
         if (Vmax < 60.)
-            SnEjectionEff *= pow(zplus1/4., SnRedshiftDep)*pow(Vmax/60., -3.2);
+            SnEjectionEff *= pow(zplus1/4., SnEjectionRedshiftDep)*pow(Vmax/60., -3.2);
         else
-            SnEjectionEff *= pow(zplus1/4., SnRedshiftDep)*pow(Vmax/60., -1);
+            SnEjectionEff *= pow(zplus1/4., SnEjectionRedshiftDep)*pow(Vmax/60., -1);
     }
     if (SnEjectionEff < 1.)
         return SnEjectionEff;

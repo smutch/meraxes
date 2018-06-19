@@ -70,11 +70,12 @@ eta_SNII                  : 7.4319792e-3 # total number of type II SN per solar 
 frac_mass_SSP_above_SNII  : 0.14417 # Fraction of SSP with M>8Msol. 0.14417 for Salpeter, 0.23638 for Chabrier
 
 SnModel                   : 0 
-SnRedshiftDep             : 1.3
+SnEjectionRedshiftDep     : 0.0
 SnEjectionEff             : 0.5     # SN feedback gas reheating efficiency
 SnEjectionScaling         : 2.0     # SN feedback gas reheating efficiency scaling (with Vmax)
 SnEjectionNorm            : 70.0    # SN feedback gas reheating efficiency norm (with Vmax [internal units])
 
+SnReheatRedshiftDep       : 2.4
 SnReheatEff               : 10.0    # mass loading factor for SN feedback
 SnReheatLimit             : 10.0    # maximum allowed mass loading factor for SN feedback
 SnReheatScaling           : 0.0     # mass loading factor for SN feedback scaling (with Vmax)

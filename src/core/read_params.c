@@ -422,8 +422,8 @@ void read_parameter_file(char* fname, int mode)
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_INT;
 
-            strcpy(params_tag[n_param], "SnRedshiftDep");
-            params_addr[n_param] = &(run_params->physics).SnRedshiftDep;
+            strcpy(params_tag[n_param], "SnEjectionRedshiftDep");
+            params_addr[n_param] = &(run_params->physics).SnEjectionRedshiftDep;
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
@@ -439,6 +439,11 @@ void read_parameter_file(char* fname, int mode)
 
             strcpy(params_tag[n_param], "SnEjectionNorm");
             params_addr[n_param] = &(run_params->physics).SnEjectionNorm;
+            required_tag[n_param] = 1;
+            params_type[n_param++] = PARAM_TYPE_DOUBLE;
+
+            strcpy(params_tag[n_param], "SnReheatRedshiftDep");
+            params_addr[n_param] = &(run_params->physics).SnReheatRedshiftDep;
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
