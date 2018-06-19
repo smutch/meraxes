@@ -177,12 +177,8 @@ static inline double calc_sn_ejection_eff(galaxy_t *gal, int snapshot)
         SnEjectionEff *= pow(zplus1/4., SnEjectionRedshiftDep)\
                          *(.5 + pow(Vmax/SnEjectionNorm, -SnEjectionScaling));
     }
-    else {
-        if (Vmax < 60.)
-            SnEjectionEff *= pow(zplus1/4., SnEjectionRedshiftDep)*pow(Vmax/60., -3.2);
-        else
-            SnEjectionEff *= pow(zplus1/4., SnEjectionRedshiftDep)*pow(Vmax/60., -1);
-    }
+    else
+        SnEjectionEff *= pow(zplus1/4., SnEjectionRedshiftDep);
     if (SnEjectionEff < 1.)
         return SnEjectionEff;
     else
