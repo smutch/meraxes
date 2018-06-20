@@ -72,6 +72,7 @@ void update_reservoirs_from_sn_feedback(galaxy_t* gal, double m_reheat, double m
         central->MetalsEjectedGas = 0.0;
 }
 
+
 static inline double calc_ejected_mass(
     double* m_reheat,
     double sn_energy,
@@ -113,25 +114,6 @@ static inline double calc_ejected_mass(
     }
 
     return m_eject;
-}
-
-static inline double calc_eta_sn(double m_high, double m_low, double* snII_frac)
-{
-    // work out the number of supernova per 1e10 Msol formed at the current time
-    double exponent = run_globals.params.physics.IMFSlope + 1.0; // should be -1.35 for Salpeter
-    double const_phi = run_globals.params.physics.IMFNormConst; // should be 0.1706 for Salpeter
-    double eta_SNII = run_globals.params.physics.eta_SNII; // total number of type II SN per solar mass of burst
-
-    double eta_sn = const_phi * 1.0 / exponent * (pow(m_high, exponent) - pow(m_low, exponent));
-
-    *snII_frac = eta_sn / eta_SNII;
-    eta_sn *= 1.e10;
-
-    if (*snII_frac > 1)
-        *snII_frac = 1.0;
-
-    assert((eta_sn >= 0) && (*snII_frac >= 0));
-    return eta_sn;
 }
 
 
@@ -185,80 +167,6 @@ static inline double calc_sn_ejection_eff(galaxy_t *gal, int snapshot)
         return 1.;
 }
 
-
-static inline double calc_sn_energy(double stars, double Vmax, double eta_sn, int snapshot)
-{
-    // work out the energy produced by the supernova and add it to our total at this snapshot
-    double zplus1 = 1. + run_globals.ZZ[snapshot];
-    double E_sn = run_globals.params.physics.EnergyPerSN / run_globals.units.UnitEnergy_in_cgs;
-    double SnEjectionScaling = run_globals.params.physics.SnEjectionScaling;
-    double SnEjectionNorm = run_globals.params.physics.SnEjectionNorm;
-    double SnEjectionEff = run_globals.params.physics.SnEjectionEff;
-    double sn_energy;
-
-    if (SnEjectionScaling != 0) {
-        //SnEjectionEff *= 0.5 + pow(Vmax / SnEjectionNorm, -SnEjectionScaling);
-        if (Vmax < 60.)
-            SnEjectionEff *= pow(zplus1, 1.3)*pow(Vmax/60., -3.2);
-        else
-            SnEjectionEff *= pow(zplus1, 1.3)*pow(Vmax/60., -1);
-        if (SnEjectionEff > 1.0)
-            SnEjectionEff = 1.0;
-    }
-
-    sn_energy = SnEjectionEff * stars * E_sn * eta_sn;
-    assert(sn_energy >= 0);
-
-    return sn_energy;
-}
-
-double calc_recycled_frac(double m_high, double m_low, double* burst_mass_frac)
-{
-    // calculate the mass ejected (from fraction of total SN-II that have gone off) from this burst
-    double const_phi = run_globals.params.physics.IMFNormConst; // should be 0.1706 for Salpeter
-    double exponent = run_globals.params.physics.IMFSlope + 2.0;
-
-    double burst_recycled_frac = const_phi * 1.0 / exponent * (pow(m_high, exponent) - pow(m_low, exponent));
-    double frac_mass_SSP_above_SNII = run_globals.params.physics.frac_mass_SSP_above_SNII; // Fraction of SSP with M>8Msol
-
-    assert(burst_recycled_frac >= 0);
-
-    *burst_mass_frac = burst_recycled_frac / frac_mass_SSP_above_SNII;
-    if (*burst_mass_frac > 1.0)
-        *burst_mass_frac = 1.0;
-
-    assert(*burst_mass_frac >= 0);
-
-    return burst_recycled_frac;
-}
-
-double sn_m_low(double log_dt)
-{
-    // log_dt must be in units of log10(dt/Myr)
-    // returned value is in units of Msol
-
-    // This is a fit to the H+He core burning lifetimes of Z=0.004 stars of varying
-    // masses from Table 14 of Portinari, L., Chiosi, C. & Bressan, A.
-    // Galactic chemical enrichment with new metallicity dependent stellar
-    // yields.  Astronomy and Astrophysics 334, 505--539 (1998).
-
-    double const_a = 0.74729454;
-    double const_b = -2.69790558;
-    double const_c = -4.76591765;
-    double const_d = 0.59339486;
-    double m_high = 120.0; // highest mass star produced in stellar mass burst (Msol)
-    double m_low;
-
-    m_low = pow(10.0, (const_a / log_dt) + const_b * exp(const_c / log_dt) + const_d);
-
-    // the fitting formula for m_low is only valid until t=const_d
-    if (m_low > m_high)
-        m_low = m_high;
-    else if (m_low < 0.0)
-        m_low = 0.0;
-
-    return m_low;
-}
 
 void delayed_supernova_feedback(galaxy_t* gal, int snapshot)
 {
@@ -319,6 +227,7 @@ void delayed_supernova_feedback(galaxy_t* gal, int snapshot)
     update_reservoirs_from_sn_feedback(gal, m_reheat, m_eject, m_recycled, new_metals);
 }
 
+
 static void backfill_ghost_NewStars(galaxy_t* gal, double m_stars, int snapshot)
 {
     if ((snapshot - gal->LastIdentSnap) <= N_HISTORY_SNAPS) {
@@ -332,6 +241,7 @@ static void backfill_ghost_NewStars(galaxy_t* gal, double m_stars, int snapshot)
             }
     }
 }
+
 
 void contemporaneous_supernova_feedback(
     galaxy_t* gal,
@@ -408,4 +318,33 @@ void contemporaneous_supernova_feedback(
     // new SF burst.
     if (!Flag_IRA && (gal->LastIdentSnap < (snapshot - 1)))
         backfill_ghost_NewStars(gal, *m_stars, snapshot);
+}
+
+
+double sn_m_low(double log_dt)
+{
+    // log_dt must be in units of log10(dt/Myr)
+    // returned value is in units of Msol
+
+    // This is a fit to the H+He core burning lifetimes of Z=0.004 stars of varying
+    // masses from Table 14 of Portinari, L., Chiosi, C. & Bressan, A.
+    // Galactic chemical enrichment with new metallicity dependent stellar
+    // yields.  Astronomy and Astrophysics 334, 505--539 (1998).
+
+    double const_a = 0.74729454;
+    double const_b = -2.69790558;
+    double const_c = -4.76591765;
+    double const_d = 0.59339486;
+    double m_high = 120.0; // highest mass star produced in stellar mass burst (Msol)
+    double m_low;
+
+    m_low = pow(10.0, (const_a / log_dt) + const_b * exp(const_c / log_dt) + const_d);
+
+    // the fitting formula for m_low is only valid until t=const_d
+    if (m_low > m_high)
+        m_low = m_high;
+    else if (m_low < 0.0)
+        m_low = 0.0;
+
+    return m_low;
 }
