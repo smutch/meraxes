@@ -150,17 +150,9 @@ static inline double calc_sn_ejection_eff(galaxy_t *gal, int snapshot)
     double Vmax = gal->Vmax;    // Vmax is in a unit of km/s
     double zplus1 = 1. + run_globals.ZZ[snapshot];
     physics_params_t *params = &run_globals.params.physics;
-    int SnModel = params->SnModel;
-    double SnEjectionRedshiftDep = params->SnEjectionRedshiftDep;
-    double SnEjectionEff = params->SnEjectionEff;
-    if (SnModel == 1) {
-        double SnEjectionNorm = params->SnEjectionNorm;
-        double SnEjectionScaling = params->SnEjectionScaling;
-        SnEjectionEff *= pow(zplus1/4., SnEjectionRedshiftDep)\
-                         *(.5 + pow(Vmax/SnEjectionNorm, -SnEjectionScaling));
-    }
-    else
-        SnEjectionEff *= pow(zplus1/4., SnEjectionRedshiftDep);
+    double SnEjectionEff = params->SnEjectionEff \
+                           *pow(zplus1/4., params->SnEjectionRedshiftDep) \
+                           *(.5 + pow(Vmax/params->SnEjectionNorm, -params->SnEjectionScaling));
     if (SnEjectionEff < 1.)
         return SnEjectionEff;
     else
