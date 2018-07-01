@@ -55,14 +55,18 @@ EnergyPerSN               : 1e51    # energy per SN in erg/s
 eta_SNII                  : 7.4319792e-3 # total number of type II SN per solar mass of burst. 7.4319792e-3 for Salpeter, 1.18963e-2 for Chabrier
 frac_mass_SSP_above_SNII  : 0.14417 # Fraction of SSP with M>8Msol. 0.14417 for Salpeter, 0.23638 for Chabrier
 
+SnModel                   : 1       # default=Muratov et al. 2015, 1=Guo et al. 2011
+SnEjectionRedshiftDep     : 0.0
 SnEjectionEff             : 0.5     # SN feedback gas reheating efficiency
 SnEjectionScaling         : 2.0     # SN feedback gas reheating efficiency scaling (with Vmax)
 SnEjectionNorm            : 70.0    # SN feedback gas reheating efficiency norm (with Vmax [internal units])
 
-SnReheatEff               : 10.0     # mass loading factor for SN feedback
+SnReheatRedshiftDep       : 0.0
+SnReheatEff               : 10.0    # mass loading factor for SN feedback
 SnReheatLimit             : 10.0    # maximum allowed mass loading factor for SN feedback
-SnReheatScaling           : 0.0     # mass loading factor for SN feedback scaling (with Vmax)
-SnReheatNorm              : 70.0   # mass loading factor for SN feedback scaling (with Vmax [internal units])
+SnReheatScaling           : 0.0     # mass loading factor for SN feedback scaling (with high Vmax)
+SnReheatScaling2          : 0.0     # mass loading factor for SN feedback scaling2 (with low Vmax)
+SnReheatNorm              : 70.0    # mass loading factor for SN feedback scaling (with Vmax [internal units])
 
 # ----- cooling and reincorporation -----
 MaxCoolingMassFactor      : 1.0     # maximum cooling mass factor (1 -> ff time)
