@@ -244,41 +244,35 @@ void contemporaneous_supernova_feedback(
     double* m_recycled,
     double* new_metals)
 {
+    bool Flag_IRA = (bool)(run_globals.params.physics.Flag_IRA);
+    double sn_energy = 0.0;
+    // init (just in case!)
+    *m_reheat = *m_recycled = *new_metals = *m_eject = 0.0;
+
     // Here we approximate a constant SFR accross the timestep by a single burst
     // at t=0.5*dt. This is a pretty good approximation (to within ~15% of the
     // true number of SN that would have gone of by the end of the timestep for a
     // constant SFR). SN feedback due to merger driven starbursts adopts the same 
     // approximation.
 
-    double sn_energy = 0.0;
-    // init (just in case!)
-    *m_reheat = *m_recycled = *new_metals = *m_eject = 0.0;
-
-    // ** The IRA is broken in this version. **
-    bool Flag_IRA = (bool)(run_globals.params.physics.Flag_IRA);
-    /* // N.B. If Flag_IRA is true then m_low and burst_recycled_frac will equal values in above declaration
-    if (!Flag_IRA) {
-        assert(snapshot > 0);
-        double log_dt = log10(gal->dt * 0.5 *
-                             run_globals.units.UnitTime_in_Megayears / run_globals.params.Hubble_h);
-        double m_high = 120.0; // Msol
-        double m_low = sn_m_low(log_dt); // Msol
-        double burst_mass_frac;
-        // calculate the mass reheated (from fraction of total SN-II that have gone off) from this burst
-        burst_recycled_frac = calc_recycled_frac(m_high, m_low, &burst_mass_frac);
-    }
-    */
-
     // At this point, the baryonic reservoirs have not been updated. Thus, use the metallicity
     // of cold gas for new formed stars.
     double metallicity = calc_metallicity(gal->ColdGas, gal->MetalsColdGas);
-    // calculate recycled mass and metals by yield tables
-    *m_recycled += *m_stars * get_yield(0, metallicity, Y_TOTAL);
-    *new_metals = *m_stars * get_yield(0, metallicity, Y_TOTAL_METAL);
-
+    if (!Flag_IRA) {
+        // Calculate recycled mass and metals by yield tables
+        // Total yield includes H and He and all other elements
+        // Total metal yield includes all elements except H and He
+        *m_recycled = *m_stars * get_yield(0, metallicity, Y_TOTAL);
+        *new_metals = *m_stars * get_yield(0, metallicity, Y_TOTAL_METAL);
+    }
+    else {
+        // Recycling fraction and metals yield are input parameters when using IRA
+        *m_recycled = *m_stars * run_globals.params.physics.SfRecycleFraction;
+        *new_metals = *m_stars * run_globals.params.physics.Yield;
+    }
     // calculate the SNII energy and total reheated mass
-    sn_energy = get_energy(0, metallicity) * *m_stars;
-    *m_reheat = calc_sn_reheat_eff(gal, snapshot) * sn_energy/get_total_energy();
+    sn_energy = *m_stars * get_energy(0, metallicity);
+    *m_reheat = calc_sn_reheat_eff(gal, snapshot) * sn_energy / get_total_energy();
     sn_energy *= calc_sn_ejection_eff(gal, snapshot);
 
     // We can only reheat as much gas as we have available.  Let's inforce this
