@@ -131,11 +131,6 @@ typedef struct physics_params_t {
     double MaxCoolingMassFactor;
     double ReincorporationEff;
     double Yield;
-    double IMFSlope;
-    double EnergyPerSN;
-    double IMFNormConst;
-    double eta_SNII;
-    double frac_mass_SSP_above_SNII;
     double RadioModeEff;
     double QuasarModeEff;
     double BlackHoleGrowthRate;
