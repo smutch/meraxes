@@ -122,6 +122,7 @@ typedef struct physics_params_t {
     double SnReheatEff;
     double SnReheatLimit;
     double SnReheatScaling;
+    double SnReheatScaling2;
     double SnReheatNorm;
     double SnEjectionRedshiftDep;
     double SnEjectionEff;

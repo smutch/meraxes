@@ -462,6 +462,11 @@ void read_parameter_file(char* fname, int mode)
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
+            strcpy(params_tag[n_param], "SnReheatScaling2");
+            params_addr[n_param] = &(run_params->physics).SnReheatScaling2;
+            required_tag[n_param] = 1;
+            params_type[n_param++] = PARAM_TYPE_DOUBLE;
+
             strcpy(params_tag[n_param], "SnReheatNorm");
             params_addr[n_param] = &(run_params->physics).SnReheatNorm;
             required_tag[n_param] = 1;
