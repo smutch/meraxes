@@ -54,6 +54,9 @@ void compute_feedback_tables(int snapshot) {
     double *pData;
 
     for(int i_burst = 0; i_burst < n_bursts; ++i_burst) {
+        // Assume that SN happens at the middle time of the given snapshot.
+        // As an approximation adopt the value at the middle time of each 
+        // snapshot for yields and energy injection.
         if (i_burst > 0)
             low = ((LTTime[snapshot - i_burst - 1] + LTTime[snapshot - i_burst])/2.
                   - LTTime[snapshot - 1])*time_unit;
@@ -78,6 +81,8 @@ void compute_feedback_tables(int snapshot) {
             }
         }
         else {
+            // When the stellar age is older than the time last grid,
+            // yields and energy injection are negligible.
             for(int i_element = 0; i_element < Y_NELEMENT; ++i_element)
                 for(int i_metal = 0; i_metal < NMETAL; ++i_metal)
                     yield_tables_working[i_burst][i_metal][i_element] = 0.;
@@ -89,6 +94,7 @@ void compute_feedback_tables(int snapshot) {
 
 
 double get_yield(int i_burst, double metals, int element) {
+    // Convert the metallicity to an integer
     int Z = (int)(metals*1000 - .5);
     if (Z < MIN_Z)
         Z = MIN_Z;
@@ -99,6 +105,7 @@ double get_yield(int i_burst, double metals, int element) {
 
 
 double get_energy(int i_burst, double metals) {
+    // Convert the metallicity to an integer
     int Z = (int)(metals*1000 - .5);
     if (Z < MIN_Z)
         Z = MIN_Z;
