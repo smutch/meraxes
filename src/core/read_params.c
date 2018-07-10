@@ -101,7 +101,7 @@ void read_parameter_file(char* fname, int mode)
         char** params_tag = hdf5props->params_tag;
         int n_param = hdf5props->params_count;
 
-        printf("\nreading parameter file:\n\n");
+        mlog("\nreading parameter file:\n", MLOG_MESG);
 
         // even if this is an interactive run, we have to init required_tag
         // (used_tag is initialised later)
@@ -722,27 +722,27 @@ void read_parameter_file(char* fname, int mode)
         if (run_globals.mpi_rank == 0) {
             for (ii = 0; ii < n_param; ii++)
                 if (used_tag[ii] == 1) {
-                    printf("%35s\t", params_tag[ii]);
+                    mlog("%35s\t", MLOG_MESG, params_tag[ii]);
 
                     switch (params_type[ii]) {
                     case PARAM_TYPE_DOUBLE:
-                        printf("%g\n", *((double*)(params_addr[ii])));
+                        mlog("%g\n", MLOG_MESG, *((double*)(params_addr[ii])));
                         break;
 
                     case PARAM_TYPE_FLOAT:
-                        printf("%g\n", *((float*)(params_addr[ii])));
+                        mlog("%g\n", MLOG_MESG, *((float*)(params_addr[ii])));
                         break;
 
                     case PARAM_TYPE_STRING:
-                        printf("%s\n", (char*)params_addr[ii]);
+                        mlog("%s\n", MLOG_MESG, (char*)params_addr[ii]);
                         break;
 
                     case PARAM_TYPE_INT:
-                        printf("%d\n", *((int*)(params_addr[ii])));
+                        mlog("%d\n", MLOG_MESG, *((int*)(params_addr[ii])));
                         break;
 
                     case PARAM_TYPE_LONGLONG:
-                        printf("%lld\n", *((long long*)(params_addr[ii])));
+                        mlog("%lld\n", MLOG_MESG, *((long long*)(params_addr[ii])));
                         break;
 
                     default:

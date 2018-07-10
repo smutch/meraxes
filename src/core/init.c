@@ -112,7 +112,7 @@ static void read_snap_list()
 
         run_globals.params.SnaplistLength = snaplist_len;
         if (run_globals.mpi_rank == 0)
-            printf("found %d defined times in snaplist.\n", snaplist_len);
+            mlog("found %d defined times in snaplist.\n", MLOG_MESG, snaplist_len);
 
         // malloc the relevant arrays
         run_globals.AA = malloc(sizeof(double) * snaplist_len);
