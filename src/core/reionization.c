@@ -13,40 +13,39 @@ void calculate_galaxy_fesc_vals(galaxy_t *gal, double new_stars, int snapshot)
 
     float fesc_bh = params->EscapeFracBHNorm * (powf((1.0 + run_globals.ZZ[snapshot]) / 6.0, params->EscapeFracBHScaling));
 
-    double fesc = params->EscapeFracNorm;
-    switch (params->EscapeFracDependency)
+    double fesc = params->EscapeFrac;
+
+    if (params->EscapeFracDependency != 0)
     {
-        case 0:
-            break;
-        case 1:  // redshift
-            fesc *= pow((1.0 + run_globals.ZZ[snapshot]) / 6.0, params->EscapeFracScaling);
-            break;
-        case 2:  // stellar mass
-            if (gal->StellarMass > 0.0)
-                fesc *= pow((log10(gal->StellarMass / run_globals.params.Hubble_h) + 10.) / 8.0, params->EscapeFracScaling);
-            else
-                fesc = 0.0;
-            break;
-        case 3: // star formation rate
-            if (gal->Sfr > 0.0)
-                fesc *= pow((log10(gal->Sfr * run_globals.units.UnitMass_in_g / run_globals.units.UnitTime_in_s * SEC_PER_YEAR / SOLAR_MASS) + 10.) / 10., params->EscapeFracScaling);
-            else
-                fesc = 0.0;
-            break;
-        case 4: // cold gas density
-            if (gal->ColdGas > 0.0)
-                fesc *= pow((log10((gal->ColdGas / gal->DiskScaleLength)) + 10.) / 10., params->EscapeFracScaling);
-            else
-                fesc = 1.0;
-            break;
-        case 5:  // halo mass
-            if (gal->Mvir > 0.0)
-                fesc *= pow((log10(gal->Mvir / run_globals.params.Hubble_h) + 10.) / 9.0, params->EscapeFracScaling);
-            else
-                fesc = 0.0;
-            break;
-        default:
-            mlog_error("Unrecognised EscapeFracDependency parameter value.");
+        double prop = 0.0;
+        switch (params->EscapeFracDependency)
+        {
+            case 1:  // redshift
+                prop = 1.0 + run_globals.ZZ[snapshot];
+                break;
+            case 2:  // stellar mass
+                if (gal->StellarMass > 0.0)
+                    prop = log10((gal->StellarMass + 1.0) / run_globals.params.Hubble_h) + 10.0;
+                break;
+            case 3: // star formation rate
+                if (gal->Sfr > 0)
+                    prop = log10((gal->Sfr + 1.0) * run_globals.units.UnitMass_in_g / run_globals.units.UnitTime_in_s * SEC_PER_YEAR / SOLAR_MASS);
+            case 4: // cold gas density
+                if (gal->ColdGas > 0.0)
+                    prop = (log10((gal->ColdGas + 1.0)) + 10.) / (gal->DiskScaleLength * gal->DiskScaleLength * 100.) * run_globals.params.Hubble_h;
+                break;
+            case 5:  // halo mass
+                if (gal->Mvir > 0.0)
+                    prop = log10((gal->Mvir + 1.0) / run_globals.params.Hubble_h) + 10.0;
+                break;
+            default:
+                mlog_error("Unrecognised EscapeFracDependency parameter value.");
+        }
+
+        double scaling = params->EscapeFracScaling;
+        double x0 = pow(params->EscapeFracP0, scaling);
+        double x1 = pow(params->EscapeFracP1, scaling);
+        fesc = (pow(prop, scaling) - x0) / (x1 - x0);
     }
         
     if (fesc > 1.0)

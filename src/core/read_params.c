@@ -617,13 +617,23 @@ void read_parameter_file(char* fname, int mode)
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
-            strcpy(params_tag[n_param], "EscapeFracNorm");
-            params_addr[n_param] = &(run_params->physics).EscapeFracNorm;
+            strcpy(params_tag[n_param], "EscapeFrac");
+            params_addr[n_param] = &(run_params->physics).EscapeFrac;
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
             strcpy(params_tag[n_param], "EscapeFracScaling");
             params_addr[n_param] = &(run_params->physics).EscapeFracScaling;
+            required_tag[n_param] = 1;
+            params_type[n_param++] = PARAM_TYPE_DOUBLE;
+
+            strcpy(params_tag[n_param], "EscapeFracP0");
+            params_addr[n_param] = &(run_params->physics).EscapeFracP0;
+            required_tag[n_param] = 1;
+            params_type[n_param++] = PARAM_TYPE_DOUBLE;
+
+            strcpy(params_tag[n_param], "EscapeFracP1");
+            params_addr[n_param] = &(run_params->physics).EscapeFracP1;
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
