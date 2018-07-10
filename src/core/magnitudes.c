@@ -89,14 +89,14 @@ static void print_phototab(int i_metal)
     int n_ages = photo->NAges;
     int n_bands = photo->NBands;
 
-    printf("--------------------\n");
-    printf("PHOTOTAB i_metal=%d\n", i_metal);
+    mlog("--------------------", MLOG_MESG);
+    mlog("PHOTOTAB i_metal=%d", MLOG_MESG, i_metal);
     for (int i_age = 0; i_age < n_ages; i_age++) {
         for (int i_band = 0; i_band < n_bands; i_band++)
-            printf("    %.2f", phototab[phototab_index(photo, i_band, i_metal, i_age)]);
-        printf("\n");
+            mlog("    %.2f", MLOG_CONT, phototab[phototab_index(photo, i_band, i_metal, i_age)]);
+        mlog("", MLOG_MESG);
     }
-    printf("--------------------\n");
+    mlog("--------------------", MLOG_MESG);
 }
 
 #endif
