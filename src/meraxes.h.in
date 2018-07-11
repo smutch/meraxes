@@ -146,9 +146,9 @@ typedef struct physics_params_t {
     double ReionRBubbleMax;
 
     double EscapeFrac;
-    double EscapeFracScaling;
-    double EscapeFracP0;
-    double EscapeFracP1;
+    double EscapeFracParam0;
+    double EscapeFracParam1;
+    double EscapeFracParam2;
     double EscapeFracBHNorm;
     double EscapeFracBHScaling;
 
@@ -582,6 +582,8 @@ typedef struct run_globals_t {
     double G;
     double Csquare;
 
+    double EscapeFracEvoParams[3];
+
     int NOutputSnaps;
     int LastOutputSnap;
     int NGhosts;
@@ -724,6 +726,7 @@ void find_HII_bubbles(int snapshot, timer_info *timer_total);
 double tocf_modifier(galaxy_t* gal, double Mvir);
 void calculate_galaxy_fesc_vals(galaxy_t *gal, double new_stars, int snapshot);
 void set_ReionEfficiency(void);
+void set_escape_fraction_params(void);
 int find_cell(float pos, double box_size);
 void malloc_reionization_grids(void);
 void free_reionization_grids(void);

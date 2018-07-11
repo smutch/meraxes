@@ -41,12 +41,7 @@ void calculate_galaxy_fesc_vals(galaxy_t *gal, double new_stars, int snapshot)
                 mlog_error("Unrecognised EscapeFracDependency parameter value.");
         }
 
-        double scaling = params->EscapeFracScaling / (params->EscapeFracP1*2) * 10.0;
-        if (scaling > 10.)
-            scaling = 10.;
-        double x0 = pow(params->EscapeFracP0 - params->EscapeFracP1, scaling);
-        double x1 = pow(params->EscapeFracP0 + params->EscapeFracP1, scaling);
-        fesc = (pow(prop, scaling) - x0) / (x1 - x0);
+        fesc = (pow(prop,  run_globals.EscapeFracEvoParams[2]) - run_globals.EscapeFracEvoParams[0]) / (run_globals.EscapeFracEvoParams[1] -  run_globals.EscapeFracEvoParams[0]);
     }
         
     if (fesc > 1.0)
@@ -98,6 +93,24 @@ void set_ReionEfficiency()
         params->ReionEfficiency /= params->SfRecycleFraction;
 
     mlog("Set value of run_globals.params.ReionEfficiency = %g", MLOG_MESG, params->ReionEfficiency);
+}
+
+void set_escape_fraction_params()
+{
+    physics_params_t* params = &(run_globals.params.physics);
+    double scaling = params->EscapeFracParam2 / (params->EscapeFracParam1*2) * 10.0;
+    if (scaling > 10.)
+        scaling = 10.;
+    double x0 = params->EscapeFracParam0 - params->EscapeFracParam1;
+    if (x0 < 0.0)
+        x0 = 0.0;
+
+    run_globals.EscapeFracEvoParams[0] = pow(x0, scaling);
+    run_globals.EscapeFracEvoParams[1] = pow(params->EscapeFracParam0 + params->EscapeFracParam1, scaling);
+    run_globals.EscapeFracEvoParams[2] = scaling;
+
+    if (params->EscapeFracDependency != 0)
+        mlog("Set escape fraction evolution parameters: [%.2e, %.2e, %.2e]", MLOG_MESG, run_globals.EscapeFracEvoParams[0], run_globals.EscapeFracEvoParams[1], run_globals.EscapeFracEvoParams[2]);
 }
 
 void assign_slabs()

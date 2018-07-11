@@ -64,6 +64,10 @@ void dracarys()
         prep_hdf5_file();
     }
 
+    // Set the escape fraction parameters.
+    // We do this here, as we may be doing multiple runs of the model and varying the parameters each time.
+    set_escape_fraction_params();
+
     // Initialize timer
     timer_info timer;
     timer_start(&timer);

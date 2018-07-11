@@ -146,11 +146,11 @@ ReionGammaHaloBias     : 2.0
 ReionAlphaUV           : 5.0
 ReionAlphaUVBH         : 1.57
 
-EscapeFracDependency   : 1  # 0->none, 1->redshift, 2->stellar mass, 3->sfr
+EscapeFracDependency   : 0  # 0->none, 1->redshift, 2->stellar mass, 3->sfr
 EscapeFrac             : 0.06
-EscapeFracP1           : 20.
-EscapeFracP0           : 0.
-EscapeFracScaling      : 0.5
+EscapeFracParam0       : 7.
+EscapeFracParam1       : 0.5
+EscapeFracParam2       : 0.5
 EscapeFracBHNorm       : 1
 EscapeFracBHScaling    : 0
 
