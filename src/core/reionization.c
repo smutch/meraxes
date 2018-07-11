@@ -15,8 +15,7 @@ void calculate_galaxy_fesc_vals(galaxy_t *gal, double new_stars, int snapshot)
 
     double fesc = params->EscapeFrac;
 
-    if (params->EscapeFracDependency != 0)
-    {
+    if (params->EscapeFracDependency != 0) {
         double prop = 0.0;
         switch (params->EscapeFracDependency)
         {
@@ -42,9 +41,11 @@ void calculate_galaxy_fesc_vals(galaxy_t *gal, double new_stars, int snapshot)
                 mlog_error("Unrecognised EscapeFracDependency parameter value.");
         }
 
-        double scaling = params->EscapeFracScaling;
-        double x0 = pow(params->EscapeFracP0, scaling);
-        double x1 = pow(params->EscapeFracP1, scaling);
+        double scaling = params->EscapeFracScaling / (params->EscapeFracP1*2) * 10.0;
+        if (scaling > 10.)
+            scaling = 10.;
+        double x0 = pow(params->EscapeFracP0 - params->EscapeFracP1, scaling);
+        double x1 = pow(params->EscapeFracP0 + params->EscapeFracP1, scaling);
         fesc = (pow(prop, scaling) - x0) / (x1 - x0);
     }
         
