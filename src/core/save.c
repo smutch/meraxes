@@ -838,7 +838,7 @@ void write_snapshot(
     char target_group[20];
     galaxy_t* gal = NULL;
     hdf5_output_t h5props = run_globals.hdf5props;
-    int gal_count = 0;
+    hsize_t gal_count = 0;
     int old_count = 0;
     int* first_progenitor_index = NULL;
     int* next_progenitor_index = NULL;
@@ -971,7 +971,7 @@ void write_snapshot(
 
     if (n_write != gal_count) {
         fprintf(stderr, "We don't have the expected number of galaxies in save...");
-        fprintf(stderr, "gal_count=%d, n_write=%d", gal_count, n_write);
+        fprintf(stderr, "gal_count=%d, n_write=%d", (int) gal_count, n_write);
         ABORT(EXIT_FAILURE);
     }
 

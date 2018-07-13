@@ -33,6 +33,7 @@ int compare_ints(const void* a, const void* b)
 {
     return *((int*)a) - *((int*)b);
 }
+
 int compare_floats(const void* a, const void* b)
 {
     float value = *(float*)a - *(float*)b;
@@ -63,9 +64,9 @@ static inline float apply_pbc_disp(float delta)
 {
     float box_size = (float)(run_globals.params.BoxSize);
 
-    if (fabs(delta - box_size) < fabs(delta))
+    if (fabsf(delta - box_size) < fabsf(delta))
         delta -= box_size;
-    if (fabs(delta + box_size) < fabs(delta))
+    if (fabsf(delta + box_size) < fabsf(delta))
         delta += box_size;
 
     return delta;

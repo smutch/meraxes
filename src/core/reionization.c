@@ -11,7 +11,7 @@ void calculate_galaxy_fesc_vals(galaxy_t *gal, double new_stars, int snapshot)
 {
     physics_params_t* params = &(run_globals.params.physics);
 
-    float fesc_bh = params->EscapeFracBHNorm * (powf((1.0 + run_globals.ZZ[snapshot]) / 6.0, params->EscapeFracBHScaling));
+    double fesc_bh = params->EscapeFracBHNorm * (pow((1.0 + run_globals.ZZ[snapshot]) / 6.0, params->EscapeFracBHScaling));
 
     double fesc = params->EscapeFrac;
 
@@ -41,7 +41,9 @@ void calculate_galaxy_fesc_vals(galaxy_t *gal, double new_stars, int snapshot)
                 mlog_error("Unrecognised EscapeFracDependency parameter value.");
         }
 
-        fesc = (pow(prop,  run_globals.EscapeFracEvoParams[2]) - run_globals.EscapeFracEvoParams[0]) / (run_globals.EscapeFracEvoParams[1] -  run_globals.EscapeFracEvoParams[0]);
+        double x0 = pow(run_globals.params.physics.EscapeFracParam0, run_globals.params.physics.EscapeFracParam2);
+        double x1 = pow(run_globals.params.physics.EscapeFracParam0 + run_globals.params.physics.EscapeFracParam1, run_globals.params.physics.EscapeFracParam2);
+        fesc = (pow(prop,  run_globals.params.physics.EscapeFracParam2) - x0) / (x1 -  x0);
     }
         
     if (fesc > 1.0)
@@ -93,24 +95,6 @@ void set_ReionEfficiency()
         params->ReionEfficiency /= params->SfRecycleFraction;
 
     mlog("Set value of run_globals.params.ReionEfficiency = %g", MLOG_MESG, params->ReionEfficiency);
-}
-
-void set_escape_fraction_params()
-{
-    physics_params_t* params = &(run_globals.params.physics);
-    double scaling = params->EscapeFracParam2 / (params->EscapeFracParam1*2) * 10.0;
-    if (scaling > 10.)
-        scaling = 10.;
-    double x0 = params->EscapeFracParam0 - params->EscapeFracParam1;
-    if (x0 < 0.0)
-        x0 = 0.0;
-
-    run_globals.EscapeFracEvoParams[0] = pow(x0, scaling);
-    run_globals.EscapeFracEvoParams[1] = pow(params->EscapeFracParam0 + params->EscapeFracParam1, scaling);
-    run_globals.EscapeFracEvoParams[2] = scaling;
-
-    if (params->EscapeFracDependency != 0)
-        mlog("Set escape fraction evolution parameters: [%.2e, %.2e, %.2e]", MLOG_MESG, run_globals.EscapeFracEvoParams[0], run_globals.EscapeFracEvoParams[1], run_globals.EscapeFracEvoParams[2]);
 }
 
 void assign_slabs()
