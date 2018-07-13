@@ -16,10 +16,6 @@ VolumeFactor      : 1.0
 #------------------------------------------
 #----- Photometric Tables  ----------------
 #------------------------------------------
-PhotometricTablesDir : /home/smutch/models/meraxes/input/photometric_tables
-CoolingFuncsDir      : /home/smutch/models/meraxes/input/cooling_functions
-# PhotometricTablesDir : /coepp/cephfs/dragons/smutch/models/meraxes/input/photometric_tables
-# CoolingFuncsDir      : /coepp/cephfs/dragons/smutch/models/meraxes/input/cooling_functions
 SSPModel             : bc03
 IMF                  : salpeter
 MagSystem            : vega

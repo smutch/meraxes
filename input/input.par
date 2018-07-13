@@ -1,4 +1,6 @@
 FileNameGalaxies    : meraxes
-DefaultsFile        : @SIM_DEFAULTS_PARAM_FILE_PATH@
+DefaultsFile        : @INPUT_FILE_DIR@/Tiamat.par
 FileWithOutputSnaps : snaplist.txt
 OutputDir           : output
+PhotometricTablesDir : @INPUT_FILE_DIR@/photometric_tables
+CoolingFuncsDir      : @INPUT_FILE_DIR@/cooling_functions

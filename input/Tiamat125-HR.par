@@ -16,8 +16,6 @@ VolumeFactor     : 1.0
 #------------------------------------------
 #----- Photometric Tables  ----------------
 #------------------------------------------
-PhotometricTablesDir : /home/yqin/bitbucket/meraxes3/input/photometric_tables
-CoolingFuncsDir      : /home/yqin/bitbucket/meraxes3/input/cooling_functions
 SSPModel             : bc03
 IMF                  : salpeter
 MagSystem            : vega
