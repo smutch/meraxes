@@ -145,6 +145,7 @@ ReionAlphaUVBH         : 1.57
 
 EscapeFracDependency   : 1  # 0->none, 1->redshift, 2->stellar mass, 3->sfr
 EscapeFracNorm         : 0.06
+EscapeFracOffset       : 6.0
 EscapeFracScaling      : 0.5
 EscapeFracBHNorm       : 1
 EscapeFracBHScaling    : 0
