@@ -731,23 +731,23 @@ void read_parameter_file(char* fname, int mode)
 
                     switch (params_type[ii]) {
                     case PARAM_TYPE_DOUBLE:
-                        mlog("%g\n", MLOG_MESG, *((double*)(params_addr[ii])));
+                        mlog("%g", MLOG_MESG|MLOG_CONT, *((double*)(params_addr[ii])));
                         break;
 
                     case PARAM_TYPE_FLOAT:
-                        mlog("%g\n", MLOG_MESG, *((float*)(params_addr[ii])));
+                        mlog("%g", MLOG_MESG|MLOG_CONT, *((float*)(params_addr[ii])));
                         break;
 
                     case PARAM_TYPE_STRING:
-                        mlog("%s\n", MLOG_MESG, (char*)params_addr[ii]);
+                        mlog("%s", MLOG_MESG|MLOG_CONT, (char*)params_addr[ii]);
                         break;
 
                     case PARAM_TYPE_INT:
-                        mlog("%d\n", MLOG_MESG, *((int*)(params_addr[ii])));
+                        mlog("%d", MLOG_MESG|MLOG_CONT, *((int*)(params_addr[ii])));
                         break;
 
                     case PARAM_TYPE_LONGLONG:
-                        mlog("%lld\n", MLOG_MESG, *((long long*)(params_addr[ii])));
+                        mlog("%lld", MLOG_MESG|MLOG_CONT, *((long long*)(params_addr[ii])));
                         break;
 
                     default:
