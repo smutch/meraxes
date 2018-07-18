@@ -100,7 +100,9 @@ void read_trees__velociraptor(int snapshot, halo_t* halos, int* n_halos, fof_gro
         double Xc;
         double Yc;
         double Zc;
-        double lambda_B;
+        double Lx;
+        double Ly;
+        double Lz;
         unsigned long ID;
         unsigned long npart;
     } tree_entry_t;
@@ -143,7 +145,9 @@ void read_trees__velociraptor(int snapshot, halo_t* halos, int* n_halos, fof_gro
         READ_TREE_ENTRY_PROP(Xc, double, H5T_NATIVE_DOUBLE);
         READ_TREE_ENTRY_PROP(Yc, double, H5T_NATIVE_DOUBLE);
         READ_TREE_ENTRY_PROP(Zc, double, H5T_NATIVE_DOUBLE);
-        READ_TREE_ENTRY_PROP(lambda_B, double, H5T_NATIVE_DOUBLE);
+        READ_TREE_ENTRY_PROP(Lx, double, H5T_NATIVE_DOUBLE);
+        READ_TREE_ENTRY_PROP(Ly, double, H5T_NATIVE_DOUBLE);
+        READ_TREE_ENTRY_PROP(Lz, double, H5T_NATIVE_DOUBLE);
         READ_TREE_ENTRY_PROP(ID, unsigned long, H5T_NATIVE_ULONG);
         READ_TREE_ENTRY_PROP(npart, unsigned long, H5T_NATIVE_ULONG);
 
@@ -159,6 +163,9 @@ void read_trees__velociraptor(int snapshot, halo_t* halos, int* n_halos, fof_gro
             tree_entries[ii].Xc *= hubble_h / scale_factor;
             tree_entries[ii].Yc *= hubble_h / scale_factor;
             tree_entries[ii].Zc *= hubble_h / scale_factor;
+            tree_entries[ii].Lx *= hubble_h;
+            tree_entries[ii].Ly *= hubble_h;
+            tree_entries[ii].Lz *= hubble_h;
 #ifdef DEBUG
             double box_size = run_globals.params.BoxSize;
             assert((tree_entries[ii].Xc <= box_size) && (tree_entries[ii].Xc >= 0.0));
@@ -254,8 +261,10 @@ void read_trees__velociraptor(int snapshot, halo_t* halos, int* n_halos, fof_gro
 
             // TODO: Ask Pascal for real ang mom vectors
             // N.B. See calculation of spin which has been hacked!
-            halo->AngMom[0] = halo->AngMom[1] = 0;
-            halo->AngMom[2] = tree_entry.lambda_B;
+            halo->AngMom[0] = tree_entry.Lx;
+            halo->AngMom[1] = tree_entry.Ly;
+            halo->AngMom[2] = tree_entry.Lz;
+            halo->Spin = calculate_spin_param(halo);
 
             halo->Galaxy = NULL;
 

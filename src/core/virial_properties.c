@@ -115,18 +115,6 @@ double calculate_Vvir(double Mvir, double Rvir)
 
 double calculate_spin_param(halo_t* halo)
 {
-    float spin;
-
-    switch (run_globals.params.TreesID) {
-    case GBPTREES_TREES:
-        spin = sqrt(halo->AngMom[0] * halo->AngMom[0] + halo->AngMom[1] * halo->AngMom[1] + halo->AngMom[2] * halo->AngMom[2]);
-        spin = spin / (1.414213562 * halo->Vvir * halo->Rvir);
-        break;
-
-    case VELOCIRAPTOR_TREES:
-        // TODO: THIS IS A TEMPORARY HACK
-        spin = halo->AngMom[2];
-    }
-
-    return (double)spin;
+    double angmom_mag = sqrt(halo->AngMom[0] * halo->AngMom[0] + halo->AngMom[1] * halo->AngMom[1] + halo->AngMom[2] * halo->AngMom[2]);
+    return angmom_mag / (1.414213562 * halo->Vvir * halo->Rvir);
 }
