@@ -42,7 +42,7 @@ trees_info_t read_trees_info__velociraptor(const int snapshot)
 
 static int id_to_ind(long id)
 {
-    return (int)((id % (uint64_t)1e12) - 1);
+    return (int)(((uint64_t)id % (uint64_t)1e12) - 1);
 }
 
 static int id_to_snap(long id)
@@ -152,11 +152,13 @@ void read_trees__velociraptor(int snapshot, halo_t* halos, int* n_halos, fof_gro
         // convert units
         double scale_factor = -999.;
         H5LTget_attribute_double(fd, snap_group_name, "scalefactor", &scale_factor);
+        double hubble_h = run_globals.params.Hubble_h;
         for (int ii = 0; ii < n_tree_entries; ii++) {
-            tree_entries[ii].Mass_200crit *= 1e-10;
-            tree_entries[ii].Xc *= run_globals.params.Hubble_h / scale_factor;
-            tree_entries[ii].Yc *= run_globals.params.Hubble_h / scale_factor;
-            tree_entries[ii].Zc *= run_globals.params.Hubble_h / scale_factor;
+            tree_entries[ii].Mass_200crit *= hubble_h * 1e-10;
+            tree_entries[ii].R_200crit *= hubble_h;
+            tree_entries[ii].Xc *= hubble_h / scale_factor;
+            tree_entries[ii].Yc *= hubble_h / scale_factor;
+            tree_entries[ii].Zc *= hubble_h / scale_factor;
 #ifdef DEBUG
             double box_size = run_globals.params.BoxSize;
             assert((tree_entries[ii].Xc <= box_size) && (tree_entries[ii].Xc >= 0.0));
