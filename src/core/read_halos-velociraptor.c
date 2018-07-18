@@ -264,7 +264,6 @@ void read_trees__velociraptor(int snapshot, halo_t* halos, int* n_halos, fof_gro
             halo->AngMom[0] = tree_entry.Lx;
             halo->AngMom[1] = tree_entry.Ly;
             halo->AngMom[2] = tree_entry.Lz;
-            halo->Spin = calculate_spin_param(halo);
 
             halo->Galaxy = NULL;
 
