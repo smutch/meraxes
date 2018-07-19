@@ -266,10 +266,10 @@ void read_trees__velociraptor(int snapshot, halo_t* halos, int* n_halos, fof_gro
             halo->Vmax = (float)tree_entry.Vmax;
 
             // TODO: What masses and radii should I use for satellites (inclusive vs. exclusive etc.)?
-            halo->Mvir = -1;
+            halo->Mvir = tree_entry.Mass_tot;
             halo->Rvir = -1;
             halo->Vvir = -1;
-            convert_input_virial_props(&halo->Mvir, &halo->Rvir, &halo->Vvir, NULL, halo->Len, snapshot, false);
+            convert_input_virial_props(&halo->Mvir, &halo->Rvir, &halo->Vvir, NULL, -1, snapshot, false);
 
             halo->AngMom[0] = tree_entry.Lx / tree_entry.Mass_tot;
             halo->AngMom[1] = tree_entry.Ly / tree_entry.Mass_tot;
