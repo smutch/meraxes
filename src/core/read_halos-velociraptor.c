@@ -172,6 +172,9 @@ void read_trees__velociraptor(int snapshot, halo_t* halos, int* n_halos, fof_gro
             tree_entries[ii].Xc *= hubble_h / scale_factor;
             tree_entries[ii].Yc *= hubble_h / scale_factor;
             tree_entries[ii].Zc *= hubble_h / scale_factor;
+            tree_entries[ii].VXc /= scale_factor;
+            tree_entries[ii].VYc /= scale_factor;
+            tree_entries[ii].VZc /= scale_factor;
             tree_entries[ii].Lx *= hubble_h * hubble_h * 1e-10;
             tree_entries[ii].Ly *= hubble_h * hubble_h * 1e-10;
             tree_entries[ii].Lz *= hubble_h * hubble_h * 1e-10;
