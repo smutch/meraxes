@@ -95,11 +95,15 @@ void read_trees__velociraptor(int snapshot, halo_t* halos, int* n_halos, fof_gro
         long Head;
         long hostHaloID;
         double Mass_200crit;
+        double Mass_tot;
         double R_200crit;
         double Vmax;
         double Xc;
         double Yc;
         double Zc;
+        double VXc;
+        double VYc;
+        double VZc;
         double Lx;
         double Ly;
         double Lz;
@@ -140,11 +144,15 @@ void read_trees__velociraptor(int snapshot, halo_t* halos, int* n_halos, fof_gro
         READ_TREE_ENTRY_PROP(Head, long, H5T_NATIVE_LONG);
         READ_TREE_ENTRY_PROP(hostHaloID, long, H5T_NATIVE_LONG);
         READ_TREE_ENTRY_PROP(Mass_200crit, double, H5T_NATIVE_DOUBLE);
+        READ_TREE_ENTRY_PROP(Mass_tot, double, H5T_NATIVE_DOUBLE);
         READ_TREE_ENTRY_PROP(R_200crit, double, H5T_NATIVE_DOUBLE);
         READ_TREE_ENTRY_PROP(Vmax, double, H5T_NATIVE_DOUBLE);
         READ_TREE_ENTRY_PROP(Xc, double, H5T_NATIVE_DOUBLE);
         READ_TREE_ENTRY_PROP(Yc, double, H5T_NATIVE_DOUBLE);
         READ_TREE_ENTRY_PROP(Zc, double, H5T_NATIVE_DOUBLE);
+        READ_TREE_ENTRY_PROP(VXc, double, H5T_NATIVE_DOUBLE);
+        READ_TREE_ENTRY_PROP(VYc, double, H5T_NATIVE_DOUBLE);
+        READ_TREE_ENTRY_PROP(VZc, double, H5T_NATIVE_DOUBLE);
         READ_TREE_ENTRY_PROP(Lx, double, H5T_NATIVE_DOUBLE);
         READ_TREE_ENTRY_PROP(Ly, double, H5T_NATIVE_DOUBLE);
         READ_TREE_ENTRY_PROP(Lz, double, H5T_NATIVE_DOUBLE);
@@ -159,13 +167,17 @@ void read_trees__velociraptor(int snapshot, halo_t* halos, int* n_halos, fof_gro
         double hubble_h = run_globals.params.Hubble_h;
         for (int ii = 0; ii < n_tree_entries; ii++) {
             tree_entries[ii].Mass_200crit *= hubble_h * 1e-10;
+            tree_entries[ii].Mass_tot *= hubble_h * 1e-10;
             tree_entries[ii].R_200crit *= hubble_h;
             tree_entries[ii].Xc *= hubble_h / scale_factor;
             tree_entries[ii].Yc *= hubble_h / scale_factor;
             tree_entries[ii].Zc *= hubble_h / scale_factor;
-            tree_entries[ii].Lx *= hubble_h;
-            tree_entries[ii].Ly *= hubble_h;
-            tree_entries[ii].Lz *= hubble_h;
+            tree_entries[ii].VXc /= scale_factor;
+            tree_entries[ii].VYc /= scale_factor;
+            tree_entries[ii].VZc /= scale_factor;
+            tree_entries[ii].Lx *= hubble_h * hubble_h * 1e-10;
+            tree_entries[ii].Ly *= hubble_h * hubble_h * 1e-10;
+            tree_entries[ii].Lz *= hubble_h * hubble_h * 1e-10;
 #ifdef DEBUG
             double box_size = run_globals.params.BoxSize;
             assert((tree_entries[ii].Xc <= box_size) && (tree_entries[ii].Xc >= 0.0));
@@ -251,19 +263,20 @@ void read_trees__velociraptor(int snapshot, halo_t* halos, int* n_halos, fof_gro
             halo->Pos[0] = (float)tree_entry.Xc;
             halo->Pos[1] = (float)tree_entry.Yc;
             halo->Pos[2] = (float)tree_entry.Zc;
+            halo->Vel[0] = (float)tree_entry.VXc;
+            halo->Vel[1] = (float)tree_entry.VYc;
+            halo->Vel[2] = (float)tree_entry.VZc;
             halo->Vmax = (float)tree_entry.Vmax;
 
             // TODO: What masses and radii should I use for satellites (inclusive vs. exclusive etc.)?
-            halo->Mvir = -1;
+            halo->Mvir = tree_entry.Mass_tot;
             halo->Rvir = -1;
             halo->Vvir = -1;
-            convert_input_virial_props(&halo->Mvir, &halo->Rvir, &halo->Vvir, NULL, halo->Len, snapshot, false);
+            convert_input_virial_props(&halo->Mvir, &halo->Rvir, &halo->Vvir, NULL, -1, snapshot, false);
 
-            // TODO: Ask Pascal for real ang mom vectors
-            // N.B. See calculation of spin which has been hacked!
-            halo->AngMom[0] = tree_entry.Lx;
-            halo->AngMom[1] = tree_entry.Ly;
-            halo->AngMom[2] = tree_entry.Lz;
+            halo->AngMom[0] = tree_entry.Lx / tree_entry.Mass_tot;
+            halo->AngMom[1] = tree_entry.Ly / tree_entry.Mass_tot;
+            halo->AngMom[2] = tree_entry.Lz / tree_entry.Mass_tot;
 
             halo->Galaxy = NULL;
 
