@@ -714,7 +714,6 @@ void reincorporate_ejected_gas(galaxy_t* gal);
 // Numeric tools
 double interp(double xp, double *x, double *y, int nPts);
 double trapz_table(double *y, double *x, int nPts, double a, double b);
-int bisection_search(double a, double *x, int nX);
 
 // Feedback related
 void read_feedback_tables(void);

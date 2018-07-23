@@ -33,9 +33,22 @@ int compare_ints(const void* a, const void* b)
 {
     return *((int*)a) - *((int*)b);
 }
+
 int compare_floats(const void* a, const void* b)
 {
     float value = *(float*)a - *(float*)b;
+
+    if (value > 0)
+        return 1;
+    else if (value < 0)
+        return -1;
+    else
+        return 0;
+}
+
+int compare_doubles(const void* a, const void* b)
+{
+    double value = *(double*)a - *(double*)b;
 
     if (value > 0)
         return 1;
@@ -202,26 +215,6 @@ int find_original_index(int index, int* lookup, int n_mappings)
     return new_index;
 }
 
-
-
-int bisection_search(double a, double *x, int nX) {
-    /* return idx such x[idx] <= a < x[idx + 1]
-     * a must be x[0] <= a < x[nX - 1]
-     */
-    unsigned int idx0 = 0;
-    unsigned int idx1 = nX - 1;
-    unsigned int idxMid;
-    while(idx1 - idx0 > 1) {
-        idxMid = (idx0 + idx1)/2;
-        if(a >= x[idxMid])
-            idx0 = idxMid;
-        else if(a < x[idxMid])
-            idx1 = idxMid;
-    }
-    return idx0;
-}
-
-
 double interp(double xp, double *x, double *y, int nPts) {
     /* Interpolate a given points */
     int idx0, idx1;
@@ -232,14 +225,13 @@ double interp(double xp, double *x, double *y, int nPts) {
     if (xp == x[nPts - 1])
         return y[nPts - 1];
     else {
-        idx0 = bisection_search(xp, x, nPts);
+        idx0 = searchsorted(&xp, x, nPts, sizeof(double), compare_doubles, -1, -1);
         if (x[idx0] == xp)
             return y[idx0];
         idx1 = idx0 + 1;
         return y[idx0] + (y[idx1] - y[idx0])*(xp - x[idx0])/(x[idx1] - x[idx0]);
     }
 }
-
 
 double trapz_table(double *y, double *x, int nPts, double a, double b) {
     /* Integrate tabular data from a to b */
@@ -259,7 +251,7 @@ double trapz_table(double *y, double *x, int nPts, double a, double b) {
         mlog_error("Integration range is wrong!");
         ABORT(EXIT_FAILURE);
     }
-    idx0 = bisection_search(a, x, nPts);
+    idx0 = searchsorted(&a, x, nPts, sizeof(double), compare_doubles, -1, -1);
     idx1 = idx0 + 1;
 
     ya = y[idx0] + (y[idx1] - y[idx0])*(a - x[idx0])/(x[idx1] - x[idx0]);
