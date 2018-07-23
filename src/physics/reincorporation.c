@@ -15,24 +15,31 @@ void reincorporate_ejected_gas(galaxy_t* gal)
     double ReincorporationEff = run_globals.params.physics.ReincorporationEff;
 
     if (gal->EjectedGas > 0 && ReincorporationEff > 0.) {
-        double SnModel = run_globals.params.physics.SnModel;
+        int ReincorporationModel = run_globals.params.physics.ReincorporationModel;
         fof_group_t* fof_group = gal->Halo->FOFGroup;
         double reincorporated = 0.;
         double t_dyn = fof_group->Rvir / fof_group->Vvir;
+        double t_rein;
 
-        if (SnModel == 1) {
+        switch (ReincorporationModel) {
+        case 1:
             // allow some of the ejected gas associated with the central to be
             // reincorporated following the prescription of Guo 2010 (which is actually
             // almost identical to SAGE).
             reincorporated = ReincorporationEff * gal->EjectedGas * (gal->dt / t_dyn);
-        }
-        else {
+            break;
+        case 2:
             // Following the prescription of Henriques et al. 2013
-            double t_rein = ReincorporationEff/fof_group->Mvir \
-                            /(run_globals.units.UnitTime_in_Megayears/run_globals.params.Hubble_h);
+            t_rein = ReincorporationEff/fof_group->Mvir \
+                     /(run_globals.units.UnitTime_in_Megayears/run_globals.params.Hubble_h);
             if (t_rein < t_dyn)
                 t_rein = t_dyn;
             reincorporated = gal->EjectedGas * (gal->dt / t_rein);
+            break;
+        default:
+            mlog_error("Unknow ReincorporationModel!");
+            ABORT(EXIT_FAILURE);
+            break;
         }
 
         // ensure consistency
