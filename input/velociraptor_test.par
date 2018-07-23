@@ -54,25 +54,36 @@ SfEfficiencyScaling       : 0.0     # star formation efficiency Scaling
 #    -> 2Gyr at z=0 with redshift dependence SF timescale (Duffy+17)
 
 SfCriticalSDNorm          : 0.2     # critical surface density normalisation factor for star formation (internal units; standard=0.37)
-SfRecycleFraction         : 0.25    # instantaneous recycle fraction (IMF dependant)
-Yield                     : 0.03    # mass of metals injected into ISM per unit star formation
 
 # ----- supernova feedback -----
 Flag_IRA                   : 0    # use the instantaneous recycling approximation
 Flag_ReheatToFOFGroupTemp  : 0    # try to reheat gas to the FOF group Tvir instead of just the subgroup value
+SfRecycleFraction         : 0.25    # instantaneous recycle fraction (IMF dependant) (only used when Flag_IRA=1)
+Yield                     : 0.03    # mass of metals injected into ISM per unit star formation (only used when Flag_IRA=1)
 
-SnModel                   : 1       # default=Muratov et al. 2015, 1=Guo et al. 2011
-SnEjectionRedshiftDep     : 0.0
+# SnModel=1:
+#   -Use the Vmax scaling of Guo et al. 2011
+#   -Additional redshift factor of ((1 + z)/4)^SnEjectionRedshiftDep (SnReheatRedshiftDep)
+#   -SnReheatScaling2 is unused
+# SnModel=2:
+#   -Energy coupling efficiency (i.e. gas reheating efficiency) follows Guo et al. 2011
+#   -Mass loading factor follows Muratov et al. 2015. Use SnReheatScaling for high Vmax scaling and
+#    SnReheatScaling2 for low Vmax scaling.
+#   -Both factors has redshift dependence of ((1 + z)/4)^SnEjectionRedshiftDep (SnReheatRedshiftDep)
+
+SnModel                   : 1
+SnEjectionRedshiftDep     : 0.0     # SN feedback gas reheating efficiency redshift scaling
 SnEjectionEff             : 0.5     # SN feedback gas reheating efficiency
 SnEjectionScaling         : 2.0     # SN feedback gas reheating efficiency scaling (with Vmax)
 SnEjectionNorm            : 70.0    # SN feedback gas reheating efficiency norm (with Vmax [internal units])
 
-SnReheatRedshiftDep       : 0.0
+SnReheatRedshiftDep       : 0.0     # mass loading factor redshift scaling
 SnReheatEff               : 10.0    # mass loading factor for SN feedback
 SnReheatLimit             : 10.0    # maximum allowed mass loading factor for SN feedback
 SnReheatScaling           : 0.0     # mass loading factor for SN feedback scaling (with high Vmax)
 SnReheatScaling2          : 0.0     # mass loading factor for SN feedback scaling2 (with low Vmax)
 SnReheatNorm              : 70.0    # mass loading factor for SN feedback scaling (with Vmax [internal units])
+
 
 # ----- cooling and reincorporation -----
 MaxCoolingMassFactor      : 1.0     # maximum cooling mass factor (1 -> ff time)
