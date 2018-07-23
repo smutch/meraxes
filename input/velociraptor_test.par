@@ -84,9 +84,17 @@ SnReheatScaling           : 0.0     # mass loading factor for SN feedback scalin
 SnReheatScaling2          : 0.0     # mass loading factor for SN feedback scaling2 (with low Vmax)
 SnReheatNorm              : 70.0    # mass loading factor for SN feedback scaling (with Vmax [internal units])
 
-
-# ----- cooling and reincorporation -----
+# ----- cooling -----
 MaxCoolingMassFactor      : 1.0     # maximum cooling mass factor (1 -> ff time)
+
+# ----- reincorporation -----
+# ReincorporationModel=1:
+#   -Reincorporation time is proportional to the halo dynamic time
+# RecinorporationModel=2:
+#   -Reincorporation time scales with halo mass (Henriques et al. 2013), and is always larger than the
+#    halo dynamic time
+#   -ReincorporationEff adopts the definition in Henriques et al. 2013, which differs from the first case
+ReincorporationModel      : 1
 ReincorporationEff        : 0.0     # gas reincorporation efficiency from ejected component
 
 # ----- mergers -----
