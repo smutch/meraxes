@@ -128,16 +128,20 @@ static inline double calc_sn_reheat_eff(galaxy_t *gal, int snapshot)
     double SnReheatScaling = params->SnReheatScaling;
     double SnReheatNorm = params->SnReheatNorm;
     double SnReheatLimit = params->SnReheatLimit;
-    if (SnModel == 1) {
-        // Guo et al. 2011 with redshift dependence
+    switch (SnModel) {
+    case 1:    // Guo et al. 2011 with redshift dependence
         SnReheatEff *= pow(zplus1/4., SnReheatRedshiftDep) \
                        *(.5 + pow(Vmax/SnReheatNorm, -SnReheatScaling));
-    }
-    else {
-        // Muratov et al. 2015
+        break;
+    case 2:    // Muratov et al. 2015
         if (Vmax < SnReheatNorm)
             SnReheatScaling = params->SnReheatScaling2;
         SnReheatEff *= pow(zplus1/4., SnReheatRedshiftDep)*pow(Vmax/SnReheatNorm, -SnReheatScaling);
+        break;
+    default:
+        mlog_error("Unknonw SnModel!");
+        ABORT(EXIT_FAILURE);
+        break;
     }
     if (SnReheatEff < SnReheatLimit)
         return SnReheatEff;
