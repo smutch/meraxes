@@ -225,7 +225,8 @@ static void read_output_snaps()
         }
 
         // find out how many output snapshots are being requested
-        int dummy;
+        int dummy = 0;
+        *nout = 0;
         for (i = 0; i < maxsnaps; i++) {
             if (fscanf(fd, " %d ", &dummy) == 1)
                 (*nout)++;
