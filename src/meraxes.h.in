@@ -212,7 +212,7 @@ typedef struct run_params_t {
     char FileWithOutputSnaps[STRLEN];
     char PhotometricTablesDir[STRLEN];
     char CoolingFuncsDir[STRLEN];
-    char FeedbackDir[STRLEN];
+    char StellarFeedbackDir[STRLEN];
     char SSPModel[STRLEN];
     char IMF[STRLEN];
     char MagSystem[STRLEN];
