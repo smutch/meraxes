@@ -35,22 +35,6 @@
 #endif
 // ======================================================
 
-
-// ======================================================
-// Indices used for yield tables
-#ifndef Y_NELEMENT
-#define Y_NELEMENT 2
-#endif
-#ifndef Y_TOTAL
-#define Y_TOTAL 0
-#endif
-#ifndef Y_TOTAL_METAL
-#define Y_TOTAL_METAL 1
-#endif
-// ======================================================
-
-
-
 // Define things used for aborting exceptions
 #ifdef __cplusplus
 extern "C" {

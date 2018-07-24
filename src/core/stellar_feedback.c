@@ -8,11 +8,14 @@
 #define MIN_Z 0
 #define MAX_Z 39
 #define NAGE 2000
+#define NELEMENT 2
+#define RECYCLING_FRACTION 0
+#define TOTAL_METAL 1
 
 
 static double age[NAGE];
-static double yield_tables[Y_NELEMENT][NMETAL*NAGE];
-static double yield_tables_working[N_HISTORY_SNAPS][NMETAL][Y_NELEMENT];
+static double yield_tables[NELEMENT][NMETAL*NAGE];
+static double yield_tables_working[N_HISTORY_SNAPS][NMETAL][NELEMENT];
 static double energy_tables[NMETAL*NAGE];
 static double energy_tables_working[N_HISTORY_SNAPS][NMETAL];
 
@@ -27,9 +30,9 @@ void read_stellar_feedback_tables(void) {
         // Read age [Myr]
         H5LTread_dataset_double(fd, "age", age);
         // Read total yield [1/Myr]
-        H5LTread_dataset_double(fd, "total_yield", yield_tables[Y_TOTAL]);
+        H5LTread_dataset_double(fd, "total_yield", yield_tables[RECYCLING_FRACTION]);
         // Read total metal yield [1/Myr]
-        H5LTread_dataset_double(fd, "total_metal_yield", yield_tables[Y_TOTAL_METAL]);
+        H5LTread_dataset_double(fd, "total_metal_yield", yield_tables[TOTAL_METAL]);
         // Read energy [1/(10^10 M_solar)]
         H5LTread_dataset_double(fd, "energy", energy_tables);
         H5Fclose(fd);
@@ -65,7 +68,7 @@ void compute_stellar_feedback_tables(int snapshot) {
         high = ((LTTime[snapshot - i_burst - 1] + LTTime[snapshot - i_burst])/2.
                - LTTime[snapshot])*time_unit;
         if (high < age[NAGE - 1]) {
-            for(int i_element = 0; i_element < Y_NELEMENT; ++i_element) {
+            for(int i_element = 0; i_element < NELEMENT; ++i_element) {
                 pData = yield_tables[i_element];
                 for(int i_metal = 0; i_metal < NMETAL; ++i_metal) {
                     yield_tables_working[i_burst][i_metal][i_element] = \
@@ -83,7 +86,7 @@ void compute_stellar_feedback_tables(int snapshot) {
         else {
             // When the stellar age is older than the time last grid,
             // yields and energy injection are negligible.
-            for(int i_element = 0; i_element < Y_NELEMENT; ++i_element)
+            for(int i_element = 0; i_element < NELEMENT; ++i_element)
                 for(int i_metal = 0; i_metal < NMETAL; ++i_metal)
                     yield_tables_working[i_burst][i_metal][i_element] = 0.;
             for(int i_metal = 0; i_metal < NMETAL; ++i_metal)
@@ -105,13 +108,13 @@ inline int get_integer_metallicity(double metals) {
 
 double get_recycling_fraction(int i_burst, double metals) {
     // The recycling fraction equals to the yield of all elements including H & He
-    return yield_tables_working[i_burst][get_integer_metallicity(metals)][0];
+    return yield_tables_working[i_burst][get_integer_metallicity(metals)][RECYCLING_FRACTION];
 }
 
 
 double get_metal_yield(int i_burst, double metals) {
     // The metal yield includes all elements execpt H & He
-    return yield_tables_working[i_burst][get_integer_metallicity(metals)][1];
+    return yield_tables_working[i_burst][get_integer_metallicity(metals)][TOTAL_METAL];
 }
 
 
