@@ -16,7 +16,7 @@ static double yield_tables_working[N_HISTORY_SNAPS][NMETAL][Y_NELEMENT];
 static double energy_tables[NMETAL*NAGE];
 static double energy_tables_working[N_HISTORY_SNAPS][NMETAL];
 
-void read_feedback_tables(void) {
+void read_stellar_feedback_tables(void) {
     if (run_globals.mpi_rank == 0) {
         hid_t fd;
         char fname[STRLEN];
@@ -46,7 +46,7 @@ void read_feedback_tables(void) {
 }
 
 
-void compute_feedback_tables(int snapshot) {
+void compute_stellar_feedback_tables(int snapshot) {
     int n_bursts = (snapshot >= N_HISTORY_SNAPS) ? N_HISTORY_SNAPS : snapshot;
     double *LTTime = run_globals.LTTime;
     double time_unit = run_globals.units.UnitTime_in_Megayears/run_globals.params.Hubble_h;
@@ -104,7 +104,7 @@ double get_yield(int i_burst, double metals, int element) {
 }
 
 
-double get_energy(int i_burst, double metals) {
+double get_SN_energy(int i_burst, double metals) {
     // Convert the metallicity to an integer
     int Z = (int)(metals*1000 - .5);
     if (Z < MIN_Z)
@@ -115,7 +115,7 @@ double get_energy(int i_burst, double metals) {
 }
 
 
-double get_total_energy(void) {
+double get_total_SN_energy(void) {
     // The last grid of the energy table is the total SNII energy,
     // and is independent to metallicity
     return energy_tables[NAGE - 1];

@@ -189,11 +189,11 @@ void delayed_supernova_feedback(galaxy_t* gal, int snapshot)
             m_recycled += m_stars * get_yield(i_burst, metallicity, Y_TOTAL);
             new_metals += m_stars * get_yield(i_burst, metallicity, Y_TOTAL_METAL);
             // Calculate SNII energy
-            sn_energy += get_energy(i_burst, metallicity)*m_stars;
+            sn_energy += get_SN_energy(i_burst, metallicity)*m_stars;
         }
     }
 
-    m_reheat = calc_sn_reheat_eff(gal, snapshot)*sn_energy/get_total_energy();
+    m_reheat = calc_sn_reheat_eff(gal, snapshot)*sn_energy/get_total_SN_energy();
     sn_energy *= calc_sn_ejection_eff(gal, snapshot);
     // We can only reheat as much gas as we have available.  Let's inforce this
     // now, to ensure that the maximal amount of available energy is used to
@@ -276,8 +276,8 @@ void contemporaneous_supernova_feedback(
         *new_metals = *m_stars * run_globals.params.physics.Yield;
     }
     // calculate the SNII energy and total reheated mass
-    sn_energy = *m_stars * get_energy(0, metallicity);
-    *m_reheat = calc_sn_reheat_eff(gal, snapshot) * sn_energy / get_total_energy();
+    sn_energy = *m_stars * get_SN_energy(0, metallicity);
+    *m_reheat = calc_sn_reheat_eff(gal, snapshot) * sn_energy / get_total_SN_energy();
     sn_energy *= calc_sn_ejection_eff(gal, snapshot);
 
     // We can only reheat as much gas as we have available.  Let's inforce this

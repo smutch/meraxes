@@ -15,7 +15,7 @@ int evolve_galaxies(fof_group_t* fof_group, int snapshot, int NGal, int NFof)
 
     mlog("Doing physics...", MLOG_OPEN | MLOG_TIMERSTART);
     // pre-calculate feedback tables for each lookback snapshot
-    compute_feedback_tables(snapshot);
+    compute_stellar_feedback_tables(snapshot);
 
     for (int i_fof = 0; i_fof < NFof; i_fof++) {
         // First check to see if this FOF group is empty.  If it is then skip it.
