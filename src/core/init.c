@@ -278,34 +278,6 @@ static void read_output_snaps()
     MPI_Bcast(LastOutputSnap, 1, MPI_INT, 0, run_globals.mpi_comm);
 }
 
-static double find_min_dt(const int n_history_snaps)
-{
-    double* LTTime = run_globals.LTTime;
-    int n_snaps = run_globals.params.SnaplistLength;
-    double min_dt = LTTime[0] - LTTime[n_snaps - 1];
-
-    for (int ii = 0; ii < n_snaps - n_history_snaps; ii++) {
-        double diff = LTTime[ii] - LTTime[ii + n_history_snaps];
-        if (diff < min_dt)
-            min_dt = diff;
-    }
-
-    min_dt *= run_globals.units.UnitTime_in_Megayears / run_globals.params.Hubble_h;
-
-    return min_dt;
-}
-
-static double least_massive_stars_tracked(const int n_history_snaps)
-{
-    // Check that n_history_snaps is set to a high enough value to allow all
-    // SN-II to be tracked across the entire simulation.  This is calculated in
-    // an extremely crude fasion!
-    double min_dt = find_min_dt(n_history_snaps);
-    double m_low = sn_m_low(log10(min_dt));
-
-    return m_low;
-}
-
 void init_meraxes()
 {
     int i;
@@ -334,13 +306,6 @@ void init_meraxes()
     for (i = 0; i < snaplist_len; i++) {
         run_globals.ZZ[i] = 1 / run_globals.AA[i] - 1;
         run_globals.LTTime[i] = time_to_present(run_globals.ZZ[i]);
-    }
-
-    // check to ensure N_HISTORY_SNAPS is set to a high enough value
-    double m_low = least_massive_stars_tracked(N_HISTORY_SNAPS);
-    if (m_low > 8.0) {
-        mlog_error("N_HISTORY_SNAPS is likely not set to a high enough value!  Exiting...");
-        ABORT(EXIT_FAILURE);
     }
 
     // read in the requested forest IDs (if any)

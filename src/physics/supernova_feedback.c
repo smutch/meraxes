@@ -311,31 +311,3 @@ void contemporaneous_supernova_feedback(
         backfill_ghost_NewStars(gal, *m_stars, snapshot);
 }
 
-
-double sn_m_low(double log_dt)
-{
-    // log_dt must be in units of log10(dt/Myr)
-    // returned value is in units of Msol
-
-    // This is a fit to the H+He core burning lifetimes of Z=0.004 stars of varying
-    // masses from Table 14 of Portinari, L., Chiosi, C. & Bressan, A.
-    // Galactic chemical enrichment with new metallicity dependent stellar
-    // yields.  Astronomy and Astrophysics 334, 505--539 (1998).
-
-    double const_a = 0.74729454;
-    double const_b = -2.69790558;
-    double const_c = -4.76591765;
-    double const_d = 0.59339486;
-    double m_high = 120.0; // highest mass star produced in stellar mass burst (Msol)
-    double m_low;
-
-    m_low = pow(10.0, (const_a / log_dt) + const_b * exp(const_c / log_dt) + const_d);
-
-    // the fitting formula for m_low is only valid until t=const_d
-    if (m_low > m_high)
-        m_low = m_high;
-    else if (m_low < 0.0)
-        m_low = 0.0;
-
-    return m_low;
-}
