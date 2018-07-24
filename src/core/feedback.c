@@ -22,7 +22,7 @@ void read_feedback_tables(void) {
         char fname[STRLEN];
         double energy_unit = run_globals.units.UnitEnergy_in_cgs;
 
-        sprintf(fname, "%s/feedback_tables.hdf5", run_globals.params.StellarFeedbackDir);
+        sprintf(fname, "%s/stellar_feedback_tables.hdf5", run_globals.params.StellarFeedbackDir);
         fd = H5Fopen(fname, H5F_ACC_RDONLY, H5P_DEFAULT);
         // Read age [Myr]
         H5LTread_dataset_double(fd, "age", age);
