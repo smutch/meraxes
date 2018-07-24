@@ -15,11 +15,12 @@ void update_reservoirs_from_sf(galaxy_t* gal, double new_stars)
         gal->Sfr += new_stars / gal->dt;
         assert(gal->Sfr >= 0);
 
-        // update the stellar mass history
-        gal->NewStars[0] += new_stars;
-
         // instantaneous recycling approximation of stellar mass
         metallicity = calc_metallicity(gal->ColdGas, gal->MetalsColdGas);
+
+        // update the stellar mass history
+        gal->NewStars[0] += new_stars;
+        gal->NewMetals[0] += new_stars * metallicity;
 
         gal->ColdGas -= new_stars;
         gal->MetalsColdGas -= new_stars * metallicity;
@@ -122,8 +123,8 @@ void insitu_star_formation(galaxy_t* gal, int snapshot)
 
         // calculate the total supernova feedback which would occur if this star
         // formation happened continuously and evenly throughout the snapshot
-        contemporaneous_supernova_feedback(gal, &m_stars, snapshot, &m_reheat, &m_eject, &m_recycled, &new_metals);
-
+        contemporaneous_supernova_feedback(gal, &m_stars, snapshot, 
+                                           &m_reheat, &m_eject, &m_recycled, &new_metals);
         // update the baryonic reservoirs (note that the order we do this in will change the result!)
         update_reservoirs_from_sf(gal, m_stars);
         update_reservoirs_from_sn_feedback(gal, m_reheat, m_eject, m_recycled, new_metals);

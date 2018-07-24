@@ -41,31 +41,47 @@ SfPrescription             : 1    # C06 SF law
 SfEfficiency              : 0.08    # star formation efficiency Normalization
 SfEfficiencyScaling       : 0.0     # star formation efficiency Scaling
 SfCriticalSDNorm          : 0.2     # critical surface density normalisation factor for star formation (internal units; standard=0.37)
-SfRecycleFraction         : 0.25    # instantaneous recycle fraction (IMF dependant)
-Yield                     : 0.03    # mass of metals injected into ISM per unit star formation
-
-IMFSlope                  : -2.35   # slope of high mass end of IMF. Salpeter = -2.35, Chabrier = -2.3
-IMFNormConst              : 0.1706  # normalisation const of IMF for 0.1 < M <= 120Msol. Salpeter = 0.1706, Chabrier = 0.237912
 
 # ----- supernova feedback -----
 Flag_IRA                   : 0    # use the instantaneous recycling approximation
 Flag_ReheatToFOFGroupTemp  : 0    # try to reheat gas to the FOF group Tvir instead of just the subgroup value
+SfRecycleFraction         : 0.25    # instantaneous recycle fraction (IMF dependant) (only used when Flag_IRA=1)
+Yield                     : 0.03    # mass of metals injected into ISM per unit star formation (only used when Flag_IRA=1)
 
-EnergyPerSN               : 1e51    # energy per SN in erg/s
-eta_SNII                  : 7.4319792e-3 # total number of type II SN per solar mass of burst. 7.4319792e-3 for Salpeter, 1.18963e-2 for Chabrier
-frac_mass_SSP_above_SNII  : 0.14417 # Fraction of SSP with M>8Msol. 0.14417 for Salpeter, 0.23638 for Chabrier
+# SnModel=1:
+#   -Use the Vmax scaling of Guo et al. 2011
+#   -Additional redshift factor of ((1 + z)/4)^SnEjectionRedshiftDep (SnReheatRedshiftDep)
+#   -SnReheatScaling2 is unused
+# SnModel=2:
+#   -Energy coupling efficiency (i.e. gas reheating efficiency) follows Guo et al. 2011
+#   -Mass loading factor follows Muratov et al. 2015. Use SnReheatScaling for high Vmax scaling and
+#    SnReheatScaling2 for low Vmax scaling.
+#   -Both factors has redshift dependence of ((1 + z)/4)^SnEjectionRedshiftDep (SnReheatRedshiftDep)
 
+SnModel                   : 1
+SnEjectionRedshiftDep     : 0.0     # SN feedback gas reheating efficiency redshift scaling
 SnEjectionEff             : 0.5     # SN feedback gas reheating efficiency
 SnEjectionScaling         : 2.0     # SN feedback gas reheating efficiency scaling (with Vmax)
 SnEjectionNorm            : 70.0    # SN feedback gas reheating efficiency norm (with Vmax [internal units])
 
-SnReheatEff               : 10.0     # mass loading factor for SN feedback
+SnReheatRedshiftDep       : 0.0     # mass loading factor redshift scaling
+SnReheatEff               : 10.0    # mass loading factor for SN feedback
 SnReheatLimit             : 10.0    # maximum allowed mass loading factor for SN feedback
-SnReheatScaling           : 0.0     # mass loading factor for SN feedback scaling (with Vmax)
-SnReheatNorm              : 70.0   # mass loading factor for SN feedback scaling (with Vmax [internal units])
+SnReheatScaling           : 0.0     # mass loading factor for SN feedback scaling (with high Vmax)
+SnReheatScaling2          : 0.0     # mass loading factor for SN feedback scaling2 (with low Vmax)
+SnReheatNorm              : 70.0    # mass loading factor for SN feedback scaling (with Vmax [internal units])
 
-# ----- cooling and reincorporation -----
+# ----- cooling -----
 MaxCoolingMassFactor      : 1.0     # maximum cooling mass factor (1 -> ff time)
+
+# ----- reincorporation -----
+# ReincorporationModel=1:
+#   -Reincorporation time is proportional to the halo dynamic time
+# RecinorporationModel=2:
+#   -Reincorporation time scales with halo mass (Henriques et al. 2013), and is always larger than the
+#    halo dynamic time
+#   -ReincorporationEff adopts the definition in Henriques et al. 2013, which differs from the first case
+ReincorporationModel      : 1
 ReincorporationEff        : 0.0     # gas reincorporation efficiency from ejected component
 
 # ----- mergers -----

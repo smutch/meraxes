@@ -12,18 +12,35 @@ static void update_reservoirs_from_reincorporation(galaxy_t* gal, double reincor
 
 void reincorporate_ejected_gas(galaxy_t* gal)
 {
-    if (gal->EjectedGas > 0) {
-        double t_dyn;
-        double reincorporated;
-        double ReincorporationEff = run_globals.params.physics.ReincorporationEff;
-        fof_group_t* fof_group = gal->Halo->FOFGroup;
+    double ReincorporationEff = run_globals.params.physics.ReincorporationEff;
 
-        // allow some of the ejected gas associated with the central to be
-        // reincorporated following the prescription of Guo 2010 (which is actually
-        // almost identical to SAGE).
-        t_dyn = fof_group->Rvir / fof_group->Vvir;
-        // reincorporated = ReincorporationEff * gal->Vvir / 220.0 * gal->EjectedGas * (gal->dt / t_dyn);
-        reincorporated = ReincorporationEff * gal->EjectedGas * (gal->dt / t_dyn);
+    if (gal->EjectedGas > 0 && ReincorporationEff > 0.) {
+        int ReincorporationModel = run_globals.params.physics.ReincorporationModel;
+        fof_group_t* fof_group = gal->Halo->FOFGroup;
+        double reincorporated = 0.;
+        double t_dyn = fof_group->Rvir / fof_group->Vvir;
+        double t_rein;
+
+        switch (ReincorporationModel) {
+        case 1:
+            // allow some of the ejected gas associated with the central to be
+            // reincorporated following the prescription of Guo 2010 (which is actually
+            // almost identical to SAGE).
+            reincorporated = ReincorporationEff * gal->EjectedGas * (gal->dt / t_dyn);
+            break;
+        case 2:
+            // Following the prescription of Henriques et al. 2013
+            t_rein = ReincorporationEff/fof_group->Mvir \
+                     /(run_globals.units.UnitTime_in_Megayears/run_globals.params.Hubble_h);
+            if (t_rein < t_dyn)
+                t_rein = t_dyn;
+            reincorporated = gal->EjectedGas * (gal->dt / t_rein);
+            break;
+        default:
+            mlog_error("Unknow ReincorporationModel!");
+            ABORT(EXIT_FAILURE);
+            break;
+        }
 
         // ensure consistency
         if (reincorporated > gal->EjectedGas)

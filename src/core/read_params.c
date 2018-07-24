@@ -146,6 +146,11 @@ void read_parameter_file(char* fname, int mode)
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_STRING;
 
+            strcpy(params_tag[n_param], "StellarFeedbackDir");
+            params_addr[n_param] = run_params->StellarFeedbackDir;
+            required_tag[n_param] = 1;
+            params_type[n_param++] = PARAM_TYPE_STRING;
+
             strcpy(params_tag[n_param], "SSPModel");
             params_addr[n_param] = run_params->SSPModel;
             required_tag[n_param] = 1;
@@ -412,6 +417,16 @@ void read_parameter_file(char* fname, int mode)
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
+            strcpy(params_tag[n_param], "SnModel");
+            params_addr[n_param] = &(run_params->physics).SnModel;
+            required_tag[n_param] = 1;
+            params_type[n_param++] = PARAM_TYPE_INT;
+
+            strcpy(params_tag[n_param], "SnEjectionRedshiftDep");
+            params_addr[n_param] = &(run_params->physics).SnEjectionRedshiftDep;
+            required_tag[n_param] = 1;
+            params_type[n_param++] = PARAM_TYPE_DOUBLE;
+
             strcpy(params_tag[n_param], "SnEjectionEff");
             params_addr[n_param] = &(run_params->physics).SnEjectionEff;
             required_tag[n_param] = 1;
@@ -424,6 +439,11 @@ void read_parameter_file(char* fname, int mode)
 
             strcpy(params_tag[n_param], "SnEjectionNorm");
             params_addr[n_param] = &(run_params->physics).SnEjectionNorm;
+            required_tag[n_param] = 1;
+            params_type[n_param++] = PARAM_TYPE_DOUBLE;
+
+            strcpy(params_tag[n_param], "SnReheatRedshiftDep");
+            params_addr[n_param] = &(run_params->physics).SnReheatRedshiftDep;
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
@@ -442,10 +462,20 @@ void read_parameter_file(char* fname, int mode)
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
+            strcpy(params_tag[n_param], "SnReheatScaling2");
+            params_addr[n_param] = &(run_params->physics).SnReheatScaling2;
+            required_tag[n_param] = 1;
+            params_type[n_param++] = PARAM_TYPE_DOUBLE;
+
             strcpy(params_tag[n_param], "SnReheatNorm");
             params_addr[n_param] = &(run_params->physics).SnReheatNorm;
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_DOUBLE;
+
+            strcpy(params_tag[n_param], "ReincorporationModel");
+            params_addr[n_param] = &(run_params->physics).ReincorporationModel;
+            required_tag[n_param] = 1;
+            params_type[n_param++] = PARAM_TYPE_INT;
 
             strcpy(params_tag[n_param], "ReincorporationEff");
             params_addr[n_param] = &(run_params->physics).ReincorporationEff;
@@ -459,31 +489,6 @@ void read_parameter_file(char* fname, int mode)
 
             strcpy(params_tag[n_param], "Yield");
             params_addr[n_param] = &(run_params->physics).Yield;
-            required_tag[n_param] = 1;
-            params_type[n_param++] = PARAM_TYPE_DOUBLE;
-
-            strcpy(params_tag[n_param], "IMFSlope");
-            params_addr[n_param] = &(run_params->physics).IMFSlope;
-            required_tag[n_param] = 1;
-            params_type[n_param++] = PARAM_TYPE_DOUBLE;
-
-            strcpy(params_tag[n_param], "EnergyPerSN");
-            params_addr[n_param] = &(run_params->physics).EnergyPerSN;
-            required_tag[n_param] = 1;
-            params_type[n_param++] = PARAM_TYPE_DOUBLE;
-
-            strcpy(params_tag[n_param], "IMFNormConst");
-            params_addr[n_param] = &(run_params->physics).IMFNormConst;
-            required_tag[n_param] = 1;
-            params_type[n_param++] = PARAM_TYPE_DOUBLE;
-
-            strcpy(params_tag[n_param], "eta_SNII");
-            params_addr[n_param] = &(run_params->physics).eta_SNII;
-            required_tag[n_param] = 1;
-            params_type[n_param++] = PARAM_TYPE_DOUBLE;
-
-            strcpy(params_tag[n_param], "frac_mass_SSP_above_SNII");
-            params_addr[n_param] = &(run_params->physics).frac_mass_SSP_above_SNII;
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
