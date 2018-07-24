@@ -93,25 +93,31 @@ void compute_stellar_feedback_tables(int snapshot) {
 }
 
 
-double get_yield(int i_burst, double metals, int element) {
-    // Convert the metallicity to an integer
+inline int get_integer_metallicity(double metals) {
     int Z = (int)(metals*1000 - .5);
     if (Z < MIN_Z)
         Z = MIN_Z;
     else if (Z > MAX_Z)
         Z = MAX_Z;
-    return yield_tables_working[i_burst][Z][element];
+    return Z;
+}
+
+
+double get_recycling_fraction(int i_burst, double metals) {
+    // The recycling fraction equals to the yield of all elements including H & He
+    return yield_tables_working[i_burst][get_integer_metallicity(metals)][0];
+}
+
+
+double get_metal_yield(int i_burst, double metals) {
+    // The metal yield includes all elements execpt H & He
+    return yield_tables_working[i_burst][get_integer_metallicity(metals)][1];
 }
 
 
 double get_SN_energy(int i_burst, double metals) {
     // Convert the metallicity to an integer
-    int Z = (int)(metals*1000 - .5);
-    if (Z < MIN_Z)
-        Z = MIN_Z;
-    else if (Z > MAX_Z)
-        Z = MAX_Z;
-    return energy_tables_working[i_burst][Z];
+    return energy_tables_working[i_burst][get_integer_metallicity(metals)];
 }
 
 

@@ -718,7 +718,8 @@ double trapz_table(double *y, double *x, int nPts, double a, double b);
 // Stellar feedback related
 void read_stellar_feedback_tables(void);
 void compute_stellar_feedback_tables(int snapshot);
-double get_yield(int i_burst, double metals, int element);
+double get_recycling_fraction(int i_burst, double metals);
+double get_metal_yield(int i_burst, double metals);
 double get_SN_energy(int i_burst, double metals);
 double get_total_SN_energy(void);
 

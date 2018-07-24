@@ -186,8 +186,8 @@ void delayed_supernova_feedback(galaxy_t* gal, int snapshot)
         if (m_stars > 1e-10) {
             double metallicity = calc_metallicity(m_stars, gal->NewMetals[i_burst]);
             // Calculate recycled mass and metals by yield tables
-            m_recycled += m_stars * get_yield(i_burst, metallicity, Y_TOTAL);
-            new_metals += m_stars * get_yield(i_burst, metallicity, Y_TOTAL_METAL);
+            m_recycled += m_stars * get_recycling_fraction(i_burst, metallicity);
+            new_metals += m_stars * get_metal_yield(i_burst, metallicity);
             // Calculate SNII energy
             sn_energy += get_SN_energy(i_burst, metallicity)*m_stars;
         }
@@ -267,8 +267,8 @@ void contemporaneous_supernova_feedback(
         // Calculate recycled mass and metals by yield tables
         // Total yield includes H and He and all other elements
         // Total metal yield includes all elements except H and He
-        *m_recycled = *m_stars * get_yield(0, metallicity, Y_TOTAL);
-        *new_metals = *m_stars * get_yield(0, metallicity, Y_TOTAL_METAL);
+        *m_recycled = *m_stars * get_recycling_fraction(0, metallicity);
+        *new_metals = *m_stars * get_metal_yield(0, metallicity);
     }
     else {
         // Recycling fraction and metals yield are input parameters when using IRA
