@@ -41,10 +41,8 @@ int evolve_galaxies(fof_group_t* fof_group, int snapshot, int NGal, int NFof)
                     }
 
                     if (gal->Type < 3) {
-                        if (!Flag_IRA) {
-                            //evolve_stellar_pops(gal, snapshot);
+                        if (!Flag_IRA)
                             delayed_supernova_feedback(gal, snapshot);
-                        }
 
                         if (gal->BlackHoleAccretingColdMass > 0)
                             previous_merger_driven_BH_growth(gal);
