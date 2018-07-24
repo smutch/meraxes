@@ -352,7 +352,7 @@ void init_meraxes()
     // read in the cooling functions
     read_cooling_functions();
 
-    // read in the feedback tables
+    // read in the stellar feedback tables
     read_stellar_feedback_tables();
 
     // set RequestedMassRatioModifier and RequestedBaryonFracModifieruto be 1 first
