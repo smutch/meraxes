@@ -245,13 +245,6 @@ static void read_output_snaps()
             }
         fclose(fd);
 
-#ifdef CALC_MAGS
-        if (*nout != NOUT) {
-            mlog_error("Number of entries in output snaplist does not match NOUT!");
-            ABORT(EXIT_FAILURE);
-        }
-#endif
-
         // Loop through the read in snapshot numbers and convert any negative
         // values to positive ones ala python indexing conventions...
         // e.g. -1 -> MAXSNAPS-1 and so on...
@@ -310,9 +303,6 @@ void init_meraxes()
 
     // read in the requested forest IDs (if any)
     read_requested_forest_ids();
-
-    // read in the photometric tables if required
-    read_photometric_tables();
 
     // read in the cooling functions
     read_cooling_functions();

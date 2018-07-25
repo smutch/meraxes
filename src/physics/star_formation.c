@@ -29,10 +29,6 @@ void update_reservoirs_from_sf(galaxy_t* gal, double new_stars)
         gal->FescWeightedGSM += new_stars * run_globals.params.physics.ReionEscapeFrac;
         gal->MetalsStellarMass += new_stars * metallicity;
 
-        // update the luminosities
-        current_time = run_globals.LTTime[gal->LastIdentSnap] - 0.5 * gal->dt;
-        add_to_luminosities(gal, new_stars, metallicity, current_time);
-
         // Check the validity of the modified reservoir values.
         // Note that the ColdGas reservers *can* be negative at this point.  This
         // is because some fraction of the stars in this burst will go nova and
