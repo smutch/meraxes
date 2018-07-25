@@ -195,10 +195,6 @@ typedef struct run_params_t {
     char PhotometricTablesDir[STRLEN];
     char CoolingFuncsDir[STRLEN];
     char StellarFeedbackDir[STRLEN];
-    char SSPModel[STRLEN];
-    char IMF[STRLEN];
-    char MagSystem[STRLEN];
-    char MagBands[STRLEN];
     char ForestIDFile[STRLEN];
     char MvirCritFile[STRLEN];
     char MassRatioModifier[STRLEN];
