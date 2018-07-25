@@ -16,12 +16,6 @@
  * Definitions
  */
 
-#ifdef CALC_MAGS
-#ifndef NOUT
-#define NOUT 1
-#endif
-#endif
-
 #define N_HISTORY_SNAPS @N_HISTORY_SNAPS@
 #define MERAXES_GITREF_STR "@GITREF@"
 #define MERAXES_GITDIFF_STR "@GITDIFF@"
@@ -366,10 +360,6 @@ typedef struct fof_group_t {
 } fof_group_t;
 
 typedef struct galaxy_t {
-#ifdef CALC_MAGS
-    double Lum[MAX_PHOTO_NBANDS][NOUT];
-#endif
-
     double NewStars[N_HISTORY_SNAPS];
     double NewMetals[N_HISTORY_SNAPS];
 
@@ -454,11 +444,6 @@ typedef struct galaxy_output_t {
 
     // Unique ID for the galaxy
     unsigned long ID;
-
-#ifdef CALC_MAGS
-    float Mag[MAX_PHOTO_NBANDS];
-    float MagDust[MAX_PHOTO_NBANDS];
-#endif
 
     int Type;
     int CentralGal;
@@ -717,15 +702,6 @@ double get_recycling_fraction(int i_burst, double metals);
 double get_metal_yield(int i_burst, double metals);
 double get_SN_energy(int i_burst, double metals);
 double get_total_SN_energy(void);
-
-// Magnitude related
-void init_luminosities(galaxy_t* gal);
-void add_to_luminosities(galaxy_t* gal, double burst_mass, double metallicity, double burst_time);
-double lum_to_mag(double lum);
-void sum_luminosities(galaxy_t* parent, galaxy_t* gal, int outputbin);
-void prepare_magnitudes_for_output(galaxy_t gal, galaxy_output_t* galout, int i_snap);
-void apply_dust(int n_photo_bands, galaxy_t gal, double* LumDust, int outputbin);
-void cleanup_mags(void);
 
 // Reionization related
 void read_Mcrit_table(void);

@@ -76,8 +76,6 @@ galaxy_t* new_galaxy(int snapshot, unsigned long halo_ID)
     gal->output_index = -1;
     gal->ghost_flag = false;
 
-    init_luminosities(gal);
-
     return gal;
 }
 

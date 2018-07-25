@@ -88,7 +88,6 @@ void prepare_galaxy_for_output(
     for (int ii = 0; ii < N_HISTORY_SNAPS; ii++)
         galout->NewStars[ii] = (float)(gal.NewStars[ii]);
 
-    prepare_magnitudes_for_output(gal, galout, i_snap);
 }
 
 void calc_hdf5_props()
@@ -104,14 +103,6 @@ void calc_hdf5_props()
         int i; // dummy
 
         h5props->n_props = 49;
-
-#ifdef CALC_MAGS
-        // If we are calculating any magnitudes then increment the number of
-        // output properties appropriately.
-        int n_photo_bands = run_globals.photo->NBands;
-        h5props->n_props += 2;
-        h5props->array_nmag_f_tid = H5Tarray_create(H5T_NATIVE_FLOAT, 1, (hsize_t[]){ n_photo_bands });
-#endif
 
         // Size of a single galaxy entry.
         h5props->dst_size = sizeof(galaxy_output_t);
@@ -144,22 +135,6 @@ void calc_hdf5_props()
         h5props->field_units[i] = "None";
         h5props->field_h_conv[i] = "None";
         h5props->field_types[i++] = H5T_NATIVE_LLONG;
-
-#ifdef CALC_MAGS
-        h5props->dst_offsets[i] = HOFFSET(galaxy_output_t, Mag);
-        h5props->dst_field_sizes[i] = sizeof(float) * n_photo_bands;
-        h5props->field_names[i] = "Mag";
-        h5props->field_units[i] = "mag";
-        h5props->field_h_conv[i] = "v - 5*log10(h)";
-        h5props->field_types[i++] = h5props->array_nmag_f_tid;
-
-        h5props->dst_offsets[i] = HOFFSET(galaxy_output_t, MagDust);
-        h5props->dst_field_sizes[i] = sizeof(float) * n_photo_bands;
-        h5props->field_names[i] = "MagDust";
-        h5props->field_units[i] = "mag";
-        h5props->field_h_conv[i] = "v - 5*log10(h)";
-        h5props->field_types[i++] = h5props->array_nmag_f_tid;
-#endif
 
         h5props->dst_offsets[i] = HOFFSET(galaxy_output_t, ID);
         h5props->dst_field_sizes[i] = sizeof(galout.ID);
