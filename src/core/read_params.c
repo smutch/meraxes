@@ -151,26 +151,6 @@ void read_parameter_file(char* fname, int mode)
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_STRING;
 
-            strcpy(params_tag[n_param], "SSPModel");
-            params_addr[n_param] = run_params->SSPModel;
-            required_tag[n_param] = 1;
-            params_type[n_param++] = PARAM_TYPE_STRING;
-
-            strcpy(params_tag[n_param], "IMF");
-            params_addr[n_param] = run_params->IMF;
-            required_tag[n_param] = 1;
-            params_type[n_param++] = PARAM_TYPE_STRING;
-
-            strcpy(params_tag[n_param], "MagSystem");
-            params_addr[n_param] = run_params->MagSystem;
-            required_tag[n_param] = 1;
-            params_type[n_param++] = PARAM_TYPE_STRING;
-
-            strcpy(params_tag[n_param], "MagBands");
-            params_addr[n_param] = run_params->MagBands;
-            required_tag[n_param] = 1;
-            params_type[n_param++] = PARAM_TYPE_STRING;
-
             strcpy(params_tag[n_param], "FileNameGalaxies");
             params_addr[n_param] = run_params->FileNameGalaxies;
             required_tag[n_param] = 1;
