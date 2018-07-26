@@ -214,6 +214,19 @@ target_link_libraries(meraxes_lib PRIVATE m)
 find_package(MPI REQUIRED)
 target_link_libraries(meraxes_lib PUBLIC MPI::MPI_C)
 
+# MAGNITUDES
+if(CALC_MAGS)
+    add_definitions(-DCALC_MAGS)
+    file(GLOB SECTOR_SOURCES ${SECTOR_ROOT}/*.c ${SECTOR}/sector.h)
+    add_library(sector SHARED ${SECTOR_SOURCES})
+    target_link_libraries(meraxes_lib PUBLIC sector)
+    target_include_directories(meraxes_lib PUBLIC ${SECTOR_ROOT})
+    install(TARGETS sector EXPORT MeraxesConfig
+        DESTINATION lib
+        PUBLIC_HEADER DESTINATION include
+        COMPONENT lib)
+endif()
+
 # MLOG
 if(NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/mlog/mlog.c")
     message(STATUS "Checking out mlog submodule")
@@ -276,4 +289,8 @@ endif()
 
 # Exports for other codes to build against this version of Meraxes
 install(EXPORT MeraxesConfig DESTINATION share/meraxes/cmake)
-export(TARGETS meraxes_lib mlog FILE MeraxesConfig.cmake)
+if(CALC_MAGS)
+    export(TARGETS meraxes_lib mlog sector FILE MeraxesConfig.cmake)
+else()
+    export(TARGETS meraxes_lib mlog FILE MeraxesConfig.cmake)
+endif()
