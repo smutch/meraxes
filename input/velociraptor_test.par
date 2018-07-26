@@ -14,14 +14,6 @@ BoxSize           : 40.0
 VolumeFactor      : 1.0
 
 #------------------------------------------
-#----- Photometric Tables  ----------------
-#------------------------------------------
-SSPModel             : bc03
-IMF                  : salpeter
-MagSystem            : vega
-MagBands             : Bbv,V,Rc,Ic,K
-
-#------------------------------------------
 #----- Code options -----------------------
 #------------------------------------------
 NSteps                 : 1  # Current version of code requires NSteps=1
