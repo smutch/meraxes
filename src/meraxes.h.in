@@ -416,6 +416,10 @@ typedef struct galaxy_output_t {
     // Unique ID for the galaxy
     unsigned long ID;
 
+    #ifdef CALC_MAGS
+    float Mag[MAGS_N_BANDS];
+    #endif
+
     int Type;
     int CentralGal;
     int GhostFlag;
@@ -703,6 +707,10 @@ void save_reion_input_grids(int snapshot);
 void save_reion_output_grids(int snapshot);
 bool check_if_reionization_ongoing(void);
 void write_single_grid(const char* fname, float* grid, const char* grid_name, bool padded_flag, bool create_file_flag);
+
+#ifdef CALC_MAGS
+void cleanup_mags(void);
+#endif
 
 // MCMC related
 // meraxes_mhysa_hook must be implemented by the calling code (Mhysa)!

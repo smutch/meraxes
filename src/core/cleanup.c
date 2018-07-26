@@ -17,6 +17,10 @@ void cleanup()
 
     free_halo_storage();
 
+    #ifdef CALC_MAGS
+    cleanup_mags();
+    #endif
+
     if (run_globals.RequestedForestId)
         free(run_globals.RequestedForestId);
 

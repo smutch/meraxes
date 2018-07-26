@@ -91,6 +91,10 @@ void prepare_galaxy_for_output(
     for (int ii = 0; ii < N_HISTORY_SNAPS; ii++)
         galout->NewStars[ii] = (float)(gal.NewStars[ii]);
 
+    #ifdef CALC_MAGS
+    for(int i_bands = 0; i_bands < MAGS_N_BANDS; ++i_bands)
+        galout->Mag[i_bands] = -18;
+    #endif
 }
 
 void calc_hdf5_props()
@@ -106,6 +110,11 @@ void calc_hdf5_props()
         int i; // dummy
 
         h5props->n_props = 47;
+
+        #ifdef CALC_MAGS
+        h5props->n_props += 1;
+        h5props->array_nmag_f_tid = H5Tarray_create(H5T_NATIVE_FLOAT, 1, (hsize_t[]){ MAGS_N_BANDS });
+        #endif
 
         // Size of a single galaxy entry.
         h5props->dst_size = sizeof(galaxy_output_t);
@@ -327,6 +336,15 @@ void calc_hdf5_props()
         h5props->field_units[i] = "solMass/yr";
         h5props->field_h_conv[i] = "None";
         h5props->field_types[i++] = H5T_NATIVE_FLOAT;
+
+        #ifdef CALC_MAGS
+        h5props->dst_offsets[i] = HOFFSET(galaxy_output_t, Mag);
+        h5props->dst_field_sizes[i] = sizeof(galout.Mag);
+        h5props->field_names[i] = "Mag";
+        h5props->field_units[i] = "mag";
+        h5props->field_h_conv[i] = "None";
+        h5props->field_types[i++] = h5props->array_nmag_f_tid;
+        #endif
 
         h5props->dst_offsets[i] = HOFFSET(galaxy_output_t, EjectedGas);
         h5props->dst_field_sizes[i] = sizeof(galout.EjectedGas);
