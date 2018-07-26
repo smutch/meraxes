@@ -21,12 +21,6 @@
 // ======================================================
 // Don't change these unless you know what you are doing!
 #define STRLEN 256 //!< Default string length
-#ifndef MAX_PHOTO_NBANDS
-#define MAX_PHOTO_NBANDS 5
-#endif
-#ifndef N_PHOTO_JUMPS
-#define N_PHOTO_JUMPS 1000
-#endif
 // ======================================================
 
 // Define things used for aborting exceptions
