@@ -273,18 +273,6 @@ typedef struct hdf5_output_t {
     // TOTAL : 52 + 4 padding (must be multiple of 8)
 } hdf5_output_t;
 
-typedef struct phototabs_t {
-    int JumpTable[N_PHOTO_JUMPS];
-    char (*MagBands)[5];
-    float* Table;
-    float* Ages;
-    float* Metals;
-    float JumpFactor;
-    int NAges;
-    int NBands;
-    int NMetals;
-} phototabs_t;
-
 typedef struct gal_to_slab_t {
     int index;
     struct galaxy_t* galaxy;
@@ -559,7 +547,6 @@ typedef struct run_globals_t {
     int** SnapshotIndexLookup;
     float** SnapshotDeltax;
     trees_info_t* SnapshotTreesInfo;
-    phototabs_t* photo;
     struct galaxy_t* FirstGal;
     struct galaxy_t* LastGal;
     gsl_rng* random_generator;
