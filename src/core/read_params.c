@@ -136,10 +136,22 @@ void read_parameter_file(char* fname, int mode)
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_STRING;
 
+            #ifdef CALC_MAGS
             strcpy(params_tag[n_param], "PhotometricTablesDir");
             params_addr[n_param] = run_params->PhotometricTablesDir;
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_STRING;
+
+            strcpy(params_tag[n_param], "TargetSnaps");
+            params_addr[n_param] = run_params->TargetSnaps;
+            required_tag[n_param] = 1;
+            params_type[n_param++] = PARAM_TYPE_STRING;
+
+            strcpy(params_tag[n_param], "RestBands");
+            params_addr[n_param] = run_params->RestBands;
+            required_tag[n_param] = 1;
+            params_type[n_param++] = PARAM_TYPE_STRING;
+            #endif
 
             strcpy(params_tag[n_param], "CoolingFuncsDir");
             params_addr[n_param] = run_params->CoolingFuncsDir;

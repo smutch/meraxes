@@ -186,7 +186,11 @@ typedef struct run_params_t {
     char SimulationDir[STRLEN];
     char CatalogFilePrefix[STRLEN];
     char FileWithOutputSnaps[STRLEN];
+    #ifdef CALC_MAGS
     char PhotometricTablesDir[STRLEN];
+    char TargetSnaps[STRLEN];
+    char RestBands[STRLEN];
+    #endif
     char CoolingFuncsDir[STRLEN];
     char StellarFeedbackDir[STRLEN];
     char ForestIDFile[STRLEN];
@@ -712,6 +716,7 @@ bool check_if_reionization_ongoing(void);
 void write_single_grid(const char* fname, float* grid, const char* grid_name, bool padded_flag, bool create_file_flag);
 
 #ifdef CALC_MAGS
+void init_magnitudes(void);
 void cleanup_mags(void);
 #endif
 

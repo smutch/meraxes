@@ -310,6 +310,10 @@ void init_meraxes()
     // read in the stellar feedback tables
     read_stellar_feedback_tables();
 
+    #ifdef CALC_MAGS
+    init_magnitudes();
+    #endif
+
     // set RequestedMassRatioModifier and RequestedBaryonFracModifieruto be 1 first
     // it will be set to -1 later if MassRatioModifier or BaryonFracModifier is not specified
     run_globals.RequestedMassRatioModifier = 1;
