@@ -92,8 +92,8 @@ void prepare_galaxy_for_output(
         galout->NewStars[ii] = (float)(gal.NewStars[ii]);
 
     #ifdef CALC_MAGS
-    for(int i_bands = 0; i_bands < MAGS_N_BANDS; ++i_bands)
-        galout->Mag[i_bands] = -18;
+    for(int i_band = 0; i_band < MAGS_N_BANDS; ++i_band)
+        galout->Mag[i_band] = -18;
     #endif
 }
 
