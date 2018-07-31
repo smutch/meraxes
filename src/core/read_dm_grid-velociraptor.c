@@ -1,5 +1,5 @@
-#include "meraxes.h"
 #include "hdf5_hl.h"
+#include "meraxes.h"
 #include <assert.h>
 #include <fftw3-mpi.h>
 #include <math.h>
@@ -27,7 +27,7 @@ int read_dm_grid__velociraptor(
     H5Pclose(plist_id);
     herr_t status = -1;
 
-    int n_cell[3] = {0, 0, 0};
+    int n_cell[3] = { 0, 0, 0 };
     status = H5LTget_attribute_int(file_id, "/", "Ngrid_X", &n_cell[0]);
     assert(status >= 0);
     status = H5LTget_attribute_int(file_id, "/", "Ngrid_Y", &n_cell[1]);
@@ -48,9 +48,8 @@ int read_dm_grid__velociraptor(
     status = H5LTget_attribute_double(file_id, "/", "BoxSize", &box_size);
     assert(status >= 0);
 
-
     assert((n_cell[0] == n_cell[1]) && (n_cell[1] == n_cell[2])
-            && "Input grids are not cubic!");
+        && "Input grids are not cubic!");
 
     mlog("Reading VELOCIraptor grid for snapshot %d", MLOG_OPEN | MLOG_TIMERSTART, snapshot);
     mlog("n_cell = [%d, %d, %d]", MLOG_MESG, n_cell[0], n_cell[1], n_cell[2]);
@@ -64,7 +63,7 @@ int read_dm_grid__velociraptor(
 
     ptrdiff_t slab_nix_file, slab_ix_start_file;
     ptrdiff_t slab_n_complex_file = fftwf_mpi_local_size_3d(n_cell[0], n_cell[1], n_cell[2] / 2 + 1, run_globals.mpi_comm, &slab_nix_file, &slab_ix_start_file);
-    fftwf_complex* slab_file = fftwf_alloc_complex(slab_n_complex_file);
+    fftwf_complex* slab_file = fftwf_alloc_complex((size_t)slab_n_complex_file);
     ptrdiff_t slab_ni_file = slab_nix_file * n_cell[1] * n_cell[2];
 
     // Initialise (just in case!)
@@ -75,30 +74,30 @@ int read_dm_grid__velociraptor(
         slab[ii] = 0.0;
 
     // read in the data
-    // open the dataset 
+    // open the dataset
     hid_t dset_id = H5Dopen(file_id, "Density", H5P_DEFAULT);
 
     // select a hyperslab in the filespace
-    hsize_t file_dims[3] = { n_cell[0], n_cell[1], n_cell[2] };
+    hsize_t file_dims[3] = { (hsize_t)n_cell[0], (hsize_t)n_cell[1], (hsize_t)n_cell[2] };
     hid_t fspace_id = H5Screate_simple(3, file_dims, NULL);
-    hsize_t start[3] = { slab_ix_start_file, 0, 0 };
-    hsize_t count[3] = { slab_nix_file, n_cell[1], n_cell[2] };
+    hsize_t start[3] = { (hsize_t)slab_ix_start_file, 0, 0 };
+    hsize_t count[3] = { (hsize_t)slab_nix_file, (hsize_t)n_cell[1], (hsize_t)n_cell[2] };
     H5Sselect_hyperslab(fspace_id, H5S_SELECT_SET, start, NULL, count, NULL);
 
     // create the memspace
-    hsize_t mem_dims[3] = { slab_nix_file, n_cell[1], n_cell[2] };
+    hsize_t mem_dims[3] = { (hsize_t)slab_nix_file, (hsize_t)n_cell[1], (hsize_t)n_cell[2] };
     hid_t memspace_id = H5Screate_simple(3, mem_dims, NULL);
 
     // We are currently assuming the grids to be float, but the VELOCIraptor
     // grids are doubles.  For the moment, let's just read the doubles into a
     // buffer and change them to float appropriately.
     double* real_buffer = malloc(sizeof(double) * slab_ni_file);
-    for(int ii=0; ii < (int)slab_ni_file; ii++)
+    for (int ii = 0; ii < (int)slab_ni_file; ii++)
         real_buffer[ii] = 0.0;
 
     plist_id = H5Pcreate(H5P_DATASET_XFER);
     H5Pset_dxpl_mpio(plist_id, H5FD_MPIO_COLLECTIVE);
-    H5Dread(dset_id, H5T_NATIVE_DOUBLE, memspace_id, fspace_id, plist_id, real_buffer); 
+    H5Dread(dset_id, H5T_NATIVE_DOUBLE, memspace_id, fspace_id, plist_id, real_buffer);
     H5Pclose(plist_id);
 
     H5Sclose(memspace_id);
@@ -107,11 +106,10 @@ int read_dm_grid__velociraptor(
     H5Fclose(file_id);
 
     // move the doubles into the float array, with inplace fftw padding
-    for (int ii = slab_nix_file - 1; ii >= 0; ii--)
+    for (int ii = (int)(slab_nix_file - 1); ii >= 0; ii--)
         for (int jj = n_cell[1] - 1; jj >= 0; jj--)
             for (int kk = n_cell[2] - 1; kk >= 0; kk--)
                 ((float*)slab_file)[grid_index(ii, jj, kk, n_cell[0], INDEX_PADDED)] = (float)(real_buffer[grid_index(ii, jj, kk, n_cell[0], INDEX_REAL)]);
-
 
     free(real_buffer);
 

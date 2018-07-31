@@ -1,5 +1,4 @@
 #include "meraxes.h"
-#include <assert.h>
 #include <math.h>
 
 void evolve_stellar_pops(galaxy_t* gal, int snapshot)

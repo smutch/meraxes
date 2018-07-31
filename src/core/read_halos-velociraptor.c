@@ -1,6 +1,5 @@
 #include "meraxes.h"
 #include <assert.h>
-#include <gsl/gsl_sort_int.h>
 #include <hdf5_hl.h>
 #include <math.h>
 
@@ -47,7 +46,7 @@ static int id_to_ind(long id)
 
 static int id_to_snap(long id)
 {
-    return id / 1e12l;
+    return (int)(id / 1e12l);
 }
 
 static void inline convert_input_virial_props(double* Mvir, double* Rvir, double* Vvir,
@@ -58,8 +57,7 @@ static void inline convert_input_virial_props(double* Mvir, double* Rvir, double
     if (*Mvir == -1) {
         assert(len > 0);
         *Mvir = calculate_Mvir(*Mvir, len);
-    }
-    else {
+    } else {
         if (fof_flag && (run_globals.RequestedMassRatioModifier == 1)) {
             // Modifier the FoF mass and update the virial radius
             assert(FOFMvirModifier != NULL);
@@ -238,8 +236,7 @@ void read_trees__velociraptor(int snapshot, halo_t* halos, int* n_halos, fof_gro
 
                 halo->FOFGroup = &(fof_groups[*n_fof_groups]);
                 fof_groups[(*n_fof_groups)++].FirstHalo = halo;
-            }
-            else {
+            } else {
                 // We can take advantage of the fact that host halos always seem to appear before their subhalos in the
                 // trees to immediately connect FOF group members.
                 int host_index = id_to_ind(tree_entry.hostHaloID);
@@ -274,9 +271,9 @@ void read_trees__velociraptor(int snapshot, halo_t* halos, int* n_halos, fof_gro
             halo->Vvir = -1;
             convert_input_virial_props(&halo->Mvir, &halo->Rvir, &halo->Vvir, NULL, -1, snapshot, false);
 
-            halo->AngMom[0] = tree_entry.Lx / tree_entry.Mass_tot;
-            halo->AngMom[1] = tree_entry.Ly / tree_entry.Mass_tot;
-            halo->AngMom[2] = tree_entry.Lz / tree_entry.Mass_tot;
+            halo->AngMom[0] = (float)(tree_entry.Lx / tree_entry.Mass_tot);
+            halo->AngMom[1] = (float)(tree_entry.Ly / tree_entry.Mass_tot);
+            halo->AngMom[2] = (float)(tree_entry.Lz / tree_entry.Mass_tot);
 
             halo->Galaxy = NULL;
 

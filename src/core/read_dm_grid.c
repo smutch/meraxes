@@ -1,9 +1,5 @@
 #include "meraxes.h"
-#include <assert.h>
-#include <complex.h>
 #include <fftw3-mpi.h>
-#include <fftw3.h>
-#include <math.h>
 
 double calc_resample_factor(int n_cell[3])
 {
@@ -17,10 +13,8 @@ double calc_resample_factor(int n_cell[3])
         }
         mlog("Using resample factor = %.3f", MLOG_MESG, resample_factor);
         return resample_factor;
-    }
-    else
+    } else
         return 1.0;
-
 }
 
 void smooth_grid(double resample_factor, int n_cell[3], fftwf_complex* slab, ptrdiff_t slab_n_complex, ptrdiff_t slab_ix_start, ptrdiff_t slab_nix)
@@ -38,7 +32,10 @@ void smooth_grid(double resample_factor, int n_cell[3], fftwf_complex* slab, ptr
         double total_n_cells = n_cell[0] * n_cell[1] * n_cell[2];
         for (int ii = 0; ii < (int)slab_n_complex; ii++)
             slab[ii] /= total_n_cells;
-        filter(slab, slab_ix_start, slab_nix, n_cell[0], run_globals.params.BoxSize / (double)run_globals.params.ReionGridDim / 2.0);
+        filter(slab,
+            (int)slab_ix_start,
+            (int)slab_nix, n_cell[0],
+            (float)(run_globals.params.BoxSize / (double)run_globals.params.ReionGridDim / 2.0));
 
         plan = fftwf_mpi_plan_dft_c2r_3d(n_cell[0], n_cell[1], n_cell[2], slab, (float*)slab, run_globals.mpi_comm, FFTW_ESTIMATE);
         fftwf_execute(plan);
@@ -54,8 +51,7 @@ int load_cached_deltax_slab(float* slab, int snapshot)
         memcpy(slab, run_globals.SnapshotDeltax[snapshot], sizeof(float) * slab_n_complex * 2);
         mlog("Loaded deltax slab from cache.", MLOG_MESG);
         return 0;
-    }
-    else
+    } else
         return 1;
 }
 
@@ -66,11 +62,10 @@ int cache_deltax_slab(float* slab, int snapshot)
         ptrdiff_t slab_n_complex = run_globals.reion_grids.slab_n_complex[run_globals.mpi_rank];
         ptrdiff_t mem_size = sizeof(float) * slab_n_complex * 2;
 
-        *cache = fftwf_alloc_real(mem_size);
+        *cache = fftwf_alloc_real((size_t)mem_size);
         memcpy(*cache, slab, mem_size);
         return 0;
-    }
-    else
+    } else
         return 1;
 }
 

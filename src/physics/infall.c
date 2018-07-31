@@ -75,8 +75,7 @@ void add_infall_to_hot(galaxy_t* central, double infall_mass)
                 strip_mass = -central->EjectedGas;
                 central->EjectedGas = 0.0;
                 central->MetalsEjectedGas = 0.0;
-            }
-            else {
+            } else {
                 central->MetalsEjectedGas -= metallicity * strip_mass;
                 strip_mass = 0.0;
             }
@@ -90,8 +89,7 @@ void add_infall_to_hot(galaxy_t* central, double infall_mass)
             if (central->HotGas < 0) {
                 central->HotGas = 0.0;
                 central->MetalsHotGas = 0.0;
-            }
-            else
+            } else
                 central->MetalsHotGas -= metallicity * strip_mass;
         }
     }

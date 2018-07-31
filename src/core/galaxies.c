@@ -1,14 +1,13 @@
 #include "meraxes.h"
 #include "tree_flags.h"
 #include <assert.h>
-#include <math.h>
 
 galaxy_t* new_galaxy(int snapshot, unsigned long halo_ID)
 {
     galaxy_t* gal = malloc(sizeof(galaxy_t));
 
     // Initialise the properties
-    gal->ID = snapshot * 1e10 + halo_ID;
+    gal->ID = (unsigned long)(snapshot * 1e10 + halo_ID);
     gal->Type = -1;
     gal->OldType = -1;
     gal->SnapSkipCounter = 0;
@@ -64,8 +63,8 @@ galaxy_t* new_galaxy(int snapshot, unsigned long halo_ID)
     gal->MergerStartRadius = 0.0;
 
     for (int ii = 0; ii < 3; ii++) {
-        gal->Pos[ii] = -99999.9;
-        gal->Vel[ii] = -99999.9;
+        gal->Pos[ii] = (float)-99999.9;
+        gal->Vel[ii] = (float)-99999.9;
     }
 
     for (int ii = 0; ii < N_HISTORY_SNAPS; ii++)
@@ -96,8 +95,7 @@ void copy_halo_props_to_galaxy(halo_t* halo, galaxy_t* gal)
     if (gal->Type == 0) {
         gal->Vmax = halo->Vmax;
         gal->DiskScaleLength = gal->Spin * gal->Rvir / sqrt_2;
-    }
-    else {
+    } else {
         if (!run_globals.params.physics.Flag_FixVmaxOnInfall)
             gal->Vmax = halo->Vmax;
         if (!run_globals.params.physics.Flag_FixDiskRadiusOnInfall)
@@ -266,8 +264,7 @@ void kill_galaxy(
         while ((cur_gal->NextGalInHalo != NULL) && (cur_gal->NextGalInHalo != gal))
             cur_gal = cur_gal->NextGalInHalo;
         cur_gal->NextGalInHalo = gal->NextGalInHalo;
-    }
-    else {
+    } else {
         // If it is a type 0 or 1 (i.e. first galaxy in it's halo) and there are
         // other galaxies in this halo, reset the FirstGalInHalo pointer so that
         // the satellites can be killed later

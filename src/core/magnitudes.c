@@ -1,6 +1,4 @@
 #include "meraxes.h"
-#include <hdf5.h>
-#include <hdf5_hl.h>
 #include <math.h>
 
 void init_luminosities(galaxy_t* gal)
@@ -171,8 +169,7 @@ void read_photometric_tables()
             if (group > 0) {
                 i_group++;
                 H5Gclose(group);
-            }
-            else
+            } else
                 mlog_warning("Requested magnitude band `%s' not preset in input photometric tables - skipping...", MLOG_MESG, bp);
 
             bp = strtok(NULL, " ,\n");
@@ -182,8 +179,7 @@ void read_photometric_tables()
         if (i_group > MAX_PHOTO_NBANDS) {
             mlog_error("Requested number of valid magnitude bands exceeds maximum (%d > %d)!", MLOG_MESG, i_group, MAX_PHOTO_NBANDS);
             ABORT(EXIT_FAILURE);
-        }
-        else if (i_group == 0) {
+        } else if (i_group == 0) {
             mlog("No valid magnitude bands requested!", MLOG_MESG);
             mlog("Exiting... Please recompile with CALC_MAGS=0...", MLOG_MESG);
             ABORT(EXIT_FAILURE);
@@ -315,14 +311,12 @@ static void find_interpolated_lum(
             k = n_ages - 2;
             fa1 = 0;
             fa2 = 1;
-        }
-        else if (age < AgeTab[1]) // age younger than 1st enty, take 1st entry
+        } else if (age < AgeTab[1]) // age younger than 1st enty, take 1st entry
         {
             k = 0;
             fa1 = 0;
             fa2 = 1;
-        }
-        else {
+        } else {
             idx = get_jump_index(age, AgeTab, JumpTable, JumpFactor);
             while (AgeTab[idx + 1] < age)
                 idx++;
@@ -331,8 +325,7 @@ static void find_interpolated_lum(
             fa1 = 1 - frac;
             fa2 = frac;
         }
-    }
-    else // this lies in the past
+    } else // this lies in the past
     {
         k = 0;
         fa1 = 0;
@@ -347,14 +340,12 @@ static void find_interpolated_lum(
         i = n_metals - 2;
         fm1 = 0;
         fm2 = 1;
-    }
-    else if (metallicity < Metals[0]) // age younger than 1st enty, take 1st entry
+    } else if (metallicity < Metals[0]) // age younger than 1st enty, take 1st entry
     {
         i = 0;
         fm1 = 1;
         fm2 = 0;
-    }
-    else {
+    } else {
         idx = 0;
         while (Metals[idx + 1] < metallicity)
             idx++;
@@ -400,10 +391,7 @@ void add_to_luminosities(
             &metals_ind, &age_ind, &f1, &f2, &fmet1, &fmet2);
 
         for (int i_band = 0; i_band < n_bands; i_band++)
-            gal->Lum[i_band][outputbin] += X1 * exp(X2 * (fmet1 * (f1 * PhotoTab[phototab_index(photo, i_band, metals_ind, age_ind)]
-                                                                      + f2 * PhotoTab[phototab_index(photo, i_band, metals_ind, age_ind + 1)])
-                                                             + fmet2 * (f1 * PhotoTab[phototab_index(photo, i_band, metals_ind + 1, age_ind)]
-                                                                           + f2 * PhotoTab[phototab_index(photo, i_band, metals_ind + 1, age_ind + 1)])));
+            gal->Lum[i_band][outputbin] += X1 * exp(X2 * (fmet1 * (f1 * PhotoTab[phototab_index(photo, i_band, metals_ind, age_ind)] + f2 * PhotoTab[phototab_index(photo, i_band, metals_ind, age_ind + 1)]) + fmet2 * (f1 * PhotoTab[phototab_index(photo, i_band, metals_ind + 1, age_ind)] + f2 * PhotoTab[phototab_index(photo, i_band, metals_ind + 1, age_ind + 1)])));
     }
 
 #else

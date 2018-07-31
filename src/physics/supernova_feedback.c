@@ -93,8 +93,7 @@ static inline double calc_ejected_mass(
             // subhalo then how much can we reheat?
             m_eject = 0.0;
             *m_reheat = 2.0 * sn_energy / Vvir_sqrd;
-        }
-        else if (fof_Vvir > 0) {
+        } else if (fof_Vvir > 0) {
             // If we were able to reheat all of the mass with energy left to spare,
             // is there enough energy to further eject gas from the host *FOF group*?
             Vvir_sqrd = fof_Vvir * fof_Vvir;

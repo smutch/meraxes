@@ -1,8 +1,6 @@
 #include "meraxes.h"
 #include "parse_paramfile.h"
 #include <fftw3-mpi.h>
-#include <fftw3.h>
-#include <hdf5.h>
 
 void cleanup()
 {

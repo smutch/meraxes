@@ -9,15 +9,13 @@ static void check_problem_params(run_params_t* run_params)
     }
 }
 
-static void inline store_params(
-    entry_t entry[PARAM_MAX_ENTRIES],
+static void store_params(entry_t entry[123],
     int n_entries,
     char** params_tag,
     int n_param,
-    int used_tag[PARAM_MAX_ENTRIES],
+    int used_tag[123],
     int* params_type,
-    void** params_addr,
-    run_params_t* run_params)
+    void** params_addr)
 {
     int level = 0;
     char prefix[16] = "\0";
@@ -59,7 +57,7 @@ static void inline store_params(
             break;
 
         case PARAM_TYPE_FLOAT:
-            *((float*)params_addr[tag_index]) = atof(entry[i_entry].value);
+            *((float*)params_addr[tag_index]) = (float)atof(entry[i_entry].value);
             break;
 
         case PARAM_TYPE_STRING:
@@ -711,11 +709,11 @@ void read_parameter_file(char* fname, int mode)
 
         // Parse the user parameter file first
         n_entries = parse_paramfile(fname, entry);
-        store_params(entry, n_entries, params_tag, n_param, used_tag, params_type, params_addr, run_params);
+        store_params(entry, n_entries, params_tag, n_param, used_tag, params_type, params_addr);
 
         // Now parse the default parameter file
         n_entries = parse_paramfile(run_params->DefaultsFile, entry);
-        store_params(entry, n_entries, params_tag, n_param, used_tag, params_type, params_addr, run_params);
+        store_params(entry, n_entries, params_tag, n_param, used_tag, params_type, params_addr);
 
         // Check to see if we are missing any required parameters
         for (ii = 0; ii < n_param; ii++)
@@ -731,23 +729,23 @@ void read_parameter_file(char* fname, int mode)
 
                     switch (params_type[ii]) {
                     case PARAM_TYPE_DOUBLE:
-                        mlog("%g", MLOG_MESG|MLOG_CONT, *((double*)(params_addr[ii])));
+                        mlog("%g", MLOG_MESG | MLOG_CONT, *((double*)(params_addr[ii])));
                         break;
 
                     case PARAM_TYPE_FLOAT:
-                        mlog("%g", MLOG_MESG|MLOG_CONT, *((float*)(params_addr[ii])));
+                        mlog("%g", MLOG_MESG | MLOG_CONT, *((float*)(params_addr[ii])));
                         break;
 
                     case PARAM_TYPE_STRING:
-                        mlog("%s", MLOG_MESG|MLOG_CONT, (char*)params_addr[ii]);
+                        mlog("%s", MLOG_MESG | MLOG_CONT, (char*)params_addr[ii]);
                         break;
 
                     case PARAM_TYPE_INT:
-                        mlog("%d", MLOG_MESG|MLOG_CONT, *((int*)(params_addr[ii])));
+                        mlog("%d", MLOG_MESG | MLOG_CONT, *((int*)(params_addr[ii])));
                         break;
 
                     case PARAM_TYPE_LONGLONG:
-                        mlog("%lld", MLOG_MESG|MLOG_CONT, *((long long*)(params_addr[ii])));
+                        mlog("%lld", MLOG_MESG | MLOG_CONT, *((long long*)(params_addr[ii])));
                         break;
 
                     default:
@@ -757,7 +755,7 @@ void read_parameter_file(char* fname, int mode)
                 }
         }
 
-        ii = strlen(run_params->OutputDir);
+        ii = (int)strlen(run_params->OutputDir);
         if (ii > 0)
             if (run_params->OutputDir[ii - 1] != '/')
                 strcat(run_params->OutputDir, "/");

@@ -1,7 +1,5 @@
 #include "meraxes.h"
-#include <assert.h>
 #include <fftw3-mpi.h>
-#include <fftw3.h>
 #include <math.h>
 
 /*
@@ -31,17 +29,17 @@ int delta_T_ps(
     // ------------------------------------------------------------------------------------------------------
 
     float min = 1e3;
-    float max = -1e3;
+    float max = (float)-1e3;
     double ave = 0.0;
     int ReionGridDim = run_globals.params.ReionGridDim;
     int local_nix = (int)(run_globals.reion_grids.slab_nix[run_globals.mpi_rank]);
 
     // Set some redshift dependant values
-    float redshift = run_globals.ZZ[snapshot];
-    float Hubble_h = run_globals.params.Hubble_h;
-    float OmegaM = run_globals.params.OmegaM;
-    float OmegaB = OmegaM * run_globals.params.BaryonFrac;
-    float const_factor = 27.0 * (OmegaB * Hubble_h * Hubble_h / 0.023) * sqrt((0.15 / OmegaM / Hubble_h / Hubble_h) * (1.0 + redshift) / 10.0);
+    float redshift = (float)run_globals.ZZ[snapshot];
+    float Hubble_h = (float)run_globals.params.Hubble_h;
+    float OmegaM = (float)run_globals.params.OmegaM;
+    float OmegaB = (float)(OmegaM * run_globals.params.BaryonFrac);
+    float const_factor = (float)(27.0 * (OmegaB * Hubble_h * Hubble_h / 0.023) * sqrt((0.15 / OmegaM / Hubble_h / Hubble_h) * (1.0 + redshift) / 10.0));
 
     // delta_T grid (same size as the bubble box)
     // ------------------------------------------------------------------------------------------------------
@@ -60,7 +58,7 @@ int delta_T_ps(
                 if (pixel_x_HI > ABS_TOL)
                     temp_ct++;
 
-                delta_T[index] = const_factor * pixel_x_HI * (1.0 + pixel_deltax);
+                delta_T[index] = (float)(const_factor * pixel_x_HI * (1.0 + pixel_deltax));
 
                 if (max < delta_T[index])
                     max = delta_T[index];
@@ -82,7 +80,7 @@ int delta_T_ps(
     // ------------------------------------------------------------------------------------------------------
 
     float k_factor = 1.5;
-    float delta_k = run_globals.params.ReionPowerSpecDeltaK;
+    float delta_k = (float)run_globals.params.ReionPowerSpecDeltaK;
     float k_first_bin_ceil = delta_k;
     float k_max = delta_k * ReionGridDim;
 
@@ -109,15 +107,15 @@ int delta_T_ps(
         in_bin_ct[ii] = 0;
     }
 
-    fftwf_complex* deldel_T = fftwf_alloc_complex(run_globals.reion_grids.slab_n_complex[run_globals.mpi_rank]);
+    fftwf_complex* deldel_T = fftwf_alloc_complex((size_t)run_globals.reion_grids.slab_n_complex[run_globals.mpi_rank]);
 
     // Fill-up the real-space of the deldel box
     // Note: we include the V/N factor for the scaling after the fft
-    float volume = powf(run_globals.params.BoxSize, 3);
+    float volume = powf((float)run_globals.params.BoxSize, 3);
     for (int ii = 0; ii < local_nix; ii++)
         for (int jj = 0; jj < ReionGridDim; jj++)
             for (int kk = 0; kk < ReionGridDim; kk++)
-                ((float*)deldel_T)[grid_index(ii, jj, kk, ReionGridDim, INDEX_PADDED)] = (delta_T[grid_index(ii, jj, kk, ReionGridDim, INDEX_REAL)] / ave - 1) * volume / (float)tot_num_pixels;
+                ((float*)deldel_T)[grid_index(ii, jj, kk, ReionGridDim, INDEX_PADDED)] = (float)((delta_T[grid_index(ii, jj, kk, ReionGridDim, INDEX_REAL)] / ave - 1) * volume / (float)tot_num_pixels);
 
     // Transform to k-space
     fftwf_plan plan = fftwf_mpi_plan_dft_r2c_3d(ReionGridDim, ReionGridDim, ReionGridDim, (float*)deldel_T,
@@ -140,7 +138,7 @@ int delta_T_ps(
             for (int n_z = 0; n_z <= HII_middle; n_z++) {
                 float k_z = n_z * delta_k;
 
-                k_mag = sqrt(k_x * k_x + k_y * k_y + k_z * k_z);
+                k_mag = (float)sqrt(k_x * k_x + k_y * k_y + k_z * k_z);
 
                 // Now go through the k bins and update
                 ct = 0;
@@ -166,14 +164,14 @@ int delta_T_ps(
     } // End looping through k box
 
     // Malloc and store the result
-    *ps = (float*)calloc(3 * num_bins, sizeof(float));
+    *ps = (float*)calloc((size_t)(3 * num_bins), sizeof(float));
 
     // NOTE - previous ct ran from 1 (not zero) to NUM_BINS
     for (int ii = 0; ii < num_bins; ii++)
         if (in_bin_ct[ii] > 0) {
-            (*ps)[0 + 3 * ii] = k_ave[ii] / (float)in_bin_ct[ii]; // Wavenumber
-            (*ps)[1 + 3 * ii] = p_box[ii] / (float)in_bin_ct[ii]; // Power
-            (*ps)[2 + 3 * ii] = p_box[ii] / (float)in_bin_ct[ii] / sqrt((float)in_bin_ct[ii]); // Error in power?
+            (*ps)[0 + 3 * ii] = (float)(k_ave[ii] / (float)in_bin_ct[ii]); // Wavenumber
+            (*ps)[1 + 3 * ii] = (float)(p_box[ii] / (float)in_bin_ct[ii]); // Power
+            (*ps)[2 + 3 * ii] = (float)(p_box[ii] / (float)in_bin_ct[ii] / sqrt((float)in_bin_ct[ii])); // Error in power?
         }
 
     *ps_nbins = num_bins;

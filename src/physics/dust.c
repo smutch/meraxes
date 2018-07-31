@@ -55,8 +55,7 @@ void apply_dust(int n_photo_bands, galaxy_t gal, double* LumDust, int outputbin)
         Lum_corr = Lum * slab_model(tauB, incl);
 
         LumDust[0] = (float)Lum_corr;
-    }
-    else
+    } else
         tauB = 0.0;
 
     // Correction for V magnitude
@@ -66,8 +65,7 @@ void apply_dust(int n_photo_bands, galaxy_t gal, double* LumDust, int outputbin)
         Lum_corr = Lum * slab_model(tauV, incl);
 
         LumDust[1] = (float)Lum_corr;
-    }
-    else
+    } else
         tauV = 0.0;
 
     // Correction for R magnitude

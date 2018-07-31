@@ -1,9 +1,6 @@
 #include "meraxes.h"
 #include <assert.h>
 #include <gsl/gsl_integration.h>
-#include <gsl/gsl_math.h>
-#include <gsl/gsl_sf_lambert.h>
-#include <math.h>
 
 void update_reservoirs_from_sf(galaxy_t* gal, double new_stars)
 {
@@ -230,15 +227,13 @@ double pressure_dependent_star_formation(galaxy_t* gal, int snapshot)
             gal->HIMass = (1. - Y_He) * gal->ColdGas - gal->H2Mass; //hydrogen mass
             MSFRR = MSFRR * 2.0 * M_PI * sf_eff / SEC_PER_YEAR;
             MSFRR = MSFRR * 1.0e3; // in g/s
-        }
-        else {
+        } else {
             MSFRR = 0.0;
             gal->H2Frac = 0.0;
             gal->H2Mass = 0.0;
             gal->HIMass = 0.0;
         }
-    }
-    else {
+    } else {
         MSFRR = 0.0;
         gal->H2Frac = 0.0;
         gal->H2Mass = 0.0;

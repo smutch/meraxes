@@ -171,18 +171,17 @@ static void select_forests()
     int* requested_ind;
     int n_halos_tot = 0;
     if (run_globals.RequestedForestId != NULL) {
-        requested_ind = calloc(run_globals.NRequestedForests, sizeof(int));
+        requested_ind = calloc((size_t)run_globals.NRequestedForests, sizeof(int));
         for (int i_forest = 0, i_req = 0; (i_forest < n_forests) && (i_req < run_globals.NRequestedForests); i_forest++)
             if (forest_ids[i_forest] == run_globals.RequestedForestId[i_req]) {
                 requested_ind[i_req] = i_forest;
                 n_halos_tot += n_halos[i_forest];
                 i_req++;
             }
-    }
-    else {
+    } else {
         // if we haven't asked for any specific forest IDs then just fill the
         // requested ind array sequentially
-        requested_ind = (int*)calloc(n_forests, sizeof(int));
+        requested_ind = (int*)calloc((size_t)n_forests, sizeof(int));
         for (int i_req = 0; i_req < n_forests; i_req++) {
             n_halos_tot += n_halos[i_req];
             requested_ind[i_req] = i_req;
@@ -360,7 +359,7 @@ trees_info_t read_halos(const int snapshot, halo_t** halos, fof_group_t** fof_gr
         read_baryon_frac_modifiers(snapshot);
 
     // read in the tree information for this snapshot
-    trees_info_t trees_info;
+    trees_info_t trees_info = { 0 };
     switch (run_globals.params.TreesID) {
     case VELOCIRAPTOR_TREES:
         trees_info = read_trees_info__velociraptor(snapshot);
@@ -398,8 +397,7 @@ trees_info_t read_halos(const int snapshot, halo_t** halos, fof_group_t** fof_gr
             *index_lookup = malloc(sizeof(int) * run_globals.NHalosMax);
             for (int ii = 0; ii < run_globals.NHalosMax; ii++)
                 (*index_lookup)[ii] = -1;
-        }
-        else {
+        } else {
             run_globals.NHalosMax = trees_info.n_halos_max;
             run_globals.NFOFGroupsMax = trees_info.n_fof_groups_max;
         }

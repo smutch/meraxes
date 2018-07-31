@@ -1,13 +1,8 @@
 #include "meraxes.h"
-#include <assert.h>
 #include <fftw3-mpi.h>
-#include <limits.h>
 #include <math.h>
-#include <signal.h>
 
 // DEBUG
-#include <hdf5.h>
-#include <hdf5_hl.h>
 
 #define L_FACTOR 0.620350491 // Factor relating cube length to filter radius = (4PI/3)^(-1/3)
 
@@ -54,7 +49,7 @@ void _find_HII_bubbles(double redshift)
     double ReionEfficiency = run_globals.params.physics.ReionEfficiency;
     double ReionNionPhotPerBary = run_globals.params.physics.ReionNionPhotPerBary;
     run_units_t* units = &(run_globals.units);
-    float J_21_aux;
+    float J_21_aux = 0;
     double J_21_aux_constant;
     double density_over_mean;
     double sfr_density;
@@ -229,7 +224,7 @@ void _find_HII_bubbles(double redshift)
 
         J_21_aux_constant = (1.0 + redshift) * (1.0 + redshift) / (4.0 * M_PI)
             * run_globals.params.physics.ReionAlphaUV * PLANCK
-            * 1e21// * run_globals.params.physics.ReionEscapeFrac
+            * 1e21 // * run_globals.params.physics.ReionEscapeFrac
             * R * units->UnitLength_in_cm * ReionNionPhotPerBary / PROTONMASS
             * units->UnitMass_in_g / pow(units->UnitLength_in_cm, 3) / units->UnitTime_in_s;
 

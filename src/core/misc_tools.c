@@ -146,7 +146,7 @@ float comoving_distance(float a[3], float b[3])
 double accurate_sumf(float* arr, int n)
 {
     // inplace reorder and sum
-    qsort(arr, n, sizeof(float), compare_floats);
+    qsort(arr, (size_t)n, sizeof(float), compare_floats);
 
     double total = 0;
     for (int ii = 0; ii < n; ii++)

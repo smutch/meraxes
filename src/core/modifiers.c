@@ -1,8 +1,5 @@
 #include "meraxes.h"
-#include <assert.h>
-#include <hdf5.h>
 #include <hdf5_hl.h>
-#include <math.h>
 
 // Qin, Y. et al., 2017. Dark-ages Reionization and Galaxy Formation Simulation VIII.
 // Suppressed growth of dark matter halos during the Epoch of Reionization.
@@ -22,8 +19,7 @@ void read_mass_ratio_modifiers(int snapshot)
     if (strlen(run_globals.params.MassRatioModifier) == 0) {
         run_globals.RequestedMassRatioModifier = -1;
         mlog("No Mass Ratio Modifier :(", MLOG_MESG);
-    }
-    else {
+    } else {
         run_globals.mass_ratio_modifier = malloc(sizeof(Modifier) * N_LOGMS);
         const size_t dst_size = sizeof(Modifier);
         const size_t dst_sizes[NFIELDS] = {
@@ -70,8 +66,7 @@ void read_baryon_frac_modifiers(int snapshot)
     if (strlen(run_globals.params.BaryonFracModifier) == 0) {
         run_globals.RequestedBaryonFracModifier = -1;
         mlog("No Baryon Fraction Modifier :(", MLOG_MESG);
-    }
-    else {
+    } else {
         run_globals.baryon_frac_modifier = malloc(sizeof(Modifier) * N_LOGMS);
         const size_t dst_size = sizeof(Modifier);
         const size_t dst_sizes[NFIELDS] = {

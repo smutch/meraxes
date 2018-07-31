@@ -1,5 +1,4 @@
 #include "meraxes.h"
-#include <math.h>
 
 //! Evolve existing galaxies forward in time
 int evolve_galaxies(fof_group_t* fof_group, int snapshot, int NGal, int NFof)

@@ -1,5 +1,4 @@
 #include "meraxes.h"
-#include <assert.h>
 #include <math.h>
 
 #define ETA 0.06
@@ -62,8 +61,7 @@ void update_reservoirs_from_quasar_mode_bh_feedback(galaxy_t* gal, double m_rehe
         gal->MetalsColdGas -= m_reheat * metallicity;
         central->MetalsHotGas += m_reheat * metallicity;
         central->HotGas += m_reheat;
-    }
-    else {
+    } else {
         metallicity = calc_metallicity(central->HotGas, central->MetalsHotGas);
         gal->ColdGas = 0.0;
         gal->MetalsColdGas = 0.0;
@@ -141,8 +139,8 @@ double radio_mode_BH_heating(galaxy_t* gal, double cooling_mass, double x)
         //TODO: we could add heating effienciency to split the energy into
         //heating and reionization.
         gal->BlackHoleMass += accreted_mass * (1. - ETA);
-        gal->HotGas        -= accreted_mass;
-        gal->MetalsHotGas  -= accreted_mass * metallicity;
+        gal->HotGas -= accreted_mass;
+        gal->MetalsHotGas -= accreted_mass * metallicity;
     }
     return heated_mass;
 }
@@ -176,8 +174,8 @@ void merger_driven_BH_growth(galaxy_t* gal, double merger_ratio, int snapshot)
         // TODO: since the merger is put in the end of galaxy evolution, this is following the
         // inconsistence consistently
         gal->BlackHoleAccretingColdMass += accreting_mass;
-        gal->ColdGas                    -= accreting_mass;
-        gal->MetalsColdGas              -= accreting_mass * metallicity;
+        gal->ColdGas -= accreting_mass;
+        gal->MetalsColdGas -= accreting_mass * metallicity;
     }
 }
 

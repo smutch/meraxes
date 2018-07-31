@@ -1,6 +1,5 @@
 #include "meraxes.h"
 #include "tree_flags.h"
-#include <math.h>
 
 bool check_for_flag(int flag, int tree_flags)
 {
@@ -136,8 +135,7 @@ void dracarys()
                     // If this is a central or a satellite
                     if (gal->Type < 2)
                         connect_galaxy_and_halo(gal, &halo[i_newhalo], &merger_counter);
-                }
-                else { // this galaxy has been marked for death
+                } else { // this galaxy has been marked for death
                     if (gal->FirstGalInHalo == gal) {
                         // We have marked the first galaxy in the halo for death. If there are any
                         // other type 2 galaxies in this halo then we must kill them as well...
@@ -153,8 +151,7 @@ void dracarys()
                     kill_galaxy(gal, prev_gal, &NGal, &kill_counter);
                     gal = prev_gal;
                 }
-            }
-            else // this galaxy's halo has skipped this snapshot
+            } else // this galaxy's halo has skipped this snapshot
             {
                 // This is a ghost galaxy for this snapshot.
                 // We need to count all the other galaxies in this halo as ghosts as
@@ -173,8 +170,7 @@ void dracarys()
             if (gal != NULL) {
                 prev_gal = gal;
                 gal = gal->Next;
-            }
-            else
+            } else
                 gal = run_globals.FirstGal;
         }
 
@@ -310,8 +306,7 @@ void dracarys()
                     for (int i_out = 0; i_out < NOutputSnaps; i_out++)
                         if (snapshot == run_globals.ListOutputSnaps[i_out])
                             call_find_HII_bubbles(snapshot, nout_gals, &timer);
-                }
-                else
+                } else
                     call_find_HII_bubbles(snapshot, nout_gals, &timer);
             }
 

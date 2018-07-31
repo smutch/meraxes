@@ -1,54 +1,50 @@
 #include "meraxes.h"
 #include <assert.h>
-#include <complex.h>
 #include <fftw3-mpi.h>
-#include <fftw3.h>
-#include <hdf5.h>
 #include <hdf5_hl.h>
 #include <math.h>
 
-void calculate_galaxy_fesc_vals(galaxy_t *gal, double new_stars, int snapshot)
+void calculate_galaxy_fesc_vals(galaxy_t* gal, double new_stars, int snapshot)
 {
     physics_params_t* params = &(run_globals.params.physics);
 
-    float fesc_bh = params->EscapeFracBHNorm * (powf((1.0 + run_globals.ZZ[snapshot]) / 6.0, params->EscapeFracBHScaling));
+    float fesc_bh = (float)(params->EscapeFracBHNorm * (powf((float)((1.0 + run_globals.ZZ[snapshot]) / 6.0), (float)params->EscapeFracBHScaling)));
 
     double fesc = params->EscapeFracNorm;
-    switch (params->EscapeFracDependency)
-    {
-        case 0:
-            break;
-        case 1:  // redshift
-            fesc *= pow((1.0 + run_globals.ZZ[snapshot]) / params->EscapeFracOffset, params->EscapeFracScaling);
-            break;
-        case 2:  // stellar mass
-            if (gal->StellarMass > 0.0)
-                fesc *= pow((log10(gal->StellarMass / run_globals.params.Hubble_h) - params->EscapeFracOffset), params->EscapeFracScaling);
-            else
-                fesc = 0.0;
-            break;
-        case 3: // star formation rate
-            if (gal->Sfr > 0.0)
-                fesc *= pow((log10(gal->Sfr * run_globals.units.UnitMass_in_g / run_globals.units.UnitTime_in_s * SEC_PER_YEAR / SOLAR_MASS) - params->EscapeFracOffset), params->EscapeFracScaling);
-            else
-                fesc = 0.0;
-            break;
-        case 4: // cold gas density
-            if (gal->ColdGas > 0.0)
-                fesc *= pow((log10((gal->ColdGas / gal->DiskScaleLength)) - params->EscapeFracOffset), params->EscapeFracScaling);
-            else
-                fesc = 1.0;
-            break;
-        case 5:  // halo mass
-            if (gal->Mvir > 0.0)
-                fesc *= pow((log10(gal->Mvir / run_globals.params.Hubble_h) - params->EscapeFracOffset), params->EscapeFracScaling);
-            else
-                fesc = 1.0;
-            break;
-        default:
-            mlog_error("Unrecognised EscapeFracDependency parameter value.");
+    switch (params->EscapeFracDependency) {
+    case 0:
+        break;
+    case 1: // redshift
+        fesc *= pow((1.0 + run_globals.ZZ[snapshot]) / params->EscapeFracOffset, params->EscapeFracScaling);
+        break;
+    case 2: // stellar mass
+        if (gal->StellarMass > 0.0)
+            fesc *= pow((log10(gal->StellarMass / run_globals.params.Hubble_h) - params->EscapeFracOffset), params->EscapeFracScaling);
+        else
+            fesc = 0.0;
+        break;
+    case 3: // star formation rate
+        if (gal->Sfr > 0.0)
+            fesc *= pow((log10(gal->Sfr * run_globals.units.UnitMass_in_g / run_globals.units.UnitTime_in_s * SEC_PER_YEAR / SOLAR_MASS) - params->EscapeFracOffset), params->EscapeFracScaling);
+        else
+            fesc = 0.0;
+        break;
+    case 4: // cold gas density
+        if (gal->ColdGas > 0.0)
+            fesc *= pow((log10((gal->ColdGas / gal->DiskScaleLength)) - params->EscapeFracOffset), params->EscapeFracScaling);
+        else
+            fesc = 1.0;
+        break;
+    case 5: // halo mass
+        if (gal->Mvir > 0.0)
+            fesc *= pow((log10(gal->Mvir / run_globals.params.Hubble_h) - params->EscapeFracOffset), params->EscapeFracScaling);
+        else
+            fesc = 1.0;
+        break;
+    default:
+        mlog_error("Unrecognised EscapeFracDependency parameter value.");
     }
-        
+
     if (fesc > 1.0)
         fesc = 1.0;
     else if (fesc < 0.0)
@@ -86,7 +82,6 @@ void set_ReionEfficiency()
 {
     // Use the params passed to Meraxes via the input file to set the HII ionising efficiency factor
     physics_params_t* params = &(run_globals.params.physics);
-
 
     // The following is based on Sobacchi & Messinger (2013) eqn 7
     // with f_* removed and f_b added since we define f_coll as M_*/M_tot rather than M_vir/M_tot,
@@ -156,15 +151,15 @@ void call_find_HII_bubbles(int snapshot, int nout_gals, timer_info* timer)
 
     // Read in the dark matter density grid
     switch (run_globals.params.TreesID) {
-        case VELOCIRAPTOR_TREES:
-            read_dm_grid__velociraptor(snapshot, grids->deltax);
-            break;
-        case GBPTREES_TREES:
-            read_dm_grid__gbptrees(snapshot, grids->deltax);
-            break;
-        default:
-            mlog_error("Unrecognised input trees identifier (TreesID).");
-            break;
+    case VELOCIRAPTOR_TREES:
+        read_dm_grid__velociraptor(snapshot, grids->deltax);
+        break;
+    case GBPTREES_TREES:
+        read_dm_grid__gbptrees(snapshot, grids->deltax);
+        break;
+    default:
+        mlog_error("Unrecognised input trees identifier (TreesID).");
+        break;
     }
 
     // save the grids prior to doing FFTs to avoid precision loss and aliasing etc.
@@ -208,8 +203,8 @@ void init_reion_grids()
 
     for (int ii = 0; ii < slab_n_real; ii++)
         if (run_globals.params.ReionUVBFlag) {
-            grids->J_21_at_ionization[ii] = 0.;
-            grids->J_21[ii] = 0.;
+            grids->J_21_at_ionization[ii] = (float)0.;
+            grids->J_21[ii] = (float)0.;
             grids->Mvir_crit[ii] = 0;
         }
 
@@ -233,7 +228,7 @@ void malloc_reionization_grids()
     reion_grids_t* grids = &(run_globals.reion_grids);
 
     // run_globals.NStoreSnapshots is set in `initialize_halo_storage`
-    run_globals.SnapshotDeltax = (float**)calloc(run_globals.NStoreSnapshots, sizeof(float*));
+    run_globals.SnapshotDeltax = (float**)calloc((size_t)run_globals.NStoreSnapshots, sizeof(float*));
 
     grids->galaxy_to_slab_map = NULL;
 
@@ -264,26 +259,26 @@ void malloc_reionization_grids()
 
         for (int ii = 0; ii < run_globals.mpi_size; ii++)
             if (slab_nix[ii] > max_cells)
-                max_cells = slab_nix[ii];
+                max_cells = (int)slab_nix[ii];
 
         max_cells *= ReionGridDim * ReionGridDim;
         grids->buffer_size = max_cells;
 
-        grids->buffer = fftwf_alloc_real(max_cells);
-        grids->stars = fftwf_alloc_real(slab_n_complex * 2); // padded for in-place FFT
-        grids->stars_filtered = fftwf_alloc_complex(slab_n_complex);
-        grids->deltax = fftwf_alloc_real(slab_n_complex * 2); // padded for in-place FFT
-        grids->deltax_filtered = fftwf_alloc_complex(slab_n_complex);
-        grids->sfr = fftwf_alloc_real(slab_n_complex * 2); // padded for in-place FFT
-        grids->sfr_filtered = fftwf_alloc_complex(slab_n_complex);
-        grids->xH = fftwf_alloc_real(slab_n_real);
-        grids->z_at_ionization = fftwf_alloc_real(slab_n_real);
-        grids->r_bubble = fftwf_alloc_real(slab_n_real);
+        grids->buffer = fftwf_alloc_real((size_t)max_cells);
+        grids->stars = fftwf_alloc_real((size_t)(slab_n_complex * 2)); // padded for in-place FFT
+        grids->stars_filtered = fftwf_alloc_complex((size_t)slab_n_complex);
+        grids->deltax = fftwf_alloc_real((size_t)(slab_n_complex * 2)); // padded for in-place FFT
+        grids->deltax_filtered = fftwf_alloc_complex((size_t)slab_n_complex);
+        grids->sfr = fftwf_alloc_real((size_t)(slab_n_complex * 2)); // padded for in-place FFT
+        grids->sfr_filtered = fftwf_alloc_complex((size_t)slab_n_complex);
+        grids->xH = fftwf_alloc_real((size_t)slab_n_real);
+        grids->z_at_ionization = fftwf_alloc_real((size_t)slab_n_real);
+        grids->r_bubble = fftwf_alloc_real((size_t)slab_n_real);
 
         if (run_globals.params.ReionUVBFlag) {
-            grids->J_21_at_ionization = fftwf_alloc_real(slab_n_real);
-            grids->J_21 = fftwf_alloc_real(slab_n_real);
-            grids->Mvir_crit = fftwf_alloc_real(slab_n_real);
+            grids->J_21_at_ionization = fftwf_alloc_real((size_t)slab_n_real);
+            grids->J_21 = fftwf_alloc_real((size_t)slab_n_real);
+            grids->Mvir_crit = fftwf_alloc_real((size_t)slab_n_real);
         }
 
         init_reion_grids();
@@ -401,8 +396,7 @@ void assign_Mvir_crit_to_galaxies(int ngals_in_slabs)
                 slab_map_offsets[ii] = i_gal;
             else
                 slab_map_offsets[ii] = -1;
-        }
-        else
+        } else
             // if this core has no galaxies then the offsets are -1 everywhere
             slab_map_offsets[ii] = -1;
     }
@@ -422,27 +416,25 @@ void assign_Mvir_crit_to_galaxies(int ngals_in_slabs)
             // need to ensure sends and receives do not clash!
             if (send_to_rank > run_globals.mpi_rank) {
                 if (send_flag) {
-                    int n_cells = slab_nix[run_globals.mpi_rank] * ReionGridDim * ReionGridDim;
+                    int n_cells = (int)(slab_nix[run_globals.mpi_rank] * ReionGridDim * ReionGridDim);
                     MPI_Send(Mvir_crit, n_cells, MPI_FLOAT, send_to_rank, 793710, run_globals.mpi_comm);
                 }
                 if (recv_flag) {
-                    int n_cells = slab_nix[recv_from_rank] * ReionGridDim * ReionGridDim;
+                    int n_cells = (int)(slab_nix[recv_from_rank] * ReionGridDim * ReionGridDim);
                     MPI_Recv(buffer, n_cells, MPI_FLOAT, recv_from_rank, 793710, run_globals.mpi_comm, MPI_STATUS_IGNORE);
                 }
-            }
-            else {
+            } else {
                 if (recv_flag) {
-                    int n_cells = slab_nix[recv_from_rank] * ReionGridDim * ReionGridDim;
+                    int n_cells = (int)(slab_nix[recv_from_rank] * ReionGridDim * ReionGridDim);
                     MPI_Recv(buffer, n_cells, MPI_FLOAT, recv_from_rank, 793710, run_globals.mpi_comm, MPI_STATUS_IGNORE);
                 }
                 if (send_flag) {
-                    int n_cells = slab_nix[run_globals.mpi_rank] * ReionGridDim * ReionGridDim;
+                    int n_cells = (int)(slab_nix[run_globals.mpi_rank] * ReionGridDim * ReionGridDim);
                     MPI_Send(Mvir_crit, n_cells, MPI_FLOAT, send_to_rank, 793710, run_globals.mpi_comm);
                 }
             }
-        }
-        else {
-            int n_cells = slab_nix[recv_from_rank] * ReionGridDim * ReionGridDim;
+        } else {
+            int n_cells = (int)(slab_nix[recv_from_rank] * ReionGridDim * ReionGridDim);
             memcpy(buffer, Mvir_crit, sizeof(float) * n_cells);
         }
 
@@ -450,7 +442,7 @@ void assign_Mvir_crit_to_galaxies(int ngals_in_slabs)
         // galaxies which belong to this slab
         if (recv_flag) {
             int i_gal = slab_map_offsets[recv_from_rank];
-            int ix_start = slab_ix_start[recv_from_rank];
+            int ix_start = (int)slab_ix_start[recv_from_rank];
             while ((galaxy_to_slab_map[i_gal].slab_ind == recv_from_rank) && (i_gal < ngals_in_slabs)) {
                 // TODO: We should use the position of the FOF group here...
                 galaxy_t* gal = galaxy_to_slab_map[i_gal].galaxy;
@@ -515,7 +507,7 @@ void construct_baryon_grids(int snapshot, int local_ngals)
         for (int i_r = 0; i_r < run_globals.mpi_size; i_r++) {
             // init the buffer
             for (int ii = 0; ii < buffer_size; ii++)
-                buffer[ii] = 0.;
+                buffer[ii] = (float)0.;
 
             // if this core holds no galaxies then we don't need to fill the buffer
             if (local_ngals != 0)
@@ -535,7 +527,7 @@ void construct_baryon_grids(int snapshot, int local_ngals)
                     assert(galaxy_to_slab_map[i_gal].index >= 0);
                     assert((galaxy_to_slab_map[i_gal].slab_ind >= 0) && (galaxy_to_slab_map[i_gal].slab_ind < run_globals.mpi_size));
 
-                    int ix = pos_to_ngp(gal->Pos[0], box_size, ReionGridDim) - slab_ix_start[i_r];
+                    int ix = (int)(pos_to_ngp(gal->Pos[0], box_size, ReionGridDim) - slab_ix_start[i_r]);
                     int iy = pos_to_ngp(gal->Pos[1], box_size, ReionGridDim);
                     int iz = pos_to_ngp(gal->Pos[2], box_size, ReionGridDim);
 
@@ -579,9 +571,9 @@ void construct_baryon_grids(int snapshot, int local_ngals)
 
             // reduce on to the correct rank
             if (run_globals.mpi_rank == i_r)
-                MPI_Reduce(MPI_IN_PLACE, buffer, buffer_size, MPI_FLOAT, MPI_SUM, i_r, run_globals.mpi_comm);
+                MPI_Reduce(MPI_IN_PLACE, buffer, (int)buffer_size, MPI_FLOAT, MPI_SUM, i_r, run_globals.mpi_comm);
             else
-                MPI_Reduce(buffer, buffer, buffer_size, MPI_FLOAT, MPI_SUM, i_r, run_globals.mpi_comm);
+                MPI_Reduce(buffer, buffer, (int)buffer_size, MPI_FLOAT, MPI_SUM, i_r, run_globals.mpi_comm);
 
             if (run_globals.mpi_rank == i_r)
 
@@ -670,24 +662,24 @@ void save_reion_input_grids(int snapshot)
     H5Pclose(plist_id);
 
     // create the filespace
-    hsize_t dims[3] = { ReionGridDim, ReionGridDim, ReionGridDim };
+    hsize_t dims[3] = { (hsize_t)ReionGridDim, (hsize_t)ReionGridDim, (hsize_t)ReionGridDim };
     hid_t fspace_id = H5Screate_simple(3, dims, NULL);
 
     // create the memspace
-    hsize_t mem_dims[3] = { local_nix, ReionGridDim, ReionGridDim };
+    hsize_t mem_dims[3] = { (hsize_t)local_nix, (hsize_t)ReionGridDim, (hsize_t)ReionGridDim };
     hid_t memspace_id = H5Screate_simple(3, mem_dims, NULL);
 
     // select a hyperslab in the filespace
-    hsize_t start[3] = { run_globals.reion_grids.slab_ix_start[run_globals.mpi_rank], 0, 0 };
-    hsize_t count[3] = { local_nix, ReionGridDim, ReionGridDim };
+    hsize_t start[3] = { (hsize_t)run_globals.reion_grids.slab_ix_start[run_globals.mpi_rank], 0, 0 };
+    hsize_t count[3] = { (hsize_t)local_nix, (hsize_t)ReionGridDim, (hsize_t)ReionGridDim };
     H5Sselect_hyperslab(fspace_id, H5S_SELECT_SET, start, NULL, count, NULL);
 
     // set the dataset creation property list to use chunking along x-axis
     hid_t dcpl_id = H5Pcreate(H5P_DATASET_CREATE);
-    H5Pset_chunk(dcpl_id, 3, (hsize_t[3]){ 1, ReionGridDim, ReionGridDim });
-    
+    H5Pset_chunk(dcpl_id, 3, (hsize_t[3]){ 1, (hsize_t)ReionGridDim, (hsize_t)ReionGridDim });
+
     // fftw padded grids
-    float* grid = (float*)calloc(local_nix * ReionGridDim * ReionGridDim, sizeof(float));
+    float* grid = (float*)calloc((size_t)(local_nix * ReionGridDim * ReionGridDim), sizeof(float));
 
     for (int ii = 0; ii < local_nix; ii++)
         for (int jj = 0; jj < ReionGridDim; jj++)
@@ -704,9 +696,9 @@ void save_reion_input_grids(int snapshot)
     for (int ii = 0; ii < local_nix; ii++)
         for (int jj = 0; jj < ReionGridDim; jj++)
             for (int kk = 0; kk < ReionGridDim; kk++)
-                grid[grid_index(ii, jj, kk, ReionGridDim, INDEX_REAL)] = (grids->sfr)[grid_index(ii, jj, kk, ReionGridDim, INDEX_PADDED)]
+                grid[grid_index(ii, jj, kk, ReionGridDim, INDEX_REAL)] = (float)((grids->sfr)[grid_index(ii, jj, kk, ReionGridDim, INDEX_PADDED)]
                     * UnitMass_in_g / UnitTime_in_s
-                    * SEC_PER_YEAR / SOLAR_MASS;
+                    * SEC_PER_YEAR / SOLAR_MASS);
     write_grid_float("sfr", grid, file_id, fspace_id, memspace_id, dcpl_id);
 
     // tidy up
@@ -745,21 +737,21 @@ void save_reion_output_grids(int snapshot)
     H5Pclose(plist_id);
 
     // create the filespace
-    hsize_t dims[3] = { ReionGridDim, ReionGridDim, ReionGridDim };
+    hsize_t dims[3] = { (hsize_t)ReionGridDim, (hsize_t)ReionGridDim, (hsize_t)ReionGridDim };
     hid_t fspace_id = H5Screate_simple(3, dims, NULL);
 
     // create the memspace
-    hsize_t mem_dims[3] = { local_nix, ReionGridDim, ReionGridDim };
+    hsize_t mem_dims[3] = { (hsize_t)local_nix, (hsize_t)ReionGridDim, (hsize_t)ReionGridDim };
     hid_t memspace_id = H5Screate_simple(3, mem_dims, NULL);
 
     // select a hyperslab in the filespace
-    hsize_t start[3] = { run_globals.reion_grids.slab_ix_start[run_globals.mpi_rank], 0, 0 };
-    hsize_t count[3] = { local_nix, ReionGridDim, ReionGridDim };
+    hsize_t start[3] = { (hsize_t)run_globals.reion_grids.slab_ix_start[run_globals.mpi_rank], 0, 0 };
+    hsize_t count[3] = { (hsize_t)local_nix, (hsize_t)ReionGridDim, (hsize_t)ReionGridDim };
     H5Sselect_hyperslab(fspace_id, H5S_SELECT_SET, start, NULL, count, NULL);
 
     // set the dataset creation property list to use chunking along x-axis
     hid_t dcpl_id = H5Pcreate(H5P_DATASET_CREATE);
-    H5Pset_chunk(dcpl_id, 3, (hsize_t[3]){ 1, ReionGridDim, ReionGridDim });
+    H5Pset_chunk(dcpl_id, 3, (hsize_t[3]){ 1, (hsize_t)ReionGridDim, (hsize_t)ReionGridDim });
 
     // create and write the datasets
     write_grid_float("xH", grids->xH, file_id, fspace_id, memspace_id, dcpl_id);
@@ -841,11 +833,10 @@ bool check_if_reionization_ongoing()
                 finished = 0;
                 break;
             }
-    }
-    else
+    } else
         // Here we haven't finished or previously started.  Should we start then?
         if (run_globals.FirstGal != NULL)
-            started = 1;
+        started = 1;
 
     // At this stage, `started` and `finished` should be set accordingly for each
     // individual core.  Now we need to combine them on all cores.
@@ -864,8 +855,8 @@ void filter(fftwf_complex* box, int local_ix_start, int slab_nx, int grid_dim, f
 {
     int filter_type = run_globals.params.ReionFilterType;
     int middle = grid_dim / 2;
-    float box_size = run_globals.params.BoxSize;
-    float delta_k = 2.0 * M_PI / box_size;
+    float box_size = (float)run_globals.params.BoxSize;
+    float delta_k = (float)(2.0 * M_PI / box_size);
 
     // Loop through k-box
     for (int n_x = 0; n_x < slab_nx; n_x++) {
@@ -906,7 +897,8 @@ void filter(fftwf_complex* box, int local_ix_start, int slab_nx, int grid_dim, f
 
                 case 2: // Gaussian
                     kR *= 0.643; // Equates integrated volume to the real space top-hat
-                    box[grid_index(n_x, n_y, n_z, grid_dim, INDEX_COMPLEX_HERM)] *= (fftwf_complex)(powf(M_E, -kR * kR / 2.0));
+                    box[grid_index(n_x, n_y, n_z, grid_dim, INDEX_COMPLEX_HERM)] *= (fftwf_complex)(powf((float)M_E,
+                        (float)(-kR * kR / 2.0)));
                     break;
 
                 default:
