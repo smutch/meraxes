@@ -41,7 +41,7 @@ static void find_missing_gals(fof_group_t* fof_group, int NFof, int flag)
     int counter = 0;
     int master_counter = 0;
     int missing_counter = 0;
-    bool* gal_found = NULL = NULL;
+    bool* gal_found = NULL;
     galaxy_t** missing_pointers;
 
     mlog("Running `find_missing_galaxies`...", MLOG_OPEN);
