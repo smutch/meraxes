@@ -697,6 +697,46 @@ void read_parameter_file(char* fname, int mode)
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
+            strcpy(params_tag[n_param], "L_X_GAL");
+            params_addr[n_param] = &(run_params->physics).L_X_GAL;
+            required_tag[n_param] = 1;
+            params_type[n_param++] = PARAM_TYPE_DOUBLE;
+
+            strcpy(params_tag[n_param], "NU_X_GAL_THRESH");
+            params_addr[n_param] = &(run_params->physics).NU_X_GAL_THRESH;
+            required_tag[n_param] = 1;
+            params_type[n_param++] = PARAM_TYPE_DOUBLE;
+            
+            strcpy(params_tag[n_param], "X_RAY_SPEC_INDEX_GAL");
+            params_addr[n_param] = &(run_params->physics).X_RAY_SPEC_INDEX_GAL;
+            required_tag[n_param] = 1;
+            params_type[n_param++] = PARAM_TYPE_DOUBLE;
+
+            strcpy(params_tag[n_param], "L_X_QSO");
+            params_addr[n_param] = &(run_params->physics).L_X_QSO;
+            required_tag[n_param] = 1;
+            params_type[n_param++] = PARAM_TYPE_DOUBLE;
+
+            strcpy(params_tag[n_param], "NU_X_QSO_THRESH");
+            params_addr[n_param] = &(run_params->physics).NU_X_QSO_THRESH;
+            required_tag[n_param] = 1;
+       	    params_type[n_param++] = PARAM_TYPE_DOUBLE;
+
+            strcpy(params_tag[n_param], "X_RAY_SPEC_INDEX_QSO");
+            params_addr[n_param] = &(run_params->physics).X_RAY_SPEC_INDEX_QSO;
+            required_tag[n_param] = 1;
+            params_type[n_param++] = PARAM_TYPE_DOUBLE;
+
+            strcpy(params_tag[n_param], "NU_X_BAND_MAX");
+            params_addr[n_param] = &(run_params->physics).NU_X_BAND_MAX;
+            required_tag[n_param] = 1;
+            params_type[n_param++] = PARAM_TYPE_DOUBLE;
+
+            strcpy(params_tag[n_param], "NU_X_MAX");
+            params_addr[n_param] = &(run_params->physics).NU_X_MAX;
+            required_tag[n_param] = 1;
+            params_type[n_param++] = PARAM_TYPE_DOUBLE;
+
             hdf5props->params_count = n_param;
         }
 

@@ -26,7 +26,6 @@ void _ComputeTs(int snapshot)
     else {
         prev_redshift = run_globals.ZZ[snapshot-1];
     }
-
 }
 
 // This function makes sure that the right version of ComputeTs() gets called.
