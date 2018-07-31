@@ -306,7 +306,7 @@ void dracarys()
         if (run_globals.params.Flag_PatchyReion) {
 
             if(run_globals.params.Flag_IncludeSpinTemp) {
-
+                call_ComputeTs(snapshot, nout_gals, &timer);
             }
 
             if (check_if_reionization_ongoing()) {

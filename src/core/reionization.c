@@ -142,6 +142,41 @@ void call_find_HII_bubbles(int snapshot, int nout_gals, timer_info* timer)
     mlog("...done", MLOG_CLOSE | MLOG_TIMERSTOP);
 }
 
+
+
+void call_ComputeTs(int snapshot, int nout_gals, timer_info* timer)
+{
+    // Thin wrapper round ComputeTs
+
+    int total_n_out_gals = 0;
+
+    reion_grids_t* grids = &(run_globals.reion_grids);
+
+    mlog("Getting ready to call ComputeTs...", MLOG_OPEN);
+
+    // Check to see if there are actually any galaxies at this snapshot
+    MPI_Allreduce(&nout_gals, &total_n_out_gals, 1, MPI_INT, MPI_SUM, run_globals.mpi_comm);
+
+    // Construct the baryon grids
+    construct_baryon_grids(snapshot, nout_gals);
+
+    // Read in the dark matter density grid
+    switch (run_globals.params.TreesID) {
+        case VELOCIRAPTOR_TREES:
+            read_dm_grid__velociraptor(snapshot, grids->deltax);
+            break;
+        case GBPTREES_TREES:
+            read_dm_grid__gbptrees(snapshot, grids->deltax);
+            break;
+        default:
+            mlog_error("Unrecognised input trees identifier (TreesID).");
+        break;
+    }
+    
+    ComputeTs(snapshot, timer);
+}
+
+
 void init_reion_grids()
 {
     reion_grids_t* grids = &(run_globals.reion_grids);
