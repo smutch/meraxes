@@ -2,11 +2,8 @@
 #include "meraxes.h"
 #include "parse_paramfile.h"
 #include <assert.h>
-#include <hdf5.h>
 #include <hdf5_hl.h>
-#include <math.h>
 #include <unistd.h>
-#include <lber.h>
 
 float current_mwmsa(galaxy_t* gal, int i_snap)
 {
@@ -36,11 +33,10 @@ void prepare_galaxy_for_output(
         galout->HaloID = (long long)gal.Halo->ID;
         galout->CentralGal = gal.Halo->FOFGroup->FirstOccupiedHalo->Galaxy->output_index;
         galout->FOFMvir = (float)(gal.Halo->FOFGroup->Mvir);
-    }
-    else {
+    } else {
         galout->HaloID = -1;
         galout->CentralGal = -1;
-        galout->FOFMvir = -1.0;
+        galout->FOFMvir = (float)-1.0;
     }
     galout->GhostFlag = (int)gal.ghost_flag;
 
@@ -741,10 +737,10 @@ static void inline save_walk_indices(
     int chunk_size = 1000;
 
     if (old_count > 0) {
-        hsize_t dim[1] = {old_count};
-        hsize_t chunks[1] = {chunk_size > old_count ? old_count : chunk_size};
+        hsize_t dim[1] = { old_count };
+        hsize_t chunks[1] = { chunk_size > old_count ? old_count : chunk_size };
 
-        hid_t plist_id  = H5Pcreate(H5P_DATASET_CREATE);
+        hid_t plist_id = H5Pcreate(H5P_DATASET_CREATE);
         H5Pset_chunk(plist_id, 1, chunks);
         H5Pset_deflate(plist_id, 6);
 
@@ -752,13 +748,13 @@ static void inline save_walk_indices(
 
         sprintf(target, "Snap%03d/DescendantIndices", (run_globals.ListOutputSnaps)[prev_i_out]);
         dset_id = H5Dcreate(file_id, target, H5T_NATIVE_INT,
-                dspace_id, H5P_DEFAULT, plist_id, H5P_DEFAULT);
+            dspace_id, H5P_DEFAULT, plist_id, H5P_DEFAULT);
         H5Dwrite(dset_id, H5T_NATIVE_INT, H5S_ALL, H5S_ALL, H5P_DEFAULT, descendant_index);
         H5Dclose(dset_id);
 
         sprintf(target, "Snap%03d/NextProgenitorIndices", (run_globals.ListOutputSnaps)[prev_i_out]);
         dset_id = H5Dcreate(file_id, target, H5T_NATIVE_INT,
-                dspace_id, H5P_DEFAULT, plist_id, H5P_DEFAULT);
+            dspace_id, H5P_DEFAULT, plist_id, H5P_DEFAULT);
         H5Dwrite(dset_id, H5T_NATIVE_INT, H5S_ALL, H5S_ALL, H5P_DEFAULT, next_progenitor_index);
         H5Dclose(dset_id);
 
@@ -768,7 +764,7 @@ static void inline save_walk_indices(
         // Here we create empty datasets.  This is purely to maintain backward
         // compatibility for other codes which read the output (e.g. Yisheng
         // Qiu's magcalc code).
-        hsize_t dim[1] = {0};
+        hsize_t dim[1] = { 0 };
 
         sprintf(target, "Snap%03d/DescendantIndices", (run_globals.ListOutputSnaps)[prev_i_out]);
         H5LTmake_dataset(file_id, target, 1, dim, H5T_NATIVE_INT, descendant_index);
@@ -776,12 +772,12 @@ static void inline save_walk_indices(
         sprintf(target, "Snap%03d/NextProgenitorIndices", (run_globals.ListOutputSnaps)[prev_i_out]);
         H5LTmake_dataset(file_id, target, 1, dim, H5T_NATIVE_INT, next_progenitor_index);
     }
-    
+
     if (n_write > 0) {
-        hsize_t dim[1] = {(hsize_t)n_write};
-        hsize_t chunks[1] = {chunk_size > n_write ? n_write : chunk_size};
-        
-        hid_t plist_id  = H5Pcreate(H5P_DATASET_CREATE);
+        hsize_t dim[1] = { (hsize_t)n_write };
+        hsize_t chunks[1] = { chunk_size > n_write ? n_write : chunk_size };
+
+        hid_t plist_id = H5Pcreate(H5P_DATASET_CREATE);
         H5Pset_chunk(plist_id, 1, chunks);
         H5Pset_deflate(plist_id, 6);
 
@@ -790,7 +786,7 @@ static void inline save_walk_indices(
 
         sprintf(target, "Snap%03d/FirstProgenitorIndices", (run_globals.ListOutputSnaps)[i_out]);
         dset_id = H5Dcreate(file_id, target, H5T_NATIVE_INT,
-                dspace_id, H5P_DEFAULT, plist_id, H5P_DEFAULT);
+            dspace_id, H5P_DEFAULT, plist_id, H5P_DEFAULT);
         H5Dwrite(dset_id, H5T_NATIVE_INT, H5S_ALL, H5S_ALL, H5P_DEFAULT, first_progenitor_index);
         H5Dclose(dset_id);
 
@@ -800,13 +796,11 @@ static void inline save_walk_indices(
         // Here we create empty datasets.  This is purely to maintain backward
         // compatibility for other codes which read the output (e.g. Yisheng
         // Qiu's magcalc code).
-        hsize_t dim[1] = {0};
+        hsize_t dim[1] = { 0 };
 
         sprintf(target, "Snap%03d/FirstProgenitorIndices", (run_globals.ListOutputSnaps)[i_out]);
         H5LTmake_dataset(file_id, target, 1, dim, H5T_NATIVE_INT, first_progenitor_index);
     }
-
-
 }
 
 static inline bool pass_write_check(galaxy_t* gal, bool flag_merger)
@@ -872,14 +866,13 @@ void write_snapshot(
 
     // reset the chunk size if required
     if ((int)chunk_size < n_write)
-        chunk_size = n_write;
+        chunk_size = (hsize_t)n_write;
 
     // Make the table
     H5TBmake_table("Galaxies", group_id, "Galaxies",
-        h5props.n_props, n_write, h5props.dst_size, h5props.field_names,
+        (hsize_t)h5props.n_props, (hsize_t)n_write, h5props.dst_size, h5props.field_names,
         h5props.dst_offsets, h5props.field_types, chunk_size, fill_data, 1,
         NULL);
-
 
     // If the immediately preceding snapshot was also written, then save the
     // descendent indices
@@ -959,8 +952,7 @@ void write_snapshot(
         free(first_progenitor_index);
         free(next_progenitor_index);
         free(descendant_index);
-    }
-    else {
+    } else {
         gal = run_globals.FirstGal;
         while (gal != NULL) {
             if (pass_write_check(gal, false))
@@ -989,7 +981,7 @@ void write_snapshot(
             buffer_count++;
         }
         if (buffer_count == (int)chunk_size) {
-            H5TBwrite_records(group_id, "Galaxies", gal_count, buffer_count, h5props.dst_size,
+            H5TBwrite_records(group_id, "Galaxies", (hsize_t)gal_count, (hsize_t)buffer_count, h5props.dst_size,
                 h5props.dst_offsets, h5props.dst_field_sizes, output_buffer);
             gal_count += buffer_count;
             buffer_count = 0;
@@ -999,7 +991,7 @@ void write_snapshot(
 
     // Write any remaining galaxies in the buffer
     if (buffer_count > 0) {
-        H5TBwrite_records(group_id, "Galaxies", gal_count, buffer_count, h5props.dst_size,
+        H5TBwrite_records(group_id, "Galaxies", (hsize_t)gal_count, (hsize_t)buffer_count, h5props.dst_size,
             h5props.dst_offsets, h5props.dst_field_sizes, output_buffer);
         gal_count += buffer_count;
     }

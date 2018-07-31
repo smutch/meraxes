@@ -1,5 +1,4 @@
 #include "meraxes.h"
-#include <hdf5.h>
 #include <hdf5_hl.h>
 #include <math.h>
 
@@ -80,7 +79,7 @@ static double interpolate_temp_dependant_cooling_rate(int i_m, double logTemp)
 
     // Now find the index of the tabulated temp immediately below our value
     temp_step = (MAX_TEMP - MIN_TEMP) / (double)(N_TEMPS - 1);
-    i_t = (logTemp - MIN_TEMP) / temp_step;
+    i_t = (int)((logTemp - MIN_TEMP) / temp_step);
     if (i_t >= (N_TEMPS - 1))
         i_t = N_TEMPS - 2;
 

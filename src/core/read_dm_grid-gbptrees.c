@@ -1,7 +1,6 @@
 #include "meraxes.h"
 #include <assert.h>
 #include <fftw3-mpi.h>
-#include <fftw3.h>
 #include <math.h>
 
 /*
@@ -99,7 +98,7 @@ int read_dm_grid__gbptrees(
 
     ptrdiff_t slab_nix_file, slab_ix_start_file;
     ptrdiff_t slab_n_complex_file = fftwf_mpi_local_size_3d(n_cell[0], n_cell[0], n_cell[0] / 2 + 1, run_globals.mpi_comm, &slab_nix_file, &slab_ix_start_file);
-    fftwf_complex* slab_file = fftwf_alloc_complex(slab_n_complex_file);
+    fftwf_complex* slab_file = fftwf_alloc_complex((size_t)slab_n_complex_file);
     ptrdiff_t slab_ni_file = slab_nix_file * n_cell[0] * n_cell[0];
 
     // Initialise (just in case!)
@@ -126,7 +125,7 @@ int read_dm_grid__gbptrees(
 
     MPI_Offset offset = slab_offset;
     for (int ii = 0; ii < n_reads; ii++, offset += chunk_size) {
-        MPI_File_read_at(fin, offset, &(((float*)slab_file)[chunk_size * ii]), chunk_size, MPI_FLOAT, &status);
+        MPI_File_read_at(fin, offset, &(((float*)slab_file)[chunk_size * ii]), (int)chunk_size, MPI_FLOAT, &status);
 
         int count_check;
         MPI_Get_count(&status, MPI_FLOAT, &count_check);
@@ -139,7 +138,7 @@ int read_dm_grid__gbptrees(
     MPI_File_close(&fin);
 
     // reorder the read slab for inplace fftw padding
-    for (int ii = slab_nix_file - 1; ii >= 0; ii--)
+    for (int ii = (int)(slab_nix_file - 1); ii >= 0; ii--)
         for (int jj = n_cell[0] - 1; jj >= 0; jj--)
             for (int kk = n_cell[0] - 1; kk >= 0; kk--)
                 ((float*)slab_file)[grid_index(ii, jj, kk, n_cell[0], INDEX_PADDED)] = ((float*)slab_file)[grid_index(ii, jj, kk, n_cell[0], INDEX_REAL)];

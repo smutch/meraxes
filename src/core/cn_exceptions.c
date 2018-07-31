@@ -8,7 +8,7 @@ void cn_quote()
     char quote_list[28][512];
     int ind;
 
-    srand(time(NULL));
+    srand((unsigned int)time(NULL));
 
     strcpy(quote_list[0], "CHUCK_NORRIS_EXCEPTION: When Chuck Norris throws exceptions, it’s across the room.");
     strcpy(quote_list[1], "CHUCK_NORRIS_EXCEPTION: All arrays Chuck Norris declares are of infinite size, because Chuck Norris knows no bounds.");

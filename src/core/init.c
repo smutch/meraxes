@@ -1,7 +1,5 @@
 #include "meraxes.h"
 #include <gsl/gsl_integration.h>
-#include <gsl/gsl_math.h>
-#include <time.h>
 
 void init_gpu()
 {
@@ -265,7 +263,7 @@ static void read_output_snaps()
         }
 
         // sort the list from low to high snapnum
-        qsort(*ListOutputSnaps, (*nout), sizeof(int), compare_ints);
+        qsort(*ListOutputSnaps, (size_t)(*nout), sizeof(int), compare_ints);
     }
 
     // broadcast the data to all other ranks
@@ -316,7 +314,7 @@ void init_meraxes()
 
     // initialise the random number generator
     run_globals.random_generator = gsl_rng_alloc(gsl_rng_ranlxd1);
-    gsl_rng_set(run_globals.random_generator, run_globals.params.RandomSeed);
+    gsl_rng_set(run_globals.random_generator, (unsigned long)run_globals.params.RandomSeed);
 
     // set the units
     set_units();
