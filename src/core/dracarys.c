@@ -305,6 +305,10 @@ void dracarys()
         set_fesc(snapshot);
         if (run_globals.params.Flag_PatchyReion) {
 
+            if(run_globals.params.Flag_IncludeSpinTemp) {
+
+            }
+
             if (check_if_reionization_ongoing()) {
                 if (!run_globals.params.ReionUVBFlag) {
                     // We are decoupled, so no need to run 21cmFAST unless we are ouputing this snapshot

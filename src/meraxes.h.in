@@ -240,6 +240,7 @@ typedef struct run_params_t {
     int FlagInteractive;
     int FlagMCMC;
     int Flag_PatchyReion;
+    int Flag_IncludeSpinTemp;
     int Flag_OutputGrids;
     int Flag_OutputGridsPostReion;
 } run_params_t;
