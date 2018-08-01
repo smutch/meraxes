@@ -9,7 +9,7 @@
 #include <hdf5.h>
 #include <hdf5_hl.h>
 
-#include "heating_helper_progs.c"
+#include "XRayHeatingFunctions.c"
 
 void _ComputeTs(int snapshot)
 {
