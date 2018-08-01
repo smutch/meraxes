@@ -94,6 +94,7 @@ extern "C" {
 #define MAX_TK (float) 5e4
 #define L_FACTOR 0.620350491 // Factor relating cube length to filter radius = (4PI/3)^(-1/3)
 
+#define alphaB_10k (double) (2.59e-13) /* taken from osterbrock for T=10000 */
 
 // Constants
 #define REL_TOL (float)1e-5
