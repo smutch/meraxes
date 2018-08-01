@@ -83,8 +83,8 @@ extern "C" {
 #define RHOcrit (double) ( (3.0*HUBBLE*HUBBLE*run_globals.params.Hubble_h*run_globals.params.Hubble_h / (8.0*M_PI*GRAVITY)) * (MPC*MPC*MPC)/SOLAR_MASS) /* Msun Mpc^-3 */ /* at z=0 */
 #define RHOcrit_cgs (double) (3.0*HUBBLE*HUBBLE*run_globals.params.Hubble_h*run_globals.params.Hubble_h / (8.0*M_PI*GRAVITY)) /* g pcm^-3 */ /* at z=0 */
 #define OMb (run_globals.params.BaryonFrac*run_globals.params.OmegaM)
-#define No  (double) (RHOcrit_cgs*((OMb)*(1-Y_He)/PROTONMASS)  /*  current hydrogen number density estimate  (#/cm^3)  ~1.92e-7*/
-#define He_No (double) (RHOcrit_cgs*((OMb)*Y_He/(4.0*PROTONMASS)) /*  current helium number density estimate */
+#define No  (double) (RHOcrit_cgs*OMb*(1-run_globals.params.physics.Y_He)/PROTONMASS)  /*  current hydrogen number density estimate  (#/cm^3)  ~1.92e-7*/
+#define He_No (double) (RHOcrit_cgs*OMb*run_globals.params.physics.Y_He/(4.0*PROTONMASS)) /*  current helium number density estimate */
 #define f_H (double) (No/(No+He_No))  /* hydrogen number fraction */
 #define f_He (double) (He_No/(No+He_No))  /* helium number fraction */
 #define FRACT_FLOAT_ERR (double) (1e-7) /* fractional floating point error */
@@ -281,6 +281,7 @@ typedef struct run_params_t {
     int FlagMCMC;
     int Flag_PatchyReion;
     int Flag_IncludeSpinTemp;
+    int SEP_QSO_XRAY;
     int Flag_OutputGrids;
     int Flag_OutputGridsPostReion;
 } run_params_t;
@@ -782,6 +783,12 @@ void write_single_grid(const char* fname, float* grid, const char* grid_name, bo
 // Spin temperature related
 void call_ComputeTs(int snapshot, int nout_gals, timer_info* timer);
 void ComputeTs(int snapshot, timer_info* timer_total);
+
+double alpha_A(double T);
+double dtdz(float z);
+
+
+
 
 // MCMC related
 // meraxes_mhysa_hook must be implemented by the calling code (Mhysa)!
