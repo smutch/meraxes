@@ -1,4 +1,5 @@
 #include "meraxes.h"
+#include <assert.h>
 #include <gsl/gsl_integration.h>
 
 void init_gpu()
@@ -234,6 +235,7 @@ static void read_output_snaps()
         fseek(fd, 0, SEEK_SET);
 
         // allocate the ListOutputSnaps array
+        assert(*nout > 0);
         *ListOutputSnaps = malloc(sizeof(int) * (*nout));
 
         for (i = 0; i < (*nout); i++)
