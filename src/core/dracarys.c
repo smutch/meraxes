@@ -282,9 +282,8 @@ void dracarys()
         check_counts(fof_group, NGal, trees_info.n_fof_groups);
 #endif
 
-        int ngals_in_slabs = NGal;
         if (run_globals.params.Flag_PatchyReion) {
-            ngals_in_slabs = map_galaxies_to_slabs(NGal);
+            int ngals_in_slabs = map_galaxies_to_slabs(NGal);
             if (run_globals.params.ReionUVBFlag)
                 assign_Mvir_crit_to_galaxies(ngals_in_slabs);
         }

@@ -87,11 +87,9 @@ int delta_T_ps(
     // Initialise arrays
     // ghetto counting (lookup how to do logs of arbitrary bases in c...)
     int num_bins = 0;
-    float k_floor = 0.0;
     float k_ceil = k_first_bin_ceil;
     while (k_ceil < k_max) {
         num_bins++;
-        k_floor = k_ceil;
         k_ceil *= k_factor;
     }
 
@@ -142,7 +140,7 @@ int delta_T_ps(
 
                 // Now go through the k bins and update
                 ct = 0;
-                k_floor = 0.0;
+                float k_floor = 0.0;
                 k_ceil = k_first_bin_ceil;
                 while (k_ceil < k_max) {
                     // Check if we fal in this bin
