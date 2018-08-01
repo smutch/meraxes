@@ -12,12 +12,13 @@ void init_magnitudes(void) {
         printf("# Compute magnitudes\n");
 
         // Read target snapshots
+        run_params_t *params = &run_globals.params;
         char str[STRLEN];
         char delim[] = ",";
         char *token;
         int target_snaps[MAGS_N_SNAPS];
 
-        memcpy(str, run_globals.params.TargetSnaps, sizeof(str));
+        memcpy(str, params->TargetSnaps, sizeof(str));
         token = strtok(str, delim);
         for(int i_snap = 0; i_snap < MAGS_N_SNAPS; ++i_snap) {
             target_snaps[i_snap] = atoi(token);
@@ -32,7 +33,7 @@ void init_magnitudes(void) {
         // Read rest-frame filters
         double rest_bands[2*MAGS_N_BANDS];
 
-        memcpy(str, run_globals.params.RestBands, sizeof(str));
+        memcpy(str, params->RestBands, sizeof(str));
         token = strtok(str, delim);
         for(int i_bound = 0; i_bound < 2*MAGS_N_BANDS; ++i_bound) {
             rest_bands[i_bound] = atof(token);
@@ -46,20 +47,20 @@ void init_magnitudes(void) {
 
         // Initialise SED templates
         ////
-        char *fname = run_globals.params.PhotometricTablesDir;
+        char *fname = params->PhotometricTablesDir;
         strcat(fname, "/sed_library.hdf5");
         printf("%s\n", fname);
         ////Convert time unit to yr
-        int snaplist_len = run_globals.params.SnaplistLength;
+        int snaplist_len = params->SnaplistLength;
         double *LTTime = malloc(snaplist_len*sizeof(double));
-        double time_unit = run_globals.units.UnitTime_in_Megayears/run_globals.params.Hubble_h*1e6;
+        double time_unit = run_globals.units.UnitTime_in_Megayears/params->Hubble_h*1e6;
 
         memcpy(LTTime, run_globals.LTTime, snaplist_len*sizeof(double));
         for(int i_time = 0; i_time < snaplist_len; ++i_time)
             LTTime[i_time] *= time_unit;
         ////
         init_templates_mini(mags_params, fname, LTTime, target_snaps, run_globals.ZZ,
-                            rest_bands, MAGS_N_BANDS, 0, run_globals.params.BirthCloudLifetime);
+                            rest_bands, MAGS_N_BANDS, 0, params->BirthCloudLifetime);
     }
 
     // Broadcast parameters to all cores
