@@ -1,3 +1,11 @@
+/*
+ * This code is an amalgamation of the requisite functions for X-ray heating taken from 
+ * 21cmFAST. Specifically, from heating_helper_progs.c and elec_interp.c. 
+ * The original code was written by Andrei Mesinger. 
+ * Written to work within Meraxes by Bradley Greig.
+ */
+
+
 #include "meraxes.h"
 #include <assert.h>
 #include <fftw3-mpi.h>
@@ -24,11 +32,6 @@
 #define x_int_NENERGY  258
 #define _x_int_VARIABLES_DEFINED
 #endif
-
-#define STELLAR_SPECTRA_FILENAME (const char *) "External_tables/stellar_spectra.dat"
-#define KAPPA_PH_FILENAME (const char *) "External_tables/kappa_pH_table.dat"
-#define KAPPA_EH_FILENAME (const char *) "External_tables/kappa_eH_table.dat"
-#define RECFAST_FILENAME (const char *) "External_tables/recfast_LCDM.dat"
 
 #define Pop (int) (2)
 #define Pop2_ion (float) (4361)
