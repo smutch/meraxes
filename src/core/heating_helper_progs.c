@@ -189,27 +189,38 @@ double T_RECFAST(float z, int flag)
   int i;
   FILE *F;
 
+  char fname[STRLEN];
+
   if (flag == 1) {
-    // Read in the recfast data
-    if ( !(F=fopen(RECFAST_FILENAME, "r")) ){
-      fprintf(stderr, "T_RECFAST: Unable to open file: %s for reading\nAborting\n", RECFAST_FILENAME);
-      fprintf(LOG, "T_RECFAST: Unable to open file: %s for reading\nAborting\n", RECFAST_FILENAME);
-      return -1;
-    }
 
-    for (i=(RECFAST_NPTS-1);i>=0;i--) {
-      fscanf(F, "%f %E %E %E", &currz, &trash, &trash, &currTK);
-      zt[i] = currz;
-      TK[i] = currTK;
-    }
-    fclose(F);
+      if (run_globals.mpi_rank == 0) {
 
-    // Set up spline table
-    acc   = gsl_interp_accel_alloc ();
-    spline  = gsl_spline_alloc (gsl_interp_cspline, RECFAST_NPTS);
-    gsl_spline_init(spline, zt, TK, RECFAST_NPTS);
+          sprintf(fname, "%s/recfast_LCDM.dat", run_globals.params.TablesForXHeatingDir);
 
-    return 0;
+          // Read in the data
+          if (!(F = fopen(fname, "r"))){
+              mlog("T_RECFAST: Unable to open file: %s for reading\nAborting\n",MLOG_MESG, fname);
+              return -1;
+          }
+
+          for (i=(RECFAST_NPTS-1);i>=0;i--) {
+              fscanf(F, "%f %E %E %E", &currz, &trash, &trash, &currTK);
+              zt[i] = currz;
+              TK[i] = currTK;
+          }
+          fclose(F);
+      }
+       
+      // broadcast the values to all cores
+      MPI_Bcast(zt, sizeof(zt), MPI_BYTE, 0, run_globals.mpi_comm);
+      MPI_Bcast(TK, sizeof(TK), MPI_BYTE, 0, run_globals.mpi_comm);
+
+      // Set up spline table
+      acc   = gsl_interp_accel_alloc ();
+      spline  = gsl_spline_alloc (gsl_interp_cspline, RECFAST_NPTS);
+      gsl_spline_init(spline, zt, TK, RECFAST_NPTS);
+
+      return 0;
   }
 
   if (flag == 2) {
@@ -241,27 +252,39 @@ double xion_RECFAST(float z, int flag)
   int i;
   FILE *F;
 
+
+  char fname[STRLEN];
+ 
   if (flag == 1) {
-    // Initialize vectors
-    if ( !(F=fopen(RECFAST_FILENAME, "r")) ){
-      fprintf(stderr, "xion_RECFAST: Unable to open file: %s for reading\nAborting\n", RECFAST_FILENAME);
-      fprintf(LOG, "xion_RECFAST: Unable to open file: %s for reading\nAborting\n", RECFAST_FILENAME);
-      return -1;
-    }
 
-    for (i=(RECFAST_NPTS-1);i>=0;i--) {
-      fscanf(F, "%f %E %E %E", &currz, &currxion, &trash, &trash);
-      zt[i] = currz;
-      xion[i] = currxion;
-    }
-    fclose(F);
+      if (run_globals.mpi_rank == 0) {
 
-    // Set up spline table
-    acc   = gsl_interp_accel_alloc ();
-    spline  = gsl_spline_alloc (gsl_interp_cspline, RECFAST_NPTS);
-    gsl_spline_init(spline, zt, xion, RECFAST_NPTS);
+          sprintf(fname, "%s/recfast_LCDM.dat", run_globals.params.TablesForXHeatingDir);
 
-    return 0;
+          // Read in the data
+          if (!(F = fopen(fname, "r"))){
+              mlog("xion_RECFAST: Unable to open file: %s for reading\nAborting\n",MLOG_MESG, fname);
+              return -1;
+          }
+
+          for (i=(RECFAST_NPTS-1);i>=0;i--) {
+              fscanf(F, "%f %E %E %E", &currz, &currxion, &trash, &trash);
+              zt[i] = currz;
+              xion[i] = currxion;
+          }
+          fclose(F);
+      }
+ 
+      // broadcast the values to all cores
+      MPI_Bcast(zt, sizeof(zt), MPI_BYTE, 0, run_globals.mpi_comm);
+      MPI_Bcast(xion, sizeof(xion), MPI_BYTE, 0, run_globals.mpi_comm);
+
+      // Set up spline table
+      acc   = gsl_interp_accel_alloc ();
+      spline  = gsl_spline_alloc (gsl_interp_cspline, RECFAST_NPTS);
+      gsl_spline_init(spline, zt, xion, RECFAST_NPTS);
+
+      return 0;
   }
 
   if (flag == 2) {
@@ -604,36 +627,50 @@ double spectral_emissivity(double nu_norm, int flag)
   int i;
   FILE *F;
 
+  char fname[STRLEN];
+
   if (flag == 1) {
-    // Read in the data 
-    if (!(F = fopen(STELLAR_SPECTRA_FILENAME, "r"))){
-      fprintf(stderr, "spectral_emissivity: Unable to open file: stellar_spectra.dat for reading\nAborting\n");
-      fprintf(LOG, "spectral_emissivity: Unable to open file: stellar_spectra.dat for reading\nAborting\n");
-      return -1;
-    }
+  
+      if (run_globals.mpi_rank == 0) {
+     
+          sprintf(fname, "%s/stellar_spectra.dat", run_globals.params.TablesForXHeatingDir);
 
-    for (i=1;i<NSPEC_MAX;i++) {
-      fscanf(F, "%i %e %e %e %e", &n[i], &N0_2[i], &alpha_S_2[i], &N0_3[i], &alpha_S_3[i]);
-    }
-    fclose(F);
+          // Read in the data 
+          if (!(F = fopen(fname, "r"))){
+              mlog("spectral_emissivity: Unable to open file: stellar_spectra.dat at %s for reading\nAborting\n",MLOG_MESG, fname);
+              return -1;
+          }
 
-    for (i=1;i<NSPEC_MAX;i++) {
-      nu_n[i] = 4.0/3.0*(1.0-1.0/pow(n[i],2.0));
-    }
+          for (i=1;i<NSPEC_MAX;i++) {
+              fscanf(F, "%i %e %e %e %e", &n[i], &N0_2[i], &alpha_S_2[i], &N0_3[i], &alpha_S_3[i]);
+          }
+          fclose(F);
 
-    for (i=1;i<NSPEC_MAX;i++) {
-      nu_n[i] = 4.0/3.0*(1.0-1.0/pow(n[i],2.0));
-    }
+          for (i=1;i<NSPEC_MAX;i++) {
+              nu_n[i] = 4.0/3.0*(1.0-1.0/pow(n[i],2.0));
+          }
 
-    for (i=1;i<(NSPEC_MAX-1);i++) {
-      n0_fac = (pow(nu_n[i+1],alpha_S_2[i]+1) - pow(nu_n[i],alpha_S_2[i]+1));
-      N0_2[i] *= (alpha_S_2[i]+1)/n0_fac*Pop2_ion;
-      n0_fac = (pow(nu_n[i+1],alpha_S_3[i]+1) - pow(nu_n[i],alpha_S_3[i]+1));
-      N0_3[i] *= (alpha_S_3[i]+1)/n0_fac*Pop3_ion;
-    }
+          for (i=1;i<NSPEC_MAX;i++) {
+              nu_n[i] = 4.0/3.0*(1.0-1.0/pow(n[i],2.0));
+          }
 
-    return 0.0;
-  }
+          for (i=1;i<(NSPEC_MAX-1);i++) {
+              n0_fac = (pow(nu_n[i+1],alpha_S_2[i]+1) - pow(nu_n[i],alpha_S_2[i]+1));
+              N0_2[i] *= (alpha_S_2[i]+1)/n0_fac*Pop2_ion;
+              n0_fac = (pow(nu_n[i+1],alpha_S_3[i]+1) - pow(nu_n[i],alpha_S_3[i]+1));
+              N0_3[i] *= (alpha_S_3[i]+1)/n0_fac*Pop3_ion;
+          }
+      }
+
+      // broadcast the values to all cores
+      MPI_Bcast(nu_n, sizeof(nu_n), MPI_BYTE, 0, run_globals.mpi_comm);
+      MPI_Bcast(alpha_S_2, sizeof(alpha_S_2), MPI_BYTE, 0, run_globals.mpi_comm);
+      MPI_Bcast(alpha_S_3, sizeof(alpha_S_3), MPI_BYTE, 0, run_globals.mpi_comm);
+      MPI_Bcast(N0_2, sizeof(N0_2), MPI_BYTE, 0, run_globals.mpi_comm);
+      MPI_Bcast(N0_3, sizeof(N0_3), MPI_BYTE, 0, run_globals.mpi_comm);
+       
+      return 0.0;
+  }   
 
   ans = 0.0;
   for (i=1;i<(NSPEC_MAX-1);i++) {
@@ -768,8 +805,9 @@ double integrate_over_nu(double zp, double local_x_e, double lower_int_limit, do
 void initialize_interp_arrays()
 {
   FILE *input_file;
-  char input_file_name[100];
-  char input_base[100] = "External_tables/x_int_tables/";
+  char input_file_name[500];
+
+  char input_base[] = "x_int_tables/";
   char input_tail[100] = ".dat";
   char mode[10] = "r";
 
@@ -800,12 +838,10 @@ void initialize_interp_arrays()
 
     // Construct filename
     if (x_int_XHII[n_ion] < 0.3) {
-      sprintf(input_file_name,"%slog_xi_%1.1f%s",input_base,log10(x_int_XHII[n_ion]),input_tail);
+      sprintf(input_file_name,"%s/%slog_xi_%1.1f%s",run_globals.params.TablesForXHeatingDir,input_base,log10(x_int_XHII[n_ion]),input_tail);
     } else {
-      sprintf(input_file_name,"%sxi_%1.3f%s",input_base,x_int_XHII[n_ion],input_tail);
+      sprintf(input_file_name,"%s/%sxi_%1.3f%s",run_globals.params.TablesForXHeatingDir,input_base,x_int_XHII[n_ion],input_tail);
     }
-
-    //    printf("%s\n",input_file_name);
 
     input_file = fopen(input_file_name, mode);
 
@@ -817,7 +853,6 @@ void initialize_interp_arrays()
     // Read in first line
     for (i=1;i<=5;i++) {
       fscanf(input_file,"%s", label);
-      //      printf("%s\n",label);
     }
 
     // Read in second line (ionized fractions info)
@@ -826,7 +861,6 @@ void initialize_interp_arrays()
     // Read in column headings
     for (i=1;i<=11;i++) {
       fscanf(input_file,"%s", label);
-      //      printf("%s\n",label);
     }
 
     // Read in data table
@@ -1518,29 +1552,41 @@ double kappa_10_elec(double T, int flag)
   float curr_TK, curr_kappa;
   FILE *F;
 
+  char fname[STRLEN];
+
   if (flag == 1) {
-    if (!(F=fopen(KAPPA_EH_FILENAME, "r"))){
-      fprintf(stderr, "Unable to open the kappa_10^eH file at %s\nAborting\n", KAPPA_EH_FILENAME);
-      fprintf(LOG, "Unable to open the kappa_10^eH file at %s\nAborting\n", KAPPA_EH_FILENAME);
+
+      if (run_globals.mpi_rank == 0) {
+
+          sprintf(fname, "%s/kappa_eH_table.dat", run_globals.params.TablesForXHeatingDir);
+
+          // Read in the data
+          if (!(F = fopen(fname, "r"))){
+              mlog("Unable to open the kappa_10^eH file at %s\nAborting\n",MLOG_MESG, fname);
+              return 0;
+          }
+
+          for (i=0;i<KAPPA_10_elec_NPTS;i++) {
+              fscanf(F, "%f %e", &curr_TK, &curr_kappa);
+              TK[i] = curr_TK;
+              kappa[i] = curr_kappa;
+          }
+
+          for (i=0;i<KAPPA_10_elec_NPTS;i++) {
+              TK[i] = log(TK[i]);
+              kappa[i] = log(kappa[i]);
+          }
+      }
+
+      // broadcast the values to all cores
+      MPI_Bcast(TK, sizeof(TK), MPI_BYTE, 0, run_globals.mpi_comm);
+      MPI_Bcast(kappa, sizeof(kappa), MPI_BYTE, 0, run_globals.mpi_comm);
+
+      // * Set up spline table * //
+      acc   = gsl_interp_accel_alloc ();
+      spline  = gsl_spline_alloc (gsl_interp_cspline, KAPPA_10_elec_NPTS);
+      gsl_spline_init(spline, TK, kappa, KAPPA_10_elec_NPTS);
       return 0;
-    }
-
-    for (i=0;i<KAPPA_10_elec_NPTS;i++) {
-      fscanf(F, "%f %e", &curr_TK, &curr_kappa);
-      TK[i] = curr_TK;
-      kappa[i] = curr_kappa;
-    }
-
-    for (i=0;i<KAPPA_10_elec_NPTS;i++) {
-      TK[i] = log(TK[i]);
-      kappa[i] = log(kappa[i]);
-    }
-
-    // * Set up spline table * //
-    acc   = gsl_interp_accel_alloc ();
-    spline  = gsl_spline_alloc (gsl_interp_cspline, KAPPA_10_elec_NPTS);
-    gsl_spline_init(spline, TK, kappa, KAPPA_10_elec_NPTS);
-    return 0;
   }
 
   if (flag == 2) {
@@ -1582,31 +1628,41 @@ double kappa_10_pH(double T, int flag)
 
   FILE *F;
 
+  char fname[STRLEN];
+
   if (flag == 1) {
-    if (!(F=fopen(KAPPA_PH_FILENAME, "r"))){
-      fprintf(stderr, "Unable to open the kappa_10^pH file at %s\nAborting\n", KAPPA_PH_FILENAME);
-      fprintf(LOG, "Unable to open the kappa_10^pH file at %s\nAborting\n", KAPPA_PH_FILENAME);
+
+      if (run_globals.mpi_rank == 0) {
+
+          sprintf(fname, "%s/kappa_pH_table.dat", run_globals.params.TablesForXHeatingDir);
+
+          if (!(F=fopen(fname, "r"))){
+              mlog("Unable to open the kappa_10^pH file at %s\nAborting\n", MLOG_MESG, fname);
+              return 0;
+          }
+
+          for (i=0;i<KAPPA_10_pH_NPTS;i++) {
+              fscanf(F, "%f %e", &curr_TK, &curr_kappa);
+              TK[i] = curr_TK;
+              kappa[i] = curr_kappa;
+          }
+          fclose(F);
+
+          for (i=0;i<KAPPA_10_pH_NPTS;i++) {
+              TK[i] = log(TK[i]);
+              kappa[i] = log(kappa[i]);
+          }
+      }
+
+      // broadcast the values to all cores
+      MPI_Bcast(TK, sizeof(TK), MPI_BYTE, 0, run_globals.mpi_comm);
+      MPI_Bcast(kappa, sizeof(kappa), MPI_BYTE, 0, run_globals.mpi_comm);
+
+      // * Set up spline table * //
+      acc   = gsl_interp_accel_alloc ();
+      spline  = gsl_spline_alloc (gsl_interp_cspline, KAPPA_10_pH_NPTS);
+      gsl_spline_init(spline, TK, kappa, KAPPA_10_pH_NPTS);
       return 0;
-    }
-
-    for (i=0;i<KAPPA_10_pH_NPTS;i++) {
-      fscanf(F, "%f %e", &curr_TK, &curr_kappa);
-      TK[i] = curr_TK;
-      kappa[i] = curr_kappa;
-      //      fprintf(stderr, "scanning %f\t%e\n", TK[i], kappa[i]);
-    }
-    fclose(F);
-
-    for (i=0;i<KAPPA_10_pH_NPTS;i++) {
-      TK[i] = log(TK[i]);
-      kappa[i] = log(kappa[i]);
-    }
-
-    // * Set up spline table * //
-    acc   = gsl_interp_accel_alloc ();
-    spline  = gsl_spline_alloc (gsl_interp_cspline, KAPPA_10_pH_NPTS);
-    gsl_spline_init(spline, TK, kappa, KAPPA_10_pH_NPTS);
-    return 0;
   }
 
   if (flag == 2) {
