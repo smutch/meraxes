@@ -108,26 +108,29 @@ void call_find_HII_bubbles(int snapshot, int nout_gals, timer_info* timer)
         return;
     }
 
-    // Construct the baryon grids
-    construct_baryon_grids(snapshot, nout_gals);
+    if(!run_globals.params.Flag_IncludeSpinTemp) {
 
-    // Read in the dark matter density grid
-    switch (run_globals.params.TreesID) {
-        case VELOCIRAPTOR_TREES:
-            read_dm_grid__velociraptor(snapshot, grids->deltax);
+        // Construct the baryon grids
+        construct_baryon_grids(snapshot, nout_gals);
+
+        // Read in the dark matter density grid
+        switch (run_globals.params.TreesID) {
+            case VELOCIRAPTOR_TREES:
+                read_dm_grid__velociraptor(snapshot, grids->deltax);
+                break;
+            case GBPTREES_TREES:
+                read_dm_grid__gbptrees(snapshot, grids->deltax);
+                break;
+            default:
+                mlog_error("Unrecognised input trees identifier (TreesID).");
             break;
-        case GBPTREES_TREES:
-            read_dm_grid__gbptrees(snapshot, grids->deltax);
-            break;
-        default:
-            mlog_error("Unrecognised input trees identifier (TreesID).");
-        break;
+        }
+    
+        // save the grids prior to doing FFTs to avoid precision loss and aliasing etc.
+        for (int i_out = 0; i_out < run_globals.NOutputSnaps; i_out++)
+            if (snapshot == run_globals.ListOutputSnaps[i_out] && run_globals.params.Flag_OutputGrids)
+                save_reion_input_grids(snapshot);
     }
-
-    // save the grids prior to doing FFTs to avoid precision loss and aliasing etc.
-    for (int i_out = 0; i_out < run_globals.NOutputSnaps; i_out++)
-        if (snapshot == run_globals.ListOutputSnaps[i_out] && run_globals.params.Flag_OutputGrids)
-            save_reion_input_grids(snapshot);
 
     mlog("...done", MLOG_CLOSE);
 
