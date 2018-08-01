@@ -151,6 +151,11 @@ void read_parameter_file(char* fname, int mode)
             params_addr[n_param] = run_params->RestBands;
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_STRING;
+
+            strcpy(params_tag[n_param], "BirthCloudLifetime");
+            params_addr[n_param] = &(run_params->BirthCloudLifetime);
+            required_tag[n_param] = 1;
+            params_type[n_param++] = PARAM_TYPE_DOUBLE;
             #endif
 
             strcpy(params_tag[n_param], "CoolingFuncsDir");

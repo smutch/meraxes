@@ -190,6 +190,7 @@ typedef struct run_params_t {
     char PhotometricTablesDir[STRLEN];
     char TargetSnaps[STRLEN];
     char RestBands[STRLEN];
+    double BirthCloudLifetime;
     #endif
     char CoolingFuncsDir[STRLEN];
     char StellarFeedbackDir[STRLEN];

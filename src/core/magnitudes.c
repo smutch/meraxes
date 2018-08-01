@@ -59,7 +59,7 @@ void init_magnitudes(void) {
             LTTime[i_time] *= time_unit;
         ////
         init_templates_mini(mags_params, fname, LTTime, target_snaps, run_globals.ZZ,
-                            rest_bands, MAGS_N_BANDS, 0, 25e6);
+                            rest_bands, MAGS_N_BANDS, 0, run_globals.params.BirthCloudLifetime);
     }
 
     // Broadcast parameters to all cores
