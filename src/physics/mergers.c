@@ -121,7 +121,7 @@ static void merger_driven_starburst(galaxy_t* parent, double merger_ratio, int s
 
             contemporaneous_supernova_feedback(parent, &burst_mass, snapshot, &m_reheat, &m_eject, &m_recycled, &new_metals);
             // update the baryonic reservoirs (note that the order we do this in will change the result!)
-            update_reservoirs_from_sf(parent, burst_mass);
+            update_reservoirs_from_sf(parent, burst_mass, snapshot);
             parent->MergerBurstMass += burst_mass;
             update_reservoirs_from_sn_feedback(parent, m_reheat, m_eject, m_recycled, new_metals);
         }
@@ -182,6 +182,10 @@ void merge_with_target(galaxy_t* gal, int* dead_gals, int snapshot)
 
     for (int ii = 0; ii < N_HISTORY_SNAPS; ii++)
         parent->NewMetals[ii] += gal->NewMetals[ii];
+
+    #ifdef CALC_MAGS
+    merge_luminosities(parent->inBCFlux, parent->outBCFlux, gal->inBCFlux, gal->outBCFlux);
+    #endif
 
     // merger driven starburst prescription
     if (min_stellar_mass >= run_globals.params.physics.MinMergerStellarMass)

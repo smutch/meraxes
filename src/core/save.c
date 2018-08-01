@@ -92,8 +92,7 @@ void prepare_galaxy_for_output(
         galout->NewStars[ii] = (float)(gal.NewStars[ii]);
 
     #ifdef CALC_MAGS
-    for(int i_band = 0; i_band < MAGS_N_BANDS; ++i_band)
-        galout->Mag[i_band] = -18;
+    get_output_magnitudes(galout->Mags, &gal, run_globals.ListOutputSnaps[i_snap]);
     #endif
 }
 
@@ -338,9 +337,9 @@ void calc_hdf5_props()
         h5props->field_types[i++] = H5T_NATIVE_FLOAT;
 
         #ifdef CALC_MAGS
-        h5props->dst_offsets[i] = HOFFSET(galaxy_output_t, Mag);
-        h5props->dst_field_sizes[i] = sizeof(galout.Mag);
-        h5props->field_names[i] = "Mag";
+        h5props->dst_offsets[i] = HOFFSET(galaxy_output_t, Mags);
+        h5props->dst_field_sizes[i] = sizeof(galout.Mags);
+        h5props->field_names[i] = "Mags";
         h5props->field_units[i] = "mag";
         h5props->field_h_conv[i] = "None";
         h5props->field_types[i++] = h5props->array_nmag_f_tid;
