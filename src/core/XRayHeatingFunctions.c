@@ -34,7 +34,7 @@
 #endif
 
 #define Pop (int) (2)
-#define Pop2_ion (float) (4361)
+#define Pop2_ion run_globals.params.physics.ReionNionPhotPerBary
 #define Pop3_ion (float) (44021)
 
 #define NSPEC_MAX (int) 23
