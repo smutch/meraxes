@@ -234,8 +234,7 @@ double T_RECFAST(float z, int flag)
   }
 
   if (z > zt[RECFAST_NPTS-1]) { // Called at z>500! Bail out
-    fprintf(stderr, "Called xion_RECFAST with z=%f, bailing out!\n", z);
-    fprintf(LOG, "Called xion_RECFAST with z=%f, bailing out!\n", z);
+    mlog("Called T_RECFAST with z=%f, bailing out!\n",MLOG_MESG, z);
     return -1;
   }
   else { // Do spline
@@ -297,8 +296,7 @@ double xion_RECFAST(float z, int flag)
   }
 
   if (z > zt[RECFAST_NPTS-1]) { // Called at z>500! Bail out
-    fprintf(stderr, "Called xion_RECFAST with z=%f, bailing out!\n", z);
-    fprintf(LOG, "Called xion_RECFAST with z=%f, bailing out!\n", z);
+    mlog("Called xion_RECFAST with z=%f, bailing out!\n",MLOG_MESG, z);
     return -1;
   }
   else { // Do spline
@@ -331,8 +329,7 @@ double nu_tau_one(double zp, double zpp, double x_e, double fcoll, double HI_fil
 
   // check if too ionized
   if (x_e > 0.9999){
-    fprintf(stderr,
-     "Ts.c: WARNING: x_e value is too close to 1 for convergence in nu_tau_one\n");
+    mlog("WARNING: x_e value is too close to 1 for convergence in nu_tau_one\n",MLOG_MESG);
     return -1;
   }
 
@@ -340,7 +337,7 @@ double nu_tau_one(double zp, double zpp, double x_e, double fcoll, double HI_fil
   T = gsl_root_fsolver_brent;
   s = gsl_root_fsolver_alloc(T); // non-derivative based Brent method
   if (!s){
-    fprintf(stderr, "Ts.c: Unable to allocate memory in function nu_tau_one!\n");
+    mlog("Unable to allocate memory in function nu_tau_one\n",MLOG_MESG);
     return -1;
   }
 
@@ -370,7 +367,6 @@ double nu_tau_one(double zp, double zpp, double x_e, double fcoll, double HI_fil
       iter++;
       status = gsl_root_fsolver_iterate (s);
       r = gsl_root_fsolver_root (s);
-      //      printf("iter%i, r=%e\n", iter, r);
       x_lo = gsl_root_fsolver_x_lower (s);
       x_hi = gsl_root_fsolver_x_upper (s);
       status = gsl_root_test_interval (x_lo, x_hi, 0, relative_error);
@@ -837,52 +833,64 @@ void initialize_interp_arrays()
   x_int_XHII[12] = 0.99;
   x_int_XHII[13] = 0.999;
 
-  for (n_ion=0;n_ion<x_int_NXHII;n_ion++) {
+  if (run_globals.mpi_rank == 0) {
 
-    // Construct filename
-    if (x_int_XHII[n_ion] < 0.3) {
-      sprintf(input_file_name,"%s/%slog_xi_%1.1f%s",run_globals.params.TablesForXHeatingDir,input_base,log10(x_int_XHII[n_ion]),input_tail);
-    } else {
-      sprintf(input_file_name,"%s/%sxi_%1.3f%s",run_globals.params.TablesForXHeatingDir,input_base,x_int_XHII[n_ion],input_tail);
-    }
+      for (n_ion=0;n_ion<x_int_NXHII;n_ion++) {
 
-    input_file = fopen(input_file_name, mode);
+          // Construct filename
+          if (x_int_XHII[n_ion] < 0.3) {
+              sprintf(input_file_name,"%s/%slog_xi_%1.1f%s",run_globals.params.TablesForXHeatingDir,input_base,log10(x_int_XHII[n_ion]),input_tail);
+          } else {
+              sprintf(input_file_name,"%s/%sxi_%1.3f%s",run_globals.params.TablesForXHeatingDir,input_base,x_int_XHII[n_ion],input_tail);
+          }
 
-    if (input_file == NULL) {
-      fprintf(stderr, "Can't open input file %s!\n",input_file_name);
-      exit(1);
-    }
+          input_file = fopen(input_file_name, mode);
 
-    // Read in first line
-    for (i=1;i<=5;i++) {
-      fscanf(input_file,"%s", label);
-    }
+          if (input_file == NULL) {
+              mlog("Can't open input file %s!\n",MLOG_MESG, input_file_name);
+              exit(1);
+          }
 
-    // Read in second line (ionized fractions info)
-    fscanf(input_file,"%g %g %g %g %g", &xHI, &xHeI, &xHeII, &z, &T);
+          // Read in first line
+          for (i=1;i<=5;i++) {
+              fscanf(input_file,"%s", label);
+          }
 
-    // Read in column headings
-    for (i=1;i<=11;i++) {
-      fscanf(input_file,"%s", label);
-    }
+          // Read in second line (ionized fractions info)
+          fscanf(input_file,"%g %g %g %g %g", &xHI, &xHeI, &xHeII, &z, &T);
 
-    // Read in data table
-    for (i=0;i<x_int_NENERGY;i++) {
-      fscanf(input_file,"%g %g %g %g %g %g %g %g %g",
-             &x_int_Energy[i],
-             &trash,
-             &x_int_fheat[n_ion][i],
-             &trash,
-             &x_int_n_Lya[n_ion][i],
-             &x_int_nion_HI[n_ion][i],
-             &x_int_nion_HeI[n_ion][i],
-             &x_int_nion_HeII[n_ion][i],
-             &trash);
-    }
+          // Read in column headings
+          for (i=1;i<=11;i++) {
+              fscanf(input_file,"%s", label);
+          }
 
-    fclose(input_file);
+          // Read in data table
+          for (i=0;i<x_int_NENERGY;i++) {
+              fscanf(input_file,"%g %g %g %g %g %g %g %g %g",
+                 &x_int_Energy[i],
+                 &trash,
+                 &x_int_fheat[n_ion][i],
+                 &trash,
+                 &x_int_n_Lya[n_ion][i],
+                 &x_int_nion_HI[n_ion][i],
+                 &x_int_nion_HeI[n_ion][i],
+                 &x_int_nion_HeII[n_ion][i],
+                 &trash);
+          }
 
+          fclose(input_file);
+      }
   }
+    
+    // broadcast the values to all cores
+    MPI_Bcast(x_int_Energy, sizeof(x_int_Energy), MPI_BYTE, 0, run_globals.mpi_comm);
+    MPI_Bcast(x_int_fheat, sizeof(x_int_fheat), MPI_BYTE, 0, run_globals.mpi_comm);
+    MPI_Bcast(x_int_n_Lya, sizeof(x_int_n_Lya), MPI_BYTE, 0, run_globals.mpi_comm);
+    MPI_Bcast(x_int_nion_HI, sizeof(x_int_nion_HI), MPI_BYTE, 0, run_globals.mpi_comm);
+    MPI_Bcast(x_int_nion_HeI, sizeof(x_int_nion_HeI), MPI_BYTE, 0, run_globals.mpi_comm);
+    MPI_Bcast(x_int_nion_HeII, sizeof(x_int_nion_HeII), MPI_BYTE, 0, run_globals.mpi_comm);
+
+
   return;
 }
 
@@ -1385,11 +1393,10 @@ double dicke(double z){
     return dick_z/dick_0;
   }
   else if ( (OMl > (-tiny)) && (fabs(OMtot-1.0) < tiny) && (fabs(wl+1) > tiny) ){
-    fprintf(stderr, "IN WANG\n");
+    mlog("IN WANG\n",MLOG_MESG);
     return -1;
   }
-
-  fprintf(stderr, "No growth function!!! Output will be fucked up.");
+  mlog("No growth function!!! Output will be garbage.",MLOG_MESG);
   return -1;
 }
 
