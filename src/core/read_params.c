@@ -607,6 +607,21 @@ void read_parameter_file(char* fname, int mode)
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_INT;
 
+            strcpy(params_tag[n_param], "Flag_IncludeRecombinations");
+            params_addr[n_param] = &(run_params->Flag_IncludeRecombinations);
+            required_tag[n_param] = 1;
+            params_type[n_param++] = PARAM_TYPE_INT;
+
+            strcpy(params_tag[n_param], "Flag_Compute21cmBrightTemp");
+            params_addr[n_param] = &(run_params->Flag_Compute21cmBrightTemp);
+            required_tag[n_param] = 1;
+            params_type[n_param++] = PARAM_TYPE_INT;
+
+            strcpy(params_tag[n_param], "Flag_IncludePecVels");
+            params_addr[n_param] = &(run_params->Flag_IncludePecVels);
+            required_tag[n_param] = 1;
+            params_type[n_param++] = PARAM_TYPE_INT;
+
             strcpy(params_tag[n_param], "SEP_QSO_XRAY");
             params_addr[n_param] = &(run_params->SEP_QSO_XRAY);
             required_tag[n_param] = 1;

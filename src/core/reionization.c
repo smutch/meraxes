@@ -108,6 +108,7 @@ void call_find_HII_bubbles(int snapshot, int nout_gals, timer_info* timer)
         return;
     }
 
+    // Logic statement to avoid gridding the density field twice
     if(!run_globals.params.Flag_IncludeSpinTemp) {
 
         // Construct the baryon grids
@@ -199,9 +200,21 @@ void init_reion_grids()
         grids->xH[ii] = 1.0;
         grids->z_at_ionization[ii] = -1;
         grids->r_bubble[ii] = 0.0;
+        if(run_globals.params.Flag_IncludeSpinTemp) {
+            grids->Tk_box[ii] = 0.0;
+            grids->Tk_box_prev[ii] = 0.0;
+            grids->TS_box[ii] = 0.0;
+        }
+        if(run_globals.params.Flag_IncludeRecombinations) {
+            grids->z_re[ii] = 0.0;
+            grids->Gamma12[ii] = 0.0;
+        }
+        if(run_globals.params.Flag_Compute21cmBrightTemp) {
+            grids->delta_T[ii] = 0.0;
+        }
     }
 
-    for (int ii = 0; ii < slab_n_real; ii++)
+    for (int ii = 0; ii < slab_n_real; ii++) 
         if (run_globals.params.ReionUVBFlag) {
             grids->J_21_at_ionization[ii] = 0.;
             grids->J_21[ii] = 0.;
@@ -212,15 +225,32 @@ void init_reion_grids()
         grids->stars_filtered[ii] = 0 + 0 * I;
         grids->deltax_filtered[ii] = 0 + 0 * I;
         grids->sfr_filtered[ii] = 0 + 0 * I;
+        if(run_globals.params.Flag_IncludeSpinTemp) {
+            grids->x_e_filtered[ii] = 0 + 0 * I;
+        }
+        if(run_globals.params.Flag_IncludeRecombinations) {
+            grids->N_rec_filtered[ii] = 0 + 0 * I;
+        }
+
     }
 
     for (int ii = 0; ii < slab_n_complex * 2; ii++) {
         grids->deltax[ii] = 0;
         grids->stars[ii] = 0;
         grids->sfr[ii] = 0;
+        if(run_globals.params.Flag_IncludeSpinTemp) {
+            grids->x_e_box_prev[ii] = 0;
+            grids->x_e_box[ii] = 0;
+        }
+        if(run_globals.params.Flag_IncludeRecombinations) {
+            grids->N_rec[ii] = 0;
+            grids->N_rec_prev[ii] = 0;
+        }
+        if(run_globals.params.Flag_Compute21cmBrightTemp&&run_globals.params.Flag_IncludePecVels) {
+            grids->vel[ii] = 0;
+        }
     }
 
-    mlog(" ...done", MLOG_CLOSE);
 }
 
 void malloc_reionization_grids()
@@ -245,6 +275,29 @@ void malloc_reionization_grids()
     grids->z_at_ionization = NULL;
     grids->J_21_at_ionization = NULL;
     grids->J_21 = NULL;
+
+    // Grids required for the spin temperature calculation
+    grids->x_e_box = NULL;
+    grids->x_e_box_prev = NULL;
+    grids->Tk_box = NULL;
+    grids->Tk_box_prev = NULL;
+    grids->TS_box = NULL;
+    grids->x_e_unfiltered = NULL;
+    grids->x_e_filtered = NULL;
+
+    // Grids required for inhomogeneous recombinations
+    grids->N_rec_unfiltered = NULL;
+    grids->N_rec_filtered = NULL;
+    grids->z_re = NULL;
+    grids->Gamma12 = NULL;
+    grids->N_rec = NULL;
+    grids->N_rec_prev = NULL;
+
+    // Grids required for 21cm brightness temperature
+    grids->delta_T = NULL;
+
+    // Grids required for addining in peculiar velocity effects
+    grids->vel = NULL;    
 
     if (run_globals.params.Flag_PatchyReion) {
         assign_slabs();
@@ -274,6 +327,34 @@ void malloc_reionization_grids()
         grids->xH = fftwf_alloc_real(slab_n_real);
         grids->z_at_ionization = fftwf_alloc_real(slab_n_real);
         grids->r_bubble = fftwf_alloc_real(slab_n_real);
+
+        if(run_globals.params.Flag_IncludeSpinTemp) {
+
+            grids->x_e_box = fftwf_alloc_real(slab_n_complex * 2);
+            grids->x_e_box_prev = fftwf_alloc_real(slab_n_complex * 2); // padded for in-place FFT;
+            grids->Tk_box = fftwf_alloc_real(slab_n_real);
+            grids->Tk_box_prev = fftwf_alloc_real(slab_n_real);
+            grids->TS_box = fftwf_alloc_real(slab_n_real);
+
+            grids->x_e_filtered = fftwf_alloc_complex(slab_n_complex);
+        }
+
+        if(run_globals.params.Flag_IncludeRecombinations) {
+            grids->N_rec = fftwf_alloc_real(slab_n_complex * 2); // padded for in-place FFT
+            grids->N_rec_prev = fftwf_alloc_real(slab_n_complex * 2); // padded for in-place FFT
+            grids->N_rec_filtered = fftwf_alloc_complex(slab_n_complex);
+
+            grids->z_re = fftwf_alloc_real(slab_n_real);
+            grids->Gamma12 = fftwf_alloc_real(slab_n_real);
+        }
+
+        if(run_globals.params.Flag_Compute21cmBrightTemp) {
+            grids->delta_T = fftwf_alloc_real(slab_n_real);
+
+            if(run_globals.params.Flag_IncludePecVels) {
+                grids->vel = fftwf_alloc_real(slab_n_complex * 2); // padded for in-place FFT
+            }
+        }
 
         if (run_globals.params.ReionUVBFlag) {
             grids->J_21_at_ionization = fftwf_alloc_real(slab_n_real);
@@ -305,6 +386,32 @@ void free_reionization_grids()
     fftwf_free(grids->deltax);
     fftwf_free(grids->stars_filtered);
     fftwf_free(grids->xH);
+
+    if(run_globals.params.Flag_IncludeSpinTemp) {
+		fftwf_free(grids->x_e_box);
+    		fftwf_free(grids->x_e_box_prev);
+		fftwf_free(grids->Tk_box);
+    		fftwf_free(grids->Tk_box_prev);
+    		fftwf_free(grids->TS_box);
+    }
+ 
+    if(run_globals.params.Flag_IncludeRecombinations) {
+		fftwf_free(grids->N_rec_filtered);
+		fftwf_free(grids->N_rec);
+		fftwf_free(grids->N_rec_prev);
+
+		fftwf_free(grids->z_re);
+		fftwf_free(grids->Gamma12);
+    }
+
+    if(run_globals.params.Flag_Compute21cmBrightTemp) {
+
+		fftwf_free(grids->delta_T);
+
+        if(run_globals.params.Flag_IncludePecVels) {
+ 		fftwf_free(grids->vel);
+        }
+    }
 
     if (run_globals.params.ReionUVBFlag)
         fftwf_free(grids->Mvir_crit);

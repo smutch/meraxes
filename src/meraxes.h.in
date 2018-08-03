@@ -283,6 +283,9 @@ typedef struct run_params_t {
     int FlagMCMC;
     int Flag_PatchyReion;
     int Flag_IncludeSpinTemp;
+    int Flag_IncludeRecombinations;
+    int Flag_Compute21cmBrightTemp;
+    int Flag_IncludePecVels;
     int SEP_QSO_XRAY;
     int Flag_OutputGrids;
     int Flag_OutputGridsPostReion;
@@ -360,6 +363,28 @@ typedef struct reion_grids_t {
     float* J_21;
     float* Mvir_crit;
     float* r_bubble;
+
+    // Grids necessary for the IGM spin temperature
+    fftwf_complex* x_e_unfiltered;
+    fftwf_complex* x_e_filtered;
+    float* x_e_box;
+    float* x_e_box_prev;
+    float* Tk_box;
+    float* Tk_box_prev;
+    float* TS_box;
+
+    // Grids necessary for inhomogeneous recombinations
+    fftwf_complex* N_rec_unfiltered;
+    fftwf_complex* N_rec_filtered;
+    float* z_re;
+    float* N_rec;
+    float* N_rec_prev;
+    float* Gamma12;
+
+    // Grids necessary for the 21cm brightness temperature
+    float* delta_T;
+    float* vel;
+
     gal_to_slab_t* galaxy_to_slab_map;
 
     double volume_weighted_global_xH;
