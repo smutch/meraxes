@@ -327,7 +327,7 @@ void dracarys()
             if(run_globals.params.Flag_ComputePS) {
                 Compute_PS(snapshot);
             }
-
+            
             // if we have already created a mapping of galaxies to MPI slabs then we no
             // longer need them as they will need to be re-created for the new halo
             // positions in the next time step
