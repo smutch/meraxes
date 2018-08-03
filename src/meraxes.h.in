@@ -285,6 +285,7 @@ typedef struct run_params_t {
     int Flag_IncludeSpinTemp;
     int Flag_IncludeRecombinations;
     int Flag_Compute21cmBrightTemp;
+    int Flag_ComputePS;
     int Flag_IncludePecVels;
     int Flag_IncludeLOSRSDs;
     int SEP_QSO_XRAY;
@@ -817,6 +818,8 @@ double dtdz(float z);
 
 // Brightness Temperature Box
 void ComputeBrightnessTemperatureBox(int snapshot);
+
+void Compute_PS(int snapshot);
 
 
 // MCMC related
