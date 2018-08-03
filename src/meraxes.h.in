@@ -286,6 +286,7 @@ typedef struct run_params_t {
     int Flag_IncludeRecombinations;
     int Flag_Compute21cmBrightTemp;
     int Flag_IncludePecVels;
+    int Flag_IncludeLOSRSDs;
     int SEP_QSO_XRAY;
     int Flag_OutputGrids;
     int Flag_OutputGridsPostReion;

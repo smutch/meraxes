@@ -622,6 +622,11 @@ void read_parameter_file(char* fname, int mode)
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_INT;
 
+            strcpy(params_tag[n_param], "Flag_IncludeLOSRSDs");
+            params_addr[n_param] = &(run_params->Flag_IncludeLOSRSDs);
+            required_tag[n_param] = 1;
+	    params_type[n_param++] = PARAM_TYPE_INT;
+
             strcpy(params_tag[n_param], "SEP_QSO_XRAY");
             params_addr[n_param] = &(run_params->SEP_QSO_XRAY);
             required_tag[n_param] = 1;
