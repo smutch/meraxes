@@ -732,6 +732,11 @@ void read_parameter_file(char* fname, int mode)
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
+            strcpy(params_tag[n_param], "Z_HEAT_MAX");
+            params_addr[n_param] = &(run_params->physics).Z_HEAT_MAX;
+            required_tag[n_param] = 1;
+            params_type[n_param++] = PARAM_TYPE_DOUBLE;
+
             strcpy(params_tag[n_param], "L_X_GAL");
             params_addr[n_param] = &(run_params->physics).L_X_GAL;
             required_tag[n_param] = 1;

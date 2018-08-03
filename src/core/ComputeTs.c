@@ -96,8 +96,62 @@ void _ComputeTs(int snapshot)
         delNL0[R_ct] = (double*)calloc(total_n_cells, sizeof(double));
     }    
 
+
+    // Initialise the RECFAST, electron rate tables
     init_heat();
 
+    x_e_ave = 0.0;
+
+    
+
+    // Place current redshift in 21cmFAST nomenclature (zp), delta zp (dzp) and delta z in seconds (dt_dzp)
+    zp = redshift;
+    dzp = zp - prev_redshift;
+    dt_dzp = dtdz(zp);
+
+
+    // Check redshift against Z_HEAT_MAX. If zp > Z_HEAT_MAX assume the x_e (electron fraction) and gas temperatures are homogenous 
+    // Equivalent to the default setup of 21cmFAST. 
+    if(zp >= run_globals.params.physics.Z_HEAT_MAX) {
+
+        for (int ix = 0; ix < local_nix; ix++)
+            for (int iy = 0; iy < ReionGridDim; iy++)
+                for (int iz = 0; iz < ReionGridDim; iz++) {
+                    i_real = grid_index(ix, iy, iz, ReionGridDim, INDEX_REAL);
+
+                    x_e_box_prev[i_real] = xion_RECFAST(zp,0);
+                    Tk_box_prev[i_real] = T_RECFAST(zp,0);
+
+                    TS_box[i_real] = get_Ts(zp, deltax[i_real], Tk_box_prev[i_real], x_e_box_prev[i_real],1, &curr_xalpha);
+
+                }
+    }
+
+
+
+    double Ave_Ts = 0.0;
+    double Ave_x_e = 0.0;
+    double Ave_Tk = 0.0;
+
+    for (int ix = 0; ix < local_nix; ix++)
+        for (int iy = 0; iy < ReionGridDim; iy++)
+            for (int iz = 0; iz < ReionGridDim; iz++) {
+                i_real = grid_index(ix, iy, iz, ReionGridDim, INDEX_REAL);
+
+                Ave_Ts += (double)TS_box[i_real];
+                Ave_Tk += (double)Tk_box_prev[i_real];
+                Ave_x_e += (double)x_e_box_prev[i_real];
+            }
+
+    MPI_Allreduce(MPI_IN_PLACE, &Ave_Ts, 1, MPI_DOUBLE, MPI_SUM, run_globals.mpi_comm);
+    MPI_Allreduce(MPI_IN_PLACE, &Ave_Tk, 1, MPI_DOUBLE, MPI_SUM, run_globals.mpi_comm);
+    MPI_Allreduce(MPI_IN_PLACE, &Ave_x_e, 1, MPI_DOUBLE, MPI_SUM, run_globals.mpi_comm);
+
+    Ave_Ts /= total_n_cells;
+    Ave_Tk /= total_n_cells;
+    Ave_x_e /= total_n_cells;
+
+    mlog("zp = %e Ts_ave = %e Tk_ave = %e x_e_ave = %e", MLOG_MESG, zp, Ave_Ts, Ave_Tk, Ave_x_e);
 
 }
 

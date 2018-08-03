@@ -182,6 +182,8 @@ typedef struct physics_params_t {
     double NU_X_BAND_MAX;
     double NU_X_MAX;
 
+    double Z_HEAT_MAX;
+
     double ReionGammaHaloBias;
     double ReionAlphaUV;
     double ReionAlphaUVBH;
