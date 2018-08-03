@@ -125,6 +125,48 @@ void _ComputeTs(int snapshot)
                     TS_box[i_real] = get_Ts(zp, deltax[i_real], Tk_box_prev[i_real], x_e_box_prev[i_real],1, &curr_xalpha);
 
                 }
+
+	
+	// Below I calculate the collapse fraction for all sources.
+        // This should be zero (especially for the default high redshift Z_HEAT_MAX = 35). However, I compute it anyway in case it is non-zero.
+        // In principle I think this should probably be used instead of Z_HEAT_MAX to switch between homogeneous/inhomogeneous.
+        // However, I do not think it'll matter too much. Will look into this later.         
+        collapse_fraction = 0.;
+
+        R = ( L_FACTOR*box_size/(float)ReionGridDim ) / run_globals.params.Hubble_h;
+
+        memcpy(deltax_filtered, deltax_unfiltered, sizeof(fftwf_complex) * slab_n_complex);
+        memcpy(stars_filtered, stars_unfiltered, sizeof(fftwf_complex) * slab_n_complex);
+
+        // inverse fourier transform back to real space
+        plan = fftwf_mpi_plan_dft_c2r_3d(ReionGridDim, ReionGridDim, ReionGridDim, deltax_filtered, (float*)deltax_filtered, run_globals.mpi_comm, FFTW_ESTIMATE);
+        fftwf_execute(plan);
+        fftwf_destroy_plan(plan);
+
+        plan = fftwf_mpi_plan_dft_c2r_3d(ReionGridDim, ReionGridDim, ReionGridDim, stars_filtered, (float*)stars_filtered, run_globals.mpi_comm, FFTW_ESTIMATE);
+        fftwf_execute(plan);
+        fftwf_destroy_plan(plan);
+
+        for (int ix = 0; ix < local_nix; ix++)
+            for (int iy = 0; iy < ReionGridDim; iy++)
+                for (int iz = 0; iz < ReionGridDim; iz++) {
+                    i_padded = grid_index(ix, iy, iz, ReionGridDim, INDEX_PADDED);
+                    i_real = grid_index(ix, iy, iz, ReionGridDim, INDEX_REAL);
+
+                    ((float*)deltax_filtered)[i_padded] = fmaxf(((float*)deltax_filtered)[i_padded], -1 + REL_TOL);
+                    ((float*)stars_filtered)[i_padded] = fmaxf(((float*)stars_filtered)[i_padded], 0.0);
+
+                    density_over_mean = 1.0 + (double)((float*)deltax_filtered)[i_padded];
+
+                    collapse_fraction += (double)((float*)stars_filtered)[i_padded] / (RtoM(R) * density_over_mean)
+                                * (4.0 / 3.0) * M_PI * pow(R, 3.0) / pixel_volume;
+                }
+
+        MPI_Allreduce(MPI_IN_PLACE, &collapse_fraction, 1, MPI_DOUBLE, MPI_SUM, run_globals.mpi_comm);
+
+        collapse_fraction = collapse_fraction/total_n_cells;
+
+        mlog("zp = %e collapse_fraction = %e", MLOG_MESG, collapse_fraction);
     }
 
 
