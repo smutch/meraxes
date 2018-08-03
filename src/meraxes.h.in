@@ -815,7 +815,8 @@ void ComputeTs(int snapshot, timer_info* timer_total);
 double alpha_A(double T);
 double dtdz(float z);
 
-
+// Brightness Temperature Box
+void ComputeBrightnessTemperatureBox(int snapshot);
 
 
 // MCMC related

@@ -320,6 +320,10 @@ void dracarys()
                     call_find_HII_bubbles(snapshot, nout_gals, &timer);
             }
 
+            if(run_globals.params.Flag_Compute21cmBrightTemp) {
+                ComputeBrightnessTemperatureBox(snapshot);            
+            }
+
             // if we have already created a mapping of galaxies to MPI slabs then we no
             // longer need them as they will need to be re-created for the new halo
             // positions in the next time step
