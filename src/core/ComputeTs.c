@@ -53,25 +53,13 @@ void _ComputeTs(int snapshot)
     double curr_delNL0[NUM_FILTER_STEPS_FOR_Ts];
 
     float* deltax = run_globals.reion_grids.deltax;
+    float* stars = run_globals.reion_grids.stars;
 
     float* x_e_box = run_globals.reion_grids.x_e_box;
     float* x_e_box_prev = run_globals.reion_grids.x_e_box_prev;
     float* Tk_box = run_globals.reion_grids.Tk_box;
     float* Tk_box_prev = run_globals.reion_grids.Tk_box_prev;
     float* TS_box = run_globals.reion_grids.TS_box;
-
-    fftwf_complex* deltax_unfiltered = (fftwf_complex*)deltax; // WATCH OUT!
-    fftwf_complex* deltax_filtered = run_globals.reion_grids.deltax_filtered;
-    fftwf_plan plan = fftwf_mpi_plan_dft_r2c_3d(ReionGridDim, ReionGridDim, ReionGridDim, deltax, deltax_unfiltered, run_globals.mpi_comm, FFTW_ESTIMATE);
-    fftwf_execute(plan);
-    fftwf_destroy_plan(plan);
-
-    float* stars = run_globals.reion_grids.stars;
-    fftwf_complex* stars_unfiltered = (fftwf_complex*)stars; // WATCH OUT!
-    fftwf_complex* stars_filtered = run_globals.reion_grids.stars_filtered;
-    plan = fftwf_mpi_plan_dft_r2c_3d(ReionGridDim, ReionGridDim, ReionGridDim, stars, stars_unfiltered, run_globals.mpi_comm, FFTW_ESTIMATE);
-    fftwf_execute(plan);
-    fftwf_destroy_plan(plan);
 
     float* sfr = run_globals.reion_grids.sfr;
     fftwf_complex* sfr_unfiltered = (fftwf_complex*)sfr; // WATCH OUT!
@@ -84,8 +72,6 @@ void _ComputeTs(int snapshot)
     // Note: we will leave off factor of VOLUME, in anticipation of the inverse FFT below
     // TODO: Double check that looping over correct number of elements here
     for (int ii = 0; ii < slab_n_complex; ii++) {
-        deltax_unfiltered[ii] /= total_n_cells;
-        stars_unfiltered[ii] /= total_n_cells;
         sfr_unfiltered[ii] /= total_n_cells;
     }
 
@@ -131,34 +117,19 @@ void _ComputeTs(int snapshot)
         // This should be zero (especially for the default high redshift Z_HEAT_MAX = 35). However, I compute it anyway in case it is non-zero.
         // In principle I think this should probably be used instead of Z_HEAT_MAX to switch between homogeneous/inhomogeneous.
         // However, I do not think it'll matter too much. Will look into this later.         
+        
         collapse_fraction = 0.;
 
         R = ( L_FACTOR*box_size/(float)ReionGridDim ) / run_globals.params.Hubble_h;
 
-        memcpy(deltax_filtered, deltax_unfiltered, sizeof(fftwf_complex) * slab_n_complex);
-        memcpy(stars_filtered, stars_unfiltered, sizeof(fftwf_complex) * slab_n_complex);
-
-        // inverse fourier transform back to real space
-        plan = fftwf_mpi_plan_dft_c2r_3d(ReionGridDim, ReionGridDim, ReionGridDim, deltax_filtered, (float*)deltax_filtered, run_globals.mpi_comm, FFTW_ESTIMATE);
-        fftwf_execute(plan);
-        fftwf_destroy_plan(plan);
-
-        plan = fftwf_mpi_plan_dft_c2r_3d(ReionGridDim, ReionGridDim, ReionGridDim, stars_filtered, (float*)stars_filtered, run_globals.mpi_comm, FFTW_ESTIMATE);
-        fftwf_execute(plan);
-        fftwf_destroy_plan(plan);
-
         for (int ix = 0; ix < local_nix; ix++)
             for (int iy = 0; iy < ReionGridDim; iy++)
                 for (int iz = 0; iz < ReionGridDim; iz++) {
-                    i_padded = grid_index(ix, iy, iz, ReionGridDim, INDEX_PADDED);
                     i_real = grid_index(ix, iy, iz, ReionGridDim, INDEX_REAL);
 
-                    ((float*)deltax_filtered)[i_padded] = fmaxf(((float*)deltax_filtered)[i_padded], -1 + REL_TOL);
-                    ((float*)stars_filtered)[i_padded] = fmaxf(((float*)stars_filtered)[i_padded], 0.0);
+                    density_over_mean = 1.0 + deltax[i_real];
 
-                    density_over_mean = 1.0 + (double)((float*)deltax_filtered)[i_padded];
-
-                    collapse_fraction += (double)((float*)stars_filtered)[i_padded] / (RtoM(R) * density_over_mean)
+                    collapse_fraction += stars[i_real] / (RtoM(R) * density_over_mean)
                                 * (4.0 / 3.0) * M_PI * pow(R, 3.0) / pixel_volume;
                 }
 
@@ -166,7 +137,95 @@ void _ComputeTs(int snapshot)
 
         collapse_fraction = collapse_fraction/total_n_cells;
 
-        mlog("zp = %e collapse_fraction = %e", MLOG_MESG, collapse_fraction);
+//        mlog("zp = %e collapse_fraction = %e", MLOG_MESG, collapse_fraction);
+    }
+    else {
+
+        collapse_fraction = 0.;
+
+        // Setup starting radius (minimum) and scaling to obtaining the maximum filtering radius for the X-ray background
+        R = ( L_FACTOR*box_size/(float)ReionGridDim ) / run_globals.params.Hubble_h;
+        R_factor = pow(R_XLy_MAX/R, 1/(float)NUM_FILTER_STEPS_FOR_Ts);
+
+        // Smooth the density, stars and SFR fields over increasingly larger filtering radii (for evaluating the heating/ionisation integrals)
+        for (R_ct=0; R_ct<NUM_FILTER_STEPS_FOR_Ts; R_ct++){
+
+            R_values[R_ct] = R;
+
+            memcpy(sfr_filtered, sfr_unfiltered, sizeof(fftwf_complex) * slab_n_complex);
+
+            if(R_ct > 0) {
+                int local_ix_start = (int)(run_globals.reion_grids.slab_ix_start[run_globals.mpi_rank]);
+
+                heat_filter(sfr_filtered, local_ix_start, local_nix, ReionGridDim, (float)R);
+            }
+ 
+            // inverse fourier transform back to real space
+            plan = fftwf_mpi_plan_dft_c2r_3d(ReionGridDim, ReionGridDim, ReionGridDim, sfr_filtered, (float*)sfr_filtered, run_globals.mpi_comm, FFTW_ESTIMATE);
+            fftwf_execute(plan);
+            fftwf_destroy_plan(plan);
+
+            // Compute and store the collapse fraction and average electron fraction. Necessary for evaluating the integrals back along the light-cone.
+            // Need the non-smoothed version, hence this is only done for R_ct == 0.
+            if(R_ct == 0) {
+
+                for (int ix = 0; ix < local_nix; ix++)
+                    for (int iy = 0; iy < ReionGridDim; iy++)
+                        for (int iz = 0; iz < ReionGridDim; iz++) {
+                            i_padded = grid_index(ix, iy, iz, ReionGridDim, INDEX_PADDED);
+                            i_real = grid_index(ix, iy, iz, ReionGridDim, INDEX_REAL);
+
+                            ((float*)sfr_filtered)[i_padded] = fmaxf(((float*)sfr_filtered)[i_padded], 0.0);
+
+                            delNL0[R_ct][i_real] = ( ((float*)sfr_filtered)[i_padded] / pixel_volume )
+                                     * (units->UnitMass_in_g / units->UnitTime_in_s) * pow( units->UnitLength_in_cm, -3. ) * pow( run_globals.params.Hubble_h , -3. )/ SOLAR_MASS;
+
+                            density_over_mean = 1.0 + deltax[i_real];
+
+                            collapse_fraction += stars[i_real] / (RtoM(R) * density_over_mean)
+                                * (4.0 / 3.0) * M_PI * pow(R, 3.0) / pixel_volume;
+
+                            x_e_ave += x_e_box_prev[i_real];
+
+                    }
+
+                    MPI_Allreduce(MPI_IN_PLACE, &collapse_fraction, 1, MPI_DOUBLE, MPI_SUM, run_globals.mpi_comm);
+                    MPI_Allreduce(MPI_IN_PLACE, &x_e_ave, 1, MPI_DOUBLE, MPI_SUM, run_globals.mpi_comm);
+
+                    collapse_fraction = collapse_fraction/total_n_cells;
+                    x_e_ave = x_e_ave/total_n_cells;
+
+                    stored_fcoll[snapshot] = collapse_fraction;
+
+            }
+            else {
+
+                // Perform sanity checks to account for aliasing effects
+                for (int ix = 0; ix < local_nix; ix++)
+                    for (int iy = 0; iy < ReionGridDim; iy++)
+                        for (int iz = 0; iz < ReionGridDim; iz++) {
+                            i_padded = grid_index(ix, iy, iz, ReionGridDim, INDEX_PADDED);
+
+                            ((float*)sfr_filtered)[i_padded] = fmaxf(((float*)sfr_filtered)[i_padded], 0.0);
+
+                            delNL0[R_ct][i_real] = (((float*)sfr_filtered)[i_padded] / pixel_volume )
+                                * (units->UnitMass_in_g / units->UnitTime_in_s) * pow( units->UnitLength_in_cm, -3. ) * pow( run_globals.params.Hubble_h , -3. )/ SOLAR_MASS;
+
+                        }
+
+            }
+
+            R *= R_factor;
+
+        }
+ 
+        if(collapse_fraction > 0.0) {
+            NO_LIGHT = 0;
+        }
+        else {
+            NO_LIGHT = 1;
+        }
+
     }
 
 
