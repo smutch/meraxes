@@ -40,7 +40,7 @@ void _ComputeTs(int snapshot)
 
     int i_real, i_padded, R_ct, x_e_ct, n_ct, m_xHII_low, m_xHII_high, NO_LIGHT;
 
-    double prev_zpp, prev_R, zpp, zp, lower_int_limit_GAL, lower_int_limit_QSO, filling_factor_of_HI_zp, R_factor, R, nuprime, dzp, Luminosity_converstion_factor;
+    double prev_zpp, prev_R, zpp, zp, lower_int_limit_GAL, lower_int_limit_QSO, filling_factor_of_HI_zp, R_factor, R, nuprime, dzp, Luminosity_converstion_factor_GAL, Luminosity_converstion_factor_QSO;
     double collapse_fraction, total_SFR, density_over_mean;
 
     float curr_xalpha;
@@ -278,6 +278,30 @@ void _ComputeTs(int snapshot)
                 sum_lyn[R_ct] += frecycle(n_ct) * spectral_emissivity(nuprime, 0);
             }
 	}
+
+        growth_factor_zp = dicke(zp);
+        dgrowth_factor_dzp = ddicke_dz(zp);
+        dt_dzp = dtdz(zp);
+
+        // Below is the converstion of the soft-band X_ray luminosity into number of X-ray photons produced. This is the code taken from 21CMMC, which somewhat
+        // uses the 21cmFAST nomenclature (to ease flipping between old/new parameterisation), so isn't necessarily the most intuitive way to express this.
+
+        // Conversion of the input bolometric luminosity (new) to a ZETA_X (old) to be consistent with Ts.c from 21cmFAST
+        // Conversion here means the code otherwise remains the same as the original Ts.c
+        if(fabs(run_globals.params.physics.X_RAY_SPEC_INDEX_GAL - 1.0) < 0.000001) {
+            Luminosity_converstion_factor_GAL = run_globals.params.physics.NU_X_GAL_THRESH * log( run_globals.params.physics.NU_X_BAND_MAX/run_globals.params.physics.NU_X_GAL_THRESH );
+            Luminosity_converstion_factor_GAL = 1./Luminosity_converstion_factor_GAL;
+        }
+        else {
+            Luminosity_converstion_factor_GAL = pow( run_globals.params.physics.NU_X_BAND_MAX , 1. - run_globals.params.physics.X_RAY_SPEC_INDEX_GAL ) - pow( run_globals.params.physics.NU_X_GAL_THRESH , 1. - run_globals.params.physics.X_RAY_SPEC_INDEX_GAL ) ;
+            Luminosity_converstion_factor_GAL = 1./Luminosity_converstion_factor_GAL;
+            Luminosity_converstion_factor_GAL *= pow( run_globals.params.physics.NU_X_GAL_THRESH, - run_globals.params.physics.X_RAY_SPEC_INDEX_GAL )*(1 - run_globals.params.physics.X_RAY_SPEC_INDEX_GAL);
+        }
+	// Finally, convert to the correct units. NU_over_EV*hplank as only want to divide by eV -> erg (owing to the definition of Luminosity)
+        Luminosity_converstion_factor_GAL *= (SEC_PER_YEAR)/(PLANCK);
+
+        // Leave the original 21cmFAST code for reference. Refer to Greig & Mesinger (2017) for the new parameterisation.
+        const_zp_prefactor_GAL = ( run_globals.params.physics.L_X_GAL * Luminosity_converstion_factor_GAL ) / run_globals.params.physics.NU_X_GAL_THRESH * C * pow(1+zp, run_globals.params.physics.X_RAY_SPEC_INDEX_GAL+3);
 
 
 

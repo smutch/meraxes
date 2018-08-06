@@ -47,7 +47,7 @@
 /* Define some global variables; yeah i know it isn't "good practice" but doesn't matter */
 double zpp_edge[NUM_FILTER_STEPS_FOR_Ts], sigma_atR[NUM_FILTER_STEPS_FOR_Ts], sigma_Tmin[NUM_FILTER_STEPS_FOR_Ts], ST_over_PS[NUM_FILTER_STEPS_FOR_Ts], sum_lyn[NUM_FILTER_STEPS_FOR_Ts];
 unsigned long long box_ct;
-double const_zp_prefactor, dt_dzp, x_e_ave;
+double const_zp_prefactor, const_zp_prefactor_GAL, const_zp_prefactor_QSO, dt_dzp, x_e_ave;
 double growth_factor_zp, dgrowth_factor_dzp, PS_ION_EFF;
 int NO_LIGHT;
 float M_MIN_at_z, M_MIN_at_zp;
@@ -1220,11 +1220,13 @@ void evolveInt(float zp, float curr_delNL0, double SFR_GAL[], double SFR_QSO[],
                double freq_int_heat_GAL[], double freq_int_ion_GAL[], double freq_int_lya_GAL[],
                double freq_int_heat_QSO[], double freq_int_ion_QSO[], double freq_int_lya_QSO[],
                int COMPUTE_Ts, double y[], double deriv[]){
-  double  dfdzp, dadia_dzp, dcomp_dzp, dxheat_dt, ddz, dxion_source_dt, dxion_sink_dt;
+  
+  double  dfdzp, dadia_dzp, dcomp_dzp, dxheat_dt_GAL, ddz, dxion_source_dt_GAL, dxion_sink_dt;
+  double dxheat_dt_QSO, dxion_source_dt_QSO, dxlya_dt_QSO, dstarlya_dt_QSO;
   double zpp, dzpp, nu_temp;
   int zpp_ct;
   double T, x_e, dTdzp, dx_edzp, dfcoll, zpp_integrand_GAL, zpp_integrand_QSO;
-  double dxe_dzp, n_b, dspec_dzp, dxheat_dzp, dxlya_dt, dstarlya_dt;
+  double dxe_dzp, n_b, dspec_dzp, dxheat_dzp, dxlya_dt_GAL, dstarlya_dt_GAL;
 
   x_e = y[0];
   T = y[1];
@@ -1232,10 +1234,18 @@ void evolveInt(float zp, float curr_delNL0, double SFR_GAL[], double SFR_QSO[],
 
 
   // First, let's do the trapazoidal integration over zpp
-  dxheat_dt = 0;
-  dxion_source_dt = 0;
-  dxlya_dt = 0;
-  dstarlya_dt = 0;
+  dxheat_dt_GAL = 0;
+  dxion_source_dt_GAL = 0;
+  dxlya_dt_GAL = 0;
+  dstarlya_dt_GAL = 0;
+  
+  if(run_globals.params.SEP_QSO_XRAY) {
+      dxheat_dt_QSO = 0;
+      dxion_source_dt_QSO = 0;
+      dxlya_dt_QSO = 0;
+      dstarlya_dt_QSO = 0;
+  }
+
   if (!NO_LIGHT){
       for (zpp_ct = 0; zpp_ct < NUM_FILTER_STEPS_FOR_Ts; zpp_ct++){
           // set redshift of half annulus; dz'' is negative since we flipped limits of integral
@@ -1256,34 +1266,58 @@ void evolveInt(float zp, float curr_delNL0, double SFR_GAL[], double SFR_QSO[],
           }
 
           if(run_globals.params.SEP_QSO_XRAY) {
-              dxheat_dt += dt_dzp * dzpp * ( zpp_integrand_GAL * freq_int_heat_GAL[zpp_ct] +  zpp_integrand_QSO * freq_int_heat_QSO[zpp_ct] );
-              dxion_source_dt += dt_dzp * dzpp * (  zpp_integrand_GAL * freq_int_ion_GAL[zpp_ct] + zpp_integrand_QSO * freq_int_ion_QSO[zpp_ct] );
-              dxlya_dt += dt_dzp * dzpp * ( zpp_integrand_GAL * freq_int_lya_GAL[zpp_ct] + zpp_integrand_QSO * freq_int_lya_QSO[zpp_ct] );
+              
+              dxheat_dt_GAL += dt_dzp * dzpp * zpp_integrand_GAL * freq_int_heat_GAL[zpp_ct];
+              dxheat_dt_QSO += dt_dzp * dzpp * zpp_integrand_QSO * freq_int_heat_QSO[zpp_ct];
+
+              dxion_source_dt_GAL += dt_dzp * dzpp * zpp_integrand_GAL * freq_int_ion_GAL[zpp_ct];
+              dxion_source_dt_QSO += dt_dzp * dzpp * zpp_integrand_QSO * freq_int_ion_QSO[zpp_ct];
+              
+              dxlya_dt_GAL += dt_dzp * dzpp * zpp_integrand_GAL * freq_int_lya_GAL[zpp_ct];
+              dxlya_dt_QSO += dt_dzp * dzpp * zpp_integrand_QSO * freq_int_lya_QSO[zpp_ct];
 
               // Use this when using the SFR provided by Meraxes
               // Units should be M_solar/s. Factor of (dt_dzp * dzpp) converts from per s to per z'
-              dstarlya_dt += (SFR_GAL[zpp_ct] + SFR_QSO[zpp_ct]) * pow(1+zp,2)*(1+zpp) * sum_lyn[zpp_ct] * dt_dzp * dzpp;
+              dstarlya_dt_GAL += SFR_GAL[zpp_ct] * pow(1+zp,2)*(1+zpp) * sum_lyn[zpp_ct] * dt_dzp * dzpp;
+       	      dstarlya_dt_QSO += SFR_QSO[zpp_ct] * pow(1+zp,2)*(1+zpp) * sum_lyn[zpp_ct] * dt_dzp * dzpp;
+
           }
           else {
-              dxheat_dt += dt_dzp * dzpp * zpp_integrand_GAL * freq_int_heat_GAL[zpp_ct];
-              dxion_source_dt += dt_dzp * dzpp * zpp_integrand_GAL * freq_int_ion_GAL[zpp_ct];
-              dxlya_dt += dt_dzp * dzpp * zpp_integrand_GAL * freq_int_lya_GAL[zpp_ct];
+              dxheat_dt_GAL += dt_dzp * dzpp * zpp_integrand_GAL * freq_int_heat_GAL[zpp_ct];
+              dxion_source_dt_GAL += dt_dzp * dzpp * zpp_integrand_GAL * freq_int_ion_GAL[zpp_ct];
+              dxlya_dt_GAL += dt_dzp * dzpp * zpp_integrand_GAL * freq_int_lya_GAL[zpp_ct];
 
               // Use this when using the SFR provided by Meraxes
               // Units should be M_solar/s. Factor of (dt_dzp * dzpp) converts from per s to per z'
-              dstarlya_dt += SFR_GAL[zpp_ct] * pow(1+zp,2)*(1+zpp) * sum_lyn[zpp_ct] * dt_dzp * dzpp;
+              dstarlya_dt_GAL += SFR_GAL[zpp_ct] * pow(1+zp,2)*(1+zpp) * sum_lyn[zpp_ct] * dt_dzp * dzpp;
           }
       }
 
       // add prefactors
-      dxheat_dt *= const_zp_prefactor;
-      dxion_source_dt *= const_zp_prefactor;
-      dxlya_dt *= const_zp_prefactor*n_b;
+      if(run_globals.params.SEP_QSO_XRAY) {
+          dxheat_dt_GAL *= const_zp_prefactor_GAL;
+          dxion_source_dt_GAL *= const_zp_prefactor_GAL;
+          dxlya_dt_GAL *= const_zp_prefactor_GAL*n_b;
 
-      // Use this when using the SFR provided by Meraxes
-      // Units should be M_solar/s. Factor of (dt_dzp * dzpp) converts from per s to per z'
-      // The division by Omb * RHOcrit arises from the differences between eq. 13 and eq. 22 in Mesinger et al. (2011), accounting for the M_solar factor (SFR -> number)
-      dstarlya_dt *= ( C * N_b0 / (4.*M_PI) ) / ( OMb * RHOcrit * pow( run_globals.params.Hubble_h, -3. ) * pow(MPC, -3) );
+          // Use this when using the SFR provided by Meraxes
+          // Units should be M_solar/s. Factor of (dt_dzp * dzpp) converts from per s to per z'
+          // The division by Omb * RHOcrit arises from the differences between eq. 13 and eq. 22 in Mesinger et al. (2011), accounting for the M_solar factor (SFR -> number)
+          dstarlya_dt_GAL *= ( C * N_b0 / (4.*M_PI) ) / ( OMb * RHOcrit * pow( run_globals.params.Hubble_h, -3. ) * pow(MPC, -3) );
+
+          dxheat_dt_QSO *= const_zp_prefactor_QSO;
+          dxion_source_dt_QSO *= const_zp_prefactor_QSO;
+          dxlya_dt_QSO *= const_zp_prefactor_QSO*n_b;
+          
+          dstarlya_dt_QSO *= ( C * N_b0 / (4.*M_PI) ) / ( OMb * RHOcrit * pow( run_globals.params.Hubble_h, -3. ) * pow(MPC, -3) );
+      }
+      else {
+          dxheat_dt_GAL *= const_zp_prefactor;
+          dxion_source_dt_GAL *= const_zp_prefactor;
+          dxlya_dt_GAL *= const_zp_prefactor*n_b;
+
+          dstarlya_dt_GAL *= ( C * N_b0 / (4.*M_PI) ) / ( OMb * RHOcrit * pow( run_globals.params.Hubble_h, -3. ) * pow(MPC, -3) );
+      }
+
 
   } // end NO_LIGHT if statement
 
@@ -1291,7 +1325,7 @@ void evolveInt(float zp, float curr_delNL0, double SFR_GAL[], double SFR_QSO[],
   // *** First let's do dxe_dzp *** //
   
   dxion_sink_dt = alpha_A(T) * CLUMPING_FACTOR * x_e*x_e * f_H * n_b;
-  dxe_dzp = dt_dzp*(dxion_source_dt - dxion_sink_dt);
+  dxe_dzp = dt_dzp*( ( dxion_source_dt_GAL + dxion_source_dt_QSO ) - dxion_sink_dt);
   deriv[0] = dxe_dzp;
 
   // *** Next, let's get the temperature components *** //
@@ -1308,24 +1342,17 @@ void evolveInt(float zp, float curr_delNL0, double SFR_GAL[], double SFR_QSO[],
   dcomp_dzp = dT_comp(zp, T, x_e);
 
   // lastly, X-ray heating
-  dxheat_dzp = dxheat_dt * dt_dzp * 2.0 / 3.0 / BOLTZMANN / (1.0+x_e);
-
+  dxheat_dzp = ( dxheat_dt_GAL + dxheat_dt_QSO ) * dt_dzp * 2.0 / 3.0 / BOLTZMANN / (1.0+x_e);
+ 
   // summing them up...
   deriv[1] = dxheat_dzp + dcomp_dzp + dspec_dzp + dadia_dzp;
 
   // *** Finally, if we are at the last redshift step, Lya *** //
-  deriv[2] = dxlya_dt + dstarlya_dt;
+  deriv[2] = ( dxlya_dt_GAL + dxlya_dt_QSO ) + ( dstarlya_dt_GAL + dstarlya_dt_QSO );
 
   // stuff for marcos
   deriv[3] = dxheat_dzp;
-  deriv[4] = dt_dzp*dxion_source_dt;
-
-  deriv[5] = dxlya_dt;
-  deriv[6] = dstarlya_dt;
-  deriv[7] = dspec_dzp;
-  deriv[8] = dadia_dzp;
-  deriv[9] = dcomp_dzp;
-  deriv[10] = dxheat_dzp;
+  deriv[4] = dt_dzp*( dxion_source_dt_GAL + dxion_source_dt_QSO );
 
 }
 
