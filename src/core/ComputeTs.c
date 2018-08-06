@@ -40,13 +40,17 @@ void _ComputeTs(int snapshot)
 
     int i_real, i_padded, R_ct, x_e_ct, n_ct, m_xHII_low, m_xHII_high, NO_LIGHT;
 
-    double prev_zpp, prev_R, zpp, zp, lower_int_limit, filling_factor_of_HI_zp, R_factor, R, nuprime, dzp, Luminosity_converstion_factor;
+    double prev_zpp, prev_R, zpp, zp, lower_int_limit_GAL, lower_int_limit_QSO, filling_factor_of_HI_zp, R_factor, R, nuprime, dzp, Luminosity_converstion_factor;
     double collapse_fraction, total_SFR, density_over_mean;
 
     float curr_xalpha;
 
-    double freq_int_heat[NUM_FILTER_STEPS_FOR_Ts], freq_int_ion[NUM_FILTER_STEPS_FOR_Ts], freq_int_lya[NUM_FILTER_STEPS_FOR_Ts];
-    double freq_int_heat_tbl[x_int_NXHII][NUM_FILTER_STEPS_FOR_Ts], freq_int_ion_tbl[x_int_NXHII][NUM_FILTER_STEPS_FOR_Ts], freq_int_lya_tbl[x_int_NXHII][NUM_FILTER_STEPS_FOR_Ts];
+    double freq_int_heat_GAL[NUM_FILTER_STEPS_FOR_Ts], freq_int_ion_GAL[NUM_FILTER_STEPS_FOR_Ts], freq_int_lya_GAL[NUM_FILTER_STEPS_FOR_Ts];
+    double freq_int_heat_QSO[NUM_FILTER_STEPS_FOR_Ts], freq_int_ion_QSO[NUM_FILTER_STEPS_FOR_Ts], freq_int_lya_QSO[NUM_FILTER_STEPS_FOR_Ts];
+
+    double freq_int_heat_tbl_GAL[x_int_NXHII][NUM_FILTER_STEPS_FOR_Ts], freq_int_ion_tbl_GAL[x_int_NXHII][NUM_FILTER_STEPS_FOR_Ts], freq_int_lya_tbl_GAL[x_int_NXHII][NUM_FILTER_STEPS_FOR_Ts];
+    double freq_int_heat_tbl_QSO[x_int_NXHII][NUM_FILTER_STEPS_FOR_Ts], freq_int_ion_tbl_QSO[x_int_NXHII][NUM_FILTER_STEPS_FOR_Ts], freq_int_lya_tbl_QSO[x_int_NXHII][NUM_FILTER_STEPS_FOR_Ts];
+
     double R_values[NUM_FILTER_STEPS_FOR_Ts];
 
     double *evolve_ans, ans[2], dansdz[5], xHII_call;
@@ -219,12 +223,63 @@ void _ComputeTs(int snapshot)
 
         }
  
+        // A condition (defined by whether or not there are stars) for evaluating the heating/ionisation integrals
         if(collapse_fraction > 0.0) {
             NO_LIGHT = 0;
         }
         else {
             NO_LIGHT = 1;
         }
+
+        // Populate the initial ionisation/heating tables
+        for (R_ct=0; R_ct<NUM_FILTER_STEPS_FOR_Ts; R_ct++){
+
+            if (R_ct==0){
+                prev_zpp = zp;
+                prev_R = 0;
+            }
+            else{
+                prev_zpp = zpp_edge[R_ct-1];
+                prev_R = R_values[R_ct-1];
+            }
+
+            zpp_edge[R_ct] = prev_zpp - (R_values[R_ct] - prev_R)*MPC / drdz(prev_zpp); // cell size
+            zpp = (zpp_edge[R_ct]+prev_zpp)*0.5; // average redshift value of shell: z'' + 0.5 * dz''
+
+            filling_factor_of_HI_zp = 1. - ReionEfficiency * collapse_fraction / (1.0 - x_e_ave);
+
+            lower_int_limit_GAL = fmax(nu_tau_one(zp, zpp, x_e_ave, collapse_fraction, filling_factor_of_HI_zp, snapshot), run_globals.params.physics.NU_X_GAL_THRESH);
+
+            if(run_globals.params.SEP_QSO_XRAY) {
+                lower_int_limit_QSO = fmax(nu_tau_one(zp, zpp, x_e_ave, collapse_fraction, filling_factor_of_HI_zp, snapshot), run_globals.params.physics.NU_X_QSO_THRESH);
+            }
+
+            if (filling_factor_of_HI_zp < 0) filling_factor_of_HI_zp = 0; // for global evol; nu_tau_one above treats negative (post_reionization) inferred filling factors properly
+
+            for (x_e_ct = 0; x_e_ct < x_int_NXHII; x_e_ct++){
+                freq_int_heat_tbl_GAL[x_e_ct][R_ct] = integrate_over_nu(zp, x_int_XHII[x_e_ct], lower_int_limit_GAL, run_globals.params.physics.NU_X_GAL_THRESH, run_globals.params.physics.X_RAY_SPEC_INDEX_GAL, 0);
+                freq_int_ion_tbl_GAL[x_e_ct][R_ct] = integrate_over_nu(zp, x_int_XHII[x_e_ct], lower_int_limit_GAL, run_globals.params.physics.NU_X_GAL_THRESH, run_globals.params.physics.X_RAY_SPEC_INDEX_GAL, 1);
+                freq_int_lya_tbl_GAL[x_e_ct][R_ct] = integrate_over_nu(zp, x_int_XHII[x_e_ct], lower_int_limit_GAL, run_globals.params.physics.NU_X_GAL_THRESH, run_globals.params.physics.X_RAY_SPEC_INDEX_GAL, 2);
+            
+                if(run_globals.params.SEP_QSO_XRAY)	{
+                    freq_int_heat_tbl_QSO[x_e_ct][R_ct] = integrate_over_nu(zp, x_int_XHII[x_e_ct], lower_int_limit_QSO, run_globals.params.physics.NU_X_QSO_THRESH, run_globals.params.physics.X_RAY_SPEC_INDEX_QSO, 0);
+                    freq_int_ion_tbl_QSO[x_e_ct][R_ct] = integrate_over_nu(zp, x_int_XHII[x_e_ct], lower_int_limit_QSO, run_globals.params.physics.NU_X_QSO_THRESH, run_globals.params.physics.X_RAY_SPEC_INDEX_QSO, 1);
+                    freq_int_lya_tbl_QSO[x_e_ct][R_ct] = integrate_over_nu(zp, x_int_XHII[x_e_ct], lower_int_limit_QSO, run_globals.params.physics.NU_X_QSO_THRESH, run_globals.params.physics.X_RAY_SPEC_INDEX_QSO, 2);
+                }
+            }            
+
+            // and create the sum over Lya transitions from direct Lyn flux
+            sum_lyn[R_ct] = 0;
+            for (n_ct=NSPEC_MAX; n_ct>=2; n_ct--){
+            if (zpp > zmax(zp, n_ct))
+                continue;
+
+                nuprime = nu_n(n_ct)*(1+zpp)/(1.0+zp);
+                sum_lyn[R_ct] += frecycle(n_ct) * spectral_emissivity(nuprime, 0);
+            }
+	}
+
+
 
     }
 
