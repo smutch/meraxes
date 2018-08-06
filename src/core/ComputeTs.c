@@ -54,7 +54,7 @@ void _ComputeTs(int snapshot)
     double R_values[NUM_FILTER_STEPS_FOR_Ts];
 
     double *evolve_ans, ans[2], dansdz[5], xHII_call;
-    double curr_delNL0[NUM_FILTER_STEPS_FOR_Ts];
+    double SFR_GAL[NUM_FILTER_STEPS_FOR_Ts], SFR_QSO[NUM_FILTER_STEPS_FOR_Ts];
 
     float* deltax = run_globals.reion_grids.deltax;
     float* stars = run_globals.reion_grids.stars;
@@ -81,11 +81,21 @@ void _ComputeTs(int snapshot)
 
     int local_ix_start = (int)(run_globals.reion_grids.slab_ix_start[run_globals.mpi_rank]);
 
-    double** delNL0 = (double**)calloc(NUM_FILTER_STEPS_FOR_Ts, sizeof(double*));
+    double** SMOOTHED_SFR_GAL;
+    double** SMOOTHED_SFR_QSO;
+
+    SMOOTHED_SFR_GAL = (double**)calloc(NUM_FILTER_STEPS_FOR_Ts, sizeof(double*));
     for (R_ct=0; R_ct<NUM_FILTER_STEPS_FOR_Ts; R_ct++){
-        delNL0[R_ct] = (double*)calloc(total_n_cells, sizeof(double));
+        SMOOTHED_SFR_GAL[R_ct] = (double*)calloc(total_n_cells, sizeof(double));
     }    
 
+    if(run_globals.params.SEP_QSO_XRAY) {
+
+        SMOOTHED_SFR_QSO = (double**)calloc(NUM_FILTER_STEPS_FOR_Ts, sizeof(double*));
+        for (R_ct=0; R_ct<NUM_FILTER_STEPS_FOR_Ts; R_ct++){
+            SMOOTHED_SFR_QSO[R_ct] = (double*)calloc(total_n_cells, sizeof(double));
+        }
+    }
 
     // Initialise the RECFAST, electron rate tables
     init_heat();
@@ -181,8 +191,13 @@ void _ComputeTs(int snapshot)
 
                             ((float*)sfr_filtered)[i_padded] = fmaxf(((float*)sfr_filtered)[i_padded], 0.0);
 
-                            delNL0[R_ct][i_real] = ( ((float*)sfr_filtered)[i_padded] / pixel_volume )
+                            SMOOTHED_SFR_GAL[R_ct][i_real] = ( ((float*)sfr_filtered)[i_padded] / pixel_volume )
                                      * (units->UnitMass_in_g / units->UnitTime_in_s) * pow( units->UnitLength_in_cm, -3. ) * pow( run_globals.params.Hubble_h , -3. )/ SOLAR_MASS;
+
+                            if(run_globals.params.SEP_QSO_XRAY) {
+                                SMOOTHED_SFR_QSO[R_ct][i_real] = ( ((float*)sfr_filtered)[i_padded] / pixel_volume )
+                                     * (units->UnitMass_in_g / units->UnitTime_in_s) * pow( units->UnitLength_in_cm, -3. ) * pow( run_globals.params.Hubble_h , -3. )/ SOLAR_MASS;
+                            }
 
                             density_over_mean = 1.0 + deltax[i_real];
 
@@ -212,8 +227,13 @@ void _ComputeTs(int snapshot)
 
                             ((float*)sfr_filtered)[i_padded] = fmaxf(((float*)sfr_filtered)[i_padded], 0.0);
 
-                            delNL0[R_ct][i_real] = (((float*)sfr_filtered)[i_padded] / pixel_volume )
+                            SMOOTHED_SFR_GAL[R_ct][i_real] = (((float*)sfr_filtered)[i_padded] / pixel_volume )
                                 * (units->UnitMass_in_g / units->UnitTime_in_s) * pow( units->UnitLength_in_cm, -3. ) * pow( run_globals.params.Hubble_h , -3. )/ SOLAR_MASS;
+
+                            if(run_globals.params.SEP_QSO_XRAY) {
+                                SMOOTHED_SFR_QSO[R_ct][i_real] = ( ((float*)sfr_filtered)[i_padded] / pixel_volume )
+       	       	       	       	     * (units->UnitMass_in_g / units->UnitTime_in_s) * pow( units->UnitLength_in_cm, -3. ) * pow( run_globals.params.Hubble_h , -3. )/ SOLAR_MASS;
+       	       	       	    }
 
                         }
 
@@ -303,10 +323,110 @@ void _ComputeTs(int snapshot)
         // Leave the original 21cmFAST code for reference. Refer to Greig & Mesinger (2017) for the new parameterisation.
         const_zp_prefactor_GAL = ( run_globals.params.physics.L_X_GAL * Luminosity_converstion_factor_GAL ) / run_globals.params.physics.NU_X_GAL_THRESH * C * pow(1+zp, run_globals.params.physics.X_RAY_SPEC_INDEX_GAL+3);
 
+        if(run_globals.params.SEP_QSO_XRAY) {
+            
+            if(fabs(run_globals.params.physics.X_RAY_SPEC_INDEX_QSO - 1.0) < 0.000001) {
+                Luminosity_converstion_factor_QSO = run_globals.params.physics.NU_X_QSO_THRESH * log( run_globals.params.physics.NU_X_BAND_MAX/run_globals.params.physics.NU_X_QSO_THRESH );
+                Luminosity_converstion_factor_QSO = 1./Luminosity_converstion_factor_QSO;
+            }
+            else {
+                Luminosity_converstion_factor_QSO = pow( run_globals.params.physics.NU_X_BAND_MAX , 1. - run_globals.params.physics.X_RAY_SPEC_INDEX_QSO ) - pow( run_globals.params.physics.NU_X_QSO_THRESH , 1. - run_globals.params.physics.X_RAY_SPEC_INDEX_QSO ) ;
+                Luminosity_converstion_factor_QSO = 1./Luminosity_converstion_factor_QSO;
+                Luminosity_converstion_factor_QSO *= pow( run_globals.params.physics.NU_X_QSO_THRESH, - run_globals.params.physics.X_RAY_SPEC_INDEX_QSO )*(1 - run_globals.params.physics.X_RAY_SPEC_INDEX_QSO);
+            }
+            Luminosity_converstion_factor_QSO *= (SEC_PER_YEAR)/(PLANCK);
+
+            // Leave the original 21cmFAST code for reference. Refer to Greig & Mesinger (2017) for the new parameterisation.
+            const_zp_prefactor_QSO = ( run_globals.params.physics.L_X_QSO * Luminosity_converstion_factor_QSO ) / run_globals.params.physics.NU_X_QSO_THRESH * C * pow(1+zp, run_globals.params.physics.X_RAY_SPEC_INDEX_QSO+3);
+
+        }
 
 
+        //interpolate to correct nu integral value based on the cell's ionization state
+        for (int ix = 0; ix < local_nix; ix++)
+            for (int iy = 0; iy < ReionGridDim; iy++)
+                for (int iz = 0; iz < ReionGridDim; iz++) {
+                    i_real = grid_index(ix, iy, iz, ReionGridDim, INDEX_REAL);
+
+                    ans[0] = x_e_box_prev[i_real];
+                    ans[1] = Tk_box_prev[i_real];
+
+                    for (R_ct=0; R_ct<NUM_FILTER_STEPS_FOR_Ts; R_ct++){
+
+                        SFR_GAL[R_ct] = SMOOTHED_SFR_GAL[R_ct][i_real];
+
+                        if(run_globals.params.SEP_QSO_XRAY) {
+                            SFR_QSO[R_ct] = SMOOTHED_SFR_QSO[R_ct][i_real];
+                        }
+
+                        xHII_call = x_e_box_prev[i_real];
+
+                        // Check if ionized fraction is within boundaries; if not, adjust to be within
+                        if (xHII_call > x_int_XHII[x_int_NXHII-1]*0.999) {
+                            xHII_call = x_int_XHII[x_int_NXHII-1]*0.999;
+                        } else if (xHII_call < x_int_XHII[0]) {
+                            xHII_call = 1.001*x_int_XHII[0];
+                        }
+
+                        m_xHII_low = locate_xHII_index(xHII_call);
+                        m_xHII_high = m_xHII_low + 1;
+
+                        // heat
+                        freq_int_heat_GAL[R_ct] = (freq_int_heat_tbl_GAL[m_xHII_high][R_ct] - freq_int_heat_tbl_GAL[m_xHII_low][R_ct]) / (x_int_XHII[m_xHII_high] - x_int_XHII[m_xHII_low]);
+                        freq_int_heat_GAL[R_ct] *= (xHII_call - x_int_XHII[m_xHII_low]);
+                        freq_int_heat_GAL[R_ct] += freq_int_heat_tbl_GAL[m_xHII_low][R_ct];
+
+                        // ionization
+                        freq_int_ion_GAL[R_ct] = (freq_int_ion_tbl_GAL[m_xHII_high][R_ct] - freq_int_ion_tbl_GAL[m_xHII_low][R_ct]) / (x_int_XHII[m_xHII_high] - x_int_XHII[m_xHII_low]);
+                        freq_int_ion_GAL[R_ct] *= (xHII_call - x_int_XHII[m_xHII_low]);
+                        freq_int_ion_GAL[R_ct] += freq_int_ion_tbl_GAL[m_xHII_low][R_ct];
+
+                        // lya
+                        freq_int_lya_GAL[R_ct] = (freq_int_lya_tbl_GAL[m_xHII_high][R_ct] - freq_int_lya_tbl_GAL[m_xHII_low][R_ct]) / (x_int_XHII[m_xHII_high] - x_int_XHII[m_xHII_low]);
+                        freq_int_lya_GAL[R_ct] *= (xHII_call - x_int_XHII[m_xHII_low]);
+                        freq_int_lya_GAL[R_ct] += freq_int_lya_tbl_GAL[m_xHII_low][R_ct];
+
+
+                        if(run_globals.params.SEP_QSO_XRAY) {
+
+                            // heat
+                            freq_int_heat_QSO[R_ct] = (freq_int_heat_tbl_QSO[m_xHII_high][R_ct] - freq_int_heat_tbl_QSO[m_xHII_low][R_ct]) / (x_int_XHII[m_xHII_high] - x_int_XHII[m_xHII_low]);
+                            freq_int_heat_QSO[R_ct] *= (xHII_call - x_int_XHII[m_xHII_low]);
+                            freq_int_heat_QSO[R_ct] += freq_int_heat_tbl_QSO[m_xHII_low][R_ct];
+
+                            // ionization
+                            freq_int_ion_QSO[R_ct] = (freq_int_ion_tbl_QSO[m_xHII_high][R_ct] - freq_int_ion_tbl_QSO[m_xHII_low][R_ct]) / (x_int_XHII[m_xHII_high] - x_int_XHII[m_xHII_low]);
+                            freq_int_ion_QSO[R_ct] *= (xHII_call - x_int_XHII[m_xHII_low]);
+                            freq_int_ion_QSO[R_ct] += freq_int_ion_tbl_QSO[m_xHII_low][R_ct];
+
+                            // lya
+                            freq_int_lya_QSO[R_ct] = (freq_int_lya_tbl_QSO[m_xHII_high][R_ct] - freq_int_lya_tbl_QSO[m_xHII_low][R_ct]) / (x_int_XHII[m_xHII_high] - x_int_XHII[m_xHII_low]);
+                            freq_int_lya_QSO[R_ct] *= (xHII_call - x_int_XHII[m_xHII_low]);
+                            freq_int_lya_QSO[R_ct] += freq_int_lya_tbl_QSO[m_xHII_low][R_ct];
+                        }
+                    }
+ 
+                    // Perform the calculation of the heating/ionisation integrals, updating relevant quantities etc.
+                    evolveInt(zp, deltax[i_real], SFR_GAL, SFR_QSO, freq_int_heat_GAL, freq_int_ion_GAL, freq_int_lya_GAL, freq_int_heat_QSO, freq_int_ion_QSO, freq_int_lya_QSO, NO_LIGHT, ans, dansdz);
+
+                    x_e_box_prev[i_real] += dansdz[0] * dzp; // remember dzp is negative
+                    if (x_e_box_prev[i_real] > 1) // can do this late in evolution if dzp is too large
+                        x_e_box_prev[i_real] = 1 - FRACT_FLOAT_ERR;
+                    else if (x_e_box_prev[i_real] < 0)
+                        x_e_box_prev[i_real] = 0;
+                    if (Tk_box_prev[i_real] < MAX_TK)
+                        Tk_box_prev[i_real] += dansdz[1] * dzp;
+
+                    if (Tk_box_prev[i_real]<0){ // spurious bahaviour of the trapazoidalintegrator. generally overcooling in underdensities
+                        Tk_box_prev[i_real] = TCMB*(1+zp);
+                    }
+
+                    TS_box[i_real] = get_Ts(zp, deltax[i_real], Tk_box_prev[i_real], x_e_box_prev[i_real], dansdz[2], &curr_xalpha);
+
+                } 
     }
 
+    memcpy(x_e_box, x_e_box_prev, sizeof(fftwf_complex) * slab_n_complex);
 
 
     double Ave_Ts = 0.0;

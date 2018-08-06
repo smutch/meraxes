@@ -47,7 +47,7 @@
 /* Define some global variables; yeah i know it isn't "good practice" but doesn't matter */
 double zpp_edge[NUM_FILTER_STEPS_FOR_Ts], sigma_atR[NUM_FILTER_STEPS_FOR_Ts], sigma_Tmin[NUM_FILTER_STEPS_FOR_Ts], ST_over_PS[NUM_FILTER_STEPS_FOR_Ts], sum_lyn[NUM_FILTER_STEPS_FOR_Ts];
 unsigned long long box_ct;
-double const_zp_prefactor, const_zp_prefactor_GAL, const_zp_prefactor_QSO, dt_dzp, x_e_ave;
+double const_zp_prefactor_GAL, const_zp_prefactor_QSO, dt_dzp, x_e_ave;
 double growth_factor_zp, dgrowth_factor_dzp, PS_ION_EFF;
 int NO_LIGHT;
 float M_MIN_at_z, M_MIN_at_zp;
@@ -1311,9 +1311,9 @@ void evolveInt(float zp, float curr_delNL0, double SFR_GAL[], double SFR_QSO[],
           dstarlya_dt_QSO *= ( C * N_b0 / (4.*M_PI) ) / ( OMb * RHOcrit * pow( run_globals.params.Hubble_h, -3. ) * pow(MPC, -3) );
       }
       else {
-          dxheat_dt_GAL *= const_zp_prefactor;
-          dxion_source_dt_GAL *= const_zp_prefactor;
-          dxlya_dt_GAL *= const_zp_prefactor*n_b;
+          dxheat_dt_GAL *= const_zp_prefactor_GAL;
+          dxion_source_dt_GAL *= const_zp_prefactor_GAL;
+          dxlya_dt_GAL *= const_zp_prefactor_GAL*n_b;
 
           dstarlya_dt_GAL *= ( C * N_b0 / (4.*M_PI) ) / ( OMb * RHOcrit * pow( run_globals.params.Hubble_h, -3. ) * pow(MPC, -3) );
       }
