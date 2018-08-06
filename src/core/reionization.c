@@ -962,9 +962,8 @@ bool check_if_reionization_ongoing()
         return false;
 }
 
-void filter(fftwf_complex* box, int local_ix_start, int slab_nx, int grid_dim, float R)
+void filter(fftwf_complex* box, int local_ix_start, int slab_nx, int grid_dim, float R, int filter_type)
 {
-    int filter_type = run_globals.params.ReionFilterType;
     int middle = grid_dim / 2;
     float box_size = run_globals.params.BoxSize;
     float delta_k = 2.0 * M_PI / box_size;

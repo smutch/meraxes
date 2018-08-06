@@ -38,7 +38,7 @@ void smooth_grid(double resample_factor, int n_cell[3], fftwf_complex* slab, ptr
         double total_n_cells = n_cell[0] * n_cell[1] * n_cell[2];
         for (int ii = 0; ii < (int)slab_n_complex; ii++)
             slab[ii] /= total_n_cells;
-        filter(slab, slab_ix_start, slab_nix, n_cell[0], run_globals.params.BoxSize / (double)run_globals.params.ReionGridDim / 2.0);
+        filter(slab, slab_ix_start, slab_nix, n_cell[0], run_globals.params.BoxSize / (double)run_globals.params.ReionGridDim / 2.0, 0); // NOTE: Real space top-hat hard-coded for this
 
         plan = fftwf_mpi_plan_dft_c2r_3d(n_cell[0], n_cell[1], n_cell[2], slab, (float*)slab, run_globals.mpi_comm, FFTW_ESTIMATE);
         fftwf_execute(plan);

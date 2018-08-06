@@ -271,6 +271,7 @@ typedef struct run_params_t {
     double ReionPowerSpecDeltaK;
     int ReionGridDim;
     int ReionFilterType;
+    int HeatingFilterType;
     int ReionRtoMFilterType;
     int ReionUVBFlag;
 
@@ -783,7 +784,7 @@ double gnedin2000_modifer(double Mvir, double redshift);
 void assign_slabs(void);
 void init_reion_grids(void);
 
-void filter(fftwf_complex* box, int local_ix_start, int slab_nx, int grid_dim, float R);
+void filter(fftwf_complex* box, int local_ix_start, int slab_nx, int grid_dim, float R, int filter_type);
 void set_fesc(int snapshot);
 void set_quasar_fobs(void);
 double RtoM(double R);

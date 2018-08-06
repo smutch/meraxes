@@ -175,9 +175,9 @@ void _find_HII_bubbles(double redshift)
         // do the filtering unless this is the last filter step
         int local_ix_start = (int)(run_globals.reion_grids.slab_ix_start[run_globals.mpi_rank]);
         if (!flag_last_filter_step) {
-            filter(deltax_filtered, local_ix_start, local_nix, ReionGridDim, (float)R);
-            filter(stars_filtered, local_ix_start, local_nix, ReionGridDim, (float)R);
-            filter(sfr_filtered, local_ix_start, local_nix, ReionGridDim, (float)R);
+            filter(deltax_filtered, local_ix_start, local_nix, ReionGridDim, (float)R, run_globals.params.ReionFilterType);
+            filter(stars_filtered, local_ix_start, local_nix, ReionGridDim, (float)R, run_globals.params.ReionFilterType);
+            filter(sfr_filtered, local_ix_start, local_nix, ReionGridDim, (float)R, run_globals.params.ReionFilterType);
         }
 
         // inverse fourier transform back to real space

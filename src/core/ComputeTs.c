@@ -64,7 +64,7 @@ void _ComputeTs(int snapshot)
     float* sfr = run_globals.reion_grids.sfr;
     fftwf_complex* sfr_unfiltered = (fftwf_complex*)sfr; // WATCH OUT!
     fftwf_complex* sfr_filtered = run_globals.reion_grids.sfr_filtered;
-    plan = fftwf_mpi_plan_dft_r2c_3d(ReionGridDim, ReionGridDim, ReionGridDim, sfr, sfr_unfiltered, run_globals.mpi_comm, FFTW_ESTIMATE);
+    fftwf_plan plan = fftwf_mpi_plan_dft_r2c_3d(ReionGridDim, ReionGridDim, ReionGridDim, sfr, sfr_unfiltered, run_globals.mpi_comm, FFTW_ESTIMATE);
     fftwf_execute(plan);
     fftwf_destroy_plan(plan);
 
@@ -157,7 +157,7 @@ void _ComputeTs(int snapshot)
             if(R_ct > 0) {
                 int local_ix_start = (int)(run_globals.reion_grids.slab_ix_start[run_globals.mpi_rank]);
 
-                heat_filter(sfr_filtered, local_ix_start, local_nix, ReionGridDim, (float)R);
+                filter(sfr_filtered, local_ix_start, local_nix, ReionGridDim, (float)R, run_globals.params.HeatingFilterType);
             }
  
             // inverse fourier transform back to real space
