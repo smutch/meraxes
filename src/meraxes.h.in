@@ -826,7 +826,7 @@ double hubble(float z);
 // Brightness Temperature Box
 void ComputeBrightnessTemperatureBox(int snapshot);
 
-void Compute_PS(int snapshot);
+void Compute_PS(int snapshot, int field);
 
 
 // MCMC related

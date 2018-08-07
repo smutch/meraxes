@@ -325,7 +325,7 @@ void dracarys()
             }
 
             if(run_globals.params.Flag_ComputePS) {
-                Compute_PS(snapshot);
+                Compute_PS(snapshot, 1);
             }
             
             // if we have already created a mapping of galaxies to MPI slabs then we no
