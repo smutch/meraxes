@@ -158,25 +158,34 @@ void _find_HII_bubbles(int snapshot)
     plan = fftwf_mpi_plan_dft_r2c_3d(ReionGridDim, ReionGridDim, ReionGridDim, sfr, sfr_unfiltered, run_globals.mpi_comm, FFTW_ESTIMATE);
     fftwf_execute(plan);
     fftwf_destroy_plan(plan);
-
+    
     // The free electron fraction from X-rays 
-    float* x_e_box = run_globals.reion_grids.x_e_box;
-    fftwf_complex* x_e_unfiltered = (fftwf_complex*)x_e_box; // WATCH OUT!
-    fftwf_complex* x_e_filtered = run_globals.reion_grids.x_e_filtered;
-    plan = fftwf_mpi_plan_dft_r2c_3d(ReionGridDim, ReionGridDim, ReionGridDim, x_e_box, x_e_unfiltered, run_globals.mpi_comm, FFTW_ESTIMATE);
-    fftwf_execute(plan);
-    fftwf_destroy_plan(plan);
+    float* x_e_box;
+    fftwf_complex* x_e_unfiltered;
+    fftwf_complex* x_e_filtered; 
+    if(run_globals.params.Flag_Compute21cmBrightTemp) {
+        x_e_box = run_globals.reion_grids.x_e_box;
+        x_e_unfiltered = (fftwf_complex*)x_e_box; // WATCH OUT!
+        x_e_filtered = run_globals.reion_grids.x_e_filtered;
+        plan = fftwf_mpi_plan_dft_r2c_3d(ReionGridDim, ReionGridDim, ReionGridDim, x_e_box, x_e_unfiltered, run_globals.mpi_comm, FFTW_ESTIMATE);
+        fftwf_execute(plan);
+        fftwf_destroy_plan(plan);
+    }
 
-    // Fields relevant for computing the inhomogeneous recombinations
-    float *z_re = run_globals.reion_grids.z_re;
-    float *Gamma12 = run_globals.reion_grids.Gamma12;
+    // Fields relevant for computing the inhomogeneous recombinations    
+    float *z_re, *Gamma12, *N_rec_prev, *N_rec;
+    fftwf_complex* N_rec_unfiltered;
+    fftwf_complex* N_rec_filtered;
+    if(run_globals.params.Flag_IncludeRecombinations) {
+        z_re = run_globals.reion_grids.z_re;
+        Gamma12 = run_globals.reion_grids.Gamma12;
 
-    float* N_rec_prev = run_globals.reion_grids.N_rec_prev;
-    float* N_rec = run_globals.reion_grids.N_rec;
-    fftwf_complex* N_rec_unfiltered = (fftwf_complex*)N_rec; // WATCH OUT!
-    fftwf_complex* N_rec_filtered = run_globals.reion_grids.N_rec_filtered;
-    plan = fftwf_mpi_plan_dft_r2c_3d(ReionGridDim, ReionGridDim, ReionGridDim, N_rec_prev, N_rec_unfiltered, run_globals.mpi_comm, FFTW_ESTIMATE);
-
+        N_rec_prev = run_globals.reion_grids.N_rec_prev;
+        N_rec = run_globals.reion_grids.N_rec;
+        N_rec_unfiltered = (fftwf_complex*)N_rec; // WATCH OUT!
+        N_rec_filtered = run_globals.reion_grids.N_rec_filtered;
+        plan = fftwf_mpi_plan_dft_r2c_3d(ReionGridDim, ReionGridDim, ReionGridDim, N_rec_prev, N_rec_unfiltered, run_globals.mpi_comm, FFTW_ESTIMATE);
+    }
 
     // Remember to add the factor of VOLUME/TOT_NUM_PIXELS when converting from real space to k-space
     // Note: we will leave off factor of VOLUME, in anticipation of the inverse FFT below
@@ -433,7 +442,6 @@ void _find_HII_bubbles(int snapshot)
                     }
                 }
         // iz
-
         R /= ReionDeltaRFactor;
     }
 
@@ -464,20 +472,21 @@ void _find_HII_bubbles(int snapshot)
     run_globals.reion_grids.volume_weighted_global_xH = volume_weighted_global_xH;
     run_globals.reion_grids.mass_weighted_global_xH = mass_weighted_global_xH;
 
-    
-    // Store the resultant recombination grid 
-    for (int ix = 0; ix < local_nix; ix++)
-        for (int iy = 0; iy < ReionGridDim; iy++)
-            for (int iz = 0; iz < ReionGridDim; iz++) {
+    if(run_globals.params.Flag_IncludeRecombinations) {    
+        // Store the resultant recombination grid 
+        for (int ix = 0; ix < local_nix; ix++)
+            for (int iy = 0; iy < ReionGridDim; iy++)
+                for (int iz = 0; iz < ReionGridDim; iz++) {
 
-                i_real = grid_index(ix, iy, iz, ReionGridDim, INDEX_REAL);
+                    i_real = grid_index(ix, iy, iz, ReionGridDim, INDEX_REAL);
 
-                density_over_mean = 1.0 + deltax[i_real];
-                z_eff = (1. + redshift) * pow(density_over_mean, 1.0/3.0) - 1;
-                dNrec = splined_recombination_rate(z_eff, Gamma12[i_real]) * fabs_dtdz * ZSTEP * (1. - xH[i_real]);
-                N_rec[i_real] += dNrec;
+                    density_over_mean = 1.0 + deltax[i_real];
+                    z_eff = (1. + redshift) * pow(density_over_mean, 1.0/3.0) - 1;
+                    dNrec = splined_recombination_rate(z_eff, Gamma12[i_real]) * fabs_dtdz * ZSTEP * (1. - xH[i_real]);
+                    N_rec[i_real] += dNrec;
 
-            }
+                }
+    }
 
 }
 
