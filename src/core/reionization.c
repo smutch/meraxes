@@ -231,6 +231,9 @@ void init_reion_grids()
         if(run_globals.params.Flag_IncludeRecombinations) {
             grids->N_rec_filtered[ii] = 0 + 0 * I;
         }
+        if(run_globals.params.Flag_Compute21cmBrightTemp&&(run_globals.params.Flag_IncludePecVelsFor21cm > 0)) {
+            grids->vel_gradient[ii] = 0 + 0 * I;
+        }
 
     }
 
@@ -246,7 +249,7 @@ void init_reion_grids()
             grids->N_rec[ii] = 0;
             grids->N_rec_prev[ii] = 0;
         }
-        if(run_globals.params.Flag_Compute21cmBrightTemp&&run_globals.params.Flag_IncludePecVels) {
+        if(run_globals.params.Flag_Compute21cmBrightTemp&&(run_globals.params.Flag_IncludePecVelsFor21cm > 0)) {
             grids->vel[ii] = 0;
         }
     }
@@ -298,6 +301,7 @@ void malloc_reionization_grids()
 
     // Grids required for addining in peculiar velocity effects
     grids->vel = NULL;    
+    grids->vel_gradient = NULL;
 
     if (run_globals.params.Flag_PatchyReion) {
         assign_slabs();
@@ -351,8 +355,9 @@ void malloc_reionization_grids()
         if(run_globals.params.Flag_Compute21cmBrightTemp) {
             grids->delta_T = fftwf_alloc_real(slab_n_real);
 
-            if(run_globals.params.Flag_IncludePecVels) {
+            if(run_globals.params.Flag_IncludePecVelsFor21cm > 0) {
                 grids->vel = fftwf_alloc_real(slab_n_complex * 2); // padded for in-place FFT
+                grids->vel_gradient = fftwf_alloc_complex(slab_n_complex);
             }
         }
 
@@ -408,8 +413,9 @@ void free_reionization_grids()
 
 		fftwf_free(grids->delta_T);
 
-        if(run_globals.params.Flag_IncludePecVels) {
+        if(run_globals.params.Flag_IncludePecVelsFor21cm > 0) {
  		fftwf_free(grids->vel);
+                fftwf_free(grids->vel_gradient);
         }
     }
 
