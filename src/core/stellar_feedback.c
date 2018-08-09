@@ -35,7 +35,7 @@ void check_n_history_snaps(void) {
     double *pData;
     double *LTTime = run_globals.LTTime;
     double time_unit = run_globals.units.UnitTime_in_Megayears/run_globals.params.Hubble_h;
-    double t_begin, t_end;
+    double t_begin;
 
     for(int i_snap = 1; i_snap < last_snap; ++i_snap) {
         for(i_burst = 0; i_burst < i_snap; ++i_burst) {
@@ -44,8 +44,8 @@ void check_n_history_snaps(void) {
                       - LTTime[i_snap - 1])*time_unit;
             else
                 t_begin = age[0];
-            t_end = ((LTTime[i_snap - i_burst - 1] + LTTime[i_snap - i_burst])/2.
-                   - LTTime[i_snap])*time_unit;
+            if (t_begin > age[NAGE - 1])
+                break;
 
             isconverge = 1;
             pData = energy_tables;
@@ -55,7 +55,7 @@ void check_n_history_snaps(void) {
                 // energy that a SSP can release, no energy will be released during the
                 // snapshot. Therefore, this snapshot does not need to be included to
                 // track the SN feedback. Otherwise, more snapshots is needed.
-                if (interp(t_begin, age, pData, NAGE) != energy_tables[NAGE-1]) {
+                if (interp(t_begin, age, pData, NAGE) != pData[NAGE - 1]) {
                     isconverge = 0;
                     break;
                 }
