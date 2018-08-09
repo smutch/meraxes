@@ -356,12 +356,15 @@ typedef struct reion_grids_t {
 
     float* buffer;
     float* stars;
+    float* stars_temp;
     fftwf_complex* stars_unfiltered;
     fftwf_complex* stars_filtered;
     float* deltax;
+    float* deltax_temp;
     fftwf_complex* deltax_unfiltered;
     fftwf_complex* deltax_filtered;
     float* sfr;
+    float* sfr_temp;
     fftwf_complex* sfr_unfiltered;
     fftwf_complex* sfr_filtered;
     float* xH;

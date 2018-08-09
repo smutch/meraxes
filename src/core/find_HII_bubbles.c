@@ -153,6 +153,7 @@ void _find_HII_bubbles(int snapshot)
     // TODO: Ensure that fftwf_mpi_init has been called and fftwf_mpi_cleanup will be called
     // TODO: Don't use estimate and calculate plan in code init
     float* deltax = run_globals.reion_grids.deltax;
+    float* deltax_temp = run_globals.reion_grids.deltax;
     fftwf_complex* deltax_unfiltered = (fftwf_complex*)deltax; // WATCH OUT!
     fftwf_complex* deltax_filtered = run_globals.reion_grids.deltax_filtered;
     fftwf_plan plan = fftwf_mpi_plan_dft_r2c_3d(ReionGridDim, ReionGridDim, ReionGridDim, deltax, deltax_unfiltered, run_globals.mpi_comm, FFTW_ESTIMATE);
@@ -160,6 +161,7 @@ void _find_HII_bubbles(int snapshot)
     fftwf_destroy_plan(plan);
 
     float* stars = run_globals.reion_grids.stars;
+    float* stars_temp = run_globals.reion_grids.stars;
     fftwf_complex* stars_unfiltered = (fftwf_complex*)stars; // WATCH OUT!
     fftwf_complex* stars_filtered = run_globals.reion_grids.stars_filtered;
     plan = fftwf_mpi_plan_dft_r2c_3d(ReionGridDim, ReionGridDim, ReionGridDim, stars, stars_unfiltered, run_globals.mpi_comm, FFTW_ESTIMATE);
@@ -167,6 +169,7 @@ void _find_HII_bubbles(int snapshot)
     fftwf_destroy_plan(plan);
 
     float* sfr = run_globals.reion_grids.sfr;
+    float* sfr_temp = run_globals.reion_grids.sfr;
     fftwf_complex* sfr_unfiltered = (fftwf_complex*)sfr; // WATCH OUT!
     fftwf_complex* sfr_filtered = run_globals.reion_grids.sfr_filtered;
     plan = fftwf_mpi_plan_dft_r2c_3d(ReionGridDim, ReionGridDim, ReionGridDim, sfr, sfr_unfiltered, run_globals.mpi_comm, FFTW_ESTIMATE);
@@ -487,6 +490,12 @@ void _find_HII_bubbles(int snapshot)
     mass_weighted_global_xH /= mass_weight;
     run_globals.reion_grids.volume_weighted_global_xH = volume_weighted_global_xH;
     run_globals.reion_grids.mass_weighted_global_xH = mass_weighted_global_xH;
+
+    // Reverting quantities back to their original value (now required owing to modular format)
+    memcpy(sfr, sfr_temp, sizeof(fftwf_complex) * slab_n_complex);
+    memcpy(deltax, deltax_temp, sizeof(fftwf_complex) * slab_n_complex);
+    memcpy(stars, stars_temp, sizeof(fftwf_complex) * slab_n_complex);
+    
 
     if(run_globals.params.Flag_IncludeRecombinations) {    
         // Store the resultant recombination grid 

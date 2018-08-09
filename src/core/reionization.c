@@ -241,6 +241,12 @@ void init_reion_grids()
         grids->deltax[ii] = 0;
         grids->stars[ii] = 0;
         grids->sfr[ii] = 0;
+
+        // Include temporary arrays to return to original data (as FFT modifies the result)
+        grids->deltax_temp[ii] = 0;
+        grids->stars_temp[ii] = 0;
+        grids->sfr_temp[ii] = 0;
+
         if(run_globals.params.Flag_IncludeSpinTemp) {
             grids->x_e_box_prev[ii] = 0;
             grids->x_e_box[ii] = 0;
@@ -267,12 +273,15 @@ void malloc_reionization_grids()
 
     grids->xH = NULL;
     grids->stars = NULL;
+    grids->stars_temp = NULL;
     grids->stars_unfiltered = NULL;
     grids->stars_filtered = NULL;
     grids->deltax = NULL;
+    grids->deltax_temp = NULL;
     grids->deltax_unfiltered = NULL;
     grids->deltax_filtered = NULL;
     grids->sfr = NULL;
+    grids->sfr_temp = NULL;
     grids->sfr_unfiltered = NULL;
     grids->sfr_filtered = NULL;
     grids->z_at_ionization = NULL;
@@ -323,10 +332,13 @@ void malloc_reionization_grids()
 
         grids->buffer = fftwf_alloc_real(max_cells);
         grids->stars = fftwf_alloc_real(slab_n_complex * 2); // padded for in-place FFT
+        grids->stars_temp = fftwf_alloc_real(slab_n_complex * 2); // padded for in-place FFT
         grids->stars_filtered = fftwf_alloc_complex(slab_n_complex);
         grids->deltax = fftwf_alloc_real(slab_n_complex * 2); // padded for in-place FFT
+        grids->deltax_temp = fftwf_alloc_real(slab_n_complex * 2); // padded for in-place FFT
         grids->deltax_filtered = fftwf_alloc_complex(slab_n_complex);
         grids->sfr = fftwf_alloc_real(slab_n_complex * 2); // padded for in-place FFT
+        grids->sfr_temp = fftwf_alloc_real(slab_n_complex * 2); // padded for in-place FFT
         grids->sfr_filtered = fftwf_alloc_complex(slab_n_complex);
         grids->xH = fftwf_alloc_real(slab_n_real);
         grids->z_at_ionization = fftwf_alloc_real(slab_n_real);
@@ -389,6 +401,7 @@ void free_reionization_grids()
     fftwf_free(grids->sfr_filtered);
     fftwf_free(grids->deltax_filtered);
     fftwf_free(grids->deltax);
+    fftwf_free(grids->deltax_temp);
     fftwf_free(grids->stars_filtered);
     fftwf_free(grids->xH);
 
@@ -424,6 +437,8 @@ void free_reionization_grids()
 
     fftwf_free(grids->stars);
     fftwf_free(grids->sfr);
+    fftwf_free(grids->stars_temp);
+    fftwf_free(grids->sfr_temp);
     fftwf_free(grids->buffer);
 
     mlog(" ...done", MLOG_CLOSE);
