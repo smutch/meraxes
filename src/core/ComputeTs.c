@@ -79,10 +79,14 @@ void _ComputeTs(int snapshot)
     float* TS_box = run_globals.reion_grids.TS_box;
 
     float* sfr = run_globals.reion_grids.sfr;
-    float* sfr_temp = run_globals.reion_grids.sfr;
-    fftwf_complex* sfr_unfiltered = (fftwf_complex*)sfr; // WATCH OUT!
+    float* sfr_temp = run_globals.reion_grids.sfr_temp;
+    
+    // Make a copy of the box for FFT'ing
+    memcpy(sfr_temp, sfr, sizeof(fftwf_complex) * slab_n_complex);    
+
+    fftwf_complex* sfr_unfiltered = (fftwf_complex*)sfr_temp; // WATCH OUT!
     fftwf_complex* sfr_filtered = run_globals.reion_grids.sfr_filtered;
-    fftwf_plan plan = fftwf_mpi_plan_dft_r2c_3d(ReionGridDim, ReionGridDim, ReionGridDim, sfr, sfr_unfiltered, run_globals.mpi_comm, FFTW_ESTIMATE);
+    fftwf_plan plan = fftwf_mpi_plan_dft_r2c_3d(ReionGridDim, ReionGridDim, ReionGridDim, sfr_temp, sfr_unfiltered, run_globals.mpi_comm, FFTW_ESTIMATE);
     fftwf_execute(plan);
     fftwf_destroy_plan(plan);
 
@@ -446,8 +450,6 @@ void _ComputeTs(int snapshot)
     }
 
     memcpy(x_e_box, x_e_box_prev, sizeof(fftwf_complex) * slab_n_complex);
-
-    memcpy(sfr, sfr_temp, sizeof(fftwf_complex) * slab_n_complex);
 
     double Ave_Ts = 0.0;
     double Ave_x_e = 0.0;

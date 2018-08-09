@@ -53,6 +53,7 @@ void _find_HII_bubbles(int snapshot)
     double total_n_cells = pow((double)ReionGridDim, 3);
     int local_nix = (int)(run_globals.reion_grids.slab_nix[run_globals.mpi_rank]);
     int slab_n_real = local_nix * ReionGridDim * ReionGridDim;
+    int slab_n_complex = (int)(run_globals.reion_grids.slab_n_complex[run_globals.mpi_rank]);
     int flag_ReionUVBFlag = run_globals.params.ReionUVBFlag;
     double ReionEfficiency = run_globals.params.physics.ReionEfficiency;
     double ReionNionPhotPerBary = run_globals.params.physics.ReionNionPhotPerBary;
@@ -153,26 +154,38 @@ void _find_HII_bubbles(int snapshot)
     // TODO: Ensure that fftwf_mpi_init has been called and fftwf_mpi_cleanup will be called
     // TODO: Don't use estimate and calculate plan in code init
     float* deltax = run_globals.reion_grids.deltax;
-    float* deltax_temp = run_globals.reion_grids.deltax;
-    fftwf_complex* deltax_unfiltered = (fftwf_complex*)deltax; // WATCH OUT!
+    float* deltax_temp = run_globals.reion_grids.deltax_temp;
+
+    // Make a copy of the box for FFT'ing
+    memcpy(deltax_temp, deltax, sizeof(fftwf_complex) * slab_n_complex);    
+
+    fftwf_complex* deltax_unfiltered = (fftwf_complex*)deltax_temp; // WATCH OUT!
     fftwf_complex* deltax_filtered = run_globals.reion_grids.deltax_filtered;
-    fftwf_plan plan = fftwf_mpi_plan_dft_r2c_3d(ReionGridDim, ReionGridDim, ReionGridDim, deltax, deltax_unfiltered, run_globals.mpi_comm, FFTW_ESTIMATE);
+    fftwf_plan plan = fftwf_mpi_plan_dft_r2c_3d(ReionGridDim, ReionGridDim, ReionGridDim, deltax_temp, deltax_unfiltered, run_globals.mpi_comm, FFTW_ESTIMATE);
     fftwf_execute(plan);
     fftwf_destroy_plan(plan);
 
     float* stars = run_globals.reion_grids.stars;
-    float* stars_temp = run_globals.reion_grids.stars;
-    fftwf_complex* stars_unfiltered = (fftwf_complex*)stars; // WATCH OUT!
+    float* stars_temp = run_globals.reion_grids.stars_temp;
+
+    // Make a copy of the box for FFT'ing
+    memcpy(stars_temp, stars, sizeof(fftwf_complex) * slab_n_complex);
+
+    fftwf_complex* stars_unfiltered = (fftwf_complex*)stars_temp; // WATCH OUT!
     fftwf_complex* stars_filtered = run_globals.reion_grids.stars_filtered;
-    plan = fftwf_mpi_plan_dft_r2c_3d(ReionGridDim, ReionGridDim, ReionGridDim, stars, stars_unfiltered, run_globals.mpi_comm, FFTW_ESTIMATE);
+    plan = fftwf_mpi_plan_dft_r2c_3d(ReionGridDim, ReionGridDim, ReionGridDim, stars_temp, stars_unfiltered, run_globals.mpi_comm, FFTW_ESTIMATE);
     fftwf_execute(plan);
     fftwf_destroy_plan(plan);
 
     float* sfr = run_globals.reion_grids.sfr;
-    float* sfr_temp = run_globals.reion_grids.sfr;
-    fftwf_complex* sfr_unfiltered = (fftwf_complex*)sfr; // WATCH OUT!
+    float* sfr_temp = run_globals.reion_grids.sfr_temp;
+
+    // Make a copy of the box for FFT'ing
+    memcpy(sfr_temp, sfr, sizeof(fftwf_complex) * slab_n_complex);
+
+    fftwf_complex* sfr_unfiltered = (fftwf_complex*)sfr_temp; // WATCH OUT!
     fftwf_complex* sfr_filtered = run_globals.reion_grids.sfr_filtered;
-    plan = fftwf_mpi_plan_dft_r2c_3d(ReionGridDim, ReionGridDim, ReionGridDim, sfr, sfr_unfiltered, run_globals.mpi_comm, FFTW_ESTIMATE);
+    plan = fftwf_mpi_plan_dft_r2c_3d(ReionGridDim, ReionGridDim, ReionGridDim, sfr_temp, sfr_unfiltered, run_globals.mpi_comm, FFTW_ESTIMATE);
     fftwf_execute(plan);
     fftwf_destroy_plan(plan);
     
@@ -197,9 +210,13 @@ void _find_HII_bubbles(int snapshot)
         z_re = run_globals.reion_grids.z_re;
         Gamma12 = run_globals.reion_grids.Gamma12;
 
-        N_rec_prev = run_globals.reion_grids.N_rec_prev;
         N_rec = run_globals.reion_grids.N_rec;
-        N_rec_unfiltered = (fftwf_complex*)N_rec; // WATCH OUT!
+        N_rec_prev = run_globals.reion_grids.N_rec_prev;
+
+        // Make a copy of the box for FFT'ing
+        memcpy(N_rec_prev, N_rec, sizeof(fftwf_complex) * slab_n_complex);
+
+        N_rec_unfiltered = (fftwf_complex*)N_rec_prev; // WATCH OUT!
         N_rec_filtered = run_globals.reion_grids.N_rec_filtered;
         plan = fftwf_mpi_plan_dft_r2c_3d(ReionGridDim, ReionGridDim, ReionGridDim, N_rec_prev, N_rec_unfiltered, run_globals.mpi_comm, FFTW_ESTIMATE);
     }
@@ -207,7 +224,6 @@ void _find_HII_bubbles(int snapshot)
     // Remember to add the factor of VOLUME/TOT_NUM_PIXELS when converting from real space to k-space
     // Note: we will leave off factor of VOLUME, in anticipation of the inverse FFT below
     // TODO: Double check that looping over correct number of elements here
-    int slab_n_complex = (int)(run_globals.reion_grids.slab_n_complex[run_globals.mpi_rank]);
     for (int ii = 0; ii < slab_n_complex; ii++) {
         deltax_unfiltered[ii] /= total_n_cells;
         stars_unfiltered[ii] /= total_n_cells;
@@ -411,6 +427,14 @@ void _find_HII_bubbles(int snapshot)
                         electron_fraction = 1.0;
                     }
 
+/*
+                    if (run_globals.mpi_rank == 0) {
+                        if( iy < 2 && iz < 2 ) {
+                            mlog("R = %e ix = %d iy = %d iz = %d dens = %e fcoll = %e SFR = %e x_e = %e",MLOG_MESG,R,ix,iy,iz,(double)((float*)deltax_filtered)[i_padded],f_coll_stars,sfr_density,((float*)x_e_filtered)[i_padded]);
+                        }
+                    }
+*/
+
                     if (flag_ReionUVBFlag)
                         J_21_aux = (float)(sfr_density * J_21_aux_constant);
 
@@ -491,12 +515,6 @@ void _find_HII_bubbles(int snapshot)
     run_globals.reion_grids.volume_weighted_global_xH = volume_weighted_global_xH;
     run_globals.reion_grids.mass_weighted_global_xH = mass_weighted_global_xH;
 
-    // Reverting quantities back to their original value (now required owing to modular format)
-    memcpy(sfr, sfr_temp, sizeof(fftwf_complex) * slab_n_complex);
-    memcpy(deltax, deltax_temp, sizeof(fftwf_complex) * slab_n_complex);
-    memcpy(stars, stars_temp, sizeof(fftwf_complex) * slab_n_complex);
-    
-
     if(run_globals.params.Flag_IncludeRecombinations) {    
         // Store the resultant recombination grid 
         for (int ix = 0; ix < local_nix; ix++)
@@ -509,6 +527,12 @@ void _find_HII_bubbles(int snapshot)
                     z_eff = (1. + redshift) * pow(density_over_mean, 1.0/3.0) - 1;
                     dNrec = splined_recombination_rate(z_eff, Gamma12[i_real]) * fabs_dtdz * ZSTEP * (1. - xH[i_real]);
                     N_rec[i_padded] += dNrec;
+
+                    if (run_globals.mpi_rank == 0) {
+                        if(iy < 2 && iz < 2) {
+                            mlog("del = %e z_eff = %e Gamma12 = %e N_rec = %e dNrec = %e xH = %e",MLOG_MESG,deltax[i_padded],z_eff,Gamma12[i_real],N_rec[i_padded],dNrec,xH[i_real]);
+                        }
+                    }
 
                 }
     }
