@@ -133,6 +133,9 @@ void ComputeBrightnessTemperatureBox(int snapshot) {
                     i_padded = grid_index(ii, jj, kk, ReionGridDim, INDEX_PADDED);
 
                     vel[i_padded] = sqrt(1./(1.+redshift))*vel[i_padded]/1000.;
+
+                    // The algorithm used in 21cmFAST for dealing with velocities uses the **comoving** velocity. Therefore, convert from peculiar to comoving velocity 
+                    vel[i_padded] = vel[i_padded]/(1./(1. + redshift));
                 }
             }
         }

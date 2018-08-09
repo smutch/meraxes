@@ -266,7 +266,7 @@ void _ComputeTs(int snapshot)
         // A condition (defined by whether or not there are stars) for evaluating the heating/ionisation integrals
         if(collapse_fraction > 0.0) {
             NO_LIGHT = 0;
-            mlog("NO_LIGHT = 1", MLOG_MESG);
+            mlog("NO_LIGHT = 0", MLOG_MESG);
         }
         else {
             NO_LIGHT = 1;
