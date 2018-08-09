@@ -109,6 +109,20 @@ void _find_HII_bubbles(int snapshot)
     for (int ii = 0; ii < slab_n_real; ii++)
         r_bubble[ii] = 0.0;
 
+/*
+    for (int ix = 0; ix < local_nix; ix++)
+        for (int iy = 0; iy < ReionGridDim; iy++)
+            for (int iz = 0; iz < ReionGridDim; iz++) {
+                i_padded = grid_index(ix, iy, iz, ReionGridDim, INDEX_PADDED);
+                 
+                if (run_globals.mpi_rank == 0) {
+                    if( iy < 2 && iz < 2 ) {
+                        mlog("ix = %d iy = %d iz = %d dens = %e",MLOG_MESG,ix,iy,iz,run_globals.reion_grids.deltax[i_padded]);
+                    }
+                }                
+            }
+*/
+
     // #ifdef DEBUG
     //   {
     //     char fname_debug[STRLEN];
@@ -163,7 +177,7 @@ void _find_HII_bubbles(int snapshot)
     float* x_e_box;
     fftwf_complex* x_e_unfiltered;
     fftwf_complex* x_e_filtered; 
-    if(run_globals.params.Flag_Compute21cmBrightTemp) {
+    if(run_globals.params.Flag_IncludeSpinTemp) {
         x_e_box = run_globals.reion_grids.x_e_box;
         x_e_unfiltered = (fftwf_complex*)x_e_box; // WATCH OUT!
         x_e_filtered = run_globals.reion_grids.x_e_filtered;
@@ -198,7 +212,7 @@ void _find_HII_bubbles(int snapshot)
         if(run_globals.params.Flag_IncludeRecombinations) {
             N_rec_unfiltered[ii] /= total_n_cells;
         }
-        if(run_globals.params.Flag_Compute21cmBrightTemp) {
+        if(run_globals.params.Flag_IncludeSpinTemp) {
             x_e_unfiltered[ii] /= total_n_cells;
         }
     }
@@ -235,7 +249,7 @@ void _find_HII_bubbles(int snapshot)
         if(run_globals.params.Flag_IncludeRecombinations) {
             memcpy(N_rec_filtered, N_rec_unfiltered, sizeof(fftwf_complex) * slab_n_complex);
         }
-        if(run_globals.params.Flag_Compute21cmBrightTemp) {
+        if(run_globals.params.Flag_IncludeSpinTemp) {
             memcpy(x_e_filtered, x_e_unfiltered, sizeof(fftwf_complex) * slab_n_complex);
         }
 
@@ -249,7 +263,7 @@ void _find_HII_bubbles(int snapshot)
             if(run_globals.params.Flag_IncludeRecombinations) {
                 filter(N_rec_filtered, local_ix_start, local_nix, ReionGridDim, (float)R, run_globals.params.ReionFilterType);
             }
-            if(run_globals.params.Flag_Compute21cmBrightTemp) {
+            if(run_globals.params.Flag_IncludeSpinTemp) {
                 filter(x_e_filtered, local_ix_start, local_nix, ReionGridDim, (float)R, run_globals.params.ReionFilterType);
             }
         }
@@ -273,7 +287,7 @@ void _find_HII_bubbles(int snapshot)
             fftwf_destroy_plan(plan); 
         }
 
-        if(run_globals.params.Flag_Compute21cmBrightTemp) {
+        if(run_globals.params.Flag_IncludeSpinTemp) {
             plan = fftwf_mpi_plan_dft_c2r_3d(ReionGridDim, ReionGridDim, ReionGridDim, x_e_filtered, (float*)x_e_filtered, run_globals.mpi_comm, FFTW_ESTIMATE);
             fftwf_execute(plan);
             fftwf_destroy_plan(plan);
@@ -291,7 +305,7 @@ void _find_HII_bubbles(int snapshot)
                     if(run_globals.params.Flag_IncludeRecombinations) {
                         ((float*)N_rec_filtered)[i_padded] = fmaxf(((float*)N_rec_filtered)[i_padded], 0.0);
                     }
-                    if(run_globals.params.Flag_Compute21cmBrightTemp) {
+                    if(run_globals.params.Flag_IncludeSpinTemp) {
                         ((float*)x_e_filtered)[i_padded] = fmaxf(((float*)x_e_filtered)[i_padded], 0.0);
        	       	        ((float*)x_e_filtered)[i_padded] = fminf(((float*)x_e_filtered)[i_padded], 0.999);
                     }
@@ -387,7 +401,7 @@ void _find_HII_bubbles(int snapshot)
                     }
 
                     // Account for the partial ionisation of the cell from X-rays
-                    if(run_globals.params.Flag_Compute21cmBrightTemp) {
+                    if(run_globals.params.Flag_IncludeSpinTemp) {
                         electron_fraction = 1.0 - ((float*)x_e_filtered)[i_padded];    
                     }
                     else {
@@ -407,10 +421,12 @@ void _find_HII_bubbles(int snapshot)
                                 J_21[i_real] = J_21_aux;
    
                             // Store the ionisation background and the reionisation redshift for each cell
-                            Gamma12[i_real] = Gamma_R;
-                             if(z_re[i_real] < 0) {
-                                 z_re[i_real] = redshift;
-                             }
+                            if(run_globals.params.Flag_IncludeRecombinations) {
+                                Gamma12[i_real] = Gamma_R;
+                                if(z_re[i_real] < 0) {
+                                    z_re[i_real] = redshift;
+                                }
+                            }
                         }
 
                         // Mark as ionised
@@ -477,13 +493,13 @@ void _find_HII_bubbles(int snapshot)
         for (int ix = 0; ix < local_nix; ix++)
             for (int iy = 0; iy < ReionGridDim; iy++)
                 for (int iz = 0; iz < ReionGridDim; iz++) {
-
+                    i_padded = grid_index(ix, iy, iz, ReionGridDim, INDEX_PADDED);
                     i_real = grid_index(ix, iy, iz, ReionGridDim, INDEX_REAL);
 
-                    density_over_mean = 1.0 + deltax[i_real];
+                    density_over_mean = 1.0 + deltax[i_padded];
                     z_eff = (1. + redshift) * pow(density_over_mean, 1.0/3.0) - 1;
                     dNrec = splined_recombination_rate(z_eff, Gamma12[i_real]) * fabs_dtdz * ZSTEP * (1. - xH[i_real]);
-                    N_rec[i_real] += dNrec;
+                    N_rec[i_padded] += dNrec;
 
                 }
     }

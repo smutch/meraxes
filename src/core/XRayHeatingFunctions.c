@@ -1239,12 +1239,10 @@ void evolveInt(float zp, float curr_delNL0, double SFR_GAL[], double SFR_QSO[],
   dxlya_dt_GAL = 0;
   dstarlya_dt_GAL = 0;
   
-  if(run_globals.params.SEP_QSO_XRAY) {
-      dxheat_dt_QSO = 0;
-      dxion_source_dt_QSO = 0;
-      dxlya_dt_QSO = 0;
-      dstarlya_dt_QSO = 0;
-  }
+  dxheat_dt_QSO = 0;
+  dxion_source_dt_QSO = 0;
+  dxlya_dt_QSO = 0;
+  dstarlya_dt_QSO = 0;
 
   if (!NO_LIGHT){
       for (zpp_ct = 0; zpp_ct < NUM_FILTER_STEPS_FOR_Ts; zpp_ct++){

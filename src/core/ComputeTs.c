@@ -55,6 +55,19 @@ void _ComputeTs(int snapshot)
 
     double *evolve_ans, ans[2], dansdz[5], xHII_call;
     double SFR_GAL[NUM_FILTER_STEPS_FOR_Ts], SFR_QSO[NUM_FILTER_STEPS_FOR_Ts];
+/*
+    for (int ix = 0; ix < local_nix; ix++)
+        for (int iy = 0; iy < ReionGridDim; iy++)
+            for (int iz = 0; iz < ReionGridDim; iz++) {
+                i_padded = grid_index(ix, iy, iz, ReionGridDim, INDEX_PADDED);
+
+                if (run_globals.mpi_rank == 0) {
+                    if( iy < 2 && iz < 2 ) {
+                        mlog("ix = %d iy = %d iz = %d dens = %e",MLOG_MESG,ix,iy,iz,run_globals.reion_grids.deltax[i_padded]);
+                    }
+                }
+            }
+*/
 
     float* deltax = run_globals.reion_grids.deltax;
     float* stars = run_globals.reion_grids.stars;
@@ -112,17 +125,18 @@ void _ComputeTs(int snapshot)
 
     // Check redshift against Z_HEAT_MAX. If zp > Z_HEAT_MAX assume the x_e (electron fraction) and gas temperatures are homogenous 
     // Equivalent to the default setup of 21cmFAST. 
-    if(zp >= run_globals.params.physics.Z_HEAT_MAX) {
-
+//    if( zp >= run_globals.params.physics.Z_HEAT_MAX && ( fabs(zp - run_globals.params.physics.Z_HEAT_MAX) >= FRACT_FLOAT_ERR) ) {
+    if( zp >= 34.0 ) {
         for (int ix = 0; ix < local_nix; ix++)
             for (int iy = 0; iy < ReionGridDim; iy++)
                 for (int iz = 0; iz < ReionGridDim; iz++) {
                     i_real = grid_index(ix, iy, iz, ReionGridDim, INDEX_REAL);
+                    i_padded = grid_index(ix, iy, iz, ReionGridDim, INDEX_PADDED);
 
-                    x_e_box_prev[i_real] = xion_RECFAST(zp,0);
+                    x_e_box_prev[i_padded] = xion_RECFAST(zp,0);
                     Tk_box_prev[i_real] = T_RECFAST(zp,0);
 
-                    TS_box[i_real] = get_Ts(zp, deltax[i_real], Tk_box_prev[i_real], x_e_box_prev[i_real],1, &curr_xalpha);
+                    TS_box[i_real] = get_Ts(zp, run_globals.reion_grids.deltax[i_padded], Tk_box_prev[i_real], x_e_box_prev[i_padded],1, &curr_xalpha);
 
                 }
 
@@ -139,11 +153,11 @@ void _ComputeTs(int snapshot)
         for (int ix = 0; ix < local_nix; ix++)
             for (int iy = 0; iy < ReionGridDim; iy++)
                 for (int iz = 0; iz < ReionGridDim; iz++) {
-                    i_real = grid_index(ix, iy, iz, ReionGridDim, INDEX_REAL);
+                    i_padded = grid_index(ix, iy, iz, ReionGridDim, INDEX_PADDED);
 
-                    density_over_mean = 1.0 + deltax[i_real];
+                    density_over_mean = 1.0 + run_globals.reion_grids.deltax[i_padded];
 
-                    collapse_fraction += stars[i_real] / (RtoM(R) * density_over_mean)
+                    collapse_fraction += run_globals.reion_grids.stars[i_padded] / (RtoM(R) * density_over_mean)
                                 * (4.0 / 3.0) * M_PI * pow(R, 3.0) / pixel_volume;
                 }
 
@@ -151,7 +165,7 @@ void _ComputeTs(int snapshot)
 
         collapse_fraction = collapse_fraction/total_n_cells;
 
-//        mlog("zp = %e collapse_fraction = %e", MLOG_MESG, collapse_fraction);
+        mlog("zp = %e collapse_fraction = %e", MLOG_MESG, collapse_fraction);
     }
     else {
 
@@ -199,12 +213,12 @@ void _ComputeTs(int snapshot)
                                      * (units->UnitMass_in_g / units->UnitTime_in_s) * pow( units->UnitLength_in_cm, -3. ) * pow( run_globals.params.Hubble_h , -3. )/ SOLAR_MASS;
                             }
 
-                            density_over_mean = 1.0 + deltax[i_real];
+                            density_over_mean = 1.0 + run_globals.reion_grids.deltax[i_padded];
 
-                            collapse_fraction += stars[i_real] / (RtoM(R) * density_over_mean)
+                            collapse_fraction += run_globals.reion_grids.stars[i_padded] / (RtoM(R) * density_over_mean)
                                 * (4.0 / 3.0) * M_PI * pow(R, 3.0) / pixel_volume;
 
-                            x_e_ave += x_e_box_prev[i_real];
+                            x_e_ave += x_e_box_prev[i_padded];
 
                     }
 
@@ -223,6 +237,7 @@ void _ComputeTs(int snapshot)
                 for (int ix = 0; ix < local_nix; ix++)
                     for (int iy = 0; iy < ReionGridDim; iy++)
                         for (int iz = 0; iz < ReionGridDim; iz++) {
+                            i_real = grid_index(ix, iy, iz, ReionGridDim, INDEX_REAL);
                             i_padded = grid_index(ix, iy, iz, ReionGridDim, INDEX_PADDED);
 
                             ((float*)sfr_filtered)[i_padded] = fmaxf(((float*)sfr_filtered)[i_padded], 0.0);
@@ -246,9 +261,11 @@ void _ComputeTs(int snapshot)
         // A condition (defined by whether or not there are stars) for evaluating the heating/ionisation integrals
         if(collapse_fraction > 0.0) {
             NO_LIGHT = 0;
+            mlog("NO_LIGHT = 1", MLOG_MESG);
         }
         else {
             NO_LIGHT = 1;
+            mlog("NO_LIGHT = 1", MLOG_MESG);
         }
 
         // Populate the initial ionisation/heating tables
@@ -347,8 +364,9 @@ void _ComputeTs(int snapshot)
             for (int iy = 0; iy < ReionGridDim; iy++)
                 for (int iz = 0; iz < ReionGridDim; iz++) {
                     i_real = grid_index(ix, iy, iz, ReionGridDim, INDEX_REAL);
+                    i_padded = grid_index(ix, iy, iz, ReionGridDim, INDEX_PADDED);
 
-                    ans[0] = x_e_box_prev[i_real];
+                    ans[0] = x_e_box_prev[i_padded];
                     ans[1] = Tk_box_prev[i_real];
 
                     for (R_ct=0; R_ct<NUM_FILTER_STEPS_FOR_Ts; R_ct++){
@@ -359,7 +377,7 @@ void _ComputeTs(int snapshot)
                             SFR_QSO[R_ct] = SMOOTHED_SFR_QSO[R_ct][i_real];
                         }
 
-                        xHII_call = x_e_box_prev[i_real];
+                        xHII_call = x_e_box_prev[i_padded];
 
                         // Check if ionized fraction is within boundaries; if not, adjust to be within
                         if (xHII_call > x_int_XHII[x_int_NXHII-1]*0.999) {
@@ -407,13 +425,13 @@ void _ComputeTs(int snapshot)
                     }
  
                     // Perform the calculation of the heating/ionisation integrals, updating relevant quantities etc.
-                    evolveInt(zp, deltax[i_real], SFR_GAL, SFR_QSO, freq_int_heat_GAL, freq_int_ion_GAL, freq_int_lya_GAL, freq_int_heat_QSO, freq_int_ion_QSO, freq_int_lya_QSO, NO_LIGHT, ans, dansdz);
+                    evolveInt(zp, run_globals.reion_grids.deltax[i_padded], SFR_GAL, SFR_QSO, freq_int_heat_GAL, freq_int_ion_GAL, freq_int_lya_GAL, freq_int_heat_QSO, freq_int_ion_QSO, freq_int_lya_QSO, NO_LIGHT, ans, dansdz);
 
-                    x_e_box_prev[i_real] += dansdz[0] * dzp; // remember dzp is negative
-                    if (x_e_box_prev[i_real] > 1) // can do this late in evolution if dzp is too large
-                        x_e_box_prev[i_real] = 1 - FRACT_FLOAT_ERR;
-                    else if (x_e_box_prev[i_real] < 0)
-                        x_e_box_prev[i_real] = 0;
+                    x_e_box_prev[i_padded] += dansdz[0] * dzp; // remember dzp is negative
+                    if (x_e_box_prev[i_padded] > 1) // can do this late in evolution if dzp is too large
+                        x_e_box_prev[i_padded] = 1 - FRACT_FLOAT_ERR;
+                    else if (x_e_box_prev[i_padded] < 0)
+                        x_e_box_prev[i_padded] = 0;
                     if (Tk_box_prev[i_real] < MAX_TK)
                         Tk_box_prev[i_real] += dansdz[1] * dzp;
 
@@ -421,7 +439,7 @@ void _ComputeTs(int snapshot)
                         Tk_box_prev[i_real] = TCMB*(1+zp);
                     }
 
-                    TS_box[i_real] = get_Ts(zp, deltax[i_real], Tk_box_prev[i_real], x_e_box_prev[i_real], dansdz[2], &curr_xalpha);
+                    TS_box[i_real] = get_Ts(zp, run_globals.reion_grids.deltax[i_padded], Tk_box_prev[i_real], x_e_box_prev[i_padded], dansdz[2], &curr_xalpha);
 
                 } 
     }
@@ -440,7 +458,7 @@ void _ComputeTs(int snapshot)
 
                 Ave_Ts += (double)TS_box[i_real];
                 Ave_Tk += (double)Tk_box_prev[i_real];
-                Ave_x_e += (double)x_e_box_prev[i_real];
+                Ave_x_e += (double)x_e_box_prev[i_padded];
             }
 
     MPI_Allreduce(MPI_IN_PLACE, &Ave_Ts, 1, MPI_DOUBLE, MPI_SUM, run_globals.mpi_comm);
