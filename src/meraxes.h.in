@@ -394,6 +394,7 @@ typedef struct reion_grids_t {
     // Grids necessary for the 21cm brightness temperature
     float* delta_T;
     float* vel;
+    float* vel_temp;
     fftwf_complex* vel_gradient;
 
     gal_to_slab_t* galaxy_to_slab_map;

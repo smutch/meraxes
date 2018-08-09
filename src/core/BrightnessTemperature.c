@@ -106,7 +106,8 @@ void ComputeBrightnessTemperatureBox(int snapshot) {
     //          : This arises owing to the optical thin approximation implicit when TS >> TCMB.
 
 
-    float *vel;
+    float* vel;
+    float* vel_temp
     fftwf_complex* vel_gradient;
 
     int middle = ReionGridDim/2;
@@ -120,10 +121,12 @@ void ComputeBrightnessTemperatureBox(int snapshot) {
 
         // Compute the velocity gradient, given the velocity field
         vel = run_globals.reion_grids.vel;
-
+        vel_temp = run_globals.reion_grids.vel_temp;
+        
         // Temporary fix to the potential units issue with the velocity field
         // Multiply by sqrt(a) to convert Gadget internal units to proper velocities.
         // Dividing by 1000. because I believe the units are actually m/s not km/s (too large otherwise)
+        // I am just going to divide by 1000. until I recieve confirmation
         for (ii=0; ii < local_nix; ii++) {
             for ( jj=0; jj < ReionGridDim; jj++) {
                 for ( kk=0; kk < ReionGridDim; kk++) {
@@ -134,10 +137,11 @@ void ComputeBrightnessTemperatureBox(int snapshot) {
             }
         }
 
+        // Make a copy of the box for FFT'ing
+        memcpy(vel_temp, vel, sizeof(fftwf_complex) * slab_n_complex);
 
-        vel_gradient = (fftwf_complex*)vel; // WATCH OUT!
-        vel_gradient = run_globals.reion_grids.deltax_filtered;
-        fftwf_plan plan = fftwf_mpi_plan_dft_r2c_3d(ReionGridDim, ReionGridDim, ReionGridDim, vel, vel_gradient, run_globals.mpi_comm, FFTW_ESTIMATE);
+        vel_gradient = (fftwf_complex*)vel_temp; // WATCH OUT!
+        fftwf_plan plan = fftwf_mpi_plan_dft_r2c_3d(ReionGridDim, ReionGridDim, ReionGridDim, vel_temp, vel_gradient, run_globals.mpi_comm, FFTW_ESTIMATE);
         fftwf_execute(plan);
         fftwf_destroy_plan(plan);
 

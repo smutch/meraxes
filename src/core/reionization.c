@@ -257,6 +257,7 @@ void init_reion_grids()
         }
         if(run_globals.params.Flag_Compute21cmBrightTemp&&(run_globals.params.Flag_IncludePecVelsFor21cm > 0)) {
             grids->vel[ii] = 0;
+            grids->vel_temp[ii] = 0;
         }
     }
 
@@ -309,7 +310,8 @@ void malloc_reionization_grids()
     grids->delta_T = NULL;
 
     // Grids required for addining in peculiar velocity effects
-    grids->vel = NULL;    
+    grids->vel = NULL;
+    grids->vel_temp = NULL;    
     grids->vel_gradient = NULL;
 
     if (run_globals.params.Flag_PatchyReion) {
@@ -369,6 +371,7 @@ void malloc_reionization_grids()
 
             if(run_globals.params.Flag_IncludePecVelsFor21cm > 0) {
                 grids->vel = fftwf_alloc_real(slab_n_complex * 2); // padded for in-place FFT
+                grids->vel_temp = fftwf_alloc_real(slab_n_complex * 2); // padded for in-place FFT
                 grids->vel_gradient = fftwf_alloc_complex(slab_n_complex);
             }
         }
@@ -428,6 +431,7 @@ void free_reionization_grids()
 
         if(run_globals.params.Flag_IncludePecVelsFor21cm > 0) {
  		fftwf_free(grids->vel);
+                fftwf_free(grids->vel_temp);
                 fftwf_free(grids->vel_gradient);
         }
     }
