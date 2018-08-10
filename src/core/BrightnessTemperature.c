@@ -25,6 +25,7 @@ void ComputeBrightnessTemperatureBox(int snapshot) {
 
     int ReionGridDim = run_globals.params.ReionGridDim;
     int local_nix = (int)(run_globals.reion_grids.slab_nix[run_globals.mpi_rank]);
+    int slab_n_complex = (int)(run_globals.reion_grids.slab_n_complex[run_globals.mpi_rank]);
     double total_n_cells = pow((double)ReionGridDim, 3);
 
     // Set some redshift dependant values
@@ -107,7 +108,7 @@ void ComputeBrightnessTemperatureBox(int snapshot) {
 
 
     float* vel;
-    float* vel_temp
+    float* vel_temp;
     fftwf_complex* vel_gradient;
 
     int middle = ReionGridDim/2;

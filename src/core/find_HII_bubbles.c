@@ -66,8 +66,8 @@ void _find_HII_bubbles(int snapshot)
     double electron_fraction;
     double Gamma_R_prefactor;
 
-    double dNrec, rec;
-    float fabs_dtdz, ZSTEP, z_eff, Gamma_R;
+    double dNrec, rec, Gamma_R;
+    float fabs_dtdz, ZSTEP, z_eff;
 
     double redshift = run_globals.ZZ[snapshot];
     double prev_redshift;
@@ -415,7 +415,7 @@ void _find_HII_bubbles(int snapshot)
 
                     // Calculate the recombinations within the cell
                     if(run_globals.params.Flag_IncludeRecombinations) {
-                        Gamma_R = Gamma_R_prefactor * sfr_density * (units->UnitMass_in_g / units->UnitTime_in_s) * pow( units->UnitLength_in_cm, -3. ) * pow( run_globals.params.Hubble_h , -3. )/ SOLAR_MASS;
+                        Gamma_R = Gamma_R_prefactor * sfr_density * (units->UnitMass_in_g / units->UnitTime_in_s) * pow( units->UnitLength_in_cm, -3. ) *  ReionNionPhotPerBary / PROTONMASS; 
                         rec = (double)((float*)N_rec_filtered)[i_padded] / density_over_mean;
                     }
 
@@ -427,13 +427,16 @@ void _find_HII_bubbles(int snapshot)
                         electron_fraction = 1.0;
                     }
 
-/*
+
                     if (run_globals.mpi_rank == 0) {
                         if( iy < 2 && iz < 2 ) {
-                            mlog("R = %e ix = %d iy = %d iz = %d dens = %e fcoll = %e SFR = %e x_e = %e",MLOG_MESG,R,ix,iy,iz,(double)((float*)deltax_filtered)[i_padded],f_coll_stars,sfr_density,((float*)x_e_filtered)[i_padded]);
+//                            mlog("R = %e ix = %d iy = %d iz = %d dens = %e fcoll = %e SFR = %e x_e = %e",MLOG_MESG,R,ix,iy,iz,(double)((float*)deltax_filtered)[i_padded],f_coll_stars,sfr_density,((float*)x_e_filtered)[i_padded]);
+                            if(R>20) {
+                                mlog("R = %e ix = %d iy = %d iz = %d Gamma_R = %e Gamma_R_prefactor = %e SFR_density = %e fcoll = %e", MLOG_MESG, R, ix, iy, iz, Gamma_R, Gamma_R_prefactor, sfr_density, f_coll_stars);
+                            }
                         }
                     }
-*/
+
 
                     if (flag_ReionUVBFlag)
                         J_21_aux = (float)(sfr_density * J_21_aux_constant);
