@@ -110,20 +110,6 @@ void _find_HII_bubbles(int snapshot)
     for (int ii = 0; ii < slab_n_real; ii++)
         r_bubble[ii] = 0.0;
 
-/*
-    for (int ix = 0; ix < local_nix; ix++)
-        for (int iy = 0; iy < ReionGridDim; iy++)
-            for (int iz = 0; iz < ReionGridDim; iz++) {
-                i_padded = grid_index(ix, iy, iz, ReionGridDim, INDEX_PADDED);
-                 
-                if (run_globals.mpi_rank == 0) {
-                    if( iy < 2 && iz < 2 ) {
-                        mlog("ix = %d iy = %d iz = %d dens = %e",MLOG_MESG,ix,iy,iz,run_globals.reion_grids.deltax[i_padded]);
-                    }
-                }                
-            }
-*/
-
     // #ifdef DEBUG
     //   {
     //     char fname_debug[STRLEN];
@@ -364,7 +350,8 @@ void _find_HII_bubbles(int snapshot)
             * units->UnitMass_in_g / pow(units->UnitLength_in_cm, 3) / units->UnitTime_in_s;
 
         if(run_globals.params.Flag_IncludeRecombinations) {
-            Gamma_R_prefactor = (1.0 + redshift) * (1.0 + redshift) * R * (units->UnitLength_in_cm) * SIGMA_HI * run_globals.params.physics.ReionAlphaUV / (run_globals.params.physics.ReionAlphaUV+2.75) / 1.0e-12;
+            Gamma_R_prefactor = (1.0 + redshift) * (1.0 + redshift) * R * (units->UnitLength_in_cm / run_globals.params.Hubble_h ) * SIGMA_HI * 
+                                run_globals.params.physics.ReionAlphaUV / (run_globals.params.physics.ReionAlphaUV+2.75) / 1.0e-12;  // Converting R h^-1 to R.
         }
 
         // DEBUG
@@ -415,8 +402,9 @@ void _find_HII_bubbles(int snapshot)
 
                     // Calculate the recombinations within the cell
                     if(run_globals.params.Flag_IncludeRecombinations) {
-                        Gamma_R = Gamma_R_prefactor * sfr_density * (units->UnitMass_in_g / units->UnitTime_in_s) * pow( units->UnitLength_in_cm, -3. ) *  ReionNionPhotPerBary / PROTONMASS; 
-                        rec = (double)((float*)N_rec_filtered)[i_padded] / density_over_mean;
+                        Gamma_R = Gamma_R_prefactor * sfr_density * (units->UnitMass_in_g / units->UnitTime_in_s) * pow( units->UnitLength_in_cm / run_globals.params.Hubble_h, -3. ) 
+                                 *  ReionNionPhotPerBary / PROTONMASS; // Convert pixel volume (Mpc/h)^3 -> (cm)^3
+                        rec = (double)((float*)N_rec_filtered)[i_padded] / density_over_mean; 
                     }
 
                     // Account for the partial ionisation of the cell from X-rays
@@ -427,7 +415,7 @@ void _find_HII_bubbles(int snapshot)
                         electron_fraction = 1.0;
                     }
 
-
+/*
                     if (run_globals.mpi_rank == 0) {
                         if( iy < 2 && iz < 2 ) {
 //                            mlog("R = %e ix = %d iy = %d iz = %d dens = %e fcoll = %e SFR = %e x_e = %e",MLOG_MESG,R,ix,iy,iz,(double)((float*)deltax_filtered)[i_padded],f_coll_stars,sfr_density,((float*)x_e_filtered)[i_padded]);
@@ -436,7 +424,7 @@ void _find_HII_bubbles(int snapshot)
                             }
                         }
                     }
-
+*/
 
                     if (flag_ReionUVBFlag)
                         J_21_aux = (float)(sfr_density * J_21_aux_constant);
