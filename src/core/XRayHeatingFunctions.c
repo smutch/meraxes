@@ -441,7 +441,7 @@ double dtdz(float z){
 
   x = sqrt( OMl/OMm ) * pow(1+z, -3.0/2.0);
   dxdz = sqrt( OMl/OMm ) * pow(1+z, -5.0/2.0) * (-3.0/2.0);
-  const1 = 2 * sqrt( 1 + OMm/OMl ) / (3.0 * HUBBLE*run_globals.params.Hubble_h) ;
+  const1 = 2 * sqrt( 1 + OMm/OMl ) / (3.0 * HUBBLE * run_globals.params.Hubble_h) ;
 
   numer = dxdz * (1 + x*pow( pow(x,2) + 1, -0.5));
   denom = x + sqrt(pow(x,2) + 1);
@@ -1306,14 +1306,14 @@ void evolveInt(float zp, float curr_delNL0, double SFR_GAL[], double SFR_QSO[],
           dxion_source_dt_QSO *= const_zp_prefactor_QSO;
           dxlya_dt_QSO *= const_zp_prefactor_QSO*n_b;
           
-          dstarlya_dt_QSO *= ( C * N_b0 / (4.*M_PI) ) / ( OMb * RHOcrit * pow( run_globals.params.Hubble_h, -3. ) * pow(MPC, -3) );
+          dstarlya_dt_QSO *= ( C * N_b0 / (4.*M_PI) ) / ( OMb * RHOcrit * pow(MPC, -3) );
       }
       else {
           dxheat_dt_GAL *= const_zp_prefactor_GAL;
           dxion_source_dt_GAL *= const_zp_prefactor_GAL;
           dxlya_dt_GAL *= const_zp_prefactor_GAL*n_b;
 
-          dstarlya_dt_GAL *= ( C * N_b0 / (4.*M_PI) ) / ( OMb * RHOcrit * pow( run_globals.params.Hubble_h, -3. ) * pow(MPC, -3) );
+          dstarlya_dt_GAL *= ( C * N_b0 / (4.*M_PI) ) / ( OMb * RHOcrit * pow(MPC, -3) );
       }
 
 
@@ -1743,8 +1743,7 @@ double xalpha_tilde(double z, double Jalpha, double TK, double TS,
 
 // Compute the Gunn-Peterson optical depth.
 double taugp(double z, double delta, double xe){
-  //return 1.342881e-7 / hubble(z)*No*pow(1+z,3) * (1.0+delta)*(1.0-xe);
-  return No;
+  return 1.342881e-7 / hubble(z)*No*pow(1+z,3) * (1.0+delta)*(1.0-xe);
 }
 
 double Salpha_tilde(double TK, double TS, double tauGP)

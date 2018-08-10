@@ -79,7 +79,7 @@ void _find_HII_bubbles(int snapshot)
     }
 
     ZSTEP = prev_redshift - redshift;
-    fabs_dtdz = fabs(dtdz(redshift));
+    fabs_dtdz = fabs(dtdz(redshift) / run_globals.params.Hubble_h);
 
     // Initialise interpolation tables for inhomogeneous recombinations
     if(run_globals.params.Flag_IncludeRecombinations) {

@@ -14,14 +14,16 @@
 /*
  * This code is a re-write of the spin temperature calculation (Ts.c) within 21cmFAST.
  * Modified for usage within Meraxes by Bradley Greig.
+ * 
+ * Note: 21cmFAST has little_h included, therefore below I explicitly convert (using little_h) where appropriate. Be careful with units!
  */
 
 void _ComputeTs(int snapshot)
 {
 
-    double box_size = run_globals.params.BoxSize; // Mpc/h
+    double box_size = run_globals.params.BoxSize / run_globals.params.Hubble_h ; // Mpc
     int ReionGridDim = run_globals.params.ReionGridDim;
-    double pixel_volume = pow(box_size / (double)ReionGridDim, 3); // (Mpc/h)^3
+    double pixel_volume = pow(box_size / (double)ReionGridDim, 3); // (Mpc)^3
     double total_n_cells = pow((double)ReionGridDim, 3);
     int local_nix = (int)(run_globals.reion_grids.slab_nix[run_globals.mpi_rank]);
     int slab_n_real = local_nix * ReionGridDim * ReionGridDim;
@@ -55,19 +57,6 @@ void _ComputeTs(int snapshot)
 
     double *evolve_ans, ans[2], dansdz[5], xHII_call;
     double SFR_GAL[NUM_FILTER_STEPS_FOR_Ts], SFR_QSO[NUM_FILTER_STEPS_FOR_Ts];
-/*
-    for (int ix = 0; ix < local_nix; ix++)
-        for (int iy = 0; iy < ReionGridDim; iy++)
-            for (int iz = 0; iz < ReionGridDim; iz++) {
-                i_padded = grid_index(ix, iy, iz, ReionGridDim, INDEX_PADDED);
-
-                if (run_globals.mpi_rank == 0) {
-                    if( iy < 2 && iz < 2 ) {
-                        mlog("ix = %d iy = %d iz = %d dens = %e",MLOG_MESG,ix,iy,iz,run_globals.reion_grids.deltax[i_padded]);
-                    }
-                }
-            }
-*/
 
     float* deltax = run_globals.reion_grids.deltax;
     float* stars = run_globals.reion_grids.stars;
@@ -153,7 +142,7 @@ void _ComputeTs(int snapshot)
         
         collapse_fraction = 0.;
 
-        R = ( L_FACTOR*box_size/(float)ReionGridDim ) / run_globals.params.Hubble_h;
+        R = L_FACTOR*box_size/(float)ReionGridDim;  // Mpc
 
         for (int ix = 0; ix < local_nix; ix++)
             for (int iy = 0; iy < ReionGridDim; iy++)
@@ -162,7 +151,8 @@ void _ComputeTs(int snapshot)
 
                     density_over_mean = 1.0 + run_globals.reion_grids.deltax[i_padded];
 
-                    collapse_fraction += run_globals.reion_grids.stars[i_padded] / (RtoM(R) * density_over_mean)
+                    // Multiplied by h^2 as RtoM(R) uses RhoCrit which doesn't include h factors
+                    collapse_fraction += run_globals.reion_grids.stars[i_padded] / ( RtoM(R) * run_globals.params.Hubble_h * run_globals.params.Hubble_h * density_over_mean)
                                 * (4.0 / 3.0) * M_PI * pow(R, 3.0) / pixel_volume;
                 }
 
@@ -177,7 +167,7 @@ void _ComputeTs(int snapshot)
         collapse_fraction = 0.;
 
         // Setup starting radius (minimum) and scaling to obtaining the maximum filtering radius for the X-ray background
-        R = ( L_FACTOR*box_size/(float)ReionGridDim ) / run_globals.params.Hubble_h;
+        R = L_FACTOR*box_size/(float)ReionGridDim;
         R_factor = pow(R_XLy_MAX/R, 1/(float)NUM_FILTER_STEPS_FOR_Ts);
 
         // Smooth the density, stars and SFR fields over increasingly larger filtering radii (for evaluating the heating/ionisation integrals)
@@ -211,16 +201,16 @@ void _ComputeTs(int snapshot)
                             ((float*)sfr_filtered)[i_padded] = fmaxf(((float*)sfr_filtered)[i_padded], 0.0);
 
                             SMOOTHED_SFR_GAL[R_ct][i_real] = ( ((float*)sfr_filtered)[i_padded] / pixel_volume )
-                                     * (units->UnitMass_in_g / units->UnitTime_in_s) * pow( units->UnitLength_in_cm, -3. ) * pow( run_globals.params.Hubble_h , -3. )/ SOLAR_MASS;
+                                     * (units->UnitMass_in_g / units->UnitTime_in_s) * pow( units->UnitLength_in_cm, -3. )/ SOLAR_MASS;
 
                             if(run_globals.params.SEP_QSO_XRAY) {
                                 SMOOTHED_SFR_QSO[R_ct][i_real] = ( ((float*)sfr_filtered)[i_padded] / pixel_volume )
-                                     * (units->UnitMass_in_g / units->UnitTime_in_s) * pow( units->UnitLength_in_cm, -3. ) * pow( run_globals.params.Hubble_h , -3. )/ SOLAR_MASS;
+                                     * (units->UnitMass_in_g / units->UnitTime_in_s) * pow( units->UnitLength_in_cm, -3. )/ SOLAR_MASS;
                             }
 
                             density_over_mean = 1.0 + run_globals.reion_grids.deltax[i_padded];
 
-                            collapse_fraction += run_globals.reion_grids.stars[i_padded] / (RtoM(R) * density_over_mean)
+                            collapse_fraction += run_globals.reion_grids.stars[i_padded] / (RtoM(R) * run_globals.params.Hubble_h * run_globals.params.Hubble_h * density_over_mean)
                                 * (4.0 / 3.0) * M_PI * pow(R, 3.0) / pixel_volume;
 
                             x_e_ave += x_e_box_prev[i_padded];
@@ -248,11 +238,11 @@ void _ComputeTs(int snapshot)
                             ((float*)sfr_filtered)[i_padded] = fmaxf(((float*)sfr_filtered)[i_padded], 0.0);
 
                             SMOOTHED_SFR_GAL[R_ct][i_real] = (((float*)sfr_filtered)[i_padded] / pixel_volume )
-                                * (units->UnitMass_in_g / units->UnitTime_in_s) * pow( units->UnitLength_in_cm, -3. ) * pow( run_globals.params.Hubble_h , -3. )/ SOLAR_MASS;
+                                * (units->UnitMass_in_g / units->UnitTime_in_s) * pow( units->UnitLength_in_cm, -3. )/ SOLAR_MASS;
 
                             if(run_globals.params.SEP_QSO_XRAY) {
                                 SMOOTHED_SFR_QSO[R_ct][i_real] = ( ((float*)sfr_filtered)[i_padded] / pixel_volume )
-       	       	       	       	     * (units->UnitMass_in_g / units->UnitTime_in_s) * pow( units->UnitLength_in_cm, -3. ) * pow( run_globals.params.Hubble_h , -3. )/ SOLAR_MASS;
+       	       	       	       	     * (units->UnitMass_in_g / units->UnitTime_in_s) * pow( units->UnitLength_in_cm, -3. )/ SOLAR_MASS;
        	       	       	    }
 
                         }
@@ -266,11 +256,11 @@ void _ComputeTs(int snapshot)
         // A condition (defined by whether or not there are stars) for evaluating the heating/ionisation integrals
         if(collapse_fraction > 0.0) {
             NO_LIGHT = 0;
-            mlog("NO_LIGHT = 0", MLOG_MESG);
+//            mlog("NO_LIGHT = 0", MLOG_MESG);
         }
         else {
             NO_LIGHT = 1;
-            mlog("NO_LIGHT = 1", MLOG_MESG);
+//            mlog("NO_LIGHT = 1", MLOG_MESG);
         }
 
         // Populate the initial ionisation/heating tables
@@ -285,7 +275,7 @@ void _ComputeTs(int snapshot)
                 prev_R = R_values[R_ct-1];
             }
 
-            zpp_edge[R_ct] = prev_zpp - (R_values[R_ct] - prev_R)*MPC / drdz(prev_zpp); // cell size
+            zpp_edge[R_ct] = prev_zpp - (R_values[R_ct] - prev_R)*MPC / ( drdz(prev_zpp) ); // cell size
             zpp = (zpp_edge[R_ct]+prev_zpp)*0.5; // average redshift value of shell: z'' + 0.5 * dz''
 
             filling_factor_of_HI_zp = 1. - ReionEfficiency * collapse_fraction / (1.0 - x_e_ave);
