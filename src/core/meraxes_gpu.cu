@@ -139,6 +139,9 @@ void init_CUDA()
         MPI_Info info;
         MPI_Info_create(&info);
 
+        int world_rank = -1;
+        MPI_Comm_rank(MPI_COMM_WORLD, &world_rank);
+
         MPI_Comm local_comm;
         MPI_Comm_split_type(MPI_COMM_WORLD, MPI_COMM_TYPE_SHARED, world_rank, info, &local_comm);
 
@@ -191,7 +194,7 @@ void init_CUDA()
             if (i_rank == run_globals.mpi_rank) {
                 char* mps_pipe = secure_getenv("CUDA_MPS_PIPE_DIRECTORY");
                 if (mps_pipe != NULL) {
-                    mlog("Context established on GPU device with MPS server %s " MLOG_MESG | MLOG_ALLRANKS | MLOG_FLUSH, mps_pipe);
+                    mlog("Context established on GPU device with MPS server %s ", MLOG_MESG | MLOG_ALLRANKS | MLOG_FLUSH, mps_pipe);
                     mlog("\t(%s; %.1fGBs of global memory).", MLOG_MESG | MLOG_ALLRANKS | MLOG_FLUSH,
                             run_globals.gpu->properties.name, (float)(run_globals.gpu->properties.totalGlobalMem / (1024 * 1024 * 1024)));
                 } else {

@@ -557,7 +557,7 @@ typedef struct run_globals_t {
     MPI_Comm mpi_comm;
     int mpi_rank;
     int mpi_size;
-  gpu_info *gpu;
+    gpu_info *gpu;
 
     double* AA;
     double* ZZ;
