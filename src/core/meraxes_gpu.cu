@@ -43,6 +43,7 @@
 #include <vector>
 #include <algorithm>
 #include <string>
+#include <cstdlib>
 
 #include <hdf5.h>
 #include <hdf5_hl.h>
@@ -128,7 +129,7 @@ void init_CUDA()
 {
 
     // DONE: Get the correct GPU properties
-    // TODO: Report if we are using MPS and what server we are pointing to...
+    // DONE: Report if we are using MPS and what server we are pointing to...
     // TODO: Ask Greg about `throw_on_global_error`
     // TODO: Can I just use the NVIDIA sample code for error handling?
     // TODO: Confirm everything works as hoped!
@@ -187,9 +188,17 @@ void init_CUDA()
         // Report device details for each rank
         int i_rank = 0;
         for (; i_rank < run_globals.mpi_size; i_rank++) {
-            if (i_rank == run_globals.mpi_rank)
+            if (i_rank == run_globals.mpi_rank) {
+                char* mps_pipe = secure_getenv("CUDA_MPS_PIPE_DIRECTORY");
+                if (mps_pipe != NULL) {
+                    mlog("Context established on GPU device with MPS server %s " MLOG_MESG | MLOG_ALLRANKS | MLOG_FLUSH, mps_pipe);
+                    mlog("\t(%s; %.1fGBs of global memory).", MLOG_MESG | MLOG_ALLRANKS | MLOG_FLUSH,
+                            run_globals.gpu->properties.name, (float)(run_globals.gpu->properties.totalGlobalMem / (1024 * 1024 * 1024)));
+                } else {
                 mlog("Context established on GPU device %d (%s; %.1fGBs of global memory).", MLOG_MESG | MLOG_ALLRANKS | MLOG_FLUSH,
-                    run_globals.gpu->device, run_globals.gpu->properties.name, (float)(run_globals.gpu->properties.totalGlobalMem / (1024 * 1024 * 1024)));
+                        run_globals.gpu->device, run_globals.gpu->properties.name, (float)(run_globals.gpu->properties.totalGlobalMem / (1024 * 1024 * 1024)));
+                }
+            }
             MPI_Barrier(run_globals.mpi_comm);
         }
     }
