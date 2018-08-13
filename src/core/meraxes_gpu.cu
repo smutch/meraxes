@@ -31,19 +31,19 @@
 //==============================================================================
 
 #include "meraxes.h"
-#include <fftw3.h>
-#include <fftw3-mpi.h>
-#include <math.h>
 #include <assert.h>
-#include <signal.h>
+#include <fftw3-mpi.h>
+#include <fftw3.h>
 #include <limits.h>
+#include <math.h>
+#include <signal.h>
 
+#include <algorithm>
+#include <cstdlib>
 #include <fstream>
 #include <iostream>
-#include <vector>
-#include <algorithm>
 #include <string>
-#include <cstdlib>
+#include <vector>
 
 #include <hdf5.h>
 #include <hdf5_hl.h>
@@ -52,44 +52,42 @@
 #include <cufft.h>
 
 // These functions deal with any GPU exceptions, but should be called with the macros defined in the corresponding .hh file
-__host__ void _throw_on_generic_error(bool check_failure, int implementation_code, const std::string &file, const std::string &func, int line)
+__host__ void _throw_on_generic_error(bool check_failure, int implementation_code, const std::string& file, const std::string& func, int line)
 {
     if (check_failure)
         throw(meraxes_cuda_exception(GENERIC_CUDA_ERROR_CODE, implementation_code, file, func, line));
 }
-__host__ void _throw_on_cuda_error(cudaError_t cuda_code, int implementation_code, const std::string &file, const std::string &func, int line)
+__host__ void _throw_on_cuda_error(cudaError_t cuda_code, int implementation_code, const std::string& file, const std::string& func, int line)
 {
     if (cuda_code != cudaSuccess)
         throw(meraxes_cuda_exception((int)cuda_code, implementation_code, file, func, line));
 }
-__host__ void _throw_on_cuFFT_error(cufftResult cufft_code, int implementation_code, const std::string &file, const std::string &func, int line)
+__host__ void _throw_on_cuFFT_error(cufftResult cufft_code, int implementation_code, const std::string& file, const std::string& func, int line)
 {
     if (cufft_code != CUFFT_SUCCESS)
         throw(meraxes_cuda_exception((int)cufft_code, implementation_code, file, func, line));
 }
-__host__ void _check_for_cuda_error(int implementation_code, const std::string &file, const std::string &func, int line)
+__host__ void _check_for_cuda_error(int implementation_code, const std::string& file, const std::string& func, int line)
 {
     try {
         cudaError_t cuda_code = cudaPeekAtLastError();
         if (cuda_code != cudaSuccess)
             throw(meraxes_cuda_exception((int)cuda_code, implementation_code, "CUDA error detected after ", file, func, line));
-    }
-    catch (const meraxes_cuda_exception &e) {
+    } catch (const meraxes_cuda_exception& e) {
         e.process_exception();
     }
 }
-__host__ void _check_thread_sync(int implementation_code, const std::string &file, const std::string &func, int line)
+__host__ void _check_thread_sync(int implementation_code, const std::string& file, const std::string& func, int line)
 {
     try {
         cudaError_t cuda_code = cudaDeviceSynchronize();
         if (cuda_code != cudaSuccess)
             throw(meraxes_cuda_exception((int)cuda_code, implementation_code, "Threads not synchronised after ", file, func, line));
-    }
-    catch (const meraxes_cuda_exception &e) {
+    } catch (const meraxes_cuda_exception& e) {
         e.process_exception();
     }
 }
-__host__ void _throw_on_global_error(const std::string &file, const std::string &func, int line)
+__host__ void _throw_on_global_error(const std::string& file, const std::string& func, int line)
 {
     int error_code = 0;
     MPI_Allreduce(MPI_IN_PLACE, &error_code, 1, MPI_INT, MPI_MAX, run_globals.mpi_comm);
@@ -111,7 +109,8 @@ static void dump_gpu_properties()
     gpu_info info = *run_globals.gpu;
 
     if (run_globals.mpi_rank == 0) {
-        cout << endl << endl;
+        cout << endl
+             << endl;
         cout << "GPU properties" << endl
              << "==============" << endl;
         cout << "device = " << info.device << endl;
@@ -154,11 +153,11 @@ void init_CUDA()
 
         // get the number of devices available to this rank
         int num_devices = 0;
-        throw_on_cuda_error( cudaGetDeviceCount(&num_devices), meraxes_cuda_exception::INIT );
+        throw_on_cuda_error(cudaGetDeviceCount(&num_devices), meraxes_cuda_exception::INIT);
 
         // do your thang to assign this rank to a device
         // throw_on_cuda_error( cudaSetDevice(local_rank % num_devices), meraxes_cuda_exception::INIT );  // alternate assignment between ranks
-        throw_on_cuda_error( cudaSetDevice((local_rank * num_devices / local_size) % num_devices), meraxes_cuda_exception::INIT );  // consecutive ranks share (needed for Mhysa)
+        throw_on_cuda_error(cudaSetDevice((local_rank * num_devices / local_size) % num_devices), meraxes_cuda_exception::INIT); // consecutive ranks share (needed for Mhysa)
 
         // do a check to make sure that we have a working assigned device
         throw_on_cuda_error(cudaFree(0), meraxes_cuda_exception::INIT);
@@ -172,8 +171,7 @@ void init_CUDA()
 
         // Throw an exception if another rank has thrown one
         throw_on_global_error();
-    }
-    catch (const meraxes_cuda_exception &e) {
+    } catch (const meraxes_cuda_exception& e) {
         e.process_exception();
     }
 
@@ -194,7 +192,7 @@ void init_CUDA()
                     mlog("Context established on GPU device with MPS server: %s", MLOG_MESG | MLOG_ALLRANKS | MLOG_FLUSH, mps_pipe);
                 } else {
                     mlog("Context established on GPU device %d (%s; %.1fGBs of global memory).", MLOG_MESG | MLOG_ALLRANKS | MLOG_FLUSH,
-                            run_globals.gpu->device, run_globals.gpu->properties.name, (float)(run_globals.gpu->properties.totalGlobalMem / (1024 * 1024 * 1024)));
+                        run_globals.gpu->device, run_globals.gpu->properties.name, (float)(run_globals.gpu->properties.totalGlobalMem / (1024 * 1024 * 1024)));
                 }
             }
             MPI_Barrier(run_globals.mpi_comm);
