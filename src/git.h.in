@@ -1,3 +1,0 @@
-#define GITREF_STR "@GITREF@"
-
-#define GITDIFF_STR "@GITDIFF@"

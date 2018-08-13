@@ -23,6 +23,8 @@
 #endif
 
 #define N_HISTORY_SNAPS @N_HISTORY_SNAPS@
+#define MERAXES_GITREF_STR "@GITREF@"
+#define MERAXES_GITDIFF_STR "@GITDIFF@"
 
 // ======================================================
 // Don't change these unless you know what you are doing!
