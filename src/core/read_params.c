@@ -108,9 +108,10 @@ void read_parameter_file(char* fname, int mode)
 
         // malloc global arrays and init param properties
         if (mode == 0) {
+            const int tag_length = 128;
             hdf5props->params_tag = malloc(sizeof(char*) * PARAM_MAX_ENTRIES);
             for (ii = 0; ii < PARAM_MAX_ENTRIES; ii++)
-                hdf5props->params_tag[ii] = malloc(sizeof(char) * 128);
+                hdf5props->params_tag[ii] = malloc(sizeof(char) * tag_length);
             params_tag = hdf5props->params_tag;
             hdf5props->params_type = malloc(sizeof(int) * PARAM_MAX_ENTRIES);
             params_type = hdf5props->params_type;
@@ -124,578 +125,578 @@ void read_parameter_file(char* fname, int mode)
                 hdf5props->params_type[ii] = PARAM_TYPE_UNUSED;
             }
 
-            strncpy(params_tag[n_param], "DefaultsFile", STRLEN);
+            strncpy(params_tag[n_param], "DefaultsFile", tag_length);
             params_addr[n_param] = run_params->DefaultsFile;
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_STRING;
 
-            strncpy(params_tag[n_param], "OutputDir", STRLEN);
+            strncpy(params_tag[n_param], "OutputDir", tag_length);
             params_addr[n_param] = run_params->OutputDir;
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_STRING;
 
-            strncpy(params_tag[n_param], "PhotometricTablesDir", STRLEN);
+            strncpy(params_tag[n_param], "PhotometricTablesDir", tag_length);
             params_addr[n_param] = run_params->PhotometricTablesDir;
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_STRING;
 
-            strncpy(params_tag[n_param], "CoolingFuncsDir", STRLEN);
+            strncpy(params_tag[n_param], "CoolingFuncsDir", tag_length);
             params_addr[n_param] = run_params->CoolingFuncsDir;
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_STRING;
 
-            strncpy(params_tag[n_param], "SSPModel", STRLEN);
+            strncpy(params_tag[n_param], "SSPModel", tag_length);
             params_addr[n_param] = run_params->SSPModel;
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_STRING;
 
-            strncpy(params_tag[n_param], "IMF", STRLEN);
+            strncpy(params_tag[n_param], "IMF", tag_length);
             params_addr[n_param] = run_params->IMF;
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_STRING;
 
-            strncpy(params_tag[n_param], "MagSystem", STRLEN);
+            strncpy(params_tag[n_param], "MagSystem", tag_length);
             params_addr[n_param] = run_params->MagSystem;
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_STRING;
 
-            strncpy(params_tag[n_param], "MagBands", STRLEN);
+            strncpy(params_tag[n_param], "MagBands", tag_length);
             params_addr[n_param] = run_params->MagBands;
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_STRING;
 
-            strncpy(params_tag[n_param], "FileNameGalaxies", STRLEN);
+            strncpy(params_tag[n_param], "FileNameGalaxies", tag_length);
             params_addr[n_param] = run_params->FileNameGalaxies;
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_STRING;
 
-            strncpy(params_tag[n_param], "SimName", STRLEN);
+            strncpy(params_tag[n_param], "SimName", tag_length);
             params_addr[n_param] = run_params->SimName;
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_STRING;
 
-            strncpy(params_tag[n_param], "TreesID", STRLEN);
+            strncpy(params_tag[n_param], "TreesID", tag_length);
             params_addr[n_param] = &(run_params->TreesID);
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_INT;
 
-            strncpy(params_tag[n_param], "SimulationDir", STRLEN);
+            strncpy(params_tag[n_param], "SimulationDir", tag_length);
             params_addr[n_param] = run_params->SimulationDir;
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_STRING;
 
-            strncpy(params_tag[n_param], "CatalogFilePrefix", STRLEN);
+            strncpy(params_tag[n_param], "CatalogFilePrefix", tag_length);
             params_addr[n_param] = run_params->CatalogFilePrefix;
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_STRING;
 
-            strncpy(params_tag[n_param], "FileWithOutputSnaps", STRLEN);
+            strncpy(params_tag[n_param], "FileWithOutputSnaps", tag_length);
             params_addr[n_param] = run_params->FileWithOutputSnaps;
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_STRING;
 
-            strncpy(params_tag[n_param], "NSteps", STRLEN);
+            strncpy(params_tag[n_param], "NSteps", tag_length);
             params_addr[n_param] = &(run_params->NSteps);
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_INT;
 
-            strncpy(params_tag[n_param], "BoxSize", STRLEN);
+            strncpy(params_tag[n_param], "BoxSize", tag_length);
             params_addr[n_param] = &(run_params->BoxSize);
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
-            strncpy(params_tag[n_param], "VolumeFactor", STRLEN);
+            strncpy(params_tag[n_param], "VolumeFactor", tag_length);
             params_addr[n_param] = &(run_params->VolumeFactor);
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
-            strncpy(params_tag[n_param], "RandomSeed", STRLEN);
+            strncpy(params_tag[n_param], "RandomSeed", tag_length);
             params_addr[n_param] = &(run_params->RandomSeed);
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_INT;
 
-            strncpy(params_tag[n_param], "ForestIDFile", STRLEN);
+            strncpy(params_tag[n_param], "ForestIDFile", tag_length);
             params_addr[n_param] = &(run_params->ForestIDFile);
             required_tag[n_param] = 0;
             params_type[n_param++] = PARAM_TYPE_STRING;
             *(run_params->ForestIDFile) = '\0';
 
-            strncpy(params_tag[n_param], "MvirCritFile", STRLEN);
+            strncpy(params_tag[n_param], "MvirCritFile", tag_length);
             params_addr[n_param] = &(run_params->MvirCritFile);
             required_tag[n_param] = 0;
             params_type[n_param++] = PARAM_TYPE_STRING;
             *(run_params->MvirCritFile) = '\0';
 
-            strncpy(params_tag[n_param], "MassRatioModifier", STRLEN);
+            strncpy(params_tag[n_param], "MassRatioModifier", tag_length);
             params_addr[n_param] = &(run_params->MassRatioModifier);
             required_tag[n_param] = 0;
             params_type[n_param++] = PARAM_TYPE_STRING;
             *(run_params->MassRatioModifier) = '\0';
 
-            strncpy(params_tag[n_param], "BaryonFracModifier", STRLEN);
+            strncpy(params_tag[n_param], "BaryonFracModifier", tag_length);
             params_addr[n_param] = &(run_params->BaryonFracModifier);
             required_tag[n_param] = 0;
             params_type[n_param++] = PARAM_TYPE_STRING;
             *(run_params->BaryonFracModifier) = '\0';
 
-            strncpy(params_tag[n_param], "UnitVelocity_in_cm_per_s", STRLEN);
+            strncpy(params_tag[n_param], "UnitVelocity_in_cm_per_s", tag_length);
             params_addr[n_param] = &(run_globals.units.UnitVelocity_in_cm_per_s);
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
-            strncpy(params_tag[n_param], "UnitLength_in_cm", STRLEN);
+            strncpy(params_tag[n_param], "UnitLength_in_cm", tag_length);
             params_addr[n_param] = &(run_globals.units.UnitLength_in_cm);
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
-            strncpy(params_tag[n_param], "UnitMass_in_g", STRLEN);
+            strncpy(params_tag[n_param], "UnitMass_in_g", tag_length);
             params_addr[n_param] = &(run_globals.units.UnitMass_in_g);
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
-            strncpy(params_tag[n_param], "Hubble_h", STRLEN);
+            strncpy(params_tag[n_param], "Hubble_h", tag_length);
             params_addr[n_param] = &(run_params->Hubble_h);
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
-            strncpy(params_tag[n_param], "BaryonFrac", STRLEN);
+            strncpy(params_tag[n_param], "BaryonFrac", tag_length);
             params_addr[n_param] = &(run_params->BaryonFrac);
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
-            strncpy(params_tag[n_param], "OmegaM", STRLEN);
+            strncpy(params_tag[n_param], "OmegaM", tag_length);
             params_addr[n_param] = &(run_params->OmegaM);
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
-            strncpy(params_tag[n_param], "OmegaK", STRLEN);
+            strncpy(params_tag[n_param], "OmegaK", tag_length);
             params_addr[n_param] = &(run_params->OmegaK);
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
-            strncpy(params_tag[n_param], "OmegaR", STRLEN);
+            strncpy(params_tag[n_param], "OmegaR", tag_length);
             params_addr[n_param] = &(run_params->OmegaR);
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
-            strncpy(params_tag[n_param], "OmegaLambda", STRLEN);
+            strncpy(params_tag[n_param], "OmegaLambda", tag_length);
             params_addr[n_param] = &(run_params->OmegaLambda);
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
-            strncpy(params_tag[n_param], "Sigma8", STRLEN);
+            strncpy(params_tag[n_param], "Sigma8", tag_length);
             params_addr[n_param] = &(run_params->Sigma8);
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
-            strncpy(params_tag[n_param], "wLambda", STRLEN);
+            strncpy(params_tag[n_param], "wLambda", tag_length);
             params_addr[n_param] = &(run_params->wLambda);
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
-            strncpy(params_tag[n_param], "SpectralIndex", STRLEN);
+            strncpy(params_tag[n_param], "SpectralIndex", tag_length);
             params_addr[n_param] = &(run_params->SpectralIndex);
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
-            strncpy(params_tag[n_param], "PartMass", STRLEN);
+            strncpy(params_tag[n_param], "PartMass", tag_length);
             params_addr[n_param] = &(run_params->PartMass);
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
-            strncpy(params_tag[n_param], "NPart", STRLEN);
+            strncpy(params_tag[n_param], "NPart", tag_length);
             params_addr[n_param] = &(run_params->NPart);
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_LONGLONG;
 
-            strncpy(params_tag[n_param], "MergerTimeFactor", STRLEN);
+            strncpy(params_tag[n_param], "MergerTimeFactor", tag_length);
             params_addr[n_param] = &(run_params->physics.MergerTimeFactor);
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
-            strncpy(params_tag[n_param], "FlagSubhaloVirialProps", STRLEN);
+            strncpy(params_tag[n_param], "FlagSubhaloVirialProps", tag_length);
             params_addr[n_param] = &(run_params->FlagSubhaloVirialProps);
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_INT;
 
-            strncpy(params_tag[n_param], "FlagInteractive", STRLEN);
+            strncpy(params_tag[n_param], "FlagInteractive", tag_length);
             params_addr[n_param] = &(run_params->FlagInteractive);
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_INT;
 
-            strncpy(params_tag[n_param], "FlagMCMC", STRLEN);
+            strncpy(params_tag[n_param], "FlagMCMC", tag_length);
             params_addr[n_param] = &(run_params->FlagMCMC);
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_INT;
 
             // Physics params
 
-            strncpy(params_tag[n_param], "EscapeFracDependency", STRLEN);
+            strncpy(params_tag[n_param], "EscapeFracDependency", tag_length);
             params_addr[n_param] = &(run_params->physics).EscapeFracDependency;
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_INT;
 
-            strncpy(params_tag[n_param], "SfDiskVelOpt", STRLEN);
+            strncpy(params_tag[n_param], "SfDiskVelOpt", tag_length);
             params_addr[n_param] = &(run_params->physics).SfDiskVelOpt;
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_INT;
 
-            strncpy(params_tag[n_param], "SfPrescription", STRLEN);
+            strncpy(params_tag[n_param], "SfPrescription", tag_length);
             params_addr[n_param] = &(run_params->physics).SfPrescription;
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_INT;
 
-            strncpy(params_tag[n_param], "Flag_ReionizationModifier", STRLEN);
+            strncpy(params_tag[n_param], "Flag_ReionizationModifier", tag_length);
             params_addr[n_param] = &(run_params->physics).Flag_ReionizationModifier;
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_INT;
 
-            strncpy(params_tag[n_param], "Flag_BHFeedback", STRLEN);
+            strncpy(params_tag[n_param], "Flag_BHFeedback", tag_length);
             params_addr[n_param] = &(run_params->physics).Flag_BHFeedback;
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_INT;
 
-            strncpy(params_tag[n_param], "Flag_IRA", STRLEN);
+            strncpy(params_tag[n_param], "Flag_IRA", tag_length);
             params_addr[n_param] = &(run_params->physics).Flag_IRA;
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_INT;
 
-            strncpy(params_tag[n_param], "Flag_FixDiskRadiusOnInfall", STRLEN);
+            strncpy(params_tag[n_param], "Flag_FixDiskRadiusOnInfall", tag_length);
             params_addr[n_param] = &(run_params->physics).Flag_FixDiskRadiusOnInfall;
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_INT;
 
-            strncpy(params_tag[n_param], "Flag_FixVmaxOnInfall", STRLEN);
+            strncpy(params_tag[n_param], "Flag_FixVmaxOnInfall", tag_length);
             params_addr[n_param] = &(run_params->physics).Flag_FixVmaxOnInfall;
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_INT;
 
-            strncpy(params_tag[n_param], "Flag_ReheatToFOFGroupTemp", STRLEN);
+            strncpy(params_tag[n_param], "Flag_ReheatToFOFGroupTemp", tag_length);
             params_addr[n_param] = &(run_params->physics).Flag_ReheatToFOFGroupTemp;
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_INT;
 
-            strncpy(params_tag[n_param], "SfEfficiency", STRLEN);
+            strncpy(params_tag[n_param], "SfEfficiency", tag_length);
             params_addr[n_param] = &(run_params->physics).SfEfficiency;
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
-            strncpy(params_tag[n_param], "SfEfficiencyScaling", STRLEN);
+            strncpy(params_tag[n_param], "SfEfficiencyScaling", tag_length);
             params_addr[n_param] = &(run_params->physics).SfEfficiencyScaling;
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
-            strncpy(params_tag[n_param], "SfCriticalSDNorm", STRLEN);
+            strncpy(params_tag[n_param], "SfCriticalSDNorm", tag_length);
             params_addr[n_param] = &(run_params->physics).SfCriticalSDNorm;
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
-            strncpy(params_tag[n_param], "SfRecycleFraction", STRLEN);
+            strncpy(params_tag[n_param], "SfRecycleFraction", tag_length);
             params_addr[n_param] = &(run_params->physics).SfRecycleFraction;
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
-            strncpy(params_tag[n_param], "SnEjectionEff", STRLEN);
+            strncpy(params_tag[n_param], "SnEjectionEff", tag_length);
             params_addr[n_param] = &(run_params->physics).SnEjectionEff;
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
-            strncpy(params_tag[n_param], "SnEjectionScaling", STRLEN);
+            strncpy(params_tag[n_param], "SnEjectionScaling", tag_length);
             params_addr[n_param] = &(run_params->physics).SnEjectionScaling;
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
-            strncpy(params_tag[n_param], "SnEjectionNorm", STRLEN);
+            strncpy(params_tag[n_param], "SnEjectionNorm", tag_length);
             params_addr[n_param] = &(run_params->physics).SnEjectionNorm;
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
-            strncpy(params_tag[n_param], "SnReheatEff", STRLEN);
+            strncpy(params_tag[n_param], "SnReheatEff", tag_length);
             params_addr[n_param] = &(run_params->physics).SnReheatEff;
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
-            strncpy(params_tag[n_param], "SnReheatLimit", STRLEN);
+            strncpy(params_tag[n_param], "SnReheatLimit", tag_length);
             params_addr[n_param] = &(run_params->physics).SnReheatLimit;
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
-            strncpy(params_tag[n_param], "SnReheatScaling", STRLEN);
+            strncpy(params_tag[n_param], "SnReheatScaling", tag_length);
             params_addr[n_param] = &(run_params->physics).SnReheatScaling;
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
-            strncpy(params_tag[n_param], "SnReheatNorm", STRLEN);
+            strncpy(params_tag[n_param], "SnReheatNorm", tag_length);
             params_addr[n_param] = &(run_params->physics).SnReheatNorm;
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
-            strncpy(params_tag[n_param], "ReincorporationEff", STRLEN);
+            strncpy(params_tag[n_param], "ReincorporationEff", tag_length);
             params_addr[n_param] = &(run_params->physics).ReincorporationEff;
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
-            strncpy(params_tag[n_param], "MaxCoolingMassFactor", STRLEN);
+            strncpy(params_tag[n_param], "MaxCoolingMassFactor", tag_length);
             params_addr[n_param] = &(run_params->physics).MaxCoolingMassFactor;
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
-            strncpy(params_tag[n_param], "Yield", STRLEN);
+            strncpy(params_tag[n_param], "Yield", tag_length);
             params_addr[n_param] = &(run_params->physics).Yield;
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
-            strncpy(params_tag[n_param], "IMFSlope", STRLEN);
+            strncpy(params_tag[n_param], "IMFSlope", tag_length);
             params_addr[n_param] = &(run_params->physics).IMFSlope;
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
-            strncpy(params_tag[n_param], "EnergyPerSN", STRLEN);
+            strncpy(params_tag[n_param], "EnergyPerSN", tag_length);
             params_addr[n_param] = &(run_params->physics).EnergyPerSN;
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
-            strncpy(params_tag[n_param], "IMFNormConst", STRLEN);
+            strncpy(params_tag[n_param], "IMFNormConst", tag_length);
             params_addr[n_param] = &(run_params->physics).IMFNormConst;
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
-            strncpy(params_tag[n_param], "eta_SNII", STRLEN);
+            strncpy(params_tag[n_param], "eta_SNII", tag_length);
             params_addr[n_param] = &(run_params->physics).eta_SNII;
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
-            strncpy(params_tag[n_param], "frac_mass_SSP_above_SNII", STRLEN);
+            strncpy(params_tag[n_param], "frac_mass_SSP_above_SNII", tag_length);
             params_addr[n_param] = &(run_params->physics).frac_mass_SSP_above_SNII;
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
-            strncpy(params_tag[n_param], "ThreshMajorMerger", STRLEN);
+            strncpy(params_tag[n_param], "ThreshMajorMerger", tag_length);
             params_addr[n_param] = &((run_params->physics).ThreshMajorMerger);
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
-            strncpy(params_tag[n_param], "MinMergerStellarMass", STRLEN);
+            strncpy(params_tag[n_param], "MinMergerStellarMass", tag_length);
             params_addr[n_param] = &((run_params->physics).MinMergerStellarMass);
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
-            strncpy(params_tag[n_param], "MinMergerRatioForBurst", STRLEN);
+            strncpy(params_tag[n_param], "MinMergerRatioForBurst", tag_length);
             params_addr[n_param] = &((run_params->physics).MinMergerRatioForBurst);
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
-            strncpy(params_tag[n_param], "MergerBurstScaling", STRLEN);
+            strncpy(params_tag[n_param], "MergerBurstScaling", tag_length);
             params_addr[n_param] = &((run_params->physics).MergerBurstScaling);
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
-            strncpy(params_tag[n_param], "MergerBurstFactor", STRLEN);
+            strncpy(params_tag[n_param], "MergerBurstFactor", tag_length);
             params_addr[n_param] = &((run_params->physics).MergerBurstFactor);
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
-            strncpy(params_tag[n_param], "RadioModeEff", STRLEN);
+            strncpy(params_tag[n_param], "RadioModeEff", tag_length);
             params_addr[n_param] = &(run_params->physics).RadioModeEff;
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
-            strncpy(params_tag[n_param], "QuasarModeEff", STRLEN);
+            strncpy(params_tag[n_param], "QuasarModeEff", tag_length);
             params_addr[n_param] = &(run_params->physics).QuasarModeEff;
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
-            strncpy(params_tag[n_param], "BlackHoleSeed", STRLEN);
+            strncpy(params_tag[n_param], "BlackHoleSeed", tag_length);
             params_addr[n_param] = &(run_params->physics).BlackHoleSeed;
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
-            strncpy(params_tag[n_param], "BlackHoleGrowthRate", STRLEN);
+            strncpy(params_tag[n_param], "BlackHoleGrowthRate", tag_length);
             params_addr[n_param] = &(run_params->physics).BlackHoleGrowthRate;
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
-            strncpy(params_tag[n_param], "EddingtonRatio", STRLEN);
+            strncpy(params_tag[n_param], "EddingtonRatio", tag_length);
             params_addr[n_param] = &(run_params->physics).EddingtonRatio;
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
-            strncpy(params_tag[n_param], "quasar_mode_scaling", STRLEN);
+            strncpy(params_tag[n_param], "quasar_mode_scaling", tag_length);
             params_addr[n_param] = &(run_params->physics).quasar_mode_scaling;
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
-            strncpy(params_tag[n_param], "quasar_open_angle", STRLEN);
+            strncpy(params_tag[n_param], "quasar_open_angle", tag_length);
             params_addr[n_param] = &(run_params->physics).quasar_open_angle;
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
-            strncpy(params_tag[n_param], "ReionSobacchi_Zre", STRLEN);
+            strncpy(params_tag[n_param], "ReionSobacchi_Zre", tag_length);
             params_addr[n_param] = &(run_params->physics).ReionSobacchi_Zre;
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
-            strncpy(params_tag[n_param], "ReionSobacchi_DeltaZre", STRLEN);
+            strncpy(params_tag[n_param], "ReionSobacchi_DeltaZre", tag_length);
             params_addr[n_param] = &(run_params->physics).ReionSobacchi_DeltaZre;
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
-            strncpy(params_tag[n_param], "ReionSobacchi_DeltaZsc", STRLEN);
+            strncpy(params_tag[n_param], "ReionSobacchi_DeltaZsc", tag_length);
             params_addr[n_param] = &(run_params->physics).ReionSobacchi_DeltaZsc;
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
-            strncpy(params_tag[n_param], "ReionSobacchi_T0", STRLEN);
+            strncpy(params_tag[n_param], "ReionSobacchi_T0", tag_length);
             params_addr[n_param] = &(run_params->physics).ReionSobacchi_T0;
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
-            strncpy(params_tag[n_param], "ReionTcool", STRLEN);
+            strncpy(params_tag[n_param], "ReionTcool", tag_length);
             params_addr[n_param] = &(run_params->physics).ReionTcool;
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
-            strncpy(params_tag[n_param], "ReionNionPhotPerBary", STRLEN);
+            strncpy(params_tag[n_param], "ReionNionPhotPerBary", tag_length);
             params_addr[n_param] = &(run_params->physics).ReionNionPhotPerBary;
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
-            strncpy(params_tag[n_param], "BlackHoleMassLimitReion", STRLEN);
+            strncpy(params_tag[n_param], "BlackHoleMassLimitReion", tag_length);
             params_addr[n_param] = &(run_params->physics).BlackHoleMassLimitReion;
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
-            strncpy(params_tag[n_param], "ReionGnedin_z0", STRLEN);
+            strncpy(params_tag[n_param], "ReionGnedin_z0", tag_length);
             params_addr[n_param] = &(run_params->physics).ReionGnedin_z0;
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
-            strncpy(params_tag[n_param], "ReionGnedin_zr", STRLEN);
+            strncpy(params_tag[n_param], "ReionGnedin_zr", tag_length);
             params_addr[n_param] = &(run_params->physics).ReionGnedin_zr;
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
-            strncpy(params_tag[n_param], "Flag_PatchyReion", STRLEN);
+            strncpy(params_tag[n_param], "Flag_PatchyReion", tag_length);
             params_addr[n_param] = &(run_params->Flag_PatchyReion);
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_INT;
 
-            strncpy(params_tag[n_param], "Flag_OutputGrids", STRLEN);
+            strncpy(params_tag[n_param], "Flag_OutputGrids", tag_length);
             params_addr[n_param] = &(run_params->Flag_OutputGrids);
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_INT;
 
-            strncpy(params_tag[n_param], "Flag_OutputGridsPostReion", STRLEN);
+            strncpy(params_tag[n_param], "Flag_OutputGridsPostReion", tag_length);
             params_addr[n_param] = &(run_params->Flag_OutputGridsPostReion);
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_INT;
 
-            strncpy(params_tag[n_param], "ReionGridDim", STRLEN);
+            strncpy(params_tag[n_param], "ReionGridDim", tag_length);
             params_addr[n_param] = &(run_params->ReionGridDim);
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_INT;
 
-            strncpy(params_tag[n_param], "ReionRBubbleMin", STRLEN);
+            strncpy(params_tag[n_param], "ReionRBubbleMin", tag_length);
             params_addr[n_param] = &(run_params->physics).ReionRBubbleMin;
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
-            strncpy(params_tag[n_param], "ReionRBubbleMax", STRLEN);
+            strncpy(params_tag[n_param], "ReionRBubbleMax", tag_length);
             params_addr[n_param] = &(run_params->physics).ReionRBubbleMax;
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
-            strncpy(params_tag[n_param], "ReionDeltaRFactor", STRLEN);
+            strncpy(params_tag[n_param], "ReionDeltaRFactor", tag_length);
             params_addr[n_param] = &(run_params->ReionDeltaRFactor);
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
-            strncpy(params_tag[n_param], "ReionGammaHaloBias", STRLEN);
+            strncpy(params_tag[n_param], "ReionGammaHaloBias", tag_length);
             params_addr[n_param] = &(run_params->physics).ReionGammaHaloBias;
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
-            strncpy(params_tag[n_param], "EscapeFracNorm", STRLEN);
+            strncpy(params_tag[n_param], "EscapeFracNorm", tag_length);
             params_addr[n_param] = &(run_params->physics).EscapeFracNorm;
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
-            strncpy(params_tag[n_param], "EscapeFracOffset", STRLEN);
+            strncpy(params_tag[n_param], "EscapeFracOffset", tag_length);
             params_addr[n_param] = &(run_params->physics).EscapeFracOffset;
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
-            strncpy(params_tag[n_param], "EscapeFracScaling", STRLEN);
+            strncpy(params_tag[n_param], "EscapeFracScaling", tag_length);
             params_addr[n_param] = &(run_params->physics).EscapeFracScaling;
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
-            strncpy(params_tag[n_param], "EscapeFracBHNorm", STRLEN);
+            strncpy(params_tag[n_param], "EscapeFracBHNorm", tag_length);
             params_addr[n_param] = &(run_params->physics).EscapeFracBHNorm;
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
-            strncpy(params_tag[n_param], "EscapeFracBHScaling", STRLEN);
+            strncpy(params_tag[n_param], "EscapeFracBHScaling", tag_length);
             params_addr[n_param] = &(run_params->physics).EscapeFracBHScaling;
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
-            strncpy(params_tag[n_param], "ReionSMParam_m0", STRLEN);
+            strncpy(params_tag[n_param], "ReionSMParam_m0", tag_length);
             params_addr[n_param] = &(run_params->physics).ReionSMParam_m0;
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
-            strncpy(params_tag[n_param], "ReionSMParam_a", STRLEN);
+            strncpy(params_tag[n_param], "ReionSMParam_a", tag_length);
             params_addr[n_param] = &(run_params->physics).ReionSMParam_a;
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
-            strncpy(params_tag[n_param], "ReionSMParam_b", STRLEN);
+            strncpy(params_tag[n_param], "ReionSMParam_b", tag_length);
             params_addr[n_param] = &(run_params->physics).ReionSMParam_b;
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
-            strncpy(params_tag[n_param], "ReionSMParam_c", STRLEN);
+            strncpy(params_tag[n_param], "ReionSMParam_c", tag_length);
             params_addr[n_param] = &(run_params->physics).ReionSMParam_c;
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
-            strncpy(params_tag[n_param], "ReionSMParam_d", STRLEN);
+            strncpy(params_tag[n_param], "ReionSMParam_d", tag_length);
             params_addr[n_param] = &(run_params->physics).ReionSMParam_d;
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
-            strncpy(params_tag[n_param], "ReionUVBFlag", STRLEN);
+            strncpy(params_tag[n_param], "ReionUVBFlag", tag_length);
             params_addr[n_param] = &(run_params->ReionUVBFlag);
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_INT;
 
-            strncpy(params_tag[n_param], "ReionFilterType", STRLEN);
+            strncpy(params_tag[n_param], "ReionFilterType", tag_length);
             params_addr[n_param] = &(run_params->ReionFilterType);
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_INT;
 
-            strncpy(params_tag[n_param], "ReionPowerSpecDeltaK", STRLEN);
+            strncpy(params_tag[n_param], "ReionPowerSpecDeltaK", tag_length);
             params_addr[n_param] = &(run_params->ReionPowerSpecDeltaK);
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
-            strncpy(params_tag[n_param], "ReionAlphaUV", STRLEN);
+            strncpy(params_tag[n_param], "ReionAlphaUV", tag_length);
             params_addr[n_param] = &(run_params->physics).ReionAlphaUV;
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
-            strncpy(params_tag[n_param], "ReionAlphaUVBH", STRLEN);
+            strncpy(params_tag[n_param], "ReionAlphaUVBH", tag_length);
             params_addr[n_param] = &(run_params->physics).ReionAlphaUVBH;
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
-            strncpy(params_tag[n_param], "ReionRtoMFilterType", STRLEN);
+            strncpy(params_tag[n_param], "ReionRtoMFilterType", tag_length);
             params_addr[n_param] = &(run_params->ReionRtoMFilterType);
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_INT;
 
-            strncpy(params_tag[n_param], "Y_He", STRLEN);
+            strncpy(params_tag[n_param], "Y_He", tag_length);
             params_addr[n_param] = &(run_params->physics).Y_He;
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_DOUBLE;
