@@ -111,6 +111,7 @@ static void dump_gpu_properties()
     gpu_info info = *run_globals.gpu;
 
     if (run_globals.mpi_rank == 0) {
+        cout << endl << endl;
         cout << "GPU properties" << endl
              << "==============" << endl;
         cout << "device = " << info.device << endl;
@@ -189,17 +190,14 @@ void init_CUDA()
             run_globals.gpu->device, run_globals.gpu->properties.name, (float)(run_globals.gpu->properties.totalGlobalMem / (1024 * 1024 * 1024)));
     else {
         // Report device details for each rank
-        int i_rank = 0;
-        for (; i_rank < run_globals.mpi_size; i_rank++) {
+        for (int i_rank = 0; i_rank < run_globals.mpi_size; i_rank++) {
             if (i_rank == run_globals.mpi_rank) {
-                char* mps_pipe = secure_getenv("CUDA_MPS_PIPE_DIRECTORY");
-                if (mps_pipe != NULL) {
-                    mlog("Context established on GPU device with MPS server %s ", MLOG_MESG | MLOG_ALLRANKS | MLOG_FLUSH, mps_pipe);
-                    mlog("\t(%s; %.1fGBs of global memory).", MLOG_MESG | MLOG_ALLRANKS | MLOG_FLUSH,
-                            run_globals.gpu->properties.name, (float)(run_globals.gpu->properties.totalGlobalMem / (1024 * 1024 * 1024)));
+                char* mps_pipe = NULL;
+                if ((mps_pipe = secure_getenv("CUDA_MPS_PIPE_DIRECTORY")) != NULL) {
+                    mlog("Context established on GPU device with MPS server: %s", MLOG_MESG | MLOG_ALLRANKS | MLOG_FLUSH, mps_pipe);
                 } else {
-                mlog("Context established on GPU device %d (%s; %.1fGBs of global memory).", MLOG_MESG | MLOG_ALLRANKS | MLOG_FLUSH,
-                        run_globals.gpu->device, run_globals.gpu->properties.name, (float)(run_globals.gpu->properties.totalGlobalMem / (1024 * 1024 * 1024)));
+                    mlog("Context established on GPU device %d (%s; %.1fGBs of global memory).", MLOG_MESG | MLOG_ALLRANKS | MLOG_FLUSH,
+                            run_globals.gpu->device, run_globals.gpu->properties.name, (float)(run_globals.gpu->properties.totalGlobalMem / (1024 * 1024 * 1024)));
                 }
             }
             MPI_Barrier(run_globals.mpi_comm);
