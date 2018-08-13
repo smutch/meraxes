@@ -129,11 +129,8 @@ static void dump_gpu_properties()
 void init_CUDA()
 {
 
-    // DONE: Get the correct GPU properties
-    // DONE: Report if we are using MPS and what server we are pointing to...
     // TODO: Ask Greg about `throw_on_global_error`
     // TODO: Can I just use the NVIDIA sample code for error handling?
-    // TODO: Confirm everything works as hoped!
 
     try {
         // find the rank on the local node

@@ -49,6 +49,7 @@ Contributors
 * Paul Geil (*The University of Melbourne*)
 * Yuxiang Qin (*The University of Melbourne*)
 * Hansik Kim (*The University of Melbourne*)
+* Greg Poole (*Astronomy Data and Compute Services*)
 
 
 How to contribute
