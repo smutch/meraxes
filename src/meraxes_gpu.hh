@@ -39,13 +39,13 @@
 #include <cufft.h>
 
 // Host-side exception-handling routines
-__host__ void _throw_on_generic_error(bool check_failure, int implementation_code, const std::string file, const std::string func, int line);
-__host__ void _throw_on_cuda_error(cudaError_t cuda_code, int implementation_code, const std::string file, const std::string func, int line);
-__host__ void _throw_on_cuFFT_error(cufftResult cuda_code, int implementation_code, const std::string file, const std::string func, int line);
-__host__ void _throw_on_kernel_error(int implementation_code, const std::string file, const std::string func, int line);
-__host__ void _check_for_cuda_error(int implementation_code, const std::string file, const std::string func, int line);
-__host__ void _check_thread_sync(int implementation_code, const std::string file, const std::string func, int line);
-__host__ void _throw_on_global_error(const std::string file, const std::string func, int line);
+__host__ void _throw_on_generic_error(bool check_failure, int implementation_code, const std::string &file, const std::string &func, int line);
+__host__ void _throw_on_cuda_error(cudaError_t cuda_code, int implementation_code, const std::string &file, const std::string &func, int line);
+__host__ void _throw_on_cuFFT_error(cufftResult cuda_code, int implementation_code, const std::string &file, const std::string &func, int line);
+__host__ void _throw_on_kernel_error(int implementation_code, const std::string &file, const std::string &func, int line);
+__host__ void _check_for_cuda_error(int implementation_code, const std::string &file, const std::string &func, int line);
+__host__ void _check_thread_sync(int implementation_code, const std::string &file, const std::string &func, int line);
+__host__ void _throw_on_global_error(const std::string &file, const std::string &func, int line);
 __host__ void notify_of_global_error(int error_code);
 
 // These routines are needed by the kernels

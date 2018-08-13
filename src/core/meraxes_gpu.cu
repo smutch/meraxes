@@ -52,44 +52,44 @@
 #include <cufft.h>
 
 // These functions deal with any GPU exceptions, but should be called with the macros defined in the corresponding .hh file
-__host__ void _throw_on_generic_error(bool check_failure, int implementation_code, const std::string file, const std::string func, int line)
+__host__ void _throw_on_generic_error(bool check_failure, int implementation_code, const std::string &file, const std::string &func, int line)
 {
     if (check_failure)
         throw(meraxes_cuda_exception(GENERIC_CUDA_ERROR_CODE, implementation_code, file, func, line));
 }
-__host__ void _throw_on_cuda_error(cudaError_t cuda_code, int implementation_code, const std::string file, const std::string func, int line)
+__host__ void _throw_on_cuda_error(cudaError_t cuda_code, int implementation_code, const std::string &file, const std::string &func, int line)
 {
     if (cuda_code != cudaSuccess)
         throw(meraxes_cuda_exception((int)cuda_code, implementation_code, file, func, line));
 }
-__host__ void _throw_on_cuFFT_error(cufftResult cufft_code, int implementation_code, const std::string file, const std::string func, int line)
+__host__ void _throw_on_cuFFT_error(cufftResult cufft_code, int implementation_code, const std::string &file, const std::string &func, int line)
 {
     if (cufft_code != CUFFT_SUCCESS)
         throw(meraxes_cuda_exception((int)cufft_code, implementation_code, file, func, line));
 }
-__host__ void _check_for_cuda_error(int implementation_code, const std::string file, const std::string func, int line)
+__host__ void _check_for_cuda_error(int implementation_code, const std::string &file, const std::string &func, int line)
 {
     try {
         cudaError_t cuda_code = cudaPeekAtLastError();
         if (cuda_code != cudaSuccess)
             throw(meraxes_cuda_exception((int)cuda_code, implementation_code, "CUDA error detected after ", file, func, line));
     }
-    catch (const meraxes_cuda_exception e) {
+    catch (const meraxes_cuda_exception &e) {
         e.process_exception();
     }
 }
-__host__ void _check_thread_sync(int implementation_code, const std::string file, const std::string func, int line)
+__host__ void _check_thread_sync(int implementation_code, const std::string &file, const std::string &func, int line)
 {
     try {
         cudaError_t cuda_code = cudaDeviceSynchronize();
         if (cuda_code != cudaSuccess)
             throw(meraxes_cuda_exception((int)cuda_code, implementation_code, "Threads not synchronised after ", file, func, line));
     }
-    catch (const meraxes_cuda_exception e) {
+    catch (const meraxes_cuda_exception &e) {
         e.process_exception();
     }
 }
-__host__ void _throw_on_global_error(const std::string file, const std::string func, int line)
+__host__ void _throw_on_global_error(const std::string &file, const std::string &func, int line)
 {
     int error_code = 0;
     MPI_Allreduce(MPI_IN_PLACE, &error_code, 1, MPI_INT, MPI_MAX, run_globals.mpi_comm);
@@ -176,7 +176,7 @@ void init_CUDA()
         // Throw an exception if another rank has thrown one
         throw_on_global_error();
     }
-    catch (const meraxes_cuda_exception e) {
+    catch (const meraxes_cuda_exception &e) {
         e.process_exception();
     }
 
