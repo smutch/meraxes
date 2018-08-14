@@ -129,7 +129,7 @@ Flag_OutputGrids       : 1
 Flag_OutputGridsPostReion  : 0
 
 ReionUVBFlag           : 1
-ReionGridDim           : 128
+ReionGridDim           : 64
 ReionDeltaRFactor      : 1.1
 ReionFilterType        : 0
 ReionPowerSpecDeltaK   : 0.1
