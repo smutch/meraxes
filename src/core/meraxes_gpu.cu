@@ -132,32 +132,15 @@ void init_CUDA()
     // TODO: Can I just use the NVIDIA sample code for error handling?
 
     try {
-        // find the rank on the local node
-        MPI_Info info;
-        MPI_Info_create(&info);
-
-        int world_rank = -1;
-        MPI_Comm_rank(MPI_COMM_WORLD, &world_rank);
-
-        MPI_Comm local_comm;
-        MPI_Comm_split_type(MPI_COMM_WORLD, MPI_COMM_TYPE_SHARED, world_rank, info, &local_comm);
-
-        int local_rank = -1;
-        MPI_Comm_rank(local_comm, &local_rank);
-
-        int local_size = -1;
-        MPI_Comm_size(local_comm, &local_size);
-
-        MPI_Comm_free(&local_comm);
-        MPI_Info_free(&info);
-
         // get the number of devices available to this rank
         int num_devices = 0;
         throw_on_cuda_error(cudaGetDeviceCount(&num_devices), meraxes_cuda_exception::INIT);
 
+        int world_rank = -1;
+        MPI_Comm_rank(MPI_COMM_WORLD, &world_rank);
+
         // do your thang to assign this rank to a device
-        // throw_on_cuda_error( cudaSetDevice(local_rank % num_devices), meraxes_cuda_exception::INIT );  // alternate assignment between ranks
-        throw_on_cuda_error(cudaSetDevice((local_rank * num_devices / local_size) % num_devices), meraxes_cuda_exception::INIT); // consecutive ranks share (needed for Mhysa)
+        throw_on_cuda_error(cudaSetDevice(world_rank % num_devices), meraxes_cuda_exception::INIT);  // alternate assignment between ranks
 
         // do a check to make sure that we have a working assigned device
         throw_on_cuda_error(cudaFree(0), meraxes_cuda_exception::INIT);
