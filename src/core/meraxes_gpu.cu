@@ -103,25 +103,18 @@ __host__ void notify_of_global_error(int error_code)
 static void dump_gpu_properties()
 {
     // This should be called after the logic of init_CUDA() is complete.
-    using std::cout;
-    using std::endl;
-
     gpu_info info = *run_globals.gpu;
 
-    if (run_globals.mpi_rank == 0) {
-        cout << endl
-             << endl;
-        cout << "GPU properties" << endl
-             << "==============" << endl;
-        cout << "device = " << info.device << endl;
-        cout << "name = " << info.properties.name << endl;
-        cout << "flag_use_cuFFT = " << info.flag_use_cuFFT << endl;
-        cout << "n_threads = " << info.n_threads << endl;
-        cout << "maxThreadsPerBlock = " << info.properties.maxThreadsPerBlock << endl;
-        cout << "maxThreadsPerMultiProcessor = " << info.properties.maxThreadsPerMultiProcessor << endl;
-        cout << "concurrentKernels = " << info.properties.concurrentKernels << endl;
-        cout << "==============" << endl;
-    }
+    mlog("\nGPU properties", MLOG_MESG);
+    mlog("==============", MLOG_MESG);
+    mlog("device = %s", MLOG_MESG, info.device);
+    mlog("name = %s", MLOG_MESG, info.properties.name);
+    mlog("flag_use_cuFFT = %s", MLOG_MESG, info.flag_use_cuFFT);
+    mlog("n_threads = %d", MLOG_MESG, info.n_threads);
+    mlog("maxThreadsPerBlock = %d", MLOG_MESG, info.properties.maxThreadsPerBlock);
+    mlog("maxThreadsPerMultiProcessor = %d", MLOG_MESG, info.properties.maxThreadsPerMultiProcessor);
+    mlog("concurrentKernels = %d", MLOG_MESG, info.properties.concurrentKernels);
+    mlog("==============", MLOG_MESG);
 }
 
 // Initialize device.  Called by init_gpu().
