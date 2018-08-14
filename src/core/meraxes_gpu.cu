@@ -109,7 +109,7 @@ static void dump_gpu_properties()
     mlog("==============", MLOG_MESG);
     mlog("device = %s", MLOG_MESG, info.device);
     mlog("name = %s", MLOG_MESG, info.properties.name);
-    mlog("flag_use_cuFFT = %s", MLOG_MESG, info.flag_use_cuFFT);
+    mlog("flag_use_cuFFT = %d", MLOG_MESG, (int)info.flag_use_cuFFT);
     mlog("n_threads = %d", MLOG_MESG, info.n_threads);
     mlog("maxThreadsPerBlock = %d", MLOG_MESG, info.properties.maxThreadsPerBlock);
     mlog("maxThreadsPerMultiProcessor = %d", MLOG_MESG, info.properties.maxThreadsPerMultiProcessor);
@@ -156,10 +156,10 @@ void init_CUDA()
     run_globals.gpu->n_threads = 256;
 
     // Send a status message to mlog
-    if (run_globals.mpi_size == 1)
+    if (run_globals.mpi_size == 1) {
         mlog("GPU context established on device %d (%s; %.1fGBs of global memory).", MLOG_MESG,
-            run_globals.gpu->device, run_globals.gpu->properties.name, (float)(run_globals.gpu->properties.totalGlobalMem / (1024 * 1024 * 1024)));
-    else {
+                run_globals.gpu->device, run_globals.gpu->properties.name, (float)(run_globals.gpu->properties.totalGlobalMem / (1024 * 1024 * 1024)));
+    } else {
         // Report device details for each rank
         for (int i_rank = 0; i_rank < run_globals.mpi_size; i_rank++) {
             if (i_rank == run_globals.mpi_rank) {
@@ -176,6 +176,7 @@ void init_CUDA()
     }
 
     dump_gpu_properties();
+
 }
 
 // Call this function in kernels to put the GPU in an error state that can be caught after as an exception
