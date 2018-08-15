@@ -64,6 +64,11 @@ void dracarys()
         prep_hdf5_file();
     }
 
+    // Determine the size of the light-cone for initialising the light-cone grid
+    if(run_globals.params.Flag_PatchyReion && run_globals.params.Flag_ConstructLightcone) {
+        Initialise_ConstructLightcone();
+    }
+
     // Initialize timer
     timer_info timer;
     timer_start(&timer);

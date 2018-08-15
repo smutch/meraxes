@@ -186,8 +186,13 @@ void init_reion_grids()
     reion_grids_t* grids = &(run_globals.reion_grids);
     int ReionGridDim = run_globals.params.ReionGridDim;
     ptrdiff_t* slab_nix = run_globals.reion_grids.slab_nix;
-    ptrdiff_t slab_n_real = slab_nix[run_globals.mpi_rank] * ReionGridDim * ReionGridDim; // TODO: NOT WORKING!!!
+    ptrdiff_t slab_n_real = slab_nix[run_globals.mpi_rank] * ReionGridDim * ReionGridDim; // TODO: NOT WORKING!!!    
     ptrdiff_t slab_n_complex = run_globals.reion_grids.slab_n_complex[run_globals.mpi_rank];
+
+    ptrdiff_t slab_n_real_LC;
+    if(run_globals.params.Flag_ConstructLightcone) {        
+        slab_n_real_LC = slab_nix[run_globals.mpi_rank] * ReionGridDim * run_globals.params.LightconeLength;
+    }
 
     mlog("Initialising grids...", MLOG_MESG);
 
@@ -211,6 +216,15 @@ void init_reion_grids()
         }
         if(run_globals.params.Flag_Compute21cmBrightTemp) {
             grids->delta_T[ii] = 0.0;
+            if(run_globals.params.Flag_ConstructLightcone) {
+                grids->delta_T_prev[ii] = 0.0;
+            }
+        }
+    }
+
+    if(run_globals.params.Flag_ConstructLightcone) {
+        for (int ii = 0; ii < slab_n_real_LC; ii++) {
+            grids->LightconeBox[ii] = 0.0;
         }
     }
 
@@ -308,6 +322,10 @@ void malloc_reionization_grids()
 
     // Grids required for 21cm brightness temperature
     grids->delta_T = NULL;
+    grids->delta_T_prev = NULL;
+
+    // A grid for the lightcone (cuboid) box
+    grids->LightconeBox = NULL;
 
     // Grids required for addining in peculiar velocity effects
     grids->vel = NULL;
@@ -321,6 +339,11 @@ void malloc_reionization_grids()
         ptrdiff_t* slab_nix = run_globals.reion_grids.slab_nix;
         ptrdiff_t slab_n_real = slab_nix[run_globals.mpi_rank] * ReionGridDim * ReionGridDim; // TODO: NOT WORKING!!!
         ptrdiff_t slab_n_complex = run_globals.reion_grids.slab_n_complex[run_globals.mpi_rank];
+
+        ptrdiff_t slab_n_real_LC;
+        if(run_globals.params.Flag_ConstructLightcone) {
+            slab_n_real_LC = slab_nix[run_globals.mpi_rank] * ReionGridDim * run_globals.params.LightconeLength;
+        }        
 
         // create a buffer on each rank which is as large as the largest LOGICAL allocation on any single rank
         int max_cells = 0;
@@ -374,12 +397,20 @@ void malloc_reionization_grids()
                 grids->vel_temp = fftwf_alloc_real(slab_n_complex * 2); // padded for in-place FFT
                 grids->vel_gradient = fftwf_alloc_complex(slab_n_complex);
             }
+
+            if(run_globals.params.Flag_ConstructLightcone) {
+                grids->delta_T_prev = fftwf_alloc_real(slab_n_real);
+            }
         }
 
         if (run_globals.params.ReionUVBFlag) {
             grids->J_21_at_ionization = fftwf_alloc_real(slab_n_real);
             grids->J_21 = fftwf_alloc_real(slab_n_real);
             grids->Mvir_crit = fftwf_alloc_real(slab_n_real);
+        }
+
+        if(run_globals.params.Flag_ConstructLightcone) {
+            grids->LightconeBox = fftwf_alloc_real(slab_n_real_LC);
         }
 
         init_reion_grids();
@@ -434,6 +465,14 @@ void free_reionization_grids()
                 fftwf_free(grids->vel_temp);
                 fftwf_free(grids->vel_gradient);
         }
+
+        if(run_globals.params.Flag_ConstructLightcone) {
+            fftwf_free(grids->delta_T_prev);
+        }
+    }
+
+    if(run_globals.params.Flag_ConstructLightcone) {
+        fftwf_free(grids->LightconeBox);
     }
 
     if (run_globals.params.ReionUVBFlag)

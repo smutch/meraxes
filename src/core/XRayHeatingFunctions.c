@@ -1,3 +1,4 @@
+
 /*
  * This code is an amalgamation of the requisite functions for X-ray heating taken from 
  * 21cmFAST. Specifically, from heating_helper_progs.c and elec_interp.c. 
@@ -692,6 +693,14 @@ double spectral_emissivity(double nu_norm, int flag)
 }
 
 
+
+
+typedef struct{
+  double x_e, NU_X_THRESH, X_RAY_SPEC_INDEX;
+} int_over_nu_params;
+
+
+
 //  Evaluates the frequency integral in the Tx evolution equation
 //  photons starting from zpp arive at zp, with mean IGM electron
 //  fraction of x_e (used to compute tau), and local electron
@@ -702,71 +711,68 @@ double spectral_emissivity(double nu_norm, int flag)
 double integrand_in_nu_heat_integral(double nu, void * params){
 
   double species_sum, fheat;
-  float x_e = *(double *) params;
-  float NU_X_THRESH = *(double *)params;
-  float X_RAY_SPEC_INDEX = *(double *)params;
+
+  int_over_nu_params *p = (int_over_nu_params *)params;
 
   // HI
-  species_sum = interp_fheat((nu - NUIONIZATION)/NU_over_EV, x_e)
-               * PLANCK *(nu - NUIONIZATION) * f_H * (1-x_e) * HI_ion_crosssec(nu);
+  species_sum = interp_fheat((nu - NUIONIZATION)/NU_over_EV, p->x_e)
+               * PLANCK *(nu - NUIONIZATION) * f_H * (1-p->x_e) * HI_ion_crosssec(nu);
 
  // HeI
-  species_sum += interp_fheat((nu - HeI_NUIONIZATION)/NU_over_EV, x_e)
-               * PLANCK*(nu - HeI_NUIONIZATION) * f_He * (1-x_e) * HeI_ion_crosssec(nu);
+  species_sum += interp_fheat((nu - HeI_NUIONIZATION)/NU_over_EV, p->x_e)
+               * PLANCK*(nu - HeI_NUIONIZATION) * f_He * (1-p->x_e) * HeI_ion_crosssec(nu);
 
   // HeII
-  species_sum += interp_fheat((nu - HeII_NUIONIZATION)/NU_over_EV, x_e)
-               * PLANCK*(nu - HeII_NUIONIZATION) * f_He * x_e * HeII_ion_crosssec(nu);
+  species_sum += interp_fheat((nu - HeII_NUIONIZATION)/NU_over_EV, p->x_e)
+               * PLANCK*(nu - HeII_NUIONIZATION) * f_He * p->x_e * HeII_ion_crosssec(nu);
 
-  return species_sum * pow(nu/NU_X_THRESH, -X_RAY_SPEC_INDEX-1);
+  return species_sum * pow(nu/(p->NU_X_THRESH*NU_over_EV), -p->X_RAY_SPEC_INDEX-1);
 }
 
 double integrand_in_nu_ion_integral(double nu, void * params){
   double species_sum, fheat, F_i;
-  float x_e = *(double *) params;
-  float NU_X_THRESH = *(double *)params;
-  float X_RAY_SPEC_INDEX = *(double *)params;
+
+  int_over_nu_params *p	= (int_over_nu_params *)params;
 
   // photoionization of HI, prodicing e- of energy h*(nu - nu_HI)
-  F_i = interp_nion_HI((nu - NUIONIZATION)/NU_over_EV, x_e) +
-    interp_nion_HeI((nu - NUIONIZATION)/NU_over_EV, x_e) +
-    interp_nion_HeII((nu - NUIONIZATION)/NU_over_EV, x_e) + 1;
-  species_sum = F_i * f_H * (1-x_e) * HI_ion_crosssec(nu);
+  F_i = interp_nion_HI((nu - NUIONIZATION)/NU_over_EV, p->x_e) +
+    interp_nion_HeI((nu - NUIONIZATION)/NU_over_EV, p->x_e) +
+    interp_nion_HeII((nu - NUIONIZATION)/NU_over_EV, p->x_e) + 1;
+  species_sum = F_i * f_H * (1-p->x_e) * HI_ion_crosssec(nu);
 
   // photoionization of HeI, prodicing e- of energy h*(nu - nu_HeI)
-  F_i = interp_nion_HI((nu - HeI_NUIONIZATION)/NU_over_EV, x_e) +
-    interp_nion_HeI((nu - HeI_NUIONIZATION)/NU_over_EV, x_e) +
-    interp_nion_HeII((nu - HeI_NUIONIZATION)/NU_over_EV, x_e) + 1;
-  species_sum += F_i * f_He * (1-x_e) * HeI_ion_crosssec(nu);
+  F_i = interp_nion_HI((nu - HeI_NUIONIZATION)/NU_over_EV, p->x_e) +
+    interp_nion_HeI((nu - HeI_NUIONIZATION)/NU_over_EV, p->x_e) +
+    interp_nion_HeII((nu - HeI_NUIONIZATION)/NU_over_EV, p->x_e) + 1;
+  species_sum += F_i * f_He * (1-p->x_e) * HeI_ion_crosssec(nu);
 
   // photoionization of HeII, prodicing e- of energy h*(nu - nu_HeII)
-  F_i = interp_nion_HI((nu - HeII_NUIONIZATION)/NU_over_EV, x_e) +
-    interp_nion_HeI((nu - HeII_NUIONIZATION)/NU_over_EV, x_e) +
-    interp_nion_HeII((nu - HeII_NUIONIZATION)/NU_over_EV, x_e) + 1;
-  species_sum += F_i * f_He * x_e * HeII_ion_crosssec(nu);
+  F_i = interp_nion_HI((nu - HeII_NUIONIZATION)/NU_over_EV, p->x_e) +
+    interp_nion_HeI((nu - HeII_NUIONIZATION)/NU_over_EV, p->x_e) +
+    interp_nion_HeII((nu - HeII_NUIONIZATION)/NU_over_EV, p->x_e) + 1;
+  species_sum += F_i * f_He * p->x_e * HeII_ion_crosssec(nu);
 
-  return species_sum * pow(nu/NU_X_THRESH, -X_RAY_SPEC_INDEX-1);
+  return species_sum * pow(nu/(p->NU_X_THRESH*NU_over_EV), -p->X_RAY_SPEC_INDEX-1);
 }
 
 double integrand_in_nu_lya_integral(double nu, void * params){
   double species_sum, fheat;
-  float x_e = *(double *) params;
-  float NU_X_THRESH = *(double *)params;
-  float X_RAY_SPEC_INDEX = *(double *)params;
+
+  int_over_nu_params *p = (int_over_nu_params *)params;
 
   // HI
-  species_sum = interp_n_Lya((nu - NUIONIZATION)/NU_over_EV, x_e)
-    * f_H * (double)(1-x_e) * HI_ion_crosssec(nu);
+  species_sum = interp_n_Lya((nu - NUIONIZATION)/NU_over_EV, p->x_e)
+    * f_H * (double)(1-p->x_e) * HI_ion_crosssec(nu);
 
   // HeI
-  species_sum += interp_n_Lya((nu - HeI_NUIONIZATION)/NU_over_EV, x_e)
-    * f_He * (double)(1-x_e) * HeI_ion_crosssec(nu);
+  species_sum += interp_n_Lya((nu - HeI_NUIONIZATION)/NU_over_EV, p->x_e)
+    * f_He * (double)(1-p->x_e) * HeI_ion_crosssec(nu);
 
   // HeII
-  species_sum += interp_n_Lya((nu - HeII_NUIONIZATION)/NU_over_EV, x_e)
-    * f_He * (double)x_e * HeII_ion_crosssec(nu);
+  species_sum += interp_n_Lya((nu - HeII_NUIONIZATION)/NU_over_EV, p->x_e)
+    * f_He * (double)p->x_e * HeII_ion_crosssec(nu);
 
-  return species_sum * pow(nu/NU_X_THRESH, -X_RAY_SPEC_INDEX-1);
+  return species_sum * pow(nu/(p->NU_X_THRESH*NU_over_EV), -p->X_RAY_SPEC_INDEX-1);
 }
 
 double integrate_over_nu(double zp, double local_x_e, double lower_int_limit, double thresh_energy, double spec_index, int FLAG){
@@ -776,9 +782,13 @@ double integrate_over_nu(double zp, double local_x_e, double lower_int_limit, do
        gsl_integration_workspace * w
          = gsl_integration_workspace_alloc (1000);
 
-       F.params = &local_x_e;
-       F.params = &thresh_energy;
-       F.params = &spec_index;
+       int_over_nu_params p;
+
+       p.x_e = local_x_e;
+       p.NU_X_THRESH = thresh_energy;
+       p.X_RAY_SPEC_INDEX = spec_index;
+
+       F.params = &p;
 
        if (FLAG==0)
          F.function = &integrand_in_nu_heat_integral;
@@ -788,7 +798,7 @@ double integrate_over_nu(double zp, double local_x_e, double lower_int_limit, do
          F.function = &integrand_in_nu_lya_integral;
        }
 
-       gsl_integration_qag (&F, lower_int_limit, run_globals.params.physics.NU_X_MAX, 0, rel_tol, 1000, GSL_INTEG_GAUSS61, w, &result, &error);
+       gsl_integration_qag (&F, lower_int_limit, run_globals.params.physics.NU_X_MAX*NU_over_EV, 0, rel_tol, 1000, GSL_INTEG_GAUSS61, w, &result, &error);
        gsl_integration_workspace_free (w);
 
        // if it is the Lya integral, add prefactor
@@ -1244,6 +1254,9 @@ void evolveInt(float zp, float curr_delNL0, double SFR_GAL[], double SFR_QSO[],
   dxlya_dt_QSO = 0;
   dstarlya_dt_QSO = 0;
 
+  double quantity1, quantity2, quantity3, quantity4;
+  quantity1 = quantity2 = quantity3 = quantity4 = 0.0;
+
   if (!NO_LIGHT){
       for (zpp_ct = 0; zpp_ct < NUM_FILTER_STEPS_FOR_Ts; zpp_ct++){
           // set redshift of half annulus; dz'' is negative since we flipped limits of integral
@@ -1288,6 +1301,14 @@ void evolveInt(float zp, float curr_delNL0, double SFR_GAL[], double SFR_QSO[],
               // Use this when using the SFR provided by Meraxes
               // Units should be M_solar/s. Factor of (dt_dzp * dzpp) converts from per s to per z'
               dstarlya_dt_GAL += SFR_GAL[zpp_ct] * pow(1+zp,2)*(1+zpp) * sum_lyn[zpp_ct] * dt_dzp * dzpp;
+
+              quantity1 += dt_dzp * dzpp * zpp_integrand_GAL;
+              quantity2	+= SFR_GAL[zpp_ct] * dt_dzp * dzpp;
+//              quantity1 += freq_int_heat_GAL[zpp_ct];
+//              quantity2 += pow(1+zp,2)*(1+zpp) * sum_lyn[zpp_ct];
+
+//              quantity3	+= ;
+//              quantity4	+= ;
           }
       }
 
@@ -1300,7 +1321,7 @@ void evolveInt(float zp, float curr_delNL0, double SFR_GAL[], double SFR_QSO[],
           // Use this when using the SFR provided by Meraxes
           // Units should be M_solar/s. Factor of (dt_dzp * dzpp) converts from per s to per z'
           // The division by Omb * RHOcrit arises from the differences between eq. 13 and eq. 22 in Mesinger et al. (2011), accounting for the M_solar factor (SFR -> number)
-          dstarlya_dt_GAL *= ( C * N_b0 / (4.*M_PI) ) / ( OMb * RHOcrit * pow( run_globals.params.Hubble_h, -3. ) * pow(MPC, -3) );
+          dstarlya_dt_GAL *= ( C * N_b0 / (4.*M_PI) ) / ( OMb * RHOcrit * pow(MPC, -3) );
 
           dxheat_dt_QSO *= const_zp_prefactor_QSO;
           dxion_source_dt_QSO *= const_zp_prefactor_QSO;
@@ -1313,7 +1334,8 @@ void evolveInt(float zp, float curr_delNL0, double SFR_GAL[], double SFR_QSO[],
           dxion_source_dt_GAL *= const_zp_prefactor_GAL;
           dxlya_dt_GAL *= const_zp_prefactor_GAL*n_b;
 
-          dstarlya_dt_GAL *= ( C * N_b0 / (4.*M_PI) ) / ( OMb * RHOcrit * pow(MPC, -3) );
+//          dstarlya_dt_GAL *= ( C * N_b0 / (4.*M_PI) ) / ( OMb * RHOcrit * pow(MPC, -3) );
+          dstarlya_dt_GAL *= ( C / (4.*M_PI) ) / ( PROTONMASS/SOLAR_MASS );
       }
 
 
@@ -1351,6 +1373,15 @@ void evolveInt(float zp, float curr_delNL0, double SFR_GAL[], double SFR_QSO[],
   // stuff for marcos
   deriv[3] = dxheat_dzp;
   deriv[4] = dt_dzp*( dxion_source_dt_GAL + dxion_source_dt_QSO );
+
+  deriv[5] = dxion_source_dt_GAL;
+  deriv[6] = dxheat_dt_GAL;
+ 
+  deriv[7] = dxlya_dt_GAL;
+  deriv[8] = dstarlya_dt_GAL;
+
+  deriv[9] = quantity1*const_zp_prefactor_GAL;
+  deriv[10] = quantity2;
 
 }
 

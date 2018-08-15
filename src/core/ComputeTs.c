@@ -110,6 +110,11 @@ void _ComputeTs(int snapshot)
     x_e_ave = 0.0;
 
     
+    double J_alpha_ave, xalpha_ave, Xheat_ave, Xion_ave;
+    J_alpha_ave = xalpha_ave = Xheat_ave = Xion_ave = 0.0;
+
+    double quantity1, quantity2, quantity3, quantity4, quantity5, quantity6;
+    quantity1 = quantity2 = quantity3 = quantity4 = quantity5 = quantity6 = 0.0;
 
     // Place current redshift in 21cmFAST nomenclature (zp), delta zp (dzp) and delta z in seconds (dt_dzp)
     zp = redshift;
@@ -224,6 +229,8 @@ void _ComputeTs(int snapshot)
                     x_e_ave = x_e_ave/total_n_cells;
 
                     stored_fcoll[snapshot] = collapse_fraction;
+ 
+                    mlog("zp = %e collapse_fraction = %e x_e_ave = %e", MLOG_MESG, zp, collapse_fraction, x_e_ave);
 
             }
             else {
@@ -269,10 +276,12 @@ void _ComputeTs(int snapshot)
             if (R_ct==0){
                 prev_zpp = zp;
                 prev_R = 0;
+                mlog("interpolation tables: R_ct = %d dzpp = %e",MLOG_MESG,R_ct,zp - (prev_zpp - (R_values[R_ct] - prev_R)*MPC / ( drdz(prev_zpp) )));
             }
             else{
                 prev_zpp = zpp_edge[R_ct-1];
                 prev_R = R_values[R_ct-1];
+                mlog("interpolation tables: R_ct = %d dzpp = %e",MLOG_MESG,R_ct,zpp_edge[R_ct-1] - (prev_zpp - (R_values[R_ct] - prev_R)*MPC / ( drdz(prev_zpp) )));
             }
 
             zpp_edge[R_ct] = prev_zpp - (R_values[R_ct] - prev_R)*MPC / ( drdz(prev_zpp) ); // cell size
@@ -280,10 +289,10 @@ void _ComputeTs(int snapshot)
 
             filling_factor_of_HI_zp = 1. - ReionEfficiency * collapse_fraction / (1.0 - x_e_ave);
 
-            lower_int_limit_GAL = fmax(nu_tau_one(zp, zpp, x_e_ave, collapse_fraction, filling_factor_of_HI_zp, snapshot), run_globals.params.physics.NU_X_GAL_THRESH);
+            lower_int_limit_GAL = fmax(nu_tau_one(zp, zpp, x_e_ave, collapse_fraction, filling_factor_of_HI_zp, snapshot), run_globals.params.physics.NU_X_GAL_THRESH*NU_over_EV);
 
             if(run_globals.params.SEP_QSO_XRAY) {
-                lower_int_limit_QSO = fmax(nu_tau_one(zp, zpp, x_e_ave, collapse_fraction, filling_factor_of_HI_zp, snapshot), run_globals.params.physics.NU_X_QSO_THRESH);
+                lower_int_limit_QSO = fmax(nu_tau_one(zp, zpp, x_e_ave, collapse_fraction, filling_factor_of_HI_zp, snapshot), run_globals.params.physics.NU_X_QSO_THRESH*NU_over_EV);
             }
 
             if (filling_factor_of_HI_zp < 0) filling_factor_of_HI_zp = 0; // for global evol; nu_tau_one above treats negative (post_reionization) inferred filling factors properly
@@ -293,6 +302,12 @@ void _ComputeTs(int snapshot)
                 freq_int_ion_tbl_GAL[x_e_ct][R_ct] = integrate_over_nu(zp, x_int_XHII[x_e_ct], lower_int_limit_GAL, run_globals.params.physics.NU_X_GAL_THRESH, run_globals.params.physics.X_RAY_SPEC_INDEX_GAL, 1);
                 freq_int_lya_tbl_GAL[x_e_ct][R_ct] = integrate_over_nu(zp, x_int_XHII[x_e_ct], lower_int_limit_GAL, run_globals.params.physics.NU_X_GAL_THRESH, run_globals.params.physics.X_RAY_SPEC_INDEX_GAL, 2);
             
+                if (run_globals.mpi_rank == 0) {
+                    if(R_ct < 3 && x_e_ct < 3) {
+                        mlog("interpolation tables: R_ct = %d x_e_ct = %d heat = %e ion = %e lya = %e",MLOG_MESG,R_ct,x_e_ct,freq_int_heat_tbl_GAL[x_e_ct][R_ct],freq_int_ion_tbl_GAL[x_e_ct][R_ct],freq_int_lya_tbl_GAL[x_e_ct][R_ct]);
+                    }
+                }
+
                 if(run_globals.params.SEP_QSO_XRAY)	{
                     freq_int_heat_tbl_QSO[x_e_ct][R_ct] = integrate_over_nu(zp, x_int_XHII[x_e_ct], lower_int_limit_QSO, run_globals.params.physics.NU_X_QSO_THRESH, run_globals.params.physics.X_RAY_SPEC_INDEX_QSO, 0);
                     freq_int_ion_tbl_QSO[x_e_ct][R_ct] = integrate_over_nu(zp, x_int_XHII[x_e_ct], lower_int_limit_QSO, run_globals.params.physics.NU_X_QSO_THRESH, run_globals.params.physics.X_RAY_SPEC_INDEX_QSO, 1);
@@ -308,12 +323,17 @@ void _ComputeTs(int snapshot)
 
                 nuprime = nu_n(n_ct)*(1+zpp)/(1.0+zp);
                 sum_lyn[R_ct] += frecycle(n_ct) * spectral_emissivity(nuprime, 0);
+//                mlog("sum_lyn: R_ct = %d zpp = %e sum_lyn = %e",MLOG_MESG,R_ct,zpp,sum_lyn[R_ct]);
             }
+            mlog("sum_lyn: R_ct = %d zpp = %e sum_lyn = %e",MLOG_MESG,R_ct,zpp,sum_lyn[R_ct]);
 	}
 
         growth_factor_zp = dicke(zp);
         dgrowth_factor_dzp = ddicke_dz(zp);
         dt_dzp = dtdz(zp);
+        
+      	mlog("dt_dzp = %e",MLOG_MESG,dt_dzp); 
+
 
         // Below is the converstion of the soft-band X_ray luminosity into number of X-ray photons produced. This is the code taken from 21CMMC, which somewhat
         // uses the 21cmFAST nomenclature (to ease flipping between old/new parameterisation), so isn't necessarily the most intuitive way to express this.
@@ -321,38 +341,39 @@ void _ComputeTs(int snapshot)
         // Conversion of the input bolometric luminosity (new) to a ZETA_X (old) to be consistent with Ts.c from 21cmFAST
         // Conversion here means the code otherwise remains the same as the original Ts.c
         if(fabs(run_globals.params.physics.X_RAY_SPEC_INDEX_GAL - 1.0) < 0.000001) {
-            Luminosity_converstion_factor_GAL = run_globals.params.physics.NU_X_GAL_THRESH * log( run_globals.params.physics.NU_X_BAND_MAX/run_globals.params.physics.NU_X_GAL_THRESH );
+            Luminosity_converstion_factor_GAL = (run_globals.params.physics.NU_X_GAL_THRESH*NU_over_EV ) * log( run_globals.params.physics.NU_X_BAND_MAX/run_globals.params.physics.NU_X_GAL_THRESH );
             Luminosity_converstion_factor_GAL = 1./Luminosity_converstion_factor_GAL;
         }
         else {
-            Luminosity_converstion_factor_GAL = pow( run_globals.params.physics.NU_X_BAND_MAX , 1. - run_globals.params.physics.X_RAY_SPEC_INDEX_GAL ) - pow( run_globals.params.physics.NU_X_GAL_THRESH , 1. - run_globals.params.physics.X_RAY_SPEC_INDEX_GAL ) ;
+            Luminosity_converstion_factor_GAL = pow( run_globals.params.physics.NU_X_BAND_MAX*NU_over_EV , 1. - run_globals.params.physics.X_RAY_SPEC_INDEX_GAL ) - pow( run_globals.params.physics.NU_X_GAL_THRESH*NU_over_EV , 1. - run_globals.params.physics.X_RAY_SPEC_INDEX_GAL ) ;
             Luminosity_converstion_factor_GAL = 1./Luminosity_converstion_factor_GAL;
-            Luminosity_converstion_factor_GAL *= pow( run_globals.params.physics.NU_X_GAL_THRESH, - run_globals.params.physics.X_RAY_SPEC_INDEX_GAL )*(1 - run_globals.params.physics.X_RAY_SPEC_INDEX_GAL);
+            Luminosity_converstion_factor_GAL *= pow( run_globals.params.physics.NU_X_GAL_THRESH*NU_over_EV, - run_globals.params.physics.X_RAY_SPEC_INDEX_GAL )*(1 - run_globals.params.physics.X_RAY_SPEC_INDEX_GAL);
         }
 	// Finally, convert to the correct units. NU_over_EV*hplank as only want to divide by eV -> erg (owing to the definition of Luminosity)
         Luminosity_converstion_factor_GAL *= (SEC_PER_YEAR)/(PLANCK);
 
         // Leave the original 21cmFAST code for reference. Refer to Greig & Mesinger (2017) for the new parameterisation.
-        const_zp_prefactor_GAL = ( run_globals.params.physics.L_X_GAL * Luminosity_converstion_factor_GAL ) / run_globals.params.physics.NU_X_GAL_THRESH * C * pow(1+zp, run_globals.params.physics.X_RAY_SPEC_INDEX_GAL+3);
+        const_zp_prefactor_GAL = ( run_globals.params.physics.L_X_GAL * Luminosity_converstion_factor_GAL ) / (run_globals.params.physics.NU_X_GAL_THRESH*NU_over_EV) * C * pow(1+zp, run_globals.params.physics.X_RAY_SPEC_INDEX_GAL+3);
 
         if(run_globals.params.SEP_QSO_XRAY) {
             
             if(fabs(run_globals.params.physics.X_RAY_SPEC_INDEX_QSO - 1.0) < 0.000001) {
-                Luminosity_converstion_factor_QSO = run_globals.params.physics.NU_X_QSO_THRESH * log( run_globals.params.physics.NU_X_BAND_MAX/run_globals.params.physics.NU_X_QSO_THRESH );
+                Luminosity_converstion_factor_QSO = (run_globals.params.physics.NU_X_QSO_THRESH*NU_over_EV) * log( run_globals.params.physics.NU_X_BAND_MAX/run_globals.params.physics.NU_X_QSO_THRESH );
                 Luminosity_converstion_factor_QSO = 1./Luminosity_converstion_factor_QSO;
             }
             else {
-                Luminosity_converstion_factor_QSO = pow( run_globals.params.physics.NU_X_BAND_MAX , 1. - run_globals.params.physics.X_RAY_SPEC_INDEX_QSO ) - pow( run_globals.params.physics.NU_X_QSO_THRESH , 1. - run_globals.params.physics.X_RAY_SPEC_INDEX_QSO ) ;
+                Luminosity_converstion_factor_QSO = pow( run_globals.params.physics.NU_X_BAND_MAX*NU_over_EV , 1. - run_globals.params.physics.X_RAY_SPEC_INDEX_QSO ) - pow( run_globals.params.physics.NU_X_QSO_THRESH*NU_over_EV , 1. - run_globals.params.physics.X_RAY_SPEC_INDEX_QSO ) ;
                 Luminosity_converstion_factor_QSO = 1./Luminosity_converstion_factor_QSO;
-                Luminosity_converstion_factor_QSO *= pow( run_globals.params.physics.NU_X_QSO_THRESH, - run_globals.params.physics.X_RAY_SPEC_INDEX_QSO )*(1 - run_globals.params.physics.X_RAY_SPEC_INDEX_QSO);
+                Luminosity_converstion_factor_QSO *= pow( run_globals.params.physics.NU_X_QSO_THRESH*NU_over_EV, - run_globals.params.physics.X_RAY_SPEC_INDEX_QSO )*(1 - run_globals.params.physics.X_RAY_SPEC_INDEX_QSO);
             }
             Luminosity_converstion_factor_QSO *= (SEC_PER_YEAR)/(PLANCK);
 
             // Leave the original 21cmFAST code for reference. Refer to Greig & Mesinger (2017) for the new parameterisation.
-            const_zp_prefactor_QSO = ( run_globals.params.physics.L_X_QSO * Luminosity_converstion_factor_QSO ) / run_globals.params.physics.NU_X_QSO_THRESH * C * pow(1+zp, run_globals.params.physics.X_RAY_SPEC_INDEX_QSO+3);
+            const_zp_prefactor_QSO = ( run_globals.params.physics.L_X_QSO * Luminosity_converstion_factor_QSO ) / (run_globals.params.physics.NU_X_QSO_THRESH*NU_over_EV) * C * pow(1+zp, run_globals.params.physics.X_RAY_SPEC_INDEX_QSO+3);
 
         }
 
+        mlog("const_zp_prefactor_GAL: zp = %e const_zp_prefactor_GAL = %e",MLOG_MESG,zp,const_zp_prefactor_GAL);
 
         //interpolate to correct nu integral value based on the cell's ionization state
         for (int ix = 0; ix < local_nix; ix++)
@@ -399,6 +420,12 @@ void _ComputeTs(int snapshot)
                         freq_int_lya_GAL[R_ct] *= (xHII_call - x_int_XHII[m_xHII_low]);
                         freq_int_lya_GAL[R_ct] += freq_int_lya_tbl_GAL[m_xHII_low][R_ct];
 
+                        if (run_globals.mpi_rank == 0) {
+       	       	       	    if(R_ct == 0 && iy<2 && iz<2) {
+       	       	       	        mlog("interpolation tables: heat = %e ion = %e lya = %e",MLOG_MESG,freq_int_heat_GAL[R_ct],freq_int_ion_GAL[R_ct],freq_int_lya_GAL[R_ct]);
+       	       	       	    }
+       	       	        }
+
 
                         if(run_globals.params.SEP_QSO_XRAY) {
 
@@ -435,8 +462,49 @@ void _ComputeTs(int snapshot)
                     }
 
                     TS_box[i_real] = get_Ts(zp, run_globals.reion_grids.deltax[i_padded], Tk_box_prev[i_real], x_e_box_prev[i_padded], dansdz[2], &curr_xalpha);
+                
+                    J_alpha_ave += dansdz[2];
+                    xalpha_ave += curr_xalpha;
+                    Xheat_ave += dansdz[3];
+                    Xion_ave += dansdz[4];
+
+                    quantity1 += dansdz[5];
+                    quantity2 += dansdz[6];
+
+                    quantity3 += dansdz[7];
+                    quantity4 += dansdz[8];
+
+                    quantity5 += dansdz[9];
+                    quantity6 += dansdz[10];
 
                 } 
+
+        MPI_Allreduce(MPI_IN_PLACE, &J_alpha_ave, 1, MPI_DOUBLE, MPI_SUM, run_globals.mpi_comm);
+        MPI_Allreduce(MPI_IN_PLACE, &xalpha_ave, 1, MPI_DOUBLE, MPI_SUM, run_globals.mpi_comm);
+        MPI_Allreduce(MPI_IN_PLACE, &Xheat_ave, 1, MPI_DOUBLE, MPI_SUM, run_globals.mpi_comm);
+        MPI_Allreduce(MPI_IN_PLACE, &Xion_ave, 1, MPI_DOUBLE, MPI_SUM, run_globals.mpi_comm);
+
+        MPI_Allreduce(MPI_IN_PLACE, &quantity1, 1, MPI_DOUBLE, MPI_SUM, run_globals.mpi_comm);
+        MPI_Allreduce(MPI_IN_PLACE, &quantity2, 1, MPI_DOUBLE, MPI_SUM, run_globals.mpi_comm);
+        MPI_Allreduce(MPI_IN_PLACE, &quantity3, 1, MPI_DOUBLE, MPI_SUM, run_globals.mpi_comm);
+        MPI_Allreduce(MPI_IN_PLACE, &quantity4, 1, MPI_DOUBLE, MPI_SUM, run_globals.mpi_comm);
+        MPI_Allreduce(MPI_IN_PLACE, &quantity5, 1, MPI_DOUBLE, MPI_SUM, run_globals.mpi_comm);
+        MPI_Allreduce(MPI_IN_PLACE, &quantity6, 1, MPI_DOUBLE, MPI_SUM, run_globals.mpi_comm);
+
+        J_alpha_ave /= total_n_cells;
+        xalpha_ave /= total_n_cells;
+        Xheat_ave /= total_n_cells;
+        Xion_ave /= total_n_cells;
+
+        quantity1 /= total_n_cells;
+        quantity2 /= total_n_cells;
+
+        quantity3 /= total_n_cells;
+        quantity4 /= total_n_cells;
+
+        quantity5 /= total_n_cells;
+        quantity6 /= total_n_cells;
+
     }
 
     memcpy(x_e_box, x_e_box_prev, sizeof(fftwf_complex) * slab_n_complex);
@@ -464,7 +532,9 @@ void _ComputeTs(int snapshot)
     Ave_x_e /= total_n_cells;
 
     mlog("zp = %e Ts_ave = %e Tk_ave = %e x_e_ave = %e", MLOG_MESG, zp, Ave_Ts, Ave_Tk, Ave_x_e);
-
+    mlog("zp = %e J_alpha_ave = %e xalpha_ave = %e Xheat_ave = %e Xion_ave = %e", MLOG_MESG, zp, J_alpha_ave, xalpha_ave, Xheat_ave, Xion_ave);
+    mlog("zp = %e dxion_source_dt = %e dxheat_dt = %e dxlya_dt = %e dstarlya_dt = %e", MLOG_MESG, zp, quantity1, quantity2, quantity3, quantity4);
+    mlog("zp = %e summed quantity 1 = %e summed quantity 2 = %e", MLOG_MESG, zp, quantity5, quantity6);
 }
 
 // This function makes sure that the right version of ComputeTs() gets called.

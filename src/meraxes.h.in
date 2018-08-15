@@ -293,6 +293,9 @@ typedef struct run_params_t {
     int Flag_Compute21cmBrightTemp;
     int Flag_ComputePS;
     int Flag_IncludePecVelsFor21cm;
+    int Flag_ConstructLightcone;
+    double End_Lightcone;
+    long long LightconeLength;
     int SEP_QSO_XRAY;
     int Flag_OutputGrids;
     int Flag_OutputGridsPostReion;
@@ -393,9 +396,13 @@ typedef struct reion_grids_t {
 
     // Grids necessary for the 21cm brightness temperature
     float* delta_T;
+    float* delta_T_prev;
     float* vel;
     float* vel_temp;
     fftwf_complex* vel_gradient;
+
+    // Grid for the lightcone (cuboid) box
+    float* LightconeBox;
 
     gal_to_slab_t* galaxy_to_slab_map;
 
