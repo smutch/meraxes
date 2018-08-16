@@ -192,6 +192,7 @@ typedef struct physics_params_t {
     double ReionAlphaUVBH;
     double ReionRBubbleMin;
     double ReionRBubbleMax;
+    double ReionRBubbleMax_Recomb;
 
     // global reionization prescription
     double ReionSobacchi_Zre;

@@ -223,7 +223,13 @@ void _find_HII_bubbles(int snapshot)
     }
 
     // Loop through filter radii
-    double ReionRBubbleMax = run_globals.params.physics.ReionRBubbleMax; // Mpc/h
+    double ReionRBubbleMax;
+    if(run_globals.params.Flag_IncludeRecombinations) {
+        ReionRBubbleMax = run_globals.params.physics.ReionRBubbleMax_Recomb; // Mpc/h
+    }
+    else {
+        ReionRBubbleMax = run_globals.params.physics.ReionRBubbleMax; // Mpc/h
+    }
     double ReionRBubbleMin = run_globals.params.physics.ReionRBubbleMin; // Mpc/h
     double R = fmin(ReionRBubbleMax, L_FACTOR * box_size); // Mpc/h
     double ReionDeltaRFactor = run_globals.params.ReionDeltaRFactor;
