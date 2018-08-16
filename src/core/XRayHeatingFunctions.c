@@ -525,6 +525,25 @@ double drdz(float z){
   return (1.0+z)*C*dtdz(z);
 }
 
+/* function INVSINH returns the inverse hyperbolic sine of parameter x */
+double invsinh (double x){
+  return log( x + sqrt(pow(x,2) + 1) );
+}
+
+/* function GETTIME returns the age of the universe, at a given redshift parameter, z.
+   This assumes zero curvature.  (from Weinberg 1989) */
+double gettime(double z){
+  double term1, const1, OMl, OMm;
+ 
+  OMl = run_globals.params.OmegaLambda;
+  OMm = run_globals.params.OmegaM;
+
+  term1 = invsinh( sqrt( OMl/OMm ) * pow(1+z, -3.0/2.0) );
+  const1 = 2 * sqrt( 1 + OMm/OMl ) / (3 * HUBBLE * run_globals.params.Hubble_h) ;
+  return (term1 * const1);
+}
+
+
 // Returns the maximum redshift at which a Lyn transition contributes to Lya flux at z
 float zmax(float z, int n){
   double num, denom;

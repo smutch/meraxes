@@ -177,6 +177,16 @@ int grid_index(int i, int j, int k, int dim, index_type type)
     return ind;
 }
 
+
+int grid_index_LC(int i, int j, int k, int dim, int dim_LC)
+{
+    int ind = -1;
+
+    ind = k + dim_LC * (j + dim * i);
+
+    return ind;
+}
+
 /// Numpy style isclose()
 int isclosef(
     float a,

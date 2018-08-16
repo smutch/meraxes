@@ -373,6 +373,11 @@ void init_meraxes()
     // Initialize the halo storage arrays
     initialize_halo_storage();
 
+    // Determine the size of the light-cone for initialising the light-cone grid
+    if(run_globals.params.Flag_PatchyReion && run_globals.params.Flag_ConstructLightcone) {
+        Initialise_ConstructLightcone();
+    }
+
     malloc_reionization_grids();
     set_ReionEfficiency();
     set_quasar_fobs();

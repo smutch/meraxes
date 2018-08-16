@@ -69,7 +69,87 @@ void Initialise_ConstructLightcone()
 
 void ConstructLightcone(int snapshot)
 {
+    int iz;
 
-    
+    float* LightconeBox = run_globals.reion_grids.LightconeBox;
 
+    float* delta_T = run_globals.reion_grids.delta_T;
+    float* delta_T_prev = run_globals.reion_grids.delta_T_prev;    
+
+    int ReionGridDim = run_globals.params.ReionGridDim;
+    int local_nix = (int)(run_globals.reion_grids.slab_nix[run_globals.mpi_rank]);
+    int slab_n_real = local_nix * ReionGridDim * ReionGridDim;
+    int slab_n_real_LC = local_nix * ReionGridDim * run_globals.params.LightconeLength;
+
+    double box_size = run_globals.params.BoxSize / run_globals.params.Hubble_h; // Mpc
+    double dR = (box_size / (double)ReionGridDim) * MPC; // cell size in comoving cm
+
+    double z_LC, z1_LC, z2_LC, t_z1_LC, t_z2_LC, z_slice, t_z_slice, fz1, fz2, fz;
+
+    long long slice_ct = 0;
+    long long slice_ct_snapshot = 0;
+
+    int i_real, i_real_LC;
+
+    if(snapshot>0) {
+
+        // Set the redshift (and time) for the upper redshift end of the light-cone
+        z2_LC = run_globals.ZZ[snapshot-1];
+        t_z2_LC = gettime(z2_LC);
+
+        // Set the redshift (and time) for the lower redshift end of the light-cone
+        z_LC = z1_LC = run_globals.ZZ[snapshot];
+        t_z1_LC = gettime(z1_LC);
+
+        // Loop through to find the size of lightcone added at this time step (solely used for indexing the light-cone properly across snapshots)
+        while (z_LC < z2_LC) {
+            slice_ct_snapshot++;
+            z_LC -= dR / drdz(z_LC);
+        }
+
+        z_LC = run_globals.ZZ[snapshot];
+
+        // Determine the starting indexes for this co-eval snapshot of the light-cone (incrementing from lower to upper redshifts)
+        run_globals.params.CurrentLCPos = run_globals.params.CurrentLCPos - slice_ct_snapshot;        
+        slice_ct = run_globals.params.CurrentLCPos;
+        iz = slice_ct % ReionGridDim;
+
+        // Now do the interpolation of the light-cone
+        while (z_LC < z2_LC) {
+
+            z_slice = z_LC;
+            t_z_slice = gettime(z_slice);
+
+            // Ensure we don't overstep the gridsize of the co-eval box
+            if(iz >= ReionGridDim) {
+                iz = 0;
+       	    }
+
+            // Interpolate the light-cone grid from the current and previous brightness temperature boxes
+            for (int ix = 0; ix < local_nix; ix++)
+                for (int iy = 0; iy < ReionGridDim; iy++) {
+                    i_real = grid_index(ix, iy, iz, ReionGridDim, INDEX_REAL);
+                    i_real_LC = grid_index_LC(ix, iy, slice_ct, ReionGridDim, run_globals.params.LightconeLength);
+
+                    fz1 = delta_T[i_real];
+                    fz2 = delta_T_prev[i_real];
+                    fz = (fz2 - fz1) / (t_z2_LC - t_z1_LC) * (t_z_slice - t_z1_LC) + fz1;
+
+                    LightconeBox[i_real_LC] = fz;
+                }
+
+            iz++;
+            slice_ct++;
+            z_LC -= dR / drdz(z_LC);
+        }
+        
+    }
+    else {
+        // Used to correctly index the starting point of the co-eval boxes for the light-cone
+        run_globals.params.CurrentLCPos = run_globals.params.LightconeLength;        
+    }
+
+    // Update the previous delta_T box with the one we just finished using
+    memcpy(delta_T_prev, delta_T, sizeof(float) * slab_n_real);
 }
+

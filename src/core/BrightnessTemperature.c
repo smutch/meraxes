@@ -22,10 +22,6 @@ void ComputeBrightnessTemperatureBox(int snapshot) {
     float* deltax = run_globals.reion_grids.deltax;
 
     float* delta_T = run_globals.reion_grids.delta_T;
-    float* delta_T_prev;
-    if(run_globals.params.Flag_ConstructLightcone) {
-        delta_T_prev = run_globals.reion_grids.delta_T_prev;
-    }
 
     int ReionGridDim = run_globals.params.ReionGridDim;
     int local_nix = (int)(run_globals.reion_grids.slab_nix[run_globals.mpi_rank]);
@@ -456,12 +452,6 @@ void ComputeBrightnessTemperatureBox(int snapshot) {
             // End of line-of-sight redshift space distortions
         }
     }
-
-
-    if(snapshot!=0 && (run_globals.params.Flag_ConstructLightcone)) {
-        memcpy(delta_T_prev, delta_T, sizeof(float) * slab_n_real);        
-    }
-
 
 
 }

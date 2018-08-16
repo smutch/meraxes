@@ -297,6 +297,7 @@ typedef struct run_params_t {
     int Flag_ConstructLightcone;
     double End_Lightcone;
     long long LightconeLength;
+    long long CurrentLCPos;
     int SEP_QSO_XRAY;
     int Flag_OutputGrids;
     int Flag_OutputGridsPostReion;
@@ -834,6 +835,7 @@ void ComputeTs(int snapshot, timer_info* timer_total);
 double alpha_A(double T);
 double dtdz(float z);
 double drdz(float z);
+double gettime(double z);
 double hubble(float z);
 
 // Brightness Temperature Box
@@ -841,8 +843,9 @@ void ComputeBrightnessTemperatureBox(int snapshot);
 
 void Compute_PS(int snapshot, int field);
 
+int grid_index_LC(int i, int j, int k, int dim, int dim_LC);
 void Initialise_ConstructLightcone();
-
+void ConstructLightcone(int snapshot);
 
 
 // MCMC related

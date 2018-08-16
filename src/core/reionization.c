@@ -186,7 +186,7 @@ void init_reion_grids()
     reion_grids_t* grids = &(run_globals.reion_grids);
     int ReionGridDim = run_globals.params.ReionGridDim;
     ptrdiff_t* slab_nix = run_globals.reion_grids.slab_nix;
-    ptrdiff_t slab_n_real = slab_nix[run_globals.mpi_rank] * ReionGridDim * ReionGridDim; // TODO: NOT WORKING!!!    
+    ptrdiff_t slab_n_real = slab_nix[run_globals.mpi_rank] * ReionGridDim * ReionGridDim; // TODO: NOT WORKING!!!
     ptrdiff_t slab_n_complex = run_globals.reion_grids.slab_n_complex[run_globals.mpi_rank];
 
     ptrdiff_t slab_n_real_LC;

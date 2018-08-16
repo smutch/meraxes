@@ -64,11 +64,6 @@ void dracarys()
         prep_hdf5_file();
     }
 
-    // Determine the size of the light-cone for initialising the light-cone grid
-    if(run_globals.params.Flag_PatchyReion && run_globals.params.Flag_ConstructLightcone) {
-        Initialise_ConstructLightcone();
-    }
-
     // Initialize timer
     timer_info timer;
     timer_start(&timer);
@@ -331,6 +326,10 @@ void dracarys()
 
             if(run_globals.params.Flag_ComputePS) {
                 Compute_PS(snapshot, 1);
+            }
+
+            if(run_globals.params.Flag_ConstructLightcone) {
+                ConstructLightcone(snapshot);
             }
             
             // if we have already created a mapping of galaxies to MPI slabs then we no
