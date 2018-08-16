@@ -84,7 +84,6 @@ double stored_fcoll[1000];
 
 
 double dT_comp(double z, double TK, double xe);
-double drdz(float z);
 
 double dicke(double z);
 //double alpha_A(double T);

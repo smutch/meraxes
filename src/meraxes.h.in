@@ -832,12 +832,16 @@ void ComputeTs(int snapshot, timer_info* timer_total);
 
 double alpha_A(double T);
 double dtdz(float z);
+double drdz(float z);
 double hubble(float z);
 
 // Brightness Temperature Box
 void ComputeBrightnessTemperatureBox(int snapshot);
 
 void Compute_PS(int snapshot, int field);
+
+void Initialise_ConstructLightcone();
+
 
 
 // MCMC related
