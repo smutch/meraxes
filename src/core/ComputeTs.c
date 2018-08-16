@@ -353,7 +353,13 @@ void _ComputeTs(int snapshot)
         Luminosity_converstion_factor_GAL *= (SEC_PER_YEAR)/(PLANCK);
 
         // Leave the original 21cmFAST code for reference. Refer to Greig & Mesinger (2017) for the new parameterisation.
-        const_zp_prefactor_GAL = ( run_globals.params.physics.L_X_GAL * Luminosity_converstion_factor_GAL ) / (run_globals.params.physics.NU_X_GAL_THRESH*NU_over_EV) * C * pow(1+zp, run_globals.params.physics.X_RAY_SPEC_INDEX_GAL+3);
+        const_zp_prefactor_GAL = (1.0/0.59)*( run_globals.params.physics.L_X_GAL * Luminosity_converstion_factor_GAL ) / (run_globals.params.physics.NU_X_GAL_THRESH*NU_over_EV) * C * pow(1+zp, run_globals.params.physics.X_RAY_SPEC_INDEX_GAL+3);
+        
+        // Note the inclusion of 0.59 here comes from differing definitions of a stellar baryon mass
+       	// 21cmFAST appears to define a stellar baryon as 0.59*m_p, whereas Meraxes defines it as m_p
+       	// Had issues with normalisation factors comparing the codes, adding 0.59 here rectified the normalisation somewhat
+        // Will mean the normalisation within Meraxes is (1/0.59) higher than 21cmFAST, which can be trivially compensated for by reducing L_X.
+        // Ultimately the backgrounds in Meraxes will be this same factor higher than 21cmFAST, but at least it is understood why and trivially accounted for.
 
         if(run_globals.params.SEP_QSO_XRAY) {
             
@@ -369,7 +375,7 @@ void _ComputeTs(int snapshot)
             Luminosity_converstion_factor_QSO *= (SEC_PER_YEAR)/(PLANCK);
 
             // Leave the original 21cmFAST code for reference. Refer to Greig & Mesinger (2017) for the new parameterisation.
-            const_zp_prefactor_QSO = ( run_globals.params.physics.L_X_QSO * Luminosity_converstion_factor_QSO ) / (run_globals.params.physics.NU_X_QSO_THRESH*NU_over_EV) * C * pow(1+zp, run_globals.params.physics.X_RAY_SPEC_INDEX_QSO+3);
+            const_zp_prefactor_QSO = (1.0/0.59)*( run_globals.params.physics.L_X_QSO * Luminosity_converstion_factor_QSO ) / (run_globals.params.physics.NU_X_QSO_THRESH*NU_over_EV) * C * pow(1+zp, run_globals.params.physics.X_RAY_SPEC_INDEX_QSO+3);
 
         }
 

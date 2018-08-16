@@ -1321,20 +1321,19 @@ void evolveInt(float zp, float curr_delNL0, double SFR_GAL[], double SFR_QSO[],
           // Use this when using the SFR provided by Meraxes
           // Units should be M_solar/s. Factor of (dt_dzp * dzpp) converts from per s to per z'
           // The division by Omb * RHOcrit arises from the differences between eq. 13 and eq. 22 in Mesinger et al. (2011), accounting for the M_solar factor (SFR -> number)
-          dstarlya_dt_GAL *= ( C * N_b0 / (4.*M_PI) ) / ( OMb * RHOcrit * pow(MPC, -3) );
+          dstarlya_dt_GAL *= ( C / (4.*M_PI) ) / ( PROTONMASS/SOLAR_MASS );
 
           dxheat_dt_QSO *= const_zp_prefactor_QSO;
           dxion_source_dt_QSO *= const_zp_prefactor_QSO;
           dxlya_dt_QSO *= const_zp_prefactor_QSO*n_b;
           
-          dstarlya_dt_QSO *= ( C * N_b0 / (4.*M_PI) ) / ( OMb * RHOcrit * pow(MPC, -3) );
+          dstarlya_dt_QSO *= ( C / (4.*M_PI) ) / ( PROTONMASS/SOLAR_MASS );
       }
       else {
           dxheat_dt_GAL *= const_zp_prefactor_GAL;
           dxion_source_dt_GAL *= const_zp_prefactor_GAL;
           dxlya_dt_GAL *= const_zp_prefactor_GAL*n_b;
 
-//          dstarlya_dt_GAL *= ( C * N_b0 / (4.*M_PI) ) / ( OMb * RHOcrit * pow(MPC, -3) );
           dstarlya_dt_GAL *= ( C / (4.*M_PI) ) / ( PROTONMASS/SOLAR_MASS );
       }
 
