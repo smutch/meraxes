@@ -189,6 +189,11 @@ void init_reion_grids()
     ptrdiff_t slab_n_real = slab_nix[run_globals.mpi_rank] * ReionGridDim * ReionGridDim; // TODO: NOT WORKING!!!
     ptrdiff_t slab_n_complex = run_globals.reion_grids.slab_n_complex[run_globals.mpi_rank];
 
+    ptrdiff_t slab_n_real_smoothedSFR;
+    if(run_globals.params.Flag_IncludeSpinTemp) {
+        slab_n_real_smoothedSFR = slab_nix[run_globals.mpi_rank] * run_globals.params.NUM_FILTER_STEPS_FOR_Ts  * ReionGridDim * ReionGridDim;
+    }
+    
     ptrdiff_t slab_n_real_LC;
     if(run_globals.params.Flag_ConstructLightcone) {        
         slab_n_real_LC = slab_nix[run_globals.mpi_rank] * ReionGridDim * run_globals.params.LightconeLength;
@@ -200,6 +205,7 @@ void init_reion_grids()
     grids->mass_weighted_global_xH = 1.0;
     grids->started = 0;
     grids->finished = 0;
+
 
     for (int ii = 0; ii < slab_n_real; ii++) {
         grids->xH[ii] = 1.0;
@@ -221,6 +227,19 @@ void init_reion_grids()
             }
         }
     }
+
+    if(run_globals.params.Flag_IncludeSpinTemp) {
+
+        for (int ii = 0; ii < slab_n_real_smoothedSFR; ii++) {
+            grids->SMOOTHED_SFR_GAL[ii] = 0.0;
+ 
+            if(run_globals.params.SEP_QSO_XRAY) {
+                grids->SMOOTHED_SFR_QSO[ii] = 0.0;
+            }
+        }
+
+    }
+
 
     if(run_globals.params.Flag_ConstructLightcone) {
         for (int ii = 0; ii < slab_n_real_LC; ii++) {
@@ -311,6 +330,10 @@ void malloc_reionization_grids()
     grids->TS_box = NULL;
     grids->x_e_unfiltered = NULL;
     grids->x_e_filtered = NULL;
+  
+    grids->SMOOTHED_SFR_GAL = NULL;
+    grids->SMOOTHED_SFR_QSO = NULL;
+
 
     // Grids required for inhomogeneous recombinations
     grids->N_rec_unfiltered = NULL;
@@ -339,6 +362,11 @@ void malloc_reionization_grids()
         ptrdiff_t* slab_nix = run_globals.reion_grids.slab_nix;
         ptrdiff_t slab_n_real = slab_nix[run_globals.mpi_rank] * ReionGridDim * ReionGridDim; // TODO: NOT WORKING!!!
         ptrdiff_t slab_n_complex = run_globals.reion_grids.slab_n_complex[run_globals.mpi_rank];
+
+        ptrdiff_t slab_n_real_smoothedSFR;
+        if(run_globals.params.Flag_IncludeSpinTemp) {
+            slab_n_real_smoothedSFR = slab_nix[run_globals.mpi_rank] * run_globals.params.NUM_FILTER_STEPS_FOR_Ts  * ReionGridDim * ReionGridDim;
+        }
 
         ptrdiff_t slab_n_real_LC;
         if(run_globals.params.Flag_ConstructLightcone) {
@@ -378,6 +406,11 @@ void malloc_reionization_grids()
             grids->TS_box = fftwf_alloc_real(slab_n_real);
 
             grids->x_e_filtered = fftwf_alloc_complex(slab_n_complex);
+           
+            grids->SMOOTHED_SFR_GAL = calloc(slab_n_real_smoothedSFR,sizeof(double));
+            if(run_globals.params.SEP_QSO_XRAY) {
+                grids->SMOOTHED_SFR_QSO = calloc(slab_n_real_smoothedSFR,sizeof(double));
+            }
         }
 
         if(run_globals.params.Flag_IncludeRecombinations) {
@@ -440,20 +473,24 @@ void free_reionization_grids()
     fftwf_free(grids->xH);
 
     if(run_globals.params.Flag_IncludeSpinTemp) {
-		fftwf_free(grids->x_e_box);
-    		fftwf_free(grids->x_e_box_prev);
-		fftwf_free(grids->Tk_box);
-    		fftwf_free(grids->Tk_box_prev);
-    		fftwf_free(grids->TS_box);
+	fftwf_free(grids->x_e_box);
+    	fftwf_free(grids->x_e_box_prev);
+	fftwf_free(grids->Tk_box);
+   	fftwf_free(grids->Tk_box_prev);
+    	fftwf_free(grids->TS_box);
+
+        free(grids->SMOOTHED_SFR_GAL);
+        free(grids->SMOOTHED_SFR_QSO);
+        
     }
  
     if(run_globals.params.Flag_IncludeRecombinations) {
-		fftwf_free(grids->N_rec_filtered);
-		fftwf_free(grids->N_rec);
-		fftwf_free(grids->N_rec_prev);
+	fftwf_free(grids->N_rec_filtered);
+	fftwf_free(grids->N_rec);
+	fftwf_free(grids->N_rec_prev);
 
-		fftwf_free(grids->z_re);
-		fftwf_free(grids->Gamma12);
+	fftwf_free(grids->z_re);
+	fftwf_free(grids->Gamma12);
     }
 
     if(run_globals.params.Flag_Compute21cmBrightTemp) {

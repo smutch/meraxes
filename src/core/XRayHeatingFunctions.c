@@ -43,10 +43,10 @@
 #define KAPPA_10_NPTS (int) 27
 #define KAPPA_10_elec_NPTS (int) 20
 #define KAPPA_10_pH_NPTS (int) 17
-#define NUM_FILTER_STEPS_FOR_Ts 40
 
 /* Define some global variables; yeah i know it isn't "good practice" but doesn't matter */
-double zpp_edge[NUM_FILTER_STEPS_FOR_Ts], sigma_atR[NUM_FILTER_STEPS_FOR_Ts], sigma_Tmin[NUM_FILTER_STEPS_FOR_Ts], ST_over_PS[NUM_FILTER_STEPS_FOR_Ts], sum_lyn[NUM_FILTER_STEPS_FOR_Ts];
+//double zpp_edge[run_globals.params.NUM_FILTER_STEPS_FOR_Ts], sigma_atR[run_globals.params.NUM_FILTER_STEPS_FOR_Ts], sigma_Tmin[run_globals.params.NUM_FILTER_STEPS_FOR_Ts], ST_over_PS[run_globals.params.NUM_FILTER_STEPS_FOR_Ts], sum_lyn[run_globals.params.NUM_FILTER_STEPS_FOR_Ts];
+double *zpp_edge, *sigma_atR, *sigma_Tmin, *ST_over_PS, *sum_lyn;  
 unsigned long long box_ct;
 double const_zp_prefactor_GAL, const_zp_prefactor_QSO, dt_dzp, x_e_ave;
 double growth_factor_zp, dgrowth_factor_dzp, PS_ION_EFF;
@@ -158,6 +158,14 @@ double interpolate_fcoll(double redshift, int snap_i);
 
 int init_heat()
 {
+
+  zpp_edge = calloc(run_globals.params.NUM_FILTER_STEPS_FOR_Ts,sizeof(double)); 
+  sigma_atR = calloc(run_globals.params.NUM_FILTER_STEPS_FOR_Ts,sizeof(double)); 
+  sigma_Tmin = calloc(run_globals.params.NUM_FILTER_STEPS_FOR_Ts,sizeof(double));
+  ST_over_PS = calloc(run_globals.params.NUM_FILTER_STEPS_FOR_Ts,sizeof(double));
+  sum_lyn = calloc(run_globals.params.NUM_FILTER_STEPS_FOR_Ts,sizeof(double));
+
+
   kappa_10(1.0,1);
   if( kappa_10_elec(1.0,1) < 0)
     return -2;
@@ -1276,7 +1284,7 @@ void evolveInt(float zp, float curr_delNL0, double SFR_GAL[], double SFR_QSO[],
   quantity1 = quantity2 = quantity3 = quantity4 = 0.0;
 
   if (!NO_LIGHT){
-      for (zpp_ct = 0; zpp_ct < NUM_FILTER_STEPS_FOR_Ts; zpp_ct++){
+      for (zpp_ct = 0; zpp_ct < run_globals.params.NUM_FILTER_STEPS_FOR_Ts; zpp_ct++){
           // set redshift of half annulus; dz'' is negative since we flipped limits of integral
           if (zpp_ct==0){
               zpp = (zpp_edge[0]+zp)*0.5;

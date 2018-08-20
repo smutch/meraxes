@@ -187,6 +187,15 @@ int grid_index_LC(int i, int j, int k, int dim, int dim_LC)
     return ind;
 }
 
+int grid_index_smoothedSFR(int radii, int i, int j, int k, int filter_steps, int dim)
+{
+    int ind = -1;
+
+    ind = radii + filter_steps * ( k + dim * (j + dim * i) );
+
+    return ind;
+}
+
 /// Numpy style isclose()
 int isclosef(
     float a,

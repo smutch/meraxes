@@ -27,6 +27,7 @@ void _ComputeTs(int snapshot)
     double total_n_cells = pow((double)ReionGridDim, 3);
     int local_nix = (int)(run_globals.reion_grids.slab_nix[run_globals.mpi_rank]);
     int slab_n_real = local_nix * ReionGridDim * ReionGridDim;
+    int slab_n_real_LC = local_nix * run_globals.params.NUM_FILTER_STEPS_FOR_Ts * ReionGridDim * ReionGridDim;
     int slab_n_complex = (int)(run_globals.reion_grids.slab_n_complex[run_globals.mpi_rank]);
     double ReionEfficiency = run_globals.params.physics.ReionEfficiency;
     run_units_t* units = &(run_globals.units);
@@ -40,23 +41,23 @@ void _ComputeTs(int snapshot)
         prev_redshift = run_globals.ZZ[snapshot-1];
     }
 
-    int i_real, i_padded, R_ct, x_e_ct, n_ct, m_xHII_low, m_xHII_high, NO_LIGHT;
+    int i_real, i_padded, i_smoothedSFR, R_ct, x_e_ct, n_ct, m_xHII_low, m_xHII_high, NO_LIGHT;
 
     double prev_zpp, prev_R, zpp, zp, lower_int_limit_GAL, lower_int_limit_QSO, filling_factor_of_HI_zp, R_factor, R, nuprime, dzp, Luminosity_converstion_factor_GAL, Luminosity_converstion_factor_QSO;
     double collapse_fraction, total_SFR, density_over_mean;
 
     float curr_xalpha;
 
-    double freq_int_heat_GAL[NUM_FILTER_STEPS_FOR_Ts], freq_int_ion_GAL[NUM_FILTER_STEPS_FOR_Ts], freq_int_lya_GAL[NUM_FILTER_STEPS_FOR_Ts];
-    double freq_int_heat_QSO[NUM_FILTER_STEPS_FOR_Ts], freq_int_ion_QSO[NUM_FILTER_STEPS_FOR_Ts], freq_int_lya_QSO[NUM_FILTER_STEPS_FOR_Ts];
+    double freq_int_heat_GAL[run_globals.params.NUM_FILTER_STEPS_FOR_Ts], freq_int_ion_GAL[run_globals.params.NUM_FILTER_STEPS_FOR_Ts], freq_int_lya_GAL[run_globals.params.NUM_FILTER_STEPS_FOR_Ts];
+    double freq_int_heat_QSO[run_globals.params.NUM_FILTER_STEPS_FOR_Ts], freq_int_ion_QSO[run_globals.params.NUM_FILTER_STEPS_FOR_Ts], freq_int_lya_QSO[run_globals.params.NUM_FILTER_STEPS_FOR_Ts];
 
-    double freq_int_heat_tbl_GAL[x_int_NXHII][NUM_FILTER_STEPS_FOR_Ts], freq_int_ion_tbl_GAL[x_int_NXHII][NUM_FILTER_STEPS_FOR_Ts], freq_int_lya_tbl_GAL[x_int_NXHII][NUM_FILTER_STEPS_FOR_Ts];
-    double freq_int_heat_tbl_QSO[x_int_NXHII][NUM_FILTER_STEPS_FOR_Ts], freq_int_ion_tbl_QSO[x_int_NXHII][NUM_FILTER_STEPS_FOR_Ts], freq_int_lya_tbl_QSO[x_int_NXHII][NUM_FILTER_STEPS_FOR_Ts];
+    double freq_int_heat_tbl_GAL[x_int_NXHII][run_globals.params.NUM_FILTER_STEPS_FOR_Ts], freq_int_ion_tbl_GAL[x_int_NXHII][run_globals.params.NUM_FILTER_STEPS_FOR_Ts], freq_int_lya_tbl_GAL[x_int_NXHII][run_globals.params.NUM_FILTER_STEPS_FOR_Ts];
+    double freq_int_heat_tbl_QSO[x_int_NXHII][run_globals.params.NUM_FILTER_STEPS_FOR_Ts], freq_int_ion_tbl_QSO[x_int_NXHII][run_globals.params.NUM_FILTER_STEPS_FOR_Ts], freq_int_lya_tbl_QSO[x_int_NXHII][run_globals.params.NUM_FILTER_STEPS_FOR_Ts];
 
-    double R_values[NUM_FILTER_STEPS_FOR_Ts];
+    double R_values[run_globals.params.NUM_FILTER_STEPS_FOR_Ts];
 
     double *evolve_ans, ans[2], dansdz[5], xHII_call;
-    double SFR_GAL[NUM_FILTER_STEPS_FOR_Ts], SFR_QSO[NUM_FILTER_STEPS_FOR_Ts];
+    double SFR_GAL[run_globals.params.NUM_FILTER_STEPS_FOR_Ts], SFR_QSO[run_globals.params.NUM_FILTER_STEPS_FOR_Ts];
 
     float* deltax = run_globals.reion_grids.deltax;
     float* stars = run_globals.reion_grids.stars;
@@ -88,6 +89,7 @@ void _ComputeTs(int snapshot)
 
     int local_ix_start = (int)(run_globals.reion_grids.slab_ix_start[run_globals.mpi_rank]);
 
+/*
     double** SMOOTHED_SFR_GAL;
     double** SMOOTHED_SFR_QSO;
 
@@ -102,6 +104,13 @@ void _ComputeTs(int snapshot)
         for (R_ct=0; R_ct<NUM_FILTER_STEPS_FOR_Ts; R_ct++){
             SMOOTHED_SFR_QSO[R_ct] = (double*)calloc(total_n_cells, sizeof(double));
         }
+    }
+*/
+
+    double* SMOOTHED_SFR_GAL = run_globals.reion_grids.SMOOTHED_SFR_GAL;
+    double* SMOOTHED_SFR_QSO; 
+    if(run_globals.params.SEP_QSO_XRAY) {
+        SMOOTHED_SFR_QSO = run_globals.reion_grids.SMOOTHED_SFR_QSO;
     }
 
     // Initialise the RECFAST, electron rate tables
@@ -173,10 +182,10 @@ void _ComputeTs(int snapshot)
 
         // Setup starting radius (minimum) and scaling to obtaining the maximum filtering radius for the X-ray background
         R = L_FACTOR*box_size/(float)ReionGridDim;
-        R_factor = pow(R_XLy_MAX/R, 1/(float)NUM_FILTER_STEPS_FOR_Ts);
+        R_factor = pow(R_XLy_MAX/R, 1/(float)run_globals.params.NUM_FILTER_STEPS_FOR_Ts);
 
         // Smooth the density, stars and SFR fields over increasingly larger filtering radii (for evaluating the heating/ionisation integrals)
-        for (R_ct=0; R_ct<NUM_FILTER_STEPS_FOR_Ts; R_ct++){
+        for (R_ct=0; R_ct<run_globals.params.NUM_FILTER_STEPS_FOR_Ts; R_ct++){
 
             R_values[R_ct] = R;
 
@@ -202,14 +211,17 @@ void _ComputeTs(int snapshot)
                         for (int iz = 0; iz < ReionGridDim; iz++) {
                             i_padded = grid_index(ix, iy, iz, ReionGridDim, INDEX_PADDED);
                             i_real = grid_index(ix, iy, iz, ReionGridDim, INDEX_REAL);
+                            i_smoothedSFR = grid_index_smoothedSFR(R_ct, ix, iy, iz, run_globals.params.NUM_FILTER_STEPS_FOR_Ts, ReionGridDim);
 
                             ((float*)sfr_filtered)[i_padded] = fmaxf(((float*)sfr_filtered)[i_padded], 0.0);
 
-                            SMOOTHED_SFR_GAL[R_ct][i_real] = ( ((float*)sfr_filtered)[i_padded] / pixel_volume )
+//                            SMOOTHED_SFR_GAL[R_ct][i_real] = ( ((float*)sfr_filtered)[i_padded] / pixel_volume )
+                            SMOOTHED_SFR_GAL[i_smoothedSFR] = ( ((float*)sfr_filtered)[i_padded] / pixel_volume )
                                      * (units->UnitMass_in_g / units->UnitTime_in_s) * pow( units->UnitLength_in_cm, -3. )/ SOLAR_MASS;
 
                             if(run_globals.params.SEP_QSO_XRAY) {
-                                SMOOTHED_SFR_QSO[R_ct][i_real] = ( ((float*)sfr_filtered)[i_padded] / pixel_volume )
+//                                SMOOTHED_SFR_QSO[R_ct][i_real] = ( ((float*)sfr_filtered)[i_padded] / pixel_volume )
+                                SMOOTHED_SFR_QSO[i_smoothedSFR] = ( ((float*)sfr_filtered)[i_padded] / pixel_volume )
                                      * (units->UnitMass_in_g / units->UnitTime_in_s) * pow( units->UnitLength_in_cm, -3. )/ SOLAR_MASS;
                             }
 
@@ -241,14 +253,17 @@ void _ComputeTs(int snapshot)
                         for (int iz = 0; iz < ReionGridDim; iz++) {
                             i_real = grid_index(ix, iy, iz, ReionGridDim, INDEX_REAL);
                             i_padded = grid_index(ix, iy, iz, ReionGridDim, INDEX_PADDED);
+                            i_smoothedSFR = grid_index_smoothedSFR(R_ct, ix, iy, iz, run_globals.params.NUM_FILTER_STEPS_FOR_Ts, ReionGridDim);
 
                             ((float*)sfr_filtered)[i_padded] = fmaxf(((float*)sfr_filtered)[i_padded], 0.0);
 
-                            SMOOTHED_SFR_GAL[R_ct][i_real] = (((float*)sfr_filtered)[i_padded] / pixel_volume )
+//                            SMOOTHED_SFR_GAL[R_ct][i_real] = (((float*)sfr_filtered)[i_padded] / pixel_volume )
+                            SMOOTHED_SFR_GAL[i_smoothedSFR] = (((float*)sfr_filtered)[i_padded] / pixel_volume )
                                 * (units->UnitMass_in_g / units->UnitTime_in_s) * pow( units->UnitLength_in_cm, -3. )/ SOLAR_MASS;
 
                             if(run_globals.params.SEP_QSO_XRAY) {
-                                SMOOTHED_SFR_QSO[R_ct][i_real] = ( ((float*)sfr_filtered)[i_padded] / pixel_volume )
+//                                SMOOTHED_SFR_QSO[R_ct][i_real] = ( ((float*)sfr_filtered)[i_padded] / pixel_volume )
+                                SMOOTHED_SFR_QSO[i_smoothedSFR] = ( ((float*)sfr_filtered)[i_padded] / pixel_volume )
        	       	       	       	     * (units->UnitMass_in_g / units->UnitTime_in_s) * pow( units->UnitLength_in_cm, -3. )/ SOLAR_MASS;
        	       	       	    }
 
@@ -271,7 +286,7 @@ void _ComputeTs(int snapshot)
         }
 
         // Populate the initial ionisation/heating tables
-        for (R_ct=0; R_ct<NUM_FILTER_STEPS_FOR_Ts; R_ct++){
+        for (R_ct=0; R_ct<run_globals.params.NUM_FILTER_STEPS_FOR_Ts; R_ct++){
 
             if (R_ct==0){
                 prev_zpp = zp;
@@ -391,12 +406,15 @@ void _ComputeTs(int snapshot)
                     ans[0] = x_e_box_prev[i_padded];
                     ans[1] = Tk_box_prev[i_real];
 
-                    for (R_ct=0; R_ct<NUM_FILTER_STEPS_FOR_Ts; R_ct++){
+                    for (R_ct=0; R_ct<run_globals.params.NUM_FILTER_STEPS_FOR_Ts; R_ct++){
+                        i_smoothedSFR = grid_index_smoothedSFR(R_ct, ix, iy, iz, run_globals.params.NUM_FILTER_STEPS_FOR_Ts, ReionGridDim);
 
-                        SFR_GAL[R_ct] = SMOOTHED_SFR_GAL[R_ct][i_real];
+//                        SFR_GAL[R_ct] = SMOOTHED_SFR_GAL[R_ct][i_real];
+                        SFR_GAL[R_ct] = SMOOTHED_SFR_GAL[i_smoothedSFR];
 
                         if(run_globals.params.SEP_QSO_XRAY) {
-                            SFR_QSO[R_ct] = SMOOTHED_SFR_QSO[R_ct][i_real];
+//                            SFR_QSO[R_ct] = SMOOTHED_SFR_QSO[R_ct][i_real];
+                            SFR_QSO[R_ct] = SMOOTHED_SFR_QSO[i_smoothedSFR];
                         }
 
                         xHII_call = x_e_box_prev[i_padded];

@@ -295,6 +295,9 @@ typedef struct run_params_t {
     int Flag_ComputePS;
     int Flag_IncludePecVelsFor21cm;
     int Flag_ConstructLightcone;
+
+    int NUM_FILTER_STEPS_FOR_Ts;
+
     double End_Lightcone;
     long long LightconeLength;
     long long CurrentLCPos;
@@ -387,6 +390,9 @@ typedef struct reion_grids_t {
     float* Tk_box;
     float* Tk_box_prev;
     float* TS_box;
+
+    double* SMOOTHED_SFR_GAL;
+    double* SMOOTHED_SFR_QSO;
 
     // Grids necessary for inhomogeneous recombinations
     fftwf_complex* N_rec_unfiltered;
@@ -843,6 +849,7 @@ void ComputeBrightnessTemperatureBox(int snapshot);
 
 void Compute_PS(int snapshot, int field);
 
+int grid_index_smoothedSFR(int radii, int i, int j, int k, int filter_steps, int dim);
 int grid_index_LC(int i, int j, int k, int dim, int dim_LC);
 void Initialise_ConstructLightcone();
 void ConstructLightcone(int snapshot);
