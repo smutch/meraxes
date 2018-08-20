@@ -89,24 +89,6 @@ void _ComputeTs(int snapshot)
 
     int local_ix_start = (int)(run_globals.reion_grids.slab_ix_start[run_globals.mpi_rank]);
 
-/*
-    double** SMOOTHED_SFR_GAL;
-    double** SMOOTHED_SFR_QSO;
-
-    SMOOTHED_SFR_GAL = (double**)calloc(NUM_FILTER_STEPS_FOR_Ts, sizeof(double*));
-    for (R_ct=0; R_ct<NUM_FILTER_STEPS_FOR_Ts; R_ct++){
-        SMOOTHED_SFR_GAL[R_ct] = (double*)calloc(total_n_cells, sizeof(double));
-    }    
-
-    if(run_globals.params.SEP_QSO_XRAY) {
-
-        SMOOTHED_SFR_QSO = (double**)calloc(NUM_FILTER_STEPS_FOR_Ts, sizeof(double*));
-        for (R_ct=0; R_ct<NUM_FILTER_STEPS_FOR_Ts; R_ct++){
-            SMOOTHED_SFR_QSO[R_ct] = (double*)calloc(total_n_cells, sizeof(double));
-        }
-    }
-*/
-
     double* SMOOTHED_SFR_GAL = run_globals.reion_grids.SMOOTHED_SFR_GAL;
     double* SMOOTHED_SFR_QSO; 
     if(run_globals.params.SEP_QSO_XRAY) {
@@ -134,7 +116,8 @@ void _ComputeTs(int snapshot)
     // Check redshift against Z_HEAT_MAX. If zp > Z_HEAT_MAX assume the x_e (electron fraction) and gas temperatures are homogenous 
     // Equivalent to the default setup of 21cmFAST. 
 //    if( zp >= run_globals.params.physics.Z_HEAT_MAX && ( fabs(zp - run_globals.params.physics.Z_HEAT_MAX) >= FRACT_FLOAT_ERR) ) {
-    if( zp >= 34.0 ) {
+//    if( zp >= 34.0 ) {
+    if( (zp - run_globals.params.physics.Z_HEAT_MAX) >= -0.0001) {
         for (int ix = 0; ix < local_nix; ix++)
             for (int iy = 0; iy < ReionGridDim; iy++)
                 for (int iz = 0; iz < ReionGridDim; iz++) {
@@ -174,7 +157,6 @@ void _ComputeTs(int snapshot)
 
         collapse_fraction = collapse_fraction/total_n_cells;
 
-        mlog("zp = %e collapse_fraction = %e", MLOG_MESG, collapse_fraction);
     }
     else {
 
@@ -215,12 +197,10 @@ void _ComputeTs(int snapshot)
 
                             ((float*)sfr_filtered)[i_padded] = fmaxf(((float*)sfr_filtered)[i_padded], 0.0);
 
-//                            SMOOTHED_SFR_GAL[R_ct][i_real] = ( ((float*)sfr_filtered)[i_padded] / pixel_volume )
                             SMOOTHED_SFR_GAL[i_smoothedSFR] = ( ((float*)sfr_filtered)[i_padded] / pixel_volume )
                                      * (units->UnitMass_in_g / units->UnitTime_in_s) * pow( units->UnitLength_in_cm, -3. )/ SOLAR_MASS;
 
                             if(run_globals.params.SEP_QSO_XRAY) {
-//                                SMOOTHED_SFR_QSO[R_ct][i_real] = ( ((float*)sfr_filtered)[i_padded] / pixel_volume )
                                 SMOOTHED_SFR_QSO[i_smoothedSFR] = ( ((float*)sfr_filtered)[i_padded] / pixel_volume )
                                      * (units->UnitMass_in_g / units->UnitTime_in_s) * pow( units->UnitLength_in_cm, -3. )/ SOLAR_MASS;
                             }
@@ -242,8 +222,6 @@ void _ComputeTs(int snapshot)
 
                     stored_fcoll[snapshot] = collapse_fraction;
  
-                    mlog("zp = %e collapse_fraction = %e x_e_ave = %e", MLOG_MESG, zp, collapse_fraction, x_e_ave);
-
             }
             else {
 
@@ -257,12 +235,10 @@ void _ComputeTs(int snapshot)
 
                             ((float*)sfr_filtered)[i_padded] = fmaxf(((float*)sfr_filtered)[i_padded], 0.0);
 
-//                            SMOOTHED_SFR_GAL[R_ct][i_real] = (((float*)sfr_filtered)[i_padded] / pixel_volume )
                             SMOOTHED_SFR_GAL[i_smoothedSFR] = (((float*)sfr_filtered)[i_padded] / pixel_volume )
                                 * (units->UnitMass_in_g / units->UnitTime_in_s) * pow( units->UnitLength_in_cm, -3. )/ SOLAR_MASS;
 
                             if(run_globals.params.SEP_QSO_XRAY) {
-//                                SMOOTHED_SFR_QSO[R_ct][i_real] = ( ((float*)sfr_filtered)[i_padded] / pixel_volume )
                                 SMOOTHED_SFR_QSO[i_smoothedSFR] = ( ((float*)sfr_filtered)[i_padded] / pixel_volume )
        	       	       	       	     * (units->UnitMass_in_g / units->UnitTime_in_s) * pow( units->UnitLength_in_cm, -3. )/ SOLAR_MASS;
        	       	       	    }
@@ -278,11 +254,9 @@ void _ComputeTs(int snapshot)
         // A condition (defined by whether or not there are stars) for evaluating the heating/ionisation integrals
         if(collapse_fraction > 0.0) {
             NO_LIGHT = 0;
-//            mlog("NO_LIGHT = 0", MLOG_MESG);
         }
         else {
             NO_LIGHT = 1;
-//            mlog("NO_LIGHT = 1", MLOG_MESG);
         }
 
         // Populate the initial ionisation/heating tables
@@ -291,12 +265,10 @@ void _ComputeTs(int snapshot)
             if (R_ct==0){
                 prev_zpp = zp;
                 prev_R = 0;
-                mlog("interpolation tables: R_ct = %d dzpp = %e",MLOG_MESG,R_ct,zp - (prev_zpp - (R_values[R_ct] - prev_R)*MPC / ( drdz(prev_zpp) )));
             }
             else{
                 prev_zpp = zpp_edge[R_ct-1];
                 prev_R = R_values[R_ct-1];
-                mlog("interpolation tables: R_ct = %d dzpp = %e",MLOG_MESG,R_ct,zpp_edge[R_ct-1] - (prev_zpp - (R_values[R_ct] - prev_R)*MPC / ( drdz(prev_zpp) )));
             }
 
             zpp_edge[R_ct] = prev_zpp - (R_values[R_ct] - prev_R)*MPC / ( drdz(prev_zpp) ); // cell size
@@ -317,12 +289,6 @@ void _ComputeTs(int snapshot)
                 freq_int_ion_tbl_GAL[x_e_ct][R_ct] = integrate_over_nu(zp, x_int_XHII[x_e_ct], lower_int_limit_GAL, run_globals.params.physics.NU_X_GAL_THRESH, run_globals.params.physics.X_RAY_SPEC_INDEX_GAL, 1);
                 freq_int_lya_tbl_GAL[x_e_ct][R_ct] = integrate_over_nu(zp, x_int_XHII[x_e_ct], lower_int_limit_GAL, run_globals.params.physics.NU_X_GAL_THRESH, run_globals.params.physics.X_RAY_SPEC_INDEX_GAL, 2);
             
-                if (run_globals.mpi_rank == 0) {
-                    if(R_ct < 3 && x_e_ct < 3) {
-                        mlog("interpolation tables: R_ct = %d x_e_ct = %d heat = %e ion = %e lya = %e",MLOG_MESG,R_ct,x_e_ct,freq_int_heat_tbl_GAL[x_e_ct][R_ct],freq_int_ion_tbl_GAL[x_e_ct][R_ct],freq_int_lya_tbl_GAL[x_e_ct][R_ct]);
-                    }
-                }
-
                 if(run_globals.params.SEP_QSO_XRAY)	{
                     freq_int_heat_tbl_QSO[x_e_ct][R_ct] = integrate_over_nu(zp, x_int_XHII[x_e_ct], lower_int_limit_QSO, run_globals.params.physics.NU_X_QSO_THRESH, run_globals.params.physics.X_RAY_SPEC_INDEX_QSO, 0);
                     freq_int_ion_tbl_QSO[x_e_ct][R_ct] = integrate_over_nu(zp, x_int_XHII[x_e_ct], lower_int_limit_QSO, run_globals.params.physics.NU_X_QSO_THRESH, run_globals.params.physics.X_RAY_SPEC_INDEX_QSO, 1);
@@ -338,18 +304,13 @@ void _ComputeTs(int snapshot)
 
                 nuprime = nu_n(n_ct)*(1+zpp)/(1.0+zp);
                 sum_lyn[R_ct] += frecycle(n_ct) * spectral_emissivity(nuprime, 0);
-//                mlog("sum_lyn: R_ct = %d zpp = %e sum_lyn = %e",MLOG_MESG,R_ct,zpp,sum_lyn[R_ct]);
             }
-            mlog("sum_lyn: R_ct = %d zpp = %e sum_lyn = %e",MLOG_MESG,R_ct,zpp,sum_lyn[R_ct]);
 	}
 
         growth_factor_zp = dicke(zp);
         dgrowth_factor_dzp = ddicke_dz(zp);
         dt_dzp = dtdz(zp);
         
-      	mlog("dt_dzp = %e",MLOG_MESG,dt_dzp); 
-
-
         // Below is the converstion of the soft-band X_ray luminosity into number of X-ray photons produced. This is the code taken from 21CMMC, which somewhat
         // uses the 21cmFAST nomenclature (to ease flipping between old/new parameterisation), so isn't necessarily the most intuitive way to express this.
 
@@ -394,8 +355,6 @@ void _ComputeTs(int snapshot)
 
         }
 
-        mlog("const_zp_prefactor_GAL: zp = %e const_zp_prefactor_GAL = %e",MLOG_MESG,zp,const_zp_prefactor_GAL);
-
         //interpolate to correct nu integral value based on the cell's ionization state
         for (int ix = 0; ix < local_nix; ix++)
             for (int iy = 0; iy < ReionGridDim; iy++)
@@ -409,11 +368,9 @@ void _ComputeTs(int snapshot)
                     for (R_ct=0; R_ct<run_globals.params.NUM_FILTER_STEPS_FOR_Ts; R_ct++){
                         i_smoothedSFR = grid_index_smoothedSFR(R_ct, ix, iy, iz, run_globals.params.NUM_FILTER_STEPS_FOR_Ts, ReionGridDim);
 
-//                        SFR_GAL[R_ct] = SMOOTHED_SFR_GAL[R_ct][i_real];
                         SFR_GAL[R_ct] = SMOOTHED_SFR_GAL[i_smoothedSFR];
 
                         if(run_globals.params.SEP_QSO_XRAY) {
-//                            SFR_QSO[R_ct] = SMOOTHED_SFR_QSO[R_ct][i_real];
                             SFR_QSO[R_ct] = SMOOTHED_SFR_QSO[i_smoothedSFR];
                         }
 
@@ -443,13 +400,6 @@ void _ComputeTs(int snapshot)
                         freq_int_lya_GAL[R_ct] = (freq_int_lya_tbl_GAL[m_xHII_high][R_ct] - freq_int_lya_tbl_GAL[m_xHII_low][R_ct]) / (x_int_XHII[m_xHII_high] - x_int_XHII[m_xHII_low]);
                         freq_int_lya_GAL[R_ct] *= (xHII_call - x_int_XHII[m_xHII_low]);
                         freq_int_lya_GAL[R_ct] += freq_int_lya_tbl_GAL[m_xHII_low][R_ct];
-
-                        if (run_globals.mpi_rank == 0) {
-       	       	       	    if(R_ct == 0 && iy<2 && iz<2) {
-       	       	       	        mlog("interpolation tables: heat = %e ion = %e lya = %e",MLOG_MESG,freq_int_heat_GAL[R_ct],freq_int_ion_GAL[R_ct],freq_int_lya_GAL[R_ct]);
-       	       	       	    }
-       	       	        }
-
 
                         if(run_globals.params.SEP_QSO_XRAY) {
 
@@ -492,15 +442,6 @@ void _ComputeTs(int snapshot)
                     Xheat_ave += dansdz[3];
                     Xion_ave += dansdz[4];
 
-                    quantity1 += dansdz[5];
-                    quantity2 += dansdz[6];
-
-                    quantity3 += dansdz[7];
-                    quantity4 += dansdz[8];
-
-                    quantity5 += dansdz[9];
-                    quantity6 += dansdz[10];
-
                 } 
 
         MPI_Allreduce(MPI_IN_PLACE, &J_alpha_ave, 1, MPI_DOUBLE, MPI_SUM, run_globals.mpi_comm);
@@ -508,26 +449,10 @@ void _ComputeTs(int snapshot)
         MPI_Allreduce(MPI_IN_PLACE, &Xheat_ave, 1, MPI_DOUBLE, MPI_SUM, run_globals.mpi_comm);
         MPI_Allreduce(MPI_IN_PLACE, &Xion_ave, 1, MPI_DOUBLE, MPI_SUM, run_globals.mpi_comm);
 
-        MPI_Allreduce(MPI_IN_PLACE, &quantity1, 1, MPI_DOUBLE, MPI_SUM, run_globals.mpi_comm);
-        MPI_Allreduce(MPI_IN_PLACE, &quantity2, 1, MPI_DOUBLE, MPI_SUM, run_globals.mpi_comm);
-        MPI_Allreduce(MPI_IN_PLACE, &quantity3, 1, MPI_DOUBLE, MPI_SUM, run_globals.mpi_comm);
-        MPI_Allreduce(MPI_IN_PLACE, &quantity4, 1, MPI_DOUBLE, MPI_SUM, run_globals.mpi_comm);
-        MPI_Allreduce(MPI_IN_PLACE, &quantity5, 1, MPI_DOUBLE, MPI_SUM, run_globals.mpi_comm);
-        MPI_Allreduce(MPI_IN_PLACE, &quantity6, 1, MPI_DOUBLE, MPI_SUM, run_globals.mpi_comm);
-
         J_alpha_ave /= total_n_cells;
         xalpha_ave /= total_n_cells;
         Xheat_ave /= total_n_cells;
         Xion_ave /= total_n_cells;
-
-        quantity1 /= total_n_cells;
-        quantity2 /= total_n_cells;
-
-        quantity3 /= total_n_cells;
-        quantity4 /= total_n_cells;
-
-        quantity5 /= total_n_cells;
-        quantity6 /= total_n_cells;
 
     }
 
@@ -557,8 +482,6 @@ void _ComputeTs(int snapshot)
 
     mlog("zp = %e Ts_ave = %e Tk_ave = %e x_e_ave = %e", MLOG_MESG, zp, Ave_Ts, Ave_Tk, Ave_x_e);
     mlog("zp = %e J_alpha_ave = %e xalpha_ave = %e Xheat_ave = %e Xion_ave = %e", MLOG_MESG, zp, J_alpha_ave, xalpha_ave, Xheat_ave, Xion_ave);
-    mlog("zp = %e dxion_source_dt = %e dxheat_dt = %e dxlya_dt = %e dstarlya_dt = %e", MLOG_MESG, zp, quantity1, quantity2, quantity3, quantity4);
-    mlog("zp = %e summed quantity 1 = %e summed quantity 2 = %e", MLOG_MESG, zp, quantity5, quantity6);
 }
 
 // This function makes sure that the right version of ComputeTs() gets called.

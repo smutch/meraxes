@@ -176,8 +176,14 @@ void call_ComputeTs(int snapshot, int nout_gals, timer_info* timer)
             mlog_error("Unrecognised input trees identifier (TreesID).");
         break;
     }
+
+    mlog("...done", MLOG_CLOSE);
     
+    // Call Compute Ts
+    mlog("Calling ComputeTs", MLOG_OPEN | MLOG_TIMERSTART);
+
     ComputeTs(snapshot, timer);
+    mlog("...done", MLOG_CLOSE | MLOG_TIMERSTOP);
 }
 
 

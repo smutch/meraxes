@@ -421,17 +421,6 @@ void _find_HII_bubbles(int snapshot)
                         electron_fraction = 1.0;
                     }
 
-/*
-                    if (run_globals.mpi_rank == 0) {
-                        if( iy < 2 && iz < 2 ) {
-//                            mlog("R = %e ix = %d iy = %d iz = %d dens = %e fcoll = %e SFR = %e x_e = %e",MLOG_MESG,R,ix,iy,iz,(double)((float*)deltax_filtered)[i_padded],f_coll_stars,sfr_density,((float*)x_e_filtered)[i_padded]);
-                            if(R>20) {
-                                mlog("R = %e ix = %d iy = %d iz = %d Gamma_R = %e Gamma_R_prefactor = %e SFR_density = %e fcoll = %e", MLOG_MESG, R, ix, iy, iz, Gamma_R, Gamma_R_prefactor, sfr_density, f_coll_stars);
-                            }
-                        }
-                    }
-*/
-
                     if (flag_ReionUVBFlag)
                         J_21_aux = (float)(sfr_density * J_21_aux_constant);
 
@@ -524,12 +513,6 @@ void _find_HII_bubbles(int snapshot)
                     z_eff = (1. + redshift) * pow(density_over_mean, 1.0/3.0) - 1;
                     dNrec = splined_recombination_rate(z_eff, Gamma12[i_real]) * fabs_dtdz * ZSTEP * (1. - xH[i_real]);
                     N_rec[i_padded] += dNrec;
-
-                    if (run_globals.mpi_rank == 0) {
-                        if(iy < 2 && iz < 2) {
-                            mlog("del = %e z_eff = %e Gamma12 = %e N_rec = %e dNrec = %e xH = %e",MLOG_MESG,deltax[i_padded],z_eff,Gamma12[i_real],N_rec[i_padded],dNrec,xH[i_real]);
-                        }
-                    }
 
                 }
     }
