@@ -981,6 +981,16 @@ void save_reion_output_grids(int snapshot)
         write_grid_float("Mvir_crit", grids->Mvir_crit, file_id, fspace_id, memspace_id, dcpl_id);
     }
 
+    if (run_globals.params.Flag_IncludeSpinTemp) {
+        write_grid_float("TS_box", grids->TS_box, file_id, fspace_id, memspace_id, dcpl_id);
+        write_grid_float("Tk_box", grids->Tk_box, file_id, fspace_id, memspace_id, dcpl_id);
+        write_grid_float("x_e_box", grids->x_e_box, file_id, fspace_id, memspace_id, dcpl_id);
+    }
+
+    if(run_globals.params.Flag_Compute21cmBrightTemp) {
+        write_grid_float("delta_T", grids->delta_T, file_id, fspace_id, memspace_id, dcpl_id);
+    }
+
     H5LTset_attribute_double(file_id, "xH", "volume_weighted_global_xH", &(grids->volume_weighted_global_xH), 1);
     H5LTset_attribute_double(file_id, "xH", "mass_weighted_global_xH", &(grids->mass_weighted_global_xH), 1);
 
