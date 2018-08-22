@@ -177,6 +177,22 @@ void call_ComputeTs(int snapshot, int nout_gals, timer_info* timer)
         break;
     }
 
+    // read in the velocity grids (only works for GBPTREES_TREES at the moment)
+    if(run_globals.params.Flag_IncludePecVelsFor21cm>0) {
+        
+        switch (run_globals.params.TreesID) {
+            case VELOCIRAPTOR_TREES:
+                mlog_error("Velocity grids only supported for GBP at the present.");
+                ABORT(EXIT_FAILURE);
+            case GBPTREES_TREES:
+                read_dm_vel_grid__gbptrees(snapshot, grids->vel);
+                break;
+            default:
+                mlog_error("Unrecognised input trees identifier (TreesID).");
+            break;
+        }
+    }
+
     // save the grids prior to doing FFTs to avoid precision loss and aliasing etc.
         for (int i_out = 0; i_out < run_globals.NOutputSnaps; i_out++)
             if (snapshot == run_globals.ListOutputSnaps[i_out] && run_globals.params.Flag_OutputGrids)
