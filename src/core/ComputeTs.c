@@ -127,8 +127,8 @@ void _ComputeTs(int snapshot)
                     x_e_box_prev[i_padded] = xion_RECFAST(zp,0);
                     Tk_box_prev[i_real] = T_RECFAST(zp,0);
 
-                    TS_box[i_real] = get_Ts(zp, run_globals.reion_grids.deltax[i_padded], Tk_box_prev[i_real], x_e_box_prev[i_padded],1, &curr_xalpha);
-
+                    TS_box[i_real] = get_Ts(zp, run_globals.reion_grids.deltax[i_padded], Tk_box_prev[i_real], x_e_box_prev[i_padded],0, &curr_xalpha);
+          
                 }
 
 	
@@ -188,6 +188,8 @@ void _ComputeTs(int snapshot)
             // Need the non-smoothed version, hence this is only done for R_ct == 0.
             if(R_ct == 0) {
 
+                quantity1 = 0.;
+
                 for (int ix = 0; ix < local_nix; ix++)
                     for (int iy = 0; iy < ReionGridDim; iy++)
                         for (int iz = 0; iz < ReionGridDim; iz++) {
@@ -199,6 +201,8 @@ void _ComputeTs(int snapshot)
 
                             SMOOTHED_SFR_GAL[i_smoothedSFR] = ( ((float*)sfr_filtered)[i_padded] / pixel_volume )
                                      * (units->UnitMass_in_g / units->UnitTime_in_s) * pow( units->UnitLength_in_cm, -3. )/ SOLAR_MASS;
+
+                            quantity1 += SMOOTHED_SFR_GAL[i_smoothedSFR];
 
                             if(run_globals.params.SEP_QSO_XRAY) {
                                 SMOOTHED_SFR_QSO[i_smoothedSFR] = ( ((float*)sfr_filtered)[i_padded] / pixel_volume )
@@ -214,13 +218,17 @@ void _ComputeTs(int snapshot)
 
                     }
 
-                    MPI_Allreduce(MPI_IN_PLACE, &collapse_fraction, 1, MPI_DOUBLE, MPI_SUM, run_globals.mpi_comm);
-                    MPI_Allreduce(MPI_IN_PLACE, &x_e_ave, 1, MPI_DOUBLE, MPI_SUM, run_globals.mpi_comm);
+                MPI_Allreduce(MPI_IN_PLACE, &collapse_fraction, 1, MPI_DOUBLE, MPI_SUM, run_globals.mpi_comm);
+                MPI_Allreduce(MPI_IN_PLACE, &x_e_ave, 1, MPI_DOUBLE, MPI_SUM, run_globals.mpi_comm);
+                MPI_Allreduce(MPI_IN_PLACE, &quantity1, 1, MPI_DOUBLE, MPI_SUM, run_globals.mpi_comm);
 
-                    collapse_fraction = collapse_fraction/total_n_cells;
-                    x_e_ave = x_e_ave/total_n_cells;
+                collapse_fraction = collapse_fraction/total_n_cells;
+                x_e_ave = x_e_ave/total_n_cells;
+                quantity1 = quantity1/total_n_cells;
 
-                    stored_fcoll[snapshot] = collapse_fraction;
+                stored_fcoll[snapshot] = collapse_fraction;
+
+                mlog("zp = %e SFR_density = %e", MLOG_MESG, zp, quantity1);
  
             }
             else {

@@ -296,9 +296,12 @@ typedef struct run_params_t {
     int Flag_IncludePecVelsFor21cm;
     int Flag_ConstructLightcone;
 
+    int VelocityComponent;
+
     int NUM_FILTER_STEPS_FOR_Ts;
 
     double End_Lightcone;
+    int End_Lightcone_snapshot;
     long long LightconeLength;
     long long CurrentLCPos;
     int SEP_QSO_XRAY;

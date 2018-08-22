@@ -996,6 +996,27 @@ void save_reion_output_grids(int snapshot)
         write_grid_float("delta_T", grids->delta_T, file_id, fspace_id, memspace_id, dcpl_id);
     }
 
+    // create the filespace
+    hsize_t dims_LC[3] = { ReionGridDim, ReionGridDim, run_globals.params.LightconeLength };
+    hid_t fspace_id_LC = H5Screate_simple(3, dims_LC, NULL);
+
+    // create the memspace
+    hsize_t mem_dims_LC[3] = { local_nix, ReionGridDim, run_globals.params.LightconeLength };
+    hid_t memspace_id_LC = H5Screate_simple(3, mem_dims_LC, NULL);
+
+    // select a hyperslab in the filespace
+    hsize_t start_LC[3] = { run_globals.reion_grids.slab_ix_start[run_globals.mpi_rank], 0, 0 };
+    hsize_t count_LC[3] = { local_nix, ReionGridDim, run_globals.params.LightconeLength };
+    H5Sselect_hyperslab(fspace_id_LC, H5S_SELECT_SET, start_LC, NULL, count_LC, NULL);
+
+    // set the dataset creation property list to use chunking along x-axis
+    hid_t dcpl_id_LC = H5Pcreate(H5P_DATASET_CREATE);
+    H5Pset_chunk(dcpl_id_LC, 3, (hsize_t[3]){ 1, ReionGridDim, run_globals.params.LightconeLength });
+
+    if(run_globals.params.Flag_ConstructLightcone && run_globals.params.End_Lightcone_snapshot==snapshot) {
+        write_grid_float("LightconeBox", grids->LightconeBox, file_id, fspace_id_LC, memspace_id_LC, dcpl_id_LC);
+    }
+
     H5LTset_attribute_double(file_id, "xH", "volume_weighted_global_xH", &(grids->volume_weighted_global_xH), 1);
     H5LTset_attribute_double(file_id, "xH", "mass_weighted_global_xH", &(grids->mass_weighted_global_xH), 1);
 

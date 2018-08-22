@@ -62,6 +62,7 @@ void Initialise_ConstructLightcone()
     
     // Store the length of the light-cone to be able to allocate the array to hold the light-cone
     run_globals.params.LightconeLength = total_slice_i;
+    run_globals.params.End_Lightcone_snapshot = closest_snapshot;
     
 }
 
@@ -101,22 +102,8 @@ void ConstructLightcone(int snapshot)
         
         // Repeat some of the light-cone initialisation just to avoid passing things around
 
-        i = 0;
-
-        // Find the first snapshot beyond the user provided beginning of the light-cone (defined from the lowest redshift)
-        while(run_globals.ZZ[i] > run_globals.params.End_Lightcone) {
-            i++;
-        }
-        closest_snapshot = i;
-
-        // Determine if the beginning of the light-cone (lower redshift) is lower than the final snapshot provided by the snapshot list
-        // If it is, set the lowest redshift to be the final snapshot provided by the snapshot list
-        if(closest_snapshot > run_globals.LastOutputSnap) {
-            closest_snapshot = run_globals.LastOutputSnap;
-        }
-
-
-
+        // Set the lowest redshift snapshot
+        closest_snapshot = run_globals.params.End_Lightcone_snapshot;
 
         z_LC = run_globals.ZZ[closest_snapshot];
 
@@ -148,6 +135,17 @@ void ConstructLightcone(int snapshot)
                 // Ensure we don't overstep the gridsize of the co-eval box
                 if(iz >= ReionGridDim) {
                     iz = 0;
+                }
+
+                for (int ii = 0; ii < local_nix; ii++) {
+                    for (int jj=0;jj<ReionGridDim; jj++){
+                        i_real_LC =  grid_index_LC(ii, jj, slice_ct, ReionGridDim, run_globals.params.LightconeLength);
+                        i_real = grid_index(ii, jj, iz, ReionGridDim, INDEX_REAL);
+
+                        fz1 = delta_T[i_real];
+                        fz2 = delta_T_prev[i_real];
+                        run_globals.reion_grids.LightconeBox[i_real_LC] = (fz2 - fz1) / (t_z2_LC - t_z1_LC) * (t_z_slice - t_z1_LC) + fz1; // linearly interpolate in z (time actually)
+                    }
                 }
 
                 iz++;

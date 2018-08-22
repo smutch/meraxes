@@ -79,11 +79,11 @@ void ComputeBrightnessTemperatureBox(int snapshot) {
                         delta_T[i_real] *= (1. + redshift)/(1000.*run_globals.reion_grids.TS_box[i_real]);
 
                     }
-                    // We are capping the peculiar velocity gradients (keeping the optically thin limit approximation)
-                    if(run_globals.params.Flag_IncludePecVelsFor21cm == 1) {
-
+                    else {
+                        
                         pixel_Ts_factor = (1 - T_rad / run_globals.reion_grids.TS_box[i_real]);
                         delta_T[i_real] *= pixel_Ts_factor;
+                    
                     }
                 }
             }
@@ -454,4 +454,18 @@ void ComputeBrightnessTemperatureBox(int snapshot) {
     }
 
 
+    double Ave_Tb = 0.0;
+
+    for (int ix = 0; ix < local_nix; ix++)
+        for (int iy = 0; iy < ReionGridDim; iy++)
+            for (int iz = 0; iz < ReionGridDim; iz++) {
+                i_real = grid_index(ix, iy, iz, ReionGridDim, INDEX_REAL);
+
+                Ave_Tb += (double)delta_T[i_real];
+            }
+
+    Ave_Tb /= total_n_cells;
+
+    MPI_Allreduce(MPI_IN_PLACE, &Ave_Tb, 1, MPI_DOUBLE, MPI_SUM, run_globals.mpi_comm);
+    mlog("zp = %e Tb_ave = %e", MLOG_MESG, redshift, Ave_Tb);
 }
