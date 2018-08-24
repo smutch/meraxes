@@ -48,7 +48,7 @@
 //double zpp_edge[run_globals.params.NUM_FILTER_STEPS_FOR_Ts], sigma_atR[run_globals.params.NUM_FILTER_STEPS_FOR_Ts], sigma_Tmin[run_globals.params.NUM_FILTER_STEPS_FOR_Ts], ST_over_PS[run_globals.params.NUM_FILTER_STEPS_FOR_Ts], sum_lyn[run_globals.params.NUM_FILTER_STEPS_FOR_Ts];
 double *zpp_edge, *sigma_atR, *sigma_Tmin, *ST_over_PS, *sum_lyn;  
 unsigned long long box_ct;
-double const_zp_prefactor_GAL, const_zp_prefactor_QSO, dt_dzp, x_e_ave;
+double const_zp_prefactor_GAL, const_zp_prefactor_QSO, dt_dzp, dt_dzpp, x_e_ave;
 double growth_factor_zp, dgrowth_factor_dzp, PS_ION_EFF;
 int NO_LIGHT;
 float M_MIN_at_z, M_MIN_at_zp;
@@ -1280,8 +1280,8 @@ void evolveInt(float zp, float curr_delNL0, double SFR_GAL[], double SFR_QSO[],
   dxlya_dt_QSO = 0;
   dstarlya_dt_QSO = 0;
 
-  double quantity1, quantity2, quantity3, quantity4;
-  quantity1 = quantity2 = quantity3 = quantity4 = 0.0;
+  double quantity1, quantity2, quantity3, quantity4, quantity5;
+  quantity1 = quantity2 = quantity3 = quantity4 = quantity5 = 0.0;
 
   if (!NO_LIGHT){
       for (zpp_ct = 0; zpp_ct < run_globals.params.NUM_FILTER_STEPS_FOR_Ts; zpp_ct++){
@@ -1304,37 +1304,41 @@ void evolveInt(float zp, float curr_delNL0, double SFR_GAL[], double SFR_QSO[],
 
           if(run_globals.params.SEP_QSO_XRAY) {
               
-              dxheat_dt_GAL += dt_dzp * dzpp * zpp_integrand_GAL * freq_int_heat_GAL[zpp_ct];
-              dxheat_dt_QSO += dt_dzp * dzpp * zpp_integrand_QSO * freq_int_heat_QSO[zpp_ct];
+              dxheat_dt_GAL += dt_dzpp * dzpp * zpp_integrand_GAL * freq_int_heat_GAL[zpp_ct];
+              dxheat_dt_QSO += dt_dzpp * dzpp * zpp_integrand_QSO * freq_int_heat_QSO[zpp_ct];
 
-              dxion_source_dt_GAL += dt_dzp * dzpp * zpp_integrand_GAL * freq_int_ion_GAL[zpp_ct];
-              dxion_source_dt_QSO += dt_dzp * dzpp * zpp_integrand_QSO * freq_int_ion_QSO[zpp_ct];
+              dxion_source_dt_GAL += dt_dzpp * dzpp * zpp_integrand_GAL * freq_int_ion_GAL[zpp_ct];
+              dxion_source_dt_QSO += dt_dzpp * dzpp * zpp_integrand_QSO * freq_int_ion_QSO[zpp_ct];
               
-              dxlya_dt_GAL += dt_dzp * dzpp * zpp_integrand_GAL * freq_int_lya_GAL[zpp_ct];
-              dxlya_dt_QSO += dt_dzp * dzpp * zpp_integrand_QSO * freq_int_lya_QSO[zpp_ct];
+              dxlya_dt_GAL += dt_dzpp * dzpp * zpp_integrand_GAL * freq_int_lya_GAL[zpp_ct];
+              dxlya_dt_QSO += dt_dzpp * dzpp * zpp_integrand_QSO * freq_int_lya_QSO[zpp_ct];
 
               // Use this when using the SFR provided by Meraxes
               // Units should be M_solar/s. Factor of (dt_dzp * dzpp) converts from per s to per z'
-              dstarlya_dt_GAL += SFR_GAL[zpp_ct] * pow(1+zp,2)*(1+zpp) * sum_lyn[zpp_ct] * dt_dzp * dzpp;
-       	      dstarlya_dt_QSO += SFR_QSO[zpp_ct] * pow(1+zp,2)*(1+zpp) * sum_lyn[zpp_ct] * dt_dzp * dzpp;
+              dstarlya_dt_GAL += SFR_GAL[zpp_ct] * pow(1+zp,2)*(1+zpp) * sum_lyn[zpp_ct] * dt_dzpp * dzpp;
+       	      dstarlya_dt_QSO += SFR_QSO[zpp_ct] * pow(1+zp,2)*(1+zpp) * sum_lyn[zpp_ct] * dt_dzpp * dzpp;
 
           }
           else {
-              dxheat_dt_GAL += dt_dzp * dzpp * zpp_integrand_GAL * freq_int_heat_GAL[zpp_ct];
-              dxion_source_dt_GAL += dt_dzp * dzpp * zpp_integrand_GAL * freq_int_ion_GAL[zpp_ct];
-              dxlya_dt_GAL += dt_dzp * dzpp * zpp_integrand_GAL * freq_int_lya_GAL[zpp_ct];
+              dxheat_dt_GAL += dt_dzpp * dzpp * zpp_integrand_GAL * freq_int_heat_GAL[zpp_ct];
+              dxion_source_dt_GAL += dt_dzpp * dzpp * zpp_integrand_GAL * freq_int_ion_GAL[zpp_ct];
+              dxlya_dt_GAL += dt_dzpp * dzpp * zpp_integrand_GAL * freq_int_lya_GAL[zpp_ct];
 
               // Use this when using the SFR provided by Meraxes
               // Units should be M_solar/s. Factor of (dt_dzp * dzpp) converts from per s to per z'
-              dstarlya_dt_GAL += SFR_GAL[zpp_ct] * pow(1+zp,2)*(1+zpp) * sum_lyn[zpp_ct] * dt_dzp * dzpp;
+              dstarlya_dt_GAL += SFR_GAL[zpp_ct] * pow(1+zp,2)*(1+zpp) * sum_lyn[zpp_ct] * dt_dzpp * dzpp;
 
-              quantity1 += dt_dzp * dzpp * zpp_integrand_GAL;
-              quantity2	+= SFR_GAL[zpp_ct] * dt_dzp * dzpp;
+//              quantity1 += dt_dzp * dzpp * zpp_integrand_GAL;
+//              quantity2	+= SFR_GAL[zpp_ct] * dt_dzpp * dzpp;
 //              quantity1 += freq_int_heat_GAL[zpp_ct];
 //              quantity2 += pow(1+zp,2)*(1+zpp) * sum_lyn[zpp_ct];
 
-//              quantity3	+= ;
-//              quantity4	+= ;
+              quantity1 += freq_int_heat_GAL[zpp_ct];
+              quantity2 += freq_int_ion_GAL[zpp_ct];
+              quantity3	+= freq_int_lya_GAL[zpp_ct];
+              quantity4	+= pow(1+zp,2)*(1+zpp) * sum_lyn[zpp_ct]/pow(1+zpp, -run_globals.params.physics.X_RAY_SPEC_INDEX_GAL);
+
+              quantity5 += dt_dzpp * dzpp * SFR_GAL[zpp_ct];
           }
       }
 
@@ -1405,9 +1409,13 @@ void evolveInt(float zp, float curr_delNL0, double SFR_GAL[], double SFR_QSO[],
   deriv[7] = dxlya_dt_GAL;
   deriv[8] = dstarlya_dt_GAL;
 
-  deriv[9] = quantity1*const_zp_prefactor_GAL;
+  deriv[9] = quantity1;
   deriv[10] = quantity2;
 
+  deriv[11] = quantity3;
+  deriv[12] = quantity4;
+
+  deriv[13] = quantity5;
 }
 
 // * Compton heating term * //
@@ -1833,6 +1841,10 @@ double interpolate_fcoll(double redshift, int snap_i)
     }
     else {
 	interp_fcoll = stored_fcoll[snap_i-1] + ( redshift - run_globals.ZZ[snap_i-1] ) * ( stored_fcoll[snap_i] - stored_fcoll[snap_i-1] ) / ( run_globals.ZZ[snap_i] - run_globals.ZZ[snap_i-1] );
+    }
+    
+    if(interp_fcoll < 0.0) {
+        interp_fcoll = 0.0;
     }
 
     return interp_fcoll;

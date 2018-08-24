@@ -842,6 +842,7 @@ void call_ComputeTs(int snapshot, int nout_gals, timer_info* timer);
 void ComputeTs(int snapshot, timer_info* timer_total);
 
 int read_dm_vel_grid__gbptrees(int snapshot, float* slab);
+void velocity_gradient(fftwf_complex* box, int local_ix_start, int slab_nx, int grid_dim);
 
 double alpha_A(double T);
 double dtdz(float z);

@@ -56,6 +56,8 @@ void _ComputeTs(int snapshot)
 
     double R_values[run_globals.params.NUM_FILTER_STEPS_FOR_Ts];
 
+    double dt_dzpp_list[run_globals.params.NUM_FILTER_STEPS_FOR_Ts];
+
     double *evolve_ans, ans[2], dansdz[5], xHII_call;
     double SFR_GAL[run_globals.params.NUM_FILTER_STEPS_FOR_Ts], SFR_QSO[run_globals.params.NUM_FILTER_STEPS_FOR_Ts];
 
@@ -104,8 +106,8 @@ void _ComputeTs(int snapshot)
     double J_alpha_ave, xalpha_ave, Xheat_ave, Xion_ave;
     J_alpha_ave = xalpha_ave = Xheat_ave = Xion_ave = 0.0;
 
-    double quantity1, quantity2, quantity3, quantity4, quantity5, quantity6;
-    quantity1 = quantity2 = quantity3 = quantity4 = quantity5 = quantity6 = 0.0;
+    double quantity1, quantity2, quantity3, quantity4, quantity5, quantity6, quantity7, quantity8, quantity9;
+    quantity1 = quantity2 = quantity3 = quantity4 = quantity5 = quantity6 = quantity7 = quantity8 = quantity9 = 0.0;
 
     // Place current redshift in 21cmFAST nomenclature (zp), delta zp (dzp) and delta z in seconds (dt_dzp)
     zp = redshift;
@@ -154,6 +156,8 @@ void _ComputeTs(int snapshot)
                 }
 
         MPI_Allreduce(MPI_IN_PLACE, &collapse_fraction, 1, MPI_DOUBLE, MPI_SUM, run_globals.mpi_comm);
+
+        mlog("zp = %e collapse_fraction = %e",zp,collapse_fraction);
 
         collapse_fraction = collapse_fraction/total_n_cells;
 
@@ -228,6 +232,7 @@ void _ComputeTs(int snapshot)
 
                 stored_fcoll[snapshot] = collapse_fraction;
 
+                mlog("zp = %e collapse_fraction = %e", MLOG_MESG, zp,collapse_fraction);
                 mlog("zp = %e SFR_density = %e", MLOG_MESG, zp, quantity1);
  
             }
@@ -258,6 +263,8 @@ void _ComputeTs(int snapshot)
             R *= R_factor;
 
         }
+
+        mlog("zp = %e collapse_fraction = %e", MLOG_MESG, zp,collapse_fraction);
  
         // A condition (defined by whether or not there are stars) for evaluating the heating/ionisation integrals
         if(collapse_fraction > 0.0) {
@@ -281,6 +288,8 @@ void _ComputeTs(int snapshot)
 
             zpp_edge[R_ct] = prev_zpp - (R_values[R_ct] - prev_R)*MPC / ( drdz(prev_zpp) ); // cell size
             zpp = (zpp_edge[R_ct]+prev_zpp)*0.5; // average redshift value of shell: z'' + 0.5 * dz''
+
+            dt_dzpp_list[R_ct] = dtdz(zpp);
 
             filling_factor_of_HI_zp = 1. - ReionEfficiency * collapse_fraction / (1.0 - x_e_ave);
 
@@ -315,6 +324,8 @@ void _ComputeTs(int snapshot)
             }
 	}
 
+        mlog("zp = %e collapse_fraction = %e", MLOG_MESG, zp,collapse_fraction);
+
         growth_factor_zp = dicke(zp);
         dgrowth_factor_dzp = ddicke_dz(zp);
         dt_dzp = dtdz(zp);
@@ -339,7 +350,7 @@ void _ComputeTs(int snapshot)
         // Leave the original 21cmFAST code for reference. Refer to Greig & Mesinger (2017) for the new parameterisation.
 //        const_zp_prefactor_GAL = (1.0/0.59)*( run_globals.params.physics.L_X_GAL * Luminosity_converstion_factor_GAL ) / (run_globals.params.physics.NU_X_GAL_THRESH*NU_over_EV) * C * pow(1+zp, run_globals.params.physics.X_RAY_SPEC_INDEX_GAL+3);
         const_zp_prefactor_GAL = ( run_globals.params.physics.L_X_GAL * Luminosity_converstion_factor_GAL ) / (run_globals.params.physics.NU_X_GAL_THRESH*NU_over_EV) * C * pow(1+zp, run_globals.params.physics.X_RAY_SPEC_INDEX_GAL+3);
-       
+        mlog("luminosity pre-factor = %e", MLOG_MESG, const_zp_prefactor_GAL);       
         // Note the factor of 0.59 appears to be required to match 21cmFAST
 
         // I believe it arises from differing definitions of a stellar baryon mass
@@ -369,6 +380,8 @@ void _ComputeTs(int snapshot)
             const_zp_prefactor_QSO = ( run_globals.params.physics.L_X_QSO * Luminosity_converstion_factor_QSO ) / (run_globals.params.physics.NU_X_QSO_THRESH*NU_over_EV) * C * pow(1+zp, run_globals.params.physics.X_RAY_SPEC_INDEX_QSO+3);
         }
 
+        mlog("zp = %e collapse_fraction = %e", MLOG_MESG, zp,collapse_fraction);
+
         //interpolate to correct nu integral value based on the cell's ionization state
         for (int ix = 0; ix < local_nix; ix++)
             for (int iy = 0; iy < ReionGridDim; iy++)
@@ -389,6 +402,8 @@ void _ComputeTs(int snapshot)
                         }
 
                         xHII_call = x_e_box_prev[i_padded];
+
+                        dt_dzpp = dt_dzpp_list[R_ct];
 
                         // Check if ionized fraction is within boundaries; if not, adjust to be within
                         if (xHII_call > x_int_XHII[x_int_NXHII-1]*0.999) {
@@ -437,6 +452,18 @@ void _ComputeTs(int snapshot)
                     // Perform the calculation of the heating/ionisation integrals, updating relevant quantities etc.
                     evolveInt(zp, run_globals.reion_grids.deltax[i_padded], SFR_GAL, SFR_QSO, freq_int_heat_GAL, freq_int_ion_GAL, freq_int_lya_GAL, freq_int_heat_QSO, freq_int_ion_QSO, freq_int_lya_QSO, NO_LIGHT, ans, dansdz);
 
+                    quantity1 += dansdz[5];
+       	       	    quantity2 += dansdz[6];
+       	       	    quantity3 += dansdz[7];
+       	       	    quantity4 += dansdz[8];
+
+       	       	    quantity5 += dansdz[9];
+       	       	    quantity6 += dansdz[10];
+       	       	    quantity7 += dansdz[11];
+       	       	    quantity8 += dansdz[12];
+                    
+                    quantity9 += dansdz[13];
+
                     x_e_box_prev[i_padded] += dansdz[0] * dzp; // remember dzp is negative
                     if (x_e_box_prev[i_padded] > 1) // can do this late in evolution if dzp is too large
                         x_e_box_prev[i_padded] = 1 - FRACT_FLOAT_ERR;
@@ -463,11 +490,40 @@ void _ComputeTs(int snapshot)
         MPI_Allreduce(MPI_IN_PLACE, &Xheat_ave, 1, MPI_DOUBLE, MPI_SUM, run_globals.mpi_comm);
         MPI_Allreduce(MPI_IN_PLACE, &Xion_ave, 1, MPI_DOUBLE, MPI_SUM, run_globals.mpi_comm);
 
+        MPI_Allreduce(MPI_IN_PLACE, &quantity1, 1, MPI_DOUBLE, MPI_SUM, run_globals.mpi_comm);
+        MPI_Allreduce(MPI_IN_PLACE, &quantity2, 1, MPI_DOUBLE, MPI_SUM, run_globals.mpi_comm);
+        MPI_Allreduce(MPI_IN_PLACE, &quantity3, 1, MPI_DOUBLE, MPI_SUM, run_globals.mpi_comm);
+        MPI_Allreduce(MPI_IN_PLACE, &quantity4, 1, MPI_DOUBLE, MPI_SUM, run_globals.mpi_comm);
+
+       	MPI_Allreduce(MPI_IN_PLACE, &quantity5, 1, MPI_DOUBLE, MPI_SUM, run_globals.mpi_comm);
+       	MPI_Allreduce(MPI_IN_PLACE, &quantity6, 1, MPI_DOUBLE, MPI_SUM, run_globals.mpi_comm);
+       	MPI_Allreduce(MPI_IN_PLACE, &quantity7, 1, MPI_DOUBLE, MPI_SUM, run_globals.mpi_comm);
+       	MPI_Allreduce(MPI_IN_PLACE, &quantity8, 1, MPI_DOUBLE, MPI_SUM, run_globals.mpi_comm);
+
+        MPI_Allreduce(MPI_IN_PLACE, &quantity9, 1, MPI_DOUBLE, MPI_SUM, run_globals.mpi_comm);
+
         J_alpha_ave /= total_n_cells;
         xalpha_ave /= total_n_cells;
         Xheat_ave /= total_n_cells;
         Xion_ave /= total_n_cells;
 
+        quantity1 /= total_n_cells;
+       	quantity2 /= total_n_cells;
+       	quantity3 /= total_n_cells;
+       	quantity4 /= total_n_cells;
+
+       	quantity5 /= total_n_cells;
+        quantity6 /= total_n_cells;
+        quantity7 /= total_n_cells;
+        quantity8 /= total_n_cells;
+
+        quantity9 /= total_n_cells;
+
+        mlog("zp = %e collapse_fraction = %e", MLOG_MESG, zp,collapse_fraction);
+
+        mlog("dxion_source_dt = %e dxheat_dt = %e dxlya_dt = %e dstarlya_dt = %e", MLOG_MESG, quantity1, quantity2, quantity3, quantity4);
+        mlog("tables: heat = %e ion = %e = lya = %e star = %e", MLOG_MESG, quantity5, quantity6, quantity7, quantity8);
+        mlog("SFR dz = %e",MLOG_MESG,quantity9);
     }
 
     memcpy(x_e_box, x_e_box_prev, sizeof(fftwf_complex) * slab_n_complex);
@@ -493,6 +549,8 @@ void _ComputeTs(int snapshot)
     Ave_Ts /= total_n_cells;
     Ave_Tk /= total_n_cells;
     Ave_x_e /= total_n_cells;
+
+    mlog("zp = %e collapse_fraction = %e ionising efficiency = %e product = %e", MLOG_MESG, zp, collapse_fraction, run_globals.params.physics.ReionEfficiency, run_globals.params.physics.ReionEfficiency * collapse_fraction);
 
     mlog("zp = %e Ts_ave = %e Tk_ave = %e x_e_ave = %e", MLOG_MESG, zp, Ave_Ts, Ave_Tk, Ave_x_e);
     mlog("zp = %e J_alpha_ave = %e xalpha_ave = %e Xheat_ave = %e Xion_ave = %e", MLOG_MESG, zp, J_alpha_ave, xalpha_ave, Xheat_ave, Xion_ave);

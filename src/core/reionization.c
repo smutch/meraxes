@@ -1180,3 +1180,39 @@ void filter(fftwf_complex* box, int local_ix_start, int slab_nx, int grid_dim, f
         }
     } // End looping through k box
 }
+
+void velocity_gradient(fftwf_complex* box, int local_ix_start, int slab_nx, int grid_dim)
+{
+    int middle = grid_dim / 2;
+    float box_size = run_globals.params.BoxSize;
+    float delta_k = 2.0 * M_PI / box_size;
+
+    // Loop through k-box
+    for (int n_x = 0; n_x < slab_nx; n_x++) {
+        float k_x;
+        int n_x_global = n_x + local_ix_start;
+
+        if (n_x_global > middle)
+            k_x = (n_x_global - grid_dim) * delta_k;
+        else
+            k_x = n_x_global * delta_k;
+
+        for (int n_y = 0; n_y < grid_dim; n_y++) {
+            float k_y;
+
+            if (n_y > middle)
+                k_y = (n_y - grid_dim) * delta_k;
+            else
+                k_y = n_y * delta_k;
+
+            for (int n_z = 0; n_z <= middle; n_z++) {
+                float k_z = n_z * delta_k;
+
+                float k_mag = sqrtf(k_x * k_x + k_y * k_y + k_z * k_z);
+
+                box[grid_index(n_x, n_y, n_z, grid_dim, INDEX_COMPLEX_HERM)] *= (fftwf_complex)(k_z*I);
+                    break;
+            }
+	}
+    } // End looping through k box
+}
