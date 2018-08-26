@@ -725,8 +725,6 @@ void construct_baryon_grids(int snapshot, int local_ngals)
 
     mlog("Constructing stellar mass and sfr grids...", MLOG_OPEN | MLOG_TIMERSTART);
 
-    mlog("tHubble = %e", MLOG_MESG, tHubble);
-
     // init the grid
     for (int ii = 0; ii < local_n_complex * 2; ii++) {
         stellar_grid[ii] = 0.0;
@@ -1019,24 +1017,25 @@ void save_reion_output_grids(int snapshot)
         write_grid_float("delta_T", grids->delta_T, file_id, fspace_id, memspace_id, dcpl_id);
     }
 
-    // create the filespace
-    hsize_t dims_LC[3] = { ReionGridDim, ReionGridDim, run_globals.params.LightconeLength };
-    hid_t fspace_id_LC = H5Screate_simple(3, dims_LC, NULL);
+    if(run_globals.params.Flag_ConstructLightcone && run_globals.params.End_Lightcone_snapshot==snapshot && snapshot!=0) {
 
-    // create the memspace
-    hsize_t mem_dims_LC[3] = { local_nix, ReionGridDim, run_globals.params.LightconeLength };
-    hid_t memspace_id_LC = H5Screate_simple(3, mem_dims_LC, NULL);
+        // create the filespace
+        hsize_t dims_LC[3] = { ReionGridDim, ReionGridDim, run_globals.params.LightconeLength };
+        hid_t fspace_id_LC = H5Screate_simple(3, dims_LC, NULL);
 
-    // select a hyperslab in the filespace
-    hsize_t start_LC[3] = { run_globals.reion_grids.slab_ix_start[run_globals.mpi_rank], 0, 0 };
-    hsize_t count_LC[3] = { local_nix, ReionGridDim, run_globals.params.LightconeLength };
-    H5Sselect_hyperslab(fspace_id_LC, H5S_SELECT_SET, start_LC, NULL, count_LC, NULL);
+        // create the memspace
+        hsize_t mem_dims_LC[3] = { local_nix, ReionGridDim, run_globals.params.LightconeLength };
+        hid_t memspace_id_LC = H5Screate_simple(3, mem_dims_LC, NULL);
 
-    // set the dataset creation property list to use chunking along x-axis
-    hid_t dcpl_id_LC = H5Pcreate(H5P_DATASET_CREATE);
-    H5Pset_chunk(dcpl_id_LC, 3, (hsize_t[3]){ 1, ReionGridDim, run_globals.params.LightconeLength });
+        // select a hyperslab in the filespace
+        hsize_t start_LC[3] = { run_globals.reion_grids.slab_ix_start[run_globals.mpi_rank], 0, 0 };
+        hsize_t count_LC[3] = { local_nix, ReionGridDim, run_globals.params.LightconeLength };
+        H5Sselect_hyperslab(fspace_id_LC, H5S_SELECT_SET, start_LC, NULL, count_LC, NULL);
 
-    if(run_globals.params.Flag_ConstructLightcone && run_globals.params.End_Lightcone_snapshot==snapshot) {
+        // set the dataset creation property list to use chunking along x-axis
+        hid_t dcpl_id_LC = H5Pcreate(H5P_DATASET_CREATE);
+        H5Pset_chunk(dcpl_id_LC, 3, (hsize_t[3]){ 1, ReionGridDim, run_globals.params.LightconeLength });
+
         mlog("Outputting light-cone", MLOG_MESG);
         write_grid_float("LightconeBox", grids->LightconeBox, file_id, fspace_id_LC, memspace_id_LC, dcpl_id_LC);
     }
@@ -1045,13 +1044,13 @@ void save_reion_output_grids(int snapshot)
     H5LTset_attribute_double(file_id, "xH", "mass_weighted_global_xH", &(grids->mass_weighted_global_xH), 1);
 
     if(run_globals.params.Flag_IncludeSpinTemp) {
-        H5LTset_attribute_double(file_id, "AveTS", "volume_ave_TS", &(grids->volume_ave_TS), 1);
-        H5LTset_attribute_double(file_id, "AveTK", "volume_ave_TK", &(grids->volume_ave_TK), 1);
-        H5LTset_attribute_double(file_id, "Avexe", "volume_ave_xe", &(grids->volume_ave_xe), 1);
+        H5LTset_attribute_double(file_id, "TS_box", "volume_ave_TS", &(grids->volume_ave_TS), 1);
+        H5LTset_attribute_double(file_id, "Tk_box", "volume_ave_TK", &(grids->volume_ave_TK), 1);
+        H5LTset_attribute_double(file_id, "x_e_box", "volume_ave_xe", &(grids->volume_ave_xe), 1);
     }
 
     if(run_globals.params.Flag_Compute21cmBrightTemp) {
-        H5LTset_attribute_double(file_id, "AveTb", "volume_ave_Tb", &(grids->volume_ave_Tb), 1);
+        H5LTset_attribute_double(file_id, "delta_T", "volume_ave_Tb", &(grids->volume_ave_Tb), 1);
     }
 
     // // Run delta_T_ps
