@@ -170,6 +170,7 @@ void Compute_PS(int snapshot, int field)
             k_ave[ii] = k_ave[ii] / (float)in_bin_ct[ii]; // Wavenumber
             p_box[ii] = p_box[ii] / (float)in_bin_ct[ii]; // Power
 //           = p_box[ii] / (float)in_bin_ct[ii] / sqrt((float)in_bin_ct[ii]); // Error in power?
+            mlog("PS Data: ii = %d k_ave = %e p_box = %e",MLOG_MESG,ii,k_ave[ii],p_box[ii]);            
         }
 
     // Deallocate

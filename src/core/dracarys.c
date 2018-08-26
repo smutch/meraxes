@@ -403,11 +403,9 @@ void dracarys()
     run_globals.FirstGal = NULL;
     mlog("...done", MLOG_CLOSE);
 
-/*
     // Create the master file
     MPI_Barrier(run_globals.mpi_comm);
     if (!run_globals.params.FlagMCMC)
         if (run_globals.mpi_rank == 0)
             create_master_file();
-*/
 }

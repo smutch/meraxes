@@ -642,6 +642,11 @@ void read_parameter_file(char* fname, int mode)
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_INT;
 
+            strcpy(params_tag[n_param], "t_star");
+            params_addr[n_param] = &(run_params->t_star);
+            required_tag[n_param] = 1;
+            params_type[n_param++] = PARAM_TYPE_DOUBLE;
+
             strcpy(params_tag[n_param], "End_Lightcone");
             params_addr[n_param] = &(run_params->End_Lightcone);
             required_tag[n_param] = 1;

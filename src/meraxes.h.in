@@ -300,6 +300,8 @@ typedef struct run_params_t {
 
     int NUM_FILTER_STEPS_FOR_Ts;
 
+    double t_star;
+
     double End_Lightcone;
     int End_Lightcone_snapshot;
     long long LightconeLength;

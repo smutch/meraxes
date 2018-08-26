@@ -58,7 +58,7 @@ void _ComputeTs(int snapshot)
 
     double dt_dzpp_list[run_globals.params.NUM_FILTER_STEPS_FOR_Ts];
 
-    double *evolve_ans, ans[2], dansdz[5], xHII_call;
+    double *evolve_ans, ans[2], dansdz[18], xHII_call;
     double SFR_GAL[run_globals.params.NUM_FILTER_STEPS_FOR_Ts], SFR_QSO[run_globals.params.NUM_FILTER_STEPS_FOR_Ts];
 
     float* deltax = run_globals.reion_grids.deltax;
@@ -107,7 +107,9 @@ void _ComputeTs(int snapshot)
     J_alpha_ave = xalpha_ave = Xheat_ave = Xion_ave = 0.0;
 
     double quantity1, quantity2, quantity3, quantity4, quantity5, quantity6, quantity7, quantity8, quantity9;
+    double quantity10, quantity11, quantity12, quantity13, quantity14, quantity15, quantity16;
     quantity1 = quantity2 = quantity3 = quantity4 = quantity5 = quantity6 = quantity7 = quantity8 = quantity9 = 0.0;
+    quantity10 = quantity11 = quantity12 = quantity13 = quantity14 = quantity15 = quantity16 = 0.0;
 
     // Place current redshift in 21cmFAST nomenclature (zp), delta zp (dzp) and delta z in seconds (dt_dzp)
     zp = redshift;
@@ -157,7 +159,7 @@ void _ComputeTs(int snapshot)
 
         MPI_Allreduce(MPI_IN_PLACE, &collapse_fraction, 1, MPI_DOUBLE, MPI_SUM, run_globals.mpi_comm);
 
-        mlog("zp = %e collapse_fraction = %e",zp,collapse_fraction);
+        mlog("zp = %e collapse_fraction = %e",MLOG_MESG,zp,collapse_fraction);
 
         collapse_fraction = collapse_fraction/total_n_cells;
 
@@ -464,6 +466,15 @@ void _ComputeTs(int snapshot)
                     
                     quantity9 += dansdz[13];
 
+                    quantity10 += dansdz[0];
+                    quantity11 += dansdz[1];
+
+                    quantity12 += dansdz[14];
+                    quantity13 += dansdz[15];
+                    quantity14 += dansdz[16];                    
+                    quantity15 += dansdz[17];
+                    quantity16 += dansdz[18];
+
                     x_e_box_prev[i_padded] += dansdz[0] * dzp; // remember dzp is negative
                     if (x_e_box_prev[i_padded] > 1) // can do this late in evolution if dzp is too large
                         x_e_box_prev[i_padded] = 1 - FRACT_FLOAT_ERR;
@@ -502,6 +513,14 @@ void _ComputeTs(int snapshot)
 
         MPI_Allreduce(MPI_IN_PLACE, &quantity9, 1, MPI_DOUBLE, MPI_SUM, run_globals.mpi_comm);
 
+        MPI_Allreduce(MPI_IN_PLACE, &quantity10, 1, MPI_DOUBLE, MPI_SUM, run_globals.mpi_comm);
+       	MPI_Allreduce(MPI_IN_PLACE, &quantity11, 1, MPI_DOUBLE, MPI_SUM, run_globals.mpi_comm);
+       	MPI_Allreduce(MPI_IN_PLACE, &quantity12, 1, MPI_DOUBLE, MPI_SUM, run_globals.mpi_comm);
+       	MPI_Allreduce(MPI_IN_PLACE, &quantity13, 1, MPI_DOUBLE, MPI_SUM, run_globals.mpi_comm);
+       	MPI_Allreduce(MPI_IN_PLACE, &quantity14, 1, MPI_DOUBLE, MPI_SUM, run_globals.mpi_comm);
+       	MPI_Allreduce(MPI_IN_PLACE, &quantity15, 1, MPI_DOUBLE, MPI_SUM, run_globals.mpi_comm);
+        MPI_Allreduce(MPI_IN_PLACE, &quantity16, 1, MPI_DOUBLE, MPI_SUM, run_globals.mpi_comm);
+
         J_alpha_ave /= total_n_cells;
         xalpha_ave /= total_n_cells;
         Xheat_ave /= total_n_cells;
@@ -519,11 +538,23 @@ void _ComputeTs(int snapshot)
 
         quantity9 /= total_n_cells;
 
+        quantity10 /= total_n_cells;
+        quantity11 /= total_n_cells;
+        quantity12 /= total_n_cells;
+        quantity13 /= total_n_cells;
+        quantity14 /= total_n_cells;
+        quantity15 /= total_n_cells;
+        quantity16 /= total_n_cells;
+
         mlog("zp = %e collapse_fraction = %e", MLOG_MESG, zp,collapse_fraction);
 
         mlog("dxion_source_dt = %e dxheat_dt = %e dxlya_dt = %e dstarlya_dt = %e", MLOG_MESG, quantity1, quantity2, quantity3, quantity4);
         mlog("tables: heat = %e ion = %e = lya = %e star = %e", MLOG_MESG, quantity5, quantity6, quantity7, quantity8);
         mlog("SFR dz = %e",MLOG_MESG,quantity9);
+
+        mlog("dxe_dzp = %e dxheat_dzp + dcomp_dzp + dspec_dzp + dadia_dzp = %e",MLOG_MESG,quantity10, quantity11);
+        mlog("dxheat_dzp = %e dcomp_dzp = %e dspec_dzp = %e dadia_dzp = %e dxion_sink_dt = %e",MLOG_MESG,quantity16,quantity12, quantity13, quantity14, quantity15);
+
     }
 
     memcpy(x_e_box, x_e_box_prev, sizeof(fftwf_complex) * slab_n_complex);

@@ -713,13 +713,15 @@ void construct_baryon_grids(int snapshot, int local_ngals)
     float* stellar_grid = run_globals.reion_grids.stars;
     float* sfr_grid = run_globals.reion_grids.sfr;
     int ReionGridDim = run_globals.params.ReionGridDim;
-    double tHubble = hubble_time(snapshot);
+    double tHubble = run_globals.params.t_star*hubble_time(snapshot);
 
     gal_to_slab_t* galaxy_to_slab_map = run_globals.reion_grids.galaxy_to_slab_map;
     ptrdiff_t* slab_ix_start = run_globals.reion_grids.slab_ix_start;
     int local_n_complex = (int)(run_globals.reion_grids.slab_n_complex[run_globals.mpi_rank]);
 
     mlog("Constructing stellar mass and sfr grids...", MLOG_OPEN | MLOG_TIMERSTART);
+
+    mlog("tHubble = %e", MLOG_MESG, tHubble);
 
     // init the grid
     for (int ii = 0; ii < local_n_complex * 2; ii++) {
@@ -1030,6 +1032,7 @@ void save_reion_output_grids(int snapshot)
     H5Pset_chunk(dcpl_id_LC, 3, (hsize_t[3]){ 1, ReionGridDim, run_globals.params.LightconeLength });
 
     if(run_globals.params.Flag_ConstructLightcone && run_globals.params.End_Lightcone_snapshot==snapshot) {
+        mlog("Outputting light-cone", MLOG_MESG);
         write_grid_float("LightconeBox", grids->LightconeBox, file_id, fspace_id_LC, memspace_id_LC, dcpl_id_LC);
     }
 

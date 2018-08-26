@@ -214,7 +214,6 @@ int read_dm_vel_grid__gbptrees(
 
     // Construct the input filename
     sprintf(fname, "%s/grids/snapshot_%03d_dark_grid.dat", params->SimulationDir, snapshot);
-    mlog("fname = %s", MLOG_MESG,fname);
 
     if(run_globals.params.VelocityComponent < 1 || run_globals.params.VelocityComponent > 3) {
         mlog("Not a valid velocity direction: 1 - x, 2 - y, 3 - z", MLOG_MESG,fname);

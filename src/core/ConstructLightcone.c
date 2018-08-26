@@ -42,6 +42,8 @@ void Initialise_ConstructLightcone()
         closest_snapshot = run_globals.LastOutputSnap;
     }
 
+    mlog("final snapshot for light-cone = %d",MLOG_MESG,closest_snapshot);
+
     // End of the light-cone, i.e. low redshift part
     z1_LC = z_LC = run_globals.ZZ[closest_snapshot];
 
