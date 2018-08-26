@@ -11,13 +11,9 @@
  * 
  */
 
-void Compute_PS(int snapshot, int field)
+void Compute_PS(int snapshot)
 {
-    // Fields of interest:
-    // 1. Density field (already a fluctuation)
-    // 2. 21cm brightness temperature (not a fluctuating quantity)
 
-    float* deltax = run_globals.reion_grids.deltax;
     float* delta_T = run_globals.reion_grids.delta_T;
 
     double box_size = run_globals.params.BoxSize / run_globals.params.Hubble_h; // Mpc
@@ -34,52 +30,28 @@ void Compute_PS(int snapshot, int field)
 
     double ave;
 
-    if(field==1) {
+    mlog("Calculating the 21cm power spectrum (dimensional, i.e mK^2)",MLOG_MESG);
 
-        mlog("Calculating the 21cm power spectrum (dimensional, i.e mK^2)",MLOG_MESG);
-
-        ave = 0.0;
-        for (ii=0; ii<local_nix; ii++){
-            for (jj=0; jj<ReionGridDim; jj++){
-                for (kk=0; kk<ReionGridDim; kk++){
-                    ave += delta_T[grid_index(ii, jj, kk, ReionGridDim, INDEX_REAL)];
-                }
+    ave = 0.0;
+    for (ii=0; ii<local_nix; ii++){
+        for (jj=0; jj<ReionGridDim; jj++){
+            for (kk=0; kk<ReionGridDim; kk++){
+                ave += delta_T[grid_index(ii, jj, kk, ReionGridDim, INDEX_REAL)];
             }
         }
-        MPI_Allreduce(MPI_IN_PLACE, &ave, 1, MPI_INT, MPI_SUM, run_globals.mpi_comm);
+    }
+    MPI_Allreduce(MPI_IN_PLACE, &ave, 1, MPI_INT, MPI_SUM, run_globals.mpi_comm);
 
-        ave /= total_n_cells;
+    ave /= total_n_cells;
 
-        for (int ii = 0; ii < local_nix; ii++) {
-            for (int jj = 0; jj < ReionGridDim; jj++) {
-                for (int kk = 0; kk < ReionGridDim; kk++) {
-                    ((float*)deldel_ps)[grid_index(ii, jj, kk, ReionGridDim, INDEX_PADDED)] = (delta_T[grid_index(ii, jj, kk, ReionGridDim, INDEX_REAL)] / ave - 1) * volume / (float)total_n_cells;
-                    ((float*)deldel_ps)[grid_index(ii, jj, kk, ReionGridDim, INDEX_PADDED)] *= ave;
-                }
+    for (int ii = 0; ii < local_nix; ii++) {
+        for (int jj = 0; jj < ReionGridDim; jj++) {
+            for (int kk = 0; kk < ReionGridDim; kk++) {
+                ((float*)deldel_ps)[grid_index(ii, jj, kk, ReionGridDim, INDEX_PADDED)] = (delta_T[grid_index(ii, jj, kk, ReionGridDim, INDEX_REAL)] / ave - 1) * volume / (float)total_n_cells;
+                ((float*)deldel_ps)[grid_index(ii, jj, kk, ReionGridDim, INDEX_PADDED)] *= ave;
             }
-        }        
-
-    }
-    else if (field==0) {
-
-        mlog("Calculating the matter power spectrum",MLOG_MESG);
-
-        for (int ii = 0; ii < local_nix; ii++) {
-            for (int jj = 0; jj < ReionGridDim; jj++) {
-                for (int kk = 0; kk < ReionGridDim; kk++) {
-       	            ((float*)deldel_ps)[grid_index(ii, jj, kk, ReionGridDim, INDEX_PADDED)] = deltax[grid_index(ii, jj, kk, ReionGridDim, INDEX_PADDED)] * volume / (float)total_n_cells;
-       	       	}
-       	    }
-       	}
-
-    }
-
-    else {
-        mlog("Not a valid argument for computing the power spectrum",MLOG_MESG);
-        mlog("Options are: 0: Matter power spectrum, 1: 21cm power spectrum",MLOG_MESG);
-
-        exit(0);
-    }
+        }
+    }        
 
     fftwf_plan plan = fftwf_mpi_plan_dft_r2c_3d(ReionGridDim, ReionGridDim, ReionGridDim, (float *)deldel_ps, deldel_ps, run_globals.mpi_comm, FFTW_ESTIMATE);
     fftwf_execute(plan);
@@ -166,8 +138,8 @@ void Compute_PS(int snapshot, int field)
         }
     } // end looping through k box
 
-    double *PS_k = ;
-    double *PS_data = ;
+//    double *PS_k = ;
+//    double *PS_data = ;
 
     // NOTE - previous ct ran from 1 (not zero) to NUM_BINS
     for (int ii = 0; ii < num_bins; ii++) {

@@ -855,7 +855,7 @@ double hubble(float z);
 // Brightness Temperature Box
 void ComputeBrightnessTemperatureBox(int snapshot);
 
-void Compute_PS(int snapshot, int field);
+void Compute_PS(int snapshot);
 
 int grid_index_smoothedSFR(int radii, int i, int j, int k, int filter_steps, int dim);
 int grid_index_LC(int i, int j, int k, int dim, int dim_LC);
