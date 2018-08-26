@@ -486,6 +486,10 @@ void _ComputeTs(int snapshot)
     Ave_Tk /= total_n_cells;
     Ave_x_e /= total_n_cells;
 
+    run_globals.reion_grids.volume_ave_TS = Ave_Ts;
+    run_globals.reion_grids.volume_ave_TK = Ave_Tk;
+    run_globals.reion_grids.volume_ave_xe = Ave_x_e;
+
     mlog("zp = %e Ts_ave = %e Tk_ave = %e x_e_ave = %e", MLOG_MESG, zp, Ave_Ts, Ave_Tk, Ave_x_e);
     mlog("zp = %e J_alpha_ave = %e xalpha_ave = %e Xheat_ave = %e Xion_ave = %e", MLOG_MESG, zp, J_alpha_ave, xalpha_ave, Xheat_ave, Xion_ave);
 }

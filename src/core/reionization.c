@@ -233,6 +233,10 @@ void init_reion_grids()
     grids->started = 0;
     grids->finished = 0;
 
+    grids->volume_ave_TS = 0.0;
+    grids->volume_ave_TK = 0.0;
+    grids->volume_ave_xe = 0.0;
+    grids->volume_ave_Tb = 0.0;
 
     for (int ii = 0; ii < slab_n_real; ii++) {
         grids->xH[ii] = 1.0;
@@ -1039,6 +1043,16 @@ void save_reion_output_grids(int snapshot)
 
     H5LTset_attribute_double(file_id, "xH", "volume_weighted_global_xH", &(grids->volume_weighted_global_xH), 1);
     H5LTset_attribute_double(file_id, "xH", "mass_weighted_global_xH", &(grids->mass_weighted_global_xH), 1);
+
+    if(run_globals.params.Flag_IncludeSpinTemp) {
+        H5LTset_attribute_double(file_id, "AveTS", "volume_ave_TS", &(grids->volume_ave_TS), 1);
+        H5LTset_attribute_double(file_id, "AveTK", "volume_ave_TK", &(grids->volume_ave_TK), 1);
+        H5LTset_attribute_double(file_id, "Avexe", "volume_ave_xe", &(grids->volume_ave_xe), 1);
+    }
+
+    if(run_globals.params.Flag_Compute21cmBrightTemp) {
+        H5LTset_attribute_double(file_id, "AveTb", "volume_ave_Tb", &(grids->volume_ave_Tb), 1);
+    }
 
     // // Run delta_T_ps
     // // ----------------------------------------------------------------------------------------------------

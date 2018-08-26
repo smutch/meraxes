@@ -421,6 +421,12 @@ typedef struct reion_grids_t {
 
     double volume_weighted_global_xH;
     double mass_weighted_global_xH;
+
+    double volume_ave_TS;
+    double volume_ave_TK;
+    double volume_ave_xe;
+    double volume_ave_Tb;
+
     int started;
     int finished;
     int buffer_size;
