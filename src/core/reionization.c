@@ -103,10 +103,10 @@ void call_find_HII_bubbles(int snapshot, int nout_gals, timer_info* timer)
 
     // Check to see if there are actually any galaxies at this snapshot
     MPI_Allreduce(&nout_gals, &total_n_out_gals, 1, MPI_INT, MPI_SUM, run_globals.mpi_comm);
-    if (total_n_out_gals == 0) {
-        mlog("No galaxies in the simulation - skipping...", MLOG_CLOSE);
-        return;
-    }
+//    if (total_n_out_gals == 0) {
+//        mlog("No galaxies in the simulation - skipping...", MLOG_CLOSE);
+//        return;
+//    }
 
     // Logic statement to avoid gridding the density field twice
     if(!run_globals.params.Flag_IncludeSpinTemp) {
@@ -953,6 +953,7 @@ void save_reion_input_grids(int snapshot)
 
 void save_reion_output_grids(int snapshot)
 {
+
     reion_grids_t* grids = &(run_globals.reion_grids);
     int ReionGridDim = run_globals.params.ReionGridDim;
     int local_nix = (int)(run_globals.reion_grids.slab_nix[run_globals.mpi_rank]);
@@ -1076,7 +1077,7 @@ void save_reion_output_grids(int snapshot)
     mlog("...done", MLOG_CLOSE); // Saving tocf grids
 }
 
-bool check_if_reionization_ongoing()
+bool check_if_reionization_ongoing(int snapshot)
 {
     int started = run_globals.reion_grids.started;
     int finished = run_globals.reion_grids.finished;
@@ -1092,6 +1093,10 @@ bool check_if_reionization_ongoing()
         if (run_globals.params.Flag_OutputGridsPostReion)
             return true;
 
+        if(run_globals.params.Flag_ConstructLightcone && snapshot >= run_globals.params.End_Lightcone_snapshot) {
+            return true;
+        }
+
         // So we have started, but have not previously found to be finished.  Have
         // we now finished though?
         float* xH = run_globals.reion_grids.xH;
@@ -1106,10 +1111,19 @@ bool check_if_reionization_ongoing()
                 break;
             }
     }
-    else
+    else {
+
         // Here we haven't finished or previously started.  Should we start then?
-        if (run_globals.FirstGal != NULL)
+        if(run_globals.params.Flag_IncludeSpinTemp) {
             started = 1;
+        }
+        else {
+            if (run_globals.FirstGal != NULL) {
+                started = 1;
+            }
+        }
+    }
+
 
     // At this stage, `started` and `finished` should be set accordingly for each
     // individual core.  Now we need to combine them on all cores.
