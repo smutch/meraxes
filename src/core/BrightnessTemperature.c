@@ -288,6 +288,8 @@ void ComputeBrightnessTemperatureBox(int snapshot) {
 
                         for (kk=0; kk < ReionGridDim; kk++){                 
 
+                            i_real = grid_index(ii, jj, kk, ReionGridDim, INDEX_REAL);
+
                             if((fabs(delta_T[i_real]) >= FRACT_FLOAT_ERR) && (xH[i_real] >= FRACT_FLOAT_ERR)) {
 
                                 if(kk==0) {
@@ -308,8 +310,6 @@ void ComputeBrightnessTemperatureBox(int snapshot) {
                                     d1_high = vel[grid_index(ii, jj, kk, ReionGridDim, INDEX_PADDED)]/H_z;
                                     d2_high = vel[grid_index(ii, jj, kk + 1, ReionGridDim, INDEX_PADDED)]/H_z;
                                 }
-
-                                i_real = grid_index(ii, jj, kk, ReionGridDim, INDEX_REAL);
 
                                 for(iii=0;iii<N_RSD_STEPS;iii++) {
                                         
@@ -466,7 +466,6 @@ void ComputeBrightnessTemperatureBox(int snapshot) {
             // End of line-of-sight redshift space distortions
         }
     }
-
 
     double Ave_Tb = 0.0;
 
