@@ -77,6 +77,8 @@ void ConstructLightcone(int snapshot)
     float* delta_T = run_globals.reion_grids.delta_T;
     float* delta_T_prev = run_globals.reion_grids.delta_T_prev;    
 
+    float* Lightcone_redshifts = run_globals.reion_grids.Lightcone_redshifts;
+
     int ReionGridDim = run_globals.params.ReionGridDim;
     int local_nix = (int)(run_globals.reion_grids.slab_nix[run_globals.mpi_rank]);
     int slab_n_real = local_nix * ReionGridDim * ReionGridDim;
@@ -133,6 +135,8 @@ void ConstructLightcone(int snapshot)
             if(z_LC >= run_globals.ZZ[snapshot] && z_LC < run_globals.ZZ[snapshot-1]) {
                 z_slice = z_LC;
                 t_z_slice = gettime(z_slice);
+
+                Lightcone_redshifts[slice_ct] = z_slice;
 
                 // Ensure we don't overstep the gridsize of the co-eval box
                 if(iz >= ReionGridDim) {

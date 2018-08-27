@@ -417,6 +417,7 @@ typedef struct reion_grids_t {
 
     // Grid for the lightcone (cuboid) box
     float* LightconeBox;
+    float* Lightcone_redshifts;
 
     // Data for the power spectrum
     float *PS_k;

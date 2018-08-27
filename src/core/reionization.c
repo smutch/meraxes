@@ -276,6 +276,10 @@ void init_reion_grids()
         for (int ii = 0; ii < slab_n_real_LC; ii++) {
             grids->LightconeBox[ii] = 0.0;
         }
+
+        for (int ii = 0; ii < run_globals.params.LightconeLength; ii++) {
+            grids->Lightcone_redshifts[ii] = 0.0;
+        }
     }
 
     for (int ii = 0; ii < slab_n_real; ii++) 
@@ -388,6 +392,7 @@ void malloc_reionization_grids()
 
     // A grid for the lightcone (cuboid) box
     grids->LightconeBox = NULL;
+    grids->Lightcone_redshifts = NULL;
 
     // Grids required for addining in peculiar velocity effects
     grids->vel = NULL;
@@ -487,6 +492,7 @@ void malloc_reionization_grids()
 
         if(run_globals.params.Flag_ConstructLightcone) {
             grids->LightconeBox = fftwf_alloc_real(slab_n_real_LC);
+            grids->Lightcone_redshifts = fftwf_alloc_real(run_globals.params.LightconeLength);
         }
 
         if(run_globals.params.Flag_ComputePS) {
@@ -554,6 +560,7 @@ void free_reionization_grids()
 
         if(run_globals.params.Flag_ConstructLightcone) {
             fftwf_free(grids->delta_T_prev);
+            fftwf_free(grids->Lightcone_redshifts);
         }
     }
 
@@ -1062,6 +1069,12 @@ void save_reion_output_grids(int snapshot)
 
         mlog("Outputting light-cone", MLOG_MESG);
         write_grid_float("LightconeBox", grids->LightconeBox, file_id, fspace_id_LC, memspace_id_LC, dcpl_id_LC);
+
+        if(run_globals.mpi_rank==0) {
+            for (int ii = 0; ii < run_globals.params.LightconeLength; ii++) {
+                mlog("ii = %d z_slice = %e",MLOG_MESG,ii,run_globals.reion_grids.Lightcone_redshifts[ii]);
+            }
+        }
     }
 
     H5LTset_attribute_double(file_id, "xH", "volume_weighted_global_xH", &(grids->volume_weighted_global_xH), 1);
