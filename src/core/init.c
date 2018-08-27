@@ -378,6 +378,10 @@ void init_meraxes()
         Initialise_ConstructLightcone();
     }
 
+    if(run_globals.params.Flag_ComputePS) {
+        Initialise_PowerSpectrum();
+    }
+
     malloc_reionization_grids();
     set_ReionEfficiency();
     set_quasar_fobs();

@@ -306,6 +306,7 @@ typedef struct run_params_t {
     int End_Lightcone_snapshot;
     long long LightconeLength;
     long long CurrentLCPos;
+    int PS_Length;
     int SEP_QSO_XRAY;
     int Flag_OutputGrids;
     int Flag_OutputGridsPostReion;
@@ -416,6 +417,11 @@ typedef struct reion_grids_t {
 
     // Grid for the lightcone (cuboid) box
     float* LightconeBox;
+
+    // Data for the power spectrum
+    float *PS_k;
+    float *PS_data;
+    float *PS_error;
 
     gal_to_slab_t* galaxy_to_slab_map;
 
@@ -861,6 +867,7 @@ double hubble(float z);
 // Brightness Temperature Box
 void ComputeBrightnessTemperatureBox(int snapshot);
 
+void Initialise_PowerSpectrum();
 void Compute_PS(int snapshot);
 
 int grid_index_smoothedSFR(int radii, int i, int j, int k, int filter_steps, int dim);

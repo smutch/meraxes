@@ -325,6 +325,14 @@ void init_reion_grids()
         }
     }
 
+    if(run_globals.params.Flag_ComputePS) {
+        for (int ii = 0; ii < run_globals.params.PS_Length; ii++) {
+            grids->PS_k[ii] = 0.;
+            grids->PS_data[ii] = 0.;
+            grids->PS_error[ii] = 0.; 
+        }
+    }
+
 }
 
 void malloc_reionization_grids()
@@ -385,6 +393,10 @@ void malloc_reionization_grids()
     grids->vel = NULL;
     grids->vel_temp = NULL;    
     grids->vel_gradient = NULL;
+
+    grids->PS_k = NULL;
+    grids->PS_data = NULL;
+    grids->PS_error = NULL;
 
     if (run_globals.params.Flag_PatchyReion) {
         assign_slabs();
@@ -477,6 +489,12 @@ void malloc_reionization_grids()
             grids->LightconeBox = fftwf_alloc_real(slab_n_real_LC);
         }
 
+        if(run_globals.params.Flag_ComputePS) {
+            grids->PS_k = fftwf_alloc_real(run_globals.params.PS_Length);
+            grids->PS_data = fftwf_alloc_real(run_globals.params.PS_Length);
+            grids->PS_error = fftwf_alloc_real(run_globals.params.PS_Length);
+        }
+
         init_reion_grids();
     }
 }
@@ -545,6 +563,12 @@ void free_reionization_grids()
 
     if (run_globals.params.ReionUVBFlag)
         fftwf_free(grids->Mvir_crit);
+
+    if(run_globals.params.Flag_ComputePS) {
+        fftwf_free(grids->PS_k);
+        fftwf_free(grids->PS_data);
+        fftwf_free(grids->PS_error);
+    }
 
     fftwf_free(grids->stars);
     fftwf_free(grids->sfr);
@@ -1051,6 +1075,12 @@ void save_reion_output_grids(int snapshot)
 
     if(run_globals.params.Flag_Compute21cmBrightTemp) {
         H5LTset_attribute_double(file_id, "delta_T", "volume_ave_Tb", &(grids->volume_ave_Tb), 1);
+    }
+
+    if(run_globals.mpi_rank==0) {
+        for (int ii = 0; ii < run_globals.params.PS_Length; ii++) {
+            mlog("PS Data: ii = %d k_ave = %e p_box = %e",MLOG_MESG,ii,run_globals.reion_grids.PS_k[ii],run_globals.reion_grids.PS_data[ii]);
+        }    
     }
 
     // // Run delta_T_ps

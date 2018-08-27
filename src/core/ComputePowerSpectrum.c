@@ -11,6 +11,31 @@
  * 
  */
 
+void Initialise_PowerSpectrum()
+{
+
+    double box_size = run_globals.params.BoxSize / run_globals.params.Hubble_h; // Mpc
+    int ReionGridDim = run_globals.params.ReionGridDim;
+
+    float k_factor = 1.35;
+    float delta_k = 2. * M_PI / box_size;
+    float k_first_bin_ceil = delta_k;
+    float k_max = delta_k * ReionGridDim;
+
+    // Initialise arrays
+    // ghetto counting (lookup how to do logs of arbitrary bases in c...)
+    int num_bins = 0;
+    float k_floor = 0.0;
+    float k_ceil = k_first_bin_ceil;
+    while (k_ceil < k_max) {
+        num_bins++;
+        k_floor = k_ceil;
+        k_ceil *= k_factor;
+    }    
+
+    run_globals.params.PS_Length = num_bins;
+}
+
 void Compute_PS(int snapshot)
 {
 
@@ -70,22 +95,15 @@ void Compute_PS(int snapshot)
     float k_first_bin_ceil = delta_k;
     float k_max = delta_k * ReionGridDim;
 
-    // Initialise arrays
-    // ghetto counting (lookup how to do logs of arbitrary bases in c...)
     int num_bins = 0;
     float k_floor = 0.0;
     float k_ceil = k_first_bin_ceil;
-    while (k_ceil < k_max) {
-        num_bins++;
-        k_floor = k_ceil;
-        k_ceil *= k_factor;
-    }
 
-    double* p_box = malloc(sizeof(double) * num_bins);
-    double* k_ave = malloc(sizeof(double) * num_bins);
-    unsigned long long* in_bin_ct = malloc(sizeof(unsigned long long) * num_bins);
+    double* p_box = malloc(sizeof(double) * run_globals.params.PS_Length);
+    double* k_ave = malloc(sizeof(double) * run_globals.params.PS_Length);
+    unsigned long long* in_bin_ct = malloc(sizeof(unsigned long long) * run_globals.params.PS_Length);
 
-    for (int ii = 0; ii < num_bins; ii++) {
+    for (int ii = 0; ii < run_globals.params.PS_Length; ii++) {
         p_box[ii] = 0.0;
         k_ave[ii] = 0.0;
         in_bin_ct[ii] = 0;
@@ -138,20 +156,25 @@ void Compute_PS(int snapshot)
         }
     } // end looping through k box
 
-//    double *PS_k = ;
-//    double *PS_data = ;
+    float *PS_k = run_globals.reion_grids.PS_k;
+    float *PS_data = run_globals.reion_grids.PS_data;
+    float *PS_error = run_globals.reion_grids.PS_error;
 
     // NOTE - previous ct ran from 1 (not zero) to NUM_BINS
-    for (int ii = 0; ii < num_bins; ii++) {
+    for (int ii = 0; ii < run_globals.params.PS_Length; ii++) {
 
         MPI_Allreduce(MPI_IN_PLACE, &k_ave[ii], 1, MPI_DOUBLE, MPI_SUM, run_globals.mpi_comm);
         MPI_Allreduce(MPI_IN_PLACE, &p_box[ii], 1, MPI_DOUBLE, MPI_SUM, run_globals.mpi_comm);
         MPI_Allreduce(MPI_IN_PLACE, &in_bin_ct[ii], 1, MPI_INT, MPI_SUM, run_globals.mpi_comm);
 
-        mlog("PS Data: ii = %d in_bin = %d k_ave = %e p_box = %e",MLOG_MESG,ii,in_bin_ct[ii],k_ave[ii],p_box[ii]);
+//        mlog("PS Data: ii = %d in_bin = %d k_ave = %e p_box = %e",MLOG_MESG,ii,in_bin_ct[ii],k_ave[ii],p_box[ii]);
 
         if(run_globals.mpi_rank==0) {
-            mlog("PS Data: ii = %d k_ave = %e p_box = %e",MLOG_MESG,ii,in_bin_ct[ii],k_ave[ii]/(double)in_bin_ct[ii],p_box[ii]/(double)in_bin_ct[ii]);
+//            mlog("PS Data: ii = %d k_ave = %e p_box = %e",MLOG_MESG,ii,in_bin_ct[ii],k_ave[ii]/(double)in_bin_ct[ii],p_box[ii]/(double)in_bin_ct[ii]);
+        
+            PS_k[ii] = k_ave[ii]/(double)in_bin_ct[ii];
+            PS_data[ii] = p_box[ii]/(double)in_bin_ct[ii];
+            PS_error[ii] = (p_box[ii]/(double)in_bin_ct[ii])/sqrt((double)in_bin_ct[ii]);
         }
     }
 
