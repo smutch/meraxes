@@ -1070,11 +1070,35 @@ void save_reion_output_grids(int snapshot)
         mlog("Outputting light-cone", MLOG_MESG);
         write_grid_float("LightconeBox", grids->LightconeBox, file_id, fspace_id_LC, memspace_id_LC, dcpl_id_LC);
 
+/*
         if(run_globals.mpi_rank==0) {
             for (int ii = 0; ii < run_globals.params.LightconeLength; ii++) {
                 mlog("ii = %d z_slice = %e",MLOG_MESG,ii,run_globals.reion_grids.Lightcone_redshifts[ii]);
             }
         }
+*/
+        // create the filespace
+        hsize_t dims_LCz[1] = { run_globals.params.LightconeLength };
+        hid_t fspace_id_LCz = H5Screate_simple(1, dims_LCz, NULL);
+
+        // create the memspace
+        hsize_t mem_dims_LCz[1] = { run_globals.params.LightconeLength };
+        hid_t memspace_id_LCz = H5Screate_simple(1, mem_dims_LCz, NULL);
+
+        hid_t dcpl_id_LCz = H5Pcreate(H5P_DATASET_CREATE);
+        hid_t dset_id = H5Dcreate(file_id, "lightcone-z", H5T_NATIVE_FLOAT, fspace_id_LCz, H5P_DEFAULT, dcpl_id_LCz, H5P_DEFAULT);
+       	
+        hid_t plist_id = H5Pcreate(H5P_DATASET_XFER);
+
+        H5Pset_dxpl_mpio(plist_id, H5FD_MPIO_COLLECTIVE);
+ 
+        // write the dataset
+        H5Dwrite(dset_id, H5T_NATIVE_FLOAT, memspace_id_LCz, fspace_id_LCz, plist_id, grids->Lightcone_redshifts);
+
+        // cleanup
+        H5Pclose(plist_id);
+        H5Dclose(dset_id);
+
     }
 
     H5LTset_attribute_double(file_id, "xH", "volume_weighted_global_xH", &(grids->volume_weighted_global_xH), 1);
@@ -1090,39 +1114,54 @@ void save_reion_output_grids(int snapshot)
         H5LTset_attribute_double(file_id, "delta_T", "volume_ave_Tb", &(grids->volume_ave_Tb), 1);
     }
 
-    if(run_globals.mpi_rank==0) {
-        for (int ii = 0; ii < run_globals.params.PS_Length; ii++) {
-            mlog("PS Data: ii = %d k_ave = %e p_box = %e",MLOG_MESG,ii,run_globals.reion_grids.PS_k[ii],run_globals.reion_grids.PS_data[ii]);
-        }    
+    if(run_globals.params.Flag_ComputePS) {
+
+        // create the filespace
+        hsize_t dims_PS[1] = { run_globals.params.PS_Length };
+        hid_t fspace_id_PS = H5Screate_simple(1, dims_PS, NULL);
+
+        // create the memspace
+        hsize_t mem_dims_PS[1] = { run_globals.params.PS_Length };
+        hid_t memspace_id_PS = H5Screate_simple(1, mem_dims_PS, NULL);
+
+        hid_t dcpl_id_PS = H5Pcreate(H5P_DATASET_CREATE);
+        hid_t dset_id = H5Dcreate(file_id, "k_bins", H5T_NATIVE_FLOAT, fspace_id_PS, H5P_DEFAULT, dcpl_id_PS, H5P_DEFAULT);
+
+        hid_t plist_id = H5Pcreate(H5P_DATASET_XFER);
+
+        H5Pset_dxpl_mpio(plist_id, H5FD_MPIO_COLLECTIVE);
+ 
+        // write the dataset
+        H5Dwrite(dset_id, H5T_NATIVE_FLOAT, memspace_id_PS, fspace_id_PS, plist_id, grids->PS_k);
+
+        // cleanup
+        H5Pclose(plist_id);
+        H5Dclose(dset_id);
+
+        dset_id = H5Dcreate(file_id, "PS_data", H5T_NATIVE_FLOAT, fspace_id_PS, H5P_DEFAULT, dcpl_id_PS, H5P_DEFAULT);
+        
+        plist_id = H5Pcreate(H5P_DATASET_XFER);
+
+        H5Pset_dxpl_mpio(plist_id, H5FD_MPIO_COLLECTIVE);
+
+        H5Dwrite(dset_id, H5T_NATIVE_FLOAT, memspace_id_PS, fspace_id_PS, plist_id, grids->PS_data);
+
+        // cleanup
+        H5Pclose(plist_id);
+        H5Dclose(dset_id);
+
+        dset_id = H5Dcreate(file_id, "PS_error", H5T_NATIVE_FLOAT, fspace_id_PS, H5P_DEFAULT, dcpl_id_PS, H5P_DEFAULT);
+
+        plist_id = H5Pcreate(H5P_DATASET_XFER);
+
+        H5Pset_dxpl_mpio(plist_id, H5FD_MPIO_COLLECTIVE);
+
+        H5Dwrite(dset_id, H5T_NATIVE_FLOAT, memspace_id_PS, fspace_id_PS, plist_id, grids->PS_error);
+
+        // cleanup
+        H5Pclose(plist_id);
+        H5Dclose(dset_id);
     }
-
-    // // Run delta_T_ps
-    // // ----------------------------------------------------------------------------------------------------
-
-    // mlog("Calculating delta_T box and power spectrum...", MLOG_OPEN);
-
-    // memset((void*)grid, 0, sizeof(float) * (int)dims);
-
-    // delta_T_ps(
-    //     run_globals.ZZ[snapshot],
-    //     run_globals.params.numcores,
-    //     grids->xH,
-    //     (float*)(grids->deltax),
-    //     &average_deltaT,
-    //     grid,
-    //     &ps,
-    //     &ps_nbins);
-
-    // H5LTmake_dataset_float(group_id, "delta_T", 1, &dims, grid);
-
-    // dims = ps_nbins * 3;
-    // H5LTmake_dataset_float(parent_group_id , "PowerSpectrum", 1               , &dims          , ps);
-    // H5LTset_attribute_int(parent_group_id  , "PowerSpectrum", "nbins"         , &ps_nbins      , 1);
-    // H5LTset_attribute_float(parent_group_id, "PowerSpectrum", "average_deltaT", &average_deltaT, 1);
-
-    // free(ps);
-
-    // mlog("...done", MLOG_CLOSE);   // delta_T
 
     // tidy up
     H5Pclose(dcpl_id);

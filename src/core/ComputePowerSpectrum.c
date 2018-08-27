@@ -169,13 +169,13 @@ void Compute_PS(int snapshot)
 
 //        mlog("PS Data: ii = %d in_bin = %d k_ave = %e p_box = %e",MLOG_MESG,ii,in_bin_ct[ii],k_ave[ii],p_box[ii]);
 
-        if(run_globals.mpi_rank==0) {
+//        if(run_globals.mpi_rank==0) {
 //            mlog("PS Data: ii = %d k_ave = %e p_box = %e",MLOG_MESG,ii,in_bin_ct[ii],k_ave[ii]/(double)in_bin_ct[ii],p_box[ii]/(double)in_bin_ct[ii]);
         
             PS_k[ii] = k_ave[ii]/(double)in_bin_ct[ii];
             PS_data[ii] = p_box[ii]/(double)in_bin_ct[ii];
             PS_error[ii] = (p_box[ii]/(double)in_bin_ct[ii])/sqrt((double)in_bin_ct[ii]);
-        }
+//        }
     }
 
     // Deallocate
