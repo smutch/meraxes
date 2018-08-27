@@ -1070,13 +1070,6 @@ void save_reion_output_grids(int snapshot)
         mlog("Outputting light-cone", MLOG_MESG);
         write_grid_float("LightconeBox", grids->LightconeBox, file_id, fspace_id_LC, memspace_id_LC, dcpl_id_LC);
 
-/*
-        if(run_globals.mpi_rank==0) {
-            for (int ii = 0; ii < run_globals.params.LightconeLength; ii++) {
-                mlog("ii = %d z_slice = %e",MLOG_MESG,ii,run_globals.reion_grids.Lightcone_redshifts[ii]);
-            }
-        }
-*/
         // create the filespace
         hsize_t dims_LCz[1] = { run_globals.params.LightconeLength };
         hid_t fspace_id_LCz = H5Screate_simple(1, dims_LCz, NULL);
