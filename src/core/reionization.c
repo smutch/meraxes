@@ -17,27 +17,27 @@ void calculate_galaxy_fesc_vals(galaxy_t* gal, double new_stars, int snapshot)
     case 1: // redshift
         fesc *= pow((1.0 + run_globals.ZZ[snapshot]) / params->EscapeFracOffset, params->EscapeFracScaling);
         break;
-    case 2: // stellar mass
+    case 2: // stellar mass (Msun)
         if (gal->StellarMass > 0.0)
-            fesc *= pow((log10(gal->StellarMass / run_globals.params.Hubble_h) - params->EscapeFracOffset), params->EscapeFracScaling);
-        else
-            fesc = 0.0;
-        break;
-    case 3: // star formation rate
-        if (gal->Sfr > 0.0)
-            fesc *= pow((log10(gal->Sfr * run_globals.units.UnitMass_in_g / run_globals.units.UnitTime_in_s * SEC_PER_YEAR / SOLAR_MASS) - params->EscapeFracOffset), params->EscapeFracScaling);
-        else
-            fesc = 0.0;
-        break;
-    case 4: // cold gas density
-        if (gal->ColdGas > 0.0)
-            fesc *= pow((log10((gal->ColdGas / gal->DiskScaleLength)) - params->EscapeFracOffset), params->EscapeFracScaling);
+            fesc *= pow((log10(gal->StellarMass / run_globals.params.Hubble_h) + 10.) / params->EscapeFracOffset, params->EscapeFracScaling);
         else
             fesc = 1.0;
         break;
-    case 5: // halo mass
+    case 3: // star formation rate (Msun / yr) + 1
+        if (gal->Sfr > 0.0)
+            fesc *= pow((log10(gal->Sfr * run_globals.units.UnitMass_in_g / run_globals.units.UnitTime_in_s * SEC_PER_YEAR / SOLAR_MASS + 1.0)) / params->EscapeFracOffset, params->EscapeFracScaling);
+        else
+            fesc = 0.0;
+        break;
+    case 4: // cold gas density (Msun / pc^2) + 1
+        if (gal->ColdGas > 0.0)
+            fesc *= pow((log10((gal->ColdGas / gal->DiskScaleLength / gal->DiskScaleLength * 0.01 * run_globals.params.Hubble_h + 1.0)) / params->EscapeFracOffset), params->EscapeFracScaling);
+        else
+            fesc = 1.0;
+        break;
+    case 5: // halo mass (Msun)
         if (gal->Mvir > 0.0)
-            fesc *= pow((log10(gal->Mvir / run_globals.params.Hubble_h) - params->EscapeFracOffset), params->EscapeFracScaling);
+            fesc *= pow(((log10(gal->Mvir / run_globals.params.Hubble_h) + 10.) / params->EscapeFracOffset), params->EscapeFracScaling);
         else
             fesc = 1.0;
         break;
