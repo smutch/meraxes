@@ -1,3 +1,4 @@
+#ifdef CALC_MAGS
 #include "meraxes.h"
 
 enum core {MASTER};
@@ -134,3 +135,6 @@ void get_output_magnitudes(float *target, galaxy_t *gal, int snapshot) {
             target[i_band] = (float)(mags[i_band] + sfr_unit);
     }
 }
+
+
+#endif
