@@ -1038,10 +1038,19 @@ void save_reion_output_grids(int snapshot)
         write_grid_float("Mvir_crit", grids->Mvir_crit, file_id, fspace_id, memspace_id, dcpl_id);
     }
 
+    // fftw padded grids
+    float* grid = (float*)calloc(local_nix * ReionGridDim * ReionGridDim, sizeof(float));
+
     if (run_globals.params.Flag_IncludeSpinTemp) {
         write_grid_float("TS_box", grids->TS_box, file_id, fspace_id, memspace_id, dcpl_id);
         write_grid_float("Tk_box", grids->Tk_box, file_id, fspace_id, memspace_id, dcpl_id);
-        write_grid_float("x_e_box", grids->x_e_box, file_id, fspace_id, memspace_id, dcpl_id);
+
+        for (int ii = 0; ii < local_nix; ii++)
+            for (int jj = 0; jj < ReionGridDim; jj++)
+                for (int kk = 0; kk < ReionGridDim; kk++)
+                    grid[grid_index(ii, jj, kk, ReionGridDim, INDEX_REAL)] = (grids->x_e_box_prev)[grid_index(ii, jj, kk, ReionGridDim, INDEX_PADDED)];
+
+        write_grid_float("x_e_box", grid, file_id, fspace_id, memspace_id, dcpl_id);
     }
 
     if(run_globals.params.Flag_Compute21cmBrightTemp) {
@@ -1157,6 +1166,7 @@ void save_reion_output_grids(int snapshot)
     }
 
     // tidy up
+    free(grid);
     H5Pclose(dcpl_id);
     H5Sclose(memspace_id);
     H5Sclose(fspace_id);

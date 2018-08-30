@@ -1525,6 +1525,10 @@ float get_Ts(float z, float delta, float TK, float xe, float Jalpha, float * cur
 
     }
     *curr_xalpha = xa_tilde;
+
+    if(isnan(xa_tilde)) {
+        printf("z = %e delta = %e TK = %e xe = %e Jalpha = %e xa_tilde = %e xc = %e\n",z,delta,TK,xe,Jalpha,xa_tilde,xc);
+    } 
   } else { // * Collisions only * //
     TSinv = (1.0/Trad + xc/TK)/(1.0 + xc);
     TS = 1.0/TSinv;
