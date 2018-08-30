@@ -1181,7 +1181,7 @@ bool check_if_reionization_ongoing(int snapshot)
         if (run_globals.params.Flag_OutputGridsPostReion)
             return true;
 
-        if(run_globals.params.Flag_ConstructLightcone && snapshot >= run_globals.params.End_Lightcone_snapshot) {
+        if(run_globals.params.Flag_ConstructLightcone && snapshot <= run_globals.params.End_Lightcone_snapshot) {
             return true;
         }
 

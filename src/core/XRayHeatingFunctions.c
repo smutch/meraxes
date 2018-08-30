@@ -1531,6 +1531,12 @@ float get_Ts(float z, float delta, float TK, float xe, float Jalpha, float * cur
     *curr_xalpha = 0;
   }
 
+// It can very rarely result in a negative spin temperature. If negative, it is a very small number. 
+// Take the absolute value, the optical depth can deal with very large numbers, so ok to be small
+  if(TS < 0.) {
+      TS = fabs(TS);
+  }
+
   return TS;
 }
 
