@@ -97,7 +97,7 @@ void _find_HII_bubbles_gpu(double redshift, const bool flag_write_validation_out
 
     // Check that a valid filter option has been specified
     try {
-        throw_on_generic_error(run_globals.params.ReionRtoMFilterType < 0 || run_globals.params.ReionRtoMFilterType > 2, meraxes_cuda_exception::INVALID_FILTER);
+        throw_on_generic_error(run_globals.params.ReionFilterType < 0 || run_globals.params.ReionFilterType > 2, meraxes_cuda_exception::INVALID_FILTER);
         throw_on_global_error();
     }
     catch (const meraxes_cuda_exception e) {
@@ -306,9 +306,9 @@ void _find_HII_bubbles_gpu(double redshift, const bool flag_write_validation_out
         // Perform convolution
         if (!flag_last_filter_step) {
             try {
-                throw_on_kernel_error((filter_gpu<<<grid_complex, threads>>>(deltax_filtered_device, ReionGridDim, local_ix_start, slab_n_complex, R, box_size, run_globals.params.ReionRtoMFilterType)), meraxes_cuda_exception::KERNEL_FILTER);
-                throw_on_kernel_error((filter_gpu<<<grid_complex, threads>>>(stars_filtered_device, ReionGridDim, local_ix_start, slab_n_complex, R, box_size, run_globals.params.ReionRtoMFilterType)), meraxes_cuda_exception::KERNEL_FILTER);
-                throw_on_kernel_error((filter_gpu<<<grid_complex, threads>>>(sfr_filtered_device, ReionGridDim, local_ix_start, slab_n_complex, R, box_size, run_globals.params.ReionRtoMFilterType)), meraxes_cuda_exception::KERNEL_FILTER);
+                throw_on_kernel_error((filter_gpu<<<grid_complex, threads>>>(deltax_filtered_device, ReionGridDim, local_ix_start, slab_n_complex, R, box_size, run_globals.params.ReionFilterType)), meraxes_cuda_exception::KERNEL_FILTER);
+                throw_on_kernel_error((filter_gpu<<<grid_complex, threads>>>(stars_filtered_device, ReionGridDim, local_ix_start, slab_n_complex, R, box_size, run_globals.params.ReionFilterType)), meraxes_cuda_exception::KERNEL_FILTER);
+                throw_on_kernel_error((filter_gpu<<<grid_complex, threads>>>(sfr_filtered_device, ReionGridDim, local_ix_start, slab_n_complex, R, box_size, run_globals.params.ReionFilterType)), meraxes_cuda_exception::KERNEL_FILTER);
                 check_thread_sync(meraxes_cuda_exception::KERNEL_FILTER);
                 // Throw an exception if another rank has thrown one
                 throw_on_global_error();
