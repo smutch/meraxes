@@ -147,7 +147,8 @@ int read_dm_grid__velociraptor(
         for (int jj = 0; jj < ReionGridDim; jj++)
             for (int kk = 0; kk < ReionGridDim; kk++) {
                 float* val = &(slab[grid_index(ii, jj, kk, ReionGridDim, INDEX_PADDED)]);
-                *val = (float)(((double)*val / mean) - 1.);
+                // the fmax check here tries to account for negative densities introduced by fftw rounding / aliasing effects
+                *val = fmaxf((float)(((double)*val / mean) - 1.), -1.0 + REL_TOL);
             }
 
     fftwf_free(slab_file);
