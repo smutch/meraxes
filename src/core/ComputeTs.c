@@ -67,7 +67,6 @@ void _ComputeTs(int snapshot)
     float* x_e_box = run_globals.reion_grids.x_e_box;
     float* x_e_box_prev = run_globals.reion_grids.x_e_box_prev;
     float* Tk_box = run_globals.reion_grids.Tk_box;
-    float* Tk_box_prev = run_globals.reion_grids.Tk_box_prev;
     float* TS_box = run_globals.reion_grids.TS_box;
 
     float* sfr = run_globals.reion_grids.sfr;
@@ -122,9 +121,9 @@ void _ComputeTs(int snapshot)
                     i_padded = grid_index(ix, iy, iz, ReionGridDim, INDEX_PADDED);
 
                     x_e_box_prev[i_padded] = xion_RECFAST(zp,0);
-                    Tk_box_prev[i_real] = T_RECFAST(zp,0);
+                    Tk_box[i_real] = T_RECFAST(zp,0);
 
-                    TS_box[i_real] = get_Ts(zp, run_globals.reion_grids.deltax[i_padded], Tk_box_prev[i_real], x_e_box_prev[i_padded],0, &curr_xalpha);
+                    TS_box[i_real] = get_Ts(zp, run_globals.reion_grids.deltax[i_padded], Tk_box[i_real], x_e_box_prev[i_padded],0, &curr_xalpha);
           
                 }
 
@@ -367,7 +366,7 @@ void _ComputeTs(int snapshot)
                     i_padded = grid_index(ix, iy, iz, ReionGridDim, INDEX_PADDED);
 
                     ans[0] = x_e_box_prev[i_padded];
-                    ans[1] = Tk_box_prev[i_real];
+                    ans[1] = Tk_box[i_real];
 
                     for (R_ct=0; R_ct<run_globals.params.NUM_FILTER_STEPS_FOR_Ts; R_ct++){
                         i_smoothedSFR = grid_index_smoothedSFR(R_ct, ix, iy, iz, run_globals.params.NUM_FILTER_STEPS_FOR_Ts, ReionGridDim);
@@ -434,14 +433,14 @@ void _ComputeTs(int snapshot)
                         x_e_box_prev[i_padded] = 1 - FRACT_FLOAT_ERR;
                     else if (x_e_box_prev[i_padded] < 0)
                         x_e_box_prev[i_padded] = 0;
-                    if (Tk_box_prev[i_real] < MAX_TK)
-                        Tk_box_prev[i_real] += dansdz[1] * dzp;
+                    if (Tk_box[i_real] < MAX_TK)
+                        Tk_box[i_real] += dansdz[1] * dzp;
 
-                    if (Tk_box_prev[i_real]<0){ // spurious bahaviour of the trapazoidalintegrator. generally overcooling in underdensities
-                        Tk_box_prev[i_real] = TCMB*(1+zp);
+                    if (Tk_box[i_real]<0){ // spurious bahaviour of the trapazoidalintegrator. generally overcooling in underdensities
+                        Tk_box[i_real] = TCMB*(1+zp);
                     }
 
-                    TS_box[i_real] = get_Ts(zp, run_globals.reion_grids.deltax[i_padded], Tk_box_prev[i_real], x_e_box_prev[i_padded], dansdz[2], &curr_xalpha);
+                    TS_box[i_real] = get_Ts(zp, run_globals.reion_grids.deltax[i_padded], Tk_box[i_real], x_e_box_prev[i_padded], dansdz[2], &curr_xalpha);
                 
                     J_alpha_ave += dansdz[2];
                     xalpha_ave += curr_xalpha;
@@ -474,7 +473,7 @@ void _ComputeTs(int snapshot)
                 i_real = grid_index(ix, iy, iz, ReionGridDim, INDEX_REAL);
 
                 Ave_Ts += (double)TS_box[i_real];
-                Ave_Tk += (double)Tk_box_prev[i_real];
+                Ave_Tk += (double)Tk_box[i_real];
                 Ave_x_e += (double)x_e_box_prev[i_padded];
             }
 

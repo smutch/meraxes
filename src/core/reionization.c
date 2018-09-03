@@ -244,7 +244,6 @@ void init_reion_grids()
         grids->r_bubble[ii] = 0.0;
         if(run_globals.params.Flag_IncludeSpinTemp) {
             grids->Tk_box[ii] = 0.0;
-            grids->Tk_box_prev[ii] = 0.0;
             grids->TS_box[ii] = 0.0;
         }
         if(run_globals.params.Flag_IncludeRecombinations) {
@@ -369,7 +368,6 @@ void malloc_reionization_grids()
     grids->x_e_box = NULL;
     grids->x_e_box_prev = NULL;
     grids->Tk_box = NULL;
-    grids->Tk_box_prev = NULL;
     grids->TS_box = NULL;
     grids->x_e_unfiltered = NULL;
     grids->x_e_filtered = NULL;
@@ -450,7 +448,6 @@ void malloc_reionization_grids()
             grids->x_e_box = fftwf_alloc_real(slab_n_complex * 2);
             grids->x_e_box_prev = fftwf_alloc_real(slab_n_complex * 2); // padded for in-place FFT;
             grids->Tk_box = fftwf_alloc_real(slab_n_real);
-            grids->Tk_box_prev = fftwf_alloc_real(slab_n_real);
             grids->TS_box = fftwf_alloc_real(slab_n_real);
 
             grids->x_e_filtered = fftwf_alloc_complex(slab_n_complex);
@@ -531,7 +528,6 @@ void free_reionization_grids()
 	fftwf_free(grids->x_e_box);
     	fftwf_free(grids->x_e_box_prev);
 	fftwf_free(grids->Tk_box);
-   	fftwf_free(grids->Tk_box_prev);
     	fftwf_free(grids->TS_box);
 
         free(grids->SMOOTHED_SFR_GAL);
