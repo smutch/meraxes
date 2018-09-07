@@ -148,8 +148,8 @@ typedef struct physics_params_t {
     double ReionRBubbleMax;
 
     double EscapeFracNorm;
-    double EscapeFracOffset;
-    double EscapeFracScaling;
+    double EscapeFracRedshiftScaling;
+    double EscapeFracPropScaling;
     double EscapeFracBHNorm;
     double EscapeFracBHScaling;
 
