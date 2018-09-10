@@ -6,7 +6,7 @@
 
 find_package(PkgConfig)
 if (PKG_CONFIG_FOUND)
-    pkg_check_modules(PC_FFTW QUIET fftw)
+    pkg_check_modules(PC_FFTW QUIET fftw3f)
 endif()
 
 set(FFTW_DEFINITIONS ${PC_FFTW_CFLAGS_OTHER})
