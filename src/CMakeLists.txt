@@ -23,6 +23,13 @@ add_definitions(-DN_HISTORY_SNAPS=${N_HISTORY_SNAPS})
 option(USE_BUNDLED_FFTW "Download and build against bundled fftw" OFF)
 option(BUILD_TESTS "Build criterion tests" OFF)
 
+# MAGNITUDES
+option(CALC_MAGS "Calculate magnitude" OFF)
+set(MAGS_N_SNAPS 3 CACHE VALUE "Number of snapshots to compute magnitudes")
+add_definitions(-DMAGS_N_SNAPS=${MAGS_N_SNAPS})
+set(MAGS_N_BANDS 6 CACHE VALUE "Number of bands to compute")
+add_definitions(-DMAGS_N_BANDS=${MAGS_N_BANDS})
+
 # Build type
 set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -DDEBUG -Wall -O0")
 set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -march=native")

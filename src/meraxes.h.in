@@ -20,6 +20,10 @@
  */
 
 #define N_HISTORY_SNAPS @N_HISTORY_SNAPS@
+#ifdef CALC_MAGS
+#define MAGS_N_SNAPS @MAGS_N_SNAPS@
+#define MAGS_N_BANDS @MAGS_N_BANDS@
+#endif
 
 // ======================================================
 // Don't change these unless you know what you are doing!
