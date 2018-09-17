@@ -1280,9 +1280,6 @@ void evolveInt(float zp, float curr_delNL0, double SFR_GAL[], double SFR_QSO[],
   dxlya_dt_QSO = 0;
   dstarlya_dt_QSO = 0;
 
-  double quantity1, quantity2, quantity3, quantity4, quantity5;
-  quantity1 = quantity2 = quantity3 = quantity4 = quantity5 = 0.0;
-
   if (!NO_LIGHT){
       for (zpp_ct = 0; zpp_ct < run_globals.params.NUM_FILTER_STEPS_FOR_Ts; zpp_ct++){
           // set redshift of half annulus; dz'' is negative since we flipped limits of integral
@@ -1328,17 +1325,6 @@ void evolveInt(float zp, float curr_delNL0, double SFR_GAL[], double SFR_QSO[],
               // Units should be M_solar/s. Factor of (dt_dzp * dzpp) converts from per s to per z'
               dstarlya_dt_GAL += SFR_GAL[zpp_ct] * pow(1+zp,2)*(1+zpp) * sum_lyn[zpp_ct] * dt_dzpp * dzpp;
 
-//              quantity1 += dt_dzp * dzpp * zpp_integrand_GAL;
-//              quantity2	+= SFR_GAL[zpp_ct] * dt_dzpp * dzpp;
-//              quantity1 += freq_int_heat_GAL[zpp_ct];
-//              quantity2 += pow(1+zp,2)*(1+zpp) * sum_lyn[zpp_ct];
-
-              quantity1 += freq_int_heat_GAL[zpp_ct];
-              quantity2 += freq_int_ion_GAL[zpp_ct];
-              quantity3	+= freq_int_lya_GAL[zpp_ct];
-              quantity4	+= pow(1+zp,2)*(1+zpp) * sum_lyn[zpp_ct]/pow(1+zpp, -run_globals.params.physics.X_RAY_SPEC_INDEX_GAL);
-
-              quantity5 += dt_dzpp * dzpp * SFR_GAL[zpp_ct];
           }
       }
 
@@ -1403,26 +1389,11 @@ void evolveInt(float zp, float curr_delNL0, double SFR_GAL[], double SFR_QSO[],
   deriv[3] = dxheat_dzp;
   deriv[4] = dt_dzp*( dxion_source_dt_GAL + dxion_source_dt_QSO );
 
-  deriv[5] = dxion_source_dt_GAL;
-  deriv[6] = dxheat_dt_GAL;
+//  deriv[5] = dxion_source_dt_GAL;
+//  deriv[6] = dxheat_dt_GAL;
  
-  deriv[7] = dxlya_dt_GAL;
-  deriv[8] = dstarlya_dt_GAL;
-
-  deriv[9] = quantity1;
-  deriv[10] = quantity2;
-
-  deriv[11] = quantity3;
-  deriv[12] = quantity4;
-
-  deriv[13] = quantity5;
- 
-  deriv[14] = dcomp_dzp;
-  deriv[15] = dspec_dzp;
-  deriv[16] = dadia_dzp;
-  deriv[17] = dxion_sink_dt;
-  deriv[18] = dxheat_dzp;
-
+//  deriv[7] = dxlya_dt_GAL;
+//  deriv[8] = dstarlya_dt_GAL;
 }
 
 // * Compton heating term * //

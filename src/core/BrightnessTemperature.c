@@ -128,7 +128,7 @@ void ComputeBrightnessTemperatureBox(int snapshot) {
     max_vel_grad = 0.0;
 
     // If we aren't using velocities, then we are already done!
-    if(run_globals.params.Flag_IncludePecVelsFor21cm > 0) {
+    if((run_globals.params.Flag_IncludeSpinTemp) && (run_globals.params.Flag_IncludePecVelsFor21cm > 0)) {
 
         // Compute the velocity gradient, given the velocity field
         vel = run_globals.reion_grids.vel;
