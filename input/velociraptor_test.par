@@ -94,6 +94,7 @@ MaxCoolingMassFactor      : 1.0     # maximum cooling mass factor (1 -> ff time)
 #   -Reincorporation time scales with halo mass (Henriques et al. 2013), and is always larger than the
 #    halo dynamic time
 #   -ReincorporationEff adopts the definition in Henriques et al. 2013, which differs from the first case
+#    and should be in unit of Myr
 ReincorporationModel      : 1
 ReincorporationEff        : 0.0     # gas reincorporation efficiency from ejected component
 
