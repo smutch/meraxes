@@ -30,8 +30,9 @@ void reincorporate_ejected_gas(galaxy_t* gal)
             break;
         case 2:
             // Following the prescription of Henriques et al. 2013
-            t_rein = ReincorporationEff/fof_group->Mvir \
-                     /(run_globals.units.UnitTime_in_Megayears/run_globals.params.Hubble_h);
+            t_rein = ReincorporationEff/(fof_group->Mvir/run_globals.params.Hubble_h); // Unit: Myr
+            // Convert to Meraxes intrinsic unit
+            t_rein /= run_globals.units.UnitTime_in_Megayears/run_globals.params.Hubble_h;
             if (t_rein < t_dyn)
                 t_rein = t_dyn;
             reincorporated = gal->EjectedGas * (gal->dt / t_rein);
