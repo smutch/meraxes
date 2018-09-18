@@ -64,17 +64,19 @@ Yield                     : 0.03    # mass of metals injected into ISM per unit 
 # SnModel=1:
 #   -Use the Vmax scaling of Guo et al. 2011
 #   -Additional redshift factor of ((1 + z)/4)^SnEjectionRedshiftDep (SnReheatRedshiftDep)
-#   -SnReheatScaling2 is unused
+#   -SnReheatScaling2 and SnEjectionScaling2 are unused
 # SnModel=2:
-#   -Energy coupling efficiency (i.e. gas reheating efficiency) follows Guo et al. 2011
 #   -Mass loading factor follows Muratov et al. 2015. Use SnReheatScaling for high Vmax scaling and
-#    SnReheatScaling2 for low Vmax scaling.
+#    SnReheatScaling2 for low Vmax scaling
+#   -Energy coupling efficiency follows a similar form. Use SnEjectionScaling for high Vmax scaling
+#    and SnEjectionScaling2 for low Vmax scaling
 #   -Both factors has redshift dependence of ((1 + z)/4)^SnEjectionRedshiftDep (SnReheatRedshiftDep)
 
 SnModel                   : 1
 SnEjectionRedshiftDep     : 0.0     # SN feedback gas reheating efficiency redshift scaling
 SnEjectionEff             : 0.5     # SN feedback gas reheating efficiency
-SnEjectionScaling         : 2.0     # SN feedback gas reheating efficiency scaling (with Vmax)
+SnEjectionScaling         : 2.0     # SN feedback gas reheating efficiency scaling (with high Vmax)
+SnEjectionScaling2        : 2.0     # SN feedback gas reheating efficiency scaling (with low Vmax)
 SnEjectionNorm            : 70.0    # SN feedback gas reheating efficiency norm (with Vmax [internal units])
 
 SnReheatRedshiftDep       : 0.0     # mass loading factor redshift scaling
