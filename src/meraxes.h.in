@@ -111,6 +111,7 @@ typedef struct physics_params_t {
     double SnEjectionRedshiftDep;
     double SnEjectionEff;
     double SnEjectionScaling;
+    double SnEjectionScaling2;
     double SnEjectionNorm;
     double MaxCoolingMassFactor;
     int ReincorporationModel;

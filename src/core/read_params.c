@@ -437,6 +437,11 @@ void read_parameter_file(char* fname, int mode)
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
+            strcpy(params_tag[n_param], "SnEjectionScaling2");
+            params_addr[n_param] = &(run_params->physics).SnEjectionScaling2;
+            required_tag[n_param] = 1;
+            params_type[n_param++] = PARAM_TYPE_DOUBLE;
+
             strcpy(params_tag[n_param], "SnEjectionNorm");
             params_addr[n_param] = &(run_params->physics).SnEjectionNorm;
             required_tag[n_param] = 1;
