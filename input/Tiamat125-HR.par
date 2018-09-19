@@ -57,6 +57,8 @@ Yield                     : 0.03    # mass of metals injected into ISM per unit 
 #    SnReheatScaling2 for low Vmax scaling
 #   -Energy coupling efficiency follows a similar form. Use SnEjectionScaling for high Vmax scaling
 #    and SnEjectionScaling2 for low Vmax scaling
+#   -SnEjectionNorm and SnReheatNorm are forced to be the same, and the input SnEjectionNorm is
+#    unused
 #   -Both factors has redshift dependence of ((1 + z)/4)^SnEjectionRedshiftDep (SnReheatRedshiftDep)
 
 SnModel                   : 1
