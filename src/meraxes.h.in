@@ -193,6 +193,7 @@ typedef struct run_params_t {
     #ifdef CALC_MAGS
     char PhotometricTablesDir[STRLEN];
     char TargetSnaps[STRLEN];
+    char BetaBands[STRLEN];
     char RestBands[STRLEN];
     double BirthCloudLifetime;
     #endif

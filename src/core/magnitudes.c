@@ -22,35 +22,78 @@ void init_magnitudes(void) {
         memcpy(str, params->TargetSnaps, sizeof(str));
         token = strtok(str, delim);
         for(int i_snap = 0; i_snap < MAGS_N_SNAPS; ++i_snap) {
-            target_snaps[i_snap] = atoi(token);
-            token = strtok(NULL, delim);
+            if (token != NULL) {
+                target_snaps[i_snap] = atoi(token);
+                token = strtok(NULL, delim);
+            }
+            else if (i_snap != MAGS_N_SNAPS - 1) {
+                mlog_error("TargetSnaps does not match MAGS_N_SNAPS!");
+                ABORT(EXIT_FAILURE);
+            }
         }
-
         printf("# Target snapshots: ");
         for(int i_snap = 0; i_snap < MAGS_N_SNAPS; ++i_snap)
             printf("%d ", target_snaps[i_snap]);
         printf("\n");
+        // Read beta filters
+        double beta_bands[2*MAGS_N_BANDS];
+        int n_beta = 0;
 
+        memcpy(str, params->BetaBands, sizeof(str));
+        token = strtok(str, delim);
+        for(int i_band = 0; i_band < 2*MAGS_N_BANDS; ++i_band) {
+            if (token != NULL) {
+                beta_bands[i_band] = atof(token);
+                token = strtok(NULL, delim);
+                ++n_beta;
+            }
+            else
+                break;
+        }
+        if (n_beta%2 == 0)
+            n_beta /= 2;
+        else {
+            mlog_error("Wrong BetaBands!");
+            ABORT(EXIT_FAILURE);
+        }
+        printf("# Beta filters:\n");
+        for(int i_band = 0; i_band < n_beta; ++i_band)
+            printf("#\t%.1f AA to %.1f\n", beta_bands[2*i_band], beta_bands[2*i_band + 1]);
         // Read rest-frame filters
         double rest_bands[2*MAGS_N_BANDS];
+        int n_rest = 0;
 
         memcpy(str, params->RestBands, sizeof(str));
         token = strtok(str, delim);
-        for(int i_bound = 0; i_bound < 2*MAGS_N_BANDS; ++i_bound) {
-            rest_bands[i_bound] = atof(token);
-            token = strtok(NULL, delim);
+        for(int i_band = 0; i_band < 2*MAGS_N_BANDS; ++i_band) {
+            if (token != NULL) {
+                rest_bands[i_band] = atof(token);
+                token = strtok(NULL, delim);
+                ++n_rest;
+            }
+            else
+                break;
         }
-
+        if (n_rest%2 == 0)
+            n_rest /= 2;
+        else {
+            mlog_error("Wrong RestBands!");
+            ABORT(EXIT_FAILURE);
+        }
         printf("# Rest-frame filters:\n");
-        for(int i_band = 0; i_band < MAGS_N_BANDS; ++i_band)
+        for(int i_band = 0; i_band < n_rest; ++i_band)
             printf("#\t%.1f AA to %.1f\n", rest_bands[2*i_band], rest_bands[2*i_band + 1]);
+        //
+        if (n_beta + n_rest != MAGS_N_BANDS) {
+            mlog_error("Number of beta and rest-frame filters do not match MAGS_N_BANDS!");
+            ABORT(EXIT_FAILURE);
+        }
         printf("#***********************************************************\n\n");
 
         // Initialise SED templates
         ////
         char *fname = params->PhotometricTablesDir;
         strcat(fname, "/sed_library.hdf5");
-        printf("%s\n", fname);
         ////Convert time unit to yr
         int snaplist_len = params->SnaplistLength;
         double *LTTime = malloc(snaplist_len*sizeof(double));
@@ -61,7 +104,7 @@ void init_magnitudes(void) {
             LTTime[i_time] *= time_unit;
         ////
         init_templates_mini(mags_params, fname, LTTime, target_snaps, run_globals.ZZ,
-                            rest_bands, MAGS_N_BANDS, 0, params->BirthCloudLifetime);
+                            beta_bands, n_beta, rest_bands, n_rest, params->BirthCloudLifetime);
     }
 
     // Broadcast parameters to all cores
