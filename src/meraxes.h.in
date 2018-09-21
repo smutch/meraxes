@@ -533,8 +533,6 @@ typedef char gpu_info;
 #ifdef CALC_MAGS
 typedef struct mag_params_t {
     int targetSnap[MAGS_N_SNAPS];
-    int nBeta;
-    int nRest;
     int minZ;
     int maxZ;
     int nMaxZ;
