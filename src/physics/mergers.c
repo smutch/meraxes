@@ -184,7 +184,7 @@ void merge_with_target(galaxy_t* gal, int* dead_gals, int snapshot)
         parent->NewMetals[ii] += gal->NewMetals[ii];
 
     #ifdef CALC_MAGS
-    merge_luminosities(parent->inBCFlux, parent->outBCFlux, gal->inBCFlux, gal->outBCFlux);
+    merge_luminosities(parent, gal);
     #endif
 
     // merger driven starburst prescription

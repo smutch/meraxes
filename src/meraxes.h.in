@@ -23,6 +23,7 @@
 #ifdef CALC_MAGS
 #define MAGS_N_SNAPS @MAGS_N_SNAPS@
 #define MAGS_N_BANDS @MAGS_N_BANDS@
+typedef double flux_t[MAGS_N_SNAPS*MAGS_N_BANDS];
 #endif
 
 // ======================================================
@@ -350,8 +351,8 @@ typedef struct galaxy_t {
     double NewMetals[N_HISTORY_SNAPS];
 
     #ifdef CALC_MAGS
-    double inBCFlux[MAGS_N_SNAPS*MAGS_N_BANDS];
-    double outBCFlux[MAGS_N_SNAPS*MAGS_N_BANDS];
+    flux_t inBCFlux;
+    flux_t outBCFlux;
     #endif
 
     // Unique ID for the galaxy
@@ -529,6 +530,24 @@ typedef struct gpu_info{
 typedef char gpu_info;
 #endif
 
+#ifdef CALC_MAGS
+typedef struct mag_params_t {
+    int targetSnap[MAGS_N_SNAPS];
+    int nBeta;
+    int nRest;
+    int minZ;
+    int maxZ;
+    int nMaxZ;
+    int iAgeBC[MAGS_N_SNAPS];
+    size_t totalSize;
+    double *working;
+    double *inBC;
+    double *outBC;
+    double *centreWaves;
+    double *logWaves;
+} mag_params_t;
+#endif
+
 //! Global variables which will will be passed around
 typedef struct run_globals_t {
     struct run_params_t params;
@@ -564,7 +583,7 @@ typedef struct run_globals_t {
     double Csquare;
 
     #ifdef CALC_MAGS
-    struct mini_sed_params_t mags_params;
+    struct mag_params_t mags_params;
     #endif
 
     int NOutputSnaps;
@@ -731,6 +750,10 @@ bool check_if_reionization_ongoing(void);
 void write_single_grid(const char* fname, float* grid, const char* grid_name, bool padded_flag, bool create_file_flag);
 
 #ifdef CALC_MAGS
+void init_luminosities(galaxy_t *gal);
+void add_luminosities(mag_params_t *miniSpectra, galaxy_t *gal, int snapshot, double metals, double sfr);
+void merge_luminosities(galaxy_t *target, galaxy_t *gal);
+void init_templates_mini(mag_params_t *miniSpectra, char *fName, double *LTTime, int *targetSnaps, double *redshifts, double *betaBands, int nBeta, double *restBands, int nRest, double tBC);
 void init_magnitudes(void);
 void cleanup_mags(void);
 void get_output_magnitudes(float *target, galaxy_t *gal, int snapshot);

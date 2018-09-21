@@ -19,8 +19,7 @@ void update_reservoirs_from_sf(galaxy_t* gal, double new_stars, int snapshot)
         double sfr = new_stars / gal->dt;
         gal->Sfr += sfr;
         if (sfr > 0.)
-            add_luminosities(&run_globals.mags_params, gal->inBCFlux, gal->outBCFlux,
-                             snapshot, metallicity, sfr);
+            add_luminosities(&run_globals.mags_params, gal, snapshot, metallicity, sfr);
         #else
         gal->Sfr += new_stars / gal->dt;
         #endif

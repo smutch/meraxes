@@ -76,7 +76,7 @@ galaxy_t* new_galaxy(int snapshot, unsigned long halo_ID)
     gal->ghost_flag = false;
 
     #ifdef CALC_MAGS
-    init_luminosities(gal->inBCFlux, gal->outBCFlux);
+    init_luminosities(gal);
     #endif
 
     return gal;
