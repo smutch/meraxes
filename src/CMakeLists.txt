@@ -227,7 +227,12 @@ if(CALC_MAGS)
     file(GLOB SECTOR_SOURCES ${SECTOR_ROOT}/*.c ${SECTOR}/sector.h)
     add_library(sector SHARED ${SECTOR_SOURCES})
     target_link_libraries(meraxes_lib PUBLIC sector)
-    target_include_directories(meraxes_lib PUBLIC ${SECTOR_ROOT})
+    set_target_properties(sector PROPERTIES
+                          POSITION_INDEPENDENT_CODE ON
+                          PUBLIC_HEADER "${SECTOR_ROOT}/sector.h")
+    target_include_directories(meraxes_lib PUBLIC
+                               $<BUILD_INTERFACE:${SECTOR_ROOT}>
+                               $<INSTALL_INTERFACE:include>)
     install(TARGETS sector EXPORT MeraxesConfig
         DESTINATION lib
         PUBLIC_HEADER DESTINATION include
