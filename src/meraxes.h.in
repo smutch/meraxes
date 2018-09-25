@@ -23,7 +23,7 @@
 #ifdef CALC_MAGS
 #define MAGS_N_SNAPS @MAGS_N_SNAPS@
 #define MAGS_N_BANDS @MAGS_N_BANDS@
-typedef double flux_t[MAGS_N_SNAPS*MAGS_N_BANDS];
+#define MAGS_N MAGS_N_SNAPS*MAGS_N_BANDS
 #endif
 
 // ======================================================
@@ -351,8 +351,8 @@ typedef struct galaxy_t {
     double NewMetals[N_HISTORY_SNAPS];
 
     #ifdef CALC_MAGS
-    flux_t inBCFlux;
-    flux_t outBCFlux;
+    double inBCFlux[MAGS_N];
+    double outBCFlux[MAGS_N];
     #endif
 
     // Unique ID for the galaxy

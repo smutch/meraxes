@@ -2,7 +2,7 @@
 #include "meraxes.h"
 
 #define TOL 1e-30 // Minimum Flux
-#define MAGS_N MAGS_N_SNAPS*MAGS_N_BANDS
+
 
 enum core {MASTER};
 
