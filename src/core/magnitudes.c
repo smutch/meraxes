@@ -91,7 +91,7 @@ void init_templates_mini(mag_params_t *miniSpectra, char *fName,
                          double tBC) {
     // Initialise full templates
     int iA, iS;
-    struct sed_params spectra[MAGS_N_SNAPS];
+    struct sed_params_t spectra[MAGS_N_SNAPS];
     int nAgeStep;
     double *ageStep;
 
