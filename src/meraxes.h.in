@@ -583,7 +583,7 @@ typedef struct run_globals_t {
     double Csquare;
 
     #ifdef CALC_MAGS
-    struct mag_params_t mags_params;
+    struct mag_params_t mag_params;
     #endif
 
     int NOutputSnaps;

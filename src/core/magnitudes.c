@@ -213,7 +213,7 @@ void init_templates_mini(mag_params_t *miniSpectra, char *fName,
 
 void init_magnitudes(void) {
     int mpi_rank = run_globals.mpi_rank;
-    mag_params_t *mags_params = &run_globals.mags_params;
+    mag_params_t *mag_params = &run_globals.mag_params;
 
     // Initalise all relevant parameters at the master core
     if (mpi_rank == MASTER) {
@@ -311,7 +311,7 @@ void init_magnitudes(void) {
         for(int i_time = 0; i_time < snaplist_len; ++i_time)
             LTTime[i_time] *= time_unit;
         ////
-        init_templates_mini(mags_params, fname, LTTime, target_snaps, run_globals.ZZ,
+        init_templates_mini(mag_params, fname, LTTime, target_snaps, run_globals.ZZ,
                             beta_bands, n_beta, rest_bands, n_rest, params->BirthCloudLifetime);
     }
 
@@ -324,44 +324,44 @@ void init_magnitudes(void) {
     ptrdiff_t offset_logWaves;
 
     if (mpi_rank == MASTER) {
-        working = mags_params->working;
-        offset_inBC = mags_params->inBC - working;
-        offset_outBC = mags_params->outBC - working;
-        offset_waves = mags_params->centreWaves - working;
-        offset_logWaves = mags_params->logWaves - working;
+        working = mag_params->working;
+        offset_inBC = mag_params->inBC - working;
+        offset_outBC = mag_params->outBC - working;
+        offset_waves = mag_params->centreWaves - working;
+        offset_logWaves = mag_params->logWaves - working;
 
-        mags_params->working = NULL;
-        mags_params->inBC = NULL;
-        mags_params->outBC = NULL;
-        mags_params->centreWaves = NULL;
-        mags_params->logWaves = NULL;
+        mag_params->working = NULL;
+        mag_params->inBC = NULL;
+        mag_params->outBC = NULL;
+        mag_params->centreWaves = NULL;
+        mag_params->logWaves = NULL;
     }
 
-    MPI_Bcast(mags_params, sizeof(mag_params_t), MPI_BYTE, MASTER, mpi_comm);
+    MPI_Bcast(mag_params, sizeof(mag_params_t), MPI_BYTE, MASTER, mpi_comm);
     MPI_Bcast(&offset_inBC, sizeof(ptrdiff_t), MPI_BYTE, MASTER, mpi_comm);
     MPI_Bcast(&offset_outBC, sizeof(ptrdiff_t), MPI_BYTE, MASTER, mpi_comm);
     MPI_Bcast(&offset_waves, sizeof(ptrdiff_t), MPI_BYTE, MASTER, mpi_comm);
     MPI_Bcast(&offset_logWaves, sizeof(ptrdiff_t), MPI_BYTE, MASTER, mpi_comm);
     if (mpi_rank != MASTER)
-        working = (double*)malloc(mags_params->totalSize);
-    MPI_Bcast(working, mags_params->totalSize, MPI_BYTE, MASTER, mpi_comm);
+        working = (double*)malloc(mag_params->totalSize);
+    MPI_Bcast(working, mag_params->totalSize, MPI_BYTE, MASTER, mpi_comm);
 
-    mags_params->working = working;
-    mags_params->inBC = working + offset_inBC;
-    mags_params->outBC = working + offset_outBC;
-    mags_params->centreWaves = working + offset_waves;
-    mags_params->logWaves = working + offset_logWaves;
+    mag_params->working = working;
+    mag_params->inBC = working + offset_inBC;
+    mag_params->outBC = working + offset_outBC;
+    mag_params->centreWaves = working + offset_waves;
+    mag_params->logWaves = working + offset_logWaves;
 }
 
 void cleanup_mags(void) {
     H5Tclose(run_globals.hdf5props.array_nmag_f_tid);
-    free(run_globals.mags_params.working);
+    free(run_globals.mag_params.working);
 }
 
 void get_output_magnitudes(float *target, galaxy_t *gal, int snapshot) {
     // Check if ``snapshot`` is a target snapshot
     int iS;
-    int *targetSnap = run_globals.mags_params.targetSnap;
+    int *targetSnap = run_globals.mag_params.targetSnap;
     double *pInBCFlux = gal->inBCFlux;
     double *pOutBCFlux = gal->outBCFlux;
 
