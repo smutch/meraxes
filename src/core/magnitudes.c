@@ -176,6 +176,8 @@ void init_templates_mini(mag_params_t *miniSpectra, char *fName,
     memcpy(working + offsetWaves, spectra->logWaves, MAGS_N_BANDS*sizeof(double));
     ////
     memcpy(miniSpectra->targetSnap, targetSnap, MAGS_N_SNAPS*sizeof(int));
+    miniSpectra->nBeta = nBeta;
+    miniSpectra->nRest = nRest;
     miniSpectra->minZ = spectra->minZ;
     miniSpectra->maxZ = spectra->maxZ;
     miniSpectra->nMaxZ = nMaxZ;
