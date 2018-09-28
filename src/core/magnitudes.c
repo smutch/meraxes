@@ -174,13 +174,14 @@ void init_templates_mini(mag_params_t *miniSpectra, char *fName,
     memcpy(working + offsetWaves, spectra->centreWaves, MAGS_N_BANDS*sizeof(double));
     offsetWaves += MAGS_N_BANDS;
     memcpy(working + offsetWaves, spectra->logWaves, MAGS_N_BANDS*sizeof(double));
-    ////
+    //// Set attributes
     memcpy(miniSpectra->targetSnap, targetSnap, MAGS_N_SNAPS*sizeof(int));
     miniSpectra->nBeta = nBeta;
     miniSpectra->nRest = nRest;
     miniSpectra->minZ = spectra->minZ;
     miniSpectra->maxZ = spectra->maxZ;
     miniSpectra->nMaxZ = nMaxZ;
+    miniSpectra->tBC = tBC;
     ////   -Find the interval for birth cloud
     for(iS = 0; iS < MAGS_N_SNAPS; ++iS)
         miniSpectra->iAgeBC[iS] = \

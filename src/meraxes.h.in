@@ -538,6 +538,7 @@ typedef struct mag_params_t {
     int minZ;
     int maxZ;
     int nMaxZ;
+    double tBC;
     int iAgeBC[MAGS_N_SNAPS];
     size_t totalSize;
     double *working;
