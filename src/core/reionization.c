@@ -13,7 +13,7 @@ void calculate_galaxy_fesc_vals(galaxy_t* gal, double new_stars, int snapshot)
     double fesc = params->EscapeFracNorm;
 
     // redshift
-    if ((params->EscapeFracDependency > 0) && (params->EscapeFracDependency <= 5))
+    if ((params->EscapeFracDependency > 0) && (params->EscapeFracDependency <= 6))
         if (params->EscapeFracRedshiftScaling != 0.0)
             fesc *= pow((1.0 + run_globals.ZZ[snapshot]) / 6.0, params->EscapeFracRedshiftScaling);
     
@@ -45,6 +45,12 @@ void calculate_galaxy_fesc_vals(galaxy_t* gal, double new_stars, int snapshot)
                 fesc *= pow(gal->Mvir / run_globals.params.Hubble_h, params->EscapeFracPropScaling);
             else
                 fesc = 1.0;
+            break;
+        case 6: // specific star formation rate (1 / yr)
+            if (gal->Sfr > 0.0)
+                fesc *= pow(gal->Sfr / gal->StellarMass / run_globals.units.UnitTime_in_s * SEC_PER_YEAR, params->EscapeFracPropScaling);
+            else
+                fesc = 0.0;
             break;
         default:
             mlog_error("Unrecognised EscapeFracDependency parameter value.");
