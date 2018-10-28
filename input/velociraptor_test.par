@@ -129,7 +129,7 @@ Flag_OutputGrids       : 1
 Flag_OutputGridsPostReion  : 0
 
 ReionUVBFlag           : 1
-ReionGridDim           : 128
+ReionGridDim           : 64
 ReionDeltaRFactor      : 1.1
 ReionFilterType        : 0
 ReionPowerSpecDeltaK   : 0.1
@@ -142,12 +142,12 @@ ReionGammaHaloBias     : 2.0
 ReionAlphaUV           : 5.0
 ReionAlphaUVBH         : 1.57
 
-EscapeFracDependency   : 1  # 0->none, 1->redshift, 2->stellar mass, 3->sfr
-EscapeFracNorm         : 0.06
-EscapeFracOffset       : 6.0
-EscapeFracScaling      : 0.5
-EscapeFracBHNorm       : 1
-EscapeFracBHScaling    : 0
+EscapeFracDependency       : 1  # 0->none, 1->redshift, 2->stellar mass, 3->sfr, 4->cold gas surface density, 5->mvir, 6->ssfr
+EscapeFracNorm             : 0.06
+EscapeFracRedshiftScaling  : 0.5  # N.B. use EscapeFracDependency>1 and this = 0 to scale only with galaxy property (and not also with redshift)
+EscapeFracPropScaling      : 0.5
+EscapeFracBHNorm           : 1
+EscapeFracBHScaling        : 0
 
 ReionSMParam_m0        : 0.18984  # internal units
 ReionSMParam_a         : 0.17

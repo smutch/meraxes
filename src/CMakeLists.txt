@@ -117,7 +117,7 @@ endif()
 
 set_target_properties(meraxes_lib PROPERTIES
     OUTPUT_NAME meraxes
-    PUBLIC_HEADER "${CMAKE_BINARY_DIR}/meraxes.h;${CMAKE_BINARY_DIR}/git.h"
+    PUBLIC_HEADER "${CMAKE_BINARY_DIR}/meraxes.h"
     )
 add_custom_target(install.lib
     ${CMAKE_COMMAND} 
@@ -162,15 +162,9 @@ if(NOT BUILD_SHARED_LIBS)
 endif()
 
 # Meraxes headers
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/meraxes.h.in ${CMAKE_BINARY_DIR}/meraxes.h ESCAPE_QUOTES @ONLY)
+include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/versioning.cmake)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/meraxes.h ${CMAKE_BINARY_DIR}/meraxes.h ESCAPE_QUOTES @ONLY)
 include_directories(BEFORE ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR})
-add_custom_target(record_gitinfo
-    COMMAND ${CMAKE_COMMAND}
-        -DSOURCE_DIR=${CMAKE_CURRENT_SOURCE_DIR}
-        -P ${CMAKE_CURRENT_SOURCE_DIR}/cmake/versioning.cmake
-    DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/git.h.in
-    )
-add_dependencies(meraxes_lib record_gitinfo)
 
 add_custom_target(cleandist
     COMMENT "Clean everything, including 3rd party libs."

@@ -23,6 +23,8 @@
 #endif
 
 #define N_HISTORY_SNAPS @N_HISTORY_SNAPS@
+#define MERAXES_GITREF_STR "@GITREF@"
+#define MERAXES_GITDIFF_STR "@GITDIFF@"
 
 // ======================================================
 // Don't change these unless you know what you are doing!
@@ -146,8 +148,8 @@ typedef struct physics_params_t {
     double ReionRBubbleMax;
 
     double EscapeFracNorm;
-    double EscapeFracOffset;
-    double EscapeFracScaling;
+    double EscapeFracRedshiftScaling;
+    double EscapeFracPropScaling;
     double EscapeFracBHNorm;
     double EscapeFracBHScaling;
 
@@ -557,7 +559,7 @@ typedef struct run_globals_t {
     MPI_Comm mpi_comm;
     int mpi_rank;
     int mpi_size;
-  gpu_info *gpu;
+    gpu_info *gpu;
 
     double* AA;
     double* ZZ;
