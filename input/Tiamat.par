@@ -144,7 +144,7 @@ ReionGammaHaloBias     : 2.0
 ReionAlphaUV           : 5.0
 ReionAlphaUVBH         : 1.57
 
-EscapeFracDependency       : 1  # 0->none, 1->redshift, 2->stellar mass, 3->sfr, 4->cold gas surface density, 5->Mvir
+EscapeFracDependency       : 1  # 0->none, 1->redshift, 2->stellar mass, 3->sfr, 4->cold gas surface density, 5->mvir, 6->ssfr
 EscapeFracNorm             : 0.06
 EscapeFracRedshiftScaling  : 0.5  # N.B. use EscapeFracDependency>1 and this = 0 to scale only with galaxy property (and not also with redshift)
 EscapeFracPropScaling      : 0.5
