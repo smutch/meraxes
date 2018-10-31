@@ -348,7 +348,7 @@ void read_trees__gbptrees(
         for (int jj = 0; jj < n_to_read; jj++) {
             if (run_globals.RequestedForestId != NULL) {
                 if (bsearch(&(tree_buffer[jj].forest_id), run_globals.RequestedForestId,
-                        (size_t)n_requested_forests, sizeof(int), compare_ints)
+                        (size_t)n_requested_forests, sizeof(int), compare_int_long)
                     != NULL)
                     keep_flag = true;
                 else
