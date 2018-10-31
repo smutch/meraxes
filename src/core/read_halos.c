@@ -45,6 +45,44 @@ static void reorder_forest_array(int* arr, const size_t* sort_ind, int n_forests
         arr[ii] = temp[sort_ind[jj]];
 }
 
+static void reorder_forest_longs(long* arr, const size_t* sort_ind, int n_forests, long* temp)
+{
+    assert(arr != NULL);
+    if (temp == NULL)
+        temp = (long*)malloc(n_forests * sizeof(long));
+    memcpy(temp, arr, sizeof(long) * n_forests);
+    for (int ii = 0, jj = n_forests - 1; ii < n_forests; ii++, jj--)
+        arr[ii] = temp[sort_ind[jj]];
+    free(temp);
+}
+
+/**
+ * Dump the RequestedForestId lists for all ranks.
+ */
+static void dump_forest_list()
+{
+    for (int i_rank=0; i_rank < run_globals.mpi_size; ++i_rank) {
+        if (i_rank == run_globals.mpi_rank) {
+            hid_t fd;
+            const char fname[] = "requested_forest_ids.h5";
+
+            if (run_globals.mpi_rank == 0)
+                fd = H5Fcreate(fname, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
+            else
+                fd = H5Fopen(fname, H5F_ACC_RDWR, H5P_DEFAULT);
+
+
+            char name[50];
+            sprintf(name, "core%03d", run_globals.mpi_rank);
+            H5LTmake_dataset_long(fd, name, 1, (hsize_t []){run_globals.NRequestedForests}, run_globals.RequestedForestId);
+
+            H5Fflush(fd, H5P_DEFAULT);
+            H5Fclose(fd);
+        }
+        MPI_Barrier(run_globals.mpi_comm);
+    }
+}
+
 void initialize_halo_storage()
 {
     int* n_store_snapshots = &(run_globals.NStoreSnapshots);
@@ -96,7 +134,8 @@ static void select_forests()
     mlog("Calling select_forests()...", MLOG_MESG);
 
     // if this is the master rank then read in the forest info
-    int *max_contemp_halo = NULL, *max_contemp_fof = NULL, *forest_ids = NULL, *n_halos = NULL;
+    int *max_contemp_halo = NULL, *max_contemp_fof = NULL, *n_halos = NULL;
+    long *forest_ids = NULL;
     int n_forests = 0;
     if (run_globals.mpi_rank == 0) {
         char fname[STRLEN];
@@ -128,23 +167,31 @@ static void select_forests()
         // allocate the arrays
         max_contemp_halo = (int*)malloc(sizeof(int) * n_forests);
         max_contemp_fof = (int*)malloc(sizeof(int) * n_forests);
-        forest_ids = (int*)malloc(sizeof(int) * n_forests);
+        forest_ids = (long*)malloc(sizeof(long) * n_forests);
         n_halos = (int*)malloc(sizeof(int) * n_forests);
 
         // read in the max number of contemporaneous halos and groups and the forest ids
         hid_t grp = H5Gopen2(fd, grp_name, H5P_DEFAULT);
         H5LTread_dataset_int(grp, "max_contemporaneous_halos", max_contemp_halo);
         H5LTread_dataset_int(grp, "max_contemporaneous_fof_groups", max_contemp_fof);
-        switch (run_globals.params.TreesID) {
-        case GBPTREES_TREES:
-            H5LTread_dataset_int(grp, "forest_id", forest_ids);
-            break;
-        case VELOCIRAPTOR_TREES:
-            H5LTread_dataset_int(grp, "forest_ids", forest_ids);
-            break;
-        default:
-            mlog_error("Unrecognised TreesID parameter.");
-            break;
+
+        {
+            int* temp_ids;
+            switch (run_globals.params.TreesID) {
+                case GBPTREES_TREES:
+                    temp_ids = (int*)malloc(sizeof(int) * n_forests);
+                    H5LTread_dataset_int(grp, "forest_id", temp_ids);
+                    for (int ii=0; ii < n_forests; ++ii)
+                        forest_ids[ii] = (long)temp_ids[ii];
+                    free(temp_ids);
+                    break;
+                case VELOCIRAPTOR_TREES:
+                    H5LTread_dataset_long(grp, "forest_ids", forest_ids);
+                    break;
+                default:
+                    mlog_error("Unrecognised TreesID parameter.");
+                    break;
+            }
         }
         H5LTread_dataset_int(grp, "n_halos", n_halos);
         H5Gclose(grp);
@@ -158,12 +205,12 @@ static void select_forests()
     if (run_globals.mpi_rank > 0) {
         max_contemp_halo = (int*)malloc(sizeof(int) * n_forests);
         max_contemp_fof = (int*)malloc(sizeof(int) * n_forests);
-        forest_ids = (int*)malloc(sizeof(int) * n_forests);
+        forest_ids = (long*)malloc(sizeof(long) * n_forests);
         n_halos = (int*)malloc(sizeof(int) * n_forests);
     }
     MPI_Bcast(max_contemp_halo, n_forests, MPI_INT, 0, run_globals.mpi_comm);
     MPI_Bcast(max_contemp_fof, n_forests, MPI_INT, 0, run_globals.mpi_comm);
-    MPI_Bcast(forest_ids, n_forests, MPI_INT, 0, run_globals.mpi_comm);
+    MPI_Bcast(forest_ids, n_forests, MPI_LONG, 0, run_globals.mpi_comm);
     MPI_Bcast(n_halos, n_forests, MPI_INT, 0, run_globals.mpi_comm);
 
     // if we have read in a list of requested forest IDs then use these to create
@@ -193,7 +240,7 @@ static void select_forests()
     gsl_sort_int_index(sort_ind, n_halos, 1, (const size_t)n_forests);
     int* temp = malloc(sizeof(int) * n_forests);
 
-    reorder_forest_array(forest_ids, sort_ind, n_forests, temp);
+    reorder_forest_longs(forest_ids, sort_ind, n_forests, NULL);
     reorder_forest_array(max_contemp_halo, sort_ind, n_forests, temp);
     reorder_forest_array(max_contemp_fof, sort_ind, n_forests, temp);
     reorder_forest_array(n_halos, sort_ind, n_forests, temp);
@@ -293,14 +340,14 @@ static void select_forests()
         run_globals.NRequestedForests = rank_n_forests[run_globals.mpi_rank];
         if (run_globals.RequestedForestId != NULL)
             run_globals.RequestedForestId = realloc(run_globals.RequestedForestId,
-                run_globals.NRequestedForests * sizeof(int));
+                run_globals.NRequestedForests * sizeof(long));
         else
-            run_globals.RequestedForestId = (int*)malloc(sizeof(int) * run_globals.NRequestedForests);
+            run_globals.RequestedForestId = (long*)malloc(sizeof(long) * run_globals.NRequestedForests);
 
         for (int ii = rank_first_forest[run_globals.mpi_rank], jj = 0;
              ii <= rank_last_forest[run_globals.mpi_rank];
              ii++, jj++)
-            run_globals.RequestedForestId[jj] = forest_ids[requested_ind[ii]];
+            run_globals.RequestedForestId[jj] = (long)forest_ids[requested_ind[ii]];
 
         // free the arrays
         free(rank_n_halos);
@@ -330,7 +377,7 @@ static void select_forests()
 
     // sort the requested forest ids so that they can be bsearch'd later
     qsort(run_globals.RequestedForestId, (size_t)run_globals.NRequestedForests,
-        sizeof(int), compare_ints);
+        sizeof(long), compare_longs);
 
     free(requested_ind);
     free(max_contemp_halo);

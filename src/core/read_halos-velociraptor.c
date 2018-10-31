@@ -216,7 +216,7 @@ void read_trees__velociraptor(int snapshot, halo_t* halos, int* n_halos, fof_gro
 
         if ((run_globals.RequestedForestId != NULL)
             && (bsearch(&(tree_entries[ii].ForestID), run_globals.RequestedForestId,
-                   (size_t)run_globals.NRequestedForests, sizeof(int), compare_ints))
+                   (size_t)run_globals.NRequestedForests, sizeof(long), compare_longs))
                 == NULL)
             keep_this_halo = false;
 
