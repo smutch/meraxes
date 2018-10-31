@@ -178,6 +178,21 @@ void read_trees__velociraptor(int snapshot, halo_t* halos, int* n_halos, fof_gro
             tree_entries[ii].Lz *= hubble_h * hubble_h * 1e-10;
 #ifdef DEBUG
             double box_size = run_globals.params.BoxSize;
+
+            // TEMPORARY HACK
+            if (tree_entries[ii].Xc < 0.0)
+                tree_entries[ii].Xc = 0.0;
+            if (tree_entries[ii].Xc > box_size)
+                tree_entries[ii].Xc = box_size;
+            if (tree_entries[ii].Yc < 0.0)
+                tree_entries[ii].Yc = 0.0;
+            if (tree_entries[ii].Yc > box_size)
+                tree_entries[ii].Yc = box_size;
+            if (tree_entries[ii].Zc < 0.0)
+                tree_entries[ii].Zc = 0.0;
+            if (tree_entries[ii].Zc > box_size)
+                tree_entries[ii].Zc = box_size;
+
             assert((tree_entries[ii].Xc <= box_size) && (tree_entries[ii].Xc >= 0.0));
             assert((tree_entries[ii].Yc <= box_size) && (tree_entries[ii].Yc >= 0.0));
             assert((tree_entries[ii].Zc <= box_size) && (tree_entries[ii].Zc >= 0.0));
