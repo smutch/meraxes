@@ -159,13 +159,18 @@ void read_trees__velociraptor(int snapshot, halo_t* halos, int* n_halos, fof_gro
 
         free(buffer);
 
+        // check the units
+        double mass_unit_to_internal = 1.0;
+        H5LTget_attribute_double(fd, "Header/Units", "Mass_unit_to_solarmass", &mass_unit_to_internal);
+        mass_unit_to_internal /= 1.0e10;
+
         // convert units
         double scale_factor = -999.;
         H5LTget_attribute_double(fd, snap_group_name, "scalefactor", &scale_factor);
         double hubble_h = run_globals.params.Hubble_h;
         for (int ii = 0; ii < n_tree_entries; ii++) {
-            tree_entries[ii].Mass_200crit *= hubble_h * 1e-10;
-            tree_entries[ii].Mass_tot *= hubble_h * 1e-10;
+            tree_entries[ii].Mass_200crit *= hubble_h * mass_unit_to_internal;
+            tree_entries[ii].Mass_tot *= hubble_h * mass_unit_to_internal;
             tree_entries[ii].R_200crit *= hubble_h;
             tree_entries[ii].Xc *= hubble_h / scale_factor;
             tree_entries[ii].Yc *= hubble_h / scale_factor;
@@ -173,9 +178,9 @@ void read_trees__velociraptor(int snapshot, halo_t* halos, int* n_halos, fof_gro
             tree_entries[ii].VXc /= scale_factor;
             tree_entries[ii].VYc /= scale_factor;
             tree_entries[ii].VZc /= scale_factor;
-            tree_entries[ii].Lx *= hubble_h * hubble_h * 1e-10;
-            tree_entries[ii].Ly *= hubble_h * hubble_h * 1e-10;
-            tree_entries[ii].Lz *= hubble_h * hubble_h * 1e-10;
+            tree_entries[ii].Lx *= hubble_h * hubble_h * mass_unit_to_internal;
+            tree_entries[ii].Ly *= hubble_h * hubble_h * mass_unit_to_internal;
+            tree_entries[ii].Lz *= hubble_h * hubble_h * mass_unit_to_internal;
 #ifdef DEBUG
             double box_size = run_globals.params.BoxSize;
 
