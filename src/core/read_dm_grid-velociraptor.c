@@ -24,8 +24,8 @@ int read_dm_grid__velociraptor(
     // nx : number of x-dim values
     // ix_start : first x index
     // n_cell : number of values in each dim
-    int file_nx[mpi_size];
-    int file_ix_start[mpi_size];
+    int *file_nx = NULL;
+    int *file_ix_start = NULL;
     int file_n_cell[3] = { 0, 0, 0 };
     double box_size;
     int n_files = 999;
@@ -36,13 +36,16 @@ int read_dm_grid__velociraptor(
         H5Pset_fapl_mpio(plist_id, run_globals.mpi_comm, MPI_INFO_NULL);
 
         for (int ii = 0; ii < n_files; ii++) {
-            char fname[128];
+            char fname[STRLEN];
             sprintf(fname, fname_base, params->SimulationDir, snapshot, ii);
-            hid_t file_id = H5Fopen(fname, H5F_ACC_RDWR, plist_id);
+            hid_t file_id = H5Fopen(fname, H5F_ACC_RDONLY, plist_id);
 
             if (ii == 0) {
-                herr_t status = H5LTget_attribute_int(file_id, "/", "N_files", &n_files);
+                herr_t status = H5LTget_attribute_int(file_id, "/", "Num_files", &n_files);
                 assert(status >= 0);
+
+                file_nx = calloc(n_files, sizeof(int));
+                file_ix_start = calloc(n_files, sizeof(int));
 
                 status = H5LTget_attribute_double(file_id, "/", "BoxSize", &box_size);
                 assert(status >= 0);
@@ -55,9 +58,9 @@ int read_dm_grid__velociraptor(
                 assert(status >= 0);
             }
 
-            herr_t status = H5LTget_attribute_int(file_id, "/", "Local_x_start", file_ix_start + ii);
+            herr_t status = H5LTget_attribute_int(file_id, "/", "Local_x_start", &file_ix_start[ii]);
             assert(status >= 0);
-            status = H5LTget_attribute_int(file_id, "/", "Local_nx", file_nx + ii);
+            status = H5LTget_attribute_int(file_id, "/", "Local_nx", &file_nx[ii]);
             assert(status >= 0);
 
             H5Fclose(file_id);
@@ -179,7 +182,7 @@ int read_dm_grid__velociraptor(
             char fname[128];
             sprintf(fname, fname_base, params->SimulationDir, snapshot, ii);
 
-            hid_t file_id = H5Fopen(fname, H5F_ACC_RDWR, plist_id);
+            hid_t file_id = H5Fopen(fname, H5F_ACC_RDONLY, plist_id);
             H5Pclose(plist_id);
 
             hid_t dset_id = H5Dopen(file_id, "Density", H5P_DEFAULT);
@@ -209,6 +212,8 @@ int read_dm_grid__velociraptor(
                 ((float*)rank_slab)[grid_index(ii, jj, kk, file_n_cell[1], INDEX_PADDED)] = (float)(local_buffer[grid_index(ii, jj, kk, file_n_cell[1], INDEX_REAL)]);
 
     free(local_buffer);
+    free(file_ix_start);
+    free(file_nx);
 
     // smooth the grid if needed
     smooth_grid(resample_factor, file_n_cell, rank_slab, rank_nI[mpi_rank], rank_ix_start[mpi_rank], rank_nx[mpi_rank]);
