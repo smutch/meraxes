@@ -138,7 +138,7 @@ static void select_forests()
     long *forest_ids = NULL;
     int n_forests = 0;
     if (run_globals.mpi_rank == 0) {
-        char fname[STRLEN];
+        char fname[STRLEN+34];
         char grp_name[30];
 
         switch (run_globals.params.TreesID) {

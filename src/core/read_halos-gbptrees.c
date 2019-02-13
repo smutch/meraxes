@@ -217,7 +217,7 @@ void read_trees__gbptrees(
 
     char catalog_file_prefix[50];
     char simulation_dir[STRLEN];
-    char fname[STRLEN];
+    char fname[STRLEN+34];
     hid_t fd = 0;
     catalog_halo_t* catalog_buffer;
     catalog_halo_t* group_buffer;
@@ -468,7 +468,7 @@ trees_info_t read_trees_info__gbptrees(int snapshot)
 
     if (run_globals.mpi_rank == 0) {
         // open the tree file
-        char fname[STRLEN];
+        char fname[STRLEN+34];
         hid_t fd;
 
         sprintf(fname, "%s/trees/horizontal_trees_%03d.hdf5", run_globals.params.SimulationDir, snapshot);
