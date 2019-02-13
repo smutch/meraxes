@@ -9,7 +9,7 @@ trees_info_t read_trees_info__velociraptor(const int snapshot)
 
     if (run_globals.mpi_rank == 0) {
         // TODO: This is wasteful and should probably only ever be done once and stored in run_globals.
-        char fname[STRLEN];
+        char fname[STRLEN+34];
         sprintf(fname, "%s/trees/meraxes_augmented_stats.h5", run_globals.params.SimulationDir);
 
         hid_t fd = H5Fopen(fname, H5F_ACC_RDONLY, H5P_DEFAULT);
@@ -118,7 +118,7 @@ void read_trees__velociraptor(int snapshot, halo_t* halos, int* n_halos, fof_gro
     int n_tree_entries = 0;
 
     if (run_globals.mpi_rank == 0) {
-        char fname[STRLEN];
+        char fname[STRLEN*2+8];
         sprintf(fname, "%s/trees/%s",
             run_globals.params.SimulationDir, run_globals.params.CatalogFilePrefix);
 

@@ -50,17 +50,17 @@ int read_dm_grid__velociraptor(
                 status = H5LTget_attribute_double(file_id, "/", "BoxSize", &box_size);
                 assert(status >= 0);
 
-                status = H5LTget_attribute_int(file_id, "/", "Ngrid_X", &file_n_cell[0]);
+                status = H5LTget_attribute_int(file_id, "/", "Ngrid_X", file_n_cell);
                 assert(status >= 0);
-                status = H5LTget_attribute_int(file_id, "/", "Ngrid_Y", &file_n_cell[1]);
+                status = H5LTget_attribute_int(file_id, "/", "Ngrid_Y", file_n_cell + 1);
                 assert(status >= 0);
-                status = H5LTget_attribute_int(file_id, "/", "Ngrid_Z", &file_n_cell[2]);
+                status = H5LTget_attribute_int(file_id, "/", "Ngrid_Z", file_n_cell + 2);
                 assert(status >= 0);
             }
 
-            herr_t status = H5LTget_attribute_int(file_id, "/", "Local_x_start", &file_ix_start[ii]);
+            herr_t status = H5LTget_attribute_int(file_id, "/", "Local_x_start", file_ix_start + ii);
             assert(status >= 0);
-            status = H5LTget_attribute_int(file_id, "/", "Local_nx", &file_nx[ii]);
+            status = H5LTget_attribute_int(file_id, "/", "Local_nx", file_nx + ii);
             assert(status >= 0);
 
             H5Fclose(file_id);
@@ -94,10 +94,34 @@ int read_dm_grid__velociraptor(
             recvcounts[ii] = sizeof(ptrdiff_t);
             displs[ii] = ii*sizeof(ptrdiff_t);
         }
-        MPI_Allgatherv(rank_nx + mpi_rank, 1, MPI_BYTE, rank_nx, recvcounts, displs, MPI_BYTE, run_globals.mpi_comm);
-        MPI_Allgatherv(rank_ix_start + mpi_rank, 1, MPI_BYTE, rank_ix_start, recvcounts, displs, MPI_BYTE, run_globals.mpi_comm);
-        MPI_Allgatherv(rank_nI + mpi_rank, 1, MPI_BYTE, rank_nI, recvcounts, displs, MPI_BYTE, run_globals.mpi_comm);
+        MPI_Allgatherv(&rank_nx[mpi_rank], 1, MPI_BYTE, rank_nx, recvcounts, displs, MPI_BYTE, run_globals.mpi_comm);
+        MPI_Allgatherv(&rank_ix_start[mpi_rank], 1, MPI_BYTE, rank_ix_start, recvcounts, displs, MPI_BYTE, run_globals.mpi_comm);
+        MPI_Allgatherv(&rank_nI[mpi_rank], 1, MPI_BYTE, rank_nI, recvcounts, displs, MPI_BYTE, run_globals.mpi_comm);
     }
+
+    /***********
+    *  DEBUG  *
+    ***********/
+    if (mpi_rank == 0) {
+        mlog("rank_nx = [", MLOG_MESG);
+        for (int ii=0; ii < mpi_size; ++ii) {
+            mlog(" %ld ", MLOG_CONT, rank_nx[ii], ii);
+        }
+        mlog("]", MLOG_CONT);
+
+        mlog("rank_ix_start = [", MLOG_MESG);
+        for (int ii=0; ii < mpi_size; ++ii) {
+            mlog(" %ld ", MLOG_CONT, rank_ix_start[ii], ii);
+        }
+        mlog("]", MLOG_CONT);
+
+        mlog("rank_nI = [", MLOG_MESG);
+        for (int ii=0; ii < mpi_size; ++ii) {
+            mlog(" %ld ", MLOG_CONT, rank_nI[ii], ii);
+        }
+        mlog("]", MLOG_CONT);
+    }
+    // **********
 
     fftwf_complex* rank_slab = fftwf_alloc_complex((size_t)rank_nI[mpi_rank]);
     // Initialise (just in case!)
@@ -110,7 +134,7 @@ int read_dm_grid__velociraptor(
     // We are currently assuming the grids to be float, but the VELOCIraptor
     // grids are doubles.  For the moment, let's just read the doubles into a
     // buffer and change them to float appropriately.
-    double* local_buffer = calloc(rank_nx[mpi_rank], sizeof(double));
+    double* local_buffer = calloc(rank_nx[mpi_rank] * file_n_cell[1] * file_n_cell[2], sizeof(double));
 
     // read in the data
     // loop through each file and work out what cores are needed
@@ -131,12 +155,15 @@ int read_dm_grid__velociraptor(
             }
         }
         if (mpi_rank == 0) {
-            printf("file %d -> required_ranks = [ ", ii);
+            mlog("file %d -> required_ranks = [ ", MLOG_MESG, ii);
             for (int jj = 0; jj < n_required_ranks; jj++) {
-                printf("%d ", required_ranks[jj]);
+                mlog("%d ", MLOG_CONT, required_ranks[jj]);
             }
-            printf("]\n------------\n");
+            mlog("]", MLOG_CONT);
         }
+
+        // DEBUG
+        mlog(">>> I have rank_used = %d for file %d", MLOG_MESG, (int)rank_used, ii);
 
         // create an mpi communicator with the required ranks
         if (rank_used) {
@@ -159,23 +186,22 @@ int read_dm_grid__velociraptor(
             int nx =
                 MIN(file_nx[ii] - file_start, rank_nx[mpi_rank] - rank_start);
 
-            printf("rank %d: file_start = %d, rank_start = %d, nx = %d\n",
-                   mpi_rank, file_start, rank_start, nx);
+            mlog("file_start = %d, rank_start = %d, nx = %d", MLOG_MESG|MLOG_ALLRANKS|MLOG_FLUSH,
+                   file_start, rank_start, nx);
 
             // select a hyperslab in the filespace
-            hsize_t file_dims[3] = {(hsize_t)file_nx[ii], 16, 16};
-            hid_t fspace_id = H5Screate_simple(3, file_dims, NULL);
-            hsize_t start[3] = {(hsize_t)file_start, 0, 0};
-            hsize_t count[3] = {(hsize_t)nx, 16, 16};
-            H5Sselect_hyperslab(fspace_id, H5S_SELECT_SET, start, NULL, count,
-                                NULL);
+            hid_t fspace_id = H5Screate_simple(1,
+                    (hsize_t[1]){file_nx[ii] * file_n_cell[1] * file_n_cell[2]}, NULL);
+            H5Sselect_hyperslab(fspace_id, H5S_SELECT_SET,
+                    (hsize_t[1]){file_start * file_n_cell[1] * file_n_cell[2]}, NULL,
+                    (hsize_t[1]){nx * file_n_cell[1] * file_n_cell[2]}, NULL);
 
             // create the memspace
-            hsize_t mem_dims[3] = {(hsize_t)rank_nx[mpi_rank], 16, 16};
-            hid_t memspace_id = H5Screate_simple(3, mem_dims, NULL);
-            start[0] = (hsize_t)rank_start;
-            H5Sselect_hyperslab(memspace_id, H5S_SELECT_SET, start, NULL, count,
-                                NULL);
+            hid_t memspace_id = H5Screate_simple(1,
+                    (hsize_t[1]){rank_nx[mpi_rank] * file_n_cell[1] * file_n_cell[1]}, NULL);
+            H5Sselect_hyperslab(memspace_id, H5S_SELECT_SET,
+                    (hsize_t[1]){rank_start * file_n_cell[1] * file_n_cell[2]}, NULL,
+                    (hsize_t[1]){nx * file_n_cell[1] * file_n_cell[2]}, NULL);
 
             hid_t plist_id = H5Pcreate(H5P_FILE_ACCESS);
             H5Pset_fapl_mpio(plist_id, file_comm, MPI_INFO_NULL);
@@ -188,8 +214,15 @@ int read_dm_grid__velociraptor(
             hid_t dset_id = H5Dopen(file_id, "Density", H5P_DEFAULT);
 
             plist_id = H5Pcreate(H5P_DATASET_XFER);
-            H5Pset_dxpl_mpio(plist_id, H5D_MPIO_COLLECTIVE);
+            H5Pset_dxpl_mpio(plist_id, H5FD_MPIO_COLLECTIVE);
+
+            MPI_Barrier(file_comm);
+            mlog("made it to read...", MLOG_MESG|MLOG_ALLRANKS|MLOG_FLUSH);
+
+            mlog("Starting read...", MLOG_OPEN|MLOG_TIMERSTART);
             H5Dread(dset_id, H5T_NATIVE_DOUBLE, memspace_id, fspace_id, plist_id, local_buffer);
+            mlog("...done.", MLOG_CLOSE|MLOG_TIMERSTOP);
+
             H5Pclose(plist_id);
 
             H5Dclose(dset_id);

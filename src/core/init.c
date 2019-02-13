@@ -88,7 +88,7 @@ static void read_snap_list()
         FILE* fin;
         int snaplist_len;
         double dummy;
-        char fname[STRLEN];
+        char fname[STRLEN+12];
         run_params_t params = run_globals.params;
 
         sprintf(fname, "%s/a_list.txt", params.SimulationDir);

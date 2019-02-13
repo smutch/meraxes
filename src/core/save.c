@@ -526,7 +526,7 @@ void prep_hdf5_file()
 void create_master_file()
 {
     hid_t file_id, group_id;
-    char fname[STRLEN];
+    char fname[STRLEN*2+7];
     hdf5_output_t* h5props = &(run_globals.hdf5props);
     char** params_tag = h5props->params_tag;
     void** params_addr = h5props->params_addr;
