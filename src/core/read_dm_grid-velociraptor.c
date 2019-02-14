@@ -3,6 +3,7 @@
 #include <assert.h>
 #include <fftw3-mpi.h>
 #include <math.h>
+#include <gsl/gsl_sort_int.h>
 
 #define MIN(i, j) ((i) < (j) ? (i) : (j))
 
@@ -136,39 +137,53 @@ int read_dm_grid__velociraptor(
     // buffer and change them to float appropriately.
     double* local_buffer = calloc(rank_nx[mpi_rank] * file_n_cell[1] * file_n_cell[2], sizeof(double));
 
-    // read in the data
     // loop through each file and work out what cores are needed
-    for (int ii = 0; ii < n_files; ii++) {
-        int n_required_ranks = 0;
-        bool rank_used = false;
+    int n_required_ranks[n_files];
+    bool rank_used[n_files];
+    int required_ranks[n_files * mpi_size];
 
-        int required_ranks[mpi_size];
+#define rr_index(ii, jj) ((ii)*(n_files) + (jj)) 
+
+    for (int ii = 0; ii < n_files; ii++) {
+
         for(int jj=0; jj < mpi_size; jj++)
-            required_ranks[jj] = -1;
+            required_ranks[rr_index(ii, jj)] = -1;
 
         for (int jj = 0; jj < mpi_size; jj++) {
             if ((rank_ix_start[jj] < (file_ix_start[ii] + file_nx[ii])) &&
                     (file_ix_start[ii] < rank_ix_start[jj] + rank_nx[jj])) {
-                required_ranks[n_required_ranks++] = jj;
+                required_ranks[rr_index(ii, n_required_ranks[ii]++)] = jj;
                 if (jj == mpi_rank)
-                    rank_used = true;
+                    rank_used[ii] = true;
             }
         }
         if (mpi_rank == 0) {
             mlog("file %d -> required_ranks = [ ", MLOG_MESG, ii);
-            for (int jj = 0; jj < n_required_ranks; jj++) {
-                mlog("%d ", MLOG_CONT, required_ranks[jj]);
+            for (int jj = 0; jj < n_required_ranks[ii]; jj++) {
+                mlog("%d ", MLOG_CONT, required_ranks[rr_index(ii, jj)]);
             }
             mlog("]", MLOG_CONT);
         }
+    }
+
+    MPI_Barrier(run_globals.mpi_comm);
+    mpi_debug_here();
+
+    // sort the files by n_required_ranks
+    size_t sort_ind[n_files];
+    gsl_sort_int_index(sort_ind, n_required_ranks, 1, (const size_t)n_files);
+
+    for (int jj = 0; jj < n_files; jj++) {
+        int ii = sort_ind[jj];
 
         // DEBUG
-        mlog(">>> I have rank_used = %d for file %d", MLOG_MESG, (int)rank_used, ii);
+        mlog(">>> I have rank_used = %d for file %d", MLOG_MESG, (int)rank_used[ii], ii);
 
+        // read in the data
         // create an mpi communicator with the required ranks
-        if (rank_used) {
+        if (rank_used[ii]) {
             MPI_Group file_group;
-            MPI_Group_incl(run_group, n_required_ranks, required_ranks,
+            MPI_Group_incl(run_group, n_required_ranks[ii], required_ranks + rr_index(ii, 0),
                     &file_group);
 
             MPI_Comm file_comm;
