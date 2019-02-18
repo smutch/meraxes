@@ -131,7 +131,7 @@ static void select_forests()
 {
     // search the input tree files for all unique forest ids, store them, sort
     // them, and then potentially split them amongst cores
-    mlog("Calling select_forests()...", MLOG_MESG);
+    mlog("Calling select_forests()...", MLOG_MESG|MLOG_TIMERSTART);
 
     // if this is the master rank then read in the forest info
     int *max_contemp_halo = NULL, *max_contemp_fof = NULL, *n_halos = NULL;
@@ -384,6 +384,8 @@ static void select_forests()
     free(max_contemp_fof);
     free(forest_ids);
     free(n_halos);
+
+    mlog("...done.", MLOG_MESG|MLOG_TIMERSTOP);
 }
 
 trees_info_t read_halos(const int snapshot, halo_t** halos, fof_group_t** fof_groups,
@@ -406,6 +408,8 @@ trees_info_t read_halos(const int snapshot, halo_t** halos, fof_group_t** fof_gr
         read_baryon_frac_modifiers(snapshot);
 
     // read in the tree information for this snapshot
+    mlog("Reading trees info...", MLOG_MESG|MLOG_TIMERSTART);
+
     trees_info_t trees_info = { 0 };
     switch (run_globals.params.TreesID) {
     case VELOCIRAPTOR_TREES:
@@ -418,6 +422,8 @@ trees_info_t read_halos(const int snapshot, halo_t** halos, fof_group_t** fof_gr
         mlog_error("Unrecognised input trees identifier (TreesID).");
         break;
     }
+
+    mlog("... done.", MLOG_CONT|MLOG_TIMERSTOP);
 
     int n_halos = trees_info.n_halos;
     int n_fof_groups = trees_info.n_fof_groups;
