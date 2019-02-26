@@ -100,31 +100,8 @@ int read_dm_grid__velociraptor(
         MPI_Allgatherv(&rank_nI[mpi_rank], 1, MPI_BYTE, rank_nI, recvcounts, displs, MPI_BYTE, run_globals.mpi_comm);
     }
 
-    /***********
-    *  DEBUG  *
-    ***********/
-    // if (mpi_rank == 0) {
-    //     mlog("rank_nx = [", MLOG_MESG);
-    //     for (int ii = 0; ii < mpi_size; ++ii) {
-    //         mlog(" %ld ", MLOG_CONT, rank_nx[ii], ii);
-    //     }
-    //     mlog("]", MLOG_CONT);
-
-    //     mlog("rank_ix_start = [", MLOG_MESG);
-    //     for (int ii = 0; ii < mpi_size; ++ii) {
-    //         mlog(" %ld ", MLOG_CONT, rank_ix_start[ii], ii);
-    //     }
-    //     mlog("]", MLOG_CONT);
-
-    //     mlog("rank_nI = [", MLOG_MESG);
-    //     for (int ii = 0; ii < mpi_size; ++ii) {
-    //         mlog(" %ld ", MLOG_CONT, rank_nI[ii], ii);
-    //     }
-    //     mlog("]", MLOG_CONT);
-    // }
-    // // **********
-
     fftwf_complex* rank_slab = fftwf_alloc_complex((size_t)rank_nI[mpi_rank]);
+
     // Initialise (just in case!)
     for (int ii = 0; ii < rank_nI[mpi_rank]; ii++)
         rank_slab[ii] = 0 + 0 * I;
@@ -144,15 +121,6 @@ int read_dm_grid__velociraptor(
 
 #define rr_index(ii, jj) ((ii) * (mpi_size) + (jj))
 
-    // // DEBUG
-    // for (int ii = 0; ii < n_files; ++ii) {
-    //     mlog("file %d (rr3 = %d): file_ix_start = %d; file_nx = %d; file_ix_start+file_nx = %d", MLOG_MESG, ii, rr_index(ii, 3), file_ix_start[ii], file_nx[ii], file_ix_start[ii]+file_nx[ii]);
-    // }
-    // for (int ii = 0; ii < mpi_size; ++ii) {
-    //     mlog("rank %d (rr9 = %d): rank_ix_start = %d; rank_nx = %d; rank_ix_start+rank_nx = %d", MLOG_MESG, ii, rr_index(9, ii), rank_ix_start[ii], rank_nx[ii], rank_ix_start[ii]+rank_nx[ii]);
-    // }
-    // MPI_Barrier(run_globals.mpi_comm);
-
     for (int ii = 0; ii < n_files; ii++) {
 
         n_required_ranks[ii] = 0;
@@ -168,13 +136,6 @@ int read_dm_grid__velociraptor(
                     rank_used[ii] = true;
             }
         }
-        // if (mpi_rank == 0) {
-        //     mlog("file %d -> required_ranks = [ ", MLOG_MESG, ii);
-        //     for (int jj = 0; jj < n_required_ranks[ii]; jj++) {
-        //         mlog("%d ", MLOG_CONT, required_ranks[rr_index(ii, jj)]);
-        //     }
-        //     mlog("] file_ix_start=%d, file_nx=%d, n_required_ranks=%d", MLOG_CONT | MLOG_FLUSH, file_ix_start[ii], file_nx[ii], n_required_ranks[ii]);
-        // }
     }
 
     // sort the files by n_required_ranks
@@ -194,7 +155,7 @@ int read_dm_grid__velociraptor(
             MPI_Comm file_comm;
             MPI_Comm_create_group(MPI_COMM_WORLD, file_group, ii, &file_comm);
 
-            // TODO(tidy): there must be a tidier work out these indices
+            // There must be a tidier work out these indices...
             int file_start = 0;
             int rank_start = 0;
             int ix_diff = (int)(rank_ix_start[mpi_rank] - file_ix_start[ii]);
@@ -230,14 +191,11 @@ int read_dm_grid__velociraptor(
             hid_t dset_id = H5Dopen(file_id, "Density", H5P_DEFAULT);
 
             plist_id = H5Pcreate(H5P_DATASET_XFER);
-            H5Pset_dxpl_mpio(plist_id, H5FD_MPIO_COLLECTIVE);
 
-            // MPI_Barrier(file_comm);
-            // mlog("made it to read...", MLOG_MESG | MLOG_ALLRANKS | MLOG_FLUSH);
+            // TODO(performance): Is a collective read better here?
+            H5Pset_dxpl_mpio(plist_id, H5FD_MPIO_INDEPENDENT);
 
-            // mlog("Starting read...", MLOG_OPEN | MLOG_TIMERSTART);
             H5Dread(dset_id, H5T_NATIVE_DOUBLE, memspace_id, fspace_id, plist_id, local_buffer);
-            // mlog("...done.", MLOG_CLOSE | MLOG_TIMERSTOP);
 
             H5Pclose(plist_id);
 
@@ -254,9 +212,9 @@ int read_dm_grid__velociraptor(
     MPI_Group_free(&run_group);
 
     // move the doubles into the float array, with inplace fftw padding
-    for (int ii = (file_nx[mpi_rank] - 1); ii >= 0; ii--)
-        for (int jj = file_n_cell[1] - 1; jj >= 0; jj--)
-            for (int kk = file_n_cell[2] - 1; kk >= 0; kk--)
+    for (int ii = 0; ii < rank_nx[mpi_rank]; ++ii)
+        for (int jj = 0; jj < file_n_cell[1]; ++jj)
+            for (int kk = 0; kk < file_n_cell[2]; ++kk)
                 ((float*)rank_slab)[grid_index(ii, jj, kk, file_n_cell[1], INDEX_PADDED)] = (float)(local_buffer[grid_index(ii, jj, kk, file_n_cell[1], INDEX_REAL)]);
 
     free(local_buffer);
@@ -267,7 +225,6 @@ int read_dm_grid__velociraptor(
     smooth_grid(resample_factor, file_n_cell, rank_slab, rank_nI[mpi_rank], rank_ix_start[mpi_rank], rank_nx[mpi_rank]);
 
     // Copy the read and smoothed slab into the padded fft slab (already allocated externally)
-    // TODO(simon): Cont here...
     ptrdiff_t slab_nix = run_globals.reion_grids.slab_nix[mpi_rank];
     ptrdiff_t slab_n_complex = run_globals.reion_grids.slab_n_complex[mpi_rank];
     for (int ii = 0; ii < slab_n_complex * 2; ii++)
@@ -295,6 +252,7 @@ int read_dm_grid__velociraptor(
     // N.B. Hubble factor below to account for incorrect units in input DM grids!
     // TODO(pascal): Discuss this with Pascal and check carefully
     double mean = (double)run_globals.params.NPart * run_globals.params.PartMass / pow(box_size, 3) / run_globals.params.Hubble_h / run_globals.params.Hubble_h;
+    mlog("mean = %.3g", MLOG_MESG, mean);
 
     // At this point grid holds the summed densities in each LR cell
     // Loop through again and calculate the overdensity
