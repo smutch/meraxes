@@ -161,8 +161,6 @@ void ComputeBrightnessTemperatureBox(int snapshot) {
             }
         }
 
-//        mlog("min_vel = %e max_vel = %e", MLOG_ALLRANKS|MLOG_MESG, min_vel, max_vel);
-
         // Make a copy of the box for FFT'ing
         memcpy(vel_temp, vel, sizeof(fftwf_complex) * slab_n_complex);
 
@@ -267,7 +265,6 @@ void ComputeBrightnessTemperatureBox(int snapshot) {
                     }
                 }
             }
-//            mlog("min_vel_grad = %e max_vel_grad = %e", MLOG_ALLRANKS|MLOG_MESG, min_vel_grad, max_vel_grad);
 
             if(run_globals.params.Flag_IncludePecVelsFor21cm == 3) {
 

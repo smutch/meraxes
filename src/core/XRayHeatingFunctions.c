@@ -1389,11 +1389,6 @@ void evolveInt(float zp, float curr_delNL0, double SFR_GAL[], double SFR_QSO[],
   deriv[3] = dxheat_dzp;
   deriv[4] = dt_dzp*( dxion_source_dt_GAL + dxion_source_dt_QSO );
 
-//  deriv[5] = dxion_source_dt_GAL;
-//  deriv[6] = dxheat_dt_GAL;
- 
-//  deriv[7] = dxlya_dt_GAL;
-//  deriv[8] = dstarlya_dt_GAL;
 }
 
 // * Compton heating term * //

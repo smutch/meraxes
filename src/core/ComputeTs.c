@@ -269,8 +269,6 @@ void _ComputeTs(int snapshot)
             zpp_edge[R_ct] = prev_zpp - (R_values[R_ct] - prev_R)*MPC / ( drdz(prev_zpp) ); // cell size
             zpp = (zpp_edge[R_ct]+prev_zpp)*0.5; // average redshift value of shell: z'' + 0.5 * dz''
 
-//            mlog("zp = %e R_ct = %d prev_zpp = %e R_values = %e prev_R = %e MPC = %e drdz = %e zpp_edge = %e", MLOG_MESG, zp, R_ct, prev_zpp, R_values[R_ct], prev_R, MPC, drdz(prev_zpp), zpp_edge[R_ct]);
-
             dt_dzpp_list[R_ct] = dtdz(zpp);
 
             filling_factor_of_HI_zp = 1. - ReionEfficiency * collapse_fraction / (1.0 - x_e_ave);
@@ -298,14 +296,12 @@ void _ComputeTs(int snapshot)
             // and create the sum over Lya transitions from direct Lyn flux
             sum_lyn[R_ct] = 0;
             for (n_ct=NSPEC_MAX; n_ct>=2; n_ct--){
-//                mlog("zp = %e n_ct = %d zpp = %e zmax = %e", MLOG_MESG, zp, n_ct, zpp, zmax(zp, n_ct));
                 if (zpp > zmax(zp, n_ct))
                     continue;
 
                 nuprime = nu_n(n_ct)*(1+zpp)/(1.0+zp);
                 sum_lyn[R_ct] += frecycle(n_ct) * spectral_emissivity(nuprime, 0);
             }
-//            mlog("zp = %e R_ct = %d sum_lyn = %e", MLOG_MESG, zp, R_ct, sum_lyn[R_ct]);
 	}
 
         growth_factor_zp = dicke(zp);
