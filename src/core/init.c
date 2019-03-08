@@ -304,6 +304,19 @@ static double least_massive_stars_tracked(const int n_history_snaps)
     return m_low;
 }
 
+
+void init_storage()
+{
+    // Initialize the halo storage arrays
+    initialize_halo_storage();
+
+    malloc_reionization_grids();
+
+    // calculate the output hdf5 file properties for later use
+    calc_hdf5_props();
+}
+
+
 void init_meraxes()
 {
     int i;
@@ -358,6 +371,9 @@ void init_meraxes()
     // read in the mean Mvir_crit table (if needed)
     read_Mcrit_table();
 
+    set_ReionEfficiency();
+    set_quasar_fobs();
+
     // Initialise galaxy pointers
     run_globals.FirstGal = NULL;
     run_globals.LastGal = NULL;
@@ -367,14 +383,4 @@ void init_meraxes()
 
     // This will be set by Mhysa
     run_globals.mhysa_self = NULL;
-
-    // Initialize the halo storage arrays
-    initialize_halo_storage();
-
-    malloc_reionization_grids();
-    set_ReionEfficiency();
-    set_quasar_fobs();
-
-    // calculate the output hdf5 file properties for later use
-    calc_hdf5_props();
 }
