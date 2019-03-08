@@ -610,6 +610,7 @@ extern "C" {
 #endif
 void cleanup(void);
 void read_parameter_file(char* fname, int mode);
+void init_storage(void);
 void init_meraxes(void);
 void set_units(void);
 void continue_prompt(char* param_file);
