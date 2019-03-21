@@ -8,7 +8,7 @@
  * This code computes the 21cm brightness temperature, which is somewhat
  * of a re-write of the first part of delta_T.c from 21cmFAST. Also includes
  * a prescription for line-of-sight redshift-space distortions, taken from
- * 21CMMC (Greig & Mesinger 2018). 
+ * 21CMMC (Greig & Mesinger 2018).
  * Written by Bradley Greig.
  */
 
@@ -68,7 +68,7 @@ void ComputeBrightnessTemperatureBox(int snapshot) {
 
                 i_real = grid_index(ii, jj, kk, ReionGridDim, INDEX_REAL);
                 i_padded = grid_index(ii, jj, kk, ReionGridDim, INDEX_PADDED);
-                
+
                 pixel_deltax = deltax[i_padded];
                 pixel_x_HI = xH[i_real];
 
@@ -79,21 +79,21 @@ void ComputeBrightnessTemperatureBox(int snapshot) {
 
                     // We are not using the optically thin limit approximation, compute full 21cm brightness temperature
                     if(run_globals.params.Flag_IncludePecVelsFor21cm > 1) {
-                        
+
                         // Converting the prefactors into the optical depth, tau. Factor of 1000 is the conversion of spin temperature from K to mK
                         delta_T[i_real] *= (1. + redshift)/(1000.*run_globals.reion_grids.TS_box[i_real]);
 
                     }
                     else {
-                        
+
                         pixel_Ts_factor = (1 - T_rad / run_globals.reion_grids.TS_box[i_real]);
                         delta_T[i_real] *= pixel_Ts_factor;
-                    
+
                     }
                 }
             }
         }
-    }    
+    }
 
 
 
@@ -105,11 +105,11 @@ void ComputeBrightnessTemperatureBox(int snapshot) {
     // The input flag Flag_IncludePecVelsFor21cm controls how peculiar velocities will be treated within Meraxes.
     // Flag_IncludePecVelsFor21cm = 0: No velocity effects included
     // Flag_IncludePecVelsFor21cm = 1: Only (i) included, and done so by capping the maximum allowed peculiar velocity gradient (this is the 21cmFAST treatment)
-    // Flag_IncludePecVelsFor21cm = 2: Only (i) but allowing for any peculiar velocity gradient (i.e. uncapped)    
+    // Flag_IncludePecVelsFor21cm = 2: Only (i) but allowing for any peculiar velocity gradient (i.e. uncapped)
     // Flag_IncludePecVelsFor21cm = 3: Both (i) and (ii). Uncapped peculiar velocity gradients and a treatment for line-of-sight peculiar velocity gradients from Greig & Mesinger (2018),
     //                                 based on a modified version of Jensen et al. (2013) & Mao et al. (2012)
 
-    // **NOTE** : line-of-sight RSDs can be set in the saturated spin temperature limit (TS >> TCMB), however it defaults to capping the maximum allowed peculiar velocity gradient. 
+    // **NOTE** : line-of-sight RSDs can be set in the saturated spin temperature limit (TS >> TCMB), however it defaults to capping the maximum allowed peculiar velocity gradient.
     //          : This arises owing to the optical thin approximation implicit when TS >> TCMB.
 
 
@@ -133,7 +133,7 @@ void ComputeBrightnessTemperatureBox(int snapshot) {
         // Compute the velocity gradient, given the velocity field
         vel = run_globals.reion_grids.vel;
         vel_temp = run_globals.reion_grids.vel_temp;
-        
+
         // Temporary fix to the potential units issue with the velocity field
         // Multiply by sqrt(a) to convert Gadget internal units to proper velocities.
         // Dividing by 1000. because I believe the units are actually m/s not km/s (too large otherwise)
@@ -147,15 +147,15 @@ void ComputeBrightnessTemperatureBox(int snapshot) {
 
                     vel[i_padded] *= 1000.*100./MPC;
 
-                    // The algorithm used in 21cmFAST for dealing with velocities uses the **comoving** velocity. Therefore, convert from peculiar to comoving velocity 
+                    // The algorithm used in 21cmFAST for dealing with velocities uses the **comoving** velocity. Therefore, convert from peculiar to comoving velocity
                     vel[i_padded] = vel[i_padded]/(1./(1. + redshift));
 
                     if( vel[i_padded] < min_vel ) {
                         min_vel = vel[i_padded];
-                    }  
+                    }
                     if( vel[i_padded] > max_vel ) {
-       	       	       	max_vel	= vel[i_padded];
-       	       	    }
+                        max_vel	= vel[i_padded];
+                    }
 
                 }
             }
@@ -175,7 +175,7 @@ void ComputeBrightnessTemperatureBox(int snapshot) {
         int slab_n_complex = (int)(run_globals.reion_grids.slab_n_complex[run_globals.mpi_rank]);
         for (int ii = 0; ii < slab_n_complex; ii++) {
             vel_gradient[ii] /= total_n_cells;
-            
+
             // Include h_factor
             vel_gradient[ii] *= run_globals.params.Hubble_h;
         }
@@ -186,7 +186,7 @@ void ComputeBrightnessTemperatureBox(int snapshot) {
         plan = fftwf_mpi_plan_dft_c2r_3d(ReionGridDim, ReionGridDim, ReionGridDim, vel_gradient, (float*)vel_gradient, run_globals.mpi_comm, FFTW_ESTIMATE);
         fftwf_execute(plan);
         fftwf_destroy_plan(plan);
-  
+
         if(run_globals.params.Flag_IncludePecVelsFor21cm == 1) {
 
             // now add the velocity correction to the delta_T maps (only used for T_S >> T_CMB case).
@@ -220,7 +220,7 @@ void ComputeBrightnessTemperatureBox(int snapshot) {
 
             for (ii=0; ii < local_nix; ii++) {
                 for ( jj=0; jj < ReionGridDim; jj++) {
-                    for ( kk=0; kk < ReionGridDim; kk++) {         
+                    for ( kk=0; kk < ReionGridDim; kk++) {
 
                         i_real = grid_index(ii, jj, kk, ReionGridDim, INDEX_REAL);
                         i_padded = grid_index(ii, jj, kk, ReionGridDim, INDEX_PADDED);
@@ -229,11 +229,11 @@ void ComputeBrightnessTemperatureBox(int snapshot) {
 
                         if( (double)((float*)vel_gradient)[i_padded] < min_vel_grad ) {
                             min_vel_grad = (double)((float*)vel_gradient)[i_padded];
-                        } 
+                        }
                         if( (double)((float*)vel_gradient)[i_padded] > max_vel_grad ) {
                             max_vel_grad = (double)((float*)vel_gradient)[i_padded];
                         }
-                        
+
                         if(run_globals.params.Flag_IncludeSpinTemp) {
 
                             // Calculate the brightness temperature, using the optical depth
@@ -252,13 +252,13 @@ void ComputeBrightnessTemperatureBox(int snapshot) {
                         else {
 
                             dvdx = (double)((float*)vel_gradient)[i_padded];
-                            
+
                             // set maximum allowed gradient for this linear approximation
                             if (fabs(dvdx) > max_v_deriv){
                                 if (dvdx < 0) dvdx = -max_v_deriv;
                                 else dvdx = max_v_deriv;
                             }
-                            
+
                             delta_T[i_real] /= (dvdx/H_z + 1.0);
 
                         }
@@ -278,12 +278,12 @@ void ComputeBrightnessTemperatureBox(int snapshot) {
 
                 for (ii=0; ii < local_nix; ii++) {
                     for ( jj=0; jj < ReionGridDim; jj++) {
-              
+
                         for ( kk=0; kk < ReionGridDim; kk++) {
                             delta_T_RSD_LOS[kk] = 0.0;
                         }
 
-                        for (kk=0; kk < ReionGridDim; kk++){                 
+                        for (kk=0; kk < ReionGridDim; kk++){
 
                             i_real = grid_index(ii, jj, kk, ReionGridDim, INDEX_REAL);
 
@@ -309,18 +309,18 @@ void ComputeBrightnessTemperatureBox(int snapshot) {
                                 }
 
                                 for(iii=0;iii<N_RSD_STEPS;iii++) {
-                                        
+
                                     // linearly interpolate the displacements to determine the corresponding displacements of the sub-cells
                                     // Checking of 0.5 is for determining if we are left or right of the mid-point of the original cell (for the linear interpolation of the displacement)
                                     // to use the appropriate cell
-                                        
+
                                     if(x_pos[iii] <= 0.5) {
                                         subcell_displacement = d1_low + ( (x_pos[iii] + 0.5 ) - x_val1)*( d2_low - d1_low )/( x_val2 - x_val1 );
                                     }
                                     else {
                                         subcell_displacement = d1_high + ( (x_pos[iii] - 0.5 ) - x_val1)*( d2_high - d1_high )/( x_val2 - x_val1 );
                                     }
-                                        
+
                                     // The new centre of the sub-cell post R.S.D displacement. Normalised to units of cell width for determining it's displacement
                                     RSD_pos_new = (x_pos_offset[iii] + subcell_displacement)/( BoxSize/(float)ReionGridDim );
 
@@ -328,22 +328,22 @@ void ComputeBrightnessTemperatureBox(int snapshot) {
                                     // the sub-cell straddles two cell positions
                                     RSD_pos_new_boundary_low = RSD_pos_new - (subcell_width/2.)/( BoxSize/(float)ReionGridDim );
                                     RSD_pos_new_boundary_high = RSD_pos_new + (subcell_width/2.)/( BoxSize/(float)ReionGridDim );
-                                        
+
                                     if(RSD_pos_new_boundary_low >= 0.0 && RSD_pos_new_boundary_high < 1.0) {
                                         // sub-cell has remained in the original cell (just add it back to the original cell)
-                                            
+
                                         delta_T_RSD_LOS[kk] += delta_T[i_real]/(float)N_RSD_STEPS;
                                     }
                                     else if(RSD_pos_new_boundary_low < 0.0 && RSD_pos_new_boundary_high < 0.0) {
                                         // sub-cell has moved completely into a new cell (toward the observer)
-                                            
+
                                         // determine how far the sub-cell has moved in units of original cell boundary
                                         cell_distance = ceil(fabs(RSD_pos_new_boundary_low))-1.;
-                                            
+
                                         // Determine the location of the sub-cell relative to the original cell binning
                                         if(fabs(RSD_pos_new_boundary_high) > cell_distance) {
                                             // sub-cell is entirely contained within the new cell (just add it to the new cell)
-                                                
+
                                             // check if the new cell position is at the edge of the box. If so, periodic boundary conditions
                                             if(kk<((int)cell_distance+1)) {
                                                 delta_T_RSD_LOS[kk-((int)cell_distance+1) + ReionGridDim] += delta_T[i_real]/(float)N_RSD_STEPS;
@@ -354,11 +354,11 @@ void ComputeBrightnessTemperatureBox(int snapshot) {
                                         }
                                         else {
                                             // sub-cell is partially contained within the cell
-                                                
+
                                             // Determine the fraction of the sub-cell which is in either of the two original cells
                                             fraction_outside = (fabs(RSD_pos_new_boundary_low) - cell_distance)/(subcell_width/( BoxSize/(float)ReionGridDim ));
                                             fraction_within = 1. - fraction_outside;
-                                                
+
                                             // Check if the first part of the sub-cell is at the box edge
                                             if(kk<(((int)cell_distance))) {
                                                 delta_T_RSD_LOS[kk-((int)cell_distance) + ReionGridDim] += fraction_within*delta_T[i_real]/(float)N_RSD_STEPS;
@@ -378,11 +378,11 @@ void ComputeBrightnessTemperatureBox(int snapshot) {
                                     }
                                     else if(RSD_pos_new_boundary_low < 0.0 && (RSD_pos_new_boundary_high > 0.0 && RSD_pos_new_boundary_high < 1.0)) {
                                         // sub-cell has moved partially into a new cell (toward the observer)
-                                            
+
                                         // Determine the fraction of the sub-cell which is in either of the two original cells
                                         fraction_within = RSD_pos_new_boundary_high/(subcell_width/( BoxSize/(float)ReionGridDim ));
                                         fraction_outside = 1. - fraction_within;
-                                            
+
                                         // Check the periodic boundaries conditions and move the fraction of each sub-cell to the appropriate new cell
                                         if(kk==0) {
                                             delta_T_RSD_LOS[ReionGridDim-1] += fraction_outside*delta_T[i_real]/(float)N_RSD_STEPS;
@@ -395,11 +395,11 @@ void ComputeBrightnessTemperatureBox(int snapshot) {
                                     }
                                     else if((RSD_pos_new_boundary_low >= 0.0 && RSD_pos_new_boundary_low < 1.0) && (RSD_pos_new_boundary_high >= 1.0)) {
                                         // sub-cell has moved partially into a new cell (away from the observer)
-                                            
+
                                         // Determine the fraction of the sub-cell which is in either of the two original cells
                                         fraction_outside = (RSD_pos_new_boundary_high - 1.)/(subcell_width/( BoxSize/(float)ReionGridDim ));
                                         fraction_within = 1. - fraction_outside;
-                                            
+
                                         // Check the periodic boundaries conditions and move the fraction of each sub-cell to the appropriate new cell
                                         if(kk==(ReionGridDim-1)) {
                                             delta_T_RSD_LOS[kk] += fraction_within*delta_T[i_real]/(float)N_RSD_STEPS;
@@ -412,13 +412,13 @@ void ComputeBrightnessTemperatureBox(int snapshot) {
                                     }
                                     else {
                                         // sub-cell has moved completely into a new cell (away from the observer)
-                                            
+
                                         // determine how far the sub-cell has moved in units of original cell boundary
                                         cell_distance = floor(fabs(RSD_pos_new_boundary_high));
-                                        
+
                                         if(RSD_pos_new_boundary_low >= cell_distance) {
                                             // sub-cell is entirely contained within the new cell (just add it to the new cell)
-                                                
+
                                             // check if the new cell position is at the edge of the box. If so, periodic boundary conditions
                                             if(kk>(ReionGridDim - 1 - (int)cell_distance)) {
                                                 delta_T_RSD_LOS[kk+(int)cell_distance - ReionGridDim] += delta_T[i_real]/(float)N_RSD_STEPS;
@@ -429,11 +429,11 @@ void ComputeBrightnessTemperatureBox(int snapshot) {
                                         }
                                         else {
                                             // sub-cell is partially contained within the cell
-                                                
+
                                             // Determine the fraction of the sub-cell which is in either of the two original cells
                                             fraction_outside = (RSD_pos_new_boundary_high - cell_distance)/(subcell_width/( BoxSize/(float)ReionGridDim ));
                                             fraction_within = 1. - fraction_outside;
-                                                
+
                                             // Check if the first part of the sub-cell is at the box edge
                                             if(kk>(ReionGridDim - 1 - ((int)cell_distance-1))) {
                                                 delta_T_RSD_LOS[kk+(int)cell_distance-1 - ReionGridDim] += fraction_within*delta_T[i_real]/(float)N_RSD_STEPS;
@@ -452,7 +452,7 @@ void ComputeBrightnessTemperatureBox(int snapshot) {
                                     }
                                 }
                             }
-                        }                                        
+                        }
 
                         for(kk=0;kk<ReionGridDim;kk++) {
                             delta_T[grid_index(ii, jj, kk, ReionGridDim, INDEX_REAL)] = delta_T_RSD_LOS[kk];

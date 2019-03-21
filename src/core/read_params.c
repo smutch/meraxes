@@ -10,12 +10,12 @@ static void check_problem_params(run_params_t* run_params)
 }
 
 static void store_params(entry_t entry[123],
-    int n_entries,
-    char** params_tag,
-    int n_param,
-    int used_tag[123],
-    int* params_type,
-    void** params_addr)
+        int n_entries,
+        char** params_tag,
+        int n_param,
+        int used_tag[123],
+        int* params_type,
+        void** params_addr)
 {
     int level = 0;
     char prefix[16] = "\0";
@@ -52,29 +52,29 @@ static void store_params(entry_t entry[123],
             continue;
 
         switch (params_type[tag_index]) {
-        case PARAM_TYPE_DOUBLE:
-            *((double*)params_addr[tag_index]) = atof(entry[i_entry].value);
-            break;
+            case PARAM_TYPE_DOUBLE:
+                *((double*)params_addr[tag_index]) = atof(entry[i_entry].value);
+                break;
 
-        case PARAM_TYPE_FLOAT:
-            *((float*)params_addr[tag_index]) = (float)atof(entry[i_entry].value);
-            break;
+            case PARAM_TYPE_FLOAT:
+                *((float*)params_addr[tag_index]) = (float)atof(entry[i_entry].value);
+                break;
 
-        case PARAM_TYPE_STRING:
-            strncpy(params_addr[tag_index], entry[i_entry].value, STRLEN);
-            break;
+            case PARAM_TYPE_STRING:
+                strncpy(params_addr[tag_index], entry[i_entry].value, STRLEN);
+                break;
 
-        case PARAM_TYPE_INT:
-            *((int*)params_addr[tag_index]) = atoi(entry[i_entry].value);
-            break;
+            case PARAM_TYPE_INT:
+                *((int*)params_addr[tag_index]) = atoi(entry[i_entry].value);
+                break;
 
-        case PARAM_TYPE_LONGLONG:
-            *((long long*)params_addr[tag_index]) = atoll(entry[i_entry].value);
-            break;
+            case PARAM_TYPE_LONGLONG:
+                *((long long*)params_addr[tag_index]) = atoll(entry[i_entry].value);
+                break;
 
-        default:
-            mlog_error("Unknown param type.");
-            break;
+            default:
+                mlog_error("Unknown param type.");
+                break;
         }
         used_tag[tag_index] = 1;
     }
@@ -800,7 +800,7 @@ void read_parameter_file(char* fname, int mode)
             params_addr[n_param] = &(run_params->physics).NU_X_GAL_THRESH;
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_DOUBLE;
-            
+
             strcpy(params_tag[n_param], "X_RAY_SPEC_INDEX_GAL");
             params_addr[n_param] = &(run_params->physics).X_RAY_SPEC_INDEX_GAL;
             required_tag[n_param] = 1;
@@ -814,7 +814,7 @@ void read_parameter_file(char* fname, int mode)
             strcpy(params_tag[n_param], "NU_X_QSO_THRESH");
             params_addr[n_param] = &(run_params->physics).NU_X_QSO_THRESH;
             required_tag[n_param] = 1;
-       	    params_type[n_param++] = PARAM_TYPE_DOUBLE;
+            params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
             strcpy(params_tag[n_param], "X_RAY_SPEC_INDEX_QSO");
             params_addr[n_param] = &(run_params->physics).X_RAY_SPEC_INDEX_QSO;
@@ -859,29 +859,29 @@ void read_parameter_file(char* fname, int mode)
                     mlog("%35s\t", MLOG_MESG, params_tag[ii]);
 
                     switch (params_type[ii]) {
-                    case PARAM_TYPE_DOUBLE:
-                        mlog("%g", MLOG_MESG | MLOG_CONT, *((double*)(params_addr[ii])));
-                        break;
+                        case PARAM_TYPE_DOUBLE:
+                            mlog("%g", MLOG_MESG | MLOG_CONT, *((double*)(params_addr[ii])));
+                            break;
 
-                    case PARAM_TYPE_FLOAT:
-                        mlog("%g", MLOG_MESG | MLOG_CONT, *((float*)(params_addr[ii])));
-                        break;
+                        case PARAM_TYPE_FLOAT:
+                            mlog("%g", MLOG_MESG | MLOG_CONT, *((float*)(params_addr[ii])));
+                            break;
 
-                    case PARAM_TYPE_STRING:
-                        mlog("%s", MLOG_MESG | MLOG_CONT, (char*)params_addr[ii]);
-                        break;
+                        case PARAM_TYPE_STRING:
+                            mlog("%s", MLOG_MESG | MLOG_CONT, (char*)params_addr[ii]);
+                            break;
 
-                    case PARAM_TYPE_INT:
-                        mlog("%d", MLOG_MESG | MLOG_CONT, *((int*)(params_addr[ii])));
-                        break;
+                        case PARAM_TYPE_INT:
+                            mlog("%d", MLOG_MESG | MLOG_CONT, *((int*)(params_addr[ii])));
+                            break;
 
-                    case PARAM_TYPE_LONGLONG:
-                        mlog("%lld", MLOG_MESG | MLOG_CONT, *((long long*)(params_addr[ii])));
-                        break;
+                        case PARAM_TYPE_LONGLONG:
+                            mlog("%lld", MLOG_MESG | MLOG_CONT, *((long long*)(params_addr[ii])));
+                            break;
 
-                    default:
-                        mlog_error("Unknown param type.");
-                        break;
+                        default:
+                            mlog_error("Unknown param type.");
+                            break;
                     }
                 }
         }

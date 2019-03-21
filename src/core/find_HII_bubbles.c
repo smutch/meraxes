@@ -24,14 +24,14 @@ double RtoM(double R)
     double RhoCrit = run_globals.RhoCrit;
 
     switch (filter) {
-    case 0: //top hat M = (4/3) PI <rho> R^3
-        return (4.0 / 3.0) * M_PI * pow(R, 3) * (OmegaM * RhoCrit);
-    case 1: //gaussian: M = (2PI)^1.5 <rho> R^3
-        return pow(2 * M_PI, 1.5) * OmegaM * RhoCrit * pow(R, 3);
-    default: // filter not defined
-        mlog_error("Unrecognised filter (%d). Aborting...", filter);
-        ABORT(EXIT_FAILURE);
-        break;
+        case 0: //top hat M = (4/3) PI <rho> R^3
+            return (4.0 / 3.0) * M_PI * pow(R, 3) * (OmegaM * RhoCrit);
+        case 1: //gaussian: M = (2PI)^1.5 <rho> R^3
+            return pow(2 * M_PI, 1.5) * OmegaM * RhoCrit * pow(R, 3);
+        default: // filter not defined
+            mlog_error("Unrecognised filter (%d). Aborting...", filter);
+            ABORT(EXIT_FAILURE);
+            break;
     }
 
     return -1;
@@ -70,7 +70,7 @@ void _find_HII_bubbles(int snapshot)
         prev_redshift = run_globals.ZZ[snapshot];
     }
     else {
-	prev_redshift = run_globals.ZZ[snapshot-1];
+        prev_redshift = run_globals.ZZ[snapshot-1];
     }
 
     ZSTEP = prev_redshift - redshift;
@@ -138,7 +138,7 @@ void _find_HII_bubbles(int snapshot)
     float* deltax_temp = run_globals.reion_grids.deltax_temp;
 
     // Make a copy of the box for FFT'ing
-    memcpy(deltax_temp, deltax, sizeof(fftwf_complex) * slab_n_complex);    
+    memcpy(deltax_temp, deltax, sizeof(fftwf_complex) * slab_n_complex);
 
     fftwf_complex* deltax_unfiltered = (fftwf_complex*)deltax_temp; // WATCH OUT!
     fftwf_complex* deltax_filtered = run_globals.reion_grids.deltax_filtered;
@@ -169,11 +169,11 @@ void _find_HII_bubbles(int snapshot)
     plan = fftwf_mpi_plan_dft_r2c_3d(ReionGridDim, ReionGridDim, ReionGridDim, sfr_temp, sfr_unfiltered, run_globals.mpi_comm, FFTW_ESTIMATE);
     fftwf_execute(plan);
     fftwf_destroy_plan(plan);
-    
-    // The free electron fraction from X-rays 
+
+    // The free electron fraction from X-rays
     float* x_e_box;
     fftwf_complex* x_e_unfiltered;
-    fftwf_complex* x_e_filtered; 
+    fftwf_complex* x_e_filtered;
     if(run_globals.params.Flag_IncludeSpinTemp) {
         x_e_box = run_globals.reion_grids.x_e_box;
         x_e_unfiltered = (fftwf_complex*)x_e_box; // WATCH OUT!
@@ -183,7 +183,7 @@ void _find_HII_bubbles(int snapshot)
         fftwf_destroy_plan(plan);
     }
 
-    // Fields relevant for computing the inhomogeneous recombinations    
+    // Fields relevant for computing the inhomogeneous recombinations
     float *z_re, *Gamma12, *N_rec_prev, *N_rec;
     fftwf_complex* N_rec_unfiltered;
     fftwf_complex* N_rec_filtered;
@@ -238,7 +238,7 @@ void _find_HII_bubbles(int snapshot)
     while (!flag_last_filter_step) {
         // check to see if this is our last filtering step
         if (((R / ReionDeltaRFactor) <= (cell_length_factor * box_size / (double)ReionGridDim))
-            || ((R / ReionDeltaRFactor) <= ReionRBubbleMin)) {
+                || ((R / ReionDeltaRFactor) <= ReionRBubbleMin)) {
             flag_last_filter_step = true;
             R = cell_length_factor * box_size / (double)ReionGridDim;
         }
@@ -290,7 +290,7 @@ void _find_HII_bubbles(int snapshot)
         if(run_globals.params.Flag_IncludeRecombinations) {
             plan = fftwf_mpi_plan_dft_c2r_3d(ReionGridDim, ReionGridDim, ReionGridDim, N_rec_filtered, (float*)N_rec_filtered, run_globals.mpi_comm, FFTW_ESTIMATE);
             fftwf_execute(plan);
-            fftwf_destroy_plan(plan); 
+            fftwf_destroy_plan(plan);
         }
 
         if(run_globals.params.Flag_IncludeSpinTemp) {
@@ -313,7 +313,7 @@ void _find_HII_bubbles(int snapshot)
                     }
                     if(run_globals.params.Flag_IncludeSpinTemp) {
                         ((float*)x_e_filtered)[i_padded] = fmaxf(((float*)x_e_filtered)[i_padded], 0.0);
-       	       	        ((float*)x_e_filtered)[i_padded] = fminf(((float*)x_e_filtered)[i_padded], 0.999);
+                        ((float*)x_e_filtered)[i_padded] = fminf(((float*)x_e_filtered)[i_padded], 0.999);
                     }
                 }
 
@@ -341,8 +341,8 @@ void _find_HII_bubbles(int snapshot)
         // #endif
 
         /*
-     * Main loop through the box...
-     */
+         * Main loop through the box...
+         */
 
         J_21_aux_constant = (1.0 + redshift) * (1.0 + redshift) / (4.0 * M_PI)
             * run_globals.params.physics.ReionAlphaUV * PLANCK
@@ -351,8 +351,8 @@ void _find_HII_bubbles(int snapshot)
             * units->UnitMass_in_g / pow(units->UnitLength_in_cm, 3) / units->UnitTime_in_s;
 
         if(run_globals.params.Flag_IncludeRecombinations) {
-            Gamma_R_prefactor = (1.0 + redshift) * (1.0 + redshift) * R * (units->UnitLength_in_cm / run_globals.params.Hubble_h ) * SIGMA_HI * 
-                                run_globals.params.physics.ReionAlphaUV / (run_globals.params.physics.ReionAlphaUV+2.75) / 1.0e-12;  // Converting R h^-1 to R.
+            Gamma_R_prefactor = (1.0 + redshift) * (1.0 + redshift) * R * (units->UnitLength_in_cm / run_globals.params.Hubble_h ) * SIGMA_HI *
+                run_globals.params.physics.ReionAlphaUV / (run_globals.params.physics.ReionAlphaUV+2.75) / 1.0e-12;  // Converting R h^-1 to R.
         }
 
         // DEBUG
@@ -403,14 +403,14 @@ void _find_HII_bubbles(int snapshot)
 
                     // Calculate the recombinations within the cell
                     if(run_globals.params.Flag_IncludeRecombinations) {
-                        Gamma_R = Gamma_R_prefactor * sfr_density * (units->UnitMass_in_g / units->UnitTime_in_s) * pow( units->UnitLength_in_cm / run_globals.params.Hubble_h, -3. ) 
-                                 *  ReionNionPhotPerBary / PROTONMASS; // Convert pixel volume (Mpc/h)^3 -> (cm)^3
-                        rec = (double)((float*)N_rec_filtered)[i_padded] / density_over_mean; 
+                        Gamma_R = Gamma_R_prefactor * sfr_density * (units->UnitMass_in_g / units->UnitTime_in_s) * pow( units->UnitLength_in_cm / run_globals.params.Hubble_h, -3. )
+                            *  ReionNionPhotPerBary / PROTONMASS; // Convert pixel volume (Mpc/h)^3 -> (cm)^3
+                        rec = (double)((float*)N_rec_filtered)[i_padded] / density_over_mean;
                     }
 
                     // Account for the partial ionisation of the cell from X-rays
                     if(run_globals.params.Flag_IncludeSpinTemp) {
-                        electron_fraction = 1.0 - ((float*)x_e_filtered)[i_padded];    
+                        electron_fraction = 1.0 - ((float*)x_e_filtered)[i_padded];
                     }
                     else {
                         electron_fraction = 1.0;
@@ -427,7 +427,7 @@ void _find_HII_bubbles(int snapshot)
                         if (xH[i_real] > REL_TOL) {
                             if (flag_ReionUVBFlag)
                                 J_21[i_real] = J_21_aux;
-   
+
                             // Store the ionisation background and the reionisation redshift for each cell
                             if(run_globals.params.Flag_IncludeRecombinations) {
                                 Gamma12[i_real] = Gamma_R;
@@ -496,8 +496,8 @@ void _find_HII_bubbles(int snapshot)
     run_globals.reion_grids.volume_weighted_global_xH = volume_weighted_global_xH;
     run_globals.reion_grids.mass_weighted_global_xH = mass_weighted_global_xH;
 
-    if(run_globals.params.Flag_IncludeRecombinations) {    
-        // Store the resultant recombination grid 
+    if(run_globals.params.Flag_IncludeRecombinations) {
+        // Store the resultant recombination grid
         for (int ix = 0; ix < local_nix; ix++)
             for (int iy = 0; iy < ReionGridDim; iy++)
                 for (int iz = 0; iz < ReionGridDim; iz++) {

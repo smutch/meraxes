@@ -16,7 +16,7 @@ void calculate_galaxy_fesc_vals(galaxy_t* gal, double new_stars, int snapshot)
     if ((params->EscapeFracDependency > 0) && (params->EscapeFracDependency <= 6))
         if (params->EscapeFracRedshiftScaling != 0.0)
             fesc *= pow((1.0 + run_globals.ZZ[snapshot]) / 6.0, params->EscapeFracRedshiftScaling);
-    
+
     // galaxy properties
     switch (params->EscapeFracDependency) {
         case 0:
@@ -86,7 +86,7 @@ void set_quasar_fobs()
 
     params->quasar_fobs = 1. - cos(params->quasar_open_angle / 180. * M_PI / 2.);
     mlog("Quasar radiation open angle is set to be %g, corresponding to an obscure fraction of %g",
-        MLOG_MESG | MLOG_FLUSH, params->quasar_open_angle, params->quasar_fobs);
+            MLOG_MESG | MLOG_FLUSH, params->quasar_open_angle, params->quasar_fobs);
 }
 
 void set_ReionEfficiency()
@@ -152,10 +152,10 @@ void call_find_HII_bubbles(int snapshot, int nout_gals, timer_info* timer)
 
     // Check to see if there are actually any galaxies at this snapshot
     MPI_Allreduce(&nout_gals, &total_n_out_gals, 1, MPI_INT, MPI_SUM, run_globals.mpi_comm);
-//    if (total_n_out_gals == 0) {
-//        mlog("No galaxies in the simulation - skipping...", MLOG_CLOSE);
-//        return;
-//    }
+    //    if (total_n_out_gals == 0) {
+    //        mlog("No galaxies in the simulation - skipping...", MLOG_CLOSE);
+    //        return;
+    //    }
 
     // Logic statement to avoid gridding the density field twice
     if(!run_globals.params.Flag_IncludeSpinTemp) {
@@ -173,9 +173,9 @@ void call_find_HII_bubbles(int snapshot, int nout_gals, timer_info* timer)
                 break;
             default:
                 mlog_error("Unrecognised input trees identifier (TreesID).");
-            break;
+                break;
         }
-    
+
         // save the grids prior to doing FFTs to avoid precision loss and aliasing etc.
         for (int i_out = 0; i_out < run_globals.NOutputSnaps; i_out++)
             if (snapshot == run_globals.ListOutputSnaps[i_out] && run_globals.params.Flag_OutputGrids)
@@ -215,20 +215,20 @@ void call_ComputeTs(int snapshot, int nout_gals, timer_info* timer)
 
     // Read in the dark matter density grid
     switch (run_globals.params.TreesID) {
-    case VELOCIRAPTOR_TREES:
-        read_dm_grid__velociraptor(snapshot, grids->deltax);
-        break;
-    case GBPTREES_TREES:
-        read_dm_grid__gbptrees(snapshot, grids->deltax);
-        break;
-    default:
-        mlog_error("Unrecognised input trees identifier (TreesID).");
-        break;
+        case VELOCIRAPTOR_TREES:
+            read_dm_grid__velociraptor(snapshot, grids->deltax);
+            break;
+        case GBPTREES_TREES:
+            read_dm_grid__gbptrees(snapshot, grids->deltax);
+            break;
+        default:
+            mlog_error("Unrecognised input trees identifier (TreesID).");
+            break;
     }
 
     // read in the velocity grids (only works for GBPTREES_TREES at the moment)
     if(run_globals.params.Flag_IncludePecVelsFor21cm>0) {
-        
+
         switch (run_globals.params.TreesID) {
             case VELOCIRAPTOR_TREES:
                 mlog_error("Velocity grids only supported for GBP at the present.");
@@ -238,17 +238,17 @@ void call_ComputeTs(int snapshot, int nout_gals, timer_info* timer)
                 break;
             default:
                 mlog_error("Unrecognised input trees identifier (TreesID).");
-            break;
+                break;
         }
     }
 
     // save the grids prior to doing FFTs to avoid precision loss and aliasing etc.
-        for (int i_out = 0; i_out < run_globals.NOutputSnaps; i_out++)
-            if (snapshot == run_globals.ListOutputSnaps[i_out] && run_globals.params.Flag_OutputGrids)
-                save_reion_input_grids(snapshot);
+    for (int i_out = 0; i_out < run_globals.NOutputSnaps; i_out++)
+        if (snapshot == run_globals.ListOutputSnaps[i_out] && run_globals.params.Flag_OutputGrids)
+            save_reion_input_grids(snapshot);
 
     mlog("...done", MLOG_CLOSE);
-    
+
     // Call Compute Ts
     mlog("Calling ComputeTs", MLOG_OPEN | MLOG_TIMERSTART);
 
@@ -269,9 +269,9 @@ void init_reion_grids()
     if(run_globals.params.Flag_IncludeSpinTemp) {
         slab_n_real_smoothedSFR = slab_nix[run_globals.mpi_rank] * run_globals.params.NUM_FILTER_STEPS_FOR_Ts  * ReionGridDim * ReionGridDim;
     }
-    
+
     ptrdiff_t slab_n_real_LC;
-    if(run_globals.params.Flag_ConstructLightcone) {        
+    if(run_globals.params.Flag_ConstructLightcone) {
         slab_n_real_LC = slab_nix[run_globals.mpi_rank] * ReionGridDim * run_globals.params.LightconeLength;
     }
 
@@ -311,7 +311,7 @@ void init_reion_grids()
 
         for (int ii = 0; ii < slab_n_real_smoothedSFR; ii++) {
             grids->SMOOTHED_SFR_GAL[ii] = 0.0;
- 
+
             if(run_globals.params.SEP_QSO_XRAY) {
                 grids->SMOOTHED_SFR_QSO[ii] = 0.0;
             }
@@ -330,7 +330,7 @@ void init_reion_grids()
         }
     }
 
-    for (int ii = 0; ii < slab_n_real; ii++) 
+    for (int ii = 0; ii < slab_n_real; ii++)
         if (run_globals.params.ReionUVBFlag) {
             grids->J_21_at_ionization[ii] = (float)0.;
             grids->J_21[ii] = (float)0.;
@@ -381,7 +381,7 @@ void init_reion_grids()
         for (int ii = 0; ii < run_globals.params.PS_Length; ii++) {
             grids->PS_k[ii] = 0.;
             grids->PS_data[ii] = 0.;
-            grids->PS_error[ii] = 0.; 
+            grids->PS_error[ii] = 0.;
         }
     }
 
@@ -420,7 +420,7 @@ void malloc_reionization_grids()
     grids->TS_box = NULL;
     grids->x_e_unfiltered = NULL;
     grids->x_e_filtered = NULL;
-  
+
     grids->SMOOTHED_SFR_GAL = NULL;
     grids->SMOOTHED_SFR_QSO = NULL;
 
@@ -443,7 +443,7 @@ void malloc_reionization_grids()
 
     // Grids required for addining in peculiar velocity effects
     grids->vel = NULL;
-    grids->vel_temp = NULL;    
+    grids->vel_temp = NULL;
     grids->vel_gradient = NULL;
 
     grids->PS_k = NULL;
@@ -466,7 +466,7 @@ void malloc_reionization_grids()
         ptrdiff_t slab_n_real_LC;
         if(run_globals.params.Flag_ConstructLightcone) {
             slab_n_real_LC = slab_nix[run_globals.mpi_rank] * ReionGridDim * run_globals.params.LightconeLength;
-        }        
+        }
 
         // create a buffer on each rank which is as large as the largest LOGICAL allocation on any single rank
         int max_cells = 0;
@@ -500,7 +500,7 @@ void malloc_reionization_grids()
             grids->TS_box = fftwf_alloc_real((size_t)slab_n_real);
 
             grids->x_e_filtered = fftwf_alloc_complex((size_t)slab_n_complex);
-           
+
             grids->SMOOTHED_SFR_GAL = calloc(slab_n_real_smoothedSFR,sizeof(double));
             if(run_globals.params.SEP_QSO_XRAY) {
                 grids->SMOOTHED_SFR_QSO = calloc(slab_n_real_smoothedSFR,sizeof(double));
@@ -574,33 +574,33 @@ void free_reionization_grids()
     fftwf_free(grids->xH);
 
     if(run_globals.params.Flag_IncludeSpinTemp) {
-	fftwf_free(grids->x_e_box);
-    	fftwf_free(grids->x_e_box_prev);
-	fftwf_free(grids->Tk_box);
-    	fftwf_free(grids->TS_box);
+        fftwf_free(grids->x_e_box);
+        fftwf_free(grids->x_e_box_prev);
+        fftwf_free(grids->Tk_box);
+        fftwf_free(grids->TS_box);
 
         free(grids->SMOOTHED_SFR_GAL);
         free(grids->SMOOTHED_SFR_QSO);
-        
-    }
- 
-    if(run_globals.params.Flag_IncludeRecombinations) {
-	fftwf_free(grids->N_rec_filtered);
-	fftwf_free(grids->N_rec);
-	fftwf_free(grids->N_rec_prev);
 
-	fftwf_free(grids->z_re);
-	fftwf_free(grids->Gamma12);
+    }
+
+    if(run_globals.params.Flag_IncludeRecombinations) {
+        fftwf_free(grids->N_rec_filtered);
+        fftwf_free(grids->N_rec);
+        fftwf_free(grids->N_rec_prev);
+
+        fftwf_free(grids->z_re);
+        fftwf_free(grids->Gamma12);
     }
 
     if(run_globals.params.Flag_Compute21cmBrightTemp) {
 
-		fftwf_free(grids->delta_T);
+        fftwf_free(grids->delta_T);
 
         if(run_globals.params.Flag_IncludePecVelsFor21cm > 0) {
- 		fftwf_free(grids->vel);
-                fftwf_free(grids->vel_temp);
-                fftwf_free(grids->vel_gradient);
+            fftwf_free(grids->vel);
+            fftwf_free(grids->vel_temp);
+            fftwf_free(grids->vel_gradient);
         }
 
         if(run_globals.params.Flag_ConstructLightcone) {
@@ -726,7 +726,7 @@ void assign_Mvir_crit_to_galaxies(int ngals_in_slabs)
 
         if (i_skip > 0) {
             MPI_Sendrecv(&recv_flag, sizeof(bool), MPI_BYTE, recv_from_rank, 6393762,
-                &send_flag, sizeof(bool), MPI_BYTE, send_to_rank, 6393762, run_globals.mpi_comm, MPI_STATUS_IGNORE);
+                    &send_flag, sizeof(bool), MPI_BYTE, send_to_rank, 6393762, run_globals.mpi_comm, MPI_STATUS_IGNORE);
 
             // need to ensure sends and receives do not clash!
             if (send_to_rank > run_globals.mpi_rank) {
@@ -856,29 +856,29 @@ void construct_baryon_grids(int snapshot, int local_ngals)
 
                     // They are the same just now, but may be different in the future once the model is improved.
                     switch (prop) {
-                    case prop_stellar:
-                        buffer[ind] += gal->FescWeightedGSM;
-                        // a trick to include quasar radiation using current 21cmFAST code
-                        if (run_globals.params.physics.Flag_BHFeedback) {
-                            if (gal->BlackHoleMass >= run_globals.params.physics.BlackHoleMassLimitReion)
-                                buffer[ind] += gal->EffectiveBHM;
-                            else
-                                N_BlackHoleMassLimitReion += 1;
-                        }
-                        break;
+                        case prop_stellar:
+                            buffer[ind] += gal->FescWeightedGSM;
+                            // a trick to include quasar radiation using current 21cmFAST code
+                            if (run_globals.params.physics.Flag_BHFeedback) {
+                                if (gal->BlackHoleMass >= run_globals.params.physics.BlackHoleMassLimitReion)
+                                    buffer[ind] += gal->EffectiveBHM;
+                                else
+                                    N_BlackHoleMassLimitReion += 1;
+                            }
+                            break;
 
-                    case prop_sfr:
-                        buffer[ind] += gal->FescWeightedGSM;
-                        // for ionizing_source_formation_rate_grid, need further convertion due to different UV spectral index of quasar and stellar component
-                        if (run_globals.params.physics.Flag_BHFeedback)
-                            if (gal->BlackHoleMass >= run_globals.params.physics.BlackHoleMassLimitReion)
-                                buffer[ind] += gal->EffectiveBHM * run_globals.params.physics.ReionAlphaUVBH / run_globals.params.physics.ReionAlphaUV;
-                        break;
+                        case prop_sfr:
+                            buffer[ind] += gal->FescWeightedGSM;
+                            // for ionizing_source_formation_rate_grid, need further convertion due to different UV spectral index of quasar and stellar component
+                            if (run_globals.params.physics.Flag_BHFeedback)
+                                if (gal->BlackHoleMass >= run_globals.params.physics.BlackHoleMassLimitReion)
+                                    buffer[ind] += gal->EffectiveBHM * run_globals.params.physics.ReionAlphaUVBH / run_globals.params.physics.ReionAlphaUV;
+                            break;
 
-                    default:
-                        mlog_error("Unrecognised property in slab creation.");
-                        ABORT(EXIT_FAILURE);
-                        break;
+                        default:
+                            mlog_error("Unrecognised property in slab creation.");
+                            ABORT(EXIT_FAILURE);
+                            break;
                     }
 
                     i_gal++;
@@ -897,30 +897,30 @@ void construct_baryon_grids(int snapshot, int local_ngals)
                 // finally copying the values into the appropriate slab.
                 // TODO: Use a better timescale for SFR
                 switch (prop) {
-                case prop_sfr:
-                    for (int ix = 0; ix < slab_nix[i_r]; ix++)
-                        for (int iy = 0; iy < ReionGridDim; iy++)
-                            for (int iz = 0; iz < ReionGridDim; iz++) {
-                                double val = (double)buffer[grid_index(ix, iy, iz, ReionGridDim, INDEX_REAL)];
-                                val = (val > 0) ? val / tHubble : 0;
-                                sfr_grid[grid_index(ix, iy, iz, ReionGridDim, INDEX_PADDED)] = (float)val;
-                            }
-                    break;
+                    case prop_sfr:
+                        for (int ix = 0; ix < slab_nix[i_r]; ix++)
+                            for (int iy = 0; iy < ReionGridDim; iy++)
+                                for (int iz = 0; iz < ReionGridDim; iz++) {
+                                    double val = (double)buffer[grid_index(ix, iy, iz, ReionGridDim, INDEX_REAL)];
+                                    val = (val > 0) ? val / tHubble : 0;
+                                    sfr_grid[grid_index(ix, iy, iz, ReionGridDim, INDEX_PADDED)] = (float)val;
+                                }
+                        break;
 
-                case prop_stellar:
-                    for (int ix = 0; ix < slab_nix[i_r]; ix++)
-                        for (int iy = 0; iy < ReionGridDim; iy++)
-                            for (int iz = 0; iz < ReionGridDim; iz++) {
-                                float val = buffer[grid_index(ix, iy, iz, ReionGridDim, INDEX_REAL)];
-                                if (val < 0)
-                                    val = 0;
-                                stellar_grid[grid_index(ix, iy, iz, ReionGridDim, INDEX_PADDED)] = val;
-                            }
-                    break;
+                    case prop_stellar:
+                        for (int ix = 0; ix < slab_nix[i_r]; ix++)
+                            for (int iy = 0; iy < ReionGridDim; iy++)
+                                for (int iz = 0; iz < ReionGridDim; iz++) {
+                                    float val = buffer[grid_index(ix, iy, iz, ReionGridDim, INDEX_REAL)];
+                                    if (val < 0)
+                                        val = 0;
+                                    stellar_grid[grid_index(ix, iy, iz, ReionGridDim, INDEX_PADDED)] = val;
+                                }
+                        break;
 
-                default:
-                    mlog_error("Eh!?!");
-                    ABORT(EXIT_FAILURE);
+                    default:
+                        mlog_error("Eh!?!");
+                        ABORT(EXIT_FAILURE);
                 }
         }
         MPI_Allreduce(MPI_IN_PLACE, &N_BlackHoleMassLimitReion, 1, MPI_DOUBLE, MPI_SUM, run_globals.mpi_comm);
@@ -934,7 +934,7 @@ static void write_grid_float(const char* name, float* data, hid_t file_id, hid_t
 {
     // create the dataset
     hid_t dset_id = H5Dcreate(file_id, name, H5T_NATIVE_FLOAT, fspace_id,
-        H5P_DEFAULT, dcpl_id, H5P_DEFAULT);
+            H5P_DEFAULT, dcpl_id, H5P_DEFAULT);
 
     // create the property list
     hid_t plist_id = H5Pcreate(H5P_DATASET_XFER);
@@ -1012,8 +1012,8 @@ void save_reion_input_grids(int snapshot)
         for (int jj = 0; jj < ReionGridDim; jj++)
             for (int kk = 0; kk < ReionGridDim; kk++)
                 grid[grid_index(ii, jj, kk, ReionGridDim, INDEX_REAL)] = (float)((grids->sfr)[grid_index(ii, jj, kk, ReionGridDim, INDEX_PADDED)]
-                    * UnitMass_in_g / UnitTime_in_s
-                    * SEC_PER_YEAR / SOLAR_MASS);
+                        * UnitMass_in_g / UnitTime_in_s
+                        * SEC_PER_YEAR / SOLAR_MASS);
     write_grid_float("sfr", grid, file_id, fspace_id, memspace_id, dcpl_id);
 
     // tidy up
@@ -1131,11 +1131,11 @@ void save_reion_output_grids(int snapshot)
 
         hid_t dcpl_id_LCz = H5Pcreate(H5P_DATASET_CREATE);
         hid_t dset_id = H5Dcreate(file_id, "lightcone-z", H5T_NATIVE_FLOAT, fspace_id_LCz, H5P_DEFAULT, dcpl_id_LCz, H5P_DEFAULT);
-       	
+
         hid_t plist_id = H5Pcreate(H5P_DATASET_XFER);
 
         H5Pset_dxpl_mpio(plist_id, H5FD_MPIO_COLLECTIVE);
- 
+
         // write the dataset
         H5Dwrite(dset_id, H5T_NATIVE_FLOAT, memspace_id_LCz, fspace_id_LCz, plist_id, grids->Lightcone_redshifts);
 
@@ -1174,7 +1174,7 @@ void save_reion_output_grids(int snapshot)
         hid_t plist_id = H5Pcreate(H5P_DATASET_XFER);
 
         H5Pset_dxpl_mpio(plist_id, H5FD_MPIO_COLLECTIVE);
- 
+
         // write the dataset
         H5Dwrite(dset_id, H5T_NATIVE_FLOAT, memspace_id_PS, fspace_id_PS, plist_id, grids->PS_k);
 
@@ -1183,7 +1183,7 @@ void save_reion_output_grids(int snapshot)
         H5Dclose(dset_id);
 
         dset_id = H5Dcreate(file_id, "PS_data", H5T_NATIVE_FLOAT, fspace_id_PS, H5P_DEFAULT, dcpl_id_PS, H5P_DEFAULT);
-        
+
         plist_id = H5Pcreate(H5P_DATASET_XFER);
 
         H5Pset_dxpl_mpio(plist_id, H5FD_MPIO_COLLECTIVE);
@@ -1309,29 +1309,29 @@ void filter(fftwf_complex* box, int local_ix_start, int slab_nx, int grid_dim, f
                 float kR = k_mag * R; // Real space top-hat
 
                 switch (filter_type) {
-                case 0: // Real space top-hat
-                    if (kR > 1e-4)
-                        box[grid_index(n_x, n_y, n_z, grid_dim, INDEX_COMPLEX_HERM)] *= (fftwf_complex)(3.0 * (sinf(kR) / powf(kR, 3) - cosf(kR) / powf(kR, 2)));
-                    break;
+                    case 0: // Real space top-hat
+                        if (kR > 1e-4)
+                            box[grid_index(n_x, n_y, n_z, grid_dim, INDEX_COMPLEX_HERM)] *= (fftwf_complex)(3.0 * (sinf(kR) / powf(kR, 3) - cosf(kR) / powf(kR, 2)));
+                        break;
 
-                case 1: // k-space top hat
-                    kR *= 0.413566994; // Equates integrated volume to the real space top-hat (9pi/2)^(-1/3)
-                    if (kR > 1)
-                        box[grid_index(n_x, n_y, n_z, grid_dim, INDEX_COMPLEX_HERM)] = (fftwf_complex)0.0;
-                    break;
+                    case 1: // k-space top hat
+                        kR *= 0.413566994; // Equates integrated volume to the real space top-hat (9pi/2)^(-1/3)
+                        if (kR > 1)
+                            box[grid_index(n_x, n_y, n_z, grid_dim, INDEX_COMPLEX_HERM)] = (fftwf_complex)0.0;
+                        break;
 
-                case 2: // Gaussian
-                    kR *= 0.643; // Equates integrated volume to the real space top-hat
-                    box[grid_index(n_x, n_y, n_z, grid_dim, INDEX_COMPLEX_HERM)] *= (fftwf_complex)(powf((float)M_E,
-                        (float)(-kR * kR / 2.0)));
-                    break;
+                    case 2: // Gaussian
+                        kR *= 0.643; // Equates integrated volume to the real space top-hat
+                        box[grid_index(n_x, n_y, n_z, grid_dim, INDEX_COMPLEX_HERM)] *= (fftwf_complex)(powf((float)M_E,
+                                    (float)(-kR * kR / 2.0)));
+                        break;
 
-                default:
-                    if ((n_x == 0) && (n_y == 0) && (n_z == 0)) {
-                        mlog_error("ReionFilterType.c: Warning, ReionFilterType type %d is undefined!", filter_type);
-                        ABORT(EXIT_FAILURE);
-                    }
-                    break;
+                    default:
+                        if ((n_x == 0) && (n_y == 0) && (n_z == 0)) {
+                            mlog_error("ReionFilterType.c: Warning, ReionFilterType type %d is undefined!", filter_type);
+                            ABORT(EXIT_FAILURE);
+                        }
+                        break;
                 }
             }
         }
@@ -1368,8 +1368,8 @@ void velocity_gradient(fftwf_complex* box, int local_ix_start, int slab_nx, int 
                 float k_mag = sqrtf(k_x * k_x + k_y * k_y + k_z * k_z);
 
                 box[grid_index(n_x, n_y, n_z, grid_dim, INDEX_COMPLEX_HERM)] *= (fftwf_complex)(k_z*I);
-                    break;
+                break;
             }
-	}
+        }
     } // End looping through k box
 }

@@ -50,22 +50,22 @@ void Initialise_ConstructLightcone()
     i = 0;
     // Below incrementes backwards to match 21cmFAST
     while(z1_LC < start_redshift) {
-  
-        z2_LC = run_globals.ZZ[closest_snapshot-1-i];      
-        
+
+        z2_LC = run_globals.ZZ[closest_snapshot-1-i];
+
         while( z_LC < z2_LC ) {
 
             total_slice_i++;
-            z_LC -= dR / drdz(z_LC);            
+            z_LC -= dR / drdz(z_LC);
         }
         z1_LC = z2_LC;
-        i += 1;                 
+        i += 1;
     }
-    
+
     // Store the length of the light-cone to be able to allocate the array to hold the light-cone
     run_globals.params.LightconeLength = total_slice_i;
     run_globals.params.End_Lightcone_snapshot = closest_snapshot;
-    
+
 }
 
 void ConstructLightcone(int snapshot)
@@ -75,7 +75,7 @@ void ConstructLightcone(int snapshot)
     float* LightconeBox = run_globals.reion_grids.LightconeBox;
 
     float* delta_T = run_globals.reion_grids.delta_T;
-    float* delta_T_prev = run_globals.reion_grids.delta_T_prev;    
+    float* delta_T_prev = run_globals.reion_grids.delta_T_prev;
 
     float* Lightcone_redshifts = run_globals.reion_grids.Lightcone_redshifts;
 
@@ -103,7 +103,7 @@ void ConstructLightcone(int snapshot)
         // Set the redshift (and time) for the lower redshift end of the light-cone
         z1_LC = z_LC  = run_globals.ZZ[snapshot];
         t_z1_LC = gettime(z1_LC);
-        
+
         // Repeat some of the light-cone initialisation just to avoid passing things around
 
         // Set the lowest redshift snapshot
@@ -113,7 +113,7 @@ void ConstructLightcone(int snapshot)
 
         // Loop through to find the size of lightcone added at this time step (solely used for indexing the light-cone properly across snapshots)
         while (z_LC < z2_LC) {
-  
+
             if(z_LC >= run_globals.ZZ[snapshot] && z_LC < run_globals.ZZ[snapshot-1]) {
                 slice_ct_snapshot++;
             }
@@ -161,7 +161,7 @@ void ConstructLightcone(int snapshot)
         }
     }
     else {
-	// Used to correctly index the starting point of the co-eval boxes for the light-cone
+        // Used to correctly index the starting point of the co-eval boxes for the light-cone
         run_globals.params.CurrentLCPos = run_globals.params.LightconeLength;
     }
 

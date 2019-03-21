@@ -8,7 +8,7 @@
  * A generic function to compute the 21cm PS of any field. Algorithm taken from delta_T.c
  * from 21cmFAST, but generalised to take any input cubic field.
  * Written by Bradley Greig
- * 
+ *
  */
 
 void Initialise_PowerSpectrum()
@@ -31,7 +31,7 @@ void Initialise_PowerSpectrum()
         num_bins++;
         k_floor = k_ceil;
         k_ceil *= k_factor;
-    }    
+    }
 
     run_globals.params.PS_Length = num_bins;
 }
@@ -44,9 +44,9 @@ void Compute_PS(int snapshot)
     double box_size = run_globals.params.BoxSize / run_globals.params.Hubble_h; // Mpc
 
     fftwf_complex* deldel_ps = fftwf_alloc_complex(run_globals.reion_grids.slab_n_complex[run_globals.mpi_rank]);
-    
+
     float volume = powf(box_size, 3);
-    
+
     int ReionGridDim = run_globals.params.ReionGridDim;
     double total_n_cells = pow((double)ReionGridDim, 3);
     int local_nix = (int)(run_globals.reion_grids.slab_nix[run_globals.mpi_rank]);
@@ -76,7 +76,7 @@ void Compute_PS(int snapshot)
                 ((float*)deldel_ps)[grid_index(ii, jj, kk, ReionGridDim, INDEX_PADDED)] *= ave;
             }
         }
-    }        
+    }
 
     fftwf_plan plan = fftwf_mpi_plan_dft_r2c_3d(ReionGridDim, ReionGridDim, ReionGridDim, (float *)deldel_ps, deldel_ps, run_globals.mpi_comm, FFTW_ESTIMATE);
     fftwf_execute(plan);
@@ -110,7 +110,7 @@ void Compute_PS(int snapshot)
     }
 
     // Co-eval box, so should sample the entire cube
-        
+
     // now construct the power spectrum file
     int HII_middle = ReionGridDim / 2;
 
@@ -121,33 +121,33 @@ void Compute_PS(int snapshot)
         if ( (n_x + local_ix_start) > HII_middle) {
             k_x = ( (n_x + local_ix_start) - ReionGridDim ) * delta_k;  // wrap around for FFT convention
         }
-        
+
         for (n_y=0; n_y < ReionGridDim; n_y++){
-            float k_y = n_y * delta_k;        
+            float k_y = n_y * delta_k;
             if (n_y > HII_middle)
                 k_y = ( n_y - ReionGridDim ) * delta_k;
-                    
+
             for (n_z=0; n_z <= HII_middle; n_z++){
                 float k_z = n_z * delta_k;
-                                        
+
                 k_mag = sqrt(k_x*k_x + k_y*k_y + k_z*k_z);
-                        
+
                 // now go through the k bins and update
                 ct = 0;
                 k_floor = 0;
                 k_ceil = k_first_bin_ceil;
-                
+
                 while (k_ceil < k_max){
                     // check if we fall in this bin
                     if ((k_mag>=k_floor) && (k_mag < k_ceil)){
                         in_bin_ct[ct]++;
                         p_box[ct] += pow(k_mag,3) * pow( cabs(deldel_ps[grid_index(n_x, n_y, n_z, ReionGridDim, INDEX_COMPLEX_HERM)]), 2.)/(2.0 * M_PI * M_PI * volume);
                         // note the 1/VOLUME factor, which turns this into a power density in k-space
-                            
+
                         k_ave[ct] += k_mag;
                         break;
                     }
-                            
+
                     ct++;
                     k_floor=k_ceil;
                     k_ceil*=k_factor;
