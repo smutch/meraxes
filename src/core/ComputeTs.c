@@ -26,8 +26,6 @@ void _ComputeTs(int snapshot)
     double pixel_volume = pow(box_size / (double)ReionGridDim, 3); // (Mpc)^3
     double total_n_cells = pow((double)ReionGridDim, 3);
     int local_nix = (int)(run_globals.reion_grids.slab_nix[run_globals.mpi_rank]);
-    int slab_n_real = local_nix * ReionGridDim * ReionGridDim;
-    int slab_n_real_LC = local_nix * run_globals.params.NUM_FILTER_STEPS_FOR_Ts * ReionGridDim * ReionGridDim;
     int slab_n_complex = (int)(run_globals.reion_grids.slab_n_complex[run_globals.mpi_rank]);
     double ReionEfficiency = run_globals.params.physics.ReionEfficiency;
     run_units_t* units = &(run_globals.units);
@@ -44,7 +42,7 @@ void _ComputeTs(int snapshot)
     int i_real, i_padded, i_smoothedSFR, R_ct, x_e_ct, n_ct, m_xHII_low, m_xHII_high, NO_LIGHT;
 
     double prev_zpp, prev_R, zpp, zp, lower_int_limit_GAL, lower_int_limit_QSO, filling_factor_of_HI_zp, R_factor, R, nuprime, dzp, Luminosity_converstion_factor_GAL, Luminosity_converstion_factor_QSO;
-    double collapse_fraction, total_SFR, density_over_mean;
+    double collapse_fraction, density_over_mean;
 
     float curr_xalpha;
 
@@ -58,11 +56,8 @@ void _ComputeTs(int snapshot)
 
     double dt_dzpp_list[run_globals.params.NUM_FILTER_STEPS_FOR_Ts];
 
-    double *evolve_ans, ans[2], dansdz[20], xHII_call;
+    double ans[2], dansdz[20], xHII_call;
     double SFR_GAL[run_globals.params.NUM_FILTER_STEPS_FOR_Ts], SFR_QSO[run_globals.params.NUM_FILTER_STEPS_FOR_Ts];
-
-    float* deltax = run_globals.reion_grids.deltax;
-    float* stars = run_globals.reion_grids.stars;
 
     float* x_e_box = run_globals.reion_grids.x_e_box;
     float* x_e_box_prev = run_globals.reion_grids.x_e_box_prev;
@@ -88,8 +83,6 @@ void _ComputeTs(int snapshot)
         sfr_unfiltered[ii] /= total_n_cells;
     }
 
-    int local_ix_start = (int)(run_globals.reion_grids.slab_ix_start[run_globals.mpi_rank]);
-
     double* SMOOTHED_SFR_GAL = run_globals.reion_grids.SMOOTHED_SFR_GAL;
     double* SMOOTHED_SFR_QSO;
     if(run_globals.params.SEP_QSO_XRAY) {
@@ -108,7 +101,7 @@ void _ComputeTs(int snapshot)
     // Place current redshift in 21cmFAST nomenclature (zp), delta zp (dzp) and delta z in seconds (dt_dzp)
     zp = redshift;
     dzp = zp - prev_redshift;
-    dt_dzp = dtdz(zp);
+    dt_dzp = dtdz((float)(float)zp);
 
     // Check redshift against Z_HEAT_MAX. If zp > Z_HEAT_MAX assume the x_e (electron fraction) and gas temperatures are homogenous
     // Equivalent to the default setup of 21cmFAST.
@@ -119,10 +112,10 @@ void _ComputeTs(int snapshot)
                     i_real = grid_index(ix, iy, iz, ReionGridDim, INDEX_REAL);
                     i_padded = grid_index(ix, iy, iz, ReionGridDim, INDEX_PADDED);
 
-                    x_e_box_prev[i_padded] = xion_RECFAST(zp,0);
-                    Tk_box[i_real] = T_RECFAST(zp,0);
+                    x_e_box_prev[i_padded] = (float)(float)xion_RECFAST((float)zp, 0);
+                    Tk_box[i_real] = (float)(float)T_RECFAST((float)zp, 0);
 
-                    TS_box[i_real] = get_Ts(zp, run_globals.reion_grids.deltax[i_padded], Tk_box[i_real], x_e_box_prev[i_padded],0, &curr_xalpha);
+                    TS_box[i_real] = get_Ts((float)zp, run_globals.reion_grids.deltax[i_padded], Tk_box[i_real], x_e_box_prev[i_padded], 0, &curr_xalpha);
 
                 }
 
@@ -266,10 +259,10 @@ void _ComputeTs(int snapshot)
                 prev_R = R_values[R_ct-1];
             }
 
-            zpp_edge[R_ct] = prev_zpp - (R_values[R_ct] - prev_R)*MPC / ( drdz(prev_zpp) ); // cell size
+            zpp_edge[R_ct] = prev_zpp - (R_values[R_ct] - prev_R)*MPC / ( drdz((float)prev_zpp) ); // cell size
             zpp = (zpp_edge[R_ct]+prev_zpp)*0.5; // average redshift value of shell: z'' + 0.5 * dz''
 
-            dt_dzpp_list[R_ct] = dtdz(zpp);
+            dt_dzpp_list[R_ct] = dtdz((float)zpp);
 
             filling_factor_of_HI_zp = 1. - ReionEfficiency * collapse_fraction / (1.0 - x_e_ave);
 
@@ -296,7 +289,7 @@ void _ComputeTs(int snapshot)
             // and create the sum over Lya transitions from direct Lyn flux
             sum_lyn[R_ct] = 0;
             for (n_ct=NSPEC_MAX; n_ct>=2; n_ct--){
-                if (zpp > zmax(zp, n_ct))
+                if (zpp > zmax((float)zp, n_ct))
                     continue;
 
                 nuprime = nu_n(n_ct)*(1+zpp)/(1.0+zp);
@@ -306,7 +299,7 @@ void _ComputeTs(int snapshot)
 
         growth_factor_zp = dicke(zp);
         dgrowth_factor_dzp = ddicke_dz(zp);
-        dt_dzp = dtdz(zp);
+        dt_dzp = dtdz((float)zp);
 
         // Below is the converstion of the soft-band X_ray luminosity into number of X-ray photons produced. This is the code taken from 21CMMC, which somewhat
         // uses the 21cmFAST nomenclature (to ease flipping between old/new parameterisation), so isn't necessarily the most intuitive way to express this.
@@ -387,7 +380,7 @@ void _ComputeTs(int snapshot)
                             xHII_call = 1.001*x_int_XHII[0];
                         }
 
-                        m_xHII_low = locate_xHII_index(xHII_call);
+                        m_xHII_low = locate_xHII_index((float)xHII_call);
                         m_xHII_high = m_xHII_low + 1;
 
                         // heat
@@ -425,21 +418,22 @@ void _ComputeTs(int snapshot)
                     }
 
                     // Perform the calculation of the heating/ionisation integrals, updating relevant quantities etc.
-                    evolveInt(zp, run_globals.reion_grids.deltax[i_padded], SFR_GAL, SFR_QSO, freq_int_heat_GAL, freq_int_ion_GAL, freq_int_lya_GAL, freq_int_heat_QSO, freq_int_ion_QSO, freq_int_lya_QSO, NO_LIGHT, ans, dansdz);
+                    evolveInt((float)zp, run_globals.reion_grids.deltax[i_padded], SFR_GAL, SFR_QSO, freq_int_heat_GAL, freq_int_ion_GAL, freq_int_lya_GAL, freq_int_heat_QSO, freq_int_ion_QSO, freq_int_lya_QSO, NO_LIGHT, ans, dansdz);
 
                     x_e_box_prev[i_padded] += dansdz[0] * dzp; // remember dzp is negative
                     if (x_e_box_prev[i_padded] > 1) // can do this late in evolution if dzp is too large
-                        x_e_box_prev[i_padded] = 1 - FRACT_FLOAT_ERR;
+                        x_e_box_prev[i_padded] = (float)(1 - FRACT_FLOAT_ERR);
                     else if (x_e_box_prev[i_padded] < 0)
                         x_e_box_prev[i_padded] = 0;
                     if (Tk_box[i_real] < MAX_TK)
                         Tk_box[i_real] += dansdz[1] * dzp;
 
                     if (Tk_box[i_real]<0){ // spurious bahaviour of the trapazoidalintegrator. generally overcooling in underdensities
-                        Tk_box[i_real] = TCMB*(1+zp);
+                        Tk_box[i_real] = (float)(TCMB*(1+zp));
                     }
 
-                    TS_box[i_real] = get_Ts(zp, run_globals.reion_grids.deltax[i_padded], Tk_box[i_real], x_e_box_prev[i_padded], dansdz[2], &curr_xalpha);
+                    TS_box[i_real] = get_Ts((float)zp, run_globals.reion_grids.deltax[i_padded], Tk_box[i_real], x_e_box_prev[i_padded],
+                                            (float)dansdz[2], &curr_xalpha);
 
                     J_alpha_ave += dansdz[2];
                     xalpha_ave += curr_xalpha;
@@ -495,8 +489,6 @@ void _ComputeTs(int snapshot)
 void ComputeTs(int snapshot, timer_info* timer_total)
 {
     // Call the version of ComputeTs we've been passed (and time it)
-    int flag_write_validation_data = false;
-
     timer_info timer;
 #ifdef USE_CUDA
 #ifdef USE_CUFFT

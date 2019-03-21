@@ -25,20 +25,19 @@ void ComputeBrightnessTemperatureBox(int snapshot) {
 
     int ReionGridDim = run_globals.params.ReionGridDim;
     int local_nix = (int)(run_globals.reion_grids.slab_nix[run_globals.mpi_rank]);
-    int slab_n_real = local_nix * ReionGridDim * ReionGridDim;
     int slab_n_complex = (int)(run_globals.reion_grids.slab_n_complex[run_globals.mpi_rank]);
     double total_n_cells = pow((double)ReionGridDim, 3);
 
     double BoxSize = run_globals.params.BoxSize/run_globals.params.Hubble_h;
 
     // Set some redshift dependant values
-    float redshift = run_globals.ZZ[snapshot];
-    float Hubble_h = run_globals.params.Hubble_h;
-    float OmegaM = run_globals.params.OmegaM;
-    float OmegaB = OmegaM * run_globals.params.BaryonFrac;
-    float const_factor = 27.0 * (OmegaB * Hubble_h * Hubble_h / 0.023) * sqrt((0.15 / OmegaM / Hubble_h / Hubble_h) * (1.0 + redshift) / 10.0);
+    float redshift = (float)(float)run_globals.ZZ[snapshot];
+    float Hubble_h = (float)(float)run_globals.params.Hubble_h;
+    float OmegaM = (float)(float)run_globals.params.OmegaM;
+    float OmegaB = (float)(OmegaM * run_globals.params.BaryonFrac);
+    float const_factor = (float)(27.0 * (OmegaB * Hubble_h * Hubble_h / 0.023) * sqrt((0.15 / OmegaM / Hubble_h / Hubble_h) * (1.0 + redshift) / 10.0));
 
-    float H_z = hubble(redshift);
+    float H_z = (float)(float)hubble(redshift);
 
     double max_v_deriv, min_gradient_component, gradient_component, dvdx, subcell_width, d1_low, d2_low, d1_high, d2_high, subcell_displacement;
     double x_val1, x_val2, RSD_pos_new, RSD_pos_new_boundary_low, RSD_pos_new_boundary_high, cell_distance, fraction_outside, fraction_within;
@@ -48,12 +47,12 @@ void ComputeBrightnessTemperatureBox(int snapshot) {
 
     float *x_pos = calloc(N_RSD_STEPS,sizeof(float));
     float *x_pos_offset = calloc(N_RSD_STEPS,sizeof(float));
-    float *delta_T_RSD_LOS = calloc(ReionGridDim,sizeof(float));
+    float *delta_T_RSD_LOS = calloc((size_t)ReionGridDim,sizeof(float));
 
     // Initialise the 21cm brightness temperature box
-    for (int ii = 0; ii < local_nix; ii++) {
-        for (int jj = 0; jj < ReionGridDim; jj++)
-            for (int kk = 0; kk < ReionGridDim; kk++) {
+    for (ii= 0; ii < local_nix; ii++) {
+        for (jj= 0; jj < ReionGridDim; jj++)
+            for (kk= 0; kk < ReionGridDim; kk++) {
                 i_real = grid_index(ii, jj, kk, ReionGridDim, INDEX_REAL);
 
                 delta_T[i_real] = 0.0;
@@ -72,7 +71,7 @@ void ComputeBrightnessTemperatureBox(int snapshot) {
                 pixel_deltax = deltax[i_padded];
                 pixel_x_HI = xH[i_real];
 
-                delta_T[i_real] = const_factor * pixel_x_HI * (1.0 + pixel_deltax);
+                delta_T[i_real] = (float)(const_factor * pixel_x_HI * (1.0 + pixel_deltax));
 
                 // Whether or not to include the spin temperature effects
                 if(run_globals.params.Flag_IncludeSpinTemp) {
@@ -143,12 +142,12 @@ void ComputeBrightnessTemperatureBox(int snapshot) {
                 for ( kk=0; kk < ReionGridDim; kk++) {
                     i_padded = grid_index(ii, jj, kk, ReionGridDim, INDEX_PADDED);
 
-                    vel[i_padded] = sqrt(1./(1.+redshift))*vel[i_padded]/1000.;
+                    vel[i_padded] = (float)(sqrt(1./(1.+redshift))*vel[i_padded]/1000.);
 
                     vel[i_padded] *= 1000.*100./MPC;
 
                     // The algorithm used in 21cmFAST for dealing with velocities uses the **comoving** velocity. Therefore, convert from peculiar to comoving velocity
-                    vel[i_padded] = vel[i_padded]/(1./(1. + redshift));
+                    vel[i_padded] = (float)(vel[i_padded]/(1./(1. + redshift)));
 
                     if( vel[i_padded] < min_vel ) {
                         min_vel = vel[i_padded];
@@ -172,8 +171,7 @@ void ComputeBrightnessTemperatureBox(int snapshot) {
         // Remember to add the factor of VOLUME/TOT_NUM_PIXELS when converting from real space to k-space
         // Note: we will leave off factor of VOLUME, in anticipation of the inverse FFT below
         // TODO: Double check that looping over correct number of elements here
-        int slab_n_complex = (int)(run_globals.reion_grids.slab_n_complex[run_globals.mpi_rank]);
-        for (int ii = 0; ii < slab_n_complex; ii++) {
+        for (ii= 0; ii < slab_n_complex; ii++) {
             vel_gradient[ii] /= total_n_cells;
 
             // Include h_factor
@@ -242,10 +240,11 @@ void ComputeBrightnessTemperatureBox(int snapshot) {
                                 // Gradient component goes to zero, optical depth diverges. But, since we take exp(-tau), this goes to zero and (1 - exp(-tau)) goes to unity.
                                 // Again, factors of 1000. are conversions from K to mK
 
-                                delta_T[i_real] = 1000.*(run_globals.reion_grids.TS_box[i_real] - T_rad)/(1. + redshift);
+                                delta_T[i_real] =
+                                    (float)(1000.*(run_globals.reion_grids.TS_box[i_real] - T_rad)/(1. + redshift));
                             }
                             else {
-                                delta_T[i_real] = (1. - exp(- delta_T[i_real]/gradient_component ))*1000.*(run_globals.reion_grids.TS_box[i_real] - T_rad)/(1. + redshift);
+                                delta_T[i_real] = (float)((1. - exp(- delta_T[i_real]/gradient_component ))*1000.*(run_globals.reion_grids.TS_box[i_real] - T_rad)/(1. + redshift));
                             }
 
                         }
@@ -272,8 +271,8 @@ void ComputeBrightnessTemperatureBox(int snapshot) {
                 // These are the sub-cell central positions (x_pos_offset), and the corresponding normalised value (x_pos) between 0 and 1
                 for(iii=0;iii<N_RSD_STEPS;iii++) {
 
-                    x_pos_offset[iii] = subcell_width*(float)iii + subcell_width/2.;
-                    x_pos[iii] = x_pos_offset[iii]/( BoxSize/(float)ReionGridDim );
+                    x_pos_offset[iii] = (float)(subcell_width*(float)iii + subcell_width/2.);
+                    x_pos[iii] = (float)(x_pos_offset[iii]/( BoxSize/(float)ReionGridDim ));
                 }
 
                 for (ii=0; ii < local_nix; ii++) {

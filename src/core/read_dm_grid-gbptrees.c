@@ -103,7 +103,7 @@ int read_dm_grid__gbptrees(
 
     // Initialise (just in case!)
     for (int ii = 0; ii < slab_n_complex_file; ii++)
-        slab_file[ii] = 0 + 0 * I;
+        slab_file[ii] = 0 + 0I;
     // N.B. factor of two for fftw padding
     for (int ii = 0; ii < slab_n_complex * 2; ii++)
         slab[ii] = 0.0;
@@ -174,7 +174,7 @@ int read_dm_grid__gbptrees(
             for (int kk = 0; kk < ReionGridDim; kk++) {
                 float* val = &(slab[grid_index(ii, jj, kk, ReionGridDim, INDEX_PADDED)]);
                 // the fmax check here tries to account for negative densities introduced by fftw rounding / aliasing effects
-                *val = fmaxf((float)(((double)*val / mean) - 1.), -1.0 + REL_TOL);
+                *val = fmaxf((float)(((double)*val / mean) - 1.), (float)(-1.0 + REL_TOL));
             }
 
     fftwf_free(slab_file);
@@ -201,6 +201,7 @@ int read_dm_vel_grid__gbptrees(
     run_params_t* params = &(run_globals.params);
 
     // Have we read this slab before?
+    // TODO(Simon): Fix this...
     if (params->FlagInteractive && !load_cached_deltax_slab(slab, snapshot))
         return 0;
 
@@ -276,12 +277,12 @@ int read_dm_vel_grid__gbptrees(
 
     ptrdiff_t slab_nix_file, slab_ix_start_file;
     ptrdiff_t slab_n_complex_file = fftwf_mpi_local_size_3d(n_cell[0], n_cell[0], n_cell[0] / 2 + 1, run_globals.mpi_comm, &slab_nix_file, &slab_ix_start_file);
-    fftwf_complex* slab_file = fftwf_alloc_complex(slab_n_complex_file);
+    fftwf_complex* slab_file = fftwf_alloc_complex((size_t)slab_n_complex_file);
     ptrdiff_t slab_ni_file = slab_nix_file * n_cell[0] * n_cell[0];
 
     // Initialise (just in case!)
     for (int ii = 0; ii < slab_n_complex_file; ii++)
-        slab_file[ii] = 0 + 0 * I;
+        slab_file[ii] = 0 + 0I;
     // N.B. factor of two for fftw padding
     for (int ii = 0; ii < slab_n_complex * 2; ii++)
         slab[ii] = 0.0;
@@ -303,7 +304,7 @@ int read_dm_vel_grid__gbptrees(
 
     MPI_Offset offset = slab_offset;
     for (int ii = 0; ii < n_reads; ii++, offset += chunk_size) {
-        MPI_File_read_at(fin, offset, &(((float*)slab_file)[chunk_size * ii]), chunk_size, MPI_FLOAT, &status);
+        MPI_File_read_at(fin, offset, &(((float*)slab_file)[chunk_size * ii]), (int)chunk_size, MPI_FLOAT, &status);
 
         int count_check;
         MPI_Get_count(&status, MPI_FLOAT, &count_check);
@@ -316,7 +317,7 @@ int read_dm_vel_grid__gbptrees(
     MPI_File_close(&fin);
 
     // reorder the read slab for inplace fftw padding
-    for (int ii = slab_nix_file - 1; ii >= 0; ii--)
+    for (int ii = (int)(slab_nix_file - 1); ii >= 0; ii--)
         for (int jj = n_cell[0] - 1; jj >= 0; jj--)
             for (int kk = n_cell[0] - 1; kk >= 0; kk--)
                 ((float*)slab_file)[grid_index(ii, jj, kk, n_cell[0], INDEX_PADDED)] = ((float*)slab_file)[grid_index(ii, jj, kk, n_cell[0], INDEX_REAL)];
@@ -338,21 +339,16 @@ int read_dm_vel_grid__gbptrees(
 
                 slab[grid_index(ii, jj, kk, ReionGridDim, INDEX_PADDED)] = ((float*)slab_file)[grid_index(i_hr, j_hr, k_hr, n_cell[0], INDEX_PADDED)];
             }
-	}
+        }
     }
-    // N.B. Hubble factor below to account for incorrect units in input DM grids!
-    double mean = (double)run_globals.params.NPart * run_globals.params.PartMass / pow(box_size[0], 3) / run_globals.params.Hubble_h;
-
     fftwf_free(slab_file);
 
     // Do we need to cache this slab?
+    // TODO(Simon): Check out this in more detail...
     if (params->FlagInteractive)
         cache_deltax_slab(slab, snapshot);
 
     mlog("...done", MLOG_CLOSE | MLOG_TIMERSTOP);
-
-    // DEBUG
-    // write_single_grid("output/debug.h5", slab, "deltax", true, true);
 
     return 0;
 }

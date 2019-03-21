@@ -68,7 +68,7 @@ int read_dm_grid__velociraptor(
 
     // Initialise (just in case!)
     for (int ii = 0; ii < slab_n_complex_file; ii++)
-        slab_file[ii] = 0 + 0 * I;
+        slab_file[ii] = 0 + 0I;
     // N.B. factor of two for fftw padding
     for (int ii = 0; ii < slab_n_complex * 2; ii++)
         slab[ii] = 0.0;
@@ -146,7 +146,7 @@ int read_dm_grid__velociraptor(
             for (int kk = 0; kk < ReionGridDim; kk++) {
                 float* val = &(slab[grid_index(ii, jj, kk, ReionGridDim, INDEX_PADDED)]);
                 // the fmax check here tries to account for negative densities introduced by fftw rounding / aliasing effects
-                *val = fmaxf((float)(((double)*val / mean) - 1.), -1.0 + REL_TOL);
+                *val = fmaxf((float)(((double)*val / mean) - 1.), (float)(-1.0 + REL_TOL));
             }
 
     fftwf_free(slab_file);

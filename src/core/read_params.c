@@ -14,7 +14,7 @@ static void store_params(entry_t entry[123],
         char** params_tag,
         int n_param,
         int used_tag[123],
-        int* params_type,
+        const int* params_type,
         void** params_addr)
 {
     int level = 0;

@@ -158,11 +158,11 @@ double interpolate_fcoll(double redshift, int snap_i);
 int init_heat()
 {
 
-    zpp_edge = calloc(run_globals.params.NUM_FILTER_STEPS_FOR_Ts,sizeof(double));
-    sigma_atR = calloc(run_globals.params.NUM_FILTER_STEPS_FOR_Ts,sizeof(double));
-    sigma_Tmin = calloc(run_globals.params.NUM_FILTER_STEPS_FOR_Ts,sizeof(double));
-    ST_over_PS = calloc(run_globals.params.NUM_FILTER_STEPS_FOR_Ts,sizeof(double));
-    sum_lyn = calloc(run_globals.params.NUM_FILTER_STEPS_FOR_Ts,sizeof(double));
+    zpp_edge = calloc((size_t)run_globals.params.NUM_FILTER_STEPS_FOR_Ts, sizeof(double));
+    sigma_atR = calloc((size_t)run_globals.params.NUM_FILTER_STEPS_FOR_Ts, sizeof(double));
+    sigma_Tmin = calloc((size_t)run_globals.params.NUM_FILTER_STEPS_FOR_Ts, sizeof(double));
+    ST_over_PS = calloc((size_t)run_globals.params.NUM_FILTER_STEPS_FOR_Ts, sizeof(double));
+    sum_lyn = calloc((size_t)run_globals.params.NUM_FILTER_STEPS_FOR_Ts, sizeof(double));
 
 
     kappa_10(1.0,1);
@@ -398,7 +398,7 @@ double tauX_integrand(double zhat, void *params){
     double n, drpropdz, nuhat, HI_filling_factor_zhat, sigma_tilde, fcoll;
     tauX_params *p = (tauX_params *) params;
 
-    drpropdz = C * dtdz(zhat);
+    drpropdz = C * dtdz((float)zhat);
     n = N_b0 * pow(1+zhat, 3);
     nuhat = p->nu_0 * (1+zhat);
     fcoll = interpolate_fcoll(zhat,p->snap_i);
@@ -484,7 +484,7 @@ double species_weighted_x_ray_cross_section(double nu, double x_e){
 
 // function HeI_ion_crosssec returns the HI ionization cross section at parameter frequency (taken from Verner et al (1996)
 double HeI_ion_crosssec(double nu){
-    double x,y,Fy;
+    double x,y;
 
     if (nu < HeI_NUIONIZATION)
         return 0;
@@ -556,7 +556,7 @@ float zmax(float z, int n){
     double num, denom;
     num = 1 - pow(n+1, -2);
     denom = 1 - pow(n, -2);
-    return (1+z)*num/denom - 1;
+    return (float)((1+z)*num/denom - 1);
 }
 
 
@@ -648,7 +648,7 @@ double spectral_emissivity(double nu_norm, int flag)
     static float nu_n[NSPEC_MAX], alpha_S_2[NSPEC_MAX];
     static float alpha_S_3[NSPEC_MAX], N0_2[NSPEC_MAX], N0_3[NSPEC_MAX];
     double n0_fac;
-    double ans, tot, lya;
+    double ans;
     int i;
     FILE *F;
 
@@ -672,11 +672,11 @@ double spectral_emissivity(double nu_norm, int flag)
             fclose(F);
 
             for (i=1;i<NSPEC_MAX;i++) {
-                nu_n[i] = 4.0/3.0*(1.0-1.0/pow(n[i],2.0));
+                nu_n[i] = (float)(4.0/3.0*(1.0-1.0/pow(n[i], 2.0)));
             }
 
             for (i=1;i<NSPEC_MAX;i++) {
-                nu_n[i] = 4.0/3.0*(1.0-1.0/pow(n[i],2.0));
+                nu_n[i] = (float)(4.0/3.0*(1.0-1.0/pow(n[i], 2.0)));
             }
 
             for (i=1;i<(NSPEC_MAX-1);i++) {
@@ -735,67 +735,67 @@ typedef struct{
 //  FLAG = 2 for Lya integral
 double integrand_in_nu_heat_integral(double nu, void * params){
 
-    double species_sum, fheat;
+    double species_sum;
 
     int_over_nu_params *p = (int_over_nu_params *)params;
 
     // HI
-    species_sum = interp_fheat((nu - NUIONIZATION)/NU_over_EV, p->x_e)
+    species_sum = interp_fheat((float)((nu - NUIONIZATION)/NU_over_EV), (float)p->x_e)
         * PLANCK *(nu - NUIONIZATION) * f_H * (1-p->x_e) * HI_ion_crosssec(nu);
 
     // HeI
-    species_sum += interp_fheat((nu - HeI_NUIONIZATION)/NU_over_EV, p->x_e)
+    species_sum += interp_fheat((float)((nu - HeI_NUIONIZATION)/NU_over_EV), (float)p->x_e)
         * PLANCK*(nu - HeI_NUIONIZATION) * f_He * (1-p->x_e) * HeI_ion_crosssec(nu);
 
     // HeII
-    species_sum += interp_fheat((nu - HeII_NUIONIZATION)/NU_over_EV, p->x_e)
+    species_sum += interp_fheat((float)((nu - HeII_NUIONIZATION)/NU_over_EV), (float)p->x_e)
         * PLANCK*(nu - HeII_NUIONIZATION) * f_He * p->x_e * HeII_ion_crosssec(nu);
 
     return species_sum * pow(nu/(p->NU_X_THRESH*NU_over_EV), -p->X_RAY_SPEC_INDEX-1);
 }
 
 double integrand_in_nu_ion_integral(double nu, void * params){
-    double species_sum, fheat, F_i;
+    double species_sum, F_i;
 
     int_over_nu_params *p	= (int_over_nu_params *)params;
 
     // photoionization of HI, prodicing e- of energy h*(nu - nu_HI)
-    F_i = interp_nion_HI((nu - NUIONIZATION)/NU_over_EV, p->x_e) +
-        interp_nion_HeI((nu - NUIONIZATION)/NU_over_EV, p->x_e) +
-        interp_nion_HeII((nu - NUIONIZATION)/NU_over_EV, p->x_e) + 1;
+    F_i = interp_nion_HI((float)((nu - NUIONIZATION)/NU_over_EV), (float)p->x_e) +
+        interp_nion_HeI((float)((nu - NUIONIZATION)/NU_over_EV), (float)p->x_e) +
+        interp_nion_HeII((float)((nu - NUIONIZATION)/NU_over_EV), (float)p->x_e) + 1;
     species_sum = F_i * f_H * (1-p->x_e) * HI_ion_crosssec(nu);
 
     // photoionization of HeI, prodicing e- of energy h*(nu - nu_HeI)
-    F_i = interp_nion_HI((nu - HeI_NUIONIZATION)/NU_over_EV, p->x_e) +
-        interp_nion_HeI((nu - HeI_NUIONIZATION)/NU_over_EV, p->x_e) +
-        interp_nion_HeII((nu - HeI_NUIONIZATION)/NU_over_EV, p->x_e) + 1;
+    F_i = interp_nion_HI((float)((nu - HeI_NUIONIZATION)/NU_over_EV), (float)p->x_e) +
+        interp_nion_HeI((float)((nu - HeI_NUIONIZATION)/NU_over_EV), (float)p->x_e) +
+        interp_nion_HeII((float)((nu - HeI_NUIONIZATION)/NU_over_EV), (float)p->x_e) + 1;
     species_sum += F_i * f_He * (1-p->x_e) * HeI_ion_crosssec(nu);
 
     // photoionization of HeII, prodicing e- of energy h*(nu - nu_HeII)
-    F_i = interp_nion_HI((nu - HeII_NUIONIZATION)/NU_over_EV, p->x_e) +
-        interp_nion_HeI((nu - HeII_NUIONIZATION)/NU_over_EV, p->x_e) +
-        interp_nion_HeII((nu - HeII_NUIONIZATION)/NU_over_EV, p->x_e) + 1;
+    F_i = interp_nion_HI((float)((nu - HeII_NUIONIZATION)/NU_over_EV), (float)p->x_e) +
+        interp_nion_HeI((float)((nu - HeII_NUIONIZATION)/NU_over_EV), (float)p->x_e) +
+        interp_nion_HeII((float)((nu - HeII_NUIONIZATION)/NU_over_EV), (float)p->x_e) + 1;
     species_sum += F_i * f_He * p->x_e * HeII_ion_crosssec(nu);
 
     return species_sum * pow(nu/(p->NU_X_THRESH*NU_over_EV), -p->X_RAY_SPEC_INDEX-1);
 }
 
 double integrand_in_nu_lya_integral(double nu, void * params){
-    double species_sum, fheat;
+    double species_sum;
 
     int_over_nu_params *p = (int_over_nu_params *)params;
 
     // HI
-    species_sum = interp_n_Lya((nu - NUIONIZATION)/NU_over_EV, p->x_e)
-        * f_H * (double)(1-p->x_e) * HI_ion_crosssec(nu);
+    species_sum = interp_n_Lya((float)((nu - NUIONIZATION)/NU_over_EV), (float)p->x_e)
+        * f_H * (1-p->x_e) * HI_ion_crosssec(nu);
 
     // HeI
-    species_sum += interp_n_Lya((nu - HeI_NUIONIZATION)/NU_over_EV, p->x_e)
-        * f_He * (double)(1-p->x_e) * HeI_ion_crosssec(nu);
+    species_sum += interp_n_Lya((float)((nu - HeI_NUIONIZATION)/NU_over_EV), (float)p->x_e)
+        * f_He * (1-p->x_e) * HeI_ion_crosssec(nu);
 
     // HeII
-    species_sum += interp_n_Lya((nu - HeII_NUIONIZATION)/NU_over_EV, p->x_e)
-        * f_He * (double)p->x_e * HeII_ion_crosssec(nu);
+    species_sum += interp_n_Lya((float)((nu - HeII_NUIONIZATION)/NU_over_EV), (float)p->x_e)
+        * f_He * p->x_e * HeII_ion_crosssec(nu);
 
     return species_sum * pow(nu/(p->NU_X_THRESH*NU_over_EV), -p->X_RAY_SPEC_INDEX-1);
 }
@@ -828,7 +828,7 @@ double integrate_over_nu(double zp, double local_x_e, double lower_int_limit, do
 
     // if it is the Lya integral, add prefactor
     if (FLAG == 2)
-        return result * C / (4*M_PI) / Ly_alpha_HZ / hubble(zp);
+        return result * C / (4*M_PI) / Ly_alpha_HZ / hubble((float)zp);
 
     return result;
 }
@@ -918,15 +918,12 @@ void initialize_interp_arrays()
     }
 
     // broadcast the values to all cores
-    MPI_Bcast(x_int_Energy, sizeof(x_int_Energy), MPI_BYTE, 0, run_globals.mpi_comm);
-    MPI_Bcast(x_int_fheat, sizeof(x_int_fheat), MPI_BYTE, 0, run_globals.mpi_comm);
-    MPI_Bcast(x_int_n_Lya, sizeof(x_int_n_Lya), MPI_BYTE, 0, run_globals.mpi_comm);
-    MPI_Bcast(x_int_nion_HI, sizeof(x_int_nion_HI), MPI_BYTE, 0, run_globals.mpi_comm);
-    MPI_Bcast(x_int_nion_HeI, sizeof(x_int_nion_HeI), MPI_BYTE, 0, run_globals.mpi_comm);
-    MPI_Bcast(x_int_nion_HeII, sizeof(x_int_nion_HeII), MPI_BYTE, 0, run_globals.mpi_comm);
-
-
-    return;
+    MPI_Bcast(&x_int_Energy, sizeof(x_int_Energy), MPI_BYTE, 0, run_globals.mpi_comm);
+    MPI_Bcast(&x_int_fheat, sizeof(x_int_fheat), MPI_BYTE, 0, run_globals.mpi_comm);
+    MPI_Bcast(&x_int_n_Lya, sizeof(x_int_n_Lya), MPI_BYTE, 0, run_globals.mpi_comm);
+    MPI_Bcast(&x_int_nion_HI, sizeof(x_int_nion_HI), MPI_BYTE, 0, run_globals.mpi_comm);
+    MPI_Bcast(&x_int_nion_HeI, sizeof(x_int_nion_HeI), MPI_BYTE, 0, run_globals.mpi_comm);
+    MPI_Bcast(&x_int_nion_HeII, sizeof(x_int_nion_HeII), MPI_BYTE, 0, run_globals.mpi_comm);
 }
 
 
@@ -951,16 +948,16 @@ float interp_fheat(float En, float xHII_call)
     if (En > 0.999*x_int_Energy[x_int_NENERGY-1]) {
         // If it is above the upper limit, we just assume that it is near the upper limit, which
         // has anyway reached the asymptotic limit
-        En = x_int_Energy[x_int_NENERGY-1]*0.999;
+        En = (float)(x_int_Energy[x_int_NENERGY-1]*0.999);
     } else if (En < x_int_Energy[0]) {
         return 1.0;
     }
 
     // Check if ionized fraction is within boundaries; if not, adjust to be within
     if (xHII_call > x_int_XHII[x_int_NXHII-1]*0.999) {
-        xHII_call = x_int_XHII[x_int_NXHII-1]*0.999;
+        xHII_call = (float)(x_int_XHII[x_int_NXHII-1]*0.999);
     } else if (xHII_call < x_int_XHII[0]) {
-        xHII_call = 1.001*x_int_XHII[0];
+        xHII_call = (float)(1.001*x_int_XHII[0]);
     }
 
     n_low = locate_energy_index(En);
@@ -1008,16 +1005,16 @@ float interp_n_Lya(float En, float xHII_call)
     if (En > 0.999*x_int_Energy[x_int_NENERGY-1]) {
         // If it is above the upper limit, we just assume that it is near the upper limit, which
         // has anyway reached the asymptotic limit
-        En = x_int_Energy[x_int_NENERGY-1]*0.999;
+        En = (float)(x_int_Energy[x_int_NENERGY-1]*0.999);
     } else if (En < x_int_Energy[0]) {
         return 0.0;
     }
 
     // Check if ionized fraction is within boundaries; if not, adjust to be within
     if (xHII_call > x_int_XHII[x_int_NXHII-1]*0.999) {
-        xHII_call = x_int_XHII[x_int_NXHII-1]*0.999;
+        xHII_call = (float)(x_int_XHII[x_int_NXHII-1]*0.999);
     } else if (xHII_call < x_int_XHII[0]) {
-        xHII_call = 1.001*x_int_XHII[0];
+        xHII_call = (float)(1.001*x_int_XHII[0]);
     }
 
     n_low = locate_energy_index(En);
@@ -1065,16 +1062,16 @@ float interp_nion_HI(float En, float xHII_call)
     if (En > 0.999*x_int_Energy[x_int_NENERGY-1]) {
         // If it is above the upper limit, we just assume that it is near the upper limit, which
         // has anyway reached the asymptotic limit
-        En = x_int_Energy[x_int_NENERGY-1]*0.999;
+        En = (float)(x_int_Energy[x_int_NENERGY-1]*0.999);
     } else if (En < x_int_Energy[0]) {
         return 0.0;
     }
 
     // Check if ionized fraction is within boundaries; if not, adjust to be within
     if (xHII_call > x_int_XHII[x_int_NXHII-1]*0.999) {
-        xHII_call = x_int_XHII[x_int_NXHII-1]*0.999;
+        xHII_call = (float)(x_int_XHII[x_int_NXHII-1]*0.999);
     } else if (xHII_call < x_int_XHII[0]) {
-        xHII_call = 1.001*x_int_XHII[0];
+        xHII_call = (float)(1.001*x_int_XHII[0]);
     }
 
     n_low = locate_energy_index(En);
@@ -1122,16 +1119,16 @@ float interp_nion_HeI(float En, float xHII_call)
     if (En > 0.999*x_int_Energy[x_int_NENERGY-1]) {
         // If it is above the upper limit, we just assume that it is near the upper limit, which
         // has anyway reached the asymptotic limit
-        En = x_int_Energy[x_int_NENERGY-1]*0.999;
+        En = (float)(x_int_Energy[x_int_NENERGY-1]*0.999);
     } else if (En < x_int_Energy[0]) {
         return 0.0;
     }
 
     // Check if ionized fraction is within boundaries; if not, adjust to be within
     if (xHII_call > x_int_XHII[x_int_NXHII-1]*0.999) {
-        xHII_call = x_int_XHII[x_int_NXHII-1]*0.999;
+        xHII_call = (float)(x_int_XHII[x_int_NXHII-1]*0.999);
     } else if (xHII_call < x_int_XHII[0]) {
-        xHII_call = 1.001*x_int_XHII[0];
+        xHII_call = (float)(1.001*x_int_XHII[0]);
     }
 
     n_low = locate_energy_index(En);
@@ -1179,16 +1176,16 @@ float interp_nion_HeII(float En, float xHII_call)
     if (En > 0.999*x_int_Energy[x_int_NENERGY-1]) {
         // If it is above the upper limit, we just assume that it is near the upper limit, which
         // has anyway reached the asymptotic limit
-        En = x_int_Energy[x_int_NENERGY-1]*0.999;
+        En = (float)(x_int_Energy[x_int_NENERGY-1]*0.999);
     } else if (En < x_int_Energy[0]) {
         return 0.0;
     }
 
     // Check if ionized fraction is within boundaries; if not, adjust to be within
     if (xHII_call > x_int_XHII[x_int_NXHII-1]*0.999) {
-        xHII_call = x_int_XHII[x_int_NXHII-1]*0.999;
+        xHII_call = (float)(x_int_XHII[x_int_NXHII-1]*0.999);
     } else if (xHII_call < x_int_XHII[0]) {
-        xHII_call = 1.001*x_int_XHII[0];
+        xHII_call = (float)(1.001*x_int_XHII[0]);
     }
 
     n_low = locate_energy_index(En);
@@ -1251,16 +1248,16 @@ int locate_xHII_index(float xHII_call)
 // ************************** IGM Evolution ***************************
 //  This function creates the d/dz' integrands
 // *********************************************************************
-void evolveInt(float zp, float curr_delNL0, double SFR_GAL[], double SFR_QSO[],
-        double freq_int_heat_GAL[], double freq_int_ion_GAL[], double freq_int_lya_GAL[],
-        double freq_int_heat_QSO[], double freq_int_ion_QSO[], double freq_int_lya_QSO[],
-        int COMPUTE_Ts, double y[], double deriv[]){
+void evolveInt(float zp, float curr_delNL0, const double SFR_GAL[], const double SFR_QSO[],
+        const double freq_int_heat_GAL[], const double freq_int_ion_GAL[], const double freq_int_lya_GAL[],
+        const double freq_int_heat_QSO[], const double freq_int_ion_QSO[], const double freq_int_lya_QSO[],
+        int COMPUTE_Ts, const double y[], double deriv[]){
 
-    double  dfdzp, dadia_dzp, dcomp_dzp, dxheat_dt_GAL, ddz, dxion_source_dt_GAL, dxion_sink_dt;
+    double  dadia_dzp, dcomp_dzp, dxheat_dt_GAL, dxion_source_dt_GAL, dxion_sink_dt;
     double dxheat_dt_QSO, dxion_source_dt_QSO, dxlya_dt_QSO, dstarlya_dt_QSO;
-    double zpp, dzpp, nu_temp;
+    double zpp, dzpp;
     int zpp_ct;
-    double T, x_e, dTdzp, dx_edzp, dfcoll, zpp_integrand_GAL, zpp_integrand_QSO;
+    double T, x_e, zpp_integrand_GAL, zpp_integrand_QSO;
     double dxe_dzp, n_b, dspec_dzp, dxheat_dzp, dxlya_dt_GAL, dstarlya_dt_GAL;
 
     x_e = y[0];
@@ -1396,7 +1393,7 @@ double dT_comp(double z, double TK, double xe)
     double Trad,ans;
 
     Trad = TCMB*(1.0+z);
-    ans = (-1.51e-4) * (xe/(1.0+xe+f_He)) /(hubble(z)/(HUBBLE*run_globals.params.Hubble_h))/run_globals.params.Hubble_h*pow(Trad,4.0)/(1.0+z);
+    ans = (-1.51e-4) * (xe/(1.0+xe+f_He)) /(hubble((float)z)/(HUBBLE*run_globals.params.Hubble_h))/run_globals.params.Hubble_h*pow(Trad, 4.0)/(1.0+z);
     ans *= Trad - TK;
     return ans;
 }
@@ -1464,7 +1461,6 @@ double dicke(double z){
 // * redshift derivative of the growth function at z * //
 double ddicke_dz(double z){
     float dz = 1e-10;
-    double omegaM_z, ddickdz, dick_0, x, x_0, domegaMdz;
 
     return (dicke(z+dz)-dicke(z))/dz;
 }
@@ -1489,7 +1485,7 @@ float get_Ts(float z, float delta, float TK, float xe, float Jalpha, float * cur
             TS = 1.0/TSinv;
 
         }
-        *curr_xalpha = xa_tilde;
+        *curr_xalpha = (float)xa_tilde;
 
         if(isnan(xa_tilde)) {
             printf("z = %e delta = %e TK = %e xe = %e Jalpha = %e xa_tilde = %e xc = %e\n",z,delta,TK,xe,Jalpha,xa_tilde,xc);
@@ -1506,7 +1502,7 @@ float get_Ts(float z, float delta, float TK, float xe, float Jalpha, float * cur
         TS = fabs(TS);
     }
 
-    return TS;
+    return (float)TS;
 }
 
 double xcoll(double z, double TK, double delta, double xe){
@@ -1789,7 +1785,7 @@ double xalpha_tilde(double z, double Jalpha, double TK, double TS,
 
 // Compute the Gunn-Peterson optical depth.
 double taugp(double z, double delta, double xe){
-    return 1.342881e-7 / hubble(z)*No*pow(1+z,3) * (1.0+delta)*(1.0-xe);
+    return 1.342881e-7 / hubble((float)z)*No*pow(1+z, 3) * (1.0+delta)*(1.0-xe);
 }
 
 double Salpha_tilde(double TK, double TS, double tauGP)

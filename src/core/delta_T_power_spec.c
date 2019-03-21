@@ -72,7 +72,7 @@ int delta_T_ps(
 
     int tot_num_pixels = (int)pow(ReionGridDim, 3);
 
-    MPI_Allreduce(MPI_IN_PLACE, &ave, 1, MPI_INT, MPI_SUM, run_globals.mpi_comm);
+    MPI_Allreduce(MPI_IN_PLACE, &ave, 1, MPI_DOUBLE, MPI_SUM, run_globals.mpi_comm);
     ave /= (double)tot_num_pixels;
 
     // Calculate power spectrum
@@ -162,7 +162,7 @@ int delta_T_ps(
     } // End looping through k box
 
     // Malloc and store the result
-    *ps = (float*)calloc((size_t)(3 * num_bins), sizeof(float));
+    *ps = (float*)calloc(3 * (size_t)num_bins, sizeof(float));
 
     // NOTE - previous ct ran from 1 (not zero) to NUM_BINS
     for (int ii = 0; ii < num_bins; ii++)

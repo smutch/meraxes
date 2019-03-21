@@ -338,17 +338,17 @@ void init_reion_grids()
         }
 
     for (int ii = 0; ii < slab_n_complex; ii++) {
-        grids->stars_filtered[ii] = 0 + 0 * I;
-        grids->deltax_filtered[ii] = 0 + 0 * I;
-        grids->sfr_filtered[ii] = 0 + 0 * I;
+        grids->stars_filtered[ii] = 0 + 0I;
+        grids->deltax_filtered[ii] = 0 + 0I;
+        grids->sfr_filtered[ii] = 0 + 0I;
         if(run_globals.params.Flag_IncludeSpinTemp) {
-            grids->x_e_filtered[ii] = 0 + 0 * I;
+            grids->x_e_filtered[ii] = 0 + 0I;
         }
         if(run_globals.params.Flag_IncludeRecombinations) {
-            grids->N_rec_filtered[ii] = 0 + 0 * I;
+            grids->N_rec_filtered[ii] = 0 + 0I;
         }
         if(run_globals.params.Flag_Compute21cmBrightTemp&&(run_globals.params.Flag_IncludePecVelsFor21cm > 0)) {
-            grids->vel_gradient[ii] = 0 + 0 * I;
+            grids->vel_gradient[ii] = 0 + 0I;
         }
 
     }
@@ -379,9 +379,9 @@ void init_reion_grids()
 
     if(run_globals.params.Flag_ComputePS) {
         for (int ii = 0; ii < run_globals.params.PS_Length; ii++) {
-            grids->PS_k[ii] = 0.;
-            grids->PS_data[ii] = 0.;
-            grids->PS_error[ii] = 0.;
+            grids->PS_k[ii] = (float)0.;
+            grids->PS_data[ii] = (float)0.;
+            grids->PS_error[ii] = (float)0.;
         }
     }
 
@@ -501,9 +501,9 @@ void malloc_reionization_grids()
 
             grids->x_e_filtered = fftwf_alloc_complex((size_t)slab_n_complex);
 
-            grids->SMOOTHED_SFR_GAL = calloc(slab_n_real_smoothedSFR,sizeof(double));
+            grids->SMOOTHED_SFR_GAL = calloc((size_t)slab_n_real_smoothedSFR, sizeof(double));
             if(run_globals.params.SEP_QSO_XRAY) {
-                grids->SMOOTHED_SFR_QSO = calloc(slab_n_real_smoothedSFR,sizeof(double));
+                grids->SMOOTHED_SFR_QSO = calloc((size_t)slab_n_real_smoothedSFR, sizeof(double));
             }
         }
 
@@ -923,7 +923,7 @@ void construct_baryon_grids(int snapshot, int local_ngals)
                         ABORT(EXIT_FAILURE);
                 }
         }
-        MPI_Allreduce(MPI_IN_PLACE, &N_BlackHoleMassLimitReion, 1, MPI_DOUBLE, MPI_SUM, run_globals.mpi_comm);
+        MPI_Allreduce(MPI_IN_PLACE, &N_BlackHoleMassLimitReion, 1, MPI_LONG, MPI_SUM, run_globals.mpi_comm);
         mlog("%d quasars are smaller than %g", MLOG_MESG, N_BlackHoleMassLimitReion, run_globals.params.physics.BlackHoleMassLimitReion);
     }
 
@@ -994,7 +994,7 @@ void save_reion_input_grids(int snapshot)
     H5Pset_chunk(dcpl_id, 3, (hsize_t[3]){ 1, (hsize_t)ReionGridDim, (hsize_t)ReionGridDim });
 
     // fftw padded grids
-    float* grid = (float*)calloc((size_t)(local_nix * ReionGridDim * ReionGridDim), sizeof(float));
+    float* grid = (float*)calloc((size_t)local_nix * (size_t)ReionGridDim * (size_t)ReionGridDim, sizeof(float));
 
     for (int ii = 0; ii < local_nix; ii++)
         for (int jj = 0; jj < ReionGridDim; jj++)
@@ -1081,7 +1081,7 @@ void save_reion_output_grids(int snapshot)
     }
 
     // fftw padded grids
-    float* grid = (float*)calloc(local_nix * ReionGridDim * ReionGridDim, sizeof(float));
+    float* grid = (float*)calloc((size_t)(local_nix * ReionGridDim * ReionGridDim), sizeof(float));
 
     if (run_globals.params.Flag_IncludeSpinTemp) {
         write_grid_float("TS_box", grids->TS_box, file_id, fspace_id, memspace_id, dcpl_id);
@@ -1102,37 +1102,38 @@ void save_reion_output_grids(int snapshot)
     if(run_globals.params.Flag_ConstructLightcone && run_globals.params.End_Lightcone_snapshot==snapshot && snapshot!=0) {
 
         // create the filespace
-        hsize_t dims_LC[3] = { ReionGridDim, ReionGridDim, run_globals.params.LightconeLength };
+        hsize_t dims_LC[3] = {(hsize_t)ReionGridDim, (hsize_t)ReionGridDim, (hsize_t)run_globals.params.LightconeLength};
         hid_t fspace_id_LC = H5Screate_simple(3, dims_LC, NULL);
 
         // create the memspace
-        hsize_t mem_dims_LC[3] = { local_nix, ReionGridDim, run_globals.params.LightconeLength };
+        hsize_t mem_dims_LC[3] = {(hsize_t)local_nix, (hsize_t)ReionGridDim,
+                                  (hsize_t)run_globals.params.LightconeLength};
         hid_t memspace_id_LC = H5Screate_simple(3, mem_dims_LC, NULL);
 
         // select a hyperslab in the filespace
-        hsize_t start_LC[3] = { run_globals.reion_grids.slab_ix_start[run_globals.mpi_rank], 0, 0 };
-        hsize_t count_LC[3] = { local_nix, ReionGridDim, run_globals.params.LightconeLength };
+        hsize_t start_LC[3] = {(hsize_t)run_globals.reion_grids.slab_ix_start[run_globals.mpi_rank], 0, 0 };
+        hsize_t count_LC[3] = {(hsize_t)local_nix, (hsize_t)ReionGridDim, (hsize_t)run_globals.params.LightconeLength};
         H5Sselect_hyperslab(fspace_id_LC, H5S_SELECT_SET, start_LC, NULL, count_LC, NULL);
 
         // set the dataset creation property list to use chunking along x-axis
         hid_t dcpl_id_LC = H5Pcreate(H5P_DATASET_CREATE);
-        H5Pset_chunk(dcpl_id_LC, 3, (hsize_t[3]){ 1, ReionGridDim, run_globals.params.LightconeLength });
+        H5Pset_chunk(dcpl_id_LC, 3, (hsize_t[3]){1, (hsize_t)ReionGridDim, (hsize_t)run_globals.params.LightconeLength});
 
         mlog("Outputting light-cone", MLOG_MESG);
         write_grid_float("LightconeBox", grids->LightconeBox, file_id, fspace_id_LC, memspace_id_LC, dcpl_id_LC);
 
         // create the filespace
-        hsize_t dims_LCz[1] = { run_globals.params.LightconeLength };
+        hsize_t dims_LCz[1] = { (hsize_t)run_globals.params.LightconeLength };
         hid_t fspace_id_LCz = H5Screate_simple(1, dims_LCz, NULL);
 
         // create the memspace
-        hsize_t mem_dims_LCz[1] = { run_globals.params.LightconeLength };
+        hsize_t mem_dims_LCz[1] = { (hsize_t)run_globals.params.LightconeLength };
         hid_t memspace_id_LCz = H5Screate_simple(1, mem_dims_LCz, NULL);
 
         hid_t dcpl_id_LCz = H5Pcreate(H5P_DATASET_CREATE);
         hid_t dset_id = H5Dcreate(file_id, "lightcone-z", H5T_NATIVE_FLOAT, fspace_id_LCz, H5P_DEFAULT, dcpl_id_LCz, H5P_DEFAULT);
 
-        hid_t plist_id = H5Pcreate(H5P_DATASET_XFER);
+        plist_id = H5Pcreate(H5P_DATASET_XFER);
 
         H5Pset_dxpl_mpio(plist_id, H5FD_MPIO_COLLECTIVE);
 
@@ -1161,17 +1162,17 @@ void save_reion_output_grids(int snapshot)
     if(run_globals.params.Flag_ComputePS) {
 
         // create the filespace
-        hsize_t dims_PS[1] = { run_globals.params.PS_Length };
+        hsize_t dims_PS[1] = { (hsize_t)run_globals.params.PS_Length };
         hid_t fspace_id_PS = H5Screate_simple(1, dims_PS, NULL);
 
         // create the memspace
-        hsize_t mem_dims_PS[1] = { run_globals.params.PS_Length };
+        hsize_t mem_dims_PS[1] = { (hsize_t)run_globals.params.PS_Length };
         hid_t memspace_id_PS = H5Screate_simple(1, mem_dims_PS, NULL);
 
         hid_t dcpl_id_PS = H5Pcreate(H5P_DATASET_CREATE);
         hid_t dset_id = H5Dcreate(file_id, "k_bins", H5T_NATIVE_FLOAT, fspace_id_PS, H5P_DEFAULT, dcpl_id_PS, H5P_DEFAULT);
 
-        hid_t plist_id = H5Pcreate(H5P_DATASET_XFER);
+        plist_id = H5Pcreate(H5P_DATASET_XFER);
 
         H5Pset_dxpl_mpio(plist_id, H5FD_MPIO_COLLECTIVE);
 
@@ -1341,34 +1342,15 @@ void filter(fftwf_complex* box, int local_ix_start, int slab_nx, int grid_dim, f
 void velocity_gradient(fftwf_complex* box, int local_ix_start, int slab_nx, int grid_dim)
 {
     int middle = grid_dim / 2;
-    float box_size = run_globals.params.BoxSize;
-    float delta_k = 2.0 * M_PI / box_size;
+    float box_size = (float)run_globals.params.BoxSize;
+    float delta_k = (float)(2.0 * M_PI / box_size);
 
     // Loop through k-box
     for (int n_x = 0; n_x < slab_nx; n_x++) {
-        float k_x;
-        int n_x_global = n_x + local_ix_start;
-
-        if (n_x_global > middle)
-            k_x = (n_x_global - grid_dim) * delta_k;
-        else
-            k_x = n_x_global * delta_k;
-
         for (int n_y = 0; n_y < grid_dim; n_y++) {
-            float k_y;
-
-            if (n_y > middle)
-                k_y = (n_y - grid_dim) * delta_k;
-            else
-                k_y = n_y * delta_k;
-
             for (int n_z = 0; n_z <= middle; n_z++) {
                 float k_z = n_z * delta_k;
-
-                float k_mag = sqrtf(k_x * k_x + k_y * k_y + k_z * k_z);
-
-                box[grid_index(n_x, n_y, n_z, grid_dim, INDEX_COMPLEX_HERM)] *= (fftwf_complex)(k_z*I);
-                break;
+                box[grid_index(n_x, n_y, n_z, grid_dim, INDEX_COMPLEX_HERM)] *= (fftwf_complex)(k_z * 1I);
             }
         }
     } // End looping through k box

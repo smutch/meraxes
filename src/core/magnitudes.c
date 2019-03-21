@@ -7,8 +7,6 @@ void init_luminosities(galaxy_t* gal)
     for (int ii = 0; ii < NOUT; ii++)
         for (int jj = 0; jj < run_globals.photo->NBands; jj++)
             gal->Lum[jj][ii] = 0.0;
-#else
-    return;
 #endif
 }
 
@@ -18,8 +16,6 @@ void sum_luminosities(galaxy_t* parent, galaxy_t* gal, int outputbin)
     int n_bands = run_globals.photo->NBands;
     for (int ii = 0; ii < n_bands; ii++)
         parent->Lum[ii][outputbin] += gal->Lum[ii][outputbin];
-#else
-    return;
 #endif
 }
 
@@ -34,8 +30,6 @@ void prepare_magnitudes_for_output(galaxy_t gal, galaxy_output_t* galout, int i_
         apply_dust(n_bands, gal, LumDust, i_snap);
         galout->MagDust[ii] = (float)(lum_to_mag(LumDust[ii])) - 5.0 * log10(Hubble_h);
     }
-#else
-    return;
 #endif
 }
 
@@ -264,8 +258,6 @@ void read_photometric_tables()
 
     mlog(" ...done", MLOG_CLOSE);
 
-#else
-    return;
 #endif // CALC_MAGS
 }
 
@@ -393,9 +385,6 @@ void add_to_luminosities(
         for (int i_band = 0; i_band < n_bands; i_band++)
             gal->Lum[i_band][outputbin] += X1 * exp(X2 * (fmet1 * (f1 * PhotoTab[phototab_index(photo, i_band, metals_ind, age_ind)] + f2 * PhotoTab[phototab_index(photo, i_band, metals_ind, age_ind + 1)]) + fmet2 * (f1 * PhotoTab[phototab_index(photo, i_band, metals_ind + 1, age_ind)] + f2 * PhotoTab[phototab_index(photo, i_band, metals_ind + 1, age_ind + 1)])));
     }
-
-#else
-    return;
 #endif // CALC_MAGS
 }
 
@@ -416,7 +405,5 @@ void cleanup_mags()
     free(run_globals.photo->Metals);
     free(run_globals.photo);
     H5Tclose(run_globals.hdf5props.array_nmag_f_tid);
-#else
-    return;
 #endif
 }

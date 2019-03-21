@@ -59,7 +59,7 @@ double recombination_rate(double z_eff, double gamma12_bg, double T4, int usecas
 void init_MHR(); /*initializes the lookup table for the PDF density integral in MHR00 model at redshift z*/
 void free_MHR(); /* deallocates the gsl structures from init_MHR */
 double Gamma_SS(double Gamma_bg, double Delta, double T_4, double z);//ionization rate w. self shielding
-double MHR_rr (double D, void *params);
+double MHR_rr (double lnD, void *params);
 double A_MHR(double z); /*returns the A parameter in MHR00model*/
 double C_MHR(double z); /*returns the C parameter in MHR00model*/
 double beta_MHR(double z); /*returns the beta parameter in MHR00model*/
@@ -118,7 +118,7 @@ void init_MHR(){
         // Intialize the Gamma values
         for (gamma_ct=0; gamma_ct < RR_lnGamma_NPTS; gamma_ct++){
             lnGamma_values[gamma_ct] = RR_lnGamma_min  + gamma_ct*RR_DEL_lnGamma;  // ln of Gamma12
-            gamma = exp(lnGamma_values[gamma_ct]);
+            gamma = (float)exp(lnGamma_values[gamma_ct]);
             RR_table[z_ct][gamma_ct] = recombination_rate(z, gamma, 1, 1); // CHANGE THIS TO INCLUDE TEMPERATURE
         }
 
@@ -128,8 +128,6 @@ void init_MHR(){
         gsl_spline_init(RR_spline[z_ct], lnGamma_values, RR_table[z_ct], RR_lnGamma_NPTS);
 
     } // go to next redshift
-
-    return;
 }
 
 
@@ -146,16 +144,14 @@ void free_MHR(){
         gsl_spline_free (RR_spline[z_ct]);
         gsl_interp_accel_free(RR_acc[z_ct]);
     }
-
-    return;
 }
 
 //calculates the attenuated photoionization rate due to self-shielding (in units of 1e-12 s^-1)
 // input parameters are the background ionization rate, overdensity, temperature (in 10^4k), redshift, respectively
 //  Uses the fitting formula from Rahmati et al, assuming a UVB power law index of alpha=5
-double Gamma_SS(double Gamma_bg, double D, double T_4, double z){
+double Gamma_SS(double Gamma_bg, double Delta, double T_4, double z){
     double D_ss = 26.7*pow(T_4, 0.17) * pow( (1+z)/10.0, -3) * pow(Gamma_bg, 2.0/3.0);
-    return Gamma_bg * (0.98 * pow( (1.0+pow(D/D_ss, 1.64)), -2.28) + 0.02*pow( 1.0+D/D_ss, -0.84));
+    return Gamma_bg * (0.98 * pow( (1.0+pow(Delta/D_ss, 1.64)), -2.28) + 0.02*pow( 1.0+Delta/D_ss, -0.84));
 }
 
 typedef struct {double z, gamma12_bg, T4, A, C_0, beta, avenH; int usecaseB;} RR_par;
@@ -185,12 +181,12 @@ double MHR_rr (double lnD, void *params){
 // given an ionizing background of gamma12_bg
 // temeperature T4 (in 1e4 K), and usecaseB rate coefficient
 // Assumes self-shielding according to Rahmati+ 2013
-double recombination_rate(double z, double gamma12_bg, double T4, int usecaseB){
-    double result, error, lower_limit, upper_limit, A, C_0, beta, avenH;
+double recombination_rate(double z_eff, double gamma12_bg, double T4, int usecaseB){
+    double result, error, lower_limit, upper_limit;
     gsl_function F;
     double rel_tol  = 0.01; //<- relative tolerance
     gsl_integration_workspace * w = gsl_integration_workspace_alloc (1000);
-    RR_par p = {z, gamma12_bg, T4, A_MHR(z), C_MHR(z), beta_MHR(z), No*pow( 1+z, 3), usecaseB};
+    RR_par p = {z_eff, gamma12_bg, T4, A_MHR(z_eff), C_MHR(z_eff), beta_MHR(z_eff), No*pow( 1+z_eff, 3), usecaseB};
 
     F.function = &MHR_rr;
     F.params=&p;
@@ -256,21 +252,17 @@ void init_A_MHR(){
     A_acc   = gsl_interp_accel_alloc();
     A_spline  = gsl_spline_alloc (gsl_interp_cspline, A_NPTS);
     gsl_spline_init(A_spline, A_params, A_table, A_NPTS);
-
-    return;
 }
 
 
-double splined_A_MHR(double x){
-    return gsl_spline_eval(A_spline, x, A_acc);
+double splined_A_MHR(double z){
+    return gsl_spline_eval(A_spline, z, A_acc);
 }
 
 void free_A_MHR(){
 
     gsl_spline_free (A_spline);
     gsl_interp_accel_free(A_acc);
-
-    return;
 }
 
 
@@ -311,21 +303,17 @@ void init_C_MHR(){
     C_acc   = gsl_interp_accel_alloc ();
     C_spline  = gsl_spline_alloc (gsl_interp_cspline, C_NPTS);
     gsl_spline_init(C_spline, C_params, C_table, C_NPTS);
-
-    return;
 }
 
 
-double splined_C_MHR(double x){
-    return gsl_spline_eval(C_spline, x, C_acc);
+double splined_C_MHR(double z){
+    return gsl_spline_eval(C_spline, z, C_acc);
 }
 
 void free_C_MHR(){
 
     gsl_spline_free (C_spline);
     gsl_interp_accel_free(C_acc);
-
-    return;
 }
 
 
@@ -359,21 +347,17 @@ void init_beta_MHR(){
     beta_acc   = gsl_interp_accel_alloc ();
     beta_spline  = gsl_spline_alloc (gsl_interp_cspline, beta_NPTS);
     gsl_spline_init(beta_spline, beta_params, beta_table, beta_NPTS);
-
-    return;
 }
 
 
-double splined_beta_MHR(double x){
-    return gsl_spline_eval(beta_spline, x, beta_acc);
+double splined_beta_MHR(double z){
+    return gsl_spline_eval(beta_spline, z, beta_acc);
 }
 
 void free_beta_MHR(){
 
     gsl_spline_free(beta_spline);
     gsl_interp_accel_free(beta_acc);
-
-    return;
 }
 
 /***********  END NEW FUNCTIONS for v1.3 (recombinations) *********/
@@ -383,7 +367,7 @@ void free_beta_MHR(){
    gas temperature (10^4 K)
    ionization rate (1e-12 s^-1)
    */
-double neutral_fraction(double density, double T4, double gamma, int usecaseB){
+double neutral_fraction(double density, double T4, double gamma12, int usecaseB){
     double chi, b, alpha, corr_He = 1.0/(4.0/run_globals.params.physics.Y_He - 3);
 
     if (usecaseB)
@@ -391,17 +375,17 @@ double neutral_fraction(double density, double T4, double gamma, int usecaseB){
     else
         alpha = alpha_A(T4*1e4);
 
-    gamma *= 1e-12;
+    gamma12 *= 1e-12;
 
     // approximation chi << 1
-    chi = (1+corr_He)*density * alpha / gamma;
+    chi = (1+corr_He)*density * alpha / gamma12;
     if (chi < TINY){ return 0;}
     if (chi < 1e-5)
         return chi;
 
     //  this code, while mathematically accurate, is numerically buggy for very small x_HI, so i will use valid approximation x_HI <<1 above when x_HI < 1e-5, and this otherwise... the two converge seemlessly
     //get solutions of quadratic of chi (neutral fraction)
-    b = -2 - gamma / (density*(1+corr_He)*alpha);
+    b = -2 - gamma12 / (density*(1+corr_He)*alpha);
     chi = ( -b - sqrt(b*b - 4) ) / 2.0; //correct root
     return chi;
 }

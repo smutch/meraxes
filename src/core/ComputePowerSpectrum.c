@@ -18,7 +18,7 @@ void Initialise_PowerSpectrum()
     int ReionGridDim = run_globals.params.ReionGridDim;
 
     float k_factor = 1.35;
-    float delta_k = 2. * M_PI / box_size;
+    float delta_k = (float)(2. * M_PI / box_size);
     float k_first_bin_ceil = delta_k;
     float k_max = delta_k * ReionGridDim;
 
@@ -43,9 +43,9 @@ void Compute_PS(int snapshot)
 
     double box_size = run_globals.params.BoxSize / run_globals.params.Hubble_h; // Mpc
 
-    fftwf_complex* deldel_ps = fftwf_alloc_complex(run_globals.reion_grids.slab_n_complex[run_globals.mpi_rank]);
+    fftwf_complex* deldel_ps = fftwf_alloc_complex((size_t)run_globals.reion_grids.slab_n_complex[run_globals.mpi_rank]);
 
-    float volume = powf(box_size, 3);
+    float volume = powf((float)(float)box_size, 3);
 
     int ReionGridDim = run_globals.params.ReionGridDim;
     double total_n_cells = pow((double)ReionGridDim, 3);
@@ -65,14 +65,14 @@ void Compute_PS(int snapshot)
             }
         }
     }
-    MPI_Allreduce(MPI_IN_PLACE, &ave, 1, MPI_INT, MPI_SUM, run_globals.mpi_comm);
+    MPI_Allreduce(MPI_IN_PLACE, &ave, 1, MPI_DOUBLE, MPI_SUM, run_globals.mpi_comm);
 
     ave /= total_n_cells;
 
-    for (int ii = 0; ii < local_nix; ii++) {
-        for (int jj = 0; jj < ReionGridDim; jj++) {
-            for (int kk = 0; kk < ReionGridDim; kk++) {
-                ((float*)deldel_ps)[grid_index(ii, jj, kk, ReionGridDim, INDEX_PADDED)] = (delta_T[grid_index(ii, jj, kk, ReionGridDim, INDEX_REAL)] / ave - 1) * volume / (float)total_n_cells;
+    for (ii= 0; ii < local_nix; ii++) {
+        for (jj= 0; jj < ReionGridDim; jj++) {
+            for (kk= 0; kk < ReionGridDim; kk++) {
+                ((float*)deldel_ps)[grid_index(ii, jj, kk, ReionGridDim, INDEX_PADDED)] = (float)((delta_T[grid_index(ii, jj, kk, ReionGridDim, INDEX_REAL)] / ave - 1) * volume / (float)total_n_cells);
                 ((float*)deldel_ps)[grid_index(ii, jj, kk, ReionGridDim, INDEX_PADDED)] *= ave;
             }
         }
@@ -91,11 +91,10 @@ void Compute_PS(int snapshot)
     float k_mag;
 
     float k_factor = 1.35;
-    float delta_k = 2. * M_PI / box_size;
+    float delta_k = (float)(2. * M_PI / box_size);
     float k_first_bin_ceil = delta_k;
     float k_max = delta_k * ReionGridDim;
 
-    int num_bins = 0;
     float k_floor = 0.0;
     float k_ceil = k_first_bin_ceil;
 
@@ -103,7 +102,7 @@ void Compute_PS(int snapshot)
     double* k_ave = malloc(sizeof(double) * run_globals.params.PS_Length);
     unsigned long long* in_bin_ct = malloc(sizeof(unsigned long long) * run_globals.params.PS_Length);
 
-    for (int ii = 0; ii < run_globals.params.PS_Length; ii++) {
+    for (ii= 0; ii < run_globals.params.PS_Length; ii++) {
         p_box[ii] = 0.0;
         k_ave[ii] = 0.0;
         in_bin_ct[ii] = 0;
@@ -116,7 +115,7 @@ void Compute_PS(int snapshot)
 
     int local_ix_start = (int)(run_globals.reion_grids.slab_ix_start[run_globals.mpi_rank]);
 
-    for (int n_x = 0; n_x < local_nix; n_x++) {
+    for (n_x= 0; n_x < local_nix; n_x++) {
         float k_x = (n_x + local_ix_start) * delta_k;
         if ( (n_x + local_ix_start) > HII_middle) {
             k_x = ( (n_x + local_ix_start) - ReionGridDim ) * delta_k;  // wrap around for FFT convention
@@ -130,7 +129,7 @@ void Compute_PS(int snapshot)
             for (n_z=0; n_z <= HII_middle; n_z++){
                 float k_z = n_z * delta_k;
 
-                k_mag = sqrt(k_x*k_x + k_y*k_y + k_z*k_z);
+                k_mag = (float)sqrt(k_x*k_x + k_y*k_y + k_z*k_z);
 
                 // now go through the k bins and update
                 ct = 0;
@@ -161,15 +160,15 @@ void Compute_PS(int snapshot)
     float *PS_error = run_globals.reion_grids.PS_error;
 
     // NOTE - previous ct ran from 1 (not zero) to NUM_BINS
-    for (int ii = 0; ii < run_globals.params.PS_Length; ii++) {
+    for (ii= 0; ii < run_globals.params.PS_Length; ii++) {
 
         MPI_Allreduce(MPI_IN_PLACE, &k_ave[ii], 1, MPI_DOUBLE, MPI_SUM, run_globals.mpi_comm);
         MPI_Allreduce(MPI_IN_PLACE, &p_box[ii], 1, MPI_DOUBLE, MPI_SUM, run_globals.mpi_comm);
-        MPI_Allreduce(MPI_IN_PLACE, &in_bin_ct[ii], 1, MPI_INT, MPI_SUM, run_globals.mpi_comm);
+        MPI_Allreduce(MPI_IN_PLACE, &in_bin_ct[ii], 1, MPI_UNSIGNED_LONG_LONG, MPI_SUM, run_globals.mpi_comm);
 
-        PS_k[ii] = k_ave[ii]/(double)in_bin_ct[ii];
-        PS_data[ii] = p_box[ii]/(double)in_bin_ct[ii];
-        PS_error[ii] = (p_box[ii]/(double)in_bin_ct[ii])/sqrt((double)in_bin_ct[ii]);
+        PS_k[ii] = (float)(k_ave[ii]/(double)in_bin_ct[ii]);
+        PS_data[ii] = (float)(p_box[ii]/(double)in_bin_ct[ii]);
+        PS_error[ii] = (float)((p_box[ii]/(double)in_bin_ct[ii])/sqrt((double)in_bin_ct[ii]));
     }
 
     // Deallocate

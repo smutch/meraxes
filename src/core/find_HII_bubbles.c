@@ -73,8 +73,8 @@ void _find_HII_bubbles(int snapshot)
         prev_redshift = run_globals.ZZ[snapshot-1];
     }
 
-    ZSTEP = prev_redshift - redshift;
-    fabs_dtdz = fabs(dtdz(redshift) / run_globals.params.Hubble_h);
+    ZSTEP = (float)(prev_redshift - redshift);
+    fabs_dtdz = (float)fabs(dtdz((float)redshift) / run_globals.params.Hubble_h);
 
     // Initialise interpolation tables for inhomogeneous recombinations
     if(run_globals.params.Flag_IncludeRecombinations) {
@@ -430,9 +430,9 @@ void _find_HII_bubbles(int snapshot)
 
                             // Store the ionisation background and the reionisation redshift for each cell
                             if(run_globals.params.Flag_IncludeRecombinations) {
-                                Gamma12[i_real] = Gamma_R;
+                                Gamma12[i_real] = (float)Gamma_R;
                                 if(z_re[i_real] < 0) {
-                                    z_re[i_real] = redshift;
+                                    z_re[i_real] = (float)redshift;
                                 }
                             }
                         }
@@ -449,10 +449,10 @@ void _find_HII_bubbles(int snapshot)
                     {
                         xH[i_real] = (float)(electron_fraction - f_coll_stars * ReionEfficiency);
                         if(xH[i_real] < 0.) {
-                            xH[i_real] = 0.;
+                            xH[i_real] = (float)0.;
                         }
                         else if (xH[i_real] > 1.0) {
-                            xH[i_real] = 1.;
+                            xH[i_real] = (float)1.;
                         }
                     }
 
@@ -505,7 +505,7 @@ void _find_HII_bubbles(int snapshot)
                     i_real = grid_index(ix, iy, iz, ReionGridDim, INDEX_REAL);
 
                     density_over_mean = 1.0 + deltax[i_padded];
-                    z_eff = (1. + redshift) * pow(density_over_mean, 1.0/3.0) - 1;
+                    z_eff = (float)((1. + redshift) * pow(density_over_mean, 1.0/3.0) - 1);
                     dNrec = splined_recombination_rate(z_eff, Gamma12[i_real]) * fabs_dtdz * ZSTEP * (1. - xH[i_real]);
                     N_rec[i_padded] += dNrec;
 
@@ -518,7 +518,6 @@ void _find_HII_bubbles(int snapshot)
 void find_HII_bubbles(int snapshot, timer_info* timer_total)
 {
     // Call the version of find_HII_bubbles we've been passed (and time it)
-    int flag_write_validation_data = false;
     double redshift = run_globals.ZZ[snapshot];
     timer_info timer;
 #ifdef USE_CUDA
