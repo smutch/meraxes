@@ -686,6 +686,7 @@ typedef struct run_globals_t {
     fof_group_t** SnapshotFOFGroup;
     int** SnapshotIndexLookup;
     float** SnapshotDeltax;
+    float** SnapshotVel;
     trees_info_t* SnapshotTreesInfo;
     phototabs_t* photo;
     struct galaxy_t* FirstGal;
@@ -851,7 +852,9 @@ int read_dm_grid__velociraptor(int snapshot, float* slab);
 double calc_resample_factor(int n_cell[3]);
 void smooth_grid(double resample_factor, int n_cell[3], fftwf_complex* slab, ptrdiff_t slab_n_complex, ptrdiff_t slab_ix_start, ptrdiff_t slab_nix);
 int load_cached_deltax_slab(float* slab, int snapshot);
+int load_cached_vel_slab(float* slab, int snapshot);
 int cache_deltax_slab(float* slab, int snapshot);
+int cache_vel_slab(float* slab, int snapshot);
 void free_grids_cache(void);
 void calculate_Mvir_crit(double redshift);
 void call_find_HII_bubbles(int snapshot, int nout_gals, timer_info *timer);

@@ -201,8 +201,7 @@ int read_dm_vel_grid__gbptrees(
     run_params_t* params = &(run_globals.params);
 
     // Have we read this slab before?
-    // TODO(Simon): Fix this...
-    if (params->FlagInteractive && !load_cached_deltax_slab(slab, snapshot))
+    if (params->FlagInteractive && !load_cached_vel_slab(slab, snapshot))
         return 0;
 
     char fname[512];
@@ -250,8 +249,8 @@ int read_dm_vel_grid__gbptrees(
             ABORT(EXIT_FAILURE);
         }
 
-	assert((n_cell[0] == n_cell[1]) && (n_cell[1] == n_cell[2])
-            && "Input grids are not cubic!");
+        assert((n_cell[0] == n_cell[1]) && (n_cell[1] == n_cell[2])
+                   && "Input grids are not cubic!");
 
         // Jump forward in the file to find the relevant velocity field
         fseek(fd,run_globals.params.VelocityComponent*(sizeof(float)*(long)n_cell[0]*(long)n_cell[0]*(long)n_cell[0] + 32),SEEK_CUR);
@@ -344,9 +343,8 @@ int read_dm_vel_grid__gbptrees(
     fftwf_free(slab_file);
 
     // Do we need to cache this slab?
-    // TODO(Simon): Check out this in more detail...
     if (params->FlagInteractive)
-        cache_deltax_slab(slab, snapshot);
+        cache_vel_slab(slab, snapshot);
 
     mlog("...done", MLOG_CLOSE | MLOG_TIMERSTOP);
 

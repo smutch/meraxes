@@ -53,6 +53,17 @@ int load_cached_deltax_slab(float* slab, int snapshot)
         return 1;
 }
 
+int load_cached_vel_slab(float *slab, int snapshot)
+{
+    if (run_globals.SnapshotVel[snapshot] != NULL) {
+        ptrdiff_t slab_n_complex = run_globals.reion_grids.slab_n_complex[run_globals.mpi_rank];
+        memcpy(slab, run_globals.SnapshotVel[snapshot], sizeof(float) * slab_n_complex * 2);
+        mlog("Loaded velocity slab from cache.", MLOG_MESG);
+        return 0;
+    } else
+        return 1;
+}
+
 int cache_deltax_slab(float* slab, int snapshot)
 {
     if (run_globals.SnapshotDeltax[snapshot] == NULL) {
@@ -67,15 +78,33 @@ int cache_deltax_slab(float* slab, int snapshot)
         return 1;
 }
 
+int cache_vel_slab(float* slab, int snapshot)
+{
+    if (run_globals.SnapshotVel[snapshot] == NULL) {
+        float** cache = &run_globals.SnapshotVel[snapshot];
+        ptrdiff_t slab_n_complex = run_globals.reion_grids.slab_n_complex[run_globals.mpi_rank];
+        ptrdiff_t mem_size = sizeof(float) * slab_n_complex * 2;
+
+        *cache = fftwf_alloc_real((size_t)mem_size);
+        memcpy(*cache, slab, mem_size);
+        return 0;
+    } else
+        return 1;
+}
+
 void free_grids_cache()
 {
     if (run_globals.params.Flag_PatchyReion) {
+        float** snapshot_vel = run_globals.SnapshotVel;
         float** snapshot_deltax = run_globals.SnapshotDeltax;
 
         if (run_globals.params.FlagInteractive)
-            for (int ii = 0; ii < run_globals.NStoreSnapshots; ii++)
+            for (int ii = 0; ii < run_globals.NStoreSnapshots; ii++) {
+                fftwf_free(snapshot_vel[ii]);
                 fftwf_free(snapshot_deltax[ii]);
+            }
 
+        free(snapshot_vel);
         free(snapshot_deltax);
     }
 }
