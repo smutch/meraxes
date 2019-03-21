@@ -299,14 +299,44 @@ void dracarys()
 
         if (run_globals.params.Flag_PatchyReion) {
 
-            if (check_if_reionization_ongoing()) {
+            if (check_if_reionization_ongoing(snapshot)) {
                 if (!run_globals.params.ReionUVBFlag) {
                     // We are decoupled, so no need to run 21cmFAST unless we are ouputing this snapshot
-                    for (int i_out = 0; i_out < NOutputSnaps; i_out++)
-                        if (snapshot == run_globals.ListOutputSnaps[i_out])
+                    for (int i_out = 0; i_out < NOutputSnaps; i_out++) {
+                        if (snapshot == run_globals.ListOutputSnaps[i_out]) {
                             call_find_HII_bubbles(snapshot, nout_gals, &timer);
-                } else
+
+			    if(run_globals.params.Flag_Compute21cmBrightTemp) {
+                                ComputeBrightnessTemperatureBox(snapshot);
+                            }
+
+                            if(run_globals.params.Flag_ComputePS) {
+                                Compute_PS(snapshot);
+                            }
+                        }
+                    }
+                }
+                else {
+
+                    if(run_globals.params.Flag_IncludeSpinTemp) {
+                        call_ComputeTs(snapshot, nout_gals, &timer);
+                    }
+
                     call_find_HII_bubbles(snapshot, nout_gals, &timer);
+
+                    if(run_globals.params.Flag_Compute21cmBrightTemp) {
+                        ComputeBrightnessTemperatureBox(snapshot);
+                    }
+                    
+                    if(run_globals.params.Flag_ComputePS) {
+                        Compute_PS(snapshot);
+                    }
+
+                    if(run_globals.params.Flag_ConstructLightcone) {
+                        ConstructLightcone(snapshot);
+                    }
+
+                }
             }
 
             // if we have already created a mapping of galaxies to MPI slabs then we no

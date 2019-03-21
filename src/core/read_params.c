@@ -145,6 +145,11 @@ void read_parameter_file(char* fname, int mode)
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_STRING;
 
+            strncpy(params_tag[n_param], "TablesForXHeatingDir", tag_length);
+            params_addr[n_param] = run_params->TablesForXHeatingDir;
+            required_tag[n_param] = 1;
+            params_type[n_param++] = PARAM_TYPE_STRING;
+
             strncpy(params_tag[n_param], "SSPModel", tag_length);
             params_addr[n_param] = run_params->SSPModel;
             required_tag[n_param] = 1;
@@ -581,6 +586,76 @@ void read_parameter_file(char* fname, int mode)
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_INT;
 
+            strncpy(params_tag[n_param], "Flag_IncludeSpinTemp", tag_length);
+            params_addr[n_param] = &(run_params->Flag_IncludeSpinTemp);
+            required_tag[n_param] = 1;
+            params_type[n_param++] = PARAM_TYPE_INT;
+
+            strncpy(params_tag[n_param], "Flag_IncludeRecombinations", tag_length);
+            params_addr[n_param] = &(run_params->Flag_IncludeRecombinations);
+            required_tag[n_param] = 1;
+            params_type[n_param++] = PARAM_TYPE_INT;
+
+            strncpy(params_tag[n_param], "Flag_Compute21cmBrightTemp", tag_length);
+            params_addr[n_param] = &(run_params->Flag_Compute21cmBrightTemp);
+            required_tag[n_param] = 1;
+            params_type[n_param++] = PARAM_TYPE_INT;
+
+            strncpy(params_tag[n_param], "NUM_FILTER_STEPS_FOR_Ts", tag_length);
+            params_addr[n_param] = &(run_params->NUM_FILTER_STEPS_FOR_Ts);
+            required_tag[n_param] = 1;
+            params_type[n_param++] = PARAM_TYPE_INT;
+
+            strncpy(params_tag[n_param], "Flag_ComputePS", tag_length);
+            params_addr[n_param] = &(run_params->Flag_ComputePS);
+            required_tag[n_param] = 1;
+            params_type[n_param++] = PARAM_TYPE_INT;
+
+            strncpy(params_tag[n_param], "Flag_IncludePecVelsFor21cm", tag_length);
+            params_addr[n_param] = &(run_params->Flag_IncludePecVelsFor21cm);
+            required_tag[n_param] = 1;
+            params_type[n_param++] = PARAM_TYPE_INT;
+
+            strncpy(params_tag[n_param], "VelocityComponent", tag_length);
+            params_addr[n_param] = &(run_params->VelocityComponent);
+            required_tag[n_param] = 1;
+            params_type[n_param++] = PARAM_TYPE_INT;
+
+            strncpy(params_tag[n_param], "Flag_ConstructLightcone", tag_length);
+            params_addr[n_param] = &(run_params->Flag_ConstructLightcone);
+            required_tag[n_param] = 1;
+            params_type[n_param++] = PARAM_TYPE_INT;
+
+            strncpy(params_tag[n_param], "t_star", tag_length);
+            params_addr[n_param] = &(run_params->t_star);
+            required_tag[n_param] = 1;
+            params_type[n_param++] = PARAM_TYPE_DOUBLE;
+
+            strncpy(params_tag[n_param], "End_Lightcone", tag_length);
+            params_addr[n_param] = &(run_params->End_Lightcone);
+            required_tag[n_param] = 1;
+            params_type[n_param++] = PARAM_TYPE_DOUBLE;
+
+            strncpy(params_tag[n_param], "End_Lightcone_snapshot", tag_length);
+            params_addr[n_param] = &(run_params->End_Lightcone_snapshot);
+            required_tag[n_param] = 1;
+            params_type[n_param++] = PARAM_TYPE_INT;
+
+            strncpy(params_tag[n_param], "LightconeLength", tag_length);
+            params_addr[n_param] = &(run_params->LightconeLength);
+            required_tag[n_param] = 1;
+            params_type[n_param++] = PARAM_TYPE_LONGLONG;
+
+            strncpy(params_tag[n_param], "CurrentLCPos", tag_length);
+            params_addr[n_param] = &(run_params->CurrentLCPos);
+            required_tag[n_param] = 1;
+            params_type[n_param++] = PARAM_TYPE_LONGLONG;
+
+            strncpy(params_tag[n_param], "SEP_QSO_XRAY", tag_length);
+            params_addr[n_param] = &(run_params->SEP_QSO_XRAY);
+            required_tag[n_param] = 1;
+            params_type[n_param++] = PARAM_TYPE_INT;
+
             strncpy(params_tag[n_param], "Flag_OutputGrids", tag_length);
             params_addr[n_param] = &(run_params->Flag_OutputGrids);
             required_tag[n_param] = 1;
@@ -603,6 +678,11 @@ void read_parameter_file(char* fname, int mode)
 
             strncpy(params_tag[n_param], "ReionRBubbleMax", tag_length);
             params_addr[n_param] = &(run_params->physics).ReionRBubbleMax;
+            required_tag[n_param] = 1;
+            params_type[n_param++] = PARAM_TYPE_DOUBLE;
+
+            strncpy(params_tag[n_param], "ReionRBubbleMax_Recomb", tag_length);
+            params_addr[n_param] = &(run_params->physics).ReionRBubbleMax_Recomb;
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
@@ -676,6 +756,11 @@ void read_parameter_file(char* fname, int mode)
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_INT;
 
+            strncpy(params_tag[n_param], "HeatingFilterType", tag_length);
+            params_addr[n_param] = &(run_params->HeatingFilterType);
+            required_tag[n_param] = 1;
+            params_type[n_param++] = PARAM_TYPE_INT;
+
             strncpy(params_tag[n_param], "ReionPowerSpecDeltaK", tag_length);
             params_addr[n_param] = &(run_params->ReionPowerSpecDeltaK);
             required_tag[n_param] = 1;
@@ -698,6 +783,51 @@ void read_parameter_file(char* fname, int mode)
 
             strncpy(params_tag[n_param], "Y_He", tag_length);
             params_addr[n_param] = &(run_params->physics).Y_He;
+            required_tag[n_param] = 1;
+            params_type[n_param++] = PARAM_TYPE_DOUBLE;
+
+            strcpy(params_tag[n_param], "Z_HEAT_MAX");
+            params_addr[n_param] = &(run_params->physics).Z_HEAT_MAX;
+            required_tag[n_param] = 1;
+            params_type[n_param++] = PARAM_TYPE_DOUBLE;
+
+            strcpy(params_tag[n_param], "L_X_GAL");
+            params_addr[n_param] = &(run_params->physics).L_X_GAL;
+            required_tag[n_param] = 1;
+            params_type[n_param++] = PARAM_TYPE_DOUBLE;
+
+            strcpy(params_tag[n_param], "NU_X_GAL_THRESH");
+            params_addr[n_param] = &(run_params->physics).NU_X_GAL_THRESH;
+            required_tag[n_param] = 1;
+            params_type[n_param++] = PARAM_TYPE_DOUBLE;
+            
+            strcpy(params_tag[n_param], "X_RAY_SPEC_INDEX_GAL");
+            params_addr[n_param] = &(run_params->physics).X_RAY_SPEC_INDEX_GAL;
+            required_tag[n_param] = 1;
+            params_type[n_param++] = PARAM_TYPE_DOUBLE;
+
+            strcpy(params_tag[n_param], "L_X_QSO");
+            params_addr[n_param] = &(run_params->physics).L_X_QSO;
+            required_tag[n_param] = 1;
+            params_type[n_param++] = PARAM_TYPE_DOUBLE;
+
+            strcpy(params_tag[n_param], "NU_X_QSO_THRESH");
+            params_addr[n_param] = &(run_params->physics).NU_X_QSO_THRESH;
+            required_tag[n_param] = 1;
+       	    params_type[n_param++] = PARAM_TYPE_DOUBLE;
+
+            strcpy(params_tag[n_param], "X_RAY_SPEC_INDEX_QSO");
+            params_addr[n_param] = &(run_params->physics).X_RAY_SPEC_INDEX_QSO;
+            required_tag[n_param] = 1;
+            params_type[n_param++] = PARAM_TYPE_DOUBLE;
+
+            strcpy(params_tag[n_param], "NU_X_BAND_MAX");
+            params_addr[n_param] = &(run_params->physics).NU_X_BAND_MAX;
+            required_tag[n_param] = 1;
+            params_type[n_param++] = PARAM_TYPE_DOUBLE;
+
+            strcpy(params_tag[n_param], "NU_X_MAX");
+            params_addr[n_param] = &(run_params->physics).NU_X_MAX;
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_DOUBLE;
 

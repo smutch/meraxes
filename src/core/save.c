@@ -951,7 +951,9 @@ void write_snapshot(
         free(first_progenitor_index);
         free(next_progenitor_index);
         free(descendant_index);
+
     } else {
+
         gal = run_globals.FirstGal;
         while (gal != NULL) {
             if (pass_write_check(gal, false))
@@ -1004,7 +1006,7 @@ void write_snapshot(
     // Free the output buffer
     free(output_buffer);
 
-    if (run_globals.params.Flag_PatchyReion && check_if_reionization_ongoing() && (run_globals.params.Flag_OutputGrids))
+    if (run_globals.params.Flag_PatchyReion && check_if_reionization_ongoing(run_globals.ListOutputSnaps[i_out]) && (run_globals.params.Flag_OutputGrids))
         save_reion_output_grids(run_globals.ListOutputSnaps[i_out]);
 
     // Close the group.
