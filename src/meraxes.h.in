@@ -734,6 +734,7 @@ void initialize_halo_storage(void);
 
 void dracarys(void);
 int evolve_galaxies(fof_group_t* fof_group, int snapshot, int NGal, int NFof);
+int constant_shmr(fof_group_t* fof_group, int snapshot, int NGal, int NFof);
 void passively_evolve_ghost(galaxy_t* gal, int snapshot);
 galaxy_t* new_galaxy(int snapshot, unsigned long halo_ID);
 void create_new_galaxy(int snapshot, halo_t* halo, int* NGal, int* new_gal_counter, int* merger_counter);

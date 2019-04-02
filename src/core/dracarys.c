@@ -239,7 +239,7 @@ void dracarys()
                 // after calculating it. This is because we will decrement the clock
                 // (by the same amount) when checking for mergers in evolve.c
                 gal->MergerTarget = gal->FirstGalInHalo;
-                gal->MergTime = calculate_merging_time(gal, snapshot);
+                gal->MergTime = 0.0;
                 gal->MergTime += gal->dt;
             }
             gal = gal->Next;
@@ -295,7 +295,7 @@ void dracarys()
 
         // Do the physics
         if (NGal > 0)
-            nout_gals = evolve_galaxies(fof_group, snapshot, NGal, trees_info.n_fof_groups);
+            nout_gals = constant_shmr(fof_group, snapshot, NGal, trees_info.n_fof_groups);
         else
             nout_gals = 0;
 
