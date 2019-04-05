@@ -347,6 +347,7 @@ typedef struct halo_t {
     int Type; //!< Type (0 for central, 1 for satellite)
     int SnapOffset; //!< Number of snapshots this halo skips before reappearing
     int DescIndex; //!< Index of descendant in next relevant snapshot
+    int ProgIndex; //!< Index of progenitor in previous relevant snapshot
     int TreeFlags; //!< Bitwise flag indicating the type of match in the trees
     int Len; //!< Number of particles in the structure
 } halo_t;

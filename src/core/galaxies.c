@@ -180,28 +180,17 @@ void connect_galaxy_and_halo(galaxy_t* gal, halo_t* halo, int* merger_counter)
 
         galaxy_t* parent = NULL;
         galaxy_t* infaller = NULL;
-        switch (run_globals.params.TreesID) {
-        case GBPTREES_TREES:
-            // For gbpTrees, we have the merger flags to give us guidance.  Let's use them...
-            // TODO: Make sure I don't need to turn off the merger flag...
-            parent = check_for_flag(TREE_CASE_MERGER, gal->TreeFlags) ? halo->Galaxy : gal;
-            infaller = halo->Galaxy == parent ? gal : halo->Galaxy;
-            assert(check_for_flag(TREE_CASE_MERGER, infaller->TreeFlags));
-            break;
-
-        case VELOCIRAPTOR_TREES:
-            // There are a number of criterion we could use here. For now,
-            // let's say the galaxy with the least massive halo at the last
-            // snapshot it was identified is the one which is merging into another
-            // object.
-            parent = halo->Galaxy->Mvir >= gal->Mvir ? halo->Galaxy : gal;
-            infaller = halo->Galaxy == parent ? gal : halo->Galaxy;
-            break;
-
-        default:
-            mlog_error("Unrecognised input trees identifier (TreesID).");
-            break;
+        if (run_globals.params.TreesID == VELOCIRAPTOR_TREES) {
+            if (gal->HaloDescIndex == halo->ProgIndex)
+                halo->TreeFlags |= TREE_CASE_MAIN_PROGENITOR;
+            else
+                halo->TreeFlags |= TREE_CASE_MERGER;
         }
+
+        // TODO: Make sure I don't need to turn off the merger flag...
+        parent = check_for_flag(TREE_CASE_MERGER, gal->TreeFlags) ? halo->Galaxy : gal;
+        infaller = halo->Galaxy == parent ? gal : halo->Galaxy;
+        assert(check_for_flag(TREE_CASE_MERGER, infaller->TreeFlags));
 
         infaller->Type = 2;
         // Make sure the halo is pointing to the right galaxy
