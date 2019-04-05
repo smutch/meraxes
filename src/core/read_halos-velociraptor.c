@@ -1,4 +1,5 @@
 #include "meraxes.h"
+#include "tree_flags.h"
 #include <assert.h>
 #include <hdf5_hl.h>
 #include <math.h>
@@ -85,12 +86,11 @@ void read_trees__velociraptor(int snapshot, halo_t* halos, int* n_halos, fof_gro
 {
     // TODO: For the moment, I'll forgo chunking the read.  This will need to
     // be implemented in future though, as we ramp up the size of the
-    // simulations...
-
     //! Tree entry struct
     typedef struct tree_entry_t {
         long ForestID;
         long Head;
+        long Tail;
         long hostHaloID;
         double Mass_200crit;
         double Mass_tot;
@@ -108,6 +108,8 @@ void read_trees__velociraptor(int snapshot, halo_t* halos, int* n_halos, fof_gro
         unsigned long ID;
         unsigned long npart;
     } tree_entry_t;
+
+    // simulations...
 
     mlog("Reading velociraptor trees for snapshot %d...", MLOG_OPEN, snapshot);
 
@@ -138,8 +140,12 @@ void read_trees__velociraptor(int snapshot, halo_t* halos, int* n_halos, fof_gro
 
         void* buffer = malloc(n_tree_entries * sizeof(long));
 
+        // TODO(trees): Read tail.  If head<->tail then first progenitor line, else it's a merger.  We should populate the new halo and then do a standard merger prescription.
+        // TODO(trees): Cont here...
+
         READ_TREE_ENTRY_PROP(ForestID, long, H5T_NATIVE_LONG);
         READ_TREE_ENTRY_PROP(Head, long, H5T_NATIVE_LONG);
+        READ_TREE_ENTRY_PROP(Tail, long, H5T_NATIVE_LONG);
         READ_TREE_ENTRY_PROP(hostHaloID, long, H5T_NATIVE_LONG);
         READ_TREE_ENTRY_PROP(Mass_200crit, double, H5T_NATIVE_DOUBLE);
         READ_TREE_ENTRY_PROP(Mass_tot, double, H5T_NATIVE_DOUBLE);
@@ -211,9 +217,13 @@ void read_trees__velociraptor(int snapshot, halo_t* halos, int* n_halos, fof_gro
 
             halo->ID = tree_entry.ID;
             halo->DescIndex = id_to_ind(tree_entry.Head);
+            halo->ProgIndex = id_to_ind(tree_entry.Tail);
             halo->NextHaloInFOFGroup = NULL;
-            halo->Type = tree_entry.hostHaloID == -1 ? 0 : 1;
-            halo->SnapOffset = id_to_snap(tree_entry.Head) - snapshot;
+
+            // Any other tree flags need to be set using both the current and
+            // progenitor halo information (stored in the galaxy), therefore we
+            // need to leave setting those until later...
+            halo->TreeFlags = tree_entry.Tail != tree_entry.ID ? 0 : TREE_CASE_NO_PROGENITORS;
 
             // Here we have a cyclic pointer, indicating that this halo's life ends here
             if (tree_entry.Head == tree_entry.ID)
