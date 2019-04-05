@@ -364,6 +364,7 @@ void read_trees__gbptrees(
                 cur_halo->TreeFlags = cur_tree_entry->flags;
                 cur_halo->SnapOffset = cur_tree_entry->file_offset;
                 cur_halo->DescIndex = cur_tree_entry->desc_index;
+                cur_halo->ProgIndex = -1;  // This information is used in the VELOCIraptor trees, but not here.
                 cur_halo->NextHaloInFOFGroup = NULL;
 
                 if (index_lookup)
