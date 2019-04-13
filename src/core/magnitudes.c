@@ -7,6 +7,7 @@
 enum core {MASTER};
 
 void init_luminosities(galaxy_t *gal) {
+    // Initialise all elements of flux arrays to TOL.
     double *inBCFlux = gal->inBCFlux;
     double *outBCFlux = gal->outBCFlux;
 
@@ -16,12 +17,13 @@ void init_luminosities(galaxy_t *gal) {
     }
 }
 
-void add_luminosities(mag_params_t *miniSpectra, galaxy_t *gal,
-                      int snapshot, double metals, double sfr) {
-    /* Add luminosities when there is a burst
-     *   -SFRs should be in a unit of M_solar/yr. However, one can convert the unit on
-     *    final results rather than here in order to achieve better performance 
-     */
+void add_luminosities(
+    mag_params_t *miniSpectra, galaxy_t *gal, int snapshot, double metals, double sfr
+) {
+    // Add luminosities when there is a burst. SFRs in principal should be in a
+    // unit of M_solar/yr. However, one can convert the unit on final results
+    // rather than here in order to achieve better performance.
+
     // Compute integer metallicity
     int Z = (int)(metals*1000 - .5);
     if (Z < miniSpectra->minZ)
@@ -72,8 +74,8 @@ void add_luminosities(mag_params_t *miniSpectra, galaxy_t *gal,
 }
 
 void merge_luminosities(galaxy_t *target, galaxy_t *gal) {
-    /* Sum fluexs together when a merge happens
-     */
+    // Sum fluexs together when a merge happens.
+
     double *inBCFluxTgt = target->inBCFlux;
     double *outBCFluxTgt = target->outBCFlux;
     double *inBCFlux = gal->inBCFlux;
@@ -85,10 +87,16 @@ void merge_luminosities(galaxy_t *target, galaxy_t *gal) {
     }
 }
 
-void init_templates_mini(mag_params_t *miniSpectra, char *fName,
-                         double *LTTime, int *targetSnap, double *redshifts,
-                         double *betaBands, int nBeta, double *restBands, int nRest,
-                         double tBC) {
+void init_templates_mini(
+    mag_params_t *miniSpectra, char *fName, double *LTTime, int *targetSnap, double *redshifts,
+    double *betaBands, int nBeta, double *restBands, int nRest, double tBC
+) {
+    // This function first initialises all the full SED templates defined by
+    // ``sed_params_t`` at given snapshots, and then transfer them to
+    // ``mag_params_t``, which only contains necessary data for on-the-fly
+    // luminosity calculations. It stores all arrays in a contiguous memory
+    // block.
+
     // Initialise full templates
     int iA, iS;
     struct sed_params_t spectra[MAGS_N_SNAPS];
@@ -97,29 +105,29 @@ void init_templates_mini(mag_params_t *miniSpectra, char *fName,
 
     for(iS = 0; iS < MAGS_N_SNAPS; ++iS) {
         nAgeStep = targetSnap[iS];
-        //// Initialise raw templates
+        // Initialise raw templates
         init_templates_raw(spectra + iS, fName);
-        //// Initialise filters
+        // Initialise filters
         init_filters(spectra + iS, betaBands, nBeta, restBands, nRest,
                      NULL, NULL, NULL, 0, 1. + redshifts[iS]);
         if (spectra[iS].nFlux != MAGS_N_BANDS) {
             printf("MAGS_N_BANDS does not match!\n");
             exit(EXIT_FAILURE);
         }
-        //// Initialise time step
+        // Initialise time step
         spectra[iS].nAgeStep = nAgeStep;
         ageStep = (double*)malloc(nAgeStep*sizeof(double));
-        ////   -Should be in a unit of yr
+        //   -Should be in a unit of yr
         for(int iA = 0; iA < nAgeStep; ++iA)
             ageStep[iA] = LTTime[nAgeStep - iA - 1] - LTTime[nAgeStep];
         spectra[iS].ageStep = ageStep;
-        ////   -This function may be omitted
+        //   -This function may be omitted
         shrink_templates_raw(spectra + iS, ageStep[nAgeStep - 1]);
-        ////   -Disable IGM absorption
+        //   -Disable IGM absorption
         spectra[iS].igm = 0;
-        //// Integrate templates over given time steps
+        // Integrate templates over given time steps
         init_templates_integrated(spectra + iS);
-        //// Initialise working templates
+        // Initialise working templates
         spectra[iS].ready = \
         (double*)malloc(spectra[iS].nZ*nAgeStep*spectra[iS].nWaves*sizeof(double));
         spectra[iS].working = \
@@ -139,24 +147,24 @@ void init_templates_mini(mag_params_t *miniSpectra, char *fName,
     int offsetOutBC = 0;
     int offsetWaves = 0;
 
-    //// Compute size of working templates
+    // Compute size of working templates
     for(iS = 0; iS < MAGS_N_SNAPS; ++iS)
         totalSize += targetSnap[iS];
     totalSize *= nMaxZ*MAGS_N_BANDS;
-    //// Compute size of special templates
+    // Compute size of special templates
     totalSize += 2*MAGS_N_SNAPS*nMaxZ*MAGS_N_BANDS;
-    ///  Compute size of wavelengths
+    //  Compute size of wavelengths
     totalSize += 2*MAGS_N_BANDS;
     totalSize *= sizeof(double);
-    ////
+    //
     working = (double*)malloc(totalSize);
-    //// Copy working templates
+    // Copy working templates
     for(iS = 0; iS < MAGS_N_SNAPS; ++iS) {
         nSize = targetSnap[iS]*nMaxZ*MAGS_N_BANDS;
         memcpy(working + offsetWorking, spectra[iS].working, nSize*sizeof(double));
         offsetWorking += nSize;
     }
-    //// Copy special templates
+    // Copy special templates
     offsetInBC = offsetWorking;
     for(iS = 0; iS < MAGS_N_SNAPS; ++iS) {
         nSize = nMaxZ*MAGS_N_BANDS;
@@ -169,12 +177,12 @@ void init_templates_mini(mag_params_t *miniSpectra, char *fName,
         memcpy(working + offsetOutBC, spectra[iS].outBC, nSize*sizeof(double));
         offsetOutBC += nSize;
     }
-    //// Copy wavelengths (same at each target snapshot)
+    // Copy wavelengths (same at each target snapshot)
     offsetWaves = offsetOutBC;
     memcpy(working + offsetWaves, spectra->centreWaves, MAGS_N_BANDS*sizeof(double));
     offsetWaves += MAGS_N_BANDS;
     memcpy(working + offsetWaves, spectra->logWaves, MAGS_N_BANDS*sizeof(double));
-    //// Set attributes
+    // Set attributes
     memcpy(miniSpectra->targetSnap, targetSnap, MAGS_N_SNAPS*sizeof(int));
     miniSpectra->nBeta = nBeta;
     miniSpectra->nRest = nRest;
@@ -182,10 +190,11 @@ void init_templates_mini(mag_params_t *miniSpectra, char *fName,
     miniSpectra->maxZ = spectra->maxZ;
     miniSpectra->nMaxZ = nMaxZ;
     miniSpectra->tBC = tBC;
-    ////   -Find the interval for birth cloud
+    // Find the interval for birth cloud
     for(iS = 0; iS < MAGS_N_SNAPS; ++iS)
-        miniSpectra->iAgeBC[iS] = \
-        birth_cloud_interval(tBC, spectra[iS].ageStep, spectra[iS].nAgeStep);
+        miniSpectra->iAgeBC[iS] = birth_cloud_interval(
+            tBC, spectra[iS].ageStep, spectra[iS].nAgeStep
+        );
     miniSpectra->totalSize = totalSize;
     miniSpectra->working = working;
     miniSpectra->inBC = working + offsetWorking;
@@ -213,6 +222,9 @@ void init_templates_mini(mag_params_t *miniSpectra, char *fName,
 }
 
 void init_magnitudes(void) {
+    // Initalise the primary data strcture (``mag_params_t``) for on-the-fly
+    // luminosity calcuations.
+
     int mpi_rank = run_globals.mpi_rank;
     mag_params_t *mag_params = &run_globals.mag_params;
 
@@ -300,10 +312,9 @@ void init_magnitudes(void) {
         printf("#***********************************************************\n\n");
 
         // Initialise SED templates
-        ////
         char *fname = params->PhotometricTablesDir;
         strcat(fname, "/sed_library.hdf5");
-        ////Convert time unit to yr
+        // Convert time unit to yr
         int snaplist_len = params->SnaplistLength;
         double *LTTime = malloc(snaplist_len*sizeof(double));
         double time_unit = run_globals.units.UnitTime_in_Megayears/params->Hubble_h*1e6;
@@ -311,9 +322,11 @@ void init_magnitudes(void) {
         memcpy(LTTime, run_globals.LTTime, snaplist_len*sizeof(double));
         for(int i_time = 0; i_time < snaplist_len; ++i_time)
             LTTime[i_time] *= time_unit;
-        ////
-        init_templates_mini(mag_params, fname, LTTime, target_snaps, run_globals.ZZ,
-                            beta_bands, n_beta, rest_bands, n_rest, params->BirthCloudLifetime);
+        //
+        init_templates_mini(
+            mag_params, fname, LTTime, target_snaps, run_globals.ZZ,
+            beta_bands, n_beta, rest_bands, n_rest, params->BirthCloudLifetime
+        );
     }
 
     // Broadcast parameters to all cores
@@ -360,6 +373,8 @@ void cleanup_mags(void) {
 }
 
 void get_output_magnitudes(float *target, galaxy_t *gal, int snapshot) {
+    // Convert fluxes to AB magnitudes at all target snapshots.
+
     // Check if ``snapshot`` is a target snapshot
     int iS;
     int *targetSnap = run_globals.mag_params.targetSnap;
@@ -374,17 +389,15 @@ void get_output_magnitudes(float *target, galaxy_t *gal, int snapshot) {
             pOutBCFlux += MAGS_N_BANDS;
         }
     }
-
+    // Correct the unit of SFRs and convert fluxes to magnitudes
     if (iS != MAGS_N_SNAPS) {
-        // Convert fluxes to magnitudes
-        //   -Convert the unit of SFRs
         double mags[MAGS_N_BANDS];
-        double sfr_unit = -2.5*log10(run_globals.units.UnitMass_in_g
-                                     /run_globals.units.UnitTime_in_s
-                                     *SEC_PER_YEAR/SOLAR_MASS);
+        double sfr_unit = -2.5*log10(
+            run_globals.units.UnitMass_in_g/run_globals.units.UnitTime_in_s*SEC_PER_YEAR/SOLAR_MASS
+        );
         for(int i_band = 0; i_band < MAGS_N_BANDS; ++i_band)
-            target[i_band] = (float)(-2.5*log10(pInBCFlux[i_band] + pOutBCFlux[i_band]) + 8.9 \
-                                     + sfr_unit);
+            target[i_band] = \
+            (float)(-2.5*log10(pInBCFlux[i_band] + pOutBCFlux[i_band]) + 8.9 + sfr_unit);
     }
 }
 #endif
