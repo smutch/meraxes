@@ -219,6 +219,7 @@ void read_trees__velociraptor(int snapshot, halo_t* halos, int* n_halos, fof_gro
             halo->DescIndex = id_to_ind(tree_entry.Head);
             halo->ProgIndex = id_to_ind(tree_entry.Tail);
             halo->NextHaloInFOFGroup = NULL;
+            halo->Type = (tree_entry.hostHaloID == tree_entry.ID) ? 0 : 1;
 
             // Any other tree flags need to be set using both the current and
             // progenitor halo information (stored in the galaxy), therefore we
