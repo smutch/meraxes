@@ -188,17 +188,26 @@ void connect_galaxy_and_halo(galaxy_t* gal, halo_t* halo, int* merger_counter)
 
         galaxy_t* parent = NULL;
         galaxy_t* infaller = NULL;
-        if (run_globals.params.TreesID == VELOCIRAPTOR_TREES) {
-            if (gal->HaloDescIndex == halo->ProgIndex)
-                halo->TreeFlags |= TREE_CASE_MAIN_PROGENITOR;
-            else
-                halo->TreeFlags |= TREE_CASE_MERGER;
-        }
 
-        // TODO: Make sure I don't need to turn off the merger flag...
-        parent = check_for_flag(TREE_CASE_MERGER, gal->TreeFlags) ? halo->Galaxy : gal;
-        infaller = halo->Galaxy == parent ? gal : halo->Galaxy;
-        assert(check_for_flag(TREE_CASE_MERGER, infaller->TreeFlags));
+        switch (run_globals.params.TreesID) {
+        case GBPTREES_TREES:
+            // For gbpTrees, we have the merger flags to give us guidance.  Let's use them...
+            // TODO: Make sure I don't need to turn off the merger flag...
+            parent = check_for_flag(TREE_CASE_MERGER, gal->TreeFlags) ? halo->Galaxy : gal;
+            infaller = halo->Galaxy == parent ? gal : halo->Galaxy;
+            assert(check_for_flag(TREE_CASE_MERGER, infaller->TreeFlags));
+            break;
+
+        case VELOCIRAPTOR_TREES:
+            // For VELOCIraptor we have some guidance in the form of the progenitor indices.
+            parent = gal->HaloDescIndex == halo->ProgIndex ? gal : halo->Galaxy;
+            infaller = halo->Galaxy == parent ? gal : halo->Galaxy;
+            break;
+
+        default:
+            mlog_error("Unrecognised input trees identifier (TreesID).");
+            break;
+        }
 
         infaller->Type = 2;
         // Make sure the halo is pointing to the right galaxy
