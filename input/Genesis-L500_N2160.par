@@ -172,9 +172,9 @@ BaryonFrac: 0.15714
 Hubble_h: 0.6751
 SpectralIndex: 0.968
 Sigma8: 0.815
-PartMass: 0.004130523
+PartMass: 0.10744
 wLambda: -1.0
-NPart: 134217728
+NPart: 10077696000
 
 UnitLength_in_cm         : 3.08568e+24       # WATCH OUT : Mpc/h
 UnitMass_in_g            : 1.989e+43         # WATCH OUT : 10^10Msun/h
