@@ -180,6 +180,9 @@ void merge_with_target(galaxy_t* gal, int* dead_gals, int snapshot)
     for (int ii = 0; ii < N_HISTORY_SNAPS; ii++)
         parent->NewStars[ii] += gal->NewStars[ii];
 
+    for (int ii = 0; ii < N_HISTORY_SNAPS; ii++)
+        parent->NewMetals[ii] += gal->NewMetals[ii];
+
     for (int outputbin = 0; outputbin < run_globals.NOutputSnaps; outputbin++)
         sum_luminosities(parent, gal, outputbin);
 
