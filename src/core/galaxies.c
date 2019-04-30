@@ -192,7 +192,24 @@ void connect_galaxy_and_halo(galaxy_t* gal, halo_t* halo, int* merger_counter)
 
         case VELOCIRAPTOR_TREES:
             // For VELOCIraptor we have some guidance in the form of the progenitor indices.
-            parent = gal->HaloDescIndex == halo->ProgIndex ? gal : halo->Galaxy;
+
+            if (check_for_flag(TREE_CASE_NO_PROGENITORS)) {
+                // The host halo has been marked as having no progenitors.
+                // Since we have a merger though, their are clearly halos which
+                // think this is their descendant.  In this case, none of the
+                // halo progenitors are deemed to be good enough matches and so
+                // we can't use the pointers to select the main progenitor.
+                // Let's use the mass instead in this case.
+                //
+                // N.B. We haven't yet copied any halo properties into the
+                // galaxies and so the galaxy.Mvir values still correspond to
+                // the previous snapshot.
+                parent = gal->Mvir > halo->Galaxy->Mvir ? gal : halo->Galaxy;
+            } else {
+                // Here we can use the pointers.
+                parent = gal->HaloDescIndex == halo->ProgIndex ? gal : halo->Galaxy;
+            }
+
             infaller = halo->Galaxy == parent ? gal : halo->Galaxy;
             break;
 
