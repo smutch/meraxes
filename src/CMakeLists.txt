@@ -10,7 +10,7 @@ project(meraxes)
 # if set in local.cmake, compiler options must be added here, after the
 # project() call
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CXXFLAGS}")
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${CFLAGS}")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${CFLAGS} -Wno-format-overflow")
 
 include(${CMAKE_ROOT}/Modules/ExternalProject.cmake)
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
@@ -24,9 +24,9 @@ option(USE_BUNDLED_FFTW "Download and build against bundled fftw" OFF)
 option(BUILD_TESTS "Build criterion tests" OFF)
 
 # Build type
-set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -DDEBUG -Wall -O0")
-set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -march=native")
-set(CMAKE_C_FLAGS_RELWITHDEBINFO "${CMAKE_C_FLAGS_RELWITHDEBINFO} -Wall -march=native")
+set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -DDEBUG -Wall -O0 -Wno-unused-but-set-variable")
+set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -march=native -O3 -ffast-math")
+set(CMAKE_C_FLAGS_RELWITHDEBINFO "${CMAKE_C_FLAGS_RELWITHDEBINFO} -Wall -march=native -O3 -ffast-math")
 set(CMAKE_BUILD_TYPE "Debug" CACHE STRING "Build type.")
 
 if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)

@@ -342,7 +342,6 @@ void _find_HII_bubbles(double redshift)
 void find_HII_bubbles(int snapshot, timer_info* timer_total)
 {
     // Call the version of find_HII_bubbles we've been passed (and time it)
-    int flag_write_validation_data = false;
     double redshift = run_globals.ZZ[snapshot];
     timer_info timer;
 #ifdef USE_CUDA
@@ -353,6 +352,8 @@ void find_HII_bubbles(int snapshot, timer_info* timer_total)
 #endif
     // Run the GPU version of _find_HII_bubbles()
     timer_start(&timer);
+
+    int flag_write_validation_data = false;
     _find_HII_bubbles_gpu(redshift, flag_write_validation_data);
 #else
     // Run the Meraxes version of _find_HII_bubbles()
