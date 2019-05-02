@@ -47,27 +47,25 @@ static void read_requested_forest_ids()
     }
 
     if (run_globals.mpi_rank == 0) {
-        FILE* fin;
-        char* line = NULL;
-        size_t len;
-        int n_forests = -1;
-        int* ids;
 
+        FILE* fin;
         if (!(fin = fopen(run_globals.params.ForestIDFile, "r"))) {
             mlog_error("Failed to open file: %s", run_globals.params.ForestIDFile);
             ABORT(EXIT_FAILURE);
         }
 
+        char* line = NULL;
+        size_t len;
         getline(&line, &len, fin);
-        n_forests = atoi(line);
+        int n_forests = atoi(line);
         run_globals.NRequestedForests = n_forests;
 
         run_globals.RequestedForestId = malloc(sizeof(int) * n_forests);
-        ids = run_globals.RequestedForestId;
+        long* ids = run_globals.RequestedForestId;
 
         for (int ii = 0; ii < n_forests; ii++) {
             getline(&line, &len, fin);
-            ids[ii] = atoi(line);
+            ids[ii] = atol(line);
         }
 
         free(line);
@@ -90,7 +88,7 @@ static void read_snap_list()
         FILE* fin;
         int snaplist_len;
         double dummy;
-        char fname[STRLEN];
+        char fname[STRLEN+12];
         run_params_t params = run_globals.params;
 
         sprintf(fname, "%s/a_list.txt", params.SimulationDir);

@@ -22,7 +22,8 @@ void calculate_Mvir_crit(double redshift)
     float* z_at_ion = run_globals.reion_grids.z_at_ionization;
 
     // init
-    memset(Mvir_crit, 0, sizeof(float) * local_n_cell);
+    for(int ii=0; ii < local_n_cell; ii++)
+        Mvir_crit[ii] = 0.0;
 
     // Loop through each cell and calculate the value of Mvir_crit
     for (int ii = 0; ii < local_n_x; ii++) {

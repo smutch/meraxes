@@ -34,6 +34,11 @@ int compare_ints(const void* a, const void* b)
     return *((int*)a) - *((int*)b);
 }
 
+int compare_longs(const void* a, const void* b)
+{
+    return (int)(*((long*)a) - *((long*)b));
+}
+
 int compare_floats(const void* a, const void* b)
 {
     float value = *(float*)a - *(float*)b;
@@ -63,6 +68,11 @@ int compare_ptrdiff(const void* a, const void* b)
     ptrdiff_t result = *(ptrdiff_t*)a - *(ptrdiff_t*)b;
 
     return (int)result;
+}
+
+int compare_int_long(const void* a, const void* b)
+{
+    return (int)(*((int*)a) - *((long*)b));
 }
 
 int compare_slab_assign(const void* a, const void* b)

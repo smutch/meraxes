@@ -349,6 +349,7 @@ typedef struct halo_t {
     int Type; //!< Type (0 for central, 1 for satellite)
     int SnapOffset; //!< Number of snapshots this halo skips before reappearing
     int DescIndex; //!< Index of descendant in next relevant snapshot
+    int ProgIndex; //!< Index of progenitor in previous relevant snapshot
     int TreeFlags; //!< Bitwise flag indicating the type of match in the trees
     int Len; //!< Number of particles in the structure
 } halo_t;
@@ -567,7 +568,7 @@ typedef struct run_globals_t {
     double* AA;
     double* ZZ;
     double* LTTime;
-    int* RequestedForestId;
+    long* RequestedForestId;
     int RequestedMassRatioModifier;
     int RequestedBaryonFracModifier;
     int* ListOutputSnaps;
@@ -656,8 +657,10 @@ void calc_hdf5_props(void);
 void prepare_galaxy_for_output(galaxy_t gal, galaxy_output_t* galout, int i_snap);
 void read_photometric_tables(void);
 int compare_ints(const void* a, const void* b);
+int compare_longs(const void* a, const void* b);
 int compare_floats(const void* a, const void* b);
 int compare_ptrdiff(const void* a, const void* b);
+int compare_int_long(const void* a, const void* b);
 int compare_slab_assign(const void* a, const void* b);
 int searchsorted(void* val,
     void* arr,

@@ -217,7 +217,7 @@ void read_trees__gbptrees(
 
     char catalog_file_prefix[50];
     char simulation_dir[STRLEN];
-    char fname[STRLEN];
+    char fname[STRLEN+34];
     hid_t fd = 0;
     catalog_halo_t* catalog_buffer;
     catalog_halo_t* group_buffer;
@@ -348,7 +348,7 @@ void read_trees__gbptrees(
         for (int jj = 0; jj < n_to_read; jj++) {
             if (run_globals.RequestedForestId != NULL) {
                 if (bsearch(&(tree_buffer[jj].forest_id), run_globals.RequestedForestId,
-                        (size_t)n_requested_forests, sizeof(int), compare_ints)
+                        (size_t)n_requested_forests, sizeof(int), compare_int_long)
                     != NULL)
                     keep_flag = true;
                 else
@@ -364,6 +364,7 @@ void read_trees__gbptrees(
                 cur_halo->TreeFlags = cur_tree_entry->flags;
                 cur_halo->SnapOffset = cur_tree_entry->file_offset;
                 cur_halo->DescIndex = cur_tree_entry->desc_index;
+                cur_halo->ProgIndex = -1;  // This information is used in the VELOCIraptor trees, but not here.
                 cur_halo->NextHaloInFOFGroup = NULL;
 
                 if (index_lookup)
@@ -468,7 +469,7 @@ trees_info_t read_trees_info__gbptrees(int snapshot)
 
     if (run_globals.mpi_rank == 0) {
         // open the tree file
-        char fname[STRLEN];
+        char fname[STRLEN+34];
         hid_t fd;
 
         sprintf(fname, "%s/trees/horizontal_trees_%03d.hdf5", run_globals.params.SimulationDir, snapshot);

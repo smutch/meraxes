@@ -45,7 +45,7 @@ void read_cooling_functions()
     if (run_globals.mpi_rank == 0) {
         hid_t fd;
         char dset_name[30];
-        char fname[STRLEN];
+        char fname[STRLEN+11];
 
         sprintf(fname, "%s/SD93.hdf5", run_globals.params.CoolingFuncsDir);
         fd = H5Fopen(fname, H5F_ACC_RDONLY, H5P_DEFAULT);
