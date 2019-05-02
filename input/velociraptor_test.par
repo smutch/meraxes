@@ -98,7 +98,7 @@ MaxCoolingMassFactor      : 1.0     # maximum cooling mass factor (1 -> ff time)
 #   -Reincorporation time scales with halo mass (Henriques et al. 2013), and is always larger than the
 #    halo dynamic time
 #   -ReincorporationEff adopts the definition in Henriques et al. 2013, which differs from the first case
-#    and should be in unit of Myr
+#    and should be in a unit of Myr
 ReincorporationModel      : 1
 ReincorporationEff        : 0.0     # gas reincorporation efficiency from ejected component
 
@@ -133,7 +133,7 @@ quasar_open_angle         : 80.0
 #----- Reionization ---------------------------
 #----------------------------------------------
 
-Flag_ReionizationModifier  : 2    # use halo mass dependant infall modifier of Gnedin
+Flag_ReionizationModifier  : 1    # 0: No modifier, 1: Sobacchi 21cmFAST modifier, 2: use halo mass dependant infall modifier of Gnedin, 3: precomputed (requires input file)
 
 # global prescriptions
 ReionSobacchi_Zre      : 9.3
@@ -145,12 +145,12 @@ ReionGnedin_z0         : 8
 ReionGnedin_zr         : 7
 
 # patchy (21cmFAST) prescription
-Flag_PatchyReion       : 0
+Flag_PatchyReion       : 1  # Use 21cmFAST (ensure Flag_ReionizationModifier=1 if wish to couple to galaxy formation).
 Flag_OutputGrids       : 1
 Flag_OutputGridsPostReion  : 0
 
-ReionUVBFlag           : 1
-ReionGridDim           : 64
+ReionUVBFlag           : 1  # Use 21cmFAST (ensure Flag_ReionizationModifier=1 if wish to couple to galaxy formation).
+ReionGridDim           : 128
 ReionDeltaRFactor      : 1.1
 ReionFilterType        : 0
 ReionPowerSpecDeltaK   : 0.1
@@ -178,8 +178,6 @@ ReionSMParam_d         : 2.5
 
 ReionTcool             : 1.0e4  # Kelvin
 ReionNionPhotPerBary   : 4000
-
-
 
 
 #------------------------------------------------
