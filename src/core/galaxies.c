@@ -70,6 +70,9 @@ galaxy_t* new_galaxy(int snapshot, unsigned long halo_ID)
     for (int ii = 0; ii < N_HISTORY_SNAPS; ii++)
         gal->NewStars[ii] = 0.0;
 
+    for (int ii = 0; ii < N_HISTORY_SNAPS; ii++)
+        gal->NewMetals[ii] = 0.0;
+
     gal->output_index = -1;
     gal->ghost_flag = false;
 
@@ -135,7 +138,12 @@ void reset_galaxy_properties(galaxy_t* gal, int snapshot)
     for (int ii = N_HISTORY_SNAPS - 1; ii > 0; ii--)
         gal->NewStars[ii] = gal->NewStars[ii - 1];
 
+    for (int ii = N_HISTORY_SNAPS - 1; ii > 0; ii--)
+        gal->NewMetals[ii] = gal->NewMetals[ii - 1];
+
+
     gal->NewStars[0] = 0.0;
+    gal->NewMetals[0] = 0.0;
 }
 
 static void push_galaxy_to_halo(galaxy_t* gal, halo_t* halo)

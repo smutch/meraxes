@@ -103,21 +103,22 @@ typedef struct physics_params_t {
     double SfEfficiencyScaling;
     double SfCriticalSDNorm;
     double SfRecycleFraction;
+    int SnModel;
+    double SnReheatRedshiftDep;
     double SnReheatEff;
     double SnReheatLimit;
     double SnReheatScaling;
+    double SnReheatScaling2;
     double SnReheatNorm;
+    double SnEjectionRedshiftDep;
     double SnEjectionEff;
     double SnEjectionScaling;
+    double SnEjectionScaling2;
     double SnEjectionNorm;
     double MaxCoolingMassFactor;
+    int ReincorporationModel;
     double ReincorporationEff;
     double Yield;
-    double IMFSlope;
-    double EnergyPerSN;
-    double IMFNormConst;
-    double eta_SNII;
-    double frac_mass_SSP_above_SNII;
     double RadioModeEff;
     double QuasarModeEff;
     double BlackHoleGrowthRate;
@@ -199,6 +200,7 @@ typedef struct run_params_t {
     char FileWithOutputSnaps[STRLEN];
     char PhotometricTablesDir[STRLEN];
     char CoolingFuncsDir[STRLEN];
+    char StellarFeedbackDir[STRLEN];
     char SSPModel[STRLEN];
     char IMF[STRLEN];
     char MagSystem[STRLEN];
@@ -367,6 +369,7 @@ typedef struct galaxy_t {
 #endif
 
     double NewStars[N_HISTORY_SNAPS];
+    double NewMetals[N_HISTORY_SNAPS];
 
     // Unique ID for the galaxy
     unsigned long ID;
@@ -643,9 +646,7 @@ void insitu_star_formation(galaxy_t* gal, int snapshot);
 double pressure_dependent_star_formation(galaxy_t* gal, int snapshot);
 void update_reservoirs_from_sf(galaxy_t* gal, double new_stars);
 double sn_m_low(double log_dt);
-double calc_recycled_frac(double m_high, double m_low, double* burst_mass_frac);
 void delayed_supernova_feedback(galaxy_t* gal, int snapshot);
-void evolve_stellar_pops(galaxy_t* gal, int snapshot);
 void contemporaneous_supernova_feedback(galaxy_t* gal, double* m_stars, int snapshot, double* m_reheat, double* m_eject, double* m_recycled, double* new_metals);
 void update_reservoirs_from_sn_feedback(galaxy_t* gal, double m_reheat, double m_eject, double m_recycled, double new_metals);
 void prep_hdf5_file(void);
@@ -700,6 +701,18 @@ void merger_driven_BH_growth(galaxy_t* gal, double merger_ratio, int snapshot);
 void previous_merger_driven_BH_growth(galaxy_t* gal);
 double calculate_BHemissivity(double BlackHoleMass, double accreted_mass);
 void reincorporate_ejected_gas(galaxy_t* gal);
+
+// Numeric tools
+double interp(double xp, double *x, double *y, int nPts);
+double trapz_table(double *y, double *x, int nPts, double a, double b);
+
+// Stellar feedback related
+void read_stellar_feedback_tables(void);
+void compute_stellar_feedback_tables(int snapshot);
+double get_recycling_fraction(int i_burst, double metals);
+double get_metal_yield(int i_burst, double metals);
+double get_SN_energy(int i_burst, double metals);
+double get_total_SN_energy(void);
 
 // Magnitude related
 void init_luminosities(galaxy_t* gal);

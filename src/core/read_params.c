@@ -145,6 +145,11 @@ void read_parameter_file(char* fname, int mode)
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_STRING;
 
+            strncpy(params_tag[n_param], "StellarFeedbackDir", tag_length);
+            params_addr[n_param] = run_params->StellarFeedbackDir;
+            required_tag[n_param] = 1;
+            params_type[n_param++] = PARAM_TYPE_STRING;
+
             strncpy(params_tag[n_param], "SSPModel", tag_length);
             params_addr[n_param] = run_params->SSPModel;
             required_tag[n_param] = 1;
@@ -396,6 +401,16 @@ void read_parameter_file(char* fname, int mode)
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
+            strncpy(params_tag[n_param], "SnModel", tag_length);
+            params_addr[n_param] = &(run_params->physics).SnModel;
+            required_tag[n_param] = 1;
+            params_type[n_param++] = PARAM_TYPE_INT;
+
+            strncpy(params_tag[n_param], "SnEjectionRedshiftDep", tag_length);
+            params_addr[n_param] = &(run_params->physics).SnEjectionRedshiftDep;
+            required_tag[n_param] = 1;
+            params_type[n_param++] = PARAM_TYPE_DOUBLE;
+
             strncpy(params_tag[n_param], "SnEjectionEff", tag_length);
             params_addr[n_param] = &(run_params->physics).SnEjectionEff;
             required_tag[n_param] = 1;
@@ -406,8 +421,18 @@ void read_parameter_file(char* fname, int mode)
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
+            strncpy(params_tag[n_param], "SnEjectionScaling2", tag_length);
+            params_addr[n_param] = &(run_params->physics).SnEjectionScaling2;
+            required_tag[n_param] = 1;
+            params_type[n_param++] = PARAM_TYPE_DOUBLE;
+
             strncpy(params_tag[n_param], "SnEjectionNorm", tag_length);
             params_addr[n_param] = &(run_params->physics).SnEjectionNorm;
+            required_tag[n_param] = 1;
+            params_type[n_param++] = PARAM_TYPE_DOUBLE;
+
+            strncpy(params_tag[n_param], "SnReheatRedshiftDep", tag_length);
+            params_addr[n_param] = &(run_params->physics).SnReheatRedshiftDep;
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
@@ -426,10 +451,20 @@ void read_parameter_file(char* fname, int mode)
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
+            strncpy(params_tag[n_param], "SnReheatScaling2", tag_length);
+            params_addr[n_param] = &(run_params->physics).SnReheatScaling2;
+            required_tag[n_param] = 1;
+            params_type[n_param++] = PARAM_TYPE_DOUBLE;
+
             strncpy(params_tag[n_param], "SnReheatNorm", tag_length);
             params_addr[n_param] = &(run_params->physics).SnReheatNorm;
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_DOUBLE;
+
+            strncpy(params_tag[n_param], "ReincorporationModel", tag_length);
+            params_addr[n_param] = &(run_params->physics).ReincorporationModel;
+            required_tag[n_param] = 1;
+            params_type[n_param++] = PARAM_TYPE_INT;
 
             strncpy(params_tag[n_param], "ReincorporationEff", tag_length);
             params_addr[n_param] = &(run_params->physics).ReincorporationEff;
@@ -443,31 +478,6 @@ void read_parameter_file(char* fname, int mode)
 
             strncpy(params_tag[n_param], "Yield", tag_length);
             params_addr[n_param] = &(run_params->physics).Yield;
-            required_tag[n_param] = 1;
-            params_type[n_param++] = PARAM_TYPE_DOUBLE;
-
-            strncpy(params_tag[n_param], "IMFSlope", tag_length);
-            params_addr[n_param] = &(run_params->physics).IMFSlope;
-            required_tag[n_param] = 1;
-            params_type[n_param++] = PARAM_TYPE_DOUBLE;
-
-            strncpy(params_tag[n_param], "EnergyPerSN", tag_length);
-            params_addr[n_param] = &(run_params->physics).EnergyPerSN;
-            required_tag[n_param] = 1;
-            params_type[n_param++] = PARAM_TYPE_DOUBLE;
-
-            strncpy(params_tag[n_param], "IMFNormConst", tag_length);
-            params_addr[n_param] = &(run_params->physics).IMFNormConst;
-            required_tag[n_param] = 1;
-            params_type[n_param++] = PARAM_TYPE_DOUBLE;
-
-            strncpy(params_tag[n_param], "eta_SNII", tag_length);
-            params_addr[n_param] = &(run_params->physics).eta_SNII;
-            required_tag[n_param] = 1;
-            params_type[n_param++] = PARAM_TYPE_DOUBLE;
-
-            strncpy(params_tag[n_param], "frac_mass_SSP_above_SNII", tag_length);
-            params_addr[n_param] = &(run_params->physics).frac_mass_SSP_above_SNII;
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
