@@ -201,7 +201,7 @@ void connect_galaxy_and_halo(galaxy_t* gal, halo_t* halo, int* merger_counter)
         case VELOCIRAPTOR_TREES:
             // For VELOCIraptor we have some guidance in the form of the progenitor indices.
 
-            if (check_for_flag(TREE_CASE_NO_PROGENITORS)) {
+            if (check_for_flag(TREE_CASE_NO_PROGENITORS, halo->TreeFlags)) {
                 // The host halo has been marked as having no progenitors.
                 // Since we have a merger though, their are clearly halos which
                 // think this is their descendant.  In this case, none of the

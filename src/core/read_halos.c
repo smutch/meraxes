@@ -59,29 +59,29 @@ static void reorder_forest_longs(long* arr, const size_t* sort_ind, int n_forest
 /**
  * Dump the RequestedForestId lists for all ranks.
  */
-static void dump_forest_list()
-{
-    for (int i_rank=0; i_rank < run_globals.mpi_size; ++i_rank) {
-        if (i_rank == run_globals.mpi_rank) {
-            hid_t fd;
-            const char fname[] = "requested_forest_ids.h5";
+// static void dump_forest_list()
+// {
+//     for (int i_rank=0; i_rank < run_globals.mpi_size; ++i_rank) {
+//         if (i_rank == run_globals.mpi_rank) {
+//             hid_t fd;
+//             const char fname[] = "requested_forest_ids.h5";
 
-            if (run_globals.mpi_rank == 0)
-                fd = H5Fcreate(fname, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
-            else
-                fd = H5Fopen(fname, H5F_ACC_RDWR, H5P_DEFAULT);
+//             if (run_globals.mpi_rank == 0)
+//                 fd = H5Fcreate(fname, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
+//             else
+//                 fd = H5Fopen(fname, H5F_ACC_RDWR, H5P_DEFAULT);
 
 
-            char name[50];
-            sprintf(name, "core%03d", run_globals.mpi_rank);
-            H5LTmake_dataset_long(fd, name, 1, (hsize_t []){run_globals.NRequestedForests}, run_globals.RequestedForestId);
+//             char name[50];
+//             sprintf(name, "core%03d", run_globals.mpi_rank);
+//             H5LTmake_dataset_long(fd, name, 1, (hsize_t []){run_globals.NRequestedForests}, run_globals.RequestedForestId);
 
-            H5Fflush(fd, H5P_DEFAULT);
-            H5Fclose(fd);
-        }
-        MPI_Barrier(run_globals.mpi_comm);
-    }
-}
+//             H5Fflush(fd, H5P_DEFAULT);
+//             H5Fclose(fd);
+//         }
+//         MPI_Barrier(run_globals.mpi_comm);
+//     }
+// }
 
 void initialize_halo_storage()
 {
