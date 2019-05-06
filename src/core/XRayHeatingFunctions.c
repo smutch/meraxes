@@ -158,11 +158,12 @@ double interpolate_fcoll(double redshift, int snap_i);
 int init_heat()
 {
 
-    zpp_edge = calloc((size_t)run_globals.params.NUM_FILTER_STEPS_FOR_Ts, sizeof(double));
-    sigma_atR = calloc((size_t)run_globals.params.NUM_FILTER_STEPS_FOR_Ts, sizeof(double));
-    sigma_Tmin = calloc((size_t)run_globals.params.NUM_FILTER_STEPS_FOR_Ts, sizeof(double));
-    ST_over_PS = calloc((size_t)run_globals.params.NUM_FILTER_STEPS_FOR_Ts, sizeof(double));
-    sum_lyn = calloc((size_t)run_globals.params.NUM_FILTER_STEPS_FOR_Ts, sizeof(double));
+    size_t TsNumFilterSteps = (size_t)run_globals.params.TsNumFilterSteps;
+    zpp_edge = calloc(TsNumFilterSteps, sizeof(double));
+    sigma_atR = calloc(TsNumFilterSteps, sizeof(double));
+    sigma_Tmin = calloc(TsNumFilterSteps, sizeof(double));
+    ST_over_PS = calloc(TsNumFilterSteps, sizeof(double));
+    sum_lyn = calloc(TsNumFilterSteps, sizeof(double));
 
 
     kappa_10(1.0,1);
@@ -1277,7 +1278,7 @@ void evolveInt(float zp, float curr_delNL0, const double SFR_GAL[], const double
     dstarlya_dt_QSO = 0;
 
     if (!NO_LIGHT){
-        for (zpp_ct = 0; zpp_ct < run_globals.params.NUM_FILTER_STEPS_FOR_Ts; zpp_ct++){
+        for (zpp_ct = 0; zpp_ct < run_globals.params.TsNumFilterSteps; zpp_ct++){
             // set redshift of half annulus; dz'' is negative since we flipped limits of integral
             if (zpp_ct==0){
                 zpp = (zpp_edge[0]+zp)*0.5;

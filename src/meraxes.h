@@ -278,7 +278,7 @@ typedef struct run_params_t {
     double ReionPowerSpecDeltaK;
     int ReionGridDim;
     int ReionFilterType;
-    int HeatingFilterType;
+    int TsHeatingFilterType;
     int ReionRtoMFilterType;
     int ReionUVBFlag;
 
@@ -299,11 +299,10 @@ typedef struct run_params_t {
     int Flag_IncludePecVelsFor21cm;
     int Flag_ConstructLightcone;
 
-    int VelocityComponent;
+    int TsVelocityComponent;
+    int TsNumFilterSteps;
 
-    int NUM_FILTER_STEPS_FOR_Ts;
-
-    double t_star;
+    double ReionSfrTimescale;
 
     double End_Lightcone;
     int End_Lightcone_snapshot;

@@ -127,8 +127,15 @@ ReionGnedin_zr         : 7
 Flag_PatchyReion       : 1  # Use 21cmFAST (ensure Flag_ReionizationModifier=1 if wish to couple to galaxy formation).
 Flag_OutputGrids       : 1
 Flag_OutputGridsPostReion  : 0
+Flag_IncludeRecombinations : 1
+Flag_Compute21cmBrightTemp : 1
+Flag_ComputePS : 1
+Flag_IncludeSpinTemp : 1
+Flag_IncludePecVelsFor21cm : 1
+Flag_ConstructLightcone : 1
 
 ReionUVBFlag           : 1  # Use 21cmFAST (ensure Flag_ReionizationModifier=1 if wish to couple to galaxy formation).
+ReionSfrTimescale      : 0.5
 ReionGridDim           : 128
 ReionDeltaRFactor      : 1.1
 ReionFilterType        : 0
@@ -142,27 +149,16 @@ ReionGammaHaloBias     : 2.0
 ReionAlphaUV           : 5.0
 ReionAlphaUVBH         : 1.57
 
+TsHeatingFilterType : 0
+TsNumFilterSteps : 40
+TsVelocityComponent : 3
 
-HeatingFilterType : 0
-Flag_IncludeSpinTemp : 1
-
-NUM_FILTER_STEPS_FOR_Ts : 40
-Flag_IncludeRecombinations : 1
-Flag_Compute21cmBrightTemp : 1
-Flag_ComputePS : 1
-Flag_IncludePecVelsFor21cm : 1
-
-VelocityComponent : 3
-t_star : 0.5
-
-Flag_ConstructLightcone : 1
 End_Lightcone : 6.0
 End_Lightcone_snapshot : 0
 LightconeLength : 0
 CurrentLCPos : 0
 
 ReionRBubbleMax_Recomb : 33.9
-
 SEP_QSO_XRAY : 0
 
 Z_HEAT_MAX : 35.

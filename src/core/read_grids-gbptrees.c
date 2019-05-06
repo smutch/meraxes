@@ -215,12 +215,12 @@ int read_dm_vel_grid__gbptrees(
     // Construct the input filename
     sprintf(fname, "%s/grids/snapshot_%03d_dark_grid.dat", params->SimulationDir, snapshot);
 
-    if(run_globals.params.VelocityComponent < 1 || run_globals.params.VelocityComponent > 3) {
+    if(run_globals.params.TsVelocityComponent < 1 || run_globals.params.TsVelocityComponent > 3) {
         mlog("Not a valid velocity direction: 1 - x, 2 - y, 3 - z", MLOG_MESG,fname);
         ABORT(EXIT_FAILURE);
     }
 
-    if(run_globals.params.Flag_ConstructLightcone && run_globals.params.VelocityComponent!=3) {
+    if(run_globals.params.Flag_ConstructLightcone && run_globals.params.TsVelocityComponent!=3) {
         mlog("Light-cone is generated along the z-direction, therefore the velocity component should be in the z-direction (i.e 3).", MLOG_MESG,fname);
        	ABORT(EXIT_FAILURE);
     }
@@ -253,7 +253,7 @@ int read_dm_vel_grid__gbptrees(
                    && "Input grids are not cubic!");
 
         // Jump forward in the file to find the relevant velocity field
-        fseek(fd,run_globals.params.VelocityComponent*(sizeof(float)*(long)n_cell[0]*(long)n_cell[0]*(long)n_cell[0] + 32),SEEK_CUR);
+        fseek(fd,run_globals.params.TsVelocityComponent*(sizeof(float)*(long)n_cell[0]*(long)n_cell[0]*(long)n_cell[0] + 32),SEEK_CUR);
 
         // Note that we are expecting the first grid to be the density grid
         read_identifier(fd, false);

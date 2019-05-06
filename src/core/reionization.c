@@ -267,7 +267,7 @@ void init_reion_grids()
 
     ptrdiff_t slab_n_real_smoothedSFR;
     if(run_globals.params.Flag_IncludeSpinTemp) {
-        slab_n_real_smoothedSFR = slab_nix[run_globals.mpi_rank] * run_globals.params.NUM_FILTER_STEPS_FOR_Ts  * ReionGridDim * ReionGridDim;
+        slab_n_real_smoothedSFR = slab_nix[run_globals.mpi_rank] * run_globals.params.TsNumFilterSteps  * ReionGridDim * ReionGridDim;
     }
 
     ptrdiff_t slab_n_real_LC;
@@ -461,7 +461,7 @@ void malloc_reionization_grids()
 
         ptrdiff_t slab_n_real_smoothedSFR;
         if(run_globals.params.Flag_IncludeSpinTemp) {
-            slab_n_real_smoothedSFR = slab_nix[run_globals.mpi_rank] * run_globals.params.NUM_FILTER_STEPS_FOR_Ts  * ReionGridDim * ReionGridDim;
+            slab_n_real_smoothedSFR = slab_nix[run_globals.mpi_rank] * run_globals.params.TsNumFilterSteps  * ReionGridDim * ReionGridDim;
         }
 
         ptrdiff_t slab_n_real_LC;
@@ -791,7 +791,7 @@ void construct_baryon_grids(int snapshot, int local_ngals)
     float* stellar_grid = run_globals.reion_grids.stars;
     float* sfr_grid = run_globals.reion_grids.sfr;
     int ReionGridDim = run_globals.params.ReionGridDim;
-    double tHubble = run_globals.params.t_star*hubble_time(snapshot);
+    double sfr_timescale = run_globals.params.ReionSfrTimescale*hubble_time(snapshot);
 
     gal_to_slab_t* galaxy_to_slab_map = run_globals.reion_grids.galaxy_to_slab_map;
     ptrdiff_t* slab_ix_start = run_globals.reion_grids.slab_ix_start;
@@ -893,17 +893,16 @@ void construct_baryon_grids(int snapshot, int local_ngals)
 
             if (run_globals.mpi_rank == i_r)
 
-                // Do one final pass and divide the sfr_grid by tHubble
+                // Do one final pass and divide the sfr_grid by the sfr timescale
                 // in order to convert the stellar masses recorded into SFRs before
                 // finally copying the values into the appropriate slab.
-                // TODO: Use a better timescale for SFR
                 switch (prop) {
                     case prop_sfr:
                         for (int ix = 0; ix < slab_nix[i_r]; ix++)
                             for (int iy = 0; iy < ReionGridDim; iy++)
                                 for (int iz = 0; iz < ReionGridDim; iz++) {
                                     double val = (double)buffer[grid_index(ix, iy, iz, ReionGridDim, INDEX_REAL)];
-                                    val = (val > 0) ? val / tHubble : 0;
+                                    val = (val > 0) ? val / sfr_timescale : 0;
                                     sfr_grid[grid_index(ix, iy, iz, ReionGridDim, INDEX_PADDED)] = (float)val;
                                 }
                         break;

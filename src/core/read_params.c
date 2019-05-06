@@ -601,8 +601,8 @@ void read_parameter_file(char* fname, int mode)
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_INT;
 
-            strncpy(params_tag[n_param], "NUM_FILTER_STEPS_FOR_Ts", tag_length);
-            params_addr[n_param] = &(run_params->NUM_FILTER_STEPS_FOR_Ts);
+            strncpy(params_tag[n_param], "TsNumFilterSteps", tag_length);
+            params_addr[n_param] = &(run_params->TsNumFilterSteps);
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_INT;
 
@@ -616,8 +616,8 @@ void read_parameter_file(char* fname, int mode)
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_INT;
 
-            strncpy(params_tag[n_param], "VelocityComponent", tag_length);
-            params_addr[n_param] = &(run_params->VelocityComponent);
+            strncpy(params_tag[n_param], "TsVelocityComponent", tag_length);
+            params_addr[n_param] = &(run_params->TsVelocityComponent);
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_INT;
 
@@ -626,8 +626,8 @@ void read_parameter_file(char* fname, int mode)
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_INT;
 
-            strncpy(params_tag[n_param], "t_star", tag_length);
-            params_addr[n_param] = &(run_params->t_star);
+            strncpy(params_tag[n_param], "ReionSfrTimescale", tag_length);
+            params_addr[n_param] = &(run_params->ReionSfrTimescale);
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
@@ -756,8 +756,8 @@ void read_parameter_file(char* fname, int mode)
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_INT;
 
-            strncpy(params_tag[n_param], "HeatingFilterType", tag_length);
-            params_addr[n_param] = &(run_params->HeatingFilterType);
+            strncpy(params_tag[n_param], "TsHeatingFilterType", tag_length);
+            params_addr[n_param] = &(run_params->TsHeatingFilterType);
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_INT;
 
