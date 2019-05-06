@@ -153,8 +153,8 @@ TsHeatingFilterType : 0
 TsNumFilterSteps : 40
 TsVelocityComponent : 3
 
-End_Lightcone : 6.0
-End_Lightcone_snapshot : 0
+EndRedshiftLightcone : 6.0
+EndSnapshotLightcone : 0
 LightconeLength : 0
 CurrentLCPos : 0
 

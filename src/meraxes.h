@@ -304,8 +304,8 @@ typedef struct run_params_t {
 
     double ReionSfrTimescale;
 
-    double End_Lightcone;
-    int End_Lightcone_snapshot;
+    double EndRedshiftLightcone;
+    int EndSnapshotLightcone;
     long long LightconeLength;
     long long CurrentLCPos;
     int PS_Length;

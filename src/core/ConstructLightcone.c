@@ -31,7 +31,7 @@ void Initialise_ConstructLightcone()
     i = 0;
 
     // Find the first snapshot beyond the user provided beginning of the light-cone (defined from the lowest redshift)
-    while(run_globals.ZZ[i] > run_globals.params.End_Lightcone) {
+    while(run_globals.ZZ[i] > run_globals.params.EndRedshiftLightcone) {
         i++;
     }
     closest_snapshot = i;
@@ -64,7 +64,7 @@ void Initialise_ConstructLightcone()
 
     // Store the length of the light-cone to be able to allocate the array to hold the light-cone
     run_globals.params.LightconeLength = total_slice_i;
-    run_globals.params.End_Lightcone_snapshot = closest_snapshot;
+    run_globals.params.EndSnapshotLightcone = closest_snapshot;
 
 }
 
@@ -104,7 +104,7 @@ void ConstructLightcone(int snapshot)
         // Repeat some of the light-cone initialisation just to avoid passing things around
 
         // Set the lowest redshift snapshot
-        closest_snapshot = run_globals.params.End_Lightcone_snapshot;
+        closest_snapshot = run_globals.params.EndSnapshotLightcone;
 
         z_LC = run_globals.ZZ[closest_snapshot];
 

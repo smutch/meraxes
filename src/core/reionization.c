@@ -1099,7 +1099,7 @@ void save_reion_output_grids(int snapshot)
         write_grid_float("delta_T", grids->delta_T, file_id, fspace_id, memspace_id, dcpl_id);
     }
 
-    if(run_globals.params.Flag_ConstructLightcone && run_globals.params.End_Lightcone_snapshot==snapshot && snapshot!=0) {
+    if(run_globals.params.Flag_ConstructLightcone && run_globals.params.EndSnapshotLightcone==snapshot && snapshot!=0) {
 
         // create the filespace
         hsize_t dims_LC[3] = {(hsize_t)ReionGridDim, (hsize_t)ReionGridDim, (hsize_t)run_globals.params.LightconeLength};
@@ -1234,7 +1234,7 @@ bool check_if_reionization_ongoing(int snapshot)
         if (run_globals.params.Flag_OutputGridsPostReion)
             return true;
 
-        if(run_globals.params.Flag_ConstructLightcone && snapshot <= run_globals.params.End_Lightcone_snapshot) {
+        if(run_globals.params.Flag_ConstructLightcone && snapshot <= run_globals.params.EndSnapshotLightcone) {
             return true;
         }
 
