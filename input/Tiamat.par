@@ -131,6 +131,7 @@ Flag_IncludeRecombinations : 1
 Flag_Compute21cmBrightTemp : 1
 Flag_ComputePS : 1
 Flag_IncludeSpinTemp : 1
+Flag_SeparateQSOXrays : 0   # TODO: Not implemented currently
 Flag_IncludePecVelsFor21cm : 1
 Flag_ConstructLightcone : 1
 
@@ -154,25 +155,26 @@ TsNumFilterSteps : 40
 TsVelocityComponent : 3
 
 EndRedshiftLightcone : 6.0
+
+# TODO: Internal tracking
 EndSnapshotLightcone : 0
 LightconeLength : 0
 CurrentLCPos : 0
+# ----------------------
 
-ReionRBubbleMax_Recomb : 33.9
-SEP_QSO_XRAY : 0
+ReionRBubbleMaxRecomb : 33.9
+ReionMaxHeatingRedshift : 35.
 
-Z_HEAT_MAX : 35.
+LXrayGal : 3.16e40         # Soft-band (< 2keV) X-ray luminosity for galaxy based sources (HMXB)
+NuXrayGalThreshold : 500.  # Energy threshold for X-rays escaping host galaxy (eV)
+SpecIndexXrayGal : 1.      # Spectral index of X-ray sources  (nu^-alpha)
 
-L_X_GAL : 3.16e40
-NU_X_GAL_THRESH : 500.
-X_RAY_SPEC_INDEX_GAL : 1.
-
-L_X_QSO : 3.16e40
+L_X_QSO : 3.16e40              # QSO
 NU_X_QSO_THRESH : 500.
 X_RAY_SPEC_INDEX_QSO : 1.
 
-NU_X_BAND_MAX : 2000.
-NU_X_MAX : 10000.
+NU_X_BAND_MAX : 2000.          # Soft-band cut off in (eV)
+NU_X_MAX : 10000.              # Maximum energy for X-ray band integration
 
 
 EscapeFracDependency       : 1  # 0->none, 1->redshift, 2->stellar mass, 3->sfr, 4->cold gas surface density, 5->mvir, 6->ssfr

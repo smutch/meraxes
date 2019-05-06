@@ -1291,12 +1291,12 @@ void evolveInt(float zp, float curr_delNL0, const double SFR_GAL[], const double
 
             // Use this when using the SFR provided by Meraxes
             // Units should be M_solar/s. Factor of (dt_dzp * dzpp) converts from per s to per z'
-            zpp_integrand_GAL = SFR_GAL[zpp_ct] * pow(1+zpp, -run_globals.params.physics.X_RAY_SPEC_INDEX_GAL);
-            if(run_globals.params.SEP_QSO_XRAY) {
+            zpp_integrand_GAL = SFR_GAL[zpp_ct] * pow(1+zpp, -run_globals.params.physics.SpecIndexXrayGal);
+            if(run_globals.params.Flag_SeparateQSOXrays) {
                 zpp_integrand_QSO = SFR_QSO[zpp_ct] * pow(1+zpp, -run_globals.params.physics.X_RAY_SPEC_INDEX_QSO);
             }
 
-            if(run_globals.params.SEP_QSO_XRAY) {
+            if(run_globals.params.Flag_SeparateQSOXrays) {
 
                 dxheat_dt_GAL += dt_dzpp * dzpp * zpp_integrand_GAL * freq_int_heat_GAL[zpp_ct];
                 dxheat_dt_QSO += dt_dzpp * dzpp * zpp_integrand_QSO * freq_int_heat_QSO[zpp_ct];
@@ -1326,7 +1326,7 @@ void evolveInt(float zp, float curr_delNL0, const double SFR_GAL[], const double
         }
 
         // add prefactors
-        if(run_globals.params.SEP_QSO_XRAY) {
+        if(run_globals.params.Flag_SeparateQSOXrays) {
             dxheat_dt_GAL *= const_zp_prefactor_GAL;
             dxion_source_dt_GAL *= const_zp_prefactor_GAL;
             dxlya_dt_GAL *= const_zp_prefactor_GAL*n_b;

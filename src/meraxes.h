@@ -176,23 +176,23 @@ typedef struct physics_params_t {
 
     // Parameters to describe the X-ray properties of the sources
     // Keeping the QSO and Galaxy components separate for now (might be combined in the end)
-    double L_X_GAL;
-    double NU_X_GAL_THRESH;
-    double X_RAY_SPEC_INDEX_GAL;
+    double LXrayGal;
+    double NuXrayGalThreshold;
+    double SpecIndexXrayGal;
     double L_X_QSO;
     double NU_X_QSO_THRESH;
     double X_RAY_SPEC_INDEX_QSO;
     double NU_X_BAND_MAX;
     double NU_X_MAX;
 
-    double Z_HEAT_MAX;
+    double ReionMaxHeatingRedshift;
 
     double ReionGammaHaloBias;
     double ReionAlphaUV;
     double ReionAlphaUVBH;
     double ReionRBubbleMin;
     double ReionRBubbleMax;
-    double ReionRBubbleMax_Recomb;
+    double ReionRBubbleMaxRecomb;
 
     double EscapeFracNorm;
     double EscapeFracRedshiftScaling;
@@ -309,7 +309,7 @@ typedef struct run_params_t {
     long long LightconeLength;
     long long CurrentLCPos;
     int PS_Length;
-    int SEP_QSO_XRAY;
+    int Flag_SeparateQSOXrays;
     int Flag_OutputGrids;
     int Flag_OutputGridsPostReion;
 } run_params_t;

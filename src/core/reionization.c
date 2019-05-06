@@ -312,7 +312,7 @@ void init_reion_grids()
         for (int ii = 0; ii < slab_n_real_smoothedSFR; ii++) {
             grids->SMOOTHED_SFR_GAL[ii] = 0.0;
 
-            if(run_globals.params.SEP_QSO_XRAY) {
+            if(run_globals.params.Flag_SeparateQSOXrays) {
                 grids->SMOOTHED_SFR_QSO[ii] = 0.0;
             }
         }
@@ -503,7 +503,7 @@ void malloc_reionization_grids()
             grids->x_e_filtered = fftwf_alloc_complex((size_t)slab_n_complex);
 
             grids->SMOOTHED_SFR_GAL = calloc((size_t)slab_n_real_smoothedSFR, sizeof(double));
-            if(run_globals.params.SEP_QSO_XRAY) {
+            if(run_globals.params.Flag_SeparateQSOXrays) {
                 grids->SMOOTHED_SFR_QSO = calloc((size_t)slab_n_real_smoothedSFR, sizeof(double));
             }
         }

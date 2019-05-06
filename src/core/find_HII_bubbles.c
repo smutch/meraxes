@@ -220,7 +220,7 @@ void _find_HII_bubbles(int snapshot)
     // Loop through filter radii
     double ReionRBubbleMax;
     if(run_globals.params.Flag_IncludeRecombinations) {
-        ReionRBubbleMax = run_globals.params.physics.ReionRBubbleMax_Recomb; // Mpc/h
+        ReionRBubbleMax = run_globals.params.physics.ReionRBubbleMaxRecomb; // Mpc/h
     }
     else {
         ReionRBubbleMax = run_globals.params.physics.ReionRBubbleMax; // Mpc/h

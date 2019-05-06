@@ -86,7 +86,7 @@ void _ComputeTs(int snapshot)
 
     double* SMOOTHED_SFR_GAL = run_globals.reion_grids.SMOOTHED_SFR_GAL;
     double* SMOOTHED_SFR_QSO;
-    if(run_globals.params.SEP_QSO_XRAY) {
+    if(run_globals.params.Flag_SeparateQSOXrays) {
         SMOOTHED_SFR_QSO = run_globals.reion_grids.SMOOTHED_SFR_QSO;
     }
 
@@ -104,9 +104,9 @@ void _ComputeTs(int snapshot)
     dzp = zp - prev_redshift;
     dt_dzp = dtdz((float)(float)zp);
 
-    // Check redshift against Z_HEAT_MAX. If zp > Z_HEAT_MAX assume the x_e (electron fraction) and gas temperatures are homogenous
+    // Check redshift against ReionMaxHeatingRedshift. If zp > ReionMaxHeatingRedshift assume the x_e (electron fraction) and gas temperatures are homogenous
     // Equivalent to the default setup of 21cmFAST.
-    if( (zp - run_globals.params.physics.Z_HEAT_MAX) >= -0.0001) {
+    if( (zp - run_globals.params.physics.ReionMaxHeatingRedshift) >= -0.0001) {
         for (int ix = 0; ix < local_nix; ix++)
             for (int iy = 0; iy < ReionGridDim; iy++)
                 for (int iz = 0; iz < ReionGridDim; iz++) {
@@ -122,8 +122,8 @@ void _ComputeTs(int snapshot)
 
 
         // Below I calculate the collapse fraction for all sources.
-        // This should be zero (especially for the default high redshift Z_HEAT_MAX = 35). However, I compute it anyway in case it is non-zero.
-        // In principle I think this should probably be used instead of Z_HEAT_MAX to switch between homogeneous/inhomogeneous.
+        // This should be zero (especially for the default high redshift ReionMaxHeatingRedshift = 35). However, I compute it anyway in case it is non-zero.
+        // In principle I think this should probably be used instead of ReionMaxHeatingRedshift to switch between homogeneous/inhomogeneous.
         // However, I do not think it'll matter too much. Will look into this later.
 
         collapse_fraction = 0.;
@@ -189,7 +189,7 @@ void _ComputeTs(int snapshot)
                             SMOOTHED_SFR_GAL[i_smoothedSFR] = ( ((float*)sfr_filtered)[i_padded] / pixel_volume )
                                 * (units->UnitMass_in_g / units->UnitTime_in_s) * pow( units->UnitLength_in_cm, -3. )/ SOLAR_MASS;
 
-                            if(run_globals.params.SEP_QSO_XRAY) {
+                            if(run_globals.params.Flag_SeparateQSOXrays) {
                                 SMOOTHED_SFR_QSO[i_smoothedSFR] = ( ((float*)sfr_filtered)[i_padded] / pixel_volume )
                                     * (units->UnitMass_in_g / units->UnitTime_in_s) * pow( units->UnitLength_in_cm, -3. )/ SOLAR_MASS;
                             }
@@ -227,7 +227,7 @@ void _ComputeTs(int snapshot)
                             SMOOTHED_SFR_GAL[i_smoothedSFR] = (((float*)sfr_filtered)[i_padded] / pixel_volume )
                                 * (units->UnitMass_in_g / units->UnitTime_in_s) * pow( units->UnitLength_in_cm, -3. )/ SOLAR_MASS;
 
-                            if(run_globals.params.SEP_QSO_XRAY) {
+                            if(run_globals.params.Flag_SeparateQSOXrays) {
                                 SMOOTHED_SFR_QSO[i_smoothedSFR] = ( ((float*)sfr_filtered)[i_padded] / pixel_volume )
                                     * (units->UnitMass_in_g / units->UnitTime_in_s) * pow( units->UnitLength_in_cm, -3. )/ SOLAR_MASS;
                             }
@@ -267,20 +267,20 @@ void _ComputeTs(int snapshot)
 
             filling_factor_of_HI_zp = 1. - ReionEfficiency * collapse_fraction / (1.0 - x_e_ave);
 
-            lower_int_limit_GAL = fmax(nu_tau_one(zp, zpp, x_e_ave, collapse_fraction, filling_factor_of_HI_zp, snapshot), run_globals.params.physics.NU_X_GAL_THRESH*NU_over_EV);
+            lower_int_limit_GAL = fmax(nu_tau_one(zp, zpp, x_e_ave, collapse_fraction, filling_factor_of_HI_zp, snapshot), run_globals.params.physics.NuXrayGalThreshold*NU_over_EV);
 
-            if(run_globals.params.SEP_QSO_XRAY) {
+            if(run_globals.params.Flag_SeparateQSOXrays) {
                 lower_int_limit_QSO = fmax(nu_tau_one(zp, zpp, x_e_ave, collapse_fraction, filling_factor_of_HI_zp, snapshot), run_globals.params.physics.NU_X_QSO_THRESH*NU_over_EV);
             }
 
             if (filling_factor_of_HI_zp < 0) filling_factor_of_HI_zp = 0; // for global evol; nu_tau_one above treats negative (post_reionization) inferred filling factors properly
 
             for (x_e_ct = 0; x_e_ct < x_int_NXHII; x_e_ct++){
-                freq_int_heat_tbl_GAL[x_e_ct][R_ct] = integrate_over_nu(zp, x_int_XHII[x_e_ct], lower_int_limit_GAL, run_globals.params.physics.NU_X_GAL_THRESH, run_globals.params.physics.X_RAY_SPEC_INDEX_GAL, 0);
-                freq_int_ion_tbl_GAL[x_e_ct][R_ct] = integrate_over_nu(zp, x_int_XHII[x_e_ct], lower_int_limit_GAL, run_globals.params.physics.NU_X_GAL_THRESH, run_globals.params.physics.X_RAY_SPEC_INDEX_GAL, 1);
-                freq_int_lya_tbl_GAL[x_e_ct][R_ct] = integrate_over_nu(zp, x_int_XHII[x_e_ct], lower_int_limit_GAL, run_globals.params.physics.NU_X_GAL_THRESH, run_globals.params.physics.X_RAY_SPEC_INDEX_GAL, 2);
+                freq_int_heat_tbl_GAL[x_e_ct][R_ct] = integrate_over_nu(zp, x_int_XHII[x_e_ct], lower_int_limit_GAL, run_globals.params.physics.NuXrayGalThreshold, run_globals.params.physics.SpecIndexXrayGal, 0);
+                freq_int_ion_tbl_GAL[x_e_ct][R_ct] = integrate_over_nu(zp, x_int_XHII[x_e_ct], lower_int_limit_GAL, run_globals.params.physics.NuXrayGalThreshold, run_globals.params.physics.SpecIndexXrayGal, 1);
+                freq_int_lya_tbl_GAL[x_e_ct][R_ct] = integrate_over_nu(zp, x_int_XHII[x_e_ct], lower_int_limit_GAL, run_globals.params.physics.NuXrayGalThreshold, run_globals.params.physics.SpecIndexXrayGal, 2);
 
-                if(run_globals.params.SEP_QSO_XRAY)	{
+                if(run_globals.params.Flag_SeparateQSOXrays)	{
                     freq_int_heat_tbl_QSO[x_e_ct][R_ct] = integrate_over_nu(zp, x_int_XHII[x_e_ct], lower_int_limit_QSO, run_globals.params.physics.NU_X_QSO_THRESH, run_globals.params.physics.X_RAY_SPEC_INDEX_QSO, 0);
                     freq_int_ion_tbl_QSO[x_e_ct][R_ct] = integrate_over_nu(zp, x_int_XHII[x_e_ct], lower_int_limit_QSO, run_globals.params.physics.NU_X_QSO_THRESH, run_globals.params.physics.X_RAY_SPEC_INDEX_QSO, 1);
                     freq_int_lya_tbl_QSO[x_e_ct][R_ct] = integrate_over_nu(zp, x_int_XHII[x_e_ct], lower_int_limit_QSO, run_globals.params.physics.NU_X_QSO_THRESH, run_globals.params.physics.X_RAY_SPEC_INDEX_QSO, 2);
@@ -307,21 +307,21 @@ void _ComputeTs(int snapshot)
 
         // Conversion of the input bolometric luminosity (new) to a ZETA_X (old) to be consistent with Ts.c from 21cmFAST
         // Conversion here means the code otherwise remains the same as the original Ts.c
-        if(fabs(run_globals.params.physics.X_RAY_SPEC_INDEX_GAL - 1.0) < 0.000001) {
-            Luminosity_converstion_factor_GAL = (run_globals.params.physics.NU_X_GAL_THRESH*NU_over_EV ) * log( run_globals.params.physics.NU_X_BAND_MAX/run_globals.params.physics.NU_X_GAL_THRESH );
+        if(fabs(run_globals.params.physics.SpecIndexXrayGal - 1.0) < 0.000001) {
+            Luminosity_converstion_factor_GAL = (run_globals.params.physics.NuXrayGalThreshold*NU_over_EV ) * log( run_globals.params.physics.NU_X_BAND_MAX/run_globals.params.physics.NuXrayGalThreshold );
             Luminosity_converstion_factor_GAL = 1./Luminosity_converstion_factor_GAL;
         }
         else {
-            Luminosity_converstion_factor_GAL = pow( run_globals.params.physics.NU_X_BAND_MAX*NU_over_EV , 1. - run_globals.params.physics.X_RAY_SPEC_INDEX_GAL ) - pow( run_globals.params.physics.NU_X_GAL_THRESH*NU_over_EV , 1. - run_globals.params.physics.X_RAY_SPEC_INDEX_GAL ) ;
+            Luminosity_converstion_factor_GAL = pow( run_globals.params.physics.NU_X_BAND_MAX*NU_over_EV , 1. - run_globals.params.physics.SpecIndexXrayGal ) - pow( run_globals.params.physics.NuXrayGalThreshold*NU_over_EV , 1. - run_globals.params.physics.SpecIndexXrayGal ) ;
             Luminosity_converstion_factor_GAL = 1./Luminosity_converstion_factor_GAL;
-            Luminosity_converstion_factor_GAL *= pow( run_globals.params.physics.NU_X_GAL_THRESH*NU_over_EV, - run_globals.params.physics.X_RAY_SPEC_INDEX_GAL )*(1 - run_globals.params.physics.X_RAY_SPEC_INDEX_GAL);
+            Luminosity_converstion_factor_GAL *= pow( run_globals.params.physics.NuXrayGalThreshold*NU_over_EV, - run_globals.params.physics.SpecIndexXrayGal )*(1 - run_globals.params.physics.SpecIndexXrayGal);
         }
         // Finally, convert to the correct units. NU_over_EV*hplank as only want to divide by eV -> erg (owing to the definition of Luminosity)
         Luminosity_converstion_factor_GAL *= (SEC_PER_YEAR)/(PLANCK);
 
         // Leave the original 21cmFAST code for reference. Refer to Greig & Mesinger (2017) for the new parameterisation.
-        //        const_zp_prefactor_GAL = (1.0/0.59)*( run_globals.params.physics.L_X_GAL * Luminosity_converstion_factor_GAL ) / (run_globals.params.physics.NU_X_GAL_THRESH*NU_over_EV) * C * pow(1+zp, run_globals.params.physics.X_RAY_SPEC_INDEX_GAL+3);
-        const_zp_prefactor_GAL = ( run_globals.params.physics.L_X_GAL * Luminosity_converstion_factor_GAL ) / (run_globals.params.physics.NU_X_GAL_THRESH*NU_over_EV) * C * pow(1+zp, run_globals.params.physics.X_RAY_SPEC_INDEX_GAL+3);
+        //        const_zp_prefactor_GAL = (1.0/0.59)*( run_globals.params.physics.LXrayGal * Luminosity_converstion_factor_GAL ) / (run_globals.params.physics.NuXrayGalThreshold*NU_over_EV) * C * pow(1+zp, run_globals.params.physics.SpecIndexXrayGal+3);
+        const_zp_prefactor_GAL = ( run_globals.params.physics.LXrayGal * Luminosity_converstion_factor_GAL ) / (run_globals.params.physics.NuXrayGalThreshold*NU_over_EV) * C * pow(1+zp, run_globals.params.physics.SpecIndexXrayGal+3);
         // Note the factor of 0.59 appears to be required to match 21cmFAST
 
         // I believe it arises from differing definitions of a stellar baryon mass
@@ -333,7 +333,7 @@ void _ComputeTs(int snapshot)
         // Will mean the normalisation within Meraxes is (1/0.59) higher than 21cmFAST, which can be trivially compensated for by reducing L_X.
         // Ultimately the backgrounds in Meraxes will be this same factor higher than 21cmFAST, but at least it is understood why and trivially accounted for.
 
-        if(run_globals.params.SEP_QSO_XRAY) {
+        if(run_globals.params.Flag_SeparateQSOXrays) {
 
             if(fabs(run_globals.params.physics.X_RAY_SPEC_INDEX_QSO - 1.0) < 0.000001) {
                 Luminosity_converstion_factor_QSO = (run_globals.params.physics.NU_X_QSO_THRESH*NU_over_EV) * log( run_globals.params.physics.NU_X_BAND_MAX/run_globals.params.physics.NU_X_QSO_THRESH );
@@ -366,7 +366,7 @@ void _ComputeTs(int snapshot)
 
                         SFR_GAL[R_ct] = SMOOTHED_SFR_GAL[i_smoothedSFR];
 
-                        if(run_globals.params.SEP_QSO_XRAY) {
+                        if(run_globals.params.Flag_SeparateQSOXrays) {
                             SFR_QSO[R_ct] = SMOOTHED_SFR_QSO[i_smoothedSFR];
                         }
 
@@ -399,7 +399,7 @@ void _ComputeTs(int snapshot)
                         freq_int_lya_GAL[R_ct] *= (xHII_call - x_int_XHII[m_xHII_low]);
                         freq_int_lya_GAL[R_ct] += freq_int_lya_tbl_GAL[m_xHII_low][R_ct];
 
-                        if(run_globals.params.SEP_QSO_XRAY) {
+                        if(run_globals.params.Flag_SeparateQSOXrays) {
 
                             // heat
                             freq_int_heat_QSO[R_ct] = (freq_int_heat_tbl_QSO[m_xHII_high][R_ct] - freq_int_heat_tbl_QSO[m_xHII_low][R_ct]) / (x_int_XHII[m_xHII_high] - x_int_XHII[m_xHII_low]);

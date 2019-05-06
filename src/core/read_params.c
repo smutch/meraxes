@@ -651,8 +651,8 @@ void read_parameter_file(char* fname, int mode)
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_LONGLONG;
 
-            strncpy(params_tag[n_param], "SEP_QSO_XRAY", tag_length);
-            params_addr[n_param] = &(run_params->SEP_QSO_XRAY);
+            strncpy(params_tag[n_param], "Flag_SeparateQSOXrays", tag_length);
+            params_addr[n_param] = &(run_params->Flag_SeparateQSOXrays);
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_INT;
 
@@ -681,8 +681,8 @@ void read_parameter_file(char* fname, int mode)
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
-            strncpy(params_tag[n_param], "ReionRBubbleMax_Recomb", tag_length);
-            params_addr[n_param] = &(run_params->physics).ReionRBubbleMax_Recomb;
+            strncpy(params_tag[n_param], "ReionRBubbleMaxRecomb", tag_length);
+            params_addr[n_param] = &(run_params->physics).ReionRBubbleMaxRecomb;
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
@@ -786,23 +786,23 @@ void read_parameter_file(char* fname, int mode)
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
-            strcpy(params_tag[n_param], "Z_HEAT_MAX");
-            params_addr[n_param] = &(run_params->physics).Z_HEAT_MAX;
+            strcpy(params_tag[n_param], "ReionMaxHeatingRedshift");
+            params_addr[n_param] = &(run_params->physics).ReionMaxHeatingRedshift;
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
-            strcpy(params_tag[n_param], "L_X_GAL");
-            params_addr[n_param] = &(run_params->physics).L_X_GAL;
+            strcpy(params_tag[n_param], "LXrayGal");
+            params_addr[n_param] = &(run_params->physics).LXrayGal;
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
-            strcpy(params_tag[n_param], "NU_X_GAL_THRESH");
-            params_addr[n_param] = &(run_params->physics).NU_X_GAL_THRESH;
+            strcpy(params_tag[n_param], "NuXrayGalThreshold");
+            params_addr[n_param] = &(run_params->physics).NuXrayGalThreshold;
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
-            strcpy(params_tag[n_param], "X_RAY_SPEC_INDEX_GAL");
-            params_addr[n_param] = &(run_params->physics).X_RAY_SPEC_INDEX_GAL;
+            strcpy(params_tag[n_param], "SpecIndexXrayGal");
+            params_addr[n_param] = &(run_params->physics).SpecIndexXrayGal;
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
