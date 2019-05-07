@@ -211,73 +211,6 @@ void set_units()
     run_globals.RhoCrit = 3 * run_globals.Hubble * run_globals.Hubble / (8 * M_PI * run_globals.G);
 }
 
-static void read_output_snaps()
-{
-    int** ListOutputSnaps = &(run_globals.ListOutputSnaps);
-    int* LastOutputSnap = &(run_globals.LastOutputSnap);
-    int maxsnaps = run_globals.params.SnaplistLength;
-    int* nout = &(run_globals.NOutputSnaps);
-
-    if (run_globals.mpi_rank == 0) {
-        int i;
-        char fname[STRLEN];
-        FILE* fd;
-
-        strcpy(fname, run_globals.params.FileWithOutputSnaps);
-
-        if (!(fd = fopen(fname, "r"))) {
-            mlog_error("file `%s' not found.", fname);
-            exit(EXIT_FAILURE);
-        }
-
-        // find out how many output snapshots are being requested
-        int dummy = 0;
-        *nout = 0;
-        for (i = 0; i < maxsnaps; i++) {
-            if (fscanf(fd, " %d ", &dummy) == 1)
-                (*nout)++;
-            else
-                break;
-        }
-        fseek(fd, 0, SEEK_SET);
-
-        // allocate the ListOutputSnaps array
-        assert(*nout > 0);
-        *ListOutputSnaps = malloc(sizeof(int) * (*nout));
-
-        for (i = 0; i < (*nout); i++)
-            if (fscanf(fd, " %d ", &((*ListOutputSnaps)[i])) != 1) {
-                mlog_error("I/O error in file '%s'\n", fname);
-                exit(EXIT_FAILURE);
-            }
-        fclose(fd);
-
-        // Loop through the read in snapshot numbers and convert any negative
-        // values to positive ones ala python indexing conventions...
-        // e.g. -1 -> MAXSNAPS-1 and so on...
-        // Also store the last requested output snapnum
-        *LastOutputSnap = 0;
-        for (i = 0; i < (*nout); i++) {
-            if ((*ListOutputSnaps)[i] < 0)
-                (*ListOutputSnaps)[i] += run_globals.params.SnaplistLength;
-            if ((*ListOutputSnaps)[i] > *LastOutputSnap)
-                *LastOutputSnap = (*ListOutputSnaps)[i];
-        }
-
-        // sort the list from low to high snapnum
-        qsort(*ListOutputSnaps, (size_t)(*nout), sizeof(int), compare_ints);
-    }
-
-    // broadcast the data to all other ranks
-    MPI_Bcast(nout, 1, MPI_INT, 0, run_globals.mpi_comm);
-
-    if (run_globals.mpi_rank > 0)
-        *ListOutputSnaps = malloc(sizeof(int) * (*nout));
-
-    MPI_Bcast(*ListOutputSnaps, *nout, MPI_INT, 0, run_globals.mpi_comm);
-    MPI_Bcast(LastOutputSnap, 1, MPI_INT, 0, run_globals.mpi_comm);
-}
-
 
 void init_storage()
 {
@@ -320,9 +253,6 @@ void init_meraxes()
 
     // read the input snaps list
     read_snap_list();
-
-    // read the output snap list
-    read_output_snaps();
 
     snaplist_len = run_globals.params.SnaplistLength;
     for (i = 0; i < snaplist_len; i++) {
