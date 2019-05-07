@@ -182,7 +182,6 @@ typedef struct run_params_t {
     char SimName[STRLEN];
     char SimulationDir[STRLEN];
     char CatalogFilePrefix[STRLEN];
-    char FileWithOutputSnaps[STRLEN];
     char PhotometricTablesDir[STRLEN];
     char TargetSnaps[STRLEN];
     char BetaBands[STRLEN];
