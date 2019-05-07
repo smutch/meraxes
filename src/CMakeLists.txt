@@ -166,7 +166,6 @@ if(NOT BUILD_SHARED_LIBS)
         COMMAND echo "RUNDIR = \${RUNDIR}"
         COMMAND mkdir -p \${RUNDIR}
         COMMAND cp -n ${CMAKE_BINARY_DIR}/input.par \${RUNDIR}
-        COMMAND cp -n ${CMAKE_CURRENT_SOURCE_DIR}/../input/snaplist.txt \${RUNDIR}
         COMMAND cp ${CMAKE_BINARY_DIR}/bin/meraxes \${RUNDIR}
         )
     add_dependencies(setuprun meraxes)
