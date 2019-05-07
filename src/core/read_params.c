@@ -636,16 +636,6 @@ void read_parameter_file(char* fname, int mode)
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
-            strncpy(params_tag[n_param], "EndSnapshotLightcone", tag_length);
-            params_addr[n_param] = &(run_params->EndSnapshotLightcone);
-            required_tag[n_param] = 1;
-            params_type[n_param++] = PARAM_TYPE_INT;
-
-            strncpy(params_tag[n_param], "LightconeLength", tag_length);
-            params_addr[n_param] = &(run_params->LightconeLength);
-            required_tag[n_param] = 1;
-            params_type[n_param++] = PARAM_TYPE_LONGLONG;
-
             strncpy(params_tag[n_param], "CurrentLCPos", tag_length);
             params_addr[n_param] = &(run_params->CurrentLCPos);
             required_tag[n_param] = 1;

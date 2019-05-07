@@ -156,12 +156,6 @@ TsVelocityComponent : 3
 
 EndRedshiftLightcone : 6.0
 
-# TODO: Internal tracking
-EndSnapshotLightcone : 0
-LightconeLength : 0
-CurrentLCPos : 0
-# ----------------------
-
 ReionRBubbleMaxRecomb : 33.9
 ReionMaxHeatingRedshift : 35.
 

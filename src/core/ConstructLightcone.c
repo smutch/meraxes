@@ -27,6 +27,11 @@ void Initialise_ConstructLightcone()
     double z1_LC, z2_LC, z_LC;
     double start_redshift = run_globals.ZZ[0];
 
+    // Initialise some required tracking variables
+    run_globals.params.LightconeLength = 0;
+    run_globals.params.EndSnapshotLightcone = 0;
+    run_globals.params.CurrentLCPos = 0;
+
     long long total_slice_i = 0;
     i = 0;
 
