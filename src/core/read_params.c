@@ -806,28 +806,28 @@ void read_parameter_file(char* fname, int mode)
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
-            strcpy(params_tag[n_param], "L_X_QSO");
-            params_addr[n_param] = &(run_params->physics).L_X_QSO;
+            strcpy(params_tag[n_param], "LXrayQSO");
+            params_addr[n_param] = &(run_params->physics).LXrayQSO;
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
-            strcpy(params_tag[n_param], "NU_X_QSO_THRESH");
-            params_addr[n_param] = &(run_params->physics).NU_X_QSO_THRESH;
+            strcpy(params_tag[n_param], "NuXrayQSOThreshold");
+            params_addr[n_param] = &(run_params->physics).NuXrayQSOThreshold;
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
-            strcpy(params_tag[n_param], "X_RAY_SPEC_INDEX_QSO");
-            params_addr[n_param] = &(run_params->physics).X_RAY_SPEC_INDEX_QSO;
+            strcpy(params_tag[n_param], "SpecIndexXrayQSO");
+            params_addr[n_param] = &(run_params->physics).SpecIndexXrayQSO;
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
-            strcpy(params_tag[n_param], "NU_X_BAND_MAX");
-            params_addr[n_param] = &(run_params->physics).NU_X_BAND_MAX;
+            strcpy(params_tag[n_param], "NuXraySoftCut");
+            params_addr[n_param] = &(run_params->physics).NuXraySoftCut;
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
-            strcpy(params_tag[n_param], "NU_X_MAX");
-            params_addr[n_param] = &(run_params->physics).NU_X_MAX;
+            strcpy(params_tag[n_param], "NuXrayMax");
+            params_addr[n_param] = &(run_params->physics).NuXrayMax;
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_DOUBLE;
 

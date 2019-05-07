@@ -270,7 +270,7 @@ void _ComputeTs(int snapshot)
             lower_int_limit_GAL = fmax(nu_tau_one(zp, zpp, x_e_ave, collapse_fraction, filling_factor_of_HI_zp, snapshot), run_globals.params.physics.NuXrayGalThreshold*NU_over_EV);
 
             if(run_globals.params.Flag_SeparateQSOXrays) {
-                lower_int_limit_QSO = fmax(nu_tau_one(zp, zpp, x_e_ave, collapse_fraction, filling_factor_of_HI_zp, snapshot), run_globals.params.physics.NU_X_QSO_THRESH*NU_over_EV);
+                lower_int_limit_QSO = fmax(nu_tau_one(zp, zpp, x_e_ave, collapse_fraction, filling_factor_of_HI_zp, snapshot), run_globals.params.physics.NuXrayQSOThreshold*NU_over_EV);
             }
 
             if (filling_factor_of_HI_zp < 0) filling_factor_of_HI_zp = 0; // for global evol; nu_tau_one above treats negative (post_reionization) inferred filling factors properly
@@ -281,9 +281,9 @@ void _ComputeTs(int snapshot)
                 freq_int_lya_tbl_GAL[x_e_ct][R_ct] = integrate_over_nu(zp, x_int_XHII[x_e_ct], lower_int_limit_GAL, run_globals.params.physics.NuXrayGalThreshold, run_globals.params.physics.SpecIndexXrayGal, 2);
 
                 if(run_globals.params.Flag_SeparateQSOXrays)	{
-                    freq_int_heat_tbl_QSO[x_e_ct][R_ct] = integrate_over_nu(zp, x_int_XHII[x_e_ct], lower_int_limit_QSO, run_globals.params.physics.NU_X_QSO_THRESH, run_globals.params.physics.X_RAY_SPEC_INDEX_QSO, 0);
-                    freq_int_ion_tbl_QSO[x_e_ct][R_ct] = integrate_over_nu(zp, x_int_XHII[x_e_ct], lower_int_limit_QSO, run_globals.params.physics.NU_X_QSO_THRESH, run_globals.params.physics.X_RAY_SPEC_INDEX_QSO, 1);
-                    freq_int_lya_tbl_QSO[x_e_ct][R_ct] = integrate_over_nu(zp, x_int_XHII[x_e_ct], lower_int_limit_QSO, run_globals.params.physics.NU_X_QSO_THRESH, run_globals.params.physics.X_RAY_SPEC_INDEX_QSO, 2);
+                    freq_int_heat_tbl_QSO[x_e_ct][R_ct] = integrate_over_nu(zp, x_int_XHII[x_e_ct], lower_int_limit_QSO, run_globals.params.physics.NuXrayQSOThreshold, run_globals.params.physics.SpecIndexXrayQSO, 0);
+                    freq_int_ion_tbl_QSO[x_e_ct][R_ct] = integrate_over_nu(zp, x_int_XHII[x_e_ct], lower_int_limit_QSO, run_globals.params.physics.NuXrayQSOThreshold, run_globals.params.physics.SpecIndexXrayQSO, 1);
+                    freq_int_lya_tbl_QSO[x_e_ct][R_ct] = integrate_over_nu(zp, x_int_XHII[x_e_ct], lower_int_limit_QSO, run_globals.params.physics.NuXrayQSOThreshold, run_globals.params.physics.SpecIndexXrayQSO, 2);
                 }
             }
 
@@ -308,11 +308,11 @@ void _ComputeTs(int snapshot)
         // Conversion of the input bolometric luminosity (new) to a ZETA_X (old) to be consistent with Ts.c from 21cmFAST
         // Conversion here means the code otherwise remains the same as the original Ts.c
         if(fabs(run_globals.params.physics.SpecIndexXrayGal - 1.0) < 0.000001) {
-            Luminosity_converstion_factor_GAL = (run_globals.params.physics.NuXrayGalThreshold*NU_over_EV ) * log( run_globals.params.physics.NU_X_BAND_MAX/run_globals.params.physics.NuXrayGalThreshold );
+            Luminosity_converstion_factor_GAL = (run_globals.params.physics.NuXrayGalThreshold*NU_over_EV ) * log( run_globals.params.physics.NuXraySoftCut/run_globals.params.physics.NuXrayGalThreshold );
             Luminosity_converstion_factor_GAL = 1./Luminosity_converstion_factor_GAL;
         }
         else {
-            Luminosity_converstion_factor_GAL = pow( run_globals.params.physics.NU_X_BAND_MAX*NU_over_EV , 1. - run_globals.params.physics.SpecIndexXrayGal ) - pow( run_globals.params.physics.NuXrayGalThreshold*NU_over_EV , 1. - run_globals.params.physics.SpecIndexXrayGal ) ;
+            Luminosity_converstion_factor_GAL = pow( run_globals.params.physics.NuXraySoftCut*NU_over_EV , 1. - run_globals.params.physics.SpecIndexXrayGal ) - pow( run_globals.params.physics.NuXrayGalThreshold*NU_over_EV , 1. - run_globals.params.physics.SpecIndexXrayGal ) ;
             Luminosity_converstion_factor_GAL = 1./Luminosity_converstion_factor_GAL;
             Luminosity_converstion_factor_GAL *= pow( run_globals.params.physics.NuXrayGalThreshold*NU_over_EV, - run_globals.params.physics.SpecIndexXrayGal )*(1 - run_globals.params.physics.SpecIndexXrayGal);
         }
@@ -335,20 +335,20 @@ void _ComputeTs(int snapshot)
 
         if(run_globals.params.Flag_SeparateQSOXrays) {
 
-            if(fabs(run_globals.params.physics.X_RAY_SPEC_INDEX_QSO - 1.0) < 0.000001) {
-                Luminosity_converstion_factor_QSO = (run_globals.params.physics.NU_X_QSO_THRESH*NU_over_EV) * log( run_globals.params.physics.NU_X_BAND_MAX/run_globals.params.physics.NU_X_QSO_THRESH );
+            if(fabs(run_globals.params.physics.SpecIndexXrayQSO - 1.0) < 0.000001) {
+                Luminosity_converstion_factor_QSO = (run_globals.params.physics.NuXrayQSOThreshold*NU_over_EV) * log( run_globals.params.physics.NuXraySoftCut/run_globals.params.physics.NuXrayQSOThreshold );
                 Luminosity_converstion_factor_QSO = 1./Luminosity_converstion_factor_QSO;
             }
             else {
-                Luminosity_converstion_factor_QSO = pow( run_globals.params.physics.NU_X_BAND_MAX*NU_over_EV , 1. - run_globals.params.physics.X_RAY_SPEC_INDEX_QSO ) - pow( run_globals.params.physics.NU_X_QSO_THRESH*NU_over_EV , 1. - run_globals.params.physics.X_RAY_SPEC_INDEX_QSO ) ;
+                Luminosity_converstion_factor_QSO = pow( run_globals.params.physics.NuXraySoftCut*NU_over_EV , 1. - run_globals.params.physics.SpecIndexXrayQSO ) - pow( run_globals.params.physics.NuXrayQSOThreshold*NU_over_EV , 1. - run_globals.params.physics.SpecIndexXrayQSO ) ;
                 Luminosity_converstion_factor_QSO = 1./Luminosity_converstion_factor_QSO;
-                Luminosity_converstion_factor_QSO *= pow( run_globals.params.physics.NU_X_QSO_THRESH*NU_over_EV, - run_globals.params.physics.X_RAY_SPEC_INDEX_QSO )*(1 - run_globals.params.physics.X_RAY_SPEC_INDEX_QSO);
+                Luminosity_converstion_factor_QSO *= pow( run_globals.params.physics.NuXrayQSOThreshold*NU_over_EV, - run_globals.params.physics.SpecIndexXrayQSO )*(1 - run_globals.params.physics.SpecIndexXrayQSO);
             }
             Luminosity_converstion_factor_QSO *= (SEC_PER_YEAR)/(PLANCK);
 
             // Leave the original 21cmFAST code for reference. Refer to Greig & Mesinger (2017) for the new parameterisation.
-            //            const_zp_prefactor_QSO = (1.0/0.59)*( run_globals.params.physics.L_X_QSO * Luminosity_converstion_factor_QSO ) / (run_globals.params.physics.NU_X_QSO_THRESH*NU_over_EV) * C * pow(1+zp, run_globals.params.physics.X_RAY_SPEC_INDEX_QSO+3);
-            const_zp_prefactor_QSO = ( run_globals.params.physics.L_X_QSO * Luminosity_converstion_factor_QSO ) / (run_globals.params.physics.NU_X_QSO_THRESH*NU_over_EV) * C * pow(1+zp, run_globals.params.physics.X_RAY_SPEC_INDEX_QSO+3);
+            //            const_zp_prefactor_QSO = (1.0/0.59)*( run_globals.params.physics.LXrayQSO * Luminosity_converstion_factor_QSO ) / (run_globals.params.physics.NuXrayQSOThreshold*NU_over_EV) * C * pow(1+zp, run_globals.params.physics.SpecIndexXrayQSO+3);
+            const_zp_prefactor_QSO = ( run_globals.params.physics.LXrayQSO * Luminosity_converstion_factor_QSO ) / (run_globals.params.physics.NuXrayQSOThreshold*NU_over_EV) * C * pow(1+zp, run_globals.params.physics.SpecIndexXrayQSO+3);
         }
 
         //interpolate to correct nu integral value based on the cell's ionization state

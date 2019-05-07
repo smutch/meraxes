@@ -824,7 +824,7 @@ double integrate_over_nu(double zp, double local_x_e, double lower_int_limit, do
         F.function = &integrand_in_nu_lya_integral;
     }
 
-    gsl_integration_qag (&F, lower_int_limit, run_globals.params.physics.NU_X_MAX*NU_over_EV, 0, rel_tol, 1000, GSL_INTEG_GAUSS61, w, &result, &error);
+    gsl_integration_qag (&F, lower_int_limit, run_globals.params.physics.NuXrayMax*NU_over_EV, 0, rel_tol, 1000, GSL_INTEG_GAUSS61, w, &result, &error);
     gsl_integration_workspace_free (w);
 
     // if it is the Lya integral, add prefactor
@@ -1293,7 +1293,7 @@ void evolveInt(float zp, float curr_delNL0, const double SFR_GAL[], const double
             // Units should be M_solar/s. Factor of (dt_dzp * dzpp) converts from per s to per z'
             zpp_integrand_GAL = SFR_GAL[zpp_ct] * pow(1+zpp, -run_globals.params.physics.SpecIndexXrayGal);
             if(run_globals.params.Flag_SeparateQSOXrays) {
-                zpp_integrand_QSO = SFR_QSO[zpp_ct] * pow(1+zpp, -run_globals.params.physics.X_RAY_SPEC_INDEX_QSO);
+                zpp_integrand_QSO = SFR_QSO[zpp_ct] * pow(1+zpp, -run_globals.params.physics.SpecIndexXrayQSO);
             }
 
             if(run_globals.params.Flag_SeparateQSOXrays) {

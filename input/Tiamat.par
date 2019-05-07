@@ -165,17 +165,16 @@ CurrentLCPos : 0
 ReionRBubbleMaxRecomb : 33.9
 ReionMaxHeatingRedshift : 35.
 
-LXrayGal : 3.16e40         # Soft-band (< 2keV) X-ray luminosity for galaxy based sources (HMXB)
-NuXrayGalThreshold : 500.  # Energy threshold for X-rays escaping host galaxy (eV)
-SpecIndexXrayGal : 1.      # Spectral index of X-ray sources  (nu^-alpha)
+LXrayGal : 3.16e40         # Soft-band (< NuXraySoftCut keV) X-ray luminosity for galaxy based sources (HMXB)
+NuXrayGalThreshold : 500.  # Energy threshold for HMXB X-rays escaping host galaxy (eV)
+SpecIndexXrayGal : 1.      # Spectral index of galaxy X-ray sources  (nu^-alpha)
 
-L_X_QSO : 3.16e40              # QSO
-NU_X_QSO_THRESH : 500.
-X_RAY_SPEC_INDEX_QSO : 1.
+LXrayQSO : 3.16e40         # Soft-band (< NuXraySoftCut keV) X-ray luminosity for QSO based sources
+NuXrayQSOThreshold : 500.  # Energy threshold for QSO X-rays escaping host galaxy (eV)
+SpecIndexXrayQSO : 1.      # Spectral index of QSO X-ray sources  (nu^-alpha)
 
-NU_X_BAND_MAX : 2000.          # Soft-band cut off in (eV)
-NU_X_MAX : 10000.              # Maximum energy for X-ray band integration
-
+NuXraySoftCut : 2000.      # X-ray soft-band cut off in (eV)
+NuXrayMax : 10000.         # Maximum energy for X-ray band integration
 
 EscapeFracDependency       : 1  # 0->none, 1->redshift, 2->stellar mass, 3->sfr, 4->cold gas surface density, 5->mvir, 6->ssfr
 EscapeFracNorm             : 0.06

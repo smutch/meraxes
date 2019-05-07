@@ -179,11 +179,11 @@ typedef struct physics_params_t {
     double LXrayGal;
     double NuXrayGalThreshold;
     double SpecIndexXrayGal;
-    double L_X_QSO;
-    double NU_X_QSO_THRESH;
-    double X_RAY_SPEC_INDEX_QSO;
-    double NU_X_BAND_MAX;
-    double NU_X_MAX;
+    double LXrayQSO;
+    double NuXrayQSOThreshold;
+    double SpecIndexXrayQSO;
+    double NuXraySoftCut;
+    double NuXrayMax;
 
     double ReionMaxHeatingRedshift;
 
