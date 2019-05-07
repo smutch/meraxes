@@ -131,7 +131,7 @@ Flag_IncludeRecombinations : 1
 Flag_Compute21cmBrightTemp : 1
 Flag_ComputePS : 1
 Flag_IncludeSpinTemp : 1
-Flag_SeparateQSOXrays : 0   # TODO: Not implemented currently
+Flag_SeparateQSOXrays : 0   # NOT CURRENTLY IMPLEMENTED (CODE WILL FAIL IF != 0)
 Flag_IncludePecVelsFor21cm : 1
 Flag_ConstructLightcone : 1
 

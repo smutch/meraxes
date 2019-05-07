@@ -7,6 +7,11 @@ static void check_problem_params(run_params_t* run_params)
         mlog_error("The current version of the code only works if NSteps = 1. Sorry! Exiting...");
         ABORT(EXIT_FAILURE);
     }
+
+    if (run_params->Flag_SeparateQSOXrays != 0) {
+        mlog_error("The current version of the code only works if Flag_SeparateQSOXrays = 0. Sorry! Exiting...");
+        ABORT(EXIT_FAILURE);
+    }
 }
 
 static void store_params(entry_t entry[123],
