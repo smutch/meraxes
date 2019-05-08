@@ -129,10 +129,14 @@ void reset_galaxy_properties(galaxy_t* gal, int snapshot)
     gal->BlackHoleAccretedHotMass = 0.0;
     gal->BlackHoleAccretedColdMass = 0.0;
 
-    // update the stellar mass weighted mean age values
+    // Update the stellar mass weighted mean age values.  This only needs to be
+    // done for snapshots shich are passing out of what we are able to track
+    // with N_HISTORY_SNAPS.
     assert(snapshot > 0);
-    gal->mwmsa_denom += gal->NewStars[N_HISTORY_SNAPS - 1];
-    gal->mwmsa_num += gal->NewStars[N_HISTORY_SNAPS - 1] * run_globals.LTTime[snapshot - N_HISTORY_SNAPS];
+    if (snapshot >= N_HISTORY_SNAPS) {
+        gal->mwmsa_denom += gal->NewStars[N_HISTORY_SNAPS - 1];
+        gal->mwmsa_num += gal->NewStars[N_HISTORY_SNAPS - 1] * run_globals.LTTime[snapshot - N_HISTORY_SNAPS];
+    }
 
     // roll over the baryonic history arrays
     for (int ii = N_HISTORY_SNAPS - 1; ii > 0; ii--)
