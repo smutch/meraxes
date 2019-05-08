@@ -24,7 +24,7 @@ option(USE_BUNDLED_FFTW "Download and build against bundled fftw" OFF)
 option(BUILD_TESTS "Build criterion tests" OFF)
 
 # Build type
-set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -DDEBUG -Wall -O0 -Wno-unused-but-set-variable")
+set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -DDEBUG -Wall -O0 -Wno-unused-but-set-variable -fsanitize=address")
 set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -march=native -O3 -ffast-math")
 set(CMAKE_C_FLAGS_RELWITHDEBINFO "${CMAKE_C_FLAGS_RELWITHDEBINFO} -Wall -march=native -O3 -ffast-math")
 set(CMAKE_BUILD_TYPE "Debug" CACHE STRING "Build type.")
