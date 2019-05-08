@@ -11,8 +11,8 @@ float current_mwmsa(galaxy_t* gal, int i_snap)
     double mwmsa_denom = gal->mwmsa_denom;
     int snapshot = run_globals.ListOutputSnaps[i_snap];
 
-    for (int ii = 0; ii < N_HISTORY_SNAPS; ii++) {
-        mwmsa_num += gal->NewStars[ii] * LTTime[snapshot - ii];
+    for (int ii = 0, jj = snapshot; (ii < N_HISTORY_SNAPS) && (jj >= 0); ii++, jj--) {
+        mwmsa_num += gal->NewStars[ii] * LTTime[jj];
         mwmsa_denom += gal->NewStars[ii];
     }
 
