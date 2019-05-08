@@ -60,7 +60,7 @@ static void read_requested_forest_ids()
         int n_forests = atoi(line);
         run_globals.NRequestedForests = n_forests;
 
-        run_globals.RequestedForestId = malloc(sizeof(int) * n_forests);
+        run_globals.RequestedForestId = malloc(sizeof(long) * n_forests);
         long* ids = run_globals.RequestedForestId;
 
         for (int ii = 0; ii < n_forests; ii++) {
