@@ -78,6 +78,7 @@ void calculate_galaxy_fesc_vals(galaxy_t* gal, double new_stars, int snapshot)
     // here.  It's confusing I know.  I intend to re-write this to make things
     // more obvious at some point in the future.
     gal->FescBH = fesc_bh;
+
 }
 
 void set_quasar_fobs()
@@ -858,6 +859,7 @@ void construct_baryon_grids(int snapshot, int local_ngals)
                     // They are the same just now, but may be different in the future once the model is improved.
                     switch (prop) {
                         case prop_stellar:
+
                             buffer[ind] += gal->FescWeightedGSM;
                             // a trick to include quasar radiation using current 21cmFAST code
                             if (run_globals.params.physics.Flag_BHFeedback) {

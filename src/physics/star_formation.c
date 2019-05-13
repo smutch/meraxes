@@ -121,6 +121,7 @@ void insitu_star_formation(galaxy_t* gal, int snapshot)
         contemporaneous_supernova_feedback(gal, &m_stars, snapshot, &m_reheat, &m_eject, &m_recycled, &new_metals);
 
         // update the baryonic reservoirs (note that the order we do this in will change the result!)
+
         update_reservoirs_from_sf(gal, m_stars);
         update_reservoirs_from_sn_feedback(gal, m_reheat, m_eject, m_recycled, new_metals);
     }
