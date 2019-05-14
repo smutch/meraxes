@@ -121,7 +121,7 @@ static void merger_driven_starburst(galaxy_t* parent, double merger_ratio, int s
 
             contemporaneous_supernova_feedback(parent, &burst_mass, snapshot, &m_reheat, &m_eject, &m_recycled, &new_metals);
             // update the baryonic reservoirs (note that the order we do this in will change the result!)
-            update_reservoirs_from_sf(parent, burst_mass);
+            update_reservoirs_from_sf(parent, burst_mass, snapshot, MERGER);
             parent->MergerBurstMass += burst_mass;
             update_reservoirs_from_sn_feedback(parent, m_reheat, m_eject, m_recycled, new_metals);
         }

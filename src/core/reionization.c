@@ -4,7 +4,7 @@
 #include <hdf5_hl.h>
 #include <math.h>
 
-void calculate_galaxy_fesc_vals(galaxy_t* gal, double new_stars, int snapshot)
+void update_galaxy_fesc_vals(galaxy_t* gal, double new_stars, int snapshot)
 {
     physics_params_t* params = &(run_globals.params.physics);
 
@@ -77,6 +77,7 @@ void calculate_galaxy_fesc_vals(galaxy_t* gal, double new_stars, int snapshot)
     // The upshot is that we don't need to do anything to the EffectiveBHM
     // here.  It's confusing I know.  I intend to re-write this to make things
     // more obvious at some point in the future.
+    // TODO(smutch): Check this all out and ensure that it is valid for reidentified ghosts
     gal->FescBH = fesc_bh;
 
 }

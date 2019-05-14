@@ -73,12 +73,6 @@ int evolve_galaxies(fof_group_t* fof_group, int snapshot, int NGal, int NFof)
                         if ((gal->MergTime < 0) || (gal->MergerTarget->Type == 3))
                             merge_with_target(gal, &dead_gals, snapshot);
 
-                    // At this point, we've done all of the evolution for this galaxy,
-                    // so we can update the escape fractions for stars and
-                    // black holes based on the current properties and newly
-                    // formed stars.
-                    calculate_galaxy_fesc_vals(gal, gal->NewStars[0], snapshot);
-
                     gal = gal->NextGalInHalo;
                 }
                 halo = halo->NextHaloInFOFGroup;

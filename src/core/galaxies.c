@@ -75,6 +75,11 @@ galaxy_t* new_galaxy(int snapshot, unsigned long halo_ID)
 
     init_luminosities(gal);
 
+#ifdef DEBUG
+    if (gal->ID == 60000284462)
+        mpi_debug_here();
+#endif
+
     return gal;
 }
 

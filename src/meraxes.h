@@ -114,6 +114,11 @@ typedef enum index_type {
     INDEX_COMPLEX_HERM,
 } index_type;
 
+typedef enum SFtype { 
+    INSITU,
+    MERGER
+} SFtype;
+
 /*
  * Structures
  */
@@ -754,7 +759,7 @@ double calculate_merging_time(galaxy_t* gal, int snapshot);
 void merge_with_target(galaxy_t* gal, int* dead_gals, int snapshot);
 void insitu_star_formation(galaxy_t* gal, int snapshot);
 double pressure_dependent_star_formation(galaxy_t* gal, int snapshot);
-void update_reservoirs_from_sf(galaxy_t* gal, double new_stars);
+void update_reservoirs_from_sf(galaxy_t* gal, double new_stars, int snapshot, SFtype type);
 double sn_m_low(double log_dt);
 double calc_recycled_frac(double m_high, double m_low, double* burst_mass_frac);
 void delayed_supernova_feedback(galaxy_t* gal, int snapshot);
@@ -837,7 +842,7 @@ void set_quasar_fobs(void);
 double RtoM(double R);
 void find_HII_bubbles(int snapshot, timer_info *timer_total);
 double tocf_modifier(galaxy_t* gal, double Mvir);
-void calculate_galaxy_fesc_vals(galaxy_t *gal, double new_stars, int snapshot);
+void update_galaxy_fesc_vals(galaxy_t *gal, double new_stars, int snapshot);
 void set_ReionEfficiency(void);
 int find_cell(float pos, double box_size);
 void malloc_reionization_grids(void);
