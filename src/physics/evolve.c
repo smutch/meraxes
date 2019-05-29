@@ -73,6 +73,8 @@ int evolve_galaxies(fof_group_t* fof_group, int snapshot, int NGal, int NFof)
                         if ((gal->MergTime < 0) || (gal->MergerTarget->Type == 3))
                             merge_with_target(gal, &dead_gals, snapshot);
 
+                    update_galaxy_fesc_vals(gal, gal->NewStars[0], snapshot);
+
                     gal = gal->NextGalInHalo;
                 }
                 halo = halo->NextHaloInFOFGroup;

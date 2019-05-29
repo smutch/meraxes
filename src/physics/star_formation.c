@@ -11,7 +11,7 @@ static void backfill_ghost_star_formation(galaxy_t* gal, double m_stars, int sna
         for (int ii = 1; ii < N_HISTORY_SNAPS; ii++)
             if (LTTime[snapshot - ii] > burst_time) {
                 gal->NewStars[ii] += m_stars;
-                update_galaxy_fesc_vals(gal, m_stars, snapshot-ii);
+                // update_galaxy_fesc_vals(gal, m_stars, snapshot-ii);
                 break;
             }
     }
@@ -50,7 +50,6 @@ void update_reservoirs_from_sf(galaxy_t* gal, double new_stars, int snapshot, SF
         else {
             // update the stellar mass history assuming the burst is happening in this snapshot
             gal->NewStars[0] += new_stars;
-            update_galaxy_fesc_vals(gal, new_stars, snapshot);
         }
 
         // Check the validity of the modified reservoir values.
