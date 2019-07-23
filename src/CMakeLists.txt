@@ -38,7 +38,7 @@ set(CMAKE_SKIP_BUILD_RPATH FALSE)
 
 # when building, don't use the install RPATH already
 # (but later on when installing)
-set(CMAKE_BUILD_WITH_INSTALL_RPATH FALSE) 
+set(CMAKE_BUILD_WITH_INSTALL_RPATH FALSE)
 
 set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
 
@@ -67,9 +67,6 @@ list(REMOVE_ITEM SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/core/meraxes.c)
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
-
-# library
-set(BUILD_SHARED_LIBS OFF CACHE BOOL "Build shared library version (required for Mhysa)")
 
 # CUDA & CUFFT (& add executable: meraxes)
 #  Note that the CUDA version should be >= 7.5
@@ -105,61 +102,60 @@ if(USE_CUDA)
 
     # Add the Meraxes lib to the project
     set(CUDA_LINK_LIBRARIES_KEYWORD PRIVATE)
-    cuda_add_library(meraxes_lib ${SOURCES})
+    cuda_add_library(meraxes_lib ${SOURCES} STATIC)
 
     # CUFFT
     if(USE_CUFFT)
         cuda_add_cufft_to_target(meraxes_lib)
     endif()
 else()
-    add_library(meraxes_lib ${SOURCES})
+    add_library(meraxes_lib STATIC ${SOURCES})
 endif()
 
 set_target_properties(meraxes_lib PROPERTIES
     OUTPUT_NAME meraxes
+    POSITION_INDEPENDENT_CODE ON
     PUBLIC_HEADER "${CMAKE_BINARY_DIR}/meraxes.h"
     )
 add_custom_target(install.lib
-    ${CMAKE_COMMAND} 
-    -DBUILD_TYPE=${CMAKE_BUILD_TYPE} 
+    ${CMAKE_COMMAND}
+    -DBUILD_TYPE=${CMAKE_BUILD_TYPE}
     -DCOMPONENT=lib
-    -P ${CMAKE_BINARY_DIR}/cmake_install.cmake) 
+    -P ${CMAKE_BINARY_DIR}/cmake_install.cmake)
 add_dependencies(install.lib meraxes_lib)
 install(TARGETS meraxes_lib EXPORT MeraxesConfig
-    DESTINATION lib 
+    DESTINATION lib
     PUBLIC_HEADER DESTINATION include
     COMPONENT lib)
 
 # executable
-if(NOT BUILD_SHARED_LIBS)
-    if(USE_CUDA)
-        cuda_add_executable(meraxes ${CMAKE_CURRENT_SOURCE_DIR}/core/meraxes.c)
-    else()
-        add_executable(meraxes ${CMAKE_CURRENT_SOURCE_DIR}/core/meraxes.c)
-    endif()
-    target_link_libraries(meraxes PRIVATE meraxes_lib)
-    install(TARGETS meraxes DESTINATION bin COMPONENT bin)
-    add_custom_target(install.meraxes
-        ${CMAKE_COMMAND} 
-        -DBUILD_TYPE=${CMAKE_BUILD_TYPE} 
-        -DCOMPONENT=bin
-        -P ${CMAKE_BINARY_DIR}/cmake_install.cmake) 
-    add_dependencies(install.meraxes meraxes)
-
-    set(INPUT_FILE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../input")
-    configure_file(${INPUT_FILE_DIR}/input.par ${CMAKE_BINARY_DIR}/input.par ESCAPE_QUOTES @ONLY)
-
-    add_custom_target(setuprun
-        COMMENT "Setting up run with minimal required files..."
-        COMMAND test -n \"\${RUNDIR}\" || (echo "*** Must set RUNDIR to execute target 'setuprun'. ***" && exit 1)
-        COMMAND echo "RUNDIR = \${RUNDIR}"
-        COMMAND mkdir -p \${RUNDIR}
-        COMMAND cp -n ${CMAKE_BINARY_DIR}/input.par \${RUNDIR}
-        COMMAND cp -n ${CMAKE_CURRENT_SOURCE_DIR}/../input/snaplist.txt \${RUNDIR}
-        COMMAND cp ${CMAKE_BINARY_DIR}/bin/meraxes \${RUNDIR}
-        )
-    add_dependencies(setuprun meraxes)
+if(USE_CUDA)
+    cuda_add_executable(meraxes ${CMAKE_CURRENT_SOURCE_DIR}/core/meraxes.c)
+else()
+    add_executable(meraxes ${CMAKE_CURRENT_SOURCE_DIR}/core/meraxes.c)
 endif()
+target_link_libraries(meraxes PRIVATE meraxes_lib)
+install(TARGETS meraxes DESTINATION bin COMPONENT bin)
+add_custom_target(install.meraxes
+    ${CMAKE_COMMAND}
+    -DBUILD_TYPE=${CMAKE_BUILD_TYPE}
+    -DCOMPONENT=bin
+    -P ${CMAKE_BINARY_DIR}/cmake_install.cmake)
+add_dependencies(install.meraxes meraxes)
+
+set(INPUT_FILE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../input")
+configure_file(${INPUT_FILE_DIR}/input.par ${CMAKE_BINARY_DIR}/input.par ESCAPE_QUOTES @ONLY)
+
+add_custom_target(setuprun
+    COMMENT "Setting up run with minimal required files..."
+    COMMAND test -n \"\${RUNDIR}\" || (echo "*** Must set RUNDIR to execute target 'setuprun'. ***" && exit 1)
+    COMMAND echo "RUNDIR = \${RUNDIR}"
+    COMMAND mkdir -p \${RUNDIR}
+    COMMAND cp -n ${CMAKE_BINARY_DIR}/input.par \${RUNDIR}
+    COMMAND cp -n ${CMAKE_CURRENT_SOURCE_DIR}/../input/snaplist.txt \${RUNDIR}
+    COMMAND cp ${CMAKE_BINARY_DIR}/bin/meraxes \${RUNDIR}
+    )
+add_dependencies(setuprun meraxes)
 
 # Meraxes headers
 include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/versioning.cmake)
@@ -227,7 +223,7 @@ target_include_directories(meraxes_lib PUBLIC
 target_link_libraries(meraxes_lib PUBLIC mlog)
 
 install(TARGETS mlog EXPORT MeraxesConfig
-    DESTINATION lib 
+    DESTINATION lib
     PUBLIC_HEADER DESTINATION include
     COMPONENT lib)
 
@@ -269,5 +265,5 @@ if(ENABLE_PROFILING)
 endif()
 
 # Exports for other codes to build against this version of Meraxes
-install(EXPORT MeraxesConfig DESTINATION share/meraxes/cmake)
 export(TARGETS meraxes_lib mlog FILE MeraxesConfig.cmake)
+install(EXPORT MeraxesConfig DESTINATION share/meraxes/cmake)
