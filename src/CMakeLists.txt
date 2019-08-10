@@ -11,7 +11,6 @@ project(meraxes)
 # if set in local.cmake, compiler options must be added here, after the
 # project() call
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CXXFLAGS}")
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${CFLAGS} -Wno-format-overflow")
 
 include(${CMAKE_ROOT}/Modules/ExternalProject.cmake)
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
@@ -19,7 +18,7 @@ set_property(DIRECTORY PROPERTY EP_PREFIX "${CMAKE_CURRENT_SOURCE_DIR}/3rd_party
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # build options
-set(N_HISTORY_SNAPS 5 CACHE VALUE "Number of snapshots for delayed SN feedback")
+set(N_HISTORY_SNAPS 5 CACHE STRING "Number of snapshots for delayed SN feedback")
 add_definitions(-DN_HISTORY_SNAPS=${N_HISTORY_SNAPS})
 option(USE_BUNDLED_FFTW "Download and build against bundled fftw" OFF)
 option(BUILD_TESTS "Build criterion tests" OFF)
