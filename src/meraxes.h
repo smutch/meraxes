@@ -247,6 +247,7 @@ typedef struct run_params_t {
     int Flag_PatchyReion;
     int Flag_OutputGrids;
     int Flag_OutputGridsPostReion;
+    int FlagIgnoreProgIndex;
 } run_params_t;
 
 typedef struct run_units_t {
