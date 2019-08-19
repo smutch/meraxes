@@ -4,4 +4,4 @@ FileWithOutputSnaps : snaplist.txt
 OutputDir           : output
 PhotometricTablesDir : @INPUT_FILE_DIR@/photometric_tables
 CoolingFuncsDir      : @INPUT_FILE_DIR@/cooling_functions
-StellarFeedbackDir   : @INPUT_FILE_DIR@/stellar_feedback_tables
+StellarFeedbackDir   : @INPUT_FILE_DIR@/stellar_feedback_tables/Kroupa
