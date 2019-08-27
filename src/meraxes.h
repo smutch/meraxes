@@ -8,6 +8,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#ifdef CALC_MAGS
+#include <sector.h>
+#endif
 
 #ifndef _INIT_MERAXES
 #define _INIT_MERAXES
@@ -19,6 +22,12 @@
 #define N_HISTORY_SNAPS @N_HISTORY_SNAPS@
 #define MERAXES_GITREF_STR "@GITREF@"
 #define MERAXES_GITDIFF_STR "@GITDIFF@"
+
+#ifdef CALC_MAGS
+#define MAGS_N_SNAPS @MAGS_N_SNAPS@
+#define MAGS_N_BANDS @MAGS_N_BANDS@
+#define MAGS_N MAGS_N_SNAPS*MAGS_N_BANDS
+#endif
 
 // ======================================================
 // Don't change these unless you know what you are doing!
@@ -187,6 +196,10 @@ typedef struct run_params_t {
     char CatalogFilePrefix[STRLEN];
     char FileWithOutputSnaps[STRLEN];
     char PhotometricTablesDir[STRLEN];
+    char TargetSnaps[STRLEN];
+    char BetaBands[STRLEN];
+    char RestBands[STRLEN];
+    double BirthCloudLifetime;
     char CoolingFuncsDir[STRLEN];
     char StellarFeedbackDir[STRLEN];
     char ForestIDFile[STRLEN];
@@ -341,6 +354,11 @@ typedef struct galaxy_t {
     double NewStars[N_HISTORY_SNAPS];
     double NewMetals[N_HISTORY_SNAPS];
 
+    #ifdef CALC_MAGS
+    double inBCFlux[MAGS_N];
+    double outBCFlux[MAGS_N];
+    #endif
+
     // Unique ID for the galaxy
     unsigned long ID;
 
@@ -422,6 +440,10 @@ typedef struct galaxy_output_t {
 
     // Unique ID for the galaxy
     unsigned long ID;
+
+#ifdef CALC_MAGS
+    float Mags[MAGS_N_BANDS];
+#endif
 
     int Type;
     int CentralGal;
@@ -516,6 +538,25 @@ typedef struct gpu_info{
 typedef char gpu_info;
 #endif
 
+#ifdef CALC_MAGS
+typedef struct mag_params_t {
+    int targetSnap[MAGS_N_SNAPS];
+    int nBeta;
+    int nRest;
+    int minZ;
+    int maxZ;
+    int nMaxZ;
+    double tBC;
+    int iAgeBC[MAGS_N_SNAPS];
+    size_t totalSize;
+    double *working;
+    double *inBC;
+    double *outBC;
+    double *centreWaves;
+    double *logWaves;
+} mag_params_t;
+#endif
+
 //! Global variables which will will be passed around
 typedef struct run_globals_t {
     struct run_params_t params;
@@ -549,6 +590,10 @@ typedef struct run_globals_t {
     double RhoCrit;
     double G;
     double Csquare;
+
+    #ifdef CALC_MAGS
+    struct mag_params_t mag_params;
+    #endif
 
     int NOutputSnaps;
     int LastOutputSnap;
@@ -608,7 +653,7 @@ double calculate_merging_time(galaxy_t* gal, int snapshot);
 void merge_with_target(galaxy_t* gal, int* dead_gals, int snapshot);
 void insitu_star_formation(galaxy_t* gal, int snapshot);
 double pressure_dependent_star_formation(galaxy_t* gal, int snapshot);
-void update_reservoirs_from_sf(galaxy_t* gal, double new_stars);
+void update_reservoirs_from_sf(galaxy_t* gal, double new_star, int snapshot);
 double sn_m_low(double log_dt);
 void delayed_supernova_feedback(galaxy_t* gal, int snapshot);
 void contemporaneous_supernova_feedback(galaxy_t* gal, double* m_stars, int snapshot, double* m_reheat, double* m_eject, double* m_recycled, double* new_metals);
@@ -716,6 +761,16 @@ void save_reion_input_grids(int snapshot);
 void save_reion_output_grids(int snapshot);
 bool check_if_reionization_ongoing(void);
 void write_single_grid(const char* fname, float* grid, const char* grid_name, bool padded_flag, bool create_file_flag);
+
+#ifdef CALC_MAGS
+void init_luminosities(galaxy_t *gal);
+void add_luminosities(mag_params_t *miniSpectra, galaxy_t *gal, int snapshot, double metals, double sfr);
+void merge_luminosities(galaxy_t *target, galaxy_t *gal);
+void init_templates_mini(mag_params_t *miniSpectra, char *fName, double *LTTime, int *targetSnaps, double *redshifts, double *betaBands, int nBeta, double *restBands, int nRest, double tBC);
+void init_magnitudes(void);
+void cleanup_mags(void);
+void get_output_magnitudes(float *target, galaxy_t *gal, int snapshot);
+#endif
 
 // MCMC related
 // meraxes_mhysa_hook must be implemented by the calling code (Mhysa)!

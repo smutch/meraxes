@@ -23,6 +23,13 @@ add_definitions(-DN_HISTORY_SNAPS=${N_HISTORY_SNAPS})
 option(USE_BUNDLED_FFTW "Download and build against bundled fftw" OFF)
 option(BUILD_TESTS "Build criterion tests" OFF)
 
+# MAGNITUDES
+option(CALC_MAGS "Calculate magnitude" OFF)
+set(MAGS_N_SNAPS 3 CACHE VALUE "Number of snapshots to compute magnitudes")
+add_definitions(-DMAGS_N_SNAPS=${MAGS_N_SNAPS})
+set(MAGS_N_BANDS 6 CACHE VALUE "Number of bands to compute")
+add_definitions(-DMAGS_N_BANDS=${MAGS_N_BANDS})
+
 # Build type
 set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -DDEBUG -Wall -O0 -Wno-unused-but-set-variable -fsanitize=address")
 set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -march=native -O3 -ffast-math")
@@ -204,6 +211,24 @@ target_link_libraries(meraxes_lib PRIVATE m)
 find_package(MPI REQUIRED)
 target_link_libraries(meraxes_lib PUBLIC MPI::MPI_C)
 
+# MAGNITUDES
+if(CALC_MAGS)
+    add_definitions(-DCALC_MAGS)
+    file(GLOB SECTOR_SOURCES ${SECTOR_ROOT}/*.c ${SECTOR}/sector.h)
+    add_library(sector SHARED ${SECTOR_SOURCES})
+    target_link_libraries(meraxes_lib PUBLIC sector)
+    set_target_properties(sector PROPERTIES
+                          POSITION_INDEPENDENT_CODE ON
+                          PUBLIC_HEADER "${SECTOR_ROOT}/sector.h")
+    target_include_directories(meraxes_lib PUBLIC
+                               $<BUILD_INTERFACE:${SECTOR_ROOT}>
+                               $<INSTALL_INTERFACE:include>)
+    install(TARGETS sector EXPORT MeraxesConfig
+        DESTINATION lib
+        PUBLIC_HEADER DESTINATION include
+        COMPONENT lib)
+endif()
+
 # MLOG
 if(NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/mlog/mlog.c")
     message(STATUS "Checking out mlog submodule")
@@ -265,5 +290,9 @@ if(ENABLE_PROFILING)
 endif()
 
 # Exports for other codes to build against this version of Meraxes
-export(TARGETS meraxes_lib mlog FILE MeraxesConfig.cmake)
+if(CALC_MAGS)
+    export(TARGETS meraxes_lib mlog sector FILE MeraxesConfig.cmake)
+else()
+    export(TARGETS meraxes_lib mlog FILE MeraxesConfig.cmake)
+endif()
 install(EXPORT MeraxesConfig DESTINATION share/meraxes/cmake)
