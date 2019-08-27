@@ -135,17 +135,39 @@ void read_parameter_file(char* fname, int mode)
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_STRING;
 
+#ifdef CALC_MAGS
             strncpy(params_tag[n_param], "PhotometricTablesDir", tag_length);
             params_addr[n_param] = run_params->PhotometricTablesDir;
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_STRING;
 
-            strncpy(params_tag[n_param], "CoolingFuncsDir", tag_length);
+            strcpy(params_tag[n_param], "TargetSnaps");
+            params_addr[n_param] = run_params->TargetSnaps;
+            required_tag[n_param] = 1;
+            params_type[n_param++] = PARAM_TYPE_STRING;
+
+            strcpy(params_tag[n_param], "BetaBands");
+            params_addr[n_param] = run_params->BetaBands;
+            required_tag[n_param] = 1;
+            params_type[n_param++] = PARAM_TYPE_STRING;
+
+            strcpy(params_tag[n_param], "RestBands");
+            params_addr[n_param] = run_params->RestBands;
+            required_tag[n_param] = 1;
+            params_type[n_param++] = PARAM_TYPE_STRING;
+
+            strcpy(params_tag[n_param], "BirthCloudLifetime");
+            params_addr[n_param] = &(run_params->BirthCloudLifetime);
+            required_tag[n_param] = 1;
+            params_type[n_param++] = PARAM_TYPE_DOUBLE;
+#endif
+
+            strcpy(params_tag[n_param], "CoolingFuncsDir");
             params_addr[n_param] = run_params->CoolingFuncsDir;
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_STRING;
 
-            strncpy(params_tag[n_param], "StellarFeedbackDir", tag_length);
+            strcpy(params_tag[n_param], "StellarFeedbackDir");
             params_addr[n_param] = run_params->StellarFeedbackDir;
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_STRING;

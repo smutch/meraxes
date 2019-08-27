@@ -2,18 +2,25 @@
 #include <assert.h>
 #include <gsl/gsl_integration.h>
 
-void update_reservoirs_from_sf(galaxy_t* gal, double new_stars)
+void update_reservoirs_from_sf(galaxy_t* gal, double new_stars, int snapshot)
 {
     if (new_stars > 0) {
         double metallicity;
         double current_time;
 
-        // update the galaxy's SFR value
-        gal->Sfr += new_stars / gal->dt;
-        assert(gal->Sfr >= 0);
-
         // instantaneous recycling approximation of stellar mass
         metallicity = calc_metallicity(gal->ColdGas, gal->MetalsColdGas);
+
+        // update the galaxy's SFR value
+        #ifdef CALC_MAGS
+        double sfr = new_stars / gal->dt;
+        gal->Sfr += sfr;
+        if (sfr > 0.)
+            add_luminosities(&run_globals.mag_params, gal, snapshot, metallicity, sfr);
+        #else
+        gal->Sfr += new_stars / gal->dt;
+        #endif
+        assert(gal->Sfr >= 0);
 
         // update the stellar mass history
         gal->NewStars[0] += new_stars;
@@ -118,7 +125,7 @@ void insitu_star_formation(galaxy_t* gal, int snapshot)
         contemporaneous_supernova_feedback(gal, &m_stars, snapshot, 
                                            &m_reheat, &m_eject, &m_recycled, &new_metals);
         // update the baryonic reservoirs (note that the order we do this in will change the result!)
-        update_reservoirs_from_sf(gal, m_stars);
+        update_reservoirs_from_sf(gal, m_stars, snapshot);
         update_reservoirs_from_sn_feedback(gal, m_reheat, m_eject, m_recycled, new_metals);
     }
 }
