@@ -195,13 +195,11 @@ typedef struct run_params_t {
     char SimulationDir[STRLEN];
     char CatalogFilePrefix[STRLEN];
     char FileWithOutputSnaps[STRLEN];
-    #ifdef CALC_MAGS
     char PhotometricTablesDir[STRLEN];
     char TargetSnaps[STRLEN];
     char BetaBands[STRLEN];
     char RestBands[STRLEN];
     double BirthCloudLifetime;
-    #endif
     char CoolingFuncsDir[STRLEN];
     char StellarFeedbackDir[STRLEN];
     char ForestIDFile[STRLEN];
