@@ -75,6 +75,9 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
+# library
+set(BUILD_SHARED_LIBS OFF CACHE BOOL "Build shared library version (required for Mhysa)")
+
 # CUDA & CUFFT (& add executable: meraxes)
 #  Note that the CUDA version should be >= 7.5
 #  because c++11 support is needed!
@@ -109,19 +112,18 @@ if(USE_CUDA)
 
     # Add the Meraxes lib to the project
     set(CUDA_LINK_LIBRARIES_KEYWORD PRIVATE)
-    cuda_add_library(meraxes_lib ${SOURCES} STATIC)
+    cuda_add_library(meraxes_lib ${SOURCES})
 
     # CUFFT
     if(USE_CUFFT)
         cuda_add_cufft_to_target(meraxes_lib)
     endif()
 else()
-    add_library(meraxes_lib STATIC ${SOURCES})
+    add_library(meraxes_lib ${SOURCES})
 endif()
 
 set_target_properties(meraxes_lib PROPERTIES
     OUTPUT_NAME meraxes
-    POSITION_INDEPENDENT_CODE ON
     PUBLIC_HEADER "${CMAKE_BINARY_DIR}/meraxes.h"
     )
 add_custom_target(install.lib
@@ -136,33 +138,35 @@ install(TARGETS meraxes_lib EXPORT MeraxesConfig
     COMPONENT lib)
 
 # executable
-if(USE_CUDA)
-    cuda_add_executable(meraxes ${CMAKE_CURRENT_SOURCE_DIR}/core/meraxes.c)
-else()
-    add_executable(meraxes ${CMAKE_CURRENT_SOURCE_DIR}/core/meraxes.c)
+if(NOT BUILD_SHARED_LIBS)
+    if(USE_CUDA)
+        cuda_add_executable(meraxes ${CMAKE_CURRENT_SOURCE_DIR}/core/meraxes.c)
+    else()
+        add_executable(meraxes ${CMAKE_CURRENT_SOURCE_DIR}/core/meraxes.c)
+    endif()
+    target_link_libraries(meraxes PRIVATE meraxes_lib)
+    install(TARGETS meraxes DESTINATION bin COMPONENT bin)
+    add_custom_target(install.meraxes
+        ${CMAKE_COMMAND}
+        -DBUILD_TYPE=${CMAKE_BUILD_TYPE}
+        -DCOMPONENT=bin
+        -P ${CMAKE_BINARY_DIR}/cmake_install.cmake)
+    add_dependencies(install.meraxes meraxes)
+
+    set(INPUT_FILE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../input")
+    configure_file(${INPUT_FILE_DIR}/input.par ${CMAKE_BINARY_DIR}/input.par ESCAPE_QUOTES @ONLY)
+
+    add_custom_target(setuprun
+        COMMENT "Setting up run with minimal required files..."
+        COMMAND test -n \"\${RUNDIR}\" || (echo "*** Must set RUNDIR to execute target 'setuprun'. ***" && exit 1)
+        COMMAND echo "RUNDIR = \${RUNDIR}"
+        COMMAND mkdir -p \${RUNDIR}
+        COMMAND cp -n ${CMAKE_BINARY_DIR}/input.par \${RUNDIR}
+        COMMAND cp -n ${CMAKE_CURRENT_SOURCE_DIR}/../input/snaplist.txt \${RUNDIR}
+        COMMAND cp ${CMAKE_BINARY_DIR}/bin/meraxes \${RUNDIR}
+        )
+    add_dependencies(setuprun meraxes)
 endif()
-target_link_libraries(meraxes PRIVATE meraxes_lib)
-install(TARGETS meraxes DESTINATION bin COMPONENT bin)
-add_custom_target(install.meraxes
-    ${CMAKE_COMMAND}
-    -DBUILD_TYPE=${CMAKE_BUILD_TYPE}
-    -DCOMPONENT=bin
-    -P ${CMAKE_BINARY_DIR}/cmake_install.cmake)
-add_dependencies(install.meraxes meraxes)
-
-set(INPUT_FILE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../input")
-configure_file(${INPUT_FILE_DIR}/input.par ${CMAKE_BINARY_DIR}/input.par ESCAPE_QUOTES @ONLY)
-
-add_custom_target(setuprun
-    COMMENT "Setting up run with minimal required files..."
-    COMMAND test -n \"\${RUNDIR}\" || (echo "*** Must set RUNDIR to execute target 'setuprun'. ***" && exit 1)
-    COMMAND echo "RUNDIR = \${RUNDIR}"
-    COMMAND mkdir -p \${RUNDIR}
-    COMMAND cp -n ${CMAKE_BINARY_DIR}/input.par \${RUNDIR}
-    COMMAND cp -n ${CMAKE_CURRENT_SOURCE_DIR}/../input/snaplist.txt \${RUNDIR}
-    COMMAND cp ${CMAKE_BINARY_DIR}/bin/meraxes \${RUNDIR}
-    )
-add_dependencies(setuprun meraxes)
 
 # Meraxes headers
 include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/versioning.cmake)
@@ -218,7 +222,6 @@ if(CALC_MAGS)
     add_library(sector SHARED ${SECTOR_SOURCES})
     target_link_libraries(meraxes_lib PUBLIC sector)
     set_target_properties(sector PROPERTIES
-                          POSITION_INDEPENDENT_CODE ON
                           PUBLIC_HEADER "${SECTOR_ROOT}/sector.h")
     target_include_directories(meraxes_lib PUBLIC
                                $<BUILD_INTERFACE:${SECTOR_ROOT}>
