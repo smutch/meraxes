@@ -175,7 +175,7 @@ void call_find_HII_bubbles(int snapshot, int nout_gals, timer_info* timer)
 
     // save the grids prior to doing FFTs to avoid precision loss and aliasing etc.
     for (int i_out = 0; i_out < run_globals.NOutputSnaps; i_out++)
-        if (snapshot == run_globals.ListOutputSnaps[i_out] && run_globals.params.Flag_OutputGrids)
+        if (snapshot == run_globals.ListOutputSnaps[i_out] && run_globals.params.Flag_OutputGrids && !run_globals.params.FlagMCMC)
             save_reion_input_grids(snapshot);
 
     mlog("...done", MLOG_CLOSE);
