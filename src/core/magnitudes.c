@@ -368,7 +368,8 @@ void init_magnitudes(void) {
 }
 
 void cleanup_mags(void) {
-    H5Tclose(run_globals.hdf5props.array_nmag_f_tid);
+    if(!run_globals.params.FlagMCMC)
+        H5Tclose(run_globals.hdf5props.array_nmag_f_tid);
     free(run_globals.mag_params.working);
 }
 
