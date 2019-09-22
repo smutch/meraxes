@@ -43,6 +43,7 @@ void cleanup()
         free(run_globals.hdf5props.dst_field_sizes);
         free(run_globals.hdf5props.dst_offsets);
         H5Tclose(run_globals.hdf5props.array3f_tid);
+        H5Tclose(run_globals.hdf5props.array_nhist_f_tid);
         mlog(" ...done", MLOG_CLOSE);
     }
 
