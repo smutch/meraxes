@@ -25,10 +25,9 @@ int read_dm_grid__velociraptor(
     H5Pset_fapl_mpio(plist_id, run_globals.mpi_comm, MPI_INFO_NULL);
     hid_t file_id = H5Fopen(fname, H5F_ACC_RDWR, plist_id);
     H5Pclose(plist_id);
-    herr_t status = -1;
 
     int n_cell[3] = { 0, 0, 0 };
-    status = H5LTget_attribute_int(file_id, "/", "Ngrid_X", &n_cell[0]);
+    hid_t status = H5LTget_attribute_int(file_id, "/", "Ngrid_X", &n_cell[0]);
     assert(status >= 0);
     status = H5LTget_attribute_int(file_id, "/", "Ngrid_Y", &n_cell[1]);
     assert(status >= 0);
@@ -114,7 +113,7 @@ int read_dm_grid__velociraptor(
     free(real_buffer);
 
     // smooth the grid if needed
-    smooth_grid(resample_factor, n_cell, slab_file, slab_n_complex_file, slab_ix_start_file, slab_nix_file);
+    smooth_grid(resample_factor, n_cell, slab_file, slab_n_complex_file, slab_ix_start_file, slab_nix_file, snapshot);
 
     // Copy the read and smoothed slab into the padded fft slab (already allocated externally)
     int ReionGridDim = run_globals.params.ReionGridDim;
@@ -134,7 +133,6 @@ int read_dm_grid__velociraptor(
         }
     }
 
-    // N.B. Hubble factor below to account for incorrect units in input DM grids!
     // TODO: Discuss this with Pascal and check carefully
     double mean = (double)run_globals.params.NPart * run_globals.params.PartMass / pow(box_size, 3) / run_globals.params.Hubble_h / run_globals.params.Hubble_h;
 
