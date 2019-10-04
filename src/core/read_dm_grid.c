@@ -3,8 +3,16 @@
 
 double calc_resample_factor(int n_cell[3])
 {
-    // Check if the grid in the file is higher resolution than we require
     int ReionGridDim = run_globals.params.ReionGridDim;
+
+    // Check that n_cell is divisible by ReionGridDim. We need this to ensure
+    // that grid points are evenly spaced in the volume after resampling.
+    if (n_cell[0] % ReionGridDim != 0) {
+        mlog_error("n_cell is not divisble by ReionGridDim. This is required for downsampling.");
+        ABORT(EXIT_FAILURE);
+    }
+
+    // Check if the grid in the file is higher resolution than we require
     if (n_cell[0] != ReionGridDim) {
         double resample_factor = (double)ReionGridDim / (double)n_cell[0];
         if (resample_factor > 1.0001) {
@@ -17,9 +25,15 @@ double calc_resample_factor(int n_cell[3])
         return 1.0;
 }
 
-void smooth_grid(double resample_factor, int n_cell[3], fftwf_complex* slab, ptrdiff_t slab_n_complex, ptrdiff_t slab_ix_start, ptrdiff_t slab_nix)
+void smooth_grid(double resample_factor, int n_cell[3], fftwf_complex* slab, ptrdiff_t slab_n_complex, ptrdiff_t slab_ix_start, ptrdiff_t slab_nix, int snapshot)
 {
     if (resample_factor < 1.0) {
+        // DEBUG
+        char debug_fname[STRLEN*2];
+        sprintf(debug_fname, "%s/smoothing_debug.h5", run_globals.params.OutputDir);
+        if (snapshot == 17)
+            write_single_grid(debug_fname, (float *)slab, slab_ix_start, slab_nix, n_cell[0], "pre_smoothing", true, true);
+
         mlog("Smoothing hi-res grid...", MLOG_OPEN | MLOG_TIMERSTART);
         fftwf_plan plan = fftwf_mpi_plan_dft_r2c_3d(n_cell[0], n_cell[1], n_cell[2], (float*)slab, slab, run_globals.mpi_comm, FFTW_ESTIMATE);
         fftwf_execute(plan);
@@ -41,6 +55,10 @@ void smooth_grid(double resample_factor, int n_cell[3], fftwf_complex* slab, ptr
         fftwf_execute(plan);
         fftwf_destroy_plan(plan);
         mlog("...done", MLOG_CLOSE | MLOG_TIMERSTOP);
+
+        // DEBUG
+        if (snapshot == 17)
+            write_single_grid(debug_fname, (float *)slab, slab_ix_start, slab_nix, n_cell[0], "post_smoothing", true, false);
     }
 }
 

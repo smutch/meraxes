@@ -310,6 +310,9 @@ void check_pointers(halo_t* halos, fof_group_t* fof_groups, trees_info_t* trees_
 
 void write_single_grid(const char* fname,
     float* grid,
+    int local_ix_start,
+    int local_nix,
+    int dim,
     const char* grid_name,
     bool padded_flag,
     bool create_file_flag)
@@ -326,30 +329,28 @@ void write_single_grid(const char* fname,
 
     H5Pclose(plist_id);
 
-    int local_nix = (int)run_globals.reion_grids.slab_nix[run_globals.mpi_rank];
-    int ReionGridDim = run_globals.params.ReionGridDim;
     float* grid_out;
 
     if (padded_flag) {
-        grid_out = malloc(local_nix * ReionGridDim * ReionGridDim * sizeof(float));
+        grid_out = malloc(local_nix * dim * dim * sizeof(float));
         for (int ii = 0; ii < local_nix; ii++)
-            for (int jj = 0; jj < ReionGridDim; jj++)
-                for (int kk = 0; kk < ReionGridDim; kk++)
-                    grid_out[grid_index(ii, jj, kk, ReionGridDim, INDEX_REAL)] = grid[grid_index(ii, jj, kk, ReionGridDim, INDEX_PADDED)];
+            for (int jj = 0; jj < dim; jj++)
+                for (int kk = 0; kk < dim; kk++)
+                    grid_out[grid_index(ii, jj, kk, dim, INDEX_REAL)] = grid[grid_index(ii, jj, kk, dim, INDEX_PADDED)];
     } else
         grid_out = grid;
 
     // create the filespace
-    hsize_t dims[3] = { (hsize_t)ReionGridDim, (hsize_t)ReionGridDim, (hsize_t)ReionGridDim };
+    hsize_t dims[3] = { (hsize_t)dim, (hsize_t)dim, (hsize_t)dim };
     hid_t fspace_id = H5Screate_simple(3, dims, NULL);
 
     // create the memspace
-    hsize_t mem_dims[3] = { (hsize_t)local_nix, (hsize_t)ReionGridDim, (hsize_t)ReionGridDim };
+    hsize_t mem_dims[3] = { (hsize_t)local_nix, (hsize_t)dim, (hsize_t)dim };
     hid_t memspace_id = H5Screate_simple(3, mem_dims, NULL);
 
     // select a hyperslab in the filespace
-    hsize_t start[3] = { (hsize_t)run_globals.reion_grids.slab_ix_start[run_globals.mpi_rank], 0, 0 };
-    hsize_t count[3] = { (hsize_t)local_nix, (hsize_t)ReionGridDim, (hsize_t)ReionGridDim };
+    hsize_t start[3] = { (hsize_t)local_ix_start, 0, 0 };
+    hsize_t count[3] = { (hsize_t)local_nix, (hsize_t)dim, (hsize_t)dim };
     H5Sselect_hyperslab(fspace_id, H5S_SELECT_SET, start, NULL, count, NULL);
 
     // crerate the dataset
