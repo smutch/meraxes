@@ -146,15 +146,6 @@ int read_dm_grid__gbptrees(
     // smooth the grid if needed
     smooth_grid(resample_factor, n_cell, slab_file, slab_n_complex_file, slab_ix_start_file, slab_nix_file, snapshot);
 
-    // FUCK.  I see the problem here.  Depending on the number of ranks, the x
-    // indices required for the low res fft might not match those held on this
-    // rank after the high-res fft.  I will need to loop through all high-res
-    // indices, figure out which ones are needed on the current rank, decide if
-    // that is available and, if not, get the x value slab(s) from the
-    // appropriate rank.  FFS.  This is going to be a pain in the ass...
-
-    // NEW CODE -----------------
-
     // Glossary
     // ix_hi: the x-axis index on the high res grid read from the input file
     // ix_lo: the x-axis index on the low res, subsampled, grid which will be used for the reionisation calculation
@@ -165,73 +156,39 @@ int read_dm_grid__gbptrees(
     // TODO: This needs tidied...  There are name collisions and some variables should be moved from above down here...
     // TODO: Much of this should be applicable to VR trees. I should pull this out in to a separate function.
     // gather all of the slab_ix_start_file values
-    int* all_slab_ix_start_file = calloc(run_globals.mpi_size, sizeof(int));  // TODO: Could this be on the stack instead?
-    int* all_slab_nix_file = calloc(run_globals.mpi_size, sizeof(int));
-    int this_slab_ix_start_file = (int)slab_ix_start_file;
-    int this_slab_nix_file = (int)slab_nix_file;
+    int* ix_hi_start_allranks = calloc(run_globals.mpi_size, sizeof(int));  // TODO: Could this be on the stack instead?
+    int* nix_hi_allranks = calloc(run_globals.mpi_size, sizeof(int));
+    int ix_hi_start = (int)slab_ix_start_file;
+    int nix_hi = (int)slab_nix_file;
 
-    for(int i_rank=0; i_rank < run_globals.mpi_size; ++i_rank) {
-        if (run_globals.mpi_rank == i_rank)
-            fprintf(stderr, "Rank %d: this_slab_ix_start_file = %d (%td)\n", run_globals.mpi_rank, this_slab_ix_start_file, slab_ix_start_file);
-    }
-
-    MPI_Barrier(run_globals.mpi_comm);
-
-    MPI_Allgather(&this_slab_ix_start_file, 1, MPI_INT, all_slab_ix_start_file, 1, MPI_INT, run_globals.mpi_comm);
-    MPI_Allgather(&this_slab_nix_file, 1, MPI_INT, all_slab_nix_file, 1, MPI_INT, run_globals.mpi_comm);
-
-    MPI_Barrier(run_globals.mpi_comm);
-
-    if(run_globals.mpi_rank == 0) {
-        fprintf(stderr, "all_slab_ix_start_file = [");
-        for(int ii=0; ii<run_globals.mpi_size; ++ii)
-            fprintf(stderr, "%d, ", all_slab_ix_start_file[ii]);
-        fprintf(stderr, "]\n");
-    }
-
-    MPI_Barrier(run_globals.mpi_comm);
+    MPI_Allgather(&ix_hi_start, 1, MPI_INT, ix_hi_start_allranks, 1, MPI_INT, run_globals.mpi_comm);
+    MPI_Allgather(&nix_hi, 1, MPI_INT, nix_hi_allranks, 1, MPI_INT, run_globals.mpi_comm);
 
     int n_every = n_cell[0] / ReionGridDim;
     int slice_size = ReionGridDim * ReionGridDim;
     float* slice = calloc(slice_size, sizeof(float));
-    int nx_lo_slab = (int)run_globals.reion_grids.slab_nix[run_globals.mpi_rank];
+    int nix_lo = (int)run_globals.reion_grids.slab_nix[run_globals.mpi_rank];
 
-    int lo_ix_start = (int)run_globals.reion_grids.slab_ix_start[0];
-    int lo_ix_end = lo_ix_start + (int)run_globals.reion_grids.slab_nix[0] - 1;
-    int hi_ix_start = all_slab_ix_start_file[0];
-    int hi_ix_end = hi_ix_start + all_slab_nix_file[0] - 1;
-    
-    // ugh... I'm going to have to debug the shit out of this...
-    char debug_fname[STRLEN*2];
-    snprintf(debug_fname, STRLEN*2, "%s/debug_%03d.txt", run_globals.params.OutputDir, run_globals.mpi_rank);
-    FILE *debug_fp = fopen(debug_fname, "w");
-
-    // Copy the read and smoothed slab into the padded fft slab (already allocated externally)
-    // int n_every = n_cell[0] / ReionGridDim;
-    // ptrdiff_t slab_ix_start = run_globals.reion_grids.slab_ix_start[run_globals.mpi_rank];
-
-    fprintf(debug_fp, "n_every,slab_ix_start,slab_nix,slab_ix_start_file,slab_nix_file\n");
-    fprintf(debug_fp, "%d,%d,%d,%d,%d\n\n", n_every, (int)run_globals.reion_grids.slab_ix_start[run_globals.mpi_rank], (int)run_globals.reion_grids.slab_nix[run_globals.mpi_rank], (int)slab_ix_start_file, (int)slab_nix_file);
-    fprintf(debug_fp, "ix_hi,ix_lo,source\n");
-
+    int ix_lo_start = (int)run_globals.reion_grids.slab_ix_start[0];
+    int ix_lo_end = ix_lo_start + (int)run_globals.reion_grids.slab_nix[0] - 1;
+    ix_hi_start = ix_hi_start_allranks[0];
+    int ix_hi_end = ix_hi_start + nix_hi_allranks[0] - 1;
 
     for (int ix_hi = 0, ix_lo = 0, hi_rank = 0, lo_rank = 0; ix_hi < n_cell[0]; ix_hi += n_every, ++ix_lo) {
 
-        if (ix_lo > lo_ix_end) lo_rank++;
-        if (ix_hi > hi_ix_end) hi_rank++;
+        if (ix_lo > ix_lo_end) lo_rank++;
+        if (ix_hi > ix_hi_end) hi_rank++;
 
-        lo_ix_start = (int)run_globals.reion_grids.slab_ix_start[lo_rank];
-        lo_ix_end = lo_ix_start + (int)run_globals.reion_grids.slab_nix[lo_rank] - 1;
-        hi_ix_start = all_slab_ix_start_file[hi_rank];
-        hi_ix_end = hi_ix_start + all_slab_nix_file[hi_rank] - 1;
+        ix_lo_start = (int)run_globals.reion_grids.slab_ix_start[lo_rank];
+        ix_lo_end = ix_lo_start + (int)run_globals.reion_grids.slab_nix[lo_rank] - 1;
+        ix_hi_start = ix_hi_start_allranks[hi_rank];
+        ix_hi_end = ix_hi_start + nix_hi_allranks[hi_rank] - 1;
 
-        int ix_lo_slab = ix_lo - lo_ix_start;
-        int ix_hi_slab = ix_hi - hi_ix_start;
+        int ix_lo_slab = ix_lo - ix_lo_start;
+        int ix_hi_slab = ix_hi - ix_hi_start;
 
         if ((hi_rank == run_globals.mpi_rank) && (lo_rank != run_globals.mpi_rank)) {
             // This rank has the high res x-value but needs to send it somewhere else...
-
-            // fprintf(stderr, "SEND -- Rank %d: ix_lo = %d, ix_hi = %d, lo_ix_start = %d, lo_ix_end = %d, ix_lo_slab = %d, hi_rank = %d, lo_rank = %d\n", run_globals.mpi_rank, ix_lo, ix_hi, lo_ix_start, lo_ix_end, ix_lo_slab, hi_rank, lo_rank);
 
             // pack the slice
             for (int iy_lo = 0; iy_lo < ReionGridDim; iy_lo++) {
@@ -254,14 +211,11 @@ int read_dm_grid__gbptrees(
         } else if ((hi_rank != run_globals.mpi_rank) && (lo_rank == run_globals.mpi_rank)) {
             // This rank needs the high res x-value but needs to get it from somewhere else...
 
-            // fprintf(stderr, "RECV -- Rank %d: ix_lo = %d, ix_hi = %d, lo_ix_start = %d, lo_ix_end = %d, ix_lo_slab = %d, hi_rank = %d, lo_rank = %d\n", run_globals.mpi_rank, ix_lo, ix_hi, lo_ix_start, lo_ix_end, ix_lo_slab, hi_rank, lo_rank);
-
             // receive the packed slice
             int ident = 400000 + 1000*hi_rank + run_globals.mpi_rank;
             MPI_Recv(slice, slice_size, MPI_FLOAT, hi_rank, ident, run_globals.mpi_comm, MPI_STATUS_IGNORE);
 
-            int ix_lo_slab = ix_lo - lo_ix_start;
-            assert((ix_lo_slab >= 0) && (ix_lo_slab < nx_lo_slab));
+            assert((ix_lo_slab >= 0) && (ix_lo_slab < nix_lo));
 
             // store it
             for (int iy_lo = 0; iy_lo < ReionGridDim; iy_lo++) {
@@ -277,13 +231,10 @@ int read_dm_grid__gbptrees(
 
             }
 
-            fprintf(debug_fp, "%d,%d,%d\n", ix_hi, ix_lo, hi_rank);
-
         } else if ((hi_rank == run_globals.mpi_rank) && (lo_rank == run_globals.mpi_rank)){
             // This rank needs the high res x-value and already has it...
 
-            // fprintf(stderr, "LOCAL -- Rank %d: ix_lo = %d, ix_hi = %d, lo_ix_start = %d, lo_ix_end = %d, ix_lo_slab = %d, hi_rank = %d, lo_rank = %d\n", run_globals.mpi_rank, ix_lo, ix_hi, lo_ix_start, lo_ix_end, ix_lo_slab, hi_rank, lo_rank);
-            assert((ix_lo_slab >= 0) && (ix_lo_slab < nx_lo_slab));
+            assert((ix_lo_slab >= 0) && (ix_lo_slab < nix_lo));
 
             for (int iy_lo = 0; iy_lo < ReionGridDim; iy_lo++) {
                 int iy_hi = n_every * iy_lo;
@@ -298,27 +249,14 @@ int read_dm_grid__gbptrees(
 
             }
 
-            fprintf(debug_fp, "%d,%d,%d\n", ix_hi, ix_lo, hi_rank);
-
         }
 
         // If we didn't match any of the above cases, we neither have nor want theis slice.
     }
 
     free(slice);
-    free(all_slab_nix_file);
-    free(all_slab_ix_start_file);
-
-    fclose(debug_fp);
-
-    // END NEW CODE -------------
-
-    // DEBUG
-    if (snapshot == 17) {
-        char debug_fname[(int)(STRLEN*1.1)];
-        sprintf(debug_fname, "%s/smoothing_debug.h5", run_globals.params.OutputDir);
-        write_single_grid(debug_fname, (float *)slab, run_globals.reion_grids.slab_ix_start[run_globals.mpi_rank], slab_nix, ReionGridDim, "post_subsample", true, false);
-    }
+    free(nix_hi_allranks);
+    free(ix_hi_start_allranks);
 
     // N.B. Hubble factor below to account for incorrect units in input DM grids!
     float mean_inv = pow(box_size[0], 3) * run_globals.params.Hubble_h / run_globals.params.NPart / run_globals.params.PartMass;
@@ -341,15 +279,6 @@ int read_dm_grid__gbptrees(
         cache_deltax_slab(slab, snapshot);
 
     mlog("...done", MLOG_CLOSE | MLOG_TIMERSTOP);
-
-    // DEBUG
-    if (snapshot == 17) {
-        char debug_fname[(int)(STRLEN*1.1)];
-        sprintf(debug_fname, "%s/smoothing_debug.h5", run_globals.params.OutputDir);
-        write_single_grid(debug_fname, (float *)slab, run_globals.reion_grids.slab_ix_start[run_globals.mpi_rank], slab_nix, ReionGridDim, "post_deltax_conv", true, false);
-    }
-
-    // write_single_grid("output/debug.h5", slab, "deltax", true, true);
 
     return 0;
 }
