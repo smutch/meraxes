@@ -223,46 +223,24 @@ int read_dm_grid__velociraptor(
 
     // smooth the grid if needed
     smooth_grid(resample_factor, file_n_cell, rank_slab, rank_nI[mpi_rank], rank_ix_start[mpi_rank], rank_nx[mpi_rank]);
-
-    // Copy the read and smoothed slab into the padded fft slab (already allocated externally)
-    ptrdiff_t slab_nix = run_globals.reion_grids.slab_nix[mpi_rank];
-    ptrdiff_t slab_n_complex = run_globals.reion_grids.slab_n_complex[mpi_rank];
-    for (int ii = 0; ii < slab_n_complex * 2; ii++)
-        slab[ii] = 0.0;
-
-    int ReionGridDim = run_globals.params.ReionGridDim;
-    int n_every = file_n_cell[1] / ReionGridDim;
-    for (int ii = 0; ii < slab_nix; ii++) {
-        int i_hr = n_every * ii;
-        assert((i_hr > -1) && (i_hr < rank_nx[mpi_rank]));
-        for (int jj = 0; jj < ReionGridDim; jj++) {
-            int j_hr = n_every * jj;
-            assert((j_hr > -1) && (j_hr < file_n_cell[1]));
-            for (int kk = 0; kk < ReionGridDim; kk++) {
-                int k_hr = n_every * kk;
-                assert((k_hr > -1) && (k_hr < file_n_cell[2]));
-
-                slab[grid_index(ii, jj, kk, ReionGridDim, INDEX_PADDED)] = ((float*)rank_slab)[grid_index(i_hr, j_hr, k_hr, file_n_cell[1], INDEX_PADDED)];
-            }
-        }
-    }
+    subsample_grid(resample_factor, file_n_cell, (int)rank_ix_start[mpi_rank], (int)rank_nx[mpi_rank], (float*)rank_slab, slab);
 
     fftwf_free(rank_slab);
 
-    // N.B. Hubble factor below to account for incorrect units in input DM grids!
-    // TODO(pascal): Discuss this with Pascal and check carefully
-    double mean = (double)run_globals.params.NPart * run_globals.params.PartMass / pow(box_size, 3) / run_globals.params.Hubble_h / run_globals.params.Hubble_h;
-    mlog("mean = %.3g", MLOG_MESG, mean);
+    // TODO: Discuss this with Pascal and check carefully
+    float mean_inv = pow(box_size, 3) * run_globals.params.Hubble_h * run_globals.params.Hubble_h / (double)run_globals.params.NPart / run_globals.params.PartMass;
 
     // At this point grid holds the summed densities in each LR cell
     // Loop through again and calculate the overdensity
     // i.e. (rho - rho_mean)/rho_mean
+    int ReionGridDim = run_globals.params.ReionGridDim;
+    int slab_nix = run_globals.reion_grids.slab_nix[mpi_rank];
     for (int ii = 0; ii < slab_nix; ii++)
         for (int jj = 0; jj < ReionGridDim; jj++)
             for (int kk = 0; kk < ReionGridDim; kk++) {
                 float* val = &(slab[grid_index(ii, jj, kk, ReionGridDim, INDEX_PADDED)]);
                 // the fmax check here tries to account for negative densities introduced by fftw rounding / aliasing effects
-                *val = fmaxf((float)(((double)*val / mean) - 1.), -1.0 + REL_TOL);
+                *val = fmaxf(*val * mean_inv - 1.0, -1.0);
             }
 
     // Do we need to cache this slab?

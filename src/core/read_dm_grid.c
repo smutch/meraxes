@@ -26,7 +26,7 @@ double calc_resample_factor(int n_cell[3])
         return 1.0;
 }
 
-void smooth_grid(double resample_factor, int n_cell[3], fftwf_complex* slab, ptrdiff_t slab_n_complex, ptrdiff_t slab_ix_start, ptrdiff_t slab_nix, int snapshot)
+void smooth_grid(double resample_factor, int n_cell[3], fftwf_complex* slab, ptrdiff_t slab_n_complex, ptrdiff_t slab_ix_start, ptrdiff_t slab_nix)
 {
     if (resample_factor < 1.0) {
         mlog("Smoothing hi-res grid...", MLOG_OPEN | MLOG_TIMERSTART);

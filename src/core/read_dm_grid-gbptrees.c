@@ -144,7 +144,7 @@ int read_dm_grid__gbptrees(
                 ((float*)slab_file)[grid_index(ii, jj, kk, n_cell[0], INDEX_PADDED)] = ((float*)slab_file)[grid_index(ii, jj, kk, n_cell[0], INDEX_REAL)];
 
     // smooth the grid and subsample if needed
-    smooth_grid(resample_factor, n_cell, slab_file, slab_n_complex_file, slab_ix_start_file, slab_nix_file, snapshot);
+    smooth_grid(resample_factor, n_cell, slab_file, slab_n_complex_file, slab_ix_start_file, slab_nix_file);
     subsample_grid(resample_factor, n_cell, (int)slab_ix_start_file, (int)slab_nix_file, (float*)slab_file, slab);
 
     // N.B. Hubble factor below to account for incorrect units in input DM grids!
