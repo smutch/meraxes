@@ -737,6 +737,7 @@ int read_dm_grid__gbptrees(int snapshot, float* slab);
 int read_dm_grid__velociraptor(int snapshot, float* slab);
 double calc_resample_factor(int n_cell[3]);
 void smooth_grid(double resample_factor, int n_cell[3], fftwf_complex* slab, ptrdiff_t slab_n_complex, ptrdiff_t slab_ix_start, ptrdiff_t slab_nix, int snapshot);
+void subsample_grid(double resample_factor, int n_cell[3], int ix_hi_start, int nix_hi, float* slab_file, float* slab);
 int load_cached_deltax_slab(float* slab, int snapshot);
 int cache_deltax_slab(float* slab, int snapshot);
 void free_grids_cache(void);

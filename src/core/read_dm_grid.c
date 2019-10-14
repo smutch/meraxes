@@ -1,5 +1,6 @@
 #include "meraxes.h"
 #include <fftw3-mpi.h>
+#include <assert.h>
 
 double calc_resample_factor(int n_cell[3])
 {
@@ -28,12 +29,6 @@ double calc_resample_factor(int n_cell[3])
 void smooth_grid(double resample_factor, int n_cell[3], fftwf_complex* slab, ptrdiff_t slab_n_complex, ptrdiff_t slab_ix_start, ptrdiff_t slab_nix, int snapshot)
 {
     if (resample_factor < 1.0) {
-        // DEBUG
-        char debug_fname[STRLEN*2];
-        sprintf(debug_fname, "%s/smoothing_debug.h5", run_globals.params.OutputDir);
-        if (snapshot == 17)
-            write_single_grid(debug_fname, (float *)slab, slab_ix_start, slab_nix, n_cell[0], "pre_smoothing", true, true);
-
         mlog("Smoothing hi-res grid...", MLOG_OPEN | MLOG_TIMERSTART);
         fftwf_plan plan = fftwf_mpi_plan_dft_r2c_3d(n_cell[0], n_cell[1], n_cell[2], (float*)slab, slab, run_globals.mpi_comm, FFTW_ESTIMATE);
         fftwf_execute(plan);
@@ -55,11 +50,123 @@ void smooth_grid(double resample_factor, int n_cell[3], fftwf_complex* slab, ptr
         fftwf_execute(plan);
         fftwf_destroy_plan(plan);
         mlog("...done", MLOG_CLOSE | MLOG_TIMERSTOP);
-
-        // DEBUG
-        if (snapshot == 17)
-            write_single_grid(debug_fname, (float *)slab, slab_ix_start, slab_nix, n_cell[0], "post_smoothing", true, false);
     }
+}
+
+void subsample_grid(double resample_factor, int n_cell[3], int ix_hi_start, int nix_hi, float* slab_file, float* slab)
+{
+    // we don't need to do anything in this case
+    if (resample_factor >= 1.0)
+        return;
+
+    // Glossary
+    // ix_hi: the x-axis index on the high res grid read from the input file
+    // ix_lo: the x-axis index on the low res, subsampled, grid which will be used for the reionisation calculation
+    // hi_rank: the rank which holds the current ix_hi value
+    // lo_rank: the rank which will hold the current ix_lo value
+    // slice: a single x-index cut through an array. i.e. one x-value and all of the y and z values
+
+    // gather all of the slab_ix_start_file values
+    int* ix_hi_start_allranks = calloc(run_globals.mpi_size, sizeof(int));
+    int* nix_hi_allranks = calloc(run_globals.mpi_size, sizeof(int));
+
+    MPI_Allgather(&ix_hi_start, 1, MPI_INT, ix_hi_start_allranks, 1, MPI_INT, run_globals.mpi_comm);
+    MPI_Allgather(&nix_hi, 1, MPI_INT, nix_hi_allranks, 1, MPI_INT, run_globals.mpi_comm);
+
+    int ReionGridDim = run_globals.params.ReionGridDim;
+    int n_every = n_cell[0] / ReionGridDim;
+    int slice_size = ReionGridDim * ReionGridDim;
+    float* slice = calloc(slice_size, sizeof(float));
+    int nix_lo = (int)run_globals.reion_grids.slab_nix[run_globals.mpi_rank];
+
+    int ix_lo_start = (int)run_globals.reion_grids.slab_ix_start[0];
+    int ix_lo_end = ix_lo_start + (int)run_globals.reion_grids.slab_nix[0] - 1;
+    ix_hi_start = ix_hi_start_allranks[0];
+    int ix_hi_end = ix_hi_start + nix_hi_allranks[0] - 1;
+
+    for (int ix_hi = 0, ix_lo = 0, hi_rank = 0, lo_rank = 0; ix_hi < n_cell[0]; ix_hi += n_every, ++ix_lo) {
+
+        if (ix_lo > ix_lo_end) lo_rank++;
+        if (ix_hi > ix_hi_end) hi_rank++;
+
+        ix_lo_start = (int)run_globals.reion_grids.slab_ix_start[lo_rank];
+        ix_lo_end = ix_lo_start + (int)run_globals.reion_grids.slab_nix[lo_rank] - 1;
+        ix_hi_start = ix_hi_start_allranks[hi_rank];
+        ix_hi_end = ix_hi_start + nix_hi_allranks[hi_rank] - 1;
+
+        int ix_lo_slab = ix_lo - ix_lo_start;
+        int ix_hi_slab = ix_hi - ix_hi_start;
+
+        if ((hi_rank == run_globals.mpi_rank) && (lo_rank != run_globals.mpi_rank)) {
+            // This rank has the high res x-value but needs to send it somewhere else...
+
+            // pack the slice
+            for (int iy_lo = 0; iy_lo < ReionGridDim; iy_lo++) {
+                int iy_hi = n_every * iy_lo;
+                assert((iy_hi > -1) && (iy_hi < n_cell[0]));
+
+                for (int iz_lo = 0; iz_lo < ReionGridDim; iz_lo++) {
+                    int iz_hi = n_every * iz_lo;
+                    assert((iz_hi > -1) && (iz_hi < n_cell[0]));
+
+                    slice[grid_index(0, iy_lo, iz_lo, ReionGridDim, INDEX_REAL)] = slab_file[grid_index(ix_hi_slab, iy_hi, iz_hi, n_cell[0], INDEX_PADDED)];
+                }
+
+            }
+
+            // send it to the lo rank
+            int ident = 400000 + 1000*run_globals.mpi_rank + lo_rank;
+            MPI_Send(slice, slice_size, MPI_FLOAT, lo_rank, ident, run_globals.mpi_comm);
+
+        } else if ((hi_rank != run_globals.mpi_rank) && (lo_rank == run_globals.mpi_rank)) {
+            // This rank needs the high res x-value but needs to get it from somewhere else...
+
+            // receive the packed slice
+            int ident = 400000 + 1000*hi_rank + run_globals.mpi_rank;
+            MPI_Recv(slice, slice_size, MPI_FLOAT, hi_rank, ident, run_globals.mpi_comm, MPI_STATUS_IGNORE);
+
+            assert((ix_lo_slab >= 0) && (ix_lo_slab < nix_lo));
+
+            // store it
+            for (int iy_lo = 0; iy_lo < ReionGridDim; iy_lo++) {
+                int iy_hi = n_every * iy_lo;
+                assert((iy_hi > -1) && (iy_hi < n_cell[0]));
+
+                for (int iz_lo = 0; iz_lo < ReionGridDim; iz_lo++) {
+                    int iz_hi = n_every * iz_lo;
+                    assert((iz_hi > -1) && (iz_hi < n_cell[0]));
+
+                    slab[grid_index(ix_lo_slab, iy_lo, iz_lo, ReionGridDim, INDEX_PADDED)] = slice[grid_index(0, iy_lo, iz_lo, ReionGridDim, INDEX_REAL)];
+                }
+
+            }
+
+        } else if ((hi_rank == run_globals.mpi_rank) && (lo_rank == run_globals.mpi_rank)){
+            // This rank needs the high res x-value and already has it...
+
+            assert((ix_lo_slab >= 0) && (ix_lo_slab < nix_lo));
+
+            for (int iy_lo = 0; iy_lo < ReionGridDim; iy_lo++) {
+                int iy_hi = n_every * iy_lo;
+                assert((iy_hi > -1) && (iy_hi < n_cell[0]));
+
+                for (int iz_lo = 0; iz_lo < ReionGridDim; iz_lo++) {
+                    int iz_hi = n_every * iz_lo;
+                    assert((iz_hi > -1) && (iz_hi < n_cell[0]));
+
+                    slab[grid_index(ix_lo_slab, iy_lo, iz_lo, ReionGridDim, INDEX_PADDED)] = slab_file[grid_index(ix_hi_slab, iy_hi, iz_hi, n_cell[0], INDEX_PADDED)];
+                }
+
+            }
+
+        }
+
+        // If we didn't match any of the above cases, we neither have nor want this slice.
+    }
+
+    free(slice);
+    free(nix_hi_allranks);
+    free(ix_hi_start_allranks);
 }
 
 int load_cached_deltax_slab(float* slab, int snapshot)
