@@ -112,39 +112,23 @@ int read_dm_grid__velociraptor(
 
     free(real_buffer);
 
-    // smooth the grid if needed
+    // smooth the grid and subsample if needed
     smooth_grid(resample_factor, n_cell, slab_file, slab_n_complex_file, slab_ix_start_file, slab_nix_file, snapshot);
-
-    // Copy the read and smoothed slab into the padded fft slab (already allocated externally)
-    int ReionGridDim = run_globals.params.ReionGridDim;
-    int n_every = n_cell[0] / ReionGridDim;
-    for (int ii = 0; ii < slab_nix; ii++) {
-        int i_hr = n_every * ii;
-        assert((i_hr > -1) && (i_hr < slab_nix_file));
-        for (int jj = 0; jj < ReionGridDim; jj++) {
-            int j_hr = n_every * jj;
-            assert((j_hr > -1) && (j_hr < n_cell[0]));
-            for (int kk = 0; kk < ReionGridDim; kk++) {
-                int k_hr = n_every * kk;
-                assert((k_hr > -1) && (k_hr < n_cell[0]));
-
-                slab[grid_index(ii, jj, kk, ReionGridDim, INDEX_PADDED)] = ((float*)slab_file)[grid_index(i_hr, j_hr, k_hr, n_cell[0], INDEX_PADDED)];
-            }
-        }
-    }
+    subsample_grid(resample_factor, n_cell, (int)slab_ix_start_file, (int)slab_nix_file, (float*)slab_file, slab);
 
     // TODO: Discuss this with Pascal and check carefully
-    double mean = (double)run_globals.params.NPart * run_globals.params.PartMass / pow(box_size, 3) / run_globals.params.Hubble_h / run_globals.params.Hubble_h;
+    float mean_inv = pow(box_size, 3) * run_globals.params.Hubble_h * run_globals.params.Hubble_h / (double)run_globals.params.NPart / run_globals.params.PartMass;
 
     // At this point grid holds the summed densities in each LR cell
     // Loop through again and calculate the overdensity
     // i.e. (rho - rho_mean)/rho_mean
+    int ReionGridDim = run_globals.params.ReionGridDim;
     for (int ii = 0; ii < slab_nix; ii++)
         for (int jj = 0; jj < ReionGridDim; jj++)
             for (int kk = 0; kk < ReionGridDim; kk++) {
                 float* val = &(slab[grid_index(ii, jj, kk, ReionGridDim, INDEX_PADDED)]);
                 // the fmax check here tries to account for negative densities introduced by fftw rounding / aliasing effects
-                *val = fmaxf((float)(((double)*val / mean) - 1.), -1.0 + REL_TOL);
+                *val = fmaxf(*val * mean_inv - 1.0, -1.0);
             }
 
     fftwf_free(slab_file);
