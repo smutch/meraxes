@@ -397,10 +397,11 @@ void assign_Mvir_crit_to_galaxies(int ngals_in_slabs)
     mlog("Assigning Mvir_crit to galaxies...", MLOG_OPEN);
 
     // Work out the index of the galaxy_to_slab_map where each slab begins.
+    // TODO: This needs checked...
     int slab_map_offsets[run_globals.mpi_size];
     for (int ii = 0, i_gal = 0; ii < run_globals.mpi_size; ii++) {
         if (galaxy_to_slab_map != NULL) {
-            while ((galaxy_to_slab_map[i_gal].slab_ind < ii) && (i_gal < ngals_in_slabs))
+            while ((i_gal < ngals_in_slabs-1) && (galaxy_to_slab_map[i_gal].slab_ind < ii))
                 i_gal++;
 
             if (galaxy_to_slab_map[i_gal].slab_ind == ii)
@@ -454,7 +455,7 @@ void assign_Mvir_crit_to_galaxies(int ngals_in_slabs)
         if (recv_flag) {
             int i_gal = slab_map_offsets[recv_from_rank];
             int ix_start = (int)slab_ix_start[recv_from_rank];
-            while ((galaxy_to_slab_map[i_gal].slab_ind == recv_from_rank) && (i_gal < ngals_in_slabs)) {
+            while ( (i_gal < ngals_in_slabs) && (galaxy_to_slab_map[i_gal].slab_ind == recv_from_rank)) {
                 // TODO: We should use the position of the FOF group here...
                 galaxy_t* gal = galaxy_to_slab_map[i_gal].galaxy;
                 int ix = pos_to_ngp(gal->Pos[0], box_size, ReionGridDim) - ix_start;

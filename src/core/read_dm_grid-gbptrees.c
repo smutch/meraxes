@@ -143,28 +143,12 @@ int read_dm_grid__gbptrees(
             for (int kk = n_cell[0] - 1; kk >= 0; kk--)
                 ((float*)slab_file)[grid_index(ii, jj, kk, n_cell[0], INDEX_PADDED)] = ((float*)slab_file)[grid_index(ii, jj, kk, n_cell[0], INDEX_REAL)];
 
-    // smooth the grid if needed
+    // smooth the grid and subsample if needed
     smooth_grid(resample_factor, n_cell, slab_file, slab_n_complex_file, slab_ix_start_file, slab_nix_file);
-
-    // Copy the read and smoothed slab into the padded fft slab (already allocated externally)
-    int n_every = n_cell[0] / ReionGridDim;
-    for (int ii = 0; ii < slab_nix; ii++) {
-        int i_hr = n_every * ii;
-        assert((i_hr > -1) && (i_hr < slab_nix_file));
-        for (int jj = 0; jj < ReionGridDim; jj++) {
-            int j_hr = n_every * jj;
-            assert((j_hr > -1) && (j_hr < n_cell[0]));
-            for (int kk = 0; kk < ReionGridDim; kk++) {
-                int k_hr = n_every * kk;
-                assert((k_hr > -1) && (k_hr < n_cell[0]));
-
-                slab[grid_index(ii, jj, kk, ReionGridDim, INDEX_PADDED)] = ((float*)slab_file)[grid_index(i_hr, j_hr, k_hr, n_cell[0], INDEX_PADDED)];
-            }
-        }
-    }
+    subsample_grid(resample_factor, n_cell, (int)slab_ix_start_file, (int)slab_nix_file, (float*)slab_file, slab);
 
     // N.B. Hubble factor below to account for incorrect units in input DM grids!
-    double mean = (double)run_globals.params.NPart * run_globals.params.PartMass / pow(box_size[0], 3) / run_globals.params.Hubble_h;
+    float mean_inv = pow(box_size[0], 3) * run_globals.params.Hubble_h / run_globals.params.NPart / run_globals.params.PartMass;
 
     // At this point grid holds the summed densities in each LR cell
     // Loop through again and calculate the overdensity
@@ -174,7 +158,7 @@ int read_dm_grid__gbptrees(
             for (int kk = 0; kk < ReionGridDim; kk++) {
                 float* val = &(slab[grid_index(ii, jj, kk, ReionGridDim, INDEX_PADDED)]);
                 // the fmax check here tries to account for negative densities introduced by fftw rounding / aliasing effects
-                *val = fmaxf((float)(((double)*val / mean) - 1.), -1.0 + REL_TOL);
+                *val = fmaxf(*val * mean_inv - 1.0, -1.0);
             }
 
     fftwf_free(slab_file);
@@ -184,9 +168,6 @@ int read_dm_grid__gbptrees(
         cache_deltax_slab(slab, snapshot);
 
     mlog("...done", MLOG_CLOSE | MLOG_TIMERSTOP);
-
-    // DEBUG
-    // write_single_grid("output/debug.h5", slab, "deltax", true, true);
 
     return 0;
 }

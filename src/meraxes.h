@@ -752,6 +752,7 @@ int read_dm_grid__gbptrees(int snapshot, float* slab);
 int read_dm_grid__velociraptor(int snapshot, float* slab);
 double calc_resample_factor(int n_cell[3]);
 void smooth_grid(double resample_factor, int n_cell[3], fftwf_complex* slab, ptrdiff_t slab_n_complex, ptrdiff_t slab_ix_start, ptrdiff_t slab_nix);
+void subsample_grid(double resample_factor, int n_cell[3], int ix_hi_start, int nix_hi, float* slab_file, float* slab);
 int load_cached_deltax_slab(float* slab, int snapshot);
 int cache_deltax_slab(float* slab, int snapshot);
 void free_grids_cache(void);
@@ -760,7 +761,7 @@ void call_find_HII_bubbles(int snapshot, int nout_gals, timer_info *timer);
 void save_reion_input_grids(int snapshot);
 void save_reion_output_grids(int snapshot);
 bool check_if_reionization_ongoing(void);
-void write_single_grid(const char* fname, float* grid, const char* grid_name, bool padded_flag, bool create_file_flag);
+void write_single_grid(const char* fname, float* grid, int local_ix_start, int local_nix, int dim, const char* grid_name, bool padded_flag, bool create_file_flag);
 
 #ifdef CALC_MAGS
 void init_luminosities(galaxy_t *gal);
