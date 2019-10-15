@@ -228,7 +228,7 @@ int read_dm_grid__velociraptor(
     fftwf_free(rank_slab);
 
     // TODO: Discuss this with Pascal and check carefully
-    float mean_inv = pow(box_size, 3) * run_globals.params.Hubble_h * run_globals.params.Hubble_h / (double)run_globals.params.NPart / run_globals.params.PartMass;
+    float mean_inv = pow(box_size, 3) * run_globals.params.Hubble_h / ((double)run_globals.params.NPart * run_globals.params.PartMass);
 
     // At this point grid holds the summed densities in each LR cell
     // Loop through again and calculate the overdensity
