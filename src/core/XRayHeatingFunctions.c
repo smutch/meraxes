@@ -848,7 +848,7 @@ void initialize_interp_arrays()
 
     float xHI,xHeI,xHeII,z,T;
     float trash;
-    char label[STRLEN];
+    char label[64];
 
     int i;
     int n_ion;
