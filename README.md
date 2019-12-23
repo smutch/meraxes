@@ -57,6 +57,7 @@ Contributors
 * Hansik Kim (*The University of Melbourne*)
 * Greg Poole (*Astronomy Data and Compute Services*)
 * Yisheng Qiu (*The University of Melbourne*)
+* Brad Greig (*The University of Melbourne*)
 
 
 How to contribute

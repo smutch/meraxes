@@ -41,10 +41,8 @@ void smooth_grid(double resample_factor, int n_cell[3], fftwf_complex* slab, ptr
         double total_n_cells = n_cell[0] * n_cell[1] * n_cell[2];
         for (int ii = 0; ii < (int)slab_n_complex; ii++)
             slab[ii] /= total_n_cells;
-        filter(slab,
-            (int)slab_ix_start,
-            (int)slab_nix, n_cell[0],
-            (float)(run_globals.params.BoxSize / (double)run_globals.params.ReionGridDim / 2.0));
+
+        filter(slab, (int)slab_ix_start, (int)slab_nix, n_cell[0], (float)(run_globals.params.BoxSize / (double)run_globals.params.ReionGridDim / 2.0), 0); // NOTE: Real space top-hat hard-coded for this
 
         plan = fftwf_mpi_plan_dft_c2r_3d(n_cell[0], n_cell[1], n_cell[2], slab, (float*)slab, run_globals.mpi_comm, FFTW_ESTIMATE);
         fftwf_execute(plan);
@@ -180,6 +178,17 @@ int load_cached_deltax_slab(float* slab, int snapshot)
         return 1;
 }
 
+int load_cached_vel_slab(float *slab, int snapshot)
+{
+    if (run_globals.SnapshotVel[snapshot] != NULL) {
+        ptrdiff_t slab_n_complex = run_globals.reion_grids.slab_n_complex[run_globals.mpi_rank];
+        memcpy(slab, run_globals.SnapshotVel[snapshot], sizeof(float) * slab_n_complex * 2);
+        mlog("Loaded velocity slab from cache.", MLOG_MESG);
+        return 0;
+    } else
+        return 1;
+}
+
 int cache_deltax_slab(float* slab, int snapshot)
 {
     if (run_globals.SnapshotDeltax[snapshot] == NULL) {
@@ -194,15 +203,33 @@ int cache_deltax_slab(float* slab, int snapshot)
         return 1;
 }
 
+int cache_vel_slab(float* slab, int snapshot)
+{
+    if (run_globals.SnapshotVel[snapshot] == NULL) {
+        float** cache = &run_globals.SnapshotVel[snapshot];
+        ptrdiff_t slab_n_complex = run_globals.reion_grids.slab_n_complex[run_globals.mpi_rank];
+        ptrdiff_t mem_size = sizeof(float) * slab_n_complex * 2;
+
+        *cache = fftwf_alloc_real((size_t)mem_size);
+        memcpy(*cache, slab, mem_size);
+        return 0;
+    } else
+        return 1;
+}
+
 void free_grids_cache()
 {
     if (run_globals.params.Flag_PatchyReion) {
+        float** snapshot_vel = run_globals.SnapshotVel;
         float** snapshot_deltax = run_globals.SnapshotDeltax;
 
         if (run_globals.params.FlagInteractive)
-            for (int ii = 0; ii < run_globals.NStoreSnapshots; ii++)
+            for (int ii = 0; ii < run_globals.NStoreSnapshots; ii++) {
+                fftwf_free(snapshot_vel[ii]);
                 fftwf_free(snapshot_deltax[ii]);
+            }
 
+        free(snapshot_vel);
         free(snapshot_deltax);
     }
 }

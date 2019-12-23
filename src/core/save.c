@@ -630,7 +630,7 @@ void create_master_file()
     double temp;
 
     // Now create soft links to all of the files and datasets that make up this run
-    for (int i_out = 0, snap_n_gals = 0; i_out < run_globals.NOutputSnaps; i_out++, snap_n_gals = 0, temp = 0) {
+    for (int i_out = 0, snap_n_gals = 0; i_out < run_globals.NOutputSnaps; i_out++, snap_n_gals = 0) {
         sprintf(target_group, "Snap%03d", run_globals.ListOutputSnaps[i_out]);
         snap_group_id = H5Gcreate(file_id, target_group, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
 
@@ -728,8 +728,8 @@ static void inline save_walk_indices(
     int chunk_size = 1000;
 
     if (old_count > 0) {
-        hsize_t dim[1] = { old_count };
-        hsize_t chunks[1] = { chunk_size > old_count ? old_count : chunk_size };
+        hsize_t dim[1] = { (hsize_t)old_count };
+        hsize_t chunks[1] = { chunk_size > old_count ? (hsize_t)old_count : (hsize_t)chunk_size };
 
         hid_t plist_id = H5Pcreate(H5P_DATASET_CREATE);
         H5Pset_chunk(plist_id, 1, chunks);
@@ -943,7 +943,9 @@ void write_snapshot(
         free(first_progenitor_index);
         free(next_progenitor_index);
         free(descendant_index);
+
     } else {
+
         gal = run_globals.FirstGal;
         while (gal != NULL) {
             if (pass_write_check(gal, false))
@@ -996,7 +998,7 @@ void write_snapshot(
     // Free the output buffer
     free(output_buffer);
 
-    if (run_globals.params.Flag_PatchyReion && check_if_reionization_ongoing() && (run_globals.params.Flag_OutputGrids))
+    if (run_globals.params.Flag_PatchyReion && check_if_reionization_ongoing(run_globals.ListOutputSnaps[i_out]) && (run_globals.params.Flag_OutputGrids))
         save_reion_output_grids(run_globals.ListOutputSnaps[i_out]);
 
     // Close the group.

@@ -249,21 +249,6 @@ void delayed_supernova_feedback(galaxy_t* gal, int snapshot)
 }
 
 
-static void backfill_ghost_NewStars(galaxy_t* gal, double m_stars, int snapshot)
-{
-    if ((snapshot - gal->LastIdentSnap) <= N_HISTORY_SNAPS) {
-        double* LTTime = run_globals.LTTime;
-        double burst_time = LTTime[gal->LastIdentSnap] - gal->dt * 0.5;
-
-        for (int ii = 1; ii < N_HISTORY_SNAPS; ii++)
-            if (LTTime[snapshot - ii] > burst_time) {
-                gal->NewStars[ii - 1] += m_stars;
-                break;
-            }
-    }
-}
-
-
 void contemporaneous_supernova_feedback(
     galaxy_t* gal,
     double* m_stars,
@@ -328,10 +313,5 @@ void contemporaneous_supernova_feedback(
 
     assert(*m_reheat >= 0);
     assert(*m_eject >= 0);
-
-    // If this is a reidentified ghost, then back fill NewStars to reflect this
-    // new SF burst.
-    if (!Flag_IRA && (gal->LastIdentSnap < (snapshot - 1)))
-        backfill_ghost_NewStars(gal, *m_stars, snapshot);
 }
 
