@@ -124,7 +124,7 @@ void init_MHR(){
 
         // set up the spline in gamma
         RR_acc[z_ct] = gsl_interp_accel_alloc();
-        RR_spline[z_ct] = gsl_spline_alloc (gsl_interp_cspline, RR_lnGamma_NPTS);
+        RR_spline[z_ct] = gsl_spline_alloc(gsl_interp_cspline, RR_lnGamma_NPTS);
         gsl_spline_init(RR_spline[z_ct], lnGamma_values, RR_table[z_ct], RR_lnGamma_NPTS);
 
     } // go to next redshift

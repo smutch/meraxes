@@ -77,6 +77,7 @@ void _find_HII_bubbles(int snapshot)
     fabs_dtdz = (float)fabs(dtdz((float)redshift) / run_globals.params.Hubble_h);
 
     // Initialise interpolation tables for inhomogeneous recombinations
+    // TODO(merge): Does this need to be done every call?
     if(run_globals.params.Flag_IncludeRecombinations) {
         init_MHR();
     }
@@ -510,6 +511,9 @@ void _find_HII_bubbles(int snapshot)
                     N_rec[i_padded] += dNrec;
 
                 }
+
+        // TODO(merge): Does this need to be done every call?
+        free_MHR();
     }
 
 }
