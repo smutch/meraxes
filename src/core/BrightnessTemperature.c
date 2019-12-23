@@ -39,7 +39,7 @@ void ComputeBrightnessTemperatureBox(int snapshot) {
 
     float H_z = (float)(float)hubble(redshift);
 
-    double max_v_deriv, min_gradient_component, gradient_component, dvdx, subcell_width, d1_low, d2_low, d1_high, d2_high, subcell_displacement;
+    double max_v_deriv, gradient_component, dvdx, subcell_width, d1_low, d2_low, d1_high, d2_high, subcell_displacement;
     double x_val1, x_val2, RSD_pos_new, RSD_pos_new_boundary_low, RSD_pos_new_boundary_high, cell_distance, fraction_outside, fraction_within;
 
     x_val1 = 0.;
@@ -213,8 +213,6 @@ void ComputeBrightnessTemperatureBox(int snapshot) {
 
         // now add the line-of-sight velocity correction to the 21cm brightness temperature maps (line-of-sight redshift space distortions)
         if(run_globals.params.Flag_IncludePecVelsFor21cm > 1) {
-
-            min_gradient_component = 1.0;
 
             for (ii=0; ii < local_nix; ii++) {
                 for ( jj=0; jj < ReionGridDim; jj++) {
