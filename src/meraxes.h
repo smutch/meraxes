@@ -255,7 +255,6 @@ typedef struct run_params_t {
     char CoolingFuncsDir[STRLEN];
     char StellarFeedbackDir[STRLEN];
     char TablesForXHeatingDir[STRLEN];
-    char SSPModel[STRLEN];
     char IMF[STRLEN];
     char MagSystem[STRLEN];
     char MagBands[STRLEN];
@@ -886,7 +885,7 @@ void call_find_HII_bubbles(int snapshot, int nout_gals, timer_info *timer);
 void save_reion_input_grids(int snapshot);
 void save_reion_output_grids(int snapshot);
 bool check_if_reionization_ongoing(int snapshot);
-void write_single_grid(const char* fname, float* grid, const char* grid_name, bool padded_flag, bool create_file_flag);
+void write_single_grid(const char* fname, float* grid, int local_ix_start, int local_nix, int dim, const char* grid_name, bool padded_flag, bool create_file_flag);
 
 #ifdef CALC_MAGS
 void init_luminosities(galaxy_t *gal);
