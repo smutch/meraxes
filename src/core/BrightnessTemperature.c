@@ -12,7 +12,8 @@
  * Written by Bradley Greig.
  */
 
-void ComputeBrightnessTemperatureBox(int snapshot) {
+void ComputeBrightnessTemperatureBox(int snapshot)
+{
 
     int ii, jj, kk, i_real, i_padded, iii;
 
@@ -475,6 +476,11 @@ void ComputeBrightnessTemperatureBox(int snapshot) {
 
     MPI_Allreduce(MPI_IN_PLACE, &Ave_Tb, 1, MPI_DOUBLE, MPI_SUM, run_globals.mpi_comm);
     mlog("zp = %e Tb_ave = %e", MLOG_MESG, redshift, Ave_Tb);
+
+
+    free(delta_T_RSD_LOS);
+    free(x_pos_offset);
+    free(x_pos);
 
     run_globals.reion_grids.volume_ave_Tb = Ave_Tb;
 }

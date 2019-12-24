@@ -186,12 +186,18 @@ int init_heat()
 
 void destruct_heat()
 {
-  kappa_10(1.0,2);
-  kappa_10_elec(1.0,2);
-  kappa_10_pH(1.0,2);
-  T_RECFAST(100.0,2);
-  xion_RECFAST(100.0,2);
   spectral_emissivity(0.0, 2);
+  xion_RECFAST(100.0,2);
+  T_RECFAST(100.0,2);
+  kappa_10_pH(1.0,2);
+  kappa_10_elec(1.0,2);
+  kappa_10(1.0,2);
+
+  free(sum_lyn);
+  free(ST_over_PS);
+  free(sigma_Tmin);
+  free(sigma_atR);
+  free(zpp_edge);
 }
 
 // ******************************************************************** //
