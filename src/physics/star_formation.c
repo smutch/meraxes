@@ -2,18 +2,27 @@
 #include <assert.h>
 #include <gsl/gsl_integration.h>
 
-static void backfill_ghost_star_formation(galaxy_t* gal, double m_stars, int snapshot)
+static void backfill_ghost_star_formation(galaxy_t* gal, double m_stars, double sfr, double metallicity, int snapshot)
 {
     if ((snapshot - gal->LastIdentSnap) <= N_HISTORY_SNAPS) {
         double* LTTime = run_globals.LTTime;
         double burst_time = LTTime[gal->LastIdentSnap] - gal->dt * 0.5;
 
-        for (int ii = 1; ii < N_HISTORY_SNAPS; ii++)
-            if (LTTime[snapshot - ii] > burst_time) {
+        for (int ii = 1; ii < N_HISTORY_SNAPS; ii++) {
+            int snap = snapshot - ii;
+            if (LTTime[snap] > burst_time) {
+
+#ifdef CALC_MAGS
+                if (sfr > 0.)
+                    add_luminosities(&run_globals.mag_params, gal, snap, metallicity, sfr);
+#endif
                 gal->NewStars[ii] += m_stars;
-                update_galaxy_fesc_vals(gal, m_stars, snapshot-ii);
+                gal->NewMetals[0] += m_stars * metallicity;
+                update_galaxy_fesc_vals(gal, m_stars, snap);
                 break;
             }
+        }          
+
     }
 }
 
@@ -28,14 +37,8 @@ void update_reservoirs_from_sf(galaxy_t* gal, double new_stars, int snapshot, SF
         metallicity = calc_metallicity(gal->ColdGas, gal->MetalsColdGas);
 
         // update the galaxy's SFR value
-        #ifdef CALC_MAGS
         double sfr = new_stars / gal->dt;
         gal->Sfr += sfr;
-        if (sfr > 0.)
-            add_luminosities(&run_globals.mag_params, gal, snapshot, metallicity, sfr);
-        #else
-        gal->Sfr += new_stars / gal->dt;
-        #endif
         assert(gal->Sfr >= 0);
 
         gal->ColdGas -= new_stars;
@@ -48,10 +51,14 @@ void update_reservoirs_from_sf(galaxy_t* gal, double new_stars, int snapshot, SF
             // If this is a reidentified ghost, then back fill NewStars and
             // escape fraction dependent properties to reflect this new insitu
             // SF burst.
-            backfill_ghost_star_formation(gal, new_stars, snapshot);
+            backfill_ghost_star_formation(gal, new_stars, sfr, metallicity, snapshot);
         }
         else {
             // update the stellar mass history assuming the burst is happening in this snapshot
+#ifdef CALC_MAGS
+            if (sfr > 0.)
+                add_luminosities(&run_globals.mag_params, gal, snapshot, metallicity, sfr);
+#endif
             gal->NewStars[0] += new_stars;
             gal->NewMetals[0] += new_stars * metallicity;
 
