@@ -38,10 +38,6 @@ void update_reservoirs_from_sf(galaxy_t* gal, double new_stars, int snapshot, SF
         #endif
         assert(gal->Sfr >= 0);
 
-        // update the stellar mass history
-        gal->NewStars[0] += new_stars;
-        gal->NewMetals[0] += new_stars * metallicity;
-
         gal->ColdGas -= new_stars;
         gal->MetalsColdGas -= new_stars * metallicity;
         gal->StellarMass += new_stars;
@@ -57,6 +53,8 @@ void update_reservoirs_from_sf(galaxy_t* gal, double new_stars, int snapshot, SF
         else {
             // update the stellar mass history assuming the burst is happening in this snapshot
             gal->NewStars[0] += new_stars;
+            gal->NewMetals[0] += new_stars * metallicity;
+
             update_galaxy_fesc_vals(gal, new_stars, snapshot);
         }
 
