@@ -30,7 +30,6 @@ void update_reservoirs_from_sf(galaxy_t* gal, double new_stars, int snapshot, SF
 {
     if (new_stars > 0) {
         double metallicity;
-        double current_time;
         bool Flag_IRA = (bool)(run_globals.params.physics.Flag_IRA);
 
         // instantaneous recycling approximation of stellar mass
