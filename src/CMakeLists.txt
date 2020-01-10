@@ -31,7 +31,7 @@ set(MAGS_N_BANDS 6 CACHE VALUE "Number of bands to compute")
 add_definitions(-DMAGS_N_BANDS=${MAGS_N_BANDS})
 
 # Build type
-set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -DDEBUG -Wall -O0 -Wno-unused-but-set-variable -fsanitize=address")
+set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -DDEBUG -Wall -O0 -Wno-unused-but-set-variable -fsanitize=address,undefined")
 set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -march=native -O3 -ffast-math")
 set(CMAKE_C_FLAGS_RELWITHDEBINFO "${CMAKE_C_FLAGS_RELWITHDEBINFO} -Wall -march=native -O3 -ffast-math")
 set(CMAKE_BUILD_TYPE "Debug" CACHE STRING "Build type.")
