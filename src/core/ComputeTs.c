@@ -493,6 +493,7 @@ void ComputeTs(int snapshot, timer_info* timer_total)
 {
     // Call the version of ComputeTs we've been passed (and time it)
     timer_info timer;
+    double redshift = run_globals.ZZ[snapshot];
 #ifdef USE_CUDA
 #ifdef USE_CUFFT
     mlog("Calling pure-GPU version of ComputeTs() for snap=%d/z=%.2lf...", MLOG_OPEN | MLOG_TIMERSTART, snapshot, redshift);
@@ -501,7 +502,7 @@ void ComputeTs(int snapshot, timer_info* timer_total)
 #endif
     // Run the GPU version of _ComputeTs()
     timer_start(&timer);
-    //    _ComputeTs_gpu(redshift, flag_write_validation_data);
+    _ComputeTs_gpu(redshift, flag_write_validation_data);
 #else
     // Run the Meraxes version of _ComputeTs()
     mlog("Calling pure-CPU version of ComputeTs() for snap=%d/z=%.2lf...", MLOG_OPEN | MLOG_TIMERSTART, snapshot, run_globals.ZZ[snapshot]);
