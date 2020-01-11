@@ -933,7 +933,7 @@ static void write_grid_float(const char* name, float* data, hid_t file_id, hid_t
     H5Dclose(dset_id);
 }
 
-void gen_grids_fname(int snapshot, char* name, bool relative)
+void gen_grids_fname(const int snapshot, char* name, const bool relative)
 {
     if (!relative)
         sprintf(name, "%s/%s_grids_%d.hdf5", run_globals.params.OutputDir, run_globals.params.FileNameGalaxies, snapshot);

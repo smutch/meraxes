@@ -2,6 +2,9 @@
 #include <assert.h>
 #include <fftw3-mpi.h>
 #include <math.h>
+#include <dirent.h>
+#include <errno.h>
+
 
 /*
    ==============================================================================
@@ -23,16 +26,63 @@ static inline void read_identifier(FILE* fin, const bool skip_flag, const int n_
 
     if (skip_flag)
     {
-        mlog_error("Skipping grid: %s...", identifier);
+        // mlog("Skipping grid: %s...", identifier);
         fseek(fin, sizeof(float)*n_cell[0]*n_cell[1]*n_cell[2], SEEK_CUR);
     }
     else
         mlog("Reading grid: %s...", MLOG_MESG, identifier);
 }
 
+static long read_header(const char* fname, const int snapshot, int n_cell[3], double box_size[3], int* n_grids, int* ma_scheme, const enum grid_prop property)
+{
+    // Read the header
+    if (run_globals.mpi_rank == 0) {
+        long start_foffset;
+
+        FILE* fd;
+        if ((fd = fopen(fname, "rb")) == NULL) {
+            fprintf(stderr, "Failed to open file: %s\n", fname);
+            return EXIT_FAILURE;
+        }
+
+        fread(n_cell, sizeof(int), 3, fd);
+        fread(box_size, sizeof(double), 3, fd);
+        fread(n_grids, sizeof(int), 1, fd);
+        fread(ma_scheme, sizeof(int), 1, fd);
+
+        mlog("Reading grid for snapshot %d", MLOG_OPEN | MLOG_TIMERSTART, snapshot);
+        mlog("n_cell = [%d, %d, %d]", MLOG_MESG, n_cell[0], n_cell[1], n_cell[2]);
+        mlog("box_size = [%.2f, %.2f, %.2f] cMpc/h", MLOG_MESG, box_size[0], box_size[1], box_size[2]);
+        mlog("ma_scheme = %d", MLOG_MESG, *ma_scheme);
+
+        if (*n_grids != 4) {
+            mlog_error("n_grids != 4 as expected...");
+            fclose(fd);
+            ABORT(EXIT_FAILURE);
+        }
+
+        assert((n_cell[0] == n_cell[1]) && (n_cell[1] == n_cell[2])
+                && "Input grids are not cubic!");
+
+        // Note that we are expecting the first grid to be the density grid
+        for (int ii=0; ii < property; ++ii)
+            read_identifier(fd, true, n_cell);
+
+        read_identifier(fd, false, n_cell);
+
+        start_foffset = ftell(fd);
+        fclose(fd);
+
+        return start_foffset;
+    } else {
+        return 0;
+    }
+}
+
+
 int read_grid__gbptrees(
     const enum grid_prop property,
-    int snapshot,
+    const int snapshot,
     float* slab)
 {
     // N.B. We assume in this function that the slab has the fftw3 inplace complex dft padding.
@@ -65,45 +115,20 @@ int read_grid__gbptrees(
     long start_foffset;
     int ReionGridDim = run_globals.params.ReionGridDim;
 
-    // Construct the input filename
-    sprintf(fname, "%s/grids/snapshot_%03d_dark_grid.dat", params->SimulationDir, snapshot);
-
-    // Read the header
-    if (run_globals.mpi_rank == 0) {
-        FILE* fd;
-        if ((fd = fopen(fname, "rb")) == NULL) {
-            fprintf(stderr, "Failed to open file: %s\n", fname);
-            return EXIT_FAILURE;
-        }
-
-        fread(n_cell, sizeof(int), 3, fd);
-        fread(box_size, sizeof(double), 3, fd);
-        fread(&n_grids, sizeof(int), 1, fd);
-        fread(&ma_scheme, sizeof(int), 1, fd);
-
-        mlog("Reading grid for snapshot %d", MLOG_OPEN | MLOG_TIMERSTART, snapshot);
-        mlog("n_cell = [%d, %d, %d]", MLOG_MESG, n_cell[0], n_cell[1], n_cell[2]);
-        mlog("box_size = [%.2f, %.2f, %.2f] cMpc/h", MLOG_MESG, box_size[0], box_size[1], box_size[2]);
-        mlog("ma_scheme = %d", MLOG_MESG, ma_scheme);
-
-        if (n_grids != 4) {
-            mlog_error("n_grids != 4 as expected...");
-            fclose(fd);
-            ABORT(EXIT_FAILURE);
-        }
-
-        assert((n_cell[0] == n_cell[1]) && (n_cell[1] == n_cell[2])
-            && "Input grids are not cubic!");
-
-        // Note that we are expecting the first grid to be the density grid
-        for (int ii=0; ii < property; ++ii)
-            read_identifier(fd, true, n_cell);
-
-        read_identifier(fd, false, n_cell);
-
-        start_foffset = ftell(fd);
-        fclose(fd);
+    // Construct the input filename by first testing to see if there are
+    // pre-computed grids of the required resolution.  If not then we will just
+    // read the highest res grids available and down sample them.
+    char dirname[512];
+    sprintf(dirname, "%s/grids/resampled/N%d", params->SimulationDir, run_globals.params.ReionGridDim);
+    DIR* dir = opendir(dirname);
+    if (dir) {
+        closedir(dir);
+        sprintf(fname, "%s/snapshot_%03d_dark_grid.dat", dirname, snapshot);
+    } else {
+        sprintf(fname, "%s/grids/snapshot_%03d_dark_grid.dat", params->SimulationDir, snapshot);
     }
+
+    start_foffset = read_header(fname, snapshot, n_cell, box_size, &n_grids, &ma_scheme, property);
 
     // share the needed information with all ranks
     MPI_Bcast(n_cell, 3, MPI_INT, 0, run_globals.mpi_comm);
