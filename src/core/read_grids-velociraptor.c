@@ -7,8 +7,9 @@
 
 #define MIN(i, j) ((i) < (j) ? (i) : (j))
 
-int read_dm_grid__velociraptor(
-    int snapshot,
+int read_grid__velociraptor(
+    const enum grid_prop property,
+    const int snapshot,
     float* slab)
 {
     // N.B. We assume in this function that the slab has the fftw3 inplace complex dft padding.
@@ -18,8 +19,22 @@ int read_dm_grid__velociraptor(
     int mpi_rank = run_globals.mpi_rank;
 
     // Have we read this slab before?
-    if ((params->FlagInteractive || params->FlagMCMC) && !load_cached_deltax_slab(slab, snapshot))
+    if ((params->FlagInteractive || params->FlagMCMC) && !load_cached_slab(slab, snapshot, property))
         return 0;
+
+    if((property == X_VELOCITY) || (property == Y_VELOCITY) || (property == Z_VELOCITY)) {
+
+        if(run_globals.params.TsVelocityComponent < 1 || run_globals.params.TsVelocityComponent > 3) {
+            mlog("Not a valid velocity direction: 1 - x, 2 - y, 3 - z", MLOG_MESG);
+            ABORT(EXIT_FAILURE);
+        }
+
+        if(run_globals.params.Flag_ConstructLightcone && run_globals.params.TsVelocityComponent!=3) {
+            mlog("Light-cone is generated along the z-direction, therefore the velocity component should be in the z-direction (i.e 3).", MLOG_MESG);
+            ABORT(EXIT_FAILURE);
+        }
+
+    }
 
     // read in the number of x values and offsets from every grid file
     // nx : number of x-dim values
@@ -30,15 +45,29 @@ int read_dm_grid__velociraptor(
     int file_n_cell[3] = { 0, 0, 0 };
     double box_size;
     int n_files = 999;
-    const char fname_base[STRLEN] = { "%s/grids/snapshot_%03d.den.%d" };
+    const char fname_base[STRLEN] = { "%s/grids/snapshot_%03d.%s.%d" };
 
     {
         hid_t plist_id = H5Pcreate(H5P_FILE_ACCESS);
         H5Pset_fapl_mpio(plist_id, run_globals.mpi_comm, MPI_INFO_NULL);
 
         for (int ii = 0; ii < n_files; ii++) {
+
             char fname[STRLEN];
-            sprintf(fname, fname_base, params->SimulationDir, snapshot, ii);
+            switch (property){
+                case X_VELOCITY:
+                case Y_VELOCITY:
+                case Z_VELOCITY:
+                    sprintf(fname, fname_base, params->SimulationDir, snapshot, "vel", ii);
+                    break;
+                case DENSITY:
+                    sprintf(fname, fname_base, params->SimulationDir, snapshot, "den", ii);
+                    break;
+                default:
+                    mlog_error("Unrecognised grid property in read_grid__velociraptor!");
+                    break;
+            }
+
             hid_t file_id = H5Fopen(fname, H5F_ACC_RDONLY, plist_id);
 
             if (ii == 0) {
@@ -142,6 +171,25 @@ int read_dm_grid__velociraptor(
     size_t sort_ind[n_files];
     gsl_sort_int_index(sort_ind, n_required_ranks, 1, (const size_t)n_files);
 
+    char dset_name[32];
+    switch (property){
+        case X_VELOCITY:
+            sprintf(dset_name, "Vx");
+            break;
+        case Y_VELOCITY:
+            sprintf(dset_name, "Vy");
+            break;
+        case Z_VELOCITY:
+            sprintf(dset_name, "Vz");
+            break;
+        case DENSITY:
+            sprintf(dset_name, "Density");
+            break;
+        default:
+            mlog_error("Unrecognised grid property in read_grid__velociraptor!");
+            break;
+    }
+
     for (int jj = 0; jj < n_files; jj++) {
         int ii = (int)sort_ind[jj];
 
@@ -188,7 +236,7 @@ int read_dm_grid__velociraptor(
             hid_t file_id = H5Fopen(fname, H5F_ACC_RDONLY, plist_id);
             H5Pclose(plist_id);
 
-            hid_t dset_id = H5Dopen(file_id, "Density", H5P_DEFAULT);
+            hid_t dset_id = H5Dopen(file_id, dset_name, H5P_DEFAULT);
 
             plist_id = H5Pcreate(H5P_DATASET_XFER);
 
@@ -227,8 +275,9 @@ int read_dm_grid__velociraptor(
 
     fftwf_free(rank_slab);
 
-    // TODO: Discuss this with Pascal and check carefully
-    float mean_inv = pow(box_size, 3) * run_globals.params.Hubble_h / ((double)run_globals.params.NPart * run_globals.params.PartMass);
+    if (property == DENSITY) {
+        // TODO: Discuss this with Pascal and check carefully
+        float mean_inv = pow(box_size, 3) * run_globals.params.Hubble_h / ((double)run_globals.params.NPart * run_globals.params.PartMass);
 
     // At this point grid holds the summed densities in each LR cell
     // Loop through again and calculate the overdensity
@@ -242,10 +291,11 @@ int read_dm_grid__velociraptor(
                 // the fmax check here tries to account for negative densities introduced by fftw rounding / aliasing effects
                 *val = fmaxf(*val * mean_inv - 1.0, -1.0);
             }
+    }
 
     // Do we need to cache this slab?
     if (params->FlagInteractive || params->FlagMCMC)
-        cache_deltax_slab(slab, snapshot);
+        cache_slab(slab, snapshot, property);
 
     mlog("...done", MLOG_CLOSE | MLOG_TIMERSTOP);
 
