@@ -35,16 +35,12 @@ int read_grid__gbptrees(
     int snapshot,
     float* slab)
 {
-    // CONT HERE ***************************
-    // TODO: Finish this off by making sure we have everything needed for velocities in here...
-    // *************************************
-
     // N.B. We assume in this function that the slab has the fftw3 inplace complex dft padding.
 
     run_params_t* params = &(run_globals.params);
 
     // Have we read this slab before?
-    if ((params->FlagInteractive || params->FlagMCMC) && !load_cached_slab(slab, snapshot, property));
+    if ((params->FlagInteractive || params->FlagMCMC) && !load_cached_slab(slab, snapshot, property))
         return 0;
 
     if((property == X_VELOCITY) || (property == Y_VELOCITY) || (property == Z_VELOCITY)) {
