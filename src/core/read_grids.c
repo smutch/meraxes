@@ -70,8 +70,10 @@ void smooth_grid(double resample_factor, int n_cell[3], fftwf_complex* slab, ptr
 void subsample_grid(double resample_factor, int n_cell[3], int ix_hi_start, int nix_hi, float* slab_file, float* slab)
 {
     // we don't need to do anything in this case
-    if (resample_factor >= 1.0)
+    if (resample_factor >= 1.0) {
+        memcpy(slab, slab_file, sizeof(fftwf_complex) * run_globals.reion_grids.slab_n_complex[run_globals.mpi_rank]);
         return;
+    }
 
     // Glossary
     // ix_hi: the x-axis index on the high res grid read from the input file

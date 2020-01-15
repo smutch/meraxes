@@ -210,7 +210,7 @@ void call_ComputeTs(int snapshot, int nout_gals, timer_info* timer)
 
     // read in the velocity grids (only works for GBPTREES_TREES at the moment)
     if(run_globals.params.Flag_IncludePecVelsFor21cm>0) {
-        read_grid(run_globals.params.TsVelocityComponent, snapshot, grids->deltax);
+        read_grid(run_globals.params.TsVelocityComponent, snapshot, grids->vel);
     }
 
     // save the grids prior to doing FFTs to avoid precision loss and aliasing etc.
