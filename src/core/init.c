@@ -47,27 +47,25 @@ static void read_requested_forest_ids()
     }
 
     if (run_globals.mpi_rank == 0) {
-        FILE* fin;
-        char* line = NULL;
-        size_t len;
-        int n_forests = -1;
-        int* ids;
 
+        FILE* fin;
         if (!(fin = fopen(run_globals.params.ForestIDFile, "r"))) {
             mlog_error("Failed to open file: %s", run_globals.params.ForestIDFile);
             ABORT(EXIT_FAILURE);
         }
 
+        char* line = NULL;
+        size_t len;
         getline(&line, &len, fin);
-        n_forests = atoi(line);
+        int n_forests = atoi(line);
         run_globals.NRequestedForests = n_forests;
 
-        run_globals.RequestedForestId = malloc(sizeof(int) * n_forests);
-        ids = run_globals.RequestedForestId;
+        run_globals.RequestedForestId = malloc(sizeof(long) * n_forests);
+        long* ids = run_globals.RequestedForestId;
 
         for (int ii = 0; ii < n_forests; ii++) {
             getline(&line, &len, fin);
-            ids[ii] = atoi(line);
+            ids[ii] = atol(line);
         }
 
         free(line);
@@ -90,7 +88,7 @@ static void read_snap_list()
         FILE* fin;
         int snaplist_len;
         double dummy;
-        char fname[STRLEN];
+        char fname[STRLEN+12];
         run_params_t params = run_globals.params;
 
         sprintf(fname, "%s/a_list.txt", params.SimulationDir);
@@ -245,13 +243,6 @@ static void read_output_snaps()
             }
         fclose(fd);
 
-#ifdef CALC_MAGS
-        if (*nout != NOUT) {
-            mlog_error("Number of entries in output snaplist does not match NOUT!");
-            ABORT(EXIT_FAILURE);
-        }
-#endif
-
         // Loop through the read in snapshot numbers and convert any negative
         // values to positive ones ala python indexing conventions...
         // e.g. -1 -> MAXSNAPS-1 and so on...
@@ -278,39 +269,20 @@ static void read_output_snaps()
     MPI_Bcast(LastOutputSnap, 1, MPI_INT, 0, run_globals.mpi_comm);
 }
 
-static double find_min_dt(const int n_history_snaps)
-{
-    double* LTTime = run_globals.LTTime;
-    int n_snaps = run_globals.params.SnaplistLength;
-    double min_dt = LTTime[0] - LTTime[n_snaps - 1];
-
-    for (int ii = 0; ii < n_snaps - n_history_snaps; ii++) {
-        double diff = LTTime[ii] - LTTime[ii + n_history_snaps];
-        if (diff < min_dt)
-            min_dt = diff;
-    }
-
-    min_dt *= run_globals.units.UnitTime_in_Megayears / run_globals.params.Hubble_h;
-
-    return min_dt;
-}
-
-static double least_massive_stars_tracked(const int n_history_snaps)
-{
-    // Check that n_history_snaps is set to a high enough value to allow all
-    // SN-II to be tracked across the entire simulation.  This is calculated in
-    // an extremely crude fasion!
-    double min_dt = find_min_dt(n_history_snaps);
-    double m_low = sn_m_low(log10(min_dt));
-
-    return m_low;
-}
-
 
 void init_storage()
 {
     // Initialize the halo storage arrays
     initialize_halo_storage();
+
+    // Determine the size of the light-cone for initialising the light-cone grid
+    if(run_globals.params.Flag_PatchyReion && run_globals.params.Flag_ConstructLightcone) {
+        Initialise_ConstructLightcone();
+    }
+
+    if(run_globals.params.Flag_ComputePS) {
+        Initialise_PowerSpectrum();
+    }
 
     malloc_reionization_grids();
 
@@ -349,21 +321,18 @@ void init_meraxes()
         run_globals.LTTime[i] = time_to_present(run_globals.ZZ[i]);
     }
 
-    // check to ensure N_HISTORY_SNAPS is set to a high enough value
-    double m_low = least_massive_stars_tracked(N_HISTORY_SNAPS);
-    if (m_low > 8.0) {
-        mlog_error("N_HISTORY_SNAPS is likely not set to a high enough value!  Exiting...");
-        ABORT(EXIT_FAILURE);
-    }
-
     // read in the requested forest IDs (if any)
     read_requested_forest_ids();
 
-    // read in the photometric tables if required
-    read_photometric_tables();
-
     // read in the cooling functions
     read_cooling_functions();
+
+    // read in the stellar feedback tables
+    read_stellar_feedback_tables();
+
+    #ifdef CALC_MAGS
+    init_magnitudes();
+    #endif
 
     // set RequestedMassRatioModifier and RequestedBaryonFracModifieruto be 1 first
     // it will be set to -1 later if MassRatioModifier or BaryonFracModifier is not specified

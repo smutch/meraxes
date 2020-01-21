@@ -57,10 +57,10 @@ class Graph:
         node["edge"] = edge_id
 
     def iter_nodes(self):
-        return self.nodes.itervalues()
+        return iter(self.nodes.values())
 
     def iter_edges(self):
-        return self.edges.itervalues()
+        return iter(self.edges.values())
 
     def calc_positions(self):
         pos = np.zeros((self.__counter__, 2), float)
@@ -165,7 +165,6 @@ if __name__ == '__main__':
                 node["galaxy"] = gal[node["index"]]
 
     # Plot
-    colors = plt.rcParams['axes.color_cycle']
     fig, ax = plt.subplots(1,1, dpi=plt.rcParams['figure.dpi']*2,
                            figsize=np.array(plt.rcParams['figure.figsize'])*2,
                            facecolor=None)
@@ -215,13 +214,13 @@ if __name__ == '__main__':
                vmax=mstar_max, marker='+', linewidths=2, facecolor='0.5',
                alpha=0.5, s=mstar[ghost_sel], label="Ghosts")
     ax.scatter(pos[type2_sel,0], pos[type2_sel,1], vmin=mstar_min,
-               vmax=mstar_max, marker='v', c=true_mstar[type2_sel],
+               vmax=mstar_max, marker='v', c=mstar[type2_sel],
                s=mstar[type2_sel], cmap=cmap, label="Type 2")
     ax.scatter(pos[type1_sel,0], pos[type1_sel,1], vmin=mstar_min,
-               vmax=mstar_max, marker='^', c=true_mstar[type1_sel],
+               vmax=mstar_max, marker='^', c=mstar[type1_sel],
                s=mstar[type1_sel], cmap=cmap, label="Type 1")
     sc = ax.scatter(pos[type0_sel,0], pos[type0_sel,1], vmin=mstar_min,
-                    vmax=mstar_max, marker='o', c=true_mstar[type0_sel],
+                    vmax=mstar_max, marker='o', c=mstar[type0_sel],
                     s=mstar[type0_sel], cmap=cmap, label="Type 0")
 
     # ax.scatter(pos[ghost_sel,0], pos[ghost_sel,1], vmin=mvir_min,

@@ -1,422 +1,404 @@
+#ifdef CALC_MAGS
 #include "meraxes.h"
-#include <math.h>
 
-void init_luminosities(galaxy_t* gal)
-{
-#ifdef CALC_MAGS
-    for (int ii = 0; ii < NOUT; ii++)
-        for (int jj = 0; jj < run_globals.photo->NBands; jj++)
-            gal->Lum[jj][ii] = 0.0;
-#else
-    return;
-#endif
-}
+#define TOL 1e-30 // Minimum Flux
 
-void sum_luminosities(galaxy_t* parent, galaxy_t* gal, int outputbin)
-{
-#ifdef CALC_MAGS
-    int n_bands = run_globals.photo->NBands;
-    for (int ii = 0; ii < n_bands; ii++)
-        parent->Lum[ii][outputbin] += gal->Lum[ii][outputbin];
-#else
-    return;
-#endif
-}
 
-void prepare_magnitudes_for_output(galaxy_t gal, galaxy_output_t* galout, int i_snap)
-{
-#ifdef CALC_MAGS
-    int n_bands = run_globals.photo->NBands;
-    double LumDust[n_bands];
-    double Hubble_h = run_globals.params.Hubble_h;
-    for (int ii = 0; ii < n_bands; ii++) {
-        galout->Mag[ii] = (float)(lum_to_mag(gal.Lum[ii][i_snap])) - 5.0 * log10(Hubble_h);
-        apply_dust(n_bands, gal, LumDust, i_snap);
-        galout->MagDust[ii] = (float)(lum_to_mag(LumDust[ii])) - 5.0 * log10(Hubble_h);
+enum core {MASTER};
+
+void init_luminosities(galaxy_t *gal) {
+    // Initialise all elements of flux arrays to TOL.
+    double *inBCFlux = gal->inBCFlux;
+    double *outBCFlux = gal->outBCFlux;
+
+    for(int iSF = 0; iSF < MAGS_N; ++iSF) {
+        inBCFlux[iSF] = TOL;
+        outBCFlux[iSF] = TOL;
     }
-#else
-    return;
-#endif
 }
 
-#ifdef CALC_MAGS
+void add_luminosities(
+    mag_params_t *miniSpectra, galaxy_t *gal, int snapshot, double metals, double sfr
+) {
+    // Add luminosities when there is a burst. SFRs in principal should be in a
+    // unit of M_solar/yr. However, one can convert the unit on final results
+    // rather than here in order to achieve better performance.
 
-static int inline phototab_index(
-    phototabs_t* photo,
-    int i_band,
-    int i_metal,
-    int i_age)
-{
-    return (int)((i_age) + photo->NAges * ((i_metal) + photo->NMetals * (i_band)));
-}
+    // Compute integer metallicity
+    int Z = (int)(metals*1000 - .5);
+    if (Z < miniSpectra->minZ)
+        Z = miniSpectra->minZ;
+    else if (Z > miniSpectra->maxZ)
+        Z = miniSpectra->maxZ;
 
-static void init_jump_index()
-{
-    // This function precomputes a jump table that allows us to quickly jump to
-    // the nearest AgeTab index for any given age.  The larger the NJumps, the
-    // more accurate we can be...
+    // Add luminosities
+    int iA, iF, iS, iAgeBC;
+    int offset;
+    int nAgeStep;
+    int nZF = miniSpectra->nMaxZ*MAGS_N_BANDS;
+    double *pWorking = miniSpectra->working;
+    double *pInBC = miniSpectra->inBC;
+    double *pOutBC = miniSpectra->outBC;
+    double *pInBCFlux = gal->inBCFlux;
+    double *pOutBCFlux = gal->outBCFlux;
 
-    float age;
-    int idx;
-    float jumpfac;
-    phototabs_t* photo = run_globals.photo;
-    int* jumptab = photo->JumpTable;
-    float* AgeTab = photo->Ages;
-
-    jumpfac = N_PHOTO_JUMPS / (AgeTab[photo->NAges - 1] - AgeTab[1]);
-
-    for (int ii = 0; ii < N_PHOTO_JUMPS; ii++) {
-        age = AgeTab[1] + ii / jumpfac;
-        idx = 1;
-        while (AgeTab[idx + 1] < age)
-            idx++;
-        jumptab[ii] = idx;
-    }
-
-    photo->JumpFactor = jumpfac;
-}
-
-#endif
-
-#if defined(DEBUG) && defined(CALC_MAGS)
-
-static void print_phototab(int i_metal)
-{
-    phototabs_t* photo = run_globals.photo;
-    float* phototab = photo->Table;
-    int n_ages = photo->NAges;
-    int n_bands = photo->NBands;
-
-    mlog("--------------------", MLOG_MESG);
-    mlog("PHOTOTAB i_metal=%d", MLOG_MESG, i_metal);
-    for (int i_age = 0; i_age < n_ages; i_age++) {
-        for (int i_band = 0; i_band < n_bands; i_band++)
-            mlog("    %.2f", MLOG_CONT, phototab[phototab_index(photo, i_band, i_metal, i_age)]);
-        mlog("", MLOG_MESG);
-    }
-    mlog("--------------------", MLOG_MESG);
-}
-
-#endif
-
-void read_photometric_tables()
-{
-#ifdef CALC_MAGS
-    run_params_t* run_params = &(run_globals.params);
-
-    // malloc the phototabs struct (see cleanup_mags() for free)
-    run_globals.photo = malloc(sizeof(phototabs_t));
-    phototabs_t* photo = run_globals.photo;
-
-    float** Metals = &(photo->Metals);
-    float** AgeTab = &(photo->Ages);
-    char(**MagBands)[5] = &(photo->MagBands);
-    float** PhotoTab = &(photo->Table);
-    int n_table_entries = 0;
-
-    if (run_globals.mpi_rank == 0) {
-        hid_t fin;
-        hid_t group;
-        hsize_t dims[1];
-        char name[STRLEN];
-        char* bp;
-        int i_group = 0;
-        float* table_ds;
-        int start_ind = 0;
-        double UnitTime_in_Megayears = run_globals.units.UnitTime_in_Megayears;
-        double Hubble_h = run_params->Hubble_h;
-        char temp[STRLEN];
-        H5E_auto2_t old_func;
-        void* old_client_data;
-        herr_t error_stack = 0;
-
-        mlog("Reading photometric tables...", MLOG_OPEN);
-
-        // Open the file
-        sprintf(name, "%s/%s/%s/%s.hdf5", run_params->PhotometricTablesDir, run_params->SSPModel, run_params->IMF, run_params->MagSystem);
-        mlog("Using tables in file %s", MLOG_MESG, name);
-        fin = H5Fopen(name, H5F_ACC_RDONLY, H5P_DEFAULT);
-
-        // Read the list of metallicities
-        mlog("Reading metallicities...", MLOG_MESG);
-        H5LTget_dataset_info(fin, "metallicities", dims, NULL, NULL);
-        photo->NMetals = (int)(dims[0]);
-        *Metals = (float*)malloc(sizeof(float) * (size_t)(dims[0]));
-        H5LTread_dataset_float(fin, "metallicities", *Metals);
-
-        // Read the list of ages
-        mlog("Reading ages...", MLOG_MESG);
-        H5LTget_dataset_info(fin, "age", dims, NULL, NULL);
-        photo->NAges = (int)(dims[0]);
-        *AgeTab = (float*)malloc(sizeof(float) * (size_t)(dims[0]));
-        H5LTread_dataset_float(fin, "age", *AgeTab);
-
-        // Convert the ages from Myr to log10(internal time units)
-        for (int ii = 0; ii < photo->NAges; ii++)
-            (*AgeTab)[ii] = log10((*AgeTab)[ii] / UnitTime_in_Megayears * Hubble_h);
-
-        // Temporarily turn off hdf5 errors
-        H5Eget_auto(error_stack, &old_func, &old_client_data);
-        H5Eset_auto(error_stack, NULL, NULL);
-
-        // Parse the requested magnitude bands string and count the number of bands
-        // we are going to use
-        i_group = 0;
-        sprintf(temp, "%s", run_params->MagBands);
-        bp = strtok(temp, ",");
-        while (bp != NULL) {
-            group = H5Gopen(fin, bp, H5P_DEFAULT);
-            if (group > 0) {
-                i_group++;
-                H5Gclose(group);
-            } else
-                mlog_warning("Requested magnitude band `%s' not preset in input photometric tables - skipping...", MLOG_MESG, bp);
-
-            bp = strtok(NULL, " ,\n");
-        }
-        photo->NBands = i_group;
-
-        if (i_group > MAX_PHOTO_NBANDS) {
-            mlog_error("Requested number of valid magnitude bands exceeds maximum (%d > %d)!", MLOG_MESG, i_group, MAX_PHOTO_NBANDS);
-            ABORT(EXIT_FAILURE);
-        } else if (i_group == 0) {
-            mlog("No valid magnitude bands requested!", MLOG_MESG);
-            mlog("Exiting... Please recompile with CALC_MAGS=0...", MLOG_MESG);
-            ABORT(EXIT_FAILURE);
-        }
-
-        // Now we have the number of magnitude bands, metallicities and ages so we
-        // can malloc the photometric table itself.
-        n_table_entries = photo->NBands * photo->NMetals * photo->NAges;
-        mlog("N table entries = %d", MLOG_MESG, n_table_entries);
-        *PhotoTab = (float*)malloc(sizeof(float) * (size_t)n_table_entries);
-
-        // Finally - loop through the requested bands string one more time, save the
-        // band name and store the photometric table data
-        *MagBands = malloc(sizeof(char[5]) * (size_t)i_group);
-        table_ds = malloc(sizeof(float) * (size_t)(photo->NAges));
-        bp = strtok(run_params->MagBands, ",");
-        mlog("Reading in photometric table...", MLOG_MESG);
-        i_group = 0;
-        while (bp != NULL) {
-            group = H5Gopen(fin, bp, H5P_DEFAULT);
-            if (group > 0) {
-                sprintf(&((*MagBands)[0][i_group]), "%s", bp);
-                for (int i_metal = 0; i_metal < (photo->NMetals); i_metal++) {
-                    sprintf(name, "%0.4f", (*Metals)[i_metal]);
-                    H5LTread_dataset_float(group, name, table_ds);
-
-                    start_ind = phototab_index(photo, i_group, i_metal, 0);
-                    for (int ii = 0; ii < (photo->NAges); ii++)
-                        (*PhotoTab)[ii + start_ind] = table_ds[ii];
-                }
-                H5Gclose(group);
-                i_group++;
+    for(iS = 0; iS < MAGS_N_SNAPS; ++iS) {
+        nAgeStep = miniSpectra->targetSnap[iS];
+        iA = nAgeStep - snapshot;
+        if(iA >= 0) {
+            iAgeBC = miniSpectra->iAgeBC[iS];
+            if (iA > iAgeBC) {
+                offset = (Z*nAgeStep + iA)*MAGS_N_BANDS;
+                for(iF = 0; iF < MAGS_N_BANDS; ++iF)
+                    pOutBCFlux[iF] += sfr*pWorking[offset + iF];
             }
-            bp = strtok(NULL, " ,\n");
+            else if (iA == iAgeBC) {
+                offset = Z*MAGS_N_BANDS;
+                for(iF = 0; iF < MAGS_N_BANDS; ++iF) {
+                    pInBCFlux[iF] += sfr*pInBC[offset + iF];
+                    pOutBCFlux[iF] += sfr*pOutBC[offset + iF];
+                }
+            }
+            else {
+                offset = (Z*nAgeStep + iA)*MAGS_N_BANDS;
+                for(iF = 0; iF < MAGS_N_BANDS; ++iF)
+                    pInBCFlux[iF] += sfr*pWorking[offset + iF];
+            }
         }
-
-        // Restore hdf5 error handling
-        H5Eset_auto(error_stack, old_func, old_client_data);
-
-        // Deal with any zeros
-        for (int ii = 0; ii < n_table_entries; ii++)
-            if ((*PhotoTab)[ii] == 0)
-                (*PhotoTab)[ii] = 70.0;
-
-        // Convert metallicities to log10 for interpolation
-        for (int ii = 0; ii < photo->NMetals; ii++)
-            (*Metals)[ii] = log10((*Metals)[ii]);
-
-        // free temp arrays
-        free(table_ds);
-
-        // Close the file
-        H5Fclose(fin);
+        pWorking += nAgeStep*nZF;
+        pInBC += nZF;
+        pOutBC += nZF;
+        pInBCFlux += MAGS_N_BANDS;
+        pOutBCFlux += MAGS_N_BANDS;
     }
-
-    // if using MPI, broadcast the necessary data to all ranks
-    MPI_Bcast(&(photo->NMetals), 1, MPI_INT, 0, run_globals.mpi_comm);
-    if (run_globals.mpi_rank > 0)
-        *Metals = (float*)malloc(sizeof(float) * photo->NMetals);
-    MPI_Bcast(*Metals, photo->NMetals, MPI_FLOAT, 0, run_globals.mpi_comm);
-
-    MPI_Bcast(&(photo->NAges), 1, MPI_INT, 0, run_globals.mpi_comm);
-    if (run_globals.mpi_rank > 0)
-        *AgeTab = (float*)malloc(sizeof(float) * photo->NAges);
-    MPI_Bcast(*AgeTab, photo->NAges, MPI_FLOAT, 0, run_globals.mpi_comm);
-
-    MPI_Bcast(&(photo->NBands), 1, MPI_INT, 0, run_globals.mpi_comm);
-    if (run_globals.mpi_rank > 0)
-        *MagBands = malloc(sizeof(char[5]) * photo->NBands);
-    MPI_Bcast(*MagBands, photo->NBands * 5, MPI_CHAR, 0, run_globals.mpi_comm);
-
-    MPI_Bcast(&(n_table_entries), 1, MPI_INT, 0, run_globals.mpi_comm);
-    if (run_globals.mpi_rank > 0)
-        *PhotoTab = (float*)malloc(sizeof(float) * n_table_entries);
-    MPI_Bcast(*PhotoTab, n_table_entries, MPI_FLOAT, 0, run_globals.mpi_comm);
-
-#ifdef DEBUG
-    print_phototab(0);
-#endif
-
-    init_jump_index();
-
-    mlog(" ...done", MLOG_CLOSE);
-
-#else
-    return;
-#endif // CALC_MAGS
 }
 
-#ifdef CALC_MAGS
+void merge_luminosities(galaxy_t *target, galaxy_t *gal) {
+    // Sum fluexs together when a merge happens.
 
-static int inline get_jump_index(double age, float* AgeTab, int* jumptab, float jumpfac)
-{
-    return jumptab[(int)((age - AgeTab[1]) * jumpfac)];
+    double *inBCFluxTgt = target->inBCFlux;
+    double *outBCFluxTgt = target->outBCFlux;
+    double *inBCFlux = gal->inBCFlux;
+    double *outBCFlux = gal->outBCFlux;
+
+    for(int iSF = 0; iSF < MAGS_N; ++iSF) {
+        inBCFluxTgt[iSF] += inBCFlux[iSF];
+        outBCFluxTgt[iSF] += outBCFlux[iSF];
+    }
 }
 
-static void find_interpolated_lum(
-    double timenow,
-    double timetarget,
-    double metallicity,
-    int* metals_ind,
-    int* age_ind,
-    double* fage1,
-    double* fage2,
-    double* fmet1,
-    double* fmet2)
-{
-    // TODO: There is a lot of float/double calculations here. I should tidy this up...
+void init_templates_mini(
+    mag_params_t *miniSpectra, char *fName, double *LTTime, int *targetSnap, double *redshifts,
+    double *betaBands, int nBeta, double *restBands, int nRest, double tBC
+) {
+    // This function first initialises all the full SED templates defined by
+    // ``sed_params_t`` at given snapshots, and then transfer them to
+    // ``mag_params_t``, which only contains necessary data for on-the-fly
+    // luminosity calculations. It stores all arrays in a contiguous memory
+    // block.
 
-    int k, i, idx;
-    float age, frac;
-    float fa1, fa2, fm1, fm2;
+    // Initialise full templates
+    int iA, iS;
+    struct sed_params_t spectra[MAGS_N_SNAPS];
+    int nAgeStep;
+    double *ageStep;
 
-    phototabs_t* photo = run_globals.photo;
-    float* Metals = photo->Metals;
-    float* AgeTab = photo->Ages;
-    int* JumpTable = photo->JumpTable;
-    float JumpFactor = photo->JumpFactor;
-    int n_ages = photo->NAges;
-    int n_metals = photo->NMetals;
-
-    age = (float)(timenow - timetarget);
-
-    if (age > 0) {
-        age = log10(age);
-
-        if (age > AgeTab[n_ages - 1]) // beyond table, take latest entry
-        {
-            k = n_ages - 2;
-            fa1 = 0;
-            fa2 = 1;
-        } else if (age < AgeTab[1]) // age younger than 1st enty, take 1st entry
-        {
-            k = 0;
-            fa1 = 0;
-            fa2 = 1;
-        } else {
-            idx = get_jump_index(age, AgeTab, JumpTable, JumpFactor);
-            while (AgeTab[idx + 1] < age)
-                idx++;
-            k = idx;
-            frac = (age - AgeTab[idx]) / (AgeTab[idx + 1] - AgeTab[idx]);
-            fa1 = 1 - frac;
-            fa2 = frac;
+    for(iS = 0; iS < MAGS_N_SNAPS; ++iS) {
+        nAgeStep = targetSnap[iS];
+        // Initialise raw templates
+        init_templates_raw(spectra + iS, fName);
+        // Initialise filters
+        init_filters(spectra + iS, betaBands, nBeta, restBands, nRest,
+                     NULL, NULL, NULL, 0, 1. + redshifts[iS]);
+        if (spectra[iS].nFlux != MAGS_N_BANDS) {
+            printf("MAGS_N_BANDS does not match!\n");
+            exit(EXIT_FAILURE);
         }
-    } else // this lies in the past
-    {
-        k = 0;
-        fa1 = 0;
-        fa2 = 0;
+        // Initialise time step
+        spectra[iS].nAgeStep = nAgeStep;
+        ageStep = (double*)malloc(nAgeStep*sizeof(double));
+        //   -Should be in a unit of yr
+        for(int iA = 0; iA < nAgeStep; ++iA)
+            ageStep[iA] = LTTime[nAgeStep - iA - 1] - LTTime[nAgeStep];
+        spectra[iS].ageStep = ageStep;
+        //   -This function may be omitted
+        shrink_templates_raw(spectra + iS, ageStep[nAgeStep - 1]);
+        //   -Disable IGM absorption
+        spectra[iS].igm = 0;
+        // Integrate templates over given time steps
+        init_templates_integrated(spectra + iS);
+        // Initialise working templates
+        spectra[iS].ready = \
+        (double*)malloc(spectra[iS].nZ*nAgeStep*spectra[iS].nWaves*sizeof(double));
+        spectra[iS].working = \
+        (double*)malloc(spectra[iS].nMaxZ*nAgeStep*spectra[iS].nFlux*sizeof(double));
+        init_templates_working(spectra + iS, NULL, NULL, -1);
+        // Initialise special templates for birth cloud
+        init_templates_special(spectra + iS, tBC, 1);
     }
 
-    // Now interpolate also for the metallicity
-    metallicity = log10(metallicity);
+    // Initialise mini templates
+    int nSize = 0;
+    int nMaxZ = spectra->nMaxZ;
+    double *working;
+    size_t totalSize = 0;
+    int offsetWorking = 0;
+    int offsetInBC = 0;
+    int offsetOutBC = 0;
+    int offsetWaves = 0;
 
-    if (metallicity > Metals[n_metals - 1]) // beyond table, take latest entry
-    {
-        i = n_metals - 2;
-        fm1 = 0;
-        fm2 = 1;
-    } else if (metallicity < Metals[0]) // age younger than 1st enty, take 1st entry
-    {
-        i = 0;
-        fm1 = 1;
-        fm2 = 0;
-    } else {
-        idx = 0;
-        while (Metals[idx + 1] < metallicity)
-            idx++;
-        i = idx;
-        frac = (metallicity - Metals[idx]) / (Metals[idx + 1] - Metals[idx]);
-        fm1 = 1 - frac;
-        fm2 = frac;
+    // Compute size of working templates
+    for(iS = 0; iS < MAGS_N_SNAPS; ++iS)
+        totalSize += targetSnap[iS];
+    totalSize *= nMaxZ*MAGS_N_BANDS;
+    // Compute size of special templates
+    totalSize += 2*MAGS_N_SNAPS*nMaxZ*MAGS_N_BANDS;
+    //  Compute size of wavelengths
+    totalSize += 2*MAGS_N_BANDS;
+    totalSize *= sizeof(double);
+    //
+    working = (double*)malloc(totalSize);
+    // Copy working templates
+    for(iS = 0; iS < MAGS_N_SNAPS; ++iS) {
+        nSize = targetSnap[iS]*nMaxZ*MAGS_N_BANDS;
+        memcpy(working + offsetWorking, spectra[iS].working, nSize*sizeof(double));
+        offsetWorking += nSize;
     }
+    // Copy special templates
+    offsetInBC = offsetWorking;
+    for(iS = 0; iS < MAGS_N_SNAPS; ++iS) {
+        nSize = nMaxZ*MAGS_N_BANDS;
+        memcpy(working + offsetInBC, spectra[iS].inBC, nSize*sizeof(double));
+        offsetInBC += nSize;
+    }
+    offsetOutBC = offsetInBC;
+    for(iS = 0; iS < MAGS_N_SNAPS; ++iS) {
+        nSize = nMaxZ*MAGS_N_BANDS;
+        memcpy(working + offsetOutBC, spectra[iS].outBC, nSize*sizeof(double));
+        offsetOutBC += nSize;
+    }
+    // Copy wavelengths (same at each target snapshot)
+    offsetWaves = offsetOutBC;
+    memcpy(working + offsetWaves, spectra->centreWaves, MAGS_N_BANDS*sizeof(double));
+    offsetWaves += MAGS_N_BANDS;
+    memcpy(working + offsetWaves, spectra->logWaves, MAGS_N_BANDS*sizeof(double));
+    // Set attributes
+    memcpy(miniSpectra->targetSnap, targetSnap, MAGS_N_SNAPS*sizeof(int));
+    miniSpectra->nBeta = nBeta;
+    miniSpectra->nRest = nRest;
+    miniSpectra->minZ = spectra->minZ;
+    miniSpectra->maxZ = spectra->maxZ;
+    miniSpectra->nMaxZ = nMaxZ;
+    miniSpectra->tBC = tBC;
+    // Find the interval for birth cloud
+    for(iS = 0; iS < MAGS_N_SNAPS; ++iS)
+        miniSpectra->iAgeBC[iS] = birth_cloud_interval(
+            tBC, spectra[iS].ageStep, spectra[iS].nAgeStep
+        );
+    miniSpectra->totalSize = totalSize;
+    miniSpectra->working = working;
+    miniSpectra->inBC = working + offsetWorking;
+    miniSpectra->outBC = working + offsetInBC;
+    miniSpectra->centreWaves = working + offsetOutBC;
+    miniSpectra->logWaves = working + offsetWaves;
 
-    *metals_ind = i;
-    *age_ind = k;
-
-    *fage1 = (double)fa1;
-    *fage2 = (double)fa2;
-    *fmet1 = (double)fm1;
-    *fmet2 = (double)fm2;
+    // Free full templates
+    for(iS = 0; iS < MAGS_N_SNAPS; ++iS) {
+        free(spectra[iS].Z);
+        free(spectra[iS].waves);
+        free(spectra[iS].age);
+        free(spectra[iS].raw);
+        free(spectra[iS].nFilterWaves);
+        free(spectra[iS].filterWaves);
+        free(spectra[iS].filters);
+        free(spectra[iS].integrated);
+        free(spectra[iS].ready);
+        free(spectra[iS].working);
+        free(spectra[iS].inBC);
+        free(spectra[iS].outBC);
+        free(spectra[iS].centreWaves);
+        free(spectra[iS].logWaves);
+    }
 }
 
+void init_magnitudes(void) {
+    // Initalise the primary data strcture (``mag_params_t``) for on-the-fly
+    // luminosity calcuations.
+
+    int mpi_rank = run_globals.mpi_rank;
+    mag_params_t *mag_params = &run_globals.mag_params;
+
+    // Initalise all relevant parameters at the master core
+    if (mpi_rank == MASTER) {
+        printf("#***********************************************************\n");
+        printf("# Compute magnitudes\n");
+
+        // Read target snapshots
+        run_params_t *params = &run_globals.params;
+        char str[STRLEN];
+        char delim[] = ",";
+        char *token;
+        int target_snaps[MAGS_N_SNAPS];
+
+        memcpy(str, params->TargetSnaps, sizeof(str));
+        token = strtok(str, delim);
+        for(int i_snap = 0; i_snap < MAGS_N_SNAPS; ++i_snap) {
+            if (token != NULL) {
+                target_snaps[i_snap] = atoi(token);
+                token = strtok(NULL, delim);
+            }
+            else if (i_snap != MAGS_N_SNAPS - 1) {
+                mlog_error("TargetSnaps does not match MAGS_N_SNAPS!");
+                ABORT(EXIT_FAILURE);
+            }
+        }
+        printf("# Target snapshots: ");
+        for(int i_snap = 0; i_snap < MAGS_N_SNAPS; ++i_snap)
+            printf("%d ", target_snaps[i_snap]);
+        printf("\n");
+        // Read beta filters
+        double beta_bands[2*MAGS_N_BANDS];
+        int n_beta = 0;
+
+        memcpy(str, params->BetaBands, sizeof(str));
+        token = strtok(str, delim);
+        for(int i_band = 0; i_band < 2*MAGS_N_BANDS; ++i_band) {
+            if (token != NULL) {
+                beta_bands[i_band] = atof(token);
+                token = strtok(NULL, delim);
+                ++n_beta;
+            }
+            else
+                break;
+        }
+        if (n_beta%2 == 0)
+            n_beta /= 2;
+        else {
+            mlog_error("Wrong BetaBands!");
+            ABORT(EXIT_FAILURE);
+        }
+        printf("# Beta filters:\n");
+        for(int i_band = 0; i_band < n_beta; ++i_band)
+            printf("#\t%.1f AA to %.1f\n", beta_bands[2*i_band], beta_bands[2*i_band + 1]);
+        // Read rest-frame filters
+        double rest_bands[2*MAGS_N_BANDS];
+        int n_rest = 0;
+
+        memcpy(str, params->RestBands, sizeof(str));
+        token = strtok(str, delim);
+        for(int i_band = 0; i_band < 2*MAGS_N_BANDS; ++i_band) {
+            if (token != NULL) {
+                rest_bands[i_band] = atof(token);
+                token = strtok(NULL, delim);
+                ++n_rest;
+            }
+            else
+                break;
+        }
+        if (n_rest%2 == 0)
+            n_rest /= 2;
+        else {
+            mlog_error("Wrong RestBands!");
+            ABORT(EXIT_FAILURE);
+        }
+        printf("# Rest-frame filters:\n");
+        for(int i_band = 0; i_band < n_rest; ++i_band)
+            printf("#\t%.1f AA to %.1f\n", rest_bands[2*i_band], rest_bands[2*i_band + 1]);
+        //
+        if (n_beta + n_rest != MAGS_N_BANDS) {
+            mlog_error("Number of beta and rest-frame filters do not match MAGS_N_BANDS!");
+            ABORT(EXIT_FAILURE);
+        }
+        printf("#***********************************************************\n\n");
+
+        // Initialise SED templates
+        char *fname = params->PhotometricTablesDir;
+        strcat(fname, "/sed_library.hdf5");
+        // Convert time unit to yr
+        int snaplist_len = params->SnaplistLength;
+        double *LTTime = malloc(snaplist_len*sizeof(double));
+        double time_unit = run_globals.units.UnitTime_in_Megayears/params->Hubble_h*1e6;
+
+        memcpy(LTTime, run_globals.LTTime, snaplist_len*sizeof(double));
+        for(int i_time = 0; i_time < snaplist_len; ++i_time)
+            LTTime[i_time] *= time_unit;
+        //
+        init_templates_mini(
+            mag_params, fname, LTTime, target_snaps, run_globals.ZZ,
+            beta_bands, n_beta, rest_bands, n_rest, params->BirthCloudLifetime
+        );
+    }
+
+    // Broadcast parameters to all cores
+    MPI_Comm mpi_comm = run_globals.mpi_comm;
+    double *working;
+    ptrdiff_t offset_inBC;
+    ptrdiff_t offset_outBC;
+    ptrdiff_t offset_waves;
+    ptrdiff_t offset_logWaves;
+
+    if (mpi_rank == MASTER) {
+        working = mag_params->working;
+        offset_inBC = mag_params->inBC - working;
+        offset_outBC = mag_params->outBC - working;
+        offset_waves = mag_params->centreWaves - working;
+        offset_logWaves = mag_params->logWaves - working;
+
+        mag_params->working = NULL;
+        mag_params->inBC = NULL;
+        mag_params->outBC = NULL;
+        mag_params->centreWaves = NULL;
+        mag_params->logWaves = NULL;
+    }
+
+    MPI_Bcast(mag_params, sizeof(mag_params_t), MPI_BYTE, MASTER, mpi_comm);
+    MPI_Bcast(&offset_inBC, sizeof(ptrdiff_t), MPI_BYTE, MASTER, mpi_comm);
+    MPI_Bcast(&offset_outBC, sizeof(ptrdiff_t), MPI_BYTE, MASTER, mpi_comm);
+    MPI_Bcast(&offset_waves, sizeof(ptrdiff_t), MPI_BYTE, MASTER, mpi_comm);
+    MPI_Bcast(&offset_logWaves, sizeof(ptrdiff_t), MPI_BYTE, MASTER, mpi_comm);
+    if (mpi_rank != MASTER)
+        working = (double*)malloc(mag_params->totalSize);
+    MPI_Bcast(working, mag_params->totalSize, MPI_BYTE, MASTER, mpi_comm);
+
+    mag_params->working = working;
+    mag_params->inBC = working + offset_inBC;
+    mag_params->outBC = working + offset_outBC;
+    mag_params->centreWaves = working + offset_waves;
+    mag_params->logWaves = working + offset_logWaves;
+}
+
+void cleanup_mags(void) {
+    if(!run_globals.params.FlagMCMC)
+        H5Tclose(run_globals.hdf5props.array_nmag_f_tid);
+    free(run_globals.mag_params.working);
+}
+
+void get_output_magnitudes(float *target, galaxy_t *gal, int snapshot) {
+    // Convert fluxes to AB magnitudes at all target snapshots.
+
+    // Check if ``snapshot`` is a target snapshot
+    int iS;
+    int *targetSnap = run_globals.mag_params.targetSnap;
+    double *pInBCFlux = gal->inBCFlux;
+    double *pOutBCFlux = gal->outBCFlux;
+
+    for(iS = 0; iS < MAGS_N_SNAPS; ++iS) {
+        if (snapshot == targetSnap[iS])
+            break;
+        else {
+            pInBCFlux += MAGS_N_BANDS;
+            pOutBCFlux += MAGS_N_BANDS;
+        }
+    }
+    // Correct the unit of SFRs and convert fluxes to magnitudes
+    if (iS != MAGS_N_SNAPS) {
+        double mags[MAGS_N_BANDS];
+        double sfr_unit = -2.5*log10(
+            run_globals.units.UnitMass_in_g/run_globals.units.UnitTime_in_s*SEC_PER_YEAR/SOLAR_MASS
+        );
+        for(int i_band = 0; i_band < MAGS_N_BANDS; ++i_band)
+            target[i_band] = \
+            (float)(-2.5*log10(pInBCFlux[i_band] + pOutBCFlux[i_band]) + 8.9 + sfr_unit);
+    }
+}
 #endif
-
-void add_to_luminosities(
-    galaxy_t* gal,
-    double burst_mass,
-    double metallicity,
-    double burst_time)
-{
-#ifdef CALC_MAGS
-    phototabs_t* photo = run_globals.photo;
-    double Hubble_h = run_globals.params.Hubble_h;
-    float* PhotoTab = run_globals.photo->Table;
-    int n_bands = run_globals.photo->NBands;
-    int metals_ind;
-    int age_ind;
-    double X1, X2;
-    double f1, f2, fmet1, fmet2;
-
-    // Convert burst_mass into 1e6 Msol/(h=Hubble_h) units
-    X1 = burst_mass * 1e4 / Hubble_h;
-    X2 = -0.4 * M_LN10;
-
-    for (int outputbin = 0; outputbin < NOUT; outputbin++) {
-        find_interpolated_lum(burst_time, run_globals.LTTime[run_globals.ListOutputSnaps[outputbin]], metallicity,
-            &metals_ind, &age_ind, &f1, &f2, &fmet1, &fmet2);
-
-        for (int i_band = 0; i_band < n_bands; i_band++)
-            gal->Lum[i_band][outputbin] += X1 * exp(X2 * (fmet1 * (f1 * PhotoTab[phototab_index(photo, i_band, metals_ind, age_ind)] + f2 * PhotoTab[phototab_index(photo, i_band, metals_ind, age_ind + 1)]) + fmet2 * (f1 * PhotoTab[phototab_index(photo, i_band, metals_ind + 1, age_ind)] + f2 * PhotoTab[phototab_index(photo, i_band, metals_ind + 1, age_ind + 1)])));
-    }
-
-#else
-    return;
-#endif // CALC_MAGS
-}
-
-double lum_to_mag(double lum)
-{
-    if (lum > 0)
-        return -2.5 * log10(lum);
-    else
-        return 99.0;
-}
-
-void cleanup_mags()
-{
-#ifdef CALC_MAGS
-    free(run_globals.photo->Table);
-    free(run_globals.photo->MagBands);
-    free(run_globals.photo->Ages);
-    free(run_globals.photo->Metals);
-    free(run_globals.photo);
-    H5Tclose(run_globals.hdf5props.array_nmag_f_tid);
-#else
-    return;
-#endif
-}

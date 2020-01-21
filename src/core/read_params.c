@@ -7,15 +7,20 @@ static void check_problem_params(run_params_t* run_params)
         mlog_error("The current version of the code only works if NSteps = 1. Sorry! Exiting...");
         ABORT(EXIT_FAILURE);
     }
+
+    if (run_params->Flag_SeparateQSOXrays != 0) {
+        mlog_error("The current version of the code only works if Flag_SeparateQSOXrays = 0. Sorry! Exiting...");
+        ABORT(EXIT_FAILURE);
+    }
 }
 
 static void store_params(entry_t entry[123],
-    int n_entries,
-    char** params_tag,
-    int n_param,
-    int used_tag[123],
-    int* params_type,
-    void** params_addr)
+        int n_entries,
+        char** params_tag,
+        int n_param,
+        int used_tag[123],
+        const int* params_type,
+        void** params_addr)
 {
     int level = 0;
     char prefix[16] = "\0";
@@ -52,29 +57,29 @@ static void store_params(entry_t entry[123],
             continue;
 
         switch (params_type[tag_index]) {
-        case PARAM_TYPE_DOUBLE:
-            *((double*)params_addr[tag_index]) = atof(entry[i_entry].value);
-            break;
+            case PARAM_TYPE_DOUBLE:
+                *((double*)params_addr[tag_index]) = atof(entry[i_entry].value);
+                break;
 
-        case PARAM_TYPE_FLOAT:
-            *((float*)params_addr[tag_index]) = (float)atof(entry[i_entry].value);
-            break;
+            case PARAM_TYPE_FLOAT:
+                *((float*)params_addr[tag_index]) = (float)atof(entry[i_entry].value);
+                break;
 
-        case PARAM_TYPE_STRING:
-            strncpy(params_addr[tag_index], entry[i_entry].value, STRLEN);
-            break;
+            case PARAM_TYPE_STRING:
+                strncpy(params_addr[tag_index], entry[i_entry].value, STRLEN);
+                break;
 
-        case PARAM_TYPE_INT:
-            *((int*)params_addr[tag_index]) = atoi(entry[i_entry].value);
-            break;
+            case PARAM_TYPE_INT:
+                *((int*)params_addr[tag_index]) = atoi(entry[i_entry].value);
+                break;
 
-        case PARAM_TYPE_LONGLONG:
-            *((long long*)params_addr[tag_index]) = atoll(entry[i_entry].value);
-            break;
+            case PARAM_TYPE_LONGLONG:
+                *((long long*)params_addr[tag_index]) = atoll(entry[i_entry].value);
+                break;
 
-        default:
-            mlog_error("Unknown param type.");
-            break;
+            default:
+                mlog_error("Unknown param type.");
+                break;
         }
         used_tag[tag_index] = 1;
     }
@@ -137,31 +142,41 @@ void read_parameter_file(char* fname, int mode)
 
             strncpy(params_tag[n_param], "PhotometricTablesDir", tag_length);
             params_addr[n_param] = run_params->PhotometricTablesDir;
+            required_tag[n_param] = 0;
+            params_type[n_param++] = PARAM_TYPE_STRING;
+
+            strcpy(params_tag[n_param], "TargetSnaps");
+            params_addr[n_param] = run_params->TargetSnaps;
+            required_tag[n_param] = 0;
+            params_type[n_param++] = PARAM_TYPE_STRING;
+
+            strncpy(params_tag[n_param], "BetaBands", tag_length);
+            params_addr[n_param] = run_params->BetaBands;
+            required_tag[n_param] = 0;
+            params_type[n_param++] = PARAM_TYPE_STRING;
+
+            strncpy(params_tag[n_param], "TablesForXHeatingDir", tag_length);
+            params_addr[n_param] = run_params->TablesForXHeatingDir;
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_STRING;
 
-            strncpy(params_tag[n_param], "CoolingFuncsDir", tag_length);
+            strcpy(params_tag[n_param], "RestBands");
+            params_addr[n_param] = run_params->RestBands;
+            required_tag[n_param] = 0;
+            params_type[n_param++] = PARAM_TYPE_STRING;
+
+            strcpy(params_tag[n_param], "BirthCloudLifetime");
+            params_addr[n_param] = &(run_params->BirthCloudLifetime);
+            required_tag[n_param] = 0;
+            params_type[n_param++] = PARAM_TYPE_DOUBLE;
+
+            strcpy(params_tag[n_param], "CoolingFuncsDir");
             params_addr[n_param] = run_params->CoolingFuncsDir;
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_STRING;
 
-            strncpy(params_tag[n_param], "SSPModel", tag_length);
-            params_addr[n_param] = run_params->SSPModel;
-            required_tag[n_param] = 1;
-            params_type[n_param++] = PARAM_TYPE_STRING;
-
-            strncpy(params_tag[n_param], "IMF", tag_length);
-            params_addr[n_param] = run_params->IMF;
-            required_tag[n_param] = 1;
-            params_type[n_param++] = PARAM_TYPE_STRING;
-
-            strncpy(params_tag[n_param], "MagSystem", tag_length);
-            params_addr[n_param] = run_params->MagSystem;
-            required_tag[n_param] = 1;
-            params_type[n_param++] = PARAM_TYPE_STRING;
-
-            strncpy(params_tag[n_param], "MagBands", tag_length);
-            params_addr[n_param] = run_params->MagBands;
+            strcpy(params_tag[n_param], "StellarFeedbackDir");
+            params_addr[n_param] = run_params->StellarFeedbackDir;
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_STRING;
 
@@ -328,6 +343,13 @@ void read_parameter_file(char* fname, int mode)
             params_addr[n_param] = &(run_params->FlagMCMC);
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_INT;
+            
+            strncpy(params_tag[n_param], "FlagIgnoreProgIndex", tag_length);
+            params_addr[n_param] = &(run_params->FlagIgnoreProgIndex);
+            required_tag[n_param] = 0;
+            params_type[n_param++] = PARAM_TYPE_INT;
+            run_params->FlagIgnoreProgIndex = 0;
+
 
             // Physics params
 
@@ -396,6 +418,16 @@ void read_parameter_file(char* fname, int mode)
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
+            strncpy(params_tag[n_param], "SnModel", tag_length);
+            params_addr[n_param] = &(run_params->physics).SnModel;
+            required_tag[n_param] = 1;
+            params_type[n_param++] = PARAM_TYPE_INT;
+
+            strncpy(params_tag[n_param], "SnEjectionRedshiftDep", tag_length);
+            params_addr[n_param] = &(run_params->physics).SnEjectionRedshiftDep;
+            required_tag[n_param] = 1;
+            params_type[n_param++] = PARAM_TYPE_DOUBLE;
+
             strncpy(params_tag[n_param], "SnEjectionEff", tag_length);
             params_addr[n_param] = &(run_params->physics).SnEjectionEff;
             required_tag[n_param] = 1;
@@ -406,8 +438,18 @@ void read_parameter_file(char* fname, int mode)
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
+            strncpy(params_tag[n_param], "SnEjectionScaling2", tag_length);
+            params_addr[n_param] = &(run_params->physics).SnEjectionScaling2;
+            required_tag[n_param] = 1;
+            params_type[n_param++] = PARAM_TYPE_DOUBLE;
+
             strncpy(params_tag[n_param], "SnEjectionNorm", tag_length);
             params_addr[n_param] = &(run_params->physics).SnEjectionNorm;
+            required_tag[n_param] = 1;
+            params_type[n_param++] = PARAM_TYPE_DOUBLE;
+
+            strncpy(params_tag[n_param], "SnReheatRedshiftDep", tag_length);
+            params_addr[n_param] = &(run_params->physics).SnReheatRedshiftDep;
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
@@ -426,10 +468,20 @@ void read_parameter_file(char* fname, int mode)
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
+            strncpy(params_tag[n_param], "SnReheatScaling2", tag_length);
+            params_addr[n_param] = &(run_params->physics).SnReheatScaling2;
+            required_tag[n_param] = 1;
+            params_type[n_param++] = PARAM_TYPE_DOUBLE;
+
             strncpy(params_tag[n_param], "SnReheatNorm", tag_length);
             params_addr[n_param] = &(run_params->physics).SnReheatNorm;
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_DOUBLE;
+
+            strncpy(params_tag[n_param], "ReincorporationModel", tag_length);
+            params_addr[n_param] = &(run_params->physics).ReincorporationModel;
+            required_tag[n_param] = 1;
+            params_type[n_param++] = PARAM_TYPE_INT;
 
             strncpy(params_tag[n_param], "ReincorporationEff", tag_length);
             params_addr[n_param] = &(run_params->physics).ReincorporationEff;
@@ -443,31 +495,6 @@ void read_parameter_file(char* fname, int mode)
 
             strncpy(params_tag[n_param], "Yield", tag_length);
             params_addr[n_param] = &(run_params->physics).Yield;
-            required_tag[n_param] = 1;
-            params_type[n_param++] = PARAM_TYPE_DOUBLE;
-
-            strncpy(params_tag[n_param], "IMFSlope", tag_length);
-            params_addr[n_param] = &(run_params->physics).IMFSlope;
-            required_tag[n_param] = 1;
-            params_type[n_param++] = PARAM_TYPE_DOUBLE;
-
-            strncpy(params_tag[n_param], "EnergyPerSN", tag_length);
-            params_addr[n_param] = &(run_params->physics).EnergyPerSN;
-            required_tag[n_param] = 1;
-            params_type[n_param++] = PARAM_TYPE_DOUBLE;
-
-            strncpy(params_tag[n_param], "IMFNormConst", tag_length);
-            params_addr[n_param] = &(run_params->physics).IMFNormConst;
-            required_tag[n_param] = 1;
-            params_type[n_param++] = PARAM_TYPE_DOUBLE;
-
-            strncpy(params_tag[n_param], "eta_SNII", tag_length);
-            params_addr[n_param] = &(run_params->physics).eta_SNII;
-            required_tag[n_param] = 1;
-            params_type[n_param++] = PARAM_TYPE_DOUBLE;
-
-            strncpy(params_tag[n_param], "frac_mass_SSP_above_SNII", tag_length);
-            params_addr[n_param] = &(run_params->physics).frac_mass_SSP_above_SNII;
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
@@ -581,6 +608,66 @@ void read_parameter_file(char* fname, int mode)
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_INT;
 
+            strncpy(params_tag[n_param], "Flag_IncludeSpinTemp", tag_length);
+            params_addr[n_param] = &(run_params->Flag_IncludeSpinTemp);
+            required_tag[n_param] = 1;
+            params_type[n_param++] = PARAM_TYPE_INT;
+
+            strncpy(params_tag[n_param], "Flag_IncludeRecombinations", tag_length);
+            params_addr[n_param] = &(run_params->Flag_IncludeRecombinations);
+            required_tag[n_param] = 1;
+            params_type[n_param++] = PARAM_TYPE_INT;
+
+            strncpy(params_tag[n_param], "Flag_Compute21cmBrightTemp", tag_length);
+            params_addr[n_param] = &(run_params->Flag_Compute21cmBrightTemp);
+            required_tag[n_param] = 1;
+            params_type[n_param++] = PARAM_TYPE_INT;
+
+            strncpy(params_tag[n_param], "TsNumFilterSteps", tag_length);
+            params_addr[n_param] = &(run_params->TsNumFilterSteps);
+            required_tag[n_param] = 1;
+            params_type[n_param++] = PARAM_TYPE_INT;
+
+            strncpy(params_tag[n_param], "Flag_ComputePS", tag_length);
+            params_addr[n_param] = &(run_params->Flag_ComputePS);
+            required_tag[n_param] = 1;
+            params_type[n_param++] = PARAM_TYPE_INT;
+
+            strncpy(params_tag[n_param], "Flag_IncludePecVelsFor21cm", tag_length);
+            params_addr[n_param] = &(run_params->Flag_IncludePecVelsFor21cm);
+            required_tag[n_param] = 1;
+            params_type[n_param++] = PARAM_TYPE_INT;
+
+            strncpy(params_tag[n_param], "TsVelocityComponent", tag_length);
+            params_addr[n_param] = &(run_params->TsVelocityComponent);
+            required_tag[n_param] = 1;
+            params_type[n_param++] = PARAM_TYPE_INT;
+
+            strncpy(params_tag[n_param], "Flag_ConstructLightcone", tag_length);
+            params_addr[n_param] = &(run_params->Flag_ConstructLightcone);
+            required_tag[n_param] = 1;
+            params_type[n_param++] = PARAM_TYPE_INT;
+
+            strncpy(params_tag[n_param], "ReionSfrTimescale", tag_length);
+            params_addr[n_param] = &(run_params->ReionSfrTimescale);
+            required_tag[n_param] = 1;
+            params_type[n_param++] = PARAM_TYPE_DOUBLE;
+
+            strncpy(params_tag[n_param], "EndRedshiftLightcone", tag_length);
+            params_addr[n_param] = &(run_params->EndRedshiftLightcone);
+            required_tag[n_param] = 1;
+            params_type[n_param++] = PARAM_TYPE_DOUBLE;
+
+//            strncpy(params_tag[n_param], "CurrentLCPos", tag_length);
+//            params_addr[n_param] = &(run_params->CurrentLCPos);
+//            required_tag[n_param] = 1;
+//            params_type[n_param++] = PARAM_TYPE_LONGLONG;
+
+            strncpy(params_tag[n_param], "Flag_SeparateQSOXrays", tag_length);
+            params_addr[n_param] = &(run_params->Flag_SeparateQSOXrays);
+            required_tag[n_param] = 1;
+            params_type[n_param++] = PARAM_TYPE_INT;
+
             strncpy(params_tag[n_param], "Flag_OutputGrids", tag_length);
             params_addr[n_param] = &(run_params->Flag_OutputGrids);
             required_tag[n_param] = 1;
@@ -603,6 +690,11 @@ void read_parameter_file(char* fname, int mode)
 
             strncpy(params_tag[n_param], "ReionRBubbleMax", tag_length);
             params_addr[n_param] = &(run_params->physics).ReionRBubbleMax;
+            required_tag[n_param] = 1;
+            params_type[n_param++] = PARAM_TYPE_DOUBLE;
+
+            strncpy(params_tag[n_param], "ReionRBubbleMaxRecomb", tag_length);
+            params_addr[n_param] = &(run_params->physics).ReionRBubbleMaxRecomb;
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
@@ -676,6 +768,11 @@ void read_parameter_file(char* fname, int mode)
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_INT;
 
+            strncpy(params_tag[n_param], "TsHeatingFilterType", tag_length);
+            params_addr[n_param] = &(run_params->TsHeatingFilterType);
+            required_tag[n_param] = 1;
+            params_type[n_param++] = PARAM_TYPE_INT;
+
             strncpy(params_tag[n_param], "ReionPowerSpecDeltaK", tag_length);
             params_addr[n_param] = &(run_params->ReionPowerSpecDeltaK);
             required_tag[n_param] = 1;
@@ -698,6 +795,51 @@ void read_parameter_file(char* fname, int mode)
 
             strncpy(params_tag[n_param], "Y_He", tag_length);
             params_addr[n_param] = &(run_params->physics).Y_He;
+            required_tag[n_param] = 1;
+            params_type[n_param++] = PARAM_TYPE_DOUBLE;
+
+            strcpy(params_tag[n_param], "ReionMaxHeatingRedshift");
+            params_addr[n_param] = &(run_params->physics).ReionMaxHeatingRedshift;
+            required_tag[n_param] = 1;
+            params_type[n_param++] = PARAM_TYPE_DOUBLE;
+
+            strcpy(params_tag[n_param], "LXrayGal");
+            params_addr[n_param] = &(run_params->physics).LXrayGal;
+            required_tag[n_param] = 1;
+            params_type[n_param++] = PARAM_TYPE_DOUBLE;
+
+            strcpy(params_tag[n_param], "NuXrayGalThreshold");
+            params_addr[n_param] = &(run_params->physics).NuXrayGalThreshold;
+            required_tag[n_param] = 1;
+            params_type[n_param++] = PARAM_TYPE_DOUBLE;
+
+            strcpy(params_tag[n_param], "SpecIndexXrayGal");
+            params_addr[n_param] = &(run_params->physics).SpecIndexXrayGal;
+            required_tag[n_param] = 1;
+            params_type[n_param++] = PARAM_TYPE_DOUBLE;
+
+            strcpy(params_tag[n_param], "LXrayQSO");
+            params_addr[n_param] = &(run_params->physics).LXrayQSO;
+            required_tag[n_param] = 1;
+            params_type[n_param++] = PARAM_TYPE_DOUBLE;
+
+            strcpy(params_tag[n_param], "NuXrayQSOThreshold");
+            params_addr[n_param] = &(run_params->physics).NuXrayQSOThreshold;
+            required_tag[n_param] = 1;
+            params_type[n_param++] = PARAM_TYPE_DOUBLE;
+
+            strcpy(params_tag[n_param], "SpecIndexXrayQSO");
+            params_addr[n_param] = &(run_params->physics).SpecIndexXrayQSO;
+            required_tag[n_param] = 1;
+            params_type[n_param++] = PARAM_TYPE_DOUBLE;
+
+            strcpy(params_tag[n_param], "NuXraySoftCut");
+            params_addr[n_param] = &(run_params->physics).NuXraySoftCut;
+            required_tag[n_param] = 1;
+            params_type[n_param++] = PARAM_TYPE_DOUBLE;
+
+            strcpy(params_tag[n_param], "NuXrayMax");
+            params_addr[n_param] = &(run_params->physics).NuXrayMax;
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
@@ -729,29 +871,29 @@ void read_parameter_file(char* fname, int mode)
                     mlog("%35s\t", MLOG_MESG, params_tag[ii]);
 
                     switch (params_type[ii]) {
-                    case PARAM_TYPE_DOUBLE:
-                        mlog("%g", MLOG_MESG | MLOG_CONT, *((double*)(params_addr[ii])));
-                        break;
+                        case PARAM_TYPE_DOUBLE:
+                            mlog("%g", MLOG_MESG | MLOG_CONT, *((double*)(params_addr[ii])));
+                            break;
 
-                    case PARAM_TYPE_FLOAT:
-                        mlog("%g", MLOG_MESG | MLOG_CONT, *((float*)(params_addr[ii])));
-                        break;
+                        case PARAM_TYPE_FLOAT:
+                            mlog("%g", MLOG_MESG | MLOG_CONT, *((float*)(params_addr[ii])));
+                            break;
 
-                    case PARAM_TYPE_STRING:
-                        mlog("%s", MLOG_MESG | MLOG_CONT, (char*)params_addr[ii]);
-                        break;
+                        case PARAM_TYPE_STRING:
+                            mlog("%s", MLOG_MESG | MLOG_CONT, (char*)params_addr[ii]);
+                            break;
 
-                    case PARAM_TYPE_INT:
-                        mlog("%d", MLOG_MESG | MLOG_CONT, *((int*)(params_addr[ii])));
-                        break;
+                        case PARAM_TYPE_INT:
+                            mlog("%d", MLOG_MESG | MLOG_CONT, *((int*)(params_addr[ii])));
+                            break;
 
-                    case PARAM_TYPE_LONGLONG:
-                        mlog("%lld", MLOG_MESG | MLOG_CONT, *((long long*)(params_addr[ii])));
-                        break;
+                        case PARAM_TYPE_LONGLONG:
+                            mlog("%lld", MLOG_MESG | MLOG_CONT, *((long long*)(params_addr[ii])));
+                            break;
 
-                    default:
-                        mlog_error("Unknown param type.");
-                        break;
+                        default:
+                            mlog_error("Unknown param type.");
+                            break;
                     }
                 }
         }

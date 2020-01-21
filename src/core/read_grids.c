@@ -2,6 +2,22 @@
 #include <fftw3-mpi.h>
 #include <assert.h>
 
+void read_grid(const enum grid_prop property, const int snapshot, float *slab)
+{
+    // Read in the dark matter density grid
+    switch (run_globals.params.TreesID) {
+        case VELOCIRAPTOR_TREES:
+            read_grid__velociraptor(property, snapshot, slab);
+            break;
+        case GBPTREES_TREES:
+            read_grid__gbptrees(property, snapshot, slab);
+            break;
+        default:
+            mlog_error("Unrecognised input trees identifier (TreesID).");
+            break;
+    }
+}
+
 double calc_resample_factor(int n_cell[3])
 {
     int ReionGridDim = run_globals.params.ReionGridDim;
@@ -26,7 +42,7 @@ double calc_resample_factor(int n_cell[3])
         return 1.0;
 }
 
-void smooth_grid(double resample_factor, int n_cell[3], fftwf_complex* slab, ptrdiff_t slab_n_complex, ptrdiff_t slab_ix_start, ptrdiff_t slab_nix, int snapshot)
+void smooth_grid(double resample_factor, int n_cell[3], fftwf_complex* slab, ptrdiff_t slab_n_complex, ptrdiff_t slab_ix_start, ptrdiff_t slab_nix)
 {
     if (resample_factor < 1.0) {
         mlog("Smoothing hi-res grid...", MLOG_OPEN | MLOG_TIMERSTART);
@@ -41,10 +57,8 @@ void smooth_grid(double resample_factor, int n_cell[3], fftwf_complex* slab, ptr
         double total_n_cells = n_cell[0] * n_cell[1] * n_cell[2];
         for (int ii = 0; ii < (int)slab_n_complex; ii++)
             slab[ii] /= total_n_cells;
-        filter(slab,
-            (int)slab_ix_start,
-            (int)slab_nix, n_cell[0],
-            (float)(run_globals.params.BoxSize / (double)run_globals.params.ReionGridDim / 2.0));
+
+        filter(slab, (int)slab_ix_start, (int)slab_nix, n_cell[0], (float)(run_globals.params.BoxSize / (double)run_globals.params.ReionGridDim / 2.0), 0); // NOTE: Real space top-hat hard-coded for this
 
         plan = fftwf_mpi_plan_dft_c2r_3d(n_cell[0], n_cell[1], n_cell[2], slab, (float*)slab, run_globals.mpi_comm, FFTW_ESTIMATE);
         fftwf_execute(plan);
@@ -56,8 +70,10 @@ void smooth_grid(double resample_factor, int n_cell[3], fftwf_complex* slab, ptr
 void subsample_grid(double resample_factor, int n_cell[3], int ix_hi_start, int nix_hi, float* slab_file, float* slab)
 {
     // we don't need to do anything in this case
-    if (resample_factor >= 1.0)
+    if (resample_factor >= 1.0) {
+        memcpy(slab, slab_file, sizeof(fftwf_complex) * run_globals.reion_grids.slab_n_complex[run_globals.mpi_rank]);
         return;
+    }
 
     // Glossary
     // ix_hi: the x-axis index on the high res grid read from the input file
@@ -169,21 +185,49 @@ void subsample_grid(double resample_factor, int n_cell[3], int ix_hi_start, int 
     free(ix_hi_start_allranks);
 }
 
-int load_cached_deltax_slab(float* slab, int snapshot)
+int load_cached_slab(float* slab, int snapshot, const enum grid_prop property)
 {
-    if (run_globals.SnapshotDeltax[snapshot] != NULL) {
+    float *cache;
+    switch (property) {
+        case DENSITY:
+            cache = run_globals.SnapshotDeltax[snapshot];
+            break;
+        case X_VELOCITY:
+        case Y_VELOCITY:
+        case Z_VELOCITY:
+            cache = run_globals.SnapshotVel[snapshot];
+            break;
+        default:
+            mlog_error("Unrecognised grid property in load_cached_slab!");
+            break;
+    }
+
+    if (cache != NULL) {
         ptrdiff_t slab_n_complex = run_globals.reion_grids.slab_n_complex[run_globals.mpi_rank];
-        memcpy(slab, run_globals.SnapshotDeltax[snapshot], sizeof(float) * slab_n_complex * 2);
+        memcpy(slab, cache, sizeof(float) * slab_n_complex * 2);
         mlog("Loaded deltax slab from cache.", MLOG_MESG);
         return 0;
     } else
         return 1;
 }
 
-int cache_deltax_slab(float* slab, int snapshot)
+int cache_slab(float* slab, int snapshot, const enum grid_prop property)
 {
-    if (run_globals.SnapshotDeltax[snapshot] == NULL) {
-        float** cache = &run_globals.SnapshotDeltax[snapshot];
+    float **cache;
+    switch (property) {
+        case DENSITY:
+            cache = &run_globals.SnapshotDeltax[snapshot];
+            break;
+        case X_VELOCITY:
+        case Y_VELOCITY:
+        case Z_VELOCITY:
+            cache = &run_globals.SnapshotVel[snapshot];
+            break;
+        default:
+            mlog_error("Unrecognised grid property in load_cached_slab!");
+            break;
+    }
+    if (*cache == NULL) {
         ptrdiff_t slab_n_complex = run_globals.reion_grids.slab_n_complex[run_globals.mpi_rank];
         ptrdiff_t mem_size = sizeof(float) * slab_n_complex * 2;
 
@@ -197,12 +241,16 @@ int cache_deltax_slab(float* slab, int snapshot)
 void free_grids_cache()
 {
     if (run_globals.params.Flag_PatchyReion) {
+        float** snapshot_vel = run_globals.SnapshotVel;
         float** snapshot_deltax = run_globals.SnapshotDeltax;
 
         if (run_globals.params.FlagInteractive)
-            for (int ii = 0; ii < run_globals.NStoreSnapshots; ii++)
+            for (int ii = 0; ii < run_globals.NStoreSnapshots; ii++) {
+                fftwf_free(snapshot_vel[ii]);
                 fftwf_free(snapshot_deltax[ii]);
+            }
 
+        free(snapshot_vel);
         free(snapshot_deltax);
     }
 }

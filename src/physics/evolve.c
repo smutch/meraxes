@@ -13,6 +13,8 @@ int evolve_galaxies(fof_group_t* fof_group, int snapshot, int NGal, int NFof)
     bool Flag_IRA = (bool)(run_globals.params.physics.Flag_IRA);
 
     mlog("Doing physics...", MLOG_OPEN | MLOG_TIMERSTART);
+    // pre-calculate feedback tables for each lookback snapshot
+    compute_stellar_feedback_tables(snapshot);
 
     for (int i_fof = 0; i_fof < NFof; i_fof++) {
         // First check to see if this FOF group is empty.  If it is then skip it.
@@ -38,10 +40,8 @@ int evolve_galaxies(fof_group_t* fof_group, int snapshot, int NGal, int NFof)
                     }
 
                     if (gal->Type < 3) {
-                        if (!Flag_IRA) {
-                            evolve_stellar_pops(gal, snapshot);
+                        if (!Flag_IRA)
                             delayed_supernova_feedback(gal, snapshot);
-                        }
 
                         if (gal->BlackHoleAccretingColdMass > 0)
                             previous_merger_driven_BH_growth(gal);
@@ -73,12 +73,6 @@ int evolve_galaxies(fof_group_t* fof_group, int snapshot, int NGal, int NFof)
                         if ((gal->MergTime < 0) || (gal->MergerTarget->Type == 3))
                             merge_with_target(gal, &dead_gals, snapshot);
 
-                    // At this point, we've done all of the evolution for this galaxy,
-                    // so we can update the escape fractions for stars and
-                    // black holes based on the current properties and newly
-                    // formed stars.
-                    calculate_galaxy_fesc_vals(gal, gal->NewStars[0], snapshot);
-
                     gal = gal->NextGalInHalo;
                 }
                 halo = halo->NextHaloInFOFGroup;
@@ -104,8 +98,6 @@ void passively_evolve_ghost(galaxy_t* gal, int snapshot)
 
     bool Flag_IRA = (bool)(run_globals.params.physics.Flag_IRA);
 
-    if (!Flag_IRA) {
-        evolve_stellar_pops(gal, snapshot);
+    if (!Flag_IRA)
         delayed_supernova_feedback(gal, snapshot);
-    }
 }
