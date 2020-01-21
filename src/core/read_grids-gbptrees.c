@@ -130,6 +130,11 @@ int read_grid__gbptrees(
 
     start_foffset = read_header(fname, snapshot, n_cell, box_size, &n_grids, &ma_scheme, property);
 
+#ifdef DEBUG
+    mlog("Reading grid %d from %s", MLOG_MESG, property, fname);
+    mlog("start_foffset = %ld", MLOG_MESG, start_foffset);
+#endif
+
     // share the needed information with all ranks
     MPI_Bcast(n_cell, 3, MPI_INT, 0, run_globals.mpi_comm);
     MPI_Bcast(box_size, 3, MPI_DOUBLE, 0, run_globals.mpi_comm);
@@ -137,6 +142,10 @@ int read_grid__gbptrees(
 
     // Check if the grid in the file is higher resolution than we require
     double resample_factor = calc_resample_factor(n_cell);
+
+#ifdef DEBUG
+    mlog("Resample factor = %.3g", MLOG_MESG, resample_factor);
+#endif
 
     // Malloc the slab
     ptrdiff_t slab_nix = run_globals.reion_grids.slab_nix[run_globals.mpi_rank];
@@ -183,6 +192,25 @@ int read_grid__gbptrees(
     }
     MPI_File_close(&fin);
 
+#ifdef DEBUG
+        for (int i_rank=0; i_rank < run_globals.mpi_size; ++i_rank)
+        {
+            if (run_globals.mpi_rank == i_rank) {
+                char mesg[STRLEN];
+                sprintf(mesg, "pre-reorder: first 5 elems = [ ");
+                size_t len = strlen(mesg);
+                for (int kk=0; kk<5; ++kk) {
+                    sprintf(mesg+len, "%.3g ", ((float*)slab_file)[grid_index(0, 0, kk, ReionGridDim, INDEX_PADDED)]);
+                    len = strlen(mesg);
+                }
+                sprintf(mesg+len, "]");
+                mlog(mesg, MLOG_ALLRANKS|MLOG_FLUSH);
+            }
+            MPI_Barrier(run_globals.mpi_comm);
+        }
+#endif
+
+
     // reorder the read slab for inplace fftw padding
     for (int ii = (int)(slab_nix_file - 1); ii >= 0; ii--)
         for (int jj = n_cell[0] - 1; jj >= 0; jj--)
@@ -197,6 +225,10 @@ int read_grid__gbptrees(
         // N.B. Hubble factor below to account for incorrect units in input DM grids!
         float mean_inv = pow(box_size[0], 3) * run_globals.params.Hubble_h / run_globals.params.NPart / run_globals.params.PartMass;
 
+#ifdef DEBUG
+        mlog("mean_inv = %g", MLOG_MESG, mean_inv);
+#endif
+
         // At this point grid holds the summed densities in each LR cell
         // Loop through again and calculate the overdensity
         // i.e. (rho - rho_mean)/rho_mean
@@ -208,6 +240,24 @@ int read_grid__gbptrees(
                     *val = fmaxf(*val * mean_inv - 1.0, -1.0);
                 }
     }
+
+#ifdef DEBUG
+    for (int i_rank=0; i_rank < run_globals.mpi_size; ++i_rank)
+    {
+        if (run_globals.mpi_rank == i_rank) {
+            char mesg[STRLEN];
+            sprintf(mesg, "first 5 elems = [ ");
+            size_t len = strlen(mesg);
+            for (int kk=0; kk<5; ++kk) {
+                sprintf(mesg+len, "%.3g ", slab[grid_index(0, 0, kk, ReionGridDim, INDEX_PADDED)]);
+                len = strlen(mesg);
+            }
+            sprintf(mesg+len, "]");
+            mlog(mesg, MLOG_ALLRANKS|MLOG_FLUSH);
+        }
+        MPI_Barrier(run_globals.mpi_comm);
+    }
+#endif
 
     fftwf_free(slab_file);
 
