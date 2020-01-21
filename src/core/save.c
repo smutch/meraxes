@@ -560,6 +560,7 @@ void create_master_file()
                 ABORT(EXIT_FAILURE);
                 break;
             }
+
         // extra params which may be set internally should be written here
         if (run_globals.params.Flag_ConstructLightcone) {
             H5LTset_attribute_int(file_id, group_name, "EndSnapshotLightcone", &(run_globals.params.EndSnapshotLightcone), 1);

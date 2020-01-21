@@ -451,6 +451,11 @@ void _ComputeTs(int snapshot)
         xalpha_ave /= total_n_cells;
         Xheat_ave /= total_n_cells;
         Xion_ave /= total_n_cells;
+
+        run_globals.reion_grids.volume_ave_J_alpha = J_alpha_ave;
+        run_globals.reion_grids.volume_ave_xalpha = xalpha_ave;
+        run_globals.reion_grids.volume_ave_Xheat = Xheat_ave;
+        run_globals.reion_grids.volume_ave_Xion = Xion_ave;
     }
 
     memcpy(x_e_box, x_e_box_prev, sizeof(fftwf_complex) * slab_n_complex);

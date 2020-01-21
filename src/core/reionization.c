@@ -253,6 +253,10 @@ void init_reion_grids()
     grids->started = 0;
     grids->finished = 0;
 
+    grids->volume_ave_J_alpha = 0.0;
+    grids->volume_ave_xalpha = 0.0;
+    grids->volume_ave_Xheat = 0.0;
+    grids->volume_ave_Xion = 0.0;
     grids->volume_ave_TS = 0.0;
     grids->volume_ave_TK = 0.0;
     grids->volume_ave_xe = 0.0;
@@ -1137,6 +1141,11 @@ void save_reion_output_grids(int snapshot)
         H5LTset_attribute_double(file_id, "TS_box", "volume_ave_TS", &(grids->volume_ave_TS), 1);
         H5LTset_attribute_double(file_id, "Tk_box", "volume_ave_TK", &(grids->volume_ave_TK), 1);
         H5LTset_attribute_double(file_id, "x_e_box", "volume_ave_xe", &(grids->volume_ave_xe), 1);
+
+        H5LTset_attribute_double(file_id, "TS_box", "volume_ave_J_alpha", &(grids->volume_ave_J_alpha), 1);
+        H5LTset_attribute_double(file_id, "TS_box", "volume_ave_xalpha", &(grids->volume_ave_xalpha), 1);
+        H5LTset_attribute_double(file_id, "TS_box", "volume_ave_Xheat", &(grids->volume_ave_Xheat), 1);
+        H5LTset_attribute_double(file_id, "TS_box", "volume_ave_Xion", &(grids->volume_ave_Xion), 1);
     }
 
     if(run_globals.params.Flag_Compute21cmBrightTemp) {

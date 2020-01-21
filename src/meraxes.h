@@ -435,6 +435,11 @@ typedef struct reion_grids_t {
     double volume_weighted_global_xH;
     double mass_weighted_global_xH;
 
+
+    double volume_ave_J_alpha;
+    double volume_ave_xalpha;
+    double volume_ave_Xheat;
+    double volume_ave_Xion;
     double volume_ave_TS;
     double volume_ave_TK;
     double volume_ave_xe;
