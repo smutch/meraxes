@@ -230,8 +230,21 @@ int read_grid__velociraptor(
 
             hid_t plist_id = H5Pcreate(H5P_FILE_ACCESS);
             H5Pset_fapl_mpio(plist_id, file_comm, MPI_INFO_NULL);
-            char fname[128];
-            sprintf(fname, fname_base, params->SimulationDir, snapshot, ii);
+
+            char fname[STRLEN];
+            switch (property){
+                case X_VELOCITY:
+                case Y_VELOCITY:
+                case Z_VELOCITY:
+                    sprintf(fname, fname_base, params->SimulationDir, snapshot, "vel", ii);
+                    break;
+                case DENSITY:
+                    sprintf(fname, fname_base, params->SimulationDir, snapshot, "den", ii);
+                    break;
+                default:
+                    mlog_error("Unrecognised grid property in read_grid__velociraptor!");
+                    break;
+            }
 
             hid_t file_id = H5Fopen(fname, H5F_ACC_RDONLY, plist_id);
             H5Pclose(plist_id);
