@@ -25,7 +25,7 @@ double calc_resample_factor(int n_cell[3])
     // Check that n_cell is divisible by ReionGridDim. We need this to ensure
     // that grid points are evenly spaced in the volume after resampling.
     if (n_cell[0] % ReionGridDim != 0) {
-        mlog_error("n_cell is not divisble by ReionGridDim. This is required for downsampling.");
+        mlog_error("n_cell (%d) is not divisble by ReionGridDim (%d). This is required for downsampling.", n_cell[0], ReionGridDim);
         ABORT(EXIT_FAILURE);
     }
 
@@ -70,6 +70,9 @@ void smooth_grid(double resample_factor, int n_cell[3], fftwf_complex* slab, ptr
 void subsample_grid(double resample_factor, int n_cell[3], int ix_hi_start, int nix_hi, float* slab_file, float* slab)
 {
     // we don't need to do anything in this case
+    // TODO: This is potentially very wasteful if resample_factor == 1.
+    //       Here is would be far better to not allocate slab_file in the first
+    //       place in the calling function and then just do nothing here...
     if (resample_factor >= 1.0) {
         memcpy(slab, slab_file, sizeof(fftwf_complex) * run_globals.reion_grids.slab_n_complex[run_globals.mpi_rank]);
         return;
@@ -187,7 +190,7 @@ void subsample_grid(double resample_factor, int n_cell[3], int ix_hi_start, int 
 
 int load_cached_slab(float* slab, int snapshot, const enum grid_prop property)
 {
-    float *cache;
+    float *cache = NULL;
     switch (property) {
         case DENSITY:
             cache = run_globals.SnapshotDeltax[snapshot];
@@ -213,7 +216,7 @@ int load_cached_slab(float* slab, int snapshot, const enum grid_prop property)
 
 int cache_slab(float* slab, int snapshot, const enum grid_prop property)
 {
-    float **cache;
+    float **cache = NULL;
     switch (property) {
         case DENSITY:
             cache = &run_globals.SnapshotDeltax[snapshot];
@@ -227,7 +230,7 @@ int cache_slab(float* slab, int snapshot, const enum grid_prop property)
             mlog_error("Unrecognised grid property in load_cached_slab!");
             break;
     }
-    if (*cache == NULL) {
+    if (cache == NULL) {
         ptrdiff_t slab_n_complex = run_globals.reion_grids.slab_n_complex[run_globals.mpi_rank];
         ptrdiff_t mem_size = sizeof(float) * slab_n_complex * 2;
 

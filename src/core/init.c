@@ -321,6 +321,14 @@ void init_meraxes()
         run_globals.LTTime[i] = time_to_present(run_globals.ZZ[i]);
     }
 
+    // validation checks
+    if (run_globals.params.Flag_IncludeSpinTemp) {
+        if (run_globals.params.physics.ReionMaxHeatingRedshift > run_globals.ZZ[0]) {
+            mlog_error("ReionMaxHeatingRedshift > redshift of first snapshot (%.2f) which is not allowed.", run_globals.ZZ[0]);
+            ABORT(EXIT_FAILURE);
+        }
+    }
+
     // read in the requested forest IDs (if any)
     read_requested_forest_ids();
 
