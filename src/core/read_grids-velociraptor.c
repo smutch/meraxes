@@ -4,8 +4,197 @@
 #include <gsl/gsl_sort_int.h>
 #include <hdf5_hl.h>
 #include <math.h>
+#include <unistd.h>
+#include <hdf5_hl.h>
 
 #define MIN(i, j) ((i) < (j) ? (i) : (j))
+
+/** \brief Use naming conventions to determine input file type for grids.
+ *
+ * \param snapshot  the requested snapshot
+ *
+ * \return          0 -> SWIFT grids
+ *                  1 -> VELOCIraptor postprocessed grids
+ */
+static int determine_file_type(const int snapshot)
+{
+    run_params_t* params = &(run_globals.params);
+    char fname[STRLEN];
+    int filetype = -1;
+
+    sprintf(fname, "%s/grids/stf.den_%04d.hdf5", params->SimulationDir, snapshot);
+    mlog("Trying %s", MLOG_MESG, fname);
+
+    if (access(fname, F_OK) != -1) {
+        filetype = 0;
+#ifdef DEBUG
+        mlog("Identified file %s", MLOG_MESG, fname);
+#endif
+        return filetype;
+    }
+ 
+    sprintf(fname, "%s/grids/snapshot_%03d.%s.%d", params->SimulationDir, snapshot, "den", 0);
+    mlog("Trying %s", MLOG_MESG, fname);
+    if (access(fname, F_OK) != -1) {
+        filetype = 1;
+#ifdef DEBUG
+        mlog("Identified file %s", MLOG_MESG, fname);
+#endif
+        return filetype;
+    }
+
+    if(filetype == -1) {
+        mlog_error("Failed to identify recognised grid filetype.");
+        ABORT(EXIT_FAILURE);
+    }
+
+    return filetype;
+}
+
+
+/** \brief Read in SWIFT grid with single file per snapshot.
+ *
+ * \param property  the grid property (e.g. density, x-velocity, etc.) to be read
+ * \param snapshot  the requested snapshot
+ * \param slab      pointer to preallocated memory to hold the slab for this rank
+ *
+ * \return          exit status
+ */
+static int read_swift(
+    const enum grid_prop property,
+    const int snapshot,
+    float* slab)
+{
+    run_params_t* params = &(run_globals.params);
+    const char fname_base[] = {"%s/grids/stf.den_%04d.hdf5"};
+
+    hid_t plist_id = H5Pcreate(H5P_FILE_ACCESS);
+    H5Pset_fapl_mpio(plist_id, run_globals.mpi_comm, MPI_INFO_NULL);
+
+    char fname[STRLEN];
+    sprintf(fname, fname_base, params->SimulationDir, snapshot);
+
+    hid_t file_id = H5Fopen(fname, H5F_ACC_RDONLY, plist_id);
+    H5Pclose(plist_id);
+
+    int grid_dim = 0;
+    double box_size[3] = {0};
+    {
+        char data[20];
+        herr_t status = H5LTget_attribute_string(file_id, "/Parameters", "DensityGrids:grid_dim", data);
+        assert(status >= 0);
+        grid_dim = atoi(data);
+
+        // TODO: Check this will work...
+        status = H5LTget_attribute_double(file_id, "/Header", "BoxSize", box_size);
+        assert(status >= 0);
+    }
+
+    mlog("Reading SWIFT grid for snapshot %d", MLOG_OPEN | MLOG_TIMERSTART, snapshot);
+    mlog("grid_dim = %d", MLOG_MESG, grid_dim);
+    mlog("box_size = %.2f cMpc/h", MLOG_MESG, box_size[1] * params->Hubble_h);
+
+    double resample_factor = calc_resample_factor((int[3]){grid_dim, grid_dim, grid_dim});
+
+#ifdef DEBUG
+    mlog("Resample factor = %.3g", MLOG_MESG, resample_factor);
+#endif
+
+    // Malloc the slab
+    ptrdiff_t slab_n_complex = run_globals.reion_grids.slab_n_complex[run_globals.mpi_rank];
+
+    ptrdiff_t slab_nix_file, slab_ix_start_file;
+    ptrdiff_t slab_n_complex_file = fftwf_mpi_local_size_3d(grid_dim, grid_dim, grid_dim / 2 + 1, run_globals.mpi_comm, &slab_nix_file, &slab_ix_start_file);
+    fftwf_complex* slab_file = fftwf_alloc_complex((size_t)slab_n_complex_file);
+
+    // Initialise (just in case!)
+    for (int ii = 0; ii < slab_n_complex_file; ii++)
+        slab_file[ii] = 0 + 0I;
+    // N.B. factor of two for fftw padding
+    for (int ii = 0; ii < slab_n_complex * 2; ii++)
+        slab[ii] = 0.0;
+
+    char dset_name[32];
+    switch (property){
+        case X_VELOCITY:
+            sprintf(dset_name, "/PartType1/Grids/Vx");
+            break;
+        case Y_VELOCITY:
+            sprintf(dset_name, "/PartType1/Grids/Vy");
+            break;
+        case Z_VELOCITY:
+            sprintf(dset_name, "/PartType1/Grids/Vz");
+            break;
+        case DENSITY:
+            sprintf(dset_name, "/PartType1/Grids/Density");
+            break;
+        default:
+            mlog_error("Unrecognised grid property in read_grid__velociraptor!");
+            break;
+    }
+
+    // select a hyperslab in the filespace
+    hid_t fspace_id = H5Screate_simple(3, (hsize_t[3]) { grid_dim, grid_dim, grid_dim }, NULL);
+    H5Sselect_hyperslab(fspace_id, H5S_SELECT_SET,
+            (hsize_t[3]) { slab_ix_start_file, 0, 0 }, NULL,
+            (hsize_t[3]) { slab_nix_file, grid_dim, grid_dim }, NULL);
+
+    // create the memspace
+    hid_t memspace_id = H5Screate_simple(1, (hsize_t[1]) { slab_nix_file * grid_dim * grid_dim }, NULL);
+
+    hid_t dset_id = H5Dopen(file_id, dset_name, H5P_DEFAULT);
+
+    plist_id = H5Pcreate(H5P_DATASET_XFER);
+    H5Pset_dxpl_mpio(plist_id, H5FD_MPIO_COLLECTIVE);
+
+    H5Dread(dset_id, H5T_NATIVE_FLOAT, memspace_id, fspace_id, plist_id, (float*)slab_file);
+
+    H5Pclose(plist_id);
+    H5Dclose(dset_id);
+    H5Sclose(memspace_id);
+    H5Sclose(fspace_id);
+    H5Fclose(file_id);
+
+    // reorder the read slab for inplace fftw padding
+    for (int ii = (int)(slab_nix_file - 1); ii >= 0; ii--)
+        for (int jj = grid_dim - 1; jj >= 0; jj--)
+            for (int kk = grid_dim - 1; kk >= 0; kk--)
+                ((float*)slab_file)[grid_index(ii, jj, kk, grid_dim, INDEX_PADDED)] = ((float*)slab_file)[grid_index(ii, jj, kk, grid_dim, INDEX_REAL)];
+
+    // smooth the grid and subsample if needed
+    smooth_grid(resample_factor, (int[3]){grid_dim, grid_dim, grid_dim}, slab_file, slab_n_complex_file, slab_ix_start_file, slab_nix_file);
+    subsample_grid(resample_factor, (int[3]){grid_dim, grid_dim, grid_dim}, (int)slab_ix_start_file, (int)slab_nix_file, (float*)slab_file, slab);
+
+    if (property == DENSITY) {
+        // N.B. Hubble factor below to account for incorrect units in input DM grids!
+        float mean_inv = pow(box_size[0], 3) * run_globals.params.Hubble_h / ((double)run_globals.params.NPart * run_globals.params.PartMass);
+
+        // At this point grid holds the summed densities in each LR cell
+        // Loop through again and calculate the overdensity
+        // i.e. (rho - rho_mean)/rho_mean
+        int ReionGridDim = run_globals.params.ReionGridDim;
+        int slab_nix = run_globals.reion_grids.slab_nix[run_globals.mpi_rank];
+        for (int ii = 0; ii < slab_nix; ii++)
+            for (int jj = 0; jj < ReionGridDim; jj++)
+                for (int kk = 0; kk < ReionGridDim; kk++) {
+                    float* val = &(slab[grid_index(ii, jj, kk, ReionGridDim, INDEX_PADDED)]);
+                    // the fmax check here tries to account for negative densities introduced by fftw rounding / aliasing effects
+                    *val = fmaxf(*val * mean_inv - 1.0, -1.0);
+                }
+    }
+
+    fftwf_free(slab_file);
+
+    // Do we need to cache this slab?
+    if (params->FlagInteractive || params->FlagMCMC) {
+        cache_slab(slab, snapshot, property);
+    }
+
+    mlog("...done", MLOG_CLOSE | MLOG_TIMERSTOP);
+
+    return 0;
+}
+
 
 // WARNING:  This is a hack introduced to fix the reading of VELOCIraptor
 // velocity grid files which have no `Num_files` attribute.  It relies on the
@@ -13,34 +202,21 @@
 // which is then used for reading the velocity files.
 static int vr_num_files_hack_ = 0;
 
-int read_grid__velociraptor(
+/** \brief Read in VELOCIraptor grids spanning multiple files per snapshot.
+ *
+ * \param property  the grid property (e.g. density, x-velocity, etc.) to be read
+ * \param snapshot  the requested snapshot
+ * \param slab      pointer to preallocated memory to hold the slab for this rank
+ *
+ * \return          exit status
+ */
+static int read_vr_multi(
     const enum grid_prop property,
     const int snapshot,
     float* slab)
 {
-    // N.B. We assume in this function that the slab has the fftw3 inplace complex dft padding.
-
     run_params_t* params = &(run_globals.params);
-    int mpi_size = run_globals.mpi_size;
-    int mpi_rank = run_globals.mpi_rank;
-
-    // Have we read this slab before?
-    if ((params->FlagInteractive || params->FlagMCMC) && !load_cached_slab(slab, snapshot, property))
-        return 0;
-
-    if((property == X_VELOCITY) || (property == Y_VELOCITY) || (property == Z_VELOCITY)) {
-
-        if(run_globals.params.TsVelocityComponent < 1 || run_globals.params.TsVelocityComponent > 3) {
-            mlog("Not a valid velocity direction: 1 - x, 2 - y, 3 - z", MLOG_MESG);
-            ABORT(EXIT_FAILURE);
-        }
-
-        if(run_globals.params.Flag_ConstructLightcone && run_globals.params.TsVelocityComponent!=3) {
-            mlog("Light-cone is generated along the z-direction, therefore the velocity component should be in the z-direction (i.e 3).", MLOG_MESG);
-            ABORT(EXIT_FAILURE);
-        }
-
-    }
+    const char fname_base[] = {"%s/grids/snapshot_%03d.%s.%d"};
 
     // read in the number of x values and offsets from every grid file
     // nx : number of x-dim values
@@ -51,8 +227,7 @@ int read_grid__velociraptor(
     int file_n_cell[3] = { 0, 0, 0 };
     double box_size;
     int n_files = 999;
-    const char fname_base[STRLEN] = { "%s/grids/snapshot_%03d.%s.%d" };
-
+        
     {
         hid_t plist_id = H5Pcreate(H5P_FILE_ACCESS);
         H5Pset_fapl_mpio(plist_id, run_globals.mpi_comm, MPI_INFO_NULL);
@@ -134,6 +309,9 @@ int read_grid__velociraptor(
     mlog("box_size = %.2f cMpc/h", MLOG_MESG, box_size * params->Hubble_h);
 
     double resample_factor = calc_resample_factor(file_n_cell);
+
+    int mpi_size = run_globals.mpi_size;
+    int mpi_rank = run_globals.mpi_rank;
 
     // Malloc the slab for this rank we need given the dimensionality of the input file grid.
     // nI : total number of complex values in slab on this rank
@@ -280,8 +458,7 @@ int read_grid__velociraptor(
 
             plist_id = H5Pcreate(H5P_DATASET_XFER);
 
-            // TODO(performance): Is a collective read better here?
-            H5Pset_dxpl_mpio(plist_id, H5FD_MPIO_INDEPENDENT);
+            H5Pset_dxpl_mpio(plist_id, H5FD_MPIO_COLLECTIVE);
 
             H5Dread(dset_id, H5T_NATIVE_DOUBLE, memspace_id, fspace_id, plist_id, local_buffer);
 
@@ -340,4 +517,63 @@ int read_grid__velociraptor(
     mlog("...done", MLOG_CLOSE | MLOG_TIMERSTOP);
 
     return 0;
+
+}
+
+
+/** \brief Read in grids associated with VELOCIraptor halo finding.
+ *
+ * If the grid has been read before and cached then this will be restored.
+ * Filenaming conventions will also be checked to determine what format the
+ * grids have been stored in (post-processed or directly output by SWIFT).
+ *
+ * \param property  the grid property (e.g. density, x-velocity, etc.) to be read
+ * \param snapshot  the requested snapshot
+ * \param slab      pointer to preallocated memory to hold the slab for this rank
+ *
+ * \return          exit status
+ */
+int read_grid__velociraptor(
+    const enum grid_prop property,
+    const int snapshot,
+    float* slab)
+{
+    // N.B. We assume in this function that the slab has the fftw3 inplace complex dft padding.
+
+    run_params_t* params = &(run_globals.params);
+
+    // Have we read this slab before?
+    if ((params->FlagInteractive || params->FlagMCMC) && !load_cached_slab(slab, snapshot, property))
+        return 0;
+
+    if((property == X_VELOCITY) || (property == Y_VELOCITY) || (property == Z_VELOCITY)) {
+
+        if(params->TsVelocityComponent < 1 || params->TsVelocityComponent > 3) {
+            mlog("Not a valid velocity direction: 1 - x, 2 - y, 3 - z", MLOG_MESG);
+            ABORT(EXIT_FAILURE);
+        }
+
+        if(params->Flag_ConstructLightcone && params->TsVelocityComponent!=3) {
+            mlog("Light-cone is generated along the z-direction, therefore the velocity component should be in the z-direction (i.e 3).", MLOG_MESG);
+            ABORT(EXIT_FAILURE);
+        }
+
+    }
+
+    int filetype = determine_file_type(snapshot);
+
+    switch (filetype) {
+        case 0:
+            read_swift(property, snapshot, slab);
+            break;
+        case 1:
+            read_vr_multi(property, snapshot, slab);
+            break;
+        default:
+            mlog_error("Unrecognised filetype in read_grid__velociraptor.");
+            ABORT(EXIT_FAILURE);
+    }
+
+    return 0;
+
 }
