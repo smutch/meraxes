@@ -1248,7 +1248,7 @@ bool check_if_reionization_ongoing(int snapshot)
     else {
 
         // Here we haven't finished or previously started.  Should we start then?
-        if(run_globals.params.Flag_IncludeSpinTemp) {
+        if(run_globals.params.Flag_IncludeSpinTemp || run_globals.params.Flag_ConstructLightcone) {
             started = 1;
         }
         else {
