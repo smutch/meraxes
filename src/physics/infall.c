@@ -1,5 +1,10 @@
-#include "meraxes.h"
 #include <math.h>
+
+#include "infall.h"
+#include "reionization.h"
+#include "core/misc_tools.h"
+#include "core/modifiers.h"
+#include "meraxes.h"
 
 double gas_infall(fof_group_t* FOFgroup, int snapshot)
 {

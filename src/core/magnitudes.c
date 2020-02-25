@@ -1,10 +1,7 @@
 #ifdef CALC_MAGS
+
+#include "magnitudes.h"
 #include "meraxes.h"
-
-#define TOL 1e-30 // Minimum Flux
-
-
-enum core {MASTER};
 
 void init_luminosities(galaxy_t *gal) {
     // Initialise all elements of flux arrays to TOL.

@@ -1,6 +1,11 @@
-#include "meraxes.h"
 #include <assert.h>
 #include <math.h>
+
+#include "core/cooling.h"
+#include "blackhole_feedback.h"
+#include "cooling.h"
+#include "core/misc_tools.h"
+#include "meraxes.h"
 
 double gas_cooling(galaxy_t* gal)
 {
@@ -91,10 +96,6 @@ void cool_gas_onto_galaxy(galaxy_t* gal, double cooling_mass)
 
     // what mass of metals is coming along with this cooling gas?
     cooling_metals = cooling_mass * calc_metallicity(gal->HotGas, gal->MetalsHotGas);
-
-    // debug("%d %.3e %.3e %.3e %.3e %.3e %.3e %.3e %.3e %.3e %.3e %.3e %.3e %.3e %.3e\n",
-    //     gal->Type, gal->dt, fof_group->Rvir, fof_group->Vvir, gal->HotGas, gal->MetalsHotGas, t_cool, logZ, Tvir,
-    //     lambda, rho_r_cool, isothermal_norm, r_cool, max_cooling_mass, cooling_mass);
 
     // save the cooling mass
     gal->Mcool = cooling_mass;

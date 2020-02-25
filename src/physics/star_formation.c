@@ -1,6 +1,11 @@
-#include "meraxes.h"
 #include <assert.h>
 #include <gsl/gsl_integration.h>
+
+#include "core/reionization.h"
+#include "star_formation.h"
+#include "supernova_feedback.h"
+#include "core/misc_tools.h"
+#include "meraxes.h"
 
 static void backfill_ghost_star_formation(galaxy_t* gal, double m_stars, double sfr, double metallicity, int snapshot)
 {
@@ -162,12 +167,6 @@ void insitu_star_formation(galaxy_t* gal, int snapshot)
     }
 }
 
-struct FR_parameters {
-    double a;
-    double b;
-    double c;
-    double d;
-};
 
 static double integrand_p_dependent_SFR(double q, void* gal)
 {

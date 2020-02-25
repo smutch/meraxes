@@ -1,7 +1,7 @@
 #include <ctype.h>
 #include <meraxes.h>
-#include <parse_paramfile.h>
 #include <regex.h>
+#include "parse_paramfile.h"
 
 static int compile_regex(regex_t* reg, const char* regex_text)
 {

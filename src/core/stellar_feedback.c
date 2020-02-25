@@ -1,26 +1,11 @@
-#include "meraxes.h"
 #include <hdf5.h>
 #include <hdf5_hl.h>
 
+#include "misc_tools.h"
+#include "stellar_feedback.h"
+#include "meraxes.h"
 
-// These numbers are based on pre-knowledge on the yield and energy tables
-#define NMETAL 40
-#define MIN_Z 0
-#define MAX_Z 39
-#define NAGE 2000
-#define NELEMENT 2
-#define RECYCLING_FRACTION 0
-#define TOTAL_METAL 1
-
-
-static double age[NAGE];
-static double yield_tables[NELEMENT][NMETAL*NAGE];
-static double yield_tables_working[N_HISTORY_SNAPS][NMETAL][NELEMENT];
-static double energy_tables[NMETAL*NAGE];
-static double energy_tables_working[N_HISTORY_SNAPS][NMETAL];
-
-
-void check_n_history_snaps(void) {
+static void check_n_history_snaps(void) {
     int last_snap = run_globals.ListOutputSnaps[run_globals.NOutputSnaps - 1];
 
     if (last_snap <= 1) {

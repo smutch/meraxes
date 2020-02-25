@@ -1,6 +1,8 @@
-#include "meraxes.h"
 #include <assert.h>
 #include <hdf5_hl.h>
+
+#include "reionization_modifiers.h"
+#include "meraxes.h"
 
 void read_Mcrit_table()
 {

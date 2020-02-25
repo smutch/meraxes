@@ -1,7 +1,11 @@
 #define _MAIN
-#include "meraxes.h"
 #include <fenv.h>
 #include <sys/stat.h>
+
+#include "cleanup.h"
+#include "init.h"
+#include "interactive.h"
+#include "meraxes.h"
 
 int main(int argc, char** argv)
 {

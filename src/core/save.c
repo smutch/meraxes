@@ -1,10 +1,14 @@
-#include "meraxes.h"
-#include "parse_paramfile.h"
 #include <assert.h>
 #include <hdf5_hl.h>
 #include <unistd.h>
 
-float current_mwmsa(galaxy_t* gal, int i_snap)
+#include "parse_paramfile.h"
+#include "reionization.h"
+#include "save.h"
+#include "meraxes.h"
+
+
+static float current_mwmsa(galaxy_t* gal, int i_snap)
 {
     double* LTTime = run_globals.LTTime;
     double mwmsa_num = gal->mwmsa_num;

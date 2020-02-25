@@ -33,6 +33,9 @@
 #ifndef _MERAXES_GPU_H
 #define _MERAXES_GPU_H
 
+#include <fftw3.h>
+#include <stdbool.h>
+
 // Define a generic Complex datatype
 #ifdef __cplusplus
 #include <cuda_runtime.h>

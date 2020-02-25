@@ -1,8 +1,14 @@
-#include "meraxes.h"
 #include <assert.h>
+#include <complex.h>
 #include <fftw3-mpi.h>
 #include <fftw3.h>
 #include <math.h>
+
+#include "BrightnessTemperature.h"
+#include "misc_tools.h"
+#include "reionization.h"
+#include "XRayHeatingFunctions.h"
+#include "meraxes.h"
 
 /*
  * This code computes the 21cm brightness temperature, which is somewhat

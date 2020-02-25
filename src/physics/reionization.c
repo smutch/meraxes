@@ -1,5 +1,11 @@
-#include "meraxes.h"
 #include <math.h>
+
+#include "core/misc_tools.h"
+#include "blackhole_feedback.h"
+#include "core/virial_properties.h"
+#include "reionization.h"
+#include "meraxes.h"
+
 
 void calculate_Mvir_crit(double redshift)
 {

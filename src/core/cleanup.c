@@ -1,6 +1,10 @@
-#include "meraxes.h"
-#include "parse_paramfile.h"
 #include <fftw3-mpi.h>
+
+#include "meraxes.h"
+#include "read_grids.h"
+#include "read_halos.h"
+#include "parse_paramfile.h"
+#include "reionization.h"
 
 void cleanup()
 {

@@ -1,8 +1,20 @@
-#include "meraxes.h"
 #include <assert.h>
 #include <gsl/gsl_integration.h>
+#include <time.h>
 
-void init_gpu()
+#include "ConstructLightcone.h"
+#include "ComputePowerSpectrum.h"
+#include "cooling.h"
+#include "misc_tools.h"
+#include "init.h"
+#include "read_halos.h"
+#include "reionization.h"
+#include "save.h"
+#include "reionization_modifiers.h"
+#include "stellar_feedback.h"
+#include "meraxes.h"
+
+static void init_gpu()
 {
 // If we are compiling with CUDA, allocate a structure
 //   that will carry information about the device
@@ -183,7 +195,7 @@ void set_units()
     units->UnitTime_in_Megayears = units->UnitTime_in_s / SEC_PER_MEGAYEAR;
 
     run_globals.G = GRAVITY / pow(units->UnitLength_in_cm, 3) * units->UnitMass_in_g * pow(units->UnitTime_in_s, 2);
-    run_globals.Csquare = pow(C / units->UnitVelocity_in_cm_per_s, 2);
+    run_globals.Csquare = pow(SPEED_OF_LIGHT / units->UnitVelocity_in_cm_per_s, 2);
 
     units->UnitDensity_in_cgs = units->UnitMass_in_g / pow(units->UnitLength_in_cm, 3);
     units->UnitPressure_in_cgs = units->UnitMass_in_g / units->UnitLength_in_cm / pow(units->UnitTime_in_s, 2);
@@ -196,10 +208,6 @@ void set_units()
 
     // compute a few quantitites
     run_globals.RhoCrit = 3 * run_globals.Hubble * run_globals.Hubble / (8 * M_PI * run_globals.G);
-
-    // debug("UnitTime_in_s = %e\nUnitTime_in_Megayears = %e\nG = %e\nUnitDensity_in_cgs = %e\nUnitPressure_in_cgs = %e\nUnitCoolingRate_in_cgs = %e\nUnitEnergy_in_cgs = %e\n",
-    //     units->UnitTime_in_s, units->UnitTime_in_Megayears, units->UnitDensity_in_cgs, units->UnitPressure_in_cgs, units->UnitCoolingRate_in_cgs, units->UnitEnergy_in_cgs);
-    // ABORT(EXIT_SUCCESS);
 }
 
 static void read_output_snaps()
