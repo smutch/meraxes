@@ -7,6 +7,12 @@
 
 #define MIN(i, j) ((i) < (j) ? (i) : (j))
 
+// WARNING:  This is a hack introduced to fix the reading of VELOCIraptor
+// velocity grid files which have no `Num_files` attribute.  It relies on the
+// density files always having been read first to set this static variable
+// which is then used for reading the velocity files.
+static int vr_num_files_hack_ = 0;
+
 int read_grid__velociraptor(
     const enum grid_prop property,
     const int snapshot,
@@ -71,8 +77,29 @@ int read_grid__velociraptor(
             hid_t file_id = H5Fopen(fname, H5F_ACC_RDONLY, plist_id);
 
             if (ii == 0) {
+
+                // save current error stack
+                herr_t (*old_func)(long, void*);
+                void *old_client_data;
+                hid_t error_stack = 0;
+                H5Eget_auto(error_stack, &old_func, &old_client_data);
+
+                // turn off error handling
+                H5Eset_auto(error_stack, NULL, NULL);
+
                 herr_t status = H5LTget_attribute_int(file_id, "/", "Num_files", &n_files);
-                assert(status >= 0);
+
+                // restore error handling
+                H5Eset_auto(error_stack, old_func, old_client_data);
+
+                // WARNING: This is a hack!  See the `vr_num_files_hack_`
+                // declaration above for details.
+                if (status >= 0) {
+                    vr_num_files_hack_ = n_files;
+                } else {
+                    assert(vr_num_files_hack_ > 0);
+                    n_files = vr_num_files_hack_;
+                }
 
                 file_nx = calloc(n_files, sizeof(int));
                 file_ix_start = calloc(n_files, sizeof(int));
