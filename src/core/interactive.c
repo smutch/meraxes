@@ -1,3 +1,5 @@
+#include "interactive.h"
+#include "reionization.h"
 #include "meraxes.h"
 
 static int prompt_char(const char* message)

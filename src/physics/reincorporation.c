@@ -1,3 +1,5 @@
+#include "reincorporation.h"
+#include "core/misc_tools.h"
 #include "meraxes.h"
 
 static void update_reservoirs_from_reincorporation(galaxy_t* gal, double reincorporated)

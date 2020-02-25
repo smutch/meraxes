@@ -1,7 +1,11 @@
-#include "meraxes.h"
 #include <assert.h>
 #include <gsl/gsl_sort_int.h>
 #include <hdf5_hl.h>
+
+#include "misc_tools.h"
+#include "read_halos.h"
+#include "modifiers.h"
+#include "meraxes.h"
 
 static void inline update_pointers_from_offsets(
     int n_fof_groups_kept,

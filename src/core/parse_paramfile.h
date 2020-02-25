@@ -1,3 +1,6 @@
+#ifndef PARSE_PARAMFILE_H
+#define PARSE_PARAMFILE_H
+
 #define PARAM_MAX_ENTRIES 200
 #define PARAM_MAX_LINE_LEN 512
 #define PARAM_TYPE_INT 801
@@ -14,4 +17,14 @@ struct entry_t {
     char value[256];
 };
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 int parse_paramfile(char* fname, entry_t entry[PARAM_MAX_ENTRIES]);
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif

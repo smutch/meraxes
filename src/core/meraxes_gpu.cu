@@ -30,7 +30,6 @@
 //
 //==============================================================================
 
-#include "meraxes.h"
 #include <assert.h>
 #include <fftw3-mpi.h>
 #include <fftw3.h>
@@ -47,6 +46,9 @@
 
 #include <hdf5.h>
 #include <hdf5_hl.h>
+
+#include "misc_tools.h"
+#include "meraxes.h"
 
 #include <cuda_runtime.h>
 #include <cufft.h>

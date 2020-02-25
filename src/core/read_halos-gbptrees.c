@@ -1,7 +1,12 @@
-#include "meraxes.h"
 #include <assert.h>
 #include <hdf5_hl.h>
 #include <math.h>
+
+#include "misc_tools.h"
+#include "read_halos.h"
+#include "virial_properties.h"
+#include "modifiers.h"
+#include "meraxes.h"
 
 static void halo_catalog_filename(
     char* simulation_dir,

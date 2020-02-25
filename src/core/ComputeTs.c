@@ -1,15 +1,14 @@
-#include "meraxes.h"
 #include <assert.h>
+#include <complex.h>
 #include <fftw3-mpi.h>
-#include <limits.h>
 #include <math.h>
-#include <signal.h>
 
-// DEBUG
-#include <hdf5.h>
-#include <hdf5_hl.h>
-
-#include "XRayHeatingFunctions.c"
+#include "XRayHeatingFunctions.h"
+#include "find_HII_bubbles.h"
+#include "misc_tools.h"
+#include "reionization.h"
+#include "ComputeTs.h"
+#include "meraxes.h"
 
 /*
  * This code is a re-write of the spin temperature calculation (Ts.c) within 21cmFAST.
@@ -81,7 +80,7 @@ void _ComputeTs(int snapshot)
     // Note: we will leave off factor of VOLUME, in anticipation of the inverse FFT below
     // TODO: Double check that looping over correct number of elements here
     for (int ii = 0; ii < slab_n_complex; ii++) {
-        sfr_unfiltered[ii] /= total_n_cells;
+        sfr_unfiltered[ii] /= (float)total_n_cells;
     }
 
     double* SMOOTHED_SFR_GAL = run_globals.reion_grids.SMOOTHED_SFR_GAL;
@@ -320,8 +319,8 @@ void _ComputeTs(int snapshot)
         Luminosity_converstion_factor_GAL *= (SEC_PER_YEAR)/(PLANCK);
 
         // Leave the original 21cmFAST code for reference. Refer to Greig & Mesinger (2017) for the new parameterisation.
-        //        const_zp_prefactor_GAL = (1.0/0.59)*( run_globals.params.physics.LXrayGal * Luminosity_converstion_factor_GAL ) / (run_globals.params.physics.NuXrayGalThreshold*NU_over_EV) * C * pow(1+zp, run_globals.params.physics.SpecIndexXrayGal+3);
-        const_zp_prefactor_GAL = ( run_globals.params.physics.LXrayGal * Luminosity_converstion_factor_GAL ) / (run_globals.params.physics.NuXrayGalThreshold*NU_over_EV) * C * pow(1+zp, run_globals.params.physics.SpecIndexXrayGal+3);
+        //        const_zp_prefactor_GAL = (1.0/0.59)*( run_globals.params.physics.LXrayGal * Luminosity_converstion_factor_GAL ) / (run_globals.params.physics.NuXrayGalThreshold*NU_over_EV) * SPEED_OF_LIGHT * pow(1+zp, run_globals.params.physics.SpecIndexXrayGal+3);
+        const_zp_prefactor_GAL = ( run_globals.params.physics.LXrayGal * Luminosity_converstion_factor_GAL ) / (run_globals.params.physics.NuXrayGalThreshold*NU_over_EV) * SPEED_OF_LIGHT * pow(1+zp, run_globals.params.physics.SpecIndexXrayGal+3);
         // Note the factor of 0.59 appears to be required to match 21cmFAST
 
         // I believe it arises from differing definitions of a stellar baryon mass
@@ -347,8 +346,8 @@ void _ComputeTs(int snapshot)
             Luminosity_converstion_factor_QSO *= (SEC_PER_YEAR)/(PLANCK);
 
             // Leave the original 21cmFAST code for reference. Refer to Greig & Mesinger (2017) for the new parameterisation.
-            //            const_zp_prefactor_QSO = (1.0/0.59)*( run_globals.params.physics.LXrayQSO * Luminosity_converstion_factor_QSO ) / (run_globals.params.physics.NuXrayQSOThreshold*NU_over_EV) * C * pow(1+zp, run_globals.params.physics.SpecIndexXrayQSO+3);
-            const_zp_prefactor_QSO = ( run_globals.params.physics.LXrayQSO * Luminosity_converstion_factor_QSO ) / (run_globals.params.physics.NuXrayQSOThreshold*NU_over_EV) * C * pow(1+zp, run_globals.params.physics.SpecIndexXrayQSO+3);
+            //            const_zp_prefactor_QSO = (1.0/0.59)*( run_globals.params.physics.LXrayQSO * Luminosity_converstion_factor_QSO ) / (run_globals.params.physics.NuXrayQSOThreshold*NU_over_EV) * SPEED_OF_LIGHT * pow(1+zp, run_globals.params.physics.SpecIndexXrayQSO+3);
+            const_zp_prefactor_QSO = ( run_globals.params.physics.LXrayQSO * Luminosity_converstion_factor_QSO ) / (run_globals.params.physics.NuXrayQSOThreshold*NU_over_EV) * SPEED_OF_LIGHT * pow(1+zp, run_globals.params.physics.SpecIndexXrayQSO+3);
         }
 
         //interpolate to correct nu integral value based on the cell's ionization state
@@ -499,21 +498,10 @@ void ComputeTs(int snapshot, timer_info* timer_total)
     // Call the version of ComputeTs we've been passed (and time it)
     timer_info timer;
     double redshift = run_globals.ZZ[snapshot];
-#ifdef USE_CUDA
-#ifdef USE_CUFFT
-    mlog("Calling pure-GPU version of ComputeTs() for snap=%d/z=%.2lf...", MLOG_OPEN | MLOG_TIMERSTART, snapshot, redshift);
-#else
-    mlog("Calling hybrid-GPU/FFTW version of ComputeTs() for snap=%d/z=%.2lf...", MLOG_OPEN | MLOG_TIMERSTART, snapshot, redshift);
-#endif
-    // Run the GPU version of _ComputeTs()
-    timer_start(&timer);
-    _ComputeTs_gpu(redshift, flag_write_validation_data);
-#else
     // Run the Meraxes version of _ComputeTs()
     mlog("Calling pure-CPU version of ComputeTs() for snap=%d/z=%.2lf...", MLOG_OPEN | MLOG_TIMERSTART, snapshot, run_globals.ZZ[snapshot]);
     timer_start(&timer);
     _ComputeTs(snapshot);
-#endif
     timer_stop(&timer);
     timer_stop(timer_total);
     timer_gpu += timer_delta(timer);

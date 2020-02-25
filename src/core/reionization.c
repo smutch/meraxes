@@ -1,8 +1,16 @@
-#include "meraxes.h"
 #include <assert.h>
+#include <complex.h>
 #include <fftw3-mpi.h>
 #include <hdf5_hl.h>
 #include <math.h>
+
+#include "ComputeTs.h"
+#include "find_HII_bubbles.h"
+#include "misc_tools.h"
+#include "read_grids.h"
+#include "reionization.h"
+#include "virial_properties.h"
+#include "meraxes.h"
 
 void update_galaxy_fesc_vals(galaxy_t* gal, double new_stars, int snapshot)
 {

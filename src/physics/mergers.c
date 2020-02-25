@@ -1,5 +1,11 @@
-#include "meraxes.h"
 #include <math.h>
+
+#include "core/misc_tools.h"
+#include "blackhole_feedback.h"
+#include "mergers.h"
+#include "star_formation.h"
+#include "supernova_feedback.h"
+#include "meraxes.h"
 
 double calculate_merging_time(galaxy_t* orphan, int snapshot)
 {

@@ -1,13 +1,7 @@
+#include "ConstructLightcone.h"
+#include "misc_tools.h"
+#include "XRayHeatingFunctions.h"
 #include "meraxes.h"
-#include <assert.h>
-#include <fftw3-mpi.h>
-#include <limits.h>
-#include <math.h>
-#include <signal.h>
-
-// DEBUG
-#include <hdf5.h>
-#include <hdf5_hl.h>
 
 /*
  * This code is a re-write of the light-cone (cuboid) construction from 21cmFAST.

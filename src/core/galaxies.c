@@ -1,6 +1,10 @@
-#include "meraxes.h"
-#include "tree_flags.h"
 #include <assert.h>
+
+#include "tree_flags.h"
+#include "misc_tools.h"
+#include "galaxies.h"
+#include "virial_properties.h"
+#include "meraxes.h"
 
 galaxy_t* new_galaxy(int snapshot, unsigned long halo_ID)
 {

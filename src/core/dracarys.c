@@ -1,13 +1,16 @@
-#include "meraxes.h"
+#include "BrightnessTemperature.h"
+#include "ComputePowerSpectrum.h"
+#include "ConstructLightcone.h"
 #include "tree_flags.h"
-
-bool check_for_flag(int flag, int tree_flags)
-{
-    if ((tree_flags & flag) == flag)
-        return true;
-    else
-        return false;
-}
+#include "misc_tools.h"
+#include "read_halos.h"
+#include "reionization.h"
+#include "save.h"
+#include "physics/evolve.h"
+#include "physics/mergers.h"
+#include "physics/reionization.h"
+#include "galaxies.h"
+#include "meraxes.h"
 
 static inline bool check_if_valid_host(halo_t* halo)
 {

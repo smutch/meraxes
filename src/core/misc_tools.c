@@ -1,6 +1,11 @@
-#include "meraxes.h"
 #include <assert.h>
 #include <math.h>
+
+#include "cn_exceptions.h"
+#include "debug.h"
+#include "misc_tools.h"
+#include "reionization.h"
+#include "meraxes.h"
 
 void myexit(int signum)
 {
@@ -317,3 +322,13 @@ double trapz_table(double *y, double *x, int nPts, double a, double b) {
     }
     return sum;
 }
+
+
+bool check_for_flag(int flag, int tree_flags)
+{
+    if ((tree_flags & flag) == flag)
+        return true;
+    else
+        return false;
+}
+
