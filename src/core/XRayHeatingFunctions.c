@@ -5,8 +5,6 @@
  * Written to work within Meraxes by Bradley Greig.
  */
 
-
-#include "meraxes.h"
 #include <assert.h>
 #include <fftw3-mpi.h>
 #include <limits.h>
@@ -26,134 +24,8 @@
 #include <gsl/gsl_spline.h>
 #include <gsl/gsl_errno.h>
 
-// Below gives grid sizes for the interpolation arrays
-#ifndef _x_int_VARIABLES_DEFINED
-#define x_int_NXHII  14
-#define x_int_NENERGY  258
-#define _x_int_VARIABLES_DEFINED
-#endif
-
-#define Pop (int) (2)
-#define Pop2_ion run_globals.params.physics.ReionNionPhotPerBary
-#define Pop3_ion (float) (44021)
-
-#define NSPEC_MAX (int) 23
-#define RECFAST_NPTS (int) 501
-#define KAPPA_10_NPTS (int) 27
-#define KAPPA_10_elec_NPTS (int) 20
-#define KAPPA_10_pH_NPTS (int) 17
-
-/* Define some global variables; yeah i know it isn't "good practice" but doesn't matter */
-//double zpp_edge[run_globals.params.NUM_FILTER_STEPS_FOR_Ts], sigma_atR[run_globals.params.NUM_FILTER_STEPS_FOR_Ts], sigma_Tmin[run_globals.params.NUM_FILTER_STEPS_FOR_Ts], ST_over_PS[run_globals.params.NUM_FILTER_STEPS_FOR_Ts], sum_lyn[run_globals.params.NUM_FILTER_STEPS_FOR_Ts];
-double *zpp_edge, *sigma_atR, *sigma_Tmin, *ST_over_PS, *sum_lyn;
-unsigned long long box_ct;
-double const_zp_prefactor_GAL, const_zp_prefactor_QSO, dt_dzp, dt_dzpp, x_e_ave;
-double growth_factor_zp, dgrowth_factor_dzp, PS_ION_EFF;
-int NO_LIGHT;
-float M_MIN_at_z, M_MIN_at_zp;
-FILE *LOG;
-
-// Initialization; must be called once to
-void initialize_interp_arrays();
-
-// Primary functions to compute heating fractions and number of Lya photons or ionization produced,
-// Note that En is the energy of the *primary* photon, so the energy in the initial ionization is
-// included in all these.
-// All energies are in eV.
-// xHII_call is the desired ionized fraction.
-float interp_fheat(float En, float xHII_call);
-float interp_n_Lya(float En, float xHII_call);
-float interp_nion_HI(float En, float xHII_call);
-float interp_nion_HeI(float En, float xHII_call);
-float interp_nion_HeII(float En, float xHII_call);
-
-int locate_energy_index(float En);
-int locate_xHII_index(float xHII_call);
-
-float x_int_Energy[x_int_NENERGY];
-float x_int_XHII[x_int_NXHII];
-float x_int_fheat[x_int_NXHII][x_int_NENERGY];
-float x_int_n_Lya[x_int_NXHII][x_int_NENERGY];
-float x_int_nion_HI[x_int_NXHII][x_int_NENERGY];
-float x_int_nion_HeI[x_int_NXHII][x_int_NENERGY];
-float x_int_nion_HeII[x_int_NXHII][x_int_NENERGY];
-
-// Have this arbitrarily large for now. Will do this properly later
-double stored_fcoll[1000];
-
-
-double dT_comp(double z, double TK, double xe);
-
-double dicke(double z);
-//double alpha_A(double T);
-
-
-
-/* initialization routine */
-int init_heat();
-
-/* destruction/deallocation routine */
-void destruct_heat();
-
-/* returns the spectral emissity */
-double spectral_emissivity(double nu_norm, int flag);
-
-/* Ionization fraction from RECFAST. */
-double xion_RECFAST(float z, int flag);
-
-/* IGM temperature from RECFAST; includes Compton heating and adiabatic expansion only. */
-double T_RECFAST(float z, int flag);
-
-double HI_ion_crosssec(double nu);
-double HeII_ion_crosssec(double nu);
-double HeI_ion_crosssec(double nu);
-
-/* Calculates the optical depth for a photon arriving at z = zp with frequency nu, emitted at z = zpp */
-double tauX(double nu, double x_e, double zp, double zpp, double fcoll, double HI_filling_factor_zp, int snap_i);
-
-/* The total weighted HI + HeI + HeII  cross-section in pcm^-2 */
-double species_weighted_x_ray_cross_section(double nu, double x_e);
-
-/* Returns the frequency threshold where \tau = 1 between zp and zpp,
-   in the IGM with mean electron fraction x_e */
-double nu_tau_one(double zp, double zpp, double x_e, double fcoll, double HI_filling_factor_zp, int snap_i);
-
-/* Main integral driver for the frequency integral in the evolution equations */
-double integrate_over_nu(double zp, double local_x_e, double lower_int_limit, double thresh_energy, double spec_index, int FLAG);
-
-/* Returns the maximum redshift at which a Lyn transition contributes to Lya
-   flux at z */
-float zmax(float z, int n);
-
-/* Returns frequency of Lyman-n, in units of Lyman-alpha */
-double nu_n(int n);
-
-/* Returns recycling fraction (=fraction of photons converted into Lyalpha for Ly-n resonance */
-double frecycle(int n);
-
-/* returns the spin temperature */
-float get_Ts(float z, float delta, float TK, float xe, float Jalpha, float * curr_xalpha);
-
-/* Spin Temperature helper functions */
-double xcoll(double z, double TK, double delta, double xe);
-double xcoll_HI(double z, double TK, double delta, double xe);
-double xcoll_elec(double z, double TK, double delta, double xe);
-double xcoll_prot(double z, double TK, double delta, double xe);
-double kappa_10_pH(double T, int flag);
-double kappa_10_elec(double T, int flag);
-
-double kappa_10(double TK, int flag);
-double xalpha_tilde(double z, double Jalpha, double TK, double TS, double delta, double xe);
-double taugp(double z, double delta, double xe);
-double Salpha_tilde(double TK, double TS, double tauGP);
-double Tc_eff(double TK, double TS);
-
-double ddicke_dz(double z);
-//double dtdz(float z);
-
-double interpolate_fcoll(double redshift, int snap_i);
-
-
+#include "reionization.h"
+#include "XRayHeatingFunctions.h"
 
 int init_heat()
 {
@@ -414,7 +286,7 @@ double tauX_integrand(double zhat, void *params){
     double n, drpropdz, nuhat, HI_filling_factor_zhat, sigma_tilde, fcoll;
     tauX_params *p = (tauX_params *) params;
 
-    drpropdz = C * dtdz((float)zhat);
+    drpropdz = SPEED_OF_LIGHT * dtdz((float)zhat);
     n = N_b0 * pow(1+zhat, 3);
     nuhat = p->nu_0 * (1+zhat);
     fcoll = interpolate_fcoll(zhat,p->snap_i);
@@ -545,7 +417,7 @@ double HI_ion_crosssec(double nu){
 
 // comoving distance (in cm) per unit redshift
 double drdz(float z){
-    return (1.0+z)*C*dtdz(z);
+    return (1.0+z)*SPEED_OF_LIGHT*dtdz(z);
 }
 
 /* function INVSINH returns the inverse hyperbolic sine of parameter x */
@@ -844,7 +716,7 @@ double integrate_over_nu(double zp, double local_x_e, double lower_int_limit, do
 
     // if it is the Lya integral, add prefactor
     if (FLAG == 2)
-        return result * C / (4*M_PI) / Ly_alpha_HZ / hubble((float)zp);
+        return result * SPEED_OF_LIGHT / (4*M_PI) / Ly_alpha_HZ / hubble((float)zp);
 
     return result;
 }
@@ -1349,20 +1221,20 @@ void evolveInt(float zp, float curr_delNL0, const double SFR_GAL[], const double
             // Use this when using the SFR provided by Meraxes
             // Units should be M_solar/s. Factor of (dt_dzp * dzpp) converts from per s to per z'
             // The division by Omb * RHOcrit arises from the differences between eq. 13 and eq. 22 in Mesinger et al. (2011), accounting for the M_solar factor (SFR -> number)
-            dstarlya_dt_GAL *= ( C / (4.*M_PI) ) / ( PROTONMASS/SOLAR_MASS );
+            dstarlya_dt_GAL *= ( SPEED_OF_LIGHT / (4.*M_PI) ) / ( PROTONMASS/SOLAR_MASS );
 
             dxheat_dt_QSO *= const_zp_prefactor_QSO;
             dxion_source_dt_QSO *= const_zp_prefactor_QSO;
             dxlya_dt_QSO *= const_zp_prefactor_QSO*n_b;
 
-            dstarlya_dt_QSO *= ( C / (4.*M_PI) ) / ( PROTONMASS/SOLAR_MASS );
+            dstarlya_dt_QSO *= ( SPEED_OF_LIGHT / (4.*M_PI) ) / ( PROTONMASS/SOLAR_MASS );
         }
         else {
             dxheat_dt_GAL *= const_zp_prefactor_GAL;
             dxion_source_dt_GAL *= const_zp_prefactor_GAL;
             dxlya_dt_GAL *= const_zp_prefactor_GAL*n_b;
 
-            dstarlya_dt_GAL *= ( C / (4.*M_PI) ) / ( PROTONMASS/SOLAR_MASS );
+            dstarlya_dt_GAL *= ( SPEED_OF_LIGHT / (4.*M_PI) ) / ( PROTONMASS/SOLAR_MASS );
         }
 
 

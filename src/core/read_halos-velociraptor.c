@@ -1,8 +1,13 @@
-#include "meraxes.h"
-#include "tree_flags.h"
 #include <assert.h>
 #include <hdf5_hl.h>
 #include <math.h>
+
+#include "misc_tools.h"
+#include "tree_flags.h"
+#include "read_halos.h"
+#include "virial_properties.h"
+#include "modifiers.h"
+#include "meraxes.h"
 
 trees_info_t read_trees_info__velociraptor(const int snapshot)
 {

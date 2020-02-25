@@ -1,8 +1,12 @@
-#include "meraxes.h"
+#include <complex.h>
 #include <fftw3-mpi.h>
 #include <math.h>
 
-#include "recombinations.c"
+#include "misc_tools.h"
+#include "recombinations.h"
+#include "reionization.h"
+#include "XRayHeatingFunctions.h"
+#include "meraxes.h"
 
 /*
  * This code is a re-write of the modified version of 21cmFAST used in Mutch et
@@ -390,15 +394,6 @@ void _find_HII_bubbles(int snapshot)
                         * (4.0 / 3.0) * M_PI * pow(R, 3.0) / pixel_volume;
 
                     sfr_density = (double)((float*)sfr_filtered)[i_padded] / pixel_volume; // In internal units
-
-                    // #ifdef DEBUG
-                    //           if(abs(redshift - 23.074) < 0.01)
-                    //             debug("%d, %d, %d, %d, %g, %g, %g, %g, %g, %g, %g, %g, %g, %g, %g\n",
-                    //                 run_globals.mpi_rank, ix, iy, iz,
-                    //                 R, density_over_mean, f_coll_stars,
-                    //                 ((float *)stars_filtered)[grid_index(ix, iy, iz, ReionGridDim, INDEX_PADDED)],
-                    //                 RtoM(R), (4.0/3.0)*M_PI*pow(R,3.0), pixel_volume, 1.0/ReionEfficiency, sfr_density, ((float*)sfr_filtered)[grid_index(ix, iy, iz, ReionGridDim, INDEX_PADDED)], (float)(sfr_density * J_21_aux_constant));
-                    // #endif
 
                     // Calculate the recombinations within the cell
                     if(run_globals.params.Flag_IncludeRecombinations) {

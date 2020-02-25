@@ -30,12 +30,16 @@
 //
 //==============================================================================
 
-#include "meraxes.h"
+#include <complex.h>
 #include <fftw3-mpi.h>
 #include <fftw3.h>
 #include <hdf5.h>
 #include <hdf5_hl.h>
 #include <math.h>
+
+#include "misc_tools.h"
+#include "find_HII_bubbles.h"
+#include "meraxes.h"
 
 #define L_FACTOR 0.620350491 // Factor relating cube length to filter radius = (4PI/3)^(-1/3)
 

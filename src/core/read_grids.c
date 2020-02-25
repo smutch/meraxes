@@ -1,6 +1,11 @@
-#include "meraxes.h"
+#include <complex.h>
 #include <fftw3-mpi.h>
 #include <assert.h>
+
+#include "misc_tools.h"
+#include "read_grids.h"
+#include "reionization.h"
+#include "meraxes.h"
 
 void read_grid(const enum grid_prop property, const int snapshot, float *slab)
 {

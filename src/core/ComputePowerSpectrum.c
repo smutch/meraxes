@@ -1,8 +1,12 @@
-#include "meraxes.h"
 #include <assert.h>
+#include <complex.h>
 #include <fftw3-mpi.h>
 #include <fftw3.h>
 #include <math.h>
+
+#include "ComputePowerSpectrum.h"
+#include "misc_tools.h"
+#include "meraxes.h"
 
 /*
  * A generic function to compute the 21cm PS of any field. Algorithm taken from delta_T.c

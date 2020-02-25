@@ -1,5 +1,7 @@
-#include "meraxes.h"
 #include <math.h>
+
+#include "virial_properties.h"
+#include "meraxes.h"
 
 static inline double E_z(double z, double OmegaM, double OmegaK, double OmegaLambda)
 {

@@ -1,6 +1,10 @@
-#include "meraxes.h"
 #include <assert.h>
 #include <math.h>
+
+#include "core/stellar_feedback.h"
+#include "supernova_feedback.h"
+#include "core/misc_tools.h"
+#include "meraxes.h"
 
 void update_reservoirs_from_sn_feedback(galaxy_t* gal, double m_reheat, double m_eject, 
                                         double m_recycled, double new_metals)

@@ -1,3 +1,12 @@
+#include "core/stellar_feedback.h"
+#include "cooling.h"
+#include "evolve.h"
+#include "infall.h"
+#include "blackhole_feedback.h"
+#include "mergers.h"
+#include "reincorporation.h"
+#include "star_formation.h"
+#include "supernova_feedback.h"
 #include "meraxes.h"
 
 //! Evolve existing galaxies forward in time
