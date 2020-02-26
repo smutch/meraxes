@@ -8,6 +8,7 @@
 #include "misc_tools.h"
 #include "reionization.h"
 #include "ComputeTs.h"
+#include "utils.h"
 #include "meraxes.h"
 
 /*

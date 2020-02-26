@@ -2,9 +2,9 @@
 #include <fenv.h>
 #include <sys/stat.h>
 
-#include "cleanup.h"
 #include "init.h"
 #include "interactive.h"
+#include "utils.h"
 #include "meraxes.h"
 
 int main(int argc, char** argv)
