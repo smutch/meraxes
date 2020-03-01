@@ -29,8 +29,8 @@ void Initialise_PowerSpectrum()
     // Initialise arrays
     // ghetto counting (lookup how to do logs of arbitrary bases in c...)
     int num_bins = 0;
-    float k_floor = 0.0;
     float k_ceil = k_first_bin_ceil;
+    float k_floor = k_ceil;
     while (k_ceil < k_max) {
         num_bins++;
         k_floor = k_ceil;

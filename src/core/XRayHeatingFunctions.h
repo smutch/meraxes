@@ -36,15 +36,72 @@
 #define HeI_NUIONIZATION (double) (24.59*NU_over_EV) /* ionization frequency of HeI */
 #define HeII_NUIONIZATION (double) (NUIONIZATION*4) /* ionization frequency of HeII */
 
-/* Define some global variables; yeah i know it isn't "good practice" but doesn't matter */
-//double zpp_edge[run_globals.params.NUM_FILTER_STEPS_FOR_Ts], sigma_atR[run_globals.params.NUM_FILTER_STEPS_FOR_Ts], sigma_Tmin[run_globals.params.NUM_FILTER_STEPS_FOR_Ts], ST_over_PS[run_globals.params.NUM_FILTER_STEPS_FOR_Ts], sum_lyn[run_globals.params.NUM_FILTER_STEPS_FOR_Ts];
-double *zpp_edge, *sigma_atR, *sigma_Tmin, *ST_over_PS, *sum_lyn;
-unsigned long long box_ct;
-double const_zp_prefactor_GAL, const_zp_prefactor_QSO, dt_dzp, dt_dzpp, x_e_ave;
-double growth_factor_zp, dgrowth_factor_dzp, PS_ION_EFF;
-int NO_LIGHT;
-float M_MIN_at_z, M_MIN_at_zp;
-FILE *LOG;
+// [> Define some global variables; yeah i know it isn't "good practice" but doesn't matter <]
+#ifdef _XRAY_HEATING_FUNCTIONS_C
+double x_e_ave;
+double dt_dzpp;
+double dt_dzp;
+double *zpp_edge;
+
+// Have this arbitrarily large for now. Will do this properly later
+double stored_fcoll[1000];
+
+
+// //double zpp_edge[run_globals.params.NUM_FILTER_STEPS_FOR_Ts], sigma_atR[run_globals.params.NUM_FILTER_STEPS_FOR_Ts], sigma_Tmin[run_globals.params.NUM_FILTER_STEPS_FOR_Ts], ST_over_PS[run_globals.params.NUM_FILTER_STEPS_FOR_Ts], sum_lyn[run_globals.params.NUM_FILTER_STEPS_FOR_Ts];
+// double *zpp_edge, *sigma_atR, *sigma_Tmin, *ST_over_PS, *sum_lyn;
+// unsigned long long box_ct;
+// double const_zp_prefactor_GAL, const_zp_prefactor_QSO, dt_dzp, dt_dzpp, x_e_ave;
+// double growth_factor_zp, dgrowth_factor_dzp, PS_ION_EFF;
+// int NO_LIGHT;
+// float M_MIN_at_z, M_MIN_at_zp;
+// FILE *LOG;
+
+double *sum_lyn;
+double growth_factor_zp;
+double dgrowth_factor_dzp;
+double const_zp_prefactor_GAL;
+double const_zp_prefactor_QSO;
+
+// float x_int_Energy[x_int_NENERGY];
+float x_int_XHII[x_int_NXHII];
+// float x_int_fheat[x_int_NXHII][x_int_NENERGY];
+// float x_int_n_Lya[x_int_NXHII][x_int_NENERGY];
+// float x_int_nion_HI[x_int_NXHII][x_int_NENERGY];
+// float x_int_nion_HeI[x_int_NXHII][x_int_NENERGY];
+// float x_int_nion_HeII[x_int_NXHII][x_int_NENERGY];
+
+// // Have this arbitrarily large for now. Will do this properly later
+// double stored_fcoll[1000];
+#else
+extern double x_e_ave;
+extern double dt_dzpp;
+extern double dt_dzp;
+extern double *zpp_edge;
+extern double stored_fcoll[1000];
+extern double *sum_lyn;
+extern double growth_factor_zp;
+extern double dgrowth_factor_dzp;
+extern double const_zp_prefactor_GAL;
+extern double const_zp_prefactor_QSO;
+// extern double *zpp_edge, *sigma_atR, *sigma_Tmin, *ST_over_PS;
+// extern unsigned long long box_ct;
+// extern double const_zp_prefactor_GAL, const_zp_prefactor_QSO, dt_dzp, dt_dzpp, x_e_ave;
+// extern double growth_factor_zp, dgrowth_factor_dzp, PS_ION_EFF;
+// extern int NO_LIGHT;
+// extern float M_MIN_at_z, M_MIN_at_zp;
+// extern FILE *LOG;
+
+// extern float x_int_Energy[x_int_NENERGY];
+extern float x_int_XHII[x_int_NXHII];
+// extern float x_int_fheat[x_int_NXHII][x_int_NENERGY];
+// extern float x_int_n_Lya[x_int_NXHII][x_int_NENERGY];
+// extern float x_int_nion_HI[x_int_NXHII][x_int_NENERGY];
+// extern float x_int_nion_HeI[x_int_NXHII][x_int_NENERGY];
+// extern float x_int_nion_HeII[x_int_NXHII][x_int_NENERGY];
+
+// extern double stored_fcoll[1000];
+#endif
+
 
 
 #ifdef __cplusplus
@@ -67,18 +124,6 @@ float interp_nion_HeII(float En, float xHII_call);
 
 int locate_energy_index(float En);
 int locate_xHII_index(float xHII_call);
-
-float x_int_Energy[x_int_NENERGY];
-float x_int_XHII[x_int_NXHII];
-float x_int_fheat[x_int_NXHII][x_int_NENERGY];
-float x_int_n_Lya[x_int_NXHII][x_int_NENERGY];
-float x_int_nion_HI[x_int_NXHII][x_int_NENERGY];
-float x_int_nion_HeI[x_int_NXHII][x_int_NENERGY];
-float x_int_nion_HeII[x_int_NXHII][x_int_NENERGY];
-
-// Have this arbitrarily large for now. Will do this properly later
-double stored_fcoll[1000];
-
 
 double dT_comp(double z, double TK, double xe);
 

@@ -2,6 +2,7 @@
 #include <fftw3-mpi.h>
 #include <math.h>
 
+#include "utils.h"
 #include "misc_tools.h"
 #include "recombinations.h"
 #include "reionization.h"
