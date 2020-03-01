@@ -9,7 +9,7 @@ typedef struct timer_info {
     struct timeval stop;
 } timer_info;
 
-#ifdef _MAIN
+#ifdef _UTILS_C
 float timer_gpu = 0.f;
 #else
 extern float timer_gpu;

@@ -498,7 +498,7 @@ void ComputeTs(int snapshot, timer_info* timer_total)
 {
     // Call the version of ComputeTs we've been passed (and time it)
     timer_info timer;
-    double redshift = run_globals.ZZ[snapshot];
+    // double redshift = run_globals.ZZ[snapshot];
     // Run the Meraxes version of _ComputeTs()
     mlog("Calling pure-CPU version of ComputeTs() for snap=%d/z=%.2lf...", MLOG_OPEN | MLOG_TIMERSTART, snapshot, run_globals.ZZ[snapshot]);
     timer_start(&timer);

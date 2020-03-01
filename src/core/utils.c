@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#define _UTILS_C
 #include "utils.h"
 
 #ifdef __cplusplus
