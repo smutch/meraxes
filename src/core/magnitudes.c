@@ -95,7 +95,7 @@ void init_templates_mini(
     // block.
 
     // Initialise full templates
-    int iA, iS;
+    int iS;
     struct sed_params_t spectra[MAGS_N_SNAPS];
     int nAgeStep;
     double *ageStep;
@@ -389,7 +389,6 @@ void get_output_magnitudes(float *target, galaxy_t *gal, int snapshot) {
     }
     // Correct the unit of SFRs and convert fluxes to magnitudes
     if (iS != MAGS_N_SNAPS) {
-        double mags[MAGS_N_BANDS];
         double sfr_unit = -2.5*log10(
             run_globals.units.UnitMass_in_g/run_globals.units.UnitTime_in_s*SEC_PER_YEAR/SOLAR_MASS
         );

@@ -5,6 +5,7 @@
 #include "star_formation.h"
 #include "supernova_feedback.h"
 #include "core/misc_tools.h"
+#include "core/magnitudes.h"
 #include "meraxes.h"
 
 static void backfill_ghost_star_formation(galaxy_t* gal, double m_stars, double sfr, double metallicity, int snapshot)

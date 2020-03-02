@@ -10,6 +10,7 @@
 #include "physics/mergers.h"
 #include "physics/reionization.h"
 #include "galaxies.h"
+#include "debug.h"
 #include "meraxes.h"
 
 static inline bool check_if_valid_host(halo_t* halo)

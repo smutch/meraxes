@@ -9,23 +9,6 @@
 
 #define TOL 1e-30 // Minimum Flux
 
-typedef struct mag_params_t {
-    int targetSnap[MAGS_N_SNAPS];
-    int nBeta;
-    int nRest;
-    int minZ;
-    int maxZ;
-    int nMaxZ;
-    double tBC;
-    int iAgeBC[MAGS_N_SNAPS];
-    size_t totalSize;
-    double *working;
-    double *inBC;
-    double *outBC;
-    double *centreWaves;
-    double *logWaves;
-} mag_params_t;
-
 enum core {MASTER};
 
 #ifdef __cplusplus

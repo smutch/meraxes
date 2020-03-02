@@ -5,6 +5,7 @@
 #include "mergers.h"
 #include "star_formation.h"
 #include "supernova_feedback.h"
+#include "core/magnitudes.h"
 #include "meraxes.h"
 
 double calculate_merging_time(galaxy_t* orphan, int snapshot)
