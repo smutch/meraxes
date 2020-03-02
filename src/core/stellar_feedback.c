@@ -5,6 +5,12 @@
 #include "stellar_feedback.h"
 #include "meraxes.h"
 
+static double age[NAGE];
+static double yield_tables[NELEMENT][NMETAL*NAGE];
+static double yield_tables_working[N_HISTORY_SNAPS][NMETAL][NELEMENT];
+static double energy_tables[NMETAL*NAGE];
+static double energy_tables_working[N_HISTORY_SNAPS][NMETAL];
+
 static void check_n_history_snaps(void) {
     int last_snap = run_globals.ListOutputSnaps[run_globals.NOutputSnaps - 1];
 

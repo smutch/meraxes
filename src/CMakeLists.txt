@@ -29,6 +29,7 @@ set(MAGS_N_SNAPS 3 CACHE VALUE "Number of snapshots to compute magnitudes")
 add_definitions(-DMAGS_N_SNAPS=${MAGS_N_SNAPS})
 set(MAGS_N_BANDS 6 CACHE VALUE "Number of bands to compute")
 add_definitions(-DMAGS_N_BANDS=${MAGS_N_BANDS})
+set(SECTOR_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/sector" CACHE PATH "Base directory of sector library")
 
 # Build type
 set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -DDEBUG -Wall -O0 -fsanitize=address,leak,undefined -fno-common -fno-omit-frame-pointer")

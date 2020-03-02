@@ -11,6 +11,24 @@
 #include "reionization.h"
 #include "meraxes.h"
 
+
+static double A_table[A_NPTS], A_params[A_NPTS];
+static gsl_interp_accel *A_acc;
+static gsl_spline *A_spline;
+
+static double C_table[C_NPTS], C_params[C_NPTS];
+static gsl_interp_accel *C_acc;
+static gsl_spline *C_spline;
+
+static double beta_table[beta_NPTS], beta_params[beta_NPTS];
+static gsl_interp_accel *beta_acc;
+static gsl_spline *beta_spline;
+
+static double RR_table[RR_Z_NPTS][RR_lnGamma_NPTS], lnGamma_values[RR_lnGamma_NPTS];
+static gsl_interp_accel *RR_acc[RR_Z_NPTS];
+static gsl_spline *RR_spline[RR_Z_NPTS];
+
+
 double splined_recombination_rate(double z_eff, double gamma12_bg){
     int z_ct = (int) (z_eff / RR_DEL_Z + 0.5); // round to nearest int
     double lnGamma = log(gamma12_bg);

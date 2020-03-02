@@ -32,11 +32,7 @@
 
 
 static double *sigma_atR, *sigma_Tmin, *ST_over_PS;
-static unsigned long long box_ct;
-static double PS_ION_EFF;
 static int NO_LIGHT;
-static float M_MIN_at_z, M_MIN_at_zp;
-static FILE *LOG;
 
 static float x_int_Energy[x_int_NENERGY];
 static float x_int_fheat[x_int_NXHII][x_int_NENERGY];

@@ -517,6 +517,25 @@ typedef struct gpu_info{
 typedef char gpu_info;
 #endif
 
+
+typedef struct mag_params_t {
+    int targetSnap[MAGS_N_SNAPS];
+    int nBeta;
+    int nRest;
+    int minZ;
+    int maxZ;
+    int nMaxZ;
+    double tBC;
+    int iAgeBC[MAGS_N_SNAPS];
+    size_t totalSize;
+    double *working;
+    double *inBC;
+    double *outBC;
+    double *centreWaves;
+    double *logWaves;
+} mag_params_t;
+
+
 //! Global variables which will will be passed around
 typedef struct run_globals_t {
     struct run_params_t params;
