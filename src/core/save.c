@@ -3,6 +3,7 @@
 #include <unistd.h>
 
 #include "parse_paramfile.h"
+#include "magnitudes.h"
 #include "reionization.h"
 #include "save.h"
 #include "meraxes.h"

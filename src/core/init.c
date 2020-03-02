@@ -4,6 +4,7 @@
 
 #include "ConstructLightcone.h"
 #include "ComputePowerSpectrum.h"
+#include "magnitudes.h"
 #include "cooling.h"
 #include "misc_tools.h"
 #include "init.h"

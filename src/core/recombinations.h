@@ -15,29 +15,13 @@
 #include "meraxes.h"
 
 #define A_NPTS (int) (60) /*Warning: the calculation of the MHR model parameters is valid only from redshift 2 to A_NPTS+2*/
-static double A_table[A_NPTS], A_params[A_NPTS];
-static gsl_interp_accel *A_acc;
-static gsl_spline *A_spline;
-
 #define C_NPTS (int) (12)
-static double C_table[C_NPTS], C_params[C_NPTS];
-static gsl_interp_accel *C_acc;
-static gsl_spline *C_spline;
-
 #define beta_NPTS (int) (5)
-static double beta_table[beta_NPTS], beta_params[beta_NPTS];
-static gsl_interp_accel *beta_acc;
-static gsl_spline *beta_spline;
-
 #define RR_Z_NPTS (int) (300) // number of points in redshift axis;  we will only interpolate over gamma, and just index sample in redshift
 #define RR_DEL_Z (float) (0.2)
 #define RR_lnGamma_NPTS (int) (150) // number of samples of gamma for the interpolation tables
 #define RR_lnGamma_min (double) (-10) // min ln gamma12 used
 #define RR_DEL_lnGamma (float) (0.1)
-static double RR_table[RR_Z_NPTS][RR_lnGamma_NPTS], lnGamma_values[RR_lnGamma_NPTS];
-static gsl_interp_accel *RR_acc[RR_Z_NPTS];
-static gsl_spline *RR_spline[RR_Z_NPTS];
-
 
 #ifdef __cplusplus
 extern "C" {

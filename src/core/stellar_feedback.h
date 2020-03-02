@@ -10,12 +10,6 @@
 #define RECYCLING_FRACTION 0
 #define TOTAL_METAL 1
 
-static double age[NAGE];
-static double yield_tables[NELEMENT][NMETAL*NAGE];
-static double yield_tables_working[N_HISTORY_SNAPS][NMETAL][NELEMENT];
-static double energy_tables[NMETAL*NAGE];
-static double energy_tables_working[N_HISTORY_SNAPS][NMETAL];
-
 #ifdef __cplusplus
 extern "C" {
 #endif
