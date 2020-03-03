@@ -10,26 +10,24 @@
 
 static void backfill_ghost_star_formation(galaxy_t* gal, double m_stars, double sfr, double metallicity, int snapshot)
 {
-    if ((snapshot - gal->LastIdentSnap) <= N_HISTORY_SNAPS) {
-        double* LTTime = run_globals.LTTime;
-        double burst_time = LTTime[gal->LastIdentSnap] - gal->dt * 0.5;
+    double* LTTime = run_globals.LTTime;
+    double burst_time = LTTime[gal->LastIdentSnap] - gal->dt * 0.5;
 
-        for (int ii = 1; ii < N_HISTORY_SNAPS; ii++) {
-            int snap = snapshot - ii;
-            if (LTTime[snap] > burst_time) {
+    for (int snap = snapshot-1, ii=1; snap >= gal->LastIdentSnap; --snap, ++ii) {
 
+        if (LTTime[snap] > burst_time) {
 #ifdef CALC_MAGS
-                if (sfr > 0.)
-                    add_luminosities(&run_globals.mag_params, gal, snap, metallicity, sfr);
+            if (sfr > 0.)
+                add_luminosities(&run_globals.mag_params, gal, snap, metallicity, sfr);
 #endif
+            if (ii < N_HISTORY_SNAPS) {
                 gal->NewStars[ii] += m_stars;
                 gal->NewMetals[0] += m_stars * metallicity;
-                update_galaxy_fesc_vals(gal, m_stars, snap);
-                break;
             }
-        }          
-
-    }
+            update_galaxy_fesc_vals(gal, m_stars, snap);
+            break;
+        }
+    }          
 }
 
 void update_reservoirs_from_sf(galaxy_t* gal, double new_stars, int snapshot, SFtype type)
