@@ -2,6 +2,7 @@
 #include <meraxes.h>
 #include <regex.h>
 #include <assert.h>
+#include "core/misc_tools.h"
 #include "parse_paramfile.h"
 
 static int compile_regex(regex_t* reg, const char* regex_text)
