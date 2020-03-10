@@ -82,6 +82,8 @@ void teardown(void)
     free(run_globals.LTTime);
 }
 
+
+// THESE TESTS ARE CURRENTLY DEFUNCT AND NEED UPDATED
 ParameterizedTestParameters(init, find_min_dt)
 {
     int n_history_snaps[] = { 9, 10, 11, 12 };

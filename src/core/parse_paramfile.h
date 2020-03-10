@@ -28,3 +28,6 @@ int parse_paramfile(char* fname, entry_t entry[PARAM_MAX_ENTRIES]);
 #endif
 
 #endif
+
+int parse_paramfile(char* fname, entry_t entry[PARAM_MAX_ENTRIES]);
+void parse_output_snaps(const char *string);

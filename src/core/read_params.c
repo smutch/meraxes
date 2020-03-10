@@ -1,5 +1,7 @@
+#include <assert.h>
 #include "meraxes.h"
 #include "parse_paramfile.h"
+
 
 static void check_problem_params(run_params_t* run_params)
 {
@@ -20,6 +22,8 @@ static void check_problem_params(run_params_t* run_params)
     }
 #endif
 }
+
+static char output_snaps_string[STRLEN] = "\0";
 
 static void store_params(entry_t entry[123],
         int n_entries,
@@ -92,6 +96,7 @@ static void store_params(entry_t entry[123],
     }
 }
 
+
 void read_parameter_file(char* fname, int mode)
 {
     // mode = 0 : for single runs
@@ -144,6 +149,11 @@ void read_parameter_file(char* fname, int mode)
 
             strncpy(params_tag[n_param], "OutputDir", tag_length);
             params_addr[n_param] = run_params->OutputDir;
+            required_tag[n_param] = 1;
+            params_type[n_param++] = PARAM_TYPE_STRING;
+
+            strncpy(params_tag[n_param], "OutputSnapshots", tag_length);
+            params_addr[n_param] = output_snaps_string;
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_STRING;
 
@@ -209,11 +219,6 @@ void read_parameter_file(char* fname, int mode)
 
             strncpy(params_tag[n_param], "CatalogFilePrefix", tag_length);
             params_addr[n_param] = run_params->CatalogFilePrefix;
-            required_tag[n_param] = 1;
-            params_type[n_param++] = PARAM_TYPE_STRING;
-
-            strncpy(params_tag[n_param], "FileWithOutputSnaps", tag_length);
-            params_addr[n_param] = run_params->FileWithOutputSnaps;
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_STRING;
 
@@ -872,10 +877,9 @@ void read_parameter_file(char* fname, int mode)
                 ABORT(EXIT_FAILURE);
             }
 
-        if (run_globals.mpi_rank == 0) {
-            for (ii = 0; ii < n_param; ii++)
-                if (used_tag[ii] == 1) {
-                    mlog("%35s\t", MLOG_MESG, params_tag[ii]);
+        for (ii = 0; ii < n_param; ii++) {
+            if (used_tag[ii] == 1) {
+                mlog("%35s\t", MLOG_MESG, params_tag[ii]);
 
                     switch (params_type[ii]) {
                         case PARAM_TYPE_DOUBLE:
@@ -901,8 +905,8 @@ void read_parameter_file(char* fname, int mode)
                         default:
                             mlog_error("Unknown param type.");
                             break;
-                    }
                 }
+            }
         }
 
         ii = (int)strlen(run_params->OutputDir);
@@ -912,6 +916,9 @@ void read_parameter_file(char* fname, int mode)
 
         check_problem_params(run_params);
     } // END if(run_globals.mpi_rank==0)
+
+    // deal with the output_snaps_string which needs special parsing
+    parse_output_snaps(output_snaps_string);
 
     // If running mpi then broadcast the run parameters to all cores
     MPI_Bcast(run_params, sizeof(run_params_t), MPI_BYTE, 0, run_globals.mpi_comm);
