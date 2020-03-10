@@ -518,6 +518,7 @@ typedef char gpu_info;
 #endif
 
 
+#ifdef CALC_MAGS
 typedef struct mag_params_t {
     int targetSnap[MAGS_N_SNAPS];
     int nBeta;
@@ -534,6 +535,7 @@ typedef struct mag_params_t {
     double *centreWaves;
     double *logWaves;
 } mag_params_t;
+#endif
 
 
 //! Global variables which will will be passed around
