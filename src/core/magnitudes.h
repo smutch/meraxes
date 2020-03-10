@@ -5,7 +5,6 @@
 
 #ifdef CALC_MAGS
 #include <sector.h>
-#endif
 
 #define TOL 1e-30 // Minimum Flux
 
@@ -27,4 +26,5 @@ void get_output_magnitudes(float *target, struct galaxy_t *gal, int snapshot);
 }
 #endif
 
+#endif
 #endif
