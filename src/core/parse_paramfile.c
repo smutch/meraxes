@@ -209,6 +209,14 @@ void parse_output_snaps(const char *string)
 
         memcpy(run_globals.ListOutputSnaps, snaplist, sizeof(int)*count);
         free(snaplist);
+
+#ifdef DEBUG
+        mlog("Parsed snaplist = [", MLOG_MESG);
+        for(int ii=0; ii < count; ++ii) {
+            mlog(" %d", MLOG_CONT, run_globals.ListOutputSnaps[ii]);
+        }
+        mlog(" ]", MLOG_CONT);
+#endif
     }
 
     // broadcast the data to all other ranks
