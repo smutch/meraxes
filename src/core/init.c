@@ -13,6 +13,7 @@
 #include "save.h"
 #include "reionization_modifiers.h"
 #include "stellar_feedback.h"
+#include "parse_paramfile.h"
 #include "meraxes.h"
 
 static void init_gpu()
@@ -253,6 +254,10 @@ void init_meraxes()
 
     // read the input snaps list
     read_snap_list();
+
+    // parse the requested output snaps
+    parse_output_snaps(run_globals.params.OutputSnapsString);
+
 
     snaplist_len = run_globals.params.SnaplistLength;
     for (i = 0; i < snaplist_len; i++) {
