@@ -26,7 +26,7 @@ void update_reservoirs_from_sn_feedback(galaxy_t* gal, double m_reheat, double m
     // nuclear reaction in stars, and modelling this implicit evolution is tricky.
     // Stellar metallicity does not influence galaxy evolution, and shoud not use
     // properties.
-    //gal->MetalsStellarMass -= new_metals;
+    gal->MetalsStellarMass -= new_metals;
     gal->ColdGas += m_recycled;
 
     // assuming instantaneous recycling approximation and enrichment from SNII
@@ -306,7 +306,7 @@ void contemporaneous_supernova_feedback(
         double frac = gal->ColdGas / (*m_reheat + *m_stars);
         *m_reheat *= frac;
         *m_stars *= frac;
-        // *m_recycled *= frac;
+        *m_recycled *= frac;
     }
     assert(*m_reheat >= 0);
     assert(*m_recycled >= 0);
