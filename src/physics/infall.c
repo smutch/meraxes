@@ -4,13 +4,15 @@
 #include "reionization.h"
 #include "core/misc_tools.h"
 #include "core/modifiers.h"
+#include "tree_flags.h"
 #include "meraxes.h"
 
 double gas_infall(fof_group_t* FOFgroup, int snapshot)
 {
+    halo_t* halo = FOFgroup->FirstHalo;
+
     galaxy_t* gal;
     galaxy_t* central;
-    halo_t* halo;
     double total_baryons = 0.;
     double infall_mass = 0.;
     double FOF_Mvir = FOFgroup->Mvir;
@@ -24,7 +26,6 @@ double gas_infall(fof_group_t* FOFgroup, int snapshot)
     double total_blackholemass = 0.0;
 
     // Calculate the total baryon mass in the FOF group
-    halo = FOFgroup->FirstHalo;
     central = FOFgroup->FirstOccupiedHalo->Galaxy;
 
     while (halo != NULL) {
@@ -49,8 +50,23 @@ double gas_infall(fof_group_t* FOFgroup, int snapshot)
         }
         halo = halo->NextHaloInFOFGroup;
     }
+    
+    if(check_for_flag(TREE_CASE_BELOW_VIRIAL_THRESHOLD, FOFgroup->FirstHalo->TreeFlags)) {
+        // no infall and no hydrstatic hot halo in this case
+        central->BaryonFracModifier = 0.0;
+        central->EjectedGas += central->HotGas;
+        central->MetalsEjectedGas += central->MetalsHotGas;
+        central->HotGas = 0.0;
+        central->MetalsHotGas = 0.0;
+        return 0.0;
+    }
 
     total_baryons = total_stellarmass + total_hotgas + total_coldgas + total_ejectedgas + total_blackholemass;
+    central->BaryonFrac = total_baryons / FOF_Mvir;
+
+    if((central->BaryonFrac < 0) || (FOF_Mvir <= 0)) {
+        mpi_debug_here();
+    }
 
     // Calculate the amount of fresh gas required to provide the baryon
     // fraction of this halo.
