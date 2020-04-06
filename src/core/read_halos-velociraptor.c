@@ -90,7 +90,8 @@ static void inline convert_input_virial_props(double* Mvir, double* Rvir, double
 void read_trees__velociraptor(int snapshot, halo_t* halos, int* n_halos, fof_group_t* fof_groups, int* n_fof_groups, int* index_lookup)
 {
     // TODO: For the moment, I'll forgo chunking the read.  This will need to
-    // be implemented in future though, as we ramp up the size of the
+    // be implemented in future though, as we ramp up the size of the trees
+
     //! Tree entry struct
     typedef struct tree_entry_t {
         long ForestID;
@@ -98,6 +99,7 @@ void read_trees__velociraptor(int snapshot, halo_t* halos, int* n_halos, fof_gro
         long Tail;
         long hostHaloID;
         double Mass_200crit;
+        double Mass_FOF;
         double Mass_tot;
         double R_200crit;
         double Vmax;
@@ -146,13 +148,13 @@ void read_trees__velociraptor(int snapshot, halo_t* halos, int* n_halos, fof_gro
         void* buffer = malloc(n_tree_entries * sizeof(long));
 
         // TODO(trees): Read tail.  If head<->tail then first progenitor line, else it's a merger.  We should populate the new halo and then do a standard merger prescription.
-        // TODO(trees): Cont here...
 
         READ_TREE_ENTRY_PROP(ForestID, long, H5T_NATIVE_LONG);
         READ_TREE_ENTRY_PROP(Head, long, H5T_NATIVE_LONG);
         READ_TREE_ENTRY_PROP(Tail, long, H5T_NATIVE_LONG);
         READ_TREE_ENTRY_PROP(hostHaloID, long, H5T_NATIVE_LONG);
         READ_TREE_ENTRY_PROP(Mass_200crit, double, H5T_NATIVE_DOUBLE);
+        READ_TREE_ENTRY_PROP(Mass_FOF, double, H5T_NATIVE_DOUBLE);
         READ_TREE_ENTRY_PROP(Mass_tot, double, H5T_NATIVE_DOUBLE);
         READ_TREE_ENTRY_PROP(R_200crit, double, H5T_NATIVE_DOUBLE);
         READ_TREE_ENTRY_PROP(Vmax, double, H5T_NATIVE_DOUBLE);
@@ -181,6 +183,7 @@ void read_trees__velociraptor(int snapshot, halo_t* halos, int* n_halos, fof_gro
         double hubble_h = run_globals.params.Hubble_h;
         for (int ii = 0; ii < n_tree_entries; ii++) {
             tree_entries[ii].Mass_200crit *= hubble_h * mass_unit_to_internal;
+            tree_entries[ii].Mass_FOF *= hubble_h * mass_unit_to_internal;
             tree_entries[ii].Mass_tot *= hubble_h * mass_unit_to_internal;
             tree_entries[ii].R_200crit *= hubble_h;
             tree_entries[ii].Xc *= hubble_h / scale_factor;
@@ -267,12 +270,29 @@ void read_trees__velociraptor(int snapshot, halo_t* halos, int* n_halos, fof_gro
             if (index_lookup)
                 index_lookup[*n_halos] = ii;
 
+            // TODO: What masses and radii should I use for centrals (inclusive vs. exclusive etc.)?
             if (halo->Type == 0) {
                 fof_group_t* fof_group = &fof_groups[*n_fof_groups];
 
-                // TODO: What masses and radii should I use for centrals (inclusive vs. exclusive etc.)?
-                fof_group->Mvir = tree_entry.Mass_200crit;
-                fof_group->Rvir = tree_entry.R_200crit;
+                if (tree_entry.Mass_200crit <= 0) {
+                    // This "halo" is not above the virial threshold!  Use
+                    // proxy masses, but flag this fact so we know not to do
+                    // any or allow any hot halo to exist.
+                    halo->TreeFlags |= TREE_CASE_BELOW_VIRIAL_THRESHOLD;
+                    fof_group->Mvir = tree_entry.Mass_FOF;
+                    fof_group->Rvir = -1;
+                // } else if (tree_entry.Mass_200crit < tree_entry.Mass_tot){
+                    // // The central subhalo has a proxy mass larger than the FOF
+                    // // group. Entirely possible for non-virialised and relaxed
+                    // // halos but doesn't really lead to internal consistency.
+                    // // Let's therefore just set the FOF virial mass to be that
+                    // // central subhalo proxy mass.
+                    // fof_group->Mvir = tree_entry.Mass_FOF;
+                    // fof_group->Rvir = -1;
+                } else {
+                    fof_group->Mvir = tree_entry.Mass_200crit;
+                    fof_group->Rvir = tree_entry.R_200crit;
+                }
                 fof_group->Vvir = -1;
                 fof_group->FOFMvirModifier = 1.0;
 
@@ -282,7 +302,8 @@ void read_trees__velociraptor(int snapshot, halo_t* halos, int* n_halos, fof_gro
                 halo->FOFGroup = &(fof_groups[*n_fof_groups]);
                 fof_groups[(*n_fof_groups)++].FirstHalo = halo;
             } else {
-                // We can take advantage of the fact that host halos always seem to appear before their subhalos in the
+                // We can take advantage of the fact that host halos always
+                // seem to appear before their subhalos (checked below) in the
                 // trees to immediately connect FOF group members.
                 int host_index = id_to_ind(tree_entry.hostHaloID);
 
