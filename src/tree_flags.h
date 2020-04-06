@@ -67,3 +67,4 @@
 #define TREE_CASE_GHOST_NULL TTTP21 // Marks a ghost halo where a subgroup is it's own group.
 //    This is a default behaviour that occurs when a group is strayed but one of
 //    it's subgroups isn't.
+#define TREE_CASE_BELOW_VIRIAL_THRESHOLD TTTP22 // !!TREEFROG!! marks a halo where Mass_200crit == -1, indicating a FOF structure below the virial threshold
