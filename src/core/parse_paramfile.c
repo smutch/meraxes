@@ -184,13 +184,6 @@ void parse_output_snaps(const char *string)
             p = strtok_r(NULL, sep, &context_outer);
         }
 
-#ifdef CALC_MAGS
-        if (*nout != NOUT) {
-            mlog_error("Number of entries in output snaplist does not match NOUT!");
-            ABORT(EXIT_FAILURE);
-        }
-#endif
-
         // sort the list and remove any duplicates
         qsort(snaplist, count, sizeof(int), compare_ints);
         int jj = 0;
@@ -202,6 +195,13 @@ void parse_output_snaps(const char *string)
 
         run_globals.NOutputSnaps = count;
         run_globals.LastOutputSnap = snaplist[count-1];
+
+#ifdef CALC_MAGS
+        if (count != MAGS_N_SNAPS) {
+            mlog_error("Number of entries in output snaplist does not match MAGS_N_SNAPS!");
+            ABORT(EXIT_FAILURE);
+        }
+#endif
 
         run_globals.ListOutputSnaps = NULL;
         run_globals.ListOutputSnaps = malloc(sizeof(int)*count);
