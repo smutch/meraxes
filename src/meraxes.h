@@ -616,6 +616,9 @@ void init_meraxes(void);
 // core/cleanup.c
 void cleanup(void);
 
+// core/magnitudes.c
+void get_output_magnitudes(float *mags, float *dusty_mags, galaxy_t *gal, int snapshot);
+
 // MCMC related
 // meraxes_mhysa_hook must be implemented by the calling code (Mhysa)!
 #ifdef _MAIN

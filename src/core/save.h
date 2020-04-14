@@ -11,6 +11,7 @@ typedef struct galaxy_output_t {
 
 #ifdef CALC_MAGS
     float Mags[MAGS_N_BANDS];
+    float DustyMags[MAGS_N_BANDS];
 #endif
 
     int Type;
