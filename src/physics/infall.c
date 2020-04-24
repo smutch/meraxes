@@ -62,11 +62,6 @@ double gas_infall(fof_group_t* FOFgroup, int snapshot)
     }
 
     total_baryons = total_stellarmass + total_hotgas + total_coldgas + total_ejectedgas + total_blackholemass;
-    central->BaryonFrac = total_baryons / FOF_Mvir;
-
-    if((central->BaryonFrac < 0) || (FOF_Mvir <= 0)) {
-        mpi_debug_here();
-    }
 
     // Calculate the amount of fresh gas required to provide the baryon
     // fraction of this halo.

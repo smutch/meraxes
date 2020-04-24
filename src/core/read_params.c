@@ -171,11 +171,6 @@ void read_parameter_file(char* fname, int mode)
             required_tag[n_param] = 0;
             params_type[n_param++] = PARAM_TYPE_STRING;
 
-            strncpy(params_tag[n_param], "TablesForXHeatingDir", tag_length);
-            params_addr[n_param] = run_params->TablesForXHeatingDir;
-            required_tag[n_param] = 1;
-            params_type[n_param++] = PARAM_TYPE_STRING;
-
             strcpy(params_tag[n_param], "RestBands");
             params_addr[n_param] = run_params->RestBands;
             required_tag[n_param] = 0;
@@ -185,6 +180,11 @@ void read_parameter_file(char* fname, int mode)
             params_addr[n_param] = &(run_params->BirthCloudLifetime);
             required_tag[n_param] = 0;
             params_type[n_param++] = PARAM_TYPE_DOUBLE;
+
+            strncpy(params_tag[n_param], "TablesForXHeatingDir", tag_length);
+            params_addr[n_param] = run_params->TablesForXHeatingDir;
+            required_tag[n_param] = 1;
+            params_type[n_param++] = PARAM_TYPE_STRING;
 
             strcpy(params_tag[n_param], "CoolingFuncsDir");
             params_addr[n_param] = run_params->CoolingFuncsDir;
