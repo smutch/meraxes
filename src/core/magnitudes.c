@@ -1,3 +1,4 @@
+#include "mlog.h"
 #ifdef CALC_MAGS
 
 #include "magnitudes.h"
@@ -109,7 +110,7 @@ void init_templates_mini(
         init_filters(spectra + iS, betaBands, nBeta, restBands, nRest,
                      NULL, NULL, NULL, 0, 1. + redshifts[iS]);
         if (spectra[iS].nFlux != MAGS_N_BANDS) {
-            printf("MAGS_N_BANDS does not match!\n");
+            mlog_error("MAGS_N_BANDS does not match!\n");
             exit(EXIT_FAILURE);
         }
         // Initialise time step
@@ -228,8 +229,10 @@ void init_magnitudes(void) {
 
     // Initalise all relevant parameters at the master core
     if (mpi_rank == MASTER) {
-        printf("#***********************************************************\n");
-        printf("# Compute magnitudes\n");
+        #ifdef DEBUG
+        mlog("#***********************************************************", MLOG_MESG);
+        mlog("# Compute magnitudes", MLOG_MESG);
+        #endif
 
         // Read target snapshots
         run_params_t *params = &run_globals.params;
@@ -250,10 +253,13 @@ void init_magnitudes(void) {
                 ABORT(EXIT_FAILURE);
             }
         }
-        printf("# Target snapshots: ");
+
+#ifdef DEBUG
+        mlog("# Target snapshots: ", MLOG_MESG);
         for(int i_snap = 0; i_snap < MAGS_N_SNAPS; ++i_snap)
-            printf("%d ", target_snaps[i_snap]);
-        printf("\n");
+            mlog("%d ", target_snaps[i_snap], MLOG_CONT);
+#endif
+
         // Read beta filters
         double beta_bands[2*MAGS_N_BANDS];
         int n_beta = 0;
@@ -275,9 +281,13 @@ void init_magnitudes(void) {
             mlog_error("Wrong BetaBands!");
             ABORT(EXIT_FAILURE);
         }
-        printf("# Beta filters:\n");
+
+#ifdef DEBUG
+        mlog("# Beta filters:", MLOG_MESG);
         for(int i_band = 0; i_band < n_beta; ++i_band)
-            printf("#\t%.1f AA to %.1f\n", beta_bands[2*i_band], beta_bands[2*i_band + 1]);
+            mlog("#\t%.1f AA to %.1f", MLOG_MESG, beta_bands[2*i_band], beta_bands[2*i_band + 1]);
+#endif
+
         // Read rest-frame filters
         double rest_bands[2*MAGS_N_BANDS];
         int n_rest = 0;
@@ -299,15 +309,15 @@ void init_magnitudes(void) {
             mlog_error("Wrong RestBands!");
             ABORT(EXIT_FAILURE);
         }
-        printf("# Rest-frame filters:\n");
+        mlog("# Rest-frame filters:", MLOG_MESG);
         for(int i_band = 0; i_band < n_rest; ++i_band)
-            printf("#\t%.1f AA to %.1f\n", rest_bands[2*i_band], rest_bands[2*i_band + 1]);
+            mlog("#\t%.1f AA to %.1f", MLOG_MESG, rest_bands[2*i_band], rest_bands[2*i_band + 1]);
         //
         if (n_beta + n_rest != MAGS_N_BANDS) {
-            mlog_error("Number of beta and rest-frame filters do not match MAGS_N_BANDS!");
+            mlog_error("Number of beta and rest-frame filters do not match MAGS_N_BANDS!", MLOG_MESG);
             ABORT(EXIT_FAILURE);
         }
-        printf("#***********************************************************\n\n");
+        mlog("#***********************************************************", MLOG_MESG);
 
         // Initialise SED templates
         char *fname = params->PhotometricTablesDir;
