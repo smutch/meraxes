@@ -3,6 +3,7 @@
 
 #include "magnitudes.h"
 #include "misc_tools.h"
+#include "debug.h"
 #include "meraxes.h"
 
 void init_luminosities(galaxy_t *gal) {
@@ -409,13 +410,19 @@ void get_output_magnitudes(float *mags, float *dusty_mags, galaxy_t *gal, int sn
         }
 
         // Best fit dust--gas model from Qiu, Mutch, da Cunha et al. 2019, MNRAS, 489, 1357
-        double factor = pow(calc_metallicity(gal->MetalsColdGas, gal->ColdGas), 1.2) * gal->ColdGas * pow(gal->DiskScaleLength * 1e3, -2.0) * exp(-0.34 * redshift);
+        double factor = pow(calc_metallicity(gal->ColdGas, gal->MetalsColdGas)/0.02, 1.2) * gal->ColdGas * pow(gal->DiskScaleLength * 1e3, -2.0) * exp(-0.35 * redshift);
         dust_params_t dust_params = {.tauUV_ISM=13.5 * factor, .nISM=-1.6, .tauUV_BC=381.3 * factor, .nBC=-1.6, .tBC=run_globals.mag_params.tBC};
 
+        double local_InBCFlux[MAGS_N_BANDS], local_OutBCFlux[MAGS_N_BANDS];
+        memcpy(local_InBCFlux, pInBCFlux, sizeof(local_InBCFlux));
+        memcpy(local_OutBCFlux, pOutBCFlux, sizeof(local_OutBCFlux));
+
+        dust_absorption_approx(local_InBCFlux, local_OutBCFlux, run_globals.mag_params.centreWaves, MAGS_N_BANDS, &dust_params);
+
         for(int i_band = 0; i_band < MAGS_N_BANDS; ++i_band) {
-            dust_absorption_approx(pInBCFlux, pOutBCFlux, run_globals.mag_params.centreWaves, MAGS_N_BANDS, &dust_params);
-            dusty_mags[i_band] = (float)(-2.5*log10(pInBCFlux[i_band] + pOutBCFlux[i_band]) + 8.9 + sfr_unit);
+            dusty_mags[i_band] = (float)(-2.5*log10(local_InBCFlux[i_band] + local_OutBCFlux[i_band]) + 8.9 + sfr_unit);
         }
+
     } else {
         for(int i_band = 0; i_band < MAGS_N_BANDS; ++i_band) {
             mags[i_band] = 999.999f;
