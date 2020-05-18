@@ -20,7 +20,6 @@ void merge_luminosities(struct galaxy_t *target, struct galaxy_t *gal);
 void init_templates_mini(mag_params_t *miniSpectra, char *fName, double *LTTime, int *targetSnaps, double *redshifts, double *betaBands, int nBeta, double *restBands, int nRest, double tBC);
 void init_magnitudes(void);
 void cleanup_mags(void);
-void get_output_magnitudes(float *target, struct galaxy_t *gal, int snapshot);
 
 #ifdef __cplusplus
 }

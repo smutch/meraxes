@@ -18,6 +18,7 @@
 #define N_HISTORY_SNAPS @N_HISTORY_SNAPS@
 #define MERAXES_GITREF_STR "@GITREF@"
 #define MERAXES_GITDIFF_STR "@GITDIFF@"
+#define FEATURE_FLAG_CALC_MAGS @CALC_MAGS@
 
 #ifdef CALC_MAGS
 #define MAGS_N_SNAPS @MAGS_N_SNAPS@
@@ -615,6 +616,9 @@ void init_meraxes(void);
 
 // core/cleanup.c
 void cleanup(void);
+
+// core/magnitudes.c
+void get_output_magnitudes(float *mags, float *dusty_mags, galaxy_t *gal, int snapshot);
 
 // MCMC related
 // meraxes_mhysa_hook must be implemented by the calling code (Mhysa)!

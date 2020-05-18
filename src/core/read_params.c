@@ -158,33 +158,53 @@ void read_parameter_file(char* fname, int mode)
 
             strncpy(params_tag[n_param], "PhotometricTablesDir", tag_length);
             params_addr[n_param] = run_params->PhotometricTablesDir;
+#ifndef CALC_MAGS
             required_tag[n_param] = 0;
+#else
+            required_tag[n_param] = 1;
+#endif
             params_type[n_param++] = PARAM_TYPE_STRING;
 
             strcpy(params_tag[n_param], "TargetSnaps");
             params_addr[n_param] = run_params->TargetSnaps;
+#ifndef CALC_MAGS
             required_tag[n_param] = 0;
+#else
+            required_tag[n_param] = 1;
+#endif
             params_type[n_param++] = PARAM_TYPE_STRING;
 
             strncpy(params_tag[n_param], "BetaBands", tag_length);
             params_addr[n_param] = run_params->BetaBands;
+#ifndef CALC_MAGS
             required_tag[n_param] = 0;
+#else
+            required_tag[n_param] = 1;
+#endif
             params_type[n_param++] = PARAM_TYPE_STRING;
+
+            strcpy(params_tag[n_param], "RestBands");
+            params_addr[n_param] = run_params->RestBands;
+#ifndef CALC_MAGS
+            required_tag[n_param] = 0;
+#else
+            required_tag[n_param] = 1;
+#endif
+            params_type[n_param++] = PARAM_TYPE_STRING;
+
+            strcpy(params_tag[n_param], "BirthCloudLifetime");
+            params_addr[n_param] = &(run_params->BirthCloudLifetime);
+#ifndef CALC_MAGS
+            required_tag[n_param] = 0;
+#else
+            required_tag[n_param] = 1;
+#endif
+            params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
             strncpy(params_tag[n_param], "TablesForXHeatingDir", tag_length);
             params_addr[n_param] = run_params->TablesForXHeatingDir;
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_STRING;
-
-            strcpy(params_tag[n_param], "RestBands");
-            params_addr[n_param] = run_params->RestBands;
-            required_tag[n_param] = 0;
-            params_type[n_param++] = PARAM_TYPE_STRING;
-
-            strcpy(params_tag[n_param], "BirthCloudLifetime");
-            params_addr[n_param] = &(run_params->BirthCloudLifetime);
-            required_tag[n_param] = 0;
-            params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
             strcpy(params_tag[n_param], "CoolingFuncsDir");
             params_addr[n_param] = run_params->CoolingFuncsDir;
