@@ -218,15 +218,6 @@ void init_storage()
     // Initialize the halo storage arrays
     initialize_halo_storage();
 
-    // Determine the size of the light-cone for initialising the light-cone grid
-    if(run_globals.params.Flag_PatchyReion && run_globals.params.Flag_ConstructLightcone) {
-        Initialise_ConstructLightcone();
-    }
-
-    if(run_globals.params.Flag_ComputePS) {
-        Initialise_PowerSpectrum();
-    }
-
     malloc_reionization_grids();
 
     // calculate the output hdf5 file properties for later use
@@ -296,6 +287,15 @@ void init_meraxes()
 
     set_ReionEfficiency();
     set_quasar_fobs();
+
+    // Determine the size of the light-cone for initialising the light-cone grid
+    if(run_globals.params.Flag_PatchyReion && run_globals.params.Flag_ConstructLightcone) {
+        Initialise_ConstructLightcone();
+    }
+
+    if(run_globals.params.Flag_ComputePS) {
+        Initialise_PowerSpectrum();
+    }
 
     // Initialise galaxy pointers
     run_globals.FirstGal = NULL;
