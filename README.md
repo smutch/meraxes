@@ -1,6 +1,8 @@
 Meraxes
 =======
 
+[![pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit&logoColor=white)](https://github.com/pre-commit/pre-commit)
+
 The Meraxes semi-analytic galaxy formation model.
 
 **Author**: [Simon Mutch](http://www.ph.unimelb.edu.au/~smutch/index.html) (*The University of Melbourne*)
