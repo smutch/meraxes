@@ -14,16 +14,7 @@
  * Definitions
  */
 
-#define N_HISTORY_SNAPS @N_HISTORY_SNAPS @
-#define MERAXES_GITREF_STR "@GITREF@"
-#define MERAXES_GITDIFF_STR "@GITDIFF@"
-#define FEATURE_FLAG_CALC_MAGS @CALC_MAGS @
-
-#ifdef CALC_MAGS
-#define MAGS_N_SNAPS @MAGS_N_SNAPS @
-#define MAGS_N_BANDS @MAGS_N_BANDS @
-#define MAGS_N MAGS_N_SNAPS* MAGS_N_BANDS
-#endif
+#include "meraxes_conf.h"
 
 /*
  * Units (cgs)
