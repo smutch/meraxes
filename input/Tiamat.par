@@ -66,19 +66,19 @@ Yield                     : 0.03    # mass of metals injected into ISM per unit 
 #    unused
 #   -Both factors has redshift dependence of ((1 + z)/4)^SnEjectionRedshiftDep (SnReheatRedshiftDep)
 
-SnModel                   : 1
+SnModel                   : 2
 SnEjectionRedshiftDep     : 0.0     # SN feedback gas reheating efficiency redshift scaling
-SnEjectionEff             : 0.5     # SN feedback gas reheating efficiency
-SnEjectionScaling         : 2.0     # SN feedback gas reheating efficiency scaling (with high Vmax)
-SnEjectionScaling2        : 2.0     # SN feedback gas reheating efficiency scaling (with low Vmax)
-SnEjectionNorm            : 70.0    # SN feedback gas reheating efficiency norm (with Vmax [internal units])
+SnEjectionEff             : 1.5     # SN feedback gas reheating efficiency
+SnEjectionScaling         : 1.0     # SN feedback gas reheating efficiency scaling (with high Vmax)
+SnEjectionScaling2        : 3.2     # SN feedback gas reheating efficiency scaling (with low Vmax)
+SnEjectionNorm            : 60.0    # SN feedback gas reheating efficiency norm (with Vmax [internal units])
 
-SnReheatRedshiftDep       : 0.0     # mass loading factor redshift scaling
-SnReheatEff               : 10.0    # mass loading factor for SN feedback
+SnReheatRedshiftDep       : 2.0     # mass loading factor redshift scaling
+SnReheatEff               : 7.0    # mass loading factor for SN feedback
 SnReheatLimit             : 10.0    # maximum allowed mass loading factor for SN feedback
-SnReheatScaling           : 0.0     # mass loading factor for SN feedback scaling (with high Vmax)
-SnReheatScaling2          : 0.0     # mass loading factor for SN feedback scaling2 (with low Vmax)
-SnReheatNorm              : 70.0    # mass loading factor for SN feedback scaling (with Vmax [internal units])
+SnReheatScaling           : 1.0     # mass loading factor for SN feedback scaling (with high Vmax)
+SnReheatScaling2          : 3.2     # mass loading factor for SN feedback scaling2 (with low Vmax)
+SnReheatNorm              : 60.0    # mass loading factor for SN feedback scaling (with Vmax [internal units])
 
 # ----- cooling -----
 MaxCoolingMassFactor      : 1.0     # maximum cooling mass factor (1 -> ff time)
@@ -160,7 +160,7 @@ Y_He                   : 0.24
 ReionRBubbleMin        : 0.4068
 ReionRBubbleMax        : 20.34
 ReionGammaHaloBias     : 2.0
-ReionAlphaUV           : 5.0
+ReionAlphaUV           : 2.0
 ReionAlphaUVBH         : 1.57
 
 TsHeatingFilterType : 0
@@ -197,7 +197,7 @@ ReionSMParam_c         : 2.0
 ReionSMParam_d         : 2.5
 
 ReionTcool             : 1.0e4  # Kelvin
-ReionNionPhotPerBary   : 4000
+ReionNionPhotPerBary   : 6000
 
 
 
