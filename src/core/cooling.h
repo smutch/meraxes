@@ -7,11 +7,12 @@
 #define MAX_TEMP 8.5 // log10(T/Kelvin)
 
 #ifdef __cplusplus
-extern "C" {
+extern "C"
+{
 #endif
 
-void read_cooling_functions(void);
-double interpolate_cooling_rate(double logTemp, double logZ);
+  void read_cooling_functions(void);
+  double interpolate_cooling_rate(double logTemp, double logZ);
 
 #ifdef __cplusplus
 }

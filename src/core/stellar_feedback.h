@@ -11,15 +11,16 @@
 #define TOTAL_METAL 1
 
 #ifdef __cplusplus
-extern "C" {
+extern "C"
+{
 #endif
 
-void read_stellar_feedback_tables(void);
-void compute_stellar_feedback_tables(int snapshot);
-double get_recycling_fraction(int i_burst, double metals);
-double get_metal_yield(int i_burst, double metals);
-double get_SN_energy(int i_burst, double metals);
-double get_total_SN_energy(void);
+  void read_stellar_feedback_tables(void);
+  void compute_stellar_feedback_tables(int snapshot);
+  double get_recycling_fraction(int i_burst, double metals);
+  double get_metal_yield(int i_burst, double metals);
+  double get_SN_energy(int i_burst, double metals);
+  double get_total_SN_energy(void);
 
 #ifdef __cplusplus
 }

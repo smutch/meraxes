@@ -47,10 +47,11 @@ typedef fftwf_complex Complex;
 // Definitiions for functions involving CUDA
 //    that are called from the base C code.
 #ifdef __cplusplus
-extern "C" {
+extern "C"
+{
 #endif
-void _find_HII_bubbles_gpu(double redshift, const bool flag_write_validation_output);
-void init_CUDA();
+  void _find_HII_bubbles_gpu(double redshift, const bool flag_write_validation_output);
+  void init_CUDA();
 #ifdef __cplusplus
 }
 #endif

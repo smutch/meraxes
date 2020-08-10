@@ -2,10 +2,11 @@
 #define INIT_H
 
 #ifdef __cplusplus
-extern "C" {
+extern "C"
+{
 #endif
 
-void set_units(void);
+  void set_units(void);
 
 #ifdef __cplusplus
 }

@@ -11,17 +11,19 @@
 #define PARAM_TYPE_UNUSED 809
 
 typedef struct entry_t entry_t;
-struct entry_t {
-    int level;
-    char key[64];
-    char value[256];
+struct entry_t
+{
+  int level;
+  char key[64];
+  char value[256];
 };
 
 #ifdef __cplusplus
-extern "C" {
+extern "C"
+{
 #endif
 
-int parse_paramfile(char* fname, entry_t entry[PARAM_MAX_ENTRIES]);
+  int parse_paramfile(char* fname, entry_t entry[PARAM_MAX_ENTRIES]);
 
 #ifdef __cplusplus
 }
@@ -30,4 +32,4 @@ int parse_paramfile(char* fname, entry_t entry[PARAM_MAX_ENTRIES]);
 #endif
 
 int parse_paramfile(char* fname, entry_t entry[PARAM_MAX_ENTRIES]);
-void parse_output_snaps(const char *string);
+void parse_output_snaps(const char* string);
