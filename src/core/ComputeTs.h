@@ -3,13 +3,14 @@
 
 #include "utils.h"
 
-#define R_XLy_MAX (float) (500)
+#define R_XLy_MAX (float)(500)
 
 #ifdef __cplusplus
-extern "C" {
+extern "C"
+{
 #endif
 
-void ComputeTs(int snapshot, timer_info* timer_total);
+  void ComputeTs(int snapshot, timer_info* timer_total);
 
 #ifdef __cplusplus
 }

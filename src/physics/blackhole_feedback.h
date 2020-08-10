@@ -4,7 +4,7 @@
 #include "meraxes.h"
 
 #define ETA 0.06
-//standard efficiency, 6% accreted mass is radiated
+// standard efficiency, 6% accreted mass is radiated
 
 #define EMISSIVITY_CONVERTOR 8.40925088e-8
 //=1e60 * PROTONMASS / 1e10 / SOLAR_MASS
@@ -28,13 +28,14 @@
 // BHemissivity = fobs*Lbol/kb*67126822.0217*accretion_time; // photon numbers/1e60
 
 #ifdef __cplusplus
-extern "C" {
+extern "C"
+{
 #endif
 
-double calculate_BHemissivity(double BlackHoleMass, double accreted_mass);
-double radio_mode_BH_heating(struct galaxy_t* gal, double cooling_mass, double x);
-void merger_driven_BH_growth(struct galaxy_t* gal, double merger_ratio, int snapshot);
-void previous_merger_driven_BH_growth(struct galaxy_t* gal);
+  double calculate_BHemissivity(double BlackHoleMass, double accreted_mass);
+  double radio_mode_BH_heating(struct galaxy_t* gal, double cooling_mass, double x);
+  void merger_driven_BH_growth(struct galaxy_t* gal, double merger_ratio, int snapshot);
+  void previous_merger_driven_BH_growth(struct galaxy_t* gal);
 
 #ifdef __cplusplus
 }
