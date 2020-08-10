@@ -98,4 +98,16 @@ Test(parse_snaplist, slices)
   cr_expect_eq(run_globals.NOutputSnaps, 11);
   cr_expect_arr_eq(run_globals.ListOutputSnaps, expected, sizeof(int) * 11);
   free(run_globals.ListOutputSnaps);
+
+  parse_output_snaps(":8");
+  memcpy(expected, (int[]){ 0, 1, 2, 3, 4, 5, 6, 7 }, sizeof(int) * 8);
+  cr_expect_eq(run_globals.NOutputSnaps, 11);
+  cr_expect_arr_eq(run_globals.ListOutputSnaps, expected, sizeof(int) * 8);
+  free(run_globals.ListOutputSnaps);
+
+  parse_output_snaps("0:9");
+  memcpy(expected, (int[]){ 0, 1, 2, 3, 4, 5, 6, 7, 8 }, sizeof(int) * 9);
+  cr_expect_eq(run_globals.NOutputSnaps, 11);
+  cr_expect_arr_eq(run_globals.ListOutputSnaps, expected, sizeof(int) * 9);
+  free(run_globals.ListOutputSnaps);
 }
