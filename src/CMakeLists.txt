@@ -178,7 +178,7 @@ endif()
 
 # Meraxes headers
 include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/versioning.cmake)
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/meraxes.h ${CMAKE_BINARY_DIR}/meraxes.h ESCAPE_QUOTES @ONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/meraxes_conf.h.in ${CMAKE_BINARY_DIR}/meraxes_conf.h ESCAPE_QUOTES @ONLY)
 include_directories(BEFORE ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR})
 
 add_custom_target(cleandist
