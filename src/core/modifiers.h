@@ -14,24 +14,26 @@
 #define MAX_LOGM 11.5
 #define M_OFFSET 0.5
 
-typedef struct Modifier {
-    float logMmin;
-    float logMmax;
-    float mass_mean;
-    float mass_errl;
-    float mass_erru;
-    float ratio;
-    float ratio_errl;
-    float ratio_erru;
+typedef struct Modifier
+{
+  float logMmin;
+  float logMmax;
+  float mass_mean;
+  float mass_errl;
+  float mass_erru;
+  float ratio;
+  float ratio_errl;
+  float ratio_erru;
 } Modifier;
 
 #ifdef __cplusplus
-extern "C" {
+extern "C"
+{
 #endif
 
-void read_mass_ratio_modifiers(int snapshot);
-void read_baryon_frac_modifiers(int snapshot);
-double interpolate_modifier(Modifier* modifier_data, double logM);
+  void read_mass_ratio_modifiers(int snapshot);
+  void read_baryon_frac_modifiers(int snapshot);
+  double interpolate_modifier(Modifier* modifier_data, double logM);
 
 #ifdef __cplusplus
 }

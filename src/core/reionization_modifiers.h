@@ -2,10 +2,11 @@
 #define REIONIZATION_MODIFIERS_H
 
 #ifdef __cplusplus
-extern "C" {
+extern "C"
+{
 #endif
 
-void read_Mcrit_table(void);
+  void read_Mcrit_table(void);
 
 #ifdef __cplusplus
 }
