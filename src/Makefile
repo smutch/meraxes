@@ -3,7 +3,7 @@ default: build  ## Make the code. Pass `make` flags with MFLAGS.
 	cmake --build build -- $(MFLAGS)
 
 build:  ## Configure the build. Pass `cmake` flags with CMAKE_OPTS.
-	cmake -B build -S . ${CMAKE_OPTS} ${CMAKE_BUILD_TYPE}
+	cmake -Bbuild -S. ${CMAKE_OPTS} ${CMAKE_BUILD_TYPE}
 	ln -sf build/compile_commands.json
 
 debug: CMAKE_BUILD_TYPE = -DCMAKE_BUILD_TYPE=Debug
