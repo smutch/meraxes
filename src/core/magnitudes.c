@@ -249,13 +249,14 @@ void init_magnitudes(void)
       ABORT(EXIT_FAILURE);
     }
 
-    memcpy(target_snaps, indices, sizeof(int) * count);
+    memcpy(&target_snaps, indices, sizeof(int) * count);
     free(indices);
 
 #ifdef DEBUG
-    mlog("# Target snapshots: ", MLOG_MESG);
+    mlog("# Target snapshots: [ ", MLOG_MESG);
     for (int i_snap = 0; i_snap < MAGS_N_SNAPS; ++i_snap)
-      mlog("%d ", target_snaps[i_snap], MLOG_CONT);
+      mlog("%d ", MLOG_CONT, target_snaps[i_snap]);
+    mlog("]", MLOG_CONT);
 #endif
 
     // Read beta filters
