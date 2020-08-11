@@ -116,76 +116,85 @@ static inline int chars_to_snap(const char* string, int maxsnaps)
   return val;
 }
 
+int parse_slices(const char* string, const int arrmax, int** indices)
+{
+  char sep[] = ", ";
+  char* context_outer = NULL;
+  char parse_string[STRLEN];
+
+  sprintf(parse_string, "%s", string);
+  char* p = strtok_r(parse_string, sep, &context_outer);
+
+  // count the number of requested snapshots
+  int count = 0;
+  while (p != NULL) {
+    // check to see if this token is a slice
+    if (strchr(p, ':')) {
+      char* context_inner = NULL;
+      char* sp = NULL;
+      int slice_count = 0;
+      int slice[3] = { 0, arrmax, 1 };
+
+      if (p[0] == ':')
+        slice_count++;
+      for (sp = strtok_r(p, ":", &context_inner); sp; sp = strtok_r(NULL, ":", &context_inner), slice_count++) {
+        slice[slice_count] = chars_to_snap(sp, arrmax);
+      }
+
+      count += (slice[1] - slice[0]) / slice[2] - 1;
+    }
+    count++;
+    p = strtok_r(NULL, sep, &context_outer);
+  }
+
+  // allocate the ListOutputSnaps array
+  assert(count > 0);
+  *indices = calloc(count, sizeof(int));
+
+  // reset the token string and parse this time
+  sprintf(parse_string, "%s", string);
+  p = strtok_r(parse_string, sep, &context_outer);
+
+  count = 0;
+  while (p != NULL) {
+    // check to see if this token is a slice
+    if (strchr(p, ':')) {
+      char* context_inner = NULL;
+      char* sp = NULL;
+      int slice_count = 0;
+      int slice[3] = { 0, arrmax, 1 };
+
+      if (p[0] == ':')
+        slice_count++;
+      for (sp = strtok_r(p, ":", &context_inner); sp; sp = strtok_r(NULL, ":", &context_inner), slice_count++)
+        slice[slice_count] = chars_to_snap(sp, arrmax);
+
+      for (int ii = slice[0]; ii < slice[1]; ii++, count++)
+        (*indices)[count] = ii;
+
+    } else {
+      (*indices)[count++] = chars_to_snap(p, arrmax);
+    }
+    p = strtok_r(NULL, sep, &context_outer);
+  }
+
+  // sort the list and remove any duplicates
+  qsort(*indices, count, sizeof(int), compare_ints);
+  int jj = 0;
+  for (int ii = 1; ii < count; ii++) {
+    if ((*indices)[ii] != (*indices)[jj])
+      (*indices)[++jj] = (*indices)[ii];
+  }
+  count = jj + 1;
+
+  return count;
+}
+
 void parse_output_snaps(const char* string)
 {
   if (run_globals.mpi_rank == 0) {
-    int maxsnaps = run_globals.params.SnaplistLength;
-    char sep[] = ", ";
-    char* context_outer = NULL;
-    char parse_string[STRLEN];
-
-    sprintf(parse_string, "%s", string);
-    char* p = strtok_r(parse_string, sep, &context_outer);
-
-    // count the number of requested snapshots
-    int count = 0;
-    while (p != NULL) {
-      // check to see if this token is a slice
-      if (strchr(p, ':')) {
-        char* context_inner = NULL;
-        char* sp = NULL;
-        int slice_count = 0;
-        int slice[3] = { 0, maxsnaps, 1 };
-
-        if (p[0] == ':') slice_count++;
-        for (sp = strtok_r(p, ":", &context_inner); sp; sp = strtok_r(NULL, ":", &context_inner), slice_count++) {
-            slice[slice_count] = chars_to_snap(sp, maxsnaps);
-        }
-
-        count += (slice[1] - slice[0]) / slice[2] - 1;
-      }
-      count++;
-      p = strtok_r(NULL, sep, &context_outer);
-    }
-
-    // allocate the ListOutputSnaps array
-    assert(count > 0);
-    int* snaplist = calloc(count, sizeof(int));
-
-    // reset the token string and parse this time
-    sprintf(parse_string, "%s", string);
-    p = strtok_r(parse_string, sep, &context_outer);
-
-    count = 0;
-    while (p != NULL) {
-      // check to see if this token is a slice
-      if (strchr(p, ':')) {
-        char* context_inner = NULL;
-        char* sp = NULL;
-        int slice_count = 0;
-        int slice[3] = { 0, maxsnaps, 1 };
-
-        if (p[0] == ':') slice_count++;
-        for (sp = strtok_r(p, ":", &context_inner); sp; sp = strtok_r(NULL, ":", &context_inner), slice_count++)
-          slice[slice_count] = chars_to_snap(sp, maxsnaps);
-
-        for (int ii = slice[0]; ii < slice[1]; ii++, count++)
-          snaplist[count] = ii;
-
-      } else {
-        snaplist[count++] = chars_to_snap(p, maxsnaps);
-      }
-      p = strtok_r(NULL, sep, &context_outer);
-    }
-
-    // sort the list and remove any duplicates
-    qsort(snaplist, count, sizeof(int), compare_ints);
-    int jj = 0;
-    for (int ii = 1; ii < count; ii++) {
-      if (snaplist[ii] != snaplist[jj])
-        snaplist[++jj] = snaplist[ii];
-    }
-    count = jj + 1;
+    int* snaplist;
+    int count = parse_slices(string, run_globals.params.SnaplistLength, &snaplist);
 
     run_globals.NOutputSnaps = count;
     run_globals.LastOutputSnap = snaplist[count - 1];
