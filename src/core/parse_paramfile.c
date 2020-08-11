@@ -86,9 +86,6 @@ int parse_paramfile(char* fname, entry_t entry[PARAM_MAX_ENTRIES])
     entry[counter].level += level_change;
     last_level = entry[counter].level;
 
-    // DEBUG
-    // fprintf(stderr, "buffer = %s :: level_change = %d :: level = %d\n", buffer, level_change, entry[counter].level);
-
     level_change = 0;
     for (int ii = 0; buffer[ii]; ii++) {
       level_change += (buffer[ii] == '{');
@@ -124,7 +121,7 @@ void parse_output_snaps(const char* string)
   if (run_globals.mpi_rank == 0) {
     int maxsnaps = run_globals.params.SnaplistLength;
     char sep[] = ", ";
-    char* context_outer;
+    char* context_outer = NULL;
     char parse_string[STRLEN];
 
     sprintf(parse_string, "%s", string);
@@ -140,8 +137,10 @@ void parse_output_snaps(const char* string)
         int slice_count = 0;
         int slice[3] = { 0, maxsnaps, 1 };
 
-        for (sp = strtok_r(p, ":", &context_inner); sp; sp = strtok_r(NULL, ":", &context_inner), slice_count++)
-          slice[slice_count] = chars_to_snap(sp, maxsnaps);
+        if (p[0] == ':') slice_count++;
+        for (sp = strtok_r(p, ":", &context_inner); sp; sp = strtok_r(NULL, ":", &context_inner), slice_count++) {
+            slice[slice_count] = chars_to_snap(sp, maxsnaps);
+        }
 
         count += (slice[1] - slice[0]) / slice[2] - 1;
       }
@@ -166,6 +165,7 @@ void parse_output_snaps(const char* string)
         int slice_count = 0;
         int slice[3] = { 0, maxsnaps, 1 };
 
+        if (p[0] == ':') slice_count++;
         for (sp = strtok_r(p, ":", &context_inner); sp; sp = strtok_r(NULL, ":", &context_inner), slice_count++)
           slice[slice_count] = chars_to_snap(sp, maxsnaps);
 
