@@ -1,8 +1,8 @@
 .PHONY: default
-default: build  ## Make the code. Pass `make` flags with MFLAGS env var.
-	cmake --build build $(MFLAGS)
+default: build  ## Make the code. Pass `make` flags with MFLAGS.
+	cmake --build build -- $(MFLAGS)
 
-build:  ## Configure the build. Pass `cmake` flags with CMAKE_OPTS env var.
+build:  ## Configure the build. Pass `cmake` flags with CMAKE_OPTS.
 	cmake -B build -S . ${CMAKE_OPTS} ${CMAKE_BUILD_TYPE}
 	ln -sf build/compile_commands.json
 
