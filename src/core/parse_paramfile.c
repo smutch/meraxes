@@ -201,7 +201,10 @@ void parse_output_snaps(const char* string)
 
 #ifdef CALC_MAGS
     if (count != MAGS_N_SNAPS) {
-      mlog_error("Number of entries in output snaplist does not match MAGS_N_SNAPS!");
+      mlog("", MLOG_OPEN);
+      mlog("Warning number of entries in output snaplist does not match MAGS_N_SNAPS.", MLOG_MESG);
+      mlog("You may be calculating mags which aren't saved or have mags missing from the output.", MLOG_MESG);
+      mlog("", MLOG_CLOSE);
       ABORT(EXIT_FAILURE);
     }
 #endif
