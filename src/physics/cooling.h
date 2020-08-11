@@ -1,5 +1,5 @@
-#ifndef COOLING_H
-#define COOLING_H
+#ifndef COOLING_PHYSICS_H
+#define COOLING_PHYSICS_H
 
 #include "meraxes.h"
 
