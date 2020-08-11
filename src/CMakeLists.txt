@@ -191,7 +191,7 @@ add_custom_target(cleandist
 if(EXISTS ${CLANG_FORMAT_BINARY})
     add_custom_target(format
         COMMENT "Use clang-format to format the source code consistently."
-        COMMAND ${CLANG_FORMAT_BINARY} -style=WebKit -i ${SOURCES}
+        COMMAND ${CLANG_FORMAT_BINARY} -i ${SOURCES}
         )
 endif()
 
