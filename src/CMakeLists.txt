@@ -227,13 +227,20 @@ target_link_libraries(meraxes_lib PUBLIC MPI::MPI_C)
 if(CALC_MAGS)
     add_definitions(-DCALC_MAGS)
     file(GLOB SECTOR_SOURCES ${SECTOR_ROOT}/*.c ${SECTOR}/sector.h)
-    add_library(sector SHARED ${SECTOR_SOURCES})
+    add_library(sector STATIC ${SECTOR_SOURCES})
     target_link_libraries(meraxes_lib PUBLIC sector)
     set_target_properties(sector PROPERTIES
-                          PUBLIC_HEADER "${SECTOR_ROOT}/sector.h")
+        POSITION_INDEPENDENT_CODE ON
+        PUBLIC_HEADER "${SECTOR_ROOT}/sector.h")
     target_include_directories(meraxes_lib PUBLIC
-                               $<BUILD_INTERFACE:${SECTOR_ROOT}>
-                               $<INSTALL_INTERFACE:include>)
+        $<BUILD_INTERFACE:${SECTOR_ROOT}>
+        $<INSTALL_INTERFACE:include>)
+    add_custom_command(
+        TARGET sector
+        POST_BUILD
+        COMMAND objcopy
+        ARGS --redefine-sym interp=sector_interp --redefine-sym trapz_table=sector_trapz_table $<TARGET_FILE:sector>
+        )
     install(TARGETS sector EXPORT MeraxesConfig
         DESTINATION lib
         PUBLIC_HEADER DESTINATION include
