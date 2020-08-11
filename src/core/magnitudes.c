@@ -5,6 +5,7 @@
 #include "magnitudes.h"
 #include "meraxes.h"
 #include "misc_tools.h"
+#include "parse_paramfile.h"
 
 void init_luminosities(galaxy_t* gal)
 {
@@ -239,22 +240,17 @@ void init_magnitudes(void)
 
     // Read target snapshots
     run_params_t* params = &run_globals.params;
-    char str[STRLEN];
-    char delim[] = ",";
-    char* token;
     int target_snaps[MAGS_N_SNAPS];
+    int* indices;
+    int count = parse_slices(params->TargetSnaps, MAGS_N_SNAPS, &indices);
 
-    memcpy(str, params->TargetSnaps, sizeof(str));
-    token = strtok(str, delim);
-    for (int i_snap = 0; i_snap < MAGS_N_SNAPS; ++i_snap) {
-      if (token != NULL) {
-        target_snaps[i_snap] = atoi(token);
-        token = strtok(NULL, delim);
-      } else if (i_snap != MAGS_N_SNAPS - 1) {
-        mlog_error("TargetSnaps does not match MAGS_N_SNAPS!");
-        ABORT(EXIT_FAILURE);
-      }
+    if (count != MAGS_N_SNAPS) {
+      mlog_error("TargetSnaps (%d) does not match MAGS_N_SNAPS (%d)!", count, MAGS_N_SNAPS);
+      ABORT(EXIT_FAILURE);
     }
+
+    memcpy(target_snaps, indices, sizeof(int) * count);
+    free(indices);
 
 #ifdef DEBUG
     mlog("# Target snapshots: ", MLOG_MESG);
@@ -265,6 +261,10 @@ void init_magnitudes(void)
     // Read beta filters
     double beta_bands[2 * MAGS_N_BANDS];
     int n_beta = 0;
+
+    char str[STRLEN];
+    char delim[] = ",";
+    char* token;
 
     memcpy(str, params->BetaBands, sizeof(str));
     token = strtok(str, delim);
