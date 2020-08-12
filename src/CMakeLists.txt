@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.5)
 cmake_policy(VERSION 3.5)
 
 # include local custom settings (must come before project line to allow
-# compilers tp be set)
+# compilers to be set)
 include(${CMAKE_CURRENT_SOURCE_DIR}/local.cmake OPTIONAL)
 
 project(meraxes)

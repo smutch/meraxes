@@ -4,6 +4,7 @@ default: build  ## Make the code. Pass `make` flags with MFLAGS.
 
 build:  ## Configure the build. Pass `cmake` flags with CMAKE_OPTS.
 	cmake -Bbuild -S. ${CMAKE_OPTS} ${CMAKE_BUILD_TYPE}
+	rm -f a.out cmake_hdf5_test.o
 	ln -sf build/compile_commands.json
 
 debug: CMAKE_BUILD_TYPE = -DCMAKE_BUILD_TYPE=Debug
