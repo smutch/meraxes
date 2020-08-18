@@ -9,4 +9,4 @@ repos:
     rev: master
     hooks:
     -   id: clang-format
-        files: '\.(c|cpp|h|hh|hpp)$'
+        files: '\.(c|cpp|h|hh|hpp|cu)$'

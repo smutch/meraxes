@@ -4,6 +4,7 @@
 
 #include "XRayHeatingFunctions.h"
 #include "meraxes.h"
+#include "meraxes_gpu.h"
 #include "misc_tools.h"
 #include "recombinations.h"
 #include "reionization.h"
@@ -40,21 +41,21 @@ double RtoM(double R)
   return -1;
 }
 
-void _find_HII_bubbles(int snapshot)
+void _find_HII_bubbles(const int snapshot)
 {
   // TODO: TAKE A VERY VERY CLOSE LOOK AT UNITS!!!!
 
-  double box_size = run_globals.params.BoxSize; // Mpc/h
-  int ReionGridDim = run_globals.params.ReionGridDim;
-  double pixel_volume = pow(box_size / (double)ReionGridDim, 3); // (Mpc/h)^3
+  const double box_size = run_globals.params.BoxSize; // Mpc/h
+  const int ReionGridDim = run_globals.params.ReionGridDim;
+  const double pixel_volume = pow(box_size / (double)ReionGridDim, 3); // (Mpc/h)^3
   double cell_length_factor = L_FACTOR;
-  double total_n_cells = pow((double)ReionGridDim, 3);
-  int local_nix = (int)(run_globals.reion_grids.slab_nix[run_globals.mpi_rank]);
-  int slab_n_real = local_nix * ReionGridDim * ReionGridDim;
-  int slab_n_complex = (int)(run_globals.reion_grids.slab_n_complex[run_globals.mpi_rank]);
-  int flag_ReionUVBFlag = run_globals.params.ReionUVBFlag;
-  double ReionEfficiency = run_globals.params.physics.ReionEfficiency;
-  double ReionNionPhotPerBary = run_globals.params.physics.ReionNionPhotPerBary;
+  const double total_n_cells = pow((double)ReionGridDim, 3);
+  const int local_nix = (int)(run_globals.reion_grids.slab_nix[run_globals.mpi_rank]);
+  const int slab_n_real = local_nix * ReionGridDim * ReionGridDim;
+  const int slab_n_complex = (int)(run_globals.reion_grids.slab_n_complex[run_globals.mpi_rank]);
+  const int flag_ReionUVBFlag = run_globals.params.ReionUVBFlag;
+  const double ReionEfficiency = run_globals.params.physics.ReionEfficiency;
+  const double ReionNionPhotPerBary = run_globals.params.physics.ReionNionPhotPerBary;
   run_units_t* units = &(run_globals.units);
   float J_21_aux = 0;
   double J_21_aux_constant;
@@ -64,10 +65,10 @@ void _find_HII_bubbles(int snapshot)
   double electron_fraction;
   double Gamma_R_prefactor;
 
-  double dNrec, rec, Gamma_R;
-  float fabs_dtdz, ZSTEP, z_eff;
+  double dNrec, rec;
+  float z_eff;
 
-  double redshift = run_globals.ZZ[snapshot];
+  const double redshift = run_globals.ZZ[snapshot];
   double prev_redshift;
   if (snapshot == 0) {
     prev_redshift = run_globals.ZZ[snapshot];
@@ -75,8 +76,8 @@ void _find_HII_bubbles(int snapshot)
     prev_redshift = run_globals.ZZ[snapshot - 1];
   }
 
-  ZSTEP = (float)(prev_redshift - redshift);
-  fabs_dtdz = (float)fabs(dtdz((float)redshift) / run_globals.params.Hubble_h);
+  float zstep = (float)(prev_redshift - redshift);
+  float fabs_dtdz = (float)fabs(dtdz((float)redshift) / run_globals.params.Hubble_h);
 
   // Initialise interpolation tables for inhomogeneous recombinations
   // TODO(merge): Does this need to be done every call?
@@ -107,34 +108,6 @@ void _find_HII_bubbles(int snapshot)
   float* r_bubble = run_globals.reion_grids.r_bubble;
   for (int ii = 0; ii < slab_n_real; ii++)
     r_bubble[ii] = 0.0;
-
-  // #ifdef DEBUG
-  //   {
-  //     char fname_debug[STRLEN];
-  //     sprintf(fname_debug, "pre_stars-%d.dat", run_globals.mpi_rank);
-  //     FILE *fd_debug = fopen(fname_debug, "wb");
-  //     for(int ix = 0; ix < run_globals.reion_grids.slab_nix[run_globals.mpi_rank]; ix++)
-  //       for(int iy = 0; iy < ReionGridDim; iy++)
-  //         for(int iz = 0; iz < ReionGridDim; iz++)
-  //           fwrite(&(run_globals.reion_grids.stars[grid_index(ix, iy, iz, ReionGridDim, INDEX_PADDED)]),
-  //           sizeof(float), 1, fd_debug);
-  //     fclose(fd_debug);
-  //   }
-  // #endif
-
-  // #ifdef DEBUG
-  //   {
-  //     char fname_debug[STRLEN];
-  //     sprintf(fname_debug, "pre_sfr-%d.dat", run_globals.mpi_rank);
-  //     FILE *fd_debug = fopen(fname_debug, "wb");
-  //     for(int ix = 0; ix < run_globals.reion_grids.slab_nix[run_globals.mpi_rank]; ix++)
-  //       for(int iy = 0; iy < ReionGridDim; iy++)
-  //         for(int iz = 0; iz < ReionGridDim; iz++)
-  //           fwrite(&(run_globals.reion_grids.sfr[grid_index(ix, iy, iz, ReionGridDim, INDEX_PADDED)]), sizeof(float),
-  //           1, fd_debug);
-  //     fclose(fd_debug);
-  //   }
-  // #endif
 
   // Forward fourier transform to obtain k-space fields
   // TODO: Ensure that fftwf_mpi_init has been called and fftwf_mpi_cleanup will be called
@@ -193,16 +166,13 @@ void _find_HII_bubbles(int snapshot)
   }
 
   // Fields relevant for computing the inhomogeneous recombinations
-  float *z_re, *Gamma12, *N_rec_prev, *N_rec;
-  fftwf_complex* N_rec_unfiltered;
-  fftwf_complex* N_rec_filtered;
+  float* z_re = run_globals.reion_grids.z_re;
+  float* Gamma12 = run_globals.reion_grids.Gamma12;
+  float* N_rec_prev = run_globals.reion_grids.N_rec_prev;
+  float* N_rec = run_globals.reion_grids.N_rec;
+  fftwf_complex* N_rec_unfiltered = NULL;
+  fftwf_complex* N_rec_filtered = NULL;
   if (run_globals.params.Flag_IncludeRecombinations) {
-    z_re = run_globals.reion_grids.z_re;
-    Gamma12 = run_globals.reion_grids.Gamma12;
-
-    N_rec = run_globals.reion_grids.N_rec;
-    N_rec_prev = run_globals.reion_grids.N_rec_prev;
-
     // Make a copy of the box for FFT'ing
     memcpy(N_rec_prev, N_rec, sizeof(fftwf_complex) * slab_n_complex);
 
@@ -356,31 +326,6 @@ void _find_HII_bubbles(int snapshot)
           }
         }
 
-    // #ifdef DEBUG
-    //   {
-    //     char fname_debug[STRLEN];
-    //     sprintf(fname_debug, "post_stars-%d_R%.3f.dat", run_globals.mpi_rank, R);
-    //     FILE *fd_debug = fopen(fname_debug, "wb");
-    //     for(int ix = 0; ix < run_globals.reion_grids.slab_nix[run_globals.mpi_rank]; ix++)
-    //       for(int iy = 0; iy < ReionGridDim; iy++)
-    //         for(int iz = 0; iz < ReionGridDim; iz++)
-    //           fwrite(&(run_globals.reion_grids.stars_filtered[grid_index(ix, iy, iz, ReionGridDim, INDEX_PADDED)]),
-    //           sizeof(float), 1, fd_debug);
-    //     fclose(fd_debug);
-    //   }
-    //   {
-    //     char fname_debug[STRLEN];
-    //     sprintf(fname_debug, "post_sfr-%d_R%.3f.dat", run_globals.mpi_rank, R);
-    //     FILE *fd_debug = fopen(fname_debug, "wb");
-    //     for(int ix = 0; ix < run_globals.reion_grids.slab_nix[run_globals.mpi_rank]; ix++)
-    //       for(int iy = 0; iy < ReionGridDim; iy++)
-    //         for(int iz = 0; iz < ReionGridDim; iz++)
-    //           fwrite(&(run_globals.reion_grids.sfr_filtered[grid_index(ix, iy, iz, ReionGridDim, INDEX_PADDED)]),
-    //           sizeof(float), 1, fd_debug);
-    //     fclose(fd_debug);
-    //   }
-    // #endif
-
     /*
      * Main loop through the box...
      */
@@ -397,31 +342,6 @@ void _find_HII_bubbles(int snapshot)
                           1.0e-12; // Converting R h^-1 to R.
     }
 
-    // DEBUG
-    // for (int ix=0; ix<local_nix; ix++)
-    //   for (int iy=0; iy<ReionGridDim; iy++)
-    //     for (int iz=0; iz<ReionGridDim; iz++)
-    //       if (((float *)sfr_filtered)[grid_index(ix, iy, iz, ReionGridDim, INDEX_PADDED)] > 0)
-    //       {
-    //         mlog("J_21_aux ==========", MLOG_OPEN);
-    //         mlog("redshift = %.2f", MLOG_MESG, redshift);
-    //         mlog("alpha = %.2e", MLOG_MESG, run_globals.params.physics.ReionAlphaUV);
-    //         mlog("PLANCK = %.2e", MLOG_MESG, PLANCK);
-    //         mlog("ReionEscapeFrac = %.2f", MLOG_MESG, ReionEscapeFrac);
-    //         mlog("ReionNionPhotPerBary = %.1f", MLOG_MESG, ReionNionPhotPerBary);
-    //         mlog("UnitMass_in_g = %.2e", MLOG_MESG, units->UnitMass_in_g);
-    //         mlog("UnitLength_in_cm = %.2e", MLOG_MESG, units->UnitLength_in_cm);
-    //         mlog("PROTONMASS = %.2e", MLOG_MESG, PROTONMASS);
-    //         mlog("-> J_21_aux_constant = %.2e", MLOG_MESG, J_21_aux_constant);
-    //         mlog("pixel_volume = %.2e", MLOG_MESG, pixel_volume);
-    //         mlog("sfr_density[%d, %d, %d] = %.2e", MLOG_MESG, ((float *)sfr_filtered)[grid_index(ix, iy, iz,
-    //         ReionGridDim, INDEX_PADDED)] / pixel_volume); mlog("-> J_21_aux = %.2e", MLOG_MESG, ((float
-    //         *)sfr_filtered)[grid_index(ix, iy, iz, ReionGridDim, INDEX_PADDED)] / pixel_volume * J_21_aux_constant);
-    //         mlog("==========", MLOG_CLOSE);
-    //         if (run_globals.mpi_rank == 0)
-    //           ABORT(EXIT_SUCCESS);
-    //       }
-
     for (int ix = 0; ix < local_nix; ix++)
       for (int iy = 0; iy < ReionGridDim; iy++)
         for (int iz = 0; iz < ReionGridDim; iz++) {
@@ -437,9 +357,6 @@ void _find_HII_bubbles(int snapshot)
 
           // Calculate the recombinations within the cell
           if (run_globals.params.Flag_IncludeRecombinations) {
-            Gamma_R = Gamma_R_prefactor * sfr_density * (units->UnitMass_in_g / units->UnitTime_in_s) *
-                      pow(units->UnitLength_in_cm / run_globals.params.Hubble_h, -3.) * ReionNionPhotPerBary /
-                      PROTONMASS; // Convert pixel volume (Mpc/h)^3 -> (cm)^3
             rec = (double)((float*)N_rec_filtered)[i_padded] / density_over_mean;
           }
 
@@ -464,7 +381,10 @@ void _find_HII_bubbles(int snapshot)
 
               // Store the ionisation background and the reionisation redshift for each cell
               if (run_globals.params.Flag_IncludeRecombinations) {
-                Gamma12[i_real] = (float)Gamma_R;
+                Gamma12[i_real] =
+                  (float)(Gamma_R_prefactor * sfr_density * (units->UnitMass_in_g / units->UnitTime_in_s) *
+                          pow(units->UnitLength_in_cm / run_globals.params.Hubble_h, -3.) * ReionNionPhotPerBary /
+                          PROTONMASS); // Convert pixel volume (Mpc/h)^3 -> (cm)^3
                 if (z_re[i_real] < 0) {
                   z_re[i_real] = (float)redshift;
                 }
@@ -538,7 +458,7 @@ void _find_HII_bubbles(int snapshot)
 
           density_over_mean = 1.0 + deltax[i_padded];
           z_eff = (float)((1. + redshift) * pow(density_over_mean, 1.0 / 3.0) - 1);
-          dNrec = splined_recombination_rate(z_eff, Gamma12[i_real]) * fabs_dtdz * ZSTEP * (1. - xH[i_real]);
+          dNrec = splined_recombination_rate(z_eff, Gamma12[i_real]) * fabs_dtdz * zstep * (1. - xH[i_real]);
           N_rec[i_padded] += dNrec;
         }
 
@@ -569,7 +489,7 @@ void find_HII_bubbles(int snapshot, timer_info* timer_total)
   timer_start(&timer);
 
   int flag_write_validation_data = false;
-  _find_HII_bubbles_gpu(redshift, flag_write_validation_data);
+  _find_HII_bubbles_gpu(snapshot, flag_write_validation_data);
 #else
   // Run the Meraxes version of _find_HII_bubbles()
   mlog("Calling pure-CPU version of find_HII_bubbles() for snap=%d/z=%.2lf...",

@@ -50,7 +50,7 @@ typedef fftwf_complex Complex;
 extern "C"
 {
 #endif
-  void _find_HII_bubbles_gpu(double redshift, const bool flag_write_validation_output);
+  void _find_HII_bubbles_gpu(const int snapshot, const bool flag_write_validation_output);
   void init_CUDA();
 #ifdef __cplusplus
 }
