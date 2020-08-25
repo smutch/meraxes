@@ -133,7 +133,7 @@ endif()
 
 set_target_properties(meraxes_lib PROPERTIES
     OUTPUT_NAME meraxes
-    PUBLIC_HEADER "${CMAKE_BINARY_DIR}/meraxes.h"
+    PUBLIC_HEADER "${CMAKE_CURRENT_SOURCE_DIR}/meraxes.h;${CMAKE_CURRENT_BINARY_DIR}/meraxes_conf.h"
     )
 add_custom_target(install.lib
     ${CMAKE_COMMAND}
