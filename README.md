@@ -21,7 +21,7 @@ Requirements
 Optional
 --------
 
-* A NVIDIA GPU and [CUDA](https://developer.nvidia.com/cuda-zone) to accelerate the reionisation calcuation
+* A NVIDIA GPU and [CUDA](https://developer.nvidia.com/cuda-zone) to accelerate the reionisation calculation
 
 
 Attribution
