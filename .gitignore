@@ -36,3 +36,4 @@ config.log
 src/git.h
 src/build*
 src/local.cmake
+src/.vscode
