@@ -443,7 +443,9 @@ __global__ void find_HII_bubbles_gpu_main_loop(const float redshift,
 
         // Store the ionisation background and the reionisation redshift for each cell
         if (Flag_IncludeRecombinations) {
-          Gamma12[i_real] = (float)(Gamma_R_prefactor * sfr_density);
+          Gamma12[i_real] = (float)(Gamma_R_prefactor * sfr_density * (UnitMass_in_g / UnitTime_in_s) *
+                                    pow(UnitLength_in_cm / Hubble_h, -3.) * ReionNionPhotPerBary /
+                                    PROTONMASS); // Convert pixel volume (Mpc/h)^3 -> (cm)^3
           if (z_re[i_real] < 0) {
             z_re[i_real] = (float)redshift;
           }
