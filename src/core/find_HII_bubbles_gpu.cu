@@ -49,7 +49,7 @@
  * ------------------------------------------------------------
  * TODO LIST - @smutch (See also TODO items throughout the code)
  * ------------------------------------------------------------
- * - [ ] Why are the unfiltered grids being copied to the GPU and then copied back each filtering step if using FFTW?
+ * - [X] Why are the unfiltered grids being copied to the GPU and then copied back each filtering step if using FFTW?
  * - [ ] Investigate the use of streams.
  * - [ ] The error handling is horrendously complicated. Is this really necessary?
  *
@@ -197,9 +197,12 @@ void _find_HII_bubbles_gpu(const int snapshot, const bool flag_write_validation_
       if (ReionUVBFlag)
         throw_on_cuda_error(cudaMalloc((void**)&J_21_device, sizeof(float) * slab_n_real),
                             meraxes_cuda_exception::MALLOC);
-      if (Flag_IncludeRecombinations)
+      if (Flag_IncludeRecombinations) {
         throw_on_cuda_error(cudaMalloc((void**)&Gamma12_device, sizeof(float) * slab_n_real),
                             meraxes_cuda_exception::MALLOC);
+        throw_on_cuda_error(cudaMalloc((void**)&z_re_device, sizeof(float) * slab_n_real),
+                            meraxes_cuda_exception::MALLOC);
+      }
     }
 
     // Throw an exception if another rank has thrown one
