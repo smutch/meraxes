@@ -25,7 +25,7 @@ static int determine_file_type(const int snapshot)
   char fname[STRLEN];
   int filetype = -1;
 
-  sprintf(fname, "%s/grids/stf.den_%04d.hdf5", params->SimulationDir, snapshot);
+  sprintf(fname, "%s/grids/snap_%04d.hdf5", params->SimulationDir, snapshot);
   mlog("Trying %s", MLOG_MESG, fname);
 
   if (access(fname, F_OK) != -1) {
@@ -65,7 +65,7 @@ static int determine_file_type(const int snapshot)
 static int read_swift(const enum grid_prop property, const int snapshot, float* slab)
 {
   run_params_t* params = &(run_globals.params);
-  const char fname_base[] = { "%s/grids/stf.den_%04d.hdf5" };
+  const char fname_base[] = { "%s/grids/snap_%04d.hdf5" };
 
   hid_t plist_id = H5Pcreate(H5P_FILE_ACCESS);
   H5Pset_fapl_mpio(plist_id, run_globals.mpi_comm, MPI_INFO_NULL);
