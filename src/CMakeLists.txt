@@ -25,9 +25,9 @@ option(BUILD_TESTS "Build criterion tests" OFF)
 
 # MAGNITUDES
 option(CALC_MAGS "Calculate magnitude" OFF)
-set(MAGS_N_SNAPS 3 CACHE VALUE "Number of snapshots to compute magnitudes")
+set(MAGS_N_SNAPS 3 CACHE STRING "Number of snapshots to compute magnitudes")
 add_definitions(-DMAGS_N_SNAPS=${MAGS_N_SNAPS})
-set(MAGS_N_BANDS 6 CACHE VALUE "Number of bands to compute")
+set(MAGS_N_BANDS 6 CACHE STRING "Number of bands to compute")
 add_definitions(-DMAGS_N_BANDS=${MAGS_N_BANDS})
 set(SECTOR_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/sector" CACHE PATH "Base directory of sector library")
 

@@ -83,25 +83,35 @@ __global__ void sanity_check_aliasing(Complex* grid, int grid_dim, int n_real, f
 __global__ void complex_vector_times_scalar(Complex* vector, double scalar, int n_complex);
 __global__ void
 filter_gpu(Complex* box, int grid_dim, int local_ix_start, int n_complex, float R, double box_size_in, int filter_type);
-__global__ void find_HII_bubbles_gpu_main_loop(float redshift,
-                                               int n_real,
-                                               int flag_last_filter_step,
-                                               int flag_ReionUVBFlag,
-                                               int ReionGridDim,
-                                               float R,
-                                               float M,
-                                               float ReionEfficiency,
-                                               float inv_pixel_volume,
-                                               float J_21_aux_constant,
-                                               double ReionGammaHaloBias,
+__global__ void find_HII_bubbles_gpu_main_loop(const float redshift,
+                                               const int n_real,
+                                               const int flag_last_filter_step,
+                                               const int ReionUVBFlag,
+                                               const int Flag_IncludeRecombinations,
+                                               const int ReionGridDim,
+                                               const float R,
+                                               const float M,
+                                               const float ReionEfficiency,
+                                               const float inv_pixel_volume,
+                                               const float J_21_aux_constant,
+                                               const double ReionGammaHaloBias,
+                                               const double UnitMass_in_g,
+                                               const double UnitTime_in_s,
+                                               const double UnitLength_in_cm,
+                                               const double Hubble_h,
+                                               const double ReionNionPhotPerBary,
+                                               const double Gamma_R_prefactor,
                                                float* xH,
                                                float* J_21,
                                                float* r_bubble,
                                                float* J_21_at_ionization,
                                                float* z_at_ionization,
+                                               float* Gamma12,
+                                               float* z_re,
                                                Complex* deltax_filtered_device,
                                                Complex* stars_filtered_device,
-                                               Complex* sfr_filtered_device);
+                                               Complex* sfr_filtered_device,
+                                               Complex* N_rec_filtered_device);
 
 // Wrap exception-handling calls with these macros to add exception location information to the error messages
 // N.B.: The ',' in the execution configuration part of a CUDA kernel call confuses the pre-processor ... so

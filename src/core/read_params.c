@@ -15,9 +15,9 @@ static void check_problem_params(run_params_t* run_params)
   }
 
 #ifdef USE_CUDA
-  if ((run_params->Flag_IncludeRecombinations != 0) || (run_params->Flag_IncludeSpinTemp != 0)) {
-    mlog_error("Inhomogeneous recombinations and spin temperature features are not currently available in the GPU "
-               "version of find_HII_bubbles!  Exiting...");
+  if (run_params->Flag_IncludeSpinTemp != 0) {
+    mlog_error(
+      "Spin temperature features are not currently available in the GPU version of find_HII_bubbles!  Exiting...");
     ABORT(EXIT_FAILURE);
   }
 #endif
