@@ -410,7 +410,7 @@ __global__ void find_HII_bubbles_gpu_main_loop(const float redshift,
                               PROTONMASS; // Convert pixel volume (Mpc/h)^3 -> (cm)^3
 
   // This will be reset below if Flag_IncludeRecombinations.
-  double rec = 1.0;
+  double rec = 0.0;
 
   if (i_real < n_real) {
     int ix, iy, iz;
