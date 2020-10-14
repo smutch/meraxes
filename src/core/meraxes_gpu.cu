@@ -460,8 +460,14 @@ __global__ void find_HII_bubbles_gpu_main_loop(const float redshift,
     }
     // Check if this is the last filtering step.
     // If so, assign partial ionisations to those cells which aren't fully ionised
-    else if (flag_last_filter_step && (xH[i_real] > REL_TOL))
+    else if (flag_last_filter_step && (xH[i_real] > REL_TOL)) {
       xH[i_real] = (float)(1.0 - f_coll_stars * ReionEfficiency);
+      if (xH[i_real] < 0.) {
+        xH[i_real] = (float)0.;
+      } else if (xH[i_real] > 1.0) {
+        xH[i_real] = (float)1.;
+      }
+    }
 
     // Check if new ionisation
     float* z_in = z_at_ionization;
