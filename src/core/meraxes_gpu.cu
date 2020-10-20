@@ -465,6 +465,14 @@ __global__ void find_HII_bubbles_gpu_main_loop(const float redshift,
       }
     }
 
+#define DEBUG_PRINT(var) printf("======> R=%g " #var " = %g\n", R, var)
+    if ((ix == 47) && (iy == 7) && (iz == 64)) {
+      DEBUG_PRINT(density_over_mean);
+      DEBUG_PRINT(f_coll_stars);
+      DEBUG_PRINT(sfr_density);
+      DEBUG_PRINT(xH[i_real]);
+    }
+
     // Check if new ionisation
     float* z_in = z_at_ionization;
     if ((xH[i_real] < REL_TOL) && (z_in[i_real] < 0)) // New ionisation!
