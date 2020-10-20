@@ -3,7 +3,6 @@
 #include <math.h>
 
 #include "XRayHeatingFunctions.h"
-#include "debug.h"
 #include "meraxes.h"
 #include "meraxes_gpu.h"
 #include "misc_tools.h"
@@ -308,21 +307,6 @@ void _find_HII_bubbles(const int snapshot)
       fftwf_destroy_plan(plan);
     }
 
-    // DEBUG DUMP
-    if (snapshot == 180) {
-      char fname_out[STRLEN];
-      sprintf(fname_out, "dump_r%.2f.h5", R);
-      write_single_grid(
-        fname_out, (float*)deltax_filtered, local_ix_start, local_nix, ReionGridDim, "deltax", true, true);
-      write_single_grid(
-        fname_out, (float*)stars_filtered, local_ix_start, local_nix, ReionGridDim, "stars", true, false);
-      write_single_grid(fname_out, (float*)sfr_filtered, local_ix_start, local_nix, ReionGridDim, "sfr", true, false);
-      if (N_rec_filtered != NULL)
-        write_single_grid(
-          fname_out, (float*)N_rec_filtered, local_ix_start, local_nix, ReionGridDim, "N_rec", true, false);
-      write_single_grid(fname_out, xH, local_ix_start, local_nix, ReionGridDim, "xH", false, false);
-    }
-
     // Perform sanity checks to account for aliasing effects
     for (int ix = 0; ix < local_nix; ix++)
       for (int iy = 0; iy < ReionGridDim; iy++)
@@ -430,14 +414,6 @@ void _find_HII_bubbles(const int snapshot)
             } else if (xH[i_real] > 1.0) {
               xH[i_real] = (float)1.;
             }
-          }
-
-#define DEBUG_PRINT(var) printf("======> R=%g " #var " = %g\n", R, var)
-          if ((ix == 47) && (iy == 7) && (iz == 64)) {
-            DEBUG_PRINT(density_over_mean);
-            DEBUG_PRINT(f_coll_stars);
-            DEBUG_PRINT(sfr_density);
-            DEBUG_PRINT(xH[i_real]);
           }
 
           // Check if new ionisation
