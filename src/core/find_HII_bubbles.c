@@ -166,7 +166,6 @@ void _find_HII_bubbles(const int snapshot)
   }
 
   // Fields relevant for computing the inhomogeneous recombinations
-  float* z_re = run_globals.reion_grids.z_re;
   float* Gamma12 = run_globals.reion_grids.Gamma12;
   float* N_rec_prev = run_globals.reion_grids.N_rec_prev;
   float* N_rec = run_globals.reion_grids.N_rec;
@@ -385,9 +384,6 @@ void _find_HII_bubbles(const int snapshot)
                   (float)(Gamma_R_prefactor * sfr_density * (units->UnitMass_in_g / units->UnitTime_in_s) *
                           pow(units->UnitLength_in_cm / run_globals.params.Hubble_h, -3.) * ReionNionPhotPerBary /
                           PROTONMASS); // Convert pixel volume (Mpc/h)^3 -> (cm)^3
-                if (z_re[i_real] < 0) {
-                  z_re[i_real] = (float)redshift;
-                }
               }
             }
 

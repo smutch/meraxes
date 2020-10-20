@@ -398,7 +398,6 @@ __global__ void find_HII_bubbles_gpu_main_loop(const float redshift,
                                                float* J_21_at_ionization,
                                                float* z_at_ionization,
                                                float* Gamma12,
-                                               float* z_re,
                                                Complex* deltax_filtered_device,
                                                Complex* stars_filtered_device,
                                                Complex* sfr_filtered_device,
@@ -446,9 +445,6 @@ __global__ void find_HII_bubbles_gpu_main_loop(const float redshift,
           Gamma12[i_real] = (float)(Gamma_R_prefactor * sfr_density * (UnitMass_in_g / UnitTime_in_s) *
                                     pow(UnitLength_in_cm / Hubble_h, -3.) * ReionNionPhotPerBary /
                                     PROTONMASS); // Convert pixel volume (Mpc/h)^3 -> (cm)^3
-          if (z_re[i_real] < 0) {
-            z_re[i_real] = (float)redshift;
-          }
         }
       }
 

@@ -115,7 +115,6 @@ void _find_HII_bubbles_gpu(const int snapshot, const bool flag_write_validation_
   const double inv_total_n_cells = 1. / total_n_cells;
 
   // Inhomogeneous recombinations {{
-  float* z_re = run_globals.reion_grids.z_re;
   float* Gamma12 = run_globals.reion_grids.Gamma12;
 
   float* N_rec = run_globals.reion_grids.N_rec;
@@ -163,7 +162,6 @@ void _find_HII_bubbles_gpu(const int snapshot, const bool flag_write_validation_
   float* J_21_at_ionization_device = NULL;
   float* J_21_device = NULL;
   float* Gamma12_device = NULL;
-  float* z_re_device = NULL;
 
   try {
     throw_on_cuda_error(cudaMalloc((void**)&deltax_unfiltered_device, sizeof(cufftComplex) * slab_n_complex),
@@ -199,8 +197,6 @@ void _find_HII_bubbles_gpu(const int snapshot, const bool flag_write_validation_
                             meraxes_cuda_exception::MALLOC);
       if (Flag_IncludeRecombinations) {
         throw_on_cuda_error(cudaMalloc((void**)&Gamma12_device, sizeof(float) * slab_n_real),
-                            meraxes_cuda_exception::MALLOC);
-        throw_on_cuda_error(cudaMalloc((void**)&z_re_device, sizeof(float) * slab_n_real),
                             meraxes_cuda_exception::MALLOC);
       }
     }
@@ -282,8 +278,6 @@ void _find_HII_bubbles_gpu(const int snapshot, const bool flag_write_validation_
 
       if (Flag_IncludeRecombinations) {
         throw_on_cuda_error(cudaMemcpy(Gamma12_device, Gamma12, sizeof(float) * slab_n_real, cudaMemcpyHostToDevice),
-                            meraxes_cuda_exception::MEMCPY);
-        throw_on_cuda_error(cudaMemcpy(z_re_device, z_re, sizeof(float) * slab_n_real, cudaMemcpyHostToDevice),
                             meraxes_cuda_exception::MEMCPY);
       }
     }
@@ -650,7 +644,6 @@ void _find_HII_bubbles_gpu(const int snapshot, const bool flag_write_validation_
                                                                                       J_21_at_ionization_device,
                                                                                       z_at_ionization_device,
                                                                                       Gamma12_device,
-                                                                                      z_re_device,
                                                                                       deltax_filtered_device,
                                                                                       stars_filtered_device,
                                                                                       sfr_filtered_device,
@@ -711,9 +704,6 @@ void _find_HII_bubbles_gpu(const int snapshot, const bool flag_write_validation_
         throw_on_cuda_error(
           cudaMemcpy((void*)Gamma12, (void*)Gamma12_device, sizeof(float) * slab_n_real, cudaMemcpyDeviceToHost),
           meraxes_cuda_exception::MEMCPY);
-        throw_on_cuda_error(
-          cudaMemcpy((void*)z_re, (void*)z_re_device, sizeof(float) * slab_n_real, cudaMemcpyDeviceToHost),
-          meraxes_cuda_exception::MEMCPY);
       }
     }
     throw_on_cuda_error(
@@ -748,7 +738,6 @@ void _find_HII_bubbles_gpu(const int snapshot, const bool flag_write_validation_
 
     if (Flag_IncludeRecombinations) {
       throw_on_cuda_error(cudaFree(Gamma12_device), meraxes_cuda_exception::FREE);
-      throw_on_cuda_error(cudaFree(z_re_device), meraxes_cuda_exception::FREE);
     }
 
     // Throw an exception if another rank has thrown one
