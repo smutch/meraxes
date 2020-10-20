@@ -318,6 +318,9 @@ __global__ void sanity_check_aliasing(Complex* grid, int grid_dim, int n_real, f
       i_real, grid_dim, 0, INDEX_REAL, &i_x, &i_y, &i_z); // pass i_x_start=0 'cause we want the local indices
     const int i_padded = grid_index_gpu(i_x, i_y, i_z, grid_dim, INDEX_PADDED);
     ((float*)grid)[i_padded] = fmaxf(((float*)grid)[i_padded], val);
+
+    if ((val == 0.f) && (((float*)grid)[i_padded] < ABS_TOL))
+      ((float*)grid)[i_padded] = 0.f;
   }
 }
 
