@@ -38,7 +38,6 @@
 #include <math.h>
 
 #include "XRayHeatingFunctions.h"
-#include "debug.h"
 #include "find_HII_bubbles.h"
 #include "meraxes.h"
 #include "misc_tools.h"
@@ -578,21 +577,6 @@ void _find_HII_bubbles_gpu(const int snapshot, const bool flag_write_validation_
       throw_on_global_error();
     } catch (const meraxes_cuda_exception e) {
       e.process_exception();
-    }
-
-    // DEBUG DUMP
-    if (snapshot == 180) {
-      char fname_out[STRLEN];
-      sprintf(fname_out, "dump_r%.2f.h5", R);
-      write_single_grid(
-        fname_out, (float*)deltax_filtered, local_ix_start, local_nix, ReionGridDim, "deltax", true, true);
-      write_single_grid(
-        fname_out, (float*)stars_filtered, local_ix_start, local_nix, ReionGridDim, "stars", true, false);
-      write_single_grid(fname_out, (float*)sfr_filtered, local_ix_start, local_nix, ReionGridDim, "sfr", true, false);
-      if (N_rec_filtered != NULL)
-        write_single_grid(
-          fname_out, (float*)N_rec_filtered, local_ix_start, local_nix, ReionGridDim, "N_rec", true, false);
-      write_single_grid(fname_out, xH, local_ix_start, local_nix, ReionGridDim, "xH", false, false);
     }
 
     // Perform sanity checks to account for aliasing effects
