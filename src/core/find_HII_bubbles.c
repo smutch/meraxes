@@ -330,13 +330,25 @@ void _find_HII_bubbles(const int snapshot)
           i_padded = grid_index(ix, iy, iz, ReionGridDim, INDEX_PADDED);
           ((float*)deltax_filtered)[i_padded] = fmaxf(((float*)deltax_filtered)[i_padded], -1 + REL_TOL);
           ((float*)stars_filtered)[i_padded] = fmaxf(((float*)stars_filtered)[i_padded], 0.0);
+          if (((float*)stars_filtered)[i_padded] < ABS_TOL) {
+            ((float*)stars_filtered)[i_padded] = 0;
+          }
           ((float*)sfr_filtered)[i_padded] = fmaxf(((float*)sfr_filtered)[i_padded], 0.0);
+          if (((float*)sfr_filtered)[i_padded] < ABS_TOL) {
+            ((float*)sfr_filtered)[i_padded] = 0;
+          }
 
           if (run_globals.params.Flag_IncludeRecombinations) {
             ((float*)N_rec_filtered)[i_padded] = fmaxf(((float*)N_rec_filtered)[i_padded], 0.0);
+            if (((float*)N_rec_filtered)[i_padded] < ABS_TOL) {
+              ((float*)N_rec_filtered)[i_padded] = 0;
+            }
           }
           if (run_globals.params.Flag_IncludeSpinTemp) {
             ((float*)x_e_filtered)[i_padded] = fmaxf(((float*)x_e_filtered)[i_padded], 0.0);
+            if (((float*)x_e_filtered)[i_padded] < ABS_TOL) {
+              ((float*)x_e_filtered)[i_padded] = 0;
+            }
             ((float*)x_e_filtered)[i_padded] = fminf(((float*)x_e_filtered)[i_padded], 0.999);
           }
         }
