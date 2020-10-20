@@ -36,3 +36,5 @@ config.log
 src/git.h
 src/build*
 src/local.cmake
+src/.clangd/
+src/compile_commands.json
