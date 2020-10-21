@@ -5,6 +5,7 @@
 #include "parse_paramfile.h"
 #include "read_grids.h"
 #include "read_halos.h"
+#include "recombinations.h"
 #include "reionization.h"
 
 void cleanup()
@@ -30,6 +31,10 @@ void cleanup()
   if (run_globals.params.Flag_PatchyReion) {
     free_reionization_grids();
     fftwf_mpi_cleanup();
+  }
+
+  if (run_globals.params.Flag_IncludeRecombinations) {
+    free_MHR();
   }
 
   if (!run_globals.params.FlagMCMC) {
