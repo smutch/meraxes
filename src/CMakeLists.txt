@@ -108,7 +108,7 @@ if(USE_CUDA)
     # Pass options to NVCC
     set(CUDA_HOST_COMPILER ${CMAKE_CXX_COMPILER})
     set(CUDA_PROPAGATE_HOST_FLAGS ON)
-    set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -arch=sm_60")
+    set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -arch=sm_37")
 
     ################################################################################
     # This ugly hack is needed to work around a bug in the fftw3.h header file
@@ -304,7 +304,7 @@ endif()
 option(ENABLE_PROFILING "Enable profiling of executable with gperftools." OFF)
 if(ENABLE_PROFILING)
     find_library(GPERF_LIBRARIES profiler PATHS "${GPERF_ROOT}/*")
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -pg")
 endif()
 
 # Exports for other codes to build against this version of Meraxes
