@@ -345,7 +345,13 @@ void _find_HII_bubbles(const int snapshot)
                           (units->UnitLength_in_cm / run_globals.params.Hubble_h) * SIGMA_HI *
                           run_globals.params.physics.ReionAlphaUV / (run_globals.params.physics.ReionAlphaUV + 2.75) /
                           1.0e-12; // Converting R h^-1 to R.
+      Gamma_R_prefactor *= (units->UnitMass_in_g / units->UnitTime_in_s) *
+                           pow(units->UnitLength_in_cm / run_globals.params.Hubble_h, -3.) * ReionNionPhotPerBary /
+                           PROTONMASS; // Convert pixel volume (Mpc/h)^3 -> (cm)^3
     }
+
+    double M_mean = RtoM(R);
+    double R_cubed = R * R * R;
 
     for (int ix = 0; ix < local_nix; ix++)
       for (int iy = 0; iy < ReionGridDim; iy++)
@@ -355,8 +361,8 @@ void _find_HII_bubbles(const int snapshot)
 
           density_over_mean = 1.0 + (double)((float*)deltax_filtered)[i_padded];
 
-          f_coll_stars = (double)((float*)stars_filtered)[i_padded] / (RtoM(R) * density_over_mean) * (4.0 / 3.0) *
-                         M_PI * pow(R, 3.0) / pixel_volume;
+          f_coll_stars = (double)((float*)stars_filtered)[i_padded] / (M_mean * density_over_mean) * (4.0 / 3.0) *
+                         M_PI * R_cubed / pixel_volume;
 
           sfr_density = (double)((float*)sfr_filtered)[i_padded] / pixel_volume; // In internal units
 
@@ -386,10 +392,7 @@ void _find_HII_bubbles(const int snapshot)
 
               // Store the ionisation background and the reionisation redshift for each cell
               if (run_globals.params.Flag_IncludeRecombinations) {
-                Gamma12[i_real] =
-                  (float)(Gamma_R_prefactor * sfr_density * (units->UnitMass_in_g / units->UnitTime_in_s) *
-                          pow(units->UnitLength_in_cm / run_globals.params.Hubble_h, -3.) * ReionNionPhotPerBary /
-                          PROTONMASS); // Convert pixel volume (Mpc/h)^3 -> (cm)^3
+                Gamma12[i_real] = (float)(Gamma_R_prefactor * sfr_density);
               }
             }
 
