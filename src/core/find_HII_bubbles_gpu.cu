@@ -131,13 +131,6 @@ void _find_HII_bubbles_gpu(const int snapshot, const bool flag_write_validation_
   float zstep = (float)(prev_redshift - redshift);
   float fabs_dtdz = (float)fabs(dtdz((float)redshift) / Hubble_h);
 
-  // Initialise interpolation tables for inhomogeneous recombinations
-  // TODO(merge): Does this need to be done every call?
-  if (Flag_IncludeRecombinations) {
-    init_MHR();
-  }
-  // }} Inhomogeneous recombinations
-
   // Check that a valid filter option has been specified
   try {
     throw_on_generic_error(run_globals.params.ReionFilterType < 0 || run_globals.params.ReionFilterType > 2,
@@ -787,8 +780,6 @@ void _find_HII_bubbles_gpu(const int snapshot, const bool flag_write_validation_
             splined_recombination_rate(z_eff, Gamma12[i_real]) * fabs_dtdz * zstep * (1. - xH[i_real]);
           N_rec[i_padded] += dNrec;
         }
-
-    free_MHR();
   }
 }
 

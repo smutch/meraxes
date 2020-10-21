@@ -11,6 +11,7 @@
 #include "misc_tools.h"
 #include "parse_paramfile.h"
 #include "read_halos.h"
+#include "recombinations.h"
 #include "reionization.h"
 #include "reionization_modifiers.h"
 #include "save.h"
@@ -293,6 +294,12 @@ void init_meraxes()
 
   if (run_globals.params.Flag_ComputePS) {
     Initialise_PowerSpectrum();
+  }
+
+  // Initialise interpolation tables for inhomogeneous recombinations
+  // TODO: Should this also depend on Flag_PatchyReion? (apply decision to cleanup.c too)
+  if (run_globals.params.Flag_IncludeRecombinations) {
+    init_MHR();
   }
 
   // Initialise galaxy pointers
