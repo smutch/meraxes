@@ -200,6 +200,7 @@ void call_find_HII_bubbles(int snapshot, int nout_gals, timer_info* timer)
   find_HII_bubbles(snapshot, timer);
 
   mlog("grids->volume_weighted_global_xH = %g", MLOG_MESG, grids->volume_weighted_global_xH);
+  mlog("grids->volume_weighted_global_J_21 = %g", MLOG_MESG, grids->volume_weighted_global_J_21);
   mlog("global mass weighted xHII = %g at z = %g",
        MLOG_MESG,
        1.0 - grids->mass_weighted_global_xH,
@@ -268,6 +269,7 @@ void init_reion_grids()
   mlog("Initialising grids...", MLOG_MESG);
 
   grids->volume_weighted_global_xH = 1.0;
+  grids->volume_weighted_global_J_21 = 0.0;
   grids->mass_weighted_global_xH = 1.0;
   grids->started = 0;
   grids->finished = 0;
@@ -1104,6 +1106,7 @@ void save_reion_output_grids(int snapshot)
 
   if (run_globals.params.ReionUVBFlag) {
     write_grid_float("J_21", grids->J_21, file_id, fspace_id, memspace_id, dcpl_id);
+    H5LTset_attribute_double(file_id, "J_21", "volume_weighted_global_J_21", &(grids->volume_weighted_global_J_21), 1);
     write_grid_float("J_21_at_ionization", grids->J_21_at_ionization, file_id, fspace_id, memspace_id, dcpl_id);
     write_grid_float("Mvir_crit", grids->Mvir_crit, file_id, fspace_id, memspace_id, dcpl_id);
   }

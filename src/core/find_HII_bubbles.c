@@ -432,41 +432,39 @@ void _find_HII_bubbles(const int snapshot)
   double volume_weighted_global_xH = 0.0;
   double mass_weighted_global_xH = 0.0;
   double mass_weight = 0.0;
+  double volume_weighted_global_J_21 = 0.0;
 
   for (int ix = 0; ix < local_nix; ix++)
     for (int iy = 0; iy < ReionGridDim; iy++)
       for (int iz = 0; iz < ReionGridDim; iz++) {
         i_real = grid_index(ix, iy, iz, ReionGridDim, INDEX_REAL);
         i_padded = grid_index(ix, iy, iz, ReionGridDim, INDEX_PADDED);
-        volume_weighted_global_xH += (double)xH[i_real];
-        density_over_mean = 1.0 + (double)((float*)deltax_filtered)[i_padded];
-        mass_weighted_global_xH += (double)(xH[i_real]) * density_over_mean;
+        double cell_xH = (double)(xH[i_real]);
+        volume_weighted_global_xH += cell_xH;
+        volume_weighted_global_J_21 += (double)J_21[i_real];
+        density_over_mean = 1.0 + (double)((float*)deltax)[i_padded];
+        mass_weighted_global_xH += cell_xH * density_over_mean;
         mass_weight += density_over_mean;
+
+        if (run_globals.params.Flag_IncludeRecombinations) {
+          // Store the resultant recombination cell
+          z_eff = (float)((1. + redshift) * pow(density_over_mean, 1.0 / 3.0) - 1);
+          dNrec = splined_recombination_rate(z_eff, Gamma12[i_real]) * fabs_dtdz * zstep * (1. - cell_xH);
+          N_rec[i_padded] += dNrec;
+        }
       }
 
   MPI_Allreduce(MPI_IN_PLACE, &volume_weighted_global_xH, 1, MPI_DOUBLE, MPI_SUM, run_globals.mpi_comm);
+  MPI_Allreduce(MPI_IN_PLACE, &volume_weighted_global_J_21, 1, MPI_DOUBLE, MPI_SUM, run_globals.mpi_comm);
   MPI_Allreduce(MPI_IN_PLACE, &mass_weighted_global_xH, 1, MPI_DOUBLE, MPI_SUM, run_globals.mpi_comm);
   MPI_Allreduce(MPI_IN_PLACE, &mass_weight, 1, MPI_DOUBLE, MPI_SUM, run_globals.mpi_comm);
 
   volume_weighted_global_xH /= total_n_cells;
+  volume_weighted_global_J_21 /= total_n_cells;
   mass_weighted_global_xH /= mass_weight;
   run_globals.reion_grids.volume_weighted_global_xH = volume_weighted_global_xH;
+  run_globals.reion_grids.volume_weighted_global_J_21 = volume_weighted_global_J_21;
   run_globals.reion_grids.mass_weighted_global_xH = mass_weighted_global_xH;
-
-  if (run_globals.params.Flag_IncludeRecombinations) {
-    // Store the resultant recombination grid
-    for (int ix = 0; ix < local_nix; ix++)
-      for (int iy = 0; iy < ReionGridDim; iy++)
-        for (int iz = 0; iz < ReionGridDim; iz++) {
-          i_padded = grid_index(ix, iy, iz, ReionGridDim, INDEX_PADDED);
-          i_real = grid_index(ix, iy, iz, ReionGridDim, INDEX_REAL);
-
-          density_over_mean = 1.0 + deltax[i_padded];
-          z_eff = (float)((1. + redshift) * pow(density_over_mean, 1.0 / 3.0) - 1);
-          dNrec = splined_recombination_rate(z_eff, Gamma12[i_real]) * fabs_dtdz * zstep * (1. - xH[i_real]);
-          N_rec[i_padded] += dNrec;
-        }
-  }
 }
 
 // This function makes sure that the right version of find_HII_bubbles() gets called.
