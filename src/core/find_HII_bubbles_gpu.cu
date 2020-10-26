@@ -108,6 +108,7 @@ void _find_HII_bubbles_gpu(const int snapshot, const bool flag_write_validation_
   float* J_21_at_ionization = run_globals.reion_grids.J_21_at_ionization; // real
   // output values
   double* volume_weighted_global_xH = &(run_globals.reion_grids.volume_weighted_global_xH);
+  double* volume_weighted_global_J_21 = &(run_globals.reion_grids.volume_weighted_global_J_21);
   double* mass_weighted_global_xH = &(run_globals.reion_grids.mass_weighted_global_xH);
   // a few needed constants
   const double pixel_volume = pow(box_size / (double)ReionGridDim, 3); // (Mpc/h)^3
@@ -755,32 +756,26 @@ void _find_HII_bubbles_gpu(const int snapshot, const bool flag_write_validation_
       for (iz = 0; iz < ReionGridDim; iz++) {
         const int i_real = grid_index(ix, iy, iz, ReionGridDim, INDEX_REAL);
         const int i_padded = grid_index(ix, iy, iz, ReionGridDim, INDEX_PADDED);
-        double density_over_mean = 1.0 + (double)((float*)deltax)[i_padded];
-        *volume_weighted_global_xH += (double)xH[i_real];
-        *mass_weighted_global_xH += (double)(xH[i_real]) * density_over_mean;
+        const double density_over_mean = 1.0 + (double)((float*)deltax)[i_padded];
+        const double cell_xH = (double)(xH[i_real]);
+        *volume_weighted_global_xH += cell_xH;
+        *volume_weighted_global_J_21 += (double)J_21[i_real];
+        *mass_weighted_global_xH += cell_xH * density_over_mean;
         mass_weight += density_over_mean;
+
+        if (Flag_IncludeRecombinations) {
+          const float z_eff = (float)((1. + redshift) * pow(density_over_mean, 1.0 / 3.0) - 1);
+          const float dNrec = splined_recombination_rate(z_eff, Gamma12[i_real]) * fabs_dtdz * zstep * (1. - cell_xH);
+          N_rec[i_padded] += dNrec;
+        }
       }
   MPI_Allreduce(MPI_IN_PLACE, volume_weighted_global_xH, 1, MPI_DOUBLE, MPI_SUM, mpi_comm);
+  MPI_Allreduce(MPI_IN_PLACE, volume_weighted_global_J_21, 1, MPI_DOUBLE, MPI_SUM, mpi_comm);
   MPI_Allreduce(MPI_IN_PLACE, mass_weighted_global_xH, 1, MPI_DOUBLE, MPI_SUM, mpi_comm);
   MPI_Allreduce(MPI_IN_PLACE, &mass_weight, 1, MPI_DOUBLE, MPI_SUM, mpi_comm);
   *volume_weighted_global_xH *= inv_total_n_cells;
+  *volume_weighted_global_J_21 *= inv_total_n_cells;
   *mass_weighted_global_xH /= mass_weight;
-
-  if (Flag_IncludeRecombinations) {
-    // Store the resultant recombination grid
-    for (int ix = 0; ix < local_nix; ix++)
-      for (int iy = 0; iy < ReionGridDim; iy++)
-        for (int iz = 0; iz < ReionGridDim; iz++) {
-          const int i_padded = grid_index(ix, iy, iz, ReionGridDim, INDEX_PADDED);
-          const int i_real = grid_index(ix, iy, iz, ReionGridDim, INDEX_REAL);
-
-          const double density_over_mean = 1.0 + deltax[i_padded];
-          const float z_eff = (float)((1. + redshift) * pow(density_over_mean, 1.0 / 3.0) - 1);
-          const float dNrec =
-            splined_recombination_rate(z_eff, Gamma12[i_real]) * fabs_dtdz * zstep * (1. - xH[i_real]);
-          N_rec[i_padded] += dNrec;
-        }
-  }
 }
 
 // vim:set et sw=2 ts=2:

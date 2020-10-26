@@ -353,6 +353,7 @@ typedef struct reion_grids_t
   struct gal_to_slab_t* galaxy_to_slab_map;
 
   double volume_weighted_global_xH;
+  double volume_weighted_global_J_21;
   double mass_weighted_global_xH;
 
   double volume_ave_J_alpha;
