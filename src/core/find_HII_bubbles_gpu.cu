@@ -744,6 +744,7 @@ void _find_HII_bubbles_gpu(const int snapshot, const bool flag_write_validation_
   // TODO: The deltax grid will have rounding errors from forward and reverse
   //       FFT. Should cache deltax slabs prior to ffts and reuse here.
   *volume_weighted_global_xH = 0.0;
+  *volume_weighted_global_J_21 = 0.0;
   *mass_weighted_global_xH = 0.0;
   double mass_weight = 0.0;
 
