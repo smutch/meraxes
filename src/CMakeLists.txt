@@ -228,6 +228,7 @@ if(CALC_MAGS)
     add_definitions(-DCALC_MAGS)
     file(GLOB SECTOR_SOURCES ${SECTOR_ROOT}/*.c ${SECTOR}/sector.h)
     add_library(sector STATIC ${SECTOR_SOURCES})
+    target_link_libraries(sector PRIVATE MPI::MPI_C)
     target_link_libraries(meraxes_lib PUBLIC sector)
     set_target_properties(sector PROPERTIES
         POSITION_INDEPENDENT_CODE ON
