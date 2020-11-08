@@ -719,8 +719,10 @@ void _find_HII_bubbles_gpu(const int snapshot, const bool flag_write_validation_
     throw_on_cuda_error(cudaFree(stars_filtered_device), meraxes_cuda_exception::FREE);
     throw_on_cuda_error(cudaFree(sfr_filtered_device), meraxes_cuda_exception::FREE);
 
-    if (Flag_IncludeRecombinations)
+    if (Flag_IncludeRecombinations) {
+      throw_on_cuda_error(cudaFree(N_rec_unfiltered_device), meraxes_cuda_exception::FREE);
       throw_on_cuda_error(cudaFree(N_rec_filtered_device), meraxes_cuda_exception::FREE);
+    }
 
     throw_on_cuda_error(cudaFree(xH_device), meraxes_cuda_exception::FREE);
     throw_on_cuda_error(cudaFree(r_bubble_device), meraxes_cuda_exception::FREE);
