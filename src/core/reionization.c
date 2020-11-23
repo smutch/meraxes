@@ -70,8 +70,8 @@ void update_galaxy_fesc_vals(galaxy_t* gal, double new_stars, int snapshot)
       mlog_error("Unrecognised EscapeFracDependency parameter value.");
   }
 
-  if (fesc > 1.0)
-    fesc = 1.0;
+  if (fesc > params->EscapeFracMax)
+    fesc = params->EscapeFracMax;
   else if (fesc < 0.0)
     fesc = 0.0;
 
