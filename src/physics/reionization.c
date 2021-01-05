@@ -1,5 +1,4 @@
 #include "meraxes.h"
-#include <assert.h>
 #include <math.h>
 
 void calculate_Mvir_crit(double redshift)
@@ -23,7 +22,8 @@ void calculate_Mvir_crit(double redshift)
     float* z_at_ion = run_globals.reion_grids.z_at_ionization;
 
     // init
-    memset(Mvir_crit, 0, sizeof(float) * local_n_cell);
+    for(int ii=0; ii < local_n_cell; ii++)
+        Mvir_crit[ii] = 0.0;
 
     // Loop through each cell and calculate the value of Mvir_crit
     for (int ii = 0; ii < local_n_x; ii++) {
@@ -141,9 +141,7 @@ double gnedin2000_modifer(double Mvir, double redshift)
     else if ((a > a0) && (a < ar))
         f_of_a = (3.0 / a) * (a0 * a0 * (1.0 / (2.0 + alpha) - 2.0 * pow(a_on_a0, -0.5) / (5.0 + 2.0 * alpha)) + a * a / 10.0 - (a0 * a0 / 10.0) * (5.0 - 4.0 * pow(a_on_a0, -0.5)));
     else
-        f_of_a = (3.0 / a) * (a0 * a0 * (1.0 / (2.0 + alpha) - 2.0 * pow(a_on_a0, -0.5) / (5.0 + 2.0 * alpha))
-                                 + (ar * ar / 10.0) * (5.0 - 4.0 * pow(a_on_ar, -0.5)) - (a0 * a0 / 10.0) * (5.0 - 4.0 * pow(a_on_a0, -0.5))
-                                 + a * ar / 3.0 - (ar * ar / 3.0) * (3.0 - 2.0 * pow(a_on_ar, -0.5)));
+        f_of_a = (3.0 / a) * (a0 * a0 * (1.0 / (2.0 + alpha) - 2.0 * pow(a_on_a0, -0.5) / (5.0 + 2.0 * alpha)) + (ar * ar / 10.0) * (5.0 - 4.0 * pow(a_on_ar, -0.5)) - (a0 * a0 / 10.0) * (5.0 - 4.0 * pow(a_on_a0, -0.5)) + a * ar / 3.0 - (ar * ar / 3.0) * (3.0 - 2.0 * pow(a_on_ar, -0.5)));
 
     // this is in units of 10^10Msun/h, note mu=0.59 and mu^-1.5 = 2.21
     Mjeans = 25.0 * pow(run_globals.params.OmegaM, -0.5) * 2.21;

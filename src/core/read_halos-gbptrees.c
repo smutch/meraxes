@@ -145,15 +145,14 @@ static void read_catalog_halos(
 
     // Read in as many halos as we can from this file
     if ((*i_halo_in_file + n_to_read) <= *n_halos_file) {
-        fread(&(halo[*i_halo]), sizeof(catalog_halo_t), n_to_read, *fin);
+        fread(&(halo[*i_halo]), sizeof(catalog_halo_t), (size_t)n_to_read, *fin);
         *i_halo += n_to_read;
         *i_halo_in_file += n_to_read;
-    }
-    else {
+    } else {
         // read in as many as we can from this file and then get the rest from the next file
         n_from_this_file = (*n_halos_file) - *i_halo_in_file;
 
-        fread(&(halo[*i_halo]), sizeof(catalog_halo_t), n_from_this_file, *fin);
+        fread(&(halo[*i_halo]), sizeof(catalog_halo_t), (size_t)n_from_this_file, *fin);
         *i_halo += n_from_this_file;
         *i_halo_in_file += n_from_this_file;
         n_to_read -= n_from_this_file;
@@ -167,8 +166,7 @@ static void inline convert_input_virial_props(double* Mvir, double* Rvir, double
         // Update the virial properties for subhalos
         *Mvir = calculate_Mvir(*Mvir, len, flag_highres);
         *Rvir = calculate_Rvir(*Mvir, snapshot);
-    }
-    else {
+    } else {
         // Convert the mass unit for FoFs
         *Mvir /= 1.0e10;
         if (run_globals.RequestedMassRatioModifier == 1) {
@@ -220,8 +218,8 @@ void read_trees__gbptrees(
 
     char catalog_file_prefix[50];
     char simulation_dir[STRLEN];
-    char fname[STRLEN];
-    hid_t fd;
+    char fname[STRLEN+34];
+    hid_t fd = 0;
     catalog_halo_t* catalog_buffer;
     catalog_halo_t* group_buffer;
 
@@ -297,7 +295,8 @@ void read_trees__gbptrees(
             else
                 n_to_read = n_halos - n_read;
 
-            H5TBread_records(fd, "trees", n_read, (hsize_t)n_to_read, dst_size, dst_offsets, dst_sizes, tree_buffer);
+            H5TBread_records(fd, "trees",
+                (hsize_t)n_read, (hsize_t)n_to_read, dst_size, dst_offsets, dst_sizes, tree_buffer);
             n_read += n_to_read;
 
             int tmp_size = tree_buffer[n_to_read - 1].group_index - tree_buffer[0].group_index + 1;
@@ -320,15 +319,15 @@ void read_trees__gbptrees(
 
         // read in a tree_buffer of the trees
         if (run_globals.mpi_rank == 0)
-            H5TBread_records(fd, "trees", n_read, (hsize_t)n_to_read, dst_size, dst_offsets, dst_sizes, tree_buffer);
+            H5TBread_records(fd, "trees",
+                (hsize_t)n_read, (hsize_t)n_to_read, dst_size, dst_offsets, dst_sizes, tree_buffer);
         MPI_Bcast(tree_buffer, n_to_read * sizeof(tree_entry_t), MPI_BYTE, 0, run_globals.mpi_comm);
 
         first_group_index = tree_buffer[0].group_index;
         if (first_group_index == last_group_index) {
             i_group = 1;
             memcpy(&(group_buffer[0]), &(group_buffer[n_groups - 1]), sizeof(catalog_halo_t));
-        }
-        else
+        } else
             i_group = 0;
         last_group_index = tree_buffer[n_to_read - 1].group_index;
         n_groups = last_group_index - first_group_index + 1;
@@ -350,7 +349,7 @@ void read_trees__gbptrees(
         for (int jj = 0; jj < n_to_read; jj++) {
             if (run_globals.RequestedForestId != NULL) {
                 if (bsearch(&(tree_buffer[jj].forest_id), run_globals.RequestedForestId,
-                        (size_t)n_requested_forests, sizeof(int), compare_ints)
+                        (size_t)n_requested_forests, sizeof(long), compare_int_long)
                     != NULL)
                     keep_flag = true;
                 else
@@ -362,10 +361,11 @@ void read_trees__gbptrees(
                 catalog_halo_t* cur_cat_halo = &(catalog_buffer[jj]);
                 tree_entry_t* cur_tree_entry = &(tree_buffer[jj]);
 
-                cur_halo->ID = cur_tree_entry->id;
+                cur_halo->ID = (unsigned long)cur_tree_entry->id;
                 cur_halo->TreeFlags = cur_tree_entry->flags;
                 cur_halo->SnapOffset = cur_tree_entry->file_offset;
                 cur_halo->DescIndex = cur_tree_entry->desc_index;
+                cur_halo->ProgIndex = -1;  // This information is used in the VELOCIraptor trees, but not here.
                 cur_halo->NextHaloInFOFGroup = NULL;
 
                 if (index_lookup)
@@ -392,8 +392,7 @@ void read_trees__gbptrees(
                         false);
 
                     fof_group[(*n_fof_groups_kept)++].FirstHalo = &(halo[*n_halos_kept]);
-                }
-                else {
+                } else {
                     cur_halo->Type = 1;
                     halo[(*n_halos_kept) - 1].NextHaloInFOFGroup = &(halo[*n_halos_kept]);
                 }
@@ -473,7 +472,7 @@ trees_info_t read_trees_info__gbptrees(int snapshot)
 
     if (run_globals.mpi_rank == 0) {
         // open the tree file
-        char fname[STRLEN];
+        char fname[STRLEN+34];
         hid_t fd;
 
         sprintf(fname, "%s/trees/horizontal_trees_%03d.hdf5", run_globals.params.SimulationDir, snapshot);

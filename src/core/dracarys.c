@@ -1,6 +1,5 @@
 #include "meraxes.h"
 #include "tree_flags.h"
-#include <math.h>
 
 bool check_for_flag(int flag, int tree_flags)
 {
@@ -14,14 +13,14 @@ static inline bool check_if_valid_host(halo_t* halo)
 {
     // We don't want to place new galaxies in any halos with the following flags set...
     int invalid_flags = (TREE_CASE_FRAGMENTED_NORMAL
-        | TREE_CASE_FRAGMENTED_NEW
-        | TREE_CASE_FRAGMENTED_EJECTED // TODO: Now marked as other
-        | TREE_CASE_FRAGMENTED_STRAYED
-        | TREE_CASE_MERGER); // TODO: Try off and think about closely
+            | TREE_CASE_FRAGMENTED_NEW
+            | TREE_CASE_FRAGMENTED_EJECTED // TODO: Now marked as other
+            | TREE_CASE_FRAGMENTED_STRAYED
+            | TREE_CASE_MERGER); // TODO: Try off and think about closely
 
     if ((halo->Type == 0)
-        && ((halo->Galaxy == NULL) || check_for_flag(TREE_CASE_MERGER, halo->Galaxy->TreeFlags))
-        && !(invalid_flags & halo->TreeFlags))
+            && ((halo->Galaxy == NULL) || check_for_flag(TREE_CASE_MERGER, halo->Galaxy->TreeFlags))
+            && !(invalid_flags & halo->TreeFlags))
         return true;
     else
         return false;
@@ -136,8 +135,7 @@ void dracarys()
                     // If this is a central or a satellite
                     if (gal->Type < 2)
                         connect_galaxy_and_halo(gal, &halo[i_newhalo], &merger_counter);
-                }
-                else { // this galaxy has been marked for death
+                } else { // this galaxy has been marked for death
                     if (gal->FirstGalInHalo == gal) {
                         // We have marked the first galaxy in the halo for death. If there are any
                         // other type 2 galaxies in this halo then we must kill them as well...
@@ -153,8 +151,7 @@ void dracarys()
                     kill_galaxy(gal, prev_gal, &NGal, &kill_counter);
                     gal = prev_gal;
                 }
-            }
-            else // this galaxy's halo has skipped this snapshot
+            } else // this galaxy's halo has skipped this snapshot
             {
                 // This is a ghost galaxy for this snapshot.
                 // We need to count all the other galaxies in this halo as ghosts as
@@ -173,8 +170,7 @@ void dracarys()
             if (gal != NULL) {
                 prev_gal = gal;
                 gal = gal->Next;
-            }
-            else
+            } else
                 gal = run_globals.FirstGal;
         }
 
@@ -286,9 +282,8 @@ void dracarys()
         check_counts(fof_group, NGal, trees_info.n_fof_groups);
 #endif
 
-        int ngals_in_slabs = NGal;
         if (run_globals.params.Flag_PatchyReion) {
-            ngals_in_slabs = map_galaxies_to_slabs(NGal);
+            int ngals_in_slabs = map_galaxies_to_slabs(NGal);
             if (run_globals.params.ReionUVBFlag)
                 assign_Mvir_crit_to_galaxies(ngals_in_slabs);
         }
@@ -307,17 +302,45 @@ void dracarys()
         nout_gals += ghost_counter;
 
         if (run_globals.params.Flag_PatchyReion) {
-            set_fesc(snapshot);
 
-            if (check_if_reionization_ongoing()) {
+            if (check_if_reionization_ongoing(snapshot)) {
                 if (!run_globals.params.ReionUVBFlag) {
                     // We are decoupled, so no need to run 21cmFAST unless we are ouputing this snapshot
-                    for (int i_out = 0; i_out < NOutputSnaps; i_out++)
-                        if (snapshot == run_globals.ListOutputSnaps[i_out])
+                    for (int i_out = 0; i_out < NOutputSnaps; i_out++) {
+                        if (snapshot == run_globals.ListOutputSnaps[i_out]) {
                             call_find_HII_bubbles(snapshot, nout_gals, &timer);
+
+                            if(run_globals.params.Flag_Compute21cmBrightTemp) {
+                                ComputeBrightnessTemperatureBox(snapshot);
+                            }
+
+                            if(run_globals.params.Flag_ComputePS) {
+                                Compute_PS(snapshot);
+                            }
+                        }
+                    }
                 }
-                else
+                else {
+
+                    if(run_globals.params.Flag_IncludeSpinTemp) {
+                        call_ComputeTs(snapshot, nout_gals, &timer);
+                    }
+
                     call_find_HII_bubbles(snapshot, nout_gals, &timer);
+
+                    if(run_globals.params.Flag_Compute21cmBrightTemp) {
+                        ComputeBrightnessTemperatureBox(snapshot);
+                    }
+
+                    if(run_globals.params.Flag_ComputePS) {
+                        Compute_PS(snapshot);
+                    }
+
+                    if(run_globals.params.Flag_ConstructLightcone) {
+                        ConstructLightcone(snapshot);
+                    }
+
+                }
             }
 
             // if we have already created a mapping of galaxies to MPI slabs then we no

@@ -37,6 +37,7 @@ int main(int argc, char** argv)
 
     // initiate meraxes
     init_meraxes();
+    init_storage();
 
     // Run the model!
     if ((!run_globals.params.FlagInteractive) & (!run_globals.params.FlagMCMC))

@@ -1,5 +1,4 @@
 #include "meraxes.h"
-#include <hdf5.h>
 #include <hdf5_hl.h>
 #include <math.h>
 
@@ -46,7 +45,7 @@ void read_cooling_functions()
     if (run_globals.mpi_rank == 0) {
         hid_t fd;
         char dset_name[30];
-        char fname[STRLEN];
+        char fname[STRLEN+11];
 
         sprintf(fname, "%s/SD93.hdf5", run_globals.params.CoolingFuncsDir);
         fd = H5Fopen(fname, H5F_ACC_RDONLY, H5P_DEFAULT);
@@ -60,7 +59,7 @@ void read_cooling_functions()
     }
 
     // broadcast the values to all cores
-    MPI_Bcast(cooling_rate, sizeof(cooling_rate), MPI_BYTE, 0, run_globals.mpi_comm);
+    MPI_Bcast(&cooling_rate, sizeof(cooling_rate), MPI_BYTE, 0, run_globals.mpi_comm);
 
     // add solar metallicity to all metallicity values
     for (int i_m = 0; i_m < N_METALLICITIES; i_m++)
@@ -80,7 +79,7 @@ static double interpolate_temp_dependant_cooling_rate(int i_m, double logTemp)
 
     // Now find the index of the tabulated temp immediately below our value
     temp_step = (MAX_TEMP - MIN_TEMP) / (double)(N_TEMPS - 1);
-    i_t = (logTemp - MIN_TEMP) / temp_step;
+    i_t = (int)((logTemp - MIN_TEMP) / temp_step);
     if (i_t >= (N_TEMPS - 1))
         i_t = N_TEMPS - 2;
 

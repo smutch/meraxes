@@ -1,5 +1,4 @@
 #include "meraxes.h"
-#include "unistd.h"
 
 static int prompt_char(const char* message)
 {
@@ -12,7 +11,7 @@ static int prompt_char(const char* message)
         printf("\n%s (y/n): ", message);
         fflush(stdout);
 
-        c = getchar();
+        c = (char)getchar();
         do {
             tmp = getchar();
         } while (tmp != '\n' && tmp != EOF);
@@ -59,11 +58,8 @@ void continue_prompt(char* param_file)
             init_reion_grids();
 
         read_parameter_file(param_file, 1);
-    }
-    else {
+    } else {
         run_globals.params.FlagInteractive = 0;
         MPI_Bcast(&(run_globals.params.FlagInteractive), 1, MPI_INT, 0, run_globals.mpi_comm);
     }
-
-    return;
 }

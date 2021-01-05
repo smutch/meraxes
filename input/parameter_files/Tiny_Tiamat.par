@@ -7,7 +7,7 @@ FileNameGalaxies : Tiny_Tiamat
 #----- Simulation input files  ------------
 #------------------------------------------
 SimName           : Tiny_Tiamat
-SimulationDir     : /fred/oz013/simulations/Tiny_Tiamat
+SimulationDir     : /home/yqin/dragons/input_trees/Tiny_Tiamat
 TreesID           : 1   # 0 -> VELOCIraptor; 1 -> gbpTrees
 CatalogFilePrefix : subfind
 BoxSize           : 10.0
@@ -16,8 +16,8 @@ VolumeFactor      : 1.0
 #------------------------------------------
 #----- Photometric Tables  ----------------
 #------------------------------------------
-PhotometricTablesDir : /fred/oz013/photometric_tables
-CoolingFuncsDir      : /fred/oz013/cooling_functions
+PhotometricTablesDir : /home/yqin/bitbucket/meraxes/input/photometric_tables
+CoolingFuncsDir      : /home/yqin/bitbucket/meraxes/input/cooling_functions
 SSPModel             : bc03
 IMF                  : salpeter
 MagSystem            : vega

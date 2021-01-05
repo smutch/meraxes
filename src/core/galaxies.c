@@ -1,14 +1,13 @@
 #include "meraxes.h"
 #include "tree_flags.h"
 #include <assert.h>
-#include <math.h>
 
 galaxy_t* new_galaxy(int snapshot, unsigned long halo_ID)
 {
     galaxy_t* gal = malloc(sizeof(galaxy_t));
 
     // Initialise the properties
-    gal->ID = snapshot * 1e10 + halo_ID;
+    gal->ID = (unsigned long)(snapshot * 1e10 + halo_ID);
     gal->Type = -1;
     gal->OldType = -1;
     gal->SnapSkipCounter = 0;
@@ -44,11 +43,13 @@ galaxy_t* new_galaxy(int snapshot, unsigned long halo_ID)
     gal->GrossPopIIIMass = 0;
     gal->StellarMass = 0.0;
     gal->GrossStellarMass = 0.0;
+    gal->Fesc = 1.0;
     gal->FescWeightedGSM = 0.0;
     gal->MetalsStellarMass = 0.0;
     gal->mwmsa_num = 0.0;
     gal->mwmsa_denom = 0.0;
     gal->BlackHoleMass = run_globals.params.physics.BlackHoleSeed;
+    gal->FescBH = 1.0;
     gal->BHemissivity = 0.0;
     gal->EffectiveBHM = 0.0;
     gal->BlackHoleAccretedHotMass = 0.0;
@@ -64,17 +65,22 @@ galaxy_t* new_galaxy(int snapshot, unsigned long halo_ID)
     gal->MergerStartRadius = 0.0;
 
     for (int ii = 0; ii < 3; ii++) {
-        gal->Pos[ii] = -99999.9;
-        gal->Vel[ii] = -99999.9;
+        gal->Pos[ii] = (float)-99999.9;
+        gal->Vel[ii] = (float)-99999.9;
     }
 
     for (int ii = 0; ii < N_HISTORY_SNAPS; ii++)
         gal->NewStars[ii] = 0.0;
 
+    for (int ii = 0; ii < N_HISTORY_SNAPS; ii++)
+        gal->NewMetals[ii] = 0.0;
+
     gal->output_index = -1;
     gal->ghost_flag = false;
 
+#ifdef CALC_MAGS
     init_luminosities(gal);
+#endif
 
     return gal;
 }
@@ -96,8 +102,7 @@ void copy_halo_props_to_galaxy(halo_t* halo, galaxy_t* gal)
     if (gal->Type == 0) {
         gal->Vmax = halo->Vmax;
         gal->DiskScaleLength = gal->Spin * gal->Rvir / sqrt_2;
-    }
-    else {
+    } else {
         if (!run_globals.params.physics.Flag_FixVmaxOnInfall)
             gal->Vmax = halo->Vmax;
         if (!run_globals.params.physics.Flag_FixDiskRadiusOnInfall)
@@ -127,18 +132,27 @@ void reset_galaxy_properties(galaxy_t* gal, int snapshot)
     gal->FOFMvirModifier = 1.0;
     gal->BlackHoleAccretedHotMass = 0.0;
     gal->BlackHoleAccretedColdMass = 0.0;
-    gal->PopIIIMass = 0;
+	gal->PopIIIMass = 0;
 
-    // update the stellar mass weighted mean age values
+    // Update the stellar mass weighted mean age values.  This only needs to be
+    // done for snapshots shich are passing out of what we are able to track
+    // with N_HISTORY_SNAPS.
     assert(snapshot > 0);
-    gal->mwmsa_denom += gal->NewStars[N_HISTORY_SNAPS - 1];
-    gal->mwmsa_num += gal->NewStars[N_HISTORY_SNAPS - 1] * run_globals.LTTime[snapshot - N_HISTORY_SNAPS];
+    if (snapshot >= N_HISTORY_SNAPS) {
+        gal->mwmsa_denom += gal->NewStars[N_HISTORY_SNAPS - 1];
+        gal->mwmsa_num += gal->NewStars[N_HISTORY_SNAPS - 1] * run_globals.LTTime[snapshot - N_HISTORY_SNAPS];
+    }
 
     // roll over the baryonic history arrays
     for (int ii = N_HISTORY_SNAPS - 1; ii > 0; ii--)
         gal->NewStars[ii] = gal->NewStars[ii - 1];
 
+    for (int ii = N_HISTORY_SNAPS - 1; ii > 0; ii--)
+        gal->NewMetals[ii] = gal->NewMetals[ii - 1];
+
+
     gal->NewStars[0] = 0.0;
+    gal->NewMetals[0] = 0.0;
 }
 
 static void push_galaxy_to_halo(galaxy_t* gal, halo_t* halo)
@@ -183,6 +197,7 @@ void connect_galaxy_and_halo(galaxy_t* gal, halo_t* halo, int* merger_counter)
 
         galaxy_t* parent = NULL;
         galaxy_t* infaller = NULL;
+
         switch (run_globals.params.TreesID) {
         case GBPTREES_TREES:
             // For gbpTrees, we have the merger flags to give us guidance.  Let's use them...
@@ -195,11 +210,25 @@ void connect_galaxy_and_halo(galaxy_t* gal, halo_t* halo, int* merger_counter)
             break;
 
         case VELOCIRAPTOR_TREES:
-            // There are a number of criterion we could use here. For now,
-            // let's say the galaxy with the least massive halo at the last
-            // snapshot it was identified is the one which is merging into another
-            // object.
-            parent = halo->Galaxy->Mvir >= gal->Mvir ? halo->Galaxy : gal;
+            // For VELOCIraptor we have some guidance in the form of the progenitor indices.
+
+            if (check_for_flag(TREE_CASE_NO_PROGENITORS, halo->TreeFlags)) {
+                // The host halo has been marked as having no progenitors.
+                // Since we have a merger though, their are clearly halos which
+                // think this is their descendant.  In this case, none of the
+                // halo progenitors are deemed to be good enough matches and so
+                // we can't use the pointers to select the main progenitor.
+                // Let's use the mass instead in this case.
+                //
+                // N.B. We haven't yet copied any halo properties into the
+                // galaxies and so the galaxy.Mvir values still correspond to
+                // the previous snapshot.
+                parent = gal->Mvir > halo->Galaxy->Mvir ? gal : halo->Galaxy;
+            } else {
+                // Here we can use the pointers.
+                parent = gal->HaloDescIndex == halo->ProgIndex ? gal : halo->Galaxy;
+            }
+
             infaller = halo->Galaxy == parent ? gal : halo->Galaxy;
             break;
 
@@ -269,8 +298,7 @@ void kill_galaxy(
         while ((cur_gal->NextGalInHalo != NULL) && (cur_gal->NextGalInHalo != gal))
             cur_gal = cur_gal->NextGalInHalo;
         cur_gal->NextGalInHalo = gal->NextGalInHalo;
-    }
-    else {
+    } else {
         // If it is a type 0 or 1 (i.e. first galaxy in it's halo) and there are
         // other galaxies in this halo, reset the FirstGalInHalo pointer so that
         // the satellites can be killed later
