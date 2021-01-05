@@ -1,6 +1,6 @@
 #include "meraxes.h"
+#include "tree_flags.h"
 #include <assert.h>
-#include <gsl/gsl_sort_int.h>
 #include <hdf5_hl.h>
 #include <math.h>
 
@@ -10,7 +10,7 @@ trees_info_t read_trees_info__velociraptor(const int snapshot)
 
     if (run_globals.mpi_rank == 0) {
         // TODO: This is wasteful and should probably only ever be done once and stored in run_globals.
-        char fname[STRLEN];
+        char fname[STRLEN+34];
         sprintf(fname, "%s/trees/meraxes_augmented_stats.h5", run_globals.params.SimulationDir);
 
         hid_t fd = H5Fopen(fname, H5F_ACC_RDONLY, H5P_DEFAULT);
@@ -42,12 +42,12 @@ trees_info_t read_trees_info__velociraptor(const int snapshot)
 
 static int id_to_ind(long id)
 {
-    return (int)((id % (uint64_t)1e12) - 1);
+    return (int)(((uint64_t)id % (uint64_t)1e12) - 1);
 }
 
 static int id_to_snap(long id)
 {
-    return id / 1e12l;
+    return (int)(id / 1e12l);
 }
 
 static void inline convert_input_virial_props(double* Mvir, double* Rvir, double* Vvir,
@@ -58,8 +58,7 @@ static void inline convert_input_virial_props(double* Mvir, double* Rvir, double
     if (*Mvir == -1) {
         assert(len > 0);
         *Mvir = calculate_Mvir(*Mvir, len);
-    }
-    else {
+    } else {
         if (fof_flag && (run_globals.RequestedMassRatioModifier == 1)) {
             // Modifier the FoF mass and update the virial radius
             assert(FOFMvirModifier != NULL);
@@ -87,23 +86,30 @@ void read_trees__velociraptor(int snapshot, halo_t* halos, int* n_halos, fof_gro
 {
     // TODO: For the moment, I'll forgo chunking the read.  This will need to
     // be implemented in future though, as we ramp up the size of the
-    // simulations...
-
     //! Tree entry struct
     typedef struct tree_entry_t {
         long ForestID;
         long Head;
+        long Tail;
         long hostHaloID;
         double Mass_200crit;
+        double Mass_tot;
         double R_200crit;
         double Vmax;
         double Xc;
         double Yc;
         double Zc;
-        double lambda_B;
+        double VXc;
+        double VYc;
+        double VZc;
+        double Lx;
+        double Ly;
+        double Lz;
         unsigned long ID;
         unsigned long npart;
     } tree_entry_t;
+
+    // simulations...
 
     mlog("Reading velociraptor trees for snapshot %d...", MLOG_OPEN, snapshot);
 
@@ -114,7 +120,7 @@ void read_trees__velociraptor(int snapshot, halo_t* halos, int* n_halos, fof_gro
     int n_tree_entries = 0;
 
     if (run_globals.mpi_rank == 0) {
-        char fname[STRLEN];
+        char fname[STRLEN*2+8];
         sprintf(fname, "%s/trees/%s",
             run_globals.params.SimulationDir, run_globals.params.CatalogFilePrefix);
 
@@ -134,31 +140,70 @@ void read_trees__velociraptor(int snapshot, halo_t* halos, int* n_halos, fof_gro
 
         void* buffer = malloc(n_tree_entries * sizeof(long));
 
+        // TODO(trees): Read tail.  If head<->tail then first progenitor line, else it's a merger.  We should populate the new halo and then do a standard merger prescription.
+        // TODO(trees): Cont here...
+
         READ_TREE_ENTRY_PROP(ForestID, long, H5T_NATIVE_LONG);
         READ_TREE_ENTRY_PROP(Head, long, H5T_NATIVE_LONG);
+        READ_TREE_ENTRY_PROP(Tail, long, H5T_NATIVE_LONG);
         READ_TREE_ENTRY_PROP(hostHaloID, long, H5T_NATIVE_LONG);
         READ_TREE_ENTRY_PROP(Mass_200crit, double, H5T_NATIVE_DOUBLE);
+        READ_TREE_ENTRY_PROP(Mass_tot, double, H5T_NATIVE_DOUBLE);
         READ_TREE_ENTRY_PROP(R_200crit, double, H5T_NATIVE_DOUBLE);
         READ_TREE_ENTRY_PROP(Vmax, double, H5T_NATIVE_DOUBLE);
         READ_TREE_ENTRY_PROP(Xc, double, H5T_NATIVE_DOUBLE);
         READ_TREE_ENTRY_PROP(Yc, double, H5T_NATIVE_DOUBLE);
         READ_TREE_ENTRY_PROP(Zc, double, H5T_NATIVE_DOUBLE);
-        READ_TREE_ENTRY_PROP(lambda_B, double, H5T_NATIVE_DOUBLE);
+        READ_TREE_ENTRY_PROP(VXc, double, H5T_NATIVE_DOUBLE);
+        READ_TREE_ENTRY_PROP(VYc, double, H5T_NATIVE_DOUBLE);
+        READ_TREE_ENTRY_PROP(VZc, double, H5T_NATIVE_DOUBLE);
+        READ_TREE_ENTRY_PROP(Lx, double, H5T_NATIVE_DOUBLE);
+        READ_TREE_ENTRY_PROP(Ly, double, H5T_NATIVE_DOUBLE);
+        READ_TREE_ENTRY_PROP(Lz, double, H5T_NATIVE_DOUBLE);
         READ_TREE_ENTRY_PROP(ID, unsigned long, H5T_NATIVE_ULONG);
         READ_TREE_ENTRY_PROP(npart, unsigned long, H5T_NATIVE_ULONG);
 
         free(buffer);
 
+        // check the units
+        double mass_unit_to_internal = 1.0;
+        H5LTget_attribute_double(fd, "Header/Units", "Mass_unit_to_solarmass", &mass_unit_to_internal);
+        mass_unit_to_internal /= 1.0e10;
+
         // convert units
         double scale_factor = -999.;
         H5LTget_attribute_double(fd, snap_group_name, "scalefactor", &scale_factor);
+        double hubble_h = run_globals.params.Hubble_h;
         for (int ii = 0; ii < n_tree_entries; ii++) {
-            tree_entries[ii].Mass_200crit *= 1e-10;
-            tree_entries[ii].Xc *= run_globals.params.Hubble_h / scale_factor;
-            tree_entries[ii].Yc *= run_globals.params.Hubble_h / scale_factor;
-            tree_entries[ii].Zc *= run_globals.params.Hubble_h / scale_factor;
+            tree_entries[ii].Mass_200crit *= hubble_h * mass_unit_to_internal;
+            tree_entries[ii].Mass_tot *= hubble_h * mass_unit_to_internal;
+            tree_entries[ii].R_200crit *= hubble_h;
+            tree_entries[ii].Xc *= hubble_h / scale_factor;
+            tree_entries[ii].Yc *= hubble_h / scale_factor;
+            tree_entries[ii].Zc *= hubble_h / scale_factor;
+            tree_entries[ii].VXc /= scale_factor;
+            tree_entries[ii].VYc /= scale_factor;
+            tree_entries[ii].VZc /= scale_factor;
+            tree_entries[ii].Lx *= hubble_h * hubble_h * mass_unit_to_internal;
+            tree_entries[ii].Ly *= hubble_h * hubble_h * mass_unit_to_internal;
+            tree_entries[ii].Lz *= hubble_h * hubble_h * mass_unit_to_internal;
 #ifdef DEBUG
             double box_size = run_globals.params.BoxSize;
+
+            // TEMPORARY HACK
+            if (tree_entries[ii].Xc < 0.0)
+                tree_entries[ii].Xc = 0.0;
+            if (tree_entries[ii].Xc > box_size)
+                tree_entries[ii].Xc = box_size;
+            if (tree_entries[ii].Yc < 0.0)
+                tree_entries[ii].Yc = 0.0;
+            if (tree_entries[ii].Yc > box_size)
+                tree_entries[ii].Yc = box_size;
+            if (tree_entries[ii].Zc < 0.0)
+                tree_entries[ii].Zc = 0.0;
+            if (tree_entries[ii].Zc > box_size)
+                tree_entries[ii].Zc = box_size;
+
             assert((tree_entries[ii].Xc <= box_size) && (tree_entries[ii].Xc >= 0.0));
             assert((tree_entries[ii].Yc <= box_size) && (tree_entries[ii].Yc >= 0.0));
             assert((tree_entries[ii].Zc <= box_size) && (tree_entries[ii].Zc >= 0.0));
@@ -182,7 +227,7 @@ void read_trees__velociraptor(int snapshot, halo_t* halos, int* n_halos, fof_gro
 
         if ((run_globals.RequestedForestId != NULL)
             && (bsearch(&(tree_entries[ii].ForestID), run_globals.RequestedForestId,
-                   (size_t)run_globals.NRequestedForests, sizeof(int), compare_ints))
+                   (size_t)run_globals.NRequestedForests, sizeof(long), compare_longs))
                 == NULL)
             keep_this_halo = false;
 
@@ -192,9 +237,23 @@ void read_trees__velociraptor(int snapshot, halo_t* halos, int* n_halos, fof_gro
 
             halo->ID = tree_entry.ID;
             halo->DescIndex = id_to_ind(tree_entry.Head);
+
+            if(run_globals.params.FlagIgnoreProgIndex)
+                halo->ProgIndex = -1;
+            else
+                halo->ProgIndex = id_to_ind(tree_entry.Tail);
+
             halo->NextHaloInFOFGroup = NULL;
             halo->Type = tree_entry.hostHaloID == -1 ? 0 : 1;
             halo->SnapOffset = id_to_snap(tree_entry.Head) - snapshot;
+
+            // Any other tree flags need to be set using both the current and
+            // progenitor halo information (stored in the galaxy), therefore we
+            // need to leave setting those until later...
+            if(run_globals.params.FlagIgnoreProgIndex)
+                halo->TreeFlags = TREE_CASE_NO_PROGENITORS;
+            else
+                halo->TreeFlags = tree_entry.Tail != tree_entry.ID ? 0 : TREE_CASE_NO_PROGENITORS;
 
             // Here we have a cyclic pointer, indicating that this halo's life ends here
             if (tree_entry.Head == tree_entry.ID)
@@ -217,8 +276,7 @@ void read_trees__velociraptor(int snapshot, halo_t* halos, int* n_halos, fof_gro
 
                 halo->FOFGroup = &(fof_groups[*n_fof_groups]);
                 fof_groups[(*n_fof_groups)++].FirstHalo = halo;
-            }
-            else {
+            } else {
                 // We can take advantage of the fact that host halos always seem to appear before their subhalos in the
                 // trees to immediately connect FOF group members.
                 int host_index = id_to_ind(tree_entry.hostHaloID);
@@ -242,18 +300,20 @@ void read_trees__velociraptor(int snapshot, halo_t* halos, int* n_halos, fof_gro
             halo->Pos[0] = (float)tree_entry.Xc;
             halo->Pos[1] = (float)tree_entry.Yc;
             halo->Pos[2] = (float)tree_entry.Zc;
+            halo->Vel[0] = (float)tree_entry.VXc;
+            halo->Vel[1] = (float)tree_entry.VYc;
+            halo->Vel[2] = (float)tree_entry.VZc;
             halo->Vmax = (float)tree_entry.Vmax;
 
             // TODO: What masses and radii should I use for satellites (inclusive vs. exclusive etc.)?
-            halo->Mvir = -1;
+            halo->Mvir = tree_entry.Mass_tot;
             halo->Rvir = -1;
             halo->Vvir = -1;
-            convert_input_virial_props(&halo->Mvir, &halo->Rvir, &halo->Vvir, NULL, halo->Len, snapshot, false);
+            convert_input_virial_props(&halo->Mvir, &halo->Rvir, &halo->Vvir, NULL, -1, snapshot, false);
 
-            // TODO: Ask Pascal for real ang mom vectors
-            // N.B. See calculation of spin which has been hacked!
-            halo->AngMom[0] = halo->AngMom[1] = 0;
-            halo->AngMom[2] = tree_entry.lambda_B;
+            halo->AngMom[0] = (float)(tree_entry.Lx / tree_entry.Mass_tot);
+            halo->AngMom[1] = (float)(tree_entry.Ly / tree_entry.Mass_tot);
+            halo->AngMom[2] = (float)(tree_entry.Lz / tree_entry.Mass_tot);
 
             halo->Galaxy = NULL;
 

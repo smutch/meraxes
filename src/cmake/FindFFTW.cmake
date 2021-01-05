@@ -6,7 +6,7 @@
 
 find_package(PkgConfig)
 if (PKG_CONFIG_FOUND)
-    pkg_check_modules(PC_FFTW QUIET fftw)
+    pkg_check_modules(PC_FFTW QUIET fftw3f)
 endif()
 
 set(FFTW_DEFINITIONS ${PC_FFTW_CFLAGS_OTHER})
@@ -22,7 +22,7 @@ find_library(FFTW_LIBRARY NAME fftw3f
     PATHS "${FFTW_ROOT}/lib"
     HINTS ${PC_FFTW_LIBDIR} ${PC_FFTW_LIBRARY_DIRS})
 
-set(FFTW_LIBRARIES ${FFTW_LIBRARY} ${FFTW_MPI_LIBRARY})
+set(FFTW_LIBRARIES ${FFTW_MPI_LIBRARY} ${FFTW_LIBRARY})
 set(FFTW_INCLUDE_DIRS ${FFTW_INCLUDE_DIR})
 
 include(FindPackageHandleStandardArgs)

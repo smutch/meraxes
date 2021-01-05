@@ -1,5 +1,5 @@
-#include <sys/time.h>
 #include "meraxes.h"
+#include <sys/time.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -18,7 +18,7 @@ float timer_delta(timer_info timer)
 {
     struct timeval diff;
     timersub(&(timer.stop), &(timer.start), &diff);
-    return ((float)diff.tv_sec + (1e-6 * (float)diff.tv_usec));
+    return (float)((float)diff.tv_sec + (1e-6 * (float)diff.tv_usec));
 }
 
 #ifdef __cplusplus

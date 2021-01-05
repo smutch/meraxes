@@ -55,5 +55,4 @@ void init_CUDA();
 // All the c++11-specific stuff
 #include "meraxes_gpu.hh"
 
-#define _MERAXES_GPU_H
 #endif

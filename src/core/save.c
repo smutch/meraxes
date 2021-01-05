@@ -1,12 +1,8 @@
-#include "git.h"
 #include "meraxes.h"
 #include "parse_paramfile.h"
 #include <assert.h>
-#include <hdf5.h>
 #include <hdf5_hl.h>
-#include <math.h>
 #include <unistd.h>
-#include <lber.h>
 
 float current_mwmsa(galaxy_t* gal, int i_snap)
 {
@@ -15,8 +11,8 @@ float current_mwmsa(galaxy_t* gal, int i_snap)
     double mwmsa_denom = gal->mwmsa_denom;
     int snapshot = run_globals.ListOutputSnaps[i_snap];
 
-    for (int ii = 0; ii < N_HISTORY_SNAPS; ii++) {
-        mwmsa_num += gal->NewStars[ii] * LTTime[snapshot - ii];
+    for (int ii = 0, jj = snapshot; (ii < N_HISTORY_SNAPS) && (jj >= 0); ii++, jj--) {
+        mwmsa_num += gal->NewStars[ii] * LTTime[jj];
         mwmsa_denom += gal->NewStars[ii];
     }
 
@@ -36,11 +32,10 @@ void prepare_galaxy_for_output(
         galout->HaloID = (long long)gal.Halo->ID;
         galout->CentralGal = gal.Halo->FOFGroup->FirstOccupiedHalo->Galaxy->output_index;
         galout->FOFMvir = (float)(gal.Halo->FOFGroup->Mvir);
-    }
-    else {
+    } else {
         galout->HaloID = -1;
         galout->CentralGal = -1;
-        galout->FOFMvir = -1.0;
+        galout->FOFMvir = (float)-1.0;
     }
     galout->GhostFlag = (int)gal.ghost_flag;
 
@@ -68,8 +63,10 @@ void prepare_galaxy_for_output(
     galout->GrossPopIIIMass = (float)(gal.GrossPopIIIMass);
     galout->StellarMass = (float)(gal.StellarMass);
     galout->GrossStellarMass = (float)(gal.GrossStellarMass);
+    galout->Fesc = (float)(gal.Fesc);
     galout->FescWeightedGSM = (float)(gal.FescWeightedGSM);
     galout->BlackHoleMass = (float)(gal.BlackHoleMass);
+    galout->FescBH = (float)(gal.FescBH);
     galout->BHemissivity = (float)(gal.BHemissivity);
     galout->EffectiveBHM = (float)(gal.EffectiveBHM);
     galout->BlackHoleAccretedHotMass = (float)(gal.BlackHoleAccretedHotMass);
@@ -93,7 +90,9 @@ void prepare_galaxy_for_output(
     for (int ii = 0; ii < N_HISTORY_SNAPS; ii++)
         galout->NewStars[ii] = (float)(gal.NewStars[ii]);
 
-    prepare_magnitudes_for_output(gal, galout, i_snap);
+#ifdef CALC_MAGS
+    get_output_magnitudes(galout->Mags, &gal, run_globals.ListOutputSnaps[i_snap]);
+#endif
 }
 
 void calc_hdf5_props()
@@ -111,11 +110,8 @@ void calc_hdf5_props()
         h5props->n_props = 49;
 
 #ifdef CALC_MAGS
-        // If we are calculating any magnitudes then increment the number of
-        // output properties appropriately.
-        int n_photo_bands = run_globals.photo->NBands;
-        h5props->n_props += 2;
-        h5props->array_nmag_f_tid = H5Tarray_create(H5T_NATIVE_FLOAT, 1, (hsize_t[]){ n_photo_bands });
+        h5props->n_props += 1;
+        h5props->array_nmag_f_tid = H5Tarray_create(H5T_NATIVE_FLOAT, 1, (hsize_t[]){ MAGS_N_BANDS });
 #endif
 
         // Size of a single galaxy entry.
@@ -149,22 +145,6 @@ void calc_hdf5_props()
         h5props->field_units[i] = "None";
         h5props->field_h_conv[i] = "None";
         h5props->field_types[i++] = H5T_NATIVE_LLONG;
-
-#ifdef CALC_MAGS
-        h5props->dst_offsets[i] = HOFFSET(galaxy_output_t, Mag);
-        h5props->dst_field_sizes[i] = sizeof(float) * n_photo_bands;
-        h5props->field_names[i] = "Mag";
-        h5props->field_units[i] = "mag";
-        h5props->field_h_conv[i] = "v - 5*log10(h)";
-        h5props->field_types[i++] = h5props->array_nmag_f_tid;
-
-        h5props->dst_offsets[i] = HOFFSET(galaxy_output_t, MagDust);
-        h5props->dst_field_sizes[i] = sizeof(float) * n_photo_bands;
-        h5props->field_names[i] = "MagDust";
-        h5props->field_units[i] = "mag";
-        h5props->field_h_conv[i] = "v - 5*log10(h)";
-        h5props->field_types[i++] = h5props->array_nmag_f_tid;
-#endif
 
         h5props->dst_offsets[i] = HOFFSET(galaxy_output_t, ID);
         h5props->dst_field_sizes[i] = sizeof(galout.ID);
@@ -369,6 +349,15 @@ void calc_hdf5_props()
         h5props->field_h_conv[i] = "None";
         h5props->field_types[i++] = H5T_NATIVE_FLOAT;
 
+        #ifdef CALC_MAGS
+        h5props->dst_offsets[i] = HOFFSET(galaxy_output_t, Mags);
+        h5props->dst_field_sizes[i] = sizeof(galout.Mags);
+        h5props->field_names[i] = "Mags";
+        h5props->field_units[i] = "mag";
+        h5props->field_h_conv[i] = "None";
+        h5props->field_types[i++] = h5props->array_nmag_f_tid;
+        #endif
+
         h5props->dst_offsets[i] = HOFFSET(galaxy_output_t, EjectedGas);
         h5props->dst_field_sizes[i] = sizeof(galout.EjectedGas);
         h5props->field_names[i] = "EjectedGas";
@@ -461,11 +450,25 @@ void calc_hdf5_props()
         h5props->field_types[i++] = h5props->array_nhist_f_tid;
 
         // Blackhole or Emissivity related
+        h5props->dst_offsets[i] = HOFFSET(galaxy_output_t, Fesc);
+        h5props->dst_field_sizes[i] = sizeof(galout.Fesc);
+        h5props->field_names[i] = "Fesc";
+        h5props->field_units[i] = "None";
+        h5props->field_h_conv[i] = "None";
+        h5props->field_types[i++] = H5T_NATIVE_FLOAT;
+
         h5props->dst_offsets[i] = HOFFSET(galaxy_output_t, FescWeightedGSM);
         h5props->dst_field_sizes[i] = sizeof(galout.FescWeightedGSM);
         h5props->field_names[i] = "FescWeightedGSM";
         h5props->field_units[i] = "1e10 solMass";
         h5props->field_h_conv[i] = "v/h";
+        h5props->field_types[i++] = H5T_NATIVE_FLOAT;
+
+        h5props->dst_offsets[i] = HOFFSET(galaxy_output_t, FescBH);
+        h5props->dst_field_sizes[i] = sizeof(galout.FescBH);
+        h5props->field_names[i] = "FescBH";
+        h5props->field_units[i] = "None";
+        h5props->field_h_conv[i] = "None";
         h5props->field_types[i++] = H5T_NATIVE_FLOAT;
 
         h5props->dst_offsets[i] = HOFFSET(galaxy_output_t, BHemissivity);
@@ -531,7 +534,7 @@ void prep_hdf5_file()
 void create_master_file()
 {
     hid_t file_id, group_id;
-    char fname[STRLEN];
+    char fname[STRLEN*2+7];
     hdf5_output_t* h5props = &(run_globals.hdf5props);
     char** params_tag = h5props->params_tag;
     void** params_addr = h5props->params_addr;
@@ -574,6 +577,11 @@ void create_master_file()
                 break;
             }
 
+        // extra params which may be set internally should be written here
+        if (run_globals.params.Flag_ConstructLightcone) {
+            H5LTset_attribute_int(file_id, group_name, "EndSnapshotLightcone", &(run_globals.params.EndSnapshotLightcone), 1);
+        }
+
         // Close the group
         H5Gclose(group_id);
     }
@@ -600,10 +608,31 @@ void create_master_file()
             H5LTset_attribute_string(file_id, group_name, "J_21", "10e-21 erg/s/Hz/cm/cm/sr");
             H5LTset_attribute_string(file_id, group_name, "J_21_at_ionization", "10e-21 erg/s/Hz/cm/cm/sr");
             H5LTset_attribute_string(file_id, group_name, "z_at_ionization", "None");
+            H5LTset_attribute_string(file_id, group_name, "r_bubble", "Mpc");
             H5LTset_attribute_string(file_id, group_name, "Mvir_crit", "1e10 solMass");
             H5LTset_attribute_string(file_id, group_name, "StellarMass", "1e10 solMass");
             H5LTset_attribute_string(file_id, group_name, "Sfr", "solMass/yr");
             H5LTset_attribute_string(file_id, group_name, "deltax", "None");
+
+            if(run_globals.params.Flag_ConstructLightcone) {
+                H5LTset_attribute_string(file_id, group_name, "LightconeBox", "mK");
+            }
+
+            if(run_globals.params.Flag_IncludeSpinTemp) {
+                H5LTset_attribute_string(file_id, group_name, "Ts_box", "K");
+                H5LTset_attribute_string(file_id, group_name, "Tk_box", "K");
+                H5LTset_attribute_string(file_id, group_name, "x_e_box", "None");
+            }
+
+            if(run_globals.params.Flag_Compute21cmBrightTemp) {
+                H5LTset_attribute_string(file_id, group_name, "delta_T", "mK");
+            }
+
+            if(run_globals.params.Flag_ComputePS) {
+                H5LTset_attribute_string(file_id, group_name, "PS_data", "mK2");
+                H5LTset_attribute_string(file_id, group_name, "PS_error", "mK2");
+            }
+
             H5Gclose(group_id);
         }
 
@@ -614,18 +643,39 @@ void create_master_file()
             H5LTset_attribute_string(file_id, group_name, "J_21", "v*(h**2)");
             H5LTset_attribute_string(file_id, group_name, "J_21_at_ionization", "v*(h**2)");
             H5LTset_attribute_string(file_id, group_name, "z_at_ionization", "None");
+            H5LTset_attribute_string(file_id, group_name, "r_bubble", "v/h");
             H5LTset_attribute_string(file_id, group_name, "Mvir_crit", "v/h");
             H5LTset_attribute_string(file_id, group_name, "StellarMass", "v/h");
             H5LTset_attribute_string(file_id, group_name, "Sfr", "None");
             H5LTset_attribute_string(file_id, group_name, "deltax", "None");
+
+            if(run_globals.params.Flag_ConstructLightcone) {
+                H5LTset_attribute_string(file_id, group_name, "LightconeBox", "None");
+            }
+
+            if(run_globals.params.Flag_IncludeSpinTemp) {
+                H5LTset_attribute_string(file_id, group_name, "Ts_box", "None");
+                H5LTset_attribute_string(file_id, group_name, "Tk_box", "None");
+                H5LTset_attribute_string(file_id, group_name, "x_e_box", "None");
+            }
+
+            if(run_globals.params.Flag_Compute21cmBrightTemp) {
+                H5LTset_attribute_string(file_id, group_name, "delta_T", "None");
+            }
+
+            if(run_globals.params.Flag_ComputePS) {
+                H5LTset_attribute_string(file_id, group_name, "PS_data", "None");
+                H5LTset_attribute_string(file_id, group_name, "PS_error", "None");
+            }
+
             H5Gclose(group_id);
         }
     }
 
-#ifdef GITREF_STR
+#ifdef MERAXES_GITREF_STR
     // Save the git ref and diff if requested
-    H5LTmake_dataset_string(file_id, "gitdiff", GITDIFF_STR);
-    H5LTset_attribute_string(file_id, "gitdiff", "gitref", GITREF_STR);
+    H5LTmake_dataset_string(file_id, "gitdiff", MERAXES_GITDIFF_STR);
+    H5LTset_attribute_string(file_id, "gitdiff", "gitref", MERAXES_GITREF_STR);
 #endif
 
     // save the number of cores used in this run
@@ -643,7 +693,7 @@ void create_master_file()
     double temp;
 
     // Now create soft links to all of the files and datasets that make up this run
-    for (int i_out = 0, snap_n_gals = 0; i_out < run_globals.NOutputSnaps; i_out++, snap_n_gals = 0, temp = 0) {
+    for (int i_out = 0, snap_n_gals = 0; i_out < run_globals.NOutputSnaps; i_out++, snap_n_gals = 0) {
         sprintf(target_group, "Snap%03d", run_globals.ListOutputSnaps[i_out]);
         snap_group_id = H5Gcreate(file_id, target_group, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
 
@@ -741,10 +791,10 @@ static void inline save_walk_indices(
     int chunk_size = 1000;
 
     if (old_count > 0) {
-        hsize_t dim[1] = {old_count};
-        hsize_t chunks[1] = {chunk_size > old_count ? old_count : chunk_size};
+        hsize_t dim[1] = { (hsize_t)old_count };
+        hsize_t chunks[1] = { chunk_size > old_count ? (hsize_t)old_count : (hsize_t)chunk_size };
 
-        hid_t plist_id  = H5Pcreate(H5P_DATASET_CREATE);
+        hid_t plist_id = H5Pcreate(H5P_DATASET_CREATE);
         H5Pset_chunk(plist_id, 1, chunks);
         H5Pset_deflate(plist_id, 6);
 
@@ -752,13 +802,13 @@ static void inline save_walk_indices(
 
         sprintf(target, "Snap%03d/DescendantIndices", (run_globals.ListOutputSnaps)[prev_i_out]);
         dset_id = H5Dcreate(file_id, target, H5T_NATIVE_INT,
-                dspace_id, H5P_DEFAULT, plist_id, H5P_DEFAULT);
+            dspace_id, H5P_DEFAULT, plist_id, H5P_DEFAULT);
         H5Dwrite(dset_id, H5T_NATIVE_INT, H5S_ALL, H5S_ALL, H5P_DEFAULT, descendant_index);
         H5Dclose(dset_id);
 
         sprintf(target, "Snap%03d/NextProgenitorIndices", (run_globals.ListOutputSnaps)[prev_i_out]);
         dset_id = H5Dcreate(file_id, target, H5T_NATIVE_INT,
-                dspace_id, H5P_DEFAULT, plist_id, H5P_DEFAULT);
+            dspace_id, H5P_DEFAULT, plist_id, H5P_DEFAULT);
         H5Dwrite(dset_id, H5T_NATIVE_INT, H5S_ALL, H5S_ALL, H5P_DEFAULT, next_progenitor_index);
         H5Dclose(dset_id);
 
@@ -768,7 +818,7 @@ static void inline save_walk_indices(
         // Here we create empty datasets.  This is purely to maintain backward
         // compatibility for other codes which read the output (e.g. Yisheng
         // Qiu's magcalc code).
-        hsize_t dim[1] = {0};
+        hsize_t dim[1] = { 0 };
 
         sprintf(target, "Snap%03d/DescendantIndices", (run_globals.ListOutputSnaps)[prev_i_out]);
         H5LTmake_dataset(file_id, target, 1, dim, H5T_NATIVE_INT, descendant_index);
@@ -776,12 +826,12 @@ static void inline save_walk_indices(
         sprintf(target, "Snap%03d/NextProgenitorIndices", (run_globals.ListOutputSnaps)[prev_i_out]);
         H5LTmake_dataset(file_id, target, 1, dim, H5T_NATIVE_INT, next_progenitor_index);
     }
-    
+
     if (n_write > 0) {
-        hsize_t dim[1] = {(hsize_t)n_write};
-        hsize_t chunks[1] = {chunk_size > n_write ? n_write : chunk_size};
-        
-        hid_t plist_id  = H5Pcreate(H5P_DATASET_CREATE);
+        hsize_t dim[1] = { (hsize_t)n_write };
+        hsize_t chunks[1] = { chunk_size > n_write ? n_write : chunk_size };
+
+        hid_t plist_id = H5Pcreate(H5P_DATASET_CREATE);
         H5Pset_chunk(plist_id, 1, chunks);
         H5Pset_deflate(plist_id, 6);
 
@@ -790,7 +840,7 @@ static void inline save_walk_indices(
 
         sprintf(target, "Snap%03d/FirstProgenitorIndices", (run_globals.ListOutputSnaps)[i_out]);
         dset_id = H5Dcreate(file_id, target, H5T_NATIVE_INT,
-                dspace_id, H5P_DEFAULT, plist_id, H5P_DEFAULT);
+            dspace_id, H5P_DEFAULT, plist_id, H5P_DEFAULT);
         H5Dwrite(dset_id, H5T_NATIVE_INT, H5S_ALL, H5S_ALL, H5P_DEFAULT, first_progenitor_index);
         H5Dclose(dset_id);
 
@@ -800,13 +850,11 @@ static void inline save_walk_indices(
         // Here we create empty datasets.  This is purely to maintain backward
         // compatibility for other codes which read the output (e.g. Yisheng
         // Qiu's magcalc code).
-        hsize_t dim[1] = {0};
+        hsize_t dim[1] = { 0 };
 
         sprintf(target, "Snap%03d/FirstProgenitorIndices", (run_globals.ListOutputSnaps)[i_out]);
         H5LTmake_dataset(file_id, target, 1, dim, H5T_NATIVE_INT, first_progenitor_index);
     }
-
-
 }
 
 static inline bool pass_write_check(galaxy_t* gal, bool flag_merger)
@@ -872,14 +920,13 @@ void write_snapshot(
 
     // reset the chunk size if required
     if ((int)chunk_size < n_write)
-        chunk_size = n_write;
+        chunk_size = (hsize_t)n_write;
 
     // Make the table
     H5TBmake_table("Galaxies", group_id, "Galaxies",
-        h5props.n_props, n_write, h5props.dst_size, h5props.field_names,
+        (hsize_t)h5props.n_props, (hsize_t)n_write, h5props.dst_size, h5props.field_names,
         h5props.dst_offsets, h5props.field_types, chunk_size, fill_data, 1,
         NULL);
-
 
     // If the immediately preceding snapshot was also written, then save the
     // descendent indices
@@ -959,8 +1006,9 @@ void write_snapshot(
         free(first_progenitor_index);
         free(next_progenitor_index);
         free(descendant_index);
-    }
-    else {
+
+    } else {
+
         gal = run_globals.FirstGal;
         while (gal != NULL) {
             if (pass_write_check(gal, false))
@@ -989,7 +1037,7 @@ void write_snapshot(
             buffer_count++;
         }
         if (buffer_count == (int)chunk_size) {
-            H5TBwrite_records(group_id, "Galaxies", gal_count, buffer_count, h5props.dst_size,
+            H5TBwrite_records(group_id, "Galaxies", (hsize_t)gal_count, (hsize_t)buffer_count, h5props.dst_size,
                 h5props.dst_offsets, h5props.dst_field_sizes, output_buffer);
             gal_count += buffer_count;
             buffer_count = 0;
@@ -999,7 +1047,7 @@ void write_snapshot(
 
     // Write any remaining galaxies in the buffer
     if (buffer_count > 0) {
-        H5TBwrite_records(group_id, "Galaxies", gal_count, buffer_count, h5props.dst_size,
+        H5TBwrite_records(group_id, "Galaxies", (hsize_t)gal_count, (hsize_t)buffer_count, h5props.dst_size,
             h5props.dst_offsets, h5props.dst_field_sizes, output_buffer);
         gal_count += buffer_count;
     }
@@ -1013,7 +1061,7 @@ void write_snapshot(
     // Free the output buffer
     free(output_buffer);
 
-    if (run_globals.params.Flag_PatchyReion && check_if_reionization_ongoing() && (run_globals.params.Flag_OutputGrids))
+    if (run_globals.params.Flag_PatchyReion && check_if_reionization_ongoing(run_globals.ListOutputSnaps[i_out]) && (run_globals.params.Flag_OutputGrids))
         save_reion_output_grids(run_globals.ListOutputSnaps[i_out]);
 
     // Close the group.

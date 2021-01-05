@@ -11,5 +11,3 @@ if (NOT GITDIFF STREQUAL "")
     string(REPLACE "\\\"" "\\\\\"" GITDIFF ${GITDIFF})
     string(REPLACE "\n" "\\n" GITDIFF ${GITDIFF})
 endif()
-
-configure_file(${SOURCE_DIR}/git.h.in ${CMAKE_BINARY_DIR}/git.h ESCAPE_QUOTES @ONLY)

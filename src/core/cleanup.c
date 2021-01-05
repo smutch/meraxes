@@ -1,8 +1,6 @@
 #include "meraxes.h"
 #include "parse_paramfile.h"
 #include <fftw3-mpi.h>
-#include <fftw3.h>
-#include <hdf5.h>
 
 void cleanup()
 {
@@ -17,7 +15,9 @@ void cleanup()
 
     free_halo_storage();
 
+#ifdef CALC_MAGS
     cleanup_mags();
+#endif
 
     if (run_globals.RequestedForestId)
         free(run_globals.RequestedForestId);
@@ -43,6 +43,7 @@ void cleanup()
         free(run_globals.hdf5props.dst_field_sizes);
         free(run_globals.hdf5props.dst_offsets);
         H5Tclose(run_globals.hdf5props.array3f_tid);
+        H5Tclose(run_globals.hdf5props.array_nhist_f_tid);
         mlog(" ...done", MLOG_CLOSE);
     }
 

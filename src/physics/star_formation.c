@@ -1,36 +1,68 @@
 #include "meraxes.h"
 #include <assert.h>
 #include <gsl/gsl_integration.h>
-#include <gsl/gsl_math.h>
-#include <gsl/gsl_sf_lambert.h>
-#include <math.h>
 
-void update_reservoirs_from_sf(galaxy_t* gal, double new_stars)
+static void backfill_ghost_star_formation(galaxy_t* gal, double m_stars, double sfr, double metallicity, int snapshot)
+{
+    if ((snapshot - gal->LastIdentSnap) <= N_HISTORY_SNAPS) {
+        double* LTTime = run_globals.LTTime;
+        double burst_time = LTTime[gal->LastIdentSnap] - gal->dt * 0.5;
+
+        for (int ii = 1; ii < N_HISTORY_SNAPS; ii++) {
+            int snap = snapshot - ii;
+            if (LTTime[snap] > burst_time) {
+
+#ifdef CALC_MAGS
+                if (sfr > 0.)
+                    add_luminosities(&run_globals.mag_params, gal, snap, metallicity, sfr);
+#endif
+                gal->NewStars[ii] += m_stars;
+                gal->NewMetals[0] += m_stars * metallicity;
+                update_galaxy_fesc_vals(gal, m_stars, snap);
+                break;
+            }
+        }          
+
+    }
+}
+
+void update_reservoirs_from_sf(galaxy_t* gal, double new_stars, int snapshot, SFtype type)
 {
     if (new_stars > 0) {
         double metallicity;
-        double current_time;
-
-        // update the galaxy's SFR value
-        gal->Sfr += new_stars / gal->dt;
-        assert(gal->Sfr >= 0);
-
-        // update the stellar mass history
-        gal->NewStars[0] += new_stars;
+        bool Flag_IRA = (bool)(run_globals.params.physics.Flag_IRA);
 
         // instantaneous recycling approximation of stellar mass
         metallicity = calc_metallicity(gal->ColdGas, gal->MetalsColdGas);
+
+        // update the galaxy's SFR value
+        double sfr = new_stars / gal->dt;
+        gal->Sfr += sfr;
+        assert(gal->Sfr >= 0);
 
         gal->ColdGas -= new_stars;
         gal->MetalsColdGas -= new_stars * metallicity;
         gal->StellarMass += new_stars;
         gal->GrossStellarMass += new_stars;
-        gal->FescWeightedGSM += new_stars * run_globals.params.physics.ReionEscapeFrac;
         gal->MetalsStellarMass += new_stars * metallicity;
 
-        // update the luminosities
-        current_time = run_globals.LTTime[gal->LastIdentSnap] - 0.5 * gal->dt;
-        add_to_luminosities(gal, new_stars, metallicity, current_time);
+        if ((type == INSITU) && !Flag_IRA && (gal->LastIdentSnap < (snapshot - 1))) {
+            // If this is a reidentified ghost, then back fill NewStars and
+            // escape fraction dependent properties to reflect this new insitu
+            // SF burst.
+            backfill_ghost_star_formation(gal, new_stars, sfr, metallicity, snapshot);
+        }
+        else {
+            // update the stellar mass history assuming the burst is happening in this snapshot
+#ifdef CALC_MAGS
+            if (sfr > 0.)
+                add_luminosities(&run_globals.mag_params, gal, snapshot, metallicity, sfr);
+#endif
+            gal->NewStars[0] += new_stars;
+            gal->NewMetals[0] += new_stars * metallicity;
+
+            update_galaxy_fesc_vals(gal, new_stars, snapshot);
+        }
 
         // Check the validity of the modified reservoir values.
         // Note that the ColdGas reservers *can* be negative at this point.  This
@@ -122,10 +154,10 @@ void insitu_star_formation(galaxy_t* gal, int snapshot)
 
         // calculate the total supernova feedback which would occur if this star
         // formation happened continuously and evenly throughout the snapshot
-        contemporaneous_supernova_feedback(gal, &m_stars, snapshot, &m_reheat, &m_eject, &m_recycled, &new_metals);
-
+        contemporaneous_supernova_feedback(gal, &m_stars, snapshot, 
+                                           &m_reheat, &m_eject, &m_recycled, &new_metals);
         // update the baryonic reservoirs (note that the order we do this in will change the result!)
-        update_reservoirs_from_sf(gal, m_stars);
+        update_reservoirs_from_sf(gal, m_stars, snapshot, INSITU);
         update_reservoirs_from_sn_feedback(gal, m_reheat, m_eject, m_recycled, new_metals);
     }
 }
@@ -231,15 +263,13 @@ double pressure_dependent_star_formation(galaxy_t* gal, int snapshot)
             gal->HIMass = (1. - Y_He) * gal->ColdGas - gal->H2Mass; //hydrogen mass
             MSFRR = MSFRR * 2.0 * M_PI * sf_eff / SEC_PER_YEAR;
             MSFRR = MSFRR * 1.0e3; // in g/s
-        }
-        else {
+        } else {
             MSFRR = 0.0;
             gal->H2Frac = 0.0;
             gal->H2Mass = 0.0;
             gal->HIMass = 0.0;
         }
-    }
-    else {
+    } else {
         MSFRR = 0.0;
         gal->H2Frac = 0.0;
         gal->H2Mass = 0.0;

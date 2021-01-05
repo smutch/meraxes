@@ -1,6 +1,5 @@
 #include "meraxes.h"
 #include <assert.h>
-#include <hdf5.h>
 #include <hdf5_hl.h>
 
 void read_Mcrit_table()
@@ -30,8 +29,7 @@ void read_Mcrit_table()
 
         // close the file
         H5Fclose(fd);
-    }
-    else
+    } else
         run_globals.params.MvirCrit = malloc(sizeof(double) * run_globals.params.SnaplistLength);
 
     // broadcast the result to the other ranks

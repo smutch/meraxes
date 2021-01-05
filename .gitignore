@@ -1,7 +1,7 @@
 Log_files
 src/3rd_party
 find_HII_bubbles
-lib
+lib/
 ._*
 *.o
 *.pyc
@@ -29,7 +29,8 @@ src/my_SConscript
 .vimrc
 .exrc
 *.os
-include
+include/
+share/
 .sconf_temp
 config.log
 src/git.h

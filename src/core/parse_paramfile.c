@@ -36,8 +36,8 @@ static int match_regex(regex_t* reg, const char* match_str, entry_t* entry)
         for (int ii = 0; ii < n_matches; ii++) {
             if (match[ii].rm_so == -1)
                 break;
-            start = match[ii].rm_so + (p - match_str);
-            finish = match[ii].rm_eo + (p - match_str);
+            start = (int)(match[ii].rm_so + (p - match_str));
+            finish = (int)(match[ii].rm_eo + (p - match_str));
             if (ii == 1)
                 sprintf(entry->key, "%.*s", (finish - start),
                     match_str + start);

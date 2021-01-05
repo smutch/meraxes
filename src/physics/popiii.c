@@ -97,7 +97,7 @@ void popiii_supernova_feedback(galaxy_t* gal, double m_popiii){
     if (m_reheat > gal->ColdGas)
         m_reheat = gal->ColdGas;
 
-    sn_energy = calc_sn_energy(m_popiii, gal->Vmax, 1.0);
+    sn_energy = 0;// TODO: apparently, they changed how we get SN energy! calc_sn_energy(m_popiii, gal->Vmax, 1.0);
     m_eject   = calc_ejected_mass(&m_reheat, sn_energy, gal->Vvir, gal->Halo->FOFGroup->Vvir);
 
     // all popiii remnants added to blackhole

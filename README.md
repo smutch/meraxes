@@ -16,6 +16,12 @@ Requirements
 * [HDF5](https://support.hdfgroup.org/HDF5/) built with MPI bindings.
 
 
+Optional
+--------
+
+* A NVIDIA GPU and [CUDA](https://developer.nvidia.com/cuda-zone) to accelerate the reionisation calcuation
+
+
 Attribution
 -----------
 
@@ -49,6 +55,9 @@ Contributors
 * Paul Geil (*The University of Melbourne*)
 * Yuxiang Qin (*The University of Melbourne*)
 * Hansik Kim (*The University of Melbourne*)
+* Greg Poole (*Astronomy Data and Compute Services*)
+* Yisheng Qiu (*The University of Melbourne*)
+* Brad Greig (*The University of Melbourne*)
 
 
 How to contribute
@@ -58,4 +67,4 @@ How to contribute
 2. Make your changes in a new, appropriately named branch (e.g. `mutch_starformation` or `fix_progenitor_order`).
     * All git commit messages should loosely follow the [standard format outlined here](http://tbaggery.com/2008/04/19/a-note-about-git-commit-messages.html).
     * Ensure your new code is commented enough so that others can understand what it's doing.
-3. Issue a [pull request](https://confluence.atlassian.com/bitbucket/work-with-pull-requests-223220593.html) to the official repository.
+3. Issue a [pull request](https://help.github.com/en/articles/about-pull-requests) to the official repository.
