@@ -1,0 +1,7 @@
+/fred/oz025/yqin/bitbucket/meraxes/src/../lib/libmeraxes.a
+/fred/oz025/yqin/bitbucket/meraxes/src/../include/meraxes.h
+/fred/oz025/yqin/bitbucket/meraxes/src/../bin/meraxes
+/fred/oz025/yqin/bitbucket/meraxes/src/../lib/libmlog.a
+/fred/oz025/yqin/bitbucket/meraxes/src/../include/mlog.h
+/fred/oz025/yqin/bitbucket/meraxes/src/../share/meraxes/cmake/MeraxesConfig.cmake
+/fred/oz025/yqin/bitbucket/meraxes/src/../share/meraxes/cmake/MeraxesConfig-noconfig.cmake

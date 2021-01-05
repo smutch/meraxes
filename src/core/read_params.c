@@ -113,7 +113,7 @@ void read_parameter_file(char* fname, int mode)
 
         // malloc global arrays and init param properties
         if (mode == 0) {
-            const int tag_length = 128;
+            const int tag_length = 158;
             hdf5props->params_tag = malloc(sizeof(char*) * PARAM_MAX_ENTRIES);
             for (ii = 0; ii < PARAM_MAX_ENTRIES; ii++)
                 hdf5props->params_tag[ii] = malloc(sizeof(char) * tag_length);
@@ -145,7 +145,7 @@ void read_parameter_file(char* fname, int mode)
             required_tag[n_param] = 0;
             params_type[n_param++] = PARAM_TYPE_STRING;
 
-            strcpy(params_tag[n_param], "TargetSnaps");
+            strncpy(params_tag[n_param], "TargetSnaps", tag_length);
             params_addr[n_param] = run_params->TargetSnaps;
             required_tag[n_param] = 0;
             params_type[n_param++] = PARAM_TYPE_STRING;
@@ -160,22 +160,22 @@ void read_parameter_file(char* fname, int mode)
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_STRING;
 
-            strcpy(params_tag[n_param], "RestBands");
+            strncpy(params_tag[n_param], "RestBands", tag_length);
             params_addr[n_param] = run_params->RestBands;
             required_tag[n_param] = 0;
             params_type[n_param++] = PARAM_TYPE_STRING;
 
-            strcpy(params_tag[n_param], "BirthCloudLifetime");
+            strncpy(params_tag[n_param], "BirthCloudLifetime", tag_length);
             params_addr[n_param] = &(run_params->BirthCloudLifetime);
             required_tag[n_param] = 0;
             params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
-            strcpy(params_tag[n_param], "CoolingFuncsDir");
+            strncpy(params_tag[n_param], "CoolingFuncsDir", tag_length);
             params_addr[n_param] = run_params->CoolingFuncsDir;
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_STRING;
 
-            strcpy(params_tag[n_param], "StellarFeedbackDir");
+            strncpy(params_tag[n_param], "StellarFeedbackDir", tag_length);
             params_addr[n_param] = run_params->StellarFeedbackDir;
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_STRING;
@@ -824,47 +824,47 @@ void read_parameter_file(char* fname, int mode)
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
-            strcpy(params_tag[n_param], "ReionMaxHeatingRedshift");
+            strncpy(params_tag[n_param], "ReionMaxHeatingRedshift", tag_length);
             params_addr[n_param] = &(run_params->physics).ReionMaxHeatingRedshift;
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
-            strcpy(params_tag[n_param], "LXrayGal");
+            strncpy(params_tag[n_param], "LXrayGal", tag_length);
             params_addr[n_param] = &(run_params->physics).LXrayGal;
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
-            strcpy(params_tag[n_param], "NuXrayGalThreshold");
+            strncpy(params_tag[n_param], "NuXrayGalThreshold", tag_length);
             params_addr[n_param] = &(run_params->physics).NuXrayGalThreshold;
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
-            strcpy(params_tag[n_param], "SpecIndexXrayGal");
+            strncpy(params_tag[n_param], "SpecIndexXrayGal", tag_length);
             params_addr[n_param] = &(run_params->physics).SpecIndexXrayGal;
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
-            strcpy(params_tag[n_param], "LXrayQSO");
+            strncpy(params_tag[n_param], "LXrayQSO", tag_length);
             params_addr[n_param] = &(run_params->physics).LXrayQSO;
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
-            strcpy(params_tag[n_param], "NuXrayQSOThreshold");
+            strncpy(params_tag[n_param], "NuXrayQSOThreshold", tag_length);
             params_addr[n_param] = &(run_params->physics).NuXrayQSOThreshold;
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
-            strcpy(params_tag[n_param], "SpecIndexXrayQSO");
+            strncpy(params_tag[n_param], "SpecIndexXrayQSO", tag_length);
             params_addr[n_param] = &(run_params->physics).SpecIndexXrayQSO;
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
-            strcpy(params_tag[n_param], "NuXraySoftCut");
+            strncpy(params_tag[n_param], "NuXraySoftCut", tag_length);
             params_addr[n_param] = &(run_params->physics).NuXraySoftCut;
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
-            strcpy(params_tag[n_param], "NuXrayMax");
+            strncpy(params_tag[n_param], "NuXrayMax", tag_length);
             params_addr[n_param] = &(run_params->physics).NuXrayMax;
             required_tag[n_param] = 1;
             params_type[n_param++] = PARAM_TYPE_DOUBLE;

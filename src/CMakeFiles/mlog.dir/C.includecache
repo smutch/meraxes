@@ -1,0 +1,40 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/apps/skylake/software/OpenMPI/3.0.0-GCC-7.3.0/include/mpi.h
+stddef.h
+-
+mpi_portable_platform.h
+/apps/skylake/software/OpenMPI/3.0.0-GCC-7.3.0/include/mpi_portable_platform.h
+openmpi/ompi/mpi/cxx/mpicxx.h
+/apps/skylake/software/OpenMPI/3.0.0-GCC-7.3.0/include/openmpi/ompi/mpi/cxx/mpicxx.h
+
+/apps/skylake/software/OpenMPI/3.0.0-GCC-7.3.0/include/mpi_portable_platform.h
+omp.h
+/apps/skylake/software/OpenMPI/3.0.0-GCC-7.3.0/include/omp.h
+omp.h
+/apps/skylake/software/OpenMPI/3.0.0-GCC-7.3.0/include/omp.h
+
+/fred/oz025/yqin/bitbucket/meraxes/src/mlog/mlog.c
+mlog.h
+/fred/oz025/yqin/bitbucket/meraxes/src/mlog/mlog.h
+stdarg.h
+-
+stdlib.h
+-
+
+/fred/oz025/yqin/bitbucket/meraxes/src/mlog/mlog.h
+mpi.h
+-
+stdbool.h
+-
+stdio.h
+-
+sys/time.h
+-
+

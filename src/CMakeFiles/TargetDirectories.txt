@@ -1,0 +1,14 @@
+/fred/oz025/yqin/bitbucket/meraxes/src/CMakeFiles/install/local.dir
+/fred/oz025/yqin/bitbucket/meraxes/src/CMakeFiles/install.dir
+/fred/oz025/yqin/bitbucket/meraxes/src/CMakeFiles/install/strip.dir
+/fred/oz025/yqin/bitbucket/meraxes/src/CMakeFiles/list_install_components.dir
+/fred/oz025/yqin/bitbucket/meraxes/src/CMakeFiles/install.lib.dir
+/fred/oz025/yqin/bitbucket/meraxes/src/CMakeFiles/meraxes_lib.dir
+/fred/oz025/yqin/bitbucket/meraxes/src/CMakeFiles/cleandist.dir
+/fred/oz025/yqin/bitbucket/meraxes/src/CMakeFiles/cscope.dir
+/fred/oz025/yqin/bitbucket/meraxes/src/CMakeFiles/mlog.dir
+/fred/oz025/yqin/bitbucket/meraxes/src/CMakeFiles/meraxes.dir
+/fred/oz025/yqin/bitbucket/meraxes/src/CMakeFiles/setuprun.dir
+/fred/oz025/yqin/bitbucket/meraxes/src/CMakeFiles/install.meraxes.dir
+/fred/oz025/yqin/bitbucket/meraxes/src/CMakeFiles/edit_cache.dir
+/fred/oz025/yqin/bitbucket/meraxes/src/CMakeFiles/rebuild_cache.dir

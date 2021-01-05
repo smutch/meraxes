@@ -1,0 +1,4 @@
+FileNameGalaxies    : meraxes
+DefaultsFile        : /fred/oz025/yqin/bitbucket/meraxes/src/../input/parameter_files/Tiamat.par
+FileWithOutputSnaps : snaplist.txt
+OutputDir           : output

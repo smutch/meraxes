@@ -1,0 +1,2 @@
+/apps/skylake/software/core/binutils/2.30/bin/ar qc lib/libmlog.a  CMakeFiles/mlog.dir/mlog/mlog.c.o
+/apps/skylake/software/core/binutils/2.30/bin/ranlib lib/libmlog.a
