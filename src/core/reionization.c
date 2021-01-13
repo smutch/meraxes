@@ -24,7 +24,9 @@ void update_galaxy_fesc_vals(galaxy_t* gal, double new_stars, int snapshot)
   // redshift
   if ((params->EscapeFracDependency > 0) && (params->EscapeFracDependency <= 6))
     if (params->EscapeFracRedshiftScaling != 0.0)
-      fesc *= pow((1.0 + run_globals.ZZ[snapshot]) / 6.0, params->EscapeFracRedshiftScaling);
+      fesc *=
+        2.0 /
+        (1.0 + exp(params->EscapeFracRedshiftScaling * (run_globals.ZZ[snapshot] - params->EscapeFracRedshiftOffset)));
 
   // galaxy properties
   switch (params->EscapeFracDependency) {
@@ -70,8 +72,8 @@ void update_galaxy_fesc_vals(galaxy_t* gal, double new_stars, int snapshot)
       mlog_error("Unrecognised EscapeFracDependency parameter value.");
   }
 
-  if (fesc > params->EscapeFracMax)
-    fesc = params->EscapeFracMax;
+  if (fesc > 1.0)
+    fesc = 1.0;
   else if (fesc < 0.0)
     fesc = 0.0;
 
