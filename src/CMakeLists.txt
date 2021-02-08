@@ -108,7 +108,7 @@ if(USE_CUDA)
     # Pass options to NVCC
     set(CUDA_HOST_COMPILER ${CMAKE_CXX_COMPILER})
     set(CUDA_PROPAGATE_HOST_FLAGS ON)
-    set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -arch=sm_37")
+    set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -arch=sm_60")
 
     ################################################################################
     # This ugly hack is needed to work around a bug in the fftw3.h header file
