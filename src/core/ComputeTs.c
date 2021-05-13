@@ -317,9 +317,9 @@ void _ComputeTs(int snapshot)
             if(R_ct > 2 && sum_lyn[R_ct]==0.0 && sum_lyn[R_ct-1]>0. && first_radii) {
                 
                 // The current zpp for which we are getting zero contribution
-                trial_zpp_max = (prev_zpp - (R_values[R_ct] - prev_R)*CMperMPC / drdz(prev_zpp)+prev_zpp)*0.5;
+                trial_zpp_max = (prev_zpp - (R_values[R_ct] - prev_R)*MPC / drdz((float)prev_zpp)+prev_zpp)*0.5;
                 // The zpp for the previous radius for which we had a non-zero contribution
-                trial_zpp_min = (zpp_edge[R_ct-2] - (R_values[R_ct-1] - R_values[R_ct-2])*CMperMPC / drdz(zpp_edge[R_ct-2])+zpp_edge[R_ct-2])*0.5;
+                trial_zpp_min = (zpp_edge[R_ct-2] - (R_values[R_ct-1] - R_values[R_ct-2])*MPC / drdz((float)zpp_edge[R_ct-2])+zpp_edge[R_ct-2])*0.5;
                 
                 // Split the previous radii and current radii into n_pts_radii smaller radii (redshift) to have fine control of where
                 // it transitions from zero to non-zero
