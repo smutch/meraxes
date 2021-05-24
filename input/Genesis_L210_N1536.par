@@ -1,0 +1,194 @@
+#------------------------------------------
+#----- SA model output files --------------
+#------------------------------------------
+FileNameGalaxies : genesis_L210_N1536
+
+#------------------------------------------
+#----- Simulation input files  ------------
+#------------------------------------------
+SimName           : Genesis L210_N1536
+SimulationDir     : /fred/oz009/balu/meraxes_runs/UnAug/L210_N1536
+CatalogFilePrefix : VELOCIraptor.walkabletree.forestID.hdf5.0
+TreesID           : 0  # 0 -> VELOCIraptor; 1 -> gbpTrees
+BoxSize           : 210.0
+VolumeFactor      : 1.0
+
+#------------------------------------------
+#----- Code options -----------------------
+#------------------------------------------
+NSteps                 : 1  # Current version of code requires NSteps=1
+FlagInteractive        : 0
+FlagSubhaloVirialProps : 0  # 0 -> approximate subhalo virial props using particle number; 1 -> use catalogue values
+FlagMCMC               : 0  # Don't do any writing and activate MCMC related routines
+FlagIgnoreProgIndex    : 0
+RandomSeed             : 1809  # seed for random number generator
+
+#------------------------------------------
+#----- Parameters of physical model -------
+#------------------------------------------
+
+# ----- star formation -----
+SfDiskVelOpt               : 1    # disk velocity for SF law (1=Vmax, 2=Vvir)
+SfPrescription             : 1    # C06 SF law
+
+SfEfficiency              : 0.08    # star formation efficiency Normalization
+SfEfficiencyScaling       : 0.0     # star formation efficiency Scaling
+
+# ----------------------------------------------------------------
+# ----- Pressure-based SF law from Blitz & Rosolowski 2006 -------
+# ----------------------------------------------------------------
+# SfPrescription == 2 and
+# Different H2 Depletion Timescale:
+# 1) SfEfficiencyScaling = 0,    SfEfficiency = 0.15
+#    -> 2Gyr is sort of an average H2 depletion time (Bigiel+08, Leroy+09, Bigiel+11, Bollato+11, Saintonge+11) 
+# 2) SfEfficiencyScaling = 0,    SfEfficiency = 1.0
+#    -> 300Gyr is sort of an average H2 depletion time (Duffy+17)
+# 3) SfEfficiencyScaling = 1.06, SfEfficiency = 0.15
+#    -> 2Gyr at z=0 with redshift dependence SF timescale (Duffy+17)
+
+SfCriticalSDNorm          : 0.2     # critical surface density normalisation factor for star formation (internal units; standard=0.37)
+
+# ----- supernova feedback -----
+Flag_IRA                   : 0    # use the instantaneous recycling approximation
+Flag_ReheatToFOFGroupTemp  : 0    # try to reheat gas to the FOF group Tvir instead of just the subgroup value
+SfRecycleFraction         : 0.25    # instantaneous recycle fraction (IMF dependant) (only used when Flag_IRA=1)
+Yield                     : 0.03    # mass of metals injected into ISM per unit star formation (only used when Flag_IRA=1)
+
+# SnModel=1:
+#   -Use the Vmax scaling of Guo et al. 2011
+#   -Additional redshift factor of ((1 + z)/4)^SnEjectionRedshiftDep (SnReheatRedshiftDep)
+#   -SnReheatScaling2 and SnEjectionScaling2 are unused
+# SnModel=2:
+#   -Mass loading factor follows Muratov et al. 2015. Use SnReheatScaling for high Vmax scaling and
+#    SnReheatScaling2 for low Vmax scaling
+#   -Energy coupling efficiency follows a similar form. Use SnEjectionScaling for high Vmax scaling
+#    and SnEjectionScaling2 for low Vmax scaling
+#   -SnEjectionNorm and SnReheatNorm are forced to be the same, and the input SnEjectionNorm is
+#    unused
+#   -Both factors has redshift dependence of ((1 + z)/4)^SnEjectionRedshiftDep (SnReheatRedshiftDep)
+
+SnModel                   : 1
+SnEjectionRedshiftDep     : 0.0     # SN feedback gas reheating efficiency redshift scaling
+SnEjectionEff             : 0.5     # SN feedback gas reheating efficiency
+SnEjectionScaling         : 2.0     # SN feedback gas reheating efficiency scaling (with high Vmax)
+SnEjectionScaling2        : 2.0     # SN feedback gas reheating efficiency scaling (with low Vmax)
+SnEjectionNorm            : 70.0    # SN feedback gas reheating efficiency norm (with Vmax [internal units])
+
+SnReheatRedshiftDep       : 0.0     # mass loading factor redshift scaling
+SnReheatEff               : 10.0    # mass loading factor for SN feedback
+SnReheatLimit             : 10.0    # maximum allowed mass loading factor for SN feedback
+SnReheatScaling           : 0.0     # mass loading factor for SN feedback scaling (with high Vmax)
+SnReheatScaling2          : 0.0     # mass loading factor for SN feedback scaling2 (with low Vmax)
+SnReheatNorm              : 70.0    # mass loading factor for SN feedback scaling (with Vmax [internal units])
+
+# ----- cooling -----
+MaxCoolingMassFactor      : 1.0     # maximum cooling mass factor (1 -> ff time)
+
+# ----- reincorporation -----
+# ReincorporationModel=1:
+#   -Reincorporation time is proportional to the halo dynamic time
+# RecinorporationModel=2:
+#   -Reincorporation time scales with halo mass (Henriques et al. 2013), and is always larger than the
+#    halo dynamic time
+#   -ReincorporationEff adopts the definition in Henriques et al. 2013, which differs from the first case
+#    and should be in a unit of Myr
+ReincorporationModel      : 1
+ReincorporationEff        : 0.0     # gas reincorporation efficiency from ejected component
+
+# ----- mergers -----
+Flag_FixVmaxOnInfall       : 0    # fix Vmax upon infall
+Flag_FixDiskRadiusOnInfall : 0    # fix disk radius upon infall
+
+ThreshMajorMerger         : 0.3     # major merger when mass ratio greater than this
+MergerTimeFactor          : 0.5     # Multiplicitive fator for the merger timescales (2.0->DeLucia+; 1.0->Croton+)
+
+MinMergerStellarMass      : 1e-9    # Minimum stellar mass for a merger starburst and dynamical friction calc (internal units)
+MinMergerRatioForBurst    : 0.1     # Minimum mass ratio for merger driven star burst
+MergerBurstFactor         : 0.57    # Constant factor in merger burst equation
+MergerBurstScaling        : 0.7
+
+
+#----- BlackHole and Quasar -----
+Flag_BHFeedback           : 1
+
+RadioModeEff              : 0.3
+QuasarModeEff             : 0.0005
+BlackHoleGrowthRate       : 0.05
+
+EddingtonRatio            : 1.0
+BlackHoleSeed             : 1e-7
+BlackHoleMassLimitReion   : -1
+quasar_mode_scaling       : 0.0
+quasar_open_angle         : 80.0
+
+
+#----------------------------------------------
+#----- Reionization ---------------------------
+#----------------------------------------------
+
+Flag_ReionizationModifier  : 1    # 0: No modifier, 1: Sobacchi 21cmFAST modifier, 2: use halo mass dependant infall modifier of Gnedin, 3: precomputed (requires input file)
+
+# global prescriptions
+ReionSobacchi_Zre      : 9.3
+ReionSobacchi_DeltaZre : 1.0
+ReionSobacchi_DeltaZsc : 2.0
+ReionSobacchi_T0       : 5.0e4
+
+ReionGnedin_z0         : 8
+ReionGnedin_zr         : 7
+
+# patchy (21cmFAST) prescription
+Flag_PatchyReion       : 1  # Use 21cmFAST (ensure Flag_ReionizationModifier=1 if wish to couple to galaxy formation).
+Flag_OutputGrids       : 1
+Flag_OutputGridsPostReion  : 0
+
+ReionUVBFlag           : 1  # Use 21cmFAST (ensure Flag_ReionizationModifier=1 if wish to couple to galaxy formation).
+ReionGridDim           : 128
+ReionDeltaRFactor      : 1.1
+ReionFilterType        : 0
+ReionPowerSpecDeltaK   : 0.1
+ReionRtoMFilterType    : 0
+
+Y_He                   : 0.24
+ReionRBubbleMin        : 0.4068
+ReionRBubbleMax        : 20.34
+ReionGammaHaloBias     : 2.0
+ReionAlphaUV           : 5.0
+ReionAlphaUVBH         : 1.57
+
+EscapeFracDependency       : 1  # 0->none, 1->redshift, 2->stellar mass, 3->sfr, 4->cold gas surface density, 5->mvir, 6->ssfr
+EscapeFracNorm             : 0.06
+EscapeFracRedshiftScaling  : 0.5  # N.B. use EscapeFracDependency>1 and this = 0 to scale only with galaxy property (and not also with redshift)
+EscapeFracPropScaling      : 0.5
+EscapeFracBHNorm           : 1
+EscapeFracBHScaling        : 0
+
+ReionSMParam_m0        : 0.18984  # internal units
+ReionSMParam_a         : 0.17
+ReionSMParam_b         : -2.1
+ReionSMParam_c         : 2.0
+ReionSMParam_d         : 2.5
+
+ReionTcool             : 1.0e4  # Kelvin
+ReionNionPhotPerBary   : 4000
+
+
+#------------------------------------------------
+#----- Cosmological and nbody sim parameters ----
+#------------------------------------------------
+OmegaM: 0.3121
+OmegaK: 0.000
+OmegaLambda: 0.6879
+OmegaR: 0.0
+BaryonFrac: 0.15714
+Hubble_h: 0.6751
+SpectralIndex: 0.968
+Sigma8: 0.815
+PartMass: 0.02214359
+
+wLambda: -1.0
+NPart: 3623878656
+
+UnitLength_in_cm         : 3.08568e+24       # WATCH OUT : Mpc/h
+UnitMass_in_g            : 1.989e+43         # WATCH OUT : 10^10Msun/h
+UnitVelocity_in_cm_per_s : 100000            # WATCH OUT : km/s
