@@ -24,7 +24,7 @@ void check_mhysa_pointer()
 
 void mpi_debug_here()
 {
-#ifdef DEBUG
+#if defined(DEBUG) && defined(GDB)
   int i = 0;
   char hostname[256];
   gethostname(hostname, sizeof(hostname));

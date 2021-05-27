@@ -20,8 +20,14 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 # build options
 set(N_HISTORY_SNAPS 5 CACHE STRING "Number of snapshots for delayed SN feedback")
 add_definitions(-DN_HISTORY_SNAPS=${N_HISTORY_SNAPS})
+
 option(USE_BUNDLED_FFTW "Download and build against bundled fftw" OFF)
 option(BUILD_TESTS "Build criterion tests" OFF)
+
+option(GDB "Drop into GDB with mpi_debug_here() calls" OFF)
+if(GDB)
+    add_definitions(-DGDB)
+endif()
 
 # MAGNITUDES
 option(CALC_MAGS "Calculate magnitude" OFF)
@@ -32,7 +38,15 @@ add_definitions(-DMAGS_N_BANDS=${MAGS_N_BANDS})
 set(SECTOR_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/sector" CACHE PATH "Base directory of sector library")
 
 # Build type
-set(CMAKE_BUILD_TYPE "Debug" CACHE STRING "Build type.")
+set(default_build_type "Debug")
+if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
+  message(STATUS "Setting build type to '${default_build_type}' as none was specified.")
+  set(CMAKE_BUILD_TYPE "${default_build_type}" CACHE
+      STRING "Choose the type of build." FORCE)
+  # Set the possible values of build type for cmake-gui
+  set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS
+    "Debug" "Release" "MinSizeRel" "RelWithDebInfo")
+endif()
 if(CMAKE_BUILD_TYPE EQUAL "Debug" AND NOT BUILD_SHARED_LIBS)
     set(SANITIZE_FLAGS "-fsanitize=address,leak,undefined -fno-common -fno-omit-frame-pointer")
 else()

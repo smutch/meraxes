@@ -45,12 +45,12 @@ void _ComputeTs(int snapshot)
     nuprime, dzp, Luminosity_converstion_factor_GAL, Luminosity_converstion_factor_QSO;
   double collapse_fraction, density_over_mean;
 
-  // TODO(smutch): Can we reduce the scope of these variables and, if not, improve the names?
+  // TODO: Can we reduce the scope of these variables and, if not, improve the names?
   double weight = 0;
   bool first_radii = true;
   bool first_zero = true;
   int n_pts_radii = 1000;
-    
+
   float curr_xalpha;
   int TsNumFilterSteps = run_globals.params.TsNumFilterSteps;
 
@@ -361,39 +361,40 @@ void _ComputeTs(int snapshot)
       // Note: We do not apply this correction to the LW background as it is unaffected by this. It is only
       // the Lyn contribution that experiences the kink. Applying this correction to LW introduces kinks
       // into the otherwise smooth quantity
-      if(R_ct > 2 && sum_lyn[R_ct]==0.0 && sum_lyn[R_ct-1]>0. && first_radii) {
+      if (R_ct > 2 && sum_lyn[R_ct] == 0.0 && sum_lyn[R_ct - 1] > 0. && first_radii) {
 
         // The current zpp for which we are getting zero contribution
-        double trial_zpp_max = (prev_zpp - (R_values[R_ct] - prev_R)*MPC / drdz((float)prev_zpp)+prev_zpp)*0.5;
+        double trial_zpp_max = (prev_zpp - (R_values[R_ct] - prev_R) * MPC / drdz((float)prev_zpp) + prev_zpp) * 0.5;
         // The zpp for the previous radius for which we had a non-zero contribution
-        double trial_zpp_min = (zpp_edge[R_ct-2] - (R_values[R_ct-1] - R_values[R_ct-2])*MPC / drdz((float)zpp_edge[R_ct-2])+zpp_edge[R_ct-2])*0.5;
+        double trial_zpp_min =
+          (zpp_edge[R_ct - 2] - (R_values[R_ct - 1] - R_values[R_ct - 2]) * MPC / drdz((float)zpp_edge[R_ct - 2]) +
+           zpp_edge[R_ct - 2]) *
+          0.5;
 
-        // Split the previous radii and current radii into n_pts_radii smaller radii (redshift) to have fine control of where
-        // it transitions from zero to non-zero
-        // This is a coarse approximation as it assumes that the linear sampling is a good representation of the different
-        // volumes of the shells (from different radii).
-        for(int ii=0; ii<n_pts_radii; ii++) {
-          double trial_zpp = trial_zpp_min + (trial_zpp_max - trial_zpp_min)*(float)ii/((float)n_pts_radii-1.);
+        // Split the previous radii and current radii into n_pts_radii smaller radii (redshift) to have fine control of
+        // where it transitions from zero to non-zero This is a coarse approximation as it assumes that the linear
+        // sampling is a good representation of the different volumes of the shells (from different radii).
+        for (int ii = 0; ii < n_pts_radii; ii++) {
+          double trial_zpp = trial_zpp_min + (trial_zpp_max - trial_zpp_min) * (float)ii / ((float)n_pts_radii - 1.);
 
           int counter = 0;
-          for (n_ct=NSPEC_MAX; n_ct>=2; n_ct--){
+          for (n_ct = NSPEC_MAX; n_ct >= 2; n_ct--) {
             if (trial_zpp > zmax(zp, n_ct))
               continue;
 
             counter += 1;
           }
-          if(counter==0 && first_zero) {
+          if (counter == 0 && first_zero) {
             first_zero = false;
-            weight = (float)ii/(float)n_pts_radii;
+            weight = (float)ii / (float)n_pts_radii;
           }
         }
 
         // Now add a non-zero contribution to the previously zero contribution
         // The amount is the weight, multplied by the contribution from the previous radii
-        sum_lyn[R_ct] = weight * sum_lyn[R_ct-1];
+        sum_lyn[R_ct] = weight * sum_lyn[R_ct - 1];
         first_radii = false;
       }
-
     }
 
     growth_factor_zp = dicke(zp);
