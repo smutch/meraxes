@@ -2,6 +2,7 @@
 #include <hdf5_hl.h>
 #include <math.h>
 
+#include "debug.h"
 #include "meraxes.h"
 #include "misc_tools.h"
 #include "modifiers.h"
@@ -55,7 +56,7 @@ static int id_to_snap(long id)
   return (int)(id / 1e12l);
 }
 
-static void inline convert_input_virial_props(double* Mvir,
+inline static void convert_input_virial_props(double* Mvir,
                                               double* Rvir,
                                               double* Vvir,
                                               double* FOFMvirModifier,
@@ -133,7 +134,7 @@ void read_trees__velociraptor(int snapshot,
   *n_halos = 0;
   *n_fof_groups = 0;
 
-  int buffer_size = 10000; // NOTE: Arbitrary. Should match chunk size of arrays in file ideally.
+  int buffer_size = 10000; // NOTE: Arbitrary. Should be a multiple of the chunk size of arrays in file ideally?
   tree_entry_t* tree_entries = malloc(sizeof(tree_entry_t) * buffer_size);
 
   if (run_globals.mpi_rank == 0) {
@@ -163,20 +164,27 @@ void read_trees__velociraptor(int snapshot,
   MPI_Bcast(&n_tree_entries, 1, MPI_INT, 0, run_globals.mpi_comm);
 
   int n_read = 0;
-  int n_to_read = buffer_size;
+  int n_to_read = buffer_size > n_tree_entries ? n_tree_entries : buffer_size;
   while (n_read < n_tree_entries) {
-    {
-      int n_remaining = n_tree_entries - n_read;
-      if ((n_tree_entries - n_read) < buffer_size) {
-        n_to_read = n_remaining;
-      }
+    int n_remaining = n_tree_entries - n_read;
+    if (n_remaining < n_to_read) {
+      n_to_read = n_remaining;
     }
 
     if (run_globals.mpi_rank == 0) {
+
+      // select a hyperslab in the filespace
+      hid_t fspace_id = H5Screate_simple(1, (hsize_t[1]){ n_tree_entries }, NULL);
+      H5Sselect_hyperslab(fspace_id, H5S_SELECT_SET, (hsize_t[1]){ n_read }, NULL, (hsize_t[1]){ n_to_read }, NULL);
+      hid_t memspace_id = H5Screate_simple(1, (hsize_t[1]){ n_to_read }, NULL);
+
 #define READ_TREE_ENTRY_PROP(name, type, h5type)                                                                       \
   {                                                                                                                    \
-    H5LTread_dataset(snap_group, #name, h5type, property_buffer);                                                      \
-    for (int ii = 0; ii < n_tree_entries; ii++) {                                                                      \
+    hid_t dset_id = H5Dopen(snap_group, #name, H5P_DEFAULT);                                                           \
+    herr_t status = H5Dread(dset_id, h5type, memspace_id, fspace_id, H5P_DEFAULT, property_buffer);                    \
+    assert(status >= 0);                                                                                               \
+    H5Dclose(dset_id);                                                                                                 \
+    for (int ii = 0; ii < n_to_read; ii++) {                                                                           \
       tree_entries[ii].name = ((type*)property_buffer)[ii];                                                            \
     }                                                                                                                  \
   }
@@ -205,6 +213,9 @@ void read_trees__velociraptor(int snapshot,
       READ_TREE_ENTRY_PROP(ID, unsigned long, H5T_NATIVE_ULONG);
       READ_TREE_ENTRY_PROP(npart, unsigned long, H5T_NATIVE_ULONG);
 
+      H5Sclose(memspace_id);
+      H5Sclose(fspace_id);
+
       double hubble_h = run_globals.params.Hubble_h;
       for (int ii = 0; ii < n_to_read; ii++) {
         tree_entries[ii].Mass_200crit *= hubble_h * mass_unit_to_internal;
@@ -220,10 +231,9 @@ void read_trees__velociraptor(int snapshot,
         tree_entries[ii].Lx *= hubble_h * hubble_h * mass_unit_to_internal;
         tree_entries[ii].Ly *= hubble_h * hubble_h * mass_unit_to_internal;
         tree_entries[ii].Lz *= hubble_h * hubble_h * mass_unit_to_internal;
-#ifdef DEBUG
-        double box_size = run_globals.params.BoxSize;
 
         // TEMPORARY HACK
+        double box_size = run_globals.params.BoxSize;
         if (tree_entries[ii].Xc < 0.0)
           tree_entries[ii].Xc = 0.0;
         if (tree_entries[ii].Xc > box_size)
@@ -237,6 +247,7 @@ void read_trees__velociraptor(int snapshot,
         if (tree_entries[ii].Zc > box_size)
           tree_entries[ii].Zc = box_size;
 
+#ifdef DEBUG
         assert((tree_entries[ii].Xc <= box_size) && (tree_entries[ii].Xc >= 0.0));
         assert((tree_entries[ii].Yc <= box_size) && (tree_entries[ii].Yc >= 0.0));
         assert((tree_entries[ii].Zc <= box_size) && (tree_entries[ii].Zc >= 0.0));
