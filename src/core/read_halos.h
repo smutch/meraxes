@@ -21,7 +21,6 @@ extern "C"
                             halo_t* halo,
                             int n_halos,
                             fof_group_t* fof_group,
-                            int n_fof_groups,
                             int n_requested_forests,
                             int* n_halos_kept,
                             int* n_fof_groups_kept,

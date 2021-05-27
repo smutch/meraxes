@@ -2,6 +2,7 @@
 #include <hdf5_hl.h>
 #include <math.h>
 
+#include "debug.h"
 #include "meraxes.h"
 #include "misc_tools.h"
 #include "modifiers.h"
@@ -55,7 +56,7 @@ static int id_to_snap(long id)
   return (int)(id / 1e12l);
 }
 
-static void inline convert_input_virial_props(double* Mvir,
+inline static void convert_input_virial_props(double* Mvir,
                                               double* Rvir,
                                               double* Vvir,
                                               double* FOFMvirModifier,
@@ -83,14 +84,6 @@ static void inline convert_input_virial_props(double* Mvir,
   if (*Vvir == -1)
     *Vvir = calculate_Vvir(*Mvir, *Rvir);
 }
-
-#define READ_TREE_ENTRY_PROP(name, type, h5type)                                                                       \
-  {                                                                                                                    \
-    H5LTread_dataset(snap_group, #name, h5type, buffer);                                                               \
-    for (int ii = 0; ii < n_tree_entries; ii++) {                                                                      \
-      tree_entries[ii].name = ((type*)buffer)[ii];                                                                     \
-    }                                                                                                                  \
-  }
 
 void read_trees__velociraptor(int snapshot,
                               halo_t* halos,
@@ -131,17 +124,24 @@ void read_trees__velociraptor(int snapshot,
 
   mlog("Reading velociraptor trees for snapshot %d...", MLOG_OPEN, snapshot);
 
-  // analyzer assertions
-  assert(run_globals.mpi_rank >= 0);
-
-  tree_entry_t* tree_entries = NULL;
   int n_tree_entries = 0;
+  hid_t fd = -1;
+  hid_t snap_group = -1;
+  void* property_buffer = NULL;
+  double mass_unit_to_internal = 1.0;
+  double scale_factor = -999.;
+
+  *n_halos = 0;
+  *n_fof_groups = 0;
+
+  int buffer_size = 10000; // NOTE: Arbitrary. Should be a multiple of the chunk size of arrays in file ideally?
+  tree_entry_t* tree_entries = malloc(sizeof(tree_entry_t) * buffer_size);
 
   if (run_globals.mpi_rank == 0) {
     char fname[STRLEN * 2 + 8];
     sprintf(fname, "%s/trees/%s", run_globals.params.SimulationDir, run_globals.params.CatalogFilePrefix);
 
-    hid_t fd = H5Fopen(fname, H5F_ACC_RDONLY, H5P_DEFAULT);
+    fd = H5Fopen(fname, H5F_ACC_RDONLY, H5P_DEFAULT);
     if (fd < 0) {
       mlog("Failed to open file %s", MLOG_MESG, fname);
       ABORT(EXIT_FAILURE);
@@ -149,217 +149,243 @@ void read_trees__velociraptor(int snapshot,
 
     char snap_group_name[9];
     sprintf(snap_group_name, "Snap_%03d", snapshot);
-    hid_t snap_group = H5Gopen(fd, snap_group_name, H5P_DEFAULT);
+    snap_group = H5Gopen(fd, snap_group_name, H5P_DEFAULT);
 
     H5LTget_attribute_int(fd, snap_group_name, "NHalos", &n_tree_entries);
 
-    tree_entries = malloc(sizeof(tree_entry_t) * n_tree_entries);
-
-    void* buffer = malloc(n_tree_entries * sizeof(long));
-
-    // TODO(trees): Read tail.  If head<->tail then first progenitor line, else it's a merger.  We should populate the
-    // new halo and then do a standard merger prescription.
-
-    READ_TREE_ENTRY_PROP(ForestID, long, H5T_NATIVE_LONG);
-    READ_TREE_ENTRY_PROP(Head, long, H5T_NATIVE_LONG);
-    READ_TREE_ENTRY_PROP(Tail, long, H5T_NATIVE_LONG);
-    READ_TREE_ENTRY_PROP(hostHaloID, long, H5T_NATIVE_LONG);
-    READ_TREE_ENTRY_PROP(Mass_200crit, double, H5T_NATIVE_DOUBLE);
-    READ_TREE_ENTRY_PROP(Mass_FOF, double, H5T_NATIVE_DOUBLE);
-    READ_TREE_ENTRY_PROP(Mass_tot, double, H5T_NATIVE_DOUBLE);
-    READ_TREE_ENTRY_PROP(R_200crit, double, H5T_NATIVE_DOUBLE);
-    READ_TREE_ENTRY_PROP(Vmax, double, H5T_NATIVE_DOUBLE);
-    READ_TREE_ENTRY_PROP(Xc, double, H5T_NATIVE_DOUBLE);
-    READ_TREE_ENTRY_PROP(Yc, double, H5T_NATIVE_DOUBLE);
-    READ_TREE_ENTRY_PROP(Zc, double, H5T_NATIVE_DOUBLE);
-    READ_TREE_ENTRY_PROP(VXc, double, H5T_NATIVE_DOUBLE);
-    READ_TREE_ENTRY_PROP(VYc, double, H5T_NATIVE_DOUBLE);
-    READ_TREE_ENTRY_PROP(VZc, double, H5T_NATIVE_DOUBLE);
-    READ_TREE_ENTRY_PROP(Lx, double, H5T_NATIVE_DOUBLE);
-    READ_TREE_ENTRY_PROP(Ly, double, H5T_NATIVE_DOUBLE);
-    READ_TREE_ENTRY_PROP(Lz, double, H5T_NATIVE_DOUBLE);
-    READ_TREE_ENTRY_PROP(ID, unsigned long, H5T_NATIVE_ULONG);
-    READ_TREE_ENTRY_PROP(npart, unsigned long, H5T_NATIVE_ULONG);
-
-    free(buffer);
+    property_buffer = malloc(buffer_size * sizeof(long));
 
     // check the units
-    double mass_unit_to_internal = 1.0;
     H5LTget_attribute_double(fd, "Header/Units", "Mass_unit_to_solarmass", &mass_unit_to_internal);
     mass_unit_to_internal /= 1.0e10;
-
-    // convert units
-    double scale_factor = -999.;
     H5LTget_attribute_double(fd, snap_group_name, "scalefactor", &scale_factor);
-    double hubble_h = run_globals.params.Hubble_h;
-    for (int ii = 0; ii < n_tree_entries; ii++) {
-      tree_entries[ii].Mass_200crit *= hubble_h * mass_unit_to_internal;
-      tree_entries[ii].Mass_FOF *= hubble_h * mass_unit_to_internal;
-      tree_entries[ii].Mass_tot *= hubble_h * mass_unit_to_internal;
-      tree_entries[ii].R_200crit *= hubble_h;
-      tree_entries[ii].Xc *= hubble_h / scale_factor;
-      tree_entries[ii].Yc *= hubble_h / scale_factor;
-      tree_entries[ii].Zc *= hubble_h / scale_factor;
-      tree_entries[ii].VXc /= scale_factor;
-      tree_entries[ii].VYc /= scale_factor;
-      tree_entries[ii].VZc /= scale_factor;
-      tree_entries[ii].Lx *= hubble_h * hubble_h * mass_unit_to_internal;
-      tree_entries[ii].Ly *= hubble_h * hubble_h * mass_unit_to_internal;
-      tree_entries[ii].Lz *= hubble_h * hubble_h * mass_unit_to_internal;
-#ifdef DEBUG
-      double box_size = run_globals.params.BoxSize;
-
-      // TEMPORARY HACK
-      if (tree_entries[ii].Xc < 0.0)
-        tree_entries[ii].Xc = 0.0;
-      if (tree_entries[ii].Xc > box_size)
-        tree_entries[ii].Xc = box_size;
-      if (tree_entries[ii].Yc < 0.0)
-        tree_entries[ii].Yc = 0.0;
-      if (tree_entries[ii].Yc > box_size)
-        tree_entries[ii].Yc = box_size;
-      if (tree_entries[ii].Zc < 0.0)
-        tree_entries[ii].Zc = 0.0;
-      if (tree_entries[ii].Zc > box_size)
-        tree_entries[ii].Zc = box_size;
-
-      assert((tree_entries[ii].Xc <= box_size) && (tree_entries[ii].Xc >= 0.0));
-      assert((tree_entries[ii].Yc <= box_size) && (tree_entries[ii].Yc >= 0.0));
-      assert((tree_entries[ii].Zc <= box_size) && (tree_entries[ii].Zc >= 0.0));
-#endif
-    }
-
-    H5Gclose(snap_group);
-    H5Fclose(fd);
   }
 
   MPI_Bcast(&n_tree_entries, 1, MPI_INT, 0, run_globals.mpi_comm);
-  size_t _nbytes = sizeof(tree_entry_t) * n_tree_entries;
-  if (run_globals.mpi_rank > 0)
-    tree_entries = malloc(_nbytes);
-  MPI_Bcast(tree_entries, (int)_nbytes, MPI_BYTE, 0, run_globals.mpi_comm);
 
-  *n_halos = 0;
-  *n_fof_groups = 0;
-  for (int ii = 0; ii < n_tree_entries; ++ii) {
-    bool keep_this_halo = true;
+  int n_read = 0;
+  int n_to_read = buffer_size > n_tree_entries ? n_tree_entries : buffer_size;
+  while (n_read < n_tree_entries) {
+    int n_remaining = n_tree_entries - n_read;
+    if (n_remaining < n_to_read) {
+      n_to_read = n_remaining;
+    }
 
-    if ((run_globals.RequestedForestId != NULL) && (bsearch(&(tree_entries[ii].ForestID),
-                                                            run_globals.RequestedForestId,
-                                                            (size_t)run_globals.NRequestedForests,
-                                                            sizeof(long),
-                                                            compare_longs)) == NULL)
-      keep_this_halo = false;
+    if (run_globals.mpi_rank == 0) {
 
-    if (keep_this_halo) {
-      tree_entry_t tree_entry = tree_entries[ii];
-      halo_t* halo = &(halos[*n_halos]);
+      // select a hyperslab in the filespace
+      hid_t fspace_id = H5Screate_simple(1, (hsize_t[1]){ n_tree_entries }, NULL);
+      H5Sselect_hyperslab(fspace_id, H5S_SELECT_SET, (hsize_t[1]){ n_read }, NULL, (hsize_t[1]){ n_to_read }, NULL);
+      hid_t memspace_id = H5Screate_simple(1, (hsize_t[1]){ n_to_read }, NULL);
 
-      halo->ID = tree_entry.ID;
-      halo->DescIndex = id_to_ind(tree_entry.Head);
+#define READ_TREE_ENTRY_PROP(name, type, h5type)                                                                       \
+  {                                                                                                                    \
+    hid_t dset_id = H5Dopen(snap_group, #name, H5P_DEFAULT);                                                           \
+    herr_t status = H5Dread(dset_id, h5type, memspace_id, fspace_id, H5P_DEFAULT, property_buffer);                    \
+    assert(status >= 0);                                                                                               \
+    H5Dclose(dset_id);                                                                                                 \
+    for (int ii = 0; ii < n_to_read; ii++) {                                                                           \
+      tree_entries[ii].name = ((type*)property_buffer)[ii];                                                            \
+    }                                                                                                                  \
+  }
 
-      if (run_globals.params.FlagIgnoreProgIndex)
-        halo->ProgIndex = -1;
-      else
-        halo->ProgIndex = id_to_ind(tree_entry.Tail);
+      // TODO(trees): Read tail.  If head<->tail then first progenitor line, else it's a merger.  We should populate the
+      // new halo and then do a standard merger prescription.
 
-      halo->NextHaloInFOFGroup = NULL;
-      halo->Type = tree_entry.hostHaloID == -1 ? 0 : 1;
-      halo->SnapOffset = id_to_snap(tree_entry.Head) - snapshot;
+      READ_TREE_ENTRY_PROP(ForestID, long, H5T_NATIVE_LONG);
+      READ_TREE_ENTRY_PROP(Head, long, H5T_NATIVE_LONG);
+      READ_TREE_ENTRY_PROP(Tail, long, H5T_NATIVE_LONG);
+      READ_TREE_ENTRY_PROP(hostHaloID, long, H5T_NATIVE_LONG);
+      READ_TREE_ENTRY_PROP(Mass_200crit, double, H5T_NATIVE_DOUBLE);
+      READ_TREE_ENTRY_PROP(Mass_FOF, double, H5T_NATIVE_DOUBLE);
+      READ_TREE_ENTRY_PROP(Mass_tot, double, H5T_NATIVE_DOUBLE);
+      READ_TREE_ENTRY_PROP(R_200crit, double, H5T_NATIVE_DOUBLE);
+      READ_TREE_ENTRY_PROP(Vmax, double, H5T_NATIVE_DOUBLE);
+      READ_TREE_ENTRY_PROP(Xc, double, H5T_NATIVE_DOUBLE);
+      READ_TREE_ENTRY_PROP(Yc, double, H5T_NATIVE_DOUBLE);
+      READ_TREE_ENTRY_PROP(Zc, double, H5T_NATIVE_DOUBLE);
+      READ_TREE_ENTRY_PROP(VXc, double, H5T_NATIVE_DOUBLE);
+      READ_TREE_ENTRY_PROP(VYc, double, H5T_NATIVE_DOUBLE);
+      READ_TREE_ENTRY_PROP(VZc, double, H5T_NATIVE_DOUBLE);
+      READ_TREE_ENTRY_PROP(Lx, double, H5T_NATIVE_DOUBLE);
+      READ_TREE_ENTRY_PROP(Ly, double, H5T_NATIVE_DOUBLE);
+      READ_TREE_ENTRY_PROP(Lz, double, H5T_NATIVE_DOUBLE);
+      READ_TREE_ENTRY_PROP(ID, unsigned long, H5T_NATIVE_ULONG);
+      READ_TREE_ENTRY_PROP(npart, unsigned long, H5T_NATIVE_ULONG);
 
-      // Any other tree flags need to be set using both the current and
-      // progenitor halo information (stored in the galaxy), therefore we
-      // need to leave setting those until later...
-      if (run_globals.params.FlagIgnoreProgIndex)
-        halo->TreeFlags = TREE_CASE_NO_PROGENITORS;
-      else
-        halo->TreeFlags = tree_entry.Tail != tree_entry.ID ? 0 : TREE_CASE_NO_PROGENITORS;
+      H5Sclose(memspace_id);
+      H5Sclose(fspace_id);
 
-      // Here we have a cyclic pointer, indicating that this halo's life ends here
-      if (tree_entry.Head == tree_entry.ID)
-        halo->DescIndex = -1;
+      double hubble_h = run_globals.params.Hubble_h;
+      for (int ii = 0; ii < n_to_read; ii++) {
+        tree_entries[ii].Mass_200crit *= hubble_h * mass_unit_to_internal;
+        tree_entries[ii].Mass_FOF *= hubble_h * mass_unit_to_internal;
+        tree_entries[ii].Mass_tot *= hubble_h * mass_unit_to_internal;
+        tree_entries[ii].R_200crit *= hubble_h;
+        tree_entries[ii].Xc *= hubble_h / scale_factor;
+        tree_entries[ii].Yc *= hubble_h / scale_factor;
+        tree_entries[ii].Zc *= hubble_h / scale_factor;
+        tree_entries[ii].VXc /= scale_factor;
+        tree_entries[ii].VYc /= scale_factor;
+        tree_entries[ii].VZc /= scale_factor;
+        tree_entries[ii].Lx *= hubble_h * hubble_h * mass_unit_to_internal;
+        tree_entries[ii].Ly *= hubble_h * hubble_h * mass_unit_to_internal;
+        tree_entries[ii].Lz *= hubble_h * hubble_h * mass_unit_to_internal;
 
-      if (index_lookup)
-        index_lookup[*n_halos] = ii;
+        // TEMPORARY HACK
+        double box_size = run_globals.params.BoxSize;
+        if (tree_entries[ii].Xc < 0.0)
+          tree_entries[ii].Xc = 0.0;
+        if (tree_entries[ii].Xc > box_size)
+          tree_entries[ii].Xc = box_size;
+        if (tree_entries[ii].Yc < 0.0)
+          tree_entries[ii].Yc = 0.0;
+        if (tree_entries[ii].Yc > box_size)
+          tree_entries[ii].Yc = box_size;
+        if (tree_entries[ii].Zc < 0.0)
+          tree_entries[ii].Zc = 0.0;
+        if (tree_entries[ii].Zc > box_size)
+          tree_entries[ii].Zc = box_size;
 
-      // TODO: What masses and radii should I use for centrals (inclusive vs. exclusive etc.)?
-      if (halo->Type == 0) {
-        fof_group_t* fof_group = &fof_groups[*n_fof_groups];
+#ifdef DEBUG
+        assert((tree_entries[ii].Xc <= box_size) && (tree_entries[ii].Xc >= 0.0));
+        assert((tree_entries[ii].Yc <= box_size) && (tree_entries[ii].Yc >= 0.0));
+        assert((tree_entries[ii].Zc <= box_size) && (tree_entries[ii].Zc >= 0.0));
+#endif
+      }
+    }
 
-        if (tree_entry.Mass_200crit <= 0) {
-          // This "halo" is not above the virial threshold!  Use
-          // proxy masses, but flag this fact so we know not to do
-          // any or allow any hot halo to exist.
-          halo->TreeFlags |= TREE_CASE_BELOW_VIRIAL_THRESHOLD;
-          fof_group->Mvir = tree_entry.Mass_FOF;
-          fof_group->Rvir = -1;
-          // } else if (tree_entry.Mass_200crit < tree_entry.Mass_tot){
-          // // The central subhalo has a proxy mass larger than the FOF
-          // // group. Entirely possible for non-virialised and relaxed
-          // // halos but doesn't really lead to internal consistency.
-          // // Let's therefore just set the FOF virial mass to be that
-          // // central subhalo proxy mass.
-          // fof_group->Mvir = tree_entry.Mass_FOF;
-          // fof_group->Rvir = -1;
-        } else {
-          fof_group->Mvir = tree_entry.Mass_200crit;
-          fof_group->Rvir = tree_entry.R_200crit;
-        }
-        fof_group->Vvir = -1;
-        fof_group->FOFMvirModifier = 1.0;
+    size_t _nbytes = sizeof(tree_entry_t) * n_to_read;
+    MPI_Bcast(tree_entries, (int)_nbytes, MPI_BYTE, 0, run_globals.mpi_comm);
 
-        convert_input_virial_props(
-          &fof_group->Mvir, &fof_group->Rvir, &fof_group->Vvir, &fof_group->FOFMvirModifier, -1, snapshot, true);
+    for (int ii = 0; ii < n_to_read; ++ii) {
+      bool keep_this_halo = true;
 
-        halo->FOFGroup = &(fof_groups[*n_fof_groups]);
-        fof_groups[(*n_fof_groups)++].FirstHalo = halo;
-      } else {
-        // We can take advantage of the fact that host halos always
-        // seem to appear before their subhalos (checked below) in the
-        // trees to immediately connect FOF group members.
-        int host_index = id_to_ind(tree_entry.hostHaloID);
+      if ((run_globals.RequestedForestId != NULL) && (bsearch(&(tree_entries[ii].ForestID),
+                                                              run_globals.RequestedForestId,
+                                                              (size_t)run_globals.NRequestedForests,
+                                                              sizeof(long),
+                                                              compare_longs)) == NULL)
+        keep_this_halo = false;
+
+      if (keep_this_halo) {
+        tree_entry_t tree_entry = tree_entries[ii];
+        halo_t* halo = &(halos[*n_halos]);
+
+        halo->ID = tree_entry.ID;
+        halo->DescIndex = id_to_ind(tree_entry.Head);
+
+        if (run_globals.params.FlagIgnoreProgIndex)
+          halo->ProgIndex = -1;
+        else
+          halo->ProgIndex = id_to_ind(tree_entry.Tail);
+
+        halo->NextHaloInFOFGroup = NULL;
+        halo->Type = tree_entry.hostHaloID == -1 ? 0 : 1;
+        halo->SnapOffset = id_to_snap(tree_entry.Head) - snapshot;
+
+        // Any other tree flags need to be set using both the current and
+        // progenitor halo information (stored in the galaxy), therefore we
+        // need to leave setting those until later...
+        if (run_globals.params.FlagIgnoreProgIndex)
+          halo->TreeFlags = TREE_CASE_NO_PROGENITORS;
+        else
+          halo->TreeFlags = (unsigned long)tree_entry.Tail != tree_entry.ID ? 0 : TREE_CASE_NO_PROGENITORS;
+
+        // Here we have a cyclic pointer, indicating that this halo's life ends here
+        if ((unsigned long)tree_entry.Head == tree_entry.ID)
+          halo->DescIndex = -1;
 
         if (index_lookup)
-          host_index = find_original_index(host_index, index_lookup, *n_halos);
+          index_lookup[*n_halos] = ii + n_read;
 
-        assert(host_index > -1);
-        assert(host_index < *n_halos);
+        // TODO: What masses and radii should I use for centrals (inclusive vs. exclusive etc.)?
+        if (halo->Type == 0) {
+          fof_group_t* fof_group = &fof_groups[*n_fof_groups];
 
-        halo_t* prev_halo = &halos[host_index];
-        halo->FOFGroup = prev_halo->FOFGroup;
+          if (tree_entry.Mass_200crit <= 0) {
+            // This "halo" is not above the virial threshold!  Use
+            // proxy masses, but flag this fact so we know not to do
+            // any or allow any hot halo to exist.
+            halo->TreeFlags |= TREE_CASE_BELOW_VIRIAL_THRESHOLD;
+            fof_group->Mvir = tree_entry.Mass_FOF;
+            fof_group->Rvir = -1;
+            // } else if (tree_entry.Mass_200crit < tree_entry.Mass_tot){
+            // // The central subhalo has a proxy mass larger than the FOF
+            // // group. Entirely possible for non-virialised and relaxed
+            // // halos but doesn't really lead to internal consistency.
+            // // Let's therefore just set the FOF virial mass to be that
+            // // central subhalo proxy mass.
+            // fof_group->Mvir = tree_entry.Mass_FOF;
+            // fof_group->Rvir = -1;
+          } else {
+            fof_group->Mvir = tree_entry.Mass_200crit;
+            fof_group->Rvir = tree_entry.R_200crit;
+          }
+          fof_group->Vvir = -1;
+          fof_group->FOFMvirModifier = 1.0;
 
-        while (prev_halo->NextHaloInFOFGroup != NULL)
-          prev_halo = prev_halo->NextHaloInFOFGroup;
+          convert_input_virial_props(
+            &fof_group->Mvir, &fof_group->Rvir, &fof_group->Vvir, &fof_group->FOFMvirModifier, -1, snapshot, true);
 
-        prev_halo->NextHaloInFOFGroup = halo;
+          halo->FOFGroup = &(fof_groups[*n_fof_groups]);
+          fof_groups[(*n_fof_groups)++].FirstHalo = halo;
+        } else {
+          // We can take advantage of the fact that host halos always
+          // seem to appear before their subhalos (checked below) in the
+          // trees to immediately connect FOF group members.
+          int host_index = id_to_ind(tree_entry.hostHaloID);
+
+          if (index_lookup)
+            host_index = find_original_index(host_index, index_lookup, *n_halos);
+
+          assert(host_index > -1);
+          assert(host_index < *n_halos);
+
+          halo_t* prev_halo = &halos[host_index];
+          halo->FOFGroup = prev_halo->FOFGroup;
+
+          while (prev_halo->NextHaloInFOFGroup != NULL)
+            prev_halo = prev_halo->NextHaloInFOFGroup;
+
+          prev_halo->NextHaloInFOFGroup = halo;
+        }
+
+        halo->Len = (int)tree_entry.npart;
+        halo->Pos[0] = (float)tree_entry.Xc;
+        halo->Pos[1] = (float)tree_entry.Yc;
+        halo->Pos[2] = (float)tree_entry.Zc;
+        halo->Vel[0] = (float)tree_entry.VXc;
+        halo->Vel[1] = (float)tree_entry.VYc;
+        halo->Vel[2] = (float)tree_entry.VZc;
+        halo->Vmax = (float)tree_entry.Vmax;
+
+        // TODO: What masses and radii should I use for satellites (inclusive vs. exclusive etc.)?
+        halo->Mvir = tree_entry.Mass_tot;
+        halo->Rvir = -1;
+        halo->Vvir = -1;
+        convert_input_virial_props(&halo->Mvir, &halo->Rvir, &halo->Vvir, NULL, -1, snapshot, false);
+
+        halo->AngMom[0] = (float)(tree_entry.Lx / tree_entry.Mass_tot);
+        halo->AngMom[1] = (float)(tree_entry.Ly / tree_entry.Mass_tot);
+        halo->AngMom[2] = (float)(tree_entry.Lz / tree_entry.Mass_tot);
+
+        halo->Galaxy = NULL;
+
+        (*n_halos)++;
       }
-
-      halo->Len = (int)tree_entry.npart;
-      halo->Pos[0] = (float)tree_entry.Xc;
-      halo->Pos[1] = (float)tree_entry.Yc;
-      halo->Pos[2] = (float)tree_entry.Zc;
-      halo->Vel[0] = (float)tree_entry.VXc;
-      halo->Vel[1] = (float)tree_entry.VYc;
-      halo->Vel[2] = (float)tree_entry.VZc;
-      halo->Vmax = (float)tree_entry.Vmax;
-
-      // TODO: What masses and radii should I use for satellites (inclusive vs. exclusive etc.)?
-      halo->Mvir = tree_entry.Mass_tot;
-      halo->Rvir = -1;
-      halo->Vvir = -1;
-      convert_input_virial_props(&halo->Mvir, &halo->Rvir, &halo->Vvir, NULL, -1, snapshot, false);
-
-      halo->AngMom[0] = (float)(tree_entry.Lx / tree_entry.Mass_tot);
-      halo->AngMom[1] = (float)(tree_entry.Ly / tree_entry.Mass_tot);
-      halo->AngMom[2] = (float)(tree_entry.Lz / tree_entry.Mass_tot);
-
-      halo->Galaxy = NULL;
-
-      (*n_halos)++;
     }
+
+    n_read += n_to_read;
   }
 
   free(tree_entries);
+
+  if (run_globals.mpi_rank == 0) {
+    free(property_buffer);
+    H5Gclose(snap_group);
+    H5Fclose(fd);
+  }
 
   mlog("...done", MLOG_CLOSE);
 }
