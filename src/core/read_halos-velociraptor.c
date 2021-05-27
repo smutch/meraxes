@@ -297,7 +297,7 @@ void read_trees__velociraptor(int snapshot,
           halo->DescIndex = -1;
 
         if (index_lookup)
-          index_lookup[*n_halos] = ii;
+          index_lookup[*n_halos] = ii + n_read;
 
         // TODO: What masses and radii should I use for centrals (inclusive vs. exclusive etc.)?
         if (halo->Type == 0) {
