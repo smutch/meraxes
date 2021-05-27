@@ -20,8 +20,14 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 # build options
 set(N_HISTORY_SNAPS 5 CACHE STRING "Number of snapshots for delayed SN feedback")
 add_definitions(-DN_HISTORY_SNAPS=${N_HISTORY_SNAPS})
+
 option(USE_BUNDLED_FFTW "Download and build against bundled fftw" OFF)
 option(BUILD_TESTS "Build criterion tests" OFF)
+
+option(GDB "Drop into GDB with mpi_debug_here() calls" OFF)
+if(GDB)
+    add_definitions(-DGDB)
+endif()
 
 # MAGNITUDES
 option(CALC_MAGS "Calculate magnitude" OFF)
