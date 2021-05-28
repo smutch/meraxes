@@ -2,11 +2,11 @@
 # See https://pre-commit.com/hooks.html for more hooks
 repos:
 -   repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v2.4.0
+    rev: v4.0.1
     hooks:
     -   id: check-added-large-files
 -   repo: git://github.com/doublify/pre-commit-clang-format
-    rev: master
+    rev: 62302476d0da01515660132d76902359bed0f782
     hooks:
     -   id: clang-format
         files: '\.(c|cpp|h|hh|hpp|cu)$'
