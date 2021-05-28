@@ -16,8 +16,6 @@ int evolve_galaxies(fof_group_t* fof_group, int snapshot, int NGal, int NFof)
   halo_t* halo = NULL;
   int gal_counter = 0;
   int dead_gals = 0;
-  double infalling_gas = 0;
-  double cooling_mass = 0;
   int NSteps = run_globals.params.NSteps;
   bool Flag_IRA = (bool)(run_globals.params.physics.Flag_IRA);
 
@@ -25,12 +23,13 @@ int evolve_galaxies(fof_group_t* fof_group, int snapshot, int NGal, int NFof)
   // pre-calculate feedback tables for each lookback snapshot
   compute_stellar_feedback_tables(snapshot);
 
+#pragma omp parallel for schedule(dynamic) default(shared) firstprivate(gal, halo, NSteps, Flag_IRA) reduction(+:gal_counter,dead_gals)
   for (int i_fof = 0; i_fof < NFof; i_fof++) {
     // First check to see if this FOF group is empty.  If it is then skip it.
     if (fof_group[i_fof].FirstOccupiedHalo == NULL)
       continue;
 
-    infalling_gas = gas_infall(&(fof_group[i_fof]), snapshot);
+    double infalling_gas = gas_infall(&(fof_group[i_fof]), snapshot);
 
     for (int i_step = 0; i_step < NSteps; i_step++) {
       halo = fof_group[i_fof].FirstHalo;
@@ -39,7 +38,7 @@ int evolve_galaxies(fof_group_t* fof_group, int snapshot, int NGal, int NFof)
 
         while (gal != NULL) {
           if (gal->Type == 0) {
-            cooling_mass = gas_cooling(gal);
+            double cooling_mass = gas_cooling(gal);
 
             add_infall_to_hot(gal, infalling_gas / ((double)NSteps));
 

@@ -237,6 +237,10 @@ target_link_libraries(meraxes_lib PRIVATE m)
 find_package(MPI REQUIRED)
 target_link_libraries(meraxes_lib PUBLIC MPI::MPI_C)
 
+# OpenMP
+find_package(OpenMP REQUIRED)
+target_link_libraries(meraxes_lib PRIVATE OpenMP::OpenMP_C)
+
 # MAGNITUDES
 if(CALC_MAGS)
     add_definitions(-DCALC_MAGS)

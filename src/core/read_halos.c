@@ -216,7 +216,6 @@ static void select_forests()
           final_counts[jj++] = 0;
         }
         assert(forest_ids[jj] == run_globals.RequestedForestId[ii]);
-      }
     }
 
     // We'll use this for a check below

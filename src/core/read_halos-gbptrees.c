@@ -364,7 +364,11 @@ void read_trees__gbptrees(int snapshot,
       if (tmp_size > group_buffer_size)
         group_buffer_size = tmp_size;
     }
-  MPI_Bcast(&group_buffer_size, 1, MPI_INT, 0, run_globals.mpi_comm);
+
+  if (run_globals.mpi_size > 1) {
+    MPI_Bcast(&group_buffer_size, 1, MPI_INT, 0, run_globals.mpi_comm);
+  }
+
   mlog("Using group buffer size = %d", MLOG_MESG, group_buffer_size);
   group_buffer = malloc(sizeof(catalog_halo_t) * group_buffer_size);
 
@@ -420,8 +424,11 @@ void read_trees__gbptrees(int snapshot,
                          n_groups - i_group,
                          0);
     }
-    MPI_Bcast(catalog_buffer, n_to_read * sizeof(catalog_halo_t), MPI_BYTE, 0, run_globals.mpi_comm);
-    MPI_Bcast(group_buffer, n_groups * sizeof(catalog_halo_t), MPI_BYTE, 0, run_globals.mpi_comm);
+
+    if (run_globals.mpi_size > 1) {
+      MPI_Bcast(catalog_buffer, n_to_read * sizeof(catalog_halo_t), MPI_BYTE, 0, run_globals.mpi_comm);
+      MPI_Bcast(group_buffer, n_groups * sizeof(catalog_halo_t), MPI_BYTE, 0, run_globals.mpi_comm);
+    }
 
     // paste the data into the halo structures
     for (int jj = 0; jj < n_to_read; jj++) {
@@ -560,8 +567,10 @@ trees_info_t read_trees_info__gbptrees(int snapshot)
     H5Fclose(fd);
   }
 
-  // broadcast the tree file info
-  MPI_Bcast(&trees_info, sizeof(trees_info_t), MPI_BYTE, 0, run_globals.mpi_comm);
+  if (run_globals.mpi_size > 1) {
+    // broadcast the tree file info
+    MPI_Bcast(&trees_info, sizeof(trees_info_t), MPI_BYTE, 0, run_globals.mpi_comm);
+  }
 
   return trees_info;
 }

@@ -40,8 +40,10 @@ trees_info_t read_trees_info__velociraptor(const int snapshot)
     H5Fclose(fd);
   }
 
-  // broadcast the snapshot info
-  MPI_Bcast(&trees_info, sizeof(trees_info_t), MPI_BYTE, 0, run_globals.mpi_comm);
+  if (run_globals.mpi_size > 1) {
+    // broadcast the snapshot info
+    MPI_Bcast(&trees_info, sizeof(trees_info_t), MPI_BYTE, 0, run_globals.mpi_comm);
+  }
 
   return trees_info;
 }
@@ -161,7 +163,9 @@ void read_trees__velociraptor(int snapshot,
     H5LTget_attribute_double(fd, snap_group_name, "scalefactor", &scale_factor);
   }
 
-  MPI_Bcast(&n_tree_entries, 1, MPI_INT, 0, run_globals.mpi_comm);
+  if (run_globals.mpi_size > 1) {
+    MPI_Bcast(&n_tree_entries, 1, MPI_INT, 0, run_globals.mpi_comm);
+  }
 
   int n_read = 0;
   int n_to_read = buffer_size > n_tree_entries ? n_tree_entries : buffer_size;
@@ -255,8 +259,10 @@ void read_trees__velociraptor(int snapshot,
       }
     }
 
-    size_t _nbytes = sizeof(tree_entry_t) * n_to_read;
-    MPI_Bcast(tree_entries, (int)_nbytes, MPI_BYTE, 0, run_globals.mpi_comm);
+    if (run_globals.mpi_size > 1) {
+      size_t _nbytes = sizeof(tree_entry_t) * n_to_read;
+      MPI_Bcast(tree_entries, (int)_nbytes, MPI_BYTE, 0, run_globals.mpi_comm);
+    }
 
     for (int ii = 0; ii < n_to_read; ++ii) {
       bool keep_this_halo = true;
