@@ -1,9 +1,9 @@
 #define _MAIN
+#include "../core/parse_paramfile.h"
 #include <criterion/criterion.h>
 #include <criterion/parameterized.h>
 #include <meraxes.h>
 #include <mpi.h>
-#include "../core/parse_paramfile.h"
 
 void setup(void)
 {
