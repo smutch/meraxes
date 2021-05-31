@@ -23,7 +23,7 @@ int evolve_galaxies(fof_group_t* fof_group, int snapshot, int NGal, int NFof)
   // pre-calculate feedback tables for each lookback snapshot
   compute_stellar_feedback_tables(snapshot);
 
-#pragma omp parallel for default(shared) firstprivate(gal, halo, NSteps, Flag_IRA) reduction(+ : gal_counter, dead_gals)
+#pragma omp parallel for default(none) firstprivate(gal, halo, NSteps, Flag_IRA, NFof, fof_group, snapshot) reduction(+ : gal_counter, dead_gals)
   for (int i_fof = 0; i_fof < NFof; i_fof++) {
     // First check to see if this FOF group is empty.  If it is then skip it.
     if (fof_group[i_fof].FirstOccupiedHalo == NULL)

@@ -213,7 +213,7 @@ void dracarys()
     // galaxies have merged into haloes that don't have galaxies.  What do
     // do in this situation is debatable.  If we want to assume that these
     // empty halos could have formed galaxies before the merger event, then
-    // this for loop must appear before the follwing while loop.  If we
+    // this for loop must appear before the following while loop.  If we
     // want to assume that these halos wouldn't have formed galaxies then
     // it should come after the while loop...
     for (int i_fof = 0; i_fof < trees_info.n_fof_groups; i_fof++) {
@@ -235,30 +235,33 @@ void dracarys()
     // Loop through each galaxy and set the merger clocks for new infallers
     // now that all other galaxies have been processed and their halo
     // pointers updated...
-    gal = run_globals.FirstGal;
-
-    while (gal != NULL) {
-      if ((gal->Type == 2) && (gal->MergerTarget == NULL)) {
-        // Set the merger target of the incoming galaxy and initialise the
-        // merger clock.  Note that we *increment* the clock immediately
-        // after calculating it. This is because we will decrement the clock
-        // (by the same amount) when checking for mergers in evolve.c
-        gal->MergerTarget = gal->FirstGalInHalo;
-        gal->MergTime = calculate_merging_time(gal, snapshot);
-        gal->MergTime += gal->dt;
-      }
-      gal = gal->Next;
-    }
-
-    // Calculate the first occupied halo
+    // Also calculate the first occupied halo in each FOF group at the same time.
+#pragma omp parallel for default(none) firstprivate(trees_info, snapshot, fof_group)
     for (int i_fof = 0; i_fof < trees_info.n_fof_groups; i_fof++) {
       fof_group[i_fof].FirstOccupiedHalo = NULL;
       halo_t* cur_halo = fof_group[i_fof].FirstHalo;
+
       while (cur_halo != NULL) {
-        if (cur_halo->Galaxy != NULL) {
+        galaxy_t* gal = cur_halo->Galaxy;
+
+        if ((cur_halo->Galaxy != NULL) && (fof_group[i_fof].FirstOccupiedHalo == NULL))
           fof_group[i_fof].FirstOccupiedHalo = cur_halo;
-          break;
+
+        while (gal != NULL) {
+
+          if ((gal->Type == 2) && (gal->MergerTarget == NULL)) {
+            // Set the merger target of the incoming galaxy and initialise the
+            // merger clock.  Note that we *increment* the clock immediately
+            // after calculating it. This is because we will decrement the clock
+            // (by the same amount) when checking for mergers in evolve.c
+            gal->MergerTarget = gal->FirstGalInHalo;
+            gal->MergTime = calculate_merging_time(gal, snapshot);
+            gal->MergTime += gal->dt;
+          }
+
+          gal = gal->NextGalInHalo;
         }
+
         cur_halo = cur_halo->NextHaloInFOFGroup;
       }
     }
@@ -267,6 +270,8 @@ void dracarys()
     // all galaxies with type<2, passively evolving ghosts, and updating the dt
     // values for non-ghosts.
     gal = run_globals.FirstGal;
+#pragma omp parallel
+#pragma omp single nowait
     while (gal != NULL) {
       if ((gal->Halo == NULL) && (!gal->ghost_flag)) {
         mlog_error("We missed a galaxy during processing!");
@@ -276,13 +281,14 @@ void dracarys()
         ABORT(EXIT_FAILURE);
       }
 
-      if (!gal->ghost_flag)
+      if (!gal->ghost_flag) {
         gal->dt /= (double)NSteps;
-      else
+        if (gal->Type < 2)
+          copy_halo_props_to_galaxy(gal->Halo, gal);
+      } else {
+#pragma omp task default(none) firstprivate(gal, snapshot)
         passively_evolve_ghost(gal, snapshot);
-
-      if ((gal->Type < 2) && (!gal->ghost_flag))
-        copy_halo_props_to_galaxy(gal->Halo, gal);
+      }
 
       gal = gal->Next;
     }
