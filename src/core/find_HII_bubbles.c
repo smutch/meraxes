@@ -2,13 +2,13 @@
 #include <fftw3-mpi.h>
 #include <math.h>
 
-#include "XRayHeatingFunctions.h"
 #include "meraxes.h"
 #include "meraxes_gpu.h"
 #include "misc_tools.h"
 #include "recombinations.h"
 #include "reionization.h"
 #include "utils.h"
+#include "xray_heating_functions.h"
 
 /*
  * This code is a re-write of the modified version of 21cmFAST used in Mutch et

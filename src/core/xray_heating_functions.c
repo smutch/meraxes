@@ -27,7 +27,7 @@
 
 // TODO: Remove global variables here!
 #define _XRAY_HEATING_FUNCTIONS_C
-#include "XRayHeatingFunctions.h"
+#include "xray_heating_functions.h"
 
 static double *sigma_atR, *sigma_Tmin, *ST_over_PS;
 static int NO_LIGHT;

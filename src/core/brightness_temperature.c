@@ -4,11 +4,11 @@
 #include <fftw3.h>
 #include <math.h>
 
-#include "BrightnessTemperature.h"
-#include "XRayHeatingFunctions.h"
+#include "brightness_temperature.h"
 #include "meraxes.h"
 #include "misc_tools.h"
 #include "reionization.h"
+#include "xray_heating_functions.h"
 
 /*
  * This code computes the 21cm brightness temperature, which is somewhat

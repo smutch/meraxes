@@ -4,7 +4,7 @@
 #include <hdf5_hl.h>
 #include <math.h>
 
-#include "ComputeTs.h"
+#include "compute_Ts.h"
 #include "find_HII_bubbles.h"
 #include "meraxes.h"
 #include "misc_tools.h"

@@ -7,9 +7,9 @@
  */
 
 #include "recombinations.h"
-#include "XRayHeatingFunctions.h"
 #include "meraxes.h"
 #include "reionization.h"
+#include "xray_heating_functions.h"
 
 static double A_table[A_NPTS], A_params[A_NPTS];
 static gsl_interp_accel* A_acc;

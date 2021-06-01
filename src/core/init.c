@@ -2,8 +2,8 @@
 #include <gsl/gsl_integration.h>
 #include <time.h>
 
-#include "ComputePowerSpectrum.h"
-#include "ConstructLightcone.h"
+#include "compute_power_spectrum.h"
+#include "construct_lightcone.h"
 #include "cooling.h"
 #include "init.h"
 #include "magnitudes.h"

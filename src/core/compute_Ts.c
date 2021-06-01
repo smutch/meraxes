@@ -3,13 +3,13 @@
 #include <fftw3-mpi.h>
 #include <math.h>
 
-#include "ComputeTs.h"
-#include "XRayHeatingFunctions.h"
+#include "compute_Ts.h"
 #include "find_HII_bubbles.h"
 #include "meraxes.h"
 #include "misc_tools.h"
 #include "reionization.h"
 #include "utils.h"
+#include "xray_heating_functions.h"
 
 /*
  * This code is a re-write of the spin temperature calculation (Ts.c) within 21cmFAST.

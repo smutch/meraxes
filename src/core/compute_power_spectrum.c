@@ -4,7 +4,7 @@
 #include <fftw3.h>
 #include <math.h>
 
-#include "ComputePowerSpectrum.h"
+#include "compute_power_spectrum.h"
 #include "meraxes.h"
 #include "misc_tools.h"
 
