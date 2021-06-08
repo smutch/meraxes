@@ -40,25 +40,6 @@ static fof_group_t* init_fof_groups()
   return fof_groups;
 }
 
-static void reorder_forest_array(int* arr, const size_t* sort_ind, int n_forests, int* temp)
-{
-  assert(arr != NULL);
-  memcpy(temp, arr, sizeof(int) * n_forests);
-  for (int ii = 0, jj = n_forests - 1; ii < n_forests; ii++, jj--)
-    arr[ii] = temp[sort_ind[jj]];
-}
-
-static void reorder_forest_longs(long* arr, const size_t* sort_ind, int n_forests, long* temp)
-{
-  assert(arr != NULL);
-  if (temp == NULL)
-    temp = (long*)malloc(n_forests * sizeof(long));
-  memcpy(temp, arr, sizeof(long) * n_forests);
-  for (int ii = 0, jj = n_forests - 1; ii < n_forests; ii++, jj--)
-    arr[ii] = temp[sort_ind[jj]];
-  free(temp);
-}
-
 /**
  * Dump the RequestedForestId lists for all ranks.
  */
@@ -150,7 +131,6 @@ static void select_forests()
 
   if (run_globals.mpi_rank == 0) {
     char fname[STRLEN + 34];
-    char info_grp_name[30];
 
     switch (run_globals.params.TreesID) {
       case VELOCIRAPTOR_TREES:
@@ -171,7 +151,17 @@ static void select_forests()
     }
 
     // find out how many forests there are
-    H5LTget_attribute_int(fd, info_grp_name, "n_forests", &n_forests);
+    switch (run_globals.params.TreesID) {
+      case GBPTREES_TREES:
+        H5LTget_attribute_int(fd, "info", "n_forests", &n_forests);
+        break;
+      case VELOCIRAPTOR_TREES:
+        H5LTget_attribute_int(fd, "forests", "n_forests", &n_forests);
+        break;
+      default:
+        mlog_error("Unrecognised TreesID parameter.");
+        break;
+    }
 
     // read in the total halo counts for each forest at the last snapshot
     int last_snap = 0;
@@ -216,8 +206,8 @@ static void select_forests()
     }
 
     // We'll use this for a check below
-    uint64_t true_total = 0;
-    for (uint32_t ii = 0; ii < n_forests; ++ii) {
+    unsigned long true_total = 0;
+    for (int ii = 0; ii < n_forests; ++ii) {
       true_total += final_counts[ii];
     }
 
@@ -241,9 +231,9 @@ static void select_forests()
     rank_max_contemp_halo = calloc(run_globals.mpi_size, sizeof(int));
     rank_max_contemp_fof = calloc(run_globals.mpi_size, sizeof(int));
 
-    uint32_t* rank_counts = calloc(run_globals.mpi_size, sizeof(uint32_t));
-    uint32_t* rank_argsort_ind = malloc(run_globals.mpi_size * sizeof(uint32_t));
-    for (uint32_t ii = 0; ii < run_globals.mpi_size; ++ii) {
+    int* rank_counts = calloc(run_globals.mpi_size, sizeof(int));
+    int* rank_argsort_ind = malloc(run_globals.mpi_size * sizeof(int));
+    for (int ii = 0; ii < run_globals.mpi_size; ++ii) {
       rank_argsort_ind[ii] = ii;
     }
 
@@ -258,7 +248,6 @@ static void select_forests()
     H5Eget_auto(estack_id, &old_func, &old_client_data);
     H5Eset_auto(estack_id, NULL, NULL);
 
-    puts("Calculating forest placements...");
     for (int snap = 0; snap < last_snap + 1; ++snap) {
       char dset_name[128] = { '\0' };
       sprintf(dset_name, "snapshots/snap_%03d", snap);
@@ -300,8 +289,8 @@ static void select_forests()
     H5Eset_auto(estack_id, old_func, old_client_data);
 
     // Do a quick sanity check
-    uint64_t total = 0;
-    for (uint32_t ii = 0; ii < run_globals.mpi_size; ++ii) {
+    unsigned long total = 0;
+    for (int ii = 0; ii < run_globals.mpi_size; ++ii) {
       total += rank_counts[ii];
     }
     assert(total == true_total);
