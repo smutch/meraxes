@@ -121,8 +121,6 @@ static void select_forests()
   // them, and then potentially split them amongst cores
   mlog("Calling select_forests()...", MLOG_MESG | MLOG_TIMERSTART);
 
-  // TODO: Deal with if there is already a list of requested forest_ids
-
   int* rank_n_assigned = NULL;
   long* assigned_ids = NULL;
   int* rank_max_contemp_halo = 0;
@@ -205,13 +203,28 @@ static void select_forests()
       }
     }
 
+    // If we have requested forest IDs already (ie. read in from a file) then
+    // we will set the final_counts of all forest IDs not in this list to zero.
+    // WARNING: This block is not well (if at all!) tested!!!
+    // NOTE: This method assumes that forest_id is sorted by value.
+    if (run_globals.RequestedForestId != NULL) {
+      qsort(run_globals.RequestedForestId, (size_t)run_globals.NRequestedForests, sizeof(long), compare_longs);
+      int jj = 0;
+      for (int ii = 0; ii < run_globals.NRequestedForests; ++ii) {
+        while (forest_ids[jj] < run_globals.RequestedForestId[ii]) {
+          final_counts[jj++] = 0;
+        }
+        assert(forest_ids[jj] == run_globals.RequestedForestId[ii]);
+      }
+    }
+
     // We'll use this for a check below
     unsigned long true_total = 0;
     for (int ii = 0; ii < n_forests; ++ii) {
       true_total += final_counts[ii];
     }
 
-    // sort the final counts and store the sort indices (descending order)
+    // indirectly sort the final counts and store the sort indices (descending order)
     size_t* sort_ind = calloc(n_forests, sizeof(size_t));
     gsl_sort_int_index(sort_ind, final_counts, 1, n_forests);
     {
