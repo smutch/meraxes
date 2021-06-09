@@ -177,7 +177,6 @@ static void select_forests()
     {
       int* temp_ids;
       char dset_name[128] = { '\0' };
-      sprintf(dset_name, "snapshots/snap_%03d", last_snap);
 
       switch (run_globals.params.TreesID) {
         case GBPTREES_TREES:
@@ -189,12 +188,14 @@ static void select_forests()
           free(temp_ids);
           H5LTread_dataset_int(fd, "info/max_contemporaneous_halos", max_contemp_halo);
           H5LTread_dataset_int(fd, "info/max_contemporaneous_fof_groups", max_contemp_fof);
+          sprintf(dset_name, "snapshots/snap_%03d", last_snap);
           H5LTread_dataset_int(fd, dset_name, final_counts);
           break;
         case VELOCIRAPTOR_TREES:
           H5LTread_dataset_long(fd, "forests/forest_ids", forest_ids);
           H5LTread_dataset_int(fd, "forests/max_contemporaneous_halos", max_contemp_halo);
           H5LTread_dataset_int(fd, "forests/max_contemporaneous_fof_groups", max_contemp_fof);
+          sprintf(dset_name, "snapshots/Snap%03d", last_snap);
           H5LTread_dataset_int(fd, dset_name, final_counts);
           break;
         default:
@@ -263,7 +264,17 @@ static void select_forests()
 
     for (int snap = 0; snap < last_snap + 1; ++snap) {
       char dset_name[128] = { '\0' };
-      sprintf(dset_name, "snapshots/snap_%03d", snap);
+      switch (run_globals.params.TreesID) {
+        case GBPTREES_TREES:
+          sprintf(dset_name, "snapshots/snap_%03d", snap);
+          break;
+        case VELOCIRAPTOR_TREES:
+          sprintf(dset_name, "snapshots/Snap%03d", snap);
+          break;
+        default:
+          mlog_error("Unrecognised input trees identifier (TreesID).");
+          break;
+      }
 
       herr_t status = H5LTread_dataset_int(fd, dset_name, snap_counts);
       if (status < 0) {
