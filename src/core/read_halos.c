@@ -40,25 +40,6 @@ static fof_group_t* init_fof_groups()
   return fof_groups;
 }
 
-static void reorder_forest_array(int* arr, const size_t* sort_ind, int n_forests, int* temp)
-{
-  assert(arr != NULL);
-  memcpy(temp, arr, sizeof(int) * n_forests);
-  for (int ii = 0, jj = n_forests - 1; ii < n_forests; ii++, jj--)
-    arr[ii] = temp[sort_ind[jj]];
-}
-
-static void reorder_forest_longs(long* arr, const size_t* sort_ind, int n_forests, long* temp)
-{
-  assert(arr != NULL);
-  if (temp == NULL)
-    temp = (long*)malloc(n_forests * sizeof(long));
-  memcpy(temp, arr, sizeof(long) * n_forests);
-  for (int ii = 0, jj = n_forests - 1; ii < n_forests; ii++, jj--)
-    arr[ii] = temp[sort_ind[jj]];
-  free(temp);
-}
-
 /**
  * Dump the RequestedForestId lists for all ranks.
  */
@@ -140,22 +121,21 @@ static void select_forests()
   // them, and then potentially split them amongst cores
   mlog("Calling select_forests()...", MLOG_MESG | MLOG_TIMERSTART);
 
-  // if this is the master rank then read in the forest info
-  int *max_contemp_halo = NULL, *max_contemp_fof = NULL, *n_halos = NULL;
-  long* forest_ids = NULL;
+  int* rank_n_assigned = NULL;
+  long* assigned_ids = NULL;
+  int* rank_max_contemp_halo = 0;
+  int* rank_max_contemp_fof = 0;
   int n_forests = 0;
+
   if (run_globals.mpi_rank == 0) {
     char fname[STRLEN + 34];
-    char grp_name[30];
 
     switch (run_globals.params.TreesID) {
       case VELOCIRAPTOR_TREES:
         sprintf(fname, "%s/trees/meraxes_augmented_stats.h5", run_globals.params.SimulationDir);
-        strcpy(grp_name, "forests\0");
         break;
       case GBPTREES_TREES:
         sprintf(fname, "%s/trees/forests_info.hdf5", run_globals.params.SimulationDir);
-        strcpy(grp_name, "info\0");
         break;
       default:
         mlog_error("Unrecognised input trees identifier (TreesID).");
@@ -169,222 +149,213 @@ static void select_forests()
     }
 
     // find out how many forests there are
-    H5LTget_attribute_int(fd, grp_name, "n_forests", &n_forests);
+    switch (run_globals.params.TreesID) {
+      case GBPTREES_TREES:
+        H5LTget_attribute_int(fd, "info", "n_forests", &n_forests);
+        break;
+      case VELOCIRAPTOR_TREES:
+        H5LTget_attribute_int(fd, "forests", "n_forests", &n_forests);
+        break;
+      default:
+        mlog_error("Unrecognised TreesID parameter.");
+        break;
+    }
 
-    // allocate the arrays
-    max_contemp_halo = (int*)malloc(sizeof(int) * n_forests);
-    max_contemp_fof = (int*)malloc(sizeof(int) * n_forests);
-    forest_ids = (long*)malloc(sizeof(long) * n_forests);
-    n_halos = (int*)malloc(sizeof(int) * n_forests);
+    // read in the total halo counts for each forest at the last snapshot
+    int last_snap = 0;
+    for (int ii = 0; ii < run_globals.NOutputSnaps; ii++) {
+      if (run_globals.ListOutputSnaps[ii] > last_snap) {
+        last_snap = run_globals.ListOutputSnaps[ii];
+      }
+    }
 
-    // read in the max number of contemporaneous halos and groups and the forest ids
-    hid_t grp = H5Gopen2(fd, grp_name, H5P_DEFAULT);
-    H5LTread_dataset_int(grp, "max_contemporaneous_halos", max_contemp_halo);
-    H5LTread_dataset_int(grp, "max_contemporaneous_fof_groups", max_contemp_fof);
+    long* forest_ids = (long*)malloc(sizeof(long) * n_forests);
+    int* final_counts = (int*)malloc(sizeof(int) * n_forests);
+    int* max_contemp_halo = (int*)malloc(sizeof(int) * n_forests);
+    int* max_contemp_fof = (int*)malloc(sizeof(int) * n_forests);
 
     {
       int* temp_ids;
+      char dset_name[128] = { '\0' };
+      sprintf(dset_name, "snapshots/snap_%03d", last_snap);
+
       switch (run_globals.params.TreesID) {
         case GBPTREES_TREES:
           temp_ids = (int*)malloc(sizeof(int) * n_forests);
-          H5LTread_dataset_int(grp, "forest_id", temp_ids);
-          for (int ii = 0; ii < n_forests; ++ii)
+          H5LTread_dataset_int(fd, "info/forest_id", temp_ids);
+          for (int ii = 0; ii < n_forests; ++ii) {
             forest_ids[ii] = (long)temp_ids[ii];
+          }
           free(temp_ids);
+          H5LTread_dataset_int(fd, "info/max_contemporaneous_halos", max_contemp_halo);
+          H5LTread_dataset_int(fd, "info/max_contemporaneous_fof_groups", max_contemp_fof);
+          H5LTread_dataset_int(fd, dset_name, final_counts);
           break;
         case VELOCIRAPTOR_TREES:
-          H5LTread_dataset_long(grp, "forest_ids", forest_ids);
+          H5LTread_dataset_long(fd, "forests/forest_ids", forest_ids);
+          H5LTread_dataset_int(fd, "forests/max_contemporaneous_halos", max_contemp_halo);
+          H5LTread_dataset_int(fd, "forests/max_contemporaneous_fof_groups", max_contemp_fof);
+          H5LTread_dataset_int(fd, dset_name, final_counts);
           break;
         default:
           mlog_error("Unrecognised TreesID parameter.");
           break;
       }
     }
-    H5LTread_dataset_int(grp, "n_halos", n_halos);
-    H5Gclose(grp);
 
-    // close the file
-    H5Fclose(fd);
-  }
-
-  // broadcast the forest info
-  MPI_Bcast(&n_forests, 1, MPI_INT, 0, run_globals.mpi_comm);
-  if (run_globals.mpi_rank > 0) {
-    max_contemp_halo = (int*)malloc(sizeof(int) * n_forests);
-    max_contemp_fof = (int*)malloc(sizeof(int) * n_forests);
-    forest_ids = (long*)malloc(sizeof(long) * n_forests);
-    n_halos = (int*)malloc(sizeof(int) * n_forests);
-  }
-  MPI_Bcast(max_contemp_halo, n_forests, MPI_INT, 0, run_globals.mpi_comm);
-  MPI_Bcast(max_contemp_fof, n_forests, MPI_INT, 0, run_globals.mpi_comm);
-  MPI_Bcast(forest_ids, n_forests, MPI_LONG, 0, run_globals.mpi_comm);
-  MPI_Bcast(n_halos, n_forests, MPI_INT, 0, run_globals.mpi_comm);
-
-  // if we have read in a list of requested forest IDs then use these to create
-  // an array of indices pointing to the elements we want
-  int* requested_ind;
-  int n_halos_tot = 0;
-  if (run_globals.RequestedForestId != NULL) {
-    requested_ind = calloc((size_t)run_globals.NRequestedForests, sizeof(int));
-    for (int i_forest = 0, i_req = 0; (i_forest < n_forests) && (i_req < run_globals.NRequestedForests); i_forest++)
-      if (forest_ids[i_forest] == run_globals.RequestedForestId[i_req]) {
-        requested_ind[i_req] = i_forest;
-        n_halos_tot += n_halos[i_forest];
-        i_req++;
-      }
-  } else {
-    // if we haven't asked for any specific forest IDs then just fill the
-    // requested ind array sequentially
-    requested_ind = (int*)calloc((size_t)n_forests, sizeof(int));
-    for (int i_req = 0; i_req < n_forests; i_req++) {
-      n_halos_tot += n_halos[i_req];
-      requested_ind[i_req] = i_req;
-    }
-  }
-
-  // sort the forests by the number of halos in each one
-  size_t* sort_ind = malloc(sizeof(size_t) * n_forests);
-  gsl_sort_int_index(sort_ind, n_halos, 1, (const size_t)n_forests);
-  int* temp = malloc(sizeof(int) * n_forests);
-
-  reorder_forest_longs(forest_ids, sort_ind, n_forests, NULL);
-  reorder_forest_array(max_contemp_halo, sort_ind, n_forests, temp);
-  reorder_forest_array(max_contemp_fof, sort_ind, n_forests, temp);
-  reorder_forest_array(n_halos, sort_ind, n_forests, temp);
-
-  // also rearrange the sampled forest indices if need be
-  if (run_globals.RequestedForestId != NULL) {
-    int* rank = (int*)malloc(sizeof(int) * n_forests);
-    for (int ii = 0; ii < n_forests; ii++)
-      rank[sort_ind[ii]] = ii;
-
-    for (int ii = 0; ii < run_globals.NRequestedForests; ii++)
-      requested_ind[ii] = n_forests - 1 - rank[requested_ind[ii]];
-
-    free(rank);
-
-    // from this point on we are only concerned with what is on / going to each
-    // core, therefore we can reset n_forests appropriately
-    n_forests = run_globals.NRequestedForests;
-  }
-
-  free(temp);
-  free(sort_ind);
-
-  // if we are running the code with more than one core, let's subselect the
-  // forests on each one
-  if (run_globals.mpi_size > 1) {
-    if (n_forests < run_globals.mpi_size) {
-      mlog_error("There are fewer processors than there are forests to be processed "
-                 "(%d).  Try again with fewer cores!",
-                 n_forests);
-      ABORT(EXIT_FAILURE);
-    }
-
-    // TODO: Load balancing still seems pretty bad.
-    // This should be looked into to see if there are any improvements that can
-    // be made.  This would hopefully improve runtimes...
-
-    // malloc the arrays we need for keeping track of the load balancing
-    int* rank_first_forest = (int*)malloc(sizeof(int) * run_globals.mpi_size);
-    int* rank_last_forest = (int*)malloc(sizeof(int) * run_globals.mpi_size);
-    int* rank_n_forests = (int*)malloc(sizeof(int) * run_globals.mpi_size);
-    int* rank_n_halos = (int*)malloc(sizeof(int) * run_globals.mpi_size);
-
-    // initialise
-    for (int ii = 0; ii < run_globals.mpi_size; ii++) {
-      rank_first_forest[ii] = 0;
-      rank_last_forest[ii] = 0;
-      rank_n_forests[ii] = 0;
-      rank_n_halos[ii] = 0;
-    }
-
-    // loop through each rank
-    int i_forest = 0;
-    for (int i_rank = 0, n_halos_used = 0, n_halos_target = 0; i_rank < run_globals.mpi_size; i_rank++, i_forest++) {
-      // start with the next forest (or first forest if this is the first rank)
-      rank_first_forest[i_rank] = i_forest;
-      rank_last_forest[i_rank] = i_forest;
-
-      // if we still have forests left to check from the total list of forests
-      if (i_forest < n_forests) {
-        // add this forest's halos to this rank's total
-        rank_n_halos[i_rank] += n_halos[requested_ind[i_forest]];
-
-        // adjust our target to smooth out variations as much as possible
-        n_halos_target = (n_halos_tot - n_halos_used) / (run_globals.mpi_size - i_rank);
-
-        // increment the counter of the number of forests on this rank
-        rank_n_forests[i_rank]++;
-
-        // keep adding forests until we have reached (or exceeded) the current
-        // target
-        while ((rank_n_halos[i_rank] < n_halos_target) && (i_forest < (n_forests - 1))) {
-          i_forest++;
-          rank_n_forests[i_rank]++;
-          rank_last_forest[i_rank] = i_forest;
-          rank_n_halos[i_rank] += n_halos[requested_ind[i_forest]];
+    // If we have requested forest IDs already (ie. read in from a file) then
+    // we will set the final_counts of all forest IDs not in this list to zero.
+    // WARNING: This block is not well (if at all!) tested!!!
+    // NOTE: This method assumes that forest_id is sorted by value.
+    if (run_globals.RequestedForestId != NULL) {
+      qsort(run_globals.RequestedForestId, (size_t)run_globals.NRequestedForests, sizeof(long), compare_longs);
+      int jj = 0;
+      for (int ii = 0; ii < run_globals.NRequestedForests; ++ii) {
+        while (forest_ids[jj] < run_globals.RequestedForestId[ii]) {
+          final_counts[jj++] = 0;
         }
-
-        // updated the total number of used halos
-        n_halos_used += rank_n_halos[i_rank];
+        assert(forest_ids[jj] == run_globals.RequestedForestId[ii]);
       }
     }
 
-    // add any uncounted forests to the last process
-    // n.b. i_forest = value from last for loop
-    for (i_forest++; i_forest < n_forests; i_forest++) {
-      rank_last_forest[run_globals.mpi_size - 1] = i_forest;
-      rank_n_halos[run_globals.mpi_size - 1] += n_halos[requested_ind[i_forest]];
-      rank_n_forests[run_globals.mpi_size - 1]++;
+    // We'll use this for a check below
+    unsigned long true_total = 0;
+    for (int ii = 0; ii < n_forests; ++ii) {
+      true_total += final_counts[ii];
     }
 
-    assert(rank_n_forests[run_globals.mpi_rank] > 0);
+    // indirectly sort the final counts and store the sort indices (descending order)
+    size_t* sort_ind = calloc(n_forests, sizeof(size_t));
+    gsl_sort_int_index(sort_ind, final_counts, 1, n_forests);
+    {
+      int ii = 0;
+      int jj = 0;
+      while (ii < jj) {
+        int tmp = sort_ind[ii];
+        sort_ind[ii] = sort_ind[jj];
+        sort_ind[jj] = tmp;
+        ii++;
+        jj--;
+      }
+    }
 
-    // create our list of forest_ids for this rank
-    run_globals.NRequestedForests = rank_n_forests[run_globals.mpi_rank];
-    if (run_globals.RequestedForestId != NULL)
-      run_globals.RequestedForestId =
-        realloc(run_globals.RequestedForestId, run_globals.NRequestedForests * sizeof(long));
-    else
-      run_globals.RequestedForestId = (long*)malloc(sizeof(long) * run_globals.NRequestedForests);
+    rank_n_assigned = calloc(run_globals.mpi_size, sizeof(int));
+    assigned_ids = calloc(n_forests * run_globals.mpi_size, sizeof(long));
+    rank_max_contemp_halo = calloc(run_globals.mpi_size, sizeof(int));
+    rank_max_contemp_fof = calloc(run_globals.mpi_size, sizeof(int));
 
-    for (int ii = rank_first_forest[run_globals.mpi_rank], jj = 0; ii <= rank_last_forest[run_globals.mpi_rank];
-         ii++, jj++)
-      run_globals.RequestedForestId[jj] = (long)forest_ids[requested_ind[ii]];
+    int* rank_counts = calloc(run_globals.mpi_size, sizeof(int));
+    int* rank_argsort_ind = malloc(run_globals.mpi_size * sizeof(int));
+    for (int ii = 0; ii < run_globals.mpi_size; ++ii) {
+      rank_argsort_ind[ii] = ii;
+    }
 
-    // free the arrays
-    free(rank_n_halos);
-    free(rank_n_forests);
-    free(rank_last_forest);
-    free(rank_first_forest);
+    int* snap_counts = NULL;
+    snap_counts = calloc(n_forests, sizeof(int));
+    assert(snap_counts != NULL);
+
+    // Save old hdf5 error handler and turn off error handling
+    herr_t (*old_func)(long, void*) = NULL;
+    void* old_client_data = NULL;
+    hid_t estack_id = 0;
+    H5Eget_auto(estack_id, &old_func, &old_client_data);
+    H5Eset_auto(estack_id, NULL, NULL);
+
+    for (int snap = 0; snap < last_snap + 1; ++snap) {
+      char dset_name[128] = { '\0' };
+      sprintf(dset_name, "snapshots/snap_%03d", snap);
+
+      herr_t status = H5LTread_dataset_int(fd, dset_name, snap_counts);
+      if (status < 0) {
+        continue;
+      }
+
+      // loop through non-zero counts
+      for (int ii = 0; ii < n_forests; ++ii) {
+        int jj = sort_ind[ii];
+
+        if ((snap_counts[jj] > 0) && (final_counts[jj] > 0)) {
+
+          // first appearance!
+          int rank = rank_argsort_ind[0];
+          rank_counts[rank] += final_counts[jj];
+          assigned_ids[rank * n_forests + rank_n_assigned[rank]] = forest_ids[jj];
+          rank_n_assigned[rank]++;
+          final_counts[jj] = 0;
+
+          rank_max_contemp_halo[rank] += max_contemp_halo[jj];
+          rank_max_contemp_fof[rank] += max_contemp_fof[jj];
+
+          // keep the rank_argsort_inds correct
+          for (int kk = 1; kk < run_globals.mpi_size; ++kk) {
+            if (rank_counts[rank_argsort_ind[kk]] < rank_counts[rank_argsort_ind[kk - 1]]) {
+              int tmp = rank_argsort_ind[kk];
+              rank_argsort_ind[kk] = rank_argsort_ind[kk - 1];
+              rank_argsort_ind[kk - 1] = tmp;
+            }
+          }
+        }
+      }
+    }
+
+    // Restore previous hdf5 error handler
+    H5Eset_auto(estack_id, old_func, old_client_data);
+
+    // Do a quick sanity check
+    unsigned long total = 0;
+    for (int ii = 0; ii < run_globals.mpi_size; ++ii) {
+      total += rank_counts[ii];
+    }
+    assert(total == true_total);
+
+    free(snap_counts);
+    free(rank_argsort_ind);
+    free(rank_counts);
+    free(sort_ind);
+    free(max_contemp_fof);
+    free(max_contemp_halo);
+    free(final_counts);
+    free(forest_ids);
+
+    H5Fclose(fd);
+  } // mpi_rank = 0
+
+  // let all ranks know what their forest ID lists are
+  MPI_Scatter(rank_n_assigned, 1, MPI_INT, &run_globals.NRequestedForests, 1, MPI_INT, 0, run_globals.mpi_comm);
+  if (run_globals.RequestedForestId != NULL)
+    run_globals.RequestedForestId =
+      realloc(run_globals.RequestedForestId, run_globals.NRequestedForests * sizeof(long));
+  else
+    run_globals.RequestedForestId = (long*)malloc(sizeof(long) * run_globals.NRequestedForests);
+
+  int* displs = calloc(run_globals.mpi_size, sizeof(int));
+  for (int ii = 0; ii < run_globals.mpi_size; ++ii) {
+    displs[ii] = ii * n_forests;
   }
+  MPI_Scatterv(assigned_ids,
+               rank_n_assigned,
+               displs,
+               MPI_LONG,
+               run_globals.RequestedForestId,
+               run_globals.NRequestedForests,
+               MPI_LONG,
+               0,
+               run_globals.mpi_comm);
+  free(displs);
 
-  assert(run_globals.RequestedForestId != NULL);
+  // let all ranks know what their max allocation counts are
+  MPI_Scatter(rank_max_contemp_halo, 1, MPI_INT, &run_globals.NHalosMax, 1, MPI_INT, 0, run_globals.mpi_comm);
+  MPI_Scatter(rank_max_contemp_fof, 1, MPI_INT, &run_globals.NFOFGroupsMax, 1, MPI_INT, 0, run_globals.mpi_comm);
 
-  // loop through and tot up the max number of halos and fof_groups we will need
-  // to allocate
-  int max_halos = 0;
-  int max_fof_groups = 0;
-  for (int i_forest = 0, i_req = 0; (i_forest < n_forests) && (i_req < run_globals.NRequestedForests); i_forest++)
-    if (forest_ids[requested_ind[i_forest]] == run_globals.RequestedForestId[i_req]) {
-      max_halos += max_contemp_halo[requested_ind[i_forest]];
-      max_fof_groups += max_contemp_fof[requested_ind[i_forest]];
-      i_req++;
-    }
-
-  // store the maximum number of halos and fof groups needed at any one snapshot
-  run_globals.NHalosMax = max_halos;
-  run_globals.NFOFGroupsMax = max_fof_groups;
+  if (run_globals.mpi_rank == 0) {
+    free(rank_max_contemp_fof);
+    free(rank_max_contemp_halo);
+    free(assigned_ids);
+    free(rank_n_assigned);
+  }
 
   // sort the requested forest ids so that they can be bsearch'd later
   qsort(run_globals.RequestedForestId, (size_t)run_globals.NRequestedForests, sizeof(long), compare_longs);
-
-  free(requested_ind);
-  free(max_contemp_halo);
-  free(max_contemp_fof);
-  free(forest_ids);
-  free(n_halos);
 
   mlog("...done.", MLOG_MESG | MLOG_TIMERSTOP);
 }
