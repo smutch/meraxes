@@ -165,7 +165,7 @@ static inline double calc_sn_ejection_eff(galaxy_t *gal, int snapshot)
     double SnEjectionNorm;
     switch (SnModel) {
     case 1:    // Guo et al. 2011 with redshift dependence
-        SnEjectionNorm = params->SnEjectionScaling;
+        SnEjectionNorm = params->SnEjectionNorm;
         SnEjectionEff *= pow(zplus1/4., SnEjectionRedshiftDep) \
                          *(.5 + pow(Vmax/SnEjectionNorm, -SnEjectionScaling));
         break;
