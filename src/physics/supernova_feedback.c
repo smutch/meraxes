@@ -162,16 +162,14 @@ static inline double calc_sn_ejection_eff(galaxy_t *gal, int snapshot)
     double SnEjectionRedshiftDep = params->SnEjectionRedshiftDep;
     double SnEjectionEff = params->SnEjectionEff;
     double SnEjectionScaling = params->SnEjectionScaling;
-    double SnEjectionNorm;
+    double SnEjectionNorm = params->SnEjectionNorm;
     switch (SnModel) {
     case 1:    // Guo et al. 2011 with redshift dependence
-        SnEjectionNorm = params->SnEjectionNorm;
         SnEjectionEff *= pow(zplus1/4., SnEjectionRedshiftDep) \
                          *(.5 + pow(Vmax/SnEjectionNorm, -SnEjectionScaling));
         break;
     case 2:
         // Use the same value with that is used for the mass loading
-        SnEjectionNorm = params->SnReheatNorm;
         if (Vmax < SnEjectionNorm)
             SnEjectionScaling = params->SnEjectionScaling2;
         SnEjectionEff *= pow(zplus1/4., SnEjectionRedshiftDep) \
