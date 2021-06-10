@@ -268,7 +268,6 @@ void read_trees__gbptrees(int snapshot,
   int n_halos_in_catalog_file = 0;
   int i_halo_in_catalog_file = 0;
   int i_halo = 0;
-  int Len;
 
   FILE* fin_groups = NULL;
   int group_flayout_switch = -1;
@@ -429,6 +428,8 @@ void read_trees__gbptrees(int snapshot,
     }
 
     // paste the data into the halo structures
+    // WARNING: Do not place anything in an omp task that depends on, or sets, a relationship pointer (e.g.
+    //          NextHaloInFOFGroup)!!!
 #pragma omp parallel
 #pragma omp single nowait
     for (int jj = 0; jj < n_to_read; jj++) {
@@ -452,12 +453,19 @@ void read_trees__gbptrees(int snapshot,
             catalog_halo_t* cur_cat_group = &(group_buffer[tree_buffer[jj].group_index - first_group_index]);
             fof_group_t* cur_group = &(fof_group[*n_fof_groups_kept]);
 
-            cur_group->Mvir = cur_cat_group->M_vir;
-            cur_group->Rvir = cur_cat_group->R_vir;
-            cur_group->FOFMvirModifier = 1.0;
+#pragma omp task default(none) firstprivate(cur_group, cur_cat_group) shared(snapshot)
+            {
+              cur_group->Mvir = cur_cat_group->M_vir;
+              cur_group->Rvir = cur_cat_group->R_vir;
+              cur_group->FOFMvirModifier = 1.0;
 
-            convert_input_virial_props(
-              &(cur_group->Mvir), &(cur_group->Rvir), &(cur_group->Vvir), &(cur_group->FOFMvirModifier), -1, snapshot);
+              convert_input_virial_props(&(cur_group->Mvir),
+                                         &(cur_group->Rvir),
+                                         &(cur_group->Vvir),
+                                         &(cur_group->FOFMvirModifier),
+                                         -1,
+                                         snapshot);
+            }
 
             fof_group[(*n_fof_groups_kept)++].FirstHalo = &(halo[*n_halos_kept]);
           } else {
@@ -465,21 +473,20 @@ void read_trees__gbptrees(int snapshot,
             halo[(*n_halos_kept) - 1].NextHaloInFOFGroup = &(halo[*n_halos_kept]);
           }
 
-          int task_n_fof_groups_kept = *n_fof_groups_kept;
-#pragma omp task default(none) shared(run_globals, catalog_buffer, tree_buffer, fof_group, snapshot)                   \
-  firstprivate(jj, task_n_fof_groups_kept, cur_halo)
-          {
-            catalog_halo_t* cur_cat_halo = &(catalog_buffer[jj]);
-            tree_entry_t* cur_tree_entry = &(tree_buffer[jj]);
+          // #pragma omp task default(none) shared(run_globals, catalog_buffer, tree_buffer, fof_group, snapshot)                   \
+  // firstprivate(jj, task_n_fof_groups_kept, cur_halo)
+          catalog_halo_t* cur_cat_halo = &(catalog_buffer[jj]);
+          tree_entry_t* cur_tree_entry = &(tree_buffer[jj]);
+          cur_halo->FOFGroup = &(fof_group[(*n_fof_groups_kept) - 1]);
+          cur_halo->NextHaloInFOFGroup = NULL;
 
+#pragma omp task default(none) firstprivate(cur_halo, cur_cat_halo, cur_tree_entry) shared(run_globals, snapshot)
+          {
             cur_halo->ID = (unsigned long)cur_tree_entry->id;
             cur_halo->TreeFlags = cur_tree_entry->flags;
             cur_halo->SnapOffset = cur_tree_entry->file_offset;
             cur_halo->DescIndex = cur_tree_entry->desc_index;
             cur_halo->ProgIndex = -1; // This information is used in the VELOCIraptor trees, but not here.
-            cur_halo->NextHaloInFOFGroup = NULL;
-
-            cur_halo->FOFGroup = &(fof_group[(task_n_fof_groups_kept)-1]);
 
             // paste in the halo properties
             cur_halo->Len = cur_cat_halo->n_particles;
