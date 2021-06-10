@@ -400,10 +400,12 @@ void dracarys()
       for (int jj = 0; jj < snapshot_trees_info[ii].n_halos; jj++)
         snapshot_halo[ii][jj].Galaxy = NULL;
 
-    // reset started and finished flags for reionization if needed
+    // reset started and finished flags for reionization and reinialize the grids if needed
     if (run_globals.params.Flag_PatchyReion) {
       run_globals.reion_grids.started = 0;
       run_globals.reion_grids.finished = 0;
+
+      init_reion_grids();
     }
   }
 
