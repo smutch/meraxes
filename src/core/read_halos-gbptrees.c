@@ -261,7 +261,6 @@ void read_trees__gbptrees(int snapshot,
   int group_buffer_size = 0; // This will be calculated below
   int n_read = 0;
   int n_to_read = 0;
-  bool keep_flag;
 
   FILE* fin_catalogs = NULL;
   int flayout_switch = -1;
@@ -375,7 +374,6 @@ void read_trees__gbptrees(int snapshot,
   // Now actually do the buffered read...
   n_read = 0;
   n_to_read = 0;
-  keep_flag = true;
   while (n_read < n_halos) {
     if ((n_halos - n_read) >= buffer_size)
       n_to_read = buffer_size;
@@ -431,95 +429,99 @@ void read_trees__gbptrees(int snapshot,
     }
 
     // paste the data into the halo structures
+#pragma omp parallel
+#pragma omp single nowait
     for (int jj = 0; jj < n_to_read; jj++) {
       if (run_globals.RequestedForestId != NULL) {
         if (bsearch(&(tree_buffer[jj].forest_id),
                     run_globals.RequestedForestId,
                     (size_t)n_requested_forests,
                     sizeof(long),
-                    compare_int_long) != NULL)
-          keep_flag = true;
-        else
-          keep_flag = false;
-      }
+                    compare_int_long) != NULL) {
 
-      if (keep_flag) {
-        halo_t* cur_halo = &(halo[*n_halos_kept]);
-        catalog_halo_t* cur_cat_halo = &(catalog_buffer[jj]);
-        tree_entry_t* cur_tree_entry = &(tree_buffer[jj]);
+          if (index_lookup)
+            index_lookup[*n_halos_kept] = n_read + jj;
 
-        cur_halo->ID = (unsigned long)cur_tree_entry->id;
-        cur_halo->TreeFlags = cur_tree_entry->flags;
-        cur_halo->SnapOffset = cur_tree_entry->file_offset;
-        cur_halo->DescIndex = cur_tree_entry->desc_index;
-        cur_halo->ProgIndex = -1; // This information is used in the VELOCIraptor trees, but not here.
-        cur_halo->NextHaloInFOFGroup = NULL;
+          halo_t* cur_halo = &(halo[*n_halos_kept]);
 
-        if (index_lookup)
-          index_lookup[*n_halos_kept] = n_read + jj;
+          if (n_read + jj == tree_buffer[jj].central_index) {
+            cur_halo->Type = 0;
 
-        if (n_read + jj == tree_buffer[jj].central_index) {
-          cur_halo->Type = 0;
+            assert((*n_fof_groups_kept) < run_globals.NFOFGroupsMax);
+            assert((tree_buffer[jj].group_index - first_group_index) < n_groups);
+            catalog_halo_t* cur_cat_group = &(group_buffer[tree_buffer[jj].group_index - first_group_index]);
+            fof_group_t* cur_group = &(fof_group[*n_fof_groups_kept]);
 
-          assert((*n_fof_groups_kept) < run_globals.NFOFGroupsMax);
-          assert((tree_buffer[jj].group_index - first_group_index) < n_groups);
-          catalog_halo_t* cur_cat_group = &(group_buffer[tree_buffer[jj].group_index - first_group_index]);
-          fof_group_t* cur_group = &(fof_group[*n_fof_groups_kept]);
+            cur_group->Mvir = cur_cat_group->M_vir;
+            cur_group->Rvir = cur_cat_group->R_vir;
+            cur_group->FOFMvirModifier = 1.0;
 
-          cur_group->Mvir = cur_cat_group->M_vir;
-          cur_group->Rvir = cur_cat_group->R_vir;
-          cur_group->FOFMvirModifier = 1.0;
+            convert_input_virial_props(
+              &(cur_group->Mvir), &(cur_group->Rvir), &(cur_group->Vvir), &(cur_group->FOFMvirModifier), -1, snapshot);
 
-          convert_input_virial_props(
-            &(cur_group->Mvir), &(cur_group->Rvir), &(cur_group->Vvir), &(cur_group->FOFMvirModifier), -1, snapshot);
+            fof_group[(*n_fof_groups_kept)++].FirstHalo = &(halo[*n_halos_kept]);
+          } else {
+            cur_halo->Type = 1;
+            halo[(*n_halos_kept) - 1].NextHaloInFOFGroup = &(halo[*n_halos_kept]);
+          }
 
-          fof_group[(*n_fof_groups_kept)++].FirstHalo = &(halo[*n_halos_kept]);
-        } else {
-          cur_halo->Type = 1;
-          halo[(*n_halos_kept) - 1].NextHaloInFOFGroup = &(halo[*n_halos_kept]);
+          int task_n_fof_groups_kept = *n_fof_groups_kept;
+#pragma omp task default(none) shared(run_globals, catalog_buffer, tree_buffer, fof_group, snapshot)                   \
+  firstprivate(jj, task_n_fof_groups_kept, cur_halo)
+          {
+            catalog_halo_t* cur_cat_halo = &(catalog_buffer[jj]);
+            tree_entry_t* cur_tree_entry = &(tree_buffer[jj]);
+
+            cur_halo->ID = (unsigned long)cur_tree_entry->id;
+            cur_halo->TreeFlags = cur_tree_entry->flags;
+            cur_halo->SnapOffset = cur_tree_entry->file_offset;
+            cur_halo->DescIndex = cur_tree_entry->desc_index;
+            cur_halo->ProgIndex = -1; // This information is used in the VELOCIraptor trees, but not here.
+            cur_halo->NextHaloInFOFGroup = NULL;
+
+            cur_halo->FOFGroup = &(fof_group[(task_n_fof_groups_kept)-1]);
+
+            // paste in the halo properties
+            cur_halo->Len = cur_cat_halo->n_particles;
+            cur_halo->Pos[0] = cur_cat_halo->position_MBP[0];
+            cur_halo->Pos[1] = cur_cat_halo->position_MBP[1];
+            cur_halo->Pos[2] = cur_cat_halo->position_MBP[2];
+            cur_halo->Vel[0] = cur_cat_halo->velocity_COM[0];
+            cur_halo->Vel[1] = cur_cat_halo->velocity_COM[1];
+            cur_halo->Vel[2] = cur_cat_halo->velocity_COM[2];
+            cur_halo->Rvir = cur_cat_halo->R_vir;
+            cur_halo->Vmax = cur_cat_halo->V_max;
+            cur_halo->AngMom[0] = cur_cat_halo->ang_mom[0];
+            cur_halo->AngMom[1] = cur_cat_halo->ang_mom[1];
+            cur_halo->AngMom[2] = cur_cat_halo->ang_mom[2];
+            cur_halo->Galaxy = NULL;
+            cur_halo->Mvir = cur_cat_halo->M_vir;
+
+            // double check that PBC conditions are met!
+            cur_halo->Pos[0] = apply_pbc_pos(cur_halo->Pos[0]);
+            cur_halo->Pos[1] = apply_pbc_pos(cur_halo->Pos[1]);
+            cur_halo->Pos[2] = apply_pbc_pos(cur_halo->Pos[2]);
+
+            // TODO: sort this out once and for all!
+            int Len = cur_halo->Len;
+            if ((cur_halo->Type == 0) && run_globals.params.FlagSubhaloVirialProps) {
+              Len = -1;
+            }
+
+            convert_input_virial_props(&(cur_halo->Mvir), &(cur_halo->Rvir), &(cur_halo->Vvir), NULL, Len, snapshot);
+
+            // // Replace the virial properties of the FOF group by those of the first
+            // // subgroup
+            // if (cur_halo->Type == 0)
+            // {
+            //   cur_halo->FOFGroup->Mvir = cur_halo->Mvir;
+            //   cur_halo->FOFGroup->Rvir = cur_halo->Rvir;
+            //   cur_halo->FOFGroup->Vvir = cur_halo->Vvir;
+            // }
+          }
+
+          (*n_halos_kept)++;
         }
-
-        cur_halo->FOFGroup = &(fof_group[(*n_fof_groups_kept) - 1]);
-
-        // paste in the halo properties
-        cur_halo->Len = cur_cat_halo->n_particles;
-        cur_halo->Pos[0] = cur_cat_halo->position_MBP[0];
-        cur_halo->Pos[1] = cur_cat_halo->position_MBP[1];
-        cur_halo->Pos[2] = cur_cat_halo->position_MBP[2];
-        cur_halo->Vel[0] = cur_cat_halo->velocity_COM[0];
-        cur_halo->Vel[1] = cur_cat_halo->velocity_COM[1];
-        cur_halo->Vel[2] = cur_cat_halo->velocity_COM[2];
-        cur_halo->Rvir = cur_cat_halo->R_vir;
-        cur_halo->Vmax = cur_cat_halo->V_max;
-        cur_halo->AngMom[0] = cur_cat_halo->ang_mom[0];
-        cur_halo->AngMom[1] = cur_cat_halo->ang_mom[1];
-        cur_halo->AngMom[2] = cur_cat_halo->ang_mom[2];
-        cur_halo->Galaxy = NULL;
-        cur_halo->Mvir = cur_cat_halo->M_vir;
-
-        // double check that PBC conditions are met!
-        cur_halo->Pos[0] = apply_pbc_pos(cur_halo->Pos[0]);
-        cur_halo->Pos[1] = apply_pbc_pos(cur_halo->Pos[1]);
-        cur_halo->Pos[2] = apply_pbc_pos(cur_halo->Pos[2]);
-
-        // TODO: sort this out once and for all!
-        if ((cur_halo->Type == 0) && run_globals.params.FlagSubhaloVirialProps)
-          Len = -1;
-        else
-          Len = cur_halo->Len;
-
-        convert_input_virial_props(&(cur_halo->Mvir), &(cur_halo->Rvir), &(cur_halo->Vvir), NULL, Len, snapshot);
-
-        // // Replace the virial properties of the FOF group by those of the first
-        // // subgroup
-        // if (cur_halo->Type == 0)
-        // {
-        //   cur_halo->FOFGroup->Mvir = cur_halo->Mvir;
-        //   cur_halo->FOFGroup->Rvir = cur_halo->Rvir;
-        //   cur_halo->FOFGroup->Vvir = cur_halo->Vvir;
-        // }
-
-        (*n_halos_kept)++;
       }
     }
 
