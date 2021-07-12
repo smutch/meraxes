@@ -255,6 +255,8 @@ void _find_HII_bubbles_gpu(const int snapshot, const bool flag_write_validation_
 
   // Clean-up
   cufft_check(cufftDestroy(plan));
+
+  cuda_check(cudaDeviceSynchronize());
 #endif
 
   // Initialize GPU block and thread count
@@ -284,6 +286,8 @@ void _find_HII_bubbles_gpu(const int snapshot, const bool flag_write_validation_
     cuda_check_last();
   }
 
+  cuda_check(cudaDeviceSynchronize());
+
   // Initialize a few of the output grids
   if (slab_n_real > 0) {
     set_array_gpu<<<grid_real, threads>>>(xH_device, slab_n_real, 1.f);
@@ -295,6 +299,7 @@ void _find_HII_bubbles_gpu(const int snapshot, const bool flag_write_validation_
       cuda_check_last();
     }
   }
+  cuda_check(CudaDeviceSynchronize());
 
   // This parameter choice is sensitive to noise on the cell size, at least for the typical
   // cell sizes in RT simulations. It probably doesn't matter for larger cell sizes.
@@ -406,6 +411,8 @@ void _find_HII_bubbles_gpu(const int snapshot, const bool flag_write_validation_
       }
     }
 
+    cuda_check(CudaDeviceSynchronize());
+
     // inverse fourier transform back to real space
 #ifdef USE_CUFFT
     cufft_check(cufftExecC2R(plan, (cufftComplex*)deltax_filtered_device, (cufftReal*)deltax_filtered_device));
@@ -458,6 +465,8 @@ void _find_HII_bubbles_gpu(const int snapshot, const bool flag_write_validation_
       }
     }
 
+    cuda_check(CudaDeviceSynchronize());
+
     // Main loop through the box...
     const double J_21_aux_constant = (1.0 + redshift) * (1.0 + redshift) / (4.0 * M_PI) * ReionAlphaUV * PLANCK *
                                      1e21 // * ReionEscapeFrac
@@ -501,6 +510,8 @@ void _find_HII_bubbles_gpu(const int snapshot, const bool flag_write_validation_
                                                                                     sfr_filtered_device,
                                                                                     N_rec_unfiltered_device)));
     }
+
+    cuda_check(CudaDeviceSynchronize());
 
     R /= ReionDeltaRFactor;
   }
