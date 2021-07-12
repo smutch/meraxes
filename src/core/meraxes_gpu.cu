@@ -51,7 +51,21 @@ void _cuda_check(cudaError_t error, const char* file, const char* function, cons
 {
   if (error != cudaSuccess) {
     fprintf(
-      stderr, "\nCUDA error: %s:%i(%s): %i => %s\n", file, line_number, function, int(err), cudaGetErrorString(error));
+      stderr, "\nCUDA error: %s:%i(%s): %d => %s\n", file, line_number, function, int(err), cudaGetErrorString(error));
+    exit(EXIT_FAILURE);
+  }
+}
+
+void _cufft_check(cufftResult_t result, const char* file, const char* function, const int line_number)
+{
+  if (result != CUFFT_SUCCESS) {
+    fprintf(
+      stderr,
+      "\nCUFFT error: %s:%i(%s): %d => See https://docs.nvidia.com/cuda/cufft/index.html#cufftresult for details.\n",
+      file,
+      line_number,
+      function,
+      int(result));
     exit(EXIT_FAILURE);
   }
 }

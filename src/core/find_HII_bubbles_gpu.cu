@@ -243,18 +243,18 @@ void _find_HII_bubbles_gpu(const int snapshot, const bool flag_write_validation_
 #ifdef USE_CUFFT
   // Initialize cuFFT
   cufftHandle plan;
-  throw_on_cuFFT_error(cufftPlan3d(&plan, ReionGridDim, ReionGridDim, ReionGridDim, CUFFT_R2C));
+  cufft_check(cufftPlan3d(&plan, ReionGridDim, ReionGridDim, ReionGridDim, CUFFT_R2C));
 
   // Perform FFTs
-  throw_on_cuFFT_error(cufftExecR2C(plan, (cufftReal*)deltax_unfiltered_device, deltax_unfiltered_device));
-  throw_on_cuFFT_error(cufftExecR2C(plan, (cufftReal*)stars_unfiltered_device, stars_unfiltered_device));
-  throw_on_cuFFT_error(cufftExecR2C(plan, (cufftReal*)sfr_unfiltered_device, sfr_unfiltered_device));
+  cufft_check(cufftExecR2C(plan, (cufftReal*)deltax_unfiltered_device, deltax_unfiltered_device));
+  cufft_check(cufftExecR2C(plan, (cufftReal*)stars_unfiltered_device, stars_unfiltered_device));
+  cufft_check(cufftExecR2C(plan, (cufftReal*)sfr_unfiltered_device, sfr_unfiltered_device));
 
   if (Flag_IncludeRecombinations)
-    throw_on_cuFFT_error(cufftExecR2C(plan, (cufftReal*)N_rec_unfiltered_device, N_rec_unfiltered_device));
+    cufft_check(cufftExecR2C(plan, (cufftReal*)N_rec_unfiltered_device, N_rec_unfiltered_device));
 
   // Clean-up
-  throw_on_cuFFT_error(cufftDestroy(plan));
+  cufft_check(cufftDestroy(plan));
 #endif
 
   // Initialize GPU block and thread count
@@ -272,31 +272,29 @@ void _find_HII_bubbles_gpu(const int snapshot, const bool flag_write_validation_
 
   // Remember to add the factor of VOLUME/TOT_NUM_PIXELS when converting from real space to k-space
   // Note: we will leave off factor of VOLUME, in anticipation of the inverse FFT below
-  throw_on_kernel_error((complex_vector_times_scalar<<<grid_complex, threads>>>(
-    deltax_unfiltered_device, inv_total_n_cells, slab_n_complex)));
-  throw_on_kernel_error((complex_vector_times_scalar<<<grid_complex, threads>>>(
-    stars_unfiltered_device, inv_total_n_cells, slab_n_complex)));
-  throw_on_kernel_error(
-    (complex_vector_times_scalar<<<grid_complex, threads>>>(sfr_unfiltered_device, inv_total_n_cells, slab_n_complex)));
+  complex_vector_times_scalar<<<grid_complex, threads>>>(deltax_unfiltered_device, inv_total_n_cells, slab_n_complex);
+  cuda_check_last();
+  complex_vector_times_scalar<<<grid_complex, threads>>>(stars_unfiltered_device, inv_total_n_cells, slab_n_complex);
+  cuda_check_last();
+  complex_vector_times_scalar<<<grid_complex, threads>>>(sfr_unfiltered_device, inv_total_n_cells, slab_n_complex);
+  cuda_check_last();
 
-  if (Flag_IncludeRecombinations)
-    throw_on_kernel_error((complex_vector_times_scalar<<<grid_complex, threads>>>(
-      N_rec_unfiltered_device, inv_total_n_cells, slab_n_complex)));
-
-  check_thread_sync(meraxes_cuda_exception::KERNEL_CMPLX_AX);
-  // Throw an exception if another rank has thrown one
-  throw_on_global_error();
+  if (Flag_IncludeRecombinations) {
+    complex_vector_times_scalar<<<grid_complex, threads>>>(N_rec_unfiltered_device, inv_total_n_cells, slab_n_complex);
+    cuda_check_last();
+  }
 
   // Initialize a few of the output grids
   if (slab_n_real > 0) {
-    throw_on_kernel_error((set_array_gpu<<<grid_real, threads>>>(xH_device, slab_n_real, 1.f)));
-    throw_on_kernel_error((set_array_gpu<<<grid_real, threads>>>(r_bubble_device, slab_n_real, 0.f)));
-    if (ReionUVBFlag)
-      throw_on_kernel_error((set_array_gpu<<<grid_real, threads>>>(J_21_device, slab_n_real, 0.f)));
+    set_array_gpu<<<grid_real, threads>>>(xH_device, slab_n_real, 1.f);
+    cuda_check_last();
+    set_array_gpu<<<grid_real, threads>>>(r_bubble_device, slab_n_real, 0.f);
+    cuda_check_last();
+    if (ReionUVBFlag) {
+      set_array_gpu<<<grid_real, threads>>>(J_21_device, slab_n_real, 0.f);
+      cuda_check_last();
+    }
   }
-  check_thread_sync(meraxes_cuda_exception::KERNEL_SET_ARRAY);
-  // Throw an exception if another rank has thrown one
-  throw_on_global_error();
 
   // This parameter choice is sensitive to noise on the cell size, at least for the typical
   // cell sizes in RT simulations. It probably doesn't matter for larger cell sizes.
@@ -306,11 +304,7 @@ void _find_HII_bubbles_gpu(const int snapshot, const bool flag_write_validation_
 
 // Initialize inverse FFTs
 #ifdef USE_CUFFT
-  throw_on_cuFFT_error(cufftPlan3d(&plan, ReionGridDim, ReionGridDim, ReionGridDim, CUFFT_C2R));
-  // depreciated in CUFFT > v9.1
-  // throw_on_cuFFT_error(cufftSetCompatibilityMode(plan, CUFFT_COMPATIBILITY_FFTW_ALL),
-  // meraxes_cuda_exception::CUFFT_SET_COMPATIBILITY); Throw an exception if another rank has thrown one
-  throw_on_global_error();
+  cufft_check(cufftPlan3d(&plan, ReionGridDim, ReionGridDim, ReionGridDim, CUFFT_C2R));
 #else
   fftwf_plan plan_deltax = fftwf_mpi_plan_dft_c2r_3d(ReionGridDim,
                                                      ReionGridDim,
@@ -375,46 +369,51 @@ void _find_HII_bubbles_gpu(const int snapshot, const bool flag_write_validation_
 
     // Perform convolution
     if (!flag_last_filter_step) {
-      throw_on_kernel_error((filter_gpu<<<grid_complex, threads>>>(deltax_filtered_device,
-                                                                   ReionGridDim,
-                                                                   local_ix_start,
-                                                                   slab_n_complex,
-                                                                   R,
-                                                                   box_size,
-                                                                   run_globals.params.ReionFilterType)));
-      throw_on_kernel_error((filter_gpu<<<grid_complex, threads>>>(stars_filtered_device,
-                                                                   ReionGridDim,
-                                                                   local_ix_start,
-                                                                   slab_n_complex,
-                                                                   R,
-                                                                   box_size,
-                                                                   run_globals.params.ReionFilterType)));
-      throw_on_kernel_error((filter_gpu<<<grid_complex, threads>>>(sfr_filtered_device,
-                                                                   ReionGridDim,
-                                                                   local_ix_start,
-                                                                   slab_n_complex,
-                                                                   R,
-                                                                   box_size,
-                                                                   run_globals.params.ReionFilterType)));
+      filter_gpu<<<grid_complex, threads>>>(deltax_filtered_device,
+                                            ReionGridDim,
+                                            local_ix_start,
+                                            slab_n_complex,
+                                            R,
+                                            box_size,
+                                            run_globals.params.ReionFilterType);
+      cuda_check_last();
+      filter_gpu<<<grid_complex, threads>>>(stars_filtered_device,
+                                            ReionGridDim,
+                                            local_ix_start,
+                                            slab_n_complex,
+                                            R,
+                                            box_size,
+                                            run_globals.params.ReionFilterType);
+      cuda_check_last();
+      filter_gpu<<<grid_complex, threads>>>(sfr_filtered_device,
+                                            ReionGridDim,
+                                            local_ix_start,
+                                            slab_n_complex,
+                                            R,
+                                            box_size,
+                                            run_globals.params.ReionFilterType);
 
-      if (Flag_IncludeRecombinations)
-        throw_on_kernel_error((filter_gpu<<<grid_complex, threads>>>(N_rec_filtered_device,
-                                                                     ReionGridDim,
-                                                                     local_ix_start,
-                                                                     slab_n_complex,
-                                                                     R,
-                                                                     box_size,
-                                                                     run_globals.params.ReionFilterType)));
+      cuda_check_last();
+      if (Flag_IncludeRecombinations) {
+        filter_gpu<<<grid_complex, threads>>>(N_rec_filtered_device,
+                                              ReionGridDim,
+                                              local_ix_start,
+                                              slab_n_complex,
+                                              R,
+                                              box_size,
+                                              run_globals.params.ReionFilterType);
+        cuda_check_last();
+      }
     }
 
     // inverse fourier transform back to real space
 #ifdef USE_CUFFT
-    throw_on_cuFFT_error(cufftExecC2R(plan, (cufftComplex*)deltax_filtered_device, (cufftReal*)deltax_filtered_device));
-    throw_on_cuFFT_error(cufftExecC2R(plan, (cufftComplex*)stars_filtered_device, (cufftReal*)stars_filtered_device));
-    throw_on_cuFFT_error(cufftExecC2R(plan, (cufftComplex*)sfr_filtered_device, (cufftReal*)sfr_filtered_device));
+    cufft_check(cufftExecC2R(plan, (cufftComplex*)deltax_filtered_device, (cufftReal*)deltax_filtered_device));
+    cufft_check(cufftExecC2R(plan, (cufftComplex*)stars_filtered_device, (cufftReal*)stars_filtered_device));
+    cufft_check(cufftExecC2R(plan, (cufftComplex*)sfr_filtered_device, (cufftReal*)sfr_filtered_device));
 
     if (Flag_IncludeRecombinations)
-      throw_on_cuFFT_error(cufftExecC2R(plan, (cufftComplex*)N_rec_filtered_device, (cufftReal*)N_rec_filtered_device));
+      cufft_check(cufftExecC2R(plan, (cufftComplex*)N_rec_filtered_device, (cufftReal*)N_rec_filtered_device));
 
 #else
     cuda_check(
@@ -446,16 +445,17 @@ void _find_HII_bubbles_gpu(const int snapshot, const bool flag_write_validation_
 
     // Perform sanity checks to account for aliasing effects
     if (slab_n_real > 0) {
-      throw_on_kernel_error((sanity_check_aliasing<<<grid_real, threads>>>(
-        deltax_filtered_device, ReionGridDim, slab_n_real, -1.f + REL_TOL)));
-      throw_on_kernel_error(
-        (sanity_check_aliasing<<<grid_real, threads>>>(stars_filtered_device, ReionGridDim, slab_n_real, 0.f)));
-      throw_on_kernel_error(
-        (sanity_check_aliasing<<<grid_real, threads>>>(sfr_filtered_device, ReionGridDim, slab_n_real, 0.f)));
+      sanity_check_aliasing<<<grid_real, threads>>>(deltax_filtered_device, ReionGridDim, slab_n_real, -1.f + REL_TOL);
+      cuda_check_last();
+      sanity_check_aliasing<<<grid_real, threads>>>(stars_filtered_device, ReionGridDim, slab_n_real, 0.f);
+      cuda_check_last();
+      sanity_check_aliasing<<<grid_real, threads>>>(sfr_filtered_device, ReionGridDim, slab_n_real, 0.f);
+      cuda_check_last();
 
-      if (Flag_IncludeRecombinations)
-        throw_on_kernel_error(
-          (sanity_check_aliasing<<<grid_real, threads>>>(N_rec_filtered_device, ReionGridDim, slab_n_real, 0.f)));
+      if (Flag_IncludeRecombinations) {
+        sanity_check_aliasing<<<grid_real, threads>>>(N_rec_filtered_device, ReionGridDim, slab_n_real, 0.f);
+        cuda_check_last();
+      }
     }
 
     // Main loop through the box...
@@ -507,7 +507,7 @@ void _find_HII_bubbles_gpu(const int snapshot, const bool flag_write_validation_
 
 // Clean-up FFT plan(s)
 #ifdef USE_CUFFT
-  throw_on_cuFFT_error(cufftDestroy(plan));
+  cufft_check(cufftDestroy(plan));
 #else
   fftwf_destroy_plan(plan_deltax);
   fftwf_destroy_plan(plan_stars);

@@ -42,6 +42,9 @@
 #define cuda_check_last _cuda_check(cudaGetLastError(), __FILE__, __FUNCTION__, __LINE__)
 __global__ void _cuda_check(cudaError error, const char* file, const char* function, const int line_number);
 
+#define cufft_check _cufft_check(cufftResult_t result, __FILE__, __FUNCTION__, __LINE__)
+__global__ void _cufft_check(cufftResult_t result, const char* file, const char* function, const int line_number);
+
 // These routines are needed by the kernels
 __device__ void inline grid_index2indices(const int idx,
                                           const int dim,
