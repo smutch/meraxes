@@ -167,10 +167,7 @@ void ComputeBrightnessTemperatureBox(int snapshot)
     }
 
     vel_gradient = run_globals.reion_grids.vel_gradient;
-    fftwf_plan plan = fftwf_mpi_plan_dft_r2c_3d(
-      ReionGridDim, ReionGridDim, ReionGridDim, vel, vel_gradient, run_globals.mpi_comm, FFTW_ESTIMATE);
-    fftwf_execute(plan);
-    fftwf_destroy_plan(plan);
+    fftwf_execute(run_globals.reion_grids.vel_forward_plan);
 
     // Remember to add the factor of VOLUME/TOT_NUM_PIXELS when converting from real space to k-space
     // Note: we will leave off factor of VOLUME, in anticipation of the inverse FFT below
@@ -185,15 +182,7 @@ void ComputeBrightnessTemperatureBox(int snapshot)
     int local_ix_start = (int)(run_globals.reion_grids.slab_ix_start[run_globals.mpi_rank]);
     velocity_gradient(vel_gradient, local_ix_start, local_nix, ReionGridDim);
 
-    plan = fftwf_mpi_plan_dft_c2r_3d(ReionGridDim,
-                                     ReionGridDim,
-                                     ReionGridDim,
-                                     vel_gradient,
-                                     (float*)vel_gradient,
-                                     run_globals.mpi_comm,
-                                     FFTW_ESTIMATE);
-    fftwf_execute(plan);
-    fftwf_destroy_plan(plan);
+    fftwf_execute(run_globals.reion_grids.vel_gradient_reverse_plan);
 
     if (run_globals.params.Flag_IncludePecVelsFor21cm == 1) {
 
