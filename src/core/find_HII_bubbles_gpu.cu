@@ -51,7 +51,7 @@
  * ------------------------------------------------------------
  * - [X] Why are the unfiltered grids being copied to the GPU and then copied back each filtering step if using FFTW?
  * - [ ] Investigate the use of streams.
- * - [ ] The error handling is horrendously complicated. Is this really necessary?
+ * - [X] The error handling is horrendously complicated. Is this really necessary?
  *
  * ⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻⎻
  */
