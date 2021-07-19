@@ -194,6 +194,7 @@ typedef struct run_params_t
   char MvirCritFile[STRLEN];
   char MassRatioModifier[STRLEN];
   char BaryonFracModifier[STRLEN];
+  char FFTW3WisdomDir[STRLEN];
 
   physics_params_t physics;
 
@@ -369,6 +370,7 @@ typedef struct reion_grids_t
   int started;
   int finished;
   int buffer_size;
+  bool flag_wisdom;
 } reion_grids_t;
 
 typedef struct galaxy_t
