@@ -408,6 +408,19 @@ void init_reion_grids()
   }
 }
 
+static inline void* alloc_and_plan(size_t size, fftwf_plan* forward_plan, fftwf_plan* reverse_plan)
+{
+  void* alloc = (void*)fftwf_alloc_complex(size);
+
+  int ReionGridDim = run_globals.params.ReionGridDim;
+  *forward_plan = fftwf_mpi_plan_dft_r2c_3d(
+    ReionGridDim, ReionGridDim, ReionGridDim, (float*)alloc, (fftwf_complex*)alloc, run_globals.mpi_comm, FFTW_PATIENT);
+  *reverse_plan = fftwf_mpi_plan_dft_c2r_3d(
+    ReionGridDim, ReionGridDim, ReionGridDim, (fftwf_complex*)alloc, (float*)alloc, run_globals.mpi_comm, FFTW_PATIENT);
+
+  return alloc;
+}
+
 void malloc_reionization_grids()
 {
   reion_grids_t* grids = &(run_globals.reion_grids);
@@ -421,15 +434,12 @@ void malloc_reionization_grids()
   grids->xH = NULL;
   grids->stars = NULL;
   grids->stars_temp = NULL;
-  grids->stars_unfiltered = NULL;
   grids->stars_filtered = NULL;
   grids->deltax = NULL;
   grids->deltax_temp = NULL;
-  grids->deltax_unfiltered = NULL;
   grids->deltax_filtered = NULL;
   grids->sfr = NULL;
   grids->sfr_temp = NULL;
-  grids->sfr_unfiltered = NULL;
   grids->sfr_filtered = NULL;
   grids->z_at_ionization = NULL;
   grids->J_21_at_ionization = NULL;
@@ -500,16 +510,33 @@ void malloc_reionization_grids()
     max_cells *= ReionGridDim * ReionGridDim;
     grids->buffer_size = max_cells;
 
-    grids->buffer = fftwf_alloc_real((size_t)max_cells);
-    grids->stars = fftwf_alloc_real((size_t)slab_n_complex * 2);      // padded for in-place FFT
-    grids->stars_temp = fftwf_alloc_real((size_t)slab_n_complex * 2); // padded for in-place FFT
-    grids->stars_filtered = fftwf_alloc_complex((size_t)slab_n_complex);
-    grids->deltax = fftwf_alloc_real((size_t)slab_n_complex * 2);      // padded for in-place FFT
-    grids->deltax_temp = fftwf_alloc_real((size_t)slab_n_complex * 2); // padded for in-place FFT
-    grids->deltax_filtered = fftwf_alloc_complex((size_t)slab_n_complex);
-    grids->sfr = fftwf_alloc_real((size_t)slab_n_complex * 2);      // padded for in-place FFT
-    grids->sfr_temp = fftwf_alloc_real((size_t)slab_n_complex * 2); // padded for in-place FFT
-    grids->sfr_filtered = fftwf_alloc_complex((size_t)slab_n_complex);
+    // TODO: Do the xxx_temp grids need to be padded?
+    grids->buffer = (float*)fftwf_alloc_real((size_t)max_cells);
+    grids->stars = (float*)alloc_and_plan(
+      (size_t)slab_n_complex, &(grids->stars_forward_plan), &(grids->stars_reverse_plan)); // padded for in-place FFT
+    grids->stars_temp = (float*)alloc_and_plan((size_t)slab_n_complex,
+                                               &(grids->stars_temp_forward_plan),
+                                               &(grids->stars_temp_reverse_plan)); // padded for in-place FFT
+    grids->stars_filtered = (fftwf_complex*)alloc_and_plan(
+      (size_t)slab_n_complex, &(grids->stars_filtered_forward_plan), &(grids->stars_filtered_reverse_plan));
+
+    grids->deltax = (float*)alloc_and_plan((size_t)slab_n_complex,
+                                           &(grids->deltax_forward_plan),
+                                           &(grids->deltax_reverse_plan)); // padded for in-place FFT);
+    grids->deltax_temp = (float*)alloc_and_plan((size_t)slab_n_complex,
+                                                &(grids->deltax_temp_forward_plan),
+                                                &(grids->deltax_temp_reverse_plan)); // padded for in-place FFT);
+    grids->deltax_filtered = (fftwf_complex*)alloc_and_plan(
+      (size_t)slab_n_complex, &(grids->deltax_filtered_forward_plan), &(grids->deltax_filtered_reverse_plan));
+
+    grids->sfr = (float*)alloc_and_plan(
+      (size_t)slab_n_complex, &(grids->sfr_forward_plan), &(grids->sfr_reverse_plan)); // padded for in-place FFT);
+    grids->sfr_temp = (float*)alloc_and_plan((size_t)slab_n_complex,
+                                             &(grids->sfr_temp_forward_plan),
+                                             &(grids->sfr_temp_reverse_plan)); // padded for in-place FFT);
+    grids->sfr_filtered = (fftwf_complex*)alloc_and_plan(
+      (size_t)slab_n_complex, &(grids->sfr_filtered_forward_plan), &(grids->sfr_filtered_reverse_plan));
+
     grids->xH = fftwf_alloc_real((size_t)slab_n_real);
     grids->z_at_ionization = fftwf_alloc_real((size_t)slab_n_real);
     grids->r_bubble = fftwf_alloc_real((size_t)slab_n_real);
@@ -588,10 +615,20 @@ void free_reionization_grids()
     fftwf_free(grids->J_21_at_ionization);
   }
   fftwf_free(grids->z_at_ionization);
+  fftwf_destroy_plan(grids->sfr_filtered_reverse_plan);
+  fftwf_destroy_plan(grids->sfr_filtered_forward_plan);
   fftwf_free(grids->sfr_filtered);
+  fftwf_destroy_plan(grids->deltax_filtered_reverse_plan);
+  fftwf_destroy_plan(grids->deltax_filtered_forward_plan);
   fftwf_free(grids->deltax_filtered);
+  fftwf_destroy_plan(grids->deltax_reverse_plan);
+  fftwf_destroy_plan(grids->deltax_forward_plan);
   fftwf_free(grids->deltax);
+  fftwf_destroy_plan(grids->deltax_temp_reverse_plan);
+  fftwf_destroy_plan(grids->deltax_temp_forward_plan);
   fftwf_free(grids->deltax_temp);
+  fftwf_destroy_plan(grids->stars_filtered_reverse_plan);
+  fftwf_destroy_plan(grids->stars_filtered_forward_plan);
   fftwf_free(grids->stars_filtered);
   fftwf_free(grids->xH);
 
@@ -643,9 +680,17 @@ void free_reionization_grids()
     fftwf_free(grids->PS_error);
   }
 
+  fftwf_destroy_plan(grids->stars_reverse_plan);
+  fftwf_destroy_plan(grids->stars_forward_plan);
   fftwf_free(grids->stars);
+  fftwf_destroy_plan(grids->sfr_reverse_plan);
+  fftwf_destroy_plan(grids->sfr_forward_plan);
   fftwf_free(grids->sfr);
+  fftwf_destroy_plan(grids->stars_reverse_plan);
+  fftwf_destroy_plan(grids->stars_forward_plan);
   fftwf_free(grids->stars_temp);
+  fftwf_destroy_plan(grids->sfr_reverse_plan);
+  fftwf_destroy_plan(grids->sfr_forward_plan);
   fftwf_free(grids->sfr_temp);
   fftwf_free(grids->buffer);
 
