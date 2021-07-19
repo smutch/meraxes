@@ -75,17 +75,10 @@ void _ComputeTs(int snapshot)
   float* TS_box = run_globals.reion_grids.TS_box;
 
   float* sfr = run_globals.reion_grids.sfr;
-  float* sfr_temp = run_globals.reion_grids.sfr_temp;
 
-  // Make a copy of the box for FFT'ing
-  memcpy(sfr_temp, sfr, sizeof(fftwf_complex) * slab_n_complex);
-
-  fftwf_complex* sfr_unfiltered = (fftwf_complex*)sfr_temp; // WATCH OUT!
+  fftwf_complex* sfr_unfiltered = run_globals.reion_grids.sfr_unfiltered;
   fftwf_complex* sfr_filtered = run_globals.reion_grids.sfr_filtered;
-  fftwf_plan plan = fftwf_mpi_plan_dft_r2c_3d(
-    ReionGridDim, ReionGridDim, ReionGridDim, sfr_temp, sfr_unfiltered, run_globals.mpi_comm, FFTW_ESTIMATE);
-  fftwf_execute(plan);
-  fftwf_destroy_plan(plan);
+  fftwf_execute(run_globals.reion_grids.sfr_forward_plan);
 
   // Remember to add the factor of VOLUME/TOT_NUM_PIXELS when converting from real space to k-space
   // Note: we will leave off factor of VOLUME, in anticipation of the inverse FFT below
@@ -184,15 +177,7 @@ void _ComputeTs(int snapshot)
       }
 
       // inverse fourier transform back to real space
-      plan = fftwf_mpi_plan_dft_c2r_3d(ReionGridDim,
-                                       ReionGridDim,
-                                       ReionGridDim,
-                                       sfr_filtered,
-                                       (float*)sfr_filtered,
-                                       run_globals.mpi_comm,
-                                       FFTW_ESTIMATE);
-      fftwf_execute(plan);
-      fftwf_destroy_plan(plan);
+      fftwf_execute(run_globals.reion_grids.sfr_filtered_reverse_plan);
 
       // Compute and store the collapse fraction and average electron fraction. Necessary for evaluating the integrals
       // back along the light-cone. Need the non-smoothed version, hence this is only done for R_ct == 0.
