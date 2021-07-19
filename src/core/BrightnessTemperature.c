@@ -123,7 +123,6 @@ void ComputeBrightnessTemperatureBox(int snapshot)
   subcell_width = (BoxSize / ((double)ReionGridDim)) / (double)N_RSD_STEPS;
 
   float* vel;
-  float* vel_temp;
   fftwf_complex* vel_gradient;
 
   double min_vel, max_vel, min_vel_grad, max_vel_grad;
@@ -139,7 +138,6 @@ void ComputeBrightnessTemperatureBox(int snapshot)
 
     // Compute the velocity gradient, given the velocity field
     vel = run_globals.reion_grids.vel;
-    vel_temp = run_globals.reion_grids.vel_temp;
 
     // Temporary fix to the potential units issue with the velocity field
     // Multiply by sqrt(a) to convert Gadget internal units to proper velocities.
@@ -168,12 +166,9 @@ void ComputeBrightnessTemperatureBox(int snapshot)
       }
     }
 
-    // Make a copy of the box for FFT'ing
-    memcpy(vel_temp, vel, sizeof(fftwf_complex) * slab_n_complex);
-
-    vel_gradient = (fftwf_complex*)vel_temp; // WATCH OUT!
+    vel_gradient = run_globals.reion_grids.vel_gradient;
     fftwf_plan plan = fftwf_mpi_plan_dft_r2c_3d(
-      ReionGridDim, ReionGridDim, ReionGridDim, vel_temp, vel_gradient, run_globals.mpi_comm, FFTW_ESTIMATE);
+      ReionGridDim, ReionGridDim, ReionGridDim, vel, vel_gradient, run_globals.mpi_comm, FFTW_ESTIMATE);
     fftwf_execute(plan);
     fftwf_destroy_plan(plan);
 

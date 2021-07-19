@@ -107,15 +107,10 @@ void _find_HII_bubbles(const int snapshot)
   // TODO: Ensure that fftwf_mpi_init has been called and fftwf_mpi_cleanup will be called
   // TODO: Don't use estimate and calculate plan in code init
   float* deltax = run_globals.reion_grids.deltax;
-  float* deltax_temp = run_globals.reion_grids.deltax_temp;
-
-  // Make a copy of the box for FFT'ing
-  memcpy(deltax_temp, deltax, sizeof(fftwf_complex) * slab_n_complex);
-
-  fftwf_complex* deltax_unfiltered = (fftwf_complex*)deltax_temp; // WATCH OUT!
+  fftwf_complex* deltax_unfiltered = run_globals.reion_grids.deltax_unfiltered;
   fftwf_complex* deltax_filtered = run_globals.reion_grids.deltax_filtered;
   fftwf_plan plan = fftwf_mpi_plan_dft_r2c_3d(
-    ReionGridDim, ReionGridDim, ReionGridDim, deltax_temp, deltax_unfiltered, run_globals.mpi_comm, FFTW_PATIENT);
+    ReionGridDim, ReionGridDim, ReionGridDim, deltax, deltax_unfiltered, run_globals.mpi_comm, FFTW_PATIENT);
   fftwf_execute(plan);
   fftwf_destroy_plan(plan);
 
