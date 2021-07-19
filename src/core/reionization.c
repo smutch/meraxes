@@ -126,26 +126,12 @@ void set_ReionEfficiency()
   mlog("Set value of run_globals.params.ReionEfficiency = %g", MLOG_MESG, params->ReionEfficiency);
 }
 
-#define WISDOM_FNAME_TEMPLATE "%s/fftw3f-ri%dx%dx%d.wisdom"
-
 void assign_slabs()
 {
   mlog("Assigning slabs to MPI cores...", MLOG_OPEN);
 
   // Allocations made in this function are free'd in `free_reionization_grids`.
   fftwf_mpi_init();
-
-  // Load wisdom if requested
-  run_globals.reion_grids.flag_wisdom = strlen(run_globals.params.FFTW3WisdomDir) > 0;
-  char wisdom_fname[STRLEN + 32];
-  const int ReionGridDim = run_globals.params.ReionGridDim;
-  if (run_globals.reion_grids.flag_wisdom) {
-    sprintf(
-      wisdom_fname, WISDOM_FNAME_TEMPLATE, run_globals.params.FFTW3WisdomDir, ReionGridDim, ReionGridDim, ReionGridDim);
-    if (fftwf_import_wisdom_from_filename(wisdom_fname)) {
-      mlog("Successfully loaded FFTW3 wisdom from %s", MLOG_MESG, wisdom_fname);
-    }
-  }
 
   // Assign the slab size
   int n_rank = run_globals.mpi_size;
@@ -214,19 +200,6 @@ void call_find_HII_bubbles(int snapshot, int nout_gals, timer_info* timer)
 
   // Call find_HII_bubbles
   find_HII_bubbles(snapshot, timer);
-
-  if (run_globals.reion_grids.flag_wisdom) {
-    char wisdom_fname[STRLEN + 32];
-    const int ReionGridDim = run_globals.params.ReionGridDim;
-    sprintf(
-      wisdom_fname, WISDOM_FNAME_TEMPLATE, run_globals.params.FFTW3WisdomDir, ReionGridDim, ReionGridDim, ReionGridDim);
-    if (fftwf_export_wisdom_to_filename(wisdom_fname)) {
-      mlog("Successfully saved FFTW3 wisdom to %s", MLOG_MESG, wisdom_fname);
-    }
-    // Reset the wisdom flag to prevent us from writing out the wisdom again in
-    // future calls.
-    run_globals.reion_grids.flag_wisdom = false;
-  }
 
   mlog("grids->volume_weighted_global_xH = %g", MLOG_MESG, grids->volume_weighted_global_xH);
   mlog("grids->volume_weighted_global_J_21 = %g", MLOG_MESG, grids->volume_weighted_global_J_21);
@@ -409,6 +382,22 @@ void init_reion_grids()
 void malloc_reionization_grids()
 {
   reion_grids_t* grids = &(run_globals.reion_grids);
+
+  // Load wisdom if requested
+  run_globals.reion_grids.flag_wisdom = strlen(run_globals.params.FFTW3WisdomDir) > 0;
+  char wisdom_fname[STRLEN + 32];
+  const int ReionGridDim = run_globals.params.ReionGridDim;
+  if (run_globals.reion_grids.flag_wisdom) {
+    sprintf(wisdom_fname,
+            "%s/fftw3f-meraxes-%dx%dx%d.wisdom",
+            run_globals.params.FFTW3WisdomDir,
+            ReionGridDim,
+            ReionGridDim,
+            ReionGridDim);
+    if (fftwf_import_wisdom_from_filename(wisdom_fname)) {
+      mlog("Successfully loaded FFTW3 wisdom from %s", MLOG_MESG, wisdom_fname);
+    }
+  }
 
   // run_globals.NStoreSnapshots is set in `initialize_halo_storage`
   run_globals.SnapshotDeltax = (float**)calloc((size_t)run_globals.NStoreSnapshots, sizeof(float*));
@@ -653,6 +642,12 @@ void malloc_reionization_grids()
     }
 
     init_reion_grids();
+
+    if (run_globals.reion_grids.flag_wisdom) {
+      if (fftwf_export_wisdom_to_filename(wisdom_fname)) {
+        mlog("Successfully saved FFTW3 wisdom to %s", MLOG_MESG, wisdom_fname);
+      }
+    }
   }
 }
 
