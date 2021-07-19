@@ -115,7 +115,7 @@ void _find_HII_bubbles(const int snapshot)
   fftwf_complex* deltax_unfiltered = (fftwf_complex*)deltax_temp; // WATCH OUT!
   fftwf_complex* deltax_filtered = run_globals.reion_grids.deltax_filtered;
   fftwf_plan plan = fftwf_mpi_plan_dft_r2c_3d(
-    ReionGridDim, ReionGridDim, ReionGridDim, deltax_temp, deltax_unfiltered, run_globals.mpi_comm, FFTW_ESTIMATE);
+    ReionGridDim, ReionGridDim, ReionGridDim, deltax_temp, deltax_unfiltered, run_globals.mpi_comm, FFTW_PATIENT);
   fftwf_execute(plan);
   fftwf_destroy_plan(plan);
 
@@ -128,7 +128,7 @@ void _find_HII_bubbles(const int snapshot)
   fftwf_complex* stars_unfiltered = (fftwf_complex*)stars_temp; // WATCH OUT!
   fftwf_complex* stars_filtered = run_globals.reion_grids.stars_filtered;
   plan = fftwf_mpi_plan_dft_r2c_3d(
-    ReionGridDim, ReionGridDim, ReionGridDim, stars_temp, stars_unfiltered, run_globals.mpi_comm, FFTW_ESTIMATE);
+    ReionGridDim, ReionGridDim, ReionGridDim, stars_temp, stars_unfiltered, run_globals.mpi_comm, FFTW_PATIENT);
   fftwf_execute(plan);
   fftwf_destroy_plan(plan);
 
@@ -141,7 +141,7 @@ void _find_HII_bubbles(const int snapshot)
   fftwf_complex* sfr_unfiltered = (fftwf_complex*)sfr_temp; // WATCH OUT!
   fftwf_complex* sfr_filtered = run_globals.reion_grids.sfr_filtered;
   plan = fftwf_mpi_plan_dft_r2c_3d(
-    ReionGridDim, ReionGridDim, ReionGridDim, sfr_temp, sfr_unfiltered, run_globals.mpi_comm, FFTW_ESTIMATE);
+    ReionGridDim, ReionGridDim, ReionGridDim, sfr_temp, sfr_unfiltered, run_globals.mpi_comm, FFTW_PATIENT);
   fftwf_execute(plan);
   fftwf_destroy_plan(plan);
 
@@ -154,7 +154,7 @@ void _find_HII_bubbles(const int snapshot)
     x_e_unfiltered = (fftwf_complex*)x_e_box; // WATCH OUT!
     x_e_filtered = run_globals.reion_grids.x_e_filtered;
     plan = fftwf_mpi_plan_dft_r2c_3d(
-      ReionGridDim, ReionGridDim, ReionGridDim, x_e_box, x_e_unfiltered, run_globals.mpi_comm, FFTW_ESTIMATE);
+      ReionGridDim, ReionGridDim, ReionGridDim, x_e_box, x_e_unfiltered, run_globals.mpi_comm, FFTW_PATIENT);
     fftwf_execute(plan);
     fftwf_destroy_plan(plan);
   }
@@ -172,7 +172,7 @@ void _find_HII_bubbles(const int snapshot)
     N_rec_unfiltered = (fftwf_complex*)N_rec_prev; // WATCH OUT!
     N_rec_filtered = run_globals.reion_grids.N_rec_filtered;
     plan = fftwf_mpi_plan_dft_r2c_3d(
-      ReionGridDim, ReionGridDim, ReionGridDim, N_rec_prev, N_rec_unfiltered, run_globals.mpi_comm, FFTW_ESTIMATE);
+      ReionGridDim, ReionGridDim, ReionGridDim, N_rec_prev, N_rec_unfiltered, run_globals.mpi_comm, FFTW_PATIENT);
     fftwf_execute(plan);
     fftwf_destroy_plan(plan);
   }
@@ -255,7 +255,7 @@ void _find_HII_bubbles(const int snapshot)
                                      deltax_filtered,
                                      (float*)deltax_filtered,
                                      run_globals.mpi_comm,
-                                     FFTW_ESTIMATE);
+                                     FFTW_PATIENT);
     fftwf_execute(plan);
     fftwf_destroy_plan(plan);
 
@@ -265,17 +265,12 @@ void _find_HII_bubbles(const int snapshot)
                                      stars_filtered,
                                      (float*)stars_filtered,
                                      run_globals.mpi_comm,
-                                     FFTW_ESTIMATE);
+                                     FFTW_PATIENT);
     fftwf_execute(plan);
     fftwf_destroy_plan(plan);
 
-    plan = fftwf_mpi_plan_dft_c2r_3d(ReionGridDim,
-                                     ReionGridDim,
-                                     ReionGridDim,
-                                     sfr_filtered,
-                                     (float*)sfr_filtered,
-                                     run_globals.mpi_comm,
-                                     FFTW_ESTIMATE);
+    plan = fftwf_mpi_plan_dft_c2r_3d(
+      ReionGridDim, ReionGridDim, ReionGridDim, sfr_filtered, (float*)sfr_filtered, run_globals.mpi_comm, FFTW_PATIENT);
     fftwf_execute(plan);
     fftwf_destroy_plan(plan);
 
@@ -286,7 +281,7 @@ void _find_HII_bubbles(const int snapshot)
                                        N_rec_filtered,
                                        (float*)N_rec_filtered,
                                        run_globals.mpi_comm,
-                                       FFTW_ESTIMATE);
+                                       FFTW_PATIENT);
       fftwf_execute(plan);
       fftwf_destroy_plan(plan);
     }
@@ -298,7 +293,7 @@ void _find_HII_bubbles(const int snapshot)
                                        x_e_filtered,
                                        (float*)x_e_filtered,
                                        run_globals.mpi_comm,
-                                       FFTW_ESTIMATE);
+                                       FFTW_PATIENT);
       fftwf_execute(plan);
       fftwf_destroy_plan(plan);
     }
