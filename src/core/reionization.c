@@ -385,18 +385,29 @@ void malloc_reionization_grids()
 
   // Load wisdom if requested
   run_globals.reion_grids.flag_wisdom = strlen(run_globals.params.FFTW3WisdomDir) > 0;
+  bool save_wisdom = false;
   char wisdom_fname[STRLEN + 32];
   const int ReionGridDim = run_globals.params.ReionGridDim;
+  unsigned plan_flags = FFTW_ESTIMATE;
+
   if (run_globals.reion_grids.flag_wisdom) {
+    plan_flags = FFTW_PATIENT;
     sprintf(wisdom_fname,
-            "%s/fftw3f-meraxes-%dx%dx%d.wisdom",
+            "%s/fftw3f-meraxes-N_%d-ranks_%d.wisdom",
             run_globals.params.FFTW3WisdomDir,
             ReionGridDim,
-            ReionGridDim,
-            ReionGridDim);
-    if (fftwf_import_wisdom_from_filename(wisdom_fname)) {
-      mlog("Successfully loaded FFTW3 wisdom from %s", MLOG_MESG, wisdom_fname);
+            run_globals.mpi_size);
+    if (run_globals.mpi_rank == 0) {
+      if (fftwf_import_wisdom_from_filename(wisdom_fname)) {
+        mlog("Successfully loaded FFTW3 wisdom from %s", MLOG_MESG, wisdom_fname);
+      } else {
+        mlog("FFTW3 wisdom directory provided, but no suitable wisdom exists. New wisdom will be created.",
+             MLOG_MESG,
+             wisdom_fname);
+        save_wisdom = true;
+      }
     }
+    fftwf_mpi_broadcast_wisdom(run_globals.mpi_comm);
   }
 
   // run_globals.NStoreSnapshots is set in `initialize_halo_storage`
@@ -496,14 +507,14 @@ void malloc_reionization_grids()
                                                           grids->stars,
                                                           grids->stars_unfiltered,
                                                           run_globals.mpi_comm,
-                                                          FFTW_PATIENT);
+                                                          plan_flags);
     grids->stars_filtered_reverse_plan = fftwf_mpi_plan_dft_c2r_3d(ReionGridDim,
                                                                    ReionGridDim,
                                                                    ReionGridDim,
                                                                    grids->stars_filtered,
                                                                    (float*)grids->stars_filtered,
                                                                    run_globals.mpi_comm,
-                                                                   FFTW_PATIENT);
+                                                                   plan_flags);
 
     grids->deltax = fftwf_alloc_real((size_t)slab_n_complex * 2);
     grids->deltax_unfiltered = fftwf_alloc_complex((size_t)slab_n_complex);
@@ -515,28 +526,28 @@ void malloc_reionization_grids()
                                                            grids->deltax,
                                                            grids->deltax_unfiltered,
                                                            run_globals.mpi_comm,
-                                                           FFTW_PATIENT);
+                                                           plan_flags);
     grids->deltax_filtered_reverse_plan = fftwf_mpi_plan_dft_c2r_3d(ReionGridDim,
                                                                     ReionGridDim,
                                                                     ReionGridDim,
                                                                     grids->deltax_filtered,
                                                                     (float*)grids->deltax_filtered,
                                                                     run_globals.mpi_comm,
-                                                                    FFTW_PATIENT);
+                                                                    plan_flags);
 
     grids->sfr = fftwf_alloc_real((size_t)slab_n_complex * 2);
     grids->sfr_unfiltered = fftwf_alloc_complex((size_t)slab_n_complex);
     grids->sfr_filtered = fftwf_alloc_complex((size_t)slab_n_complex);
 
     grids->sfr_forward_plan = fftwf_mpi_plan_dft_r2c_3d(
-      ReionGridDim, ReionGridDim, ReionGridDim, grids->sfr, grids->sfr_unfiltered, run_globals.mpi_comm, FFTW_PATIENT);
+      ReionGridDim, ReionGridDim, ReionGridDim, grids->sfr, grids->sfr_unfiltered, run_globals.mpi_comm, plan_flags);
     grids->sfr_filtered_reverse_plan = fftwf_mpi_plan_dft_c2r_3d(ReionGridDim,
                                                                  ReionGridDim,
                                                                  ReionGridDim,
                                                                  grids->sfr_filtered,
                                                                  (float*)grids->sfr_filtered,
                                                                  run_globals.mpi_comm,
-                                                                 FFTW_PATIENT);
+                                                                 plan_flags);
 
     grids->xH = fftwf_alloc_real((size_t)slab_n_real);
     grids->z_at_ionization = fftwf_alloc_real((size_t)slab_n_real);
@@ -554,14 +565,14 @@ void malloc_reionization_grids()
                                                               grids->x_e_box,
                                                               (fftwf_complex*)grids->x_e_box,
                                                               run_globals.mpi_comm,
-                                                              FFTW_PATIENT);
+                                                              plan_flags);
       grids->x_e_filtered_reverse_plan = fftwf_mpi_plan_dft_c2r_3d(ReionGridDim,
                                                                    ReionGridDim,
                                                                    ReionGridDim,
                                                                    grids->x_e_filtered,
                                                                    (float*)grids->x_e_filtered,
                                                                    run_globals.mpi_comm,
-                                                                   FFTW_PATIENT);
+                                                                   plan_flags);
 
       grids->Tk_box = fftwf_alloc_real((size_t)slab_n_real);
       grids->TS_box = fftwf_alloc_real((size_t)slab_n_real);
@@ -583,14 +594,14 @@ void malloc_reionization_grids()
                                                             grids->N_rec,
                                                             grids->N_rec_unfiltered,
                                                             run_globals.mpi_comm,
-                                                            FFTW_PATIENT);
+                                                            plan_flags);
       grids->N_rec_filtered_reverse_plan = fftwf_mpi_plan_dft_c2r_3d(ReionGridDim,
                                                                      ReionGridDim,
                                                                      ReionGridDim,
                                                                      grids->N_rec_filtered,
                                                                      (float*)grids->N_rec_filtered,
                                                                      run_globals.mpi_comm,
-                                                                     FFTW_PATIENT);
+                                                                     plan_flags);
 
       grids->z_re = fftwf_alloc_real((size_t)slab_n_real);
       grids->Gamma12 = fftwf_alloc_real((size_t)slab_n_real);
@@ -603,20 +614,15 @@ void malloc_reionization_grids()
         grids->vel = fftwf_alloc_real((size_t)slab_n_complex * 2);
         grids->vel_gradient = fftwf_alloc_complex((size_t)slab_n_complex);
 
-        grids->vel_forward_plan = fftwf_mpi_plan_dft_r2c_3d(ReionGridDim,
-                                                            ReionGridDim,
-                                                            ReionGridDim,
-                                                            grids->vel,
-                                                            grids->vel_gradient,
-                                                            run_globals.mpi_comm,
-                                                            FFTW_PATIENT);
+        grids->vel_forward_plan = fftwf_mpi_plan_dft_r2c_3d(
+          ReionGridDim, ReionGridDim, ReionGridDim, grids->vel, grids->vel_gradient, run_globals.mpi_comm, plan_flags);
         grids->vel_gradient_reverse_plan = fftwf_mpi_plan_dft_c2r_3d(ReionGridDim,
                                                                      ReionGridDim,
                                                                      ReionGridDim,
                                                                      grids->vel_gradient,
                                                                      (float*)grids->vel_gradient,
                                                                      run_globals.mpi_comm,
-                                                                     FFTW_PATIENT);
+                                                                     plan_flags);
       }
 
       if (run_globals.params.Flag_ConstructLightcone) {
@@ -643,12 +649,16 @@ void malloc_reionization_grids()
 
     init_reion_grids();
 
-    if (run_globals.reion_grids.flag_wisdom) {
-      if (fftwf_export_wisdom_to_filename(wisdom_fname)) {
-        mlog("Successfully saved FFTW3 wisdom to %s", MLOG_MESG, wisdom_fname);
+    if (run_globals.reion_grids.flag_wisdom && save_wisdom) {
+      fftwf_mpi_broadcast_wisdom(run_globals.mpi_comm);
+      if (run_globals.mpi_rank == 0) {
+        if (fftwf_export_wisdom_to_filename(wisdom_fname)) {
+          mlog("Successfully saved FFTW3 wisdom to %s", MLOG_MESG, wisdom_fname);
+        }
       }
     }
-  }
+
+  } // if (run_globals.params.Flag_PatchyReion)
 }
 
 void free_reionization_grids()
