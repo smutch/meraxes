@@ -9,3 +9,7 @@ spack:
   packages:
     all:
       compiler: [gcc]
+  modules:
+    prefix_inspections:
+      include:
+        - CPATH

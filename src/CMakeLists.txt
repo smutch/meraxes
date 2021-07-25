@@ -21,7 +21,6 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(N_HISTORY_SNAPS 5 CACHE STRING "Number of snapshots for delayed SN feedback")
 add_definitions(-DN_HISTORY_SNAPS=${N_HISTORY_SNAPS})
 
-option(USE_BUNDLED_FFTW "Download and build against bundled fftw" OFF)
 option(BUILD_TESTS "Build criterion tests" OFF)
 
 option(GDB "Drop into GDB with mpi_debug_here() calls" OFF)
@@ -299,21 +298,16 @@ target_link_libraries(meraxes_lib PUBLIC ${HDF5_C_LIBRARIES} ${HDF5_C_HL_LIBRARI
 add_definitions(${HDF5_DEFINITIONS})
 
 # THIS IS A TEMPORARY HACK TO OVERCOME A BUG IN SOME VERSIONS OF CMAKE
-if(NOT (${HDF5_C_HL_LIBRARIES} MATCHES "libhdf5_hl"))
-    list(GET HDF5_C_LIBRARIES 0 HDF5_LIB)
-    get_filename_component(HDF5_LIBDIR ${HDF5_LIB} DIRECTORY)
-    target_link_libraries(meraxes_lib PUBLIC "${HDF5_LIBDIR}/libhdf5_hl.so")
-endif()
+# if(NOT (${HDF5_C_HL_LIBRARIES} MATCHES "libhdf5_hl"))
+#     list(GET HDF5_C_LIBRARIES 0 HDF5_LIB)
+#     get_filename_component(HDF5_LIBDIR ${HDF5_LIB} DIRECTORY)
+#     target_link_libraries(meraxes_lib PUBLIC "${HDF5_LIBDIR}/libhdf5_hl.so")
+# endif()
 
 # FFTW
-if(NOT USE_BUNDLED_FFTW)
-    find_package(FFTW REQUIRED)
-    target_include_directories(meraxes_lib PUBLIC ${FFTW_INCLUDE_DIRS})
-    target_link_libraries(meraxes_lib PUBLIC ${FFTW_LIBRARIES})
-else()
-    include(cmake/BundleFFTW.cmake)
-    bundle_fftw()
-endif()
+find_package(FFTW REQUIRED)
+target_include_directories(meraxes_lib PUBLIC ${FFTW_INCLUDE_DIRS})
+target_link_libraries(meraxes_lib PUBLIC ${FFTW_LIBRARIES})
 
 # Profiling
 option(ENABLE_PROFILING "Enable profiling of executable with gperftools." OFF)
