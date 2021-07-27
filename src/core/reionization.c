@@ -1,8 +1,10 @@
 #include <assert.h>
 #include <complex.h>
+#include <fenv.h>
 #include <fftw3-mpi.h>
 #include <hdf5_hl.h>
 #include <math.h>
+#include <sys/stat.h>
 
 #include "ComputeTs.h"
 #include "find_HII_bubbles.h"
@@ -130,9 +132,6 @@ void assign_slabs()
 {
   mlog("Assigning slabs to MPI cores...", MLOG_OPEN);
 
-  // Allocations made in this function are free'd in `free_reionization_grids`.
-  fftwf_mpi_init();
-
   // Assign the slab size
   int n_rank = run_globals.mpi_size;
   int dim = run_globals.params.ReionGridDim;
@@ -251,10 +250,11 @@ void call_ComputeTs(int snapshot, int nout_gals, timer_info* timer)
 
 void init_reion_grids()
 {
+
   reion_grids_t* grids = &(run_globals.reion_grids);
   int ReionGridDim = run_globals.params.ReionGridDim;
   ptrdiff_t* slab_nix = run_globals.reion_grids.slab_nix;
-  ptrdiff_t slab_n_real = slab_nix[run_globals.mpi_rank] * ReionGridDim * ReionGridDim; // TODO: NOT WORKING!!!
+  ptrdiff_t slab_n_real = slab_nix[run_globals.mpi_rank] * ReionGridDim * ReionGridDim;
   ptrdiff_t slab_n_complex = run_globals.reion_grids.slab_n_complex[run_globals.mpi_rank];
 
   ptrdiff_t slab_n_real_smoothedSFR;
@@ -330,7 +330,7 @@ void init_reion_grids()
     if (run_globals.params.ReionUVBFlag) {
       grids->J_21_at_ionization[ii] = (float)0.;
       grids->J_21[ii] = (float)0.;
-      grids->Mvir_crit[ii] = 0;
+      grids->Mvir_crit[ii] = (float)0.;
     }
 
   for (int ii = 0; ii < slab_n_complex; ii++) {
@@ -383,6 +383,8 @@ void malloc_reionization_grids()
 {
   reion_grids_t* grids = &(run_globals.reion_grids);
 
+  fftwf_mpi_init();
+
   // Load wisdom if requested
   run_globals.reion_grids.flag_wisdom = strlen(run_globals.params.FFTW3WisdomDir) > 0;
   bool save_wisdom = false;
@@ -401,13 +403,20 @@ void malloc_reionization_grids()
       if (fftwf_import_wisdom_from_filename(wisdom_fname)) {
         mlog("Successfully loaded FFTW3 wisdom from %s", MLOG_MESG, wisdom_fname);
       } else {
-        mlog("FFTW3 wisdom directory provided, but no suitable wisdom exists. New wisdom will be created.",
-             MLOG_MESG,
-             wisdom_fname);
+        mlog("FFTW3 wisdom directory provided, but no suitable wisdom exists. New wisdom will be created (this make "
+             "take a while).",
+             MLOG_MESG);
         save_wisdom = true;
+        // Check to see if the wisdom directory exists and if not, create it
+        struct stat filestatus;
+        if (stat(run_globals.params.FFTW3WisdomDir, &filestatus) != 0)
+          mkdir(run_globals.params.FFTW3WisdomDir, 02755);
       }
     }
-    fftwf_mpi_broadcast_wisdom(run_globals.mpi_comm);
+    MPI_Bcast(&save_wisdom, 1, MPI_C_BOOL, 0, run_globals.mpi_comm);
+    if (!save_wisdom) {
+      fftwf_mpi_broadcast_wisdom(run_globals.mpi_comm);
+    }
   }
 
   // run_globals.NStoreSnapshots is set in `initialize_halo_storage`
@@ -471,7 +480,7 @@ void malloc_reionization_grids()
 
     int ReionGridDim = run_globals.params.ReionGridDim;
     ptrdiff_t* slab_nix = run_globals.reion_grids.slab_nix;
-    ptrdiff_t slab_n_real = slab_nix[run_globals.mpi_rank] * ReionGridDim * ReionGridDim; // TODO: NOT WORKING!!!
+    ptrdiff_t slab_n_real = slab_nix[run_globals.mpi_rank] * ReionGridDim * ReionGridDim;
     ptrdiff_t slab_n_complex = run_globals.reion_grids.slab_n_complex[run_globals.mpi_rank];
 
     ptrdiff_t slab_n_real_smoothedSFR;
@@ -556,14 +565,15 @@ void malloc_reionization_grids()
     if (run_globals.params.Flag_IncludeSpinTemp) {
 
       grids->x_e_box = fftwf_alloc_real((size_t)slab_n_complex * 2);
-      grids->x_e_box_prev = fftwf_alloc_real((size_t)slab_n_complex * 2);
+      grids->x_e_unfiltered = fftwf_alloc_complex((size_t)slab_n_complex);
       grids->x_e_filtered = fftwf_alloc_complex((size_t)slab_n_complex);
+      grids->x_e_box_prev = fftwf_alloc_real((size_t)slab_n_complex * 2);
 
       grids->x_e_box_forward_plan = fftwf_mpi_plan_dft_r2c_3d(ReionGridDim,
                                                               ReionGridDim,
                                                               ReionGridDim,
                                                               grids->x_e_box,
-                                                              (fftwf_complex*)grids->x_e_box,
+                                                              grids->x_e_unfiltered,
                                                               run_globals.mpi_comm,
                                                               plan_flags);
       grids->x_e_filtered_reverse_plan = fftwf_mpi_plan_dft_c2r_3d(ReionGridDim,
@@ -650,7 +660,7 @@ void malloc_reionization_grids()
     init_reion_grids();
 
     if (run_globals.reion_grids.flag_wisdom && save_wisdom) {
-      fftwf_mpi_broadcast_wisdom(run_globals.mpi_comm);
+      fftwf_mpi_gather_wisdom(run_globals.mpi_comm);
       if (run_globals.mpi_rank == 0) {
         if (fftwf_export_wisdom_to_filename(wisdom_fname)) {
           mlog("Successfully saved FFTW3 wisdom to %s", MLOG_MESG, wisdom_fname);
@@ -726,6 +736,7 @@ void free_reionization_grids()
     fftwf_destroy_plan(grids->x_e_filtered_reverse_plan);
     fftwf_destroy_plan(grids->x_e_box_forward_plan);
     fftwf_free(grids->x_e_filtered);
+    fftwf_free(grids->x_e_unfiltered);
     fftwf_free(grids->x_e_box_prev);
     fftwf_free(grids->x_e_box);
   }
