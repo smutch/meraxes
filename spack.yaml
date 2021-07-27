@@ -12,4 +12,6 @@ spack:
   modules:
     prefix_inspections:
       include:
-        - CPATH
+      - CPATH
+  repos:
+  - spack-repo
