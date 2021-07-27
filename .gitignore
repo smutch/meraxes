@@ -1,3 +1,8 @@
+.idea
+justfile
+src/.cache
+.spack-env
+.envrc
 Log_files
 src/3rd_party
 find_HII_bubbles
