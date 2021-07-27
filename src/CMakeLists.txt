@@ -183,7 +183,7 @@ if(NOT BUILD_SHARED_LIBS)
         COMMAND test -n \"\${RUNDIR}\" || (echo "*** Must set RUNDIR to execute target 'setuprun'. ***" && exit 1)
         COMMAND echo "RUNDIR = \${RUNDIR}"
         COMMAND mkdir -p \${RUNDIR}
-        COMMAND cp -n ${CMAKE_BINARY_DIR}/input.par \${RUNDIR}
+        COMMAND cp -n ${CMAKE_BINARY_DIR}/input.par \${RUNDIR} || (exit 0)
         COMMAND cp ${CMAKE_BINARY_DIR}/bin/meraxes \${RUNDIR}
         )
     add_dependencies(setuprun meraxes)
