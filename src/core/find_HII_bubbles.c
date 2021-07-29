@@ -173,6 +173,8 @@ void _find_HII_bubbles(const int snapshot)
     N_rec_filtered = run_globals.reion_grids.N_rec_filtered;
     plan = fftwf_mpi_plan_dft_r2c_3d(
       ReionGridDim, ReionGridDim, ReionGridDim, N_rec_prev, N_rec_unfiltered, run_globals.mpi_comm, FFTW_ESTIMATE);
+    fftwf_execute(plan);
+    fftwf_destroy_plan(plan);
   }
 
   // Remember to add the factor of VOLUME/TOT_NUM_PIXELS when converting from real space to k-space
