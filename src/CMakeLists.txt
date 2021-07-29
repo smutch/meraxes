@@ -1,4 +1,7 @@
-# project setup
+###################
+#  project setup  #
+###################
+
 cmake_minimum_required(VERSION 3.12)
 
 # include local custom settings (must come before project line to allow
@@ -9,38 +12,6 @@ project(meraxes C)
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-
-# build options
-set(N_HISTORY_SNAPS 5 CACHE STRING "Number of snapshots for delayed SN feedback")
-set(BUILD_SHARED_LIBS OFF CACHE BOOL "Build shared library version (required for Mhysa)")
-option(CALC_MAGS "Calculate magnitude" OFF)
-set(MAGS_N_SNAPS 3 CACHE STRING "Number of snapshots to compute magnitudes")
-set(MAGS_N_BANDS 6 CACHE STRING "Number of bands to compute")
-set(SECTOR_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/sector" CACHE PATH "Base directory of sector library")
-option(BUILD_TESTS "Build criterion tests" OFF)
-option(GDB "Drop into GDB with mpi_debug_here() calls" OFF)
-option(ENABLE_PROFILING "Enable profiling of executable with gperftools." OFF)
-option(USE_CUDA "Build with CUDA support for reionization calculations" OFF)
-if(USE_CUDA)
-    option(USE_CUFFT "Use cuFFT (gpu) instead of fftw (cpu)" OFF)
-endif(USE_CUDA)
-
-
-# Build type
-set(default_build_type "RelWithDebInfo")
-if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
-  message(STATUS "Setting build type to '${default_build_type}' as none was specified.")
-  set(CMAKE_BUILD_TYPE "${default_build_type}" CACHE
-      STRING "Choose the type of build." FORCE)
-  # Set the possible values of build type for cmake-gui
-  set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS
-    "Debug" "Release" "MinSizeRel" "RelWithDebInfo")
-endif()
-if(CMAKE_BUILD_TYPE EQUAL "Debug" AND NOT BUILD_SHARED_LIBS)
-    set(SANITIZE_FLAGS "-fsanitize=address,leak,undefined -fno-common -fno-omit-frame-pointer")
-else()
-    set(SANITIZE_FLAGS "")
-endif()
 
 # We don't want to install to /usr/... by default
 if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
@@ -75,7 +46,47 @@ if("${CMAKE_C_COMPILER_ID}" MATCHES "Clang")
     set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -undefined dynamic_lookup")
 endif()
 
-# source files
+
+#################
+# build options #
+#################
+
+set(N_HISTORY_SNAPS 5 CACHE STRING "Number of snapshots for delayed SN feedback")
+set(BUILD_SHARED_LIBS OFF CACHE BOOL "Build shared library version (required for Mhysa)")
+option(CALC_MAGS "Calculate magnitude" OFF)
+set(MAGS_N_SNAPS 3 CACHE STRING "Number of snapshots to compute magnitudes")
+set(MAGS_N_BANDS 6 CACHE STRING "Number of bands to compute")
+set(SECTOR_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/sector" CACHE PATH "Base directory of sector library")
+option(BUILD_TESTS "Build criterion tests" OFF)
+option(GDB "Drop into GDB with mpi_debug_here() calls" OFF)
+option(ENABLE_PROFILING "Enable profiling of executable with gperftools." OFF)
+option(USE_CUDA "Build with CUDA support for reionization calculations" OFF)
+if(USE_CUDA)
+    option(USE_CUFFT "Use cuFFT (gpu) instead of fftw (cpu)" OFF)
+endif(USE_CUDA)
+
+
+# Build type
+set(default_build_type "RelWithDebInfo")
+if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
+  message(STATUS "Setting build type to '${default_build_type}' as none was specified.")
+  set(CMAKE_BUILD_TYPE "${default_build_type}" CACHE
+      STRING "Choose the type of build." FORCE)
+  # Set the possible values of build type for cmake-gui
+  set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS
+    "Debug" "Release" "MinSizeRel" "RelWithDebInfo")
+endif()
+if(CMAKE_BUILD_TYPE EQUAL "Debug" AND NOT BUILD_SHARED_LIBS)
+    set(SANITIZE_FLAGS "-fsanitize=address,leak,undefined -fno-common -fno-omit-frame-pointer")
+else()
+    set(SANITIZE_FLAGS "")
+endif()
+
+
+########################################
+#  Meraxes lib and executable targets  #
+########################################
+
 # TODO: This is bad practice, we should really list the sources explicitly
 file(GLOB SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/core/*.[ch] *.h ${CMAKE_CURRENT_SOURCE_DIR}/physics/*.[ch])
 list(REMOVE_ITEM SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/core/meraxes.c)
@@ -108,6 +119,12 @@ target_compile_options(meraxes_lib PRIVATE
     $<$<CONFIG:Release>:-march=native -ffast-math>
     )
 
+# Profiling
+if(ENABLE_PROFILING)
+    find_library(GPERF_LIBRARIES profiler PATHS "${GPERF_ROOT}/*")
+    target_compile_options(meraxes_lib PRIVATE -pg)
+endif()
+
 # Make sure we get all the files we need for an install of the library
 install(TARGETS meraxes_lib EXPORT MeraxesConfig
     DESTINATION lib
@@ -128,11 +145,16 @@ add_custom_target(install.meraxes
     -P ${CMAKE_BINARY_DIR}/cmake_install.cmake)
 add_dependencies(install.meraxes meraxes)
 
-# Configuration headers
+# Templated headers
 include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/versioning.cmake)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/meraxes_conf.h.in ${CMAKE_BINARY_DIR}/meraxes_conf.h ESCAPE_QUOTES @ONLY)
 target_include_directories(meraxes_lib BEFORE PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR})
 target_include_directories(meraxes BEFORE PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR})
+
+
+##########
+#  CUDA  #
+##########
 
 if(USE_CUDA)
     enable_language(CUDA)
@@ -155,18 +177,20 @@ if(USE_CUDA)
     target_compile_definitions(meraxes_lib PUBLIC $<$<COMPILE_LANGUAGE:CUDA>:__INTEL_COMPILER>)
 endif()
 
-#######
-# TESTS
-#######
+
+#########
+# TESTS #
+#########
 
 if(BUILD_TESTS)
     enable_testing()
     add_subdirectory(tests)
 endif()
 
-##############
-# DEPENDENCIES
-##############
+
+################
+# DEPENDENCIES # 
+################
 
 # MATH
 target_link_libraries(meraxes_lib PRIVATE m)
@@ -236,23 +260,10 @@ target_include_directories(meraxes_lib PUBLIC ${HDF5_INCLUDE_DIRS})
 target_link_libraries(meraxes_lib PUBLIC ${HDF5_C_LIBRARIES} ${HDF5_C_HL_LIBRARIES})
 add_definitions(${HDF5_DEFINITIONS})
 
-# THIS IS A TEMPORARY HACK TO OVERCOME A BUG IN SOME VERSIONS OF CMAKE
-# if(NOT (${HDF5_C_HL_LIBRARIES} MATCHES "libhdf5_hl"))
-#     list(GET HDF5_C_LIBRARIES 0 HDF5_LIB)
-#     get_filename_component(HDF5_LIBDIR ${HDF5_LIB} DIRECTORY)
-#     target_link_libraries(meraxes_lib PUBLIC "${HDF5_LIBDIR}/libhdf5_hl.so")
-# endif()
-
 # FFTW
 find_package(FFTW REQUIRED)
 target_include_directories(meraxes_lib PUBLIC ${FFTW_INCLUDE_DIRS})
 target_link_libraries(meraxes_lib PUBLIC ${FFTW_LIBRARIES})
-
-# Profiling
-if(ENABLE_PROFILING)
-    find_library(GPERF_LIBRARIES profiler PATHS "${GPERF_ROOT}/*")
-    target_compile_options(meraxes_lib PRIVATE -pg)
-endif()
 
 # Exports for other codes to build against this version of Meraxes
 if(CALC_MAGS)
@@ -262,7 +273,11 @@ else()
 endif()
 install(EXPORT MeraxesConfig DESTINATION share/meraxes/cmake)
 
-# custom commands
+
+#####################
+#  Custom commands  #
+#####################
+
 # Provide the setuprun build command
 if(NOT BUILD_SHARED_LIBS)
     set(INPUT_FILE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../input")
@@ -279,25 +294,9 @@ if(NOT BUILD_SHARED_LIBS)
     add_dependencies(setuprun meraxes)
 endif()
 
-add_custom_target(cleandist
-    COMMENT "Clean everything, including 3rd party libs."
-    COMMAND ${CMAKE_MAKE_PROGRAM} clean
-    COMMAND ${CMAKE_COMMAND} -E echo "Cleaning 3rd party libs..."
-    COMMAND ${CMAKE_COMMAND} -E remove_directory ${CMAKE_CURRENT_SOURCE_DIR}/3rd_party
-    )
-
 if(EXISTS ${CLANG_FORMAT_BINARY})
     add_custom_target(format
         COMMENT "Use clang-format to format the source code consistently."
         COMMAND ${CLANG_FORMAT_BINARY} -i ${SOURCES}
         )
 endif()
-
-# Cscope
-add_custom_command(OUTPUT cscope.out
-    DEPENDS ${SOURCES}
-    WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
-    COMMAND cscope -k -b -P ${PROJECT_SOURCE_DIR} ${TARGET_SOURCES}
-)
-add_custom_target(cscope DEPENDS cscope.out)
-
