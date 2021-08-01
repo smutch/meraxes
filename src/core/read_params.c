@@ -37,7 +37,7 @@ static void store_params(entry_t entry[123],
 {
   int level = 0;
   char prefix[16] = "\0";
-  char key[STRLEN];
+  char key[STRLEN + 64];
 
   for (int i_entry = 0; i_entry < n_entries; i_entry++) {
     // DEBUG
