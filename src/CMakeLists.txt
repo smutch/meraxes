@@ -156,7 +156,7 @@ target_include_directories(meraxes BEFORE PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} ${
 if(USE_CUDA)
     enable_language(CUDA)
     set_target_properties(meraxes_lib meraxes PROPERTIES
-        CUDA_ARCHITECTURES 62
+        CUDA_ARCHITECTURES 60
         CUDA_STANDARD 11
         CXX_STANDARD 11
         )
