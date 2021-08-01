@@ -2,7 +2,7 @@
 #  project setup  #
 ###################
 
-cmake_minimum_required(VERSION 3.12)
+cmake_minimum_required(VERSION 3.18)
 
 # include local custom settings (must come before project line to allow
 # compilers to be set)
@@ -158,14 +158,21 @@ target_include_directories(meraxes BEFORE PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} ${
 
 if(USE_CUDA)
     enable_language(CUDA)
+    set_target_properties(meraxes_lib meraxes PROPERTIES
+        CUDA_ARCHITECTURES 62
+        CUDA_STANDARD 11
+        CXX_STANDARD 11
+        )
+
+    find_package(CUDAToolkit REQUIRED)
 
     # Add CUDA source code and link libraries
     # TODO: This is bad practice, we should really list the sources explicitly
-    file(GLOB SOURCES_CU core/*.cu *.hh)
-    target_sources(meraxes_lib PUBLIC ${SOURCES_CU})
+    file(GLOB SOURCES_CU core/*.cu *.hh meraxes_gpu.h)
+    target_sources(meraxes_lib PRIVATE ${SOURCES_CU})
 
     # link libraries
-    target_link_libraries(meraxes_lib PUBLIC CUDA::cudart)
+    target_link_libraries(meraxes_lib PUBLIC CUDA::cudart_static)
     target_compile_definitions(meraxes_lib PUBLIC USE_CUDA)
     if(USE_CUFFT)
         target_link_libraries(meraxes_lib PUBLIC CUDA::cufft)
