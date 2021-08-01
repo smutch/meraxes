@@ -36,7 +36,6 @@
 #ifdef __cplusplus
 #ifdef __NVCC__
 #include <cuda_runtime.h>
-#include <cufft.h>
 
 // Host-side exception-handling routines
 __host__ void _throw_on_generic_error(bool check_failure,
@@ -49,11 +48,6 @@ __host__ void _throw_on_cuda_error(cudaError_t cuda_code,
                                    const std::string& file,
                                    const std::string& func,
                                    int line);
-__host__ void _throw_on_cuFFT_error(cufftResult cuda_code,
-                                    int implementation_code,
-                                    const std::string& file,
-                                    const std::string& func,
-                                    int line);
 __host__ void _throw_on_kernel_error(int implementation_code,
                                      const std::string& file,
                                      const std::string& func,
@@ -122,10 +116,6 @@ __global__ void find_HII_bubbles_gpu_main_loop(const float redshift,
 #define throw_on_cuda_error(cuda_code, implementation_code)                                                            \
   {                                                                                                                    \
     _throw_on_cuda_error((cuda_code), implementation_code, __FILE__, __func__, __LINE__);                              \
-  }
-#define throw_on_cuFFT_error(cufft_code, implementation_code)                                                          \
-  {                                                                                                                    \
-    _throw_on_cuFFT_error((cufft_code), implementation_code, __FILE__, __func__, __LINE__);                            \
   }
 #define throw_on_kernel_error(kernel_call, implementation_code)                                                        \
   {                                                                                                                    \
@@ -232,11 +222,6 @@ public:
     FREE,
     MEMCPY,
     SYNC,
-    CUFFT_CREATE_PLAN,
-    CUFFT_SET_COMPATIBILITY,
-    CUFFT_R2C,
-    CUFFT_C2R,
-    CUFFT_PLAN_DESTROY,
     KERNEL_CMPLX_AX,
     KERNEL_SET_ARRAY,
     KERNEL_FILTER,
@@ -265,16 +250,6 @@ private:
         return ("CUDA error while calling cudaMemcpy()");
       case SYNC:
         return ("CUDA error while syncing device");
-      case CUFFT_CREATE_PLAN:
-        return ("cuFFT error while creating cuFFT plan");
-      case CUFFT_SET_COMPATIBILITY:
-        return ("cuFFT error while setting cuFFT compatibility");
-      case CUFFT_R2C:
-        return ("cuFFT error while performing real->complex cuFFT transform");
-      case CUFFT_C2R:
-        return ("cuFFT error while performing complex->real cuFFT transform");
-      case CUFFT_PLAN_DESTROY:
-        return ("cuFFT error while destroying cuFFT plan");
       // The following kernel error messages are meant to have
       //   modifiers placed in front of them to descriminate
       //   between CUDA errors and thread-sync errors.

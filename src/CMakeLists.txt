@@ -61,9 +61,6 @@ option(BUILD_TESTS "Build criterion tests" OFF)
 option(GDB "Drop into GDB with mpi_debug_here() calls" OFF)
 option(ENABLE_PROFILING "Enable profiling of executable with gperftools." OFF)
 option(USE_CUDA "Build with CUDA support for reionization calculations" OFF)
-if(USE_CUDA)
-    option(USE_CUFFT "Use cuFFT (gpu) instead of fftw (cpu)" OFF)
-endif(USE_CUDA)
 
 
 # Build type
@@ -174,10 +171,6 @@ if(USE_CUDA)
     # link libraries
     target_link_libraries(meraxes_lib PUBLIC CUDA::cudart_static)
     target_compile_definitions(meraxes_lib PUBLIC USE_CUDA)
-    if(USE_CUFFT)
-        target_link_libraries(meraxes_lib PUBLIC CUDA::cufft)
-        target_compile_definitions(meraxes_lib PUBLIC USE_CUFFT)
-    endif()
 
     # This hack is needed to work around a bug in the fftw3.h header file
     # see the following for a discussion: https://github.com/FFTW/fftw3/issues/18

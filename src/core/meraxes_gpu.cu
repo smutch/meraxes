@@ -51,7 +51,6 @@
 #include "misc_tools.h"
 
 #include <cuda_runtime.h>
-#include <cufft.h>
 
 // These functions deal with any GPU exceptions, but should be called with the macros defined in the corresponding .hh
 // file
@@ -72,15 +71,6 @@ __host__ void _throw_on_cuda_error(cudaError_t cuda_code,
 {
   if (cuda_code != cudaSuccess)
     throw(meraxes_cuda_exception((int)cuda_code, implementation_code, file, func, line));
-}
-__host__ void _throw_on_cuFFT_error(cufftResult cufft_code,
-                                    int implementation_code,
-                                    const std::string& file,
-                                    const std::string& func,
-                                    int line)
-{
-  if (cufft_code != CUFFT_SUCCESS)
-    throw(meraxes_cuda_exception((int)cufft_code, implementation_code, file, func, line));
 }
 __host__ void _check_for_cuda_error(int implementation_code, const std::string& file, const std::string& func, int line)
 {
@@ -126,7 +116,6 @@ static void dump_gpu_properties()
   mlog("==============", MLOG_MESG);
   mlog("device = %s", MLOG_MESG, info.device);
   mlog("name = %s", MLOG_MESG, info.properties.name);
-  mlog("flag_use_cuFFT = %d", MLOG_MESG, (int)info.flag_use_cuFFT);
   mlog("n_threads = %d", MLOG_MESG, info.n_threads);
   mlog("maxThreadsPerBlock = %d", MLOG_MESG, info.properties.maxThreadsPerBlock);
   mlog("maxThreadsPerMultiProcessor = %d", MLOG_MESG, info.properties.maxThreadsPerMultiProcessor);

@@ -528,7 +528,6 @@ typedef struct trees_info_t
 typedef struct gpu_info
 {
   int device;                       // the ordinal of the current context's device
-  bool flag_use_cuFFT;              // true if the code has been compiled with cuFFT
   struct cudaDeviceProp properties; // Properties of this context's assigned device
   int n_threads;                    // No. of threads to use in kernal calls
   int n_contexts;                   // No. of ranks with successfully allocated GPU contexts

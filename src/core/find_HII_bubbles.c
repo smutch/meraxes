@@ -111,12 +111,10 @@ void _find_HII_bubbles(const int snapshot)
   fftwf_complex* deltax_filtered = run_globals.reion_grids.deltax_filtered;
   fftwf_execute(run_globals.reion_grids.deltax_forward_plan);
 
-  float* stars = run_globals.reion_grids.stars;
   fftwf_complex* stars_unfiltered = run_globals.reion_grids.stars_unfiltered;
   fftwf_complex* stars_filtered = run_globals.reion_grids.stars_filtered;
   fftwf_execute(run_globals.reion_grids.stars_forward_plan);
 
-  float* sfr = run_globals.reion_grids.sfr;
   fftwf_complex* sfr_unfiltered = run_globals.reion_grids.sfr_unfiltered;
   fftwf_complex* sfr_filtered = run_globals.reion_grids.sfr_filtered;
   fftwf_execute(run_globals.reion_grids.sfr_forward_plan);
@@ -400,17 +398,11 @@ void find_HII_bubbles(int snapshot, timer_info* timer_total)
   double redshift = run_globals.ZZ[snapshot];
   timer_info timer;
 #ifdef USE_CUDA
-#ifdef USE_CUFFT
-  mlog("Calling pure-GPU version of find_HII_bubbles() for snap=%d/z=%.2lf...",
-       MLOG_OPEN | MLOG_TIMERSTART,
-       snapshot,
-       redshift);
-#else
   mlog("Calling hybrid-GPU/FFTW version of find_HII_bubbles() for snap=%d/z=%.2lf...",
        MLOG_OPEN | MLOG_TIMERSTART,
        snapshot,
        redshift);
-#endif
+
   // Run the GPU version of _find_HII_bubbles()
   timer_start(&timer);
 
