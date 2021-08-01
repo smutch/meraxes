@@ -604,8 +604,8 @@ void _find_HII_bubbles_gpu(const int snapshot, const bool flag_write_validation_
   double mass_weight = 0.0;
 
   // Calculate neutral fractions.
-  // TODO: A parallel reduction could be done for this before results are off-loaded
-  //       from the GPU.
+  // TODO: A parallel reduction could be done for this before results are off-loaded from the GPU.
+  //       This would require figuring out how to do the spline interpolation on the GPU though...
   int ix, iy, iz;
   for (ix = 0; ix < local_nix; ix++)
     for (iy = 0; iy < ReionGridDim; iy++)
