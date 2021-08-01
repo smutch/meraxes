@@ -34,7 +34,7 @@ double splined_recombination_rate(double z_eff, double gamma12_bg)
 
   // check out of bounds
   if (z_ct < 0) { // out of array bounds
-    mlog("WARNING: splined_recombination_rate: effective redshift %g is outside of array bounds", MLOG_MESG, z_eff);
+    // mlog("WARNING: splined_recombination_rate: effective redshift %g is outside of array bounds", MLOG_MESG, z_eff);
     z_ct = 0;
   } else if (z_ct >= RR_Z_NPTS) {
     mlog("WARNING: splined_recombination_rate: effective redshift %g is outside of array bounds", MLOG_MESG, z_eff);
