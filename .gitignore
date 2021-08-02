@@ -40,3 +40,4 @@ src/.clangd/
 src/compile_commands.json
 src/.vscode
 .vscode
+Doxy*
