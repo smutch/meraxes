@@ -15,7 +15,7 @@ trees_info_t read_trees_info__velociraptor(const int snapshot)
   trees_info_t trees_info;
 
   if (run_globals.mpi_rank == 0) {
-    // TODO: This is wasteful and should probably only ever be done once and stored in run_globals.
+    // TODO: This could maybe only ever be done once and stored in run_globals.
     char fname[STRLEN + 34];
     sprintf(fname, "%s/trees/meraxes_augmented_stats.h5", run_globals.params.SimulationDir);
 

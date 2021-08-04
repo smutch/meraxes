@@ -1,5 +1,6 @@
 #include <assert.h>
 #include <complex.h>
+#include <dirent.h>
 #include <fftw3-mpi.h>
 #include <gsl/gsl_sort_int.h>
 #include <hdf5_hl.h>
@@ -65,13 +66,23 @@ static int determine_file_type(const int snapshot)
 static int read_swift(const enum grid_prop property, const int snapshot, float* slab)
 {
   run_params_t* params = &(run_globals.params);
-  const char fname_base[] = { "%s/grids/snap_%04d.hdf5" };
 
   hid_t plist_id = H5Pcreate(H5P_FILE_ACCESS);
   H5Pset_fapl_mpio(plist_id, run_globals.mpi_comm, MPI_INFO_NULL);
 
+  // Construct the input filename by first testing to see if there are
+  // pre-computed grids of the required resolution.  If not then we will just
+  // read the highest res grids available and down sample them.
+  char dirname[STRLEN - 20];
   char fname[STRLEN];
-  sprintf(fname, fname_base, params->SimulationDir, snapshot);
+  sprintf(dirname, "%s/grids/resampled/N%d", params->SimulationDir, run_globals.params.ReionGridDim);
+  DIR* dir = opendir(dirname);
+  if (dir) {
+    closedir(dir);
+    sprintf(fname, "%s/snap_%04d.hdf5", dirname, snapshot);
+  } else {
+    sprintf(fname, "%s/grids/snap_%04d.hdf5", params->SimulationDir, snapshot);
+  }
 
   hid_t file_id = H5Fopen(fname, H5F_ACC_RDONLY, plist_id);
   H5Pclose(plist_id);

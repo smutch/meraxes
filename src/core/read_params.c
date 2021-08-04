@@ -37,7 +37,7 @@ static void store_params(entry_t entry[123],
 {
   int level = 0;
   char prefix[16] = "\0";
-  char key[STRLEN];
+  char key[STRLEN + 64];
 
   for (int i_entry = 0; i_entry < n_entries; i_entry++) {
     // DEBUG
@@ -286,6 +286,12 @@ void read_parameter_file(char* fname, int mode)
       required_tag[n_param] = 0;
       params_type[n_param++] = PARAM_TYPE_STRING;
       *(run_params->BaryonFracModifier) = '\0';
+
+      strncpy(params_tag[n_param], "FFTW3WisdomDir", tag_length);
+      params_addr[n_param] = &(run_params->FFTW3WisdomDir);
+      required_tag[n_param] = 1;
+      params_type[n_param++] = PARAM_TYPE_STRING;
+      *(run_params->FFTW3WisdomDir) = '\0';
 
       strncpy(params_tag[n_param], "UnitVelocity_in_cm_per_s", tag_length);
       params_addr[n_param] = &(run_globals.units.UnitVelocity_in_cm_per_s);

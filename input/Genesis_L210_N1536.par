@@ -138,6 +138,7 @@ ReionGnedin_z0         : 8
 ReionGnedin_zr         : 7
 
 # patchy (21cmFAST) prescription
+FFTW3WisdomDir :
 Flag_PatchyReion       : 1  # Use 21cmFAST (ensure Flag_ReionizationModifier=1 if wish to couple to galaxy formation).
 Flag_OutputGrids       : 1
 Flag_OutputGridsPostReion  : 0
