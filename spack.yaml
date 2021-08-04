@@ -14,4 +14,4 @@ spack:
       include:
       - CPATH
   repos:
-  - spack-repo
+  - ../spack-repo
