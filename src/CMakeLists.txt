@@ -193,7 +193,7 @@ endif()
 ################
 
 # MATH
-target_link_libraries(meraxes_lib PRIVATE m)
+target_link_libraries(meraxes_lib PUBLIC m)
 
 # MPI
 find_package(MPI REQUIRED)
