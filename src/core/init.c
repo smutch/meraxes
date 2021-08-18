@@ -28,26 +28,10 @@ static void init_gpu()
 
   // This function has all the CUDA device polling calls
   init_CUDA();
-
-#ifdef USE_CUFFT
-  // At present, Meraxes can only use cuFFT when one MPI rank
-  //   is involved.  To allow this to be multicore, the code
-  //   which handles the interpolation of the grids for the
-  //   galaxies will need to be adjusted.
-  if (run_globals.mpi_size > 1) {
-    mlog_error("cuFFT is not yet supported for mpi_size>1.");
-    ABORT(EXIT_FAILURE);
-  }
-
-  run_globals.gpu->flag_use_cuFFT = true;
 #else
-  run_globals.gpu->flag_use_cuFFT = false;
-#endif
-
-// If we are not compiling with CUDA, set this
-//   pointer to NULL.  This is a good way
-//   to test in the code if a GPU is being used.
-#else
+  // If we are not compiling with CUDA, set this
+  //   pointer to NULL.  This is a good way
+  //   to test in the code if a GPU is being used.
   mlog("CPU-only version of Meraxes running.", MLOG_MESG);
   run_globals.gpu = NULL;
 #endif

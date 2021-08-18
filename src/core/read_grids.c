@@ -55,6 +55,8 @@ void smooth_grid(double resample_factor,
                  ptrdiff_t slab_ix_start,
                  ptrdiff_t slab_nix)
 {
+  // TODO: Use wisdom and FFTW_PATIENT planning for this if requested (cf. malloc_reionisation_grids())
+
   if (resample_factor < 1.0) {
     mlog("Smoothing hi-res grid...", MLOG_OPEN | MLOG_TIMERSTART);
     fftwf_plan plan = fftwf_mpi_plan_dft_r2c_3d(

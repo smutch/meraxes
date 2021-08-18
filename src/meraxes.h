@@ -194,6 +194,7 @@ typedef struct run_params_t
   char MvirCritFile[STRLEN];
   char MassRatioModifier[STRLEN];
   char BaryonFracModifier[STRLEN];
+  char FFTW3WisdomDir[STRLEN];
 
   physics_params_t physics;
 
@@ -296,18 +297,25 @@ typedef struct reion_grids_t
   ptrdiff_t* slab_n_complex;
 
   float* buffer;
+
   float* stars;
-  float* stars_temp;
   fftwf_complex* stars_unfiltered;
   fftwf_complex* stars_filtered;
+  fftwf_plan stars_forward_plan;
+  fftwf_plan stars_filtered_reverse_plan;
+
   float* deltax;
-  float* deltax_temp;
   fftwf_complex* deltax_unfiltered;
   fftwf_complex* deltax_filtered;
+  fftwf_plan deltax_forward_plan;
+  fftwf_plan deltax_filtered_reverse_plan;
+
   float* sfr;
-  float* sfr_temp;
   fftwf_complex* sfr_unfiltered;
   fftwf_complex* sfr_filtered;
+  fftwf_plan sfr_forward_plan;
+  fftwf_plan sfr_filtered_reverse_plan;
+
   float* xH;
   float* z_at_ionization;
   float* J_21_at_ionization;
@@ -316,9 +324,12 @@ typedef struct reion_grids_t
   float* r_bubble;
 
   // Grids necessary for the IGM spin temperature
+  float* x_e_box;
   fftwf_complex* x_e_unfiltered;
   fftwf_complex* x_e_filtered;
-  float* x_e_box;
+  fftwf_plan x_e_box_forward_plan;
+  fftwf_plan x_e_filtered_reverse_plan;
+
   float* x_e_box_prev;
   float* Tk_box;
   float* Tk_box_prev;
@@ -328,19 +339,23 @@ typedef struct reion_grids_t
   double* SMOOTHED_SFR_QSO;
 
   // Grids necessary for inhomogeneous recombinations
+  float* z_re;
+
+  float* N_rec;
   fftwf_complex* N_rec_unfiltered;
   fftwf_complex* N_rec_filtered;
-  float* z_re;
-  float* N_rec;
-  float* N_rec_prev;
+  fftwf_plan N_rec_forward_plan;
+  fftwf_plan N_rec_filtered_reverse_plan;
+
   float* Gamma12;
 
   // Grids necessary for the 21cm brightness temperature
   float* delta_T;
   float* delta_T_prev;
   float* vel;
-  float* vel_temp;
   fftwf_complex* vel_gradient;
+  fftwf_plan vel_forward_plan;
+  fftwf_plan vel_gradient_reverse_plan;
 
   // Grid for the lightcone (cuboid) box
   float* LightconeBox;
@@ -369,6 +384,7 @@ typedef struct reion_grids_t
   int started;
   int finished;
   int buffer_size;
+  bool flag_wisdom;
 } reion_grids_t;
 
 typedef struct galaxy_t
@@ -512,7 +528,6 @@ typedef struct trees_info_t
 typedef struct gpu_info
 {
   int device;                       // the ordinal of the current context's device
-  bool flag_use_cuFFT;              // true if the code has been compiled with cuFFT
   struct cudaDeviceProp properties; // Properties of this context's assigned device
   int n_threads;                    // No. of threads to use in kernal calls
   int n_contexts;                   // No. of ranks with successfully allocated GPU contexts

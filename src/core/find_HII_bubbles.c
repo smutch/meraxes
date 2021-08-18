@@ -105,76 +105,41 @@ void _find_HII_bubbles(const int snapshot)
 
   // Forward fourier transform to obtain k-space fields
   // TODO: Ensure that fftwf_mpi_init has been called and fftwf_mpi_cleanup will be called
-  // TODO: Don't use estimate and calculate plan in code init
+
   float* deltax = run_globals.reion_grids.deltax;
-  float* deltax_temp = run_globals.reion_grids.deltax_temp;
-
-  // Make a copy of the box for FFT'ing
-  memcpy(deltax_temp, deltax, sizeof(fftwf_complex) * slab_n_complex);
-
-  fftwf_complex* deltax_unfiltered = (fftwf_complex*)deltax_temp; // WATCH OUT!
+  fftwf_complex* deltax_unfiltered = run_globals.reion_grids.deltax_unfiltered;
   fftwf_complex* deltax_filtered = run_globals.reion_grids.deltax_filtered;
-  fftwf_plan plan = fftwf_mpi_plan_dft_r2c_3d(
-    ReionGridDim, ReionGridDim, ReionGridDim, deltax_temp, deltax_unfiltered, run_globals.mpi_comm, FFTW_ESTIMATE);
-  fftwf_execute(plan);
-  fftwf_destroy_plan(plan);
+  fftwf_execute(run_globals.reion_grids.deltax_forward_plan);
 
-  float* stars = run_globals.reion_grids.stars;
-  float* stars_temp = run_globals.reion_grids.stars_temp;
-
-  // Make a copy of the box for FFT'ing
-  memcpy(stars_temp, stars, sizeof(fftwf_complex) * slab_n_complex);
-
-  fftwf_complex* stars_unfiltered = (fftwf_complex*)stars_temp; // WATCH OUT!
+  fftwf_complex* stars_unfiltered = run_globals.reion_grids.stars_unfiltered;
   fftwf_complex* stars_filtered = run_globals.reion_grids.stars_filtered;
-  plan = fftwf_mpi_plan_dft_r2c_3d(
-    ReionGridDim, ReionGridDim, ReionGridDim, stars_temp, stars_unfiltered, run_globals.mpi_comm, FFTW_ESTIMATE);
-  fftwf_execute(plan);
-  fftwf_destroy_plan(plan);
+  fftwf_execute(run_globals.reion_grids.stars_forward_plan);
 
-  float* sfr = run_globals.reion_grids.sfr;
-  float* sfr_temp = run_globals.reion_grids.sfr_temp;
-
-  // Make a copy of the box for FFT'ing
-  memcpy(sfr_temp, sfr, sizeof(fftwf_complex) * slab_n_complex);
-
-  fftwf_complex* sfr_unfiltered = (fftwf_complex*)sfr_temp; // WATCH OUT!
+  fftwf_complex* sfr_unfiltered = run_globals.reion_grids.sfr_unfiltered;
   fftwf_complex* sfr_filtered = run_globals.reion_grids.sfr_filtered;
-  plan = fftwf_mpi_plan_dft_r2c_3d(
-    ReionGridDim, ReionGridDim, ReionGridDim, sfr_temp, sfr_unfiltered, run_globals.mpi_comm, FFTW_ESTIMATE);
-  fftwf_execute(plan);
-  fftwf_destroy_plan(plan);
+  fftwf_execute(run_globals.reion_grids.sfr_forward_plan);
 
   // The free electron fraction from X-rays
-  float* x_e_box;
-  fftwf_complex* x_e_unfiltered;
-  fftwf_complex* x_e_filtered;
+  // TODO: Only necessary if we aren't using the GPU (not implemented there yet)
+  float* x_e_box = NULL;
+  fftwf_complex* x_e_unfiltered = NULL;
+  fftwf_complex* x_e_filtered = NULL;
   if (run_globals.params.Flag_IncludeSpinTemp) {
     x_e_box = run_globals.reion_grids.x_e_box;
-    x_e_unfiltered = (fftwf_complex*)x_e_box; // WATCH OUT!
+    x_e_unfiltered = run_globals.reion_grids.x_e_unfiltered;
     x_e_filtered = run_globals.reion_grids.x_e_filtered;
-    plan = fftwf_mpi_plan_dft_r2c_3d(
-      ReionGridDim, ReionGridDim, ReionGridDim, x_e_box, x_e_unfiltered, run_globals.mpi_comm, FFTW_ESTIMATE);
-    fftwf_execute(plan);
-    fftwf_destroy_plan(plan);
+    fftwf_execute(run_globals.reion_grids.x_e_box_forward_plan);
   }
 
   // Fields relevant for computing the inhomogeneous recombinations
   float* Gamma12 = run_globals.reion_grids.Gamma12;
-  float* N_rec_prev = run_globals.reion_grids.N_rec_prev;
   float* N_rec = run_globals.reion_grids.N_rec;
   fftwf_complex* N_rec_unfiltered = NULL;
   fftwf_complex* N_rec_filtered = NULL;
   if (run_globals.params.Flag_IncludeRecombinations) {
-    // Make a copy of the box for FFT'ing
-    memcpy(N_rec_prev, N_rec, sizeof(fftwf_complex) * slab_n_complex);
-
-    N_rec_unfiltered = (fftwf_complex*)N_rec_prev; // WATCH OUT!
+    N_rec_unfiltered = run_globals.reion_grids.N_rec_unfiltered;
     N_rec_filtered = run_globals.reion_grids.N_rec_filtered;
-    plan = fftwf_mpi_plan_dft_r2c_3d(
-      ReionGridDim, ReionGridDim, ReionGridDim, N_rec_prev, N_rec_unfiltered, run_globals.mpi_comm, FFTW_ESTIMATE);
-    fftwf_execute(plan);
-    fftwf_destroy_plan(plan);
+    fftwf_execute(run_globals.reion_grids.N_rec_forward_plan);
   }
 
   // Remember to add the factor of VOLUME/TOT_NUM_PIXELS when converting from real space to k-space
@@ -249,58 +214,16 @@ void _find_HII_bubbles(const int snapshot)
     }
 
     // inverse fourier transform back to real space
-    plan = fftwf_mpi_plan_dft_c2r_3d(ReionGridDim,
-                                     ReionGridDim,
-                                     ReionGridDim,
-                                     deltax_filtered,
-                                     (float*)deltax_filtered,
-                                     run_globals.mpi_comm,
-                                     FFTW_ESTIMATE);
-    fftwf_execute(plan);
-    fftwf_destroy_plan(plan);
-
-    plan = fftwf_mpi_plan_dft_c2r_3d(ReionGridDim,
-                                     ReionGridDim,
-                                     ReionGridDim,
-                                     stars_filtered,
-                                     (float*)stars_filtered,
-                                     run_globals.mpi_comm,
-                                     FFTW_ESTIMATE);
-    fftwf_execute(plan);
-    fftwf_destroy_plan(plan);
-
-    plan = fftwf_mpi_plan_dft_c2r_3d(ReionGridDim,
-                                     ReionGridDim,
-                                     ReionGridDim,
-                                     sfr_filtered,
-                                     (float*)sfr_filtered,
-                                     run_globals.mpi_comm,
-                                     FFTW_ESTIMATE);
-    fftwf_execute(plan);
-    fftwf_destroy_plan(plan);
+    fftwf_execute(run_globals.reion_grids.deltax_filtered_reverse_plan);
+    fftwf_execute(run_globals.reion_grids.stars_filtered_reverse_plan);
+    fftwf_execute(run_globals.reion_grids.sfr_filtered_reverse_plan);
 
     if (run_globals.params.Flag_IncludeRecombinations) {
-      plan = fftwf_mpi_plan_dft_c2r_3d(ReionGridDim,
-                                       ReionGridDim,
-                                       ReionGridDim,
-                                       N_rec_filtered,
-                                       (float*)N_rec_filtered,
-                                       run_globals.mpi_comm,
-                                       FFTW_ESTIMATE);
-      fftwf_execute(plan);
-      fftwf_destroy_plan(plan);
+      fftwf_execute(run_globals.reion_grids.N_rec_filtered_reverse_plan);
     }
 
     if (run_globals.params.Flag_IncludeSpinTemp) {
-      plan = fftwf_mpi_plan_dft_c2r_3d(ReionGridDim,
-                                       ReionGridDim,
-                                       ReionGridDim,
-                                       x_e_filtered,
-                                       (float*)x_e_filtered,
-                                       run_globals.mpi_comm,
-                                       FFTW_ESTIMATE);
-      fftwf_execute(plan);
-      fftwf_destroy_plan(plan);
+      fftwf_execute(run_globals.reion_grids.x_e_filtered_reverse_plan);
     }
 
     // Perform sanity checks to account for aliasing effects
@@ -476,17 +399,11 @@ void find_HII_bubbles(int snapshot, timer_info* timer_total)
   double redshift = run_globals.ZZ[snapshot];
   timer_info timer;
 #ifdef USE_CUDA
-#ifdef USE_CUFFT
-  mlog("Calling pure-GPU version of find_HII_bubbles() for snap=%d/z=%.2lf...",
-       MLOG_OPEN | MLOG_TIMERSTART,
-       snapshot,
-       redshift);
-#else
   mlog("Calling hybrid-GPU/FFTW version of find_HII_bubbles() for snap=%d/z=%.2lf...",
        MLOG_OPEN | MLOG_TIMERSTART,
        snapshot,
        redshift);
-#endif
+
   // Run the GPU version of _find_HII_bubbles()
   timer_start(&timer);
 

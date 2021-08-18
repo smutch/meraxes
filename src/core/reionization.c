@@ -1,8 +1,10 @@
 #include <assert.h>
 #include <complex.h>
+#include <fenv.h>
 #include <fftw3-mpi.h>
 #include <hdf5_hl.h>
 #include <math.h>
+#include <sys/stat.h>
 
 #include "ComputeTs.h"
 #include "find_HII_bubbles.h"
@@ -130,9 +132,6 @@ void assign_slabs()
 {
   mlog("Assigning slabs to MPI cores...", MLOG_OPEN);
 
-  // Allocations made in this function are free'd in `free_reionization_grids`.
-  fftwf_mpi_init();
-
   // Assign the slab size
   int n_rank = run_globals.mpi_size;
   int dim = run_globals.params.ReionGridDim;
@@ -251,10 +250,11 @@ void call_ComputeTs(int snapshot, int nout_gals, timer_info* timer)
 
 void init_reion_grids()
 {
+
   reion_grids_t* grids = &(run_globals.reion_grids);
   int ReionGridDim = run_globals.params.ReionGridDim;
   ptrdiff_t* slab_nix = run_globals.reion_grids.slab_nix;
-  ptrdiff_t slab_n_real = slab_nix[run_globals.mpi_rank] * ReionGridDim * ReionGridDim; // TODO: NOT WORKING!!!
+  ptrdiff_t slab_n_real = slab_nix[run_globals.mpi_rank] * ReionGridDim * ReionGridDim;
   ptrdiff_t slab_n_complex = run_globals.reion_grids.slab_n_complex[run_globals.mpi_rank];
 
   ptrdiff_t slab_n_real_smoothedSFR;
@@ -330,18 +330,23 @@ void init_reion_grids()
     if (run_globals.params.ReionUVBFlag) {
       grids->J_21_at_ionization[ii] = (float)0.;
       grids->J_21[ii] = (float)0.;
-      grids->Mvir_crit[ii] = 0;
+      grids->Mvir_crit[ii] = (float)0.;
     }
 
   for (int ii = 0; ii < slab_n_complex; ii++) {
     grids->stars_filtered[ii] = 0 + 0I;
+    grids->stars_unfiltered[ii] = 0 + 0I;
     grids->deltax_filtered[ii] = 0 + 0I;
+    grids->deltax_unfiltered[ii] = 0 + 0I;
     grids->sfr_filtered[ii] = 0 + 0I;
+    grids->sfr_unfiltered[ii] = 0 + 0I;
     if (run_globals.params.Flag_IncludeSpinTemp) {
       grids->x_e_filtered[ii] = 0 + 0I;
+      grids->x_e_unfiltered[ii] = 0 + 0I;
     }
     if (run_globals.params.Flag_IncludeRecombinations) {
       grids->N_rec_filtered[ii] = 0 + 0I;
+      grids->N_rec_unfiltered[ii] = 0 + 0I;
     }
     if (run_globals.params.Flag_Compute21cmBrightTemp && (run_globals.params.Flag_IncludePecVelsFor21cm > 0)) {
       grids->vel_gradient[ii] = 0 + 0I;
@@ -353,22 +358,15 @@ void init_reion_grids()
     grids->stars[ii] = 0;
     grids->sfr[ii] = 0;
 
-    // Include temporary arrays to return to original data (as FFT modifies the result)
-    grids->deltax_temp[ii] = 0;
-    grids->stars_temp[ii] = 0;
-    grids->sfr_temp[ii] = 0;
-
     if (run_globals.params.Flag_IncludeSpinTemp) {
       grids->x_e_box_prev[ii] = 0;
       grids->x_e_box[ii] = 0;
     }
     if (run_globals.params.Flag_IncludeRecombinations) {
       grids->N_rec[ii] = 0;
-      grids->N_rec_prev[ii] = 0;
     }
     if (run_globals.params.Flag_Compute21cmBrightTemp && (run_globals.params.Flag_IncludePecVelsFor21cm > 0)) {
       grids->vel[ii] = 0;
-      grids->vel_temp[ii] = 0;
     }
   }
 
@@ -385,6 +383,42 @@ void malloc_reionization_grids()
 {
   reion_grids_t* grids = &(run_globals.reion_grids);
 
+  fftwf_mpi_init();
+
+  // Load wisdom if requested
+  run_globals.reion_grids.flag_wisdom = strlen(run_globals.params.FFTW3WisdomDir) > 0;
+  bool save_wisdom = false;
+  char wisdom_fname[STRLEN + 32];
+  const int ReionGridDim = run_globals.params.ReionGridDim;
+  unsigned plan_flags = FFTW_ESTIMATE;
+
+  if (run_globals.reion_grids.flag_wisdom) {
+    plan_flags = FFTW_PATIENT;
+    sprintf(wisdom_fname,
+            "%s/fftw3f-meraxes-N_%d-ranks_%d.wisdom",
+            run_globals.params.FFTW3WisdomDir,
+            ReionGridDim,
+            run_globals.mpi_size);
+    if (run_globals.mpi_rank == 0) {
+      if (fftwf_import_wisdom_from_filename(wisdom_fname)) {
+        mlog("Successfully loaded FFTW3 wisdom from %s", MLOG_MESG, wisdom_fname);
+      } else {
+        mlog("FFTW3 wisdom directory provided, but no suitable wisdom exists. New wisdom will be created (this make "
+             "take a while).",
+             MLOG_MESG);
+        save_wisdom = true;
+        // Check to see if the wisdom directory exists and if not, create it
+        struct stat filestatus;
+        if (stat(run_globals.params.FFTW3WisdomDir, &filestatus) != 0)
+          mkdir(run_globals.params.FFTW3WisdomDir, 02755);
+      }
+    }
+    MPI_Bcast(&save_wisdom, 1, MPI_C_BOOL, 0, run_globals.mpi_comm);
+    if (!save_wisdom) {
+      fftwf_mpi_broadcast_wisdom(run_globals.mpi_comm);
+    }
+  }
+
   // run_globals.NStoreSnapshots is set in `initialize_halo_storage`
   run_globals.SnapshotDeltax = (float**)calloc((size_t)run_globals.NStoreSnapshots, sizeof(float*));
   run_globals.SnapshotVel = (float**)calloc((size_t)run_globals.NStoreSnapshots, sizeof(float*));
@@ -393,15 +427,12 @@ void malloc_reionization_grids()
 
   grids->xH = NULL;
   grids->stars = NULL;
-  grids->stars_temp = NULL;
   grids->stars_unfiltered = NULL;
   grids->stars_filtered = NULL;
   grids->deltax = NULL;
-  grids->deltax_temp = NULL;
   grids->deltax_unfiltered = NULL;
   grids->deltax_filtered = NULL;
   grids->sfr = NULL;
-  grids->sfr_temp = NULL;
   grids->sfr_unfiltered = NULL;
   grids->sfr_filtered = NULL;
   grids->z_at_ionization = NULL;
@@ -425,7 +456,8 @@ void malloc_reionization_grids()
   grids->z_re = NULL;
   grids->Gamma12 = NULL;
   grids->N_rec = NULL;
-  grids->N_rec_prev = NULL;
+  grids->N_rec_filtered = NULL;
+  grids->N_rec_unfiltered = NULL;
 
   // Grids required for 21cm brightness temperature
   grids->delta_T = NULL;
@@ -437,7 +469,6 @@ void malloc_reionization_grids()
 
   // Grids required for addining in peculiar velocity effects
   grids->vel = NULL;
-  grids->vel_temp = NULL;
   grids->vel_gradient = NULL;
 
   grids->PS_k = NULL;
@@ -449,7 +480,7 @@ void malloc_reionization_grids()
 
     int ReionGridDim = run_globals.params.ReionGridDim;
     ptrdiff_t* slab_nix = run_globals.reion_grids.slab_nix;
-    ptrdiff_t slab_n_real = slab_nix[run_globals.mpi_rank] * ReionGridDim * ReionGridDim; // TODO: NOT WORKING!!!
+    ptrdiff_t slab_n_real = slab_nix[run_globals.mpi_rank] * ReionGridDim * ReionGridDim;
     ptrdiff_t slab_n_complex = run_globals.reion_grids.slab_n_complex[run_globals.mpi_rank];
 
     ptrdiff_t slab_n_real_smoothedSFR;
@@ -474,15 +505,59 @@ void malloc_reionization_grids()
     grids->buffer_size = max_cells;
 
     grids->buffer = fftwf_alloc_real((size_t)max_cells);
-    grids->stars = fftwf_alloc_real((size_t)slab_n_complex * 2);      // padded for in-place FFT
-    grids->stars_temp = fftwf_alloc_real((size_t)slab_n_complex * 2); // padded for in-place FFT
+
+    grids->stars = fftwf_alloc_real((size_t)slab_n_complex * 2);
+    grids->stars_unfiltered = fftwf_alloc_complex((size_t)slab_n_complex);
     grids->stars_filtered = fftwf_alloc_complex((size_t)slab_n_complex);
-    grids->deltax = fftwf_alloc_real((size_t)slab_n_complex * 2);      // padded for in-place FFT
-    grids->deltax_temp = fftwf_alloc_real((size_t)slab_n_complex * 2); // padded for in-place FFT
+
+    grids->stars_forward_plan = fftwf_mpi_plan_dft_r2c_3d(ReionGridDim,
+                                                          ReionGridDim,
+                                                          ReionGridDim,
+                                                          grids->stars,
+                                                          grids->stars_unfiltered,
+                                                          run_globals.mpi_comm,
+                                                          plan_flags);
+    grids->stars_filtered_reverse_plan = fftwf_mpi_plan_dft_c2r_3d(ReionGridDim,
+                                                                   ReionGridDim,
+                                                                   ReionGridDim,
+                                                                   grids->stars_filtered,
+                                                                   (float*)grids->stars_filtered,
+                                                                   run_globals.mpi_comm,
+                                                                   plan_flags);
+
+    grids->deltax = fftwf_alloc_real((size_t)slab_n_complex * 2);
+    grids->deltax_unfiltered = fftwf_alloc_complex((size_t)slab_n_complex);
     grids->deltax_filtered = fftwf_alloc_complex((size_t)slab_n_complex);
-    grids->sfr = fftwf_alloc_real((size_t)slab_n_complex * 2);      // padded for in-place FFT
-    grids->sfr_temp = fftwf_alloc_real((size_t)slab_n_complex * 2); // padded for in-place FFT
+
+    grids->deltax_forward_plan = fftwf_mpi_plan_dft_r2c_3d(ReionGridDim,
+                                                           ReionGridDim,
+                                                           ReionGridDim,
+                                                           grids->deltax,
+                                                           grids->deltax_unfiltered,
+                                                           run_globals.mpi_comm,
+                                                           plan_flags);
+    grids->deltax_filtered_reverse_plan = fftwf_mpi_plan_dft_c2r_3d(ReionGridDim,
+                                                                    ReionGridDim,
+                                                                    ReionGridDim,
+                                                                    grids->deltax_filtered,
+                                                                    (float*)grids->deltax_filtered,
+                                                                    run_globals.mpi_comm,
+                                                                    plan_flags);
+
+    grids->sfr = fftwf_alloc_real((size_t)slab_n_complex * 2);
+    grids->sfr_unfiltered = fftwf_alloc_complex((size_t)slab_n_complex);
     grids->sfr_filtered = fftwf_alloc_complex((size_t)slab_n_complex);
+
+    grids->sfr_forward_plan = fftwf_mpi_plan_dft_r2c_3d(
+      ReionGridDim, ReionGridDim, ReionGridDim, grids->sfr, grids->sfr_unfiltered, run_globals.mpi_comm, plan_flags);
+    grids->sfr_filtered_reverse_plan = fftwf_mpi_plan_dft_c2r_3d(ReionGridDim,
+                                                                 ReionGridDim,
+                                                                 ReionGridDim,
+                                                                 grids->sfr_filtered,
+                                                                 (float*)grids->sfr_filtered,
+                                                                 run_globals.mpi_comm,
+                                                                 plan_flags);
+
     grids->xH = fftwf_alloc_real((size_t)slab_n_real);
     grids->z_at_ionization = fftwf_alloc_real((size_t)slab_n_real);
     grids->r_bubble = fftwf_alloc_real((size_t)slab_n_real);
@@ -490,11 +565,27 @@ void malloc_reionization_grids()
     if (run_globals.params.Flag_IncludeSpinTemp) {
 
       grids->x_e_box = fftwf_alloc_real((size_t)slab_n_complex * 2);
-      grids->x_e_box_prev = fftwf_alloc_real((size_t)slab_n_complex * 2); // padded for in-place FFT;
+      grids->x_e_unfiltered = fftwf_alloc_complex((size_t)slab_n_complex);
+      grids->x_e_filtered = fftwf_alloc_complex((size_t)slab_n_complex);
+      grids->x_e_box_prev = fftwf_alloc_real((size_t)slab_n_complex * 2);
+
+      grids->x_e_box_forward_plan = fftwf_mpi_plan_dft_r2c_3d(ReionGridDim,
+                                                              ReionGridDim,
+                                                              ReionGridDim,
+                                                              grids->x_e_box,
+                                                              grids->x_e_unfiltered,
+                                                              run_globals.mpi_comm,
+                                                              plan_flags);
+      grids->x_e_filtered_reverse_plan = fftwf_mpi_plan_dft_c2r_3d(ReionGridDim,
+                                                                   ReionGridDim,
+                                                                   ReionGridDim,
+                                                                   grids->x_e_filtered,
+                                                                   (float*)grids->x_e_filtered,
+                                                                   run_globals.mpi_comm,
+                                                                   plan_flags);
+
       grids->Tk_box = fftwf_alloc_real((size_t)slab_n_real);
       grids->TS_box = fftwf_alloc_real((size_t)slab_n_real);
-
-      grids->x_e_filtered = fftwf_alloc_complex((size_t)slab_n_complex);
 
       grids->SMOOTHED_SFR_GAL = calloc((size_t)slab_n_real_smoothedSFR, sizeof(double));
       if (run_globals.params.Flag_SeparateQSOXrays) {
@@ -503,9 +594,24 @@ void malloc_reionization_grids()
     }
 
     if (run_globals.params.Flag_IncludeRecombinations) {
-      grids->N_rec = fftwf_alloc_real((size_t)slab_n_complex * 2);      // padded for in-place FFT
-      grids->N_rec_prev = fftwf_alloc_real((size_t)slab_n_complex * 2); // padded for in-place FFT
+      grids->N_rec = fftwf_alloc_real((size_t)slab_n_complex * 2);
+      grids->N_rec_unfiltered = fftwf_alloc_complex((size_t)slab_n_complex);
       grids->N_rec_filtered = fftwf_alloc_complex((size_t)slab_n_complex);
+
+      grids->N_rec_forward_plan = fftwf_mpi_plan_dft_r2c_3d(ReionGridDim,
+                                                            ReionGridDim,
+                                                            ReionGridDim,
+                                                            grids->N_rec,
+                                                            grids->N_rec_unfiltered,
+                                                            run_globals.mpi_comm,
+                                                            plan_flags);
+      grids->N_rec_filtered_reverse_plan = fftwf_mpi_plan_dft_c2r_3d(ReionGridDim,
+                                                                     ReionGridDim,
+                                                                     ReionGridDim,
+                                                                     grids->N_rec_filtered,
+                                                                     (float*)grids->N_rec_filtered,
+                                                                     run_globals.mpi_comm,
+                                                                     plan_flags);
 
       grids->z_re = fftwf_alloc_real((size_t)slab_n_real);
       grids->Gamma12 = fftwf_alloc_real((size_t)slab_n_real);
@@ -515,9 +621,18 @@ void malloc_reionization_grids()
       grids->delta_T = fftwf_alloc_real((size_t)slab_n_real);
 
       if (run_globals.params.Flag_IncludePecVelsFor21cm > 0) {
-        grids->vel = fftwf_alloc_real((size_t)slab_n_complex * 2);      // padded for in-place FFT
-        grids->vel_temp = fftwf_alloc_real((size_t)slab_n_complex * 2); // padded for in-place FFT
+        grids->vel = fftwf_alloc_real((size_t)slab_n_complex * 2);
         grids->vel_gradient = fftwf_alloc_complex((size_t)slab_n_complex);
+
+        grids->vel_forward_plan = fftwf_mpi_plan_dft_r2c_3d(
+          ReionGridDim, ReionGridDim, ReionGridDim, grids->vel, grids->vel_gradient, run_globals.mpi_comm, plan_flags);
+        grids->vel_gradient_reverse_plan = fftwf_mpi_plan_dft_c2r_3d(ReionGridDim,
+                                                                     ReionGridDim,
+                                                                     ReionGridDim,
+                                                                     grids->vel_gradient,
+                                                                     (float*)grids->vel_gradient,
+                                                                     run_globals.mpi_comm,
+                                                                     plan_flags);
       }
 
       if (run_globals.params.Flag_ConstructLightcone) {
@@ -543,7 +658,17 @@ void malloc_reionization_grids()
     }
 
     init_reion_grids();
-  }
+
+    if (run_globals.reion_grids.flag_wisdom && save_wisdom) {
+      fftwf_mpi_gather_wisdom(run_globals.mpi_comm);
+      if (run_globals.mpi_rank == 0) {
+        if (fftwf_export_wisdom_to_filename(wisdom_fname)) {
+          mlog("Successfully saved FFTW3 wisdom to %s", MLOG_MESG, wisdom_fname);
+        }
+      }
+    }
+
+  } // if (run_globals.params.Flag_PatchyReion)
 }
 
 void free_reionization_grids()
@@ -556,70 +681,88 @@ void free_reionization_grids()
   free(run_globals.reion_grids.slab_ix_start);
   free(run_globals.reion_grids.slab_nix);
 
-  if (run_globals.params.ReionUVBFlag) {
-    fftwf_free(grids->J_21);
-    fftwf_free(grids->J_21_at_ionization);
-  }
-  fftwf_free(grids->z_at_ionization);
-  fftwf_free(grids->sfr_filtered);
-  fftwf_free(grids->deltax_filtered);
-  fftwf_free(grids->deltax);
-  fftwf_free(grids->deltax_temp);
-  fftwf_free(grids->stars_filtered);
-  fftwf_free(grids->xH);
-
-  if (run_globals.params.Flag_IncludeSpinTemp) {
-    fftwf_free(grids->x_e_box);
-    fftwf_free(grids->x_e_box_prev);
-    fftwf_free(grids->Tk_box);
-    fftwf_free(grids->TS_box);
-
-    free(grids->SMOOTHED_SFR_GAL);
-    free(grids->SMOOTHED_SFR_QSO);
-  }
-
-  if (run_globals.params.Flag_IncludeRecombinations) {
-    fftwf_free(grids->N_rec_filtered);
-    fftwf_free(grids->N_rec);
-    fftwf_free(grids->N_rec_prev);
-
-    fftwf_free(grids->z_re);
-    fftwf_free(grids->Gamma12);
-  }
-
-  if (run_globals.params.Flag_Compute21cmBrightTemp) {
-
-    fftwf_free(grids->delta_T);
-
-    if (run_globals.params.Flag_IncludePecVelsFor21cm > 0) {
-      fftwf_free(grids->vel);
-      fftwf_free(grids->vel_temp);
-      fftwf_free(grids->vel_gradient);
-    }
-
-    if (run_globals.params.Flag_ConstructLightcone) {
-      fftwf_free(grids->delta_T_prev);
-      fftwf_free(grids->Lightcone_redshifts);
-    }
+  if (run_globals.params.Flag_ComputePS) {
+    fftwf_free(grids->PS_error);
+    fftwf_free(grids->PS_data);
+    fftwf_free(grids->PS_k);
   }
 
   if (run_globals.params.Flag_ConstructLightcone) {
     fftwf_free(grids->LightconeBox);
   }
 
-  if (run_globals.params.ReionUVBFlag)
+  if (run_globals.params.ReionUVBFlag) {
     fftwf_free(grids->Mvir_crit);
-
-  if (run_globals.params.Flag_ComputePS) {
-    fftwf_free(grids->PS_k);
-    fftwf_free(grids->PS_data);
-    fftwf_free(grids->PS_error);
+    fftwf_free(grids->J_21);
+    fftwf_free(grids->J_21_at_ionization);
   }
 
-  fftwf_free(grids->stars);
+  if (run_globals.params.Flag_Compute21cmBrightTemp) {
+
+    if (run_globals.params.Flag_ConstructLightcone) {
+      fftwf_free(grids->delta_T_prev);
+      fftwf_free(grids->Lightcone_redshifts);
+    }
+
+    if (run_globals.params.Flag_IncludePecVelsFor21cm > 0) {
+      fftwf_destroy_plan(grids->vel_gradient_reverse_plan);
+      fftwf_destroy_plan(grids->vel_forward_plan);
+      fftwf_free(grids->vel_gradient);
+      fftwf_free(grids->vel);
+    }
+
+    fftwf_free(grids->delta_T);
+  }
+
+  if (run_globals.params.Flag_IncludeRecombinations) {
+
+    fftwf_free(grids->Gamma12);
+    fftwf_free(grids->z_re);
+
+    fftwf_destroy_plan(grids->N_rec_filtered_reverse_plan);
+    fftwf_destroy_plan(grids->N_rec_forward_plan);
+    fftwf_free(grids->N_rec_filtered);
+    fftwf_free(grids->N_rec_unfiltered);
+    fftwf_free(grids->N_rec);
+  }
+
+  if (run_globals.params.Flag_IncludeSpinTemp) {
+    free(grids->SMOOTHED_SFR_QSO);
+    free(grids->SMOOTHED_SFR_GAL);
+
+    fftwf_free(grids->Tk_box);
+    fftwf_free(grids->TS_box);
+
+    fftwf_destroy_plan(grids->x_e_filtered_reverse_plan);
+    fftwf_destroy_plan(grids->x_e_box_forward_plan);
+    fftwf_free(grids->x_e_filtered);
+    fftwf_free(grids->x_e_unfiltered);
+    fftwf_free(grids->x_e_box_prev);
+    fftwf_free(grids->x_e_box);
+  }
+
+  fftwf_free(grids->r_bubble);
+  fftwf_free(grids->z_at_ionization);
+  fftwf_free(grids->xH);
+
+  fftwf_destroy_plan(grids->sfr_filtered_reverse_plan);
+  fftwf_destroy_plan(grids->sfr_forward_plan);
+  fftwf_free(grids->sfr_filtered);
+  fftwf_free(grids->sfr_unfiltered);
   fftwf_free(grids->sfr);
-  fftwf_free(grids->stars_temp);
-  fftwf_free(grids->sfr_temp);
+
+  fftwf_destroy_plan(grids->deltax_filtered_reverse_plan);
+  fftwf_destroy_plan(grids->deltax_forward_plan);
+  fftwf_free(grids->deltax_filtered);
+  fftwf_free(grids->deltax_unfiltered);
+  fftwf_free(grids->deltax);
+
+  fftwf_destroy_plan(grids->stars_filtered_reverse_plan);
+  fftwf_destroy_plan(grids->stars_forward_plan);
+  fftwf_free(grids->stars_filtered);
+  fftwf_free(grids->stars_unfiltered);
+  fftwf_free(grids->stars);
+
   fftwf_free(grids->buffer);
 
   mlog(" ...done", MLOG_CLOSE);

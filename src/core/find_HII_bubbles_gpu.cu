@@ -40,6 +40,7 @@
 #include "XRayHeatingFunctions.h"
 #include "find_HII_bubbles.h"
 #include "meraxes.h"
+#include "meraxes_gpu.hh"
 #include "misc_tools.h"
 #include "recombinations.h"
 #include "reionization.h"
@@ -63,9 +64,7 @@
  * subsequently made by Simon Mutch & Paul Geil.
  */
 
-// This is the CUDA-enabled version of find_HII_bubbles().  It uses cuFFT for
-//    all FFTs if the USE_CUFFT compiler flag has been set.  Otherwise, it uses
-//    fftw.  In both cases, everything else is done with the GPU.
+// This is the CUDA-enabled version of find_HII_bubbles().
 void _find_HII_bubbles_gpu(const int snapshot, const bool flag_write_validation_output)
 {
   // Fetch needed things from run_globals
@@ -95,10 +94,6 @@ void _find_HII_bubbles_gpu(const int snapshot, const bool flag_write_validation_
   const int local_ix_start = (int)slabs_ix_start[mpi_rank];
   const int slab_n_complex = (int)(slabs_n_complex[mpi_rank]);
   const int slab_n_real = local_nix * ReionGridDim * ReionGridDim;
-  // input grids
-  float* deltax = run_globals.reion_grids.deltax; // real & padded
-  float* stars = run_globals.reion_grids.stars;   // real & padded
-  float* sfr = run_globals.reion_grids.sfr;       // real & padded
   // preallocated grids
   float* J_21 = run_globals.reion_grids.J_21;         // real
   float* r_bubble = run_globals.reion_grids.r_bubble; // real
@@ -114,12 +109,6 @@ void _find_HII_bubbles_gpu(const int snapshot, const bool flag_write_validation_
   const double pixel_volume = pow(box_size / (double)ReionGridDim, 3); // (Mpc/h)^3
   const double total_n_cells = pow((double)ReionGridDim, 3);
   const double inv_total_n_cells = 1. / total_n_cells;
-
-  // Inhomogeneous recombinations {{
-  float* Gamma12 = run_globals.reion_grids.Gamma12;
-
-  float* N_rec = run_globals.reion_grids.N_rec;
-  float* N_rec_prev = run_globals.reion_grids.N_rec_prev;
 
   const double redshift = run_globals.ZZ[snapshot];
   double prev_redshift;
@@ -142,14 +131,14 @@ void _find_HII_bubbles_gpu(const int snapshot, const bool flag_write_validation_
   }
 
   // Initialize device arrays
-  cufftComplex* deltax_unfiltered_device = NULL;
-  cufftComplex* stars_unfiltered_device = NULL;
-  cufftComplex* sfr_unfiltered_device = NULL;
-  cufftComplex* deltax_filtered_device = NULL;
-  cufftComplex* stars_filtered_device = NULL;
-  cufftComplex* sfr_filtered_device = NULL;
-  cufftComplex* N_rec_unfiltered_device = NULL;
-  cufftComplex* N_rec_filtered_device = NULL;
+  Complex* deltax_unfiltered_device = NULL;
+  Complex* stars_unfiltered_device = NULL;
+  Complex* sfr_unfiltered_device = NULL;
+  Complex* deltax_filtered_device = NULL;
+  Complex* stars_filtered_device = NULL;
+  Complex* sfr_filtered_device = NULL;
+  Complex* N_rec_unfiltered_device = NULL;
+  Complex* N_rec_filtered_device = NULL;
   float* xH_device = NULL;
   float* r_bubble_device = NULL;
   float* z_at_ionization_device = NULL;
@@ -158,23 +147,23 @@ void _find_HII_bubbles_gpu(const int snapshot, const bool flag_write_validation_
   float* Gamma12_device = NULL;
 
   try {
-    throw_on_cuda_error(cudaMalloc((void**)&deltax_unfiltered_device, sizeof(cufftComplex) * slab_n_complex),
+    throw_on_cuda_error(cudaMalloc((void**)&deltax_unfiltered_device, sizeof(Complex) * slab_n_complex),
                         meraxes_cuda_exception::MALLOC);
-    throw_on_cuda_error(cudaMalloc((void**)&stars_unfiltered_device, sizeof(cufftComplex) * slab_n_complex),
+    throw_on_cuda_error(cudaMalloc((void**)&stars_unfiltered_device, sizeof(Complex) * slab_n_complex),
                         meraxes_cuda_exception::MALLOC);
-    throw_on_cuda_error(cudaMalloc((void**)&sfr_unfiltered_device, sizeof(cufftComplex) * slab_n_complex),
+    throw_on_cuda_error(cudaMalloc((void**)&sfr_unfiltered_device, sizeof(Complex) * slab_n_complex),
                         meraxes_cuda_exception::MALLOC);
-    throw_on_cuda_error(cudaMalloc((void**)&deltax_filtered_device, sizeof(cufftComplex) * slab_n_complex),
+    throw_on_cuda_error(cudaMalloc((void**)&deltax_filtered_device, sizeof(Complex) * slab_n_complex),
                         meraxes_cuda_exception::MALLOC);
-    throw_on_cuda_error(cudaMalloc((void**)&stars_filtered_device, sizeof(cufftComplex) * slab_n_complex),
+    throw_on_cuda_error(cudaMalloc((void**)&stars_filtered_device, sizeof(Complex) * slab_n_complex),
                         meraxes_cuda_exception::MALLOC);
-    throw_on_cuda_error(cudaMalloc((void**)&sfr_filtered_device, sizeof(cufftComplex) * slab_n_complex),
+    throw_on_cuda_error(cudaMalloc((void**)&sfr_filtered_device, sizeof(Complex) * slab_n_complex),
                         meraxes_cuda_exception::MALLOC);
 
     if (Flag_IncludeRecombinations) {
-      throw_on_cuda_error(cudaMalloc((void**)&N_rec_unfiltered_device, sizeof(cufftComplex) * slab_n_complex),
+      throw_on_cuda_error(cudaMalloc((void**)&N_rec_unfiltered_device, sizeof(Complex) * slab_n_complex),
                           meraxes_cuda_exception::MALLOC);
-      throw_on_cuda_error(cudaMalloc((void**)&N_rec_filtered_device, sizeof(cufftComplex) * slab_n_complex),
+      throw_on_cuda_error(cudaMalloc((void**)&N_rec_filtered_device, sizeof(Complex) * slab_n_complex),
                           meraxes_cuda_exception::MALLOC);
     }
 
@@ -201,65 +190,46 @@ void _find_HII_bubbles_gpu(const int snapshot, const bool flag_write_validation_
     e.process_exception();
   }
 
-// If we're not using CUFFT, do the forward FFT first, before sending it to the device
-#ifndef USE_CUFFT
-  // The following are only needed if we are using FFTW
-  Complex* deltax_filtered =
-    (Complex*)run_globals.reion_grids.deltax_filtered; // complex TODO: Check the consistancy of Complex instances
-  Complex* stars_filtered =
-    (Complex*)run_globals.reion_grids.stars_filtered; // complex TODO: Check the consistancy of Complex instances
-  Complex* sfr_filtered =
-    (Complex*)run_globals.reion_grids.sfr_filtered; // complex TODO: Check the consistancy of Complex instances
+  float* deltax = run_globals.reion_grids.deltax;
+  fftwf_complex* deltax_unfiltered = run_globals.reion_grids.deltax_unfiltered;
+  Complex* deltax_filtered = (Complex*)run_globals.reion_grids.deltax_filtered;
+  fftwf_execute(run_globals.reion_grids.deltax_forward_plan);
 
+  fftwf_complex* stars_unfiltered = run_globals.reion_grids.stars_unfiltered;
+  Complex* stars_filtered = (Complex*)run_globals.reion_grids.stars_filtered;
+  fftwf_execute(run_globals.reion_grids.stars_forward_plan);
+
+  fftwf_complex* sfr_unfiltered = run_globals.reion_grids.sfr_unfiltered;
+  Complex* sfr_filtered = (Complex*)run_globals.reion_grids.sfr_filtered;
+  fftwf_execute(run_globals.reion_grids.sfr_forward_plan);
+
+  float* Gamma12 = run_globals.reion_grids.Gamma12;
+  float* N_rec = run_globals.reion_grids.N_rec;
+  fftwf_complex* N_rec_unfiltered = NULL;
   Complex* N_rec_filtered = NULL;
-  if (Flag_IncludeRecombinations)
-    N_rec_filtered =
-      (Complex*)run_globals.reion_grids.N_rec_filtered; // complex TODO: Check the consistancy of Complex instances
-
-  // Forward fourier transform to obtain k-space fields
-  fftwf_complex* deltax_unfiltered = (fftwf_complex*)deltax; // WATCH OUT!
-  fftwf_plan plan = fftwf_mpi_plan_dft_r2c_3d(
-    ReionGridDim, ReionGridDim, ReionGridDim, deltax, deltax_unfiltered, mpi_comm, FFTW_ESTIMATE);
-  fftwf_execute(plan);
-  fftwf_destroy_plan(plan);
-
-  fftwf_complex* stars_unfiltered = (fftwf_complex*)stars; // WATCH OUT!
-  plan = fftwf_mpi_plan_dft_r2c_3d(
-    ReionGridDim, ReionGridDim, ReionGridDim, stars, stars_unfiltered, mpi_comm, FFTW_ESTIMATE);
-  fftwf_execute(plan);
-  fftwf_destroy_plan(plan);
-
-  fftwf_complex* sfr_unfiltered = (fftwf_complex*)sfr; // WATCH OUT!
-  plan =
-    fftwf_mpi_plan_dft_r2c_3d(ReionGridDim, ReionGridDim, ReionGridDim, sfr, sfr_unfiltered, mpi_comm, FFTW_ESTIMATE);
-  fftwf_execute(plan);
-  fftwf_destroy_plan(plan);
-
   if (Flag_IncludeRecombinations) {
-    fftwf_complex* N_rec_unfiltered = (fftwf_complex*)N_rec_prev; // WATCH OUT!
-    plan = fftwf_mpi_plan_dft_r2c_3d(
-      ReionGridDim, ReionGridDim, ReionGridDim, N_rec_prev, N_rec_unfiltered, mpi_comm, FFTW_ESTIMATE);
-    fftwf_execute(plan);
-    fftwf_destroy_plan(plan);
+    N_rec_unfiltered = run_globals.reion_grids.N_rec_unfiltered;
+    N_rec_filtered = (Complex*)run_globals.reion_grids.N_rec_filtered;
+    fftwf_execute(run_globals.reion_grids.N_rec_forward_plan);
   }
-#endif
 
-  // Perform host -> device transfer of input grids (note that these grids are k-space if we are using FFTW
-  //    but are real-space if we are using CUFFT.  They will be transformed once on the device if the latter.
+  // Perform host -> device transfer of input grids.
   try {
     throw_on_cuda_error(
-      cudaMemcpy(deltax_unfiltered_device, deltax, sizeof(float) * 2 * slab_n_complex, cudaMemcpyHostToDevice),
+      cudaMemcpy(
+        deltax_unfiltered_device, deltax_unfiltered, sizeof(float) * 2 * slab_n_complex, cudaMemcpyHostToDevice),
       meraxes_cuda_exception::MEMCPY);
     throw_on_cuda_error(
-      cudaMemcpy(stars_unfiltered_device, stars, sizeof(float) * 2 * slab_n_complex, cudaMemcpyHostToDevice),
+      cudaMemcpy(stars_unfiltered_device, stars_unfiltered, sizeof(float) * 2 * slab_n_complex, cudaMemcpyHostToDevice),
       meraxes_cuda_exception::MEMCPY);
     throw_on_cuda_error(
-      cudaMemcpy(sfr_unfiltered_device, sfr, sizeof(float) * 2 * slab_n_complex, cudaMemcpyHostToDevice),
+      cudaMemcpy(sfr_unfiltered_device, sfr_unfiltered, sizeof(float) * 2 * slab_n_complex, cudaMemcpyHostToDevice),
       meraxes_cuda_exception::MEMCPY);
 
     if (Flag_IncludeRecombinations)
       throw_on_cuda_error(
-        cudaMemcpy(N_rec_unfiltered_device, N_rec_prev, sizeof(float) * 2 * slab_n_complex, cudaMemcpyHostToDevice),
+        cudaMemcpy(
+          N_rec_unfiltered_device, N_rec_unfiltered, sizeof(float) * 2 * slab_n_complex, cudaMemcpyHostToDevice),
         meraxes_cuda_exception::MEMCPY);
 
     if (slab_n_real) {
@@ -282,43 +252,6 @@ void _find_HII_bubbles_gpu(const int snapshot, const bool flag_write_validation_
     e.process_exception();
   }
 
-// If we're using CUFFT, perform the forward FFT now that the data is on the device
-#ifdef USE_CUFFT
-  // Initialize cuFFT
-  cufftHandle plan;
-  try {
-    throw_on_cuFFT_error(cufftPlan3d(&plan, ReionGridDim, ReionGridDim, ReionGridDim, CUFFT_R2C),
-                         meraxes_cuda_exception::CUFFT_CREATE_PLAN);
-
-    // depreciated in CUFFT > v9.1
-    // throw_on_cuFFT_error(cufftSetCompatibilityMode(plan, CUFFT_COMPATIBILITY_FFTW_ALL),
-    // meraxes_cuda_exception::CUFFT_SET_COMPATIBILITY);
-
-    // Perform FFTs
-    throw_on_cuFFT_error(cufftExecR2C(plan, (cufftReal*)deltax_unfiltered_device, deltax_unfiltered_device),
-                         meraxes_cuda_exception::CUFFT_R2C);
-    throw_on_cuFFT_error(cufftExecR2C(plan, (cufftReal*)stars_unfiltered_device, stars_unfiltered_device),
-                         meraxes_cuda_exception::CUFFT_R2C);
-    throw_on_cuFFT_error(cufftExecR2C(plan, (cufftReal*)sfr_unfiltered_device, sfr_unfiltered_device),
-                         meraxes_cuda_exception::CUFFT_R2C);
-
-    if (Flag_IncludeRecombinations)
-      throw_on_cuFFT_error(cufftExecR2C(plan, (cufftReal*)N_rec_unfiltered_device, N_rec_unfiltered_device),
-                           meraxes_cuda_exception::CUFFT_R2C);
-
-    // Clean-up
-    throw_on_cuFFT_error(cufftDestroy(plan), meraxes_cuda_exception::CUFFT_PLAN_DESTROY);
-
-    // Make sure that the device has synchronized
-    throw_on_cuda_error(cudaThreadSynchronize(), meraxes_cuda_exception::SYNC);
-
-    // Throw an exception if another rank has thrown one
-    throw_on_global_error();
-  } catch (const meraxes_cuda_exception e) {
-    e.process_exception();
-  }
-#endif
-
   // Initialize GPU block and thread count
   int threads = run_globals.gpu->n_threads;
   int grid_complex = (slab_n_complex + (threads - 1)) / threads;
@@ -330,7 +263,7 @@ void _find_HII_bubbles_gpu(const int snapshot, const bool flag_write_validation_
   // mlog("slab_n_real = %d", MLOG_ALLRANKS|MLOG_MESG, slab_n_real);
   // mlog("grid_real = %d", MLOG_ALLRANKS|MLOG_MESG|MLOG_FLUSH, grid_real);
 
-  MPI_Barrier(run_globals.mpi_comm);
+  // MPI_Barrier(run_globals.mpi_comm);
 
   // Remember to add the factor of VOLUME/TOT_NUM_PIXELS when converting from real space to k-space
   // Note: we will leave off factor of VOLUME, in anticipation of the inverse FFT below
@@ -380,52 +313,6 @@ void _find_HII_bubbles_gpu(const int snapshot, const bool flag_write_validation_
   double cell_length_factor = L_FACTOR;
   if ((box_size / (double)ReionGridDim) < 1.0) // Fairly arbitrary length based on 2 runs Sobacchi did
     cell_length_factor = 1.0;
-
-// Initialize inverse FFTs
-#ifdef USE_CUFFT
-  try {
-    throw_on_cuFFT_error(cufftPlan3d(&plan, ReionGridDim, ReionGridDim, ReionGridDim, CUFFT_C2R),
-                         meraxes_cuda_exception::CUFFT_C2R);
-    // depreciated in CUFFT > v9.1
-    // throw_on_cuFFT_error(cufftSetCompatibilityMode(plan, CUFFT_COMPATIBILITY_FFTW_ALL),
-    // meraxes_cuda_exception::CUFFT_SET_COMPATIBILITY); Throw an exception if another rank has thrown one
-    throw_on_global_error();
-  } catch (const meraxes_cuda_exception e) {
-    e.process_exception();
-  }
-#else
-  fftwf_plan plan_deltax = fftwf_mpi_plan_dft_c2r_3d(ReionGridDim,
-                                                     ReionGridDim,
-                                                     ReionGridDim,
-                                                     (fftwf_complex*)deltax_filtered,
-                                                     (float*)deltax_filtered,
-                                                     mpi_comm,
-                                                     FFTW_ESTIMATE);
-  fftwf_plan plan_stars = fftwf_mpi_plan_dft_c2r_3d(ReionGridDim,
-                                                    ReionGridDim,
-                                                    ReionGridDim,
-                                                    (fftwf_complex*)stars_filtered,
-                                                    (float*)stars_filtered,
-                                                    mpi_comm,
-                                                    FFTW_ESTIMATE);
-  fftwf_plan plan_sfr = fftwf_mpi_plan_dft_c2r_3d(ReionGridDim,
-                                                  ReionGridDim,
-                                                  ReionGridDim,
-                                                  (fftwf_complex*)sfr_filtered,
-                                                  (float*)sfr_filtered,
-                                                  mpi_comm,
-                                                  FFTW_ESTIMATE);
-
-  fftwf_plan plan_N_rec;
-  if (Flag_IncludeRecombinations)
-    plan_N_rec = fftwf_mpi_plan_dft_c2r_3d(ReionGridDim,
-                                           ReionGridDim,
-                                           ReionGridDim,
-                                           (fftwf_complex*)N_rec_filtered,
-                                           (float*)N_rec_filtered,
-                                           mpi_comm,
-                                           FFTW_ESTIMATE);
-#endif
 
   // Loop through filter radii
   double R = fmin(ReionRBubbleMax, L_FACTOR * box_size); // Mpc/h
@@ -518,25 +405,10 @@ void _find_HII_bubbles_gpu(const int snapshot, const bool flag_write_validation_
 
     // inverse fourier transform back to real space
     try {
-#ifdef USE_CUFFT
-      throw_on_cuFFT_error(
-        cufftExecC2R(plan, (cufftComplex*)deltax_filtered_device, (cufftReal*)deltax_filtered_device),
-        meraxes_cuda_exception::CUFFT_C2R);
-      throw_on_cuFFT_error(cufftExecC2R(plan, (cufftComplex*)stars_filtered_device, (cufftReal*)stars_filtered_device),
-                           meraxes_cuda_exception::CUFFT_C2R);
-      throw_on_cuFFT_error(cufftExecC2R(plan, (cufftComplex*)sfr_filtered_device, (cufftReal*)sfr_filtered_device),
-                           meraxes_cuda_exception::CUFFT_C2R);
-
-      if (Flag_IncludeRecombinations)
-        throw_on_cuFFT_error(
-          cufftExecC2R(plan, (cufftComplex*)N_rec_filtered_device, (cufftReal*)N_rec_filtered_device),
-          meraxes_cuda_exception::CUFFT_C2R);
-
-#else
       throw_on_cuda_error(
         cudaMemcpy(deltax_filtered, deltax_filtered_device, sizeof(float) * 2 * slab_n_complex, cudaMemcpyDeviceToHost),
         meraxes_cuda_exception::MEMCPY);
-      fftwf_execute(plan_deltax);
+      fftwf_execute(run_globals.reion_grids.deltax_filtered_reverse_plan);
       throw_on_cuda_error(
         cudaMemcpy(deltax_filtered_device, deltax_filtered, sizeof(float) * 2 * slab_n_complex, cudaMemcpyHostToDevice),
         meraxes_cuda_exception::MEMCPY);
@@ -544,7 +416,7 @@ void _find_HII_bubbles_gpu(const int snapshot, const bool flag_write_validation_
       throw_on_cuda_error(
         cudaMemcpy(stars_filtered, stars_filtered_device, sizeof(float) * 2 * slab_n_complex, cudaMemcpyDeviceToHost),
         meraxes_cuda_exception::MEMCPY);
-      fftwf_execute(plan_stars);
+      fftwf_execute(run_globals.reion_grids.stars_filtered_reverse_plan);
       throw_on_cuda_error(
         cudaMemcpy(stars_filtered_device, stars_filtered, sizeof(float) * 2 * slab_n_complex, cudaMemcpyHostToDevice),
         meraxes_cuda_exception::MEMCPY);
@@ -552,7 +424,7 @@ void _find_HII_bubbles_gpu(const int snapshot, const bool flag_write_validation_
       throw_on_cuda_error(
         cudaMemcpy(sfr_filtered, sfr_filtered_device, sizeof(float) * 2 * slab_n_complex, cudaMemcpyDeviceToHost),
         meraxes_cuda_exception::MEMCPY);
-      fftwf_execute(plan_sfr);
+      fftwf_execute(run_globals.reion_grids.sfr_filtered_reverse_plan);
       throw_on_cuda_error(
         cudaMemcpy(sfr_filtered_device, sfr_filtered, sizeof(float) * 2 * slab_n_complex, cudaMemcpyHostToDevice),
         meraxes_cuda_exception::MEMCPY);
@@ -561,12 +433,11 @@ void _find_HII_bubbles_gpu(const int snapshot, const bool flag_write_validation_
         throw_on_cuda_error(
           cudaMemcpy(N_rec_filtered, N_rec_filtered_device, sizeof(float) * 2 * slab_n_complex, cudaMemcpyDeviceToHost),
           meraxes_cuda_exception::MEMCPY);
-        fftwf_execute(plan_N_rec);
+        fftwf_execute(run_globals.reion_grids.N_rec_filtered_reverse_plan);
         throw_on_cuda_error(
           cudaMemcpy(N_rec_filtered_device, N_rec_filtered, sizeof(float) * 2 * slab_n_complex, cudaMemcpyHostToDevice),
           meraxes_cuda_exception::MEMCPY);
       }
-#endif
       // Throw an exception if another rank has thrown one
       throw_on_global_error();
     } catch (const meraxes_cuda_exception e) {
@@ -654,24 +525,6 @@ void _find_HII_bubbles_gpu(const int snapshot, const bool flag_write_validation_
     R /= ReionDeltaRFactor;
   }
 
-// Clean-up FFT plan(s)
-#ifdef USE_CUFFT
-  try {
-    throw_on_cuFFT_error(cufftDestroy(plan), meraxes_cuda_exception::CUFFT_PLAN_DESTROY);
-    // Throw an exception if another rank has thrown one
-    throw_on_global_error();
-  } catch (const meraxes_cuda_exception e) {
-    e.process_exception();
-  }
-#else
-  fftwf_destroy_plan(plan_deltax);
-  fftwf_destroy_plan(plan_stars);
-  fftwf_destroy_plan(plan_sfr);
-
-  if (Flag_IncludeRecombinations)
-    fftwf_destroy_plan(plan_N_rec);
-#endif
-
   // Perform device -> host transfer
   try {
     if (slab_n_real > 0) {
@@ -751,8 +604,8 @@ void _find_HII_bubbles_gpu(const int snapshot, const bool flag_write_validation_
   double mass_weight = 0.0;
 
   // Calculate neutral fractions.
-  // TODO: A parallel reduction could be done for this before results are off-loaded
-  //       from the GPU.
+  // TODO: A parallel reduction could be done for this before results are off-loaded from the GPU.
+  //       This would require figuring out how to do the spline interpolation on the GPU though...
   int ix, iy, iz;
   for (ix = 0; ix < local_nix; ix++)
     for (iy = 0; iy < ReionGridDim; iy++)
