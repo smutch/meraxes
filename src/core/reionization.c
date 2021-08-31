@@ -27,8 +27,7 @@ void update_galaxy_fesc_vals(galaxy_t* gal, double new_stars, int snapshot)
   if ((params->EscapeFracDependency > 0) && (params->EscapeFracDependency <= 6))
     if (params->EscapeFracRedshiftScaling != 0.0)
       fesc *=
-        2.0 /
-        (1.0 + exp(params->EscapeFracRedshiftScaling * (run_globals.ZZ[snapshot] - params->EscapeFracRedshiftOffset)));
+        pow((1.0 + run_globals.ZZ[snapshot]) / params->EscapeFracRedshiftScaling, params->EscapeFracRedshiftScaling);
 
   // galaxy properties
   switch (params->EscapeFracDependency) {
