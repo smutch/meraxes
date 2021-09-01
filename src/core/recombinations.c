@@ -56,6 +56,8 @@ void init_MHR()
   int z_ct, gamma_ct;
   float z, gamma;
 
+  mlog("Initialising MHR parameter and recombination rate LUTs...", MLOG_MESG);
+
   // first initialize the MHR parameter look up tables
   init_C_MHR();    /*initializes the lookup table for the C paremeter in MHR00 model*/
   init_beta_MHR(); /*initializes the lookup table for the beta paremeter in MHR00 model*/

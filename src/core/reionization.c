@@ -380,6 +380,8 @@ void init_reion_grids()
 
 void malloc_reionization_grids()
 {
+  mlog("Allocating reionization grids...", MLOG_OPEN);
+
   reion_grids_t* grids = &(run_globals.reion_grids);
 
   fftwf_mpi_init();
@@ -404,7 +406,7 @@ void malloc_reionization_grids()
       } else {
         mlog("FFTW3 wisdom directory provided, but no suitable wisdom exists. New wisdom will be created (this make "
              "take a while).",
-             MLOG_MESG);
+             MLOG_MESG | MLOG_FLUSH);
         save_wisdom = true;
         // Check to see if the wisdom directory exists and if not, create it
         struct stat filestatus;
@@ -668,6 +670,8 @@ void malloc_reionization_grids()
     }
 
   } // if (run_globals.params.Flag_PatchyReion)
+
+  mlog("...done", MLOG_CLOSE);
 }
 
 void free_reionization_grids()
