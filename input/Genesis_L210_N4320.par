@@ -7,7 +7,7 @@ FileNameGalaxies : genesis_L210_N4320
 #----- Simulation input files  ------------
 #------------------------------------------
 SimName           : Genesis L210_N4320
-SimulationDir     : /fred/oz009/GENESIS/L210_N4320_Grids_Halos_Trees-balu 
+SimulationDir     : /fred/oz113/balu/files_for_meraxes/L210_N4320/un_augmented_trees
 CatalogFilePrefix : VELOCIraptor.walkabletree.forestID.hdf5.0
 TreesID           : 0  # 0 -> VELOCIraptor; 1 -> gbpTrees
 BoxSize           : 210.0
@@ -137,13 +137,20 @@ ReionSobacchi_T0       : 5.0e4
 ReionGnedin_z0         : 8
 ReionGnedin_zr         : 7
 
-# patchy (21cmFAST) prescription
 FFTW3WisdomDir :
 Flag_PatchyReion       : 1  # Use 21cmFAST (ensure Flag_ReionizationModifier=1 if wish to couple to galaxy formation).
 Flag_OutputGrids       : 1
 Flag_OutputGridsPostReion  : 0
+Flag_IncludeRecombinations : 1
+Flag_Compute21cmBrightTemp : 1
+Flag_ComputePS : 1
+Flag_IncludeSpinTemp : 1
+Flag_SeparateQSOXrays : 0   # NOT CURRENTLY IMPLEMENTED (CODE WILL FAIL IF != 0)
+Flag_IncludePecVelsFor21cm : 1
+Flag_ConstructLightcone : 1
 
 ReionUVBFlag           : 1  # Use 21cmFAST (ensure Flag_ReionizationModifier=1 if wish to couple to galaxy formation).
+ReionSfrTimescale      : 0.5
 ReionGridDim           : 128
 ReionDeltaRFactor      : 1.1
 ReionFilterType        : 0
@@ -154,11 +161,32 @@ Y_He                   : 0.24
 ReionRBubbleMin        : 0.4068
 ReionRBubbleMax        : 20.34
 ReionGammaHaloBias     : 2.0
-ReionAlphaUV           : 5.0
+ReionAlphaUV           : 2.0
 ReionAlphaUVBH         : 1.57
+
+TsHeatingFilterType : 0
+TsNumFilterSteps : 40
+TsVelocityComponent : 3
+
+EndRedshiftLightcone : 6.0
+
+ReionRBubbleMaxRecomb : 33.9
+ReionMaxHeatingRedshift : 29.8
+
+LXrayGal : 3.16e40         # Soft-band (< NuXraySoftCut keV) X-ray luminosity for galaxy based sources (HMXB)
+NuXrayGalThreshold : 500.  # Energy threshold for HMXB X-rays escaping host galaxy (eV)
+SpecIndexXrayGal : 1.      # Spectral index of galaxy X-ray sources  (nu^-alpha)
+
+LXrayQSO : 3.16e40         # Soft-band (< NuXraySoftCut keV) X-ray luminosity for QSO based sources
+NuXrayQSOThreshold : 500.  # Energy threshold for QSO X-rays escaping host galaxy (eV)
+SpecIndexXrayQSO : 1.      # Spectral index of QSO X-ray sources  (nu^-alpha)
+
+NuXraySoftCut : 2000.      # X-ray soft-band cut off in (eV)
+NuXrayMax : 10000.         # Maximum energy for X-ray band integration
 
 EscapeFracDependency       : 1  # 0->none, 1->redshift, 2->stellar mass, 3->sfr, 4->cold gas surface density, 5->mvir, 6->ssfr
 EscapeFracNorm             : 0.06
+EscapeFracRedshiftOffset   : 6.0
 EscapeFracRedshiftScaling  : 0.5  # N.B. use EscapeFracDependency>1 and this = 0 to scale only with galaxy property (and not also with redshift)
 EscapeFracPropScaling      : 0.5
 EscapeFracBHNorm           : 1
@@ -171,7 +199,7 @@ ReionSMParam_c         : 2.0
 ReionSMParam_d         : 2.5
 
 ReionTcool             : 1.0e4  # Kelvin
-ReionNionPhotPerBary   : 4000
+ReionNionPhotPerBary   : 6000
 
 
 #------------------------------------------------
