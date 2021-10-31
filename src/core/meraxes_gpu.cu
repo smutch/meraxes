@@ -114,7 +114,7 @@ static void dump_gpu_properties()
 
   mlog("\nGPU properties", MLOG_MESG);
   mlog("==============", MLOG_MESG);
-  mlog("device = %s", MLOG_MESG, info.device);
+  mlog("device = %d", MLOG_MESG, info.device);
   mlog("name = %s", MLOG_MESG, info.properties.name);
   mlog("n_threads = %d", MLOG_MESG, info.n_threads);
   mlog("maxThreadsPerBlock = %d", MLOG_MESG, info.properties.maxThreadsPerBlock);
