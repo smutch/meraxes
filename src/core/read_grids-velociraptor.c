@@ -91,7 +91,7 @@ static int read_swift(const enum grid_prop property, const int snapshot, float* 
   double box_size[3] = { 0 };
 
   if (run_globals.mpi_rank == 0) {
-    char data[20];
+    char data[20] = { '\0' };
     herr_t status = H5LTget_attribute_string(file_id, "/Parameters", "DensityGrids:grid_dim", data);
     assert(status >= 0);
     grid_dim = atoi(data);
