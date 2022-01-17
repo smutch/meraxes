@@ -1,0 +1,18 @@
+# EditorConfig
+# For some editors (e.g. VSCode) this will work out-of-the-box.
+# For others, you will need a plugin. See the EditorConfig website for more details.
+# https://editorconfig.org/
+
+root = true
+
+[*]
+end_of_line = lf
+indent_style = space
+charset = utf-8
+
+[*.{c,h,cpp,hpp,cc,hh}]
+indent_size = 2
+insert_final_newline = false
+
+[*.{py,pyx,pxd}]
+indent_size = 4
