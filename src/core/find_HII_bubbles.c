@@ -286,6 +286,10 @@ void _find_HII_bubbles(const int snapshot)
 
           density_over_mean = 1.0 + (double)((float*)deltax_filtered)[i_padded];
 
+          if (density_over_mean == 0.0) {
+            continue;
+          }
+
           f_coll_stars = (double)((float*)stars_filtered)[i_padded] / (M_mean * density_over_mean) * (4.0 / 3.0) *
                          M_PI * R_cubed / pixel_volume;
 
