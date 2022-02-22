@@ -208,7 +208,7 @@ static int read_swift(const enum grid_prop property, const int snapshot, float* 
         for (int kk = 0; kk < ReionGridDim; kk++) {
           float* val = &(slab[grid_index(ii, jj, kk, ReionGridDim, INDEX_PADDED)]);
           // the fmax check here tries to account for negative densities introduced by fftw rounding / aliasing effects
-          *val = fmaxf(*val * mean_inv - 1.0, -1.0);
+          *val = fmaxf(*val * mean_inv - 1.0, -1.0 + REL_TOL);
         }
   }
 
