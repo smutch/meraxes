@@ -2,6 +2,12 @@
 
 # Dependencies
 
+The following instructions list possible methods to get and install the required dependencies for Meraxes. These are intended for development use only. If actually running on an HPC facility then all required libraries should already be available to you. Please consult your system's help pages or contact your sys-admin for further information.
+
+## All platforms
+
+A simple (although heavy) method of aquiring all the necessary dependencies is to use [Spack](https://spack.readthedocs.io/en/latest/). A `spack.yml` config file is provided in the Meraxes repo. To use this method, first ensure you have spack installed and activated in your current shell instance. Then simply run the provided `bootstrap-dev.sh` script and follow the prompts.
+
 ## Linux / Unix
 
 ### CMAKE, GSL, HDF5
@@ -14,9 +20,9 @@ Although fftw3 is likely also available, we require the `--enable-mpi` and `--en
 
 ``` sh
 mkdir -p ~/3rd_party/fftw3 && cd !$
-wget http://www.fftw.org/fftw-3.3.6-pl2.tar.gz
-tar xzf fftw-3.3.6-pl2.tar.gz
-mv fftw-3.3.6-pl2 src && cd !$
+wget http://www.fftw.org/fftw-3.3.10.tar.gz
+tar xzf fftw-3.3.10.tar.gz
+mv fftw-3.3.10 src && cd !$
 CC=`which mpicc` ./configure --prefix=$HOME/3rd_party/fftw3 --enable-mpi --enable-float
 make && make install && make clean
 ```
@@ -39,9 +45,9 @@ Although fftw3 can be installed via homebrew, we require the `--enable-mpi` and 
 
 ``` sh
 mkdir -p ~/3rd_party/fftw3 && cd !$
-wget http://www.fftw.org/fftw-3.3.6-pl2.tar.gz
-tar xzf fftw-3.3.6-pl2.tar.gz
-mv fftw-3.3.6-pl2 src && cd !$
+wget http://www.fftw.org/fftw-3.3.10.tar.gz
+tar xzf fftw-3.3.10.tar.gz
+mv fftw-3.3.10 src && cd !$
 CC=`which mpicc` ./configure --prefix=$HOME/3rd_party/fftw3 --enable-mpi --enable-float
 make && make install && make clean
 ```
