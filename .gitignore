@@ -4,8 +4,6 @@ src/.cache
 .spack-env
 .envrc
 Log_files
-src/3rd_party
-find_HII_bubbles
 lib/
 ._*
 *.o
@@ -28,8 +26,6 @@ plots
 bu
 data
 testing
-src/git.h
-src/my_SConscript
 .syntastic_config
 .vimrc
 .exrc
@@ -39,8 +35,5 @@ share/
 .sconf_temp
 config.log
 src/git.h
-src/build*
-src/local.cmake
-src/.clangd/
-src/compile_commands.json
-src/.vscode
+docs/_build
+build/
