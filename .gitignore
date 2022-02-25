@@ -1,6 +1,6 @@
 .idea
 justfile
-src/.cache
+.cache
 .spack-env
 .envrc
 Log_files
