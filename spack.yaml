@@ -4,7 +4,7 @@
 # configuration settings.
 spack:
   # add package specs to the `specs` list
-  specs: [openmpi, hdf5+hl+mpi, fftw+mpi+openmp, gsl, cmake]
+  specs: [hdf5+hl+mpi^mpich, fftw+mpi+openmp^mpich, gsl, cmake, criterion-git]
   view: true
   packages:
     all:

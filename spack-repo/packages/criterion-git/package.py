@@ -15,3 +15,5 @@ class CriterionGit(CMakePackage):
     maintainers = ['smutch',]
 
     version('2.3.3', tag='v2.3.3', submodules=True)
+
+    depends_on('gettext')
