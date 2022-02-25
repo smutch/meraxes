@@ -41,9 +41,9 @@
 
 // ======================================================
 // Don't change these unless you know what you are doing!
-#define STRLEN 256 //!< Default string length
-#define REL_TOL (float)1e-5
-#define ABS_TOL (float)1e-8
+#define STRLEN 256          //!< Default string length
+#define REL_TOL (float)1e-5 //!< Relative tolerance for equality
+#define ABS_TOL (float)1e-8 //!< Absolute tolerance for equality
 // ======================================================
 
 // Define things used for aborting exceptions
@@ -61,37 +61,57 @@ extern "C"
     myexit(sigterm);                                                                                                   \
   } while (0)
 
-//! Physics parameter values
+/*!
+ * Physics parameters.
+ * These are the parameters associated with selecting the galaxy formation physics and controlling efficiencies etc.
+ */
 typedef struct physics_params_t
 {
-  double SfEfficiency;
-  double SfEfficiencyScaling;
-  double SfCriticalSDNorm;
-  double SfRecycleFraction;
-  int SnModel;
-  double SnReheatRedshiftDep;
-  double SnReheatEff;
-  double SnReheatLimit;
-  double SnReheatScaling;
-  double SnReheatScaling2;
-  double SnReheatNorm;
-  double SnEjectionRedshiftDep;
-  double SnEjectionEff;
-  double SnEjectionScaling;
-  double SnEjectionScaling2;
-  double SnEjectionNorm;
-  double MaxCoolingMassFactor;
+  // star formation
+  double SfEfficiency;        //!< The star formation efficiency.
+  double SfEfficiencyScaling; //!< Star formation efficiency scaling with redshift.
+  double SfCriticalSDNorm;    //!< Critical surface density for star formation.
+  double SfRecycleFraction;   //!< Fraction of new stellar mass recycled into the ISM immediately.  Only valid if @ref
+                              //!< physics_params_t.Flag_IRA = 1.
+
+  // supernova (SN)
+  int SnModel;                //!< Supernova feedback model choice.
+  double SnReheatRedshiftDep; //!< Redshift power-law dependence of SN reheating efficiency.
+  double SnReheatEff;         //!< SN reheating efficiency.
+  double SnReheatLimit;       //!< SN reheating efficiency limit.
+  double SnReheatScaling; //!< SN reheating efficiency property dependant scaling for @ref physics_params_t.SnModel = 1.
+  double
+    SnReheatScaling2;  //!< SN reheating efficiency property dependant scaling for @ref physics_params_t.SnModel = 2.
+  double SnReheatNorm; //!< SN reheating scaling normalisation.
+  double SnEjectionRedshiftDep; //!< SN ejection redshift power-law dependence.
+  double SnEjectionEff;         //!< SN ejection efficiency.
+  double SnEjectionScaling;     //!< SN ejection efficiency property dependant scaling factor for @ref
+                                //!< physics_params_t.SnModel = 1.
+  double SnEjectionScaling2;    //!< SN ejection efficiency property dependant scaling factor for @ref
+                                //!< physics_params_t.SnModel = 2.
+  double SnEjectionNorm;        //!< SN ejection scaling normalisation.
+  double Yield;                 //!< Metals yield.
+
+  // cooling
+  double MaxCoolingMassFactor; //!< Maximum allowed cooling rate is all hot gas in one dynamical time, multiplied by
+                               //!< this factor.
+
+  // reioncorporation
   int ReincorporationModel;
   double ReincorporationEff;
-  double Yield;
-  double RadioModeEff;
-  double QuasarModeEff;
-  double BlackHoleGrowthRate;
-  double EddingtonRatio;
-  double quasar_mode_scaling;
-  double quasar_open_angle;
-  double quasar_fobs;
 
+  // AGN and black hole growth
+  double RadioModeEff;        //!< Radio mode black hole feedback efficiency.
+  double QuasarModeEff;       //!< Quasar mode black hole feedback efficiency.
+  double BlackHoleGrowthRate; //!< Merger driven black hole growth rate.
+  double EddingtonRatio;      //!< Eddington ratio for black hole accretion.
+  double quasar_mode_scaling; //!< Redshift power-law dependence of quasar mode feedback.
+
+  // TODO: Should these be moved?  They are not set by the user.
+  double quasar_open_angle; //!< Opening angle of emission for QSO mode feedback.
+  double quasar_fobs;       //!< Observable fraction of QSOs, given the opening angle.
+
+  // merger physics
   double ThreshMajorMerger;
   double MinMergerStellarMass;
   double MinMergerRatioForBurst;
@@ -99,6 +119,7 @@ typedef struct physics_params_t
   double MergerBurstFactor;
   double MergerTimeFactor;
 
+  // reionisation sources
   // TODO: These parameters should be used to set the TOCF HII_EFF_FACTOR value
   double ReionEfficiency;
   double ReionNionPhotPerBary;
