@@ -14,7 +14,7 @@ while true; do
     esac
 done
 
-spack env create -d ./spack-env spack.yaml
-eval `spack env activate --sh ./spack-env`
+spack env create -d ./.spack-env spack.yaml
+eval `spack env activate --sh ./.spack-env`
 spack concretize
 spack install

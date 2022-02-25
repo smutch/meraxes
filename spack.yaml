@@ -4,7 +4,8 @@
 # configuration settings.
 spack:
   # add package specs to the `specs` list
-  specs: [hdf5+hl+mpi^mpich, fftw+mpi+openmp^mpich, gsl, cmake, criterion-git]
+  specs: [hdf5+hl+mpi^mpich, fftw+mpi+openmp^mpich, gsl, cmake]
+  concretization: together
   view: true
   packages:
     all:
@@ -13,5 +14,3 @@ spack:
     prefix_inspections:
       include:
       - CPATH
-  repos:
-  - ./spack-repo
