@@ -72,23 +72,20 @@ typedef struct physics_params_t
   double SfEfficiencyScaling; //!< Star formation efficiency scaling with redshift.
   double SfCriticalSDNorm;    //!< Critical surface density for star formation.
   double SfRecycleFraction;   //!< Fraction of new stellar mass recycled into the ISM immediately.  Only valid if @ref
-                              //!< physics_params_t.Flag_IRA = 1.
+                              //!< Flag_IRA = 1.
 
   // supernova (SN)
-  int SnModel;                //!< Supernova feedback model choice.
-  double SnReheatRedshiftDep; //!< Redshift power-law dependence of SN reheating efficiency.
-  double SnReheatEff;         //!< SN reheating efficiency.
-  double SnReheatLimit;       //!< SN reheating efficiency limit.
-  double SnReheatScaling; //!< SN reheating efficiency property dependant scaling for @ref physics_params_t.SnModel = 1.
-  double
-    SnReheatScaling2;  //!< SN reheating efficiency property dependant scaling for @ref physics_params_t.SnModel = 2.
-  double SnReheatNorm; //!< SN reheating scaling normalisation.
+  int SnModel;                  //!< Supernova feedback model choice.
+  double SnReheatRedshiftDep;   //!< Redshift power-law dependence of SN reheating efficiency.
+  double SnReheatEff;           //!< SN reheating efficiency.
+  double SnReheatLimit;         //!< SN reheating efficiency limit.
+  double SnReheatScaling;       //!< SN reheating efficiency property dependant scaling for @ref SnModel = 1.
+  double SnReheatScaling2;      //!< SN reheating efficiency property dependant scaling for @ref SnModel = 2.
+  double SnReheatNorm;          //!< SN reheating scaling normalisation.
   double SnEjectionRedshiftDep; //!< SN ejection redshift power-law dependence.
   double SnEjectionEff;         //!< SN ejection efficiency.
-  double SnEjectionScaling;     //!< SN ejection efficiency property dependant scaling factor for @ref
-                                //!< physics_params_t.SnModel = 1.
-  double SnEjectionScaling2;    //!< SN ejection efficiency property dependant scaling factor for @ref
-                                //!< physics_params_t.SnModel = 2.
+  double SnEjectionScaling;     //!< SN ejection efficiency property dependant scaling factor for @ref SnModel = 1.
+  double SnEjectionScaling2;    //!< SN ejection efficiency property dependant scaling factor for @ref SnModel = 2.
   double SnEjectionNorm;        //!< SN ejection scaling normalisation.
   double Yield;                 //!< Metals yield.
 
@@ -97,8 +94,8 @@ typedef struct physics_params_t
                                //!< this factor.
 
   // reioncorporation
-  int ReincorporationModel;
-  double ReincorporationEff;
+  int ReincorporationModel;  //!< reioncorporation model selection
+  double ReincorporationEff; //!< reioncorporation model efficiency
 
   // AGN and black hole growth
   double RadioModeEff;        //!< Radio mode black hole feedback efficiency.
@@ -112,21 +109,23 @@ typedef struct physics_params_t
   double quasar_fobs;       //!< Observable fraction of QSOs, given the opening angle.
 
   // merger physics
-  double ThreshMajorMerger;
-  double MinMergerStellarMass;
-  double MinMergerRatioForBurst;
-  double MergerBurstScaling;
-  double MergerBurstFactor;
-  double MergerTimeFactor;
+  double ThreshMajorMerger;    //!< Threshold merger mass ration for a major merger to occur.
+  double MinMergerStellarMass; //!< Minimum total StellarMass for a burst to occur [internal units]. Useful for prevent
+                               //!< gas-only "galaxy" mergers producing stars.
+  double MinMergerRatioForBurst; //!< Minimum merger ratio for any type of merger-driven burst to happen.
+  double MergerBurstScaling;     //!< Mass scaling factor for merger burst equation.
+  double MergerBurstFactor;      //!< Normalisation factor for merger burst equation.
+  double MergerTimeFactor;       //!< Merger timescale normalisation factor. Used to account for differences in last
+                                 //!< identified snapshot and snapshot of virial crossing.
 
   // reionisation sources
   // TODO: These parameters should be used to set the TOCF HII_EFF_FACTOR value
-  double ReionEfficiency;
-  double ReionNionPhotPerBary;
-  double BlackHoleSeed;
-  double BlackHoleMassLimitReion;
-  double ReionTcool;
-  double Y_He;
+  double ReionEfficiency;         //!< Reionisation efficieny normalisation parameter.
+  double ReionNionPhotPerBary;    //!< Number of ionising photons per stellar baryon.
+  double BlackHoleSeed;           //!< The initial black hole seed mass [internal units]
+  double BlackHoleMassLimitReion; //!< Minimum black hole mass to contribute to reionisation [internal units]
+  double ReionTcool;              //!< Minimum virial temperature for atomic cooling halos [Kelvin]
+  double Y_He;                    //!< Helium mass fraction of IGM
 
   // Parameters to describe the X-ray properties of the sources
   // Keeping the QSO and Galaxy components separate for now (might be combined in the end)
@@ -180,7 +179,7 @@ typedef struct physics_params_t
   // Flags
   int Flag_ReionizationModifier;
   int Flag_BHFeedback;
-  int Flag_IRA;
+  int Flag_IRA; //!< Instantaneous recycling approximation on (1) or off (0).
   int Flag_FixDiskRadiusOnInfall;
   int Flag_FixVmaxOnInfall;
   int Flag_ReheatToFOFGroupTemp;
