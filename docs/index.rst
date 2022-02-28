@@ -27,6 +27,7 @@ API
    :caption: Contents:
 
    global_structures
+   physics/cooling
    physics/star_formation
    physics/reionization
 

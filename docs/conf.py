@@ -55,6 +55,10 @@ html_theme = 'press'
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ['_static']
 
+html_css_files = [
+    'css/custom.css',
+]
+
 # -- Breathe -----------------------------------------------------------------
 
 breathe_projects = {"meraxes": os.path.abspath('.')+'/doxy/xml'}
@@ -64,8 +68,9 @@ breathe_projects_source = {
                 [
                     'meraxes.h',
                     'physics/star_formation.c',
-                    'core/reionization.c',
-                    'physics/reionization.c'
+                    'physics/cooling.c',
+                    # 'core/reionization.c',
+                    # 'physics/reionization.c'
                 ]
     )
 }

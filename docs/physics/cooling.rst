@@ -1,0 +1,4 @@
+Cooling
+=======
+
+.. autodoxygenfile:: cooling.c
