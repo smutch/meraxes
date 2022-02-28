@@ -15,10 +15,14 @@ double gas_cooling(galaxy_t* gal)
   if (gal->HotGas > 1e-10) {
     fof_group_t* fof_group = gal->Halo->FOFGroup;
 
-    // calculate the halo virial temperature
+    // calculate the halo virial temperature and log10 metallicity value
     // N.B. This assumes ionised gas with mu=0.59...
     double Tvir = 35.9 * fof_group->Vvir * fof_group->Vvir; // internal units (Kelvin)
-
+    double logZ;
+    if (gal->MetalsHotGas > 0)
+        logZ = log10(calc_metallicity(gal->HotGas, gal->MetalsHotGas));
+    else
+        logZ = -10.0;
     // If we are below 10^4 K then no cooling either
     if (Tvir >= 1e4) {
       double t_cool, max_cooling_mass;
@@ -29,12 +33,6 @@ double gas_cooling(galaxy_t* gal)
       // following Croton+ 2006, we set the maximum cooling time to be the
       // dynamical time of the host dark matter halo
       t_cool = fof_group->Rvir / fof_group->Vvir; // internal units
-
-      // get the log10(metallicity) value
-      if (gal->MetalsHotGas > 0)
-        logZ = log10(calc_metallicity(gal->HotGas, gal->MetalsHotGas));
-      else
-        logZ = -10.0;
 
       // interpolate the temperature and metallicity dependant cooling rate (lambda)
       lambda = interpolate_cooling_rate(log10(Tvir), logZ);
@@ -83,8 +81,49 @@ double gas_cooling(galaxy_t* gal)
       if (cooling_mass < 0)
         cooling_mass = 0.0;
     }
-  }
-  return cooling_mass;
+  // Implement Molecular cooling using fitting of cooling curves of Galli and Palla 1998
+  // Attempt 1: consider Metal free star using the critical metallicity of 10^(-3.8)Zsolar (with Zsolar=10^-2)
+  // No J_lw! This will be the next thing to add here!// Implement Molecular cooling using fitting of cooling curves of Galli and Palla 1998
+    else if(Tvir >= 1e3 && logZ<= -5.8){
+          double t_cool, max_cooling_mass;
+          double loglambdalim, LTEcool; //Need them to compute lambda
+          double nH=1e2; //use value of low density regime (CHECK THIS!) 
+          double logZ, lambda, x, rho_r_cool, r_cool, isothermal_norm;
+          run_units_t* units = &(run_globals.units);
+          double max_cooling_mass_factor = run_globals.params.physics.MaxCoolingMassFactor;
+        	
+          // Identical procedure, only thing that changes is lambda!
+          t_cool = fof_group->Rvir / fof_group->Vvir; // internal units
+         	            
+          //interpolate the temperature and metallicity dependant cooling rate (lambda)
+          LTEcool = LTE_Mcool(Tvir,nH);  
+          loglambdalim = -103.0 + 97.59 * log10(Tvir) - 48.05 * pow(log10(Tvir),2) + 10.8 * pow(log10(Tvir),3) - 0.9032 * pow(log10(Tvir),4);
+          lambda = LTEcool / (1 + (LTEcool / pow(10,loglambdalim)));
+        
+          x = PROTONMASS * BOLTZMANN * Tvir / lambda; // now this has units sec g/cm^3
+          x /= (units->UnitDensity_in_cgs * units->UnitTime_in_s); // now in internal units
+          rho_r_cool = x / t_cool * 0.885; // 0.885 = 3/2 * mu, mu=0.59 for a fully ionized gas
+        	
+          assert(rho_r_cool > 0);
+          isothermal_norm = gal->HotGas / (4. * M_PI * fof_group->Rvir);
+          r_cool = sqrt(isothermal_norm / rho_r_cool);                                                                                                                                                               gal->Rcool = r_cool;
+        	
+          max_cooling_mass = max_cooling_mass_factor * gal->HotGas / t_cool * gal->dt;
+        	
+          if (r_cool > fof_group->Rvir)
+              cooling_mass = max_cooling_mass;                                                                                                                                                                       else {
+            cooling_mass = max_cooling_mass / fof_group->Rvir * r_cool;
+            if (cooling_mass > max_cooling_mass)
+        	cooling_mass = max_cooling_mass;
+       }
+        	
+       if (cooling_mass > gal->HotGas)
+           cooling_mass = gal->HotGas;
+        	
+       if (run_globals.params.physics.Flag_BHFeedback)
+           cooling_mass -= radio_mode_BH_heating(gal, cooling_mass, x);         	                                                                                                                                                                                                                                                                                                                                     if (cooling_mass < 0)                                                                                                                                                                                          cooling_mass = 0.0;
+        }                                                                                                                                                                                                      }
+    return cooling_mass;
 }
 
 void cool_gas_onto_galaxy(galaxy_t* gal, double cooling_mass)
