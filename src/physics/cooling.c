@@ -9,6 +9,17 @@
 #include "reionization.h"
 //#include "core/reionization.c"
 
+/**
+ * @brief  The mass of the gas from the HotGas that cools down to the ColdGas of the central galaxy.
+ *
+ * The cooling happens only if the FOF group \f$T_{\rm vir}\f$ is above \f$10^4\f$K.
+ * All infalling mass is assumed to have been shocked to the virial temperature of the FoF group, hence \f$T_{\rm vir}
+ * = 35.9 * (V_{\rm vir} [{\rm km\,s^{-1}}])^2\f$. A cooling radius \f$r_{\rm cool}\f$ is defined from the \f$T_{\rm
+ * vir}\f$ value. Depending on whether \f$r_{\rm cool}\f$ is less or greater than the \f$R_{\rm vir}\f$, different
+ * cooling rate prescriptions are employed. Section 2.3 of DRAGONS-III for more details.
+ *
+ * @param gal The galaxy onto which the gas is cooling.
+ */
 double gas_cooling(galaxy_t* gal)
 {
   double cooling_mass = 0.0;
@@ -99,6 +110,15 @@ double gas_cooling(galaxy_t* gal)
   return cooling_mass;
 }
 
+/**
+ * @brief  Adds the cooling_mass calculated by gas_cooling() to the galaxy.
+ *
+ * The cooling_mass is stripped from the HotGas and is added into the ColdGas. At the same time, the metallicity of the
+ * HotGas and ColdGas are also updated accordingly.
+ *
+ * @param gal The galaxy onto which the gas is cooling.
+ * @param cooling_mass The mass of the cooled gas that gets added.
+ */
 void cool_gas_onto_galaxy(galaxy_t* gal, double cooling_mass)
 {
   double cooling_metals;
