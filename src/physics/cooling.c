@@ -26,7 +26,7 @@ double gas_cooling(galaxy_t* gal)
     // If we are below 10^4 K then no cooling either
     if (Tvir >= 1e4) {
       double t_cool, max_cooling_mass;
-      double logZ, lambda, x, rho_r_cool, r_cool, isothermal_norm;
+      double lambda, x, rho_r_cool, r_cool, isothermal_norm;
       run_units_t* units = &(run_globals.units);
       double max_cooling_mass_factor = run_globals.params.physics.MaxCoolingMassFactor;
 
@@ -84,7 +84,7 @@ double gas_cooling(galaxy_t* gal)
   // Implement Molecular cooling using fitting of cooling curves of Galli and Palla 1998
   // Attempt 1: consider Metal free star using the critical metallicity of 10^(-3.8)Zsolar (with Zsolar=10^-2)
   // No J_lw! This will be the next thing to add here!// Implement Molecular cooling using fitting of cooling curves of Galli and Palla 1998
-    else if(Tvir >= 1e3 && logZ<= -5.8){
+    else if(Tvir >= 1e3 && logZ<= -7.6){
           double t_cool, max_cooling_mass;
           double loglambdalim, LTEcool; //Need them to compute lambda
           double nH=1e2; //use value of low density regime (CHECK THIS!) 
@@ -106,22 +106,27 @@ double gas_cooling(galaxy_t* gal)
         	
           assert(rho_r_cool > 0);
           isothermal_norm = gal->HotGas / (4. * M_PI * fof_group->Rvir);
-          r_cool = sqrt(isothermal_norm / rho_r_cool);                                                                                                                                                               gal->Rcool = r_cool;
-        	
+          r_cool = sqrt(isothermal_norm / rho_r_cool);            
+          gal->Rcool = r_cool;
+          
           max_cooling_mass = max_cooling_mass_factor * gal->HotGas / t_cool * gal->dt;
         	
           if (r_cool > fof_group->Rvir)
-              cooling_mass = max_cooling_mass;                                                                                                                                                                       else {
-            cooling_mass = max_cooling_mass / fof_group->Rvir * r_cool;
-            if (cooling_mass > max_cooling_mass)
-        	cooling_mass = max_cooling_mass;
+              cooling_mass = max_cooling_mass;  
+          else {
+             cooling_mass = max_cooling_mass / fof_group->Rvir * r_cool;
+             if (cooling_mass > max_cooling_mass)
+        	 cooling_mass = max_cooling_mass;
        }
         	
        if (cooling_mass > gal->HotGas)
            cooling_mass = gal->HotGas;
         	
        if (run_globals.params.physics.Flag_BHFeedback)
-           cooling_mass -= radio_mode_BH_heating(gal, cooling_mass, x);         	                                                                                                                                                                                                                                                                                                                                     if (cooling_mass < 0)                                                                                                                                                                                          cooling_mass = 0.0;
+           cooling_mass -= radio_mode_BH_heating(gal, cooling_mass, x); 
+           
+       if (cooling_mass < 0) 
+           cooling_mass = 0.0;
         }                                                                                                                                                                                                      }
     return cooling_mass;
 }
