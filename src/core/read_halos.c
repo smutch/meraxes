@@ -7,7 +7,7 @@
 #include "modifiers.h"
 #include "read_halos.h"
 
-static void inline update_pointers_from_offsets(int n_fof_groups_kept,
+inline static void update_pointers_from_offsets(int n_fof_groups_kept,
                                                 fof_group_t* fof_group,
                                                 const size_t* fof_FirstHalo_os,
                                                 int n_halos_kept,
@@ -243,9 +243,25 @@ static void select_forests()
 
     max_rank_n_forests = (int)((float)n_forests * 0.75);
     rank_n_assigned = calloc(run_globals.mpi_size, sizeof(int));
+    if (rank_n_assigned == NULL) {
+      mlog_error("Failed to allocate rank_n_assigned array.");
+      ABORT(EXIT_FAILURE);
+    }
     assigned_ids = calloc(max_rank_n_forests * run_globals.mpi_size, sizeof(long));
+    if (assigned_ids == NULL) {
+      mlog_error("Failed to allocate assigned_ids array.");
+      ABORT(EXIT_FAILURE);
+    }
     rank_max_contemp_halo = calloc(run_globals.mpi_size, sizeof(int));
+    if (rank_max_contemp_halo == NULL) {
+      mlog_error("Failed to allocate rank_max_contemp_halo array.");
+      ABORT(EXIT_FAILURE);
+    }
     rank_max_contemp_fof = calloc(run_globals.mpi_size, sizeof(int));
+    if (rank_max_contemp_fof == NULL) {
+      mlog_error("Failed to allocate rank_max_contemp_fof array.");
+      ABORT(EXIT_FAILURE);
+    }
 
     int* rank_counts = calloc(run_globals.mpi_size, sizeof(int));
     int* rank_argsort_ind = malloc(run_globals.mpi_size * sizeof(int));
@@ -294,6 +310,10 @@ static void select_forests()
           rank_counts[rank] += final_counts[jj];
           assigned_ids[rank * max_rank_n_forests + rank_n_assigned[rank]] = forest_ids[jj];
           rank_n_assigned[rank]++;
+          if (rank_n_assigned[rank] >= max_rank_n_forests) {
+            mlog_error("Forest load-imbalance is above currently allowed threshold.");
+            ABORT(EXIT_FAILURE);
+          }
           final_counts[jj] = 0;
 
           rank_max_contemp_halo[rank] += max_contemp_halo[jj];
