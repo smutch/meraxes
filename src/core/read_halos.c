@@ -126,6 +126,7 @@ static void select_forests()
   int* rank_max_contemp_halo = 0;
   int* rank_max_contemp_fof = 0;
   int n_forests = 0;
+  int max_rank_n_forests = 0;
 
   if (run_globals.mpi_rank == 0) {
     char fname[STRLEN + 34];
@@ -240,8 +241,9 @@ static void select_forests()
       }
     }
 
+    max_rank_n_forests = (int)((float)n_forests * 0.75);
     rank_n_assigned = calloc(run_globals.mpi_size, sizeof(int));
-    assigned_ids = calloc(n_forests * run_globals.mpi_size, sizeof(long));
+    assigned_ids = calloc(max_rank_n_forests * run_globals.mpi_size, sizeof(long));
     rank_max_contemp_halo = calloc(run_globals.mpi_size, sizeof(int));
     rank_max_contemp_fof = calloc(run_globals.mpi_size, sizeof(int));
 
@@ -290,7 +292,7 @@ static void select_forests()
           // first appearance!
           int rank = rank_argsort_ind[0];
           rank_counts[rank] += final_counts[jj];
-          assigned_ids[rank * n_forests + rank_n_assigned[rank]] = forest_ids[jj];
+          assigned_ids[rank * max_rank_n_forests + rank_n_assigned[rank]] = forest_ids[jj];
           rank_n_assigned[rank]++;
           final_counts[jj] = 0;
 
@@ -339,9 +341,10 @@ static void select_forests()
   else
     run_globals.RequestedForestId = (long*)malloc(sizeof(long) * run_globals.NRequestedForests);
 
+  // NB: displs only valid on rank 0
   int* displs = calloc(run_globals.mpi_size, sizeof(int));
   for (int ii = 0; ii < run_globals.mpi_size; ++ii) {
-    displs[ii] = ii * n_forests;
+    displs[ii] = ii * max_rank_n_forests;
   }
   MPI_Scatterv(assigned_ids,
                rank_n_assigned,
