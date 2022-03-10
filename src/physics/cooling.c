@@ -18,11 +18,15 @@ double gas_cooling(galaxy_t* gal)
     // calculate the halo virial temperature and log10 metallicity value
     // N.B. This assumes ionised gas with mu=0.59...
     double Tvir = 35.9 * fof_group->Vvir * fof_group->Vvir; // internal units (Kelvin)
-    double logZ;
+    double logZ,logZ2; //logZ2 computed for the cold component of the gas. You use this as condition to stop SF in MC
     if (gal->MetalsHotGas > 0)
         logZ = log10(calc_metallicity(gal->HotGas, gal->MetalsHotGas));
     else
         logZ = -10.0;
+    if (gal->MetalsColdGas > 0)
+        logZ2= log10(calc_metallicity(gal->ColdGas, gal->MetalsColdGas));
+    else
+        logZ2= -10.0;
     // If we are below 10^4 K then no cooling either
     if (Tvir >= 1e4) {
       double t_cool, max_cooling_mass;
@@ -84,11 +88,11 @@ double gas_cooling(galaxy_t* gal)
   // Implement Molecular cooling using fitting of cooling curves of Galli and Palla 1998
   // Attempt 1: consider Metal free star using the critical metallicity of 10^(-3.8)Zsolar (with Zsolar=10^-2)
   // No J_lw! This will be the next thing to add here!// Implement Molecular cooling using fitting of cooling curves of Galli and Palla 1998
-    else if(Tvir >= 1e3 && logZ<= -7.6){
+    else if(Tvir >= 1e3 && logZ2<= -7.6){
           double t_cool, max_cooling_mass;
           double loglambdalim, LTEcool; //Need them to compute lambda
           double nH=1e2; //use value of low density regime (CHECK THIS!) 
-          double logZ, lambda, x, rho_r_cool, r_cool, isothermal_norm;
+          double lambda, x, rho_r_cool, r_cool, isothermal_norm;
           run_units_t* units = &(run_globals.units);
           double max_cooling_mass_factor = run_globals.params.physics.MaxCoolingMassFactor;
         	
