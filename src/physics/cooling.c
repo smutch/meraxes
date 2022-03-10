@@ -88,7 +88,7 @@ double gas_cooling(galaxy_t* gal)
   // Implement Molecular cooling using fitting of cooling curves of Galli and Palla 1998
   // Attempt 1: consider Metal free star using the critical metallicity of 10^(-3.8)Zsolar (with Zsolar=10^-2)
   // No J_lw! This will be the next thing to add here!// Implement Molecular cooling using fitting of cooling curves of Galli and Palla 1998
-    else if(Tvir >= 1e3 && logZ2<= -9.6){
+    else if(Tvir >= 1e3 && logZ2<= -7.6){
           double t_cool, max_cooling_mass;
           double loglambdalim, LTEcool; //Need them to compute lambda
           double nH=1e2; //use value of low density regime (CHECK THIS!) 
