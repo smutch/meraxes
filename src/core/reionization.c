@@ -21,67 +21,26 @@ void update_galaxy_fesc_vals(galaxy_t* gal, double new_stars, int snapshot)
   float fesc_bh = (float)(params->EscapeFracBHNorm *
                           (powf((float)((1.0 + run_globals.ZZ[snapshot]) / 6.0), (float)params->EscapeFracBHScaling)));
 
-  double fesc = params->EscapeFracNorm;
+  double fesc = 1.0;
 
-  // redshift
-  if ((params->EscapeFracDependency > 0) && (params->EscapeFracDependency <= 6))
-    if (params->EscapeFracRedshiftScaling != 0.0)
-      fesc *=
-        pow((1.0 + run_globals.ZZ[snapshot]) / params->EscapeFracRedshiftOffset, params->EscapeFracRedshiftScaling);
-
-  // galaxy properties
-  switch (params->EscapeFracDependency) {
-    case 0:
-    case 1:
-      break;
-    case 2: // stellar mass (Msun)
-      if (gal->StellarMass > 0.0)
-        fesc *= pow((gal->StellarMass / run_globals.params.Hubble_h), params->EscapeFracPropScaling);
-      else
-        fesc = 1.0;
-      break;
-    case 3: // star formation rate (Msun / yr)
-      if (gal->Sfr > 0.0)
-        fesc *=
-          pow(gal->Sfr * run_globals.units.UnitMass_in_g / run_globals.units.UnitTime_in_s * SEC_PER_YEAR / SOLAR_MASS,
-              params->EscapeFracPropScaling);
-      else
-        fesc = 0.0;
-      break;
-    case 4: // cold gas density (Msun / pc^2)
-      if ((gal->ColdGas > 0.0) && (gal->DiskScaleLength > 0.0))
-        fesc *=
-          pow((gal->ColdGas / gal->DiskScaleLength / gal->DiskScaleLength * 0.01 * run_globals.params.Hubble_h) / 10.,
-              params->EscapeFracPropScaling);
-      else
-        fesc = 1.0;
-      break;
-    case 5: // halo mass (1e9 Msun)
-      if (gal->Mvir > 0.0)
-        fesc *= pow(gal->Mvir * 10. / run_globals.params.Hubble_h, params->EscapeFracPropScaling);
-      else
-        fesc = 1.0;
-      break;
-    case 6: // specific star formation rate (1 / Myr)
-      if ((gal->Sfr > 0.0) && (gal->StellarMass > 0.0))
-        fesc *= pow(gal->Sfr / gal->StellarMass / run_globals.units.UnitTime_in_s * SEC_PER_MEGAYEAR,
-                    params->EscapeFracPropScaling);
-      else
-        fesc = 0.0;
-      break;
-    default:
-      mlog_error("Unrecognised EscapeFracDependency parameter value.");
+  if (gal->Mvir > 0.0) {
+    double delta_fesc = params->EscapeFracMax - params->EscapeFracMin;
+    double gamma = 2.0 * params->EscapeFracGradient / (delta_fesc * (delta_fesc * 0.5 - 1.0));
+    fesc = params->EscapeFracMin + delta_fesc / (1.0 + exp(-gamma * (log10(gal->Mvir / run_globals.params.Hubble_h) +
+                                                                     10. - params->EscapeFracPropOffset)));
   }
 
-  if (fesc > 1.0)
+  if (fesc > 1.0) {
     fesc = 1.0;
-  else if (fesc < 0.0)
+  } else if (fesc < 0.0) {
     fesc = 0.0;
+  }
 
-  if (fesc_bh > 1.0)
+  if (fesc_bh > 1.0) {
     fesc_bh = 1.0;
-  else if (fesc_bh < 0.0)
+  } else if (fesc_bh < 0.0) {
     fesc_bh = 0.0;
+  }
 
   gal->Fesc = fesc;
   gal->FescWeightedGSM += new_stars * fesc;

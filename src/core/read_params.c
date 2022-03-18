@@ -391,11 +391,6 @@ void read_parameter_file(char* fname, int mode)
 
       // Physics params
 
-      strncpy(params_tag[n_param], "EscapeFracDependency", tag_length);
-      params_addr[n_param] = &(run_params->physics).EscapeFracDependency;
-      required_tag[n_param] = 1;
-      params_type[n_param++] = PARAM_TYPE_INT;
-
       strncpy(params_tag[n_param], "SfDiskVelOpt", tag_length);
       params_addr[n_param] = &(run_params->physics).SfDiskVelOpt;
       required_tag[n_param] = 1;
@@ -746,23 +741,23 @@ void read_parameter_file(char* fname, int mode)
       required_tag[n_param] = 1;
       params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
-      strncpy(params_tag[n_param], "EscapeFracNorm", tag_length);
-      params_addr[n_param] = &(run_params->physics).EscapeFracNorm;
+      strncpy(params_tag[n_param], "EscapeFracMin", tag_length);
+      params_addr[n_param] = &(run_params->physics).EscapeFracMin;
       required_tag[n_param] = 1;
       params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
-      strncpy(params_tag[n_param], "EscapeFracRedshiftOffset", tag_length);
-      params_addr[n_param] = &(run_params->physics).EscapeFracRedshiftOffset;
+      strncpy(params_tag[n_param], "EscapeFracMax", tag_length);
+      params_addr[n_param] = &(run_params->physics).EscapeFracMax;
       required_tag[n_param] = 1;
       params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
-      strncpy(params_tag[n_param], "EscapeFracRedshiftScaling", tag_length);
-      params_addr[n_param] = &(run_params->physics).EscapeFracRedshiftScaling;
+      strncpy(params_tag[n_param], "EscapeFracPropOffset", tag_length);
+      params_addr[n_param] = &(run_params->physics).EscapeFracPropOffset;
       required_tag[n_param] = 1;
       params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
-      strncpy(params_tag[n_param], "EscapeFracPropScaling", tag_length);
-      params_addr[n_param] = &(run_params->physics).EscapeFracPropScaling;
+      strncpy(params_tag[n_param], "EscapeFracGradient", tag_length);
+      params_addr[n_param] = &(run_params->physics).EscapeFracGradient;
       required_tag[n_param] = 1;
       params_type[n_param++] = PARAM_TYPE_DOUBLE;
 

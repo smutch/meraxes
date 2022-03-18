@@ -301,7 +301,7 @@ static void select_forests()
 
       // loop through non-zero counts
       for (int ii = 0; ii < n_forests; ++ii) {
-        int jj = sort_ind[ii];
+        int jj = sort_ind[ii]; // jj should be a size_t?
 
         if ((snap_counts[jj] > 0) && (final_counts[jj] > 0)) {
 

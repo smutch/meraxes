@@ -124,10 +124,10 @@ typedef struct physics_params_t
   double ReionRBubbleMax;
   double ReionRBubbleMaxRecomb;
 
-  double EscapeFracNorm;
-  double EscapeFracRedshiftOffset;
-  double EscapeFracRedshiftScaling;
-  double EscapeFracPropScaling;
+  double EscapeFracMin;
+  double EscapeFracMax;
+  double EscapeFracPropOffset;
+  double EscapeFracGradient;
   double EscapeFracBHNorm;
   double EscapeFracBHScaling;
 
@@ -149,7 +149,6 @@ typedef struct physics_params_t
   double ReionSMParam_d;
 
   // options
-  int EscapeFracDependency;
   int SfDiskVelOpt;
   int SfPrescription;
 
