@@ -161,7 +161,7 @@
   double StarFRateDens; // Not sure how to treat emiss since it's a function of nu
 } nu_integral_params;
  
- double nu_integrand(double nu, void* params) // If I don't have nu is it a problem? If it's not rewrite emissivity in a simpler way. If not this function is ok
+ double nu_integrand(double nu, void* params) 
  {
   
   double emissivity;
@@ -193,7 +193,7 @@
   p.StarFRateDens = SFRD;
   
   F.params = &p;
-  F.function = &nu_integral;
+  F.function = &nu_integrand;
   
   gsl_integration_qag (&F, fmax(NU_LW, nuprime), nun_next, 0, rel_tol, 1000, GSL_INTEG_GAUSS61, w, &result, &error); // Function to do the integral
   gsl_integration_workspace_free(w);
