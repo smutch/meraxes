@@ -205,7 +205,7 @@
  
   double dlw_dt_POP2;
   double zpp, dzpp;
-  double zpp_integrand_POP2[];
+  double zpp_integrand_POP2;
   int zpp_ct;
    
   dlw_dt_POP2 = 0.;
