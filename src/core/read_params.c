@@ -645,6 +645,11 @@ void read_parameter_file(char* fname, int mode)
       params_addr[n_param] = &(run_params->Flag_PatchyReion);
       required_tag[n_param] = 1;
       params_type[n_param++] = PARAM_TYPE_INT;
+      
+      strncpy(params_tag[n_param], "Flag_IncludeLymanWerner", tag_length); // Added by Manu
+      params_addr[n_param] = &(run_params->Flag_IncludeLymanWerner);
+      required_tag[n_param] = 1;
+      params_type[n_param++] = PARAM_TYPE_INT;
 
       strncpy(params_tag[n_param], "Flag_IncludeSpinTemp", tag_length);
       params_addr[n_param] = &(run_params->Flag_IncludeSpinTemp);
