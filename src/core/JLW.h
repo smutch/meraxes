@@ -14,10 +14,7 @@
  #include "meraxes.h"
  //<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<//
  
- double max(double a, double b); // Finished!
  double nu_integral(int nn, float redd, float redprime, double SFRD); // Finished! 
  double nu_integrand(double nu, void* params); // Finished!
- 
- float get_LW(float z, float zprime, float deriv, int n_index, float SFRD, float nu, float dndnu) // still not sure about parameters
  
  void evolveLW(float zp, const double integrand_POP2[], double deriv[])
