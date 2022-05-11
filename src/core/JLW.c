@@ -147,7 +147,7 @@
                 freq_int_pop2[R_ct] += nu_integral(n_ct, zp, zpp, SFR_POP2[R_ct]);
               } 
               
-              evolveLW(zp, freq_int_pop2[R_ct], result);
+              evolveLW((float)zp, freq_int_pop2, result);
               
               JLW_box[i_real] = result[1];
        }
