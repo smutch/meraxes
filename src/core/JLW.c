@@ -138,9 +138,9 @@
               i_real = grid_index(ix, iy, iz, ReionGridDim, INDEX_REAL);
               i_smoothedSFR = grid_index_smoothedSFR(R_ct, ix, iy, iz, TsNumFilterSteps, ReionGridDim);
               
-              SFR_POP2[R_ct] = SMOOTHED_SFR_GAL[i_smoothedSFR]; // Do I use this to move from Fourier Space to real space?
+              SFR_POP2[R_ct] = SMOOTHED_SFR_POP2[i_smoothedSFR]; // Do I use this to move from Fourier Space to real space?
       
-      	      for (n_ct = NSPEC_MAX; n_ct >= 2, n_ct--) {
+      	      for (n_ct = NSPEC_MAX; n_ct >= 2; n_ct--) {
                 if (zpp > zmax((float)zp, n_ct))
                  continue;
           
@@ -163,6 +163,8 @@
  
  double nu_integrand(double nu, void* params) // If I don't have nu is it a problem? If it's not rewrite emissivity in a simpler way. If not this function is ok
  {
+  
+  double emissivity;
   
   nu_integral_params* p = (nu_integral_params*)params;
   emissivity = spectral_emissivity(nu,0); // Function defined in XrayHeatingFunctions.h
