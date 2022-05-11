@@ -17,4 +17,4 @@
  double nu_integral(int nn, float redd, float redprime, double SFRD); // Finished! 
  double nu_integrand(double nu, void* params); // Finished!
  
- void evolveLW(float zp, const double integrand_POP2[], double deriv[])
+ void evolveLW(float zp, const double integrand_POP2[], double deriv[]);
