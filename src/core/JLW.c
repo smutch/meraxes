@@ -107,7 +107,7 @@
 
               ((float*)sfr_filtered)[i_padded] = fmaxf(((float*)sfr_filtered)[i_padded], 0.0);
 
-              SMOOTHED_SFR_POP2[R_ct , i_smoothedSFR] = (((float*)sfr_filtered)[i_padded] / pixel_volume) * // I should be able to do that because I changed definition of SMOOTHED_SFR_POP2
+              SMOOTHED_SFR_POP2[R_ct][i_smoothedSFR] = (((float*)sfr_filtered)[i_padded] / pixel_volume) * // I should be able to do that because I changed definition of SMOOTHED_SFR_POP2
                                                 (units->UnitMass_in_g / units->UnitTime_in_s) *
                                                 pow(units->UnitLength_in_cm, -3.) / SOLAR_MASS; //Check UNITS!!! (I think you should divide by PROTONMASS, did that in evolveLW)
       }
@@ -129,7 +129,8 @@
       zpp_edge[R_ct] = prev_zpp - (R_values[R_ct] - prev_R) * MPC / (drdz((float)prev_zpp)); // cell size
       zpp = (zpp_edge[R_ct] + prev_zpp) * 0.5; // average redshift value of shell: z'' + 0.5 * dz''
 
-      dt_dzpp_list[R_ct] = dtdz((float)zpp);	
+      dt_dzpp_list[R_ct] = dtdz((float)zpp);
+      dt_dzpp = dt_dzpp_list[R_ct];	
       
       for (int ix = 0; ix < local_nix; ix++)
           for (int iy = 0; iy < ReionGridDim; iy++)
