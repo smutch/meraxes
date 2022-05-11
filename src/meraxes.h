@@ -27,7 +27,7 @@
 #define AVOGADRO 6.0222e23
 #define BOLTZMANN 1.3806e-16
 #define GAS_CONST 8.31425e7
-#define SPEED_OF_LIGHT 2.9979e10
+#define SPEED_OF_LIGHT 2.9979e10 // [cm/s]
 #define PLANCK 6.6262e-27 //! [erg/s]
 #define PROTONMASS 1.6726e-24
 #define HUBBLE 3.2407789e-18 //! [h/sec]
@@ -233,6 +233,7 @@ typedef struct run_params_t
   int FlagMCMC;
   int Flag_PatchyReion;
   int Flag_IncludeSpinTemp;
+  int Flag_IncludeLymanWerner; // Added to include the Lyman-Werner BG
   int Flag_IncludeRecombinations;
   int Flag_Compute21cmBrightTemp;
   int Flag_ComputePS;
@@ -337,6 +338,15 @@ typedef struct reion_grids_t
 
   double* SMOOTHED_SFR_GAL;
   double* SMOOTHED_SFR_QSO;
+  
+  // Grids necessary for LW background and future disentangling between MC/AC Pop3/Pop2 stuff
+  
+  float* JLW_box;
+  
+  double* SMOOTHED_SFR_POP2;
+  double* SMOOTHED_SFR_POP3;
+  double* SMOOTHED_SFR_POP2_MC;
+  double* SMOOTHED_SFR_POP3_MC;
 
   // Grids necessary for inhomogeneous recombinations
   float* z_re;

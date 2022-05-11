@@ -314,6 +314,13 @@ void init_reion_grids()
       }
     }
   }
+  
+  if (run_globals.params.Flag_IncludeLymanWerner) { // Added by Manu for JLW, this is a R*Dim^3 grid to store values at each filtering radius! In the future add also Pop3 and MC!
+  
+    for (int ii=0; ii < slab_n_real_smoothedSFR; ii++) {
+      grids->SMOOTHED_SFR_POP2[jj,ii] = 0.0;
+    }
+  } 
 
   if (run_globals.params.Flag_ConstructLightcone) {
     for (int ii = 0; ii < slab_n_real_LC; ii++) {

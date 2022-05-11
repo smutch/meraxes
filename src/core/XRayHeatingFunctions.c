@@ -43,13 +43,13 @@ int init_heat()
 {
 
   size_t TsNumFilterSteps = (size_t)run_globals.params.TsNumFilterSteps;
-  zpp_edge = calloc(TsNumFilterSteps, sizeof(double));
+  zpp_edge = calloc(TsNumFilterSteps, sizeof(double)); //calloc allocates the requested memory and returns a pointer to it. callocs(number of elem to be allocated, size)
   sigma_atR = calloc(TsNumFilterSteps, sizeof(double));
   sigma_Tmin = calloc(TsNumFilterSteps, sizeof(double));
   ST_over_PS = calloc(TsNumFilterSteps, sizeof(double));
   sum_lyn = calloc(TsNumFilterSteps, sizeof(double));
 
-  kappa_10(1.0, 1);
+  kappa_10(1.0, 1); //1 is the flag, allocates memory.
   if (kappa_10_elec(1.0, 1) < 0)
     return -2;
   if (kappa_10_pH(1.0, 1) < 0)
@@ -68,7 +68,7 @@ int init_heat()
 
 void destruct_heat()
 {
-  spectral_emissivity(0.0, 2);
+  spectral_emissivity(0.0, 2); //2 is the flag, frees memory.
   xion_RECFAST(100.0, 2);
   T_RECFAST(100.0, 2);
   kappa_10_pH(1.0, 2);

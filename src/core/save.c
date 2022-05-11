@@ -597,14 +597,18 @@ void create_master_file()
       const char* group_name = { "Units/Grids" };
       group_id = H5Gcreate(file_id, group_name, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
       H5LTset_attribute_string(file_id, group_name, "xH", "None");
-      H5LTset_attribute_string(file_id, group_name, "J_21", "10e-21 erg/s/Hz/cm/cm/sr");
-      H5LTset_attribute_string(file_id, group_name, "J_21_at_ionization", "10e-21 erg/s/Hz/cm/cm/sr");
+      H5LTset_attribute_string(file_id, group_name, "J_21", "10e-21 erg/s/Hz/cm/cm/sr"); // Why we have this!!!
+      H5LTset_attribute_string(file_id, group_name, "J_21_at_ionization", "10e-21 erg/s/Hz/cm/cm/sr"); // Why we have this!!!
       H5LTset_attribute_string(file_id, group_name, "z_at_ionization", "None");
       H5LTset_attribute_string(file_id, group_name, "r_bubble", "Mpc");
       H5LTset_attribute_string(file_id, group_name, "Mvir_crit", "1e10 solMass");
       H5LTset_attribute_string(file_id, group_name, "StellarMass", "1e10 solMass");
       H5LTset_attribute_string(file_id, group_name, "Sfr", "solMass/yr");
       H5LTset_attribute_string(file_id, group_name, "deltax", "None");
+      
+      if (run_globals.params.Flag_IncludeLymanWerner) {  // Added by Manu
+        H5LTset_attribute_string(file_id, group_name, "JLW_box", "erg/s/Hz/cm/cm/sr"); 
+      }
 
       if (run_globals.params.Flag_ConstructLightcone) {
         H5LTset_attribute_string(file_id, group_name, "LightconeBox", "mK");
@@ -629,7 +633,7 @@ void create_master_file()
     }
 
     {
-      const char* group_name = { "HubbleConversions/Grids" };
+      const char* group_name = { "HubbleConversions/Grids" }; // What are these ???
       group_id = H5Gcreate(file_id, group_name, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
       H5LTset_attribute_string(file_id, group_name, "xH", "None");
       H5LTset_attribute_string(file_id, group_name, "J_21", "v*(h**2)");
@@ -640,6 +644,10 @@ void create_master_file()
       H5LTset_attribute_string(file_id, group_name, "StellarMass", "v/h");
       H5LTset_attribute_string(file_id, group_name, "Sfr", "None");
       H5LTset_attribute_string(file_id, group_name, "deltax", "None");
+
+      if (run_globals.params.Flag_IncludeLymanWerner) {  // Added by Manu, Not sure why I need this and if I added it correctly
+        H5LTset_attribute_string(file_id, group_name, "JLW_box", "None"); 
+      }
 
       if (run_globals.params.Flag_ConstructLightcone) {
         H5LTset_attribute_string(file_id, group_name, "LightconeBox", "None");

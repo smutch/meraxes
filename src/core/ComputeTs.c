@@ -143,7 +143,7 @@ void _ComputeTs(int snapshot)
 
           density_over_mean = 1.0 + run_globals.reion_grids.deltax[i_padded];
 
-          // Multiplied by h^2 as RtoM(R) uses RhoCrit which doesn't include h factors
+          // Multiplied by h^2 as RtoM(R) uses RhoCrit which doesn't include h factors, Geil2016
           collapse_fraction_in_cell =
             run_globals.reion_grids.stars[i_padded] /
             (RtoM(R) * run_globals.params.Hubble_h * run_globals.params.Hubble_h * density_over_mean) * (4.0 / 3.0) *
@@ -480,7 +480,7 @@ void _ComputeTs(int snapshot)
           for (R_ct = 0; R_ct < TsNumFilterSteps; R_ct++) {
             i_smoothedSFR = grid_index_smoothedSFR(R_ct, ix, iy, iz, TsNumFilterSteps, ReionGridDim);
 
-            SFR_GAL[R_ct] = SMOOTHED_SFR_GAL[i_smoothedSFR];
+            SFR_GAL[R_ct] = SMOOTHED_SFR_GAL[i_smoothedSFR]; // Do I use this to move from Fourier Space to real space? 
 
             if (run_globals.params.Flag_SeparateQSOXrays) {
               SFR_QSO[R_ct] = SMOOTHED_SFR_QSO[i_smoothedSFR];
