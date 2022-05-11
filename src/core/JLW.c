@@ -48,7 +48,7 @@
   
   int i_real, i_padded, i_smoothedSFR, R_ct, n_ct;
   
-  double prev_zpp, prev_R, zpp, zp, R_factor, R, nuprime, dzp;
+  double prev_zpp, prev_R, zpp, zp, R_factor, R, dzp;
   
   int TsNumFilterSteps = run_globals.params.TsNumFilterSteps; //Is the Number of Filter Step the same?? If not I need to define a new one (and maybe put definition in meraxes.h)
   
@@ -107,7 +107,7 @@
 
               ((float*)sfr_filtered)[i_padded] = fmaxf(((float*)sfr_filtered)[i_padded], 0.0);
 
-              SMOOTHED_SFR_POP2[R_ct,i_smoothedSFR] = (((float*)sfr_filtered)[i_padded] / pixel_volume) * // I should be able to do that because I changed definition of SMOOTHED_SFR_POP2
+              SMOOTHED_SFR_POP2[i_smoothedSFR] = (((float*)sfr_filtered)[i_padded] / pixel_volume) * // I should be able to do that because I changed definition of SMOOTHED_SFR_POP2
                                                 (units->UnitMass_in_g / units->UnitTime_in_s) *
                                                 pow(units->UnitLength_in_cm, -3.) / SOLAR_MASS; //Check UNITS!!! (I think you should divide by PROTONMASS, did that in evolveLW)
       }
