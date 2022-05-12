@@ -1188,9 +1188,9 @@ void evolveInt(float zp,
                const double freq_int_heat_QSO[],
                const double freq_int_ion_QSO[],
                const double freq_int_lya_QSO[],
-               int COMPUTE_Ts,
-               const double y[],
-               double deriv[])
+               int COMPUTE_Ts, // What's this parameter? When this function is called in ComputeTs.c there is the statement NO_LIGHT
+               const double y[], // This is your result from ComputeTs.c
+               double deriv[]) // This is your result
 {
 
   double dadia_dzp, dcomp_dzp, dxheat_dt_GAL, dxion_source_dt_GAL, dxion_sink_dt;
@@ -1200,12 +1200,12 @@ void evolveInt(float zp,
   double T, x_e, zpp_integrand_GAL, zpp_integrand_QSO;
   double dxe_dzp, n_b, dspec_dzp, dxheat_dzp, dxlya_dt_GAL, dstarlya_dt_GAL;
 
-  x_e = y[0];
+  x_e = y[0];  
   T = y[1];
-  n_b = N_b0 * pow(1 + zp, 3) * (1 + curr_delNL0);
+  n_b = N_b0 * pow(1 + zp, 3) * (1 + curr_delNL0); // Second term of 10 (Mesinger+11)
 
   // First, let's do the trapazoidal integration over zpp
-  dxheat_dt_GAL = 0;
+  dxheat_dt_GAL = 0; // Heat from X-rays (1st term of 11)
   dxion_source_dt_GAL = 0;
   dxlya_dt_GAL = 0;
   dstarlya_dt_GAL = 0;
@@ -1216,7 +1216,7 @@ void evolveInt(float zp,
   dstarlya_dt_QSO = 0;
 
   if (!NO_LIGHT) {
-    for (zpp_ct = 0; zpp_ct < run_globals.params.TsNumFilterSteps; zpp_ct++) {
+    for (zpp_ct = 0; zpp_ct < run_globals.params.TsNumFilterSteps; zpp_ct++) { // Define last redshift that is effective, zpp_edge is defined in init_heat!
       // set redshift of half annulus; dz'' is negative since we flipped limits of integral
       if (zpp_ct == 0) {
         zpp = (zpp_edge[0] + zp) * 0.5;
@@ -1228,7 +1228,7 @@ void evolveInt(float zp,
 
       // Use this when using the SFR provided by Meraxes
       // Units should be M_solar/s. Factor of (dt_dzp * dzpp) converts from per s to per z'
-      zpp_integrand_GAL = SFR_GAL[zpp_ct] * pow(1 + zpp, -run_globals.params.physics.SpecIndexXrayGal);
+      zpp_integrand_GAL = SFR_GAL[zpp_ct] * pow(1 + zpp, -run_globals.params.physics.SpecIndexXrayGal); // where is it in the formulas?
       if (run_globals.params.Flag_SeparateQSOXrays) {
         zpp_integrand_QSO = SFR_QSO[zpp_ct] * pow(1 + zpp, -run_globals.params.physics.SpecIndexXrayQSO);
       }
@@ -1250,7 +1250,7 @@ void evolveInt(float zp,
         dstarlya_dt_QSO += SFR_QSO[zpp_ct] * pow(1 + zp, 2) * (1 + zpp) * sum_lyn[zpp_ct] * dt_dzpp * dzpp;
 
       } else {
-        dxheat_dt_GAL += dt_dzpp * dzpp * zpp_integrand_GAL * freq_int_heat_GAL[zpp_ct];
+        dxheat_dt_GAL += dt_dzpp * dzpp * zpp_integrand_GAL * freq_int_heat_GAL[zpp_ct]; // Integral in frequency must be computed for each TsNumFilterSteps
         dxion_source_dt_GAL += dt_dzpp * dzpp * zpp_integrand_GAL * freq_int_ion_GAL[zpp_ct];
         dxlya_dt_GAL += dt_dzpp * dzpp * zpp_integrand_GAL * freq_int_lya_GAL[zpp_ct];
 
@@ -1260,7 +1260,7 @@ void evolveInt(float zp,
       }
     }
 
-    // add prefactors
+    // After you finish the loop for each Radius, you add prefactors which are constants for the redshift (snapshot) and defined in ComputeTs.c
     if (run_globals.params.Flag_SeparateQSOXrays) {
       dxheat_dt_GAL *= const_zp_prefactor_GAL;
       dxion_source_dt_GAL *= const_zp_prefactor_GAL;
@@ -1295,19 +1295,19 @@ void evolveInt(float zp,
   deriv[0] = dxe_dzp;
 
   // *** Next, let's get the temperature components *** //
-  // first, adiabatic term
+  // first, adiabatic term (3rd term in 11)
   dadia_dzp = 3 / (1.0 + zp);
   if (fabs(curr_delNL0) > FRACT_FLOAT_ERR) // add adiabatic heating/cooling from structure formation
     dadia_dzp += dgrowth_factor_dzp / (1.0 / curr_delNL0 + growth_factor_zp);
   dadia_dzp *= (2.0 / 3.0) * T;
 
-  // next heating due to the changing species
-  dspec_dzp = -dxe_dzp * T / (1 + x_e);
+  // next heating due to the changing species (4th term in 11)
+  dspec_dzp = -dxe_dzp * T / (1 + x_e); 
 
-  // next, Compton heating
+  // next, Compton heating (1st term in 11)
   dcomp_dzp = dT_comp(zp, T, x_e);
 
-  // lastly, X-ray heating
+  // lastly, X-ray heating (1st term in 11)
   dxheat_dzp = (dxheat_dt_GAL + dxheat_dt_QSO) * dt_dzp * 2.0 / 3.0 / BOLTZMANN / (1.0 + x_e);
 
   // summing them up...

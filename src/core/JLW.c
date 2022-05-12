@@ -21,7 +21,7 @@
 
 #include "JLW.h"
 #include "reionization.h" // I need this for the grid, not sure if this must be the same. Actually the grid is present also in meraxes.h 
-#include "XRayHeatingFunctions.h" // Useful for zmax, nu_n, drdz, dtdz and spectral_emissivity
+#include "XRayHeatingFunctions.h" // Useful for zmax, drdz, dtdz and spectral_emissivity
 #include "meraxes.h" // Main library. Here are defined some constants and all the run_globals ecc.
 #include "misc_tools.h" // Random stuff, (e.g. INDEX_REAL and INDEX_PADDED).
 
@@ -74,9 +74,9 @@
   
   double* SMOOTHED_SFR_POP2 = run_globals.reion_grids.SMOOTHED_SFR_POP2; // Definition of this stuff in meraxes.h and reionization.c, you defined so that it can accept 2 indexes
   
-  zp = red; // Do you really to assign another variable to the same thing?
+  zp = red; // Do you really need to assign another variable to the same thing?
   dzp = zp - prev_red;
-  dt_dzp = dtdz((float)(float)zp);
+  dt_dzp = dtdz((float)(float)zp); //dtdz defined in XrayHeatingFunctions.c
   
   // Setup starting radius (minimum) and scaling to obtaining the maximum filtering radius for the LW background
   R = L_FACTOR * box_size / (float)ReionGridDim; // Take CARE that here you are doing the same than X-rays! Make a double check!
@@ -126,7 +126,7 @@
           prev_R = R_values[R_ct - 1];
         }
 
-      zpp_edge[R_ct] = prev_zpp - (R_values[R_ct] - prev_R) * MPC / (drdz((float)prev_zpp)); // cell size
+      zpp_edge[R_ct] = prev_zpp - (R_values[R_ct] - prev_R) * MPC / (drdz((float)prev_zpp)); // cell size, drdz defined in XrayHeatingFunctions.c
       zpp = (zpp_edge[R_ct] + prev_zpp) * 0.5; // average redshift value of shell: z'' + 0.5 * dz''
 
       dt_dzpp_list[R_ct] = dtdz((float)zpp);
@@ -142,15 +142,15 @@
               SFR_POP2[R_ct] = SMOOTHED_SFR_POP2[i_smoothedSFR]; // Do I use this to move from Fourier Space to real space?
       
       	      for (n_ct = NSPEC_MAX; n_ct >= 2; n_ct--) {
-                if (zpp > zmax((float)zp, n_ct))
+                if (zpp > zmax((float)zp, n_ct)) //zmax defined in XrayHeatingFunctions.c
                  continue;
           
                 freq_int_pop2[R_ct] += nu_integral(n_ct, zp, zpp, SFR_POP2[R_ct]);
               } 
               
-              evolveLW((float)zp, freq_int_pop2, result);
+              evolveLW((float)zp, freq_int_pop2, result[0]);
               
-              JLW_box[i_real] = result[1];
+              JLW_box[i_real] = result[0];
        }
    } 	
 }
@@ -203,6 +203,19 @@
   
  }
  
+ int init_LW() // Maybe you don't need this but just try to see if it works
+ {
+   size_t TsNumFilterSteps = (size_t)run_globals.params.TsNumFilterSteps;
+   zpp_edgee = calloc(TsNumFilterSteps, sizeof(double));
+ 
+   return 0;
+ }
+ 
+ void destruct_LW()
+{
+  free(zpp_edgee);
+}
+ 
  void evolveLW(float zp, const double integrand_POP2[], double deriv[])
  {
  
@@ -216,19 +229,19 @@
   for (zpp_ct = 0; zpp_ct < run_globals.params.TsNumFilterSteps; zpp_ct++) {
      // set redshift of half annulus; dz'' is negative since we flipped limits of integral
      if (zpp_ct == 0) {
-       zpp = (zpp_edge[0] + zp) * 0.5;
-       dzpp = zp - zpp_edge[0];
+       zpp = (zpp_edgee[0] + zp) * 0.5;
+       dzpp = zp - zpp_edgee[0];
      } else {
-       zpp = (zpp_edge[zpp_ct] + zpp_edge[zpp_ct - 1]) * 0.5;
-       dzpp = zpp_edge[zpp_ct - 1] - zpp_edge[zpp_ct];
+       zpp = (zpp_edgee[zpp_ct] + zpp_edgee[zpp_ct - 1]) * 0.5;
+       dzpp = zpp_edgee[zpp_ct - 1] - zpp_edgee[zpp_ct];
      }
       
      zpp_integrand_POP2 = integrand_POP2[zpp_ct];
-     dlw_dt_POP2 = dt_dzpp * dzpp * zpp_integrand_POP2 * pow(1 + zp, 2) * (1 + zpp);     
+     dlw_dt_POP2 += dt_dzpp * dzpp * zpp_integrand_POP2 * pow(1 + zp, 2) * (1 + zpp);     
   }
   
   dlw_dt_POP2 *= (SPEED_OF_LIGHT / (4. * M_PI)) / (PROTONMASS / SOLAR_MASS);
   
-  deriv[1] = dlw_dt_POP2; // This is your final result, in the future you will disentangle between different components
+  deriv[0] = dlw_dt_POP2; // This is your final result, in the future you will disentangle between different components
 }   
    
