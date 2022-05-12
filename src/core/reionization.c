@@ -579,7 +579,7 @@ void malloc_reionization_grids()
     
     if (run_globals.params.Flag_IncludeLymanWerner) {
     
-      grids->JLW_box = fftwf_alloc_real((size_t)slab_nreal);
+      grids->JLW_box = fftwf_alloc_real((size_t)slab_n_real);
       grids->SMOOTHED_SFR_POP2 = calloc((size_t)slab_n_real_smoothedSFR, sizeof(double));
     }
 
