@@ -155,7 +155,7 @@
               JLW_box[i_real] = result[0];   
        }
    }
-   destruct_LW() 	
+   destruct_LW(); 	
 }
  
 // Finish! Now just discover what happens! 
