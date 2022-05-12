@@ -260,7 +260,7 @@ void init_reion_grids()
     slab_n_real_smoothedSFR =
       slab_nix[run_globals.mpi_rank] * run_globals.params.TsNumFilterSteps * ReionGridDim * ReionGridDim;
   }
-  printf("Trovato!")
+  printf("Trovato!");
   ptrdiff_t slab_n_real_LC;
   if (run_globals.params.Flag_ConstructLightcone) {
     slab_n_real_LC = slab_nix[run_globals.mpi_rank] * ReionGridDim * run_globals.params.LightconeLength;
