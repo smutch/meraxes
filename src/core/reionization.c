@@ -249,19 +249,18 @@ void call_ComputeTs(int snapshot, int nout_gals, timer_info* timer)
 
 void init_reion_grids()
 {
-  printf("I found you brutto figlio di puttana");
   reion_grids_t* grids = &(run_globals.reion_grids);
   int ReionGridDim = run_globals.params.ReionGridDim;
   ptrdiff_t* slab_nix = run_globals.reion_grids.slab_nix;
   ptrdiff_t slab_n_real = slab_nix[run_globals.mpi_rank] * ReionGridDim * ReionGridDim;
   ptrdiff_t slab_n_complex = run_globals.reion_grids.slab_n_complex[run_globals.mpi_rank];
-
+  printf("Ti sto trovando");
   ptrdiff_t slab_n_real_smoothedSFR;
   if (run_globals.params.Flag_IncludeSpinTemp) {
     slab_n_real_smoothedSFR =
       slab_nix[run_globals.mpi_rank] * run_globals.params.TsNumFilterSteps * ReionGridDim * ReionGridDim;
   }
-
+  printf("Trovato!")
   ptrdiff_t slab_n_real_LC;
   if (run_globals.params.Flag_ConstructLightcone) {
     slab_n_real_LC = slab_nix[run_globals.mpi_rank] * ReionGridDim * run_globals.params.LightconeLength;
