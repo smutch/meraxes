@@ -249,7 +249,7 @@ void call_ComputeTs(int snapshot, int nout_gals, timer_info* timer)
 
 void init_reion_grids()
 {
-
+  printf("I found you brutto figlio di puttana");
   reion_grids_t* grids = &(run_globals.reion_grids);
   int ReionGridDim = run_globals.params.ReionGridDim;
   ptrdiff_t* slab_nix = run_globals.reion_grids.slab_nix;
@@ -577,13 +577,10 @@ void malloc_reionization_grids()
     grids->z_at_ionization = fftwf_alloc_real((size_t)slab_n_real);
     grids->r_bubble = fftwf_alloc_real((size_t)slab_n_real);
     
-    printf("So far so good");
-    
     if (run_globals.params.Flag_IncludeLymanWerner) {
     
       grids->JLW_box = fftwf_alloc_real((size_t)slab_n_real);
       grids->SMOOTHED_SFR_POP2 = calloc((size_t)slab_n_real_smoothedSFR, sizeof(double));
-      printf("Pretending to work");
     }
 
     if (run_globals.params.Flag_IncludeSpinTemp) {
