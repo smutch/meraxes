@@ -254,13 +254,11 @@ void init_reion_grids()
   ptrdiff_t* slab_nix = run_globals.reion_grids.slab_nix;
   ptrdiff_t slab_n_real = slab_nix[run_globals.mpi_rank] * ReionGridDim * ReionGridDim;
   ptrdiff_t slab_n_complex = run_globals.reion_grids.slab_n_complex[run_globals.mpi_rank];
-  printf("Ti sto trovando");
   ptrdiff_t slab_n_real_smoothedSFR;
   if (run_globals.params.Flag_IncludeSpinTemp) {
     slab_n_real_smoothedSFR =
       slab_nix[run_globals.mpi_rank] * run_globals.params.TsNumFilterSteps * ReionGridDim * ReionGridDim;
   }
-  printf("Trovato!");
   ptrdiff_t slab_n_real_LC;
   if (run_globals.params.Flag_ConstructLightcone) {
     slab_n_real_LC = slab_nix[run_globals.mpi_rank] * ReionGridDim * run_globals.params.LightconeLength;
@@ -287,9 +285,8 @@ void init_reion_grids()
     grids->xH[ii] = 1.0;
     grids->z_at_ionization[ii] = -1;
     grids->r_bubble[ii] = 0.0;
-    if (run_globals.params.Flag_IncludeLymanWerner) { // Added by Manu for JLW
+    if (run_globals.params.Flag_IncludeLymanWerner) { // Added by Manu for JLW. In this formulation for JLW you want also the flag of SpinTemp=1
       grids->JLW_box[ii] = 0.0;
-      grids->SMOOTHED_SFR_POP2[ii] = 0.0;
     }
     if (run_globals.params.Flag_IncludeSpinTemp) {
       grids->Tk_box[ii] = 0.0;
@@ -306,12 +303,12 @@ void init_reion_grids()
       }
     }
   }
-
+  
   if (run_globals.params.Flag_IncludeSpinTemp) {
 
     for (int ii = 0; ii < slab_n_real_smoothedSFR; ii++) {
       grids->SMOOTHED_SFR_GAL[ii] = 0.0;
-
+      
       if (run_globals.params.Flag_SeparateQSOXrays) {
         grids->SMOOTHED_SFR_QSO[ii] = 0.0;
       }
