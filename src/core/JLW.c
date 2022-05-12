@@ -72,7 +72,9 @@
     sfr_unfiltered[ii] /= (float)total_n_cells;
   }
   
-  double* SMOOTHED_SFR_POP2 = run_globals.reion_grids.SMOOTHED_SFR_POP2; // Definition of this stuff in meraxes.h and reionization.c, you defined so that it can accept 2 indexes
+  double* SMOOTHED_SFR_POP2 = run_globals.reion_grids.SMOOTHED_SFR_POP2; // Definition of this stuff in meraxes.h and reionization.c
+  
+  init_LW();
   
   zp = red; // Do you really need to assign another variable to the same thing?
   dzp = zp - prev_red;
@@ -150,9 +152,10 @@
               
               evolveLW((float)zp, freq_int_pop2, result);
               
-              JLW_box[i_real] = result[0];
+              JLW_box[i_real] = result[0];   
        }
-   } 	
+   }
+   destruct_LW() 	
 }
  
 // Finish! Now just discover what happens! 
