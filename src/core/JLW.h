@@ -14,8 +14,10 @@
  #include "meraxes.h"
  //<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<//
  
- double nu_integral(int nn, float redd, float redprime, double SFRD); // Finished! 
- double nu_integrand(double nu, void* params); // Finished!
+ double* zpp_edgee; // Not a good practice as pointed by Brad but I am dumb
+ 
+ double nu_integral(int nn, float redd, float redprime, double SFRD);
+ double nu_integrand(double nu, void* params);
  
  void evolveLW(float zp, const double integrand_POP2[], double deriv[]);
  

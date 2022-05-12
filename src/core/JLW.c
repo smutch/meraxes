@@ -122,12 +122,12 @@
           prev_zpp = zp;
           prev_R = 0;
         } else {
-          prev_zpp = zpp_edge[R_ct - 1];
+          prev_zpp = zpp_edgee[R_ct - 1];
           prev_R = R_values[R_ct - 1];
         }
 
-      zpp_edge[R_ct] = prev_zpp - (R_values[R_ct] - prev_R) * MPC / (drdz((float)prev_zpp)); // cell size, drdz defined in XrayHeatingFunctions.c
-      zpp = (zpp_edge[R_ct] + prev_zpp) * 0.5; // average redshift value of shell: z'' + 0.5 * dz''
+      zpp_edgee[R_ct] = prev_zpp - (R_values[R_ct] - prev_R) * MPC / (drdz((float)prev_zpp)); // cell size, drdz defined in XrayHeatingFunctions.c
+      zpp = (zpp_edgee[R_ct] + prev_zpp) * 0.5; // average redshift value of shell: z'' + 0.5 * dz''
 
       dt_dzpp_list[R_ct] = dtdz((float)zpp);
       dt_dzpp = dt_dzpp_list[R_ct];	
