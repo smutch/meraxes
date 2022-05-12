@@ -577,10 +577,13 @@ void malloc_reionization_grids()
     grids->z_at_ionization = fftwf_alloc_real((size_t)slab_n_real);
     grids->r_bubble = fftwf_alloc_real((size_t)slab_n_real);
     
+    printf("So far so good");
+    
     if (run_globals.params.Flag_IncludeLymanWerner) {
     
       grids->JLW_box = fftwf_alloc_real((size_t)slab_n_real);
       grids->SMOOTHED_SFR_POP2 = calloc((size_t)slab_n_real_smoothedSFR, sizeof(double));
+      printf("Pretending to work");
     }
 
     if (run_globals.params.Flag_IncludeSpinTemp) {
