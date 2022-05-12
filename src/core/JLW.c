@@ -157,8 +157,6 @@
    }
    destruct_LW(); 	
 }
- 
-// Finish! Now just discover what happens! 
 
  typedef struct
 {
@@ -171,7 +169,7 @@
   double emissivity;
   
   nu_integral_params* p = (nu_integral_params*)params;
-  emissivity = spectral_emissivity(nu,0); // Function defined in XrayHeatingFunctions.h
+  emissivity = spectral_emissivity(nu,0); // Function defined in XrayHeatingFunctions.h Careful! It may be nuprime instead of n! Check better spectral_emissivity
   
   return emissivity * PLANCK_EV * p->StarFRateDens;
    

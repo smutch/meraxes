@@ -288,6 +288,10 @@ void init_reion_grids()
     grids->xH[ii] = 1.0;
     grids->z_at_ionization[ii] = -1;
     grids->r_bubble[ii] = 0.0;
+    if (run_globals.params.Flag_IncludeLymanWerner) { // Added by Manu for JLW
+      grids->JLW_box[ii] = 0.0;
+      grids->SMOOTHED_SFR_POP2[ii] = 0.0;
+    }
     if (run_globals.params.Flag_IncludeSpinTemp) {
       grids->Tk_box[ii] = 0.0;
       grids->TS_box[ii] = 0.0;
@@ -446,6 +450,7 @@ void malloc_reionization_grids()
   grids->z_at_ionization = NULL;
   grids->J_21_at_ionization = NULL;
   grids->J_21 = NULL;
+  grids->JLW_box = NULL; // Added by Manu for JLW in a single box
 
   // Grids required for the spin temperature calculation
   grids->x_e_box = NULL;
@@ -457,6 +462,8 @@ void malloc_reionization_grids()
 
   grids->SMOOTHED_SFR_GAL = NULL;
   grids->SMOOTHED_SFR_QSO = NULL;
+  
+  grids->SMOOTHED_SFR_POP2 = NULL; // Added by Manu to differentiate Pop.II/Pop.III and AC/MC
 
   // Grids required for inhomogeneous recombinations
   grids->N_rec_unfiltered = NULL;
@@ -569,6 +576,12 @@ void malloc_reionization_grids()
     grids->xH = fftwf_alloc_real((size_t)slab_n_real);
     grids->z_at_ionization = fftwf_alloc_real((size_t)slab_n_real);
     grids->r_bubble = fftwf_alloc_real((size_t)slab_n_real);
+    
+    if (run_globals.params.Flag_IncludeLymanWerner) {
+    
+      grids->JLW_box = fftwf_alloc_real((size_t)slab_nreal);
+      grids->SMOOTHED_SFR_POP2 = calloc((size_t)slab_nreal_smoothedSFR, sizeof(double));
+    }
 
     if (run_globals.params.Flag_IncludeSpinTemp) {
 
@@ -749,6 +762,11 @@ void free_reionization_grids()
     fftwf_free(grids->x_e_unfiltered);
     fftwf_free(grids->x_e_box_prev);
     fftwf_free(grids->x_e_box);
+  }
+  
+  if (run_globals.params.Flag_IncludeLymanWerner) {
+    free(grids->JLW_box);
+    free(grids->SMOOTHED_SFR_POP2);
   }
 
   fftwf_free(grids->r_bubble);
@@ -1268,6 +1286,10 @@ void save_reion_output_grids(int snapshot)
 
   // fftw padded grids
   float* grid = (float*)calloc((size_t)(local_nix * ReionGridDim * ReionGridDim), sizeof(float));
+  
+  if (run_globals.params.Flag_IncludeLymanWerner) {
+    write_grid_float("JLW_box", grids->JLW_box, file_id, fspace_id, memspace_id, dcpl_id);
+  }
 
   if (run_globals.params.Flag_IncludeSpinTemp) {
     write_grid_float("TS_box", grids->TS_box, file_id, fspace_id, memspace_id, dcpl_id);
