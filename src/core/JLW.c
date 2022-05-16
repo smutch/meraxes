@@ -73,6 +73,7 @@
   }
   
   double* SMOOTHED_SFR_POP2 = run_globals.reion_grids.SMOOTHED_SFR_POP2; // Definition of this stuff in meraxes.h and reionization.c
+  double* freq_int_pop2 = run_globals.reion_grids.freq_int_pop2; // definition a bit shitty
   
   init_LW();
   
@@ -122,7 +123,7 @@
 
       // Populate the initial LW tables
       for (R_ct = 0; R_ct < TsNumFilterSteps; R_ct++) {
-        printf(int R_ct);
+        printf(R_ct);
   
         if (R_ct == 0) {
           prev_zpp = zp;
