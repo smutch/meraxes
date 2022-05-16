@@ -122,6 +122,7 @@
 
       // Populate the initial LW tables
       for (R_ct = 0; R_ct < TsNumFilterSteps; R_ct++) {
+        printf(R_ct);
   
         if (R_ct == 0) {
           prev_zpp = zp;
@@ -152,9 +153,9 @@
                  continue;
           
                 freq_int_pop2[R_ct] += nu_integral(n_ct, zp, zpp, SFR_POP2[R_ct]);
-                printf(n_ct);
+                //printf(n_ct);
               } 
-              printf("D");
+              //printf("D");
               evolveLW((float)zp, freq_int_pop2, result);
               
               JLW_box[i_real] = result[0]; 
@@ -164,8 +165,10 @@
        MPI_Allreduce(MPI_IN_PLACE, &J_LW_ave, 1, MPI_DOUBLE, MPI_SUM, run_globals.mpi_comm);
        J_LW_ave /= total_n_cells;
        run_globals.reion_grids.volume_ave_J_LW = J_LW_ave;   
+       printf("F");
    }
    destruct_LW(); 
+   printf("G");
    mlog("zp = %e J_LW_ave = %e", MLOG_MESG, zp, J_LW_ave);	
    
 }
