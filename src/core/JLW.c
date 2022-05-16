@@ -267,7 +267,7 @@ void ComputeJLW(int snapshot, timer_info* timer_total)
        snapshot,
        run_globals.ZZ[snapshot]);
   timer_start(&timer);
-  _ComputeTs(snapshot);
+  _ComputeJLW(snapshot);
   timer_stop(&timer);
   timer_stop(timer_total);
   timer_gpu += timer_delta(timer);
