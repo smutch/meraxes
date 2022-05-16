@@ -55,7 +55,8 @@
   double R_values[TsNumFilterSteps];
   double dt_dzpp_list[TsNumFilterSteps];
   
-  double freq_int_pop2[TsNumFilterSteps];
+  //double freq_int_pop2[TsNumFilterSteps];
+  double freq_int_pop2[];
 
   double result[1]; //Risultato dell'integrale. Per il momento te ne basta uno che hai solo le Pop2
   double SFR_POP2[TsNumFilterSteps]; // For now I'll just assume everything is Pop.II. What I want to do in the end is to differentiate between Pop.II and Pop.III. I could also differentiate 					         between AC and MC (like 21CMFAST works)
@@ -146,7 +147,7 @@
               i_smoothedSFR = grid_index_smoothedSFR(R_ct, ix, iy, iz, TsNumFilterSteps, ReionGridDim);
               
               SFR_POP2[R_ct] = SMOOTHED_SFR_POP2[i_smoothedSFR]; // Do I use this to move from Fourier Space to real space?
-              //freq_int_pop2[R_ct] = 0.0;
+              freq_int_pop2[R_ct] = 0.0;
       
       	      for (n_ct = NSPEC_MAX; n_ct >= 2; n_ct--) {
                 if (zpp > zmax((float)zp, n_ct)) //zmax defined in XrayHeatingFunctions.c
