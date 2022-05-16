@@ -8,11 +8,11 @@
  
  #define NU_LL (double)(3.29e15) // frequency of Lyman-limit band in Hz
  #define NU_LW (double)(2.71e15) // frequency of lower-limit of LW band in Hz
- #define PLANCK_EV (double)(4.1357e-15) // ev s
+ //#define PLANCK_EV (double)(4.1357e-15) // ev s
  #define R_XLy_MAX (float)(500)
  
- #include "meraxes.h"
- #include "utils.h"
+ //#include "meraxes.h"
+ //#include "utils.h"
  //<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<//
  
  double* zpp_edgee; // Not a good practice as pointed by Brad but I am dumb
@@ -25,4 +25,24 @@
  void destruct_LW();
  int init_LW();
 
- void ComputeJLW(int snapshot, timer_info* timer_total);
+// void ComputeJLW(int snapshot, timer_info* timer_total);
+ 
+#ifndef COMPUTE_JLW_H
+#define COMPUTE_JLW_H
+
+#include "utils.h"
+
+#define R_XLy_MAX (float)(500)
+
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+
+  void ComputeJLW(int snapshot, timer_info* timer_total);
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif
