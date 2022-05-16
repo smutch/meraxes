@@ -343,7 +343,7 @@ typedef struct reion_grids_t
   
   float* JLW_box;
   
-  double* freq_int_pop2; //not the best place to define it
+  //double* freq_int_pop2; //not the best place to define it
   
   double* SMOOTHED_SFR_POP2;
   double* SMOOTHED_SFR_POP3;

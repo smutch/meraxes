@@ -361,7 +361,7 @@ void init_reion_grids()
   
     for (int ii=0; ii < slab_n_real_smoothedSFR; ii++) {
       grids->SMOOTHED_SFR_POP2[ii] = 0.0;
-      grids->freq_int_pop2[ii] = 0.0; //You need this for the integral, maybe it's not the best place to define it
+      //grids->freq_int_pop2[ii] = 0.0; //You need this for the integral, maybe it's not the best place to define it
     }
   } 
 
@@ -503,7 +503,7 @@ void malloc_reionization_grids()
   grids->SMOOTHED_SFR_QSO = NULL;
   
   grids->SMOOTHED_SFR_POP2 = NULL; // Added by Manu to differentiate Pop.II/Pop.III and AC/MC
-  grids->freq_int_pop2 = NULL;
+  //grids->freq_int_pop2 = NULL;
 
   // Grids required for inhomogeneous recombinations
   grids->N_rec_unfiltered = NULL;
@@ -621,7 +621,7 @@ void malloc_reionization_grids()
     
       grids->JLW_box = fftwf_alloc_real((size_t)slab_n_real);
       grids->SMOOTHED_SFR_POP2 = calloc((size_t)slab_n_real_smoothedSFR, sizeof(double));
-      grids->freq_int_pop2 = fftwf_alloc_real((size_t)slab_n_real);
+      //grids->freq_int_pop2 = fftwf_alloc_real((size_t)slab_n_real);
     }
 
     if (run_globals.params.Flag_IncludeSpinTemp) {
@@ -808,7 +808,7 @@ void free_reionization_grids()
   if (run_globals.params.Flag_IncludeLymanWerner) {
     free(grids->JLW_box);
     free(grids->SMOOTHED_SFR_POP2);
-    free(grids->freq_int_pop2);
+    //free(grids->freq_int_pop2);
   }
 
   fftwf_free(grids->r_bubble);
