@@ -55,8 +55,7 @@
   double R_values[TsNumFilterSteps];
   double dt_dzpp_list[TsNumFilterSteps];
   
-  //double freq_int_pop2[TsNumFilterSteps];
-  double freq_int_pop2[];
+  //double freq_int_pop2[TsNumFilterSteps]; SHIFT THE DEFINITION OF THIS PARAMETER IN THE GRID
 
   double result[1]; //Risultato dell'integrale. Per il momento te ne basta uno che hai solo le Pop2
   double SFR_POP2[TsNumFilterSteps]; // For now I'll just assume everything is Pop.II. What I want to do in the end is to differentiate between Pop.II and Pop.III. I could also differentiate 					         between AC and MC (like 21CMFAST works)
@@ -123,7 +122,7 @@
 
       // Populate the initial LW tables
       for (R_ct = 0; R_ct < TsNumFilterSteps; R_ct++) {
-        printf(R_ct);
+        printf(int R_ct);
   
         if (R_ct == 0) {
           prev_zpp = zp;
