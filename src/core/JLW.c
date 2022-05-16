@@ -267,7 +267,6 @@ void ComputeJLW(int snapshot, timer_info* timer_total)
        MLOG_OPEN | MLOG_TIMERSTART,
        snapshot,
        run_globals.ZZ[snapshot]);
-  printf("Qualquadra non cosa");
   timer_start(&timer);
   _ComputeJLW(snapshot);
   timer_stop(&timer);
