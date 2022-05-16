@@ -8,8 +8,8 @@
  
  #define NU_LL (double)(3.29e15) // frequency of Lyman-limit band in Hz
  #define NU_LW (double)(2.71e15) // frequency of lower-limit of LW band in Hz
- //#define PLANCK_EV (double)(4.1357e-15) // ev s
- #define R_XLy_MAX (float)(500)
+ #define PLANCK_EV (double)(4.1357e-15) // ev s
+ //#define R_XLy_MAX (float)(500)
  
  //#include "meraxes.h"
  //#include "utils.h"
