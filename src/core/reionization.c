@@ -277,6 +277,7 @@ void init_reion_grids()
   grids->volume_ave_Xheat = 0.0;
   grids->volume_ave_Xion = 0.0;
   grids->volume_ave_TS = 0.0;
+  grids->volume_ave_J_LW = 0.0; //Added by Manu
   grids->volume_ave_TK = 0.0;
   grids->volume_ave_xe = 0.0;
   grids->volume_ave_Tb = 0.0;
@@ -1363,6 +1364,10 @@ void save_reion_output_grids(int snapshot)
     H5LTset_attribute_double(file_id, "TS_box", "volume_ave_xalpha", &(grids->volume_ave_xalpha), 1);
     H5LTset_attribute_double(file_id, "TS_box", "volume_ave_Xheat", &(grids->volume_ave_Xheat), 1);
     H5LTset_attribute_double(file_id, "TS_box", "volume_ave_Xion", &(grids->volume_ave_Xion), 1);
+  }
+  
+  if (run_globals.params.Flag_IncludeLymanWerner) { // Added by Manu, maybe you can put it inside IncludeSpinTemperature
+    H5LTset_attribute_double(file_id, "LW_box", "volume_ave_JLW", &(grids->volume_ave_J_LW), 1);
   }
 
   if (run_globals.params.Flag_Compute21cmBrightTemp) {

@@ -76,6 +76,9 @@
   
   init_LW();
   
+  double J_LW_ave;
+  J_LW_ave = 0.0;
+  
   zp = red; // Do you really need to assign another variable to the same thing?
   dzp = zp - prev_red;
   dt_dzp = dtdz((float)(float)zp); //dtdz defined in XrayHeatingFunctions.c
@@ -152,10 +155,15 @@
               
               evolveLW((float)zp, freq_int_pop2, result);
               
-              JLW_box[i_real] = result[0];   
-       }
+              JLW_box[i_real] = result[0]; 
+              J_LW_ave += JLW_box[i_real];  
+       }      
+       MPI_Allreduce(MPI_IN_PLACE, &J_LW_ave, 1, MPI_DOUBLE, MPI_SUM, run_globals.mpi_comm);
+       J_LW_ave /= total_n_cells;
+       run_globals.reion_grids.volume_ave_J_LW = J_LW_ave;   
    }
-   destruct_LW(); 	
+   destruct_LW(); 
+   mlog("zp = %e J_LW_ave = %e", MLOG_MESG, zp, J_LW_ave);	
 }
 
  typedef struct
