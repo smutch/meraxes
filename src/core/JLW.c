@@ -30,7 +30,6 @@
  
  void _ComputeJLW(int snapshot)
  {
- /*
   double box_size = run_globals.params.BoxSize / run_globals.params.Hubble_h; // Mpc
   int ReionGridDim = run_globals.params.ReionGridDim; // Can I use the same grid I use for reionization? I would say yes, but maybe it's better to double check this
   double pixel_volume = pow(box_size / (double)ReionGridDim, 3); // (Mpc)^3 Remember that you need to convert this in cm^3
@@ -69,6 +68,8 @@
   fftwf_complex* sfr_filtered = run_globals.reion_grids.sfr_filtered;
   fftwf_execute(run_globals.reion_grids.sfr_forward_plan);
   
+  printf("A");
+  
   for (int ii = 0; ii < slab_n_complex; ii++) { // MPI stuff
     sfr_unfiltered[ii] /= (float)total_n_cells;
   }
@@ -87,6 +88,8 @@
   // Setup starting radius (minimum) and scaling to obtaining the maximum filtering radius for the LW background
   R = L_FACTOR * box_size / (float)ReionGridDim; // Take CARE that here you are doing the same than X-rays! Make a double check!
   R_factor = pow(R_XLy_MAX / R, 1 / (float)TsNumFilterSteps);
+  
+  printf("B");
 
   // Smooth the density, stars and SFR fields over increasingly larger filtering radii (for evaluating the LW integrals)
   for (R_ct = 0; R_ct < TsNumFilterSteps; R_ct++) {
@@ -117,7 +120,7 @@
                                                 (units->UnitMass_in_g / units->UnitTime_in_s) *
                                                 pow(units->UnitLength_in_cm, -3.) / SOLAR_MASS; //Check UNITS!!! (I think you should divide by PROTONMASS, did that in evolveLW)
       }
-
+      printf("C");
       R *= R_factor;
     }
 
@@ -153,20 +156,20 @@
           
                 freq_int_pop2[R_ct] += nu_integral(n_ct, zp, zpp, SFR_POP2[R_ct]);
               } 
-              
+              printf("D");
               evolveLW((float)zp, freq_int_pop2, result);
               
               JLW_box[i_real] = result[0]; 
               J_LW_ave += JLW_box[i_real];  
        }      
+       printf("E")
        MPI_Allreduce(MPI_IN_PLACE, &J_LW_ave, 1, MPI_DOUBLE, MPI_SUM, run_globals.mpi_comm);
        J_LW_ave /= total_n_cells;
        run_globals.reion_grids.volume_ave_J_LW = J_LW_ave;   
    }
    destruct_LW(); 
    mlog("zp = %e J_LW_ave = %e", MLOG_MESG, zp, J_LW_ave);	
-   */
-   printf("Tuna");
+   
 }
 
  typedef struct
