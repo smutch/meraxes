@@ -30,7 +30,7 @@
  
  void _ComputeJLW(int snapshot)
  {
- 
+ /*
   double box_size = run_globals.params.BoxSize / run_globals.params.Hubble_h; // Mpc
   int ReionGridDim = run_globals.params.ReionGridDim; // Can I use the same grid I use for reionization? I would say yes, but maybe it's better to double check this
   double pixel_volume = pow(box_size / (double)ReionGridDim, 3); // (Mpc)^3 Remember that you need to convert this in cm^3
@@ -165,6 +165,8 @@
    }
    destruct_LW(); 
    mlog("zp = %e J_LW_ave = %e", MLOG_MESG, zp, J_LW_ave);	
+   */
+   printf("Tuna");
 }
 
  typedef struct
