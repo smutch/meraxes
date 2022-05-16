@@ -1408,7 +1408,7 @@ void save_reion_output_grids(int snapshot)
   }
   
   if (run_globals.params.Flag_IncludeLymanWerner) { // Added by Manu, maybe you can put it inside IncludeSpinTemperature
-    H5LTset_attribute_double(file_id, "LW_box", "volume_ave_JLW", &(grids->volume_ave_J_LW), 1);
+    H5LTset_attribute_double(file_id, "JLW_box", "volume_ave_JLW", &(grids->volume_ave_J_LW), 1);
   }
 
   if (run_globals.params.Flag_Compute21cmBrightTemp) {

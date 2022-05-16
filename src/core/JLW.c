@@ -24,6 +24,7 @@
 #include "XRayHeatingFunctions.h" // Useful for zmax, drdz, dtdz and spectral_emissivity
 #include "meraxes.h" // Main library. Here are defined some constants and all the run_globals ecc.
 #include "misc_tools.h" // Random stuff, (e.g. INDEX_REAL and INDEX_PADDED).
+#include "utils.h" //Timer stuff
 
  //<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<//
  
@@ -259,9 +260,7 @@
 void ComputeJLW(int snapshot, timer_info* timer_total)
 {
   // Call the version of ComputeTs we've been passed (and time it)
-  printf("I swear I am working");
   timer_info timer;
-  printf("What's happening here??");
   // double redshift = run_globals.ZZ[snapshot];
   // Run the Meraxes version of _ComputeTs()
   mlog("Calling pure-CPU version of ComputeJLW() for snap=%d/z=%.2lf...",
