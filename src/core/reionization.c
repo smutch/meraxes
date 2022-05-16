@@ -246,6 +246,39 @@ void call_ComputeTs(int snapshot, int nout_gals, timer_info* timer)
 
   ComputeTs(snapshot, timer);
   mlog("...done", MLOG_CLOSE | MLOG_TIMERSTOP);
+}
+
+void call_ComputeJLW(int snapshot, int nout_gals, timer_info* timer) //probably it's wrong
+{
+  // Thin wrapper round ComputeJLW
+
+  int total_n_out_gals = 0;
+
+  reion_grids_t* grids = &(run_globals.reion_grids);
+
+  mlog("Getting ready to call ComputeJLW...", MLOG_OPEN);
+
+  // Check to see if there are actually any galaxies at this snapshot
+  MPI_Allreduce(&nout_gals, &total_n_out_gals, 1, MPI_INT, MPI_SUM, run_globals.mpi_comm);
+
+  // Construct the baryon grids (maybe you don't need this)
+  construct_baryon_grids(snapshot, nout_gals);
+
+  // Read in the dark matter density grid (maybe you don't need this)
+  read_grid(DENSITY, snapshot, grids->deltax);
+
+  // read in the velocity grids (only works for GBPTREES_TREES at the moment)
+  if (run_globals.params.Flag_IncludePecVelsFor21cm > 0) {
+    read_grid(run_globals.params.TsVelocityComponent, snapshot, grids->vel);
+  }
+
+  // save the grids prior to doing FFTs to avoid precision loss and aliasing etc.
+  for (int i_out = 0; i_out < run_globals.NOutputSnaps; i_out++)
+    if (snapshot == run_globals.ListOutputSnaps[i_out] && run_globals.params.Flag_OutputGrids &&
+        !run_globals.params.FlagMCMC)
+      save_reion_input_grids(snapshot);
+
+  mlog("...done", MLOG_CLOSE);
   
   // Call Compute JLW, Maybe you need to put this outside
   mlog("Calling ComputeJLW", MLOG_OPEN | MLOG_TIMERSTART); 
@@ -253,6 +286,7 @@ void call_ComputeTs(int snapshot, int nout_gals, timer_info* timer)
   ComputeJLW(snapshot, timer);
   mlog("...done", MLOG_CLOSE| MLOG_TIMERSTOP);
 }
+ 
 
 void init_reion_grids()
 {

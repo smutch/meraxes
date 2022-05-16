@@ -329,6 +329,10 @@ void dracarys()
           if (run_globals.params.Flag_IncludeSpinTemp) {
             call_ComputeTs(snapshot, nout_gals, &timer);
           }
+          
+          if (run_globals.params.Flag_IncludeLymanWerner) { // Added by Manu
+            call_ComputeJLW(snapshot, nout_gals, &timer);
+          }
 
           call_find_HII_bubbles(snapshot, nout_gals, &timer);
 
