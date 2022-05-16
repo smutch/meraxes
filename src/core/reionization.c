@@ -245,6 +245,12 @@ void call_ComputeTs(int snapshot, int nout_gals, timer_info* timer)
 
   ComputeTs(snapshot, timer);
   mlog("...done", MLOG_CLOSE | MLOG_TIMERSTOP);
+  
+  // Call Compute JLW
+  mlog("Calling ComputeJLW", MLOG_OPEN | MLOG_TIMERSTART);
+  
+  ComputeJLW(snapshot, timer);
+  mlog("...done", MLOG_CLOSE| MLOG_TIMERSTOP);
 }
 
 void init_reion_grids()

@@ -254,3 +254,28 @@
   deriv[0] = dlw_dt_POP2; // This is your final result, in the future you will disentangle between different components
 }   
    
+// This function makes sure that the right version of ComputeJLW() gets called.
+// Note: Only the CPU version works for now
+void ComputeJLW(int snapshot, timer_info* timer_total)
+{
+  // Call the version of ComputeTs we've been passed (and time it)
+  timer_info timer;
+  // double redshift = run_globals.ZZ[snapshot];
+  // Run the Meraxes version of _ComputeTs()
+  mlog("Calling pure-CPU version of ComputeJLW() for snap=%d/z=%.2lf...",
+       MLOG_OPEN | MLOG_TIMERSTART,
+       snapshot,
+       run_globals.ZZ[snapshot]);
+  timer_start(&timer);
+  _ComputeTs(snapshot);
+  timer_stop(&timer);
+  timer_stop(timer_total);
+  timer_gpu += timer_delta(timer);
+  mlog("...done", MLOG_CLOSE | MLOG_TIMERSTOP);
+  mlog("Total time spent in ComputeJLW vs. total run time (snapshot %d ): %.2f of %.2f s",
+       MLOG_MESG,
+       snapshot,
+       timer_gpu,
+       timer_delta(*timer_total));
+}  
+   

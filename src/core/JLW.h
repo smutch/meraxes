@@ -23,3 +23,5 @@
  
  void destruct_LW();
  int init_LW();
+
+ void ComputeJLW(int snapshot, timer_info* timer_total);
