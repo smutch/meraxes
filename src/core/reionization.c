@@ -262,10 +262,10 @@ void call_ComputeJLW(int snapshot, int nout_gals, timer_info* timer) //probably 
   MPI_Allreduce(&nout_gals, &total_n_out_gals, 1, MPI_INT, MPI_SUM, run_globals.mpi_comm);
 
   // Construct the baryon grids (maybe you don't need this)
-  construct_baryon_grids(snapshot, nout_gals);
+  //construct_baryon_grids(snapshot, nout_gals);
 
   // Read in the dark matter density grid (maybe you don't need this)
-  read_grid(DENSITY, snapshot, grids->deltax);
+  //read_grid(DENSITY, snapshot, grids->deltax);
 
   // read in the velocity grids (only works for GBPTREES_TREES at the moment)
   if (run_globals.params.Flag_IncludePecVelsFor21cm > 0) {
