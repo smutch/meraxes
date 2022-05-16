@@ -12,6 +12,7 @@
  #define R_XLy_MAX (float)(500)
  
  #include "meraxes.h"
+ #include "utils.h"
  //<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<//
  
  double* zpp_edgee; // Not a good practice as pointed by Brad but I am dumb
