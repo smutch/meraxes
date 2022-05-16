@@ -125,7 +125,6 @@
 
       // Populate the initial LW tables
       for (R_ct = 0; R_ct < TsNumFilterSteps; R_ct++) {
-        printf(R_ct);
   
         if (R_ct == 0) {
           prev_zpp = zp;
