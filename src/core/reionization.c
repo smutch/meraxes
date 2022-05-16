@@ -246,8 +246,8 @@ void call_ComputeTs(int snapshot, int nout_gals, timer_info* timer)
   ComputeTs(snapshot, timer);
   mlog("...done", MLOG_CLOSE | MLOG_TIMERSTOP);
   
-  // Call Compute JLW
-  mlog("Calling ComputeJLW", MLOG_OPEN | MLOG_TIMERSTART);
+  // Call Compute JLW, Maybe you need to put this outside
+  mlog("Calling ComputeJLW", MLOG_OPEN | MLOG_TIMERSTART); 
   
   ComputeJLW(snapshot, timer);
   mlog("...done", MLOG_CLOSE| MLOG_TIMERSTOP);
