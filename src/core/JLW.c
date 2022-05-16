@@ -261,6 +261,7 @@ void ComputeJLW(int snapshot, timer_info* timer_total)
   // Call the version of ComputeTs we've been passed (and time it)
   printf("I swear I am working");
   timer_info timer;
+  printf("What's happening here??");
   // double redshift = run_globals.ZZ[snapshot];
   // Run the Meraxes version of _ComputeTs()
   mlog("Calling pure-CPU version of ComputeJLW() for snap=%d/z=%.2lf...",
