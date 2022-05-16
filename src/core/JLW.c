@@ -68,8 +68,6 @@
   fftwf_complex* sfr_filtered = run_globals.reion_grids.sfr_filtered;
   fftwf_execute(run_globals.reion_grids.sfr_forward_plan);
   
-  printf("A");
-  
   for (int ii = 0; ii < slab_n_complex; ii++) { // MPI stuff
     sfr_unfiltered[ii] /= (float)total_n_cells;
   }
@@ -88,8 +86,6 @@
   // Setup starting radius (minimum) and scaling to obtaining the maximum filtering radius for the LW background
   R = L_FACTOR * box_size / (float)ReionGridDim; // Take CARE that here you are doing the same than X-rays! Make a double check!
   R_factor = pow(R_XLy_MAX / R, 1 / (float)TsNumFilterSteps);
-  
-  printf("B");
 
   // Smooth the density, stars and SFR fields over increasingly larger filtering radii (for evaluating the LW integrals)
   for (R_ct = 0; R_ct < TsNumFilterSteps; R_ct++) {
@@ -149,12 +145,14 @@
               i_smoothedSFR = grid_index_smoothedSFR(R_ct, ix, iy, iz, TsNumFilterSteps, ReionGridDim);
               
               SFR_POP2[R_ct] = SMOOTHED_SFR_POP2[i_smoothedSFR]; // Do I use this to move from Fourier Space to real space?
+              freq_int_pop2[R_ct] = 0.0
       
       	      for (n_ct = NSPEC_MAX; n_ct >= 2; n_ct--) {
                 if (zpp > zmax((float)zp, n_ct)) //zmax defined in XrayHeatingFunctions.c
                  continue;
           
                 freq_int_pop2[R_ct] += nu_integral(n_ct, zp, zpp, SFR_POP2[R_ct]);
+                printf(n_ct);
               } 
               printf("D");
               evolveLW((float)zp, freq_int_pop2, result);
