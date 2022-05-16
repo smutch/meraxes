@@ -146,7 +146,7 @@
               i_smoothedSFR = grid_index_smoothedSFR(R_ct, ix, iy, iz, TsNumFilterSteps, ReionGridDim);
               
               SFR_POP2[R_ct] = SMOOTHED_SFR_POP2[i_smoothedSFR]; // Do I use this to move from Fourier Space to real space?
-              freq_int_pop2[R_ct] = 0.0;
+              //freq_int_pop2[R_ct] = 0.0;
       
       	      for (n_ct = NSPEC_MAX; n_ct >= 2; n_ct--) {
                 if (zpp > zmax((float)zp, n_ct)) //zmax defined in XrayHeatingFunctions.c
