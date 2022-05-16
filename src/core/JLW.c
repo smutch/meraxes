@@ -59,6 +59,7 @@
 
   double result[1]; //Risultato dell'integrale. Per il momento te ne basta uno che hai solo le Pop2
   double SFR_POP2[TsNumFilterSteps]; // For now I'll just assume everything is Pop.II. What I want to do in the end is to differentiate between Pop.II and Pop.III. I could also differentiate 					         between AC and MC (like 21CMFAST works)
+  printf("A");
   
   float* JLW_box = run_globals.reion_grids.JLW_box;
   
