@@ -162,7 +162,7 @@
               JLW_box[i_real] = result[0]; 
               J_LW_ave += JLW_box[i_real];  
        }      
-       printf("E")
+       printf("E");
        MPI_Allreduce(MPI_IN_PLACE, &J_LW_ave, 1, MPI_DOUBLE, MPI_SUM, run_globals.mpi_comm);
        J_LW_ave /= total_n_cells;
        run_globals.reion_grids.volume_ave_J_LW = J_LW_ave;   
