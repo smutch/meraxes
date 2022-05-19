@@ -161,7 +161,7 @@
        MPI_Allreduce(MPI_IN_PLACE, &J_LW_ave, 1, MPI_DOUBLE, MPI_SUM, run_globals.mpi_comm);
        J_LW_ave /= total_n_cells;
        run_globals.reion_grids.volume_ave_J_LW = J_LW_ave;
-       mlog("int = %e", MLOG_MESG, freq_int_pop2[R_ct]);   
+       mlog("SFR = %e", MLOG_MESG, SFR_POP2[R_ct]);   
    }
    destruct_LW(); 
    mlog("zp = %e J_LW_ave = %e", MLOG_MESG, zp, J_LW_ave);	
