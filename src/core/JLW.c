@@ -143,7 +143,7 @@
 
         nuprime_LW = nu_n(n_ct) * (1 + zpp) / (1.0 + zp);
         sum_lyn_LW[R_ct] += frecycle(n_ct) * spectral_emissivity_LW(nuprime_LW, 0, 2); //2 è per la Pop. //Check if it works
-        freq_int_pop2[R_ct] = sum_lyn_LW * PLANCK_EV;
+        freq_int_pop2[R_ct] = sum_lyn_LW[R_ct] * PLANCK_EV;
       }
     }
       
