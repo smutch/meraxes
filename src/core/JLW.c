@@ -169,7 +169,6 @@
 
                 SFR_POP2[R_ct] = SMOOTHED_SFR_POP2[i_smoothedSFR];
                 dt_dzpp = dt_dzpp_list[R_ct];
-                mlog("SFR = %e", MLOG_MESG, SFR_POP2[R_ct]);
                 }  
                  
               evolveLW((float)zp, freq_int_pop2, SFR_POP2, result);
