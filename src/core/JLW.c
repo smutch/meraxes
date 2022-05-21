@@ -145,7 +145,6 @@
         sum_lyn_LW[R_ct] += frecycle(n_ct) * spectral_emissivity_LW(nuprime_LW, 0, 2); //2 è per la Pop. //Check if it works
         freq_int_pop2[R_ct] = sum_lyn_LW[R_ct] * PLANCK_EV;
       }
-      mlog("Lyn = %e", MLOG_MESG, sum_lyn_LW[R_ct]);
     }
       
       for (int ix = 0; ix < local_nix; ix++)
@@ -153,9 +152,9 @@
             for (int iz = 0; iz < ReionGridDim; iz++) {
               i_padded = grid_index(ix, iy, iz, ReionGridDim, INDEX_PADDED);
               i_real = grid_index(ix, iy, iz, ReionGridDim, INDEX_REAL);
-              i_smoothedSFR = grid_index_smoothedSFR(R_ct, ix, iy, iz, TsNumFilterSteps, ReionGridDim);
+              //i_smoothedSFR = grid_index_smoothedSFR(R_ct, ix, iy, iz, TsNumFilterSteps, ReionGridDim);
               
-              SFR_POP2[R_ct] = SMOOTHED_SFR_POP2[i_smoothedSFR]; // Do I use this to move from Fourier Space to real space?
+              //SFR_POP2[R_ct] = SMOOTHED_SFR_POP2[i_smoothedSFR]; // Do I use this to move from Fourier Space to real space?
               //freq_int_pop2[R_ct] = 0.0;
       
       	      //for (n_ct = NSPEC_MAX; n_ct >= 2; n_ct--) {
@@ -163,7 +162,16 @@
               //   continue;
               //   }          
                 //freq_int_pop2[R_ct] += nu_integral(n_ct, zp, zpp, SFR_POP2[R_ct]);
-                //freq_int_pop2[R_ct] += SFR_POP2[R_ct] * sum_lyn_LW[R_ct] * PLANCK_EV 
+                //freq_int_pop2[R_ct] += SFR_POP2[R_ct] * sum_lyn_LW[R_ct] * PLANCK_EV
+                
+              for (R_ct = 0; R_ct < TsNumFilterSteps; R_ct++) {
+                i_smoothedSFR = grid_index_smoothedSFR(R_ct, ix, iy, iz, TsNumFilterSteps, ReionGridDim);
+
+                SFR_POP2[R_ct] = SMOOTHED_SFR_POP2[i_smoothedSFR];
+                dt_dzpp = dt_dzpp_list[R_ct];
+                mlog("SFR = %e", MLOG_MESG, SFR_POP2[R_ct]);
+                }  
+                 
               evolveLW((float)zp, freq_int_pop2, SFR_POP2, result);
               
               JLW_box[i_real] = result[0]; 
@@ -172,7 +180,6 @@
        MPI_Allreduce(MPI_IN_PLACE, &J_LW_ave, 1, MPI_DOUBLE, MPI_SUM, run_globals.mpi_comm);
        J_LW_ave /= total_n_cells;
        run_globals.reion_grids.volume_ave_J_LW = J_LW_ave;
-       mlog("SFR = %e", MLOG_MESG, SFR_POP2[R_ct]);
           
        destruct_LW(); 
        mlog("zp = %e J_LW_ave = %e", MLOG_MESG, zp, J_LW_ave);	  
