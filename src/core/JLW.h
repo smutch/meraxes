@@ -47,8 +47,9 @@ extern "C"
 
   double* zpp_edgee; // Not a good practice as pointed by Brad but I am dumb
  
-  double nu_integral(int nn, float redd, float redprime, double SFRD);
-  double nu_integrand(double nu, void* params);
+  //double nu_integral(int nn, float redd, float redprime, double SFRD);
+  //double nu_integrand(double nu, void* params);
+  double spectral_emissivity_LW(double nu_norm, int flag, int Population);
  
   void evolveLW(float zp, const double integrand_POP2[], double deriv[]);
  

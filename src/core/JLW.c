@@ -73,7 +73,6 @@
   }
   
   double* SMOOTHED_SFR_POP2 = run_globals.reion_grids.SMOOTHED_SFR_POP2; // Definition of this stuff in meraxes.h and reionization.c
-  //double* freq_int_pop2 = run_globals.reion_grids.freq_int_pop2; // definition a bit shitty
   
   init_LW();
   
@@ -137,6 +136,16 @@
       dt_dzpp_list[R_ct] = dtdz((float)zpp);
       dt_dzpp = dt_dzpp_list[R_ct];	
       
+      sum_lyn_LW[R_ct] = 0;
+      for (n_ct = NSPEC_MAX; n_ct >= 2; n_ct--) {
+        if (zpp > zmax((float)zp, n_ct))
+          continue;
+
+        nuprime = nu_n(n_ct) * (1 + zpp) / (1.0 + zp);
+        sum_lyn_LW[R_ct] += frecycle(n_ct) * spectral_emissivity_LW(nuprime, 0, 2); //2 è per la Pop. //Check if it works
+      }
+    }
+      
       for (int ix = 0; ix < local_nix; ix++)
           for (int iy = 0; iy < ReionGridDim; iy++)
             for (int iz = 0; iz < ReionGridDim; iz++) {
@@ -151,7 +160,8 @@
                 if (zpp > zmax((float)zp, n_ct)) //zmax defined in XrayHeatingFunctions.c
                  continue;
           
-                freq_int_pop2[R_ct] += nu_integral(n_ct, zp, zpp, SFR_POP2[R_ct]);
+                //freq_int_pop2[R_ct] += nu_integral(n_ct, zp, zpp, SFR_POP2[R_ct]);
+                freq_int_pop2[R_ct] += SFR_POP2[R_ct] * sum_lyn_LW[R_ct] * PLANCK_EV
               } 
               evolveLW((float)zp, freq_int_pop2, result);
               
@@ -161,14 +171,13 @@
        MPI_Allreduce(MPI_IN_PLACE, &J_LW_ave, 1, MPI_DOUBLE, MPI_SUM, run_globals.mpi_comm);
        J_LW_ave /= total_n_cells;
        run_globals.reion_grids.volume_ave_J_LW = J_LW_ave;
-       mlog("SFR = %e", MLOG_MESG, SFR_POP2[R_ct]);   
-   }
-   destruct_LW(); 
-   mlog("zp = %e J_LW_ave = %e", MLOG_MESG, zp, J_LW_ave);	
-   
+       mlog("SFR = %e", MLOG_MESG, SFR_POP2[R_ct]);
+          
+       destruct_LW(); 
+       mlog("zp = %e J_LW_ave = %e", MLOG_MESG, zp, J_LW_ave);	  
 }
 
- typedef struct
+/* typedef struct
 {
   double StarFRateDens; // Not sure how to treat emiss since it's a function of nu
 } nu_integral_params;
@@ -179,11 +188,11 @@
   double emissivity;
   
   nu_integral_params* p = (nu_integral_params*)params;
-  emissivity = spectral_emissivity(nu,0); // Function defined in XrayHeatingFunctions.h Careful! It may be nuprime instead of n! Check better spectral_emissivity
+  emissivity = spectral_emissivity(nu , 0); // Function defined in XrayHeatingFunctions.h Careful! It may be nuprime instead of n! Check better spectral_emissivity
   
   return emissivity * PLANCK_EV * p->StarFRateDens;
    
- }
+ } 
  
  double nu_integral(int nn, float redd, float redprime, double SFRD) // This function should be ok!
  {
@@ -201,7 +210,6 @@
 
   nu_integral_params p;
   
-  //p.emiss = UVemissivity;
   p.StarFRateDens = SFRD;
   
   F.params = &p;
@@ -212,12 +220,99 @@
   
   return result;
   
- }
+ } */
+ 
+ // Reads in and constructs table of the piecewise power-law fits to Pop 2 and Pop 3 stellar spectra, from Barkana, specifically designed for LW computation
+ double spectral_emissivity_LW(double nu_norm, int flag, int Population)
+ {
+  static int n[NSPEC_MAX];
+  static float nu_n[NSPEC_MAX], alpha_S_2[NSPEC_MAX];
+  static float alpha_S_3[NSPEC_MAX], N0_2[NSPEC_MAX], N0_3[NSPEC_MAX];
+  double n0_fac;
+  double ans;
+  double lower_limit;
+  int i;
+  FILE* F;
+  
+  char fname[STRLEN];
+  
+  if (flag == 1) {
+
+    if (run_globals.mpi_rank == 0) {
+
+      sprintf(fname, "%s/stellar_spectra.dat", run_globals.params.TablesForXHeatingDir);
+
+      // Read in the data
+      if (!(F = fopen(fname, "r"))) {
+        mlog("spectral_emissivity: Unable to open file: stellar_spectra.dat at %s for reading\nAborting\n",
+             MLOG_MESG,
+             fname);
+        return -1;
+      }
+
+      for (i = 1; i < NSPEC_MAX; i++) {
+        fscanf(F, "%i %e %e %e %e", &n[i], &N0_2[i], &alpha_S_2[i], &N0_3[i], &alpha_S_3[i]);
+      }
+      fclose(F);
+
+      for (i = 1; i < NSPEC_MAX; i++) {
+        nu_n[i] = (float)(4.0 / 3.0 * (1.0 - 1.0 / pow(n[i], 2.0)));
+      }
+
+      for (i = 1; i < NSPEC_MAX; i++) {
+        nu_n[i] = (float)(4.0 / 3.0 * (1.0 - 1.0 / pow(n[i], 2.0)));
+      }
+
+      for (i = 1; i < (NSPEC_MAX - 1); i++) {
+        n0_fac = (pow(nu_n[i + 1], alpha_S_2[i] + 1) - pow(nu_n[i], alpha_S_2[i] + 1));
+        N0_2[i] *= (alpha_S_2[i] + 1) / n0_fac * Pop2_ion;
+        n0_fac = (pow(nu_n[i + 1], alpha_S_3[i] + 1) - pow(nu_n[i], alpha_S_3[i] + 1));
+        N0_3[i] *= (alpha_S_3[i] + 1) / n0_fac * Pop3_ion;
+      }
+    }
+
+    // broadcast the values to all cores
+    MPI_Bcast(nu_n, sizeof(nu_n), MPI_BYTE, 0, run_globals.mpi_comm);
+    MPI_Bcast(alpha_S_2, sizeof(alpha_S_2), MPI_BYTE, 0, run_globals.mpi_comm);
+    MPI_Bcast(alpha_S_3, sizeof(alpha_S_3), MPI_BYTE, 0, run_globals.mpi_comm);
+    MPI_Bcast(N0_2, sizeof(N0_2), MPI_BYTE, 0, run_globals.mpi_comm);
+    MPI_Bcast(N0_3, sizeof(N0_3), MPI_BYTE, 0, run_globals.mpi_comm);
+
+    return 0.0;
+  }
+  
+  ans = 0.0;
+  for (i = 1; i < (NSPEC_MAX - 1); i++) {
+    if (nu_n[i] >= NU_LW)
+      lower_limit = nu_n[i];
+    else
+      lower_limit = NU_LW;
+    if ((nu_norm >= lower_limit) && (nu_norm < nu_n[i + 1])) {
+      // We are in the correct spectral region
+      if (Population == 2)
+        ans = N0_2[i] * pow(nu_norm, alpha_S_2[i]);
+      else
+        ans = N0_3[i] * pow(nu_norm, alpha_S_3[i]);
+
+      return ans / Ly_alpha_HZ;
+    }
+  }
+
+  i = NSPEC_MAX - 1;
+  if (Pop == 2)
+    return N0_2[i] * pow(nu_norm, alpha_S_2[i]) / Ly_alpha_HZ;
+  else
+    return N0_3[i] * pow(nu_norm, alpha_S_3[i]) / Ly_alpha_HZ;
+}
  
  int init_LW() // Maybe you don't need this but just try to see if it works
  {
    size_t TsNumFilterSteps = (size_t)run_globals.params.TsNumFilterSteps;
    zpp_edgee = calloc(TsNumFilterSteps, sizeof(double));
+   sum_lyn_LW = calloc(TsNumFilterSteps, sizeof(double));
+   
+   if (spectral_emissivity(0, 1, 0) < 0)
+    return -6;
  
    return 0;
  }
@@ -225,6 +320,8 @@
  void destruct_LW()
 {
   free(zpp_edgee);
+  spectral_emissivity_LW(0.0, 2, 0); //2 is the flag, frees memory.
+  free(sum_lyn_LW);
 }
  
  void evolveLW(float zp, const double integrand_POP2[], double deriv[])
