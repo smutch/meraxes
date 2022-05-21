@@ -345,7 +345,7 @@
      }
       
      zpp_integrand_POP2 = integrand_POP2[zpp_ct];
-     dlw_dt_POP2 += dt_dzpp * dzpp * zpp_StarF_POP2[zpp_ct] * zpp_integrand_POP2 * pow(1 + zp, 2) * (1 + zpp);     
+     dlw_dt_POP2 += dt_dzpp * dzpp * StarF_POP2[zpp_ct] * zpp_integrand_POP2 * pow(1 + zp, 2) * (1 + zpp);     
   }
   
   dlw_dt_POP2 *= (SPEED_OF_LIGHT / (4. * M_PI)) / (PROTONMASS / SOLAR_MASS);
