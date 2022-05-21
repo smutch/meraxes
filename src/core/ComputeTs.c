@@ -544,7 +544,6 @@ void _ComputeTs(int snapshot)
               freq_int_lya_QSO[R_ct] *= (xHII_call - x_int_XHII[m_xHII_low]);
               freq_int_lya_QSO[R_ct] += freq_int_lya_tbl_QSO[m_xHII_low][R_ct];
             }
-            mlog("SFRTS = %e", MLOG_MESG, SFR_GAL[R_ct]); // Print to check
           }
 
           // Perform the calculation of the heating/ionisation integrals, updating relevant quantities etc.
