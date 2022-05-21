@@ -46,6 +46,7 @@ extern "C"
   void ComputeJLW(int snapshot, timer_info* timer_total);
 
   double* zpp_edgee; // Not a good practice as pointed by Brad but I am dumb
+  double* sum_lyn_LW
  
   //double nu_integral(int nn, float redd, float redprime, double SFRD);
   //double nu_integrand(double nu, void* params);
