@@ -145,6 +145,7 @@
         sum_lyn_LW[R_ct] += frecycle(n_ct) * spectral_emissivity_LW(nuprime_LW, 0, 2); //2 è per la Pop. //Check if it works
         freq_int_pop2[R_ct] = sum_lyn_LW[R_ct] * PLANCK_EV;
       }
+      mlog("Lyn = %e", MLOG_MESG, sum_lyn_LW[R_ct]);
     }
       
       for (int ix = 0; ix < local_nix; ix++)
@@ -157,10 +158,10 @@
               SFR_POP2[R_ct] = SMOOTHED_SFR_POP2[i_smoothedSFR]; // Do I use this to move from Fourier Space to real space?
               //freq_int_pop2[R_ct] = 0.0;
       
-      	      for (n_ct = NSPEC_MAX; n_ct >= 2; n_ct--) {
-                if (zpp > zmax((float)zp, n_ct)) //zmax defined in XrayHeatingFunctions.c
-                 continue;
-                 }          
+      	      //for (n_ct = NSPEC_MAX; n_ct >= 2; n_ct--) {
+              //  if (zpp > zmax((float)zp, n_ct)) //zmax defined in XrayHeatingFunctions.c
+              //   continue;
+              //   }          
                 //freq_int_pop2[R_ct] += nu_integral(n_ct, zp, zpp, SFR_POP2[R_ct]);
                 //freq_int_pop2[R_ct] += SFR_POP2[R_ct] * sum_lyn_LW[R_ct] * PLANCK_EV 
               evolveLW((float)zp, freq_int_pop2, SFR_POP2, result);
