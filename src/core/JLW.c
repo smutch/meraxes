@@ -311,7 +311,7 @@
    zpp_edgee = calloc(TsNumFilterSteps, sizeof(double));
    sum_lyn_LW = calloc(TsNumFilterSteps, sizeof(double));
    
-   if (spectral_emissivity(0, 1, 0) < 0)
+   if (spectral_emissivity_LW(0, 1, 0) < 0)
     return -6;
  
    return 0;
