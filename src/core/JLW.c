@@ -324,7 +324,7 @@
   free(sum_lyn_LW);
 }
  
- void evolveLW(float zp, const double integrand_POP2[], const double StarF_POP2=[], double deriv[])
+ void evolveLW(float zp, const double integrand_POP2[], const double StarF_POP2[], double deriv[])
  {
  
   double dlw_dt_POP2;
