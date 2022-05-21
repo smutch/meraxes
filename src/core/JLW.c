@@ -48,7 +48,7 @@
   
   int i_real, i_padded, i_smoothedSFR, R_ct, n_ct;
   
-  double prev_zpp, prev_R, zpp, zp, R_factor, R, dzp;
+  double prev_zpp, prev_R, zpp, zp, R_factor, R, dzp, nuprime_LW;
   
   int TsNumFilterSteps = run_globals.params.TsNumFilterSteps; //Is the Number of Filter Step the same?? If not I need to define a new one (and maybe put definition in meraxes.h)
   
@@ -141,8 +141,9 @@
         if (zpp > zmax((float)zp, n_ct))
           continue;
 
-        nuprime = nu_n(n_ct) * (1 + zpp) / (1.0 + zp);
-        sum_lyn_LW[R_ct] += frecycle(n_ct) * spectral_emissivity_LW(nuprime, 0, 2); //2 è per la Pop. //Check if it works
+        nuprime_LW = nu_n(n_ct) * (1 + zpp) / (1.0 + zp);
+        sum_lyn_LW[R_ct] += frecycle(n_ct) * spectral_emissivity_LW(nuprime_LW, 0, 2); //2 è per la Pop. //Check if it works
+        freq_int_pop2[R_ct] = sum_lyn_LW * PLANCK_EV;
       }
     }
       
@@ -159,11 +160,10 @@
       	      for (n_ct = NSPEC_MAX; n_ct >= 2; n_ct--) {
                 if (zpp > zmax((float)zp, n_ct)) //zmax defined in XrayHeatingFunctions.c
                  continue;
-          
+                 }          
                 //freq_int_pop2[R_ct] += nu_integral(n_ct, zp, zpp, SFR_POP2[R_ct]);
-                freq_int_pop2[R_ct] += SFR_POP2[R_ct] * sum_lyn_LW[R_ct] * PLANCK_EV
-              } 
-              evolveLW((float)zp, freq_int_pop2, result);
+                //freq_int_pop2[R_ct] += SFR_POP2[R_ct] * sum_lyn_LW[R_ct] * PLANCK_EV 
+              evolveLW((float)zp, freq_int_pop2, SFR_POP2, result);
               
               JLW_box[i_real] = result[0]; 
               J_LW_ave += JLW_box[i_real];  
@@ -286,7 +286,7 @@
     if (nu_n[i] >= NU_LW)
       lower_limit = nu_n[i];
     else
-      lower_limit = NU_LW;
+      lower_limit = NU_LW; // Questa parte la puoi riscrivere come l'ha scritta Yuxiang
     if ((nu_norm >= lower_limit) && (nu_norm < nu_n[i + 1])) {
       // We are in the correct spectral region
       if (Population == 2)
@@ -324,7 +324,7 @@
   free(sum_lyn_LW);
 }
  
- void evolveLW(float zp, const double integrand_POP2[], double deriv[])
+ void evolveLW(float zp, const double integrand_POP2[], const double StarF_POP2=[], double deriv[])
  {
  
   double dlw_dt_POP2;
@@ -345,7 +345,7 @@
      }
       
      zpp_integrand_POP2 = integrand_POP2[zpp_ct];
-     dlw_dt_POP2 += dt_dzpp * dzpp * zpp_integrand_POP2 * pow(1 + zp, 2) * (1 + zpp);     
+     dlw_dt_POP2 += dt_dzpp * dzpp * StarF_POP2 * zpp_integrand_POP2 * pow(1 + zp, 2) * (1 + zpp);     
   }
   
   dlw_dt_POP2 *= (SPEED_OF_LIGHT / (4. * M_PI)) / (PROTONMASS / SOLAR_MASS);
