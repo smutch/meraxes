@@ -79,9 +79,9 @@
   double J_LW_ave;
   J_LW_ave = 0.0;
   
-  zp = red; // Do you really need to assign another variable to the same thing?
+  zp = red; 
   dzp = zp - prev_red;
-  dt_dzp = dtdz((float)(float)zp); //dtdz defined in XrayHeatingFunctions.c
+  dt_dzp = dtdz((float)(float)zp); 
   
   // Setup starting radius (minimum) and scaling to obtaining the maximum filtering radius for the LW background
   R = L_FACTOR * box_size / (float)ReionGridDim; // Take CARE that here you are doing the same than X-rays! Make a double check!
@@ -97,7 +97,7 @@
       if (R_ct > 0) {
         int local_ix_start = (int)(run_globals.reion_grids.slab_ix_start[run_globals.mpi_rank]);
 
-        filter(sfr_filtered, local_ix_start, local_nix, ReionGridDim, (float)R, run_globals.params.ReionFilterType); //TsHeatingFilterType maybe is to change!!! Try with Reion one
+        filter(sfr_filtered, local_ix_start, local_nix, ReionGridDim, (float)R, run_globals.params.TsHeatingFilterType); //Or ReionFilterType??
       }
 
       // inverse fourier transform back to real space
@@ -112,9 +112,9 @@
 
               ((float*)sfr_filtered)[i_padded] = fmaxf(((float*)sfr_filtered)[i_padded], 0.0);
 
-              SMOOTHED_SFR_POP2[i_smoothedSFR] = (((float*)sfr_filtered)[i_padded] / pixel_volume) * // I should be able to do that because I changed definition of SMOOTHED_SFR_POP2
-                                                (units->UnitMass_in_g / units->UnitTime_in_s) *
-                                                pow(units->UnitLength_in_cm, -3.) / SOLAR_MASS; //Check UNITS!!! (I think you should divide by PROTONMASS, did that in evolveLW)
+              SMOOTHED_SFR_POP2[i_smoothedSFR] = (((float*)sfr_filtered)[i_padded] / pixel_volume) * // SFRD (Msolar/yr/Mpc^3)
+                                                (units->UnitMass_in_g / units->UnitTime_in_s) *  //SFRD (g/s/Mpc^3)
+                                                pow(units->UnitLength_in_cm, -3.) / SOLAR_MASS; //(g/s/cm^(-3)) (I think you should divide by PROTONMASS, did that in evolveLW)
       }
       R *= R_factor;
     }
@@ -143,7 +143,7 @@
 
         nuprime_LW = nu_n(n_ct) * (1 + zpp) / (1.0 + zp);
         sum_lyn_LW[R_ct] += frecycle(n_ct) * spectral_emissivity_LW(nuprime_LW, 0, 2); //2 è per la Pop. //Check if it works
-        freq_int_pop2[R_ct] = sum_lyn_LW[R_ct] * PLANCK_EV;
+        freq_int_pop2[R_ct] = sum_lyn_LW[R_ct] * PLANCK; //erg * s
       }
     }
       
@@ -167,11 +167,11 @@
               for (R_ct = 0; R_ct < TsNumFilterSteps; R_ct++) {
                 i_smoothedSFR = grid_index_smoothedSFR(R_ct, ix, iy, iz, TsNumFilterSteps, ReionGridDim);
 
-                SFR_POP2[R_ct] = SMOOTHED_SFR_POP2[i_smoothedSFR];
-                dt_dzpp = dt_dzpp_list[R_ct];
+                SFR_POP2[R_ct] = SMOOTHED_SFR_POP2[i_smoothedSFR]/PROTONMASS; // g/(s*cm^-3) (DIVIDING BY PROTONMASS I make it for baryon
+                dt_dzpp = dt_dzpp_list[R_ct]; //s
                 }  
                  
-              evolveLW((float)zp, freq_int_pop2, SFR_POP2, result);
+              evolveLW((float)zp, freq_int_pop2, SFR_POP2, result); //baryon/(s*cm^-3)*s*(cm/s)*erg*s = baryon*cm^-2*Hz^-1*s^-1*erg*sr^-1
               
               JLW_box[i_real] = result[0]; 
               J_LW_ave += JLW_box[i_real];  
@@ -229,7 +229,7 @@
   
  } */
  
- // Reads in and constructs table of the piecewise power-law fits to Pop 2 and Pop 3 stellar spectra, from Barkana, specifically designed for LW computation
+ // Reads in and constructs table of the piecewise power-law fits to Pop 2 and Pop 3 stellar spectra, from Barkana, specifically designed for LW computation. Almost sure that is per baryon
  double spectral_emissivity_LW(double nu_norm, int flag, int Population)
  {
   static int n[NSPEC_MAX];
@@ -355,7 +355,7 @@
      dlw_dt_POP2 += dt_dzpp * dzpp * StarF_POP2[zpp_ct] * zpp_integrand_POP2 * pow(1 + zp, 2) * (1 + zpp);     
   }
   
-  dlw_dt_POP2 *= (SPEED_OF_LIGHT / (4. * M_PI)) / (PROTONMASS / SOLAR_MASS);
+  dlw_dt_POP2 *= (SPEED_OF_LIGHT / (4. * M_PI)) / (PROTONMASS / SOLAR_MASS); //cm/s*s*(g/s*cm^-3)*erg*s*Hz (it should be cm*g*Hz*eV)
   
   deriv[0] = dlw_dt_POP2; // This is your final result, in the future you will disentangle between different components
 }   
