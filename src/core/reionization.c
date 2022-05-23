@@ -25,7 +25,7 @@ void update_galaxy_fesc_vals(galaxy_t* gal, double new_stars, int snapshot)
 
   if (gal->Mvir > 0.0) {
     double delta_fesc = params->EscapeFracMax - params->EscapeFracMin;
-    double gamma = 2.0 * params->EscapeFracGradient / (delta_fesc * (delta_fesc * 0.5 - 1.0));
+    double gamma = -4.0 * params->EscapeFracGradient / delta_fesc;
     fesc = params->EscapeFracMin + delta_fesc / (1.0 + exp(-gamma * (log10(gal->Mvir / run_globals.params.Hubble_h) +
                                                                      10. - params->EscapeFracPropOffset)));
   }
