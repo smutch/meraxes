@@ -27,7 +27,7 @@ double gas_cooling(galaxy_t* gal)
         logZ2= log10(calc_metallicity(gal->ColdGas, gal->MetalsColdGas));
     else
         logZ2= -10.0;
-    // If we are below 10^4 K then no cooling either
+    // If we are below 10^4 K then no atomic cooling
     if (Tvir >= 1e4) {
       double t_cool, max_cooling_mass;
       double lambda, x, rho_r_cool, r_cool, isothermal_norm;
@@ -88,10 +88,10 @@ double gas_cooling(galaxy_t* gal)
   // Implement Molecular cooling using fitting of cooling curves of Galli and Palla 1998
   // Attempt 1: consider Metal free star using the critical metallicity of 10^(-3.8)Zsolar (with Zsolar=10^-2)
   // No J_lw! This will be the next thing to add here!// Implement Molecular cooling using fitting of cooling curves of Galli and Palla 1998
-    else if(Tvir >= 1e3 && logZ2<= -5.8){
+    else if(Tvir >= 1e3){
           double t_cool, max_cooling_mass;
-          double loglambdalim, LTEcool; //Need them to compute lambda
-          double nH=1e2; //use value of low density regime (CHECK THIS!) 
+          double loglambdalim, LTEcool; 
+          double nH=1e2; // Use value of low density regime.
           double lambda, x, rho_r_cool, r_cool, isothermal_norm;
           run_units_t* units = &(run_globals.units);
           double max_cooling_mass_factor = run_globals.params.physics.MaxCoolingMassFactor;

@@ -248,7 +248,7 @@ void call_ComputeTs(int snapshot, int nout_gals, timer_info* timer)
   mlog("...done", MLOG_CLOSE | MLOG_TIMERSTOP);
 }
 
-void call_ComputeJLW(int snapshot, int nout_gals, timer_info* timer) //probably it's wrong
+void call_ComputeJLW(int snapshot, int nout_gals, timer_info* timer) 
 {
   // Thin wrapper round ComputeJLW
 
@@ -260,12 +260,6 @@ void call_ComputeJLW(int snapshot, int nout_gals, timer_info* timer) //probably 
 
   // Check to see if there are actually any galaxies at this snapshot
   MPI_Allreduce(&nout_gals, &total_n_out_gals, 1, MPI_INT, MPI_SUM, run_globals.mpi_comm);
-
-  // Construct the baryon grids (maybe you don't need this)
-  //construct_baryon_grids(snapshot, nout_gals);
-
-  // Read in the dark matter density grid (maybe you don't need this)
-  //read_grid(DENSITY, snapshot, grids->deltax);
 
   // read in the velocity grids (only works for GBPTREES_TREES at the moment)
   if (run_globals.params.Flag_IncludePecVelsFor21cm > 0) {

@@ -109,6 +109,7 @@ void dracarys()
     // Calculate the critical halo mass for cooling
     if ((run_globals.params.Flag_PatchyReion) && (run_globals.params.ReionUVBFlag))
       calculate_Mvir_crit(run_globals.ZZ[snapshot]);
+    // MANU: Here you should add the new function for LW feedback on MC!
 
     // Reset the halo pointers and ghost flags for all galaxies and decrement
     // the snapskip counter
@@ -322,6 +323,11 @@ void dracarys()
               if (run_globals.params.Flag_ComputePS) {
                 Compute_PS(snapshot);
               }
+                
+              if (run_globals.params.Flag_IncludeLymanWerner) { // Added by Manu
+                call_ComputeJLW(snapshot, nout_gals, &timer);
+              }
+              
             }
           }
         } else {
