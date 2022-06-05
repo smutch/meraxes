@@ -7,7 +7,7 @@
 #include "core/misc_tools.h"
 #include "meraxes.h"
 #include "reionization.c"
-#include "core/reionization.c"
+//#include "core/reionization.c"
 
 double gas_cooling(galaxy_t* gal)
 {
