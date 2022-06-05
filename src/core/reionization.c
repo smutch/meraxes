@@ -355,7 +355,7 @@ void init_reion_grids()
   
     for (int ii=0; ii < slab_n_real_smoothedSFR; ii++) {
       grids->SMOOTHED_SFR_POP2[ii] = 0.0;
-      //grids->freq_int_pop2[ii] = 0.0; //You need this for the integral, maybe it's not the best place to define it
+      grids->Mvir_crit_MC[ii] = (float)0.;
     }
   } 
 
@@ -700,6 +700,9 @@ void malloc_reionization_grids()
       grids->J_21_at_ionization = fftwf_alloc_real((size_t)slab_n_real);
       grids->J_21 = fftwf_alloc_real((size_t)slab_n_real);
       grids->Mvir_crit = fftwf_alloc_real((size_t)slab_n_real);
+      
+      if (run_globals.params.Flag_IncludeLymanWerner) // Added by Manu for LW feedback
+        grids->Mvir_crit_MC = fftwf_alloc_real((size_t)slab_n_real);
     }
 
     if (run_globals.params.Flag_ConstructLightcone) {
@@ -753,6 +756,9 @@ void free_reionization_grids()
     fftwf_free(grids->Mvir_crit);
     fftwf_free(grids->J_21);
     fftwf_free(grids->J_21_at_ionization);
+    
+    if (run_globals.params.Flag_IncludeLymanWerner) // Added by Manu for LW feedback
+      fftwf_free(grid->Mvir_crit_MC);
   }
 
   if (run_globals.params.Flag_Compute21cmBrightTemp) {
@@ -1318,6 +1324,9 @@ void save_reion_output_grids(int snapshot)
     H5LTset_attribute_double(file_id, "J_21", "volume_weighted_global_J_21", &(grids->volume_weighted_global_J_21), 1);
     write_grid_float("J_21_at_ionization", grids->J_21_at_ionization, file_id, fspace_id, memspace_id, dcpl_id);
     write_grid_float("Mvir_crit", grids->Mvir_crit, file_id, fspace_id, memspace_id, dcpl_id);
+    
+    if (run_globals.params.Flag_IncludeLymanWerner)
+      write_grid_float("Mvir_crit_MC", grids->Mvir_crit_MC, file_id, fspace_id, memspace_id, dcpl_id);
   }
 
   // fftw padded grids

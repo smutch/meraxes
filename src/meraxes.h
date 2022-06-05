@@ -212,7 +212,8 @@ typedef struct run_params_t
   double PartMass;
   long long NPart;
 
-  double* MvirCrit;
+  double* MvirCrit; //?
+  double* MvirCrit_MC; // Added by Manu to include LW feedback
 
   double ReionDeltaRFactor;
   double ReionPowerSpecDeltaK;
@@ -322,6 +323,7 @@ typedef struct reion_grids_t
   float* J_21_at_ionization;
   float* J_21;
   float* Mvir_crit;
+  float* Mvir_crit_MC; // Added by Manu for LW feedback
   float* r_bubble;
 
   // Grids necessary for the IGM spin temperature
@@ -466,6 +468,7 @@ typedef struct galaxy_t
   double BaryonFracModifier;
   double FOFMvirModifier;
   double MvirCrit;
+  double MvirCrit_MC; // Added by Manu for LW feedback
   double MergerBurstMass;
 
   int Type;

@@ -6,14 +6,19 @@
 #include "core/cooling.h"
 #include "core/misc_tools.h"
 #include "meraxes.h"
+#include "reionization.c"
+#include "core/reionization.c"
 
 double gas_cooling(galaxy_t* gal)
 {
   double cooling_mass = 0.0;
+  double MC_thresh;
 
   // we only need to do cooling if there is anything to cool!
   if (gal->HotGas > 1e-10) {
     fof_group_t* fof_group = gal->Halo->FOFGroup;
+    
+    MC_thresh = gal->MvirCrit_MC // Added by Manu for LW feedback
 
     // calculate the halo virial temperature and log10 metallicity value
     // N.B. This assumes ionised gas with mu=0.59...
@@ -85,13 +90,12 @@ double gas_cooling(galaxy_t* gal)
       if (cooling_mass < 0)
         cooling_mass = 0.0;
     }
-  // Implement Molecular cooling using fitting of cooling curves of Galli and Palla 1998
-  // Attempt 1: consider Metal free star using the critical metallicity of 10^(-3.8)Zsolar (with Zsolar=10^-2)
-  // No J_lw! This will be the next thing to add here!// Implement Molecular cooling using fitting of cooling curves of Galli and Palla 1998
-    else if(Tvir >= 1e3){
+  // Implement Molecular cooling using fitting of cooling curves of Galli and Palla 1998, Include LW feedback according to Visbal 2014
+
+    else if(Tvir >= 1e3 && gal->Mvir >= MC_thresh){
           double t_cool, max_cooling_mass;
           double loglambdalim, LTEcool; 
-          double nH=1e2; // Use value of low density regime.
+          double nH = 1e2; // Use value of low density regime.
           double lambda, x, rho_r_cool, r_cool, isothermal_norm;
           run_units_t* units = &(run_globals.units);
           double max_cooling_mass_factor = run_globals.params.physics.MaxCoolingMassFactor;
