@@ -297,8 +297,11 @@ void dracarys()
 
     if (run_globals.params.Flag_PatchyReion) {
       int ngals_in_slabs = map_galaxies_to_slabs(NGal);
-      if (run_globals.params.ReionUVBFlag)
+      if (run_globals.params.ReionUVBFlag) {
         assign_Mvir_crit_to_galaxies(ngals_in_slabs);
+        if (run_globals.params.Flag_IncludeLymanWerner)
+          assign_Mvir_crit_MC_to_galaxies(ngals_in_slabs);
+        }
     }
 
     // Do the physics

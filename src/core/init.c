@@ -267,6 +267,7 @@ void init_meraxes()
 
   // read in the mean Mvir_crit table (if needed)
   read_Mcrit_table();
+  read_Mcrit_MC_table();
 
   set_ReionEfficiency();
   set_quasar_fobs();

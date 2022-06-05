@@ -192,6 +192,7 @@ typedef struct run_params_t
   char MagBands[STRLEN];
   char ForestIDFile[STRLEN];
   char MvirCritFile[STRLEN];
+  char MvirCritMCFile[STRLEN]; // Added by Manu to include LW feedback
   char MassRatioModifier[STRLEN];
   char BaryonFracModifier[STRLEN];
   char FFTW3WisdomDir[STRLEN];
