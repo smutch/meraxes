@@ -18,7 +18,7 @@ double gas_cooling(galaxy_t* gal)
   if (gal->HotGas > 1e-10) {
     fof_group_t* fof_group = gal->Halo->FOFGroup;
     
-    MC_thresh = gal->MvirCrit_MC // Added by Manu for LW feedback
+    MC_thresh = gal->MvirCrit_MC; // Added by Manu for LW feedback
 
     // calculate the halo virial temperature and log10 metallicity value
     // N.B. This assumes ionised gas with mu=0.59...
