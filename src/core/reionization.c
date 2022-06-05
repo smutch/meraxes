@@ -758,7 +758,7 @@ void free_reionization_grids()
     fftwf_free(grids->J_21_at_ionization);
     
     if (run_globals.params.Flag_IncludeLymanWerner) // Added by Manu for LW feedback
-      fftwf_free(grid->Mvir_crit_MC);
+      fftwf_free(grids->Mvir_crit_MC);
   }
 
   if (run_globals.params.Flag_Compute21cmBrightTemp) {
