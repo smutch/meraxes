@@ -355,7 +355,6 @@ void init_reion_grids()
   
     for (int ii=0; ii < slab_n_real_smoothedSFR; ii++) {
       grids->SMOOTHED_SFR_POP2[ii] = 0.0;
-      grids->Mvir_crit_MC[ii] = (float)0.;
     }
   } 
 
@@ -374,6 +373,8 @@ void init_reion_grids()
       grids->J_21_at_ionization[ii] = (float)0.;
       grids->J_21[ii] = (float)0.;
       grids->Mvir_crit[ii] = (float)0.;
+      if (run_globals.params.Flag_IncludeLymanWerner)
+        grids->Mvir_crit_MC[ii] = (float)0.;
     }
 
   for (int ii = 0; ii < slab_n_complex; ii++) {
