@@ -92,7 +92,7 @@ double gas_cooling(galaxy_t* gal)
     }
   // Implement Molecular cooling using fitting of cooling curves of Galli and Palla 1998, Include LW feedback according to Visbal 2014
 
-    else if(Tvir >= 1e3 && gal->Mvir >= MC_thresh){
+  /*  else if(Tvir >= 1e3 && gal->Mvir >= MC_thresh){
           double t_cool, max_cooling_mass;
           double loglambdalim, LTEcool; 
           double nH = 1e2; // Use value of low density regime.
@@ -134,8 +134,8 @@ double gas_cooling(galaxy_t* gal)
            cooling_mass -= radio_mode_BH_heating(gal, cooling_mass, x); 
            
        if (cooling_mass < 0) 
-           cooling_mass = 0.0;
-        }                                                                                                                                                                                                      }
+           cooling_mass = 0.0;*/
+    }
     return cooling_mass;
 }
 
