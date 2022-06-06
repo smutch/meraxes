@@ -81,7 +81,7 @@ void calculate_Mvir_crit_MC(double redshift) // Added by Manu for LW feedback
       for (int kk = 0; kk < ReionGridDim; kk++) {
         // Initialise critical mass
         cell_Mvir_crit_MC = 0.0;
-        cell_Mvir_crit_MC = 2.5 * 1e-5 * pow((26.0 / (1.0 + redshift)), 1.5) * (1.0 + 6.96 * (pow(4 * M_PI * JLW_box[grid_index(ii, jj, kk, ReionGridDim, INDEX_REAL)], 0.47)));
+        cell_Mvir_crit_MC = 2.5 * 1e-5 * pow((26.0 / (1.0 + redshift)), 1.5) * (1.0 + 6.96 * (pow(4 * M_PI * JLW_box[grid_index(ii, jj, kk, ReionGridDim, INDEX_REAL)]*1e21, 0.47)));
 
         Mvir_crit_MC[grid_index(ii, jj, kk, ReionGridDim, INDEX_REAL)] = (float)cell_Mvir_crit_MC;
       }
