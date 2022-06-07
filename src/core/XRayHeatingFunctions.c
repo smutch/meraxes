@@ -338,7 +338,6 @@ double tauX(double nu, double x_e, double zp, double zpp, double fcoll, double H
   return result;
 }
 
-// function DTDZ returns the value of dt/dz at the redshift parameter z. //
 double dtdz(float z)
 {
   double x, dxdz, const1, denom, numer, OMl, OMm;
@@ -1202,10 +1201,10 @@ void evolveInt(float zp,
 
   x_e = y[0];  
   T = y[1];
-  n_b = N_b0 * pow(1 + zp, 3) * (1 + curr_delNL0); // Second term of 10 (Mesinger+11)
+  n_b = N_b0 * pow(1 + zp, 3) * (1 + curr_delNL0); 
 
   // First, let's do the trapazoidal integration over zpp
-  dxheat_dt_GAL = 0; // Heat from X-rays (1st term of 11)
+  dxheat_dt_GAL = 0; 
   dxion_source_dt_GAL = 0;
   dxlya_dt_GAL = 0;
   dstarlya_dt_GAL = 0;
@@ -1301,13 +1300,13 @@ void evolveInt(float zp,
     dadia_dzp += dgrowth_factor_dzp / (1.0 / curr_delNL0 + growth_factor_zp);
   dadia_dzp *= (2.0 / 3.0) * T;
 
-  // next heating due to the changing species (4th term in 11)
+  // next heating due to the changing species 
   dspec_dzp = -dxe_dzp * T / (1 + x_e); 
 
-  // next, Compton heating (1st term in 11)
+  // next, Compton heating 
   dcomp_dzp = dT_comp(zp, T, x_e);
 
-  // lastly, X-ray heating (1st term in 11)
+  // lastly, X-ray heating 
   dxheat_dzp = (dxheat_dt_GAL + dxheat_dt_QSO) * dt_dzp * 2.0 / 3.0 / BOLTZMANN / (1.0 + x_e);
 
   // summing them up...

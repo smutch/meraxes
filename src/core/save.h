@@ -63,7 +63,7 @@ typedef struct galaxy_output_t
   float BaryonFracModifier;
   float FOFMvirModifier;
   float MvirCrit;
-  float MvirCrit_MC; // Added by Manu for LW feedback
+  float MvirCrit_MC; 
   float dt;
   float MergerBurstMass;
 

@@ -275,7 +275,7 @@ void read_parameter_file(char* fname, int mode)
       params_type[n_param++] = PARAM_TYPE_STRING;
       *(run_params->MvirCritFile) = '\0';
       
-      strncpy(params_tag[n_param], "MvirCritMCFile", tag_length); // Added by Manu to include LW feedback (not sure)
+      strncpy(params_tag[n_param], "MvirCritMCFile", tag_length); 
       params_addr[n_param] = &(run_params->MvirCritMCFile);
       required_tag[n_param] = 0;
       params_type[n_param++] = PARAM_TYPE_STRING;
@@ -652,7 +652,7 @@ void read_parameter_file(char* fname, int mode)
       required_tag[n_param] = 1;
       params_type[n_param++] = PARAM_TYPE_INT;
       
-      strncpy(params_tag[n_param], "Flag_IncludeLymanWerner", tag_length); // Added by Manu
+      strncpy(params_tag[n_param], "Flag_IncludeLymanWerner", tag_length); 
       params_addr[n_param] = &(run_params->Flag_IncludeLymanWerner);
       required_tag[n_param] = 1;
       params_type[n_param++] = PARAM_TYPE_INT;

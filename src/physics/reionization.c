@@ -57,7 +57,7 @@ void calculate_Mvir_crit(double redshift)
   }
 }
 
-void calculate_Mvir_crit_MC(double redshift) // Added by Manu for LW feedback
+void calculate_Mvir_crit_MC(double redshift)
 {
   // Calculate the critical Mvir value in each grid cell (ala Visbal 2014)
   float* Mvir_crit_MC = run_globals.reion_grids.Mvir_crit_MC;
@@ -75,11 +75,9 @@ void calculate_Mvir_crit_MC(double redshift) // Added by Manu for LW feedback
   for (int ii = 0; ii < local_n_cell; ii++)
     Mvir_crit_MC[ii] = 0.0;
 
-  // Loop through each cell and calculate the value of Mvir_crit
   for (int ii = 0; ii < local_n_x; ii++) {
     for (int jj = 0; jj < ReionGridDim; jj++)
       for (int kk = 0; kk < ReionGridDim; kk++) {
-        // Initialise critical mass
         cell_Mvir_crit_MC = 0.0;
         cell_Mvir_crit_MC = 2.5 * 1e-5 * pow((26.0 / (1.0 + redshift)), 1.5) * (1.0 + 6.96 * (pow(4 * M_PI * JLW_box[grid_index(ii, jj, kk, ReionGridDim, INDEX_REAL)]*1e21, 0.47)));
 

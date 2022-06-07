@@ -312,7 +312,7 @@ void init_reion_grids()
   grids->volume_ave_Xheat = 0.0;
   grids->volume_ave_Xion = 0.0;
   grids->volume_ave_TS = 0.0;
-  grids->volume_ave_J_LW = 0.0; //Added by Manu
+  grids->volume_ave_J_LW = 0.0; 
   grids->volume_ave_TK = 0.0;
   grids->volume_ave_xe = 0.0;
   grids->volume_ave_Tb = 0.0;
@@ -321,7 +321,7 @@ void init_reion_grids()
     grids->xH[ii] = 1.0;
     grids->z_at_ionization[ii] = -1;
     grids->r_bubble[ii] = 0.0;
-    if (run_globals.params.Flag_IncludeLymanWerner) { // Added by Manu for JLW. In this formulation for JLW you want also the flag of SpinTemp=1
+    if (run_globals.params.Flag_IncludeLymanWerner) { 
       grids->JLW_box[ii] = 0.0;
     }
     if (run_globals.params.Flag_IncludeSpinTemp) {
@@ -351,7 +351,7 @@ void init_reion_grids()
     }
   }
   
-  if (run_globals.params.Flag_IncludeLymanWerner) { // Added by Manu for JLW, this is a R*Dim^3 grid to store values at each filtering radius! In the future add also Pop3 and MC!
+  if (run_globals.params.Flag_IncludeLymanWerner) { 
   
     for (int ii=0; ii < slab_n_real_smoothedSFR; ii++) {
       grids->SMOOTHED_SFR_POP2[ii] = 0.0;
@@ -484,7 +484,7 @@ void malloc_reionization_grids()
   grids->z_at_ionization = NULL;
   grids->J_21_at_ionization = NULL;
   grids->J_21 = NULL;
-  grids->JLW_box = NULL; // Added by Manu for JLW in a single box
+  grids->JLW_box = NULL; 
 
   // Grids required for the spin temperature calculation
   grids->x_e_box = NULL;
@@ -497,8 +497,7 @@ void malloc_reionization_grids()
   grids->SMOOTHED_SFR_GAL = NULL;
   grids->SMOOTHED_SFR_QSO = NULL;
   
-  grids->SMOOTHED_SFR_POP2 = NULL; // Added by Manu to differentiate Pop.II/Pop.III and AC/MC
-  //grids->freq_int_pop2 = NULL;
+  grids->SMOOTHED_SFR_POP2 = NULL; 
 
   // Grids required for inhomogeneous recombinations
   grids->N_rec_unfiltered = NULL;
@@ -702,7 +701,7 @@ void malloc_reionization_grids()
       grids->J_21 = fftwf_alloc_real((size_t)slab_n_real);
       grids->Mvir_crit = fftwf_alloc_real((size_t)slab_n_real);
       
-      if (run_globals.params.Flag_IncludeLymanWerner) // Added by Manu for LW feedback
+      if (run_globals.params.Flag_IncludeLymanWerner) 
         grids->Mvir_crit_MC = fftwf_alloc_real((size_t)slab_n_real);
     }
 
@@ -758,7 +757,7 @@ void free_reionization_grids()
     fftwf_free(grids->J_21);
     fftwf_free(grids->J_21_at_ionization);
     
-    if (run_globals.params.Flag_IncludeLymanWerner) // Added by Manu for LW feedback
+    if (run_globals.params.Flag_IncludeLymanWerner) 
       fftwf_free(grids->Mvir_crit_MC);
   }
 
@@ -809,7 +808,6 @@ void free_reionization_grids()
   if (run_globals.params.Flag_IncludeLymanWerner) {
     free(grids->JLW_box);
     free(grids->SMOOTHED_SFR_POP2);
-    //free(grids->freq_int_pop2);
   }
 
   fftwf_free(grids->r_bubble);
@@ -1015,10 +1013,8 @@ void assign_Mvir_crit_to_galaxies(int ngals_in_slabs)
   mlog("...done.", MLOG_CLOSE);
 }
 
-void assign_Mvir_crit_MC_to_galaxies(int ngals_in_slabs) // Added by Manu for LW feedback
+void assign_Mvir_crit_MC_to_galaxies(int ngals_in_slabs) 
 {
-  // N.B. We are assuming here that the galaxy_to_slab mapping has been sorted
-  // by slab index...
   gal_to_slab_t* galaxy_to_slab_map = run_globals.reion_grids.galaxy_to_slab_map;
   float* Mvir_crit_MC = run_globals.reion_grids.Mvir_crit_MC;
   float* buffer = run_globals.reion_grids.buffer;
@@ -1030,8 +1026,6 @@ void assign_Mvir_crit_MC_to_galaxies(int ngals_in_slabs) // Added by Manu for LW
 
   mlog("Assigning Mvir_crit_MC to galaxies...", MLOG_OPEN);
 
-  // Work out the index of the galaxy_to_slab_map where each slab begins.
-  // TODO: This needs checked...
   int slab_map_offsets[run_globals.mpi_size];
   for (int ii = 0, i_gal = 0; ii < run_globals.mpi_size; ii++) {
     if (galaxy_to_slab_map != NULL) {
@@ -1043,11 +1037,9 @@ void assign_Mvir_crit_MC_to_galaxies(int ngals_in_slabs) // Added by Manu for LW
       else
         slab_map_offsets[ii] = -1;
     } else
-      // if this core has no galaxies then the offsets are -1 everywhere
       slab_map_offsets[ii] = -1;
   }
 
-  // do a ring exchange of slabs between all cores
   for (int i_skip = 0; i_skip < run_globals.mpi_size; i_skip++) {
     int recv_from_rank = (run_globals.mpi_rank + i_skip) % run_globals.mpi_size;
     int send_to_rank = (run_globals.mpi_rank - i_skip + run_globals.mpi_size) % run_globals.mpi_size;
@@ -1094,13 +1086,10 @@ void assign_Mvir_crit_MC_to_galaxies(int ngals_in_slabs) // Added by Manu for LW
       memcpy(buffer, Mvir_crit_MC, sizeof(float) * n_cells);
     }
 
-    // if this core has received a slab of Mvir_crit then assign values to the
-    // galaxies which belong to this slab
     if (recv_flag) {
       int i_gal = slab_map_offsets[recv_from_rank];
       int ix_start = (int)slab_ix_start[recv_from_rank];
       while ((i_gal < ngals_in_slabs) && (galaxy_to_slab_map[i_gal].slab_ind == recv_from_rank)) {
-        // TODO: We should use the position of the FOF group here...
         galaxy_t* gal = galaxy_to_slab_map[i_gal].galaxy;
         int ix = pos_to_ngp(gal->Pos[0], box_size, ReionGridDim) - ix_start;
         int iy = pos_to_ngp(gal->Pos[1], box_size, ReionGridDim);
@@ -1109,10 +1098,8 @@ void assign_Mvir_crit_MC_to_galaxies(int ngals_in_slabs) // Added by Manu for LW
         assert(ix >= 0);
         assert(ix < slab_nix[recv_from_rank]);
 
-        // Record the Mvir_crit (filtering mass) value
         gal->MvirCrit_MC = (double)buffer[grid_index(ix, iy, iz, ReionGridDim, INDEX_REAL)];
 
-        // increment counters
         i_gal++;
         total_assigned++;
       }
@@ -1523,10 +1510,10 @@ void save_reion_output_grids(int snapshot)
     H5LTset_attribute_double(file_id, "TS_box", "volume_ave_xalpha", &(grids->volume_ave_xalpha), 1);
     H5LTset_attribute_double(file_id, "TS_box", "volume_ave_Xheat", &(grids->volume_ave_Xheat), 1);
     H5LTset_attribute_double(file_id, "TS_box", "volume_ave_Xion", &(grids->volume_ave_Xion), 1);
-  }
-  
-  if (run_globals.params.Flag_IncludeLymanWerner) { // Added by Manu, maybe you can put it inside IncludeSpinTemperature
-    H5LTset_attribute_double(file_id, "JLW_box", "volume_ave_JLW", &(grids->volume_ave_J_LW), 1);
+    
+    if (run_globals.params.Flag_IncludeLymanWerner) {
+      H5LTset_attribute_double(file_id, "JLW_box", "volume_ave_JLW", &(grids->volume_ave_J_LW), 1);
+    }
   }
 
   if (run_globals.params.Flag_Compute21cmBrightTemp) {

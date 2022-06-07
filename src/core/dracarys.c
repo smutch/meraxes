@@ -110,7 +110,7 @@ void dracarys()
     if ((run_globals.params.Flag_PatchyReion) && (run_globals.params.ReionUVBFlag)) {
       calculate_Mvir_crit(run_globals.ZZ[snapshot]);
       
-      if (run_globals.params.Flag_IncludeLymanWerner) // Added by Manu to include LW feedback
+      if (run_globals.params.Flag_IncludeLymanWerner)
         calculate_Mvir_crit_MC(run_globals.ZZ[snapshot]);
     }
 
@@ -330,7 +330,7 @@ void dracarys()
                 Compute_PS(snapshot);
               }
                 
-              if (run_globals.params.Flag_IncludeLymanWerner) { // Added by Manu
+              if (run_globals.params.Flag_IncludeLymanWerner) { 
                 call_ComputeJLW(snapshot, nout_gals, &timer);
               }
               
@@ -342,7 +342,7 @@ void dracarys()
             call_ComputeTs(snapshot, nout_gals, &timer);
           }
           
-          if (run_globals.params.Flag_IncludeLymanWerner) { // Added by Manu
+          if (run_globals.params.Flag_IncludeLymanWerner) { 
             call_ComputeJLW(snapshot, nout_gals, &timer);
           }
 

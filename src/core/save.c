@@ -80,7 +80,7 @@ void prepare_galaxy_for_output(galaxy_t gal, galaxy_output_t* galout, int i_snap
   galout->BaryonFracModifier = (float)(gal.BaryonFracModifier);
   galout->FOFMvirModifier = (float)(gal.FOFMvirModifier);
   galout->MvirCrit = (float)(gal.MvirCrit);
-  galout->MvirCrit_MC = (float)(gal.MvirCrit_MC); // Added by Manu for LW feedback
+  galout->MvirCrit_MC = (float)(gal.MvirCrit_MC); 
   galout->dt = (float)(gal.dt * units->UnitTime_in_Megayears);
   galout->MergerBurstMass = (float)(gal.MergerBurstMass);
   galout->MergTime = (float)(gal.MergTime * units->UnitTime_in_Megayears);
@@ -107,7 +107,7 @@ void calc_hdf5_props()
     galaxy_output_t galout;
     int i; // dummy
 
-    h5props->n_props = 50; // Manu: before was set to 49
+    h5props->n_props = 50; 
 
 #ifdef CALC_MAGS
     h5props->n_props += 2;
@@ -421,7 +421,7 @@ void calc_hdf5_props()
     h5props->field_h_conv[i] = "v/h";
     h5props->field_types[i++] = H5T_NATIVE_FLOAT;
     
-    h5props->dst_offsets[i] = HOFFSET(galaxy_output_t, MvirCrit_MC); // Added by Manu for LW feedback
+    h5props->dst_offsets[i] = HOFFSET(galaxy_output_t, MvirCrit_MC); 
     h5props->dst_field_sizes[i] = sizeof(galout.MvirCrit_MC);
     h5props->field_names[i] = "MvirCrit_MC";
     h5props->field_units[i] = "1e10 solMass";
@@ -605,8 +605,8 @@ void create_master_file()
       const char* group_name = { "Units/Grids" };
       group_id = H5Gcreate(file_id, group_name, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
       H5LTset_attribute_string(file_id, group_name, "xH", "None");
-      H5LTset_attribute_string(file_id, group_name, "J_21", "10e-21 erg/s/Hz/cm/cm/sr"); // Why we have this!!!
-      H5LTset_attribute_string(file_id, group_name, "J_21_at_ionization", "10e-21 erg/s/Hz/cm/cm/sr"); // Why we have this!!!
+      H5LTset_attribute_string(file_id, group_name, "J_21", "10e-21 erg/s/Hz/cm/cm/sr"); 
+      H5LTset_attribute_string(file_id, group_name, "J_21_at_ionization", "10e-21 erg/s/Hz/cm/cm/sr"); 
       H5LTset_attribute_string(file_id, group_name, "z_at_ionization", "None");
       H5LTset_attribute_string(file_id, group_name, "r_bubble", "Mpc");
       H5LTset_attribute_string(file_id, group_name, "Mvir_crit", "1e10 solMass");
@@ -614,7 +614,7 @@ void create_master_file()
       H5LTset_attribute_string(file_id, group_name, "Sfr", "solMass/yr");
       H5LTset_attribute_string(file_id, group_name, "deltax", "None");
       
-      if (run_globals.params.Flag_IncludeLymanWerner) {  // Added by Manu
+      if (run_globals.params.Flag_IncludeLymanWerner) {  
         H5LTset_attribute_string(file_id, group_name, "JLW_box", "erg/s/Hz/cm/cm/sr"); 
       }
 
@@ -641,7 +641,7 @@ void create_master_file()
     }
 
     {
-      const char* group_name = { "HubbleConversions/Grids" }; // What are these ???
+      const char* group_name = { "HubbleConversions/Grids" }; 
       group_id = H5Gcreate(file_id, group_name, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
       H5LTset_attribute_string(file_id, group_name, "xH", "None");
       H5LTset_attribute_string(file_id, group_name, "J_21", "v*(h**2)");
@@ -653,7 +653,7 @@ void create_master_file()
       H5LTset_attribute_string(file_id, group_name, "Sfr", "None");
       H5LTset_attribute_string(file_id, group_name, "deltax", "None");
 
-      if (run_globals.params.Flag_IncludeLymanWerner) {  // Added by Manu, Not sure why I need this and if I added it correctly
+      if (run_globals.params.Flag_IncludeLymanWerner) { 
         H5LTset_attribute_string(file_id, group_name, "JLW_box", "None"); 
       }
 

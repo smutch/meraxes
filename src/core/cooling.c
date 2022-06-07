@@ -105,7 +105,7 @@ double interpolate_cooling_rate(double logTemp, double logZ)
   return pow(10, rate);
 }
 
-double LTE_Mcool(double Temp, double nH) //Need this to compute lambda for MC
+double LTE_Mcool(double Temp, double nH) 
 {
     double T3;
     double LrHLTE, LvHLTE, LTEtot;

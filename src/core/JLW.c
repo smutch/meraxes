@@ -28,7 +28,7 @@
  
  void _ComputeJLW(int snapshot)
  {
-  double box_size = run_globals.params.BoxSize / run_globals.params.Hubble_h; // Mpc
+  double box_size = run_globals.params.BoxSize / run_globals.params.Hubble_h; 
   int ReionGridDim = run_globals.params.ReionGridDim; 
   double pixel_volume = pow(box_size / (double)ReionGridDim, 3); 
   double total_n_cells = pow((double)ReionGridDim, 3);
@@ -60,17 +60,17 @@
   
   float* JLW_box = run_globals.reion_grids.JLW_box;
   
-  float* sfr = run_globals.reion_grids.sfr; // This is the SFR that we compute within Meraxes
+  float* sfr = run_globals.reion_grids.sfr; 
   
-  fftwf_complex* sfr_unfiltered = run_globals.reion_grids.sfr_unfiltered; // Filtering stuff
+  fftwf_complex* sfr_unfiltered = run_globals.reion_grids.sfr_unfiltered; 
   fftwf_complex* sfr_filtered = run_globals.reion_grids.sfr_filtered;
   fftwf_execute(run_globals.reion_grids.sfr_forward_plan);
   
-  for (int ii = 0; ii < slab_n_complex; ii++) { // MPI stuff
+  for (int ii = 0; ii < slab_n_complex; ii++) { 
     sfr_unfiltered[ii] /= (float)total_n_cells;
   }
   
-  double* SMOOTHED_SFR_POP2 = run_globals.reion_grids.SMOOTHED_SFR_POP2; // Definition of this stuff in meraxes.h and reionization.c
+  double* SMOOTHED_SFR_POP2 = run_globals.reion_grids.SMOOTHED_SFR_POP2; 
   
   init_LW();
   
@@ -81,24 +81,21 @@
   dzp = zp - prev_red;
   dt_dzp = dtdz((float)(float)zp); 
   
-  // Setup starting radius (minimum) and scaling to obtaining the maximum filtering radius for the LW background
-  R = L_FACTOR * box_size / (float)ReionGridDim; // Take CARE that here you are doing the same than X-rays! Make a double check!
+  R = L_FACTOR * box_size / (float)ReionGridDim; 
   R_factor = pow(R_XLy_MAX / R, 1 / (float)TsNumFilterSteps);
 
-  // Smooth the density, stars and SFR fields over increasingly larger filtering radii (for evaluating the LW integrals)
   for (R_ct = 0; R_ct < TsNumFilterSteps; R_ct++) {
 
       R_values[R_ct] = R;
 
-      memcpy(sfr_filtered, sfr_unfiltered, sizeof(fftwf_complex) * slab_n_complex); // Copies fftwf_complex*slab_n complex characters from sfr_unfiltered to sfr_filtered.
+      memcpy(sfr_filtered, sfr_unfiltered, sizeof(fftwf_complex) * slab_n_complex); 
 
       if (R_ct > 0) {
         int local_ix_start = (int)(run_globals.reion_grids.slab_ix_start[run_globals.mpi_rank]);
 
-        filter(sfr_filtered, local_ix_start, local_nix, ReionGridDim, (float)R, run_globals.params.TsHeatingFilterType); //Or ReionFilterType?? Or maybe another one!
+        filter(sfr_filtered, local_ix_start, local_nix, ReionGridDim, (float)R, run_globals.params.TsHeatingFilterType); 
       }
 
-      // inverse fourier transform back to real space
       fftwf_execute(run_globals.reion_grids.sfr_filtered_reverse_plan);
 
         for (int ix = 0; ix < local_nix; ix++)
@@ -110,14 +107,13 @@
 
               ((float*)sfr_filtered)[i_padded] = fmaxf(((float*)sfr_filtered)[i_padded], 0.0);
 
-              SMOOTHED_SFR_POP2[i_smoothedSFR] = (((float*)sfr_filtered)[i_padded] / pixel_volume) * // SFRD (Msolar/yr/Mpc^3)
-                                                (units->UnitMass_in_g / units->UnitTime_in_s) *  //SFRD (g/s/Mpc^3)
-                                                pow(units->UnitLength_in_cm, -3.) / SOLAR_MASS; //(g/s/cm^(-3)) (I think you should divide by PROTONMASS, did that later)
+              SMOOTHED_SFR_POP2[i_smoothedSFR] = (((float*)sfr_filtered)[i_padded] / pixel_volume) * 
+                                                (units->UnitMass_in_g / units->UnitTime_in_s) *  
+                                                pow(units->UnitLength_in_cm, -3.) / SOLAR_MASS;
       }
       R *= R_factor;
     }
 
-      // Populate the initial LW tables
       for (R_ct = 0; R_ct < TsNumFilterSteps; R_ct++) {
   
         if (R_ct == 0) {
@@ -128,8 +124,8 @@
           prev_R = R_values[R_ct - 1];
         }
 
-      zpp_edgee[R_ct] = prev_zpp - (R_values[R_ct] - prev_R) * MPC / (drdz((float)prev_zpp)); // cell size, drdz defined in XrayHeatingFunctions.c
-      zpp = (zpp_edgee[R_ct] + prev_zpp) * 0.5; // average redshift value of shell: z'' + 0.5 * dz''
+      zpp_edgee[R_ct] = prev_zpp - (R_values[R_ct] - prev_R) * MPC / (drdz((float)prev_zpp)); 
+      zpp = (zpp_edgee[R_ct] + prev_zpp) * 0.5; 
 
       dt_dzpp_list[R_ct] = dtdz((float)zpp);
       dt_dzpp = dt_dzpp_list[R_ct];	
@@ -140,8 +136,8 @@
           continue;
 
         nuprime_LW = nu_n(n_ct) * (1 + zpp) / (1.0 + zp);
-        sum_lyn_LW[R_ct] += frecycle(n_ct) * spectral_emissivity_LW(nuprime_LW, 0, 2); //2 è per la Pop. 
-        freq_int_pop2[R_ct] = sum_lyn_LW[R_ct] * PLANCK; //erg * s
+        sum_lyn_LW[R_ct] += frecycle(n_ct) * spectral_emissivity_LW(nuprime_LW, 0, 2); 
+        freq_int_pop2[R_ct] = sum_lyn_LW[R_ct] * PLANCK; 
       }
     }
       
@@ -154,7 +150,7 @@
               for (R_ct = 0; R_ct < TsNumFilterSteps; R_ct++) {
                 i_smoothedSFR = grid_index_smoothedSFR(R_ct, ix, iy, iz, TsNumFilterSteps, ReionGridDim);
 
-                SFR_POP2[R_ct] = SMOOTHED_SFR_POP2[i_smoothedSFR]/PROTONMASS; // g/(s*cm^-3) (DIVIDING BY PROTONMASS I make it for baryon)
+                SFR_POP2[R_ct] = SMOOTHED_SFR_POP2[i_smoothedSFR]/PROTONMASS;
                 dt_dzpp = dt_dzpp_list[R_ct]; //s
                 }  
                  
@@ -221,7 +217,6 @@
       }
     }
 
-    // broadcast the values to all cores
     MPI_Bcast(nu_n, sizeof(nu_n), MPI_BYTE, 0, run_globals.mpi_comm);
     MPI_Bcast(alpha_S_2, sizeof(alpha_S_2), MPI_BYTE, 0, run_globals.mpi_comm);
     MPI_Bcast(alpha_S_3, sizeof(alpha_S_3), MPI_BYTE, 0, run_globals.mpi_comm);
@@ -236,9 +231,8 @@
     if (nu_n[i] >= NU_LW)
       lower_limit = nu_n[i];
     else
-      lower_limit = NU_LW; // Questa parte la puoi riscrivere come l'ha scritta Yuxiang
+      lower_limit = NU_LW; 
     if ((nu_norm >= lower_limit) && (nu_norm < nu_n[i + 1])) {
-      // We are in the correct spectral region
       if (Population == 2)
         ans = N0_2[i] * pow(nu_norm, alpha_S_2[i]);
       else
@@ -255,7 +249,7 @@
     return N0_3[i] * pow(nu_norm, alpha_S_3[i]) / Ly_alpha_HZ;
 }
  
- int init_LW() // Maybe you don't need this but just try to see if it works
+ int init_LW() 
  {
    size_t TsNumFilterSteps = (size_t)run_globals.params.TsNumFilterSteps;
    zpp_edgee = calloc(TsNumFilterSteps, sizeof(double));
@@ -285,7 +279,6 @@
   dlw_dt_POP2 = 0.;
       
   for (zpp_ct = 0; zpp_ct < run_globals.params.TsNumFilterSteps; zpp_ct++) {
-     // set redshift of half annulus; dz'' is negative since we flipped limits of integral
      if (zpp_ct == 0) {
        zpp = (zpp_edgee[0] + zp) * 0.5;
        dzpp = zp - zpp_edgee[0];
@@ -300,17 +293,14 @@
   
   dlw_dt_POP2 *= (SPEED_OF_LIGHT / (4. * M_PI)) / (PROTONMASS / SOLAR_MASS); 
   
-  deriv[0] = dlw_dt_POP2; // This is your final result, in the future you will disentangle between different components
+  deriv[0] = dlw_dt_POP2; 
 }   
    
-// This function makes sure that the right version of ComputeJLW() gets called.
-// Note: Only the CPU version works for now
 void ComputeJLW(int snapshot, timer_info* timer_total)
 {
-  // Call the version of ComputeTs we've been passed (and time it)
+  
   timer_info timer;
-  // double redshift = run_globals.ZZ[snapshot];
-  // Run the Meraxes version of _ComputeJLW()
+  
   mlog("Calling pure-CPU version of ComputeJLW() for snap=%d/z=%.2lf...",
        MLOG_OPEN | MLOG_TIMERSTART,
        snapshot,

@@ -192,7 +192,7 @@ typedef struct run_params_t
   char MagBands[STRLEN];
   char ForestIDFile[STRLEN];
   char MvirCritFile[STRLEN];
-  char MvirCritMCFile[STRLEN]; // Added by Manu to include LW feedback
+  char MvirCritMCFile[STRLEN]; 
   char MassRatioModifier[STRLEN];
   char BaryonFracModifier[STRLEN];
   char FFTW3WisdomDir[STRLEN];
@@ -213,8 +213,8 @@ typedef struct run_params_t
   double PartMass;
   long long NPart;
 
-  double* MvirCrit; //?
-  double* MvirCrit_MC; // Added by Manu to include LW feedback
+  double* MvirCrit; 
+  double* MvirCrit_MC; 
 
   double ReionDeltaRFactor;
   double ReionPowerSpecDeltaK;
@@ -235,7 +235,7 @@ typedef struct run_params_t
   int FlagMCMC;
   int Flag_PatchyReion;
   int Flag_IncludeSpinTemp;
-  int Flag_IncludeLymanWerner; // Added to include the Lyman-Werner BG
+  int Flag_IncludeLymanWerner;
   int Flag_IncludeRecombinations;
   int Flag_Compute21cmBrightTemp;
   int Flag_ComputePS;
@@ -324,7 +324,7 @@ typedef struct reion_grids_t
   float* J_21_at_ionization;
   float* J_21;
   float* Mvir_crit;
-  float* Mvir_crit_MC; // Added by Manu for LW feedback
+  float* Mvir_crit_MC; // 
   float* r_bubble;
 
   // Grids necessary for the IGM spin temperature
@@ -469,7 +469,7 @@ typedef struct galaxy_t
   double BaryonFracModifier;
   double FOFMvirModifier;
   double MvirCrit;
-  double MvirCrit_MC; // Added by Manu for LW feedback
+  double MvirCrit_MC; 
   double MergerBurstMass;
 
   int Type;

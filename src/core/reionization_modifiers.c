@@ -40,9 +40,7 @@ void read_Mcrit_table()
 
 void read_Mcrit_MC_table()
 {
-  // TODO: Make sure Flag_ReionizationModifier gets set differently if using uvb fb and 21cmFAST
   if (run_globals.params.physics.Flag_ReionizationModifier != 3) {
-    // Set this to NULL if we don't need it...
     run_globals.params.MvirCrit_MC = NULL;
     return;
   }
@@ -51,23 +49,18 @@ void read_Mcrit_MC_table()
     hid_t fd;
     hsize_t dims;
 
-    // open the file
     fd = H5Fopen(run_globals.params.MvirCritMCFile, H5P_DEFAULT, H5P_DEFAULT);
     assert(fd >= 0);
 
-    // read the dataset size and ensure it is of the correct size
     H5LTget_dataset_info(fd, "mean_Mvir_crit_MC", &dims, NULL, NULL);
     assert((int)dims == run_globals.params.SnaplistLength);
 
-    // read the dataset
     run_globals.params.MvirCrit_MC = malloc(sizeof(double) * (int)dims);
     H5LTread_dataset_double(fd, "mean_Mvir_crit_MC", run_globals.params.MvirCrit_MC);
 
-    // close the file
     H5Fclose(fd);
   } else
     run_globals.params.MvirCrit_MC = malloc(sizeof(double) * run_globals.params.SnaplistLength);
 
-  // broadcast the result to the other ranks
   MPI_Bcast(run_globals.params.MvirCrit_MC, run_globals.params.SnaplistLength, MPI_DOUBLE, 0, run_globals.mpi_comm);
 }
