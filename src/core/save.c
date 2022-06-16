@@ -615,7 +615,7 @@ void create_master_file()
       H5LTset_attribute_string(file_id, group_name, "deltax", "None");
       
       if (run_globals.params.Flag_IncludeLymanWerner) {  
-        H5LTset_attribute_string(file_id, group_name, "JLW_box", "erg/s/Hz/cm/cm/sr"); 
+        H5LTset_attribute_string(file_id, group_name, "JLW_box", "1e-21erg/s/Hz/cm/cm/sr"); 
       }
 
       if (run_globals.params.Flag_ConstructLightcone) {

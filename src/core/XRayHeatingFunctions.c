@@ -1326,7 +1326,7 @@ double dT_comp(double z, double TK, double xe)
   double Trad, ans;
 
   Trad = TCMB * (1.0 + z);
-  ans = (-1.51e-4) * (xe / (1.0 + xe + f_He)) / (hubble((float)z) / (HUBBLE * run_globals.params.Hubble_h)) /
+  ans = (-1.51e-4) * (xe / (1.0 + xe)) / (hubble((float)z) / (HUBBLE * run_globals.params.Hubble_h)) /
         run_globals.params.Hubble_h * pow(Trad, 4.0) / (1.0 + z);
   ans *= Trad - TK;
   return ans;

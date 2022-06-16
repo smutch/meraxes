@@ -261,11 +261,6 @@ void call_ComputeJLW(int snapshot, int nout_gals, timer_info* timer)
   // Check to see if there are actually any galaxies at this snapshot
   MPI_Allreduce(&nout_gals, &total_n_out_gals, 1, MPI_INT, MPI_SUM, run_globals.mpi_comm);
 
-  // read in the velocity grids (only works for GBPTREES_TREES at the moment)
-  if (run_globals.params.Flag_IncludePecVelsFor21cm > 0) {
-    read_grid(run_globals.params.TsVelocityComponent, snapshot, grids->vel);
-  }
-
   // save the grids prior to doing FFTs to avoid precision loss and aliasing etc.
   for (int i_out = 0; i_out < run_globals.NOutputSnaps; i_out++)
     if (snapshot == run_globals.ListOutputSnaps[i_out] && run_globals.params.Flag_OutputGrids &&

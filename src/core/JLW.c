@@ -136,7 +136,7 @@
           continue;
 
         nuprime_LW = nu_n(n_ct) * (1 + zpp) / (1.0 + zp);
-        sum_lyn_LW[R_ct] += frecycle(n_ct) * spectral_emissivity_LW(nuprime_LW, 0, 2); 
+        sum_lyn_LW[R_ct] += spectral_emissivity_LW(nuprime_LW, 0, 2); 
         freq_int_pop2[R_ct] = sum_lyn_LW[R_ct] * PLANCK; 
       }
     }
@@ -156,7 +156,7 @@
                  
               evolveLW((float)zp, freq_int_pop2, SFR_POP2, result); 
               
-              JLW_box[i_real] = result[0]; 
+              JLW_box[i_real] = result[0] * 1e21; // Compute LW in 1e-21 units 
               J_LW_ave += JLW_box[i_real];  
        }      
        MPI_Allreduce(MPI_IN_PLACE, &J_LW_ave, 1, MPI_DOUBLE, MPI_SUM, run_globals.mpi_comm);

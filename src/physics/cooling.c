@@ -22,7 +22,7 @@ double gas_cooling(galaxy_t* gal)
     // calculate the halo virial temperature and log10 metallicity value
     // N.B. This assumes ionised gas with mu=0.59...
     double Tvir = 35.9 * fof_group->Vvir * fof_group->Vvir; // internal units (Kelvin)
-    double logZ,logZ2; 
+    double logZ; 
     if (gal->MetalsHotGas > 0)
         logZ = log10(calc_metallicity(gal->HotGas, gal->MetalsHotGas));
     else
@@ -98,8 +98,9 @@ double gas_cooling(galaxy_t* gal)
           // Identical procedure, only thing that changes is lambda!
           t_cool = fof_group->Rvir / fof_group->Vvir;
          	            
-          LTEcool = LTE_Mcool(Tvir,nH);  
-          loglambdalim = -103.0 + 97.59 * log10(Tvir) - 48.05 * pow(log10(Tvir),2) + 10.8 * pow(log10(Tvir),3) - 0.9032 * pow(log10(Tvir),4);
+          LTEcool = LTE_Mcool(Tvir,nH);
+          log10Tvir = log10(Tvir)  
+          loglambdalim = -103.0 + 97.59 * log10Tvir - 48.05 * pow(log10Tvir,2) + 10.8 * pow(log10Tvir,3) - 0.9032 * pow(log10Tvir,4);
           lambda = LTEcool / (1 + (LTEcool / pow(10,loglambdalim)));
         
           x = PROTONMASS * BOLTZMANN * Tvir / lambda; 

@@ -480,7 +480,7 @@ void _ComputeTs(int snapshot)
           for (R_ct = 0; R_ct < TsNumFilterSteps; R_ct++) {
             i_smoothedSFR = grid_index_smoothedSFR(R_ct, ix, iy, iz, TsNumFilterSteps, ReionGridDim);
 
-            SFR_GAL[R_ct] = SMOOTHED_SFR_GAL[i_smoothedSFR]; // Do I use this to move from Fourier Space to real space? 
+            SFR_GAL[R_ct] = SMOOTHED_SFR_GAL[i_smoothedSFR]; 
 
             if (run_globals.params.Flag_SeparateQSOXrays) {
               SFR_QSO[R_ct] = SMOOTHED_SFR_QSO[i_smoothedSFR];
