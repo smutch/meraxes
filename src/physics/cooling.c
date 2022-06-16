@@ -23,11 +23,11 @@ double gas_cooling(galaxy_t* gal)
     // N.B. This assumes ionised gas with mu=0.59...
     double Tvir = 35.9 * fof_group->Vvir * fof_group->Vvir; // internal units (Kelvin)
     double logZ; 
+    double log10Tvir = log10(Tvir);
     if (gal->MetalsHotGas > 0)
         logZ = log10(calc_metallicity(gal->HotGas, gal->MetalsHotGas));
     else
         logZ = -10.0;
-    log10Tvir = log10(Tvir);
     // If we are below 10^3 K no cooling at all 
     if (Tvir >= 1e3) {
       double t_cool, max_cooling_mass;
