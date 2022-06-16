@@ -136,8 +136,10 @@
           continue;
 
         nuprime_LW = nu_n(n_ct) * (1 + zpp) / (1.0 + zp);
-        sum_lyn_LW[R_ct] += spectral_emissivity_LW(nuprime_LW, 0, 2); 
-        freq_int_pop2[R_ct] = sum_lyn_LW[R_ct] * PLANCK; 
+        //sum_lyn_LW[R_ct] += spectral_emissivity_LW(nuprime_LW, 0, 2); 
+        //freq_int_pop2[R_ct] = sum_lyn_LW[R_ct] * PLANCK; 
+        sum_lyn_LW[R_ct] += spectral_emissivity_LW(nuprime_LW, 2);
+        freq_int_pop2[R_ct] = sum_lyn_LW[R_ct] * PLANCK;
       }
     }
       
@@ -169,7 +171,7 @@
 
  
  // Reads in and constructs table of the piecewise power-law fits to Pop 2 and Pop 3 stellar spectra, from Barkana, specifically designed for LW computation.
- double spectral_emissivity_LW(double nu_norm, int flag, int Population)
+ /*double spectral_emissivity_LW(double nu_norm, int flag, int Population)
  {
   static int n[NSPEC_MAX];
   static float nu_n[NSPEC_MAX], alpha_S_2[NSPEC_MAX];
@@ -247,7 +249,36 @@
     return N0_2[i] * pow(nu_norm, alpha_S_2[i]) / Ly_alpha_HZ;
   else
     return N0_3[i] * pow(nu_norm, alpha_S_3[i]) / Ly_alpha_HZ;
-}
+}*/
+
+ double spectral_emissivity_LW(double nu_norm, int Population)
+ {
+   static int n[NSPEC_MAX];
+   static float nu_n[NSPEC_MAX];
+   static float alpha_S_3[NSPEC_MAX], N0_2[NSPEC_MAX], N0_3[NSPEC_MAX], alpha_S_2[NSPEC_MAX];
+   double ans;
+   int i;
+   double lower_limit;
+   
+   for (i = 1; i < NSPEC_MAX -1); i++) {
+     if (nu_n[i] >= NU_LW / NU_LL)
+       lower_limit = nu_n[i];
+     else
+       lower_limit = NU_LW / NU_LL;
+     if ((nu_norm >= lower_limit) && (nu_norm < nu_n[i+1])) {
+       if (Population == 2) {
+         ans = N0_2[i]  / (alpha_S_2[i] + 1) * (pow(nu_n[i+1], alpha_S_2[i]+1) - pow(nu_norm, alpha_S_2[i]+1));
+       }
+       else if (Population == 3) {
+         ans = N0_3[i] / (alpha_S_3[i] + 1) * (pow(nu_n[i+1], alpha_S_3[i]+1) - pow(nu_norm, alpha_S_3[i]+1));
+       }
+       else {
+         mlog("Invalid value for Stellar Population", MLOG_MESG);
+       }
+       return ans;
+     }
+   }
+ }
  
  int init_LW() 
  {
