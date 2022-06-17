@@ -251,7 +251,7 @@
     return N0_3[i] * pow(nu_norm, alpha_S_3[i]) / Ly_alpha_HZ;
 }*/
 
- double spectral_emissivity_LW(double nu_norm, int Population)
+ double spectral_emissivity_LW(double nu_norm, int Population) // if it works incorporate this inside spectral_emissivity
  {
    static int n[NSPEC_MAX];
    static float nu_n[NSPEC_MAX];
@@ -286,7 +286,8 @@
    zpp_edgee = calloc(TsNumFilterSteps, sizeof(double));
    sum_lyn_LW = calloc(TsNumFilterSteps, sizeof(double));
    
-   if (spectral_emissivity_LW(0, 1, 0) < 0)
+   //if (spectral_emissivity_LW(0, 1, 0) < 0)
+   if (spectral_emissivity(0, 1) < 0)
     return -6;
  
    return 0;
@@ -295,7 +296,8 @@
  void destruct_LW()
 {
   free(zpp_edgee);
-  spectral_emissivity_LW(0.0, 2, 0); //2 is the flag, frees memory.
+  //spectral_emissivity_LW(0.0, 2, 0); 
+  spectral_emissivity(0, 2); //2 is the flag, frees memory.
   free(sum_lyn_LW);
 }
  
