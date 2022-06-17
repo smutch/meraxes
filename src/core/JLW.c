@@ -260,7 +260,7 @@
    int i;
    double lower_limit;
    
-   for (i = 1; i < NSPEC_MAX -1); i++) {
+   for (i = 1; i < (NSPEC_MAX -1); i++) {
      if (nu_n[i] >= NU_LW / NU_LL)
        lower_limit = nu_n[i];
      else
