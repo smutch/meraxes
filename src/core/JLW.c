@@ -300,6 +300,15 @@
         N0_3[i] *= (alpha_S_3[i] + 1) / n0_fac * Pop3_ion;
       }
     }
+    
+    MPI_Bcast(nu_n, sizeof(nu_n), MPI_BYTE, 0, run_globals.mpi_comm);
+    MPI_Bcast(alpha_S_2, sizeof(alpha_S_2), MPI_BYTE, 0, run_globals.mpi_comm);
+    MPI_Bcast(alpha_S_3, sizeof(alpha_S_3), MPI_BYTE, 0, run_globals.mpi_comm);
+    MPI_Bcast(N0_2, sizeof(N0_2), MPI_BYTE, 0, run_globals.mpi_comm);
+    MPI_Bcast(N0_3, sizeof(N0_3), MPI_BYTE, 0, run_globals.mpi_comm);
+
+    return 0.0;
+  }
    
    for (i = 1; i < (NSPEC_MAX -1); i++) {
      if (nu_n[i] >= NU_LW / NU_LL)
