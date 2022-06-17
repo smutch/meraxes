@@ -107,9 +107,12 @@
 
               ((float*)sfr_filtered)[i_padded] = fmaxf(((float*)sfr_filtered)[i_padded], 0.0);
 
-              SMOOTHED_SFR_POP2[i_smoothedSFR] = (((float*)sfr_filtered)[i_padded] / pixel_volume) * 
+              //SMOOTHED_SFR_POP2[i_smoothedSFR] = (((float*)sfr_filtered)[i_padded] / pixel_volume) * 
                                                 (units->UnitMass_in_g / units->UnitTime_in_s) *  
                                                 pow(units->UnitLength_in_cm, -3.) / SOLAR_MASS;
+              SMOOTHED_SFR_POP2[i_smoothedSFR] = (((float*)sfr_filtered)[i_padded] / pixel_volume) * 
+                                                (units->UnitMass_in_g / units->UnitTime_in_s) *  
+                                                pow(units->UnitLength_in_cm, -3.);                                  
       }
       R *= R_factor;
     }
@@ -152,7 +155,7 @@
               for (R_ct = 0; R_ct < TsNumFilterSteps; R_ct++) {
                 i_smoothedSFR = grid_index_smoothedSFR(R_ct, ix, iy, iz, TsNumFilterSteps, ReionGridDim);
 
-                SFR_POP2[R_ct] = SMOOTHED_SFR_POP2[i_smoothedSFR]/PROTONMASS;
+                SFR_POP2[R_ct] = SMOOTHED_SFR_POP2[i_smoothedSFR] / PROTONMASS;
                 dt_dzpp = dt_dzpp_list[R_ct]; //s
                 }  
                  
@@ -324,7 +327,8 @@
      dlw_dt_POP2 += dt_dzpp * dzpp * StarF_POP2[zpp_ct] * zpp_integrand_POP2 * pow(1 + zp, 2) * (1 + zpp);     
   }
   
-  dlw_dt_POP2 *= (SPEED_OF_LIGHT / (4. * M_PI)) / (PROTONMASS / SOLAR_MASS); 
+  //dlw_dt_POP2 *= (SPEED_OF_LIGHT / (4. * M_PI)) / (PROTONMASS / SOLAR_MASS); 
+  dlw_dt_POP2 *= (SPEED_OF_LIGHT / (4. * M_PI));
   
   deriv[0] = dlw_dt_POP2; 
 }   
