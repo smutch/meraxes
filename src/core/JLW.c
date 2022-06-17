@@ -139,9 +139,7 @@
           continue;
 
         nuprime_LW = nu_n(n_ct) * (1 + zpp) / (1.0 + zp);
-        //sum_lyn_LW[R_ct] += spectral_emissivity_LW(nuprime_LW, 0, 2); 
-        //freq_int_pop2[R_ct] = sum_lyn_LW[R_ct] * PLANCK; 
-        sum_lyn_LW[R_ct] += spectral_emissivity_LW(nuprime_LW, 2);
+        sum_lyn_LW[R_ct] += spectral_emissivity_LW(nuprime_LW, 0, 2);
         freq_int_pop2[R_ct] = sum_lyn_LW[R_ct] * PLANCK;
       }
     }
@@ -254,14 +252,54 @@
     return N0_3[i] * pow(nu_norm, alpha_S_3[i]) / Ly_alpha_HZ;
 }*/
 
- double spectral_emissivity_LW(double nu_norm, int Population) // if it works incorporate this inside spectral_emissivity
+ double spectral_emissivity_LW(double nu_norm, int flag, int Population) // if it works incorporate this inside spectral_emissivity
  {
    static int n[NSPEC_MAX];
    static float nu_n[NSPEC_MAX];
    static float alpha_S_3[NSPEC_MAX], N0_2[NSPEC_MAX], N0_3[NSPEC_MAX], alpha_S_2[NSPEC_MAX];
+   double n0_fac;
    double ans;
    int i;
    double lower_limit;
+   FILE* F;
+
+   char fname[STRLEN];
+
+   
+   if (flag == 1) {
+
+    if (run_globals.mpi_rank == 0) {
+
+      sprintf(fname, "%s/stellar_spectra.dat", run_globals.params.TablesForXHeatingDir);
+
+      // Read in the data
+      if (!(F = fopen(fname, "r"))) {
+        mlog("spectral_emissivity: Unable to open file: stellar_spectra.dat at %s for reading\nAborting\n",
+             MLOG_MESG,
+             fname);
+        return -1;
+      }
+
+      for (i = 1; i < NSPEC_MAX; i++) {
+        fscanf(F, "%i %e %e %e %e", &n[i], &N0_2[i], &alpha_S_2[i], &N0_3[i], &alpha_S_3[i]);
+      }
+      fclose(F);
+
+      for (i = 1; i < NSPEC_MAX; i++) {
+        nu_n[i] = (float)(4.0 / 3.0 * (1.0 - 1.0 / pow(n[i], 2.0)));
+      }
+
+      for (i = 1; i < NSPEC_MAX; i++) {
+        nu_n[i] = (float)(4.0 / 3.0 * (1.0 - 1.0 / pow(n[i], 2.0)));
+      }
+
+      for (i = 1; i < (NSPEC_MAX - 1); i++) {
+        n0_fac = (pow(nu_n[i + 1], alpha_S_2[i] + 1) - pow(nu_n[i], alpha_S_2[i] + 1));
+        N0_2[i] *= (alpha_S_2[i] + 1) / n0_fac * Pop2_ion;
+        n0_fac = (pow(nu_n[i + 1], alpha_S_3[i] + 1) - pow(nu_n[i], alpha_S_3[i] + 1));
+        N0_3[i] *= (alpha_S_3[i] + 1) / n0_fac * Pop3_ion;
+      }
+    }
    
    for (i = 1; i < (NSPEC_MAX -1); i++) {
      if (nu_n[i] >= NU_LW / NU_LL)
@@ -289,8 +327,7 @@
    zpp_edgee = calloc(TsNumFilterSteps, sizeof(double));
    sum_lyn_LW = calloc(TsNumFilterSteps, sizeof(double));
    
-   //if (spectral_emissivity_LW(0, 1, 0) < 0)
-   if (spectral_emissivity(0, 1) < 0)
+   if (spectral_emissivity_LW(0, 1, 0) < 0)
     return -6;
  
    return 0;
@@ -299,8 +336,7 @@
  void destruct_LW()
 {
   free(zpp_edgee);
-  //spectral_emissivity_LW(0.0, 2, 0); 
-  spectral_emissivity(0, 2); //2 is the flag, frees memory.
+  spectral_emissivity_LW(0.0, 2, 0); 
   free(sum_lyn_LW);
 }
  

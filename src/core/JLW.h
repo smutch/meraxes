@@ -26,7 +26,7 @@ extern "C"
   double* sum_lyn_LW;
   extern double* sum_lyn_LW;
  
-  double spectral_emissivity_LW(double nu_norm, int Population);
+  double spectral_emissivity_LW(double nu_norm, int flag, int Population);
  
   void evolveLW(float zp, const double integrand_POP2[], const double StarF_POP2[], double deriv[]);
  
