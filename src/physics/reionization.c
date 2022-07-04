@@ -89,7 +89,8 @@ void calculate_Mvir_crit_MC(double redshift)
 
 double tocf_modifier(galaxy_t* gal, double Mvir)
 {
-  return pow(2.0, -1.0 * gal->MvirCrit / Mvir);
+  //return pow(2.0, -1.0 * gal->MvirCrit / Mvir);
+  return 1; // ADDED TO ERASE THE REION FEED
 }
 
 static double inline M0(double z)
