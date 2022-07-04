@@ -16,8 +16,6 @@ double gas_cooling(galaxy_t* gal)
   // we only need to do cooling if there is anything to cool!
   if (gal->HotGas > 1e-10) {
     fof_group_t* fof_group = gal->Halo->FOFGroup;
-    
-    MC_thresh = gal->MvirCrit_MC;
 
     // calculate the halo virial temperature and log10 metallicity value
     // N.B. This assumes ionised gas with mu=0.59...
@@ -47,7 +45,7 @@ double gas_cooling(galaxy_t* gal)
         lambda = interpolate_cooling_rate(log10Tvir, logZ);
         }
       
-      else if (Tvir>=1e3 && gal->Mvir >= MC_thresh){
+      else if (Tvir>=1e3 && gal->Mvir >= gal->MvirCrit_MC) {
         double nH = 1e2; // Use value of low density regime.
         
         // Molecular Cooling from Galli & Palla 1998
