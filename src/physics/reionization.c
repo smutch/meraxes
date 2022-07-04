@@ -50,7 +50,6 @@ void calculate_Mvir_crit(double redshift)
                  pow((1.0 + redshift) / (1.0 + (double)(z_at_ion[grid_index(ii, jj, kk, ReionGridDim, INDEX_REAL)])),
                      ReionSMParam_c)),
                 ReionSMParam_d);
-        cell_Mvir_crit = ReionSMParam_m0; // ADDED JUST TO ERASE THE REION FEEDBACK!
 
         // Save the critical mass to the grid
         Mvir_crit[grid_index(ii, jj, kk, ReionGridDim, INDEX_REAL)] = (float)cell_Mvir_crit;
@@ -89,8 +88,7 @@ void calculate_Mvir_crit_MC(double redshift)
 
 double tocf_modifier(galaxy_t* gal, double Mvir)
 {
-  //return pow(2.0, -1.0 * gal->MvirCrit / Mvir);
-  return 1; // ADDED TO ERASE THE REION FEED
+  return pow(2.0, -1.0 * gal->MvirCrit / Mvir);
 }
 
 static double inline M0(double z)
