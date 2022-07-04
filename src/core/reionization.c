@@ -699,7 +699,7 @@ void malloc_reionization_grids()
       grids->Mvir_crit = fftwf_alloc_real((size_t)slab_n_real);
     }
             
-    if (run_globals.params.Flag_IncludeLymanWerner){ 
+    if (run_globals.params.Flag_IncludeLymanWerner) { 
       grids->Mvir_crit_MC = fftwf_alloc_real((size_t)slab_n_real);
     }
 
@@ -754,9 +754,10 @@ void free_reionization_grids()
     fftwf_free(grids->Mvir_crit);
     fftwf_free(grids->J_21);
     fftwf_free(grids->J_21_at_ionization);
+  }
     
-    if (run_globals.params.Flag_IncludeLymanWerner) 
-      fftwf_free(grids->Mvir_crit_MC);
+  if (run_globals.params.Flag_IncludeLymanWerner) { 
+    fftwf_free(grids->Mvir_crit_MC);
   }
 
   if (run_globals.params.Flag_Compute21cmBrightTemp) {
