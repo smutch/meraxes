@@ -363,15 +363,17 @@ void init_reion_grids()
     }
   }
 
-  for (int ii = 0; ii < slab_n_real; ii++)
+  for (int ii = 0; ii < slab_n_real; ii++) {
     if (run_globals.params.ReionUVBFlag) {
       grids->J_21_at_ionization[ii] = (float)0.;
       grids->J_21[ii] = (float)0.;
       grids->Mvir_crit[ii] = (float)0.;
-      if (run_globals.params.Flag_IncludeLymanWerner)
-        grids->Mvir_crit_MC[ii] = (float)0.;
-    }
-
+      }
+    if (run_globals.params.Flag_IncludeLymanWerner) {
+      grids->Mvir_crit_MC[ii] = (float)0.;
+      }
+  }
+  
   for (int ii = 0; ii < slab_n_complex; ii++) {
     grids->stars_filtered[ii] = 0 + 0I;
     grids->stars_unfiltered[ii] = 0 + 0I;
