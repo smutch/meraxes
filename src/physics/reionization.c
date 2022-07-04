@@ -50,6 +50,7 @@ void calculate_Mvir_crit(double redshift)
                  pow((1.0 + redshift) / (1.0 + (double)(z_at_ion[grid_index(ii, jj, kk, ReionGridDim, INDEX_REAL)])),
                      ReionSMParam_c)),
                 ReionSMParam_d);
+        cell_Mvir_crit = ReionSMParam_m0; // ADDED JUST TO ERASE THE REION FEEDBACK!
 
         // Save the critical mass to the grid
         Mvir_crit[grid_index(ii, jj, kk, ReionGridDim, INDEX_REAL)] = (float)cell_Mvir_crit;
