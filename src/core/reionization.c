@@ -695,9 +695,10 @@ void malloc_reionization_grids()
       grids->J_21_at_ionization = fftwf_alloc_real((size_t)slab_n_real);
       grids->J_21 = fftwf_alloc_real((size_t)slab_n_real);
       grids->Mvir_crit = fftwf_alloc_real((size_t)slab_n_real);
-      
-      if (run_globals.params.Flag_IncludeLymanWerner) 
-        grids->Mvir_crit_MC = fftwf_alloc_real((size_t)slab_n_real);
+    }
+            
+    if (run_globals.params.Flag_IncludeLymanWerner){ 
+      grids->Mvir_crit_MC = fftwf_alloc_real((size_t)slab_n_real);
     }
 
     if (run_globals.params.Flag_ConstructLightcone) {
@@ -1417,9 +1418,10 @@ void save_reion_output_grids(int snapshot)
     H5LTset_attribute_double(file_id, "J_21", "volume_weighted_global_J_21", &(grids->volume_weighted_global_J_21), 1);
     write_grid_float("J_21_at_ionization", grids->J_21_at_ionization, file_id, fspace_id, memspace_id, dcpl_id);
     write_grid_float("Mvir_crit", grids->Mvir_crit, file_id, fspace_id, memspace_id, dcpl_id);
+  }
     
-    if (run_globals.params.Flag_IncludeLymanWerner)
-      write_grid_float("Mvir_crit_MC", grids->Mvir_crit_MC, file_id, fspace_id, memspace_id, dcpl_id);
+  if (run_globals.params.Flag_IncludeLymanWerner) {
+    write_grid_float("Mvir_crit_MC", grids->Mvir_crit_MC, file_id, fspace_id, memspace_id, dcpl_id);
   }
 
   // fftw padded grids
