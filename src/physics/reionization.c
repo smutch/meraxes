@@ -40,7 +40,7 @@ void calculate_Mvir_crit(double redshift)
         // If this cell was ionized in the past then calculate the critical
         // mass using the UVB feedback prescription of Sobacchi & Mesinger
         // 2013b
-        /*if (z_at_ion[grid_index(ii, jj, kk, ReionGridDim, INDEX_REAL)] > redshift) // Remove UVB feedback
+        if (z_at_ion[grid_index(ii, jj, kk, ReionGridDim, INDEX_REAL)] > redshift) // Remove UVB feedback
           cell_Mvir_crit =
             ReionSMParam_m0 *
             pow((double)(J_21_at_ion[grid_index(ii, jj, kk, ReionGridDim, INDEX_REAL)]) * Hubble_h * Hubble_h,
@@ -49,7 +49,7 @@ void calculate_Mvir_crit(double redshift)
             pow((1.0 -
                  pow((1.0 + redshift) / (1.0 + (double)(z_at_ion[grid_index(ii, jj, kk, ReionGridDim, INDEX_REAL)])),
                      ReionSMParam_c)),
-                ReionSMParam_d);*/
+                ReionSMParam_d);
 
         // Save the critical mass to the grid
         Mvir_crit[grid_index(ii, jj, kk, ReionGridDim, INDEX_REAL)] = (float)cell_Mvir_crit;
@@ -88,8 +88,7 @@ void calculate_Mvir_crit_MC(double redshift)
 
 double tocf_modifier(galaxy_t* gal, double Mvir)
 {
-  //return pow(2.0, -1.0 * gal->MvirCrit / Mvir);
-  return 1; // Added to ERASE UV FEEDBACK
+  return pow(2.0, -1.0 * gal->MvirCrit / Mvir);
 }
 
 static double inline M0(double z)
