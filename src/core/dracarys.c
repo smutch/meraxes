@@ -110,7 +110,7 @@ void dracarys()
     if ((run_globals.params.Flag_PatchyReion) && (run_globals.params.ReionUVBFlag)) {
       calculate_Mvir_crit(run_globals.ZZ[snapshot]);
             
-      if run_globals.params.Flag_IncludeLymanWerner 
+      if (run_globals.params.Flag_IncludeLymanWerner) 
         calculate_Mvir_crit_MC(run_globals.ZZ[snapshot]);
     }
 
