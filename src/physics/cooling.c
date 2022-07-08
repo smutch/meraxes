@@ -84,7 +84,16 @@ double gas_cooling(galaxy_t* gal)
         cooling_mass = max_cooling_mass / fof_group->Rvir * r_cool;
         if (cooling_mass > max_cooling_mass)
           cooling_mass = max_cooling_mass;
-      } 
+      }
+      
+      if (cooling_mass > gal->HotGas)
+        cooling_mass = gal->HotGas;
+
+      if (run_globals.params.physics.Flag_BHFeedback)
+        cooling_mass -= radio_mode_BH_heating(gal, cooling_mass, x);
+
+      if (cooling_mass < 0)
+        cooling_mass = 0.0;  
     }
       
     else if (Tvir>=1e3 && gal->Mvir >= MC_thresh) {
@@ -133,17 +142,17 @@ double gas_cooling(galaxy_t* gal)
         if (cooling_mass > max_cooling_mass)
           cooling_mass = max_cooling_mass;
       }
+      
+      // do one last sanity check to ensure we aren't cooling more gas than is available etc.
+      if (cooling_mass > gal->HotGas)
+        cooling_mass = gal->HotGas;
+
+      if (run_globals.params.physics.Flag_BHFeedback)
+        cooling_mass -= radio_mode_BH_heating(gal, cooling_mass, x);
+
+      if (cooling_mass < 0)
+        cooling_mass = 0.0;
     }
-
-    // do one last sanity check to ensure we aren't cooling more gas than is available etc.
-    if (cooling_mass > gal->HotGas)
-      cooling_mass = gal->HotGas;
-
-    if (run_globals.params.physics.Flag_BHFeedback)
-      cooling_mass -= radio_mode_BH_heating(gal, cooling_mass, x);
-
-    if (cooling_mass < 0)
-      cooling_mass = 0.0;
   }
   return cooling_mass;
 }
