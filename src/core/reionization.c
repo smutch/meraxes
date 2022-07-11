@@ -887,7 +887,7 @@ int map_galaxies_to_slabs(int ngals)
   return gal_counter;
 }
 
-void assign_Mvir_crit_to_galaxies(int ngals_in_slabs, flag_feed) // flag = 1 Reio feedback, flag = 2 LW feedback
+void assign_Mvir_crit_to_galaxies(int ngals_in_slabs, int flag_feed) // flag = 1 Reio feedback, flag = 2 LW feedback
 {
   // N.B. We are assuming here that the galaxy_to_slab mapping has been sorted
   // by slab index...
