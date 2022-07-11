@@ -898,15 +898,17 @@ void assign_Mvir_crit_to_galaxies(int ngals_in_slabs, int flag_feed) // flag = 1
   ptrdiff_t* slab_ix_start = run_globals.reion_grids.slab_ix_start;
   int ReionGridDim = run_globals.params.ReionGridDim;
   double box_size = run_globals.params.BoxSize;
+  float* Mvir_crit = run_globals.reion_grids.Mvir_crit;
+  float* Mvir_crit_MC = run_globals.reion_grids.Mvir_crit_MC;
   int total_assigned = 0;
   
   if (flag_feed == 1) {
-    float* Mvir_crit = run_globals.reion_grids.Mvir_crit;
+    //float* Mvir_crit = run_globals.reion_grids.Mvir_crit;
     mlog("Assigning Mvir_crit to galaxies...", MLOG_OPEN);
   }
   
   if (flag_feed == 2) {
-    float* Mvir_crit_MC = run_globals.reion_grids.Mvir_crit_MC;
+    //float* Mvir_crit_MC = run_globals.reion_grids.Mvir_crit_MC;
     mlog("Assigning Mvir_crit_MC to galaxies...", MLOG_OPEN);
   }
   
