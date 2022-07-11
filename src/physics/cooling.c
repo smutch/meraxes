@@ -20,29 +20,39 @@ double gas_cooling(galaxy_t* gal)
     // calculate the halo virial temperature and log10 metallicity value
     // N.B. This assumes ionised gas with mu=0.59...
     double Tvir = 35.9 * fof_group->Vvir * fof_group->Vvir; // internal units (Kelvin)
+    double log10Tvir = log10(Tvir)
     double logZ;
+    double t_cool, max_cooling_mass;
+    double lambda, x, rho_r_cool, r_cool, isothermal_norm;
+    run_units_t* units = &(run_globals.units);
+    double max_cooling_mass_factor = run_globals.params.physics.MaxCoolingMassFactor;
+    int halo_type; // Added this variable to make the code nicer (1 = AC, 2 = MC, 0 = None)
+    
     if (gal->MetalsHotGas > 0)
         logZ = log10(calc_metallicity(gal->HotGas, gal->MetalsHotGas));
     else
         logZ = -10.0;
     // If we are below 10^4 K then no atomic cooling
     if (Tvir >= 1e4) {
-      double t_cool, max_cooling_mass;
-      double lambda, x, rho_r_cool, r_cool, isothermal_norm;
-      run_units_t* units = &(run_globals.units);
-      double max_cooling_mass_factor = run_globals.params.physics.MaxCoolingMassFactor;
+      //double t_cool, max_cooling_mass;
+      //double lambda, x, rho_r_cool, r_cool, isothermal_norm;
+      //run_units_t* units = &(run_globals.units);
+      //double max_cooling_mass_factor = run_globals.params.physics.MaxCoolingMassFactor;
 
       // following Croton+ 2006, we set the maximum cooling time to be the
       // dynamical time of the host dark matter halo
+      halo_type = 1;
+      
       t_cool = fof_group->Rvir / fof_group->Vvir; // internal units
 
       // interpolate the temperature and metallicity dependant cooling rate (lambda)
-      lambda = interpolate_cooling_rate(log10(Tvir), logZ);
+      lambda = interpolate_cooling_rate(log10Tvir, logZ);
+    }
 
       // following equation (3) of Croton+ 2006, calculate the hot gas density at
       // the radius r_cool (i.e. where the cooling time is equal to `t_cool`
       // above)
-      x = PROTONMASS * BOLTZMANN * Tvir / lambda;              // now this has units sec g/cm^3
+      /*x = PROTONMASS * BOLTZMANN * Tvir / lambda;              // now this has units sec g/cm^3
       x /= (units->UnitDensity_in_cgs * units->UnitTime_in_s); // now in internal units
       rho_r_cool = x / t_cool * 0.885;                         // 0.885 = 3/2 * mu, mu=0.59 for a fully ionized gas
 
@@ -82,25 +92,32 @@ double gas_cooling(galaxy_t* gal)
 
       if (cooling_mass < 0)
         cooling_mass = 0.0;
-    }
+    }*/
   // Implement Molecular cooling using fitting of cooling curves of Galli and Palla 1998, Include LW feedback according to Visbal 2014
 
     else if(Tvir >= 1e3 && gal->Mvir >= gal->MvirCrit_MC) {
-      double t_cool, max_cooling_mass;
       double loglambdalim, LTEcool; 
-      double nH = 1e2; // Use value of low density regime.
-      double lambda, x, rho_r_cool, r_cool, isothermal_norm;
-      run_units_t* units = &(run_globals.units);
-      double max_cooling_mass_factor = run_globals.params.physics.MaxCoolingMassFactor;
+      double nH = 1e2; // Use value of low density regime
+      
+      halo_type = 2;
         	
       // Identical procedure, only thing that changes is lambda!
       t_cool = fof_group->Rvir / fof_group->Vvir; // internal units
          	            
       //interpolate the temperature and metallicity dependant cooling rate (lambda)
       LTEcool = LTE_Mcool(Tvir,nH);  
-      loglambdalim = -103.0 + 97.59 * log10(Tvir) - 48.05 * pow(log10(Tvir),2) + 10.8 * pow(log10(Tvir),3) - 0.9032 * pow(log10(Tvir),4);
+      loglambdalim = -103.0 + 97.59 * log10Tvir - 48.05 * pow(log10Tvir,2) + 10.8 * pow(log10Tvir,3) - 0.9032 * pow(log10Tvir,4);
       lambda = LTEcool / (1 + (LTEcool / pow(10,loglambdalim)));
-        
+    }
+    
+    else {
+    
+    halo_type = 0;
+    cooling_mass = 0.0;
+    }
+      
+    if (halo_type != 0) {
+      
       x = PROTONMASS * BOLTZMANN * Tvir / lambda; // now this has units sec g/cm^3
       x /= (units->UnitDensity_in_cgs * units->UnitTime_in_s); // now in internal units
       rho_r_cool = x / t_cool * 0.885; // 0.885 = 3/2 * mu, mu=0.59 for a fully ionized gas
