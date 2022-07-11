@@ -63,8 +63,8 @@ extern "C"
   void malloc_reionization_grids(void);
   void free_reionization_grids(void);
   int map_galaxies_to_slabs(int ngals);
-  void assign_Mvir_crit_to_galaxies(int ngals_in_slabs);
-  void assign_Mvir_crit_MC_to_galaxies(int ngals_in_slabs); // Added by Manu for LW feedback
+  void assign_Mvir_crit_to_galaxies(int ngals_in_slabs, flag_feed);
+  //void assign_Mvir_crit_MC_to_galaxies(int ngals_in_slabs); // Added by Manu for LW feedback
   void construct_baryon_grids(int snapshot, int ngals);
   void gen_grids_fname(const int snapshot, char* name, const bool relative);
   void save_reion_input_grids(int snapshot);

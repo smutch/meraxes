@@ -887,21 +887,29 @@ int map_galaxies_to_slabs(int ngals)
   return gal_counter;
 }
 
-void assign_Mvir_crit_to_galaxies(int ngals_in_slabs)
+void assign_Mvir_crit_to_galaxies(int ngals_in_slabs, flag_feed) // flag = 1 Reio feedback, flag = 2 LW feedback
 {
   // N.B. We are assuming here that the galaxy_to_slab mapping has been sorted
   // by slab index...
   gal_to_slab_t* galaxy_to_slab_map = run_globals.reion_grids.galaxy_to_slab_map;
-  float* Mvir_crit = run_globals.reion_grids.Mvir_crit;
+  //float* Mvir_crit = run_globals.reion_grids.Mvir_crit;
   float* buffer = run_globals.reion_grids.buffer;
   ptrdiff_t* slab_nix = run_globals.reion_grids.slab_nix;
   ptrdiff_t* slab_ix_start = run_globals.reion_grids.slab_ix_start;
   int ReionGridDim = run_globals.params.ReionGridDim;
   double box_size = run_globals.params.BoxSize;
   int total_assigned = 0;
-
-  mlog("Assigning Mvir_crit to galaxies...", MLOG_OPEN);
-
+  
+  if (flag_feed == 1) {
+    float* Mvir_crit = run_globals.reion_grids.Mvir_crit;
+    mlog("Assigning Mvir_crit to galaxies...", MLOG_OPEN);
+  }
+  
+  if (flag_feed == 2) {
+    float* Mvir_crit_MC = run_globals.reion_grids.Mvir_crit_MC;
+    mlog("Assigning Mvir_crit_MC to galaxies...", MLOG_OPEN);
+  }
+  
   // Work out the index of the galaxy_to_slab_map where each slab begins.
   // TODO: This needs checked...
   int slab_map_offsets[run_globals.mpi_size];
@@ -937,44 +945,92 @@ void assign_Mvir_crit_to_galaxies(int ngals_in_slabs)
 
     bool send_flag = false;
     bool recv_flag = (slab_map_offsets[recv_from_rank] > -1);
+    
+    if (flag_feed == 1) {
 
-    if (i_skip > 0) {
-      MPI_Sendrecv(&recv_flag,
-                   sizeof(bool),
-                   MPI_BYTE,
-                   recv_from_rank,
-                   6393762,
-                   &send_flag,
-                   sizeof(bool),
-                   MPI_BYTE,
-                   send_to_rank,
-                   6393762,
-                   run_globals.mpi_comm,
-                   MPI_STATUS_IGNORE);
+      if (i_skip > 0) {
+        MPI_Sendrecv(&recv_flag,
+                     sizeof(bool),
+                     MPI_BYTE,
+                     recv_from_rank,
+                     6393762,
+                     &send_flag,
+                     sizeof(bool),
+                     MPI_BYTE,
+                     send_to_rank,
+                     6393762,
+                     run_globals.mpi_comm,
+                     MPI_STATUS_IGNORE);
 
-      // need to ensure sends and receives do not clash!
-      if (send_to_rank > run_globals.mpi_rank) {
-        if (send_flag) {
-          int n_cells = (int)(slab_nix[run_globals.mpi_rank] * ReionGridDim * ReionGridDim);
-          MPI_Send(Mvir_crit, n_cells, MPI_FLOAT, send_to_rank, 793710, run_globals.mpi_comm);
+        // need to ensure sends and receives do not clash!
+          if (send_to_rank > run_globals.mpi_rank) {
+            if (send_flag) {
+              int n_cells = (int)(slab_nix[run_globals.mpi_rank] * ReionGridDim * ReionGridDim);
+              MPI_Send(Mvir_crit, n_cells, MPI_FLOAT, send_to_rank, 793710, run_globals.mpi_comm);
+            }
+            if (recv_flag) {
+              int n_cells = (int)(slab_nix[recv_from_rank] * ReionGridDim * ReionGridDim);
+              MPI_Recv(buffer, n_cells, MPI_FLOAT, recv_from_rank, 793710, run_globals.mpi_comm, MPI_STATUS_IGNORE);
+            }
+          } 
+          else {
+            if (recv_flag) {
+              int n_cells = (int)(slab_nix[recv_from_rank] * ReionGridDim * ReionGridDim);
+              MPI_Recv(buffer, n_cells, MPI_FLOAT, recv_from_rank, 793710, run_globals.mpi_comm, MPI_STATUS_IGNORE);
+            }
+            if (send_flag) {
+              int n_cells = (int)(slab_nix[run_globals.mpi_rank] * ReionGridDim * ReionGridDim);
+              MPI_Send(Mvir_crit, n_cells, MPI_FLOAT, send_to_rank, 793710, run_globals.mpi_comm);
+            }
+          }
         }
-        if (recv_flag) {
+        else {
           int n_cells = (int)(slab_nix[recv_from_rank] * ReionGridDim * ReionGridDim);
-          MPI_Recv(buffer, n_cells, MPI_FLOAT, recv_from_rank, 793710, run_globals.mpi_comm, MPI_STATUS_IGNORE);
-        }
-      } else {
-        if (recv_flag) {
-          int n_cells = (int)(slab_nix[recv_from_rank] * ReionGridDim * ReionGridDim);
-          MPI_Recv(buffer, n_cells, MPI_FLOAT, recv_from_rank, 793710, run_globals.mpi_comm, MPI_STATUS_IGNORE);
-        }
-        if (send_flag) {
-          int n_cells = (int)(slab_nix[run_globals.mpi_rank] * ReionGridDim * ReionGridDim);
-          MPI_Send(Mvir_crit, n_cells, MPI_FLOAT, send_to_rank, 793710, run_globals.mpi_comm);
+          memcpy(buffer, Mvir_crit, sizeof(float) * n_cells);
         }
       }
-    } else {
-      int n_cells = (int)(slab_nix[recv_from_rank] * ReionGridDim * ReionGridDim);
-      memcpy(buffer, Mvir_crit, sizeof(float) * n_cells);
+      
+    if (flag_feed == 2) {
+
+      if (i_skip > 0) {
+        MPI_Sendrecv(&recv_flag,
+                     sizeof(bool),
+                     MPI_BYTE,
+                     recv_from_rank,
+                     6393762,
+                     &send_flag,
+                     sizeof(bool),
+                     MPI_BYTE,
+                     send_to_rank,
+                     6393762,
+                     run_globals.mpi_comm,
+                     MPI_STATUS_IGNORE);
+      
+        if (send_to_rank > run_globals.mpi_rank) {
+          if (send_flag) {
+            int n_cells = (int)(slab_nix[run_globals.mpi_rank] * ReionGridDim * ReionGridDim);
+            MPI_Send(Mvir_crit_MC, n_cells, MPI_FLOAT, send_to_rank, 793710, run_globals.mpi_comm);
+          }
+          if (recv_flag) {
+            int n_cells = (int)(slab_nix[recv_from_rank] * ReionGridDim * ReionGridDim);
+            MPI_Recv(buffer, n_cells, MPI_FLOAT, recv_from_rank, 793710, run_globals.mpi_comm, MPI_STATUS_IGNORE);
+          }
+        } 
+        else {
+          if (recv_flag) {
+            int n_cells = (int)(slab_nix[recv_from_rank] * ReionGridDim * ReionGridDim);
+            MPI_Recv(buffer, n_cells, MPI_FLOAT, recv_from_rank, 793710, run_globals.mpi_comm, MPI_STATUS_IGNORE);
+          }
+          if (send_flag) {
+            int n_cells = (int)(slab_nix[run_globals.mpi_rank] * ReionGridDim * ReionGridDim);
+            MPI_Send(Mvir_crit_MC, n_cells, MPI_FLOAT, send_to_rank, 793710, run_globals.mpi_comm);
+          }
+        }
+      }
+      else {
+        int n_cells = (int)(slab_nix[recv_from_rank] * ReionGridDim * ReionGridDim);
+        memcpy(buffer, Mvir_crit_MC, sizeof(float) * n_cells);
+      }
     }
 
     // if this core has received a slab of Mvir_crit then assign values to the
@@ -993,7 +1049,11 @@ void assign_Mvir_crit_to_galaxies(int ngals_in_slabs)
         assert(ix < slab_nix[recv_from_rank]);
 
         // Record the Mvir_crit (filtering mass) value
-        gal->MvirCrit = (double)buffer[grid_index(ix, iy, iz, ReionGridDim, INDEX_REAL)];
+        if (flag_feed == 1)
+          gal->MvirCrit = (double)buffer[grid_index(ix, iy, iz, ReionGridDim, INDEX_REAL)];
+        
+        if (flag_feed == 2)
+          gal->MvirCrit_MC = (double)buffer[grid_index(ix, iy, iz, ReionGridDim, INDEX_REAL)]; 
 
         // increment counters
         i_gal++;
@@ -1008,10 +1068,10 @@ void assign_Mvir_crit_to_galaxies(int ngals_in_slabs)
   mlog("...done.", MLOG_CLOSE);
 }
 
-void assign_Mvir_crit_MC_to_galaxies(int ngals_in_slabs) 
+/*void assign_Mvir_crit_MC_to_galaxies(int ngals_in_slabs) 
 {
   gal_to_slab_t* galaxy_to_slab_map = run_globals.reion_grids.galaxy_to_slab_map;
-  float* Mvir_crit_MC = run_globals.reion_grids.Mvir_crit_MC;
+  //float* Mvir_crit_MC = run_globals.reion_grids.Mvir_crit_MC;
   float* buffer = run_globals.reion_grids.buffer;
   ptrdiff_t* slab_nix = run_globals.reion_grids.slab_nix;
   ptrdiff_t* slab_ix_start = run_globals.reion_grids.slab_ix_start;
@@ -1019,7 +1079,8 @@ void assign_Mvir_crit_MC_to_galaxies(int ngals_in_slabs)
   double box_size = run_globals.params.BoxSize;
   int total_assigned = 0;
 
-  mlog("Assigning Mvir_crit_MC to galaxies...", MLOG_OPEN);
+  
+  
 
   int slab_map_offsets[run_globals.mpi_size];
   for (int ii = 0, i_gal = 0; ii < run_globals.mpi_size; ii++) {
@@ -1105,7 +1166,7 @@ void assign_Mvir_crit_MC_to_galaxies(int ngals_in_slabs)
     ABORT(EXIT_FAILURE);
 
   mlog("...done.", MLOG_CLOSE);
-}
+}*/
 
 void construct_baryon_grids(int snapshot, int local_ngals)
 {
