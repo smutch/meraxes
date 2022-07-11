@@ -20,7 +20,7 @@ double gas_cooling(galaxy_t* gal)
     // calculate the halo virial temperature and log10 metallicity value
     // N.B. This assumes ionised gas with mu=0.59...
     double Tvir = 35.9 * fof_group->Vvir * fof_group->Vvir; // internal units (Kelvin)
-    double log10Tvir = log10(Tvir)
+    double log10Tvir = log10(Tvir);
     double logZ;
     double t_cool, max_cooling_mass;
     double lambda, x, rho_r_cool, r_cool, isothermal_norm;
