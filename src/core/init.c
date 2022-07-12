@@ -268,7 +268,6 @@ void init_meraxes()
   // read in the mean Mvir_crit table (if needed 1 for Reio 2 for LW)
   read_Mcrit_table(1);
   read_Mcrit_table(2);
-  //read_Mcrit_MC_table();
 
   set_ReionEfficiency();
   set_quasar_fobs();
