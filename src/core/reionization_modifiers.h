@@ -6,8 +6,8 @@ extern "C"
 {
 #endif
 
-  void read_Mcrit_table(void);
-  void read_Mcrit_MC_table();
+  void read_Mcrit_table(void, int flag_MC);
+  //void read_Mcrit_MC_table();
 
 #ifdef __cplusplus
 }
