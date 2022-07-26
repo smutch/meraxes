@@ -230,8 +230,8 @@
   }
    
    for (i = 1; i < (NSPEC_MAX -1); i++) {
-     if (nu_norm[i] >= NU_LW / Ly_alpha_HZ)
-       lower_limit = nu_norm[i];
+     if (nu_norm >= NU_LW / Ly_alpha_HZ)
+       lower_limit = nu_norm;
      else
        lower_limit = NU_LW / Ly_alpha_HZ;
      if ((nu_norm >= lower_limit) && (nu_norm < nu_n[i+1])) {
