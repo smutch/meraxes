@@ -108,8 +108,8 @@
               ((float*)sfr_filtered)[i_padded] = fmaxf(((float*)sfr_filtered)[i_padded], 0.0);
 
               //SMOOTHED_SFR_POP2[i_smoothedSFR] = (((float*)sfr_filtered)[i_padded] / pixel_volume) * 
-                                                (units->UnitMass_in_g / units->UnitTime_in_s) *  
-                                                pow(units->UnitLength_in_cm, -3.) / SOLAR_MASS;
+              //                                  (units->UnitMass_in_g / units->UnitTime_in_s) *  
+              //                                  pow(units->UnitLength_in_cm, -3.) / SOLAR_MASS;
               SMOOTHED_SFR_POP2[i_smoothedSFR] = (((float*)sfr_filtered)[i_padded] / pixel_volume) * 
                                                 (units->UnitMass_in_g / units->UnitTime_in_s) *  
                                                 pow(units->UnitLength_in_cm, -3.);                                  
