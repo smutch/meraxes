@@ -138,10 +138,11 @@
         if (zpp > zmax((float)zp, n_ct))
           continue;
 
-        nuprime_LW = nu_n(n_ct) * (1 + zpp) / (1.0 + zp);
+        nuprime_LW = nu_n(n_ct) * (1 + zpp) / (1.0 + zp); // This is in Lyman-alpha units!
         sum_lyn_LW[R_ct] += spectral_emissivity_LW(nuprime_LW, 0, 2);
-        freq_int_pop2[R_ct] = sum_lyn_LW[R_ct] * PLANCK;
+        //freq_int_pop2[R_ct] = sum_lyn_LW[R_ct] * PLANCK;
       }
+      freq_int_pop2[R_ct] = sum_lyn_LW[R_ct] * PLANCK;
     }
       
       for (int ix = 0; ix < local_nix; ix++)
@@ -229,10 +230,10 @@
   }
    
    for (i = 1; i < (NSPEC_MAX -1); i++) {
-     if (nu_n[i] >= NU_LW / NU_LL)
-       lower_limit = nu_n[i];
+     if (nu_norm[i] >= NU_LW / Ly_alpha_HZ)
+       lower_limit = nu_norm[i];
      else
-       lower_limit = NU_LW / NU_LL;
+       lower_limit = NU_LW / Ly_alpha_HZ;
      if ((nu_norm >= lower_limit) && (nu_norm < nu_n[i+1])) {
        if (Population == 2) {
          ans = N0_2[i]  / (alpha_S_2[i] + 1) * (pow(nu_n[i+1], alpha_S_2[i]+1) - pow(nu_norm, alpha_S_2[i]+1));
