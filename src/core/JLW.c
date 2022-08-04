@@ -140,7 +140,6 @@
 
         nuprime_LW = nu_n(n_ct) * (1 + zpp) / (1.0 + zp); // This is in Lyman-alpha units!
         sum_lyn_LW[R_ct] += spectral_emissivity_LW(nuprime_LW, 0, 2);
-        //freq_int_pop2[R_ct] = sum_lyn_LW[R_ct] * PLANCK;
       }
       freq_int_pop2[R_ct] = sum_lyn_LW[R_ct] * PLANCK;
     }
@@ -230,10 +229,10 @@
   }
    
    for (i = 1; i < (NSPEC_MAX -1); i++) {
-     if (nu_norm >= NU_LW / Ly_alpha_HZ)
+     if (nu_norm >= NU_LW / NU_LL)
        lower_limit = nu_norm;
      else
-       lower_limit = NU_LW / Ly_alpha_HZ;
+       lower_limit = NU_LW / NU_LL;
      if ((nu_norm >= lower_limit) && (nu_norm < nu_n[i+1])) {
        if (Population == 2) {
          ans = N0_2[i]  / (alpha_S_2[i] + 1) * (pow(nu_n[i+1], alpha_S_2[i]+1) - pow(nu_norm, alpha_S_2[i]+1));
@@ -291,7 +290,6 @@
      dlw_dt_POP2 += dt_dzpp * dzpp * StarF_POP2[zpp_ct] * zpp_integrand_POP2 * pow(1 + zp, 2) * (1 + zpp);     
   }
   
-  //dlw_dt_POP2 *= (SPEED_OF_LIGHT / (4. * M_PI)) / (PROTONMASS / SOLAR_MASS); 
   dlw_dt_POP2 *= (SPEED_OF_LIGHT / (4. * M_PI));
   
   deriv[0] = dlw_dt_POP2; 
