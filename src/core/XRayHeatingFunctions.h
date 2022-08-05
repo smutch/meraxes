@@ -49,6 +49,7 @@ double* zpp_edge;
 // Have this arbitrarily large for now. Will do this properly later
 double stored_fcoll[1000];
 double* sum_lyn;
+double* sum_lyn_LW;
 double growth_factor_zp;
 double dgrowth_factor_dzp;
 double const_zp_prefactor_GAL;
@@ -61,6 +62,7 @@ extern double dt_dzp;
 extern double* zpp_edge;
 extern double stored_fcoll[1000];
 extern double* sum_lyn;
+extern double* sum_lyn_LW;
 extern double growth_factor_zp;
 extern double dgrowth_factor_dzp;
 extern double const_zp_prefactor_GAL;
