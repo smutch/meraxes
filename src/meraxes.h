@@ -349,11 +349,6 @@ typedef struct reion_grids_t
   
   float* JLW_box;
   
-  double* SMOOTHED_SFR_POP2;
-  double* SMOOTHED_SFR_POP3;
-  double* SMOOTHED_SFR_POP2_MC;
-  double* SMOOTHED_SFR_POP3_MC;
-
   // Grids necessary for inhomogeneous recombinations
   float* z_re;
 

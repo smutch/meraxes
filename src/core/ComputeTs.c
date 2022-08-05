@@ -46,7 +46,7 @@ void _ComputeTs(int snapshot)
   int i_real, i_padded, i_smoothedSFR, R_ct, x_e_ct, n_ct, m_xHII_low, m_xHII_high, NO_LIGHT;
 
   double prev_zpp, prev_R, zpp, zp, lower_int_limit_GAL, lower_int_limit_QSO, filling_factor_of_HI_zp, R_factor, R,
-    nuprime, nuprime_LW, dzp, Luminosity_converstion_factor_GAL, Luminosity_converstion_factor_QSO;
+    nuprime, dzp, Luminosity_converstion_factor_GAL, Luminosity_converstion_factor_QSO;
   double collapse_fraction, density_over_mean, collapse_fraction_in_cell;
 
   // TODO: Can we reduce the scope of these variables and, if not, improve the names?
@@ -58,7 +58,7 @@ void _ComputeTs(int snapshot)
   float curr_xalpha;
   int TsNumFilterSteps = run_globals.params.TsNumFilterSteps;
 
-  double freq_int_heat_GAL[TsNumFilterSteps], freq_int_ion_GAL[TsNumFilterSteps], freq_int_lya_GAL[TsNumFilterSteps],  freq_int_pop2[TsNumFilterSteps];
+  double freq_int_heat_GAL[TsNumFilterSteps], freq_int_ion_GAL[TsNumFilterSteps], freq_int_lya_GAL[TsNumFilterSteps];
   double freq_int_heat_QSO[TsNumFilterSteps], freq_int_ion_QSO[TsNumFilterSteps], freq_int_lya_QSO[TsNumFilterSteps];
 
   double freq_int_heat_tbl_GAL[x_int_NXHII][TsNumFilterSteps], freq_int_ion_tbl_GAL[x_int_NXHII][TsNumFilterSteps],
@@ -214,7 +214,7 @@ void _ComputeTs(int snapshot)
 
               density_over_mean = 1.0 + run_globals.reion_grids.deltax[i_padded];
               
-                collapse_fraction_in_cell =
+              collapse_fraction_in_cell =
                 run_globals.reion_grids.stars[i_padded] /
                 (RtoM(R) * run_globals.params.Hubble_h * run_globals.params.Hubble_h * density_over_mean) *
                 (4.0 / 3.0) * M_PI * pow(R, 3.0) / pixel_volume;
