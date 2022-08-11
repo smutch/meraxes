@@ -58,7 +58,6 @@ extern "C"
   void assign_slabs(void);
   void call_find_HII_bubbles(int snapshot, int nout_gals, timer_info* timer);
   void call_ComputeTs(int snapshot, int nout_gals, timer_info* timer);
-  void call_ComputeJLW(int snapshot, int nout_gals, timer_info* timer);
   void init_reion_grids(void);
   void malloc_reionization_grids(void);
   void free_reionization_grids(void);

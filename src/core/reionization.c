@@ -248,35 +248,6 @@ void call_ComputeTs(int snapshot, int nout_gals, timer_info* timer)
   mlog("...done", MLOG_CLOSE | MLOG_TIMERSTOP);
 }
 
-void call_ComputeJLW(int snapshot, int nout_gals, timer_info* timer) 
-{
-  // Thin wrapper round ComputeJLW
-
-  int total_n_out_gals = 0;
-
-  reion_grids_t* grids = &(run_globals.reion_grids);
-
-  mlog("Getting ready to call ComputeJLW...", MLOG_OPEN);
-
-  // Check to see if there are actually any galaxies at this snapshot
-  MPI_Allreduce(&nout_gals, &total_n_out_gals, 1, MPI_INT, MPI_SUM, run_globals.mpi_comm);
-
-  // save the grids prior to doing FFTs to avoid precision loss and aliasing etc.
-  for (int i_out = 0; i_out < run_globals.NOutputSnaps; i_out++)
-    if (snapshot == run_globals.ListOutputSnaps[i_out] && run_globals.params.Flag_OutputGrids &&
-        !run_globals.params.FlagMCMC)
-      save_reion_input_grids(snapshot);
-
-  mlog("...done", MLOG_CLOSE);
-  
-  // Call Compute JLW, Maybe you need to put this outside
-  mlog("Calling ComputeJLW", MLOG_OPEN | MLOG_TIMERSTART); 
-  
-  ComputeJLW(snapshot, timer);
-  mlog("...done", MLOG_CLOSE| MLOG_TIMERSTOP);
-}
- 
-
 void init_reion_grids()
 {
   reion_grids_t* grids = &(run_globals.reion_grids);
@@ -346,13 +317,6 @@ void init_reion_grids()
     }
   }
   
-  if (run_globals.params.Flag_IncludeLymanWerner) { 
-  
-    for (int ii=0; ii < slab_n_real_smoothedSFR; ii++) {
-      grids->SMOOTHED_SFR_POP2[ii] = 0.0;
-    }
-  } 
-
   if (run_globals.params.Flag_ConstructLightcone) {
     for (int ii = 0; ii < slab_n_real_LC; ii++) {
       grids->LightconeBox[ii] = 0.0;
@@ -492,8 +456,6 @@ void malloc_reionization_grids()
   grids->SMOOTHED_SFR_GAL = NULL;
   grids->SMOOTHED_SFR_QSO = NULL;
   
-  grids->SMOOTHED_SFR_POP2 = NULL; 
-
   // Grids required for inhomogeneous recombinations
   grids->N_rec_unfiltered = NULL;
   grids->N_rec_filtered = NULL;
@@ -609,8 +571,6 @@ void malloc_reionization_grids()
     if (run_globals.params.Flag_IncludeLymanWerner) {
     
       grids->JLW_box = fftwf_alloc_real((size_t)slab_n_real);
-      grids->SMOOTHED_SFR_POP2 = calloc((size_t)slab_n_real_smoothedSFR, sizeof(double));
-      //grids->freq_int_pop2 = fftwf_alloc_real((size_t)slab_n_real);
     }
 
     if (run_globals.params.Flag_IncludeSpinTemp) {
@@ -800,10 +760,8 @@ void free_reionization_grids()
     fftwf_free(grids->x_e_box);
   }
   
-  if (run_globals.params.Flag_IncludeLymanWerner) {
+  if (run_globals.params.Flag_IncludeLymanWerner)
     free(grids->JLW_box);
-    free(grids->SMOOTHED_SFR_POP2);
-  }
 
   fftwf_free(grids->r_bubble);
   fftwf_free(grids->z_at_ionization);

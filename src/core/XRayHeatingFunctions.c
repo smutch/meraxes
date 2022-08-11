@@ -48,6 +48,8 @@ int init_heat()
   sigma_Tmin = calloc(TsNumFilterSteps, sizeof(double));
   ST_over_PS = calloc(TsNumFilterSteps, sizeof(double));
   sum_lyn = calloc(TsNumFilterSteps, sizeof(double));
+  if (run_globals.params.Flag_IncludeLymanWerner)
+    sum_lyn_LW = calloc(TsNumFilterSteps, sizeof(double));
 
   kappa_10(1.0, 1); //1 is the flag, allocates memory.
   if (kappa_10_elec(1.0, 1) < 0)
@@ -80,6 +82,8 @@ void destruct_heat()
   free(sigma_Tmin);
   free(sigma_atR);
   free(zpp_edge);
+  if (run_globals.params.Flag_IncludeLymanWerner)
+    free(sum_lyn_LW);
 }
 
 // ******************************************************************** //
@@ -553,75 +557,87 @@ double spectral_emissivity(double nu_norm, int flag)
   static float nu_n[NSPEC_MAX], alpha_S_2[NSPEC_MAX];
   static float alpha_S_3[NSPEC_MAX], N0_2[NSPEC_MAX], N0_3[NSPEC_MAX];
   double n0_fac;
-  double ans;
+  double ans=0;
   int i;
   FILE* F;
 
   char fname[STRLEN];
 
-  if (flag == 1) {
-
-    if (run_globals.mpi_rank == 0) {
-
-      sprintf(fname, "%s/stellar_spectra.dat", run_globals.params.TablesForXHeatingDir);
-
-      // Read in the data
-      if (!(F = fopen(fname, "r"))) {
-        mlog("spectral_emissivity: Unable to open file: stellar_spectra.dat at %s for reading\nAborting\n",
-             MLOG_MESG,
-             fname);
-        return -1;
+  switch(flag){
+    case 2:
+      for (i = 1; i < (NSPEC_MAX -1); i++) {
+        if ((nu_norm >= nu_n[i]) && (nu_norm < nu_n[i+1])) {
+          if (Pop == 2) {
+            ans = N0_2[i]  / (alpha_S_2[i] + 1) * (pow(nu_n[i+1], alpha_S_2[i]+1) - pow(nu_norm, alpha_S_2[i]+1));
+          }
+          else if (Pop == 3) {
+            ans = N0_3[i] / (alpha_S_3[i] + 1) * (pow(nu_n[i+1], alpha_S_3[i]+1) - pow(nu_norm, alpha_S_3[i]+1));
+          }
+          else {
+            mlog("Invalid value for Stellar Population", MLOG_MESG);
+          }
+          return ans > 0? ans:1e-40;
+        }
       }
 
-      for (i = 1; i < NSPEC_MAX; i++) {
-        fscanf(F, "%i %e %e %e %e", &n[i], &N0_2[i], &alpha_S_2[i], &N0_3[i], &alpha_S_3[i]);
+    case 1:
+      if (run_globals.mpi_rank == 0) {
+  
+        sprintf(fname, "%s/stellar_spectra.dat", run_globals.params.TablesForXHeatingDir);
+  
+        // Read in the data
+        if (!(F = fopen(fname, "r"))) {
+          mlog("spectral_emissivity: Unable to open file: stellar_spectra.dat at %s for reading\nAborting\n",
+               MLOG_MESG,
+               fname);
+          return -1;
+        }
+  
+        for (i = 1; i < NSPEC_MAX; i++) {
+          fscanf(F, "%i %e %e %e %e", &n[i], &N0_2[i], &alpha_S_2[i], &N0_3[i], &alpha_S_3[i]);
+        }
+        fclose(F);
+  
+        for (i = 1; i < NSPEC_MAX; i++) {
+          nu_n[i] = (float)(4.0 / 3.0 * (1.0 - 1.0 / pow(n[i], 2.0)));
+        }
+  
+        for (i = 1; i < (NSPEC_MAX - 1); i++) {
+          n0_fac = (pow(nu_n[i + 1], alpha_S_2[i] + 1) - pow(nu_n[i], alpha_S_2[i] + 1));
+          N0_2[i] *= (alpha_S_2[i] + 1) / n0_fac * Pop2_ion;
+          n0_fac = (pow(nu_n[i + 1], alpha_S_3[i] + 1) - pow(nu_n[i], alpha_S_3[i] + 1));
+          N0_3[i] *= (alpha_S_3[i] + 1) / n0_fac * Pop3_ion;
+        }
       }
-      fclose(F);
+  
+      // broadcast the values to all cores
+      MPI_Bcast(nu_n, sizeof(nu_n), MPI_BYTE, 0, run_globals.mpi_comm);
+      MPI_Bcast(alpha_S_2, sizeof(alpha_S_2), MPI_BYTE, 0, run_globals.mpi_comm);
+      MPI_Bcast(alpha_S_3, sizeof(alpha_S_3), MPI_BYTE, 0, run_globals.mpi_comm);
+      MPI_Bcast(N0_2, sizeof(N0_2), MPI_BYTE, 0, run_globals.mpi_comm);
+      MPI_Bcast(N0_3, sizeof(N0_3), MPI_BYTE, 0, run_globals.mpi_comm);
+  
+      return 0.0;
 
-      for (i = 1; i < NSPEC_MAX; i++) {
-        nu_n[i] = (float)(4.0 / 3.0 * (1.0 - 1.0 / pow(n[i], 2.0)));
-      }
-
-      for (i = 1; i < NSPEC_MAX; i++) {
-        nu_n[i] = (float)(4.0 / 3.0 * (1.0 - 1.0 / pow(n[i], 2.0)));
-      }
-
+    default:
       for (i = 1; i < (NSPEC_MAX - 1); i++) {
-        n0_fac = (pow(nu_n[i + 1], alpha_S_2[i] + 1) - pow(nu_n[i], alpha_S_2[i] + 1));
-        N0_2[i] *= (alpha_S_2[i] + 1) / n0_fac * Pop2_ion;
-        n0_fac = (pow(nu_n[i + 1], alpha_S_3[i] + 1) - pow(nu_n[i], alpha_S_3[i] + 1));
-        N0_3[i] *= (alpha_S_3[i] + 1) / n0_fac * Pop3_ion;
+        if ((nu_norm >= nu_n[i]) && (nu_norm < nu_n[i + 1])) {
+          // We are in the correct spectral region
+          if (Pop == 2)
+            ans = N0_2[i] * pow(nu_norm, alpha_S_2[i]);
+          else
+            ans = N0_3[i] * pow(nu_norm, alpha_S_3[i]);
+    
+          return ans / Ly_alpha_HZ;
+        }
       }
-    }
-
-    // broadcast the values to all cores
-    MPI_Bcast(nu_n, sizeof(nu_n), MPI_BYTE, 0, run_globals.mpi_comm);
-    MPI_Bcast(alpha_S_2, sizeof(alpha_S_2), MPI_BYTE, 0, run_globals.mpi_comm);
-    MPI_Bcast(alpha_S_3, sizeof(alpha_S_3), MPI_BYTE, 0, run_globals.mpi_comm);
-    MPI_Bcast(N0_2, sizeof(N0_2), MPI_BYTE, 0, run_globals.mpi_comm);
-    MPI_Bcast(N0_3, sizeof(N0_3), MPI_BYTE, 0, run_globals.mpi_comm);
-
-    return 0.0;
-  }
-
-  ans = 0.0;
-  for (i = 1; i < (NSPEC_MAX - 1); i++) {
-    if ((nu_norm >= nu_n[i]) && (nu_norm < nu_n[i + 1])) {
-      // We are in the correct spectral region
+    
+      i = NSPEC_MAX - 1;
       if (Pop == 2)
-        ans = N0_2[i] * pow(nu_norm, alpha_S_2[i]);
+        return N0_2[i] * pow(nu_norm, alpha_S_2[i]) / Ly_alpha_HZ;
       else
-        ans = N0_3[i] * pow(nu_norm, alpha_S_3[i]);
-
-      return ans / Ly_alpha_HZ;
-    }
+        return N0_3[i] * pow(nu_norm, alpha_S_3[i]) / Ly_alpha_HZ;
   }
-
-  i = NSPEC_MAX - 1;
-  if (Pop == 2)
-    return N0_2[i] * pow(nu_norm, alpha_S_2[i]) / Ly_alpha_HZ;
-  else
-    return N0_3[i] * pow(nu_norm, alpha_S_3[i]) / Ly_alpha_HZ;
 }
 
 typedef struct
@@ -1197,7 +1213,7 @@ void evolveInt(float zp,
   double zpp, dzpp;
   int zpp_ct;
   double T, x_e, zpp_integrand_GAL, zpp_integrand_QSO;
-  double dxe_dzp, n_b, dspec_dzp, dxheat_dzp, dxlya_dt_GAL, dstarlya_dt_GAL;
+  double dxe_dzp, n_b, dspec_dzp, dxheat_dzp, dxlya_dt_GAL, dstarlya_dt_GAL, dstarlyLW_dt_GAL;
 
   x_e = y[0];  
   T = y[1];
@@ -1208,6 +1224,7 @@ void evolveInt(float zp,
   dxion_source_dt_GAL = 0;
   dxlya_dt_GAL = 0;
   dstarlya_dt_GAL = 0;
+  dstarlyLW_dt_GAL = 0;
 
   dxheat_dt_QSO = 0;
   dxion_source_dt_QSO = 0;
@@ -1257,6 +1274,8 @@ void evolveInt(float zp,
         // Units should be M_solar/s. Factor of (dt_dzp * dzpp) converts from per s to per z'
         dstarlya_dt_GAL += SFR_GAL[zpp_ct] * pow(1 + zp, 2) * (1 + zpp) * sum_lyn[zpp_ct] * dt_dzpp * dzpp;
       }
+      if (run_globals.params.Flag_IncludeLymanWerner)
+        dstarlyLW_dt_GAL += SFR_GAL[zpp_ct] * pow(1 + zp, 2) * (1 + zpp) * sum_lyn_LW[zpp_ct] * dt_dzpp * dzpp;
     }
 
     // After you finish the loop for each Radius, you add prefactors which are constants for the redshift (snapshot) and defined in ComputeTs.c
@@ -1283,6 +1302,7 @@ void evolveInt(float zp,
 
       dstarlya_dt_GAL *= (SPEED_OF_LIGHT / (4. * M_PI)) / (PROTONMASS / SOLAR_MASS);
     }
+    dstarlyLW_dt_GAL *= (SPEED_OF_LIGHT / (4. * M_PI)) / (PROTONMASS / SOLAR_MASS);
 
   } // end NO_LIGHT if statement
 
@@ -1318,6 +1338,7 @@ void evolveInt(float zp,
   // stuff for marcos
   deriv[3] = dxheat_dzp;
   deriv[4] = dt_dzp * (dxion_source_dt_GAL + dxion_source_dt_QSO);
+  deriv[5] = dstarlyLW_dt_GAL * (PLANCK * 1e21);
 }
 
 // * Compton heating term * //

@@ -329,21 +329,12 @@ void dracarys()
               if (run_globals.params.Flag_ComputePS) {
                 Compute_PS(snapshot);
               }
-                
-              if (run_globals.params.Flag_IncludeLymanWerner) { 
-                call_ComputeJLW(snapshot, nout_gals, &timer);
-              }
-              
             }
           }
         } else {
 
           if (run_globals.params.Flag_IncludeSpinTemp) {
             call_ComputeTs(snapshot, nout_gals, &timer);
-          }
-          
-          if (run_globals.params.Flag_IncludeLymanWerner) { 
-            call_ComputeJLW(snapshot, nout_gals, &timer);
           }
 
           call_find_HII_bubbles(snapshot, nout_gals, &timer);
