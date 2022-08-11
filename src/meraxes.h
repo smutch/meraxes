@@ -35,6 +35,9 @@
 #define SEC_PER_YEAR 3.155e7
 #define MPC 3.086e24
 #define TCMB 2.728
+#define NU_LL (double)(3.29e15)
+#define NU_LW (double)(2.71e15)
+#define PLANCK_EV (double)(4.1357e-15)
 
 // ======================================================
 // Don't change these unless you know what you are doing!
@@ -346,11 +349,6 @@ typedef struct reion_grids_t
   
   float* JLW_box;
   
-  double* SMOOTHED_SFR_POP2;
-  double* SMOOTHED_SFR_POP3;
-  double* SMOOTHED_SFR_POP2_MC;
-  double* SMOOTHED_SFR_POP3_MC;
-
   // Grids necessary for inhomogeneous recombinations
   float* z_re;
 
