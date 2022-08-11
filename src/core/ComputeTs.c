@@ -585,8 +585,8 @@ void _ComputeTs(int snapshot)
             x_e_box_prev[i_padded] = 0;
           if (Tk_box[i_real] < MAX_TK)
             Tk_box[i_real] += dansdz[1] * dzp;
-
-          JLW_box[i_real] = dansdz[5];
+          if (run_globals.params.Flag_IncludeLymanWerner)
+            JLW_box[i_real] = dansdz[5];
 
           if (Tk_box[i_real] <
               0) { // spurious bahaviour of the trapazoidalintegrator. generally overcooling in underdensities
@@ -604,7 +604,8 @@ void _ComputeTs(int snapshot)
           xalpha_ave += curr_xalpha;
           Xheat_ave += dansdz[3];
           Xion_ave += dansdz[4];
-          J_LW_ave += dansdz[5];
+          if (run_globals.params.Flag_IncludeLymanWerner)
+            J_LW_ave += dansdz[5];
         }
 
     MPI_Allreduce(MPI_IN_PLACE, &J_alpha_ave, 1, MPI_DOUBLE, MPI_SUM, run_globals.mpi_comm);
@@ -617,13 +618,15 @@ void _ComputeTs(int snapshot)
     xalpha_ave /= total_n_cells;
     Xheat_ave /= total_n_cells;
     Xion_ave /= total_n_cells;
-    J_LW_ave /= total_n_cells;
+    if (run_globals.params.Flag_IncludeLymanWerner)
+      J_LW_ave /= total_n_cells;
 
     run_globals.reion_grids.volume_ave_J_alpha = J_alpha_ave;
     run_globals.reion_grids.volume_ave_xalpha = xalpha_ave;
     run_globals.reion_grids.volume_ave_Xheat = Xheat_ave;
     run_globals.reion_grids.volume_ave_Xion = Xion_ave;
-    run_globals.reion_grids.volume_ave_J_LW = J_LW_ave;
+    if (run_globals.params.Flag_IncludeLymanWerner)
+      run_globals.reion_grids.volume_ave_J_LW = J_LW_ave;
   }
 
   memcpy(x_e_box, x_e_box_prev, sizeof(fftwf_complex) * slab_n_complex);

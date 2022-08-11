@@ -1203,9 +1203,9 @@ void evolveInt(float zp,
                const double freq_int_heat_QSO[],
                const double freq_int_ion_QSO[],
                const double freq_int_lya_QSO[],
-               int COMPUTE_Ts, // What's this parameter? When this function is called in ComputeTs.c there is the statement NO_LIGHT
-               const double y[], // This is your result from ComputeTs.c
-               double deriv[]) // This is your result
+               int COMPUTE_Ts, 
+               const double y[],
+               double deriv[]) 
 {
 
   double dadia_dzp, dcomp_dzp, dxheat_dt_GAL, dxion_source_dt_GAL, dxion_sink_dt;
@@ -1302,7 +1302,8 @@ void evolveInt(float zp,
 
       dstarlya_dt_GAL *= (SPEED_OF_LIGHT / (4. * M_PI)) / (PROTONMASS / SOLAR_MASS);
     }
-    dstarlyLW_dt_GAL *= (SPEED_OF_LIGHT / (4. * M_PI)) / (PROTONMASS / SOLAR_MASS);
+    if (run_globals.params.Flag_IncludeLymanWerner)
+      dstarlyLW_dt_GAL *= (SPEED_OF_LIGHT / (4. * M_PI)) / (PROTONMASS / SOLAR_MASS);
 
   } // end NO_LIGHT if statement
 
@@ -1338,7 +1339,8 @@ void evolveInt(float zp,
   // stuff for marcos
   deriv[3] = dxheat_dzp;
   deriv[4] = dt_dzp * (dxion_source_dt_GAL + dxion_source_dt_QSO);
-  deriv[5] = dstarlyLW_dt_GAL * (PLANCK * 1e21);
+  if (run_globals.params.Flag_IncludeLymanWerner)
+    deriv[5] = dstarlyLW_dt_GAL * (PLANCK * 1e21);
 }
 
 // * Compton heating term * //
