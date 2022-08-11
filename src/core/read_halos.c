@@ -262,7 +262,7 @@ static void select_forests()
       mlog_error("Failed to allocate rank_max_contemp_fof array.");
       ABORT(EXIT_FAILURE);
     }
-    
+
     int* rank_counts = calloc(run_globals.mpi_size, sizeof(int));
     int* rank_argsort_ind = malloc(run_globals.mpi_size * sizeof(int));
     for (int ii = 0; ii < run_globals.mpi_size; ++ii) {
