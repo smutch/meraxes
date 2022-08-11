@@ -13,7 +13,7 @@
 #include "read_grids.h"
 #include "reionization.h"
 #include "virial_properties.h"
-#include "JLW.h"
+
 
 void update_galaxy_fesc_vals(galaxy_t* gal, double new_stars, int snapshot)
 {
