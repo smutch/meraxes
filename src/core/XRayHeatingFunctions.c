@@ -583,11 +583,13 @@ double spectral_emissivity(double nu_norm, int flag)
     case 1:
       if (run_globals.mpi_rank == 0) {
   
-        sprintf(fname, "%s/stellar_spectra.dat", run_globals.params.TablesForXHeatingDir);
+        //sprintf(fname, "%s/stellar_spectra.dat", run_globals.params.TablesForXHeatingDir);
+        sprintf(fname, "%s/stellar_spectra_fake.dat", run_globals.params.TablesForXHeatingDir);
   
         // Read in the data
         if (!(F = fopen(fname, "r"))) {
-          mlog("spectral_emissivity: Unable to open file: stellar_spectra.dat at %s for reading\nAborting\n",
+          //mlog("spectral_emissivity: Unable to open file: stellar_spectra.dat at %s for reading\nAborting\n",
+          mlog("spectral_emissivity: Unable to open file: stellar_spectra_fake.dat at %s for reading\nAborting\n",
                MLOG_MESG,
                fname);
           return -1;
