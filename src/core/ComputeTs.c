@@ -103,7 +103,7 @@ void _ComputeTs(int snapshot)
 
   x_e_ave = 0.0;
 
-  double J_alpha_ave, J_alpha_star xalpha_ave, Xheat_ave, Xion_ave, J_LW_ave; // Adding J_alpha_star just as a test
+  double J_alpha_ave, J_alpha_star, xalpha_ave, Xheat_ave, Xion_ave, J_LW_ave; // Adding J_alpha_star just as a test
   J_alpha_ave = J_alpha_star = xalpha_ave = Xheat_ave = Xion_ave = J_LW_ave = 0.0;
 
   // Place current redshift in 21cmFAST nomenclature (zp), delta zp (dzp) and delta z in seconds (dt_dzp)
