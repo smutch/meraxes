@@ -1339,7 +1339,6 @@ void evolveInt(float zp,
   // stuff for marcos
   deriv[3] = dxheat_dzp;
   deriv[4] = dt_dzp * (dxion_source_dt_GAL + dxion_source_dt_QSO);
-  deriv[6] = dstarlya_dt_GAL + dstarlya_dt_QSO;
   if (run_globals.params.Flag_IncludeLymanWerner)
     deriv[5] = dstarlyLW_dt_GAL * (PLANCK * 1e21);
 }
