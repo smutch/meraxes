@@ -604,7 +604,7 @@ void _ComputeTs(int snapshot)
           xalpha_ave += curr_xalpha;
           Xheat_ave += dansdz[3];
           Xion_ave += dansdz[4];
-          J_alpha_star += dansdz[6] // Test
+          J_alpha_star += dansdz[6]; // Test
           if (run_globals.params.Flag_IncludeLymanWerner)
             J_LW_ave += dansdz[5];
         }
