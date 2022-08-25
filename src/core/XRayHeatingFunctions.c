@@ -1213,7 +1213,7 @@ void evolveInt(float zp,
   double zpp, dzpp;
   int zpp_ct;
   double T, x_e, zpp_integrand_GAL, zpp_integrand_QSO;
-  double dxe_dzp, n_b, dspec_dzp, dxheat_dzp, dxlya_dt_GAL, dstarlya_dt_GAL, dstarlyLW_dt_GAL;
+  double dxe_dzp, n_b, dspec_dzp, dxheat_dzp, dxlya_dt_GAL, dstarlya_dt_GAL, dstarlyLW_dt_GAL, SFRDprova; //test SFRDprova
 
   x_e = y[0];  
   T = y[1];
@@ -1225,6 +1225,7 @@ void evolveInt(float zp,
   dxlya_dt_GAL = 0;
   dstarlya_dt_GAL = 0;
   dstarlyLW_dt_GAL = 0;
+  SFRDprova = 0; //test
 
   dxheat_dt_QSO = 0;
   dxion_source_dt_QSO = 0;
@@ -1273,6 +1274,7 @@ void evolveInt(float zp,
         // Use this when using the SFR provided by Meraxes
         // Units should be M_solar/s. Factor of (dt_dzp * dzpp) converts from per s to per z'
         dstarlya_dt_GAL += SFR_GAL[zpp_ct] * pow(1 + zp, 2) * (1 + zpp) * sum_lyn[zpp_ct] * dt_dzpp * dzpp;
+        SFRDprova += SFR_GAL[zpp_ct] * (units->UnitTime_in_s) / (pow(units->UnitLength_in_cm, -3.)); //test SFRD in Solar Mass / yr / Mpc^3
       }
       if (run_globals.params.Flag_IncludeLymanWerner)
         dstarlyLW_dt_GAL += SFR_GAL[zpp_ct] * pow(1 + zp, 2) * (1 + zpp) * sum_lyn_LW[zpp_ct] * dt_dzpp * dzpp;
@@ -1339,6 +1341,7 @@ void evolveInt(float zp,
   // stuff for marcos
   deriv[3] = dxheat_dzp;
   deriv[4] = dt_dzp * (dxion_source_dt_GAL + dxion_source_dt_QSO);
+  deriv[6] = SFRDprova;
   if (run_globals.params.Flag_IncludeLymanWerner)
     deriv[5] = dstarlyLW_dt_GAL * (PLANCK * 1e21);
 }
