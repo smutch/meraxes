@@ -1214,6 +1214,7 @@ void evolveInt(float zp,
   int zpp_ct;
   double T, x_e, zpp_integrand_GAL, zpp_integrand_QSO;
   double dxe_dzp, n_b, dspec_dzp, dxheat_dzp, dxlya_dt_GAL, dstarlya_dt_GAL, dstarlyLW_dt_GAL, SFRDprova; //test SFRDprova
+  run_units_t* units = &(run_globals.units); // Need this for the test
 
   x_e = y[0];  
   T = y[1];
