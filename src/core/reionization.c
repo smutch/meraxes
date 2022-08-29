@@ -1018,7 +1018,7 @@ void construct_baryon_grids(int snapshot, int local_ngals)
 
 	// no need for sfr grid is not using SpinTemp
 	if ((!run_globals.params.Flag_IncludeSpinTemp) &&  (prop == prop_sfr))
-		continue
+		continue;
 
     int i_gal = 0;
     int skipped_gals = 0;
