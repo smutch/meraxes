@@ -133,10 +133,10 @@ void _find_HII_bubbles_gpu(const int snapshot, const bool flag_write_validation_
   // Initialize device arrays
   Complex* deltax_unfiltered_device = NULL;
   Complex* stars_unfiltered_device = NULL;
-  Complex* sfr_unfiltered_device = NULL;
+  Complex* weighted_sfr_unfiltered_device = NULL;
   Complex* deltax_filtered_device = NULL;
   Complex* stars_filtered_device = NULL;
-  Complex* sfr_filtered_device = NULL;
+  Complex* weighted_sfr_filtered_device = NULL;
   Complex* N_rec_unfiltered_device = NULL;
   Complex* N_rec_filtered_device = NULL;
   float* xH_device = NULL;
@@ -151,13 +151,13 @@ void _find_HII_bubbles_gpu(const int snapshot, const bool flag_write_validation_
                         meraxes_cuda_exception::MALLOC);
     throw_on_cuda_error(cudaMalloc((void**)&stars_unfiltered_device, sizeof(Complex) * slab_n_complex),
                         meraxes_cuda_exception::MALLOC);
-    throw_on_cuda_error(cudaMalloc((void**)&sfr_unfiltered_device, sizeof(Complex) * slab_n_complex),
+    throw_on_cuda_error(cudaMalloc((void**)&weighted_sfr_unfiltered_device, sizeof(Complex) * slab_n_complex),
                         meraxes_cuda_exception::MALLOC);
     throw_on_cuda_error(cudaMalloc((void**)&deltax_filtered_device, sizeof(Complex) * slab_n_complex),
                         meraxes_cuda_exception::MALLOC);
     throw_on_cuda_error(cudaMalloc((void**)&stars_filtered_device, sizeof(Complex) * slab_n_complex),
                         meraxes_cuda_exception::MALLOC);
-    throw_on_cuda_error(cudaMalloc((void**)&sfr_filtered_device, sizeof(Complex) * slab_n_complex),
+    throw_on_cuda_error(cudaMalloc((void**)&weighted_sfr_filtered_device, sizeof(Complex) * slab_n_complex),
                         meraxes_cuda_exception::MALLOC);
 
     if (Flag_IncludeRecombinations) {
@@ -199,9 +199,9 @@ void _find_HII_bubbles_gpu(const int snapshot, const bool flag_write_validation_
   Complex* stars_filtered = (Complex*)run_globals.reion_grids.stars_filtered;
   fftwf_execute(run_globals.reion_grids.stars_forward_plan);
 
-  fftwf_complex* sfr_unfiltered = run_globals.reion_grids.sfr_unfiltered;
-  Complex* sfr_filtered = (Complex*)run_globals.reion_grids.sfr_filtered;
-  fftwf_execute(run_globals.reion_grids.sfr_forward_plan);
+  fftwf_complex* weighted_sfr_unfiltered = run_globals.reion_grids.weighted_sfr_unfiltered;
+  Complex* weighted_sfr_filtered = (Complex*)run_globals.reion_grids.weighted_sfr_filtered;
+  fftwf_execute(run_globals.reion_grids.weighted_sfr_forward_plan);
 
   float* Gamma12 = run_globals.reion_grids.Gamma12;
   float* N_rec = run_globals.reion_grids.N_rec;
@@ -223,7 +223,7 @@ void _find_HII_bubbles_gpu(const int snapshot, const bool flag_write_validation_
       cudaMemcpy(stars_unfiltered_device, stars_unfiltered, sizeof(float) * 2 * slab_n_complex, cudaMemcpyHostToDevice),
       meraxes_cuda_exception::MEMCPY);
     throw_on_cuda_error(
-      cudaMemcpy(sfr_unfiltered_device, sfr_unfiltered, sizeof(float) * 2 * slab_n_complex, cudaMemcpyHostToDevice),
+      cudaMemcpy(weighted_sfr_unfiltered_device, weighted_sfr_unfiltered, sizeof(float) * 2 * slab_n_complex, cudaMemcpyHostToDevice),
       meraxes_cuda_exception::MEMCPY);
 
     if (Flag_IncludeRecombinations)
@@ -275,7 +275,7 @@ void _find_HII_bubbles_gpu(const int snapshot, const bool flag_write_validation_
                             stars_unfiltered_device, inv_total_n_cells, slab_n_complex)),
                           meraxes_cuda_exception::KERNEL_CMPLX_AX);
     throw_on_kernel_error((complex_vector_times_scalar<<<grid_complex, threads>>>(
-                            sfr_unfiltered_device, inv_total_n_cells, slab_n_complex)),
+                            weighted_sfr_unfiltered_device, inv_total_n_cells, slab_n_complex)),
                           meraxes_cuda_exception::KERNEL_CMPLX_AX);
 
     if (Flag_IncludeRecombinations)
@@ -342,7 +342,7 @@ void _find_HII_bubbles_gpu(const int snapshot, const bool flag_write_validation_
         meraxes_cuda_exception::MEMCPY);
       throw_on_cuda_error(
         cudaMemcpy(
-          sfr_filtered_device, sfr_unfiltered_device, sizeof(Complex) * slab_n_complex, cudaMemcpyDeviceToDevice),
+          weighted_sfr_filtered_device, weighted_sfr_unfiltered_device, sizeof(Complex) * slab_n_complex, cudaMemcpyDeviceToDevice),
         meraxes_cuda_exception::MEMCPY);
 
       if (Flag_IncludeRecombinations)
@@ -376,7 +376,7 @@ void _find_HII_bubbles_gpu(const int snapshot, const bool flag_write_validation_
                                                                      box_size,
                                                                      run_globals.params.ReionFilterType)),
                               meraxes_cuda_exception::KERNEL_FILTER);
-        throw_on_kernel_error((filter_gpu<<<grid_complex, threads>>>(sfr_filtered_device,
+        throw_on_kernel_error((filter_gpu<<<grid_complex, threads>>>(weighted_sfr_filtered_device,
                                                                      ReionGridDim,
                                                                      local_ix_start,
                                                                      slab_n_complex,
@@ -422,11 +422,11 @@ void _find_HII_bubbles_gpu(const int snapshot, const bool flag_write_validation_
         meraxes_cuda_exception::MEMCPY);
 
       throw_on_cuda_error(
-        cudaMemcpy(sfr_filtered, sfr_filtered_device, sizeof(float) * 2 * slab_n_complex, cudaMemcpyDeviceToHost),
+        cudaMemcpy(weighted_sfr_filtered, weighted_sfr_filtered_device, sizeof(float) * 2 * slab_n_complex, cudaMemcpyDeviceToHost),
         meraxes_cuda_exception::MEMCPY);
-      fftwf_execute(run_globals.reion_grids.sfr_filtered_reverse_plan);
+      fftwf_execute(run_globals.reion_grids.weighted_sfr_filtered_reverse_plan);
       throw_on_cuda_error(
-        cudaMemcpy(sfr_filtered_device, sfr_filtered, sizeof(float) * 2 * slab_n_complex, cudaMemcpyHostToDevice),
+        cudaMemcpy(weighted_sfr_filtered_device, weighted_sfr_filtered, sizeof(float) * 2 * slab_n_complex, cudaMemcpyHostToDevice),
         meraxes_cuda_exception::MEMCPY);
 
       if (Flag_IncludeRecombinations) {
@@ -454,7 +454,7 @@ void _find_HII_bubbles_gpu(const int snapshot, const bool flag_write_validation_
           (sanity_check_aliasing<<<grid_real, threads>>>(stars_filtered_device, ReionGridDim, slab_n_real, 0.f)),
           meraxes_cuda_exception::KERNEL_CHECK);
         throw_on_kernel_error(
-          (sanity_check_aliasing<<<grid_real, threads>>>(sfr_filtered_device, ReionGridDim, slab_n_real, 0.f)),
+          (sanity_check_aliasing<<<grid_real, threads>>>(weighted_sfr_filtered_device, ReionGridDim, slab_n_real, 0.f)),
           meraxes_cuda_exception::KERNEL_CHECK);
 
         if (Flag_IncludeRecombinations)
@@ -511,7 +511,7 @@ void _find_HII_bubbles_gpu(const int snapshot, const bool flag_write_validation_
                                                                                       Gamma12_device,
                                                                                       deltax_filtered_device,
                                                                                       stars_filtered_device,
-                                                                                      sfr_filtered_device,
+                                                                                      weighted_sfr_filtered_device,
                                                                                       N_rec_unfiltered_device)),
                               meraxes_cuda_exception::KERNEL_MAIN_LOOP);
       }
@@ -567,10 +567,10 @@ void _find_HII_bubbles_gpu(const int snapshot, const bool flag_write_validation_
   try {
     throw_on_cuda_error(cudaFree(deltax_unfiltered_device), meraxes_cuda_exception::FREE);
     throw_on_cuda_error(cudaFree(stars_unfiltered_device), meraxes_cuda_exception::FREE);
-    throw_on_cuda_error(cudaFree(sfr_unfiltered_device), meraxes_cuda_exception::FREE);
+    throw_on_cuda_error(cudaFree(weighted_sfr_unfiltered_device), meraxes_cuda_exception::FREE);
     throw_on_cuda_error(cudaFree(deltax_filtered_device), meraxes_cuda_exception::FREE);
     throw_on_cuda_error(cudaFree(stars_filtered_device), meraxes_cuda_exception::FREE);
-    throw_on_cuda_error(cudaFree(sfr_filtered_device), meraxes_cuda_exception::FREE);
+    throw_on_cuda_error(cudaFree(weighted_sfr_filtered_device), meraxes_cuda_exception::FREE);
 
     if (Flag_IncludeRecombinations) {
       throw_on_cuda_error(cudaFree(N_rec_unfiltered_device), meraxes_cuda_exception::FREE);

@@ -79,8 +79,6 @@ void _ComputeTs(int snapshot)
   float* TS_box = run_globals.reion_grids.TS_box;
   float* JLW_box = run_globals.reion_grids.JLW_box;
 
-  float* sfr = run_globals.reion_grids.sfr;
-
   fftwf_complex* sfr_unfiltered = run_globals.reion_grids.sfr_unfiltered;
   fftwf_complex* sfr_filtered = run_globals.reion_grids.sfr_filtered;
   fftwf_execute(run_globals.reion_grids.sfr_forward_plan);
