@@ -798,7 +798,6 @@ void free_reionization_grids()
   fftwf_free(grids->weighted_sfr_filtered);
   fftwf_free(grids->weighted_sfr_unfiltered);
   fftwf_free(grids->weighted_sfr);
-  fftwf_free(grids->weighted_sfr);
 
   fftwf_destroy_plan(grids->deltax_filtered_reverse_plan);
   fftwf_destroy_plan(grids->deltax_forward_plan);
