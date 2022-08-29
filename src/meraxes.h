@@ -311,10 +311,15 @@ typedef struct reion_grids_t
   fftwf_plan deltax_filtered_reverse_plan;
 
   float* sfr;
+  float* weighted_sfr;
   fftwf_complex* sfr_unfiltered;
   fftwf_complex* sfr_filtered;
+  fftwf_complex* weighted_sfr_unfiltered;
+  fftwf_complex* weighted_sfr_filtered;
   fftwf_plan sfr_forward_plan;
+  fftwf_plan weighted_sfr_forward_plan;
   fftwf_plan sfr_filtered_reverse_plan;
+  fftwf_plan weighted_sfr_filtered_reverse_plan;
 
   float* xH;
   float* z_at_ionization;
