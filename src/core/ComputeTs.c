@@ -103,8 +103,8 @@ void _ComputeTs(int snapshot)
 
   x_e_ave = 0.0;
 
-  double J_alpha_ave, xalpha_ave, Xheat_ave, Xion_ave, J_LW_ave, SFRD_ave; // Test SFRD
-  J_alpha_ave = xalpha_ave = Xheat_ave = Xion_ave = J_LW_ave = SFRD_ave = 0.0;
+  double J_alpha_ave, xalpha_ave, Xheat_ave, Xion_ave, J_LW_ave;
+  J_alpha_ave = xalpha_ave = Xheat_ave = Xion_ave = J_LW_ave = 0.0;
 
   // Place current redshift in 21cmFAST nomenclature (zp), delta zp (dzp) and delta z in seconds (dt_dzp)
   zp = redshift;
@@ -603,7 +603,6 @@ void _ComputeTs(int snapshot)
           xalpha_ave += curr_xalpha;
           Xheat_ave += dansdz[3];
           Xion_ave += dansdz[4];
-          SFRD_ave += dansdz[6];
           if (run_globals.params.Flag_IncludeLymanWerner)
             J_LW_ave += dansdz[5];
         }
@@ -613,13 +612,11 @@ void _ComputeTs(int snapshot)
     MPI_Allreduce(MPI_IN_PLACE, &Xheat_ave, 1, MPI_DOUBLE, MPI_SUM, run_globals.mpi_comm);
     MPI_Allreduce(MPI_IN_PLACE, &Xion_ave, 1, MPI_DOUBLE, MPI_SUM, run_globals.mpi_comm);
     MPI_Allreduce(MPI_IN_PLACE, &J_LW_ave, 1, MPI_DOUBLE, MPI_SUM, run_globals.mpi_comm);
-    MPI_Allreduce(MPI_IN_PLACE, &SFRD_ave, 1, MPI_DOUBLE, MPI_SUM, run_globals.mpi_comm);
 
     J_alpha_ave /= total_n_cells;
     xalpha_ave /= total_n_cells;
     Xheat_ave /= total_n_cells;
     Xion_ave /= total_n_cells;
-    SFRD_ave /= total_n_cells;
     if (run_globals.params.Flag_IncludeLymanWerner)
       J_LW_ave /= total_n_cells;
 
@@ -661,7 +658,7 @@ void _ComputeTs(int snapshot)
 
   destruct_heat();
 
-  mlog("zp = %e Ts_ave = %e Tk_ave = %e x_e_ave = %e SFRD_ave = %e", MLOG_MESG, zp, Ave_Ts, Ave_Tk, Ave_x_e, SFRD_ave);
+  mlog("zp = %e Ts_ave = %e Tk_ave = %e x_e_ave = %e", MLOG_MESG, zp, Ave_Ts, Ave_Tk, Ave_x_e );
   mlog("zp = %e J_alpha_ave = %e xalpha_ave = %e Xheat_ave = %e Xion_ave = %e J_LW_ave = %e",
        MLOG_MESG,
        zp,
