@@ -164,13 +164,13 @@ find_package(HDF5 REQUIRED COMPONENTS C HL)
 if (NOT HDF5_IS_PARALLEL)
     message(FATAL_ERROR "Meraxes requires HDF5 with parallel support.")
 endif()
-target_include_directories(meraxes_lib PUBLIC ${HDF5_INCLUDE_DIRS})
+target_include_directories(meraxes_lib PUBLIC $<BUILD_INTERFACE:${HDF5_INCLUDE_DIRS}> $<INSTALL_INTERFACE:include/>)
 target_link_libraries(meraxes_lib PUBLIC ${HDF5_C_LIBRARIES} ${HDF5_C_HL_LIBRARIES})
 add_definitions(${HDF5_DEFINITIONS})
 
 # FFTW
 find_package(FFTW REQUIRED)
-target_include_directories(meraxes_lib PUBLIC ${FFTW_INCLUDE_DIRS})
+target_include_directories(meraxes_lib PUBLIC $<BUILD_INTERFACE:${FFTW_INCLUDE_DIRS}> $<INSTALL_INTERFACE:include/>)
 target_link_libraries(meraxes_lib PUBLIC ${FFTW_LIBRARIES})
 
 # Exports for other codes to build against this version of Meraxes
