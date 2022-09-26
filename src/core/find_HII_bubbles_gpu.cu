@@ -79,7 +79,9 @@ void _find_HII_bubbles_gpu(const int snapshot, const bool flag_write_validation_
   const double UnitLength_in_cm = run_globals.units.UnitLength_in_cm;
   const double UnitMass_in_g = run_globals.units.UnitMass_in_g;
   const double UnitTime_in_s = run_globals.units.UnitTime_in_s;
-  const double ReionRBubbleMax = run_globals.params.physics.ReionRBubbleMax;
+  const double ReionRBubbleMax = run_globals.params.Flag_IncludeRecombinations
+                                   ? run_globals.params.physics.ReionRBubbleMaxRecomb
+                                   : run_globals.params.physics.ReionRBubbleMax; // Mpc/h
   const double ReionRBubbleMin = run_globals.params.physics.ReionRBubbleMin;
   const double ReionDeltaRFactor = run_globals.params.ReionDeltaRFactor;
   const double ReionGammaHaloBias = run_globals.params.physics.ReionGammaHaloBias;

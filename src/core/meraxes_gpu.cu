@@ -396,9 +396,6 @@ __global__ void find_HII_bubbles_gpu_main_loop(const float redshift,
                                                Complex* N_rec_filtered_device)
 {
   int i_real = blockIdx.x * blockDim.x + threadIdx.x;
-  double Gamma_R_conversion = Gamma_R_prefactor * (UnitMass_in_g / UnitTime_in_s) *
-                              pow(UnitLength_in_cm / Hubble_h, -3.) * ReionNionPhotPerBary /
-                              PROTONMASS; // Convert pixel volume (Mpc/h)^3 -> (cm)^3
 
   // This will be reset below if Flag_IncludeRecombinations.
   double rec = 0.0;
