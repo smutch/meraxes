@@ -411,7 +411,8 @@ __global__ void find_HII_bubbles_gpu_main_loop(const float redshift,
     double f_coll_stars = (double)((float*)stars_filtered_device)[i_padded] / (M * density_over_mean) * (4.0 / 3.0) *
                           M_PI * (R * R * R) * inv_pixel_volume;
 
-    double weighted_sfr_density = (double)((float*)weighted_sfr_filtered_device)[i_padded] * inv_pixel_volume; // In internal units
+    double weighted_sfr_density =
+      (double)((float*)weighted_sfr_filtered_device)[i_padded] * inv_pixel_volume; // In internal units
 
     // Calculate the recombinations within the cell
     if (Flag_IncludeRecombinations)
