@@ -64,6 +64,7 @@ galaxy_t* new_galaxy(int snapshot, unsigned long halo_ID)
   gal->BaryonFracModifier = 1.0;
   gal->FOFMvirModifier = 1.0;
   gal->MvirCrit = 0.0;
+  gal->MvirCrit_MC = 0.0; 
   gal->MergerBurstMass = 0.0;
   gal->MergerStartRadius = 0.0;
 
@@ -130,6 +131,7 @@ void reset_galaxy_properties(galaxy_t* gal, int snapshot)
   gal->Mcool = 0.0;
   gal->Rcool = 0.0;
   gal->MvirCrit = 0.0;
+  gal->MvirCrit_MC = 0.0;
   gal->BHemissivity = 0.0;
   gal->BaryonFracModifier = 1.0;
   gal->FOFMvirModifier = 1.0;

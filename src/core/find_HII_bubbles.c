@@ -60,7 +60,7 @@ void _find_HII_bubbles(const int snapshot)
   float J_21_aux = 0;
   double J_21_aux_constant;
   double density_over_mean;
-  double sfr_density;
+  double weighted_sfr_density;
   double f_coll_stars;
   double electron_fraction;
   double Gamma_R_prefactor;
@@ -115,9 +115,9 @@ void _find_HII_bubbles(const int snapshot)
   fftwf_complex* stars_filtered = run_globals.reion_grids.stars_filtered;
   fftwf_execute(run_globals.reion_grids.stars_forward_plan);
 
-  fftwf_complex* sfr_unfiltered = run_globals.reion_grids.sfr_unfiltered;
-  fftwf_complex* sfr_filtered = run_globals.reion_grids.sfr_filtered;
-  fftwf_execute(run_globals.reion_grids.sfr_forward_plan);
+  fftwf_complex* weighted_sfr_unfiltered = run_globals.reion_grids.weighted_sfr_unfiltered;
+  fftwf_complex* weighted_sfr_filtered = run_globals.reion_grids.weighted_sfr_filtered;
+  fftwf_execute(run_globals.reion_grids.weighted_sfr_forward_plan);
 
   // The free electron fraction from X-rays
   // TODO: Only necessary if we aren't using the GPU (not implemented there yet)
@@ -148,7 +148,7 @@ void _find_HII_bubbles(const int snapshot)
   for (int ii = 0; ii < slab_n_complex; ii++) {
     deltax_unfiltered[ii] /= total_n_cells;
     stars_unfiltered[ii] /= total_n_cells;
-    sfr_unfiltered[ii] /= total_n_cells;
+    weighted_sfr_unfiltered[ii] /= total_n_cells;
     if (run_globals.params.Flag_IncludeRecombinations) {
       N_rec_unfiltered[ii] /= total_n_cells;
     }
@@ -189,7 +189,7 @@ void _find_HII_bubbles(const int snapshot)
     // copy the k-space grids
     memcpy(deltax_filtered, deltax_unfiltered, sizeof(fftwf_complex) * slab_n_complex);
     memcpy(stars_filtered, stars_unfiltered, sizeof(fftwf_complex) * slab_n_complex);
-    memcpy(sfr_filtered, sfr_unfiltered, sizeof(fftwf_complex) * slab_n_complex);
+    memcpy(weighted_sfr_filtered, weighted_sfr_unfiltered, sizeof(fftwf_complex) * slab_n_complex);
 
     if (run_globals.params.Flag_IncludeRecombinations) {
       memcpy(N_rec_filtered, N_rec_unfiltered, sizeof(fftwf_complex) * slab_n_complex);
@@ -203,7 +203,7 @@ void _find_HII_bubbles(const int snapshot)
     if (!flag_last_filter_step) {
       filter(deltax_filtered, local_ix_start, local_nix, ReionGridDim, (float)R, run_globals.params.ReionFilterType);
       filter(stars_filtered, local_ix_start, local_nix, ReionGridDim, (float)R, run_globals.params.ReionFilterType);
-      filter(sfr_filtered, local_ix_start, local_nix, ReionGridDim, (float)R, run_globals.params.ReionFilterType);
+      filter(weighted_sfr_filtered, local_ix_start, local_nix, ReionGridDim, (float)R, run_globals.params.ReionFilterType);
 
       if (run_globals.params.Flag_IncludeRecombinations) {
         filter(N_rec_filtered, local_ix_start, local_nix, ReionGridDim, (float)R, run_globals.params.ReionFilterType);
@@ -216,7 +216,7 @@ void _find_HII_bubbles(const int snapshot)
     // inverse fourier transform back to real space
     fftwf_execute(run_globals.reion_grids.deltax_filtered_reverse_plan);
     fftwf_execute(run_globals.reion_grids.stars_filtered_reverse_plan);
-    fftwf_execute(run_globals.reion_grids.sfr_filtered_reverse_plan);
+    fftwf_execute(run_globals.reion_grids.weighted_sfr_filtered_reverse_plan);
 
     if (run_globals.params.Flag_IncludeRecombinations) {
       fftwf_execute(run_globals.reion_grids.N_rec_filtered_reverse_plan);
@@ -236,9 +236,9 @@ void _find_HII_bubbles(const int snapshot)
           if (((float*)stars_filtered)[i_padded] < ABS_TOL) {
             ((float*)stars_filtered)[i_padded] = 0;
           }
-          ((float*)sfr_filtered)[i_padded] = fmaxf(((float*)sfr_filtered)[i_padded], 0.0);
-          if (((float*)sfr_filtered)[i_padded] < ABS_TOL) {
-            ((float*)sfr_filtered)[i_padded] = 0;
+          ((float*)weighted_sfr_filtered)[i_padded] = fmaxf(((float*)weighted_sfr_filtered)[i_padded], 0.0);
+          if (((float*)weighted_sfr_filtered)[i_padded] < ABS_TOL) {
+            ((float*)weighted_sfr_filtered)[i_padded] = 0;
           }
 
           if (run_globals.params.Flag_IncludeRecombinations) {
@@ -289,7 +289,7 @@ void _find_HII_bubbles(const int snapshot)
           f_coll_stars = (double)((float*)stars_filtered)[i_padded] / (M_mean * density_over_mean) * (4.0 / 3.0) *
                          M_PI * R_cubed / pixel_volume;
 
-          sfr_density = (double)((float*)sfr_filtered)[i_padded] / pixel_volume; // In internal units
+          weighted_sfr_density = (double)((float*)weighted_sfr_filtered)[i_padded] / pixel_volume; // In internal units
 
           // Calculate the recombinations within the cell
           if (run_globals.params.Flag_IncludeRecombinations) {
@@ -304,7 +304,7 @@ void _find_HII_bubbles(const int snapshot)
           }
 
           if (flag_ReionUVBFlag)
-            J_21_aux = (float)(sfr_density * J_21_aux_constant);
+            J_21_aux = (float)(weighted_sfr_density * J_21_aux_constant);
 
           // Modified reionisation condition, including recombinations and partial ionisations from X-rays
           // Check if ionised!
@@ -317,7 +317,7 @@ void _find_HII_bubbles(const int snapshot)
 
               // Store the ionisation background and the reionisation redshift for each cell
               if (run_globals.params.Flag_IncludeRecombinations) {
-                Gamma12[i_real] = (float)(Gamma_R_prefactor * sfr_density);
+                Gamma12[i_real] = (float)(Gamma_R_prefactor * weighted_sfr_density);
               }
             }
 

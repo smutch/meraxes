@@ -392,7 +392,7 @@ __global__ void find_HII_bubbles_gpu_main_loop(const float redshift,
                                                float* Gamma12,
                                                Complex* deltax_filtered_device,
                                                Complex* stars_filtered_device,
-                                               Complex* sfr_filtered_device,
+                                               Complex* weighted_sfr_filtered_device,
                                                Complex* N_rec_filtered_device)
 {
   int i_real = blockIdx.x * blockDim.x + threadIdx.x;
@@ -411,7 +411,7 @@ __global__ void find_HII_bubbles_gpu_main_loop(const float redshift,
     double f_coll_stars = (double)((float*)stars_filtered_device)[i_padded] / (M * density_over_mean) * (4.0 / 3.0) *
                           M_PI * (R * R * R) * inv_pixel_volume;
 
-    double sfr_density = (double)((float*)sfr_filtered_device)[i_padded] * inv_pixel_volume; // In internal units
+    double weighted_sfr_density = (double)((float*)weighted_sfr_filtered_device)[i_padded] * inv_pixel_volume; // In internal units
 
     // Calculate the recombinations within the cell
     if (Flag_IncludeRecombinations)
@@ -419,7 +419,7 @@ __global__ void find_HII_bubbles_gpu_main_loop(const float redshift,
 
     float J_21_aux;
     if (ReionUVBFlag)
-      J_21_aux = (float)(sfr_density * J_21_aux_constant);
+      J_21_aux = (float)(weighted_sfr_density * J_21_aux_constant);
 
     // Modified reionisation condition, including recombinations.
     if (f_coll_stars > (1.0 / ReionEfficiency) * (1. + rec)) // IONISED!!!!
@@ -431,7 +431,7 @@ __global__ void find_HII_bubbles_gpu_main_loop(const float redshift,
 
         // Store the ionisation background and the reionisation redshift for each cell
         if (Flag_IncludeRecombinations) {
-          Gamma12[i_real] = (float)(Gamma_R_prefactor * sfr_density * (UnitMass_in_g / UnitTime_in_s) *
+          Gamma12[i_real] = (float)(Gamma_R_prefactor * weighted_sfr_density * (UnitMass_in_g / UnitTime_in_s) *
                                     pow(UnitLength_in_cm / Hubble_h, -3.) * ReionNionPhotPerBary /
                                     PROTONMASS); // Convert pixel volume (Mpc/h)^3 -> (cm)^3
         }

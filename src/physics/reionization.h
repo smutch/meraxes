@@ -9,6 +9,7 @@ extern "C"
 #endif
 
   void calculate_Mvir_crit(double redshift);
+  void calculate_Mvir_crit_MC(double redshift);
   double tocf_modifier(struct galaxy_t* gal, double Mvir);
   double reionization_modifier(struct galaxy_t* gal, double Mvir, int snapshot);
   double sobacchi2013_modifier(double Mvir, double redshift);

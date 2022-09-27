@@ -43,13 +43,15 @@ int init_heat()
 {
 
   size_t TsNumFilterSteps = (size_t)run_globals.params.TsNumFilterSteps;
-  zpp_edge = calloc(TsNumFilterSteps, sizeof(double));
+  zpp_edge = calloc(TsNumFilterSteps, sizeof(double)); //calloc allocates the requested memory and returns a pointer to it. callocs(number of elem to be allocated, size)
   sigma_atR = calloc(TsNumFilterSteps, sizeof(double));
   sigma_Tmin = calloc(TsNumFilterSteps, sizeof(double));
   ST_over_PS = calloc(TsNumFilterSteps, sizeof(double));
   sum_lyn = calloc(TsNumFilterSteps, sizeof(double));
+  if (run_globals.params.Flag_IncludeLymanWerner)
+    sum_lyn_LW = calloc(TsNumFilterSteps, sizeof(double));
 
-  kappa_10(1.0, 1);
+  kappa_10(1.0, 1); //1 is the flag, allocates memory.
   if (kappa_10_elec(1.0, 1) < 0)
     return -2;
   if (kappa_10_pH(1.0, 1) < 0)
@@ -68,7 +70,7 @@ int init_heat()
 
 void destruct_heat()
 {
-  spectral_emissivity(0.0, 2);
+  spectral_emissivity(0.0, 2); //2 is the flag, frees memory.
   xion_RECFAST(100.0, 2);
   T_RECFAST(100.0, 2);
   kappa_10_pH(1.0, 2);
@@ -80,6 +82,8 @@ void destruct_heat()
   free(sigma_Tmin);
   free(sigma_atR);
   free(zpp_edge);
+  if (run_globals.params.Flag_IncludeLymanWerner)
+    free(sum_lyn_LW);
 }
 
 // ******************************************************************** //
@@ -338,7 +342,6 @@ double tauX(double nu, double x_e, double zp, double zpp, double fcoll, double H
   return result;
 }
 
-// function DTDZ returns the value of dt/dz at the redshift parameter z. //
 double dtdz(float z)
 {
   double x, dxdz, const1, denom, numer, OMl, OMm;
@@ -554,75 +557,87 @@ double spectral_emissivity(double nu_norm, int flag)
   static float nu_n[NSPEC_MAX], alpha_S_2[NSPEC_MAX];
   static float alpha_S_3[NSPEC_MAX], N0_2[NSPEC_MAX], N0_3[NSPEC_MAX];
   double n0_fac;
-  double ans;
+  double ans=0;
   int i;
   FILE* F;
 
   char fname[STRLEN];
 
-  if (flag == 1) {
-
-    if (run_globals.mpi_rank == 0) {
-
-      sprintf(fname, "%s/stellar_spectra.dat", run_globals.params.TablesForXHeatingDir);
-
-      // Read in the data
-      if (!(F = fopen(fname, "r"))) {
-        mlog("spectral_emissivity: Unable to open file: stellar_spectra.dat at %s for reading\nAborting\n",
-             MLOG_MESG,
-             fname);
-        return -1;
+  switch(flag){
+    case 2:
+      for (i = 1; i < (NSPEC_MAX -1); i++) {
+        if ((nu_norm >= nu_n[i]) && (nu_norm < nu_n[i+1])) {
+          if (Pop == 2) {
+            ans = N0_2[i]  / (alpha_S_2[i] + 1) * (pow(nu_n[i+1], alpha_S_2[i]+1) - pow(nu_norm, alpha_S_2[i]+1));
+          }
+          else if (Pop == 3) {
+            ans = N0_3[i] / (alpha_S_3[i] + 1) * (pow(nu_n[i+1], alpha_S_3[i]+1) - pow(nu_norm, alpha_S_3[i]+1));
+          }
+          else {
+            mlog("Invalid value for Stellar Population", MLOG_MESG);
+          }
+          return ans > 0? ans:1e-40;
+        }
       }
 
-      for (i = 1; i < NSPEC_MAX; i++) {
-        fscanf(F, "%i %e %e %e %e", &n[i], &N0_2[i], &alpha_S_2[i], &N0_3[i], &alpha_S_3[i]);
+    case 1:
+      if (run_globals.mpi_rank == 0) {
+  
+        sprintf(fname, "%s/stellar_spectra.dat", run_globals.params.TablesForXHeatingDir);
+  
+        // Read in the data
+        if (!(F = fopen(fname, "r"))) {
+          mlog("spectral_emissivity: Unable to open file: stellar_spectra.dat at %s for reading\nAborting\n",
+               MLOG_MESG,
+               fname);
+          return -1;
+        }
+  
+        for (i = 1; i < NSPEC_MAX; i++) {
+          fscanf(F, "%i %e %e %e %e", &n[i], &N0_2[i], &alpha_S_2[i], &N0_3[i], &alpha_S_3[i]);
+        }
+        fclose(F);
+  
+        for (i = 1; i < NSPEC_MAX; i++) {
+          nu_n[i] = (float)(4.0 / 3.0 * (1.0 - 1.0 / pow(n[i], 2.0)));
+        }
+  
+        for (i = 1; i < (NSPEC_MAX - 1); i++) {
+          n0_fac = (pow(nu_n[i + 1], alpha_S_2[i] + 1) - pow(nu_n[i], alpha_S_2[i] + 1));
+          N0_2[i] *= (alpha_S_2[i] + 1) / n0_fac * Pop2_ion;
+          n0_fac = (pow(nu_n[i + 1], alpha_S_3[i] + 1) - pow(nu_n[i], alpha_S_3[i] + 1));
+          N0_3[i] *= (alpha_S_3[i] + 1) / n0_fac * Pop3_ion;
+        }
       }
-      fclose(F);
+  
+      // broadcast the values to all cores
+      MPI_Bcast(nu_n, sizeof(nu_n), MPI_BYTE, 0, run_globals.mpi_comm);
+      MPI_Bcast(alpha_S_2, sizeof(alpha_S_2), MPI_BYTE, 0, run_globals.mpi_comm);
+      MPI_Bcast(alpha_S_3, sizeof(alpha_S_3), MPI_BYTE, 0, run_globals.mpi_comm);
+      MPI_Bcast(N0_2, sizeof(N0_2), MPI_BYTE, 0, run_globals.mpi_comm);
+      MPI_Bcast(N0_3, sizeof(N0_3), MPI_BYTE, 0, run_globals.mpi_comm);
+  
+      return 0.0;
 
-      for (i = 1; i < NSPEC_MAX; i++) {
-        nu_n[i] = (float)(4.0 / 3.0 * (1.0 - 1.0 / pow(n[i], 2.0)));
-      }
-
-      for (i = 1; i < NSPEC_MAX; i++) {
-        nu_n[i] = (float)(4.0 / 3.0 * (1.0 - 1.0 / pow(n[i], 2.0)));
-      }
-
+    default:
       for (i = 1; i < (NSPEC_MAX - 1); i++) {
-        n0_fac = (pow(nu_n[i + 1], alpha_S_2[i] + 1) - pow(nu_n[i], alpha_S_2[i] + 1));
-        N0_2[i] *= (alpha_S_2[i] + 1) / n0_fac * Pop2_ion;
-        n0_fac = (pow(nu_n[i + 1], alpha_S_3[i] + 1) - pow(nu_n[i], alpha_S_3[i] + 1));
-        N0_3[i] *= (alpha_S_3[i] + 1) / n0_fac * Pop3_ion;
+        if ((nu_norm >= nu_n[i]) && (nu_norm < nu_n[i + 1])) {
+          // We are in the correct spectral region
+          if (Pop == 2)
+            ans = N0_2[i] * pow(nu_norm, alpha_S_2[i]);
+          else
+            ans = N0_3[i] * pow(nu_norm, alpha_S_3[i]);
+    
+          return ans / Ly_alpha_HZ;
+        }
       }
-    }
-
-    // broadcast the values to all cores
-    MPI_Bcast(nu_n, sizeof(nu_n), MPI_BYTE, 0, run_globals.mpi_comm);
-    MPI_Bcast(alpha_S_2, sizeof(alpha_S_2), MPI_BYTE, 0, run_globals.mpi_comm);
-    MPI_Bcast(alpha_S_3, sizeof(alpha_S_3), MPI_BYTE, 0, run_globals.mpi_comm);
-    MPI_Bcast(N0_2, sizeof(N0_2), MPI_BYTE, 0, run_globals.mpi_comm);
-    MPI_Bcast(N0_3, sizeof(N0_3), MPI_BYTE, 0, run_globals.mpi_comm);
-
-    return 0.0;
-  }
-
-  ans = 0.0;
-  for (i = 1; i < (NSPEC_MAX - 1); i++) {
-    if ((nu_norm >= nu_n[i]) && (nu_norm < nu_n[i + 1])) {
-      // We are in the correct spectral region
+    
+      i = NSPEC_MAX - 1;
       if (Pop == 2)
-        ans = N0_2[i] * pow(nu_norm, alpha_S_2[i]);
+        return N0_2[i] * pow(nu_norm, alpha_S_2[i]) / Ly_alpha_HZ;
       else
-        ans = N0_3[i] * pow(nu_norm, alpha_S_3[i]);
-
-      return ans / Ly_alpha_HZ;
-    }
+        return N0_3[i] * pow(nu_norm, alpha_S_3[i]) / Ly_alpha_HZ;
   }
-
-  i = NSPEC_MAX - 1;
-  if (Pop == 2)
-    return N0_2[i] * pow(nu_norm, alpha_S_2[i]) / Ly_alpha_HZ;
-  else
-    return N0_3[i] * pow(nu_norm, alpha_S_3[i]) / Ly_alpha_HZ;
 }
 
 typedef struct
@@ -1188,9 +1203,9 @@ void evolveInt(float zp,
                const double freq_int_heat_QSO[],
                const double freq_int_ion_QSO[],
                const double freq_int_lya_QSO[],
-               int COMPUTE_Ts,
+               int COMPUTE_Ts, 
                const double y[],
-               double deriv[])
+               double deriv[]) 
 {
 
   double dadia_dzp, dcomp_dzp, dxheat_dt_GAL, dxion_source_dt_GAL, dxion_sink_dt;
@@ -1198,17 +1213,18 @@ void evolveInt(float zp,
   double zpp, dzpp;
   int zpp_ct;
   double T, x_e, zpp_integrand_GAL, zpp_integrand_QSO;
-  double dxe_dzp, n_b, dspec_dzp, dxheat_dzp, dxlya_dt_GAL, dstarlya_dt_GAL;
+  double dxe_dzp, n_b, dspec_dzp, dxheat_dzp, dxlya_dt_GAL, dstarlya_dt_GAL, dstarlyLW_dt_GAL;
 
-  x_e = y[0];
+  x_e = y[0];  
   T = y[1];
-  n_b = N_b0 * pow(1 + zp, 3) * (1 + curr_delNL0);
+  n_b = N_b0 * pow(1 + zp, 3) * (1 + curr_delNL0); 
 
   // First, let's do the trapazoidal integration over zpp
-  dxheat_dt_GAL = 0;
+  dxheat_dt_GAL = 0; 
   dxion_source_dt_GAL = 0;
   dxlya_dt_GAL = 0;
   dstarlya_dt_GAL = 0;
+  dstarlyLW_dt_GAL = 0;
 
   dxheat_dt_QSO = 0;
   dxion_source_dt_QSO = 0;
@@ -1216,7 +1232,7 @@ void evolveInt(float zp,
   dstarlya_dt_QSO = 0;
 
   if (!NO_LIGHT) {
-    for (zpp_ct = 0; zpp_ct < run_globals.params.TsNumFilterSteps; zpp_ct++) {
+    for (zpp_ct = 0; zpp_ct < run_globals.params.TsNumFilterSteps; zpp_ct++) { // Define last redshift that is effective, zpp_edge is defined in init_heat!
       // set redshift of half annulus; dz'' is negative since we flipped limits of integral
       if (zpp_ct == 0) {
         zpp = (zpp_edge[0] + zp) * 0.5;
@@ -1228,7 +1244,7 @@ void evolveInt(float zp,
 
       // Use this when using the SFR provided by Meraxes
       // Units should be M_solar/s. Factor of (dt_dzp * dzpp) converts from per s to per z'
-      zpp_integrand_GAL = SFR_GAL[zpp_ct] * pow(1 + zpp, -run_globals.params.physics.SpecIndexXrayGal);
+      zpp_integrand_GAL = SFR_GAL[zpp_ct] * pow(1 + zpp, -run_globals.params.physics.SpecIndexXrayGal); // where is it in the formulas?
       if (run_globals.params.Flag_SeparateQSOXrays) {
         zpp_integrand_QSO = SFR_QSO[zpp_ct] * pow(1 + zpp, -run_globals.params.physics.SpecIndexXrayQSO);
       }
@@ -1250,7 +1266,7 @@ void evolveInt(float zp,
         dstarlya_dt_QSO += SFR_QSO[zpp_ct] * pow(1 + zp, 2) * (1 + zpp) * sum_lyn[zpp_ct] * dt_dzpp * dzpp;
 
       } else {
-        dxheat_dt_GAL += dt_dzpp * dzpp * zpp_integrand_GAL * freq_int_heat_GAL[zpp_ct];
+        dxheat_dt_GAL += dt_dzpp * dzpp * zpp_integrand_GAL * freq_int_heat_GAL[zpp_ct]; // Integral in frequency must be computed for each TsNumFilterSteps
         dxion_source_dt_GAL += dt_dzpp * dzpp * zpp_integrand_GAL * freq_int_ion_GAL[zpp_ct];
         dxlya_dt_GAL += dt_dzpp * dzpp * zpp_integrand_GAL * freq_int_lya_GAL[zpp_ct];
 
@@ -1258,9 +1274,11 @@ void evolveInt(float zp,
         // Units should be M_solar/s. Factor of (dt_dzp * dzpp) converts from per s to per z'
         dstarlya_dt_GAL += SFR_GAL[zpp_ct] * pow(1 + zp, 2) * (1 + zpp) * sum_lyn[zpp_ct] * dt_dzpp * dzpp;
       }
+      if (run_globals.params.Flag_IncludeLymanWerner)
+        dstarlyLW_dt_GAL += SFR_GAL[zpp_ct] * pow(1 + zp, 2) * (1 + zpp) * sum_lyn_LW[zpp_ct] * dt_dzpp * dzpp;
     }
 
-    // add prefactors
+    // After you finish the loop for each Radius, you add prefactors which are constants for the redshift (snapshot) and defined in ComputeTs.c
     if (run_globals.params.Flag_SeparateQSOXrays) {
       dxheat_dt_GAL *= const_zp_prefactor_GAL;
       dxion_source_dt_GAL *= const_zp_prefactor_GAL;
@@ -1284,6 +1302,8 @@ void evolveInt(float zp,
 
       dstarlya_dt_GAL *= (SPEED_OF_LIGHT / (4. * M_PI)) / (PROTONMASS / SOLAR_MASS);
     }
+    if (run_globals.params.Flag_IncludeLymanWerner)
+      dstarlyLW_dt_GAL *= (SPEED_OF_LIGHT / (4. * M_PI)) / (PROTONMASS / SOLAR_MASS);
 
   } // end NO_LIGHT if statement
 
@@ -1295,19 +1315,19 @@ void evolveInt(float zp,
   deriv[0] = dxe_dzp;
 
   // *** Next, let's get the temperature components *** //
-  // first, adiabatic term
+  // first, adiabatic term (3rd term in 11)
   dadia_dzp = 3 / (1.0 + zp);
   if (fabs(curr_delNL0) > FRACT_FLOAT_ERR) // add adiabatic heating/cooling from structure formation
     dadia_dzp += dgrowth_factor_dzp / (1.0 / curr_delNL0 + growth_factor_zp);
   dadia_dzp *= (2.0 / 3.0) * T;
 
-  // next heating due to the changing species
-  dspec_dzp = -dxe_dzp * T / (1 + x_e);
+  // next heating due to the changing species 
+  dspec_dzp = -dxe_dzp * T / (1 + x_e); 
 
-  // next, Compton heating
+  // next, Compton heating 
   dcomp_dzp = dT_comp(zp, T, x_e);
 
-  // lastly, X-ray heating
+  // lastly, X-ray heating 
   dxheat_dzp = (dxheat_dt_GAL + dxheat_dt_QSO) * dt_dzp * 2.0 / 3.0 / BOLTZMANN / (1.0 + x_e);
 
   // summing them up...
@@ -1319,6 +1339,8 @@ void evolveInt(float zp,
   // stuff for marcos
   deriv[3] = dxheat_dzp;
   deriv[4] = dt_dzp * (dxion_source_dt_GAL + dxion_source_dt_QSO);
+  if (run_globals.params.Flag_IncludeLymanWerner)
+    deriv[5] = dstarlyLW_dt_GAL * (PLANCK * 1e21);
 }
 
 // * Compton heating term * //
@@ -1327,7 +1349,7 @@ double dT_comp(double z, double TK, double xe)
   double Trad, ans;
 
   Trad = TCMB * (1.0 + z);
-  ans = (-1.51e-4) * (xe / (1.0 + xe + f_He)) / (hubble((float)z) / (HUBBLE * run_globals.params.Hubble_h)) /
+  ans = (-1.51e-4) * (xe / (1.0 + xe)) / (hubble((float)z) / (HUBBLE * run_globals.params.Hubble_h)) /
         run_globals.params.Hubble_h * pow(Trad, 4.0) / (1.0 + z);
   ans *= Trad - TK;
   return ans;

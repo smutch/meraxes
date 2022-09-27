@@ -13,6 +13,7 @@ extern "C"
 
   void read_cooling_functions(void);
   double interpolate_cooling_rate(double logTemp, double logZ);
+  double LTE_Mcool(double Temp, double nH);
 
 #ifdef __cplusplus
 }
