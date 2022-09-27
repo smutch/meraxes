@@ -154,26 +154,24 @@ static inline double calc_sn_reheat_eff(galaxy_t* gal, int snapshot)
 
 static inline double calc_sn_ejection_eff(galaxy_t* gal, int snapshot)
 {
-    double Vmax = gal->Vmax;    // Vmax is in a unit of km/s
-    double zplus1 = 1. + run_globals.ZZ[snapshot];
-    physics_params_t *params = &run_globals.params.physics;
-    int SnModel = params->SnModel;
-    double SnEjectionRedshiftDep = params->SnEjectionRedshiftDep;
-    double SnEjectionEff = params->SnEjectionEff;
-    double SnEjectionScaling = params->SnEjectionScaling;
-    double SnEjectionNorm = params->SnEjectionNorm;
-    switch (SnModel) {
-    case 1:    // Guo et al. 2011 with redshift dependence
-        SnEjectionEff *= pow(zplus1/4., SnEjectionRedshiftDep) \
-                         *(.5 + pow(Vmax/SnEjectionNorm, -SnEjectionScaling));
-        break;
+  double Vmax = gal->Vmax; // Vmax is in a unit of km/s
+  double zplus1 = 1. + run_globals.ZZ[snapshot];
+  physics_params_t* params = &run_globals.params.physics;
+  int SnModel = params->SnModel;
+  double SnEjectionRedshiftDep = params->SnEjectionRedshiftDep;
+  double SnEjectionEff = params->SnEjectionEff;
+  double SnEjectionScaling = params->SnEjectionScaling;
+  double SnEjectionNorm = params->SnEjectionNorm;
+  switch (SnModel) {
+    case 1: // Guo et al. 2011 with redshift dependence
+      SnEjectionEff *= pow(zplus1 / 4., SnEjectionRedshiftDep) * (.5 + pow(Vmax / SnEjectionNorm, -SnEjectionScaling));
+      break;
     case 2:
-        // Use the same value with that is used for the mass loading
-        if (Vmax < SnEjectionNorm)
-            SnEjectionScaling = params->SnEjectionScaling2;
-        SnEjectionEff *= pow(zplus1/4., SnEjectionRedshiftDep) \
-                         *pow(Vmax/SnEjectionNorm, -SnEjectionScaling);
-        break;
+      // Use the same value with that is used for the mass loading
+      if (Vmax < SnEjectionNorm)
+        SnEjectionScaling = params->SnEjectionScaling2;
+      SnEjectionEff *= pow(zplus1 / 4., SnEjectionRedshiftDep) * pow(Vmax / SnEjectionNorm, -SnEjectionScaling);
+      break;
     default:
       mlog_error("Unknonw SnModel!");
       ABORT(EXIT_FAILURE);

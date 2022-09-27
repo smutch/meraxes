@@ -28,7 +28,7 @@
 #define BOLTZMANN 1.3806e-16
 #define GAS_CONST 8.31425e7
 #define SPEED_OF_LIGHT 2.9979e10 // [cm/s]
-#define PLANCK 6.6262e-27 //! [erg/s]
+#define PLANCK 6.6262e-27        //! [erg/s]
 #define PROTONMASS 1.6726e-24
 #define HUBBLE 3.2407789e-18 //! [h/sec]
 #define SEC_PER_MEGAYEAR 3.155e13
@@ -215,7 +215,7 @@ typedef struct run_params_t
   char MagBands[STRLEN];
   char ForestIDFile[STRLEN];
   char MvirCritFile[STRLEN];
-  char MvirCritMCFile[STRLEN]; 
+  char MvirCritMCFile[STRLEN];
   char MassRatioModifier[STRLEN];
   char BaryonFracModifier[STRLEN];
   char FFTW3WisdomDir[STRLEN];
@@ -236,8 +236,8 @@ typedef struct run_params_t
   double PartMass;
   long long NPart;
 
-  double* MvirCrit; 
-  double* MvirCrit_MC; 
+  double* MvirCrit;
+  double* MvirCrit_MC;
 
   double ReionDeltaRFactor;
   double ReionPowerSpecDeltaK;
@@ -352,7 +352,7 @@ typedef struct reion_grids_t
   float* J_21_at_ionization;
   float* J_21;
   float* Mvir_crit;
-  float* Mvir_crit_MC; // 
+  float* Mvir_crit_MC; //
   float* r_bubble;
 
   // Grids necessary for the IGM spin temperature
@@ -369,11 +369,11 @@ typedef struct reion_grids_t
 
   double* SMOOTHED_SFR_GAL;
   double* SMOOTHED_SFR_QSO;
-  
+
   // Grids necessary for LW background and future disentangling between MC/AC Pop3/Pop2 stuff
-  
+
   float* JLW_box;
-  
+
   // Grids necessary for inhomogeneous recombinations
   float* z_re;
 
@@ -492,7 +492,7 @@ typedef struct galaxy_t
   double BaryonFracModifier;
   double FOFMvirModifier;
   double MvirCrit;
-  double MvirCrit_MC; 
+  double MvirCrit_MC;
   double MergerBurstMass;
 
   int Type;
