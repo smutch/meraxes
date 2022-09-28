@@ -19,9 +19,8 @@
  * careful with units!
  */
 
-
 /*
- * The minihalo feature was written by Emanuele M. Ventura, which includes an 
+ * The minihalo feature was written by Emanuele M. Ventura, which includes an
  * amalgamation of the requisite functions for LW background using formulation of Qin2020a
  */
 void _ComputeTs(int snapshot)
@@ -151,8 +150,8 @@ void _ComputeTs(int snapshot)
             run_globals.reion_grids.stars[i_padded] /
             (RtoM(R) * run_globals.params.Hubble_h * run_globals.params.Hubble_h * density_over_mean) * (4.0 / 3.0) *
             M_PI * pow(R, 3.0) / pixel_volume;
-          
-          if (collapse_fraction_in_cell > 1.0){
+
+          if (collapse_fraction_in_cell > 1.0) {
             collapse_fraction_in_cell = 1.0;
           }
           collapse_fraction += collapse_fraction_in_cell;
@@ -211,13 +210,13 @@ void _ComputeTs(int snapshot)
               }
 
               density_over_mean = 1.0 + run_globals.reion_grids.deltax[i_padded];
-              
+
               collapse_fraction_in_cell =
                 run_globals.reion_grids.stars[i_padded] /
                 (RtoM(R) * run_globals.params.Hubble_h * run_globals.params.Hubble_h * density_over_mean) *
                 (4.0 / 3.0) * M_PI * pow(R, 3.0) / pixel_volume;
-              
-              if (collapse_fraction_in_cell > 1.0){
+
+              if (collapse_fraction_in_cell > 1.0) {
                 collapse_fraction_in_cell = 1.0;
               }
               collapse_fraction += collapse_fraction_in_cell;
@@ -349,10 +348,10 @@ void _ComputeTs(int snapshot)
 
         nuprime = nu_n(n_ct) * (1 + zpp) / (1.0 + zp);
         sum_lyn[R_ct] += frecycle(n_ct) * spectral_emissivity(nuprime, 0);
-        if (run_globals.params.Flag_IncludeLymanWerner){
+        if (run_globals.params.Flag_IncludeLymanWerner) {
           if (nuprime < NU_LW / NU_LL)
             nuprime = NU_LW / NU_LL;
-          if (nuprime > nu_n(n_ct+1))
+          if (nuprime > nu_n(n_ct + 1))
             continue;
           sum_lyn_LW[R_ct] += spectral_emissivity(nuprime, 2);
         }
@@ -401,7 +400,7 @@ void _ComputeTs(int snapshot)
         // The amount is the weight, multplied by the contribution from the previous radii
         sum_lyn[R_ct] = weight * sum_lyn[R_ct - 1];
         if (run_globals.params.Flag_IncludeLymanWerner)
-          sum_lyn_LW[R_ct] = weight * sum_lyn_LW[R_ct-1];
+          sum_lyn_LW[R_ct] = weight * sum_lyn_LW[R_ct - 1];
         first_radii = false;
       }
     }
@@ -495,7 +494,7 @@ void _ComputeTs(int snapshot)
           for (R_ct = 0; R_ct < TsNumFilterSteps; R_ct++) {
             i_smoothedSFR = grid_index_smoothedSFR(R_ct, ix, iy, iz, TsNumFilterSteps, ReionGridDim);
 
-            SFR_GAL[R_ct] = SMOOTHED_SFR_GAL[i_smoothedSFR]; 
+            SFR_GAL[R_ct] = SMOOTHED_SFR_GAL[i_smoothedSFR];
 
             if (run_globals.params.Flag_SeparateQSOXrays) {
               SFR_QSO[R_ct] = SMOOTHED_SFR_QSO[i_smoothedSFR];
@@ -656,7 +655,7 @@ void _ComputeTs(int snapshot)
 
   destruct_heat();
 
-  mlog("zp = %e Ts_ave = %e Tk_ave = %e x_e_ave = %e", MLOG_MESG, zp, Ave_Ts, Ave_Tk, Ave_x_e );
+  mlog("zp = %e Ts_ave = %e Tk_ave = %e x_e_ave = %e", MLOG_MESG, zp, Ave_Ts, Ave_Tk, Ave_x_e);
   mlog("zp = %e J_alpha_ave = %e xalpha_ave = %e Xheat_ave = %e Xion_ave = %e J_LW_ave = %e",
        MLOG_MESG,
        zp,
