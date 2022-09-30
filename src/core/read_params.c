@@ -656,6 +656,11 @@ void read_parameter_file(char* fname, int mode)
       params_addr[n_param] = &(run_params->Flag_IncludeLymanWerner);
       required_tag[n_param] = 1;
       params_type[n_param++] = PARAM_TYPE_INT;
+      
+      strncpy(params_tag[n_param], "Flag_IncludeMetalEvo", tag_length); //New for MetalEvo
+      params_addr[n_param] = &(run_params->Flag_IncludeMetalEvo);
+      required_tag[n_param] = 1;
+      params_type[n_param++] = PARAM_TYPE_INT;
 
       strncpy(params_tag[n_param], "Flag_IncludeSpinTemp", tag_length);
       params_addr[n_param] = &(run_params->Flag_IncludeSpinTemp);
@@ -729,6 +734,11 @@ void read_parameter_file(char* fname, int mode)
 
       strncpy(params_tag[n_param], "ReionGridDim", tag_length);
       params_addr[n_param] = &(run_params->ReionGridDim);
+      required_tag[n_param] = 1;
+      params_type[n_param++] = PARAM_TYPE_INT;
+      
+      strncpy(params_tag[n_param], "MetalGridDim", tag_length); //New for MetalEvo
+      params_addr[n_param] = &(run_params->MetalGridDim);
       required_tag[n_param] = 1;
       params_type[n_param++] = PARAM_TYPE_INT;
 
