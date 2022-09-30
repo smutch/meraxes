@@ -298,6 +298,33 @@ typedef struct hdf5_output_t
   // TOTAL : 52 + 4 padding (must be multiple of 8)
 } hdf5_output_t;
 
+typedef struct metal_grids_t //New stuff for MetalEvo, probably you will need to add new stuff
+{
+  ptrdiff_t* slab_nix_metals;
+  ptrdiff_t* slab_ix_start_metals;
+  ptrdiff_t* slab_n_complex_metals;
+
+  float* buffer_metals;
+  
+  float* stars_metals;
+  fftwf_complex* stars_unfiltered_metals;
+  fftwf_complex* stars_filtered_metals;
+  fftwf_plan stars_forward_plan_metals;
+  fftwf_plan stars_filtered_reverse_plan_metals;
+  
+  float* sfr_metals;
+  fftwf_complex* sfr_unfiltered_metals;
+  fftwf_complex* sfr_filtered_metals;
+  fftwf_plan sfr_forward_plan_metals;
+  fftwf_plan sfr_filtered_reverse_plan_metals;
+  
+  float* mass_metals;
+  float* Zigm_box;
+  float* Probability_metals; 
+  
+  double volume_ave_ZIGM;
+} metal_grids_t; 
+  
 typedef struct reion_grids_t
 {
   ptrdiff_t* slab_nix;
