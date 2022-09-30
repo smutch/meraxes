@@ -86,6 +86,9 @@ void prepare_galaxy_for_output(galaxy_t gal, galaxy_output_t* galout, int i_snap
   galout->MergTime = (float)(gal.MergTime * units->UnitTime_in_Megayears);
   galout->MergerStartRadius = (float)(gal.MergerStartRadius);
   galout->MWMSA = current_mwmsa(&gal, i_snap);
+  
+  if (run_globals.params.Flag_IncludeMetalEvo)
+    galout->RmetalBubble = (double)(gal.RmetalBubble); //new for MetalEvo
 
   for (int ii = 0; ii < N_HISTORY_SNAPS; ii++)
     galout->NewStars[ii] = (float)(gal.NewStars[ii]);
@@ -108,6 +111,9 @@ void calc_hdf5_props()
     int i; // dummy
 
     h5props->n_props = 50; 
+    
+    if (run_globals.params.Flag_IncludeMetalEvo)
+      h5props->n_props +=1;
 
 #ifdef CALC_MAGS
     h5props->n_props += 2;

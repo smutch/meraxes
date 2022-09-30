@@ -226,6 +226,7 @@ typedef struct run_params_t
   int TsHeatingFilterType;
   int ReionRtoMFilterType;
   int ReionUVBFlag;
+  int MetalGridDim;
 
   enum tree_ids TreesID;
   int FirstFile;
@@ -239,6 +240,7 @@ typedef struct run_params_t
   int Flag_PatchyReion;
   int Flag_IncludeSpinTemp;
   int Flag_IncludeLymanWerner;
+  int Flag_IncludeMetalEvo; // New for Metallicity
   int Flag_IncludeRecombinations;
   int Flag_Compute21cmBrightTemp;
   int Flag_ComputePS;
@@ -459,6 +461,8 @@ typedef struct galaxy_t
   double BlackHoleAccretedHotMass;
   double BlackHoleAccretedColdMass;
   double BlackHoleAccretingColdMass;
+  
+  double RmetalBubble; //New for MetalEvo
 
   // baryonic hostories
   double mwmsa_num;
