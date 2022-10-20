@@ -203,6 +203,10 @@ void init_storage()
   initialize_halo_storage();
 
   malloc_reionization_grids();
+  
+  if (run_globals.params.Flag_IncludeMetalEvo) {
+    malloc_metal_grids();
+  }
 
   // calculate the output hdf5 file properties for later use
   calc_hdf5_props();
