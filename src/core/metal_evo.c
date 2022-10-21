@@ -339,8 +339,8 @@ void malloc_metal_grids()
   }
 
   // run_globals.NStoreSnapshots is set in `initialize_halo_storage`
-  run_globals.SnapshotDeltax = (float**)calloc((size_t)run_globals.NStoreSnapshots, sizeof(float*)); //?
-  run_globals.SnapshotVel = (float**)calloc((size_t)run_globals.NStoreSnapshots, sizeof(float*));  //?
+  //run_globals.SnapshotDeltax = (float**)calloc((size_t)run_globals.NStoreSnapshots, sizeof(float*)); //?
+  //run_globals.SnapshotVel = (float**)calloc((size_t)run_globals.NStoreSnapshots, sizeof(float*));  //?
 
   grids->galaxy_to_slab_map_metals = NULL;
 
@@ -352,7 +352,13 @@ void malloc_metal_grids()
   grids->sfr_filtered_metals = NULL;
   grids->mass_metals = NULL;
   grids->Zigm_box = NULL; 
+  
+  assign_slabs_metals();
 
+    int MetalGridDim = run_globals.params.MetalGridDim;
+    ptrdiff_t* slab_nix_metals = run_globals.metal_grids.slab_nix_metals;
+    ptrdiff_t slab_n_real_metals = slab_nix_metals[run_globals.mpi_rank] * MetalGridDim * MetalGridDim;
+    ptrdiff_t slab_n_complex_metals = run_globals.metal_grids.slab_n_complex_metals[run_globals.mpi_rank];
     // create a buffer on each rank which is as large as the largest LOGICAL allocation on any single rank
     int max_cells = 0;
 
@@ -360,7 +366,7 @@ void malloc_metal_grids()
       if (slab_nix_metals[ii] > max_cells)
         max_cells = (int)slab_nix_metals[ii];
 
-    max_cells *= MetalGridDim * Metal_GridDim;
+    max_cells *= MetalGridDim * MetalGridDim;
     grids->buffer_size_metals = max_cells;
 
     grids->buffer_metals = fftwf_alloc_real((size_t)max_cells);

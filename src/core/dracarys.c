@@ -10,6 +10,7 @@
 #include "physics/reionization.h"
 #include "read_halos.h"
 #include "reionization.h"
+#include "metal_evo.h"
 #include "save.h"
 #include "tree_flags.h"
 
@@ -303,6 +304,10 @@ void dracarys()
           assign_Mvir_crit_to_galaxies(ngals_in_slabs, 2);
       }
     }
+    
+    if (run_globals.params.Flag_IncludeMetalEvo) { // Need this for metal grid
+      int ngals_in_metal_slabs = map_galaxies_to_slabs_metals(Ngal);
+    }
 
     // Do the physics
     if (NGal > 0)
@@ -357,6 +362,12 @@ void dracarys()
       // longer need them as they will need to be re-created for the new halo
       // positions in the next time step
       free(run_globals.reion_grids.galaxy_to_slab_map);
+    }
+    
+    if (run_globals.params.Flag_IncludeMetalEvo) {
+    
+      //Add here functions
+      free(run_globals.metal_grids.galaxy_to_slab_map_metals);
     }
 
 #ifdef DEBUG
