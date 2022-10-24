@@ -306,7 +306,7 @@ void dracarys()
     }
     
     if (run_globals.params.Flag_IncludeMetalEvo) { // Need this for metal grid
-      int ngals_in_metal_slabs = map_galaxies_to_slabs_metals(Ngal);
+      int ngals_in_metal_slabs = map_galaxies_to_slabs_metals(NGal);
     }
 
     // Do the physics
@@ -366,7 +366,8 @@ void dracarys()
     
     if (run_globals.params.Flag_IncludeMetalEvo) {
     
-      //Add here functions
+      construct_metal_grids(snapshot, nout_gals);
+      save_metal_input_grids(snapshot);
       free(run_globals.metal_grids.galaxy_to_slab_map_metals);
     }
 
@@ -423,7 +424,7 @@ void dracarys()
       run_globals.reion_grids.started = 0;
       run_globals.reion_grids.finished = 0;
 
-      init_reion_grids();
+      init_reion_grids(); // Why we initialize again the reionization grids?
     }
   }
 
