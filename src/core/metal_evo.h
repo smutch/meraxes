@@ -1,7 +1,18 @@
+#ifndef METAL_EVO_H
+#define METAL_EVO_H
+
 #include <fftw3-mpi.h>
 #include <stdbool.h>
 
 #include "meraxes.h"
+#include "utils.h"
+
+typedef struct gal_to_slab_metals_t
+{
+  int index;
+  struct galaxy_t* galaxy;
+  int slab_ind;
+} gal_to_slab_metals_t;
 
 #ifdef __cplusplus
 extern "C"
@@ -12,7 +23,7 @@ extern "C"
   void init_metal_grids(void);
   void malloc_metal_grids(void);
   void free_metal_grids(void);
-  void map_galaxies_to_slab_metals(int ngals);
+  void map_galaxies_to_slabs_metals(int ngals);
   void construct_metal_grids(int snapshot, int local_ngals);
   void save_metal_input_grids(int snapshot);
   void save_metal_output_grids(int snapshot);
