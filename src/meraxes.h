@@ -608,6 +608,7 @@ typedef struct run_globals_t
   struct run_params_t params;
   char FNameOut[STRLEN];
   reion_grids_t reion_grids;
+  metal_grids_t metal_grids;
   struct run_units_t units;
   hdf5_output_t hdf5props;
 
