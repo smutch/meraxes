@@ -56,7 +56,7 @@ void construct_metal_grids(int snapshot, int local_ngals) // You can put here th
 
   // init the grid
   //for (int ii = 0; ii < local_n_complex_metals * 2; ii++) {
-  for (int ii = 0; ii < slab_n_real_metals; ii+) { 
+  for (int ii = 0; ii < slab_n_real_metals; ii++) { 
     stellar_grid_metals[ii] = 0.0;
     sfr_grid_metals[ii] = 0.0;
   }
@@ -217,7 +217,7 @@ void save_metal_input_grids(int snapshot)
   hid_t memspace_id = H5Screate_simple(3, mem_dims, NULL);
 
   // select a hyperslab in the filespace
-  hsize_t start[3] = { (hsize_t)run_globals.Metal_grids.slab_ix_start_metals[run_globals.mpi_rank], 0, 0 };
+  hsize_t start[3] = { (hsize_t)run_globals.metal_grids.slab_ix_start_metals[run_globals.mpi_rank], 0, 0 };
   hsize_t count[3] = { (hsize_t)local_nix_metals, (hsize_t)MetalGridDim, (hsize_t)MetalGridDim };
   H5Sselect_hyperslab(fspace_id, H5S_SELECT_SET, start, NULL, count, NULL);
 
@@ -233,15 +233,15 @@ void save_metal_input_grids(int snapshot)
     for (int jj = 0; jj < MetalGridDim; jj++)
       for (int kk = 0; kk < MetalGridDim; kk++)
         grid[grid_index(ii, jj, kk, MetalGridDim, INDEX_REAL)] =
-          (grids->stars)[grid_index(ii, jj, kk, MetalGridDim, INDEX_PADDED)];
-  write_grid_float("stars", grid, file_id, fspace_id, memspace_id, dcpl_id);
+          (grids->stars_metals)[grid_index(ii, jj, kk, MetalGridDim, INDEX_REAL)];
+  write_grid_float("stars_metals", grid, file_id, fspace_id, memspace_id, dcpl_id);
 
   for (int ii = 0; ii < local_nix_metals; ii++)
     for (int jj = 0; jj < MetalGridDim; jj++)
       for (int kk = 0; kk < MetalGridDim; kk++)
         grid[grid_index(ii, jj, kk, MetalGridDim, INDEX_REAL)] =
-          (float)((grids->sfr)[grid_index(ii, jj, kk, MetalGridDim, INDEX_PADDED)] * UnitMass_in_g / UnitTime_in_s * SEC_PER_YEAR / SOLAR_MASS);
-  write_grid_float("sfr", grid, file_id, fspace_id, memspace_id, dcpl_id);
+          (float)((grids->sfr_metals)[grid_index(ii, jj, kk, MetalGridDim, INDEX_REAL)] * UnitMass_in_g / UnitTime_in_s * SEC_PER_YEAR / SOLAR_MASS);
+  write_grid_float("sfr_metals", grid, file_id, fspace_id, memspace_id, dcpl_id);
 
 
   // tidy up
@@ -259,15 +259,15 @@ void init_metal_grids()
   metal_grids_t* grids = &(run_globals.metal_grids);
   int MetalGridDim = run_globals.params.MetalGridDim;
   ptrdiff_t* slab_nix_metals = run_globals.metal_grids.slab_nix_metals;
-  ptrdiff_t slab_n_real_metals = slab_nix[run_globals.mpi_rank] * MetalGridDim * MetalGridDim;
+  ptrdiff_t slab_n_real_metals = slab_nix_metals[run_globals.mpi_rank] * MetalGridDim * MetalGridDim;
 
   mlog("Initialising metal grids...", MLOG_MESG);
 
   grids->volume_ave_ZIGM = 0.0;
   grids->volume_ave_mass_metals = 0.0;
-  grids->probability_metals = 0.0;
+  grids->Probability_metals = 0.0;
 
-  for (int ii = 0; ii < slab_n_real; ii++) {
+  for (int ii = 0; ii < slab_n_real_metals; ii++) {
     grids->stars_metals[ii] = 0;
     grids->sfr_metals[ii] = 0;
     grids->mass_metals[ii] = (float)0.;
@@ -332,9 +332,9 @@ void free_metal_grids()
   free(run_globals.metal_grids.slab_ix_start_metals);
   free(run_globals.metal_grids.slab_nix_metals);
 
-  fftwf_free(grids->volume_ave_ZIGM);
-  fftwf_free(grids->volume_ave_mass_metals);
-  fftwf_free(grids->Probability_metals);
+  //fftwf_free(grids->volume_ave_ZIGM);
+  //fftwf_free(grids->volume_ave_mass_metals);
+  //fftwf_free(grids->Probability_metals);
   fftwf_free(grids->mass_metals);
   fftwf_free(grids->Zigm_box);
 
@@ -356,9 +356,9 @@ int map_galaxies_to_slabs_metals(int ngals)
 
   // Loop through each valid galaxy and find what slab it sits in
   if (ngals > 0)
-    run_globals.metal_grids.galaxy_to_slab_map = malloc(sizeof(gal_to_slab_metals_t) * ngals);
+    run_globals.metal_grids.galaxy_to_slab_map_metals = malloc(sizeof(gal_to_slab_metals_t) * ngals);
   else
-    run_globals.metal_grids.galaxy_to_slab_map = NULL;
+    run_globals.metal_grids.galaxy_to_slab_map_metals = NULL;
 
   gal_to_slab_metals_t* galaxy_to_slab_map_metals = run_globals.metal_grids.galaxy_to_slab_map_metals;
   ptrdiff_t* slab_ix_start_metals = run_globals.metal_grids.slab_ix_start_metals;
@@ -382,10 +382,10 @@ int map_galaxies_to_slabs_metals(int ngals)
 
       assert((ix >= 0) && (ix < MetalGridDim));
 
-      galaxy_to_slab_map[gal_counter].index = gal_counter;
-      galaxy_to_slab_map[gal_counter].slab_ind =
-        searchsorted(&ix, slab_ix_start, run_globals.mpi_size, sizeof(ptrdiff_t), compare_ptrdiff, -1, -1);
-      galaxy_to_slab_map[gal_counter++].galaxy = gal;
+      galaxy_to_slab_map_metals[gal_counter].index = gal_counter;
+      galaxy_to_slab_map_metals[gal_counter].slab_ind =
+        searchsorted(&ix, slab_ix_start_metals, run_globals.mpi_size, sizeof(ptrdiff_t), compare_ptrdiff, -1, -1);
+      galaxy_to_slab_map_metals[gal_counter++].galaxy = gal;
     }
 
     gal = gal->Next;
@@ -441,7 +441,7 @@ void save_metal_output_grids(int snapshot)
   // create and write the datasets
   write_grid_float("mass_metals", grids->mass_metals, file_id, fspace_id, memspace_id, dcpl_id);
   write_grid_float("Zigm_box", grids->Zigm_box, file_id, fspace_id, memspace_id, dcpl_id);
-  write_grid_float("Probability_metals", grids->Probability_metals, file_id, fspace_id, memspace_id, dcpl_id);
+  //write_grid_float("Probability_metals", grids->Probability_metals, file_id, fspace_id, memspace_id, dcpl_id);
 
   // fftw padded grids
   float* grid = (float*)calloc((size_t)(local_nix_metals * MetalGridDim * MetalGridDim), sizeof(float));
