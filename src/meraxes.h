@@ -306,7 +306,6 @@ typedef struct metal_grids_t //New stuff for MetalEvo, probably you will need to
   float* buffer_metals;
   
   float* stars_metals;
-  
   float* sfr_metals;
   
   struct gal_to_slab_t* galaxy_to_slab_map_metals;
