@@ -7,6 +7,7 @@
 #include "parse_paramfile.h"
 #include "reionization.h"
 #include "save.h"
+#include "metal_evo.h"
 
 static float current_mwmsa(galaxy_t* gal, int i_snap)
 {
@@ -605,6 +606,18 @@ void create_master_file()
       H5LTset_attribute_string(file_id, group_name[1], h5props->field_names[ii], h5props->field_h_conv[ii]);
     }
   }
+  
+  if (run_globals.params.Flag_IncludeMetalEvo {
+    const char* group_name = { "Units/MetalGrids" };
+    group_id = H5Gcreate(file_id, group_name, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+    H5LTset_attribute_string(file_id, group_name, "mass_metals", "1e10 solMass");
+    H5LTset_attribute_string(file_id, group_name, "stars_metals", "1e10 solMass");
+    H5LTset_attribute_string(file_id, group_name, "sfr_metals", "solMass/yr");
+    H5LTset_attribute_string(file_id, group_name, "Zigm_box", "Zsol");
+    H5LTset_attribute_string(file_id, group_name, "Probability_metals", "none");
+    
+    H5Gclose(group_id);
+  }
 
   if (run_globals.params.Flag_PatchyReion) {
     {
@@ -1101,6 +1114,9 @@ void write_snapshot(int n_write, int i_out, int* last_n_write)
   if (run_globals.params.Flag_PatchyReion && check_if_reionization_ongoing(run_globals.ListOutputSnaps[i_out]) &&
       (run_globals.params.Flag_OutputGrids))
     save_reion_output_grids(run_globals.ListOutputSnaps[i_out]);
+   
+  if (run_global.params.Flag_IncludeMetalEvo) && (run_globals.params.Flag_OutputGrids)
+    save_metal_output_grids(run_globals.ListOutputSnaps)[i_out]);
 
   // Close the group.
   H5Gclose(group_id);
