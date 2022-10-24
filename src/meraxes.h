@@ -302,21 +302,12 @@ typedef struct metal_grids_t //New stuff for MetalEvo, probably you will need to
 {
   ptrdiff_t* slab_nix_metals;
   ptrdiff_t* slab_ix_start_metals;
-  ptrdiff_t* slab_n_complex_metals;
 
-  float* buffer_metals; //Careful with this, I am not sure if I need it, I might just use buffer for reionization (Ask Yuxiang)
+  float* buffer_metals;
   
   float* stars_metals;
-  fftwf_complex* stars_unfiltered_metals;
-  fftwf_complex* stars_filtered_metals;
-  fftwf_plan stars_forward_plan_metals;
-  fftwf_plan stars_filtered_reverse_plan_metals;
   
   float* sfr_metals;
-  fftwf_complex* sfr_unfiltered_metals;
-  fftwf_complex* sfr_filtered_metals;
-  fftwf_plan sfr_forward_plan_metals;
-  fftwf_plan sfr_filtered_reverse_plan_metals;
   
   struct gal_to_slab_t* galaxy_to_slab_map_metals;
 
@@ -325,7 +316,6 @@ typedef struct metal_grids_t //New stuff for MetalEvo, probably you will need to
   double Probability_metals;
 
   int buffer_size_metals; 
-  bool flag_wisdom_metals;
   
   float* mass_metals;
   float* Zigm_box;
