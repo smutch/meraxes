@@ -356,11 +356,11 @@ int map_galaxies_to_slabs_metals(int ngals)
 
   // Loop through each valid galaxy and find what slab it sits in
   if (ngals > 0)
-    run_globals.metal_grids.galaxy_to_slab_map = malloc(sizeof(gal_to_slab_t) * ngals);
+    run_globals.metal_grids.galaxy_to_slab_map = malloc(sizeof(gal_to_slab_metals_t) * ngals);
   else
     run_globals.metal_grids.galaxy_to_slab_map = NULL;
 
-  gal_to_slab_t* galaxy_to_slab_map_metals = run_globals.metal_grids.galaxy_to_slab_map_metals;
+  gal_to_slab_metals_t* galaxy_to_slab_map_metals = run_globals.metal_grids.galaxy_to_slab_map_metals;
   ptrdiff_t* slab_ix_start_metals = run_globals.metal_grids.slab_ix_start_metals;
 
   galaxy_t* gal = run_globals.FirstGal;
