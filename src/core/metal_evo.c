@@ -22,13 +22,12 @@ void assign_slabs_metals() // Not sure if I have to duplicate this function from
 
   // Use fftw to find out what slab each rank should get
   ptrdiff_t local_nix_metals, local_ix_start_metals;
-  ptrdiff_t local_n_complex_metals =
-    fftwf_mpi_local_size_3d(dim, dim, dim / 2 + 1, run_globals.mpi_comm, &local_nix_metals, &local_ix_start_metals);
+  fftwf_mpi_local_size_3d(dim, dim, dim / 2 + 1, run_globals.mpi_comm, &local_nix_metals, &local_ix_start_metals); // Important to define local_nix and local_ix_start
 
   // let every core know...
   ptrdiff_t** slab_nix_metals = &run_globals.metal_grids.slab_nix_metals;
   *slab_nix_metals = malloc(sizeof(ptrdiff_t) * n_rank); ///< array of number of x cells of every rank
-  MPI_Allgather(&local_nix_metals, sizeof(ptrdiff_t), MPI_BYTE, *slab_nix_metals, sizeof(ptrdiff_t), MPI_BYTE, run_globals.mpi_comm);
+  MPI_Allgather(&local_nix_metals, sizeof(ptrdiff_t), MPI_BYTE, *slab_nix_metals, sizeof(ptrdiff_t), MPI_BYTE, run_globals.mpi_comm); 
 
   ptrdiff_t** slab_ix_start_metals = &run_globals.metal_grids.slab_ix_start_metals;
   *slab_ix_start_metals = malloc(sizeof(ptrdiff_t) * n_rank); ///< array first x cell of every rank
@@ -36,30 +35,28 @@ void assign_slabs_metals() // Not sure if I have to duplicate this function from
   for (int ii = 1; ii < n_rank; ii++)
     (*slab_ix_start_metals)[ii] = (*slab_ix_start_metals)[ii - 1] + (*slab_nix_metals)[ii - 1];
 
-  ptrdiff_t** slab_n_complex_metals = &run_globals.metal_grids.slab_n_complex_metals; ///< array of allocation counts for every rank
-  *slab_n_complex_metals = malloc(sizeof(ptrdiff_t) * n_rank);                 ///< array of allocation counts for every rank
-  MPI_Allgather(
-    &local_n_complex_metals, sizeof(ptrdiff_t), MPI_BYTE, *slab_n_complex_metals, sizeof(ptrdiff_t), MPI_BYTE, run_globals.mpi_comm);
-
   mlog("...done", MLOG_CLOSE);
 }
 
-void construct_metal_grids(int snapshot, int local_ngals) //work in progress
+void construct_metal_grids(int snapshot, int local_ngals) // You can put here the computation of probability
 {
   double box_size = run_globals.params.BoxSize; 
   float* stellar_grid_metals = run_globals.metal_grids.stars_metals;
   float* sfr_grid_metals = run_globals.metal_grids.sfr_metals;
   int MetalGridDim = run_globals.params.MetalGridDim;
-  double sfr_timescale_metals = run_globals.params.ReionSfrTimescale * hubble_time(snapshot); // What is ReionSfrTimescale?? Is 0.5 in my input file
+  double sfr_timescale_metals = run_globals.params.ReionSfrTimescale * hubble_time(snapshot); 
   
   gal_to_slab_t* galaxy_to_slab_map_metals = run_globals.metal_grids.galaxy_to_slab_map_metals;
   ptrdiff_t* slab_ix_start_metals = run_globals.metal_grids.slab_ix_start_metals;
-  int local_n_complex_metals = (int)(run_globals.metal_grids.slab_n_complex_metals[run_globals.mpi_rank]);
+  ptrdiff_t* slab_nix_metals = run_globals.metal_grids.slab_nix_metals;
+  ptrdiff_t slab_n_real_metals = slab_nix_metals[run_globals.mpi_rank] * MetalGridDim * MetalGridDim;
+  //int local_nix_metals = (int)(run_globals.metal_grids.slab_nix_metals[run_globals.mpi_rank]);
 
   mlog("Constructing stellar mass and sfr grids for metals...", MLOG_OPEN | MLOG_TIMERSTART);
 
   // init the grid
-  for (int ii = 0; ii < local_n_complex * 2; ii++) {
+  //for (int ii = 0; ii < local_n_complex_metals * 2; ii++) {
+  for (int ii = 0; ii < slab_n_real_metals; ii+) { 
     stellar_grid_metals[ii] = 0.0;
     sfr_grid_metals[ii] = 0.0;
   }
@@ -68,7 +65,7 @@ void construct_metal_grids(int snapshot, int local_ngals) //work in progress
   //
   // N.B. We are assuming here that the galaxy_to_slab mapping has been sorted
   // by slab index...
-  ptrdiff_t* slab_nix_metals = run_globals.metal_grids.slab_nix_metals;
+  //ptrdiff_t* slab_nix_metals = run_globals.metal_grids.slab_nix_metals;
   ptrdiff_t buffer_size_metals = run_globals.metal_grids.buffer_size_metals;
   float* buffer_metals = run_globals.metal_grids.buffer_metals;
 
@@ -122,19 +119,12 @@ void construct_metal_grids(int snapshot, int local_ngals) //work in progress
           switch (prop) {
             case prop_stellar_metals: // Not sure if you really need this for metals
 
-              buffer_metals[ind] += gal->FescWeightedGSM;
-              // a trick to include quasar radiation using current 21cmFAST code
-              if (run_globals.params.physics.Flag_BHFeedback) {
-                if (gal->BlackHoleMass >= run_globals.params.physics.BlackHoleMassLimitReion)
-                  buffer[ind] += gal->EffectiveBHM;
-                else
-                  N_BlackHoleMassLimitReion += 1;
-              }
+              buffer_metals[ind] += gal->GrossStellarMass;
               break;
 
 
             case prop_sfr_metals:
-              buffer[ind] += gal->GrossStellarMass;
+              buffer_metals[ind] += gal->GrossStellarMass;
 			  // this sfr grid is used for X-ray and Lyman, we are ignoring BH here, in principle I should use this for metals.
               break;
 
@@ -165,8 +155,8 @@ void construct_metal_grids(int snapshot, int local_ngals) //work in progress
               for (int iy = 0; iy < MetalGridDim; iy++)
                 for (int iz = 0; iz < MetalGridDim; iz++) {
                   double val = (double)buffer_metals[grid_index(ix, iy, iz, MetalGridDim, INDEX_REAL)];
-                  val = (val > 0) ? val / sfr_timescale_metals : 0; // I am still not 100% why if my sfr_timescale is the same for reionization
-                  sfr_grid_metals[grid_index(ix, iy, iz, MetalGridDim, INDEX_PADDED)] = (float)val;
+                  val = (val > 0) ? val / sfr_timescale_metals : 0; 
+                  sfr_grid_metals[grid_index(ix, iy, iz, MetalGridDim, INDEX_REAL)] = (float)val;
                 }
             break;
 
@@ -177,7 +167,7 @@ void construct_metal_grids(int snapshot, int local_ngals) //work in progress
                   float val = buffer_metals[grid_index(ix, iy, iz, MetalGridDim, INDEX_REAL)];
                   if (val < 0)
                     val = 0;
-                  stellar_grid_metals[grid_index(ix, iy, iz, MetalGridDim, INDEX_PADDED)] = val;
+                  stellar_grid_metals[grid_index(ix, iy, iz, MetalGridDim, INDEX_REAL)] = val;
                 }
             break;
 
@@ -270,27 +260,16 @@ void init_metal_grids()
   int MetalGridDim = run_globals.params.MetalGridDim;
   ptrdiff_t* slab_nix_metals = run_globals.metal_grids.slab_nix_metals;
   ptrdiff_t slab_n_real_metals = slab_nix[run_globals.mpi_rank] * MetalGridDim * MetalGridDim;
-  ptrdiff_t slab_n_complex_metals = run_globals.metal_grids.slab_n_complex_metals[run_globals.mpi_rank];
 
   mlog("Initialising metal grids...", MLOG_MESG);
 
   grids->volume_ave_ZIGM = 0.0;
   grids->volume_ave_mass_metals = 0.0;
   grids->probability_metals = 0.0;
-  
-  for (int ii = 0; ii < slab_n_complex_metals; ii++) {
-    grids->stars_filtered_metals[ii] = 0 + 0I;
-    grids->stars_unfiltered_metals[ii] = 0 + 0I;
-    grids->sfr_filtered_metals[ii] = 0 + 0I;
-    grids->sfr_unfiltered_metals[ii] = 0 + 0I;
-  }
 
-  for (int ii = 0; ii < slab_n_complex * 2; ii++) {
+  for (int ii = 0; ii < slab_n_real; ii++) {
     grids->stars_metals[ii] = 0;
     grids->sfr_metals[ii] = 0;
-  }
-  
-  for (int ii = 0; ii < slab_n_real; ii++) {
     grids->mass_metals[ii] = (float)0.;
     grids->Zigm_box[ii] = (float)0.;
   }
@@ -302,42 +281,6 @@ void malloc_metal_grids()
 
   metal_grids_t* grids = &(run_globals.metal_grids);
 
-  fftwf_mpi_init();
-
-  // Load wisdom if requested
-  run_globals.metal_grids.flag_wisdom = strlen(run_globals.params.FFTW3WisdomDir) > 0; //Wisdom stuff not clear
-  bool save_wisdom = false;
-  char wisdom_fname[STRLEN + 32];
-  const int MetalGridDim = run_globals.params.MetalGridDim;
-  unsigned plan_flags = FFTW_ESTIMATE;
-
-  if (run_globals.metal_grids.flag_wisdom_metals) {
-    plan_flags = FFTW_PATIENT;
-    sprintf(wisdom_fname,
-            "%s/fftw3f-meraxes-N_%d-ranks_%d_metals.wisdom",
-            run_globals.params.FFTW3WisdomDir,
-            MetalGridDim,
-            run_globals.mpi_size);
-    if (run_globals.mpi_rank == 0) {
-      if (fftwf_import_wisdom_from_filename(wisdom_fname)) {
-        mlog("Successfully loaded FFTW3 wisdom for metals from %s", MLOG_MESG, wisdom_fname);
-      } else {
-        mlog("FFTW3 wisdom directory for metals provided, but no suitable wisdom exists. New wisdom will be created (this make "
-             "take a while).",
-             MLOG_MESG | MLOG_FLUSH);
-        save_wisdom = true;
-        // Check to see if the wisdom directory exists and if not, create it
-        struct stat filestatus;
-        if (stat(run_globals.params.FFTW3WisdomDir, &filestatus) != 0)
-          mkdir(run_globals.params.FFTW3WisdomDir, 02755);
-      }
-    }
-    MPI_Bcast(&save_wisdom, 1, MPI_C_BOOL, 0, run_globals.mpi_comm);
-    if (!save_wisdom) {
-      fftwf_mpi_broadcast_wisdom(run_globals.mpi_comm);
-    }
-  }
-
   // run_globals.NStoreSnapshots is set in `initialize_halo_storage`
   //run_globals.SnapshotDeltax = (float**)calloc((size_t)run_globals.NStoreSnapshots, sizeof(float*)); //?
   //run_globals.SnapshotVel = (float**)calloc((size_t)run_globals.NStoreSnapshots, sizeof(float*));  //?
@@ -345,11 +288,7 @@ void malloc_metal_grids()
   grids->galaxy_to_slab_map_metals = NULL;
 
   grids->stars_metals = NULL;
-  grids->stars_unfiltered_metals = NULL;
-  grids->stars_filtered_metals = NULL;
   grids->sfr_metals = NULL;
-  grids->sfr_unfiltered_metals = NULL;
-  grids->sfr_filtered_metals = NULL;
   grids->mass_metals = NULL;
   grids->Zigm_box = NULL; 
   
@@ -358,7 +297,6 @@ void malloc_metal_grids()
     int MetalGridDim = run_globals.params.MetalGridDim;
     ptrdiff_t* slab_nix_metals = run_globals.metal_grids.slab_nix_metals;
     ptrdiff_t slab_n_real_metals = slab_nix_metals[run_globals.mpi_rank] * MetalGridDim * MetalGridDim;
-    ptrdiff_t slab_n_complex_metals = run_globals.metal_grids.slab_n_complex_metals[run_globals.mpi_rank];
     // create a buffer on each rank which is as large as the largest LOGICAL allocation on any single rank
     int max_cells = 0;
 
@@ -371,54 +309,16 @@ void malloc_metal_grids()
 
     grids->buffer_metals = fftwf_alloc_real((size_t)max_cells);
 
-    grids->stars_metals = fftwf_alloc_real((size_t)slab_n_complex_metals * 2);
-    grids->stars_unfiltered_metals = fftwf_alloc_complex((size_t)slab_n_complex_metals);
-    grids->stars_filtered_metals = fftwf_alloc_complex((size_t)slab_n_complex_metals);
+    grids->stars_metals = fftwf_alloc_real((size_t)slab_n_real_metals);
 
-    grids->stars_forward_plan_metals = fftwf_mpi_plan_dft_r2c_3d(MetalGridDim,
-                                                          MetalGridDim,
-                                                          MetalGridDim,
-                                                          grids->stars_metals,
-                                                          grids->stars_unfiltered_metals,
-                                                          run_globals.mpi_comm,
-                                                          plan_flags);
-    grids->stars_filtered_reverse_plan_metals = fftwf_mpi_plan_dft_c2r_3d(MetalGridDim,
-                                                                   MetalGridDim,
-                                                                   MetalGridDim,
-                                                                   grids->stars_filtered_metals,
-                                                                   (float*)grids->stars_filtered_metals,
-                                                                   run_globals.mpi_comm,
-                                                                   plan_flags);
 
 
     grids->mass_metals = fftwf_alloc_real((size_t)slab_n_real_metals);
     grids->Zigm_box = fftwf_alloc_real((size_t)slab_n_real_metals);
 
-    grids->sfr_metals = fftwf_alloc_real((size_t)slab_n_complex_metals * 2);
-    grids->sfr_unfiltered_metals = fftwf_alloc_complex((size_t)slab_n_complex_metals);
-    grids->sfr_filtered_metals = fftwf_alloc_complex((size_t)slab_n_complex_metals);
+    grids->sfr_metals = fftwf_alloc_real((size_t)slab_n_real_metals);
 
-    grids->sfr_forward_plan_metals = fftwf_mpi_plan_dft_r2c_3d(
-        MetalGridDim, MetalGridDim, MetalGridDim, grids->sfr_metals, grids->sfr_unfiltered_metals, run_globals.mpi_comm, plan_flags);
-    grids->sfr_filtered_reverse_plan_metals = fftwf_mpi_plan_dft_c2r_3d(MetalGridDim,
-                                                                   MetalGridDim,
-                                                                   MetalGridDim,
-                                                                   grids->sfr_filtered_metals,
-                                                                   (float*)grids->sfr_filtered_metals,
-                                                                   run_globals.mpi_comm,
-                                                                   plan_flags);
-
-
-    init_reion_grids();
-
-    if (run_globals.metal_grids.flag_wisdom_metals && save_wisdom) {
-      fftwf_mpi_gather_wisdom(run_globals.mpi_comm);
-      if (run_globals.mpi_rank == 0) {
-        if (fftwf_export_wisdom_to_filename(wisdom_fname)) {
-          mlog("Successfully saved FFTW3 wisdom to %s", MLOG_MESG, wisdom_fname);
-        }
-      }
-    }
+    init_metal_grids();
 
   mlog("...done", MLOG_CLOSE);
 }
@@ -429,24 +329,17 @@ void free_metal_grids()
 
   metal_grids_t* grids = &(run_globals.metal_grids);
 
-  free(run_globals.metal_grids.slab_n_complex_metals);
   free(run_globals.metal_grids.slab_ix_start_metals);
   free(run_globals.metal_grids.slab_nix_metals);
 
-  fftwf_free(grids->r_bubble);
-  fftwf_free(grids->z_at_ionization);
-  fftwf_free(grids->xH);
+  fftwf_free(grids->volume_ave_ZIGM);
+  fftwf_free(grids->volume_ave_mass_metals);
+  fftwf_free(grids->Probability_metals);
+  fftwf_free(grids->mass_metals);
+  fftwf_free(grids->Zigm_box);
 
-  fftwf_destroy_plan(grids->sfr_filtered_reverse_plan_metals);
-  fftwf_destroy_plan(grids->sfr_forward_plan_metals);
-  fftwf_free(grids->sfr_filtered_metals);
-  fftwf_free(grids->sfr_unfiltered_metals);
   fftwf_free(grids->sfr_metals);
 
-  fftwf_destroy_plan(grids->stars_filtered_reverse_plan_metals);
-  fftwf_destroy_plan(grids->stars_forward_plan_metals);
-  fftwf_free(grids->stars_filtered_metals);
-  fftwf_free(grids->stars_unfiltered_metals);
   fftwf_free(grids->stars_metals);
 
   fftwf_free(grids->buffer_metals);
