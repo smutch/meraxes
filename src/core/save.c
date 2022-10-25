@@ -88,8 +88,8 @@ void prepare_galaxy_for_output(galaxy_t gal, galaxy_output_t* galout, int i_snap
   galout->MergerStartRadius = (float)(gal.MergerStartRadius);
   galout->MWMSA = current_mwmsa(&gal, i_snap);
   
-  if (run_globals.params.Flag_IncludeMetalEvo)
-    galout->RmetalBubble = (double)(gal.RmetalBubble); //new for MetalEvo
+  //if (run_globals.params.Flag_IncludeMetalEvo)
+  galout->RmetalBubble = (double)(gal.RmetalBubble); //new for MetalEvo
 
   for (int ii = 0; ii < N_HISTORY_SNAPS; ii++)
     galout->NewStars[ii] = (float)(gal.NewStars[ii]);
@@ -607,7 +607,7 @@ void create_master_file()
     }
   }
   
-  if (run_globals.params.Flag_IncludeMetalEvo {
+  if (run_globals.params.Flag_IncludeMetalEvo) {
     const char* group_name = { "Units/MetalGrids" };
     group_id = H5Gcreate(file_id, group_name, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
     H5LTset_attribute_string(file_id, group_name, "mass_metals", "1e10 solMass");
@@ -1115,8 +1115,8 @@ void write_snapshot(int n_write, int i_out, int* last_n_write)
       (run_globals.params.Flag_OutputGrids))
     save_reion_output_grids(run_globals.ListOutputSnaps[i_out]);
    
-  if (run_global.params.Flag_IncludeMetalEvo) && (run_globals.params.Flag_OutputGrids)
-    save_metal_output_grids(run_globals.ListOutputSnaps)[i_out]);
+  if (run_globals.params.Flag_IncludeMetalEvo) && (run_globals.params.Flag_OutputGrids)
+    save_metal_output_grids(run_globals.ListOutputSnaps[i_out]);
 
   // Close the group.
   H5Gclose(group_id);
