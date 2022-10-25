@@ -111,10 +111,7 @@ void calc_hdf5_props()
     galaxy_output_t galout;
     int i; // dummy
 
-    h5props->n_props = 50; 
-    
-    if (run_globals.params.Flag_IncludeMetalEvo)
-      h5props->n_props +=1;
+    h5props->n_props = 51; 
 
 #ifdef CALC_MAGS
     h5props->n_props += 2;
