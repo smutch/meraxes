@@ -446,8 +446,8 @@ void save_metal_output_grids(int snapshot)
   // fftw padded grids
   float* grid = (float*)calloc((size_t)(local_nix_metals * MetalGridDim * MetalGridDim), sizeof(float));
   
-  H5LTset_attribute_double(file_id, "Zigm_box", "volume_ave_ZIGM", &(grids->volume_ave_ZIGM), 1);
-  H5LTset_attribute_double(file_id, "mass_metals", "volume_ave_mass_metals", &(grids->volume_ave_mass_metals), 1);
+  H5LTset_attribute_double(file_id, "Zigm_box", "volume_ave_ZIGM", &(metal_grids->volume_ave_ZIGM), 1);
+  H5LTset_attribute_double(file_id, "mass_metals", "volume_ave_mass_metals", &(metal_grids->volume_ave_mass_metals), 1);
     
 
   // tidy up
