@@ -405,7 +405,7 @@ int map_galaxies_to_slabs_metals(int ngals)
 void save_metal_output_grids(int snapshot)
 {
 
-  metal_grids_t* grids = &(run_globals.metal_grids);
+  metal_grids_t* metal_grids = &(run_globals.metal_grids);
   int MetalGridDim = run_globals.params.MetalGridDim;
   int local_nix_metals = (int)(run_globals.metal_grids.slab_nix_metals[run_globals.mpi_rank]);
 
@@ -413,7 +413,7 @@ void save_metal_output_grids(int snapshot)
   mlog("Saving tocf output grids for metals...", MLOG_OPEN);
 
   char name[STRLEN];
-  gen_grids_fname(snapshot, name, false);
+  gen_metal_grids_fname(snapshot, name, false);
 
   // open the file (in parallel)
   hid_t plist_id = H5Pcreate(H5P_FILE_ACCESS);
@@ -439,8 +439,8 @@ void save_metal_output_grids(int snapshot)
   H5Pset_chunk(dcpl_id, 3, (hsize_t[3]){ 1, (hsize_t)MetalGridDim, (hsize_t)MetalGridDim });
 
   // create and write the datasets
-  write_grid_float("mass_metals", grids->mass_metals, file_id, fspace_id, memspace_id, dcpl_id);
-  write_grid_float("Zigm_box", grids->Zigm_box, file_id, fspace_id, memspace_id, dcpl_id);
+  write_grid_float("mass_metals", metal_grids->mass_metals, file_id, fspace_id, memspace_id, dcpl_id);
+  write_grid_float("Zigm_box", metal_grids->Zigm_box, file_id, fspace_id, memspace_id, dcpl_id);
   //write_grid_float("Probability_metals", grids->Probability_metals, file_id, fspace_id, memspace_id, dcpl_id);
 
   // fftw padded grids
