@@ -772,9 +772,24 @@ void create_master_file()
           H5Lcreate_external(relative_source_file, "/", snap_group_id, "Grids", H5P_DEFAULT, H5P_DEFAULT);
           H5Fclose(source_file_id);
         }
-        
+
+        // sprintf(source_ds, "Snap%03d/PowerSpectrum", run_globals.ListOutputSnaps[i_out]);
+        // if ((H5LTpath_valid(source_file_id, source_ds, FALSE)))
+        // {
+        //   sprintf(target_ds, "PowerSpectrum");
+        //   H5Lcreate_external(relative_source_file, source_ds, snap_group_id, target_ds, H5P_DEFAULT, H5P_DEFAULT);
+        // }
+
+        // sprintf(source_ds, "Snap%03d/RegionSizeDist", run_globals.ListOutputSnaps[i_out]);
+        // if ((H5LTpath_valid(source_file_id, source_ds, FALSE)))
+        // {
+        //   sprintf(target_ds, "RegionSizeDist");
+        //   H5Lcreate_external(relative_source_file, source_ds, snap_group_id, target_ds, H5P_DEFAULT, H5P_DEFAULT);
+        // }
+      }
+      
       if ((i_core == 0) && (run_globals.params.Flag_IncludeMetalEvo)) {
-        // create links to the metal grids that exist
+        // create links to the 21cmFAST grids that exist
         gen_metal_grids_fname(run_globals.ListOutputSnaps[i_out], relative_source_file, true);
         gen_metal_grids_fname(run_globals.ListOutputSnaps[i_out], source_file, false);
         if (access(source_file, F_OK) != -1) {
