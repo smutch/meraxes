@@ -421,6 +421,7 @@ void free_metal_grids()
   fftwf_free(grids->Zigm_box);
 
   fftwf_free(grids->sfr_metals);
+  fftwf_free(grids->mass_gasgal);
 
   fftwf_free(grids->stars_metals);
 
