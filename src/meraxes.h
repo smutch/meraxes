@@ -319,6 +319,7 @@ typedef struct metal_grids_t //New stuff for MetalEvo, probably you will need to
   
   float* mass_metals;
   float* mass_gas;
+  float* mass_gasgal;
   float* Zigm_box;
    
   
