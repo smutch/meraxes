@@ -81,7 +81,7 @@ void construct_metal_grids(int snapshot, int local_ngals) // You can put here th
     prop_mass_ej_gas
   };
   
-  for (int prop = prop_stellar_metals; prop <= prop_mas_ej_gas; prop++) {
+  for (int prop = prop_stellar_metals; prop <= prop_mass_ej_gas; prop++) {
 
     int i_gal = 0;
     int skipped_gals = 0;
