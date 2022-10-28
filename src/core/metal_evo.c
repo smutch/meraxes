@@ -80,7 +80,7 @@ void construct_metal_grids(int snapshot, int local_ngals) // You can put here th
     prop_stellar_metals,
     prop_sfr_metals,
     prop_mass_ej_metals,
-    prop_mass_gal_gas
+    prop_mass_gal_gas,
     prop_mass_ej_gas
   };
   
