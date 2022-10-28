@@ -399,6 +399,7 @@ void malloc_metal_grids()
     grids->Zigm_box = fftwf_alloc_real((size_t)slab_n_real_metals);
 
     grids->sfr_metals = fftwf_alloc_real((size_t)slab_n_real_metals);
+    grids->mass_gasgal = fftwf_alloc_real((size_t)slab_n_real_metals);
 
     init_metal_grids();
 
