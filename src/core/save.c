@@ -111,7 +111,7 @@ void calc_hdf5_props()
     galaxy_output_t galout;
     int i; // dummy
 
-    h5props->n_props = 51; 
+    h5props->n_props = 53; 
 
 #ifdef CALC_MAGS
     h5props->n_props += 2;
@@ -365,6 +365,20 @@ void calc_hdf5_props()
     h5props->dst_offsets[i] = HOFFSET(galaxy_output_t, MetalsEjectedGas);
     h5props->dst_field_sizes[i] = sizeof(galout.MetalsEjectedGas);
     h5props->field_names[i] = "MetalsEjectedGas";
+    h5props->field_units[i] = "1e10 solMass";
+    h5props->field_h_conv[i] = "v/h";
+    h5props->field_types[i++] = H5T_NATIVE_FLOAT;
+    
+    h5props->dst_offsets[i] = HOFFSET(galaxy_output_t, GasIGM);
+    h5props->dst_field_sizes[i] = sizeof(galout.GasIGM);
+    h5props->field_names[i] = "GasIGM";
+    h5props->field_units[i] = "1e10 solMass";
+    h5props->field_h_conv[i] = "v/h";
+    h5props->field_types[i++] = H5T_NATIVE_FLOAT;
+    
+    h5props->dst_offsets[i] = HOFFSET(galaxy_output_t, MetalsIGM);
+    h5props->dst_field_sizes[i] = sizeof(galout.MetalsIGM);
+    h5props->field_names[i] = "MetalsIGM";
     h5props->field_units[i] = "1e10 solMass";
     h5props->field_h_conv[i] = "v/h";
     h5props->field_types[i++] = H5T_NATIVE_FLOAT;
