@@ -43,6 +43,8 @@ void construct_metal_grids(int snapshot, int local_ngals) // You can put here th
   double box_size = run_globals.params.BoxSize; 
   float* stellar_grid_metals = run_globals.metal_grids.stars_metals;
   float* sfr_grid_metals = run_globals.metal_grids.sfr_metals;
+  float* mass_metals_grid_metals = run_globals.metal_grids.mass_metals;
+  float* mass_gas_grid_metals = run_globals.metal_grids.mass_gas;
   int MetalGridDim = run_globals.params.MetalGridDim;
   double sfr_timescale_metals = run_globals.params.ReionSfrTimescale * hubble_time(snapshot); 
   
@@ -59,6 +61,8 @@ void construct_metal_grids(int snapshot, int local_ngals) // You can put here th
   for (int ii = 0; ii < slab_n_real_metals; ii++) { 
     stellar_grid_metals[ii] = 0.0;
     sfr_grid_metals[ii] = 0.0;
+    mass_metals_grid_metals[ii] = 0.0;
+    mass_gas_grid_metals[ii] = 0.0;
   }
 
   // loop through each slab
@@ -72,10 +76,12 @@ void construct_metal_grids(int snapshot, int local_ngals) // You can put here th
   enum property
   {
     prop_stellar_metals,
-    prop_sfr_metals
+    prop_sfr_metals,
+    prop_mass_ej_metals,
+    prop_mass_ej_gas
   };
   
-  for (int prop = prop_stellar_metals; prop <= prop_sfr_metals; prop++) {
+  for (int prop = prop_stellar_metals; prop <= prop_mas_ej_gas; prop++) {
 
     int i_gal = 0;
     int skipped_gals = 0;
@@ -124,9 +130,20 @@ void construct_metal_grids(int snapshot, int local_ngals) // You can put here th
 
 
             case prop_sfr_metals:
+            
               buffer_metals[ind] += gal->GrossStellarMass;
 			  // this sfr grid is used for X-ray and Lyman, we are ignoring BH here, in principle I should use this for metals.
               break;
+              
+            case prop_mass_ej_metals:
+            
+              buffer_metals[ind] += gal->MetalsEjectedGas;
+              break;
+              
+            case prop_mass_ej_gas:
+            
+              buffer_metals[ind] += gal->EjectedGas;
+              break; 
 
             default:
               mlog_error("Unrecognised property in slab creation.");
@@ -157,6 +174,28 @@ void construct_metal_grids(int snapshot, int local_ngals) // You can put here th
                   double val = (double)buffer_metals[grid_index(ix, iy, iz, MetalGridDim, INDEX_REAL)];
                   val = (val > 0) ? val / sfr_timescale_metals : 0; 
                   sfr_grid_metals[grid_index(ix, iy, iz, MetalGridDim, INDEX_REAL)] = (float)val;
+                }
+            break;
+            
+          case prop_mass_ej_metals: // Need this to compute average metallicity of the cell
+            for (int ix = 0; ix < slab_nix_metals[i_r]; ix++)
+              for (int iy = 0; iy < MetalGridDim; iy++)
+                for (int iz = 0; iz < MetalGridDim; iz++) {
+                  double val = (double)buffer_metals[grid_index(ix, iy, iz, MetalGridDim, INDEX_REAL)];
+                  if (val < 0)
+                    val = 0;
+                  mass_metals_grid_metals[grid_index(ix, iy, iz, MetalGridDim, INDEX_REAL)] = (float)val;
+                }
+            break;
+            
+          case prop_mass_ej_gas: // Need this to compute average metallicity of the cell
+            for (int ix = 0; ix < slab_nix_metals[i_r]; ix++)
+              for (int iy = 0; iy < MetalGridDim; iy++)
+                for (int iz = 0; iz < MetalGridDim; iz++) {
+                  double val = (double)buffer_metals[grid_index(ix, iy, iz, MetalGridDim, INDEX_REAL)];
+                  if (val < 0)
+                    val = 0;
+                  mass_gas_grid_metals[grid_index(ix, iy, iz, MetalGridDim, INDEX_REAL)] = (float)val;
                 }
             break;
 
@@ -242,6 +281,20 @@ void save_metal_input_grids(int snapshot)
         grid[grid_index(ii, jj, kk, MetalGridDim, INDEX_REAL)] =
           (float)((grids->sfr_metals)[grid_index(ii, jj, kk, MetalGridDim, INDEX_REAL)] * UnitMass_in_g / UnitTime_in_s * SEC_PER_YEAR / SOLAR_MASS);
   write_grid_float("sfr_metals", grid, file_id, fspace_id, memspace_id, dcpl_id);
+  
+  for (int ii = 0; ii < local_nix_metals; ii++)
+    for (int jj = 0; jj < MetalGridDim; jj++)
+      for (int kk = 0; kk < MetalGridDim; kk++)
+        grid[grid_index(ii, jj, kk, MetalGridDim, INDEX_REAL)] =
+          (float)((grids->mass_metals)[grid_index(ii, jj, kk, MetalGridDim, INDEX_REAL)] * UnitMass_in_g / SOLAR_MASS);
+  write_grid_float("mass_metals", grid, file_id, fspace_id, memspace_id, dcpl_id);
+  
+  for (int ii = 0; ii < local_nix_metals; ii++)
+    for (int jj = 0; jj < MetalGridDim; jj++)
+      for (int kk = 0; kk < MetalGridDim; kk++)
+        grid[grid_index(ii, jj, kk, MetalGridDim, INDEX_REAL)] =
+          (float)((grids->mass_gas)[grid_index(ii, jj, kk, MetalGridDim, INDEX_REAL)] * UnitMass_in_g / SOLAR_MASS);
+  write_grid_float("mass_gas", grid, file_id, fspace_id, memspace_id, dcpl_id);
 
 
   // tidy up
@@ -271,6 +324,7 @@ void init_metal_grids()
     grids->stars_metals[ii] = 0;
     grids->sfr_metals[ii] = 0;
     grids->mass_metals[ii] = (float)0.;
+    grids->mass_gas[ii] = (float)0.;
     grids->Zigm_box[ii] = (float)0.;
   }
 }
@@ -290,6 +344,7 @@ void malloc_metal_grids()
   grids->stars_metals = NULL;
   grids->sfr_metals = NULL;
   grids->mass_metals = NULL;
+  grids->mass_gas = NULL;
   grids->Zigm_box = NULL; 
   
   assign_slabs_metals();
@@ -314,6 +369,7 @@ void malloc_metal_grids()
 
 
     grids->mass_metals = fftwf_alloc_real((size_t)slab_n_real_metals);
+    grids->mass_gas = fftwf_alloc_real((size_t)slab_n_real_metals);
     grids->Zigm_box = fftwf_alloc_real((size_t)slab_n_real_metals);
 
     grids->sfr_metals = fftwf_alloc_real((size_t)slab_n_real_metals);
@@ -334,7 +390,7 @@ void free_metal_grids()
 
   //fftwf_free(grids->volume_ave_ZIGM);
   //fftwf_free(grids->volume_ave_mass_metals);
-  //fftwf_free(grids->Probability_metals);
+  fftwf_free(grids->mass_gas);
   fftwf_free(grids->mass_metals);
   fftwf_free(grids->Zigm_box);
 
