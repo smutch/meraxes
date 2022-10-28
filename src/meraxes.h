@@ -489,6 +489,8 @@ typedef struct galaxy_t
   double BlackHoleAccretingColdMass;
   
   double RmetalBubble; //New for MetalEvo
+  double MetalsIGM;
+  double GasIGM; 
 
   // baryonic hostories
   double mwmsa_num;
