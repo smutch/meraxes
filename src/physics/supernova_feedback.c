@@ -330,7 +330,7 @@ void calc_metal_bubble(galaxy_t* gal, int snapshot) // For metal pollution, adde
   
   int count_SF;
   int *ptr = &count_SF;
-  double m_stars = gal->NewStars[snapshot]
+  double m_stars = gal->NewStars[snapshot];
   
   double UnitMass_in_g = run_globals.units.UnitMass_in_g;
   double UnitLength_in_cm = run_globals.units.UnitLength_in_cm;
@@ -344,7 +344,7 @@ void calc_metal_bubble(galaxy_t* gal, int snapshot) // For metal pollution, adde
       *ptr += 1;
       double gas_density;
       
-      if (&*count_SF > 30)
+      if (*ptr > 30)
         mlog_error("Too many SF episodes"); 
       gas_density = (gal->HotGas + gal->ColdGas) * UnitMass_in_g / (4.0 * M_PI / 3.0 * pow(gal->Rvir * UnitLength_in_cm, 3.));
     
