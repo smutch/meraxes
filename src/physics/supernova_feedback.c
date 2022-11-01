@@ -336,7 +336,7 @@ void calc_metal_bubble(galaxy_t* gal, int snapshot) // For metal pollution, adde
   
   if (Flag_IRA == false) {
   
-    if (gal->NewStars > 1e-10) {
+    if (gal->ColdGas > 1e-10) {
     
       &*count_SF += 1;
       double gas_density;
