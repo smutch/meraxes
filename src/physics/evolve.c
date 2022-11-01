@@ -20,7 +20,7 @@ int evolve_galaxies(fof_group_t* fof_group, int snapshot, int NGal, int NFof)
   double cooling_mass = 0;
   int NSteps = run_globals.params.NSteps;
   bool Flag_IRA = (bool)(run_globals.params.physics.Flag_IRA);
-  bool Flag_Metals = (bool)(run_globals.params.physics.Flag_IncludeMetalEvo);
+  bool Flag_Metals = (bool)(run_globals.params.Flag_IncludeMetalEvo);
 
   mlog("Doing physics...", MLOG_OPEN | MLOG_TIMERSTART);
   // pre-calculate feedback tables for each lookback snapshot
