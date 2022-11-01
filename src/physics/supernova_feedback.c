@@ -322,8 +322,8 @@ void calc_metal_bubble(galaxy_t* gal, int snapshot) // For metal pollution, adde
 {
   bool Flag_IRA = (bool)(run_globals.params.physics.Flag_IRA);
    
-  double* Prefactor[30]; //here you store the prefactors of the metal bubbles
-  double* Times[30]; // Time at which the SN explode!
+  double Prefactor[30]; //here you store the prefactors of the metal bubbles
+  double Times[30]; // Time at which the SN explode!
   double* Radii[30];
   int* count_SF;
   
@@ -336,18 +336,18 @@ void calc_metal_bubble(galaxy_t* gal, int snapshot) // For metal pollution, adde
   
     if (gal->NewStars > 1e-10) {
     
-      *count_SF += 1;
+      &*count_SF += 1;
       double gas_density;
       
-      if (&count_SF > 30)
+      if (&*count_SF > 30)
         mlog_error("Too many SF episodes"); 
       gas_density = (gal->HotGas + gal->ColdGas) * UnitMass_in_g / (4.0 * M_PI / 3.0 * pow(gal->Rvir * UnitLength_in_cm, 3.));
     
-      *Prefactor[&count_SF] = pow(EnergySN * N_SN_Pop2 * NewStars * UnitMass_in_g / (PROTONMASS * gas_density), 0.2);
-      *Times[&count_SF] = run_globals.LTTime[snapshot];   
+      Prefactor[&count_SF] = pow(EnergySN * N_SN_Pop2 * NewStars * UnitMass_in_g / (PROTONMASS * gas_density), 0.2);
+      Times[&count_SF] = run_globals.LTTime[snapshot];   
     }   
     for (int i_SF = 0; i_SF < count_SF; i_SF++) 
-      *Radii[i_SF] = &Prefactor[i_SF] * pow((run_globals.LTTime[snapshot] - &Times[i_SF]), 0.4);
+      *Radii[i_SF] = Prefactor[i_SF] * pow((run_globals.LTTime[snapshot] - Times[i_SF]), 0.4);
   }
   
   else {
