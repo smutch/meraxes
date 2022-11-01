@@ -320,7 +320,7 @@ double max_array(double arr[30]) //Is there a better way? If not and things work
     return max;    
 } 
 
-void calc_metal_bubble(galaxy_t* gal, int snapshot) // For metal pollution, added by Manu. Still very messy and it uses a lot of memory!
+void calc_metal_bubble(galaxy_t* gal, int snapshot) // For metal pollution, added by Manu. Still very messy and pointers are not working
 {
   bool Flag_IRA = (bool)(run_globals.params.physics.Flag_IRA);
    
@@ -345,7 +345,7 @@ void calc_metal_bubble(galaxy_t* gal, int snapshot) // For metal pollution, adde
         mlog_error("Too many SF episodes"); 
       gas_density = (gal->HotGas + gal->ColdGas) * UnitMass_in_g / (4.0 * M_PI / 3.0 * pow(gal->Rvir * UnitLength_in_cm, 3.));
     
-      Prefactor[&count_SF] = pow(EnergySN * N_SN_Pop2 * NewStars * UnitMass_in_g / (PROTONMASS * gas_density), 0.2);
+      Prefactor[&count_SF] = pow(EnergySN * N_SN_Pop2 * gal->NewStars * UnitMass_in_g / (PROTONMASS * gas_density), 0.2);
       Times[&count_SF] = run_globals.LTTime[snapshot];   
     }   
     for (int i_SF = 0; i_SF < count_SF; i_SF++) 
