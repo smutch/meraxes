@@ -305,3 +305,55 @@ void contemporaneous_supernova_feedback(galaxy_t* gal,
   assert(*m_reheat >= 0);
   assert(*m_eject >= 0);
 }
+
+double max_array(double arr[30]) //Is there a better way? If not and things work move this function somewhere else
+{           
+    int length = sizeof(arr)/sizeof(arr[0]);       
+    int max = arr[0];    
+    
+    for (int i = 0; i < length; i++) {       
+       if(arr[i] > max)    
+           max = arr[i];    
+    }      
+    return max;    
+} 
+
+void calc_metal_bubble(struct galaxy_t* gal, int snapshot) // For metal pollution, added by Manu. Still very messy and it uses a lot of memory!
+{
+  bool Flag_IRA = (bool)(run_globals.params.physics.Flag_IRA);
+   
+  double* Prefactor[30]; //here you store the prefactors of the metal bubbles
+  double* Times[30]; // Time at which the SN explode!
+  double* Radii[30];
+  int* count_SF;
+  
+  double UnitMass_in_g = run_globals.units.UnitMass_in_g;
+  double UnitLength_in_cm = run_global.units.UnitLength_in_cm;
+  
+  mlog("Computing Metal Bubbles...", MLOG_OPEN | MLOG_TIMERSTART); // You can remove this log message later
+  
+  if (Flag_IRA == false) {
+  
+    if (gal->NewStars > 1e-10) {
+    
+      *count_SF += 1;
+      if (count_SF > 30)
+        mlog_error("Too many SF episodes"); 
+      gas_density = (gal->HotGas + gal->ColdGas) * UnitMass_in_g / (4.0 * M_PI / 3.0 * pow(gal->Rvir * UnitLength_in_cm, 3.));
+    
+      *Prefactor[&count_SF] = pow(EnergySN * N_SN_Pop2 * NewStars * UnitMass_in_g / (PROTONMASS * gas_density), 0.2);
+      *Times[&count_SF] = run_globals.LTTime[snapshot]   
+    }   
+    for (int i_SF = 0; i_SF < count_SF; i_SF++) 
+      *Radii[i_SF] = Prefactor[i_SF] * pow((run_globals.LTTime[snapshot] - Times[i_SF]), 0.4)
+  }
+  
+  else {
+    int n_bursts = (snapshot >= N_HISTORY_SNAPS) ? N_HISTORY_SNAPS : snapshot;
+    mlog_error("So far, you can't relax the IRA");
+  }  
+  gal->RmetalBubble = max_array(Radii);
+  
+  if (gal->RmetalBubble < 0.0)
+    gal->RmetalBubble = 0.0;
+}
