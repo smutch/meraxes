@@ -333,7 +333,7 @@ void calc_metal_bubble(galaxy_t* gal, int snapshot) // For metal pollution, adde
   double UnitMass_in_g = run_globals.units.UnitMass_in_g;
   double UnitLength_in_cm = run_globals.units.UnitLength_in_cm;
   
-  mlog("Computing Metal Bubbles...", MLOG_OPEN | MLOG_TIMERSTART); // You can remove this log message later
+  //mlog("Computing Metal Bubbles...", MLOG_OPEN | MLOG_TIMERSTART); // You can remove this log message later
   
   if (Flag_IRA == false) {
   
