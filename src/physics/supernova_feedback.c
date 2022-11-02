@@ -354,8 +354,8 @@ void calc_metal_bubble(galaxy_t* gal, int snapshot) // For metal pollution, adde
       Times[*ptr] = run_globals.LTTime[snapshot];   
     }   
     for (int i_SF = 0; i_SF < *ptr; i_SF++){ 
-      //*Radii[i_SF] = Prefactor[i_SF] * pow((run_globals.LTTime[snapshot] - Times[i_SF]), 0.4);
-      *pp[i_SF] = Prefactor[i_SF] * pow((run_globals.LTTime[snapshot] - Times[i_SF]), 0.4);
+      Radii[i_SF] = Prefactor[i_SF] * pow((run_globals.LTTime[snapshot] - Times[i_SF]), 0.4);
+      //*pp[i_SF] = Prefactor[i_SF] * pow((run_globals.LTTime[snapshot] - Times[i_SF]), 0.4);
     }
   }
   
