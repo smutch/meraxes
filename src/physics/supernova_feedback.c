@@ -326,10 +326,12 @@ void calc_metal_bubble(galaxy_t* gal, int snapshot) // For metal pollution, adde
    
   double Prefactor[30]; //here you store the prefactors of the metal bubbles
   double Times[30]; // Time at which the SN explode!
-  double* Radii[30];
+  double Radii[30];
   
   int count_SF;
   int *ptr = &count_SF;
+  double *pp = Radii;
+  
   double m_stars = gal->NewStars[snapshot];
   
   double UnitMass_in_g = run_globals.units.UnitMass_in_g;
@@ -352,7 +354,8 @@ void calc_metal_bubble(galaxy_t* gal, int snapshot) // For metal pollution, adde
       Times[*ptr] = run_globals.LTTime[snapshot];   
     }   
     for (int i_SF = 0; i_SF < *ptr; i_SF++) 
-      *Radii[i_SF] = Prefactor[i_SF] * pow((run_globals.LTTime[snapshot] - Times[i_SF]), 0.4);
+      //*Radii[i_SF] = Prefactor[i_SF] * pow((run_globals.LTTime[snapshot] - Times[i_SF]), 0.4);
+      *pp[i_SF] = Prefactor[i_SF] * pow((run_globals.LTTime[snapshot] - Times[i_SF]), 0.4);
   }
   
   else {
