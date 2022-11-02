@@ -322,15 +322,15 @@ void calc_metal_bubble(galaxy_t* gal, int snapshot) // For metal pollution, adde
 {
   bool Flag_IRA = (bool)(run_globals.params.physics.Flag_IRA);
    
-  //double Prefactor[30]; //here you store the prefactors of the metal bubbles
+  double Prefactor[30]; //here you store the prefactors of the metal bubbles
   double Times[30]; // Time at which the SN explode!
-  //double Radii[30];
+  double Radii[30];
   
   int count_SF;
   int *ptr;
   ptr = &count_SF;
-  //double (*pp)[30];
-  //pp = &Radii;
+  double (*pp)[30];
+  pp = &Radii;
   
   double m_stars = gal->NewStars[snapshot];
   
