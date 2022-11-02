@@ -318,7 +318,7 @@ double max_array(double arr[30]) //Is there a better way? If not and things work
     return max;    
 } 
 
-void calc_metal_bubble(galaxy_t* gal, double* Radii[30], int snapshot) // For metal pollution, added by Manu. Still very messy and pointers are not working
+void calc_metal_bubble(galaxy_t* gal, double* Radii[30], int* count_SF, int snapshot) // For metal pollution, added by Manu. Still very messy and pointers are not working
 {
   bool Flag_IRA = (bool)(run_globals.params.physics.Flag_IRA);
    
@@ -327,7 +327,7 @@ void calc_metal_bubble(galaxy_t* gal, double* Radii[30], int snapshot) // For me
   //double Radii[30];
   
   //int count_SF = 0;
-  int *count_SF = 0; //Not 100% sure that it is correct but it does not give any mistake
+  //int *count_SF = 0; //Not 100% sure that it is correct but it does not give any mistake
   //int *ptr;
   //ptr = &count_SF;
   //double (*pp)[30];
@@ -346,7 +346,6 @@ void calc_metal_bubble(galaxy_t* gal, double* Radii[30], int snapshot) // For me
     
       //*ptr += 1;
       *count_SF += 1;
-      mlog("Tuna", MLOG_OPEN | MLOG_TIMERSTART);
       double gas_density;
       
       if (*count_SF > 30)
@@ -357,11 +356,11 @@ void calc_metal_bubble(galaxy_t* gal, double* Radii[30], int snapshot) // For me
       Times[*count_SF] = run_globals.LTTime[snapshot];
       //*Radii[*count_SF] = m_stars;  // Here it works
     }
-    if (*count_SF > 0) {   
-      for (int i_SF = 0; i_SF < *count_SF; i_SF++) 
-        *Radii[i_SF] = Prefactor[i_SF] * pow((run_globals.LTTime[snapshot] - Times[i_SF]), 0.4); //Mistake here!
+    //if (*count_SF > 0) {   
+    //  for (int i_SF = 0; i_SF < *count_SF; i_SF++) 
+    //    *Radii[i_SF] = Prefactor[i_SF] * pow((run_globals.LTTime[snapshot] - Times[i_SF]), 0.4); //Mistake here!
       //*pp[i_SF] = Prefactor[i_SF] * pow((run_globals.LTTime[snapshot] - Times[i_SF]), 0.4); //Mistake here!
-    }
+    //}
   }
   
   else {
