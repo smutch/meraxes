@@ -349,7 +349,7 @@ void calc_metal_bubble(galaxy_t* gal, double* Radii[30], int snapshot) // For me
       *count_SF += 0;
       double gas_density;
       
-      if (*ptr > 30)
+      if (*count_SF > 30)
         mlog_error("Too many SF episodes"); 
       gas_density = (gal->HotGas + gal->ColdGas) * UnitMass_in_g / (4.0 * M_PI / 3.0 * pow(gal->Rvir * UnitLength_in_cm, 3.));
     
