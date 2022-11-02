@@ -326,7 +326,7 @@ void calc_metal_bubble(galaxy_t* gal, double* Radii[30], int snapshot) // For me
    
   double Prefactor[30]; //here you store the prefactors of the metal bubbles
   double Times[30]; // Time at which the SN explode!
-  double Radii[30];
+  //double Radii[30];
   
   int count_SF;
   int *ptr;
