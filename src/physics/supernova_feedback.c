@@ -327,8 +327,10 @@ void calc_metal_bubble(galaxy_t* gal, int snapshot) // For metal pollution, adde
   double Radii[30];
   
   int count_SF;
-  int *ptr = &count_SF;
-  double *pp = Radii;
+  int *ptr;
+  ptr = &count_SF;
+  double *pp 
+  pp = Radii;
   
   double m_stars = gal->NewStars[snapshot];
   
@@ -360,7 +362,7 @@ void calc_metal_bubble(galaxy_t* gal, int snapshot) // For metal pollution, adde
     int n_bursts = (snapshot >= N_HISTORY_SNAPS) ? N_HISTORY_SNAPS : snapshot;
     mlog_error("So far, you can't relax the IRA");
   }  
-  gal->RmetalBubble = max_array(&Radii);
+  gal->RmetalBubble = max_array(Radii);
   
   if (gal->RmetalBubble < 0.0)
     gal->RmetalBubble = 0.0;
