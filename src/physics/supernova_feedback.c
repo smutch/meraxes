@@ -348,6 +348,7 @@ void calc_metal_bubble(galaxy_t* gal, double* Radii[30], int snapshot) // For me
     
       //*ptr += 1;
       *count_SF += 1;
+      mlog("Tuna", MLOG_OPEN | MLOG_TIMERSTART);
       double gas_density;
       
       if (*count_SF > 30)
