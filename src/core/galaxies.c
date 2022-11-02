@@ -140,6 +140,9 @@ void reset_galaxy_properties(galaxy_t* gal, int snapshot)
   gal->FOFMvirModifier = 1.0;
   gal->BlackHoleAccretedHotMass = 0.0;
   gal->BlackHoleAccretedColdMass = 0.0;
+  
+  if (run_globals.params.Flag_IncludeMetalEvo) //New for Metallicity
+    gal->RmetalBubble = 0.0; 
 
   // Update the stellar mass weighted mean age values.  This only needs to be
   // done for snapshots shich are passing out of what we are able to track
