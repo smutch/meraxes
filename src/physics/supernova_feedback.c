@@ -350,13 +350,13 @@ void calc_metal_bubble(galaxy_t* gal, int snapshot) // For metal pollution, adde
         mlog_error("Too many SF episodes"); 
       gas_density = (gal->HotGas + gal->ColdGas) * UnitMass_in_g / (4.0 * M_PI / 3.0 * pow(gal->Rvir * UnitLength_in_cm, 3.));
     
-      //Prefactor[*ptr] = pow(EnergySN * N_SN_Pop2 * m_stars * UnitMass_in_g / (PROTONMASS * gas_density), 0.2);
+      Prefactor[*ptr] = pow(EnergySN * N_SN_Pop2 * m_stars * UnitMass_in_g / (PROTONMASS * gas_density), 0.2);
       Times[*ptr] = run_globals.LTTime[snapshot];   
     }   
-    //for (int i_SF = 0; i_SF < *ptr; i_SF++){ 
-      //*Radii[i_SF] = Prefactor[i_SF] * pow((run_globals.LTTime[snapshot] - Times[i_SF]), 0.4);
-      //*pp[i_SF] = Prefactor[i_SF] * pow((run_globals.LTTime[snapshot] - Times[i_SF]), 0.4);
-    //}
+    for (int i_SF = 0; i_SF < *ptr; i_SF++){ 
+      *Radii[i_SF] = Prefactor[i_SF] * pow((run_globals.LTTime[snapshot] - Times[i_SF]), 0.4);
+      *pp[i_SF] = Prefactor[i_SF] * pow((run_globals.LTTime[snapshot] - Times[i_SF]), 0.4);
+    }
   }
   
   else {
