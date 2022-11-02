@@ -329,7 +329,7 @@ void calc_metal_bubble(galaxy_t* gal, int snapshot) // For metal pollution, adde
   int count_SF;
   int *ptr;
   ptr = &count_SF;
-  double *pp 
+  double *pp;
   pp = Radii;
   
   double m_stars = gal->NewStars[snapshot];
