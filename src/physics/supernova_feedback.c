@@ -320,7 +320,7 @@ double max_array(double arr[30]) //Is there a better way? If not and things work
     return max;    
 } 
 
-void calc_metal_bubble(galaxy_t* gal, int snapshot) // For metal pollution, added by Manu. Still very messy and pointers are not working
+void calc_metal_bubble(galaxy_t* gal, double* Radii[30], int snapshot) // For metal pollution, added by Manu. Still very messy and pointers are not working
 {
   bool Flag_IRA = (bool)(run_globals.params.physics.Flag_IRA);
    
@@ -331,8 +331,8 @@ void calc_metal_bubble(galaxy_t* gal, int snapshot) // For metal pollution, adde
   int count_SF;
   int *ptr;
   ptr = &count_SF;
-  double (*pp)[30];
-  pp = &Radii;
+  //double (*pp)[30];
+  //pp = &Radii;
   
   double m_stars = gal->NewStars[snapshot];
   
@@ -356,8 +356,8 @@ void calc_metal_bubble(galaxy_t* gal, int snapshot) // For metal pollution, adde
       Times[*ptr] = run_globals.LTTime[snapshot];   
     }   
     for (int i_SF = 0; i_SF < *ptr; i_SF++){ 
-      Radii[i_SF] = Prefactor[i_SF] * pow((run_globals.LTTime[snapshot] - Times[i_SF]), 0.4);
-      //*pp[i_SF] = Prefactor[i_SF] * pow((run_globals.LTTime[snapshot] - Times[i_SF]), 0.4);
+      *Radii[i_SF] = Prefactor[i_SF] * pow((run_globals.LTTime[snapshot] - Times[i_SF]), 0.4); //Mistake here!
+      //*pp[i_SF] = Prefactor[i_SF] * pow((run_globals.LTTime[snapshot] - Times[i_SF]), 0.4); //Mistake here!
     }
   }
   
