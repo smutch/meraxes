@@ -89,7 +89,7 @@ void prepare_galaxy_for_output(galaxy_t gal, galaxy_output_t* galout, int i_snap
   galout->MWMSA = current_mwmsa(&gal, i_snap);
   
   //if (run_globals.params.Flag_IncludeMetalEvo)
-  galout->RmetalBubble = (double)(gal.RmetalBubble); //new for MetalEvo
+  galout->RmetalBubble = (float)(gal.RmetalBubble); //new for MetalEvo
 
   for (int ii = 0; ii < N_HISTORY_SNAPS; ii++)
     galout->NewStars[ii] = (float)(gal.NewStars[ii]);
