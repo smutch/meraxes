@@ -359,7 +359,7 @@ void calc_metal_bubble(galaxy_t* gal, double* Radii[30], int* count_SF, int snap
       //*Radii[*count_SF] = m_stars;  // Here it works
     }
     if (*count_SF > 0) {
-      *Radii[*count_SF] = m_stars;   
+      *Radii[*count_SF] = 10.0;   
       //for (int i_SF = 0; i_SF < *count_SF; i_SF++) 
       //  *Radii[i_SF] = Prefactor[i_SF] * pow((run_globals.LTTime[snapshot] - Times[i_SF]), 0.4); //Mistake here!
       //*pp[i_SF] = Prefactor[i_SF] * pow((run_globals.LTTime[snapshot] - Times[i_SF]), 0.4); //Mistake here!
