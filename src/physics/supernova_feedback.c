@@ -335,7 +335,8 @@ void calc_metal_bubble(galaxy_t* gal, int snapshot) // For metal pollution, adde
   //double (*pp)[30];
   //pp = &Radii;
   
-  double m_stars = gal->NewStars[snapshot][0];
+  //double m_stars = gal->NewStars[snapshot];
+  double m_stars = gal->NewStars[0];
   
   double UnitMass_in_g = run_globals.units.UnitMass_in_g;
   double UnitLength_in_cm = run_globals.units.UnitLength_in_cm;
