@@ -1146,7 +1146,7 @@ void write_snapshot(int n_write, int i_out, int* last_n_write)
       (run_globals.params.Flag_OutputGrids))
     save_reion_output_grids(run_globals.ListOutputSnaps[i_out]);
    
-  //if (run_globals.params.Flag_IncludeMetalEvo && run_globals.params.Flag_OutputGrids)
+  //if (run_globals.params.Flag_IncludeMetalEvo && run_globals.params.Flag_OutputGrids) Probably useless!!!
   //  save_metal_output_grids(run_globals.ListOutputSnaps[i_out]);
 
   // Close the group.
