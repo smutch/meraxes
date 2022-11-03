@@ -309,7 +309,7 @@ void contemporaneous_supernova_feedback(galaxy_t* gal,
   assert(*m_eject >= 0);
 }
 
-double max_array(double arr[30]) //Is there a better way? If not and things work move this function somewhere else
+double max_array(float arr[30]) //Is there a better way? If not and things work move this function somewhere else
 {           
     int length = sizeof(arr)/sizeof(arr[0]);       
     int max = arr[0];    
