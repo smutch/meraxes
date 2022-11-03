@@ -371,7 +371,7 @@ void calc_metal_bubble(galaxy_t* gal, int snapshot) // For metal pollution, adde
     int n_bursts = (snapshot >= N_HISTORY_SNAPS) ? N_HISTORY_SNAPS : snapshot;
     mlog_error("So far, you can't relax the IRA");
   }  
-  //gal->RmetalBubble = max_array(Radii);
+  gal->RmetalBubble = max_array(gal->Radii);
   
   if (gal->RmetalBubble < 0.0)
     gal->RmetalBubble = 0.0;
