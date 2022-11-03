@@ -56,8 +56,11 @@ int evolve_galaxies(fof_group_t* fof_group, int snapshot, int NGal, int NFof)
             if (gal->BlackHoleAccretingColdMass > 0)
               previous_merger_driven_BH_growth(gal);
               
-            //if (Flag_Metals == true) 
-             // calc_metal_bubble(gal, snapshot);
+            if (Flag_Metals == true) 
+              calc_metal_bubble(gal, snapshot);
+              
+            if (gal->RmetalBubble > 0.)
+              mlog("Found!", MLOG_OPEN | MLOG_TIMERSTART);
 
             insitu_star_formation(gal, snapshot);
 
