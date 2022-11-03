@@ -486,7 +486,7 @@ int map_galaxies_to_slabs_metals(int ngals)
   return gal_counter;
 }
 
-void save_metal_output_grids(int snapshot)
+void save_metal_output_grids(int snapshot) // Probably this function is completely useless!!!!!
 {
 
   metal_grids_t* metal_grids = &(run_globals.metal_grids);
