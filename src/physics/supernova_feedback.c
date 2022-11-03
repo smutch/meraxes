@@ -324,7 +324,7 @@ double max_array(double arr[30]) //Is there a better way? If not and things work
 void calc_metal_bubble(galaxy_t* gal, int snapshot) // For metal pollution, added by Manu. Still very messy and pointers are not working
 {
   bool Flag_IRA = (bool)(run_globals.params.physics.Flag_IRA);
-  double sfr_timescale_metals = run_globals.params.ReionSfrTimescale * hubble_time(snapshot)
+  double sfr_timescale_metals = run_globals.params.ReionSfrTimescale * hubble_time(snapshot);
    
   //double Prefactor[30]; //here you store the prefactors of the metal bubbles
   //double Times[30]; // Time at which the SN explode!
