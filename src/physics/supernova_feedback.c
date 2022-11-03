@@ -348,7 +348,7 @@ void calc_metal_bubble(galaxy_t* gal, double* Radii[30], int* count_SF, int snap
       *count_SF += 1;
       double gas_density;
       
-      if (*count_SF > 30)
+      if (*count_SF > 0)
         mlog_error("Too many SF episodes"); 
       gas_density = (gal->HotGas + gal->ColdGas) * UnitMass_in_g / (4.0 * M_PI / 3.0 * pow(gal->Rvir * UnitLength_in_cm, 3.));
     
@@ -356,12 +356,12 @@ void calc_metal_bubble(galaxy_t* gal, double* Radii[30], int* count_SF, int snap
       Times[*count_SF] = run_globals.LTTime[snapshot];
       //*Radii[*count_SF] = m_stars;  // Here it works
     }
-    if (*count_SF > 0) {
-      *Radii[*count_SF] = 10.0;   
+    //if (*count_SF > 0) {
+      //*Radii[*count_SF] = m_stars;   
       //for (int i_SF = 0; i_SF < *count_SF; i_SF++) 
       //  *Radii[i_SF] = Prefactor[i_SF] * pow((run_globals.LTTime[snapshot] - Times[i_SF]), 0.4); //Mistake here!
       //*pp[i_SF] = Prefactor[i_SF] * pow((run_globals.LTTime[snapshot] - Times[i_SF]), 0.4); //Mistake here!
-    }
+    //}
   }
   
   else {
