@@ -323,17 +323,6 @@ void calc_metal_bubble(galaxy_t* gal, int snapshot) // For metal pollution, adde
 {
   bool Flag_IRA = (bool)(run_globals.params.physics.Flag_IRA);
   double sfr_timescale_metals = run_globals.params.ReionSfrTimescale * hubble_time(snapshot);
-   
-  //double Prefactor[30]; //here you store the prefactors of the metal bubbles
-  //double Times[30]; // Time at which the SN explode!
-  //double Radii[30];
-  
-  //int count_SF = 0;
-  //int *count_SF = 0; //Not 100% sure that it is correct but it does not give any mistake
-  //int *ptr;
-  //ptr = &count_SF;
-  //double (*pp)[30];
-  //pp = &Radii;
   
   //double m_stars = gal->NewStars[snapshot];
   double m_stars = gal->Sfr * sfr_timescale_metals;
@@ -346,10 +335,7 @@ void calc_metal_bubble(galaxy_t* gal, int snapshot) // For metal pollution, adde
   if (Flag_IRA == false) {
   
     if (m_stars > 1e-10) {
-    //if (gal->Sfr > 0) {
-    
-      //*ptr += 1;
-      //*count_SF += 1;
+
       gal->count_SF += 1;
       double gas_density;
       
@@ -361,13 +347,10 @@ void calc_metal_bubble(galaxy_t* gal, int snapshot) // For metal pollution, adde
       //Times[*count_SF] = run_globals.LTTime[snapshot];
       gal->Prefactor[gal->count_SF] = pow(EnergySN * N_SN_Pop2 * m_stars * UnitMass_in_g / SOLAR_MASS / (PROTONMASS * gas_density), 0.2);
       gal->Times[gal->count_SF] = run_globals.LTTime[snapshot];
-      //*Radii[*count_SF] = m_stars;  // Here it works
     }
     if (gal->count_SF > 0) {
-      //*Radii[*count_SF] = m_stars;   
       for (int i_SF = 0; i_SF < gal->count_SF; i_SF++) 
-        gal->Radii[i_SF] = gal->Prefactor[i_SF] * pow((run_globals.LTTime[snapshot] - gal->Times[i_SF]), 0.4); //Mistake here!
-      //*pp[i_SF] = Prefactor[i_SF] * pow((run_globals.LTTime[snapshot] - Times[i_SF]), 0.4); //Mistake here!
+        gal->Radii[i_SF] = gal->Prefactor[i_SF] * pow((run_globals.LTTime[snapshot] - gal->Times[i_SF]), 0.4); 
     }
   }
   
