@@ -489,11 +489,11 @@ typedef struct galaxy_t
   double BlackHoleAccretedColdMass;
   double BlackHoleAccretingColdMass;
   
-  double RmetalBubble; //New for MetalEvo
+  float RmetalBubble; //New for MetalEvo
   
-  double Prefactor[30]; //here you store the prefactors of the metal bubbles
-  double Times[30]; // Time at which the SN explode!
-  double Radii[30]; 
+  float Prefactor[30]; //here you store the prefactors of the metal bubbles
+  float Times[30]; // Time at which the SN explode!
+  float Radii[30]; 
   int count_SF;
   
   // baryonic hostories
