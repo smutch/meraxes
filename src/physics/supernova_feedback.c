@@ -307,7 +307,7 @@ void contemporaneous_supernova_feedback(galaxy_t* gal,
   assert(*m_eject >= 0);
 }
 
-double max_array(float arr[30]) //Is there a better way? If not and things work move this function somewhere else
+float max_array(float arr[30]) //Is there a better way? If not and things work move this function somewhere else
 {           
     int length = sizeof(arr)/sizeof(arr[0]);       
     int max = arr[0];    
@@ -345,12 +345,13 @@ void calc_metal_bubble(galaxy_t* gal, int snapshot) // For metal pollution, adde
     
       //Prefactor[*count_SF] = pow(EnergySN * N_SN_Pop2 * m_stars * UnitMass_in_g / (PROTONMASS * gas_density), 0.2);
       //Times[*count_SF] = run_globals.LTTime[snapshot];
-      gal->Prefactor[&(gal->count_SF)] = pow(EnergySN * N_SN_Pop2 * mm_stars * UnitMass_in_g / SOLAR_MASS / (PROTONMASS * gas_density), 0.2);
-      gal->Times[&(gal->count_SF)] = run_globals.LTTime[snapshot];
+      gal->Prefactor[gal->count_SF] = pow(EnergySN * N_SN_Pop2 * mm_stars * UnitMass_in_g / SOLAR_MASS / (PROTONMASS * gas_density), 0.2);
+      gal->Times[gal->count_SF] = run_globals.LTTime[snapshot];
     }
     if (gal->count_SF > 0) {
       for (int i_SF = 0; i_SF < gal->count_SF; i_SF++) 
         gal->Radii[i_SF] = gal->Prefactor[i_SF] * pow((run_globals.LTTime[snapshot] - gal->Times[i_SF]), 0.4); 
+        mlog_error("Tuna");
     }
   }
   
