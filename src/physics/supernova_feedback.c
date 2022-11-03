@@ -330,6 +330,8 @@ void calc_metal_bubble(galaxy_t* gal, int snapshot) // For metal pollution, adde
   double UnitMass_in_g = run_globals.units.UnitMass_in_g;
   double UnitLength_in_cm = run_globals.units.UnitLength_in_cm;
   
+  int A = gal->count_SF;
+  
   //mlog("Computing Metal Bubbles...", MLOG_OPEN | MLOG_TIMERSTART); // You can remove this log message later
   
   if (Flag_IRA == false) {
@@ -345,9 +347,10 @@ void calc_metal_bubble(galaxy_t* gal, int snapshot) // For metal pollution, adde
     
       //Prefactor[*count_SF] = pow(EnergySN * N_SN_Pop2 * mm_stars * UnitMass_in_g / (PROTONMASS * gas_density), 0.2);
       //Times[*count_SF] = run_globals.LTTime[snapshot];
-      gal->Prefactor[gal->count_SF] = pow(EnergySN * N_SN_Pop2 * mm_stars * UnitMass_in_g / SOLAR_MASS / (PROTONMASS * gas_density), 0.2);
-      //gal->Prefactor[0] = pow(EnergySN * N_SN_Pop2 * mm_stars * UnitMass_in_g / SOLAR_MASS / (PROTONMASS * gas_density), 0.2);
-      gal->Times[gal->count_SF] = run_globals.LTTime[snapshot];
+      //gal->Prefactor[gal->count_SF] = pow(EnergySN * N_SN_Pop2 * mm_stars * UnitMass_in_g / SOLAR_MASS / (PROTONMASS * gas_density), 0.2);
+      gal->Prefactor[A] = pow(EnergySN * N_SN_Pop2 * mm_stars * UnitMass_in_g / SOLAR_MASS / (PROTONMASS * gas_density), 0.2);
+      //gal->Times[gal->count_SF] = run_globals.LTTime[snapshot];
+      gal->Times[A] = run_globals.LTTime[snapshot];
     }
     if (gal->count_SF > 0) {
       for (int i_SF = 0; i_SF < gal->count_SF; i_SF++) 
