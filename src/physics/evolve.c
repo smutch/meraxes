@@ -59,7 +59,7 @@ int evolve_galaxies(fof_group_t* fof_group, int snapshot, int NGal, int NFof)
             if (Flag_Metals == true) 
               calc_metal_bubble(gal, snapshot);
               
-            if (gal->RmetalBubble > 0.)
+            if (gal->count_SF > 0)
               mlog("Found!", MLOG_OPEN | MLOG_TIMERSTART);
 
             insitu_star_formation(gal, snapshot);
