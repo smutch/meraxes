@@ -3,6 +3,7 @@
 
 #include "core/misc_tools.h"
 #include "core/stellar_feedback.h"
+#include "core/virial_properties.h"
 #include "meraxes.h"
 #include "supernova_feedback.h"
 
@@ -323,6 +324,7 @@ double max_array(double arr[30]) //Is there a better way? If not and things work
 void calc_metal_bubble(galaxy_t* gal, int snapshot) // For metal pollution, added by Manu. Still very messy and pointers are not working
 {
   bool Flag_IRA = (bool)(run_globals.params.physics.Flag_IRA);
+  double sfr_timescale_metals = run_globals.params.ReionSfrTimescale * hubble_time(snapshot)
    
   //double Prefactor[30]; //here you store the prefactors of the metal bubbles
   //double Times[30]; // Time at which the SN explode!
@@ -336,7 +338,7 @@ void calc_metal_bubble(galaxy_t* gal, int snapshot) // For metal pollution, adde
   //pp = &Radii;
   
   //double m_stars = gal->NewStars[snapshot];
-  double m_stars = gal->NewStars[0];
+  double m_stars = gal->Sfr * sfr_timescale_metals;
   
   double UnitMass_in_g = run_globals.units.UnitMass_in_g;
   double UnitLength_in_cm = run_globals.units.UnitLength_in_cm;
@@ -355,11 +357,11 @@ void calc_metal_bubble(galaxy_t* gal, int snapshot) // For metal pollution, adde
       
       if (gal->count_SF > 30)
         mlog_error("Too many SF episodes"); 
-      gas_density = (gal->HotGas + gal->ColdGas) * UnitMass_in_g / (4.0 * M_PI / 3.0 * pow(gal->Rvir, 3.));
+      gas_density = (gal->HotGas + gal->ColdGas) * UnitMass_in_g / (4.0 * M_PI / 3.0 * pow(gal->Rvir * UnitLength_in_cm, 3.));
     
       //Prefactor[*count_SF] = pow(EnergySN * N_SN_Pop2 * m_stars * UnitMass_in_g / (PROTONMASS * gas_density), 0.2);
       //Times[*count_SF] = run_globals.LTTime[snapshot];
-      gal->Prefactor[gal->count_SF] = pow(EnergySN * N_SN_Pop2 * m_stars * UnitMass_in_g / (PROTONMASS * gas_density), 0.2);
+      gal->Prefactor[gal->count_SF] = pow(EnergySN * N_SN_Pop2 * m_stars * UnitMass_in_g / SOLAR_MASS / (PROTONMASS * gas_density), 0.2);
       gal->Times[gal->count_SF] = run_globals.LTTime[snapshot];
       //*Radii[*count_SF] = m_stars;  // Here it works
     }
