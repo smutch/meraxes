@@ -61,8 +61,14 @@ int evolve_galaxies(fof_group_t* fof_group, int snapshot, int NGal, int NFof)
             if (Flag_Metals == true) 
               calc_metal_bubble(gal, snapshot);
               
-            if (gal->Prefactor[0] > 0)
+            if (gal->count_SF > 0)
               mlog("Found!", MLOG_OPEN | MLOG_TIMERSTART);
+              
+            if (gal->Prefactor[0] > 0)
+              mlog("Found2!", MLOG_OPEN | MLOG_TIMERSTART);
+              
+            if (gal->Radii[0] > 0)
+              mlog("Found3!", MLOG_OPEN | MLOG_TIMERSTART);
 
             // If this is a type 2 then decrement the merger clock
             if (gal->Type == 2)
