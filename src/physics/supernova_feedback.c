@@ -347,8 +347,8 @@ void calc_metal_bubble(galaxy_t* gal, int snapshot) // For metal pollution, adde
     
       //Prefactor[*count_SF] = pow(EnergySN * N_SN_Pop2 * m_stars * UnitMass_in_g / (PROTONMASS * gas_density), 0.2);
       //Times[*count_SF] = run_globals.LTTime[snapshot];
-      gal->Prefactor[gal->count_SF] = pow(EnergySN * N_SN_Pop2 * mm_stars * UnitMass_in_g / SOLAR_MASS / (PROTONMASS * gas_density), 0.2);
-      gal->Times[gal->count_SF] = run_globals.LTTime[snapshot];
+      gal->Prefactor[&(gal->count_SF)] = pow(EnergySN * N_SN_Pop2 * mm_stars * UnitMass_in_g / SOLAR_MASS / (PROTONMASS * gas_density), 0.2);
+      gal->Times[&(gal->count_SF)] = run_globals.LTTime[snapshot];
     }
     if (gal->count_SF > 0) {
       for (int i_SF = 0; i_SF < gal->count_SF; i_SF++) 
