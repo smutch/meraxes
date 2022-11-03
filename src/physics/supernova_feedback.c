@@ -359,7 +359,7 @@ void calc_metal_bubble(galaxy_t* gal, int snapshot) // For metal pollution, adde
       gal->Times[gal->count_SF] = run_globals.LTTime[snapshot];
       //*Radii[*count_SF] = m_stars;  // Here it works
     }
-    if (*gal->count_SF > 0) {
+    if (gal->count_SF > 0) {
       //*Radii[*count_SF] = m_stars;   
       for (int i_SF = 0; i_SF < gal->count_SF; i_SF++) 
         gal->Radii[i_SF] = gal->Prefactor[i_SF] * pow((run_globals.LTTime[snapshot] - gal->Times[i_SF]), 0.4); //Mistake here!
