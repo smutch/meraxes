@@ -62,7 +62,7 @@ int evolve_galaxies(fof_group_t* fof_group, int snapshot, int NGal, int NFof)
               calc_metal_bubble(gal, snapshot);
               
             if (gal->Radii[0] > 0)
-              mlog("Radius   :: %d", MLOG_MESG, gal->Radii[0]);
+              mlog("Radius   :: %f", MLOG_MESG, gal->Radii[0]);
       
             // If this is a type 2 then decrement the merger clock
             if (gal->Type == 2)
