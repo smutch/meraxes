@@ -329,7 +329,8 @@ void calc_metal_bubble(galaxy_t* gal, int snapshot) // For metal pollution, adde
   
   double UnitMass_in_g = run_globals.units.UnitMass_in_g;
   double UnitLength_in_cm = run_globals.units.UnitLength_in_cm;
-  double time_unit = run_globals.units.UnitTime_in_Megayears / run_globals.params.Hubble_h; //Should you divide by little_h?
+  //double time_unit = run_globals.units.UnitTime_in_Megayears / run_globals.params.Hubble_h; //Should you divide by little_h?
+  double time_unit = run_globals.units.UnitTime_in_s / run_globals.params.Hubble_h; //Should you divide by little_h?
   
   int A = gal->count_SF;
   
@@ -344,14 +345,14 @@ void calc_metal_bubble(galaxy_t* gal, int snapshot) // For metal pollution, adde
       
       if (gal->count_SF > 70)
         mlog_error("Too many SF episodes"); 
-      gas_density = (gal->HotGas + gal->ColdGas) * UnitMass_in_g / PROTONMASS / (4.0 * M_PI / 3.0 * pow(gal->Rvir * UnitLength_in_cm, 3.));
+      gas_density = (gal->HotGas + gal->ColdGas) * UnitMass_in_g / PROTONMASS / (4.0 * M_PI / 3.0 * pow(gal->Rvir * UnitLength_in_cm, 3.)); // cm^-3
     
       //Prefactor[*count_SF] = pow(EnergySN * N_SN_Pop2 * mm_stars * UnitMass_in_g / (PROTONMASS * gas_density), 0.2);
       //Times[*count_SF] = run_globals.LTTime[snapshot];
       //gal->Prefactor[gal->count_SF] = pow(EnergySN * N_SN_Pop2 * mm_stars * UnitMass_in_g / SOLAR_MASS / (PROTONMASS * gas_density), 0.2);
-      gal->Prefactor[A] = pow(EnergySN * N_SN_Pop2 * mm_stars * UnitMass_in_g / SOLAR_MASS / (PROTONMASS * gas_density), 0.2);
+      gal->Prefactor[A] = pow(EnergySN * N_SN_Pop2 * mm_stars * UnitMass_in_g / SOLAR_MASS / (PROTONMASS * gas_density), 0.2); //cm s^-0.4
       //gal->Times[gal->count_SF] = run_globals.LTTime[snapshot];
-      gal->Times[A] = run_globals.LTTime[snapshot] * time_unit; 
+      gal->Times[A] = run_globals.LTTime[snapshot] * time_unit; // s
     }
     if (gal->count_SF > 0) {
       for (int i_SF = 0; i_SF < gal->count_SF; i_SF++) 
