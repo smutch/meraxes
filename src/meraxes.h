@@ -491,9 +491,9 @@ typedef struct galaxy_t
   
   float RmetalBubble; //New for MetalEvo
   
-  float Prefactor[50]; //here you store the prefactors of the metal bubbles
-  float Times[50]; // Time at which the SN explode!
-  float Radii[50]; 
+  float Prefactor[70]; //here you store the prefactors of the metal bubbles
+  float Times[70]; // Time at which the SN explode!
+  float Radii[70]; 
   int count_SF;
   
   // baryonic hostories
