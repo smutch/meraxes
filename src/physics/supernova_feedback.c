@@ -333,7 +333,6 @@ void calc_metal_bubble(galaxy_t* gal, int snapshot) // For metal pollution, adde
   double UnitLength_in_cm = run_globals.units.UnitLength_in_cm;
   
   int A = gal->count_SF;
-  mlog("Count    :: %d", MLOG_MESG, A);
   
   //mlog("Computing Metal Bubbles...", MLOG_OPEN | MLOG_TIMERSTART); // You can remove this log message later
   
