@@ -331,6 +331,7 @@ void calc_metal_bubble(galaxy_t* gal, int snapshot) // For metal pollution, adde
   
   double UnitMass_in_g = run_globals.units.UnitMass_in_g;
   double UnitLength_in_cm = run_globals.units.UnitLength_in_cm;
+  double time_unit = run_globals.units.UnitTime_in_Megayears / run_globals.params.Hubble_h;
   
   int A = gal->count_SF;
   
@@ -352,11 +353,11 @@ void calc_metal_bubble(galaxy_t* gal, int snapshot) // For metal pollution, adde
       //gal->Prefactor[gal->count_SF] = pow(EnergySN * N_SN_Pop2 * mm_stars * UnitMass_in_g / SOLAR_MASS / (PROTONMASS * gas_density), 0.2);
       gal->Prefactor[A] = pow(EnergySN * N_SN_Pop2 * mm_stars * UnitMass_in_g / SOLAR_MASS / (PROTONMASS * gas_density), 0.2);
       //gal->Times[gal->count_SF] = run_globals.LTTime[snapshot];
-      gal->Times[A] = run_globals.LTTime[snapshot];
+      gal->Times[A] = run_globals.LTTime[snapshot] * time_unit;
     }
     if (gal->count_SF > 0) {
       for (int i_SF = 0; i_SF < gal->count_SF; i_SF++) 
-        gal->Radii[i_SF] = gal->Prefactor[i_SF] * pow((run_globals.LTTime[snapshot] - gal->Times[i_SF]), 0.4); 
+        gal->Radii[i_SF] = gal->Prefactor[i_SF] * pow((run_globals.LTTime[snapshot] * time_unit - gal->Times[i_SF]), 0.4); 
     }
   }
   
