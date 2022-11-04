@@ -373,7 +373,7 @@ void calc_metal_bubble(galaxy_t* gal, int snapshot) // For metal pollution, adde
     
   for (int i = 0; i < 70; i++) {       
      if(gal->Radii[i] > max)    
-         max = arr[i];    
+         max = gal->Radii[i];    
     }
     
   gal->RmetalBubble = max; // This command here does not work!
