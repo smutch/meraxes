@@ -381,6 +381,6 @@ void calc_metal_bubble(galaxy_t* gal, int snapshot) // For metal pollution, adde
   
   if (gal->RmetalBubble < 0.0)
     gal->RmetalBubble = 0.0;
-  if (gal->RmetalBubble > 0.0)
-    mlog("RmetalBubble    :: %f", MLOG_MESG, gal->RmetalBubble);
+  //if (gal->RmetalBubble > 0.0)
+  //  mlog("RmetalBubble    :: %f", MLOG_MESG, gal->RmetalBubble);
 }
