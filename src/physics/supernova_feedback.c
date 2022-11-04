@@ -312,10 +312,10 @@ void contemporaneous_supernova_feedback(galaxy_t* gal,
 float max_array(float arr[70]) //Is there a better way? If not and things work move this function somewhere else
 {           
     int length = sizeof(arr)/sizeof(arr[0]);       
-    int max = arr[0];    
+    int max = &arr[0];    
     
     for (int i = 0; i < length; i++) {       
-       if(arr[i] > max)    
+       if(&arr[i] > max)    
            max = arr[i];    
     }      
     return max;    
@@ -371,7 +371,7 @@ void calc_metal_bubble(galaxy_t* gal, int snapshot) // For metal pollution, adde
   //if (C > 0.)
   //  mlog("RmetalBubble    :: %f", MLOG_MESG, C);
     
-  gal->RmetalBubble = max_array(&(gal->Radii));
+  gal->RmetalBubble = max_array(gal->Radii); // This command here does not work!
   
   
   if (gal->RmetalBubble < 0.0)
