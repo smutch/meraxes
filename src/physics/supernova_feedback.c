@@ -356,7 +356,7 @@ void calc_metal_bubble(galaxy_t* gal, int snapshot) // For metal pollution, adde
     }
     if (gal->count_SF > 0) {
       for (int i_SF = 0; i_SF < gal->count_SF; i_SF++) 
-        gal->Radii[i_SF] = gal->Prefactor[i_SF] * pow((run_globals.LTTime[snapshot] * time_unit - gal->Times[i_SF]), 0.4) / UnitLength_in_cm; 
+        gal->Radii[i_SF] = gal->Prefactor[i_SF] * pow((run_globals.LTTime[snapshot] * time_unit - gal->Times[i_SF]), 0.4) / UnitLength_in_cm; //Mpc
     }
   }
   
