@@ -333,6 +333,7 @@ void calc_metal_bubble(galaxy_t* gal, int snapshot) // For metal pollution, adde
   double UnitLength_in_cm = run_globals.units.UnitLength_in_cm;
   
   int A = gal->count_SF;
+  mlog("Count    :: %d", MLOG_MESG, A);
   
   //mlog("Computing Metal Bubbles...", MLOG_OPEN | MLOG_TIMERSTART); // You can remove this log message later
   
@@ -363,10 +364,11 @@ void calc_metal_bubble(galaxy_t* gal, int snapshot) // For metal pollution, adde
   else {
     int n_bursts = (snapshot >= N_HISTORY_SNAPS) ? N_HISTORY_SNAPS : snapshot;
     mlog_error("So far, you can't relax the IRA");
-  }  
-  float B = max_array(gal->Radii);
-  if (B > 0.)
-    mlog("RmetalBubble    :: %f", MLOG_MESG, B);
+  }
+  float B[70] = gal->Radii;  
+  float C = max_array(B);
+  if (C > 0.)
+    mlog("RmetalBubble    :: %f", MLOG_MESG, C);
     
   gal->RmetalBubble = max_array(gal->Radii);
   
