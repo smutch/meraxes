@@ -71,7 +71,7 @@ galaxy_t* new_galaxy(int snapshot, unsigned long halo_ID)
   if (run_globals.params.Flag_IncludeMetalEvo) { //New for Metallicity
     gal->RmetalBubble = 0.0;
     gal->count_SF = 0;
-    for (int iii = 0; iii < 40; iii++) {
+    for (int iii = 0; iii < 50; iii++) {
       gal->Prefactor[iii] = (double)0.0;
       gal->Times[iii] = (double)0.0;
       gal->Radii[iii] = (double)0.0;

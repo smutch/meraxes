@@ -307,7 +307,7 @@ void contemporaneous_supernova_feedback(galaxy_t* gal,
   assert(*m_eject >= 0);
 }
 
-float max_array(float arr[40]) //Is there a better way? If not and things work move this function somewhere else
+float max_array(float arr[50]) //Is there a better way? If not and things work move this function somewhere else
 {           
     int length = sizeof(arr)/sizeof(arr[0]);       
     int max = arr[0];    
@@ -341,7 +341,7 @@ void calc_metal_bubble(galaxy_t* gal, int snapshot) // For metal pollution, adde
       gal->count_SF += 1;
       double gas_density;
       
-      if (gal->count_SF > 40)
+      if (gal->count_SF > 50)
         mlog_error("Too many SF episodes"); 
       gas_density = (gal->HotGas + gal->ColdGas) * UnitMass_in_g / (4.0 * M_PI / 3.0 * pow(gal->Rvir * UnitLength_in_cm, 3.));
     
