@@ -358,7 +358,8 @@ void calc_metal_bubble(galaxy_t* gal, int snapshot) // For metal pollution, adde
     }
     if (gal->count_SF > 0) {
       for (int i_SF = 0; i_SF < gal->count_SF; i_SF++) 
-        gal->Radii[i_SF] = gal->Prefactor[i_SF] * pow((run_globals.LTTime[snapshot] * time_unit - gal->Times[i_SF]), 0.4) / UnitLength_in_cm; //Mpc
+        //gal->Radii[i_SF] = gal->Prefactor[i_SF] * pow((run_globals.LTTime[snapshot] * time_unit - gal->Times[i_SF]), 0.4) / UnitLength_in_cm; //Mpc
+        gal->Radii[i_SF] = gal->Prefactor[i_SF] * pow((gal->Times[i_SF] - run_globals.LTTime[snapshot] * time_unit), 0.4) / UnitLength_in_cm; //Mpc
     }
   }
   
@@ -366,10 +367,6 @@ void calc_metal_bubble(galaxy_t* gal, int snapshot) // For metal pollution, adde
     int n_bursts = (snapshot >= N_HISTORY_SNAPS) ? N_HISTORY_SNAPS : snapshot;
     mlog_error("So far, you can't relax the IRA");
   }
-  //float B[70] = gal->Radii;  
-  //float C = max_array(B);
-  //if (C > 0.)
-  //  mlog("RmetalBubble    :: %f", MLOG_MESG, C);
       
   float max = gal->Radii[0];    
     
