@@ -72,9 +72,9 @@ galaxy_t* new_galaxy(int snapshot, unsigned long halo_ID)
     gal->RmetalBubble = 0.0;
     gal->count_SF = 0;
     for (int iii = 0; iii < 70; iii++) {
-      gal->Prefactor[iii] = (double)0.0;
-      gal->Times[iii] = (double)0.0;
-      gal->Radii[iii] = (double)0.0;
+      gal->Prefactor[iii] = (float)0.0;
+      gal->Times[iii] = (float)0.0;
+      gal->Radii[iii] = (float)0.0;
     }
   }
 
