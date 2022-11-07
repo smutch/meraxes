@@ -309,38 +309,23 @@ void contemporaneous_supernova_feedback(galaxy_t* gal,
   assert(*m_eject >= 0);
 }
 
-float max_array(float arr[70]) //Is there a better way? If not and things work move this function somewhere else
-{           
-    int length = sizeof(arr)/sizeof(arr[0]);       
-    int max = arr[0];    
-    
-    for (int i = 0; i < length; i++) {       
-       if(arr[i] > max)    
-           max = arr[i];    
-    }      
-    return max;    
-} 
-
-void calc_metal_bubble(galaxy_t* gal, int snapshot) // For metal pollution, added by Manu. Still very messy and pointers are not working
+void calc_metal_bubble(galaxy_t* gal, int snapshot) // For metal pollution, added by Manu. Almost done
 {
   bool Flag_IRA = (bool)(run_globals.params.physics.Flag_IRA);
   double sfr_timescale_metals = run_globals.params.ReionSfrTimescale * hubble_time(snapshot);
   
-  //double m_stars = gal->NewStars[snapshot];
-  double mm_stars = gal->Sfr * sfr_timescale_metals;
+  double mm_stars = gal->NewStars[0]; //The last episode of SF
+  //double mm_stars = gal->Sfr * sfr_timescale_metals;  // Wrong timescale
   
   double UnitMass_in_g = run_globals.units.UnitMass_in_g;
   double UnitLength_in_cm = run_globals.units.UnitLength_in_cm;
-  //double time_unit = run_globals.units.UnitTime_in_Megayears / run_globals.params.Hubble_h; //Should you divide by little_h?
   double time_unit = run_globals.units.UnitTime_in_s / run_globals.params.Hubble_h; //Should you divide by little_h?
   
   int A = gal->count_SF;
   
-  //mlog("Computing Metal Bubbles...", MLOG_OPEN | MLOG_TIMERSTART); // You can remove this log message later
-  
   if (Flag_IRA == false) {
   
-    if (mm_stars > 1e-10) {
+    if (mm_stars > 1e-10) { 
 
       gal->count_SF += 1;
       double gas_density;
@@ -349,11 +334,7 @@ void calc_metal_bubble(galaxy_t* gal, int snapshot) // For metal pollution, adde
         mlog_error("Too many SF episodes"); 
       gas_density = (gal->HotGas + gal->ColdGas) * UnitMass_in_g / PROTONMASS / (4.0 * M_PI / 3.0 * pow(gal->Rvir * UnitLength_in_cm, 3.)); // cm^-3
     
-      //Prefactor[*count_SF] = pow(EnergySN * N_SN_Pop2 * mm_stars * UnitMass_in_g / (PROTONMASS * gas_density), 0.2);
-      //Times[*count_SF] = run_globals.LTTime[snapshot];
-      //gal->Prefactor[gal->count_SF] = pow(EnergySN * N_SN_Pop2 * mm_stars * UnitMass_in_g / SOLAR_MASS / (PROTONMASS * gas_density), 0.2);
       gal->Prefactor[A] = pow(EnergySN * N_SN_Pop2 * mm_stars * UnitMass_in_g / SOLAR_MASS / (PROTONMASS * gas_density), 0.2) / UnitLength_in_cm; //Mpc s^-0.4
-      //gal->Times[gal->count_SF] = run_globals.LTTime[snapshot];
       gal->Times[A] = run_globals.LTTime[snapshot] * time_unit; // s
     }
     if (gal->count_SF > 0) {
@@ -374,11 +355,9 @@ void calc_metal_bubble(galaxy_t* gal, int snapshot) // For metal pollution, adde
          max = gal->Radii[i];    
     }
     
-  gal->RmetalBubble = max; // This command here does not work!
+  gal->RmetalBubble = max; 
   
   
   if (gal->RmetalBubble < 0.0)
     gal->RmetalBubble = 0.0;
-  //if (gal->RmetalBubble > 0.0)
-  //  mlog("RmetalBubble    :: %f", MLOG_MESG, gal->RmetalBubble);
 }
