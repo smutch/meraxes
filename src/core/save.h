@@ -55,7 +55,7 @@ typedef struct galaxy_output_t
   float BlackHoleAccretedHotMass;
   float BlackHoleAccretedColdMass;
   
-  double RmetalBubble; //New for MetalEvo
+  float RmetalBubble; //New for MetalEvo
 
   // misc
   float Rcool;
