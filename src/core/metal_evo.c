@@ -147,7 +147,7 @@ void construct_metal_grids(int snapshot, int local_ngals) // You can put here th
             
               buffer_metals[ind] += (4.0 / 3.0 * M_PI * pow((gal->RmetalBubble) * (1 + redshift), 3.0)); // Comoving Mpc (Is it divided by h or not?)
               if (buffer_metals[ind] > 0)
-                mlog("Goat");
+                mlog_error("Goat");
 
               break;
               
@@ -204,7 +204,7 @@ void construct_metal_grids(int snapshot, int local_ngals) // You can put here th
                 for (int iz = 0; iz < MetalGridDim; iz++) {
                   double val = (double)buffer_metals[grid_index(ix, iy, iz, MetalGridDim, INDEX_REAL)] / pixel_volume_metals; // You want this comoving
                   if (val > 0)
-                    mlog("Tuna");
+                    mlog_error("Tuna");
                   if (val < 0)
                     val = 0;
                   if (val > 1)
