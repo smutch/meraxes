@@ -47,6 +47,7 @@ void construct_metal_grids(int snapshot, int local_ngals) // You can put here th
   float* mass_gas_grid_metals = run_globals.metal_grids.mass_gas;
   float* mass_gasgal_grid_metals = run_globals.metal_grids.mass_gasgal;
   float* prob_grid_metals = run_globals.metal_grids.Probability_metals;
+  int* count_bubble_metals = run_globals.metal_grids.N_bubbles;
   int MetalGridDim = run_globals.params.MetalGridDim;
   double sfr_timescale_metals = run_globals.params.ReionSfrTimescale * hubble_time(snapshot);
   double redshift = run_globals.ZZ[snapshot]; 
@@ -69,6 +70,7 @@ void construct_metal_grids(int snapshot, int local_ngals) // You can put here th
     mass_gas_grid_metals[ii] = 0.0;
     mass_gasgal_grid_metals[ii] = 0.0;
     prob_grid_metals[ii] = 0.0;
+    count_bubble_metals[ii] = 0;
   }
 
   // loop through each slab
@@ -83,6 +85,7 @@ void construct_metal_grids(int snapshot, int local_ngals) // You can put here th
   {
     prop_stellar_metals,
     prop_prob,
+    prop_count,
     prop_sfr_metals,
     prop_mass_ej_metals,
     prop_mass_gal_gas,
@@ -149,6 +152,13 @@ void construct_metal_grids(int snapshot, int local_ngals) // You can put here th
 
               break;
               
+            case prop_count:
+            
+              if (gal->RmetalBubble > 0.)
+                buffer_metals[ind] += 1;
+
+              break;
+              
             case prop_mass_ej_metals:
             
               buffer_metals[ind] += gal->MetalsEjectedGas;
@@ -206,6 +216,17 @@ void construct_metal_grids(int snapshot, int local_ngals) // You can put here th
                   if (val > 1)
                     val = 1; // It's a probability!
                   prob_grid_metals[grid_index(ix, iy, iz, MetalGridDim, INDEX_REAL)] = (float)val; 
+                }
+            break;
+            
+          case prop_count:
+            for (int ix = 0; ix < slab_nix_metals[i_r]; ix++)
+              for (int iy = 0; iy < MetalGridDim; iy++)
+                for (int iz = 0; iz < MetalGridDim; iz++) {
+                  double val = (double)buffer_metals[grid_index(ix, iy, iz, MetalGridDim, INDEX_REAL)];
+                  if (val < 0)
+                    val = 0;
+                  count_bubble_metals[grid_index(ix, iy, iz, MetalGridDim, INDEX_REAL)] = (int)val; 
                 }
             break;
             
@@ -336,6 +357,13 @@ void save_metal_input_grids(int snapshot)
     for (int jj = 0; jj < MetalGridDim; jj++)
       for (int kk = 0; kk < MetalGridDim; kk++)
         grid[grid_index(ii, jj, kk, MetalGridDim, INDEX_REAL)] =
+          (int)((grids->N_bubbles)[grid_index(ii, jj, kk, MetalGridDim, INDEX_REAL)];
+  write_grid_float("N_bubbles", grid, file_id, fspace_id, memspace_id, dcpl_id);
+  
+  for (int ii = 0; ii < local_nix_metals; ii++)
+    for (int jj = 0; jj < MetalGridDim; jj++)
+      for (int kk = 0; kk < MetalGridDim; kk++)
+        grid[grid_index(ii, jj, kk, MetalGridDim, INDEX_REAL)] =
           (float)((grids->mass_metals)[grid_index(ii, jj, kk, MetalGridDim, INDEX_REAL)] * UnitMass_in_g / SOLAR_MASS);
   write_grid_float("mass_metals", grid, file_id, fspace_id, memspace_id, dcpl_id);
   
@@ -383,6 +411,7 @@ void init_metal_grids()
     grids->mass_gas[ii] = (float)0.;
     grids->Zigm_box[ii] = (float)0.;
     grids->Probability_metals[ii] = (float)0.;
+    grids->N_bubbles[ii] = (int)0;
   }
 }
 
@@ -404,6 +433,7 @@ void malloc_metal_grids()
   grids->mass_gas = NULL;
   grids->Zigm_box = NULL; 
   grids->Probability_metals = NULL;
+  grids->N_bubbles = NULL;
   
   assign_slabs_metals();
 
@@ -433,6 +463,7 @@ void malloc_metal_grids()
     grids->sfr_metals = fftwf_alloc_real((size_t)slab_n_real_metals);
     grids->mass_gasgal = fftwf_alloc_real((size_t)slab_n_real_metals);
     grids->Probability_metals = fftwf_alloc_real((size_t)slab_n_real_metals);
+    grids->N_bubbles = fftwf_alloc_real((size_t)slab_n_real_metals);
 
     init_metal_grids();
 
@@ -454,7 +485,7 @@ void free_metal_grids()
   fftwf_free(grids->Probability_metals);
   fftwf_free(grids->sfr_metals);
   fftwf_free(grids->mass_gasgal);
-
+  fftwf_free(grids->N_bubbles);
   fftwf_free(grids->stars_metals);
 
   fftwf_free(grids->buffer_metals);
