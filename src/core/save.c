@@ -621,6 +621,7 @@ void create_master_file()
     H5LTset_attribute_string(file_id, group_name, "mass_gasgal", "solMass");
     H5LTset_attribute_string(file_id, group_name, "Zigm_box", "Zsol");
     H5LTset_attribute_string(file_id, group_name, "Probability_metals", "none");
+    H5LTset_attribute_string(file_id, group_name, "N_bubbles", "none");
     
     H5Gclose(group_id);
   }
