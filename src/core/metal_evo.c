@@ -51,7 +51,8 @@ void construct_metal_grids(int snapshot, int local_ngals) // You can put here th
   int MetalGridDim = run_globals.params.MetalGridDim;
   double sfr_timescale_metals = run_globals.params.ReionSfrTimescale * hubble_time(snapshot);
   double redshift = run_globals.ZZ[snapshot]; 
-  double pixel_volume_metals = pow(box_size / run_globals.params.Hubble_h / (double)MetalGridDim, 3); // (Mpc)^3
+  //double pixel_volume_metals = pow(box_size / run_globals.params.Hubble_h / (double)MetalGridDim, 3); // (Mpc)^3
+  double pixel_volume_metals = pow(box_size / (double)MetalGridDim, 3); // (Mpc/h)^3
   
   gal_to_slab_t* galaxy_to_slab_map_metals = run_globals.metal_grids.galaxy_to_slab_map_metals;
   ptrdiff_t* slab_ix_start_metals = run_globals.metal_grids.slab_ix_start_metals;
