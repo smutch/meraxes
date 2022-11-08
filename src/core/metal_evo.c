@@ -146,6 +146,8 @@ void construct_metal_grids(int snapshot, int local_ngals) // You can put here th
             case prop_prob:
             
               buffer_metals[ind] += (4.0 / 3.0 * M_PI * pow((gal->RmetalBubble) * (1 + redshift), 3.0)); // Comoving Mpc (Is it divided by h or not?)
+              if (buffer_metals[ind] > 0)
+                mlog("Goat");
 
               break;
               
