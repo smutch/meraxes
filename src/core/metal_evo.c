@@ -40,7 +40,7 @@ void assign_slabs_metals() // Not sure if I have to duplicate this function from
 
 void construct_metal_grids(int snapshot, int local_ngals) // You can put here the computation of probability
 {
-  double box_size_metals = run_globals.params.BoxSize; 
+  double box_size = run_globals.params.BoxSize; 
   float* stellar_grid_metals = run_globals.metal_grids.stars_metals;
   float* sfr_grid_metals = run_globals.metal_grids.sfr_metals;
   float* mass_metals_grid_metals = run_globals.metal_grids.mass_metals;
@@ -50,8 +50,7 @@ void construct_metal_grids(int snapshot, int local_ngals) // You can put here th
   int MetalGridDim = run_globals.params.MetalGridDim;
   double sfr_timescale_metals = run_globals.params.ReionSfrTimescale * hubble_time(snapshot);
   double redshift = run_globals.ZZ[snapshot]; 
-  double box_size = run_globals.params.BoxSize / run_globals.params.Hubble_h; // Mpc
-  double pixel_volume_metals = pow(box_size_metals / (double)MetalGridDim, 3); // (Mpc)^3
+  double pixel_volume_metals = pow(box_size / run_globals.params.Hubble_h / (double)MetalGridDim, 3); // (Mpc)^3
   
   gal_to_slab_t* galaxy_to_slab_map_metals = run_globals.metal_grids.galaxy_to_slab_map_metals;
   ptrdiff_t* slab_ix_start_metals = run_globals.metal_grids.slab_ix_start_metals;
