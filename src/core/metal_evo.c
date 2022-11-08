@@ -145,7 +145,7 @@ void construct_metal_grids(int snapshot, int local_ngals) // You can put here th
              
             case prop_prob:
             
-              buffer_metals[ind] += gal->RmetalBubble; // Physical Mpc (Is it divided by h or not?
+              buffer_metals[ind] += (4.0 / 3.0 * M_PI * pow((gal->RmetalBubble) * (1 + redshift), 3.0)); // Comoving Mpc (Is it divided by h or not?
 
               break;
               
@@ -200,7 +200,7 @@ void construct_metal_grids(int snapshot, int local_ngals) // You can put here th
             for (int ix = 0; ix < slab_nix_metals[i_r]; ix++)
               for (int iy = 0; iy < MetalGridDim; iy++)
                 for (int iz = 0; iz < MetalGridDim; iz++) {
-                  double val = (double)buffer_metals[grid_index(ix, iy, iz, MetalGridDim, INDEX_REAL)] * (1 + redshift) / pixel_volume_metals; // You want this comoving
+                  double val = (double)buffer_metals[grid_index(ix, iy, iz, MetalGridDim, INDEX_REAL)] / pixel_volume_metals; // You want this comoving
                   if (val < 0)
                     val = 0;
                   if (val > 1)
