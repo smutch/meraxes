@@ -38,12 +38,12 @@ double gas_infall(fof_group_t* FOFgroup, int snapshot)
       total_blackholemass += gal->BlackHoleMass + gal->BlackHoleAccretingColdMass;
 
       if (gal != central) { //Test to check the Metal Grids, if it works, we need to understand how to deal with this
-        //central->HotGas += gal->HotGas + gal->EjectedGas;
-        //central->MetalsHotGas += gal->MetalsHotGas + gal->MetalsEjectedGas;
-        central->HotGas += gal->HotGas;
-        central->MetalsHotGas += gal->MetalsHotGas;
-        central->EjectedGas += gal->EjectedGas;
-        central->MetalsEjectedGas += gal->MetalsEjectedGas;
+        central->HotGas += gal->HotGas + gal->EjectedGas;
+        central->MetalsHotGas += gal->MetalsHotGas + gal->MetalsEjectedGas;
+        //central->HotGas += gal->HotGas;
+        //central->MetalsHotGas += gal->MetalsHotGas;
+        //central->EjectedGas += gal->EjectedGas;
+        //central->MetalsEjectedGas += gal->MetalsEjectedGas;
         gal->HotGas = 0.0;
         gal->MetalsHotGas = 0.0;
         gal->EjectedGas = 0.0;
