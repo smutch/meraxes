@@ -46,7 +46,7 @@ void construct_metal_grids(int snapshot, int local_ngals) // You can put here th
   float* mass_metals_grid_metals = run_globals.metal_grids.mass_metals;
   float* mass_gas_grid_metals = run_globals.metal_grids.mass_gas;
   float* mass_gasgal_grid_metals = run_globals.metal_grids.mass_gasgal;
-  float* prob_grid_metals = run_globals.metal_grids.mass_gasgal;
+  float* prob_grid_metals = run_globals.metal_grids.Probability_metals;
   int MetalGridDim = run_globals.params.MetalGridDim;
   double sfr_timescale_metals = run_globals.params.ReionSfrTimescale * hubble_time(snapshot);
   double redshift = run_globals.ZZ[snapshot]; 
@@ -146,8 +146,6 @@ void construct_metal_grids(int snapshot, int local_ngals) // You can put here th
             case prop_prob:
             
               buffer_metals[ind] += (4.0 / 3.0 * M_PI * pow((gal->RmetalBubble) * (1 + redshift), 3.0)); // Comoving Mpc (Is it divided by h or not?)
-              //if (buffer_metals[ind] > 0)
-              //  mlog_error("Goat");
 
               break;
               
@@ -203,8 +201,6 @@ void construct_metal_grids(int snapshot, int local_ngals) // You can put here th
               for (int iy = 0; iy < MetalGridDim; iy++)
                 for (int iz = 0; iz < MetalGridDim; iz++) {
                   double val = (double)buffer_metals[grid_index(ix, iy, iz, MetalGridDim, INDEX_REAL)] / pixel_volume_metals; // You want this comoving
-                  if (val > 0)
-                    mlog("Probability   :: %f", MLOG_MESG, val);;
                   if (val < 0)
                     val = 0;
                   if (val > 1)
