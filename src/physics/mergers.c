@@ -193,7 +193,7 @@ void merge_with_target(galaxy_t* gal, int* dead_gals, int snapshot)
     parent->count_SF += 1; // Put the SF episode of the merged galaxy into the target one so you can continue to keep track of the evolution of the Bubble
     int C = parent->count_SF;
     parent->Radii[C] = parent->RmetalBubble;
-    for (int iii = 0; iii < gal->count_SF, iii++) {
+    for (int iii = 0; iii < gal->count_SF; iii++) {
       if ((parent->Radii[C] - gal->Radii[iii] < 1e-6) { // This loop to find which was the Prefactor and the Time associated to that bubble (Maybe there is a smarter way)
         parent->Prefactor[C] = gal->Prefactor[iii];
         parent->Times[C] = gal->Times[iii];
