@@ -61,7 +61,7 @@ int evolve_galaxies(fof_group_t* fof_group, int snapshot, int NGal, int NFof)
             if (Flag_Metals == true) 
               calc_metal_bubble(gal, snapshot);
               
-            if (gal->Radii[0] > 0) //{
+            //if (gal->Radii[0] > 0) {
               //mlog("Radius   :: %f", MLOG_MESG, gal->Radii[0]);
               //mlog("Prefactor:: %f", MLOG_MESG, gal->Prefactor[0]);
               //mlog("Bubble :: %f", MLOG_MESG, gal->RmetalBubble);
