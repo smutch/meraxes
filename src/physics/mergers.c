@@ -185,22 +185,22 @@ void merge_with_target(galaxy_t* gal, int* dead_gals, int snapshot)
   parent->mwmsa_denom += gal->mwmsa_denom;
   parent->MergerBurstMass += gal->MergerBurstMass;
   
-  //if (gal->RmetalBubble > parent->RmetalBubble) {
+  if (gal->RmetalBubble > parent->RmetalBubble) {
   
-  //  mlog("Mergers within metal bubbles...", MLOG_OPEN);
+    mlog("Mergers within metal bubbles...", MLOG_OPEN);
     
-  //  parent->RmetalBubble = gal->RmetalBubble; // This is to account the evolution of metal bubbles after a merger event
-  //  parent->count_SF += 1; // Put the SF episode of the merged galaxy into the target one so you can continue to keep track of the evolution of the Bubble
-  //  int C = parent->count_SF;
-  //  parent->Radii[C] = parent->RmetalBubble;
-  //  for (int iii = 0; iii < gal->count_SF; iii++) {
-  //    if ((parent->Radii[C] - gal->Radii[iii]) < 1e-6) { // This loop to find which was the Prefactor and the Time associated to that bubble (Maybe there is a smarter way)
-  //      parent->Prefactor[C] = gal->Prefactor[iii];
-  //      parent->Times[C] = gal->Times[iii];
-  //      mlog("...done", MLOG_CLOSE);
-  //    }
-  //  }
-  //}
+    parent->RmetalBubble = gal->RmetalBubble; // This is to account the evolution of metal bubbles after a merger event
+    parent->count_SF += 1; // Put the SF episode of the merged galaxy into the target one so you can continue to keep track of the evolution of the Bubble
+    int C = parent->count_SF;
+    parent->Radii[C-1] = parent->RmetalBubble;
+    for (int iii = 0; iii < gal->count_SF; iii++) {
+      if ((parent->Radii[C-1] - gal->Radii[iii]) < 1e-6) { // This loop to find which was the Prefactor and the Time associated to that bubble (Maybe there is a smarter way)
+        parent->Prefactor[C-1] = gal->Prefactor[iii];
+        parent->Times[C-1] = gal->Times[iii];
+        mlog("...done", MLOG_CLOSE);
+      }
+    }
+  }
     
 
   for (int ii = 0; ii < N_HISTORY_SNAPS; ii++)

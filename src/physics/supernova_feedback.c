@@ -313,7 +313,6 @@ void calc_metal_bubble(galaxy_t* gal, int snapshot) // For metal pollution, adde
   double sfr_timescale_metals = run_globals.params.ReionSfrTimescale * hubble_time(snapshot);
   
   double mm_stars = gal->NewStars[0]; //The last episode of SF
-  //double mm_stars = gal->Sfr * sfr_timescale_metals;  // Wrong timescale
   
   double UnitMass_in_g = run_globals.units.UnitMass_in_g;
   double UnitLength_in_cm = run_globals.units.UnitLength_in_cm;
