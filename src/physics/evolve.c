@@ -115,7 +115,11 @@ void passively_evolve_ghost(galaxy_t* gal, int snapshot)
   // Currently, this just means evolving their stellar pops...
 
   bool Flag_IRA = (bool)(run_globals.params.physics.Flag_IRA);
+  bool Flag_Metals = (bool)(run_globals.params.Flag_IncludeMetalEvo);
 
   if (!Flag_IRA)
     delayed_supernova_feedback(gal, snapshot);
+    
+  if (Flag_Metals == true) // You are updating this function to test why probability is decreasing in some cells
+    calc_metal_bubble(gal, snapshot); 
 }
