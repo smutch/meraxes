@@ -187,7 +187,7 @@ void merge_with_target(galaxy_t* gal, int* dead_gals, int snapshot)
   
   if (gal->RmetalBubble > parent->RmetalBubble) {
   
-    mlog("Mergers within metal bubbles...", MLOG_OPEN);
+    //mlog("Mergers within metal bubbles...", MLOG_OPEN);
     
     parent->RmetalBubble = gal->RmetalBubble; // This is to account the evolution of metal bubbles after a merger event
     parent->count_SF += 1; // Put the SF episode of the merged galaxy into the target one so you can continue to keep track of the evolution of the Bubble
@@ -197,7 +197,7 @@ void merge_with_target(galaxy_t* gal, int* dead_gals, int snapshot)
       if ((parent->Radii[C-1] - gal->Radii[iii]) < 1e-6) { // This loop to find which was the Prefactor and the Time associated to that bubble (Maybe there is a smarter way)
         parent->Prefactor[C-1] = gal->Prefactor[iii];
         parent->Times[C-1] = gal->Times[iii];
-        mlog("...done", MLOG_CLOSE);
+        //mlog("...done", MLOG_CLOSE);
       }
     }
   }
