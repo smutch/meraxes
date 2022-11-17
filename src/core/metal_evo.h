@@ -28,7 +28,7 @@ extern "C"
   void save_metal_input_grids(int snapshot);
   void save_metal_output_grids(int snapshot);
   void gen_metal_grids_fname(const int snapshot, char* name, const bool relative);
-  void assign_probability_to_galaxies(int ngals_in_metal_slabs, int snapshot, flag_property);
+  void assign_probability_to_galaxies(int ngals_in_metal_slabs, int snapshot, int flag_property);
   
 
 #ifdef __cplusplus
