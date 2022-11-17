@@ -15,6 +15,8 @@ int evolve_galaxies(fof_group_t* fof_group, int snapshot, int NGal, int NFof)
   galaxy_t* gal = NULL;
   halo_t* halo = NULL;
   int gal_counter = 0;
+  int gal_counter_Pop3 = 0; // Newly formed Pop3 Gal
+  int gal_counter_Pop2 = 0; // Newly formed Pop2 Gal
   int dead_gals = 0;
   double infalling_gas = 0;
   double cooling_mass = 0;
@@ -39,6 +41,29 @@ int evolve_galaxies(fof_group_t* fof_group, int snapshot, int NGal, int NFof)
         gal = halo->Galaxy;
 
         while (gal != NULL) {
+        
+          if (Flag_Metals == true) { // Assign to newly formed galaxies metallicity of their cell according to a certain probability
+          
+            if (gal->dt == 0) {
+            
+              double x;
+              srand(time(NULL));
+              x = (double) rand() / RAND_MAX;
+              
+              if (x <= gal->Metal_Probability) {
+                gal->MetalsHotGas = gal->HotGas * gal->Metallicity_IGM;
+                gal->MetalsColdGas = gal->ColdGas * gal->Metallicity_IGM;
+                gal->MetalsEjectedGas = gal->EjectedGas * gal->Metallicity_IGM;
+                
+                gal_counter_Pop3 += 1;
+              }
+              
+              else 
+                gal_counter_Pop2 += 1;
+            
+            }
+          }
+          
           if (gal->Type == 0) {
             cooling_mass = gas_cooling(gal);
 
@@ -103,6 +128,9 @@ int evolve_galaxies(fof_group_t* fof_group, int snapshot, int NGal, int NFof)
     mlog("gal_counter = %d but NGal = %d", MLOG_MESG, gal_counter, NGal);
     ABORT(EXIT_FAILURE);
   }
+  
+  mlog("Newly formed PopIII gal   :: %d", MLOG_MESG, gal_counter_Pop3);
+  mlog("Newly formed PopII gal    :: %d", MLOG_MESG, gal_counter_Pop2);
 
   mlog("...done", MLOG_CLOSE | MLOG_TIMERSTOP);
 
