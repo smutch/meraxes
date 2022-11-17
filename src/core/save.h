@@ -56,6 +56,7 @@ typedef struct galaxy_output_t
   float BlackHoleAccretedColdMass;
   
   float RmetalBubble; //New for MetalEvo
+  int Galaxy_Population;
 
   // misc
   float Rcool;
