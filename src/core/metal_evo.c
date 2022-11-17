@@ -607,7 +607,7 @@ void save_metal_output_grids(int snapshot) // Probably this function is complete
   mlog("...done", MLOG_CLOSE); // Saving tocf grids
 }
 
-void assign_probability_to_galaxies(int ngals_in_metal_slabs, int snapshot) //Right now you are assigning a probability to all galaxies! Actually you need only to the newly formed
+void assign_probability_to_galaxies(int ngals_in_metal_slabs, int snapshot, flag_property) //Right now you are assigning a probability to all galaxies! Actually you need only to the newly formed
 {
   // Same way in which we assing Mcrit due to Reio and LW feedback in reionization.c
 
@@ -623,13 +623,11 @@ void assign_probability_to_galaxies(int ngals_in_metal_slabs, int snapshot) //Ri
   float* mass_metals = run_globals.metal_grids.mass_metals;
   int total_assigned = 0;
   
-  enum properties
-  {
-    prop_prob,
-    prop_mass_ej_metals
-  };
-  
-  mlog("Assigning probability for metals...", MLOG_OPEN);
+  if (flag_property == 0) //Probability
+    mlog("Assigning probability for metals...", MLOG_OPEN);
+    
+  if (flag_property == 1)
+    mlog("Assigning IGM for metals...", MLOG_OPEN);
   
   int slab_map_offsets[run_globals.mpi_size];
   for (int ii = 0, i_gal = 0; ii < run_globals.mpi_size; ii++) {
@@ -644,8 +642,6 @@ void assign_probability_to_galaxies(int ngals_in_metal_slabs, int snapshot) //Ri
     } else
       slab_map_offsets[ii] = -1;
   }
-
-  for (int prop = prop_prob; prop < prop_mass_ej_metals; prop++) {
   
     for (int i_skip = 0; i_skip < run_globals.mpi_size; i_skip++) {
       int recv_from_rank = (run_globals.mpi_rank + i_skip) % run_globals.mpi_size;
@@ -654,9 +650,7 @@ void assign_probability_to_galaxies(int ngals_in_metal_slabs, int snapshot) //Ri
       bool send_flag = false;
       bool recv_flag = (slab_map_offsets[recv_from_rank] > -1);
       
-      switch (prop) {
-    
-      case prop_prob:
+      if (flag_property == 0) {
 
         if (i_skip > 0) {
           MPI_Sendrecv(&recv_flag,
@@ -698,12 +692,11 @@ void assign_probability_to_galaxies(int ngals_in_metal_slabs, int snapshot) //Ri
             int n_cells = (int)(slab_nix_metals[recv_from_rank] * MetalGridDim * MetalGridDim);
             memcpy(buffer_metals, Probability_metals, sizeof(float) * n_cells);
           }
-          
-          break;
+        } 
         
-        case prop_mass_ej_metals:
-
-          if (i_skip > 0) {
+      if (flag_property == 1) {
+      
+        if (i_skip > 0) {
             MPI_Sendrecv(&recv_flag,
                          sizeof(bool),
                          MPI_BYTE,
@@ -743,10 +736,8 @@ void assign_probability_to_galaxies(int ngals_in_metal_slabs, int snapshot) //Ri
               int n_cells = (int)(slab_nix_metals[recv_from_rank] * MetalGridDim * MetalGridDim);
               memcpy(buffer_metals, mass_metals, sizeof(float) * n_cells);
             }
-          
-          break;
-        }
-
+          }
+      
       if (recv_flag) {
         int i_gal = slab_map_offsets[recv_from_rank];
         int ix_start_metals = (int)slab_ix_start_metals[recv_from_rank];
@@ -759,19 +750,13 @@ void assign_probability_to_galaxies(int ngals_in_metal_slabs, int snapshot) //Ri
 
           assert(ix >= 0);
           assert(ix < slab_nix_metals[recv_from_rank]);
+          
+          if (flag_property == 0)
+            gal->Metal_Probability = (double)buffer_metals[grid_index(ix, iy, iz, MetalGridDim, INDEX_REAL)];
             
-          switch (prop) {
-              
-            case prop_prob:
-
-              gal->Metal_Probability = (double)buffer_metals[grid_index(ix, iy, iz, MetalGridDim, INDEX_REAL)];
-              break;
-              
-            case prop_mass_ej_metals:
-                
-              cell_gas = calculate_gasMass(pixel_length_metals, snapshot);
-              gal->Metallicity_IGM = calc_metallicity((double)buffer_metals[grid_index(ix, iy, iz, MetalGridDim, INDEX_REAL)], cell_gas);
-              break;
+          if (flag_property == 1){
+            cell_gas = calculate_gasMass(pixel_length_metals, snapshot);
+            gal->Metallicity_IGM = calc_metallicity((double)buffer_metals[grid_index(ix, iy, iz, MetalGridDim, INDEX_REAL)], cell_gas);
           }
         
           // increment counters
@@ -783,7 +768,8 @@ void assign_probability_to_galaxies(int ngals_in_metal_slabs, int snapshot) //Ri
 
     if (total_assigned != ngals_in_metal_slabs)
       ABORT(EXIT_FAILURE);
-  }
 
   mlog("...done.", MLOG_CLOSE);
 }
+
+
