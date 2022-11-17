@@ -607,7 +607,7 @@ void save_metal_output_grids(int snapshot) // Probably this function is complete
   mlog("...done", MLOG_CLOSE); // Saving tocf grids
 }
 
-void assign_probability_to_galaxies(int ngals_in_metal_slabs, int snapshot, flag_property) //Right now you are assigning a probability to all galaxies! Actually you need only to the newly formed
+void assign_probability_to_galaxies(int ngals_in_metal_slabs, int snapshot, int flag_property) //Right now you are assigning a probability to all galaxies! Actually you need only to the newly formed
 {
   // Same way in which we assing Mcrit due to Reio and LW feedback in reionization.c
 
