@@ -44,7 +44,7 @@ int evolve_galaxies(fof_group_t* fof_group, int snapshot, int NGal, int NFof)
         
           if (Flag_Metals == true) { // Assign to newly formed galaxies metallicity of their cell according to a certain probability
           
-            if (gal->dt < 1e-3) {
+            if ((gal->dt < 1e-3) && (!gal->ghost_flag)) {
             
               double x;
               srand(time(NULL));
@@ -55,11 +55,11 @@ int evolve_galaxies(fof_group_t* fof_group, int snapshot, int NGal, int NFof)
                 gal->MetalsColdGas = gal->ColdGas * gal->Metallicity_IGM;
                 gal->MetalsEjectedGas = gal->EjectedGas * gal->Metallicity_IGM;
                 
-                gal_counter_Pop3 += 1;
+                gal_counter_Pop2 += 1;
               }
               
               else 
-                gal_counter_Pop2 += 1;
+                gal_counter_Pop3 += 1;
             
             }
           }
