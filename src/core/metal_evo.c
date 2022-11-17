@@ -631,22 +631,22 @@ void assign_probability_to_galaxies(int ngals_in_metal_slabs, int snapshot) //Ri
   
   mlog("Assigning probability for metals...", MLOG_OPEN);
   
+  int slab_map_offsets[run_globals.mpi_size];
+  for (int ii = 0, i_gal = 0; ii < run_globals.mpi_size; ii++) {
+    if (galaxy_to_slab_map_metals != NULL) {
+      while ((i_gal < (ngals_in_metal_slabs - 1)) && (galaxy_to_slab_map_metals[i_gal].slab_ind < ii))
+        i_gal++;
+
+      if (galaxy_to_slab_map_metals[i_gal].slab_ind == ii)
+        slab_map_offsets[ii] = i_gal;
+      else
+        slab_map_offsets[ii] = -1;
+    } else
+      slab_map_offsets[ii] = -1;
+  }
+
   for (int prop = prop_prob; prop <= prop_mass_ej_metals; prop++) {
   
-    int slab_map_offsets[run_globals.mpi_size];
-    for (int ii = 0, i_gal = 0; ii < run_globals.mpi_size; ii++) {
-      if (galaxy_to_slab_map_metals != NULL) {
-        while ((i_gal < (ngals_in_metal_slabs - 1)) && (galaxy_to_slab_map_metals[i_gal].slab_ind < ii))
-          i_gal++;
-
-        if (galaxy_to_slab_map_metals[i_gal].slab_ind == ii)
-          slab_map_offsets[ii] = i_gal;
-        else
-          slab_map_offsets[ii] = -1;
-      } else
-        slab_map_offsets[ii] = -1;
-    }
-
     for (int i_skip = 0; i_skip < run_globals.mpi_size; i_skip++) {
       int recv_from_rank = (run_globals.mpi_rank + i_skip) % run_globals.mpi_size;
       int send_to_rank = (run_globals.mpi_rank - i_skip + run_globals.mpi_size) % run_globals.mpi_size;
