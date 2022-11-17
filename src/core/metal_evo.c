@@ -645,7 +645,7 @@ void assign_probability_to_galaxies(int ngals_in_metal_slabs, int snapshot) //Ri
       slab_map_offsets[ii] = -1;
   }
 
-  for (int prop = prop_prob; prop <= prop_mass_ej_metals; prop++) {
+  for (int prop = prop_prob; prop < prop_mass_ej_metals; prop++) {
   
     for (int i_skip = 0; i_skip < run_globals.mpi_size; i_skip++) {
       int recv_from_rank = (run_globals.mpi_rank + i_skip) % run_globals.mpi_size;
