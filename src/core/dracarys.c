@@ -305,8 +305,9 @@ void dracarys()
       }
     }
     
-    if (run_globals.params.Flag_IncludeMetalEvo) { // Need this for metal grid
+    if (run_globals.params.Flag_IncludeMetalEvo) { // Need this for metal grid, here you assign to new galaxies their metallicity from bubbles
       int ngals_in_metal_slabs = map_galaxies_to_slabs_metals(NGal);
+      assign_probability_to_galaxies(ngals_in_metal_slabs, snapshot); // You are doing this for all galaxies, it is not necessary!
     }
 
     // Do the physics
@@ -380,7 +381,7 @@ void dracarys()
 
     mlog("Newly identified merger events    :: %d", MLOG_MESG, merger_counter);
     mlog("Killed galaxies                   :: %d", MLOG_MESG, kill_counter);
-    mlog("Newly created galaxies            :: %d", MLOG_MESG, new_gal_counter);
+    mlog("Newly created galaxies            :: %d", MLOG_MESG, new_gal_counter); //here you can add a log message for Pop.III / Pop.II galaxies
     mlog("Galaxies in ghost halos           :: %d", MLOG_MESG, ghost_counter);
 #endif
 

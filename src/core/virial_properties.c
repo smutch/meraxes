@@ -110,6 +110,22 @@ double calculate_Rvir(double Mvir, int snapshot)
   return cbrt(Mvir * fac);
 }
 
+double calculate_gasMass(int snapshot, double length) //length in comoving units
+{
+  double hubble_of_z_sq;
+  double rhocrit;
+  double rhob;
+  double OmegaM = run_globals.params.OmegaM;
+  double OmegaB = OmegaM * run_globals.params.BaryonFrac;
+  
+  hubble_of_z_sq = pow(hubble_at_snapshot(snapshot), 2);
+
+  rhocrit = 3 * hubble_of_z_sq / (8 * M_PI * run_globals.G);
+  rhob = rhocrit * OmegaB;
+
+  return rhob * pow((length / (1.0 + run_globals.ZZ[snapshot])), 3.0);
+}
+
 double calculate_Vvir(double Mvir, double Rvir)
 {
   return sqrt((run_globals.G) * Mvir / Rvir);

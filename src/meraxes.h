@@ -9,6 +9,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h> //I believe I need this for random number
 
 /*
  * Definitions
@@ -490,7 +491,11 @@ typedef struct galaxy_t
   double BlackHoleAccretedColdMass;
   double BlackHoleAccretingColdMass;
   
+  //Metallicity stuff 
   double RmetalBubble; //New for MetalEvo
+  double Metal_Probability; // Probability to be polluted by other metal bubbles
+  double Metallicity_IGM; //
+  int Galaxy_Population; // 3 or 2
   
   double Prefactor[70]; //here you store the prefactors of the metal bubbles
   double Times[70]; // Time at which the SN explode!
