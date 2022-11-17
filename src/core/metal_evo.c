@@ -769,7 +769,7 @@ void assign_probability_to_galaxies(int ngals_in_metal_slabs, int snapshot) //Ri
               
             case prop_mass_ej_metals:
                 
-              cell_gas = calculate_GasMass(pixel_length_metals, snapshot);
+              cell_gas = calculate_gasMass(pixel_length_metals, snapshot);
               gal->Metallicity_IGM = calc_metallicity((double)buffer_metals[grid_index(ix, iy, iz, MetalGridDim, INDEX_REAL)], cell_gas);
               break;
           }
