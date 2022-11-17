@@ -57,8 +57,10 @@ int evolve_galaxies(fof_group_t* fof_group, int snapshot, int NGal, int NFof)
                 gal->MetalsEjectedGas = gal->EjectedGas * gal->Metallicity_IGM;
                 
                 gal_counter_enriched += 1;
-                if ((gal->Metallicity_IGM / 0.01) > 1e-4)
+                if ((gal->Metallicity_IGM / 0.01) > 1e-4) {
                  gal_counter_Pop2 += 1;
+                 gal->Galaxy_Population = 2;
+                 }
               }
               
               else 
