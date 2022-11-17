@@ -679,7 +679,7 @@ void assign_probability_to_galaxies(int ngals_in_metal_slabs, int snapshot) //Ri
                 MPI_Send(Probability_metals, n_cells, MPI_FLOAT, send_to_rank, 793710, run_globals.mpi_comm);
               }
               if (recv_flag) {
-                int n_cells = (int)(slab_nix_metals[recv_from_rank] * ReionGridDim * ReionGridDim);
+                int n_cells = (int)(slab_nix_metals[recv_from_rank] * MetalGridDim * MetalGridDim);
                 MPI_Recv(buffer_metals, n_cells, MPI_FLOAT, recv_from_rank, 793710, run_globals.mpi_comm, MPI_STATUS_IGNORE);
               }
             } 
