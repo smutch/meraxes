@@ -69,8 +69,11 @@ galaxy_t* new_galaxy(int snapshot, unsigned long halo_ID)
   gal->MergerStartRadius = 0.0;
   
   if (run_globals.params.Flag_IncludeMetalEvo) { //New for Metallicity
+    gal->Metal_Probability = 0.0;
+    gal->Metallicity_IGM = 0.0;
     gal->RmetalBubble = 0.0;
     gal->count_SF = 0;
+    gal->Galaxy_Population = 3; // HERE YOU CAN DO THE INITIALIZATION OF POP.III / POP.II (or you can do it in another place and here leave it 3)
     for (int iii = 0; iii < 70; iii++) {
       gal->Prefactor[iii] = (double)0.0;
       gal->Times[iii] = (double)0.0;
@@ -147,9 +150,6 @@ void reset_galaxy_properties(galaxy_t* gal, int snapshot)
   gal->FOFMvirModifier = 1.0;
   gal->BlackHoleAccretedHotMass = 0.0;
   gal->BlackHoleAccretedColdMass = 0.0;
-  
-  //if (run_globals.params.Flag_IncludeMetalEvo) //New for Metallicity... Maybe you shouldn't reset this property!
-  //  gal->RmetalBubble = 0.0; 
 
   // Update the stellar mass weighted mean age values.  This only needs to be
   // done for snapshots shich are passing out of what we are able to track
