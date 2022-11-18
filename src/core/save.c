@@ -91,6 +91,7 @@ void prepare_galaxy_for_output(galaxy_t gal, galaxy_output_t* galout, int i_snap
   //if (run_globals.params.Flag_IncludeMetalEvo)
   galout->RmetalBubble = (float)(gal.RmetalBubble); //new for MetalEvo
   galout->Galaxy_Population = (int)(gal.Galaxy_Population);
+  galout->FirstSnap = (int)(gal.FirstSnap);
 
   for (int ii = 0; ii < N_HISTORY_SNAPS; ii++)
     galout->NewStars[ii] = (float)(gal.NewStars[ii]);
@@ -112,7 +113,7 @@ void calc_hdf5_props()
     galaxy_output_t galout;
     int i; // dummy
 
-    h5props->n_props = 52; 
+    h5props->n_props = 53; 
 
 #ifdef CALC_MAGS
     h5props->n_props += 2;
@@ -161,6 +162,13 @@ void calc_hdf5_props()
     h5props->dst_offsets[i] = HOFFSET(galaxy_output_t, Type);
     h5props->dst_field_sizes[i] = sizeof(galout.Type);
     h5props->field_names[i] = "Type";
+    h5props->field_units[i] = "None";
+    h5props->field_h_conv[i] = "None";
+    h5props->field_types[i++] = H5T_NATIVE_INT;
+    
+    h5props->dst_offsets[i] = HOFFSET(galaxy_output_t, FirstSnap);
+    h5props->dst_field_sizes[i] = sizeof(galout.FirstSnap);
+    h5props->field_names[i] = "FirstSnap";
     h5props->field_units[i] = "None";
     h5props->field_h_conv[i] = "None";
     h5props->field_types[i++] = H5T_NATIVE_INT;
