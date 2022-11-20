@@ -382,6 +382,10 @@ void dracarys()
     MPI_Allreduce(MPI_IN_PLACE, &kill_counter, 1, MPI_INT, MPI_SUM, run_globals.mpi_comm);
     MPI_Allreduce(MPI_IN_PLACE, &new_gal_counter, 1, MPI_INT, MPI_SUM, run_globals.mpi_comm);
     MPI_Allreduce(MPI_IN_PLACE, &ghost_counter, 1, MPI_INT, MPI_SUM, run_globals.mpi_comm);
+    
+    MPI_Allreduce(MPI_IN_PLACE, &gal_counter_Pop3, 1, MPI_INT, MPI_SUM, run_globals.mpi_comm);
+    MPI_Allreduce(MPI_IN_PLACE, &gal_counter_enriched, 1, MPI_INT, MPI_SUM, run_globals.mpi_comm);
+    MPI_Allreduce(MPI_IN_PLACE, &gal_counter_Pop2, 1, MPI_INT, MPI_SUM, run_globals.mpi_comm);
 
     mlog("Newly identified merger events    :: %d", MLOG_MESG, merger_counter);
     mlog("Killed galaxies                   :: %d", MLOG_MESG, kill_counter);
