@@ -134,10 +134,6 @@ int evolve_galaxies(fof_group_t* fof_group, int snapshot, int NGal, int NFof, in
     ABORT(EXIT_FAILURE);
   }
   
-  mlog("Newly formed PopIII gal   :: %d", MLOG_MESG, &gal_counter_Pop3);
-  mlog("Newly formed enriched gal   :: %d", MLOG_MESG, &gal_counter_enriched);
-  mlog("Newly formed PopII gal    :: %d", MLOG_MESG, &gal_counter_Pop2);
-
   mlog("...done", MLOG_CLOSE | MLOG_TIMERSTOP);
 
   return gal_counter - dead_gals;

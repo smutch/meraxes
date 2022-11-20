@@ -387,6 +387,11 @@ void dracarys()
     mlog("Killed galaxies                   :: %d", MLOG_MESG, kill_counter);
     mlog("Newly created galaxies            :: %d", MLOG_MESG, new_gal_counter); //here you can add a log message for Pop.III / Pop.II galaxies
     mlog("Galaxies in ghost halos           :: %d", MLOG_MESG, ghost_counter);
+    
+    mlog("Newly formed PopIII gal           :: %d", MLOG_MESG, gal_counter_Pop3);
+    mlog("Newly formed enriched gal         :: %d", MLOG_MESG, gal_counter_enriched);
+    mlog("Newly formed PopII gal            :: %d", MLOG_MESG, gal_counter_Pop2);
+
 #endif
 
     // Write the results if this is a requested snapshot
