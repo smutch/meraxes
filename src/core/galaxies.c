@@ -19,7 +19,6 @@ galaxy_t* new_galaxy(int snapshot, unsigned long halo_ID)
   gal->HaloDescIndex = -1;
   gal->TreeFlags = 0;
   gal->LastIdentSnap = -1;
-  gal->FirstSnap = -1; // New for identify at which snapshot the galaxy was created
   gal->Halo = NULL;
   gal->FirstGalInHalo = NULL;
   gal->NextGalInHalo = NULL;
@@ -282,7 +281,6 @@ void create_new_galaxy(int snapshot, halo_t* halo, int* NGal, int* new_gal_count
     run_globals.FirstGal = gal;
 
   run_globals.LastGal = gal;
-  gal->FirstSnap = snapshot;
   gal->dt = run_globals.LTTime[gal->LastIdentSnap] - run_globals.LTTime[snapshot];
   *NGal = *NGal + 1;
   *new_gal_counter = *new_gal_counter + 1;
