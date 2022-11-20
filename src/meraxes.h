@@ -524,7 +524,6 @@ typedef struct galaxy_t
   int SnapSkipCounter;
   int HaloDescIndex;
   int TreeFlags;
-  int FirstSnap; //First Snapshot at which the galaxy was created. New!
   int LastIdentSnap; //!< Last snapshot at which the halo in which this galaxy resides was identified
   int output_index;  //!< write index
 
