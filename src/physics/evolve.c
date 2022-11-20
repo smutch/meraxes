@@ -10,14 +10,14 @@
 #include "supernova_feedback.h"
 
 //! Evolve existing galaxies forward in time
-int evolve_galaxies(fof_group_t* fof_group, int snapshot, int NGal, int NFof)
+int evolve_galaxies(fof_group_t* fof_group, int snapshot, int NGal, int NFof, int* gal_counter_Pop3, int* gal_counter_Pop2, int* gal_counter_enriched)
 {
   galaxy_t* gal = NULL;
   halo_t* halo = NULL;
   int gal_counter = 0;
-  int gal_counter_Pop3 = 0; // Newly formed Pop3 Gal
-  int gal_counter_Pop2 = 0; // Newly formed Pop2 Gal
-  int gal_counter_enriched = 0; //Enriched but they could be still Pop3
+  //int gal_counter_Pop3 = 0; // Newly formed Pop3 Gal
+  //int gal_counter_Pop2 = 0; // Newly formed Pop2 Gal
+  //int gal_counter_enriched = 0; //Enriched but they could be still Pop3
   int dead_gals = 0;
   double infalling_gas = 0;
   double cooling_mass = 0;
@@ -57,15 +57,15 @@ int evolve_galaxies(fof_group_t* fof_group, int snapshot, int NGal, int NFof)
                 gal->MetalsColdGas = gal->ColdGas * gal->Metallicity_IGM;
                 gal->MetalsEjectedGas = gal->EjectedGas * gal->Metallicity_IGM;
                 
-                gal_counter_enriched += 1;
+                gal_counter_enriched* += 1;
                 if ((gal->Metallicity_IGM / 0.01) > 1e-4) {
-                 gal_counter_Pop2 += 1;
+                 gal_counter_Pop2* += 1;
                  gal->Galaxy_Population = 2;
                  }
               }
               
               else 
-                gal_counter_Pop3 += 1;
+                gal_counter_Pop3* += 1;
             }
           }
           
@@ -134,9 +134,9 @@ int evolve_galaxies(fof_group_t* fof_group, int snapshot, int NGal, int NFof)
     ABORT(EXIT_FAILURE);
   }
   
-  mlog("Newly formed PopIII gal   :: %d", MLOG_MESG, gal_counter_Pop3);
-  mlog("Newly formed enriched gal   :: %d", MLOG_MESG, gal_counter_enriched);
-  mlog("Newly formed PopII gal    :: %d", MLOG_MESG, gal_counter_Pop2);
+  mlog("Newly formed PopIII gal   :: %d", MLOG_MESG, &gal_counter_Pop3);
+  mlog("Newly formed enriched gal   :: %d", MLOG_MESG, &gal_counter_enriched);
+  mlog("Newly formed PopII gal    :: %d", MLOG_MESG, &gal_counter_Pop2);
 
   mlog("...done", MLOG_CLOSE | MLOG_TIMERSTOP);
 

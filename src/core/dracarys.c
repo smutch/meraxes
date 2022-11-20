@@ -79,6 +79,9 @@ void dracarys()
     int merger_counter = 0;
     int new_gal_counter = 0;
     int ghost_counter = 0;
+    int gal_counter_Pop3 = 0; // Newly formed Pop3 Gal
+    int gal_counter_Pop2 = 0; // Newly formed Pop2 Gal
+    int gal_counter_enriched = 0; //Enriched but they could be still Pop3
 
     mlog("", MLOG_MESG);
     mlog("===============================================================", MLOG_MESG);
@@ -313,7 +316,7 @@ void dracarys()
 
     // Do the physics
     if (NGal > 0)
-      nout_gals = evolve_galaxies(fof_group, snapshot, NGal, trees_info.n_fof_groups);
+      nout_gals = evolve_galaxies(fof_group, snapshot, NGal, trees_info.n_fof_groups, &gal_counter_Pop3, &gal_counter_Pop2, &gal_counter_enriched);
     else
       nout_gals = 0;
 
