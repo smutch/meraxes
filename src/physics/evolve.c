@@ -57,15 +57,15 @@ int evolve_galaxies(fof_group_t* fof_group, int snapshot, int NGal, int NFof, in
                 gal->MetalsColdGas = gal->ColdGas * gal->Metallicity_IGM;
                 gal->MetalsEjectedGas = gal->EjectedGas * gal->Metallicity_IGM;
                 
-                gal_counter_enriched* += 1;
+                *gal_counter_enriched = *gal_counter_enriched + 1;
                 if ((gal->Metallicity_IGM / 0.01) > 1e-4) {
-                 gal_counter_Pop2* += 1;
+                 *gal_counter_Pop2 = *gal_counter_Pop2 + 1;
                  gal->Galaxy_Population = 2;
                  }
               }
               
               else 
-                gal_counter_Pop3* += 1;
+                *gal_counter_Pop3 = *gal_counter_Pop3 + 1;
             }
           }
           
