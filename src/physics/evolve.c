@@ -15,9 +15,6 @@ int evolve_galaxies(fof_group_t* fof_group, int snapshot, int NGal, int NFof, in
   galaxy_t* gal = NULL;
   halo_t* halo = NULL;
   int gal_counter = 0;
-  //int gal_counter_Pop3 = 0; // Newly formed Pop3 Gal
-  //int gal_counter_Pop2 = 0; // Newly formed Pop2 Gal
-  //int gal_counter_enriched = 0; //Enriched but they could be still Pop3
   int dead_gals = 0;
   double infalling_gas = 0;
   double cooling_mass = 0;

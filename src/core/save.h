@@ -57,6 +57,7 @@ typedef struct galaxy_output_t
   
   float RmetalBubble; //New for MetalEvo
   int Galaxy_Population;
+  double Metal_Probability;  //Test
 
   // misc
   float Rcool;
