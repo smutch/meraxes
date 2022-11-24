@@ -103,6 +103,7 @@ void insitu_star_formation(galaxy_t* gal, int snapshot)
     double SfCriticalSDNorm = run_globals.params.physics.SfCriticalSDNorm;
     int SfDiskVelOpt = run_globals.params.physics.SfDiskVelOpt;
     int SfPrescription = run_globals.params.physics.SfPrescription;
+    bool Flag_Metals = (bool)(run_globals.params.Flag_IncludeMetalEvo);
 
     // What velocity are we going to use as a proxy for the disk rotation velocity?
     switch (SfDiskVelOpt) {
@@ -154,6 +155,12 @@ void insitu_star_formation(galaxy_t* gal, int snapshot)
 
     if (m_stars > gal->ColdGas)
       m_stars = gal->ColdGas;
+      
+    // The same halo cannot form Pop.III twice. In principle this should be put in SN feedback but here should work.
+    if (Flag_Metals == true) {
+      if (m_stars > 1e-10) 
+        gal->Galaxy_Population = 2;
+    }
 
     // calculate the total supernova feedback which would occur if this star
     // formation happened continuously and evenly throughout the snapshot
