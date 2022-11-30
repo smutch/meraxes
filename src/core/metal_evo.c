@@ -619,8 +619,8 @@ void assign_probability_to_galaxies(int ngals_in_metal_slabs, int snapshot, int 
   double box_size = run_globals.params.BoxSize;
   double pixel_length_metals = box_size / (double)MetalGridDim; // (Mpc/h)
   double cell_gas;
-  float* Probability_metals = run_globals.metal_grids.Probability_metals;
-  float* mass_metals = run_globals.metal_grids.mass_metals;
+  double* Probability_metals = run_globals.metal_grids.Probability_metals;
+  double* mass_metals = run_globals.metal_grids.mass_metals;
   int total_assigned = 0;
   
   if (flag_property == 0) //Probability
