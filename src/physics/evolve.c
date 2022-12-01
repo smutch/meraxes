@@ -43,9 +43,9 @@ int evolve_galaxies(fof_group_t* fof_group, int snapshot, int NGal, int NFof, in
           if (Flag_Metals == true) { // Assign to newly formed galaxies metallicity of their cell according to a certain probability
           
             if (gal->output_index == -1) { //Not sure if Ghostflag condition is needed
-              double x;
+              double x=0; //Try to initialize the variable every time
               srand(time(NULL));
-              x = (double) rand() / RAND_MAX;
+              x = (double)rand() / RAND_MAX;
               mlog("Random Number = %f", MLOG_MESG, x);
               
               if (x <= gal->Metal_Probability) {
