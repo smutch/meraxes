@@ -1121,7 +1121,7 @@ void write_snapshot(int n_write, int i_out, int* last_n_write)
     // Don't output galaxies which merged at this timestep
     if (pass_write_check(gal, false)) {
       prepare_galaxy_for_output(*gal, &(output_buffer[buffer_count]), i_out);
-      mlog("Value Assigned :: %f", MLOG_MESG, galout->Metal_Probability); //Test
+      mlog("Value Assigned :: %f", MLOG_MESG, gal->Metal_Probability); //Test
       buffer_count++;
     }
     if (buffer_count == (int)chunk_size) {
