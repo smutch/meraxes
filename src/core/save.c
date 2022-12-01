@@ -92,7 +92,7 @@ void prepare_galaxy_for_output(galaxy_t gal, galaxy_output_t* galout, int i_snap
   galout->RmetalBubble = (float)(gal.RmetalBubble); //new for MetalEvo
   galout->Galaxy_Population = (int)(gal.Galaxy_Population);
   galout->Metal_Probability = (float)(gal.Metal_Probability); //Test
-  mlog("Value Assigned :: %f", MLOG_MESG, gal->Metal_Probability);
+  mlog("Value Assigned :: %f", MLOG_MESG, galout->Metal_Probability);
 
   for (int ii = 0; ii < N_HISTORY_SNAPS; ii++)
     galout->NewStars[ii] = (float)(gal.NewStars[ii]);
