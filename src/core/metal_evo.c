@@ -753,11 +753,12 @@ void assign_probability_to_galaxies(int ngals_in_metal_slabs, int snapshot, int 
           
           if (flag_property == 0){
             gal->Metal_Probability = (double)buffer_metals[grid_index(ix, iy, iz, MetalGridDim, INDEX_REAL)];
+            mlog("Value Assigned :: %f", MLOG_MESG, gal->Metal_Probability);
             
-            if (gal->Metal_Probability < 0){ 
-              mlog_error("Wrong value of Probability assigned (%d)", gal->Metal_Probability);
-              ABORT(EXIT_FAILURE);
-            }
+            //if (gal->Metal_Probability < 0){ 
+            //  mlog_error("Wrong value of Probability assigned (%d)", gal->Metal_Probability);
+            //  ABORT(EXIT_FAILURE);
+            //}
           }
             
           if (flag_property == 1){
