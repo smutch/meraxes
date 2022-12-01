@@ -92,6 +92,7 @@ void prepare_galaxy_for_output(galaxy_t gal, galaxy_output_t* galout, int i_snap
   galout->RmetalBubble = (float)(gal.RmetalBubble); //new for MetalEvo
   galout->Galaxy_Population = (int)(gal.Galaxy_Population);
   galout->Metal_Probability = (float)(gal.Metal_Probability); //Test
+  mlog("Value Assigned :: %f", MLOG_MESG, gal->Metal_Probability);
 
   for (int ii = 0; ii < N_HISTORY_SNAPS; ii++)
     galout->NewStars[ii] = (float)(gal.NewStars[ii]);
@@ -386,7 +387,7 @@ void calc_hdf5_props()
     h5props->field_types[i++] = H5T_NATIVE_FLOAT;
     
     h5props->dst_offsets[i] = HOFFSET(galaxy_output_t, Metal_Probability);
-    h5props->dst_field_sizes[i] = sizeof(galout.RmetalBubble);
+    h5props->dst_field_sizes[i] = sizeof(galout.Metal_Probability;
     h5props->field_names[i] = "MetalProbability";
     h5props->field_units[i] = "None";
     h5props->field_h_conv[i] = "None";
