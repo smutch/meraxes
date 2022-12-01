@@ -619,8 +619,8 @@ void assign_probability_to_galaxies(int ngals_in_metal_slabs, int snapshot, int 
   double box_size = run_globals.params.BoxSize;
   double pixel_length_metals = box_size / (double)MetalGridDim; // (Mpc/h)
   double cell_gas;
-  double* Probability_metals = run_globals.metal_grids.Probability_metals;
-  double* mass_metals = run_globals.metal_grids.mass_metals;
+  float* Probability_metals = run_globals.metal_grids.Probability_metals;
+  float* mass_metals = run_globals.metal_grids.mass_metals;
   int total_assigned = 0;
   
   if (flag_property == 0) //Probability
@@ -751,13 +751,14 @@ void assign_probability_to_galaxies(int ngals_in_metal_slabs, int snapshot, int 
           assert(ix >= 0);
           assert(ix < slab_nix_metals[recv_from_rank]);
           
-          if (flag_property == 0)
+          if (flag_property == 0){
             gal->Metal_Probability = (double)buffer_metals[grid_index(ix, iy, iz, MetalGridDim, INDEX_REAL)];
             
-            if (gal->Metal_Probability < 0){ 
-              mlog_error("Wrong value of Probability assigned (%d)", gal->Metal_Probability);
+            if (buffer_metals < 0){ 
+              mlog_error("Wrong value of Probability assigned (%d)", buffer_metals);
               ABORT(EXIT_FAILURE);
             }
+          }
             
           if (flag_property == 1){
             cell_gas = calculate_gasMass(pixel_length_metals, snapshot);
