@@ -36,6 +36,7 @@ void update_reservoirs_from_sf(galaxy_t* gal, double new_stars, int snapshot, SF
   if (new_stars > 0) {
     double metallicity;
     bool Flag_IRA = (bool)(run_globals.params.physics.Flag_IRA);
+    bool Flag_Metals = (bool)(run_globals.params.Flag_IncludeMetalEvo);
 
     // instantaneous recycling approximation of stellar mass
     metallicity = calc_metallicity(gal->ColdGas, gal->MetalsColdGas);
@@ -69,7 +70,7 @@ void update_reservoirs_from_sf(galaxy_t* gal, double new_stars, int snapshot, SF
       
       // The same halo cannot form Pop.III twice, so I read if it experienced previously a SF episode.
       if (Flag_Metals == true) {
-        if ((gal->NewStars[1] > 1e-10) and (gal->Galaxy_Population = 3))
+        if ((gal->NewStars[1] > 1e-10) && (gal->Galaxy_Population = 3))
           gal->Galaxy_Population = 2;
       }
     }
@@ -110,7 +111,6 @@ void insitu_star_formation(galaxy_t* gal, int snapshot)
     double SfCriticalSDNorm = run_globals.params.physics.SfCriticalSDNorm;
     int SfDiskVelOpt = run_globals.params.physics.SfDiskVelOpt;
     int SfPrescription = run_globals.params.physics.SfPrescription;
-    bool Flag_Metals = (bool)(run_globals.params.Flag_IncludeMetalEvo);
 
     // What velocity are we going to use as a proxy for the disk rotation velocity?
     switch (SfDiskVelOpt) {
