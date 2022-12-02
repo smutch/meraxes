@@ -12,6 +12,7 @@ static void backfill_ghost_star_formation(galaxy_t* gal, double m_stars, double 
 {
   double* LTTime = run_globals.LTTime;
   double burst_time = LTTime[gal->LastIdentSnap] - gal->dt * 0.5;
+  bool Flag_Metals = (bool)(run_globals.params.Flag_IncludeMetalEvo);
 
   for (int snap = snapshot - 1, ii = 1; snap >= gal->LastIdentSnap; --snap, ++ii) {
 
@@ -65,6 +66,12 @@ void update_reservoirs_from_sf(galaxy_t* gal, double new_stars, int snapshot, SF
       gal->NewMetals[0] += new_stars * metallicity;
 
       update_galaxy_fesc_vals(gal, new_stars, snapshot);
+      
+      // The same halo cannot form Pop.III twice, so I read if it experienced previously a SF episode.
+      if (Flag_Metals == true) {
+        if ((gal->NewStars[1] > 1e-10) and (gal->Galaxy_Population = 3))
+          gal->Galaxy_Population = 2;
+      }
     }
 
     // Check the validity of the modified reservoir values.
@@ -155,12 +162,6 @@ void insitu_star_formation(galaxy_t* gal, int snapshot)
 
     if (m_stars > gal->ColdGas)
       m_stars = gal->ColdGas;
-      
-    // The same halo cannot form Pop.III twice. In principle this should be put in SN feedback but here should work.
-    if (Flag_Metals == true) {
-      if (m_stars > 1e-10) 
-        gal->Galaxy_Population = 2;
-    }
 
     // calculate the total supernova feedback which would occur if this star
     // formation happened continuously and evenly throughout the snapshot
