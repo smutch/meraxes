@@ -55,13 +55,17 @@ int evolve_galaxies(fof_group_t* fof_group, int snapshot, int NGal, int NFof, in
                 
                 *gal_counter_enriched = *gal_counter_enriched + 1;
                 if ((gal->Metallicity_IGM / 0.01) > 1e-4) {
-                 *gal_counter_Pop2 = *gal_counter_Pop2 + 1;
-                 gal->Galaxy_Population = 2;
-                 }
+                  *gal_counter_Pop2 = *gal_counter_Pop2 + 1;
+                  gal->Galaxy_Population = 2;
+                  }
+                else
+                  gal->Galaxy_Population = 3; // Enriched but not enough
               }
               
-              else 
+              else {
+                gal->Galaxy_Population = 3;
                 *gal_counter_Pop3 = *gal_counter_Pop3 + 1;
+              }
             }
           }
           
