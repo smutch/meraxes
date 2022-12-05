@@ -185,9 +185,12 @@ void merge_with_target(galaxy_t* gal, int* dead_gals, int snapshot)
   parent->mwmsa_denom += gal->mwmsa_denom;
   parent->MergerBurstMass += gal->MergerBurstMass;
   
-  if (gal->RmetalBubble > parent->RmetalBubble) {
+  // If I have a Merger between Pop III and Pop II the result is a Pop. II. Actually I should compute metallicity
   
-    //mlog("Mergers within metal bubbles...", MLOG_OPEN);
+  if (gal->Galaxy_Population == 2) 
+    parent->Galaxy_Population = 2;
+  
+  if (gal->RmetalBubble > parent->RmetalBubble) {
     
     parent->RmetalBubble = gal->RmetalBubble; // This is to account the evolution of metal bubbles after a merger event
     parent->count_SF += 1; // Put the SF episode of the merged galaxy into the target one so you can continue to keep track of the evolution of the Bubble
