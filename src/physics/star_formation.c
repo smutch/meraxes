@@ -70,7 +70,7 @@ void update_reservoirs_from_sf(galaxy_t* gal, double new_stars, int snapshot, SF
       
       // The same halo cannot form Pop.III twice, so I read if it experienced previously a SF episode.
       if (Flag_Metals == true) {
-        if ((gal->NewStars[1] > 1e-10) && (gal->Galaxy_Population = 3))
+        if ((gal->NewStars[1] > 1e-10) && (gal->Galaxy_Population == 3))
           gal->Galaxy_Population = 2;
       }
     }
