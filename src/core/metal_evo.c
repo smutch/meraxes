@@ -261,7 +261,6 @@ void save_metal_input_grids(int snapshot)
   metal_grids_t* grids = &(run_globals.metal_grids);
   int MetalGridDim = run_globals.params.MetalGridDim;
   int local_nix_metals = (int)(run_globals.metal_grids.slab_nix_metals[run_globals.mpi_rank]);
-  double UnitTime_in_s = run_globals.units.UnitTime_in_s;
   double UnitMass_in_g = run_globals.units.UnitMass_in_g;
 
   mlog("Saving tocf input metal grids...", MLOG_OPEN);
