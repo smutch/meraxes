@@ -306,10 +306,6 @@ typedef struct metal_grids_t //New stuff for MetalEvo, probably you will need to
 
   float* buffer_metals;
   
-  float* stars_metals;
-  float* sfr_metals;
-  
-  
   struct gal_to_slab_t* galaxy_to_slab_map_metals;
 
   double volume_ave_ZIGM; //Is it necessary? Maybe this one could be used as a log message
@@ -318,9 +314,9 @@ typedef struct metal_grids_t //New stuff for MetalEvo, probably you will need to
   int buffer_size_metals; 
   
   int*   N_bubbles;
+  int*   N_gals;
   float* mass_metals;
   float* mass_gas;
-  float* mass_gasgal;
   float* Zigm_box;
   float* Probability_metals;
    
