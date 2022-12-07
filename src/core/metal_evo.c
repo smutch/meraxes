@@ -566,6 +566,9 @@ void assign_probability_to_galaxies(int ngals_in_metal_slabs, int snapshot, int 
     
   if (flag_property == 1)
     mlog("Assigning IGM for metals...", MLOG_OPEN);
+    
+  if (flag_property == 2)
+    mlog("Assigning Boost for metals...", MLOG_OPEN);
   
   int slab_map_offsets[run_globals.mpi_size];
   for (int ii = 0, i_gal = 0; ii < run_globals.mpi_size; ii++) {
@@ -742,7 +745,7 @@ void assign_probability_to_galaxies(int ngals_in_metal_slabs, int snapshot, int 
           }
           
           if (flag_property == 2){
-            gal->B_factor = (int)buffer_metals[grid_index(ix, iy, iz, MetalGridDim, INDEX_REAL)];
+            gal->B_factor = (double)buffer_metals[grid_index(ix, iy, iz, MetalGridDim, INDEX_REAL)];
             mlog("N = %f", MLOG_MESG, buffer_metals[grid_index(ix, iy, iz, MetalGridDim, INDEX_REAL)]);
           }
           // increment counters
