@@ -49,8 +49,10 @@ int evolve_galaxies(fof_group_t* fof_group, int snapshot, int NGal, int NFof, in
               double Boost;
               //srand(time(NULL));
               x = (double)rand() / RAND_MAX;
-              Boost = gal->B_factor / ((double)NGal / pow((double)MetalGridDim, 3));
-              mlog("Boost = %f", MLOG_MESG, gal->B_factor);
+              Boost = (double)gal->B_factor / ((double)NGal / pow((double)MetalGridDim, 3));
+              mlog("N = %d", MLOG_MESG, NGal);
+              if (Boost > 0)
+                mlog("Boost = %f", MLOG_MESG, gal->Boost);
               
               if (x <= gal->Metal_Probability * Boost) { //Adding a Boost and see results
                 gal->MetalsHotGas = gal->HotGas * gal->Metallicity_IGM;
