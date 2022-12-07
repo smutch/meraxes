@@ -492,6 +492,7 @@ typedef struct galaxy_t
   double Metal_Probability; // Probability to be polluted by other metal bubbles
   double Metallicity_IGM; //
   int Galaxy_Population; // 3 or 2
+  int B_factor; //Boost Factor for probability accounting for clustering (computed in a very bad way so far)
   
   double Prefactor[70]; //here you store the prefactors of the metal bubbles
   double Times[70]; // Time at which the SN explode!
