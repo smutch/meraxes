@@ -700,6 +700,7 @@ void assign_probability_to_galaxies(int ngals_in_metal_slabs, int snapshot, int 
                 if (send_flag) {
                   int n_cells = (int)(slab_nix_metals[run_globals.mpi_rank] * MetalGridDim * MetalGridDim);
                   MPI_Send(N_gals, n_cells, MPI_FLOAT, send_to_rank, 793710, run_globals.mpi_comm);
+                  mlog("N = %f", MLOG_MESG, N_gals);
                 }
                 if (recv_flag) {
                   int n_cells = (int)(slab_nix_metals[recv_from_rank] * MetalGridDim * MetalGridDim);
