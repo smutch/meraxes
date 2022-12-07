@@ -674,6 +674,50 @@ void assign_probability_to_galaxies(int ngals_in_metal_slabs, int snapshot, int 
               memcpy(buffer_metals, mass_metals, sizeof(float) * n_cells);
             }
           }
+          
+      if (flag_property == 2) {
+      
+        if (i_skip > 0) {
+            MPI_Sendrecv(&recv_flag,
+                         sizeof(bool),
+                         MPI_BYTE,
+                         recv_from_rank,
+                         6393762,
+                         &send_flag,
+                         sizeof(bool),
+                         MPI_BYTE,
+                         send_to_rank,
+                         6393762,
+                         run_globals.mpi_comm,
+                         MPI_STATUS_IGNORE);
+
+            // need to ensure sends and receives do not clash!
+              if (send_to_rank > run_globals.mpi_rank) {
+                if (send_flag) {
+                  int n_cells = (int)(slab_nix_metals[run_globals.mpi_rank] * MetalGridDim * MetalGridDim);
+                  MPI_Send(N_gals, n_cells, MPI_FLOAT, send_to_rank, 793710, run_globals.mpi_comm);
+                }
+                if (recv_flag) {
+                  int n_cells = (int)(slab_nix_metals[recv_from_rank] * MetalGridDim * MetalGridDim);
+                  MPI_Recv(buffer_metals, n_cells, MPI_FLOAT, recv_from_rank, 793710, run_globals.mpi_comm, MPI_STATUS_IGNORE);
+                }
+              } 
+              else {
+                if (recv_flag) {
+                  int n_cells = (int)(slab_nix_metals[recv_from_rank] * MetalGridDim * MetalGridDim);
+                  MPI_Recv(buffer_metals, n_cells, MPI_FLOAT, recv_from_rank, 793710, run_globals.mpi_comm, MPI_STATUS_IGNORE);
+                } 
+                if (send_flag) {
+                  int n_cells = (int)(slab_nix_metals[run_globals.mpi_rank] * MetalGridDim * MetalGridDim);
+                  MPI_Send(N_gals, n_cells, MPI_FLOAT, send_to_rank, 793710, run_globals.mpi_comm);
+                }
+              }
+            }
+            else {
+              int n_cells = (int)(slab_nix_metals[recv_from_rank] * MetalGridDim * MetalGridDim);
+              memcpy(buffer_metals, N_gals, sizeof(float) * n_cells);
+            }
+          }
       
       if (recv_flag) {
         int i_gal = slab_map_offsets[recv_from_rank];
@@ -690,19 +734,15 @@ void assign_probability_to_galaxies(int ngals_in_metal_slabs, int snapshot, int 
           
           if (flag_property == 0)//{
             gal->Metal_Probability = (double)buffer_metals[grid_index(ix, iy, iz, MetalGridDim, INDEX_REAL)];
-            //mlog("Value Assigned :: %f", MLOG_MESG, gal->Metal_Probability);
-            
-            //if (gal->Metal_Probability < 0){ 
-            //  mlog_error("Wrong value of Probability assigned (%d)", gal->Metal_Probability);
-            //  ABORT(EXIT_FAILURE);
-            //}
-          //}
             
           if (flag_property == 1){
             cell_gas = calculate_gasMass(pixel_length_metals, snapshot);
             gal->Metallicity_IGM = calc_metallicity((double)buffer_metals[grid_index(ix, iy, iz, MetalGridDim, INDEX_REAL)], cell_gas);
           }
-        
+          
+          if (flag_property == 2)
+            gal->B_factor = (int)buffer_metals[grid_index(ix, iy, iz, MetalGridDim, INDEX_REAL)];
+          
           // increment counters
           i_gal++;
           total_assigned++;
