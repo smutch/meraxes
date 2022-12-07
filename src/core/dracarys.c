@@ -312,7 +312,6 @@ void dracarys()
       int ngals_in_metal_slabs = map_galaxies_to_slabs_metals(NGal);
       assign_probability_to_galaxies(ngals_in_metal_slabs, snapshot, 0); // You are doing this for all galaxies, it is not necessary!
       assign_probability_to_galaxies(ngals_in_metal_slabs, snapshot, 1); 
-      assign_probability_to_galaxies(ngals_in_metal_slabs, snapshot, 2); // For Boost factor for galaxies
     }
 
     // Do the physics
