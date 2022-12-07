@@ -19,6 +19,7 @@ int evolve_galaxies(fof_group_t* fof_group, int snapshot, int NGal, int NFof, in
   double infalling_gas = 0;
   double cooling_mass = 0;
   int NSteps = run_globals.params.NSteps;
+  int MetalGridDim = run_globals.params.MetalGridDim;
   bool Flag_IRA = (bool)(run_globals.params.physics.Flag_IRA);
   bool Flag_Metals = (bool)(run_globals.params.Flag_IncludeMetalEvo);
 
@@ -47,8 +48,8 @@ int evolve_galaxies(fof_group_t* fof_group, int snapshot, int NGal, int NFof, in
               double Boost;
               //srand(time(NULL));
               x = (double)rand() / RAND_MAX;
-              Boost = gal->B_factor / NGal;
-              //mlog("Random Number = %f", MLOG_MESG, x);
+              Boost = gal->B_factor / (NGal / pow(MetalGridDim, 3));
+              mlog("Boost = %f", MLOG_MESG, Boost);
               
               if (x <= gal->Metal_Probability * Boost) { //Adding a Boost and see results
                 gal->MetalsHotGas = gal->HotGas * gal->Metallicity_IGM;
