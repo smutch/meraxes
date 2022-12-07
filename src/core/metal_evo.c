@@ -741,9 +741,10 @@ void assign_probability_to_galaxies(int ngals_in_metal_slabs, int snapshot, int 
             gal->Metallicity_IGM = calc_metallicity((double)buffer_metals[grid_index(ix, iy, iz, MetalGridDim, INDEX_REAL)], cell_gas);
           }
           
-          if (flag_property == 2)
+          if (flag_property == 2){
             gal->B_factor = (double)buffer_metals[grid_index(ix, iy, iz, MetalGridDim, INDEX_REAL)];
-          
+            mlog("N = %f", MLOG_MESG, gal->B_factor)
+          }
           // increment counters
           i_gal++;
           total_assigned++;

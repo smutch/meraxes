@@ -50,7 +50,7 @@ int evolve_galaxies(fof_group_t* fof_group, int snapshot, int NGal, int NFof, in
               //srand(time(NULL));
               x = (double)rand() / RAND_MAX;
               Boost = (double)gal->B_factor / ((double)NGal / pow((double)MetalGridDim, 3));
-              mlog("N = %d", MLOG_MESG, gal->B_factor);
+              //mlog("N = %d", MLOG_MESG, gal->B_factor);
               if (Boost > 0)
                 mlog("Boost = %f", MLOG_MESG, Boost);
               
