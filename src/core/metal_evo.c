@@ -213,6 +213,7 @@ void construct_metal_grids(int snapshot, int local_ngals)
                   if (val < 0)
                     val = 0;
                   count_gals[grid_index(ix, iy, iz, MetalGridDim, INDEX_REAL)] = (int)val; 
+                  mlog("NN = %d", MLOG_MESG, count_gals[grid_index(ix, iy, iz, MetalGridDim, INDEX_REAL)]);
                 }
             break;
             
@@ -747,7 +748,7 @@ void assign_probability_to_galaxies(int ngals_in_metal_slabs, int snapshot, int 
           
           if (flag_property == 2){
             gal->B_factor = (double)buffer_metals[grid_index(ix, iy, iz, MetalGridDim, INDEX_REAL)];
-            mlog("N = %f", MLOG_MESG, buffer_metals[grid_index(ix, iy, iz, MetalGridDim, INDEX_REAL)]);
+            //mlog("N = %f", MLOG_MESG, buffer_metals[grid_index(ix, iy, iz, MetalGridDim, INDEX_REAL)]);
           }
           // increment counters
           i_gal++;
