@@ -742,7 +742,7 @@ void assign_probability_to_galaxies(int ngals_in_metal_slabs, int snapshot, int 
           }
           
           if (flag_property == 2)
-            gal->B_factor = (int)buffer_metals[grid_index(ix, iy, iz, MetalGridDim, INDEX_REAL)];
+            gal->B_factor = (double)buffer_metals[grid_index(ix, iy, iz, MetalGridDim, INDEX_REAL)];
           
           // increment counters
           i_gal++;
