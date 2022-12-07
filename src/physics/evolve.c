@@ -44,11 +44,13 @@ int evolve_galaxies(fof_group_t* fof_group, int snapshot, int NGal, int NFof, in
           
             if (gal->output_index == -1) { //Not sure if Ghostflag condition is needed
               double x;
+              double Boost;
               //srand(time(NULL));
               x = (double)rand() / RAND_MAX;
+              Boost = gal->B_factor / Ngal;
               //mlog("Random Number = %f", MLOG_MESG, x);
               
-              if (x <= gal->Metal_Probability) {
+              if (x <= gal->Metal_Probability * Boost) { //Adding a Boost and see results
                 gal->MetalsHotGas = gal->HotGas * gal->Metallicity_IGM;
                 gal->MetalsColdGas = gal->ColdGas * gal->Metallicity_IGM;
                 gal->MetalsEjectedGas = gal->EjectedGas * gal->Metallicity_IGM;
