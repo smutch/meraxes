@@ -8,6 +8,7 @@
 #include "reincorporation.h"
 #include "star_formation.h"
 #include "supernova_feedback.h"
+#include <math.h>
 
 //! Evolve existing galaxies forward in time
 int evolve_galaxies(fof_group_t* fof_group, int snapshot, int NGal, int NFof, int* gal_counter_Pop3, int* gal_counter_Pop2, int* gal_counter_enriched)
