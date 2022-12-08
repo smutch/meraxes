@@ -318,6 +318,8 @@ typedef struct metal_grids_t //New stuff for MetalEvo, probably you will need to
   float* mass_gas;
   float* Zigm_box;
   float* Probability_metals;
+  float* R_ave; // Average radius in the bubble
+  float* R_max; // Max radius in the bubble
    
   
 } metal_grids_t; 
@@ -490,6 +492,8 @@ typedef struct galaxy_t
   double RmetalBubble; //New for MetalEvo
   double Metal_Probability; // Probability to be polluted by other metal bubbles
   double Metallicity_IGM; //
+  double MaxBubble; // Need this for Boost probability
+  double AveBubble; // Same (you will likely use only one of the two). You could actually save only the boost factor
   int Galaxy_Population; // 3 or 2
   
   double Prefactor[70]; //here you store the prefactors of the metal bubbles

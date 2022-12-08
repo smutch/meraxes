@@ -628,7 +628,7 @@ void create_master_file()
     }
   }
   
-  if (run_globals.params.Flag_IncludeMetalEvo) {
+  if (run_globals.params.Flag_IncludeMetalEvo) { // Here there might be some issue with little h!
     const char* group_name = { "Units/MetalGrids" };
     group_id = H5Gcreate(file_id, group_name, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
     H5LTset_attribute_string(file_id, group_name, "mass_metals", "solMass");
@@ -636,6 +636,8 @@ void create_master_file()
     H5LTset_attribute_string(file_id, group_name, "Zigm_box", "Zsol");
     H5LTset_attribute_string(file_id, group_name, "Probability_metals", "none");
     H5LTset_attribute_string(file_id, group_name, "N_bubbles", "none");
+    H5LTset_attribute_string(file_id, group_name, "R_ave", "cMpc");
+    H5LTset_attribute_string(file_id, group_name, "R_max", "cMpc");
     
     H5Gclose(group_id);
   }
