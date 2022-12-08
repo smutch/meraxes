@@ -233,7 +233,7 @@ void construct_metal_grids(int snapshot, int local_ngals)
               for (int iy = 0; iy < MetalGridDim; iy++)
                 for (int iz = 0; iz < MetalGridDim; iz++) {
                   double val = (double)buffer_metals[grid_index(ix, iy, iz, MetalGridDim, INDEX_REAL)];
-                  if (val > Rmax_grid_metals[grid_index(ix, iy, iz, MetalGridDim, INDEX_REAL)])
+                  if (val >= Rmax_grid_metals[grid_index(ix, iy, iz, MetalGridDim, INDEX_REAL)])
                     Rmax_grid_metals[grid_index(ix, iy, iz, MetalGridDim, INDEX_REAL)] = (float)val; 
                 }
             break;  
@@ -827,12 +827,14 @@ void assign_probability_to_galaxies(int ngals_in_metal_slabs, int snapshot, int 
           
           if (flag_property == 2){// Probably you could save directly the boost factor if you compute it here
             gal->AveBubble = (double)buffer_metals[grid_index(ix, iy, iz, MetalGridDim, INDEX_REAL)];
-            //mlog("Rave %f", MLOG_MESG, gal->AveBubble);
+            if (gal->AveBubble > 0.)
+              mlog("Rave %f", MLOG_MESG, gal->AveBubble);
           }
           
           if (flag_property == 3){
             gal->MaxBubble = (double)buffer_metals[grid_index(ix, iy, iz, MetalGridDim, INDEX_REAL)];
-            //mlog("Rmax %f", MLOG_MESG, gal->MaxBubble);
+            if (gal->MaxBubble > 0.)
+              mlog("Rmax %f", MLOG_MESG, gal->MaxBubble);
           }
           // increment counters
           i_gal++;
