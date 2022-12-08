@@ -223,8 +223,8 @@ void construct_metal_grids(int snapshot, int local_ngals)
                   if (val < 0)
                     val = 0;
                   if (val > 0)
-                    int B_count += 1; //Should you initialize this?
-                  Rave_grid_metals[grid_index(ix, iy, iz, MetalGridDim, INDEX_REAL)] = (int)val / B_count; 
+                    //B_count += 1;
+                  Rave_grid_metals[grid_index(ix, iy, iz, MetalGridDim, INDEX_REAL)] = (float)val / (float)count_bubble_metals[grid_index(ix, iy, iz, MetalGridDim, INDEX_REAL)]; 
                 }
             break;
             
@@ -234,7 +234,7 @@ void construct_metal_grids(int snapshot, int local_ngals)
                 for (int iz = 0; iz < MetalGridDim; iz++) {
                   double val = (double)buffer_metals[grid_index(ix, iy, iz, MetalGridDim, INDEX_REAL)];
                   if (val > Rmax_grid_metals[grid_index(ix, iy, iz, MetalGridDim, INDEX_REAL)])
-                    Rmax_grid_metals[grid_index(ix, iy, iz, MetalGridDim, INDEX_REAL)] = (int)val; 
+                    Rmax_grid_metals[grid_index(ix, iy, iz, MetalGridDim, INDEX_REAL)] = (float)val; 
                 }
             break;  
             
