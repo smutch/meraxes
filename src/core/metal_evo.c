@@ -225,9 +225,9 @@ void construct_metal_grids(int snapshot, int local_ngals)
                     val = 0;
                   if (val > 0){
                     //B_count += 1;
-                    Rave_grid_metals[grid_index(ix, iy, iz, MetalGridDim, INDEX_REAL)] = (float)val / (float)count_bubble_metals[grid_index(ix, iy, iz, MetalGridDim, INDEX_REAL)];
-                    if (count_bubble_metals[grid_index(ix, iy, iz, MetalGridDim, INDEX_REAL)] > 1)
-                      mlog("NBubbles %f", MLOG_MESG, count_bubble_metals[grid_index(ix, iy, iz, MetalGridDim, INDEX_REAL)]);
+                    Rave_grid_metals[grid_index(ix, iy, iz, MetalGridDim, INDEX_REAL)] = (float)val / count_bubble_metals[grid_index(ix, iy, iz, MetalGridDim, INDEX_REAL)];
+                    if (count_bubble_metals[grid_index(ix, iy, iz, MetalGridDim, INDEX_REAL)] >= 1)
+                      mlog("NBubbles %d", MLOG_MESG, count_bubble_metals[grid_index(ix, iy, iz, MetalGridDim, INDEX_REAL)]);
                   }
                 }
             break;
