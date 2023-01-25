@@ -16,6 +16,16 @@ extern "C"
   double calculate_Vvir(double Mvir, double Rvir);
   double calculate_spin_param(halo_t* halo);
   double calculate_gasMass(int snapshot, double length);
+  double calculate_zeq(double OmegaM);
+  double Transfer_function(double k);
+  double Growth_Factor(double redshift);
+  double integrand_GF(double redshift);
+  double PowerSpectrum(double redshift, double scale);
+  double integrand_S2(double redshift, double HaloMass, double k);
+  double Sigma(double redshift, double HaloMass);
+  double nuc(double redshift, double HaloMass);
+  double R0(double redshift, double HaloMass);
+  
 
 #ifdef __cplusplus
 }
