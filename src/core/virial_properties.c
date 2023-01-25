@@ -164,8 +164,8 @@ double Transfer_function(double k) //EH99
   double fcb = fc + fb;
   double alpha = fc / fcb; // Eq. 15
   
-  double s_hor = 44.5 * log(9.83 / (OmegaM * pow(h, 2))) / pow(1.0 + 10.0 * pow((OmegaB * pow(h, 2)), 0.75), 0.5); // Eq. 4
-  double Gamma = OmegaM * pow(h, 2) * (pow(alpha, 0.5) + (1 - pow(alpha, 0.5)) / (1 + pow(0.43 * k * s, 4))); //Eq. 16
+  double s_hor = 44.5 * log(9.83 / (OmegaM * pow(h, 2))) / pow(1.0 + 10.0 * pow((OmegaB * pow(little_h, 2)), 0.75), 0.5); // Eq. 4
+  //double Gamma = OmegaM * pow(little_h, 2) * (pow(alpha, 0.5) + (1 - pow(alpha, 0.5)) / (1 + pow(0.43 * k * s_hor, 4))); //Eq. 16
   
   double q = k * pow(Theta, 2);
   double Beta = 1. / (1 - 0.949 * fb); //Eq. 21
@@ -179,11 +179,11 @@ double integrand_GF(double redshift) //EH99
 {
   #define WORKSIZE 1000
   //double zplus1 = run_globals.ZZ[snapshot] + 1;
-  double zplus1 = redshift + 1
+  double zplus1 = redshift + 1;
   double OmegaM = run_globals.params.OmegaM;
   double OmegaLambda = run_globals.params.OmegaLambda;
   
-  return zplus1 / pow(OmegaM * pow(zplus1, 3) + (1 - OmegaM - OmegaLambda) * pow(zplus1, 2) + OmegaL, 1.5);
+  return zplus1 / pow(OmegaM * pow(zplus1, 3) + (1 - OmegaM - OmegaLambda) * pow(zplus1, 2) + OmegaLambda, 1.5);
 }
 
 double Growth_Factor(double redshift) //It's probably missing the normalization (CHECK!)
@@ -191,7 +191,7 @@ double Growth_Factor(double redshift) //It's probably missing the normalization 
   double OmegaM = run_globals.params.OmegaM;
   double OmegaLambda = run_globals.params.OmegaLambda;
   //double zplus1 = run_globals.ZZ[snapshot] + 1;
-  double zplus1 = redshift + 1 
+  double zplus1 = redshift + 1; 
   
   double Pref = 2.5 * OmegaM * (1 + zequiv) * pow(OmegaM * pow(zplus1, 3) + (1 - OmegaM - OmegaLambda) * pow(zplus1, 2) + OmegaL, 0.5); 
   double zequiv = calculate_zeq(OmegaM);
@@ -227,7 +227,7 @@ double PowerSpectrum(double redshift, double scale)
   double D0 = Growth_Factor(0); 
   double Pk;
   
-  Pk = 2 * PI * PI + deltah * deltah * pow((SPEED_OF_LIGHT * 1e-5 * scale / Hubble), 3 + spectral_index) * TF * TF * Dz * Dz / (D0 * D0 * pow(scale, 3));
+  Pk = 2 * M_PI * M_PI + deltah * deltah * pow((SPEED_OF_LIGHT * 1e-5 * scale / Hubble), 3 + spectral_index) * TF * TF * Dz * Dz / (D0 * D0 * pow(scale, 3));
   
   return Pk;
 }
@@ -237,14 +237,14 @@ double integrand_S2(double redshift, double HaloMass, double k)
   double OmegaM = run_globals.params.OmegaM;
   double OmegaLambda = run_globals.params.OmegaLambda;
   double Hubble = run_globals.Hubble;
-  double Sigma8 = run_globals.Sigma8;
+  double Sigma8 = run_globals.params.Sigma8;
   double rhom0 = OmegaM * 3 * Hubble * Hubble * (OmegaM + OmegaLambda) / (8 * M_PI * run_globals.G);
 
-  double Radius = 3 * pow(HaloMass / (4 * PI * rhom0), 1.0/3.0);
+  double Radius = 3 * pow(HaloMass / (4 * M_PI * rhom0), 1.0/3.0);
   double PS = PowerSpectrum(redshift, k);
   double j1 = (sin(k * Radius) - (k * Radius * cos(k * Radius))) / (k * Radius);
   
-  return k * k * PS / (2 * PI * PI) * pow(3 * j1 / (k * Radius), 2);
+  return k * k * PS / (2 * M_PI * M_PI) * pow(3 * j1 / (k * Radius), 2);
 }
 
 double Sigma(double redshift, double HaloMass) //It's probably missing the normalization (CHECK)
@@ -281,7 +281,7 @@ double nuc(double redshift, double HaloMass)
 double R0(double redshift, double HaloMass) // 7,8 from Barone-Nugent and 12 from Sheth&Tormen
 {
   double little_h = run_globals.params.Hubble_h;
-  double Sigma8 = run_globals.Sigma8;
+  double Sigma8 = run_globals.params.Sigma8;
   
   double DeltaCrit = 1.686 / Growth_Factor(redshift);
   double nuu = nuc(redshift, HaloMass);
@@ -290,8 +290,6 @@ double R0(double redshift, double HaloMass) // 7,8 from Barone-Nugent and 12 fro
   double a = 0.707;
   double p = 0.3;
   
-  return ( 8.0 / little_h * pow(Sigma8 * Sigma8 / 72.0 * (3 - gamma) * (4 - gamma) * (6 - gamma) * pow(2.0, gamma) * pow(1 + (a * nuu - 1) / DeltaCrit + 2 * p / nuu / (1 + a * pow(nuu, p)), 2), (1.0 / gamma)))
-  
-  return
+  return ( 8.0 / little_h * pow(Sigma8 * Sigma8 / 72.0 * (3 - gamma) * (4 - gamma) * (6 - gamma) * pow(2.0, gamma) * pow(1 + (a * nuu - 1) / DeltaCrit + 2 * p / nuu / (1 + a * pow(nuu, p)), 2), (1.0 / gamma)));
   
 }
