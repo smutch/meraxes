@@ -44,7 +44,8 @@ int evolve_galaxies(fof_group_t* fof_group, int snapshot, int NGal, int NFof, in
         while (gal != NULL) {
         
           if (Flag_Metals == true) { // Assign to newly formed galaxies metallicity of their cell according to a certain probability
-            double pro = Growth_Factor(0);
+            double pro = Growth_Factor(0); // Check D0
+            double pro2 = Sigma(0,1.77e13); // Check S8
             mlog("GF at z = 0 is %f", MLOG_MESG, pro);  
           
             if (gal->output_index == -1) { //Not sure if Ghostflag condition is needed
