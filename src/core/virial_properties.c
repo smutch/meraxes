@@ -193,6 +193,7 @@ double Growth_Factor(double redshift) //It's probably missing the normalization 
   //double zplus1 = run_globals.ZZ[snapshot] + 1;
   double zplus1 = redshift + 1; 
   double zequiv = calculate_zeq(OmegaM);
+  double normalization = GF_norm();
   
   double Pref = 2.5 * OmegaM * (1 + zequiv) * pow(OmegaM * pow(zplus1, 3) + (1 - OmegaM - OmegaLambda) * pow(zplus1, 2) + OmegaM, 0.5); 
   
@@ -210,8 +211,34 @@ double Growth_Factor(double redshift) //It's probably missing the normalization 
 
   gsl_integration_workspace_free(workspace);
   
+  return result/normalization;  
+}
+double GF_norm() //For Normalization
+{
+  double OmegaM = run_globals.params.OmegaM;
+  double OmegaLambda = run_globals.params.OmegaLambda;
+  //double zplus1 = run_globals.ZZ[snapshot] + 1;
+  double zequiv = calculate_zeq(OmegaM);
+  
+  double Pref = 2.5 * OmegaM * (1 + zequiv) * pow(OmegaM * pow(zplus1, 3) + (1 - OmegaM - OmegaLambda) * pow(zplus1, 2) + OmegaM, 0.5); 
+  
+  gsl_function F;
+  gsl_integration_workspace* workspace;
+  double result; 
+  double abserr;
+
+  workspace = gsl_integration_workspace_alloc(WORKSIZE);
+  F.function = &integrand_GF;
+  F.params = &(run_globals.params);
+
+  gsl_integration_qag(
+    &F, 0, zequiv, 1.0 / run_globals.Hubble, 1.0e-8, WORKSIZE, GSL_INTEG_GAUSS21, workspace, &result, &abserr);
+
+  gsl_integration_workspace_free(workspace);
+  
   return result;  
 }
+
 
 double PowerSpectrum(double redshift, double scale)
 {
@@ -237,10 +264,9 @@ double integrand_S2(double redshift, double HaloMass, double k)
   double OmegaM = run_globals.params.OmegaM;
   double OmegaLambda = run_globals.params.OmegaLambda;
   double Hubble = run_globals.Hubble;
-  double Sigma8 = run_globals.params.Sigma8;
   double rhom0 = OmegaM * 3 * Hubble * Hubble * (OmegaM + OmegaLambda) / (8 * M_PI * run_globals.G);
 
-  double Radius = 3 * pow(HaloMass / (4 * M_PI * rhom0), 1.0/3.0);
+  double Radius = pow(3 * HaloMass / (4 * M_PI * rhom0), 1.0/3.0);
   double PS = PowerSpectrum(redshift, k);
   double j1 = (sin(k * Radius) - (k * Radius * cos(k * Radius))) / (k * Radius);
   
@@ -250,10 +276,11 @@ double integrand_S2(double redshift, double HaloMass, double k)
 double Sigma(double redshift, double HaloMass) //It's probably missing the normalization (CHECK)
 {
   double Hubble = run_globals.Hubble;
+  double Sigma8 = run_globals.params.Sigma8; //Need this to check normalization
   
   gsl_function F;
   gsl_integration_workspace* workspace;
-  //double Norm;
+  
   double result; 
   double abserr;
 
@@ -266,7 +293,7 @@ double Sigma(double redshift, double HaloMass) //It's probably missing the norma
 
   gsl_integration_workspace_free(workspace);
   
-  return sqrt(result);  
+  return sqrt(result)/Sigma8;  
   
 }
 
