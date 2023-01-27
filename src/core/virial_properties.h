@@ -22,7 +22,7 @@ extern "C"
   double integrand_GF(double redshift);
   double GF_norm();
   double PowerSpectrum(double redshift, double scale);
-  double integrand_S2(double redshift, double HaloMass, double k);
+  //double integrand_S2(double redshift, double HaloMass, double k);
   double Sigma(double redshift, double HaloMass);
   double nuc(double redshift, double HaloMass);
   double R0(double redshift, double HaloMass);

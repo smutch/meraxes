@@ -259,15 +259,23 @@ double PowerSpectrum(double redshift, double scale)
   return Pk;
 }
 
-double integrand_S2(double redshift, double HaloMass, double k)
+typedef struct
 {
+  double redshift, HaloMass;
+} int_S2_params;
+
+//double integrand_S2(double redshift, double HaloMass, double k)
+double integrand_S2(double k, void* params)
+{
+  int_S2_params* p = (int_S2_params*)params;
+  
   double OmegaM = run_globals.params.OmegaM;
   double OmegaLambda = run_globals.params.OmegaLambda;
   double Hubble = run_globals.Hubble;
   double rhom0 = OmegaM * 3 * Hubble * Hubble * (OmegaM + OmegaLambda) / (8 * M_PI * run_globals.G);
 
-  double Radius = pow(3 * HaloMass / (4 * M_PI * rhom0), 1.0/3.0);
-  double PS = PowerSpectrum(redshift, k);
+  double Radius = pow(3 * p->HaloMass / (4 * M_PI * rhom0), 1.0/3.0);
+  double PS = PowerSpectrum(p->redshift, k);
   double j1 = (sin(k * Radius) - (k * Radius * cos(k * Radius))) / (k * Radius);
   
   return k * k * PS / (2 * M_PI * M_PI) * pow(3 * j1 / (k * Radius), 2);
@@ -278,6 +286,13 @@ double Sigma(double redshift, double HaloMass) //It's probably missing the norma
   double Hubble = run_globals.Hubble;
   double Sigma8 = run_globals.params.Sigma8; //Need this to check normalization
   
+  int_S2_params p;
+
+  p.redshift = redshift;
+  p.HaloMass = HaloMass;
+  
+  F.params = &p;
+  
   gsl_function F;
   gsl_integration_workspace* workspace;
   
@@ -286,10 +301,10 @@ double Sigma(double redshift, double HaloMass) //It's probably missing the norma
 
   workspace = gsl_integration_workspace_alloc(WORKSIZE);
   F.function = &integrand_S2;
-  F.params = &(run_globals.params);
+  //F.params = &(run_globals.params);
 
   gsl_integration_qag(
-    &F, 0, 2500, 1.0 / run_globals.Hubble, 1.0e-8, WORKSIZE, GSL_INTEG_GAUSS21, workspace, &result, &abserr); //2500 should be infinite
+    &F, 0, 2500, 1.0 / Hubble, 1.0e-8, WORKSIZE, GSL_INTEG_GAUSS21, workspace, &result, &abserr); //2500 should be infinite
 
   gsl_integration_workspace_free(workspace);
   
