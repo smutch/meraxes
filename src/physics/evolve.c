@@ -45,9 +45,13 @@ int evolve_galaxies(fof_group_t* fof_group, int snapshot, int NGal, int NFof, in
         
           if (Flag_Metals == true) { // Assign to newly formed galaxies metallicity of their cell according to a certain probability
             double pro = Growth_Factor(0); // Check D0
-            double pro2 = Sigma(0,2.7184e14); // Check S8
-            mlog("GF at z = 0 is %f", MLOG_MESG, pro);  
-            mlog("S8 at z = 0 is %f", MLOG_MESG, pro2);
+            double pro2 = Growth_Factor(1); // Check D0
+            double pro3 = Growth_Factor(2); // Check D0
+            //double pro2 = Sigma(0,2.752e14); // Check S8
+            mlog("GF at z = 0 is %f", MLOG_MESG, pro);
+            mlog("GF at z = 1 is %f", MLOG_MESG, pro2);
+            mlog("GF at z = 2 is %f", MLOG_MESG, pro3);  
+            //mlog("S8 at z = 0 is %f", MLOG_MESG, pro2);
             if (gal->output_index == -1) { //Not sure if Ghostflag condition is needed
               double x;
               
