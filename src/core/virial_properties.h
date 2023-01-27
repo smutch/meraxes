@@ -18,7 +18,7 @@ extern "C"
   double calculate_gasMass(int snapshot, double length);
   double calculate_zeq(double OmegaM);
   double Transfer_function(double k);
-  double Growth_Factor(double redshift_local);
+  double Growth_Factor(double redshift);
   double integrand_GF(double redshift);
   double GF_norm();
   double PowerSpectrum(double redshift, double scale);
