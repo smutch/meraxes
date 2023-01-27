@@ -220,7 +220,7 @@ double GF_norm() //For Normalization
   //double zplus1 = run_globals.ZZ[snapshot] + 1;
   double zequiv = calculate_zeq(OmegaM);
   
-  double Pref = 2.5 * OmegaM * (1 + zequiv) * pow(OmegaM * pow(zplus1, 3) + (1 - OmegaM - OmegaLambda) * pow(zplus1, 2) + OmegaM, 0.5); 
+  double Pref = 2.5 * OmegaM * (1 + zequiv) * pow(OmegaM * pow(zplus1, 3) + (1 - OmegaM - OmegaLambda) + OmegaM, 0.5); 
   
   gsl_function F;
   gsl_integration_workspace* workspace;
