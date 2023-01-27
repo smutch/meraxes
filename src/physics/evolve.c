@@ -2,6 +2,7 @@
 #include "blackhole_feedback.h"
 #include "cooling.h"
 #include "core/stellar_feedback.h"
+#include "core/virial_properties.h"
 #include "infall.h"
 #include "meraxes.h"
 #include "mergers.h"
@@ -43,6 +44,8 @@ int evolve_galaxies(fof_group_t* fof_group, int snapshot, int NGal, int NFof, in
         while (gal != NULL) {
         
           if (Flag_Metals == true) { // Assign to newly formed galaxies metallicity of their cell according to a certain probability
+            double pro = Growth_factor(0);
+            mlog("GF at z = 0 is %f", MLOG_MESG, pro);  
           
             if (gal->output_index == -1) { //Not sure if Ghostflag condition is needed
               double x;
