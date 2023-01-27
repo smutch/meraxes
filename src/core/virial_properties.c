@@ -291,8 +291,6 @@ double Sigma(double redshift, double HaloMass) //It's probably missing the norma
   p.redshift = redshift;
   p.HaloMass = HaloMass;
   
-  F.params = &p;
-  
   gsl_function F;
   gsl_integration_workspace* workspace;
   
@@ -301,6 +299,7 @@ double Sigma(double redshift, double HaloMass) //It's probably missing the norma
 
   workspace = gsl_integration_workspace_alloc(WORKSIZE);
   F.function = &integrand_S2;
+  F.params = &p;
   //F.params = &(run_globals.params);
 
   gsl_integration_qag(
