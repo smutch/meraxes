@@ -164,7 +164,7 @@ double Transfer_function(double k) //EH99
   double fcb = fc + fb;
   double alpha = fc / fcb; // Eq. 15
   
-  double s_hor = 44.5 * log(9.83 / (OmegaM * pow(little_h, 2))) / pow(1.0 + 10.0 * pow((OmegaB * pow(little_h, 2)), 0.75), 0.5); // Eq. 4
+  //double s_hor = 44.5 * log(9.83 / (OmegaM * pow(little_h, 2))) / pow(1.0 + 10.0 * pow((OmegaB * pow(little_h, 2)), 0.75), 0.5); // Eq. 4
   //double Gamma = OmegaM * pow(little_h, 2) * (pow(alpha, 0.5) + (1 - pow(alpha, 0.5)) / (1 + pow(0.43 * k * s_hor, 4))); //Eq. 16
   
   double q = k * pow(Theta, 2);
@@ -211,7 +211,7 @@ double Growth_Factor(double redshift) //It's probably missing the normalization 
 
   gsl_integration_workspace_free(workspace);
   
-  return result/normalization;  
+  return Pref * result / normalization;  
 }
 double GF_norm() //For Normalization
 {
@@ -236,7 +236,7 @@ double GF_norm() //For Normalization
 
   gsl_integration_workspace_free(workspace);
   
-  return result;  
+  return Pref * result;  
 }
 
 
