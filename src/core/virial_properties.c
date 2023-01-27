@@ -186,7 +186,7 @@ double integrand_GF(double redshift) //EH99
   return zplus1 / pow(OmegaM * pow(zplus1, 3) + (1 - OmegaM - OmegaLambda) * pow(zplus1, 2) + OmegaLambda, 1.5);
 }
 
-double Growth_Factor(double redshift //It's probably missing the normalization (CHECK!)
+double Growth_Factor(double redshift) //It's probably missing the normalization (CHECK!)
 {
   double OmegaM = run_globals.params.OmegaM;
   double OmegaLambda = run_globals.params.OmegaLambda;
