@@ -195,8 +195,8 @@ double Growth_Factor(double redshift) //It's probably missing the normalization 
   double zequiv = calculate_zeq(OmegaM);
   double normalization = GF_norm();
   
-  //double Pref = 2.5 * OmegaM * (1 + zequiv) * pow(OmegaM * pow(zplus1, 3) + (1 - OmegaM - OmegaLambda) * pow(zplus1, 2) + OmegaM, 0.5);
-  double Pref = pow(OmegaM * pow(zplus1, 3) + (1 - OmegaM - OmegaLambda) * pow(zplus1, 2) + OmegaM, 0.5); 
+  double Pref = 2.5 * OmegaM * (1 + zequiv) * pow(OmegaM * pow(zplus1, 3) + (1 - OmegaM - OmegaLambda) * pow(zplus1, 2) + OmegaM, 0.5);
+  //double Pref = pow(OmegaM * pow(zplus1, 3) + (1 - OmegaM - OmegaLambda) * pow(zplus1, 2) + OmegaM, 0.5); 
   
   gsl_function F;
   gsl_integration_workspace* workspace;
@@ -221,7 +221,7 @@ double GF_norm() //For Normalization
   //double zplus1 = run_globals.ZZ[snapshot] + 1;
   double zequiv = calculate_zeq(OmegaM);
   
-  //double Pref = 2.5 * OmegaM * (1 + zequiv) * pow(OmegaM + (1 - OmegaM - OmegaLambda) + OmegaM, 0.5); 
+  double Pref = 2.5 * OmegaM * (1 + zequiv) * pow(OmegaM + (1 - OmegaM - OmegaLambda) + OmegaM, 0.5); 
   
   gsl_function F;
   gsl_integration_workspace* workspace;
@@ -237,8 +237,8 @@ double GF_norm() //For Normalization
 
   gsl_integration_workspace_free(workspace);
   
-  //return Pref * result;  
-  return result;
+  return Pref * result;  
+  //return result;
 }
 
 
