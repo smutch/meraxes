@@ -195,8 +195,8 @@ double Growth_Factor(double redshift) //It's probably missing the normalization 
   double zequiv = calculate_zeq(OmegaM);
   double normalization = GF_norm();
   
-  double Pref = 2.5 * OmegaM * (1 + zequiv) * pow(OmegaM * pow(zplus1, 3) + (1 - OmegaM - OmegaLambda) * pow(zplus1, 2) + OmegaM, 0.5);
-  //double Pref = pow(OmegaM * pow(zplus1, 3) + (1 - OmegaM - OmegaLambda) * pow(zplus1, 2) + OmegaM, 0.5); 
+  //double Pref = 2.5 * OmegaM * (1 + zequiv) * pow(OmegaM * pow(zplus1, 3) + (1 - OmegaM - OmegaLambda) * pow(zplus1, 2) + OmegaM, 0.5);
+  double Pref = pow(OmegaM * pow(zplus1, 3) + (1 - OmegaM - OmegaLambda) * pow(zplus1, 2) + OmegaL, 0.5); 
   
   gsl_function F;
   gsl_integration_workspace* workspace;
@@ -221,24 +221,24 @@ double GF_norm() //For Normalization
   //double zplus1 = run_globals.ZZ[snapshot] + 1;
   double zequiv = calculate_zeq(OmegaM);
   
-  double Pref = 2.5 * OmegaM * (1 + zequiv) * pow(OmegaM + (1 - OmegaM - OmegaLambda) + OmegaM, 0.5); 
+  //double Pref = 2.5 * OmegaM * (1 + zequiv) * pow(OmegaM + (1 - OmegaM - OmegaLambda) + OmegaM, 0.5); 
   
   gsl_function F;
   gsl_integration_workspace* workspace;
-  double result; 
-  double abserr;
+  double norm; 
+  double normerr;
 
   workspace = gsl_integration_workspace_alloc(WORKSIZE);
   F.function = &integrand_GF;
   F.params = &(run_globals.params);
 
   gsl_integration_qag(
-    &F, 0, zequiv, 1.0 / run_globals.Hubble, 1.0e-8, WORKSIZE, GSL_INTEG_GAUSS21, workspace, &result, &abserr);
+    &F, 0, zequiv, 1.0 / run_globals.Hubble, 1.0e-8, WORKSIZE, GSL_INTEG_GAUSS21, workspace, &norm, &normerr);
 
   gsl_integration_workspace_free(workspace);
   
-  return Pref * result;  
-  //return result;
+  //return Pref * result;  
+  return norm;
 }
 
 
