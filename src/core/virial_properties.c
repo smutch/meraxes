@@ -196,7 +196,7 @@ double Growth_Factor(double redshift) //It's probably missing the normalization 
   double normalization = GF_norm();
   
   //double Pref = 2.5 * OmegaM * (1 + zequiv) * pow(OmegaM * pow(zplus1, 3) + (1 - OmegaM - OmegaLambda) * pow(zplus1, 2) + OmegaM, 0.5);
-  double Pref = pow(OmegaM * pow(zplus1, 3) + (1 - OmegaM - OmegaLambda) * pow(zplus1, 2) + OmegaL, 0.5); 
+  double Pref = pow(OmegaM * pow(zplus1, 3) + (1 - OmegaM - OmegaLambda) * pow(zplus1, 2) + OmegaLambda, 0.5); 
   
   gsl_function F;
   gsl_integration_workspace* workspace;
