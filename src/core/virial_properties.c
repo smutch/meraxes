@@ -244,8 +244,8 @@ double GF_norm() //For Normalization
 
 double PowerSpectrum(double redshift, double scale)
 {
-  int spectral_index = 1;
-  int N = spectral_index - 1;
+  double spectral_index = run_globals.params.SpectralIndex;
+  double N = spectral_index - 1;
   double OmegaM = run_globals.params.OmegaM;
   double Hubble = run_globals.Hubble;
   //double zequiv = calculate_zeq(OmegaM);
