@@ -145,8 +145,7 @@ double calculate_Mvir_2(double Rvir, double redshift) //Rvir in Mpc/h
   double OmegaK = run_globals.params.OmegaK;
   double OmegaLambda = run_globals.params.OmegaLambda;
   double zplus1 = redshift + 1;
-  double little_h = run_globals.params.Hubble_h;
-
+  
   hubble_of_z_sq = pow(Hubble * sqrt(OmegaM * zplus1 * zplus1 * zplus1 + OmegaK * zplus1 * zplus1 + OmegaLambda), 2);
 
   rhocrit = 3 * hubble_of_z_sq / (8 * M_PI * run_globals.G);
@@ -156,8 +155,6 @@ double calculate_Mvir_2(double Rvir, double redshift) //Rvir in Mpc/h
   Delta = Delta_vir(redshift);
 
   fac = 1 / (Delta * 4 * M_PI / 3.0 * rhocrit);
-  
-  mlog("M8 is %f", MLOG_MESG, pow(Rvir,3) / fac * 1e10 / little_h);
 
   return pow(Rvir , 3) / fac;
 }
@@ -291,7 +288,7 @@ double PowerSpectrum(double redshift, double scale)
   double spectral_index = run_globals.params.SpectralIndex;
   double N = spectral_index - 1;
   double OmegaM = run_globals.params.OmegaM;
-  double Hubble = run_globals.Hubble;
+  double little_h = run_globals.params.Hubble_h;
   
   double deltah = 1.94 * 1.0e-5 * pow(OmegaM, (-0.785 - 0.05 * log(OmegaM))) * exp(-0.95 * N - 0.169 * pow(N,2));
   double TF = Transfer_function(scale); 
@@ -299,7 +296,7 @@ double PowerSpectrum(double redshift, double scale)
   double D0 = Growth_Factor(0); 
   double Pk;
   
-  Pk = 2 * M_PI * M_PI + deltah * deltah * pow((SPEED_OF_LIGHT * 1e-5 * scale / Hubble), 3 + spectral_index) * TF * TF * Dz * Dz / (D0 * D0 * pow(scale, 3));
+  Pk = 2 * M_PI * M_PI + deltah * deltah * pow((SPEED_OF_LIGHT * 1e-5 * scale / (little_h * 100)), 3 + spectral_index) * TF * TF * Dz * Dz / (D0 * D0 * pow(scale, 3));
   
   return Pk;
 }
@@ -309,17 +306,10 @@ typedef struct
   double redshift, HaloMass;
 } int_S2_params;
 
-//double integrand_S2(double redshift, double HaloMass, double k)
 double integrand_S2(double k, void* params)
 {
   int_S2_params* p = (int_S2_params*)params;
   
-  //double OmegaM = run_globals.params.OmegaM;
-  //double OmegaLambda = run_globals.params.OmegaLambda;
-  //double Hubble = run_globals.Hubble;
-  //double rhom0 = OmegaM * 3 * Hubble * Hubble * (OmegaM + OmegaLambda) / (8 * M_PI * run_globals.G);
-
-  //double Radius = pow(3 * p->HaloMass / (4 * M_PI * rhom0), 1.0/3.0);
   double Radius = calculate_Rvir_2(p->HaloMass, p->redshift);
   //mlog("Radius is %f", MLOG_MESG, Radius);
   
