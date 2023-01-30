@@ -318,6 +318,7 @@ double integrand_S2(double k, void* params)
 
   //double Radius = pow(3 * p->HaloMass / (4 * M_PI * rhom0), 1.0/3.0);
   double Radius = calculate_Rvir_2(p->HaloMass, p->redshift);
+  mlog("Radius is %f", MLOG_MESG, Radius);
   
   double PS = PowerSpectrum(p->redshift, k);
   double j1 = (sin(k * Radius) - (k * Radius * cos(k * Radius))) / (k * Radius);
