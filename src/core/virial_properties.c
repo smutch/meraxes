@@ -149,12 +149,7 @@ double calculate_Mvir_2(double Rvir, double redshift) //Rvir in Mpc/h
   hubble_of_z_sq = pow(Hubble * sqrt(OmegaM * zplus1 * zplus1 * zplus1 + OmegaK * zplus1 * zplus1 + OmegaLambda), 2);
 
   rhocrit = 3 * hubble_of_z_sq / (8 * M_PI * run_globals.G);
-  
-  mlog("rhocrit is %f", MLOG_MESG, rhocrit);
 
-  //Delta = Delta_vir(redshift);
-
-  //fac = 1 / (Delta * 4 * M_PI / 3.0 * rhocrit);
   fac = 4.0 / 3.0 * M_PI * rhocrit * OmegaM;
 
   return pow(Rvir , 3) * fac;
@@ -345,7 +340,7 @@ double Sigma(double redshift, double Halo_Mass) // Still a tiny difference
   F.params = &p;
 
   gsl_integration_qag(
-    &F, 0, 2500, 1.0 / Hubble, 1.0e-8, WORKSIZE, GSL_INTEG_GAUSS21, workspace, &result, &abserr); //2500 should be infinite
+    &F, 0, 1000, 1.0 / Hubble, 1.0e-8, WORKSIZE, GSL_INTEG_GAUSS21, workspace, &result, &abserr); //2500 should be infinite
 
   gsl_integration_workspace_free(workspace);
   
@@ -359,7 +354,6 @@ double SigmaNorm(double redshift) //Need this for normalization
   double little_h = run_globals.params.Hubble_h;
   
   double M8 = calculate_Mvir_2(8.0, 0); //Mvir correspondent to a halo of (8Mpc/h virial radius)
-  mlog("M8 is %f", MLOG_MESG, M8 * 1e10 / little_h);
   
   int_S2_params p;
 
@@ -378,7 +372,7 @@ double SigmaNorm(double redshift) //Need this for normalization
   F.params = &p;
 
   gsl_integration_qag(
-    &F, 0, 2500, 1.0 / Hubble, 1.0e-8, WORKSIZE, GSL_INTEG_GAUSS21, workspace, &norma, &normaerr); //2500 should be infinite
+    &F, 0, 1000, 1.0 / Hubble, 1.0e-8, WORKSIZE, GSL_INTEG_GAUSS21, workspace, &norma, &normaerr); //2500 should be infinite
 
   gsl_integration_workspace_free(workspace);
   
