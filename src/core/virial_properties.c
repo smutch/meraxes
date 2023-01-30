@@ -186,16 +186,14 @@ double integrand_GF(double redshift) //EH99
   return zplus1 / pow(OmegaM * pow(zplus1, 3) + (1 - OmegaM - OmegaLambda) * pow(zplus1, 2) + OmegaLambda, 1.5);
 }
 
-double Growth_Factor(double redshift) //It's probably missing the normalization (CHECK!)
+double Growth_Factor(double redshift) //Now it works!
 {
   double OmegaM = run_globals.params.OmegaM;
   double OmegaLambda = run_globals.params.OmegaLambda;
-  //double zplus1 = run_globals.ZZ[snapshot] + 1;
+
   double zplus1 = redshift + 1; 
   double zequiv = calculate_zeq(OmegaM);
   double normalization = GF_norm();
-  
-  //double Pref = 2.5 * OmegaM * (1 + zequiv) * pow(OmegaM * pow(zplus1, 3) + (1 - OmegaM - OmegaLambda) * pow(zplus1, 2) + OmegaM, 0.5);
   double Pref = pow(OmegaM * pow(zplus1, 3) + (1 - OmegaM - OmegaLambda) * pow(zplus1, 2) + OmegaLambda, 0.5); 
   
   gsl_function F;
@@ -217,11 +215,7 @@ double Growth_Factor(double redshift) //It's probably missing the normalization 
 double GF_norm() //For Normalization
 {
   double OmegaM = run_globals.params.OmegaM;
-  double OmegaLambda = run_globals.params.OmegaLambda;
-  //double zplus1 = run_globals.ZZ[snapshot] + 1;
   double zequiv = calculate_zeq(OmegaM);
-  
-  //double Pref = 2.5 * OmegaM * (1 + zequiv) * pow(OmegaM + (1 - OmegaM - OmegaLambda) + OmegaM, 0.5); 
   
   gsl_function F;
   gsl_integration_workspace* workspace;
@@ -237,7 +231,6 @@ double GF_norm() //For Normalization
 
   gsl_integration_workspace_free(workspace);
   
-  //return Pref * result;  
   return norm;
 }
 
@@ -286,6 +279,7 @@ double integrand_S2(double k, void* params)
 double Sigma(double redshift, double HaloMass) //It's probably missing the normalization (CHECK)
 {
   double Hubble = run_globals.Hubble;
+  double Normalization = SigmaNorm(redshift);
   double Sigma8 = run_globals.params.Sigma8; //Need this to check normalization
   
   int_S2_params p;
@@ -309,8 +303,35 @@ double Sigma(double redshift, double HaloMass) //It's probably missing the norma
 
   gsl_integration_workspace_free(workspace);
   
-  return sqrt(result)/Sigma8;  
+  return Sigma8 * sqrt(result) / Normalization;   
+}
+
+double SigmaNorm(double redshift) //Need this for normalization 
+{
+  double Hubble = run_globals.Hubble;
   
+  int_S2_params p;
+
+  p.redshift = redshift;
+  p.HaloMass = 2.751e14; //Halo mass correspondent to Rvir = 8h^-1, this is written extremely badly, use it now just to check that the function is working.
+  
+  gsl_function F;
+  gsl_integration_workspace* workspace;
+  
+  double norma; 
+  double normaerr;
+
+  workspace = gsl_integration_workspace_alloc(WORKSIZE);
+  F.function = &integrand_S2;
+  F.params = &p;
+  //F.params = &(run_globals.params);
+
+  gsl_integration_qag(
+    &F, 0, 2500, 1.0 / Hubble, 1.0e-8, WORKSIZE, GSL_INTEG_GAUSS21, workspace, &norma, &normaerr); //2500 should be infinite
+
+  gsl_integration_workspace_free(workspace);
+  
+  return sqrt(norma);   
 }
 
 double nuc(double redshift, double HaloMass)
