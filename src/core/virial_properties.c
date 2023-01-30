@@ -111,6 +111,52 @@ double calculate_Rvir(double Mvir, int snapshot)
   return cbrt(Mvir * fac);
 }
 
+double calculate_Rvir_2(double Mvir, double redshift)
+{
+  double hubble_of_z_sq;
+  double rhocrit;
+  double fac;
+  double Delta;
+  double Hubble = run_globals.Hubble;
+  double OmegaM = run_globals.params.OmegaM;
+  double OmegaK = run_globals.params.OmegaK;
+  double OmegaLambda = run_globals.params.OmegaLambda;
+  double zplus1 = redshift + 1;
+
+  hubble_of_z_sq = pow(Hubble * sqrt(OmegaM * zplus1 * zplus1 * zplus1 + OmegaK * zplus1 * zplus1 + OmegaLambda), 2);
+
+  rhocrit = 3 * hubble_of_z_sq / (8 * M_PI * run_globals.G);
+
+  Delta = Delta_vir(redshift);
+
+  fac = 1 / (Delta * 4 * M_PI / 3.0 * rhocrit);
+
+  return cbrt(Mvir * fac);
+}
+
+double calculate_Mvir_2(double Rvir, double redshift)
+{
+  double hubble_of_z_sq;
+  double rhocrit;
+  double fac;
+  double Delta;
+  double Hubble = run_globals.Hubble;
+  double OmegaM = run_globals.params.OmegaM;
+  double OmegaK = run_globals.params.OmegaK;
+  double OmegaLambda = run_globals.params.OmegaLambda;
+  double zplus1 = redshift + 1;
+
+  hubble_of_z_sq = pow(Hubble * sqrt(OmegaM * zplus1 * zplus1 * zplus1 + OmegaK * zplus1 * zplus1 + OmegaLambda), 2);
+
+  rhocrit = 3 * hubble_of_z_sq / (8 * M_PI * run_globals.G);
+
+  Delta = Delta_vir(redshift);
+
+  fac = 1 / (Delta * 4 * M_PI / 3.0 * rhocrit);
+
+  return pow(Rvir , 3) / fac;
+}
+
 double calculate_gasMass(int snapshot, double length) //length in comoving units
 {
   double hubble_of_z_sq;
@@ -263,12 +309,14 @@ double integrand_S2(double k, void* params)
 {
   int_S2_params* p = (int_S2_params*)params;
   
-  double OmegaM = run_globals.params.OmegaM;
-  double OmegaLambda = run_globals.params.OmegaLambda;
-  double Hubble = run_globals.Hubble;
-  double rhom0 = OmegaM * 3 * Hubble * Hubble * (OmegaM + OmegaLambda) / (8 * M_PI * run_globals.G);
+  //double OmegaM = run_globals.params.OmegaM;
+  //double OmegaLambda = run_globals.params.OmegaLambda;
+  //double Hubble = run_globals.Hubble;
+  //double rhom0 = OmegaM * 3 * Hubble * Hubble * (OmegaM + OmegaLambda) / (8 * M_PI * run_globals.G);
 
-  double Radius = pow(3 * p->HaloMass / (4 * M_PI * rhom0), 1.0/3.0);
+  //double Radius = pow(3 * p->HaloMass / (4 * M_PI * rhom0), 1.0/3.0);
+  double Radius = calculate_Rvir_2(p->HaloMass, p->redshift);
+  
   double PS = PowerSpectrum(p->redshift, k);
   double j1 = (sin(k * Radius) - (k * Radius * cos(k * Radius))) / (k * Radius);
   
@@ -307,18 +355,21 @@ double Sigma(double redshift, double HaloMass) // Still a tiny difference
 
 double SigmaNorm(double redshift) //Need this for normalization 
 {
-  double OmegaM = run_globals.params.OmegaM;
-  double OmegaLambda = run_globals.params.OmegaLambda;
-  double Hubble = run_globals.Hubble;
-  double rhom0 = OmegaM * 3 * Hubble * Hubble * (OmegaM + OmegaLambda) / (8 * M_PI * run_globals.G / 1e10);
-  mlog("rho is %f", MLOG_MESG, rhom0);
+  //double OmegaM = run_globals.params.OmegaM;
+  //double OmegaLambda = run_globals.params.OmegaLambda;
+  //double Hubble = run_globals.Hubble;
+  //double rhom0 = OmegaM * 3 * Hubble * Hubble * (OmegaM + OmegaLambda) / (8 * M_PI * run_globals.G / 1e10);
+  //mlog("rho is %f", MLOG_MESG, rhom0);
   //double little_h = run_globals.params.Hubble_h;
+  
+  double M8 = calculate_Mvir_2(8.0, redshift); //Mvir correspondent to a halo of (8Mpc/h virial radius)
+  mlog("M8 is %f", MLOG_MESG, M8);
   
   int_S2_params p;
 
   p.redshift = redshift;
-  p.HaloMass = 2.75173293e14; //Halo mass correspondent to Rvir = 8h^-1, this is written extremely badly, use it now just to check that the function is working.
-  //p.HaloMass = 4.0 / 3.0 * M_PI * rhom0 * pow(8.0 / little_h, 3);
+  //p.HaloMass = 2.75173293e14; //Halo mass correspondent to Rvir = 8h^-1, this is written extremely badly, use it now just to check that the function is working.
+  p.HaloMass = M8;
   
   gsl_function F;
   gsl_integration_workspace* workspace;
