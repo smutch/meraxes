@@ -289,7 +289,7 @@ double PowerSpectrum(double redshift, double scale)
   double N = spectral_index - 1;
   double OmegaM = run_globals.params.OmegaM;
   double little_h = run_globals.params.Hubble_h;
-  double scale_h = scale * little_h; // convert k from Mpc to Mpc / h
+  //double scale_h = scale * little_h; // convert k from Mpc to Mpc / h
   
   double deltah = 1.94 * 1.0e-5 * pow(OmegaM, (-0.785 - 0.05 * log(OmegaM))) * exp(-0.95 * N - 0.169 * pow(N,2));
   double TF = Transfer_function(scale); 
@@ -297,7 +297,7 @@ double PowerSpectrum(double redshift, double scale)
   double D0 = Growth_Factor(0); 
   double Pk;
   
-  Pk = 2 * M_PI * M_PI + deltah * deltah * pow((SPEED_OF_LIGHT * 1e-5 * scale / (little_h * 100)), 3 + spectral_index) * TF * TF * Dz * Dz / (D0 * D0 * pow(scale_h, 3));
+  Pk = 2 * M_PI * M_PI + deltah * deltah * pow((SPEED_OF_LIGHT * 1e-5 * scale / (little_h * 100)), 3 + spectral_index) * TF * TF * Dz * Dz / (D0 * D0 * pow(scale, 3));
   
   return Pk;
 }
