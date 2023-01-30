@@ -204,7 +204,7 @@ double Transfer_function(double k) //EH99
   double OmegaM = run_globals.params.OmegaM;
   double OmegaB = OmegaM * run_globals.params.BaryonFrac;
   double OmegaC = OmegaM - OmegaB;
-  //double little_h = run_globals.params.Hubble_h;
+  double little_h = run_globals.params.Hubble_h;
   double Theta = 2.728 / 2.7;
   
   double fc = OmegaC / OmegaM;
@@ -212,10 +212,10 @@ double Transfer_function(double k) //EH99
   double fcb = fc + fb;
   double alpha = fc / fcb; // Eq. 15
   
-  //double s_hor = 44.5 * log(9.83 / (OmegaM * pow(little_h, 2))) / pow(1.0 + 10.0 * pow((OmegaB * pow(little_h, 2)), 0.75), 0.5); // Eq. 4
-  //double Gamma = OmegaM * pow(little_h, 2) * (pow(alpha, 0.5) + (1 - pow(alpha, 0.5)) / (1 + pow(0.43 * k * s_hor, 4))); //Eq. 16
+  double s_hor = 44.5 * log(9.83 / (OmegaM * pow(little_h, 2))) / pow(1.0 + 10.0 * pow((OmegaB * pow(little_h, 2)), 0.75), 0.5); // Eq. 4
+  double Gamma = OmegaM * pow(little_h, 2) * (pow(alpha, 0.5) + (1 - pow(alpha, 0.5)) / (1 + pow(0.43 * k * s_hor, 4))); //Eq. 16
   
-  double q = k * pow(Theta, 2);
+  double q = k * Theta * Theta / Gamma;
   double Beta = 1. / (1 - 0.949 * fb); //Eq. 21
   double L = log(exp(1) + 1.84 * Beta * pow(alpha, 0.5) * q); //Eq. 19
   double C = 14.4 + (325. / (1 + 60.5 * pow(q, 1.11))); // Eq. 20
@@ -360,7 +360,7 @@ double SigmaNorm(double redshift) //Need this for normalization
   double little_h = run_globals.params.Hubble_h;
   
   double M8 = calculate_Mvir_2(8.0, 0); //Mvir correspondent to a halo of (8Mpc/h virial radius)
-  //mlog("M8 is %f", MLOG_MESG, M8 * 1e10 / little_h);
+  mlog("M8 is %f", MLOG_MESG, M8 * 1e10 / little_h);
   
   int_S2_params p;
 
