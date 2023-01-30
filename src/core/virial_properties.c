@@ -298,7 +298,7 @@ double Sigma(double redshift, double HaloMass) // Still a tiny difference
   //F.params = &(run_globals.params);
 
   gsl_integration_qag(
-    &F, 0, 10000, 1.0 / Hubble, 1.0e-8, WORKSIZE, GSL_INTEG_GAUSS21, workspace, &result, &abserr); //2500 should be infinite
+    &F, 0, 6000, 1.0 / Hubble, 1.0e-8, WORKSIZE, GSL_INTEG_GAUSS21, workspace, &result, &abserr); //2500 should be infinite
 
   gsl_integration_workspace_free(workspace);
   
@@ -310,7 +310,7 @@ double SigmaNorm(double redshift) //Need this for normalization
   double OmegaM = run_globals.params.OmegaM;
   double OmegaLambda = run_globals.params.OmegaLambda;
   double Hubble = run_globals.Hubble;
-  double rhom0 = OmegaM * 3 * Hubble * Hubble * (OmegaM + OmegaLambda) / (8 * M_PI * run_globals.G);
+  double rhom0 = OmegaM * 3 * Hubble * Hubble * (OmegaM + OmegaLambda) / (8 * M_PI * run_globals.G / 1e10);
   mlog("rho is %f", MLOG_MESG, rhom0);
   //double little_h = run_globals.params.Hubble_h;
   
@@ -332,7 +332,7 @@ double SigmaNorm(double redshift) //Need this for normalization
   //F.params = &(run_globals.params);
 
   gsl_integration_qag(
-    &F, 0, 10000, 1.0 / Hubble, 1.0e-8, WORKSIZE, GSL_INTEG_GAUSS21, workspace, &norma, &normaerr); //2500 should be infinite
+    &F, 0, 6000, 1.0 / Hubble, 1.0e-8, WORKSIZE, GSL_INTEG_GAUSS21, workspace, &norma, &normaerr); //2500 should be infinite
 
   gsl_integration_workspace_free(workspace);
   
