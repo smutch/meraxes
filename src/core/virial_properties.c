@@ -155,6 +155,8 @@ double calculate_Mvir_2(double Rvir, double redshift) //Rvir in Mpc/h
   Delta = Delta_vir(redshift);
 
   fac = 1 / (Delta * 4 * M_PI / 3.0 * rhocrit);
+  
+  mlog("M8 is %f", MLOG_MESG, pow(Rvir,3) / fac * 1e10 / little_h);
 
   return pow(Rvir , 3) / fac;
 }
@@ -166,6 +168,7 @@ double calculate_gasMass(int snapshot, double length) //length in comoving units
   double rhob;
   double OmegaM = run_globals.params.OmegaM;
   double OmegaB = OmegaM * run_globals.params.BaryonFrac;
+  double little_h = run_globals.params.Hubble_h;
   
   hubble_of_z_sq = pow(hubble_at_snapshot(snapshot), 2);
 
@@ -366,8 +369,8 @@ double SigmaNorm(double redshift) //Need this for normalization
   //mlog("rho is %f", MLOG_MESG, rhom0);
   double little_h = run_globals.params.Hubble_h;
   
-  double M8 = calculate_Mvir_2(8.0, redshift); //Mvir correspondent to a halo of (8Mpc/h virial radius)
-  mlog("M8 is %f", MLOG_MESG, M8 * 1e10 / little_h);
+  double M8 = calculate_Mvir_2(8.0, 0); //Mvir correspondent to a halo of (8Mpc/h virial radius)
+  //mlog("M8 is %f", MLOG_MESG, M8 * 1e10 / little_h);
   
   int_S2_params p;
 
