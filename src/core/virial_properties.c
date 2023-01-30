@@ -318,7 +318,7 @@ double SigmaNorm(double redshift) //Need this for normalization
 
   p.redshift = redshift;
   //p.HaloMass = 2.751e14; //Halo mass correspondent to Rvir = 8h^-1, this is written extremely badly, use it now just to check that the function is working.
-  p.HaloMass = 4.0 / 3.0 * M_PI * rhom0 * pow(8 / little_h, 3);
+  p.HaloMass = 4.0 / 3.0 * M_PI * rhom0 * pow(8.0 / little_h, 3);
   
   gsl_function F;
   gsl_integration_workspace* workspace;
