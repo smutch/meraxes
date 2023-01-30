@@ -320,7 +320,7 @@ double integrand_S2(double k, void* params)
   return k * k * PS / (2 * M_PI * M_PI) * pow(3 * j1 / (k * Radius), 2);
 }
 
-double Sigma(double redshift, double HaloMass) // Still a tiny difference
+double Sigma(double redshift, double Halo_Mass) // Still a tiny difference
 {
   double Hubble = run_globals.Hubble;
   double Normalization = SigmaNorm(redshift);
@@ -330,7 +330,7 @@ double Sigma(double redshift, double HaloMass) // Still a tiny difference
   int_S2_params p;
 
   p.redshift = redshift;
-  p.HaloMass = HaloMass;
+  p.HaloMass = Halo_Mass;
   
   gsl_function F;
   gsl_integration_workspace* workspace;
