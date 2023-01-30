@@ -314,7 +314,6 @@ double integrand_S2(double k, void* params)
   //mlog("Radius is %f", MLOG_MESG, Radius);
   
   double PS = PowerSpectrum(p->redshift, k);
-  mlog("PkProva is %f", MLOG_MESG, PowerSpectrum(0,0.1));
   
   double j1 = (sin(k * Radius) - (k * Radius * cos(k * Radius))) / (k * Radius);
   
