@@ -307,8 +307,8 @@ double Sigma(double redshift, double HaloMass) // Still a tiny difference
 
 double SigmaNorm(double redshift) //Need this for normalization 
 {
-  //double OmegaM = run_globals.params.OmegaM;
-  //double OmegaLambda = run_globals.params.OmegaLambda;
+  double OmegaM = run_globals.params.OmegaM;
+  double OmegaLambda = run_globals.params.OmegaLambda;
   double Hubble = run_globals.Hubble;
   double rhom0 = OmegaM * 3 * Hubble * Hubble * (OmegaM + OmegaLambda) / (8 * M_PI * run_globals.G);
   mlog("rho is %f", MLOG_MESG, rhom0);
