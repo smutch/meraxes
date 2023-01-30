@@ -360,7 +360,7 @@ double SigmaNorm(double redshift) //Need this for normalization
   double Hubble = run_globals.Hubble;
   //double rhom0 = OmegaM * 3 * Hubble * Hubble * (OmegaM + OmegaLambda) / (8 * M_PI * run_globals.G / 1e10);
   //mlog("rho is %f", MLOG_MESG, rhom0);
-  //double little_h = run_globals.params.Hubble_h;
+  double little_h = run_globals.params.Hubble_h;
   
   double M8 = calculate_Mvir_2(8.0, redshift); //Mvir correspondent to a halo of (8Mpc/h virial radius)
   mlog("M8 is %f", MLOG_MESG, M8);
@@ -369,7 +369,7 @@ double SigmaNorm(double redshift) //Need this for normalization
 
   p.redshift = redshift;
   //p.HaloMass = 2.75173293e14; //Halo mass correspondent to Rvir = 8h^-1, this is written extremely badly, use it now just to check that the function is working.
-  p.HaloMass = M8;
+  p.HaloMass = M8 * 1e10 / little_h;
   
   gsl_function F;
   gsl_integration_workspace* workspace;
