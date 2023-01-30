@@ -241,7 +241,6 @@ double PowerSpectrum(double redshift, double scale)
   double N = spectral_index - 1;
   double OmegaM = run_globals.params.OmegaM;
   double Hubble = run_globals.Hubble;
-  //double zequiv = calculate_zeq(OmegaM);
   
   double deltah = 1.94 * 1.0e-5 * pow(OmegaM, (-0.785 - 0.05 * log(OmegaM))) * exp(-0.95 * N - 0.169 * pow(N,2));
   double TF = Transfer_function(scale); 
@@ -276,7 +275,7 @@ double integrand_S2(double k, void* params)
   return k * k * PS / (2 * M_PI * M_PI) * pow(3 * j1 / (k * Radius), 2);
 }
 
-double Sigma(double redshift, double HaloMass) //It's probably missing the normalization (CHECK)
+double Sigma(double redshift, double HaloMass) // Still a tiny difference
 {
   double Hubble = run_globals.Hubble;
   double Normalization = SigmaNorm(redshift);
@@ -299,7 +298,7 @@ double Sigma(double redshift, double HaloMass) //It's probably missing the norma
   //F.params = &(run_globals.params);
 
   gsl_integration_qag(
-    &F, 0, 3000, 1.0 / Hubble, 1.0e-8, WORKSIZE, GSL_INTEG_GAUSS21, workspace, &result, &abserr); //2500 should be infinite
+    &F, 0, 5000, 1.0 / Hubble, 1.0e-8, WORKSIZE, GSL_INTEG_GAUSS21, workspace, &result, &abserr); //2500 should be infinite
 
   gsl_integration_workspace_free(workspace);
   
@@ -332,7 +331,7 @@ double SigmaNorm(double redshift) //Need this for normalization
   //F.params = &(run_globals.params);
 
   gsl_integration_qag(
-    &F, 0, 3000, 1.0 / Hubble, 1.0e-8, WORKSIZE, GSL_INTEG_GAUSS21, workspace, &norma, &normaerr); //2500 should be infinite
+    &F, 0, 5000, 1.0 / Hubble, 1.0e-8, WORKSIZE, GSL_INTEG_GAUSS21, workspace, &norma, &normaerr); //2500 should be infinite
 
   gsl_integration_workspace_free(workspace);
   
