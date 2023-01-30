@@ -145,6 +145,7 @@ double calculate_Mvir_2(double Rvir, double redshift) //Rvir in Mpc/h
   double OmegaK = run_globals.params.OmegaK;
   double OmegaLambda = run_globals.params.OmegaLambda;
   double zplus1 = redshift + 1;
+  double little_h = run_globals.params.Hubble_h;
 
   hubble_of_z_sq = pow(Hubble * sqrt(OmegaM * zplus1 * zplus1 * zplus1 + OmegaK * zplus1 * zplus1 + OmegaLambda), 2);
 
@@ -168,7 +169,6 @@ double calculate_gasMass(int snapshot, double length) //length in comoving units
   double rhob;
   double OmegaM = run_globals.params.OmegaM;
   double OmegaB = OmegaM * run_globals.params.BaryonFrac;
-  double little_h = run_globals.params.Hubble_h;
   
   hubble_of_z_sq = pow(hubble_at_snapshot(snapshot), 2);
 
