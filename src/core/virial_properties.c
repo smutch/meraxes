@@ -111,7 +111,7 @@ double calculate_Rvir(double Mvir, int snapshot)
   return cbrt(Mvir * fac);
 }
 
-double calculate_Rvir_2(double Mvir, double redshift)
+double calculate_Rvir_2(double Mvir, double redshift) //Mvir in 10^10 Msol/h
 {
   double hubble_of_z_sq;
   double rhocrit;
@@ -134,7 +134,7 @@ double calculate_Rvir_2(double Mvir, double redshift)
   return cbrt(Mvir * fac);
 }
 
-double calculate_Mvir_2(double Rvir, double redshift)
+double calculate_Mvir_2(double Rvir, double redshift) //Rvir in Mpc/h
 {
   double hubble_of_z_sq;
   double rhocrit;
@@ -330,11 +330,12 @@ double Sigma(double redshift, double HaloMass) // Still a tiny difference
   double Hubble = run_globals.Hubble;
   double Normalization = SigmaNorm(redshift);
   double Sigma8 = run_globals.params.Sigma8; //Need this to check normalization
+  double little_h = run_globals.params.Hubble_h;
   
   int_S2_params p;
 
   p.redshift = redshift;
-  p.HaloMass = HaloMass;
+  p.HaloMass = HaloMass * 1e10 / little_h;
   
   gsl_function F;
   gsl_integration_workspace* workspace;
@@ -364,14 +365,14 @@ double SigmaNorm(double redshift) //Need this for normalization
   //mlog("rho is %f", MLOG_MESG, rhom0);
   double little_h = run_globals.params.Hubble_h;
   
-  double M8 = calculate_Mvir_2(8.0, redshift); //Mvir correspondent to a halo of (8Mpc/h virial radius)
+  double M8 = calculate_Mvir_2(8.0, redshift) * 1e10 / little_h; //Mvir correspondent to a halo of (8Mpc/h virial radius)
   mlog("M8 is %f", MLOG_MESG, M8);
   
   int_S2_params p;
 
   p.redshift = redshift;
   //p.HaloMass = 2.75173293e14; //Halo mass correspondent to Rvir = 8h^-1, this is written extremely badly, use it now just to check that the function is working.
-  p.HaloMass = M8 * 1e10 / little_h;
+  p.HaloMass = M8;
   
   gsl_function F;
   gsl_integration_workspace* workspace;
