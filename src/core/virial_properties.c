@@ -155,7 +155,7 @@ double calculate_Mvir_2(double Rvir, double redshift) //Rvir in Mpc/h
   //Delta = Delta_vir(redshift);
 
   //fac = 1 / (Delta * 4 * M_PI / 3.0 * rhocrit);
-  fac = 4.0 / 3.0 * M_PI * rhocrit * OmegaM
+  fac = 4.0 / 3.0 * M_PI * rhocrit * OmegaM;
 
   return pow(Rvir , 3) * fac;
 }
