@@ -47,7 +47,7 @@ int evolve_galaxies(fof_group_t* fof_group, int snapshot, int NGal, int NFof, in
             //double pro = Growth_Factor(0); // Check D0
             //double pro2 = Growth_Factor(1); // Check D0
             //double pro3 = Growth_Factor(2); // Check D0
-            double pro = Sigma(0,2.752e14); // Check S8
+            double pro = Sigma(0,2.752e4 * 0.6715); // Check S8
             //mlog("GF at z = 0 is %f", MLOG_MESG, pro);
             //mlog("GF at z = 1 is %f", MLOG_MESG, pro2);
             //mlog("GF at z = 2 is %f", MLOG_MESG, pro3);  
