@@ -308,12 +308,17 @@ double Sigma(double redshift, double HaloMass) //It's probably missing the norma
 
 double SigmaNorm(double redshift) //Need this for normalization 
 {
+  double OmegaM = run_globals.params.OmegaM;
+  double OmegaLambda = run_globals.params.OmegaLambda;
   double Hubble = run_globals.Hubble;
+  double rhom0 = OmegaM * 3 * Hubble * Hubble * (OmegaM + OmegaLambda) / (8 * M_PI * run_globals.G);
+  double little_h = run_globals.params.Hubble_h;
   
   int_S2_params p;
 
   p.redshift = redshift;
-  p.HaloMass = 2.751e14; //Halo mass correspondent to Rvir = 8h^-1, this is written extremely badly, use it now just to check that the function is working.
+  //p.HaloMass = 2.751e14; //Halo mass correspondent to Rvir = 8h^-1, this is written extremely badly, use it now just to check that the function is working.
+  p.HaloMass = 4.0 / 3.0 * M_PI * rhom0 * pow(8 / little_h, 3);
   
   gsl_function F;
   gsl_integration_workspace* workspace;
