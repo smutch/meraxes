@@ -303,7 +303,7 @@ double Sigma(double redshift, double HaloMass) //It's probably missing the norma
 
   gsl_integration_workspace_free(workspace);
   
-  return Sigma8 * sqrt(result) / Normalization;   
+  return Sigma8 * sqrt(result / Normalization);   
 }
 
 double SigmaNorm(double redshift) //Need this for normalization 
@@ -336,7 +336,7 @@ double SigmaNorm(double redshift) //Need this for normalization
 
   gsl_integration_workspace_free(workspace);
   
-  return sqrt(norma);   
+  return norma;   
 }
 
 double nuc(double redshift, double HaloMass)
