@@ -152,11 +152,12 @@ double calculate_Mvir_2(double Rvir, double redshift) //Rvir in Mpc/h
   
   mlog("rhocrit is %f", MLOG_MESG, rhocrit);
 
-  Delta = Delta_vir(redshift);
+  //Delta = Delta_vir(redshift);
 
-  fac = 1 / (Delta * 4 * M_PI / 3.0 * rhocrit);
+  //fac = 1 / (Delta * 4 * M_PI / 3.0 * rhocrit);
+  fac = 4.0 / 3.0 * M_PI * rhocrit * OmegaM
 
-  return pow(Rvir , 3) / fac;
+  return pow(Rvir , 3) * fac;
 }
 
 double calculate_gasMass(int snapshot, double length) //length in comoving units
