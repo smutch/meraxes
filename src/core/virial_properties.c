@@ -335,7 +335,7 @@ double Sigma(double redshift, double HaloMass) // Still a tiny difference
   int_S2_params p;
 
   p.redshift = redshift;
-  p.HaloMass = HaloMass * 1e10 / little_h;
+  p.HaloMass = HaloMass;
   
   gsl_function F;
   gsl_integration_workspace* workspace;
