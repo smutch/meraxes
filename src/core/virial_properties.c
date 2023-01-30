@@ -149,6 +149,8 @@ double calculate_Mvir_2(double Rvir, double redshift)
   hubble_of_z_sq = pow(Hubble * sqrt(OmegaM * zplus1 * zplus1 * zplus1 + OmegaK * zplus1 * zplus1 + OmegaLambda), 2);
 
   rhocrit = 3 * hubble_of_z_sq / (8 * M_PI * run_globals.G);
+  
+  mlog("rhocrit is %f", MLOG_MESG, rhocrit);
 
   Delta = Delta_vir(redshift);
 
