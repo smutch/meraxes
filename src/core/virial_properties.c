@@ -365,8 +365,8 @@ double SigmaNorm(double redshift) //Need this for normalization
   //mlog("rho is %f", MLOG_MESG, rhom0);
   double little_h = run_globals.params.Hubble_h;
   
-  double M8 = calculate_Mvir_2(8.0, redshift) * 1e10 / little_h; //Mvir correspondent to a halo of (8Mpc/h virial radius)
-  mlog("M8 is %f", MLOG_MESG, M8);
+  double M8 = calculate_Mvir_2(8.0, redshift); //Mvir correspondent to a halo of (8Mpc/h virial radius)
+  mlog("M8 is %f", MLOG_MESG, M8 * 1e10 / little_h);
   
   int_S2_params p;
 
