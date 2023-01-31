@@ -54,7 +54,7 @@ int evolve_galaxies(fof_group_t* fof_group, int snapshot, int NGal, int NFof, in
               double boost_corr;
               
               boost_R0 = R0(run_globals.ZZ[snapshot], gal->Mvir);
-              boost_corr = 2pointCF(0.1, boost_R0);
+              boost_corr = TwoPointCF(0.1, boost_R0);
               mlog("BoostFactor %f", MLOG_MESG, boost_corr));
               
               x = (double)rand() / RAND_MAX;
