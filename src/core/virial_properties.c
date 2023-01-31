@@ -471,7 +471,7 @@ double nuc(double redshift, double Halo_Mass)
   return DeltaCrit / ss;
 }
 
-double R0(double redshift, double Halo_Mass) // 7,8 from Barone-Nugent and 12 from Sheth&Tormen
+double R0(double redshift, double Halo_Mass) // 7,8 from Barone-Nugent and 12 from Sheth&Tormen, result in Mpc/h
 {
   double little_h = run_globals.params.Hubble_h;
   double Sigma8 = run_globals.params.Sigma8;
@@ -483,6 +483,6 @@ double R0(double redshift, double Halo_Mass) // 7,8 from Barone-Nugent and 12 fr
   double a = 0.707;
   double p = 0.3;
   
-  return ( 8.0 / little_h * pow(Sigma8 * Sigma8 / 72.0 * (3 - gamma) * (4 - gamma) * (6 - gamma) * pow(2.0, gamma) * pow(1 + (a * nuu - 1) / DeltaCrit + 2 * p / nuu / (1 + a * pow(nuu, p)), 2), (1.0 / gamma)));
+  return ( 8.0 * pow(Sigma8 * Sigma8 / 72.0 * (3 - gamma) * (4 - gamma) * (6 - gamma) * pow(2.0, gamma) * pow(1 + (a * nuu - 1) / DeltaCrit + 2 * p / nuu / (1 + a * pow(nuu, p)), 2), (1.0 / gamma)));
   
 }
