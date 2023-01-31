@@ -47,9 +47,15 @@ int evolve_galaxies(fof_group_t* fof_group, int snapshot, int NGal, int NFof, in
             //double M8_0 = calculate_Mvir_2(8., 0);
             //double M8_10 = calculate_Mvir_2(8., 10);
             //mlog("S8 at z = 0 is %f", MLOG_MESG, Sigma(0, M8_0));
-            mlog("R0 at z = 8 is %f", MLOG_MESG, R0(8, 0.6751));
+            //mlog("R0 at z = 8 is %f", MLOG_MESG, R0(8, 0.6751));
             if (gal->output_index == -1) { //Not sure if Ghostflag condition is needed
               double x;
+              double boost_R0;
+              double boost_corr;
+              
+              boost_R0 = R0(run_globals.ZZ[snapshot], gal->Mvir);
+              boost_corr = 2pointCF(0.1, boost_R0);
+              mlog("BoostFactor %f", MLOG_MESG, boost_corr));
               
               x = (double)rand() / RAND_MAX;
               
