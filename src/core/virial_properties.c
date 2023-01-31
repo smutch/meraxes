@@ -238,7 +238,7 @@ double Transfer_function(double k) //EH98
   double zd = 1291.0 * pow(OmegaM * little_h * little_h, 0.251) / (1.0 + 0.659 * pow(OmegaM * little_h *little_h, 0.828)) * (1.0 + b1d * pow(OmegaM * little_h * little_h, b2d));
   
   double Rd = 31.5 * OmegaB * little_h * little_h / pow(Theta, 4) / (zd / 1e3);
-  double Req = 31.5 * OmegaB * little_h * little_h / /pow(Theta, 4) / (zequiv / 1e3);
+  double Req = 31.5 * OmegaB * little_h * little_h / pow(Theta, 4) / (zequiv / 1e3);
   
   double s = 2.0 / 3.0 / keq * sqrt(6.0 / Req) * log((sqrt(1.0 + Rd) + sqrt(Rd + Req)) / (1.0 + sqrt(Req)));
   double ksilk = 1.6 * pow(OmegaB * little_h * little_h, 0.52) * pow(OmegaM * little_h * little_h, 0.73) * (1.0 + pow(10.4 * OmegaM * little_h * little_h, -0.95));
