@@ -231,7 +231,7 @@ double Transfer_function(double k) //EH98
   double Theta = 2.728 / 2.7;
   
   double zequiv = calculate_zeq(OmegaM);
-  double kequiv = 7.46e-2 * OmegaM * little_h * little_h / (Theta * Theta);
+  double keq = 7.46e-2 * OmegaM * little_h * little_h / (Theta * Theta);
   
   double b1d = 0.313 * pow(OmegaM * little_h * little_h, -0.419) * (1.0 + 0.607 * pow(OmegaM * little_h * little_h, 0.674));
   double b2d = 0.238 * pow(OmegaM * little_h * little_h, 0.223);
@@ -257,7 +257,7 @@ double Transfer_function(double k) //EH98
   
   double ab = 2.07 * keq * s * pow(1.0 + Rd, -3.0 / 4.0) * Gy;
   
-  double f = 1.0 / (1.0 + pow(kh * s / 5.4, 4);
+  double f = 1.0 / (1.0 + pow(k * s / 5.4, 4));
 
   double C = 14.2 / ac + 386.0 / (1.0 + 69.9 * pow(q, 1.08));
 
@@ -271,11 +271,11 @@ double Transfer_function(double k) //EH98
 
   double bnode = 8.41 * pow(OmegaM * little_h * little_h, 0.435);
 
-  double st = s / pow(1.0 + (bnode / kh / s) * (bnode / kh / s) * (bnode / kh / s), (1.0 / 3.0));
+  double st = s / pow(1.0 + (bnode / k / s) * (bnode / k / s) * (bnode / k / s), (1.0 / 3.0));
 
   double C11 = 14.2 + 386.0 / (1.0 + 69.9 * pow(q, 1.08));
   double T0t11 = log(exp(1) + 1.8 * q) / (log(exp(1) + 1.8 * q) + C11 * q * q);
-  double Tb = (T0t11 / (1.0 + pow(kh * s / 5.2, 2)) + ab / (1.0 + pow(bb / kh / s, 3)) * exp(-pow(kh / ksilk, 1.4))) * sin(kh * st) / (kh * st);
+  double Tb = (T0t11 / (1.0 + pow(k * s / 5.2, 2)) + ab / (1.0 + pow(bb / k / s, 3)) * exp(-pow(k / ksilk, 1.4))) * sin(k * st) / (k * st);
 
   double Tk = fb * Tb + fc / OmegaM * Tc;
   
