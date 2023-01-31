@@ -252,7 +252,7 @@ double Transfer_function(double k) //EH98
   double b2 = pow(0.395 * OmegaM * little_h * little_h, -0.0266);
   double bc = 1.0 / (1.0 + b1 * (pow(fc / OmegaM, b2) - 1.0));
   
-  double y = (1.0 + zeq) / (1.0 + zd);
+  double y = (1.0 + zequiv) / (1.0 + zd);
   double Gy = y * (-6.0 * sqrt(1.0 + y) + (2.0 + 3.0 * y) * log((sqrt(1.0 + y) + 1.0) / (sqrt(1.0 + y) - 1.0)));
   
   double ab = 2.07 * keq * s * pow(1.0 + Rd, -3.0 / 4.0) * Gy;
