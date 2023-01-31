@@ -491,6 +491,6 @@ double TwoPointCF(double Radius, double Corr_length) //both in Mpc/h
 {
   double gamma = 1.6;
   
-  return (pow(Radius / Corr_length), -gamma);
+  return (pow(Radius / Corr_length, -gamma));
 
 }
