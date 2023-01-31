@@ -56,8 +56,8 @@ int evolve_galaxies(fof_group_t* fof_group, int snapshot, int NGal, int NFof, in
             //mlog("GF at z = 1 is %f", MLOG_MESG, pro2);
             //mlog("GF at z = 2 is %f", MLOG_MESG, pro3);  
             mlog("S8 at z = 0 is %f", MLOG_MESG, Sigma(0, M8_0));
-            mlog("S8 at z = 10 is %f", MLOG_MESG, Sigma(10, M8_0));
-            mlog("S8 at z = 20 is %f", MLOG_MESG, Sigma(20, M8_0));
+            mlog("S8 at z = 10 is %f", MLOG_MESG, Sigma(10, M8_10));
+            mlog("S8 at z = 20 is %f", MLOG_MESG, Sigma(20, M8_20));
             //mlog("Sigma at z = 10 is %f", MLOG_MESG, pro3);
             if (gal->output_index == -1) { //Not sure if Ghostflag condition is needed
               double x;
