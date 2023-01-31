@@ -195,7 +195,7 @@ double calculate_zeq(double OmegaM)
   return 2.5e4 * OmegaM * pow(little_h, 2) * pow(Theta, -4); //EH99
 }
 
-/*double Transfer_function(double k) //EH99
+double Transfer_function(double k) //EH99
 {
   double OmegaM = run_globals.params.OmegaM;
   double OmegaB = OmegaM * run_globals.params.BaryonFrac;
@@ -217,9 +217,9 @@ double calculate_zeq(double OmegaM)
   double C = 14.4 + (325. / (1 + 60.5 * pow(q, 1.11))); // Eq. 20
   
   return L / (L + C * q * q); // Eq. 18 and 24
-}*/  
+} 
 
-double Transfer_function(double k) //EH98
+/*double Transfer_function(double k) //EH98
 {
   double OmegaM = run_globals.params.OmegaM;
   double OmegaB = OmegaM * run_globals.params.BaryonFrac;
@@ -280,7 +280,7 @@ double Transfer_function(double k) //EH98
   double Tk = fb * Tb + fc / OmegaM * Tc;
   
   return Tk; // Eq. 18 and 24
-}  
+}  */
 
 double integrand_GF(double redshift) //EH99
 {
@@ -442,21 +442,42 @@ double SigmaNorm(double redshift) //Need this for normalization
   return norma;   
 }
 
-double nuc(double redshift, double HaloMass)
+/*typedef struct
+{
+  double Radius;
+} int_2CF_params;*/
+
+/*double integrand_2pointCF(double k, void* params)
+{
+
+  int_2CF_params* p = (int_S2_params*)params;
+  
+  double Radius = calculate_Rvir_2(p->HaloMass, p->redshift);
+  //mlog("Radius is %f", MLOG_MESG, Radius);
+  
+  double PS = PowerSpectrum(p->redshift, k);
+  
+  double j1 = (sin(k * Radius) - (k * Radius * cos(k * Radius))) / (k * Radius);
+  
+  return k * k * PS / (2 * M_PI * M_PI) * pow(3 * j1 / (k * Radius), 2);
+
+}*/
+
+double nuc(double redshift, double Halo_Mass)
 {
   double DeltaCrit = 1.686 / Growth_Factor(redshift);
-  double ss = Sigma(redshift, HaloMass);
+  double ss = Sigma(redshift, Halo_Mass);
   
   return DeltaCrit / ss;
 }
 
-double R0(double redshift, double HaloMass) // 7,8 from Barone-Nugent and 12 from Sheth&Tormen
+double R0(double redshift, double Halo_Mass) // 7,8 from Barone-Nugent and 12 from Sheth&Tormen
 {
   double little_h = run_globals.params.Hubble_h;
   double Sigma8 = run_globals.params.Sigma8;
   
   double DeltaCrit = 1.686 / Growth_Factor(redshift);
-  double nuu = nuc(redshift, HaloMass);
+  double nuu = nuc(redshift, Halo_Mass);
   
   double gamma = 1.6;
   double a = 0.707;

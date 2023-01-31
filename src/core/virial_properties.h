@@ -27,8 +27,8 @@ extern "C"
   //double integrand_S2(double redshift, double HaloMass, double k);
   double Sigma(double redshift, double Halo_Mass);
   double SigmaNorm(double redshift);
-  double nuc(double redshift, double HaloMass);
-  double R0(double redshift, double HaloMass);
+  double nuc(double redshift, double Halo_Mass);
+  double R0(double redshift, double Halo_Mass);
   
 
 #ifdef __cplusplus
