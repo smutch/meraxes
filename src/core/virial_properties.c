@@ -340,7 +340,7 @@ double Sigma(double redshift, double Halo_Mass) // Still a tiny difference
   F.params = &p;
 
   gsl_integration_qag(
-    &F, 0, 2500, 1.0 / Hubble, 1.0e-8, WORKSIZE, GSL_INTEG_GAUSS21, workspace, &result, &abserr); //500 should be infinite
+    &F, 0, 500, 1.0 / Hubble, 1.0e-8, WORKSIZE, GSL_INTEG_GAUSS21, workspace, &result, &abserr); //500 should be infinite
 
   gsl_integration_workspace_free(workspace);
   
@@ -372,7 +372,7 @@ double SigmaNorm(double redshift) //Need this for normalization
   F.params = &p;
 
   gsl_integration_qag(
-    &F, 0, 2500, 1.0 / Hubble, 1.0e-8, WORKSIZE, GSL_INTEG_GAUSS21, workspace, &norma, &normaerr); //500 should be infinite
+    &F, 0, 500, 1.0 / Hubble, 1.0e-8, WORKSIZE, GSL_INTEG_GAUSS21, workspace, &norma, &normaerr); //500 should be infinite
 
   gsl_integration_workspace_free(workspace);
   
