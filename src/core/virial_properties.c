@@ -487,7 +487,7 @@ double R0(double redshift, double Halo_Mass) // 7,8 from Barone-Nugent and 12 fr
   
 }
 
-double 2pointCF(double Radius, double Corr_length) //both in Mpc/h
+double TwoPointCF(double Radius, double Corr_length) //both in Mpc/h
 {
   double gamma = 1.6;
   
