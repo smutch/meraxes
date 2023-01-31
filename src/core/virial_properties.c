@@ -121,8 +121,7 @@ double calculate_Rvir_2(double Mvir, double redshift) //Mvir in 10^10 Msol/h
   double OmegaM = run_globals.params.OmegaM;
   double OmegaK = run_globals.params.OmegaK;
   double OmegaLambda = run_globals.params.OmegaLambda;
-  //double zplus1 = redshift + 1;
-  double zplus1 = 1;
+  double zplus1 = redshift + 1;
 
   hubble_of_z_sq = pow(Hubble * sqrt(OmegaM * zplus1 * zplus1 * zplus1 + OmegaK * zplus1 * zplus1 + OmegaLambda), 2);
 
@@ -145,8 +144,7 @@ double calculate_Mvir_2(double Rvir, double redshift) //Rvir in Mpc/h
   double OmegaM = run_globals.params.OmegaM;
   double OmegaK = run_globals.params.OmegaK;
   double OmegaLambda = run_globals.params.OmegaLambda;
-  //double zplus1 = redshift + 1;
-  double zplus1 = 1;
+  double zplus1 = redshift + 1;
   
   hubble_of_z_sq = pow(Hubble * sqrt(OmegaM * zplus1 * zplus1 * zplus1 + OmegaK * zplus1 * zplus1 + OmegaLambda), 2);
 

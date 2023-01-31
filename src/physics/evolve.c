@@ -46,15 +46,19 @@ int evolve_galaxies(fof_group_t* fof_group, int snapshot, int NGal, int NFof, in
           if (Flag_Metals == true) { // Assign to newly formed galaxies metallicity of their cell according to a certain probability
             //mlog("PkProva is %f", MLOG_MESG, PowerSpectrum(0,0.1));
             //mlog("PkProva2 is %f", MLOG_MESG, PowerSpectrum(0,0.01));
-            double pro = Sigma(0 , 2.752e4 * 0.6715); // Check S8
-            double pro2 = Sigma(10 , 2.752e4 * 0.6715); // Check S8
-            double pro3 = Sigma(10 , 2.752e3 * 0.6715); // Check S8
+            double M8_10 = calculate_Mvir_2(8., 10);
+            double M8_0 = calculate_Mvir_2(8., 0);
+            double M8_20 = calculate_Mvir_2(8.,20);
+            //double pro = Sigma(0 , 2.752e4 * 0.6715); // Check S8
+            //double pro2 = Sigma(10 , 2.752e4 * 0.6715); // Check S8
+            //double pro3 = Sigma(10 , 2.752e3 * 0.6715); // Check S8
             //mlog("GF at z = 0 is %f", MLOG_MESG, pro);
             //mlog("GF at z = 1 is %f", MLOG_MESG, pro2);
             //mlog("GF at z = 2 is %f", MLOG_MESG, pro3);  
-            mlog("S8 at z = 0 is %f", MLOG_MESG, pro);
-            mlog("S8 at z = 10 is %f", MLOG_MESG, pro2);
-            mlog("Sigma at z = 10 is %f", MLOG_MESG, pro3);
+            mlog("S8 at z = 0 is %f", MLOG_MESG, Sigma(0, M8_0));
+            mlog("S8 at z = 10 is %f", MLOG_MESG, Sigma(10, M8_10));
+            mlog("S8 at z = 20 is %f", MLOG_MESG, Sigma(20, M8_20));
+            //mlog("Sigma at z = 10 is %f", MLOG_MESG, pro3);
             if (gal->output_index == -1) { //Not sure if Ghostflag condition is needed
               double x;
               
