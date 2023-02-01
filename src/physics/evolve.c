@@ -52,15 +52,17 @@ int evolve_galaxies(fof_group_t* fof_group, int snapshot, int NGal, int NFof, in
             if (gal->output_index == -1) { //Not sure if Ghostflag condition is needed
               double x;
               double boost_R0;
-              double boost_corr;
+              double boost_corr = 1;
               
               boost_R0 = R0(run_globals.ZZ[snapshot], gal->Mvir);
-              boost_corr = TwoPointCF(gal->MaxBubble * little_h, boost_R0);
-              mlog("BoostFactor %f", MLOG_MESG, boost_corr);
+              
+              if (gal->MaxBubble * little_h > 0)
+                boost_corr = TwoPointCF(gal->MaxBubble * little_h, boost_R0); //Adding Clustering probability
+              //mlog("BoostFactor %f", MLOG_MESG, boost_corr);
               
               x = (double)rand() / RAND_MAX;
               
-              if (x <= gal->Metal_Probability) {
+              if (x <= gal->Metal_Probability * boost_corr) {
                 gal->MetalsHotGas = gal->HotGas * gal->Metallicity_IGM;
                 gal->MetalsColdGas = gal->ColdGas * gal->Metallicity_IGM;
                 gal->MetalsEjectedGas = gal->EjectedGas * gal->Metallicity_IGM;
