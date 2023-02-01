@@ -24,6 +24,7 @@ int evolve_galaxies(fof_group_t* fof_group, int snapshot, int NGal, int NFof, in
   int MetalGridDim = run_globals.params.MetalGridDim;
   bool Flag_IRA = (bool)(run_globals.params.physics.Flag_IRA);
   bool Flag_Metals = (bool)(run_globals.params.Flag_IncludeMetalEvo);
+  double little_h = run_globals.params.Hubble_h;
 
   mlog("Doing physics...", MLOG_OPEN | MLOG_TIMERSTART);
   // pre-calculate feedback tables for each lookback snapshot
@@ -54,7 +55,7 @@ int evolve_galaxies(fof_group_t* fof_group, int snapshot, int NGal, int NFof, in
               double boost_corr;
               
               boost_R0 = R0(run_globals.ZZ[snapshot], gal->Mvir);
-              boost_corr = TwoPointCF(0.1, boost_R0);
+              boost_corr = TwoPointCF(gal->MaxBubble * little_h, boost_R0);
               mlog("BoostFactor %f", MLOG_MESG, boost_corr);
               
               x = (double)rand() / RAND_MAX;
