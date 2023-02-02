@@ -45,10 +45,6 @@ int evolve_galaxies(fof_group_t* fof_group, int snapshot, int NGal, int NFof, in
         while (gal != NULL) {
         
           if (Flag_Metals == true) { // Assign to newly formed galaxies metallicity of their cell according to a certain probability
-            //double M8_0 = calculate_Mvir_2(8., 0);
-            //double M8_10 = calculate_Mvir_2(8., 10);
-            //mlog("S8 at z = 0 is %f", MLOG_MESG, Sigma(0, M8_0));
-            //mlog("R0 at z = 8 is %f", MLOG_MESG, R0(8, 0.6751));
             if (gal->output_index == -1) { //Not sure if Ghostflag condition is needed
               double x;
               double boost_R0;
@@ -56,7 +52,7 @@ int evolve_galaxies(fof_group_t* fof_group, int snapshot, int NGal, int NFof, in
               
               if (gal->MaxBubble * little_h > 0){
                 boost_R0 = R0(run_globals.ZZ[snapshot], gal->Mvir);
-                boost_corr = 1 + TwoPointCF(gal->MaxBubble * little_h, boost_R0); //Adding Clustering probability
+                boost_corr = 1 + TwoPointCF(gal->MaxBubble * (1 + run_globals.ZZ[snapshot], boost_R0); //Adding Clustering probability, you need Rmax in comoving
                 }
               //mlog("BoostFactor %f", MLOG_MESG, boost_corr);
               
