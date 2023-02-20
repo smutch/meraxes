@@ -52,7 +52,7 @@ int evolve_galaxies(fof_group_t* fof_group, int snapshot, int NGal, int NFof, in
               
               if (gal->MaxBubble * little_h > 0){
                 boost_R0 = R0(run_globals.ZZ[snapshot], gal->Mvir);
-                boost_corr = 1 + TwoPointCF(gal->MaxBubble * (1 + run_globals.ZZ[snapshot], boost_R0); //Adding Clustering probability, you need Rmax in comoving
+                boost_corr = 1 + TwoPointCF(gal->MaxBubble * (1 + run_globals.ZZ[snapshot]), boost_R0); //Adding Clustering probability, you need Rmax in comoving
                 }
               //mlog("BoostFactor %f", MLOG_MESG, boost_corr);
               
