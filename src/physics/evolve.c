@@ -58,7 +58,7 @@ int evolve_galaxies(fof_group_t* fof_group, int snapshot, int NGal, int NFof, in
               
               x = (double)rand() / RAND_MAX;
               
-              if (x <= gal->Metal_Probability * boost_corr) {
+              if (x <= gal->Metal_Probability * (1 + boost_corr)) {
                 gal->MetalsHotGas = gal->HotGas * gal->Metallicity_IGM;
                 gal->MetalsColdGas = gal->ColdGas * gal->Metallicity_IGM;
                 gal->MetalsEjectedGas = gal->EjectedGas * gal->Metallicity_IGM;
