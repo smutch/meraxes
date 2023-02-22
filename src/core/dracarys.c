@@ -319,8 +319,8 @@ void dracarys()
     // Add a test to 2point CF (then you can cancel this)
     if (snapshot == 1) {
     double boost_R0;
-    double h_prova = 0.6751;
-    double array_values[] = h_prova * {0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100};
+    double hh = 0.6751;
+    double array_values[] = {0.01*hh, 0.02*hh, 0.03*hh, 0.04*hh, 0.05*hh, 0.06*hh, 0.07*hh, 0.08*hh, 0.09*hh, 0.1*hh, 0.2*hh, 0.3*hh, 0.4*hh, 0.5*hh, 0.6*hh, 0.7*hh, 0.8*hh, 0.9*hh, 1*hh, 2*hh, 3*hh, 4*hh, 5*hh, 6*hh, 7*hh, 8*hh, 9*hh, 10*hh, 20*hh, 30*hh, 40*hh, 50*hh, 60*hh, 70*hh, 80*hh, 90*hh, 100*hh};
     double CF_values[];
     boost_R0 = R0(10, 1.15e-2);
     CF_values = TwoPointCF(array_values, boost_R0);
