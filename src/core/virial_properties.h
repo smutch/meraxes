@@ -30,7 +30,7 @@ extern "C"
   double nuc(double redshift, double Halo_Mass);
   double R0(double redshift, double Halo_Mass);
   double TwoPointCF(double Radius, double Corr_length);
-  double integrand_2pointCF(double k);
+  //double integrand_2pointCF(double k);
   double TwoPointCF_2(double redshift, double Halo_Mass, double Radius);
   
 
