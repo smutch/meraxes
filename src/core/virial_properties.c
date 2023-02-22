@@ -442,26 +442,54 @@ double SigmaNorm(double redshift) //Need this for normalization
   return norma;   
 }
 
-/*typedef struct
+typedef struct
 {
-  double Radius;
-} int_2CF_params;*/
+  double Radius, redshift;
+} int_2CF_params;
 
-/*double integrand_2pointCF(double k, void* params)
+double integrand_2pointCF(double k, void* params)
 {
 
-  int_2CF_params* p = (int_S2_params*)params;
+  int_2CF_params* p = (int_2CF_params*)params;
   
-  double Radius = calculate_Rvir_2(p->HaloMass, p->redshift);
-  //mlog("Radius is %f", MLOG_MESG, Radius);
+  //double Radius = calculate_Rvir_2(p->HaloMass, p->redshift);
   
   double PS = PowerSpectrum(p->redshift, k);
   
-  double j1 = (sin(k * Radius) - (k * Radius * cos(k * Radius))) / (k * Radius);
+  //double j1 = (sin(k * Radius) - (k * Radius * cos(k * Radius))) / (k * Radius);
   
-  return k * k * PS / (2 * M_PI * M_PI) * pow(3 * j1 / (k * Radius), 2);
+  //return k * k * PS / (2 * M_PI * M_PI) * pow(3 * j1 / (k * Radius), 2);
+  return k * k * PS / (2 * M_PI * M_PI) * sin(k * p->Radius) / (k * p->Radius);
+}
 
-}*/
+double TwoPointCF_2(double redshift, double Halo_Mass, double Radius) // 2nd attempt, this is the basic one that depends only on the radius on top of which you need to apply the bias
+{
+
+  int_S2_params p;
+
+  p.redshift = redshift; 
+  p.Radius = Radius;
+  double nuu = nuc(redshift, Halo_Mass);
+  double DeltaCrit = 1.686 / Growth_Factor(redshift); // Double check this later, in Mo & White they just do 1.686 * (1 + redshift_2)
+  double LinearBias = 1 + ((nuu * nuu - 1) / DeltaCrit);
+  
+  gsl_function F;
+  gsl_integration_workspace* workspace;
+  
+  double result; 
+  double abserr;
+
+  workspace = gsl_integration_workspace_alloc(WORKSIZE);
+  F.function = &integrand_2pointCF;
+  F.params = &p;
+
+  gsl_integration_qag(
+    &F, 0, 500, 1.0 / Hubble, 1.0e-8, WORKSIZE, GSL_INTEG_GAUSS21, workspace, &result, &abserr); //500 should be infinite
+
+  gsl_integration_workspace_free(workspace);
+  
+  return result * LinearBias * LinearBias;   
+}
 
 double nuc(double redshift, double Halo_Mass)
 {
@@ -471,7 +499,7 @@ double nuc(double redshift, double Halo_Mass)
   return DeltaCrit / ss;
 }
 
-double R0(double redshift, double Halo_Mass) // 7,8 from Barone-Nugent and 12 from Sheth&Tormen, result in Mpc/h
+double R0(double redshift, double Halo_Mass) // 7,8 from Barone-Nugent and 12 from Sheth&Tormen, result in Mpc/h, Probably there is a problem with this!
 {
   double little_h = run_globals.params.Hubble_h;
   double Sigma8 = run_globals.params.Sigma8;
