@@ -28,6 +28,7 @@ extern "C"
   double Sigma(double redshift, double Halo_Mass);
   double SigmaNorm(double redshift);
   double nuc(double redshift, double Halo_Mass);
+  double nuc_2(double redshift, double Halo_Mass);
   double R0(double redshift, double Halo_Mass);
   double TwoPointCF(double Radius, double Corr_length);
   //double integrand_2pointCF(double k);

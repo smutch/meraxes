@@ -470,8 +470,10 @@ double TwoPointCF_2(double redshift, double Halo_Mass, double Radius) // 2nd att
   p.redshift = redshift; 
   p.Radius = Radius;
   double Hubble = run_globals.Hubble;
-  double nuu = nuc(redshift, Halo_Mass);
-  double DeltaCrit = 1.686 / Growth_Factor(redshift); // Double check this later, in Mo & White they just do 1.686 * (1 + redshift_2)
+  //double nuu = nuc(redshift, Halo_Mass);
+  double nuu = nuc_2(redshift, Halo_Mass);
+  //double DeltaCrit = 1.686 / Growth_Factor(redshift); // Double check this later, in Mo & White they just do 1.686 * (1 + redshift_2)
+  double DeltaCrit = 1.686 * (1 + redshift);
   double LinearBias = 1 + ((nuu * nuu - 1) / DeltaCrit);
   
   gsl_function F;
@@ -489,12 +491,22 @@ double TwoPointCF_2(double redshift, double Halo_Mass, double Radius) // 2nd att
 
   gsl_integration_workspace_free(workspace);
   
+  mlog("AutoCF %f", MLOG_MESG, result);
+  
   return result * LinearBias * LinearBias;   
 }
 
 double nuc(double redshift, double Halo_Mass)
 {
   double DeltaCrit = 1.686 / Growth_Factor(redshift);
+  double ss = Sigma(redshift, Halo_Mass);
+  
+  return DeltaCrit / ss;
+}
+
+double nuc_2(double redshift, double Halo_Mass)
+{
+  double DeltaCrit = 1.686 * (1 + redshift);
   double ss = Sigma(redshift, Halo_Mass);
   
   return DeltaCrit / ss;
