@@ -486,8 +486,8 @@ double TwoPointCF_2(double redshift, double Halo_Mass, double Radius) // 2nd att
   F.function = &integrand_2pointCF;
   F.params = &p;
 
-  gsl_integration_qag(
-    &F, 0, 500, 1.0 / Hubble, 1.0e-8, WORKSIZE, GSL_INTEG_GAUSS21, workspace, &result, &abserr); //500 should be infinite
+  gsl_integration_qao(
+    &F, 0, 500, 1.0 / Hubble, 1.0e-8, WORKSIZE, GSL_INTEG_GAUSS21, workspace, &result, &abserr); //500 should be infinite, qao or qag?
 
   gsl_integration_workspace_free(workspace);
   
