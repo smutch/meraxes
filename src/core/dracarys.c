@@ -13,6 +13,7 @@
 #include "metal_evo.h"
 #include "save.h"
 #include "tree_flags.h"
+#include "virial_properties.h" //For the test
 
 static inline bool check_if_valid_host(halo_t* halo)
 {
@@ -315,7 +316,17 @@ void dracarys()
       assign_probability_to_galaxies(ngals_in_metal_slabs, snapshot, 2);
       assign_probability_to_galaxies(ngals_in_metal_slabs, snapshot, 3); 
     }
-
+    // Add a test to 2point CF (then you can cancel this)
+    if (snapshot == 1) {
+    double boost_R0;
+    double h_prova = 0.6751;
+    double array_values[] = h_prova * {0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100};
+    double CF_values[];
+    boost_R0 = R0(10, 1.15e-2);
+    CF_values = TwoPointCF(array_values, boost_R0);
+    mlog("BoostFactor %f Radius %f", MLOG_MESG, CF_values, array_values);
+    }
+    // (end of the test)
     // Do the physics
     if (NGal > 0)
       nout_gals = evolve_galaxies(fof_group, snapshot, NGal, trees_info.n_fof_groups, &gal_counter_Pop3, &gal_counter_Pop2, &gal_counter_enriched);
