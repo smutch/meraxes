@@ -465,7 +465,7 @@ double integrand_2pointCF(double k, void* params)
 double TwoPointCF_2(double redshift, double Halo_Mass, double Radius) // 2nd attempt, this is the basic one that depends only on the radius on top of which you need to apply the bias
 {
 
-  int_S2_params p;
+  int_2CF_params p;
 
   p.redshift = redshift; 
   p.Radius = Radius;
