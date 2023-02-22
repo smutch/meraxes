@@ -469,6 +469,7 @@ double TwoPointCF_2(double redshift, double Halo_Mass, double Radius) // 2nd att
 
   p.redshift = redshift; 
   p.Radius = Radius;
+  double Hubble = run_globals.Hubble;
   double nuu = nuc(redshift, Halo_Mass);
   double DeltaCrit = 1.686 / Growth_Factor(redshift); // Double check this later, in Mo & White they just do 1.686 * (1 + redshift_2)
   double LinearBias = 1 + ((nuu * nuu - 1) / DeltaCrit);
