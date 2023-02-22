@@ -326,6 +326,7 @@ void dracarys()
     for (int iii = 0; iii < 37; iii++) {
       CF_values[iii] = TwoPointCF(array_values[iii], boost_R0);
       mlog("CFvalue %f Radius %f", MLOG_MESG, CF_values[iii], array_values[iii]);
+      }
     }
     // (end of the test)
     // Do the physics
