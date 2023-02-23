@@ -4,7 +4,7 @@
 #include "meraxes.h"
 
 // Below gives grid sizes for the interpolation arrays
-#define x_int_NCFVALS 36000 //Number of CF vals in your table
+#define x_int_NCFVALS 9600 //Number of CF vals in your table
 #define MAX_RAD 500 //Largest Radius value in your table
 
 #ifdef __cplusplus
