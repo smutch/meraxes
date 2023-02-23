@@ -5,7 +5,7 @@
 #include <gsl/gsl_integration.h>
 
 static double x_int_CFvals[x_int_NCFVALS];
-static float x_int_zvals[x_int_NCFVALS];
+static double x_int_zvals[x_int_NCFVALS];
 static double x_int_radvals[x_int_NCFVALS];
 
 static inline double E_z(double z, double OmegaM, double OmegaK, double OmegaLambda)
@@ -520,7 +520,7 @@ double read_SpatialCF(double redshift, double Radius) //Radius in cMpc/h
           mlog("Error, you didn't find the radius value!\n", MLOG_MESG);
           exit(1);
           }
-        if (abs((Radius - x_int_radvals[ii]) / Radius) < 0.01) {
+        if (abs((Radius - x_int_radvals[ii]) / Radius) < 0.1) {
           R_index = ii;
           break;
           }
