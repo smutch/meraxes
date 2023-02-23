@@ -5,7 +5,7 @@
 #include <gsl/gsl_integration.h>
 
 static double x_int_CFvals[x_int_NCFVALS];
-static double x_int_zvals[x_int_NCFVALS];
+static float x_int_zvals[x_int_NCFVALS];
 static double x_int_radvals[x_int_NCFVALS];
 
 static inline double E_z(double z, double OmegaM, double OmegaK, double OmegaLambda)
