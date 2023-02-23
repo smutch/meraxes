@@ -481,7 +481,7 @@ void initialize_interpCF_arrays()
   
   if (run_globals.mpi_rank == 0) {
     sprintf(input_file_nameCF,"%s/%s", run_globals.params.TablesForXHeatingDir, input_baseCF); // ATM is in the same location, you might want change it later!
-    input_file = fopen(input_file_nameCF, modeCF);
+    input_fileCF = fopen(input_file_nameCF, modeCF);
     
     if (input_fileCF == NULL) {
         mlog("Can't open input file %s!\n", MLOG_MESG, input_file_nameCF);
