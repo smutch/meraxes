@@ -484,7 +484,7 @@ void initialize_interpCF_arrays()
     input_file = fopen(input_file_nameCF, modeCF);
     
     if (input_fileCF == NULL) {
-        mlog("Can't open input file %s!\n", MLOG_MESG, input_file_name);
+        mlog("Can't open input file %s!\n", MLOG_MESG, input_file_nameCF);
         exit(1);
       }
     
