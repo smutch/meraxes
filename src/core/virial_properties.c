@@ -468,41 +468,43 @@ double integrand_2pointCF(double k, void* params)
 
 void initialize_interpCF_arrays()
 {
-  FILE* input_file;
-  char input_file_name[500];
-  char input_base[] = "SpatialCF.dat";
-  char mode[10] = "r";
+  mlog("Tunz!\n", MLOG_MESG);
+  FILE* input_fileCF;
+  char input_file_nameCF[500];
+  char input_baseCF[] = "SpatialCF.dat";
+  char modeCF[10] = "r";
   
   float z_vals, R_vals, CF_vals;
   
   int i;
+  mlog("Tunz2!\n", MLOG_MESG);
   
   if (run_globals.mpi_rank == 0) {
-    sprintf(input_file_name,"%s/%s", run_globals.params.TablesForXHeatingDir, input_base); // ATM is in the same location, you might want change it later!
-    input_file = fopen(input_file_name, mode);
+    sprintf(input_file_nameCF,"%s/%s", run_globals.params.TablesForXHeatingDir, input_baseCF); // ATM is in the same location, you might want change it later!
+    input_file = fopen(input_file_nameCF, modeCF);
     
-    if (input_file == NULL) {
+    if (input_fileCF == NULL) {
         mlog("Can't open input file %s!\n", MLOG_MESG, input_file_name);
         exit(1);
       }
     
     // Read in data table
       for (i = 0; i < x_int_NCFVALS; i++) {
-        fscanf(input_file,
+        fscanf(input_fileCF,
                "%g %g %g",
                &x_int_zvals[i],
                &x_int_radvals[i],
                &x_int_CFvals[i]);
       }
 
-      fclose(input_file);
+      fclose(input_fileCF);
     }
     
   // broadcast the values to all cores
   MPI_Bcast(&x_int_zvals, sizeof(x_int_zvals), MPI_BYTE, 0, run_globals.mpi_comm);
   MPI_Bcast(&x_int_radvals, sizeof(x_int_radvals), MPI_BYTE, 0, run_globals.mpi_comm);
   MPI_Bcast(&x_int_CFvals, sizeof(x_int_CFvals), MPI_BYTE, 0, run_globals.mpi_comm); 
-  mlog("Tunz!\n", MLOG_MESG);   
+  mlog("Tunz3!\n", MLOG_MESG);   
 }
 
 double read_SpatialCF(double redshift, double Radius) //Radius in cMpc/h
