@@ -17,6 +17,7 @@
 #include "reionization_modifiers.h"
 #include "save.h"
 #include "stellar_feedback.h"
+#include "virial_properties.h"
 
 static void init_gpu()
 {
@@ -257,6 +258,9 @@ void init_meraxes()
 
   // read in the cooling functions
   read_cooling_functions();
+  
+  // initialize CF tables
+  initialize_interpCF_arrays();
 
   // read in the stellar feedback tables
   read_stellar_feedback_tables();
