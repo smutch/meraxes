@@ -4,8 +4,8 @@
 #include "virial_properties.h"
 #include <gsl/gsl_integration.h>
 
-static double x_int_CFvals[x_int_NCFVALS];
-static double x_int_zvals[x_int_NCFVALS];
+static float x_int_CFvals[x_int_NCFVALS];
+static float x_int_zvals[x_int_NCFVALS];
 static double x_int_radvals[x_int_NCFVALS];
 
 static inline double E_z(double z, double OmegaM, double OmegaK, double OmegaLambda)
@@ -490,7 +490,7 @@ void initialize_interpCF_arrays()
     // Read in data table
       for (i = 0; i < x_int_NCFVALS; i++) {
         fscanf(input_fileCF,
-               "%f %f %f",
+               "%g %g %g",
                &x_int_zvals[i],
                &x_int_radvals[i],
                &x_int_CFvals[i]);
