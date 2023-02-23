@@ -501,7 +501,8 @@ void initialize_interpCF_arrays()
   // broadcast the values to all cores
   MPI_Bcast(&x_int_zvals, sizeof(x_int_zvals), MPI_BYTE, 0, run_globals.mpi_comm);
   MPI_Bcast(&x_int_radvals, sizeof(x_int_radvals), MPI_BYTE, 0, run_globals.mpi_comm);
-  MPI_Bcast(&x_int_CFvals, sizeof(x_int_CFvals), MPI_BYTE, 0, run_globals.mpi_comm);    
+  MPI_Bcast(&x_int_CFvals, sizeof(x_int_CFvals), MPI_BYTE, 0, run_globals.mpi_comm); 
+  mlog("Tunz!\n", MLOG_MESG);   
 }
 
 double read_SpatialCF(double redshift, double Radius) //Radius in cMpc/h
