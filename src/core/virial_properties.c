@@ -532,21 +532,21 @@ double read_SpatialCF(double redshift, double Radius) //Radius in cMpc/h
   return x_int_CFvals[R_index];
 }
 
-double TwoPointCF_2(double redshift, double Halo_Mass, double Radius) // 2nd attempt, this is the basic one that depends only on the radius on top of which you need to apply the bias
+double TwoPointCF_2(double redshift, double Halo_Mass, double SpatialCFval) // 2nd attempt, reading from tables
 {
 
-  int_2CF_params p;
+  //int_2CF_params p;
 
-  p.redshift = redshift; 
-  p.Radius = Radius;
+  //p.redshift = redshift; 
+  //p.Radius = Radius;
   double Hubble = run_globals.Hubble;
-  //double nuu = nuc(redshift, Halo_Mass);
-  double nuu = nuc_2(redshift, Halo_Mass);
-  //double DeltaCrit = 1.686 / Growth_Factor(redshift); // Double check this later, in Mo & White they just do 1.686 * (1 + redshift_2)
-  double DeltaCrit = 1.686 * (1 + redshift);
+  double nuu = nuc(redshift, Halo_Mass);
+  //double nuu = nuc_2(redshift, Halo_Mass);
+  double DeltaCrit = 1.686 / Growth_Factor(redshift); // Double check this later, in Mo & White they just do 1.686 * (1 + redshift_2)
+  //double DeltaCrit = 1.686 * (1 + redshift);
   double LinearBias = 1 + ((nuu * nuu - 1) / DeltaCrit);
   
-  gsl_function F;
+  /*gsl_function F;
   gsl_integration_workspace* workspace;
   
   double result; 
@@ -559,11 +559,11 @@ double TwoPointCF_2(double redshift, double Halo_Mass, double Radius) // 2nd att
   gsl_integration_qag(
     &F, 1.0e-7, 1000, 1.0 / Hubble, 1.0e-8, WORKSIZE, GSL_INTEG_GAUSS61, workspace, &result, &abserr); //500 should be infinite, qao or qag?
 
-  gsl_integration_workspace_free(workspace);
+  gsl_integration_workspace_free(workspace);*/
   
-  mlog("AutoCF %f", MLOG_MESG, result);
+  mlog("AutoCF %f", MLOG_MESG, SpatialCFval);
   
-  return result * LinearBias * LinearBias;   
+  return SpatialCFval * LinearBias * LinearBias;   
 }
 
 double nuc(double redshift, double Halo_Mass)
