@@ -471,8 +471,8 @@ void initialize_interpCF_arrays()
   mlog("Tunz!\n", MLOG_MESG);
   FILE* input_fileCF;
   char input_file_nameCF[500];
-  //char input_baseCF[] = "SpatialCF.dat";
-  char input_tail[100] = ".dat";
+  char input_baseCF[] = "SpatialCF.dat";
+  //char input_tail[100] = ".dat";
   char modeCF[10] = "r";
   
   float z_vals, R_vals, CF_vals;
@@ -481,7 +481,7 @@ void initialize_interpCF_arrays()
   mlog("Tunz2!\n", MLOG_MESG);
   
   if (run_globals.mpi_rank == 0) {
-    sprintf(input_file_nameCF,"%s/%sSpatialCF", run_globals.params.TablesForXHeatingDir, input_tail); // ATM is in the same location, you might want change it later!
+    sprintf(input_file_nameCF,"%s/%s", run_globals.params.TablesForXHeatingDir, input_baseCF); // ATM is in the same location, you might want change it later!
     input_fileCF = fopen(input_file_nameCF, modeCF);
     
     if (input_fileCF == NULL) {
