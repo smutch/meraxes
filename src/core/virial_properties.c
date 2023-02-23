@@ -533,7 +533,7 @@ double read_SpatialCF(double redshift, double Radius) //Radius in cMpc/h
   return x_int_CFvals[R_index];
 }
 
-double TwoPointCF_2(double redshift, double Halo_Mass, double SpatialCFval) // 2nd attempt, reading from tables
+double TwoPointCF_2(double redshift, double Halo_Mass, double Radius) // 2nd attempt, reading from tables
 {
 
   //int_2CF_params p;
@@ -545,6 +545,8 @@ double TwoPointCF_2(double redshift, double Halo_Mass, double SpatialCFval) // 2
   //double nuu = nuc_2(redshift, Halo_Mass);
   double DeltaCrit = 1.686 / Growth_Factor(redshift); // Double check this later, in Mo & White they just do 1.686 * (1 + redshift_2)
   //double DeltaCrit = 1.686 * (1 + redshift);
+  
+  double SpatialCFval = read_SpatialCF(redshift, Radius);
   double LinearBias = 1 + ((nuu * nuu - 1) / DeltaCrit);
   
   /*gsl_function F;
