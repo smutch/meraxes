@@ -490,10 +490,10 @@ void initialize_interpCF_arrays()
     // Read in data table
       for (i = 0; i < x_int_NCFVALS; i++) {
         fscanf(input_fileCF,
-               "%g %g %g",
-               &(double)x_int_zvals[i],
-               &(double)x_int_radvals[i],
-               &(double)x_int_CFvals[i]);
+               "%f %f %f",
+               &x_int_zvals[i],
+               &x_int_radvals[i],
+               &x_int_CFvals[i]);
       }
 
       fclose(input_fileCF);
