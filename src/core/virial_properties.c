@@ -4,6 +4,10 @@
 #include "virial_properties.h"
 #include <gsl/gsl_integration.h>
 
+static float x_int_CFvals[x_int_NCFVALS];
+static float x_int_zvals[x_int_NCFVALS];
+static float x_int_radvals[x_int_NCFVALS];
+
 static inline double E_z(double z, double OmegaM, double OmegaK, double OmegaLambda)
 {
   // Function stolen and adapted from gbpCosmo
@@ -460,6 +464,72 @@ double integrand_2pointCF(double k, void* params)
   
   //return k * k * PS / (2 * M_PI * M_PI) * pow(3 * j1 / (k * Radius), 2);
   return k * k * PS / (2 * M_PI * M_PI) * sin(k * p->Radius) / (k * p->Radius);
+}
+
+void initialize_interpCF_arrays()
+{
+  FILE* input_file;
+  char input_file_name[500];
+  char input_base[] = "SpatialCF.dat";
+  char mode[10] = "r";
+  
+  float z_vals, R_vals, CF_vals;
+  
+  int i;
+  
+  if (run_globals.mpi_rank == 0) {
+    sprintf(input_file_name,"%s/%s", run_globals.params.TablesForXHeatingDir, input_base); // ATM is in the same location, you might want change it later!
+    input_file = fopen(input_file_name, mode);
+    
+    if (input_file == NULL) {
+        mlog("Can't open input file %s!\n", MLOG_MESG, input_file_name);
+        exit(1);
+      }
+    
+    // Read in data table
+      for (i = 0; i < x_int_NCFVALS; i++) {
+        fscanf(input_file,
+               "%g %g %g",
+               &x_int_zvals[i],
+               &x_int_radvals[i],
+               &x_int_CFvals[i]);
+      }
+
+      fclose(input_file);
+    }
+    
+  // broadcast the values to all cores
+  MPI_Bcast(&x_int_zvals, sizeof(x_int_zvals), MPI_BYTE, 0, run_globals.mpi_comm);
+  MPI_Bcast(&x_int_radvals, sizeof(x_int_radvals), MPI_BYTE, 0, run_globals.mpi_comm);
+  MPI_Bcast(&x_int_CFvals, sizeof(x_int_CFvals), MPI_BYTE, 0, run_globals.mpi_comm);    
+}
+
+double read_SpatialCF(double redshift, double Radius) //Radius in cMpc/h
+{
+  int z_index;
+  int R_index;
+  int i;
+  int ii;
+  
+  for (i = 0; i < x_int_NCFVALS; i++) {
+    if (abs(redshift - x_int_zvals[i]) <= 0.01) {
+      z_index = i
+      for (ii = z_index; ii < x_int_NCFVALS; i++) {
+        if (abs(x_int_zvals[ii] - redshift) > 0.01 && Radius < MAX_RAD) {
+          mlog("Error, you didn't find the radius value!\n", MLOG_MESG);
+          exit(1);
+          }
+        if (abs((Radius - x_int_radvals[ii]) / Radius) < 0.01) {
+          R_index = ii;
+          break;
+          }
+        }
+      if (Radius > MAX_RAD) // If that's the case take the largest value
+        R_index = ii;
+      break;
+      }
+    }      
+  return x_int_CFvals[R_index];
 }
 
 double TwoPointCF_2(double redshift, double Halo_Mass, double Radius) // 2nd attempt, this is the basic one that depends only on the radius on top of which you need to apply the bias
