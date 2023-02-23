@@ -4,7 +4,7 @@
 #include "virial_properties.h"
 #include <gsl/gsl_integration.h>
 
-static double x_int_zvals[x_int_NCFVALS];
+static float x_int_zvals[x_int_NCFVALS];
 static float x_int_radvals[x_int_NCFVALS];
 static float x_int_CFvals[x_int_NCFVALS];
 
@@ -471,10 +471,7 @@ void initialize_interpCF_arrays()
   FILE* input_fileCF;
   char input_file_nameCF[500];
   char input_baseCF[] = "SpatialCF.dat";
-  //char input_tail[100] = ".dat";
   char modeCF[10] = "r";
-  
-  float z_vals, R_vals, CF_vals;
   
   int i;
   
@@ -531,8 +528,8 @@ double read_SpatialCF(double redshift, double Radius) //Radius in cMpc/h
       }
     }
     mlog("Index value %d %d :", MLOG_MESG, R_index,z_index);
-    mlog("Red value %d :", MLOG_MESG, x_int_zvals[z_index]);
-    mlog("Radius value %d :", MLOG_MESG, x_int_radvals[R_index]);         
+    mlog("Red value %f :", MLOG_MESG, x_int_zvals[z_index]);
+    mlog("Radius value %f :", MLOG_MESG, x_int_radvals[R_index]);         
   return x_int_CFvals[R_index];
 }
 
