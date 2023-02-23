@@ -500,7 +500,6 @@ void initialize_interpCF_arrays()
   MPI_Bcast(&x_int_zvals, sizeof(x_int_zvals), MPI_BYTE, 0, run_globals.mpi_comm);
   MPI_Bcast(&x_int_radvals, sizeof(x_int_radvals), MPI_BYTE, 0, run_globals.mpi_comm);
   MPI_Bcast(&x_int_CFvals, sizeof(x_int_CFvals), MPI_BYTE, 0, run_globals.mpi_comm);
-  mlog("Red value %f :", MLOG_MESG, x_int_zvals); 
 }
 
 double read_SpatialCF(double redshift, double Radius) //Radius in cMpc/h
@@ -529,7 +528,7 @@ double read_SpatialCF(double redshift, double Radius) //Radius in cMpc/h
       }
     }
     mlog("Index value %d %d:", MLOG_MESG, z_index, R_index);
-    mlog("Red value %f :", MLOG_MESG, x_int_zvals[z_index]);
+    mlog("Red value %f :", MLOG_MESG, x_int_zvals[6078]);
     mlog("Radius value %f :", MLOG_MESG, x_int_radvals[R_index]);         
   return x_int_CFvals[R_index];
 }
