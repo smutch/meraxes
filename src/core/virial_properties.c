@@ -468,7 +468,6 @@ double integrand_2pointCF(double k, void* params)
 
 void initialize_interpCF_arrays()
 {
-  mlog("Tunz!\n", MLOG_MESG);
   FILE* input_fileCF;
   char input_file_nameCF[500];
   char input_baseCF[] = "SpatialCF.dat";
@@ -478,7 +477,6 @@ void initialize_interpCF_arrays()
   float z_vals, R_vals, CF_vals;
   
   int i;
-  mlog("Tunz2!\n", MLOG_MESG);
   
   if (run_globals.mpi_rank == 0) {
     sprintf(input_file_nameCF,"%s/%s", run_globals.params.TablesForXHeatingDir, input_baseCF); // ATM is in the same location, you might want change it later!
@@ -505,7 +503,6 @@ void initialize_interpCF_arrays()
   MPI_Bcast(&x_int_zvals, sizeof(x_int_zvals), MPI_BYTE, 0, run_globals.mpi_comm);
   MPI_Bcast(&x_int_radvals, sizeof(x_int_radvals), MPI_BYTE, 0, run_globals.mpi_comm);
   MPI_Bcast(&x_int_CFvals, sizeof(x_int_CFvals), MPI_BYTE, 0, run_globals.mpi_comm); 
-  mlog("Tunz3!\n", MLOG_MESG);   
 }
 
 double read_SpatialCF(double redshift, double Radius) //Radius in cMpc/h
@@ -533,7 +530,9 @@ double read_SpatialCF(double redshift, double Radius) //Radius in cMpc/h
       break;
       }
     }
-    mlog("Index value %d :", MLOG_MESG, R_index);       
+    mlog("Index value %d %d :", MLOG_MESG, R_index,z_index);
+    mlog("Red value %d :", MLOG_MESG, x_int_zvals[z_index]);
+    mlog("Radius value %d :", MLOG_MESG, x_int_radvals[R_index]);         
   return x_int_CFvals[R_index];
 }
 
