@@ -491,9 +491,9 @@ void initialize_interpCF_arrays()
       for (i = 0; i < x_int_NCFVALS; i++) {
         fscanf(input_fileCF,
                "%g %g %g",
-               &x_int_zvals[i],
-               &x_int_radvals[i],
-               &x_int_CFvals[i]);
+               &(double)x_int_zvals[i],
+               &(double)x_int_radvals[i],
+               &(double)x_int_CFvals[i]);
       }
 
       fclose(input_fileCF);
