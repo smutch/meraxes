@@ -3,6 +3,10 @@
 
 #include "meraxes.h"
 
+// Below gives grid sizes for the interpolation arrays
+#define x_int_NCFVALS 36000 //Number of CF vals in your table
+#define MAX_RAD 500 //Largest Radius value in your table
+
 #ifdef __cplusplus
 extern "C"
 {
@@ -33,6 +37,7 @@ extern "C"
   double TwoPointCF(double Radius, double Corr_length);
   //double integrand_2pointCF(double k);
   double TwoPointCF_2(double redshift, double Halo_Mass, double Radius);
+  void initialize_interpCF_arrays(void);
   
 
 #ifdef __cplusplus
