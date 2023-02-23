@@ -36,7 +36,7 @@ extern "C"
   double R0(double redshift, double Halo_Mass);
   double TwoPointCF(double Radius, double Corr_length);
   //double integrand_2pointCF(double k);
-  double TwoPointCF_2(double redshift, double Halo_Mass, double SpatialCFval);
+  double TwoPointCF_2(double redshift, double Halo_Mass, double Radius);
   void initialize_interpCF_arrays(void);
   double read_SpatialCF(double redshift, double Radius);
   
