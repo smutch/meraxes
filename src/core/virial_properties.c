@@ -504,10 +504,10 @@ void initialize_interpCF_arrays()
 
 double read_SpatialCF(double redshift, double Radius) //Radius in cMpc/h
 {
-  int z_index;
-  int R_index;
-  int i;
-  int ii;
+  int z_index = 0;
+  int R_index = 0;
+  int i = 0;
+  int ii = 0;
   
   for (i = 0; i < x_int_NCFVALS; i++) {
     if (abs(redshift - x_int_zvals[i]) <= 0.05) {
