@@ -510,7 +510,7 @@ double read_SpatialCF(double redshift, double Radius) //Radius in cMpc/h
   int ii = 0;
   
   for (i = 0; i < x_int_NCFVALS; i++) {
-    if (abs(x_int_zvals[i] - redshift) <= 0.05) {
+    if (abs(x_int_zvals[i] - redshift) <= 0.005) {
       z_index = i;
       for (ii = z_index; ii < x_int_NCFVALS; ii++) {
         if (abs(x_int_zvals[ii] - redshift) > 0.05 && Radius < MAX_RAD) {
@@ -528,7 +528,7 @@ double read_SpatialCF(double redshift, double Radius) //Radius in cMpc/h
       }
     }
     mlog("Index value %d %d:", MLOG_MESG, z_index, R_index);
-    mlog("Red value %f :", MLOG_MESG, x_int_zvals[6078]);
+    mlog("Red value %f :", MLOG_MESG, x_int_zvals[z_index]);
     mlog("Radius value %f :", MLOG_MESG, x_int_radvals[R_index]);         
   return x_int_CFvals[R_index];
 }
