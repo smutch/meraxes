@@ -549,7 +549,7 @@ double TwoPointCF_2(double redshift, double Halo_Mass, double Radius) // 2nd att
   
   double SpatialCFval = read_SpatialCF(redshift, Radius);
   //double LinearBias = 1 + ((nuu * nuu - 1) / DeltaCrit);
-  LinearBias = 1 + ((nuu * nuu - 1) / 1.686)
+  LinearBias = 1 + ((nuu * nuu - 1) / 1.686);
   
   /*gsl_function F;
   gsl_integration_workspace* workspace;
