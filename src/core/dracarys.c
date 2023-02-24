@@ -321,16 +321,13 @@ void dracarys()
     double boost_R0;
     double hh = 0.6751;
     double array_values[37] = {0.01*hh, 0.02*hh, 0.03*hh, 0.04*hh, 0.05*hh, 0.06*hh, 0.07*hh, 0.08*hh, 0.09*hh, 0.1*hh, 0.2*hh, 0.3*hh, 0.4*hh, 0.5*hh, 0.6*hh, 0.7*hh, 0.8*hh, 0.9*hh, 1*hh, 2*hh, 3*hh, 4*hh, 5*hh, 6*hh, 7*hh, 8*hh, 9*hh, 10*hh, 20*hh, 30*hh, 40*hh, 50*hh, 60*hh, 70*hh, 80*hh, 90*hh, 100*hh};
-    //double CF_values[37];
-    double CF_value1 = TwoPointCF_2(20.0, 1e-3*hh, 0.01*hh);
-    double CF_value2 = TwoPointCF_2(20.0, 1e-4*hh, 0.01*hh); 
-    mlog("CFvalues %f %f", MLOG_MESG, CF_value1, CF_value2);
+    double CF_values[37];
     //boost_R0 = R0(10, 1.15e-2);
-    //for (int iii = 0; iii < 37; iii++) {
-      //CF_values[iii] = TwoPointCF(array_values[iii], boost_R0);
-      //CF_values[iii] = TwoPointCF_2(10.0, 1.15e-2, array_values[iii]);
-      //mlog("CFvalue %f Radius %f", MLOG_MESG, CF_values[iii], array_values[iii] / hh);
-      //}
+    for (int iii = 0; iii < 37; iii++) {
+      CF_values[iii] = TwoPointCF(array_values[iii], boost_R0);
+      CF_values[iii] = TwoPointCF_2(10.0, 1.15e-2, array_values[iii]);
+      mlog("CFvalue %f Radius %f", MLOG_MESG, CF_values[iii], array_values[iii] / hh);
+      }
     }
     // (end of the test)
     // Do the physics
