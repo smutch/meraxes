@@ -135,7 +135,7 @@ double calculate_Rvir_2(double Mvir, double redshift) //Mvir in 10^10 Msol/h
 
   fac = 1 / (Delta * 4 * M_PI / 3.0 * rhocrit);
 
-  return cbrt(Mvir * fac);
+  return cbrt(Mvir * fac); //Rvir in Physical units!!
 }
 
 double calculate_Mvir_2(double Rvir, double redshift) //Rvir in Mpc/h
@@ -373,8 +373,10 @@ typedef struct
 double integrand_S2(double k, void* params)
 {
   int_S2_params* p = (int_S2_params*)params;
+  double little_h = run_globals.params.Hubble_h;
   
-  double Radius = calculate_Rvir_2(p->HaloMass, p->redshift);
+  //double Radius = calculate_Rvir_2(p->HaloMass, p->redshift);
+  double Radius = calculate_Rvir_2(p->HaloMass, p->redshift) * (1 + p->redshift) * little_h; //Compute Rvir in cMpc/h
   //mlog("Radius is %f", MLOG_MESG, Radius);
   
   double PS = PowerSpectrum(p->redshift, k);
