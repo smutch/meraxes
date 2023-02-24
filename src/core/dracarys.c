@@ -324,7 +324,8 @@ void dracarys()
     double CF_values[37];
     //double Mvir_values[37];
     //double Sigma_values[37];
-    double TF_values[40];
+    //double TF_values[40];
+    double Pk_values[40];
     //double Sigmaprova = Sigma(10, calculate_Mvir_2(9, 10));
     //double Sigmaprova2 = Sigma(10, calculate_Mvir_2(8, 10));
     //double Sigmaprova3 = Sigma(10, calculate_Mvir_2(7, 10));
@@ -333,7 +334,8 @@ void dracarys()
     for (int iii = 0; iii < 40; iii++) {
       //Mvir_values[iii] = calculate_Mvir_2(array_values[iii] / hh, 10);
       //Sigma_values[iii] = Sigma(10, Mvir_values[iii]);
-      TF_values[iii] = Transfer_function(array_values[iii]);
+      //TF_values[iii] = Transfer_function(array_values[iii]);
+      Pk_values[iii] = PowerSpectrum(10, array_values[iii]);
       //CF_values[iii] = TwoPointCF(array_values[iii], boost_R0);
       //CF_values[iii] = TwoPointCF_2(10.0, 1.15e-2, array_values[iii]);
       //mlog("CFvalue %f Radius %f", MLOG_MESG, CF_values[iii], array_values[iii] / hh);
