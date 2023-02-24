@@ -548,8 +548,8 @@ double TwoPointCF_2(double redshift, double Halo_Mass, double Radius) // 2nd att
   //double DeltaCrit = 1.686 / (1.686 * (1 + redshift));
   
   double SpatialCFval = read_SpatialCF(redshift, Radius);
-  //double LinearBias = 1 + ((nuu * nuu - 1) / DeltaCrit);
-  double LinearBias = 1 + ((nuu * nuu - 1) / 1.686);
+  double LinearBias = 1 + ((nuu * nuu - 1) / DeltaCrit);
+  //double LinearBias = 1 + ((nuu * nuu - 1) / 1.686);
   
   /*gsl_function F;
   gsl_integration_workspace* workspace;
@@ -567,8 +567,11 @@ double TwoPointCF_2(double redshift, double Halo_Mass, double Radius) // 2nd att
   gsl_integration_workspace_free(workspace);*/
   
   mlog("LinearBias %f", MLOG_MESG, LinearBias);
+  mlog("GF z=10 %f", MLOG_MESG, Growth_Factor(10));
+  mlog("GF z=15 %f", MLOG_MESG, Growth_Factor(15));
+  mlog("GF z=20 %f", MLOG_MESG, Growth_Factor(20));
   
-  return SpatialCFval * LinearBias * LinearBias / DeltaCrit /DeltaCrit;   
+  return SpatialCFval * LinearBias * LinearBias;   
 }
 
 double nuc(double redshift, double Halo_Mass)
