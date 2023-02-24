@@ -545,11 +545,9 @@ double TwoPointCF_2(double redshift, double Halo_Mass, double Radius) // 2nd att
   //double nuu = nuc_2(redshift, Halo_Mass);
   double DeltaCrit = 1.686 / Growth_Factor(redshift); // Double check this later, in Mo & White they just do 1.686 * (1 + redshift_2)
   //double DeltaCrit = 1.686 * (1 + redshift);
-  //double DeltaCrit = 1.686 / (1.686 * (1 + redshift));
   
   double SpatialCFval = read_SpatialCF(redshift, Radius);
-  //double LinearBias = 1 + ((nuu * nuu - 1) / DeltaCrit);
-  double LinearBias = 1 + ((nuu * nuu - 1) / 1.686);
+  double LinearBias = 1 + ((nuu * nuu - 1) / DeltaCrit);
   
   /*gsl_function F;
   gsl_integration_workspace* workspace;
@@ -565,18 +563,23 @@ double TwoPointCF_2(double redshift, double Halo_Mass, double Radius) // 2nd att
     &F, 1.0e-7, 1000, 1.0 / Hubble, 1.0e-8, WORKSIZE, GSL_INTEG_GAUSS61, workspace, &result, &abserr); //500 should be infinite, qao or qag?
 
   gsl_integration_workspace_free(workspace);*/
-  double prova1 = calculate_Mvir_2(9.0, 10);
-  double prova2 = calculate_Mvir_2(8.0, 10);
-  double prova3 = calculate_Mvir_2(7.0, 10);
+  //double prova1 = calculate_Mvir_2(9.0, 10);
+  //double prova2 = calculate_Mvir_2(8.0, 10);
+  //double prova3 = calculate_Mvir_2(7.0, 10);
+  double prova1 = calculate_Rvir_2(1e-3*0.6751, 20);
+  double prova2 = calculate_Rvir_2(1e-3*0.6751, 15);
+  double prova3 = calculate_Rvir_2(1e-3*0.6751, 10);
   
-  mlog("sigmaM9 %f", MLOG_MESG, Sigma(10, prova1));
-  mlog("sigmaM8 %f", MLOG_MESG, Sigma(10, prova2));
-  mlog("sigmaM7 %f", MLOG_MESG, Sigma(10, prova3));
+  //mlog("sigmaM9 %f", MLOG_MESG, Sigma(10, prova1));
+  //mlog("sigmaM8 %f", MLOG_MESG, Sigma(10, prova2));
+  //mlog("sigmaM7 %f", MLOG_MESG, Sigma(10, prova3));
+  mlog("Rvir20 %f", MLOG_MESG, prova1);
+  mlog("Rvir15 %f", MLOG_MESG, prova2);
+  mlog("Rvir10 %f", MLOG_MESG, prova3);
   
   mlog("LinearBias %f", MLOG_MESG, LinearBias);
   
-  //return SpatialCFval * LinearBias * LinearBias;
-  return SpatialCFval * LinearBias * LinearBias / DeltaCrit / DeltaCrit;   
+  return SpatialCFval * LinearBias * LinearBias;
 }
 
 double nuc(double redshift, double Halo_Mass)
