@@ -223,7 +223,7 @@ double calculate_zeq(double OmegaM)
   return L / (L + C * q * q); // Eq. 18 and 24
 } */
 
-double Transfer_function(double k) //EH98
+double Transfer_function(double k) //EH98 What are the units of this k?
 {
   double OmegaM = run_globals.params.OmegaM;
   double OmegaB = OmegaM * run_globals.params.BaryonFrac;
