@@ -407,7 +407,7 @@ double Sigma(double redshift, double Halo_Mass) // Still a tiny difference
   F.params = &p;
 
   gsl_integration_qag(
-    &F, 0, 1000, 1.0 / Hubble, 1.0e-8, WORKSIZE, GSL_INTEG_GAUSS51, workspace, &result, &abserr); //500 should be infinite
+    &F, 0, 1500, 1.0 / Hubble, 1.0e-8, WORKSIZE, GSL_INTEG_GAUSS51, workspace, &result, &abserr); //500 should be infinite
 
   gsl_integration_workspace_free(workspace);
   
@@ -439,7 +439,7 @@ double SigmaNorm(double redshift) //Need this for normalization
   F.params = &p;
 
   gsl_integration_qag(
-    &F, 0, 1000, 1.0 / Hubble, 1.0e-8, WORKSIZE, GSL_INTEG_GAUSS51, workspace, &norma, &normaerr); //500 should be infinite
+    &F, 0, 1500, 1.0 / Hubble, 1.0e-8, WORKSIZE, GSL_INTEG_GAUSS51, workspace, &norma, &normaerr); //500 should be infinite
 
   gsl_integration_workspace_free(workspace);
   
@@ -548,8 +548,8 @@ double TwoPointCF_2(double redshift, double Halo_Mass, double Radius) // 2nd att
   //double DeltaCrit = 1.686 / (1.686 * (1 + redshift));
   
   double SpatialCFval = read_SpatialCF(redshift, Radius);
-  double LinearBias = 1 + ((nuu * nuu - 1) / DeltaCrit);
-  //double LinearBias = 1 + ((nuu * nuu - 1) / 1.686);
+  //double LinearBias = 1 + ((nuu * nuu - 1) / DeltaCrit);
+  double LinearBias = 1 + ((nuu * nuu - 1) / 1.686);
   
   /*gsl_function F;
   gsl_integration_workspace* workspace;
@@ -575,7 +575,8 @@ double TwoPointCF_2(double redshift, double Halo_Mass, double Radius) // 2nd att
   
   mlog("LinearBias %f", MLOG_MESG, LinearBias);
   
-  return SpatialCFval * LinearBias * LinearBias;   
+  //return SpatialCFval * LinearBias * LinearBias;
+  return SpatialCFval * LinearBias * LinearBias / DeltaCrit / DeltaCrit;   
 }
 
 double nuc(double redshift, double Halo_Mass)
