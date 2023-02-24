@@ -567,7 +567,7 @@ double TwoPointCF_2(double redshift, double Halo_Mass, double Radius) // 2nd att
   
   mlog("LinearBias %f", MLOG_MESG, LinearBias);
   
-  return SpatialCFval * LinearBias * LinearBias / DeltaCrit / DeltaCrit;   
+  return SpatialCFval * LinearBias * LinearBias;   
 }
 
 double nuc(double redshift, double Halo_Mass)
