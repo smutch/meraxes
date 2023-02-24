@@ -508,7 +508,7 @@ double read_SpatialCF(double redshift, double Radius) //Radius in cMpc/h
   int R_index = 0;
   int i = 0;
   int ii = 0;
-  mlog("Tot values %d:", MLOG_MESG, x_int_NCFVALS);
+  //mlog("Tot values %d:", MLOG_MESG, x_int_NCFVALS);
   for (i = 0; i < x_int_NCFVALS; i++) {
     if (fabs(x_int_zvals[i] - redshift) <= 0.05) {
       z_index = i;
@@ -517,7 +517,7 @@ double read_SpatialCF(double redshift, double Radius) //Radius in cMpc/h
           mlog("Error, you didn't find the radius value!\n", MLOG_MESG);
           exit(1);
           }
-        if (fabs((Radius - x_int_radvals[ii]) / Radius) < 0.1) {
+        if (fabs((Radius - x_int_radvals[ii]) / Radius) < 0.07) {
           R_index = ii;
           break;
           }
@@ -527,7 +527,7 @@ double read_SpatialCF(double redshift, double Radius) //Radius in cMpc/h
       break;
       }
     }
-    mlog("Index value %d %d:", MLOG_MESG, z_index, R_index);
+    //mlog("Index value %d %d:", MLOG_MESG, z_index, R_index);
     mlog("Red value %f :", MLOG_MESG, x_int_zvals[z_index]);
     mlog("Radius value %f :", MLOG_MESG, x_int_radvals[R_index]);         
   return x_int_CFvals[R_index];
@@ -541,10 +541,10 @@ double TwoPointCF_2(double redshift, double Halo_Mass, double Radius) // 2nd att
   //p.redshift = redshift; 
   //p.Radius = Radius;
   double Hubble = run_globals.Hubble;
-  double nuu = nuc(redshift, Halo_Mass);
-  //double nuu = nuc_2(redshift, Halo_Mass);
-  double DeltaCrit = 1.686 / Growth_Factor(redshift); // Double check this later, in Mo & White they just do 1.686 * (1 + redshift_2)
-  //double DeltaCrit = 1.686 * (1 + redshift);
+  //double nuu = nuc(redshift, Halo_Mass);
+  double nuu = nuc_2(redshift, Halo_Mass);
+  //double DeltaCrit = 1.686 / Growth_Factor(redshift); // Double check this later, in Mo & White they just do 1.686 * (1 + redshift_2)
+  double DeltaCrit = 1.686 * (1 + redshift);
   
   double SpatialCFval = read_SpatialCF(redshift, Radius);
   double LinearBias = 1 + ((nuu * nuu - 1) / DeltaCrit);
@@ -564,7 +564,7 @@ double TwoPointCF_2(double redshift, double Halo_Mass, double Radius) // 2nd att
 
   gsl_integration_workspace_free(workspace);*/
   
-  mlog("AutoCF %f", MLOG_MESG, SpatialCFval);
+  mlog("LinearBias %f", MLOG_MESG, LinearBias);
   
   return SpatialCFval * LinearBias * LinearBias;   
 }
