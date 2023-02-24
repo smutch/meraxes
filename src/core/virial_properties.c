@@ -565,11 +565,15 @@ double TwoPointCF_2(double redshift, double Halo_Mass, double Radius) // 2nd att
     &F, 1.0e-7, 1000, 1.0 / Hubble, 1.0e-8, WORKSIZE, GSL_INTEG_GAUSS61, workspace, &result, &abserr); //500 should be infinite, qao or qag?
 
   gsl_integration_workspace_free(workspace);*/
+  double prova1 = calculate_Mvir_2(9.0, 10);
+  double prova2 = calculate_Mvir_2(8.0, 10);
+  double prova3 = calculate_Mvir_2(7.0, 10);
+  
+  mlog("sigmaM9 %f", MLOG_MESG, Sigma(10, prova1));
+  mlog("sigmaM8 %f", MLOG_MESG, Sigma(10, prova2));
+  mlog("sigmaM7 %f", MLOG_MESG, Sigma(10, prova3));
   
   mlog("LinearBias %f", MLOG_MESG, LinearBias);
-  mlog("GF z=10 %f", MLOG_MESG, Growth_Factor(10));
-  mlog("GF z=15 %f", MLOG_MESG, Growth_Factor(15));
-  mlog("GF z=20 %f", MLOG_MESG, Growth_Factor(20));
   
   return SpatialCFval * LinearBias * LinearBias;   
 }
