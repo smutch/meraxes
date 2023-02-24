@@ -545,7 +545,7 @@ double TwoPointCF_2(double redshift, double Halo_Mass, double Radius) // 2nd att
   //double nuu = nuc_2(redshift, Halo_Mass);
   //double DeltaCrit = 1.686 / Growth_Factor(redshift); // Double check this later, in Mo & White they just do 1.686 * (1 + redshift_2)
   //double DeltaCrit = 1.686 * (1 + redshift);
-  double DeltaCrit = 1.686 / (1.686 * (1 + redshift))
+  double DeltaCrit = 1.686 / (1.686 * (1 + redshift));
   
   double SpatialCFval = read_SpatialCF(redshift, Radius);
   double LinearBias = 1 + ((nuu * nuu - 1) / DeltaCrit);
