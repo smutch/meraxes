@@ -339,7 +339,7 @@ void dracarys()
       //CF_values[iii] = TwoPointCF(array_values[iii], boost_R0);
       //CF_values[iii] = TwoPointCF_2(10.0, 1.15e-2, array_values[iii]);
       //mlog("CFvalue %f Radius %f", MLOG_MESG, CF_values[iii], array_values[iii] / hh);
-      mlog("TF %f ", MLOG_MESG, TF_values[iii]);
+      mlog("Pk (z = 10) %f ", MLOG_MESG, Pk_values[iii]);
       }
     }
     // (end of the test)
