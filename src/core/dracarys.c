@@ -325,10 +325,10 @@ void dracarys()
     double Mvir_values[40];
     double Sigma_values[40];
     //double TF_values[40];
-    //double Pk_values[40];
-    //double Sigmaprova = Sigma(10, calculate_Mvir_2(9, 10));
-    double Sigmaprova2 = Sigma(0, calculate_Mvir_2(8, 0));
-    //double Sigmaprova3 = Sigma(10, calculate_Mvir_2(7, 10));
+    double Pk_values[40];
+    double Sigmaprova = Sigma(10, calculate_Mvir_2(9, 10));
+    double Sigmaprova2 = Sigma(10, calculate_Mvir_2(8, 0));
+    double Sigmaprova3 = Sigma(10, calculate_Mvir_2(7, 10));
     //mlog("Sigmas %f %f %f", MLOG_MESG, Sigmaprova, Sigmaprova2, Sigmaprova3);
     mlog("Sigma %f", MLOG_MESG, Sigmaprova2);
     //boost_R0 = R0(10, 1.15e-2);
@@ -336,11 +336,11 @@ void dracarys()
       Mvir_values[iii] = calculate_Mvir_2(array_values[iii] / hh, 10);
       Sigma_values[iii] = Sigma(10, Mvir_values[iii]);
       //TF_values[iii] = Transfer_function(array_values[iii]);
-      //Pk_values[iii] = PowerSpectrum(10, array_values[iii]);
+      Pk_values[iii] = PowerSpectrum(10, array_values[iii]);
       //CF_values[iii] = TwoPointCF(array_values[iii], boost_R0);
       //CF_values[iii] = TwoPointCF_2(10.0, 1.15e-2, array_values[iii]);
       //mlog("CFvalue %f Radius %f", MLOG_MESG, CF_values[iii], array_values[iii] / hh);
-      mlog("Sigma (z = 10) %f ", MLOG_MESG, Sigma_values[iii]);
+      mlog("Sigma (z = 10), Pk %f %f", MLOG_MESG, Sigma_values[iii], Pk_values[iii]);
       }
     }
     // (end of the test)
