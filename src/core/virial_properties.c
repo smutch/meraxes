@@ -199,7 +199,7 @@ double calculate_zeq(double OmegaM)
   return 2.5e4 * OmegaM * pow(little_h, 2) * pow(Theta, -4); //EH99
 }
 
-double Transfer_function(double k) //EH99
+/*double Transfer_function(double k) //EH99
 {
   double OmegaM = run_globals.params.OmegaM;
   double OmegaB = OmegaM * run_globals.params.BaryonFrac;
@@ -221,9 +221,9 @@ double Transfer_function(double k) //EH99
   double C = 14.4 + (325. / (1 + 60.5 * pow(q, 1.11))); // Eq. 20
   
   return L / (L + C * q * q); // Eq. 18 and 24
-} 
+}*/ 
 
-/*double Transfer_function(double k) //EH98 What are the units of this k?
+double Transfer_function(double k) //EH98 What are the units of this k?
 {
   double OmegaM = run_globals.params.OmegaM;
   double OmegaB = OmegaM * run_globals.params.BaryonFrac;
@@ -284,7 +284,7 @@ double Transfer_function(double k) //EH99
   double Tk = fb * Tb + fc / OmegaM * Tc;
   
   return Tk; // Eq. 18 and 24
-}  */
+}  
 
 double integrand_GF(double redshift) //EH99
 {
@@ -409,7 +409,7 @@ double Sigma(double redshift, double Halo_Mass) // Still a tiny difference
   F.params = &p;
 
   gsl_integration_qag(
-    &F, 0, 1000, 1.0 / Hubble, 1.0e-8, WORKSIZE, GSL_INTEG_GAUSS21, workspace, &result, &abserr); //500 should be infinite
+    &F, 1e-8, 2500, 1.0 / Hubble, 1.0e-8, WORKSIZE, GSL_INTEG_GAUSS51, workspace, &result, &abserr); //500 should be infinite
 
   gsl_integration_workspace_free(workspace);
   
@@ -441,7 +441,7 @@ double SigmaNorm(double redshift) //Need this for normalization
   F.params = &p;
 
   gsl_integration_qag(
-    &F, 0, 1000, 1.0 / Hubble, 1.0e-8, WORKSIZE, GSL_INTEG_GAUSS21, workspace, &norma, &normaerr); //500 should be infinite
+    &F, 1e-8, 2500, 1.0 / Hubble, 1.0e-8, WORKSIZE, GSL_INTEG_GAUSS51, workspace, &norma, &normaerr); //500 should be infinite
 
   gsl_integration_workspace_free(workspace);
   
