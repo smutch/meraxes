@@ -327,7 +327,8 @@ void dracarys()
     double TF_values[45];
     //double GF_values[40];
     double Pk_values[45];
-    mlog("Norma %f", MLOG_MESG, Sigma(0, calculate_Mvir_2(8.0,0)));
+    //mlog("Norma %f", MLOG_MESG, Sigma(0, calculate_Mvir_2(8.0,0)));
+    mlog("GFNorm %f %f %f", MLOG_MESG, Growth_Factor(10) / Growth_Factor(0), Growth_Factor(10), Growth_Factor(0));
     for (int iii = 0; iii < 45; iii++) {
       Mvir_values[iii] = calculate_Mvir_2(array_values[iii] / hh, 0);
       //Rvir_values[iii] = calculate_Rvir_2(Mvir_values[iii], 10);
@@ -339,7 +340,7 @@ void dracarys()
       //CF_values[iii] = TwoPointCF_2(10.0, 1.15e-2, Rvir_values[iii]);
       //mlog("CFvalue %f Radius %f", MLOG_MESG, CF_values[iii], array_values[iii] / hh);
       //mlog("CFvalue %f Radius %f", MLOG_MESG, CF_values[iii], Rvir_values[iii]);
-      mlog("Sigma (z = 10) %f, Pk %f, Tk %f, R %f Mvir %f", MLOG_MESG, Sigma_values[iii], Pk_values[iii], TF_values[iii], array_values[iii] / hh, Mvir_values[iii] * 1e10 / hh);
+      mlog("Sigma (z = 10) %f, Pk %f, Tk %f, R %f Mvir %f", MLOG_MESG, Sigma_values[iii], Pk_values[iii], TF_values[iii], array_values[iii] / hh, Mvir_values[iii] * 1e10);
       //mlog("Sigma (z = 10) %f", MLOG_MESG, Sigma_values[iii]);
       //mlog("TF (z = 10), Tf %f", MLOG_MESG, TF_values[iii]);
       }
