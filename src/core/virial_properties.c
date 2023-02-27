@@ -221,70 +221,7 @@ double Transfer_function(double k) //EH99 You want k in h/Mpc
   double C = 14.4 + (325. / (1 + 60.5 * pow(q, 1.11))); // Eq. 20
   
   return L / (L + C * q * q); // Eq. 18 and 24
-} 
-
-/*double Transfer_function(double k) //EH98 You want k in h/Mpc
-{
-  double OmegaM = run_globals.params.OmegaM;
-  double OmegaB = OmegaM * run_globals.params.BaryonFrac;
-  double OmegaC = OmegaM - OmegaB;
-  double fc = OmegaC / OmegaM;
-  double fb = OmegaB / OmegaM;
-  double fcb = fc + fb;
-  double little_h = run_globals.params.Hubble_h;
-  double Theta = 2.728 / 2.7;
-  
-  double zequiv = calculate_zeq(OmegaM);
-  double keq = 7.46e-2 * OmegaM * little_h * little_h / (Theta * Theta);
-  
-  double b1d = 0.313 * pow(OmegaM * little_h * little_h, -0.419) * (1.0 + 0.607 * pow(OmegaM * little_h * little_h, 0.674));
-  double b2d = 0.238 * pow(OmegaM * little_h * little_h, 0.223);
-  double zd = 1291.0 * pow(OmegaM * little_h * little_h, 0.251) / (1.0 + 0.659 * pow(OmegaM * little_h *little_h, 0.828)) * (1.0 + b1d * pow(OmegaM * little_h * little_h, b2d));
-  
-  double Rd = 31.5 * OmegaB * little_h * little_h / pow(Theta, 4) / (zd / 1e3);
-  double Req = 31.5 * OmegaB * little_h * little_h / pow(Theta, 4) / (zequiv / 1e3);
-  
-  double s = 2.0 / 3.0 / keq * sqrt(6.0 / Req) * log((sqrt(1.0 + Rd) + sqrt(Rd + Req)) / (1.0 + sqrt(Req)));
-  double ksilk = 1.6 * pow(OmegaB * little_h * little_h, 0.52) * pow(OmegaM * little_h * little_h, 0.73) * (1.0 + pow(10.4 * OmegaM * little_h * little_h, -0.95));
-  double q = k / 13.41 / keq;
-  
-  double a1 = pow(46.9 * OmegaM * little_h * little_h, 0.670) * (1.0 + pow(32.1 * OmegaM * little_h * little_h, -0.532));
-  double a2 = pow(12.0 * OmegaM * little_h * little_h, 0.424) * (1.0 + pow(45.0 * OmegaM * little_h * little_h, -0.582));
-  double ac = pow(a1, -fb) * pow(a2, -fb * fb * fb);
-  
-  double b1 = 0.944 / (1.0 + pow(458.0 * OmegaM * little_h * little_h, -0.708));
-  double b2 = pow(0.395 * OmegaM * little_h * little_h, -0.0266);
-  double bc = 1.0 / (1.0 + b1 * (pow(fc / OmegaM, b2) - 1.0));
-  
-  double y = (1.0 + zequiv) / (1.0 + zd);
-  double Gy = y * (-6.0 * sqrt(1.0 + y) + (2.0 + 3.0 * y) * log((sqrt(1.0 + y) + 1.0) / (sqrt(1.0 + y) - 1.0)));
-  
-  double ab = 2.07 * keq * s * pow(1.0 + Rd, -3.0 / 4.0) * Gy;
-  
-  double f = 1.0 / (1.0 + pow(k * s / 5.4, 4));
-
-  double C = 14.2 / ac + 386.0 / (1.0 + 69.9 * pow(q, 1.08));
-
-  double T0t = log(exp(1) + 1.8 * bc * q) / (log(exp(1) + 1.8 * bc * q) + C * q * q);
-  
-  double C1bc = 14.2 + 386.0 / (1.0 + 69.9 * pow(q, 1.08));
-  double T0t1bc = log(exp(1) + 1.8 * bc * q) / (log(exp(1) + 1.8 * bc * q) + C1bc * q * q);
-  double Tc = f * T0t1bc + (1.0 - f) * T0t;
-
-  double bb = 0.5 + fb + (3.0 - 2.0 * fb) * sqrt((17.2 * OmegaM * little_h * little_h) * (17.2 * OmegaM * little_h * little_h) + 1.0);
-
-  double bnode = 8.41 * pow(OmegaM * little_h * little_h, 0.435);
-
-  double st = s / pow(1.0 + (bnode / k / s) * (bnode / k / s) * (bnode / k / s), (1.0 / 3.0));
-
-  double C11 = 14.2 + 386.0 / (1.0 + 69.9 * pow(q, 1.08));
-  double T0t11 = log(exp(1) + 1.8 * q) / (log(exp(1) + 1.8 * q) + C11 * q * q);
-  double Tb = (T0t11 / (1.0 + pow(k * s / 5.2, 2)) + ab / (1.0 + pow(bb / k / s, 3)) * exp(-pow(k / ksilk, 1.4))) * sin(k * st) / (k * st);
-
-  double Tk = fb * Tb + fc / OmegaM * Tc;
-  
-  return Tk; // Eq. 18 and 24
-} */ 
+}  
 
 double integrand_GF(double redshift) //EH99
 {
@@ -379,7 +316,8 @@ double integrand_S2(double k, void* params)
   double Radius = calculate_Rvir_2(p->HaloMass, p->redshift) * (1 + p->redshift) * little_h; //Compute Rvir in cMpc/h
   //mlog("Radius is %f", MLOG_MESG, Radius);
   
-  double PS = PowerSpectrum(p->redshift, k);
+  //double PS = PowerSpectrum(p->redshift, k);
+  double PS = PowerSpectrum(p->redshift, k) * little_h;
   
   double j1 = (sin(k * Radius) - (k * Radius * cos(k * Radius))) / (k * Radius);
   
