@@ -129,7 +129,8 @@ double calculate_Rvir_2(double Mvir, double redshift) //Mvir in 10^10 Msol/h
 
   hubble_of_z_sq = pow(Hubble * sqrt(OmegaM * zplus1 * zplus1 * zplus1 + OmegaK * zplus1 * zplus1 + OmegaLambda), 2);
 
-  rhocrit = 3 * hubble_of_z_sq / (8 * M_PI * run_globals.G);
+  //rhocrit = 3 * hubble_of_z_sq / (8 * M_PI * run_globals.G);
+  rhocrit = 3 * Hubble / (8 * M_PI * run_globals.g);
 
   Delta = Delta_vir(redshift);
 
@@ -313,7 +314,8 @@ double integrand_S2(double k, void* params)
   double little_h = run_globals.params.Hubble_h;
   
   //double Radius = calculate_Rvir_2(p->HaloMass, p->redshift);
-  double Radius = calculate_Rvir_2(p->HaloMass, p->redshift) * (1 + p->redshift) * little_h; //Compute Rvir in cMpc/h
+  //double Radius = calculate_Rvir_2(p->HaloMass, p->redshift) * (1 + p->redshift) * little_h; //Compute Rvir in cMpc/h
+  double Radius = calculate_Rvir_2(p->HaloMass, p->redshift) * (1 + p->redshift); //Compute Rvir in cMpc/h
   //mlog("Radius is %f", MLOG_MESG, Radius);
   
   //double PS = PowerSpectrum(p->redshift, k);
