@@ -324,6 +324,7 @@ void dracarys()
     double CF_values[40];
     double zprova_values[40] = {1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40};
     double Mvir_values[40];
+    double Rvir_values[40];
     double Sigma_values[40];
     //double TF_values[40];
     //double GF_values[40];
@@ -331,21 +332,21 @@ void dracarys()
     //double A = calculate_Mvir_2(8, 10);
     //double B = calculate_Rvir_2(A, 10);
     //mlog("Mass %f Radius %f", MLOG_MESG, A, B);
-    double Sigmaprova = Sigma(10, calculate_Mvir_2(9, 10));
-    double Sigmaprova2 = Sigma(10, calculate_Mvir_2(8, 0));
-    double Sigmaprova3 = Sigma(10, calculate_Mvir_2(7, 10));
-    mlog("Sigmas %f %f %f", MLOG_MESG, Sigmaprova, Sigmaprova2, Sigmaprova3);
     //mlog("Sigma %f", MLOG_MESG, Sigmaprova2);
     //boost_R0 = R0(10, 1.15e-2);
     for (int iii = 0; iii < 40; iii++) {
       Mvir_values[iii] = calculate_Mvir_2(array_values[iii] / hh, 10);
+      Rvir_values[iii] = calculate_Rvir_2(Mvir_values[iii], 10);
       Sigma_values[iii] = Sigma(10, Mvir_values[iii]);
       //TF_values[iii] = Transfer_function(array_values[iii]);
-      Pk_values[iii] = PowerSpectrum(10, array_values[iii]);
+      //Pk_values[iii] = PowerSpectrum(10, array_values[iii]);
       //CF_values[iii] = TwoPointCF(array_values[iii], boost_R0);
-      CF_values[iii] = TwoPointCF_2(10.0, 1.15e-2, array_values[iii]);
-      mlog("CFvalue %f Radius %f", MLOG_MESG, CF_values[iii], array_values[iii] / hh);
-      mlog("Sigma (z = 10) %f, Pk %f", MLOG_MESG, Sigma_values[iii], Pk_values[iii]);
+      //CF_values[iii] = TwoPointCF_2(10.0, 1.15e-2, array_values[iii]);
+      CF_values[iii] = TwoPointCF_2(10.0, 1.15e-2, Rvir_values[iii]);
+      //mlog("CFvalue %f Radius %f", MLOG_MESG, CF_values[iii], array_values[iii] / hh);
+      mlog("CFvalue %f Radius %f", MLOG_MESG, CF_values[iii], Rvir_values[iii]);
+      //mlog("Sigma (z = 10) %f, Pk %f", MLOG_MESG, Sigma_values[iii], Pk_values[iii]);
+      /mlog("Sigma (z = 10) %f", MLOG_MESG, Sigma_values[iii]);
       //mlog("TF (z = 10), Tf %f", MLOG_MESG, TF_values[iii]);
       }
     }
