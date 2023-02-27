@@ -310,7 +310,7 @@ double PowerSpectrum(double redshift, double scale)
 
 typedef struct
 {
-  double redshift, HaloMass, HaloRadius;
+  double redshift, HaloMass;
 } int_S2_params;
 
 double integrand_S2(double k, void* params)
@@ -318,16 +318,16 @@ double integrand_S2(double k, void* params)
   int_S2_params* p = (int_S2_params*)params;
   double little_h = run_globals.params.Hubble_h;
   
-  //double Radius = calculate_Rvir_2(p->HaloMass, p->redshift) * (1 + p->redshift); //Compute Rvir in cMpc/h
+  double Radius = calculate_Rvir_2(p->HaloMass, p->redshift) * (1 + p->redshift); //Compute Rvir in cMpc/h
   
   double PS = PowerSpectrum(p->redshift, k);
   
-  double j1 = (sin(k * p->HaloRadius) - (k * p->HaloRadius * cos(k * p->HaloRadius))) / (k * p->HaloRadius);
+  double j1 = (sin(k * Radius) - (k * Radius * cos(k * Radius))) / (k * Radius);
   
-  return k * k * PS / (2 * M_PI * M_PI) * pow(3 * j1 / (k * p->HaloRadius) , 2);
+  return k * k * PS / (2 * M_PI * M_PI) * pow(3 * j1 / (k * Radius) , 2);
 }
 
-double Sigma(double redshift, double Halo_Radius) // Still a tiny difference
+double Sigma(double redshift, double Halo_Mass) // Still a tiny difference
 {
   double Hubble = run_globals.Hubble;
   double Normalization = SigmaNorm(redshift);
@@ -337,7 +337,7 @@ double Sigma(double redshift, double Halo_Radius) // Still a tiny difference
   int_S2_params p;
 
   p.redshift = redshift;
-  p.HaloRadius = Halo_Radius;
+  p.HaloMass = Halo_Mass;
   
   gsl_function F;
   gsl_integration_workspace* workspace;
@@ -363,13 +363,12 @@ double SigmaNorm(double redshift) //Need this for normalization
   double Hubble = run_globals.Hubble;
   double little_h = run_globals.params.Hubble_h;
   
-  //double M8 = calculate_Mvir_2(8.0, 0); //Mvir correspondent to a halo of (8Mpc/h virial radius)
-  
+  double M8 = calculate_Mvir_2(8.0, 0); //Mvir correspondent to a halo of (8Mpc/h virial radius)
   
   int_S2_params p;
 
   p.redshift = redshift;
-  p.HaloRadius = 8.0;
+  p.HaloMass = M8;
   
   gsl_function F;
   gsl_integration_workspace* workspace;

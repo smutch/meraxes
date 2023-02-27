@@ -328,9 +328,9 @@ void dracarys()
     //double GF_values[40];
     double Pk_values[45];
     for (int iii = 0; iii < 45; iii++) {
-      //Mvir_values[iii] = calculate_Mvir_2(array_values[iii] / hh, 10);
+      Mvir_values[iii] = calculate_Mvir_2(array_values[iii], 10);
       //Rvir_values[iii] = calculate_Rvir_2(Mvir_values[iii], 10);
-      Sigma_values[iii] = Sigma(10, array_values[iii]);
+      Sigma_values[iii] = Sigma(10, Mvir_values[iii]);
       TF_values[iii] = Transfer_function(array_values[iii]);
       Pk_values[iii] = PowerSpectrum(10, array_values[iii]);
       //CF_values[iii] = TwoPointCF(array_values[iii], boost_R0);
