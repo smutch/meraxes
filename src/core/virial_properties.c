@@ -386,7 +386,7 @@ double Sigma(double redshift, double Halo_Mass) // Still a tiny difference
   double Normalization = SigmaNorm(redshift);
   double Sigma8 = run_globals.params.Sigma8; //Need this to check normalization
   double little_h = run_globals.params.Hubble_h;
-  double RedFactor = Growth_Factor(redshift) / Growth_Factor(0);
+  //double RedFactor = Growth_Factor(redshift) / Growth_Factor(0);
   
   int_S2_params p;
 
@@ -408,7 +408,8 @@ double Sigma(double redshift, double Halo_Mass) // Still a tiny difference
 
   gsl_integration_workspace_free(workspace);
   
-  return Sigma8 * sqrt(result / Normalization) * RedFactor;   
+  //return Sigma8 * sqrt(result / Normalization) * RedFactor;   
+  return Sigma8 * sqrt(result / Normalization) * RedFactor; 
 }
 
 double SigmaNorm(double redshift) //Need this for normalization 
