@@ -305,7 +305,7 @@ double PowerSpectrum(double redshift, double scale)
   
   Pk = 2 * M_PI * M_PI * deltah * deltah * pow((SPEED_OF_LIGHT * 1e-5 * scale / (little_h * 100)), 3 + spectral_index) * TF * TF * Dz * Dz / (D0 * D0 * pow(scale, 3));
   
-  return Pk * little_h * little_h * little_h;
+  return Pk;
 }
 
 typedef struct
