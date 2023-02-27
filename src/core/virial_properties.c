@@ -156,8 +156,8 @@ double calculate_Rvir_2(double Mvir, double redshift) //from Mvir in 10^10 Msol/
 
   rhocrit = 3 * (little_h * 100 * little_h * 100 * OmegaM * zplus1 * zplus1 * zplus1 + OmegaK * zplus1 * zplus1 + OmegaLambda) / (8 * M_PI * GG);
 
-  Delta = Omega_z(redshift, OmegaM, OmegaK, OmegaLambda);
-  fac = 1 / (Delta * 4 * M_PI / 3.0 * rhocrit);
+  //Delta = Omega_z(redshift, OmegaM, OmegaK, OmegaLambda);
+  fac = 1 / (OmegaM*zplus1*zplus1*zplus1 * 4 * M_PI / 3.0 * rhocrit);
   //fac = 1 / (4 * M_PI / 3.0 * OmegaM * rhocrit);
 
   return cbrt(Mvir * 1e10 / little_h * fac) * little_h * zplus1; 
@@ -204,12 +204,12 @@ double calculate_Mvir_2(double Rvir, double redshift) //from Rvir in comoving Mp
   double little_h = run_globals.params.Hubble_h;
   
   //Delta = Delta_vir(redshift);
-  Delta = Omega_z(redshift, OmegaM, OmegaK, OmegaLambda);
+  //Delta = Omega_z(redshift, OmegaM, OmegaK, OmegaLambda);
 
   rhocrit = 3 * (little_h * 100 * little_h * 100 * OmegaM * zplus1 * zplus1 * zplus1 + OmegaK * zplus1 * zplus1 + OmegaLambda) / (8 * M_PI * GG);
 
-  //fac = 4.0 / 3.0 * M_PI * rhocrit * OmegaM;
-  fac = 4.0 / 3.0 * M_PI * rhocrit * Delta;
+  fac = 4.0 / 3.0 * M_PI * rhocrit * OmegaM * zplus1 * zplus1 * zplus1;
+  //fac = 4.0 / 3.0 * M_PI * rhocrit * Delta;
 
   return (pow(Rvir / little_h / zplus1 , 3) * fac) / 1e10 * little_h;
   //return pow(Rvir , 3) * fac;

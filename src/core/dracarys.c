@@ -338,7 +338,7 @@ void dracarys()
       //CF_values[iii] = TwoPointCF_2(10.0, 1.15e-2, Rvir_values[iii]);
       //mlog("CFvalue %f Radius %f", MLOG_MESG, CF_values[iii], array_values[iii] / hh);
       //mlog("CFvalue %f Radius %f", MLOG_MESG, CF_values[iii], Rvir_values[iii]);
-      mlog("Sigma (z = 10) %f, Pk %f, Tk %f, R %f", MLOG_MESG, Sigma_values[iii], Pk_values[iii], TF_values[iii], array_values[iii]);
+      mlog("Sigma (z = 10) %f, Pk %f, Tk %f, R %f", MLOG_MESG, Sigma_values[iii], Pk_values[iii], TF_values[iii], array_values[iii] / hh);
       //mlog("Sigma (z = 10) %f", MLOG_MESG, Sigma_values[iii]);
       //mlog("TF (z = 10), Tf %f", MLOG_MESG, TF_values[iii]);
       }
