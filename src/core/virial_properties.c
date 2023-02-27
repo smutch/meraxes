@@ -156,7 +156,7 @@ double calculate_Rvir_2(double Mvir, double redshift) //from Mvir in 10^10 Msol/
 
   rhocrit = 3 * (little_h * 100 * little_h * 100 * OmegaM * zplus1 * zplus1 * zplus1 + OmegaK * zplus1 * zplus1 + OmegaLambda) / (8 * M_PI * GG);
 
-  Delta = Delta_vir(redshift);
+  Delta = Omega_z(redshift, OmegaM, OmegaK, OmegaLambda);
   fac = 1 / (Delta * 4 * M_PI / 3.0 * rhocrit);
   //fac = 1 / (4 * M_PI / 3.0 * OmegaM * rhocrit);
 
@@ -203,7 +203,8 @@ double calculate_Mvir_2(double Rvir, double redshift) //from Rvir in comoving Mp
   double GG = 4.3009*1e-9;
   double little_h = run_globals.params.Hubble_h;
   
-  Delta = Delta_vir(redshift);
+  //Delta = Delta_vir(redshift);
+  Delta = Omega_z(redshift, OmegaM, OmegaK, OmegaLambda);
 
   rhocrit = 3 * (little_h * 100 * little_h * 100 * OmegaM * zplus1 * zplus1 * zplus1 + OmegaK * zplus1 * zplus1 + OmegaLambda) / (8 * M_PI * GG);
 
