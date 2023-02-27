@@ -134,6 +134,8 @@ double calculate_Rvir_2(double Mvir, double redshift) //from Mvir in 10^10 Msol/
   Delta = Delta_vir(redshift);
 
   fac = 1 / (Delta * 4 * M_PI / 3.0 * rhocrit);
+  
+  mlog("fac %f", MLOG_MESG, Delta * fac);
 
   return cbrt(Mvir * fac) * zplus1; 
 }
@@ -314,10 +316,10 @@ double integrand_S2(double k, void* params)
   int_S2_params* p = (int_S2_params*)params;
   double little_h = run_globals.params.Hubble_h;
   
-  //double Radius = calculate_Rvir_2(p->HaloMass, p->redshift);
+  double Radius = calculate_Rvir_2(p->HaloMass, p->redshift);
   //double Radius = calculate_Rvir_2(p->HaloMass, p->redshift) * (1 + p->redshift) * little_h; //Compute Rvir in cMpc/h
   //double Radius = calculate_Rvir_2(p->HaloMass, p->redshift) * (1 + p->redshift); //Compute Rvir in cMpc/h
-  double Radius = cbrt(3.0 * (p->HaloMass * 1e10) / (4.0 * M_PI * 8.67e10)); //cMpc/h
+  //double Radius = cbrt(3.0 * (p->HaloMass * 1e10) / (4.0 * M_PI * 8.67e10)); //cMpc/h
   //mlog("Radius is %f", MLOG_MESG, Radius);
   
   //double PS = PowerSpectrum(p->redshift, k);
@@ -364,8 +366,7 @@ double SigmaNorm(double redshift) //Need this for normalization
   double Hubble = run_globals.Hubble;
   double little_h = run_globals.params.Hubble_h;
   
-  //double M8 = calculate_Mvir_2(8.0, 0); //Mvir correspondent to a halo of (8Mpc/h virial radius)
-  double M8 = 4.0 / 3.0 * M_PI * 8.0 * 8.0 * 8.0 * 8.67e10; // same as above
+  double M8 = calculate_Mvir_2(8.0, 0); //Mvir correspondent to a halo of (8Mpc/h virial radius)
   
   int_S2_params p;
 
