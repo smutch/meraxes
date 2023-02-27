@@ -297,7 +297,7 @@ double PowerSpectrum(double redshift, double scale)
   double D0 = Growth_Factor(0); 
   double Pk;
   
-  Pk = 2 * M_PI * M_PI * deltah * deltah * pow((SPEED_OF_LIGHT * 1e-5 * scale * little_h / (little_h * 100)), 3 + spectral_index) * TF * TF * Dz * Dz / (D0 * D0 * pow(scale, 3));
+  Pk = 2 * M_PI * M_PI * deltah * deltah * pow((SPEED_OF_LIGHT * 1e-5 * scale / (little_h * 100)), 3 + spectral_index) * TF * TF * Dz * Dz / (D0 * D0 * pow(scale, 3));
   
   return Pk;
 }
@@ -347,7 +347,7 @@ double Sigma(double redshift, double Halo_Mass) // Still a tiny difference
   F.params = &p;
 
   gsl_integration_qag(
-    &F, 1e-8, 2500, 1.0 / Hubble, 1.0e-8, WORKSIZE, GSL_INTEG_GAUSS51, workspace, &result, &abserr); //500 should be infinite
+    &F, 0, 2500, 1.0 / Hubble, 1.0e-8, WORKSIZE, GSL_INTEG_GAUSS51, workspace, &result, &abserr); //500 should be infinite
 
   gsl_integration_workspace_free(workspace);
   
@@ -379,7 +379,7 @@ double SigmaNorm(double redshift) //Need this for normalization
   F.params = &p;
 
   gsl_integration_qag(
-    &F, 1e-8, 2500, 1.0 / Hubble, 1.0e-8, WORKSIZE, GSL_INTEG_GAUSS51, workspace, &norma, &normaerr); //500 should be infinite
+    &F, 0, 2500, 1.0 / Hubble, 1.0e-8, WORKSIZE, GSL_INTEG_GAUSS51, workspace, &norma, &normaerr); //500 should be infinite
 
   gsl_integration_workspace_free(workspace);
   
