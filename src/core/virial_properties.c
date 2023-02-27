@@ -372,7 +372,7 @@ double integrand_S2(double k, void* params)
   //double Radius = calculate_Rvir_2(p->HaloMass, p->redshift); //Compute Rvir in cMpc/h
   double Radius = calculate_Rvir_2(p->HaloMass, p->redshift) / little_h;
   
-  double PS = PowerSpectrum(p->redshift, k);
+  double PS = PowerSpectrum(p->redshift, k / little_h);
   
   double j1 = (sin(k * Radius) - (k * Radius * cos(k * Radius))) / pow((k * Radius),2);
   
