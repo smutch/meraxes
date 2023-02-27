@@ -130,7 +130,7 @@ double calculate_Rvir_2(double Mvir, double redshift) //Mvir in 10^10 Msol/h
   hubble_of_z_sq = pow(Hubble * sqrt(OmegaM * zplus1 * zplus1 * zplus1 + OmegaK * zplus1 * zplus1 + OmegaLambda), 2);
 
   //rhocrit = 3 * hubble_of_z_sq / (8 * M_PI * run_globals.G);
-  rhocrit = 3 * Hubble / (8 * M_PI * run_globals.g);
+  rhocrit = 3 * Hubble / (8 * M_PI * run_globals.G);
 
   Delta = Delta_vir(redshift);
 
