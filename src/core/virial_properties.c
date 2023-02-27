@@ -133,7 +133,8 @@ double calculate_Rvir_2(double Mvir, double redshift) //from Mvir in 10^10 Msol/
 
   Delta = Delta_vir(redshift);
 
-  fac = 1 / (Delta * 4 * M_PI / 3.0 * rhocrit);
+  //fac = 1 / (Delta * 4 * M_PI / 3.0 * rhocrit);
+  fac = 1 / (4 * M_PI / 3.0 * OmegaM * rhocrit);
   
   mlog("fac %f", MLOG_MESG, Delta * fac);
 
@@ -158,7 +159,8 @@ double calculate_Mvir_2(double Rvir, double redshift) //from Rvir in comoving Mp
   
   Delta = Delta_vir(redshift);
 
-  fac = 4.0 / 3.0 * M_PI * rhocrit * Delta;
+  //fac = 4.0 / 3.0 * M_PI * rhocrit * Delta;
+  fac = 4.0 / 3.0 * M_PI * rhocrit * OmegaM * Delta;
 
   return pow(Rvir / zplus1 , 3) * fac;
 }
@@ -367,6 +369,7 @@ double SigmaNorm(double redshift) //Need this for normalization
   double little_h = run_globals.params.Hubble_h;
   
   double M8 = calculate_Mvir_2(8.0, 0); //Mvir correspondent to a halo of (8Mpc/h virial radius)
+  //double M8 = 4.0 / 3.0 * M_PI * 8.0 * 8.0 * 8.0 * 8.676e10; // same as above
   
   int_S2_params p;
 
