@@ -312,8 +312,8 @@ double integrand_S2(double k, void* params)
   int_S2_params* p = (int_S2_params*)params;
   double little_h = run_globals.params.Hubble_h;
   
-  //double Radius = calculate_Rvir_2(p->HaloMass, p->redshift);
-  double Radius = calculate_Rvir_2(p->HaloMass, p->redshift) * (1 + p->redshift) * little_h; //Compute Rvir in cMpc/h
+  double Radius = calculate_Rvir_2(p->HaloMass, p->redshift);
+  //double Radius = calculate_Rvir_2(p->HaloMass, p->redshift) * (1 + p->redshift) * little_h; //Compute Rvir in cMpc/h
   //mlog("Radius is %f", MLOG_MESG, Radius);
   
   //double PS = PowerSpectrum(p->redshift, k);
@@ -347,7 +347,7 @@ double Sigma(double redshift, double Halo_Mass) // Still a tiny difference
   F.params = &p;
 
   gsl_integration_qag(
-    &F, 0, 2500, 0, 1.0e-8, WORKSIZE, GSL_INTEG_GAUSS21, workspace, &result, &abserr); //500 should be infinite
+    &F, 0, 2500, 1.0 / Hubble, 1.0e-8, WORKSIZE, GSL_INTEG_GAUSS21, workspace, &result, &abserr); //500 should be infinite
 
   gsl_integration_workspace_free(workspace);
   
@@ -379,7 +379,7 @@ double SigmaNorm(double redshift) //Need this for normalization
   F.params = &p;
 
   gsl_integration_qag(
-    &F, 0, 2500, 0, 1.0e-8, WORKSIZE, GSL_INTEG_GAUSS21, workspace, &norma, &normaerr); //500 should be infinite
+    &F, 0, 2500, 1.0 / Hubble, 1.0e-8, WORKSIZE, GSL_INTEG_GAUSS21, workspace, &norma, &normaerr); //500 should be infinite
 
   gsl_integration_workspace_free(workspace);
   
