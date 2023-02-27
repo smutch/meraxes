@@ -135,8 +135,6 @@ double calculate_Rvir_2(double Mvir, double redshift) //from Mvir in 10^10 Msol/
 
   //fac = 1 / (Delta * 4 * M_PI / 3.0 * rhocrit);
   fac = 1 / (4 * M_PI / 3.0 * OmegaM * rhocrit);
-  
-  mlog("fac %f", MLOG_MESG, Delta * fac);
 
   return cbrt(Mvir * fac) * zplus1; 
 }
