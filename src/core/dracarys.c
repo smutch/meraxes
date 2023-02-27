@@ -348,6 +348,7 @@ void dracarys()
     for (int lll = 0; lll < 40; lll++) {
       GF_values[iii] = Growth_Factor(zprova_values[iii]);
       mlog("GF at z = %f is %f", MLOG_MESG, zprova_values[iii], GF_values[iii]);  
+      }
     }
     // (end of the test)
     // Do the physics
