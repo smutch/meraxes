@@ -420,8 +420,6 @@ double SigmaNorm(double redshift) //Need this for normalization
   
   double M8 = calculate_Mvir_2(8.0, 0) ; //Mvir correspondent to a halo of (8Mpc/h virial radius)
   
-  mlog("Prova %f", MLOG_MESG, calculate_Rvir_2(M8, 0));
-  
   int_S2_params p;
 
   p.redshift = redshift;
