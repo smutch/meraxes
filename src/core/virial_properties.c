@@ -115,7 +115,7 @@ double calculate_Rvir(double Mvir, int snapshot)
   return cbrt(Mvir * fac);
 }
 
-double calculate_Rvir_2(double Mvir, double redshift) //from Mvir in 10^10 Msol/h to Rvir in comoving Mpc/h
+/*double calculate_Rvir_2(double Mvir, double redshift) //from Mvir in 10^10 Msol/h to Rvir in comoving Mpc/h
 {
   double hubble_of_z_sq;
   double rhocrit;
@@ -138,9 +138,34 @@ double calculate_Rvir_2(double Mvir, double redshift) //from Mvir in 10^10 Msol/
 
   return cbrt(Mvir * fac) * zplus1; 
   //return cbrt(Mvir * fac);
+}*/
+
+double calculate_Rvir_2(double Mvir, double redshift) //from Mvir in 10^10 Msol/h to Rvir in comoving Mpc/h
+{
+  double hubble_of_z_sq;
+  double rhocrit;
+  double fac;
+  double Delta;
+  double Hubble = run_globals.Hubble;
+  double little_h = run_globals.params.Hubble_h;
+  double OmegaM = run_globals.params.OmegaM;
+  double OmegaK = run_globals.params.OmegaK;
+  double OmegaLambda = run_globals.params.OmegaLambda;
+  double zplus1 = redshift + 1;
+  double GG = 4.3009*1e-9
+
+  rhocrit = 3 * (little_h * 100) / (8 * M_PI * GG);
+
+  Delta = Delta_vir(redshift);
+
+  //fac = 1 / (Delta * 4 * M_PI / 3.0 * rhocrit);
+  fac = 1 / (4 * M_PI / 3.0 * OmegaM * rhocrit);
+
+  return cbrt(Mvir * 1e10 / little_h * fac) * zplus1 * little_h; 
+  //return cbrt(Mvir * fac);
 }
 
-double calculate_Mvir_2(double Rvir, double redshift) //from Rvir in comoving Mpc/h to 10^10Msol/h
+/*double calculate_Mvir_2(double Rvir, double redshift) //from Rvir in comoving Mpc/h to 10^10Msol/h
 {
   double hubble_of_z_sq;
   double rhocrit;
@@ -162,6 +187,29 @@ double calculate_Mvir_2(double Rvir, double redshift) //from Rvir in comoving Mp
   //fac = 4.0 / 3.0 * M_PI * rhocrit * OmegaM * Delta;
 
   return pow(Rvir / zplus1 , 3) * fac;
+  //return pow(Rvir , 3) * fac;
+}*/
+
+double calculate_Mvir_2(double Rvir, double redshift) //from Rvir in comoving Mpc/h to 10^10Msol/h
+{
+  double hubble_of_z_sq;
+  double rhocrit;
+  double fac;
+  double Delta;
+  double Hubble = run_globals.Hubble;
+  double OmegaM = run_globals.params.OmegaM;
+  double OmegaK = run_globals.params.OmegaK;
+  double OmegaLambda = run_globals.params.OmegaLambda;
+  double zplus1 = redshift + 1;
+  double GG = 4.3009*1e-9
+  double little_h = run_globals.params.Hubble_h;
+
+  rhocrit = 3 * little_h * 100 / (8 * M_PI * GG);
+
+  fac = 4.0 / 3.0 * M_PI * rhocrit;
+  //fac = 4.0 / 3.0 * M_PI * rhocrit * OmegaM * Delta;
+
+  return (pow(Rvir / zplus1 / little_h , 3) * fac) / 1e10 * little_h;
   //return pow(Rvir , 3) * fac;
 }
 
@@ -318,7 +366,7 @@ double integrand_S2(double k, void* params)
   int_S2_params* p = (int_S2_params*)params;
   double little_h = run_globals.params.Hubble_h;
   
-  double Radius = calculate_Rvir_2(p->HaloMass, p->redshift) * (1 + p->redshift); //Compute Rvir in cMpc/h
+  double Radius = calculate_Rvir_2(p->HaloMass, p->redshift); //Compute Rvir in cMpc/h
   
   double PS = PowerSpectrum(p->redshift, k);
   
