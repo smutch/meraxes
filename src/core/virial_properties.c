@@ -283,8 +283,8 @@ double Transfer_function(double k) //EH99 You want k in h/Mpc
 
   double Tk = fb * Tb + fc / OmegaM * Tc;
   
-  return Tk; // Eq. 18 and 24*/
-}  
+  return Tk; // Eq. 18 and 24
+} */ 
 
 double integrand_GF(double redshift) //EH99
 {
