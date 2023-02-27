@@ -152,7 +152,7 @@ double calculate_Rvir_2(double Mvir, double redshift) //from Mvir in 10^10 Msol/
   double OmegaK = run_globals.params.OmegaK;
   double OmegaLambda = run_globals.params.OmegaLambda;
   double zplus1 = redshift + 1;
-  double GG = 4.3009*1e-9
+  double GG = 4.3009*1e-9;
 
   rhocrit = 3 * (little_h * 100) / (8 * M_PI * GG);
 
@@ -201,7 +201,7 @@ double calculate_Mvir_2(double Rvir, double redshift) //from Rvir in comoving Mp
   double OmegaK = run_globals.params.OmegaK;
   double OmegaLambda = run_globals.params.OmegaLambda;
   double zplus1 = redshift + 1;
-  double GG = 4.3009*1e-9
+  double GG = 4.3009*1e-9;
   double little_h = run_globals.params.Hubble_h;
 
   rhocrit = 3 * little_h * 100 / (8 * M_PI * GG);
