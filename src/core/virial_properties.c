@@ -366,7 +366,8 @@ double integrand_S2(double k, void* params)
   int_S2_params* p = (int_S2_params*)params;
   double little_h = run_globals.params.Hubble_h;
   
-  double Radius = calculate_Rvir_2(p->HaloMass, p->redshift); //Compute Rvir in cMpc/h
+  //double Radius = calculate_Rvir_2(p->HaloMass, p->redshift); //Compute Rvir in cMpc/h
+  double Radius = calculate_Rvir_2(p->HaloMass, 0);
   
   double PS = PowerSpectrum(p->redshift, k);
   
@@ -416,7 +417,7 @@ double SigmaNorm(double redshift) //Need this for normalization
   int_S2_params p;
 
   p.redshift = redshift;
-  p.HaloMass = M8;
+  p.HaloMass = M8 / little_h;
   
   gsl_function F;
   gsl_integration_workspace* workspace;
