@@ -199,7 +199,7 @@ double calculate_zeq(double OmegaM)
   return 2.5e4 * OmegaM * pow(little_h, 2) * pow(Theta, -4); //EH99
 }
 
-/*double Transfer_function(double k) //EH99
+double Transfer_function(double k) //EH99
 {
   double OmegaM = run_globals.params.OmegaM;
   double OmegaB = OmegaM * run_globals.params.BaryonFrac;
@@ -221,9 +221,9 @@ double calculate_zeq(double OmegaM)
   double C = 14.4 + (325. / (1 + 60.5 * pow(q, 1.11))); // Eq. 20
   
   return L / (L + C * q * q); // Eq. 18 and 24
-}*/ 
+} 
 
-double Transfer_function(double k) //EH98 What are the units of this k?
+/*double Transfer_function(double k) //EH98 You want k in h/Mpc
 {
   double OmegaM = run_globals.params.OmegaM;
   double OmegaB = OmegaM * run_globals.params.BaryonFrac;
@@ -283,7 +283,7 @@ double Transfer_function(double k) //EH98 What are the units of this k?
 
   double Tk = fb * Tb + fc / OmegaM * Tc;
   
-  return Tk; // Eq. 18 and 24
+  return Tk; // Eq. 18 and 24*/
 }  
 
 double integrand_GF(double redshift) //EH99
