@@ -157,10 +157,10 @@ double calculate_Rvir_2(double Mvir, double redshift) //from Mvir in 10^10 Msol/
   rhocrit = 3 * (little_h * 100 * little_h * 100 * OmegaM * zplus1 * zplus1 * zplus1 + OmegaK * zplus1 * zplus1 + OmegaLambda) / (8 * M_PI * GG);
 
   //Delta = Omega_z(redshift, OmegaM, OmegaK, OmegaLambda);
-  fac = 1 / (OmegaM*zplus1*zplus1*zplus1 * 4 * M_PI / 3.0 * rhocrit);
-  //fac = 1 / (4 * M_PI / 3.0 * OmegaM * rhocrit);
+  //fac = 1 / (OmegaM*zplus1*zplus1*zplus1 * 4 * M_PI / 3.0 * rhocrit);
+  fac = 1 / (4 * M_PI / 3.0 * OmegaM * rhocrit);
 
-  return cbrt(Mvir * 1e10 / little_h * fac) * little_h * zplus1; 
+  return cbrt(Mvir * 1e10 / little_h * fac) * little_h; 
   //return cbrt(Mvir * fac);
 }
 
@@ -206,12 +206,13 @@ double calculate_Mvir_2(double Rvir, double redshift) //from Rvir in comoving Mp
   //Delta = Delta_vir(redshift);
   //Delta = Omega_z(redshift, OmegaM, OmegaK, OmegaLambda);
 
-  rhocrit = 3 * (little_h * 100 * little_h * 100 * OmegaM * zplus1 * zplus1 * zplus1 + OmegaK * zplus1 * zplus1 + OmegaLambda) / (8 * M_PI * GG);
+  //rhocrit = 3 * (little_h * 100 * little_h * 100 * OmegaM * zplus1 * zplus1 * zplus1 + OmegaK * zplus1 * zplus1 + OmegaLambda) / (8 * M_PI * GG);
+  rhocrit = 3 * little_h * little_h * 100 * 100 / (8 * M_PI * GG);
 
-  fac = 4.0 / 3.0 * M_PI * rhocrit * OmegaM * zplus1 * zplus1 * zplus1;
-  //fac = 4.0 / 3.0 * M_PI * rhocrit * Delta;
+  //fac = 4.0 / 3.0 * M_PI * rhocrit * OmegaM * zplus1 * zplus1 * zplus1;
+  fac = 4.0 / 3.0 * M_PI * rhocrit * OmegaM;
 
-  return (pow(Rvir / little_h / zplus1 , 3) * fac) / 1e10 * little_h;
+  return (pow(Rvir / little_h , 3) * fac) / 1e10 * little_h;
   //return pow(Rvir , 3) * fac;
 }
 
@@ -384,6 +385,7 @@ double Sigma(double redshift, double Halo_Mass) // Still a tiny difference
   double Normalization = SigmaNorm(redshift);
   double Sigma8 = run_globals.params.Sigma8; //Need this to check normalization
   double little_h = run_globals.params.Hubble_h;
+  double RedFactor = Growth_Factor(redshift) / Growth_Factor(0);
   
   int_S2_params p;
 
@@ -405,7 +407,7 @@ double Sigma(double redshift, double Halo_Mass) // Still a tiny difference
 
   gsl_integration_workspace_free(workspace);
   
-  return Sigma8 * sqrt(result / Normalization);   
+  return Sigma8 * sqrt(result / Normalization) * RedFactor;   
 }
 
 double SigmaNorm(double redshift) //Need this for normalization 
@@ -455,7 +457,6 @@ double integrand_2pointCF(double k, void* params)
   
   //double j1 = (sin(k * Radius) - (k * Radius * cos(k * Radius))) / (k * Radius);
   
-  //return k * k * PS / (2 * M_PI * M_PI) * pow(3 * j1 / (k * Radius), 2);
   return k * k * PS / (2 * M_PI * M_PI) * sin(k * p->Radius) / (k * p->Radius);
 }
 
