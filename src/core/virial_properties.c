@@ -154,7 +154,8 @@ double calculate_Rvir_2(double Mvir, double redshift) //from Mvir in 10^10 Msol/
   double zplus1 = redshift + 1;
   double GG = 4.3009*1e-9;
 
-  rhocrit = 3 * (little_h * 100 * little_h * 100 * OmegaM * zplus1 * zplus1 * zplus1 + OmegaK * zplus1 * zplus1 + OmegaLambda) / (8 * M_PI * GG);
+  //rhocrit = 3 * (little_h * 100 * little_h * 100 * OmegaM * zplus1 * zplus1 * zplus1 + OmegaK * zplus1 * zplus1 + OmegaLambda) / (8 * M_PI * GG);
+  rhocrit = 3 * little_h * little_h * 100 * 100 / (8 * M_PI * GG);
 
   //Delta = Omega_z(redshift, OmegaM, OmegaK, OmegaLambda);
   //fac = 1 / (OmegaM*zplus1*zplus1*zplus1 * 4 * M_PI / 3.0 * rhocrit);
@@ -372,7 +373,7 @@ double integrand_S2(double k, void* params)
   //double Radius = calculate_Rvir_2(p->HaloMass, p->redshift); //Compute Rvir in cMpc/h
   double Radius = calculate_Rvir_2(p->HaloMass, p->redshift) / little_h;
   
-  double PS = PowerSpectrum(p->redshift, k / little_h);
+  double PS = PowerSpectrum(p->redshift, k);
   
   double j1 = (sin(k * Radius) - (k * Radius * cos(k * Radius))) / pow((k * Radius),2);
   
