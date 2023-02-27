@@ -253,7 +253,7 @@ double calculate_zeq(double OmegaM)
   double Theta = 2.728 / 2.7;
   double little_h = run_globals.params.Hubble_h;
   
-  return 2.5e4 * OmegaM * pow(little_h, 2) * pow(Theta, -4); //EH99
+  return 2.5 * 1e4 * OmegaM * pow(little_h, 2) * pow(Theta, -4); //EH99
 }
 
 double Transfer_function(double k) //EH99 You want k in h/Mpc
@@ -370,7 +370,7 @@ double integrand_S2(double k, void* params)
   double little_h = run_globals.params.Hubble_h;
   
   //double Radius = calculate_Rvir_2(p->HaloMass, p->redshift); //Compute Rvir in cMpc/h
-  double Radius = calculate_Rvir_2(p->HaloMass, p->redshift);
+  double Radius = calculate_Rvir_2(p->HaloMass, p->redshift) / little_h;
   
   double PS = PowerSpectrum(p->redshift, k);
   
@@ -416,7 +416,7 @@ double SigmaNorm(double redshift) //Need this for normalization
   double Hubble = run_globals.Hubble;
   double little_h = run_globals.params.Hubble_h;
   
-  double M8 = calculate_Mvir_2(8.0 * little_h, 0); //Mvir correspondent to a halo of (8Mpc/h virial radius)
+  double M8 = calculate_Mvir_2(8.0 * little_h, 0) / little_h; //Mvir correspondent to a halo of (8Mpc/h virial radius)
   
   int_S2_params p;
 
