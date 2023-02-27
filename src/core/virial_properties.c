@@ -156,7 +156,7 @@ double calculate_Rvir_2(double Mvir, double redshift) //from Mvir in 10^10 Msol/
 
   //rhocrit = 3 * (little_h * 100 * little_h * 100 * OmegaM * zplus1 * zplus1 * zplus1 + OmegaK * zplus1 * zplus1 + OmegaLambda) / (8 * M_PI * GG);
   rhocrit = 3 * little_h * little_h * 100 * 100 / (8 * M_PI * GG);
-  mlog("rhocrit %f", MLOG_MSG, rhocrit * OmegaM);
+  mlog("rhocrit %f", MLOG_MESG, rhocrit * OmegaM);
 
   //Delta = Omega_z(redshift, OmegaM, OmegaK, OmegaLambda);
   //fac = 1 / (OmegaM*zplus1*zplus1*zplus1 * 4 * M_PI / 3.0 * rhocrit);
