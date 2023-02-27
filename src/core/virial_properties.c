@@ -415,7 +415,7 @@ double SigmaNorm(double redshift) //Need this for normalization
   int_S2_params p;
 
   p.redshift = redshift;
-  p.HaloMass = M8 / little_h;
+  p.HaloMass = M8;
   
   gsl_function F;
   gsl_integration_workspace* workspace;
