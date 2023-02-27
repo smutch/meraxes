@@ -138,7 +138,7 @@ double calculate_Rvir_2(double Mvir, double redshift) //Mvir in 10^10 Msol/h
   return cbrt(Mvir * fac) * zplus1; //Rvir in Physical units!!
 }
 
-double calculate_Mvir_2(double Rvir, double redshift) //Rvir in Mpc/h
+double calculate_Mvir_2(double Rvir, double redshift) //Rvir in comoving Mpc/h
 {
   double hubble_of_z_sq;
   double rhocrit;
@@ -156,7 +156,7 @@ double calculate_Mvir_2(double Rvir, double redshift) //Rvir in Mpc/h
 
   fac = 4.0 / 3.0 * M_PI * rhocrit * OmegaM;
 
-  return pow(Rvir / zplus1 , 3) * fac;
+  return pow(Rvir , 3) * fac;
 }
 
 double calculate_gasMass(int snapshot, double length) //length in comoving units
