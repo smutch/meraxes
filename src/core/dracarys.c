@@ -322,26 +322,32 @@ void dracarys()
     double hh = 0.6751;
     double array_values[40] = {0.005*hh, 0.008*hh, 0.009*hh, 0.01*hh, 0.02*hh, 0.03*hh, 0.04*hh, 0.05*hh, 0.06*hh, 0.07*hh, 0.08*hh, 0.09*hh, 0.1*hh, 0.2*hh, 0.3*hh, 0.4*hh, 0.5*hh, 0.6*hh, 0.7*hh, 0.8*hh, 0.9*hh, 1*hh, 2*hh, 3*hh, 4*hh, 5*hh, 6*hh, 7*hh, 8*hh, 9*hh, 10*hh, 20*hh, 30*hh, 40*hh, 50*hh, 60*hh, 70*hh, 80*hh, 90*hh, 100*hh,};
     double CF_values[40];
+    double zprova_values[40] = {1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40};
     double Mvir_values[40];
-    double Sigma_values[40];
-    //double TF_values[40];
-    double Pk_values[40];
-    double Sigmaprova = Sigma(10, calculate_Mvir_2(9, 10));
-    double Sigmaprova2 = Sigma(10, calculate_Mvir_2(8, 0));
-    double Sigmaprova3 = Sigma(10, calculate_Mvir_2(7, 10));
+    //double Sigma_values[40];
+    double TF_values[40];
+    double GF_values[40];
+    //double Pk_values[40];
+    //double Sigmaprova = Sigma(10, calculate_Mvir_2(9, 10));
+    //double Sigmaprova2 = Sigma(10, calculate_Mvir_2(8, 0));
+    //double Sigmaprova3 = Sigma(10, calculate_Mvir_2(7, 10));
     //mlog("Sigmas %f %f %f", MLOG_MESG, Sigmaprova, Sigmaprova2, Sigmaprova3);
-    mlog("Sigma %f", MLOG_MESG, Sigmaprova2);
+    //mlog("Sigma %f", MLOG_MESG, Sigmaprova2);
     //boost_R0 = R0(10, 1.15e-2);
     for (int iii = 0; iii < 40; iii++) {
-      Mvir_values[iii] = calculate_Mvir_2(array_values[iii] / hh, 10);
-      Sigma_values[iii] = Sigma(10, Mvir_values[iii]);
-      //TF_values[iii] = Transfer_function(array_values[iii]);
-      Pk_values[iii] = PowerSpectrum(10, array_values[iii]);
+      //Mvir_values[iii] = calculate_Mvir_2(array_values[iii] / hh, 10);
+      //Sigma_values[iii] = Sigma(10, Mvir_values[iii]);
+      TF_values[iii] = Transfer_function(array_values[iii]);
+      //Pk_values[iii] = PowerSpectrum(10, array_values[iii]);
       //CF_values[iii] = TwoPointCF(array_values[iii], boost_R0);
       //CF_values[iii] = TwoPointCF_2(10.0, 1.15e-2, array_values[iii]);
       //mlog("CFvalue %f Radius %f", MLOG_MESG, CF_values[iii], array_values[iii] / hh);
-      mlog("Sigma (z = 10), Pk %f %f", MLOG_MESG, Sigma_values[iii], Pk_values[iii]);
+      //mlog("Sigma (z = 10), Pk %f %f", MLOG_MESG, Sigma_values[iii], Pk_values[iii]);
+      mlog("TF (z = 10), Tf %f", MLOG_MESG, TF_values[iii]);
       }
+    for (int lll = 0; lll < 40; lll++) {
+      GF_values[iii] = Growth_Factor(zprova_values[iii]);
+      mlog("GF at z = %f is %f", MLOG_MESG, zprova_values[iii], GF_values[iii]);  
     }
     // (end of the test)
     // Do the physics
