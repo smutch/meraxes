@@ -317,7 +317,7 @@ void dracarys()
       assign_probability_to_galaxies(ngals_in_metal_slabs, snapshot, 3); 
     }
     // Add a test to 2point CF (then you can cancel this)
-    if (snapshot == 1) {
+    if (snapshot == 0) {
     double boost_R0;
     double hh = 0.6751;
     double array_values[40] = {0.005*hh, 0.008*hh, 0.009*hh, 0.01*hh, 0.02*hh, 0.03*hh, 0.04*hh, 0.05*hh, 0.06*hh, 0.07*hh, 0.08*hh, 0.09*hh, 0.1*hh, 0.2*hh, 0.3*hh, 0.4*hh, 0.5*hh, 0.6*hh, 0.7*hh, 0.8*hh, 0.9*hh, 1*hh, 2*hh, 3*hh, 4*hh, 5*hh, 6*hh, 7*hh, 8*hh, 9*hh, 10*hh, 20*hh, 30*hh, 40*hh, 50*hh, 60*hh, 70*hh, 80*hh, 90*hh, 100*hh,};
@@ -345,7 +345,7 @@ void dracarys()
       //CF_values[iii] = TwoPointCF(array_values[iii], boost_R0);
       CF_values[iii] = TwoPointCF_2(10.0, 1.15e-2, array_values[iii]);
       mlog("CFvalue %f Radius %f", MLOG_MESG, CF_values[iii], array_values[iii] / hh);
-      mlog("Sigma (z = 10), Pk %f %f", MLOG_MESG, Sigma_values[iii], Pk_values[iii]);
+      mlog("Sigma (z = 10) %f, Pk %f", MLOG_MESG, Sigma_values[iii], Pk_values[iii]);
       //mlog("TF (z = 10), Tf %f", MLOG_MESG, TF_values[iii]);
       }
     }
