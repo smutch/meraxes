@@ -371,7 +371,7 @@ double integrand_S2(double k, void* params)
   double little_h = run_globals.params.Hubble_h;
   
   //double Radius = calculate_Rvir_2(p->HaloMass, p->redshift); //Compute Rvir in cMpc/h
-  double Radius = calculate_Rvir_2(p->HaloMass, p->redshift) / little_h;
+  double Radius = calculate_Rvir_2(p->HaloMass, p->redshift);
   
   double PS = PowerSpectrum(p->redshift, k);
   
@@ -417,7 +417,7 @@ double SigmaNorm(double redshift) //Need this for normalization
   double Hubble = run_globals.Hubble;
   double little_h = run_globals.params.Hubble_h;
   
-  double M8 = calculate_Mvir_2(8.0 * little_h, 0) / little_h; //Mvir correspondent to a halo of (8Mpc/h virial radius)
+  double M8 = calculate_Mvir_2(8.0 * little_h, 0) ; //Mvir correspondent to a halo of (8Mpc/h virial radius)
   
   int_S2_params p;
 
