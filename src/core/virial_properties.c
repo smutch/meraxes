@@ -161,7 +161,7 @@ double calculate_Rvir_2(double Mvir, double redshift) //from Mvir in 10^10 Msol/
   //fac = 1 / (OmegaM*zplus1*zplus1*zplus1 * 4 * M_PI / 3.0 * rhocrit);
   fac = 1 / (4 * M_PI / 3.0 * OmegaM * rhocrit);
 
-  return cbrt(Mvir * 1e10 / little_h * fac) * little_h; 
+  return cbrt(Mvir * 1e10 * fac); 
   //return cbrt(Mvir * fac);
 }
 
@@ -213,7 +213,7 @@ double calculate_Mvir_2(double Rvir, double redshift) //from Rvir in comoving Mp
   //fac = 4.0 / 3.0 * M_PI * rhocrit * OmegaM * zplus1 * zplus1 * zplus1;
   fac = 4.0 / 3.0 * M_PI * rhocrit * OmegaM;
 
-  return (pow(Rvir / little_h , 3) * fac) / 1e10 * little_h;
+  return (pow(Rvir, 3) * fac) / 1e10;
   //return pow(Rvir , 3) * fac;
 }
 
@@ -419,6 +419,8 @@ double SigmaNorm(double redshift) //Need this for normalization
   double little_h = run_globals.params.Hubble_h;
   
   double M8 = calculate_Mvir_2(8.0, 0) ; //Mvir correspondent to a halo of (8Mpc/h virial radius)
+  
+  mlog("Prova %f", MLOG_MESG, calculate_Rvir_2(M8, 0));
   
   int_S2_params p;
 
