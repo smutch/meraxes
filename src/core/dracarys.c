@@ -331,9 +331,9 @@ void dracarys()
     double A = calculate_Mvir_2(8, 10);
     double B = calculate_Rvir_2(A, 10);
     mlog("Mass %f Radius %f", MLOG_MESG, A, B);
-    //double Sigmaprova = Sigma(10, calculate_Mvir_2(9, 10));
-    //double Sigmaprova2 = Sigma(10, calculate_Mvir_2(8, 0));
-    //double Sigmaprova3 = Sigma(10, calculate_Mvir_2(7, 10));
+    double Sigmaprova = Sigma(10, calculate_Mvir_2(9, 10));
+    double Sigmaprova2 = Sigma(10, calculate_Mvir_2(8, 0));
+    double Sigmaprova3 = Sigma(10, calculate_Mvir_2(7, 10));
     //mlog("Sigmas %f %f %f", MLOG_MESG, Sigmaprova, Sigmaprova2, Sigmaprova3);
     //mlog("Sigma %f", MLOG_MESG, Sigmaprova2);
     //boost_R0 = R0(10, 1.15e-2);
