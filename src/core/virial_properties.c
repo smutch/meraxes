@@ -199,7 +199,7 @@ double calculate_zeq(double OmegaM)
   return 2.5e4 * OmegaM * pow(little_h, 2) * pow(Theta, -4); //EH99
 }
 
-double Transfer_function(double k) //EH99
+double Transfer_function(double k) //EH99 You want k in h/Mpc
 {
   double OmegaM = run_globals.params.OmegaM;
   double OmegaB = OmegaM * run_globals.params.BaryonFrac;
@@ -530,8 +530,8 @@ double read_SpatialCF(double redshift, double Radius) //Radius in cMpc/h
       }
     }
     //mlog("Index value %d %d:", MLOG_MESG, z_index, R_index);
-    mlog("Red value %f", MLOG_MESG, x_int_zvals[z_index]);
-    mlog("Radius value %f", MLOG_MESG, x_int_radvals[R_index]);         
+    //mlog("Red value %f", MLOG_MESG, x_int_zvals[z_index]);
+    //mlog("Radius value %f", MLOG_MESG, x_int_radvals[R_index]);         
   return x_int_CFvals[R_index];
 }
 
@@ -543,10 +543,10 @@ double TwoPointCF_2(double redshift, double Halo_Mass, double Radius) // 2nd att
   //p.redshift = redshift; 
   //p.Radius = Radius;
   double Hubble = run_globals.Hubble;
-  //double nuu = nuc(redshift, Halo_Mass);
-  double nuu = nuc_2(redshift, Halo_Mass);
-  //double DeltaCrit = 1.686 / Growth_Factor(redshift); // Double check this later, in Mo & White they just do 1.686 * (1 + redshift_2)
-  double DeltaCrit = 1.686 * (1 + redshift);
+  double nuu = nuc(redshift, Halo_Mass);
+  //double nuu = nuc_2(redshift, Halo_Mass);
+  double DeltaCrit = 1.686 / Growth_Factor(redshift); // Double check this later, in Mo & White they just do 1.686 * (1 + redshift_2)
+  //double DeltaCrit = 1.686 * (1 + redshift);
   
   double SpatialCFval = read_SpatialCF(redshift, Radius);
   double LinearBias = 1 + ((nuu * nuu - 1) / DeltaCrit);
