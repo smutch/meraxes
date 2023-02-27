@@ -369,7 +369,7 @@ double integrand_S2(double k, void* params)
   
   double PS = PowerSpectrum(p->redshift, k);
   
-  double j1 = (sin(k * Radius) - (k * Radius * cos(k * Radius))) / (k * Radius);
+  double j1 = (sin(k * Radius) - (k * Radius * cos(k * Radius))) / pow((k * Radius),2);
   
   return k * k * PS / (2 * M_PI * M_PI) * pow(3 * j1 / (k * Radius) , 2);
 }
