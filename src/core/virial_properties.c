@@ -410,7 +410,7 @@ double SigmaNorm(double redshift) //Need this for normalization
   double Hubble = run_globals.Hubble;
   double little_h = run_globals.params.Hubble_h;
   
-  double M8 = calculate_Mvir_2(8.0, 0); //Mvir correspondent to a halo of (8Mpc/h virial radius)
+  double M8 = calculate_Mvir_2(8.0 * little_h, 0); //Mvir correspondent to a halo of (8Mpc/h virial radius)
   
   int_S2_params p;
 
