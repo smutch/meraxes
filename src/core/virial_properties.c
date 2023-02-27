@@ -384,7 +384,6 @@ double Sigma(double redshift, double Halo_Mass) // Still a tiny difference
 {
   double Hubble = run_globals.Hubble;
   double Normalization = SigmaNorm(0);
-  mlog("Norma %f", MLOG_MESG, Normalization);
   double Sigma8 = run_globals.params.Sigma8; //Need this to check normalization
   double little_h = run_globals.params.Hubble_h;
   //double RedFactor = Growth_Factor(redshift) / Growth_Factor(0);
