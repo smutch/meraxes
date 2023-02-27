@@ -317,11 +317,11 @@ double integrand_S2(double k, void* params)
   //mlog("Radius is %f", MLOG_MESG, Radius);
   
   //double PS = PowerSpectrum(p->redshift, k);
-  double PS = PowerSpectrum(p->redshift, k) * little_h;
+  double PS = PowerSpectrum(p->redshift, k);
   
   double j1 = (sin(k * Radius) - (k * Radius * cos(k * Radius))) / (k * Radius);
   
-  return k * k * PS / (2 * M_PI * M_PI) * pow(3 * j1 / (k * Radius), 2);
+  return k * k * k * PS / (2 * M_PI * M_PI) * pow(3 * j1 / (k * Radius), 2);
 }
 
 double Sigma(double redshift, double Halo_Mass) // Still a tiny difference
