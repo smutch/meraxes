@@ -133,8 +133,8 @@ double calculate_Rvir_2(double Mvir, double redshift) //from Mvir in 10^10 Msol/
 
   Delta = Delta_vir(redshift);
 
-  //fac = 1 / (Delta * 4 * M_PI / 3.0 * rhocrit);
-  fac = 1 / (4 * M_PI / 3.0 * OmegaM * rhocrit);
+  fac = 1 / (Delta * 4 * M_PI / 3.0 * rhocrit);
+  //fac = 1 / (4 * M_PI / 3.0 * OmegaM * rhocrit);
 
   return cbrt(Mvir * fac) * zplus1; 
 }
@@ -157,8 +157,8 @@ double calculate_Mvir_2(double Rvir, double redshift) //from Rvir in comoving Mp
   
   Delta = Delta_vir(redshift);
 
-  //fac = 4.0 / 3.0 * M_PI * rhocrit * Delta;
-  fac = 4.0 / 3.0 * M_PI * rhocrit * OmegaM * Delta;
+  fac = 4.0 / 3.0 * M_PI * rhocrit * Delta;
+  //fac = 4.0 / 3.0 * M_PI * rhocrit * OmegaM * Delta;
 
   return pow(Rvir / zplus1 , 3) * fac;
 }
@@ -327,7 +327,7 @@ double integrand_S2(double k, void* params)
   
   double j1 = (sin(k * Radius) - (k * Radius * cos(k * Radius))) / (k * Radius);
   
-  return k * k * PS / (2 * M_PI * M_PI) * pow(3 * j1 / (k * Radius), 2);
+  return k * k * PS / (2 * M_PI * M_PI) * pow(3 * j1 / (k * Radius) / (k * Radius) , 2);
 }
 
 double Sigma(double redshift, double Halo_Mass) // Still a tiny difference
