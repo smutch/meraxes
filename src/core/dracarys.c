@@ -327,6 +327,7 @@ void dracarys()
     double TF_values[45];
     //double GF_values[40];
     double Pk_values[45];
+    mlog("Norma %f", MLOG_MESG, Sigma(0, calculate_Mvir_2(8.0,0)));
     for (int iii = 0; iii < 45; iii++) {
       Mvir_values[iii] = calculate_Mvir_2(array_values[iii] / hh, 0);
       //Rvir_values[iii] = calculate_Rvir_2(Mvir_values[iii], 10);
