@@ -136,8 +136,8 @@ double calculate_Rvir_2(double Mvir, double redshift) //from Mvir in 10^10 Msol/
   fac = 1 / (Delta * 4 * M_PI / 3.0 * rhocrit);
   //fac = 1 / (4 * M_PI / 3.0 * OmegaM * rhocrit);
 
-  //return cbrt(Mvir * fac) * zplus1; 
-  return cbrt(Mvir * fac);
+  return cbrt(Mvir * fac) * zplus1; 
+  //return cbrt(Mvir * fac);
 }
 
 double calculate_Mvir_2(double Rvir, double redshift) //from Rvir in comoving Mpc/h to 10^10Msol/h
@@ -161,8 +161,8 @@ double calculate_Mvir_2(double Rvir, double redshift) //from Rvir in comoving Mp
   fac = 4.0 / 3.0 * M_PI * rhocrit * Delta;
   //fac = 4.0 / 3.0 * M_PI * rhocrit * OmegaM * Delta;
 
-  //return pow(Rvir / zplus1 , 3) * fac;
-  return pow(Rvir , 3) * fac;
+  return pow(Rvir / zplus1 , 3) * fac;
+  //return pow(Rvir , 3) * fac;
 }
 
 double calculate_gasMass(int snapshot, double length) //length in comoving units
@@ -305,12 +305,12 @@ double PowerSpectrum(double redshift, double scale)
   
   Pk = 2 * M_PI * M_PI * deltah * deltah * pow((SPEED_OF_LIGHT * 1e-5 * scale / (little_h * 100)), 3 + spectral_index) * TF * TF * Dz * Dz / (D0 * D0 * pow(scale, 3));
   
-  return Pk * little_h * little_h * little_h;
+  return Pk;
 }
 
 typedef struct
 {
-  double redshift, HaloMass;
+  double redshift, HaloMass, HaloRadius;
 } int_S2_params;
 
 double integrand_S2(double k, void* params)
@@ -318,21 +318,16 @@ double integrand_S2(double k, void* params)
   int_S2_params* p = (int_S2_params*)params;
   double little_h = run_globals.params.Hubble_h;
   
-  //double Radius = calculate_Rvir_2(p->HaloMass, p->redshift);
-  //double Radius = calculate_Rvir_2(p->HaloMass, p->redshift) * (1 + p->redshift) * little_h; //Compute Rvir in cMpc/h
-  double Radius = calculate_Rvir_2(p->HaloMass, p->redshift) * (1 + p->redshift); //Compute Rvir in cMpc/h
-  //double Radius = cbrt(3.0 * (p->HaloMass * 1e10) / (4.0 * M_PI * 8.67e10)); //cMpc/h
-  //mlog("Radius is %f", MLOG_MESG, Radius);
+  //double Radius = calculate_Rvir_2(p->HaloMass, p->redshift) * (1 + p->redshift); //Compute Rvir in cMpc/h
   
-  //double PS = PowerSpectrum(p->redshift, k);
   double PS = PowerSpectrum(p->redshift, k);
   
-  double j1 = (sin(k * Radius) - (k * Radius * cos(k * Radius))) / (k * Radius);
+  double j1 = (sin(k * p->HaloRadius) - (k * p->HaloRadius * cos(k * p->HaloRadius))) / (k * p->HaloRadius);
   
-  return k * k * PS / (2 * M_PI * M_PI) * pow(3 * j1 / (k * Radius) , 2);
+  return k * k * PS / (2 * M_PI * M_PI) * pow(3 * j1 / (k * p->HaloRadius) , 2);
 }
 
-double Sigma(double redshift, double Halo_Mass) // Still a tiny difference
+double Sigma(double redshift, double Halo_Radius) // Still a tiny difference
 {
   double Hubble = run_globals.Hubble;
   double Normalization = SigmaNorm(redshift);
@@ -342,7 +337,7 @@ double Sigma(double redshift, double Halo_Mass) // Still a tiny difference
   int_S2_params p;
 
   p.redshift = redshift;
-  p.HaloMass = Halo_Mass;
+  p.HaloRadius = Halo_Radius;
   
   gsl_function F;
   gsl_integration_workspace* workspace;
@@ -368,14 +363,13 @@ double SigmaNorm(double redshift) //Need this for normalization
   double Hubble = run_globals.Hubble;
   double little_h = run_globals.params.Hubble_h;
   
-  double M8 = calculate_Mvir_2(8.0, 0); //Mvir correspondent to a halo of (8Mpc/h virial radius)
-  //double M8 = 4.0 / 3.0 * M_PI * 8.0 * 8.0 * 8.0 * 8.676e10; // same as above
+  //double M8 = calculate_Mvir_2(8.0, 0); //Mvir correspondent to a halo of (8Mpc/h virial radius)
+  
   
   int_S2_params p;
 
   p.redshift = redshift;
-  //p.HaloMass = 2.75173293e14; //Halo mass correspondent to Rvir = 8h^-1, this is written extremely badly, use it now just to check that the function is working.
-  p.HaloMass = M8;
+  p.HaloRadius = 8.0;
   
   gsl_function F;
   gsl_integration_workspace* workspace;
