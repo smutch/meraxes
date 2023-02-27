@@ -371,7 +371,7 @@ double integrand_S2(double k, void* params)
   double little_h = run_globals.params.Hubble_h;
   
   //double Radius = calculate_Rvir_2(p->HaloMass, p->redshift); //Compute Rvir in cMpc/h
-  double Radius = calculate_Rvir_2(p->HaloMass, p->redshift);
+  double Radius = calculate_Rvir_2(p->HaloMass, 0) / little_h;
   
   double PS = PowerSpectrum(p->redshift, k);
   
