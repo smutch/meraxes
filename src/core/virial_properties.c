@@ -156,8 +156,6 @@ double calculate_Rvir_2(double Mvir, double redshift) //from Mvir in 10^10 Msol/
 
   rhocrit = 3 * (little_h * 100) / (8 * M_PI * GG);
 
-  Delta = Delta_vir(redshift);
-
   //fac = 1 / (Delta * 4 * M_PI / 3.0 * rhocrit);
   fac = 1 / (4 * M_PI / 3.0 * OmegaM * rhocrit);
 
@@ -206,7 +204,7 @@ double calculate_Mvir_2(double Rvir, double redshift) //from Rvir in comoving Mp
 
   rhocrit = 3 * little_h * 100 / (8 * M_PI * GG);
 
-  fac = 4.0 / 3.0 * M_PI * rhocrit;
+  fac = 4.0 / 3.0 * M_PI * rhocrit * OmegaM;
   //fac = 4.0 / 3.0 * M_PI * rhocrit * OmegaM * Delta;
 
   return (pow(Rvir / zplus1 / little_h , 3) * fac) / 1e10 * little_h;
