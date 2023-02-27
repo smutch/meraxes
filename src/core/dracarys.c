@@ -346,8 +346,8 @@ void dracarys()
       mlog("TF (z = 10), Tf %f", MLOG_MESG, TF_values[iii]);
       }
     for (int lll = 0; lll < 40; lll++) {
-      GF_values[iii] = Growth_Factor(zprova_values[iii]);
-      mlog("GF at z = %f is %f", MLOG_MESG, zprova_values[iii], GF_values[iii]);  
+      GF_values[lll] = Growth_Factor(zprova_values[lll]);
+      mlog("GF at z = %f is %f", MLOG_MESG, zprova_values[lll], GF_values[lll]);  
       }
     }
     // (end of the test)
