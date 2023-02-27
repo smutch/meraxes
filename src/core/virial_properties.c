@@ -327,7 +327,7 @@ double integrand_S2(double k, void* params)
   
   double j1 = (sin(k * Radius) - (k * Radius * cos(k * Radius))) / (k * Radius);
   
-  return k * k * PS / (2 * M_PI * M_PI) * pow(3 * j1 / (k * Radius) / (k * Radius) , 2);
+  return k * k * PS / (2 * M_PI * M_PI) * pow(3 * j1 / (k * Radius) , 2);
 }
 
 double Sigma(double redshift, double Halo_Mass) // Still a tiny difference
