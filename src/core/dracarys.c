@@ -328,17 +328,17 @@ void dracarys()
     //double GF_values[40];
     double Pk_values[45];
     for (int iii = 0; iii < 45; iii++) {
-      Mvir_values[iii] = calculate_Mvir_2(array_values[iii], 0);
+      Mvir_values[iii] = calculate_Mvir_2(array_values[iii], 10);
       //Rvir_values[iii] = calculate_Rvir_2(Mvir_values[iii], 10);
-      Sigma_values[iii] = Sigma(0, Mvir_values[iii]);
+      Sigma_values[iii] = Sigma(10, Mvir_values[iii]);
       TF_values[iii] = Transfer_function(array_values[iii]);
-      Pk_values[iii] = PowerSpectrum(0, array_values[iii]);
+      Pk_values[iii] = PowerSpectrum(10, array_values[iii]);
       //CF_values[iii] = TwoPointCF(array_values[iii], boost_R0);
       //CF_values[iii] = TwoPointCF_2(10.0, 1.15e-2, array_values[iii]);
       //CF_values[iii] = TwoPointCF_2(10.0, 1.15e-2, Rvir_values[iii]);
       //mlog("CFvalue %f Radius %f", MLOG_MESG, CF_values[iii], array_values[iii] / hh);
       //mlog("CFvalue %f Radius %f", MLOG_MESG, CF_values[iii], Rvir_values[iii]);
-      mlog("Sigma (z = 0) %f, Pk %f, Tk %f, R %f", MLOG_MESG, Sigma_values[iii], Pk_values[iii], TF_values[iii], array_values[iii] / hh);
+      mlog("Sigma (z = 10) %f, Pk %f, Tk %f, R %f", MLOG_MESG, Sigma_values[iii], Pk_values[iii], TF_values[iii], array_values[iii] / hh);
       //mlog("Sigma (z = 10) %f", MLOG_MESG, Sigma_values[iii]);
       //mlog("TF (z = 10), Tf %f", MLOG_MESG, TF_values[iii]);
       }
