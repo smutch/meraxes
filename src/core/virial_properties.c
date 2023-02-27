@@ -409,7 +409,7 @@ double Sigma(double redshift, double Halo_Mass) // Still a tiny difference
   gsl_integration_workspace_free(workspace);
   
   //return Sigma8 * sqrt(result / Normalization) * RedFactor;   
-  return Sigma8 * sqrt(result / Normalization) * RedFactor; 
+  return Sigma8 * sqrt(result / Normalization); 
 }
 
 double SigmaNorm(double redshift) //Need this for normalization 
