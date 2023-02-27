@@ -329,7 +329,7 @@ void dracarys()
     double Pk_values[45];
     mlog("Norma %f", MLOG_MESG, Sigma(0, calculate_Mvir_2(8.0,0)));
     for (int iii = 0; iii < 45; iii++) {
-      Mvir_values[iii] = calculate_Mvir_2(array_values[iii], 0);
+      Mvir_values[iii] = calculate_Mvir_2(array_values[iii] / hh, 0);
       //Rvir_values[iii] = calculate_Rvir_2(Mvir_values[iii], 10);
       Sigma_values[iii] = Sigma(10, Mvir_values[iii]) * Growth_Factor(10) / Growth_Factor(0);
       TF_values[iii] = Transfer_function(array_values[iii]);
