@@ -136,7 +136,8 @@ double calculate_Rvir_2(double Mvir, double redshift) //from Mvir in 10^10 Msol/
   fac = 1 / (Delta * 4 * M_PI / 3.0 * rhocrit);
   //fac = 1 / (4 * M_PI / 3.0 * OmegaM * rhocrit);
 
-  return cbrt(Mvir * fac) * zplus1; 
+  //return cbrt(Mvir * fac) * zplus1; 
+  return cbrt(Mvir * fac);
 }
 
 double calculate_Mvir_2(double Rvir, double redshift) //from Rvir in comoving Mpc/h to 10^10Msol/h
@@ -160,7 +161,8 @@ double calculate_Mvir_2(double Rvir, double redshift) //from Rvir in comoving Mp
   fac = 4.0 / 3.0 * M_PI * rhocrit * Delta;
   //fac = 4.0 / 3.0 * M_PI * rhocrit * OmegaM * Delta;
 
-  return pow(Rvir / zplus1 , 3) * fac;
+  //return pow(Rvir / zplus1 , 3) * fac;
+  return pow(Rvir , 3) * fac;
 }
 
 double calculate_gasMass(int snapshot, double length) //length in comoving units
@@ -316,9 +318,9 @@ double integrand_S2(double k, void* params)
   int_S2_params* p = (int_S2_params*)params;
   double little_h = run_globals.params.Hubble_h;
   
-  double Radius = calculate_Rvir_2(p->HaloMass, p->redshift);
+  //double Radius = calculate_Rvir_2(p->HaloMass, p->redshift);
   //double Radius = calculate_Rvir_2(p->HaloMass, p->redshift) * (1 + p->redshift) * little_h; //Compute Rvir in cMpc/h
-  //double Radius = calculate_Rvir_2(p->HaloMass, p->redshift) * (1 + p->redshift); //Compute Rvir in cMpc/h
+  double Radius = calculate_Rvir_2(p->HaloMass, p->redshift) * (1 + p->redshift); //Compute Rvir in cMpc/h
   //double Radius = cbrt(3.0 * (p->HaloMass * 1e10) / (4.0 * M_PI * 8.67e10)); //cMpc/h
   //mlog("Radius is %f", MLOG_MESG, Radius);
   
