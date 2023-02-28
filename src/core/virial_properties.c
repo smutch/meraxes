@@ -376,10 +376,10 @@ double integrand_S2(double k, void* params)
   double PS = PowerSpectrum(p->redshift, k);
   
   //double j1 = (sin(k * Radius) - (k * Radius * cos(k * Radius))) / pow((k * Radius),2);
-  double j1 = (sin(k * Radius) - (k * Radius * cos(k * Radius))); //E' SBAGLIATO E' SOLO UNA PROVA
+  double j1 = (sin(k * Radius) - (k * Radius * cos(k * Radius)) / R / R); //E' SBAGLIATO E' SOLO UNA PROVA
   
   //return k * k * PS / (2 * M_PI * M_PI) * pow(3 * j1 / (k * Radius) , 2);
-  return k * k * PS / (2 * M_PI * M_PI) * pow(3 * j1, 2); //E' SBAGLIATO E' SOLO UNA PROVA
+  return k * k * PS / (2 * M_PI * M_PI) * pow(3 * j1 / R, 2); //E' SBAGLIATO E' SOLO UNA PROVA
 }
 
 double Sigma(double redshift, double Halo_Mass) // Still a tiny difference
