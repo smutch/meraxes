@@ -598,6 +598,7 @@ double read_Sigma(double redshift, double RvirVal) //Radius in cMpc/h
     mlog("Red value %f", MLOG_MESG, x_int_zvals[z_index]);
     mlog("Radius value %f", MLOG_MESG, x_int_rvirvals[Rvir_index]);         
   return x_int_Sigmavals[Rvir_index];
+}
 
 double TwoPointCF_2(double redshift, double Halo_Radius, double Radius) // 2nd attempt, reading from tables, Halo_Radius refers to the Vir Radius of the halo, Radius will be the RMetals
 {
