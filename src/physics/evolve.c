@@ -51,8 +51,8 @@ int evolve_galaxies(fof_group_t* fof_group, int snapshot, int NGal, int NFof, in
               
               if (gal->MaxBubble * little_h > 0){
                 boost_corr = 1 + TwoPointCF_2(run_globals.ZZ[snapshot], gal->MaxBubble * (1 + run_globals.ZZ[snapshot]) * little_h, gal->Rvir * (1 + run_globals.ZZ[snapshot])); //Adding Clustering probability, you need both Rmax and Rvir in comoving Mpc / h. !!!! YOU NEED TO CHECK if RMAX is saved with 1/h units or not !!!!
+                mlog("BoostFactor %f", MLOG_MESG, boost_corr);
                 }
-              mlog("BoostFactor %f", MLOG_MESG, boost_corr);
               
               x = (double)rand() / RAND_MAX;
               
