@@ -317,7 +317,7 @@ void dracarys()
       assign_probability_to_galaxies(ngals_in_metal_slabs, snapshot, 3); 
     }
     // Add a test to 2point CF (then you can cancel this)
-    if (snapshot == 1) {
+    /*if (snapshot == 1) {
     double hh = 0.6751;
     //double array_values[45] = {0.005*hh, 0.008*hh, 0.009*hh, 0.01*hh, 0.02*hh, 0.03*hh, 0.04*hh, 0.05*hh, 0.06*hh, 0.07*hh, 0.08*hh, 0.09*hh, 0.1*hh, 0.2*hh, 0.3*hh, 0.4*hh, 0.5*hh, 0.6*hh, 0.7*hh, 0.8*hh, 0.9*hh, 1*hh, 2*hh, 3*hh, 4*hh, 5*hh, 6*hh, 7*hh, 8*hh, 9*hh, 10*hh, 20*hh, 30*hh, 40*hh, 50*hh, 60*hh, 70*hh, 80*hh, 90*hh, 100*hh, 200*hh, 300*hh, 400*hh, 500*hh, 1000*hh};
     double array_values[15] = {0.005*hh, 0.008*hh, 0.009*hh, 0.01*hh, 0.02*hh, 0.03*hh, 0.04*hh, 0.05*hh, 0.06*hh, 0.07*hh, 0.08*hh, 0.09*hh, 0.1*hh, 0.2*hh, 0.3*hh};
@@ -347,7 +347,7 @@ void dracarys()
       //mlog("TF (z = 10), Tf %f", MLOG_MESG, TF_values[iii]);
       }
     }
-    // (end of the test)
+    // (end of the test)*/
     // Do the physics
     if (NGal > 0)
       nout_gals = evolve_galaxies(fof_group, snapshot, NGal, trees_info.n_fof_groups, &gal_counter_Pop3, &gal_counter_Pop2, &gal_counter_enriched);
