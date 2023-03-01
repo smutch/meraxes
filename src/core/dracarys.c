@@ -325,6 +325,7 @@ void dracarys()
     //double Mvir_values[45];
     //double Rvir_values[45];
     double RvirProva = calculate_Mvir_2(1.15e-2, 0);
+    mlog("RvirVal %f", MLOG_MESG, RvirProva);
     //double Sigma_values[45];
     //double TF_values[45];
     //double GF_values[40];
