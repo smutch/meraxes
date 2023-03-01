@@ -581,7 +581,7 @@ double read_Sigma(double redshift, double RvirVal) //Radius in cMpc/h
       z_index = i;
       for (ii = z_index; ii < x_int_NCFVALS; ii++) {
         if (fabs(x_int_zvals[ii] - redshift) > 0.07 && RvirVal < MAX_Rvir) {
-          mlog("Error, you didn't find the radius value!\n", MLOG_MESG);
+          mlog("Error, you didn't find the Rvir value!\n", MLOG_MESG);
           exit(1);
           }
         if (fabs((RvirVal - x_int_rvirvals[ii]) / RvirVal) < 0.09) {
