@@ -6,6 +6,8 @@
 
 static float x_int_zvals[x_int_NCFVALS];
 static float x_int_radvals[x_int_NCFVALS];
+static float x_int_rvirvals[x_int_NCFVALS];
+static float x_int_Sigmavals[x_int_NCFVALS];
 static float x_int_CFvals[x_int_NCFVALS];
 
 static inline double E_z(double z, double OmegaM, double OmegaK, double OmegaLambda)
@@ -161,7 +163,7 @@ double calculate_Rvir_2(double Mvir, double redshift) //from Mvir in 10^10 Msol/
   //fac = 1 / (OmegaM*zplus1*zplus1*zplus1 * 4 * M_PI / 3.0 * rhocrit);
   fac = 1 / (4 * M_PI / 3.0 * OmegaM * rhocrit);
 
-  return cbrt(Mvir * 1e10 * fac); 
+  return cbrt(Mvir * 1e10 * fac) * little_h; 
   //return cbrt(Mvir * fac);
 }
 
@@ -500,6 +502,42 @@ void initialize_interpCF_arrays()
   MPI_Bcast(&x_int_CFvals, sizeof(x_int_CFvals), MPI_BYTE, 0, run_globals.mpi_comm);
 }
 
+void initialize_interpSigma_arrays()
+{
+  FILE* input_fileSigma;
+  char input_file_nameSigma[500];
+  char input_baseSigma[] = "SigmaVals.dat";
+  char modeSigma[10] = "r";
+  
+  int i;
+  
+  if (run_globals.mpi_rank == 0) {
+    sprintf(input_file_nameSigma,"%s/%s", run_globals.params.TablesForXHeatingDir, input_baseSigma); // ATM is in the same location, you might want change it later!
+    input_fileSigma = fopen(input_file_nameSigma, modeSigma);
+    
+    if (input_fileSigma == NULL) {
+        mlog("Can't open input file %s!\n", MLOG_MESG, input_file_nameSigma);
+        exit(1);
+      }
+    
+    // Read in data table
+      for (i = 0; i < x_int_NCFVALS; i++) {
+        fscanf(input_fileSigma,
+               "%g %g %g",
+               &x_int_zvals[i],
+               &x_int_rvirvals[i],
+               &x_int_Sigmavals[i]);
+      }
+
+      fclose(input_fileCF);
+    }
+    
+  // broadcast the values to all cores
+  MPI_Bcast(&x_int_zvals, sizeof(x_int_zvals), MPI_BYTE, 0, run_globals.mpi_comm);
+  MPI_Bcast(&x_int_rvirvals, sizeof(x_int_rvirvals), MPI_BYTE, 0, run_globals.mpi_comm);
+  MPI_Bcast(&x_int_Sigmavals, sizeof(x_int_Sigmavals), MPI_BYTE, 0, run_globals.mpi_comm);
+}
+
 double read_SpatialCF(double redshift, double Radius) //Radius in cMpc/h
 {
   int z_index = 0;
@@ -531,38 +569,46 @@ double read_SpatialCF(double redshift, double Radius) //Radius in cMpc/h
   return x_int_CFvals[R_index];
 }
 
-double TwoPointCF_2(double redshift, double Halo_Mass, double Radius) // 2nd attempt, reading from tables
+double read_Sigma(double redshift, double RvirVal) //Radius in cMpc/h
+{
+  int z_index = 0;
+  int Rvir_index = 0;
+  int i = 0;
+  int ii = 0;
+  //mlog("Tot values %d:", MLOG_MESG, x_int_NCFVALS);
+  for (i = 0; i < x_int_NCFVALS; i++) {
+    if (fabs(x_int_zvals[i] - redshift) <= 0.07) {
+      z_index = i;
+      for (ii = z_index; ii < x_int_NCFVALS; ii++) {
+        if (fabs(x_int_zvals[ii] - redshift) > 0.07 && RvirVal < MAX_Rvir) {
+          mlog("Error, you didn't find the radius value!\n", MLOG_MESG);
+          exit(1);
+          }
+        if (fabs((RvirVal - x_int_rvirvals[ii]) / RvirVal) < 0.09) {
+          Rvir_index = ii;
+          break;
+          }
+        }
+      if (RvirVal >= MAX_RAD) // If that's the case take the largest value
+        Rvir_index = ii;
+      break;
+      }
+    }
+    mlog("Index value %d %d:", MLOG_MESG, z_index, Rvir_index);
+    mlog("Red value %f", MLOG_MESG, x_int_zvals[z_index]);
+    mlog("Radius value %f", MLOG_MESG, x_int_rvirvals[Rvir_index]);         
+  return x_int_Sigmavals[Rvir_index];
+
+double TwoPointCF_2(double redshift, double Halo_Radius, double Radius) // 2nd attempt, reading from tables, Halo_Radius refers to the Vir Radius of the halo, Radius will be the RMetals
 {
 
-  //int_2CF_params p;
-
-  //p.redshift = redshift; 
-  //p.Radius = Radius;
-  double Hubble = run_globals.Hubble;
-  double nuu = nuc(redshift, Halo_Mass);
-  //double nuu = nuc_2(redshift, Halo_Mass);
+  //double nuu = nuc(redshift, Halo_Mass);
+  double nuu = nuc_2(redshift, Halo_Radius);
   double DeltaCrit = 1.686 / Growth_Factor(redshift); // Double check this later, in Mo & White they just do 1.686 * (1 + redshift_2)
   //double DeltaCrit = 1.686 * (1 + redshift);
   
   double SpatialCFval = read_SpatialCF(redshift, Radius);
   double LinearBias = 1 + ((nuu * nuu - 1) / DeltaCrit);
-  
-  /*gsl_function F;
-  gsl_integration_workspace* workspace;
-  
-  double result; 
-  double abserr;
-
-  workspace = gsl_integration_workspace_alloc(WORKSIZE);
-  F.function = &integrand_2pointCF;
-  F.params = &p;
-
-  gsl_integration_qag(
-    &F, 1.0e-7, 1000, 1.0 / Hubble, 1.0e-8, WORKSIZE, GSL_INTEG_GAUSS61, workspace, &result, &abserr); //500 should be infinite, qao or qag?
-
-  gsl_integration_workspace_free(workspace);*/
- 
-  //mlog("LinearBias %f", MLOG_MESG, LinearBias);
   
   return SpatialCFval * LinearBias * LinearBias;
 }
@@ -575,10 +621,10 @@ double nuc(double redshift, double Halo_Mass)
   return DeltaCrit / ss;
 }
 
-double nuc_2(double redshift, double Halo_Mass)
+double nuc_2(double redshift, double Halo_Radius)
 {
-  double DeltaCrit = 1.686 * (1 + redshift);
-  double ss = Sigma(redshift, Halo_Mass);
+  double DeltaCrit = 1.686 / Growth_Factor(redshift);
+  double ss = read_Sigma(redshift, Halo_Radius);
   
   return DeltaCrit / ss;
 }
