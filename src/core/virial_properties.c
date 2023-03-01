@@ -529,7 +529,7 @@ void initialize_interpSigma_arrays()
                &x_int_Sigmavals[i]);
       }
 
-      fclose(input_fileCF);
+      fclose(input_fileSigma);
     }
     
   // broadcast the values to all cores

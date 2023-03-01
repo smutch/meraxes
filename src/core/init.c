@@ -261,6 +261,7 @@ void init_meraxes()
   
   // initialize CF tables
   initialize_interpCF_arrays();
+  initialize_interpSigma_arrays();
 
   // read in the stellar feedback tables
   read_stellar_feedback_tables();
