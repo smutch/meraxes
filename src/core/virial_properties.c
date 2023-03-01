@@ -605,8 +605,8 @@ double TwoPointCF_2(double redshift, double Halo_Radius, double Radius) // 2nd a
 
   //double nuu = nuc(redshift, Halo_Mass);
   double nuu = nuc_2(redshift, Halo_Radius);
-  //double DeltaCrit = 1.686 / Growth_Factor(redshift); // Double check this later, in Mo & White they just do 1.686 * (1 + redshift_2)
-  double DeltaCrit = 1.686 * (1 + redshift);
+  double DeltaCrit = 1.686 / Growth_Factor(redshift); // Double check this later, in Mo & White they just do 1.686 * (1 + redshift_2)
+  //double DeltaCrit = 1.686 * (1 + redshift);
   
   double SpatialCFval = read_SpatialCF(redshift, Radius);
   double LinearBias = 1 + ((nuu * nuu - 1) / DeltaCrit);
@@ -625,9 +625,10 @@ double nuc(double redshift, double Halo_Mass)
 
 double nuc_2(double redshift, double Halo_Radius)
 {
-  //double DeltaCrit = 1.686 / Growth_Factor(redshift);
-  double DeltaCrit = 1.686 * (1 + redshift);
-  double ss = read_Sigma(redshift, Halo_Radius);
+  double DeltaCrit = 1.686 / Growth_Factor(redshift);
+  //double DeltaCrit = 1.686 * (1 + redshift);
+  double little_h = run_globals.params.Hubble_h;
+  double ss = read_Sigma(redshift, Halo_Radius) / little_h; //The one from the tables is in units (1/h)
   
   return DeltaCrit / ss;
 }
