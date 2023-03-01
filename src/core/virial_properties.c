@@ -611,7 +611,8 @@ double TwoPointCF_2(double redshift, double Halo_Radius, double Radius) // 2nd a
   double SpatialCFval = read_SpatialCF(redshift, Radius);
   double LinearBias = 1 + ((nuu * nuu - 1) / DeltaCrit);
   
-  return SpatialCFval * LinearBias * LinearBias;
+  //return SpatialCFval * LinearBias * LinearBias;
+  return SpatialCFval * LinearBias;
 }
 
 double nuc(double redshift, double Halo_Mass)
