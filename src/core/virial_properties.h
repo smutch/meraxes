@@ -5,7 +5,8 @@
 
 // Below gives grid sizes for the interpolation arrays
 #define x_int_NCFVALS 9600 //Number of CF vals in your table
-#define MAX_RAD 500 //Largest Radius value in your table
+#define MAX_RAD 0.51 //Largest Metal Radius value in your table (cMpc / h)
+#define MAX_Rvir 0.32 // Largest Rvir value in your table (cMpc / h)
 
 #ifdef __cplusplus
 extern "C"
@@ -36,9 +37,11 @@ extern "C"
   double R0(double redshift, double Halo_Mass);
   double TwoPointCF(double Radius, double Corr_length);
   //double integrand_2pointCF(double k);
-  double TwoPointCF_2(double redshift, double Halo_Mass, double Radius);
+  double TwoPointCF_2(double redshift, double Halo_Radius, double Radius);
   void initialize_interpCF_arrays(void);
+  void initialize_interpSigma_arrays(void);
   double read_SpatialCF(double redshift, double Radius);
+  double read_Sigma(double redshift, double RvirVal);
   
 
 #ifdef __cplusplus
