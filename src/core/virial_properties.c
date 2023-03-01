@@ -594,9 +594,9 @@ double read_Sigma(double redshift, double RvirVal) //Radius in cMpc/h
       break;
       }
     }
-    mlog("Index value %d %d:", MLOG_MESG, z_index, Rvir_index);
-    mlog("Red value %f", MLOG_MESG, x_int_zvals[z_index]);
-    mlog("Radius value %f", MLOG_MESG, x_int_rvirvals[Rvir_index]);         
+    //mlog("Index value %d %d:", MLOG_MESG, z_index, Rvir_index);
+    //mlog("Red value %f", MLOG_MESG, x_int_zvals[z_index]);
+    //mlog("Radius value %f", MLOG_MESG, x_int_rvirvals[Rvir_index]);         
   return x_int_Sigmavals[Rvir_index];
 }
 
