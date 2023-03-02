@@ -550,7 +550,7 @@ double read_SpatialCF(double redshift, double Radius) //Radius in cMpc/h
       z_index = i;
       for (ii = z_index; ii < x_int_NCFVALS; ii++) {
         if (fabs(x_int_zvals[ii] - redshift) > 0.07 && Radius < MAX_RAD) {
-          mlog("Error, you didn't find the radius value!\n", MLOG_MESG);
+          mlog("Error, you didn't find the radius value for %f!\n", MLOG_MESG, Radius);
           //exit(1);
           }
         if (fabs((Radius - x_int_radvals[ii]) / Radius) < 0.09) {
