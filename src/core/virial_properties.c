@@ -564,7 +564,7 @@ double read_SpatialCF(double redshift, double Radius) //Radius in cMpc/h
       }
     }
     //mlog("Index value %d %d:", MLOG_MESG, z_index, R_index);
-    //mlog("Red value %f", MLOG_MESG, x_int_zvals[z_index]);
+    mlog("Red value %f", MLOG_MESG, x_int_zvals[z_index]);
     //mlog("Radius value %f", MLOG_MESG, x_int_radvals[R_index]);         
   return x_int_CFvals[R_index];
 }
