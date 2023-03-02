@@ -589,7 +589,7 @@ double read_Sigma(double redshift, double RvirVal) //Radius in cMpc/h
           break;
           }
         }
-      if (RvirVal >= MAX_RAD) // If that's the case take the largest value
+      if (RvirVal >= MAX_Rvir) // If that's the case take the largest value
         Rvir_index = ii;
       break;
       }
