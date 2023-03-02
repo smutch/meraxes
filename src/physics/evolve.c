@@ -48,6 +48,7 @@ int evolve_galaxies(fof_group_t* fof_group, int snapshot, int NGal, int NFof, in
             if (gal->output_index == -1) { //Not sure if Ghostflag condition is needed
               double x;
               double boost_corr = 1;
+              mlog("Rvir %f, Rmax %f", MLOG_MESG, gal->Rvir * (1 + run_globals.ZZ[snapshot]), gal->MaxBubble * (1 + run_globals.ZZ[snapshot]) * little_h);
               
               if (gal->MaxBubble * little_h > 0){
                 mlog("Rvir %f, Rmax %f", MLOG_MESG, gal->Rvir * (1 + run_globals.ZZ[snapshot]), gal->MaxBubble * (1 + run_globals.ZZ[snapshot]) * little_h);
@@ -75,7 +76,7 @@ int evolve_galaxies(fof_group_t* fof_group, int snapshot, int NGal, int NFof, in
                 gal->Galaxy_Population = 3;
                 *gal_counter_Pop3 = *gal_counter_Pop3 + 1;
               }
-              //gal->Metal_Probability *= (1 + boost_corr); //Add this to save the updated probability!
+              gal->Metal_Probability *= (1 + boost_corr); //Add this to save the updated probability!
             }
           }
           
