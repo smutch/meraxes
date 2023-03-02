@@ -307,7 +307,7 @@ void contemporaneous_supernova_feedback(galaxy_t* gal,
   assert(*m_eject >= 0);
 }
 
-void calc_metal_bubble(galaxy_t* gal, int snapshot) // For metal pollution, added by Manu. Almost done
+void calc_metal_bubble(galaxy_t* gal, int snapshot) // Done, do a double check with units!! (should be Mpc/h)
 {
   bool Flag_IRA = (bool)(run_globals.params.physics.Flag_IRA);
   double sfr_timescale_metals = run_globals.params.ReionSfrTimescale * hubble_time(snapshot);
