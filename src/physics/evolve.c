@@ -50,11 +50,13 @@ int evolve_galaxies(fof_group_t* fof_group, int snapshot, int NGal, int NFof, in
               double boost_corr = 1;
               //mlog("Rvir %f, Rmax %f", MLOG_MESG, gal->Rvir * (1 + run_globals.ZZ[snapshot]), gal->MaxBubble * (1 + run_globals.ZZ[snapshot]) * little_h);
               
-              if (gal->MaxBubble * (1 + run_globals.ZZ[snapshot]) > 0.005){ //Smallest value of the table, you might want to change the table 
+              //if (gal->MaxBubble * (1 + run_globals.ZZ[snapshot]) > 0.005){ //Smallest value of the table, you might want to change the table 
                 //mlog("Rvir %f, Rmax %f", MLOG_MESG, gal->Rvir * (1 + run_globals.ZZ[snapshot]), gal->MaxBubble * (1 + run_globals.ZZ[snapshot]));
-                boost_corr = 1 + TwoPointCF_2(run_globals.ZZ[snapshot], gal->Rvir * (1 + run_globals.ZZ[snapshot]),gal->MaxBubble * (1 + run_globals.ZZ[snapshot])); //Adding Clustering probability, you need both Rmax and Rvir in comoving Mpc / h. !!!! YOU NEED TO CHECK if RMAX is saved with 1/h units or not !!!!
+                //boost_corr = 1 + TwoPointCF_2(run_globals.ZZ[snapshot], gal->Rvir * (1 + run_globals.ZZ[snapshot]),gal->MaxBubble * (1 + run_globals.ZZ[snapshot])); //Adding Clustering probability, you need both Rmax and Rvir in comoving Mpc / h. !!!! YOU NEED TO CHECK if RMAX is saved with 1/h units or not !!!!
                 //mlog("BoostFactor %f", MLOG_MESG, boost_corr);
-                }
+              //  }
+              if (gal->MaxBubble > 0.0)
+                boost_corr = 1 + NLBias(Max_Bubble * (1 + run_globals.ZZ[snapshot]), gal->Mvir, run_globals.ZZ[snapshot])
               
               x = (double)rand() / RAND_MAX;
               
@@ -76,7 +78,7 @@ int evolve_galaxies(fof_group_t* fof_group, int snapshot, int NGal, int NFof, in
                 gal->Galaxy_Population = 3;
                 *gal_counter_Pop3 = *gal_counter_Pop3 + 1;
               }
-              gal->Metal_Probability *= (1 + boost_corr); //Add this to save the updated probability!
+              gal->Metal_Probability *= boost_corr; //Add this to save the updated probability!
             }
           }
           
