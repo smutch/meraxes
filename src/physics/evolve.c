@@ -56,7 +56,7 @@ int evolve_galaxies(fof_group_t* fof_group, int snapshot, int NGal, int NFof, in
                 //mlog("BoostFactor %f", MLOG_MESG, boost_corr);
               //  }
               if (gal->MaxBubble > 0.0)
-                boost_corr = 1 + NLBias(gal->Max_Bubble * (1 + run_globals.ZZ[snapshot]), gal->Mvir, run_globals.ZZ[snapshot]);
+                boost_corr = 1 + NLBias(gal->MaxBubble * (1 + run_globals.ZZ[snapshot]), gal->Mvir, run_globals.ZZ[snapshot]);
               
               x = (double)rand() / RAND_MAX;
               
