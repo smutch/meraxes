@@ -237,8 +237,8 @@ void construct_metal_grids(int snapshot, int local_ngals)
               for (int iy = 0; iy < MetalGridDim; iy++)
                 for (int iz = 0; iz < MetalGridDim; iz++) {
                   double val = (double)buffer_metals[grid_index(ix, iy, iz, MetalGridDim, INDEX_REAL)];
-                  //if (val >= Rmax_grid_metals[grid_index(ix, iy, iz, MetalGridDim, INDEX_REAL)])
-                  Rmax_grid_metals[grid_index(ix, iy, iz, MetalGridDim, INDEX_REAL)] = (float)val; 
+                  if (val >= Rmax_grid_metals[grid_index(ix, iy, iz, MetalGridDim, INDEX_REAL)])
+                    Rmax_grid_metals[grid_index(ix, iy, iz, MetalGridDim, INDEX_REAL)] = (float)val; 
                 }
             break;  
             
@@ -397,7 +397,7 @@ void init_metal_grids()
 
 void malloc_metal_grids()
 {
-  mlog("Allocating reionization grids...", MLOG_OPEN);
+  mlog("Allocating metal grids...", MLOG_OPEN);
 
   metal_grids_t* grids = &(run_globals.metal_grids);
 
