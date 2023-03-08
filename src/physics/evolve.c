@@ -48,8 +48,6 @@ int evolve_galaxies(fof_group_t* fof_group, int snapshot, int NGal, int NFof, in
             if (gal->output_index == -1) { //Not sure if Ghostflag condition is needed
               double x;
               double boost_corr = 1;
-              double provaCOrr = NLBias(0.002, 1e-2*0.6751,25);
-              mlog("Prova %f", MLOG_MESG, provaCOrr);
               
               if (gal->MaxBubble * (1 + run_globals.ZZ[snapshot]) > 0.005){ //Smallest value of the table, you might want to change the table 
                 mlog("Rvir %f, Rmax %f", MLOG_MESG, gal->Rvir * (1 + run_globals.ZZ[snapshot]), gal->MaxBubble * (1 + run_globals.ZZ[snapshot]));
@@ -62,7 +60,7 @@ int evolve_galaxies(fof_group_t* fof_group, int snapshot, int NGal, int NFof, in
               
               x = (double)rand() / RAND_MAX;
               
-              if (x <= gal->Metal_Probability * (1 + boost_corr)) {
+              if (x <= gal->Metal_Probability * (1 + boost_corr2)) {
                 gal->MetalsHotGas = gal->HotGas * gal->Metallicity_IGM;
                 gal->MetalsColdGas = gal->ColdGas * gal->Metallicity_IGM;
                 gal->MetalsEjectedGas = gal->EjectedGas * gal->Metallicity_IGM;
