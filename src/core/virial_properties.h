@@ -9,10 +9,10 @@
 #define MAX_Rvir 0.32 // Largest Rvir value in your table (cMpc / h)
 
 //Parameters for fitting function, later these will be put in the input parameter file
-#define Alpha_ind = -1.4 
-#define Beta_ind = 0.8
-#define Gamma_ind = 2.8
-#define Psi_Norm = 200
+#define Alpha_ind  -1.4 
+#define Beta_ind  0.8
+#define Gamma_ind  2.8
+#define Psi_Norm  200
 
 #ifdef __cplusplus
 extern "C"
