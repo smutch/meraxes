@@ -662,7 +662,7 @@ double NLBias(double Dist_Radius, double Halo_Mass, double redshift) //From your
   double little_h = run_globals.params.Hubble_h;
   //Dist_Radius /= little_h;  //DOUBLE CHECK DIMENSION OF THE BUBBLE!!
   
-  Halo_Mass = Halo_Mass * 1e10 / little_h
+  Halo_Mass = Halo_Mass * 1e10 / little_h;
   
   return (Psi_Norm * pow(Dist_Radius / 0.01, Alpha_ind) * pow(Halo_Mass / 1e6, Beta_ind) * pow(redshift / 20.0, 2.8));
 }
