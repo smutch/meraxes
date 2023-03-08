@@ -50,18 +50,18 @@ int evolve_galaxies(fof_group_t* fof_group, int snapshot, int NGal, int NFof, in
               double boost_corr = 1;
               double boost_corr2 = 1;
               
-              if (gal->MaxBubble * (1 + run_globals.ZZ[snapshot]) > 0.005){ //Smallest value of the table, you might want to change the table 
-                mlog("Rvir %f, Rmax %f", MLOG_MESG, gal->Rvir * (1 + run_globals.ZZ[snapshot]), gal->MaxBubble * (1 + run_globals.ZZ[snapshot]));
-                boost_corr2 = 1 + NLBias(gal->MaxBubble, gal->Mvir, run_globals.ZZ[snapshot]);
-                boost_corr = 1 + TwoPointCF_2(run_globals.ZZ[snapshot], gal->Rvir * (1 + run_globals.ZZ[snapshot]),gal->MaxBubble); //Adding Clustering probability, you need both Rmax and Rvir in comoving Mpc / h. !!!! YOU NEED TO CHECK if RMAX is saved with 1/h units or not !!!!
-                mlog("Linear Bias %f, NL Bias %f", MLOG_MESG, boost_corr, boost_corr2);
-                }
-              //if (gal->MaxBubble > 0.0)
-                //boost_corr = NLBias(gal->MaxBubble * (1 + run_globals.ZZ[snapshot]), gal->Mvir, run_globals.ZZ[snapshot]);
+              //if (gal->MaxBubble * (1 + run_globals.ZZ[snapshot]) > 0.005){ //Smallest value of the table, you might want to change the table 
+                //mlog("Rvir %f, Rmax %f", MLOG_MESG, gal->Rvir * (1 + run_globals.ZZ[snapshot]), gal->MaxBubble * (1 + run_globals.ZZ[snapshot]));
+                //boost_corr2 = 1 + NLBias(gal->MaxBubble, gal->Mvir, run_globals.ZZ[snapshot]);
+                //boost_corr = 1 + TwoPointCF_2(run_globals.ZZ[snapshot], gal->Rvir * (1 + run_globals.ZZ[snapshot]),gal->MaxBubble); //Adding Clustering probability, you need both Rmax and Rvir in comoving Mpc / h. !!!! YOU NEED TO CHECK if RMAX is saved with 1/h units or not !!!!
+                //mlog("Linear Bias %f, NL Bias %f", MLOG_MESG, boost_corr, boost_corr2);
+                //}
+              if (gal->MaxBubble > 0.0)
+                boost_corr = NLBias(gal->MaxBubble, gal->Mvir, run_globals.ZZ[snapshot]);
               
               x = (double)rand() / RAND_MAX;
               
-              if (x <= gal->Metal_Probability * (1 + boost_corr2)) {
+              if (x <= gal->Metal_Probability * (1 + boost_corr)) {
                 gal->MetalsHotGas = gal->HotGas * gal->Metallicity_IGM;
                 gal->MetalsColdGas = gal->ColdGas * gal->Metallicity_IGM;
                 gal->MetalsEjectedGas = gal->EjectedGas * gal->Metallicity_IGM;
@@ -79,7 +79,7 @@ int evolve_galaxies(fof_group_t* fof_group, int snapshot, int NGal, int NFof, in
                 gal->Galaxy_Population = 3;
                 *gal_counter_Pop3 = *gal_counter_Pop3 + 1;
               }
-              gal->Metal_Probability *= (1 + boost_corr2); //Add this to save the updated probability!
+              gal->Metal_Probability *= (1 + boost_corr); //Add this to save the updated probability!
             }
           }
           
