@@ -316,38 +316,7 @@ void dracarys()
       assign_probability_to_galaxies(ngals_in_metal_slabs, snapshot, 2);
       assign_probability_to_galaxies(ngals_in_metal_slabs, snapshot, 3); 
     }
-    // Add a test to 2point CF (then you can cancel this)
-    /*if (snapshot == 1) {
-    double hh = 0.6751;
-    //double array_values[45] = {0.005*hh, 0.008*hh, 0.009*hh, 0.01*hh, 0.02*hh, 0.03*hh, 0.04*hh, 0.05*hh, 0.06*hh, 0.07*hh, 0.08*hh, 0.09*hh, 0.1*hh, 0.2*hh, 0.3*hh, 0.4*hh, 0.5*hh, 0.6*hh, 0.7*hh, 0.8*hh, 0.9*hh, 1*hh, 2*hh, 3*hh, 4*hh, 5*hh, 6*hh, 7*hh, 8*hh, 9*hh, 10*hh, 20*hh, 30*hh, 40*hh, 50*hh, 60*hh, 70*hh, 80*hh, 90*hh, 100*hh, 200*hh, 300*hh, 400*hh, 500*hh, 1000*hh};
-    double array_values[15] = {0.005*hh, 0.008*hh, 0.009*hh, 0.01*hh, 0.02*hh, 0.03*hh, 0.04*hh, 0.05*hh, 0.06*hh, 0.07*hh, 0.08*hh, 0.09*hh, 0.1*hh, 0.2*hh, 0.3*hh};
-    double CF_values[15];
-    //double Mvir_values[45];
-    //double Rvir_values[45];
-    double RvirProva = calculate_Rvir_2(1.15e-2, 0);
-    //double RvirProva = 0.001;
-    mlog("RvirVal %f", MLOG_MESG, RvirProva);
-    //double Sigma_values[45];
-    //double TF_values[45];
-    //double GF_values[40];
-    //double Pk_values[45];
-    for (int iii = 0; iii < 15; iii++) {
-      //Mvir_values[iii] = calculate_Mvir_2(array_values[iii] / hh, 0);
-      //Rvir_values[iii] = calculate_Rvir_2(Mvir_values[iii], 10);
-      //Sigma_values[iii] = Sigma(10, Mvir_values[iii]) * Growth_Factor(10) / Growth_Factor(0);
-      //TF_values[iii] = Transfer_function(array_values[iii]);
-      //Pk_values[iii] = PowerSpectrum(10, array_values[iii]);
-      //CF_values[iii] = TwoPointCF(array_values[iii], boost_R0);
-      //CF_values[iii] = TwoPointCF_2(10.0, 1.15e-2, array_values[iii]);
-      CF_values[iii] = TwoPointCF_2(10.0, RvirProva, array_values[iii] / hh);
-      mlog("CFvalue %f Radius %f", MLOG_MESG, CF_values[iii], array_values[iii] / hh / hh);
-      //mlog("CFvalue %f Radius %f", MLOG_MESG, CF_values[iii], Rvir_values[iii]);
-      //mlog("Sigma (z = 10) %f, Pk %f, Tk %f, R %f Mvir %f", MLOG_MESG, Sigma_values[iii], Pk_values[iii], TF_values[iii], array_values[iii] / hh, Mvir_values[iii] * 1e10);
-      //mlog("Sigma (z = 10) %f", MLOG_MESG, Sigma_values[iii]);
-      //mlog("TF (z = 10), Tf %f", MLOG_MESG, TF_values[iii]);
-      }
-    }
-    // (end of the test)*/
+
     // Do the physics
     if (NGal > 0)
       nout_gals = evolve_galaxies(fof_group, snapshot, NGal, trees_info.n_fof_groups, &gal_counter_Pop3, &gal_counter_Pop2, &gal_counter_enriched);
