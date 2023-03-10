@@ -105,7 +105,7 @@ int evolve_galaxies(fof_group_t* fof_group, int snapshot, int NGal, int NFof, in
             if (Flag_Metals == true) {
               calc_metal_bubble(gal, snapshot);
               if ((gal->RmetalBubble > 0.) && (gal->Galaxy_Population == 3)) //ADDING THIS BECAUSE IT SEEMS THE CONDITION AFTER SF DOESN'T COMPLETELY WORK!!
-                gal->Galaxy_Population == 2;
+                gal->Galaxy_Population = 2;
             }
             // If this is a type 2 then decrement the merger clock
             if (gal->Type == 2)
