@@ -388,7 +388,7 @@ double read_Sigma(double redshift, double RvirVal) //Radius in cMpc/h
 double NLBias(double Dist_Radius, double Halo_Mass, double redshift) //From your fitting function, parameters in vir_properties.h (Input in internal units
 {
   double little_h = run_globals.params.Hubble_h;
-  //Dist_Radius /= little_h;  //DOUBLE CHECK DIMENSION OF THE BUBBLE!!
+  //Dist_Radius /= little_h;  //DOUBLE CHECK DIMENSION OF THE BUBBLE!! I believe this should be divided by little_h
   
   Halo_Mass = Halo_Mass * 1e10 / little_h;
   
