@@ -636,7 +636,7 @@ void create_master_file()
     H5LTset_attribute_string(file_id, group_name, "Zigm_box", "Zsol");
     H5LTset_attribute_string(file_id, group_name, "Probability_metals", "none");
     H5LTset_attribute_string(file_id, group_name, "N_bubbles", "none");
-    H5LTset_attribute_string(file_id, group_name, "R_ave", "cMpc");
+    H5LTset_attribute_string(file_id, group_name, "R_ave", "cMpc"); // I believe are cMpc / h! But there might be something wrong! You might want to add Conversion grids!!
     H5LTset_attribute_string(file_id, group_name, "R_max", "cMpc");
     
     H5Gclose(group_id);
