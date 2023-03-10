@@ -251,66 +251,6 @@ double calculate_spin_param(halo_t* halo)
 // As a first test these routines are copied from a previous work of Manu when he was a dumb Master student (the originals were written in Python).
 // In the future it might be work to see if these can be improved. Parameters from Eisenstein & Hu 1998 or 1999 (EH98, EH99)
 
-
-double integrand_GF(double redshift) //EH99
-{
-  #define WORKSIZE 1000
-  //double zplus1 = run_globals.ZZ[snapshot] + 1;
-  double zplus1 = redshift + 1;
-  double OmegaM = run_globals.params.OmegaM;
-  double OmegaLambda = run_globals.params.OmegaLambda;
-  
-  return zplus1 / pow(OmegaM * pow(zplus1, 3) + (1 - OmegaM - OmegaLambda) * pow(zplus1, 2) + OmegaLambda, 1.5);
-}
-
-double Growth_Factor(double redshift) //Now it works!
-{
-  double OmegaM = run_globals.params.OmegaM;
-  double OmegaLambda = run_globals.params.OmegaLambda;
-
-  double zplus1 = redshift + 1; 
-  double zequiv = calculate_zeq(OmegaM);
-  double normalization = GF_norm();
-  double Pref = pow(OmegaM * pow(zplus1, 3) + (1 - OmegaM - OmegaLambda) * pow(zplus1, 2) + OmegaLambda, 0.5); 
-  
-  gsl_function F;
-  gsl_integration_workspace* workspace;
-  double result; 
-  double abserr;
-
-  workspace = gsl_integration_workspace_alloc(WORKSIZE);
-  F.function = &integrand_GF;
-  F.params = &(run_globals.params);
-
-  gsl_integration_qag(
-    &F, redshift, zequiv, 1.0 / run_globals.Hubble, 1.0e-8, WORKSIZE, GSL_INTEG_GAUSS21, workspace, &result, &abserr);
-
-  gsl_integration_workspace_free(workspace);
-  
-  return Pref * result / normalization;  
-}
-double GF_norm() //For Normalization
-{
-  double OmegaM = run_globals.params.OmegaM;
-  double zequiv = calculate_zeq(OmegaM);
-  
-  gsl_function F;
-  gsl_integration_workspace* workspace;
-  double norm; 
-  double normerr;
-
-  workspace = gsl_integration_workspace_alloc(WORKSIZE);
-  F.function = &integrand_GF;
-  F.params = &(run_globals.params);
-
-  gsl_integration_qag(
-    &F, 0, zequiv, 1.0 / run_globals.Hubble, 1.0e-8, WORKSIZE, GSL_INTEG_GAUSS21, workspace, &norm, &normerr);
-
-  gsl_integration_workspace_free(workspace);
-  
-  return norm;
-}
-
 void initialize_interpCF_arrays()
 {
   FILE* input_fileCF;
@@ -443,29 +383,6 @@ double read_Sigma(double redshift, double RvirVal) //Radius in cMpc/h
     //mlog("Red value %f", MLOG_MESG, x_int_zvals[z_index]);
     //mlog("Radius value %f", MLOG_MESG, x_int_rvirvals[Rvir_index]);         
   return x_int_Sigmavals[Rvir_index];
-}
-
-double TwoPointCF_2(double redshift, double Halo_Radius, double Radius) // 2nd attempt, reading from tables, Halo_Radius refers to the Vir Radius of the halo, Radius will be the RMetals
-{
-
-  //double nuu = nuc(redshift, Halo_Mass);
-  double nuu = nuc_2(redshift, Halo_Radius);
-  //double DeltaCrit = 1.686 / Growth_Factor(redshift); // Double check this later, in Mo & White they just do 1.686 * (1 + redshift_2)
-  double DeltaCrit = 1.686 * (1 + redshift);
-  
-  double SpatialCFval = read_SpatialCF(redshift, Radius);
-  double LinearBias = 1 + ((nuu * nuu - 1) / DeltaCrit);
-  
-  //return SpatialCFval * LinearBias * LinearBias;
-  return SpatialCFval * LinearBias;
-}
-
-double nuc(double redshift, double Halo_Mass)
-{
-  double DeltaCrit = 1.686 / Growth_Factor(redshift);
-  double ss = Sigma(redshift, Halo_Mass);
-  
-  return DeltaCrit / ss;
 }
 
 double NLBias(double Dist_Radius, double Halo_Mass, double redshift) //From your fitting function, parameters in vir_properties.h (Input in internal units
