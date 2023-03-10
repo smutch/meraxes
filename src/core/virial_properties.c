@@ -251,37 +251,6 @@ double calculate_spin_param(halo_t* halo)
 // As a first test these routines are copied from a previous work of Manu when he was a dumb Master student (the originals were written in Python).
 // In the future it might be work to see if these can be improved. Parameters from Eisenstein & Hu 1998 or 1999 (EH98, EH99)
 
-double calculate_zeq(double OmegaM)
-{
-  double Theta = 2.728 / 2.7;
-  double little_h = run_globals.params.Hubble_h;
-  
-  return 2.5 * 1e4 * OmegaM * pow(little_h, 2) * pow(Theta, -4); //EH99
-}
-
-double Transfer_function(double k) //EH99 You want k in h/Mpc
-{
-  double OmegaM = run_globals.params.OmegaM;
-  double OmegaB = OmegaM * run_globals.params.BaryonFrac;
-  double OmegaC = OmegaM - OmegaB;
-  double little_h = run_globals.params.Hubble_h;
-  double Theta = 2.728 / 2.7;
-  
-  double fc = OmegaC / OmegaM;
-  double fb = OmegaB / OmegaM;
-  double fcb = fc + fb;
-  double alpha = fc / fcb; // Eq. 15
-  
-  double s_hor = 44.5 * log(9.83 / (OmegaM * pow(little_h, 2))) / pow(1.0 + 10.0 * pow((OmegaB * pow(little_h, 2)), 0.75), 0.5); // Eq. 4
-  double Gamma = OmegaM * pow(little_h, 2) * (pow(alpha, 0.5) + (1 - pow(alpha, 0.5)) / (1 + pow(0.43 * k * s_hor, 4))); //Eq. 16
-  
-  double q = k * Theta * Theta / Gamma;
-  double Beta = 1. / (1 - 0.949 * fb); //Eq. 21
-  double L = log(exp(1) + 1.84 * Beta * pow(alpha, 0.5) * q); //Eq. 19
-  double C = 14.4 + (325. / (1 + 60.5 * pow(q, 1.11))); // Eq. 20
-  
-  return L / (L + C * q * q); // Eq. 18 and 24
-}  
 
 double integrand_GF(double redshift) //EH99
 {
@@ -340,130 +309,6 @@ double GF_norm() //For Normalization
   gsl_integration_workspace_free(workspace);
   
   return norm;
-}
-
-
-double PowerSpectrum(double redshift, double scale)
-{
-  double spectral_index = run_globals.params.SpectralIndex;
-  double N = spectral_index - 1;
-  double OmegaM = run_globals.params.OmegaM;
-  double little_h = run_globals.params.Hubble_h;
-  //double scale_h = scale * little_h; // convert k from Mpc to Mpc / h
-  
-  double deltah = 1.94 * 1.0e-5 * pow(OmegaM, (-0.785 - 0.05 * log(OmegaM))) * exp(-0.95 * N - 0.169 * pow(N,2));
-  double TF = Transfer_function(scale); 
-  double Dz = Growth_Factor(redshift); 
-  double D0 = Growth_Factor(0); 
-  double Pk;
-  
-  Pk = 2 * M_PI * M_PI * deltah * deltah * pow((SPEED_OF_LIGHT * 1e-5 * scale / (little_h * 100)), 3 + spectral_index) * TF * TF * Dz * Dz / (D0 * D0 * pow(scale, 3));
-  
-  return Pk;
-}
-
-typedef struct
-{
-  double redshift, HaloMass;
-} int_S2_params;
-
-double integrand_S2(double k, void* params)
-{
-  int_S2_params* p = (int_S2_params*)params;
-  double little_h = run_globals.params.Hubble_h;
-  
-  //double Radius = calculate_Rvir_2(p->HaloMass, p->redshift); //Compute Rvir in cMpc/h
-  double Radius = calculate_Rvir_2(p->HaloMass, 0);
-  
-  double PS = PowerSpectrum(p->redshift, k);
-  
-  double j1 = (sin(k * Radius) - (k * Radius * cos(k * Radius))) / pow((k * Radius),2);
-  //double j1 = (sin(k * Radius) - (k * Radius * cos(k * Radius)) / Radius / Radius); //E' SBAGLIATO E' SOLO UNA PROVA
-  
-  return k * k * PS / (2 * M_PI * M_PI) * pow(3 * j1 / (k * Radius) , 2);
-  //return k * k * PS / (2 * M_PI * M_PI) * pow(3 * j1 / Radius, 2); //E' SBAGLIATO E' SOLO UNA PROVA
-}
-
-double Sigma(double redshift, double Halo_Mass) // Still a tiny difference
-{
-  double Hubble = run_globals.Hubble;
-  double Normalization = SigmaNorm(0);
-  double Sigma8 = run_globals.params.Sigma8; //Need this to check normalization
-  double little_h = run_globals.params.Hubble_h;
-  //double RedFactor = Growth_Factor(redshift) / Growth_Factor(0);
-  
-  int_S2_params p;
-
-  p.redshift = redshift;
-  p.HaloMass = Halo_Mass;
-  
-  gsl_function F;
-  gsl_integration_workspace* workspace;
-  
-  double result; 
-  double abserr;
-
-  workspace = gsl_integration_workspace_alloc(WORKSIZE);
-  F.function = &integrand_S2;
-  F.params = &p;
-
-  gsl_integration_qag(
-    &F, 0, 2500, 1.0 / Hubble, 1.0e-8, WORKSIZE, GSL_INTEG_GAUSS21, workspace, &result, &abserr); //500 should be infinite
-
-  gsl_integration_workspace_free(workspace);
-  
-  //return Sigma8 * sqrt(result / Normalization) * RedFactor;   
-  return Sigma8 * sqrt(result / Normalization); 
-}
-
-double SigmaNorm(double redshift) //Need this for normalization 
-{
-
-  double Hubble = run_globals.Hubble;
-  double little_h = run_globals.params.Hubble_h;
-  
-  double M8 = calculate_Mvir_2(8.0, 0) ; //Mvir correspondent to a halo of (8Mpc/h virial radius)
-  
-  int_S2_params p;
-
-  p.redshift = redshift;
-  p.HaloMass = M8;
-  
-  gsl_function F;
-  gsl_integration_workspace* workspace;
-  
-  double norma; 
-  double normaerr;
-
-  workspace = gsl_integration_workspace_alloc(WORKSIZE);
-  F.function = &integrand_S2;
-  F.params = &p;
-
-  gsl_integration_qag(
-    &F, 0, 2500, 1.0 / Hubble, 1.0e-8, WORKSIZE, GSL_INTEG_GAUSS21, workspace, &norma, &normaerr); //500 should be infinite
-
-  gsl_integration_workspace_free(workspace);
-  
-  return norma;   
-}
-
-typedef struct
-{
-  double Radius, redshift;
-} int_2CF_params;
-
-double integrand_2pointCF(double k, void* params)
-{
-
-  int_2CF_params* p = (int_2CF_params*)params;
-  
-  //double Radius = calculate_Rvir_2(p->HaloMass, p->redshift);
-  
-  double PS = PowerSpectrum(p->redshift, k);
-  
-  //double j1 = (sin(k * Radius) - (k * Radius * cos(k * Radius))) / (k * Radius);
-  
-  return k * k * PS / (2 * M_PI * M_PI) * sin(k * p->Radius) / (k * p->Radius);
 }
 
 void initialize_interpCF_arrays()
@@ -621,40 +466,6 @@ double nuc(double redshift, double Halo_Mass)
   double ss = Sigma(redshift, Halo_Mass);
   
   return DeltaCrit / ss;
-}
-
-double nuc_2(double redshift, double Halo_Radius)
-{
-  //double DeltaCrit = 1.686 / Growth_Factor(redshift);
-  double DeltaCrit = 1.686 * (1 + redshift);
-  double little_h = run_globals.params.Hubble_h;
-  double ss = read_Sigma(redshift, Halo_Radius) / little_h; //The one from the tables is in units (1/h)
-  
-  return DeltaCrit / ss;
-}
-
-double R0(double redshift, double Halo_Mass) // 7,8 from Barone-Nugent and 12 from Sheth&Tormen, result in Mpc/h, Probably there is a problem with this!
-{
-  double little_h = run_globals.params.Hubble_h;
-  double Sigma8 = run_globals.params.Sigma8;
-  
-  double DeltaCrit = 1.686 / Growth_Factor(redshift);
-  double nuu = nuc(redshift, Halo_Mass);
-  
-  double gamma = 1.6;
-  double a = 0.707;
-  double p = 0.3;
-  
-  return ( 8.0 * pow(Sigma8 * Sigma8 / 72.0 * (3 - gamma) * (4 - gamma) * (6 - gamma) * pow(2.0, gamma) * pow(1 + (a * nuu - 1) / DeltaCrit + 2 * p / nuu / (1 + a * pow(nuu, p)), 2), (1.0 / gamma)));
-  
-}
-
-double TwoPointCF(double Radius, double Corr_length) //both in Mpc/h
-{
-  double gamma = 1.6;
-  
-  return (pow(Radius / Corr_length, -gamma));
-
 }
 
 double NLBias(double Dist_Radius, double Halo_Mass, double redshift) //From your fitting function, parameters in vir_properties.h (Input in internal units
