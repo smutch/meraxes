@@ -75,7 +75,7 @@ galaxy_t* new_galaxy(int snapshot, unsigned long halo_ID)
     gal->count_SF = 0;
     gal->AveBubble = 0.;
     gal->MaxBubble = 0.;
-    //gal->Galaxy_Population = 3; // Initialization of this parameter moved in evolve.c
+    
     for (int iii = 0; iii < 70; iii++) {
       gal->Prefactor[iii] = (double)0.0;
       gal->Times[iii] = (double)0.0;

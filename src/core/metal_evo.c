@@ -135,21 +135,21 @@ void construct_metal_grids(int snapshot, int local_ngals)
           switch (prop) {
             case prop_prob:
             
-              buffer_metals[ind] += (4.0 / 3.0 * M_PI * pow((gal->RmetalBubble) * (1 + redshift), 3.0)); // Comoving Mpc (Is it divided by h or not?)
+              buffer_metals[ind] += (4.0 / 3.0 * M_PI * pow((gal->RmetalBubble) * (1 + redshift), 3.0)); // cMpc/h (same units of cell volume)
 
               break;
               
             case prop_Rave:
             
               if (gal->RmetalBubble > 0.)
-                buffer_metals[ind] += gal->RmetalBubble * (1 + redshift); 
+                buffer_metals[ind] += gal->RmetalBubble * (1 + redshift); // cMpc/h
               
               break;
               
             case prop_Rmax:
               
               if (gal->RmetalBubble * (1 + redshift) >= buffer_metals[ind])
-                buffer_metals[ind] = gal->RmetalBubble * (1 + redshift);  
+                buffer_metals[ind] = gal->RmetalBubble * (1 + redshift); //cMpc/h  
               
               break;
                             
@@ -162,7 +162,7 @@ void construct_metal_grids(int snapshot, int local_ngals)
               
             case prop_mass_ej_metals:
             
-              buffer_metals[ind] += gal->MetalsEjectedGas;
+              buffer_metals[ind] += gal->MetalsEjectedGas; //Internal units (same of gas_cell)
               break;
               
             case prop_mass_ej_gas:
@@ -223,12 +223,8 @@ void construct_metal_grids(int snapshot, int local_ngals)
                   double val = (double)buffer_metals[grid_index(ix, iy, iz, MetalGridDim, INDEX_REAL)];
                   if (val < 0)
                     val = 0;
-                  if (val > 0){
-                    //B_count += 1;
+                  if (val > 0)
                     Rave_grid_metals[grid_index(ix, iy, iz, MetalGridDim, INDEX_REAL)] = (float)val / count_bubble_metals[grid_index(ix, iy, iz, MetalGridDim, INDEX_REAL)];
-                    //if (count_bubble_metals[grid_index(ix, iy, iz, MetalGridDim, INDEX_REAL)] >= 1)
-                    //  mlog("NBubbles %d", MLOG_MESG, count_bubble_metals[grid_index(ix, iy, iz, MetalGridDim, INDEX_REAL)]);
-                  }
                 }
             break;
             
@@ -562,7 +558,6 @@ void save_metal_output_grids(int snapshot) // Probably this function is complete
   // create and write the datasets
   write_grid_float("mass_metals", metal_grids->mass_metals, file_id, fspace_id, memspace_id, dcpl_id);
   write_grid_float("Zigm_box", metal_grids->Zigm_box, file_id, fspace_id, memspace_id, dcpl_id);
-  //write_grid_float("Probability_metals", grids->Probability_metals, file_id, fspace_id, memspace_id, dcpl_id);
 
   // fftw padded grids
   float* grid = (float*)calloc((size_t)(local_nix_metals * MetalGridDim * MetalGridDim), sizeof(float));
@@ -829,17 +824,12 @@ void assign_probability_to_galaxies(int ngals_in_metal_slabs, int snapshot, int 
             gal->Metallicity_IGM = calc_metallicity((double)buffer_metals[grid_index(ix, iy, iz, MetalGridDim, INDEX_REAL)], cell_gas);
           }
           
-          if (flag_property == 2){// Probably you could save directly the boost factor if you compute it here
+          if (flag_property == 2)
             gal->AveBubble = (double)buffer_metals[grid_index(ix, iy, iz, MetalGridDim, INDEX_REAL)];
-            //if (gal->AveBubble > 0.)
-            //  mlog("Rave %f", MLOG_MESG, gal->AveBubble);
-          }
-          
-          if (flag_property == 3){
+            
+          if (flag_property == 3)
             gal->MaxBubble = (double)buffer_metals[grid_index(ix, iy, iz, MetalGridDim, INDEX_REAL)];
-            //if (gal->MaxBubble > 0.)
-            //  mlog("Rmax %f", MLOG_MESG, gal->MaxBubble);
-          }
+           
           // increment counters
           i_gal++;
           total_assigned++;

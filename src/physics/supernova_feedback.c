@@ -307,7 +307,7 @@ void contemporaneous_supernova_feedback(galaxy_t* gal,
   assert(*m_eject >= 0);
 }
 
-void calc_metal_bubble(galaxy_t* gal, int snapshot) // Done, do a double check with units!! (should be Mpc/h)
+void calc_metal_bubble(galaxy_t* gal, int snapshot) // Done! Result in internal units (Mpc/h)
 {
   bool Flag_IRA = (bool)(run_globals.params.physics.Flag_IRA);
   double sfr_timescale_metals = run_globals.params.ReionSfrTimescale * hubble_time(snapshot);
@@ -316,7 +316,7 @@ void calc_metal_bubble(galaxy_t* gal, int snapshot) // Done, do a double check w
   
   double UnitMass_in_g = run_globals.units.UnitMass_in_g;
   double UnitLength_in_cm = run_globals.units.UnitLength_in_cm;
-  double time_unit = run_globals.units.UnitTime_in_s / run_globals.params.Hubble_h; //Should you divide by little_h?
+  double time_unit = run_globals.units.UnitTime_in_s;
   
   int A = gal->count_SF;
   
