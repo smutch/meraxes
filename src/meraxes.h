@@ -488,6 +488,11 @@ typedef struct galaxy_t
   double BlackHoleAccretedColdMass;
   double BlackHoleAccretingColdMass;
   
+  //Differentiation Pop III / Pop II
+  
+  double StellarMass_II;
+  double StellarMass_III
+  
   //Metallicity stuff 
   double RmetalBubble; //New for MetalEvo
   double Metal_Probability; // Probability to be polluted by other metal bubbles
