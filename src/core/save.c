@@ -88,11 +88,11 @@ void prepare_galaxy_for_output(galaxy_t gal, galaxy_output_t* galout, int i_snap
   galout->MergerStartRadius = (float)(gal.MergerStartRadius);
   galout->MWMSA = current_mwmsa(&gal, i_snap);
   
-  //if (run_globals.params.Flag_IncludeMetalEvo)
   galout->RmetalBubble = (float)(gal.RmetalBubble); //new for MetalEvo
   galout->Galaxy_Population = (int)(gal.Galaxy_Population);
-  galout->Metal_Probability = (float)(gal.Metal_Probability); //Test
-  //mlog("Value Assigned :: %f", MLOG_MESG, galout->Metal_Probability);
+  galout->Metal_Probability = (float)(gal.Metal_Probability);
+  galout->StellarMass_II = (float)(gal.StellarMass_II);
+  galout->StellarMass_III = (float)(gal.StellarMass_III); 
 
   for (int ii = 0; ii < N_HISTORY_SNAPS; ii++)
     galout->NewStars[ii] = (float)(gal.NewStars[ii]);
@@ -324,6 +324,20 @@ void calc_hdf5_props()
     h5props->dst_offsets[i] = HOFFSET(galaxy_output_t, StellarMass);
     h5props->dst_field_sizes[i] = sizeof(galout.StellarMass);
     h5props->field_names[i] = "StellarMass";
+    h5props->field_units[i] = "1e10 solMass";
+    h5props->field_h_conv[i] = "v/h";
+    h5props->field_types[i++] = H5T_NATIVE_FLOAT;
+    
+    h5props->dst_offsets[i] = HOFFSET(galaxy_output_t, StellarMass_II);
+    h5props->dst_field_sizes[i] = sizeof(galout.StellarMass_II);
+    h5props->field_names[i] = "Pop2StellarMass";
+    h5props->field_units[i] = "1e10 solMass";
+    h5props->field_h_conv[i] = "v/h";
+    h5props->field_types[i++] = H5T_NATIVE_FLOAT;
+    
+    h5props->dst_offsets[i] = HOFFSET(galaxy_output_t, StellarMass_III);
+    h5props->dst_field_sizes[i] = sizeof(galout.StellarMass_III);
+    h5props->field_names[i] = "Pop3StellarMass";
     h5props->field_units[i] = "1e10 solMass";
     h5props->field_h_conv[i] = "v/h";
     h5props->field_types[i++] = H5T_NATIVE_FLOAT;
