@@ -491,7 +491,7 @@ typedef struct galaxy_t
   //Differentiation Pop III / Pop II
   
   double StellarMass_II;
-  double StellarMass_III
+  double StellarMass_III;
   
   //Metallicity stuff 
   double RmetalBubble; //New for MetalEvo
