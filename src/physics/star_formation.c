@@ -12,7 +12,6 @@ static void backfill_ghost_star_formation(galaxy_t* gal, double m_stars, double 
 {
   double* LTTime = run_globals.LTTime;
   double burst_time = LTTime[gal->LastIdentSnap] - gal->dt * 0.5;
-  bool Flag_Metals = (bool)(run_globals.params.Flag_IncludeMetalEvo);
 
   for (int snap = snapshot - 1, ii = 1; snap >= gal->LastIdentSnap; --snap, ++ii) {
 
@@ -53,7 +52,7 @@ void update_reservoirs_from_sf(galaxy_t* gal, double new_stars, int snapshot, SF
     gal->MetalsStellarMass += new_stars * metallicity;
     
     if (Flag_Metals == true) {
-      if (gal->Galaxy_Population = 2)
+      if (gal->Galaxy_Population == 2)
         gal->StellarMass_II += new_stars;
       else
         gal->StellarMass_III += new_stars;
