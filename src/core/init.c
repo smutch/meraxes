@@ -258,10 +258,6 @@ void init_meraxes()
 
   // read in the cooling functions
   read_cooling_functions();
-  
-  // initialize CF tables
-  initialize_interpCF_arrays();
-  initialize_interpSigma_arrays();
 
   // read in the stellar feedback tables
   read_stellar_feedback_tables();
