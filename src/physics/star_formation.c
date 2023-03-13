@@ -51,6 +51,13 @@ void update_reservoirs_from_sf(galaxy_t* gal, double new_stars, int snapshot, SF
     gal->StellarMass += new_stars;
     gal->GrossStellarMass += new_stars;
     gal->MetalsStellarMass += new_stars * metallicity;
+    
+    if (Flag_Metals == true) {
+      if (gal->Galaxy_Population = 2)
+        gal->StellarMass_II += new_stars;
+      else
+        gal->StellarMass_III += new_stars;
+    }
 
     if ((type == INSITU) && !Flag_IRA && (gal->LastIdentSnap < (snapshot - 1))) {
       // If this is a reidentified ghost, then back fill NewStars and
@@ -68,11 +75,6 @@ void update_reservoirs_from_sf(galaxy_t* gal, double new_stars, int snapshot, SF
 
       update_galaxy_fesc_vals(gal, new_stars, snapshot);
       
-      // The same halo cannot form Pop.III twice, so I read if it experienced previously a SF episode.
-      if (Flag_Metals == true) {
-        if ((gal->NewStars[1] > 1e-10) && (gal->Galaxy_Population == 3))
-          gal->Galaxy_Population = 2;
-      }
     }
 
     // Check the validity of the modified reservoir values.
@@ -84,6 +86,11 @@ void update_reservoirs_from_sf(galaxy_t* gal, double new_stars, int snapshot, SF
       gal->StellarMass = 0.0;
     if (gal->MetalsStellarMass < 0)
       gal->MetalsStellarMass = 0.0;
+  }
+  // The same halo cannot form Pop.III twice, so I read if it experienced previously a SF episode.
+  if (Flag_Metals == true) {
+    if ((gal->NewStars[1] > 1e-10) && (gal->Galaxy_Population == 3))
+      gal->Galaxy_Population = 2;
   }
 }
 
