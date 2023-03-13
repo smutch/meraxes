@@ -15,6 +15,7 @@ void update_reservoirs_from_sn_feedback(galaxy_t* gal,
 {
   double metallicity;
   galaxy_t* central;
+  bool Flag_Metals = (bool)(run_globals.params.Flag_IncludeMetalEvo);
 
   // If this is a ghost then it doesn't have an identified halo at this
   // snapshot.  We will therefore dump all of the reheated gas into the ghost's
@@ -32,6 +33,12 @@ void update_reservoirs_from_sn_feedback(galaxy_t* gal,
   // properties.
   gal->MetalsStellarMass -= new_metals;
   gal->ColdGas += m_recycled;
+  if (Flag_Metals == true) {
+    if (gal->Galaxy_Population == 2)
+      gal->StellarMass_II -= m_recycled;
+    else
+      gal->StellarMass_III -= m_recycled;
+    }
 
   // assuming instantaneous recycling approximation and enrichment from SNII
   // only, work out the mass of metals returned to the ISM by this SF burst
@@ -76,6 +83,10 @@ void update_reservoirs_from_sn_feedback(galaxy_t* gal,
     gal->MetalsColdGas = 0.0;
   if (gal->StellarMass < 0)
     gal->StellarMass = 0.0;
+  if (gal->StellarMass_II < 0)
+    gal->StellarMass_II = 0.0;
+  if (gal->StellarMass_III < 0)
+    gal->StellarMass_III = 0.0;
   if (gal->MetalsStellarMass < 0)
     gal->MetalsStellarMass = 0.0;
   if (central->EjectedGas < 0)
