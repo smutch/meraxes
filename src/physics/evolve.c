@@ -21,11 +21,9 @@ int evolve_galaxies(fof_group_t* fof_group, int snapshot, int NGal, int NFof, in
   double infalling_gas = 0;
   double cooling_mass = 0;
   int NSteps = run_globals.params.NSteps;
-  int MetalGridDim = run_globals.params.MetalGridDim;
   bool Flag_IRA = (bool)(run_globals.params.physics.Flag_IRA);
   bool Flag_Metals = (bool)(run_globals.params.Flag_IncludeMetalEvo);
-  double little_h = run_globals.params.Hubble_h;
-
+  
   mlog("Doing physics...", MLOG_OPEN | MLOG_TIMERSTART);
   // pre-calculate feedback tables for each lookback snapshot
   compute_stellar_feedback_tables(snapshot);

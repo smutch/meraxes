@@ -310,8 +310,6 @@ void contemporaneous_supernova_feedback(galaxy_t* gal,
 void calc_metal_bubble(galaxy_t* gal, int snapshot) // Done! Result in internal units (Mpc/h)
 {
   bool Flag_IRA = (bool)(run_globals.params.physics.Flag_IRA);
-  double sfr_timescale_metals = run_globals.params.ReionSfrTimescale * hubble_time(snapshot);
-  
   double mm_stars = gal->NewStars[0]; //The last episode of SF
   
   double UnitMass_in_g = run_globals.units.UnitMass_in_g;
@@ -336,8 +334,7 @@ void calc_metal_bubble(galaxy_t* gal, int snapshot) // Done! Result in internal 
     }
     if (gal->count_SF > 0) {
       for (int i_SF = 0; i_SF < gal->count_SF; i_SF++)
-        //if ((gal->Times[i_SF] - run_globals.LTTime[snapshot] * time_unit) != 0.) // Put this condition to avoid NaN
-          gal->Radii[i_SF] = gal->Prefactor[i_SF] * pow((gal->Times[i_SF] - run_globals.LTTime[snapshot] * time_unit), 0.4); 
+        gal->Radii[i_SF] = gal->Prefactor[i_SF] * pow((gal->Times[i_SF] - run_globals.LTTime[snapshot] * time_unit), 0.4); 
     }
   }
   
