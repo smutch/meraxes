@@ -34,10 +34,15 @@ void update_reservoirs_from_sn_feedback(galaxy_t* gal,
   gal->MetalsStellarMass -= new_metals;
   gal->ColdGas += m_recycled;
   if (Flag_Metals == true) {
-    if (gal->Galaxy_Population == 2)
-      gal->StellarMass_II -= m_recycled;
-    else
+    //if (gal->Galaxy_Population == 2)
+    //  gal->StellarMass_II -= m_recycled;
+    //else
+    //  gal->StellarMass_III -= m_recycled;
+    //}
+    if (gal->StellarMass_III >= m_recycled)
       gal->StellarMass_III -= m_recycled;
+    else
+      gal->StellarMass_II -= m_recycled;
     }
 
   // assuming instantaneous recycling approximation and enrichment from SNII
