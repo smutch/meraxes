@@ -906,6 +906,31 @@ void read_parameter_file(char* fname, int mode)
       params_addr[n_param] = &(run_params->physics).NuXrayMax;
       required_tag[n_param] = 1;
       params_type[n_param++] = PARAM_TYPE_DOUBLE;
+      
+      strcpy(params_tag[n_param], "AlphaCluster");
+      params_addr[n_param] = &(run_params->physics).AlphaCluster;
+      required_tag[n_param] = 1;
+      params_type[n_param++] = PARAM_TYPE_DOUBLE;
+      
+      strcpy(params_tag[n_param], "BetaCluster");
+      params_addr[n_param] = &(run_params->physics).BetaCluster;
+      required_tag[n_param] = 1;
+      params_type[n_param++] = PARAM_TYPE_DOUBLE;
+      
+      strcpy(params_tag[n_param], "GammaCluster");
+      params_addr[n_param] = &(run_params->physics).GammaCluster;
+      required_tag[n_param] = 1;
+      params_type[n_param++] = PARAM_TYPE_DOUBLE;
+      
+      strcpy(params_tag[n_param], "NormCluster");
+      params_addr[n_param] = &(run_params->physics).NormCluster;
+      required_tag[n_param] = 1;
+      params_type[n_param++] = PARAM_TYPE_DOUBLE;
+      
+      strcpy(params_tag[n_param], "ZCrit");
+      params_addr[n_param] = &(run_params->physics).ZCrit;
+      required_tag[n_param] = 1;
+      params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
       hdf5props->params_count = n_param;
     }

@@ -107,6 +107,15 @@ typedef struct physics_params_t
   double BlackHoleMassLimitReion;
   double ReionTcool;
   double Y_He;
+  
+  // Parameters for metallicity evolution. These include the parameters for the fitting function of clustering and the critical metallicity
+  
+  double AlphaCluster;
+  double BetaCluster;
+  double GammaCluster;
+  double NormCluster;
+  
+  double ZCrit;
 
   // Parameters to describe the X-ray properties of the sources
   // Keeping the QSO and Galaxy components separate for now (might be combined in the end)

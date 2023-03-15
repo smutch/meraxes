@@ -58,7 +58,7 @@ int evolve_galaxies(fof_group_t* fof_group, int snapshot, int NGal, int NFof, in
                 gal->MetalsEjectedGas = gal->EjectedGas * gal->Metallicity_IGM;
                 
                 *gal_counter_enriched = *gal_counter_enriched + 1;
-                if ((gal->Metallicity_IGM / 0.01) > 1e-4) {
+                if ((gal->Metallicity_IGM / 0.01) > run_globals.params.physics.ZCrit;) {
                   *gal_counter_Pop2 = *gal_counter_Pop2 + 1;
                   gal->Galaxy_Population = 2;
                   }
@@ -95,7 +95,7 @@ int evolve_galaxies(fof_group_t* fof_group, int snapshot, int NGal, int NFof, in
             
             if (Flag_Metals == true) {
               calc_metal_bubble(gal, snapshot);
-              if ((gal->RmetalBubble > 0.) && (gal->Galaxy_Population == 3)) //ADDING THIS BECAUSE IT SEEMS THE CONDITION AFTER SF DOESN'T COMPLETELY WORK!!
+              if ((gal->RmetalBubble > 0.) && (gal->Galaxy_Population == 3)) //You found why the condition after SF wasn't working, double check if you still need that!
                 gal->Galaxy_Population = 2;
             }
             // If this is a type 2 then decrement the merger clock
