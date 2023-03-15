@@ -3,12 +3,6 @@
 
 #include "meraxes.h"
 
-//Parameters for fitting function, later these will be put in the input parameter file
-#define Alpha_ind -1.4 
-#define Beta_ind 0.8
-#define Gamma_ind 2.8
-#define Psi_Norm 200.0
-
 #ifdef __cplusplus
 extern "C"
 {
