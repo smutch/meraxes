@@ -141,10 +141,10 @@ double calculate_spin_param(halo_t* halo)
 
 double NLBias(double Dist_Radius, double Halo_Mass, double redshift) //Fitting function written to match the results of Iliev+03 and Dijkstra+08, parameters in vir_properties.h (Input in internal units (Maybe is better to put in misc_tools.c ?
 {
-  Alpha_ind = run_globals.params.physics.AlphaCluster;
-  Beta_ind = run_globals.params.physics.BetaCluster;
-  Gamma_ind = run_globals.params.physics.GammaCluster;
-  Psi_Norm = run_globals.params.physics.NormCluster;
+  double Alpha_ind = run_globals.params.physics.AlphaCluster;
+  double Beta_ind = run_globals.params.physics.BetaCluster;
+  double Gamma_ind = run_globals.params.physics.GammaCluster;
+  double Psi_Norm = run_globals.params.physics.NormCluster;
   
   double little_h = run_globals.params.Hubble_h;
   //Dist_Radius /= little_h;  //DOUBLE CHECK DIMENSION OF THE BUBBLE!! I believe this should be divided by little_h
