@@ -71,6 +71,8 @@ int evolve_galaxies(fof_group_t* fof_group, int snapshot, int NGal, int NFof, in
                 *gal_counter_Pop3 = *gal_counter_Pop3 + 1;
               }
               gal->Metal_Probability *= (1 + boost_corr); //Add this to save the updated probability!
+              if (gal->Metal_Probability > 1)
+                gal->Metal_Probability = 1;
             }
           }
           
