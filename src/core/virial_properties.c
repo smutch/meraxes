@@ -147,7 +147,7 @@ double NLBias(double Dist_Radius, double Halo_Mass, double redshift) //Fitting f
   double Psi_Norm = run_globals.params.physics.NormCluster;
   
   double little_h = run_globals.params.Hubble_h;
-  //Dist_Radius /= little_h;  //DOUBLE CHECK DIMENSION OF THE BUBBLE!! I believe this should be divided by little_h
+  Dist_Radius /= little_h;  
   
   Halo_Mass = Halo_Mass * 1e10 / little_h;
   
