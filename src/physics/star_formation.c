@@ -30,7 +30,7 @@ static void backfill_ghost_star_formation(galaxy_t* gal, double m_stars, double 
   }
 }
 
-void update_reservoirs_from_sf(galaxy_t* gal, double new_stars, int snapshot, SFtype type)
+void update_reservoirs_from_sf(galaxy_t* gal, double new_stars, int snapshot, SFtype type) //If you want to save Sfr PopIII / PopII change this
 {
   bool Flag_Metals = (bool)(run_globals.params.Flag_IncludeMetalEvo);
   if (new_stars > 0) {
@@ -93,27 +93,35 @@ void update_reservoirs_from_sf(galaxy_t* gal, double new_stars, int snapshot, SF
   }
 }
 
-void insitu_star_formation(galaxy_t* gal, int snapshot)
+void insitu_star_formation(galaxy_t* gal, int snapshot, int flag_population = 2) // Added Flag Population
 {
   // there is no point doing anything if there is no cold gas!
   if (gal->ColdGas > 1e-10) {
     double r_disk;
     double v_disk;
     double m_crit;
-    double m_stars;
+    double m_stars; // Do you want to save sum? Probably not here
+    double m_starsII; // Pop.II
+    double m_starsIII; // Pop.III
 
     double m_reheat;
+    double m_reheatII;
+    double m_reheatIII;
     double m_eject;
+    double m_ejectII;
+    double m_ejectIII;
     double m_recycled;
+    double m_recycledII;
+    double m_recycledIII;
     double new_metals;
 
     double zplus1;
     double zplus1_n;
 
     zplus1 = 1.0 + run_globals.ZZ[snapshot];
-    zplus1_n = pow(zplus1, run_globals.params.physics.SfEfficiencyScaling);
+    zplus1_n = pow(zplus1, run_globals.params.physics.SfEfficiencyScaling); //Later added separate parameters for Pop III and Pop II
 
-    double SfEfficiency = run_globals.params.physics.SfEfficiency;
+    double SfEfficiency = run_globals.params.physics.SfEfficiency; //Later added separate parameters for Pop III and Pop II
     double SfCriticalSDNorm = run_globals.params.physics.SfCriticalSDNorm;
     int SfDiskVelOpt = run_globals.params.physics.SfDiskVelOpt;
     int SfPrescription = run_globals.params.physics.SfPrescription;
@@ -142,8 +150,12 @@ void insitu_star_formation(galaxy_t* gal, int snapshot)
         // what is the critical mass within r_crit?
         // from Kauffmann (1996) eq7 x piR^2, (Vvir in km/s, reff in Mpc/h) in units of 10^10Msun/h
         m_crit = SfCriticalSDNorm * v_disk * r_disk;
-        if (gal->ColdGas > m_crit)
-          m_stars = zplus1_n * SfEfficiency * (gal->ColdGas - m_crit) / r_disk * v_disk * gal->dt;
+        if (gal->ColdGas > m_crit){
+          if (flag_population == 2)
+            m_starsII = zplus1_n * SfEfficiency * (gal->ColdGas - m_crit) / r_disk * v_disk * gal->dt;
+          else
+            m_starsIII = zplus1_n * SfEfficiency * (gal->ColdGas - m_crit) / r_disk * v_disk * gal->dt;
+          }
         else
           // no star formation
           return;
@@ -151,12 +163,18 @@ void insitu_star_formation(galaxy_t* gal, int snapshot)
 
       case 2:
         // f_h2 from Blitz & Rosolowski 2006 abd Bigiel+11 SF law
-        m_stars = pressure_dependent_star_formation(gal, snapshot) * gal->dt;
+        if (flag_population == 2)
+          m_starsII = pressure_dependent_star_formation(gal, snapshot) * gal->dt;
+        else
+          m_starsIII = pressure_dependent_star_formation(gal, snapshot) * gal->dt;
         break;
 
       case 3:
         // GALFORM
-        m_stars = gal->ColdGas / (r_disk / v_disk / 0.029 * pow(200. / v_disk, 1.5)) * gal->dt;
+        if (flag_population == 2)
+          m_starsII = gal->ColdGas / (r_disk / v_disk / 0.029 * pow(200. / v_disk, 1.5)) * gal->dt;
+        else
+          m_starsIII = gal->ColdGas / (r_disk / v_disk / 0.029 * pow(200. / v_disk, 1.5)) * gal->dt;
         break;
 
       default:
@@ -165,16 +183,20 @@ void insitu_star_formation(galaxy_t* gal, int snapshot)
         ABORT(EXIT_FAILURE);
         break;
     }
-
-    if (m_stars > gal->ColdGas)
+    m_stars = m_starsII + m_starsIII;
+    if (m_stars > gal->ColdGas){
       m_stars = gal->ColdGas;
+      m_stars_III = gal->ColdGas - m_stars_II;
+      }
 
     // calculate the total supernova feedback which would occur if this star
     // formation happened continuously and evenly throughout the snapshot
-    contemporaneous_supernova_feedback(gal, &m_stars, snapshot, &m_reheat, &m_eject, &m_recycled, &new_metals);
+    contemporaneous_supernova_feedback(gal, &m_stars, &m_stars_III, &m_stars_II, snapshot, &m_reheat, &m_reheat_III, &m_reheat_II, 
+                                       &m_eject, &m_eject_III, &m_eject_II, &m_recycled, &m_recycled_III, &m_recycled_II, &new_metals);
     // update the baryonic reservoirs (note that the order we do this in will change the result!)
     update_reservoirs_from_sf(gal, m_stars, snapshot, INSITU);
-    update_reservoirs_from_sn_feedback(gal, m_reheat, m_eject, m_recycled, new_metals);
+    update_reservoirs_from_sn_feedback(gal, m_reheat, m_reheat_III, m_reheat_II, m_eject, m_eject_III, m_eject_II, m_recycled, m_recycled_III, m_recycled_II, new_metals);
+    }
   }
 }
 
