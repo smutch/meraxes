@@ -94,10 +94,10 @@ int evolve_galaxies(fof_group_t* fof_group, int snapshot, int NGal, int NFof, in
               previous_merger_driven_BH_growth(gal);
               
             if (gal->Galaxy_Population == 2)  
-              insitu_star_formation(gal, snapshot);
+              insitu_star_formation(gal, snapshot, 2);
             
             if (gal->Galaxy_Population == 3)  
-              insitu_star_formation(gal, snapshot, flag_population = 3);
+              insitu_star_formation(gal, snapshot, 3);
             
             if (Flag_Metals == true) {
               calc_metal_bubble(gal, snapshot);
