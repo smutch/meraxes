@@ -282,18 +282,18 @@ void delayed_supernova_feedback(galaxy_t* gal, int snapshot) // THIS FUNCTION IS
 
 void contemporaneous_supernova_feedback(galaxy_t* gal,
                                         double* m_stars,
-                                        double* m_starsIII,
-                                        double* m_starsII,
+                                        double* m_stars_III,
+                                        double* m_stars_II,
                                         int snapshot,
                                         double* m_reheat,
-                                        double* m_reheatIII,
-                                        double* m_reheatII,
+                                        double* m_reheat_III,
+                                        double* m_reheat_II,
                                         double* m_eject,
-                                        double* m_ejectIII,
-                                        double* m_ejecII,
+                                        double* m_eject_III,
+                                        double* m_eject_II,
                                         double* m_recycled,
-                                        double* m_recycledIII,
-                                        double* m_recycledII,
+                                        double* m_recycled_III,
+                                        double* m_recycled_II,
                                         double* new_metals)
 {
   bool Flag_IRA = (bool)(run_globals.params.physics.Flag_IRA);
