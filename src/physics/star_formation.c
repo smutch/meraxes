@@ -101,18 +101,18 @@ void insitu_star_formation(galaxy_t* gal, int snapshot, int flag_population) // 
     double v_disk;
     double m_crit;
     double m_stars; // Do you want to save sum? Probably not here
-    double m_starsII; // Pop.II
-    double m_starsIII; // Pop.III
+    double m_stars_II; // Pop.II
+    double m_stars_III; // Pop.III
 
     double m_reheat;
-    double m_reheatII;
-    double m_reheatIII;
+    double m_reheat_II;
+    double m_reheat_III;
     double m_eject;
-    double m_ejectII;
-    double m_ejectIII;
+    double m_eject_II;
+    double m_eject_III;
     double m_recycled;
-    double m_recycledII;
-    double m_recycledIII;
+    double m_recycled_II;
+    double m_recycled_III;
     double new_metals;
 
     double zplus1;
