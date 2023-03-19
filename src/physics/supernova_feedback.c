@@ -297,7 +297,7 @@ void contemporaneous_supernova_feedback(galaxy_t* gal,
                                         double* new_metals)
 {
   bool Flag_IRA = (bool)(run_globals.params.physics.Flag_IRA);
-  //double sn_energy = 0.0;
+  double sn_energy = 0.0;
   double sn_energy_II = 0.0;
   double sn_energy_III = 0.0;
   // init (just in case!)
