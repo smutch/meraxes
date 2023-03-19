@@ -325,8 +325,8 @@ void contemporaneous_supernova_feedback(galaxy_t* gal,
     *m_recycled_II = *m_stars_II * run_globals.params.physics.SfRecycleFraction; //Here you might want add different parameters
     *m_recycled_III = *m_stars_III * run_globals.params.physics.SfRecycleFraction;
     *new_metals = *m_stars * run_globals.params.physics.Yield;
-    *new_metals_II = *m_stars_II * run_globals.params.physics.Yield;
-    *new_metals_III = *m_stars_III * run_globals.params.physics.Yield;
+    //*new_metals_II = *m_stars_II * run_globals.params.physics.Yield;
+    //*new_metals_III = *m_stars_III * run_globals.params.physics.Yield;
   }
   // calculate the SNII energy and total reheated mass
   //sn_energy = *m_stars * get_SN_energy(0, metallicity);
