@@ -164,17 +164,17 @@ void insitu_star_formation(galaxy_t* gal, int snapshot, int flag_population) // 
       case 2:
         // f_h2 from Blitz & Rosolowski 2006 abd Bigiel+11 SF law
         if (flag_population == 2)
-          m_starsII = pressure_dependent_star_formation(gal, snapshot) * gal->dt;
+          m_stars_II = pressure_dependent_star_formation(gal, snapshot) * gal->dt;
         else
-          m_starsIII = pressure_dependent_star_formation(gal, snapshot) * gal->dt;
+          m_stars_III = pressure_dependent_star_formation(gal, snapshot) * gal->dt;
         break;
 
       case 3:
         // GALFORM
         if (flag_population == 2)
-          m_starsII = gal->ColdGas / (r_disk / v_disk / 0.029 * pow(200. / v_disk, 1.5)) * gal->dt;
+          m_stars_II = gal->ColdGas / (r_disk / v_disk / 0.029 * pow(200. / v_disk, 1.5)) * gal->dt;
         else
-          m_starsIII = gal->ColdGas / (r_disk / v_disk / 0.029 * pow(200. / v_disk, 1.5)) * gal->dt;
+          m_stars_III = gal->ColdGas / (r_disk / v_disk / 0.029 * pow(200. / v_disk, 1.5)) * gal->dt;
         break;
 
       default:
