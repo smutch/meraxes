@@ -283,7 +283,7 @@ void delayed_supernova_feedback(galaxy_t* gal, int snapshot) // THIS FUNCTION IS
 void contemporaneous_supernova_feedback(galaxy_t* gal,
                                         double* m_stars,
                                         double* m_starsIII,
-                                        double* m_starsII
+                                        double* m_starsII,
                                         int snapshot,
                                         double* m_reheat,
                                         double* m_reheatIII,
