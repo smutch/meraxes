@@ -93,7 +93,7 @@ void update_reservoirs_from_sf(galaxy_t* gal, double new_stars, int snapshot, SF
   }
 }
 
-void insitu_star_formation(galaxy_t* gal, int snapshot, int flag_population = 2) // Added Flag Population
+void insitu_star_formation(galaxy_t* gal, int snapshot, int flag_population) // Added Flag Population
 {
   // there is no point doing anything if there is no cold gas!
   if (gal->ColdGas > 1e-10) {
