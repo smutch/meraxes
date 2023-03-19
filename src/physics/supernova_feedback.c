@@ -331,14 +331,14 @@ void contemporaneous_supernova_feedback(galaxy_t* gal,
     //*new_metals_III = *m_stars_III * run_globals.params.physics.Yield;
   }
   // calculate the SNII energy and total reheated mass
-  //sn_energy = *m_stars * get_SN_energy(0, metallicity);
+  sn_energy = *m_stars * get_SN_energy(0, metallicity);
   sn_energy_II = *m_stars_II * get_SN_energy(0, metallicity);
   sn_energy_III = *m_stars_III * get_SN_energy(0, metallicity);
-  //*m_reheat = calc_sn_reheat_eff(gal, snapshot) * sn_energy / get_total_SN_energy();
+  *m_reheat = calc_sn_reheat_eff(gal, snapshot) * sn_energy / get_total_SN_energy();
   *m_reheat_II = calc_sn_reheat_eff(gal, snapshot) * sn_energy_II / get_total_SN_energy();
   *m_reheat_III = calc_sn_reheat_eff(gal, snapshot) * sn_energy_III / get_total_SN_energy();
-  *m_reheat = *m_reheat_II + *m_reheat_III;
-  //sn_energy *= calc_sn_ejection_eff(gal, snapshot);
+  //*m_reheat = *m_reheat_II + *m_reheat_III;
+  sn_energy *= calc_sn_ejection_eff(gal, snapshot);
   sn_energy_II *= calc_sn_ejection_eff(gal, snapshot);
   sn_energy_III *= calc_sn_ejection_eff(gal, snapshot);
 
@@ -383,7 +383,7 @@ void contemporaneous_supernova_feedback(galaxy_t* gal,
 
   // how much mass is ejected due to this star formation episode? (ala Croton+ 2006)
   //*m_eject = calc_ejected_mass(m_reheat, sn_energy, gal->Vvir, gal->Halo->FOFGroup->Vvir);
-  *m_eject = calc_ejected_mass(m_reheat_III + m_reheat_II, sn_energy_III + sn_energy_II, gal->Vvir, gal->Halo->FOFGroup->Vvir);
+  *m_eject = calc_ejected_mass(m_reheat, sn_energy, gal->Vvir, gal->Halo->FOFGroup->Vvir);
   *m_eject_III = calc_ejected_mass(m_reheat_III, sn_energy_III, gal->Vvir, gal->Halo->FOFGroup->Vvir);
   *m_eject_II = calc_ejected_mass(m_reheat_II, sn_energy_II, gal->Vvir, gal->Halo->FOFGroup->Vvir);
 
