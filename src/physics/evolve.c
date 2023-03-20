@@ -87,10 +87,8 @@ int evolve_galaxies(fof_group_t* fof_group, int snapshot, int NGal, int NFof, in
           }
 
           if (gal->Type < 3) {
-            if (!Flag_IRA){
+            if (!Flag_IRA)
               delayed_supernova_feedback(gal, snapshot);
-              mlog("Tunz",MLOG_MESG);
-              }
 
             if (gal->BlackHoleAccretingColdMass > 0)
               previous_merger_driven_BH_growth(gal);

@@ -9,7 +9,7 @@
 #include "save.h"
 #include "metal_evo.h"
 
-static float current_mwmsa(galaxy_t* gal, int i_snap)
+static float current_mwmsa(galaxy_t* gal, int i_snap) //You could save also this for Pop III/Pop II. Don't do it now
 {
   double* LTTime = run_globals.LTTime;
   double mwmsa_num = gal->mwmsa_num;
@@ -94,8 +94,11 @@ void prepare_galaxy_for_output(galaxy_t gal, galaxy_output_t* galout, int i_snap
   galout->StellarMass_II = (float)(gal.StellarMass_II);
   galout->StellarMass_III = (float)(gal.StellarMass_III); 
 
-  for (int ii = 0; ii < N_HISTORY_SNAPS; ii++)
+  for (int ii = 0; ii < N_HISTORY_SNAPS; ii++){
     galout->NewStars[ii] = (float)(gal.NewStars[ii]);
+    galout->NewStars_III[ii] = (float)(gal.NewStars_III[ii]);
+    galout->NewStars_II[ii] = (float)(gal.NewStars_II[ii]);
+    }
 
 #ifdef CALC_MAGS
   get_output_magnitudes(galout->Mags, galout->DustyMags, &gal, run_globals.ListOutputSnaps[i_snap]);
@@ -114,7 +117,7 @@ void calc_hdf5_props()
     galaxy_output_t galout;
     int i; // dummy
 
-    h5props->n_props = 55; 
+    h5props->n_props = 57; 
 
 #ifdef CALC_MAGS
     h5props->n_props += 2;
@@ -487,6 +490,20 @@ void calc_hdf5_props()
     h5props->dst_offsets[i] = HOFFSET(galaxy_output_t, NewStars);
     h5props->dst_field_sizes[i] = sizeof(galout.NewStars);
     h5props->field_names[i] = "NewStars";
+    h5props->field_units[i] = "1e10 solMass";
+    h5props->field_h_conv[i] = "v/h";
+    h5props->field_types[i++] = h5props->array_nhist_f_tid;
+    
+    h5props->dst_offsets[i] = HOFFSET(galaxy_output_t, NewStars_II);
+    h5props->dst_field_sizes[i] = sizeof(galout.NewStars_II);
+    h5props->field_names[i] = "NewStarsPop2";
+    h5props->field_units[i] = "1e10 solMass";
+    h5props->field_h_conv[i] = "v/h";
+    h5props->field_types[i++] = h5props->array_nhist_f_tid;
+    
+    h5props->dst_offsets[i] = HOFFSET(galaxy_output_t, NewStars_III);
+    h5props->dst_field_sizes[i] = sizeof(galout.NewStars_III);
+    h5props->field_names[i] = "NewStarsPop3";
     h5props->field_units[i] = "1e10 solMass";
     h5props->field_h_conv[i] = "v/h";
     h5props->field_types[i++] = h5props->array_nhist_f_tid;

@@ -90,8 +90,11 @@ galaxy_t* new_galaxy(int snapshot, unsigned long halo_ID)
     gal->Vel[ii] = (float)-99999.9;
   }
 
-  for (int ii = 0; ii < N_HISTORY_SNAPS; ii++)
+  for (int ii = 0; ii < N_HISTORY_SNAPS; ii++){
     gal->NewStars[ii] = 0.0;
+    gal->NewStars_II[ii] = 0.0;
+    gal->NewStars_III[ii] = 0.0;
+    }
 
   for (int ii = 0; ii < N_HISTORY_SNAPS; ii++)
     gal->NewMetals[ii] = 0.0;
@@ -165,13 +168,18 @@ void reset_galaxy_properties(galaxy_t* gal, int snapshot)
   }
 
   // roll over the baryonic history arrays
-  for (int ii = N_HISTORY_SNAPS - 1; ii > 0; ii--)
+  for (int ii = N_HISTORY_SNAPS - 1; ii > 0; ii--){
     gal->NewStars[ii] = gal->NewStars[ii - 1];
+    gal->NewStars_II[ii] = gal->NewStars_II[ii - 1];
+    gal->NewStars_III[ii] = gal->NewStars_III[ii - 1];
+    }
 
   for (int ii = N_HISTORY_SNAPS - 1; ii > 0; ii--)
     gal->NewMetals[ii] = gal->NewMetals[ii - 1];
 
   gal->NewStars[0] = 0.0;
+  gal->NewStars_II[0] = 0.0;
+  gal->NewStars_III[0] = 0.0;
   gal->NewMetals[0] = 0.0;
 }
 
