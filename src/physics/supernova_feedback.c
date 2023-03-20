@@ -246,8 +246,8 @@ void delayed_supernova_feedback(galaxy_t* gal, int snapshot) // THIS FUNCTION IS
   sn_energy *= calc_sn_ejection_eff(gal, snapshot);
   m_reheat_II = calc_sn_reheat_eff(gal, snapshot) * sn_energy_II / get_total_SN_energy();
   sn_energy_II *= calc_sn_ejection_eff(gal, snapshot);
-  m_reheat_III = calc_sn_reheat_eff(gal, snapshot) * sn_energy_III / get_total_SN_energy();
-  sn_energy_III *= calc_sn_ejection_eff(gal, snapshot);
+  //m_reheat_III = calc_sn_reheat_eff(gal, snapshot) * sn_energy_III / get_total_SN_energy();
+  //sn_energy_III *= calc_sn_ejection_eff(gal, snapshot);
   // We can only reheat as much gas as we have available.  Let's inforce this
   // now, to ensure that the maximal amount of available energy is used to
   // eject gas from the system.
@@ -265,6 +265,8 @@ void delayed_supernova_feedback(galaxy_t* gal, int snapshot) // THIS FUNCTION IS
     fof_Vvir = -1;
 
   m_eject = calc_ejected_mass(&m_reheat, sn_energy, gal->Vvir, fof_Vvir);
+  //m_eject_III = calc_ejected_mass(&m_reheat_III, sn_energy_III, gal->Vvir, fof_Vvir);
+  m_eject_II = calc_ejected_mass(&m_reheat_II, sn_energy_II, gal->Vvir, fof_Vvir);
 
   // Note that m_eject returned for ghosts by calc_ejected_mass() is
   // meaningless in the current physical prescriptions.  This fact is dealt
@@ -300,6 +302,8 @@ void contemporaneous_supernova_feedback(galaxy_t* gal,
   double sn_energy_III = 0.0;
   // init (just in case!)
   *m_reheat = *m_recycled = *new_metals = *m_eject = 0.0;
+  *m_reheat_III = *m_recycled_III = *m_eject_III = 0.0;
+  *m_reheat_II = *m_recycled_II = *m_eject_II = 0.0;
 
   // Here we approximate a constant SFR accross the timestep by a single burst
   // at t=0.5*dt. This is a pretty good approximation (to within ~15% of the
