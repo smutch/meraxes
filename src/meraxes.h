@@ -444,6 +444,8 @@ typedef struct reion_grids_t
 typedef struct galaxy_t
 {
   double NewStars[N_HISTORY_SNAPS];
+  double NewStars_II[N_HISTORY_SNAPS]; //New
+  double NewStars_III[N_HISTORY_SNAPS];
   double NewMetals[N_HISTORY_SNAPS];
 
 #ifdef CALC_MAGS

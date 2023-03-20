@@ -8,7 +8,7 @@
 #include "star_formation.h"
 #include "supernova_feedback.h"
 
-static void backfill_ghost_star_formation(galaxy_t* gal, double m_stars, double sfr, double metallicity, int snapshot)
+static void backfill_ghost_star_formation(galaxy_t* gal, double m_stars, double m_stars_III, double m_stars_II, double sfr, double metallicity, int snapshot)
 {
   double* LTTime = run_globals.LTTime;
   double burst_time = LTTime[gal->LastIdentSnap] - gal->dt * 0.5;
@@ -22,6 +22,8 @@ static void backfill_ghost_star_formation(galaxy_t* gal, double m_stars, double 
 #endif
       if (ii < N_HISTORY_SNAPS) {
         gal->NewStars[ii] += m_stars;
+        gal->NewStars_II[ii] += m_stars_II;
+        gal->NewStars_III[ii] += m_stars_III;
         gal->NewMetals[0] += m_stars * metallicity;
       }
       update_galaxy_fesc_vals(gal, m_stars, snap);
@@ -62,14 +64,21 @@ void update_reservoirs_from_sf(galaxy_t* gal, double new_stars, int snapshot, SF
       // If this is a reidentified ghost, then back fill NewStars and
       // escape fraction dependent properties to reflect this new insitu
       // SF burst.
-      backfill_ghost_star_formation(gal, new_stars, sfr, metallicity, snapshot);
-    } else {
+      if (gal->Galaxy_Population == 2)
+        backfill_ghost_star_formation(gal, new_stars, 0, new_stars, sfr, metallicity, snapshot);
+      else
+        backfill_ghost_star_formation(gal, new_stars, new_stars, 0, sfr, metallicity, snapshot);
+      } else {
       // update the stellar mass history assuming the burst is happening in this snapshot
 #ifdef CALC_MAGS
       if (sfr > 0.)
         add_luminosities(&run_globals.mag_params, gal, snapshot, metallicity, sfr);
 #endif
       gal->NewStars[0] += new_stars;
+      if (gal->Galaxy_Population == 2)
+        gal->NewStars_II[0] += new_stars;
+      else
+        gal->NewStars_III[0] += new_stars;
       gal->NewMetals[0] += new_stars * metallicity;
 
       update_galaxy_fesc_vals(gal, new_stars, snapshot);
