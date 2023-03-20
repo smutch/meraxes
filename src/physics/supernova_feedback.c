@@ -396,6 +396,8 @@ void contemporaneous_supernova_feedback(galaxy_t* gal,
   assert(*m_eject_III >= 0);
   assert(*m_reheat_II >= 0);
   assert(*m_eject_II >= 0);
+  
+  mlog("Eject %f, EjectIII %f, Recyled %f, RecyledIII %f, reheat %f, reheatIII %f", MLOG_MESG, *m_eject, *m_ejectIII, *m_recycled, *m_recyled_III, *m_reheat, * m_reheat_III);
 }
 
 void calc_metal_bubble(galaxy_t* gal, int snapshot) // Done! Result in internal units (Mpc/h)
