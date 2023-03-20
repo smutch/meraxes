@@ -302,8 +302,8 @@ void contemporaneous_supernova_feedback(galaxy_t* gal,
   double sn_energy_III = 0.0;
   // init (just in case!)
   *m_reheat = *m_recycled = *new_metals = *m_eject = 0.0;
-  //*m_reheat_III = *m_recycled_III = *m_eject_III = 0.0;
-  //*m_reheat_II = *m_recycled_II = *m_eject_II = 0.0;
+  *m_reheat_III = *m_recycled_III = *m_eject_III = 0.0;
+  *m_reheat_II = *m_recycled_II = *m_eject_II = 0.0;
 
   // Here we approximate a constant SFR accross the timestep by a single burst
   // at t=0.5*dt. This is a pretty good approximation (to within ~15% of the
