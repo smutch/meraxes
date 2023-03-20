@@ -361,7 +361,7 @@ void contemporaneous_supernova_feedback(galaxy_t* gal,
   //  *m_reheat = gal->ColdGas;
   if ((*m_reheat_III + *m_reheat_II) > gal->ColdGas){
     *m_reheat = gal->ColdGas;
-    *m_reheat_III = gal->ColdGas - *m_reheat_II; // Why should you change III and not II ?
+    //*m_reheat_III = gal->ColdGas - *m_reheat_II; // Why should you change III and not II ?
     }
     
   // attenuate the star formation if necessary, so that we are being consistent
