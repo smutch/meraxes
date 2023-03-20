@@ -368,7 +368,8 @@ void contemporaneous_supernova_feedback(galaxy_t* gal,
   if ((*m_reheat_III + *m_reheat_II) + (*m_stars_III + *m_stars_II) > gal->ColdGas) {
     double frac_II = gal->ColdGas / (*m_reheat_II + *m_stars_II);
     double frac_III = gal->ColdGas / (*m_reheat_III + *m_stars_III);
-    double frac = frac_II + frac_III;
+    double frac = gal->ColdGas / *m_reheat;
+    //double frac = frac_II + frac_III;
     *m_reheat_III *= frac_III;
     *m_reheat_II *= frac_II;
     *m_stars *= frac;
