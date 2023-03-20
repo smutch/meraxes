@@ -155,7 +155,7 @@ void insitu_star_formation(galaxy_t* gal, int snapshot, int flag_population) // 
             m_stars_II = zplus1_n * SfEfficiency * (gal->ColdGas - m_crit) / r_disk * v_disk * gal->dt;
             m_stars = m_stars_II;
             }
-          else{
+          else if (flag_population == 3){
             m_stars_III = zplus1_n * SfEfficiency * (gal->ColdGas - m_crit) / r_disk * v_disk * gal->dt;
             m_stars = m_stars_III;
             }
@@ -167,31 +167,42 @@ void insitu_star_formation(galaxy_t* gal, int snapshot, int flag_population) // 
 
       case 2:
         // f_h2 from Blitz & Rosolowski 2006 abd Bigiel+11 SF law
-        if (flag_population == 2)
+        if (flag_population == 2){
           m_stars_II = pressure_dependent_star_formation(gal, snapshot) * gal->dt;
-        else
+          m_stars = m_stars_II;
+          }
+        else{
           m_stars_III = pressure_dependent_star_formation(gal, snapshot) * gal->dt;
+          m_stars = m_stars_III;
+          }
         break;
 
       case 3:
         // GALFORM
-        if (flag_population == 2)
+        if (flag_population == 2){
           m_stars_II = gal->ColdGas / (r_disk / v_disk / 0.029 * pow(200. / v_disk, 1.5)) * gal->dt;
-        else
+          m_stars = m_stars_II;
+          }
+        else{
           m_stars_III = gal->ColdGas / (r_disk / v_disk / 0.029 * pow(200. / v_disk, 1.5)) * gal->dt;
+          m_stars = m_stars_III;
+          }
         break;
 
       default:
-        m_stars = 0;
+        m_stars = m_stars_III = m_stars_II = 0;
         mlog_error("Unknown SfPrescription!");
         ABORT(EXIT_FAILURE);
         break;
     }
     //m_stars = m_stars_II + m_stars_III;
-    if (m_stars > gal->ColdGas){
+    if (m_stars > gal->ColdGas)
       m_stars = gal->ColdGas;
       //m_stars_III = gal->ColdGas - m_stars_II;
-      }
+    if (m_stars_III > m_stars)
+      m_stars_III = m_stars;
+    if (m_stars_II > m_stars)
+      m_stars_II = m_stars;
 
     // calculate the total supernova feedback which would occur if this star
     // formation happened continuously and evenly throughout the snapshot
