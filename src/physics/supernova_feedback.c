@@ -224,8 +224,8 @@ void delayed_supernova_feedback(galaxy_t* gal, int snapshot) // THIS FUNCTION IS
   // in the current time step.
   for (int i_burst = 1; i_burst < n_bursts; i_burst++) {
     double m_stars = gal->NewStars[i_burst]; // IF YOU WANT TO DO THIS FOR DIFFERENT STELLAR POPULATIONS YOU NEED TO SAVE MORE OUTPUTS (NewStars_III, NewStars_II!!)
-    double m_stars_II = gal->NewStars[i_burst];
-    //double m_stars_III = gal->NewStars[i_burst];
+    double m_stars_II = gal->NewStars_II[i_burst];
+    double m_stars_III = gal->NewStars_III[i_burst];
 
     // Only need to do this if any stars formed in this history bin
     if (m_stars > 1e-10) {
@@ -233,12 +233,12 @@ void delayed_supernova_feedback(galaxy_t* gal, int snapshot) // THIS FUNCTION IS
       // Calculate recycled mass and metals by yield tables
       m_recycled += m_stars * get_recycling_fraction(i_burst, metallicity);
       m_recycled_II += m_stars_II * get_recycling_fraction(i_burst, metallicity);
-      //m_recycled_III += m_stars_III * get_recycling_fraction(i_burst, metallicity);
+      m_recycled_III += m_stars_III * get_recycling_fraction(i_burst, metallicity);
       new_metals += m_stars * get_metal_yield(i_burst, metallicity);
       // Calculate SNII energy
       sn_energy += get_SN_energy(i_burst, metallicity) * m_stars;
       sn_energy_II += get_SN_energy(i_burst, metallicity) * m_stars_II;
-      //sn_energy_III += get_SN_energy(i_burst, metallicity) * m_stars_III;
+      sn_energy_III += get_SN_energy(i_burst, metallicity) * m_stars_III;
     }
   }
 
@@ -246,8 +246,8 @@ void delayed_supernova_feedback(galaxy_t* gal, int snapshot) // THIS FUNCTION IS
   sn_energy *= calc_sn_ejection_eff(gal, snapshot);
   m_reheat_II = calc_sn_reheat_eff(gal, snapshot) * sn_energy_II / get_total_SN_energy();
   sn_energy_II *= calc_sn_ejection_eff(gal, snapshot);
-  //m_reheat_III = calc_sn_reheat_eff(gal, snapshot) * sn_energy_III / get_total_SN_energy();
-  //sn_energy_III *= calc_sn_ejection_eff(gal, snapshot);
+  m_reheat_III = calc_sn_reheat_eff(gal, snapshot) * sn_energy_III / get_total_SN_energy();
+  sn_energy_III *= calc_sn_ejection_eff(gal, snapshot);
   // We can only reheat as much gas as we have available.  Let's inforce this
   // now, to ensure that the maximal amount of available energy is used to
   // eject gas from the system.
@@ -257,7 +257,11 @@ void delayed_supernova_feedback(galaxy_t* gal, int snapshot) // THIS FUNCTION IS
   assert(m_reheat >= 0);
   assert(m_recycled >= 0);
   assert(new_metals >= 0);
-
+  assert(m_reheat_III >= 0);
+  assert(m_recycled_III >= 0);
+  assert(m_reheat_II >= 0);
+  assert(m_recycled_II >= 0);
+  
   // how much mass is ejected due to this star formation episode?
   if (!gal->ghost_flag)
     fof_Vvir = gal->Halo->FOFGroup->Vvir;
@@ -265,7 +269,7 @@ void delayed_supernova_feedback(galaxy_t* gal, int snapshot) // THIS FUNCTION IS
     fof_Vvir = -1;
 
   m_eject = calc_ejected_mass(&m_reheat, sn_energy, gal->Vvir, fof_Vvir);
-  //m_eject_III = calc_ejected_mass(&m_reheat_III, sn_energy_III, gal->Vvir, fof_Vvir);
+  m_eject_III = calc_ejected_mass(&m_reheat_III, sn_energy_III, gal->Vvir, fof_Vvir);
   m_eject_II = calc_ejected_mass(&m_reheat_II, sn_energy_II, gal->Vvir, fof_Vvir);
 
   // Note that m_eject returned for ghosts by calc_ejected_mass() is
@@ -274,6 +278,10 @@ void delayed_supernova_feedback(galaxy_t* gal, int snapshot) // THIS FUNCTION IS
 
   assert(m_reheat >= 0);
   assert(m_eject >= 0);
+  assert(m_reheat_III >= 0);
+  assert(m_eject_III >= 0);
+  assert(m_reheat_II >= 0);
+  assert(m_eject_II >= 0);
 
   // update the baryonic reservoirs
   //update_reservoirs_from_sn_feedback(gal, m_reheat, m_eject, m_recycled, new_metals);

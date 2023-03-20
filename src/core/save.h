@@ -76,6 +76,8 @@ typedef struct galaxy_output_t
   // baryonic histories
   float MWMSA; // Mass weighted mean stellar age
   float NewStars[N_HISTORY_SNAPS];
+  float NewStars_II[N_HISTORY_SNAPS];
+  float NewStars_III[N_HISTORY_SNAPS];
 } galaxy_output_t;
 
 #ifdef __cplusplus
