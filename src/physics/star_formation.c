@@ -153,8 +153,10 @@ void insitu_star_formation(galaxy_t* gal, int snapshot, int flag_population) // 
         if (gal->ColdGas > m_crit){
           if (flag_population == 2)
             m_stars_II = zplus1_n * SfEfficiency * (gal->ColdGas - m_crit) / r_disk * v_disk * gal->dt;
+            m_stars = m_stars_II;
           else
             m_stars_III = zplus1_n * SfEfficiency * (gal->ColdGas - m_crit) / r_disk * v_disk * gal->dt;
+            m_stars = m_stars_III;
           }
         else
           // no star formation
@@ -183,10 +185,10 @@ void insitu_star_formation(galaxy_t* gal, int snapshot, int flag_population) // 
         ABORT(EXIT_FAILURE);
         break;
     }
-    m_stars = m_stars_II + m_stars_III;
+    //m_stars = m_stars_II + m_stars_III;
     if (m_stars > gal->ColdGas){
       m_stars = gal->ColdGas;
-      m_stars_III = gal->ColdGas - m_stars_II;
+      //m_stars_III = gal->ColdGas - m_stars_II;
       }
 
     // calculate the total supernova feedback which would occur if this star

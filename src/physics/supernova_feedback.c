@@ -379,8 +379,8 @@ void contemporaneous_supernova_feedback(galaxy_t* gal,
     *m_recycled_III *= frac_III;
     *m_recycled_II *= frac_II;
   }
-  //assert(*m_reheat_III >= 0);
-  //assert(*m_recycled_III >= 0);
+  assert(*m_reheat_III >= 0);
+  assert(*m_recycled_III >= 0);
   assert(*new_metals >= 0);
   assert(*m_reheat_II >= 0);
   assert(*m_recycled_II >= 0);
