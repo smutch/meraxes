@@ -87,8 +87,10 @@ int evolve_galaxies(fof_group_t* fof_group, int snapshot, int NGal, int NFof, in
           }
 
           if (gal->Type < 3) {
-            if (!Flag_IRA)
+            if (!Flag_IRA){
               delayed_supernova_feedback(gal, snapshot);
+              mlog("Tunz",MLOG_MESG);
+              }
 
             if (gal->BlackHoleAccretingColdMass > 0)
               previous_merger_driven_BH_growth(gal);
@@ -96,8 +98,11 @@ int evolve_galaxies(fof_group_t* fof_group, int snapshot, int NGal, int NFof, in
             if (gal->Galaxy_Population == 2)  
               insitu_star_formation(gal, snapshot, 2);
             
-            if (gal->Galaxy_Population == 3)  
+            else if (gal->Galaxy_Population == 3)  
               insitu_star_formation(gal, snapshot, 3);
+            
+            else
+              mlog_error("SF is either Pop III or Pop II! Unrecognized gal_pop parameter!");
             
             if (Flag_Metals == true) {
               calc_metal_bubble(gal, snapshot);
