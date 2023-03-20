@@ -304,8 +304,8 @@ void contemporaneous_supernova_feedback(galaxy_t* gal,
   double sn_energy_III = 0.0;
   // init (just in case!)
   *m_reheat = *m_recycled = *new_metals = *m_eject = 0.0;
-  *m_reheat_III = *m_recycled_III = *m_eject_III = 0.0;
-  *m_reheat_II = *m_recycled_II = *m_eject_II = 0.0;
+  //*m_reheat_III = *m_recycled_III = *m_eject_III = 0.0;
+  //*m_reheat_II = *m_recycled_II = *m_eject_II = 0.0;
 
   // Here we approximate a constant SFR accross the timestep by a single burst
   // at t=0.5*dt. This is a pretty good approximation (to within ~15% of the
@@ -392,14 +392,15 @@ void contemporaneous_supernova_feedback(galaxy_t* gal,
   *m_eject_III = calc_ejected_mass(m_reheat_III, sn_energy_III, gal->Vvir, gal->Halo->FOFGroup->Vvir);
   *m_eject_II = calc_ejected_mass(m_reheat_II, sn_energy_II, gal->Vvir, gal->Halo->FOFGroup->Vvir);
 
-  assert(*m_reheat_III + *m_reheat_II >= 0);
+  //assert(*m_reheat_III + *m_reheat_II >= 0);
+  assert(*m_reheat >= 0);
   assert(*m_eject >= 0);
   assert(*m_reheat_III >= 0);
   assert(*m_eject_III >= 0);
   assert(*m_reheat_II >= 0);
   assert(*m_eject_II >= 0);
   
-  mlog("Eject %f, EjectIII %f, Recyled %f, RecyledIII %f, reheat %f, reheatIII %f", MLOG_MESG, *m_eject, *m_eject_III, *m_recycled, *m_recycled_III, *m_reheat, * m_reheat_III);
+  mlog("Eject %f, EjectIII %f, Recyled %f, RecyledIII %f, reheat %f, reheatIII %f", MLOG_MESG, *m_eject, *m_eject_III, *m_recycled, *m_recycled_III, *m_reheat, *m_reheat_III);
 }
 
 void calc_metal_bubble(galaxy_t* gal, int snapshot) // Done! Result in internal units (Mpc/h)
