@@ -151,12 +151,14 @@ void insitu_star_formation(galaxy_t* gal, int snapshot, int flag_population) // 
         // from Kauffmann (1996) eq7 x piR^2, (Vvir in km/s, reff in Mpc/h) in units of 10^10Msun/h
         m_crit = SfCriticalSDNorm * v_disk * r_disk;
         if (gal->ColdGas > m_crit){
-          if (flag_population == 2)
+          if (flag_population == 2){
             m_stars_II = zplus1_n * SfEfficiency * (gal->ColdGas - m_crit) / r_disk * v_disk * gal->dt;
             m_stars = m_stars_II;
-          else
+            }
+          else{
             m_stars_III = zplus1_n * SfEfficiency * (gal->ColdGas - m_crit) / r_disk * v_disk * gal->dt;
             m_stars = m_stars_III;
+            }
           }
         else
           // no star formation
