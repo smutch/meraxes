@@ -9,11 +9,7 @@
 
 void update_reservoirs_from_sn_feedback(galaxy_t* gal,
                                         double m_reheat,
-                                        double m_reheat_III,
-                                        double m_reheat_II,
                                         double m_eject,
-                                        double m_eject_III,
-                                        double m_eject_II,
                                         double m_recycled,
                                         double m_recycled_III,
                                         double m_recycled_II,
@@ -338,17 +334,18 @@ void contemporaneous_supernova_feedback(galaxy_t* gal,
     *m_recycled = *m_stars * run_globals.params.physics.SfRecycleFraction;
     *m_recycled_II = *m_stars_II * run_globals.params.physics.SfRecycleFraction; //Here you might want add different parameters
     *m_recycled_III = *m_stars_III * run_globals.params.physics.SfRecycleFraction;
-    *new_metals = *m_stars * run_globals.params.physics.Yield;
+    //*new_metals = *m_stars * run_globals.params.physics.Yield;
+    *new_metals = *m_stars_II * run_globals.params.physics.Yield + *m_stars_III * run_globals.params.physics.Yield;
     //*new_metals_II = *m_stars_II * run_globals.params.physics.Yield;
     //*new_metals_III = *m_stars_III * run_globals.params.physics.Yield;
   }
   // calculate the SNII energy and total reheated mass
   sn_energy = *m_stars * get_SN_energy(0, metallicity);
-  //sn_energy_II = *m_stars_II * get_SN_energy(0, metallicity);
-  //sn_energy_III = *m_stars_III * get_SN_energy(0, metallicity);
+  sn_energy_II = *m_stars_II * get_SN_energy(0, metallicity);
+  sn_energy_III = *m_stars_III * get_SN_energy(0, metallicity);
   *m_reheat = calc_sn_reheat_eff(gal, snapshot) * sn_energy / get_total_SN_energy();
-  //*m_reheat_II = calc_sn_reheat_eff(gal, snapshot) * sn_energy_II / get_total_SN_energy();
-  //*m_reheat_III = calc_sn_reheat_eff(gal, snapshot) * sn_energy_III / get_total_SN_energy();
+  *m_reheat_II = calc_sn_reheat_eff(gal, snapshot) * sn_energy_II / get_total_SN_energy();
+  *m_reheat_III = calc_sn_reheat_eff(gal, snapshot) * sn_energy_III / get_total_SN_energy();
   //*m_reheat = *m_reheat_II + *m_reheat_III;
   sn_energy *= calc_sn_ejection_eff(gal, snapshot);
   //sn_energy_II *= calc_sn_ejection_eff(gal, snapshot);
@@ -374,18 +371,18 @@ void contemporaneous_supernova_feedback(galaxy_t* gal,
     *m_recycled *= frac;
   }*/
   if ((*m_reheat) + (*m_stars) > gal->ColdGas) {
-    //double frac_II = gal->ColdGas / (*m_reheat_II + *m_stars_II);
-    //double frac_III = gal->ColdGas / (*m_reheat_III + *m_stars_III);
-    double frac = gal->ColdGas / *m_reheat;
+    double frac_II = gal->ColdGas / (*m_reheat_II + *m_stars_II);
+    double frac_III = gal->ColdGas / (*m_reheat_III + *m_stars_III);
+    double frac = gal->ColdGas / (*m_reheat + *m_stars);
     //double frac = frac_II + frac_III;
-    //*m_reheat_III *= frac_III;
-    //*m_reheat_II *= frac_II;
+    *m_reheat_III *= frac_III;
+    *m_reheat_II *= frac_II;
     *m_stars *= frac;
-    //*m_stars_III *= frac_III;
-    //*m_stars_II *= frac_II;
+    *m_stars_III *= frac_III;
+    *m_stars_II *= frac_II;
     *m_recycled *= frac;
-    //*m_recycled_III *= frac_III;
-    //*m_recycled_II *= frac_II;
+    *m_recycled_III *= frac_III;
+    *m_recycled_II *= frac_II;
   }
   assert(*m_reheat_III >= 0);
   assert(*m_recycled_III >= 0);
