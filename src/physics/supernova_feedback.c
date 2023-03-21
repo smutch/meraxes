@@ -348,8 +348,8 @@ void contemporaneous_supernova_feedback(galaxy_t* gal,
   *m_reheat_III = calc_sn_reheat_eff(gal, snapshot) * sn_energy_III / get_total_SN_energy();
   //*m_reheat = *m_reheat_II + *m_reheat_III;
   sn_energy *= calc_sn_ejection_eff(gal, snapshot);
-  //sn_energy_II *= calc_sn_ejection_eff(gal, snapshot);
-  //sn_energy_III *= calc_sn_ejection_eff(gal, snapshot);
+  sn_energy_II *= calc_sn_ejection_eff(gal, snapshot); //Mistake probably here!!!
+  sn_energy_III *= calc_sn_ejection_eff(gal, snapshot);
 
   // We can only reheat as much gas as we have available.  Let's inforce this
   // now, to ensure that the maximal amount of available energy is used to
@@ -394,7 +394,7 @@ void contemporaneous_supernova_feedback(galaxy_t* gal,
   // how much mass is ejected due to this star formation episode? (ala Croton+ 2006)
   //*m_eject = calc_ejected_mass(m_reheat, sn_energy, gal->Vvir, gal->Halo->FOFGroup->Vvir);
   *m_eject = calc_ejected_mass(m_reheat, sn_energy, gal->Vvir, gal->Halo->FOFGroup->Vvir);
-  *m_eject_III = calc_ejected_mass(m_reheat_III, sn_energy_III, gal->Vvir, gal->Halo->FOFGroup->Vvir); //Mistake probably here!!!
+  *m_eject_III = calc_ejected_mass(m_reheat_III, sn_energy_III, gal->Vvir, gal->Halo->FOFGroup->Vvir); 
   *m_eject_II = calc_ejected_mass(m_reheat_II, sn_energy_II, gal->Vvir, gal->Halo->FOFGroup->Vvir);
 
   //assert(*m_reheat_III + *m_reheat_II >= 0);
