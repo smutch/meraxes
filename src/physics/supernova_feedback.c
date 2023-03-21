@@ -52,7 +52,7 @@ void update_reservoirs_from_sn_feedback(galaxy_t* gal,
   // make sure we aren't trying to use more cold gas than is available...
   if (m_reheat > gal->ColdGas){
     m_reheat = gal->ColdGas;
-    m_reheat_III = gal->ColdGas - m_reheat_II;
+    //m_reheat_III = gal->ColdGas - m_reheat_II;
     }
   metallicity = calc_metallicity(gal->ColdGas, gal->MetalsColdGas);
 
@@ -68,7 +68,7 @@ void update_reservoirs_from_sn_feedback(galaxy_t* gal,
 
     if (m_eject > central->HotGas){
       m_eject = central->HotGas;
-      m_eject_III = central->HotGas - m_eject_II;
+      //m_eject_III = central->HotGas - m_eject_II;
       }
 
     central->HotGas -= m_eject;
