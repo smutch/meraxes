@@ -14,11 +14,7 @@ extern "C"
 
   void update_reservoirs_from_sn_feedback(struct galaxy_t* gal,
                                           double m_reheat,
-                                          double m_reheat_III,
-                                          double m_reheat_II,
                                           double m_eject,
-                                          double m_eject_III,
-                                          double m_eject_II,
                                           double m_recycled,
                                           double m_recycled_III,
                                           double m_recycled_II,
