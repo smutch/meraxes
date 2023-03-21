@@ -143,9 +143,9 @@ static void merger_driven_starburst(galaxy_t* parent, double merger_ratio, int s
       update_reservoirs_from_sf(parent, burst_mass, snapshot, MERGER);
       parent->MergerBurstMass += burst_mass;
       if (parent->Galaxy_Population == 2)
-        update_reservoirs_from_sn_feedback(parent, m_reheat, m_reheat_III, m_reheat_II, m_eject, m_eject_III, m_eject_II, m_recycled, m_recycled_III, m_recycled_II, new_metals);
+        update_reservoirs_from_sn_feedback(parent, m_reheat, m_eject, m_recycled, m_recycled_III, m_recycled_II, new_metals);
       else
-        update_reservoirs_from_sn_feedback(parent, m_reheat, m_reheat_III, m_reheat_II, m_eject, m_eject_III, m_eject_II, m_recycled, m_recycled_III, m_recycled_II, new_metals);
+        update_reservoirs_from_sn_feedback(parent, m_reheat, m_eject, m_recycled, m_recycled_III, m_recycled_II, new_metals);
     }
   }
 }
