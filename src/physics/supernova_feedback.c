@@ -281,7 +281,7 @@ void delayed_supernova_feedback(galaxy_t* gal, int snapshot) // THIS FUNCTION IS
 
   // update the baryonic reservoirs
   //update_reservoirs_from_sn_feedback(gal, m_reheat, m_eject, m_recycled, new_metals);
-  update_reservoirs_from_sn_feedback(gal, m_reheat, m_reheat_III, m_reheat_II, m_eject, m_eject_III, m_eject_II, m_recycled, m_recycled_III, m_recycled_II, new_metals);
+  update_reservoirs_from_sn_feedback(gal, m_reheat, m_eject, m_recycled, m_recycled_III, m_recycled_II, new_metals);
 }
 
 void contemporaneous_supernova_feedback(galaxy_t* gal,
