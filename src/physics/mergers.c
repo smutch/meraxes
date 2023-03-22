@@ -117,11 +117,21 @@ static void merger_driven_starburst(galaxy_t* parent, double merger_ratio, int s
     physics_params_t* params = &(run_globals.params.physics);
 
     double burst_mass = params->MergerBurstFactor * pow(merger_ratio, params->MergerBurstScaling) * parent->ColdGas;
+    double burst_mass_III;
+    double burst_mass_II;
+    
+    if (parent->Galaxy_Population == 2){ //Look at the main galaxy
+      burst_mass_II = burst_mass;
+      burst_mass_III = 0;
+      }
+    else{
+      burst_mass_III = burst_mass; 
+      burst_mass_II = 0;
 
     if (burst_mass > parent->ColdGas)
       burst_mass = parent->ColdGas;
 
-    /*if (burst_mass > 0) {
+    if (burst_mass > 0) {
       double m_reheat;
       double m_reheat_III;
       double m_reheat_II;
@@ -133,20 +143,13 @@ static void merger_driven_starburst(galaxy_t* parent, double merger_ratio, int s
       double m_recycled_II;
       double new_metals;
       
-      if (parent->Galaxy_Population == 2) //Look at the main galaxy
-        contemporaneous_supernova_feedback(parent, &burst_mass, 0, &burst_mass, snapshot, &m_reheat, &m_reheat_III, &m_reheat_II, &m_eject, &m_eject_III, &m_eject_II, &m_recycled,
-                                           &m_recycled_III, &m_recycled_II, &new_metals);
-      else
-        contemporaneous_supernova_feedback(parent, &burst_mass, &burst_mass, 0, snapshot, &m_reheat, &m_reheat_III, &m_reheat_II, &m_eject, &m_eject_III, &m_eject_II, &m_recycled,
-                                           &m_recycled_III, &m_recycled_II, &new_metals);
+      contemporaneous_supernova_feedback(parent, &burst_mass, &burst_mass_III, &burst_mass_II, snapshot, &m_reheat, &m_reheat_III, &m_reheat_II, &m_eject, &m_eject_III, &m_eject_II, &m_recycled,
+                                         &m_recycled_III, &m_recycled_II, &new_metals);
       // update the baryonic reservoirs (note that the order we do this in will change the result!)
       update_reservoirs_from_sf(parent, burst_mass, snapshot, MERGER);
       parent->MergerBurstMass += burst_mass;
-      if (parent->Galaxy_Population == 2)
-        update_reservoirs_from_sn_feedback(parent, m_reheat, m_eject, m_recycled, m_recycled_III, m_recycled_II, new_metals);
-      else
-        update_reservoirs_from_sn_feedback(parent, m_reheat, m_eject, m_recycled, m_recycled_III, m_recycled_II, new_metals);
-    }*/
+      update_reservoirs_from_sn_feedback(parent, m_reheat, m_eject, m_recycled, m_recycled_III, m_recycled_II, new_metals);
+    }
   }
 }
 
