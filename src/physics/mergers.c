@@ -121,7 +121,7 @@ static void merger_driven_starburst(galaxy_t* parent, double merger_ratio, int s
     if (burst_mass > parent->ColdGas)
       burst_mass = parent->ColdGas;
 
-    if (burst_mass > 0) {
+    /*if (burst_mass > 0) {
       double m_reheat;
       double m_reheat_III;
       double m_reheat_II;
@@ -146,7 +146,7 @@ static void merger_driven_starburst(galaxy_t* parent, double merger_ratio, int s
         update_reservoirs_from_sn_feedback(parent, m_reheat, m_eject, m_recycled, m_recycled_III, m_recycled_II, new_metals);
       else
         update_reservoirs_from_sn_feedback(parent, m_reheat, m_eject, m_recycled, m_recycled_III, m_recycled_II, new_metals);
-    }
+    }*/
   }
 }
 
