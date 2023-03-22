@@ -375,16 +375,16 @@ void contemporaneous_supernova_feedback(galaxy_t* gal,
     double frac_II = gal->ColdGas / (*m_reheat_II + *m_stars_II);
     double frac_III = gal->ColdGas / (*m_reheat_III + *m_stars_III);
     double frac = gal->ColdGas / (*m_reheat + *m_stars);
-    //double frac = frac_II + frac_III;
+    
     *m_reheat_III *= frac_III;
-    *m_reheat_II *= frac_II;
+    //*m_reheat_II *= frac_II;
     *m_reheat *= frac;
     *m_stars *= frac;
     *m_stars_III *= frac_III;
-    *m_stars_II *= frac_II;
+    //*m_stars_II *= frac_II;
     *m_recycled *= frac;
     *m_recycled_III *= frac_III;
-    *m_recycled_II *= frac_II;
+    //*m_recycled_II *= frac_II;
   }
   assert(*m_reheat_III >= 0);
   assert(*m_recycled_III >= 0);
@@ -392,6 +392,7 @@ void contemporaneous_supernova_feedback(galaxy_t* gal,
   assert(*m_reheat_II >= 0);
   assert(*m_recycled_II >= 0);
   assert(*m_recycled >= 0);
+  assert(*m_reheat >= 0);
 
   // how much mass is ejected due to this star formation episode? (ala Croton+ 2006)
   //*m_eject = calc_ejected_mass(m_reheat, sn_energy, gal->Vvir, gal->Halo->FOFGroup->Vvir);
