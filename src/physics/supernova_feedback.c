@@ -222,8 +222,8 @@ void delayed_supernova_feedback(galaxy_t* gal, int snapshot) // THIS FUNCTION IS
   // in the current time step.
   for (int i_burst = 1; i_burst < n_bursts; i_burst++) {
     double m_stars = gal->NewStars[i_burst]; // IF YOU WANT TO DO THIS FOR DIFFERENT STELLAR POPULATIONS YOU NEED TO SAVE MORE OUTPUTS (NewStars_III, NewStars_II!!)
-    //double m_stars_II = gal->NewStars_II[i_burst];
-    //double m_stars_III = gal->NewStars_III[i_burst];
+    double m_stars_II = gal->NewStars_II[i_burst];
+    double m_stars_III = gal->NewStars_III[i_burst];
 
     // Only need to do this if any stars formed in this history bin
     if (m_stars > 1e-10) {
