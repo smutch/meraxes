@@ -127,6 +127,7 @@ static void merger_driven_starburst(galaxy_t* parent, double merger_ratio, int s
     else{
       burst_mass_III = burst_mass; 
       burst_mass_II = 0;
+      }
 
     if (burst_mass > parent->ColdGas)
       burst_mass = parent->ColdGas;
