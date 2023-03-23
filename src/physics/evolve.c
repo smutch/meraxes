@@ -94,10 +94,10 @@ int evolve_galaxies(fof_group_t* fof_group, int snapshot, int NGal, int NFof, in
               previous_merger_driven_BH_growth(gal);
               
             if (gal->Galaxy_Population == 2)  
-              insitu_star_formation(gal, snapshot, 2);
+              insitu_star_formation(gal, snapshot);
             
             else if (gal->Galaxy_Population == 3)  
-              insitu_star_formation(gal, snapshot, 3);
+              insitu_star_formation(gal, snapshot);
             
             else
               mlog_error("SF is either Pop III or Pop II! Unrecognized gal_pop parameter!");
