@@ -196,7 +196,7 @@ static inline double calc_sn_ejection_eff(galaxy_t* gal, int snapshot)
     return 1.;
 }
 
-void delayed_supernova_feedback(galaxy_t* gal, int snapshot) // THIS FUNCTION IS STILL TO BE UPDATED!!!! 
+void delayed_supernova_feedback(galaxy_t* gal, int snapshot) 
 {
   double sn_energy = 0.0;
   double sn_energy_II = 0.0;
