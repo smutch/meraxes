@@ -95,11 +95,11 @@ void update_reservoirs_from_sf(galaxy_t* gal, double new_stars, int snapshot, SF
     if (gal->MetalsStellarMass < 0)
       gal->MetalsStellarMass = 0.0;
   }
-  // The same halo cannot form Pop.III twice, so I read if it experienced previously a SF episode.
-  if (Flag_Metals == true) {
+  // The same halo cannot form Pop.III twice, so I read if it experienced previously a SF episode. YOU MOVED THIS CONDITION TO THE METAL BUBBLE!
+  /*if (Flag_Metals == true) {
     if ((gal->NewStars[1] > 1e-10) && (gal->Galaxy_Population == 3))
       gal->Galaxy_Population = 2;
-  }
+  }*/
 }
 
 void insitu_star_formation(galaxy_t* gal, int snapshot, int flag_population) // Added Flag Population
