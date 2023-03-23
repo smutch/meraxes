@@ -8,7 +8,7 @@
 #include "star_formation.h"
 #include "supernova_feedback.h"
 
-static void backfill_ghost_star_formation(galaxy_t* gal, double m_stars, double m_stars_III, double m_stars_II, double sfr, double metallicity, int snapshot)
+static void backfill_ghost_star_formation(galaxy_t* gal, double m_stars, double sfr, double metallicity, int snapshot)
 {
   double* LTTime = run_globals.LTTime;
   double burst_time = LTTime[gal->LastIdentSnap] - gal->dt * 0.5;
@@ -22,9 +22,11 @@ static void backfill_ghost_star_formation(galaxy_t* gal, double m_stars, double 
 #endif
       if (ii < N_HISTORY_SNAPS) {
         gal->NewStars[ii] += m_stars;
-        gal->NewStars_II[ii] += m_stars_II;
-        gal->NewStars_III[ii] += m_stars_III;
         gal->NewMetals[0] += m_stars * metallicity;
+        if (gal->Galaxy_Population == 2)
+          gal->NewStars_II[ii] += m_stars;
+        else if (gal->Galaxy_Population == 3)
+          gal->NewStars_III[ii] += m_stars;
       }
       update_galaxy_fesc_vals(gal, m_stars, snap);
       break;
@@ -65,9 +67,9 @@ void update_reservoirs_from_sf(galaxy_t* gal, double new_stars, int snapshot, SF
       // escape fraction dependent properties to reflect this new insitu
       // SF burst.
       if (gal->Galaxy_Population == 2)
-        backfill_ghost_star_formation(gal, new_stars, 0, new_stars, sfr, metallicity, snapshot);
+        backfill_ghost_star_formation(gal, new_stars, sfr, metallicity, snapshot);
       else
-        backfill_ghost_star_formation(gal, new_stars, new_stars, 0, sfr, metallicity, snapshot);
+        backfill_ghost_star_formation(gal, new_stars, sfr, metallicity, snapshot);
       } else {
       // update the stellar mass history assuming the burst is happening in this snapshot
 #ifdef CALC_MAGS
@@ -92,9 +94,16 @@ void update_reservoirs_from_sf(galaxy_t* gal, double new_stars, int snapshot, SF
     // reservoirs due to supernova feedback.
     if (gal->StellarMass < 0)
       gal->StellarMass = 0.0;
+      if (gal->StellarMass_II < 0)
+      gal->StellarMass_II = 0.0;
+      if (gal->StellarMass_III < 0)
+      gal->StellarMass_III = 0.0;
     if (gal->MetalsStellarMass < 0)
       gal->MetalsStellarMass = 0.0;
   }
+  if (gal->StellarMass >0)
+    mlog("Gas %f, Star %f, StarIII+II %f, StarIII %f, StarII %f", MLOG_MESG, gal->ColdGas, gal->StellarMass, gal->StellarMass_III + gal->StellarMass_II, gal->StellarMas_III, gal->StellarMass_II);
+  
   // The same halo cannot form Pop.III twice, so I read if it experienced previously a SF episode. YOU MOVED THIS CONDITION TO THE METAL BUBBLE!
   /*if (Flag_Metals == true) {
     if ((gal->NewStars[1] > 1e-10) && (gal->Galaxy_Population == 3))
@@ -102,26 +111,17 @@ void update_reservoirs_from_sf(galaxy_t* gal, double new_stars, int snapshot, SF
   }*/
 }
 
-void insitu_star_formation(galaxy_t* gal, int snapshot, int flag_population) // Added Flag Population
+void insitu_star_formation(galaxy_t* gal, int snapshot) 
 {
   // there is no point doing anything if there is no cold gas!
   if (gal->ColdGas > 1e-10) {
     double r_disk;
     double v_disk;
     double m_crit;
-    double m_stars; // Do you want to save sum? Probably not here
-    double m_stars_II; // Pop.II
-    double m_stars_III; // Pop.III
-
+    double m_stars;
     double m_reheat;
-    double m_reheat_II;
-    double m_reheat_III;
     double m_eject;
-    double m_eject_II;
-    double m_eject_III;
     double m_recycled;
-    double m_recycled_II;
-    double m_recycled_III;
     double new_metals;
 
     double zplus1;
@@ -160,15 +160,12 @@ void insitu_star_formation(galaxy_t* gal, int snapshot, int flag_population) // 
         // from Kauffmann (1996) eq7 x piR^2, (Vvir in km/s, reff in Mpc/h) in units of 10^10Msun/h
         m_crit = SfCriticalSDNorm * v_disk * r_disk;
         if (gal->ColdGas > m_crit){
-          if (flag_population == 2){
-            m_stars_II = zplus1_n * SfEfficiency * (gal->ColdGas - m_crit) / r_disk * v_disk * gal->dt;
-            //m_stars = m_stars_II;
+          if (gal->Galaxy_Population == 2){
+            m_stars = zplus1_n * SfEfficiency * (gal->ColdGas - m_crit) / r_disk * v_disk * gal->dt;
             }
-          else if (flag_population == 3){
-            m_stars_III = zplus1_n * SfEfficiency * (gal->ColdGas - m_crit) / r_disk * v_disk * gal->dt;
-            //m_stars = m_stars_III;
+          else if (gal->Galaxy_Population == 3){
+            m_stars = zplus1_n * SfEfficiency * (gal->ColdGas - m_crit) / r_disk * v_disk * gal->dt;
             }
-          //m_stars = m_stars_II + m_stars_III;
           }
         else
           // no star formation
@@ -177,54 +174,40 @@ void insitu_star_formation(galaxy_t* gal, int snapshot, int flag_population) // 
 
       case 2:
         // f_h2 from Blitz & Rosolowski 2006 abd Bigiel+11 SF law
-        if (flag_population == 2){
-          m_stars_II = pressure_dependent_star_formation(gal, snapshot) * gal->dt;
-          //m_stars = m_stars_II;
+        if (gal->Galaxy_Population == 2){
+          m_stars = pressure_dependent_star_formation(gal, snapshot) * gal->dt;
           }
         else{
-          m_stars_III = pressure_dependent_star_formation(gal, snapshot) * gal->dt;
-          //m_stars = m_stars_III;
+          m_stars = pressure_dependent_star_formation(gal, snapshot) * gal->dt;
           }
-        //m_stars = m_stars_II + m_stars_III;  
         break;
 
       case 3:
         // GALFORM
-        if (flag_population == 2){
-          m_stars_II = gal->ColdGas / (r_disk / v_disk / 0.029 * pow(200. / v_disk, 1.5)) * gal->dt;
-          //m_stars = m_stars_II;
+        if (gal->Galaxy_Population == 2){
+          m_stars = gal->ColdGas / (r_disk / v_disk / 0.029 * pow(200. / v_disk, 1.5)) * gal->dt;
           }
         else{
-          m_stars_III = gal->ColdGas / (r_disk / v_disk / 0.029 * pow(200. / v_disk, 1.5)) * gal->dt;
-          //m_stars = m_stars_III;
+          m_stars = gal->ColdGas / (r_disk / v_disk / 0.029 * pow(200. / v_disk, 1.5)) * gal->dt;
           }
-        //m_stars = m_stars_II + m_stars_III;  
         break;
 
       default:
-        m_stars = m_stars_III = m_stars_II = 0;
+        m_stars = 0;
         mlog_error("Unknown SfPrescription!");
         ABORT(EXIT_FAILURE);
         break;
     }
-    m_stars = m_stars_II + m_stars_III;
-    //if (m_stars > gal->ColdGas)
-    //  m_stars = gal->ColdGas;
-      //m_stars_III = gal->ColdGas - m_stars_II;
-    //if (m_stars_III > m_stars)
-    //  m_stars_III = m_stars;
-    //if (m_stars_II > m_stars)
-    //  m_stars_II = m_stars;
-
+    if (m_stars > gal->ColdGas)
+      m_stars = gal->ColdGas;
     // calculate the total supernova feedback which would occur if this star
     // formation happened continuously and evenly throughout the snapshot
-    mlog("Before Feed: Gas %f, Star %f, StarIII+II %f, StarIII %f, StarII %f", MLOG_MESG, gal->ColdGas, m_stars, m_stars_III + m_stars_II, m_stars_III, m_stars_II);
-    contemporaneous_supernova_feedback(gal, &m_stars, &m_stars_III, &m_stars_II, snapshot, &m_reheat, &m_reheat_III, &m_reheat_II, 
-                                       &m_eject, &m_eject_III, &m_eject_II, &m_recycled, &m_recycled_III, &m_recycled_II, &new_metals);
+    //mlog("Before Feed: Gas %f, Star %f, StarIII+II %f, StarIII %f, StarII %f", MLOG_MESG, gal->ColdGas, m_stars, m_stars_III + m_stars_II, m_stars_III, m_stars_II);
+    contemporaneous_supernova_feedback(gal, &m_stars, snapshot, &m_reheat, &m_eject, &m_recycled, &new_metals);
     // update the baryonic reservoirs (note that the order we do this in will change the result!)
     update_reservoirs_from_sf(gal, m_stars, snapshot, INSITU);
-    update_reservoirs_from_sn_feedback(gal, m_reheat, m_eject, m_recycled, m_recycled_III, m_recycled_II, new_metals);
-    mlog("After Feed: Gas %f, Star %f, StarIII+II %f, StarIII %f, StarII %f", MLOG_MESG, gal->ColdGas, m_stars, m_stars_III + m_stars_II, m_stars_III, m_stars_II);
+    update_reservoirs_from_sn_feedback(gal, m_reheat, m_eject, m_recycled, new_metals);
+    //mlog("After Feed: Gas %f, Star %f, StarIII+II %f, StarIII %f, StarII %f", MLOG_MESG, gal->ColdGas, m_stars, m_stars_III + m_stars_II, m_stars_III, m_stars_II);
   }
 }
 
