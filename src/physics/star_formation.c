@@ -218,12 +218,13 @@ void insitu_star_formation(galaxy_t* gal, int snapshot, int flag_population) // 
 
     // calculate the total supernova feedback which would occur if this star
     // formation happened continuously and evenly throughout the snapshot
+    mlog("Before Feed: Star %f, StarIII+II %f, StarIII %f, StarII %f", MLOG_MESG, m_stars, m_stars_III + m_stars_II, m_stars_III, m_stars_II);
     contemporaneous_supernova_feedback(gal, &m_stars, &m_stars_III, &m_stars_II, snapshot, &m_reheat, &m_reheat_III, &m_reheat_II, 
                                        &m_eject, &m_eject_III, &m_eject_II, &m_recycled, &m_recycled_III, &m_recycled_II, &new_metals);
     // update the baryonic reservoirs (note that the order we do this in will change the result!)
     update_reservoirs_from_sf(gal, m_stars, snapshot, INSITU);
     update_reservoirs_from_sn_feedback(gal, m_reheat, m_eject, m_recycled, m_recycled_III, m_recycled_II, new_metals);
-    mlog("Star %f, StarIII+II %f, StarIII %f, StarII %f", MLOG_MESG, m_stars, m_stars_III + m_stars_II, m_stars_III, m_stars_II);
+    mlog("After Feed: Star %f, StarIII+II %f, StarIII %f, StarII %f", MLOG_MESG, m_stars, m_stars_III + m_stars_II, m_stars_III, m_stars_II);
   }
 }
 
