@@ -101,8 +101,8 @@ void update_reservoirs_from_sf(galaxy_t* gal, double new_stars, int snapshot, SF
     if (gal->MetalsStellarMass < 0)
       gal->MetalsStellarMass = 0.0;
   }
-  if (gal->StellarMass >0)
-    mlog("Gas %f, Star %f, StarIII+II %f, StarIII %f, StarII %f", MLOG_MESG, gal->ColdGas, gal->StellarMass, gal->StellarMass_III + gal->StellarMass_II, gal->StellarMass_III, gal->StellarMass_II);
+  //if (gal->StellarMass > 0)
+  //  mlog("Gas %f, Star %f, StarIII+II %f, StarIII %f, StarII %f", MLOG_MESG, gal->ColdGas, gal->StellarMass, gal->StellarMass_III + gal->StellarMass_II, gal->StellarMass_III, gal->StellarMass_II);
   
   // The same halo cannot form Pop.III twice, so I read if it experienced previously a SF episode. YOU MOVED THIS CONDITION TO THE METAL BUBBLE!
   /*if (Flag_Metals == true) {
