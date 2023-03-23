@@ -324,7 +324,7 @@ void contemporaneous_supernova_feedback(galaxy_t* gal,
       *m_recycled = *m_stars * run_globals.params.physics.SfRecycleFraction;
       *new_metals = *m_stars * run_globals.params.physics.Yield;
       }
-    else if (if (gal->Galaxy_Population == 3){
+    else if (gal->Galaxy_Population == 3){
     *m_recycled = *m_stars * run_globals.params.physics.SfRecycleFraction;
     *new_metals = *m_stars * run_globals.params.physics.Yield;
     }
