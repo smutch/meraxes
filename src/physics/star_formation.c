@@ -220,7 +220,7 @@ void insitu_star_formation(galaxy_t* gal, int snapshot, int flag_population) // 
     // update the baryonic reservoirs (note that the order we do this in will change the result!)
     update_reservoirs_from_sf(gal, m_stars, snapshot, INSITU);
     update_reservoirs_from_sn_feedback(gal, m_reheat, m_eject, m_recycled, m_recycled_III, m_recycled_II, new_metals);
-    //} ? Sure
+    mlog("Star %f, StarIII+II %f, StarIII %f, StarII %f", MLOG_MESG, m_stars, m_stars_III + m_stars_II, m_stars_III, m_stars_II);
   }
 }
 
