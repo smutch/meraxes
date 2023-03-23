@@ -377,14 +377,14 @@ void contemporaneous_supernova_feedback(galaxy_t* gal,
     double frac = gal->ColdGas / (*m_reheat + *m_stars);
     
     *m_reheat_III *= frac_III;
-    //*m_reheat_II *= frac_II;
+    *m_reheat_II *= frac_II;
     *m_reheat *= frac;
     *m_stars *= frac;
     *m_stars_III *= frac_III;
-    //*m_stars_II *= frac_II;
+    *m_stars_II *= frac_II;
     *m_recycled *= frac;
     *m_recycled_III *= frac_III;
-    //*m_recycled_II *= frac_II;
+    *m_recycled_II *= frac_II;
   }
   assert(*m_reheat_III >= 0);
   assert(*m_recycled_III >= 0);
@@ -408,8 +408,8 @@ void contemporaneous_supernova_feedback(galaxy_t* gal,
   assert(*m_reheat_II >= 0);
   assert(*m_eject_II >= 0);
   
-  mlog("Eject %f, EjectIII+II %f, Recyled %f, RecyledIII+II %f, reheat %f, reheatIII+II %f", MLOG_MESG, *m_eject, (*m_eject_III + *m_eject_II), 
-  *m_recycled, (*m_recycled_III + *m_recycled_II), *m_reheat, (*m_reheat_III + *m_reheat_II));
+  mlog("Star %f, StarIII+II %f, Eject %f, EjectIII+II %f, Recyled %f, RecyledIII+II %f, reheat %f, reheatIII+II %f", MLOG_MESG, *m_stars, (*m_stars_II + *m_stars_III), *m_eject, 
+      (*m_eject_III + *m_eject_II), *m_recycled, (*m_recycled_III + *m_recycled_II), *m_reheat, (*m_reheat_III + *m_reheat_II));
 }
 
 void calc_metal_bubble(galaxy_t* gal, int snapshot) // Done! Result in internal units (Mpc/h)
