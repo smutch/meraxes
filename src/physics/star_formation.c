@@ -208,8 +208,8 @@ void insitu_star_formation(galaxy_t* gal, int snapshot, int flag_population) // 
         break;
     }
     m_stars = m_stars_II + m_stars_III;
-    if (m_stars > gal->ColdGas)
-      m_stars = gal->ColdGas;
+    //if (m_stars > gal->ColdGas)
+    //  m_stars = gal->ColdGas;
       //m_stars_III = gal->ColdGas - m_stars_II;
     //if (m_stars_III > m_stars)
     //  m_stars_III = m_stars;
