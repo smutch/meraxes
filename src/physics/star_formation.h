@@ -23,7 +23,7 @@ extern "C"
 #endif
 
   void update_reservoirs_from_sf(struct galaxy_t* gal, double new_stars, int snapshot, SFtype type);
-  void insitu_star_formation(struct galaxy_t* gal, int snapshot, int flag_population);
+  void insitu_star_formation(struct galaxy_t* gal, int snapshot);
   double pressure_dependent_star_formation(struct galaxy_t* gal, int snapshot);
 
 #ifdef __cplusplus
