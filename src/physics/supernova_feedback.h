@@ -17,6 +17,18 @@ extern "C"
                                           double m_eject,
                                           double m_recycled,
                                           double new_metals);
+        
+  void update_reservoirs_from_delayed_sn_feedback(struct galaxy_t* gal,
+                                          double m_reheat,
+                                          double m_reheat_III,
+                                          double m_reheat_II,
+                                          double m_eject,
+                                          double m_eject_III,
+                                          double m_eject_II,
+                                          double m_recycled,
+                                          double m_recycled_III,
+                                          double m_recylced_II,
+                                          double new_metals);                                  
   void delayed_supernova_feedback(struct galaxy_t* gal, int snapshot);
   void calc_metal_bubble(struct galaxy_t* gal, int snapshot);
   void contemporaneous_supernova_feedback(struct galaxy_t* gal,

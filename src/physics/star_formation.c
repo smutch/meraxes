@@ -101,8 +101,8 @@ void update_reservoirs_from_sf(galaxy_t* gal, double new_stars, int snapshot, SF
     if (gal->MetalsStellarMass < 0)
       gal->MetalsStellarMass = 0.0;
   }
-  //if (gal->StellarMass > 0)
-  //  mlog("Gas %f, Star %f, StarIII+II %f, StarIII %f, StarII %f", MLOG_MESG, gal->ColdGas, gal->StellarMass, gal->StellarMass_III + gal->StellarMass_II, gal->StellarMass_III, gal->StellarMass_II);
+  if (gal->StellarMass > 0)
+    mlog("After SF: Star %f, StarIII+II %f, StarIII %f, StarII %f", MLOG_MESG, gal->StellarMass, gal->StellarMass_III + gal->StellarMass_II, gal->StellarMass_III, gal->StellarMass_II);
   
   // The same halo cannot form Pop.III twice, so I read if it experienced previously a SF episode. YOU MOVED THIS CONDITION TO THE METAL BUBBLE!
   /*if (Flag_Metals == true) {
@@ -202,12 +202,10 @@ void insitu_star_formation(galaxy_t* gal, int snapshot)
       m_stars = gal->ColdGas;
     // calculate the total supernova feedback which would occur if this star
     // formation happened continuously and evenly throughout the snapshot
-    //mlog("Before Feed: Gas %f, Star %f, StarIII+II %f, StarIII %f, StarII %f", MLOG_MESG, gal->ColdGas, m_stars, m_stars_III + m_stars_II, m_stars_III, m_stars_II);
     contemporaneous_supernova_feedback(gal, &m_stars, snapshot, &m_reheat, &m_eject, &m_recycled, &new_metals);
     // update the baryonic reservoirs (note that the order we do this in will change the result!)
     update_reservoirs_from_sf(gal, m_stars, snapshot, INSITU);
     update_reservoirs_from_sn_feedback(gal, m_reheat, m_eject, m_recycled, new_metals);
-    //mlog("After Feed: Gas %f, Star %f, StarIII+II %f, StarIII %f, StarII %f", MLOG_MESG, gal->ColdGas, m_stars, m_stars_III + m_stars_II, m_stars_III, m_stars_II);
   }
 }
 
