@@ -208,8 +208,11 @@ void merge_with_target(galaxy_t* gal, int* dead_gals, int snapshot)
   }
     
 
-  for (int ii = 0; ii < N_HISTORY_SNAPS; ii++)
+  for (int ii = 0; ii < N_HISTORY_SNAPS; ii++){
     parent->NewStars[ii] += gal->NewStars[ii];
+    parent->NewStars_II[ii] += gal->NewStars_II[ii];
+    parent->NewStars_III[ii] += gal->NewStars_III[ii];
+    }
 
   for (int ii = 0; ii < N_HISTORY_SNAPS; ii++)
     parent->NewMetals[ii] += gal->NewMetals[ii];
