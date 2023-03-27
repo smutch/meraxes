@@ -230,19 +230,24 @@ static inline double calc_sn_reheat_eff(galaxy_t* gal, int snapshot, int flag_po
   double zplus1 = 1. + run_globals.ZZ[snapshot];
   physics_params_t* params = &run_globals.params.physics;
   int SnModel = params->SnModel;
+  double SnReheatRedshiftDep;
+  double SnReheatEff;
+  double SnReheatScaling;
+  double SnReheatNorm;
+  double SnReheatLimit;
   if (flag_population == 2) {
-    double SnReheatRedshiftDep = params->SnReheatRedshiftDep;
-    double SnReheatEff = params->SnReheatEff;
-    double SnReheatScaling = params->SnReheatScaling;
-    double SnReheatNorm = params->SnReheatNorm;
-    double SnReheatLimit = params->SnReheatLimit;
+    SnReheatRedshiftDep = params->SnReheatRedshiftDep;
+    SnReheatEff = params->SnReheatEff;
+    SnReheatScaling = params->SnReheatScaling;
+    SnReheatNorm = params->SnReheatNorm;
+    SnReheatLimit = params->SnReheatLimit;
     }
   else if (flag_population == 3) {
-    double SnReheatRedshiftDep = params->SnReheatRedshiftDep_III;
-    double SnReheatEff = params->SnReheatEff_III;
-    double SnReheatScaling = params->SnReheatScaling_III;
-    double SnReheatNorm = params->SnReheatNorm_III;
-    double SnReheatLimit = params->SnReheatLimit_III;
+    SnReheatRedshiftDep = params->SnReheatRedshiftDep_III;
+    SnReheatEff = params->SnReheatEff_III;
+    SnReheatScaling = params->SnReheatScaling_III;
+    SnReheatNorm = params->SnReheatNorm_III;
+    SnReheatLimit = params->SnReheatLimit_III;
     }
   switch (SnModel) {
     case 1: // Guo et al. 2011 with redshift dependence
@@ -270,17 +275,21 @@ static inline double calc_sn_ejection_eff(galaxy_t* gal, int snapshot, int flag_
     double zplus1 = 1. + run_globals.ZZ[snapshot];
     physics_params_t *params = &run_globals.params.physics;
     int SnModel = params->SnModel;
+    double SnEjectionRedshiftDep;
+    double SnEjectionEff;
+    double SnEjectionScaling;
+    double SnEjectionNorm;
     if (flag_population == 2) {
-      double SnEjectionRedshiftDep = params->SnEjectionRedshiftDep;
-      double SnEjectionEff = params->SnEjectionEff;
-      double SnEjectionScaling = params->SnEjectionScaling;
-      double SnEjectionNorm = params->SnEjectionNorm;
+      SnEjectionRedshiftDep = params->SnEjectionRedshiftDep;
+      SnEjectionEff = params->SnEjectionEff;
+      SnEjectionScaling = params->SnEjectionScaling;
+      SnEjectionNorm = params->SnEjectionNorm;
       }
     else if (flag_population == 3) {
-      double SnEjectionRedshiftDep = params->SnEjectionRedshiftDep_III;
-      double SnEjectionEff = params->SnEjectionEff_III;
-      double SnEjectionScaling = params->SnEjectionScaling_III;
-      double SnEjectionNorm = params->SnEjectionNorm_III;
+      SnEjectionRedshiftDep = params->SnEjectionRedshiftDep_III;
+      SnEjectionEff = params->SnEjectionEff_III;
+      SnEjectionScaling = params->SnEjectionScaling_III;
+      SnEjectionNorm = params->SnEjectionNorm_III;
       }
     switch (SnModel) {
     case 1:    // Guo et al. 2011 with redshift dependence
