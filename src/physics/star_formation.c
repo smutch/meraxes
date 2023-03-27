@@ -66,10 +66,7 @@ void update_reservoirs_from_sf(galaxy_t* gal, double new_stars, int snapshot, SF
       // If this is a reidentified ghost, then back fill NewStars and
       // escape fraction dependent properties to reflect this new insitu
       // SF burst.
-      if (gal->Galaxy_Population == 2)
-        backfill_ghost_star_formation(gal, new_stars, sfr, metallicity, snapshot);
-      else if (gal->Galaxy_Population == 3)
-        backfill_ghost_star_formation(gal, new_stars, sfr, metallicity, snapshot);
+      backfill_ghost_star_formation(gal, new_stars, sfr, metallicity, snapshot);
       } else {
       // update the stellar mass history assuming the burst is happening in this snapshot
 #ifdef CALC_MAGS
