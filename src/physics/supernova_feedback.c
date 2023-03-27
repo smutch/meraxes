@@ -224,17 +224,26 @@ static inline double calc_ejected_mass(double* m_reheat, double sn_energy, doubl
   return m_eject;
 }
 
-static inline double calc_sn_reheat_eff(galaxy_t* gal, int snapshot)
+static inline double calc_sn_reheat_eff(galaxy_t* gal, int snapshot, int flag_population)
 {
   double Vmax = gal->Vmax; // Vmax is in a unit of km/s
   double zplus1 = 1. + run_globals.ZZ[snapshot];
   physics_params_t* params = &run_globals.params.physics;
   int SnModel = params->SnModel;
-  double SnReheatRedshiftDep = params->SnReheatRedshiftDep;
-  double SnReheatEff = params->SnReheatEff;
-  double SnReheatScaling = params->SnReheatScaling;
-  double SnReheatNorm = params->SnReheatNorm;
-  double SnReheatLimit = params->SnReheatLimit;
+  if (flag_population == 2) {
+    double SnReheatRedshiftDep = params->SnReheatRedshiftDep;
+    double SnReheatEff = params->SnReheatEff;
+    double SnReheatScaling = params->SnReheatScaling;
+    double SnReheatNorm = params->SnReheatNorm;
+    double SnReheatLimit = params->SnReheatLimit;
+    }
+  else if (flag_population == 3) {
+    double SnReheatRedshiftDep = params->SnReheatRedshiftDep_III;
+    double SnReheatEff = params->SnReheatEff_III;
+    double SnReheatScaling = params->SnReheatScaling_III;
+    double SnReheatNorm = params->SnReheatNorm_III;
+    double SnReheatLimit = params->SnReheatLimit_III;
+    }
   switch (SnModel) {
     case 1: // Guo et al. 2011 with redshift dependence
       SnReheatEff *= pow(zplus1 / 4., SnReheatRedshiftDep) * (.5 + pow(Vmax / SnReheatNorm, -SnReheatScaling));
@@ -255,20 +264,29 @@ static inline double calc_sn_reheat_eff(galaxy_t* gal, int snapshot)
     return SnReheatLimit;
 }
 
-static inline double calc_sn_ejection_eff(galaxy_t* gal, int snapshot)
+static inline double calc_sn_ejection_eff(galaxy_t* gal, int snapshot, int flag_population)
 {
-  double Vmax = gal->Vmax; // Vmax is in a unit of km/s
-  double zplus1 = 1. + run_globals.ZZ[snapshot];
-  physics_params_t* params = &run_globals.params.physics;
-  int SnModel = params->SnModel;
-  double SnEjectionRedshiftDep = params->SnEjectionRedshiftDep;
-  double SnEjectionEff = params->SnEjectionEff;
-  double SnEjectionScaling = params->SnEjectionScaling;
-  double SnEjectionNorm = params->SnEjectionNorm;
-  switch (SnModel) {
-    case 1: // Guo et al. 2011 with redshift dependence
-      SnEjectionEff *= pow(zplus1 / 4., SnEjectionRedshiftDep) * (.5 + pow(Vmax / SnEjectionNorm, -SnEjectionScaling));
-      break;
+    double Vmax = gal->Vmax;    // Vmax is in a unit of km/s
+    double zplus1 = 1. + run_globals.ZZ[snapshot];
+    physics_params_t *params = &run_globals.params.physics;
+    int SnModel = params->SnModel;
+    if (flag_population == 2) {
+      double SnEjectionRedshiftDep = params->SnEjectionRedshiftDep;
+      double SnEjectionEff = params->SnEjectionEff;
+      double SnEjectionScaling = params->SnEjectionScaling;
+      double SnEjectionNorm = params->SnEjectionNorm;
+      }
+    else if (flag_population == 3) {
+      double SnEjectionRedshiftDep = params->SnEjectionRedshiftDep_III;
+      double SnEjectionEff = params->SnEjectionEff_III;
+      double SnEjectionScaling = params->SnEjectionScaling_III;
+      double SnEjectionNorm = params->SnEjectionNorm_III;
+      }
+    switch (SnModel) {
+    case 1:    // Guo et al. 2011 with redshift dependence
+        SnEjectionEff *= pow(zplus1/4., SnEjectionRedshiftDep) \
+                         *(.5 + pow(Vmax/SnEjectionNorm, -SnEjectionScaling));
+        break;
     case 2:
       // Use the same value with that is used for the mass loading
       if (Vmax < SnEjectionNorm)
@@ -329,12 +347,12 @@ void delayed_supernova_feedback(galaxy_t* gal, int snapshot)
     }
   }
 
-  m_reheat = calc_sn_reheat_eff(gal, snapshot) * sn_energy / get_total_SN_energy();
-  sn_energy *= calc_sn_ejection_eff(gal, snapshot);
-  m_reheat_II = calc_sn_reheat_eff(gal, snapshot) * sn_energy_II / get_total_SN_energy();
-  sn_energy_II *= calc_sn_ejection_eff(gal, snapshot);
-  m_reheat_III = calc_sn_reheat_eff(gal, snapshot) * sn_energy_III / get_total_SN_energy();
-  sn_energy_III *= calc_sn_ejection_eff(gal, snapshot);
+  m_reheat = calc_sn_reheat_eff(gal, snapshot, 2) * sn_energy / get_total_SN_energy(); // ATM DOESN'T CHANGE BECAUSE 2 and 3 are the same! When you will actually use different params use the sum!
+  sn_energy *= calc_sn_ejection_eff(gal, snapshot, 2);
+  m_reheat_II = calc_sn_reheat_eff(gal, snapshot, 2) * sn_energy_II / get_total_SN_energy();
+  sn_energy_II *= calc_sn_ejection_eff(gal, snapshot, 2);
+  m_reheat_III = calc_sn_reheat_eff(gal, snapshot, 3) * sn_energy_III / get_total_SN_energy();
+  sn_energy_III *= calc_sn_ejection_eff(gal, snapshot, 3);
   // We can only reheat as much gas as we have available.  Let's inforce this
   // now, to ensure that the maximal amount of available energy is used to
   // eject gas from the system.
@@ -417,21 +435,21 @@ void contemporaneous_supernova_feedback(galaxy_t* gal,
       *new_metals = *m_stars * run_globals.params.physics.Yield;
       }
     else if (gal->Galaxy_Population == 3){
-    *m_recycled = *m_stars * run_globals.params.physics.SfRecycleFraction;
-    *new_metals = *m_stars * run_globals.params.physics.Yield;
+    *m_recycled = *m_stars * run_globals.params.physics.SfRecycleFraction_III;
+    *new_metals = *m_stars * run_globals.params.physics.Yield_III;
     }
   }
   
   if (gal->Galaxy_Population == 2){
   // calculate the SNII energy and total reheated mass
     sn_energy = *m_stars * get_SN_energy(0, metallicity);
-    *m_reheat = calc_sn_reheat_eff(gal, snapshot) * sn_energy / get_total_SN_energy();
-    sn_energy *= calc_sn_ejection_eff(gal, snapshot);
+    *m_reheat = calc_sn_reheat_eff(gal, snapshot, 2) * sn_energy / get_total_SN_energy();
+    sn_energy *= calc_sn_ejection_eff(gal, snapshot, 2);
     }
   else if (gal->Galaxy_Population == 3){
     sn_energy = *m_stars * get_SN_energy(0, metallicity);
-    *m_reheat = calc_sn_reheat_eff(gal, snapshot) * sn_energy / get_total_SN_energy();
-    sn_energy *= calc_sn_ejection_eff(gal, snapshot); 
+    *m_reheat = calc_sn_reheat_eff(gal, snapshot, 3) * sn_energy / get_total_SN_energy();
+    sn_energy *= calc_sn_ejection_eff(gal, snapshot, 3); 
     }
 
   // We can only reheat as much gas as we have available.  Let's inforce this
@@ -460,11 +478,9 @@ void contemporaneous_supernova_feedback(galaxy_t* gal,
   assert(*m_reheat >= 0);
   assert(*m_eject >= 0);
   
- // mlog("Star %f, StarIII+II %f, Eject %f, EjectIII+II %f, Recyled %f, RecyledIII+II %f, reheat %f, reheatIII+II %f", MLOG_MESG, *m_stars, (*m_stars_II + *m_stars_III), *m_eject, 
- //     (*m_eject_III + *m_eject_II), *m_recycled, (*m_recycled_III + *m_recycled_II), *m_reheat, (*m_reheat_III + *m_reheat_II));
 }
 
-void calc_metal_bubble(galaxy_t* gal, int snapshot) // Done! Result in internal units (Mpc/h)
+void calc_metal_bubble(galaxy_t* gal, int snapshot) // Done! Result in internal units (Mpc/h) (You need to update this function for Pop III/Pop II!
 {
   bool Flag_IRA = (bool)(run_globals.params.physics.Flag_IRA);
   double mm_stars = gal->NewStars[0]; //The last episode of SF
