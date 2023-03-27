@@ -222,8 +222,8 @@ void merge_with_target(galaxy_t* gal, int* dead_gals, int snapshot)
 #endif
 
   // merger driven starburst prescription
-  if (min_stellar_mass >= run_globals.params.physics.MinMergerStellarMass)
-    merger_driven_starburst(parent, merger_ratio, snapshot);
+  //if (min_stellar_mass >= run_globals.params.physics.MinMergerStellarMass) TEST NO MERGER!!!!!
+  //  merger_driven_starburst(parent, merger_ratio, snapshot);
 
   // TODO: Should this have a stellar mass / baryon limit placed on it?
   if (run_globals.params.physics.Flag_BHFeedback)
