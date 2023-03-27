@@ -62,29 +62,44 @@ extern "C"
     myexit(sigterm);                                                                                                   \
   } while (0)
 
-//! Physics parameter values
+//! Physics parameter values: duplicate these for Pop. III / Pop. II SF
 typedef struct physics_params_t
 {
   double SfEfficiency;
+  double SfEfficiency_III;
   double SfEfficiencyScaling;
+  double SfEfficiencyScaling_III;
   double SfCriticalSDNorm;
   double SfRecycleFraction;
+  double SfRecycleFraction_III;
   int SnModel;
   double SnReheatRedshiftDep;
+  double SnReheatRedshiftDep_III;
   double SnReheatEff;
+  double SnReheatEff_III;
   double SnReheatLimit;
+  double SnReheatLimit_III;
   double SnReheatScaling;
+  double SnReheatScaling_III;
   double SnReheatScaling2;
+  double SnReheatScaling2_III;
   double SnReheatNorm;
+  double SnReheatNorm_III;
   double SnEjectionRedshiftDep;
+  double SnEjectionRedshiftDep_III;
   double SnEjectionEff;
+  double SnEjectionEff_III;
   double SnEjectionScaling;
+  double SnEjectionScaling_III;
   double SnEjectionScaling2;
+  double SnEjectionScaling2_III;
   double SnEjectionNorm;
+  double SnEjectionNorm_III;
   double MaxCoolingMassFactor;
   int ReincorporationModel;
   double ReincorporationEff;
   double Yield;
+  double Yield_III;
   double RadioModeEff;
   double QuasarModeEff;
   double BlackHoleGrowthRate;
