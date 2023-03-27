@@ -34,7 +34,7 @@ static void backfill_ghost_star_formation(galaxy_t* gal, double m_stars, double 
   }
 }
 
-void update_reservoirs_from_sf(galaxy_t* gal, double new_stars, int snapshot, SFtype type) //If you want to save Sfr PopIII / PopII change this
+void update_reservoirs_from_sf(galaxy_t* gal, double new_stars, int snapshot, SFtype type) 
 {
   bool Flag_Metals = (bool)(run_globals.params.Flag_IncludeMetalEvo);
   if (new_stars > 0) {
@@ -58,7 +58,7 @@ void update_reservoirs_from_sf(galaxy_t* gal, double new_stars, int snapshot, SF
     if (Flag_Metals == true) {
       if (gal->Galaxy_Population == 2)
         gal->StellarMass_II += new_stars;
-      else
+      else if (gal->Galaxy_Population == 3)
         gal->StellarMass_III += new_stars;
     }
 
@@ -68,7 +68,7 @@ void update_reservoirs_from_sf(galaxy_t* gal, double new_stars, int snapshot, SF
       // SF burst.
       if (gal->Galaxy_Population == 2)
         backfill_ghost_star_formation(gal, new_stars, sfr, metallicity, snapshot);
-      else
+      else if (gal->Galaxy_Population == 3)
         backfill_ghost_star_formation(gal, new_stars, sfr, metallicity, snapshot);
       } else {
       // update the stellar mass history assuming the burst is happening in this snapshot
@@ -79,7 +79,7 @@ void update_reservoirs_from_sf(galaxy_t* gal, double new_stars, int snapshot, SF
       gal->NewStars[0] += new_stars;
       if (gal->Galaxy_Population == 2)
         gal->NewStars_II[0] += new_stars;
-      else
+      else if (gal->Galaxy_Population == 3)
         gal->NewStars_III[0] += new_stars;
       gal->NewMetals[0] += new_stars * metallicity;
 
@@ -101,14 +101,6 @@ void update_reservoirs_from_sf(galaxy_t* gal, double new_stars, int snapshot, SF
     if (gal->MetalsStellarMass < 0)
       gal->MetalsStellarMass = 0.0;
   }
-  //if (gal->StellarMass > 0)
-  //  mlog("After SF: Star %f, StarIII+II %f, StarIII %f, StarII %f", MLOG_MESG, gal->StellarMass, gal->StellarMass_III + gal->StellarMass_II, gal->StellarMass_III, gal->StellarMass_II);
-  
-  // The same halo cannot form Pop.III twice, so I read if it experienced previously a SF episode. YOU MOVED THIS CONDITION TO THE METAL BUBBLE!
-  /*if (Flag_Metals == true) {
-    if ((gal->NewStars[1] > 1e-10) && (gal->Galaxy_Population == 3))
-      gal->Galaxy_Population = 2;
-  }*/
 }
 
 void insitu_star_formation(galaxy_t* gal, int snapshot) 
