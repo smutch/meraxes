@@ -280,7 +280,7 @@ double pressure_dependent_star_formation(galaxy_t* gal, int snapshot)
 
   // SF timescale:
   if (gal->Galaxy_Population == 2)
-    sf_eff = 1.0 / 3.0e8 * SfEfficiency * zplus1_n;
+    sf_eff = 1.0 / 3.0e8 * SfEfficiency_II * zplus1_n;
   else if (gal->Galaxy_Population == 3)
     sf_eff = 1.0 / 3.0e8 * SfEfficiency_III * zplus1_n_III;
   double MSFRR = 0.0;
