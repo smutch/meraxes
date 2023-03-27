@@ -446,9 +446,19 @@ void read_parameter_file(char* fname, int mode)
       params_addr[n_param] = &(run_params->physics).SfEfficiency;
       required_tag[n_param] = 1;
       params_type[n_param++] = PARAM_TYPE_DOUBLE;
+      
+      strncpy(params_tag[n_param], "SfEfficiency_III", tag_length);
+      params_addr[n_param] = &(run_params->physics).SfEfficiency_III;
+      required_tag[n_param] = 1;
+      params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
       strncpy(params_tag[n_param], "SfEfficiencyScaling", tag_length);
       params_addr[n_param] = &(run_params->physics).SfEfficiencyScaling;
+      required_tag[n_param] = 1;
+      params_type[n_param++] = PARAM_TYPE_DOUBLE;
+      
+      strncpy(params_tag[n_param], "SfEfficiencyScaling_III", tag_length);
+      params_addr[n_param] = &(run_params->physics).SfEfficiencyScaling_III;
       required_tag[n_param] = 1;
       params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
@@ -461,6 +471,11 @@ void read_parameter_file(char* fname, int mode)
       params_addr[n_param] = &(run_params->physics).SfRecycleFraction;
       required_tag[n_param] = 1;
       params_type[n_param++] = PARAM_TYPE_DOUBLE;
+      
+      strncpy(params_tag[n_param], "SfRecycleFraction_III", tag_length);
+      params_addr[n_param] = &(run_params->physics).SfRecycleFraction_III;
+      required_tag[n_param] = 1;
+      params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
       strncpy(params_tag[n_param], "SnModel", tag_length);
       params_addr[n_param] = &(run_params->physics).SnModel;
@@ -471,9 +486,19 @@ void read_parameter_file(char* fname, int mode)
       params_addr[n_param] = &(run_params->physics).SnEjectionRedshiftDep;
       required_tag[n_param] = 1;
       params_type[n_param++] = PARAM_TYPE_DOUBLE;
+      
+      strncpy(params_tag[n_param], "SnEjectionRedshiftDep_III", tag_length);
+      params_addr[n_param] = &(run_params->physics).SnEjectionRedshiftDep_III;
+      required_tag[n_param] = 1;
+      params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
       strncpy(params_tag[n_param], "SnEjectionEff", tag_length);
       params_addr[n_param] = &(run_params->physics).SnEjectionEff;
+      required_tag[n_param] = 1;
+      params_type[n_param++] = PARAM_TYPE_DOUBLE;
+      
+      strncpy(params_tag[n_param], "SnEjectionEff_III", tag_length);
+      params_addr[n_param] = &(run_params->physics).SnEjectionEff_III;
       required_tag[n_param] = 1;
       params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
@@ -481,9 +506,19 @@ void read_parameter_file(char* fname, int mode)
       params_addr[n_param] = &(run_params->physics).SnEjectionScaling;
       required_tag[n_param] = 1;
       params_type[n_param++] = PARAM_TYPE_DOUBLE;
+      
+      strncpy(params_tag[n_param], "SnEjectionScaling_III", tag_length);
+      params_addr[n_param] = &(run_params->physics).SnEjectionScaling_III;
+      required_tag[n_param] = 1;
+      params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
       strncpy(params_tag[n_param], "SnEjectionScaling2", tag_length);
       params_addr[n_param] = &(run_params->physics).SnEjectionScaling2;
+      required_tag[n_param] = 1;
+      params_type[n_param++] = PARAM_TYPE_DOUBLE;
+      
+      strncpy(params_tag[n_param], "SnEjectionScaling2_III", tag_length);
+      params_addr[n_param] = &(run_params->physics).SnEjectionScaling2_III;
       required_tag[n_param] = 1;
       params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
@@ -491,9 +526,19 @@ void read_parameter_file(char* fname, int mode)
       params_addr[n_param] = &(run_params->physics).SnEjectionNorm;
       required_tag[n_param] = 1;
       params_type[n_param++] = PARAM_TYPE_DOUBLE;
+      
+      strncpy(params_tag[n_param], "SnEjectionNorm_III", tag_length);
+      params_addr[n_param] = &(run_params->physics).SnEjectionNorm_III;
+      required_tag[n_param] = 1;
+      params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
       strncpy(params_tag[n_param], "SnReheatRedshiftDep", tag_length);
       params_addr[n_param] = &(run_params->physics).SnReheatRedshiftDep;
+      required_tag[n_param] = 1;
+      params_type[n_param++] = PARAM_TYPE_DOUBLE;
+      
+      strncpy(params_tag[n_param], "SnReheatRedshiftDep_III", tag_length);
+      params_addr[n_param] = &(run_params->physics).SnReheatRedshiftDep_III;
       required_tag[n_param] = 1;
       params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
@@ -501,9 +546,19 @@ void read_parameter_file(char* fname, int mode)
       params_addr[n_param] = &(run_params->physics).SnReheatEff;
       required_tag[n_param] = 1;
       params_type[n_param++] = PARAM_TYPE_DOUBLE;
+      
+      strncpy(params_tag[n_param], "SnReheatEff_III", tag_length);
+      params_addr[n_param] = &(run_params->physics).SnReheatEff_III;
+      required_tag[n_param] = 1;
+      params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
       strncpy(params_tag[n_param], "SnReheatLimit", tag_length);
       params_addr[n_param] = &(run_params->physics).SnReheatLimit;
+      required_tag[n_param] = 1;
+      params_type[n_param++] = PARAM_TYPE_DOUBLE;
+      
+      strncpy(params_tag[n_param], "SnReheatLimit_III", tag_length);
+      params_addr[n_param] = &(run_params->physics).SnReheatLimit_III;
       required_tag[n_param] = 1;
       params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
@@ -511,14 +566,29 @@ void read_parameter_file(char* fname, int mode)
       params_addr[n_param] = &(run_params->physics).SnReheatScaling;
       required_tag[n_param] = 1;
       params_type[n_param++] = PARAM_TYPE_DOUBLE;
+      
+      strncpy(params_tag[n_param], "SnReheatScaling_III", tag_length);
+      params_addr[n_param] = &(run_params->physics).SnReheatScaling_III;
+      required_tag[n_param] = 1;
+      params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
       strncpy(params_tag[n_param], "SnReheatScaling2", tag_length);
       params_addr[n_param] = &(run_params->physics).SnReheatScaling2;
       required_tag[n_param] = 1;
       params_type[n_param++] = PARAM_TYPE_DOUBLE;
+      
+      strncpy(params_tag[n_param], "SnReheatScaling2_III", tag_length);
+      params_addr[n_param] = &(run_params->physics).SnReheatScaling2_III;
+      required_tag[n_param] = 1;
+      params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
       strncpy(params_tag[n_param], "SnReheatNorm", tag_length);
       params_addr[n_param] = &(run_params->physics).SnReheatNorm;
+      required_tag[n_param] = 1;
+      params_type[n_param++] = PARAM_TYPE_DOUBLE;
+      
+      strncpy(params_tag[n_param], "SnReheatNorm_III", tag_length);
+      params_addr[n_param] = &(run_params->physics).SnReheatNorm_III;
       required_tag[n_param] = 1;
       params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
@@ -539,6 +609,11 @@ void read_parameter_file(char* fname, int mode)
 
       strncpy(params_tag[n_param], "Yield", tag_length);
       params_addr[n_param] = &(run_params->physics).Yield;
+      required_tag[n_param] = 1;
+      params_type[n_param++] = PARAM_TYPE_DOUBLE;
+      
+      strncpy(params_tag[n_param], "Yield_III", tag_length);
+      params_addr[n_param] = &(run_params->physics).Yield_III;
       required_tag[n_param] = 1;
       params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
@@ -711,11 +786,6 @@ void read_parameter_file(char* fname, int mode)
       params_addr[n_param] = &(run_params->EndRedshiftLightcone);
       required_tag[n_param] = 1;
       params_type[n_param++] = PARAM_TYPE_DOUBLE;
-
-      //            strncpy(params_tag[n_param], "CurrentLCPos", tag_length);
-      //            params_addr[n_param] = &(run_params->CurrentLCPos);
-      //            required_tag[n_param] = 1;
-      //            params_type[n_param++] = PARAM_TYPE_LONGLONG;
 
       strncpy(params_tag[n_param], "Flag_SeparateQSOXrays", tag_length);
       params_addr[n_param] = &(run_params->Flag_SeparateQSOXrays);

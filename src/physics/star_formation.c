@@ -126,11 +126,14 @@ void insitu_star_formation(galaxy_t* gal, int snapshot)
 
     double zplus1;
     double zplus1_n;
+    double zplus1_n_III;
 
     zplus1 = 1.0 + run_globals.ZZ[snapshot];
     zplus1_n = pow(zplus1, run_globals.params.physics.SfEfficiencyScaling); //Later added separate parameters for Pop III and Pop II
+    zplus1_n_III = pow(zplus1, run_globals.params.physics.SfEfficiencyScaling_III);
 
-    double SfEfficiency = run_globals.params.physics.SfEfficiency; //Later added separate parameters for Pop III and Pop II
+    double SfEfficiency_II = run_globals.params.physics.SfEfficiency; //Later added separate parameters for Pop III and Pop II
+    double SfEfficiency_III = run_globals.params.physics.SfEfficiency_III;
     double SfCriticalSDNorm = run_globals.params.physics.SfCriticalSDNorm;
     int SfDiskVelOpt = run_globals.params.physics.SfDiskVelOpt;
     int SfPrescription = run_globals.params.physics.SfPrescription;
@@ -161,10 +164,10 @@ void insitu_star_formation(galaxy_t* gal, int snapshot)
         m_crit = SfCriticalSDNorm * v_disk * r_disk;
         if (gal->ColdGas > m_crit){
           if (gal->Galaxy_Population == 2){
-            m_stars = zplus1_n * SfEfficiency * (gal->ColdGas - m_crit) / r_disk * v_disk * gal->dt;
+            m_stars = zplus1_n * SfEfficiency_II * (gal->ColdGas - m_crit) / r_disk * v_disk * gal->dt;
             }
           else if (gal->Galaxy_Population == 3){
-            m_stars = zplus1_n * SfEfficiency * (gal->ColdGas - m_crit) / r_disk * v_disk * gal->dt;
+            m_stars = zplus1_n * SfEfficiency_III * (gal->ColdGas - m_crit) / r_disk * v_disk * gal->dt;
             }
           }
         else
@@ -266,14 +269,19 @@ double pressure_dependent_star_formation(galaxy_t* gal, int snapshot)
    * Based on the SF prescription of Blitz & Rosolowski (2006).
    */
 
-  double SfEfficiency = run_globals.params.physics.SfEfficiency;
+  double SfEfficiency_II = run_globals.params.physics.SfEfficiency;
+  double SfEfficiency_III = run_globals.params.physics.SfEfficiency_III;
   double Y_He = run_globals.params.physics.Y_He;
   double zplus1_n = pow(1.0 + run_globals.ZZ[snapshot], run_globals.params.physics.SfEfficiencyScaling);
+  double zplus1_n_III = pow(1.0 + run_globals.ZZ[snapshot], run_globals.params.physics.SfEfficiencyScaling_III);
   run_units_t* units = &(run_globals.units);
   double G_SI = GRAVITY * 1.e-3;
 
   // SF timescale:
-  double sf_eff = 1.0 / 3.0e8 * SfEfficiency * zplus1_n;
+  if (gal->Galaxy_Population == 2)
+    double sf_eff = 1.0 / 3.0e8 * SfEfficiency * zplus1_n;
+  else if (gal->Galaxy_Population == 3)
+    double sf_eff = 1.0 / 3.0e8 * SfEfficiency_III * zplus1_n_III;
   double MSFRR = 0.0;
 
   if (gal->DiskScaleLength > 0.0) {
