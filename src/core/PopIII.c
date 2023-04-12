@@ -70,7 +70,7 @@ float interp_mass(float lifetime) // CHECK THIS!!!
   
   massfinal_result = Mass_Values[n_low] + ((lifetime - Time_Values[n_low]) * (Mass_Values[n_high] - Mass_Values[n_low])) / (Time_Values[n_high] - Time_Values[n_low]);
 
-  return pow(10, final_result); //Return result in SolarMass
+  return pow(10, massfinal_result); //Return result in SolarMass
 }
 
 double integrand_IMFnorm(double StarMass) // You might want a case 2 for a different type of IMF (with Characteristic mass)
@@ -141,8 +141,8 @@ double getIMF(double StarMass)
         double a3 = 0;
         break;
     }
-  return pow(10, a0 + a1 * logStarMass + a2 * logStarMass * logStarMass + a3 * pow(logStarMass, 3)) / 1e6;*/   
-}
+  return pow(10, a0 + a1 * logStarMass + a2 * logStarMass * logStarMass + a3 * pow(logStarMass, 3)) / 1e6;   
+}*/
 
 double get_StellarAge(double StarMass) //Star Mass in log10(Msol) to get tstar in log10(yr). Use this so you can do a linear interpolation!!! 
 {
