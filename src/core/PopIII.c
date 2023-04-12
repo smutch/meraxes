@@ -38,23 +38,25 @@ void initialize_time_interp_arrays()
   MPI_Bcast(&Time_Values, sizeof(Time_Values), MPI_BYTE, 0, run_globals.mpi_comm);
 }
 
-double interp_mass(double lifetime) // CHECK THIS!!! Lifetime must be in log10(yr) units!!
+double interp_mass(double lifetime) // CHECK THIS!!! Lifetime must be in yr units!!
 {
 
   int n_low, n_high;
 
   double massfinal_result;
+  
+  double loglifetime = log10(lifetime);
 
   // Check if Mass is inside interpolation boundaries (That shouldn't happen, so maybe put an error message or a print
-  if (lifetime > 0.999 * Time_Values[MASS_BINS - 1]) {
+  if (loglifetime > 0.999 * Time_Values[MASS_BINS - 1]) {
     // If it is above the upper limit, we just assume that it is near the upper limit, which
     // has anyway reached the asymptotic limit
-    lifetime = (double)(Time_Values[MASS_BINS - 1] * 0.999);
-  } else if (lifetime < Time_Values[0]) {
+    loglifetime = (double)(Time_Values[MASS_BINS - 1] * 0.999);
+  } else if (loglifetime < Time_Values[0]) {
     return 0.0;
   }
   for (int i = 0; i < MASS_BINS; i++) { //find index. You could add a safety condition here
-   if ((lifetime > Time_Values[i]) && (lifetime < Time_Values[i+1])){
+   if ((loglifetime > Time_Values[i]) && (loglifetime < Time_Values[i+1])){
      n_low = i;
      break;
      }
@@ -64,7 +66,7 @@ double interp_mass(double lifetime) // CHECK THIS!!! Lifetime must be in log10(y
 
   // Linear interpolation (you can do that because input values are in log10 units! STOP HERE! You need to figure out this!
   
-  massfinal_result = Mass_Values[n_low] + ((lifetime - Time_Values[n_low]) * (Mass_Values[n_high] - Mass_Values[n_low])) / (Time_Values[n_high] - Time_Values[n_low]);
+  massfinal_result = Mass_Values[n_low] + ((loglifetime - Time_Values[n_low]) * (Mass_Values[n_high] - Mass_Values[n_low])) / (Time_Values[n_high] - Time_Values[n_low]);
 
   return pow(10, massfinal_result); //Return result in SolarMass
 }
@@ -238,9 +240,10 @@ double CCSN_PopIII_Fraction(int Snapshot, int last_snap) //Eq. 17 from Mutch et 
   
   mlog("DeltaT Snap = %f, DeltaTSF (Myr) = %f", MLOG_MESG, DeltaTimeSnap / 1e6, DeltaTime / 1e6);
   
+  
   if (Snapshot != last_snap) {
-    m_min = interp_mass(log10(DeltaTime + DeltaTimeSnap / 2));
-    m_max = interp_mass(log10(DeltaTime - DeltaTimeSnap / 2));
+    m_min = interp_mass(DeltaTime + DeltaTimeSnap / 2);
+    m_max = interp_mass(DeltaTime - DeltaTimeSnap / 2);
     }
     
   else {
