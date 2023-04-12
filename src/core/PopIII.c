@@ -30,7 +30,7 @@ void initialize_time_interp_arrays()
     for (i = 0; i < mass_bins; i++) {
       mass_val = log10(MminIMF + i); //Summing double + int! Is it a problem? (Maybe double check it later)
       Mass_Values[i] = mass_val; //&Mass_Values[i] ?
-      Time_Values[i] = get_StellarAge(mass_val) //&Time_Values[i] ?
+      Time_Values[i] = get_StellarAge(mass_val); //&Time_Values[i] ?
     }
   }
 
@@ -47,7 +47,7 @@ float interp_mass(float lifetime) // CHECK THIS!!!
   double log10MminIMF = log10(MminIMF);
   double MinLifetime = get_StellarAge(log10MminIMF); // Should be equivalent of using Time_Values[0]
 
-  float masslow_result, masshigh_result, massfinal_result;
+  float massfinal_result;
 
   // Check if Mass is inside interpolation boundaries (That shouldn't happen, so maybe put an error message or a print
   if (lifetime > 0.999 * Time_Values[MASS_BINS - 1]) {
@@ -57,7 +57,7 @@ float interp_mass(float lifetime) // CHECK THIS!!!
   } else if (lifetime < Time_Values[0]) {
     return 0.0;
   }
-  for (i = 0; i < MASS_BINS; i++) { //find index. You could add a safety condition here
+  for (int i = 0; i < MASS_BINS; i++) { //find index. You could add a safety condition here
    if ((lifetime > Time_Values[i]) && (lifetime < Time_Values[i+1])){
      n_low = i;
      break;
@@ -68,7 +68,7 @@ float interp_mass(float lifetime) // CHECK THIS!!!
 
   // Linear interpolation (you can do that because input values are in log10 units! STOP HERE! You need to figure out this!
   
-  final_result = Mass_Values[n_low] + ((lifetime - Time_Values[n_low]) * (Mass_Values[n_high] - Mass_Values[n_low])) / (Time_Values[n_high] - Time_Values[n_low]);
+  massfinal_result = Mass_Values[n_low] + ((lifetime - Time_Values[n_low]) * (Mass_Values[n_high] - Mass_Values[n_low])) / (Time_Values[n_high] - Time_Values[n_low]);
 
   return pow(10, final_result); //Return result in SolarMass
 }
@@ -147,25 +147,26 @@ double getIMF(double StarMass)
 double get_StellarAge(double StarMass) //Star Mass in log10(Msol) to get tstar in log10(yr). Use this so you can do a linear interpolation!!! 
 {
   int PopIIIAgePrescription = run_globals.params.physics.PopIIIAgePrescription; //Remember to put this as a parameter!
+  double a0, a1, a2, a3;
   switch (PopIIIAgePrescription) {
       case 1: //stellar lifetimes by Schaerer 2002 (popIII) model at met=0 with strong mass loss, mass range [80-1000] Msun
-        double a0 = 8.795;
-        double a1 = -1.797;
-        double a2 = 0.332;
-        double a3 = 0;
+        a0 = 8.795;
+        a1 = -1.797;
+        a2 = 0.332;
+        a3 = 0;
         break;
       case 2: //stellar lifetimes by Schaerer 2002 (popIII) model at met=0 with no mass loss, mass range [9-500] Msun
-        double a0 = 9.785;
-        double a1 = -3.759;
-        double a2 = 1.413;
-        double a3 = -0.186;
+        a0 = 9.785;
+        a1 = -3.759;
+        a2 = 1.413;
+        a3 = -0.186;
         break;
       default:
         mlog_error("Unrecognised value for PopIIIAgePrescription parameter! Defaulting to Strong Mass Loss case");
-        double a0 = 8.795;
-        double a1 = -1.797;
-        double a2 = 0.332;
-        double a3 = 0;
+        a0 = 8.795;
+        a1 = -1.797;
+        a2 = 0.332;
+        a3 = 0;
         break;
     }
   return a0 + a1 * StarMass + a2 * StarMass * StarMass + a3 * pow(StarMass, 3);   
