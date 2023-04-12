@@ -297,11 +297,12 @@ static inline double calc_sn_ejection_eff(galaxy_t* gal, int snapshot, int flag_
                          *(.5 + pow(Vmax/SnEjectionNorm, -SnEjectionScaling));
         break;
     case 2:
-      // Use the same value with that is used for the mass loading
-      if (Vmax < SnEjectionNorm)
-        SnEjectionScaling = params->SnEjectionScaling2;
-      SnEjectionEff *= pow(zplus1 / 4., SnEjectionRedshiftDep) * pow(Vmax / SnEjectionNorm, -SnEjectionScaling);
-      break;
+        // Use the same value with that is used for the mass loading
+        if (Vmax < SnEjectionNorm)
+            SnEjectionScaling = params->SnEjectionScaling2; // TAKE CARE OF THAT!! YOU PROBABLY NEED TO CHANGE!!!!!! 
+        SnEjectionEff *= pow(zplus1/4., SnEjectionRedshiftDep) \
+                         *pow(Vmax/SnEjectionNorm, -SnEjectionScaling);
+        break;
     default:
       mlog_error("Unknonw SnModel!");
       ABORT(EXIT_FAILURE);
