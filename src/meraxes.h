@@ -123,6 +123,13 @@ typedef struct physics_params_t
   double ReionTcool;
   double Y_He;
   
+  //Pop III IMF parameters
+  
+  double MminIMF;
+  double MmaxIMF;
+  double AlphaIMF;
+  int PopIIIAgePrescription;
+  
   // Parameters for metallicity evolution. These include the parameters for the fitting function of clustering and the critical metallicity
   
   double AlphaCluster;

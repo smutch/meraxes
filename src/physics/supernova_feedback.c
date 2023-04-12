@@ -299,7 +299,7 @@ static inline double calc_sn_ejection_eff(galaxy_t* gal, int snapshot, int flag_
     case 2:
         // Use the same value with that is used for the mass loading
         if (Vmax < SnEjectionNorm)
-            SnEjectionScaling = params->SnEjectionScaling2;
+            SnEjectionScaling = params->SnEjectionScaling2; // TAKE CARE OF THAT!! YOU PROBABLY NEED TO CHANGE!!!!!! 
         SnEjectionEff *= pow(zplus1/4., SnEjectionRedshiftDep) \
                          *pow(Vmax/SnEjectionNorm, -SnEjectionScaling);
         break;

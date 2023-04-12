@@ -11,6 +11,7 @@
 #include "read_halos.h"
 #include "reionization.h"
 #include "metal_evo.h"
+#include "PopIII.h"
 #include "save.h"
 #include "tree_flags.h"
 #include "virial_properties.h" //For the test
@@ -316,6 +317,18 @@ void dracarys()
       assign_probability_to_galaxies(ngals_in_metal_slabs, snapshot, 2);
       assign_probability_to_galaxies(ngals_in_metal_slabs, snapshot, 3); 
     }
+    
+    // Test Pop III SN tables!
+    
+    if (snapshot == 10) {
+      double CCSN_PopIII_Fraction(10);
+      double CCSN_PopIII_Fraction(9)
+      double CCSN_PopIII_Fraction(8)
+      double CCSN_PopIII_Fraction(7)
+      double CCSN_PopIII_Fraction(6)
+      double CCSN_PopIII_Fraction(5)
+      }
+      
 
     // Do the physics
     if (NGal > 0)
