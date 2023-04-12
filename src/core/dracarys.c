@@ -322,17 +322,17 @@ void dracarys()
     
     if (snapshot == 10) {
       int snap_prova = 10;
-      double CCSN_PopIII_Fraction(snap_prova);
+      CCSN_PopIII_Fraction(snap_prova);
       snap_prova = 9;
-      double CCSN_PopIII_Fraction(snap_prova);
+      CCSN_PopIII_Fraction(snap_prova);
       snap_prova = 8;
-      double CCSN_PopIII_Fraction(snap_prova);
+      CCSN_PopIII_Fraction(snap_prova);
       snap_prova = 7;
-      double CCSN_PopIII_Fraction(snap_prova);
+      CCSN_PopIII_Fraction(snap_prova);
       snap_prova = 6;
-      double CCSN_PopIII_Fraction(snap_prova);
+      CCSN_PopIII_Fraction(snap_prova);
       snap_prova = 5;
-      double CCSN_PopIII_Fraction(snap_prova);
+      CCSN_PopIII_Fraction(snap_prova);
       }
       
 
