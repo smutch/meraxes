@@ -42,8 +42,6 @@ double interp_mass(double lifetime) // CHECK THIS!!! Lifetime must be in log10(y
 {
 
   int n_low, n_high;
-  double MminIMF = run_globals.params.physics.MminIMF;
-  double log10MminIMF = log10(MminIMF);
 
   double massfinal_result;
 
