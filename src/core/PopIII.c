@@ -220,7 +220,7 @@ double Number_PISN(void)
   return result;  
 }
 
-double CCSN_PopIII_Fraction(int snapshot) //Eq. 17 from Mutch et al. 2016 YOU ARE HERE! NEED TO WRITE THIS FUNCTION!!!
+double CCSN_PopIII_Fraction(int Snapshot) //Eq. 17 from Mutch et al. 2016 YOU ARE HERE! NEED TO WRITE THIS FUNCTION!!!
 {
 
   int last_snap = run_globals.ListOutputSnaps[run_globals.NOutputSnaps - 1];
@@ -240,7 +240,7 @@ double CCSN_PopIII_Fraction(int snapshot) //Eq. 17 from Mutch et al. 2016 YOU AR
   double TotalCCSN;
   
   double DeltaTime = (LTTime[last_snap] - LTTime[snapshot]) * time_unit;
-  double DeltaTimeSnap = (LTTime[snapshot] - LTTime[snapshot - 1]) * time_unit; //Should be correct, might need to double check that!
+  double DeltaTimeSnap = (LTTime[Snapshot] - LTTime[Snapshot - 1]) * time_unit; //Should be correct, might need to double check that!
   
   mlog("DeltaT Snap, DeltaTSF (Myr) = %f", MLOG_MESG, DeltaTimeSnap / 1e6, DeltaTime / 1e6);
 
