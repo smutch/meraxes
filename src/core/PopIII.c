@@ -3,6 +3,14 @@
 #include "stellar_feedback.h"
 #include "PopIII.h"
 
+#include <gsl/gsl_errno.h>
+#include <gsl/gsl_integration.h>
+#include <gsl/gsl_interp.h>
+#include <gsl/gsl_randist.h>
+#include <gsl/gsl_rng.h>
+#include <gsl/gsl_roots.h>
+#include <gsl/gsl_spline.h>
+
 static float Mass_Values[MASS_BINS];
 static float Time_Values[MASS_BINS];
 
