@@ -38,7 +38,7 @@ void initialize_time_interp_arrays()
   MPI_Bcast(&Time_Values, sizeof(Time_Values), MPI_BYTE, 0, run_globals.mpi_comm);
 }
 
-double interp_mass(double lifetime) // CHECK THIS!!! 
+double interp_mass(double lifetime) // CHECK THIS!!! Lifetime must be in log10(yr) units!!
 {
 
   int n_low, n_high;
@@ -241,8 +241,8 @@ double CCSN_PopIII_Fraction(int Snapshot, int last_snap) //Eq. 17 from Mutch et 
   mlog("DeltaT Snap = %f, DeltaTSF (Myr) = %f", MLOG_MESG, DeltaTimeSnap / 1e6, DeltaTime / 1e6);
   
   if (Snapshot != last_snap) {
-    m_min = interp_mass(DeltaTime + DeltaTimeSnap / 2);
-    m_max = interp_mass(DeltaTime - DeltaTimeSnap / 2);
+    m_min = interp_mass(log10(DeltaTime + DeltaTimeSnap / 2));
+    m_max = interp_mass(log10(DeltaTime - DeltaTimeSnap / 2));
     }
     
   else {
