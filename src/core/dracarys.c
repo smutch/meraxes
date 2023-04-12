@@ -321,12 +321,18 @@ void dracarys()
     // Test Pop III SN tables!
     
     if (snapshot == 10) {
-      double CCSN_PopIII_Fraction(10);
-      double CCSN_PopIII_Fraction(9)
-      double CCSN_PopIII_Fraction(8)
-      double CCSN_PopIII_Fraction(7)
-      double CCSN_PopIII_Fraction(6)
-      double CCSN_PopIII_Fraction(5)
+      int snap_prova = 10;
+      double CCSN_PopIII_Fraction(snap_prova);
+      snap_prova = 9;
+      double CCSN_PopIII_Fraction(snap_prova);
+      snap_prova = 8;
+      double CCSN_PopIII_Fraction(snap_prova);
+      snap_prova = 7;
+      double CCSN_PopIII_Fraction(snap_prova);
+      snap_prova = 6;
+      double CCSN_PopIII_Fraction(snap_prova);
+      snap_prova = 5;
+      double CCSN_PopIII_Fraction(snap_prova);
       }
       
 
