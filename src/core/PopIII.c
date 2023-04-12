@@ -29,6 +29,7 @@ void initialize_time_interp_arrays()
       mass_val = log10(MminIMF + i); //Summing double + int! Is it a problem? (Maybe double check it later)
       Mass_Values[i] = mass_val; //&Mass_Values[i] ?
       Time_Values[i] = get_StellarAge(mass_val); //&Time_Values[i] ?
+      mlog("Init Mass_Val = %f, Time_Val = %f", MLOG_MESG, Mass_Values[i], Time_Values[i]);
     }
   }
 
@@ -220,7 +221,7 @@ double Number_PISN(void)
 double CCSN_PopIII_Fraction(int Snapshot, int last_snap) //Eq. 17 from Mutch et al. 2016 YOU ARE HERE! NEED TO WRITE THIS FUNCTION!!!
 {
 
-  mlog("curr_snap = %d", MLOG_MESG, last_snap);
+  mlog("curr_snap = %d, snap_SF = %d", MLOG_MESG, last_snap, Snapshot);
   
   if (last_snap <= 1) {
     mlog_error("Choose larger output snapshots");
@@ -278,7 +279,7 @@ double CCSN_PopIII_Fraction(int Snapshot, int last_snap) //Eq. 17 from Mutch et 
   
   TotalCCSN = Number_SNII();
   
-  mlog("TotCCSN, Frac = %f", MLOG_MESG, TotalCCSN, result / TotalCCSN);
+  mlog("TotCCSN = %f, Frac = %f", MLOG_MESG, TotalCCSN, result / TotalCCSN);
 
   return result / TotalCCSN;  
 } 
