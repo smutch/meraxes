@@ -17,7 +17,7 @@ extern "C"
 #endif
   
   void initialize_time_interp_arrays();
-  double CCSN_PopIII_Fraction(int snapshot); 
+  double CCSN_PopIII_Fraction(int Snapshot, int last_snap); 
   float interp_mass(float lifetime);
   double IMFnorm(double MminIMF, double MmaxIMF);
   double get_StellarAge(double StarMass);
