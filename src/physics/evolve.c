@@ -2,6 +2,7 @@
 #include "blackhole_feedback.h"
 #include "cooling.h"
 #include "core/stellar_feedback.h"
+#include "core/PopIII.h"
 #include "core/virial_properties.h"
 #include "infall.h"
 #include "meraxes.h"

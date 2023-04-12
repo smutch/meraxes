@@ -11,6 +11,7 @@
 #include "metal_evo.h"
 #include "misc_tools.h"
 #include "parse_paramfile.h"
+#include "PopIII.h"
 #include "read_halos.h"
 #include "recombinations.h"
 #include "reionization.h"
@@ -261,6 +262,9 @@ void init_meraxes()
 
   // read in the stellar feedback tables
   read_stellar_feedback_tables();
+  
+  // initialize Pop III tables
+  initialize_time_interp_arrays();
 
 #ifdef CALC_MAGS
   init_magnitudes();
