@@ -220,12 +220,10 @@ double Number_PISN(void)
   return result;  
 }
 
-double CCSN_PopIII_Fraction(int Snapshot) //Eq. 17 from Mutch et al. 2016 YOU ARE HERE! NEED TO WRITE THIS FUNCTION!!!
+double CCSN_PopIII_Fraction(int Snapshot, int last_snap) //Eq. 17 from Mutch et al. 2016 YOU ARE HERE! NEED TO WRITE THIS FUNCTION!!!
 {
 
-  int last_snap = run_globals.ListOutputSnaps[run_globals.NOutputSnaps - 1];
-  
-  mlog("last_snap = %d", MLOG_MESG, last_snap);
+  mlog("curr_snap = %d", MLOG_MESG, last_snap);
   
   if (last_snap <= 1) {
     mlog_error("Choose larger output snapshots");
