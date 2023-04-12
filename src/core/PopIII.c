@@ -234,16 +234,27 @@ double CCSN_PopIII_Fraction(int Snapshot, int last_snap) //Eq. 17 from Mutch et 
   
   double TotalCCSN;
   
-  //double DeltaTime = (LTTime[last_snap] - LTTime[Snapshot]) * time_unit;
-  //double DeltaTimeSnap = (LTTime[Snapshot] - LTTime[Snapshot - 1]) * time_unit; //Should be correct, might need to double check that!
   double DeltaTime = (LTTime[Snapshot] - LTTime[last_snap]) * time_unit;
   double DeltaTimeSnap = (LTTime[Snapshot - 1] - LTTime[Snapshot]) * time_unit; //Should be correct, might need to double check that!
   
   mlog("DeltaT Snap = %f, DeltaTSF (Myr) = %f", MLOG_MESG, DeltaTimeSnap / 1e6, DeltaTime / 1e6);
-
-  m_min = interp_mass(DeltaTime + DeltaTimeSnap / 2);
-  m_max = interp_mass(DeltaTime - DeltaTimeSnap / 2);
   
+  if (Snapshot != last_snap) {
+    m_min = interp_mass(DeltaTime + DeltaTimeSnap / 2);
+    m_max = interp_mass(DeltaTime - DeltaTimeSnap / 2);
+    }
+    
+  else {
+    m_min = interp_mass(DeltaTime + DeltaTimeSnap / 2);
+    m_max = MmaxSnII;
+    }
+    
+  if (m_min < MminSnII) 
+   m_min = MminSnII;
+  
+  if (m_max > MmaxSnII) 
+    m_max = MmaxSnII;
+   
   mlog("m_min = %f, m_max = %f", MLOG_MESG, m_min, m_max);
   
   double result, err;
