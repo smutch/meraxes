@@ -239,7 +239,7 @@ double CCSN_PopIII_Fraction(int Snapshot) //Eq. 17 from Mutch et al. 2016 YOU AR
   
   double TotalCCSN;
   
-  double DeltaTime = (LTTime[last_snap] - LTTime[snapshot]) * time_unit;
+  double DeltaTime = (LTTime[last_snap] - LTTime[Snapshot]) * time_unit;
   double DeltaTimeSnap = (LTTime[Snapshot] - LTTime[Snapshot - 1]) * time_unit; //Should be correct, might need to double check that!
   
   mlog("DeltaT Snap, DeltaTSF (Myr) = %f", MLOG_MESG, DeltaTimeSnap / 1e6, DeltaTime / 1e6);
