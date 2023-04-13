@@ -62,8 +62,8 @@ double interp_mass(double lifetime) // CHECK THIS!!! Lifetime must be in yr unit
     mlog("lifetime_strange = %f, first_value = %f", MLOG_MESG, log10lifetime, Time_Values[0]);
     return 0.0;
   }
-  for (int i = 0; i < MASS_BINS; i++) { //find index. You could add a safety condition here
-    if ((log10lifetime > Time_Values[i]) && (log10lifetime < Time_Values[i+1])){
+  for (int i = 0; i < mass_bins; i++) { //find index. You could add a safety condition here
+    if ((log10lifetime <= Time_Values[i]) && (log10lifetime >= Time_Values[i+1])){
       n_low = i;
       break;
       }
