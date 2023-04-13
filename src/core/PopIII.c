@@ -48,16 +48,16 @@ double interp_mass(double lifetime) // CHECK THIS!!! Lifetime must be in yr unit
   int mass_bins = MmaxIMF - MminIMF;
   int n_low, n_high;
 
-  double massfinal_result, log10lifetime;
+  double massfinal_result;
   
-  log10lifetime = log10(lifetime);
+  double log10lifetime = log10(lifetime);
  
   // Check if Mass is inside interpolation boundaries (That shouldn't happen, so maybe put an error message or a print
-  if (log10lifetime < 0.999 * Time_Values[mass_bins - 1]) {
+  if (log10lifetime < Time_Values[mass_bins - 1]) {
     // If it is above the upper limit, we just assume that it is near the upper limit, which
     // has anyway reached the asymptotic limit
     mlog("lifetime_strange = %f, last_value = %f", MLOG_MESG, log10lifetime, Time_Values[mass_bins - 1]);
-    log10lifetime = (Time_Values[mass_bins - 1] * 0.999);
+    log10lifetime = (Time_Values[mass_bins - 1]);
   } else if (log10lifetime > Time_Values[0]) {
     mlog("lifetime_strange = %f, first_value = %f", MLOG_MESG, log10lifetime, Time_Values[0]);
     return 0.0;
@@ -68,7 +68,7 @@ double interp_mass(double lifetime) // CHECK THIS!!! Lifetime must be in yr unit
       break;
       }
     }
-  mlog("index = %d, lifetime_inp = %f, loglifetime_inp = %f, lifetime_low = %f, Mass_low = %f", MLOG_MESG, n_low, lifetime, log10lifetime, Time_Values[n_low], Mass_Values[n_low]);
+  mlog("index = %d, lifetime_inp = %f, loglifetime_inp = %f, lifetime_low = %f, lifetime_high = %f", MLOG_MESG, n_low, lifetime, log10lifetime, Time_Values[n_low], Time_Values[n_high]);
   
   n_high = n_low + 1;
 
@@ -247,8 +247,6 @@ double CCSN_PopIII_Fraction(int Snapshot, int last_snap) //Eq. 17 from Mutch et 
   double DeltaTime = (LTTime[Snapshot] - LTTime[last_snap]) * time_unit;
   double DeltaTimeSnap = (LTTime[Snapshot - 1] - LTTime[Snapshot]) * time_unit; //Should be correct, might need to double check that!
   
-  mlog("DeltaT Snap = %f, DeltaTSF (Myr) = %f", MLOG_MESG, DeltaTimeSnap / 1e6, DeltaTime / 1e6);
-  
   if (Snapshot != last_snap) {
     m_min = interp_mass(DeltaTime + DeltaTimeSnap / 2);
     m_max = interp_mass(DeltaTime - DeltaTimeSnap / 2);
@@ -259,36 +257,42 @@ double CCSN_PopIII_Fraction(int Snapshot, int last_snap) //Eq. 17 from Mutch et 
     m_max = MmaxSnII;
     }
     
-  if (m_min < MminSnII) 
-    m_min = MminSnII;
+  if (m_min > MmaxSnII) { //There are no CCSN in this snapshot!
+    mlog("m_min = %f, there are no CCSN in this snapshot", MLOG_MESG, m_min);
+    return 0.0;
+  }
+  else { 
+    if (m_max > MmaxSnII) // Firstly, you are only interested in stars in the CCSN mass range
+      m_max = MmaxSnII;
+      
+    if (m_min < MminSnII) 
+      m_min = MminSnII;
+      
+    mlog("m_min = %f, m_max = %f", MLOG_MESG, m_min, m_max);
   
-  if (m_max > MmaxSnII) 
-    m_max = MmaxSnII;
-   
-  mlog("m_min = %f, m_max = %f", MLOG_MESG, m_min, m_max);
+    double result, err;
+    double rel_tol = 0.01; //<- relative tolerance
+    gsl_function F;
+    gsl_integration_workspace* w = gsl_integration_workspace_alloc(1000);
   
-  double result, err;
-  double rel_tol = 0.01; //<- relative tolerance
-  gsl_function F;
-  gsl_integration_workspace* w = gsl_integration_workspace_alloc(1000);
+    F.function = &getIMF;
   
-  F.function = &getIMF;
+    gsl_integration_qag(&F,
+                        m_min,
+                        m_max,
+                        0,
+                        rel_tol,
+                        1000,
+                        GSL_INTEG_GAUSS61,
+                        w,
+                        &result,
+                        &err);
+    gsl_integration_workspace_free(w);
   
-  gsl_integration_qag(&F,
-                      m_min,
-                      m_max,
-                      0,
-                      rel_tol,
-                      1000,
-                      GSL_INTEG_GAUSS61,
-                      w,
-                      &result,
-                      &err);
-  gsl_integration_workspace_free(w);
+    TotalCCSN = Number_SNII();
   
-  TotalCCSN = Number_SNII();
-  
-  mlog("TotCCSN = %f, Frac = %f", MLOG_MESG, TotalCCSN, result / TotalCCSN);
+    mlog("TotCCSN = %f, Frac = %f", MLOG_MESG, TotalCCSN, result / TotalCCSN);
 
-  return result / TotalCCSN;  
+    return result / TotalCCSN;
+  }  
 } 

@@ -333,6 +333,12 @@ void dracarys()
       CCSN_PopIII_Fraction(snap_prova, snapshot);
       snap_prova = 5;
       CCSN_PopIII_Fraction(snap_prova, snapshot);
+      snap_prova = 4;
+      CCSN_PopIII_Fraction(snap_prova, snapshot);
+      snap_prova = 3;
+      CCSN_PopIII_Fraction(snap_prova, snapshot);
+      snap_prova = 2;
+      CCSN_PopIII_Fraction(snap_prova, snapshot);
       }
       
 
