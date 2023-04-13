@@ -3,6 +3,9 @@
 #include "stellar_feedback.h"
 #include "PopIII.h"
 
+#include <assert.h>
+#include <math.h>
+
 #include <gsl/gsl_errno.h>
 #include <gsl/gsl_integration.h>
 #include <gsl/gsl_interp.h>
@@ -43,7 +46,6 @@ double interp_mass(double lifetime) // CHECK THIS!!! Lifetime must be in yr unit
   int n_low, n_high;
 
   double massfinal_result;
-  
   double loglifetime = log10(lifetime);
 
   // Check if Mass is inside interpolation boundaries (That shouldn't happen, so maybe put an error message or a print
