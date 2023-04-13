@@ -19,7 +19,7 @@ static float Time_Values[MASS_BINS];
 
 void initialize_time_interp_arrays()
 {
-  double MminIMF = run_globals.params.physics.MminIMF; //remember to put these new parameters for IMF!
+  double MminIMF = run_globals.params.physics.MminIMF; 
   double MmaxIMF = run_globals.params.physics.MmaxIMF;
 
   int mass_bins = MmaxIMF - MminIMF;
@@ -42,7 +42,10 @@ void initialize_time_interp_arrays()
 
 double interp_mass(double lifetime) // CHECK THIS!!! Lifetime must be in yr units!!
 {
+  double MminIMF = run_globals.params.physics.MminIMF; 
+  double MmaxIMF = run_globals.params.physics.MmaxIMF;
 
+  int mass_bins = MmaxIMF - MminIMF;
   int n_low, n_high;
 
   double massfinal_result, log10lifetime;
@@ -52,11 +55,13 @@ double interp_mass(double lifetime) // CHECK THIS!!! Lifetime must be in yr unit
   mlog("loglifetime_test2 = %f", MLOG_MESG, log10lifetime);
 
   // Check if Mass is inside interpolation boundaries (That shouldn't happen, so maybe put an error message or a print
-  if (log10lifetime > 0.999 * Time_Values[MASS_BINS - 1]) {
+  if (log10lifetime > 0.999 * Time_Values[mass_bins - 1]) {
     // If it is above the upper limit, we just assume that it is near the upper limit, which
     // has anyway reached the asymptotic limit
-    log10lifetime = (Time_Values[MASS_BINS - 1] * 0.999);
+    mlog("lifetime_strange = %f, last_value = %f", MLOG_MESG, log10lifetime, Time_Values[mass_bins - 1]);
+    log10lifetime = (Time_Values[mass_bins - 1] * 0.999);
   } else if (log10lifetime < Time_Values[0]) {
+    mlog("lifetime_strange = %f, first_value = %f", MLOG_MESG, log10lifetime, Time_Values[0]);
     return 0.0;
   }
   for (int i = 0; i < MASS_BINS; i++) { //find index. You could add a safety condition here
