@@ -60,7 +60,7 @@ double interp_mass(double lifetime) // CHECK THIS!!! Lifetime must be in yr unit
       break;
       }
     }
-  mlog("index = %d, lifetime_input = %f, lifetime_low = %f, Mass_low = %f", MLOG_MESG, n_low, loglifetime, Time_Values[n_low], Mass_values[n_low]);
+  mlog("index = %d, lifetime_input = %f, lifetime_low = %f, Mass_low = %f", MLOG_MESG, n_low, loglifetime, Time_Values[n_low], Mass_Values[n_low]);
   
   n_high = n_low + 1;
 
