@@ -46,6 +46,8 @@ double interp_mass(double lifetime) // CHECK THIS!!! Lifetime must be in yr unit
   int n_low, n_high;
 
   double massfinal_result;
+  
+  mlog("loglifetime_test = %f", MLOG_MESG, log10(lifetime));
   double loglifetime = log10l(lifetime);
 
   // Check if Mass is inside interpolation boundaries (That shouldn't happen, so maybe put an error message or a print
