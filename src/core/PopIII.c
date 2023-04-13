@@ -71,7 +71,7 @@ double interp_mass(double lifetime) // CHECK THIS!!! Lifetime must be in yr unit
 
   // Linear interpolation (you can do that because input values are in log10 units! STOP HERE! You need to figure out this!
   
-  massfinal_result = Mass_Values[n_low] + ((loglifetime - Time_Values[n_low]) * (Mass_Values[n_high] - Mass_Values[n_low])) / (Time_Values[n_high] - Time_Values[n_low]);
+  massfinal_result = Mass_Values[n_low] + ((log10lifetime - Time_Values[n_low]) * (Mass_Values[n_high] - Mass_Values[n_low])) / (Time_Values[n_high] - Time_Values[n_low]);
 
   return pow(10, massfinal_result); //Return result in SolarMass
 }
