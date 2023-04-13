@@ -29,7 +29,6 @@ void initialize_time_interp_arrays()
       mass_val = log10(MminIMF + i); //Summing double + int! Is it a problem? (Maybe double check it later)
       Mass_Values[i] = mass_val; //&Mass_Values[i] ?
       Time_Values[i] = get_StellarAge(mass_val); //&Time_Values[i] ?
-      mlog("Init Mass_Val = %f, Time_Val = %f", MLOG_MESG, Mass_Values[i], Time_Values[i]);
     }
   }
 
@@ -56,11 +55,13 @@ double interp_mass(double lifetime) // CHECK THIS!!! Lifetime must be in yr unit
     return 0.0;
   }
   for (int i = 0; i < MASS_BINS; i++) { //find index. You could add a safety condition here
-   if ((loglifetime > Time_Values[i]) && (loglifetime < Time_Values[i+1])){
-     n_low = i;
-     break;
-     }
-   }
+    if ((loglifetime > Time_Values[i]) && (loglifetime < Time_Values[i+1])){
+      n_low = i;
+      break;
+      }
+    }
+  mlog("index = %d, lifetime_input = %f, lifetime_low = %f, Mass_low = %f", MLOG_MESG, n_low, loglifetime, Time_Values[n_low], Mass_values[n_low]);
+  
   n_high = n_low + 1;
 
 
