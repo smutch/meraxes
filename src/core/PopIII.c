@@ -49,12 +49,13 @@ double interp_mass(double lifetime) // CHECK THIS!!! Lifetime must be in yr unit
   
   mlog("loglifetime_test = %f", MLOG_MESG, log10(lifetime));
   log10lifetime = log10(lifetime);
+  mlog("loglifetime_test2 = %f", MLOG_MESG, log10lifetime);
 
   // Check if Mass is inside interpolation boundaries (That shouldn't happen, so maybe put an error message or a print
   if (log10lifetime > 0.999 * Time_Values[MASS_BINS - 1]) {
     // If it is above the upper limit, we just assume that it is near the upper limit, which
     // has anyway reached the asymptotic limit
-    log10lifetime = (double)(Time_Values[MASS_BINS - 1] * 0.999);
+    log10lifetime = (Time_Values[MASS_BINS - 1] * 0.999);
   } else if (log10lifetime < Time_Values[0]) {
     return 0.0;
   }
