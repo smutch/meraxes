@@ -58,24 +58,28 @@ double interp_mass(double lifetime) // CHECK THIS!!! Lifetime must be in yr unit
     // has anyway reached the asymptotic limit
     mlog("lifetime_strange = %f, last_value = %f", MLOG_MESG, log10lifetime, Time_Values[mass_bins - 1]);
     log10lifetime = (Time_Values[mass_bins - 1]);
-  } else if (log10lifetime > Time_Values[0]) {
+    massfinal_result = (Mass_Values[mass_bins - 1]);
+    } 
+  else if (log10lifetime > Time_Values[0]) {
     mlog("lifetime_strange = %f, first_value = %f", MLOG_MESG, log10lifetime, Time_Values[0]);
-    return 0.0;
-  }
-  for (int i = 0; i < mass_bins; i++) { //find index. You could add a safety condition here
-    if ((log10lifetime <= Time_Values[i]) && (log10lifetime >= Time_Values[i+1])){
-      n_low = i;
-      break;
-      }
+    log10lifetime = (Time_Values[0]);
+    massfinal_result = (Mass_Values[0]);
     }
-  mlog("index = %d, lifetime_inp = %f, loglifetime_inp = %f, lifetime_low = %f, lifetime_high = %f", MLOG_MESG, n_low, lifetime, log10lifetime, Time_Values[n_low], Time_Values[n_high]);
-  
-  n_high = n_low + 1;
+  else {
+    for (int i = 0; i < mass_bins; i++) { //find index. You could add a safety condition here
+      if ((log10lifetime <= Time_Values[i]) && (log10lifetime >= Time_Values[i+1])){
+        n_low = i;
+        break;
+        }
+      }
+    
+    n_high = n_low + 1;
+    mlog("index = %d, lifetime_inp = %f, loglifetime_inp = %f, lifetime_low = %f, lifetime_high = %f", MLOG_MESG, n_low, lifetime, log10lifetime, Time_Values[n_low], Time_Values[n_high]);
 
-
-  // Linear interpolation (you can do that because input values are in log10 units! STOP HERE! You need to figure out this!
+    // Linear interpolation (you can do that because input values are in log10 units! STOP HERE! You need to figure out this!
   
-  massfinal_result = Mass_Values[n_low] + ((log10lifetime - Time_Values[n_low]) * (Mass_Values[n_high] - Mass_Values[n_low])) / (Time_Values[n_high] - Time_Values[n_low]);
+    massfinal_result = Mass_Values[n_low] + ((log10lifetime - Time_Values[n_low]) * (Mass_Values[n_high] - Mass_Values[n_low])) / (Time_Values[n_high] - Time_Values[n_low]);
+    }
 
   return pow(10, massfinal_result); //Return result in SolarMass
 }
