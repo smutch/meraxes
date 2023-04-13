@@ -252,7 +252,7 @@ double CCSN_PopIII_Fraction(int Snapshot, int last_snap) //Eq. 17 from Mutch et 
     }
     
   if (m_min < MminSnII) 
-   m_min = MminSnII;
+    m_min = MminSnII;
   
   if (m_max > MmaxSnII) 
     m_max = MmaxSnII;
