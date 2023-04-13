@@ -60,7 +60,7 @@ double interp_mass(double lifetime) // CHECK THIS!!! Lifetime must be in yr unit
       break;
       }
     }
-  mlog("index = %d, lifetime_input = %f, lifetime_low = %f, Mass_low = %f", MLOG_MESG, n_low, loglifetime, Time_Values[n_low], Mass_Values[n_low]);
+  mlog("index = %d, lifetime_inp = %f, loglifetime_inp = %f, lifetime_low = %f, Mass_low = %f", MLOG_MESG, n_low, lifetime, loglifetime, Time_Values[n_low], Mass_Values[n_low]);
   
   n_high = n_low + 1;
 
@@ -240,7 +240,6 @@ double CCSN_PopIII_Fraction(int Snapshot, int last_snap) //Eq. 17 from Mutch et 
   double DeltaTimeSnap = (LTTime[Snapshot - 1] - LTTime[Snapshot]) * time_unit; //Should be correct, might need to double check that!
   
   mlog("DeltaT Snap = %f, DeltaTSF (Myr) = %f", MLOG_MESG, DeltaTimeSnap / 1e6, DeltaTime / 1e6);
-  
   
   if (Snapshot != last_snap) {
     m_min = interp_mass(DeltaTime + DeltaTimeSnap / 2);
