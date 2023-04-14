@@ -322,10 +322,10 @@ void dracarys()
     // Test Pop III SN tables!
     
     if (snapshot == 1) {
-      //double prova = get_SN_energy_PopIII(0, snapshot, 1);
-      //double prova2 = get_SN_energy_PopIII(0, snapshot, 0);
-      double prova = get_SN_energy_PopIII(snapshot, 0, 1);
-      double prova2 = get_SN_energy_PopIII(snapshot, 0, 0);
+      double prova = get_SN_energy_PopIII(0, snapshot, 1);
+      double prova2 = get_SN_energy_PopIII(0, snapshot, 0);
+      //double prova = get_SN_energy_PopIII(snapshot, 0, 1);
+      //double prova2 = get_SN_energy_PopIII(snapshot, 0, 0);
       }
       
 
