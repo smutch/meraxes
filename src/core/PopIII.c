@@ -40,7 +40,7 @@ void initialize_time_interp_arrays()
   MPI_Bcast(&Time_Values, sizeof(Time_Values), MPI_BYTE, 0, run_globals.mpi_comm);
 }
 
-double interp_mass(double lifetime) // CHECK THIS!!! Lifetime must be in yr units!!
+double interp_mass(double lifetime) // Lifetime in yr units!!
 {
   double MminIMF = run_globals.params.physics.MminIMF; 
   double MmaxIMF = run_globals.params.physics.MmaxIMF;
@@ -54,14 +54,11 @@ double interp_mass(double lifetime) // CHECK THIS!!! Lifetime must be in yr unit
  
   // Check if Mass is inside interpolation boundaries (That shouldn't happen, so maybe put an error message or a print
   if (log10lifetime < Time_Values[mass_bins - 1]) {
-    // If it is above the upper limit, we just assume that it is near the upper limit, which
-    // has anyway reached the asymptotic limit
-    mlog("lifetime_strange = %f, last_value = %f", MLOG_MESG, log10lifetime, Time_Values[mass_bins - 1]);
+    // If it is above the upper limit, we just assume that it is the upper limit
     log10lifetime = (Time_Values[mass_bins - 1]);
     massfinal_result = (Mass_Values[mass_bins - 1]);
     } 
   else if (log10lifetime > Time_Values[0]) {
-    mlog("lifetime_strange = %f, first_value = %f", MLOG_MESG, log10lifetime, Time_Values[0]);
     log10lifetime = (Time_Values[0]);
     massfinal_result = (Mass_Values[0]);
     }
@@ -74,9 +71,8 @@ double interp_mass(double lifetime) // CHECK THIS!!! Lifetime must be in yr unit
       }
     
     n_high = n_low + 1;
-    mlog("index = %d, lifetime_inp = %f, loglifetime_inp = %f, lifetime_low = %f, lifetime_high = %f", MLOG_MESG, n_low, lifetime, log10lifetime, Time_Values[n_low], Time_Values[n_high]);
 
-    // Linear interpolation (you can do that because input values are in log10 units! STOP HERE! You need to figure out this!
+    // Linear interpolation 
   
     massfinal_result = Mass_Values[n_low] + ((log10lifetime - Time_Values[n_low]) * (Mass_Values[n_high] - Mass_Values[n_low])) / (Time_Values[n_high] - Time_Values[n_low]);
     }
@@ -265,6 +261,12 @@ double CCSN_PopIII_Fraction(int Snapshot, int last_snap) //Eq. 17 from Mutch et 
     mlog("m_min = %f, there are no CCSN in this snapshot", MLOG_MESG, m_min);
     return 0.0;
   }
+  
+  else if (m_max < MminSnII) { //There are no CCSN in this snapshot!
+    mlog("m_max = %f, there are no CCSN in this snapshot", MLOG_MESG, m_max);
+    return 0.0; //Maybe put -1 or a break because this condition should stop your while loop!
+  }
+    
   else { 
     if (m_max > MmaxSnII) // Firstly, you are only interested in stars in the CCSN mass range
       m_max = MmaxSnII;
@@ -297,6 +299,7 @@ double CCSN_PopIII_Fraction(int Snapshot, int last_snap) //Eq. 17 from Mutch et 
   
     mlog("TotCCSN = %f, Frac = %f", MLOG_MESG, TotalCCSN, result / TotalCCSN);
 
-    return result / TotalCCSN;
+    //return result / TotalCCSN;
+    return result;
   }  
 } 
