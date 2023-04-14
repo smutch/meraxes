@@ -232,10 +232,10 @@ double CCSN_PopIII_Fraction(int Snapshot, int last_snap) //Eq. 17 from Mutch et 
 
   mlog("curr_snap = %d, snap_SF = %d", MLOG_MESG, last_snap, Snapshot);
   
-  if (last_snap <= 1) {
+  /*if (last_snap <= 1) {
     mlog_error("Choose larger output snapshots");
     ABORT(EXIT_FAILURE);
-  }
+  }*/
   
   double* LTTime = run_globals.LTTime;
   double time_unit = run_globals.units.UnitTime_in_Megayears / run_globals.params.Hubble_h * 1e6; //You need result in yrs
