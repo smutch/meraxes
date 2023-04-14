@@ -88,17 +88,14 @@ int evolve_galaxies(fof_group_t* fof_group, int snapshot, int NGal, int NFof, in
           }
 
           if (gal->Type < 3) {
-            if (!Flag_IRA){
-              mlog_error("A");
+            if (!Flag_IRA)
               delayed_supernova_feedback(gal, snapshot);
-              mlog_error("B");
-              }
 
             if (gal->BlackHoleAccretingColdMass > 0)
               previous_merger_driven_BH_growth(gal);
-            mlog_error("C");   
+  
             insitu_star_formation(gal, snapshot);
-            mlog_error("D");
+
             if (Flag_Metals == true) {
               calc_metal_bubble(gal, snapshot);
               if ((gal->RmetalBubble > 0.) && (gal->Galaxy_Population == 3)) //Crucial to update the galaxy index!
