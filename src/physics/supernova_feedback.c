@@ -3,6 +3,7 @@
 
 #include "core/misc_tools.h"
 #include "core/stellar_feedback.h"
+#include "core/PopIII.h"
 #include "core/virial_properties.h"
 #include "meraxes.h"
 #include "supernova_feedback.h"
@@ -314,7 +315,7 @@ static inline double calc_sn_ejection_eff(galaxy_t* gal, int snapshot, int flag_
     return 1.;
 }
 
-void delayed_supernova_feedback(galaxy_t* gal, int snapshot) 
+void delayed_supernova_feedback(galaxy_t* gal, int snapshot) // Once you test that Pop III SN works, you should change general outputs as III + II. 
 {
   double sn_energy = 0.0;
   double sn_energy_II = 0.0;
@@ -337,32 +338,39 @@ void delayed_supernova_feedback(galaxy_t* gal, int snapshot)
   // bursts and calculate the amount of energy and mass that they will release
   // in the current time step.
   for (int i_burst = 1; i_burst < n_bursts; i_burst++) {
-    double m_stars = gal->NewStars[i_burst];
+    //double m_stars = gal->NewStars[i_burst];
     double m_stars_II = gal->NewStars_II[i_burst];
     double m_stars_III = gal->NewStars_III[i_burst];
+    double m_stars = m_stars_II + m_stars_III;
 
     // Only need to do this if any stars formed in this history bin
     if (m_stars > 1e-10) {
       double metallicity = calc_metallicity(m_stars, gal->NewMetals[i_burst]);
       // Calculate recycled mass and metals by yield tables
-      m_recycled += m_stars * get_recycling_fraction(i_burst, metallicity);
+      //m_recycled += m_stars * get_recycling_fraction(i_burst, metallicity);
       m_recycled_II += m_stars_II * get_recycling_fraction(i_burst, metallicity);
       m_recycled_III += m_stars_III * get_recycling_fraction(i_burst, metallicity);
+      m_recycled += (m_recycled_II + m_recycled_III);
       //new_metals += m_stars * get_metal_yield(i_burst, metallicity);
       new_metals += m_stars_II * get_metal_yield(i_burst, metallicity) + m_stars_III * get_metal_yield(i_burst, metallicity);
       // Calculate SNII energy
-      sn_energy += get_SN_energy(i_burst, metallicity) * m_stars;
+      //sn_energy += get_SN_energy(i_burst, metallicity) * m_stars;
       sn_energy_II += get_SN_energy(i_burst, metallicity) * m_stars_II;
-      sn_energy_III += get_SN_energy(i_burst, metallicity) * m_stars_III;
+      //sn_energy_III += get_SN_energy(i_burst, metallicity) * m_stars_III;
+      sn_energy_III += get_SN_energy_PopIII(i_burst, snapshot, 0); // Only CCSN have delayed feedback
+      //sn_energy += (sn_energy_II + sn_energy_III);
     }
   }
 
-  m_reheat = calc_sn_reheat_eff(gal, snapshot, 2) * sn_energy / get_total_SN_energy(); // ATM DOESN'T CHANGE BECAUSE 2 and 3 are the same! When you will actually use different params use the sum!
-  sn_energy *= calc_sn_ejection_eff(gal, snapshot, 2);
+  //m_reheat = calc_sn_reheat_eff(gal, snapshot, 2) * sn_energy / get_total_SN_energy(); // ATM DOESN'T CHANGE BECAUSE 2 and 3 are the same! When you will actually use different params use the sum!
+  //sn_energy *= calc_sn_ejection_eff(gal, snapshot, 2);
   m_reheat_II = calc_sn_reheat_eff(gal, snapshot, 2) * sn_energy_II / get_total_SN_energy();
   sn_energy_II *= calc_sn_ejection_eff(gal, snapshot, 2);
-  m_reheat_III = calc_sn_reheat_eff(gal, snapshot, 3) * sn_energy_III / get_total_SN_energy();
+  //m_reheat_III = calc_sn_reheat_eff(gal, snapshot, 3) * sn_energy_III / get_total_SN_energy();
+  m_reheat_III = calc_sn_reheat_eff(gal, snapshot, 3) * sn_energy_III / get_total_PopIIISN_energy(0);
   sn_energy_III *= calc_sn_ejection_eff(gal, snapshot, 3);
+  m_reheat = m_reheat_II + m_reheat_III;
+  sn_energy = sn_energy_II + sn_energy_III;
   // We can only reheat as much gas as we have available.  Let's inforce this
   // now, to ensure that the maximal amount of available energy is used to
   // eject gas from the system.
@@ -457,8 +465,9 @@ void contemporaneous_supernova_feedback(galaxy_t* gal,
     sn_energy *= calc_sn_ejection_eff(gal, snapshot, 2);
     }
   else if (gal->Galaxy_Population == 3){
-    sn_energy = *m_stars * get_SN_energy(0, metallicity);
-    *m_reheat = calc_sn_reheat_eff(gal, snapshot, 3) * sn_energy / get_total_SN_energy();
+    //sn_energy = *m_stars * get_SN_energy(0, metallicity);
+    sn_energy = get_SN_energy_PopIII(0, snapshot, 0) + get_SN_energy_PopIII(0, snapshot, 1); // Here you need to account also for PISN!
+    *m_reheat = calc_sn_reheat_eff(gal, snapshot, 3) * sn_energy / (get_total_SN_energy(0) + get_total_SN_energy(1));
     sn_energy *= calc_sn_ejection_eff(gal, snapshot, 3); 
     }
 
