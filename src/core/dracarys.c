@@ -322,7 +322,7 @@ void dracarys()
     
     if (snapshot == 1) {
       double prova = get_SN_energy_PopIII(0, snapshot, 1);
-      double prova = get_SN_energy_PopIII(0, snapshot, 0);
+      double prova2 = get_SN_energy_PopIII(0, snapshot, 0);
       }
       
 
