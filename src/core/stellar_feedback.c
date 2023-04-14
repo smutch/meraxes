@@ -4,6 +4,7 @@
 #include "meraxes.h"
 #include "misc_tools.h"
 #include "stellar_feedback.h"
+#include "PopIII.h"
 
 static double age[NAGE];
 static double yield_tables[NELEMENT][NMETAL * NAGE];
@@ -172,4 +173,44 @@ double get_total_SN_energy(void)
   // The last grid of the energy table is the total SNII energy,
   // and is independent to metallicity
   return energy_tables[NAGE - 1];
+}
+
+// Adding stuff for Pop III feedback 
+
+double get_SN_energy_PopIII(int i_burst, int snapshot, int SN_type) //SN_type = 0 -> CC, 1 -> PISN (Pop III have higher masses so we need to account also for PISN!)
+{
+  double Enova;
+  //Core Collapse SN
+  if (SN_type == 0) {
+    Enova = ENOVA_CC; 
+    double CC_Fraction = CCSN_PopIII_Fraction(int snapshot, int i_burst);
+    return Enova * CC_Fraction;
+  }
+  //PISN (feedback here is contemporaneous)
+  if (SN_type == 1) {
+    if (i_burst != 0) {
+      mlog_error("PISN feedback is instantaneous!");
+      return 0;
+      }
+    Enova = ENOVA_PISN;
+    double N_PISN = Number_PISN();
+    return Enova * N_PISN;
+  }  
+}
+
+double get_total_PopIIISN_energy(int SN_type) //SN_type = 0 -> CC, 1 -> PISN (Pop III have higher masses so we need to account also for PISN!)
+{
+  double Enova;
+  double TotalEn;
+  //Core Collapse SN
+  if (SN_type == 0) {
+    Enova = ENOVA_CC; 
+    TotalEn = ENOVA_CC * Number_SNII;
+  }
+  //PISN (feedback here is contemporaneous)
+  if (SN_type == 1) {
+    Enova = ENOVA_PISN;
+    TotalEn = ENOVA_CC * Number_PISN();
+  } 
+  return TotalEn;
 }

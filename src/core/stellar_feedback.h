@@ -10,6 +10,10 @@
 #define RECYCLING_FRACTION 0
 #define TOTAL_METAL 1
 
+// Pop III stuff
+#define ENOVA_CC 1e51 //You might put this as a free parameter (?)
+#define ENOVA_PISN 1e51 // Check the physics for this one!
+
 #ifdef __cplusplus
 extern "C"
 {
@@ -20,7 +24,9 @@ extern "C"
   double get_recycling_fraction(int i_burst, double metals);
   double get_metal_yield(int i_burst, double metals);
   double get_SN_energy(int i_burst, double metals);
+  double get_SN_energy_PopIII(int i_burst, int snapshot, int SN_type);
   double get_total_SN_energy(void);
+  double get_total_PopIIISN_energy(int SN_type);
 
 #ifdef __cplusplus
 }

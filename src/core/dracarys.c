@@ -320,7 +320,7 @@ void dracarys()
     
     // Test Pop III SN tables!
     
-    if (snapshot == 10) {
+    /*if (snapshot == 10) {
       int snap_prova = 10;
       CCSN_PopIII_Fraction(snap_prova, snapshot);
       snap_prova = 9;
@@ -339,7 +339,7 @@ void dracarys()
       CCSN_PopIII_Fraction(snap_prova, snapshot);
       snap_prova = 2;
       CCSN_PopIII_Fraction(snap_prova, snapshot);
-      }
+      }*/
       
 
     // Do the physics
