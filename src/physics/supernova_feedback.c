@@ -467,7 +467,7 @@ void contemporaneous_supernova_feedback(galaxy_t* gal,
   else if (gal->Galaxy_Population == 3){
     //sn_energy = *m_stars * get_SN_energy(0, metallicity);
     sn_energy = get_SN_energy_PopIII(0, snapshot, 0) + get_SN_energy_PopIII(0, snapshot, 1); // Here you need to account also for PISN!
-    *m_reheat = calc_sn_reheat_eff(gal, snapshot, 3) * sn_energy / (get_total_PopIIISN_energy(0) + get_total_PopIIISN_energy(1));
+    *m_reheat = calc_sn_reheat_eff(gal, snapshot, 3) * sn_energy;// / (get_total_PopIIISN_energy(0) + get_total_PopIIISN_energy(1));
     sn_energy *= calc_sn_ejection_eff(gal, snapshot, 3); 
     }
 
