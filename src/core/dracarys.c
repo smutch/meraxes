@@ -320,26 +320,10 @@ void dracarys()
     
     // Test Pop III SN tables!
     
-    /*if (snapshot == 10) {
-      int snap_prova = 10;
-      CCSN_PopIII_Fraction(snap_prova, snapshot);
-      snap_prova = 9;
-      CCSN_PopIII_Fraction(snap_prova, snapshot);
-      snap_prova = 8;
-      CCSN_PopIII_Fraction(snap_prova, snapshot);
-      snap_prova = 7;
-      CCSN_PopIII_Fraction(snap_prova, snapshot);
-      snap_prova = 6;
-      CCSN_PopIII_Fraction(snap_prova, snapshot);
-      snap_prova = 5;
-      CCSN_PopIII_Fraction(snap_prova, snapshot);
-      snap_prova = 4;
-      CCSN_PopIII_Fraction(snap_prova, snapshot);
-      snap_prova = 3;
-      CCSN_PopIII_Fraction(snap_prova, snapshot);
-      snap_prova = 2;
-      CCSN_PopIII_Fraction(snap_prova, snapshot);
-      }*/
+    if (snapshot == 1) {
+      double prova = get_SN_energy_PopIII(0, snapshot, 1);
+      double prova = get_SN_energy_PopIII(0, snapshot, 0);
+      }
       
 
     // Do the physics
