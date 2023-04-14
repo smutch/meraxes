@@ -13,6 +13,7 @@
 #include "metal_evo.h"
 #include "PopIII.h"
 #include "save.h"
+#include "stellar_feedback.h"
 #include "tree_flags.h"
 #include "virial_properties.h" //For the test
 
