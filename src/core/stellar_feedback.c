@@ -183,7 +183,7 @@ double get_SN_energy_PopIII(int i_burst, int snapshot, int SN_type) //SN_type = 
   //Core Collapse SN
   if (SN_type == 0) {
     Enova = ENOVA_CC; 
-    double CC_Fraction = CCSN_PopIII_Fraction(int snapshot, int i_burst);
+    double CC_Fraction = CCSN_PopIII_Fraction(snapshot, i_burst);
     return Enova * CC_Fraction;
   }
   //PISN (feedback here is contemporaneous)
@@ -205,7 +205,7 @@ double get_total_PopIIISN_energy(int SN_type) //SN_type = 0 -> CC, 1 -> PISN (Po
   //Core Collapse SN
   if (SN_type == 0) {
     Enova = ENOVA_CC; 
-    TotalEn = ENOVA_CC * Number_SNII;
+    TotalEn = ENOVA_CC * Number_SNII();
   }
   //PISN (feedback here is contemporaneous)
   if (SN_type == 1) {
