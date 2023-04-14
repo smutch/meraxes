@@ -195,7 +195,6 @@ void insitu_star_formation(galaxy_t* gal, int snapshot)
     // calculate the total supernova feedback which would occur if this star
     // formation happened continuously and evenly throughout the snapshot
     contemporaneous_supernova_feedback(gal, &m_stars, snapshot, &m_reheat, &m_eject, &m_recycled, &new_metals);
-    mlog_error("C2");
     // update the baryonic reservoirs (note that the order we do this in will change the result!)
     update_reservoirs_from_sf(gal, m_stars, snapshot, INSITU);
     update_reservoirs_from_sn_feedback(gal, m_reheat, m_eject, m_recycled, new_metals);
