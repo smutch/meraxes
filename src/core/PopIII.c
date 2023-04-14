@@ -227,10 +227,10 @@ double Number_PISN(void)
   return result;  
 }
 
-double CCSN_PopIII_Fraction(int Snapshot, int last_snap) //Eq. 17 from Mutch et al. 2016 YOU ARE HERE! NEED TO WRITE THIS FUNCTION!!!
+double CCSN_PopIII_Fraction(int Snapshot, int last_snap) //Eq. 17 from Mutch et al. 2016 (Snapshot is actually i_burst
 {
 
-  mlog("curr_snap = %d, snap_SF = %d", MLOG_MESG, last_snap, Snapshot);
+  mlog("curr_snap = %d, snap_SF = %d", MLOG_MESG, last_snap, last_snap - Snapshot);
   
   /*if (last_snap <= 1) {
     mlog_error("Choose larger output snapshots");
@@ -244,10 +244,11 @@ double CCSN_PopIII_Fraction(int Snapshot, int last_snap) //Eq. 17 from Mutch et 
   
   double TotalCCSN;
   
-  double DeltaTime = (LTTime[Snapshot] - LTTime[last_snap]) * time_unit;
-  double DeltaTimeSnap = (LTTime[Snapshot - 1] - LTTime[Snapshot]) * time_unit; //Should be correct, might need to double check that!
+  double DeltaTime = (LTTime[last_snap - Snapshot] - LTTime[last_snap]) * time_unit;
+  double DeltaTimeSnap = (LTTime[last_snap - Snapshot - 1] - LTTime[last_snap - Snapshot]) * time_unit; //Should be correct, might need to double check that!
+    
   
-  if (Snapshot != last_snap) {
+  if (Snapshot != 0) {
     m_min = interp_mass(DeltaTime + DeltaTimeSnap / 2);
     m_max = interp_mass(DeltaTime - DeltaTimeSnap / 2);
     }
