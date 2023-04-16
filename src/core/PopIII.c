@@ -259,12 +259,12 @@ double CCSN_PopIII_Fraction(int i_burst, int curr_snap) //Eq. 17 from Mutch et a
     }
     
   if (m_min > MmaxSnII) { //There are no CCSN in this snapshot!
-    mlog("m_min = %f, there are no CCSN in this snapshot", MLOG_MESG, m_min);
+    //mlog("m_min = %f, there are no CCSN in this snapshot", MLOG_MESG, m_min);
     return 0.0;
   }
   
   else if (m_max < MminSnII) { //There are no CCSN in this snapshot!
-    mlog("m_max = %f, there are no CCSN in this snapshot", MLOG_MESG, m_max);
+    //mlog("m_max = %f, there are no CCSN in this snapshot", MLOG_MESG, m_max);
     return 0.0; //Maybe put -1 or a break because this condition should stop your while loop!
   }
     
@@ -275,7 +275,7 @@ double CCSN_PopIII_Fraction(int i_burst, int curr_snap) //Eq. 17 from Mutch et a
     if (m_min < MminSnII) 
       m_min = MminSnII;
       
-    mlog("m_min = %f, m_max = %f", MLOG_MESG, m_min, m_max);
+    //mlog("m_min = %f, m_max = %f", MLOG_MESG, m_min, m_max);
   
     double result, err;
     double rel_tol = 0.01; //<- relative tolerance
@@ -298,7 +298,7 @@ double CCSN_PopIII_Fraction(int i_burst, int curr_snap) //Eq. 17 from Mutch et a
   
     TotalCCSN = Number_SNII();
   
-    mlog("TotCCSN = %f, Frac = %f", MLOG_MESG, TotalCCSN, result / TotalCCSN);
+    //mlog("TotCCSN = %f, Frac = %f", MLOG_MESG, TotalCCSN, result / TotalCCSN);
 
     //return result / TotalCCSN;
     return result;
