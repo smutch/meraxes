@@ -341,7 +341,7 @@ void delayed_supernova_feedback(galaxy_t* gal, int snapshot) // Once you test th
     //double m_stars = gal->NewStars[i_burst];
     double m_stars_II = gal->NewStars_II[i_burst];
     double m_stars_III = gal->NewStars_III[i_burst];
-    double m_stars = m_stars_II[i_burst] + m_stars_III[i_burst];
+    double m_stars = m_stars_II + m_stars_III;
 
     // Only need to do this if any stars formed in this history bin
     if (m_stars > 1e-10) {
