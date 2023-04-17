@@ -230,7 +230,7 @@ double Number_PISN(void)
 double CCSN_PopIII_Fraction(int i_burst, int curr_snap) //Eq. 17 from Mutch et al. 2016 (Snapshot is actually i_burst
 {
 
-  mlog("curr_snap = %d, snap_SF = %d", MLOG_MESG, curr_snap, curr_snap - i_burst);
+  //mlog("curr_snap = %d, snap_SF = %d", MLOG_MESG, curr_snap, curr_snap - i_burst);
   
   /*if (last_snap <= 1) {
     mlog_error("Choose larger output snapshots");
