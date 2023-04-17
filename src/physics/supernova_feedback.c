@@ -341,7 +341,7 @@ void delayed_supernova_feedback(galaxy_t* gal, int snapshot) // Once you test th
     //double m_stars = gal->NewStars[i_burst];
     double m_stars_II = gal->NewStars_II[i_burst];
     double m_stars_III = gal->NewStars_III[i_burst];
-    double m_stars = m_stars_II + m_stars_III;
+    double m_stars = m_stars_II[i_burst] + m_stars_III[i_burst];
 
     // Only need to do this if any stars formed in this history bin
     if (m_stars > 1e-10) {
@@ -391,9 +391,10 @@ void delayed_supernova_feedback(galaxy_t* gal, int snapshot) // Once you test th
   else
     fof_Vvir = -1;
 
-  m_eject = calc_ejected_mass(&m_reheat, sn_energy, gal->Vvir, fof_Vvir);
+  //m_eject = calc_ejected_mass(&m_reheat, sn_energy, gal->Vvir, fof_Vvir);
   m_eject_III = calc_ejected_mass(&m_reheat_III, sn_energy_III, gal->Vvir, fof_Vvir);
   m_eject_II = calc_ejected_mass(&m_reheat_II, sn_energy_II, gal->Vvir, fof_Vvir);
+  m_eject = m_eject_II + m_eject_III;
 
   // Note that m_eject returned for ghosts by calc_ejected_mass() is
   // meaningless in the current physical prescriptions.  This fact is dealt
@@ -466,7 +467,7 @@ void contemporaneous_supernova_feedback(galaxy_t* gal,
     }
   else if (gal->Galaxy_Population == 3){
     //sn_energy = *m_stars * get_SN_energy(0, metallicity);
-    sn_energy = get_SN_energy_PopIII(0, snapshot, 0) + get_SN_energy_PopIII(0, snapshot, 1); // Here you need to account also for PISN!
+    sn_energy = *m_stars * (get_SN_energy_PopIII(0, snapshot, 0) + get_SN_energy_PopIII(0, snapshot, 1)); // Here you need to account also for PISN!
     *m_reheat = calc_sn_reheat_eff(gal, snapshot, 3) * sn_energy / (get_total_PopIIISN_energy(0) + get_total_PopIIISN_energy(1));
     sn_energy *= calc_sn_ejection_eff(gal, snapshot, 3); 
     }
