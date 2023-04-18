@@ -371,7 +371,7 @@ void delayed_supernova_feedback(galaxy_t* gal, int snapshot) // Once you test th
   sn_energy_III *= (calc_sn_ejection_eff(gal, snapshot, 3) * Number_SNII() / 1e10 * run_globals.params.Hubble_h); //Maybe for the SN ejection efficiency is more important to distinguish between PISN/CC rather than Pop.III/II
   m_reheat = m_reheat_II + m_reheat_III;
   sn_energy = sn_energy_II + sn_energy_III;
-  mlog("snII = %f, snIII = %f", MLOG_MESG, sn_energy_II, sn_energy_III);
+  //mlog("snII = %f, snIII = %f", MLOG_MESG, sn_energy_II, sn_energy_III);
   // We can only reheat as much gas as we have available.  Let's inforce this
   // now, to ensure that the maximal amount of available energy is used to
   // eject gas from the system.
