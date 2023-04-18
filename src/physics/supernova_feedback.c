@@ -472,7 +472,7 @@ void contemporaneous_supernova_feedback(galaxy_t* gal,
     sn_energy = get_SN_energy_PopIII(0, snapshot, 0) + (*m_stars * (ENOVA_PISN * Number_PISN() / 1e10 * run_globals.params.Hubble_h));
     //*m_reheat = calc_sn_reheat_eff(gal, snapshot, 3) * sn_energy / (get_total_PopIIISN_energy(0) + get_total_PopIIISN_energy(1));
     *m_reheat = calc_sn_reheat_eff(gal, snapshot, 3) * (Number_PISN() / (Number_PISN() + Number_SNII()) * (*m_stars / 1e10 * run_globals.params.Hubble_h));
-    sn_energy *= calc_sn_ejection_eff(gal, snapshot, 3) //might be worth have 2 different SN ejection eff for PISN and CC; 
+    sn_energy *= calc_sn_ejection_eff(gal, snapshot, 3); //might be worth have 2 different SN ejection eff for PISN and CC; 
     }
 
   // We can only reheat as much gas as we have available.  Let's inforce this
