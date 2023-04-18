@@ -205,12 +205,12 @@ double get_total_PopIIISN_energy(int SN_type) //SN_type = 0 -> CC, 1 -> PISN (Po
   //Core Collapse SN
   if (SN_type == 0) {
     Enova = ENOVA_CC; 
-    TotalEn = ENOVA_CC * Number_SNII();
+    TotalEn = Enova * Number_SNII();
   }
   //PISN (feedback here is contemporaneous)
   if (SN_type == 1) {
     Enova = ENOVA_PISN;
-    TotalEn = ENOVA_CC * Number_PISN();
+    TotalEn = Enova * Number_PISN();
   } 
   return TotalEn;
 }
