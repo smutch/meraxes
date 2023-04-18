@@ -357,7 +357,7 @@ void delayed_supernova_feedback(galaxy_t* gal, int snapshot) // Once you test th
       //sn_energy += get_SN_energy(i_burst, metallicity) * m_stars;
       sn_energy_II += get_SN_energy(i_burst, metallicity) * m_stars_II;
       //sn_energy_III += get_SN_energy(i_burst, metallicity) * m_stars_III;
-      sn_energy_III += get_SN_energy_PopIII(i_burst, snapshot, 0) * m_stars_III; // Only CCSN have delayed feedback
+      sn_energy_III += get_SN_energy_PopIII(i_burst, snapshot, 0) * m_stars_III; // Only CCSN have delayed feedback, that is DeltaM reheat (eq.16 Mutch+16) * ENOVA
       //sn_energy += (sn_energy_II + sn_energy_III);
     }
   }
@@ -366,11 +366,12 @@ void delayed_supernova_feedback(galaxy_t* gal, int snapshot) // Once you test th
   //sn_energy *= calc_sn_ejection_eff(gal, snapshot, 2);
   m_reheat_II = calc_sn_reheat_eff(gal, snapshot, 2) * sn_energy_II / get_total_SN_energy();
   sn_energy_II *= calc_sn_ejection_eff(gal, snapshot, 2);
+  m_reheat_III = calc_sn_reheat_eff(gal, snapshot, 3) * sn_energy_III / ENOVA_CC; //Only CCSN have delayed feedback
   //m_reheat_III = calc_sn_reheat_eff(gal, snapshot, 3) * sn_energy_III / get_total_SN_energy();
-  m_reheat_III = calc_sn_reheat_eff(gal, snapshot, 3) * sn_energy_III / get_total_PopIIISN_energy(0);
-  sn_energy_III *= calc_sn_ejection_eff(gal, snapshot, 3);
+  sn_energy_III *= (calc_sn_ejection_eff(gal, snapshot, 3) * Number_SNII() / 1e10 * run_globals.params.Hubble_h); //Maybe for the SN ejection efficiency is more important to distinguish between PISN/CC rather than Pop.III/II
   m_reheat = m_reheat_II + m_reheat_III;
   sn_energy = sn_energy_II + sn_energy_III;
+  mlog("snII = %f, snIII = %f", MLOG_MESG, sn_energy_II, sn_energy_III);
   // We can only reheat as much gas as we have available.  Let's inforce this
   // now, to ensure that the maximal amount of available energy is used to
   // eject gas from the system.
@@ -467,9 +468,11 @@ void contemporaneous_supernova_feedback(galaxy_t* gal,
     }
   else if (gal->Galaxy_Population == 3){
     //sn_energy = *m_stars * get_SN_energy(0, metallicity);
-    sn_energy = *m_stars * (get_SN_energy_PopIII(0, snapshot, 0) + get_SN_energy_PopIII(0, snapshot, 1)); // Here you need to account also for PISN!
-    *m_reheat = calc_sn_reheat_eff(gal, snapshot, 3) * sn_energy / (get_total_PopIIISN_energy(0) + get_total_PopIIISN_energy(1));
-    sn_energy *= calc_sn_ejection_eff(gal, snapshot, 3); 
+    //sn_energy = *m_stars * (get_SN_energy_PopIII(0, snapshot, 0) + get_SN_energy_PopIII(0, snapshot, 1)); // Here you need to account also for PISN!
+    sn_energy = get_SN_energy_PopIII(0, snapshot, 0) + (*m_stars * (ENOVA_PISN * Number_PISN() / 1e10 * run_globals.params.Hubble_h));
+    //*m_reheat = calc_sn_reheat_eff(gal, snapshot, 3) * sn_energy / (get_total_PopIIISN_energy(0) + get_total_PopIIISN_energy(1));
+    *m_reheat = calc_sn_reheat_eff(gal, snapshot, 3) * (Number_PISN() / (Number_PISN() + Number_SNII()) * (*m_stars / 1e10 * run_globals.params.Hubble_h));
+    sn_energy *= calc_sn_ejection_eff(gal, snapshot, 3) //might be worth have 2 different SN ejection eff for PISN and CC; 
     }
 
   // We can only reheat as much gas as we have available.  Let's inforce this

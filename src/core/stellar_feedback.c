@@ -184,9 +184,9 @@ double get_SN_energy_PopIII(int i_burst, int snapshot, int SN_type) //SN_type = 
   if (SN_type == 0) {
     Enova = ENOVA_CC; 
     double CC_Fraction = CCSN_PopIII_Fraction(i_burst, snapshot);
-    return Enova * CC_Fraction;
+    return Enova * CC_Fraction; //result in erg
   }
-  //PISN (feedback here is contemporaneous)
+  //PISN (feedback here is contemporaneous), this part is probably useless
   if (SN_type == 1) {
     if (i_burst != 0) {
       mlog_error("PISN feedback is instantaneous!");
@@ -194,7 +194,7 @@ double get_SN_energy_PopIII(int i_burst, int snapshot, int SN_type) //SN_type = 
       }
     Enova = ENOVA_PISN;
     double N_PISN = Number_PISN();
-    return Enova * N_PISN;
+    return Enova * N_PISN; // erg / Msol
   }  
 }
 

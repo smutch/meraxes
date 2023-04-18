@@ -227,7 +227,7 @@ double Number_PISN(void)
   return result;  
 }
 
-double CCSN_PopIII_Fraction(int i_burst, int curr_snap) //Eq. 17 from Mutch et al. 2016 (Snapshot is actually i_burst
+double CCSN_PopIII_Fraction(int i_burst, int curr_snap) //Eq. 17 from Mutch et al. 2016 Result in adimensional number
 {
 
   //mlog("curr_snap = %d, snap_SF = %d", MLOG_MESG, curr_snap, curr_snap - i_burst);
@@ -297,10 +297,11 @@ double CCSN_PopIII_Fraction(int i_burst, int curr_snap) //Eq. 17 from Mutch et a
     gsl_integration_workspace_free(w);
   
     //TotalCCSN = Number_SNII();
+    TotalCCSN = Number_SNII() + Number_PISN();
   
     //mlog("TotCCSN = %f, Frac = %f", MLOG_MESG, TotalCCSN, result / TotalCCSN);
 
-    //return result / TotalCCSN;
-    return result;
+    return result / TotalCCSN;
+    //return result;
   }  
 } 
