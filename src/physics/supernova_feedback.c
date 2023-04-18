@@ -357,7 +357,7 @@ void delayed_supernova_feedback(galaxy_t* gal, int snapshot) // Once you test th
       //sn_energy += get_SN_energy(i_burst, metallicity) * m_stars;
       sn_energy_II += get_SN_energy(i_burst, metallicity) * m_stars_II;
       //sn_energy_III += get_SN_energy(i_burst, metallicity) * m_stars_III;
-      sn_energy_III += get_SN_energy_PopIII(i_burst, snapshot, 0); // Only CCSN have delayed feedback
+      sn_energy_III += get_SN_energy_PopIII(i_burst, snapshot, 0) * m_stars_III; // Only CCSN have delayed feedback
       //sn_energy += (sn_energy_II + sn_energy_III);
     }
   }
