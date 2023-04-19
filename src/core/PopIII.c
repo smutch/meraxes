@@ -297,7 +297,7 @@ double CCSN_PopIII_Fraction(int i_burst, int curr_snap) //Eq. 17 from Mutch et a
     gsl_integration_workspace_free(w);
   
     //TotalCCSN = Number_SNII();
-    TotalCCSN = Number_SNII() + Number_PISN();
+    TotalCCSN = Number_SNII() + Number_PISN(); //I am still not 100% sure if I have to consider only SNII (I believe so)
   
     //mlog("TotCCSN = %f, Frac = %f", MLOG_MESG, TotalCCSN, result / TotalCCSN);
 
