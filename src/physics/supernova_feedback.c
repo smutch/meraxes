@@ -351,7 +351,7 @@ void delayed_supernova_feedback(galaxy_t* gal, int snapshot) // Once you test th
       new_metals += (m_stars_II * get_metal_yield(i_burst, metallicity) + m_stars_III * get_metal_yield(i_burst, metallicity));
       // Calculate SNII energy
       //sn_energy += get_SN_energy(i_burst, metallicity) * m_stars;
-      sn_energy_II += get_SN_energy(i_burst, metallicity) * m_stars_II;
+      sn_energy_II += get_SN_energy(i_burst, metallicity) * m_stars_II; //It's correct! Maybe code this in a way in which is easier to understand
       //sn_energy_III += get_SN_energy(i_burst, metallicity) * m_stars_III;
       sn_energy_III += get_SN_energy_PopIII(i_burst, snapshot, 0) * m_stars_III; // Only CCSN have delayed feedback, that is DeltaM reheat (eq.16 Mutch+16) * ENOVA
       //sn_energy += (sn_energy_II + sn_energy_III);
@@ -468,12 +468,13 @@ void contemporaneous_supernova_feedback(galaxy_t* gal,
     *m_reheat = calc_sn_reheat_eff(gal, snapshot, 2) * sn_energy / get_total_SN_energy();
     sn_energy *= calc_sn_ejection_eff(gal, snapshot, 2);
     }
-  else if (gal->Galaxy_Population == 3){ //DOUBLE CHECK THIS PART!!!!
+  else if (gal->Galaxy_Population == 3){ // Now it should be correct!
     //sn_energy = *m_stars * get_SN_energy(0, metallicity);
     //sn_energy = *m_stars * (get_SN_energy_PopIII(0, snapshot, 0) + get_SN_energy_PopIII(0, snapshot, 1)); // Here you need to account also for PISN!
-    sn_energy = get_SN_energy_PopIII(0, snapshot, 0) + (*m_stars * (ENOVA_PISN * Number_PISN() / 1e10 * run_globals.params.Hubble_h));
+    sn_energy = get_SN_energy_PopIII(0, snapshot, 0) * (*m_stars * 1e10 / run_globals.params.Hubble_h * Number_SNII()) + (*m_stars * (ENOVA_PISN * Number_PISN() / 1e10 * run_globals.params.Hubble_h));
     //*m_reheat = calc_sn_reheat_eff(gal, snapshot, 3) * sn_energy / (get_total_PopIIISN_energy(0) + get_total_PopIIISN_energy(1));
-    *m_reheat = calc_sn_reheat_eff(gal, snapshot, 3) * (Number_PISN() / (Number_PISN() + Number_SNII()) * (*m_stars / 1e10 * run_globals.params.Hubble_h));
+    *m_reheat = calc_sn_reheat_eff(gal, snapshot, 3) * ((Number_PISN() / (Number_PISN() + Number_SNII()) * (*m_stars)) + (get_SN_energy_PopIII(0, snapshot, 0) / ENOVA_CC * (*m_stars)));
+    //*m_reheat = calc_sn_reheat_eff(gal, snapshot, 3) * (Number_PISN() / (Number_PISN() + Number_SNII()) * (*m_stars / 1e10 * run_globals.params.Hubble_h)); //Add PISN
     sn_energy *= calc_sn_ejection_eff(gal, snapshot, 3); //might be worth have 2 different SN ejection eff for PISN and CC; 
     }
 
