@@ -108,6 +108,9 @@ int evolve_galaxies(fof_group_t* fof_group, int snapshot, int NGal, int NFof, in
 
           if (i_step == NSteps - 1)
             gal_counter++;
+            
+          if (gal->StellarMass != gal->StellarMass_III + StellarMass_II)
+            mlog("SM = %f but SfII+III = %f", MLOG_MESG, gal->StellarMass, gal->StellarMass_III + StellarMass_II);
 
           gal = gal->NextGalInHalo;
         }
