@@ -98,11 +98,7 @@ void update_reservoirs_from_sn_feedback(galaxy_t* gal,
 
 void update_reservoirs_from_delayed_sn_feedback(galaxy_t* gal, //You don't need reheat_III/II and eject III/II but you might want to keep those to check conditions!
                                         double m_reheat,
-                                        double m_reheat_III,
-                                        double m_reheat_II,
                                         double m_eject,
-                                        double m_eject_III,
-                                        double m_eject_II,
                                         double m_recycled,
                                         double m_recycled_III,
                                         double m_recycled_II,
@@ -352,7 +348,7 @@ void delayed_supernova_feedback(galaxy_t* gal, int snapshot) // Once you test th
       m_recycled_III += m_stars_III * get_recycling_fraction(i_burst, metallicity);
       m_recycled += (m_recycled_II + m_recycled_III);
       //new_metals += m_stars * get_metal_yield(i_burst, metallicity);
-      new_metals += m_stars_II * get_metal_yield(i_burst, metallicity) + m_stars_III * get_metal_yield(i_burst, metallicity);
+      new_metals += (m_stars_II * get_metal_yield(i_burst, metallicity) + m_stars_III * get_metal_yield(i_burst, metallicity));
       // Calculate SNII energy
       //sn_energy += get_SN_energy(i_burst, metallicity) * m_stars;
       sn_energy_II += get_SN_energy(i_burst, metallicity) * m_stars_II;
@@ -367,7 +363,6 @@ void delayed_supernova_feedback(galaxy_t* gal, int snapshot) // Once you test th
   m_reheat_II = calc_sn_reheat_eff(gal, snapshot, 2) * sn_energy_II / get_total_SN_energy();
   sn_energy_II *= calc_sn_ejection_eff(gal, snapshot, 2);
   m_reheat_III = calc_sn_reheat_eff(gal, snapshot, 3) * sn_energy_III / ENOVA_CC; //Only CCSN have delayed feedback
-  //m_reheat_III = calc_sn_reheat_eff(gal, snapshot, 3) * sn_energy_III / get_total_SN_energy();
   sn_energy_III *= (calc_sn_ejection_eff(gal, snapshot, 3) * Number_SNII() / 1e10 * run_globals.params.Hubble_h); //Maybe for the SN ejection efficiency is more important to distinguish between PISN/CC rather than Pop.III/II
   m_reheat = m_reheat_II + m_reheat_III;
   sn_energy = sn_energy_II + sn_energy_III;
@@ -375,6 +370,8 @@ void delayed_supernova_feedback(galaxy_t* gal, int snapshot) // Once you test th
   // We can only reheat as much gas as we have available.  Let's inforce this
   // now, to ensure that the maximal amount of available energy is used to
   // eject gas from the system.
+  if (m_reheat != m_reheat_III + m_reheat_II)
+    m_reheat = m_reheat_III + m_reheat_II;
   if (m_reheat > gal->ColdGas)
     m_reheat = gal->ColdGas;
 
@@ -407,10 +404,15 @@ void delayed_supernova_feedback(galaxy_t* gal, int snapshot) // Once you test th
   assert(m_eject_III >= 0);
   assert(m_reheat_II >= 0);
   assert(m_eject_II >= 0);
+  
+  if (m_recycled_II + m_recycled_III != m_recycled)
+    m_recycled = m_recycled_II + m_recycled_III;
+    
+  if (m_eject != m_eject_II + m_eject_III)  
+    m_eject = m_eject_II + m_eject_III;
 
   // update the baryonic reservoirs
-  //update_reservoirs_from_sn_feedback(gal, m_reheat, m_eject, m_recycled, new_metals); //CHECK THAT Total variables = III + II variables
-  update_reservoirs_from_delayed_sn_feedback(gal, m_reheat, m_reheat_III, m_reheat_II, m_eject, m_eject_III, m_eject_II, m_recycled, m_recycled_III, m_recycled_II, new_metals);
+  update_reservoirs_from_delayed_sn_feedback(gal, m_reheat, m_eject, m_recycled, m_recycled_III, m_recycled_II, new_metals);
 }
 
 void contemporaneous_supernova_feedback(galaxy_t* gal,
@@ -466,7 +468,7 @@ void contemporaneous_supernova_feedback(galaxy_t* gal,
     *m_reheat = calc_sn_reheat_eff(gal, snapshot, 2) * sn_energy / get_total_SN_energy();
     sn_energy *= calc_sn_ejection_eff(gal, snapshot, 2);
     }
-  else if (gal->Galaxy_Population == 3){
+  else if (gal->Galaxy_Population == 3){ //DOUBLE CHECK THIS PART!!!!
     //sn_energy = *m_stars * get_SN_energy(0, metallicity);
     //sn_energy = *m_stars * (get_SN_energy_PopIII(0, snapshot, 0) + get_SN_energy_PopIII(0, snapshot, 1)); // Here you need to account also for PISN!
     sn_energy = get_SN_energy_PopIII(0, snapshot, 0) + (*m_stars * (ENOVA_PISN * Number_PISN() / 1e10 * run_globals.params.Hubble_h));
