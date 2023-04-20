@@ -369,6 +369,7 @@ void delayed_supernova_feedback(galaxy_t* gal, int snapshot) // Once you test th
   m_reheat = m_reheat_II + m_reheat_III;
   //sn_energy = sn_energy_II + sn_energy_III;
   sn_energy = sn_energy_II + sn_energy_III / energy_unit; //Convert from erg to internal units! 10^10Msol/h * (km/s)^2
+  mlog("sn_energy_II = %f, sn_energyIII = %f", MLOG_MESG, sn_energy_II, sn_energy_III / energy_unit);
   //mlog("snII = %f, snIII = %f", MLOG_MESG, sn_energy_II, sn_energy_III);
   // We can only reheat as much gas as we have available.  Let's inforce this
   // now, to ensure that the maximal amount of available energy is used to
