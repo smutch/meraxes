@@ -369,7 +369,7 @@ void delayed_supernova_feedback(galaxy_t* gal, int snapshot) // Once you test th
   m_reheat = m_reheat_II + m_reheat_III;
   //sn_energy = sn_energy_II + sn_energy_III;
   sn_energy = sn_energy_II + sn_energy_III / energy_unit; //Convert from erg to internal units! 10^10Msol/h * (km/s)^2
-  mlog("sn_energy_II = %f, sn_energyIII = %f", MLOG_MESG, sn_energy_II, sn_energy_III / energy_unit);
+  //mlog("sn_energy_II = %f, sn_energyIII = %f", MLOG_MESG, sn_energy_II, sn_energy_III / energy_unit);
   //mlog("snII = %f, snIII = %f", MLOG_MESG, sn_energy_II, sn_energy_III);
   // We can only reheat as much gas as we have available.  Let's inforce this
   // now, to ensure that the maximal amount of available energy is used to
@@ -472,7 +472,7 @@ void contemporaneous_supernova_feedback(galaxy_t* gal,
     sn_energy = *m_stars * get_SN_energy(0, metallicity);
     *m_reheat = calc_sn_reheat_eff(gal, snapshot, 2) * sn_energy / get_total_SN_energy();
     sn_energy *= calc_sn_ejection_eff(gal, snapshot, 2);
-    mlog("sn_energyII = %f", MLOG_MESG, sn_energy);
+    //mlog("sn_energyII = %f", MLOG_MESG, sn_energy);
     }
   else if (gal->Galaxy_Population == 3){ // Now it should be correct!
     //sn_energy = *m_stars * get_SN_energy(0, metallicity);
@@ -483,7 +483,7 @@ void contemporaneous_supernova_feedback(galaxy_t* gal,
     *m_reheat = calc_sn_reheat_eff(gal, snapshot, 3) * ((Number_PISN() / (Number_PISN() + Number_SNII()) * (*m_stars)) + (get_SN_energy_PopIII(0, snapshot, 0) / ENOVA_CC * (*m_stars)));
     //*m_reheat = calc_sn_reheat_eff(gal, snapshot, 3) * (Number_PISN() / (Number_PISN() + Number_SNII()) * (*m_stars / 1e10 * run_globals.params.Hubble_h)); //Add PISN
     sn_energy *= calc_sn_ejection_eff(gal, snapshot, 3); //might be worth have 2 different SN ejection eff for PISN and CC; 
-    mlog("sn_energyIII = %f", MLOG_MESG, sn_energy);
+    //mlog("sn_energyIII = %f", MLOG_MESG, sn_energy);
     }
 
   // We can only reheat as much gas as we have available.  Let's inforce this
