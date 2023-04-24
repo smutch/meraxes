@@ -528,6 +528,9 @@ void calc_metal_bubble(galaxy_t* gal, int snapshot) // Done! Result in internal 
   if (Flag_IRA == false) {
   
     if (mm_stars > 1e-10) { 
+    
+      if (gal->Galaxy_Population == 3) //Crucial to update the galaxy index! 
+        gal->Galaxy_Population = 2;
 
       gal->count_SF += 1;
       double gas_density;
@@ -537,7 +540,7 @@ void calc_metal_bubble(galaxy_t* gal, int snapshot) // Done! Result in internal 
       gas_density = (gal->HotGas + gal->ColdGas) * UnitMass_in_g / PROTONMASS / (4.0 * M_PI / 3.0 * pow(gal->Rvir * UnitLength_in_cm, 3.)); // cm^-3
     
       gal->Prefactor[A] = pow(EnergySN * N_SN_Pop2 * mm_stars * UnitMass_in_g / SOLAR_MASS / (PROTONMASS * gas_density), 0.2) / UnitLength_in_cm; //Mpc s^-0.4
-      gal->Times[A] = (run_globals.LTTime[snapshot - 1] - run_globals.LTTime[snapshot]) / 2 * time_unit; // s (put SF at the middle of the snapshot!)
+      gal->Times[A] = run_globals.LTTime[snapshot] * time_unit; // s (put SF at the middle of the snapshot!)
     }
     if (gal->count_SF > 0) {
       for (int i_SF = 0; i_SF < gal->count_SF; i_SF++)
