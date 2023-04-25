@@ -356,6 +356,8 @@ void delayed_supernova_feedback(galaxy_t* gal, int snapshot) // Once you test th
       sn_energy_II += get_SN_energy(i_burst, metallicity) * m_stars_II; //It's correct! Maybe code this in a way in which is easier to understand
       //sn_energy_III += get_SN_energy(i_burst, metallicity) * m_stars_III;
       sn_energy_III += get_SN_energy_PopIII(i_burst, snapshot, 0) * m_stars_III; // Only CCSN have delayed feedback, that is DeltaM reheat (eq.16 Mutch+16) * ENOVA
+      if (m_stars_III > 1e-10)
+        mlog("i_burst = %d, sn_III = %f", MLOG_MESG, i_burst, sn_energy_III);
       //sn_energy += (sn_energy_II + sn_energy_III);
     }
   }
@@ -398,8 +400,8 @@ void delayed_supernova_feedback(galaxy_t* gal, int snapshot) // Once you test th
   m_eject_II = calc_ejected_mass(&m_reheat_II, sn_energy_II, gal->Vvir, fof_Vvir);
   m_eject = m_eject_II + m_eject_III;
   
-  if (gal->NewStars_III[1] > 0)
-    mlog("Ej = %f, Ej3 = %f, Ej2 = %f", MLOG_MESG, m_eject, m_eject_III, m_eject_II);
+  //if (gal->NewStars_III[1] > 0)
+  //  mlog("Ej = %f, Ej3 = %f, Ej2 = %f", MLOG_MESG, m_eject, m_eject_III, m_eject_II);
 
   // Note that m_eject returned for ghosts by calc_ejected_mass() is
   // meaningless in the current physical prescriptions.  This fact is dealt
