@@ -253,9 +253,6 @@ double CCSN_PopIII_Fraction(int i_burst, int curr_snap) //Eq. 17 from Mutch et a
     m_max = interp_mass(DeltaTime - DeltaTimeSnap / 2);
     }
     
-  if (i_burst == 1)
-    mlog("m_min = %f, m_max = %f", MLOG_MESG, m_min, m_max);
-    
   else {
     m_min = interp_mass(DeltaTime + DeltaTimeSnap / 2);
     m_max = MmaxSnII;
