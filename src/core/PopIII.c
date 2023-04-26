@@ -259,7 +259,7 @@ double CCSN_PopIII_Fraction(int i_burst, int curr_snap) //Eq. 17 from Mutch et a
     m_max = MmaxSnII;
     }
   
-  if (i_burst == 1)
+  if (i_burst < 10)
     mlog("m_min = %f, m_max = %f", MLOG_MESG, m_min, m_max);
     
   if (m_min > MmaxSnII) { //There are no CCSN in this snapshot!
