@@ -253,7 +253,7 @@ double Mass_BHs(void) // Add BHs for Pop III with M>40Msol. Atm they don't do an
                       &err_2);
       gsl_integration_workspace_free(w);
       }
-    else if (MmaxIMF <= MminPISN {
+    else if (MmaxIMF <= MminPISN) {
       gsl_integration_qag(&F,
                       MmaxSnII,
                       MmaxIMF,
@@ -286,7 +286,7 @@ double Number_PISN(void)
   
   // First check if your IMF allows PISN!
   if (MmaxIMF < MminPISN)
-    return 0.0
+    return 0.0;
   
   else {
     if (MmaxIMF >= MmaxPISN) {
