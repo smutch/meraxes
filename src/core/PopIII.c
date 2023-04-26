@@ -225,7 +225,7 @@ double Mass_BHs(void) // Add BHs for Pop III with M>40Msol. Atm they don't do an
   
   // First check if your IMF allows PISN!
   if (MmaxIMF < MmaxSNII) //NO BHs
-    return 0.0
+    return 0.0;
   
   else {
     if (MmaxIMF > MmaxPISN) {
@@ -332,7 +332,7 @@ double Mass_PISN(void)
   
   // First check if your IMF allows PISN!
   if (MmaxIMF < MminPISN)
-    return 0.0
+    return 0.0;
   
   else {
     if (MmaxIMF >= MmaxPISN) {
