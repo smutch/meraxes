@@ -112,6 +112,7 @@ void insitu_star_formation(galaxy_t* gal, int snapshot)
     double m_eject;
     double m_recycled;
     double new_metals;
+    double m_remnant;
 
     double zplus1;
     double zplus1_n;
