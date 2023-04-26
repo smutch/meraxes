@@ -198,6 +198,24 @@ double get_SN_energy_PopIII(int i_burst, int snapshot, int SN_type) //SN_type = 
   }  
 }
 
+double get_SN_mass_PopIII(int i_burst, int snapshot, int SN_type) //SN_type = 0 -> CC, 1 -> PISN
+{
+  //Core Collapse SN
+  if (SN_type == 0) {
+    double CC_MassFraction = CCSN_PopIII_MassFraction(i_burst, snapshot);
+    return CC_MassFraction;
+  }
+  //PISN (feedback here is contemporaneous), this part is probably useless
+  if (SN_type == 1) {
+    if (i_burst != 0) {
+      mlog_error("PISN feedback is instantaneous!");
+      return 0;
+      }
+    double PISN_MassFraction = Mass_PISN() / (Mass_SNII() + Mass_PISN()); // Are you sure about that fraction?
+    return PISN_MassFraction; 
+  }  
+}
+
 double get_total_PopIIISN_energy(int SN_type) //SN_type = 0 -> CC, 1 -> PISN (Pop III have higher masses so we need to account also for PISN!)
 {
   double Enova;

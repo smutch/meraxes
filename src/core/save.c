@@ -93,6 +93,7 @@ void prepare_galaxy_for_output(galaxy_t gal, galaxy_output_t* galout, int i_snap
   galout->Metal_Probability = (float)(gal.Metal_Probability);
   galout->StellarMass_II = (float)(gal.StellarMass_II);
   galout->StellarMass_III = (float)(gal.StellarMass_III); 
+  galout->Remnant_Mass = (float)(gal.Remnant_Mass); 
 
   for (int ii = 0; ii < N_HISTORY_SNAPS; ii++){
     galout->NewStars[ii] = (float)(gal.NewStars[ii]);
@@ -117,7 +118,7 @@ void calc_hdf5_props()
     galaxy_output_t galout;
     int i; // dummy
 
-    h5props->n_props = 57; 
+    h5props->n_props = 58; 
 
 #ifdef CALC_MAGS
     h5props->n_props += 2;
@@ -341,6 +342,13 @@ void calc_hdf5_props()
     h5props->dst_offsets[i] = HOFFSET(galaxy_output_t, StellarMass_III);
     h5props->dst_field_sizes[i] = sizeof(galout.StellarMass_III);
     h5props->field_names[i] = "Pop3StellarMass";
+    h5props->field_units[i] = "1e10 solMass";
+    h5props->field_h_conv[i] = "v/h";
+    h5props->field_types[i++] = H5T_NATIVE_FLOAT;
+    
+    h5props->dst_offsets[i] = HOFFSET(galaxy_output_t, Remnant_Mass);
+    h5props->dst_field_sizes[i] = sizeof(galout.Remnant_Mass);
+    h5props->field_names[i] = "RemnantMass";
     h5props->field_units[i] = "1e10 solMass";
     h5props->field_h_conv[i] = "v/h";
     h5props->field_types[i++] = H5T_NATIVE_FLOAT;

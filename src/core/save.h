@@ -60,6 +60,7 @@ typedef struct galaxy_output_t
   float Metal_Probability; 
   float StellarMass_II;
   float StellarMass_III;
+  float Remnant_Mass;
 
   // misc
   float Rcool;

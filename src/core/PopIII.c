@@ -116,7 +116,7 @@ double IMFnorm(double Mmin_IMF, double Mmax_IMF) //get normalization of Pop III 
 
 double getIMF(double StarMass)
 {
-  double MminIMF = run_globals.params.physics.MminIMF; //remember to put these new parameters for IMF!
+  double MminIMF = run_globals.params.physics.MminIMF; 
   double MmaxIMF = run_globals.params.physics.MmaxIMF;
   double AlphaIMF = run_globals.params.physics.AlphaIMF;
   
@@ -125,33 +125,16 @@ double getIMF(double StarMass)
   return Anorm * pow(StarMass, AlphaIMF);
 }
 
-/*double get_StellarAge(double StarMass) //Stellar lifetime in Myr 
+double getIMF_2(double StarMass) // Don't need a second function, you could put this inside getIMF with a flag
 {
-  int PopIIIAgePrescription = run_globals.params.physics.PopIIIAgePrescription; //Remember to put this as a parameter!
-  double logStarMass = log10(StarMass);
-  switch (PopIIIAgePrescription) {
-      case 1: //stellar lifetimes by Schaerer 2002 (popIII) model at met=0 with strong mass loss, mass range [80-1000] Msun
-        double a0 = 8.795;
-        double a1 = -1.797;
-        double a2 = 0.332;
-        double a3 = 0;
-        break;
-      case 2: //stellar lifetimes by Schaerer 2002 (popIII) model at met=0 with no mass loss, mass range [9-500] Msun
-        double a0 = 9.785;
-        double a1 = -3.759;
-        double a2 = 1.413;
-        double a3 = -0.186;
-        break;
-      default:
-        mlog_error("Unrecognised value for PopIIIAgePrescription parameter! Defaulting to Strong Mass Loss case");
-        double a0 = 8.795;
-        double a1 = -1.797;
-        double a2 = 0.332;
-        double a3 = 0;
-        break;
-    }
-  return pow(10, a0 + a1 * logStarMass + a2 * logStarMass * logStarMass + a3 * pow(logStarMass, 3)) / 1e6;   
-}*/
+  double MminIMF = run_globals.params.physics.MminIMF;
+  double MmaxIMF = run_globals.params.physics.MmaxIMF;
+  double AlphaIMF = run_globals.params.physics.AlphaIMF;
+  
+  double Anorm = IMFnorm(MminIMF, MmaxIMF);
+  
+  return Anorm * StarMass * pow(StarMass, AlphaIMF);
+}
 
 double get_StellarAge(double StarMass) //Star Mass in log10(Msol) to get tstar in log10(yr). Use this so you can do a linear interpolation!!! 
 {
@@ -205,18 +188,18 @@ double Number_SNII(void)
   return result;  
 }
 
-double Number_PISN(void)
+double Mass_SNII(void)
 {
   double result, err;
   double rel_tol = 0.01; //<- relative tolerance
   gsl_function F;
   gsl_integration_workspace* w = gsl_integration_workspace_alloc(1000);
   
-  F.function = &getIMF;
+  F.function = &getIMF_2;
   
   gsl_integration_qag(&F,
-                      MminPISN,
-                      MmaxPISN,
+                      MminSnII,
+                      MmaxSnII,
                       0,
                       rel_tol,
                       1000,
@@ -227,6 +210,159 @@ double Number_PISN(void)
   gsl_integration_workspace_free(w);
 
   return result;  
+}
+
+double Mass_BHs(void) // Add BHs for Pop III with M>40Msol. Atm they don't do anything, it's just because we don't want Stellar population surviving!
+{
+  double result_1, result_2, err_1, err_2; // You have 2 limits of integration
+  double rel_tol = 0.01; //<- relative tolerance
+  gsl_function F;
+  gsl_integration_workspace* w = gsl_integration_workspace_alloc(1000);
+  
+  F.function = &getIMF_2;
+  
+  double MmaxIMF = run_globals.params.physics.MmaxIMF;
+  
+  // First check if your IMF allows PISN!
+  if (MmaxIMF < MmaxSNII) //NO BHs
+    return 0.0
+  
+  else {
+    if (MmaxIMF > MmaxPISN) {
+      gsl_integration_qag(&F,
+                      MmaxSNII,
+                      MminPISN,
+                      0,
+                      rel_tol,
+                      1000,
+                      GSL_INTEG_GAUSS61,
+                      w,
+                      &result_1,
+                      &err_1);
+      gsl_integration_workspace_free(w);
+      
+      gsl_integration_qag(&F,
+                      MmaxPISN,
+                      MmaxIMF,
+                      0,
+                      rel_tol,
+                      1000,
+                      GSL_INTEG_GAUSS61,
+                      w,
+                      &result_2,
+                      &err_2);
+      gsl_integration_workspace_free(w);
+      }
+    else if (MmaxIMF <= MminPISN {
+      gsl_integration_qag(&F,
+                      MmaxSNII,
+                      MmaxIMF,
+                      0,
+                      rel_tol,
+                      1000,
+                      GSL_INTEG_GAUSS61,
+                      w,
+                      &result_1,
+                      &err_1);
+      gsl_integration_workspace_free(w);
+      result_2 = 0.0;
+      }
+    return (result_1 + result_2);
+    }  
+}
+  
+}
+
+double Number_PISN(void)
+{
+  double result, err;
+  double rel_tol = 0.01; //<- relative tolerance
+  gsl_function F;
+  gsl_integration_workspace* w = gsl_integration_workspace_alloc(1000);
+  
+  F.function = &getIMF;
+  
+  double MmaxIMF = run_globals.params.physics.MmaxIMF;
+  
+  // First check if your IMF allows PISN!
+  if (MmaxIMF < MminPISN)
+    return 0.0
+  
+  else {
+    if (MmaxIMF >= MmaxPISN) {
+      gsl_integration_qag(&F,
+                      MminPISN,
+                      MmaxPISN,
+                      0,
+                      rel_tol,
+                      1000,
+                      GSL_INTEG_GAUSS61,
+                      w,
+                      &result,
+                      &err);
+      gsl_integration_workspace_free(w);
+      }
+    else {
+      gsl_integration_qag(&F,
+                      MminPISN,
+                      MmaxIMF,
+                      0,
+                      rel_tol,
+                      1000,
+                      GSL_INTEG_GAUSS61,
+                      w,
+                      &result,
+                      &err);
+      gsl_integration_workspace_free(w);
+      }
+    return result;
+    }  
+}
+
+double Mass_PISN(void)
+{
+  double result, err;
+  double rel_tol = 0.01; //<- relative tolerance
+  gsl_function F;
+  gsl_integration_workspace* w = gsl_integration_workspace_alloc(1000);
+  
+  F.function = &getIMF_2;
+  
+  double MmaxIMF = run_globals.params.physics.MmaxIMF;
+  
+  // First check if your IMF allows PISN!
+  if (MmaxIMF < MminPISN)
+    return 0.0
+  
+  else {
+    if (MmaxIMF >= MmaxPISN) {
+      gsl_integration_qag(&F,
+                      MminPISN,
+                      MmaxPISN,
+                      0,
+                      rel_tol,
+                      1000,
+                      GSL_INTEG_GAUSS61,
+                      w,
+                      &result,
+                      &err);
+      gsl_integration_workspace_free(w);
+      }
+    else {
+      gsl_integration_qag(&F,
+                      MminPISN,
+                      MmaxIMF,
+                      0,
+                      rel_tol,
+                      1000,
+                      GSL_INTEG_GAUSS61,
+                      w,
+                      &result,
+                      &err);
+      gsl_integration_workspace_free(w);
+      }
+    return result;
+    }    
 }
 
 double CCSN_PopIII_Fraction(int i_burst, int curr_snap) //Eq. 17 from Mutch et al. 2016 Result in adimensional number
@@ -308,5 +444,72 @@ double CCSN_PopIII_Fraction(int i_burst, int curr_snap) //Eq. 17 from Mutch et a
 
     return result / TotalCCSN;
     //return result;
+  }  
+} 
+
+double CCSN_PopIII_MassFraction(int i_burst, int curr_snap) //Eq. 22 from Mutch et al. 2016 Result in adimensional number
+{
+
+  double* LTTime = run_globals.LTTime;
+  double time_unit = run_globals.units.UnitTime_in_Megayears / run_globals.params.Hubble_h * 1e6; //You need result in yrs
+  double m_min;
+  double m_max;
+  
+  double TotalMassCCSN;
+  
+  double DeltaTime = (LTTime[curr_snap - i_burst] - LTTime[curr_snap]) * time_unit;
+  double DeltaTimeSnap = (LTTime[curr_snap - i_burst - 1] - LTTime[curr_snap - i_burst]) * time_unit; //Should be correct, might need to double check that!
+    
+  
+  if (i_burst != 0) {
+    m_min = interp_mass(DeltaTime + DeltaTimeSnap / 2);
+    m_max = interp_mass(DeltaTime - DeltaTimeSnap / 2);
+    }
+    
+  else {
+    m_min = interp_mass(DeltaTime + DeltaTimeSnap / 2);
+    m_max = MmaxSnII;
+    }
+  
+  if (m_min > MmaxSnII) { //There are no CCSN in this snapshot!
+    //mlog("m_min = %f, there are no CCSN in this snapshot", MLOG_MESG, m_min);
+    return 0.0;
+  }
+  
+  else if (m_max < MminSnII) { //There are no CCSN in this snapshot!
+    //mlog("m_max = %f, there are no CCSN in this snapshot", MLOG_MESG, m_max);
+    return 0.0; //Maybe put -1 or a break because this condition should stop your while loop!
+  }
+    
+  else { 
+    if (m_max > MmaxSnII) // Firstly, you are only interested in stars in the CCSN mass range
+      m_max = MmaxSnII;
+      
+    if (m_min < MminSnII) 
+      m_min = MminSnII;
+      
+    double result, err;
+    double rel_tol = 0.01; //<- relative tolerance
+    gsl_function F;
+    gsl_integration_workspace* w = gsl_integration_workspace_alloc(1000);
+  
+    F.function = &getIMF_2;
+  
+    gsl_integration_qag(&F,
+                        m_min,
+                        m_max,
+                        0,
+                        rel_tol,
+                        1000,
+                        GSL_INTEG_GAUSS61,
+                        w,
+                        &result,
+                        &err);
+    gsl_integration_workspace_free(w);
+  
+    //TotalCCSN = Number_SNII();
+    TotalMassCCSN = Mass_SNII() + Mass_PISN(); //I am still not 100% sure if I have to consider only SNII (I believe so)
+  
+    return result / TotalMassCCSN;
   }  
 } 

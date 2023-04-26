@@ -127,11 +127,11 @@ static void merger_driven_starburst(galaxy_t* parent, double merger_ratio, int s
       double m_recycled;
       double new_metals;
       
-      contemporaneous_supernova_feedback(parent, &burst_mass, snapshot, &m_reheat, &m_eject, &m_recycled, &new_metals);
+      contemporaneous_supernova_feedback(parent, &burst_mass, snapshot, &m_reheat, &m_eject, &m_recycled, &m_remnant, &new_metals);
       // update the baryonic reservoirs (note that the order we do this in will change the result!)
       update_reservoirs_from_sf(parent, burst_mass, snapshot, MERGER);
       parent->MergerBurstMass += burst_mass;
-      update_reservoirs_from_sn_feedback(parent, m_reheat, m_eject, m_recycled, new_metals);
+      update_reservoirs_from_sn_feedback(parent, m_reheat, m_eject, m_recycled, m_remnant, new_metals);
     }
   }
 }
@@ -167,6 +167,7 @@ void merge_with_target(galaxy_t* gal, int* dead_gals, int snapshot)
   parent->StellarMass += gal->StellarMass;
   parent->StellarMass_II += gal->StellarMass_II;
   parent->StellarMass_III += gal->StellarMass_III;
+  parent->Remnant_Mass += gal->Remnant_Mass;
   parent->GrossStellarMass += gal->GrossStellarMass;
   parent->FescWeightedGSM += gal->FescWeightedGSM;
   parent->MetalsStellarMass += gal->MetalsStellarMass;
