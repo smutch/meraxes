@@ -270,8 +270,6 @@ double Mass_BHs(void) // Add BHs for Pop III with M>40Msol. Atm they don't do an
     return (result_1 + result_2);
     }  
 }
-  
-}
 
 double Number_PISN(void)
 {
