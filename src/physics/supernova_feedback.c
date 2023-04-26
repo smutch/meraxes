@@ -356,10 +356,10 @@ void delayed_supernova_feedback(galaxy_t* gal, int snapshot) // Once you test th
       sn_energy_II += get_SN_energy(i_burst, metallicity) * m_stars_II; //It's correct! Maybe code this in a way in which is easier to understand
       //sn_energy_III += get_SN_energy(i_burst, metallicity) * m_stars_III;
       sn_energy_III += get_SN_energy_PopIII(i_burst, snapshot, 0) * m_stars_III; // Only CCSN have delayed feedback, that is DeltaM reheat (eq.16 Mutch+16) * ENOVA
-      if (m_stars_III > 1e-10)
+      /*if (m_stars_III > 1e-10)
         mlog("i_burst = %d, dull = %f, sn_III = %f", MLOG_MESG, i_burst, get_SN_energy_PopIII(i_burst, snapshot, 0) / ENOVA_CC, sn_energy_III / energy_unit * Number_SNII() * 1e10 / run_globals.params.Hubble_h / m_stars_III);
       if (m_stars_II > 1e-10)
-        mlog("i_burst = %d, sn_II = %f", MLOG_MESG, i_burst, sn_energy_II / m_stars_II);
+        mlog("i_burst = %d, sn_II = %f", MLOG_MESG, i_burst, sn_energy_II / m_stars_II);*/
       //sn_energy += (sn_energy_II + sn_energy_III);
     }
   }
