@@ -22,7 +22,7 @@ void initialize_time_interp_arrays()
   double MminIMF = run_globals.params.physics.MminIMF; 
   double MmaxIMF = run_globals.params.physics.MmaxIMF;
 
-  int mass_bins = 2 * (MmaxIMF - MminIMF);
+  int mass_bins = 5 * (MmaxIMF - MminIMF);
   double mass_step = (MmaxIMF - MminIMF) / mass_bins;
   double mass_val = log10(MminIMF);
   int i;
