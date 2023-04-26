@@ -18,12 +18,17 @@ extern "C"
   
   void initialize_time_interp_arrays();
   double CCSN_PopIII_Fraction(int i_burst, int curr_snap); 
+  double CCSN_PopIII_MassFraction(int i_burst, int curr_snap);
   double interp_mass(double lifetime);
   double IMFnorm(double MminIMF, double MmaxIMF);
   double get_StellarAge(double StarMass);
   double getIMF(double StarMass);
+  double getIMF_2(double StarMass);
   double Number_SNII(void);
+  double Mass_SNII(void);
   double Number_PISN(void);
+  double Mass_PISN(void);
+  double Mass_BHs(void); 
 
 #ifdef __cplusplus
 }
