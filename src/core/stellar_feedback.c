@@ -72,7 +72,6 @@ void read_stellar_feedback_tables(void)
     hid_t fd;
     char fname[STRLEN];
     double energy_unit = run_globals.units.UnitEnergy_in_cgs;
-    //mlog("en_unit = %f",MLOG_MESG, energy_unit);
 
     sprintf(fname, "%s/stellar_feedback_tables.hdf5", run_globals.params.StellarFeedbackDir);
     fd = H5Fopen(fname, H5F_ACC_RDONLY, H5P_DEFAULT);

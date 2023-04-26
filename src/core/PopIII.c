@@ -14,7 +14,7 @@
 #include <gsl/gsl_roots.h>
 #include <gsl/gsl_spline.h>
 
-static float Mass_Values[MASS_BINS];
+static float Mass_Values[MASS_BINS]; //Is there a smart way to define MASS_BINS depending on the limits of the IMF that we choose?
 static float Time_Values[MASS_BINS];
 
 void initialize_time_interp_arrays()
@@ -33,7 +33,7 @@ void initialize_time_interp_arrays()
       mass_val = log10(MminIMF + (double)i * mass_step); //Multiply double and int! Is it a problem? (Maybe double check it later)
       Mass_Values[i] = mass_val; //&Mass_Values[i] ?
       Time_Values[i] = get_StellarAge(mass_val); //&Time_Values[i] ?
-      mlog("Mass = %f, Time = %f", MLOG_MESG, pow(10, Mass_Values[i]), pow(10, Time_Values[i]) / 1e6);
+      //mlog("Mass = %f, Time = %f", MLOG_MESG, pow(10, Mass_Values[i]), pow(10, Time_Values[i]) / 1e6);
     }
   }
 
@@ -260,8 +260,8 @@ double CCSN_PopIII_Fraction(int i_burst, int curr_snap) //Eq. 17 from Mutch et a
     m_max = MmaxSnII;
     }
   
-  if (i_burst < 10)
-    mlog("m_min = %f, m_max = %f", MLOG_MESG, m_min, m_max);
+  //if (i_burst < 10)
+    //mlog("m_min = %f, m_max = %f", MLOG_MESG, m_min, m_max);
     
   if (m_min > MmaxSnII) { //There are no CCSN in this snapshot!
     //mlog("m_min = %f, there are no CCSN in this snapshot", MLOG_MESG, m_min);
