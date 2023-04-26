@@ -30,9 +30,10 @@ void initialize_time_interp_arrays()
   if (run_globals.mpi_rank == 0) {
 
     for (i = 0; i < mass_bins; i++) {
-      mass_val = log10(MminIMF + i * mass_step); //Summing double + int! Is it a problem? (Maybe double check it later)
+      mass_val = log10(MminIMF + (double)i * mass_step); //Multiply double and int! Is it a problem? (Maybe double check it later)
       Mass_Values[i] = mass_val; //&Mass_Values[i] ?
       Time_Values[i] = get_StellarAge(mass_val); //&Time_Values[i] ?
+      mlog("Mass = %f, Time = %f", MLOG_MESG, pow(10, Mass_Values[i]), pow(10, Time_Values[i]) / 1e6);
     }
   }
 
@@ -46,7 +47,7 @@ double interp_mass(double lifetime) // Lifetime in yr units!!
   double MminIMF = run_globals.params.physics.MminIMF; 
   double MmaxIMF = run_globals.params.physics.MmaxIMF;
 
-  int mass_bins = MmaxIMF - MminIMF;
+  int mass_bins = 5 * (MmaxIMF - MminIMF);
   int n_low, n_high;
 
   double massfinal_result;
