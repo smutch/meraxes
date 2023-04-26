@@ -224,13 +224,13 @@ double Mass_BHs(void) // Add BHs for Pop III with M>40Msol. Atm they don't do an
   double MmaxIMF = run_globals.params.physics.MmaxIMF;
   
   // First check if your IMF allows PISN!
-  if (MmaxIMF < MmaxSNII) //NO BHs
+  if (MmaxIMF < MmaxSnII) //NO BHs
     return 0.0;
   
   else {
     if (MmaxIMF > MmaxPISN) {
       gsl_integration_qag(&F,
-                      MmaxSNII,
+                      MmaxSnII,
                       MminPISN,
                       0,
                       rel_tol,
@@ -255,7 +255,7 @@ double Mass_BHs(void) // Add BHs for Pop III with M>40Msol. Atm they don't do an
       }
     else if (MmaxIMF <= MminPISN {
       gsl_integration_qag(&F,
-                      MmaxSNII,
+                      MmaxSnII,
                       MmaxIMF,
                       0,
                       rel_tol,
