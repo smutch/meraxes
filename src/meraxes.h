@@ -526,6 +526,10 @@ typedef struct galaxy_t
   double StellarMass_II;
   double StellarMass_III;
   
+  //Remnant (still work in progress)
+  
+  double Remnant_Mass; //ATM just coming from Pop III with M between 40 and 140 and larger than 260 Msol
+  
   //Metallicity stuff 
   double RmetalBubble; //New for MetalEvo
   double Metal_Probability; // Probability to be polluted by other metal bubbles

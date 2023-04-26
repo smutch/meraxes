@@ -16,6 +16,7 @@ extern "C"
                                           double m_reheat,
                                           double m_eject,
                                           double m_recycled,
+                                          double m_remnant,
                                           double new_metals);
         
   void update_reservoirs_from_delayed_sn_feedback(struct galaxy_t* gal,
@@ -33,6 +34,7 @@ extern "C"
                                           double* m_reheat,
                                           double* m_eject,
                                           double* m_recycled,
+                                          double* m_remnant,
                                           double* new_metals);
 
 #ifdef __cplusplus
