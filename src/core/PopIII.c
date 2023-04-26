@@ -22,14 +22,15 @@ void initialize_time_interp_arrays()
   double MminIMF = run_globals.params.physics.MminIMF; 
   double MmaxIMF = run_globals.params.physics.MmaxIMF;
 
-  int mass_bins = MmaxIMF - MminIMF;
+  int mass_bins = 2 * (MmaxIMF - MminIMF);
+  double mass_step = (MmaxIMF - MminIMF) / mass_bins;
   double mass_val = log10(MminIMF);
   int i;
 
   if (run_globals.mpi_rank == 0) {
 
     for (i = 0; i < mass_bins; i++) {
-      mass_val = log10(MminIMF + i); //Summing double + int! Is it a problem? (Maybe double check it later)
+      mass_val = log10(MminIMF + i * mass_step); //Summing double + int! Is it a problem? (Maybe double check it later)
       Mass_Values[i] = mass_val; //&Mass_Values[i] ?
       Time_Values[i] = get_StellarAge(mass_val); //&Time_Values[i] ?
     }
@@ -257,6 +258,9 @@ double CCSN_PopIII_Fraction(int i_burst, int curr_snap) //Eq. 17 from Mutch et a
     m_min = interp_mass(DeltaTime + DeltaTimeSnap / 2);
     m_max = MmaxSnII;
     }
+  
+  if (i_burst == 1)
+    mlog("m_min = %f, m_max = %f", MLOG_MESG, m_min, m_max);
     
   if (m_min > MmaxSnII) { //There are no CCSN in this snapshot!
     //mlog("m_min = %f, there are no CCSN in this snapshot", MLOG_MESG, m_min);
