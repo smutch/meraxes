@@ -523,6 +523,7 @@ void contemporaneous_supernova_feedback(galaxy_t* gal,
   assert(*new_metals >= 0);
   assert(*m_recycled >= 0);
   assert(*m_reheat >= 0);
+  assert(*m_remnant >= 0);
 
   // how much mass is ejected due to this star formation episode? (ala Croton+ 2006)
   //*m_eject = calc_ejected_mass(m_reheat, sn_energy, gal->Vvir, gal->Halo->FOFGroup->Vvir);

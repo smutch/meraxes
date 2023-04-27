@@ -239,7 +239,7 @@ double Mass_BHs(void) // Add BHs for Pop III with M>40Msol. Atm they don't do an
                       w,
                       &result_1,
                       &err_1);
-      gsl_integration_workspace_free(w);
+      //gsl_integration_workspace_free(w);
       
       gsl_integration_qag(&F,
                       MmaxPISN,
