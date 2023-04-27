@@ -28,7 +28,7 @@ void update_reservoirs_from_sn_feedback(galaxy_t* gal,
   else
     central = gal->Halo->FOFGroup->FirstOccupiedHalo->Galaxy;
 
-  gal->StellarMass -= m_recycled;
+  gal->StellarMass -= (m_recycled + m_remnant);
   if (gal->Galaxy_Population == 2)
     gal->StellarMass_II -= m_recycled;
   else if (gal->Galaxy_Population == 3) {
