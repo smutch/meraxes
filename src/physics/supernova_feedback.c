@@ -17,7 +17,6 @@ void update_reservoirs_from_sn_feedback(galaxy_t* gal,
 {
   double metallicity;
   galaxy_t* central;
-  bool Flag_Metals = (bool)(run_globals.params.Flag_IncludeMetalEvo);
 
   // If this is a ghost then it doesn't have an identified halo at this
   // snapshot.  We will therefore dump all of the reheated gas into the ghost's
@@ -111,8 +110,7 @@ void update_reservoirs_from_delayed_sn_feedback(galaxy_t* gal, //You don't need 
 {
   double metallicity;
   galaxy_t* central;
-  bool Flag_Metals = (bool)(run_globals.params.Flag_IncludeMetalEvo);
-
+  
   // If this is a ghost then it doesn't have an identified halo at this
   // snapshot.  We will therefore dump all of the reheated gas into the ghost's
   // hot halo, to be recollected and distributed when the ghost is reidentified

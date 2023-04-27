@@ -91,9 +91,9 @@ void update_reservoirs_from_sf(galaxy_t* gal, double new_stars, int snapshot, SF
     // reservoirs due to supernova feedback.
     if (gal->StellarMass < 0)
       gal->StellarMass = 0.0;
-      if (gal->StellarMass_II < 0)
+    if (gal->StellarMass_II < 0)
       gal->StellarMass_II = 0.0;
-      if (gal->StellarMass_III < 0)
+    if (gal->StellarMass_III < 0)
       gal->StellarMass_III = 0.0;
     if (gal->MetalsStellarMass < 0)
       gal->MetalsStellarMass = 0.0;
@@ -157,7 +157,7 @@ void insitu_star_formation(galaxy_t* gal, int snapshot)
             m_stars = zplus1_n * SfEfficiency_II * (gal->ColdGas - m_crit) / r_disk * v_disk * gal->dt;
             }
           else if (gal->Galaxy_Population == 3){
-            m_stars = zplus1_n * SfEfficiency_III * (gal->ColdGas - m_crit) / r_disk * v_disk * gal->dt;
+            m_stars = zplus1_n_III * SfEfficiency_III * (gal->ColdGas - m_crit) / r_disk * v_disk * gal->dt;
             }
           }
         else
