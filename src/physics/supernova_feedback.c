@@ -497,7 +497,7 @@ void contemporaneous_supernova_feedback(galaxy_t* gal,
     *m_remnant = Mass_BHs() * (*m_stars); //Maybe print the value to check that
     //*m_reheat = calc_sn_reheat_eff(gal, snapshot, 3) * (Number_PISN() / (Number_PISN() + Number_SNII()) * (*m_stars / 1e10 * run_globals.params.Hubble_h)); //Add PISN
     sn_energy *= calc_sn_ejection_eff(gal, snapshot, 3); //might be worth have 2 different SN ejection eff for PISN and CC; 
-    //mlog("sn_energyIII = %f", MLOG_MESG, sn_energy);
+    mlog("Tot BHmass = %f", MLOG_MESG, Mass_BHs());
     }
 
   // We can only reheat as much gas as we have available.  Let's inforce this
