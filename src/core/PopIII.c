@@ -214,11 +214,6 @@ double Mass_SNII(void)
 
 double Mass_BHs(void) // Add BHs for Pop III with M>40Msol. Atm they don't do anything, it's just because we don't want Stellar population surviving!
 {
-  double result_1, result_2, err_1, err_2; // You have 2 limits of integration
-  double rel_tol = 0.01; //<- relative tolerance
-  gsl_function F;
-  gsl_integration_workspace* w = gsl_integration_workspace_alloc(1000);
-  
   F.function = &getIMF_2;
   
   double MmaxIMF = run_globals.params.physics.MmaxIMF;
@@ -228,6 +223,11 @@ double Mass_BHs(void) // Add BHs for Pop III with M>40Msol. Atm they don't do an
     return 0.0;
   
   else {
+    double result_1, result_2, err_1, err_2; // You have 2 limits of integration
+    double rel_tol = 0.01; //<- relative tolerance
+    gsl_function F;
+    gsl_integration_workspace* w = gsl_integration_workspace_alloc(1000);
+  
     if (MmaxIMF > MmaxPISN) {
       gsl_integration_qag(&F,
                       MmaxSnII,
