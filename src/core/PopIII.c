@@ -213,9 +213,7 @@ double Mass_SNII(void)
 }
 
 double Mass_BHs(void) // Add BHs for Pop III with M>40Msol. Atm they don't do anything, it's just because we don't want Stellar population surviving!
-{
-  F.function = &getIMF_2;
-  
+{ 
   double MmaxIMF = run_globals.params.physics.MmaxIMF;
   
   // First check if your IMF allows PISN!
@@ -227,6 +225,7 @@ double Mass_BHs(void) // Add BHs for Pop III with M>40Msol. Atm they don't do an
     double rel_tol = 0.01; //<- relative tolerance
     gsl_function F;
     gsl_integration_workspace* w = gsl_integration_workspace_alloc(1000);
+    F.function = &getIMF_2;
   
     if (MmaxIMF > MmaxPISN) {
       gsl_integration_qag(&F,
