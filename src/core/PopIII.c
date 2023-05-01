@@ -238,7 +238,6 @@ double Mass_BHs(void) // Add BHs for Pop III with M>40Msol. Atm they don't do an
                       w,
                       &result_1,
                       &err_1);
-      //gsl_integration_workspace_free(w);
       
       gsl_integration_qag(&F,
                       MmaxPISN,
@@ -250,7 +249,6 @@ double Mass_BHs(void) // Add BHs for Pop III with M>40Msol. Atm they don't do an
                       w,
                       &result_2,
                       &err_2);
-      gsl_integration_workspace_free(w);
       }
     else if (MmaxIMF <= MminPISN) {
       gsl_integration_qag(&F,
@@ -263,22 +261,15 @@ double Mass_BHs(void) // Add BHs for Pop III with M>40Msol. Atm they don't do an
                       w,
                       &result_1,
                       &err_1);
-      gsl_integration_workspace_free(w);
       result_2 = 0.0;
       }
+    gsl_integration_workspace_free(w);
     return (result_1 + result_2);
     }  
 }
 
 double Number_PISN(void)
-{
-  double result, err;
-  double rel_tol = 0.01; //<- relative tolerance
-  gsl_function F;
-  gsl_integration_workspace* w = gsl_integration_workspace_alloc(1000);
-  
-  F.function = &getIMF;
-  
+{ 
   double MmaxIMF = run_globals.params.physics.MmaxIMF;
   
   // First check if your IMF allows PISN!
@@ -286,6 +277,12 @@ double Number_PISN(void)
     return 0.0;
   
   else {
+    double result, err;
+    double rel_tol = 0.01; //<- relative tolerance
+    gsl_function F;
+    gsl_integration_workspace* w = gsl_integration_workspace_alloc(1000);
+  
+  F.function = &getIMF;
     if (MmaxIMF >= MmaxPISN) {
       gsl_integration_qag(&F,
                       MminPISN,
@@ -297,7 +294,6 @@ double Number_PISN(void)
                       w,
                       &result,
                       &err);
-      gsl_integration_workspace_free(w);
       }
     else {
       gsl_integration_qag(&F,
@@ -310,8 +306,8 @@ double Number_PISN(void)
                       w,
                       &result,
                       &err);
-      gsl_integration_workspace_free(w);
       }
+    gsl_integration_workspace_free(w);
     return result;
     }  
 }
@@ -319,7 +315,6 @@ double Number_PISN(void)
 double Mass_PISN(void)
 {
  
-  
   double MmaxIMF = run_globals.params.physics.MmaxIMF;
   
   // First check if your IMF allows PISN!
@@ -344,7 +339,6 @@ double Mass_PISN(void)
                       w,
                       &result,
                       &err);
-      gsl_integration_workspace_free(w);
       }
     else {
       gsl_integration_qag(&F,
@@ -357,8 +351,8 @@ double Mass_PISN(void)
                       w,
                       &result,
                       &err);
-      gsl_integration_workspace_free(w);
       }
+    gsl_integration_workspace_free(w);
     return result;
     }    
 }
