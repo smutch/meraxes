@@ -318,12 +318,7 @@ double Number_PISN(void)
 
 double Mass_PISN(void)
 {
-  double result, err;
-  double rel_tol = 0.01; //<- relative tolerance
-  gsl_function F;
-  gsl_integration_workspace* w = gsl_integration_workspace_alloc(1000);
-  
-  F.function = &getIMF_2;
+ 
   
   double MmaxIMF = run_globals.params.physics.MmaxIMF;
   
@@ -332,6 +327,12 @@ double Mass_PISN(void)
     return 0.0;
   
   else {
+    double result, err;
+    double rel_tol = 0.01; //<- relative tolerance
+    gsl_function F;
+    gsl_integration_workspace* w = gsl_integration_workspace_alloc(1000);
+  
+    F.function = &getIMF_2;
     if (MmaxIMF >= MmaxPISN) {
       gsl_integration_qag(&F,
                       MminPISN,
