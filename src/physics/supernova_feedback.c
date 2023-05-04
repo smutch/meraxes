@@ -466,7 +466,8 @@ void contemporaneous_supernova_feedback(galaxy_t* gal,
     else if (gal->Galaxy_Population == 3){
       //*m_recycled = *m_stars * get_recycling_fraction(0, metallicity);
       *m_recycled = *m_stars * (get_SN_mass_PopIII(0, snapshot, 0) + get_SN_mass_PopIII(0, snapshot, 1));
-      *new_metals = *m_stars * get_metal_yield(0, metallicity);
+      //*new_metals = *m_stars * get_metal_yield(0, metallicity);
+      *new_metals = *m_stars * (get_SN_mass_PopIII(0, snapshot, 1)) / 2.0 - (20.0 / 1e10 * run_globals.params.Hubble_h); // Fitting function taken from CAT for PISN, NEED TO ADD CC!!!
       }
   } else {
     // Recycling fraction and metals yield are input parameters when using IRA
