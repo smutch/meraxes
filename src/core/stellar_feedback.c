@@ -193,7 +193,7 @@ double get_SN_energy_PopIII(int i_burst, int snapshot, int SN_type) //SN_type = 
       return 0;
       }
     Enova = ENOVA_PISN;
-    double N_PISN = Number_PISN();
+    double N_PISN = NumberPISN;
     return Enova * N_PISN; // erg / Msol
   }  
 }
@@ -211,7 +211,7 @@ double get_SN_mass_PopIII(int i_burst, int snapshot, int SN_type) //SN_type = 0 
       mlog_error("PISN feedback is instantaneous!");
       return 0;
       }
-    double PISN_MassFraction = Mass_PISN() / (Mass_SNII() + Mass_PISN()); // Are you sure about that fraction?
+    double PISN_MassFraction = MassPISN / (MassSNII + MassPISN); // Are you sure about that fraction?
     return PISN_MassFraction; 
   }  
 }
@@ -223,12 +223,12 @@ double get_total_PopIIISN_energy(int SN_type) //SN_type = 0 -> CC, 1 -> PISN (Po
   //Core Collapse SN
   if (SN_type == 0) {
     Enova = ENOVA_CC; 
-    TotalEn = Enova * Number_SNII();
+    TotalEn = Enova * NumberSNII;
   }
   //PISN (feedback here is contemporaneous)
   if (SN_type == 1) {
     Enova = ENOVA_PISN;
-    TotalEn = Enova * Number_PISN();
+    TotalEn = Enova * NumberPISN;
   } 
   return TotalEn;
 }

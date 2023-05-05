@@ -54,7 +54,8 @@ void initialize_PopIII_stuff() //Initialize PopIII quantities that are easily co
     MassPISN = Mass_PISN();
     NumberSNII = Number_SNII();
     MassSNII = Mass_SNII();
-    MassBHs = Mass_BHs();   
+    MassBHs = Mass_BHs();
+    mlog("Init quantities: NPISN = %f, MPISN = %f, NSNII = %f, MSNII = %f, MBHs = %f", MLOG_MESG, NumberPISN, MassPISN, NumberSNII, MassSNII, MassBHs);    
   }
   MPI_Bcast(&NumberPISN, sizeof(NumberPISN), MPI_BYTE, 0, run_globals.mpi_comm);
   MPI_Bcast(&MassPISN, sizeof(MassPISN), MPI_BYTE, 0, run_globals.mpi_comm);
