@@ -16,7 +16,8 @@ extern "C"
 {
 #endif
   
-  void initialize_time_interp_arrays();
+  void initialize_time_interp_arrays(void);
+  void initialize_PopIII_stuff(void);
   double CCSN_PopIII_Fraction(int i_burst, int curr_snap); 
   double CCSN_PopIII_MassFraction(int i_burst, int curr_snap);
   double interp_mass(double lifetime);

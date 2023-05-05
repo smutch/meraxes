@@ -265,6 +265,7 @@ void init_meraxes()
   
   // initialize Pop III tables
   initialize_time_interp_arrays();
+  initialize_PopIII_stuff();
 
 #ifdef CALC_MAGS
   init_magnitudes();

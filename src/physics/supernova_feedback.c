@@ -374,7 +374,7 @@ void delayed_supernova_feedback(galaxy_t* gal, int snapshot) // Once you test th
   m_reheat_II = calc_sn_reheat_eff(gal, snapshot, 2) * sn_energy_II / get_total_SN_energy();
   sn_energy_II *= calc_sn_ejection_eff(gal, snapshot, 2);
   m_reheat_III = calc_sn_reheat_eff(gal, snapshot, 3) * sn_energy_III / ENOVA_CC; //Only CCSN have delayed feedback
-  sn_energy_III *= (calc_sn_ejection_eff(gal, snapshot, 3) * Number_SNII() * 1e10 / run_globals.params.Hubble_h); //Maybe for the SN ejection efficiency is more important to distinguish between PISN/CC rather than Pop.III/II //THEORETICALLY THIS IS CORRECT! YOU GET energy in erg
+  sn_energy_III *= (calc_sn_ejection_eff(gal, snapshot, 3) * NumberSNII * 1e10 / run_globals.params.Hubble_h); //Maybe for the SN ejection efficiency is more important to distinguish between PISN/CC rather than Pop.III/II //THEORETICALLY THIS IS CORRECT! YOU GET energy in erg
   m_reheat = m_reheat_II + m_reheat_III;
   //sn_energy = sn_energy_II + sn_energy_III;
   sn_energy = sn_energy_II + sn_energy_III / energy_unit; //Convert from erg to internal units! 10^10Msol/h * (km/s)^2
@@ -471,7 +471,7 @@ void contemporaneous_supernova_feedback(galaxy_t* gal,
       *m_recycled = *m_stars * (CCSN_PopIII_Yield(0, snapshot, 0) + get_SN_mass_PopIII(0, snapshot, 1));
       //*new_metals = *m_stars * get_metal_yield(0, metallicity);
       *new_metals = *m_stars * ((get_SN_mass_PopIII(0, snapshot, 1)) / 2.0 - (20.0 / 1e10 * run_globals.params.Hubble_h) + CCSN_PopIII_Yield(0, snapshot, 1)); // Fitting function taken from CAT for PISN
-      *m_remnant = *m_stars * (Mass_BHs() + CCSN_PopIII_Yield(0, snapshot, 2));
+      *m_remnant = *m_stars * (MassBHs + CCSN_PopIII_Yield(0, snapshot, 2));
       }
   } else {
     // Recycling fraction and metals yield are input parameters when using IRA
@@ -495,10 +495,10 @@ void contemporaneous_supernova_feedback(galaxy_t* gal,
   else if (gal->Galaxy_Population == 3){ // Now it should be correct!
     //sn_energy = *m_stars * get_SN_energy(0, metallicity);
     //sn_energy = *m_stars * (get_SN_energy_PopIII(0, snapshot, 0) + get_SN_energy_PopIII(0, snapshot, 1)); // Here you need to account also for PISN!
-    sn_energy = get_SN_energy_PopIII(0, snapshot, 0) * (*m_stars * 1e10 / run_globals.params.Hubble_h * Number_SNII()) + (*m_stars * (ENOVA_PISN * Number_PISN() * 1e10 / run_globals.params.Hubble_h)); //erg
+    sn_energy = get_SN_energy_PopIII(0, snapshot, 0) * (*m_stars * 1e10 / run_globals.params.Hubble_h * NumberSNII) + (*m_stars * (ENOVA_PISN * NumberPISN * 1e10 / run_globals.params.Hubble_h)); //erg
     sn_energy /= energy_unit; //Convert this because you need in internal units it for m_ejected
     //*m_reheat = calc_sn_reheat_eff(gal, snapshot, 3) * sn_energy / (get_total_PopIIISN_energy(0) + get_total_PopIIISN_energy(1));
-    *m_reheat = calc_sn_reheat_eff(gal, snapshot, 3) * ((Number_PISN() / (Number_PISN() + Number_SNII()) * (*m_stars)) + (get_SN_energy_PopIII(0, snapshot, 0) / ENOVA_CC * (*m_stars)));
+    *m_reheat = calc_sn_reheat_eff(gal, snapshot, 3) * ((NumberPISN / (NumberPISN + NumberSNII) * (*m_stars)) + (get_SN_energy_PopIII(0, snapshot, 0) / ENOVA_CC * (*m_stars)));
     //*m_reheat = calc_sn_reheat_eff(gal, snapshot, 3) * (Number_PISN() / (Number_PISN() + Number_SNII()) * (*m_stars / 1e10 * run_globals.params.Hubble_h)); //Add PISN
     sn_energy *= calc_sn_ejection_eff(gal, snapshot, 3); //might be worth have 2 different SN ejection eff for PISN and CC; 
     //mlog("Tot BHmass = %f", MLOG_MESG, Mass_BHs());
