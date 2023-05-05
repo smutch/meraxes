@@ -16,6 +16,11 @@
 
 static float Mass_Values[MASS_BINS]; //Is there a smart way to define MASS_BINS depending on the limits of the IMF that we choose?
 static float Time_Values[MASS_BINS];
+static double NumberPISN;
+static double MassPISN;
+static double NumberSNII;
+static double MassSNII;
+static double MassBHs;
 
 void initialize_time_interp_arrays()
 {

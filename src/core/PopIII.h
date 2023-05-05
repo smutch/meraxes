@@ -11,12 +11,6 @@
 #define MminPISN 140
 #define MmaxPISN 260
 
-static double NumberPISN;
-static double MassPISN;
-static double NumberSNII;
-static double MassSNII;
-static double MassBHs;
-
 #ifdef __cplusplus
 extern "C"
 {
