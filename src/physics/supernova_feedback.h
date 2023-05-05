@@ -25,6 +25,7 @@ extern "C"
                                           double m_recycled,
                                           double m_recycled_III,
                                           double m_recylced_II,
+                                          double m_remnant,
                                           double new_metals);                                  
   void delayed_supernova_feedback(struct galaxy_t* gal, int snapshot);
   void calc_metal_bubble(struct galaxy_t* gal, int snapshot);

@@ -29,6 +29,7 @@ extern "C"
   double Number_PISN(void);
   double Mass_PISN(void);
   double Mass_BHs(void); 
+  double CCSN_PopIII_Yield(int i_burst, int curr_snap, int yield_type);
 
 #ifdef __cplusplus
 }
