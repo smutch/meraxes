@@ -445,6 +445,8 @@ void contemporaneous_supernova_feedback(galaxy_t* gal,
   double sn_energy = 0.0;
   double energy_unit = run_globals.units.UnitEnergy_in_cgs;
   
+  mlog("test = %f, test2 = %f", MLOG_MESG, MassPISN, MassSNII);
+  
   // init (just in case!)
   *m_reheat = *m_recycled = *new_metals = *m_eject = *m_remnant = 0.0;
 
@@ -467,8 +469,8 @@ void contemporaneous_supernova_feedback(galaxy_t* gal,
       }
     else if (gal->Galaxy_Population == 3){
       //*m_recycled = *m_stars * get_recycling_fraction(0, metallicity);
-      *m_recycled = *m_stars * (get_SN_mass_PopIII(0, snapshot, 0) + get_SN_mass_PopIII(0, snapshot, 1));
-      //*m_recycled = *m_stars * (CCSN_PopIII_Yield(0, snapshot, 0) + get_SN_mass_PopIII(0, snapshot, 1));
+      //*m_recycled = *m_stars * (get_SN_mass_PopIII(0, snapshot, 0) + get_SN_mass_PopIII(0, snapshot, 1));
+      *m_recycled = *m_stars * (CCSN_PopIII_Yield(0, snapshot, 0) + get_SN_mass_PopIII(0, snapshot, 1));
       *m_remnant = *m_stars * (MassBHs + CCSN_PopIII_Yield(0, snapshot, 2));
       if (MassPISN > 0)
         *new_metals = *m_stars * get_SN_mass_PopIII(0, snapshot, 1) / 2.0 - (20.0 / 1e10 * run_globals.params.Hubble_h) + *m_stars * CCSN_PopIII_Yield(0, snapshot, 1);
