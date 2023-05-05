@@ -693,6 +693,12 @@ typedef struct run_globals_t
   double RhoCrit;
   double G;
   double Csquare;
+  // PopIII stuff
+  double NumberPISN;
+  double MassPISN;
+  double NumberSNII;
+  double MassSNII;
+  double MassBHs;
 
 #ifdef CALC_MAGS
   struct mag_params_t mag_params;
