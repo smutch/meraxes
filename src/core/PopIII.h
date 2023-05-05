@@ -11,20 +11,11 @@
 #define MminPISN 140
 #define MmaxPISN 260
 
-//#ifdef _POPIII_C
-
-//static double NumberPISN;
-//static double MassPISN;
-//static double NumberSNII;
-//static double MassSNII;
-//static double MassBHs;
-//#else
 extern double NumberPISN;
 extern double MassPISN;
 extern double NumberSNII;
 extern double MassSNII;
 extern double MassBHs;
-//#endif
 
 #ifdef __cplusplus
 extern "C"
