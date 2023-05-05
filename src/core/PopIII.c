@@ -418,6 +418,8 @@ double CCSN_PopIII_Fraction(int i_burst, int curr_snap) //Eq. 17 from Mutch et a
   }
     
   else { 
+    double NumberPISN = run_globals.NumberPISN;
+    double NumberSNII = run_globals.NumberSNII;
     if (m_max > MmaxSnII) // Firstly, you are only interested in stars in the CCSN mass range
       m_max = MmaxSnII;
       
@@ -490,7 +492,9 @@ double CCSN_PopIII_MassFraction(int i_burst, int curr_snap) //Eq. 22 from Mutch 
     return 0.0; //Maybe put -1 or a break because this condition should stop your while loop!
   }
     
-  else { 
+  else {
+    double MassPISN = run_globals.MassPISN;
+    double MassSNII = run_globals.MassSNII; 
     if (m_max > MmaxSnII) // Firstly, you are only interested in stars in the CCSN mass range
       m_max = MmaxSnII;
       
@@ -559,6 +563,8 @@ double CCSN_PopIII_Yield(int i_burst, int curr_snap, int yield_type) //0 = Tot, 
   }
     
   else {
+    double MassPISN = run_globals.MassPISN;
+    double MassSNII = run_globals.MassSNII;
     double Y; 
     if (m_max > MmaxSnII) // Firstly, you are only interested in stars in the CCSN mass range
       m_max = MmaxSnII;

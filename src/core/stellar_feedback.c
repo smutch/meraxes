@@ -179,6 +179,8 @@ double get_total_SN_energy(void)
 
 double get_SN_energy_PopIII(int i_burst, int snapshot, int SN_type) //SN_type = 0 -> CC, 1 -> PISN (Pop III have higher masses so we need to account also for PISN!)
 {
+  double NumberPISN = run_globals.NumberPISN;
+  double NumberSNII = run_globals.NumberSNII;
   double Enova;
   //Core Collapse SN
   if (SN_type == 0) {
