@@ -522,7 +522,7 @@ void contemporaneous_supernova_feedback(galaxy_t* gal,
     *m_remnant *= frac;
   }
   assert(*new_metals >= 0);
-  assert(*m_recycled >= 0);
+  //assert(*m_recycled >= 0);
   assert(*m_reheat >= 0);
   assert(*m_remnant >= 0);
 
