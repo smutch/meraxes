@@ -16,6 +16,11 @@
 
 static float Mass_Values[MASS_BINS]; //Is there a smart way to define MASS_BINS depending on the limits of the IMF that we choose?
 static float Time_Values[MASS_BINS];
+static double NumberPISN;
+static double MassPISN;
+static double NumberSNII;
+static double MassSNII;
+static double MassBHs;
 
 void initialize_time_interp_arrays()
 {
@@ -30,9 +35,9 @@ void initialize_time_interp_arrays()
   if (run_globals.mpi_rank == 0) {
 
     for (i = 0; i < mass_bins; i++) {
-      mass_val = log10(MminIMF + (double)i * mass_step); //Multiply double and int! Is it a problem? (Maybe double check it later)
-      Mass_Values[i] = mass_val; //&Mass_Values[i] ?
-      Time_Values[i] = get_StellarAge(mass_val); //&Time_Values[i] ?
+      mass_val = log10(MminIMF + (double)i * mass_step);
+      Mass_Values[i] = mass_val;
+      Time_Values[i] = get_StellarAge(mass_val); 
       //mlog("Mass = %f, Time = %f", MLOG_MESG, pow(10, Mass_Values[i]), pow(10, Time_Values[i]) / 1e6);
     }
   }
@@ -40,6 +45,22 @@ void initialize_time_interp_arrays()
   // broadcast the values to all cores
   MPI_Bcast(&Mass_Values, sizeof(Mass_Values), MPI_BYTE, 0, run_globals.mpi_comm);
   MPI_Bcast(&Time_Values, sizeof(Time_Values), MPI_BYTE, 0, run_globals.mpi_comm);
+}
+
+void initialize_PopIII_stuff() //Initialize PopIII quantities that are easily computed just from the IMF.
+{
+  if (run_globals.mpi_rank == 0) {
+    NumberPISN = Number_PISN();
+    MassPISN = Mass_PISN();
+    NumberSNII = Number_SNII();
+    MassSNII = Mass_SNII();
+    MassBHs = Mass_BHs();   
+  }
+  MPI_Bcast(&NumberPISN, sizeof(NumberPISN), MPI_BYTE, 0, run_globals.mpi_comm);
+  MPI_Bcast(&MassPISN, sizeof(MassPISN), MPI_BYTE, 0, run_globals.mpi_comm);
+  MPI_Bcast(&NumberSNII, sizeof(NumberSNII), MPI_BYTE, 0, run_globals.mpi_comm);
+  MPI_Bcast(&MassSNII, sizeof(MassSNII), MPI_BYTE, 0, run_globals.mpi_comm);
+  MPI_Bcast(&MassBHs, sizeof(MassBHs), MPI_BYTE, 0, run_globals.mpi_comm);
 }
 
 double interp_mass(double lifetime) // Lifetime in yr units!!
@@ -430,8 +451,9 @@ double CCSN_PopIII_Fraction(int i_burst, int curr_snap) //Eq. 17 from Mutch et a
     gsl_integration_workspace_free(w);
   
     //TotalCCSN = Number_SNII();
-    TotalCCSN = Number_SNII() + Number_PISN(); //I am still not 100% sure if I have to consider only SNII (I believe so)
-  
+    //TotalCCSN = Number_SNII() + Number_PISN(); //I am still not 100% sure if I have to consider only SNII (I believe so)
+    TotalCCSN = NumberSNII + Number_PISN;
+    
     //mlog("TotCCSN = %f, Frac = %f", MLOG_MESG, TotalCCSN, result / TotalCCSN);
 
     return result / TotalCCSN;
@@ -500,7 +522,8 @@ double CCSN_PopIII_MassFraction(int i_burst, int curr_snap) //Eq. 22 from Mutch 
     gsl_integration_workspace_free(w);
   
     //TotalCCSN = Number_SNII();
-    TotalMassCCSN = Mass_SNII() + Mass_PISN(); //I am still not 100% sure if I have to consider only SNII (I believe so)
+    //TotalMassCCSN = Mass_SNII() + Mass_PISN(); //I am still not 100% sure if I have to consider only SNII (I believe so)
+    TotalMassCCSN = MassSNII + MassPISN;
   
     return result / TotalMassCCSN;
   }  
@@ -568,7 +591,8 @@ double CCSN_PopIII_Yield(int i_burst, int curr_snap, int yield_type) //0 = Tot, 
     gsl_integration_workspace_free(w);
   
     //TotalCCSN = Number_SNII();
-    TotalMassCCSN = Mass_SNII() + Mass_PISN(); //I am still not 100% sure if I have to consider only SNII (I believe so)
+    //TotalMassCCSN = Mass_SNII() + Mass_PISN(); //I am still not 100% sure if I have to consider only SNII (I believe so)
+    TotalMassCCSN = MassSNII + MassPISN;
     
     if (yield_type == 0) { // All (recycling mass) 
       if (m_max <= 30.0)
