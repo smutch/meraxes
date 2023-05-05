@@ -211,6 +211,8 @@ double get_SN_mass_PopIII(int i_burst, int snapshot, int SN_type) //SN_type = 0 
       mlog_error("PISN feedback is instantaneous!");
       return 0;
       }
+    double MassPISN = run_globals.MassPISN;
+    double MassSNII = run_globals.MassSNII;
     double PISN_MassFraction = MassPISN / (MassSNII + MassPISN); // Are you sure about that fraction?
     return PISN_MassFraction; 
   }  
@@ -220,6 +222,8 @@ double get_total_PopIIISN_energy(int SN_type) //SN_type = 0 -> CC, 1 -> PISN (Po
 {
   double Enova;
   double TotalEn;
+  double NumberPISN = run_globals.NumberPISN;
+  double NumberSNII = run_globals.NumberSNII;
   //Core Collapse SN
   if (SN_type == 0) {
     Enova = ENOVA_CC; 

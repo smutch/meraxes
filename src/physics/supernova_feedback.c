@@ -334,6 +334,12 @@ void delayed_supernova_feedback(galaxy_t* gal, int snapshot) // Once you test th
   double m_remnant = 0.0;
   double fof_Vvir;
   
+  double NumberPISN = run_globals.NumberPISN;
+  double MassPISN = run_globals.MassPISN;
+  double NumberSNII = run_globals.NumberSNII;
+  double MassSNII = run_globals.MassSNII;
+  double MassBHs = run_globals.MassBHs;
+  
   double energy_unit = run_globals.units.UnitEnergy_in_cgs; 
   // If we are at snapshot < N_HISTORY_SNAPS-1 then only try to look back to snapshot 0
   int n_bursts = (snapshot >= N_HISTORY_SNAPS) ? N_HISTORY_SNAPS : snapshot;
@@ -444,6 +450,11 @@ void contemporaneous_supernova_feedback(galaxy_t* gal,
   bool Flag_IRA = (bool)(run_globals.params.physics.Flag_IRA);
   double sn_energy = 0.0;
   double energy_unit = run_globals.units.UnitEnergy_in_cgs;
+  double NumberPISN = run_globals.NumberPISN;
+  double MassPISN = run_globals.MassPISN;
+  double NumberSNII = run_globals.NumberSNII;
+  double MassSNII = run_globals.MassSNII;
+  double MassBHs = run_globals.MassBHs;
   
   mlog("test = %f, test2 = %f", MLOG_MESG, MassPISN, MassSNII);
   

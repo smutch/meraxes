@@ -44,19 +44,18 @@ void initialize_time_interp_arrays()
 
 void initialize_PopIII_stuff() //Initialize PopIII quantities that are easily computed just from the IMF.
 {
-  if (run_globals.mpi_rank == 0) {
-    NumberPISN = Number_PISN();
-    MassPISN = Mass_PISN();
-    NumberSNII = Number_SNII();
-    MassSNII = Mass_SNII();
-    MassBHs = Mass_BHs();
-    mlog("Init quantities: NPISN = %f, MPISN = %f, NSNII = %f, MSNII = %f, MBHs = %f", MLOG_MESG, NumberPISN, MassPISN, NumberSNII, MassSNII, MassBHs);    
-  }
+  run_globals.NumberPISN = Number_PISN();
+  run_globals.MassPISN = Mass_PISN();
+  run_globals.NumberSNII = Number_SNII();
+  run_globals.MassSNII = Mass_SNII();
+  run_globals.MassBHs = Mass_BHs();
+    //mlog("Init quantities: NPISN = %f, MPISN = %f, NSNII = %f, MSNII = %f, MBHs = %f", MLOG_MESG, NumberPISN, MassPISN, NumberSNII, MassSNII, MassBHs);    
+  /*}
   MPI_Bcast(&NumberPISN, sizeof(NumberPISN), MPI_BYTE, 0, run_globals.mpi_comm);
   MPI_Bcast(&MassPISN, sizeof(MassPISN), MPI_BYTE, 0, run_globals.mpi_comm);
   MPI_Bcast(&NumberSNII, sizeof(NumberSNII), MPI_BYTE, 0, run_globals.mpi_comm);
   MPI_Bcast(&MassSNII, sizeof(MassSNII), MPI_BYTE, 0, run_globals.mpi_comm);
-  MPI_Bcast(&MassBHs, sizeof(MassBHs), MPI_BYTE, 0, run_globals.mpi_comm);
+  MPI_Bcast(&MassBHs, sizeof(MassBHs), MPI_BYTE, 0, run_globals.mpi_comm);*/
 }
 
 double interp_mass(double lifetime) // Lifetime in yr units!!
