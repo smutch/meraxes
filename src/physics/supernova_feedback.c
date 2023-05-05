@@ -467,8 +467,8 @@ void contemporaneous_supernova_feedback(galaxy_t* gal,
       }
     else if (gal->Galaxy_Population == 3){
       //*m_recycled = *m_stars * get_recycling_fraction(0, metallicity);
-      //*m_recycled = *m_stars * (get_SN_mass_PopIII(0, snapshot, 0) + get_SN_mass_PopIII(0, snapshot, 1));
-      *m_recycled = *m_stars * (CCSN_PopIII_Yield(0, snapshot, 0) + get_SN_mass_PopIII(0, snapshot, 1));
+      *m_recycled = *m_stars * (get_SN_mass_PopIII(0, snapshot, 0) + get_SN_mass_PopIII(0, snapshot, 1));
+      //*m_recycled = *m_stars * (CCSN_PopIII_Yield(0, snapshot, 0) + get_SN_mass_PopIII(0, snapshot, 1));
       *m_remnant = *m_stars * (MassBHs + CCSN_PopIII_Yield(0, snapshot, 2));
       if (MassPISN > 0)
         *new_metals = *m_stars * get_SN_mass_PopIII(0, snapshot, 1) / 2.0 - (20.0 / 1e10 * run_globals.params.Hubble_h) + *m_stars * CCSN_PopIII_Yield(0, snapshot, 1);
@@ -483,8 +483,8 @@ void contemporaneous_supernova_feedback(galaxy_t* gal,
       *new_metals = *m_stars * run_globals.params.physics.Yield;
       }
     else if (gal->Galaxy_Population == 3){
-    *m_recycled = *m_stars * run_globals.params.physics.SfRecycleFraction_III;
-    *new_metals = *m_stars * run_globals.params.physics.Yield_III;
+      *m_recycled = *m_stars * run_globals.params.physics.SfRecycleFraction_III;
+      *new_metals = *m_stars * run_globals.params.physics.Yield_III;
     }
   }
   
