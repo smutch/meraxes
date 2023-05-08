@@ -482,7 +482,7 @@ void contemporaneous_supernova_feedback(galaxy_t* gal,
       *m_remnant = *m_stars * (MassBHs + CCSN_PopIII_Yield(0, snapshot, 2));
       if (MassPISN > 0) {
         *new_metals = *m_stars * get_SN_mass_PopIII(0, snapshot, 1) / 2.0 - (20.0 / 1e10 * run_globals.params.Hubble_h) + *m_stars * CCSN_PopIII_Yield(0, snapshot, 1);
-        mlog("Prova = %f, Prova2 = %f prova3 = %f", MLOG_MESG, * get_SN_mass_PopIII(0, snapshot, 1) / 2.0, (20.0 / 1e10 * run_globals.params.Hubble_h), CCSN_PopIII_Yield(0,snapshot,1));
+        mlog("Prova = %f, Prova2 = %f prova3 = %f", MLOG_MESG, get_SN_mass_PopIII(0, snapshot, 1) / 2.0, (20.0 / 1e10 * run_globals.params.Hubble_h), CCSN_PopIII_Yield(0,snapshot,1));
         }
       else //No PISN
         *new_metals = *m_stars * CCSN_PopIII_Yield(0, snapshot, 1);
