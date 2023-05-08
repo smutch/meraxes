@@ -453,8 +453,6 @@ void contemporaneous_supernova_feedback(galaxy_t* gal,
   double MassSNII = run_globals.MassSNII;
   double MassBHs = run_globals.MassBHs;
   
-  mlog("test = %f, test2 = %f", MLOG_MESG, MassPISN, MassSNII);
-  
   // init (just in case!)
   *m_reheat = *m_recycled = *new_metals = *m_eject = *m_remnant = 0.0;
 
@@ -482,11 +480,11 @@ void contemporaneous_supernova_feedback(galaxy_t* gal,
       *m_remnant = *m_stars * (MassBHs + CCSN_PopIII_Yield(0, snapshot, 2));
       if (MassPISN > 0) {
         *new_metals = *m_stars * get_SN_mass_PopIII(0, snapshot, 1) / 2.0 - (20.0 / 1e10 * run_globals.params.Hubble_h) + *m_stars * CCSN_PopIII_Yield(0, snapshot, 1);
-        mlog("Prova = %f, Prova2 = %f prova3 = %f", MLOG_MESG, get_SN_mass_PopIII(0, snapshot, 1) / 2.0, (20.0 / 1e10 * run_globals.params.Hubble_h), CCSN_PopIII_Yield(0,snapshot,1));
+        //mlog("Prova = %f, Prova2 = %f prova3 = %f", MLOG_MESG, get_SN_mass_PopIII(0, snapshot, 1) / 2.0, (20.0 / 1e10 * run_globals.params.Hubble_h), CCSN_PopIII_Yield(0,snapshot,1));
         }
       else //No PISN
         *new_metals = *m_stars * CCSN_PopIII_Yield(0, snapshot, 1);
-      mlog("New Stars = %f, New PopIII metals = %f, PISN metals = %f", MLOG_MESG, *m_stars, *new_metals, *m_stars * get_SN_mass_PopIII(0, snapshot, 1) / 2.0 - (20.0 / 1e10 * run_globals.params.Hubble_h));
+      //mlog("New Stars = %f, New PopIII metals = %f, PISN metals = %f", MLOG_MESG, *m_stars, *new_metals, *m_stars * get_SN_mass_PopIII(0, snapshot, 1) / 2.0 - (20.0 / 1e10 * run_globals.params.Hubble_h));
       }
   } else {
     // Recycling fraction and metals yield are input parameters when using IRA
@@ -531,7 +529,7 @@ void contemporaneous_supernova_feedback(galaxy_t* gal,
     *m_recycled *= frac;
     *m_remnant *= frac;
   }
-  //assert(*new_metals >= 0);
+  //assert(*new_metals >= 0); //For some reason if you do this it fails!
   assert(*m_recycled >= 0);
   assert(*m_reheat >= 0);
   assert(*m_remnant >= 0);
