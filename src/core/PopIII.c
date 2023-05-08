@@ -49,7 +49,7 @@ void initialize_PopIII_stuff() //Initialize PopIII quantities that are easily co
   run_globals.NumberSNII = Number_SNII();
   run_globals.MassSNII = Mass_SNII();
   run_globals.MassBHs = Mass_BHs();
-    //mlog("Init quantities: NPISN = %f, MPISN = %f, NSNII = %f, MSNII = %f, MBHs = %f", MLOG_MESG, NumberPISN, MassPISN, NumberSNII, MassSNII, MassBHs);    
+  mlog("Init quantities: NPISN = %f, MPISN = %f, NSNII = %f, MSNII = %f, MBHs = %f", MLOG_MESG, NumberPISN, MassPISN, NumberSNII, MassSNII, MassBHs);    
   /*}
   MPI_Bcast(&NumberPISN, sizeof(NumberPISN), MPI_BYTE, 0, run_globals.mpi_comm);
   MPI_Bcast(&MassPISN, sizeof(MassPISN), MPI_BYTE, 0, run_globals.mpi_comm);
@@ -592,7 +592,6 @@ double CCSN_PopIII_Yield(int i_burst, int curr_snap, int yield_type) //0 = Tot, 
     gsl_integration_workspace_free(w);
   
     //TotalCCSN = Number_SNII();
-    //TotalMassCCSN = Mass_SNII() + Mass_PISN(); //I am still not 100% sure if I have to consider only SNII (I believe so)
     TotalMassCCSN = MassSNII + MassPISN;
     
     if (yield_type == 0) { // All (recycling mass) 

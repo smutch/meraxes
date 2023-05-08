@@ -413,9 +413,6 @@ void delayed_supernova_feedback(galaxy_t* gal, int snapshot) // Once you test th
   m_eject_III = calc_ejected_mass(&m_reheat_III, sn_energy_III / energy_unit, gal->Vvir, fof_Vvir);
   m_eject_II = calc_ejected_mass(&m_reheat_II, sn_energy_II, gal->Vvir, fof_Vvir);
   m_eject = m_eject_II + m_eject_III;
-  
-  //if (gal->NewStars_III[1] > 0)
-  //  mlog("Ej = %f, Ej3 = %f, Ej2 = %f", MLOG_MESG, m_eject, m_eject_III, m_eject_II);
 
   // Note that m_eject returned for ghosts by calc_ejected_mass() is
   // meaningless in the current physical prescriptions.  This fact is dealt
