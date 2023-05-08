@@ -215,7 +215,7 @@ double get_SN_mass_PopIII(int i_burst, int snapshot, int SN_type) //SN_type = 0 
       }
     double MassPISN = run_globals.MassPISN;
     double MassSNII = run_globals.MassSNII;
-    double PISN_MassFraction = MassPISN / (MassSNII + MassPISN); // Are you sure about that fraction?
+    double PISN_MassFraction = MassPISN / (MassSNII + MassPISN);
     return PISN_MassFraction; 
   }  
 }

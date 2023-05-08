@@ -484,7 +484,7 @@ void contemporaneous_supernova_feedback(galaxy_t* gal,
         *new_metals = *m_stars * get_SN_mass_PopIII(0, snapshot, 1) / 2.0 - (20.0 / 1e10 * run_globals.params.Hubble_h) + *m_stars * CCSN_PopIII_Yield(0, snapshot, 1);
       else //No PISN
         *new_metals = *m_stars * CCSN_PopIII_Yield(0, snapshot, 1);
-      mlog("New PopIII metals = %f, PISN metals = %f", MLOG_MESG, *new_metals, *m_stars * get_SN_mass_PopIII(0, snapshot, 1) / 2.0 - (20.0 / 1e10 * run_globals.params.Hubble_h));
+      mlog("New Stars = %f, New PopIII metals = %f, PISN metals = %f", MLOG_MESG, *m_stars, *new_metals, *m_stars * get_SN_mass_PopIII(0, snapshot, 1) / 2.0 - (20.0 / 1e10 * run_globals.params.Hubble_h));
       }
   } else {
     // Recycling fraction and metals yield are input parameters when using IRA
