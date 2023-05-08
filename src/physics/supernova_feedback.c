@@ -529,6 +529,8 @@ void contemporaneous_supernova_feedback(galaxy_t* gal,
     *m_recycled *= frac;
     *m_remnant *= frac;
   }
+  if (*new_metals < 0) // I don't know why this happens, I believe is a numerical error
+    *new_metals = 0.0;
   //assert(*new_metals >= 0); //For some reason if you do this it fails!
   assert(*m_recycled >= 0);
   assert(*m_reheat >= 0);
