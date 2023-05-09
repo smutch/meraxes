@@ -10,9 +10,9 @@
 #define RECYCLING_FRACTION 0
 #define TOTAL_METAL 1
 
-// Pop III stuff
-#define ENOVA_CC 1e51 //You might put this as a free parameter (?)
-#define ENOVA_PISN 1e51 // Check the physics for this one!
+// Pop III stuff (Atm ENOVA_CC and ENOVA_PISN are the same but you could change)
+#define ENOVA_CC 1e51 
+#define ENOVA_PISN 1e51 
 
 #ifdef __cplusplus
 extern "C"

@@ -10,9 +10,9 @@
 #include "misc_tools.h"
 #include "virial_properties.h"
 #include "metal_evo.h"
-#include "reionization.c" //For write_grid_float and other stuff
+#include "reionization.c" 
 
-void assign_slabs_metals() // Not sure if I have to duplicate this function from reionization.c
+void assign_slabs_metals() 
 {
   mlog("Assigning slabs to MPI cores for Metals...", MLOG_OPEN);
 
@@ -45,25 +45,22 @@ void construct_metal_grids(int snapshot, int local_ngals)
   float* mass_metals_grid_metals = run_globals.metal_grids.mass_metals;
   float* mass_gas_grid_metals = run_globals.metal_grids.mass_gas;
   float* prob_grid_metals = run_globals.metal_grids.Probability_metals;
-  float* Rave_grid_metals = run_globals.metal_grids.R_ave; // For boost factor of probability
-  float* Rmax_grid_metals = run_globals.metal_grids.R_max; // For boost factor of probability
+  float* Rave_grid_metals = run_globals.metal_grids.R_ave; 
+  float* Rmax_grid_metals = run_globals.metal_grids.R_max;
   int* count_bubble_metals = run_globals.metal_grids.N_bubbles;
   
   int MetalGridDim = run_globals.params.MetalGridDim;
   double redshift = run_globals.ZZ[snapshot]; 
-  //double pixel_volume_metals = pow(box_size / run_globals.params.Hubble_h / (double)MetalGridDim, 3); // (Mpc)^3
   double pixel_volume_metals = pow(box_size / (double)MetalGridDim, 3); // (Mpc/h)^3
   
   gal_to_slab_t* galaxy_to_slab_map_metals = run_globals.metal_grids.galaxy_to_slab_map_metals;
   ptrdiff_t* slab_ix_start_metals = run_globals.metal_grids.slab_ix_start_metals;
   ptrdiff_t* slab_nix_metals = run_globals.metal_grids.slab_nix_metals;
   ptrdiff_t slab_n_real_metals = slab_nix_metals[run_globals.mpi_rank] * MetalGridDim * MetalGridDim;
-  //int local_nix_metals = (int)(run_globals.metal_grids.slab_nix_metals[run_globals.mpi_rank]);
 
   mlog("Constructing stellar mass and sfr grids for metals...", MLOG_OPEN | MLOG_TIMERSTART);
 
   // init the grid
-  //for (int ii = 0; ii < local_n_complex_metals * 2; ii++) {
   for (int ii = 0; ii < slab_n_real_metals; ii++) { 
     mass_metals_grid_metals[ii] = 0.0;
     mass_gas_grid_metals[ii] = 0.0;
@@ -74,10 +71,6 @@ void construct_metal_grids(int snapshot, int local_ngals)
   }
 
   // loop through each slab
-  //
-  // N.B. We are assuming here that the galaxy_to_slab mapping has been sorted
-  // by slab index...
-  //ptrdiff_t* slab_nix_metals = run_globals.metal_grids.slab_nix_metals;
   ptrdiff_t buffer_size_metals = run_globals.metal_grids.buffer_size_metals;
   float* buffer_metals = run_globals.metal_grids.buffer_metals;
 
@@ -397,7 +390,7 @@ void malloc_metal_grids()
 
   metal_grids_t* grids = &(run_globals.metal_grids);
 
-  // run_globals.NStoreSnapshots is set in `initialize_halo_storage`
+  // run_globals.NStoreSnapshots is set in `initialize_halo_storage` Leave it commented because you might use that in the future when looking for scaling relations
   //run_globals.SnapshotDeltax = (float**)calloc((size_t)run_globals.NStoreSnapshots, sizeof(float*)); //?
   //run_globals.SnapshotVel = (float**)calloc((size_t)run_globals.NStoreSnapshots, sizeof(float*));  //?
 
@@ -483,17 +476,7 @@ int map_galaxies_to_slabs_metals(int ngals)
   galaxy_t* gal = run_globals.FirstGal;
   int gal_counter = 0;
   while (gal != NULL) {
-    // TODO: Note that I am including ghosts here.  We will need to check the
-    // validity of this.  By definition, if they are ghosts then their host
-    // halo hasn't been identified at this time step and hence they haven't
-    // been evolved.  Their properties (Sfr, StellarMass, etc.) will all have
-    // been set when they were last identified.
     if (gal->Type < 3) {
-      // TODO: for type 2 galaxies these positions will be set from the last
-      // time they were identified.  If their host halo has moved significantly
-      // since then, these positions won't reflect that and the satellites will
-      // be spatially disconnected from their hosts.  We will need to fix this
-      // at some point.
 
       ptrdiff_t ix = pos_to_ngp(gal->Pos[0], box_size, MetalGridDim);
 
@@ -519,63 +502,6 @@ int map_galaxies_to_slabs_metals(int ngals)
   return gal_counter;
 }
 
-void save_metal_output_grids(int snapshot) // Probably this function is completely useless!!!!!
-{
-
-  metal_grids_t* metal_grids = &(run_globals.metal_grids);
-  int MetalGridDim = run_globals.params.MetalGridDim;
-  int local_nix_metals = (int)(run_globals.metal_grids.slab_nix_metals[run_globals.mpi_rank]);
-
-
-  mlog("Saving tocf output grids for metals...", MLOG_OPEN);
-
-  char name[STRLEN];
-  gen_metal_grids_fname(snapshot, name, false);
-
-  // open the file (in parallel)
-  hid_t plist_id = H5Pcreate(H5P_FILE_ACCESS);
-  H5Pset_fapl_mpio(plist_id, run_globals.mpi_comm, MPI_INFO_NULL);
-  hid_t file_id = H5Fopen(name, H5F_ACC_RDWR, plist_id);
-  H5Pclose(plist_id);
-
-  // create the filespace
-  hsize_t dims[3] = { (hsize_t)MetalGridDim, (hsize_t)MetalGridDim, (hsize_t)MetalGridDim };
-  hid_t fspace_id = H5Screate_simple(3, dims, NULL);
-
-  // create the memspace
-  hsize_t mem_dims[3] = { (hsize_t)local_nix_metals, (hsize_t)MetalGridDim, (hsize_t)MetalGridDim };
-  hid_t memspace_id = H5Screate_simple(3, mem_dims, NULL);
-
-  // select a hyperslab in the filespace
-  hsize_t start[3] = { (hsize_t)run_globals.metal_grids.slab_ix_start_metals[run_globals.mpi_rank], 0, 0 };
-  hsize_t count[3] = { (hsize_t)local_nix_metals, (hsize_t)MetalGridDim, (hsize_t)MetalGridDim };
-  H5Sselect_hyperslab(fspace_id, H5S_SELECT_SET, start, NULL, count, NULL);
-
-  // set the dataset creation property list to use chunking along x-axis
-  hid_t dcpl_id = H5Pcreate(H5P_DATASET_CREATE);
-  H5Pset_chunk(dcpl_id, 3, (hsize_t[3]){ 1, (hsize_t)MetalGridDim, (hsize_t)MetalGridDim });
-
-  // create and write the datasets
-  write_grid_float("mass_metals", metal_grids->mass_metals, file_id, fspace_id, memspace_id, dcpl_id);
-  write_grid_float("Zigm_box", metal_grids->Zigm_box, file_id, fspace_id, memspace_id, dcpl_id);
-
-  // fftw padded grids
-  float* grid = (float*)calloc((size_t)(local_nix_metals * MetalGridDim * MetalGridDim), sizeof(float));
-  
-  H5LTset_attribute_double(file_id, "Zigm_box", "volume_ave_ZIGM", &(metal_grids->volume_ave_ZIGM), 1);
-  H5LTset_attribute_double(file_id, "mass_metals", "volume_ave_mass_metals", &(metal_grids->volume_ave_mass_metals), 1);
-    
-
-  // tidy up
-  free(grid);
-  H5Pclose(dcpl_id);
-  H5Sclose(memspace_id);
-  H5Sclose(fspace_id);
-  H5Fclose(file_id);
-
-  mlog("...done", MLOG_CLOSE); // Saving tocf grids
-}
-
 void assign_probability_to_galaxies(int ngals_in_metal_slabs, int snapshot, int flag_property) //Right now you are assigning a probability to all galaxies! Actually you need only to the newly formed
 {
   // Same way in which we assing Mcrit due to Reio and LW feedback in reionization.c
@@ -594,7 +520,7 @@ void assign_probability_to_galaxies(int ngals_in_metal_slabs, int snapshot, int 
   float* Rmax_metals = run_globals.metal_grids.R_max;
   int total_assigned = 0;
   
-  if (flag_property == 0) //Probability
+  if (flag_property == 0) 
     mlog("Assigning probability for metals...", MLOG_OPEN);
     
   if (flag_property == 1)

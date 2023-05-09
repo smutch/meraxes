@@ -9,7 +9,7 @@
 #include "save.h"
 #include "metal_evo.h"
 
-static float current_mwmsa(galaxy_t* gal, int i_snap) //You could save also this for Pop III/Pop II. Don't do it now
+static float current_mwmsa(galaxy_t* gal, int i_snap) 
 {
   double* LTTime = run_globals.LTTime;
   double mwmsa_num = gal->mwmsa_num;
@@ -735,7 +735,7 @@ void create_master_file()
       H5LTset_attribute_string(file_id, group_name, "deltax", "None");
 
       if (run_globals.params.Flag_IncludeLymanWerner) { 
-        H5LTset_attribute_string(file_id, group_name, "JLW_box", "None"); 
+        H5LTset_attribute_string(file_id, group_name, "JLW_box", "None"); // Sure?
       }
 
       if (run_globals.params.Flag_ConstructLightcone) {
@@ -1201,9 +1201,6 @@ void write_snapshot(int n_write, int i_out, int* last_n_write)
   if (run_globals.params.Flag_PatchyReion && check_if_reionization_ongoing(run_globals.ListOutputSnaps[i_out]) &&
       (run_globals.params.Flag_OutputGrids))
     save_reion_output_grids(run_globals.ListOutputSnaps[i_out]);
-   
-  //if (run_globals.params.Flag_IncludeMetalEvo && run_globals.params.Flag_OutputGrids) Probably useless!!!
-  //  save_metal_output_grids(run_globals.ListOutputSnaps[i_out]);
 
   // Close the group.
   H5Gclose(group_id);

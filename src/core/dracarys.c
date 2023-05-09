@@ -319,16 +319,6 @@ void dracarys()
       assign_probability_to_galaxies(ngals_in_metal_slabs, snapshot, 3); 
     }
     
-    // Test Pop III SN tables!
-    
-    if (snapshot == 1) {
-      double prova = get_SN_energy_PopIII(0, snapshot, 1);
-      double prova2 = get_SN_energy_PopIII(0, snapshot, 0);
-      //double prova = get_SN_energy_PopIII(snapshot, 0, 1);
-      //double prova2 = get_SN_energy_PopIII(snapshot, 0, 0);
-      }
-      
-
     // Do the physics
     if (NGal > 0)
       nout_gals = evolve_galaxies(fof_group, snapshot, NGal, trees_info.n_fof_groups, &gal_counter_Pop3, &gal_counter_Pop2, &gal_counter_enriched);
@@ -404,7 +394,7 @@ void dracarys()
 
     mlog("Newly identified merger events    :: %d", MLOG_MESG, merger_counter);
     mlog("Killed galaxies                   :: %d", MLOG_MESG, kill_counter);
-    mlog("Newly created galaxies            :: %d", MLOG_MESG, new_gal_counter); //here you can add a log message for Pop.III / Pop.II galaxies
+    mlog("Newly created galaxies            :: %d", MLOG_MESG, new_gal_counter);
     mlog("Galaxies in ghost halos           :: %d", MLOG_MESG, ghost_counter);
     
     mlog("Newly formed PopIII gal           :: %d", MLOG_MESG, gal_counter_Pop3);
@@ -453,7 +443,7 @@ void dracarys()
       run_globals.reion_grids.started = 0;
       run_globals.reion_grids.finished = 0;
 
-      init_reion_grids(); // Why we initialize again the reionization grids?
+      init_reion_grids(); 
     }
   }
 
