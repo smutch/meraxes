@@ -119,10 +119,10 @@ void insitu_star_formation(galaxy_t* gal, int snapshot)
     double zplus1_n_III;
 
     zplus1 = 1.0 + run_globals.ZZ[snapshot];
-    zplus1_n = pow(zplus1, run_globals.params.physics.SfEfficiencyScaling); //Later added separate parameters for Pop III and Pop II
+    zplus1_n = pow(zplus1, run_globals.params.physics.SfEfficiencyScaling);
     zplus1_n_III = pow(zplus1, run_globals.params.physics.SfEfficiencyScaling_III);
 
-    double SfEfficiency_II = run_globals.params.physics.SfEfficiency; //Later added separate parameters for Pop III and Pop II
+    double SfEfficiency_II = run_globals.params.physics.SfEfficiency; 
     double SfEfficiency_III = run_globals.params.physics.SfEfficiency_III;
     double SfCriticalSDNorm = run_globals.params.physics.SfCriticalSDNorm;
     int SfDiskVelOpt = run_globals.params.physics.SfDiskVelOpt;
