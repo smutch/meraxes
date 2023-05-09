@@ -301,7 +301,7 @@ static inline double calc_sn_ejection_eff(galaxy_t* gal, int snapshot, int flag_
     case 2:
         // Use the same value with that is used for the mass loading
         if (Vmax < SnEjectionNorm)
-            SnEjectionScaling = params->SnEjectionScaling2; // TAKE CARE OF THAT!! YOU PROBABLY NEED TO CHANGE!!!!!! 
+            SnEjectionScaling = params->SnEjectionScaling2; 
         SnEjectionEff *= pow(zplus1/4., SnEjectionRedshiftDep) \
                          *pow(Vmax/SnEjectionNorm, -SnEjectionScaling);
         break;
@@ -316,7 +316,7 @@ static inline double calc_sn_ejection_eff(galaxy_t* gal, int snapshot, int flag_
     return 1.;
 }
 
-void delayed_supernova_feedback(galaxy_t* gal, int snapshot) // Once you test that Pop III SN works, you should change general outputs as III + II. 
+void delayed_supernova_feedback(galaxy_t* gal, int snapshot) 
 {
   double sn_energy = 0.0;
   double sn_energy_II = 0.0;
@@ -348,7 +348,6 @@ void delayed_supernova_feedback(galaxy_t* gal, int snapshot) // Once you test th
   // bursts and calculate the amount of energy and mass that they will release
   // in the current time step.
   for (int i_burst = 1; i_burst < n_bursts; i_burst++) {
-    //double m_stars = gal->NewStars[i_burst];
     double m_stars_II = gal->NewStars_II[i_burst];
     double m_stars_III = gal->NewStars_III[i_burst];
     double m_stars = m_stars_II + m_stars_III;
@@ -357,35 +356,26 @@ void delayed_supernova_feedback(galaxy_t* gal, int snapshot) // Once you test th
     if (m_stars > 1e-10) {
       double metallicity = calc_metallicity(m_stars, gal->NewMetals[i_burst]);
       // Calculate recycled mass and metals by yield tables
-      //m_recycled += m_stars * get_recycling_fraction(i_burst, metallicity);
+      
       m_recycled_II += m_stars_II * get_recycling_fraction(i_burst, metallicity);
-      //m_recycled_III += m_stars_III * get_recycling_fraction(i_burst, metallicity);
-      //m_recycled_III += m_stars_III * get_SN_mass_PopIII(i_burst, snapshot, 0); // Only CCSN have delayed feedback
-      m_recycled_III += m_stars_III * CCSN_PopIII_Yield(i_burst, snapshot, 0);
+      m_recycled_III += m_stars_III * CCSN_PopIII_Yield(i_burst, snapshot, 0); // Only CCSN have delayed feedback
       m_recycled += (m_recycled_II + m_recycled_III);
-      //new_metals += m_stars * get_metal_yield(i_burst, metallicity);
-      //new_metals += (m_stars_II * get_metal_yield(i_burst, metallicity) + m_stars_III * get_metal_yield(i_burst, metallicity));
       new_metals += (m_stars_II * get_metal_yield(i_burst, metallicity) + m_stars_III * CCSN_PopIII_Yield(i_burst, snapshot, 1));
-      m_remnant += m_stars_III * CCSN_PopIII_Yield(i_burst, snapshot, 2);
+      m_remnant += m_stars_III * CCSN_PopIII_Yield(i_burst, snapshot, 2); // Pop. III will have remnants
       // Calculate SNII energy
-      //sn_energy += get_SN_energy(i_burst, metallicity) * m_stars;
-      sn_energy_II += get_SN_energy(i_burst, metallicity) * m_stars_II; //It's correct! Maybe code this in a way in which is easier to understand
-      //sn_energy_III += get_SN_energy(i_burst, metallicity) * m_stars_III;
-      sn_energy_III += get_SN_energy_PopIII(i_burst, snapshot, 0) * m_stars_III; // Only CCSN have delayed feedback, that is DeltaM reheat (eq.16 Mutch+16) * ENOVA
+      
+      sn_energy_II += get_SN_energy(i_burst, metallicity) * m_stars_II; 
+      sn_energy_III += get_SN_energy_PopIII(i_burst, snapshot, 0) * m_stars_III; // Tis is DeltaM reheat (eq.16 Mutch+16) * ENOVA
     }
   }
 
-  //m_reheat = calc_sn_reheat_eff(gal, snapshot, 2) * sn_energy / get_total_SN_energy(); // ATM DOESN'T CHANGE BECAUSE 2 and 3 are the same! When you will actually use different params use the sum!
-  //sn_energy *= calc_sn_ejection_eff(gal, snapshot, 2);
   m_reheat_II = calc_sn_reheat_eff(gal, snapshot, 2) * sn_energy_II / get_total_SN_energy();
   sn_energy_II *= calc_sn_ejection_eff(gal, snapshot, 2);
-  m_reheat_III = calc_sn_reheat_eff(gal, snapshot, 3) * sn_energy_III / ENOVA_CC; //Only CCSN have delayed feedback
-  sn_energy_III *= (calc_sn_ejection_eff(gal, snapshot, 3) * NumberSNII * 1e10 / run_globals.params.Hubble_h); //Maybe for the SN ejection efficiency is more important to distinguish between PISN/CC rather than Pop.III/II //THEORETICALLY THIS IS CORRECT! YOU GET energy in erg
+  m_reheat_III = calc_sn_reheat_eff(gal, snapshot, 3) * sn_energy_III / ENOVA_CC; 
+  sn_energy_III *= (calc_sn_ejection_eff(gal, snapshot, 3) * NumberSNII * 1e10 / run_globals.params.Hubble_h); //Maybe for the SN ejection efficiency is more important to distinguish between PISN/CC rather than Pop.III/II 
   m_reheat = m_reheat_II + m_reheat_III;
-  //sn_energy = sn_energy_II + sn_energy_III;
   sn_energy = sn_energy_II + sn_energy_III / energy_unit; //Convert from erg to internal units! 10^10Msol/h * (km/s)^2
-  //mlog("sn_energy_II = %f, sn_energyIII = %f", MLOG_MESG, sn_energy_II, sn_energy_III / energy_unit);
-  //mlog("snII = %f, snIII = %f", MLOG_MESG, sn_energy_II, sn_energy_III);
+  
   // We can only reheat as much gas as we have available.  Let's inforce this
   // now, to ensure that the maximal amount of available energy is used to
   // eject gas from the system.
@@ -409,7 +399,6 @@ void delayed_supernova_feedback(galaxy_t* gal, int snapshot) // Once you test th
   else
     fof_Vvir = -1;
 
-  //m_eject = calc_ejected_mass(&m_reheat, sn_energy, gal->Vvir, fof_Vvir);
   m_eject_III = calc_ejected_mass(&m_reheat_III, sn_energy_III / energy_unit, gal->Vvir, fof_Vvir);
   m_eject_II = calc_ejected_mass(&m_reheat_II, sn_energy_II, gal->Vvir, fof_Vvir);
   m_eject = m_eject_II + m_eject_III;
@@ -474,17 +463,12 @@ void contemporaneous_supernova_feedback(galaxy_t* gal,
       *new_metals = *m_stars * get_metal_yield(0, metallicity);
       }
     else if (gal->Galaxy_Population == 3){
-      //*m_recycled = *m_stars * get_recycling_fraction(0, metallicity);
-      //*m_recycled = *m_stars * (get_SN_mass_PopIII(0, snapshot, 0) + get_SN_mass_PopIII(0, snapshot, 1));
       *m_recycled = *m_stars * (CCSN_PopIII_Yield(0, snapshot, 0) + get_SN_mass_PopIII(0, snapshot, 1));
       *m_remnant = *m_stars * (MassBHs + CCSN_PopIII_Yield(0, snapshot, 2));
-      if (MassPISN > 0) {
+      if (MassPISN > 0) // Account for PISN
         *new_metals = *m_stars * get_SN_mass_PopIII(0, snapshot, 1) / 2.0 - (20.0 / 1e10 * run_globals.params.Hubble_h) + *m_stars * CCSN_PopIII_Yield(0, snapshot, 1);
-        //mlog("Prova = %f, Prova2 = %f prova3 = %f", MLOG_MESG, get_SN_mass_PopIII(0, snapshot, 1) / 2.0, (20.0 / 1e10 * run_globals.params.Hubble_h), CCSN_PopIII_Yield(0,snapshot,1));
-        }
       else //No PISN
         *new_metals = *m_stars * CCSN_PopIII_Yield(0, snapshot, 1);
-      //mlog("New Stars = %f, New PopIII metals = %f, PISN metals = %f", MLOG_MESG, *m_stars, *new_metals, *m_stars * get_SN_mass_PopIII(0, snapshot, 1) / 2.0 - (20.0 / 1e10 * run_globals.params.Hubble_h));
       }
   } else {
     // Recycling fraction and metals yield are input parameters when using IRA
@@ -504,11 +488,11 @@ void contemporaneous_supernova_feedback(galaxy_t* gal,
     *m_reheat = calc_sn_reheat_eff(gal, snapshot, 2) * sn_energy / get_total_SN_energy();
     sn_energy *= calc_sn_ejection_eff(gal, snapshot, 2);
     }
-  else if (gal->Galaxy_Population == 3){ // Now it should be correct!
+  else if (gal->Galaxy_Population == 3){ 
     sn_energy = get_SN_energy_PopIII(0, snapshot, 0) * (*m_stars * 1e10 / run_globals.params.Hubble_h * NumberSNII) + (*m_stars * (ENOVA_PISN * NumberPISN * 1e10 / run_globals.params.Hubble_h)); //erg
     sn_energy /= energy_unit; //Convert this because you need in internal units it for m_ejected
     *m_reheat = calc_sn_reheat_eff(gal, snapshot, 3) * ((NumberPISN / (NumberPISN + NumberSNII) * (*m_stars)) + (get_SN_energy_PopIII(0, snapshot, 0) / ENOVA_CC * (*m_stars)));
-    sn_energy *= calc_sn_ejection_eff(gal, snapshot, 3); //might be worth have 2 different SN ejection eff for PISN and CC; 
+    sn_energy *= calc_sn_ejection_eff(gal, snapshot, 3);  
     }
 
   // We can only reheat as much gas as we have available.  Let's inforce this
@@ -529,15 +513,13 @@ void contemporaneous_supernova_feedback(galaxy_t* gal,
     *m_recycled *= frac;
     *m_remnant *= frac;
   }
-  if (*new_metals < 0) // I don't know why this happens, I believe is a numerical error
+  if (*new_metals < 0) // Just to be sure
     *new_metals = 0.0;
-  //assert(*new_metals >= 0); //For some reason if you do this it fails!
   assert(*m_recycled >= 0);
   assert(*m_reheat >= 0);
   assert(*m_remnant >= 0);
 
   // how much mass is ejected due to this star formation episode? (ala Croton+ 2006)
-  //*m_eject = calc_ejected_mass(m_reheat, sn_energy, gal->Vvir, gal->Halo->FOFGroup->Vvir);
   *m_eject = calc_ejected_mass(m_reheat, sn_energy, gal->Vvir, gal->Halo->FOFGroup->Vvir);
   
   assert(*m_reheat >= 0);
@@ -545,7 +527,7 @@ void contemporaneous_supernova_feedback(galaxy_t* gal,
   
 }
 
-void calc_metal_bubble(galaxy_t* gal, int snapshot) // Done! Result in internal units (Mpc/h) (You need to update this function for Pop III/Pop II!
+void calc_metal_bubble(galaxy_t* gal, int snapshot) // Result in internal units (Mpc/h) You need to update this function for Pop III/Pop II, but before check it with Yuxiang
 {
   bool Flag_IRA = (bool)(run_globals.params.physics.Flag_IRA);
   double mm_stars = gal->NewStars[0]; //The last episode of SF
@@ -559,7 +541,6 @@ void calc_metal_bubble(galaxy_t* gal, int snapshot) // Done! Result in internal 
   if (Flag_IRA == false) {
   
     if (mm_stars > 1e-10) { 
-    
       if (gal->Galaxy_Population == 3) //Crucial to update the galaxy index! 
         gal->Galaxy_Population = 2;
 
@@ -592,7 +573,6 @@ void calc_metal_bubble(galaxy_t* gal, int snapshot) // Done! Result in internal 
     }
     
   gal->RmetalBubble = max; 
-  
   
   if (gal->RmetalBubble < 0.0)
     gal->RmetalBubble = 0.0;

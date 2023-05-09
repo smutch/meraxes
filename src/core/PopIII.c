@@ -50,12 +50,6 @@ void initialize_PopIII_stuff() //Initialize PopIII quantities that are easily co
   run_globals.MassSNII = Mass_SNII();
   run_globals.MassBHs = Mass_BHs();
   mlog("Init IMF quantities: NPISN = %f, MPISN = %f, NSNII = %f, MSNII = %f, MBHs = %f", MLOG_MESG, run_globals.NumberPISN, run_globals.MassPISN, run_globals.NumberSNII, run_globals.MassSNII, run_globals.MassBHs);    
-  /*}
-  MPI_Bcast(&NumberPISN, sizeof(NumberPISN), MPI_BYTE, 0, run_globals.mpi_comm);
-  MPI_Bcast(&MassPISN, sizeof(MassPISN), MPI_BYTE, 0, run_globals.mpi_comm);
-  MPI_Bcast(&NumberSNII, sizeof(NumberSNII), MPI_BYTE, 0, run_globals.mpi_comm);
-  MPI_Bcast(&MassSNII, sizeof(MassSNII), MPI_BYTE, 0, run_globals.mpi_comm);
-  MPI_Bcast(&MassBHs, sizeof(MassBHs), MPI_BYTE, 0, run_globals.mpi_comm);*/
 }
 
 double interp_mass(double lifetime) // Lifetime in yr units!!
@@ -70,7 +64,7 @@ double interp_mass(double lifetime) // Lifetime in yr units!!
   
   double log10lifetime = log10(lifetime);
  
-  // Check if Mass is inside interpolation boundaries (That shouldn't happen, so maybe put an error message or a print
+  // Check if Mass is inside interpolation boundaries
   if (log10lifetime < Time_Values[mass_bins - 1]) {
     // If it is above the upper limit, we just assume that it is the upper limit
     log10lifetime = (Time_Values[mass_bins - 1]);
@@ -81,33 +75,27 @@ double interp_mass(double lifetime) // Lifetime in yr units!!
     massfinal_result = (Mass_Values[0]);
     }
   else {
-    for (int i = 0; i < mass_bins; i++) { //find index. You could add a safety condition here
+    for (int i = 0; i < mass_bins; i++) { //find index.
       if ((log10lifetime <= Time_Values[i]) && (log10lifetime >= Time_Values[i+1])){
         n_low = i;
         break;
         }
-      }
-    
+      }   
     n_high = n_low + 1;
-
     // Linear interpolation 
-  
     massfinal_result = Mass_Values[n_low] + ((log10lifetime - Time_Values[n_low]) * (Mass_Values[n_high] - Mass_Values[n_low])) / (Time_Values[n_high] - Time_Values[n_low]);
     }
-
   return pow(10, massfinal_result); //Return result in SolarMass
 }
 
 double integrand_IMFnorm(double StarMass) // You might want a case 2 for a different type of IMF (with Characteristic mass)
 {
-  double AlphaIMF = run_globals.params.physics.AlphaIMF; //remember to put these new parameters for IMF!
-  
+  double AlphaIMF = run_globals.params.physics.AlphaIMF;
   return StarMass * pow(StarMass, AlphaIMF);
 }
 
 double IMFnorm(double Mmin_IMF, double Mmax_IMF) //get normalization of Pop III IMF
 {
-
   double norma, normaerr;
   double rel_tol = 0.01; //<- relative tolerance
   gsl_function F;
@@ -141,7 +129,7 @@ double getIMF(double StarMass)
   return Anorm * pow(StarMass, AlphaIMF);
 }
 
-double getIMF_2(double StarMass) // Don't need a second function, you could put this inside getIMF with a flag
+double getIMF_2(double StarMass) // Maybe put this inside getIMF with a flag?
 {
   double MminIMF = run_globals.params.physics.MminIMF;
   double MmaxIMF = run_globals.params.physics.MmaxIMF;
@@ -152,7 +140,7 @@ double getIMF_2(double StarMass) // Don't need a second function, you could put 
   return Anorm * StarMass * pow(StarMass, AlphaIMF);
 }
 
-double get_StellarAge(double StarMass) //Star Mass in log10(Msol) to get tstar in log10(yr). Use this so you can do a linear interpolation!!! 
+double get_StellarAge(double StarMass) //Star Mass in log10(Msol) to get tstar in log10(yr). Use this so you can do a linear interpolation! 
 {
   int PopIIIAgePrescription = run_globals.params.physics.PopIIIAgePrescription; //Remember to put this as a parameter!
   double a0, a1, a2, a3;
@@ -183,7 +171,7 @@ double get_StellarAge(double StarMass) //Star Mass in log10(Msol) to get tstar i
 double Number_SNII(void)
 {
   double result, err;
-  double rel_tol = 0.01; //<- relative tolerance
+  double rel_tol = 0.01; 
   gsl_function F;
   gsl_integration_workspace* w = gsl_integration_workspace_alloc(1000);
   
@@ -200,14 +188,13 @@ double Number_SNII(void)
                       &result,
                       &err);
   gsl_integration_workspace_free(w);
-
   return result;  
 }
 
 double Mass_SNII(void)
 {
   double result, err;
-  double rel_tol = 0.01; //<- relative tolerance
+  double rel_tol = 0.01;
   gsl_function F;
   gsl_integration_workspace* w = gsl_integration_workspace_alloc(1000);
   
@@ -224,7 +211,6 @@ double Mass_SNII(void)
                       &result,
                       &err);
   gsl_integration_workspace_free(w);
-
   return result;  
 }
 
@@ -238,7 +224,7 @@ double Mass_BHs(void) // Add BHs for Pop III with M>40Msol. Atm they don't do an
   
   else {
     double result_1, result_2, err_1, err_2; // You have 2 limits of integration
-    double rel_tol = 0.01; //<- relative tolerance
+    double rel_tol = 0.01;
     gsl_function F;
     gsl_integration_workspace* w = gsl_integration_workspace_alloc(1000);
     F.function = &getIMF_2;
@@ -294,7 +280,7 @@ double Number_PISN(void)
   
   else {
     double result, err;
-    double rel_tol = 0.01; //<- relative tolerance
+    double rel_tol = 0.01;
     gsl_function F;
     gsl_integration_workspace* w = gsl_integration_workspace_alloc(1000);
   
@@ -376,22 +362,15 @@ double Mass_PISN(void)
 double CCSN_PopIII_Fraction(int i_burst, int curr_snap) //Eq. 17 from Mutch et al. 2016 Result in adimensional number
 {
 
-  //mlog("curr_snap = %d, snap_SF = %d", MLOG_MESG, curr_snap, curr_snap - i_burst);
-  
-  /*if (last_snap <= 1) {
-    mlog_error("Choose larger output snapshots");
-    ABORT(EXIT_FAILURE);
-  }*/
-  
   double* LTTime = run_globals.LTTime;
   double time_unit = run_globals.units.UnitTime_in_Megayears / run_globals.params.Hubble_h * 1e6; //You need result in yrs
   double m_min;
   double m_max;
   
-  double TotalCCSN;
+  double TotalSN;
   
   double DeltaTime = (LTTime[curr_snap - i_burst] - LTTime[curr_snap]) * time_unit;
-  double DeltaTimeSnap = (LTTime[curr_snap - i_burst - 1] - LTTime[curr_snap - i_burst]) * time_unit; //Should be correct, might need to double check that!
+  double DeltaTimeSnap = (LTTime[curr_snap - i_burst - 1] - LTTime[curr_snap - i_burst]) * time_unit;
     
   
   if (i_burst != 0) {
@@ -404,18 +383,11 @@ double CCSN_PopIII_Fraction(int i_burst, int curr_snap) //Eq. 17 from Mutch et a
     m_max = MmaxSnII;
     }
   
-  //if (i_burst < 10)
-    //mlog("m_min = %f, m_max = %f", MLOG_MESG, m_min, m_max);
-    
-  if (m_min > MmaxSnII) { //There are no CCSN in this snapshot!
-    //mlog("m_min = %f, there are no CCSN in this snapshot", MLOG_MESG, m_min);
+  if (m_min > MmaxSnII) //There are no CCSN in this snapshot!
     return 0.0;
-  }
   
-  else if (m_max < MminSnII) { //There are no CCSN in this snapshot!
-    //mlog("m_max = %f, there are no CCSN in this snapshot", MLOG_MESG, m_max);
+  else if (m_max < MminSnII) //There are no CCSN in this snapshot!
     return 0.0; //Maybe put -1 or a break because this condition should stop your while loop!
-  }
     
   else { 
     double NumberPISN = run_globals.NumberPISN;
@@ -425,11 +397,9 @@ double CCSN_PopIII_Fraction(int i_burst, int curr_snap) //Eq. 17 from Mutch et a
       
     if (m_min < MminSnII) 
       m_min = MminSnII;
-      
-    //mlog("m_min = %f, m_max = %f", MLOG_MESG, m_min, m_max);
-  
+    
     double result, err;
-    double rel_tol = 0.01; //<- relative tolerance
+    double rel_tol = 0.01;
     gsl_function F;
     gsl_integration_workspace* w = gsl_integration_workspace_alloc(1000);
   
@@ -446,32 +416,24 @@ double CCSN_PopIII_Fraction(int i_burst, int curr_snap) //Eq. 17 from Mutch et a
                         &result,
                         &err);
     gsl_integration_workspace_free(w);
-  
-    //TotalCCSN = Number_SNII();
-    //TotalCCSN = Number_SNII() + Number_PISN(); //I am still not 100% sure if I have to consider only SNII (I believe so)
-    TotalCCSN = NumberSNII + NumberPISN;
     
-    //mlog("TotCCSN = %f, Frac = %f", MLOG_MESG, TotalCCSN, result / TotalCCSN);
-
-    return result / TotalCCSN;
-    //return result;
+    TotalSN = NumberSNII + NumberPISN;
+    return result / TotalSN;
   }  
 } 
 
 double CCSN_PopIII_MassFraction(int i_burst, int curr_snap) //Eq. 22 from Mutch et al. 2016 Result in adimensional number
 {
-
   double* LTTime = run_globals.LTTime;
   double time_unit = run_globals.units.UnitTime_in_Megayears / run_globals.params.Hubble_h * 1e6; //You need result in yrs
   double m_min;
   double m_max;
   
-  double TotalMassCCSN;
+  double TotalMassSN;
   
   double DeltaTime = (LTTime[curr_snap - i_burst] - LTTime[curr_snap]) * time_unit;
-  double DeltaTimeSnap = (LTTime[curr_snap - i_burst - 1] - LTTime[curr_snap - i_burst]) * time_unit; //Should be correct, might need to double check that!
+  double DeltaTimeSnap = (LTTime[curr_snap - i_burst - 1] - LTTime[curr_snap - i_burst]) * time_unit;
     
-  
   if (i_burst != 0) {
     m_min = interp_mass(DeltaTime + DeltaTimeSnap / 2);
     m_max = interp_mass(DeltaTime - DeltaTimeSnap / 2);
@@ -482,15 +444,11 @@ double CCSN_PopIII_MassFraction(int i_burst, int curr_snap) //Eq. 22 from Mutch 
     m_max = MmaxSnII;
     }
   
-  if (m_min > MmaxSnII) { //There are no CCSN in this snapshot!
-    //mlog("m_min = %f, there are no CCSN in this snapshot", MLOG_MESG, m_min);
+  if (m_min > MmaxSnII) //There are no CCSN in this snapshot!
     return 0.0;
-  }
   
-  else if (m_max < MminSnII) { //There are no CCSN in this snapshot!
-    //mlog("m_max = %f, there are no CCSN in this snapshot", MLOG_MESG, m_max);
+  else if (m_max < MminSnII) //There are no CCSN in this snapshot!
     return 0.0; //Maybe put -1 or a break because this condition should stop your while loop!
-  }
     
   else {
     double MassPISN = run_globals.MassPISN;
@@ -502,7 +460,7 @@ double CCSN_PopIII_MassFraction(int i_burst, int curr_snap) //Eq. 22 from Mutch 
       m_min = MminSnII;
       
     double result, err;
-    double rel_tol = 0.01; //<- relative tolerance
+    double rel_tol = 0.01;
     gsl_function F;
     gsl_integration_workspace* w = gsl_integration_workspace_alloc(1000);
   
@@ -519,12 +477,9 @@ double CCSN_PopIII_MassFraction(int i_burst, int curr_snap) //Eq. 22 from Mutch 
                         &result,
                         &err);
     gsl_integration_workspace_free(w);
+    TotalMassSN = MassSNII + MassPISN;
   
-    //TotalCCSN = Number_SNII();
-    //TotalMassCCSN = Mass_SNII() + Mass_PISN(); //I am still not 100% sure if I have to consider only SNII (I believe so)
-    TotalMassCCSN = MassSNII + MassPISN;
-  
-    return result / TotalMassCCSN;
+    return result / TotalMassSN;
   }  
 } 
 
@@ -536,7 +491,7 @@ double CCSN_PopIII_Yield(int i_burst, int curr_snap, int yield_type) //0 = Tot, 
   double m_min;
   double m_max;
   
-  double TotalMassCCSN;
+  double TotalMassSN;
   
   double DeltaTime = (LTTime[curr_snap - i_burst] - LTTime[curr_snap]) * time_unit;
   double DeltaTimeSnap = (LTTime[curr_snap - i_burst - 1] - LTTime[curr_snap - i_burst]) * time_unit; //Should be correct, might need to double check that!
@@ -552,15 +507,11 @@ double CCSN_PopIII_Yield(int i_burst, int curr_snap, int yield_type) //0 = Tot, 
     m_max = MmaxSnII;
     }
   
-  if (m_min > MmaxSnII) { //There are no CCSN in this snapshot!
-    //mlog("m_min = %f, there are no CCSN in this snapshot", MLOG_MESG, m_min);
+  if (m_min > MmaxSnII) //There are no CCSN in this snapshot!
     return 0.0;
-  }
   
-  else if (m_max < MminSnII) { //There are no CCSN in this snapshot!
-    //mlog("m_max = %f, there are no CCSN in this snapshot", MLOG_MESG, m_max);
+  else if (m_max < MminSnII) //There are no CCSN in this snapshot!
     return 0.0; //Maybe put -1 or a break because this condition should stop your while loop!
-  }
     
   else {
     double MassPISN = run_globals.MassPISN;
@@ -591,8 +542,7 @@ double CCSN_PopIII_Yield(int i_burst, int curr_snap, int yield_type) //0 = Tot, 
                         &err);
     gsl_integration_workspace_free(w);
   
-    //TotalCCSN = Number_SNII();
-    TotalMassCCSN = MassSNII + MassPISN;
+    TotalMassSN = MassSNII + MassPISN;
     
     if (yield_type == 0) { // All (recycling mass) 
       if (m_max <= 30.0)
@@ -618,7 +568,6 @@ double CCSN_PopIII_Yield(int i_burst, int curr_snap, int yield_type) //0 = Tot, 
       else 
         Y = 0.4;
     }
-  
-    return result / TotalMassCCSN * Y;
+    return result / TotalMassSN * Y;
   }  
 } 

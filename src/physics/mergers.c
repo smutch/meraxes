@@ -204,7 +204,6 @@ void merge_with_target(galaxy_t* gal, int* dead_gals, int snapshot)
       if ((parent->Radii[C-1] - gal->Radii[iii]) < 1e-6) { // This loop to find which was the Prefactor and the Time associated to that bubble (Maybe there is a smarter way)
         parent->Prefactor[C-1] = gal->Prefactor[iii];
         parent->Times[C-1] = gal->Times[iii];
-        //mlog("...done", MLOG_CLOSE);
       }
     }
   }
