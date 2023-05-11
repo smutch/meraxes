@@ -736,8 +736,6 @@ void create_master_file()
 
       if (run_globals.params.Flag_IncludeLymanWerner) { 
         H5LTset_attribute_string(file_id, group_name, "JLW_box", "None"); // Sure?
-      if (run_globals.params.Flag_IncludeLymanWerner) {
-        H5LTset_attribute_string(file_id, group_name, "JLW_box", "None");
       }
 
       if (run_globals.params.Flag_ConstructLightcone) {
