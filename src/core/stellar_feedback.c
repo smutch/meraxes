@@ -185,8 +185,8 @@ double get_SN_energy_PopIII(int i_burst, int snapshot, int SN_type) //SN_type = 
   //Core Collapse SN
   if (SN_type == 0) {
     Enova = ENOVA_CC; 
-    double CC_Fraction = CCSN_PopIII_Fraction(i_burst, snapshot);
-    return Enova * CC_Fraction; //result in erg
+    double CC_Fraction = CCSN_PopIII_Fraction(i_burst, snapshot, 0);
+    return Enova * CC_Fraction * NumberSNII * 1e10 / run_globals.params.Hubble_h; //result in erg * (1e10 Msol / h) (You will need to multiply this per mass in internal units
   }
   //PISN (feedback here is contemporaneous), this part is probably useless
   if (SN_type == 1) {
@@ -195,46 +195,6 @@ double get_SN_energy_PopIII(int i_burst, int snapshot, int SN_type) //SN_type = 
       return 0;
       }
     Enova = ENOVA_PISN;
-    double N_PISN = NumberPISN;
-    return Enova * N_PISN; // erg / Msol
+    return Enova * NumberPISN / (NumberPISN + NumberSNII) * NumberPISN * 1e10 / run_globals.params.Hubble_h; // same as above
   }  
-}
-
-double get_SN_mass_PopIII(int i_burst, int snapshot, int SN_type) //SN_type = 0 -> CC, 1 -> PISN
-{
-  //Core Collapse SN
-  if (SN_type == 0) {
-    double CC_MassFraction = CCSN_PopIII_MassFraction(i_burst, snapshot);
-    return CC_MassFraction;
-  }
-  //PISN (feedback here is contemporaneous), this part is probably useless
-  if (SN_type == 1) {
-    if (i_burst != 0) {
-      mlog_error("PISN feedback is instantaneous!");
-      return 0;
-      }
-    double MassPISN = run_globals.MassPISN;
-    double MassSNII = run_globals.MassSNII;
-    double PISN_MassFraction = MassPISN / (MassSNII + MassPISN);
-    return PISN_MassFraction; 
-  }  
-}
-
-double get_total_PopIIISN_energy(int SN_type) //SN_type = 0 -> CC, 1 -> PISN (Pop III have higher masses so we need to account also for PISN!)
-{
-  double Enova;
-  double TotalEn;
-  double NumberPISN = run_globals.NumberPISN;
-  double NumberSNII = run_globals.NumberSNII;
-  //Core Collapse SN
-  if (SN_type == 0) {
-    Enova = ENOVA_CC; 
-    TotalEn = Enova * NumberSNII;
-  }
-  //PISN (feedback here is contemporaneous)
-  if (SN_type == 1) {
-    Enova = ENOVA_PISN;
-    TotalEn = Enova * NumberPISN;
-  } 
-  return TotalEn;
 }

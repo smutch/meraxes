@@ -190,6 +190,7 @@ void merge_with_target(galaxy_t* gal, int* dead_gals, int snapshot)
   parent->MergerBurstMass += gal->MergerBurstMass;
   
   // If I have a Merger between Pop III and Pop II the result is a Pop. II. Actually I should compute metallicity
+  // TODO: this could be improved in the future!
   
   if (gal->Galaxy_Population == 2) 
     parent->Galaxy_Population = 2;
