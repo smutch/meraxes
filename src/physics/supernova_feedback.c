@@ -273,42 +273,42 @@ static inline double calc_sn_reheat_eff(galaxy_t* gal, int snapshot, int flag_po
 
 static inline double calc_sn_ejection_eff(galaxy_t* gal, int snapshot, int flag_population)
 {
-    double Vmax = gal->Vmax;    // Vmax is in a unit of km/s
-    double zplus1 = 1. + run_globals.ZZ[snapshot];
-    physics_params_t *params = &run_globals.params.physics;
-    int SnModel = params->SnModel;
-    double SnEjectionRedshiftDep;
-    double SnEjectionEff;
-    double SnEjectionScaling;
-    double SnEjectionNorm;
-    if (flag_population == 2) {
-      SnEjectionRedshiftDep = params->SnEjectionRedshiftDep;
-      SnEjectionEff = params->SnEjectionEff;
-      SnEjectionScaling = params->SnEjectionScaling;
-      SnEjectionNorm = params->SnEjectionNorm;
-      }
-    else if (flag_population == 3) {
-      SnEjectionRedshiftDep = params->SnEjectionRedshiftDep_III;
-      SnEjectionEff = params->SnEjectionEff_III;
-      SnEjectionScaling = params->SnEjectionScaling_III;
-      SnEjectionNorm = params->SnEjectionNorm_III;
-      }
-    switch (SnModel) {
-    case 1:    // Guo et al. 2011 with redshift dependence
-        SnEjectionEff *= pow(zplus1/4., SnEjectionRedshiftDep) \
-                         *(.5 + pow(Vmax/SnEjectionNorm, -SnEjectionScaling));
-        break;
-    case 2:
-        // Use the same value with that is used for the mass loading
-        if (Vmax < SnEjectionNorm)
-            SnEjectionScaling = params->SnEjectionScaling2; 
+  double Vmax = gal->Vmax;    // Vmax is in a unit of km/s
+  double zplus1 = 1. + run_globals.ZZ[snapshot];
+  physics_params_t *params = &run_globals.params.physics;
+  int SnModel = params->SnModel;
+  double SnEjectionRedshiftDep;
+  double SnEjectionEff;
+  double SnEjectionScaling;
+  double SnEjectionNorm;
+  if (flag_population == 2) {
+    SnEjectionRedshiftDep = params->SnEjectionRedshiftDep;
+    SnEjectionEff = params->SnEjectionEff;
+    SnEjectionScaling = params->SnEjectionScaling;
+    SnEjectionNorm = params->SnEjectionNorm;
+    }
+  else if (flag_population == 3) {
+    SnEjectionRedshiftDep = params->SnEjectionRedshiftDep_III;
+    SnEjectionEff = params->SnEjectionEff_III;
+    SnEjectionScaling = params->SnEjectionScaling_III;
+    SnEjectionNorm = params->SnEjectionNorm_III;
+    }
+  switch (SnModel) {
+  case 1:    // Guo et al. 2011 with redshift dependence
+      SnEjectionEff *= pow(zplus1/4., SnEjectionRedshiftDep) \
+                       *(.5 + pow(Vmax/SnEjectionNorm, -SnEjectionScaling));
+      break;
+  case 2:
+      // Use the same value with that is used for the mass loading
+      if (Vmax < SnEjectionNorm)
+        SnEjectionScaling = params->SnEjectionScaling2; 
         SnEjectionEff *= pow(zplus1/4., SnEjectionRedshiftDep) \
                          *pow(Vmax/SnEjectionNorm, -SnEjectionScaling);
         break;
-    default:
-      mlog_error("Unknonw SnModel!");
-      ABORT(EXIT_FAILURE);
-      break;
+  default:
+    mlog_error("Unknonw SnModel!");
+    ABORT(EXIT_FAILURE);
+    break;
   }
   if (SnEjectionEff < 1.)
     return SnEjectionEff;
@@ -463,12 +463,11 @@ void contemporaneous_supernova_feedback(galaxy_t* gal,
       *new_metals = *m_stars * get_metal_yield(0, metallicity);
       }
     else if (gal->Galaxy_Population == 3){
-      *m_recycled = *m_stars * (CCSN_PopIII_Yield(0, snapshot, 0) + get_SN_mass_PopIII(0, snapshot, 1));
+      *m_recycled = *m_stars * (CCSN_PopIII_Yield(0, snapshot, 0) + PISN_PopIII_Yield(0));
       *m_remnant = *m_stars * (MassBHs + CCSN_PopIII_Yield(0, snapshot, 2));
+      *new_metals = *m_stars * CCSN_PopIII_Yield(0, snapshot, 1);
       if (MassPISN > 0) // Account for PISN
-        *new_metals = *m_stars * get_SN_mass_PopIII(0, snapshot, 1) / 2.0 - (20.0 / 1e10 * run_globals.params.Hubble_h) + *m_stars * CCSN_PopIII_Yield(0, snapshot, 1);
-      else //No PISN
-        *new_metals = *m_stars * CCSN_PopIII_Yield(0, snapshot, 1);
+        *new_metals += *m_stars * PISN_PopIII_Yield(1) - (20.0 / 1e10 * run_globals.params.Hubble_h);
       }
   } else {
     // Recycling fraction and metals yield are input parameters when using IRA
@@ -489,9 +488,9 @@ void contemporaneous_supernova_feedback(galaxy_t* gal,
     sn_energy *= calc_sn_ejection_eff(gal, snapshot, 2);
     }
   else if (gal->Galaxy_Population == 3){ 
-    sn_energy = get_SN_energy_PopIII(0, snapshot, 0) * (*m_stars * 1e10 / run_globals.params.Hubble_h * NumberSNII) + (*m_stars * (ENOVA_PISN * NumberPISN * 1e10 / run_globals.params.Hubble_h)); //erg
+    sn_energy = (*m_stars) * (get_SN_energy_PopIII(0, snapshot, 0) + get_SN_energy_PopIII(0, snapshot, 1)); //erg
     sn_energy /= energy_unit; //Convert this because you need in internal units it for m_ejected
-    *m_reheat = calc_sn_reheat_eff(gal, snapshot, 3) * ((NumberPISN / (NumberPISN + NumberSNII) * (*m_stars)) + (get_SN_energy_PopIII(0, snapshot, 0) / ENOVA_CC * (*m_stars)));
+    *m_reheat = calc_sn_reheat_eff(gal, snapshot, 3) * (*m_stars) * (get_SN_energy_PopIII(0, snapshot, 1) / ENOVA_PISN + get_SN_energy_PopIII(0, snapshot, 0) / ENOVA_CC );
     sn_energy *= calc_sn_ejection_eff(gal, snapshot, 3);  
     }
 

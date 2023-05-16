@@ -138,18 +138,3 @@ double calculate_spin_param(halo_t* halo)
     sqrt(halo->AngMom[0] * halo->AngMom[0] + halo->AngMom[1] * halo->AngMom[1] + halo->AngMom[2] * halo->AngMom[2]);
   return angmom_mag / (1.414213562 * halo->Vvir * halo->Rvir);
 }
-
-double NLBias(double Dist_Radius, double Halo_Mass, double redshift) //Fitting function written to match the results of Iliev+03 and Dijkstra+08, parameters in vir_properties.h (Input in internal units (Maybe is better to put in misc_tools.c ?
-{
-  double Alpha_ind = run_globals.params.physics.AlphaCluster;
-  double Beta_ind = run_globals.params.physics.BetaCluster;
-  double Gamma_ind = run_globals.params.physics.GammaCluster;
-  double Psi_Norm = run_globals.params.physics.NormCluster;
-  
-  double little_h = run_globals.params.Hubble_h;
-  Dist_Radius /= little_h;  
-  
-  Halo_Mass = Halo_Mass * 1e10 / little_h;
-  
-  return (Psi_Norm * pow(Dist_Radius / 0.01, Alpha_ind) * pow(Halo_Mass / 1e6, Beta_ind) * pow(redshift / 20.0, Gamma_ind));
-}

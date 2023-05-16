@@ -16,7 +16,6 @@ extern "C"
   double calculate_Vvir(double Mvir, double Rvir);
   double calculate_spin_param(halo_t* halo);
   double calculate_gasMass(int snapshot, double length);
-  double NLBias(double Dist_Radius, double Halo_Mass, double redshift);
   
 
 #ifdef __cplusplus

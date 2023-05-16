@@ -406,31 +406,31 @@ void malloc_metal_grids()
   
   assign_slabs_metals();
 
-    int MetalGridDim = run_globals.params.MetalGridDim;
-    ptrdiff_t* slab_nix_metals = run_globals.metal_grids.slab_nix_metals;
-    ptrdiff_t slab_n_real_metals = slab_nix_metals[run_globals.mpi_rank] * MetalGridDim * MetalGridDim;
-    // create a buffer on each rank which is as large as the largest LOGICAL allocation on any single rank
-    int max_cells = 0;
+  int MetalGridDim = run_globals.params.MetalGridDim;
+  ptrdiff_t* slab_nix_metals = run_globals.metal_grids.slab_nix_metals;
+  ptrdiff_t slab_n_real_metals = slab_nix_metals[run_globals.mpi_rank] * MetalGridDim * MetalGridDim;
+  // create a buffer on each rank which is as large as the largest LOGICAL allocation on any single rank
+  int max_cells = 0;
 
-    for (int ii = 0; ii < run_globals.mpi_size; ii++)
-      if (slab_nix_metals[ii] > max_cells)
-        max_cells = (int)slab_nix_metals[ii];
+  for (int ii = 0; ii < run_globals.mpi_size; ii++)
+    if (slab_nix_metals[ii] > max_cells)
+      max_cells = (int)slab_nix_metals[ii];
 
-    max_cells *= MetalGridDim * MetalGridDim;
-    grids->buffer_size_metals = max_cells;
+  max_cells *= MetalGridDim * MetalGridDim;
+  grids->buffer_size_metals = max_cells;
 
-    grids->buffer_metals = fftwf_alloc_real((size_t)max_cells);
+  grids->buffer_metals = fftwf_alloc_real((size_t)max_cells);
 
-    grids->mass_metals = fftwf_alloc_real((size_t)slab_n_real_metals);
-    grids->mass_gas = fftwf_alloc_real((size_t)slab_n_real_metals);
-    grids->Zigm_box = fftwf_alloc_real((size_t)slab_n_real_metals);
+  grids->mass_metals = fftwf_alloc_real((size_t)slab_n_real_metals);
+  grids->mass_gas = fftwf_alloc_real((size_t)slab_n_real_metals);
+  grids->Zigm_box = fftwf_alloc_real((size_t)slab_n_real_metals);
 
-    grids->Probability_metals = fftwf_alloc_real((size_t)slab_n_real_metals);
-    grids->N_bubbles = fftwf_alloc_real((size_t)slab_n_real_metals);
-    grids->R_ave = fftwf_alloc_real((size_t)slab_n_real_metals);
-    grids->R_max = fftwf_alloc_real((size_t)slab_n_real_metals);
+  grids->Probability_metals = fftwf_alloc_real((size_t)slab_n_real_metals);
+  grids->N_bubbles = fftwf_alloc_real((size_t)slab_n_real_metals);
+  grids->R_ave = fftwf_alloc_real((size_t)slab_n_real_metals);
+  grids->R_max = fftwf_alloc_real((size_t)slab_n_real_metals);
  
-    init_metal_grids();
+  init_metal_grids();
 
   mlog("...done", MLOG_CLOSE);
 }
