@@ -373,8 +373,8 @@ double CCSN_PopIII_Fraction(int i_burst, int curr_snap, int flagMW) //from Mutch
   double DeltaTimeSnap2 = (LTTime[curr_snap - i_burst] - LTTime[curr_snap - i_burst + 1]) * time_unit;
   
   if (i_burst != 0) {
-    m_min = interp_mass(DeltaTime + DeltaTimeSnap2 / 2);
-    m_max = interp_mass(DeltaTime - DeltaTimeSnap / 2);
+    m_min = interp_mass(DeltaTime + DeltaTimeSnap / 2);
+    m_max = interp_mass(DeltaTime - DeltaTimeSnap2 / 2);
     }
     
   else {
