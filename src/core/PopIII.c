@@ -370,9 +370,10 @@ double CCSN_PopIII_Fraction(int i_burst, int curr_snap, int flagMW) //from Mutch
   
   double DeltaTime = (LTTime[curr_snap - i_burst] - LTTime[curr_snap]) * time_unit;
   double DeltaTimeSnap = (LTTime[curr_snap - i_burst - 1] - LTTime[curr_snap - i_burst]) * time_unit;
+  double DeltaTimeSnap2 = (LTTime[curr_snap - i_burst] - LTTime[curr_snap - i_burst + 1]) * time_unit;
   
   if (i_burst != 0) {
-    m_min = interp_mass(DeltaTime + DeltaTimeSnap / 2);
+    m_min = interp_mass(DeltaTime + DeltaTimeSnap2 / 2);
     m_max = interp_mass(DeltaTime - DeltaTimeSnap / 2);
     }
     
@@ -380,6 +381,9 @@ double CCSN_PopIII_Fraction(int i_burst, int curr_snap, int flagMW) //from Mutch
     m_min = interp_mass(DeltaTime + DeltaTimeSnap / 2);
     m_max = MmaxSnII;
     }
+  
+  if (i_burst < 15)  
+    mlog("m_min = %f, m_max = %f", MLOG_MESG, m_min, m_max);
   
   if (m_min > MmaxSnII) //There are no CCSN in this snapshot!
     return 0.0;
