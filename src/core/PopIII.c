@@ -370,7 +370,6 @@ double CCSN_PopIII_Fraction(int i_burst, int curr_snap, int flagMW) //from Mutch
   
   double DeltaTime = (LTTime[curr_snap - i_burst] - LTTime[curr_snap]) * time_unit;
   double DeltaTimeSnap = (LTTime[curr_snap - i_burst - 1] - LTTime[curr_snap - i_burst]) * time_unit;
-    
   
   if (i_burst != 0) {
     m_min = interp_mass(DeltaTime + DeltaTimeSnap / 2);
@@ -389,15 +388,16 @@ double CCSN_PopIII_Fraction(int i_burst, int curr_snap, int flagMW) //from Mutch
     return 0.0; //Maybe put -1 or a break because this condition should stop your while loop!
     
   else {
+    double TotalSN;
     if (flagMW == 0) { 
       double NumberPISN = run_globals.NumberPISN;
       double NumberSNII = run_globals.NumberSNII;
-      double TotalSN = NumberSNII + NumberPISN;
+      TotalSN = NumberSNII + NumberPISN;
       }
     else if (flagMW == 1) {
       double MassPISN = run_globals.MassPISN;
       double MassSNII = run_globals.MassSNII;
-      double TotalSN = MassPISN + MassSNII;
+      TotalSN = MassPISN + MassSNII;
       }
     
     if (m_max > MmaxSnII) // Firstly, you are only interested in stars in the CCSN mass range
@@ -528,9 +528,9 @@ double PISN_PopIII_Yield(int yield_type) //Yield_type = 0 -> Recycling, 1 -> Met
   double MassPISN = run_globals.MassPISN;
   double MassSNII = run_globals.MassSNII;
   double PISN_MassFraction = MassPISN / (MassSNII + MassPISN);
-  if (Yield_Type == 0) 
+  if (yield_Type == 0) 
     return PISN_MassFraction; 
-  if (Yield_Type == 1)
+  if (yield_Type == 1)
     return PISN_MassFraction / 2.0;      
 }
 
