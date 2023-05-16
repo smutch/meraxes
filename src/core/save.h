@@ -70,7 +70,7 @@ typedef struct galaxy_output_t
   float BaryonFracModifier;
   float FOFMvirModifier;
   float MvirCrit;
-  float MvirCrit_MC; 
+  float MvirCrit_MC;
   float dt;
   float MergerBurstMass;
 

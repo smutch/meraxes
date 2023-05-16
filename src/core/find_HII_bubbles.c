@@ -203,7 +203,8 @@ void _find_HII_bubbles(const int snapshot)
     if (!flag_last_filter_step) {
       filter(deltax_filtered, local_ix_start, local_nix, ReionGridDim, (float)R, run_globals.params.ReionFilterType);
       filter(stars_filtered, local_ix_start, local_nix, ReionGridDim, (float)R, run_globals.params.ReionFilterType);
-      filter(weighted_sfr_filtered, local_ix_start, local_nix, ReionGridDim, (float)R, run_globals.params.ReionFilterType);
+      filter(
+        weighted_sfr_filtered, local_ix_start, local_nix, ReionGridDim, (float)R, run_globals.params.ReionFilterType);
 
       if (run_globals.params.Flag_IncludeRecombinations) {
         filter(N_rec_filtered, local_ix_start, local_nix, ReionGridDim, (float)R, run_globals.params.ReionFilterType);
@@ -366,7 +367,11 @@ void _find_HII_bubbles(const int snapshot)
         i_padded = grid_index(ix, iy, iz, ReionGridDim, INDEX_PADDED);
         double cell_xH = (double)(xH[i_real]);
         volume_weighted_global_xH += cell_xH;
-        volume_weighted_global_J_21 += (double)J_21[i_real];
+
+        if (flag_ReionUVBFlag) {
+          volume_weighted_global_J_21 += (double)J_21[i_real];
+        }
+
         density_over_mean = 1.0 + (double)((float*)deltax)[i_padded];
         mass_weighted_global_xH += cell_xH * density_over_mean;
         mass_weight += density_over_mean;
@@ -380,12 +385,16 @@ void _find_HII_bubbles(const int snapshot)
       }
 
   MPI_Allreduce(MPI_IN_PLACE, &volume_weighted_global_xH, 1, MPI_DOUBLE, MPI_SUM, run_globals.mpi_comm);
-  MPI_Allreduce(MPI_IN_PLACE, &volume_weighted_global_J_21, 1, MPI_DOUBLE, MPI_SUM, run_globals.mpi_comm);
+  if (flag_ReionUVBFlag) {
+    MPI_Allreduce(MPI_IN_PLACE, &volume_weighted_global_J_21, 1, MPI_DOUBLE, MPI_SUM, run_globals.mpi_comm);
+  }
   MPI_Allreduce(MPI_IN_PLACE, &mass_weighted_global_xH, 1, MPI_DOUBLE, MPI_SUM, run_globals.mpi_comm);
   MPI_Allreduce(MPI_IN_PLACE, &mass_weight, 1, MPI_DOUBLE, MPI_SUM, run_globals.mpi_comm);
 
   volume_weighted_global_xH /= total_n_cells;
-  volume_weighted_global_J_21 /= total_n_cells;
+  if (flag_ReionUVBFlag) {
+    volume_weighted_global_J_21 /= total_n_cells;
+  }
   mass_weighted_global_xH /= mass_weight;
   run_globals.reion_grids.volume_weighted_global_xH = volume_weighted_global_xH;
   run_globals.reion_grids.volume_weighted_global_J_21 = volume_weighted_global_J_21;
