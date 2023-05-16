@@ -528,9 +528,9 @@ double PISN_PopIII_Yield(int yield_type) //Yield_type = 0 -> Recycling, 1 -> Met
   double MassPISN = run_globals.MassPISN;
   double MassSNII = run_globals.MassSNII;
   double PISN_MassFraction = MassPISN / (MassSNII + MassPISN);
-  if (yield_Type == 0) 
+  if (yield_type == 0) 
     return PISN_MassFraction; 
-  if (yield_Type == 1)
+  if (yield_type == 1)
     return PISN_MassFraction / 2.0;      
 }
 
