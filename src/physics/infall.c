@@ -24,7 +24,7 @@ double gas_infall(fof_group_t* FOFgroup, int snapshot)
   double total_coldgas = 0.0;
   double total_ejectedgas = 0.0;
   double total_blackholemass = 0.0;
-  //double total_remnantmass = 0.0; // This come from the BHs formed after Pop III stars that fail becoming SN and directly collapse. Atm these don't accrete and they don't do anything.
+  double total_remnantmass = 0.0; // This come either from the BHs formed after Pop III stars that fail becoming SN and directly collapse or from CCSN. Atm these don't accrete and they don't do anything.
 
   // Calculate the total baryon mass in the FOF group
   central = FOFgroup->FirstOccupiedHalo->Galaxy;
@@ -37,7 +37,7 @@ double gas_infall(fof_group_t* FOFgroup, int snapshot)
       total_coldgas += gal->ColdGas;
       total_ejectedgas += gal->EjectedGas;
       total_blackholemass += gal->BlackHoleMass + gal->BlackHoleAccretingColdMass;
-      //total_remnantmass += gal->Remnant_Mass;
+      total_remnantmass += gal->Remnant_Mass;
 
       if (gal != central) { 
         central->HotGas += gal->HotGas + gal->EjectedGas;
