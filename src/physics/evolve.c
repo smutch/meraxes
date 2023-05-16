@@ -48,7 +48,7 @@ int evolve_galaxies(fof_group_t* fof_group, int snapshot, int NGal, int NFof, in
               double x;
               double boost_corr = 1;
               
-              if (gal->MaxBubble > 0.0)
+              if (gal->AveBubble > 0.0)
                 boost_corr = NLBias(gal->AveBubble, gal->Mvir, run_globals.ZZ[snapshot]);
               
               x = (double)rand() / RAND_MAX;

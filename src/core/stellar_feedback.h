@@ -25,9 +25,7 @@ extern "C"
   double get_metal_yield(int i_burst, double metals);
   double get_SN_energy(int i_burst, double metals);
   double get_SN_energy_PopIII(int i_burst, int snapshot, int SN_type);
-  double get_SN_mass_PopIII(int i_burst, int snapshot, int SN_type);
   double get_total_SN_energy(void);
-  double get_total_PopIIISN_energy(int SN_type);
 
 #ifdef __cplusplus
 }

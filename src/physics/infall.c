@@ -63,8 +63,8 @@ double gas_infall(fof_group_t* FOFgroup, int snapshot)
     return 0.0;
   }
 
-  total_baryons = total_stellarmass + total_hotgas + total_coldgas + total_ejectedgas + total_blackholemass;
-  //total_baryons = total_stellarmass + total_hotgas + total_coldgas + total_ejectedgas + total_blackholemass + total_remnantmass; // Probably I should use this line!
+  //total_baryons = total_stellarmass + total_hotgas + total_coldgas + total_ejectedgas + total_blackholemass; // old version without remnants!
+  total_baryons = total_stellarmass + total_hotgas + total_coldgas + total_ejectedgas + total_blackholemass + total_remnantmass; 
 
   // Calculate the amount of fresh gas required to provide the baryon
   // fraction of this halo.

@@ -694,6 +694,7 @@ typedef struct run_globals_t
   double G;
   double Csquare;
   // PopIII stuff
+  double IMFnorm;
   double NumberPISN;
   double MassPISN;
   double NumberSNII;
