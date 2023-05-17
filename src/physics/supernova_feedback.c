@@ -624,7 +624,7 @@ void calc_metal_bubble(galaxy_t* gal, int snapshot) // result in internal units 
     if (i_burst != 0) {
       gal->Prefactor[n_bursts - i_burst] = gal->Prefactor[n_bursts - i_burst - 1];
       gal->Times[n_bursts - i_burst] = gal->Times[n_bursts - i_burst - 1];
-      gal->Radii[n_bursts - i_burst] = gal->Prefactor[n_bursts - i_burst] * pow((gal->Times[n_bursts - i_bursts] - run_globals.LTTime[snapshot] * time_unit), 0.4);
+      gal->Radii[n_bursts - i_burst] = gal->Prefactor[n_bursts - i_burst] * pow((gal->Times[n_bursts - i_burst] - run_globals.LTTime[snapshot] * time_unit), 0.4);
       if (gal->Radii[n_bursts - i_burst] > gal->RmetalBubble) { //Look if one of the new bubbles is bigger than RmetalBubble
         mlog("Old Bubble = %f, New Bubble = %f, SNenergy = %f", MLOG_MESG, gal->Radii[n_bursts - i_burst], gal->RmetalBubble, sn_energy);
         gal->RmetalBubble = gal->Radii[n_bursts - i_burst];
