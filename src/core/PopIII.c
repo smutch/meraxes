@@ -538,7 +538,7 @@ double CCSN_PopIII_Fraction(int i_burst, int curr_snap, int flagMW) //from Mutch
     m_max = MmaxSnII;
     }
   
-  if (m_miu > MmaxSnII) //There are no CCSN in this snapshot!
+  if (m_min > MmaxSnII) //There are no CCSN in this snapshot!
     return 0.0;
   
   else if (m_max < MminSnII) //There are no CCSN in this snapshot!
