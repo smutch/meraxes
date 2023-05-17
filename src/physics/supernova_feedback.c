@@ -526,7 +526,7 @@ void contemporaneous_supernova_feedback(galaxy_t* gal,
   
 }
 
-void calc_metal_bubble(galaxy_t* gal, int snapshot) // Result in internal units (Mpc/h) You need to update this function for Pop III/Pop II, but before check it with Yuxiang
+/*void calc_metal_bubble(galaxy_t* gal, int snapshot) // Result in internal units (Mpc/h) You need to update this function for Pop III/Pop II, but before check it with Yuxiang
 {
   bool Flag_IRA = (bool)(run_globals.params.physics.Flag_IRA);
   double mm_stars = gal->NewStars[0]; //The last episode of SF
@@ -551,7 +551,7 @@ void calc_metal_bubble(galaxy_t* gal, int snapshot) // Result in internal units 
       gas_density = (gal->HotGas + gal->ColdGas) * UnitMass_in_g / PROTONMASS / (4.0 * M_PI / 3.0 * pow(gal->Rvir * UnitLength_in_cm, 3.)); // cm^-3
     
       gal->Prefactor[A] = pow(EnergySN * N_SN_Pop2 * mm_stars * UnitMass_in_g / SOLAR_MASS / (PROTONMASS * gas_density), 0.2) / UnitLength_in_cm; //Mpc s^-0.4
-      gal->Times[A] = run_globals.LTTime[snapshot] * time_unit; // s (put SF at the middle of the snapshot!)
+      gal->Times[A] = run_globals.LTTime[snapshot] * time_unit; // s 
     }
     if (gal->count_SF > 0) {
       for (int i_SF = 0; i_SF < gal->count_SF; i_SF++)
@@ -575,4 +575,65 @@ void calc_metal_bubble(galaxy_t* gal, int snapshot) // Result in internal units 
   
   if (gal->RmetalBubble < 0.0)
     gal->RmetalBubble = 0.0;
+}*/
+void calc_metal_bubble(galaxt_t* gal, int snapshot) // result in internal units (Mpc/h) This new function assumes that a bubble will overtake a previous one in no more than 17 snapshots!
+{
+  int n_bursts = (snapshot >= N_HISTORY_SNAPS) ? N_HISTORY_SNAPS : snapshot;
+  
+  double UnitMass_in_g = run_globals.units.UnitMass_in_g;
+  double UnitLength_in_cm = run_globals.units.UnitLength_in_cm;
+  double energy_unit = run_globals.units.UnitEnergy_in_cgs;
+  double time_unit = run_globals.units.UnitTime_in_s;
+  
+  double mm_stars = gal->NewStars[0]; //The last episode of SF
+  double sn_energy = 0.0;
+  
+  // First evolve the existing RmetalBubble
+  
+  if (gal->RmetalBubble > 0.){
+    gal->RmetalBubble = gal->PrefactorBubble * pow((gal->TimeBubble - run_globals.LTTime[snapshot] * time_unit), 0.4);
+    mlog("Current Bubble = %f", MLOG_MSG, gal->RmetalBubble);
+    }
+  
+  // Now compute the last N_HISTORY_SNAPS bubble to see if any of those gets bigger than the existing one.
+  
+  double gas_density;  
+  gas_density = (gal->HotGas + gal->ColdGas) * UnitMass_in_g / PROTONMASS / (4.0 * M_PI / 3.0 * pow(gal->Rvir * UnitLength_in_cm, 3.)); // cm^-3
+  
+  if (mm_stars > 1e-10) { 
+    if (gal->Galaxy_Population == 3) //Crucial to update the galaxy index! 
+      gal->Galaxy_Population = 2;
+      }
+
+  for (int i_burst = 0; i_burst < n_bursts; i_burst++) {
+    double m_stars_II = gal->NewStars_II[i_burst];
+    double m_stars_III = gal->NewStars_III[i_burst];
+    double m_stars = m_stars_II + m_stars_III;
+    
+    // Compute the SN energy that drives the metal bubble. Should you include the ejection efficiency?  
+    if (m_stars_II > 1e-10) {
+      double metallicity = calc_metallicity(m_stars, gal->NewMetals[i_burst]);
+      sn_energy += m_stars_II * get_SN_energy(0, metallicity) * energy_unit; // Are you sure of the unit? (You want this in erg)
+      }
+    else if (m_stars_III > 1e-10) {
+      if (i_burst == 0) // You have both CC and PISN
+        sn_energy += (get_SN_energy_PopIII(i_burst, snapshot, 0) + get_SN_energy_PopIII(i_burst, snapshot, 1))  * m_stars_III;
+      else
+        sn_energy += get_SN_energy_PopIII(i_burst, snapshot, 0) * m_stars_III;
+      }
+    if (i_burst != 0) {
+      gal->Prefactor[n_bursts - i_burst] = gal->Prefactor[n_burst - i_burst - 1];
+      gal->Times[n_bursts - i_burst] = gal->Times[n_burst - i_burst - 1];
+      gal->Radii[n_burst - i_burst] = gal->Prefactor[n_bursts - i_burst] * pow((gal->Times[n_bursts - i_bursts] - run_globals.LTTime[snapshot] * time_unit), 0.4);
+      if (gal->Radii[n_burst - i_burst] > gal->RmetalBubble) { //Look if one of the new bubbles is bigger than RmetalBubble
+        mlog("Old Bubble = %f, New Bubble = %f, SNenergy = %f", MLOG_MSG, gal->Radii[n_burst - i_burst], gal->RmetalBubble, sn_energy);
+        gal->RmetalBubble = gal->Radii[n_burst - i_burst];
+        gal->PrefactorBubble = gal->Prefactor[n_burst - i_burst];
+        gal->TimeBubble = gal->Times[n_burst - i_burst];
+        }
+      }
+    }
+  gal->Prefactor[0] = pow(sn_energy / (PROTONMASS * gas_density), 0.2) / UnitLength_in_cm; //Mpc s^-0.4
+  gal->Times[0] = run_globals.LTTime[snapshot] * time_unit; // s 
+  gal->Radii[0] = gal->Prefactor[i_burst] * pow((gal->Times[0] - run_globals.LTTime[snapshot] * time_unit), 0.4); //This is 0, so I could just put it as a 0.
 }

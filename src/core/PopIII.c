@@ -171,48 +171,146 @@ double get_StellarAge(double StarMass) //Star Mass in log10(Msol) to get tstar i
 
 double Number_SNII(void)
 {
-  double result, err;
-  double rel_tol = 0.01; 
-  gsl_function F;
-  gsl_integration_workspace* w = gsl_integration_workspace_alloc(1000);
+  double MmaxIMF = run_globals.params.physics.MmaxIMF;
+  double MminIMF = run_globals.params.physics.MminIMF;
+  if (MmaxIMF < MminSnII)
+    return 0.0;
   
-  F.function = &getIMF;
+  else {
+    double result, err;
+    double rel_tol = 0.01; 
+    gsl_function F;
+    gsl_integration_workspace* w = gsl_integration_workspace_alloc(1000);
   
-  gsl_integration_qag(&F,
-                      MminSnII,
-                      MmaxSnII,
-                      0,
-                      rel_tol,
-                      1000,
-                      GSL_INTEG_GAUSS61,
-                      w,
-                      &result,
-                      &err);
-  gsl_integration_workspace_free(w);
-  return result;  
+    F.function = &getIMF;
+    
+    if (MminIMF < MminSnII) {
+      if (MmaxIMF >= MmaxSnII) {
+        gsl_integration_qag(&F,
+                            MminSnII,
+                            MmaxSnII,
+                            0,
+                            rel_tol,
+                            1000,
+                            GSL_INTEG_GAUSS61,
+                            w,
+                            &result,
+                            &err);
+        }
+      else {
+        gsl_integration_qag(&F,
+                            MminSnII,
+                            MmaxIMF,
+                            0,
+                            rel_tol,
+                            1000,
+                            GSL_INTEG_GAUSS61,
+                            w,
+                            &result,
+                            &err);
+        }
+      }
+    else {
+      if (MmaxIMF >= MmaxSnII) {
+        gsl_integration_qag(&F,
+                            MminIMF,
+                            MmaxSnII,
+                            0,
+                            rel_tol,
+                            1000,
+                            GSL_INTEG_GAUSS61,
+                            w,
+                            &result,
+                            &err);
+        }
+      else {
+        gsl_integration_qag(&F,
+                            MminIMF,
+                            MmaxIMF,
+                            0,
+                            rel_tol,
+                            1000,
+                            GSL_INTEG_GAUSS61,
+                            w,
+                            &result,
+                            &err);
+        }
+      }
+    gsl_integration_workspace_free(w);
+    return result; 
+    } 
 }
 
 double Mass_SNII(void)
 {
-  double result, err;
-  double rel_tol = 0.01;
-  gsl_function F;
-  gsl_integration_workspace* w = gsl_integration_workspace_alloc(1000);
+  double MmaxIMF = run_globals.params.physics.MmaxIMF;
+  double MminIMF = run_globals.params.physics.MminIMF;
+  if (MmaxIMF < MminSnII)
+    return 0.0;
   
-  F.function = &getIMF_massweighted;
+  else {
+    double result, err;
+    double rel_tol = 0.01; 
+    gsl_function F;
+    gsl_integration_workspace* w = gsl_integration_workspace_alloc(1000);
   
-  gsl_integration_qag(&F,
-                      MminSnII,
-                      MmaxSnII,
-                      0,
-                      rel_tol,
-                      1000,
-                      GSL_INTEG_GAUSS61,
-                      w,
-                      &result,
-                      &err);
-  gsl_integration_workspace_free(w);
-  return result;  
+    F.function = &getIMF_massweighted;
+    
+    if (MminIMF < MminSnII) {
+      if (MmaxIMF >= MmaxSnII) {
+        gsl_integration_qag(&F,
+                            MminSnII,
+                            MmaxSnII,
+                            0,
+                            rel_tol,
+                            1000,
+                            GSL_INTEG_GAUSS61,
+                            w,
+                            &result,
+                            &err);
+        }
+      else {
+        gsl_integration_qag(&F,
+                            MminSnII,
+                            MmaxIMF,
+                            0,
+                            rel_tol,
+                            1000,
+                            GSL_INTEG_GAUSS61,
+                            w,
+                            &result,
+                            &err);
+        }
+      }
+    else {
+      if (MmaxIMF >= MmaxSnII) {
+        gsl_integration_qag(&F,
+                            MminIMF,
+                            MmaxSnII,
+                            0,
+                            rel_tol,
+                            1000,
+                            GSL_INTEG_GAUSS61,
+                            w,
+                            &result,
+                            &err);
+        }
+      else {
+        gsl_integration_qag(&F,
+                            MminIMF,
+                            MmaxIMF,
+                            0,
+                            rel_tol,
+                            1000,
+                            GSL_INTEG_GAUSS61,
+                            w,
+                            &result,
+                            &err);
+        }
+      }
+    gsl_integration_workspace_free(w);
+    return result; 
+    } 
 }
 
 double Mass_BHs(void) // Add BHs for Pop III with M>40Msol. Atm they don't do anything, it's just because we don't want Stellar population surviving!
@@ -274,6 +372,7 @@ double Mass_BHs(void) // Add BHs for Pop III with M>40Msol. Atm they don't do an
 double Number_PISN(void)
 { 
   double MmaxIMF = run_globals.params.physics.MmaxIMF;
+  double MminIMF = run_globals.params.physics.MminIMF;
   
   // First check if your IMF allows PISN!
   if (MmaxIMF < MminPISN)
@@ -285,40 +384,68 @@ double Number_PISN(void)
     gsl_function F;
     gsl_integration_workspace* w = gsl_integration_workspace_alloc(1000);
   
-  F.function = &getIMF;
-    if (MmaxIMF >= MmaxPISN) {
-      gsl_integration_qag(&F,
-                      MminPISN,
-                      MmaxPISN,
-                      0,
-                      rel_tol,
-                      1000,
-                      GSL_INTEG_GAUSS61,
-                      w,
-                      &result,
-                      &err);
+    F.function = &getIMF;
+    if (MminIMF < MminPISN) {
+      if (MmaxIMF >= MmaxPISN) {
+        gsl_integration_qag(&F,
+                        MminPISN,
+                        MmaxPISN,
+                        0,
+                        rel_tol,
+                        1000,
+                        GSL_INTEG_GAUSS61,
+                        w,
+                        &result,
+                        &err);
+        }
+      else {
+        gsl_integration_qag(&F,
+                        MminPISN,
+                        MmaxIMF,
+                        0,
+                        rel_tol,
+                        1000,
+                        GSL_INTEG_GAUSS61,
+                        w,
+                        &result,
+                        &err);
+        }
       }
     else {
-      gsl_integration_qag(&F,
-                      MminPISN,
-                      MmaxIMF,
-                      0,
-                      rel_tol,
-                      1000,
-                      GSL_INTEG_GAUSS61,
-                      w,
-                      &result,
-                      &err);
+      if (MmaxIMF >= MmaxPISN) {
+        gsl_integration_qag(&F,
+                        MminIMF,
+                        MmaxPISN,
+                        0,
+                        rel_tol,
+                        1000,
+                        GSL_INTEG_GAUSS61,
+                        w,
+                        &result,
+                        &err);
+        }
+      else {
+        gsl_integration_qag(&F,
+                        MminIMF,
+                        MmaxIMF,
+                        0,
+                        rel_tol,
+                        1000,
+                        GSL_INTEG_GAUSS61,
+                        w,
+                        &result,
+                        &err);
+        }
       }
-    gsl_integration_workspace_free(w);
-    return result;
+      gsl_integration_workspace_free(w);
+      return result;
     }  
 }
 
 double Mass_PISN(void)
 {
- 
   double MmaxIMF = run_globals.params.physics.MmaxIMF;
+  double MminIMF = run_globals.params.physics.MminIMF;
   
   // First check if your IMF allows PISN!
   if (MmaxIMF < MminPISN)
@@ -331,29 +458,58 @@ double Mass_PISN(void)
     gsl_integration_workspace* w = gsl_integration_workspace_alloc(1000);
   
     F.function = &getIMF_massweighted;
-    if (MmaxIMF >= MmaxPISN) {
-      gsl_integration_qag(&F,
-                      MminPISN,
-                      MmaxPISN,
-                      0,
-                      rel_tol,
-                      1000,
-                      GSL_INTEG_GAUSS61,
-                      w,
-                      &result,
-                      &err);
+    
+    if (MminIMF < MminPISN) {
+      if (MmaxIMF >= MmaxPISN) {
+        gsl_integration_qag(&F,
+                        MminPISN,
+                        MmaxPISN,
+                        0,
+                        rel_tol,
+                        1000,
+                        GSL_INTEG_GAUSS61,
+                        w,
+                        &result,
+                        &err);
+        }
+      else {
+        gsl_integration_qag(&F,
+                        MminPISN,
+                        MmaxIMF,
+                        0,
+                        rel_tol,
+                        1000,
+                        GSL_INTEG_GAUSS61,
+                        w,
+                        &result,
+                        &err);
+        }
       }
     else {
-      gsl_integration_qag(&F,
-                      MminPISN,
-                      MmaxIMF,
-                      0,
-                      rel_tol,
-                      1000,
-                      GSL_INTEG_GAUSS61,
-                      w,
-                      &result,
-                      &err);
+      if (MmaxIMF >= MmaxPISN) {
+        gsl_integration_qag(&F,
+                        MminIMF,
+                        MmaxPISN,
+                        0,
+                        rel_tol,
+                        1000,
+                        GSL_INTEG_GAUSS61,
+                        w,
+                        &result,
+                        &err);
+        }
+      else {
+        gsl_integration_qag(&F,
+                        MminIMF,
+                        MmaxIMF,
+                        0,
+                        rel_tol,
+                        1000,
+                        GSL_INTEG_GAUSS61,
+                        w,
+                        &result,
+                        &err);
+        }
       }
     gsl_integration_workspace_free(w);
     return result;
@@ -382,10 +538,7 @@ double CCSN_PopIII_Fraction(int i_burst, int curr_snap, int flagMW) //from Mutch
     m_max = MmaxSnII;
     }
   
-  if (i_burst < 15)  
-    mlog("m_min = %f, m_max = %f", MLOG_MESG, m_min, m_max);
-  
-  if (m_min > MmaxSnII) //There are no CCSN in this snapshot!
+  if (m_miu > MmaxSnII) //There are no CCSN in this snapshot!
     return 0.0;
   
   else if (m_max < MminSnII) //There are no CCSN in this snapshot!
