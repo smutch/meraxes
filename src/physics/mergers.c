@@ -198,7 +198,9 @@ void merge_with_target(galaxy_t* gal, int* dead_gals, int snapshot)
   if (gal->RmetalBubble > parent->RmetalBubble) {
     
     parent->RmetalBubble = gal->RmetalBubble; // This is to account the evolution of metal bubbles after a merger event
-    parent->count_SF += 1; // Put the SF episode of the merged galaxy into the target one so you can continue to keep track of the evolution of the Bubble
+    parent->PrefactorBubble = gal->PrefactorBubble;
+    parent->TimeBubble = gal->TimeBubble;
+    /*parent->count_SF += 1; // Put the SF episode of the merged galaxy into the target one so you can continue to keep track of the evolution of the Bubble
     int C = parent->count_SF;
     parent->Radii[C-1] = parent->RmetalBubble;
     for (int iii = 0; iii < gal->count_SF; iii++) {
@@ -206,11 +208,11 @@ void merge_with_target(galaxy_t* gal, int* dead_gals, int snapshot)
         parent->Prefactor[C-1] = gal->Prefactor[iii];
         parent->Times[C-1] = gal->Times[iii];
       }
-    }
+    }*/
   }
     
 
-  for (int ii = 0; ii < N_HISTORY_SNAPS; ii++){
+  for (int ii = 0; ii < N_HISTORY_SNAPS; ii++){ //Should you do the same with the MetalBubble properties?
     parent->NewStars[ii] += gal->NewStars[ii];
     parent->NewStars_II[ii] += gal->NewStars_II[ii];
     parent->NewStars_III[ii] += gal->NewStars_III[ii];

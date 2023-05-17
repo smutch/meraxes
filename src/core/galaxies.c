@@ -72,18 +72,20 @@ galaxy_t* new_galaxy(int snapshot, unsigned long halo_ID)
     gal->Metal_Probability = 0.0;
     gal->Metallicity_IGM = 0.0;
     gal->RmetalBubble = 0.0;
-    gal->count_SF = 0;
+    gal->PrefactorBubble = 0.0;
+    gal->TimeBubble = 0.0;
+    //gal->count_SF = 0;
     gal->AveBubble = 0.;
     gal->MaxBubble = 0.;
     gal->StellarMass_II = 0.;
     gal->StellarMass_III = 0.;
     gal->Remnant_Mass = 0.;
     
-    for (int iii = 0; iii < 70; iii++) {
+    /*for (int iii = 0; iii < 70; iii++) {
       gal->Prefactor[iii] = (double)0.0;
       gal->Times[iii] = (double)0.0;
       gal->Radii[iii] = (double)0.0;
-    }
+    }*/
   }
 
   for (int ii = 0; ii < 3; ii++) {
@@ -95,6 +97,9 @@ galaxy_t* new_galaxy(int snapshot, unsigned long halo_ID)
     gal->NewStars[ii] = 0.0;
     gal->NewStars_II[ii] = 0.0;
     gal->NewStars_III[ii] = 0.0;
+    gal->Prefactor[ii] = 0.0;
+    gal->Times[ii] = 0.0;
+    gal->Radii[ii] = 0.0;
     }
 
   for (int ii = 0; ii < N_HISTORY_SNAPS; ii++)
