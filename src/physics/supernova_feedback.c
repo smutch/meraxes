@@ -622,8 +622,8 @@ void calc_metal_bubble(galaxy_t* gal, int snapshot) // result in internal units 
         sn_energy += get_SN_energy_PopIII(i_burst, snapshot, 0) * m_stars_III;
       }
     if (i_burst != 0) {
-      gal->Prefactor[n_bursts - i_burst] = gal->Prefactor[n_burst - i_burst - 1];
-      gal->Times[n_bursts - i_burst] = gal->Times[n_burst - i_burst - 1];
+      gal->Prefactor[n_bursts - i_burst] = gal->Prefactor[n_bursts - i_burst - 1];
+      gal->Times[n_bursts - i_burst] = gal->Times[n_bursts - i_burst - 1];
       gal->Radii[n_bursts - i_burst] = gal->Prefactor[n_bursts - i_burst] * pow((gal->Times[n_bursts - i_bursts] - run_globals.LTTime[snapshot] * time_unit), 0.4);
       if (gal->Radii[n_bursts - i_burst] > gal->RmetalBubble) { //Look if one of the new bubbles is bigger than RmetalBubble
         mlog("Old Bubble = %f, New Bubble = %f, SNenergy = %f", MLOG_MESG, gal->Radii[n_bursts - i_burst], gal->RmetalBubble, sn_energy);
@@ -635,5 +635,5 @@ void calc_metal_bubble(galaxy_t* gal, int snapshot) // result in internal units 
     }
   gal->Prefactor[0] = pow(sn_energy / (PROTONMASS * gas_density), 0.2) / UnitLength_in_cm; //Mpc s^-0.4
   gal->Times[0] = run_globals.LTTime[snapshot] * time_unit; // s 
-  gal->Radii[0] = gal->Prefactor[i_burst] * pow((gal->Times[0] - run_globals.LTTime[snapshot] * time_unit), 0.4); //This is 0, so I could just put it as a 0.
+  gal->Radii[0] = gal->Prefactor[0] * pow((gal->Times[0] - run_globals.LTTime[snapshot] * time_unit), 0.4); //This is 0, so I could just put it as a 0.
 }
