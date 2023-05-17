@@ -576,7 +576,7 @@ void contemporaneous_supernova_feedback(galaxy_t* gal,
   if (gal->RmetalBubble < 0.0)
     gal->RmetalBubble = 0.0;
 }*/
-void calc_metal_bubble(galaxt_t* gal, int snapshot) // result in internal units (Mpc/h) This new function assumes that a bubble will overtake a previous one in no more than 17 snapshots!
+void calc_metal_bubble(galaxy_t* gal, int snapshot) // result in internal units (Mpc/h) This new function assumes that a bubble will overtake a previous one in no more than 17 snapshots!
 {
   int n_bursts = (snapshot >= N_HISTORY_SNAPS) ? N_HISTORY_SNAPS : snapshot;
   
