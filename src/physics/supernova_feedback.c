@@ -593,6 +593,8 @@ void calc_metal_bubble(galaxy_t* gal, int snapshot) // result in internal units 
   if (gal->RmetalBubble > 0.){
     gal->RmetalBubble = gal->PrefactorBubble * pow((gal->TimeBubble - run_globals.LTTime[snapshot] * time_unit), 0.4);
     mlog("Current Bubble = %f", MLOG_MESG, gal->RmetalBubble);
+    if (gal->RmetalBubble > 10.)
+      mlog("StrangeBubble = %f, Prefactor = %f, TimeBubble = %f", MLOG_MESG, gal->RmetalBubble, gal->PrefactorBubble, gal->TimeBubble);
     }
   
   // Now compute the last N_HISTORY_SNAPS bubble to see if any of those gets bigger than the existing one.
@@ -629,7 +631,7 @@ void calc_metal_bubble(galaxy_t* gal, int snapshot) // result in internal units 
       else
         gal->Radii[n_bursts - i_burst] = 0.0;
       if (gal->Radii[n_bursts - i_burst] > gal->RmetalBubble) { //Look if one of the new bubbles is bigger than RmetalBubble
-        mlog("New Bubble = %f, Old Bubble = %f, SNenergy = %f", MLOG_MESG, gal->Radii[n_bursts - i_burst], gal->RmetalBubble, log10(sn_energy));
+        //mlog("New Bubble = %f, Old Bubble = %f, SNenergy = %f", MLOG_MESG, gal->Radii[n_bursts - i_burst], gal->RmetalBubble, log10(sn_energy));
         gal->RmetalBubble = gal->Radii[n_bursts - i_burst];
         gal->PrefactorBubble = gal->Prefactor[n_bursts - i_burst];
         gal->TimeBubble = gal->Times[n_bursts - i_burst];
