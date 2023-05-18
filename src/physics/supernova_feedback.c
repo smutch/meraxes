@@ -606,6 +606,7 @@ void calc_metal_bubble(galaxy_t* gal, int snapshot) // result in internal units 
   double hubble_of_z_sq;
   double rhocrit;
   double rhob;
+  double Delta;
   double OmegaM = run_globals.params.OmegaM;
   double OmegaB = OmegaM * run_globals.params.BaryonFrac;
   
@@ -613,6 +614,7 @@ void calc_metal_bubble(galaxy_t* gal, int snapshot) // result in internal units 
 
   rhocrit = 3 * hubble_of_z_sq / (8 * M_PI * run_globals.G);
   rhob = rhocrit * OmegaB;
+  Delta = Delta_vir(run_globals.ZZ[snapshot]);
   
   if (mm_stars > 1e-10) { 
     if (gal->Galaxy_Population == 3) //Crucial to update the galaxy index! 
@@ -650,10 +652,10 @@ void calc_metal_bubble(galaxy_t* gal, int snapshot) // result in internal units 
         }
       }
     }
-  if (gas_density >= rhob * density_unit) // Compare gas density of the galaxy vs the gas density of the IGM.  
+  if (gas_density >= rhob * density_unit * Delta) // Compare gas density of the galaxy vs the gas density of the IGM.  
     gal->Prefactor[0] = pow(sn_energy / (PROTONMASS * gas_density), 0.2) / UnitLength_in_cm; //Mpc s^-0.4
   else
-    gal->Prefactor[0] = pow(sn_energy / (PROTONMASS * rhob * density_unit), 0.2) / UnitLength_in_cm;
+    gal->Prefactor[0] = pow(sn_energy / (PROTONMASS * rhob * density_unit * Delta), 0.2) / UnitLength_in_cm;
   if (gal->Prefactor[0] > 1e20)
     mlog("StrangePrefactor = %f, sn_energy = %f, gas_density = %f, HotGas = %f, ColdGas = %f", MLOG_MESG, gal->Prefactor[0], log10(sn_energy), log10(gas_density), gal->HotGas * 1e10, gal->ColdGas * 1e10);
   gal->Times[0] = run_globals.LTTime[snapshot] * time_unit; // s 
