@@ -592,15 +592,26 @@ void calc_metal_bubble(galaxy_t* gal, int snapshot) // result in internal units 
   
   if (gal->RmetalBubble > 0.){
     gal->RmetalBubble = gal->PrefactorBubble * pow((gal->TimeBubble - run_globals.LTTime[snapshot] * time_unit), 0.4);
-    //mlog("Current Bubble = %f", MLOG_MESG, gal->RmetalBubble);
-    //if (gal->RmetalBubble > 10.)
-    //  mlog("StrangeBubble = %f, Prefactor = %f", MLOG_MESG, gal->RmetalBubble, gal->PrefactorBubble);
+    mlog("Current Bubble = %f", MLOG_MESG, gal->RmetalBubble);
+    if (gal->RmetalBubble > 10.)
+      mlog("StrangeBubble = %f, Prefactor = %f", MLOG_MESG, gal->RmetalBubble, gal->PrefactorBubble);
     }
   
   // Now compute the last N_HISTORY_SNAPS bubble to see if any of those gets bigger than the existing one.
   
   double gas_density;  
   gas_density = (gal->HotGas + gal->ColdGas) * UnitMass_in_g / PROTONMASS / (4.0 * M_PI / 3.0 * pow(gal->Rvir * UnitLength_in_cm, 3.)); // cm^-3
+  
+  double hubble_of_z_sq;
+  double rhocrit;
+  double rhob;
+  double OmegaM = run_globals.params.OmegaM;
+  double OmegaB = OmegaM * run_globals.params.BaryonFrac;
+  
+  hubble_of_z_sq = pow(hubble_at_snapshot(snapshot), 2);
+
+  rhocrit = 3 * hubble_of_z_sq / (8 * M_PI * run_globals.G);
+  rhob = rhocrit * OmegaB;
   
   if (mm_stars > 1e-10) { 
     if (gal->Galaxy_Population == 3) //Crucial to update the galaxy index! 
@@ -638,9 +649,12 @@ void calc_metal_bubble(galaxy_t* gal, int snapshot) // result in internal units 
         }
       }
     }
-  gal->Prefactor[0] = pow(sn_energy / (PROTONMASS * gas_density), 0.2) / UnitLength_in_cm; //Mpc s^-0.4
-  //if (gal->Prefactor[0] > 1e20)
-  //  mlog("StrangePrefactor = %f, sn_energy = %f, gas_density = %f, HotGas = %f, ColdGas = %f", MLOG_MESG, gal->Prefactor[0], log10(sn_energy), log10(gas_density), gal->HotGas * 1e10, gal->ColdGas * 1e10);
+  if (gas_density >= rhob * UnitDensity_in_cgs) // Compare gas density of the galaxy vs the gas density of the IGM.  
+    gal->Prefactor[0] = pow(sn_energy / (PROTONMASS * gas_density), 0.2) / UnitLength_in_cm; //Mpc s^-0.4
+  else
+    gal->Prefactor[0] = pow(sn_energy / (PROTONMASS * rhob * UnitDensity_in_cgs), 0.2) / UnitLength_in_cm;
+  if (gal->Prefactor[0] > 1e20)
+    mlog("StrangePrefactor = %f, sn_energy = %f, gas_density = %f, HotGas = %f, ColdGas = %f", MLOG_MESG, gal->Prefactor[0], log10(sn_energy), log10(gas_density), gal->HotGas * 1e10, gal->ColdGas * 1e10);
   gal->Times[0] = run_globals.LTTime[snapshot] * time_unit; // s 
   //gal->Radii[0] = gal->Prefactor[0] * pow((gal->Times[0] - run_globals.LTTime[snapshot] * time_unit), 0.4); //This is 0, so I could just put it as a 0.
   gal->Radii[0] = 0.0;
