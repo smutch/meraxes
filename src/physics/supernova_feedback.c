@@ -615,13 +615,13 @@ void calc_metal_bubble(galaxy_t* gal, int snapshot) // result in internal units 
     // Compute the SN energy that drives the metal bubble. Should you include the ejection efficiency?  
     if (m_stars_II > 1e-10) {
       double metallicity = calc_metallicity(m_stars, gal->NewMetals[i_burst]);
-      sn_energy += m_stars_II * get_SN_energy(0, metallicity) * energy_unit; // Are you sure of the unit? (You want this in erg)
+      sn_energy += m_stars_II * get_SN_energy(0, metallicity) * energy_unit * calc_sn_ejection_eff(gal, snapshot, 2); // Are you sure of the unit? (You want this in erg)
       }
     else if (m_stars_III > 1e-10) {
       if (i_burst == 0) // You have both CC and PISN
-        sn_energy += (get_SN_energy_PopIII(i_burst, snapshot, 0) + get_SN_energy_PopIII(i_burst, snapshot, 1))  * m_stars_III;
+        sn_energy += (get_SN_energy_PopIII(i_burst, snapshot, 0) + get_SN_energy_PopIII(i_burst, snapshot, 1))  * m_stars_III * calc_sn_ejection_eff(gal, snapshot, 3);
       else
-        sn_energy += get_SN_energy_PopIII(i_burst, snapshot, 0) * m_stars_III;
+        sn_energy += get_SN_energy_PopIII(i_burst, snapshot, 0) * m_stars_III * calc_sn_ejection_eff(gal, snapshot, 3);
       }
     if (i_burst != 0) {
       gal->Prefactor[n_bursts - i_burst] = gal->Prefactor[n_bursts - i_burst - 1];
