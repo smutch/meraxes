@@ -583,6 +583,7 @@ void calc_metal_bubble(galaxy_t* gal, int snapshot) // result in internal units 
   double UnitMass_in_g = run_globals.units.UnitMass_in_g;
   double UnitLength_in_cm = run_globals.units.UnitLength_in_cm;
   double energy_unit = run_globals.units.UnitEnergy_in_cgs;
+  double density_unit = run_globals.units.UnitDensity_in_cgs;
   double time_unit = run_globals.units.UnitTime_in_s;
   
   double mm_stars = gal->NewStars[0]; //The last episode of SF
@@ -649,10 +650,10 @@ void calc_metal_bubble(galaxy_t* gal, int snapshot) // result in internal units 
         }
       }
     }
-  if (gas_density >= rhob * UnitDensity_in_cgs) // Compare gas density of the galaxy vs the gas density of the IGM.  
+  if (gas_density >= rhob * density_unit) // Compare gas density of the galaxy vs the gas density of the IGM.  
     gal->Prefactor[0] = pow(sn_energy / (PROTONMASS * gas_density), 0.2) / UnitLength_in_cm; //Mpc s^-0.4
   else
-    gal->Prefactor[0] = pow(sn_energy / (PROTONMASS * rhob * UnitDensity_in_cgs), 0.2) / UnitLength_in_cm;
+    gal->Prefactor[0] = pow(sn_energy / (PROTONMASS * rhob * density_unit), 0.2) / UnitLength_in_cm;
   if (gal->Prefactor[0] > 1e20)
     mlog("StrangePrefactor = %f, sn_energy = %f, gas_density = %f, HotGas = %f, ColdGas = %f", MLOG_MESG, gal->Prefactor[0], log10(sn_energy), log10(gas_density), gal->HotGas * 1e10, gal->ColdGas * 1e10);
   gal->Times[0] = run_globals.LTTime[snapshot] * time_unit; // s 
