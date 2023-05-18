@@ -592,9 +592,9 @@ void calc_metal_bubble(galaxy_t* gal, int snapshot) // result in internal units 
   
   if (gal->RmetalBubble > 0.){
     gal->RmetalBubble = gal->PrefactorBubble * pow((gal->TimeBubble - run_globals.LTTime[snapshot] * time_unit), 0.4);
-    mlog("Current Bubble = %f", MLOG_MESG, gal->RmetalBubble);
-    if (gal->RmetalBubble > 10.)
-      mlog("StrangeBubble = %f, Prefactor = %f", MLOG_MESG, gal->RmetalBubble, gal->PrefactorBubble);
+    //mlog("Current Bubble = %f", MLOG_MESG, gal->RmetalBubble);
+    //if (gal->RmetalBubble > 10.)
+    //  mlog("StrangeBubble = %f, Prefactor = %f", MLOG_MESG, gal->RmetalBubble, gal->PrefactorBubble);
     }
   
   // Now compute the last N_HISTORY_SNAPS bubble to see if any of those gets bigger than the existing one.
@@ -639,8 +639,8 @@ void calc_metal_bubble(galaxy_t* gal, int snapshot) // result in internal units 
       }
     }
   gal->Prefactor[0] = pow(sn_energy / (PROTONMASS * gas_density), 0.2) / UnitLength_in_cm; //Mpc s^-0.4
-  if (gal->Prefactor[0] > 1e20)
-    mlog("StrangePrefactor = %f, sn_energy = %f, gas_density = %f, HotGas = %f, ColdGas = %f", MLOG_MESG, gal->Prefactor[0], log10(sn_energy), log10(gas_density), gal->HotGas * 1e10, gal->ColdGas * 1e10);
+  //if (gal->Prefactor[0] > 1e20)
+  //  mlog("StrangePrefactor = %f, sn_energy = %f, gas_density = %f, HotGas = %f, ColdGas = %f", MLOG_MESG, gal->Prefactor[0], log10(sn_energy), log10(gas_density), gal->HotGas * 1e10, gal->ColdGas * 1e10);
   gal->Times[0] = run_globals.LTTime[snapshot] * time_unit; // s 
   //gal->Radii[0] = gal->Prefactor[0] * pow((gal->Times[0] - run_globals.LTTime[snapshot] * time_unit), 0.4); //This is 0, so I could just put it as a 0.
   gal->Radii[0] = 0.0;
