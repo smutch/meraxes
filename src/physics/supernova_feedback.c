@@ -610,6 +610,7 @@ void calc_metal_bubble(galaxy_t* gal, int snapshot) // result in internal units 
   for (int i_burst = 0; i_burst < n_bursts; i_burst++) {
     double m_stars_II = gal->NewStars_II[i_burst];
     double m_stars_III = gal->NewStars_III[i_burst];
+    double m_stars = m_stars_II + m_stars_III;
     
     // Compute the SN energy that drives the metal bubble. Should you include the ejection efficiency?  
     if (m_stars_II > 1e-10) {
