@@ -149,6 +149,7 @@ void passively_evolve_ghost(galaxy_t* gal, int snapshot)
 
   bool Flag_IRA = (bool)(run_globals.params.physics.Flag_IRA);
   bool Flag_Metals = (bool)(run_globals.params.Flag_IncludeMetalEvo);
+  fof_group_t* fof_group;
 
   if (!Flag_IRA)
     delayed_supernova_feedback(gal, snapshot);
