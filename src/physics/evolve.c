@@ -97,7 +97,7 @@ int evolve_galaxies(fof_group_t* fof_group, int snapshot, int NGal, int NFof, in
             insitu_star_formation(gal, snapshot);
 
             if (Flag_Metals == true) {
-              calc_metal_bubble(gal, snapshot);
+              calc_metal_bubble(&(fof_group[i_fof]), gal, snapshot);
             }
             // If this is a type 2 then decrement the merger clock
             if (gal->Type == 2)
