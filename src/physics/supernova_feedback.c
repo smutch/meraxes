@@ -576,7 +576,7 @@ void contemporaneous_supernova_feedback(galaxy_t* gal,
   if (gal->RmetalBubble < 0.0)
     gal->RmetalBubble = 0.0;
 }*/
-void calc_metal_bubble(fof_group_t* FOFgroup, galaxy_t* gal, int snapshot) // result in internal units (Mpc/h) This new function assumes that a bubble will overtake a previous one in no more than 17 snapshots!
+void calc_metal_bubble(galaxy_t* gal, int snapshot) // result in internal units (Mpc/h) This new function assumes that a bubble will overtake a previous one in no more than 17 snapshots!
 {
   int n_bursts = (snapshot >= N_HISTORY_SNAPS) ? N_HISTORY_SNAPS : snapshot;
   
@@ -588,9 +588,6 @@ void calc_metal_bubble(fof_group_t* FOFgroup, galaxy_t* gal, int snapshot) // re
   
   double mm_stars = gal->NewStars[0]; //The last episode of SF
   double sn_energy = 0.0;
-  
-  galaxy_t* central;
-  central = FOFgroup->FirstOccupiedHalo->Galaxy;
   
   // First evolve the existing RmetalBubble
   
@@ -604,8 +601,8 @@ void calc_metal_bubble(fof_group_t* FOFgroup, galaxy_t* gal, int snapshot) // re
   // Now compute the last N_HISTORY_SNAPS bubble to see if any of those gets bigger than the existing one.
   
   double gas_density;  
-  //gas_density = (gal->HotGas + gal->ColdGas + gal->EjectedGas) * UnitMass_in_g / PROTONMASS / (4.0 * M_PI / 3.0 * pow(gal->Rvir * UnitLength_in_cm, 3.)); // cm^-3
-  gas_density = (central->HotGas + central->ColdGas) * UnitMass_in_g / PROTONMASS / (4.0 * M_PI / 3.0 * pow(FOFgroup->Rvir * UnitLength_in_cm, 3.)); // cm^-3
+  gas_density = (gal->HotGas + gal->ColdGas + gal->EjectedGas) * UnitMass_in_g / PROTONMASS / (4.0 * M_PI / 3.0 * pow(gal->Rvir * UnitLength_in_cm, 3.)); // cm^-3
+  //gas_density = (central->HotGas + central->ColdGas) * UnitMass_in_g / PROTONMASS / (4.0 * M_PI / 3.0 * pow(FOFgroup->Rvir * UnitLength_in_cm, 3.)); // cm^-3
   
   /*double hubble_of_z_sq;
   double rhocrit;
