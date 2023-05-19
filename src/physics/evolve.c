@@ -96,8 +96,8 @@ int evolve_galaxies(fof_group_t* fof_group, int snapshot, int NGal, int NFof, in
   
             insitu_star_formation(gal, snapshot);
 
-            if (Flag_Metals == true) {
-              calc_metal_bubble(&(fof_group[i_fof]), gal, snapshot);
+            if ((Flag_Metals == true) && (gal->Type < 2)) { //Adding conditions on galType to test the MetalBubble!
+              calc_metal_bubble(gal, snapshot);
             }
             // If this is a type 2 then decrement the merger clock
             if (gal->Type == 2)
@@ -154,6 +154,6 @@ void passively_evolve_ghost(galaxy_t* gal, int snapshot)
   if (!Flag_IRA)
     delayed_supernova_feedback(gal, snapshot);
     
-  //if (Flag_Metals == true) // You are updating this function to test why probability is decreasing in some cells
-    //calc_metal_bubble(&(fof_group[i_fof]), gal, snapshot); 
+  if (Flag_Metals == true) // You are updating this function to test why probability is decreasing in some cells
+    calc_metal_bubble(gal, snapshot); 
 }
