@@ -290,7 +290,7 @@ void dracarys()
       if (!gal->ghost_flag)
         gal->dt /= (double)NSteps;
       else
-        passively_evolve_ghost(gal, snapshot); //You have just updated this function to evolve also the metal bubbles of ghost galaxies (maybe don't need this)
+        passively_evolve_ghost(gal, snapshot); //Right now you aren't evolving the bubble radii of the ghost galaxies
 
       if ((gal->Type < 2) && (!gal->ghost_flag))
         copy_halo_props_to_galaxy(gal->Halo, gal);

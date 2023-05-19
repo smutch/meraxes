@@ -154,6 +154,6 @@ void passively_evolve_ghost(galaxy_t* gal, int snapshot)
   if (!Flag_IRA)
     delayed_supernova_feedback(gal, snapshot);
     
-  if (Flag_Metals == true) // You are updating this function to test why probability is decreasing in some cells
-    calc_metal_bubble(&(fof_group[i_fof]), gal, snapshot); 
+  //if (Flag_Metals == true) // You are updating this function to test why probability is decreasing in some cells
+    //calc_metal_bubble(&(fof_group[i_fof]), gal, snapshot); 
 }
