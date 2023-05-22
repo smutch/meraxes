@@ -463,7 +463,7 @@ void contemporaneous_supernova_feedback(galaxy_t* gal,
       *new_metals = *m_stars * get_metal_yield(0, metallicity);
       }
     else if (gal->Galaxy_Population == 3){
-      *m_recycled = *m_stars * (CCSN_PopIII_Yield(0, snapshot, 0) * MassSNII;
+      *m_recycled = *m_stars * (CCSN_PopIII_Yield(0, snapshot, 0)) * MassSNII;
       *m_remnant = *m_stars * (MassBHs + CCSN_PopIII_Yield(0, snapshot, 2) * MassSNII);
       *new_metals = *m_stars * CCSN_PopIII_Yield(0, snapshot, 1);
       if (MassPISN > 0) { // Account for PISN
