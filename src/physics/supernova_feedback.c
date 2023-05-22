@@ -358,10 +358,10 @@ void delayed_supernova_feedback(galaxy_t* gal, int snapshot)
       // Calculate recycled mass and metals by yield tables
       
       m_recycled_II += m_stars_II * get_recycling_fraction(i_burst, metallicity);
-      m_recycled_III += m_stars_III * CCSN_PopIII_Yield(i_burst, snapshot, 0); // Only CCSN have delayed feedback
+      m_recycled_III += m_stars_III * CCSN_PopIII_Yield(i_burst, snapshot, 0) * MassSNII; // Only CCSN have delayed feedback
       m_recycled += (m_recycled_II + m_recycled_III);
-      new_metals += (m_stars_II * get_metal_yield(i_burst, metallicity) + m_stars_III * CCSN_PopIII_Yield(i_burst, snapshot, 1));
-      m_remnant += m_stars_III * CCSN_PopIII_Yield(i_burst, snapshot, 2); // Pop. III will have remnants
+      new_metals += (m_stars_II * get_metal_yield(i_burst, metallicity) + m_stars_III * CCSN_PopIII_Yield(i_burst, snapshot, 1) * MassSNII);
+      m_remnant += m_stars_III * CCSN_PopIII_Yield(i_burst, snapshot, 2) * MassSNII; // Pop. III will have remnants
       // Calculate SNII energy
       
       sn_energy_II += get_SN_energy(i_burst, metallicity) * m_stars_II; 
@@ -463,11 +463,13 @@ void contemporaneous_supernova_feedback(galaxy_t* gal,
       *new_metals = *m_stars * get_metal_yield(0, metallicity);
       }
     else if (gal->Galaxy_Population == 3){
-      *m_recycled = *m_stars * (CCSN_PopIII_Yield(0, snapshot, 0) + PISN_PopIII_Yield(0));
-      *m_remnant = *m_stars * (MassBHs + CCSN_PopIII_Yield(0, snapshot, 2));
+      *m_recycled = *m_stars * (CCSN_PopIII_Yield(0, snapshot, 0) * MassSNII;
+      *m_remnant = *m_stars * (MassBHs + CCSN_PopIII_Yield(0, snapshot, 2) * MassSNII);
       *new_metals = *m_stars * CCSN_PopIII_Yield(0, snapshot, 1);
-      if (MassPISN > 0) // Account for PISN
-        *new_metals += *m_stars * PISN_PopIII_Yield(1) - (20.0 / 1e10 * run_globals.params.Hubble_h);
+      if (MassPISN > 0) { // Account for PISN
+        *m_recycled += *m_stars * PISN_PopIII_Yield(0) * MassPISN;
+        *new_metals += *m_stars * PISN_PopIII_Yield(1) * MassPISN - (20.0 / 1e10 * run_globals.params.Hubble_h);
+        }
       }
   } else {
     // Recycling fraction and metals yield are input parameters when using IRA
@@ -526,56 +528,6 @@ void contemporaneous_supernova_feedback(galaxy_t* gal,
   
 }
 
-/*void calc_metal_bubble(galaxy_t* gal, int snapshot) // Result in internal units (Mpc/h) You need to update this function for Pop III/Pop II, but before check it with Yuxiang
-{
-  bool Flag_IRA = (bool)(run_globals.params.physics.Flag_IRA);
-  double mm_stars = gal->NewStars[0]; //The last episode of SF
-  
-  double UnitMass_in_g = run_globals.units.UnitMass_in_g;
-  double UnitLength_in_cm = run_globals.units.UnitLength_in_cm;
-  double time_unit = run_globals.units.UnitTime_in_s;
-  
-  int A = gal->count_SF;
-  
-  if (Flag_IRA == false) {
-  
-    if (mm_stars > 1e-10) { 
-      if (gal->Galaxy_Population == 3) //Crucial to update the galaxy index! 
-        gal->Galaxy_Population = 2;
-
-      gal->count_SF += 1;
-      double gas_density;
-      
-      if (gal->count_SF > 70)
-        mlog_error("Too many SF episodes"); 
-      gas_density = (gal->HotGas + gal->ColdGas) * UnitMass_in_g / PROTONMASS / (4.0 * M_PI / 3.0 * pow(gal->Rvir * UnitLength_in_cm, 3.)); // cm^-3
-    
-      gal->Prefactor[A] = pow(EnergySN * N_SN_Pop2 * mm_stars * UnitMass_in_g / SOLAR_MASS / (PROTONMASS * gas_density), 0.2) / UnitLength_in_cm; //Mpc s^-0.4
-      gal->Times[A] = run_globals.LTTime[snapshot] * time_unit; // s 
-    }
-    if (gal->count_SF > 0) {
-      for (int i_SF = 0; i_SF < gal->count_SF; i_SF++)
-        gal->Radii[i_SF] = gal->Prefactor[i_SF] * pow((gal->Times[i_SF] - run_globals.LTTime[snapshot] * time_unit), 0.4); 
-    }
-  }
-  
-  else {
-    int n_bursts = (snapshot >= N_HISTORY_SNAPS) ? N_HISTORY_SNAPS : snapshot;
-    mlog_error("So far, you can't relax the IRA");
-  }
-      
-  double max = gal->Radii[0];    
-    
-  for (int i = 0; i < 70; i++) {       
-     if(gal->Radii[i] > max)    
-         max = gal->Radii[i];    
-    }
-    
-  gal->RmetalBubble = max; 
-  
-  if (gal->RmetalBubble < 0.0)
-    gal->RmetalBubble = 0.0;
-}*/
 void calc_metal_bubble(galaxy_t* gal, int snapshot) // result in internal units (Mpc/h) This new function assumes that a bubble will overtake a previous one in no more than 17 snapshots!
 {
   int n_bursts = (snapshot >= N_HISTORY_SNAPS) ? N_HISTORY_SNAPS : snapshot;
