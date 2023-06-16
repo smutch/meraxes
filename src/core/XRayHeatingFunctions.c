@@ -1245,7 +1245,7 @@ void evolveInt(float zp,
       // Use this when using the SFR provided by Meraxes
       // Units should be M_solar/s. Factor of (dt_dzp * dzpp) converts from per s to per z'
       zpp_integrand_GAL =
-        SFR_GAL[zpp_ct] * pow(1 + zpp, -run_globals.params.physics.SpecIndexXrayGal); // where is it in the formulas?
+        SFR_GAL[zpp_ct] * pow(1 + zpp, -run_globals.params.physics.SpecIndexXrayGal); 
       if (run_globals.params.Flag_SeparateQSOXrays) {
         zpp_integrand_QSO = SFR_QSO[zpp_ct] * pow(1 + zpp, -run_globals.params.physics.SpecIndexXrayQSO);
       }
