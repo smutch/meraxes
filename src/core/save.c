@@ -735,7 +735,7 @@ void create_master_file()
       H5LTset_attribute_string(file_id, group_name, "deltax", "None");
 
       if (run_globals.params.Flag_IncludeLymanWerner) { 
-        H5LTset_attribute_string(file_id, group_name, "JLW_box", "v*(h**2)"); 
+        H5LTset_attribute_string(file_id, group_name, "JLW_box", "v"); //Check if there is the h**2 factor
       }
 
       if (run_globals.params.Flag_ConstructLightcone) {
