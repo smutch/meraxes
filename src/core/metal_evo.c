@@ -513,7 +513,7 @@ void assign_probability_to_galaxies(int ngals_in_metal_slabs, int snapshot, int 
   int MetalGridDim = run_globals.params.MetalGridDim;
   double box_size = run_globals.params.BoxSize;
   double pixel_length_metals = box_size / (double)MetalGridDim; // (Mpc/h)
-  double cell_gas;
+  double cell_gas = run_globals.rhocrit[snapshot] * run_globals.params.OmegaM * run_globals.params.BaryonFrac * pow((pixel_length_metals / (1.0 + run_globals.ZZ[snapshot])), 3.0);
   float* Probability_metals = run_globals.metal_grids.Probability_metals;
   float* mass_metals = run_globals.metal_grids.mass_metals;
   float* Rave_metals = run_globals.metal_grids.R_ave;
@@ -531,7 +531,7 @@ void assign_probability_to_galaxies(int ngals_in_metal_slabs, int snapshot, int 
     
   if (flag_property == 3)
     mlog("Assigning Rmax for metals...", MLOG_OPEN);
-  
+
   int slab_map_offsets[run_globals.mpi_size];
   for (int ii = 0, i_gal = 0; ii < run_globals.mpi_size; ii++) {
     if (galaxy_to_slab_map_metals != NULL) {
@@ -746,7 +746,6 @@ void assign_probability_to_galaxies(int ngals_in_metal_slabs, int snapshot, int 
             gal->Metal_Probability = (double)buffer_metals[grid_index(ix, iy, iz, MetalGridDim, INDEX_REAL)];
             
           if (flag_property == 1){
-            cell_gas = calculate_gasMass(pixel_length_metals, snapshot);
             gal->Metallicity_IGM = calc_metallicity((double)buffer_metals[grid_index(ix, iy, iz, MetalGridDim, INDEX_REAL)], cell_gas);
           }
           
