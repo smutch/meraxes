@@ -244,7 +244,7 @@ void init_meraxes()
   for (i = 0; i < snaplist_len; i++) {
     run_globals.ZZ[i] = 1 / run_globals.AA[i] - 1;
     run_globals.LTTime[i] = time_to_present(run_globals.ZZ[i]);
-	run_globals.rhocrit[i] = 3 * pow(hubble_at_snapshot(i), 2) / (8 * M_PI * run_globals.G);
+    run_globals.rhocrit[i] = 3 * pow(hubble_at_snapshot(i), 2) / (8 * M_PI * run_globals.G);
   }
 
   // validation checks
