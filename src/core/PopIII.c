@@ -14,33 +14,25 @@
 #include <gsl/gsl_roots.h>
 #include <gsl/gsl_spline.h>
 
-static float Mass_Values[MASS_BINS]; //Is there a smart way to define MASS_BINS depending on the limits of the IMF that we choose?
-static float Time_Values[MASS_BINS];
-
 void initialize_time_interp_arrays()
 {
   double MminIMF = run_globals.params.physics.MminIMF; 
   double MmaxIMF = run_globals.params.physics.MmaxIMF;
-  
-  double mass_step = 0.5;
-  int mass_bins = (MmaxIMF - MminIMF) / mass_step;
-  //int mass_bins = 2 * (MmaxIMF - MminIMF);
-  //double mass_step = (MmaxIMF - MminIMF) / mass_bins;
-  double mass_val = log10(MminIMF);
-  int i;
+  int mass_bins = (MmaxIMF - MminIMF) / IMF_MASS_STEP;
+
+  run_globals.Mass_Values = malloc(sizeof(float) * mass_bins);
+  run_globals.Time_Values = malloc(sizeof(float) * mass_bins);
 
   if (run_globals.mpi_rank == 0) {
-
-    for (i = 0; i < mass_bins; i++) {
-      mass_val = log10(MminIMF + (double)i * mass_step);
-      Mass_Values[i] = mass_val;
-      Time_Values[i] = get_StellarAge(mass_val); 
+    for (int i = 0; i < mass_bins; i++) {
+      run_globals.Mass_Values[i] = log10(MminIMF + (double)i * IMF_MASS_STEP);
+      run_globals.Time_Values[i] = get_StellarAge(run_globals.Mass_Values[i]); 
     }
   }
 
   // broadcast the values to all cores
-  MPI_Bcast(&Mass_Values, sizeof(Mass_Values), MPI_BYTE, 0, run_globals.mpi_comm);
-  MPI_Bcast(&Time_Values, sizeof(Time_Values), MPI_BYTE, 0, run_globals.mpi_comm);
+  MPI_Bcast(run_globals.Mass_Values, mass_bins, MPI_FLOAT, 0, run_globals.mpi_comm);
+  MPI_Bcast(run_globals.Time_Values, mass_bins, MPI_FLOAT, 0, run_globals.mpi_comm);
 }
 
 void initialize_PopIII_stuff() //Initialize PopIII quantities that are easily computed just from the IMF.
@@ -62,7 +54,7 @@ double interp_mass(double lifetime) // Lifetime in yr units!!
   double MminIMF = run_globals.params.physics.MminIMF; 
   double MmaxIMF = run_globals.params.physics.MmaxIMF;
 
-  int mass_bins = 2 * (MmaxIMF - MminIMF);
+  int mass_bins = (MmaxIMF - MminIMF) / IMF_MASS_STEP;
   int n_low, n_high;
 
   double massfinal_result;
@@ -70,25 +62,25 @@ double interp_mass(double lifetime) // Lifetime in yr units!!
   double log10lifetime = log10(lifetime);
  
   // Check if Mass is inside interpolation boundaries
-  if (log10lifetime < Time_Values[mass_bins - 1]) {
+  if (log10lifetime < run_globals.Time_Values[mass_bins - 1]) {
     // If it is above the upper limit, we just assume that it is the upper limit
-    log10lifetime = (Time_Values[mass_bins - 1]);
-    massfinal_result = (Mass_Values[mass_bins - 1]);
+    log10lifetime = (run_globals.Time_Values[mass_bins - 1]);
+    massfinal_result = (run_globals.Mass_Values[mass_bins - 1]);
     } 
-  else if (log10lifetime > Time_Values[0]) {
-    log10lifetime = (Time_Values[0]);
-    massfinal_result = (Mass_Values[0]);
+  else if (log10lifetime > run_globals.Time_Values[0]) {
+    log10lifetime = (run_globals.Time_Values[0]);
+    massfinal_result = (run_globals.Mass_Values[0]);
     }
   else {
     for (int i = 0; i < mass_bins; i++) { //find index.
-      if ((log10lifetime <= Time_Values[i]) && (log10lifetime > Time_Values[i+1])){
+      if ((log10lifetime <= run_globals.Time_Values[i]) && (log10lifetime > run_globals.Time_Values[i+1])){
         n_low = i;
         break;
         }
       }   
     n_high = n_low + 1;
     // Linear interpolation 
-    massfinal_result = Mass_Values[n_low] + ((log10lifetime - Time_Values[n_low]) * (Mass_Values[n_high] - Mass_Values[n_low])) / (Time_Values[n_high] - Time_Values[n_low]);
+    massfinal_result = run_globals.Mass_Values[n_low] + ((log10lifetime - run_globals.Time_Values[n_low]) * (run_globals.Mass_Values[n_high] - run_globals.Mass_Values[n_low])) / (run_globals.Time_Values[n_high] - run_globals.Time_Values[n_low]);
     }
   return pow(10, massfinal_result); //Return result in SolarMass
 }
