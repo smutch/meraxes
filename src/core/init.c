@@ -263,9 +263,10 @@ void init_meraxes()
   // read in the stellar feedback tables
   read_stellar_feedback_tables();
   
+#ifdef USE_MINI_HALOS
   // initialize Pop III tables
-  initialize_time_interp_arrays();
-  initialize_PopIII_stuff();
+  initialize_PopIII();
+#endif
 
 #ifdef CALC_MAGS
   init_magnitudes();
