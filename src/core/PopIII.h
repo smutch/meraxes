@@ -3,13 +3,13 @@
 
 #include "meraxes.h"
 
-#define MASS_BINS 1000 //Must be larger or equal than Mmax - Mmin of the IMF otherwise the thing is gonna fail!
-
 #define MminSnII 8
 #define MmaxSnII 40 
 
 #define MminPISN 140
 #define MmaxPISN 260
+
+#define IMF_MASS_STEP 0.5
 
 #ifdef __cplusplus
 extern "C"

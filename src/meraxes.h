@@ -707,6 +707,11 @@ typedef struct run_globals_t
   struct mag_params_t mag_params;
 #endif
 
+#ifdef USE_MINI_HALOS
+  float *Mass_Values;
+  float *Time_Values;
+#endif
+  ;
   int NOutputSnaps;
   int LastOutputSnap;
   int NGhosts;
