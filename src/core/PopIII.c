@@ -508,9 +508,8 @@ double Mass_PISN(void)
     }    
 }
 
-double CCSN_PopIII_Fraction(int i_burst, int curr_snap, int flagMW) //from Mutch et al. 2016 flag == 0 Eq. 17, flag == 1 Eq. 22  Result in adimensional number
+double CCSN_PopIII_Number(int i_burst, int curr_snap, int flagMW){
 {
-
   double* LTTime = run_globals.LTTime;
   double time_unit = run_globals.units.UnitTime_in_Megayears / run_globals.params.Hubble_h * 1e6; //You need result in yrs
   double m_min;
@@ -537,18 +536,6 @@ double CCSN_PopIII_Fraction(int i_burst, int curr_snap, int flagMW) //from Mutch
     return 0.0; //Maybe put -1 or a break because this condition should stop your while loop!
     
   else {
-    double TotalSN;
-    if (flagMW == 0) { 
-      double NumberPISN = run_globals.NumberPISN;
-      double NumberSNII = run_globals.NumberSNII;
-      TotalSN = NumberSNII + NumberPISN;
-      }
-    else if (flagMW == 1) {
-      double MassPISN = run_globals.MassPISN;
-      double MassSNII = run_globals.MassSNII;
-      TotalSN = MassPISN + MassSNII;
-      }
-    
     if (m_max > MmaxSnII) // Firstly, you are only interested in stars in the CCSN mass range
       m_max = MmaxSnII;
       
@@ -578,97 +565,82 @@ double CCSN_PopIII_Fraction(int i_burst, int curr_snap, int flagMW) //from Mutch
                         &err);
     gsl_integration_workspace_free(w);
 
-    return result / TotalSN;
+    return result;
   }  
+}
+
+double CCSN_PopIII_Fraction(int i_burst, int curr_snap, int flagMW) //from Mutch et al. 2016 flag == 0 Eq. 17, flag == 1 Eq. 22  Result in adimensional number
+{
+
+  double result = CCSN_PopIII_Number(i_burst, curr_snap, flagMW);
+  if (result < REL_TOL)
+      return 0.0;
+
+  double TotalSN;
+
+  if (flagMW == 0) { 
+    double NumberPISN = run_globals.NumberPISN;
+    double NumberSNII = run_globals.NumberSNII;
+    TotalSN = NumberSNII + NumberPISN;
+  }
+  else if (flagMW == 1) {
+    double MassPISN = run_globals.MassPISN;
+    double MassSNII = run_globals.MassSNII;
+    TotalSN = MassPISN + MassSNII;
+  }
+
+  return result / TotalSN;
 } 
 
 double CCSN_PopIII_Yield(int i_burst, int curr_snap, int yield_type) //0 = Tot, 1 = Metals, 2 = Remnant. Based on Heger & Woosley 2010, No Mixing, S4 Model.
 {
 
+  double result = CCSN_PopIII_Number(i_burst, curr_snap, 1);
+  if (result < REL_TOL)
+      return 0.0;
+
   double* LTTime = run_globals.LTTime;
   double time_unit = run_globals.units.UnitTime_in_Megayears / run_globals.params.Hubble_h * 1e6; //You need result in yrs
-  double m_min;
   double m_max;
   
-  double TotalMassSN;
+  double TotalMassSN = run_globals.MassPISN + run_globals.MassSNII;
   
   double DeltaTime = (LTTime[curr_snap - i_burst] - LTTime[curr_snap]) * time_unit;
-  double DeltaTimeSnap = (LTTime[curr_snap - i_burst - 1] - LTTime[curr_snap - i_burst]) * time_unit; //Should be correct, might need to double check that!
-    
+  double DeltaTimeSnap2 = (LTTime[curr_snap - i_burst] - LTTime[curr_snap - i_burst + 1]) * time_unit;
   
-  if (i_burst != 0) {
-    m_min = interp_mass(DeltaTime + DeltaTimeSnap / 2);
-    m_max = interp_mass(DeltaTime - DeltaTimeSnap / 2);
-    }
-    
-  else {
-    m_min = interp_mass(DeltaTime + DeltaTimeSnap / 2);
+  if (i_burst != 0)
+    m_max = interp_mass(DeltaTime - DeltaTimeSnap2 / 2);
+  else
     m_max = MmaxSnII;
-    }
+  if (m_max > MmaxSnII) // Firstly, you are only interested in stars in the CCSN mass range
+    m_max = MmaxSnII;
   
-  if (m_min > MmaxSnII) //There are no CCSN in this snapshot!
-    return 0.0;
+  double Y; 
+  if (yield_type == 0) { // All (recycling mass) 
+    if (m_max <= 30.0)
+      Y = 0.88;
+    else 
+      Y = 0.6;
+  }
   
-  else if (m_max < MminSnII) //There are no CCSN in this snapshot!
-    return 0.0; //Maybe put -1 or a break because this condition should stop your while loop!
-    
-  else {
-    double MassPISN = run_globals.MassPISN;
-    double MassSNII = run_globals.MassSNII;
-    double Y; 
-    if (m_max > MmaxSnII) // Firstly, you are only interested in stars in the CCSN mass range
-      m_max = MmaxSnII;
-      
-    if (m_min < MminSnII) 
-      m_min = MminSnII;
-      
-    double result, err;
-    double rel_tol = 0.01; //<- relative tolerance
-    gsl_function F;
-    gsl_integration_workspace* w = gsl_integration_workspace_alloc(1000);
+  if (yield_type == 1) { // Metals 
+    if (m_max <= 15.0)
+      Y = 0.05;
+    else if (m_max <= 25.0)
+      Y = 0.09;
+    else if (m_max <= 30.0)
+      Y = 0.15;
+    else
+      Y = 0.0;
+  }
   
-    F.function = &getIMF_massweighted;
-  
-    gsl_integration_qag(&F,
-                        m_min,
-                        m_max,
-                        0,
-                        rel_tol,
-                        1000,
-                        GSL_INTEG_GAUSS61,
-                        w,
-                        &result,
-                        &err);
-    gsl_integration_workspace_free(w);
-  
-    TotalMassSN = MassSNII + MassPISN;
-    
-    if (yield_type == 0) { // All (recycling mass) 
-      if (m_max <= 30.0)
-        Y = 0.88;
-      else 
-        Y = 0.6;
-    }
-    
-    if (yield_type == 1) { // Metals 
-      if (m_max <= 15.0)
-        Y = 0.05;
-      else if (m_max <= 25.0)
-        Y = 0.09;
-      else if (m_max <= 30.0)
-        Y = 0.15;
-      else
-        Y = 0.0;
-    }
-    
-    if (yield_type == 2) { //Remnant 
-      if (m_max <= 30.0)
-        Y = 0.12;
-      else 
-        Y = 0.4;
-    }
-    return result / TotalMassSN * Y;
-  }  
+  if (yield_type == 2) { //Remnant 
+    if (m_max <= 30.0)
+      Y = 0.12;
+    else 
+      Y = 0.4;
+  }
+  return result / TotalMassSN * Y;
 } 
 
 double PISN_PopIII_Yield(int yield_type) //Yield_type = 0 -> Recycling, 1 -> Metals
