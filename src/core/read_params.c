@@ -1016,6 +1016,8 @@ void read_parameter_file(char* fname, int mode)
       params_addr[n_param] = &(run_params->physics).MmaxIMF;
       required_tag[n_param] = 1;
       params_type[n_param++] = PARAM_TYPE_DOUBLE;
+
+      assert(run_globals.params.physics.MminIMF < run_globals.params.physics.MmaxIMF);
       
       strncpy(params_tag[n_param], "PopIIIAgePrescription", tag_length);
       params_addr[n_param] = &(run_params->physics).PopIIIAgePrescription;
