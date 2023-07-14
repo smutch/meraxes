@@ -677,6 +677,7 @@ typedef struct run_globals_t
   double* AA;
   double* ZZ;
   double* LTTime;
+  double* rhocrit;
   long* RequestedForestId;
   int RequestedMassRatioModifier;
   int RequestedBaryonFracModifier;
