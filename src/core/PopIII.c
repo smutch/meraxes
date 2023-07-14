@@ -14,10 +14,8 @@
 #include <gsl/gsl_roots.h>
 #include <gsl/gsl_spline.h>
 
-void initialize_time_interp_arrays()
+void initialize_time_interp_arrays(double MminIMF, double MmaxIMF)
 {
-  double MminIMF = run_globals.params.physics.MminIMF; 
-  double MmaxIMF = run_globals.params.physics.MmaxIMF;
   int mass_bins = (MmaxIMF - MminIMF) / IMF_MASS_STEP;
 
   run_globals.Mass_Values = malloc(sizeof(float) * mass_bins);
@@ -35,10 +33,12 @@ void initialize_time_interp_arrays()
   MPI_Bcast(run_globals.Time_Values, mass_bins, MPI_FLOAT, 0, run_globals.mpi_comm);
 }
 
-void initialize_PopIII_stuff() //Initialize PopIII quantities that are easily computed just from the IMF.
+void initialize_PopIII() //Initialize PopIII quantities that are easily computed just from the IMF.
 {
   double MminIMF = run_globals.params.physics.MminIMF; 
   double MmaxIMF = run_globals.params.physics.MmaxIMF;
+
+  initialize_time_interp_arrays(MminIMF, MmaxIMF);
   
   run_globals.IMFnorm = IMFnorm(MminIMF, MmaxIMF);
   run_globals.NumberPISN = Number_PISN();
