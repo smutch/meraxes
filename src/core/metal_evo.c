@@ -6,6 +6,7 @@
 #include <math.h>
 #include <sys/stat.h>
 
+#if USE_MINI_HALOS
 #include "meraxes.h"
 #include "misc_tools.h"
 #include "virial_properties.h"
@@ -769,3 +770,4 @@ void assign_probability_to_galaxies(int ngals_in_metal_slabs, int snapshot, int 
 }
 
 
+#endif

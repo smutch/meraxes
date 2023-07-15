@@ -2,7 +2,6 @@
 
 #include "meraxes.h"
 #include "virial_properties.h"
-#include <gsl/gsl_integration.h>
 
 static inline double E_z(double z, double OmegaM, double OmegaK, double OmegaLambda)
 {

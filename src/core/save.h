@@ -55,12 +55,15 @@ typedef struct galaxy_output_t
   float BlackHoleAccretedHotMass;
   float BlackHoleAccretedColdMass;
   
+#if USE_MINI_HALOS
   float RmetalBubble;
   int Galaxy_Population;
   float Metal_Probability; 
   float StellarMass_II;
   float StellarMass_III;
   float Remnant_Mass;
+  float MvirCrit_MC;
+#endif
 
   // misc
   float Rcool;
@@ -70,15 +73,16 @@ typedef struct galaxy_output_t
   float BaryonFracModifier;
   float FOFMvirModifier;
   float MvirCrit;
-  float MvirCrit_MC;
   float dt;
   float MergerBurstMass;
 
   // baryonic histories
   float MWMSA; // Mass weighted mean stellar age
   float NewStars[N_HISTORY_SNAPS];
+#if USE_MINI_HALOS
   float NewStars_II[N_HISTORY_SNAPS];
   float NewStars_III[N_HISTORY_SNAPS];
+#endif
 } galaxy_output_t;
 
 #ifdef __cplusplus

@@ -21,7 +21,9 @@ extern "C"
                                           double m_remnant,
                                           double new_metals);
   void delayed_supernova_feedback(struct galaxy_t* gal, int snapshot);
+#if USE_MINI_HALOS
   void calc_metal_bubble(struct galaxy_t* gal, int snapshot);
+#endif
   void contemporaneous_supernova_feedback(struct galaxy_t* gal,
                                           double* m_stars,
                                           int snapshot,
