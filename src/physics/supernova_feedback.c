@@ -283,9 +283,9 @@ void delayed_supernova_feedback(galaxy_t* gal, int snapshot)
   m_reheat_II = calc_sn_reheat_eff(gal, snapshot, 2) * sn_energy_II / get_total_SN_energy();
   sn_energy_II *= calc_sn_ejection_eff(gal, snapshot, 2);
   m_reheat_III = calc_sn_reheat_eff(gal, snapshot, 3) * sn_energy_III / ENOVA_CC; 
-  sn_energy_III *= (calc_sn_ejection_eff(gal, snapshot, 3) * NumberSNII * 1e10 / run_globals.params.Hubble_h); //Maybe for the SN ejection efficiency is more important to distinguish between PISN/CC rather than Pop.III/II 
+  sn_energy_III *= (calc_sn_ejection_eff(gal, snapshot, 3) * NumberSNII * 1e10 / run_globals.params.Hubble_h / energy_unit); //Maybe for the SN ejection efficiency is more important to distinguish between PISN/CC rather than Pop.III/II 
   m_reheat = m_reheat_II + m_reheat_III;
-  sn_energy = sn_energy_II + sn_energy_III / energy_unit; //Convert from erg to internal units! 10^10Msol/h * (km/s)^2
+  sn_energy = sn_energy_II + sn_energy_III; //Convert from erg to internal units! 10^10Msol/h * (km/s)^2
   
   // We can only reheat as much gas as we have available.  Let's inforce this
   // now, to ensure that the maximal amount of available energy is used to
@@ -310,7 +310,7 @@ void delayed_supernova_feedback(galaxy_t* gal, int snapshot)
   else
     fof_Vvir = -1;
 
-  m_eject_III = calc_ejected_mass(&m_reheat_III, sn_energy_III / energy_unit, gal->Vvir, fof_Vvir);
+  m_eject_III = calc_ejected_mass(&m_reheat_III, sn_energy_III, gal->Vvir, fof_Vvir);
   m_eject_II = calc_ejected_mass(&m_reheat_II, sn_energy_II, gal->Vvir, fof_Vvir);
   m_eject = m_eject_II + m_eject_III;
 
