@@ -76,7 +76,9 @@ void _ComputeTs(int snapshot)
   float* x_e_box_prev = run_globals.reion_grids.x_e_box_prev;
   float* Tk_box = run_globals.reion_grids.Tk_box;
   float* TS_box = run_globals.reion_grids.TS_box;
+#if USE_MINI_HALOS
   float* JLW_box = run_globals.reion_grids.JLW_box;
+#endif
 
   fftwf_complex* sfr_unfiltered = run_globals.reion_grids.sfr_unfiltered;
   fftwf_complex* sfr_filtered = run_globals.reion_grids.sfr_filtered;
@@ -339,8 +341,10 @@ void _ComputeTs(int snapshot)
 
       // and create the sum over Lya transitions from direct Lyn flux
       sum_lyn[R_ct] = 0;
-      if (run_globals.params.Flag_IncludeLymanWerner)
+#if USE_MINI_HALOS
+	  if (run_globals.params.Flag_IncludeLymanWerner)
         sum_lyn_LW[R_ct] = 0;
+#endif
 
       for (n_ct = NSPEC_MAX; n_ct >= 2; n_ct--) {
         if (zpp > zmax((float)zp, n_ct))
@@ -348,13 +352,15 @@ void _ComputeTs(int snapshot)
 
         nuprime = nu_n(n_ct) * (1 + zpp) / (1.0 + zp);
         sum_lyn[R_ct] += frecycle(n_ct) * spectral_emissivity(nuprime, 0);
-        if (run_globals.params.Flag_IncludeLymanWerner) {
+#if USE_MINI_HALOS
+		if (run_globals.params.Flag_IncludeLymanWerner) {
           if (nuprime < NU_LW / NU_LL)
             nuprime = NU_LW / NU_LL;
           if (nuprime > nu_n(n_ct + 1))
             continue;
           sum_lyn_LW[R_ct] += spectral_emissivity(nuprime, 2);
-        }
+        }	
+#endif
       }
 
       // Find if we need to add a partial contribution to a radii to avoid kinks in the Lyman-alpha flux
@@ -399,8 +405,10 @@ void _ComputeTs(int snapshot)
         // Now add a non-zero contribution to the previously zero contribution
         // The amount is the weight, multplied by the contribution from the previous radii
         sum_lyn[R_ct] = weight * sum_lyn[R_ct - 1];
-        if (run_globals.params.Flag_IncludeLymanWerner)
+#if USE_MINI_HALOS
+		if (run_globals.params.Flag_IncludeLymanWerner)
           sum_lyn_LW[R_ct] = weight * sum_lyn_LW[R_ct - 1];
+#endif
         first_radii = false;
       }
     }
@@ -582,8 +590,10 @@ void _ComputeTs(int snapshot)
             x_e_box_prev[i_padded] = 0;
           if (Tk_box[i_real] < MAX_TK)
             Tk_box[i_real] += dansdz[1] * dzp;
-          if (run_globals.params.Flag_IncludeLymanWerner)
+#if USE_MINI_HALOS
+		  if (run_globals.params.Flag_IncludeLymanWerner)
             JLW_box[i_real] = dansdz[5];
+#endif
 
           if (Tk_box[i_real] <
               0) { // spurious bahaviour of the trapazoidalintegrator. generally overcooling in underdensities
@@ -600,29 +610,37 @@ void _ComputeTs(int snapshot)
           xalpha_ave += curr_xalpha;
           Xheat_ave += dansdz[3];
           Xion_ave += dansdz[4];
-          if (run_globals.params.Flag_IncludeLymanWerner)
+#if USE_MINI_HALOS
+		  if (run_globals.params.Flag_IncludeLymanWerner)
             J_LW_ave += dansdz[5];
+#endif
         }
 
     MPI_Allreduce(MPI_IN_PLACE, &J_alpha_ave, 1, MPI_DOUBLE, MPI_SUM, run_globals.mpi_comm);
     MPI_Allreduce(MPI_IN_PLACE, &xalpha_ave, 1, MPI_DOUBLE, MPI_SUM, run_globals.mpi_comm);
     MPI_Allreduce(MPI_IN_PLACE, &Xheat_ave, 1, MPI_DOUBLE, MPI_SUM, run_globals.mpi_comm);
     MPI_Allreduce(MPI_IN_PLACE, &Xion_ave, 1, MPI_DOUBLE, MPI_SUM, run_globals.mpi_comm);
-    MPI_Allreduce(MPI_IN_PLACE, &J_LW_ave, 1, MPI_DOUBLE, MPI_SUM, run_globals.mpi_comm);
+#if USE_MINI_HALOS
+	MPI_Allreduce(MPI_IN_PLACE, &J_LW_ave, 1, MPI_DOUBLE, MPI_SUM, run_globals.mpi_comm);
+#endif
 
     J_alpha_ave /= total_n_cells;
     xalpha_ave /= total_n_cells;
     Xheat_ave /= total_n_cells;
     Xion_ave /= total_n_cells;
-    if (run_globals.params.Flag_IncludeLymanWerner)
+#if USE_MINI_HALOS
+	if (run_globals.params.Flag_IncludeLymanWerner)
       J_LW_ave /= total_n_cells;
+#endif
 
     run_globals.reion_grids.volume_ave_J_alpha = J_alpha_ave;
     run_globals.reion_grids.volume_ave_xalpha = xalpha_ave;
     run_globals.reion_grids.volume_ave_Xheat = Xheat_ave;
     run_globals.reion_grids.volume_ave_Xion = Xion_ave;
-    if (run_globals.params.Flag_IncludeLymanWerner)
+#if USE_MINI_HALOS
+	if (run_globals.params.Flag_IncludeLymanWerner)
       run_globals.reion_grids.volume_ave_J_LW = J_LW_ave;
+#endif
   }
 
   memcpy(x_e_box, x_e_box_prev, sizeof(fftwf_complex) * slab_n_complex);

@@ -1,6 +1,7 @@
 #ifndef METAL_EVO_H
 #define METAL_EVO_H
 
+#if USE_MINI_HALOS
 #include <fftw3-mpi.h>
 #include <stdbool.h>
 
@@ -34,4 +35,5 @@ extern "C"
 }
 #endif
 
+#endif
 #endif

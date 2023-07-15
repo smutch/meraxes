@@ -287,9 +287,11 @@ void init_reion_grids()
     grids->xH[ii] = 1.0;
     grids->z_at_ionization[ii] = -1;
     grids->r_bubble[ii] = 0.0;
-    if (run_globals.params.Flag_IncludeLymanWerner) {
+#if USE_MINI_HALOS
+	if (run_globals.params.Flag_IncludeLymanWerner) {
       grids->JLW_box[ii] = 0.0;
     }
+#endif
     if (run_globals.params.Flag_IncludeSpinTemp) {
       grids->Tk_box[ii] = 0.0;
       grids->TS_box[ii] = 0.0;
@@ -332,8 +334,10 @@ void init_reion_grids()
       grids->J_21_at_ionization[ii] = (float)0.;
       grids->J_21[ii] = (float)0.;
       grids->Mvir_crit[ii] = (float)0.;
-      if (run_globals.params.Flag_IncludeLymanWerner)
+#if USE_MINI_HALOS
+	  if (run_globals.params.Flag_IncludeLymanWerner)
         grids->Mvir_crit_MC[ii] = (float)0.;
+#endif
     }
 
   for (int ii = 0; ii < slab_n_complex; ii++) {
@@ -579,10 +583,12 @@ void malloc_reionization_grids()
     grids->z_at_ionization = fftwf_alloc_real((size_t)slab_n_real);
     grids->r_bubble = fftwf_alloc_real((size_t)slab_n_real);
 
-    if (run_globals.params.Flag_IncludeLymanWerner) {
+#if USE_MINI_HALOS
+	if (run_globals.params.Flag_IncludeLymanWerner) {
 
       grids->JLW_box = fftwf_alloc_real((size_t)slab_n_real);
     }
+#endif
 
     if (run_globals.params.Flag_IncludeSpinTemp) {
 
@@ -681,8 +687,10 @@ void malloc_reionization_grids()
       grids->J_21 = fftwf_alloc_real((size_t)slab_n_real);
       grids->Mvir_crit = fftwf_alloc_real((size_t)slab_n_real);
 
-      if (run_globals.params.Flag_IncludeLymanWerner)
+#if USE_MINI_HALOS
+	  if (run_globals.params.Flag_IncludeLymanWerner)
         grids->Mvir_crit_MC = fftwf_alloc_real((size_t)slab_n_real);
+#endif
     }
 
     if (run_globals.params.Flag_ConstructLightcone) {
@@ -737,8 +745,10 @@ void free_reionization_grids()
     fftwf_free(grids->J_21);
     fftwf_free(grids->J_21_at_ionization);
 
-    if (run_globals.params.Flag_IncludeLymanWerner)
+#if USE_MINI_HALOS
+	if (run_globals.params.Flag_IncludeLymanWerner)
       fftwf_free(grids->Mvir_crit_MC);
+#endif
   }
 
   if (run_globals.params.Flag_Compute21cmBrightTemp) {
@@ -791,8 +801,10 @@ void free_reionization_grids()
     fftwf_free(grids->sfr);
   }
 
+#if USE_MINI_HALOS
   if (run_globals.params.Flag_IncludeLymanWerner)
     free(grids->JLW_box);
+#endif
 
   fftwf_free(grids->r_bubble);
   fftwf_free(grids->z_at_ionization);
@@ -897,8 +909,12 @@ void assign_Mvir_crit_to_galaxies(int ngals_in_slabs, int flag_feed) // flag = 1
   }
 
   if (flag_feed == 2) {
-    // float* Mvir_crit_MC = run_globals.reion_grids.Mvir_crit_MC;
+#if USE_MINI_HALOS
+	  // float* Mvir_crit_MC = run_globals.reion_grids.Mvir_crit_MC;
     mlog("Assigning Mvir_crit_MC to galaxies...", MLOG_OPEN);
+#else
+    mlog_error("Cannot assign Mvir_crit_MC to galaxies when not USE_MINI_HALOS...");
+#endif
   }
 
   // Work out the index of the galaxy_to_slab_map where each slab begins.
@@ -979,7 +995,8 @@ void assign_Mvir_crit_to_galaxies(int ngals_in_slabs, int flag_feed) // flag = 1
       }
     }
 
-    if (flag_feed == 2) {
+#if USE_MINI_HALOS
+	if (flag_feed == 2) {
 
       if (i_skip > 0) {
         MPI_Sendrecv(&recv_flag,
@@ -1019,6 +1036,7 @@ void assign_Mvir_crit_to_galaxies(int ngals_in_slabs, int flag_feed) // flag = 1
         memcpy(buffer, Mvir_crit_MC, sizeof(float) * n_cells);
       }
     }
+#endif
 
     // if this core has received a slab of Mvir_crit then assign values to the
     // galaxies which belong to this slab
@@ -1039,8 +1057,10 @@ void assign_Mvir_crit_to_galaxies(int ngals_in_slabs, int flag_feed) // flag = 1
         if (flag_feed == 1)
           gal->MvirCrit = (double)buffer[grid_index(ix, iy, iz, ReionGridDim, INDEX_REAL)];
 
-        if (flag_feed == 2)
+#if USE_MINI_HALOS
+		if (flag_feed == 2)
           gal->MvirCrit_MC = (double)buffer[grid_index(ix, iy, iz, ReionGridDim, INDEX_REAL)];
+#endif
 
         // increment counters
         i_gal++;
@@ -1403,16 +1423,20 @@ void save_reion_output_grids(int snapshot)
     write_grid_float("J_21_at_ionization", grids->J_21_at_ionization, file_id, fspace_id, memspace_id, dcpl_id);
     write_grid_float("Mvir_crit", grids->Mvir_crit, file_id, fspace_id, memspace_id, dcpl_id);
 
-    if (run_globals.params.Flag_IncludeLymanWerner)
+#if USE_MINI_HALOS
+	if (run_globals.params.Flag_IncludeLymanWerner)
       write_grid_float("Mvir_crit_MC", grids->Mvir_crit_MC, file_id, fspace_id, memspace_id, dcpl_id);
   }
+#endif
 
   // fftw padded grids
   float* grid = (float*)calloc((size_t)(local_nix * ReionGridDim * ReionGridDim), sizeof(float));
 
+#if USE_MINI_HALOS
   if (run_globals.params.Flag_IncludeLymanWerner) {
     write_grid_float("JLW_box", grids->JLW_box, file_id, fspace_id, memspace_id, dcpl_id);
   }
+#endif
 
   if (run_globals.params.Flag_IncludeSpinTemp) {
     write_grid_float("TS_box", grids->TS_box, file_id, fspace_id, memspace_id, dcpl_id);
@@ -1491,9 +1515,11 @@ void save_reion_output_grids(int snapshot)
     H5LTset_attribute_double(file_id, "TS_box", "volume_ave_Xheat", &(grids->volume_ave_Xheat), 1);
     H5LTset_attribute_double(file_id, "TS_box", "volume_ave_Xion", &(grids->volume_ave_Xion), 1);
 
-    if (run_globals.params.Flag_IncludeLymanWerner) {
+#if USE_MINI_HALOS
+	if (run_globals.params.Flag_IncludeLymanWerner) {
       H5LTset_attribute_double(file_id, "JLW_box", "volume_ave_JLW", &(grids->volume_ave_J_LW), 1);
     }
+#endif
   }
 
   if (run_globals.params.Flag_Compute21cmBrightTemp) {

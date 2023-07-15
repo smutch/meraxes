@@ -2,8 +2,10 @@
 #include "blackhole_feedback.h"
 #include "cooling.h"
 #include "core/stellar_feedback.h"
+#if USE_MINI_HALOS
 #include "core/PopIII.h"
 #include "core/virial_properties.h"
+#endif
 #include "infall.h"
 #include "meraxes.h"
 #include "mergers.h"
@@ -13,7 +15,11 @@
 #include <math.h>
 
 //! Evolve existing galaxies forward in time
+#if USE_MINI_HALOS
 int evolve_galaxies(fof_group_t* fof_group, int snapshot, int NGal, int NFof, int* gal_counter_Pop3, int* gal_counter_Pop2, int* gal_counter_enriched)
+#else
+int evolve_galaxies(fof_group_t* fof_group, int snapshot, int NGal, int NFof)
+#endif
 {
   galaxy_t* gal = NULL;
   halo_t* halo = NULL;
@@ -23,7 +29,9 @@ int evolve_galaxies(fof_group_t* fof_group, int snapshot, int NGal, int NFof, in
   double cooling_mass = 0;
   int NSteps = run_globals.params.NSteps;
   bool Flag_IRA = (bool)(run_globals.params.physics.Flag_IRA);
+#if USE_MINI_HALOS
   bool Flag_Metals = (bool)(run_globals.params.Flag_IncludeMetalEvo);
+#endif
   
   mlog("Doing physics...", MLOG_OPEN | MLOG_TIMERSTART);
   // pre-calculate feedback tables for each lookback snapshot
@@ -43,7 +51,8 @@ int evolve_galaxies(fof_group_t* fof_group, int snapshot, int NGal, int NFof, in
 
         while (gal != NULL) {
         
-          if (Flag_Metals == true) { // Assign to newly formed galaxies metallicity of their cell according to a certain probability
+#if USE_MINI_HALOS
+			if (Flag_Metals == true) { // Assign to newly formed galaxies metallicity of their cell according to a certain probability
             if (gal->output_index == -1) { 
               double x;
               double boost_corr = 1;
@@ -76,6 +85,7 @@ int evolve_galaxies(fof_group_t* fof_group, int snapshot, int NGal, int NFof, in
                 gal->Metal_Probability = 1;
             }
           }
+#endif
           
           if (gal->Type == 0) {
             cooling_mass = gas_cooling(gal);
@@ -96,9 +106,11 @@ int evolve_galaxies(fof_group_t* fof_group, int snapshot, int NGal, int NFof, in
   
             insitu_star_formation(gal, snapshot);
 
-            if ((Flag_Metals == true) && (gal->Type < 2)) { //Adding conditions on galType to test the MetalBubble!
+#if USE_MINI_HALOS
+			if ((Flag_Metals == true) && (gal->Type < 2)) { //Adding conditions on galType to test the MetalBubble!
               calc_metal_bubble(gal, snapshot);
             }
+#endif
             // If this is a type 2 then decrement the merger clock
             if (gal->Type == 2)
               gal->MergTime -= gal->dt;
@@ -148,8 +160,9 @@ void passively_evolve_ghost(galaxy_t* gal, int snapshot)
   // Currently, this just means evolving their stellar pops...
 
   bool Flag_IRA = (bool)(run_globals.params.physics.Flag_IRA);
+#if USE_MINI_HALOS
   bool Flag_Metals = (bool)(run_globals.params.Flag_IncludeMetalEvo);
-  fof_group_t* fof_group;
+#endif
 
   if (!Flag_IRA)
     delayed_supernova_feedback(gal, snapshot);

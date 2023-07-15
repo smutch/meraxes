@@ -57,6 +57,7 @@ void calculate_Mvir_crit(double redshift)
   }
 }
 
+#if USE_MINI_HALOS
 void calculate_Mvir_crit_MC(double redshift)
 {
   // Calculate the critical Mvir value in each grid cell (ala Visbal 2014)
@@ -86,6 +87,7 @@ void calculate_Mvir_crit_MC(double redshift)
       }
   }
 }
+#endif
 
 double tocf_modifier(galaxy_t* gal, double Mvir)
 {

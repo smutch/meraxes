@@ -44,7 +44,8 @@ double gas_cooling(galaxy_t* gal)
     // Implement Molecular cooling using fitting of cooling curves of Galli and Palla 1998, Include LW feedback
     // according to Visbal 2014
 
-    else if (Tvir >= 1e3 && gal->Mvir >= gal->MvirCrit_MC) {
+#if USE_MINI_HALOS
+	else if (Tvir >= 1e3 && gal->Mvir >= gal->MvirCrit_MC) {
       double loglambdalim, LTEcool;
       double nH = 1e2; // Use value of low density regime
 
@@ -59,6 +60,7 @@ double gas_cooling(galaxy_t* gal)
         -103.0 + 97.59 * log10Tvir - 48.05 * pow(log10Tvir, 2) + 10.8 * pow(log10Tvir, 3) - 0.9032 * pow(log10Tvir, 4);
       lambda = LTEcool / (1 + (LTEcool / pow(10, loglambdalim)));
     }
+#endif
 
     else {
 

@@ -132,10 +132,14 @@ static void merger_driven_starburst(galaxy_t* parent, double merger_ratio, int s
       // update the baryonic reservoirs (note that the order we do this in will change the result!)
       update_reservoirs_from_sf(parent, burst_mass, snapshot, MERGER);
       parent->MergerBurstMass += burst_mass;
+#if USE_MINI_HALOS
 	  if (parent->Galaxy_Population == 2)
+#endif
         update_reservoirs_from_sn_feedback(parent, m_reheat, m_eject, m_recycled, 0, m_recycled, m_remnant, new_metals);
+#if USE_MINI_HALOS
 	  else if (parent->Galaxy_Population == 3)
         update_reservoirs_from_sn_feedback(parent, m_reheat, m_eject, m_recycled, m_recycled, 0, m_remnant, new_metals);
+#endif
     }
   }
 }
@@ -169,9 +173,11 @@ void merge_with_target(galaxy_t* gal, int* dead_gals, int snapshot)
 
   // Add galaxies together
   parent->StellarMass += gal->StellarMass;
+#if USE_MINI_HALOS    
   parent->StellarMass_II += gal->StellarMass_II;
   parent->StellarMass_III += gal->StellarMass_III;
   parent->Remnant_Mass += gal->Remnant_Mass;
+#endif
   parent->GrossStellarMass += gal->GrossStellarMass;
   parent->FescWeightedGSM += gal->FescWeightedGSM;
   parent->MetalsStellarMass += gal->MetalsStellarMass;
@@ -192,6 +198,7 @@ void merge_with_target(galaxy_t* gal, int* dead_gals, int snapshot)
   parent->mwmsa_denom += gal->mwmsa_denom;
   parent->MergerBurstMass += gal->MergerBurstMass;
   
+#if USE_MINI_HALOS    
   // If I have a Merger between Pop III and Pop II the result is a Pop. II. Actually I should compute metallicity
   // TODO: this could be improved in the future!
   
@@ -213,12 +220,15 @@ void merge_with_target(galaxy_t* gal, int* dead_gals, int snapshot)
       }
     }*/
   }
+#endif
     
 
   for (int ii = 0; ii < N_HISTORY_SNAPS; ii++){ //Should you do the same with the MetalBubble properties?
     parent->NewStars[ii] += gal->NewStars[ii];
-    parent->NewStars_II[ii] += gal->NewStars_II[ii];
+#if USE_MINI_HALOS    
+	parent->NewStars_II[ii] += gal->NewStars_II[ii];
     parent->NewStars_III[ii] += gal->NewStars_III[ii];
+#endif
     }
 
   for (int ii = 0; ii < N_HISTORY_SNAPS; ii++)
