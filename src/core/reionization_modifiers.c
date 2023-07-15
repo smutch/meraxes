@@ -45,6 +45,7 @@ void read_Mcrit_table(int flag_MC) // 1 = Reio, 2 = LW
     MPI_Bcast(run_globals.params.MvirCrit, run_globals.params.SnaplistLength, MPI_DOUBLE, 0, run_globals.mpi_comm);
   }
 
+#if USE_MINI_HALOS
   if (flag_MC == 2) {
     if (run_globals.params.physics.Flag_ReionizationModifier != 3) {
       run_globals.params.MvirCrit_MC = NULL;
@@ -70,4 +71,5 @@ void read_Mcrit_table(int flag_MC) // 1 = Reio, 2 = LW
 
     MPI_Bcast(run_globals.params.MvirCrit_MC, run_globals.params.SnaplistLength, MPI_DOUBLE, 0, run_globals.mpi_comm);
   }
+#endif
 }

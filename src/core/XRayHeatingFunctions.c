@@ -49,8 +49,10 @@ int init_heat()
   sigma_Tmin = calloc(TsNumFilterSteps, sizeof(double));
   ST_over_PS = calloc(TsNumFilterSteps, sizeof(double));
   sum_lyn = calloc(TsNumFilterSteps, sizeof(double));
+#if USE_MINI_HALOS
   if (run_globals.params.Flag_IncludeLymanWerner)
     sum_lyn_LW = calloc(TsNumFilterSteps, sizeof(double));
+#endif
 
   kappa_10(1.0, 1); // 1 is the flag, allocates memory.
   if (kappa_10_elec(1.0, 1) < 0)
@@ -83,8 +85,10 @@ void destruct_heat()
   free(sigma_Tmin);
   free(sigma_atR);
   free(zpp_edge);
+#if USE_MINI_HALOS
   if (run_globals.params.Flag_IncludeLymanWerner)
     free(sum_lyn_LW);
+#endif
 }
 
 // ******************************************************************** //
@@ -1276,8 +1280,10 @@ void evolveInt(float zp,
         // Units should be M_solar/s. Factor of (dt_dzp * dzpp) converts from per s to per z'
         dstarlya_dt_GAL += SFR_GAL[zpp_ct] * pow(1 + zp, 2) * (1 + zpp) * sum_lyn[zpp_ct] * dt_dzpp * dzpp;
       }
-      if (run_globals.params.Flag_IncludeLymanWerner)
+#if USE_MINI_HALOS
+	  if (run_globals.params.Flag_IncludeLymanWerner)
         dstarlyLW_dt_GAL += SFR_GAL[zpp_ct] * pow(1 + zp, 2) * (1 + zpp) * sum_lyn_LW[zpp_ct] * dt_dzpp * dzpp;
+#endif
     }
 
     // After you finish the loop for each Radius, you add prefactors which are constants for the redshift (snapshot) and
@@ -1305,8 +1311,10 @@ void evolveInt(float zp,
 
       dstarlya_dt_GAL *= (SPEED_OF_LIGHT / (4. * M_PI)) / (PROTONMASS / SOLAR_MASS);
     }
-    if (run_globals.params.Flag_IncludeLymanWerner)
+#if USE_MINI_HALOS
+	if (run_globals.params.Flag_IncludeLymanWerner)
       dstarlyLW_dt_GAL *= (SPEED_OF_LIGHT / (4. * M_PI)) / (PROTONMASS / SOLAR_MASS);
+#endif
 
   } // end NO_LIGHT if statement
 
@@ -1342,8 +1350,10 @@ void evolveInt(float zp,
   // stuff for marcos
   deriv[3] = dxheat_dzp;
   deriv[4] = dt_dzp * (dxion_source_dt_GAL + dxion_source_dt_QSO);
+#if USE_MINI_HALOS
   if (run_globals.params.Flag_IncludeLymanWerner)
     deriv[5] = dstarlyLW_dt_GAL * (PLANCK * 1e21);
+#endif
 }
 
 // * Compton heating term * //

@@ -8,17 +8,19 @@
 #include "init.h"
 #include "magnitudes.h"
 #include "meraxes.h"
-#include "metal_evo.h"
 #include "misc_tools.h"
 #include "parse_paramfile.h"
-#include "PopIII.h"
 #include "read_halos.h"
 #include "recombinations.h"
 #include "reionization.h"
 #include "reionization_modifiers.h"
 #include "save.h"
 #include "stellar_feedback.h"
+#if USE_MINI_HALOS
+#include "metal_evo.h"
+#include "PopIII.h"
 #include "virial_properties.h"
+#endif
 
 static void init_gpu()
 {
@@ -208,9 +210,11 @@ void init_storage()
 
   malloc_reionization_grids();
   
+#if USE_MINI_HALOS
   if (run_globals.params.Flag_IncludeMetalEvo) {
     malloc_metal_grids();
   }
+#endif
 
   // calculate the output hdf5 file properties for later use
   calc_hdf5_props();
@@ -281,7 +285,9 @@ void init_meraxes()
 
   // read in the mean Mvir_crit table (if needed 1 for Reio 2 for LW)
   read_Mcrit_table(1);
+#ifdef USE_MINI_HALOS    
   read_Mcrit_table(2);
+#endif
 
   set_ReionEfficiency();
   set_quasar_fobs();

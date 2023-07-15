@@ -24,7 +24,9 @@ extern "C"
   double get_recycling_fraction(int i_burst, double metals);
   double get_metal_yield(int i_burst, double metals);
   double get_SN_energy(int i_burst, double metals);
+#if USE_MINI_HALOS
   double get_SN_energy_PopIII(int i_burst, int snapshot, int SN_type);
+#endif
   double get_total_SN_energy(void);
 
 #ifdef __cplusplus

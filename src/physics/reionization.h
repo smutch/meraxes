@@ -9,7 +9,9 @@ extern "C"
 #endif
 
   void calculate_Mvir_crit(double redshift);
+#if USE_MINI_HALOS
   void calculate_Mvir_crit_MC(double redshift);
+#endif
   double tocf_modifier(struct galaxy_t* gal, double Mvir);
   double reionization_modifier(struct galaxy_t* gal, double Mvir, int snapshot);
   double sobacchi2013_modifier(double Mvir, double redshift);

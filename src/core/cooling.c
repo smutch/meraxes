@@ -105,6 +105,7 @@ double interpolate_cooling_rate(double logTemp, double logZ)
   return pow(10, rate);
 }
 
+#if USE_MINI_HALOS
 double LTE_Mcool(double Temp, double nH)
 {
   double T3;
@@ -118,3 +119,4 @@ double LTE_Mcool(double Temp, double nH)
 
   return LTEtot;
 }
+#endif

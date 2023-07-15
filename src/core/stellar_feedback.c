@@ -4,7 +4,9 @@
 #include "meraxes.h"
 #include "misc_tools.h"
 #include "stellar_feedback.h"
+#if USE_MINI_HALOS
 #include "PopIII.h"
+#endif
 
 static double age[NAGE];
 static double yield_tables[NELEMENT][NMETAL * NAGE];
@@ -175,6 +177,7 @@ double get_total_SN_energy(void)
   return energy_tables[NAGE - 1];
 }
 
+#if USE_MINI_HALOS
 // Adding stuff for Pop III feedback 
 
 double get_SN_energy_PopIII(int i_burst, int snapshot, int SN_type) //SN_type = 0 -> CC, 1 -> PISN (Pop III have higher masses so we need to account also for PISN!)
@@ -198,3 +201,4 @@ double get_SN_energy_PopIII(int i_burst, int snapshot, int SN_type) //SN_type = 
     return Enova * NumberPISN / (NumberPISN + NumberSNII) * NumberPISN * 1e10 / run_globals.params.Hubble_h; // same as above
   }  
 }
+#endif

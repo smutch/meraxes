@@ -66,40 +66,25 @@ extern "C"
 typedef struct physics_params_t
 {
   double SfEfficiency;
-  double SfEfficiency_III;
   double SfEfficiencyScaling;
-  double SfEfficiencyScaling_III;
   double SfCriticalSDNorm;
   double SfRecycleFraction;
-  double SfRecycleFraction_III;
   int SnModel;
   double SnReheatRedshiftDep;
-  double SnReheatRedshiftDep_III;
   double SnReheatEff;
-  double SnReheatEff_III;
   double SnReheatLimit;
-  double SnReheatLimit_III;
   double SnReheatScaling;
-  double SnReheatScaling_III;
   double SnReheatScaling2;
-  double SnReheatScaling2_III;
   double SnReheatNorm;
-  double SnReheatNorm_III;
   double SnEjectionRedshiftDep;
-  double SnEjectionRedshiftDep_III;
   double SnEjectionEff;
-  double SnEjectionEff_III;
   double SnEjectionScaling;
-  double SnEjectionScaling_III;
   double SnEjectionScaling2;
-  double SnEjectionScaling2_III;
   double SnEjectionNorm;
-  double SnEjectionNorm_III;
   double MaxCoolingMassFactor;
   int ReincorporationModel;
   double ReincorporationEff;
   double Yield;
-  double Yield_III;
   double RadioModeEff;
   double QuasarModeEff;
   double BlackHoleGrowthRate;
@@ -107,6 +92,22 @@ typedef struct physics_params_t
   double quasar_mode_scaling;
   double quasar_open_angle;
   double quasar_fobs;
+
+  double SfEfficiency_III;
+  double SfEfficiencyScaling_III;
+  double SfRecycleFraction_III;
+  double SnReheatRedshiftDep_III;
+  double SnReheatEff_III;
+  double SnReheatLimit_III;
+  double SnReheatScaling_III;
+  double SnReheatScaling2_III;
+  double SnReheatNorm_III;
+  double SnEjectionRedshiftDep_III;
+  double SnEjectionEff_III;
+  double SnEjectionScaling_III;
+  double SnEjectionScaling2_III;
+  double SnEjectionNorm_III;
+  double Yield_III;
 
   double ThreshMajorMerger;
   double MinMergerStellarMass;
@@ -124,14 +125,12 @@ typedef struct physics_params_t
   double Y_He;
   
   //Pop III IMF parameters
-  
   double MminIMF;
   double MmaxIMF;
   double AlphaIMF;
   int PopIIIAgePrescription;
   
   // Parameters for metallicity evolution. These include the parameters for the fitting function of clustering and the critical metallicity
-  
   double AlphaCluster;
   double BetaCluster;
   double GammaCluster;
@@ -330,6 +329,7 @@ typedef struct hdf5_output_t
   // TOTAL : 52 + 4 padding (must be multiple of 8)
 } hdf5_output_t;
 
+#if USE_MINI_HALOS
 typedef struct metal_grids_t //New stuff for MetalEvo, probably you will need to add new stuff
 {
   ptrdiff_t* slab_nix_metals;
@@ -354,6 +354,7 @@ typedef struct metal_grids_t //New stuff for MetalEvo, probably you will need to
    
   
 } metal_grids_t; 
+#endif
   
 typedef struct reion_grids_t
 {
@@ -466,8 +467,10 @@ typedef struct reion_grids_t
 typedef struct galaxy_t
 {
   double NewStars[N_HISTORY_SNAPS];
+#if USE_MINI_HALOS
   double NewStars_II[N_HISTORY_SNAPS]; //New
   double NewStars_III[N_HISTORY_SNAPS];
+#endif
   double NewMetals[N_HISTORY_SNAPS];
 
 #ifdef CALC_MAGS
@@ -521,13 +524,12 @@ typedef struct galaxy_t
   double BlackHoleAccretedColdMass;
   double BlackHoleAccretingColdMass;
   
+#if USE_MINI_HALOS
   //Differentiation Pop III / Pop II
-  
   double StellarMass_II;
   double StellarMass_III;
   
-  //Remnant (still work in progress)
-  
+  //Remnant (still work in progress) 
   double Remnant_Mass; //ATM just coming from Pop III with M between 40 and 140 and larger than 260 Msol
   
   //Metallicity stuff 
@@ -544,6 +546,7 @@ typedef struct galaxy_t
   double Times[N_HISTORY_SNAPS]; // Time at which the SN explode!
   double Radii[N_HISTORY_SNAPS]; 
   //int count_SF;
+#endif
   
   // baryonic hostories
   double mwmsa_num;
@@ -665,7 +668,9 @@ typedef struct run_globals_t
   struct run_params_t params;
   char FNameOut[STRLEN];
   reion_grids_t reion_grids;
+#if USE_MINI_HALOS
   metal_grids_t metal_grids;
+#endif
   struct run_units_t units;
   hdf5_output_t hdf5props;
 
@@ -704,15 +709,13 @@ typedef struct run_globals_t
   double MassSNII;
   double MassBHs;
 
+  float *Mass_Values;
+  float *Time_Values;
+
 #ifdef CALC_MAGS
   struct mag_params_t mag_params;
 #endif
 
-#ifdef USE_MINI_HALOS
-  float *Mass_Values;
-  float *Time_Values;
-#endif
-  ;
   int NOutputSnaps;
   int LastOutputSnap;
   int NGhosts;
