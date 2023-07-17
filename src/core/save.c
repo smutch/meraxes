@@ -95,6 +95,7 @@ void prepare_galaxy_for_output(galaxy_t gal, galaxy_output_t* galout, int i_snap
 #if USE_MINI_HALOS
   galout->RmetalBubble = (float)(gal.RmetalBubble); //new for MetalEvo
   galout->Galaxy_Population = (int)(gal.Galaxy_Population);
+  galout->Flag_ExtMetEnr = (int)(gal.Flag_ExtMetEnr);
   galout->Metal_Probability = (float)(gal.Metal_Probability);
   galout->StellarMass_II = (float)(gal.StellarMass_II);
   galout->StellarMass_III = (float)(gal.StellarMass_III); 
@@ -128,7 +129,7 @@ void calc_hdf5_props()
 
     h5props->n_props = 49; 
 #if USE_MINI_HALOS
-    h5props->n_props += 9;
+    h5props->n_props += 10;
 #endif
 
 #ifdef CALC_MAGS
@@ -183,9 +184,16 @@ void calc_hdf5_props()
     h5props->field_types[i++] = H5T_NATIVE_INT;
     
 #if USE_MINI_HALOS
-	h5props->dst_offsets[i] = HOFFSET(galaxy_output_t, Galaxy_Population);
+    h5props->dst_offsets[i] = HOFFSET(galaxy_output_t, Galaxy_Population);
     h5props->dst_field_sizes[i] = sizeof(galout.Galaxy_Population);
     h5props->field_names[i] = "Galaxy_Population";
+    h5props->field_units[i] = "None";
+    h5props->field_h_conv[i] = "None";
+    h5props->field_types[i++] = H5T_NATIVE_INT;
+    
+    h5props->dst_offsets[i] = HOFFSET(galaxy_output_t, Flag_ExtMetEnr);
+    h5props->dst_field_sizes[i] = sizeof(galout.Flag_ExtMetEnr);
+    h5props->field_names[i] = "Flag_ExtMetEnr";
     h5props->field_units[i] = "None";
     h5props->field_h_conv[i] = "None";
     h5props->field_types[i++] = H5T_NATIVE_INT;
@@ -874,7 +882,7 @@ void create_master_file()
       }
       
 #if USE_MINI_HALOS
-	  if ((i_core == 0) && (run_globals.params.Flag_IncludeMetalEvo)) {
+      if ((i_core == 0) && (run_globals.params.Flag_IncludeMetalEvo)) {
         // create links to the 21cmFAST grids that exist
         gen_metal_grids_fname(run_globals.ListOutputSnaps[i_out], relative_source_file, true);
         gen_metal_grids_fname(run_globals.ListOutputSnaps[i_out], source_file, false);

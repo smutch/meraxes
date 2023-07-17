@@ -58,6 +58,7 @@ typedef struct galaxy_output_t
 #if USE_MINI_HALOS
   float RmetalBubble;
   int Galaxy_Population;
+  int Flag_ExtMetEnr;
   float Metal_Probability; 
   float StellarMass_II;
   float StellarMass_III;
