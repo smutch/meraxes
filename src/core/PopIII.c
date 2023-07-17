@@ -508,7 +508,7 @@ double Mass_PISN(void)
     }    
 }
 
-double CCSN_PopIII_Number(int i_burst, int curr_snap, int flagMW){
+double CCSN_PopIII_Number(int i_burst, int curr_snap, int flagMW)
 {
   double* LTTime = run_globals.LTTime;
   double time_unit = run_globals.units.UnitTime_in_Megayears / run_globals.params.Hubble_h * 1e6; //You need result in yrs

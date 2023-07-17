@@ -1424,10 +1424,10 @@ void save_reion_output_grids(int snapshot)
     write_grid_float("Mvir_crit", grids->Mvir_crit, file_id, fspace_id, memspace_id, dcpl_id);
 
 #if USE_MINI_HALOS
-	if (run_globals.params.Flag_IncludeLymanWerner)
+    if (run_globals.params.Flag_IncludeLymanWerner)
       write_grid_float("Mvir_crit_MC", grids->Mvir_crit_MC, file_id, fspace_id, memspace_id, dcpl_id);
-  }
 #endif
+  }
 
   // fftw padded grids
   float* grid = (float*)calloc((size_t)(local_nix * ReionGridDim * ReionGridDim), sizeof(float));

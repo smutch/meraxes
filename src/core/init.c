@@ -16,10 +16,10 @@
 #include "reionization_modifiers.h"
 #include "save.h"
 #include "stellar_feedback.h"
+#include "virial_properties.h"
 #if USE_MINI_HALOS
 #include "metal_evo.h"
 #include "PopIII.h"
-#include "virial_properties.h"
 #endif
 
 static void init_gpu()
