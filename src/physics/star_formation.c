@@ -187,7 +187,7 @@ void insitu_star_formation(galaxy_t* gal, int snapshot)
 	else
           m_stars = pressure_dependent_star_formation(gal, snapshot) * gal->dt;
 #else
-        m_stars = pressure_dependent_star_formation(gal, snaphsot) * gal->dt;
+        m_stars = pressure_dependent_star_formation(gal, snapshot) * gal->dt;
 #endif
         break;
 

@@ -277,9 +277,11 @@ void delayed_supernova_feedback(galaxy_t* gal, int snapshot)
   // bursts and calculate the amount of energy and mass that they will release
   // in the current time step.
   for (int i_burst = 1; i_burst < n_bursts; i_burst++) {
-	m_stars_II = gal->NewStars_II[i_burst];
 #if USE_MINI_HALOS
+	m_stars_II = gal->NewStars_II[i_burst];
     m_stars_III = gal->NewStars_III[i_burst];
+#else
+	m_stars_II = gal->NewStars[i_burst];
 #endif
     double m_stars = m_stars_II + m_stars_III;
 
