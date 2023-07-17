@@ -411,6 +411,12 @@ void read_parameter_file(char* fname, int mode)
       params_addr[n_param] = &(run_params->physics).SfPrescription;
       required_tag[n_param] = 1;
       params_type[n_param++] = PARAM_TYPE_INT;
+#if USE_MINI_HALOS
+      if(run_params->physics.SfPrescription != 1){
+          mlog("Warning the current version of MINI_HALO only works with SfPrescription=1 (resetting...)", MLOG_MESG);
+          run_params->physics.SfPrescription = 1;
+      }
+#endif
 
       strncpy(params_tag[n_param], "Flag_ReionizationModifier", tag_length);
       params_addr[n_param] = &(run_params->physics).Flag_ReionizationModifier;
@@ -1121,7 +1127,9 @@ void read_parameter_file(char* fname, int mode)
 #endif
       params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
-      assert(run_globals.params.physics.MminIMF < run_globals.params.physics.MmaxIMF);
+#if USE_MINI_HALOS
+      assert(run_params->physics.MminIMF < run_params->physics.MmaxIMF);
+#endif
       
       strncpy(params_tag[n_param], "PopIIIAgePrescription", tag_length);
       params_addr[n_param] = &(run_params->physics).PopIIIAgePrescription;
