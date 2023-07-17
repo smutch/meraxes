@@ -52,7 +52,7 @@ int evolve_galaxies(fof_group_t* fof_group, int snapshot, int NGal, int NFof)
         while (gal != NULL) {
         
 #if USE_MINI_HALOS
-			if (Flag_Metals == true) { // Assign to newly formed galaxies metallicity of their cell according to a certain probability
+	  if (Flag_Metals == true) { // Assign to newly formed galaxies metallicity of their cell according to a certain probability
             if (gal->output_index == -1) { 
               double x;
               double boost_corr = 1;
@@ -63,9 +63,10 @@ int evolve_galaxies(fof_group_t* fof_group, int snapshot, int NGal, int NFof)
               x = (double)rand() / RAND_MAX;
               
               if (x <= gal->Metal_Probability * (1 + boost_corr)) {
-                gal->MetalsHotGas = gal->HotGas * gal->Metallicity_IGM;
+                /*gal->MetalsHotGas = gal->HotGas * gal->Metallicity_IGM;
                 gal->MetalsColdGas = gal->ColdGas * gal->Metallicity_IGM;
-                gal->MetalsEjectedGas = gal->EjectedGas * gal->Metallicity_IGM;
+                gal->MetalsEjectedGas = gal->EjectedGas * gal->Metallicity_IGM;*/
+                gal->Flag_ExtMetEnr = 1; // Just update the flag
                 
                 *gal_counter_enriched = *gal_counter_enriched + 1;
                 if ((gal->Metallicity_IGM / 0.01) > run_globals.params.physics.ZCrit) {
@@ -78,6 +79,7 @@ int evolve_galaxies(fof_group_t* fof_group, int snapshot, int NGal, int NFof)
               
               else {
                 gal->Galaxy_Population = 3;
+                gal->Flag_ExtMetEnr = 0;
                 *gal_counter_Pop3 = *gal_counter_Pop3 + 1;
               }
               gal->Metal_Probability *= (1 + boost_corr); //Add this to save the updated probability!
@@ -90,7 +92,7 @@ int evolve_galaxies(fof_group_t* fof_group, int snapshot, int NGal, int NFof)
           if (gal->Type == 0) {
             cooling_mass = gas_cooling(gal);
 
-            add_infall_to_hot(gal, infalling_gas / ((double)NSteps));
+            add_infall_to_hot(gal, infalling_gas / ((double)NSteps)); // This function is now updated! If the gal is externally enriched, we will add MetalHotGas according to IGM metallicity!
 
             reincorporate_ejected_gas(gal);
 

@@ -541,6 +541,7 @@ typedef struct galaxy_t
   double MaxBubble; // Need this for Boost probability
   double AveBubble; // Same (you will likely use only one of the two). You could actually save only the boost factor
   int Galaxy_Population; // 3 or 2
+  int Flag_ExtMetEnr; // 0 if not enriched from a bubble, 1 yes.
   
   double Prefactor[N_HISTORY_SNAPS]; //here you store the prefactors of the metal bubbles
   double Times[N_HISTORY_SNAPS]; // Time at which the SN explode!

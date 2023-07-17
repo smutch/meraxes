@@ -69,24 +69,18 @@ galaxy_t* new_galaxy(int snapshot, unsigned long halo_ID)
   gal->MergerStartRadius = 0.0;
   
 #if USE_MINI_HALOS
+  gal->StellarMass_II = 0.;
+  gal->StellarMass_III = 0.;
+  gal->Remnant_Mass = 0.;
   if (run_globals.params.Flag_IncludeMetalEvo) { //New for Metallicity
     gal->Metal_Probability = 0.0;
-    gal->Metallicity_IGM = 0.0;
+    gal->Metallicity_IGM = -50.0; // Better to initialize to a very negative value.
     gal->RmetalBubble = 0.0;
     gal->PrefactorBubble = 0.0;
     gal->TimeBubble = 0.0;
-    //gal->count_SF = 0;
     gal->AveBubble = 0.;
     gal->MaxBubble = 0.;
-    gal->StellarMass_II = 0.;
-    gal->StellarMass_III = 0.;
-    gal->Remnant_Mass = 0.;
     
-    /*for (int iii = 0; iii < 70; iii++) {
-      gal->Prefactor[iii] = (double)0.0;
-      gal->Times[iii] = (double)0.0;
-      gal->Radii[iii] = (double)0.0;
-    }*/
   }
 #endif
 
@@ -100,11 +94,13 @@ galaxy_t* new_galaxy(int snapshot, unsigned long halo_ID)
 #if USE_MINI_HALOS
     gal->NewStars_II[ii] = 0.0;
     gal->NewStars_III[ii] = 0.0;
-    gal->Prefactor[ii] = 0.0;
-    gal->Times[ii] = 0.0;
-    gal->Radii[ii] = 0.0;
-#endif
+    if (run_globals.params.Flag_IncludeMetalEvo) {
+      gal->Prefactor[ii] = 0.0;
+      gal->Times[ii] = 0.0;
+      gal->Radii[ii] = 0.0;
     }
+#endif
+  }
 
   for (int ii = 0; ii < N_HISTORY_SNAPS; ii++)
     gal->NewMetals[ii] = 0.0;
