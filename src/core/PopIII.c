@@ -37,6 +37,7 @@ void initialize_PopIII() //Initialize PopIII quantities that are easily computed
 {
   double MminIMF = run_globals.params.physics.MminIMF; 
   double MmaxIMF = run_globals.params.physics.MmaxIMF;
+  assert(MminIMF<MmaxIMF);
 
   initialize_time_interp_arrays(MminIMF, MmaxIMF);
   

@@ -1127,10 +1127,6 @@ void read_parameter_file(char* fname, int mode)
 #endif
       params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
-#if USE_MINI_HALOS
-      assert(run_params->physics.MminIMF < run_params->physics.MmaxIMF);
-#endif
-      
       strncpy(params_tag[n_param], "PopIIIAgePrescription", tag_length);
       params_addr[n_param] = &(run_params->physics).PopIIIAgePrescription;
 #if USE_MINI_HALOS
