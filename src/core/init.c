@@ -271,7 +271,6 @@ void init_meraxes()
   
 #ifdef USE_MINI_HALOS
   // initialize Pop III tables
-  mlog("Changing Meraxes to Balerion.", MLOG_MESG);
   initialize_PopIII();
 #endif
 
