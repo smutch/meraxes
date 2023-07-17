@@ -28,6 +28,7 @@ extern "C"
                                           double* m_stars,
                                           int snapshot,
                                           double* m_reheat,
+                                          double* m_eject,
                                           double* m_recycled,
                                           double* m_remnant,
                                           double* new_metals);
