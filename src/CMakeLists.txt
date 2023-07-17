@@ -200,6 +200,11 @@ target_link_libraries(meraxes_lib PUBLIC m)
 find_package(MPI REQUIRED)
 target_link_libraries(meraxes_lib PUBLIC MPI::MPI_C)
 
+# MINI_HALOS
+if(USE_MINI_HALOS)
+	add_definitions(-DUSE_MINI_HALOS)
+endif()
+
 # MAGNITUDES
 if(CALC_MAGS)
     add_definitions(-DCALC_MAGS)
