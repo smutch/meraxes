@@ -119,10 +119,7 @@ void insitu_star_formation(galaxy_t* gal, int snapshot)
     double m_eject;
     double m_recycled;
     double new_metals;
-#if USE_MINI_HALOS
     double m_remnant;
-#endif
-
     double zplus1;
     double zplus1_n;
 #if USE_MINI_HALOS
@@ -216,20 +213,16 @@ void insitu_star_formation(galaxy_t* gal, int snapshot)
       m_stars = gal->ColdGas;
     // calculate the total supernova feedback which would occur if this star
     // formation happened continuously and evenly throughout the snapshot
-#if USE_MINI_HALOS
     contemporaneous_supernova_feedback(gal, &m_stars, snapshot, &m_reheat, &m_eject, &m_recycled, &m_remnant, &new_metals);
-#else
-    contemporaneous_supernova_feedback(gal, &m_stars, snapshot, &m_reheat, &m_eject, &m_recycled, &new_metals);
-#endif
     // update the baryonic reservoirs (note that the order we do this in will change the result!)
     update_reservoirs_from_sf(gal, m_stars, snapshot, INSITU);
 #if USE_MINI_HALOS
     if (gal->Galaxy_Population == 2)
+#endif
       update_reservoirs_from_sn_feedback(gal, m_reheat, m_eject, m_recycled, 0, m_recycled, m_remnant, new_metals);
+#if USE_MINI_HALOS
     else if (gal->Galaxy_Population == 3)
       update_reservoirs_from_sn_feedback(gal, m_reheat, m_eject, m_recycled, m_recycled, 0, m_remnant, new_metals);
-#else
-    update_reservoirs_from_sn_feedback(gal, m_reheat, m_eject, m_recycled, new_metals);
 #endif
   }
 }
