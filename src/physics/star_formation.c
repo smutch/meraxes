@@ -38,7 +38,6 @@ static void backfill_ghost_star_formation(galaxy_t* gal, double m_stars, double 
 
 void update_reservoirs_from_sf(galaxy_t* gal, double new_stars, int snapshot, SFtype type) 
 {
-  bool Flag_Metals = (bool)(run_globals.params.Flag_IncludeMetalEvo);
   if (new_stars > 0) {
     double metallicity;
     bool Flag_IRA = (bool)(run_globals.params.physics.Flag_IRA);
