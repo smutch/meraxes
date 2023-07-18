@@ -113,7 +113,7 @@ int evolve_galaxies(fof_group_t* fof_group, int snapshot, int NGal, int NFof)
               calc_metal_bubble(gal, snapshot);
              }
              else { // Update Galaxy Population index due to internal enrichment (this happen within calc_metal_bubble)
-               if ((gal->Galaxy_Population == 3) && (gal->NewStars_III[0] + gal_NewStars[0]) > 1e-10)
+               if ((gal->Galaxy_Population == 3) && (gal->NewStars_III[0] + gal->NewStars[0]) > 1e-10)
                  gal->Galaxy_Population = 2; 
              }
 #endif
