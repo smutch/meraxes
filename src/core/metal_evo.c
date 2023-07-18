@@ -174,15 +174,23 @@ void construct_metal_grids(int snapshot, int local_ngals)
         }
 
       // reduce on to the correct rank
-      if (run_globals.mpi_rank == i_r)
-        MPI_Reduce(MPI_IN_PLACE, buffer_metals, (int)buffer_size_metals, MPI_FLOAT, MPI_SUM, i_r, run_globals.mpi_comm);
-      else
-        MPI_Reduce(buffer_metals, buffer_metals, (int)buffer_size_metals, MPI_FLOAT, MPI_SUM, i_r, run_globals.mpi_comm);
+      if (prop == prop_Rmax) {
+        if (run_globals.mpi_rank == i_r)
+          MPI_Reduce(MPI_IN_PLACE, buffer_metals, (int)buffer_size_metals, MPI_FLOAT, MPI_MAX, i_r, run_globals.mpi_comm);
+        else
+          MPI_Reduce(buffer_metals, buffer_metals, (int)buffer_size_metals, MPI_FLOAT, MPI_MAX, i_r, run_globals.mpi_comm);
+      }
+      
+      else {
+        if (run_globals.mpi_rank == i_r)
+          MPI_Reduce(MPI_IN_PLACE, buffer_metals, (int)buffer_size_metals, MPI_FLOAT, MPI_SUM, i_r, run_globals.mpi_comm);
+        else
+          MPI_Reduce(buffer_metals, buffer_metals, (int)buffer_size_metals, MPI_FLOAT, MPI_SUM, i_r, run_globals.mpi_comm);
+      }
 
       if (run_globals.mpi_rank == i_r)
 
-        // Do one final pass and divide the sfr_grid by the sfr timescale
-        // in order to convert the stellar masses recorded into SFRs before
+        // Do one final pass and divide the Rave_grid by the number of bubbles
         // finally copying the values into the appropriate slab.
         switch (prop) {
          
