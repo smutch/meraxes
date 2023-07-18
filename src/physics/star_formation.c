@@ -175,7 +175,6 @@ void insitu_star_formation(galaxy_t* gal, int snapshot)
         else if ((gal->ColdGas > m_crit_III) && (gal->Galaxy_Population == 3))
           m_stars = zplus1_n_III * SfEfficiency_III * (gal->ColdGas - m_crit_III) / r_disk * v_disk * gal->dt;
 #endif
-          }
         else
           // no star formation
           return;
