@@ -388,12 +388,12 @@ void dracarys()
     }
     
 #if USE_MINI_HALOS
-    //if (run_globals.params.Flag_IncludeMetalEvo) {
+    if (run_globals.params.Flag_IncludeMetalEvo) {
     
       construct_metal_grids(snapshot, nout_gals);
       save_metal_input_grids(snapshot);
       free(run_globals.metal_grids.galaxy_to_slab_map_metals);
-    //}
+    }
 #endif
 
 #ifdef DEBUG
