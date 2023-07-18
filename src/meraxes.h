@@ -93,6 +93,7 @@ typedef struct physics_params_t
   double quasar_open_angle;
   double quasar_fobs;
 
+  double SfCriticalSDNorm_III;
   double SfEfficiency_III;
   double SfEfficiencyScaling_III;
   double SfRecycleFraction_III;

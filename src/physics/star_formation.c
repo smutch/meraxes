@@ -124,6 +124,7 @@ void insitu_star_formation(galaxy_t* gal, int snapshot)
     double zplus1_n;
 #if USE_MINI_HALOS
     double zplus1_n_III;
+    double m_crit_III;
 #endif
 
     zplus1 = 1.0 + run_globals.ZZ[snapshot];
@@ -135,6 +136,7 @@ void insitu_star_formation(galaxy_t* gal, int snapshot)
     double SfEfficiency_II = run_globals.params.physics.SfEfficiency; 
 #if USE_MINI_HALOS
     double SfEfficiency_III = run_globals.params.physics.SfEfficiency_III;
+    double SfCriticalSDNorm = run_globals.params.physics.SfCriticalSDNorm_III;
 #endif
     double SfCriticalSDNorm = run_globals.params.physics.SfCriticalSDNorm;
     int SfDiskVelOpt = run_globals.params.physics.SfDiskVelOpt;
@@ -164,14 +166,14 @@ void insitu_star_formation(galaxy_t* gal, int snapshot)
         // what is the critical mass within r_crit?
         // from Kauffmann (1996) eq7 x piR^2, (Vvir in km/s, reff in Mpc/h) in units of 10^10Msun/h
         m_crit = SfCriticalSDNorm * v_disk * r_disk;
-        if (gal->ColdGas > m_crit){
 #if USE_MINI_HALOS
-	  if (gal->Galaxy_Population == 2)
-            m_stars = zplus1_n * SfEfficiency_II * (gal->ColdGas - m_crit) / r_disk * v_disk * gal->dt;
-          else if (gal->Galaxy_Population == 3)
-            m_stars = zplus1_n_III * SfEfficiency_III * (gal->ColdGas - m_crit) / r_disk * v_disk * gal->dt;
-#else
+        m_crit_III = SfCriticalSDNorm_III * v_disk * r_disk;
+#endif
+        if ((gal->ColdGas > m_crit) && (gal->Galaxy_Population == 2))
           m_stars = zplus1_n * SfEfficiency_II * (gal->ColdGas - m_crit) / r_disk * v_disk * gal->dt;
+#if USE_MINI_HALOS
+        else if ((gal->ColdGas > m_crit_III) && (gal->Galaxy_Population == 3))
+          m_stars = zplus1_n_III * SfEfficiency_III * (gal->ColdGas - m_crit_III) / r_disk * v_disk * gal->dt;
 #endif
           }
         else
