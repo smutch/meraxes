@@ -136,7 +136,7 @@ void insitu_star_formation(galaxy_t* gal, int snapshot)
     double SfEfficiency_II = run_globals.params.physics.SfEfficiency; 
 #if USE_MINI_HALOS
     double SfEfficiency_III = run_globals.params.physics.SfEfficiency_III;
-    double SfCriticalSDNorm = run_globals.params.physics.SfCriticalSDNorm_III;
+    double SfCriticalSDNorm_III = run_globals.params.physics.SfCriticalSDNorm_III;
 #endif
     double SfCriticalSDNorm = run_globals.params.physics.SfCriticalSDNorm;
     int SfDiskVelOpt = run_globals.params.physics.SfDiskVelOpt;
