@@ -480,6 +480,15 @@ void read_parameter_file(char* fname, int mode)
       params_addr[n_param] = &(run_params->physics).SfCriticalSDNorm;
       required_tag[n_param] = 1;
       params_type[n_param++] = PARAM_TYPE_DOUBLE;
+      
+      strncpy(params_tag[n_param], "SfCriticalSDNorm_III", tag_length);
+      params_addr[n_param] = &(run_params->physics).SfCriticalSDNorm_III;
+#if USE_MINI_HALOS
+      required_tag[n_param] = 1;
+#else
+      required_tag[n_param] = 0;
+#endif
+      params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
       strncpy(params_tag[n_param], "SfRecycleFraction", tag_length);
       params_addr[n_param] = &(run_params->physics).SfRecycleFraction;
