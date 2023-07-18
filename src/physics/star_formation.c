@@ -41,7 +41,6 @@ void update_reservoirs_from_sf(galaxy_t* gal, double new_stars, int snapshot, SF
   if (new_stars > 0) {
     double metallicity;
     bool Flag_IRA = (bool)(run_globals.params.physics.Flag_IRA);
-    bool Flag_Metals = (bool)(run_globals.params.Flag_IncludeMetalEvo);
 
     // instantaneous recycling approximation of stellar mass
     metallicity = calc_metallicity(gal->ColdGas, gal->MetalsColdGas);
@@ -58,12 +57,10 @@ void update_reservoirs_from_sf(galaxy_t* gal, double new_stars, int snapshot, SF
     gal->MetalsStellarMass += new_stars * metallicity;
     
 #if USE_MINI_HALOS
-    if (Flag_Metals == true) {
-      if (gal->Galaxy_Population == 2)
-        gal->StellarMass_II += new_stars;
-      else if (gal->Galaxy_Population == 3)
-        gal->StellarMass_III += new_stars;
-    }
+    if (gal->Galaxy_Population == 2)
+      gal->StellarMass_II += new_stars;
+    else if (gal->Galaxy_Population == 3)
+      gal->StellarMass_III += new_stars;
 #endif
 
     if ((type == INSITU) && !Flag_IRA && (gal->LastIdentSnap < (snapshot - 1))) {
