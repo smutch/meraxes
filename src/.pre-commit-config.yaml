@@ -5,8 +5,7 @@ repos:
     rev: v4.0.1
     hooks:
     -   id: check-added-large-files
--   repo: git://github.com/doublify/pre-commit-clang-format
-    rev: 62302476d0da01515660132d76902359bed0f782
+-   repo: https://github.com/pre-commit/mirrors-clang-format
+    rev: v14.0.6
     hooks:
     -   id: clang-format
-        files: '\.(c|cpp|h|hh|hpp|cu)$'

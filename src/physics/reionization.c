@@ -40,7 +40,7 @@ void calculate_Mvir_crit(double redshift)
         // If this cell was ionized in the past then calculate the critical
         // mass using the UVB feedback prescription of Sobacchi & Mesinger
         // 2013b
-        if (z_at_ion[grid_index(ii, jj, kk, ReionGridDim, INDEX_REAL)] > redshift)
+        if (z_at_ion[grid_index(ii, jj, kk, ReionGridDim, INDEX_REAL)] > redshift) // Remove UVB feedback
           cell_Mvir_crit =
             ReionSMParam_m0 *
             pow((double)(J_21_at_ion[grid_index(ii, jj, kk, ReionGridDim, INDEX_REAL)]) * Hubble_h * Hubble_h,
@@ -56,6 +56,38 @@ void calculate_Mvir_crit(double redshift)
       }
   }
 }
+
+#if USE_MINI_HALOS
+void calculate_Mvir_crit_MC(double redshift)
+{
+  // Calculate the critical Mvir value in each grid cell (ala Visbal 2014)
+  float* Mvir_crit_MC = run_globals.reion_grids.Mvir_crit_MC;
+
+  int ReionGridDim = run_globals.params.ReionGridDim;
+  double cell_Mvir_crit_MC;
+  int local_n_x = (int)(run_globals.reion_grids.slab_nix[run_globals.mpi_rank]);
+  int local_n_cell = local_n_x * ReionGridDim * ReionGridDim;
+
+  double Hubble_h = run_globals.params.Hubble_h;
+
+  float* JLW_box = run_globals.reion_grids.JLW_box;
+
+  // init
+  for (int ii = 0; ii < local_n_cell; ii++)
+    Mvir_crit_MC[ii] = 0.0;
+
+  for (int ii = 0; ii < local_n_x; ii++) {
+    for (int jj = 0; jj < ReionGridDim; jj++)
+      for (int kk = 0; kk < ReionGridDim; kk++) {
+        cell_Mvir_crit_MC =
+          2.5 * 1e-5 * pow((26.0 / (1.0 + redshift)), 1.5) *
+          (1.0 + 6.96 * (pow(4 * M_PI * JLW_box[grid_index(ii, jj, kk, ReionGridDim, INDEX_REAL)], 0.47))); // Fitting function Visbal+14, converting in internal units
+
+        Mvir_crit_MC[grid_index(ii, jj, kk, ReionGridDim, INDEX_REAL)] = (float)cell_Mvir_crit_MC;
+      }
+  }
+}
+#endif
 
 double tocf_modifier(galaxy_t* gal, double Mvir)
 {

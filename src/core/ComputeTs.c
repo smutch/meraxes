@@ -19,9 +19,12 @@
  * careful with units!
  */
 
+/*
+ * The minihalo feature was written by Emanuele M. Ventura, which includes an
+ * amalgamation of the requisite functions for LW background using formulation of Qin2020a
+ */
 void _ComputeTs(int snapshot)
 {
-
   double box_size = run_globals.params.BoxSize / run_globals.params.Hubble_h; // Mpc
   int ReionGridDim = run_globals.params.ReionGridDim;
   double pixel_volume = pow(box_size / (double)ReionGridDim, 3); // (Mpc)^3
@@ -73,8 +76,9 @@ void _ComputeTs(int snapshot)
   float* x_e_box_prev = run_globals.reion_grids.x_e_box_prev;
   float* Tk_box = run_globals.reion_grids.Tk_box;
   float* TS_box = run_globals.reion_grids.TS_box;
-
-  float* sfr = run_globals.reion_grids.sfr;
+#if USE_MINI_HALOS
+  float* JLW_box = run_globals.reion_grids.JLW_box;
+#endif
 
   fftwf_complex* sfr_unfiltered = run_globals.reion_grids.sfr_unfiltered;
   fftwf_complex* sfr_filtered = run_globals.reion_grids.sfr_filtered;
@@ -98,8 +102,8 @@ void _ComputeTs(int snapshot)
 
   x_e_ave = 0.0;
 
-  double J_alpha_ave, xalpha_ave, Xheat_ave, Xion_ave;
-  J_alpha_ave = xalpha_ave = Xheat_ave = Xion_ave = 0.0;
+  double J_alpha_ave, xalpha_ave, Xheat_ave, Xion_ave, J_LW_ave;
+  J_alpha_ave = xalpha_ave = Xheat_ave = Xion_ave = J_LW_ave = 0.0;
 
   // Place current redshift in 21cmFAST nomenclature (zp), delta zp (dzp) and delta z in seconds (dt_dzp)
   zp = redshift;
@@ -143,13 +147,13 @@ void _ComputeTs(int snapshot)
 
           density_over_mean = 1.0 + run_globals.reion_grids.deltax[i_padded];
 
-          // Multiplied by h^2 as RtoM(R) uses RhoCrit which doesn't include h factors
+          // Multiplied by h^2 as RtoM(R) uses RhoCrit which doesn't include h factors, Geil2016
           collapse_fraction_in_cell =
             run_globals.reion_grids.stars[i_padded] /
             (RtoM(R) * run_globals.params.Hubble_h * run_globals.params.Hubble_h * density_over_mean) * (4.0 / 3.0) *
             M_PI * pow(R, 3.0) / pixel_volume;
-          
-          if (collapse_fraction_in_cell > 1.0){
+
+          if (collapse_fraction_in_cell > 1.0) {
             collapse_fraction_in_cell = 1.0;
           }
           collapse_fraction += collapse_fraction_in_cell;
@@ -208,13 +212,13 @@ void _ComputeTs(int snapshot)
               }
 
               density_over_mean = 1.0 + run_globals.reion_grids.deltax[i_padded];
-              
-	            collapse_fraction_in_cell =
+
+              collapse_fraction_in_cell =
                 run_globals.reion_grids.stars[i_padded] /
                 (RtoM(R) * run_globals.params.Hubble_h * run_globals.params.Hubble_h * density_over_mean) *
                 (4.0 / 3.0) * M_PI * pow(R, 3.0) / pixel_volume;
-              
-              if (collapse_fraction_in_cell > 1.0){
+
+              if (collapse_fraction_in_cell > 1.0) {
                 collapse_fraction_in_cell = 1.0;
               }
               collapse_fraction += collapse_fraction_in_cell;
@@ -337,12 +341,26 @@ void _ComputeTs(int snapshot)
 
       // and create the sum over Lya transitions from direct Lyn flux
       sum_lyn[R_ct] = 0;
+#if USE_MINI_HALOS
+	  if (run_globals.params.Flag_IncludeLymanWerner)
+        sum_lyn_LW[R_ct] = 0;
+#endif
+
       for (n_ct = NSPEC_MAX; n_ct >= 2; n_ct--) {
         if (zpp > zmax((float)zp, n_ct))
           continue;
 
         nuprime = nu_n(n_ct) * (1 + zpp) / (1.0 + zp);
         sum_lyn[R_ct] += frecycle(n_ct) * spectral_emissivity(nuprime, 0);
+#if USE_MINI_HALOS
+		if (run_globals.params.Flag_IncludeLymanWerner) {
+          if (nuprime < NU_LW / NU_LL)
+            nuprime = NU_LW / NU_LL;
+          if (nuprime > nu_n(n_ct + 1))
+            continue;
+          sum_lyn_LW[R_ct] += spectral_emissivity(nuprime, 2);
+        }	
+#endif
       }
 
       // Find if we need to add a partial contribution to a radii to avoid kinks in the Lyman-alpha flux
@@ -387,6 +405,10 @@ void _ComputeTs(int snapshot)
         // Now add a non-zero contribution to the previously zero contribution
         // The amount is the weight, multplied by the contribution from the previous radii
         sum_lyn[R_ct] = weight * sum_lyn[R_ct - 1];
+#if USE_MINI_HALOS
+		if (run_globals.params.Flag_IncludeLymanWerner)
+          sum_lyn_LW[R_ct] = weight * sum_lyn_LW[R_ct - 1];
+#endif
         first_radii = false;
       }
     }
@@ -568,6 +590,10 @@ void _ComputeTs(int snapshot)
             x_e_box_prev[i_padded] = 0;
           if (Tk_box[i_real] < MAX_TK)
             Tk_box[i_real] += dansdz[1] * dzp;
+#if USE_MINI_HALOS
+		  if (run_globals.params.Flag_IncludeLymanWerner)
+            JLW_box[i_real] = dansdz[5];
+#endif
 
           if (Tk_box[i_real] <
               0) { // spurious bahaviour of the trapazoidalintegrator. generally overcooling in underdensities
@@ -580,27 +606,41 @@ void _ComputeTs(int snapshot)
                                   x_e_box_prev[i_padded],
                                   (float)dansdz[2],
                                   &curr_xalpha);
-
           J_alpha_ave += dansdz[2];
           xalpha_ave += curr_xalpha;
           Xheat_ave += dansdz[3];
           Xion_ave += dansdz[4];
+#if USE_MINI_HALOS
+		  if (run_globals.params.Flag_IncludeLymanWerner)
+            J_LW_ave += dansdz[5];
+#endif
         }
 
     MPI_Allreduce(MPI_IN_PLACE, &J_alpha_ave, 1, MPI_DOUBLE, MPI_SUM, run_globals.mpi_comm);
     MPI_Allreduce(MPI_IN_PLACE, &xalpha_ave, 1, MPI_DOUBLE, MPI_SUM, run_globals.mpi_comm);
     MPI_Allreduce(MPI_IN_PLACE, &Xheat_ave, 1, MPI_DOUBLE, MPI_SUM, run_globals.mpi_comm);
     MPI_Allreduce(MPI_IN_PLACE, &Xion_ave, 1, MPI_DOUBLE, MPI_SUM, run_globals.mpi_comm);
+#if USE_MINI_HALOS
+	MPI_Allreduce(MPI_IN_PLACE, &J_LW_ave, 1, MPI_DOUBLE, MPI_SUM, run_globals.mpi_comm);
+#endif
 
     J_alpha_ave /= total_n_cells;
     xalpha_ave /= total_n_cells;
     Xheat_ave /= total_n_cells;
     Xion_ave /= total_n_cells;
+#if USE_MINI_HALOS
+	if (run_globals.params.Flag_IncludeLymanWerner)
+      J_LW_ave /= total_n_cells;
+#endif
 
     run_globals.reion_grids.volume_ave_J_alpha = J_alpha_ave;
     run_globals.reion_grids.volume_ave_xalpha = xalpha_ave;
     run_globals.reion_grids.volume_ave_Xheat = Xheat_ave;
     run_globals.reion_grids.volume_ave_Xion = Xion_ave;
+#if USE_MINI_HALOS
+	if (run_globals.params.Flag_IncludeLymanWerner)
+      run_globals.reion_grids.volume_ave_J_LW = J_LW_ave;
+#endif
   }
 
   memcpy(x_e_box, x_e_box_prev, sizeof(fftwf_complex) * slab_n_complex);
@@ -634,13 +674,14 @@ void _ComputeTs(int snapshot)
   destruct_heat();
 
   mlog("zp = %e Ts_ave = %e Tk_ave = %e x_e_ave = %e", MLOG_MESG, zp, Ave_Ts, Ave_Tk, Ave_x_e);
-  mlog("zp = %e J_alpha_ave = %e xalpha_ave = %e Xheat_ave = %e Xion_ave = %e",
+  mlog("zp = %e J_alpha_ave = %e xalpha_ave = %e Xheat_ave = %e Xion_ave = %e J_LW_ave = %e",
        MLOG_MESG,
        zp,
        J_alpha_ave,
        xalpha_ave,
        Xheat_ave,
-       Xion_ave);
+       Xion_ave,
+       J_LW_ave);
 }
 
 // This function makes sure that the right version of ComputeTs() gets called.

@@ -275,6 +275,12 @@ void read_parameter_file(char* fname, int mode)
       params_type[n_param++] = PARAM_TYPE_STRING;
       *(run_params->MvirCritFile) = '\0';
 
+      strncpy(params_tag[n_param], "MvirCritMCFile", tag_length);
+      params_addr[n_param] = &(run_params->MvirCritMCFile);
+      required_tag[n_param] = 0;
+      params_type[n_param++] = PARAM_TYPE_STRING;
+      *(run_params->MvirCritMCFile) = '\0';
+
       strncpy(params_tag[n_param], "MassRatioModifier", tag_length);
       params_addr[n_param] = &(run_params->MassRatioModifier);
       required_tag[n_param] = 0;
@@ -405,6 +411,12 @@ void read_parameter_file(char* fname, int mode)
       params_addr[n_param] = &(run_params->physics).SfPrescription;
       required_tag[n_param] = 1;
       params_type[n_param++] = PARAM_TYPE_INT;
+#if USE_MINI_HALOS
+      if(run_params->physics.SfPrescription != 1){
+          mlog("Warning the current version of MINI_HALO only works with SfPrescription=1 (resetting...)", MLOG_MESG);
+          run_params->physics.SfPrescription = 1;
+      }
+#endif
 
       strncpy(params_tag[n_param], "Flag_ReionizationModifier", tag_length);
       params_addr[n_param] = &(run_params->physics).Flag_ReionizationModifier;
@@ -440,20 +452,56 @@ void read_parameter_file(char* fname, int mode)
       params_addr[n_param] = &(run_params->physics).SfEfficiency;
       required_tag[n_param] = 1;
       params_type[n_param++] = PARAM_TYPE_DOUBLE;
+      
+      strncpy(params_tag[n_param], "SfEfficiency_III", tag_length);
+      params_addr[n_param] = &(run_params->physics).SfEfficiency_III;
+#if USE_MINI_HALOS
+      required_tag[n_param] = 1;
+#else
+      required_tag[n_param] = 0;
+#endif
+      params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
       strncpy(params_tag[n_param], "SfEfficiencyScaling", tag_length);
       params_addr[n_param] = &(run_params->physics).SfEfficiencyScaling;
       required_tag[n_param] = 1;
+      params_type[n_param++] = PARAM_TYPE_DOUBLE;
+      
+      strncpy(params_tag[n_param], "SfEfficiencyScaling_III", tag_length);
+      params_addr[n_param] = &(run_params->physics).SfEfficiencyScaling_III;
+#if USE_MINI_HALOS
+      required_tag[n_param] = 1;
+#else
+      required_tag[n_param] = 0;
+#endif
       params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
       strncpy(params_tag[n_param], "SfCriticalSDNorm", tag_length);
       params_addr[n_param] = &(run_params->physics).SfCriticalSDNorm;
       required_tag[n_param] = 1;
       params_type[n_param++] = PARAM_TYPE_DOUBLE;
+      
+      strncpy(params_tag[n_param], "SfCriticalSDNorm_III", tag_length);
+      params_addr[n_param] = &(run_params->physics).SfCriticalSDNorm_III;
+#if USE_MINI_HALOS
+      required_tag[n_param] = 1;
+#else
+      required_tag[n_param] = 0;
+#endif
+      params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
       strncpy(params_tag[n_param], "SfRecycleFraction", tag_length);
       params_addr[n_param] = &(run_params->physics).SfRecycleFraction;
       required_tag[n_param] = 1;
+      params_type[n_param++] = PARAM_TYPE_DOUBLE;
+      
+      strncpy(params_tag[n_param], "SfRecycleFraction_III", tag_length);
+      params_addr[n_param] = &(run_params->physics).SfRecycleFraction_III;
+#if USE_MINI_HALOS
+      required_tag[n_param] = 1;
+#else
+      required_tag[n_param] = 0;
+#endif
       params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
       strncpy(params_tag[n_param], "SnModel", tag_length);
@@ -465,55 +513,154 @@ void read_parameter_file(char* fname, int mode)
       params_addr[n_param] = &(run_params->physics).SnEjectionRedshiftDep;
       required_tag[n_param] = 1;
       params_type[n_param++] = PARAM_TYPE_DOUBLE;
+      
+      strncpy(params_tag[n_param], "SnEjectionRedshiftDep_III", tag_length);
+      params_addr[n_param] = &(run_params->physics).SnEjectionRedshiftDep_III;
+#if USE_MINI_HALOS
+      required_tag[n_param] = 1;
+#else
+      required_tag[n_param] = 0;
+#endif
+      params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
       strncpy(params_tag[n_param], "SnEjectionEff", tag_length);
       params_addr[n_param] = &(run_params->physics).SnEjectionEff;
       required_tag[n_param] = 1;
+      params_type[n_param++] = PARAM_TYPE_DOUBLE;
+      
+      strncpy(params_tag[n_param], "SnEjectionEff_III", tag_length);
+      params_addr[n_param] = &(run_params->physics).SnEjectionEff_III;
+#if USE_MINI_HALOS
+      required_tag[n_param] = 1;
+#else
+      required_tag[n_param] = 0;
+#endif
       params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
       strncpy(params_tag[n_param], "SnEjectionScaling", tag_length);
       params_addr[n_param] = &(run_params->physics).SnEjectionScaling;
       required_tag[n_param] = 1;
       params_type[n_param++] = PARAM_TYPE_DOUBLE;
+      
+      strncpy(params_tag[n_param], "SnEjectionScaling_III", tag_length);
+      params_addr[n_param] = &(run_params->physics).SnEjectionScaling_III;
+#if USE_MINI_HALOS
+      required_tag[n_param] = 1;
+#else
+      required_tag[n_param] = 0;
+#endif
+      params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
       strncpy(params_tag[n_param], "SnEjectionScaling2", tag_length);
       params_addr[n_param] = &(run_params->physics).SnEjectionScaling2;
       required_tag[n_param] = 1;
+      params_type[n_param++] = PARAM_TYPE_DOUBLE;
+      
+      strncpy(params_tag[n_param], "SnEjectionScaling2_III", tag_length);
+      params_addr[n_param] = &(run_params->physics).SnEjectionScaling2_III;
+#if USE_MINI_HALOS
+      required_tag[n_param] = 1;
+#else
+      required_tag[n_param] = 0;
+#endif
       params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
       strncpy(params_tag[n_param], "SnEjectionNorm", tag_length);
       params_addr[n_param] = &(run_params->physics).SnEjectionNorm;
       required_tag[n_param] = 1;
       params_type[n_param++] = PARAM_TYPE_DOUBLE;
+      
+      strncpy(params_tag[n_param], "SnEjectionNorm_III", tag_length);
+      params_addr[n_param] = &(run_params->physics).SnEjectionNorm_III;
+#if USE_MINI_HALOS
+      required_tag[n_param] = 1;
+#else
+      required_tag[n_param] = 0;
+#endif
+      params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
       strncpy(params_tag[n_param], "SnReheatRedshiftDep", tag_length);
       params_addr[n_param] = &(run_params->physics).SnReheatRedshiftDep;
       required_tag[n_param] = 1;
+      params_type[n_param++] = PARAM_TYPE_DOUBLE;
+      
+      strncpy(params_tag[n_param], "SnReheatRedshiftDep_III", tag_length);
+      params_addr[n_param] = &(run_params->physics).SnReheatRedshiftDep_III;
+#if USE_MINI_HALOS
+      required_tag[n_param] = 1;
+#else
+      required_tag[n_param] = 0;
+#endif
       params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
       strncpy(params_tag[n_param], "SnReheatEff", tag_length);
       params_addr[n_param] = &(run_params->physics).SnReheatEff;
       required_tag[n_param] = 1;
       params_type[n_param++] = PARAM_TYPE_DOUBLE;
+      
+      strncpy(params_tag[n_param], "SnReheatEff_III", tag_length);
+      params_addr[n_param] = &(run_params->physics).SnReheatEff_III;
+#if USE_MINI_HALOS
+      required_tag[n_param] = 1;
+#else
+      required_tag[n_param] = 0;
+#endif
+      params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
       strncpy(params_tag[n_param], "SnReheatLimit", tag_length);
       params_addr[n_param] = &(run_params->physics).SnReheatLimit;
       required_tag[n_param] = 1;
+      params_type[n_param++] = PARAM_TYPE_DOUBLE;
+      
+      strncpy(params_tag[n_param], "SnReheatLimit_III", tag_length);
+      params_addr[n_param] = &(run_params->physics).SnReheatLimit_III;
+#if USE_MINI_HALOS
+      required_tag[n_param] = 1;
+#else
+      required_tag[n_param] = 0;
+#endif
       params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
       strncpy(params_tag[n_param], "SnReheatScaling", tag_length);
       params_addr[n_param] = &(run_params->physics).SnReheatScaling;
       required_tag[n_param] = 1;
       params_type[n_param++] = PARAM_TYPE_DOUBLE;
+      
+      strncpy(params_tag[n_param], "SnReheatScaling_III", tag_length);
+      params_addr[n_param] = &(run_params->physics).SnReheatScaling_III;
+#if USE_MINI_HALOS
+      required_tag[n_param] = 1;
+#else
+      required_tag[n_param] = 0;
+#endif
+      params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
       strncpy(params_tag[n_param], "SnReheatScaling2", tag_length);
       params_addr[n_param] = &(run_params->physics).SnReheatScaling2;
       required_tag[n_param] = 1;
       params_type[n_param++] = PARAM_TYPE_DOUBLE;
+      
+      strncpy(params_tag[n_param], "SnReheatScaling2_III", tag_length);
+      params_addr[n_param] = &(run_params->physics).SnReheatScaling2_III;
+#if USE_MINI_HALOS
+      required_tag[n_param] = 1;
+#else
+      required_tag[n_param] = 0;
+#endif
+      params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
       strncpy(params_tag[n_param], "SnReheatNorm", tag_length);
       params_addr[n_param] = &(run_params->physics).SnReheatNorm;
       required_tag[n_param] = 1;
+      params_type[n_param++] = PARAM_TYPE_DOUBLE;
+      
+      strncpy(params_tag[n_param], "SnReheatNorm_III", tag_length);
+      params_addr[n_param] = &(run_params->physics).SnReheatNorm_III;
+#if USE_MINI_HALOS
+      required_tag[n_param] = 1;
+#else
+      required_tag[n_param] = 0;
+#endif
       params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
       strncpy(params_tag[n_param], "ReincorporationModel", tag_length);
@@ -534,6 +681,15 @@ void read_parameter_file(char* fname, int mode)
       strncpy(params_tag[n_param], "Yield", tag_length);
       params_addr[n_param] = &(run_params->physics).Yield;
       required_tag[n_param] = 1;
+      params_type[n_param++] = PARAM_TYPE_DOUBLE;
+      
+      strncpy(params_tag[n_param], "Yield_III", tag_length);
+      params_addr[n_param] = &(run_params->physics).Yield_III;
+#if USE_MINI_HALOS
+      required_tag[n_param] = 1;
+#else
+      required_tag[n_param] = 0;
+#endif
       params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
       strncpy(params_tag[n_param], "ThreshMajorMerger", tag_length);
@@ -646,6 +802,24 @@ void read_parameter_file(char* fname, int mode)
       required_tag[n_param] = 1;
       params_type[n_param++] = PARAM_TYPE_INT;
 
+      strncpy(params_tag[n_param], "Flag_IncludeLymanWerner", tag_length);
+      params_addr[n_param] = &(run_params->Flag_IncludeLymanWerner);
+#if USE_MINI_HALOS
+      required_tag[n_param] = 1;
+#else
+      required_tag[n_param] = 0;
+#endif
+      params_type[n_param++] = PARAM_TYPE_INT;
+      
+      strncpy(params_tag[n_param], "Flag_IncludeMetalEvo", tag_length); //New for MetalEvo
+      params_addr[n_param] = &(run_params->Flag_IncludeMetalEvo);
+#if USE_MINI_HALOS
+      required_tag[n_param] = 1;
+#else
+      required_tag[n_param] = 0;
+#endif
+      params_type[n_param++] = PARAM_TYPE_INT;
+
       strncpy(params_tag[n_param], "Flag_IncludeSpinTemp", tag_length);
       params_addr[n_param] = &(run_params->Flag_IncludeSpinTemp);
       required_tag[n_param] = 1;
@@ -696,11 +870,6 @@ void read_parameter_file(char* fname, int mode)
       required_tag[n_param] = 1;
       params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
-      //            strncpy(params_tag[n_param], "CurrentLCPos", tag_length);
-      //            params_addr[n_param] = &(run_params->CurrentLCPos);
-      //            required_tag[n_param] = 1;
-      //            params_type[n_param++] = PARAM_TYPE_LONGLONG;
-
       strncpy(params_tag[n_param], "Flag_SeparateQSOXrays", tag_length);
       params_addr[n_param] = &(run_params->Flag_SeparateQSOXrays);
       required_tag[n_param] = 1;
@@ -719,6 +888,15 @@ void read_parameter_file(char* fname, int mode)
       strncpy(params_tag[n_param], "ReionGridDim", tag_length);
       params_addr[n_param] = &(run_params->ReionGridDim);
       required_tag[n_param] = 1;
+      params_type[n_param++] = PARAM_TYPE_INT;
+      
+      strncpy(params_tag[n_param], "MetalGridDim", tag_length); //New for MetalEvo
+      params_addr[n_param] = &(run_params->MetalGridDim);
+#if USE_MINI_HALOS
+      required_tag[n_param] = 1;
+#else
+      required_tag[n_param] = 0;
+#endif
       params_type[n_param++] = PARAM_TYPE_INT;
 
       strncpy(params_tag[n_param], "ReionRBubbleMin", tag_length);
@@ -885,6 +1063,87 @@ void read_parameter_file(char* fname, int mode)
       params_addr[n_param] = &(run_params->physics).NuXrayMax;
       required_tag[n_param] = 1;
       params_type[n_param++] = PARAM_TYPE_DOUBLE;
+      
+      strcpy(params_tag[n_param], "AlphaCluster");
+      params_addr[n_param] = &(run_params->physics).AlphaCluster;
+#if USE_MINI_HALOS
+      required_tag[n_param] = 1;
+#else
+      required_tag[n_param] = 0;
+#endif
+      params_type[n_param++] = PARAM_TYPE_DOUBLE;
+      
+      strcpy(params_tag[n_param], "BetaCluster");
+      params_addr[n_param] = &(run_params->physics).BetaCluster;
+#if USE_MINI_HALOS
+      required_tag[n_param] = 1;
+#else
+      required_tag[n_param] = 0;
+#endif
+      params_type[n_param++] = PARAM_TYPE_DOUBLE;
+      
+      strcpy(params_tag[n_param], "GammaCluster");
+      params_addr[n_param] = &(run_params->physics).GammaCluster;
+#if USE_MINI_HALOS
+      required_tag[n_param] = 1;
+#else
+      required_tag[n_param] = 0;
+#endif
+      params_type[n_param++] = PARAM_TYPE_DOUBLE;
+      
+      strcpy(params_tag[n_param], "NormCluster");
+      params_addr[n_param] = &(run_params->physics).NormCluster;
+#if USE_MINI_HALOS
+      required_tag[n_param] = 1;
+#else
+      required_tag[n_param] = 0;
+#endif
+      params_type[n_param++] = PARAM_TYPE_DOUBLE;
+      
+      strcpy(params_tag[n_param], "ZCrit");
+      params_addr[n_param] = &(run_params->physics).ZCrit;
+#if USE_MINI_HALOS
+      required_tag[n_param] = 1;
+#else
+      required_tag[n_param] = 0;
+#endif
+      params_type[n_param++] = PARAM_TYPE_DOUBLE;
+      
+      strcpy(params_tag[n_param], "AlphaIMF");
+      params_addr[n_param] = &(run_params->physics).AlphaIMF;
+#if USE_MINI_HALOS
+      required_tag[n_param] = 1;
+#else
+      required_tag[n_param] = 0;
+#endif
+      params_type[n_param++] = PARAM_TYPE_DOUBLE;
+      
+      strcpy(params_tag[n_param], "MminIMF");
+      params_addr[n_param] = &(run_params->physics).MminIMF;
+#if USE_MINI_HALOS
+      required_tag[n_param] = 1;
+#else
+      required_tag[n_param] = 0;
+#endif
+      params_type[n_param++] = PARAM_TYPE_DOUBLE;
+      
+      strcpy(params_tag[n_param], "MmaxIMF");
+      params_addr[n_param] = &(run_params->physics).MmaxIMF;
+#if USE_MINI_HALOS
+      required_tag[n_param] = 1;
+#else
+      required_tag[n_param] = 0;
+#endif
+      params_type[n_param++] = PARAM_TYPE_DOUBLE;
+
+      strncpy(params_tag[n_param], "PopIIIAgePrescription", tag_length);
+      params_addr[n_param] = &(run_params->physics).PopIIIAgePrescription;
+#if USE_MINI_HALOS
+      required_tag[n_param] = 1;
+#else
+      required_tag[n_param] = 0;
+#endif
+      params_type[n_param++] = PARAM_TYPE_INT;
 
       hdf5props->params_count = n_param;
     }

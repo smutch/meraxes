@@ -4,6 +4,9 @@
 #include "meraxes.h"
 #include "misc_tools.h"
 #include "stellar_feedback.h"
+#if USE_MINI_HALOS
+#include "PopIII.h"
+#endif
 
 static double age[NAGE];
 static double yield_tables[NELEMENT][NMETAL * NAGE];
@@ -173,3 +176,29 @@ double get_total_SN_energy(void)
   // and is independent to metallicity
   return energy_tables[NAGE - 1];
 }
+
+#if USE_MINI_HALOS
+// Adding stuff for Pop III feedback 
+
+double get_SN_energy_PopIII(int i_burst, int snapshot, int SN_type) //SN_type = 0 -> CC, 1 -> PISN (Pop III have higher masses so we need to account also for PISN!)
+{
+  double NumberPISN = run_globals.NumberPISN;
+  double NumberSNII = run_globals.NumberSNII;
+  double Enova;
+  //Core Collapse SN
+  if (SN_type == 0) {
+    Enova = ENOVA_CC; 
+    double CC_Fraction = CCSN_PopIII_Fraction(i_burst, snapshot, 0);
+    return Enova * CC_Fraction * NumberSNII * 1e10 / run_globals.params.Hubble_h; //result in erg * (1e10 Msol / h) (You will need to multiply this per mass in internal units
+  }
+  //PISN (feedback here is contemporaneous), this part is probably useless
+  if (SN_type == 1) {
+    if (i_burst != 0) {
+      mlog_error("PISN feedback is instantaneous!");
+      return 0;
+      }
+    Enova = ENOVA_PISN;
+    return Enova * NumberPISN / (NumberPISN + NumberSNII) * NumberPISN * 1e10 / run_globals.params.Hubble_h; // same as above
+  }  
+}
+#endif

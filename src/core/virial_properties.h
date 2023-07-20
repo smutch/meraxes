@@ -15,7 +15,7 @@ extern "C"
   double calculate_Rvir(double Mvir, int snapshot);
   double calculate_Vvir(double Mvir, double Rvir);
   double calculate_spin_param(halo_t* halo);
-
+  
 #ifdef __cplusplus
 }
 #endif

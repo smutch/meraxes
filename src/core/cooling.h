@@ -13,6 +13,9 @@ extern "C"
 
   void read_cooling_functions(void);
   double interpolate_cooling_rate(double logTemp, double logZ);
+#if USE_MINI_HALOS
+  double LTE_Mcool(double Temp, double nH);
+#endif
 
 #ifdef __cplusplus
 }

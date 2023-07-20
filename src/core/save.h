@@ -54,6 +54,17 @@ typedef struct galaxy_output_t
   float EffectiveBHM;
   float BlackHoleAccretedHotMass;
   float BlackHoleAccretedColdMass;
+  
+  int Galaxy_Population; //You need it also if you are not disentangling PopIII/PopII (when Mini_halos is off, this is = 2)
+#if USE_MINI_HALOS
+  float RmetalBubble;
+  int Flag_ExtMetEnr;
+  float Metal_Probability; 
+  float StellarMass_II;
+  float StellarMass_III;
+  float Remnant_Mass;
+  float MvirCrit_MC;
+#endif
 
   // misc
   float Rcool;
@@ -69,6 +80,10 @@ typedef struct galaxy_output_t
   // baryonic histories
   float MWMSA; // Mass weighted mean stellar age
   float NewStars[N_HISTORY_SNAPS];
+#if USE_MINI_HALOS
+  float NewStars_II[N_HISTORY_SNAPS];
+  float NewStars_III[N_HISTORY_SNAPS];
+#endif
 } galaxy_output_t;
 
 #ifdef __cplusplus

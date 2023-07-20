@@ -16,6 +16,11 @@
 #include "reionization_modifiers.h"
 #include "save.h"
 #include "stellar_feedback.h"
+#include "virial_properties.h"
+#if USE_MINI_HALOS
+#include "metal_evo.h"
+#include "PopIII.h"
+#endif
 
 static void init_gpu()
 {
@@ -114,6 +119,7 @@ static void read_snap_list()
     run_globals.AA = malloc(sizeof(double) * snaplist_len);
     run_globals.ZZ = malloc(sizeof(double) * snaplist_len);
     run_globals.LTTime = malloc(sizeof(double) * snaplist_len);
+    run_globals.rhocrit = malloc(sizeof(double) * snaplist_len);
 
     // seek back to the start of the file
     rewind(fin);
@@ -137,6 +143,7 @@ static void read_snap_list()
     run_globals.AA = malloc(sizeof(double) * run_globals.params.SnaplistLength);
     run_globals.ZZ = malloc(sizeof(double) * run_globals.params.SnaplistLength);
     run_globals.LTTime = malloc(sizeof(double) * run_globals.params.SnaplistLength);
+    run_globals.rhocrit = malloc(sizeof(double) * run_globals.params.SnaplistLength);
   }
   MPI_Bcast(run_globals.AA, run_globals.params.SnaplistLength, MPI_DOUBLE, 0, run_globals.mpi_comm);
 }
@@ -203,6 +210,10 @@ void init_storage()
   initialize_halo_storage();
 
   malloc_reionization_grids();
+  
+#if USE_MINI_HALOS
+  malloc_metal_grids();
+#endif
 
   // calculate the output hdf5 file properties for later use
   calc_hdf5_props();
@@ -236,6 +247,7 @@ void init_meraxes()
   for (i = 0; i < snaplist_len; i++) {
     run_globals.ZZ[i] = 1 / run_globals.AA[i] - 1;
     run_globals.LTTime[i] = time_to_present(run_globals.ZZ[i]);
+    run_globals.rhocrit[i] = 3 * pow(hubble_at_snapshot(i), 2) / (8 * M_PI * run_globals.G);
   }
 
   // validation checks
@@ -255,6 +267,11 @@ void init_meraxes()
 
   // read in the stellar feedback tables
   read_stellar_feedback_tables();
+  
+#ifdef USE_MINI_HALOS
+  // initialize Pop III tables
+  initialize_PopIII();
+#endif
 
 #ifdef CALC_MAGS
   init_magnitudes();
@@ -265,8 +282,11 @@ void init_meraxes()
   run_globals.RequestedMassRatioModifier = 1;
   run_globals.RequestedBaryonFracModifier = 1;
 
-  // read in the mean Mvir_crit table (if needed)
-  read_Mcrit_table();
+  // read in the mean Mvir_crit table (if needed 1 for Reio 2 for LW)
+  read_Mcrit_table(1);
+#ifdef USE_MINI_HALOS    
+  read_Mcrit_table(2);
+#endif
 
   set_ReionEfficiency();
   set_quasar_fobs();
