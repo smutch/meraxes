@@ -26,7 +26,7 @@ double gas_cooling(galaxy_t* gal)
     run_units_t* units = &(run_globals.units);
     double max_cooling_mass_factor = run_globals.params.physics.MaxCoolingMassFactor;
     int halo_type; // (1 = AC, 2 = MC, 0 = None)
-    
+
     if (gal->MetalsHotGas > 0)
       logZ = log10(calc_metallicity(gal->HotGas, gal->MetalsHotGas));
     else
@@ -45,7 +45,7 @@ double gas_cooling(galaxy_t* gal)
     // according to Visbal 2014
 
 #if USE_MINI_HALOS
-	else if (Tvir >= 1e3 && gal->Mvir >= gal->MvirCrit_MC) {
+    else if (Tvir >= 1e3 && gal->Mvir >= gal->MvirCrit_MC) {
       double loglambdalim, LTEcool;
       double nH = 1e2; // Use value of low density regime
 

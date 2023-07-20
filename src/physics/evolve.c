@@ -52,7 +52,7 @@ int evolve_galaxies(fof_group_t* fof_group, int snapshot, int NGal, int NFof)
         while (gal != NULL) {
         
 #if USE_MINI_HALOS
-	  if (Flag_Metals == true) { // Assign to newly formed galaxies metallicity of their cell according to a certain probability
+          if (Flag_Metals == true) { // Assign to newly formed galaxies metallicity of their cell according to a certain probability
             if (gal->output_index == -1) { 
               double x;
               double boost_corr = 1;
@@ -87,9 +87,9 @@ int evolve_galaxies(fof_group_t* fof_group, int snapshot, int NGal, int NFof)
                 gal->Metal_Probability = 1;
             }
           }
-        else { // If there is no external metal enrichment, if a new galaxy is formed it will be Pop III
-          if (gal->output_index== -1)
-            gal->Galaxy_Population = 3;
+          else { // If there is no external metal enrichment, if a new galaxy is formed it will be Pop III
+            if (gal->output_index== -1)
+              gal->Galaxy_Population = 3;
           }
 #endif
           
@@ -113,13 +113,13 @@ int evolve_galaxies(fof_group_t* fof_group, int snapshot, int NGal, int NFof)
             insitu_star_formation(gal, snapshot);
 
 #if USE_MINI_HALOS
-	     if ((Flag_Metals == true) && (gal->Type < 2)) { //Adding conditions on galType to test the MetalBubble!
+            if ((Flag_Metals == true) && (gal->Type < 2)) { //Adding conditions on galType to test the MetalBubble!
               calc_metal_bubble(gal, snapshot);
-             }
-             else { // Update Galaxy Population index due to internal enrichment (this happen within calc_metal_bubble)
+            }
+            else { // Update Galaxy Population index due to internal enrichment (this happen within calc_metal_bubble)
                if ((gal->Galaxy_Population == 3) && (gal->NewStars_III[0] + gal->NewStars[0]) > 1e-10)
                  gal->Galaxy_Population = 2; 
-             }
+            }
 #endif
             // If this is a type 2 then decrement the merger clock
             if (gal->Type == 2)
