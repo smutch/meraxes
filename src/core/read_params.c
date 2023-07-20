@@ -928,6 +928,11 @@ void read_parameter_file(char* fname, int mode)
       params_addr[n_param] = &(run_params->physics).EscapeFracNorm;
       required_tag[n_param] = 1;
       params_type[n_param++] = PARAM_TYPE_DOUBLE;
+      
+      strncpy(params_tag[n_param], "EscapeFracNormIII", tag_length);
+      params_addr[n_param] = &(run_params->physics).EscapeFracNormIII;
+      required_tag[n_param] = 1;
+      params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
       strncpy(params_tag[n_param], "EscapeFracRedshiftOffset", tag_length);
       params_addr[n_param] = &(run_params->physics).EscapeFracRedshiftOffset;
@@ -1036,6 +1041,16 @@ void read_parameter_file(char* fname, int mode)
 
       strcpy(params_tag[n_param], "SpecIndexXrayGal");
       params_addr[n_param] = &(run_params->physics).SpecIndexXrayGal;
+      required_tag[n_param] = 1;
+      params_type[n_param++] = PARAM_TYPE_DOUBLE;
+      
+      strcpy(params_tag[n_param], "LXrayIII");
+      params_addr[n_param] = &(run_params->physics).LXrayIII;
+      required_tag[n_param] = 1;
+      params_type[n_param++] = PARAM_TYPE_DOUBLE;
+
+      strcpy(params_tag[n_param], "SpecIndexXrayIII");
+      params_addr[n_param] = &(run_params->physics).SpecIndexXrayIII;
       required_tag[n_param] = 1;
       params_type[n_param++] = PARAM_TYPE_DOUBLE;
 

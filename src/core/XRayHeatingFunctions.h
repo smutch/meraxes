@@ -19,7 +19,7 @@
 
 #define Pop (int)(2)
 #define Pop2_ion run_globals.params.physics.ReionNionPhotPerBary
-#define Pop3_ion (float)(44021)
+#define Pop3_ion run_globals.params.physics.ReionNionPhotPerBaryIII
 
 #define NSPEC_MAX (int)23
 #define RECFAST_NPTS (int)501
@@ -48,11 +48,15 @@ double* zpp_edge;
 
 // Have this arbitrarily large for now. Will do this properly later
 double stored_fcoll[1000];
+double stored_fcollIII[1000];
 double* sum_lyn;
 double* sum_lyn_LW;
+double* sum_lyn_III;
+double* sum_lyn_LW_III;
 double growth_factor_zp;
 double dgrowth_factor_dzp;
 double const_zp_prefactor_GAL;
+double const_zp_prefactor_III;
 double const_zp_prefactor_QSO;
 float x_int_XHII[x_int_NXHII];
 #else
@@ -61,11 +65,15 @@ extern double dt_dzpp;
 extern double dt_dzp;
 extern double* zpp_edge;
 extern double stored_fcoll[1000];
+extern double stored_fcollIII[1000];
 extern double* sum_lyn;
 extern double* sum_lyn_LW;
+extern double* sum_lyn_III;
+extern double* sum_lyn_LW_III;
 extern double growth_factor_zp;
 extern double dgrowth_factor_dzp;
 extern double const_zp_prefactor_GAL;
+extern double const_zp_prefactor_III;
 extern double const_zp_prefactor_QSO;
 extern float x_int_XHII[x_int_NXHII];
 #endif
@@ -104,7 +112,7 @@ extern "C"
   void destruct_heat();
 
   /* returns the spectral emissity */
-  double spectral_emissivity(double nu_norm, int flag);
+  double spectral_emissivity(double nu_norm, int flag, int flag_Pop);
 
   /* Ionization fraction from RECFAST. */
   double xion_RECFAST(float z, int flag);
@@ -168,15 +176,19 @@ extern "C"
   double gettime(double z);
   double hubble(float z);
 
-  double interpolate_fcoll(double redshift, int snap_i);
+  double interpolate_fcoll(double redshift, int snap_i, int flag_population);
 
   void evolveInt(float zp,
                  float curr_delNL0,
                  const double SFR_GAL[],
+                 const double SFR_III[],
                  const double SFR_QSO[],
                  const double freq_int_heat_GAL[],
                  const double freq_int_ion_GAL[],
                  const double freq_int_lya_GAL[],
+                 const double freq_int_heat_III[],
+                 const double freq_int_ion_III[],
+                 const double freq_int_lya_III[],
                  const double freq_int_heat_QSO[],
                  const double freq_int_ion_QSO[],
                  const double freq_int_lya_QSO[],

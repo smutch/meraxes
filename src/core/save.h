@@ -42,8 +42,11 @@ typedef struct galaxy_output_t
   float DiskScaleLength;
   float StellarMass;
   float GrossStellarMass;
+  float GrossStellarMassIII;
   float Fesc;
+  float FescIII;
   float FescWeightedGSM;
+  float FescIIIWeightedGSM;
   float MetalsStellarMass;
   float Sfr;
   float EjectedGas;

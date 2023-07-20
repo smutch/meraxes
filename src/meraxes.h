@@ -119,7 +119,9 @@ typedef struct physics_params_t
 
   // TODO: These parameters should be used to set the TOCF HII_EFF_FACTOR value
   double ReionEfficiency;
+  double ReionEfficiencyIII;
   double ReionNionPhotPerBary;
+  double ReionNionPhotPerBaryIII;
   double BlackHoleSeed;
   double BlackHoleMassLimitReion;
   double ReionTcool;
@@ -140,10 +142,12 @@ typedef struct physics_params_t
   double ZCrit;
 
   // Parameters to describe the X-ray properties of the sources
-  // Keeping the QSO and Galaxy components separate for now (might be combined in the end)
+  // Keeping the QSO and Galaxy components separate for now (might be combined in the end). Adding also duplication for Pop III for some of those
   double LXrayGal;
   double NuXrayGalThreshold;
   double SpecIndexXrayGal;
+  double LXrayIII;
+  double SpecIndexXrayIII;
   double LXrayQSO;
   double NuXrayQSOThreshold;
   double SpecIndexXrayQSO;
@@ -160,6 +164,7 @@ typedef struct physics_params_t
   double ReionRBubbleMaxRecomb;
 
   double EscapeFracNorm;
+  double EscapeFracNormIII;
   double EscapeFracRedshiftOffset;
   double EscapeFracRedshiftScaling;
   double EscapeFracPropScaling;
@@ -370,6 +375,12 @@ typedef struct reion_grids_t
   fftwf_complex* stars_filtered;
   fftwf_plan stars_forward_plan;
   fftwf_plan stars_filtered_reverse_plan;
+  
+  float* starsIII;
+  fftwf_complex* starsIII_unfiltered;
+  fftwf_complex* starsIII_filtered;
+  fftwf_plan starsIII_forward_plan;
+  fftwf_plan starsIII_filtered_reverse_plan;
 
   float* deltax;
   fftwf_complex* deltax_unfiltered;
@@ -387,6 +398,17 @@ typedef struct reion_grids_t
   fftwf_plan weighted_sfr_forward_plan;
   fftwf_plan sfr_filtered_reverse_plan;
   fftwf_plan weighted_sfr_filtered_reverse_plan;
+  
+  float* sfrIII;
+  float* weighted_sfrIII;
+  fftwf_complex* sfrIII_unfiltered;
+  fftwf_complex* sfrIII_filtered;
+  fftwf_complex* weighted_sfrIII_unfiltered;
+  fftwf_complex* weighted_sfrIII_filtered;
+  fftwf_plan sfrIII_forward_plan;
+  fftwf_plan weighted_sfrIII_forward_plan;
+  fftwf_plan sfrIII_filtered_reverse_plan;
+  fftwf_plan weighted_sfrIII_filtered_reverse_plan;
 
   float* xH;
   float* z_at_ionization;
@@ -407,13 +429,19 @@ typedef struct reion_grids_t
   float* Tk_box;
   float* Tk_box_prev;
   float* TS_box;
+  
+  float* Tk_boxII;
+  float* Tk_box_prevII;
+  float* TS_boxII;
 
   double* SMOOTHED_SFR_GAL;
+  double* SMOOTHED_SFR_III;
   double* SMOOTHED_SFR_QSO;
 
   // Grids necessary for LW background and future disentangling between MC/AC Pop3/Pop2 stuff
 
   float* JLW_box;
+  float* JLW_boxII;
 
   // Grids necessary for inhomogeneous recombinations
   float* z_re;
@@ -429,6 +457,8 @@ typedef struct reion_grids_t
   // Grids necessary for the 21cm brightness temperature
   float* delta_T;
   float* delta_T_prev;
+  float* delta_TII;
+  float* delta_TII_prev;
   float* vel;
   fftwf_complex* vel_gradient;
   fftwf_plan vel_forward_plan;
@@ -442,6 +472,10 @@ typedef struct reion_grids_t
   float* PS_k;
   float* PS_data;
   float* PS_error;
+  
+  float* PSII_k;
+  float* PSII_data;
+  float* PSII_error;
 
   struct gal_to_slab_t* galaxy_to_slab_map;
 
@@ -450,14 +484,20 @@ typedef struct reion_grids_t
   double mass_weighted_global_xH;
 
   double volume_ave_J_alpha;
+  double volume_ave_J_alphaII;
   double volume_ave_J_LW;
+  double volume_ave_J_LWII;
   double volume_ave_xalpha;
   double volume_ave_Xheat;
+  double volume_ave_XheatII;
   double volume_ave_Xion;
   double volume_ave_TS;
   double volume_ave_TK;
+  double volume_ave_TSII;
+  double volume_ave_TKII;
   double volume_ave_xe;
   double volume_ave_Tb;
+  double volume_ave_TbII;
 
   int started;
   int finished;
@@ -530,9 +570,11 @@ typedef struct galaxy_t
   //Differentiation Pop III / Pop II
   double StellarMass_II;
   double StellarMass_III;
-  
-  //Remnant (still work in progress) 
-  double Remnant_Mass; //ATM just coming from Pop III with M between 40 and 140 and larger than 260 Msol
+  double GrossStellarMassIII;
+  double FescIII;
+  double FescIIIWeightedGSM;
+
+  double Remnant_Mass; //Coming from Pop III with M between 40 and 140 and larger than 260 Msol and remnant of CCSN [8,40]Msun. Atm those are silent.
   
   //Metallicity stuff 
   double RmetalBubble; //New for MetalEvo
