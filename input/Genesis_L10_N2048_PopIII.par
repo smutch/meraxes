@@ -28,15 +28,15 @@ RandomSeed             : 1809  # seed for random number generator
 
 # ----- star formation -----
 SfDiskVelOpt               : 1    # disk velocity for SF law (1=Vmax, 2=Vvir)
-SfPrescription             : 1    # C06 SF law
+SfPrescription             : 1    # C06 SF law IF YOU RUN POP III YOU NEED THIS == 1
 
 SfEfficiency              : 0.08    # star formation efficiency Normalization
-SfEfficiency_III          : 0.008    # for Pop III (atm the default value is the same of Pop II)
+SfEfficiency_III          : 0.08   # for Pop III (atm the default value is the same of Pop II)
 SfEfficiencyScaling       : 0.0     # star formation efficiency Scaling
 SfEfficiencyScaling_III   : 0.0
 
 # ----- Pop III star formation -----
-AlphaIMF                  : -1.3 # Power-law index of the IMF (Test default is -2.35)
+AlphaIMF                  : -0.5 # Power-law index of the IMF (Test default is -2.35)
 MminIMF                   : 1.0 # Minimum mass of IMF (Test default is 9)
 MmaxIMF                   : 300.0 # Maximum mass of IMF (Test default is 500)
 PopIIIAgePrescription     : 2 # 1->Schaerer Strong Mass Loss, 2-> Schaerer No Mass Loss
@@ -54,6 +54,7 @@ PopIIIAgePrescription     : 2 # 1->Schaerer Strong Mass Loss, 2-> Schaerer No Ma
 #    -> 2Gyr at z=0 with redshift dependence SF timescale (Duffy+17)
 
 SfCriticalSDNorm          : 0.2     # critical surface density normalisation factor for star formation (internal units; standard=0.37)
+SfCriticalSDNorm_III      : 0.2     # Same as above for PopIII 
 
 # ----- supernova feedback -----
 Flag_IRA                   : 0    # use the instantaneous recycling approximation
