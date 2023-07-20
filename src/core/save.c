@@ -65,8 +65,11 @@ void prepare_galaxy_for_output(galaxy_t gal, galaxy_output_t* galout, int i_snap
   galout->Mcool = (float)(gal.Mcool);
   galout->StellarMass = (float)(gal.StellarMass);
   galout->GrossStellarMass = (float)(gal.GrossStellarMass);
+  galout->GrossStellarMassIII = (float)(gal.GrossStellarMassIII);
   galout->Fesc = (float)(gal.Fesc);
+  galout->FescIII = (float)(gal.FescIII);
   galout->FescWeightedGSM = (float)(gal.FescWeightedGSM);
+  galout->FescIIIWeightedGSM = (float)(gal.FescIIIWeightedGSM);
   galout->BlackHoleMass = (float)(gal.BlackHoleMass);
   galout->FescBH = (float)(gal.FescBH);
   galout->BHemissivity = (float)(gal.BHemissivity);
@@ -129,7 +132,7 @@ void calc_hdf5_props()
 
     h5props->n_props = 49; 
 #if USE_MINI_HALOS
-    h5props->n_props += 10;
+    h5props->n_props += 12; // Double check later
 #endif
 
 #ifdef CALC_MAGS
@@ -382,6 +385,13 @@ void calc_hdf5_props()
     h5props->field_units[i] = "1e10 solMass";
     h5props->field_h_conv[i] = "v/h";
     h5props->field_types[i++] = H5T_NATIVE_FLOAT;
+    
+    h5props->dst_offsets[i] = HOFFSET(galaxy_output_t, GrossStellarMassIII);
+    h5props->dst_field_sizes[i] = sizeof(galout.GrossStellarMassIII);
+    h5props->field_names[i] = "GrossStellarMassIII";
+    h5props->field_units[i] = "1e10 solMass";
+    h5props->field_h_conv[i] = "v/h";
+    h5props->field_types[i++] = H5T_NATIVE_FLOAT;
 
     h5props->dst_offsets[i] = HOFFSET(galaxy_output_t, MetalsStellarMass);
     h5props->dst_field_sizes[i] = sizeof(galout.MetalsStellarMass);
@@ -552,10 +562,24 @@ void calc_hdf5_props()
     h5props->field_units[i] = "None";
     h5props->field_h_conv[i] = "None";
     h5props->field_types[i++] = H5T_NATIVE_FLOAT;
+    
+    h5props->dst_offsets[i] = HOFFSET(galaxy_output_t, FescIII);
+    h5props->dst_field_sizes[i] = sizeof(galout.FescIII);
+    h5props->field_names[i] = "FescIII";
+    h5props->field_units[i] = "None";
+    h5props->field_h_conv[i] = "None";
+    h5props->field_types[i++] = H5T_NATIVE_FLOAT;
 
     h5props->dst_offsets[i] = HOFFSET(galaxy_output_t, FescWeightedGSM);
     h5props->dst_field_sizes[i] = sizeof(galout.FescWeightedGSM);
     h5props->field_names[i] = "FescWeightedGSM";
+    h5props->field_units[i] = "1e10 solMass";
+    h5props->field_h_conv[i] = "v/h";
+    h5props->field_types[i++] = H5T_NATIVE_FLOAT;
+    
+    h5props->dst_offsets[i] = HOFFSET(galaxy_output_t, FescIIIWeightedGSM);
+    h5props->dst_field_sizes[i] = sizeof(galout.FescIIIWeightedGSM);
+    h5props->field_names[i] = "FescIIIWeightedGSM";
     h5props->field_units[i] = "1e10 solMass";
     h5props->field_h_conv[i] = "v/h";
     h5props->field_types[i++] = H5T_NATIVE_FLOAT;
@@ -729,6 +753,7 @@ void create_master_file()
 #if USE_MINI_HALOS
 	  if (run_globals.params.Flag_IncludeLymanWerner) {
         H5LTset_attribute_string(file_id, group_name, "JLW_box", "1e-21erg/s/Hz/cm/cm/sr");
+        H5LTset_attribute_string(file_id, group_name, "JLW_box_II", "1e-21erg/s/Hz/cm/cm/sr");
       }
 #endif
 
@@ -739,16 +764,21 @@ void create_master_file()
       if (run_globals.params.Flag_IncludeSpinTemp) {
         H5LTset_attribute_string(file_id, group_name, "Ts_box", "K");
         H5LTset_attribute_string(file_id, group_name, "Tk_box", "K");
+        H5LTset_attribute_string(file_id, group_name, "Ts_boxII", "K");
+        H5LTset_attribute_string(file_id, group_name, "Tk_boxII", "K");
         H5LTset_attribute_string(file_id, group_name, "x_e_box", "None");
       }
 
       if (run_globals.params.Flag_Compute21cmBrightTemp) {
         H5LTset_attribute_string(file_id, group_name, "delta_T", "mK");
+        H5LTset_attribute_string(file_id, group_name, "delta_TII", "mK");
       }
 
       if (run_globals.params.Flag_ComputePS) {
         H5LTset_attribute_string(file_id, group_name, "PS_data", "mK2");
         H5LTset_attribute_string(file_id, group_name, "PS_error", "mK2");
+        H5LTset_attribute_string(file_id, group_name, "PSII_data", "mK2");
+        H5LTset_attribute_string(file_id, group_name, "PSII_error", "mK2");
       }
 
       H5Gclose(group_id);
@@ -770,6 +800,7 @@ void create_master_file()
 #if USE_MINI_HALOS
 	  if (run_globals.params.Flag_IncludeLymanWerner) { 
         H5LTset_attribute_string(file_id, group_name, "JLW_box", "v"); //Check if there is the h**2 factor
+        H5LTset_attribute_string(file_id, group_name, "JLW_box_II", "v"); //Check if there is the h**2 factor
       }
 #endif
 
@@ -780,16 +811,21 @@ void create_master_file()
       if (run_globals.params.Flag_IncludeSpinTemp) {
         H5LTset_attribute_string(file_id, group_name, "Ts_box", "None");
         H5LTset_attribute_string(file_id, group_name, "Tk_box", "None");
+        H5LTset_attribute_string(file_id, group_name, "Ts_boxII", "None");
+        H5LTset_attribute_string(file_id, group_name, "Tk_boxII", "None");
         H5LTset_attribute_string(file_id, group_name, "x_e_box", "None");
       }
 
       if (run_globals.params.Flag_Compute21cmBrightTemp) {
         H5LTset_attribute_string(file_id, group_name, "delta_T", "None");
+        H5LTset_attribute_string(file_id, group_name, "delta_TII", "None");
       }
 
       if (run_globals.params.Flag_ComputePS) {
         H5LTset_attribute_string(file_id, group_name, "PS_data", "None");
         H5LTset_attribute_string(file_id, group_name, "PS_error", "None");
+        H5LTset_attribute_string(file_id, group_name, "PSII_data", "None");
+        H5LTset_attribute_string(file_id, group_name, "PSII_error", "None");
       }
 
       H5Gclose(group_id);

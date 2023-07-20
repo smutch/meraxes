@@ -53,14 +53,18 @@ void update_reservoirs_from_sf(galaxy_t* gal, double new_stars, int snapshot, SF
     gal->ColdGas -= new_stars;
     gal->MetalsColdGas -= new_stars * metallicity;
     gal->StellarMass += new_stars;
-    gal->GrossStellarMass += new_stars;
+    //gal->GrossStellarMass += new_stars;
     gal->MetalsStellarMass += new_stars * metallicity;
     
 #if USE_MINI_HALOS
-    if (gal->Galaxy_Population == 2)
+    if (gal->Galaxy_Population == 2){
       gal->StellarMass_II += new_stars;
-    else if (gal->Galaxy_Population == 3)
+      gal->GrossStellarMass += new_stars;
+    }
+    else if (gal->Galaxy_Population == 3){
       gal->StellarMass_III += new_stars;
+      gal->GrossStellarMassIII += new_stars;
+    }
 #endif
 
     if ((type == INSITU) && !Flag_IRA && (gal->LastIdentSnap < (snapshot - 1))) {

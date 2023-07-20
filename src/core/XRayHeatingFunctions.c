@@ -50,8 +50,11 @@ int init_heat()
   ST_over_PS = calloc(TsNumFilterSteps, sizeof(double));
   sum_lyn = calloc(TsNumFilterSteps, sizeof(double));
 #if USE_MINI_HALOS
-  if (run_globals.params.Flag_IncludeLymanWerner)
+sum_lyn_III = calloc(TsNumFilterSteps, sizeof(double));
+  if (run_globals.params.Flag_IncludeLymanWerner){
     sum_lyn_LW = calloc(TsNumFilterSteps, sizeof(double));
+    sum_lyn_LW_III = calloc(TsNumFilterSteps, sizeof(double));
+  }
 #endif
 
   kappa_10(1.0, 1); // 1 is the flag, allocates memory.
@@ -63,7 +66,7 @@ int init_heat()
     return -4;
   if (xion_RECFAST(100, 1) < 0)
     return -5;
-  if (spectral_emissivity(0, 1) < 0)
+  if (spectral_emissivity(0, 1, 2) < 0) //Flag_Population shouldn't matter
     return -6;
 
   initialize_interp_arrays();
@@ -73,7 +76,7 @@ int init_heat()
 
 void destruct_heat()
 {
-  spectral_emissivity(0.0, 2); // 2 is the flag, frees memory.
+  spectral_emissivity(0.0, 2, 2); // 2 is the flag, frees memory. Flag_Population shouldn't matter
   xion_RECFAST(100.0, 2);
   T_RECFAST(100.0, 2);
   kappa_10_pH(1.0, 2);
@@ -81,13 +84,17 @@ void destruct_heat()
   kappa_10(1.0, 2);
 
   free(sum_lyn);
+  free(sum_lyn_III);
   free(ST_over_PS);
   free(sigma_Tmin);
   free(sigma_atR);
   free(zpp_edge);
+
 #if USE_MINI_HALOS
-  if (run_globals.params.Flag_IncludeLymanWerner)
+  if (run_globals.params.Flag_IncludeLymanWerner){
     free(sum_lyn_LW);
+    free(sum_lyn_LW_III);
+  }
 #endif
 }
 
@@ -296,23 +303,25 @@ double nu_tau_one(double zp, double zpp, double x_e, double fcoll, double HI_fil
 //  The filling factor of neutral IGM at zp is HI_filling_factor_zp.
 typedef struct
 {
-  double nu_0, x_e, ion_eff;
+  double nu_0, x_e, ion_eff, ion_effIII;
   int snap_i;
 } tauX_params;
 double tauX_integrand(double zhat, void* params)
 {
-  double n, drpropdz, nuhat, HI_filling_factor_zhat, sigma_tilde, fcoll;
+  double n, drpropdz, nuhat, HI_filling_factor_zhat, sigma_tilde, fcoll, fcollIII;
   tauX_params* p = (tauX_params*)params;
 
   drpropdz = SPEED_OF_LIGHT * dtdz((float)zhat);
   n = N_b0 * pow(1 + zhat, 3);
   nuhat = p->nu_0 * (1 + zhat);
-  fcoll = interpolate_fcoll(zhat, p->snap_i);
-  if (fcoll < 1e-20)
+  fcoll = interpolate_fcoll(zhat, p->snap_i, 2);
+  fcollIII = interpolate_fcoll(zhat, p->snap_i, 3);
+  //if (fcoll < 1e-20)
+  if (fcoll + fcollIII < 1e-20)
     HI_filling_factor_zhat = 1;
   else
     HI_filling_factor_zhat =
-      1 - p->ion_eff * fcoll /
+      1 - (p->ion_eff * fcoll + p->ion_effIII * fcollIII) /
             (1.0 - x_e_ave); // simplification to use the <x_e> value at zp and not zhat.  should'nt matter much since
                              // the evolution in x_e_ave is slower than fcoll.  in principle should make an ar$
   if (HI_filling_factor_zhat < 1e-4)
@@ -335,8 +344,11 @@ double tauX(double nu, double x_e, double zp, double zpp, double fcoll, double H
   // effective efficiency for the PS (not ST) mass function; quicker to compute...
   if (HI_filling_factor_zp > FRACT_FLOAT_ERR) {
     p.ion_eff = run_globals.params.physics.ReionEfficiency;
-  } else
+    p.ion_effIII = run_globals.params.physics.ReionEfficiencyIII;
+  } else {
     p.ion_eff = run_globals.params.physics.ReionEfficiency;
+    p.ion_effIII = run_globals.params.physics.ReionEfficiencyIII;
+  }
 
   p.snap_i = snap_i;
 
@@ -556,7 +568,7 @@ double frecycle(int n)
 }
 
 // Reads in and constructs table of the piecewise power-law fits to Pop 2 and Pop 3 stellar spectra, from Barkana
-double spectral_emissivity(double nu_norm, int flag)
+double spectral_emissivity(double nu_norm, int flag, int flag_Pop)
 {
   static int n[NSPEC_MAX];
   static float nu_n[NSPEC_MAX], alpha_S_2[NSPEC_MAX];
@@ -572,9 +584,9 @@ double spectral_emissivity(double nu_norm, int flag)
     case 2:
       for (i = 1; i < (NSPEC_MAX - 1); i++) {
         if ((nu_norm >= nu_n[i]) && (nu_norm < nu_n[i + 1])) {
-          if (Pop == 2) {
+          if (flag_Pop == 2) {
             ans = N0_2[i] / (alpha_S_2[i] + 1) * (pow(nu_n[i + 1], alpha_S_2[i] + 1) - pow(nu_norm, alpha_S_2[i] + 1));
-          } else if (Pop == 3) {
+          } else if (flag_Pop == 3) {
             ans = N0_3[i] / (alpha_S_3[i] + 1) * (pow(nu_n[i + 1], alpha_S_3[i] + 1) - pow(nu_norm, alpha_S_3[i] + 1));
           } else {
             mlog("Invalid value for Stellar Population", MLOG_MESG);
@@ -636,7 +648,7 @@ double spectral_emissivity(double nu_norm, int flag)
       }
 
       i = NSPEC_MAX - 1;
-      if (Pop == 2)
+      if (flag_Pop == 2)
         return N0_2[i] * pow(nu_norm, alpha_S_2[i]) / Ly_alpha_HZ;
       else
         return N0_3[i] * pow(nu_norm, alpha_S_3[i]) / Ly_alpha_HZ;
@@ -1199,10 +1211,14 @@ int locate_xHII_index(float xHII_call)
 void evolveInt(float zp,
                float curr_delNL0,
                const double SFR_GAL[],
+               const double SFR_III[],
                const double SFR_QSO[],
                const double freq_int_heat_GAL[],
                const double freq_int_ion_GAL[],
                const double freq_int_lya_GAL[],
+               const double freq_int_heat_III[],
+               const double freq_int_ion_III[],
+               const double freq_int_lya_III[],
                const double freq_int_heat_QSO[],
                const double freq_int_ion_QSO[],
                const double freq_int_lya_QSO[],
@@ -1211,15 +1227,17 @@ void evolveInt(float zp,
                double deriv[])
 {
 
-  double dadia_dzp, dcomp_dzp, dxheat_dt_GAL, dxion_source_dt_GAL, dxion_sink_dt;
+  double dadia_dzp, dadia_dzp_II, dcomp_dzp, dcomp_dzp_II, dxheat_dt_GAL, dxion_source_dt_GAL, dxion_sink_dt;
   double dxheat_dt_QSO, dxion_source_dt_QSO, dxlya_dt_QSO, dstarlya_dt_QSO;
+  double dxlya_dt_III, dstarlya_dt_III, dstarlyLW_dt_III, dxheat_dt_III, dxion_source_dt_III;
   double zpp, dzpp;
   int zpp_ct;
-  double T, x_e, zpp_integrand_GAL, zpp_integrand_QSO;
-  double dxe_dzp, n_b, dspec_dzp, dxheat_dzp, dxlya_dt_GAL, dstarlya_dt_GAL, dstarlyLW_dt_GAL;
+  double T, TII, x_e, zpp_integrand_GAL, zpp_integrand_III, zpp_integrand_QSO;
+  double dxe_dzp, n_b, dspec_dzp, dspec_dzp_II, dxheat_dzp, dxheat_dzp_II, dxlya_dt_GAL, dstarlya_dt_GAL, dstarlyLW_dt_GAL;
 
   x_e = y[0];
   T = y[1];
+  TII = y[2];
   n_b = N_b0 * pow(1 + zp, 3) * (1 + curr_delNL0);
 
   // First, let's do the trapazoidal integration over zpp
@@ -1228,6 +1246,12 @@ void evolveInt(float zp,
   dxlya_dt_GAL = 0;
   dstarlya_dt_GAL = 0;
   dstarlyLW_dt_GAL = 0;
+  
+  dxheat_dt_III = 0;
+  dxion_source_dt_III = 0;
+  dxlya_dt_III = 0;
+  dstarlya_dt_III = 0;
+  dstarlyLW_dt_III = 0;
 
   dxheat_dt_QSO = 0;
   dxion_source_dt_QSO = 0;
@@ -1250,6 +1274,8 @@ void evolveInt(float zp,
       // Units should be M_solar/s. Factor of (dt_dzp * dzpp) converts from per s to per z'
       zpp_integrand_GAL =
         SFR_GAL[zpp_ct] * pow(1 + zpp, -run_globals.params.physics.SpecIndexXrayGal); 
+      zpp_integrand_III =
+        SFR_III[zpp_ct] * pow(1 + zpp, -run_globals.params.physics.SpecIndexXrayIII); 
       if (run_globals.params.Flag_SeparateQSOXrays) {
         zpp_integrand_QSO = SFR_QSO[zpp_ct] * pow(1 + zpp, -run_globals.params.physics.SpecIndexXrayQSO);
       }
@@ -1257,17 +1283,21 @@ void evolveInt(float zp,
       if (run_globals.params.Flag_SeparateQSOXrays) {
 
         dxheat_dt_GAL += dt_dzpp * dzpp * zpp_integrand_GAL * freq_int_heat_GAL[zpp_ct];
+        dxheat_dt_III += dt_dzpp * dzpp * zpp_integrand_III * freq_int_heat_III[zpp_ct];
         dxheat_dt_QSO += dt_dzpp * dzpp * zpp_integrand_QSO * freq_int_heat_QSO[zpp_ct];
 
         dxion_source_dt_GAL += dt_dzpp * dzpp * zpp_integrand_GAL * freq_int_ion_GAL[zpp_ct];
+        dxion_source_dt_III += dt_dzpp * dzpp * zpp_integrand_III * freq_int_ion_III[zpp_ct];
         dxion_source_dt_QSO += dt_dzpp * dzpp * zpp_integrand_QSO * freq_int_ion_QSO[zpp_ct];
 
         dxlya_dt_GAL += dt_dzpp * dzpp * zpp_integrand_GAL * freq_int_lya_GAL[zpp_ct];
+        dxlya_dt_III += dt_dzpp * dzpp * zpp_integrand_III * freq_int_lya_III[zpp_ct];
         dxlya_dt_QSO += dt_dzpp * dzpp * zpp_integrand_QSO * freq_int_lya_QSO[zpp_ct];
 
         // Use this when using the SFR provided by Meraxes
         // Units should be M_solar/s. Factor of (dt_dzp * dzpp) converts from per s to per z'
         dstarlya_dt_GAL += SFR_GAL[zpp_ct] * pow(1 + zp, 2) * (1 + zpp) * sum_lyn[zpp_ct] * dt_dzpp * dzpp;
+        dstarlya_dt_III += SFR_III[zpp_ct] * pow(1 + zp, 2) * (1 + zpp) * sum_lyn_III[zpp_ct] * dt_dzpp * dzpp;
         dstarlya_dt_QSO += SFR_QSO[zpp_ct] * pow(1 + zp, 2) * (1 + zpp) * sum_lyn[zpp_ct] * dt_dzpp * dzpp;
 
       } else {
@@ -1275,14 +1305,22 @@ void evolveInt(float zp,
                          freq_int_heat_GAL[zpp_ct]; // Integral in frequency must be computed for each TsNumFilterSteps
         dxion_source_dt_GAL += dt_dzpp * dzpp * zpp_integrand_GAL * freq_int_ion_GAL[zpp_ct];
         dxlya_dt_GAL += dt_dzpp * dzpp * zpp_integrand_GAL * freq_int_lya_GAL[zpp_ct];
+        
+        dxheat_dt_III += dt_dzpp * dzpp * zpp_integrand_III *
+                         freq_int_heat_III[zpp_ct]; // Integral in frequency must be computed for each TsNumFilterSteps
+        dxion_source_dt_III += dt_dzpp * dzpp * zpp_integrand_III * freq_int_ion_III[zpp_ct];
+        dxlya_dt_III += dt_dzpp * dzpp * zpp_integrand_III * freq_int_lya_III[zpp_ct];
 
         // Use this when using the SFR provided by Meraxes
         // Units should be M_solar/s. Factor of (dt_dzp * dzpp) converts from per s to per z'
         dstarlya_dt_GAL += SFR_GAL[zpp_ct] * pow(1 + zp, 2) * (1 + zpp) * sum_lyn[zpp_ct] * dt_dzpp * dzpp;
+        dstarlya_dt_III += SFR_III[zpp_ct] * pow(1 + zp, 2) * (1 + zpp) * sum_lyn_III[zpp_ct] * dt_dzpp * dzpp;
       }
 #if USE_MINI_HALOS
-	  if (run_globals.params.Flag_IncludeLymanWerner)
+      if (run_globals.params.Flag_IncludeLymanWerner){
         dstarlyLW_dt_GAL += SFR_GAL[zpp_ct] * pow(1 + zp, 2) * (1 + zpp) * sum_lyn_LW[zpp_ct] * dt_dzpp * dzpp;
+        dstarlyLW_dt_III += SFR_III[zpp_ct] * pow(1 + zp, 2) * (1 + zpp) * sum_lyn_LW_III[zpp_ct] * dt_dzpp * dzpp;
+      }
 #endif
     }
 
@@ -1292,12 +1330,17 @@ void evolveInt(float zp,
       dxheat_dt_GAL *= const_zp_prefactor_GAL;
       dxion_source_dt_GAL *= const_zp_prefactor_GAL;
       dxlya_dt_GAL *= const_zp_prefactor_GAL * n_b;
+      
+      dxheat_dt_III *= const_zp_prefactor_III;
+      dxion_source_dt_III *= const_zp_prefactor_III;
+      dxlya_dt_III *= const_zp_prefactor_III * n_b;
 
       // Use this when using the SFR provided by Meraxes
       // Units should be M_solar/s. Factor of (dt_dzp * dzpp) converts from per s to per z'
       // The division by Omb * RHOcrit arises from the differences between eq. 13 and eq. 22 in Mesinger et al. (2011),
       // accounting for the M_solar factor (SFR -> number)
       dstarlya_dt_GAL *= (SPEED_OF_LIGHT / (4. * M_PI)) / (PROTONMASS / SOLAR_MASS);
+      dstarlya_dt_III *= (SPEED_OF_LIGHT / (4. * M_PI)) / (PROTONMASS / SOLAR_MASS);
 
       dxheat_dt_QSO *= const_zp_prefactor_QSO;
       dxion_source_dt_QSO *= const_zp_prefactor_QSO;
@@ -1310,49 +1353,75 @@ void evolveInt(float zp,
       dxlya_dt_GAL *= const_zp_prefactor_GAL * n_b;
 
       dstarlya_dt_GAL *= (SPEED_OF_LIGHT / (4. * M_PI)) / (PROTONMASS / SOLAR_MASS);
+      
+      dxheat_dt_III *= const_zp_prefactor_III;
+      dxion_source_dt_III *= const_zp_prefactor_III;
+      dxlya_dt_III *= const_zp_prefactor_III * n_b;
+
+      dstarlya_dt_III *= (SPEED_OF_LIGHT / (4. * M_PI)) / (PROTONMASS / SOLAR_MASS);
     }
+
 #if USE_MINI_HALOS
-	if (run_globals.params.Flag_IncludeLymanWerner)
+    if (run_globals.params.Flag_IncludeLymanWerner){
       dstarlyLW_dt_GAL *= (SPEED_OF_LIGHT / (4. * M_PI)) / (PROTONMASS / SOLAR_MASS);
+      dstarlyLW_dt_III *= (SPEED_OF_LIGHT / (4. * M_PI)) / (PROTONMASS / SOLAR_MASS);
+    }
 #endif
 
-  } // end NO_LIGHT if statement
+  } // end NO_LIGHT if statement YOU CAN SAVE SOME MORE OUTPUTS BUT FOR THE MOMENT THIS SHOULD BE FINE!
 
   // **** Now we can solve the evolution equations  ***** //
   // *** First let's do dxe_dzp *** //
 
   dxion_sink_dt = alpha_A(T) * CLUMPING_FACTOR * x_e * x_e * f_H * n_b;
-  dxe_dzp = dt_dzp * ((dxion_source_dt_GAL + dxion_source_dt_QSO) - dxion_sink_dt);
+  //dxe_dzp = dt_dzp * ((dxion_source_dt_GAL + dxion_source_dt_QSO) - dxion_sink_dt);
+  dxe_dzp = dt_dzp * ((dxion_source_dt_GAL + dxion_source_dt_III + dxion_source_dt_QSO) - dxion_sink_dt);
   deriv[0] = dxe_dzp;
+  deriv[6] = dt_dzp * ((dxion_source_dt_GAL + dxion_source_dt_QSO) - dxion_sink_dt);
 
   // *** Next, let's get the temperature components *** //
   // first, adiabatic term (3rd term in 11)
   dadia_dzp = 3 / (1.0 + zp);
-  if (fabs(curr_delNL0) > FRACT_FLOAT_ERR) // add adiabatic heating/cooling from structure formation
+  dadia_dzp_II = 3 / (1.0 + zp);
+  if (fabs(curr_delNL0) > FRACT_FLOAT_ERR) { // add adiabatic heating/cooling from structure formation
     dadia_dzp += dgrowth_factor_dzp / (1.0 / curr_delNL0 + growth_factor_zp);
+    dadia_dzp_II += dgrowth_factor_dzp / (1.0 / curr_delNL0 + growth_factor_zp);
+  }
   dadia_dzp *= (2.0 / 3.0) * T;
+  dadia_dzp_II *= (2.0 / 3.0) * TII;
 
   // next heating due to the changing species
   dspec_dzp = -dxe_dzp * T / (1 + x_e);
+  dspec_dzp_II = -dxe_dzp * TII / (1 + x_e);
 
   // next, Compton heating
   dcomp_dzp = dT_comp(zp, T, x_e);
+  dcomp_dzp_II = dT_comp(zp, TII, x_e);
 
   // lastly, X-ray heating
-  dxheat_dzp = (dxheat_dt_GAL + dxheat_dt_QSO) * dt_dzp * 2.0 / 3.0 / BOLTZMANN / (1.0 + x_e);
+  dxheat_dzp = (dxheat_dt_GAL + dxheat_dt_III + dxheat_dt_QSO) * dt_dzp * 2.0 / 3.0 / BOLTZMANN / (1.0 + x_e);
+  dxheat_dzp_II = (dxheat_dt_GAL + dxheat_dt_QSO) * dt_dzp * 2.0 / 3.0 / BOLTZMANN / (1.0 + x_e); //No Pop III
 
   // summing them up...
   deriv[1] = dxheat_dzp + dcomp_dzp + dspec_dzp + dadia_dzp;
+  deriv[7] = dxheat_dzp_II + dcomp_dzp_II + dspec_dzp_II + dadia_dzp_II; 
 
   // *** Finally, if we are at the last redshift step, Lya *** //
-  deriv[2] = (dxlya_dt_GAL + dxlya_dt_QSO) + (dstarlya_dt_GAL + dstarlya_dt_QSO);
+  //deriv[2] = (dxlya_dt_GAL + dxlya_dt_QSO) + (dstarlya_dt_GAL + dstarlya_dt_QSO);
+  deriv[2] = (dxlya_dt_GAL + dxlya_dt_III + dxlya_dt_QSO) + (dstarlya_dt_GAL + dstarlya_dt_III + dstarlya_dt_QSO);
+  deriv[8] = (dxlya_dt_GAL + dxlya_dt_QSO) + (dstarlya_dt_GAL + dstarlya_dt_QSO);
 
   // stuff for marcos
   deriv[3] = dxheat_dzp;
-  deriv[4] = dt_dzp * (dxion_source_dt_GAL + dxion_source_dt_QSO);
+  deriv[10] = dt_dzp * (dxion_source_dt_GAL + dxion_source_dt_QSO);
+
 #if USE_MINI_HALOS
-  if (run_globals.params.Flag_IncludeLymanWerner)
-    deriv[5] = dstarlyLW_dt_GAL * (PLANCK * 1e21);
+  deriv[4] = dt_dzp * (dxion_source_dt_GAL + dxion_source_dt_III + dxion_source_dt_QSO);
+  deriv[9] = dxheat_dzp_II;
+  if (run_globals.params.Flag_IncludeLymanWerner){
+    deriv[5] = (dstarlyLW_dt_GAL + dstarlyLW_dt_III) * (PLANCK * 1e21);
+    deriv[11] = dstarlyLW_dt_GAL * (PLANCK * 1e21);
+  }
 #endif
 }
 
@@ -1803,20 +1872,37 @@ double Tc_eff(double TK, double TS)
   return ans;
 }
 
-double interpolate_fcoll(double redshift, int snap_i)
+double interpolate_fcoll(double redshift, int snap_i, int flag_population) // flag_population if you want II or III 
 {
   double interp_fcoll;
-  if (snap_i == 0) {
-    // This should never occur...
-    interp_fcoll = stored_fcoll[snap_i];
-  } else {
-    interp_fcoll = stored_fcoll[snap_i - 1] + (redshift - run_globals.ZZ[snap_i - 1]) *
-                                                (stored_fcoll[snap_i] - stored_fcoll[snap_i - 1]) /
-                                                (run_globals.ZZ[snap_i] - run_globals.ZZ[snap_i - 1]);
-  }
+  
+  if (flag_population == 2) {
+    if (snap_i == 0) {
+      // This should never occur...
+      interp_fcoll = stored_fcoll[snap_i];
+    } else {
+      interp_fcoll = stored_fcoll[snap_i - 1] + (redshift - run_globals.ZZ[snap_i - 1]) *
+                                                  (stored_fcoll[snap_i] - stored_fcoll[snap_i - 1]) /
+                                                  (run_globals.ZZ[snap_i] - run_globals.ZZ[snap_i - 1]);
+    }
 
-  if (interp_fcoll < 0.0) {
-    interp_fcoll = 0.0;
+    if (interp_fcoll < 0.0) {
+      interp_fcoll = 0.0;
+    }
+  }
+  else if (flag_population == 3) {
+    if (snap_i == 0) {
+      // This should never occur...
+      interp_fcoll = stored_fcollIII[snap_i];
+    } else {
+      interp_fcoll = stored_fcollIII[snap_i - 1] + (redshift - run_globals.ZZ[snap_i - 1]) *
+                                                  (stored_fcollIII[snap_i] - stored_fcollIII[snap_i - 1]) /
+                                                  (run_globals.ZZ[snap_i] - run_globals.ZZ[snap_i - 1]);
+    }
+
+    if (interp_fcoll < 0.0) {
+      interp_fcoll = 0.0;
+    }
   }
 
   return interp_fcoll;

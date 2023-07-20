@@ -15,7 +15,7 @@
  *
  */
 
-void Initialise_PowerSpectrum()
+void Initialise_PowerSpectrum() 
 {
 
   double box_size = run_globals.params.BoxSize / run_globals.params.Hubble_h; // Mpc
@@ -41,14 +41,16 @@ void Initialise_PowerSpectrum()
   mlog("Initialise_PowerSpectrum set PS_Length to %d.", MLOG_MESG, run_globals.params.PS_Length);
 }
 
-void Compute_PS(int snapshot)
+void Compute_PS(int snapshot) // Adding the 21cm PS if only Pop II are present! Still not 100% sure. Still not disentangling reionization.
 {
 
   float* delta_T = run_globals.reion_grids.delta_T;
+  float* delta_TII = run_globals.reion_grids.delta_TII;
 
   double box_size = run_globals.params.BoxSize / run_globals.params.Hubble_h; // Mpc
 
   fftwf_complex* deldel_ps = fftwf_alloc_complex((size_t)run_globals.reion_grids.slab_n_complex[run_globals.mpi_rank]);
+  fftwf_complex* deldel_psII = fftwf_alloc_complex((size_t)run_globals.reion_grids.slab_n_complex[run_globals.mpi_rank]);
 
   float volume = powf((float)(float)box_size, 3);
 
@@ -58,21 +60,25 @@ void Compute_PS(int snapshot)
 
   int ii, jj, kk, n_x, n_y, n_z;
 
-  double ave;
+  double ave, aveII;
 
   mlog("Calculating the 21cm power spectrum (dimensional, i.e mK^2)", MLOG_MESG);
 
-  ave = 0.0;
+  ave = aveII = 0.0;
+  
   for (ii = 0; ii < local_nix; ii++) {
     for (jj = 0; jj < ReionGridDim; jj++) {
       for (kk = 0; kk < ReionGridDim; kk++) {
         ave += delta_T[grid_index(ii, jj, kk, ReionGridDim, INDEX_REAL)];
+        aveII += delta_TII[grid_index(ii, jj, kk, ReionGridDim, INDEX_REAL)];
       }
     }
   }
   MPI_Allreduce(MPI_IN_PLACE, &ave, 1, MPI_DOUBLE, MPI_SUM, run_globals.mpi_comm);
+  MPI_Allreduce(MPI_IN_PLACE, &aveII, 1, MPI_DOUBLE, MPI_SUM, run_globals.mpi_comm);
 
   ave /= total_n_cells;
+  aveII /= total_n_cells;
 
   for (ii = 0; ii < local_nix; ii++) {
     for (jj = 0; jj < ReionGridDim; jj++) {
@@ -81,6 +87,11 @@ void Compute_PS(int snapshot)
           (float)((delta_T[grid_index(ii, jj, kk, ReionGridDim, INDEX_REAL)] / ave - 1) * volume /
                   (float)total_n_cells);
         ((float*)deldel_ps)[grid_index(ii, jj, kk, ReionGridDim, INDEX_PADDED)] *= ave;
+        
+        ((float*)deldel_psII)[grid_index(ii, jj, kk, ReionGridDim, INDEX_PADDED)] =
+          (float)((delta_TII[grid_index(ii, jj, kk, ReionGridDim, INDEX_REAL)] / aveII - 1) * volume /
+                  (float)total_n_cells);
+        ((float*)deldel_psII)[grid_index(ii, jj, kk, ReionGridDim, INDEX_PADDED)] *= aveII;
       }
     }
   }
@@ -89,6 +100,11 @@ void Compute_PS(int snapshot)
     ReionGridDim, ReionGridDim, ReionGridDim, (float*)deldel_ps, deldel_ps, run_globals.mpi_comm, FFTW_ESTIMATE);
   fftwf_execute(plan);
   fftwf_destroy_plan(plan);
+  
+  fftwf_plan planII = fftwf_mpi_plan_dft_r2c_3d(
+    ReionGridDim, ReionGridDim, ReionGridDim, (float*)deldel_psII, deldel_psII, run_globals.mpi_comm, FFTW_ESTIMATE);
+  fftwf_execute(planII);
+  fftwf_destroy_plan(planII);
 
   // Calculate power spectrum
   // ------------------------------------------------------------------------------------------------------
@@ -107,11 +123,13 @@ void Compute_PS(int snapshot)
   float k_ceil = k_first_bin_ceil;
 
   double* p_box = malloc(sizeof(double) * run_globals.params.PS_Length);
+  double* p_boxII = malloc(sizeof(double) * run_globals.params.PS_Length);
   double* k_ave = malloc(sizeof(double) * run_globals.params.PS_Length);
   unsigned long long* in_bin_ct = malloc(sizeof(unsigned long long) * run_globals.params.PS_Length);
 
   for (ii = 0; ii < run_globals.params.PS_Length; ii++) {
     p_box[ii] = 0.0;
+    p_boxII[ii] = 0.0;
     k_ave[ii] = 0.0;
     in_bin_ct[ii] = 0;
   }
@@ -151,6 +169,9 @@ void Compute_PS(int snapshot)
             p_box[ct] += pow(k_mag, 3) *
                          pow(cabs(deldel_ps[grid_index(n_x, n_y, n_z, ReionGridDim, INDEX_COMPLEX_HERM)]), 2.) /
                          (2.0 * M_PI * M_PI * volume);
+            p_boxII[ct] += pow(k_mag, 3) *
+                         pow(cabs(deldel_psII[grid_index(n_x, n_y, n_z, ReionGridDim, INDEX_COMPLEX_HERM)]), 2.) /
+                         (2.0 * M_PI * M_PI * volume);             
             // note the 1/VOLUME factor, which turns this into a power density in k-space
 
             k_ave[ct] += k_mag;
@@ -168,17 +189,26 @@ void Compute_PS(int snapshot)
   float* PS_k = run_globals.reion_grids.PS_k;
   float* PS_data = run_globals.reion_grids.PS_data;
   float* PS_error = run_globals.reion_grids.PS_error;
+  
+  float* PSII_k = run_globals.reion_grids.PS_k;
+  float* PSII_data = run_globals.reion_grids.PS_data;
+  float* PSII_error = run_globals.reion_grids.PS_error;
 
   // NOTE - previous ct ran from 1 (not zero) to NUM_BINS
   for (ii = 0; ii < run_globals.params.PS_Length; ii++) {
 
     MPI_Allreduce(MPI_IN_PLACE, &k_ave[ii], 1, MPI_DOUBLE, MPI_SUM, run_globals.mpi_comm);
     MPI_Allreduce(MPI_IN_PLACE, &p_box[ii], 1, MPI_DOUBLE, MPI_SUM, run_globals.mpi_comm);
+    MPI_Allreduce(MPI_IN_PLACE, &p_boxII[ii], 1, MPI_DOUBLE, MPI_SUM, run_globals.mpi_comm);
     MPI_Allreduce(MPI_IN_PLACE, &in_bin_ct[ii], 1, MPI_UNSIGNED_LONG_LONG, MPI_SUM, run_globals.mpi_comm);
 
     PS_k[ii] = (float)(k_ave[ii] / (double)in_bin_ct[ii]);
     PS_data[ii] = (float)(p_box[ii] / (double)in_bin_ct[ii]);
     PS_error[ii] = (float)((p_box[ii] / (double)in_bin_ct[ii]) / sqrt((double)in_bin_ct[ii]));
+    
+    PSII_k[ii] = (float)(k_ave[ii] / (double)in_bin_ct[ii]);
+    PSII_data[ii] = (float)(p_boxII[ii] / (double)in_bin_ct[ii]);
+    PSII_error[ii] = (float)((p_boxII[ii] / (double)in_bin_ct[ii]) / sqrt((double)in_bin_ct[ii]));
   }
 
   // Deallocate
@@ -186,7 +216,9 @@ void Compute_PS(int snapshot)
   // ------------------------------------------------------------------------------------------------------
 
   free(p_box);
+  free(p_boxII);
   free(k_ave);
   free(in_bin_ct);
   fftwf_free(deldel_ps);
+  fftwf_free(deldel_psII);
 }

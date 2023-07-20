@@ -18,17 +18,18 @@
  * Written by Bradley Greig.
  */
 
-void ComputeBrightnessTemperatureBox(int snapshot)
+void ComputeBrightnessTemperatureBox(int snapshot) // Added the computation of 21cm Tb without Pop III (useful to better highlight the contribution of Pop III stars)
 {
 
   int ii, jj, kk, i_real, i_padded, iii;
 
-  double T_rad, pixel_Ts_factor, pixel_deltax, pixel_x_HI;
+  double T_rad, pixel_Ts_factor, pixel_TsII_factor, pixel_deltax, pixel_x_HI;
 
   float* xH = run_globals.reion_grids.xH;
   float* deltax = run_globals.reion_grids.deltax;
 
   float* delta_T = run_globals.reion_grids.delta_T;
+  float* delta_TII = run_globals.reion_grids.delta_TII;
 
   int ReionGridDim = run_globals.params.ReionGridDim;
   int local_nix = (int)(run_globals.reion_grids.slab_nix[run_globals.mpi_rank]);
@@ -65,6 +66,7 @@ void ComputeBrightnessTemperatureBox(int snapshot)
         i_real = grid_index(ii, jj, kk, ReionGridDim, INDEX_REAL);
 
         delta_T[i_real] = 0.0;
+        delta_TII[i_real] = 0.0;
       }
   }
 
@@ -81,6 +83,7 @@ void ComputeBrightnessTemperatureBox(int snapshot)
         pixel_x_HI = xH[i_real];
 
         delta_T[i_real] = (float)(const_factor * pixel_x_HI * (1.0 + pixel_deltax));
+        delta_TII[i_real] = (float)(const_factor * pixel_x_HI * (1.0 + pixel_deltax));
 
         // Whether or not to include the spin temperature effects
         if (run_globals.params.Flag_IncludeSpinTemp) {
@@ -91,11 +94,14 @@ void ComputeBrightnessTemperatureBox(int snapshot)
             // Converting the prefactors into the optical depth, tau. Factor of 1000 is the conversion of spin
             // temperature from K to mK
             delta_T[i_real] *= (1. + redshift) / (1000. * run_globals.reion_grids.TS_box[i_real]);
+            delta_TII[i_real] *= (1. + redshift) / (1000. * run_globals.reion_grids.TS_boxII[i_real]);
 
           } else {
 
             pixel_Ts_factor = (1 - T_rad / run_globals.reion_grids.TS_box[i_real]);
+            pixel_TsII_factor = (1 - T_rad / run_globals.reion_grids.TS_boxII[i_real]);
             delta_T[i_real] *= pixel_Ts_factor;
+            delta_TII[i_real] *= pixel_TsII_factor;
           }
         }
       }
@@ -207,6 +213,7 @@ void ComputeBrightnessTemperatureBox(int snapshot)
             }
 
             delta_T[i_real] /= (dvdx / H_z + 1.0);
+            delta_TII[i_real] /= (dvdx / H_z + 1.0);
           }
         }
       }
@@ -241,9 +248,12 @@ void ComputeBrightnessTemperatureBox(int snapshot)
                 // zero and (1 - exp(-tau)) goes to unity. Again, factors of 1000. are conversions from K to mK
 
                 delta_T[i_real] = (float)(1000. * (run_globals.reion_grids.TS_box[i_real] - T_rad) / (1. + redshift));
+                delta_TII[i_real] = (float)(1000. * (run_globals.reion_grids.TS_boxII[i_real] - T_rad) / (1. + redshift));
               } else {
                 delta_T[i_real] = (float)((1. - exp(-delta_T[i_real] / gradient_component)) * 1000. *
                                           (run_globals.reion_grids.TS_box[i_real] - T_rad) / (1. + redshift));
+                delta_TII[i_real] = (float)((1. - exp(-delta_TII[i_real] / gradient_component)) * 1000. *
+                                          (run_globals.reion_grids.TS_boxII[i_real] - T_rad) / (1. + redshift));                          
               }
 
             } else {
@@ -259,12 +269,13 @@ void ComputeBrightnessTemperatureBox(int snapshot)
               }
 
               delta_T[i_real] /= (dvdx / H_z + 1.0);
+              delta_TII[i_real] /= (dvdx / H_z + 1.0);
             }
           }
         }
       }
 
-      if (run_globals.params.Flag_IncludePecVelsFor21cm == 3) {
+      if (run_globals.params.Flag_IncludePecVelsFor21cm == 3) { // Compute just the total not the TII
 
         // normalised units of cell length. 0 equals beginning of cell, 1 equals end of cell
         // These are the sub-cell central positions (x_pos_offset), and the corresponding normalised value (x_pos)
@@ -466,6 +477,7 @@ void ComputeBrightnessTemperatureBox(int snapshot)
   }
 
   double Ave_Tb = 0.0;
+  double Ave_TbII = 0.0;
 
   for (int ix = 0; ix < local_nix; ix++)
     for (int iy = 0; iy < ReionGridDim; iy++)
@@ -473,16 +485,20 @@ void ComputeBrightnessTemperatureBox(int snapshot)
         i_real = grid_index(ix, iy, iz, ReionGridDim, INDEX_REAL);
 
         Ave_Tb += (double)delta_T[i_real];
+        Ave_TbII += (double)delta_TII[i_real];
       }
 
   Ave_Tb /= total_n_cells;
+  Ave_TbII /= total_n_cells;
 
   MPI_Allreduce(MPI_IN_PLACE, &Ave_Tb, 1, MPI_DOUBLE, MPI_SUM, run_globals.mpi_comm);
-  mlog("zp = %e Tb_ave = %e", MLOG_MESG, redshift, Ave_Tb);
+  MPI_Allreduce(MPI_IN_PLACE, &Ave_TbII, 1, MPI_DOUBLE, MPI_SUM, run_globals.mpi_comm);
+  mlog("zp = %e Tb_ave = %e Tb_ave (Pop II) = %e", MLOG_MESG, redshift, Ave_Tb, Ave_TbII);
 
   free(delta_T_RSD_LOS);
   free(x_pos_offset);
   free(x_pos);
 
   run_globals.reion_grids.volume_ave_Tb = Ave_Tb;
+  run_globals.reion_grids.volume_ave_TbII = Ave_TbII;
 }
