@@ -24,7 +24,7 @@ static void backfill_ghost_star_formation(galaxy_t* gal, double m_stars, double 
         gal->NewStars[ii] += m_stars;
         gal->NewMetals[0] += m_stars * metallicity;
 #if USE_MINI_HALOS
-		if (gal->Galaxy_Population == 2)
+        if (gal->Galaxy_Population == 2)
           gal->NewStars_II[ii] += m_stars;
         else if (gal->Galaxy_Population == 3)
           gal->NewStars_III[ii] += m_stars;
