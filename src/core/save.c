@@ -132,7 +132,7 @@ void calc_hdf5_props()
 
     h5props->n_props = 49; 
 #if USE_MINI_HALOS
-    h5props->n_props += 12; // Double check later
+    h5props->n_props += 13; // Double check later
 #endif
 
 #ifdef CALC_MAGS
