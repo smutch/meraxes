@@ -375,12 +375,6 @@ typedef struct reion_grids_t
   fftwf_complex* stars_filtered;
   fftwf_plan stars_forward_plan;
   fftwf_plan stars_filtered_reverse_plan;
-  
-  float* starsIII;
-  fftwf_complex* starsIII_unfiltered;
-  fftwf_complex* starsIII_filtered;
-  fftwf_plan starsIII_forward_plan;
-  fftwf_plan starsIII_filtered_reverse_plan;
 
   float* deltax;
   fftwf_complex* deltax_unfiltered;
@@ -399,6 +393,13 @@ typedef struct reion_grids_t
   fftwf_plan sfr_filtered_reverse_plan;
   fftwf_plan weighted_sfr_filtered_reverse_plan;
   
+#if USE_MINI_HALOS  
+  float* starsIII;
+  fftwf_complex* starsIII_unfiltered;
+  fftwf_complex* starsIII_filtered;
+  fftwf_plan starsIII_forward_plan;
+  fftwf_plan starsIII_filtered_reverse_plan;
+
   float* sfrIII;
   float* weighted_sfrIII;
   fftwf_complex* sfrIII_unfiltered;
@@ -409,13 +410,16 @@ typedef struct reion_grids_t
   fftwf_plan weighted_sfrIII_forward_plan;
   fftwf_plan sfrIII_filtered_reverse_plan;
   fftwf_plan weighted_sfrIII_filtered_reverse_plan;
+#endif
 
   float* xH;
   float* z_at_ionization;
   float* J_21_at_ionization;
   float* J_21;
   float* Mvir_crit;
-  float* Mvir_crit_MC; //
+#if USE_MINI_HALOS 
+  float* Mvir_crit_MC;
+#endif 
   float* r_bubble;
 
   // Grids necessary for the IGM spin temperature
@@ -430,18 +434,24 @@ typedef struct reion_grids_t
   float* Tk_box_prev;
   float* TS_box;
   
+#if USE_MINI_HALOS  
   float* Tk_boxII;
   float* Tk_box_prevII;
   float* TS_boxII;
+#endif
 
   double* SMOOTHED_SFR_GAL;
+#if USE_MINI_HALOS 
   double* SMOOTHED_SFR_III;
+#endif
   double* SMOOTHED_SFR_QSO;
 
   // Grids necessary for LW background and future disentangling between MC/AC Pop3/Pop2 stuff
 
+#if USE_MINI_HALOS
   float* JLW_box;
   float* JLW_boxII;
+#endif
 
   // Grids necessary for inhomogeneous recombinations
   float* z_re;
@@ -457,8 +467,10 @@ typedef struct reion_grids_t
   // Grids necessary for the 21cm brightness temperature
   float* delta_T;
   float* delta_T_prev;
+#if USE_MINI_HALOS
   float* delta_TII;
   float* delta_TII_prev;
+#endif
   float* vel;
   fftwf_complex* vel_gradient;
   fftwf_plan vel_forward_plan;
@@ -472,10 +484,12 @@ typedef struct reion_grids_t
   float* PS_k;
   float* PS_data;
   float* PS_error;
-  
+
+#if USE_MINI_HALOS  
   float* PSII_k;
   float* PSII_data;
   float* PSII_error;
+#endif
 
   struct gal_to_slab_t* galaxy_to_slab_map;
 
@@ -484,20 +498,22 @@ typedef struct reion_grids_t
   double mass_weighted_global_xH;
 
   double volume_ave_J_alpha;
-  double volume_ave_J_alphaII;
-  double volume_ave_J_LW;
-  double volume_ave_J_LWII;
   double volume_ave_xalpha;
   double volume_ave_Xheat;
-  double volume_ave_XheatII;
   double volume_ave_Xion;
   double volume_ave_TS;
   double volume_ave_TK;
-  double volume_ave_TSII;
-  double volume_ave_TKII;
   double volume_ave_xe;
   double volume_ave_Tb;
+#if USE_MINI_HALOS 
+  double volume_ave_J_alphaII;
+  double volume_ave_J_LW;
+  double volume_ave_J_LWII;
+  double volume_ave_XheatII;
+  double volume_ave_TSII;
+  double volume_ave_TKII;
   double volume_ave_TbII;
+#endif
 
   int started;
   int finished;
@@ -589,7 +605,6 @@ typedef struct galaxy_t
   double Prefactor[N_HISTORY_SNAPS]; //here you store the prefactors of the metal bubbles
   double Times[N_HISTORY_SNAPS]; // Time at which the SN explode!
   double Radii[N_HISTORY_SNAPS]; 
-  //int count_SF;
 #endif
   
   // baryonic hostories
@@ -746,6 +761,7 @@ typedef struct run_globals_t
   double G;
   double Csquare;
   // PopIII stuff
+#if USE_MINI_HALOS
   double IMFnorm;
   double NumberPISN;
   double MassPISN;
@@ -755,6 +771,7 @@ typedef struct run_globals_t
 
   float *Mass_Values;
   float *Time_Values;
+#endif
 
 #ifdef CALC_MAGS
   struct mag_params_t mag_params;
