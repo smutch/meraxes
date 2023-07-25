@@ -73,7 +73,7 @@ void Compute_PS(int snapshot) // Adding the 21cm PS if only Pop II are present! 
 
   ave = 0.0;
 #if USE_MINI_HALOS  
-  aveII = 0.0:
+  aveII = 0.0;
 #endif
   
   for (ii = 0; ii < local_nix; ii++) {
