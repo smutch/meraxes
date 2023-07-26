@@ -178,6 +178,7 @@ void merge_with_target(galaxy_t* gal, int* dead_gals, int snapshot)
   parent->StellarMass_III += gal->StellarMass_III;
   parent->Remnant_Mass += gal->Remnant_Mass;
   parent->GrossStellarMassIII += gal->GrossStellarMassIII;
+  parent->FescIIIWeightedGSM += gal->FescIIIWeightedGSM;
 #endif
   parent->GrossStellarMass += gal->GrossStellarMass;
   parent->FescWeightedGSM += gal->FescWeightedGSM;
