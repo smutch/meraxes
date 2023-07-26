@@ -351,16 +351,18 @@ void _ComputeTs(int snapshot)
               i_smoothedSFR = grid_index_smoothedSFR(R_ct, ix, iy, iz, TsNumFilterSteps, ReionGridDim);
 
               ((float*)sfr_filtered)[i_padded] = fmaxf(((float*)sfr_filtered)[i_padded], 0.0);
+#if USE_MINI_HALOS
               ((float*)sfrIII_filtered)[i_padded] = fmaxf(((float*)sfrIII_filtered)[i_padded], 0.0);
+#endif
 
               SMOOTHED_SFR_GAL[i_smoothedSFR] = (((float*)sfr_filtered)[i_padded] / pixel_volume) *
                                                 (units->UnitMass_in_g / units->UnitTime_in_s) *
                                                 pow(units->UnitLength_in_cm, -3.) / SOLAR_MASS;
-                                                
+#if USE_MINI_HALOS                                                
               SMOOTHED_SFR_III[i_smoothedSFR] = (((float*)sfrIII_filtered)[i_padded] / pixel_volume) *
                                                 (units->UnitMass_in_g / units->UnitTime_in_s) *
                                                 pow(units->UnitLength_in_cm, -3.) / SOLAR_MASS;                                  
-
+#endif
               if (run_globals.params.Flag_SeparateQSOXrays) {
                 SMOOTHED_SFR_QSO[i_smoothedSFR] = (((float*)sfr_filtered)[i_padded] / pixel_volume) *
                                                   (units->UnitMass_in_g / units->UnitTime_in_s) *
