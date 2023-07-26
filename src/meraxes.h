@@ -761,7 +761,7 @@ typedef struct run_globals_t
   double G;
   double Csquare;
   // PopIII stuff
-#if USE_MINI_HALOS
+
   double IMFnorm;
   double NumberPISN;
   double MassPISN;
@@ -771,7 +771,6 @@ typedef struct run_globals_t
 
   float *Mass_Values;
   float *Time_Values;
-#endif
 
 #ifdef CALC_MAGS
   struct mag_params_t mag_params;
