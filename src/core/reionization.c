@@ -355,20 +355,22 @@ void init_reion_grids()
   grids->finished = 0;
 
   grids->volume_ave_J_alpha = 0.0;
-  grids->volume_ave_J_alphaII = 0.0;
   grids->volume_ave_xalpha = 0.0;
   grids->volume_ave_Xheat = 0.0;
-  grids->volume_ave_XheatII = 0.0;
   grids->volume_ave_Xion = 0.0;
   grids->volume_ave_TS = 0.0;
-  grids->volume_ave_TSII = 0.0;
-  grids->volume_ave_J_LW = 0.0;
-  grids->volume_ave_J_LWII = 0.0;
   grids->volume_ave_TK = 0.0;
-  grids->volume_ave_TKII = 0.0;
   grids->volume_ave_xe = 0.0;
   grids->volume_ave_Tb = 0.0;
+#if USE_MINI_HALOS
+  grids->volume_ave_J_alphaII = 0.0;
+  grids->volume_ave_XheatII = 0.0;
+  grids->volume_ave_J_LW = 0.0;
+  grids->volume_ave_J_LWII = 0.0;
+  grids->volume_ave_TKII = 0.0;
+  grids->volume_ave_TSII = 0.0;
   grids->volume_ave_TbII = 0.0;
+#endif
 
   for (int ii = 0; ii < slab_n_real; ii++) {
     grids->xH[ii] = 1.0;
@@ -383,8 +385,10 @@ void init_reion_grids()
     if (run_globals.params.Flag_IncludeSpinTemp) {
       grids->Tk_box[ii] = 0.0;
       grids->TS_box[ii] = 0.0;
+#if USE_MINI_HALOS
       grids->Tk_boxII[ii] = 0.0;
       grids->TS_boxII[ii] = 0.0;
+#endif
     }
     if (run_globals.params.Flag_IncludeRecombinations) {
       grids->z_re[ii] = 0.0;
@@ -392,10 +396,14 @@ void init_reion_grids()
     }
     if (run_globals.params.Flag_Compute21cmBrightTemp) {
       grids->delta_T[ii] = 0.0;
+#if USE_MINI_HALOS
       grids->delta_TII[ii] = 0.0;
+#endif
       if (run_globals.params.Flag_ConstructLightcone) {
         grids->delta_T_prev[ii] = 0.0;
+#if USE_MINI_HALOS
         grids->delta_TII_prev[ii] = 0.0;
+#endif
       }
     }
   }
@@ -497,9 +505,11 @@ void init_reion_grids()
       grids->PS_k[ii] = (float)0.;
       grids->PS_data[ii] = (float)0.;
       grids->PS_error[ii] = (float)0.;
+#if USE_MINI_HALOS
       grids->PSII_k[ii] = (float)0.;
       grids->PSII_data[ii] = (float)0.;
       grids->PSII_error[ii] = (float)0.;
+#endif
     }
   }
 }
