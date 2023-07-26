@@ -46,11 +46,8 @@ galaxy_t* new_galaxy(int snapshot, unsigned long halo_ID)
   gal->Rcool = 0.0;
   gal->StellarMass = 0.0;
   gal->GrossStellarMass = 0.0;
-  gal->GrossStellarMassIII = 0.0;
   gal->Fesc = 1.0;
-  gal->FescIII = 1.0;
   gal->FescWeightedGSM = 0.0;
-  gal->FescIIIWeightedGSM = 0.0;
   gal->MetalsStellarMass = 0.0;
   gal->mwmsa_num = 0.0;
   gal->mwmsa_denom = 0.0;
@@ -74,6 +71,9 @@ galaxy_t* new_galaxy(int snapshot, unsigned long halo_ID)
 #if USE_MINI_HALOS
   gal->StellarMass_II = 0.;
   gal->StellarMass_III = 0.;
+  gal->GrossStellarMassIII = 0.0;
+  gal->FescIII = 1.0;
+  gal->FescIIIWeightedGSM = 0.0;
   gal->Remnant_Mass = 0.;
   gal->Metal_Probability = 0.0;
   gal->Metallicity_IGM = -50.0; // Better to initialize to a very negative value.
