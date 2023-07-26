@@ -286,7 +286,9 @@ void ComputeBrightnessTemperatureBox(int snapshot) // Added the computation of 2
               }
 
               delta_T[i_real] /= (dvdx / H_z + 1.0);
+#if USE_MINI_HALOS
               delta_TII[i_real] /= (dvdx / H_z + 1.0);
+#endif
             }
           }
         }
