@@ -133,11 +133,11 @@ static void merger_driven_starburst(galaxy_t* parent, double merger_ratio, int s
       update_reservoirs_from_sf(parent, burst_mass, snapshot, MERGER);
       parent->MergerBurstMass += burst_mass;
 #if USE_MINI_HALOS
-	  if (parent->Galaxy_Population == 2)
+      if (parent->Galaxy_Population == 2)
 #endif
         update_reservoirs_from_sn_feedback(parent, m_reheat, m_eject, m_recycled, 0, m_recycled, m_remnant, new_metals);
 #if USE_MINI_HALOS
-	  else if (parent->Galaxy_Population == 3)
+      else if (parent->Galaxy_Population == 3)
         update_reservoirs_from_sn_feedback(parent, m_reheat, m_eject, m_recycled, m_recycled, 0, m_remnant, new_metals);
 #endif
     }
@@ -177,6 +177,7 @@ void merge_with_target(galaxy_t* gal, int* dead_gals, int snapshot)
   parent->StellarMass_II += gal->StellarMass_II;
   parent->StellarMass_III += gal->StellarMass_III;
   parent->Remnant_Mass += gal->Remnant_Mass;
+  parent->GrossStellarMassIII += gal->GrossStellarMassIII;
 #endif
   parent->GrossStellarMass += gal->GrossStellarMass;
   parent->FescWeightedGSM += gal->FescWeightedGSM;
@@ -226,7 +227,7 @@ void merge_with_target(galaxy_t* gal, int* dead_gals, int snapshot)
   for (int ii = 0; ii < N_HISTORY_SNAPS; ii++){ //Should you do the same with the MetalBubble properties?
     parent->NewStars[ii] += gal->NewStars[ii];
 #if USE_MINI_HALOS    
-	parent->NewStars_II[ii] += gal->NewStars_II[ii];
+    parent->NewStars_II[ii] += gal->NewStars_II[ii];
     parent->NewStars_III[ii] += gal->NewStars_III[ii];
 #endif
     }

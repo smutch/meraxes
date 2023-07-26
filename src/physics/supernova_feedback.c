@@ -278,10 +278,10 @@ void delayed_supernova_feedback(galaxy_t* gal, int snapshot)
   // in the current time step.
   for (int i_burst = 1; i_burst < n_bursts; i_burst++) {
 #if USE_MINI_HALOS
-	m_stars_II = gal->NewStars_II[i_burst];
+    m_stars_II = gal->NewStars_II[i_burst];
     m_stars_III = gal->NewStars_III[i_burst];
 #else
-	m_stars_II = gal->NewStars[i_burst];
+    m_stars_II = gal->NewStars[i_burst];
 #endif
     double m_stars = m_stars_II + m_stars_III;
 
@@ -292,12 +292,12 @@ void delayed_supernova_feedback(galaxy_t* gal, int snapshot)
       
       m_recycled_II += m_stars_II * get_recycling_fraction(i_burst, metallicity);
 #if USE_MINI_HALOS
-	  m_recycled_III += m_stars_III * CCSN_PopIII_Yield(i_burst, snapshot, 0) * MassSNII; // Only CCSN have delayed feedback
+      m_recycled_III += m_stars_III * CCSN_PopIII_Yield(i_burst, snapshot, 0) * MassSNII; // Only CCSN have delayed feedback
 #endif
 
       new_metals += m_stars_II * get_metal_yield(i_burst, metallicity);
 #if USE_MINI_HALOS
-	  new_metals += m_stars_III * CCSN_PopIII_Yield(i_burst, snapshot, 1) * MassSNII;
+      new_metals += m_stars_III * CCSN_PopIII_Yield(i_burst, snapshot, 1) * MassSNII;
       m_remnant += m_stars_III * CCSN_PopIII_Yield(i_burst, snapshot, 2) * MassSNII; // Pop. III will have remnants
 #endif
       // Calculate SNII energy
@@ -402,12 +402,12 @@ void contemporaneous_supernova_feedback(galaxy_t* gal,
     // Total yield includes H and He and all other elements
     // Total metal yield includes all elements except H and He
 #if USE_MINI_HALOS
-	  if (gal->Galaxy_Population == 2){
+  if (gal->Galaxy_Population == 2){
 #endif
       *m_recycled = *m_stars * get_recycling_fraction(0, metallicity);
       *new_metals = *m_stars * get_metal_yield(0, metallicity);
 #if USE_MINI_HALOS
-	  }
+      }
     else if (gal->Galaxy_Population == 3){
       *m_recycled = *m_stars * (CCSN_PopIII_Yield(0, snapshot, 0)) * MassSNII;
       *m_remnant = *m_stars * (MassBHs + CCSN_PopIII_Yield(0, snapshot, 2) * MassSNII);
@@ -421,16 +421,16 @@ void contemporaneous_supernova_feedback(galaxy_t* gal,
   } else {
     // Recycling fraction and metals yield are input parameters when using IRA
 #if USE_MINI_HALOS
-	  if (gal->Galaxy_Population == 2){
+      if (gal->Galaxy_Population == 2){
 #endif
       *m_recycled = *m_stars * run_globals.params.physics.SfRecycleFraction;
       *new_metals = *m_stars * run_globals.params.physics.Yield;
 #if USE_MINI_HALOS
-	  }
-    else if (gal->Galaxy_Population == 3){
-      *m_recycled = *m_stars * run_globals.params.physics.SfRecycleFraction_III;
-      *new_metals = *m_stars * run_globals.params.physics.Yield_III;
-    }
+      }
+      else if (gal->Galaxy_Population == 3){
+        *m_recycled = *m_stars * run_globals.params.physics.SfRecycleFraction_III;
+        *new_metals = *m_stars * run_globals.params.physics.Yield_III;
+      }
 #endif
   }
   
