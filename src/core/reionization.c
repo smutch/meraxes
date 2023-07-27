@@ -144,15 +144,19 @@ void update_galaxy_fesc_vals(galaxy_t* gal, double new_stars, int snapshot)
   else if (fesc_bh < 0.0)
     fesc_bh = 0.0;
    
+#if USE_MINI_HALOS
   if (gal->Galaxy_Population == 2) { 
     gal->Fesc = fesc;
     gal->FescWeightedGSM += new_stars * fesc;
     }
-#if USE_MINI_HALOS 
+ 
   if (gal->Galaxy_Population == 3) {
     gal->FescIII = fescIII;
     gal->FescIIIWeightedGSM += new_stars * fescIII;
     }
+#else
+  gal->Fesc = fesc;
+  gal->FescWeightedGSM += new_stars * fesc;
 #endif
 
   // Here we just set the black hole escape fraction for use in the next
