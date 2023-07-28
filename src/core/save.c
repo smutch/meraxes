@@ -799,7 +799,7 @@ void create_master_file()
       H5LTset_attribute_string(file_id, group_name, "deltax", "None");
 
 #if USE_MINI_HALOS
-	  if (run_globals.params.Flag_IncludeLymanWerner) { 
+      if (run_globals.params.Flag_IncludeLymanWerner) { 
         H5LTset_attribute_string(file_id, group_name, "JLW_box", "v"); //Check if there is the h**2 factor
         H5LTset_attribute_string(file_id, group_name, "JLW_box_II", "v"); //Check if there is the h**2 factor
       }

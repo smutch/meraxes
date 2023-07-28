@@ -1939,26 +1939,6 @@ void save_reion_output_grids(int snapshot)
     H5Pclose(plist_id);
     H5Dclose(dset_id);
     
-    /*hsize_t dims_PS[1] = { (hsize_t)run_globals.params.PS_Length };
-    hid_t fspace_id_PS = H5Screate_simple(1, dims_PS, NULL);
-
-    // create the memspace
-    hsize_t mem_dims_PS[1] = { (hsize_t)run_globals.params.PS_Length };
-    hid_t memspace_id_PS = H5Screate_simple(1, mem_dims_PS, NULL);
-
-    hid_t dcpl_id_PS = H5Pcreate(H5P_DATASET_CREATE);
-    hid_t dset_id = H5Dcreate(file_id, "k_bins", H5T_NATIVE_FLOAT, fspace_id_PS, H5P_DEFAULT, dcpl_id_PS, H5P_DEFAULT);
-
-    plist_id = H5Pcreate(H5P_DATASET_XFER);
-
-    H5Pset_dxpl_mpio(plist_id, H5FD_MPIO_COLLECTIVE);
-
-    // write the dataset
-    H5Dwrite(dset_id, H5T_NATIVE_FLOAT, memspace_id_PS, fspace_id_PS, plist_id, grids->PSII_k);
-
-    // cleanup
-    H5Pclose(plist_id);
-    H5Dclose(dset_id);*/
 
     dset_id = H5Dcreate(file_id, "PS_data", H5T_NATIVE_FLOAT, fspace_id_PS, H5P_DEFAULT, dcpl_id_PS, H5P_DEFAULT);
 
@@ -1972,7 +1952,8 @@ void save_reion_output_grids(int snapshot)
     H5Pclose(plist_id);
     H5Dclose(dset_id);
     
-    /*dset_id = H5Dcreate(file_id, "PSII_data", H5T_NATIVE_FLOAT, fspace_id_PS, H5P_DEFAULT, dcpl_id_PS, H5P_DEFAULT);
+#if USE_MINI_HALOS    
+    dset_id = H5Dcreate(file_id, "PSII_data", H5T_NATIVE_FLOAT, fspace_id_PS, H5P_DEFAULT, dcpl_id_PS, H5P_DEFAULT);
 
     plist_id = H5Pcreate(H5P_DATASET_XFER);
 
@@ -1982,7 +1963,8 @@ void save_reion_output_grids(int snapshot)
 
     // cleanup
     H5Pclose(plist_id);
-    H5Dclose(dset_id);*/
+    H5Dclose(dset_id);
+#endif
 
     dset_id = H5Dcreate(file_id, "PS_error", H5T_NATIVE_FLOAT, fspace_id_PS, H5P_DEFAULT, dcpl_id_PS, H5P_DEFAULT);
 
@@ -1995,8 +1977,9 @@ void save_reion_output_grids(int snapshot)
     // cleanup
     H5Pclose(plist_id);
     H5Dclose(dset_id);
-    
-    /*dset_id = H5Dcreate(file_id, "PSII_error", H5T_NATIVE_FLOAT, fspace_id_PS, H5P_DEFAULT, dcpl_id_PS, H5P_DEFAULT);
+
+#if USE_MINI_HALOS    
+    dset_id = H5Dcreate(file_id, "PSII_error", H5T_NATIVE_FLOAT, fspace_id_PS, H5P_DEFAULT, dcpl_id_PS, H5P_DEFAULT);
 
     plist_id = H5Pcreate(H5P_DATASET_XFER);
 
@@ -2006,7 +1989,8 @@ void save_reion_output_grids(int snapshot)
 
     // cleanup
     H5Pclose(plist_id);
-    H5Dclose(dset_id);*/
+    H5Dclose(dset_id);
+#endif
   }
 
   // tidy up
