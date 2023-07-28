@@ -41,8 +41,9 @@ void cleanup()
     free_MHR();
   }
 
-#if USE_MINI_HALOS 
-  free_metal_grids();
+#if USE_MINI_HALOS
+  if (run_globals.params.Flag_IncludeMetalEvo) 
+    free_metal_grids();
 #endif
 
   if (!run_globals.params.FlagMCMC) {
