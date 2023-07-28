@@ -212,7 +212,8 @@ void init_storage()
   malloc_reionization_grids();
   
 #if USE_MINI_HALOS
-  malloc_metal_grids();
+  if (run_globals.params.Flag_IncludeMetalEvo) 
+    malloc_metal_grids();
 #endif
 
   // calculate the output hdf5 file properties for later use

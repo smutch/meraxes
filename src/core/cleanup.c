@@ -8,6 +8,10 @@
 #include "recombinations.h"
 #include "reionization.h"
 
+#if USE_MINI_HALOS
+#include "metal_evo.h"
+#endif
+
 void cleanup()
 {
   mlog("Running cleanup...", MLOG_OPEN);
@@ -36,6 +40,10 @@ void cleanup()
   if (run_globals.params.Flag_IncludeRecombinations) {
     free_MHR();
   }
+
+#if USE_MINI_HALOS 
+  free_metal_grids();
+#endif
 
   if (!run_globals.params.FlagMCMC) {
     mlog("Freeing hdf5 related stuff...", MLOG_OPEN);
