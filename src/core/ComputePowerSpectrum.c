@@ -214,7 +214,6 @@ void Compute_PS(int snapshot) // Adding the 21cm PS if only Pop II are present! 
   float* PS_error = run_globals.reion_grids.PS_error;
 
 #if USE_MINI_HALOS  
-  float* PSII_k = run_globals.reion_grids.PS_k; // Not sure that PSII_k is necessary so that's why you are using PS_k
   float* PSII_data = run_globals.reion_grids.PSII_data;
   float* PSII_error = run_globals.reion_grids.PSII_error;
 #endif
@@ -234,7 +233,6 @@ void Compute_PS(int snapshot) // Adding the 21cm PS if only Pop II are present! 
     PS_error[ii] = (float)((p_box[ii] / (double)in_bin_ct[ii]) / sqrt((double)in_bin_ct[ii]));
 
 #if USE_MINI_HALOS    
-    PSII_k[ii] = (float)(k_ave[ii] / (double)in_bin_ct[ii]);
     PSII_data[ii] = (float)(p_boxII[ii] / (double)in_bin_ct[ii]);
     PSII_error[ii] = (float)((p_boxII[ii] / (double)in_bin_ct[ii]) / sqrt((double)in_bin_ct[ii]));
 #endif

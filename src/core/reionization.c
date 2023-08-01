@@ -510,7 +510,6 @@ void init_reion_grids()
       grids->PS_data[ii] = (float)0.;
       grids->PS_error[ii] = (float)0.;
 #if USE_MINI_HALOS
-      grids->PSII_k[ii] = (float)0.;
       grids->PSII_data[ii] = (float)0.;
       grids->PSII_error[ii] = (float)0.;
 #endif
@@ -645,7 +644,6 @@ void malloc_reionization_grids()
   grids->PS_error = NULL;
 
 #if USE_MINI_HALOS
-  grids->PSII_k = NULL;
   grids->PSII_data = NULL;
   grids->PSII_error = NULL;
 #endif
@@ -930,7 +928,6 @@ void malloc_reionization_grids()
       grids->PS_data = fftwf_alloc_real((size_t)run_globals.params.PS_Length);
       grids->PS_error = fftwf_alloc_real((size_t)run_globals.params.PS_Length);
 #if USE_MINI_HALOS
-      grids->PSII_k = fftwf_alloc_real((size_t)run_globals.params.PS_Length);
       grids->PSII_data = fftwf_alloc_real((size_t)run_globals.params.PS_Length);
       grids->PSII_error = fftwf_alloc_real((size_t)run_globals.params.PS_Length);
 #endif
@@ -969,7 +966,6 @@ void free_reionization_grids()
 #if USE_MINI_HALOS
     fftwf_free(grids->PSII_error);
     fftwf_free(grids->PSII_data);
-    fftwf_free(grids->PSII_k);
 #endif
   }
 

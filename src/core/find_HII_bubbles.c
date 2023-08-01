@@ -313,11 +313,8 @@ void _find_HII_bubbles(const int snapshot)
                         PLANCK * 1e21 // * run_globals.params.physics.ReionEscapeFrac
                         * R * units->UnitLength_in_cm * ReionNionPhotPerBary / PROTONMASS * units->UnitMass_in_g / 
                         pow(units->UnitLength_in_cm, 3) / units->UnitTime_in_s;
-#if USE_MINI_HALOS                         
-    J_21_auxIII_constant = (1.0 + redshift) * (1.0 + redshift) / (4.0 * M_PI) * run_globals.params.physics.ReionAlphaUV *
-                        PLANCK * 1e21 // * run_globals.params.physics.ReionEscapeFrac
-                        * R * units->UnitLength_in_cm * ReionNionPhotPerBaryIII / PROTONMASS * units->UnitMass_in_g / 
-                        pow(units->UnitLength_in_cm, 3) / units->UnitTime_in_s;   
+#if USE_MINI_HALOS   
+    J_21_auxIII_constant = J_21_aux_constant / ReionNionPhotPerBary * ReionNionPhotPerBaryIII;                      
 #endif                 
 
     if (run_globals.params.Flag_IncludeRecombinations) {
@@ -330,14 +327,7 @@ void _find_HII_bubbles(const int snapshot)
                            pow(units->UnitLength_in_cm / run_globals.params.Hubble_h, -3.) * ReionNionPhotPerBary /
                            PROTONMASS; // Convert pixel volume (Mpc/h)^3 -> (cm)^3
 #if USE_MINI_HALOS 
-      Gamma_R_prefactorIII = (1.0 + redshift) * (1.0 + redshift) * R *
-                          (units->UnitLength_in_cm / run_globals.params.Hubble_h) * SIGMA_HI *
-                          run_globals.params.physics.ReionAlphaUV / (run_globals.params.physics.ReionAlphaUV + 2.75) /
-                          1.0e-12; // Converting R h^-1 to R.                    
-                                               
-      Gamma_R_prefactorIII *= (units->UnitMass_in_g / units->UnitTime_in_s) *
-                           pow(units->UnitLength_in_cm / run_globals.params.Hubble_h, -3.) * ReionNionPhotPerBaryIII / 
-                           PROTONMASS; // Convert pixel volume (Mpc/h)^3 -> (cm)^3 
+      Gamma_R_prefactorIII = Gamma_R_prefactor / ReionNionPhotPerBary * ReionNionPhotPerBaryIII; 
 #endif                    
     }
 

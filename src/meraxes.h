@@ -486,7 +486,6 @@ typedef struct reion_grids_t
   float* PS_error;
 
 #if USE_MINI_HALOS  
-  float* PSII_k;
   float* PSII_data;
   float* PSII_error;
 #endif
