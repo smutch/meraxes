@@ -1249,6 +1249,7 @@ void evolveInt(float zp,
   double dadia_dzp, dadia_dzp_II, dcomp_dzp, dcomp_dzp_II, dxheat_dt_GAL, dxion_source_dt_GAL, dxion_sink_dt;
   double dxheat_dt_QSO, dxion_source_dt_QSO, dxlya_dt_QSO, dstarlya_dt_QSO;
   double zpp, dzpp;
+  double Conversion_factor = (SPEED_OF_LIGHT / (4. * M_PI)) / (PROTONMASS / SOLAR_MASS); //I am using this many times so it's worth save this
   int zpp_ct;
   double T, TII, x_e, zpp_integrand_GAL, zpp_integrand_QSO;
   double dxe_dzp, n_b, dspec_dzp, dxheat_dzp, dxlya_dt_GAL, dstarlya_dt_GAL, dstarlyLW_dt_GAL;
@@ -1368,41 +1369,41 @@ void evolveInt(float zp,
       // Units should be M_solar/s. Factor of (dt_dzp * dzpp) converts from per s to per z'
       // The division by Omb * RHOcrit arises from the differences between eq. 13 and eq. 22 in Mesinger et al. (2011),
       // accounting for the M_solar factor (SFR -> number)
-      dstarlya_dt_GAL *= (SPEED_OF_LIGHT / (4. * M_PI)) / (PROTONMASS / SOLAR_MASS);
+      dstarlya_dt_GAL *= Conversion_factor;
       
 #if USE_MINI_HALOS     
       dxheat_dt_III *= const_zp_prefactor_III;
       dxion_source_dt_III *= const_zp_prefactor_III;
       dxlya_dt_III *= const_zp_prefactor_III * n_b;
 
-      dstarlya_dt_III *= (SPEED_OF_LIGHT / (4. * M_PI)) / (PROTONMASS / SOLAR_MASS);
+      dstarlya_dt_III *= Conversion_factor;
 #endif
 
       dxheat_dt_QSO *= const_zp_prefactor_QSO;
       dxion_source_dt_QSO *= const_zp_prefactor_QSO;
       dxlya_dt_QSO *= const_zp_prefactor_QSO * n_b;
 
-      dstarlya_dt_QSO *= (SPEED_OF_LIGHT / (4. * M_PI)) / (PROTONMASS / SOLAR_MASS);
+      dstarlya_dt_QSO *= Conversion_factor;
     } else {
       dxheat_dt_GAL *= const_zp_prefactor_GAL;
       dxion_source_dt_GAL *= const_zp_prefactor_GAL;
       dxlya_dt_GAL *= const_zp_prefactor_GAL * n_b;
 
-      dstarlya_dt_GAL *= (SPEED_OF_LIGHT / (4. * M_PI)) / (PROTONMASS / SOLAR_MASS);
+      dstarlya_dt_GAL *= Conversion_factor;
 
 #if USE_MINI_HALOS      
       dxheat_dt_III *= const_zp_prefactor_III;
       dxion_source_dt_III *= const_zp_prefactor_III;
       dxlya_dt_III *= const_zp_prefactor_III * n_b;
 
-      dstarlya_dt_III *= (SPEED_OF_LIGHT / (4. * M_PI)) / (PROTONMASS / SOLAR_MASS);
+      dstarlya_dt_III *= Conversion_factor;
 #endif
     }
 
 #if USE_MINI_HALOS
     if (run_globals.params.Flag_IncludeLymanWerner){
-      dstarlyLW_dt_GAL *= (SPEED_OF_LIGHT / (4. * M_PI)) / (PROTONMASS / SOLAR_MASS);
-      dstarlyLW_dt_III *= (SPEED_OF_LIGHT / (4. * M_PI)) / (PROTONMASS / SOLAR_MASS);
+      dstarlyLW_dt_GAL *= Conversion_factor;
+      dstarlyLW_dt_III *= Conversion_factor;
     }
 #endif
 

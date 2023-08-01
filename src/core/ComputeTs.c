@@ -22,6 +22,10 @@
 /*
  * The minihalo feature was written by Emanuele M. Ventura, which includes an
  * amalgamation of the requisite functions for LW background using formulation of Qin2020a
+ * 
+ * The output with II are computed accounting only for Pop II galaxies. In particular we compute Lyman-alpha, Xray, LW only for Pop II.
+ * Notice that the reionization still accounts for Pop III galaxies so in this "only Pop II scenario" we are still considering for the 
+ * UV ionizing feedback from Pop III (xHI, and xe are computed using both PopII and Pop III)
  */
 void _ComputeTs(int snapshot)
 {
@@ -170,13 +174,8 @@ void _ComputeTs(int snapshot)
                                   0,
                                   &curr_xalpha);
 #if USE_MINI_HALOS
-          Tk_boxII[i_real] = (float)(float)T_RECFAST((float)zp, 0);
-          TS_boxII[i_real] = get_Ts((float)zp,
-                                  run_globals.reion_grids.deltax[i_padded],
-                                  Tk_boxII[i_real],
-                                  x_e_box_prev[i_padded],
-                                  0,
-                                  &curr_xalpha);  // How should I split this??? 
+          Tk_boxII[i_real] = Tk_box[i_real];
+          TS_boxII[i_real] = TS_box[i_real]; // This is true because Jalpha = 0 so curr_xalpha is the same.
 #endif                     
         }
 
@@ -508,14 +507,14 @@ void _ComputeTs(int snapshot)
         nuprime = nu_n(n_ct) * (1 + zpp) / (1.0 + zp);
         sum_lyn[R_ct] += frecycle(n_ct) * spectral_emissivity(nuprime, 0, 2);
 #if USE_MINI_HALOS
-        sum_lyn_III[R_ct] += frecycle(n_ct) * spectral_emissivity(nuprime, 0, 2); // HERE YOU NEED TO PUT 3, BUT AS A FIRST CHECK TO BE SURE THAT YOU ARE DOING THINGS RIGHT KEEP 2
+        sum_lyn_III[R_ct] += frecycle(n_ct) * spectral_emissivity(nuprime, 0, 3); 
         if (run_globals.params.Flag_IncludeLymanWerner) {
           if (nuprime < NU_LW / NU_LL)
             nuprime = NU_LW / NU_LL;
           if (nuprime > nu_n(n_ct + 1))
             continue;
           sum_lyn_LW[R_ct] += spectral_emissivity(nuprime, 2, 2);
-          sum_lyn_LW_III[R_ct] += spectral_emissivity(nuprime, 2, 2); // HERE YOU NEED TO PUT 3, BUT AS A FIRST CHECK TO BE SURE THAT YOU ARE DOING THINGS RIGHT KEEP 2
+          sum_lyn_LW_III[R_ct] += spectral_emissivity(nuprime, 2, 3);
         }
           
 #endif
