@@ -22,11 +22,55 @@ FlagMCMC               : 0  # Don't do any writing and activate MCMC related rou
 FlagIgnoreProgIndex    : 0
 RandomSeed             : 1809  # seed for random number generator
 
+PhotometricTablesDir 	   : /fred/oz113/eventura/meraxes/input/photometric_tables
+CoolingFuncsDir      	   : /fred/oz113/eventura/meraxes/input/cooling_functions
+StellarFeedbackDir         : /fred/oz113/eventura/meraxes/input/stellar_feedback_tables/Kroupa
+TablesForXHeatingDir       : /fred/oz113/eventura/meraxes/input/21cmFAST-tables
+
+Flag_IncludeRecombinations : 0
+Flag_Compute21cmBrightTemp : 1
+Flag_ComputePS             : 1
+Flag_IncludeSpinTemp       : 1   # if 0 Ts>>Tg
+Flag_SeparateQSOXrays      : 0   # NOT CURRENTLY IMPLEMENTED (CODE WILL FAIL IF != 0)
+Flag_IncludePecVelsFor21cm : 0
+Flag_ConstructLightcone    : 0
+Flag_IncludeLymanWerner    : 1   # Added by Manu for meraxes_LW
+Flag_IncludeMetalEvo       : 1   # Added by Manu for External metal Enrichment
+
+
+#################### External Metal enrichment, you need this when Flag_IncludeMetalEvo == 1 #################################
+
+MetalGridDim               : 16   
+
+AlphaCluster               : -1.4 #For fitting function for Non Linear Clustering. 
+BetaCluster                : 0.8
+GammaCluster               : 2.8
+NormCluster                : 200.0
+
+ZCrit                      : 0.0001 #If Z >= Zcrit -> PopII, otherwise PopIII
+
+################################################
+
+
+##################### X-Ray stuff (including for Pop III) #######################
+
+LXrayGal                   : 3.16e40         # Soft-band (< NuXraySoftCut keV) X-ray luminosity for galaxy based sources (HMXB)
+LXrayIII                   : 3.16e40         # PopIII
+
+NuXrayGalThreshold         : 500.  # Energy threshold for HMXB X-rays escaping host galaxy (eV)
+SpecIndexXrayGal           : 1.      # Spectral index of galaxy X-ray sources  (nu^-alpha)
+SpecIndexXrayIII           : 1.    # For Pop III
+LXrayQSO                   : 3.16e40         # Soft-band (< NuXraySoftCut keV) X-ray luminosity for QSO based sources
+NuXrayQSOThreshold         : 500.  # Energy threshold for QSO X-rays escaping host galaxy (eV)
+SpecIndexXrayQSO           : 1.      # Spectral index of QSO X-ray sources  (nu^-alpha)
+NuXraySoftCut              : 2000.      # X-ray soft-band cut off in (eV)
+NuXrayMax                  : 10000.         # Maximum energy for X-ray band integration
+
 #------------------------------------------
 #----- Parameters of physical model. New version of Manu includes Pop III so we need new parameters for Pop III! -------
 #------------------------------------------
 
-# ----- star formation -----
+# ----- star formation (including Pop III) -----
 SfDiskVelOpt               : 1    # disk velocity for SF law (1=Vmax, 2=Vvir)
 SfPrescription             : 1    # C06 SF law IF YOU RUN POP III YOU NEED THIS == 1
 
@@ -35,7 +79,10 @@ SfEfficiency_III          : 0.08   # for Pop III (atm the default value is the s
 SfEfficiencyScaling       : 0.0     # star formation efficiency Scaling
 SfEfficiencyScaling_III   : 0.0
 
-# ----- Pop III star formation -----
+SfCriticalSDNorm          : 0.2     # critical surface density normalisation factor for star formation (internal units; standard=0.37)
+SfCriticalSDNorm_III      : 0.2     # Same as above for PopIII 
+
+# ----- Pop III IMF -----
 AlphaIMF                  : -0.5 # Power-law index of the IMF (Test default is -2.35)
 MminIMF                   : 1.0 # Minimum mass of IMF (Test default is 9)
 MmaxIMF                   : 300.0 # Maximum mass of IMF (Test default is 500)
@@ -53,8 +100,6 @@ PopIIIAgePrescription     : 2 # 1->Schaerer Strong Mass Loss, 2-> Schaerer No Ma
 # 3) SfEfficiencyScaling = 1.06, SfEfficiency = 0.15
 #    -> 2Gyr at z=0 with redshift dependence SF timescale (Duffy+17)
 
-SfCriticalSDNorm          : 0.2     # critical surface density normalisation factor for star formation (internal units; standard=0.37)
-SfCriticalSDNorm_III      : 0.2     # Same as above for PopIII 
 
 # ----- supernova feedback -----
 Flag_IRA                   : 0    # use the instantaneous recycling approximation
@@ -144,7 +189,7 @@ quasar_open_angle         : 80.0
 
 
 #----------------------------------------------
-#----- Reionization ---------------------------
+#----- Reionization (updated for Pop III) -----
 #----------------------------------------------
 
 Flag_ReionizationModifier  : 1    # 0: No modifier, 1: Sobacchi 21cmFAST modifier, 2: use halo mass dependant infall modifier of Gnedin, 3: precomputed (requires input file)
@@ -159,7 +204,6 @@ ReionGnedin_z0         : 8
 ReionGnedin_zr         : 7
 
 # patchy (21cmFAST) prescription
-FFTW3WisdomDir :
 Flag_PatchyReion       : 1  # Use 21cmFAST (ensure Flag_ReionizationModifier=1 if wish to couple to galaxy formation).
 Flag_OutputGrids       : 1
 Flag_OutputGridsPostReion  : 1
@@ -180,6 +224,8 @@ ReionAlphaUVBH         : 1.57
 
 EscapeFracDependency       : 1  # 0->none, 1->redshift, 2->stellar mass, 3->sfr, 4->cold gas surface density, 5->mvir, 6->ssfr
 EscapeFracNorm             : 0.06
+EscapeFracNormIII          : 0.06 #EscapeFrac for Pop III
+EscapeFracRedshiftOffset   : 6.0
 EscapeFracRedshiftScaling  : 0.5  # N.B. use EscapeFracDependency>1 and this = 0 to scale only with galaxy property (and not also with redshift)
 EscapeFracPropScaling      : 0.5
 EscapeFracBHNorm           : 1
@@ -192,8 +238,16 @@ ReionSMParam_c         : 2.0
 ReionSMParam_d         : 2.5
 
 ReionTcool             : 1.0e4  # Kelvin
-ReionNionPhotPerBary   : 4000
+ReionNionPhotPerBary   : 6000 # Since the IMF has been updated for the UV luminosity.
+ReionNionPhotPerBary_III   : 6000 #You need to update this, you are leaving this same to Pop II because you are doing tests!
 
+ReionSfrTimescale          : 0.5
+TsHeatingFilterType        : 1 # what is this?
+TsNumFilterSteps           : 40
+TsVelocityComponent        : 0
+EndRedshiftLightcone       : 6.0
+ReionRBubbleMaxRecomb      : 33.9
+ReionMaxHeatingRedshift    : 30.
 
 #------------------------------------------------
 #----- Cosmological and nbody sim parameters ----
@@ -209,3 +263,7 @@ Sigma8: 0.815
 PartMass: 9.935e-7
 wLambda: -1.0
 NPart: 8589934592 
+
+UnitLength_in_cm         : 3.08568e+24       # WATCH OUT : Mpc/h
+UnitMass_in_g            : 1.989e+43         # WATCH OUT : 10^10Msun/h
+UnitVelocity_in_cm_per_s : 100000            # WATCH OUT : km/s
