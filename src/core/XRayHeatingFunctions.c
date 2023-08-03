@@ -1481,7 +1481,7 @@ void evolveInt(float zp,
   deriv[4] = dt_dzp * (dxion_source_dt_GAL + dxion_source_dt_III + dxion_source_dt_QSO);
   deriv[9] = dt_dzp * (dxion_source_dt_GAL + dxion_source_dt_QSO);
 #else
-  deriv[4] = dt_dzp * ((dxion_source_dt_GAL + dxion_source_dt_QSO) - dxion_sink_dt);
+  deriv[4] = dt_dzp * (dxion_source_dt_GAL + dxion_source_dt_QSO);
 #endif
 }
 
