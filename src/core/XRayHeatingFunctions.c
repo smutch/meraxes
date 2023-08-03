@@ -1253,6 +1253,7 @@ void evolveInt(float zp,
   double T, TII, x_e, zpp_integrand_GAL, zpp_integrand_QSO;
   double dxe_dzp, n_b, dspec_dzp, dxheat_dzp, dxlya_dt_GAL, dstarlya_dt_GAL, dstarlyLW_dt_GAL;
 #if USE_MINI_HALOS
+  //Do this to differentiate between Pop III and Pop II contribution
   double dxlya_dt_III, dstarlya_dt_III, dstarlyLW_dt_III, dxheat_dt_III, dxion_source_dt_III, zpp_integrand_III;
   double dspec_dzp_II, dxheat_dzp_II;
 #endif
@@ -1437,7 +1438,19 @@ void evolveInt(float zp,
 
   // lastly, X-ray heating
 #if USE_MINI_HALOS
+  dadia_dzp_II = 3 / (1.0 + zp);
+
+  if (fabs(curr_delNL0) > FRACT_FLOAT_ERR) 
+    dadia_dzp_II += dgrowth_factor_dzp / (1.0 / curr_delNL0 + growth_factor_zp);
+
+  dadia_dzp_II *= (2.0 / 3.0) * TII;
+
+  dspec_dzp_II = -dxe_dzp * TII / (1 + x_e);
+
+  dcomp_dzp_II = dT_comp(zp, TII, x_e);
+  
   dxheat_dzp = (dxheat_dt_GAL + dxheat_dt_III + dxheat_dt_QSO) * dt_dzp * 2.0 / 3.0 / BOLTZMANN / (1.0 + x_e);
+  dxheat_dzp_II = (dxheat_dt_GAL + dxheat_dt_QSO) * dt_dzp * 2.0 / 3.0 / BOLTZMANN / (1.0 + x_e); 
 #else
   dxheat_dzp = (dxheat_dt_GAL + dxheat_dt_QSO) * dt_dzp * 2.0 / 3.0 / BOLTZMANN / (1.0 + x_e);
 #endif
@@ -1447,7 +1460,10 @@ void evolveInt(float zp,
 
   // *** Finally, if we are at the last redshift step, Lya *** //
 #if USE_MINI_HALOS
+  deriv[6] = dxheat_dzp_II + dcomp_dzp_II + dspec_dzp_II + dadia_dzp_II; 
+
   deriv[2] = (dxlya_dt_GAL + dxlya_dt_III + dxlya_dt_QSO) + (dstarlya_dt_GAL + dstarlya_dt_III + dstarlya_dt_QSO);
+  deriv[7] = (dxlya_dt_GAL + dxlya_dt_QSO) + (dstarlya_dt_GAL + dstarlya_dt_QSO);
 #else
   deriv[2] = (dxlya_dt_GAL + dxlya_dt_QSO) + (dstarlya_dt_GAL + dstarlya_dt_QSO);
 #endif
@@ -1455,37 +1471,17 @@ void evolveInt(float zp,
   // stuff for marcos
   deriv[3] = dxheat_dzp;
 #if USE_MINI_HALOS
-  deriv[4] = dt_dzp * (dxion_source_dt_GAL + dxion_source_dt_III + dxion_source_dt_QSO);
-  if (run_globals.params.Flag_IncludeLymanWerner)
+  deriv[8] = dxheat_dzp_II;
+
+  if (run_globals.params.Flag_IncludeLymanWerner){
     deriv[5] = (dstarlyLW_dt_GAL + dstarlyLW_dt_III) * (PLANCK * 1e21);
+    deriv[10] = dstarlyLW_dt_GAL * (PLANCK * 1e21);
+  }
+
+  deriv[4] = dt_dzp * (dxion_source_dt_GAL + dxion_source_dt_III + dxion_source_dt_QSO);
+  deriv[9] = dt_dzp * (dxion_source_dt_GAL + dxion_source_dt_QSO);
 #else
   deriv[4] = dt_dzp * ((dxion_source_dt_GAL + dxion_source_dt_QSO) - dxion_sink_dt);
-#endif
-
-#if USE_MINI_HALOS //Do this to differentiate between Pop III and Pop II contribution
-  dadia_dzp_II = 3 / (1.0 + zp);
-  
-  if (fabs(curr_delNL0) > FRACT_FLOAT_ERR) 
-    dadia_dzp_II += dgrowth_factor_dzp / (1.0 / curr_delNL0 + growth_factor_zp);
-    
-  dadia_dzp_II *= (2.0 / 3.0) * TII;
-  
-  dspec_dzp_II = -dxe_dzp * TII / (1 + x_e);
-  
-  dcomp_dzp_II = dT_comp(zp, TII, x_e);
-  
-  dxheat_dzp_II = (dxheat_dt_GAL + dxheat_dt_QSO) * dt_dzp * 2.0 / 3.0 / BOLTZMANN / (1.0 + x_e); 
-  
-  deriv[6] = dxheat_dzp_II + dcomp_dzp_II + dspec_dzp_II + dadia_dzp_II; 
-  
-  deriv[7] = (dxlya_dt_GAL + dxlya_dt_QSO) + (dstarlya_dt_GAL + dstarlya_dt_QSO);
-  
-  deriv[8] = dxheat_dzp_II;
-  
-  deriv[9] = dt_dzp * (dxion_source_dt_GAL + dxion_source_dt_QSO);
-  
-  if (run_globals.params.Flag_IncludeLymanWerner)
-    deriv[10] = dstarlyLW_dt_GAL * (PLANCK * 1e21);
 #endif
 }
 
