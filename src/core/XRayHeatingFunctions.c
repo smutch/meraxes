@@ -228,15 +228,15 @@ double xion_RECFAST(float z, int flag)
 //  recieved redshift, zp, and emitted redshift, zpp.
 typedef struct
 {
-  double x_e, zp, zpp, fcoll, HI_filling_factor_zp;
+  double x_e, zp, zpp, HI_filling_factor_zp;
   int snap_i;
 } nu_tau_one_params;
 double nu_tau_one_helper(double nu, void* params)
 {
   nu_tau_one_params* p = (nu_tau_one_params*)params;
-  return tauX(nu, p->x_e, p->zp, p->zpp, p->fcoll, p->HI_filling_factor_zp, p->snap_i) - 1;
+  return tauX(nu, p->x_e, p->zp, p->zpp, p->HI_filling_factor_zp, p->snap_i) - 1;
 }
-double nu_tau_one(double zp, double zpp, double x_e, double fcoll, double HI_filling_factor_zp, int snap_i)
+double nu_tau_one(double zp, double zpp, double x_e, double HI_filling_factor_zp, int snap_i)
 {
   int status, iter, max_iter;
   const gsl_root_fsolver_type* T;
@@ -261,7 +261,7 @@ double nu_tau_one(double zp, double zpp, double x_e, double fcoll, double HI_fil
   }
 
   // check if lower bound has null
-  if (tauX(HeI_NUIONIZATION, x_e, zp, zpp, fcoll, HI_filling_factor_zp, snap_i) < 1)
+  if (tauX(HeI_NUIONIZATION, x_e, zp, zpp, HI_filling_factor_zp, snap_i) < 1)
     return HeI_NUIONIZATION;
 
   // set frequency boundary values
@@ -272,7 +272,6 @@ double nu_tau_one(double zp, double zpp, double x_e, double fcoll, double HI_fil
   p.x_e = x_e;
   p.zp = zp;
   p.zpp = zpp;
-  p.fcoll = fcoll;
   p.HI_filling_factor_zp = HI_filling_factor_zp;
   p.snap_i = snap_i;
   F.function = &nu_tau_one_helper;
@@ -345,7 +344,7 @@ double tauX_integrand(double zhat, void* params)
   sigma_tilde = species_weighted_x_ray_cross_section(nuhat, p->x_e);
   return drpropdz * n * HI_filling_factor_zhat * sigma_tilde;
 }
-double tauX(double nu, double x_e, double zp, double zpp, double fcoll, double HI_filling_factor_zp, int snap_i)
+double tauX(double nu, double x_e, double zp, double zpp, double HI_filling_factor_zp, int snap_i)
 {
   double result, error;
   gsl_function F;
