@@ -242,7 +242,7 @@ ReionNionPhotPerBary   : 6000 # Since the IMF has been updated for the UV lumino
 ReionNionPhotPerBary_III   : 6000 #You need to update this, you are leaving this same to Pop II because you are doing tests!
 
 ReionSfrTimescale          : 0.5
-TsHeatingFilterType        : 1 # what is this?
+TsHeatingFilterType        : 1 
 TsNumFilterSteps           : 40
 TsVelocityComponent        : 0
 EndRedshiftLightcone       : 6.0
