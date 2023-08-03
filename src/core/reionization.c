@@ -1407,8 +1407,10 @@ void construct_baryon_grids(int snapshot, int local_ngals)
   for (int prop = prop_stellar; prop <= prop_sfr; prop++) {
 
     // no need for sfr or sfrIII grid is not using SpinTemp
+#if USE_MINI_HALOS
     if ((!run_globals.params.Flag_IncludeSpinTemp) && (prop == prop_sfrIII))
       continue;
+#endif
     
     if ((!run_globals.params.Flag_IncludeSpinTemp) && (prop == prop_sfr))
       continue;
