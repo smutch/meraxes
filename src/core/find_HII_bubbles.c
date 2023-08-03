@@ -62,7 +62,7 @@ void _find_HII_bubbles(const int snapshot)
   double density_over_mean;
   double weighted_sfr_density;
   double f_coll_stars;
-  double electron_fraction;
+  double neutral_fraction;
   double Gamma_R_prefactor;
 #if USE_MINI_HALOS
   const double ReionEfficiencyIII = run_globals.params.physics.ReionEfficiencyIII;
@@ -358,9 +358,9 @@ void _find_HII_bubbles(const int snapshot)
 
           // Account for the partial ionisation of the cell from X-rays
           if (run_globals.params.Flag_IncludeSpinTemp) {
-            electron_fraction = 1.0 - ((float*)x_e_filtered)[i_padded];
+            neutral_fraction = 1.0 - ((float*)x_e_filtered)[i_padded];
           } else {
-            electron_fraction = 1.0;
+            neutral_fraction = 1.0;
           }
 
           if (flag_ReionUVBFlag){
@@ -374,9 +374,9 @@ void _find_HII_bubbles(const int snapshot)
           // Check if ionised!
        
 #if USE_MINI_HALOS
-          if ((f_coll_stars * ReionEfficiency + f_coll_starsIII * ReionEfficiencyIII) > electron_fraction * (1. + rec)) // IONISED!!!!
+          if ((f_coll_stars * ReionEfficiency + f_coll_starsIII * ReionEfficiencyIII) > neutral_fraction * (1. + rec)) // IONISED!!!!
 #else 
-          if (f_coll_stars > (electron_fraction / ReionEfficiency) * (1. + rec)) 
+          if (f_coll_stars * ReionEfficiency > neutral_fraction * (1. + rec)) 
 #endif
           {
             // If it is the first crossing of the ionisation barrier for this cell (largest R), let's record J_21
@@ -407,9 +407,9 @@ void _find_HII_bubbles(const int snapshot)
           // If so, assign partial ionisations to those cells which aren't fully ionised
           else if (flag_last_filter_step && (xH[i_real] > REL_TOL)) {
 #if USE_MINI_HALOS
-            xH[i_real] = (float)(electron_fraction - (f_coll_stars * ReionEfficiency + f_coll_starsIII * ReionEfficiencyIII));
+            xH[i_real] = (float)(neutral_fraction - (f_coll_stars * ReionEfficiency + f_coll_starsIII * ReionEfficiencyIII));
 #else
-            xH[i_real] = (float)(electron_fraction - f_coll_stars * ReionEfficiency);
+            xH[i_real] = (float)(neutral_fraction - f_coll_stars * ReionEfficiency);
 #endif
             if (xH[i_real] < 0.) {
               xH[i_real] = (float)0.;
