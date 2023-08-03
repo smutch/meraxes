@@ -125,14 +125,14 @@ extern "C"
   double HeI_ion_crosssec(double nu);
 
   /* Calculates the optical depth for a photon arriving at z = zp with frequency nu, emitted at z = zpp */
-  double tauX(double nu, double x_e, double zp, double zpp, double fcoll, double HI_filling_factor_zp, int snap_i);
+  double tauX(double nu, double x_e, double zp, double zpp, double HI_filling_factor_zp, int snap_i);
 
   /* The total weighted HI + HeI + HeII  cross-section in pcm^-2 */
   double species_weighted_x_ray_cross_section(double nu, double x_e);
 
   /* Returns the frequency threshold where \tau = 1 between zp and zpp,
      in the IGM with mean electron fraction x_e */
-  double nu_tau_one(double zp, double zpp, double x_e, double fcoll, double HI_filling_factor_zp, int snap_i);
+  double nu_tau_one(double zp, double zpp, double x_e, double HI_filling_factor_zp, int snap_i);
 
   /* Main integral driver for the frequency integral in the evolution equations */
   double integrate_over_nu(double zp,

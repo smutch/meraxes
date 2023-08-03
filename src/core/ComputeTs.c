@@ -403,26 +403,19 @@ void _ComputeTs(int snapshot)
 
 #if USE_MINI_HALOS
       filling_factor_of_HI_zp = 1. - (ReionEfficiency * collapse_fraction + ReionEfficiencyIII * collapse_fractionIII) / (1.0 - x_e_ave);
-      
-      lower_int_limit_GAL = fmax(nu_tau_one(zp, zpp, x_e_ave, collapse_fraction + collapse_fractionIII, filling_factor_of_HI_zp, snapshot),
-                                 run_globals.params.physics.NuXrayGalThreshold * NU_over_EV); // This is ok both for Pop III and Pop III
-       
-      if (run_globals.params.Flag_SeparateQSOXrays) {
-        lower_int_limit_QSO = fmax(nu_tau_one(zp, zpp, x_e_ave, collapse_fraction + collapse_fractionIII, filling_factor_of_HI_zp, snapshot),
-                                   run_globals.params.physics.NuXrayQSOThreshold * NU_over_EV);
-      } 
 #else
       filling_factor_of_HI_zp = 1. - ReionEfficiency * collapse_fraction / (1.0 - x_e_ave);                                 
-
-      lower_int_limit_GAL = fmax(nu_tau_one(zp, zpp, x_e_ave, collapse_fraction, filling_factor_of_HI_zp, snapshot),
-                                 run_globals.params.physics.NuXrayGalThreshold * NU_over_EV);
-      
-      if (run_globals.params.Flag_SeparateQSOXrays) {
-        lower_int_limit_QSO = fmax(nu_tau_one(zp, zpp, x_e_ave, collapse_fraction, filling_factor_of_HI_zp, snapshot),
-                                   run_globals.params.physics.NuXrayQSOThreshold * NU_over_EV);
-      }
 #endif
 
+      lower_int_limit_GAL = fmax(nu_tau_one(zp, zpp, x_e_ave, filling_factor_of_HI_zp, snapshot),
+                                 run_globals.params.physics.NuXrayGalThreshold * NU_over_EV);
+       
+      if (run_globals.params.Flag_SeparateQSOXrays) {
+        lower_int_limit_QSO = fmax(nu_tau_one(zp, zpp, x_e_ave, filling_factor_of_HI_zp, snapshot),
+                                   run_globals.params.physics.NuXrayQSOThreshold * NU_over_EV);
+      } 
+
+      
       if (filling_factor_of_HI_zp < 0)
         filling_factor_of_HI_zp =
           0; // for global evol; nu_tau_one above treats negative (post_reionization) inferred filling factors properly
