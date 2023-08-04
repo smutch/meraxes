@@ -381,7 +381,7 @@ void init_reion_grids()
     grids->z_at_ionization[ii] = -1;
     grids->r_bubble[ii] = 0.0;
 #if USE_MINI_HALOS
-	if (run_globals.params.Flag_IncludeLymanWerner) {
+    if (run_globals.params.Flag_IncludeLymanWerner) {
       grids->JLW_box[ii] = 0.0;
       grids->JLW_boxII[ii] = 0.0;
     }
@@ -1902,12 +1902,15 @@ void save_reion_output_grids(int snapshot)
     H5LTset_attribute_double(file_id, "TS_boxII", "volume_ave_J_alphaII", &(grids->volume_ave_J_alphaII), 1);
     H5LTset_attribute_double(file_id, "TS_boxII", "volume_ave_XheatII", &(grids->volume_ave_XheatII), 1);
 
-    if (run_globals.params.Flag_IncludeLymanWerner) {
-      H5LTset_attribute_double(file_id, "JLW_box", "volume_ave_JLW", &(grids->volume_ave_J_LW), 1);
-      H5LTset_attribute_double(file_id, "JLW_boxII", "volume_ave_JLW_II", &(grids->volume_ave_J_LWII), 1);
-    }
 #endif
   }
+
+#if USE_MINI_HALOS    
+  if (run_globals.params.Flag_IncludeLymanWerner) {
+      H5LTset_attribute_double(file_id, "JLW_box", "volume_ave_JLW", &(grids->volume_ave_J_LW), 1);
+      H5LTset_attribute_double(file_id, "JLW_boxII", "volume_ave_JLW_II", &(grids->volume_ave_J_LWII), 1);
+  }
+#endif
 
   if (run_globals.params.Flag_Compute21cmBrightTemp) {
     H5LTset_attribute_double(file_id, "delta_T", "volume_ave_Tb", &(grids->volume_ave_Tb), 1);
