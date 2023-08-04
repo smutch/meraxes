@@ -75,9 +75,11 @@ double gas_cooling(galaxy_t* gal)
       
       if (halo_type == 1)
         rho_r_cool = x / t_cool * 0.885;                         // 0.885 = 3/2 * mu, mu=0.59 for a fully ionized gas
-      
+
+#if USE_MINI_HALOS      
       else if (halo_type == 2)
         rho_r_cool = x / t_cool * 1.83;                        // 1.83 = 3/2 * mu, mu = 1.22 for a fully neutral gas  
+#endif
 
       assert(rho_r_cool > 0);
       isothermal_norm = gal->HotGas / (4. * M_PI * fof_group->Rvir);

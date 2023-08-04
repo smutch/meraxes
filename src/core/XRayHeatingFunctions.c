@@ -50,7 +50,7 @@ int init_heat()
   ST_over_PS = calloc(TsNumFilterSteps, sizeof(double));
   sum_lyn = calloc(TsNumFilterSteps, sizeof(double));
 #if USE_MINI_HALOS
-sum_lyn_III = calloc(TsNumFilterSteps, sizeof(double));
+  sum_lyn_III = calloc(TsNumFilterSteps, sizeof(double));
   if (run_globals.params.Flag_IncludeLymanWerner){
     sum_lyn_LW = calloc(TsNumFilterSteps, sizeof(double));
     sum_lyn_LW_III = calloc(TsNumFilterSteps, sizeof(double));
