@@ -40,7 +40,7 @@ double gas_infall(fof_group_t* FOFgroup, int snapshot)
       total_ejectedgas += gal->EjectedGas;
       total_blackholemass += gal->BlackHoleMass + gal->BlackHoleAccretingColdMass;
 #if USE_MINI_HALOS
-	  total_remnantmass += gal->Remnant_Mass;
+      total_remnantmass += gal->Remnant_Mass;
 #endif 
 
       if (gal != central) { 

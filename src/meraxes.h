@@ -596,6 +596,7 @@ typedef struct galaxy_t
   double PrefactorBubble;
   double TimeBubble;
   double Metal_Probability; // Probability to be polluted by other metal bubbles
+  double GalMetal_Probability; //Random number between 0 and 1 associated to the galaxy.
   double Metallicity_IGM; //
   double MaxBubble; // Need this for Boost probability
   double AveBubble; // Same (you will likely use only one of the two). You could actually save only the boost factor
