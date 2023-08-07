@@ -205,7 +205,7 @@ void merge_with_target(galaxy_t* gal, int* dead_gals, int snapshot)
   // TODO: this could be improved in the future!
   
   if (gal->Galaxy_Population == 2) 
-    parent->Galaxy_Population = 2; // Give a double check since now you updated the internal enrichment
+    parent->Galaxy_Population = 2; // Since now you updated the internal enrichment probably this condition is useless
   
   if (gal->RmetalBubble > parent->RmetalBubble) {
     
