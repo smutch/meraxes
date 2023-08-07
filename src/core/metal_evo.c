@@ -756,7 +756,7 @@ void assign_probability_to_galaxies(int ngals_in_metal_slabs, int snapshot, int 
             
           if (flag_property == 1){
             if (gal->output_index == -1) //Metallicity of the IGM when it is just formed!
-              gal->Metallicity_IGM = calc_metallicity((double)buffer_metals[grid_index(ix, iy, iz, MetalGridDim, INDEX_REAL)], cell_gas);
+              gal->Metallicity_IGM = calc_metallicity(cell_gas, (double)buffer_metals[grid_index(ix, iy, iz, MetalGridDim, INDEX_REAL)]);
           }
           
           if (flag_property == 2)
