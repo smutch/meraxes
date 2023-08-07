@@ -752,9 +752,10 @@ void create_master_file()
       H5LTset_attribute_string(file_id, group_name, "deltax", "None");
 
 #if USE_MINI_HALOS
-	  if (run_globals.params.Flag_IncludeLymanWerner) {
+      if (run_globals.params.Flag_IncludeLymanWerner) {
         H5LTset_attribute_string(file_id, group_name, "JLW_box", "1e-21erg/s/Hz/cm/cm/sr");
         H5LTset_attribute_string(file_id, group_name, "JLW_box_II", "1e-21erg/s/Hz/cm/cm/sr");
+        H5LTset_attribute_string(file_id, group_name, "Mvir_crit_MC", "1e10 solMass");
       }
 #endif
 
@@ -800,8 +801,9 @@ void create_master_file()
 
 #if USE_MINI_HALOS
       if (run_globals.params.Flag_IncludeLymanWerner) { 
-        H5LTset_attribute_string(file_id, group_name, "JLW_box", "v"); //Check if there is the h**2 factor
-        H5LTset_attribute_string(file_id, group_name, "JLW_box_II", "v"); //Check if there is the h**2 factor
+        H5LTset_attribute_string(file_id, group_name, "JLW_box", "v"); 
+        H5LTset_attribute_string(file_id, group_name, "JLW_box_II", "v"); 
+        H5LTset_attribute_string(file_id, group_name, "Mvir_crit_MC", "v/h");
       }
 #endif
 
