@@ -5,6 +5,7 @@
 #if USE_MINI_HALOS
 #include "core/PopIII.h"
 #include "core/virial_properties.h"
+#include "core/misc_tools.h"
 #endif
 #include "infall.h"
 #include "meraxes.h"
