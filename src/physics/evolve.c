@@ -57,37 +57,34 @@ int evolve_galaxies(fof_group_t* fof_group, int snapshot, int NGal, int NFof)
           if (Flag_Metals == true) { // Assign to newly formed galaxies metallicity of their cell according to a certain probability
             if (gal->output_index == -1) { 
               double x;
-              double boost_corr = 1;
-              
-              if (gal->AveBubble > 0.0)
-                boost_corr = NLBias(gal->AveBubble, gal->Mvir, run_globals.ZZ[snapshot]);
-              
               x = (double)rand() / RAND_MAX;
+              gal->GalMetal_Probability = x;
+            }
+            double boost_corr = 1;
               
-              if (x <= gal->Metal_Probability * (1 + boost_corr)) {
-                /*gal->MetalsHotGas = gal->HotGas * gal->Metallicity_IGM;
-                gal->MetalsColdGas = gal->ColdGas * gal->Metallicity_IGM;
-                gal->MetalsEjectedGas = gal->EjectedGas * gal->Metallicity_IGM;*/
-                gal->Flag_ExtMetEnr = 1; // Just update the flag
+            if (gal->AveBubble > 0.0)
+              boost_corr = NLBias(gal->AveBubble, gal->Mvir, run_globals.ZZ[snapshot]);
+              
+            if (gal->GalMetal_Probability <= gal->Metal_Probability * (1 + boost_corr)) {
+              gal->Flag_ExtMetEnr = 1; // Just update the flag
                 
-                *gal_counter_enriched = *gal_counter_enriched + 1;
-                if ((gal->Metallicity_IGM / 0.01) > run_globals.params.physics.ZCrit) {
-                  *gal_counter_Pop2 = *gal_counter_Pop2 + 1;
-                  gal->Galaxy_Population = 2;
-                  }
-                else
-                  gal->Galaxy_Population = 3; // Enriched but not enough
-              }
+              *gal_counter_enriched = *gal_counter_enriched + 1;
+              if ((gal->Metallicity_IGM / 0.01) > run_globals.params.physics.ZCrit) {
+                *gal_counter_Pop2 = *gal_counter_Pop2 + 1;
+                gal->Galaxy_Population = 2;
+                }
+              else
+                gal->Galaxy_Population = 3; // Enriched but not enough
+            }
               
-              else {
-                gal->Galaxy_Population = 3;
-                gal->Flag_ExtMetEnr = 0;
-                *gal_counter_Pop3 = *gal_counter_Pop3 + 1;
-              }
-              gal->Metal_Probability *= (1 + boost_corr); //Add this to save the updated probability!
+            else {
+              gal->Galaxy_Population = 3;
+              gal->Flag_ExtMetEnr = 0;
+              *gal_counter_Pop3 = *gal_counter_Pop3 + 1;
+            }
+            gal->Metal_Probability *= (1 + boost_corr); //Add this to save the updated probability!
               if (gal->Metal_Probability > 1)
                 gal->Metal_Probability = 1;
-            }
           }
           else { // If there is no external metal enrichment, if a new galaxy is formed it will be Pop III
             if (gal->output_index== -1)

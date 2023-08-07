@@ -31,6 +31,11 @@ void reincorporate_ejected_gas(galaxy_t* gal)
         reincorporated = ReincorporationEff * gal->EjectedGas * (gal->dt / t_dyn);
         break;
       case 2:
+#if USE_MINI_HALOS
+        mlog_error("ReincorporationModel = 2 when using Minihalos leads to no reincorporation, change it to 1!");
+        ABORT(EXIT_FAILURE);
+        break;
+#endif
         // Following the prescription of Henriques et al. 2013
         t_rein = ReincorporationEff / (fof_group->Mvir / run_globals.params.Hubble_h); // Unit: Myr
         // Convert to Meraxes intrinsic unit
