@@ -30,6 +30,7 @@ int evolve_galaxies(fof_group_t* fof_group, int snapshot, int NGal, int NFof)
   int NSteps = run_globals.params.NSteps;
   bool Flag_IRA = (bool)(run_globals.params.physics.Flag_IRA);
 #if USE_MINI_HALOS
+  double DiskMetallicity; // Need this to compute the internal enrichment in a more accurate way
   bool Flag_Metals = (bool)(run_globals.params.Flag_IncludeMetalEvo);
 #endif
   
@@ -109,6 +110,14 @@ int evolve_galaxies(fof_group_t* fof_group, int snapshot, int NGal, int NFof)
 
             if (gal->BlackHoleAccretingColdMass > 0)
               previous_merger_driven_BH_growth(gal);
+
+#if USE_MINI_HALOS
+            DiskMetallicity = calc_metallicity(gal->ColdGas, gal->MetalsColdGas); // A more accurate way to account for the internal enrichment!
+            if ((DiskMetallicity / 0.01) > run_globals.params.physics.ZCrit)
+              gal->Galaxy_Population = 2;
+            else
+              gal->Galaxy_Population = 3;
+#endif
   
             insitu_star_formation(gal, snapshot);
 
@@ -116,10 +125,10 @@ int evolve_galaxies(fof_group_t* fof_group, int snapshot, int NGal, int NFof)
             if ((Flag_Metals == true) && (gal->Type < 2)) { //Adding conditions on galType to test the MetalBubble!
               calc_metal_bubble(gal, snapshot);
             }
-            else { // Update Galaxy Population index due to internal enrichment (this happen within calc_metal_bubble)
+            /*else { // Update Galaxy Population index due to internal enrichment (this happen within calc_metal_bubble)
                if ((gal->Galaxy_Population == 3) && (gal->NewStars_III[0] + gal->NewStars[0]) > 1e-10)
                  gal->Galaxy_Population = 2; 
-            }
+            }*/ //REMOVED THIS since I updated the internal enrichment above!
 #endif
             // If this is a type 2 then decrement the merger clock
             if (gal->Type == 2)

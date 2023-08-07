@@ -513,9 +513,9 @@ void calc_metal_bubble(galaxy_t* gal, int snapshot) // result in internal units 
   gas_density = (central->HotGas + central->ColdGas + central->EjectedGas + gal->HotGas + gal->ColdGas + gal->EjectedGas) * UnitMass_in_g / PROTONMASS / (4.0 * M_PI / 3.0 * pow(central->Rvir * UnitLength_in_cm, 3.)); // cm^-3
   
   if (mm_stars > 1e-10) { 
-    if (gal->Galaxy_Population == 3) //Crucial to update the galaxy index! 
+    /*if (gal->Galaxy_Population == 3) //Moved this in evolve.c 
       gal->Galaxy_Population = 2;
-      }
+      }*/
 
   for (int i_burst = 0; i_burst < n_bursts; i_burst++) {
     double m_stars_II = gal->NewStars_II[i_burst];

@@ -205,22 +205,13 @@ void merge_with_target(galaxy_t* gal, int* dead_gals, int snapshot)
   // TODO: this could be improved in the future!
   
   if (gal->Galaxy_Population == 2) 
-    parent->Galaxy_Population = 2;
+    parent->Galaxy_Population = 2; // Give a double check since now you updated the internal enrichment
   
   if (gal->RmetalBubble > parent->RmetalBubble) {
     
     parent->RmetalBubble = gal->RmetalBubble; // This is to account the evolution of metal bubbles after a merger event
     parent->PrefactorBubble = gal->PrefactorBubble;
     parent->TimeBubble = gal->TimeBubble;
-    /*parent->count_SF += 1; // Put the SF episode of the merged galaxy into the target one so you can continue to keep track of the evolution of the Bubble
-    int C = parent->count_SF;
-    parent->Radii[C-1] = parent->RmetalBubble;
-    for (int iii = 0; iii < gal->count_SF; iii++) {
-      if ((parent->Radii[C-1] - gal->Radii[iii]) < 1e-6) { // This loop to find which was the Prefactor and the Time associated to that bubble (Maybe there is a smarter way)
-        parent->Prefactor[C-1] = gal->Prefactor[iii];
-        parent->Times[C-1] = gal->Times[iii];
-      }
-    }*/
   }
 #endif
     
