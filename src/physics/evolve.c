@@ -65,8 +65,8 @@ int evolve_galaxies(fof_group_t* fof_group, int snapshot, int NGal, int NFof)
             if (gal->AveBubble > 0.0)
               boost_corr = NLBias(gal->AveBubble, gal->Mvir, run_globals.ZZ[snapshot]);
               
-            if (gal->GalMetal_Probability <= gal->Metal_Probability * (1 + boost_corr)) {
-              gal->Flag_ExtMetEnr = 1; // Just update the flag
+            if ((gal->GalMetal_Probability <= gal->Metal_Probability * (1 + boost_corr)) || (gal->NewStars_III[0] + gal->NewStars[0]) > 1e-10) {
+              gal->Flag_ExtMetEnr = 1; // Just update the flag. Here what I am saying is that a galaxy that already experienced SN events will surely be inside a metal bubble!
                 
               *gal_counter_enriched = *gal_counter_enriched + 1;
               if ((gal->Metallicity_IGM / 0.01) > run_globals.params.physics.ZCrit) {
