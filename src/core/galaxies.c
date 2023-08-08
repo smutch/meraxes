@@ -76,6 +76,8 @@ galaxy_t* new_galaxy(int snapshot, unsigned long halo_ID)
   gal->FescIIIWeightedGSM = 0.0;
   gal->Remnant_Mass = 0.;
   gal->Metal_Probability = 0.0;
+  gal->Metals_IGM = 0.0;
+  gal->Gas_IGM = 0.0;
   gal->Metallicity_IGM = -50.0; // Better to initialize to a very negative value.
   gal->RmetalBubble = 0.0;
   gal->PrefactorBubble = 0.0;

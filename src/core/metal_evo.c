@@ -45,6 +45,7 @@ void construct_metal_grids(int snapshot, int local_ngals)
   
   float* mass_metals_grid_metals = run_globals.metal_grids.mass_metals;
   float* mass_gas_grid_metals = run_globals.metal_grids.mass_gas;
+  float* mass_galgas_grid_metals = run_globals.metal_grids.mass_galgas;
   float* prob_grid_metals = run_globals.metal_grids.Probability_metals;
   float* Rave_grid_metals = run_globals.metal_grids.R_ave; 
   float* Rmax_grid_metals = run_globals.metal_grids.R_max;
@@ -65,6 +66,7 @@ void construct_metal_grids(int snapshot, int local_ngals)
   for (int ii = 0; ii < slab_n_real_metals; ii++) { 
     mass_metals_grid_metals[ii] = 0.0;
     mass_gas_grid_metals[ii] = 0.0;
+    mass_galgas_grid_metals[ii] = 0.0;
     prob_grid_metals[ii] = 0.0;
     count_bubble_metals[ii] = 0;
     Rave_grid_metals[ii] = 0.0;
@@ -82,6 +84,7 @@ void construct_metal_grids(int snapshot, int local_ngals)
     prop_Rave,
     prop_Rmax,
     prop_mass_ej_metals,
+    prop_mass_gal_gas,
     prop_mass_ej_gas
   };
   
@@ -158,6 +161,11 @@ void construct_metal_grids(int snapshot, int local_ngals)
             
               buffer_metals[ind] += gal->MetalsEjectedGas; //Internal units (same of gas_cell)
               break;
+              
+            case prop_mass_gal_gas:
+            
+              buffer_metals[ind] += (gal->ColdGas + gal->HotGas);
+              break;   
               
             case prop_mass_ej_gas:
             
@@ -248,6 +256,17 @@ void construct_metal_grids(int snapshot, int local_ngals)
                   if (val < 0)
                     val = 0;
                   mass_metals_grid_metals[grid_index(ix, iy, iz, MetalGridDim, INDEX_REAL)] = (float)val;
+                }
+            break;
+          
+          case prop_mass_gal_gas: // Need this to compute average metallicity of the cell
+            for (int ix = 0; ix < slab_nix_metals[i_r]; ix++)
+              for (int iy = 0; iy < MetalGridDim; iy++)
+                for (int iz = 0; iz < MetalGridDim; iz++) {
+                  double val = (double)buffer_metals[grid_index(ix, iy, iz, MetalGridDim, INDEX_REAL)];
+                  if (val < 0)
+                    val = 0;
+                  mass_galgas_grid_metals[grid_index(ix, iy, iz, MetalGridDim, INDEX_REAL)] = (float)val;
                 }
             break;
             
@@ -357,6 +376,13 @@ void save_metal_input_grids(int snapshot)
     for (int jj = 0; jj < MetalGridDim; jj++)
       for (int kk = 0; kk < MetalGridDim; kk++)
         grid[grid_index(ii, jj, kk, MetalGridDim, INDEX_REAL)] =
+          (float)((grids->mass_galgas)[grid_index(ii, jj, kk, MetalGridDim, INDEX_REAL)] * UnitMass_in_g / SOLAR_MASS);
+  write_grid_float("mass_galgas", grid, file_id, fspace_id, memspace_id, dcpl_id);
+  
+  for (int ii = 0; ii < local_nix_metals; ii++)
+    for (int jj = 0; jj < MetalGridDim; jj++)
+      for (int kk = 0; kk < MetalGridDim; kk++)
+        grid[grid_index(ii, jj, kk, MetalGridDim, INDEX_REAL)] =
           (float)((grids->mass_gas)[grid_index(ii, jj, kk, MetalGridDim, INDEX_REAL)] * UnitMass_in_g / SOLAR_MASS);
   write_grid_float("mass_gas", grid, file_id, fspace_id, memspace_id, dcpl_id);
 
@@ -385,6 +411,7 @@ void init_metal_grids()
   for (int ii = 0; ii < slab_n_real_metals; ii++) {
     grids->mass_metals[ii] = (float)0.;
     grids->mass_gas[ii] = (float)0.;
+    grids->mass_galgas[ii] = (float)0.;
     grids->Zigm_box[ii] = (float)0.;
     grids->Probability_metals[ii] = (float)0.;
     grids->N_bubbles[ii] = (int)0;
@@ -407,6 +434,7 @@ void malloc_metal_grids()
 
   grids->mass_metals = NULL;
   grids->mass_gas = NULL;
+  grids->mass_galgas = NULL;
   grids->Zigm_box = NULL; 
   grids->Probability_metals = NULL;
   grids->N_bubbles = NULL;
@@ -432,6 +460,7 @@ void malloc_metal_grids()
 
   grids->mass_metals = fftwf_alloc_real((size_t)slab_n_real_metals);
   grids->mass_gas = fftwf_alloc_real((size_t)slab_n_real_metals);
+  grids->mass_galgas = fftwf_alloc_real((size_t)slab_n_real_metals);
   grids->Zigm_box = fftwf_alloc_real((size_t)slab_n_real_metals);
 
   grids->Probability_metals = fftwf_alloc_real((size_t)slab_n_real_metals);
@@ -454,6 +483,7 @@ void free_metal_grids()
   free(run_globals.metal_grids.slab_nix_metals);
 
   fftwf_free(grids->mass_gas);
+  fftwf_free(grids->mass_galgas);
   fftwf_free(grids->mass_metals);
   fftwf_free(grids->Zigm_box);
   fftwf_free(grids->Probability_metals);
@@ -525,6 +555,8 @@ void assign_probability_to_galaxies(int ngals_in_metal_slabs, int snapshot, int 
   double cell_gas = run_globals.rhocrit[snapshot] * run_globals.params.OmegaM * run_globals.params.BaryonFrac * pow((pixel_length_metals / (1.0 + run_globals.ZZ[snapshot])), 3.0);
   float* Probability_metals = run_globals.metal_grids.Probability_metals;
   float* mass_metals = run_globals.metal_grids.mass_metals;
+  float* mass_gas = run_globals.metal_grids.mass_gas;
+  float* mass_galgas = run_globals.metal_grids.mass_galgas;
   float* Rave_metals = run_globals.metal_grids.R_ave;
   float* Rmax_metals = run_globals.metal_grids.R_max;
   int total_assigned = 0;
@@ -533,12 +565,15 @@ void assign_probability_to_galaxies(int ngals_in_metal_slabs, int snapshot, int 
     mlog("Assigning probability for metals...", MLOG_OPEN);
     
   if (flag_property == 1)
-    mlog("Assigning IGM for metals...", MLOG_OPEN);
+    mlog("Assigning metals IGM for metals...", MLOG_OPEN);
     
   if (flag_property == 2)
-    mlog("Assigning Rave for metals...", MLOG_OPEN);
+    mlog("Assigning gas IGM for metals...", MLOG_OPEN);
     
   if (flag_property == 3)
+    mlog("Assigning Rave for metals...", MLOG_OPEN);
+    
+  if (flag_property == 4)
     mlog("Assigning Rmax for metals...", MLOG_OPEN);
 
   int slab_map_offsets[run_globals.mpi_size];
@@ -670,6 +705,50 @@ void assign_probability_to_galaxies(int ngals_in_metal_slabs, int snapshot, int 
               if (send_to_rank > run_globals.mpi_rank) {
                 if (send_flag) {
                   int n_cells = (int)(slab_nix_metals[run_globals.mpi_rank] * MetalGridDim * MetalGridDim);
+                  MPI_Send(mass_gas - mass_galgas, n_cells, MPI_FLOAT, send_to_rank, 793710, run_globals.mpi_comm);
+                }
+                if (recv_flag) {
+                  int n_cells = (int)(slab_nix_metals[recv_from_rank] * MetalGridDim * MetalGridDim);
+                  MPI_Recv(buffer_metals, n_cells, MPI_FLOAT, recv_from_rank, 793710, run_globals.mpi_comm, MPI_STATUS_IGNORE);
+                }
+              } 
+              else {
+                if (recv_flag) {
+                  int n_cells = (int)(slab_nix_metals[recv_from_rank] * MetalGridDim * MetalGridDim);
+                  MPI_Recv(buffer_metals, n_cells, MPI_FLOAT, recv_from_rank, 793710, run_globals.mpi_comm, MPI_STATUS_IGNORE);
+                } 
+                if (send_flag) {
+                  int n_cells = (int)(slab_nix_metals[run_globals.mpi_rank] * MetalGridDim * MetalGridDim);
+                  MPI_Send(mass_gas - mass_galgas, n_cells, MPI_FLOAT, send_to_rank, 793710, run_globals.mpi_comm);
+                }
+              }
+            }
+            else {
+              int n_cells = (int)(slab_nix_metals[recv_from_rank] * MetalGridDim * MetalGridDim);
+              memcpy(buffer_metals, mass_gas - mass_galgas, sizeof(float) * n_cells);
+            }
+          }    
+          
+      if (flag_property == 3) {
+      
+        if (i_skip > 0) {
+            MPI_Sendrecv(&recv_flag,
+                         sizeof(bool),
+                         MPI_BYTE,
+                         recv_from_rank,
+                         6393762,
+                         &send_flag,
+                         sizeof(bool),
+                         MPI_BYTE,
+                         send_to_rank,
+                         6393762,
+                         run_globals.mpi_comm,
+                         MPI_STATUS_IGNORE);
+
+            // need to ensure sends and receives do not clash!
+              if (send_to_rank > run_globals.mpi_rank) {
+                if (send_flag) {
+                  int n_cells = (int)(slab_nix_metals[run_globals.mpi_rank] * MetalGridDim * MetalGridDim);
                   MPI_Send(Rave_metals, n_cells, MPI_FLOAT, send_to_rank, 793710, run_globals.mpi_comm);
                 }
                 if (recv_flag) {
@@ -694,7 +773,7 @@ void assign_probability_to_galaxies(int ngals_in_metal_slabs, int snapshot, int 
             }
           }
           
-      if (flag_property == 3) {
+      if (flag_property == 4) {
       
         if (i_skip > 0) {
             MPI_Sendrecv(&recv_flag,
@@ -755,12 +834,17 @@ void assign_probability_to_galaxies(int ngals_in_metal_slabs, int snapshot, int 
             gal->Metal_Probability = (double)buffer_metals[grid_index(ix, iy, iz, MetalGridDim, INDEX_REAL)];
             
           if (flag_property == 1)
-              gal->Metallicity_IGM = calc_metallicity(cell_gas, (double)buffer_metals[grid_index(ix, iy, iz, MetalGridDim, INDEX_REAL)]);
+              gal->Metals_IGM = (double)buffer_metals[grid_index(ix, iy, iz, MetalGridDim, INDEX_REAL)];
+              
+          if (flag_property == 2) {
+              gal->Gas_IGM = (double)buffer_metals[grid_index(ix, iy, iz, MetalGridDim, INDEX_REAL)] + cell_gas; 
+    	      gal->Metallicity_IGM = calc_metallicity(gal->Gas_IGM, gal->Metals_IGM); //Maybe this can be put somewhere else
+          }
           
-          if (flag_property == 2)
+          if (flag_property == 3)
             gal->AveBubble = (double)buffer_metals[grid_index(ix, iy, iz, MetalGridDim, INDEX_REAL)];
             
-          if (flag_property == 3)
+          if (flag_property == 4)
             gal->MaxBubble = (double)buffer_metals[grid_index(ix, iy, iz, MetalGridDim, INDEX_REAL)];
            
           // increment counters
