@@ -353,7 +353,6 @@ typedef struct metal_grids_t //New stuff for MetalEvo, probably you will need to
   int*   N_bubbles;
   float* mass_metals;
   float* mass_gas;
-  float* mass_galgas;
   float* Zigm_box;
   float* Probability_metals;
   float* R_ave; // Average radius in the bubble
