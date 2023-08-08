@@ -494,8 +494,8 @@ void calc_metal_bubble(galaxy_t* gal, int snapshot) // result in internal units 
   double density_unit = run_globals.units.UnitDensity_in_cgs;
   double time_unit = run_globals.units.UnitTime_in_s;
   
-  double mm_stars = gal->NewStars[0]; //The last episode of SF
-  double sn_energy = 0.0;
+  //double mm_stars = gal->NewStars[0]; //The last episode of SF
+  //double sn_energy = 0.0;
   
   galaxy_t* central;
   
@@ -509,9 +509,13 @@ void calc_metal_bubble(galaxy_t* gal, int snapshot) // result in internal units 
   
   // Now compute the last N_HISTORY_SNAPS bubble to see if any of those gets bigger than the existing one. Don't do this for Ghosts!
   central = gal->Halo->FOFGroup->FirstOccupiedHalo->Galaxy; 
-  double gas_density;  
-  gas_density = (central->HotGas + central->ColdGas + central->EjectedGas + gal->HotGas + gal->ColdGas + gal->EjectedGas) * UnitMass_in_g / PROTONMASS / (4.0 * M_PI / 3.0 * pow(central->Rvir * UnitLength_in_cm, 3.)); // cm^-3
+  double gas_density;
   
+  if (gal != central) //This is just temporary, you will need to update this anyway once you will have information on the overdensity!
+    gas_density = (central->HotGas + central->ColdGas + central->EjectedGas + gal->HotGas + gal->ColdGas + gal->EjectedGas) * UnitMass_in_g / PROTONMASS / (4.0 * M_PI / 3.0 * pow(central->Rvir * UnitLength_in_cm, 3.)); // cm^-3
+  
+  else
+    gas_density = (gal->HotGas + gal->ColdGas + gal->EjectedGas) * UnitMass_in_g / PROTONMASS / (4.0 * M_PI / 3.0 * pow(gal->Rvir * UnitLength_in_cm, 3.)); // cm^-3
   /*if (mm_stars > 1e-10) { 
     if (gal->Galaxy_Population == 3) //Moved this in evolve.c 
       gal->Galaxy_Population = 2;
