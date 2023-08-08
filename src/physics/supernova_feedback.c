@@ -495,7 +495,7 @@ void calc_metal_bubble(galaxy_t* gal, int snapshot) // result in internal units 
   double time_unit = run_globals.units.UnitTime_in_s;
   
   //double mm_stars = gal->NewStars[0]; //The last episode of SF
-  //double sn_energy = 0.0;
+  double sn_energy = 0.0;
   
   galaxy_t* central;
   
