@@ -343,6 +343,13 @@ void save_metal_input_grids(int snapshot)
     for (int jj = 0; jj < MetalGridDim; jj++)
       for (int kk = 0; kk < MetalGridDim; kk++)
         grid[grid_index(ii, jj, kk, MetalGridDim, INDEX_REAL)] =
+          (float)((grids->deltax_metals)[grid_index(ii, jj, kk, MetalGridDim, INDEX_REAL)]);
+  write_grid_float("Deltax", grid, file_id, fspace_id, memspace_id, dcpl_id);
+  
+  for (int ii = 0; ii < local_nix_metals; ii++)
+    for (int jj = 0; jj < MetalGridDim; jj++)
+      for (int kk = 0; kk < MetalGridDim; kk++)
+        grid[grid_index(ii, jj, kk, MetalGridDim, INDEX_REAL)] =
           (int)((grids->N_bubbles)[grid_index(ii, jj, kk, MetalGridDim, INDEX_REAL)]);
   write_grid_float("N_bubbles", grid, file_id, fspace_id, memspace_id, dcpl_id);
   
@@ -390,6 +397,7 @@ void init_metal_grids()
     grids->N_bubbles[ii] = (int)0;
     grids->R_ave[ii] = (float)0.;
     grids->R_max[ii] = (float)0.;
+    grids->deltax_metals[ii] = (float)0.;
   }
 }
 
@@ -412,6 +420,7 @@ void malloc_metal_grids()
   grids->N_bubbles = NULL;
   grids->R_ave = NULL;
   grids->R_max = NULL;
+  grids->deltax_metals = NULL;
   
   assign_slabs_metals();
 
@@ -438,6 +447,7 @@ void malloc_metal_grids()
   grids->N_bubbles = fftwf_alloc_real((size_t)slab_n_real_metals);
   grids->R_ave = fftwf_alloc_real((size_t)slab_n_real_metals);
   grids->R_max = fftwf_alloc_real((size_t)slab_n_real_metals);
+  grids->deltax_metals = fftwf_alloc_real((size_t)slab_n_real_metals);
  
   init_metal_grids();
 
@@ -460,6 +470,7 @@ void free_metal_grids()
   fftwf_free(grids->N_bubbles);
   fftwf_free(grids->R_ave);
   fftwf_free(grids->R_max);
+  fftwf_free(grids->deltax_metals);
 
   fftwf_free(grids->buffer_metals);
 

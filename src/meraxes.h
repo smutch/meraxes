@@ -351,6 +351,7 @@ typedef struct metal_grids_t //New stuff for MetalEvo, probably you will need to
   int buffer_size_metals; 
   
   int*   N_bubbles;
+  float* deltax_metals;
   float* mass_metals;
   float* mass_gas;
   float* Zigm_box;
