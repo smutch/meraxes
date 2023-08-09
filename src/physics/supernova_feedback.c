@@ -499,23 +499,34 @@ void calc_metal_bubble(galaxy_t* gal, int snapshot) // result in internal units 
   
   galaxy_t* central;
   
+  double gas_density; // Of the halo, we need this when the metal bubble is within the virial radius
+  double IGM_density; // Once the bubble escapes the virial radius of the galaxy we need to use this one
+  
+  int MetalGridDim = run_globals.params.MetalGridDim;
+  double box_size = run_globals.params.BoxSize;
+  double pixel_length_metals = box_size / (double)MetalGridDim; // (cMpc/h)
+  
+  gas_density = (gal->ColdGas + gal->HotGas) * UnitMass_in_g / PROTONMASS / (4.0 * M_PI / 3.0 * pow(central->Rvir * UnitLength_in_cm, 3.)); // cm^-3
+  IGM_density = gal->mass_IGM * UnitMass_in_g / PROTONMASS * pow(pixel_length_metals / (1.0 + run_globals.ZZ[snapshot] * UnitLength_in_cm, -3.);
   // First evolve the existing RmetalBubble (you do this also for the ghost galaxies).
   
-  if (gal->RmetalBubble > 0.){
-    gal->RmetalBubble = gal->PrefactorBubble * pow((gal->TimeBubble - run_globals.LTTime[snapshot] * time_unit), 0.4);
-    if (gal->RmetalBubble > 10.)
-      mlog("StrangeBubble = %f, Prefactor = %f", MLOG_MESG, gal->RmetalBubble, gal->PrefactorBubble);
-    }
+  if (gal->RmetalBubble > 0.) {
+    if ((gal->RmetalBubble <= gal->Rvir) && (gas_density >= IGM_density)) 
+      gal->RmetalBubble = gal->PrefactorBubble * pow(gas_density, -0.2) * pow((gal->TimeBubble - run_globals.LTTime[snapshot] * time_unit), 0.4);
+    else
+      gal->RmetalBubble = gal->PrefactorBubble * pow(IGM_density, -0.2) * pow((gal->TimeBubble - run_globals.LTTime[snapshot] * time_unit), 0.4);
+  }  
+  if (gal->RmetalBubble > 10.)
+    mlog("StrangeBubble = %f, Prefactor = %f", MLOG_MESG, gal->RmetalBubble, gal->PrefactorBubble);
   
   // Now compute the last N_HISTORY_SNAPS bubble to see if any of those gets bigger than the existing one. Don't do this for Ghosts!
-  central = gal->Halo->FOFGroup->FirstOccupiedHalo->Galaxy; 
-  double gas_density;
+  //central = gal->Halo->FOFGroup->FirstOccupiedHalo->Galaxy; 
   
-  if (gal != central) //This is just temporary, you will need to update this anyway once you will have information on the overdensity!
-    gas_density = (central->HotGas + central->ColdGas + central->EjectedGas + gal->HotGas + gal->ColdGas + gal->EjectedGas) * UnitMass_in_g / PROTONMASS / (4.0 * M_PI / 3.0 * pow(central->Rvir * UnitLength_in_cm, 3.)); // cm^-3
+  /*if (gal != central) //This is just temporary, you will need to update this anyway once you will have information on the overdensity!
+    gas_density = (central->HotGas + central->ColdGas + central->EjectedGas + gal->HotGas + gal->ColdGas + gal->EjectedGas) * UnitMass_in_g / PROTONMASS / (4.0 * M_PI / 3.0 * pow(central->Rvir * UnitLength_in_cm, 3.)); // cm^-3*/
   
-  else
-    gas_density = (gal->HotGas + gal->ColdGas + gal->EjectedGas) * UnitMass_in_g / PROTONMASS / (4.0 * M_PI / 3.0 * pow(gal->Rvir * UnitLength_in_cm, 3.)); // cm^-3
+  //else
+  //  gas_density = (gal->HotGas + gal->ColdGas + gal->EjectedGas) * UnitMass_in_g / PROTONMASS / (4.0 * M_PI / 3.0 * pow(gal->Rvir * UnitLength_in_cm, 3.)); // cm^-3
   /*if (mm_stars > 1e-10) { 
     if (gal->Galaxy_Population == 3) //Moved this in evolve.c 
       gal->Galaxy_Population = 2;
@@ -540,8 +551,12 @@ void calc_metal_bubble(galaxy_t* gal, int snapshot) // result in internal units 
     if (i_burst != 0) {
       gal->Prefactor[n_bursts - i_burst] = gal->Prefactor[n_bursts - i_burst - 1];
       gal->Times[n_bursts - i_burst] = gal->Times[n_bursts - i_burst - 1];
-      if (gal->Prefactor[n_bursts - i_burst] > 0.0)
-        gal->Radii[n_bursts - i_burst] = gal->Prefactor[n_bursts - i_burst] * pow((gal->Times[n_bursts - i_burst] - run_globals.LTTime[snapshot] * time_unit), 0.4);
+      if (gal->Prefactor[n_bursts - i_burst] > 0.0) {
+        if ((gal->Radii[n_bursts - i_burst] >= gal->Rvir) || (IGM_density >= gas_density))
+          gal->Radii[n_bursts - i_burst] = gal->Prefactor[n_bursts - i_burst] * pow(IGM_density, -0.2) * pow((gal->Times[n_bursts - i_burst] - run_globals.LTTime[snapshot] * time_unit), 0.4);
+        else
+          gal->Radii[n_bursts - i_burst] = gal->Prefactor[n_bursts - i_burst] * pow(gas_density, -0.2) * pow((gal->Times[n_bursts - i_burst] - run_globals.LTTime[snapshot] * time_unit), 0.4);
+      }
       else
         gal->Radii[n_bursts - i_burst] = 0.0;
       if (gal->Radii[n_bursts - i_burst] > gal->RmetalBubble) { //Look if one of the new bubbles is bigger than RmetalBubble
@@ -554,7 +569,8 @@ void calc_metal_bubble(galaxy_t* gal, int snapshot) // result in internal units 
     }
   if (!gal->ghost_flag) {
     //if (gas_density >= rhob * density_unit) // Compare gas density of the galaxy vs the gas density of the IGM. TODO: Use the overdensity! 
-    gal->Prefactor[0] = pow(sn_energy / (PROTONMASS * gas_density), 0.2) / UnitLength_in_cm; //Mpc s^-0.4
+    //gal->Prefactor[0] = pow(sn_energy / (PROTONMASS * gas_density), 0.2) / UnitLength_in_cm; //Mpc s^-0.4
+    gal->Prefactor[0] = pow(sn_energy / PROTONMASS, 0.2) / UnitLength_in_cm; //Mpc s^-0.4
     gal->Times[0] = run_globals.LTTime[snapshot] * time_unit; // s 
     }
   else {

@@ -392,7 +392,7 @@ void dracarys()
     if (run_globals.params.Flag_IncludeMetalEvo) {
     
       construct_metal_grids(snapshot, nout_gals);
-      smooth_Densitygrid_real();
+      smooth_Densitygrid_real(snapshot);
       save_metal_input_grids(snapshot);
       free(run_globals.metal_grids.galaxy_to_slab_map_metals);
     }
