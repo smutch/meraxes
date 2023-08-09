@@ -52,7 +52,7 @@ double calc_resample_factor(int n_cell[3])
     return 1.0;
 }
 
-void smooth_Densitygrid_real() //Need this to put the overdensity in the metal grid (added by Manu, we are working in real space)
+void smooth_Densitygrid_real(int snapshot) //Need this to put the overdensity in the metal grid (added by Manu, we are working in real space)
 {
   mlog("Smoothing the overdensity of the reionization grid into the metal grid...", MLOG_MESG);
   reion_grids_t* reiogrids = &(run_globals.reion_grids);
@@ -76,6 +76,8 @@ void smooth_Densitygrid_real() //Need this to put the overdensity in the metal g
     
   mlog("Using resample factor for metal grid = %.3f", MLOG_MESG, resample_factorReal);
   
+  double box_size = run_globals.params.BoxSize;
+  double pixel_length_metals = box_size / (double)MetalGridDim; // (Mpc/h)
   
   // malloc the slab
   ptrdiff_t* slab_nix_metals = run_globals.metal_grids.slab_nix_metals;
@@ -83,11 +85,11 @@ void smooth_Densitygrid_real() //Need this to put the overdensity in the metal g
   
   //init
   for (int ii = 0; ii < slab_n_real_metals; ii++)
-    metalgrids->deltax_metals[ii] = 0.0;
+    metalgrids->mass_IGM[ii] = 0.0;
   
   int local_nix = (int)(run_globals.reion_grids.slab_nix[run_globals.mpi_rank]);
   
-  //Need to test this, I am not 100% if I understood how to move from cubes to slabs but it should work in the same way of ComputeTs.c
+  //Read the overdensity (deltax) from reionization grid and average it for the metal grid (which has a lower resolution)
     
   for (int i = 0; i < local_nix; i++) {
     i_low = (int)(i / resample_factorReal);
@@ -97,12 +99,18 @@ void smooth_Densitygrid_real() //Need this to put the overdensity in the metal g
         k_low = (int)(k / resample_factorReal);
         i_padded = grid_index(i, j, k, ReionGridDim, INDEX_PADDED); //I believe I need this because deltax in reio grid is complex.
         i_real = grid_index(i_low, j_low, k_low, MetalGridDim, INDEX_REAL);
-        metalgrids->deltax_metals[i_real] += reiogrids->deltax[i_padded];
+        metalgrids->mass_IGM[i_real] += reiogrids->deltax[i_padded];
       }
     }
   }
-  for (int ii = 0; ii < slab_n_real_metals; ii++) 
-    metalgrids->deltax_metals[ii] /= (resample_factorReal * resample_factorReal * resample_factorReal); 
+  for (int ii = 0; ii < slab_n_real_metals; ii++) { 
+    metalgrids->mass_IGM[ii] /= (resample_factorReal * resample_factorReal * resample_factorReal); // Average
+    metalgrids->mass_IGM[ii] += 1.0; // overdensity is 1 + deltax
+    //To compute the mass we need to multiply by total baryon content 
+    metalgrids->mass_IGM[ii] *= run_globals.rhocrit[snapshot] * run_globals.params.OmegaM * run_globals.params.BaryonFrac * pow((pixel_length_metals / (1.0 + run_globals.ZZ[snapshot])), 3.0);
+    //Add the contribution coming from galaxies (+ Ejected - Hot - Cold)
+    metalgrids->mass_IGM[ii] += metalgrids->mass_gas[ii];
+    }
   mlog("...Done!", MLOG_MESG);
 }
 

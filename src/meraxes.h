@@ -351,9 +351,9 @@ typedef struct metal_grids_t //New stuff for MetalEvo, probably you will need to
   int buffer_size_metals; 
   
   int*   N_bubbles;
-  float* deltax_metals;
+  float* mass_IGM; // It's the total! Computed from the overdensity and you sum the galaxy net contribution (mass_gas)
   float* mass_metals;
-  float* mass_gas;
+  float* mass_gas; //The one coming from galaxies (Ejected - Hot - Cold)
   float* Zigm_box;
   float* Probability_metals;
   float* R_ave; // Average radius in the bubble

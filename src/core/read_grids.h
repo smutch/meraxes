@@ -18,7 +18,7 @@ extern "C"
 #endif
 
   double calc_resample_factor(int n_cell[3]);
-  void smooth_Densitygrid_real(void);
+  void smooth_Densitygrid_real(int snapshot);
   void smooth_grid(double resample_factor,
                    int n_cell[3],
                    fftwf_complex* slab,
