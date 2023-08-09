@@ -506,7 +506,7 @@ void calc_metal_bubble(galaxy_t* gal, int snapshot) // result in internal units 
   double box_size = run_globals.params.BoxSize;
   double pixel_length_metals = box_size / (double)MetalGridDim; // (cMpc/h)
   
-  gas_density = (gal->ColdGas + gal->HotGas) * UnitMass_in_g / PROTONMASS / (4.0 * M_PI / 3.0 * pow(central->Rvir * UnitLength_in_cm, 3.)); // cm^-3
+  gas_density = (gal->ColdGas + gal->HotGas) * UnitMass_in_g / PROTONMASS / (4.0 * M_PI / 3.0 * pow(gal->Rvir * UnitLength_in_cm, 3.)); // cm^-3
   IGM_density = gal->Gas_IGM * UnitMass_in_g / PROTONMASS * pow(pixel_length_metals / (1.0 + run_globals.ZZ[snapshot]) * UnitLength_in_cm, -3.);
   // First evolve the existing RmetalBubble (you do this also for the ghost galaxies).
   
