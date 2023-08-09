@@ -531,7 +531,7 @@ void assign_probability_to_galaxies(int ngals_in_metal_slabs, int snapshot, int 
   ptrdiff_t* slab_nix_metals = run_globals.metal_grids.slab_nix_metals;
   ptrdiff_t* slab_ix_start_metals = run_globals.metal_grids.slab_ix_start_metals;
   int MetalGridDim = run_globals.params.MetalGridDim;
-  //double box_size = run_globals.params.BoxSize;
+  double box_size = run_globals.params.BoxSize;
   //double pixel_length_metals = box_size / (double)MetalGridDim; // (Mpc/h)
   //double cell_gas = run_globals.rhocrit[snapshot] * run_globals.params.OmegaM * run_globals.params.BaryonFrac * pow((pixel_length_metals / (1.0 + run_globals.ZZ[snapshot])), 3.0);
   float* Probability_metals = run_globals.metal_grids.Probability_metals;
