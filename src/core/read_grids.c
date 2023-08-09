@@ -83,18 +83,18 @@ void smooth_Densitygrid_real() //Need this to put the overdensity in the metal g
   
   //init
   for (int ii = 0; ii < slab_n_real_metals; ii++)
-    metalgrids-deltax_metals[ii] = 0.0;
+    metalgrids->deltax_metals[ii] = 0.0;
   
   int local_nix = (int)(run_globals.reion_grids.slab_nix[run_globals.mpi_rank]);
   
   //Need to test this, I am not 100% if I understood how to move from cubes to slabs but it should work in the same way of ComputeTs.c
     
   for (int i = 0; i < local_nix; i++) {
-    i_low = int(i / resample_factorReal);
+    i_low = (int)(i / resample_factorReal);
     for (int j = 0; j < ReionGridDim; j++) {
-      j_low = int(j / resample_factorReal);
+      j_low = (int)(j / resample_factorReal);
       for (int k = 0; k < ReionGridDim; k++) {
-        k_low = int(k / resample_factorReal);
+        k_low = (int)(k / resample_factorReal);
         i_padded = grid_index(i, j, k, ReionGridDim, INDEX_PADDED); //I believe I need this because deltax in reio grid is complex.
         i_real = grid_index(i_low, j_low, k_low, MetalGridDim, INDEX_REAL);
         metalgrids-deltax_metals[i_real] += reiogrids->deltax[i_padded];
