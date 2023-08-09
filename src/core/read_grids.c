@@ -7,6 +7,10 @@
 #include "read_grids.h"
 #include "reionization.h"
 
+#if USE_MINI_HALOS
+#include "metal_evo.h"
+#endif
+
 void read_grid(const enum grid_prop property, const int snapshot, float* slab)
 {
   // Read in the dark matter density grid
@@ -63,7 +67,7 @@ void smooth_Densitygrid_real() //Need this to put the overdensity in the metal g
   }
   
   double resample_factorReal = (ReionGridDim / MetalGridDim);
-  int i_real, i_padded;
+  int i_real, i_padded, i_low, j_low, k_low;
   
   if (resample_factorReal < 0.99999) {
     mlog_error("Metal Grid has a resolution higher than that required! Aborting!");
@@ -98,7 +102,7 @@ void smooth_Densitygrid_real() //Need this to put the overdensity in the metal g
     }
   }
   for (int ii = 0; ii < slab_n_real_metals; ii++) 
-    metalgrids-deltax_metals[ii] /= pow(resample_factorReal, 3); 
+    metalgrids-deltax_metals[ii] /= (resample_factorReal * resample_factorReal * resample_factorReal); 
   mlog("...Done!", MLOG_MESG);
 }
 
