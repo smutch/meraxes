@@ -48,7 +48,7 @@ double calc_resample_factor(int n_cell[3])
     return 1.0;
 }
 
-void smooth_Densitygrid_real(void) //Need this to put the overdensity in the metal grid (added by Manu, we are working in real space)
+void smooth_Densitygrid_real() //Need this to put the overdensity in the metal grid (added by Manu, we are working in real space)
 {
   mlog("Smoothing the overdensity of the reionization grid into the metal grid...", MLOG_MESG);
   reion_grids_t* reiogrids = &(run_globals.reion_grids);
