@@ -8,6 +8,7 @@
 #include "reionization.h"
 
 #if USE_MINI_HALOS
+#include <math.h>
 #include "metal_evo.h"
 #endif
 
