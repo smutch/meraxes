@@ -13,6 +13,7 @@
 #if USE_MINI_HALOS
 #include "metal_evo.h"
 #include "PopIII.h"
+#include "read_grids.h"
 #include "stellar_feedback.h"
 #include "virial_properties.h" //For the test
 #endif
