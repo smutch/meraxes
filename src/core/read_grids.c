@@ -97,12 +97,12 @@ void smooth_Densitygrid_real() //Need this to put the overdensity in the metal g
         k_low = (int)(k / resample_factorReal);
         i_padded = grid_index(i, j, k, ReionGridDim, INDEX_PADDED); //I believe I need this because deltax in reio grid is complex.
         i_real = grid_index(i_low, j_low, k_low, MetalGridDim, INDEX_REAL);
-        metalgrids-deltax_metals[i_real] += reiogrids->deltax[i_padded];
+        metalgrids->deltax_metals[i_real] += reiogrids->deltax[i_padded];
       }
     }
   }
   for (int ii = 0; ii < slab_n_real_metals; ii++) 
-    metalgrids-deltax_metals[ii] /= (resample_factorReal * resample_factorReal * resample_factorReal); 
+    metalgrids->deltax_metals[ii] /= (resample_factorReal * resample_factorReal * resample_factorReal); 
   mlog("...Done!", MLOG_MESG);
 }
 
