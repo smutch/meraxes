@@ -507,7 +507,7 @@ void calc_metal_bubble(galaxy_t* gal, int snapshot) // result in internal units 
   double pixel_length_metals = box_size / (double)MetalGridDim; // (cMpc/h)
   
   gas_density = (gal->ColdGas + gal->HotGas) * UnitMass_in_g / PROTONMASS / (4.0 * M_PI / 3.0 * pow(central->Rvir * UnitLength_in_cm, 3.)); // cm^-3
-  IGM_density = gal->mass_IGM * UnitMass_in_g / PROTONMASS * pow(pixel_length_metals / (1.0 + run_globals.ZZ[snapshot] * UnitLength_in_cm, -3.);
+  IGM_density = gal->Gas_IGM * UnitMass_in_g / PROTONMASS * pow(pixel_length_metals / (1.0 + run_globals.ZZ[snapshot] * UnitLength_in_cm, -3.));
   // First evolve the existing RmetalBubble (you do this also for the ghost galaxies).
   
   if (gal->RmetalBubble > 0.) {
@@ -564,19 +564,19 @@ void calc_metal_bubble(galaxy_t* gal, int snapshot) // result in internal units 
         gal->RmetalBubble = gal->Radii[n_bursts - i_burst];
         gal->PrefactorBubble = gal->Prefactor[n_bursts - i_burst];
         gal->TimeBubble = gal->Times[n_bursts - i_burst];
-        }
       }
     }
+  }
   if (!gal->ghost_flag) {
     //if (gas_density >= rhob * density_unit) // Compare gas density of the galaxy vs the gas density of the IGM. TODO: Use the overdensity! 
     //gal->Prefactor[0] = pow(sn_energy / (PROTONMASS * gas_density), 0.2) / UnitLength_in_cm; //Mpc s^-0.4
     gal->Prefactor[0] = pow(sn_energy / PROTONMASS, 0.2) / UnitLength_in_cm; //Mpc s^-0.4
     gal->Times[0] = run_globals.LTTime[snapshot] * time_unit; // s 
-    }
+  }
   else {
     gal->Prefactor[0] = 0.0;
     gal->Times[0] = 0.0;
-    }
+  }
   gal->Radii[0] = 0.0;
 }
 #endif
