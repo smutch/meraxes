@@ -6,9 +6,9 @@
 #include "misc_tools.h"
 #include "read_grids.h"
 #include "reionization.h"
+#include <math.h>
 
 #if USE_MINI_HALOS
-#include <math.h>
 #include "metal_evo.h"
 #endif
 
