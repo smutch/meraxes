@@ -262,8 +262,6 @@ void delayed_supernova_feedback(galaxy_t* gal, int snapshot)
   double m_remnant = 0.0;
   
 #if USE_MINI_HALOS
-  double NumberPISN = run_globals.NumberPISN;
-  double MassPISN = run_globals.MassPISN;
   double NumberSNII = run_globals.NumberSNII;
   double MassSNII = run_globals.MassSNII;
   double MassBHs = run_globals.MassBHs;
@@ -378,9 +376,7 @@ void contemporaneous_supernova_feedback(galaxy_t* gal,
   double sn_energy = 0.0;
 #if USE_MINI_HALOS
   double energy_unit = run_globals.units.UnitEnergy_in_cgs;
-  double NumberPISN = run_globals.NumberPISN;
   double MassPISN = run_globals.MassPISN;
-  double NumberSNII = run_globals.NumberSNII;
   double MassSNII = run_globals.MassSNII;
   double MassBHs = run_globals.MassBHs;
 #endif
@@ -410,7 +406,6 @@ void contemporaneous_supernova_feedback(galaxy_t* gal,
       }
     else if (gal->Galaxy_Population == 3){
       *m_recycled = *m_stars * (CCSN_PopIII_Yield(0, snapshot, 0)) * MassSNII;
-      *m_remnant = *m_stars * (MassBHs + CCSN_PopIII_Yield(0, snapshot, 2) * MassSNII);
       *new_metals = *m_stars * CCSN_PopIII_Yield(0, snapshot, 1);
       if (MassPISN > 0) { // Account for PISN
         *m_recycled += *m_stars * PISN_PopIII_Yield(0) * MassPISN;
@@ -491,13 +486,9 @@ void calc_metal_bubble(galaxy_t* gal, int snapshot) // result in internal units 
   double UnitMass_in_g = run_globals.units.UnitMass_in_g;
   double UnitLength_in_cm = run_globals.units.UnitLength_in_cm;
   double energy_unit = run_globals.units.UnitEnergy_in_cgs;
-  double density_unit = run_globals.units.UnitDensity_in_cgs;
   double time_unit = run_globals.units.UnitTime_in_s;
   
-  //double mm_stars = gal->NewStars[0]; //The last episode of SF
   double sn_energy = 0.0;
-  
-  galaxy_t* central;
   
   double gas_density; // Of the halo, we need this when the metal bubble is within the virial radius
   double IGM_density; // Once the bubble escapes the virial radius of the galaxy we need to use this one
@@ -518,19 +509,6 @@ void calc_metal_bubble(galaxy_t* gal, int snapshot) // result in internal units 
   }  
   if (gal->RmetalBubble > 10.)
     mlog("StrangeBubble = %f, Prefactor = %f", MLOG_MESG, gal->RmetalBubble, gal->PrefactorBubble);
-  
-  // Now compute the last N_HISTORY_SNAPS bubble to see if any of those gets bigger than the existing one. Don't do this for Ghosts!
-  //central = gal->Halo->FOFGroup->FirstOccupiedHalo->Galaxy; 
-  
-  /*if (gal != central) //This is just temporary, you will need to update this anyway once you will have information on the overdensity!
-    gas_density = (central->HotGas + central->ColdGas + central->EjectedGas + gal->HotGas + gal->ColdGas + gal->EjectedGas) * UnitMass_in_g / PROTONMASS / (4.0 * M_PI / 3.0 * pow(central->Rvir * UnitLength_in_cm, 3.)); // cm^-3*/
-  
-  //else
-  //  gas_density = (gal->HotGas + gal->ColdGas + gal->EjectedGas) * UnitMass_in_g / PROTONMASS / (4.0 * M_PI / 3.0 * pow(gal->Rvir * UnitLength_in_cm, 3.)); // cm^-3
-  /*if (mm_stars > 1e-10) { 
-    if (gal->Galaxy_Population == 3) //Moved this in evolve.c 
-      gal->Galaxy_Population = 2;
-      }*/
 
   for (int i_burst = 0; i_burst < n_bursts; i_burst++) {
     double m_stars_II = gal->NewStars_II[i_burst];
@@ -560,7 +538,6 @@ void calc_metal_bubble(galaxy_t* gal, int snapshot) // result in internal units 
       else
         gal->Radii[n_bursts - i_burst] = 0.0;
       if (gal->Radii[n_bursts - i_burst] > gal->RmetalBubble) { //Look if one of the new bubbles is bigger than RmetalBubble
-        //mlog("New Bubble = %f, Old Bubble = %f, SNenergy = %f", MLOG_MESG, gal->Radii[n_bursts - i_burst], gal->RmetalBubble, log10(sn_energy));
         gal->RmetalBubble = gal->Radii[n_bursts - i_burst];
         gal->PrefactorBubble = gal->Prefactor[n_bursts - i_burst];
         gal->TimeBubble = gal->Times[n_bursts - i_burst];
@@ -568,8 +545,6 @@ void calc_metal_bubble(galaxy_t* gal, int snapshot) // result in internal units 
     }
   }
   if (!gal->ghost_flag) {
-    //if (gas_density >= rhob * density_unit) // Compare gas density of the galaxy vs the gas density of the IGM. TODO: Use the overdensity! 
-    //gal->Prefactor[0] = pow(sn_energy / (PROTONMASS * gas_density), 0.2) / UnitLength_in_cm; //Mpc s^-0.4
     gal->Prefactor[0] = pow(sn_energy / PROTONMASS, 0.2) / UnitLength_in_cm; //Mpc s^-0.4
     gal->Times[0] = run_globals.LTTime[snapshot] * time_unit; // s 
   }
