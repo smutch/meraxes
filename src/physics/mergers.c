@@ -164,6 +164,10 @@ void merge_with_target(galaxy_t* gal, int* dead_gals, int snapshot)
   // use the **baryonic** mass to calculate the merger ratio
   parent_baryons = parent->StellarMass + parent->ColdGas;
   gal_baryons = gal->StellarMass + gal->ColdGas;
+#if USE_MINI_HALOS 
+  parent_baryons += parent->Remnant_Mass;
+  gal_baryons += parent->Remnant_Mass;
+#endif
   if (parent_baryons > gal_baryons)
     merger_ratio = gal_baryons / parent_baryons;
   else
@@ -216,7 +220,7 @@ void merge_with_target(galaxy_t* gal, int* dead_gals, int snapshot)
 #endif
     
 
-  for (int ii = 0; ii < N_HISTORY_SNAPS; ii++){ //Should you do the same with the MetalBubble properties?
+  for (int ii = 0; ii < N_HISTORY_SNAPS; ii++){ 
     parent->NewStars[ii] += gal->NewStars[ii];
 #if USE_MINI_HALOS    
     parent->NewStars_II[ii] += gal->NewStars_II[ii];
