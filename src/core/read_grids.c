@@ -6,9 +6,9 @@
 #include "misc_tools.h"
 #include "read_grids.h"
 #include "reionization.h"
-#include <math.h>
 
 #if USE_MINI_HALOS
+#include <math.h>
 #include "metal_evo.h"
 #endif
 
@@ -53,6 +53,7 @@ double calc_resample_factor(int n_cell[3])
     return 1.0;
 }
 
+#if USE_MINI_HALOS
 void smooth_Densitygrid_real(int snapshot) //Need this to put the overdensity in the metal grid (added by Manu, we are working in real space)
 {
   mlog("Smoothing the overdensity of the reionization grid into the metal grid...", MLOG_MESG);
@@ -112,8 +113,9 @@ void smooth_Densitygrid_real(int snapshot) //Need this to put the overdensity in
     //Add the contribution coming from galaxies (+ Ejected - Hot - Cold)
     metalgrids->mass_IGM[ii] += metalgrids->mass_gas[ii];
     }
-  mlog("...Done!", MLOG_MESG);
+  mlog("...done", MLOG_MESG);
 }
+#endif
 
 void smooth_grid(double resample_factor,
                  int n_cell[3],
