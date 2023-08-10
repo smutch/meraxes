@@ -343,7 +343,7 @@ void save_metal_input_grids(int snapshot)
     for (int jj = 0; jj < MetalGridDim; jj++)
       for (int kk = 0; kk < MetalGridDim; kk++)
         grid[grid_index(ii, jj, kk, MetalGridDim, INDEX_REAL)] =
-          (float)((grids->mass_IGM)[grid_index(ii, jj, kk, MetalGridDim, INDEX_REAL)]);
+          (float)((grids->mass_IGM)[grid_index(ii, jj, kk, MetalGridDim, INDEX_REAL)] * UnitMass_in_g / SOLAR_MASS);
   write_grid_float("mass_IGM", grid, file_id, fspace_id, memspace_id, dcpl_id);
   
   for (int ii = 0; ii < local_nix_metals; ii++)
