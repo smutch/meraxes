@@ -129,7 +129,8 @@ void construct_metal_grids(int snapshot, int local_ngals)
           switch (prop) {
             case prop_prob:
             
-              buffer_metals[ind] += (4.0 / 3.0 * M_PI * pow((gal->RmetalBubble) * (1 + redshift), 3.0)); // cMpc/h (same units of cell volume)
+              if (gal->RmetalBubble >= 3 * gal->Rvir) // A bubble can actually pollute the IGM only if it's bigger than its virial radius (Try with 3 atm)
+                buffer_metals[ind] += (4.0 / 3.0 * M_PI * pow((gal->RmetalBubble) * (1 + redshift), 3.0)); // cMpc/h (same units of cell volume)
 
               break;
               
@@ -532,11 +533,8 @@ void assign_probability_to_galaxies(int ngals_in_metal_slabs, int snapshot, int 
   ptrdiff_t* slab_ix_start_metals = run_globals.metal_grids.slab_ix_start_metals;
   int MetalGridDim = run_globals.params.MetalGridDim;
   double box_size = run_globals.params.BoxSize;
-  //double pixel_length_metals = box_size / (double)MetalGridDim; // (Mpc/h)
-  //double cell_gas = run_globals.rhocrit[snapshot] * run_globals.params.OmegaM * run_globals.params.BaryonFrac * pow((pixel_length_metals / (1.0 + run_globals.ZZ[snapshot])), 3.0);
   float* Probability_metals = run_globals.metal_grids.Probability_metals;
   float* mass_metals = run_globals.metal_grids.mass_metals;
-  //float* mass_gas = run_globals.metal_grids.mass_gas;
   float* mass_IGM = run_globals.metal_grids.mass_IGM;
   float* Rave_metals = run_globals.metal_grids.R_ave;
   float* Rmax_metals = run_globals.metal_grids.R_max;

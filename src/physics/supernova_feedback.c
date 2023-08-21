@@ -510,37 +510,39 @@ void calc_metal_bubble(galaxy_t* gal, int snapshot) // result in internal units 
   if (gal->RmetalBubble > 10.)
     mlog("StrangeBubble = %f, Prefactor = %f", MLOG_MESG, gal->RmetalBubble, gal->PrefactorBubble);
 
-  for (int i_burst = 0; i_burst < n_bursts; i_burst++) {
-    double m_stars_II = gal->NewStars_II[i_burst];
-    double m_stars_III = gal->NewStars_III[i_burst];
-    double m_stars = m_stars_II + m_stars_III;
+  if (gal->Type == 0) {
+    for (int i_burst = 0; i_burst < n_bursts; i_burst++) {
+      double m_stars_II = gal->NewStars_II[i_burst];
+      double m_stars_III = gal->NewStars_III[i_burst];
+      double m_stars = m_stars_II + m_stars_III;
     
-    // Compute the SN energy that drives the metal bubble. Should you include the ejection efficiency?  
-    if (m_stars_II > 1e-10) {
-      double metallicity = calc_metallicity(m_stars, gal->NewMetals[i_burst]);
-      sn_energy += m_stars_II * get_SN_energy(0, metallicity) * energy_unit * calc_sn_ejection_eff(gal, snapshot, 2); // Are you sure of the unit? (You want this in erg)
-      }
-    else if (m_stars_III > 1e-10) {
-      if (i_burst == 0) // You have both CC and PISN
-        sn_energy += (get_SN_energy_PopIII(i_burst, snapshot, 0) + get_SN_energy_PopIII(i_burst, snapshot, 1))  * m_stars_III * calc_sn_ejection_eff(gal, snapshot, 3);
-      else
-        sn_energy += get_SN_energy_PopIII(i_burst, snapshot, 0) * m_stars_III * calc_sn_ejection_eff(gal, snapshot, 3);
-      }
-    if (i_burst != 0) {
-      gal->Prefactor[n_bursts - i_burst] = gal->Prefactor[n_bursts - i_burst - 1];
-      gal->Times[n_bursts - i_burst] = gal->Times[n_bursts - i_burst - 1];
-      if (gal->Prefactor[n_bursts - i_burst] > 0.0) {
-        if ((gal->Radii[n_bursts - i_burst] >= gal->Rvir) || (IGM_density >= gas_density))
-          gal->Radii[n_bursts - i_burst] = gal->Prefactor[n_bursts - i_burst] * pow(IGM_density, -0.2) * pow((gal->Times[n_bursts - i_burst] - run_globals.LTTime[snapshot] * time_unit), 0.4);
+      // Compute the SN energy that drives the metal bubble. Should you include the ejection efficiency?  
+      if (m_stars_II > 1e-10) {
+        double metallicity = calc_metallicity(m_stars, gal->NewMetals[i_burst]);
+        sn_energy += m_stars_II * get_SN_energy(0, metallicity) * energy_unit * calc_sn_ejection_eff(gal, snapshot, 2); // Are you sure of the unit? (You want this in erg)
+        }
+      else if (m_stars_III > 1e-10) {
+        if (i_burst == 0) // You have both CC and PISN
+          sn_energy += (get_SN_energy_PopIII(i_burst, snapshot, 0) + get_SN_energy_PopIII(i_burst, snapshot, 1))  * m_stars_III * calc_sn_ejection_eff(gal, snapshot, 3);
         else
-          gal->Radii[n_bursts - i_burst] = gal->Prefactor[n_bursts - i_burst] * pow(gas_density, -0.2) * pow((gal->Times[n_bursts - i_burst] - run_globals.LTTime[snapshot] * time_unit), 0.4);
-      }
-      else
-        gal->Radii[n_bursts - i_burst] = 0.0;
-      if (gal->Radii[n_bursts - i_burst] > gal->RmetalBubble) { //Look if one of the new bubbles is bigger than RmetalBubble
-        gal->RmetalBubble = gal->Radii[n_bursts - i_burst];
-        gal->PrefactorBubble = gal->Prefactor[n_bursts - i_burst];
-        gal->TimeBubble = gal->Times[n_bursts - i_burst];
+          sn_energy += get_SN_energy_PopIII(i_burst, snapshot, 0) * m_stars_III * calc_sn_ejection_eff(gal, snapshot, 3);
+        }
+      if (i_burst != 0) {
+        gal->Prefactor[n_bursts - i_burst] = gal->Prefactor[n_bursts - i_burst - 1];
+        gal->Times[n_bursts - i_burst] = gal->Times[n_bursts - i_burst - 1];
+        if (gal->Prefactor[n_bursts - i_burst] > 0.0) {
+          if ((gal->Radii[n_bursts - i_burst] >= gal->Rvir) || (IGM_density >= gas_density))
+            gal->Radii[n_bursts - i_burst] = gal->Prefactor[n_bursts - i_burst] * pow(IGM_density, -0.2) * pow((gal->Times[n_bursts - i_burst] - run_globals.LTTime[snapshot] * time_unit), 0.4);
+          else
+            gal->Radii[n_bursts - i_burst] = gal->Prefactor[n_bursts - i_burst] * pow(gas_density, -0.2) * pow((gal->Times[n_bursts - i_burst] - run_globals.LTTime[snapshot] * time_unit), 0.4);
+        }
+        else
+          gal->Radii[n_bursts - i_burst] = 0.0;
+        if (gal->Radii[n_bursts - i_burst] > gal->RmetalBubble) { //Look if one of the new bubbles is bigger than RmetalBubble
+          gal->RmetalBubble = gal->Radii[n_bursts - i_burst];
+          gal->PrefactorBubble = gal->Prefactor[n_bursts - i_burst];
+          gal->TimeBubble = gal->Times[n_bursts - i_burst];
+        }
       }
     }
   }
