@@ -54,42 +54,44 @@ int evolve_galaxies(fof_group_t* fof_group, int snapshot, int NGal, int NFof)
         while (gal != NULL) {
         
 #if USE_MINI_HALOS
-          if (Flag_Metals == true) { // Assign to newly formed galaxies metallicity of their cell according to a certain probability
-            if (gal->output_index == -1) { 
-              double x;
-              x = (double)rand() / RAND_MAX;
-              gal->GalMetal_Probability = x;
-            }
-            double boost_corr = 1;
+          if (gal->Type == 0) { // In order to be consistent with the rest of Meraxes do this only for the central galaxies!
+            if (Flag_Metals == true) { // Assign to newly formed galaxies metallicity of their cell according to a certain probability
+              if (gal->output_index == -1) { 
+                double x;
+                x = (double)rand() / RAND_MAX;
+                gal->GalMetal_Probability = x;
+              }
+              double boost_corr = 1;
               
-            if (gal->AveBubble > 0.0)
-              boost_corr = NLBias(gal->AveBubble, gal->Mvir, run_globals.ZZ[snapshot]);
+              if (gal->AveBubble > 0.0)
+                boost_corr = NLBias(gal->AveBubble, gal->Mvir, run_globals.ZZ[snapshot]);
               
-            //if ((gal->GalMetal_Probability <= gal->Metal_Probability * (1 + boost_corr)) || (gal->NewStars_III[0] + gal->NewStars[0]) > 1e-10) {
-            if ((gal->GalMetal_Probability <= gal->Metal_Probability * (1 + boost_corr)) || (gal->GrossStellarMass + gal->GrossStellarMassIII) > 1e-10) {
-              gal->Flag_ExtMetEnr = 1; // Just update the flag. Here what I am saying is that a galaxy that already experienced SN events will surely be inside a metal bubble!
+              //if ((gal->GalMetal_Probability <= gal->Metal_Probability * (1 + boost_corr)) || (gal->NewStars_III[0] + gal->NewStars[0]) > 1e-10) {
+              if ((gal->GalMetal_Probability <= gal->Metal_Probability * (1 + boost_corr)) || (gal->GrossStellarMass + gal->GrossStellarMassIII) > 1e-10) {
+                gal->Flag_ExtMetEnr = 1; // Just update the flag. Here what I am saying is that a galaxy that already experienced SN events will surely be inside a metal bubble!
                 
-              *gal_counter_enriched = *gal_counter_enriched + 1;
-              if ((gal->Metallicity_IGM / 0.01) > run_globals.params.physics.ZCrit) {
-                *gal_counter_Pop2 = *gal_counter_Pop2 + 1;
-                gal->Galaxy_Population = 2;
-                }
-              else
-                gal->Galaxy_Population = 3; // Enriched but not enough
-            }
+                *gal_counter_enriched = *gal_counter_enriched + 1;
+                if ((gal->Metallicity_IGM / 0.01) > run_globals.params.physics.ZCrit) {
+                  *gal_counter_Pop2 = *gal_counter_Pop2 + 1;
+                  gal->Galaxy_Population = 2;
+                  }
+                else
+                  gal->Galaxy_Population = 3; // Enriched but not enough
+              }
               
-            else {
-              gal->Galaxy_Population = 3;
-              gal->Flag_ExtMetEnr = 0;
-              *gal_counter_Pop3 = *gal_counter_Pop3 + 1;
+              else {
+                gal->Galaxy_Population = 3;
+                gal->Flag_ExtMetEnr = 0;
+                *gal_counter_Pop3 = *gal_counter_Pop3 + 1;
+              }
+              gal->Metal_Probability *= (1 + boost_corr); //Add this to save the updated probability!
+                if (gal->Metal_Probability > 1)
+                  gal->Metal_Probability = 1;
             }
-            gal->Metal_Probability *= (1 + boost_corr); //Add this to save the updated probability!
-              if (gal->Metal_Probability > 1)
-                gal->Metal_Probability = 1;
-          }
-          else { // If there is no external metal enrichment, if a new galaxy is formed it will be Pop III
-            if (gal->output_index== -1)
-              gal->Galaxy_Population = 3;
+            else { // If there is no external metal enrichment, if a new galaxy is formed it will be Pop III
+              if (gal->output_index== -1)
+                gal->Galaxy_Population = 3;
+            }
           }
 #endif
           
@@ -121,7 +123,7 @@ int evolve_galaxies(fof_group_t* fof_group, int snapshot, int NGal, int NFof)
             insitu_star_formation(gal, snapshot);
 
 #if USE_MINI_HALOS
-            if ((Flag_Metals == true) && (gal->Type < 2)) { //Adding conditions on galType to test the MetalBubble!
+            if ((Flag_Metals == true) && (gal->Type < 3)) { //For gal->Type > 0 you are just letting the bubble grow
               calc_metal_bubble(gal, snapshot);
             }
             /*else { // Update Galaxy Population index due to internal enrichment (this happen within calc_metal_bubble)
