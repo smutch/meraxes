@@ -154,7 +154,7 @@ void construct_metal_grids(int snapshot, int local_ngals)
                   buffer_metals[ind - (MetalGridDim * MetalGridDim) + 1] += 0.0473 * Excess_volume;
                   buffer_metals[ind + (MetalGridDim * MetalGridDim) - 1] += 0.0473 * Excess_volume;
                   buffer_metals[ind - (MetalGridDim * MetalGridDim) - 1] += 0.0473 * Excess_volume;
-                  uffer_metals[ind + (MetalGridDim * MetalGridDim) + MetalGridDim] += 0.0473 * Excess_volume;
+                  buffer_metals[ind + (MetalGridDim * MetalGridDim) + MetalGridDim] += 0.0473 * Excess_volume;
                   buffer_metals[ind - (MetalGridDim * MetalGridDim) + MetalGridDim] += 0.0473 * Excess_volume;
                   buffer_metals[ind + (MetalGridDim * MetalGridDim) - MetalGridDim] += 0.0473 * Excess_volume;
                   buffer_metals[ind - (MetalGridDim * MetalGridDim) - MetalGridDim] += 0.0473 * Excess_volume;
