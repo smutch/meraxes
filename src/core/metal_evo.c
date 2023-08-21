@@ -134,7 +134,7 @@ void construct_metal_grids(int snapshot, int local_ngals)
                 
                 // If R > cbrt(3/4*pi)*(L^3) the bubble is large enough to contribute to the filling factor of the nearby cells
                 // These factors assume that the large bubble originates at the centre of the cell and that Rbubble is smaller than 1.5 * (box_size/MetalGridDim).
-                if (gal->RmetalBubble > 0.62 * (box_size / MetalGridDim) { 
+                if (gal->RmetalBubble > 0.62 * (box_size / MetalGridDim)) { 
                   double Excess_volume = (4.0 / 3.0 * M_PI * pow((gal->RmetalBubble) * (1 + redshift), 3.0)) - pow((box_size / MetalGridDim), 3.0);
                   
                   //Adiacent cells in the same axis 
