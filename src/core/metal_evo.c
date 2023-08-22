@@ -129,8 +129,35 @@ void construct_metal_grids(int snapshot, int local_ngals)
           switch (prop) {
             case prop_prob:
             
-              if (gal->RmetalBubble >= 3 * gal->Rvir)  // A bubble can actually pollute the IGM only if it's bigger than its virial radius (Try with 3 atm)
+              if (gal->RmetalBubble >= 3 * gal->Rvir) {  // A bubble can actually pollute the IGM only if it's bigger than its virial radius (Try with 3 atm)
                 buffer_metals[ind] += (4.0 / 3.0 * M_PI * pow((gal->RmetalBubble) * (1 + redshift), 3.0)); // cMpc/h (same units of cell volume)
+                  
+                  if (gal->RmetalBubble > 0.62 * (box_size / MetalGridDim)) { 
+                  double Excess_volume = (4.0 / 3.0 * M_PI * pow((gal->RmetalBubble) * (1 + redshift), 3.0)) - pow((box_size / MetalGridDim), 3.0);
+                  
+                  //Adiacent cells in the same axis 
+                  buffer_metals[ind + 1] += 0.072 * Excess_volume;
+                  buffer_metals[ind - 1] += 0.072 * Excess_volume;
+                  buffer_metals[ind + MetalGridDim] += 0.072 * Excess_volume;
+                  buffer_metals[ind - MetalGridDim] += 0.072 * Excess_volume;
+                  buffer_metals[ind + (MetalGridDim * MetalGridDim)] += 0.072 * Excess_volume;
+                  buffer_metals[ind - (MetalGridDim * MetalGridDim)] += 0.072 * Excess_volume;
+                  
+                  //Adiacent cells obliquos
+                  buffer_metals[ind + 1 + MetalGridDim] += 0.0473 * Excess_volume;
+                  buffer_metals[ind - 1 + MetalGridDim] += 0.0473 * Excess_volume;
+                  buffer_metals[ind - 1 - MetalGridDim] += 0.0473 * Excess_volume;
+                  buffer_metals[ind + 1 - MetalGridDim] += 0.0473 * Excess_volume;
+                  buffer_metals[ind + (MetalGridDim * MetalGridDim) + 1] += 0.0473 * Excess_volume;
+                  buffer_metals[ind - (MetalGridDim * MetalGridDim) + 1] += 0.0473 * Excess_volume;
+                  buffer_metals[ind + (MetalGridDim * MetalGridDim) - 1] += 0.0473 * Excess_volume;
+                  buffer_metals[ind - (MetalGridDim * MetalGridDim) - 1] += 0.0473 * Excess_volume;
+                  buffer_metals[ind + (MetalGridDim * MetalGridDim) + MetalGridDim] += 0.0473 * Excess_volume;
+                  buffer_metals[ind - (MetalGridDim * MetalGridDim) + MetalGridDim] += 0.0473 * Excess_volume;
+                  buffer_metals[ind + (MetalGridDim * MetalGridDim) - MetalGridDim] += 0.0473 * Excess_volume;
+                  buffer_metals[ind - (MetalGridDim * MetalGridDim) - MetalGridDim] += 0.0473 * Excess_volume;
+                }
+              }
 
               break;
               
@@ -205,7 +232,7 @@ void construct_metal_grids(int snapshot, int local_ngals)
                   if (val > 1) {
                   // If R > cbrt(3/4*pi)*(L^3) the bubble is large enough to contribute to the filling factor of the nearby cells
                   // These factors assume that the large bubble originates at the centre of the cell and that Rbubble is smaller than 1.5 * (box_size/MetalGridDim).
-                    double ExcessVal = val - 1.0;
+                    /*double ExcessVal = val - 1.0;
                     
                     //Adiacent cells in the same axis 
                     prob_grid_metals[grid_index(ix + 1, iy, iz, MetalGridDim, INDEX_REAL)] += (float)(0.072 * ExcessVal);
@@ -227,11 +254,14 @@ void construct_metal_grids(int snapshot, int local_ngals)
                     prob_grid_metals[grid_index(ix, iy - 1, iz + 1, MetalGridDim, INDEX_REAL)] += (float)(0.0473 * ExcessVal);
                     prob_grid_metals[grid_index(ix, iy - 1, iz - 1, MetalGridDim, INDEX_REAL)] += (float)(0.0473 * ExcessVal);
                     prob_grid_metals[grid_index(ix - 1, iy, iz + 1, MetalGridDim, INDEX_REAL)] += (float)(0.0473 * ExcessVal);
-                    prob_grid_metals[grid_index(ix + 1, iy, iz - 1, MetalGridDim, INDEX_REAL)] += (float)(0.0473 * ExcessVal);
+                    prob_grid_metals[grid_index(ix + 1, iy, iz - 1, MetalGridDim, INDEX_REAL)] += (float)(0.0473 * ExcessVal);*/
                   
                     val = 1; // It's a probability!
                   }
-                  prob_grid_metals[grid_index(ix, iy, iz, MetalGridDim, INDEX_REAL)] = (float)val; 
+                  prob_grid_metals[grid_index(ix, iy, iz, MetalGridDim, INDEX_REAL)] += (float)val; // Added += after the last modification!
+                  
+                  if (prob_grid_metals[grid_index(ix, iy, iz, MetalGridDim, INDEX_REAL)] > 1)
+                    prob_grid_metals[grid_index(ix, iy, iz, MetalGridDim, INDEX_REAL)] = 1.0;  
                 }
             break;
             
