@@ -141,22 +141,32 @@ void construct_metal_grids(int snapshot, int local_ngals)
                   buffer_metals[ind - 1] += 0.072 * Excess_volume;
                   buffer_metals[ind + MetalGridDim] += 0.072 * Excess_volume;
                   buffer_metals[ind - MetalGridDim] += 0.072 * Excess_volume;
-                  buffer_metals[ind + (MetalGridDim * MetalGridDim)] += 0.072 * Excess_volume;
-                  buffer_metals[ind - (MetalGridDim * MetalGridDim)] += 0.072 * Excess_volume;
+                  //buffer_metals[ind + (MetalGridDim * MetalGridDim)] += 0.072 * Excess_volume;
+                  //buffer_metals[ind - (MetalGridDim * MetalGridDim)] += 0.072 * Excess_volume;
+                  buffer_metals[ind + slab_ix_start_metals[i_r] * (MetalGridDim * MetalGridDim)] += 0.072 * Excess_volume; //SLAB NOT JUST ix (still to check!)
+                  buffer_metals[ind - slab_ix_start_metals[i_r] * (MetalGridDim * MetalGridDim)] += 0.072 * Excess_volume;
                   
                   //Adiacent cells obliquos
                   buffer_metals[ind + 1 + MetalGridDim] += 0.0473 * Excess_volume;
                   buffer_metals[ind - 1 + MetalGridDim] += 0.0473 * Excess_volume;
                   buffer_metals[ind - 1 - MetalGridDim] += 0.0473 * Excess_volume;
                   buffer_metals[ind + 1 - MetalGridDim] += 0.0473 * Excess_volume;
-                  buffer_metals[ind + (MetalGridDim * MetalGridDim) + 1] += 0.0473 * Excess_volume;
-                  buffer_metals[ind - (MetalGridDim * MetalGridDim) + 1] += 0.0473 * Excess_volume;
-                  buffer_metals[ind + (MetalGridDim * MetalGridDim) - 1] += 0.0473 * Excess_volume;
-                  buffer_metals[ind - (MetalGridDim * MetalGridDim) - 1] += 0.0473 * Excess_volume;
-                  buffer_metals[ind + (MetalGridDim * MetalGridDim) + MetalGridDim] += 0.0473 * Excess_volume;
-                  buffer_metals[ind - (MetalGridDim * MetalGridDim) + MetalGridDim] += 0.0473 * Excess_volume;
-                  buffer_metals[ind + (MetalGridDim * MetalGridDim) - MetalGridDim] += 0.0473 * Excess_volume;
-                  buffer_metals[ind - (MetalGridDim * MetalGridDim) - MetalGridDim] += 0.0473 * Excess_volume;
+                  //buffer_metals[ind + (MetalGridDim * MetalGridDim) + 1] += 0.0473 * Excess_volume;
+                  //buffer_metals[ind - (MetalGridDim * MetalGridDim) + 1] += 0.0473 * Excess_volume;
+                  //buffer_metals[ind + (MetalGridDim * MetalGridDim) - 1] += 0.0473 * Excess_volume;
+                  //buffer_metals[ind - (MetalGridDim * MetalGridDim) - 1] += 0.0473 * Excess_volume;
+                  //buffer_metals[ind + (MetalGridDim * MetalGridDim) + MetalGridDim] += 0.0473 * Excess_volume;
+                  //buffer_metals[ind - (MetalGridDim * MetalGridDim) + MetalGridDim] += 0.0473 * Excess_volume;
+                  //buffer_metals[ind + (MetalGridDim * MetalGridDim) - MetalGridDim] += 0.0473 * Excess_volume;
+                  //buffer_metals[ind - (MetalGridDim * MetalGridDim) - MetalGridDim] += 0.0473 * Excess_volume;
+                  buffer_metals[ind + slab_ix_start_metals[i_r] * (MetalGridDim * MetalGridDim) + 1] += 0.0473 * Excess_volume;
+                  buffer_metals[ind - slab_ix_start_metals[i_r] * (MetalGridDim * MetalGridDim) + 1] += 0.0473 * Excess_volume;
+                  buffer_metals[ind + slab_ix_start_metals[i_r] * (MetalGridDim * MetalGridDim) - 1] += 0.0473 * Excess_volume;
+                  buffer_metals[ind - slab_ix_start_metals[i_r] * (MetalGridDim * MetalGridDim) - 1] += 0.0473 * Excess_volume;
+                  buffer_metals[ind + slab_ix_start_metals[i_r] * (MetalGridDim * MetalGridDim) + MetalGridDim] += 0.0473 * Excess_volume;
+                  buffer_metals[ind - slab_ix_start_metals[i_r] * (MetalGridDim * MetalGridDim) + MetalGridDim] += 0.0473 * Excess_volume;
+                  buffer_metals[ind + slab_ix_start_metals[i_r] * (MetalGridDim * MetalGridDim) - MetalGridDim] += 0.0473 * Excess_volume;
+                  buffer_metals[ind - slab_ix_start_metals[i_r] * (MetalGridDim * MetalGridDim) - MetalGridDim] += 0.0473 * Excess_volume;
                 }
               }
 
