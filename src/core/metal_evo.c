@@ -140,6 +140,12 @@ void construct_metal_grids(int snapshot, int local_ngals)
           
                   int ixplus = (int)(pos_to_ngp(gal->Pos[0] + (float)(box_size / MetalGridDim), box_size, MetalGridDim) - slab_ix_start_metals[i_r]);
                   int ixminus = (int)(pos_to_ngp(gal->Pos[0] - (float)(box_size / MetalGridDim), box_size, MetalGridDim) - slab_ix_start_metals[i_r]);
+                  
+                  if (ixplus > slab_nix_metals[i_r])
+                    ixplus = 0;
+                   
+                  if (ixminus > slab_nix_metals[i_r])
+                    ixminus = 0;
           
                   //if ((gal->Pos[0] - (float)(box_size / MetalGridDim)) < 0.0)
                   //  ixminus = (int)(pos_to_ngp((box_size + gal->Pos[0] - (float)(box_size / MetalGridDim)), box_size, MetalGridDim) - slab_ix_start_metals[i_r]);
