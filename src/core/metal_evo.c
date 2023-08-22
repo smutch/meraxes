@@ -121,11 +121,12 @@ void construct_metal_grids(int snapshot, int local_ngals)
           // ixplus and minus needed for your new modification
           
           int ixplus = (int)(pos_to_ngp(gal->Pos[0] + (float)(box_size / MetalGridDim), box_size, MetalGridDim) - slab_ix_start_metals[i_r]);
+          int ixminus;
           
           if ((gal->Pos[0] - (float)(box_size / MetalGridDim)) < 0.0)
-            int ixminus = (int)(pos_to_ngp((box_size + gal->Pos[0] - (float)(box_size / MetalGridDim)), box_size, MetalGridDim) - slab_ix_start_metals[i_r]);
+            ixminus = (int)(pos_to_ngp((box_size + gal->Pos[0] - (float)(box_size / MetalGridDim)), box_size, MetalGridDim) - slab_ix_start_metals[i_r]);
           else
-            int ixminus = (int)(pos_to_ngp(gal->Pos[0] - (float)(box_size / MetalGridDim), box_size, MetalGridDim) - slab_ix_start_metals[i_r]);
+            ixminus = (int)(pos_to_ngp(gal->Pos[0] - (float)(box_size / MetalGridDim), box_size, MetalGridDim) - slab_ix_start_metals[i_r]);
 
           assert((ix < slab_nix_metals[i_r]) && (ix >= 0));
           assert((iy < MetalGridDim) && (iy >= 0));
