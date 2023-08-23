@@ -226,7 +226,7 @@ void construct_metal_grids(int snapshot, int local_ngals)
                   //Adiacent cells obliquos
                   buffer_metals[indyzpp] += 0.0473 * Excess_volume;
                   buffer_metals[indyzpm] += 0.0473 * Excess_volume;
-                  buffer_metalsindyzmm] += 0.0473 * Excess_volume;
+                  buffer_metals[indyzmm] += 0.0473 * Excess_volume;
                   buffer_metals[indyzmp] += 0.0473 * Excess_volume;
                   //buffer_metals[ind + (MetalGridDim * MetalGridDim) + 1] += 0.0473 * Excess_volume;
                   //buffer_metals[ind - (MetalGridDim * MetalGridDim) + 1] += 0.0473 * Excess_volume;
