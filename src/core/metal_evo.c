@@ -135,11 +135,51 @@ void construct_metal_grids(int snapshot, int local_ngals)
                   //if (gal->RmetalBubble > 0.62 * (box_size / MetalGridDim)) {
                 if ((gal->RmetalBubble * (1 + redshift)) > 0.62 * (box_size / MetalGridDim)) { 
                   double Excess_volume = (4.0 / 3.0 * M_PI * pow((gal->RmetalBubble) * (1 + redshift), 3.0)) - pow((box_size / MetalGridDim), 3.0);
-                  
+   
                    // ixplus and minus needed for your new modification
           
                   //int ixplus = (int)(pos_to_ngp(gal->Pos[0] + (float)(box_size / MetalGridDim), box_size, MetalGridDim) - slab_ix_start_metals[i_r]);
                   //int ixminus = (int)(pos_to_ngp(gal->Pos[0] - (float)(box_size / MetalGridDim), box_size, MetalGridDim) - slab_ix_start_metals[i_r]);
+                  
+                  int iyplus = pos_to_ngp(gal->Pos[1] + (float)(box_size / MetalGridDim), box_size, MetalGridDim);
+                  int iyminus;
+                  
+                  if ((gal->Pos[1] - (float)(box_size / MetalGridDim)) < 0.0)
+                    iyminus = (int)(pos_to_ngp((box_size + gal->Pos[1] - (float)(box_size / MetalGridDim)), box_size, MetalGridDim));
+                  else
+                    iyminus = (int)(pos_to_ngp(gal->Pos[1] - (float)(box_size / MetalGridDim), box_size, MetalGridDim));
+                    
+                  int izplus = pos_to_ngp(gal->Pos[2] + (float)(box_size / MetalGridDim), box_size, MetalGridDim);
+                  int izminus;
+                  
+                  if ((gal->Pos[2] - (float)(box_size / MetalGridDim)) < 0.0)
+                    izminus = (int)(pos_to_ngp((box_size + gal->Pos[2] - (float)(box_size / MetalGridDim)), box_size, MetalGridDim));
+                  else
+                    izminus = (int)(pos_to_ngp(gal->Pos[2] - (float)(box_size / MetalGridDim), box_size, MetalGridDim));
+                    
+                  assert((iyplus < MetalGridDim) && (iyplus >= 0));
+                  assert((iyminus < MetalGridDim) && (iyminus >= 0));
+                  
+                  assert((izplus < MetalGridDim) && (izplus >= 0));
+                  assert((izminus < MetalGridDim) && (izminus >= 0));
+                  
+                  int indyplus = grid_index(ix, iyplus, iz, MetalGridDim, INDEX_REAL); 
+                  int indyminus = grid_index(ix, iyminus, iz, MetalGridDim, INDEX_REAL);
+                  int indzplus = grid_index(ix, iy, izplus, MetalGridDim, INDEX_REAL); 
+                  int indzminus = grid_index(ix, iy, izminus, MetalGridDim, INDEX_REAL); 
+                  int indyzpp = grid_index(ix, iyplus, izplus, MetalGridDim, INDEX_REAL); 
+                  int indyzpm = grid_index(ix, iyplus, izminus, MetalGridDim, INDEX_REAL);
+                  int indyzmp = grid_index(ix, iyminus, izplus, MetalGridDim, INDEX_REAL);
+                  int indyzmm = grid_index(ix, iyminus, izminus, MetalGridDim, INDEX_REAL); 
+                  
+                  assert((indyplus >= 0) && (indyplus < slab_nix_metals[i_r] * MetalGridDim * MetalGridDim));
+                  assert((indyminus >= 0) && (indyminus < slab_nix_metals[i_r] * MetalGridDim * MetalGridDim));
+                  assert((indzplus >= 0) && (indzplus < slab_nix_metals[i_r] * MetalGridDim * MetalGridDim));
+                  assert((indzminus >= 0) && (indzminus < slab_nix_metals[i_r] * MetalGridDim * MetalGridDim));
+                  assert((indyzpp >= 0) && (indyzpp < slab_nix_metals[i_r] * MetalGridDim * MetalGridDim));
+                  assert((indyzpm >= 0) && (indyzpm < slab_nix_metals[i_r] * MetalGridDim * MetalGridDim));
+                  assert((indyzmp >= 0) && (indyzmp < slab_nix_metals[i_r] * MetalGridDim * MetalGridDim));
+                  assert((indyzmm >= 0) && (indyzmm < slab_nix_metals[i_r] * MetalGridDim * MetalGridDim));
                   
                   //if (ixplus >= slab_nix_metals[i_r])
                   //  ixplus = 0;
@@ -174,20 +214,20 @@ void construct_metal_grids(int snapshot, int local_ngals)
                   //assert((indminus >= 0) && (indminus < slab_nix_metals[i_r] * MetalGridDim * MetalGridDim));
           
                   //Adiacent cells in the same axis 
-                  buffer_metals[ind + 1] += 0.072 * Excess_volume;
-                  buffer_metals[ind - 1] += 0.072 * Excess_volume;
-                  buffer_metals[ind + MetalGridDim] += 0.072 * Excess_volume;
-                  buffer_metals[ind - MetalGridDim] += 0.072 * Excess_volume;
+                  buffer_metals[indzplus] += 0.072 * Excess_volume;
+                  buffer_metals[indzminus] += 0.072 * Excess_volume;
+                  buffer_metals[indyplus] += 0.072 * Excess_volume;
+                  buffer_metals[indyminus] += 0.072 * Excess_volume;
                   //buffer_metals[ind + (MetalGridDim * MetalGridDim)] += 0.072 * Excess_volume;
                   //buffer_metals[ind - (MetalGridDim * MetalGridDim)] += 0.072 * Excess_volume;
                   //buffer_metals[indplus] += 0.072 * Excess_volume; //SLAB NOT JUST ix (still to check!)
                   //buffer_metals[indminus] += 0.072 * Excess_volume;
                   
                   //Adiacent cells obliquos
-                  buffer_metals[ind + 1 + MetalGridDim] += 0.0473 * Excess_volume;
-                  buffer_metals[ind - 1 + MetalGridDim] += 0.0473 * Excess_volume;
-                  buffer_metals[ind - 1 - MetalGridDim] += 0.0473 * Excess_volume;
-                  buffer_metals[ind + 1 - MetalGridDim] += 0.0473 * Excess_volume;
+                  buffer_metals[indyzpp] += 0.0473 * Excess_volume;
+                  buffer_metals[indyzpm] += 0.0473 * Excess_volume;
+                  buffer_metalsindyzmm] += 0.0473 * Excess_volume;
+                  buffer_metals[indyzmp] += 0.0473 * Excess_volume;
                   //buffer_metals[ind + (MetalGridDim * MetalGridDim) + 1] += 0.0473 * Excess_volume;
                   //buffer_metals[ind - (MetalGridDim * MetalGridDim) + 1] += 0.0473 * Excess_volume;
                   //buffer_metals[ind + (MetalGridDim * MetalGridDim) - 1] += 0.0473 * Excess_volume;
