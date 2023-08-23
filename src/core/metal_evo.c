@@ -188,7 +188,7 @@ void construct_metal_grids(int snapshot, int local_ngals)
                   int indxypp = grid_index(ixplus, iyplus, iz, MetalGridDim, INDEX_REAL); 
                   int indxypm = grid_index(ixplus, iyminus, iz, MetalGridDim, INDEX_REAL); 
                   int indxymp = grid_index(ixminus, iyplus, iz, MetalGridDim, INDEX_REAL); 
-                  int indxypp = grid_index(ixminus, iyminus, iz, MetalGridDim, INDEX_REAL); 
+                  int indxymm = grid_index(ixminus, iyminus, iz, MetalGridDim, INDEX_REAL); 
                   int indxzpp = grid_index(ixplus, iy, izplus, MetalGridDim, INDEX_REAL); 
                   int indxzpm = grid_index(ixplus, iy, izminus, MetalGridDim, INDEX_REAL);
                   int indxzmp = grid_index(ixminus, iy, izplus, MetalGridDim, INDEX_REAL); 
