@@ -133,7 +133,7 @@ void construct_metal_grids(int snapshot, int local_ngals)
                 buffer_metals[ind] += (4.0 / 3.0 * M_PI * pow((gal->RmetalBubble) * (1 + redshift), 3.0)); // cMpc/h (same units of cell volume)
                   
                   //if (gal->RmetalBubble > 0.62 * (box_size / MetalGridDim)) {
-                if ((gal->RmetalBubble * (1 + redshift)) > 0.62 * (box_size / MetalGridDim)) { 
+                /*if ((gal->RmetalBubble * (1 + redshift)) > 0.62 * (box_size / MetalGridDim)) { 
                   double Excess_volume = (4.0 / 3.0 * M_PI * pow((gal->RmetalBubble) * (1 + redshift), 3.0)) - pow((box_size / MetalGridDim), 3.0);
    
                   // ixplus and minus needed for your new modification
@@ -259,7 +259,7 @@ void construct_metal_grids(int snapshot, int local_ngals)
                   buffer_metals[indxymp] += 0.0473 * Excess_volume;
                   buffer_metals[indxypm] += 0.0473 * Excess_volume;
                   buffer_metals[indxymm] += 0.0473 * Excess_volume;
-                }
+                }*/
               }
 
               break;
