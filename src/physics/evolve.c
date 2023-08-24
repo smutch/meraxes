@@ -54,14 +54,18 @@ int evolve_galaxies(fof_group_t* fof_group, int snapshot, int NGal, int NFof)
         while (gal != NULL) {
         
 #if USE_MINI_HALOS
-          if (gal->Type == 0) { // In order to be consistent with the rest of Meraxes do this only for the central galaxies!
-            if (Flag_Metals == true) { // Assign to newly formed galaxies metallicity of their cell according to a certain probability
+          if (Flag_Metals == true) { // Assign to newly formed galaxies metallicity of their cell according to a certain probability
+            if ((gal->Type == 0) && (gal->Flag_ExtMetEnr == 0)) { // In order to be consistent with the rest of Meraxes do this only for the central galaxies!
               if (gal->output_index == -1) { 
                 double x;
                 x = (double)rand() / RAND_MAX;
                 gal->GalMetal_Probability = x;
+                if (gal->GalMetal_Probability > 1) { //It shouldnt happen but you never know...
+                  mlog("Why?, %f", MLOG_MESG, gal->GalMetal_Probability);
+                  gal->Metal_Probability == 1;
+                }
               }
-              double boost_corr = 1;
+              double boost_corr = 0;
               
               if (gal->AveBubble > 0.0)
                 boost_corr = NLBias(gal->AveBubble, gal->Mvir, run_globals.ZZ[snapshot]);
