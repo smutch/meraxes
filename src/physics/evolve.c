@@ -67,7 +67,7 @@ int evolve_galaxies(fof_group_t* fof_group, int snapshot, int NGal, int NFof)
               }
               double boost_corr = 0;
               
-              if (gal->AveBubble > 0.0)
+              if (gal->MaxBubble > 0.0)
                 boost_corr = NLBias(gal->MaxBubble, gal->Mvir, run_globals.ZZ[snapshot]); //Max Bubble probably better than AveBubble!
               
               //if ((gal->GalMetal_Probability <= gal->Metal_Probability * (1 + boost_corr)) || (gal->NewStars_III[0] + gal->NewStars[0]) > 1e-10) {
