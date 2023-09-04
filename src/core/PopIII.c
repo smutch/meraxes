@@ -35,9 +35,36 @@ void initialize_time_interp_arrays(double MminIMF, double MmaxIMF)
 
 void initialize_PopIII() //Initialize PopIII quantities that are easily computed just from the IMF.
 {
-  double MminIMF = run_globals.params.physics.MminIMF; 
-  double MmaxIMF = run_globals.params.physics.MmaxIMF;
+
+  int IMF_Type = run_globals.params.physics.PopIII_IMF;
+  double MminIMF;
+  double MmaxIMF;
+  
+  switch (IMF_Type) {
+    case 1:
+      MminIMF = 1.0;
+      MmaxIMF = 500.0;
+      break;
+    case 2:
+      MminIMF = 50.0;
+      MmaxIMF = 500.0;
+      AlphaIMF = -2.35;
+      break;
+    default:
+      mlog_error("Unrecognised value for PopIII_IMF! Defaulting to Salpeter 1.");
+      MminIMF = 1.0;
+      MmaxIMF = 100.0;
+      AlphaIMF = -2.35;
+      break;
+  }
+  
+  //double MminIMF = run_globals.params.physics.MminIMF; 
+  //double MmaxIMF = run_globals.params.physics.MmaxIMF;
   assert(MminIMF<MmaxIMF);
+  
+  run_globals.params.physics.MminIMF = MminIMF;
+  run_globals.params.physics.MmaxIMF = MmaxIMF;
+  run_globals.params.physics.AlphaIMF = AlphaIMF;
 
   initialize_time_interp_arrays(MminIMF, MmaxIMF);
   
@@ -88,8 +115,11 @@ double interp_mass(double lifetime) // Lifetime in yr units!!
 
 double integrand_IMFnorm(double StarMass) // You might want a case 2 for a different type of IMF (with Characteristic mass)
 {
+  int IMF_Type = run_globals.params.physics.PopIII_IMF;
   double AlphaIMF = run_globals.params.physics.AlphaIMF;
-  return StarMass * pow(StarMass, AlphaIMF);
+  
+  if (IMF_Type < 3) //Salpeter IMF
+    return StarMass * pow(StarMass, AlphaIMF);
 }
 
 double IMFnorm(double Mmin_IMF, double Mmax_IMF) //get normalization of Pop III IMF
@@ -118,10 +148,12 @@ double IMFnorm(double Mmin_IMF, double Mmax_IMF) //get normalization of Pop III 
 
 double getIMF(double StarMass)
 {
+  int IMF_Type = run_globals.params.physics.PopIII_IMF;
   double AlphaIMF = run_globals.params.physics.AlphaIMF;
   double Anorm = run_globals.IMFnorm;
   
-  return Anorm * pow(StarMass, AlphaIMF);
+  if (IMF_Type < 3) //Salpeter IMF
+    return Anorm * pow(StarMass, AlphaIMF);
 }
 
 double getIMF_massweighted(double StarMass) 

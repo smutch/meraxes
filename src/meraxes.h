@@ -131,6 +131,7 @@ typedef struct physics_params_t
   double MminIMF;
   double MmaxIMF;
   double AlphaIMF;
+  int PopIII_IMF;
   int PopIIIAgePrescription;
   
   // Parameters for metallicity evolution. These include the parameters for the fitting function of clustering and the critical metallicity
