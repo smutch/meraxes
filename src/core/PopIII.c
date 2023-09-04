@@ -39,11 +39,13 @@ void initialize_PopIII() //Initialize PopIII quantities that are easily computed
   int IMF_Type = run_globals.params.physics.PopIII_IMF;
   double MminIMF;
   double MmaxIMF;
+  double AlphaIMF;
   
   switch (IMF_Type) {
     case 1:
       MminIMF = 1.0;
       MmaxIMF = 500.0;
+      AlphaIMF = -2.35;
       break;
     case 2:
       MminIMF = 50.0;
