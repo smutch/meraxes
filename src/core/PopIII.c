@@ -40,23 +40,27 @@ void initialize_PopIII() //Initialize PopIII quantities that are easily computed
   double MminIMF;
   double MmaxIMF;
   double AlphaIMF;
+  double NionBaryIII;
   
-  switch (IMF_Type) {
+  switch (IMF_Type) { //Use the one for which you have the spectra from Raiter et al. (2010).
     case 1:
       MminIMF = 1.0;
       MmaxIMF = 500.0;
       AlphaIMF = -2.35;
+      NionBaryIII = 22000.0;
       break;
     case 2:
       MminIMF = 50.0;
       MmaxIMF = 500.0;
       AlphaIMF = -2.35;
+      NionBaryIII = 72000.0;
       break;
     default:
       mlog_error("Unrecognised value for PopIII_IMF! Defaulting to Salpeter 1.");
       MminIMF = 1.0;
       MmaxIMF = 100.0;
       AlphaIMF = -2.35;
+      NionBaryIII = 22000.0;
       break;
   }
   
@@ -67,6 +71,7 @@ void initialize_PopIII() //Initialize PopIII quantities that are easily computed
   run_globals.params.physics.MminIMF = MminIMF;
   run_globals.params.physics.MmaxIMF = MmaxIMF;
   run_globals.params.physics.AlphaIMF = AlphaIMF;
+  run_globals.params.physics.ReionNionPhotPerBaryIII = NionBaryIII; // Assign this value because this depends on the choice of the IMF
 
   initialize_time_interp_arrays(MminIMF, MmaxIMF);
   
