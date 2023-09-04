@@ -71,8 +71,7 @@ int evolve_galaxies(fof_group_t* fof_group, int snapshot, int NGal, int NFof)
               //  boost_corr = NLBias(gal->MaxBubble, gal->Mvir, run_globals.ZZ[snapshot]); //Max Bubble probably better than AveBubble!
               
               //if ((gal->GalMetal_Probability <= gal->Metal_Probability * (1 + boost_corr)) || (gal->NewStars_III[0] + gal->NewStars[0]) > 1e-10) {
-              //if ((gal->GalMetal_Probability <= gal->Metal_Probability * (1 + boost_corr)) || (gal->GrossStellarMass + gal->GrossStellarMassIII) > 1e-10) {
-              if ((gal->GalMetal_Probability <= gal->Metal_Probability) || (gal->GrossStellarMass + gal->GrossStellarMassIII) > 1e-10) {
+              if ((gal->GalMetal_Probability <= gal->Metal_Probability || (gal->GrossStellarMass + gal->GrossStellarMassIII) > 1e-10) {
                 gal->Flag_ExtMetEnr = 1; // Just update the flag. Here what I am saying is that a galaxy that already experienced SN events will surely be inside a metal bubble!
                 
                 *gal_counter_enriched = *gal_counter_enriched + 1;
@@ -90,8 +89,8 @@ int evolve_galaxies(fof_group_t* fof_group, int snapshot, int NGal, int NFof)
                 *gal_counter_Pop3 = *gal_counter_Pop3 + 1;
               }
               //gal->Metal_Probability *= (1 + boost_corr); //Add this to save the updated probability!
-                if (gal->Metal_Probability > 1)
-                  gal->Metal_Probability = 1;
+              if (gal->Metal_Probability > 1)
+                gal->Metal_Probability = 1;
             }
             else { // If there is no external metal enrichment, if a new galaxy is formed it will be Pop III
               if (gal->output_index== -1)

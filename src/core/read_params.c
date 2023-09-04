@@ -1145,7 +1145,7 @@ void read_parameter_file(char* fname, int mode)
 #endif
       params_type[n_param++] = PARAM_TYPE_DOUBLE;
       
-      strcpy(params_tag[n_param], "AlphaIMF");
+/*    strcpy(params_tag[n_param], "AlphaIMF");
       params_addr[n_param] = &(run_params->physics).AlphaIMF;
 #if USE_MINI_HALOS
       required_tag[n_param] = 1;
@@ -1170,7 +1170,16 @@ void read_parameter_file(char* fname, int mode)
 #else
       required_tag[n_param] = 0;
 #endif
-      params_type[n_param++] = PARAM_TYPE_DOUBLE;
+      params_type[n_param++] = PARAM_TYPE_DOUBLE;*/
+      
+      strncpy(params_tag[n_param], "PopIII_IMF", tag_length);
+      params_addr[n_param] = &(run_params->physics).PopIII_IMF;
+#if USE_MINI_HALOS
+      required_tag[n_param] = 1;
+#else
+      required_tag[n_param] = 0;
+#endif
+      params_type[n_param++] = PARAM_TYPE_INT;
 
       strncpy(params_tag[n_param], "PopIIIAgePrescription", tag_length);
       params_addr[n_param] = &(run_params->physics).PopIIIAgePrescription;
