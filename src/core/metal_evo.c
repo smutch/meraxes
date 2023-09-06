@@ -287,12 +287,18 @@ void construct_metal_grids(int snapshot, int local_ngals)
               
             case prop_mass_ej_metals:
             
-              buffer_metals[ind] += gal->MetalsEjectedGas; //Internal units (same of gas_cell)
+              if (gal->RmetalBubble >= 3 * gal->Rvir) // Add this condition to be consistent with above
+                buffer_metals[ind] += gal->MetalsEjectedGas; //Internal units (same of gas_cell)
+                
               break;
               
             case prop_mass_ej_gas:
             
-              buffer_metals[ind] += (gal->EjectedGas - gal->HotGas - gal->ColdGas);
+              //buffer_metals[ind] += (gal->EjectedGas - gal->HotGas - gal->ColdGas);
+              buffer_metals[ind] -= (gal->HotGas + gal->ColdGas);
+              if (gal->RmetalBubble >= 3 * gal->Rvir)
+                buffer_metals[ind] += gal->EjectedGas; // Add this condition to be consistent with above
+                
               break; 
 
             default:
