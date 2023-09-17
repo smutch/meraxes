@@ -205,7 +205,7 @@ double Number_SNII(void)
 {
   double MmaxIMF = run_globals.params.physics.MmaxIMF;
   double MminIMF = run_globals.params.physics.MminIMF;
-  if (MmaxIMF < MminSnII)
+  if ((MmaxIMF < MminSnII) || (MminIMF > MmaxSnII))
     return 0.0;
   
   else {
@@ -277,7 +277,7 @@ double Mass_SNII(void)
 {
   double MmaxIMF = run_globals.params.physics.MmaxIMF;
   double MminIMF = run_globals.params.physics.MminIMF;
-  if (MmaxIMF < MminSnII)
+  if ((MmaxIMF < MminSnII) || (MminIMF > MmaxSnII))
     return 0.0;
   
   else {
