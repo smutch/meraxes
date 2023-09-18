@@ -348,8 +348,9 @@ double Mass_SNII(void)
 double Mass_BHs(void) // Add BHs for Pop III with M>40Msol. Atm they don't do anything, it's just because we don't want Stellar population surviving!
 { 
   double MmaxIMF = run_globals.params.physics.MmaxIMF;
+  double MminIMF = run_globals.params.physics.MminIMF;
   
-  // First check if your IMF allows PISN!
+  // First check if your IMF allows BHs as failed SN!
   if (MmaxIMF <= MmaxSnII) //NO BHs
     return 0.0;
   
@@ -361,39 +362,109 @@ double Mass_BHs(void) // Add BHs for Pop III with M>40Msol. Atm they don't do an
     F.function = &getIMF_massweighted;
   
     if (MmaxIMF > MmaxPISN) {
-      gsl_integration_qag(&F,
-                      MmaxSnII,
-                      MminPISN,
-                      0,
-                      rel_tol,
-                      1000,
-                      GSL_INTEG_GAUSS61,
-                      w,
-                      &result_1,
-                      &err_1);
+      if (MminIMF <= MmaxSnII) {
+        gsl_integration_qag(&F,
+                        MmaxSnII,
+                        MminPISN,
+                        0,
+                        rel_tol,
+                        1000,
+                        GSL_INTEG_GAUSS61,
+                        w,
+                        &result_1,
+                        &err_1);
+         
+         gsl_integration_qag(&F,
+                        MmaxPISN,
+                        MmaxIMF,
+                        0,
+                        rel_tol,
+                        1000,
+                        GSL_INTEG_GAUSS61,
+                        w,
+                        &result_2,
+                        &err_2);
+       }
       
-      gsl_integration_qag(&F,
-                      MmaxPISN,
-                      MmaxIMF,
-                      0,
-                      rel_tol,
-                      1000,
-                      GSL_INTEG_GAUSS61,
-                      w,
-                      &result_2,
-                      &err_2);
+      else if (MminIMF <= MminPISN) {
+        gsl_integration_qag(&F,
+                        MminIMF,
+                        MminPISN,
+                        0,
+                        rel_tol,
+                        1000,
+                        GSL_INTEG_GAUSS61,
+                        w,
+                        &result_1,
+                        &err_1);
+        
+        gsl_integration_qag(&F,
+                        MmaxPISN,
+                        MmaxIMF,
+                        0,
+                        rel_tol,
+                        1000,
+                        GSL_INTEG_GAUSS61,
+                        w,
+                        &result_2,
+                        &err_2);
+        }
+      
+      else if (MminIMF <= MmaxPISN) {
+        result_1 = 0.0;
+        gsl_integration_qag(&F,
+                        MmaxPISN,
+                        MmaxIMF,
+                        0,
+                        rel_tol,
+                        1000,
+                        GSL_INTEG_GAUSS61,
+                        w,
+                        &result_2,
+                        &err_2);
+        
+        }
+      
+      else {
+        result_1 = 0.0;
+        gsl_integration_qag(&F,
+                        MminIMF,
+                        MmaxIMF,
+                        0,
+                        rel_tol,
+                        1000,
+                        GSL_INTEG_GAUSS61,
+                        w,
+                        &result_2,
+                        &err_2); 
+        }
+                        
       }
     else if (MmaxIMF <= MminPISN) {
-      gsl_integration_qag(&F,
-                      MmaxSnII,
-                      MmaxIMF,
-                      0,
-                      rel_tol,
-                      1000,
-                      GSL_INTEG_GAUSS61,
-                      w,
-                      &result_1,
-                      &err_1);
+      if (MminIMF <= MmaxSnII) {
+        gsl_integration_qag(&F,
+                        MmaxSnII,
+                        MmaxIMF,
+                        0,
+                        rel_tol,
+                        1000,
+                        GSL_INTEG_GAUSS61,
+                        w,
+                        &result_1,
+                        &err_1);
+        }
+      else {
+        gsl_integration_qag(&F,
+                        MminIMF,
+                        MmaxIMF,
+                        0,
+                        rel_tol,
+                        1000,
+                        GSL_INTEG_GAUSS61,
+                        w,
+                        &result_1,
+                        &err_1);
+        }
       result_2 = 0.0;
       }
     gsl_integration_workspace_free(w);
