@@ -323,7 +323,7 @@ void init_magnitudes(void)
     // Initialise SED templates
     char* fname = params->PhotometricTablesDir;
     //strcat(fname, "/sed_library.hdf5");
-    strcat(fname, "/sed_library.hdf5"); // Test to see if the file you created it works fine!
+    strcat(fname, "/Sal500_001.hdf5"); // Test to see if the file you created it works fine!
     // Convert time unit to yr
     int snaplist_len = params->SnaplistLength;
     double* LTTime = malloc(snaplist_len * sizeof(double));
