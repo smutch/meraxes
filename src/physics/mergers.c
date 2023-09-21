@@ -166,7 +166,7 @@ void merge_with_target(galaxy_t* gal, int* dead_gals, int snapshot)
   gal_baryons = gal->StellarMass + gal->ColdGas;
 #if USE_MINI_HALOS 
   parent_baryons += parent->Remnant_Mass;
-  gal_baryons += parent->Remnant_Mass;
+  gal_baryons += gal->Remnant_Mass;
 #endif
   if (parent_baryons > gal_baryons)
     merger_ratio = gal_baryons / parent_baryons;

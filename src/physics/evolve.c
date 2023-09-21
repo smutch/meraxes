@@ -60,10 +60,8 @@ int evolve_galaxies(fof_group_t* fof_group, int snapshot, int NGal, int NFof)
                 double x;
                 x = (double)rand() / RAND_MAX;
                 gal->GalMetal_Probability = x;
-                if (gal->GalMetal_Probability > 1) { //It shouldnt happen but you never know...
-                  mlog("Why?, %f", MLOG_MESG, gal->GalMetal_Probability);
+                if (gal->GalMetal_Probability > 1)
                   gal->Metal_Probability == 1;
-                }
               }
               //double boost_corr = 0;
               
