@@ -96,12 +96,8 @@ void add_infall_to_hot(galaxy_t* central, double infall_mass)
     central->HotGas += infall_mass;
 #if USE_MINI_HALOS
     if (Flag_Metals == true) {
-      if (central->Flag_ExtMetEnr == 1) {
-        if ((central->GrossStellarMass + central->GrossStellarMassIII) > 1e-10) // If a galaxy already form stars means it has its own MetalBubble so it will feel metals from the Ejected Gas
-          central->MetalsHotGas += infall_mass * calc_metallicity(central->EjectedGas, central->MetalsEjectedGas);
-        else
-          central->MetalsHotGas += infall_mass * central->Metallicity_IGM;
-      }
+      if (central->Flag_ExtMetEnr == 1)
+        central->MetalsHotGas += infall_mass * central->Metallicity_IGM;
     }
 #endif
   }
