@@ -26,11 +26,20 @@ void add_luminosities(mag_params_t* miniSpectra, galaxy_t* gal, int snapshot, do
   // rather than here in order to achieve better performance.
 
   // Compute integer metallicity
-  int Z = (int)(metals * 1000 - .5);
-  if (Z < miniSpectra->minZ)
+  int Z;
+#if USE_MINI_HALOS
+  if (gal->Galaxy_Population == 2){
+#endif
+    Z = (int)(metals * 2000 - .5);
+    if (Z < miniSpectra->minZ + 1)
+      Z = miniSpectra->minZ + 1;
+    else if (Z > miniSpectra->maxZ)
+      Z = miniSpectra->maxZ;
+#if USE_MINI_HALOS
+    }
+  else
     Z = miniSpectra->minZ;
-  else if (Z > miniSpectra->maxZ)
-    Z = miniSpectra->maxZ;
+#endif
 
   // Add luminosities
   int iA, iF, iS, iAgeBC;
