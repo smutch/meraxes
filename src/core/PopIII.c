@@ -216,58 +216,16 @@ double Number_SNII(void)
   
     F.function = &getIMF;
     
-    if (MminIMF < MminSnII) {
-      if (MmaxIMF >= MmaxSnII) {
-        gsl_integration_qag(&F,
-                            MminSnII,
-                            MmaxSnII,
-                            0,
-                            rel_tol,
-                            1000,
-                            GSL_INTEG_GAUSS61,
-                            w,
-                            &result,
-                            &err);
-        }
-      else {
-        gsl_integration_qag(&F,
-                            MminSnII,
-                            MmaxIMF,
-                            0,
-                            rel_tol,
-                            1000,
-                            GSL_INTEG_GAUSS61,
-                            w,
-                            &result,
-                            &err);
-        }
-      }
-    else {
-      if (MmaxIMF >= MmaxSnII) {
-        gsl_integration_qag(&F,
-                            MminIMF,
-                            MmaxSnII,
-                            0,
-                            rel_tol,
-                            1000,
-                            GSL_INTEG_GAUSS61,
-                            w,
-                            &result,
-                            &err);
-        }
-      else {
-        gsl_integration_qag(&F,
-                            MminIMF,
-                            MmaxIMF,
-                            0,
-                            rel_tol,
-                            1000,
-                            GSL_INTEG_GAUSS61,
-                            w,
-                            &result,
-                            &err);
-        }
-      }
+    gsl_integration_qag(&F,
+                        MminIMF < MminSnII ? MminSnII : MminIMF,
+                        MmaxIMF > MmaxSnII ? MmaxSnII : MmaxIMF,
+                        0,
+                        rel_tol,
+                        1000,
+                        GSL_INTEG_GAUSS61,
+                        w,
+                        &result,
+                        &err);
     gsl_integration_workspace_free(w);
     return result; 
     } 
@@ -288,58 +246,17 @@ double Mass_SNII(void)
   
     F.function = &getIMF_massweighted;
     
-    if (MminIMF < MminSnII) {
-      if (MmaxIMF >= MmaxSnII) {
-        gsl_integration_qag(&F,
-                            MminSnII,
-                            MmaxSnII,
-                            0,
-                            rel_tol,
-                            1000,
-                            GSL_INTEG_GAUSS61,
-                            w,
-                            &result,
-                            &err);
-        }
-      else {
-        gsl_integration_qag(&F,
-                            MminSnII,
-                            MmaxIMF,
-                            0,
-                            rel_tol,
-                            1000,
-                            GSL_INTEG_GAUSS61,
-                            w,
-                            &result,
-                            &err);
-        }
-      }
-    else {
-      if (MmaxIMF >= MmaxSnII) {
-        gsl_integration_qag(&F,
-                            MminIMF,
-                            MmaxSnII,
-                            0,
-                            rel_tol,
-                            1000,
-                            GSL_INTEG_GAUSS61,
-                            w,
-                            &result,
-                            &err);
-        }
-      else {
-        gsl_integration_qag(&F,
-                            MminIMF,
-                            MmaxIMF,
-                            0,
-                            rel_tol,
-                            1000,
-                            GSL_INTEG_GAUSS61,
-                            w,
-                            &result,
-                            &err);
-        }
-      }
+    gsl_integration_qag(&F,
+                        MminIMF < MminSnII ? MminSnII : MminIMF,
+                        MmaxIMF > MmaxSnII ? MmaxSnII : MmaxIMF,
+                        0,
+                        rel_tol,
+                        1000,
+                        GSL_INTEG_GAUSS61,
+                        w,
+                        &result,
+                        &err);
+
     gsl_integration_workspace_free(w);
     return result; 
     } 
@@ -361,115 +278,39 @@ double Mass_BHs(void) // Add BHs for Pop III with M>40Msol. Atm they don't do an
     gsl_integration_workspace* w = gsl_integration_workspace_alloc(1000);
     F.function = &getIMF_massweighted;
   
+    if (MminIMF < MminPISN) {
+        gsl_integration_qag(&F,
+                    MminIMF < MmaxSnII ? MmaxSnII : MminIMF,
+                    MmaxIMF > MminPISN ? MminPISN : MmaxIMF,
+                    0,
+                    rel_tol,
+                    1000,
+                    GSL_INTEG_GAUSS61,
+                    w,
+                    &result_1,
+                    &err_1);
+	}
+	else
+		result_1 = 0.;
+
     if (MmaxIMF > MmaxPISN) {
-      if (MminIMF <= MmaxSnII) {
-        gsl_integration_qag(&F,
-                        MmaxSnII,
-                        MminPISN,
-                        0,
-                        rel_tol,
-                        1000,
-                        GSL_INTEG_GAUSS61,
-                        w,
-                        &result_1,
-                        &err_1);
-         
          gsl_integration_qag(&F,
-                        MmaxPISN,
-                        MmaxIMF,
-                        0,
-                        rel_tol,
-                        1000,
-                        GSL_INTEG_GAUSS61,
-                        w,
-                        &result_2,
-                        &err_2);
-       }
-      
-      else if (MminIMF <= MminPISN) {
-        gsl_integration_qag(&F,
-                        MminIMF,
-                        MminPISN,
-                        0,
-                        rel_tol,
-                        1000,
-                        GSL_INTEG_GAUSS61,
-                        w,
-                        &result_1,
-                        &err_1);
-        
-        gsl_integration_qag(&F,
-                        MmaxPISN,
-                        MmaxIMF,
-                        0,
-                        rel_tol,
-                        1000,
-                        GSL_INTEG_GAUSS61,
-                        w,
-                        &result_2,
-                        &err_2);
-        }
-      
-      else if (MminIMF <= MmaxPISN) {
-        result_1 = 0.0;
-        gsl_integration_qag(&F,
-                        MmaxPISN,
-                        MmaxIMF,
-                        0,
-                        rel_tol,
-                        1000,
-                        GSL_INTEG_GAUSS61,
-                        w,
-                        &result_2,
-                        &err_2);
-        
-        }
-      
-      else {
-        result_1 = 0.0;
-        gsl_integration_qag(&F,
-                        MminIMF,
-                        MmaxIMF,
-                        0,
-                        rel_tol,
-                        1000,
-                        GSL_INTEG_GAUSS61,
-                        w,
-                        &result_2,
-                        &err_2); 
-        }
-                        
-      }
-    else if (MmaxIMF <= MminPISN) {
-      if (MminIMF <= MmaxSnII) {
-        gsl_integration_qag(&F,
-                        MmaxSnII,
-                        MmaxIMF,
-                        0,
-                        rel_tol,
-                        1000,
-                        GSL_INTEG_GAUSS61,
-                        w,
-                        &result_1,
-                        &err_1);
-        }
-      else {
-        gsl_integration_qag(&F,
-                        MminIMF,
-                        MmaxIMF,
-                        0,
-                        rel_tol,
-                        1000,
-                        GSL_INTEG_GAUSS61,
-                        w,
-                        &result_1,
-                        &err_1);
-        }
-      result_2 = 0.0;
-      }
+                    MminIMF < MmaxPISN ? MmaxPISN : MminIMF,
+                    MmaxIMF,
+                    0,
+                    rel_tol,
+                    1000,
+                    GSL_INTEG_GAUSS61,
+                    w,
+                    &result_2,
+                    &err_2);
+    }
+	else
+		result_2 = 0.;
+
     gsl_integration_workspace_free(w);
     return (result_1 + result_2);
-    }  
+    }
 }
 
 double Number_PISN(void)
@@ -488,60 +329,19 @@ double Number_PISN(void)
     gsl_integration_workspace* w = gsl_integration_workspace_alloc(1000);
   
     F.function = &getIMF;
-    if (MminIMF < MminPISN) {
-      if (MmaxIMF >= MmaxPISN) {
-        gsl_integration_qag(&F,
-                        MminPISN,
-                        MmaxPISN,
-                        0,
-                        rel_tol,
-                        1000,
-                        GSL_INTEG_GAUSS61,
-                        w,
-                        &result,
-                        &err);
-        }
-      else {
-        gsl_integration_qag(&F,
-                        MminPISN,
-                        MmaxIMF,
-                        0,
-                        rel_tol,
-                        1000,
-                        GSL_INTEG_GAUSS61,
-                        w,
-                        &result,
-                        &err);
-        }
-      }
-    else {
-      if (MmaxIMF >= MmaxPISN) {
-        gsl_integration_qag(&F,
-                        MminIMF,
-                        MmaxPISN,
-                        0,
-                        rel_tol,
-                        1000,
-                        GSL_INTEG_GAUSS61,
-                        w,
-                        &result,
-                        &err);
-        }
-      else {
-        gsl_integration_qag(&F,
-                        MminIMF,
-                        MmaxIMF,
-                        0,
-                        rel_tol,
-                        1000,
-                        GSL_INTEG_GAUSS61,
-                        w,
-                        &result,
-                        &err);
-        }
-      }
-      gsl_integration_workspace_free(w);
-      return result;
+    gsl_integration_qag(&F,
+                    MminIMF < MminPISN ? MminPISN : MminIMF,
+                    MmaxIMF > MmaxPISN ? MmaxPISN : MmaxIMF,
+                    0,
+                    rel_tol,
+                    1000,
+                    GSL_INTEG_GAUSS61,
+                    w,
+                    &result,
+                    &err);
+
+    gsl_integration_workspace_free(w);
+    return result;
     }  
 }
 
@@ -561,59 +361,17 @@ double Mass_PISN(void)
     gsl_integration_workspace* w = gsl_integration_workspace_alloc(1000);
   
     F.function = &getIMF_massweighted;
+    gsl_integration_qag(&F,
+                    MminIMF < MminPISN ? MminPISN : MminIMF,
+                    MmaxIMF > MmaxPISN ? MmaxPISN : MmaxIMF,
+                    0,
+                    rel_tol,
+                    1000,
+                    GSL_INTEG_GAUSS61,
+                    w,
+                    &result,
+                    &err);
     
-    if (MminIMF < MminPISN) {
-      if (MmaxIMF >= MmaxPISN) {
-        gsl_integration_qag(&F,
-                        MminPISN,
-                        MmaxPISN,
-                        0,
-                        rel_tol,
-                        1000,
-                        GSL_INTEG_GAUSS61,
-                        w,
-                        &result,
-                        &err);
-        }
-      else {
-        gsl_integration_qag(&F,
-                        MminPISN,
-                        MmaxIMF,
-                        0,
-                        rel_tol,
-                        1000,
-                        GSL_INTEG_GAUSS61,
-                        w,
-                        &result,
-                        &err);
-        }
-      }
-    else {
-      if (MmaxIMF >= MmaxPISN) {
-        gsl_integration_qag(&F,
-                        MminIMF,
-                        MmaxPISN,
-                        0,
-                        rel_tol,
-                        1000,
-                        GSL_INTEG_GAUSS61,
-                        w,
-                        &result,
-                        &err);
-        }
-      else {
-        gsl_integration_qag(&F,
-                        MminIMF,
-                        MmaxIMF,
-                        0,
-                        rel_tol,
-                        1000,
-                        GSL_INTEG_GAUSS61,
-                        w,
-                        &result,
-                        &err);
-        }
-      }
     gsl_integration_workspace_free(w);
     return result;
     }    
