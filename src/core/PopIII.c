@@ -289,9 +289,9 @@ double Mass_BHs(void) // Add BHs for Pop III with M>40Msol. Atm they don't do an
                     w,
                     &result_1,
                     &err_1);
-	}
-	else
-		result_1 = 0.;
+        }
+    else
+	result_1 = 0.;
 
     if (MmaxIMF > MmaxPISN) {
          gsl_integration_qag(&F,
@@ -304,9 +304,9 @@ double Mass_BHs(void) // Add BHs for Pop III with M>40Msol. Atm they don't do an
                     w,
                     &result_2,
                     &err_2);
-    }
-	else
-		result_2 = 0.;
+        }
+    else
+        result_2 = 0.;
 
     gsl_integration_workspace_free(w);
     return (result_1 + result_2);
