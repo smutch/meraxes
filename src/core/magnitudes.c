@@ -331,7 +331,13 @@ void init_magnitudes(void)
 
     // Initialise SED templates
     char* fname = params->PhotometricTablesDir;
-    strcat(fname, "/sed_library.hdf5");
+#if USE_MINI_HALOS
+    int IMF_Type = run_globals.params.physics.PopIII_IMF;
+    if (IMF_Type == 1)
+      strcat(fname, "/sed_library_PopIII_Sal500_001.hdf5"); // Expand here once you have more IMFs
+#else
+    strcat(fname, "/sed_library_PopIII_Sal500_001.hdf5"); //Any file would be good
+#endif
     // Convert time unit to yr
     int snaplist_len = params->SnaplistLength;
     double* LTTime = malloc(snaplist_len * sizeof(double));
