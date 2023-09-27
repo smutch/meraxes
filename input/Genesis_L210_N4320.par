@@ -23,6 +23,27 @@ FlagMCMC               : 0  # Don't do any writing and activate MCMC related rou
 FlagIgnoreProgIndex    : 0
 RandomSeed             : 1809  # seed for random number generator
 
+Flag_IncludeMetalEvo    : 0   # Added by Manu for External metal Enrichment
+Flag_IncludeLymanWerner : 1
+
+#################### External Metal enrichment, you need this when Flag_IncludeMetalEvo == 1 #################################
+
+MetalGridDim               : 16   
+
+AlphaCluster               : -1.4 #For fitting function for Non Linear Clustering. 
+BetaCluster                : 0.8
+GammaCluster               : 2.8
+NormCluster                : 200.0
+
+ZCrit                      : 0.0001
+#############################
+
+# ----- Pop III IMF -----
+AlphaIMF                  : -0.5 # Power-law index of the IMF (Test default is -2.35)
+MminIMF                   : 1.0 # Minimum mass of IMF (Test default is 9)
+MmaxIMF                   : 300.0 # Maximum mass of IMF (Test default is 500)
+PopIIIAgePrescription     : 2 # 1->Schaerer Strong Mass Loss, 2-> Schaerer No Mass Loss
+
 #------------------------------------------
 #----- Parameters of physical model -------
 #------------------------------------------
@@ -34,6 +55,8 @@ SfPrescription             : 1    # C06 SF law
 SfEfficiency              : 0.08    # star formation efficiency Normalization
 SfEfficiencyScaling       : 0.0     # star formation efficiency Scaling
 
+SfEfficiency_III          : 0.08    # star formation efficiency Normalization
+SfEfficiencyScaling_III   : 0.0     # star formation efficiency Scaling
 # ----------------------------------------------------------------
 # ----- Pressure-based SF law from Blitz & Rosolowski 2006 -------
 # ----------------------------------------------------------------
@@ -47,12 +70,16 @@ SfEfficiencyScaling       : 0.0     # star formation efficiency Scaling
 #    -> 2Gyr at z=0 with redshift dependence SF timescale (Duffy+17)
 
 SfCriticalSDNorm          : 0.2     # critical surface density normalisation factor for star formation (internal units; standard=0.37)
+SfCriticalSDNorm_III          : 0.2     # critical surface density normalisation factor for star formation (internal units; standard=0.37)
 
 # ----- supernova feedback -----
 Flag_IRA                   : 0    # use the instantaneous recycling approximation
 Flag_ReheatToFOFGroupTemp  : 0    # try to reheat gas to the FOF group Tvir instead of just the subgroup value
 SfRecycleFraction         : 0.25    # instantaneous recycle fraction (IMF dependant) (only used when Flag_IRA=1)
 Yield                     : 0.03    # mass of metals injected into ISM per unit star formation (only used when Flag_IRA=1)
+
+SfRecycleFraction_III     : 0.25    # instantaneous recycle fraction (IMF dependant) (only used when Flag_IRA=1)
+Yield_III                 : 0.03    # mass of metals injected into ISM per unit star formation (only used when Flag_IRA=1)
 
 # SnModel=1:
 #   -Use the Vmax scaling of Guo et al. 2011
@@ -74,12 +101,25 @@ SnEjectionScaling         : 2.0     # SN feedback gas reheating efficiency scali
 SnEjectionScaling2        : 2.0     # SN feedback gas reheating efficiency scaling (with low Vmax)
 SnEjectionNorm            : 70.0    # SN feedback gas reheating efficiency norm (with Vmax [internal units])
 
+SnEjectionRedshiftDep_III : 0.0     # SN feedback gas reheating efficiency redshift scaling
+SnEjectionEff_III         : 0.5     # SN feedback gas reheating efficiency
+SnEjectionScaling_III     : 2.0     # SN feedback gas reheating efficiency scaling (with high Vmax)
+SnEjectionScaling2_III    : 2.0     # SN feedback gas reheating efficiency scaling (with low Vmax)
+SnEjectionNorm_III        : 70.0    # SN feedback gas reheating efficiency norm (with Vmax [internal units])
+
 SnReheatRedshiftDep       : 0.0     # mass loading factor redshift scaling
 SnReheatEff               : 10.0    # mass loading factor for SN feedback
 SnReheatLimit             : 10.0    # maximum allowed mass loading factor for SN feedback
 SnReheatScaling           : 0.0     # mass loading factor for SN feedback scaling (with high Vmax)
 SnReheatScaling2          : 0.0     # mass loading factor for SN feedback scaling2 (with low Vmax)
 SnReheatNorm              : 70.0    # mass loading factor for SN feedback scaling (with Vmax [internal units])
+
+SnReheatRedshiftDep_III   : 0.0     # mass loading factor redshift scaling
+SnReheatEff_III           : 10.0    # mass loading factor for SN feedback
+SnReheatLimit_III         : 10.0    # maximum allowed mass loading factor for SN feedback
+SnReheatScaling_III       : 0.0     # mass loading factor for SN feedback scaling (with high Vmax)
+SnReheatScaling2_III      : 0.0     # mass loading factor for SN feedback scaling2 (with low Vmax)
+SnReheatNorm_III          : 70.0    # mass loading factor for SN feedback scaling (with Vmax [internal units])
 
 # ----- cooling -----
 MaxCoolingMassFactor      : 1.0     # maximum cooling mass factor (1 -> ff time)
@@ -142,12 +182,12 @@ Flag_PatchyReion       : 1  # Use 21cmFAST (ensure Flag_ReionizationModifier=1 i
 Flag_OutputGrids       : 1
 Flag_OutputGridsPostReion  : 0
 Flag_IncludeRecombinations : 1
-Flag_Compute21cmBrightTemp : 1
-Flag_ComputePS : 1
+Flag_Compute21cmBrightTemp : 0
+Flag_ComputePS : 0
 Flag_IncludeSpinTemp : 1
 Flag_SeparateQSOXrays : 0   # NOT CURRENTLY IMPLEMENTED (CODE WILL FAIL IF != 0)
-Flag_IncludePecVelsFor21cm : 1
-Flag_ConstructLightcone : 1
+Flag_IncludePecVelsFor21cm : 0
+Flag_ConstructLightcone : 0
 
 ReionUVBFlag           : 1  # Use 21cmFAST (ensure Flag_ReionizationModifier=1 if wish to couple to galaxy formation).
 ReionSfrTimescale      : 0.5
@@ -177,6 +217,9 @@ LXrayGal : 3.16e40         # Soft-band (< NuXraySoftCut keV) X-ray luminosity fo
 NuXrayGalThreshold : 500.  # Energy threshold for HMXB X-rays escaping host galaxy (eV)
 SpecIndexXrayGal : 1.      # Spectral index of galaxy X-ray sources  (nu^-alpha)
 
+LXrayIII : 3.16e40         # Soft-band (< NuXraySoftCut keV) X-ray luminosity for galaxy based sources (HMXB)
+SpecIndexXrayIII : 1.      # Spectral index of galaxy X-ray sources  (nu^-alpha)
+
 LXrayQSO : 3.16e40         # Soft-band (< NuXraySoftCut keV) X-ray luminosity for QSO based sources
 NuXrayQSOThreshold : 500.  # Energy threshold for QSO X-rays escaping host galaxy (eV)
 SpecIndexXrayQSO : 1.      # Spectral index of QSO X-ray sources  (nu^-alpha)
@@ -186,6 +229,7 @@ NuXrayMax : 10000.         # Maximum energy for X-ray band integration
 
 EscapeFracDependency       : 1  # 0->none, 1->redshift, 2->stellar mass, 3->sfr, 4->cold gas surface density, 5->mvir, 6->ssfr
 EscapeFracNorm             : 0.06
+EscapeFracNormIII          : 0.06
 EscapeFracRedshiftOffset   : 6.0
 EscapeFracRedshiftScaling  : 0.5  # N.B. use EscapeFracDependency>1 and this = 0 to scale only with galaxy property (and not also with redshift)
 EscapeFracPropScaling      : 0.5
@@ -198,9 +242,9 @@ ReionSMParam_b         : -2.1
 ReionSMParam_c         : 2.0
 ReionSMParam_d         : 2.5
 
-ReionTcool             : 1.0e4  # Kelvin
-ReionNionPhotPerBary   : 6000
-
+ReionTcool              : 1.0e4  # Kelvin
+ReionNionPhotPerBary    : 6000
+ReionNionPhotPerBary_III : 6000
 
 #------------------------------------------------
 #----- Cosmological and nbody sim parameters ----
