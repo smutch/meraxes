@@ -336,7 +336,7 @@ void init_magnitudes(void)
     if (IMF_Type == 1)
       strcat(fname, "/sed_Sal500_001.hdf5"); // Expand here once you have more IMFs
 #else
-    strcat(fname, "/sed_library_PopIII_Sal500_001.hdf5"); //Any file would be good
+    strcat(fname, "/sed_Sal500_001.hdf5"); //Any file would be good
 #endif
     // Convert time unit to yr
     int snaplist_len = params->SnaplistLength;
