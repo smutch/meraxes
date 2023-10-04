@@ -183,10 +183,10 @@ double IMFnorm(double Mmin_IMF, double Mmax_IMF) //get normalization of Pop III 
 double getIMF(double StarMass)
 {
   int IMF_Type = run_globals.params.physics.PopIII_IMF;
+  double Anorm = run_globals.IMFnorm;
   
   if (IMF_Type < 3) { //Salpeter IMF
     double AlphaIMF = run_globals.params.physics.AlphaIMF;
-    double Anorm = run_globals.IMFnorm;
     return Anorm * pow(StarMass, AlphaIMF);
     }
   else { //logNormal
