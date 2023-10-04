@@ -70,6 +70,7 @@ void initialize_PopIII() //Initialize PopIII quantities that are easily computed
       McharIMF = 60.0;
       SigmaIMF = 1.0;
       NionBaryIII = 71000.0;
+      break;
     default:
       mlog_error("Unrecognised value for PopIII_IMF! Defaulting to Salpeter 1.");
       MminIMF = 1.0;
