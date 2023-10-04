@@ -131,6 +131,8 @@ typedef struct physics_params_t
   double MminIMF;
   double MmaxIMF;
   double AlphaIMF;
+  double McharIMF; //for LogNorm
+  double SigmaIMF;
   int PopIII_IMF;
   int PopIIIAgePrescription;
   

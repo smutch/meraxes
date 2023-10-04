@@ -40,6 +40,8 @@ void initialize_PopIII() //Initialize PopIII quantities that are easily computed
   double MminIMF;
   double MmaxIMF;
   double AlphaIMF;
+  double McharIMF;
+  double SigmaIMF;
   double NionBaryIII;
   
   switch (IMF_Type) { //Use the one for which you have the spectra from Raiter et al. (2010).
@@ -55,6 +57,19 @@ void initialize_PopIII() //Initialize PopIII quantities that are easily computed
       AlphaIMF = -2.35;
       NionBaryIII = 72000.0;
       break;
+    case 3:
+      MminIMF = 1.0;
+      MmaxIMF = 500.0;
+      McharIMF = 10.0;
+      SigmaIMF = 1.0;
+      NionBaryIII = 47600.0;
+      break;
+    case 4:
+      MminIMF = 1.0;
+      MmaxIMF = 500.0;
+      McharIMF = 60.0;
+      SigmaIMF = 1.0;
+      NionBaryIII = 71000.0;
     default:
       mlog_error("Unrecognised value for PopIII_IMF! Defaulting to Salpeter 1.");
       MminIMF = 1.0;
@@ -70,7 +85,13 @@ void initialize_PopIII() //Initialize PopIII quantities that are easily computed
   
   run_globals.params.physics.MminIMF = MminIMF;
   run_globals.params.physics.MmaxIMF = MmaxIMF;
-  run_globals.params.physics.AlphaIMF = AlphaIMF;
+  
+  if (IMF_Type < 3) //Salpeter IMF
+    run_globals.params.physics.AlphaIMF = AlphaIMF;
+  else { //logNormal IMF
+    run_globals.params.physics.McharIMF = McharIMF;
+    run_globals.params.physics.SigmaIMF = SigmaIMF;
+    }
   run_globals.params.physics.ReionNionPhotPerBaryIII = NionBaryIII; // Assign this value because this depends on the choice of the IMF
 
   initialize_time_interp_arrays(MminIMF, MmaxIMF);
@@ -123,10 +144,15 @@ double interp_mass(double lifetime) // Lifetime in yr units!!
 double integrand_IMFnorm(double StarMass) // You might want a case 2 for a different type of IMF (with Characteristic mass)
 {
   int IMF_Type = run_globals.params.physics.PopIII_IMF;
-  double AlphaIMF = run_globals.params.physics.AlphaIMF;
   
-  if (IMF_Type < 3) //Salpeter IMF
+  if (IMF_Type < 3) { //Salpeter IMF
+    double AlphaIMF = run_globals.params.physics.AlphaIMF;
     return StarMass * pow(StarMass, AlphaIMF);
+    }
+  else { //logN
+    double McharIMF = run_globals.params.physics.McharIMF;
+    double SigmaIMF = run_globals.params.physics.SigmaIMF;
+    return exp((-0.5 / (SigmaIMF * SigmaIMF) * log(StarMass / McharIMF) * log(StarMass / McharIMF)));
 }
 
 double IMFnorm(double Mmin_IMF, double Mmax_IMF) //get normalization of Pop III IMF
@@ -156,11 +182,17 @@ double IMFnorm(double Mmin_IMF, double Mmax_IMF) //get normalization of Pop III 
 double getIMF(double StarMass)
 {
   int IMF_Type = run_globals.params.physics.PopIII_IMF;
-  double AlphaIMF = run_globals.params.physics.AlphaIMF;
-  double Anorm = run_globals.IMFnorm;
   
-  if (IMF_Type < 3) //Salpeter IMF
+  if (IMF_Type < 3) { //Salpeter IMF
+    double AlphaIMF = run_globals.params.physics.AlphaIMF;
+    double Anorm = run_globals.IMFnorm;
     return Anorm * pow(StarMass, AlphaIMF);
+    }
+  else { //logNormal
+    double McharIMF = run_globals.params.physics.McharIMF;
+    double SigmaIMF = run_globals.params.physics.SigmaIMF;
+    return 1.0 / StarMass * exp(log(Anorm) - 0.5 / (SigmaIMF * SigmaIMF) * log(StarMass / McharIMF) * log(StarMass / McharIMF));
+    }
 }
 
 double getIMF_massweighted(double StarMass) 
