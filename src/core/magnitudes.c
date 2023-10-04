@@ -335,6 +335,12 @@ void init_magnitudes(void)
     int IMF_Type = run_globals.params.physics.PopIII_IMF;
     if (IMF_Type == 1)
       strcat(fname, "/sed_Sal500_001.hdf5"); // Expand here once you have more IMFs
+    else if (IMF_Type == 2)
+      strcat(fname, "/sed_Sal500_050.hdf5");
+    else if (IMF_Type == 3)
+      strcat(fname, "/sed_logA500_001.hdf5");
+    else if (IMF_Type == 4)
+      strcat(fname, "/sed_logE500_001.hdf5");
 #else
     strcat(fname, "/sed_Sal500_001.hdf5"); //Any file would be good
 #endif
