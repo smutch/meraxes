@@ -153,6 +153,7 @@ double integrand_IMFnorm(double StarMass) // You might want a case 2 for a diffe
     double McharIMF = run_globals.params.physics.McharIMF;
     double SigmaIMF = run_globals.params.physics.SigmaIMF;
     return exp((-0.5 / (SigmaIMF * SigmaIMF) * log(StarMass / McharIMF) * log(StarMass / McharIMF)));
+    }
 }
 
 double IMFnorm(double Mmin_IMF, double Mmax_IMF) //get normalization of Pop III IMF
