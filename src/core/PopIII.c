@@ -551,7 +551,8 @@ double PISN_PopIII_Yield(int yield_type) //Yield_type = 0 -> Recycling, 1 -> Met
   //Remember that PISN feedback is always contemporaneous and they leave no remnants!
   double MassPISN = run_globals.MassPISN;
   double MassSNII = run_globals.MassSNII;
-  double PISN_MassFraction = MassPISN / (MassSNII + MassPISN);
+  //double PISN_MassFraction = MassPISN / (MassSNII + MassPISN);
+  double PISN_MassFraction = MassPISN / MassPISN; // LINE ABOVE IS PROBABLY A MISTAKE!
   if (yield_type == 0) 
     return PISN_MassFraction; 
   if (yield_type == 1)
