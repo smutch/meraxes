@@ -411,7 +411,8 @@ void contemporaneous_supernova_feedback(galaxy_t* gal,
       *m_remnant = *m_stars * (MassBHs + CCSN_PopIII_Yield(0, snapshot, 2) * MassSNII);
       if (MassPISN > 0) { // Account for PISN
         *m_recycled += *m_stars * PISN_PopIII_Yield(0) * MassPISN;
-        *new_metals += *m_stars * PISN_PopIII_Yield(1) * MassPISN - (20.0 / 1e10 * run_globals.params.Hubble_h);
+        if (*m_stars * PISN_PopIII_Yield(1) * MassPISN - (20.0 / 1e10 * run_globals.params.Hubble_h) > 0.0)
+          *new_metals += *m_stars * PISN_PopIII_Yield(1) * MassPISN - (20.0 / 1e10 * run_globals.params.Hubble_h);
         }
       }
 #endif
