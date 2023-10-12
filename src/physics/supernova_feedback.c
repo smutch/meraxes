@@ -406,7 +406,9 @@ void contemporaneous_supernova_feedback(galaxy_t* gal,
       }
     else if (gal->Galaxy_Population == 3){
       *m_recycled = *m_stars * (CCSN_PopIII_Yield(0, snapshot, 0)) * MassSNII;
-      *new_metals = *m_stars * CCSN_PopIII_Yield(0, snapshot, 1);
+      //*new_metals = *m_stars * CCSN_PopIII_Yield(0, snapshot, 1); // Shouldn't have also MassSNII here?
+      *new_metals = *m_stars * CCSN_PopIII_Yield(0, snapshot, 1) * MassSNII;
+      *m_remnant = *m_stars * (MassBHs + CCSN_PopIII_Yield(0, snapshot, 2) * MassSNII);
       if (MassPISN > 0) { // Account for PISN
         *m_recycled += *m_stars * PISN_PopIII_Yield(0) * MassPISN;
         *new_metals += *m_stars * PISN_PopIII_Yield(1) * MassPISN - (20.0 / 1e10 * run_globals.params.Hubble_h);

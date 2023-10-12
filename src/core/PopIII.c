@@ -506,7 +506,8 @@ double CCSN_PopIII_Yield(int i_burst, int curr_snap, int yield_type) //0 = Tot, 
   double time_unit = run_globals.units.UnitTime_in_Megayears / run_globals.params.Hubble_h * 1e6; //You need result in yrs
   double m_max;
   
-  double TotalMassSN = run_globals.MassPISN + run_globals.MassSNII;
+  //double TotalMassSN = run_globals.MassPISN + run_globals.MassSNII;
+  double TotalMassSN = run_globals.MassSNII;
   
   double DeltaTime = (LTTime[curr_snap - i_burst] - LTTime[curr_snap]) * time_unit;
   double DeltaTimeSnap2 = (LTTime[curr_snap - i_burst] - LTTime[curr_snap - i_burst + 1]) * time_unit;
