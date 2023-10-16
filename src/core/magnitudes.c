@@ -116,7 +116,7 @@ void init_templates_mini(mag_params_t* miniSpectra,
 
   // Initialise full templates
   int iS;
-  double DeltaT = run_globals.mag_params.DeltaT;
+  double DeltaT = run_params.DeltaT;
   struct sed_params_t spectra[MAGS_N_SNAPS];
   int nAgeStep;
   double* ageStep;

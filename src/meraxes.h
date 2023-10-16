@@ -227,6 +227,7 @@ typedef struct run_params_t
   char BetaBands[STRLEN];
   char RestBands[STRLEN];
   double BirthCloudLifetime;
+  double DeltaT; // New Parameter added to consider different time of observation! Very important for Pop. III
   char CoolingFuncsDir[STRLEN];
   char StellarFeedbackDir[STRLEN];
   char TablesForXHeatingDir[STRLEN];
@@ -711,7 +712,6 @@ typedef char gpu_info;
 typedef struct mag_params_t
 {
   int targetSnap[MAGS_N_SNAPS];
-  double DeltaT; // New Parameter added to consider different time of observation! Very important for Pop. III
   int nBeta;
   int nRest;
   int minZ;
