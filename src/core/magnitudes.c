@@ -1,6 +1,7 @@
 #include "mlog.h"
 #ifdef CALC_MAGS
 
+#include <assert.h>
 #include "debug.h"
 #include "magnitudes.h"
 #include "meraxes.h"
