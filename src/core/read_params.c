@@ -202,6 +202,15 @@ void read_parameter_file(char* fname, int mode)
       required_tag[n_param] = 1;
 #endif
       params_type[n_param++] = PARAM_TYPE_DOUBLE;
+      
+strcpy(params_tag[n_param], "DeltaT");
+      params_addr[n_param] = &(run_params->DeltaT);
+#ifndef CALC_MAGS
+      required_tag[n_param] = 0;
+#else
+      required_tag[n_param] = 1;
+#endif
+      params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
       strncpy(params_tag[n_param], "TablesForXHeatingDir", tag_length);
       params_addr[n_param] = run_params->TablesForXHeatingDir;

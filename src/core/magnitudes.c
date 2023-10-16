@@ -115,6 +115,7 @@ void init_templates_mini(mag_params_t* miniSpectra,
 
   // Initialise full templates
   int iS;
+  double DeltaT = run_globals.mag_params.DeltaT;
   struct sed_params_t spectra[MAGS_N_SNAPS];
   int nAgeStep;
   double* ageStep;
@@ -133,8 +134,11 @@ void init_templates_mini(mag_params_t* miniSpectra,
     spectra[iS].nAgeStep = nAgeStep;
     ageStep = (double*)malloc(nAgeStep * sizeof(double));
     //   -Should be in a unit of yr
-    for (int iA = 0; iA < nAgeStep; ++iA)
+    for (int iA = 0; iA < nAgeStep; ++iA) {
       ageStep[iA] = LTTime[nAgeStep - iA - 1] - LTTime[nAgeStep];
+      ageStep[iA] -= DeltaT; // NEED TO DEFINE THIS DELTAT IN THE PARAMETER!
+    }
+    assert(ageStep[0] > 0.); // NEW ADDITION!
     spectra[iS].ageStep = ageStep;
     //   -This function may be omitted
     shrink_templates_raw(spectra + iS, ageStep[nAgeStep - 1]);
