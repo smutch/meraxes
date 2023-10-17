@@ -121,7 +121,7 @@ void init_templates_mini(mag_params_t* miniSpectra,
   double* ageStep;
   
   run_params_t* params = &run_globals.params;
-  double deltaT = params->DeltaT;
+  double deltaT = params->DeltaT / run_globals.units.UnitTime_in_Megayears * run_globals.params.Hubble_h; // Convert deltaT in internal units!!
 
   for (iS = 0; iS < MAGS_N_SNAPS; ++iS) {
     nAgeStep = targetSnap[iS];
@@ -145,7 +145,7 @@ void init_templates_mini(mag_params_t* miniSpectra,
     // New version testing it now!
     for (int iA = 0; iA < nAgeStep; ++iA) {
       ageStep[iA] = LTTime[nAgeStep - iA] - LTTime[nAgeStep];
-      ageStep[iA] += deltaT; // NEED TO DEFINE THIS DELTAT IN THE PARAMETER!
+      ageStep[iA] += deltaT; // NEED TO DEFINE THIS DELTAT IN THE PARAMETER! 
     }
     
     assert(ageStep[0] > 0.); // NEW ADDITION!
