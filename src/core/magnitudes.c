@@ -121,7 +121,7 @@ void init_templates_mini(mag_params_t* miniSpectra,
   double* ageStep;
   
   run_params_t* params = &run_globals.params;
-  double deltaT = params->DeltaT / run_globals.units.UnitTime_in_Megayears * run_globals.params.Hubble_h; // Convert deltaT in internal units!!
+  double deltaT = params->DeltaT; // Input value in yrs
 
   for (iS = 0; iS < MAGS_N_SNAPS; ++iS) {
     nAgeStep = targetSnap[iS];
@@ -139,7 +139,7 @@ void init_templates_mini(mag_params_t* miniSpectra,
     //   -Should be in a unit of yr
     for (int iA = 0; iA < nAgeStep; ++iA) {
       ageStep[iA] = LTTime[nAgeStep - iA - 1] - LTTime[nAgeStep];
-      ageStep[iA] -= deltaT; // NEED TO DEFINE THIS DELTAT IN THE PARAMETER!
+      ageStep[iA] -= deltaT; 
     }
     
     // New version testing it now!
@@ -147,7 +147,7 @@ void init_templates_mini(mag_params_t* miniSpectra,
       ageStep[iA] = LTTime[nAgeStep - iA] - LTTime[nAgeStep];
       ageStep[iA] += deltaT; // NEED TO DEFINE THIS DELTAT IN THE PARAMETER! 
     }*/
-    mlog("Init ageStep = %f at snap = %d", MLOG_MESG, ageStep[0] * run_globals.units.UnitTime_in_Megayears / run_globals.params.Hubble_h, targetSnap[iS]); 
+    mlog("Init ageStep = %f at snap = %d", MLOG_MESG, ageStep[0] / 1e6, targetSnap[iS]); 
     
     assert(ageStep[0] > 0.); // NEW ADDITION!
     spectra[iS].ageStep = ageStep;
