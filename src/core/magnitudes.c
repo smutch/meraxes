@@ -147,6 +147,7 @@ void init_templates_mini(mag_params_t* miniSpectra,
       ageStep[iA] = LTTime[nAgeStep - iA] - LTTime[nAgeStep];
       ageStep[iA] += deltaT; // NEED TO DEFINE THIS DELTAT IN THE PARAMETER! 
     }
+    mlog("Init ageStep = %f at snap = %d", MLOG_MESG, ageStep[0], targetSnap[iS]); 
     
     assert(ageStep[0] > 0.); // NEW ADDITION!
     spectra[iS].ageStep = ageStep;
