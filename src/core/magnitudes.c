@@ -137,7 +137,7 @@ void init_templates_mini(mag_params_t* miniSpectra,
     spectra[iS].nAgeStep = nAgeStep;
     ageStep = (double*)malloc(nAgeStep * sizeof(double));
     //   -Should be in a unit of yr
-   *for (int iA = 0; iA < nAgeStep; ++iA) {
+    for (int iA = 0; iA < nAgeStep; ++iA) {
       ageStep[iA] = LTTime[nAgeStep - iA - 1] - LTTime[nAgeStep];
       ageStep[iA] -= deltaT; // NEED TO DEFINE THIS DELTAT IN THE PARAMETER!
     }
