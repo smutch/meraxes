@@ -250,6 +250,7 @@ void init_meraxes()
     run_globals.LTTime[i] = time_to_present(run_globals.ZZ[i]);
     run_globals.rhocrit[i] = 3 * pow(hubble_at_snapshot(i), 2) / (8 * M_PI * run_globals.G);
   }
+  mlog("LTTIme array vals = %f", MLOG_MESG, LTTIme);
 
   // validation checks
   if (run_globals.params.Flag_IncludeSpinTemp) {
