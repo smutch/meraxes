@@ -474,6 +474,7 @@ void init_magnitudes(void)
   double* working;
   double* workingIII;
   ptrdiff_t offset_inBC;
+  ptrdiff_t offset_inBCIII;
   ptrdiff_t offset_outBC;
   ptrdiff_t offset_outBCIII;
   ptrdiff_t offset_waves;
@@ -494,8 +495,10 @@ void init_magnitudes(void)
 
 #if USE_MINI_HALOS
     workingIII = mag_params->workingIII;
+    offset_inBCIII = mag_params->inBCIII - workingIII;
     offset_outBCIII = mag_params->outBCIII - workingIII;
     mag_params->workingIII = NULL;
+    mag_params->inBCIII = NULL;
     mag_params->outBCIII = NULL;
 #endif
   }
@@ -506,6 +509,7 @@ void init_magnitudes(void)
   MPI_Bcast(&offset_waves, sizeof(ptrdiff_t), MPI_BYTE, MASTER, mpi_comm);
   MPI_Bcast(&offset_logWaves, sizeof(ptrdiff_t), MPI_BYTE, MASTER, mpi_comm);
 #if USE_MINI_HALOS
+  MPI_Bcast(&offset_inBCIII, sizeof(ptrdiff_t), MPI_BYTE, MASTER, mpi_comm);
   MPI_Bcast(&offset_outBCIII, sizeof(ptrdiff_t), MPI_BYTE, MASTER, mpi_comm);
 #endif
   if (mpi_rank != MASTER){
@@ -525,6 +529,7 @@ void init_magnitudes(void)
 #if USE_MINI_HALOS
   MPI_Bcast(workingIII, mag_params->totalSizeIII, MPI_BYTE, MASTER, mpi_comm);
   mag_params->workingIII = workingIII;
+  mag_params->inBCIII = workingIII + offset_inBCIII;
   mag_params->outBCIII = workingIII + offset_outBCIII;
 #endif
 }
@@ -534,6 +539,9 @@ void cleanup_mags(void)
   if (!run_globals.params.FlagMCMC)
     H5Tclose(run_globals.hdf5props.array_nmag_f_tid);
   free(run_globals.mag_params.working);
+#if USE_MINI_HALOS
+  free(run_globals.mag_params.workingIII);
+#endif
 }
 
 void get_output_magnitudes(float* mags, float* dusty_mags, galaxy_t* gal, int snapshot)
