@@ -18,7 +18,7 @@ static void backfill_ghost_star_formation(galaxy_t* gal, double m_stars, double 
     if (LTTime[snap] > burst_time) {
 #ifdef CALC_MAGS
       if (sfr > 0.)
-        add_luminosities(&run_globals.mag_params, gal, snap, metallicity, sfr);
+        add_luminosities(&run_globals.mag_params, gal, snap, metallicity, sfr, m_stars);
 #endif
       if (ii < N_HISTORY_SNAPS) {
         gal->NewStars[ii] += m_stars;
@@ -77,7 +77,7 @@ void update_reservoirs_from_sf(galaxy_t* gal, double new_stars, int snapshot, SF
       // update the stellar mass history assuming the burst is happening in this snapshot
 #ifdef CALC_MAGS
       if (sfr > 0.)
-        add_luminosities(&run_globals.mag_params, gal, snapshot, metallicity, sfr);
+        add_luminosities(&run_globals.mag_params, gal, snapshot, metallicity, sfr, new_stars);
 #endif
       gal->NewStars[0] += new_stars;
 #if USE_MINI_HALOS

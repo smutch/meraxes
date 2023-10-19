@@ -20,27 +20,18 @@ void init_luminosities(galaxy_t* gal)
   }
 }
 
-void add_luminosities(mag_params_t* miniSpectra, galaxy_t* gal, int snapshot, double metals, double sfr)
+void add_luminosities(mag_params_t* miniSpectra, galaxy_t* gal, int snapshot, double metals, double sfr, double new_stars)
 {
   // Add luminosities when there is a burst. SFRs in principal should be in a
   // unit of M_solar/yr. However, one can convert the unit on final results
   // rather than here in order to achieve better performance.
 
   // Compute integer metallicity
-  int Z;
-#if USE_MINI_HALOS
-  if (gal->Galaxy_Population == 2){
-#endif
-    Z = (int)(metals * 2000 - .5);
-    if (Z < miniSpectra->minZ + 1)
-      Z = miniSpectra->minZ + 1;
-    else if (Z > miniSpectra->maxZ)
-      Z = miniSpectra->maxZ;
-#if USE_MINI_HALOS
-    }
-  else
-    Z = miniSpectra->minZ;
-#endif
+  int Z = (int)(metals * 1000 - .5);
+  if (Z < miniSpectra->minZ + 1)
+    Z = miniSpectra->minZ + 1;
+  else if (Z > miniSpectra->maxZ)
+    Z = miniSpectra->maxZ;
 
   // Add luminosities
   int iA, iF, iS, iAgeBC;
@@ -50,6 +41,16 @@ void add_luminosities(mag_params_t* miniSpectra, galaxy_t* gal, int snapshot, do
   double* pWorking = miniSpectra->working;
   double* pInBC = miniSpectra->inBC;
   double* pOutBC = miniSpectra->outBC;
+#if USE_MINI_HALOS
+  if (gal->Galaxy_Population == 3){
+      nZF = MAGS_N_BANDS;
+      pWorking = miniSpectra->workingIII;
+      pInBC = miniSpectra->inBCIII;
+      pOutBC = miniSpectra->outBCIII;
+      Z = 0;
+      sfr = new_stars * 1e10; // a bit hacky...
+  }
+#endif
   double* pInBCFlux = gal->inBCFlux;
   double* pOutBCFlux = gal->outBCFlux;
 
@@ -62,13 +63,15 @@ void add_luminosities(mag_params_t* miniSpectra, galaxy_t* gal, int snapshot, do
         offset = (Z * nAgeStep + iA) * MAGS_N_BANDS;
         for (iF = 0; iF < MAGS_N_BANDS; ++iF)
           pOutBCFlux[iF] += sfr * pWorking[offset + iF];
-      } else if (iA == iAgeBC) {
+      } 
+      else if (iA == iAgeBC) {
         offset = Z * MAGS_N_BANDS;
         for (iF = 0; iF < MAGS_N_BANDS; ++iF) {
           pInBCFlux[iF] += sfr * pInBC[offset + iF];
           pOutBCFlux[iF] += sfr * pOutBC[offset + iF];
         }
-      } else {
+      } 
+      else {
         offset = (Z * nAgeStep + iA) * MAGS_N_BANDS;
         for (iF = 0; iF < MAGS_N_BANDS; ++iF)
           pInBCFlux[iF] += sfr * pWorking[offset + iF];
@@ -99,6 +102,7 @@ void merge_luminosities(galaxy_t* target, galaxy_t* gal)
 
 void init_templates_mini(mag_params_t* miniSpectra,
                          char* fName,
+                         char* fNameIII,
                          double* LTTime,
                          int* targetSnap,
                          double* redshifts,
@@ -117,6 +121,9 @@ void init_templates_mini(mag_params_t* miniSpectra,
   // Initialise full templates
   int iS;
   struct sed_params_t spectra[MAGS_N_SNAPS];
+#if USE_MINI_HALOS
+  struct sed_params_t spectraIII[MAGS_N_SNAPS];
+#endif
   int nAgeStep;
   double* ageStep;
   
@@ -162,21 +169,44 @@ void init_templates_mini(mag_params_t* miniSpectra,
     init_templates_working(spectra + iS, NULL, NULL, -1);
     // Initialise special templates for birth cloud
     init_templates_special(spectra + iS, tBC, 1);
+#if USE_MINI_HALOS
+    init_templates_rawIII(spectraIII + iS, fNameIII);
+    init_filters(spectraIII + iS, betaBands, nBeta, restBands, nRest, NULL, NULL, NULL, 0, 1. + redshifts[iS]);
+    spectraIII[iS].nAgeStep = nAgeStep;
+    spectraIII[iS].ageStep = ageStep;
+    shrink_templates_raw(spectraIII + iS, ageStep[nAgeStep - 1]);
+    spectraIII[iS].igm = 0;
+    init_templates_interpolate(spectraIII + iS);
+    spectraIII[iS].ready = (double*)malloc(nAgeStep * spectraIII[iS].nWaves * sizeof(double));
+    spectraIII[iS].working = (double*)malloc(nAgeStep * spectraIII[iS].nFlux * sizeof(double));
+    init_templates_workingIII(spectraIII + iS);
+    init_templates_specialIII(spectraIII + iS, 1);
+#endif
   }
 
   // Initialise mini templates
   int nSize = 0;
   int nMaxZ = spectra->nMaxZ;
   double* working;
+  double* workingIII;
   size_t totalSize = 0;
+  size_t totalSizeIII = 0;
   int offsetWorking = 0;
+  int offsetWorkingIII = 0;
   int offsetInBC = 0;
+  int offsetInBCIII = 0;
   int offsetOutBC = 0;
+  int offsetOutBCIII = 0;
   int offsetWaves = 0;
+  int offsetWavesIII = 0;
 
   // Compute size of working templates
   for (iS = 0; iS < MAGS_N_SNAPS; ++iS)
     totalSize += targetSnap[iS];
+#if USE_MINI_HALOS
+  totalSizeIII = totalSize;
+#endif
+
   totalSize *= nMaxZ * MAGS_N_BANDS;
   // Compute size of special templates
   totalSize += 2 * MAGS_N_SNAPS * nMaxZ * MAGS_N_BANDS;
@@ -185,30 +215,65 @@ void init_templates_mini(mag_params_t* miniSpectra,
   totalSize *= sizeof(double);
   //
   working = (double*)malloc(totalSize);
+
+#if USE_MINI_HALOS
+  totalSizeIII *= MAGS_N_BANDS;
+  totalSizeIII += 2 * MAGS_N_SNAPS * MAGS_N_BANDS;
+  totalSizeIII += 2 * MAGS_N_BANDS;
+  totalSizeIII *= sizeof(double);
+  workingIII = (double*)malloc(totalSizeIII);
+#endif
+
   // Copy working templates
   for (iS = 0; iS < MAGS_N_SNAPS; ++iS) {
     nSize = targetSnap[iS] * nMaxZ * MAGS_N_BANDS;
     memcpy(working + offsetWorking, spectra[iS].working, nSize * sizeof(double));
     offsetWorking += nSize;
+#if USE_MINI_HALOS
+    nSize = targetSnap[iS] * MAGS_N_BANDS;
+    memcpy(workingIII + offsetWorkingIII, spectraIII[iS].working, nSize * sizeof(double));
+    offsetWorkingIII += nSize;
+#endif
   }
   // Copy special templates
   offsetInBC = offsetWorking;
+  offsetInBCIII = offsetWorkingIII;
   for (iS = 0; iS < MAGS_N_SNAPS; ++iS) {
     nSize = nMaxZ * MAGS_N_BANDS;
     memcpy(working + offsetInBC, spectra[iS].inBC, nSize * sizeof(double));
     offsetInBC += nSize;
+#if USE_MINI_HALOS
+    nSize = MAGS_N_BANDS;
+    memcpy(workingIII + offsetInBCIII, spectraIII[iS].inBC, nSize * sizeof(double));
+    offsetInBCIII += nSize;
+#endif
   }
   offsetOutBC = offsetInBC;
+  offsetOutBCIII = offsetInBCIII;
   for (iS = 0; iS < MAGS_N_SNAPS; ++iS) {
     nSize = nMaxZ * MAGS_N_BANDS;
     memcpy(working + offsetOutBC, spectra[iS].outBC, nSize * sizeof(double));
     offsetOutBC += nSize;
+#if USE_MINI_HALOS
+    nSize = MAGS_N_BANDS;
+    memcpy(workingIII + offsetOutBCIII, spectraIII[iS].outBC, nSize * sizeof(double));
+    offsetOutBCIII += nSize;
+#endif
   }
+
   // Copy wavelengths (same at each target snapshot)
   offsetWaves = offsetOutBC;
   memcpy(working + offsetWaves, spectra->centreWaves, MAGS_N_BANDS * sizeof(double));
   offsetWaves += MAGS_N_BANDS;
   memcpy(working + offsetWaves, spectra->logWaves, MAGS_N_BANDS * sizeof(double));
+
+#if USE_MINI_HALOS
+  offsetWavesIII = offsetOutBCIII;
+  memcpy(workingIII + offsetWavesIII, spectraIII->centreWaves, MAGS_N_BANDS * sizeof(double));
+  offsetWavesIII += MAGS_N_BANDS;
+  memcpy(workingIII + offsetWavesIII, spectraIII->logWaves, MAGS_N_BANDS * sizeof(double));
+#endif
+
   // Set attributes
   memcpy(miniSpectra->targetSnap, targetSnap, MAGS_N_SNAPS * sizeof(int));
   miniSpectra->nBeta = nBeta;
@@ -227,6 +292,12 @@ void init_templates_mini(mag_params_t* miniSpectra,
   miniSpectra->centreWaves = working + offsetOutBC;
   miniSpectra->logWaves = working + offsetWaves;
 
+#ifdef USE_MINI_HALOS
+  miniSpectra->totalSizeIII = totalSizeIII;
+  miniSpectra->workingIII = workingIII;
+  miniSpectra->outBCIII = workingIII + offsetInBCIII;
+#endif
+
   // Free full templates
   for (iS = 0; iS < MAGS_N_SNAPS; ++iS) {
     free(spectra[iS].Z);
@@ -243,6 +314,22 @@ void init_templates_mini(mag_params_t* miniSpectra,
     free(spectra[iS].outBC);
     free(spectra[iS].centreWaves);
     free(spectra[iS].logWaves);
+#ifdef USE_MINI_HALOS
+    free(spectraIII[iS].Z);
+    free(spectraIII[iS].waves);
+    free(spectraIII[iS].age);
+    free(spectraIII[iS].raw);
+    free(spectraIII[iS].nFilterWaves);
+    free(spectraIII[iS].filterWaves);
+    free(spectraIII[iS].filters);
+    free(spectraIII[iS].integrated);
+    free(spectraIII[iS].ready);
+    free(spectraIII[iS].working);
+    free(spectraIII[iS].inBC);
+    free(spectraIII[iS].outBC);
+    free(spectraIII[iS].centreWaves);
+    free(spectraIII[iS].logWaves);
+#endif
   }
 }
 
@@ -344,19 +431,21 @@ void init_magnitudes(void)
     mlog("#***********************************************************", MLOG_MESG);
 
     // Initialise SED templates
-    char* fname = params->PhotometricTablesDir;
+    memcpy(str, params->PhotometricTablesDir, sizeof(str));
+    strcat(str, "/sed_library.hdf5"); //Any file would be good
+    char* fname = str;
+
+    char* fnameIII = params->PhotometricTablesDir;
 #if USE_MINI_HALOS
     int IMF_Type = run_globals.params.physics.PopIII_IMF;
     if (IMF_Type == 1)
-      strcat(fname, "/sed_Sal500_001.hdf5"); // Expand here once you have more IMFs
+      strcat(fnameIII, "/Sal500_001.hdf5"); // Expand here once you have more IMFs
     else if (IMF_Type == 2)
-      strcat(fname, "/sed_Sal500_050.hdf5");
+      strcat(fnameIII, "/Sal500_050.hdf5");
     else if (IMF_Type == 3)
-      strcat(fname, "/sed_logA500_001.hdf5");
+      strcat(fnameIII, "/logA500_001.hdf5");
     else if (IMF_Type == 4)
-      strcat(fname, "/sed_logE500_001.hdf5");
-#else
-    strcat(fname, "/sed_Sal500_001.hdf5"); //Any file would be good
+      strcat(fnameIII, "/logE500_001.hdf5");
 #endif
     // Convert time unit to yr
     int snaplist_len = params->SnaplistLength;
@@ -369,6 +458,7 @@ void init_magnitudes(void)
     //
     init_templates_mini(mag_params,
                         fname,
+                        fnameIII,
                         LTTime,
                         target_snaps,
                         run_globals.ZZ,
@@ -382,8 +472,10 @@ void init_magnitudes(void)
   // Broadcast parameters to all cores
   MPI_Comm mpi_comm = run_globals.mpi_comm;
   double* working;
+  double* workingIII;
   ptrdiff_t offset_inBC;
   ptrdiff_t offset_outBC;
+  ptrdiff_t offset_outBCIII;
   ptrdiff_t offset_waves;
   ptrdiff_t offset_logWaves;
 
@@ -399,6 +491,13 @@ void init_magnitudes(void)
     mag_params->outBC = NULL;
     mag_params->centreWaves = NULL;
     mag_params->logWaves = NULL;
+
+#if USE_MINI_HALOS
+    workingIII = mag_params->workingIII;
+    offset_outBCIII = mag_params->outBCIII - workingIII;
+    mag_params->workingIII = NULL;
+    mag_params->outBCIII = NULL;
+#endif
   }
 
   MPI_Bcast(mag_params, sizeof(mag_params_t), MPI_BYTE, MASTER, mpi_comm);
@@ -406,8 +505,15 @@ void init_magnitudes(void)
   MPI_Bcast(&offset_outBC, sizeof(ptrdiff_t), MPI_BYTE, MASTER, mpi_comm);
   MPI_Bcast(&offset_waves, sizeof(ptrdiff_t), MPI_BYTE, MASTER, mpi_comm);
   MPI_Bcast(&offset_logWaves, sizeof(ptrdiff_t), MPI_BYTE, MASTER, mpi_comm);
-  if (mpi_rank != MASTER)
+#if USE_MINI_HALOS
+  MPI_Bcast(&offset_outBCIII, sizeof(ptrdiff_t), MPI_BYTE, MASTER, mpi_comm);
+#endif
+  if (mpi_rank != MASTER){
     working = (double*)malloc(mag_params->totalSize);
+#if USE_MINI_HALOS
+    workingIII = (double*)malloc(mag_params->totalSizeIII);
+#endif
+  }
   MPI_Bcast(working, mag_params->totalSize, MPI_BYTE, MASTER, mpi_comm);
 
   mag_params->working = working;
@@ -415,6 +521,12 @@ void init_magnitudes(void)
   mag_params->outBC = working + offset_outBC;
   mag_params->centreWaves = working + offset_waves;
   mag_params->logWaves = working + offset_logWaves;
+
+#if USE_MINI_HALOS
+  MPI_Bcast(workingIII, mag_params->totalSizeIII, MPI_BYTE, MASTER, mpi_comm);
+  mag_params->workingIII = workingIII;
+  mag_params->outBCIII = workingIII + offset_outBCIII;
+#endif
 }
 
 void cleanup_mags(void)

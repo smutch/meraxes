@@ -725,6 +725,12 @@ typedef struct mag_params_t
   double* outBC;
   double* centreWaves;
   double* logWaves;
+#ifdef USE_MINI_HALOS
+  size_t totalSizeIII;
+  double* workingIII;
+  double* inBCIII;
+  double* outBCIII;
+#endif
 } mag_params_t;
 #endif
 
