@@ -295,7 +295,8 @@ void init_templates_mini(mag_params_t* miniSpectra,
 #ifdef USE_MINI_HALOS
   miniSpectra->totalSizeIII = totalSizeIII;
   miniSpectra->workingIII = workingIII;
-  miniSpectra->outBCIII = workingIII + offsetInBCIII;
+  miniSpectra->inBCIII = working + offsetWorkingIII;
+  miniSpectra->outBCIII = working + offsetInBCIII;
 #endif
 
   // Free full templates
