@@ -128,7 +128,7 @@ void init_templates_mini(mag_params_t* miniSpectra,
   double* ageStep;
   
   run_params_t* params = &run_globals.params;
-  double deltaT = params->DeltaT; // Input value in yrs
+  double deltaT = params->DeltaT * 1e6; // Input value in Myrs
 
   for (iS = 0; iS < MAGS_N_SNAPS; ++iS) {
     nAgeStep = targetSnap[iS];
