@@ -1,4 +1,4 @@
-#----- SA model output files --8------------
+#----- SA model output files --------------
 #------------------------------------------
 FileNameGalaxies : genesis-L10_N2048
 
@@ -271,7 +271,7 @@ UnitVelocity_in_cm_per_s : 100000            # WATCH OUT : km/s
 
 ################### Luminosity stuff ######################
 BirthCloudLifetime         : 10e6  # yr
-TargetSnaps                : 28, 36, 43, 48, 53, 58, 63, 69, 75, 82, 90, 98, 108, 119 #z = 20, 18.1, 16.1, 15, 13.9, 12.9, 12, 11, 10, 9, 8, 7, 6, 5
+TargetSnaps                : 28, 36, 43, 48, 53, 58, 63, 69, 75, 82, 90, 98, 108, 115 #z = 20, 18.1, 16.1, 15, 13.9, 12.9, 12, 11, 10, 9, 8, 7, 6, 5.34
 RestBands                  : 1550,1650
 BetaBands                  :
 DeltaT                     : 1.0 # Myr
