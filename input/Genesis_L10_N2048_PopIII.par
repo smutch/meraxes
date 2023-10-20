@@ -1,4 +1,4 @@
-#----- SA model output files --------------
+#----- SA model output files --8------------
 #------------------------------------------
 FileNameGalaxies : genesis-L10_N2048
 
@@ -86,7 +86,7 @@ SfCriticalSDNorm_III      : 0.2     # Same as above for PopIII
 #AlphaIMF                  : -0.5 # Power-law index of the IMF (Fiducial is -0.5)
 #MminIMF                   : 1.0 # Minimum mass of IMF (Fiducial is 1)
 #MmaxIMF                   : 300.0 # Maximum mass of IMF (Fiducial is 300)
-PopIII_IMF                : 1 # 1-> Sal500_001, 2-> Sal500_050
+PopIII_IMF                : 1 # 1-> Sal500_001, 2-> Sal500_050, 3->logA500_001, 4->logE500_001
 PopIIIAgePrescription     : 2 # 1->Schaerer Strong Mass Loss, 2-> Schaerer No Mass Loss
 
 # ----------------------------------------------------------------
@@ -271,7 +271,7 @@ UnitVelocity_in_cm_per_s : 100000            # WATCH OUT : km/s
 
 ################### Luminosity stuff ######################
 BirthCloudLifetime         : 10e6  # yr
-TargetSnaps                : 75, 82, 90, 98, 108, 115 # z = 10, 9, 8, 7, 6, 5.35, New Spectra for Pop III arrive up to 1Gyr!
+TargetSnaps                : 28, 36, 43, 48, 53, 58, 63, 69, 75, 82, 90, 98, 108, 119 #z = 20, 18.1, 16.1, 15, 13.9, 12.9, 12, 11, 10, 9, 8, 7, 6, 5
 RestBands                  : 1550,1650
 BetaBands                  :
-
+DeltaT                     : 1.0 # Myr
