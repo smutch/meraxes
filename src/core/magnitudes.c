@@ -182,7 +182,7 @@ void init_templates_mini(mag_params_t* miniSpectra,
     init_templates_rawIII(spectraIII + iS, fNameIII);
     init_filters(spectraIII + iS, betaBands, nBeta, restBands, nRest, NULL, NULL, NULL, 0, 1. + redshifts[iS]);
     spectraIII[iS].nAgeStep = nAgeStep;
-    spectraIII[iS].ageStepIII = ageStepIII;
+    spectraIII[iS].ageStep = ageStepIII;
     shrink_templates_raw(spectraIII + iS, ageStepIII[nAgeStep - 1]);
     spectraIII[iS].igm = 0;
     init_templates_interpolate(spectraIII + iS);
