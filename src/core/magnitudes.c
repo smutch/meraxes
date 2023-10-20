@@ -127,6 +127,10 @@ void init_templates_mini(mag_params_t* miniSpectra,
   int nAgeStep;
   double* ageStep;
   
+#if USE_MINI_HALOS
+  double* ageStepIII;
+#endif
+  
   run_params_t* params = &run_globals.params;
   double deltaT = params->DeltaT * 1e6; // Input value in Myrs
 
@@ -143,19 +147,24 @@ void init_templates_mini(mag_params_t* miniSpectra,
     // Initialise time step
     spectra[iS].nAgeStep = nAgeStep;
     ageStep = (double*)malloc(nAgeStep * sizeof(double));
+    
+#if USE_MINI_HALOS
+    ageStepIII = (double*)malloc(nAgeStep * sizeof(double));
+#endif
+    
     //   -Should be in a unit of yr
-    for (int iA = 0; iA < nAgeStep; ++iA) {
+    for (int iA = 0; iA < nAgeStep; ++iA)
       ageStep[iA] = LTTime[nAgeStep - iA - 1] - LTTime[nAgeStep];
-      ageStep[iA] -= deltaT; 
+    
+    // New version for PopIII!
+#if USE_MINI_HALOS
+    for (int iA = 0; iA < nAgeStep; ++iA) {
+      ageStepIII[iA] = LTTime[nAgeStep - iA] - LTTime[nAgeStep];
+      ageStepIII[iA] += deltaT; // NEED TO DEFINE THIS DELTAT IN THE PARAMETER! 
     }
+    assert(ageStepIII[0] > 0.); // NEW ADDITION!
+#endif
     
-    // New version testing it now!
-    /*for (int iA = 0; iA < nAgeStep; ++iA) {
-      ageStep[iA] = LTTime[nAgeStep - iA] - LTTime[nAgeStep];
-      ageStep[iA] += deltaT; // NEED TO DEFINE THIS DELTAT IN THE PARAMETER! 
-    }*/
-    
-    assert(ageStep[0] > 0.); // NEW ADDITION!
     spectra[iS].ageStep = ageStep;
     //   -This function may be omitted
     shrink_templates_raw(spectra + iS, ageStep[nAgeStep - 1]);
@@ -173,8 +182,8 @@ void init_templates_mini(mag_params_t* miniSpectra,
     init_templates_rawIII(spectraIII + iS, fNameIII);
     init_filters(spectraIII + iS, betaBands, nBeta, restBands, nRest, NULL, NULL, NULL, 0, 1. + redshifts[iS]);
     spectraIII[iS].nAgeStep = nAgeStep;
-    spectraIII[iS].ageStep = ageStep;
-    shrink_templates_raw(spectraIII + iS, ageStep[nAgeStep - 1]);
+    spectraIII[iS].ageStepIII = ageStepIII;
+    shrink_templates_raw(spectraIII + iS, ageStepIII[nAgeStep - 1]);
     spectraIII[iS].igm = 0;
     init_templates_interpolate(spectraIII + iS);
     spectraIII[iS].ready = (double*)malloc(nAgeStep * spectraIII[iS].nWaves * sizeof(double));
