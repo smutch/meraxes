@@ -48,7 +48,7 @@ void add_luminosities(mag_params_t* miniSpectra, galaxy_t* gal, int snapshot, do
       pInBC = miniSpectra->inBCIII;
       pOutBC = miniSpectra->outBCIII;
       Z = 0;
-      sfr = new_stars * 1e10; // a bit hacky...
+      sfr = new_stars * 1e10 / run_globals.params.Hubble_h; // a bit hacky... (we want sfr in solar masses and new_stars is in internal units)
   }
 #endif
   double* pInBCFlux = gal->inBCFlux;
