@@ -100,6 +100,7 @@ void prepare_galaxy_for_output(galaxy_t gal, galaxy_output_t* galout, int i_snap
   galout->Galaxy_Population = (int)(gal.Galaxy_Population);
   galout->Flag_ExtMetEnr = (int)(gal.Flag_ExtMetEnr);
   galout->Metal_Probability = (float)(gal.Metal_Probability);
+  galout->GalMetal_Probability = (float)(gal.GalMetal_Probability);
   galout->StellarMass_II = (float)(gal.StellarMass_II);
   galout->StellarMass_III = (float)(gal.StellarMass_III); 
   galout->Remnant_Mass = (float)(gal.Remnant_Mass); 
@@ -132,7 +133,7 @@ void calc_hdf5_props()
 
     h5props->n_props = 49; 
 #if USE_MINI_HALOS
-    h5props->n_props += 13; // Double check later
+    h5props->n_props += 14; // Double check later
 #endif
 
 #ifdef CALC_MAGS
@@ -448,6 +449,13 @@ void calc_hdf5_props()
     
     h5props->dst_offsets[i] = HOFFSET(galaxy_output_t, Metal_Probability);
     h5props->dst_field_sizes[i] = sizeof(galout.Metal_Probability);
+    h5props->field_names[i] = "MetalProbability";
+    h5props->field_units[i] = "None";
+    h5props->field_h_conv[i] = "None";
+    h5props->field_types[i++] = H5T_NATIVE_FLOAT;
+    
+    h5props->dst_offsets[i] = HOFFSET(galaxy_output_t, GalMetal_Probability);
+    h5props->dst_field_sizes[i] = sizeof(galout.GalMetal_Probability);
     h5props->field_names[i] = "MetalProbability";
     h5props->field_units[i] = "None";
     h5props->field_h_conv[i] = "None";
