@@ -6,6 +6,7 @@
 #include "core/PopIII.h"
 #include "core/virial_properties.h"
 #include "core/misc_tools.h"
+#include <gsl/gsl_rng.h>
 #endif
 #include "infall.h"
 #include "meraxes.h"
@@ -57,9 +58,11 @@ int evolve_galaxies(fof_group_t* fof_group, int snapshot, int NGal, int NFof)
           if (Flag_Metals == true) { // Assign to newly formed galaxies metallicity of their cell according to a certain probability
             if ((gal->Type == 0) && (gal->Flag_ExtMetEnr == 0)) { // In order to be consistent with the rest of Meraxes do this only for the central galaxies!
               if (gal->output_index == -1) { 
-                double x;
-                x = (double)rand() / RAND_MAX;
-                gal->GalMetal_Probability = x;
+                //double x;
+                //x = (double)rand() / RAND_MAX;
+                //x = gsl_rng_uniform(run_globals.random_generator);
+                //gal->GalMetal_Probability = x;
+                gal->GalMetal_Probability = gsl_rng_uniform(run_globals.random_generator);
               }
               
               if ((gal->GalMetal_Probability <= gal->Metal_Probability) || (gal->GrossStellarMass + gal->GrossStellarMassIII) > 1e-10) {
