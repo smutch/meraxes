@@ -62,6 +62,7 @@ int evolve_galaxies(fof_group_t* fof_group, int snapshot, int NGal, int NFof)
                 //x = (double)rand() / RAND_MAX;
                 //x = gsl_rng_uniform(run_globals.random_generator);
                 //gal->GalMetal_Probability = x;
+				gsl_rng_set(run_globals.random_generator, (unsigned long) gal->ID);
                 gal->GalMetal_Probability = gsl_rng_uniform(run_globals.random_generator);
               }
               
