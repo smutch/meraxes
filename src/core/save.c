@@ -456,7 +456,7 @@ void calc_hdf5_props()
     
     h5props->dst_offsets[i] = HOFFSET(galaxy_output_t, GalMetal_Probability);
     h5props->dst_field_sizes[i] = sizeof(galout.GalMetal_Probability);
-    h5props->field_names[i] = "MetalProbability";
+    h5props->field_names[i] = "GalMetalProbability";
     h5props->field_units[i] = "None";
     h5props->field_h_conv[i] = "None";
     h5props->field_types[i++] = H5T_NATIVE_FLOAT;
