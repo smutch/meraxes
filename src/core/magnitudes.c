@@ -147,23 +147,10 @@ void init_templates_mini(mag_params_t* miniSpectra,
     // Initialise time step
     spectra[iS].nAgeStep = nAgeStep;
     ageStep = (double*)malloc(nAgeStep * sizeof(double));
-    
-#if USE_MINI_HALOS
-    ageStepIII = (double*)malloc(nAgeStep * sizeof(double));
-#endif
-    
+
     //   -Should be in a unit of yr
     for (int iA = 0; iA < nAgeStep; ++iA)
       ageStep[iA] = LTTime[nAgeStep - iA - 1] - LTTime[nAgeStep];
-    
-    // New version for PopIII!
-#if USE_MINI_HALOS
-    for (int iA = 0; iA < nAgeStep; ++iA) {
-      ageStepIII[iA] = LTTime[nAgeStep - iA] - LTTime[nAgeStep];
-      ageStepIII[iA] += deltaT; // NEED TO DEFINE THIS DELTAT IN THE PARAMETER! 
-    }
-    assert(ageStepIII[0] > 0.); // NEW ADDITION!
-#endif
     
     spectra[iS].ageStep = ageStep;
     //   -This function may be omitted
@@ -182,6 +169,12 @@ void init_templates_mini(mag_params_t* miniSpectra,
     init_templates_rawIII(spectraIII + iS, fNameIII);
     init_filters(spectraIII + iS, betaBands, nBeta, restBands, nRest, NULL, NULL, NULL, 0, 1. + redshifts[iS]);
     spectraIII[iS].nAgeStep = nAgeStep;
+    ageStepIII = (double*)malloc(nAgeStep * sizeof(double));
+    for (int iA = 0; iA < nAgeStep; ++iA) {
+      ageStepIII[iA] = LTTime[nAgeStep - iA] - LTTime[nAgeStep];
+      ageStepIII[iA] += deltaT; // deltaT defined in input parameters and already converted into yrs. 
+    }
+    assert(ageStepIII[0] > 0.); 
     spectraIII[iS].ageStep = ageStepIII;
     shrink_templates_raw(spectraIII + iS, ageStepIII[nAgeStep - 1]);
     spectraIII[iS].igm = 0;
@@ -304,8 +297,8 @@ void init_templates_mini(mag_params_t* miniSpectra,
 #ifdef USE_MINI_HALOS
   miniSpectra->totalSizeIII = totalSizeIII;
   miniSpectra->workingIII = workingIII;
-  miniSpectra->inBCIII = working + offsetWorkingIII;
-  miniSpectra->outBCIII = working + offsetInBCIII;
+  miniSpectra->inBCIII = workingIII + offsetWorkingIII;
+  miniSpectra->outBCIII = workingIII + offsetInBCIII;
 #endif
 
   // Free full templates
