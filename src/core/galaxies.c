@@ -84,6 +84,8 @@ galaxy_t* new_galaxy(int snapshot, unsigned long halo_ID)
   gal->TimeBubble = 0.0;
   gal->AveBubble = 0.;
   gal->MaxBubble = 0.;
+  gal->Flag_ExtMetEnr = 0;
+  gal->GalMetal_Probability = gsl_rng_uniform(run_globals.random_generator);
   
   if (run_globals.params.Flag_IncludeMetalEvo == false) //If you don't have the external metal enrichment you have to initialize this variable (you were doing that in evolve.c)
     gal-> Galaxy_Population == 3;

@@ -57,15 +57,6 @@ int evolve_galaxies(fof_group_t* fof_group, int snapshot, int NGal, int NFof)
 #if USE_MINI_HALOS
           if (Flag_Metals == true) { // Assign to newly formed galaxies metallicity of their cell according to a certain probability
             if ((gal->Type == 0) && (gal->Flag_ExtMetEnr == 0)) { // In order to be consistent with the rest of Meraxes do this only for the central galaxies!
-              if (gal->output_index == -1) { 
-                double x;
-                //x = (double)rand() / RAND_MAX;
-                //x = gsl_rng_uniform(run_globals.random_generator);
-                //gal->GalMetal_Probability = x;
-		 gsl_rng_set(run_globals.random_generator, (unsigned long) gal->ID);
-                gal->GalMetal_Probability = gsl_rng_uniform(run_globals.random_generator);
-              }
-              
               if ((gal->GalMetal_Probability <= gal->Metal_Probability) || (gal->GrossStellarMass + gal->GrossStellarMassIII) > 1e-10) {
                 gal->Flag_ExtMetEnr = 1; // Just update the flag. Here what I am saying is that a galaxy that already experienced SN events will surely be inside a metal bubble!
                 
@@ -84,10 +75,6 @@ int evolve_galaxies(fof_group_t* fof_group, int snapshot, int NGal, int NFof)
                 *gal_counter_Pop3 = *gal_counter_Pop3 + 1;
               }
             }
-          }
-          else { // If there is no external metal enrichment, if a new galaxy is formed it will be Pop III
-            if (gal->output_index== -1)
-              gal->Galaxy_Population = 3;
           }
 #endif
           
