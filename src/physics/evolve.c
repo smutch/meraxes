@@ -84,10 +84,10 @@ int evolve_galaxies(fof_group_t* fof_group, int snapshot, int NGal, int NFof)
                 *gal_counter_Pop3 = *gal_counter_Pop3 + 1;
               }
             }
-            else { // If there is no external metal enrichment, if a new galaxy is formed it will be Pop III
-              if (gal->output_index== -1)
-                gal->Galaxy_Population = 3;
-            }
+          }
+          else { // If there is no external metal enrichment, if a new galaxy is formed it will be Pop III
+            if (gal->output_index== -1)
+              gal->Galaxy_Population = 3;
           }
 #endif
           
