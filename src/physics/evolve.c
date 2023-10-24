@@ -59,11 +59,11 @@ int evolve_galaxies(fof_group_t* fof_group, int snapshot, int NGal, int NFof)
             if ((gal->Type == 0) && (gal->Flag_ExtMetEnr == 0)) { // In order to be consistent with the rest of Meraxes do this only for the central galaxies!
               if (gal->output_index == -1) { 
                 double x;
-                x = (double)rand() / RAND_MAX;
+                //x = (double)rand() / RAND_MAX;
                 //x = gsl_rng_uniform(run_globals.random_generator);
-                gal->GalMetal_Probability = x;
-		 //gsl_rng_set(run_globals.random_generator, (unsigned long) gal->ID);
-                //gal->GalMetal_Probability = gsl_rng_uniform(run_globals.random_generator);
+                //gal->GalMetal_Probability = x;
+		 gsl_rng_set(run_globals.random_generator, (unsigned long) gal->ID);
+                gal->GalMetal_Probability = gsl_rng_uniform(run_globals.random_generator);
               }
               
               if ((gal->GalMetal_Probability <= gal->Metal_Probability) || (gal->GrossStellarMass + gal->GrossStellarMassIII) > 1e-10) {

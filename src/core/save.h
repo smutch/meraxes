@@ -64,7 +64,7 @@ typedef struct galaxy_output_t
   float RmetalBubble;
   int Flag_ExtMetEnr;
   float Metal_Probability;
-  //float GalMetal_Probability; 
+  float GalMetal_Probability; 
   float StellarMass_II;
   float StellarMass_III;
   float Remnant_Mass;
