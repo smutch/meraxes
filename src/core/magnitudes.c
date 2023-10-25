@@ -42,13 +42,14 @@ void add_luminosities(mag_params_t* miniSpectra, galaxy_t* gal, int snapshot, do
   double* pInBC = miniSpectra->inBC;
   double* pOutBC = miniSpectra->outBC;
 #if USE_MINI_HALOS
+  double time_unit = run_globals.units.UnitTime_in_Megayears / run_globals.params.Hubble_h * 1e6;
   if (gal->Galaxy_Population == 3){
       nZF = MAGS_N_BANDS;
       pWorking = miniSpectra->workingIII;
       pInBC = miniSpectra->inBCIII;
       pOutBC = miniSpectra->outBCIII;
       Z = 0;
-      sfr = new_stars * 1e10 / run_globals.params.Hubble_h; // a bit hacky... (we want sfr in solar masses and new_stars is in internal units)
+      sfr = new_stars * time_unit; // a bit hacky... (we want new_stars / sfr is in units of year)
   }
 #endif
   double* pInBCFlux = gal->inBCFlux;
