@@ -18,7 +18,9 @@ double gas_cooling(galaxy_t* gal)
 
     // calculate the halo virial temperature and log10 metallicity value
     // N.B. This assumes ionised gas with mu=0.59...
-    double Tvir = 35.9 * fof_group->Vvir * fof_group->Vvir; // internal units (Kelvin)
+    //double Tvir = 35.9 * fof_group->Vvir * fof_group->Vvir; // internal units (Kelvin)
+    double Tvir = (35.9 * 0.75) * fof_group->Vvir * fof_group->Vvir; // internal units (Kelvin). Introduce factor of 0.75 to reproduce results of simulations 
+                                                                     // Fernandez+14 consistent with Visbal+20, Nebrin+23
     double log10Tvir = log10(Tvir);
     double logZ;
     double t_cool, max_cooling_mass;
@@ -45,20 +47,29 @@ double gas_cooling(galaxy_t* gal)
     // according to Visbal 2014
 
 #if USE_MINI_HALOS
-    else if (Tvir >= 1e3 && gal->Mvir >= gal->MvirCrit_MC) {
-      double loglambdalim, LTEcool;
-      double nH = 1e2; // Use value of low density regime
+    else { // You need to recompute Tvir as the computation above assumed mu = 0.59, while for MC you want mu = 1.22
+      double Tvir = (73.8 * 0.75) * fof_group->Vvir * fof_group->Vvir; // internal units (Kelvin). Introduce factor of 0.75 to reproduce results of simulations 
+                                                                       // Fernandez+14 consistent with Visbal+20, Nebrin+23
+      double log10Tvir = log10(Tvir);
+      if (Tvir >= 1e3 && gal->Mvir >= gal->MvirCrit_MC) {
+        double loglambdalim, LTEcool;
+        double nH = 1e2; // Use value of low density regime
 
-      halo_type = 2;
+        halo_type = 2;
 
-      // Identical procedure, only thing that changes is lambda!
-      t_cool = fof_group->Rvir / fof_group->Vvir; // internal units
+        // Identical procedure, only thing that changes is lambda!
+        t_cool = fof_group->Rvir / fof_group->Vvir; // internal units
 
-      // interpolate the temperature and metallicity dependant cooling rate (lambda)
-      LTEcool = LTE_Mcool(Tvir, nH);
-      loglambdalim =
-        -103.0 + 97.59 * log10Tvir - 48.05 * pow(log10Tvir, 2) + 10.8 * pow(log10Tvir, 3) - 0.9032 * pow(log10Tvir, 4);
-      lambda = LTEcool / (1 + (LTEcool / pow(10, loglambdalim)));
+        // interpolate the temperature and metallicity dependant cooling rate (lambda)
+        LTEcool = LTE_Mcool(Tvir, nH);
+        loglambdalim =
+          -103.0 + 97.59 * log10Tvir - 48.05 * pow(log10Tvir, 2) + 10.8 * pow(log10Tvir, 3) - 0.9032 * pow(log10Tvir, 4);
+        lambda = LTEcool / (1 + (LTEcool / pow(10, loglambdalim)));
+      }
+      else {
+        halo_type = 0;
+        cooling_mass = 0.0;
+      }
     }
 #endif
 
