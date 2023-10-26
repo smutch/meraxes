@@ -57,7 +57,8 @@ void add_luminosities(mag_params_t* miniSpectra, galaxy_t* gal, int snapshot, do
       pInBC = miniSpectra->inBCIII;
       pOutBC = miniSpectra->outBCIII;
       Z = 0;
-      sfr = new_stars * time_unit; // a bit hacky... (we want new_stars / sfr is in units of year)
+      if ((bool)run_globals.params.physics.InstantSfIII)
+         sfr = new_stars * time_unit; // a bit hacky... (we want new_stars / sfr is in units of year)
   }
   double* pInBCFluxIII = gal->inBCFluxIII;
   double* pOutBCFluxIII = gal->outBCFluxIII;
@@ -75,10 +76,10 @@ void add_luminosities(mag_params_t* miniSpectra, galaxy_t* gal, int snapshot, do
         for (iF = 0; iF < MAGS_N_BANDS; ++iF){
           pOutBCFlux[iF] += sfr * pWorking[offset + iF];
 #if USE_MINI_HALOS
-  		  if (gal->Galaxy_Population == 3)
+            if (gal->Galaxy_Population == 3)
             pOutBCFluxIII[iF] += sfr * pWorking[offset + iF];
 #endif 
-		}
+        }
       } 
       else if (iA == iAgeBC) {
         offset = Z * MAGS_N_BANDS;
@@ -86,10 +87,10 @@ void add_luminosities(mag_params_t* miniSpectra, galaxy_t* gal, int snapshot, do
           pInBCFlux[iF] += sfr * pInBC[offset + iF];
           pOutBCFlux[iF] += sfr * pOutBC[offset + iF];
 #if USE_MINI_HALOS
-  		  if (gal->Galaxy_Population == 3){
+            if (gal->Galaxy_Population == 3){
             pInBCFluxIII[iF] += sfr * pInBC[offset + iF];
             pOutBCFluxIII[iF] += sfr * pWorking[offset + iF];
-		  }
+          }
 #endif 
         }
       } 
@@ -98,10 +99,10 @@ void add_luminosities(mag_params_t* miniSpectra, galaxy_t* gal, int snapshot, do
         for (iF = 0; iF < MAGS_N_BANDS; ++iF){
           pInBCFlux[iF] += sfr * pWorking[offset + iF];
 #if USE_MINI_HALOS
-  		  if (gal->Galaxy_Population == 3)
+            if (gal->Galaxy_Population == 3)
             pInBCFluxIII[iF] += sfr * pWorking[offset + iF];
 #endif 
-		}
+        }
       }
     }
     pWorking += nAgeStep * nZF;
@@ -220,7 +221,10 @@ void init_templates_mini(mag_params_t* miniSpectra,
     spectraIII[iS].ageStep = ageStepIII;
     shrink_templates_raw(spectraIII + iS, ageStepIII[nAgeStep - 1]);
     spectraIII[iS].igm = 0;
-    init_templates_interpolate(spectraIII + iS);
+    if ((bool)run_globals.params.physics.InstantSfIII)
+        init_templates_interpolate(spectraIII + iS);
+    else
+        init_templates_integrated(spectra + iS);
     spectraIII[iS].ready = (double*)malloc(nAgeStep * spectraIII[iS].nWaves * sizeof(double));
     spectraIII[iS].working = (double*)malloc(nAgeStep * spectraIII[iS].nFlux * sizeof(double));
     init_templates_workingIII(spectraIII + iS);

@@ -457,6 +457,15 @@ void read_parameter_file(char* fname, int mode)
       required_tag[n_param] = 1;
       params_type[n_param++] = PARAM_TYPE_INT;
 
+      strncpy(params_tag[n_param], "InstantSfIII", tag_length);
+      params_addr[n_param] = &(run_params->physics).InstantSfIII;
+#if USE_MINI_HALOS
+      required_tag[n_param] = 1;
+#else
+      required_tag[n_param] = 0;
+#endif
+      params_type[n_param++] = PARAM_TYPE_INT;
+
       strncpy(params_tag[n_param], "SfEfficiency", tag_length);
       params_addr[n_param] = &(run_params->physics).SfEfficiency;
       required_tag[n_param] = 1;

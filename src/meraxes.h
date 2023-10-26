@@ -195,6 +195,7 @@ typedef struct physics_params_t
   int EscapeFracDependency;
   int SfDiskVelOpt;
   int SfPrescription;
+  bool InstantSfIII;
 
   // Flags
   int Flag_ReionizationModifier;
