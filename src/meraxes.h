@@ -281,6 +281,7 @@ typedef struct run_params_t
   int Flag_PatchyReion;
   int Flag_IncludeSpinTemp;
   int Flag_IncludeLymanWerner;
+  int Flag_IncludeStreamVel;
   int Flag_IncludeMetalEvo; // New for Metallicity
   int Flag_IncludeRecombinations;
   int Flag_Compute21cmBrightTemp;

@@ -115,3 +115,10 @@ double calculate_spin_param(halo_t* halo)
     sqrt(halo->AngMom[0] * halo->AngMom[0] + halo->AngMom[1] * halo->AngMom[1] + halo->AngMom[2] * halo->AngMom[2]);
   return angmom_mag / (1.414213562 * halo->Vvir * halo->Rvir);
 }
+
+double VvirToMvir(double Vvir, double redshift) // Vvir in km/s and result in solar masses from Barkana2001 (in the form written from Nebrin+23)
+{
+  double zplus1 = redshift + 1;
+  double Mvir = (pow(Vvir / 3.5, 3)) * (pow(zplus / 10.0, -1.5));
+  return Mvir;
+}

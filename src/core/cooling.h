@@ -15,6 +15,7 @@ extern "C"
   double interpolate_cooling_rate(double logTemp, double logZ);
 #if USE_MINI_HALOS
   double LTE_Mcool(double Temp, double nH);
+  double Mcool_SV(double redshift, int n);
 #endif
 
 #ifdef __cplusplus

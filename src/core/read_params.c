@@ -829,6 +829,15 @@ void read_parameter_file(char* fname, int mode)
 #endif
       params_type[n_param++] = PARAM_TYPE_INT;
       
+      strncpy(params_tag[n_param], "Flag_IncludeStreamVel", tag_length);
+      params_addr[n_param] = &(run_params->Flag_IncludeStreamVel);
+#if USE_MINI_HALOS
+      required_tag[n_param] = 1;
+#else
+      required_tag[n_param] = 0;
+#endif
+      params_type[n_param++] = PARAM_TYPE_INT;
+      
       strncpy(params_tag[n_param], "Flag_IncludeMetalEvo", tag_length); //New for MetalEvo
       params_addr[n_param] = &(run_params->Flag_IncludeMetalEvo);
 #if USE_MINI_HALOS
