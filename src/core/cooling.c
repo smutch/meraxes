@@ -135,7 +135,7 @@ double Mcool_SV(double redshift, int n)
   double vbc = n * sigma_rms;
   
   double Vcool = sqrt(a * a + (b * vbc) * (b * vbc));
-  double McoolSV = VvirToMvir(Vcool, snapshot); //result in solar_mass
+  double McoolSV = VvirToMvir(Vcool, redshift); //result in solar_mass
   
   McoolSV /= (1e10 * run_globals.params.Hubble_h); // Convert into internal units
   
