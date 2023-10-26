@@ -83,14 +83,14 @@ void calculate_Mvir_crit_MC(double redshift)
       for (int kk = 0; kk < ReionGridDim; kk++) {
         if (run_globals.params.Flag_IncludeStreamVel) {
           double MminSV = Mcool_SV(redshift, 1); // Assume one rms for now. In the future you might want to investigate this parameter
-          if (MminSV > MminNoSV)
-            cell_Mvir_crit_MC =
-              MminSV *
-              (1.0 + 6.96 * (pow(4 * M_PI * JLW_box[grid_index(ii, jj, kk, ReionGridDim, INDEX_REAL)], 0.47))); // Fitting function Visbal+14, converting in internal units (1e10Msol/h)
-          else
-            cell_Mvir_crit_MC =
-              MminNoSV *
-              (1.0 + 6.96 * (pow(4 * M_PI * JLW_box[grid_index(ii, jj, kk, ReionGridDim, INDEX_REAL)], 0.47))); // Fitting function Visbal+14, converting in internal units (1e10Msol/h)
+          //if (MminSV > MminNoSV)
+          cell_Mvir_crit_MC =
+            MminSV *
+            (1.0 + 6.96 * (pow(4 * M_PI * JLW_box[grid_index(ii, jj, kk, ReionGridDim, INDEX_REAL)], 0.47))); // Fitting function Visbal+14, converting in internal units (1e10Msol/h)
+          //else
+          //  cell_Mvir_crit_MC =
+          //    MminNoSV *
+          //    (1.0 + 6.96 * (pow(4 * M_PI * JLW_box[grid_index(ii, jj, kk, ReionGridDim, INDEX_REAL)], 0.47))); // Fitting function Visbal+14, converting in internal units (1e10Msol/h)
           }
         else
           cell_Mvir_crit_MC =
