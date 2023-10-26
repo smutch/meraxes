@@ -230,7 +230,7 @@ void init_templates_mini(mag_params_t* miniSpectra,
     if ((bool)run_globals.params.physics.InstantSfIII)
         init_templates_interpolate(spectraIII + iS);
     else
-        init_templates_integrated(spectra + iS);
+        init_templates_integrated(spectraIII + iS);
     spectraIII[iS].ready = (double*)malloc(nAgeStep * spectraIII[iS].nWaves * sizeof(double));
     spectraIII[iS].working = (double*)malloc(nAgeStep * spectraIII[iS].nFlux * sizeof(double));
     init_templates_workingIII(spectraIII + iS);
