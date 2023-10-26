@@ -4,6 +4,7 @@
 #include "cooling.h"
 #include "meraxes.h"
 #include "core/misc_tools.h"
+#include "virial_properties.h"
 
 // *** This code is taken from the model of Croton+ 2006 with minimal modifications. ***
 //
