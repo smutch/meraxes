@@ -71,13 +71,12 @@ double gas_cooling(galaxy_t* gal)
         cooling_mass = 0.0;
       }
     }
-#endif
-
+#else
     else {
-
       halo_type = 0;
       cooling_mass = 0.0;
     }
+#endif
 
     if (halo_type != 0) {
 
