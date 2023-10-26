@@ -142,6 +142,9 @@ void calc_hdf5_props()
 #ifdef CALC_MAGS
     h5props->n_props += 2;
     h5props->array_nmag_f_tid = H5Tarray_create(H5T_NATIVE_FLOAT, 1, (hsize_t[]){ MAGS_N_BANDS });
+#if USE_MINI_HALOS
+    h5props->n_props += 1;
+#endif
 #endif
 
     // Size of a single galaxy entry.
