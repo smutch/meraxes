@@ -223,7 +223,6 @@ void init_templates_mini(mag_params_t* miniSpectra,
       for (int iA = 0; iA < nAgeStep; ++iA)
         ageStepIII[iA] = LTTime[nAgeStep - iA - 1] - LTTime[nAgeStep];
 	}
-    if ((bool)run_globals.params.physics.InstantSfIII)
     assert(ageStepIII[0] > 0.); 
     spectraIII[iS].ageStep = ageStepIII;
     shrink_templates_raw(spectraIII + iS, ageStepIII[nAgeStep - 1]);
