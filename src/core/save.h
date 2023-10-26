@@ -13,6 +13,9 @@ typedef struct galaxy_output_t
 #ifdef CALC_MAGS
   float Mags[MAGS_N_BANDS];
   float DustyMags[MAGS_N_BANDS];
+#if USE_MINI_HALOS
+  float MagsIII[MAGS_N_BANDS];
+#endif
 #endif
 
   int Type;
