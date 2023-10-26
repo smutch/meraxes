@@ -1,6 +1,7 @@
 #include <math.h>
 
 #include "blackhole_feedback.h"
+#include "core/cooling.h"
 #include "core/misc_tools.h"
 #include "core/virial_properties.h"
 #include "meraxes.h"
