@@ -119,6 +119,6 @@ double calculate_spin_param(halo_t* halo)
 double VvirToMvir(double Vvir, double redshift) // Vvir in km/s and result in solar masses from Barkana2001 (in the form written from Nebrin+23)
 {
   double zplus1 = redshift + 1;
-  double Mvir = (pow(Vvir / 3.5, 3)) * (pow(zplus / 10.0, -1.5));
+  double Mvir = (pow(Vvir / 3.5, 3)) * (pow(zplus1 / 10.0, -1.5));
   return Mvir;
 }
