@@ -13,10 +13,18 @@ void init_luminosities(galaxy_t* gal)
   // Initialise all elements of flux arrays to TOL.
   double* inBCFlux = gal->inBCFlux;
   double* outBCFlux = gal->outBCFlux;
+#if USE_MINI_HALOS
+  double* inBCFluxIII = gal->inBCFluxIII;
+  double* outBCFluxIII = gal->outBCFluxIII;
+#endif
 
   for (int iSF = 0; iSF < MAGS_N; ++iSF) {
     inBCFlux[iSF] = TOL;
     outBCFlux[iSF] = TOL;
+#if USE_MINI_HALOS
+    inBCFluxIII[iSF] = TOL;
+    outBCFluxIII[iSF] = TOL;
+#endif
   }
 }
 
@@ -51,6 +59,8 @@ void add_luminosities(mag_params_t* miniSpectra, galaxy_t* gal, int snapshot, do
       Z = 0;
       sfr = new_stars * time_unit; // a bit hacky... (we want new_stars / sfr is in units of year)
   }
+  double* pInBCFluxIII = gal->inBCFluxIII;
+  double* pOutBCFluxIII = gal->outBCFluxIII;
 #endif
   double* pInBCFlux = gal->inBCFlux;
   double* pOutBCFlux = gal->outBCFlux;
@@ -62,20 +72,36 @@ void add_luminosities(mag_params_t* miniSpectra, galaxy_t* gal, int snapshot, do
       iAgeBC = miniSpectra->iAgeBC[iS];
       if (iA > iAgeBC) {
         offset = (Z * nAgeStep + iA) * MAGS_N_BANDS;
-        for (iF = 0; iF < MAGS_N_BANDS; ++iF)
+        for (iF = 0; iF < MAGS_N_BANDS; ++iF){
           pOutBCFlux[iF] += sfr * pWorking[offset + iF];
+#if USE_MINI_HALOS
+  		  if (gal->Galaxy_Population == 3)
+            pOutBCFluxIII[iF] += sfr * pWorking[offset + iF];
+#endif 
+		}
       } 
       else if (iA == iAgeBC) {
         offset = Z * MAGS_N_BANDS;
         for (iF = 0; iF < MAGS_N_BANDS; ++iF) {
           pInBCFlux[iF] += sfr * pInBC[offset + iF];
           pOutBCFlux[iF] += sfr * pOutBC[offset + iF];
+#if USE_MINI_HALOS
+  		  if (gal->Galaxy_Population == 3){
+            pInBCFluxIII[iF] += sfr * pInBC[offset + iF];
+            pOutBCFluxIII[iF] += sfr * pWorking[offset + iF];
+		  }
+#endif 
         }
       } 
       else {
         offset = (Z * nAgeStep + iA) * MAGS_N_BANDS;
-        for (iF = 0; iF < MAGS_N_BANDS; ++iF)
+        for (iF = 0; iF < MAGS_N_BANDS; ++iF){
           pInBCFlux[iF] += sfr * pWorking[offset + iF];
+#if USE_MINI_HALOS
+  		  if (gal->Galaxy_Population == 3)
+            pInBCFluxIII[iF] += sfr * pWorking[offset + iF];
+#endif 
+		}
       }
     }
     pWorking += nAgeStep * nZF;
@@ -83,6 +109,10 @@ void add_luminosities(mag_params_t* miniSpectra, galaxy_t* gal, int snapshot, do
     pOutBC += nZF;
     pInBCFlux += MAGS_N_BANDS;
     pOutBCFlux += MAGS_N_BANDS;
+#if USE_MINI_HALOS
+    pInBCFluxIII += MAGS_N_BANDS;
+    pOutBCFluxIII += MAGS_N_BANDS;
+#endif
   }
 }
 
@@ -95,9 +125,20 @@ void merge_luminosities(galaxy_t* target, galaxy_t* gal)
   double* inBCFlux = gal->inBCFlux;
   double* outBCFlux = gal->outBCFlux;
 
+#if USE_MINI_HALOS
+  double* inBCFluxTgtIII = target->inBCFluxIII;
+  double* outBCFluxTgtIII = target->outBCFluxIII;
+  double* inBCFluxIII = gal->inBCFluxIII;
+  double* outBCFluxIII = gal->outBCFluxIII;
+#endif
+
   for (int iSF = 0; iSF < MAGS_N; ++iSF) {
     inBCFluxTgt[iSF] += inBCFlux[iSF];
     outBCFluxTgt[iSF] += outBCFlux[iSF];
+#if USE_MINI_HALOS
+    inBCFluxTgtIII[iSF] += inBCFluxIII[iSF];
+    outBCFluxTgtIII[iSF] += outBCFluxIII[iSF];
+#endif
   }
 }
 
@@ -547,6 +588,41 @@ void cleanup_mags(void)
   free(run_globals.mag_params.workingIII);
 #endif
 }
+
+#if USE_MINI_HALOS
+void get_output_magnitudesIII(float* mags, galaxy_t* gal, int snapshot){
+  // Convert fluxes to AB magnitudes at all target snapshots.
+
+  // Check if ``snapshot`` is a target snapshot
+  int iS;
+  int* targetSnap = run_globals.mag_params.targetSnap;
+  double* pInBCFlux = gal->inBCFluxIII;
+  double* pOutBCFlux = gal->outBCFluxIII;
+
+  for (iS = 0; iS < MAGS_N_SNAPS; ++iS) {
+    if (snapshot == targetSnap[iS])
+      break;
+    else {
+      pInBCFlux += MAGS_N_BANDS;
+      pOutBCFlux += MAGS_N_BANDS;
+    }
+  }
+  // Correct the unit of SFRs and convert fluxes to magnitudes
+  if (iS != MAGS_N_SNAPS) {
+    double redshift = run_globals.ZZ[snapshot];
+    double sfr_unit =
+      -2.5 * log10(run_globals.units.UnitMass_in_g / run_globals.units.UnitTime_in_s * SEC_PER_YEAR / SOLAR_MASS);
+    for (int i_band = 0; i_band < MAGS_N_BANDS; ++i_band) {
+      mags[i_band] = (float)(-2.5 * log10(pInBCFlux[i_band] + pOutBCFlux[i_band]) + 8.9 + sfr_unit);
+    }
+
+  } else {
+    for (int i_band = 0; i_band < MAGS_N_BANDS; ++i_band) {
+      mags[i_band] = 999.999f;
+    }
+  }
+}
+#endif
 
 void get_output_magnitudes(float* mags, float* dusty_mags, galaxy_t* gal, int snapshot)
 {

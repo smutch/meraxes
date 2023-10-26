@@ -538,6 +538,10 @@ typedef struct galaxy_t
 #ifdef CALC_MAGS
   double inBCFlux[MAGS_N];
   double outBCFlux[MAGS_N];
+#if USE_MINI_HALOS
+  double inBCFluxIII[MAGS_N];
+  double outBCFluxIII[MAGS_N];
+#endif
 #endif
 
   // Unique ID for the galaxy
@@ -832,6 +836,7 @@ extern "C"
 
   // core/magnitudes.c
   void get_output_magnitudes(float* mags, float* dusty_mags, galaxy_t* gal, int snapshot);
+  void get_output_magnitudesIII(float* mags, galaxy_t* gal, int snapshot);
 
 // MCMC related
 // meraxes_mhysa_hook must be implemented by the calling code (Mhysa)!
