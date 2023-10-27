@@ -7,6 +7,7 @@
 #include "core/misc_tools.h"
 #include "meraxes.h"
 #include "reionization.h"
+#include "core/virial_properties.h"
 
 double gas_cooling(galaxy_t* gal)
 {
@@ -15,19 +16,16 @@ double gas_cooling(galaxy_t* gal)
   // we only need to do cooling if there is anything to cool!
   if (gal->HotGas > 1e-10) {
     fof_group_t* fof_group = gal->Halo->FOFGroup;
+    int halo_type = 1; // (1 = AC, 2 = MC, 0 = None)
 
     // calculate the halo virial temperature and log10 metallicity value
-    // N.B. This assumes ionised gas with mu=0.59...
-    //double Tvir = 35.9 * fof_group->Vvir * fof_group->Vvir; // internal units (Kelvin)
-    double Tvir = (35.9 * 0.75) * fof_group->Vvir * fof_group->Vvir; // internal units (Kelvin). Introduce factor of 0.75 to reproduce results of simulations 
-                                                                     // Fernandez+14 consistent with Visbal+20, Nebrin+23
+    double Tvir = Vvir_to_Tvir(fof_group->Vvir, halo_type);
     double log10Tvir = log10(Tvir);
     double logZ;
     double t_cool, max_cooling_mass;
     double lambda, x, rho_r_cool, r_cool, isothermal_norm;
     run_units_t* units = &(run_globals.units);
     double max_cooling_mass_factor = run_globals.params.physics.MaxCoolingMassFactor;
-    int halo_type; // (1 = AC, 2 = MC, 0 = None)
 
     if (gal->MetalsHotGas > 0)
       logZ = log10(calc_metallicity(gal->HotGas, gal->MetalsHotGas));
@@ -35,7 +33,6 @@ double gas_cooling(galaxy_t* gal)
       logZ = -10.0;
 
     if (Tvir >= 1e4) {
-      halo_type = 1;
 
       t_cool = fof_group->Rvir / fof_group->Vvir; // internal units
 
@@ -47,15 +44,13 @@ double gas_cooling(galaxy_t* gal)
     // according to Visbal 2014
 
 #if USE_MINI_HALOS
-    else { // You need to recompute Tvir as the computation above assumed mu = 0.59, while for MC you want mu = 1.22
-      double Tvir = (73.8 * 0.75) * fof_group->Vvir * fof_group->Vvir; // internal units (Kelvin). Introduce factor of 0.75 to reproduce results of simulations 
-                                                                       // Fernandez+14 consistent with Visbal+20, Nebrin+23
-      double log10Tvir = log10(Tvir);
+    else {
+      halo_type = 2;
+      Tvir = Vvir_to_Tvir(fof_group->Vvir, halo_type);
+      log10Tvir = log10(Tvir);
       if (Tvir >= 1e3 && gal->Mvir >= gal->MvirCrit_MC) {
         double loglambdalim, LTEcool;
         double nH = 1e2; // Use value of low density regime
-
-        halo_type = 2;
 
         // Identical procedure, only thing that changes is lambda!
         t_cool = fof_group->Rvir / fof_group->Vvir; // internal units

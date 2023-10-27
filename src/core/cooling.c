@@ -127,6 +127,7 @@ double Mcool_SV(double redshift, int n)
   // Function to compute the minimum mass for MC when including the streaming velocities,
   // n quantifies the strength of the SV (n* sigma(z)) with sigma being the rms streaming velocity (TH 2010 and Fialkov 2012))
   // Computation from Visbal+20
+  int halo_type = 2;
   double zplus1 = redshift + 1;
   
   double a = 3.714; // in km/s from Greif+11
@@ -136,9 +137,7 @@ double Mcool_SV(double redshift, int n)
   double vbc = n * sigma_rms;
   
   double Vcool = sqrt(a * a + (b * vbc) * (b * vbc));
-  double McoolSV = VvirToMvir(Vcool, redshift); //result in solar_mass
-  
-  McoolSV /= (1e10 / run_globals.params.Hubble_h); // Convert into internal units
+  double McoolSV = Vvir_to_Mvir(Vcool, redshift, halo_type);
   
   return McoolSV;
 } 
