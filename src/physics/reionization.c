@@ -71,7 +71,7 @@ void calculate_Mvir_crit_MC(double redshift)
 
   double Hubble_h = run_globals.params.Hubble_h;
   if (run_globals.params.Flag_IncludeStreamVel) 
-      cell_Mvir_crit_MC = Mcool_SV(redshift, 5); // Assume 5 rms for now. In the future you might want to investigate this parameter
+      cell_Mvir_crit_MC = Mcool_SV(redshift, 1); // Assume 1 rms for now. In the future you might want to investigate this parameter
   else
       cell_Mvir_crit_MC = Mcool_SV(redshift, 0); 
 
