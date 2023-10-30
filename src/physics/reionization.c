@@ -71,9 +71,9 @@ void calculate_Mvir_crit_MC(double redshift)
 
   double Hubble_h = run_globals.params.Hubble_h;
   if (run_globals.params.Flag_IncludeStreamVel) 
-      cell_Mvir_crit_MC = Mcool_SV(redshift, 0);
-  else
       cell_Mvir_crit_MC = Mcool_SV(redshift, 5); // Assume 5 rms for now. In the future you might want to investigate this parameter
+  else
+      cell_Mvir_crit_MC = Mcool_SV(redshift, 0); 
 
   float* JLW_box = run_globals.reion_grids.JLW_box;
 
