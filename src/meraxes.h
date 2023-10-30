@@ -131,6 +131,8 @@ typedef struct physics_params_t
   double MminIMF;
   double MmaxIMF;
   double AlphaIMF;
+  double McharIMF; //for LogNorm
+  double SigmaIMF;
   int PopIII_IMF;
   int PopIIIAgePrescription;
   
@@ -193,6 +195,7 @@ typedef struct physics_params_t
   int EscapeFracDependency;
   int SfDiskVelOpt;
   int SfPrescription;
+  bool InstantSfIII;
 
   // Flags
   int Flag_ReionizationModifier;
@@ -225,6 +228,7 @@ typedef struct run_params_t
   char BetaBands[STRLEN];
   char RestBands[STRLEN];
   double BirthCloudLifetime;
+  double DeltaT; // New Parameter added to consider different time of observation! Very important for Pop. III
   char CoolingFuncsDir[STRLEN];
   char StellarFeedbackDir[STRLEN];
   char TablesForXHeatingDir[STRLEN];
@@ -278,6 +282,7 @@ typedef struct run_params_t
   int Flag_PatchyReion;
   int Flag_IncludeSpinTemp;
   int Flag_IncludeLymanWerner;
+  int Flag_IncludeStreamVel;
   int Flag_IncludeMetalEvo; // New for Metallicity
   int Flag_IncludeRecombinations;
   int Flag_Compute21cmBrightTemp;
@@ -534,6 +539,10 @@ typedef struct galaxy_t
 #ifdef CALC_MAGS
   double inBCFlux[MAGS_N];
   double outBCFlux[MAGS_N];
+#if USE_MINI_HALOS
+  double inBCFluxIII[MAGS_N];
+  double outBCFluxIII[MAGS_N];
+#endif
 #endif
 
   // Unique ID for the galaxy
@@ -722,6 +731,12 @@ typedef struct mag_params_t
   double* outBC;
   double* centreWaves;
   double* logWaves;
+#ifdef USE_MINI_HALOS
+  size_t totalSizeIII;
+  double* workingIII;
+  double* inBCIII;
+  double* outBCIII;
+#endif
 } mag_params_t;
 #endif
 
@@ -822,6 +837,7 @@ extern "C"
 
   // core/magnitudes.c
   void get_output_magnitudes(float* mags, float* dusty_mags, galaxy_t* gal, int snapshot);
+  void get_output_magnitudesIII(float* mags, galaxy_t* gal, int snapshot);
 
 // MCMC related
 // meraxes_mhysa_hook must be implemented by the calling code (Mhysa)!

@@ -202,6 +202,15 @@ void read_parameter_file(char* fname, int mode)
       required_tag[n_param] = 1;
 #endif
       params_type[n_param++] = PARAM_TYPE_DOUBLE;
+      
+      strcpy(params_tag[n_param], "DeltaT");
+      params_addr[n_param] = &(run_params->DeltaT);
+#ifndef CALC_MAGS
+      required_tag[n_param] = 0;
+#else
+      required_tag[n_param] = 1;
+#endif
+      params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
       strncpy(params_tag[n_param], "TablesForXHeatingDir", tag_length);
       params_addr[n_param] = run_params->TablesForXHeatingDir;
@@ -446,6 +455,15 @@ void read_parameter_file(char* fname, int mode)
       strncpy(params_tag[n_param], "Flag_ReheatToFOFGroupTemp", tag_length);
       params_addr[n_param] = &(run_params->physics).Flag_ReheatToFOFGroupTemp;
       required_tag[n_param] = 1;
+      params_type[n_param++] = PARAM_TYPE_INT;
+
+      strncpy(params_tag[n_param], "InstantSfIII", tag_length);
+      params_addr[n_param] = &(run_params->physics).InstantSfIII;
+#if USE_MINI_HALOS
+      required_tag[n_param] = 1;
+#else
+      required_tag[n_param] = 0;
+#endif
       params_type[n_param++] = PARAM_TYPE_INT;
 
       strncpy(params_tag[n_param], "SfEfficiency", tag_length);
@@ -813,6 +831,15 @@ void read_parameter_file(char* fname, int mode)
 
       strncpy(params_tag[n_param], "Flag_IncludeLymanWerner", tag_length);
       params_addr[n_param] = &(run_params->Flag_IncludeLymanWerner);
+#if USE_MINI_HALOS
+      required_tag[n_param] = 1;
+#else
+      required_tag[n_param] = 0;
+#endif
+      params_type[n_param++] = PARAM_TYPE_INT;
+      
+      strncpy(params_tag[n_param], "Flag_IncludeStreamVel", tag_length);
+      params_addr[n_param] = &(run_params->Flag_IncludeStreamVel);
 #if USE_MINI_HALOS
       required_tag[n_param] = 1;
 #else

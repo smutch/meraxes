@@ -28,8 +28,8 @@ StellarFeedbackDir         : /fred/oz113/eventura/meraxes/input/stellar_feedback
 TablesForXHeatingDir       : /fred/oz113/eventura/meraxes/input/21cmFAST-tables
 
 Flag_IncludeRecombinations : 0
-Flag_Compute21cmBrightTemp : 1
-Flag_ComputePS             : 1
+Flag_Compute21cmBrightTemp : 0
+Flag_ComputePS             : 0
 Flag_IncludeSpinTemp       : 1   # if 0 Ts>>Tg
 Flag_SeparateQSOXrays      : 0   # NOT CURRENTLY IMPLEMENTED (CODE WILL FAIL IF != 0)
 Flag_IncludePecVelsFor21cm : 0
@@ -40,7 +40,7 @@ Flag_IncludeMetalEvo       : 1   # Added by Manu for External metal Enrichment
 
 #################### External Metal enrichment, you need this when Flag_IncludeMetalEvo == 1 #################################
 
-MetalGridDim               : 16   
+MetalGridDim               : 128
 
 AlphaCluster               : -1.4 #For fitting function for Non Linear Clustering. 
 BetaCluster                : 0.8
@@ -75,7 +75,7 @@ SfDiskVelOpt               : 1    # disk velocity for SF law (1=Vmax, 2=Vvir)
 SfPrescription             : 1    # C06 SF law IF YOU RUN POP III YOU NEED THIS == 1
 
 SfEfficiency              : 0.08    # star formation efficiency Normalization
-SfEfficiency_III          : 0.08   # for Pop III (atm the default value is the same of Pop II)
+SfEfficiency_III          : 0.008   # for Pop III (atm the default value is the same of Pop II)
 SfEfficiencyScaling       : 0.0     # star formation efficiency Scaling
 SfEfficiencyScaling_III   : 0.0
 
@@ -83,9 +83,10 @@ SfCriticalSDNorm          : 0.2     # critical surface density normalisation fac
 SfCriticalSDNorm_III      : 0.2     # Same as above for PopIII 
 
 # ----- Pop III IMF -----
-AlphaIMF                  : -0.5 # Power-law index of the IMF (Test default is -2.35)
-MminIMF                   : 1.0 # Minimum mass of IMF (Test default is 9)
-MmaxIMF                   : 300.0 # Maximum mass of IMF (Test default is 500)
+#AlphaIMF                  : -0.5 # Power-law index of the IMF (Fiducial is -0.5)
+#MminIMF                   : 1.0 # Minimum mass of IMF (Fiducial is 1)
+#MmaxIMF                   : 300.0 # Maximum mass of IMF (Fiducial is 300)
+PopIII_IMF                : 1 # 1-> Sal500_001, 2-> Sal500_050, 3->logA500_001, 4->logE500_001
 PopIIIAgePrescription     : 2 # 1->Schaerer Strong Mass Loss, 2-> Schaerer No Mass Loss
 
 # ----------------------------------------------------------------
@@ -239,7 +240,7 @@ ReionSMParam_d         : 2.5
 
 ReionTcool             : 1.0e4  # Kelvin
 ReionNionPhotPerBary   : 6000 # Since the IMF has been updated for the UV luminosity.
-ReionNionPhotPerBary_III   : 6000 #You need to update this, you are leaving this same to Pop II because you are doing tests!
+#ReionNionPhotPerBary_III   : 6000 # You are now computing this from the choice of the IMF
 
 ReionSfrTimescale          : 0.5
 TsHeatingFilterType        : 1 
@@ -267,3 +268,10 @@ NPart: 8589934592
 UnitLength_in_cm         : 3.08568e+24       # WATCH OUT : Mpc/h
 UnitMass_in_g            : 1.989e+43         # WATCH OUT : 10^10Msun/h
 UnitVelocity_in_cm_per_s : 100000            # WATCH OUT : km/s
+
+################### Luminosity stuff ######################
+BirthCloudLifetime         : 10e6  # yr
+TargetSnaps                : 28, 36, 43, 48, 53, 58, 63, 69, 75, 82, 90, 98, 108, 115 #z = 20, 18.1, 16.1, 15, 13.9, 12.9, 12, 11, 10, 9, 8, 7, 6, 5.34
+RestBands                  : 1550,1650
+BetaBands                  :
+DeltaT                     : 1.0 # Myr
