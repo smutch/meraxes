@@ -87,9 +87,9 @@ void add_luminosities(mag_params_t* miniSpectra, galaxy_t* gal, int snapshot, do
           pInBCFlux[iF] += sfr * pInBC[offset + iF];
           pOutBCFlux[iF] += sfr * pOutBC[offset + iF];
 #if USE_MINI_HALOS
-            if (gal->Galaxy_Population == 3){
+          if (gal->Galaxy_Population == 3){
             pInBCFluxIII[iF] += sfr * pInBC[offset + iF];
-            pOutBCFluxIII[iF] += sfr * pWorking[offset + iF];
+            pOutBCFluxIII[iF] += sfr * pOutBC[offset + iF];
           }
 #endif 
         }
@@ -99,7 +99,7 @@ void add_luminosities(mag_params_t* miniSpectra, galaxy_t* gal, int snapshot, do
         for (iF = 0; iF < MAGS_N_BANDS; ++iF){
           pInBCFlux[iF] += sfr * pWorking[offset + iF];
 #if USE_MINI_HALOS
-            if (gal->Galaxy_Population == 3)
+          if (gal->Galaxy_Population == 3)
             pInBCFluxIII[iF] += sfr * pWorking[offset + iF];
 #endif 
         }
