@@ -734,8 +734,6 @@ typedef struct mag_params_t
 #ifdef USE_MINI_HALOS
   size_t totalSizeIII;
   double* workingIII;
-  double* inBCIII;
-  double* outBCIII;
 #endif
 } mag_params_t;
 #endif
