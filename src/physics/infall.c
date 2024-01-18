@@ -96,7 +96,7 @@ void add_infall_to_hot(galaxy_t* central, double infall_mass)
     central->HotGas += infall_mass;
 #if USE_MINI_HALOS
     if (Flag_Metals == true) {
-      if (central->Flag_ExtMetEnr == 1)
+      if (central->Flag_ExtMetEnr == 1) // If the halo is externally enriched, it will accrete polluted gas (metals).
         central->MetalsHotGas += infall_mass * central->Metallicity_IGM;
     }
 #endif

@@ -131,135 +131,6 @@ void construct_metal_grids(int snapshot, int local_ngals)
             
               if (gal->RmetalBubble >= 3 * gal->Rvir) {  // A bubble can actually pollute the IGM only if it's bigger than its virial radius (Try with 3 atm)
                 buffer_metals[ind] += (4.0 / 3.0 * M_PI * pow((gal->RmetalBubble) * (1 + redshift), 3.0)); // cMpc/h (same units of cell volume)
-                  
-                  //if (gal->RmetalBubble > 0.62 * (box_size / MetalGridDim)) {
-                /*if ((gal->RmetalBubble * (1 + redshift)) > 0.62 * (box_size / MetalGridDim)) { 
-                  double Excess_volume = (4.0 / 3.0 * M_PI * pow((gal->RmetalBubble) * (1 + redshift), 3.0)) - pow((box_size / MetalGridDim), 3.0);
-   
-                  // ixplus and minus needed for your new modification
-          
-                  int ixplus = (int)(pos_to_ngp(gal->Pos[0] + (float)(box_size / MetalGridDim), box_size, MetalGridDim) - slab_ix_start_metals[i_r]);
-                  int ixminus;
-                  
-                  if ((gal->Pos[0] - (float)(box_size / MetalGridDim)) < 0.0)
-                    ixminus = (int)(pos_to_ngp((box_size + gal->Pos[0] - (float)(box_size / MetalGridDim)), box_size, MetalGridDim) - slab_ix_start_metals[i_r]);
-                  else
-                    ixminus = (int)(pos_to_ngp(gal->Pos[0] - (float)(box_size / MetalGridDim), box_size, MetalGridDim) - slab_ix_start_metals[i_r]);
-                  
-                  if (ixplus >= slab_nix_metals[i_r])
-                    ixplus = 0;
-                   
-                  if (ixminus >= slab_nix_metals[i_r])
-                    ixminus = 0;
-                    
-                  if (ixplus < 0)
-                    ixplus = slab_nix_metals[i_r] - 1;
-                   
-                  if (ixminus < 0)
-                    ixminus = slab_nix_metals[i_r] - 1;
-          
-                  assert((ixplus < slab_nix_metals[i_r]) && (ixplus >= 0));
-                  assert((ixminus < slab_nix_metals[i_r]) && (ixminus >= 0));
-                  
-                  int iyplus = pos_to_ngp(gal->Pos[1] + (float)(box_size / MetalGridDim), box_size, MetalGridDim);
-                  int iyminus;
-                  
-                  if ((gal->Pos[1] - (float)(box_size / MetalGridDim)) < 0.0)
-                    iyminus = (int)(pos_to_ngp((box_size + gal->Pos[1] - (float)(box_size / MetalGridDim)), box_size, MetalGridDim));
-                  else
-                    iyminus = (int)(pos_to_ngp(gal->Pos[1] - (float)(box_size / MetalGridDim), box_size, MetalGridDim));
-                    
-                  int izplus = pos_to_ngp(gal->Pos[2] + (float)(box_size / MetalGridDim), box_size, MetalGridDim);
-                  int izminus;
-                  
-                  if ((gal->Pos[2] - (float)(box_size / MetalGridDim)) < 0.0)
-                    izminus = (int)(pos_to_ngp((box_size + gal->Pos[2] - (float)(box_size / MetalGridDim)), box_size, MetalGridDim));
-                  else
-                    izminus = (int)(pos_to_ngp(gal->Pos[2] - (float)(box_size / MetalGridDim), box_size, MetalGridDim));
-                    
-                  assert((iyplus < MetalGridDim) && (iyplus >= 0));
-                  assert((iyminus < MetalGridDim) && (iyminus >= 0));
-                  
-                  assert((izplus < MetalGridDim) && (izplus >= 0));
-                  assert((izminus < MetalGridDim) && (izminus >= 0));
-                  
-                  int indxplus = grid_index(ixplus, iy, iz, MetalGridDim, INDEX_REAL); 
-                  int indxminus = grid_index(ixminus, iy, iz, MetalGridDim, INDEX_REAL); 
-                  int indxypp = grid_index(ixplus, iyplus, iz, MetalGridDim, INDEX_REAL); 
-                  int indxypm = grid_index(ixplus, iyminus, iz, MetalGridDim, INDEX_REAL); 
-                  int indxymp = grid_index(ixminus, iyplus, iz, MetalGridDim, INDEX_REAL); 
-                  int indxymm = grid_index(ixminus, iyminus, iz, MetalGridDim, INDEX_REAL); 
-                  int indxzpp = grid_index(ixplus, iy, izplus, MetalGridDim, INDEX_REAL); 
-                  int indxzpm = grid_index(ixplus, iy, izminus, MetalGridDim, INDEX_REAL);
-                  int indxzmp = grid_index(ixminus, iy, izplus, MetalGridDim, INDEX_REAL); 
-                  int indxzmm = grid_index(ixminus, iy, izminus, MetalGridDim, INDEX_REAL);
-                   
-                  //if (indplus >= slab_nix_metals[i_r] * MetalGridDim * MetalGridDim)
-                  //  indplus = 0;
-                  
-                  //if (indminus < 0)
-                  //  indminus = slab_nix_metals[i_r] * MetalGridDim * MetalGridDim - 1;
-                  
-                  int indyplus = grid_index(ix, iyplus, iz, MetalGridDim, INDEX_REAL); 
-                  int indyminus = grid_index(ix, iyminus, iz, MetalGridDim, INDEX_REAL);
-                  int indzplus = grid_index(ix, iy, izplus, MetalGridDim, INDEX_REAL); 
-                  int indzminus = grid_index(ix, iy, izminus, MetalGridDim, INDEX_REAL); 
-                  int indyzpp = grid_index(ix, iyplus, izplus, MetalGridDim, INDEX_REAL); 
-                  int indyzpm = grid_index(ix, iyplus, izminus, MetalGridDim, INDEX_REAL);
-                  int indyzmp = grid_index(ix, iyminus, izplus, MetalGridDim, INDEX_REAL);
-                  int indyzmm = grid_index(ix, iyminus, izminus, MetalGridDim, INDEX_REAL); 
-                  
-                  assert((indxplus >= 0) && (indxplus < slab_nix_metals[i_r] * MetalGridDim * MetalGridDim));
-                  assert((indxminus >= 0) && (indxminus < slab_nix_metals[i_r] * MetalGridDim * MetalGridDim));
-                  assert((indxypp >= 0) && (indxypp < slab_nix_metals[i_r] * MetalGridDim * MetalGridDim));
-                  assert((indxypm >= 0) && (indxypm < slab_nix_metals[i_r] * MetalGridDim * MetalGridDim));
-                  assert((indxymp >= 0) && (indxymp < slab_nix_metals[i_r] * MetalGridDim * MetalGridDim));
-                  assert((indxymm >= 0) && (indxymm< slab_nix_metals[i_r] * MetalGridDim * MetalGridDim));
-                  assert((indxzpm >= 0) && (indxzpm < slab_nix_metals[i_r] * MetalGridDim * MetalGridDim));
-                  assert((indxzmp >= 0) && (indxzmp < slab_nix_metals[i_r] * MetalGridDim * MetalGridDim));
-                  assert((indxzmm >= 0) && (indxzmm < slab_nix_metals[i_r] * MetalGridDim * MetalGridDim));
-                  
-                  assert((indyplus >= 0) && (indyplus < slab_nix_metals[i_r] * MetalGridDim * MetalGridDim));
-                  assert((indyminus >= 0) && (indyminus < slab_nix_metals[i_r] * MetalGridDim * MetalGridDim));
-                  assert((indzplus >= 0) && (indzplus < slab_nix_metals[i_r] * MetalGridDim * MetalGridDim));
-                  assert((indzminus >= 0) && (indzminus < slab_nix_metals[i_r] * MetalGridDim * MetalGridDim));
-                  assert((indyzpp >= 0) && (indyzpp < slab_nix_metals[i_r] * MetalGridDim * MetalGridDim));
-                  assert((indyzpm >= 0) && (indyzpm < slab_nix_metals[i_r] * MetalGridDim * MetalGridDim));
-                  assert((indyzmp >= 0) && (indyzmp < slab_nix_metals[i_r] * MetalGridDim * MetalGridDim));
-                  assert((indyzmm >= 0) && (indyzmm < slab_nix_metals[i_r] * MetalGridDim * MetalGridDim));
-                  
-                  //Adiacent cells in the same axis 
-                  buffer_metals[indzplus] += 0.072 * Excess_volume;
-                  buffer_metals[indzminus] += 0.072 * Excess_volume;
-                  buffer_metals[indyplus] += 0.072 * Excess_volume;
-                  buffer_metals[indyminus] += 0.072 * Excess_volume;
-                  //buffer_metals[ind + (MetalGridDim * MetalGridDim)] += 0.072 * Excess_volume;
-                  //buffer_metals[ind - (MetalGridDim * MetalGridDim)] += 0.072 * Excess_volume;
-                  buffer_metals[indxplus] += 0.072 * Excess_volume; //SLAB NOT JUST ix (still to check!)
-                  buffer_metals[indxminus] += 0.072 * Excess_volume;
-                  
-                  //Adiacent cells obliquos
-                  buffer_metals[indyzpp] += 0.0473 * Excess_volume;
-                  buffer_metals[indyzpm] += 0.0473 * Excess_volume;
-                  buffer_metals[indyzmm] += 0.0473 * Excess_volume;
-                  buffer_metals[indyzmp] += 0.0473 * Excess_volume;
-                  //buffer_metals[ind + (MetalGridDim * MetalGridDim) + 1] += 0.0473 * Excess_volume;
-                  //buffer_metals[ind - (MetalGridDim * MetalGridDim) + 1] += 0.0473 * Excess_volume;
-                  //buffer_metals[ind + (MetalGridDim * MetalGridDim) - 1] += 0.0473 * Excess_volume;
-                  //buffer_metals[ind - (MetalGridDim * MetalGridDim) - 1] += 0.0473 * Excess_volume;
-                  //buffer_metals[ind + (MetalGridDim * MetalGridDim) + MetalGridDim] += 0.0473 * Excess_volume;
-                  //buffer_metals[ind - (MetalGridDim * MetalGridDim) + MetalGridDim] += 0.0473 * Excess_volume;
-                  //buffer_metals[ind + (MetalGridDim * MetalGridDim) - MetalGridDim] += 0.0473 * Excess_volume;
-                  //buffer_metals[ind - (MetalGridDim * MetalGridDim) - MetalGridDim] += 0.0473 * Excess_volume;
-                  buffer_metals[indxzpp] += 0.0473 * Excess_volume;
-                  buffer_metals[indxzmp] += 0.0473 * Excess_volume;
-                  buffer_metals[indxzpm] += 0.0473 * Excess_volume;
-                  buffer_metals[indxzmm] += 0.0473 * Excess_volume;
-                  buffer_metals[indxypp] += 0.0473 * Excess_volume;
-                  buffer_metals[indxymp] += 0.0473 * Excess_volume;
-                  buffer_metals[indxypm] += 0.0473 * Excess_volume;
-                  buffer_metals[indxymm] += 0.0473 * Excess_volume;
-                }*/
               }
 
               break;
@@ -288,13 +159,12 @@ void construct_metal_grids(int snapshot, int local_ngals)
             case prop_mass_ej_metals:
             
               if (gal->RmetalBubble >= 3 * gal->Rvir) // Add this condition to be consistent with above
-                buffer_metals[ind] += gal->MetalsEjectedGas; //Internal units (same of gas_cell)
+                buffer_metals[ind] += gal->MetalsEjectedGas; // Internal units (same of gas_cell)
                 
               break;
               
             case prop_mass_ej_gas:
             
-              //buffer_metals[ind] += (gal->EjectedGas - gal->HotGas - gal->ColdGas);
               buffer_metals[ind] -= (gal->HotGas + gal->ColdGas);
               if (gal->RmetalBubble >= 3 * gal->Rvir)
                 buffer_metals[ind] += gal->EjectedGas; // Add this condition to be consistent with above
@@ -543,10 +413,6 @@ void malloc_metal_grids()
   mlog("Allocating metal grids...", MLOG_OPEN);
 
   metal_grids_t* grids = &(run_globals.metal_grids);
-
-  // run_globals.NStoreSnapshots is set in `initialize_halo_storage` Leave it commented because you might use that in the future when looking for scaling relations
-  //run_globals.SnapshotDeltax = (float**)calloc((size_t)run_globals.NStoreSnapshots, sizeof(float*)); //?
-  //run_globals.SnapshotVel = (float**)calloc((size_t)run_globals.NStoreSnapshots, sizeof(float*));  //?
 
   grids->galaxy_to_slab_map_metals = NULL;
 

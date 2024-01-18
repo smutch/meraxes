@@ -6,7 +6,6 @@
 #include "core/PopIII.h"
 #include "core/virial_properties.h"
 #include "core/misc_tools.h"
-//#include <gsl/gsl_rng.h>
 #endif
 #include "infall.h"
 #include "meraxes.h"

@@ -78,7 +78,7 @@ galaxy_t* new_galaxy(int snapshot, unsigned long halo_ID)
   gal->Metal_Probability = 0.0;
   gal->Metals_IGM = 0.0;
   gal->Gas_IGM = 0.0;
-  gal->Metallicity_IGM = -50.0; // Better to initialize to a very negative value.
+  gal->Metallicity_IGM = -50.0; 
   gal->RmetalBubble = 0.0;
   gal->PrefactorBubble = 0.0;
   gal->TimeBubble = 0.0;
@@ -87,7 +87,7 @@ galaxy_t* new_galaxy(int snapshot, unsigned long halo_ID)
   gal->Flag_ExtMetEnr = 0;
   gal->GalMetal_Probability = gsl_rng_uniform(run_globals.random_generator);
   
-  if (run_globals.params.Flag_IncludeMetalEvo == false) //If you don't have the external metal enrichment you have to initialize this variable (you were doing that in evolve.c)
+  if (run_globals.params.Flag_IncludeMetalEvo == false) // If you don't have the external metal enrichment all galaxies will start as pristine (Pop.III forming)
     gal-> Galaxy_Population == 3;
 #else //If you are not computing PopIII , all the galaxies are PopII. Again you need to initialize the variable otherwise star_formation.c will fail!
   gal->Galaxy_Population == 2;

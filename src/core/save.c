@@ -745,7 +745,7 @@ void create_master_file()
   }
   
 #if USE_MINI_HALOS
-  if (run_globals.params.Flag_IncludeMetalEvo) { // Here there might be some issue with little h!
+  if (run_globals.params.Flag_IncludeMetalEvo) { 
     const char* group_name = { "Units/MetalGrids" };
     group_id = H5Gcreate(file_id, group_name, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
     H5LTset_attribute_string(file_id, group_name, "mass_metals", "solMass");
@@ -753,7 +753,7 @@ void create_master_file()
     H5LTset_attribute_string(file_id, group_name, "Zigm_box", "Zsol");
     H5LTset_attribute_string(file_id, group_name, "Probability_metals", "none");
     H5LTset_attribute_string(file_id, group_name, "N_bubbles", "none");
-    H5LTset_attribute_string(file_id, group_name, "R_ave", "cMpc"); // I believe are cMpc / h! But there might be something wrong! You might want to add Conversion grids!!
+    H5LTset_attribute_string(file_id, group_name, "R_ave", "cMpc"); 
     H5LTset_attribute_string(file_id, group_name, "R_max", "cMpc");
     H5LTset_attribute_string(file_id, group_name, "mass_IGM", "solMass");
     
@@ -928,20 +928,6 @@ void create_master_file()
           H5Lcreate_external(relative_source_file, "/", snap_group_id, "Grids", H5P_DEFAULT, H5P_DEFAULT);
           H5Fclose(source_file_id);
         }
-
-        // sprintf(source_ds, "Snap%03d/PowerSpectrum", run_globals.ListOutputSnaps[i_out]);
-        // if ((H5LTpath_valid(source_file_id, source_ds, FALSE)))
-        // {
-        //   sprintf(target_ds, "PowerSpectrum");
-        //   H5Lcreate_external(relative_source_file, source_ds, snap_group_id, target_ds, H5P_DEFAULT, H5P_DEFAULT);
-        // }
-
-        // sprintf(source_ds, "Snap%03d/RegionSizeDist", run_globals.ListOutputSnaps[i_out]);
-        // if ((H5LTpath_valid(source_file_id, source_ds, FALSE)))
-        // {
-        //   sprintf(target_ds, "RegionSizeDist");
-        //   H5Lcreate_external(relative_source_file, source_ds, snap_group_id, target_ds, H5P_DEFAULT, H5P_DEFAULT);
-        // }
       }
       
 #if USE_MINI_HALOS
@@ -954,20 +940,6 @@ void create_master_file()
           H5Lcreate_external(relative_source_file, "/", snap_group_id, "MetalGrids", H5P_DEFAULT, H5P_DEFAULT);
           H5Fclose(source_file_id);
         }
-
-        // sprintf(source_ds, "Snap%03d/PowerSpectrum", run_globals.ListOutputSnaps[i_out]);
-        // if ((H5LTpath_valid(source_file_id, source_ds, FALSE)))
-        // {
-        //   sprintf(target_ds, "PowerSpectrum");
-        //   H5Lcreate_external(relative_source_file, source_ds, snap_group_id, target_ds, H5P_DEFAULT, H5P_DEFAULT);
-        // }
-
-        // sprintf(source_ds, "Snap%03d/RegionSizeDist", run_globals.ListOutputSnaps[i_out]);
-        // if ((H5LTpath_valid(source_file_id, source_ds, FALSE)))
-        // {
-        //   sprintf(target_ds, "RegionSizeDist");
-        //   H5Lcreate_external(relative_source_file, source_ds, snap_group_id, target_ds, H5P_DEFAULT, H5P_DEFAULT);
-        // }
       }
 #endif
     }
