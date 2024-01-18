@@ -202,7 +202,7 @@ double getIMF_massweighted(double StarMass)
   return StarMass * getIMF(StarMass);
 }
 
-double get_StellarAge(double StarMass) //Star Mass in log10(Msol) to get tstar in log10(yr). Use this so you can do a linear interpolation! 
+double get_StellarAge(double StarMass) //Star Mass in log10(Msol) to get tstar in log10(yr).  
 {
   int PopIIIAgePrescription = run_globals.params.physics.PopIIIAgePrescription; 
   if ((PopIIIAgePrescription == 1) && (run_globals.params.physics.MmaxIMF > 500.0)) {
@@ -432,11 +432,11 @@ double CCSN_PopIII_Number(int i_burst, int curr_snap, int flagMW)
     m_max = MmaxSnII;
     }
   
-  if (m_min > MmaxSnII) //There are no CCSN in this snapshot!
+  if (m_min > MmaxSnII) // There are no CCSN in this snapshot!
     return 0.0;
   
-  else if (m_max < MminSnII) //There are no CCSN in this snapshot!
-    return 0.0; //Maybe put -1 or a break because this condition should stop your while loop!
+  else if (m_max < MminSnII) // There are no CCSN in this snapshot!
+    return 0.0; // Maybe put -1 or a break because this condition should stop your while loop!
     
   else {
     if (m_max > MmaxSnII) // Firstly, you are only interested in stars in the CCSN mass range
@@ -506,7 +506,6 @@ double CCSN_PopIII_Yield(int i_burst, int curr_snap, int yield_type) //0 = Tot, 
   double time_unit = run_globals.units.UnitTime_in_Megayears / run_globals.params.Hubble_h * 1e6; //You need result in yrs
   double m_max;
   
-  //double TotalMassSN = run_globals.MassPISN + run_globals.MassSNII;
   double TotalMassSN = run_globals.MassSNII;
   
   double DeltaTime = (LTTime[curr_snap - i_burst] - LTTime[curr_snap]) * time_unit;
@@ -552,15 +551,17 @@ double PISN_PopIII_Yield(int yield_type) //Yield_type = 0 -> Recycling, 1 -> Met
   //Remember that PISN feedback is always contemporaneous and they leave no remnants!
   double MassPISN = run_globals.MassPISN;
   double MassSNII = run_globals.MassSNII;
-  //double PISN_MassFraction = MassPISN / (MassSNII + MassPISN);
-  double PISN_MassFraction = MassPISN / MassPISN; // LINE ABOVE IS PROBABLY A MISTAKE!
+  double PISN_MassFraction = MassPISN / MassPISN; 
   if (yield_type == 0) 
     return PISN_MassFraction; 
   if (yield_type == 1)
     return PISN_MassFraction / 2.0;      
 }
 
-double NLBias(double Dist_Radius, double Halo_Mass, double redshift) //Fitting function written to match the results of Iliev+03 and Dijkstra+08. Input in internal units.
+double NLBias(double Dist_Radius, double Halo_Mass, double redshift) 
+// Fitting function written to match the results of Iliev+03 and Dijkstra+08. 
+// Input in internal units. We don't use this in the small box where we have a grid resolution of about 200ckpc
+// We want to use it for smaller grid resolution (about 1Mpc)
 {
   double Alpha_ind = run_globals.params.physics.AlphaCluster;
   double Beta_ind = run_globals.params.physics.BetaCluster;

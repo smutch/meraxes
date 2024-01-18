@@ -54,7 +54,7 @@ double calc_resample_factor(int n_cell[3])
 }
 
 #if USE_MINI_HALOS
-void smooth_Densitygrid_real(int snapshot) //Need this to put the overdensity in the metal grid (added by Manu, we are working in real space)
+void smooth_Densitygrid_real(int snapshot) // Need this to put the overdensity in the metal grid (added by Manu, we are working in real space)
 {
   mlog("Smoothing the overdensity of the reionization grid into the metal grid...", MLOG_MESG);
   reion_grids_t* reiogrids = &(run_globals.reion_grids);
@@ -108,8 +108,10 @@ void smooth_Densitygrid_real(int snapshot) //Need this to put the overdensity in
   for (int ii = 0; ii < slab_n_real_metals; ii++) { 
     metalgrids->mass_IGM[ii] /= (resample_factorReal * resample_factorReal * resample_factorReal); // Average
     metalgrids->mass_IGM[ii] += 1.0; // overdensity is 1 + deltax
+    
     //To compute the mass we need to multiply by total baryon content 
     metalgrids->mass_IGM[ii] *= run_globals.rhocrit[snapshot] * run_globals.params.OmegaM * run_globals.params.BaryonFrac * pow((pixel_length_metals / (1.0 + run_globals.ZZ[snapshot])), 3.0);
+    
     //Add the contribution coming from galaxies (+ Ejected - Hot - Cold)
     metalgrids->mass_IGM[ii] += metalgrids->mass_gas[ii];
     }

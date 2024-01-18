@@ -457,7 +457,7 @@ void init_magnitudes(void)
 #if USE_MINI_HALOS
     int IMF_Type = run_globals.params.physics.PopIII_IMF;
     if (IMF_Type == 1)
-      strcat(fnameIII, "/Sal500_001.hdf5"); // Expand here once you have more IMFs
+      strcat(fnameIII, "/Sal500_001.hdf5"); 
     else if (IMF_Type == 2)
       strcat(fnameIII, "/Sal500_050.hdf5");
     else if (IMF_Type == 3)

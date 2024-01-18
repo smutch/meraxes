@@ -18,7 +18,7 @@
  * Written by Bradley Greig.
  */
 
-void ComputeBrightnessTemperatureBox(int snapshot) // Added the computation of 21cm Tb without Pop III (useful to better highlight the contribution of Pop III stars)
+void ComputeBrightnessTemperatureBox(int snapshot) // Added the computation of 21cm Tb without Pop. III (useful to better highlight the contribution of Pop III stars)
 {
 
   int ii, jj, kk, i_real, i_padded, iii;
