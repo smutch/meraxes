@@ -16,20 +16,38 @@
           enableMpi = true;
           precision = "single";
         };
+        compileInputs = with pkgs; [
+            openmpi
+            gsl
+            hdf5-mpi
+            fftw-single-mpi
+        ];
       in
       with pkgs;
       {
         devShell = mkShell {
           buildInputs = [
             cmake
-            openmpi
-            gsl
-            hdf5-mpi
             fftw-single  # <- required?
-            fftw-single-mpi
             just
-          ];
+          ] ++ compileInputs;
+
+          clangdConf = pkgs.writeText ".clangd" (
+            ''
+            CompileFlags:
+              Add: 
+            '' + (
+              builtins.concatStringsSep "\n" (
+                map ( x: "    --include-directory=\"" + ( lib.makeSearchPathOutput "dev" "include" [x] ) ) compileInputs
+              )
+            )
+          );
+
+          shellHook = ''
+            cp $clangdConf .clangd
+            '';
         };
+
       }
    );
 }

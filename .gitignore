@@ -50,3 +50,4 @@ build
 /.cache/
 /.direnv/
 /.dmypy.json
+/.clangd

@@ -126,26 +126,28 @@ typedef struct physics_params_t
   double BlackHoleMassLimitReion;
   double ReionTcool;
   double Y_He;
-  
-  //Pop III IMF parameters
+
+  // Pop III IMF parameters
   double MminIMF;
   double MmaxIMF;
   double AlphaIMF;
-  double McharIMF; //for LogNorm
+  double McharIMF; // for LogNorm
   double SigmaIMF;
   int PopIII_IMF;
   int PopIIIAgePrescription;
-  
-  // Parameters for metallicity evolution. These include the parameters for the fitting function of clustering and the critical metallicity
+
+  // Parameters for metallicity evolution. These include the parameters for the fitting function of clustering and the
+  // critical metallicity
   double AlphaCluster;
   double BetaCluster;
   double GammaCluster;
   double NormCluster;
-  
+
   double ZCrit;
 
   // Parameters to describe the X-ray properties of the sources
-  // Keeping the QSO and Galaxy components separate for now (might be combined in the end). Adding also duplication for Pop III for some of those
+  // Keeping the QSO and Galaxy components separate for now (might be combined in the end). Adding also duplication for
+  // Pop III for some of those
   double LXrayGal;
   double NuXrayGalThreshold;
   double SpecIndexXrayGal;
@@ -342,33 +344,32 @@ typedef struct hdf5_output_t
 } hdf5_output_t;
 
 #if USE_MINI_HALOS
-typedef struct metal_grids_t //New stuff for MetalEvo, probably you will need to add new stuff
+typedef struct metal_grids_t // New stuff for MetalEvo, probably you will need to add new stuff
 {
   ptrdiff_t* slab_nix_metals;
   ptrdiff_t* slab_ix_start_metals;
 
   float* buffer_metals;
-  
+
   struct gal_to_slab_t* galaxy_to_slab_map_metals;
 
-  double volume_ave_ZIGM; //Is it necessary? Maybe this one could be used as a log message
-  double volume_ave_mass_metals; //Is it necessary?
+  double volume_ave_ZIGM;        // Is it necessary? Maybe this one could be used as a log message
+  double volume_ave_mass_metals; // Is it necessary?
 
-  int buffer_size_metals; 
-  
-  int*   N_bubbles;
+  int buffer_size_metals;
+
+  int* N_bubbles;
   float* mass_IGM; // It's the total! Computed from the overdensity and you sum the galaxy net contribution (mass_gas)
   float* mass_metals;
-  float* mass_gas; //The one coming from galaxies (Ejected - Hot - Cold)
+  float* mass_gas; // The one coming from galaxies (Ejected - Hot - Cold)
   float* Zigm_box;
   float* Probability_metals;
   float* R_ave; // Average radius in the bubble
   float* R_max; // Max radius in the bubble
-   
-  
-} metal_grids_t; 
+
+} metal_grids_t;
 #endif
-  
+
 typedef struct reion_grids_t
 {
   ptrdiff_t* slab_nix;
@@ -399,8 +400,8 @@ typedef struct reion_grids_t
   fftwf_plan weighted_sfr_forward_plan;
   fftwf_plan sfr_filtered_reverse_plan;
   fftwf_plan weighted_sfr_filtered_reverse_plan;
-  
-#if USE_MINI_HALOS  
+
+#if USE_MINI_HALOS
   float* starsIII;
   fftwf_complex* starsIII_unfiltered;
   fftwf_complex* starsIII_filtered;
@@ -424,9 +425,9 @@ typedef struct reion_grids_t
   float* J_21_at_ionization;
   float* J_21;
   float* Mvir_crit;
-#if USE_MINI_HALOS 
+#if USE_MINI_HALOS
   float* Mvir_crit_MC;
-#endif 
+#endif
   float* r_bubble;
 
   // Grids necessary for the IGM spin temperature
@@ -440,15 +441,15 @@ typedef struct reion_grids_t
   float* Tk_box;
   float* Tk_box_prev;
   float* TS_box;
-  
-#if USE_MINI_HALOS  
+
+#if USE_MINI_HALOS
   float* Tk_boxII;
   float* Tk_box_prevII;
   float* TS_boxII;
 #endif
 
   double* SMOOTHED_SFR_GAL;
-#if USE_MINI_HALOS 
+#if USE_MINI_HALOS
   double* SMOOTHED_SFR_III;
 #endif
   double* SMOOTHED_SFR_QSO;
@@ -492,7 +493,7 @@ typedef struct reion_grids_t
   float* PS_data;
   float* PS_error;
 
-#if USE_MINI_HALOS  
+#if USE_MINI_HALOS
   float* PSII_data;
   float* PSII_error;
 #endif
@@ -511,7 +512,7 @@ typedef struct reion_grids_t
   double volume_ave_TK;
   double volume_ave_xe;
   double volume_ave_Tb;
-#if USE_MINI_HALOS 
+#if USE_MINI_HALOS
   double volume_ave_J_alphaII;
   double volume_ave_J_LW;
   double volume_ave_J_LWII;
@@ -531,7 +532,7 @@ typedef struct galaxy_t
 {
   double NewStars[N_HISTORY_SNAPS];
 #if USE_MINI_HALOS
-  double NewStars_II[N_HISTORY_SNAPS]; //New
+  double NewStars_II[N_HISTORY_SNAPS]; // New
   double NewStars_III[N_HISTORY_SNAPS];
 #endif
   double NewMetals[N_HISTORY_SNAPS];
@@ -590,36 +591,38 @@ typedef struct galaxy_t
   double BlackHoleAccretedHotMass;
   double BlackHoleAccretedColdMass;
   double BlackHoleAccretingColdMass;
-  
-  int Galaxy_Population; // You need it also if you are not disentangling PopIII/PopII (when Mini_halos is off, this is = 2)
+
+  int Galaxy_Population; // You need it also if you are not disentangling PopIII/PopII (when Mini_halos is off, this is
+                         // = 2)
 #if USE_MINI_HALOS
-  //Differentiation Pop III / Pop II
+  // Differentiation Pop III / Pop II
   double StellarMass_II;
   double StellarMass_III;
   double GrossStellarMassIII;
   double FescIII;
   double FescIIIWeightedGSM;
 
-  double Remnant_Mass; //Coming from Pop III with M between 40 and 140 and larger than 260 Msol and remnant of CCSN [8,40]Msun. Atm those are silent.
-  
-  //Metallicity stuff 
-  double RmetalBubble; //New for MetalEvo
+  double Remnant_Mass; // Coming from Pop III with M between 40 and 140 and larger than 260 Msol and remnant of CCSN
+                       // [8,40]Msun. Atm those are silent.
+
+  // Metallicity stuff
+  double RmetalBubble; // New for MetalEvo
   double PrefactorBubble;
   double TimeBubble;
-  double Metal_Probability; // Probability to be polluted by other metal bubbles
-  double GalMetal_Probability; //Random number between 0 and 1 associated to the galaxy.
+  double Metal_Probability;    // Probability to be polluted by other metal bubbles
+  double GalMetal_Probability; // Random number between 0 and 1 associated to the galaxy.
   double Metals_IGM;
   double Gas_IGM;
   double Metallicity_IGM; //
-  double MaxBubble; // Need this for Boost probability
-  double AveBubble; // Same (you will likely use only one of the two). You could actually save only the boost factor
+  double MaxBubble;       // Need this for Boost probability
+  double AveBubble;   // Same (you will likely use only one of the two). You could actually save only the boost factor
   int Flag_ExtMetEnr; // 0 if not enriched from a bubble, 1 yes.
-  
-  double Prefactor[N_HISTORY_SNAPS]; //here you store the prefactors of the metal bubbles
-  double Times[N_HISTORY_SNAPS]; // Time at which the SN explode!
-  double Radii[N_HISTORY_SNAPS]; 
+
+  double Prefactor[N_HISTORY_SNAPS]; // here you store the prefactors of the metal bubbles
+  double Times[N_HISTORY_SNAPS];     // Time at which the SN explode!
+  double Radii[N_HISTORY_SNAPS];
 #endif
-  
+
   // baryonic hostories
   double mwmsa_num;
   double mwmsa_denom;
@@ -786,8 +789,8 @@ typedef struct run_globals_t
   double MassSNII;
   double MassBHs;
 
-  float *Mass_Values;
-  float *Time_Values;
+  float* Mass_Values;
+  float* Time_Values;
 
 #ifdef CALC_MAGS
   struct mag_params_t mag_params;
