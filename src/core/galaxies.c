@@ -67,7 +67,7 @@ galaxy_t* new_galaxy(int snapshot, unsigned long halo_ID)
   gal->MvirCrit_MC = 0.0;
   gal->MergerBurstMass = 0.0;
   gal->MergerStartRadius = 0.0;
-  
+
 #if USE_MINI_HALOS
   gal->StellarMass_II = 0.;
   gal->StellarMass_III = 0.;
@@ -78,7 +78,7 @@ galaxy_t* new_galaxy(int snapshot, unsigned long halo_ID)
   gal->Metal_Probability = 0.0;
   gal->Metals_IGM = 0.0;
   gal->Gas_IGM = 0.0;
-  gal->Metallicity_IGM = -50.0; 
+  gal->Metallicity_IGM = -50.0;
   gal->RmetalBubble = 0.0;
   gal->PrefactorBubble = 0.0;
   gal->TimeBubble = 0.0;
@@ -86,11 +86,13 @@ galaxy_t* new_galaxy(int snapshot, unsigned long halo_ID)
   gal->MaxBubble = 0.;
   gal->Flag_ExtMetEnr = 0;
   gal->GalMetal_Probability = gsl_rng_uniform(run_globals.random_generator);
-  
-  if (run_globals.params.Flag_IncludeMetalEvo == false) // If you don't have the external metal enrichment all galaxies will start as pristine (Pop.III forming)
-    gal-> Galaxy_Population == 3;
-#else //If you are not computing PopIII , all the galaxies are PopII. Again you need to initialize the variable otherwise star_formation.c will fail!
-  gal->Galaxy_Population == 2;
+
+  if (run_globals.params.Flag_IncludeMetalEvo ==
+      false) // If you don't have the external metal enrichment all galaxies will start as pristine (Pop.III forming)
+    gal->Galaxy_Population = 3;
+#else // If you are not computing PopIII , all the galaxies are PopII. Again you need to initialize the variable
+      // otherwise star_formation.c will fail!
+  gal->Galaxy_Population = 2;
 #endif
 
   for (int ii = 0; ii < 3; ii++) {
@@ -98,7 +100,7 @@ galaxy_t* new_galaxy(int snapshot, unsigned long halo_ID)
     gal->Vel[ii] = (float)-99999.9;
   }
 
-  for (int ii = 0; ii < N_HISTORY_SNAPS; ii++){
+  for (int ii = 0; ii < N_HISTORY_SNAPS; ii++) {
     gal->NewStars[ii] = 0.0;
 #if USE_MINI_HALOS
     gal->NewStars_II[ii] = 0.0;
@@ -183,13 +185,13 @@ void reset_galaxy_properties(galaxy_t* gal, int snapshot)
   }
 
   // roll over the baryonic history arrays
-  for (int ii = N_HISTORY_SNAPS - 1; ii > 0; ii--){
+  for (int ii = N_HISTORY_SNAPS - 1; ii > 0; ii--) {
     gal->NewStars[ii] = gal->NewStars[ii - 1];
 #if USE_MINI_HALOS
     gal->NewStars_II[ii] = gal->NewStars_II[ii - 1];
     gal->NewStars_III[ii] = gal->NewStars_III[ii - 1];
 #endif
-    }
+  }
 
   for (int ii = N_HISTORY_SNAPS - 1; ii > 0; ii--)
     gal->NewMetals[ii] = gal->NewMetals[ii - 1];
