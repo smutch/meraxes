@@ -21,6 +21,7 @@
             gsl
             hdf5-mpi
             fftw-single-mpi
+            criterion
         ];
       in
       with pkgs;
