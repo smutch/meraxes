@@ -5,9 +5,9 @@
 #include "cooling.h"
 #include "core/cooling.h"
 #include "core/misc_tools.h"
+#include "core/virial_properties.h"
 #include "meraxes.h"
 #include "reionization.h"
-#include "core/virial_properties.h"
 
 double gas_cooling(galaxy_t* gal)
 {
@@ -57,11 +57,10 @@ double gas_cooling(galaxy_t* gal)
 
         // interpolate the temperature and metallicity dependant cooling rate (lambda)
         LTEcool = LTE_Mcool(Tvir, nH);
-        loglambdalim =
-          -103.0 + 97.59 * log10Tvir - 48.05 * pow(log10Tvir, 2) + 10.8 * pow(log10Tvir, 3) - 0.9032 * pow(log10Tvir, 4);
+        loglambdalim = -103.0 + 97.59 * log10Tvir - 48.05 * pow(log10Tvir, 2) + 10.8 * pow(log10Tvir, 3) -
+                       0.9032 * pow(log10Tvir, 4);
         lambda = LTEcool / (1 + (LTEcool / pow(10, loglambdalim)));
-      }
-      else {
+      } else {
         halo_type = 0;
         cooling_mass = 0.0;
       }
@@ -75,15 +74,15 @@ double gas_cooling(galaxy_t* gal)
 
     if (halo_type != 0) {
 
-      x = PROTONMASS * BOLTZMANN * Tvir / lambda; // now this has units sec g/cm^3
+      x = PROTONMASS * BOLTZMANN * Tvir / lambda;              // now this has units sec g/cm^3
       x /= (units->UnitDensity_in_cgs * units->UnitTime_in_s); // now in internal units
-      
+
       if (halo_type == 1)
         rho_r_cool = x / t_cool * 0.885; // 0.885 = 3/2 * mu, mu=0.59 for a fully ionized gas
 
-#if USE_MINI_HALOS      
+#if USE_MINI_HALOS
       else if (halo_type == 2)
-        rho_r_cool = x / t_cool * 1.83;  // 1.83 = 3/2 * mu, mu = 1.22 for a fully neutral gas  
+        rho_r_cool = x / t_cool * 1.83; // 1.83 = 3/2 * mu, mu = 1.22 for a fully neutral gas
 #endif
 
       assert(rho_r_cool > 0);

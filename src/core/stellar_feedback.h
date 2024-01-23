@@ -11,8 +11,8 @@
 #define TOTAL_METAL 1
 
 // Pop III stuff (Atm ENOVA_CC and ENOVA_PISN are the same but you could change)
-#define ENOVA_CC 1e51 
-#define ENOVA_PISN 1e51 
+#define ENOVA_CC 1e51
+#define ENOVA_PISN 1e51
 
 #ifdef __cplusplus
 extern "C"

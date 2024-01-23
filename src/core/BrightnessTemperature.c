@@ -18,7 +18,8 @@
  * Written by Bradley Greig.
  */
 
-void ComputeBrightnessTemperatureBox(int snapshot) // Added the computation of 21cm Tb without Pop. III (useful to better highlight the contribution of Pop III stars)
+void ComputeBrightnessTemperatureBox(int snapshot) // Added the computation of 21cm Tb without Pop. III (useful to
+                                                   // better highlight the contribution of Pop III stars)
 {
 
   int ii, jj, kk, i_real, i_padded, iii;
@@ -262,15 +263,16 @@ void ComputeBrightnessTemperatureBox(int snapshot) // Added the computation of 2
 
                 delta_T[i_real] = (float)(1000. * (run_globals.reion_grids.TS_box[i_real] - T_rad) / (1. + redshift));
 #if USE_MINI_HALOS
-                delta_TII[i_real] = (float)(1000. * (run_globals.reion_grids.TS_boxII[i_real] - T_rad) / (1. + redshift));
+                delta_TII[i_real] =
+                  (float)(1000. * (run_globals.reion_grids.TS_boxII[i_real] - T_rad) / (1. + redshift));
 #endif
               } else {
                 delta_T[i_real] = (float)((1. - exp(-delta_T[i_real] / gradient_component)) * 1000. *
                                           (run_globals.reion_grids.TS_box[i_real] - T_rad) / (1. + redshift));
 #if USE_MINI_HALOS
                 delta_TII[i_real] = (float)((1. - exp(-delta_TII[i_real] / gradient_component)) * 1000. *
-                                          (run_globals.reion_grids.TS_boxII[i_real] - T_rad) / (1. + redshift));
-#endif                          
+                                            (run_globals.reion_grids.TS_boxII[i_real] - T_rad) / (1. + redshift));
+#endif
               }
 
             } else {

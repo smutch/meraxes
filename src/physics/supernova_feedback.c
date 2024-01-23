@@ -162,14 +162,13 @@ static inline double calc_sn_reheat_eff(galaxy_t* gal, int snapshot, int flag_po
     SnReheatNorm = params->SnReheatNorm;
     SnReheatLimit = params->SnReheatLimit;
 #if USE_MINI_HALOS
-  }
-  else if (flag_population == 3) {
+  } else if (flag_population == 3) {
     SnReheatRedshiftDep = params->SnReheatRedshiftDep_III;
     SnReheatEff = params->SnReheatEff_III;
     SnReheatScaling = params->SnReheatScaling_III;
     SnReheatNorm = params->SnReheatNorm_III;
     SnReheatLimit = params->SnReheatLimit_III;
-    }
+  }
 #endif
   switch (SnModel) {
     case 1: // Guo et al. 2011 with redshift dependence
@@ -193,9 +192,9 @@ static inline double calc_sn_reheat_eff(galaxy_t* gal, int snapshot, int flag_po
 
 static inline double calc_sn_ejection_eff(galaxy_t* gal, int snapshot, int flag_population)
 {
-  double Vmax = gal->Vmax;    // Vmax is in a unit of km/s
+  double Vmax = gal->Vmax; // Vmax is in a unit of km/s
   double zplus1 = 1. + run_globals.ZZ[snapshot];
-  physics_params_t *params = &run_globals.params.physics;
+  physics_params_t* params = &run_globals.params.physics;
   int SnModel = params->SnModel;
   double SnEjectionRedshiftDep;
   double SnEjectionEff;
@@ -209,26 +208,23 @@ static inline double calc_sn_ejection_eff(galaxy_t* gal, int snapshot, int flag_
     SnEjectionScaling = params->SnEjectionScaling;
     SnEjectionNorm = params->SnEjectionNorm;
 #if USE_MINI_HALOS
-  }
-  else if (flag_population == 3) {
+  } else if (flag_population == 3) {
     SnEjectionRedshiftDep = params->SnEjectionRedshiftDep_III;
     SnEjectionEff = params->SnEjectionEff_III;
     SnEjectionScaling = params->SnEjectionScaling_III;
     SnEjectionNorm = params->SnEjectionNorm_III;
-    }
+  }
 #endif
   switch (SnModel) {
-    case 1:    // Guo et al. 2011 with redshift dependence
-      SnEjectionEff *= pow(zplus1/4., SnEjectionRedshiftDep) \
-                       *(.5 + pow(Vmax/SnEjectionNorm, -SnEjectionScaling));
+    case 1: // Guo et al. 2011 with redshift dependence
+      SnEjectionEff *= pow(zplus1 / 4., SnEjectionRedshiftDep) * (.5 + pow(Vmax / SnEjectionNorm, -SnEjectionScaling));
       break;
     case 2:
       // Use the same value with that is used for the mass loading
       if (Vmax < SnEjectionNorm)
-        SnEjectionScaling = params->SnEjectionScaling2; 
-        SnEjectionEff *= pow(zplus1/4., SnEjectionRedshiftDep) \
-                         *pow(Vmax/SnEjectionNorm, -SnEjectionScaling);
-        break;
+        SnEjectionScaling = params->SnEjectionScaling2;
+      SnEjectionEff *= pow(zplus1 / 4., SnEjectionRedshiftDep) * pow(Vmax / SnEjectionNorm, -SnEjectionScaling);
+      break;
     default:
       mlog_error("Unknonw SnModel!");
       ABORT(EXIT_FAILURE);
@@ -240,7 +236,7 @@ static inline double calc_sn_ejection_eff(galaxy_t* gal, int snapshot, int flag_
     return 1.;
 }
 
-void delayed_supernova_feedback(galaxy_t* gal, int snapshot) 
+void delayed_supernova_feedback(galaxy_t* gal, int snapshot)
 {
   double sn_energy = 0.0;
   double m_reheat = 0.0;
@@ -260,13 +256,13 @@ void delayed_supernova_feedback(galaxy_t* gal, int snapshot)
   double m_stars_II = 0.0;
   double m_stars_III = 0.0;
   double m_remnant = 0.0;
-  
+
 #if USE_MINI_HALOS
   double NumberSNII = run_globals.NumberSNII;
   double MassSNII = run_globals.MassSNII;
   double MassBHs = run_globals.MassBHs;
-  
-  double energy_unit = run_globals.units.UnitEnergy_in_cgs; 
+
+  double energy_unit = run_globals.units.UnitEnergy_in_cgs;
 #endif
   // If we are at snapshot < N_HISTORY_SNAPS-1 then only try to look back to snapshot 0
   int n_bursts = (snapshot >= N_HISTORY_SNAPS) ? N_HISTORY_SNAPS : snapshot;
@@ -287,22 +283,24 @@ void delayed_supernova_feedback(galaxy_t* gal, int snapshot)
     if (m_stars > 1e-10) {
       double metallicity = calc_metallicity(m_stars, gal->NewMetals[i_burst]);
       // Calculate recycled mass and metals by yield tables
-      
+
       m_recycled_II += m_stars_II * get_recycling_fraction(i_burst, metallicity);
 #if USE_MINI_HALOS
-      m_recycled_III += m_stars_III * CCSN_PopIII_Yield(i_burst, snapshot, 0) * MassSNII; // Only CCSN have delayed feedback
+      m_recycled_III +=
+        m_stars_III * CCSN_PopIII_Yield(i_burst, snapshot, 0) * MassSNII; // Only CCSN have delayed feedback
 #endif
 
       new_metals += m_stars_II * get_metal_yield(i_burst, metallicity);
 #if USE_MINI_HALOS
       new_metals += m_stars_III * CCSN_PopIII_Yield(i_burst, snapshot, 1) * MassSNII;
-      m_remnant += m_stars_III * CCSN_PopIII_Yield(i_burst, snapshot, 2) * MassSNII; // Remnants from Pop. III 
+      m_remnant += m_stars_III * CCSN_PopIII_Yield(i_burst, snapshot, 2) * MassSNII; // Remnants from Pop. III
 #endif
       // Calculate SNII energy
-      
-      sn_energy_II += get_SN_energy(i_burst, metallicity) * m_stars_II; 
+
+      sn_energy_II += get_SN_energy(i_burst, metallicity) * m_stars_II;
 #if USE_MINI_HALOS
-      sn_energy_III += get_SN_energy_PopIII(i_burst, snapshot, 0) * m_stars_III; // This is DeltaM reheat (eq.16 Mutch+16) * ENOVA
+      sn_energy_III +=
+        get_SN_energy_PopIII(i_burst, snapshot, 0) * m_stars_III; // This is DeltaM reheat (eq.16 Mutch+16) * ENOVA
 #endif
     }
   }
@@ -310,15 +308,16 @@ void delayed_supernova_feedback(galaxy_t* gal, int snapshot)
   m_reheat_II = calc_sn_reheat_eff(gal, snapshot, 2) * sn_energy_II / get_total_SN_energy();
   sn_energy_II *= calc_sn_ejection_eff(gal, snapshot, 2);
 #if USE_MINI_HALOS
-  m_reheat_III = calc_sn_reheat_eff(gal, snapshot, 3) * sn_energy_III / ENOVA_CC; 
-  sn_energy_III *= (calc_sn_ejection_eff(gal, snapshot, 3) * NumberSNII * 1e10 / run_globals.params.Hubble_h / energy_unit); 
-  
-  // Maybe for the SN ejection efficiency is more important to distinguish between PISN/CC rather than Pop.III/II 
+  m_reheat_III = calc_sn_reheat_eff(gal, snapshot, 3) * sn_energy_III / ENOVA_CC;
+  sn_energy_III *=
+    (calc_sn_ejection_eff(gal, snapshot, 3) * NumberSNII * 1e10 / run_globals.params.Hubble_h / energy_unit);
+
+  // Maybe for the SN ejection efficiency is more important to distinguish between PISN/CC rather than Pop.III/II
 #endif
   m_recycled = m_recycled_II + m_recycled_III;
   m_reheat = m_reheat_II + m_reheat_III;
-  sn_energy = sn_energy_II + sn_energy_III; //Convert from erg to internal units! 10^10Msol/h * (km/s)^2
-  
+  sn_energy = sn_energy_II + sn_energy_III; // Convert from erg to internal units! 10^10Msol/h * (km/s)^2
+
   // We can only reheat as much gas as we have available.  Let's inforce this
   // now, to ensure that the maximal amount of available energy is used to
   // eject gas from the system.
@@ -335,7 +334,7 @@ void delayed_supernova_feedback(galaxy_t* gal, int snapshot)
   assert(m_recycled_II >= 0);
   assert(m_remnant >= 0);
 #endif
-  
+
   // how much mass is ejected due to this star formation episode?
   if (!gal->ghost_flag)
     fof_Vvir = gal->Halo->FOFGroup->Vvir;
@@ -360,9 +359,10 @@ void delayed_supernova_feedback(galaxy_t* gal, int snapshot)
   assert(m_reheat_II >= 0);
   assert(m_eject_II >= 0);
 #endif
-  
+
   // update the baryonic reservoirs
-  update_reservoirs_from_sn_feedback(gal, m_reheat, m_eject, m_recycled, m_recycled_III, m_recycled_II, m_remnant, new_metals);
+  update_reservoirs_from_sn_feedback(
+    gal, m_reheat, m_eject, m_recycled, m_recycled_III, m_recycled_II, m_remnant, new_metals);
 }
 
 void contemporaneous_supernova_feedback(galaxy_t* gal,
@@ -382,7 +382,7 @@ void contemporaneous_supernova_feedback(galaxy_t* gal,
   double MassSNII = run_globals.MassSNII;
   double MassBHs = run_globals.MassBHs;
 #endif
-  
+
   // init (just in case!)
   *m_reheat = *m_recycled = *new_metals = *m_eject = *m_remnant = 0.0;
 
@@ -400,13 +400,12 @@ void contemporaneous_supernova_feedback(galaxy_t* gal,
     // Total yield includes H and He and all other elements
     // Total metal yield includes all elements except H and He
 #if USE_MINI_HALOS
-  if (gal->Galaxy_Population == 2){
+    if (gal->Galaxy_Population == 2) {
 #endif
       *m_recycled = *m_stars * get_recycling_fraction(0, metallicity);
       *new_metals = *m_stars * get_metal_yield(0, metallicity);
 #if USE_MINI_HALOS
-      }
-    else if (gal->Galaxy_Population == 3){
+    } else if (gal->Galaxy_Population == 3) {
       *m_recycled = *m_stars * (CCSN_PopIII_Yield(0, snapshot, 0)) * MassSNII;
       *new_metals = *m_stars * CCSN_PopIII_Yield(0, snapshot, 1) * MassSNII;
       *m_remnant = *m_stars * (MassBHs + CCSN_PopIII_Yield(0, snapshot, 2) * MassSNII);
@@ -414,40 +413,39 @@ void contemporaneous_supernova_feedback(galaxy_t* gal,
         *m_recycled += *m_stars * PISN_PopIII_Yield(0) * MassPISN;
         if (*m_stars * PISN_PopIII_Yield(1) * MassPISN - (20.0 / 1e10 * run_globals.params.Hubble_h) > 0.0)
           *new_metals += *m_stars * PISN_PopIII_Yield(1) * MassPISN - (20.0 / 1e10 * run_globals.params.Hubble_h);
-        }
       }
+    }
 #endif
   } else {
     // Recycling fraction and metals yield are input parameters when using IRA
 #if USE_MINI_HALOS
-      if (gal->Galaxy_Population == 2){
+    if (gal->Galaxy_Population == 2) {
 #endif
       *m_recycled = *m_stars * run_globals.params.physics.SfRecycleFraction;
       *new_metals = *m_stars * run_globals.params.physics.Yield;
 #if USE_MINI_HALOS
-      }
-      else if (gal->Galaxy_Population == 3){
-        *m_recycled = *m_stars * run_globals.params.physics.SfRecycleFraction_III;
-        *new_metals = *m_stars * run_globals.params.physics.Yield_III;
-      }
+    } else if (gal->Galaxy_Population == 3) {
+      *m_recycled = *m_stars * run_globals.params.physics.SfRecycleFraction_III;
+      *new_metals = *m_stars * run_globals.params.physics.Yield_III;
+    }
 #endif
   }
-  
+
 #if USE_MINI_HALOS
-  if (gal->Galaxy_Population == 2){
+  if (gal->Galaxy_Population == 2) {
 #endif
-  // calculate the SNII energy and total reheated mass
+    // calculate the SNII energy and total reheated mass
     sn_energy = *m_stars * get_SN_energy(0, metallicity);
     *m_reheat = calc_sn_reheat_eff(gal, snapshot, 2) * sn_energy / get_total_SN_energy();
     sn_energy *= calc_sn_ejection_eff(gal, snapshot, 2);
 #if USE_MINI_HALOS
-  }
-  else if (gal->Galaxy_Population == 3){ 
+  } else if (gal->Galaxy_Population == 3) {
     sn_energy = (*m_stars) * (get_SN_energy_PopIII(0, snapshot, 0) + get_SN_energy_PopIII(0, snapshot, 1)); // erg
     sn_energy /= energy_unit; // Convert this because you need in internal units it for m_ejected
-    *m_reheat = calc_sn_reheat_eff(gal, snapshot, 3) * (*m_stars) * (get_SN_energy_PopIII(0, snapshot, 1) / ENOVA_PISN + get_SN_energy_PopIII(0, snapshot, 0) / ENOVA_CC );
-    sn_energy *= calc_sn_ejection_eff(gal, snapshot, 3);  
-    }
+    *m_reheat = calc_sn_reheat_eff(gal, snapshot, 3) * (*m_stars) *
+                (get_SN_energy_PopIII(0, snapshot, 1) / ENOVA_PISN + get_SN_energy_PopIII(0, snapshot, 0) / ENOVA_CC);
+    sn_energy *= calc_sn_ejection_eff(gal, snapshot, 3);
+  }
 #endif
 
   // We can only reheat as much gas as we have available.  Let's inforce this
@@ -455,12 +453,12 @@ void contemporaneous_supernova_feedback(galaxy_t* gal,
   // eject gas from the system.
   if (*m_reheat > gal->ColdGas)
     *m_reheat = gal->ColdGas;
-    
+
   // attenuate the star formation if necessary, so that we are being consistent
   // if (*m_reheat + *m_stars - *m_recycled > gal->ColdGas)
   if (*m_reheat + *m_stars > gal->ColdGas) {
     double frac = gal->ColdGas / (*m_reheat + *m_stars);
-    
+
     *m_reheat *= frac;
     *m_stars *= frac;
     *m_recycled *= frac;
@@ -474,41 +472,45 @@ void contemporaneous_supernova_feedback(galaxy_t* gal,
 
   // how much mass is ejected due to this star formation episode? (ala Croton+ 2006)
   *m_eject = calc_ejected_mass(m_reheat, sn_energy, gal->Vvir, gal->Halo->FOFGroup->Vvir);
-  
+
   assert(*m_reheat >= 0);
   assert(*m_eject >= 0);
-  
 }
 
 #if USE_MINI_HALOS
-void calc_metal_bubble(galaxy_t* gal, int snapshot) // result in internal units (Mpc/h) This new function assumes that a bubble will overtake a previous one in no more than 17 snapshots!
+void calc_metal_bubble(galaxy_t* gal, int snapshot) // result in internal units (Mpc/h) This new function assumes that a
+                                                    // bubble will overtake a previous one in no more than 17 snapshots!
 {
   int n_bursts = (snapshot >= N_HISTORY_SNAPS) ? N_HISTORY_SNAPS : snapshot;
-  
+
   double UnitMass_in_g = run_globals.units.UnitMass_in_g;
   double UnitLength_in_cm = run_globals.units.UnitLength_in_cm;
   double energy_unit = run_globals.units.UnitEnergy_in_cgs;
   double time_unit = run_globals.units.UnitTime_in_s;
-  
+
   double sn_energy = 0.0;
-  
+
   double gas_density; // Of the halo, we need this when the metal bubble is within the virial radius
   double IGM_density; // Once the bubble escapes the virial radius of the galaxy we need to use this one
-  
+
   int MetalGridDim = run_globals.params.MetalGridDim;
   double box_size = run_globals.params.BoxSize;
   double pixel_length_metals = box_size / (double)MetalGridDim; // (cMpc/h)
-  
-  gas_density = (gal->ColdGas + gal->HotGas) * UnitMass_in_g / PROTONMASS / (4.0 * M_PI / 3.0 * pow(gal->Rvir * UnitLength_in_cm, 3.)); // cm^-3
-  IGM_density = gal->Gas_IGM * UnitMass_in_g / PROTONMASS * pow(pixel_length_metals / (1.0 + run_globals.ZZ[snapshot]) * UnitLength_in_cm, -3.);
+
+  gas_density = (gal->ColdGas + gal->HotGas) * UnitMass_in_g / PROTONMASS /
+                (4.0 * M_PI / 3.0 * pow(gal->Rvir * UnitLength_in_cm, 3.)); // cm^-3
+  IGM_density = gal->Gas_IGM * UnitMass_in_g / PROTONMASS *
+                pow(pixel_length_metals / (1.0 + run_globals.ZZ[snapshot]) * UnitLength_in_cm, -3.);
   // First evolve the existing RmetalBubble (you do this also for the ghost galaxies).
-  
+
   if (gal->RmetalBubble > 0.) {
-    if ((gal->RmetalBubble <= gal->Rvir) && (gas_density >= IGM_density)) 
-      gal->RmetalBubble = gal->PrefactorBubble * pow(gas_density, -0.2) * pow((gal->TimeBubble - run_globals.LTTime[snapshot] * time_unit), 0.4);
+    if ((gal->RmetalBubble <= gal->Rvir) && (gas_density >= IGM_density))
+      gal->RmetalBubble = gal->PrefactorBubble * pow(gas_density, -0.2) *
+                          pow((gal->TimeBubble - run_globals.LTTime[snapshot] * time_unit), 0.4);
     else
-      gal->RmetalBubble = gal->PrefactorBubble * pow(IGM_density, -0.2) * pow((gal->TimeBubble - run_globals.LTTime[snapshot] * time_unit), 0.4);
-  }  
+      gal->RmetalBubble = gal->PrefactorBubble * pow(IGM_density, -0.2) *
+                          pow((gal->TimeBubble - run_globals.LTTime[snapshot] * time_unit), 0.4);
+  }
   if (gal->RmetalBubble > 10.) // Add this to check that there are no huge and unphysical bubbles.
     mlog("StrangeBubble = %f, Prefactor = %f", MLOG_MESG, gal->RmetalBubble, gal->PrefactorBubble);
 
@@ -517,32 +519,36 @@ void calc_metal_bubble(galaxy_t* gal, int snapshot) // result in internal units 
       double m_stars_II = gal->NewStars_II[i_burst];
       double m_stars_III = gal->NewStars_III[i_burst];
       double m_stars = m_stars_II + m_stars_III;
-    
+
       // Compute the SN energy that drives the metal bubble.
       if (m_stars_II > 1e-10) {
         double metallicity = calc_metallicity(m_stars, gal->NewMetals[i_burst]);
-        sn_energy += m_stars_II * get_SN_energy(0, metallicity) * energy_unit * calc_sn_ejection_eff(gal, snapshot, 2); 
-        }
-      else if (m_stars_III > 1e-10) {
+        sn_energy += m_stars_II * get_SN_energy(0, metallicity) * energy_unit * calc_sn_ejection_eff(gal, snapshot, 2);
+      } else if (m_stars_III > 1e-10) {
         if (i_burst == 0) // You have both CC and PISN
-          sn_energy += (get_SN_energy_PopIII(i_burst, snapshot, 0) + get_SN_energy_PopIII(i_burst, snapshot, 1))  * m_stars_III * calc_sn_ejection_eff(gal, snapshot, 3);
+          sn_energy += (get_SN_energy_PopIII(i_burst, snapshot, 0) + get_SN_energy_PopIII(i_burst, snapshot, 1)) *
+                       m_stars_III * calc_sn_ejection_eff(gal, snapshot, 3);
         else
-          sn_energy += get_SN_energy_PopIII(i_burst, snapshot, 0) * m_stars_III * calc_sn_ejection_eff(gal, snapshot, 3);
-        }
+          sn_energy +=
+            get_SN_energy_PopIII(i_burst, snapshot, 0) * m_stars_III * calc_sn_ejection_eff(gal, snapshot, 3);
+      }
       if (i_burst != 0) {
         gal->Prefactor[n_bursts - i_burst] = gal->Prefactor[n_bursts - i_burst - 1];
         gal->Times[n_bursts - i_burst] = gal->Times[n_bursts - i_burst - 1];
         if (gal->Prefactor[n_bursts - i_burst] > 0.0) {
           if ((gal->Radii[n_bursts - i_burst] >= gal->Rvir) || (IGM_density >= gas_density))
-            gal->Radii[n_bursts - i_burst] = gal->Prefactor[n_bursts - i_burst] * pow(IGM_density, -0.2) * pow((gal->Times[n_bursts - i_burst] - run_globals.LTTime[snapshot] * time_unit), 0.4);
+            gal->Radii[n_bursts - i_burst] =
+              gal->Prefactor[n_bursts - i_burst] * pow(IGM_density, -0.2) *
+              pow((gal->Times[n_bursts - i_burst] - run_globals.LTTime[snapshot] * time_unit), 0.4);
           else
-            gal->Radii[n_bursts - i_burst] = gal->Prefactor[n_bursts - i_burst] * pow(gas_density, -0.2) * pow((gal->Times[n_bursts - i_burst] - run_globals.LTTime[snapshot] * time_unit), 0.4);
-        }
-        else
+            gal->Radii[n_bursts - i_burst] =
+              gal->Prefactor[n_bursts - i_burst] * pow(gas_density, -0.2) *
+              pow((gal->Times[n_bursts - i_burst] - run_globals.LTTime[snapshot] * time_unit), 0.4);
+        } else
           gal->Radii[n_bursts - i_burst] = 0.0;
-        if (gal->Radii[n_bursts - i_burst] > gal->RmetalBubble) { 
-          //Look if one of the new bubbles is bigger than RmetalBubble 
-          //and in this case this will be the new metal bubble associated to the galaxy.
+        if (gal->Radii[n_bursts - i_burst] > gal->RmetalBubble) {
+          // Look if one of the new bubbles is bigger than RmetalBubble
+          // and in this case this will be the new metal bubble associated to the galaxy.
           gal->RmetalBubble = gal->Radii[n_bursts - i_burst];
           gal->PrefactorBubble = gal->Prefactor[n_bursts - i_burst];
           gal->TimeBubble = gal->Times[n_bursts - i_burst];
@@ -551,10 +557,9 @@ void calc_metal_bubble(galaxy_t* gal, int snapshot) // result in internal units 
     }
   }
   if (!gal->ghost_flag) {
-    gal->Prefactor[0] = pow(sn_energy / PROTONMASS, 0.2) / UnitLength_in_cm; //Mpc s^-0.4
-    gal->Times[0] = run_globals.LTTime[snapshot] * time_unit; // s 
-  }
-  else {
+    gal->Prefactor[0] = pow(sn_energy / PROTONMASS, 0.2) / UnitLength_in_cm; // Mpc s^-0.4
+    gal->Times[0] = run_globals.LTTime[snapshot] * time_unit;                // s
+  } else {
     gal->Prefactor[0] = 0.0;
     gal->Times[0] = 0.0;
   }

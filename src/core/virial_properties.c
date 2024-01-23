@@ -116,23 +116,24 @@ double calculate_spin_param(halo_t* halo)
   return angmom_mag / (1.414213562 * halo->Vvir * halo->Rvir);
 }
 
-double Vvir_to_Tvir(double Vvir, int halo_type){
-    // V in internal units, km/s. T in Kelvin
-    double Tvir;
-    switch (halo_type){
-      case 2:
-        Tvir = 73.8 * Vvir * Vvir;
-        if (Tvir > 1e4)
-            Tvir = 1e4;
-        break;
-      case 1:
-        Tvir = 35.9 * Vvir * Vvir;
-        break;
-      default:
-        Tvir = 0;
-        break;
-    }
-    return Tvir;
+double Vvir_to_Tvir(double Vvir, int halo_type)
+{
+  // V in internal units, km/s. T in Kelvin
+  double Tvir;
+  switch (halo_type) {
+    case 2:
+      Tvir = 73.8 * Vvir * Vvir;
+      if (Tvir > 1e4)
+        Tvir = 1e4;
+      break;
+    case 1:
+      Tvir = 35.9 * Vvir * Vvir;
+      break;
+    default:
+      Tvir = 0;
+      break;
+  }
+  return Tvir;
 }
 
 double Vvir_to_Mvir(double Vvir, double redshift, int halo_type)
