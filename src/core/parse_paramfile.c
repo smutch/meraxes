@@ -4,6 +4,8 @@
 #include <ctype.h>
 #include <meraxes.h>
 #include <regex.h>
+#include <stdlib.h>
+#include <string.h>
 
 static int compile_regex(regex_t* reg, const char* regex_text)
 {

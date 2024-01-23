@@ -4,6 +4,7 @@
 #include <fftw3-mpi.h>
 #include <hdf5_hl.h>
 #include <math.h>
+#include <string.h>
 #include <sys/stat.h>
 
 #include "ComputeTs.h"
@@ -28,14 +29,14 @@ void update_galaxy_fesc_vals(galaxy_t* gal, double new_stars, int snapshot)
 
   // redshift
   if ((params->EscapeFracDependency > 0) && (params->EscapeFracDependency <= 6))
-    if (params->EscapeFracRedshiftScaling != 0.0){
+    if (params->EscapeFracRedshiftScaling != 0.0) {
       fesc *=
         pow((1.0 + run_globals.ZZ[snapshot]) / params->EscapeFracRedshiftOffset, params->EscapeFracRedshiftScaling);
 #if USE_MINI_HALOS
       fescIII *=
-        pow((1.0 + run_globals.ZZ[snapshot]) / params->EscapeFracRedshiftOffset, params->EscapeFracRedshiftScaling); 
-#endif 
-      }
+        pow((1.0 + run_globals.ZZ[snapshot]) / params->EscapeFracRedshiftOffset, params->EscapeFracRedshiftScaling);
+#endif
+    }
 
   // galaxy properties
   switch (params->EscapeFracDependency) {
@@ -43,22 +44,21 @@ void update_galaxy_fesc_vals(galaxy_t* gal, double new_stars, int snapshot)
     case 1:
       break;
     case 2: // stellar mass (Msun)
-      if (gal->StellarMass > 0.0){
+      if (gal->StellarMass > 0.0) {
         fesc *= pow((gal->StellarMass / run_globals.params.Hubble_h), params->EscapeFracPropScaling);
 #if USE_MINI_HALOS
         fescIII *= pow((gal->StellarMass / run_globals.params.Hubble_h), params->EscapeFracPropScaling);
 #endif
-        }
-      else { 
+      } else {
         fesc = 1.0;
 #if USE_MINI_HALOS
         fescIII = 1.0;
 #endif
-        }
-        
+      }
+
       break;
     case 3: // star formation rate (Msun / yr)
-      if (gal->Sfr > 0.0){
+      if (gal->Sfr > 0.0) {
         fesc *=
           pow(gal->Sfr * run_globals.units.UnitMass_in_g / run_globals.units.UnitTime_in_s * SEC_PER_YEAR / SOLAR_MASS,
               params->EscapeFracPropScaling);
@@ -67,13 +67,12 @@ void update_galaxy_fesc_vals(galaxy_t* gal, double new_stars, int snapshot)
           pow(gal->Sfr * run_globals.units.UnitMass_in_g / run_globals.units.UnitTime_in_s * SEC_PER_YEAR / SOLAR_MASS,
               params->EscapeFracPropScaling);
 #endif
-        }
-      else {
+      } else {
         fesc = 0.0;
 #if USE_MINI_HALOS
         fescIII = 0.0;
 #endif
-        }
+      }
       break;
     case 4: // cold gas density (Msun / pc^2)
       if ((gal->ColdGas > 0.0) && (gal->DiskScaleLength > 0.0)) {
@@ -85,13 +84,12 @@ void update_galaxy_fesc_vals(galaxy_t* gal, double new_stars, int snapshot)
           pow((gal->ColdGas / gal->DiskScaleLength / gal->DiskScaleLength * 0.01 * run_globals.params.Hubble_h) / 10.,
               params->EscapeFracPropScaling);
 #endif
-        }
-      else {
+      } else {
         fesc = 1.0;
 #if USE_MINI_HALOS
         fescIII = 1.0;
 #endif
-        }
+      }
       break;
     case 5: // halo mass (1e9 Msun)
       if (gal->Mvir > 0.0) {
@@ -99,29 +97,27 @@ void update_galaxy_fesc_vals(galaxy_t* gal, double new_stars, int snapshot)
 #if USE_MINI_HALOS
         fescIII *= pow(gal->Mvir * 10. / run_globals.params.Hubble_h, params->EscapeFracPropScaling);
 #endif
-        }
-      else {
-        fesc  = 1.0;
+      } else {
+        fesc = 1.0;
 #if USE_MINI_HALOS
         fescIII = 1.0;
 #endif
-        }
+      }
       break;
     case 6: // specific star formation rate (1 / Myr)
       if ((gal->Sfr > 0.0) && (gal->StellarMass > 0.0)) {
         fesc *= pow(gal->Sfr / gal->StellarMass / run_globals.units.UnitTime_in_s * SEC_PER_MEGAYEAR,
                     params->EscapeFracPropScaling);
-#if USE_MINI_HALOS                    
+#if USE_MINI_HALOS
         fescIII *= pow(gal->Sfr / gal->StellarMass / run_globals.units.UnitTime_in_s * SEC_PER_MEGAYEAR,
-                    params->EscapeFracPropScaling); 
-#endif           
-        }
-      else {
+                       params->EscapeFracPropScaling);
+#endif
+      } else {
         fesc = 0.0;
-#if USE_MINI_HALOS 
+#if USE_MINI_HALOS
         fescIII = 0.0;
-#endif  
-        }
+#endif
+      }
       break;
     default:
       mlog_error("Unrecognised EscapeFracDependency parameter value.");
@@ -131,8 +127,8 @@ void update_galaxy_fesc_vals(galaxy_t* gal, double new_stars, int snapshot)
     fesc = 1.0;
   else if (fesc < 0.0)
     fesc = 0.0;
-    
-#if USE_MINI_HALOS    
+
+#if USE_MINI_HALOS
   if (fescIII > 1.0)
     fescIII = 1.0;
   else if (fescIII < 0.0)
@@ -143,17 +139,17 @@ void update_galaxy_fesc_vals(galaxy_t* gal, double new_stars, int snapshot)
     fesc_bh = 1.0;
   else if (fesc_bh < 0.0)
     fesc_bh = 0.0;
-   
+
 #if USE_MINI_HALOS
-  if (gal->Galaxy_Population == 2) { 
+  if (gal->Galaxy_Population == 2) {
     gal->Fesc = fesc;
     gal->FescWeightedGSM += new_stars * fesc;
-    }
- 
+  }
+
   if (gal->Galaxy_Population == 3) {
     gal->FescIII = fescIII;
     gal->FescIIIWeightedGSM += new_stars * fescIII;
-    }
+  }
 #else
   gal->Fesc = fesc;
   gal->FescWeightedGSM += new_stars * fesc;
@@ -182,7 +178,8 @@ void set_quasar_fobs()
        params->quasar_fobs);
 }
 
-void set_ReionEfficiency() //  You need to update this function! You need to build a function that allows you to compute the ReionNionPhotPerBary for PopIII stars depending on the IMF!
+void set_ReionEfficiency() //  You need to update this function! You need to build a function that allows you to compute
+                           //  the ReionNionPhotPerBary for PopIII stars depending on the IMF!
 {
   // Use the params passed to Meraxes via the input file to set the HII ionising efficiency factor
   physics_params_t* params = &(run_globals.params.physics);
@@ -192,19 +189,19 @@ void set_ReionEfficiency() //  You need to update this function! You need to bui
   // and also with the inclusion of the effects of the Helium fraction.
   params->ReionEfficiency =
     1.0 / run_globals.params.BaryonFrac * params->ReionNionPhotPerBary / (1.0 - 0.75 * params->Y_He);
-    
-#if USE_MINI_HALOS  
+
+#if USE_MINI_HALOS
   params->ReionEfficiencyIII =
-    1.0 / run_globals.params.BaryonFrac * params->ReionNionPhotPerBaryIII / (1.0 - 0.75 * params->Y_He); 
+    1.0 / run_globals.params.BaryonFrac * params->ReionNionPhotPerBaryIII / (1.0 - 0.75 * params->Y_He);
 #endif
 
   // Account for instantaneous recycling factor so that stellar mass is cumulative
-  if (params->Flag_IRA){
+  if (params->Flag_IRA) {
     params->ReionEfficiency /= params->SfRecycleFraction;
 #if USE_MINI_HALOS
     params->ReionEfficiencyIII /= params->SfRecycleFraction_III;
 #endif
-    }
+  }
 
   mlog("Set value of run_globals.params.ReionEfficiency = %g", MLOG_MESG, params->ReionEfficiency);
 #if USE_MINI_HALOS
@@ -465,7 +462,7 @@ void init_reion_grids()
       grids->sfr_unfiltered[ii] = 0 + 0I;
       grids->x_e_filtered[ii] = 0 + 0I;
       grids->x_e_unfiltered[ii] = 0 + 0I;
-#if USE_MINI_HALOS      
+#if USE_MINI_HALOS
       grids->sfrIII_filtered[ii] = 0 + 0I;
       grids->sfrIII_unfiltered[ii] = 0 + 0I;
 #endif
@@ -581,7 +578,7 @@ void malloc_reionization_grids()
   grids->z_at_ionization = NULL;
   grids->J_21_at_ionization = NULL;
   grids->J_21 = NULL;
-  
+
 #if USE_MINI_HALOS
   grids->JLW_box = NULL;
   grids->JLW_boxII = NULL;
@@ -606,11 +603,11 @@ void malloc_reionization_grids()
 
   grids->SMOOTHED_SFR_GAL = NULL;
   grids->SMOOTHED_SFR_QSO = NULL;
-  
+
 #if USE_MINI_HALOS
   grids->Tk_boxII = NULL;
   grids->TS_boxII = NULL;
-  
+
   grids->SMOOTHED_SFR_III = NULL;
 #endif
 
@@ -696,7 +693,7 @@ void malloc_reionization_grids()
                                                                    grids->stars_filtered,
                                                                    (float*)grids->stars_filtered,
                                                                    run_globals.mpi_comm,
-                                                                   plan_flags);                                                     
+                                                                   plan_flags);
 
     grids->deltax = fftwf_alloc_real((size_t)slab_n_complex * 2);
     grids->deltax_unfiltered = fftwf_alloc_complex((size_t)slab_n_complex);
@@ -735,7 +732,7 @@ void malloc_reionization_grids()
                                                                           (float*)grids->weighted_sfr_filtered,
                                                                           run_globals.mpi_comm,
                                                                           plan_flags);
-#if USE_MINI_HALOS   
+#if USE_MINI_HALOS
     grids->starsIII = fftwf_alloc_real((size_t)slab_n_complex * 2);
     grids->starsIII_unfiltered = fftwf_alloc_complex((size_t)slab_n_complex);
     grids->starsIII_filtered = fftwf_alloc_complex((size_t)slab_n_complex);
@@ -753,8 +750,8 @@ void malloc_reionization_grids()
                                                                       grids->starsIII_filtered,
                                                                       (float*)grids->starsIII_filtered,
                                                                       run_globals.mpi_comm,
-                                                                      plan_flags);        
-                                                                          
+                                                                      plan_flags);
+
     grids->weighted_sfrIII = fftwf_alloc_real((size_t)slab_n_complex * 2);
     grids->weighted_sfrIII_unfiltered = fftwf_alloc_complex((size_t)slab_n_complex);
     grids->weighted_sfrIII_filtered = fftwf_alloc_complex((size_t)slab_n_complex);
@@ -772,7 +769,7 @@ void malloc_reionization_grids()
                                                                              grids->weighted_sfrIII_filtered,
                                                                              (float*)grids->weighted_sfrIII_filtered,
                                                                              run_globals.mpi_comm,
-                                                                             plan_flags);                                                                  
+                                                                             plan_flags);
 #endif
 
     grids->xH = fftwf_alloc_real((size_t)slab_n_real);
@@ -801,7 +798,7 @@ void malloc_reionization_grids()
                                                                    (float*)grids->sfr_filtered,
                                                                    run_globals.mpi_comm,
                                                                    plan_flags);
-                                                                   
+
       grids->x_e_box = fftwf_alloc_real((size_t)slab_n_complex * 2);
       grids->x_e_unfiltered = fftwf_alloc_complex((size_t)slab_n_complex);
       grids->x_e_filtered = fftwf_alloc_complex((size_t)slab_n_complex);
@@ -827,20 +824,25 @@ void malloc_reionization_grids()
       grids->sfrIII_unfiltered = fftwf_alloc_complex((size_t)slab_n_complex);
       grids->sfrIII_filtered = fftwf_alloc_complex((size_t)slab_n_complex);
 
-      grids->sfrIII_forward_plan = fftwf_mpi_plan_dft_r2c_3d(
-        ReionGridDim, ReionGridDim, ReionGridDim, grids->sfrIII, grids->sfrIII_unfiltered, run_globals.mpi_comm, plan_flags);
+      grids->sfrIII_forward_plan = fftwf_mpi_plan_dft_r2c_3d(ReionGridDim,
+                                                             ReionGridDim,
+                                                             ReionGridDim,
+                                                             grids->sfrIII,
+                                                             grids->sfrIII_unfiltered,
+                                                             run_globals.mpi_comm,
+                                                             plan_flags);
       grids->sfrIII_filtered_reverse_plan = fftwf_mpi_plan_dft_c2r_3d(ReionGridDim,
                                                                       ReionGridDim,
                                                                       ReionGridDim,
                                                                       grids->sfrIII_filtered,
                                                                       (float*)grids->sfrIII_filtered,
                                                                       run_globals.mpi_comm,
-                                                                      plan_flags);                                                             
+                                                                      plan_flags);
 
 #endif
       grids->Tk_box = fftwf_alloc_real((size_t)slab_n_real);
       grids->TS_box = fftwf_alloc_real((size_t)slab_n_real);
-      
+
       grids->SMOOTHED_SFR_GAL = calloc((size_t)slab_n_real_smoothedSFR, sizeof(double));
 #if USE_MINI_HALOS
       grids->Tk_boxII = fftwf_alloc_real((size_t)slab_n_real);
@@ -913,7 +915,7 @@ void malloc_reionization_grids()
       grids->Mvir_crit = fftwf_alloc_real((size_t)slab_n_real);
 
 #if USE_MINI_HALOS
-    if (run_globals.params.Flag_IncludeLymanWerner)
+      if (run_globals.params.Flag_IncludeLymanWerner)
         grids->Mvir_crit_MC = fftwf_alloc_real((size_t)slab_n_real);
 #endif
     }
@@ -979,7 +981,7 @@ void free_reionization_grids()
     fftwf_free(grids->J_21_at_ionization);
 
 #if USE_MINI_HALOS
-  if (run_globals.params.Flag_IncludeLymanWerner)
+    if (run_globals.params.Flag_IncludeLymanWerner)
       fftwf_free(grids->Mvir_crit_MC);
 #endif
   }
@@ -1045,8 +1047,8 @@ void free_reionization_grids()
     fftwf_free(grids->sfr_filtered);
     fftwf_free(grids->sfr_unfiltered);
     fftwf_free(grids->sfr);
-    
-#if USE_MINI_HALOS    
+
+#if USE_MINI_HALOS
     fftwf_destroy_plan(grids->sfrIII_filtered_reverse_plan);
     fftwf_destroy_plan(grids->sfrIII_forward_plan);
     fftwf_free(grids->sfrIII_filtered);
@@ -1056,10 +1058,10 @@ void free_reionization_grids()
   }
 
 #if USE_MINI_HALOS
-  if (run_globals.params.Flag_IncludeLymanWerner){
+  if (run_globals.params.Flag_IncludeLymanWerner) {
     free(grids->JLW_box);
     free(grids->JLW_boxII);
-    }
+  }
 #endif
 
   fftwf_free(grids->r_bubble);
@@ -1071,7 +1073,7 @@ void free_reionization_grids()
   fftwf_free(grids->weighted_sfr_filtered);
   fftwf_free(grids->weighted_sfr_unfiltered);
   fftwf_free(grids->weighted_sfr);
-  
+
   fftwf_destroy_plan(grids->deltax_filtered_reverse_plan);
   fftwf_destroy_plan(grids->deltax_forward_plan);
   fftwf_free(grids->deltax_filtered);
@@ -1083,14 +1085,14 @@ void free_reionization_grids()
   fftwf_free(grids->stars_filtered);
   fftwf_free(grids->stars_unfiltered);
   fftwf_free(grids->stars);
-  
-#if USE_MINI_HALOS  
+
+#if USE_MINI_HALOS
   fftwf_destroy_plan(grids->weighted_sfrIII_filtered_reverse_plan);
   fftwf_destroy_plan(grids->weighted_sfrIII_forward_plan);
   fftwf_free(grids->weighted_sfrIII_filtered);
   fftwf_free(grids->weighted_sfrIII_unfiltered);
   fftwf_free(grids->weighted_sfrIII);
-  
+
   fftwf_destroy_plan(grids->starsIII_filtered_reverse_plan);
   fftwf_destroy_plan(grids->starsIII_forward_plan);
   fftwf_free(grids->starsIII_filtered);
@@ -1329,7 +1331,7 @@ void assign_Mvir_crit_to_galaxies(int ngals_in_slabs, int flag_feed) // flag = 1
           gal->MvirCrit = (double)buffer[grid_index(ix, iy, iz, ReionGridDim, INDEX_REAL)];
 
 #if USE_MINI_HALOS
-	if (flag_feed == 2)
+        if (flag_feed == 2)
           gal->MvirCrit_MC = (double)buffer[grid_index(ix, iy, iz, ReionGridDim, INDEX_REAL)];
 #endif
 
@@ -1354,7 +1356,7 @@ void construct_baryon_grids(int snapshot, int local_ngals)
   float* weighted_sfr_grid = run_globals.reion_grids.weighted_sfr;
   int ReionGridDim = run_globals.params.ReionGridDim;
   double sfr_timescale = run_globals.params.ReionSfrTimescale * hubble_time(snapshot);
-#if USE_MINI_HALOS  
+#if USE_MINI_HALOS
   float* stellarIII_grid = run_globals.reion_grids.starsIII;
   float* sfrIII_grid = run_globals.reion_grids.sfrIII;
   float* weighted_sfrIII_grid = run_globals.reion_grids.weighted_sfrIII;
@@ -1376,13 +1378,13 @@ void construct_baryon_grids(int snapshot, int local_ngals)
 #endif
   }
 
-  if (run_globals.params.Flag_IncludeSpinTemp) { //For this duplicate the background
+  if (run_globals.params.Flag_IncludeSpinTemp) { // For this duplicate the background
     for (int ii = 0; ii < local_n_complex * 2; ii++) {
       sfr_grid[ii] = 0.0;
 #if USE_MINI_HALOS
       sfrIII_grid[ii] = 0.0;
 #endif
-      }
+    }
   }
 
   // loop through each slab
@@ -1411,7 +1413,7 @@ void construct_baryon_grids(int snapshot, int local_ngals)
     if ((!run_globals.params.Flag_IncludeSpinTemp) && (prop == prop_sfrIII))
       continue;
 #endif
-    
+
     if ((!run_globals.params.Flag_IncludeSpinTemp) && (prop == prop_sfr))
       continue;
 
@@ -1469,21 +1471,21 @@ void construct_baryon_grids(int snapshot, int local_ngals)
               }
               break;
 
-#if USE_MINI_HALOS              
+#if USE_MINI_HALOS
             case prop_stellarIII:
 
               buffer[ind] += gal->FescIIIWeightedGSM;
-              
+
               break;
-            
+
             case prop_weighted_sfrIII:
-            
+
               buffer[ind] += gal->FescIIIWeightedGSM;
-              
+
               break;
-            
+
             case prop_sfrIII:
-            
+
               buffer[ind] += gal->GrossStellarMassIII;
               // this sfr grid is used for X-ray and Lyman, PopIII.
               break;
@@ -1533,7 +1535,7 @@ void construct_baryon_grids(int snapshot, int local_ngals)
                   weighted_sfr_grid[grid_index(ix, iy, iz, ReionGridDim, INDEX_PADDED)] = (float)val;
                 }
             break;
-#if USE_MINI_HALOS              
+#if USE_MINI_HALOS
           case prop_weighted_sfrIII:
             for (int ix = 0; ix < slab_nix[i_r]; ix++)
               for (int iy = 0; iy < ReionGridDim; iy++)
@@ -1543,7 +1545,7 @@ void construct_baryon_grids(int snapshot, int local_ngals)
                   weighted_sfrIII_grid[grid_index(ix, iy, iz, ReionGridDim, INDEX_PADDED)] = (float)val;
                 }
             break;
-            
+
           case prop_sfrIII:
             for (int ix = 0; ix < slab_nix[i_r]; ix++)
               for (int iy = 0; iy < ReionGridDim; iy++)
@@ -1552,8 +1554,8 @@ void construct_baryon_grids(int snapshot, int local_ngals)
                   val = (val > 0) ? val / sfr_timescale : 0;
                   sfrIII_grid[grid_index(ix, iy, iz, ReionGridDim, INDEX_PADDED)] = (float)val;
                 }
-            break;  
-            
+            break;
+
           case prop_stellarIII:
             for (int ix = 0; ix < slab_nix[i_r]; ix++)
               for (int iy = 0; iy < ReionGridDim; iy++)
@@ -1563,7 +1565,7 @@ void construct_baryon_grids(int snapshot, int local_ngals)
                     val = 0;
                   stellarIII_grid[grid_index(ix, iy, iz, ReionGridDim, INDEX_PADDED)] = val;
                 }
-            break;  
+            break;
 #endif
           case prop_sfr:
             for (int ix = 0; ix < slab_nix[i_r]; ix++)
@@ -1702,8 +1704,8 @@ void save_reion_input_grids(int snapshot)
           (float)((grids->weighted_sfr)[grid_index(ii, jj, kk, ReionGridDim, INDEX_PADDED)] * UnitMass_in_g /
                   UnitTime_in_s * SEC_PER_YEAR / SOLAR_MASS);
   write_grid_float("weighted_sfr", grid, file_id, fspace_id, memspace_id, dcpl_id);
-  
-#if USE_MINI_HALOS    
+
+#if USE_MINI_HALOS
   for (int ii = 0; ii < local_nix; ii++)
     for (int jj = 0; jj < ReionGridDim; jj++)
       for (int kk = 0; kk < ReionGridDim; kk++)
@@ -1716,8 +1718,8 @@ void save_reion_input_grids(int snapshot)
       for (int jj = 0; jj < ReionGridDim; jj++)
         for (int kk = 0; kk < ReionGridDim; kk++)
           grid[grid_index(ii, jj, kk, ReionGridDim, INDEX_REAL)] =
-            (float)((grids->sfrIII)[grid_index(ii, jj, kk, ReionGridDim, INDEX_PADDED)] * UnitMass_in_g / UnitTime_in_s *
-                    SEC_PER_YEAR / SOLAR_MASS);
+            (float)((grids->sfrIII)[grid_index(ii, jj, kk, ReionGridDim, INDEX_PADDED)] * UnitMass_in_g /
+                    UnitTime_in_s * SEC_PER_YEAR / SOLAR_MASS);
     write_grid_float("sfrIII", grid, file_id, fspace_id, memspace_id, dcpl_id);
   }
 
@@ -1897,18 +1899,18 @@ void save_reion_output_grids(int snapshot)
     H5LTset_attribute_double(file_id, "TS_box", "volume_ave_xalpha", &(grids->volume_ave_xalpha), 1);
     H5LTset_attribute_double(file_id, "TS_box", "volume_ave_Xheat", &(grids->volume_ave_Xheat), 1);
     H5LTset_attribute_double(file_id, "TS_box", "volume_ave_Xion", &(grids->volume_ave_Xion), 1);
-    
-#if USE_MINI_HALOS    
+
+#if USE_MINI_HALOS
     H5LTset_attribute_double(file_id, "TS_boxII", "volume_ave_J_alphaII", &(grids->volume_ave_J_alphaII), 1);
     H5LTset_attribute_double(file_id, "TS_boxII", "volume_ave_XheatII", &(grids->volume_ave_XheatII), 1);
 
 #endif
   }
 
-#if USE_MINI_HALOS    
+#if USE_MINI_HALOS
   if (run_globals.params.Flag_IncludeLymanWerner) {
-      H5LTset_attribute_double(file_id, "JLW_box", "volume_ave_JLW", &(grids->volume_ave_J_LW), 1);
-      H5LTset_attribute_double(file_id, "JLW_boxII", "volume_ave_JLW_II", &(grids->volume_ave_J_LWII), 1);
+    H5LTset_attribute_double(file_id, "JLW_box", "volume_ave_JLW", &(grids->volume_ave_J_LW), 1);
+    H5LTset_attribute_double(file_id, "JLW_boxII", "volume_ave_JLW_II", &(grids->volume_ave_J_LWII), 1);
   }
 #endif
 
@@ -1942,7 +1944,6 @@ void save_reion_output_grids(int snapshot)
     // cleanup
     H5Pclose(plist_id);
     H5Dclose(dset_id);
-    
 
     dset_id = H5Dcreate(file_id, "PS_data", H5T_NATIVE_FLOAT, fspace_id_PS, H5P_DEFAULT, dcpl_id_PS, H5P_DEFAULT);
 
@@ -1955,8 +1956,8 @@ void save_reion_output_grids(int snapshot)
     // cleanup
     H5Pclose(plist_id);
     H5Dclose(dset_id);
-    
-#if USE_MINI_HALOS    
+
+#if USE_MINI_HALOS
     dset_id = H5Dcreate(file_id, "PSII_data", H5T_NATIVE_FLOAT, fspace_id_PS, H5P_DEFAULT, dcpl_id_PS, H5P_DEFAULT);
 
     plist_id = H5Pcreate(H5P_DATASET_XFER);
@@ -1982,7 +1983,7 @@ void save_reion_output_grids(int snapshot)
     H5Pclose(plist_id);
     H5Dclose(dset_id);
 
-#if USE_MINI_HALOS    
+#if USE_MINI_HALOS
     dset_id = H5Dcreate(file_id, "PSII_error", H5T_NATIVE_FLOAT, fspace_id_PS, H5P_DEFAULT, dcpl_id_PS, H5P_DEFAULT);
 
     plist_id = H5Pcreate(H5P_DATASET_XFER);

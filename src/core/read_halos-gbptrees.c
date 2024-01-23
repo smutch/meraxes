@@ -1,6 +1,7 @@
 #include <assert.h>
 #include <hdf5_hl.h>
 #include <math.h>
+#include <string.h>
 
 #include "meraxes.h"
 #include "misc_tools.h"

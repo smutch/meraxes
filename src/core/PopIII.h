@@ -1,8 +1,6 @@
 #ifndef POPIII_H
 #define POPIII_H
 
-#include "meraxes.h"
-
 #define MminSnII 8
 #define MmaxSnII 40
 

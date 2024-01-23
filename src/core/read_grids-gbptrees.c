@@ -1,9 +1,9 @@
 #include <assert.h>
 #include <complex.h>
 #include <dirent.h>
-#include <errno.h>
 #include <fftw3-mpi.h>
 #include <math.h>
+#include <string.h>
 
 #include "meraxes.h"
 #include "misc_tools.h"

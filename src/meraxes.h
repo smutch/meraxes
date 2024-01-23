@@ -7,9 +7,6 @@
 #include <hdf5.h>
 #include <mlog.h>
 #include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <time.h> //I believe I need this for random number
 
 /*
  * Definitions
@@ -358,7 +355,7 @@ typedef struct metal_grids_t // New stuff for MetalEvo, probably you will need t
 
   int buffer_size_metals;
 
-  int* N_bubbles;
+  float* N_bubbles;
   float* mass_IGM; // It's the total! Computed from the overdensity and you sum the galaxy net contribution (mass_gas)
   float* mass_metals;
   float* mass_gas; // The one coming from galaxies (Ejected - Hot - Cold)

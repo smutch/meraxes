@@ -2,6 +2,7 @@
 #include "XRayHeatingFunctions.h"
 #include "meraxes.h"
 #include "misc_tools.h"
+#include <string.h>
 
 /*
  * This code is a re-write of the light-cone (cuboid) construction from 21cmFAST.
