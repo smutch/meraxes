@@ -279,7 +279,7 @@ static int read_vr_multi(const enum grid_prop property, const int snapshot, floa
       if (ii == 0) {
 
         // save current error stack
-        herr_t (*old_func)(long, void*);
+        herr_t (*old_func)(long long, void*);
         void* old_client_data;
         hid_t error_stack = 0;
         H5Eget_auto(error_stack, &old_func, &old_client_data);
