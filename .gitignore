@@ -47,3 +47,6 @@ src/.clangd/
 src/compile_commands.json
 src/.vscode
 build
+/.cache/
+/.direnv/
+/.dmypy.json
