@@ -1,4 +1,5 @@
 #include <hdf5_hl.h>
+#include <string.h>
 
 #include "meraxes.h"
 #include "modifiers.h"

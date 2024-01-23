@@ -1,5 +1,5 @@
-#include <assert.h>
 #include <gsl/gsl_integration.h>
+#include <string.h>
 #include <time.h>
 
 #include "ComputePowerSpectrum.h"
@@ -18,8 +18,8 @@
 #include "stellar_feedback.h"
 #include "virial_properties.h"
 #if USE_MINI_HALOS
-#include "metal_evo.h"
 #include "PopIII.h"
+#include "metal_evo.h"
 #endif
 
 static void init_gpu()
@@ -210,9 +210,9 @@ void init_storage()
   initialize_halo_storage();
 
   malloc_reionization_grids();
-  
+
 #if USE_MINI_HALOS
-  if (run_globals.params.Flag_IncludeMetalEvo) 
+  if (run_globals.params.Flag_IncludeMetalEvo)
     malloc_metal_grids();
 #endif
 
@@ -268,7 +268,7 @@ void init_meraxes()
 
   // read in the stellar feedback tables
   read_stellar_feedback_tables();
-  
+
 #ifdef USE_MINI_HALOS
   // initialize Pop III tables
   initialize_PopIII();
@@ -285,7 +285,7 @@ void init_meraxes()
 
   // read in the mean Mvir_crit table (if needed 1 for Reio 2 for LW)
   read_Mcrit_table(1);
-#ifdef USE_MINI_HALOS    
+#ifdef USE_MINI_HALOS
   read_Mcrit_table(2);
 #endif
 
