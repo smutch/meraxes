@@ -38,7 +38,7 @@
               Add: 
             '' + (
               builtins.concatStringsSep "\n" (
-                map ( x: "    --include-directory=\"" + ( lib.makeSearchPathOutput "dev" "include" [x] ) ) compileInputs
+                map ( x: "    - \"--include-directory=" + ( lib.makeSearchPathOutput "dev" "include" [x] ) + "\"" ) compileInputs
               )
             )
           );
