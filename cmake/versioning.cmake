@@ -10,4 +10,5 @@ execute_process(COMMAND ${GIT_EXECUTABLE} --no-pager diff --no-color
 if (NOT GITDIFF STREQUAL "")
     string(REPLACE "\\\"" "\\\\\"" GITDIFF ${GITDIFF})
     string(REPLACE "\n" "\\n" GITDIFF ${GITDIFF})
+    string(REPLACE "\\n\\ " "\\n" GITDIFF ${GITDIFF})
 endif()
