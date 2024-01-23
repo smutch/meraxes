@@ -286,7 +286,7 @@ install(EXPORT MeraxesConfig DESTINATION share/meraxes/cmake)
 
 # Provide the setuprun build command
 if(NOT BUILD_SHARED_LIBS)
-    set(INPUT_FILE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/input")
+    set(INPUT_FILE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/input/params")
     configure_file(${INPUT_FILE_DIR}/input.par ${CMAKE_BINARY_DIR}/input.par ESCAPE_QUOTES @ONLY)
 
     add_custom_target(setuprun
