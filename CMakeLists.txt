@@ -15,7 +15,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # We don't want to install to /usr/... by default
 if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
-    set(CMAKE_INSTALL_PREFIX ${CMAKE_CURRENT_SOURCE_DIR}/.. CACHE PATH "..." FORCE)
+    set(CMAKE_INSTALL_PREFIX ${CMAKE_CURRENT_SOURCE_DIR}/target CACHE PATH "..." FORCE)
 endif()
 
 # output paths for builds and installs
@@ -57,7 +57,7 @@ option(CALC_MAGS "Calculate magnitude" OFF)
 option(USE_MINI_HALOS "Consider minihalos" OFF)
 set(MAGS_N_SNAPS 3 CACHE STRING "Number of snapshots to compute magnitudes")
 set(MAGS_N_BANDS 6 CACHE STRING "Number of bands to compute")
-set(SECTOR_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/sector" CACHE PATH "Base directory of sector library")
+set(SECTOR_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/src/sector" CACHE PATH "Base directory of sector library")
 option(BUILD_TESTS "Build criterion tests" OFF)
 option(GDB "Drop into GDB with mpi_debug_here() calls" OFF)
 option(ENABLE_PROFILING "Enable profiling of executable with gperftools." OFF)
@@ -86,8 +86,8 @@ endif()
 ########################################
 
 # TODO: This is bad practice, we should really list the sources explicitly
-file(GLOB SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/core/*.[ch] *.h ${CMAKE_CURRENT_SOURCE_DIR}/physics/*.[ch])
-list(REMOVE_ITEM SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/core/meraxes.c)
+file(GLOB SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/src/core/*.[ch] *.h ${CMAKE_CURRENT_SOURCE_DIR}/src/physics/*.[ch])
+list(REMOVE_ITEM SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/src/core/meraxes.c)
     
 # THE MERAXES TARGETS
 if(BUILD_SHARED_LIBS)
@@ -97,10 +97,10 @@ else()
 endif()
 set_target_properties(meraxes_lib PROPERTIES
     OUTPUT_NAME meraxes
-    PUBLIC_HEADER "${CMAKE_CURRENT_SOURCE_DIR}/meraxes.h;${CMAKE_CURRENT_BINARY_DIR}/meraxes_conf.h"
+    PUBLIC_HEADER "${CMAKE_CURRENT_SOURCE_DIR}/src/meraxes.h;${CMAKE_CURRENT_BINARY_DIR}/src/meraxes_conf.h"
     C_STANDARD 99
     )
-add_executable(meraxes ${CMAKE_CURRENT_SOURCE_DIR}/core/meraxes.c)
+add_executable(meraxes ${CMAKE_CURRENT_SOURCE_DIR}/src/core/meraxes.c)
 set_target_properties(meraxes PROPERTIES C_STANDARD 99)
 target_link_libraries(meraxes PRIVATE meraxes_lib)
 
@@ -145,9 +145,9 @@ add_dependencies(install.meraxes meraxes)
 
 # Templated headers
 include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/versioning.cmake)
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/meraxes_conf.h.in ${CMAKE_BINARY_DIR}/meraxes_conf.h ESCAPE_QUOTES @ONLY)
-target_include_directories(meraxes_lib BEFORE PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR})
-target_include_directories(meraxes BEFORE PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR})
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/src/meraxes_conf.h.in ${CMAKE_BINARY_DIR}/meraxes_conf.h ESCAPE_QUOTES @ONLY)
+target_include_directories(meraxes_lib BEFORE PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src ${CMAKE_CURRENT_BINARY_DIR})
+target_include_directories(meraxes BEFORE PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src ${CMAKE_CURRENT_BINARY_DIR})
 
 
 ##########
@@ -231,12 +231,12 @@ if(CALC_MAGS)
 endif()
 
 # MLOG
-if(NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/mlog/mlog.c")
+if(NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/src/mlog/mlog.c")
     message(STATUS "Checking out mlog submodule")
     execute_process(COMMAND git submodule update --init
                     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
 endif()
-set(MLOG_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/mlog")
+set(MLOG_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/src/mlog")
 add_library(mlog STATIC "${MLOG_ROOT}/mlog.c" "${MLOG_ROOT}/mlog.h")
 target_link_libraries(mlog PRIVATE MPI::MPI_C)
 target_include_directories(mlog PRIVATE ${MPI_INCLUDE_PATH})
@@ -286,7 +286,7 @@ install(EXPORT MeraxesConfig DESTINATION share/meraxes/cmake)
 
 # Provide the setuprun build command
 if(NOT BUILD_SHARED_LIBS)
-    set(INPUT_FILE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../input")
+    set(INPUT_FILE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/input")
     configure_file(${INPUT_FILE_DIR}/input.par ${CMAKE_BINARY_DIR}/input.par ESCAPE_QUOTES @ONLY)
 
     add_custom_target(setuprun
