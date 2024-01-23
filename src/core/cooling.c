@@ -2,8 +2,8 @@
 #include <math.h>
 
 #include "cooling.h"
-#include "meraxes.h"
 #include "core/misc_tools.h"
+#include "meraxes.h"
 #include "virial_properties.h"
 
 // *** This code is taken from the model of Croton+ 2006 with minimal modifications. ***
@@ -125,20 +125,20 @@ double LTE_Mcool(double Temp, double nH)
 double Mcool_SV(double redshift, int n)
 {
   // Function to compute the minimum mass for MC when including the streaming velocities,
-  // n quantifies the strength of the SV (n* sigma(z)) with sigma being the rms streaming velocity (TH 2010 and Fialkov 2012))
-  // Computation from Visbal+20
+  // n quantifies the strength of the SV (n* sigma(z)) with sigma being the rms streaming velocity (TH 2010 and Fialkov
+  // 2012)) Computation from Visbal+20
   int halo_type = 2;
   double zplus1 = redshift + 1;
-  
+
   double a = 3.714; // in km/s from Greif+11
   double b = 4.015;
-  
-  double sigma_rms = 30.0 * (zplus1 / 1000.0); //in km/s from Nebrin+23 (TH+10, Fialkov+12)
+
+  double sigma_rms = 30.0 * (zplus1 / 1000.0); // in km/s from Nebrin+23 (TH+10, Fialkov+12)
   double vbc = n * sigma_rms;
-  
+
   double Vcool = sqrt(a * a + (b * vbc) * (b * vbc));
   double McoolSV = Vvir_to_Mvir(Vcool, redshift, halo_type);
-  
+
   return McoolSV;
-} 
+}
 #endif

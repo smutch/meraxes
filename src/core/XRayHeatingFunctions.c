@@ -51,7 +51,7 @@ int init_heat()
   sum_lyn = calloc(TsNumFilterSteps, sizeof(double));
 #if USE_MINI_HALOS
   sum_lyn_III = calloc(TsNumFilterSteps, sizeof(double));
-  if (run_globals.params.Flag_IncludeLymanWerner){
+  if (run_globals.params.Flag_IncludeLymanWerner) {
     sum_lyn_LW = calloc(TsNumFilterSteps, sizeof(double));
     sum_lyn_LW_III = calloc(TsNumFilterSteps, sizeof(double));
   }
@@ -66,7 +66,7 @@ int init_heat()
     return -4;
   if (xion_RECFAST(100, 1) < 0)
     return -5;
-  if (spectral_emissivity(0, 1, 2) < 0) //Flag_Population shouldn't matter
+  if (spectral_emissivity(0, 1, 2) < 0) // Flag_Population shouldn't matter
     return -6;
 
   initialize_interp_arrays();
@@ -91,7 +91,7 @@ void destruct_heat()
 
 #if USE_MINI_HALOS
   free(sum_lyn_III);
-  if (run_globals.params.Flag_IncludeLymanWerner){
+  if (run_globals.params.Flag_IncludeLymanWerner) {
     free(sum_lyn_LW);
     free(sum_lyn_LW_III);
   }
@@ -333,9 +333,7 @@ double tauX_integrand(double zhat, void* params)
   if (fcoll < 1e-20)
     HI_filling_factor_zhat = 1;
   else
-    HI_filling_factor_zhat =
-      1 - (p->ion_eff * fcoll) /
-            (1.0 - x_e_ave);
+    HI_filling_factor_zhat = 1 - (p->ion_eff * fcoll) / (1.0 - x_e_ave);
 #endif
 
   if (HI_filling_factor_zhat < 1e-4)
@@ -1248,12 +1246,13 @@ void evolveInt(float zp,
   double dadia_dzp, dadia_dzp_II, dcomp_dzp, dcomp_dzp_II, dxheat_dt_GAL, dxion_source_dt_GAL, dxion_sink_dt;
   double dxheat_dt_QSO, dxion_source_dt_QSO, dxlya_dt_QSO, dstarlya_dt_QSO;
   double zpp, dzpp;
-  double Conversion_factor = (SPEED_OF_LIGHT / (4. * M_PI)) / (PROTONMASS / SOLAR_MASS); //I am using this many times so it's worth save this
+  double Conversion_factor =
+    (SPEED_OF_LIGHT / (4. * M_PI)) / (PROTONMASS / SOLAR_MASS); // I am using this many times so it's worth save this
   int zpp_ct;
   double T, TII, x_e, zpp_integrand_GAL, zpp_integrand_QSO;
   double dxe_dzp, n_b, dspec_dzp, dxheat_dzp, dxlya_dt_GAL, dstarlya_dt_GAL, dstarlyLW_dt_GAL;
 #if USE_MINI_HALOS
-  //Do this to differentiate between Pop III and Pop II contribution
+  // Do this to differentiate between Pop III and Pop II contribution
   double dxlya_dt_III, dstarlya_dt_III, dstarlyLW_dt_III, dxheat_dt_III, dxion_source_dt_III, zpp_integrand_III;
   double dspec_dzp_II, dxheat_dzp_II;
 #endif
@@ -1271,7 +1270,7 @@ void evolveInt(float zp,
   dxlya_dt_GAL = 0;
   dstarlya_dt_GAL = 0;
   dstarlyLW_dt_GAL = 0;
-  
+
 #if USE_MINI_HALOS
   dxheat_dt_III = 0;
   dxion_source_dt_III = 0;
@@ -1299,11 +1298,9 @@ void evolveInt(float zp,
 
       // Use this when using the SFR provided by Meraxes
       // Units should be M_solar/s. Factor of (dt_dzp * dzpp) converts from per s to per z'
-      zpp_integrand_GAL =
-        SFR_GAL[zpp_ct] * pow(1 + zpp, -run_globals.params.physics.SpecIndexXrayGal); 
+      zpp_integrand_GAL = SFR_GAL[zpp_ct] * pow(1 + zpp, -run_globals.params.physics.SpecIndexXrayGal);
 #if USE_MINI_HALOS
-      zpp_integrand_III =
-        SFR_III[zpp_ct] * pow(1 + zpp, -run_globals.params.physics.SpecIndexXrayIII); 
+      zpp_integrand_III = SFR_III[zpp_ct] * pow(1 + zpp, -run_globals.params.physics.SpecIndexXrayIII);
 #endif
       if (run_globals.params.Flag_SeparateQSOXrays) {
         zpp_integrand_QSO = SFR_QSO[zpp_ct] * pow(1 + zpp, -run_globals.params.physics.SpecIndexXrayQSO);
@@ -1324,12 +1321,12 @@ void evolveInt(float zp,
         // Units should be M_solar/s. Factor of (dt_dzp * dzpp) converts from per s to per z'
         dstarlya_dt_GAL += SFR_GAL[zpp_ct] * pow(1 + zp, 2) * (1 + zpp) * sum_lyn[zpp_ct] * dt_dzpp * dzpp;
         dstarlya_dt_QSO += SFR_QSO[zpp_ct] * pow(1 + zp, 2) * (1 + zpp) * sum_lyn[zpp_ct] * dt_dzpp * dzpp;
-        
+
 #if USE_MINI_HALOS
         dxheat_dt_III += dt_dzpp * dzpp * zpp_integrand_III * freq_int_heat_III[zpp_ct];
         dxion_source_dt_III += dt_dzpp * dzpp * zpp_integrand_III * freq_int_ion_III[zpp_ct];
         dxlya_dt_III += dt_dzpp * dzpp * zpp_integrand_III * freq_int_lya_III[zpp_ct];
-        
+
         dstarlya_dt_III += SFR_III[zpp_ct] * pow(1 + zp, 2) * (1 + zpp) * sum_lyn_III[zpp_ct] * dt_dzpp * dzpp;
 #endif
 
@@ -1341,17 +1338,17 @@ void evolveInt(float zp,
         // Use this when using the SFR provided by Meraxes
         // Units should be M_solar/s. Factor of (dt_dzp * dzpp) converts from per s to per z'
         dstarlya_dt_GAL += SFR_GAL[zpp_ct] * pow(1 + zp, 2) * (1 + zpp) * sum_lyn[zpp_ct] * dt_dzpp * dzpp;
-#if USE_MINI_HALOS        
+#if USE_MINI_HALOS
         dxheat_dt_III += dt_dzpp * dzpp * zpp_integrand_III *
                          freq_int_heat_III[zpp_ct]; // Integral in frequency must be computed for each TsNumFilterSteps
         dxion_source_dt_III += dt_dzpp * dzpp * zpp_integrand_III * freq_int_ion_III[zpp_ct];
         dxlya_dt_III += dt_dzpp * dzpp * zpp_integrand_III * freq_int_lya_III[zpp_ct];
-        
+
         dstarlya_dt_III += SFR_III[zpp_ct] * pow(1 + zp, 2) * (1 + zpp) * sum_lyn_III[zpp_ct] * dt_dzpp * dzpp;
 #endif
       }
 #if USE_MINI_HALOS
-      if (run_globals.params.Flag_IncludeLymanWerner){
+      if (run_globals.params.Flag_IncludeLymanWerner) {
         dstarlyLW_dt_GAL += SFR_GAL[zpp_ct] * pow(1 + zp, 2) * (1 + zpp) * sum_lyn_LW[zpp_ct] * dt_dzpp * dzpp;
         dstarlyLW_dt_III += SFR_III[zpp_ct] * pow(1 + zp, 2) * (1 + zpp) * sum_lyn_LW_III[zpp_ct] * dt_dzpp * dzpp;
       }
@@ -1364,14 +1361,14 @@ void evolveInt(float zp,
       dxheat_dt_GAL *= const_zp_prefactor_GAL;
       dxion_source_dt_GAL *= const_zp_prefactor_GAL;
       dxlya_dt_GAL *= const_zp_prefactor_GAL * n_b;
-      
+
       // Use this when using the SFR provided by Meraxes
       // Units should be M_solar/s. Factor of (dt_dzp * dzpp) converts from per s to per z'
       // The division by Omb * RHOcrit arises from the differences between eq. 13 and eq. 22 in Mesinger et al. (2011),
       // accounting for the M_solar factor (SFR -> number)
       dstarlya_dt_GAL *= Conversion_factor;
-      
-#if USE_MINI_HALOS     
+
+#if USE_MINI_HALOS
       dxheat_dt_III *= const_zp_prefactor_III;
       dxion_source_dt_III *= const_zp_prefactor_III;
       dxlya_dt_III *= const_zp_prefactor_III * n_b;
@@ -1391,7 +1388,7 @@ void evolveInt(float zp,
 
       dstarlya_dt_GAL *= Conversion_factor;
 
-#if USE_MINI_HALOS      
+#if USE_MINI_HALOS
       dxheat_dt_III *= const_zp_prefactor_III;
       dxion_source_dt_III *= const_zp_prefactor_III;
       dxlya_dt_III *= const_zp_prefactor_III * n_b;
@@ -1401,7 +1398,7 @@ void evolveInt(float zp,
     }
 
 #if USE_MINI_HALOS
-    if (run_globals.params.Flag_IncludeLymanWerner){
+    if (run_globals.params.Flag_IncludeLymanWerner) {
       dstarlyLW_dt_GAL *= Conversion_factor;
       dstarlyLW_dt_III *= Conversion_factor;
     }
@@ -1425,9 +1422,9 @@ void evolveInt(float zp,
   // first, adiabatic term (3rd term in 11)
   dadia_dzp = 3 / (1.0 + zp);
 
-  if (fabs(curr_delNL0) > FRACT_FLOAT_ERR)  // add adiabatic heating/cooling from structure formation
+  if (fabs(curr_delNL0) > FRACT_FLOAT_ERR) // add adiabatic heating/cooling from structure formation
     dadia_dzp += dgrowth_factor_dzp / (1.0 / curr_delNL0 + growth_factor_zp);
-    
+
   dadia_dzp *= (2.0 / 3.0) * T;
 
   // next heating due to the changing species
@@ -1440,7 +1437,7 @@ void evolveInt(float zp,
 #if USE_MINI_HALOS
   dadia_dzp_II = 3 / (1.0 + zp);
 
-  if (fabs(curr_delNL0) > FRACT_FLOAT_ERR) 
+  if (fabs(curr_delNL0) > FRACT_FLOAT_ERR)
     dadia_dzp_II += dgrowth_factor_dzp / (1.0 / curr_delNL0 + growth_factor_zp);
 
   dadia_dzp_II *= (2.0 / 3.0) * TII;
@@ -1448,9 +1445,9 @@ void evolveInt(float zp,
   dspec_dzp_II = -dxe_dzp * TII / (1 + x_e);
 
   dcomp_dzp_II = dT_comp(zp, TII, x_e);
-  
+
   dxheat_dzp = (dxheat_dt_GAL + dxheat_dt_III + dxheat_dt_QSO) * dt_dzp * 2.0 / 3.0 / BOLTZMANN / (1.0 + x_e);
-  dxheat_dzp_II = (dxheat_dt_GAL + dxheat_dt_QSO) * dt_dzp * 2.0 / 3.0 / BOLTZMANN / (1.0 + x_e); 
+  dxheat_dzp_II = (dxheat_dt_GAL + dxheat_dt_QSO) * dt_dzp * 2.0 / 3.0 / BOLTZMANN / (1.0 + x_e);
 #else
   dxheat_dzp = (dxheat_dt_GAL + dxheat_dt_QSO) * dt_dzp * 2.0 / 3.0 / BOLTZMANN / (1.0 + x_e);
 #endif
@@ -1460,7 +1457,7 @@ void evolveInt(float zp,
 
   // *** Finally, if we are at the last redshift step, Lya *** //
 #if USE_MINI_HALOS
-  deriv[6] = dxheat_dzp_II + dcomp_dzp_II + dspec_dzp_II + dadia_dzp_II; 
+  deriv[6] = dxheat_dzp_II + dcomp_dzp_II + dspec_dzp_II + dadia_dzp_II;
 
   deriv[2] = (dxlya_dt_GAL + dxlya_dt_III + dxlya_dt_QSO) + (dstarlya_dt_GAL + dstarlya_dt_III + dstarlya_dt_QSO);
   deriv[7] = (dxlya_dt_GAL + dxlya_dt_QSO) + (dstarlya_dt_GAL + dstarlya_dt_QSO);
@@ -1473,7 +1470,7 @@ void evolveInt(float zp,
 #if USE_MINI_HALOS
   deriv[8] = dxheat_dzp_II;
 
-  if (run_globals.params.Flag_IncludeLymanWerner){
+  if (run_globals.params.Flag_IncludeLymanWerner) {
     deriv[5] = (dstarlyLW_dt_GAL + dstarlyLW_dt_III) * (PLANCK * 1e21);
     deriv[10] = dstarlyLW_dt_GAL * (PLANCK * 1e21);
   }
@@ -1932,10 +1929,10 @@ double Tc_eff(double TK, double TS)
   return ans;
 }
 
-double interpolate_fcoll(double redshift, int snap_i, int flag_population) // flag_population if you want II or III 
+double interpolate_fcoll(double redshift, int snap_i, int flag_population) // flag_population if you want II or III
 {
   double interp_fcoll;
-  
+
   if (flag_population == 2) {
     if (snap_i == 0) {
       // This should never occur...
@@ -1949,15 +1946,14 @@ double interpolate_fcoll(double redshift, int snap_i, int flag_population) // fl
     if (interp_fcoll < 0.0) {
       interp_fcoll = 0.0;
     }
-  }
-  else if (flag_population == 3) {
+  } else if (flag_population == 3) {
     if (snap_i == 0) {
       // This should never occur...
       interp_fcoll = stored_fcollIII[snap_i];
     } else {
       interp_fcoll = stored_fcollIII[snap_i - 1] + (redshift - run_globals.ZZ[snap_i - 1]) *
-                                                  (stored_fcollIII[snap_i] - stored_fcollIII[snap_i - 1]) /
-                                                  (run_globals.ZZ[snap_i] - run_globals.ZZ[snap_i - 1]);
+                                                     (stored_fcollIII[snap_i] - stored_fcollIII[snap_i - 1]) /
+                                                     (run_globals.ZZ[snap_i] - run_globals.ZZ[snap_i - 1]);
     }
 
     if (interp_fcoll < 0.0) {

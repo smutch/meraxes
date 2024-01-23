@@ -70,10 +70,11 @@ void calculate_Mvir_crit_MC(double redshift)
   int local_n_cell = local_n_x * ReionGridDim * ReionGridDim;
 
   double Hubble_h = run_globals.params.Hubble_h;
-  if (run_globals.params.Flag_IncludeStreamVel) 
-      cell_Mvir_crit_MC = Mcool_SV(redshift, 1); // Assume 1 rms for now. In the future you might want to investigate this parameter
+  if (run_globals.params.Flag_IncludeStreamVel)
+    cell_Mvir_crit_MC =
+      Mcool_SV(redshift, 1); // Assume 1 rms for now. In the future you might want to investigate this parameter
   else
-      cell_Mvir_crit_MC = Mcool_SV(redshift, 0); 
+    cell_Mvir_crit_MC = Mcool_SV(redshift, 0);
 
   float* JLW_box = run_globals.reion_grids.JLW_box;
 
@@ -84,9 +85,10 @@ void calculate_Mvir_crit_MC(double redshift)
   for (int ii = 0; ii < local_n_x; ii++) {
     for (int jj = 0; jj < ReionGridDim; jj++) {
       for (int kk = 0; kk < ReionGridDim; kk++) {
-          Mvir_crit_MC[grid_index(ii, jj, kk, ReionGridDim, INDEX_REAL)] =
-            (float)(cell_Mvir_crit_MC *
-            (1.0 + 6.96 * (pow(4 * M_PI * JLW_box[grid_index(ii, jj, kk, ReionGridDim, INDEX_REAL)], 0.47)))); // Fitting function Visbal+14, converting in internal units (1e10Msol/h)
+        Mvir_crit_MC[grid_index(ii, jj, kk, ReionGridDim, INDEX_REAL)] =
+          (float)(cell_Mvir_crit_MC *
+                  (1.0 + 6.96 * (pow(4 * M_PI * JLW_box[grid_index(ii, jj, kk, ReionGridDim, INDEX_REAL)],
+                                     0.47)))); // Fitting function Visbal+14, converting in internal units (1e10Msol/h)
       }
     }
   }

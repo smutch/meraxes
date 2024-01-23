@@ -25,8 +25,9 @@ double gas_infall(fof_group_t* FOFgroup, int snapshot)
   double total_ejectedgas = 0.0;
   double total_blackholemass = 0.0;
 #if USE_MINI_HALOS
-  double total_remnantmass = 0.0; // This come either from the BHs formed after Pop III stars that fail becoming SN and directly collapse or from CCSN. Atm these don't accrete and they don't do anything.
-#endif 
+  double total_remnantmass = 0.0; // This come either from the BHs formed after Pop III stars that fail becoming SN and
+                                  // directly collapse or from CCSN. Atm these don't accrete and they don't do anything.
+#endif
 
   // Calculate the total baryon mass in the FOF group
   central = FOFgroup->FirstOccupiedHalo->Galaxy;
@@ -41,9 +42,9 @@ double gas_infall(fof_group_t* FOFgroup, int snapshot)
       total_blackholemass += gal->BlackHoleMass + gal->BlackHoleAccretingColdMass;
 #if USE_MINI_HALOS
       total_remnantmass += gal->Remnant_Mass;
-#endif 
+#endif
 
-      if (gal != central) { 
+      if (gal != central) {
         central->HotGas += gal->HotGas + gal->EjectedGas;
         central->MetalsHotGas += gal->MetalsHotGas + gal->MetalsEjectedGas;
         gal->HotGas = 0.0;
@@ -69,7 +70,7 @@ double gas_infall(fof_group_t* FOFgroup, int snapshot)
 
   total_baryons = total_stellarmass + total_hotgas + total_coldgas + total_ejectedgas + total_blackholemass;
 #if USE_MINI_HALOS
-  total_baryons += total_remnantmass; 
+  total_baryons += total_remnantmass;
 #endif
 
   // Calculate the amount of fresh gas required to provide the baryon
@@ -100,8 +101,7 @@ void add_infall_to_hot(galaxy_t* central, double infall_mass)
         central->MetalsHotGas += infall_mass * central->Metallicity_IGM;
     }
 #endif
-  }
-  else {
+  } else {
     double strip_mass = -infall_mass;
     // otherwise, strip the mass from the ejected
     if (central->EjectedGas > 0) {

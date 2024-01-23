@@ -36,7 +36,7 @@ static void backfill_ghost_star_formation(galaxy_t* gal, double m_stars, double 
   }
 }
 
-void update_reservoirs_from_sf(galaxy_t* gal, double new_stars, int snapshot, SFtype type) 
+void update_reservoirs_from_sf(galaxy_t* gal, double new_stars, int snapshot, SFtype type)
 {
   if (new_stars > 0) {
     double metallicity;
@@ -54,18 +54,18 @@ void update_reservoirs_from_sf(galaxy_t* gal, double new_stars, int snapshot, SF
     gal->MetalsColdGas -= new_stars * metallicity;
     gal->StellarMass += new_stars;
     gal->MetalsStellarMass += new_stars * metallicity;
-    
+
 #if USE_MINI_HALOS
-    if (gal->Galaxy_Population == 2){
+    if (gal->Galaxy_Population == 2) {
       gal->StellarMass_II += new_stars;
       gal->GrossStellarMass += new_stars;
-    }
-    else if (gal->Galaxy_Population == 3){
+    } else if (gal->Galaxy_Population == 3) {
       gal->StellarMass_III += new_stars;
       gal->GrossStellarMassIII += new_stars;
     }
 #else
-    gal->GrossStellarMass += new_stars; // If you are not distinguishing III/II you just have one variable which is the total one
+    gal->GrossStellarMass +=
+      new_stars; // If you are not distinguishing III/II you just have one variable which is the total one
 #endif
 
     if ((type == INSITU) && !Flag_IRA && (gal->LastIdentSnap < (snapshot - 1))) {
@@ -73,7 +73,7 @@ void update_reservoirs_from_sf(galaxy_t* gal, double new_stars, int snapshot, SF
       // escape fraction dependent properties to reflect this new insitu
       // SF burst.
       backfill_ghost_star_formation(gal, new_stars, sfr, metallicity, snapshot);
-      } else {
+    } else {
       // update the stellar mass history assuming the burst is happening in this snapshot
 #ifdef CALC_MAGS
       if (sfr > 0.)
@@ -109,7 +109,7 @@ void update_reservoirs_from_sf(galaxy_t* gal, double new_stars, int snapshot, SF
   }
 }
 
-void insitu_star_formation(galaxy_t* gal, int snapshot) 
+void insitu_star_formation(galaxy_t* gal, int snapshot)
 {
   // there is no point doing anything if there is no cold gas!
   if (gal->ColdGas > 1e-10) {
@@ -135,7 +135,7 @@ void insitu_star_formation(galaxy_t* gal, int snapshot)
     zplus1_n_III = pow(zplus1, run_globals.params.physics.SfEfficiencyScaling_III);
 #endif
 
-    double SfEfficiency_II = run_globals.params.physics.SfEfficiency; 
+    double SfEfficiency_II = run_globals.params.physics.SfEfficiency;
 #if USE_MINI_HALOS
     double SfEfficiency_III = run_globals.params.physics.SfEfficiency_III;
     double SfCriticalSDNorm_III = run_globals.params.physics.SfCriticalSDNorm_III;
@@ -203,7 +203,8 @@ void insitu_star_formation(galaxy_t* gal, int snapshot)
       m_stars = gal->ColdGas;
     // calculate the total supernova feedback which would occur if this star
     // formation happened continuously and evenly throughout the snapshot
-    contemporaneous_supernova_feedback(gal, &m_stars, snapshot, &m_reheat, &m_eject, &m_recycled, &m_remnant, &new_metals);
+    contemporaneous_supernova_feedback(
+      gal, &m_stars, snapshot, &m_reheat, &m_eject, &m_recycled, &m_remnant, &new_metals);
     // update the baryonic reservoirs (note that the order we do this in will change the result!)
     update_reservoirs_from_sf(gal, m_stars, snapshot, INSITU);
 #if USE_MINI_HALOS

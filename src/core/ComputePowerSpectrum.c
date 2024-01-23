@@ -15,7 +15,7 @@
  *
  */
 
-void Initialise_PowerSpectrum() 
+void Initialise_PowerSpectrum()
 {
 
   double box_size = run_globals.params.BoxSize / run_globals.params.Hubble_h; // Mpc
@@ -41,7 +41,8 @@ void Initialise_PowerSpectrum()
   mlog("Initialise_PowerSpectrum set PS_Length to %d.", MLOG_MESG, run_globals.params.PS_Length);
 }
 
-void Compute_PS(int snapshot) // Adding the 21cm PS if only Pop II are present! Still not 100% sure. Still not disentangling reionization.
+void Compute_PS(int snapshot) // Adding the 21cm PS if only Pop II are present! Still not 100% sure. Still not
+                              // disentangling reionization.
 {
 
   float* delta_T = run_globals.reion_grids.delta_T;
@@ -53,7 +54,8 @@ void Compute_PS(int snapshot) // Adding the 21cm PS if only Pop II are present! 
 
   fftwf_complex* deldel_ps = fftwf_alloc_complex((size_t)run_globals.reion_grids.slab_n_complex[run_globals.mpi_rank]);
 #if USE_MINI_HALOS
-  fftwf_complex* deldel_psII = fftwf_alloc_complex((size_t)run_globals.reion_grids.slab_n_complex[run_globals.mpi_rank]);
+  fftwf_complex* deldel_psII =
+    fftwf_alloc_complex((size_t)run_globals.reion_grids.slab_n_complex[run_globals.mpi_rank]);
 #endif
 
   float volume = powf((float)(float)box_size, 3);
@@ -65,17 +67,17 @@ void Compute_PS(int snapshot) // Adding the 21cm PS if only Pop II are present! 
   int ii, jj, kk, n_x, n_y, n_z;
 
   double ave;
-#if USE_MINI_HALOS  
+#if USE_MINI_HALOS
   double aveII;
 #endif
 
   mlog("Calculating the 21cm power spectrum (dimensional, i.e mK^2)", MLOG_MESG);
 
   ave = 0.0;
-#if USE_MINI_HALOS  
+#if USE_MINI_HALOS
   aveII = 0.0;
 #endif
-  
+
   for (ii = 0; ii < local_nix; ii++) {
     for (jj = 0; jj < ReionGridDim; jj++) {
       for (kk = 0; kk < ReionGridDim; kk++) {
@@ -89,9 +91,9 @@ void Compute_PS(int snapshot) // Adding the 21cm PS if only Pop II are present! 
   MPI_Allreduce(MPI_IN_PLACE, &ave, 1, MPI_DOUBLE, MPI_SUM, run_globals.mpi_comm);
 
   ave /= total_n_cells;
-#if USE_MINI_HALOS  
+#if USE_MINI_HALOS
   MPI_Allreduce(MPI_IN_PLACE, &aveII, 1, MPI_DOUBLE, MPI_SUM, run_globals.mpi_comm);
-  
+
   aveII /= total_n_cells;
 #endif
 
@@ -102,7 +104,7 @@ void Compute_PS(int snapshot) // Adding the 21cm PS if only Pop II are present! 
           (float)((delta_T[grid_index(ii, jj, kk, ReionGridDim, INDEX_REAL)] / ave - 1) * volume /
                   (float)total_n_cells);
         ((float*)deldel_ps)[grid_index(ii, jj, kk, ReionGridDim, INDEX_PADDED)] *= ave;
-#if USE_MINI_HALOS        
+#if USE_MINI_HALOS
         ((float*)deldel_psII)[grid_index(ii, jj, kk, ReionGridDim, INDEX_PADDED)] =
           (float)((delta_TII[grid_index(ii, jj, kk, ReionGridDim, INDEX_REAL)] / aveII - 1) * volume /
                   (float)total_n_cells);
@@ -116,7 +118,7 @@ void Compute_PS(int snapshot) // Adding the 21cm PS if only Pop II are present! 
     ReionGridDim, ReionGridDim, ReionGridDim, (float*)deldel_ps, deldel_ps, run_globals.mpi_comm, FFTW_ESTIMATE);
   fftwf_execute(plan);
   fftwf_destroy_plan(plan);
-#if USE_MINI_HALOS  
+#if USE_MINI_HALOS
   fftwf_plan planII = fftwf_mpi_plan_dft_r2c_3d(
     ReionGridDim, ReionGridDim, ReionGridDim, (float*)deldel_psII, deldel_psII, run_globals.mpi_comm, FFTW_ESTIMATE);
   fftwf_execute(planII);
@@ -192,9 +194,9 @@ void Compute_PS(int snapshot) // Adding the 21cm PS if only Pop II are present! 
                          (2.0 * M_PI * M_PI * volume);
 #if USE_MINI_HALOS
             p_boxII[ct] += pow(k_mag, 3) *
-                         pow(cabs(deldel_psII[grid_index(n_x, n_y, n_z, ReionGridDim, INDEX_COMPLEX_HERM)]), 2.) /
-                         (2.0 * M_PI * M_PI * volume);           
-#endif  
+                           pow(cabs(deldel_psII[grid_index(n_x, n_y, n_z, ReionGridDim, INDEX_COMPLEX_HERM)]), 2.) /
+                           (2.0 * M_PI * M_PI * volume);
+#endif
             // note the 1/VOLUME factor, which turns this into a power density in k-space
 
             k_ave[ct] += k_mag;
@@ -213,7 +215,7 @@ void Compute_PS(int snapshot) // Adding the 21cm PS if only Pop II are present! 
   float* PS_data = run_globals.reion_grids.PS_data;
   float* PS_error = run_globals.reion_grids.PS_error;
 
-#if USE_MINI_HALOS  
+#if USE_MINI_HALOS
   float* PSII_data = run_globals.reion_grids.PSII_data;
   float* PSII_error = run_globals.reion_grids.PSII_error;
 #endif
@@ -232,7 +234,7 @@ void Compute_PS(int snapshot) // Adding the 21cm PS if only Pop II are present! 
     PS_data[ii] = (float)(p_box[ii] / (double)in_bin_ct[ii]);
     PS_error[ii] = (float)((p_box[ii] / (double)in_bin_ct[ii]) / sqrt((double)in_bin_ct[ii]));
 
-#if USE_MINI_HALOS    
+#if USE_MINI_HALOS
     PSII_data[ii] = (float)(p_boxII[ii] / (double)in_bin_ct[ii]);
     PSII_error[ii] = (float)((p_boxII[ii] / (double)in_bin_ct[ii]) / sqrt((double)in_bin_ct[ii]));
 #endif

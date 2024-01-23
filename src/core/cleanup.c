@@ -42,7 +42,7 @@ void cleanup()
   }
 
 #if USE_MINI_HALOS
-  if (run_globals.params.Flag_IncludeMetalEvo) 
+  if (run_globals.params.Flag_IncludeMetalEvo)
     free_metal_grids();
 #endif
 

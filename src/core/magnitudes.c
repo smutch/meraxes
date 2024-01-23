@@ -1,12 +1,12 @@
 #include "mlog.h"
 #ifdef CALC_MAGS
 
-#include <assert.h>
 #include "debug.h"
 #include "magnitudes.h"
 #include "meraxes.h"
 #include "misc_tools.h"
 #include "parse_paramfile.h"
+#include <assert.h>
 
 void init_luminosities(galaxy_t* gal)
 {
@@ -28,7 +28,12 @@ void init_luminosities(galaxy_t* gal)
   }
 }
 
-void add_luminosities(mag_params_t* miniSpectra, galaxy_t* gal, int snapshot, double metals, double sfr, double new_stars)
+void add_luminosities(mag_params_t* miniSpectra,
+                      galaxy_t* gal,
+                      int snapshot,
+                      double metals,
+                      double sfr,
+                      double new_stars)
 {
   // Add luminosities when there is a burst. SFRs in principal should be in a
   // unit of M_solar/yr. However, one can convert the unit on final results
@@ -67,30 +72,27 @@ void add_luminosities(mag_params_t* miniSpectra, galaxy_t* gal, int snapshot, do
     iA = nAgeStep - snapshot;
     if (iA >= 0) {
 #if USE_MINI_HALOS
-      if (gal->Galaxy_Population == 3){
+      if (gal->Galaxy_Population == 3) {
         offset = iA * MAGS_N_BANDS;
-        for (iF = 0; iF < MAGS_N_BANDS; ++iF){
+        for (iF = 0; iF < MAGS_N_BANDS; ++iF) {
           pOutBCFlux[iF] += sfr * pWorkingIII[offset + iF];
           pOutBCFluxIII[iF] += sfr * pWorkingIII[offset + iF];
         }
-      }
-      else
+      } else
 #endif
-	  {
+      {
         iAgeBC = miniSpectra->iAgeBC[iS];
         if (iA > iAgeBC) {
           offset = (Z * nAgeStep + iA) * MAGS_N_BANDS;
           for (iF = 0; iF < MAGS_N_BANDS; ++iF)
             pOutBCFlux[iF] += sfr * pWorking[offset + iF];
-        } 
-        else if (iA == iAgeBC) {
+        } else if (iA == iAgeBC) {
           offset = Z * MAGS_N_BANDS;
           for (iF = 0; iF < MAGS_N_BANDS; ++iF) {
             pInBCFlux[iF] += sfr * pInBC[offset + iF];
             pOutBCFlux[iF] += sfr * pOutBC[offset + iF];
           }
-        }
-        else {
+        } else {
           offset = (Z * nAgeStep + iA) * MAGS_N_BANDS;
           for (iF = 0; iF < MAGS_N_BANDS; ++iF)
             pInBCFlux[iF] += sfr * pWorking[offset + iF];
@@ -163,11 +165,11 @@ void init_templates_mini(mag_params_t* miniSpectra,
 #endif
   int nAgeStep;
   double* ageStep;
-  
+
 #if USE_MINI_HALOS
   double* ageStepIII;
 #endif
-  
+
   run_params_t* params = &run_globals.params;
   double deltaT = params->DeltaT * 1e6; // Input value in Myrs
 
@@ -188,7 +190,7 @@ void init_templates_mini(mag_params_t* miniSpectra,
     //   -Should be in a unit of yr
     for (int iA = 0; iA < nAgeStep; ++iA)
       ageStep[iA] = LTTime[nAgeStep - iA - 1] - LTTime[nAgeStep];
-    
+
     spectra[iS].ageStep = ageStep;
     //   -This function may be omitted
     shrink_templates_raw(spectra + iS, ageStep[nAgeStep - 1]);
@@ -207,24 +209,23 @@ void init_templates_mini(mag_params_t* miniSpectra,
     init_filters(spectraIII + iS, betaBands, nBeta, restBands, nRest, NULL, NULL, NULL, 0, 1. + redshifts[iS]);
     spectraIII[iS].nAgeStep = nAgeStep;
     ageStepIII = (double*)malloc(nAgeStep * sizeof(double));
-    if ((bool)run_globals.params.physics.InstantSfIII){
+    if ((bool)run_globals.params.physics.InstantSfIII) {
       for (int iA = 0; iA < nAgeStep; ++iA) {
         ageStepIII[iA] = LTTime[nAgeStep - iA] - LTTime[nAgeStep];
-        ageStepIII[iA] += deltaT; // deltaT defined in input parameters and already converted into yrs. 
+        ageStepIII[iA] += deltaT; // deltaT defined in input parameters and already converted into yrs.
       }
-    }
-    else{
+    } else {
       for (int iA = 0; iA < nAgeStep; ++iA)
         ageStepIII[iA] = LTTime[nAgeStep - iA - 1] - LTTime[nAgeStep];
     }
-    assert(ageStepIII[0] > 0.); 
+    assert(ageStepIII[0] > 0.);
     spectraIII[iS].ageStep = ageStepIII;
     shrink_templates_raw(spectraIII + iS, ageStepIII[nAgeStep - 1]);
     spectraIII[iS].igm = 0;
     if ((bool)run_globals.params.physics.InstantSfIII)
-        init_templates_interpolate(spectraIII + iS);
+      init_templates_interpolate(spectraIII + iS);
     else
-        init_templates_integrated(spectraIII + iS);
+      init_templates_integrated(spectraIII + iS);
     spectraIII[iS].ready = (double*)malloc(nAgeStep * spectraIII[iS].nWaves * sizeof(double));
     spectraIII[iS].working = (double*)malloc(nAgeStep * spectraIII[iS].nFlux * sizeof(double));
     init_templates_workingIII(spectraIII + iS);
@@ -450,14 +451,14 @@ void init_magnitudes(void)
 
     // Initialise SED templates
     memcpy(str, params->PhotometricTablesDir, sizeof(str));
-    strcat(str, "/sed_library.hdf5"); //Any file would be good
+    strcat(str, "/sed_library.hdf5"); // Any file would be good
     char* fname = str;
 
     char* fnameIII = params->PhotometricTablesDir;
 #if USE_MINI_HALOS
     int IMF_Type = run_globals.params.physics.PopIII_IMF;
     if (IMF_Type == 1)
-      strcat(fnameIII, "/Sal500_001.hdf5"); 
+      strcat(fnameIII, "/Sal500_001.hdf5");
     else if (IMF_Type == 2)
       strcat(fnameIII, "/Sal500_050.hdf5");
     else if (IMF_Type == 3)
@@ -526,7 +527,7 @@ void init_magnitudes(void)
   MPI_Bcast(&offset_inBCIII, sizeof(ptrdiff_t), MPI_BYTE, MASTER, mpi_comm);
   MPI_Bcast(&offset_outBCIII, sizeof(ptrdiff_t), MPI_BYTE, MASTER, mpi_comm);
 #endif
-  if (mpi_rank != MASTER){
+  if (mpi_rank != MASTER) {
     working = (double*)malloc(mag_params->totalSize);
 #if USE_MINI_HALOS
     workingIII = (double*)malloc(mag_params->totalSizeIII);
@@ -557,7 +558,8 @@ void cleanup_mags(void)
 }
 
 #if USE_MINI_HALOS
-void get_output_magnitudesIII(float* mags, galaxy_t* gal, int snapshot){
+void get_output_magnitudesIII(float* mags, galaxy_t* gal, int snapshot)
+{
   // Convert fluxes to AB magnitudes at all target snapshots.
 
   // Check if ``snapshot`` is a target snapshot

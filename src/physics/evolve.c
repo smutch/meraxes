@@ -4,8 +4,8 @@
 #include "core/stellar_feedback.h"
 #if USE_MINI_HALOS
 #include "core/PopIII.h"
-#include "core/virial_properties.h"
 #include "core/misc_tools.h"
+#include "core/virial_properties.h"
 #endif
 #include "infall.h"
 #include "meraxes.h"
@@ -17,7 +17,13 @@
 
 //! Evolve existing galaxies forward in time
 #if USE_MINI_HALOS
-int evolve_galaxies(fof_group_t* fof_group, int snapshot, int NGal, int NFof, int* gal_counter_Pop3, int* gal_counter_Pop2, int* gal_counter_enriched)
+int evolve_galaxies(fof_group_t* fof_group,
+                    int snapshot,
+                    int NGal,
+                    int NFof,
+                    int* gal_counter_Pop3,
+                    int* gal_counter_Pop2,
+                    int* gal_counter_enriched)
 #else
 int evolve_galaxies(fof_group_t* fof_group, int snapshot, int NGal, int NFof)
 #endif
@@ -34,7 +40,7 @@ int evolve_galaxies(fof_group_t* fof_group, int snapshot, int NGal, int NFof)
   double DiskMetallicity; // Need this to compute the internal enrichment in a more accurate way
   bool Flag_Metals = (bool)(run_globals.params.Flag_IncludeMetalEvo);
 #endif
-  
+
   mlog("Doing physics...", MLOG_OPEN | MLOG_TIMERSTART);
   // pre-calculate feedback tables for each lookback snapshot
   compute_stellar_feedback_tables(snapshot);
@@ -52,22 +58,26 @@ int evolve_galaxies(fof_group_t* fof_group, int snapshot, int NGal, int NFof)
         gal = halo->Galaxy;
 
         while (gal != NULL) {
-        
+
 #if USE_MINI_HALOS
-          if (Flag_Metals == true) { // Assign to newly formed galaxies metallicity of their cell according to a certain probability
-            if ((gal->Type == 0) && (gal->Flag_ExtMetEnr == 0)) { // In order to be consistent with the rest of Meraxes do this only for the central galaxies!
-              if ((gal->GalMetal_Probability <= gal->Metal_Probability) || (gal->GrossStellarMass + gal->GrossStellarMassIII) > 1e-10) {
-                gal->Flag_ExtMetEnr = 1; // Just update the flag. Here what I am saying is that a galaxy that already experienced SN events will surely be inside a metal bubble!
-                
+          if (Flag_Metals ==
+              true) { // Assign to newly formed galaxies metallicity of their cell according to a certain probability
+            if ((gal->Type == 0) &&
+                (gal->Flag_ExtMetEnr ==
+                 0)) { // In order to be consistent with the rest of Meraxes do this only for the central galaxies!
+              if ((gal->GalMetal_Probability <= gal->Metal_Probability) ||
+                  (gal->GrossStellarMass + gal->GrossStellarMassIII) > 1e-10) {
+                gal->Flag_ExtMetEnr = 1; // Just update the flag. Here what I am saying is that a galaxy that already
+                                         // experienced SN events will surely be inside a metal bubble!
+
                 *gal_counter_enriched = *gal_counter_enriched + 1;
                 if ((gal->Metallicity_IGM / 0.01) > run_globals.params.physics.ZCrit) {
                   *gal_counter_Pop2 = *gal_counter_Pop2 + 1;
                   gal->Galaxy_Population = 2;
-                  }
-                else
+                } else
                   gal->Galaxy_Population = 3; // Enriched but not enough
               }
-              
+
               else {
                 gal->Galaxy_Population = 3;
                 gal->Flag_ExtMetEnr = 0;
@@ -76,11 +86,13 @@ int evolve_galaxies(fof_group_t* fof_group, int snapshot, int NGal, int NFof)
             }
           }
 #endif
-          
+
           if (gal->Type == 0) {
             cooling_mass = gas_cooling(gal);
 
-            add_infall_to_hot(gal, infalling_gas / ((double)NSteps)); // This function is now updated! If the gal is externally enriched, we will add MetalHotGas according to IGM metallicity!
+            add_infall_to_hot(
+              gal, infalling_gas / ((double)NSteps)); // This function is now updated! If the gal is externally
+                                                      // enriched, we will add MetalHotGas according to IGM metallicity!
 
             reincorporate_ejected_gas(gal);
 
@@ -95,17 +107,18 @@ int evolve_galaxies(fof_group_t* fof_group, int snapshot, int NGal, int NFof)
               previous_merger_driven_BH_growth(gal);
 
 #if USE_MINI_HALOS
-            DiskMetallicity = calc_metallicity(gal->ColdGas, gal->MetalsColdGas); // A more accurate way to account for the internal enrichment!
+            DiskMetallicity = calc_metallicity(
+              gal->ColdGas, gal->MetalsColdGas); // A more accurate way to account for the internal enrichment!
             if ((DiskMetallicity / 0.01) > run_globals.params.physics.ZCrit)
               gal->Galaxy_Population = 2;
             else
               gal->Galaxy_Population = 3;
 #endif
-  
+
             insitu_star_formation(gal, snapshot);
 
 #if USE_MINI_HALOS
-            if ((Flag_Metals == true) && (gal->Type < 3)) { //For gal->Type > 0 you are just letting the bubble grow
+            if ((Flag_Metals == true) && (gal->Type < 3)) { // For gal->Type > 0 you are just letting the bubble grow
               calc_metal_bubble(gal, snapshot);
             }
 #endif
@@ -116,7 +129,7 @@ int evolve_galaxies(fof_group_t* fof_group, int snapshot, int NGal, int NFof)
 
           if (i_step == NSteps - 1)
             gal_counter++;
-            
+
           gal = gal->NextGalInHalo;
         }
 
@@ -146,7 +159,7 @@ int evolve_galaxies(fof_group_t* fof_group, int snapshot, int NGal, int NFof)
     mlog("gal_counter = %d but NGal = %d", MLOG_MESG, gal_counter, NGal);
     ABORT(EXIT_FAILURE);
   }
-  
+
   mlog("...done", MLOG_CLOSE | MLOG_TIMERSTOP);
 
   return gal_counter - dead_gals;
@@ -164,7 +177,7 @@ void passively_evolve_ghost(galaxy_t* gal, int snapshot)
 
   if (!Flag_IRA)
     delayed_supernova_feedback(gal, snapshot);
-    
-  //if (Flag_Metals == true) // You are updating this function to test why probability is decreasing in some cells
-    //calc_metal_bubble(gal, snapshot); 
+
+  // if (Flag_Metals == true) // You are updating this function to test why probability is decreasing in some cells
+  // calc_metal_bubble(gal, snapshot);
 }

@@ -11,8 +11,8 @@
 #include "read_halos.h"
 #include "reionization.h"
 #if USE_MINI_HALOS
-#include "metal_evo.h"
 #include "PopIII.h"
+#include "metal_evo.h"
 #include "read_grids.h"
 #include "stellar_feedback.h"
 #include "virial_properties.h" //For the test
@@ -86,9 +86,9 @@ void dracarys()
     int new_gal_counter = 0;
     int ghost_counter = 0;
 #if USE_MINI_HALOS
-    int gal_counter_Pop3 = 0; // Newly formed Pop3 Gal
-    int gal_counter_Pop2 = 0; // Newly formed Pop2 Gal
-    int gal_counter_enriched = 0; //Enriched but they could be still Pop3
+    int gal_counter_Pop3 = 0;     // Newly formed Pop3 Gal
+    int gal_counter_Pop2 = 0;     // Newly formed Pop2 Gal
+    int gal_counter_enriched = 0; // Enriched but they could be still Pop3
 #endif
 
     mlog("", MLOG_MESG);
@@ -123,7 +123,7 @@ void dracarys()
       calculate_Mvir_crit(run_globals.ZZ[snapshot]);
 
 #if USE_MINI_HALOS
-	  if (run_globals.params.Flag_IncludeLymanWerner)
+      if (run_globals.params.Flag_IncludeLymanWerner)
         calculate_Mvir_crit_MC(run_globals.ZZ[snapshot]);
 #endif
     }
@@ -297,7 +297,7 @@ void dracarys()
       if (!gal->ghost_flag)
         gal->dt /= (double)NSteps;
       else
-        passively_evolve_ghost(gal, snapshot); 
+        passively_evolve_ghost(gal, snapshot);
 
       if ((gal->Type < 2) && (!gal->ghost_flag))
         copy_halo_props_to_galaxy(gal->Halo, gal);
@@ -319,20 +319,27 @@ void dracarys()
 #endif
       }
     }
-    
+
 #if USE_MINI_HALOS
-    if (run_globals.params.Flag_IncludeMetalEvo) { // Need this for metal grid, here you assign to galaxies their metallicity and probabilities from bubbles
+    if (run_globals.params.Flag_IncludeMetalEvo) { // Need this for metal grid, here you assign to galaxies their
+                                                   // metallicity and probabilities from bubbles
       int ngals_in_metal_slabs = map_galaxies_to_slabs_metals(NGal);
       for (int ii = 0; ii < 5; ii++) {
-        assign_probability_to_galaxies(ngals_in_metal_slabs, snapshot, ii); 
+        assign_probability_to_galaxies(ngals_in_metal_slabs, snapshot, ii);
       }
     }
 #endif
-    
+
     // Do the physics
     if (NGal > 0)
 #if USE_MINI_HALOS
-      nout_gals = evolve_galaxies(fof_group, snapshot, NGal, trees_info.n_fof_groups, &gal_counter_Pop3, &gal_counter_Pop2, &gal_counter_enriched);
+      nout_gals = evolve_galaxies(fof_group,
+                                  snapshot,
+                                  NGal,
+                                  trees_info.n_fof_groups,
+                                  &gal_counter_Pop3,
+                                  &gal_counter_Pop2,
+                                  &gal_counter_enriched);
 #else
       nout_gals = evolve_galaxies(fof_group, snapshot, NGal, trees_info.n_fof_groups);
 #endif
@@ -387,10 +394,10 @@ void dracarys()
       // positions in the next time step
       free(run_globals.reion_grids.galaxy_to_slab_map);
     }
-    
+
 #if USE_MINI_HALOS
     if (run_globals.params.Flag_IncludeMetalEvo) {
-    
+
       construct_metal_grids(snapshot, nout_gals);
       smooth_Densitygrid_real(snapshot);
       save_metal_input_grids(snapshot);
@@ -404,12 +411,12 @@ void dracarys()
     MPI_Allreduce(MPI_IN_PLACE, &kill_counter, 1, MPI_INT, MPI_SUM, run_globals.mpi_comm);
     MPI_Allreduce(MPI_IN_PLACE, &new_gal_counter, 1, MPI_INT, MPI_SUM, run_globals.mpi_comm);
     MPI_Allreduce(MPI_IN_PLACE, &ghost_counter, 1, MPI_INT, MPI_SUM, run_globals.mpi_comm);
-    
+
     mlog("Newly identified merger events    :: %d", MLOG_MESG, merger_counter);
     mlog("Killed galaxies                   :: %d", MLOG_MESG, kill_counter);
     mlog("Newly created galaxies            :: %d", MLOG_MESG, new_gal_counter);
     mlog("Galaxies in ghost halos           :: %d", MLOG_MESG, ghost_counter);
-    
+
 #if USE_MINI_HALOS
     MPI_Allreduce(MPI_IN_PLACE, &gal_counter_Pop3, 1, MPI_INT, MPI_SUM, run_globals.mpi_comm);
     MPI_Allreduce(MPI_IN_PLACE, &gal_counter_enriched, 1, MPI_INT, MPI_SUM, run_globals.mpi_comm);
@@ -461,7 +468,7 @@ void dracarys()
       run_globals.reion_grids.started = 0;
       run_globals.reion_grids.finished = 0;
 
-      init_reion_grids(); 
+      init_reion_grids();
     }
   }
 

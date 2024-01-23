@@ -11,7 +11,7 @@
 #include "metal_evo.h"
 #endif
 
-static float current_mwmsa(galaxy_t* gal, int i_snap) 
+static float current_mwmsa(galaxy_t* gal, int i_snap)
 {
   double* LTTime = run_globals.LTTime;
   double mwmsa_num = gal->mwmsa_num;
@@ -88,25 +88,25 @@ void prepare_galaxy_for_output(galaxy_t gal, galaxy_output_t* galout, int i_snap
   galout->MergTime = (float)(gal.MergTime * units->UnitTime_in_Megayears);
   galout->MergerStartRadius = (float)(gal.MergerStartRadius);
   galout->MWMSA = current_mwmsa(&gal, i_snap);
-  
+
 #if USE_MINI_HALOS
   galout->GrossStellarMassIII = (float)(gal.GrossStellarMassIII);
   galout->FescIII = (float)(gal.FescIII);
   galout->FescIIIWeightedGSM = (float)(gal.FescIIIWeightedGSM);
-  
+
   galout->MvirCrit_MC = (float)(gal.MvirCrit_MC);
 
-  galout->RmetalBubble = (float)(gal.RmetalBubble); //new for MetalEvo
+  galout->RmetalBubble = (float)(gal.RmetalBubble); // new for MetalEvo
   galout->Galaxy_Population = (int)(gal.Galaxy_Population);
   galout->Flag_ExtMetEnr = (int)(gal.Flag_ExtMetEnr);
   galout->Metal_Probability = (float)(gal.Metal_Probability);
   galout->GalMetal_Probability = (float)(gal.GalMetal_Probability);
   galout->StellarMass_II = (float)(gal.StellarMass_II);
-  galout->StellarMass_III = (float)(gal.StellarMass_III); 
-  galout->Remnant_Mass = (float)(gal.Remnant_Mass); 
+  galout->StellarMass_III = (float)(gal.StellarMass_III);
+  galout->Remnant_Mass = (float)(gal.Remnant_Mass);
 #endif
 
-  for (int ii = 0; ii < N_HISTORY_SNAPS; ii++){
+  for (int ii = 0; ii < N_HISTORY_SNAPS; ii++) {
     galout->NewStars[ii] = (float)(gal.NewStars[ii]);
 #if USE_MINI_HALOS
     galout->NewStars_III[ii] = (float)(gal.NewStars_III[ii]);
@@ -134,7 +134,7 @@ void calc_hdf5_props()
     galaxy_output_t galout;
     int i; // dummy
 
-    h5props->n_props = 49; 
+    h5props->n_props = 49;
 #if USE_MINI_HALOS
     h5props->n_props += 14; // Double check later
 #endif
@@ -192,7 +192,7 @@ void calc_hdf5_props()
     h5props->field_units[i] = "None";
     h5props->field_h_conv[i] = "None";
     h5props->field_types[i++] = H5T_NATIVE_INT;
-    
+
 #if USE_MINI_HALOS
     h5props->dst_offsets[i] = HOFFSET(galaxy_output_t, Galaxy_Population);
     h5props->dst_field_sizes[i] = sizeof(galout.Galaxy_Population);
@@ -200,7 +200,7 @@ void calc_hdf5_props()
     h5props->field_units[i] = "None";
     h5props->field_h_conv[i] = "None";
     h5props->field_types[i++] = H5T_NATIVE_INT;
-    
+
     h5props->dst_offsets[i] = HOFFSET(galaxy_output_t, Flag_ExtMetEnr);
     h5props->dst_field_sizes[i] = sizeof(galout.Flag_ExtMetEnr);
     h5props->field_names[i] = "Flag_ExtMetEnr";
@@ -362,7 +362,7 @@ void calc_hdf5_props()
     h5props->field_units[i] = "1e10 solMass";
     h5props->field_h_conv[i] = "v/h";
     h5props->field_types[i++] = H5T_NATIVE_FLOAT;
-    
+
 #if USE_MINI_HALOS
     h5props->dst_offsets[i] = HOFFSET(galaxy_output_t, StellarMass_II);
     h5props->dst_field_sizes[i] = sizeof(galout.StellarMass_II);
@@ -370,21 +370,21 @@ void calc_hdf5_props()
     h5props->field_units[i] = "1e10 solMass";
     h5props->field_h_conv[i] = "v/h";
     h5props->field_types[i++] = H5T_NATIVE_FLOAT;
-    
+
     h5props->dst_offsets[i] = HOFFSET(galaxy_output_t, StellarMass_III);
     h5props->dst_field_sizes[i] = sizeof(galout.StellarMass_III);
     h5props->field_names[i] = "Pop3StellarMass";
     h5props->field_units[i] = "1e10 solMass";
     h5props->field_h_conv[i] = "v/h";
     h5props->field_types[i++] = H5T_NATIVE_FLOAT;
-    
+
     h5props->dst_offsets[i] = HOFFSET(galaxy_output_t, Remnant_Mass);
     h5props->dst_field_sizes[i] = sizeof(galout.Remnant_Mass);
     h5props->field_names[i] = "RemnantMass";
     h5props->field_units[i] = "1e10 solMass";
     h5props->field_h_conv[i] = "v/h";
     h5props->field_types[i++] = H5T_NATIVE_FLOAT;
-    
+
     h5props->dst_offsets[i] = HOFFSET(galaxy_output_t, GrossStellarMassIII);
     h5props->dst_field_sizes[i] = sizeof(galout.GrossStellarMassIII);
     h5props->field_names[i] = "GrossStellarMassIII";
@@ -399,7 +399,6 @@ void calc_hdf5_props()
     h5props->field_units[i] = "1e10 solMass";
     h5props->field_h_conv[i] = "v/h";
     h5props->field_types[i++] = H5T_NATIVE_FLOAT;
-    
 
     h5props->dst_offsets[i] = HOFFSET(galaxy_output_t, MetalsStellarMass);
     h5props->dst_field_sizes[i] = sizeof(galout.MetalsStellarMass);
@@ -453,22 +452,22 @@ void calc_hdf5_props()
     h5props->field_units[i] = "1e10 solMass";
     h5props->field_h_conv[i] = "v/h";
     h5props->field_types[i++] = H5T_NATIVE_FLOAT;
-    
+
 #if USE_MINI_HALOS
-	h5props->dst_offsets[i] = HOFFSET(galaxy_output_t, RmetalBubble);
+    h5props->dst_offsets[i] = HOFFSET(galaxy_output_t, RmetalBubble);
     h5props->dst_field_sizes[i] = sizeof(galout.RmetalBubble);
     h5props->field_names[i] = "RmetalBubble";
     h5props->field_units[i] = "Mpc";
     h5props->field_h_conv[i] = "v/h";
     h5props->field_types[i++] = H5T_NATIVE_FLOAT;
-    
+
     h5props->dst_offsets[i] = HOFFSET(galaxy_output_t, Metal_Probability);
     h5props->dst_field_sizes[i] = sizeof(galout.Metal_Probability);
     h5props->field_names[i] = "MetalProbability";
     h5props->field_units[i] = "None";
     h5props->field_h_conv[i] = "None";
     h5props->field_types[i++] = H5T_NATIVE_FLOAT;
-    
+
     h5props->dst_offsets[i] = HOFFSET(galaxy_output_t, GalMetal_Probability);
     h5props->dst_field_sizes[i] = sizeof(galout.GalMetal_Probability);
     h5props->field_names[i] = "GalMetalProbability";
@@ -562,7 +561,7 @@ void calc_hdf5_props()
     h5props->field_units[i] = "1e10 solMass";
     h5props->field_h_conv[i] = "v/h";
     h5props->field_types[i++] = h5props->array_nhist_f_tid;
-    
+
 #if USE_MINI_HALOS
     h5props->dst_offsets[i] = HOFFSET(galaxy_output_t, NewStars_II);
     h5props->dst_field_sizes[i] = sizeof(galout.NewStars_II);
@@ -570,21 +569,21 @@ void calc_hdf5_props()
     h5props->field_units[i] = "1e10 solMass";
     h5props->field_h_conv[i] = "v/h";
     h5props->field_types[i++] = h5props->array_nhist_f_tid;
-    
+
     h5props->dst_offsets[i] = HOFFSET(galaxy_output_t, NewStars_III);
     h5props->dst_field_sizes[i] = sizeof(galout.NewStars_III);
     h5props->field_names[i] = "NewStarsPop3";
     h5props->field_units[i] = "1e10 solMass";
     h5props->field_h_conv[i] = "v/h";
     h5props->field_types[i++] = h5props->array_nhist_f_tid;
-    
+
     h5props->dst_offsets[i] = HOFFSET(galaxy_output_t, FescIII);
     h5props->dst_field_sizes[i] = sizeof(galout.FescIII);
     h5props->field_names[i] = "FescIII";
     h5props->field_units[i] = "None";
     h5props->field_h_conv[i] = "None";
     h5props->field_types[i++] = H5T_NATIVE_FLOAT;
-    
+
     h5props->dst_offsets[i] = HOFFSET(galaxy_output_t, FescIIIWeightedGSM);
     h5props->dst_field_sizes[i] = sizeof(galout.FescIIIWeightedGSM);
     h5props->field_names[i] = "FescIIIWeightedGSM";
@@ -743,9 +742,9 @@ void create_master_file()
       H5LTset_attribute_string(file_id, group_name[1], h5props->field_names[ii], h5props->field_h_conv[ii]);
     }
   }
-  
+
 #if USE_MINI_HALOS
-  if (run_globals.params.Flag_IncludeMetalEvo) { 
+  if (run_globals.params.Flag_IncludeMetalEvo) {
     const char* group_name = { "Units/MetalGrids" };
     group_id = H5Gcreate(file_id, group_name, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
     H5LTset_attribute_string(file_id, group_name, "mass_metals", "solMass");
@@ -753,10 +752,10 @@ void create_master_file()
     H5LTset_attribute_string(file_id, group_name, "Zigm_box", "Zsol");
     H5LTset_attribute_string(file_id, group_name, "Probability_metals", "none");
     H5LTset_attribute_string(file_id, group_name, "N_bubbles", "none");
-    H5LTset_attribute_string(file_id, group_name, "R_ave", "cMpc"); 
+    H5LTset_attribute_string(file_id, group_name, "R_ave", "cMpc");
     H5LTset_attribute_string(file_id, group_name, "R_max", "cMpc");
     H5LTset_attribute_string(file_id, group_name, "mass_IGM", "solMass");
-    
+
     H5Gclose(group_id);
   }
 #endif
@@ -824,9 +823,9 @@ void create_master_file()
       H5LTset_attribute_string(file_id, group_name, "deltax", "None");
 
 #if USE_MINI_HALOS
-      if (run_globals.params.Flag_IncludeLymanWerner) { 
-        H5LTset_attribute_string(file_id, group_name, "JLW_box", "v"); 
-        H5LTset_attribute_string(file_id, group_name, "JLW_box_II", "v"); 
+      if (run_globals.params.Flag_IncludeLymanWerner) {
+        H5LTset_attribute_string(file_id, group_name, "JLW_box", "v");
+        H5LTset_attribute_string(file_id, group_name, "JLW_box_II", "v");
         H5LTset_attribute_string(file_id, group_name, "Mvir_crit_MC", "v/h");
       }
 #endif
@@ -929,7 +928,7 @@ void create_master_file()
           H5Fclose(source_file_id);
         }
       }
-      
+
 #if USE_MINI_HALOS
       if ((i_core == 0) && (run_globals.params.Flag_IncludeMetalEvo)) {
         // create links to the 21cmFAST grids that exist
