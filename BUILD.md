@@ -71,7 +71,6 @@ make && make install && make clean
 There are a few ways to do this, but the only way which is independent of the cmake version being used is the following:
 
 ```sh
-cd src
 mkdir build
 cd build
 cmake ..
