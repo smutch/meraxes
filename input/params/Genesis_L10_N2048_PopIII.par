@@ -5,89 +5,87 @@ FileNameGalaxies : genesis-L10_N2048
 #------------------------------------------
 #----- Simulation input files  ------------
 #------------------------------------------
-SimName           : Genesis L35_N2650
-SimulationDir     : /fred/oz113/balu/files_for_meraxes/L10_N2048 
-CatalogFilePrefix : VELOCIraptor.walkabletree.forestID.hdf5.0 
-TreesID           : 0  # 0 -> VELOCIraptor; 1 -> gbpTrees
-BoxSize           : 10.0
-VolumeFactor      : 1.0
+SimName           : Genesis L10_N2048 # Name of the N-body simulation 
+SimulationDir     : /fred/oz113/balu/files_for_meraxes/L10_N2048 # Path of the N-body (before /trees)
+CatalogFilePrefix : VELOCIraptor.walkabletree.forestID.hdf5.0 # N-body file. 
+TreesID           : 0  # MergerTree algorithm: 0 -> VELOCIraptor; 1 -> gbpTrees 
+BoxSize           : 10.0 # Mpc / h
+VolumeFactor      : 1.0 It looks like is not used anywhere so we might remove this! (Double check with Simon)
 
 #------------------------------------------
 #----- Code options -----------------------
 #------------------------------------------
-NSteps                 : 1  # Current version of code requires NSteps=1
+NSteps                 : 1  # Current version of code requires NSteps=1 
 FlagInteractive        : 0
 FlagSubhaloVirialProps : 0  # 0 -> approximate subhalo virial props using particle number; 1 -> use catalogue values
 FlagMCMC               : 0  # Don't do any writing and activate MCMC related routines
 FlagIgnoreProgIndex    : 0
 RandomSeed             : 1809  # seed for random number generator
 
-PhotometricTablesDir 	   : /fred/oz113/eventura/meraxes/input/photometric_tables
-CoolingFuncsDir      	   : /fred/oz113/eventura/meraxes/input/cooling_functions
-StellarFeedbackDir         : /fred/oz113/eventura/meraxes/input/stellar_feedback_tables/Kroupa
-TablesForXHeatingDir       : /fred/oz113/eventura/meraxes/input/21cmFAST-tables
+PhotometricTablesDir 	    : /fred/oz113/eventura/meraxes/input/photometric_tables # For Luminosity calculation
+CoolingFuncsDir      	    : /fred/oz113/eventura/meraxes/input/cooling_functions # For Gas cooling
+StellarFeedbackDir         : /fred/oz113/eventura/meraxes/input/stellar_feedback_tables/Kroupa # For Pop. II stellar feedback
+TablesForXHeatingDir       : /fred/oz113/eventura/meraxes/input/21cmFAST-tables # For X-ray heating (from 21cmFAST)
 
-Flag_IncludeRecombinations : 0
-Flag_Compute21cmBrightTemp : 0
-Flag_ComputePS             : 0
+Flag_IncludeRecombinations : 0   # if 1 reionization accounts for H-recombination
+Flag_Compute21cmBrightTemp : 0   # if 1 Meraxes computes the 21cm Brightness Temperature 
+Flag_ComputePS             : 0   # if 1 Meraxes computes the 21cm Power Spectrum
 Flag_IncludeSpinTemp       : 1   # if 0 Ts>>Tg
 Flag_SeparateQSOXrays      : 0   # NOT CURRENTLY IMPLEMENTED (CODE WILL FAIL IF != 0)
-Flag_IncludePecVelsFor21cm : 0
-Flag_ConstructLightcone    : 0
-Flag_IncludeLymanWerner    : 1   # Added by Manu for meraxes_LW
-Flag_IncludeMetalEvo       : 1   # Added by Manu for External metal Enrichment
-Flag_IncludeStreamVel      : 1   # Added by Manu for Streaming Velocities
+Flag_IncludePecVelsFor21cm : 0   # if 1 the computation of 21cm Tb accounts for peculiar velocities
+Flag_ConstructLightcone    : 0   # Ask Yuxiang or Brad
+Flag_IncludeLymanWerner    : 1   # if 1 Meraxes computes Lyman-Werner background (crucial for Minihalos)
+Flag_IncludeMetalEvo       : 1   # if 1 Meraxes computes the metal enrichment of the IGM.
+Flag_IncludeStreamVel      : 1   # if 1 Meraxes computes Streaming Velocities (relevant only for Minihalos)
 
 #################### External Metal enrichment, you need this when Flag_IncludeMetalEvo == 1 #################################
 
-MetalGridDim               : 128
+MetalGridDim               : 128    # Number of pixels in a side of the MetalGrid
 
-AlphaCluster               : -1.4 #For fitting function for Non Linear Clustering. 
+AlphaCluster               : -1.4   # Parameters of the fitting function for Non Linear Clustering (irrelevant in this version of the code). 
 BetaCluster                : 0.8
 GammaCluster               : 2.8
 NormCluster                : 200.0
 
-ZCrit                      : 0.0001 #If Z >= Zcrit -> PopII, otherwise PopIII
+ZCrit                      : 0.0001 # Critical metallicity. If Z >= Zcrit -> PopII, otherwise PopIII (crucial for Minihalos)
 
 ################################################
 
 
-##################### X-Ray stuff (including for Pop III) #######################
+##################### X-Ray stuff (including PopIII which a required when using Minihalos) #######################
 
 LXrayGal                   : 3.16e40         # Soft-band (< NuXraySoftCut keV) X-ray luminosity for galaxy based sources (HMXB)
-LXrayIII                   : 3.16e40         # PopIII
+LXrayIII                   : 3.16e40         # Same as above for PopIII
 
-NuXrayGalThreshold         : 500.  # Energy threshold for HMXB X-rays escaping host galaxy (eV)
-SpecIndexXrayGal           : 1.      # Spectral index of galaxy X-ray sources  (nu^-alpha)
-SpecIndexXrayIII           : 1.    # For Pop III
+NuXrayGalThreshold         : 500.            # Energy threshold for HMXB X-rays escaping host galaxy (eV)
+SpecIndexXrayGal           : 1.              # Spectral index of galaxy X-ray sources  (nu^-alpha)
+SpecIndexXrayIII           : 1.              # Same as above for Pop III
 LXrayQSO                   : 3.16e40         # Soft-band (< NuXraySoftCut keV) X-ray luminosity for QSO based sources
-NuXrayQSOThreshold         : 500.  # Energy threshold for QSO X-rays escaping host galaxy (eV)
-SpecIndexXrayQSO           : 1.      # Spectral index of QSO X-ray sources  (nu^-alpha)
-NuXraySoftCut              : 2000.      # X-ray soft-band cut off in (eV)
-NuXrayMax                  : 10000.         # Maximum energy for X-ray band integration
+NuXrayQSOThreshold         : 500.            # Energy threshold for QSO X-rays escaping host galaxy (eV)
+SpecIndexXrayQSO           : 1.              # Spectral index of QSO X-ray sources  (nu^-alpha)
+NuXraySoftCut              : 2000.           # X-ray soft-band cut off in (eV)
+NuXrayMax                  : 10000.          # Maximum energy for X-ray band integration
 
 #------------------------------------------
-#----- Parameters of physical model. New version of Manu includes Pop III so we need new parameters for Pop III! -------
+#----- Parameters of physical model. Includes PopIII required when using Minihalos. -------
 #------------------------------------------
 
-# ----- star formation (including Pop III) -----
-SfDiskVelOpt               : 1    # disk velocity for SF law (1=Vmax, 2=Vvir)
-SfPrescription             : 1    # C06 SF law IF YOU RUN POP III YOU NEED THIS == 1
+# ----- star formation (including PopIII) -----
+SfDiskVelOpt               : 1      # disk velocity for SF law (1=Vmax, 2=Vvir)
+SfPrescription             : 1      # C06 SF law IF YOU RUN POP III YOU NEED THIS == 1
 
 SfEfficiency              : 0.08    # star formation efficiency Normalization
-SfEfficiency_III          : 0.008   # for Pop III (atm the default value is the same of Pop II)
+SfEfficiency_III          : 0.008   # same as above for PopIII
 SfEfficiencyScaling       : 0.0     # star formation efficiency Scaling
-SfEfficiencyScaling_III   : 0.0
+SfEfficiencyScaling_III   : 0.0     # same as above for PopIII
 
 SfCriticalSDNorm          : 0.2     # critical surface density normalisation factor for star formation (internal units; standard=0.37)
-SfCriticalSDNorm_III      : 0.2     # Same as above for PopIII 
+SfCriticalSDNorm_III      : 0.2     # same as above for PopIII 
 
-# ----- Pop III IMF -----
-#AlphaIMF                  : -0.5 # Power-law index of the IMF (Fiducial is -0.5)
-#MminIMF                   : 1.0 # Minimum mass of IMF (Fiducial is 1)
-#MmaxIMF                   : 300.0 # Maximum mass of IMF (Fiducial is 300)
-PopIII_IMF                : 1 # 1-> Sal500_001, 2-> Sal500_050, 3->logA500_001, 4->logE500_001
-PopIIIAgePrescription     : 2 # 1->Schaerer Strong Mass Loss, 2-> Schaerer No Mass Loss
+# ----- Pop III IMF (you need this when running Minihalos) -----
+
+PopIII_IMF                : 1 # IMF type with Mup and Mlow: 1-> Sal500_001, 2-> Sal500_050, 3->logA500_001, 4->logE500_001
+PopIIIAgePrescription     : 2 # Age of PopIII stars: 1->Schaerer Strong Mass Loss, 2-> Schaerer No Mass Loss
 
 # ----------------------------------------------------------------
 # ----- Pressure-based SF law from Blitz & Rosolowski 2006 -------
@@ -103,12 +101,12 @@ PopIIIAgePrescription     : 2 # 1->Schaerer Strong Mass Loss, 2-> Schaerer No Ma
 
 
 # ----- supernova feedback -----
-Flag_IRA                   : 0    # use the instantaneous recycling approximation
-Flag_ReheatToFOFGroupTemp  : 0    # try to reheat gas to the FOF group Tvir instead of just the subgroup value
-SfRecycleFraction         : 0.25    # instantaneous recycle fraction (IMF dependant) (only used when Flag_IRA=1)
-SfRecycleFraction_III     : 0.25
-Yield                     : 0.03    # mass of metals injected into ISM per unit star formation (only used when Flag_IRA=1)
-Yield_III                 : 0.03
+Flag_IRA                   : 0       # use the instantaneous recycling approximation
+Flag_ReheatToFOFGroupTemp  : 0       # try to reheat gas to the FOF group Tvir instead of just the subgroup value
+SfRecycleFraction          : 0.25    # instantaneous recycle fraction (IMF dependant) (only used when Flag_IRA=1)
+SfRecycleFraction_III      : 0.25    # same as above for PopIII 
+Yield                      : 0.03    # mass of metals injected into ISM per unit star formation (only used when Flag_IRA=1)
+Yield_III                  : 0.03    # same as above for PopIII
 
 # SnModel=1:
 #   -Use the Vmax scaling of Guo et al. 2011
@@ -122,6 +120,8 @@ Yield_III                 : 0.03
 #   -SnEjectionNorm and SnReheatNorm are forced to be the same, and the input SnEjectionNorm is
 #    unused
 #   -Both factors has redshift dependence of ((1 + z)/4)^SnEjectionRedshiftDep (SnReheatRedshiftDep)
+
+# All parameters below are duplicated for PopIII 
 
 SnModel                   : 1
 SnEjectionRedshiftDep     : 0.0     # SN feedback gas reheating efficiency redshift scaling
@@ -163,8 +163,8 @@ ReincorporationModel      : 1
 ReincorporationEff        : 0.0     # gas reincorporation efficiency from ejected component
 
 # ----- mergers -----
-Flag_FixVmaxOnInfall       : 0    # fix Vmax upon infall
-Flag_FixDiskRadiusOnInfall : 0    # fix disk radius upon infall
+Flag_FixVmaxOnInfall       : 0      # fix Vmax upon infall
+Flag_FixDiskRadiusOnInfall : 0      # fix disk radius upon infall
 
 ThreshMajorMerger         : 0.3     # major merger when mass ratio greater than this
 MergerTimeFactor          : 0.5     # Multiplicitive fator for the merger timescales (2.0->DeLucia+; 1.0->Croton+)
@@ -190,7 +190,7 @@ quasar_open_angle         : 80.0
 
 
 #----------------------------------------------
-#----- Reionization (updated for Pop III) -----
+#----- Reionization -----
 #----------------------------------------------
 
 Flag_ReionizationModifier  : 1    # 0: No modifier, 1: Sobacchi 21cmFAST modifier, 2: use halo mass dependant infall modifier of Gnedin, 3: precomputed (requires input file)
@@ -225,7 +225,7 @@ ReionAlphaUVBH         : 1.57
 
 EscapeFracDependency       : 1  # 0->none, 1->redshift, 2->stellar mass, 3->sfr, 4->cold gas surface density, 5->mvir, 6->ssfr
 EscapeFracNorm             : 0.06
-EscapeFracNormIII          : 0.06 #EscapeFrac for Pop III
+EscapeFracNormIII          : 0.06 # same as above for PopIII
 EscapeFracRedshiftOffset   : 6.0
 EscapeFracRedshiftScaling  : 0.5  # N.B. use EscapeFracDependency>1 and this = 0 to scale only with galaxy property (and not also with redshift)
 EscapeFracPropScaling      : 0.5
@@ -240,7 +240,6 @@ ReionSMParam_d         : 2.5
 
 ReionTcool             : 1.0e4  # Kelvin
 ReionNionPhotPerBary   : 6000 # Since the IMF has been updated for the UV luminosity.
-#ReionNionPhotPerBary_III   : 6000 # You are now computing this from the choice of the IMF
 
 ReionSfrTimescale          : 0.5
 TsHeatingFilterType        : 1 
@@ -274,5 +273,6 @@ BirthCloudLifetime         : 10e6  # yr
 TargetSnaps                : 28, 36, 43, 48, 53, 58, 63, 69, 75, 82, 90, 98, 108, 115 #z = 20, 18.1, 16.1, 15, 13.9, 12.9, 12, 11, 10, 9, 8, 7, 6, 5.34
 RestBands                  : 1550,1650
 BetaBands                  :
-InstantSfIII               : 0   # 0 -> Continuous Pop.III SF, 1 -> Instantaneous Pop.III SF (relevant for Lum. calculation)
-DeltaT                     : 1.0 # Myr (Required if InstantSfIII = 1)
+InstantSfIII               : 0   # 0 -> Continuous Pop.III SF, 1 -> Instantaneous Pop.III SF (crucial when computing the luminosity of PopIII galaxies)
+DeltaT                     : 1.0 # Time at which the burst of PopIII SF happens since in the beginning of the snapshot (in Myr) 
+                                 # Required only if InstantSfIII = 1
