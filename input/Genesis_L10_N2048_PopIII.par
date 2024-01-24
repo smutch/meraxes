@@ -36,7 +36,7 @@ Flag_IncludePecVelsFor21cm : 0
 Flag_ConstructLightcone    : 0
 Flag_IncludeLymanWerner    : 1   # Added by Manu for meraxes_LW
 Flag_IncludeMetalEvo       : 1   # Added by Manu for External metal Enrichment
-
+Flag_IncludeStreamVel      : 1   # Added by Manu for Streaming Velocities
 
 #################### External Metal enrichment, you need this when Flag_IncludeMetalEvo == 1 #################################
 
@@ -274,4 +274,5 @@ BirthCloudLifetime         : 10e6  # yr
 TargetSnaps                : 28, 36, 43, 48, 53, 58, 63, 69, 75, 82, 90, 98, 108, 115 #z = 20, 18.1, 16.1, 15, 13.9, 12.9, 12, 11, 10, 9, 8, 7, 6, 5.34
 RestBands                  : 1550,1650
 BetaBands                  :
-DeltaT                     : 1.0 # Myr
+InstantSfIII               : 0   # 0 -> Continuous Pop.III SF, 1 -> Instantaneous Pop.III SF (relevant for Lum. calculation)
+DeltaT                     : 1.0 # Myr (Required if InstantSfIII = 1)
