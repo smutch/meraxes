@@ -216,6 +216,7 @@ enum tree_ids
 typedef struct run_params_t
 {
   char DefaultsFile[STRLEN];
+  char SimParamsFile[STRLEN];
   char OutputDir[STRLEN];
   char FileNameGalaxies[STRLEN];
   char SimName[STRLEN];

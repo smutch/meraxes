@@ -265,7 +265,6 @@ ReionMaxHeatingRedshift    : 30.
 BirthCloudLifetime         : 10e6  # yr
 TargetSnaps                : -1
 RestBands                  : 1550,1650
-BetaBands                  :
+BetaBands                  : 
 InstantSfIII               : 0   # 0 -> Continuous Pop.III SF, 1 -> Instantaneous Pop.III SF (crucial when computing the luminosity of PopIII galaxies)
-DeltaT                     : 1.0 # Time at which the burst of PopIII SF happens since in the beginning of the snapshot (in Myr) 
-                                 # Required only if InstantSfIII = 1
+DeltaT                     : 1.0 # Time at which the burst of PopIII SF happens since in the beginning of the snapshot (in Myr). Required only if InstantSfIII = 1

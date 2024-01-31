@@ -1,4 +1,5 @@
 #include "meraxes.h"
+#include "mlog.h"
 #include "parse_paramfile.h"
 #include <string.h>
 
@@ -145,6 +146,11 @@ void read_parameter_file(char* fname, int mode)
 
       strncpy(params_tag[n_param], "DefaultsFile", tag_length);
       params_addr[n_param] = run_params->DefaultsFile;
+      required_tag[n_param] = 1;
+      params_type[n_param++] = PARAM_TYPE_STRING;
+
+      strncpy(params_tag[n_param], "SimParamsFile", tag_length);
+      params_addr[n_param] = run_params->SimParamsFile;
       required_tag[n_param] = 1;
       params_type[n_param++] = PARAM_TYPE_STRING;
 
@@ -304,7 +310,7 @@ void read_parameter_file(char* fname, int mode)
 
       strncpy(params_tag[n_param], "FFTW3WisdomDir", tag_length);
       params_addr[n_param] = &(run_params->FFTW3WisdomDir);
-      required_tag[n_param] = 1;
+      required_tag[n_param] = 0;
       params_type[n_param++] = PARAM_TYPE_STRING;
       *(run_params->FFTW3WisdomDir) = '\0';
 
@@ -1227,10 +1233,17 @@ void read_parameter_file(char* fname, int mode)
     // Parse the user parameter file first
     n_entries = parse_paramfile(fname, entry);
     store_params(entry, n_entries, params_tag, n_param, used_tag, params_type, params_addr);
+    mlog("Read input.par", MLOG_MESG);
 
     // Now parse the default parameter file
     n_entries = parse_paramfile(run_params->DefaultsFile, entry);
     store_params(entry, n_entries, params_tag, n_param, used_tag, params_type, params_addr);
+    mlog("Read defaults.par", MLOG_MESG);
+
+    // Finally, parse the simulation parameter file
+    n_entries = parse_paramfile(run_params->SimParamsFile, entry);
+    store_params(entry, n_entries, params_tag, n_param, used_tag, params_type, params_addr);
+    mlog("Read sims file", MLOG_MESG);
 
     // Check to see if we are missing any required parameters
     for (ii = 0; ii < n_param; ii++)
