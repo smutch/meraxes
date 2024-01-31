@@ -1,0 +1,35 @@
+#------------------------------------------
+#----- Simulation input files  ------------
+#------------------------------------------
+
+SimName           : Genesis L10_N2048 # Name of the N-body simulation 
+SimulationDir     : /fred/oz113/balu/files_for_meraxes/L10_N2048 # Path of the N-body (before /trees)
+CatalogFilePrefix : VELOCIraptor.walkabletree.forestID.hdf5.0 # N-body file. 
+TreesID           : 0  # MergerTree algorithm: 0 -> VELOCIraptor; 1 -> gbpTrees 
+BoxSize           : 10.0 # Mpc / h
+
+Flag_IncludeSpinTemp       : 1   # if 0 Ts>>Tg
+Flag_IncludeLymanWerner    : 1   # if 1 Meraxes computes Lyman-Werner background (crucial for Minihalos)
+Flag_IncludeMetalEvo       : 1   # if 1 Meraxes computes the metal enrichment of the IGM.
+Flag_IncludeStreamVel      : 1   # if 1 Meraxes computes Streaming Velocities (relevant only for Minihalos)
+
+
+#------------------------------------------------
+#----- Cosmological and nbody sim parameters ----
+#------------------------------------------------
+
+OmegaM: 0.3121
+OmegaK: 0.000
+OmegaLambda: 0.6879
+OmegaR: 0.0
+BaryonFrac: 0.15714
+Hubble_h: 0.6751
+SpectralIndex: 0.968
+Sigma8: 0.815
+PartMass: 9.935e-7
+wLambda: -1.0
+NPart: 8589934592 
+
+UnitLength_in_cm         : 3.08568e+24       # WATCH OUT : Mpc/h
+UnitMass_in_g            : 1.989e+43         # WATCH OUT : 10^10Msun/h
+UnitVelocity_in_cm_per_s : 100000            # WATCH OUT : km/s

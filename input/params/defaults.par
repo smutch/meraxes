@@ -1,44 +1,35 @@
-#----- SA model output files --------------
-#------------------------------------------
-FileNameGalaxies : genesis-L10_N2048
+# 🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥
+# 🐉 MERAXES SIMULATION-INDEPENDENT DEFAULT PARAMETERS 🐉
+# 🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥
 
-#------------------------------------------
-#----- Simulation input files  ------------
-#------------------------------------------
-SimName           : Genesis L10_N2048 # Name of the N-body simulation 
-SimulationDir     : /fred/oz113/balu/files_for_meraxes/L10_N2048 # Path of the N-body (before /trees)
-CatalogFilePrefix : VELOCIraptor.walkabletree.forestID.hdf5.0 # N-body file. 
-TreesID           : 0  # MergerTree algorithm: 0 -> VELOCIraptor; 1 -> gbpTrees 
-BoxSize           : 10.0 # Mpc / h
-VolumeFactor      : 1.0 It looks like is not used anywhere so we might remove this! (Double check with Simon)
+#--------------------------------
+#----- Code options & flags -----
+#--------------------------------
 
-#------------------------------------------
-#----- Code options -----------------------
-#------------------------------------------
 NSteps                 : 1  # Current version of code requires NSteps=1 
 FlagInteractive        : 0
 FlagSubhaloVirialProps : 0  # 0 -> approximate subhalo virial props using particle number; 1 -> use catalogue values
 FlagMCMC               : 0  # Don't do any writing and activate MCMC related routines
 FlagIgnoreProgIndex    : 0
 RandomSeed             : 1809  # seed for random number generator
-
-PhotometricTablesDir 	    : /fred/oz113/eventura/meraxes/input/photometric_tables # For Luminosity calculation
-CoolingFuncsDir      	    : /fred/oz113/eventura/meraxes/input/cooling_functions # For Gas cooling
-StellarFeedbackDir         : /fred/oz113/eventura/meraxes/input/stellar_feedback_tables/Kroupa # For Pop. II stellar feedback
-TablesForXHeatingDir       : /fred/oz113/eventura/meraxes/input/21cmFAST-tables # For X-ray heating (from 21cmFAST)
+VolumeFactor           : 1.0  # Set to 1.0 unless the trees are subsampled
 
 Flag_IncludeRecombinations : 0   # if 1 reionization accounts for H-recombination
 Flag_Compute21cmBrightTemp : 0   # if 1 Meraxes computes the 21cm Brightness Temperature 
 Flag_ComputePS             : 0   # if 1 Meraxes computes the 21cm Power Spectrum
-Flag_IncludeSpinTemp       : 1   # if 0 Ts>>Tg
+Flag_IncludeSpinTemp       : 0   # if 0 Ts>>Tg
 Flag_SeparateQSOXrays      : 0   # NOT CURRENTLY IMPLEMENTED (CODE WILL FAIL IF != 0)
 Flag_IncludePecVelsFor21cm : 0   # if 1 the computation of 21cm Tb accounts for peculiar velocities
 Flag_ConstructLightcone    : 0   # Construct reionization light cones
-Flag_IncludeLymanWerner    : 1   # if 1 Meraxes computes Lyman-Werner background (crucial for Minihalos)
-Flag_IncludeMetalEvo       : 1   # if 1 Meraxes computes the metal enrichment of the IGM.
-Flag_IncludeStreamVel      : 1   # if 1 Meraxes computes Streaming Velocities (relevant only for Minihalos)
+Flag_IncludeLymanWerner    : 0   # if 1 Meraxes computes Lyman-Werner background (crucial for Minihalos)
+Flag_IncludeMetalEvo       : 0   # if 1 Meraxes computes the metal enrichment of the IGM.
+Flag_IncludeStreamVel      : 0   # if 1 Meraxes computes Streaming Velocities (relevant only for Minihalos)
 
-#################### External Metal enrichment, you need this when Flag_IncludeMetalEvo == 1 #################################
+
+#--------------------------------------------------------
+#------------ External Metal enrichment -----------------
+#----- you need this when Flag_IncludeMetalEvo == 1 -----
+#--------------------------------------------------------
 
 MetalGridDim               : 128    # Number of pixels in a side of the MetalGrid
 
@@ -49,10 +40,11 @@ NormCluster                : 200.0
 
 ZCrit                      : 0.0001 # Critical metallicity. If Z >= Zcrit -> PopII, otherwise PopIII (crucial for Minihalos)
 
-################################################
 
-
-##################### X-Ray stuff (including PopIII which a required when using Minihalos) #######################
+#-------------------------------------------------------------------
+#------------------------- X-Ray stuff -----------------------------
+#----- including PopIII which is required when using Minihalos -----
+#-------------------------------------------------------------------
 
 LXrayGal                   : 3.16e40         # Soft-band (< NuXraySoftCut keV) X-ray luminosity for galaxy based sources (HMXB)
 LXrayIII                   : 3.16e40         # Same as above for PopIII
@@ -66,11 +58,11 @@ SpecIndexXrayQSO           : 1.              # Spectral index of QSO X-ray sourc
 NuXraySoftCut              : 2000.           # X-ray soft-band cut off in (eV)
 NuXrayMax                  : 10000.          # Maximum energy for X-ray band integration
 
-#------------------------------------------
-#----- Parameters of physical model. Includes PopIII required when using Minihalos. -------
-#------------------------------------------
 
-# ----- star formation (including PopIII) -----
+#---------------------------------------------
+#----- star formation (including PopIII) -----
+#---------------------------------------------
+
 SfDiskVelOpt               : 1      # disk velocity for SF law (1=Vmax, 2=Vvir)
 SfPrescription             : 1      # C06 SF law IF YOU RUN POP III YOU NEED THIS == 1
 
@@ -82,14 +74,12 @@ SfEfficiencyScaling_III   : 0.0     # same as above for PopIII
 SfCriticalSDNorm          : 0.2     # critical surface density normalisation factor for star formation (internal units; standard=0.37)
 SfCriticalSDNorm_III      : 0.2     # same as above for PopIII 
 
-# ----- Pop III IMF (you need this when running Minihalos) -----
+### Pop III IMF (you need this when running Minihalos)
 
 PopIII_IMF                : 1 # IMF type with Mup and Mlow: 1-> Sal500_001, 2-> Sal500_050, 3->logA500_001, 4->logE500_001
 PopIIIAgePrescription     : 2 # Age of PopIII stars: 1->Schaerer Strong Mass Loss, 2-> Schaerer No Mass Loss
 
-# ----------------------------------------------------------------
-# ----- Pressure-based SF law from Blitz & Rosolowski 2006 -------
-# ----------------------------------------------------------------
+### Pressure-based SF law from Blitz & Rosolowski 2006
 # SfPrescription == 2 and
 # Different H2 Depletion Timescale:
 # 1) SfEfficiencyScaling = 0,    SfEfficiency = 0.15
@@ -100,7 +90,10 @@ PopIIIAgePrescription     : 2 # Age of PopIII stars: 1->Schaerer Strong Mass Los
 #    -> 2Gyr at z=0 with redshift dependence SF timescale (Duffy+17)
 
 
-# ----- supernova feedback -----
+#------------------------------
+#----- supernova feedback -----
+#------------------------------
+
 Flag_IRA                   : 0       # use the instantaneous recycling approximation
 Flag_ReheatToFOFGroupTemp  : 0       # try to reheat gas to the FOF group Tvir instead of just the subgroup value
 SfRecycleFraction          : 0.25    # instantaneous recycle fraction (IMF dependant) (only used when Flag_IRA=1)
@@ -148,10 +141,18 @@ SnReheatScaling2_III      : 0.0
 SnReheatNorm              : 70.0    # mass loading factor for SN feedback scaling (with Vmax [internal units])
 SnReheatNorm_III          : 70.0
 
-# ----- cooling -----
+
+#-------------------
+#----- cooling -----
+#-------------------
+
 MaxCoolingMassFactor      : 1.0     # maximum cooling mass factor (1 -> ff time)
 
-# ----- reincorporation -----
+
+#---------------------------
+#----- reincorporation -----
+#---------------------------
+
 # ReincorporationModel=1:
 #   -Reincorporation time is proportional to the halo dynamic time
 # RecinorporationModel=2:
@@ -162,7 +163,11 @@ MaxCoolingMassFactor      : 1.0     # maximum cooling mass factor (1 -> ff time)
 ReincorporationModel      : 1
 ReincorporationEff        : 0.0     # gas reincorporation efficiency from ejected component
 
-# ----- mergers -----
+
+#-------------------
+#----- mergers -----
+#-------------------
+
 Flag_FixVmaxOnInfall       : 0      # fix Vmax upon infall
 Flag_FixDiskRadiusOnInfall : 0      # fix disk radius upon infall
 
@@ -175,7 +180,10 @@ MergerBurstFactor         : 0.57    # Constant factor in merger burst equation
 MergerBurstScaling        : 0.7
 
 
+#--------------------------------
 #----- BlackHole and Quasar -----
+#--------------------------------
+
 Flag_BHFeedback           : 1
 
 RadioModeEff              : 0.3
@@ -189,13 +197,13 @@ quasar_mode_scaling       : 0.0
 quasar_open_angle         : 80.0
 
 
-#----------------------------------------------
+#------------------------
 #----- Reionization -----
-#----------------------------------------------
+#------------------------
 
 Flag_ReionizationModifier  : 1    # 0: No modifier, 1: Sobacchi 21cmFAST modifier, 2: use halo mass dependant infall modifier of Gnedin, 3: precomputed (requires input file)
 
-# global prescriptions
+#### global prescriptions
 ReionSobacchi_Zre      : 9.3
 ReionSobacchi_DeltaZre : 1.0
 ReionSobacchi_DeltaZsc : 2.0
@@ -204,7 +212,7 @@ ReionSobacchi_T0       : 5.0e4
 ReionGnedin_z0         : 8
 ReionGnedin_zr         : 7
 
-# patchy (21cmFAST) prescription
+#### patchy (21cmFAST) prescription
 Flag_PatchyReion       : 1  # Use 21cmFAST (ensure Flag_ReionizationModifier=1 if wish to couple to galaxy formation).
 Flag_OutputGrids       : 1
 Flag_OutputGridsPostReion  : 1
@@ -249,28 +257,13 @@ EndRedshiftLightcone       : 6.0
 ReionRBubbleMaxRecomb      : 33.9
 ReionMaxHeatingRedshift    : 30.
 
-#------------------------------------------------
-#----- Cosmological and nbody sim parameters ----
-#------------------------------------------------
-OmegaM: 0.3121
-OmegaK: 0.000
-OmegaLambda: 0.6879
-OmegaR: 0.0
-BaryonFrac: 0.15714
-Hubble_h: 0.6751
-SpectralIndex: 0.968
-Sigma8: 0.815
-PartMass: 9.935e-7
-wLambda: -1.0
-NPart: 8589934592 
 
-UnitLength_in_cm         : 3.08568e+24       # WATCH OUT : Mpc/h
-UnitMass_in_g            : 1.989e+43         # WATCH OUT : 10^10Msun/h
-UnitVelocity_in_cm_per_s : 100000            # WATCH OUT : km/s
+#----------------------------------
+#----- Luminosity calculation -----
+#----------------------------------
 
-################### Luminosity stuff ######################
 BirthCloudLifetime         : 10e6  # yr
-TargetSnaps                : 28, 36, 43, 48, 53, 58, 63, 69, 75, 82, 90, 98, 108, 115 #z = 20, 18.1, 16.1, 15, 13.9, 12.9, 12, 11, 10, 9, 8, 7, 6, 5.34
+TargetSnaps                : -1
 RestBands                  : 1550,1650
 BetaBands                  :
 InstantSfIII               : 0   # 0 -> Continuous Pop.III SF, 1 -> Instantaneous Pop.III SF (crucial when computing the luminosity of PopIII galaxies)
