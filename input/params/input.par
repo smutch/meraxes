@@ -1,5 +1,6 @@
 FileNameGalaxies     : meraxes
-DefaultsFile         : @INPUT_FILE_DIR@/Tiamat.par
+DefaultsFile         : @INPUT_FILE_DIR@/defaults.par
+SimParamsFile        : @INPUT_FILE_DIR@/simulations/Genesis_L10_N2048_PopIII.par
 OutputSnapshots      : -1
 OutputDir            : output
 PhotometricTablesDir : @INPUT_FILE_DIR@/photometric_tables
