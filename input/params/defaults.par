@@ -47,7 +47,7 @@ ZCrit                      : 0.0001 # Critical metallicity. If Z >= Zcrit -> Pop
 #-------------------------------------------------------------------
 
 LXrayGal                   : 3.16e40         # Soft-band (< NuXraySoftCut keV) X-ray luminosity for galaxy based sources (HMXB)
-LXrayIII                   : 3.16e40         # Same as above for PopIII
+LXrayGalIII                   : 3.16e40         # Same as above for PopIII
 
 NuXrayGalThreshold         : 500.            # Energy threshold for HMXB X-rays escaping host galaxy (eV)
 SpecIndexXrayGal           : 1.              # Spectral index of galaxy X-ray sources  (nu^-alpha)
