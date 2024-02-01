@@ -51,9 +51,6 @@ LXrayGalIII                   : 3.16e40         # Same as above for PopIII
 NuXrayGalThreshold         : 500.            # Energy threshold for HMXB X-rays escaping host galaxy (eV)
 SpecIndexXrayGal           : 1.              # Spectral index of galaxy X-ray sources  (nu^-alpha)
 SpecIndexXrayIII           : 1.              # Same as above for Pop III
-LXrayQSO                   : 3.16e40         # Soft-band (< NuXraySoftCut keV) X-ray luminosity for QSO based sources
-NuXrayQSOThreshold         : 500.            # Energy threshold for QSO X-rays escaping host galaxy (eV)
-SpecIndexXrayQSO           : 1.              # Spectral index of QSO X-ray sources  (nu^-alpha)
 NuXraySoftCut              : 2000.           # X-ray soft-band cut off in (eV)
 NuXrayMax                  : 10000.          # Maximum energy for X-ray band integration
 

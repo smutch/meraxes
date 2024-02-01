@@ -1274,8 +1274,9 @@ void evolveInt(float zp,
 #endif
 
   if (!NO_LIGHT) {
-    for (zpp_ct = 0; zpp_ct < run_globals.params.TsNumFilterSteps;
-         zpp_ct++) { // Define last redshift that is effective, zpp_edge is defined in init_heat!
+    for (zpp_ct = 0; zpp_ct < run_globals.params.TsNumFilterSteps; zpp_ct++) 
+    { 
+      // Define last redshift that is effective, zpp_edge is defined in init_heat!
       // set redshift of half annulus; dz'' is negative since we flipped limits of integral
       if (zpp_ct == 0) {
         zpp = (zpp_edge[0] + zp) * 0.5;
@@ -1288,31 +1289,11 @@ void evolveInt(float zp,
       // Use this when using the SFR provided by Meraxes
       // Units should be M_solar/s. Factor of (dt_dzp * dzpp) converts from per s to per z'
       zpp_integrand_GAL = SFR_GAL[zpp_ct] * pow(1 + zpp, -run_globals.params.physics.SpecIndexXrayGal);
+
 #if USE_MINI_HALOS
       zpp_integrand_III = SFR_III[zpp_ct] * pow(1 + zpp, -run_globals.params.physics.SpecIndexXrayIII);
 #endif
 
-      if (run_globals.params.Flag_SeparateQSOXrays) {
-
-        dxheat_dt_GAL += dt_dzpp * dzpp * zpp_integrand_GAL * freq_int_heat_GAL[zpp_ct];
-
-        dxion_source_dt_GAL += dt_dzpp * dzpp * zpp_integrand_GAL * freq_int_ion_GAL[zpp_ct];
-
-        dxlya_dt_GAL += dt_dzpp * dzpp * zpp_integrand_GAL * freq_int_lya_GAL[zpp_ct];
-
-        // Use this when using the SFR provided by Meraxes
-        // Units should be M_solar/s. Factor of (dt_dzp * dzpp) converts from per s to per z'
-        dstarlya_dt_GAL += SFR_GAL[zpp_ct] * pow(1 + zp, 2) * (1 + zpp) * sum_lyn[zpp_ct] * dt_dzpp * dzpp;
-
-#if USE_MINI_HALOS
-        dxheat_dt_III += dt_dzpp * dzpp * zpp_integrand_III * freq_int_heat_III[zpp_ct];
-        dxion_source_dt_III += dt_dzpp * dzpp * zpp_integrand_III * freq_int_ion_III[zpp_ct];
-        dxlya_dt_III += dt_dzpp * dzpp * zpp_integrand_III * freq_int_lya_III[zpp_ct];
-
-        dstarlya_dt_III += SFR_III[zpp_ct] * pow(1 + zp, 2) * (1 + zpp) * sum_lyn_III[zpp_ct] * dt_dzpp * dzpp;
-#endif
-
-      } else {
         dxheat_dt_GAL += dt_dzpp * dzpp * zpp_integrand_GAL *
                          freq_int_heat_GAL[zpp_ct]; // Integral in frequency must be computed for each TsNumFilterSteps
         dxion_source_dt_GAL += dt_dzpp * dzpp * zpp_integrand_GAL * freq_int_ion_GAL[zpp_ct];
@@ -1320,6 +1301,7 @@ void evolveInt(float zp,
         // Use this when using the SFR provided by Meraxes
         // Units should be M_solar/s. Factor of (dt_dzp * dzpp) converts from per s to per z'
         dstarlya_dt_GAL += SFR_GAL[zpp_ct] * pow(1 + zp, 2) * (1 + zpp) * sum_lyn[zpp_ct] * dt_dzpp * dzpp;
+
 #if USE_MINI_HALOS
         dxheat_dt_III += dt_dzpp * dzpp * zpp_integrand_III *
                          freq_int_heat_III[zpp_ct]; // Integral in frequency must be computed for each TsNumFilterSteps
@@ -1327,19 +1309,18 @@ void evolveInt(float zp,
         dxlya_dt_III += dt_dzpp * dzpp * zpp_integrand_III * freq_int_lya_III[zpp_ct];
 
         dstarlya_dt_III += SFR_III[zpp_ct] * pow(1 + zp, 2) * (1 + zpp) * sum_lyn_III[zpp_ct] * dt_dzpp * dzpp;
-#endif
-      }
-#if USE_MINI_HALOS
+
       if (run_globals.params.Flag_IncludeLymanWerner) {
         dstarlyLW_dt_GAL += SFR_GAL[zpp_ct] * pow(1 + zp, 2) * (1 + zpp) * sum_lyn_LW[zpp_ct] * dt_dzpp * dzpp;
         dstarlyLW_dt_III += SFR_III[zpp_ct] * pow(1 + zp, 2) * (1 + zpp) * sum_lyn_LW_III[zpp_ct] * dt_dzpp * dzpp;
       }
 #endif
+
     }
 
     // After you finish the loop for each Radius, you add prefactors which are constants for the redshift (snapshot) and
     // defined in ComputeTs.c
-    if (run_globals.params.Flag_SeparateQSOXrays) {
+
       dxheat_dt_GAL *= const_zp_prefactor_GAL;
       dxion_source_dt_GAL *= const_zp_prefactor_GAL;
       dxlya_dt_GAL *= const_zp_prefactor_GAL * n_b;
@@ -1347,20 +1328,7 @@ void evolveInt(float zp,
       // Use this when using the SFR provided by Meraxes
       // Units should be M_solar/s. Factor of (dt_dzp * dzpp) converts from per s to per z'
       // The division by Omb * RHOcrit arises from the differences between eq. 13 and eq. 22 in Mesinger et al. (2011),
-      // accounting for the M_solar factor (SFR -> number)
-      dstarlya_dt_GAL *= Conversion_factor;
-
-#if USE_MINI_HALOS
-      dxheat_dt_III *= const_zp_prefactor_III;
-      dxion_source_dt_III *= const_zp_prefactor_III;
-      dxlya_dt_III *= const_zp_prefactor_III * n_b;
-
-      dstarlya_dt_III *= Conversion_factor;
-#endif
-    } else {
-      dxheat_dt_GAL *= const_zp_prefactor_GAL;
-      dxion_source_dt_GAL *= const_zp_prefactor_GAL;
-      dxlya_dt_GAL *= const_zp_prefactor_GAL * n_b;
+      // accounting for the M_solar factor (SFR -> number) 
 
       dstarlya_dt_GAL *= Conversion_factor;
 
@@ -1370,10 +1338,7 @@ void evolveInt(float zp,
       dxlya_dt_III *= const_zp_prefactor_III * n_b;
 
       dstarlya_dt_III *= Conversion_factor;
-#endif
-    }
-
-#if USE_MINI_HALOS
+      
     if (run_globals.params.Flag_IncludeLymanWerner) {
       dstarlyLW_dt_GAL *= Conversion_factor;
       dstarlyLW_dt_III *= Conversion_factor;
