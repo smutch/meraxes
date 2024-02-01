@@ -148,7 +148,7 @@ typedef struct physics_params_t
   double LXrayGal;
   double NuXrayGalThreshold;
   double SpecIndexXrayGal;
-  double LXrayIII;
+  double LXrayGalIII;
   double SpecIndexXrayIII;
   double LXrayQSO;
   double NuXrayQSOThreshold;

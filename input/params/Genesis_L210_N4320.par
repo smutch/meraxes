@@ -217,7 +217,7 @@ LXrayGal : 3.16e40         # Soft-band (< NuXraySoftCut keV) X-ray luminosity fo
 NuXrayGalThreshold : 500.  # Energy threshold for HMXB X-rays escaping host galaxy (eV)
 SpecIndexXrayGal : 1.      # Spectral index of galaxy X-ray sources  (nu^-alpha)
 
-LXrayIII : 3.16e40         # Soft-band (< NuXraySoftCut keV) X-ray luminosity for galaxy based sources (HMXB)
+LXrayGalIII : 3.16e40         # Soft-band (< NuXraySoftCut keV) X-ray luminosity for galaxy based sources (HMXB)
 SpecIndexXrayIII : 1.      # Spectral index of galaxy X-ray sources  (nu^-alpha)
 
 LXrayQSO : 3.16e40         # Soft-band (< NuXraySoftCut keV) X-ray luminosity for QSO based sources

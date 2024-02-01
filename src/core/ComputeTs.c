@@ -626,7 +626,7 @@ void _ComputeTs(int snapshot)
                              (run_globals.params.physics.NuXrayGalThreshold * NU_over_EV) * SPEED_OF_LIGHT *
                              pow(1 + zp, run_globals.params.physics.SpecIndexXrayGal + 3);
 #if USE_MINI_HALOS
-    const_zp_prefactor_III = (run_globals.params.physics.LXrayIII * Luminosity_converstion_factor_III) /
+    const_zp_prefactor_III = (run_globals.params.physics.LXrayGalIII * Luminosity_converstion_factor_III) /
                              (run_globals.params.physics.NuXrayGalThreshold * NU_over_EV) * SPEED_OF_LIGHT *
                              pow(1 + zp, run_globals.params.physics.SpecIndexXrayIII + 3);
 #endif
