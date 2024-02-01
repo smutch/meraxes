@@ -52,8 +52,8 @@ void _ComputeTs(int snapshot)
 
   int i_real, i_padded, i_smoothedSFR, R_ct, x_e_ct, n_ct, m_xHII_low, m_xHII_high, NO_LIGHT;
 
-  double prev_zpp, prev_R, zpp, zp, lower_int_limit_GAL, filling_factor_of_HI_zp, R_factor, R,
-    nuprime, dzp, Luminosity_converstion_factor_GAL;
+  double prev_zpp, prev_R, zpp, zp, lower_int_limit_GAL, filling_factor_of_HI_zp, R_factor, R, nuprime, dzp,
+    Luminosity_converstion_factor_GAL;
   double collapse_fraction, density_over_mean, collapse_fraction_in_cell;
 
 #if USE_MINI_HALOS
@@ -395,7 +395,6 @@ void _ComputeTs(int snapshot)
       lower_int_limit_GAL = fmax(nu_tau_one(zp, zpp, x_e_ave, filling_factor_of_HI_zp, snapshot),
                                  run_globals.params.physics.NuXrayGalThreshold * NU_over_EV);
 
-
       if (filling_factor_of_HI_zp < 0)
         filling_factor_of_HI_zp =
           0; // for global evol; nu_tau_one above treats negative (post_reionization) inferred filling factors properly
@@ -440,7 +439,6 @@ void _ComputeTs(int snapshot)
                                                                run_globals.params.physics.SpecIndexXrayIII,
                                                                2);
 #endif
-
       }
 
       // and create the sum over Lya transitions from direct Lyn flux
@@ -600,8 +598,6 @@ void _ComputeTs(int snapshot)
     // 21cmFAST, which can be trivially compensated for by reducing L_X. Ultimately the backgrounds in Meraxes will be
     // this same factor higher than 21cmFAST, but at least it is understood why and trivially accounted for.
 
-
-
     // interpolate to correct nu integral value based on the cell's ionization state
     for (int ix = 0; ix < local_nix; ix++)
       for (int iy = 0; iy < ReionGridDim; iy++)
@@ -678,7 +674,6 @@ void _ComputeTs(int snapshot)
             freq_int_lya_III[R_ct] *= (xHII_call - x_int_XHII[m_xHII_low]);
             freq_int_lya_III[R_ct] += freq_int_lya_tbl_III[m_xHII_low][R_ct];
 #endif
-
           }
 
           // Perform the calculation of the heating/ionisation integrals, updating relevant quantities etc. GET BACK AT
