@@ -416,7 +416,6 @@ void init_reion_grids()
 #if USE_MINI_HALOS
       grids->SMOOTHED_SFR_III[ii] = 0.0;
 #endif
-
     }
   }
 
@@ -846,7 +845,6 @@ void malloc_reionization_grids()
 
       grids->SMOOTHED_SFR_III = calloc((size_t)slab_n_real_smoothedSFR, sizeof(double));
 #endif
-
     }
 
     if (run_globals.params.Flag_IncludeRecombinations) {

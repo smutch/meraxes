@@ -10,7 +10,6 @@ static void check_problem_params(run_params_t* run_params)
     ABORT(EXIT_FAILURE);
   }
 
-
   if (strlen(run_globals.params.ForestIDFile) != 0) {
     mlog("*** YOU HAVE PROVIDED A REQUESTED FORESTID FILE. THIS FEATURE HAS NOT BE WELL TESTED. YMMV! ***", MLOG_MESG);
   }
