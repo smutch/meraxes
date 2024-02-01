@@ -263,7 +263,7 @@ ReionMaxHeatingRedshift    : 30.
 #----------------------------------
 
 BirthCloudLifetime         : 10e6  # yr
-TargetSnaps                : -1
+TargetSnaps                : -1  # Note that simple Python style slicing and indexing works here, so `-1` is the last snapshot `100:110,-5:` is snapshots 100-109 and the last 5 snapshots
 RestBands                  : 1550,1650
 BetaBands                  : 
 InstantSfIII               : 0   # 0 -> Continuous Pop.III SF, 1 -> Instantaneous Pop.III SF (crucial when computing the luminosity of PopIII galaxies)
