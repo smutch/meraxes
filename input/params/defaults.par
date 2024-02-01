@@ -18,7 +18,6 @@ Flag_IncludeRecombinations : 0   # if 1 reionization accounts for H-recombinatio
 Flag_Compute21cmBrightTemp : 0   # if 1 Meraxes computes the 21cm Brightness Temperature 
 Flag_ComputePS             : 0   # if 1 Meraxes computes the 21cm Power Spectrum
 Flag_IncludeSpinTemp       : 0   # if 0 Ts>>Tg
-Flag_SeparateQSOXrays      : 0   # NOT CURRENTLY IMPLEMENTED (CODE WILL FAIL IF != 0)
 Flag_IncludePecVelsFor21cm : 0   # if 1 the computation of 21cm Tb accounts for peculiar velocities
 Flag_ConstructLightcone    : 0   # Construct reionization light cones
 Flag_IncludeLymanWerner    : 0   # if 1 Meraxes computes Lyman-Werner background (crucial for Minihalos)
