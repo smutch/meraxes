@@ -1099,21 +1099,6 @@ void read_parameter_file(char* fname, int mode)
 #endif
       params_type[n_param++] = PARAM_TYPE_DOUBLE;
 
-      strcpy(params_tag[n_param], "LXrayQSO");
-      params_addr[n_param] = &(run_params->physics).LXrayQSO;
-      required_tag[n_param] = 1;
-      params_type[n_param++] = PARAM_TYPE_DOUBLE;
-
-      strcpy(params_tag[n_param], "NuXrayQSOThreshold");
-      params_addr[n_param] = &(run_params->physics).NuXrayQSOThreshold;
-      required_tag[n_param] = 1;
-      params_type[n_param++] = PARAM_TYPE_DOUBLE;
-
-      strcpy(params_tag[n_param], "SpecIndexXrayQSO");
-      params_addr[n_param] = &(run_params->physics).SpecIndexXrayQSO;
-      required_tag[n_param] = 1;
-      params_type[n_param++] = PARAM_TYPE_DOUBLE;
-
       strcpy(params_tag[n_param], "NuXraySoftCut");
       params_addr[n_param] = &(run_params->physics).NuXraySoftCut;
       required_tag[n_param] = 1;

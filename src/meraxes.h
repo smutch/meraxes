@@ -143,16 +143,11 @@ typedef struct physics_params_t
   double ZCrit;
 
   // Parameters to describe the X-ray properties of the sources
-  // Keeping the QSO and Galaxy components separate for now (might be combined in the end). Adding also duplication for
-  // Pop III for some of those
   double LXrayGal;
   double NuXrayGalThreshold;
   double SpecIndexXrayGal;
   double LXrayGalIII;
   double SpecIndexXrayIII;
-  double LXrayQSO;
-  double NuXrayQSOThreshold;
-  double SpecIndexXrayQSO;
   double NuXraySoftCut;
   double NuXrayMax;
 
