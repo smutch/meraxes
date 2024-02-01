@@ -1228,28 +1228,22 @@ void evolveInt(float zp,
                float curr_delNL0,
                const double SFR_GAL[],
                const double SFR_III[],
-               const double SFR_QSO[],
                const double freq_int_heat_GAL[],
                const double freq_int_ion_GAL[],
                const double freq_int_lya_GAL[],
                const double freq_int_heat_III[],
                const double freq_int_ion_III[],
                const double freq_int_lya_III[],
-               const double freq_int_heat_QSO[],
-               const double freq_int_ion_QSO[],
-               const double freq_int_lya_QSO[],
                int COMPUTE_Ts,
                const double y[],
                double deriv[])
 {
 
   double dadia_dzp, dadia_dzp_II, dcomp_dzp, dcomp_dzp_II, dxheat_dt_GAL, dxion_source_dt_GAL, dxion_sink_dt;
-  double dxheat_dt_QSO, dxion_source_dt_QSO, dxlya_dt_QSO, dstarlya_dt_QSO;
   double zpp, dzpp;
   double Conversion_factor =
     (SPEED_OF_LIGHT / (4. * M_PI)) / (PROTONMASS / SOLAR_MASS); // I am using this many times so it's worth save this
   int zpp_ct;
-  double T, TII, x_e, zpp_integrand_GAL, zpp_integrand_QSO;
   double dxe_dzp, n_b, dspec_dzp, dxheat_dzp, dxlya_dt_GAL, dstarlya_dt_GAL, dstarlyLW_dt_GAL;
 #if USE_MINI_HALOS
   // Do this to differentiate between Pop III and Pop II contribution
@@ -1279,11 +1273,6 @@ void evolveInt(float zp,
   dstarlyLW_dt_III = 0;
 #endif
 
-  dxheat_dt_QSO = 0;
-  dxion_source_dt_QSO = 0;
-  dxlya_dt_QSO = 0;
-  dstarlya_dt_QSO = 0;
-
   if (!NO_LIGHT) {
     for (zpp_ct = 0; zpp_ct < run_globals.params.TsNumFilterSteps;
          zpp_ct++) { // Define last redshift that is effective, zpp_edge is defined in init_heat!
@@ -1302,25 +1291,18 @@ void evolveInt(float zp,
 #if USE_MINI_HALOS
       zpp_integrand_III = SFR_III[zpp_ct] * pow(1 + zpp, -run_globals.params.physics.SpecIndexXrayIII);
 #endif
-      if (run_globals.params.Flag_SeparateQSOXrays) {
-        zpp_integrand_QSO = SFR_QSO[zpp_ct] * pow(1 + zpp, -run_globals.params.physics.SpecIndexXrayQSO);
-      }
 
       if (run_globals.params.Flag_SeparateQSOXrays) {
 
         dxheat_dt_GAL += dt_dzpp * dzpp * zpp_integrand_GAL * freq_int_heat_GAL[zpp_ct];
-        dxheat_dt_QSO += dt_dzpp * dzpp * zpp_integrand_QSO * freq_int_heat_QSO[zpp_ct];
 
         dxion_source_dt_GAL += dt_dzpp * dzpp * zpp_integrand_GAL * freq_int_ion_GAL[zpp_ct];
-        dxion_source_dt_QSO += dt_dzpp * dzpp * zpp_integrand_QSO * freq_int_ion_QSO[zpp_ct];
 
         dxlya_dt_GAL += dt_dzpp * dzpp * zpp_integrand_GAL * freq_int_lya_GAL[zpp_ct];
-        dxlya_dt_QSO += dt_dzpp * dzpp * zpp_integrand_QSO * freq_int_lya_QSO[zpp_ct];
 
         // Use this when using the SFR provided by Meraxes
         // Units should be M_solar/s. Factor of (dt_dzp * dzpp) converts from per s to per z'
         dstarlya_dt_GAL += SFR_GAL[zpp_ct] * pow(1 + zp, 2) * (1 + zpp) * sum_lyn[zpp_ct] * dt_dzpp * dzpp;
-        dstarlya_dt_QSO += SFR_QSO[zpp_ct] * pow(1 + zp, 2) * (1 + zpp) * sum_lyn[zpp_ct] * dt_dzpp * dzpp;
 
 #if USE_MINI_HALOS
         dxheat_dt_III += dt_dzpp * dzpp * zpp_integrand_III * freq_int_heat_III[zpp_ct];
@@ -1375,12 +1357,6 @@ void evolveInt(float zp,
 
       dstarlya_dt_III *= Conversion_factor;
 #endif
-
-      dxheat_dt_QSO *= const_zp_prefactor_QSO;
-      dxion_source_dt_QSO *= const_zp_prefactor_QSO;
-      dxlya_dt_QSO *= const_zp_prefactor_QSO * n_b;
-
-      dstarlya_dt_QSO *= Conversion_factor;
     } else {
       dxheat_dt_GAL *= const_zp_prefactor_GAL;
       dxion_source_dt_GAL *= const_zp_prefactor_GAL;
@@ -1411,9 +1387,9 @@ void evolveInt(float zp,
 
   dxion_sink_dt = alpha_A(T) * CLUMPING_FACTOR * x_e * x_e * f_H * n_b;
 #if USE_MINI_HALOS
-  dxe_dzp = dt_dzp * ((dxion_source_dt_GAL + dxion_source_dt_III + dxion_source_dt_QSO) - dxion_sink_dt);
+  dxe_dzp = dt_dzp * ((dxion_source_dt_GAL + dxion_source_dt_III) - dxion_sink_dt);
 #else
-  dxe_dzp = dt_dzp * ((dxion_source_dt_GAL + dxion_source_dt_QSO) - dxion_sink_dt);
+  dxe_dzp = dt_dzp * (dxion_source_dt_GAL - dxion_sink_dt);
 #endif
 
   deriv[0] = dxe_dzp;
@@ -1446,10 +1422,10 @@ void evolveInt(float zp,
 
   dcomp_dzp_II = dT_comp(zp, TII, x_e);
 
-  dxheat_dzp = (dxheat_dt_GAL + dxheat_dt_III + dxheat_dt_QSO) * dt_dzp * 2.0 / 3.0 / BOLTZMANN / (1.0 + x_e);
-  dxheat_dzp_II = (dxheat_dt_GAL + dxheat_dt_QSO) * dt_dzp * 2.0 / 3.0 / BOLTZMANN / (1.0 + x_e);
+  dxheat_dzp = (dxheat_dt_GAL + dxheat_dt_III ) * dt_dzp * 2.0 / 3.0 / BOLTZMANN / (1.0 + x_e);
+  dxheat_dzp_II = dxheat_dt_GAL  * dt_dzp * 2.0 / 3.0 / BOLTZMANN / (1.0 + x_e);
 #else
-  dxheat_dzp = (dxheat_dt_GAL + dxheat_dt_QSO) * dt_dzp * 2.0 / 3.0 / BOLTZMANN / (1.0 + x_e);
+  dxheat_dzp = dxheat_dt_GAL * dt_dzp * 2.0 / 3.0 / BOLTZMANN / (1.0 + x_e);
 #endif
 
   // summing them up...
@@ -1459,10 +1435,10 @@ void evolveInt(float zp,
 #if USE_MINI_HALOS
   deriv[6] = dxheat_dzp_II + dcomp_dzp_II + dspec_dzp_II + dadia_dzp_II;
 
-  deriv[2] = (dxlya_dt_GAL + dxlya_dt_III + dxlya_dt_QSO) + (dstarlya_dt_GAL + dstarlya_dt_III + dstarlya_dt_QSO);
-  deriv[7] = (dxlya_dt_GAL + dxlya_dt_QSO) + (dstarlya_dt_GAL + dstarlya_dt_QSO);
+  deriv[2] = (dxlya_dt_GAL + dxlya_dt_III) + (dstarlya_dt_GAL + dstarlya_dt_III);
+  deriv[7] = dxlya_dt_GAL  + dstarlya_dt_GAL ;
 #else
-  deriv[2] = (dxlya_dt_GAL + dxlya_dt_QSO) + (dstarlya_dt_GAL + dstarlya_dt_QSO);
+  deriv[2] = dxlya_dt_GAL + dstarlya_dt_GAL;
 #endif
 
   // stuff for marcos
@@ -1475,10 +1451,10 @@ void evolveInt(float zp,
     deriv[10] = dstarlyLW_dt_GAL * (PLANCK * 1e21);
   }
 
-  deriv[4] = dt_dzp * (dxion_source_dt_GAL + dxion_source_dt_III + dxion_source_dt_QSO);
-  deriv[9] = dt_dzp * (dxion_source_dt_GAL + dxion_source_dt_QSO);
+  deriv[4] = dt_dzp * (dxion_source_dt_GAL + dxion_source_dt_III);
+  deriv[9] = dt_dzp * dxion_source_dt_GAL;
 #else
-  deriv[4] = dt_dzp * (dxion_source_dt_GAL + dxion_source_dt_QSO);
+  deriv[4] = dt_dzp * dxion_source_dt_GAL;
 #endif
 }
 

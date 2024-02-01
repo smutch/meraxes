@@ -52,8 +52,8 @@ void _ComputeTs(int snapshot)
 
   int i_real, i_padded, i_smoothedSFR, R_ct, x_e_ct, n_ct, m_xHII_low, m_xHII_high, NO_LIGHT;
 
-  double prev_zpp, prev_R, zpp, zp, lower_int_limit_GAL, lower_int_limit_QSO, filling_factor_of_HI_zp, R_factor, R,
-    nuprime, dzp, Luminosity_converstion_factor_GAL, Luminosity_converstion_factor_QSO;
+  double prev_zpp, prev_R, zpp, zp, lower_int_limit_GAL, filling_factor_of_HI_zp, R_factor, R,
+    nuprime, dzp, Luminosity_converstion_factor_GAL;
   double collapse_fraction, density_over_mean, collapse_fraction_in_cell;
 
 #if USE_MINI_HALOS
@@ -70,7 +70,6 @@ void _ComputeTs(int snapshot)
   int TsNumFilterSteps = run_globals.params.TsNumFilterSteps;
 
   double freq_int_heat_GAL[TsNumFilterSteps], freq_int_ion_GAL[TsNumFilterSteps], freq_int_lya_GAL[TsNumFilterSteps];
-  double freq_int_heat_QSO[TsNumFilterSteps], freq_int_ion_QSO[TsNumFilterSteps], freq_int_lya_QSO[TsNumFilterSteps];
 
 #if USE_MINI_HALOS
   double freq_int_heat_III[TsNumFilterSteps], freq_int_ion_III[TsNumFilterSteps], freq_int_lya_III[TsNumFilterSteps];
@@ -78,8 +77,6 @@ void _ComputeTs(int snapshot)
 
   double freq_int_heat_tbl_GAL[x_int_NXHII][TsNumFilterSteps], freq_int_ion_tbl_GAL[x_int_NXHII][TsNumFilterSteps],
     freq_int_lya_tbl_GAL[x_int_NXHII][TsNumFilterSteps];
-  double freq_int_heat_tbl_QSO[x_int_NXHII][TsNumFilterSteps], freq_int_ion_tbl_QSO[x_int_NXHII][TsNumFilterSteps],
-    freq_int_lya_tbl_QSO[x_int_NXHII][TsNumFilterSteps];
 
 #if USE_MINI_HALOS
   double freq_int_heat_tbl_III[x_int_NXHII][TsNumFilterSteps], freq_int_ion_tbl_III[x_int_NXHII][TsNumFilterSteps],
@@ -91,7 +88,7 @@ void _ComputeTs(int snapshot)
   double dt_dzpp_list[TsNumFilterSteps];
 
   double ans[3], dansdz[20], xHII_call;
-  double SFR_GAL[TsNumFilterSteps], SFR_QSO[TsNumFilterSteps];
+  double SFR_GAL[TsNumFilterSteps];
 
 #if USE_MINI_HALOS
   double SFR_III[TsNumFilterSteps];
@@ -130,13 +127,9 @@ void _ComputeTs(int snapshot)
   }
 
   double* SMOOTHED_SFR_GAL = run_globals.reion_grids.SMOOTHED_SFR_GAL;
-  double* SMOOTHED_SFR_QSO;
 #if USE_MINI_HALOS
   double* SMOOTHED_SFR_III = run_globals.reion_grids.SMOOTHED_SFR_III;
 #endif
-  if (run_globals.params.Flag_SeparateQSOXrays) {
-    SMOOTHED_SFR_QSO = run_globals.reion_grids.SMOOTHED_SFR_QSO;
-  }
 
   // Initialise the RECFAST, electron rate tables
   init_heat();
@@ -294,12 +287,6 @@ void _ComputeTs(int snapshot)
                                                 pow(units->UnitLength_in_cm, -3.) / SOLAR_MASS;
 #endif
 
-              if (run_globals.params.Flag_SeparateQSOXrays) {
-                SMOOTHED_SFR_QSO[i_smoothedSFR] = (((float*)sfr_filtered)[i_padded] / pixel_volume) *
-                                                  (units->UnitMass_in_g / units->UnitTime_in_s) *
-                                                  pow(units->UnitLength_in_cm, -3.) / SOLAR_MASS;
-              }
-
               density_over_mean = 1.0 + run_globals.reion_grids.deltax[i_padded];
 
               collapse_fraction_in_cell =
@@ -364,11 +351,6 @@ void _ComputeTs(int snapshot)
                                                 (units->UnitMass_in_g / units->UnitTime_in_s) *
                                                 pow(units->UnitLength_in_cm, -3.) / SOLAR_MASS;
 #endif
-              if (run_globals.params.Flag_SeparateQSOXrays) {
-                SMOOTHED_SFR_QSO[i_smoothedSFR] = (((float*)sfr_filtered)[i_padded] / pixel_volume) *
-                                                  (units->UnitMass_in_g / units->UnitTime_in_s) *
-                                                  pow(units->UnitLength_in_cm, -3.) / SOLAR_MASS;
-              }
             }
       }
 
@@ -413,10 +395,6 @@ void _ComputeTs(int snapshot)
       lower_int_limit_GAL = fmax(nu_tau_one(zp, zpp, x_e_ave, filling_factor_of_HI_zp, snapshot),
                                  run_globals.params.physics.NuXrayGalThreshold * NU_over_EV);
 
-      if (run_globals.params.Flag_SeparateQSOXrays) {
-        lower_int_limit_QSO = fmax(nu_tau_one(zp, zpp, x_e_ave, filling_factor_of_HI_zp, snapshot),
-                                   run_globals.params.physics.NuXrayQSOThreshold * NU_over_EV);
-      }
 
       if (filling_factor_of_HI_zp < 0)
         filling_factor_of_HI_zp =
@@ -463,26 +441,6 @@ void _ComputeTs(int snapshot)
                                                                2);
 #endif
 
-        if (run_globals.params.Flag_SeparateQSOXrays) {
-          freq_int_heat_tbl_QSO[x_e_ct][R_ct] = integrate_over_nu(zp,
-                                                                  x_int_XHII[x_e_ct],
-                                                                  lower_int_limit_QSO,
-                                                                  run_globals.params.physics.NuXrayQSOThreshold,
-                                                                  run_globals.params.physics.SpecIndexXrayQSO,
-                                                                  0);
-          freq_int_ion_tbl_QSO[x_e_ct][R_ct] = integrate_over_nu(zp,
-                                                                 x_int_XHII[x_e_ct],
-                                                                 lower_int_limit_QSO,
-                                                                 run_globals.params.physics.NuXrayQSOThreshold,
-                                                                 run_globals.params.physics.SpecIndexXrayQSO,
-                                                                 1);
-          freq_int_lya_tbl_QSO[x_e_ct][R_ct] = integrate_over_nu(zp,
-                                                                 x_int_XHII[x_e_ct],
-                                                                 lower_int_limit_QSO,
-                                                                 run_globals.params.physics.NuXrayQSOThreshold,
-                                                                 run_globals.params.physics.SpecIndexXrayQSO,
-                                                                 2);
-        }
       }
 
       // and create the sum over Lya transitions from direct Lyn flux
@@ -642,33 +600,7 @@ void _ComputeTs(int snapshot)
     // 21cmFAST, which can be trivially compensated for by reducing L_X. Ultimately the backgrounds in Meraxes will be
     // this same factor higher than 21cmFAST, but at least it is understood why and trivially accounted for.
 
-    if (run_globals.params.Flag_SeparateQSOXrays) {
 
-      if (fabs(run_globals.params.physics.SpecIndexXrayQSO - 1.0) < 0.000001) {
-        Luminosity_converstion_factor_QSO =
-          (run_globals.params.physics.NuXrayQSOThreshold * NU_over_EV) *
-          log(run_globals.params.physics.NuXraySoftCut / run_globals.params.physics.NuXrayQSOThreshold);
-        Luminosity_converstion_factor_QSO = 1. / Luminosity_converstion_factor_QSO;
-      } else {
-        Luminosity_converstion_factor_QSO =
-          pow(run_globals.params.physics.NuXraySoftCut * NU_over_EV, 1. - run_globals.params.physics.SpecIndexXrayQSO) -
-          pow(run_globals.params.physics.NuXrayQSOThreshold * NU_over_EV,
-              1. - run_globals.params.physics.SpecIndexXrayQSO);
-        Luminosity_converstion_factor_QSO = 1. / Luminosity_converstion_factor_QSO;
-        Luminosity_converstion_factor_QSO *= pow(run_globals.params.physics.NuXrayQSOThreshold * NU_over_EV,
-                                                 -run_globals.params.physics.SpecIndexXrayQSO) *
-                                             (1 - run_globals.params.physics.SpecIndexXrayQSO);
-      }
-      Luminosity_converstion_factor_QSO *= (SEC_PER_YEAR) / (PLANCK);
-
-      // Leave the original 21cmFAST code for reference. Refer to Greig & Mesinger (2017) for the new parameterisation.
-      //            const_zp_prefactor_QSO = (1.0/0.59)*( run_globals.params.physics.LXrayQSO *
-      //            Luminosity_converstion_factor_QSO ) / (run_globals.params.physics.NuXrayQSOThreshold*NU_over_EV) *
-      //            SPEED_OF_LIGHT * pow(1+zp, run_globals.params.physics.SpecIndexXrayQSO+3);
-      const_zp_prefactor_QSO = (run_globals.params.physics.LXrayQSO * Luminosity_converstion_factor_QSO) /
-                               (run_globals.params.physics.NuXrayQSOThreshold * NU_over_EV) * SPEED_OF_LIGHT *
-                               pow(1 + zp, run_globals.params.physics.SpecIndexXrayQSO + 3);
-    }
 
     // interpolate to correct nu integral value based on the cell's ionization state
     for (int ix = 0; ix < local_nix; ix++)
@@ -690,11 +622,6 @@ void _ComputeTs(int snapshot)
 #if USE_MINI_HALOS
             SFR_III[R_ct] = SMOOTHED_SFR_III[i_smoothedSFR];
 #endif
-
-            if (run_globals.params.Flag_SeparateQSOXrays) {
-              SFR_QSO[R_ct] = SMOOTHED_SFR_QSO[i_smoothedSFR];
-            }
-
             xHII_call = x_e_box_prev[i_padded];
 
             dt_dzpp = dt_dzpp_list[R_ct];
@@ -752,29 +679,6 @@ void _ComputeTs(int snapshot)
             freq_int_lya_III[R_ct] += freq_int_lya_tbl_III[m_xHII_low][R_ct];
 #endif
 
-            if (run_globals.params.Flag_SeparateQSOXrays) {
-
-              // heat
-              freq_int_heat_QSO[R_ct] =
-                (freq_int_heat_tbl_QSO[m_xHII_high][R_ct] - freq_int_heat_tbl_QSO[m_xHII_low][R_ct]) /
-                (x_int_XHII[m_xHII_high] - x_int_XHII[m_xHII_low]);
-              freq_int_heat_QSO[R_ct] *= (xHII_call - x_int_XHII[m_xHII_low]);
-              freq_int_heat_QSO[R_ct] += freq_int_heat_tbl_QSO[m_xHII_low][R_ct];
-
-              // ionization
-              freq_int_ion_QSO[R_ct] =
-                (freq_int_ion_tbl_QSO[m_xHII_high][R_ct] - freq_int_ion_tbl_QSO[m_xHII_low][R_ct]) /
-                (x_int_XHII[m_xHII_high] - x_int_XHII[m_xHII_low]);
-              freq_int_ion_QSO[R_ct] *= (xHII_call - x_int_XHII[m_xHII_low]);
-              freq_int_ion_QSO[R_ct] += freq_int_ion_tbl_QSO[m_xHII_low][R_ct];
-
-              // lya
-              freq_int_lya_QSO[R_ct] =
-                (freq_int_lya_tbl_QSO[m_xHII_high][R_ct] - freq_int_lya_tbl_QSO[m_xHII_low][R_ct]) /
-                (x_int_XHII[m_xHII_high] - x_int_XHII[m_xHII_low]);
-              freq_int_lya_QSO[R_ct] *= (xHII_call - x_int_XHII[m_xHII_low]);
-              freq_int_lya_QSO[R_ct] += freq_int_lya_tbl_QSO[m_xHII_low][R_ct];
-            }
           }
 
           // Perform the calculation of the heating/ionisation integrals, updating relevant quantities etc. GET BACK AT
@@ -784,16 +688,12 @@ void _ComputeTs(int snapshot)
                     run_globals.reion_grids.deltax[i_padded],
                     SFR_GAL,
                     SFR_III,
-                    SFR_QSO,
                     freq_int_heat_GAL,
                     freq_int_ion_GAL,
                     freq_int_lya_GAL,
                     freq_int_heat_III,
                     freq_int_ion_III,
                     freq_int_lya_III,
-                    freq_int_heat_QSO,
-                    freq_int_ion_QSO,
-                    freq_int_lya_QSO,
                     NO_LIGHT,
                     ans,
                     dansdz);
@@ -802,16 +702,12 @@ void _ComputeTs(int snapshot)
                     run_globals.reion_grids.deltax[i_padded],
                     SFR_GAL,
                     0,
-                    SFR_QSO,
                     freq_int_heat_GAL,
                     freq_int_ion_GAL,
                     freq_int_lya_GAL,
                     0,
                     0,
                     0,
-                    freq_int_heat_QSO,
-                    freq_int_ion_QSO,
-                    freq_int_lya_QSO,
                     NO_LIGHT,
                     ans,
                     dansdz);

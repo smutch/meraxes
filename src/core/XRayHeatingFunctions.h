@@ -57,7 +57,6 @@ double growth_factor_zp;
 double dgrowth_factor_dzp;
 double const_zp_prefactor_GAL;
 double const_zp_prefactor_III;
-double const_zp_prefactor_QSO;
 float x_int_XHII[x_int_NXHII];
 #else
 extern double x_e_ave;
@@ -74,7 +73,6 @@ extern double growth_factor_zp;
 extern double dgrowth_factor_dzp;
 extern double const_zp_prefactor_GAL;
 extern double const_zp_prefactor_III;
-extern double const_zp_prefactor_QSO;
 extern float x_int_XHII[x_int_NXHII];
 #endif
 
@@ -182,16 +180,12 @@ extern "C"
                  float curr_delNL0,
                  const double SFR_GAL[],
                  const double SFR_III[],
-                 const double SFR_QSO[],
                  const double freq_int_heat_GAL[],
                  const double freq_int_ion_GAL[],
                  const double freq_int_lya_GAL[],
                  const double freq_int_heat_III[],
                  const double freq_int_ion_III[],
                  const double freq_int_lya_III[],
-                 const double freq_int_heat_QSO[],
-                 const double freq_int_ion_QSO[],
-                 const double freq_int_lya_QSO[],
                  int COMPUTE_Ts,
                  const double y[],
                  double deriv[]);

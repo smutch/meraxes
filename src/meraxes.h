@@ -300,7 +300,6 @@ typedef struct run_params_t
   long long LightconeLength;
   long long CurrentLCPos;
   int PS_Length;
-  int Flag_SeparateQSOXrays;
   int Flag_OutputGrids;
   int Flag_OutputGridsPostReion;
   int FlagIgnoreProgIndex;
@@ -450,7 +449,6 @@ typedef struct reion_grids_t
 #if USE_MINI_HALOS
   double* SMOOTHED_SFR_III;
 #endif
-  double* SMOOTHED_SFR_QSO;
 
   // Grids necessary for LW background and future disentangling between MC/AC Pop3/Pop2 stuff
 
