@@ -1,0 +1,28 @@
+#------------------------------------------
+#----- Simulation input files  ------------
+#------------------------------------------
+SimName          : Tiamat125-HR
+SimulationDir    : /fred/oz013/simulations/Tiamat_125_HR
+CatalogFilePrefix: subfind
+TreesID          : 1
+BoxSize          : 125.0
+VolumeFactor     : 1.0
+
+#------------------------------------------------
+#----- Cosmological and nbody sim parameters ----
+#------------------------------------------------
+OmegaM: 0.308
+OmegaK: 0.000
+OmegaLambda: 0.692
+OmegaR: 0.0
+BaryonFrac: 0.15714
+Hubble_h: 0.678
+SpectralIndex: 0.968
+Sigma8: 0.815
+PartMass: 0.0132541
+wLambda: -1.0
+NPart: 1259712000
+
+UnitLength_in_cm         : 3.08568e+24       # WATCH OUT : Mpc/h
+UnitMass_in_g            : 1.989e+43         # WATCH OUT : 10^10Msun/h
+UnitVelocity_in_cm_per_s : 100000            # WATCH OUT : km/s
