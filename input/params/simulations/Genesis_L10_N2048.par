@@ -1,0 +1,24 @@
+#------------------------------------------
+#----- Simulation input files  ------------
+#------------------------------------------
+SimName           : Genesis L35_N2650
+SimulationDir     : /fred/oz113/balu/files_for_meraxes/L10_N2048 
+CatalogFilePrefix : VELOCIraptor.walkabletree.forestID.hdf5.0 
+TreesID           : 0  # 0 -> VELOCIraptor; 1 -> gbpTrees
+BoxSize           : 10.0
+VolumeFactor      : 1.0
+
+#------------------------------------------------
+#----- Cosmological and nbody sim parameters ----
+#------------------------------------------------
+OmegaM: 0.3121
+OmegaK: 0.000
+OmegaLambda: 0.6879
+OmegaR: 0.0
+BaryonFrac: 0.15714
+Hubble_h: 0.6751
+SpectralIndex: 0.968
+Sigma8: 0.815
+PartMass: 9.935e-7
+wLambda: -1.0
+NPart: 8589934592 
