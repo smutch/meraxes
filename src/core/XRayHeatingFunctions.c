@@ -1244,6 +1244,7 @@ void evolveInt(float zp,
   double Conversion_factor =
     (SPEED_OF_LIGHT / (4. * M_PI)) / (PROTONMASS / SOLAR_MASS); // I am using this many times so it's worth save this
   int zpp_ct;
+  double T, TII, x_e, zpp_integrand_GAL;
   double dxe_dzp, n_b, dspec_dzp, dxheat_dzp, dxlya_dt_GAL, dstarlya_dt_GAL, dstarlyLW_dt_GAL;
 #if USE_MINI_HALOS
   // Do this to differentiate between Pop III and Pop II contribution
