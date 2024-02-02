@@ -97,7 +97,7 @@ else()
 endif()
 set_target_properties(meraxes_lib PROPERTIES
     OUTPUT_NAME meraxes
-    PUBLIC_HEADER "${CMAKE_CURRENT_SOURCE_DIR}/src/meraxes.h;${CMAKE_CURRENT_BINARY_DIR}/src/meraxes_conf.h"
+    PUBLIC_HEADER "${CMAKE_CURRENT_SOURCE_DIR}/src/meraxes.h;${CMAKE_CURRENT_BINARY_DIR}/meraxes_conf.h"
     C_STANDARD 99
     )
 add_executable(meraxes ${CMAKE_CURRENT_SOURCE_DIR}/src/core/meraxes.c)
