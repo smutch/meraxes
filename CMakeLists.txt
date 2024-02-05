@@ -63,6 +63,10 @@ option(GDB "Drop into GDB with mpi_debug_here() calls" OFF)
 option(ENABLE_PROFILING "Enable profiling of executable with gperftools." OFF)
 option(USE_CUDA "Build with CUDA support for reionization calculations" OFF)
 
+# Some build options clash with each other
+if(USE_CUDA AND USE_MINI_HALOS)
+    message(FATAL_ERROR "The GPU reionization implementation does not currently support minihalos physics")
+endif()
 
 # Build type
 set(default_build_type "RelWithDebInfo")
