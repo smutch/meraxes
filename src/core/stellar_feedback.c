@@ -183,7 +183,8 @@ double get_total_SN_energy(void)
 double get_SN_energy_PopIII(
   int i_burst,
   int snapshot,
-  int SN_type) // SN_type = 0 -> CC, 1 -> PISN (Pop. III have higher masses so we need to account also for PISN!)
+  int SN_type) // SN_type = 0 -> CC, 1 -> PISN 
+               // Pop. III have higher masses so we need to account also for PISN!
 {
   double NumberPISN = run_globals.NumberPISN;
   double NumberSNII = run_globals.NumberSNII;
@@ -194,7 +195,7 @@ double get_SN_energy_PopIII(
     double CC_Fraction = CCSN_PopIII_Fraction(i_burst, snapshot, 0);
     return Enova * CC_Fraction * NumberSNII * 1e10 /
            run_globals.params
-             .Hubble_h; // result in erg * (1e10 Msol / h). You will need to multiply this per mass in internal units.
+             .Hubble_h; // result in erg * (1e10 Msol / h)
   }
   // PISN (feedback here is contemporaneous).
   else if (SN_type == 1) {

@@ -16,10 +16,13 @@
  * a prescription for line-of-sight redshift-space distortions, taken from
  * 21CMMC (Greig & Mesinger 2018).
  * Written by Bradley Greig.
+ *
+ * Added the computation of 21cm Tb without Pop. III (useful to better
+ * highlight the contribution of Pop III stars). By Manu Ventura.
  */
 
-void ComputeBrightnessTemperatureBox(int snapshot) // Added the computation of 21cm Tb without Pop. III (useful to
-                                                   // better highlight the contribution of Pop III stars)
+void ComputeBrightnessTemperatureBox(int snapshot) // 
+                                                   // 
 {
 
   int ii, jj, kk, i_real, i_padded, iii;

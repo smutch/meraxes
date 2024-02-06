@@ -141,7 +141,7 @@ void construct_metal_grids(int snapshot, int local_ngals)
             case prop_prob:
 
               if (gal->RmetalBubble >= 3 * gal->Rvir) { // A bubble can actually pollute the IGM only if it's bigger
-                                                        // than its virial radius (Try with 3 atm)
+                                                        // than its virial radius.
                 buffer_metals[ind] +=
                   (4.0 / 3.0 * M_PI *
                    pow((gal->RmetalBubble) * (1 + redshift), 3.0)); // cMpc/h (same units of cell volume)
@@ -550,8 +550,7 @@ int map_galaxies_to_slabs_metals(int ngals)
 
 void assign_probability_to_galaxies(int ngals_in_metal_slabs,
                                     int snapshot,
-                                    int flag_property) // Right now you are assigning a probability to all galaxies!
-                                                       // Actually you need only to the newly formed
+                                    int flag_property) 
 {
   // Same way in which we assing Mcrit due to Reio and LW feedback in reionization.c
 
@@ -844,10 +843,8 @@ void assign_probability_to_galaxies(int ngals_in_metal_slabs,
           gal->Metals_IGM = (double)buffer_metals[grid_index(ix, iy, iz, MetalGridDim, INDEX_REAL)];
 
         if (flag_property == 2) {
-          // gal->Gas_IGM = (double)buffer_metals[grid_index(ix, iy, iz, MetalGridDim, INDEX_REAL)] + cell_gas;
           gal->Gas_IGM = (double)buffer_metals[grid_index(ix, iy, iz, MetalGridDim, INDEX_REAL)];
-          gal->Metallicity_IGM = calc_metallicity(gal->Gas_IGM, gal->Metals_IGM); // Maybe this can be put somewhere
-                                                                                  // else
+          gal->Metallicity_IGM = calc_metallicity(gal->Gas_IGM, gal->Metals_IGM); 
         }
 
         if (flag_property == 3)
