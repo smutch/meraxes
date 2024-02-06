@@ -41,7 +41,7 @@ void Initialise_PowerSpectrum()
   mlog("Initialise_PowerSpectrum set PS_Length to %d.", MLOG_MESG, run_globals.params.PS_Length);
 }
 
-void Compute_PS(int snapshot) // Adding the 21cm PS if only Pop II are present! Still not 100% sure. Still not
+void Compute_PS(int snapshot) // Adding the 21cm PS if only Pop II are present! Still to be tested. Still not
                               // disentangling reionization.
 {
 

@@ -20,7 +20,7 @@
  */
 
 /*
- * The minihalo feature was written by Emanuele M. Ventura, which includes an
+ * The minihalo feature was written by Manu Ventura, which includes an
  * amalgamation of the requisite functions for LW background using formulation of Qin2020a
  *
  * The output with II are computed accounting only for Pop II galaxies. In particular we compute Lyman-alpha, Xray, LW
@@ -552,8 +552,8 @@ void _ComputeTs(int snapshot)
 
     Luminosity_converstion_factor_GAL *= (SEC_PER_YEAR) / (PLANCK);
 
-    // Do the same for Pop III (Once again, there are a few things you are not 100% sure)
-
+    // Do the same for Pop III. 
+    
 #if USE_MINI_HALOS
     if (fabs(run_globals.params.physics.SpecIndexXrayIII - 1.0) < 0.000001) {
       Luminosity_converstion_factor_III =

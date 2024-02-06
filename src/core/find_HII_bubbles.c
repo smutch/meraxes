@@ -19,6 +19,8 @@
  *
  * Inclusion of electron fraction (X-ray heating) and inhomogeneous recombinations
  * by Bradley Greig. Relevant functions taken from public version of 21cmFAST.
+ *
+ * Inclusion od Pop. III galaxies when accounting for MINIHALOS by Manu Ventura.
  */
 
 double RtoM(double R)

@@ -15,7 +15,7 @@
 #include "metal_evo.h"
 #include "read_grids.h"
 #include "stellar_feedback.h"
-#include "virial_properties.h" //For the test
+#include "virial_properties.h" 
 #endif
 #include "save.h"
 #include "tree_flags.h"

@@ -511,8 +511,6 @@ void calc_metal_bubble(galaxy_t* gal, int snapshot) // result in internal units 
       gal->RmetalBubble = gal->PrefactorBubble * pow(IGM_density, -0.2) *
                           pow((gal->TimeBubble - run_globals.LTTime[snapshot] * time_unit), 0.4);
   }
-  if (gal->RmetalBubble > 10.) // Add this to check that there are no huge and unphysical bubbles.
-    mlog("StrangeBubble = %f, Prefactor = %f", MLOG_MESG, gal->RmetalBubble, gal->PrefactorBubble);
 
   if (gal->Type == 0) {
     for (int i_burst = 0; i_burst < n_bursts; i_burst++) {

@@ -80,8 +80,6 @@ void initialize_PopIII() // Initialize PopIII quantities that are easily compute
       break;
   }
 
-  // double MminIMF = run_globals.params.physics.MminIMF;
-  // double MmaxIMF = run_globals.params.physics.MmaxIMF;
   assert(MminIMF < MmaxIMF);
 
   run_globals.params.physics.MminIMF = MminIMF;
