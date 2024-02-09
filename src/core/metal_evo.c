@@ -548,9 +548,7 @@ int map_galaxies_to_slabs_metals(int ngals)
   return gal_counter;
 }
 
-void assign_probability_to_galaxies(int ngals_in_metal_slabs,
-                                    int snapshot,
-                                    int flag_property) 
+void assign_probability_to_galaxies(int ngals_in_metal_slabs, int snapshot, int flag_property)
 {
   // Same way in which we assing Mcrit due to Reio and LW feedback in reionization.c
 
@@ -844,7 +842,7 @@ void assign_probability_to_galaxies(int ngals_in_metal_slabs,
 
         if (flag_property == 2) {
           gal->Gas_IGM = (double)buffer_metals[grid_index(ix, iy, iz, MetalGridDim, INDEX_REAL)];
-          gal->Metallicity_IGM = calc_metallicity(gal->Gas_IGM, gal->Metals_IGM); 
+          gal->Metallicity_IGM = calc_metallicity(gal->Gas_IGM, gal->Metals_IGM);
         }
 
         if (flag_property == 3)

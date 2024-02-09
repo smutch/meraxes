@@ -552,8 +552,8 @@ void _ComputeTs(int snapshot)
 
     Luminosity_converstion_factor_GAL *= (SEC_PER_YEAR) / (PLANCK);
 
-    // Do the same for Pop III. 
-    
+    // Do the same for Pop III.
+
 #if USE_MINI_HALOS
     if (fabs(run_globals.params.physics.SpecIndexXrayIII - 1.0) < 0.000001) {
       Luminosity_converstion_factor_III =

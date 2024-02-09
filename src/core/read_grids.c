@@ -55,8 +55,7 @@ double calc_resample_factor(int n_cell[3])
 }
 
 #if USE_MINI_HALOS
-void smooth_Densitygrid_real(
-  int snapshot) // Need this to put the overdensity in the metal grid.
+void smooth_Densitygrid_real(int snapshot) // Need this to put the overdensity in the metal grid.
 {
   mlog("Smoothing the overdensity of the reionization grid into the metal grid...", MLOG_MESG);
   reion_grids_t* reiogrids = &(run_globals.reion_grids);
