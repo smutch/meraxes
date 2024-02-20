@@ -17,8 +17,8 @@
 # found in DefaultsFile and SimParamsFile.**
 
 FileNameGalaxies     : meraxes
-DefaultsFile         : @INPUT_FILE_DIR@/defaults.par
-SimParamsFile        : @INPUT_FILE_DIR@/simulations/Genesis_L10_N2048_PopIII.par
+DefaultsFile         : @INPUT_FILE_DIR@/params/defaults.par
+SimParamsFile        : @INPUT_FILE_DIR@/params/simulations/Genesis_L10_N2048_PopIII.par
 OutputSnapshots      : -1
 OutputDir            : output
 PhotometricTablesDir : @INPUT_FILE_DIR@/photometric_tables
