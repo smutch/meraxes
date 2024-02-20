@@ -21,8 +21,8 @@
  * highlight the contribution of Pop III stars). By Manu Ventura.
  */
 
-void ComputeBrightnessTemperatureBox(int snapshot) // 
-                                                   // 
+void ComputeBrightnessTemperatureBox(int snapshot) //
+                                                   //
 {
 
   int ii, jj, kk, i_real, i_padded, iii;
