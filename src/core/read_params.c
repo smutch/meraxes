@@ -1174,15 +1174,15 @@ void read_parameter_file(char* fname, int mode)
     n_entries = parse_paramfile(fname, entry);
     store_params(entry, n_entries, params_tag, n_param, used_tag, params_type, params_addr);
 
-    // Now parse the default parameter file
-    n_entries = parse_paramfile(run_params->DefaultsFile, entry);
-    store_params(entry, n_entries, params_tag, n_param, used_tag, params_type, params_addr);
-
-    // Finally, parse the simulation parameter file
+    // Now parse the simulation parameter file
     if (strlen(run_params->SimParamsFile) > 0) {
       n_entries = parse_paramfile(run_params->SimParamsFile, entry);
       store_params(entry, n_entries, params_tag, n_param, used_tag, params_type, params_addr);
     }
+
+    // Finally, parse the default parameter file
+    n_entries = parse_paramfile(run_params->DefaultsFile, entry);
+    store_params(entry, n_entries, params_tag, n_param, used_tag, params_type, params_addr);
 
     // Check to see if we are missing any required parameters
     for (ii = 0; ii < n_param; ii++)
