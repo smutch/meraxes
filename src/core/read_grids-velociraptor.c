@@ -89,16 +89,19 @@ static int read_swift(const enum grid_prop property, const int snapshot, float* 
 
   int grid_dim = 0;
   double box_size[3] = { 0 };
-  {
-    char data[20];
+
+  if (run_globals.mpi_rank == 0) {
+    char data[20] = { '\0' };
     herr_t status = H5LTget_attribute_string(file_id, "/Parameters", "DensityGrids:grid_dim", data);
     assert(status >= 0);
     grid_dim = atoi(data);
 
-    // TODO: Check this will work...
     status = H5LTget_attribute_double(file_id, "/Header", "BoxSize", box_size);
     assert(status >= 0);
   }
+  // TODO: If this fix works then apply it to read_vr_multi below
+  MPI_Bcast(&grid_dim, 1, MPI_INT, 0, run_globals.mpi_comm);
+  MPI_Bcast(box_size, 3, MPI_DOUBLE, 0, run_globals.mpi_comm);
 
   mlog("Reading SWIFT grid for snapshot %d", MLOG_OPEN | MLOG_TIMERSTART, snapshot);
   mlog("grid_dim = %d", MLOG_MESG, grid_dim);
@@ -205,7 +208,7 @@ static int read_swift(const enum grid_prop property, const int snapshot, float* 
         for (int kk = 0; kk < ReionGridDim; kk++) {
           float* val = &(slab[grid_index(ii, jj, kk, ReionGridDim, INDEX_PADDED)]);
           // the fmax check here tries to account for negative densities introduced by fftw rounding / aliasing effects
-          *val = fmaxf(*val * mean_inv - 1.0, -1.0);
+          *val = fmaxf(*val * mean_inv - 1.0, -1.0 + REL_TOL);
         }
   }
 
@@ -276,7 +279,7 @@ static int read_vr_multi(const enum grid_prop property, const int snapshot, floa
       if (ii == 0) {
 
         // save current error stack
-        herr_t (*old_func)(long, void*);
+        herr_t (*old_func)(long long, void*);
         void* old_client_data;
         hid_t error_stack = 0;
         H5Eget_auto(error_stack, &old_func, &old_client_data);

@@ -319,8 +319,16 @@ void read_trees__velociraptor(int snapshot,
             // fof_group->Mvir = tree_entry.Mass_FOF;
             // fof_group->Rvir = -1;
           } else {
-            fof_group->Mvir = tree_entry.Mass_200crit;
-            fof_group->Rvir = tree_entry.R_200crit;
+              if ((tree_entry.Mass_200crit >= tree_entry.Mass_FOF) || (tree_entry.Mass_200crit < tree_entry.Mass_tot)) {
+                // Adding this since we found an issue in the N-body
+                fof_group->Mvir = tree_entry.Mass_FOF;
+                fof_group->Rvir = -1;
+              }
+              
+              else {
+                fof_group->Mvir = tree_entry.Mass_200crit;
+                fof_group->Rvir = tree_entry.R_200crit;
+              }
           }
           fof_group->Vvir = -1;
           fof_group->FOFMvirModifier = 1.0;

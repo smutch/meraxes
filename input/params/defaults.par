@@ -1,0 +1,266 @@
+# 🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥
+# 🐉 MERAXES SIMULATION-INDEPENDENT DEFAULT PARAMETERS 🐉
+# 🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥
+
+#--------------------------------
+#----- Code options & flags -----
+#--------------------------------
+
+NSteps                 : 1  # Current version of code requires NSteps=1 
+FlagInteractive        : 0
+FlagSubhaloVirialProps : 0  # 0 -> approximate subhalo virial props using particle number; 1 -> use catalogue values
+FlagMCMC               : 0  # Don't do any writing and activate MCMC related routines
+FlagIgnoreProgIndex    : 0
+RandomSeed             : 1809  # seed for random number generator
+VolumeFactor           : 1.0  # Set to 1.0 unless the trees are subsampled
+
+Flag_IncludeRecombinations : 0   # if 1 reionization accounts for H-recombination
+Flag_Compute21cmBrightTemp : 0   # if 1 Meraxes computes the 21cm Brightness Temperature 
+Flag_ComputePS             : 0   # if 1 Meraxes computes the 21cm Power Spectrum
+Flag_IncludeSpinTemp       : 0   # if 0 Ts>>Tg
+Flag_IncludePecVelsFor21cm : 0   # if 1 the computation of 21cm Tb accounts for peculiar velocities
+Flag_ConstructLightcone    : 0   # Construct reionization light cones
+Flag_IncludeLymanWerner    : 0   # if 1 Meraxes computes Lyman-Werner background (crucial for Minihalos)
+Flag_IncludeMetalEvo       : 0   # if 1 Meraxes computes the metal enrichment of the IGM.
+Flag_IncludeStreamVel      : 0   # if 1 Meraxes computes Streaming Velocities (relevant only for Minihalos)
+
+
+#--------------------------------------------------------
+#------------ External Metal enrichment -----------------
+#----- you need this when Flag_IncludeMetalEvo == 1 -----
+#--------------------------------------------------------
+
+MetalGridDim               : 128    # Number of pixels in a side of the MetalGrid
+
+AlphaCluster               : -1.4   # Parameters of the fitting function for Non Linear Clustering (irrelevant in this version of the code). 
+BetaCluster                : 0.8
+GammaCluster               : 2.8
+NormCluster                : 200.0
+
+ZCrit                      : 0.0001 # Critical metallicity. If Z >= Zcrit -> PopII, otherwise PopIII (crucial for Minihalos)
+
+
+#-------------------------------------------------------------------
+#------------------------- X-Ray stuff -----------------------------
+#----- including PopIII which is required when using Minihalos -----
+#-------------------------------------------------------------------
+
+LXrayGal                   : 3.16e40         # Soft-band (< NuXraySoftCut keV) X-ray luminosity for galaxy based sources (HMXB)
+LXrayGalIII                   : 3.16e40         # Same as above for PopIII
+
+NuXrayGalThreshold         : 500.            # Energy threshold for HMXB X-rays escaping host galaxy (eV)
+SpecIndexXrayGal           : 1.              # Spectral index of galaxy X-ray sources  (nu^-alpha)
+SpecIndexXrayIII           : 1.              # Same as above for Pop III
+NuXraySoftCut              : 2000.           # X-ray soft-band cut off in (eV)
+NuXrayMax                  : 10000.          # Maximum energy for X-ray band integration
+
+
+#---------------------------------------------
+#----- star formation (including PopIII) -----
+#---------------------------------------------
+
+SfDiskVelOpt               : 1      # disk velocity for SF law (1=Vmax, 2=Vvir)
+SfPrescription             : 1      # C06 SF law IF YOU RUN POP III YOU NEED THIS == 1
+
+SfEfficiency              : 0.08    # star formation efficiency Normalization
+SfEfficiency_III          : 0.008   # same as above for PopIII
+SfEfficiencyScaling       : 0.0     # star formation efficiency Scaling
+SfEfficiencyScaling_III   : 0.0     # same as above for PopIII
+
+SfCriticalSDNorm          : 0.2     # critical surface density normalisation factor for star formation (internal units; standard=0.37)
+SfCriticalSDNorm_III      : 0.2     # same as above for PopIII 
+
+### Pop III IMF (you need this when running Minihalos)
+
+PopIII_IMF                : 1 # IMF type with Mup and Mlow: 1-> Sal500_001, 2-> Sal500_050, 3->logA500_001, 4->logE500_001
+PopIIIAgePrescription     : 2 # Age of PopIII stars: 1->Schaerer Strong Mass Loss, 2-> Schaerer No Mass Loss
+
+### Pressure-based SF law from Blitz & Rosolowski 2006
+# SfPrescription == 2 and
+# Different H2 Depletion Timescale:
+# 1) SfEfficiencyScaling = 0,    SfEfficiency = 0.15
+#    -> 2Gyr is sort of an average H2 depletion time (Bigiel+08, Leroy+09, Bigiel+11, Bollato+11, Saintonge+11) 
+# 2) SfEfficiencyScaling = 0,    SfEfficiency = 1.0
+#    -> 300Gyr is sort of an average H2 depletion time (Duffy+17)
+# 3) SfEfficiencyScaling = 1.06, SfEfficiency = 0.15
+#    -> 2Gyr at z=0 with redshift dependence SF timescale (Duffy+17)
+
+
+#------------------------------
+#----- supernova feedback -----
+#------------------------------
+
+Flag_IRA                   : 0       # use the instantaneous recycling approximation
+Flag_ReheatToFOFGroupTemp  : 0       # try to reheat gas to the FOF group Tvir instead of just the subgroup value
+SfRecycleFraction          : 0.25    # instantaneous recycle fraction (IMF dependant) (only used when Flag_IRA=1)
+SfRecycleFraction_III      : 0.25    # same as above for PopIII 
+Yield                      : 0.03    # mass of metals injected into ISM per unit star formation (only used when Flag_IRA=1)
+Yield_III                  : 0.03    # same as above for PopIII
+
+# SnModel=1:
+#   -Use the Vmax scaling of Guo et al. 2011
+#   -Additional redshift factor of ((1 + z)/4)^SnEjectionRedshiftDep (SnReheatRedshiftDep)
+#   -SnReheatScaling2 and SnEjectionScaling2 are unused
+# SnModel=2:
+#   -Mass loading factor follows Muratov et al. 2015. Use SnReheatScaling for high Vmax scaling and
+#    SnReheatScaling2 for low Vmax scaling
+#   -Energy coupling efficiency follows a similar form. Use SnEjectionScaling for high Vmax scaling
+#    and SnEjectionScaling2 for low Vmax scaling
+#   -SnEjectionNorm and SnReheatNorm are forced to be the same, and the input SnEjectionNorm is
+#    unused
+#   -Both factors has redshift dependence of ((1 + z)/4)^SnEjectionRedshiftDep (SnReheatRedshiftDep)
+
+# All parameters below are duplicated for PopIII 
+
+SnModel                   : 1
+SnEjectionRedshiftDep     : 0.0     # SN feedback gas reheating efficiency redshift scaling
+SnEjectionRedshiftDep_III : 0.0
+SnEjectionEff             : 0.5     # SN feedback gas reheating efficiency
+SnEjectionEff_III         : 0.5
+SnEjectionScaling         : 2.0     # SN feedback gas reheating efficiency scaling (with high Vmax)
+SnEjectionScaling_III     : 2.0
+SnEjectionScaling2        : 2.0     # SN feedback gas reheating efficiency scaling (with low Vmax)
+SnEjectionScaling2_III    : 2.0
+SnEjectionNorm            : 70.0    # SN feedback gas reheating efficiency norm (with Vmax [internal units])
+SnEjectionNorm_III        : 70.0
+
+SnReheatRedshiftDep       : 0.0     # mass loading factor redshift scaling
+SnReheatRedshiftDep_III   : 0.0
+SnReheatEff               : 10.0    # mass loading factor for SN feedback
+SnReheatEff_III           : 10.0
+SnReheatLimit             : 10.0    # maximum allowed mass loading factor for SN feedback
+SnReheatLimit_III         : 10.0
+SnReheatScaling           : 0.0     # mass loading factor for SN feedback scaling (with high Vmax)
+SnReheatScaling_III       : 0.0
+SnReheatScaling2          : 0.0     # mass loading factor for SN feedback scaling2 (with low Vmax)
+SnReheatScaling2_III      : 0.0
+SnReheatNorm              : 70.0    # mass loading factor for SN feedback scaling (with Vmax [internal units])
+SnReheatNorm_III          : 70.0
+
+
+#-------------------
+#----- cooling -----
+#-------------------
+
+MaxCoolingMassFactor      : 1.0     # maximum cooling mass factor (1 -> ff time)
+
+
+#---------------------------
+#----- reincorporation -----
+#---------------------------
+
+# ReincorporationModel=1:
+#   -Reincorporation time is proportional to the halo dynamic time
+# RecinorporationModel=2:
+#   -Reincorporation time scales with halo mass (Henriques et al. 2013), and is always larger than the
+#    halo dynamic time
+#   -ReincorporationEff adopts the definition in Henriques et al. 2013, which differs from the first case
+#    and should be in a unit of Myr
+ReincorporationModel      : 1
+ReincorporationEff        : 0.0     # gas reincorporation efficiency from ejected component
+
+
+#-------------------
+#----- mergers -----
+#-------------------
+
+Flag_FixVmaxOnInfall       : 0      # fix Vmax upon infall
+Flag_FixDiskRadiusOnInfall : 0      # fix disk radius upon infall
+
+ThreshMajorMerger         : 0.3     # major merger when mass ratio greater than this
+MergerTimeFactor          : 0.5     # Multiplicitive fator for the merger timescales (2.0->DeLucia+; 1.0->Croton+)
+
+MinMergerStellarMass      : 1e-9    # Minimum stellar mass for a merger starburst and dynamical friction calc (internal units)
+MinMergerRatioForBurst    : 0.1     # Minimum mass ratio for merger driven star burst
+MergerBurstFactor         : 0.57    # Constant factor in merger burst equation
+MergerBurstScaling        : 0.7
+
+
+#--------------------------------
+#----- BlackHole and Quasar -----
+#--------------------------------
+
+Flag_BHFeedback           : 1
+
+RadioModeEff              : 0.3
+QuasarModeEff             : 0.0005
+BlackHoleGrowthRate       : 0.05
+
+EddingtonRatio            : 1.0
+BlackHoleSeed             : 1e-7
+BlackHoleMassLimitReion   : -1
+quasar_mode_scaling       : 0.0
+quasar_open_angle         : 80.0
+
+
+#------------------------
+#----- Reionization -----
+#------------------------
+
+Flag_ReionizationModifier  : 1    # 0: No modifier, 1: Sobacchi 21cmFAST modifier, 2: use halo mass dependant infall modifier of Gnedin, 3: precomputed (requires input file)
+
+#### global prescriptions
+ReionSobacchi_Zre      : 9.3
+ReionSobacchi_DeltaZre : 1.0
+ReionSobacchi_DeltaZsc : 2.0
+ReionSobacchi_T0       : 5.0e4
+
+ReionGnedin_z0         : 8
+ReionGnedin_zr         : 7
+
+#### patchy (21cmFAST) prescription
+Flag_PatchyReion       : 1  # Use 21cmFAST (ensure Flag_ReionizationModifier=1 if wish to couple to galaxy formation).
+Flag_OutputGrids       : 1
+Flag_OutputGridsPostReion  : 1
+
+ReionUVBFlag           : 1  # Use 21cmFAST (ensure Flag_ReionizationModifier=1 if wish to couple to galaxy formation).
+ReionGridDim           : 128 
+ReionDeltaRFactor      : 1.1
+ReionFilterType        : 0
+ReionPowerSpecDeltaK   : 0.1
+ReionRtoMFilterType    : 0
+
+Y_He                   : 0.24
+ReionRBubbleMin        : 0.4068
+ReionRBubbleMax        : 20.34
+ReionGammaHaloBias     : 2.0
+ReionAlphaUV           : 5.0
+ReionAlphaUVBH         : 1.57
+
+EscapeFracDependency       : 1  # 0->none, 1->redshift, 2->stellar mass, 3->sfr, 4->cold gas surface density, 5->mvir, 6->ssfr
+EscapeFracNorm             : 0.06
+EscapeFracNormIII          : 0.06 # same as above for PopIII
+EscapeFracRedshiftOffset   : 6.0
+EscapeFracRedshiftScaling  : 0.5  # N.B. use EscapeFracDependency>1 and this = 0 to scale only with galaxy property (and not also with redshift)
+EscapeFracPropScaling      : 0.5
+EscapeFracBHNorm           : 1
+EscapeFracBHScaling        : 0
+
+ReionSMParam_m0        : 0.18984  # internal units
+ReionSMParam_a         : 0.17
+ReionSMParam_b         : -2.1
+ReionSMParam_c         : 2.0
+ReionSMParam_d         : 2.5
+
+ReionTcool             : 1.0e4  # Kelvin
+ReionNionPhotPerBary   : 6000 # Since the IMF has been updated for the UV luminosity.
+
+ReionSfrTimescale          : 0.5
+TsHeatingFilterType        : 1 
+TsNumFilterSteps           : 40
+TsVelocityComponent        : 0
+EndRedshiftLightcone       : 6.0
+ReionRBubbleMaxRecomb      : 33.9
+ReionMaxHeatingRedshift    : 30.
+
+
+#----------------------------------
+#----- Luminosity calculation -----
+#----------------------------------
+
+BirthCloudLifetime         : 10e6  # yr
+TargetSnaps                : -1  # Note that simple Python style slicing and indexing works here, so `-1` is the last snapshot `100:110,-5:` is snapshots 100-109 and the last 5 snapshots
+RestBands                  : 1550,1650
+BetaBands                  : 
+InstantSfIII               : 0   # 0 -> Continuous Pop.III SF, 1 -> Instantaneous Pop.III SF (crucial when computing the luminosity of PopIII galaxies)
+DeltaT                     : 1.0 # Time at which the burst of PopIII SF happens since in the beginning of the snapshot (in Myr). Required only if InstantSfIII = 1

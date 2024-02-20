@@ -103,7 +103,7 @@ __global__ void find_HII_bubbles_gpu_main_loop(const float redshift,
                                                float* Gamma12,
                                                Complex* deltax_filtered_device,
                                                Complex* stars_filtered_device,
-                                               Complex* sfr_filtered_device,
+                                               Complex* weighted_sfr_filtered_device,
                                                Complex* N_rec_filtered_device);
 
 // Wrap exception-handling calls with these macros to add exception location information to the error messages

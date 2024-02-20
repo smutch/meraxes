@@ -2,7 +2,9 @@
 #include <math.h>
 
 #include "cooling.h"
+#include "core/misc_tools.h"
 #include "meraxes.h"
+#include "virial_properties.h"
 
 // *** This code is taken from the model of Croton+ 2006 with minimal modifications. ***
 //
@@ -104,3 +106,39 @@ double interpolate_cooling_rate(double logTemp, double logZ)
 
   return pow(10, rate);
 }
+
+#if USE_MINI_HALOS
+double LTE_Mcool(double Temp, double nH)
+{
+  double T3;
+  double LrHLTE, LvHLTE, LTEtot;
+
+  T3 = Temp / 1e3;
+  LrHLTE = 1. / nH *
+           ((9.5e-22 * pow(T3, 3.76) / (1 + 0.12 * pow(T3, 2.1))) * exp(pow(-0.13 / T3, 3)) + 3e-24 * exp(-0.51 / T3));
+  LvHLTE = 1. / nH * (6.7e-19 * exp(-5.86 / T3) + 1.6e-18 * exp(-11.7 / T3));
+  LTEtot = LrHLTE + LvHLTE;
+
+  return LTEtot;
+}
+
+double Mcool_SV(double redshift, int n)
+{
+  // Function to compute the minimum mass for MC when including the streaming velocities,
+  // n quantifies the strength of the SV (n* sigma(z)) with sigma being the rms streaming velocity (TH 2010 and Fialkov
+  // 2012)) Computation from Visbal+20
+  int halo_type = 2;
+  double zplus1 = redshift + 1;
+
+  double a = 3.714; // in km/s from Greif+11
+  double b = 4.015;
+
+  double sigma_rms = 30.0 * (zplus1 / 1000.0); // in km/s from Nebrin+23 (TH+10, Fialkov+12)
+  double vbc = n * sigma_rms;
+
+  double Vcool = sqrt(a * a + (b * vbc) * (b * vbc));
+  double McoolSV = Vvir_to_Mvir(Vcool, redshift, halo_type);
+
+  return McoolSV;
+}
+#endif

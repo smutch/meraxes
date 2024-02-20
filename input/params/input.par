@@ -1,0 +1,27 @@
+# 🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥
+# 🐉 MERAXES CONFIG FILE 🐉
+# 🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥
+#
+# This file contains the bare minimum parameters required for running Meraxes.
+# All other parameters are set to their default values as defined in
+# the DefaultsFile. However, you can override any of these parameter
+# values by adding them to this file.
+#
+# Simulation dependent parameters (volume, cosmology, particle mass etc.) are
+# set in the SimParamsFile. There are a number of templates for different
+# simulations in /input/simulations. If you are running a new simulation, you
+# can also set all of the relevant parameters in this file directly and remove
+# the SimParamsFile line.
+#
+# **Basically - any parameter set in this file will override the default values
+# found in DefaultsFile and SimParamsFile.**
+
+FileNameGalaxies     : meraxes
+DefaultsFile         : @INPUT_FILE_DIR@/defaults.par
+SimParamsFile        : @INPUT_FILE_DIR@/simulations/Genesis_L10_N2048_PopIII.par
+OutputSnapshots      : -1
+OutputDir            : output
+PhotometricTablesDir : @INPUT_FILE_DIR@/photometric_tables
+CoolingFuncsDir      : @INPUT_FILE_DIR@/cooling_functions
+StellarFeedbackDir   : @INPUT_FILE_DIR@/stellar_feedback_tables/Kroupa
+TablesForXHeatingDir : @INPUT_FILE_DIR@/21cmFAST-tables

@@ -94,18 +94,12 @@ double hubble_time(int snapshot)
 
 double calculate_Rvir(double Mvir, int snapshot)
 {
-  double hubble_of_z_sq;
-  double rhocrit;
   double fac;
   double Delta;
 
-  hubble_of_z_sq = pow(hubble_at_snapshot(snapshot), 2);
-
-  rhocrit = 3 * hubble_of_z_sq / (8 * M_PI * run_globals.G);
-
   Delta = Delta_vir(run_globals.ZZ[snapshot]);
 
-  fac = 1 / (Delta * 4 * M_PI / 3.0 * rhocrit);
+  fac = 1 / (Delta * 4 * M_PI / 3.0 * run_globals.rhocrit[snapshot]);
 
   return cbrt(Mvir * fac);
 }
@@ -120,4 +114,31 @@ double calculate_spin_param(halo_t* halo)
   double angmom_mag =
     sqrt(halo->AngMom[0] * halo->AngMom[0] + halo->AngMom[1] * halo->AngMom[1] + halo->AngMom[2] * halo->AngMom[2]);
   return angmom_mag / (1.414213562 * halo->Vvir * halo->Rvir);
+}
+
+double Vvir_to_Tvir(double Vvir, int halo_type)
+{
+  // V in internal units, km/s. T in Kelvin
+  double Tvir;
+  switch (halo_type) {
+    case 2:
+      Tvir = 73.8 * Vvir * Vvir;
+      if (Tvir > 1e4)
+        Tvir = 1e4;
+      break;
+    case 1:
+      Tvir = 35.9 * Vvir * Vvir;
+      break;
+    default:
+      Tvir = 0;
+      break;
+  }
+  return Tvir;
+}
+
+double Vvir_to_Mvir(double Vvir, double redshift, int halo_type)
+{
+  double Tvir = Vvir_to_Tvir(Vvir, halo_type);
+  double Mvir = Tvir_to_Mvir(Tvir, redshift);
+  return Mvir;
 }

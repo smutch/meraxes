@@ -1,6 +1,7 @@
 #include <complex.h>
 #include <fftw3-mpi.h>
 #include <math.h>
+#include <string.h>
 
 #include "XRayHeatingFunctions.h"
 #include "meraxes.h"
@@ -18,6 +19,8 @@
  *
  * Inclusion of electron fraction (X-ray heating) and inhomogeneous recombinations
  * by Bradley Greig. Relevant functions taken from public version of 21cmFAST.
+ *
+ * Inclusion od Pop. III galaxies when accounting for MINIHALOS by Manu Ventura.
  */
 
 double RtoM(double R)
@@ -60,10 +63,19 @@ void _find_HII_bubbles(const int snapshot)
   float J_21_aux = 0;
   double J_21_aux_constant;
   double density_over_mean;
-  double sfr_density;
+  double weighted_sfr_density;
   double f_coll_stars;
-  double electron_fraction;
+  double neutral_fraction;
   double Gamma_R_prefactor;
+#if USE_MINI_HALOS
+  const double ReionEfficiencyIII = run_globals.params.physics.ReionEfficiencyIII;
+  const double ReionNionPhotPerBaryIII = run_globals.params.physics.ReionNionPhotPerBaryIII;
+  float J_21_auxIII = 0;
+  double J_21_auxIII_constant;
+  double weighted_sfr_densityIII;
+  double f_coll_starsIII;
+  double Gamma_R_prefactorIII;
+#endif
 
   double dNrec, rec;
   float z_eff;
@@ -115,9 +127,19 @@ void _find_HII_bubbles(const int snapshot)
   fftwf_complex* stars_filtered = run_globals.reion_grids.stars_filtered;
   fftwf_execute(run_globals.reion_grids.stars_forward_plan);
 
-  fftwf_complex* sfr_unfiltered = run_globals.reion_grids.sfr_unfiltered;
-  fftwf_complex* sfr_filtered = run_globals.reion_grids.sfr_filtered;
-  fftwf_execute(run_globals.reion_grids.sfr_forward_plan);
+  fftwf_complex* weighted_sfr_unfiltered = run_globals.reion_grids.weighted_sfr_unfiltered;
+  fftwf_complex* weighted_sfr_filtered = run_globals.reion_grids.weighted_sfr_filtered;
+  fftwf_execute(run_globals.reion_grids.weighted_sfr_forward_plan);
+
+#if USE_MINI_HALOS
+  fftwf_complex* starsIII_unfiltered = run_globals.reion_grids.starsIII_unfiltered;
+  fftwf_complex* starsIII_filtered = run_globals.reion_grids.starsIII_filtered;
+  fftwf_execute(run_globals.reion_grids.starsIII_forward_plan);
+
+  fftwf_complex* weighted_sfrIII_unfiltered = run_globals.reion_grids.weighted_sfrIII_unfiltered;
+  fftwf_complex* weighted_sfrIII_filtered = run_globals.reion_grids.weighted_sfrIII_filtered;
+  fftwf_execute(run_globals.reion_grids.weighted_sfrIII_forward_plan);
+#endif
 
   // The free electron fraction from X-rays
   // TODO: Only necessary if we aren't using the GPU (not implemented there yet)
@@ -148,7 +170,11 @@ void _find_HII_bubbles(const int snapshot)
   for (int ii = 0; ii < slab_n_complex; ii++) {
     deltax_unfiltered[ii] /= total_n_cells;
     stars_unfiltered[ii] /= total_n_cells;
-    sfr_unfiltered[ii] /= total_n_cells;
+    weighted_sfr_unfiltered[ii] /= total_n_cells;
+#if USE_MINI_HALOS
+    starsIII_unfiltered[ii] /= total_n_cells;
+    weighted_sfrIII_unfiltered[ii] /= total_n_cells;
+#endif
     if (run_globals.params.Flag_IncludeRecombinations) {
       N_rec_unfiltered[ii] /= total_n_cells;
     }
@@ -189,7 +215,11 @@ void _find_HII_bubbles(const int snapshot)
     // copy the k-space grids
     memcpy(deltax_filtered, deltax_unfiltered, sizeof(fftwf_complex) * slab_n_complex);
     memcpy(stars_filtered, stars_unfiltered, sizeof(fftwf_complex) * slab_n_complex);
-    memcpy(sfr_filtered, sfr_unfiltered, sizeof(fftwf_complex) * slab_n_complex);
+    memcpy(weighted_sfr_filtered, weighted_sfr_unfiltered, sizeof(fftwf_complex) * slab_n_complex);
+#if USE_MINI_HALOS
+    memcpy(starsIII_filtered, starsIII_unfiltered, sizeof(fftwf_complex) * slab_n_complex);
+    memcpy(weighted_sfrIII_filtered, weighted_sfrIII_unfiltered, sizeof(fftwf_complex) * slab_n_complex);
+#endif
 
     if (run_globals.params.Flag_IncludeRecombinations) {
       memcpy(N_rec_filtered, N_rec_unfiltered, sizeof(fftwf_complex) * slab_n_complex);
@@ -203,7 +233,17 @@ void _find_HII_bubbles(const int snapshot)
     if (!flag_last_filter_step) {
       filter(deltax_filtered, local_ix_start, local_nix, ReionGridDim, (float)R, run_globals.params.ReionFilterType);
       filter(stars_filtered, local_ix_start, local_nix, ReionGridDim, (float)R, run_globals.params.ReionFilterType);
-      filter(sfr_filtered, local_ix_start, local_nix, ReionGridDim, (float)R, run_globals.params.ReionFilterType);
+      filter(
+        weighted_sfr_filtered, local_ix_start, local_nix, ReionGridDim, (float)R, run_globals.params.ReionFilterType);
+#if USE_MINI_HALOS
+      filter(starsIII_filtered, local_ix_start, local_nix, ReionGridDim, (float)R, run_globals.params.ReionFilterType);
+      filter(weighted_sfrIII_filtered,
+             local_ix_start,
+             local_nix,
+             ReionGridDim,
+             (float)R,
+             run_globals.params.ReionFilterType);
+#endif
 
       if (run_globals.params.Flag_IncludeRecombinations) {
         filter(N_rec_filtered, local_ix_start, local_nix, ReionGridDim, (float)R, run_globals.params.ReionFilterType);
@@ -216,7 +256,11 @@ void _find_HII_bubbles(const int snapshot)
     // inverse fourier transform back to real space
     fftwf_execute(run_globals.reion_grids.deltax_filtered_reverse_plan);
     fftwf_execute(run_globals.reion_grids.stars_filtered_reverse_plan);
-    fftwf_execute(run_globals.reion_grids.sfr_filtered_reverse_plan);
+    fftwf_execute(run_globals.reion_grids.weighted_sfr_filtered_reverse_plan);
+#if USE_MINI_HALOS
+    fftwf_execute(run_globals.reion_grids.starsIII_filtered_reverse_plan);
+    fftwf_execute(run_globals.reion_grids.weighted_sfrIII_filtered_reverse_plan);
+#endif
 
     if (run_globals.params.Flag_IncludeRecombinations) {
       fftwf_execute(run_globals.reion_grids.N_rec_filtered_reverse_plan);
@@ -236,10 +280,22 @@ void _find_HII_bubbles(const int snapshot)
           if (((float*)stars_filtered)[i_padded] < ABS_TOL) {
             ((float*)stars_filtered)[i_padded] = 0;
           }
-          ((float*)sfr_filtered)[i_padded] = fmaxf(((float*)sfr_filtered)[i_padded], 0.0);
-          if (((float*)sfr_filtered)[i_padded] < ABS_TOL) {
-            ((float*)sfr_filtered)[i_padded] = 0;
+          ((float*)weighted_sfr_filtered)[i_padded] = fmaxf(((float*)weighted_sfr_filtered)[i_padded], 0.0);
+          if (((float*)weighted_sfr_filtered)[i_padded] < ABS_TOL) {
+            ((float*)weighted_sfr_filtered)[i_padded] = 0;
           }
+
+#if USE_MINI_HALOS
+          ((float*)starsIII_filtered)[i_padded] = fmaxf(((float*)starsIII_filtered)[i_padded], 0.0);
+          if (((float*)starsIII_filtered)[i_padded] < ABS_TOL) {
+            ((float*)starsIII_filtered)[i_padded] = 0;
+          }
+
+          ((float*)weighted_sfrIII_filtered)[i_padded] = fmaxf(((float*)weighted_sfrIII_filtered)[i_padded], 0.0);
+          if (((float*)weighted_sfrIII_filtered)[i_padded] < ABS_TOL) {
+            ((float*)weighted_sfrIII_filtered)[i_padded] = 0;
+          }
+#endif
 
           if (run_globals.params.Flag_IncludeRecombinations) {
             ((float*)N_rec_filtered)[i_padded] = fmaxf(((float*)N_rec_filtered)[i_padded], 0.0);
@@ -264,15 +320,22 @@ void _find_HII_bubbles(const int snapshot)
                         PLANCK * 1e21 // * run_globals.params.physics.ReionEscapeFrac
                         * R * units->UnitLength_in_cm * ReionNionPhotPerBary / PROTONMASS * units->UnitMass_in_g /
                         pow(units->UnitLength_in_cm, 3) / units->UnitTime_in_s;
+#if USE_MINI_HALOS
+    J_21_auxIII_constant = J_21_aux_constant / ReionNionPhotPerBary * ReionNionPhotPerBaryIII;
+#endif
 
     if (run_globals.params.Flag_IncludeRecombinations) {
       Gamma_R_prefactor = (1.0 + redshift) * (1.0 + redshift) * R *
                           (units->UnitLength_in_cm / run_globals.params.Hubble_h) * SIGMA_HI *
                           run_globals.params.physics.ReionAlphaUV / (run_globals.params.physics.ReionAlphaUV + 2.75) /
                           1.0e-12; // Converting R h^-1 to R.
+
       Gamma_R_prefactor *= (units->UnitMass_in_g / units->UnitTime_in_s) *
                            pow(units->UnitLength_in_cm / run_globals.params.Hubble_h, -3.) * ReionNionPhotPerBary /
                            PROTONMASS; // Convert pixel volume (Mpc/h)^3 -> (cm)^3
+#if USE_MINI_HALOS
+      Gamma_R_prefactorIII = Gamma_R_prefactor / ReionNionPhotPerBary * ReionNionPhotPerBaryIII;
+#endif
     }
 
     double M_mean = RtoM(R);
@@ -288,8 +351,13 @@ void _find_HII_bubbles(const int snapshot)
 
           f_coll_stars = (double)((float*)stars_filtered)[i_padded] / (M_mean * density_over_mean) * (4.0 / 3.0) *
                          M_PI * R_cubed / pixel_volume;
-
-          sfr_density = (double)((float*)sfr_filtered)[i_padded] / pixel_volume; // In internal units
+          weighted_sfr_density = (double)((float*)weighted_sfr_filtered)[i_padded] / pixel_volume; // In internal units
+#if USE_MINI_HALOS
+          f_coll_starsIII = (double)((float*)starsIII_filtered)[i_padded] / (M_mean * density_over_mean) * (4.0 / 3.0) *
+                            M_PI * R_cubed / pixel_volume;
+          weighted_sfr_densityIII =
+            (double)((float*)weighted_sfrIII_filtered)[i_padded] / pixel_volume; // In internal units
+#endif
 
           // Calculate the recombinations within the cell
           if (run_globals.params.Flag_IncludeRecombinations) {
@@ -298,26 +366,44 @@ void _find_HII_bubbles(const int snapshot)
 
           // Account for the partial ionisation of the cell from X-rays
           if (run_globals.params.Flag_IncludeSpinTemp) {
-            electron_fraction = 1.0 - ((float*)x_e_filtered)[i_padded];
+            neutral_fraction = 1.0 - ((float*)x_e_filtered)[i_padded];
           } else {
-            electron_fraction = 1.0;
+            neutral_fraction = 1.0;
           }
 
-          if (flag_ReionUVBFlag)
-            J_21_aux = (float)(sfr_density * J_21_aux_constant);
+          if (flag_ReionUVBFlag) {
+            J_21_aux = (float)(weighted_sfr_density * J_21_aux_constant);
+#if USE_MINI_HALOS
+            J_21_auxIII = (float)(weighted_sfr_densityIII * J_21_auxIII_constant);
+#endif
+          }
 
           // Modified reionisation condition, including recombinations and partial ionisations from X-rays
           // Check if ionised!
-          if (f_coll_stars > (electron_fraction / ReionEfficiency) * (1. + rec)) // IONISED!!!!
+
+#if USE_MINI_HALOS
+          if ((f_coll_stars * ReionEfficiency + f_coll_starsIII * ReionEfficiencyIII) >
+              neutral_fraction * (1. + rec)) // IONISED!!!!
+#else
+          if (f_coll_stars * ReionEfficiency > neutral_fraction * (1. + rec))
+#endif
           {
             // If it is the first crossing of the ionisation barrier for this cell (largest R), let's record J_21
             if (xH[i_real] > REL_TOL) {
               if (flag_ReionUVBFlag)
+#if USE_MINI_HALOS
+                J_21[i_real] = J_21_aux + J_21_auxIII;
+#else
                 J_21[i_real] = J_21_aux;
-
+#endif
               // Store the ionisation background and the reionisation redshift for each cell
               if (run_globals.params.Flag_IncludeRecombinations) {
-                Gamma12[i_real] = (float)(Gamma_R_prefactor * sfr_density);
+#if USE_MINI_HALOS
+                Gamma12[i_real] =
+                  (float)(Gamma_R_prefactor * weighted_sfr_density + Gamma_R_prefactorIII * weighted_sfr_densityIII);
+#else
+                Gamma12[i_real] = (float)(Gamma_R_prefactor * weighted_sfr_density);
+#endif
               }
             }
 
@@ -330,7 +416,12 @@ void _find_HII_bubbles(const int snapshot)
           // Check if this is the last filtering step.
           // If so, assign partial ionisations to those cells which aren't fully ionised
           else if (flag_last_filter_step && (xH[i_real] > REL_TOL)) {
-            xH[i_real] = (float)(electron_fraction - f_coll_stars * ReionEfficiency);
+#if USE_MINI_HALOS
+            xH[i_real] =
+              (float)(neutral_fraction - (f_coll_stars * ReionEfficiency + f_coll_starsIII * ReionEfficiencyIII));
+#else
+            xH[i_real] = (float)(neutral_fraction - f_coll_stars * ReionEfficiency);
+#endif
             if (xH[i_real] < 0.) {
               xH[i_real] = (float)0.;
             } else if (xH[i_real] > 1.0) {
@@ -344,7 +435,12 @@ void _find_HII_bubbles(const int snapshot)
           {
             z_in[i_real] = (float)redshift;
             if (flag_ReionUVBFlag)
+#if USE_MINI_HALOS
+              run_globals.reion_grids.J_21_at_ionization[i_real] =
+                (J_21_aux + J_21_auxIII) * (float)ReionGammaHaloBias; // Is HaloBias the same for PopIII / Pop II?
+#else
               run_globals.reion_grids.J_21_at_ionization[i_real] = J_21_aux * (float)ReionGammaHaloBias;
+#endif
           }
         }
     // iz
@@ -366,7 +462,11 @@ void _find_HII_bubbles(const int snapshot)
         i_padded = grid_index(ix, iy, iz, ReionGridDim, INDEX_PADDED);
         double cell_xH = (double)(xH[i_real]);
         volume_weighted_global_xH += cell_xH;
-        volume_weighted_global_J_21 += (double)J_21[i_real];
+
+        if (flag_ReionUVBFlag) {
+          volume_weighted_global_J_21 += (double)J_21[i_real];
+        }
+
         density_over_mean = 1.0 + (double)((float*)deltax)[i_padded];
         mass_weighted_global_xH += cell_xH * density_over_mean;
         mass_weight += density_over_mean;
@@ -380,12 +480,16 @@ void _find_HII_bubbles(const int snapshot)
       }
 
   MPI_Allreduce(MPI_IN_PLACE, &volume_weighted_global_xH, 1, MPI_DOUBLE, MPI_SUM, run_globals.mpi_comm);
-  MPI_Allreduce(MPI_IN_PLACE, &volume_weighted_global_J_21, 1, MPI_DOUBLE, MPI_SUM, run_globals.mpi_comm);
+  if (flag_ReionUVBFlag) {
+    MPI_Allreduce(MPI_IN_PLACE, &volume_weighted_global_J_21, 1, MPI_DOUBLE, MPI_SUM, run_globals.mpi_comm);
+  }
   MPI_Allreduce(MPI_IN_PLACE, &mass_weighted_global_xH, 1, MPI_DOUBLE, MPI_SUM, run_globals.mpi_comm);
   MPI_Allreduce(MPI_IN_PLACE, &mass_weight, 1, MPI_DOUBLE, MPI_SUM, run_globals.mpi_comm);
 
   volume_weighted_global_xH /= total_n_cells;
-  volume_weighted_global_J_21 /= total_n_cells;
+  if (flag_ReionUVBFlag) {
+    volume_weighted_global_J_21 /= total_n_cells;
+  }
   mass_weighted_global_xH /= mass_weight;
   run_globals.reion_grids.volume_weighted_global_xH = volume_weighted_global_xH;
   run_globals.reion_grids.volume_weighted_global_J_21 = volume_weighted_global_J_21;

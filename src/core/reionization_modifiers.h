@@ -6,7 +6,7 @@ extern "C"
 {
 #endif
 
-  void read_Mcrit_table(void);
+  void read_Mcrit_table(int flag_MC);
 
 #ifdef __cplusplus
 }

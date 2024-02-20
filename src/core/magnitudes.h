@@ -19,10 +19,16 @@ extern "C"
 #endif
 
   void init_luminosities(struct galaxy_t* gal);
-  void add_luminosities(mag_params_t* miniSpectra, struct galaxy_t* gal, int snapshot, double metals, double sfr);
+  void add_luminosities(mag_params_t* miniSpectra,
+                        struct galaxy_t* gal,
+                        int snapshot,
+                        double metals,
+                        double sfr,
+                        double new_stars);
   void merge_luminosities(struct galaxy_t* target, struct galaxy_t* gal);
   void init_templates_mini(mag_params_t* miniSpectra,
                            char* fName,
+                           char* fNameIII,
                            double* LTTime,
                            int* targetSnaps,
                            double* redshifts,

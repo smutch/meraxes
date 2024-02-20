@@ -5,23 +5,11 @@ Meraxes
 
 The Meraxes semi-analytic galaxy formation model.
 
-**Author**: [Simon Mutch](http://www.ph.unimelb.edu.au/~smutch/index.html) (*The University of Melbourne*)
+> [!WARNING]
+> This code is in pre-release phase and contains unpublished physical recipes and code implementations.  Please do not distribute this code without permission or copy any portions.  All rights reserved!
 
-**Note: This code is in pre-release phase and contains unpublished physical recipes and code implementations.  Please do not distribute this code without permission or copy any portions.  All rights reserved!**
-
-Requirements
-------------
-
-* [GSL](https://www.gnu.org/software/gsl/)
-* [FFTW3](http://www.fftw.org) built with `--enable-float --enable-mpi` ([see installation docs](http://www.fftw.org/fftw3_doc/Installation-on-Unix.html#Installation-on-Unix)).
-* [MLOG](https://github.com/smutch/mlog) (This is packaged with Meraxes as a git submodule and will be built automatically.)
-* [HDF5](https://support.hdfgroup.org/HDF5/) built with MPI bindings.
-
-
-Optional
---------
-
-* A NVIDIA GPU and [CUDA](https://developer.nvidia.com/cuda-zone) to accelerate the reionisation calcuation
+> [!TIP]
+> See `BUILD.md` for detailed build instructions.
 
 
 Attribution
@@ -48,24 +36,31 @@ archivePrefix = "arXiv",
 }
 ```
 
-For the AGN model, please cite [Qin et al. 2017 (arXiv:1703.04895)](https://ui.adsabs.harvard.edu/#abs/2017arXiv170304895Q/abstract).
+If you use any of the following features, please also cite the relevant papers:
 
+AGN model
+: [Qin et al. 2017 (arXiv:1703.04895)](https://ui.adsabs.harvard.edu/#abs/2017arXiv170304895Q/abstract)
+
+Minihalo model
+: [Ventura et al. Subm. (arXiv:2401.07396)](https://ui.adsabs.harvard.edu/abs/2024arXiv240107396V/abstract)
 
 Contributors
 ------------
 
+* **Simon Mutch** (Lead author; *The University of Melbourne*)
 * Paul Geil (*The University of Melbourne*)
 * Yuxiang Qin (*The University of Melbourne*)
 * Hansik Kim (*The University of Melbourne*)
 * Greg Poole (*Astronomy Data and Compute Services*)
 * Yisheng Qiu (*The University of Melbourne*)
 * Brad Greig (*The University of Melbourne*)
+* Emanuele Maria Ventura (*The University of Melbourne*)
 
 
 How to contribute
 =================
 
-1. Fork the [official repository](https://bitbucket.org/dragons-astro/meraxes).
+1. Fork the [official repository](https://github.com/smutch/meraxes).
 2. Make your changes in a new, appropriately named branch (e.g. `mutch_starformation` or `fix_progenitor_order`).
     * All git commit messages should loosely follow the [standard format outlined here](http://tbaggery.com/2008/04/19/a-note-about-git-commit-messages.html).
     * Ensure your new code is commented enough so that others can understand what it's doing.

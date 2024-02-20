@@ -7,8 +7,6 @@
 #include <hdf5.h>
 #include <mlog.h>
 #include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 
 /*
  * Definitions
@@ -27,14 +25,17 @@
 #define AVOGADRO 6.0222e23
 #define BOLTZMANN 1.3806e-16
 #define GAS_CONST 8.31425e7
-#define SPEED_OF_LIGHT 2.9979e10
-#define PLANCK 6.6262e-27 //! [erg/s]
+#define SPEED_OF_LIGHT 2.9979e10 // [cm/s]
+#define PLANCK 6.6262e-27        //! [erg/s]
 #define PROTONMASS 1.6726e-24
 #define HUBBLE 3.2407789e-18 //! [h/sec]
 #define SEC_PER_MEGAYEAR 3.155e13
 #define SEC_PER_YEAR 3.155e7
 #define MPC 3.086e24
 #define TCMB 2.728
+#define NU_LL (double)(3.29e15)
+#define NU_LW (double)(2.71e15)
+#define PLANCK_EV (double)(4.1357e-15)
 
 // ======================================================
 // Don't change these unless you know what you are doing!
@@ -58,7 +59,7 @@ extern "C"
     myexit(sigterm);                                                                                                   \
   } while (0)
 
-//! Physics parameter values
+//! Physics parameter values: duplicate these for Pop. III / Pop. II SF
 typedef struct physics_params_t
 {
   double SfEfficiency;
@@ -89,6 +90,23 @@ typedef struct physics_params_t
   double quasar_open_angle;
   double quasar_fobs;
 
+  double SfCriticalSDNorm_III;
+  double SfEfficiency_III;
+  double SfEfficiencyScaling_III;
+  double SfRecycleFraction_III;
+  double SnReheatRedshiftDep_III;
+  double SnReheatEff_III;
+  double SnReheatLimit_III;
+  double SnReheatScaling_III;
+  double SnReheatScaling2_III;
+  double SnReheatNorm_III;
+  double SnEjectionRedshiftDep_III;
+  double SnEjectionEff_III;
+  double SnEjectionScaling_III;
+  double SnEjectionScaling2_III;
+  double SnEjectionNorm_III;
+  double Yield_III;
+
   double ThreshMajorMerger;
   double MinMergerStellarMass;
   double MinMergerRatioForBurst;
@@ -98,20 +116,38 @@ typedef struct physics_params_t
 
   // TODO: These parameters should be used to set the TOCF HII_EFF_FACTOR value
   double ReionEfficiency;
+  double ReionEfficiencyIII;
   double ReionNionPhotPerBary;
+  double ReionNionPhotPerBaryIII;
   double BlackHoleSeed;
   double BlackHoleMassLimitReion;
   double ReionTcool;
   double Y_He;
 
+  // Pop III IMF parameters
+  double MminIMF;
+  double MmaxIMF;
+  double AlphaIMF;
+  double McharIMF; // for LogNorm
+  double SigmaIMF;
+  int PopIII_IMF;
+  int PopIIIAgePrescription;
+
+  // Parameters for metallicity evolution. These include the parameters for the fitting function of clustering and the
+  // critical metallicity
+  double AlphaCluster;
+  double BetaCluster;
+  double GammaCluster;
+  double NormCluster;
+
+  double ZCrit;
+
   // Parameters to describe the X-ray properties of the sources
-  // Keeping the QSO and Galaxy components separate for now (might be combined in the end)
   double LXrayGal;
   double NuXrayGalThreshold;
   double SpecIndexXrayGal;
-  double LXrayQSO;
-  double NuXrayQSOThreshold;
-  double SpecIndexXrayQSO;
+  double LXrayGalIII;
+  double SpecIndexXrayIII;
   double NuXraySoftCut;
   double NuXrayMax;
 
@@ -125,6 +161,7 @@ typedef struct physics_params_t
   double ReionRBubbleMaxRecomb;
 
   double EscapeFracNorm;
+  double EscapeFracNormIII;
   double EscapeFracRedshiftOffset;
   double EscapeFracRedshiftScaling;
   double EscapeFracPropScaling;
@@ -152,6 +189,7 @@ typedef struct physics_params_t
   int EscapeFracDependency;
   int SfDiskVelOpt;
   int SfPrescription;
+  bool InstantSfIII;
 
   // Flags
   int Flag_ReionizationModifier;
@@ -173,6 +211,7 @@ enum tree_ids
 typedef struct run_params_t
 {
   char DefaultsFile[STRLEN];
+  char SimParamsFile[STRLEN];
   char OutputDir[STRLEN];
   char FileNameGalaxies[STRLEN];
   char SimName[STRLEN];
@@ -184,6 +223,7 @@ typedef struct run_params_t
   char BetaBands[STRLEN];
   char RestBands[STRLEN];
   double BirthCloudLifetime;
+  double DeltaT; // New Parameter added to consider different time of observation! Very important for Pop. III
   char CoolingFuncsDir[STRLEN];
   char StellarFeedbackDir[STRLEN];
   char TablesForXHeatingDir[STRLEN];
@@ -192,6 +232,7 @@ typedef struct run_params_t
   char MagBands[STRLEN];
   char ForestIDFile[STRLEN];
   char MvirCritFile[STRLEN];
+  char MvirCritMCFile[STRLEN];
   char MassRatioModifier[STRLEN];
   char BaryonFracModifier[STRLEN];
   char FFTW3WisdomDir[STRLEN];
@@ -213,6 +254,7 @@ typedef struct run_params_t
   long long NPart;
 
   double* MvirCrit;
+  double* MvirCrit_MC;
 
   double ReionDeltaRFactor;
   double ReionPowerSpecDeltaK;
@@ -221,6 +263,7 @@ typedef struct run_params_t
   int TsHeatingFilterType;
   int ReionRtoMFilterType;
   int ReionUVBFlag;
+  int MetalGridDim;
 
   enum tree_ids TreesID;
   int FirstFile;
@@ -233,6 +276,9 @@ typedef struct run_params_t
   int FlagMCMC;
   int Flag_PatchyReion;
   int Flag_IncludeSpinTemp;
+  int Flag_IncludeLymanWerner;
+  int Flag_IncludeStreamVel;
+  int Flag_IncludeMetalEvo; // New for Metallicity
   int Flag_IncludeRecombinations;
   int Flag_Compute21cmBrightTemp;
   int Flag_ComputePS;
@@ -249,7 +295,6 @@ typedef struct run_params_t
   long long LightconeLength;
   long long CurrentLCPos;
   int PS_Length;
-  int Flag_SeparateQSOXrays;
   int Flag_OutputGrids;
   int Flag_OutputGridsPostReion;
   int FlagIgnoreProgIndex;
@@ -290,6 +335,33 @@ typedef struct hdf5_output_t
   // TOTAL : 52 + 4 padding (must be multiple of 8)
 } hdf5_output_t;
 
+#if USE_MINI_HALOS
+typedef struct metal_grids_t // New stuff for MetalEvo, probably you will need to add new stuff
+{
+  ptrdiff_t* slab_nix_metals;
+  ptrdiff_t* slab_ix_start_metals;
+
+  float* buffer_metals;
+
+  struct gal_to_slab_t* galaxy_to_slab_map_metals;
+
+  double volume_ave_ZIGM;        // Is it necessary? Maybe this one could be used as a log message
+  double volume_ave_mass_metals; // Is it necessary?
+
+  int buffer_size_metals;
+
+  float* N_bubbles;
+  float* mass_IGM; // It's the total! Computed from the overdensity and you sum the galaxy net contribution (mass_gas)
+  float* mass_metals;
+  float* mass_gas; // The one coming from galaxies (Ejected - Hot - Cold)
+  float* Zigm_box;
+  float* Probability_metals;
+  float* R_ave; // Average radius in the bubble
+  float* R_max; // Max radius in the bubble
+
+} metal_grids_t;
+#endif
+
 typedef struct reion_grids_t
 {
   ptrdiff_t* slab_nix;
@@ -311,16 +383,43 @@ typedef struct reion_grids_t
   fftwf_plan deltax_filtered_reverse_plan;
 
   float* sfr;
+  float* weighted_sfr;
   fftwf_complex* sfr_unfiltered;
   fftwf_complex* sfr_filtered;
+  fftwf_complex* weighted_sfr_unfiltered;
+  fftwf_complex* weighted_sfr_filtered;
   fftwf_plan sfr_forward_plan;
+  fftwf_plan weighted_sfr_forward_plan;
   fftwf_plan sfr_filtered_reverse_plan;
+  fftwf_plan weighted_sfr_filtered_reverse_plan;
+
+#if USE_MINI_HALOS
+  float* starsIII;
+  fftwf_complex* starsIII_unfiltered;
+  fftwf_complex* starsIII_filtered;
+  fftwf_plan starsIII_forward_plan;
+  fftwf_plan starsIII_filtered_reverse_plan;
+
+  float* sfrIII;
+  float* weighted_sfrIII;
+  fftwf_complex* sfrIII_unfiltered;
+  fftwf_complex* sfrIII_filtered;
+  fftwf_complex* weighted_sfrIII_unfiltered;
+  fftwf_complex* weighted_sfrIII_filtered;
+  fftwf_plan sfrIII_forward_plan;
+  fftwf_plan weighted_sfrIII_forward_plan;
+  fftwf_plan sfrIII_filtered_reverse_plan;
+  fftwf_plan weighted_sfrIII_filtered_reverse_plan;
+#endif
 
   float* xH;
   float* z_at_ionization;
   float* J_21_at_ionization;
   float* J_21;
   float* Mvir_crit;
+#if USE_MINI_HALOS
+  float* Mvir_crit_MC;
+#endif
   float* r_bubble;
 
   // Grids necessary for the IGM spin temperature
@@ -335,8 +434,23 @@ typedef struct reion_grids_t
   float* Tk_box_prev;
   float* TS_box;
 
+#if USE_MINI_HALOS
+  float* Tk_boxII;
+  float* Tk_box_prevII;
+  float* TS_boxII;
+#endif
+
   double* SMOOTHED_SFR_GAL;
-  double* SMOOTHED_SFR_QSO;
+#if USE_MINI_HALOS
+  double* SMOOTHED_SFR_III;
+#endif
+
+  // Grids necessary for LW background and future disentangling between MC/AC Pop3/Pop2 stuff
+
+#if USE_MINI_HALOS
+  float* JLW_box;
+  float* JLW_boxII;
+#endif
 
   // Grids necessary for inhomogeneous recombinations
   float* z_re;
@@ -352,6 +466,10 @@ typedef struct reion_grids_t
   // Grids necessary for the 21cm brightness temperature
   float* delta_T;
   float* delta_T_prev;
+#if USE_MINI_HALOS
+  float* delta_TII;
+  float* delta_TII_prev;
+#endif
   float* vel;
   fftwf_complex* vel_gradient;
   fftwf_plan vel_forward_plan;
@@ -365,6 +483,11 @@ typedef struct reion_grids_t
   float* PS_k;
   float* PS_data;
   float* PS_error;
+
+#if USE_MINI_HALOS
+  float* PSII_data;
+  float* PSII_error;
+#endif
 
   struct gal_to_slab_t* galaxy_to_slab_map;
 
@@ -380,6 +503,15 @@ typedef struct reion_grids_t
   double volume_ave_TK;
   double volume_ave_xe;
   double volume_ave_Tb;
+#if USE_MINI_HALOS
+  double volume_ave_J_alphaII;
+  double volume_ave_J_LW;
+  double volume_ave_J_LWII;
+  double volume_ave_XheatII;
+  double volume_ave_TSII;
+  double volume_ave_TKII;
+  double volume_ave_TbII;
+#endif
 
   int started;
   int finished;
@@ -390,11 +522,19 @@ typedef struct reion_grids_t
 typedef struct galaxy_t
 {
   double NewStars[N_HISTORY_SNAPS];
+#if USE_MINI_HALOS
+  double NewStars_II[N_HISTORY_SNAPS]; // New
+  double NewStars_III[N_HISTORY_SNAPS];
+#endif
   double NewMetals[N_HISTORY_SNAPS];
 
 #ifdef CALC_MAGS
   double inBCFlux[MAGS_N];
   double outBCFlux[MAGS_N];
+#if USE_MINI_HALOS
+  double inBCFluxIII[MAGS_N];
+  double outBCFluxIII[MAGS_N];
+#endif
 #endif
 
   // Unique ID for the galaxy
@@ -443,6 +583,37 @@ typedef struct galaxy_t
   double BlackHoleAccretedColdMass;
   double BlackHoleAccretingColdMass;
 
+  int Galaxy_Population; // You need it also if you are not disentangling PopIII/PopII (when Mini_halos is off, this is
+                         // = 2)
+#if USE_MINI_HALOS
+  // Differentiation Pop III / Pop II
+  double StellarMass_II;
+  double StellarMass_III;
+  double GrossStellarMassIII;
+  double FescIII;
+  double FescIIIWeightedGSM;
+
+  double Remnant_Mass; // Coming from Pop III with M between 40 and 140 and larger than 260 Msol and remnant of CCSN
+                       // [8,40]Msun. Atm those are silent.
+
+  // Metallicity stuff
+  double RmetalBubble; // New for MetalEvo
+  double PrefactorBubble;
+  double TimeBubble;
+  double Metal_Probability;    // Probability to be polluted by other metal bubbles
+  double GalMetal_Probability; // Random number between 0 and 1 associated to the galaxy.
+  double Metals_IGM;
+  double Gas_IGM;
+  double Metallicity_IGM; //
+  double MaxBubble;       // Need this for Boost probability
+  double AveBubble;   // Same (you will likely use only one of the two). You could actually save only the boost factor
+  int Flag_ExtMetEnr; // 0 if not enriched from a bubble, 1 yes.
+
+  double Prefactor[N_HISTORY_SNAPS]; // here you store the prefactors of the metal bubbles
+  double Times[N_HISTORY_SNAPS];     // Time at which the SN explode!
+  double Radii[N_HISTORY_SNAPS];
+#endif
+
   // baryonic hostories
   double mwmsa_num;
   double mwmsa_denom;
@@ -455,6 +626,7 @@ typedef struct galaxy_t
   double BaryonFracModifier;
   double FOFMvirModifier;
   double MvirCrit;
+  double MvirCrit_MC;
   double MergerBurstMass;
 
   int Type;
@@ -553,6 +725,10 @@ typedef struct mag_params_t
   double* outBC;
   double* centreWaves;
   double* logWaves;
+#ifdef USE_MINI_HALOS
+  size_t totalSizeIII;
+  double* workingIII;
+#endif
 } mag_params_t;
 #endif
 
@@ -562,6 +738,9 @@ typedef struct run_globals_t
   struct run_params_t params;
   char FNameOut[STRLEN];
   reion_grids_t reion_grids;
+#if USE_MINI_HALOS
+  metal_grids_t metal_grids;
+#endif
   struct run_units_t units;
   hdf5_output_t hdf5props;
 
@@ -573,6 +752,7 @@ typedef struct run_globals_t
   double* AA;
   double* ZZ;
   double* LTTime;
+  double* rhocrit;
   long* RequestedForestId;
   int RequestedMassRatioModifier;
   int RequestedBaryonFracModifier;
@@ -591,6 +771,17 @@ typedef struct run_globals_t
   double RhoCrit;
   double G;
   double Csquare;
+  // PopIII stuff
+
+  double IMFnorm;
+  double NumberPISN;
+  double MassPISN;
+  double NumberSNII;
+  double MassSNII;
+  double MassBHs;
+
+  float* Mass_Values;
+  float* Time_Values;
 
 #ifdef CALC_MAGS
   struct mag_params_t mag_params;
@@ -638,6 +829,7 @@ extern "C"
 
   // core/magnitudes.c
   void get_output_magnitudes(float* mags, float* dusty_mags, galaxy_t* gal, int snapshot);
+  void get_output_magnitudesIII(float* mags, galaxy_t* gal, int snapshot);
 
 // MCMC related
 // meraxes_mhysa_hook must be implemented by the calling code (Mhysa)!

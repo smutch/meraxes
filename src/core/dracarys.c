@@ -10,6 +10,13 @@
 #include "physics/reionization.h"
 #include "read_halos.h"
 #include "reionization.h"
+#if USE_MINI_HALOS
+#include "PopIII.h"
+#include "metal_evo.h"
+#include "read_grids.h"
+#include "stellar_feedback.h"
+#include "virial_properties.h" 
+#endif
 #include "save.h"
 #include "tree_flags.h"
 
@@ -78,6 +85,11 @@ void dracarys()
     int merger_counter = 0;
     int new_gal_counter = 0;
     int ghost_counter = 0;
+#if USE_MINI_HALOS
+    int gal_counter_Pop3 = 0;     // Newly formed Pop3 Gal
+    int gal_counter_Pop2 = 0;     // Newly formed Pop2 Gal
+    int gal_counter_enriched = 0; // Enriched but they could be still Pop3
+#endif
 
     mlog("", MLOG_MESG);
     mlog("===============================================================", MLOG_MESG);
@@ -107,8 +119,14 @@ void dracarys()
     mlog("Processing snapshot %d (z = %.2f)...", MLOG_OPEN | MLOG_TIMERSTART, snapshot, run_globals.ZZ[snapshot]);
 
     // Calculate the critical halo mass for cooling
-    if ((run_globals.params.Flag_PatchyReion) && (run_globals.params.ReionUVBFlag))
+    if ((run_globals.params.Flag_PatchyReion) && (run_globals.params.ReionUVBFlag)) {
       calculate_Mvir_crit(run_globals.ZZ[snapshot]);
+
+#if USE_MINI_HALOS
+      if (run_globals.params.Flag_IncludeLymanWerner)
+        calculate_Mvir_crit_MC(run_globals.ZZ[snapshot]);
+#endif
+    }
 
     // Reset the halo pointers and ghost flags for all galaxies and decrement
     // the snapskip counter
@@ -293,13 +311,38 @@ void dracarys()
 
     if (run_globals.params.Flag_PatchyReion) {
       int ngals_in_slabs = map_galaxies_to_slabs(NGal);
-      if (run_globals.params.ReionUVBFlag)
-        assign_Mvir_crit_to_galaxies(ngals_in_slabs);
+      if (run_globals.params.ReionUVBFlag) {
+        assign_Mvir_crit_to_galaxies(ngals_in_slabs, 1);
+#if USE_MINI_HALOS
+        if (run_globals.params.Flag_IncludeLymanWerner)
+          assign_Mvir_crit_to_galaxies(ngals_in_slabs, 2);
+#endif
+      }
     }
+
+#if USE_MINI_HALOS
+    if (run_globals.params.Flag_IncludeMetalEvo) { // Need this for metal grid, here you assign to galaxies their
+                                                   // metallicity and probabilities from bubbles
+      int ngals_in_metal_slabs = map_galaxies_to_slabs_metals(NGal);
+      for (int ii = 0; ii < 5; ii++) {
+        assign_probability_to_galaxies(ngals_in_metal_slabs, snapshot, ii);
+      }
+    }
+#endif
 
     // Do the physics
     if (NGal > 0)
+#if USE_MINI_HALOS
+      nout_gals = evolve_galaxies(fof_group,
+                                  snapshot,
+                                  NGal,
+                                  trees_info.n_fof_groups,
+                                  &gal_counter_Pop3,
+                                  &gal_counter_Pop2,
+                                  &gal_counter_enriched);
+#else
       nout_gals = evolve_galaxies(fof_group, snapshot, NGal, trees_info.n_fof_groups);
+#endif
     else
       nout_gals = 0;
 
@@ -352,6 +395,16 @@ void dracarys()
       free(run_globals.reion_grids.galaxy_to_slab_map);
     }
 
+#if USE_MINI_HALOS
+    if (run_globals.params.Flag_IncludeMetalEvo) {
+
+      construct_metal_grids(snapshot, nout_gals);
+      smooth_Densitygrid_real(snapshot);
+      save_metal_input_grids(snapshot);
+      free(run_globals.metal_grids.galaxy_to_slab_map_metals);
+    }
+#endif
+
 #ifdef DEBUG
     // print some statistics for this snapshot
     MPI_Allreduce(MPI_IN_PLACE, &merger_counter, 1, MPI_INT, MPI_SUM, run_globals.mpi_comm);
@@ -363,6 +416,16 @@ void dracarys()
     mlog("Killed galaxies                   :: %d", MLOG_MESG, kill_counter);
     mlog("Newly created galaxies            :: %d", MLOG_MESG, new_gal_counter);
     mlog("Galaxies in ghost halos           :: %d", MLOG_MESG, ghost_counter);
+
+#if USE_MINI_HALOS
+    MPI_Allreduce(MPI_IN_PLACE, &gal_counter_Pop3, 1, MPI_INT, MPI_SUM, run_globals.mpi_comm);
+    MPI_Allreduce(MPI_IN_PLACE, &gal_counter_enriched, 1, MPI_INT, MPI_SUM, run_globals.mpi_comm);
+    MPI_Allreduce(MPI_IN_PLACE, &gal_counter_Pop2, 1, MPI_INT, MPI_SUM, run_globals.mpi_comm);
+
+    mlog("Newly formed PopIII gal           :: %d", MLOG_MESG, gal_counter_Pop3);
+    mlog("Newly formed enriched gal         :: %d", MLOG_MESG, gal_counter_enriched);
+    mlog("Newly formed PopII gal            :: %d", MLOG_MESG, gal_counter_Pop2);
+#endif
 #endif
 
     // Write the results if this is a requested snapshot
