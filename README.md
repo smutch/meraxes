@@ -5,9 +5,6 @@ Meraxes
 
 The Meraxes semi-analytic galaxy formation model.
 
-> [!WARNING]
-> This code is in pre-release phase and contains unpublished physical recipes and code implementations.  Please do not distribute this code without permission or copy any portions.  All rights reserved!
-
 > [!TIP]
 > See `BUILD.md` for detailed build instructions.
 
